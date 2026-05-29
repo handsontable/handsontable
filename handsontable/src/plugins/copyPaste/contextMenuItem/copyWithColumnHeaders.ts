@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import { CONTEXTMENU_ITEMS_COPY_WITH_COLUMN_HEADERS } from '../../../i18n/constants';
 import { clamp } from '../../../helpers/number';
 
@@ -15,7 +16,7 @@ interface CopyPastePluginLike {
 export default function copyWithColumnHeadersItem(copyPastePlugin: CopyPastePluginLike) {
   return {
     key: 'copy_with_column_headers',
-    name(): string {
+    name(this: HotInstance): string {
       const activeSelectedRange = this.getSelectedRangeActive();
       const nounForm = activeSelectedRange ? clamp(activeSelectedRange.getWidth() - 1, 0, 1) : 0;
 
@@ -24,7 +25,7 @@ export default function copyWithColumnHeadersItem(copyPastePlugin: CopyPastePlug
     callback() {
       copyPastePlugin.copyWithColumnHeaders();
     },
-    disabled() {
+    disabled(this: HotInstance) {
       if (!this.hasColHeaders()) {
         return true;
       }

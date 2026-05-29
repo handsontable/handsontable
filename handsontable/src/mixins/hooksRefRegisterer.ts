@@ -23,7 +23,7 @@ const hooksRefRegisterer: HooksRefRegisterer = {
   /**
    * Internal hooks storage.
    */
-  _hooksStorage: Object.create(null),
+  _hooksStorage: Object.create(null) as Record<string, Function[]>,
 
   /**
    * Add hook to the collection.

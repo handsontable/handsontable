@@ -99,8 +99,7 @@ module.exports = {
         // @typescript-eslint rules — type-aware linting via projectService
         '@typescript-eslint/no-explicit-any': 'error',
         '@typescript-eslint/consistent-type-imports': ['error', { disallowTypeAnnotations: false }],
-        // no-unsafe-assignment: ~575 violations — fix incrementally and promote to error
-        '@typescript-eslint/no-unsafe-assignment': 'warn',
+        '@typescript-eslint/no-unsafe-assignment': 'error',
         '@typescript-eslint/no-unsafe-return': 'error',
         '@typescript-eslint/no-floating-promises': 'error',
         '@typescript-eslint/no-misused-promises': 'error',

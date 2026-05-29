@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import { arrayEach, arrayMap } from '../../../helpers/array';
 import * as C from '../../../i18n/constants';
 
@@ -10,12 +11,12 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
 
   return {
     key: 'hidden_rows_show',
-    name(): string {
+    name(this: HotInstance): string {
       const pluralForm = rows.length > 1 ? 1 : 0;
 
       return (this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_ROW, pluralForm) as string);
     },
-    callback() {
+    callback(this: HotInstance) {
       if (rows.length === 0) {
         return;
       }
@@ -46,9 +47,9 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
       }
     },
     disabled: false,
-    hidden() {
+    hidden(this: HotInstance) {
       const hiddenPhysicalRows = arrayMap(hiddenRowsPlugin.getHiddenRows(), (visualRowIndex): number | null => {
-        return (this.toPhysicalRow(visualRowIndex) as number | null);
+        return this.toPhysicalRow(visualRowIndex as number);
       });
 
       if (!(this.selection.isSelectedByRowHeader() || this.selection.isSelectedByCorner()) ||
@@ -59,8 +60,18 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
       rows.length = 0;
 
       const selectedRangeActive = this.getSelectedRangeActive();
+
+      if (!selectedRangeActive) {
+        return true;
+      }
+
       const visualStartRow = selectedRangeActive.getTopStartCorner().row;
       const visualEndRow = selectedRangeActive.getBottomEndCorner().row;
+
+      if (visualStartRow === null || visualEndRow === null) {
+        return true;
+      }
+
       const rowIndexMapper = this.rowIndexMapper;
       const renderableStartRow = rowIndexMapper.getRenderableFromVisualIndex(visualStartRow);
       const renderableEndRow = rowIndexMapper.getRenderableFromVisualIndex(visualEndRow);
@@ -68,6 +79,10 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
       const physicalRowIndexes = [];
 
       if (visualStartRow !== visualEndRow) {
+        if (renderableEndRow === null || renderableStartRow === null) {
+          return true;
+        }
+
         const visualRowsInRange = visualEndRow - visualStartRow + 1;
         const renderedRowsInRange = renderableEndRow - renderableStartRow + 1;
 
@@ -93,8 +108,12 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
       } else {
         const lastVisualIndex = this.countRows() - 1;
         const lastRenderableIndex = rowIndexMapper.getRenderableFromVisualIndex(
-          rowIndexMapper.getNearestNotHiddenIndex(lastVisualIndex, -1)
+          rowIndexMapper.getNearestNotHiddenIndex(lastVisualIndex, -1) ?? lastVisualIndex
         );
+
+        if (renderableEndRow === null) {
+          return true;
+        }
 
         // Handled row is the last rendered index and there are some visual indexes after it.
         if (renderableEndRow === lastRenderableIndex && lastVisualIndex > visualEndRow) {

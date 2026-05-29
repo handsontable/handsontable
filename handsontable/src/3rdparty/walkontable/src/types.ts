@@ -98,6 +98,24 @@ export interface DataAccessObject {
   bottomOverlay: WalkontableOverlay;
   inlineStartOverlay: WalkontableOverlay;
   workspaceWidth: number;
+  startColumnRendered: number | null;
+  startColumnVisible: number | null;
+  startColumnPartiallyVisible: number | null;
+  endColumnRendered: number | null;
+  endColumnVisible: number | null;
+  endColumnPartiallyVisible: number | null;
+  countColumnsRendered: number;
+  countColumnsVisible: number;
+  startRowRendered: number | null;
+  startRowVisible: number | null;
+  startRowPartiallyVisible: number | null;
+  endRowRendered: number | null;
+  endRowVisible: number | null;
+  endRowPartiallyVisible: number | null;
+  countRowsRendered: number;
+  countRowsVisible: number;
+  columnHeaders: Function[];
+  rowHeaders: Function[];
   [key: string]: unknown;
 }
 

@@ -22,6 +22,7 @@ import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
 import { getSortComparatorForMeta } from './sortComparators';
 import { createMenuFocusController } from './menu/focusController';
+import type { Menu } from '../contextMenu/menu/menu';
 import {
   CONDITION_NONE,
   CONDITION_BY_VALUE,
@@ -425,7 +426,8 @@ export class Filters extends BasePlugin {
             }
 
             const menu = navigator.getMenu();
-            const menuNavigator = menu.getNavigator();
+            const menuNavigator: ReturnType<DropdownMenuInterface['getNavigator']> =
+              menu.getNavigator() as ReturnType<DropdownMenuInterface['getNavigator']>;
             const lastSelectedMenuItem = navigator.getLastMenuPage();
 
             menu.focus();
@@ -443,7 +445,7 @@ export class Filters extends BasePlugin {
       ];
 
       this.#menuFocusNavigator = createMenuFocusController(
-        this.dropdownMenuPlugin.menu, focusableItems) as MenuFocusNavigatorInterface;
+        this.dropdownMenuPlugin.menu as unknown as Menu, focusableItems) as unknown as MenuFocusNavigatorInterface;
 
       const forwardToFocusNavigation = (event: KeyboardEvent) => {
         this.#menuFocusNavigator?.listen();
@@ -1530,7 +1532,7 @@ export class Filters extends BasePlugin {
         if (stack.column === column && conditions.length > 0) {
           stack.conditions.forEach((condition) => {
             if (condition.name === 'by_value') {
-              condition.args = [[...conditionArgsChange]];
+              condition.args = [[...(conditionArgsChange as unknown[])]];
             }
           });
         }

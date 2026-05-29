@@ -18,6 +18,7 @@ import type { FocusScopeManager as FocusScopeManagerInstance } from '../focusMan
 import type { default as EditorManagerInstance } from '../editorManager';
 import type { BaseEditor as BaseEditorInstance } from '../editors/baseEditor/baseEditor';
 import type { StylesHandler } from '../utils/stylesHandler';
+import type { ThemeManager } from '../themes/engine/manager';
 
 /**
  * Represents a selection range with start/end row/col coordinates.
@@ -84,7 +85,9 @@ export interface HotInstance {
   selectCell(
     row: number, column: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean
   ): boolean;
-  selectCells(selectionRanges: unknown[], scrollToCell?: boolean, changeListener?: boolean): boolean;
+  selectCells(
+    selectionRanges?: (number | undefined)[][] | unknown[], scrollToCell?: boolean, changeListener?: boolean
+  ): boolean;
   selectColumns(start: number, end?: number, focusPosition?: unknown): boolean;
   selectRows(start: number, end?: number, focusPosition?: unknown): boolean;
   deselectCell(): void;
@@ -100,6 +103,7 @@ export interface HotInstance {
   colToProp(column: number): string | number;
 
   // Data access
+  getSchema(): unknown[] | Record<string, unknown>;
   getData(row?: number, column?: number, row2?: number, column2?: number): unknown[][];
   getDataAtCell(row: number, column: number): unknown;
   getDataAtCol(column: number): unknown[];
@@ -113,15 +117,16 @@ export interface HotInstance {
   getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): string;
   getCopyableData(row: number, column: number): string;
   getCopyableSourceData(row: number, column: number): string;
-  setDataAtCell(row: number | unknown[][], column?: number | null, value?: unknown, source?: string): void;
+  setDataAtCell(row: number | unknown[][], column?: number | string | null, value?: unknown, source?: string): void;
   setDataAtRowProp(row: number | unknown[][], prop?: string | number, value?: unknown, source?: string): void;
   setSourceDataAtCell(row: number | unknown[][], column?: number | string, value?: unknown, source?: string): void;
   loadData(data: unknown[], source?: string): void;
   updateData(data: unknown[][] | object[], source?: string): void;
   emptySelectedCells(source?: string): void;
   populateFromArray(
-    row: number, column: number, input: unknown[][], endRow?: number, endCol?: number, source?: string, method?: string
-  ): object | undefined;
+    row: number, column: number, input: unknown[][], endRow?: number | null, endCol?: number | null,
+    source?: string, method?: string
+  ): object | false | undefined;
 
   // Cell meta
   getCellMeta<M extends object = Record<string, unknown>>(row: number, column: number, options?: object): M;
@@ -172,9 +177,9 @@ export interface HotInstance {
   isRenderSuspended(): boolean;
   suspendRender(): void;
   resumeRender(): void;
-  validateCells(callback?: (valid: boolean) => void): void;
-  validateRows(rows: number[], callback?: (valid: boolean) => void): void;
-  validateColumns(columns: number[], callback?: (valid: boolean) => void): void;
+  validateCells(callback?: Function): void;
+  validateRows(rows: number[], callback?: Function): void;
+  validateColumns(columns: number[], callback?: Function): void;
   scrollViewportTo(
     options: {
       row?: number; col?: number; horizontalSnap?: string; verticalSnap?: string; considerHiddenIndexes?: boolean;
@@ -201,8 +206,12 @@ export interface HotInstance {
   getLastRenderedVisibleColumn(): number;
 
   // Coordinates factory
-  _createCellCoords(row: number, column: number): CellCoords;
-  _createCellRange(highlight: CellCoords, from?: CellCoords, to?: CellCoords): CellRange;
+  _createCellCoords(row: number | null, column: number | null): CellCoords;
+  _createCellRange(
+    highlight: { row: number | null; col: number | null } | CellCoords,
+    from?: { row: number | null; col: number | null } | CellCoords,
+    to?: { row: number | null; col: number | null } | CellCoords
+  ): CellRange;
 
   // Undo/Redo
   undo?(): void;
@@ -257,9 +266,29 @@ export interface HotInstance {
   // Styles
   stylesHandler: StylesHandler;
 
+  // Theme management
+  themeManager: ThemeManager | null | undefined;
+  useTheme(themeName: string | null): void;
+
+  // Execution control
+  suspendExecution(): void;
+  resumeExecution(forceFlushChanges?: boolean): void;
+
+  // Index mapper initialization
+  initIndexMappers(): void;
+
+  // Empty row/col checks
+  countEmptyRows(ending?: boolean): number;
+  countEmptyCols(ending?: boolean): number;
+  isEmptyRow(row: number): boolean;
+  isEmptyCol(column: number): boolean;
+
   // Internal
   _registerTimeout(callback: Function | ReturnType<typeof setTimeout>, delay?: number): ReturnType<typeof setTimeout>;
   _registerImmediate(handle: Function): void;
+  _registerMicrotask(callback: Function): void;
+  _clearMicrotasks(): void;
+  _clearTimeouts(): void;
 
   // Lifecycle
   init(): void;

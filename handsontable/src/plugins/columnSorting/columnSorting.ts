@@ -619,15 +619,16 @@ export class ColumnSorting extends BasePlugin {
     const pluginMainSettings = this.hot.getSettings()[this.pluginKey] as Record<string, unknown>;
     const storedColumnProperties = this.columnStatesManager?.getAllColumnsProperties() ?? {};
     const cellMeta = this.hot.getCellMeta(0, column);
-    const columnMeta = Object.getPrototypeOf(cellMeta);
+    const columnMeta = Object.getPrototypeOf(cellMeta) as Record<string, unknown>;
 
     if (Array.isArray(columnMeta.columns)) {
       return Object
         .assign(storedColumnProperties, pluginMainSettings, this.getPluginColumnConfig(columnMeta.columns[column]));
 
     } else if (isFunction(columnMeta.columns)) {
-      return Object
-        .assign(storedColumnProperties, pluginMainSettings, this.getPluginColumnConfig(columnMeta.columns(column)));
+      const columnConfig = (columnMeta.columns as (col: number) => Record<string, unknown>)(column);
+
+      return Object.assign(storedColumnProperties, pluginMainSettings, this.getPluginColumnConfig(columnConfig));
     }
 
     return Object.assign(storedColumnProperties, pluginMainSettings);
@@ -645,7 +646,7 @@ export class ColumnSorting extends BasePlugin {
   getFirstCellSettings(column: number): Record<string, unknown> {
     const cellMeta = this.hot.getCellMeta(0, column);
 
-    const cellMetaCopy: Record<string, unknown> = Object.create(cellMeta);
+    const cellMetaCopy = Object.create(cellMeta) as Record<string, unknown>;
 
     cellMetaCopy[this.pluginKey] = this.columnMetaCache?.getValueAtIndex(this.hot.toPhysicalColumn(column));
 
@@ -732,7 +733,7 @@ export class ColumnSorting extends BasePlugin {
    */
   #loadOrSortBySettings = () => {
     const storedAllSortSettings = this.getAllSavedSortSettings();
-    const allSortSettings = this.hot.getSettings()[this.pluginKey];
+    const allSortSettings = (this.hot.getSettings() as Record<string, unknown>)[this.pluginKey];
 
     if (storedAllSortSettings !== undefined) {
       this.sortBySettings(storedAllSortSettings);

@@ -108,7 +108,9 @@ class EditorManager {
     const { row: rowNullable, col: colNullable } = highlight;
     const row = rowNullable!;
     const col = colNullable!;
-    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', row, col, false, 'meta');
+    const modifiedCellCoords = this.hot.runHooks<void | [number, number] | [number, number, number, number]>(
+      'modifyGetCellCoords', row, col, false, 'meta'
+    );
     let visualRowToCheck = row;
     let visualColumnToCheck = col;
 

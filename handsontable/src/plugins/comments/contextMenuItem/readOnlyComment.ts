@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
 import { checkSelectionConsistency, markLabelAsSelected } from '../../contextMenu/utils';
 import { META_READONLY, type Comments } from '../comments';
@@ -9,16 +10,20 @@ import { META_READONLY, type Comments } from '../comments';
 export default function readOnlyCommentItem(plugin: Comments) {
   return {
     key: 'commentsReadOnly',
-    name(): string {
+    name(this: HotInstance): string {
       const label: string = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY_COMMENT);
-      const areReadOnly = checkSelectionConsistency(this.getSelectedRange(), (row: number, col: number) => {
+      const areReadOnly = checkSelectionConsistency(this.getSelectedRange() ?? [], (row: number, col: number) => {
         return !!(plugin.getCommentMeta(row, col, META_READONLY));
       });
 
       return areReadOnly ? markLabelAsSelected(label) : label;
     },
-    callback() {
+    callback(this: HotInstance) {
       const range = this.getSelectedRangeActive();
+
+      if (!range) {
+        return;
+      }
 
       range.forAll((row: number, column: number) => {
         if (row >= 0 && column >= 0) {
@@ -30,13 +35,13 @@ export default function readOnlyCommentItem(plugin: Comments) {
         }
       });
     },
-    disabled() {
+    disabled(this: HotInstance) {
       const range = this.getSelectedRangeActive();
 
       if (
         !range ||
         range.highlight.isHeader() ||
-        !plugin.getCommentAtCell(range.highlight.row, range.highlight.col) ||
+        !plugin.getCommentAtCell(range.highlight.row!, range.highlight.col!) ||
         this.selection.isEntireRowSelected() && this.selection.isEntireColumnSelected() ||
         this.countRenderedRows() === 0 || this.countRenderedCols() === 0
       ) {

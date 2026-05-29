@@ -25,6 +25,7 @@ import IndexSyncer from './indexSyncer';
 import type AxisSyncer from './indexSyncer/axisSyncer';
 import type { HyperFormulaEngine } from './engine/types';
 import type { CellChange } from '../../settings';
+import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 
 /**
  * Represents a cell change from the HyperFormula engine.
@@ -902,35 +903,62 @@ export class Formulas extends BasePlugin {
    * @returns {boolean|*}
    */
   #onBeforeAutofill = (
-    fillData: unknown[][][][], sourceRange: Record<string, Function>, targetRange: Record<string, Function>
+    fillData: unknown[][][][], sourceRange: CellRange, targetRange: CellRange
   ) => {
     const { row: sourceTopStartRow, col: sourceTopStartColumn } = sourceRange.getTopStartCorner();
     const { row: sourceBottomEndRow, col: sourceBottomEndColumn } = sourceRange.getBottomEndCorner();
     const { row: targetTopStartRow, col: targetTopStartColumn } = targetRange.getTopStartCorner();
     const { row: targetBottomEndRow, col: targetBottomEndColumn } = targetRange.getBottomEndCorner();
 
+    if (
+      sourceTopStartRow === null || sourceTopStartColumn === null ||
+      sourceBottomEndRow === null || sourceBottomEndColumn === null ||
+      targetTopStartRow === null || targetTopStartColumn === null ||
+      targetBottomEndRow === null || targetBottomEndColumn === null
+    ) {
+      return;
+    }
+
+    const hfSourceStartRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(sourceTopStartRow);
+    const hfSourceStartCol = this.columnAxisSyncer!.getHfIndexFromVisualIndex(sourceTopStartColumn);
+    const hfSourceEndRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(sourceBottomEndRow);
+    const hfSourceEndCol = this.columnAxisSyncer!.getHfIndexFromVisualIndex(sourceBottomEndColumn);
+    const hfTargetStartRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(targetTopStartRow);
+    const hfTargetStartCol = this.columnAxisSyncer!.getHfIndexFromVisualIndex(targetTopStartColumn);
+    const hfTargetEndRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(targetBottomEndRow);
+    const hfTargetEndCol = this.columnAxisSyncer!.getHfIndexFromVisualIndex(targetBottomEndColumn);
+
+    if (
+      hfSourceStartRow === null || hfSourceStartCol === null ||
+      hfSourceEndRow === null || hfSourceEndCol === null ||
+      hfTargetStartRow === null || hfTargetStartCol === null ||
+      hfTargetEndRow === null || hfTargetEndCol === null
+    ) {
+      return;
+    }
+
     const engineSourceRange = {
       start: {
-        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(sourceTopStartRow),
-        col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(sourceTopStartColumn),
+        row: hfSourceStartRow,
+        col: hfSourceStartCol,
         sheet: this.sheetId,
       },
       end: {
-        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(sourceBottomEndRow),
-        col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(sourceBottomEndColumn),
+        row: hfSourceEndRow,
+        col: hfSourceEndCol,
         sheet: this.sheetId,
       },
     };
 
     const engineTargetRange = {
       start: {
-        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(targetTopStartRow),
-        col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(targetTopStartColumn),
+        row: hfTargetStartRow,
+        col: hfTargetStartCol,
         sheet: this.sheetId,
       },
       end: {
-        row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(targetBottomEndRow),
-        col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(targetBottomEndColumn),
+        row: hfTargetEndRow,
+        col: hfTargetEndCol,
         sheet: this.sheetId,
       },
     };

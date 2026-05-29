@@ -2,6 +2,7 @@ import * as C from '../../../i18n/constants';
 import MergedCellCoords from '../cellCoords';
 import type MergedCellsCollection from '../cellsCollection';
 import type { default as CellRange } from '../../../3rdparty/walkontable/src/cell/range';
+import type { HotInstance } from '../../../core/types';
 
 /**
  * Minimal interface that toggleMergeItem requires from the MergeCells plugin.
@@ -18,7 +19,7 @@ interface MergeCellsPluginRef {
 export default function toggleMergeItem(plugin: MergeCellsPluginRef) {
   return {
     key: 'mergeCells',
-    name(): string {
+    name(this: HotInstance): string {
       const selection = this.getSelectedActive();
 
       if (selection && plugin.mergedCellsCollection) {
@@ -32,7 +33,7 @@ export default function toggleMergeItem(plugin: MergeCellsPluginRef) {
 
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_MERGE_CELLS) as string;
     },
-    callback() {
+    callback(this: HotInstance) {
       const activeRange = this.getSelectedRangeActive();
 
       if (!activeRange) {
@@ -44,9 +45,12 @@ export default function toggleMergeItem(plugin: MergeCellsPluginRef) {
       const { from, to } = activeRange;
 
       plugin.toggleMerge(activeRange);
-      this.selectCell(from.row, from.col, to.row, to.col, false);
+
+      if (from.row !== null && from.col !== null && to.row !== null && to.col !== null) {
+        this.selectCell(from.row, from.col, to.row, to.col, false);
+      }
     },
-    disabled() {
+    disabled(this: HotInstance) {
       const selection = this.getSelectedActive();
 
       if (!selection) {

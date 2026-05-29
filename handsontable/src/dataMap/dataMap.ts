@@ -184,7 +184,8 @@ class DataMap {
       }
 
       for (i = 0; i < columnsLen; i++) {
-        const column = isColumnsFn ? columns(i) : columns[i];
+        const column = typeof columns === 'function'
+          ? (columns as (index: number) => Record<string, unknown>)(i) : columns[i];
 
         if (isObject(column)) {
           if (typeof column.data !== 'undefined') {

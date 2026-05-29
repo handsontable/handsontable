@@ -902,7 +902,7 @@ class TableView {
         let visualColumnToCheck = visualColumnIndex;
 
         if (Array.isArray(modifiedCellCoords)) {
-          [visualRowToCheck, visualColumnToCheck] = modifiedCellCoords;
+          [visualRowToCheck, visualColumnToCheck] = modifiedCellCoords as [number, number];
         }
 
         const cellProperties = this.hot.getCellMeta(visualRowToCheck, visualColumnToCheck);

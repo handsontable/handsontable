@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import { CONTEXTMENU_ITEMS_COPY } from '../../../i18n/constants';
 
 /**
@@ -14,13 +15,13 @@ interface CopyPastePluginLike {
 export default function copyItem(copyPastePlugin: CopyPastePluginLike) {
   return {
     key: 'copy',
-    name(): string {
+    name(this: HotInstance): string {
       return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_COPY) as string;
     },
     callback() {
       copyPastePlugin.copyCellsOnly();
     },
-    disabled() {
+    disabled(this: HotInstance) {
       if (this.countRows() === 0 || this.countCols() === 0) {
         return true;
       }

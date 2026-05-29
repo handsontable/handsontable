@@ -1,4 +1,5 @@
 import { defineGetter } from '../../../../../helpers/object';
+import type Table from '../../table';
 
 const MIXIN_NAME = 'stickyRowsBottom';
 
@@ -17,14 +18,14 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getFirstRenderedRow() {
+  getFirstRenderedRow(this: Table) {
     const allStickyRows = this.getRenderedRowsCount();
 
     if (allStickyRows === 0) {
       return -1;
     }
 
-    return this.wtSettings.getSetting('totalRows') - allStickyRows;
+    return (this.wtSettings.getSetting('totalRows') ?? 0) - allStickyRows;
   },
 
   /**
@@ -34,7 +35,7 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getFirstVisibleRow(): number {
+  getFirstVisibleRow(this: Table): number {
     return this.getFirstRenderedRow() as number;
   },
 
@@ -45,7 +46,7 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getFirstPartiallyVisibleRow(): number {
+  getFirstPartiallyVisibleRow(this: Table): number {
     return this.getFirstRenderedRow() as number;
   },
 
@@ -55,14 +56,14 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getLastRenderedRow() {
+  getLastRenderedRow(this: Table) {
     const allStickyRows = this.getRenderedRowsCount();
 
     if (allStickyRows === 0) {
       return -1;
     }
 
-    return this.wtSettings.getSetting('totalRows') - 1;
+    return (this.wtSettings.getSetting('totalRows') ?? 0) - 1;
   },
 
   /**
@@ -72,7 +73,7 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getLastVisibleRow(): number {
+  getLastVisibleRow(this: Table): number {
     return this.getLastRenderedRow() as number;
   },
 
@@ -83,7 +84,7 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getLastPartiallyVisibleRow(): number {
+  getLastPartiallyVisibleRow(this: Table): number {
     return this.getLastRenderedRow() as number;
   },
 
@@ -93,9 +94,9 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getRenderedRowsCount() {
+  getRenderedRowsCount(this: Table) {
     return Math.min(
-      this.wtSettings.getSetting('totalRows'),
+      this.wtSettings.getSetting('totalRows') ?? 0,
       this.wtSettings.getSetting('fixedRowsBottom'),
     );
   },
@@ -107,7 +108,7 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getVisibleRowsCount(): number {
+  getVisibleRowsCount(this: Table): number {
     return this.getRenderedRowsCount() as number;
   },
 
@@ -117,7 +118,7 @@ const stickyRowsBottom = {
    * @returns {number}
    * @this Table
    */
-  getColumnHeadersCount() {
+  getColumnHeadersCount(this: Table) {
     return 0;
   },
 };

@@ -12,7 +12,8 @@ export default function clearColumnItem() {
     name(this: HotInstance): string {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_CLEAR_COLUMN);
     },
-    callback(key: string, selection: { start: { row: number; col: number }; end: { row: number; col: number } }[]) {
+    callback(this: HotInstance, key: string,
+             selection: { start: { row: number; col: number }; end: { row: number; col: number } }[]) {
       const startColumn = selection[0].start.col;
       const endColumn = selection[0].end.col;
 
@@ -21,12 +22,12 @@ export default function clearColumnItem() {
           Math.max(selection[0].start.row, selection[0].end.row), endColumn, 'ContextMenu.clearColumn');
       }
     },
-    disabled() {
+    disabled(this: HotInstance) {
       const range = this.getSelectedRangeActive();
 
       if (
         !range ||
-        range.isSingleHeader() && range.highlight.col < 0 ||
+        range.isSingleHeader() && (range.highlight.col === null || range.highlight.col < 0) ||
         !this.selection.isSelectedByColumnHeader()
       ) {
         return true;

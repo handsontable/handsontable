@@ -54,7 +54,7 @@ class DataProvider {
    * @returns {Array[]}
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  _extractDataMatrix(getCellValue: (row: number, col: number) => any) {
+  _extractDataMatrix<T = any>(getCellValue: (row: number, col: number) => T): T[][] {
     const { startRow, startCol, endRow, endCol } = this._getDataRange();
     const options = this.options;
     const data = [];
@@ -314,11 +314,9 @@ class DataProvider {
    * @returns {Array}
    */
   getCellsMeta(): Record<string, unknown>[][] {
-    const result: Record<string, unknown>[][] = this._extractDataMatrix(
+    return this._extractDataMatrix(
       (row: number, col: number): Record<string, unknown> => this.hot.getCellMeta(row, col)
     );
-
-    return result;
   }
 
   /**
@@ -653,7 +651,7 @@ class DataProvider {
     // (e.g. SUM at row 6 references MIN at row 7, and MIN at row 7 references SUM at row 6).
     const allDestRows = new Set<number>();
 
-    allEndpoints.forEach((endpoint: SummaryEndpoint) => {
+    (allEndpoints as unknown as SummaryEndpoint[]).forEach((endpoint: SummaryEndpoint) => {
       if (endpoint.destinationRow === undefined) {
         return;
       }
@@ -668,7 +666,7 @@ class DataProvider {
     // Second pass: translate each endpoint into an export-coordinate summary descriptor.
     const summaries: object[] = [];
 
-    allEndpoints.forEach((endpoint: SummaryEndpoint) => {
+    (allEndpoints as unknown as SummaryEndpoint[]).forEach((endpoint: SummaryEndpoint) => {
       const summary = this._transformEndpointToSummary(
         endpoint, startRow, endRow, startCol, endCol, allDestRows
       );

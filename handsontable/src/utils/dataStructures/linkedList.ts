@@ -101,7 +101,7 @@ class LinkedList {
     let temp = this.first;
 
     while (temp) {
-      const interrupt = callback(temp);
+      const interrupt: unknown = callback(temp);
 
       if (temp === this.last || interrupt === true) {
         break;

@@ -5,6 +5,7 @@ import { stringify } from './../helpers/mixed';
 
 type DataFactoryResult = false | { value: unknown; bundleSeed?: string };
 type DataFactory = (row: number, col: number, instance: SamplesGenerator) => DataFactoryResult;
+type SampleEntry = { needed: number; strings: Array<{ value: unknown; col?: number; row?: number }> };
 
 /**
  * @class SamplesGenerator
@@ -154,7 +155,7 @@ class SamplesGenerator {
       throwWithCause('Unsupported sample type');
     }
 
-    const samples = new Map();
+    const samples = new Map<string | undefined, SampleEntry>();
     const computedKey = type === 'row' ? 'col' : 'row';
     const sampledValues: unknown[] = [];
 
@@ -191,7 +192,7 @@ class SamplesGenerator {
       }
       const sample = samples.get(seed);
 
-      if (sample.needed) {
+      if (sample && sample.needed) {
         const duplicate = sampledValues.indexOf(value) > -1;
 
         if (!duplicate || this.allowDuplicates || hasCustomBundleSeed) {

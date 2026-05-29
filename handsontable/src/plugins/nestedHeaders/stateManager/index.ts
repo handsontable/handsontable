@@ -91,7 +91,7 @@ export default class StateManager {
    *
    * @param {Function} callback A function that is called for every header source settings.
    */
-  mapState(callback: Function) {
+  mapState(callback: (headerSettings: Record<string, unknown>) => unknown) {
     this.#sourceSettings.map(callback);
     this.#headersTree.buildTree();
     this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
@@ -106,7 +106,7 @@ export default class StateManager {
   mapNodes(callback: Function) {
     return arrayReduce(this.#headersTree.getRoots(), (acc, rootNode) => {
       (rootNode as TreeNode).walkDown((node: TreeNode) => {
-        const result = callback(node.data);
+        const result: unknown = callback(node.data);
 
         if (result !== undefined) {
           (acc as unknown[]).push(result);

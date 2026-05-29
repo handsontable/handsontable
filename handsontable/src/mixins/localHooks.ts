@@ -21,7 +21,7 @@ const localHooks: LocalHooks = {
   /**
    * Internal hooks storage.
    */
-  _localHooks: Object.create(null),
+  _localHooks: Object.create(null) as Record<string, Function[]>,
 
   /**
    * Add hook to the collection.
@@ -69,7 +69,7 @@ const localHooks: LocalHooks = {
    * @param {*} [arg5] An additional parameter passed to the callback function.
    * @param {*} [arg6] An additional parameter passed to the callback function.
    */
-  runLocalHooks(key: string,
+  runLocalHooks(this: LocalHooks, key: string,
                 arg1?: unknown, arg2?: unknown, arg3?: unknown, arg4?: unknown, arg5?: unknown, arg6?: unknown) {
     if (this._localHooks[key]) {
       const length = this._localHooks[key].length;
@@ -78,7 +78,7 @@ const localHooks: LocalHooks = {
       // otherwise, performance will decrease because of garbage collection
       // using the `...rest` syntax (ES6 and later) will decrease performance as well
       for (let i = 0; i < length; i++) {
-        fastCall(this._localHooks[key][i], this, arg1, arg2, arg3, arg4, arg5, arg6);
+        fastCall(this._localHooks[key][i] as (...args: unknown[]) => unknown, this, arg1, arg2, arg3, arg4, arg5, arg6);
       }
     }
   },

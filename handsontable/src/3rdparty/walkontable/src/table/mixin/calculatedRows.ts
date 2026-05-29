@@ -1,4 +1,5 @@
 import { defineGetter } from '../../../../../helpers/object';
+import type Table from '../../table';
 
 const MIXIN_NAME = 'calculatedRows';
 
@@ -17,14 +18,14 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getFirstRenderedRow(): number {
+  getFirstRenderedRow(this: Table): number {
     const startRow = this.dataAccessObject.startRowRendered;
 
     if (startRow === null) {
       return -1;
     }
 
-    return startRow as number;
+    return startRow;
   },
 
   /**
@@ -33,14 +34,14 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getFirstVisibleRow(): number {
+  getFirstVisibleRow(this: Table): number {
     const startRow = this.dataAccessObject.startRowVisible;
 
     if (startRow === null) {
       return -1;
     }
 
-    return startRow as number;
+    return startRow;
   },
 
   /**
@@ -49,14 +50,14 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getFirstPartiallyVisibleRow(): number {
+  getFirstPartiallyVisibleRow(this: Table): number {
     const startRow = this.dataAccessObject.startRowPartiallyVisible;
 
     if (startRow === null) {
       return -1;
     }
 
-    return startRow as number;
+    return startRow;
   },
 
   /**
@@ -65,14 +66,14 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getLastRenderedRow(): number {
+  getLastRenderedRow(this: Table): number {
     const endRow = this.dataAccessObject.endRowRendered;
 
     if (endRow === null) {
       return -1;
     }
 
-    return endRow as number;
+    return endRow;
   },
 
   /**
@@ -81,14 +82,14 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getLastVisibleRow(): number {
+  getLastVisibleRow(this: Table): number {
     const endRow = this.dataAccessObject.endRowVisible;
 
     if (endRow === null) {
       return -1;
     }
 
-    return endRow as number;
+    return endRow;
   },
 
   /**
@@ -97,14 +98,14 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getLastPartiallyVisibleRow(): number {
+  getLastPartiallyVisibleRow(this: Table): number {
     const endRow = this.dataAccessObject.endRowPartiallyVisible;
 
     if (endRow === null) {
       return -1;
     }
 
-    return endRow as number;
+    return endRow;
   },
 
   /**
@@ -113,8 +114,8 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getRenderedRowsCount(): number {
-    return this.dataAccessObject.countRowsRendered as number;
+  getRenderedRowsCount(this: Table): number {
+    return this.dataAccessObject.countRowsRendered;
   },
 
   /**
@@ -123,8 +124,8 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getVisibleRowsCount(): number {
-    return this.dataAccessObject.countRowsVisible as number;
+  getVisibleRowsCount(this: Table): number {
+    return this.dataAccessObject.countRowsVisible;
   },
 
   /**
@@ -133,8 +134,8 @@ const calculatedRows = {
    * @returns {number}
    * @this Table
    */
-  getColumnHeadersCount(): number {
-    return (this.dataAccessObject.columnHeaders as unknown[]).length;
+  getColumnHeadersCount(this: Table): number {
+    return this.dataAccessObject.columnHeaders.length;
   },
 };
 

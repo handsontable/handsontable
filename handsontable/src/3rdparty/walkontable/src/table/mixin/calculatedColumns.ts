@@ -1,4 +1,5 @@
 import { defineGetter } from '../../../../../helpers/object';
+import type Table from '../../table';
 
 const MIXIN_NAME = 'calculatedColumns';
 
@@ -17,14 +18,14 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getFirstRenderedColumn(): number {
+  getFirstRenderedColumn(this: Table): number {
     const startColumn = this.dataAccessObject.startColumnRendered;
 
     if (startColumn === null) {
       return -1;
     }
 
-    return startColumn as number;
+    return startColumn;
   },
 
   /**
@@ -33,14 +34,14 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getFirstVisibleColumn(): number {
+  getFirstVisibleColumn(this: Table): number {
     const startColumn = this.dataAccessObject.startColumnVisible;
 
     if (startColumn === null) {
       return -1;
     }
 
-    return startColumn as number;
+    return startColumn;
   },
 
   /**
@@ -49,14 +50,14 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getFirstPartiallyVisibleColumn(): number {
+  getFirstPartiallyVisibleColumn(this: Table): number {
     const startColumn = this.dataAccessObject.startColumnPartiallyVisible;
 
     if (startColumn === null) {
       return -1;
     }
 
-    return startColumn as number;
+    return startColumn;
   },
 
   /**
@@ -65,14 +66,14 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getLastRenderedColumn(): number {
+  getLastRenderedColumn(this: Table): number {
     const endColumn = this.dataAccessObject.endColumnRendered;
 
     if (endColumn === null) {
       return -1;
     }
 
-    return endColumn as number;
+    return endColumn;
   },
 
   /**
@@ -81,14 +82,14 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getLastVisibleColumn(): number {
+  getLastVisibleColumn(this: Table): number {
     const endColumn = this.dataAccessObject.endColumnVisible;
 
     if (endColumn === null) {
       return -1;
     }
 
-    return endColumn as number;
+    return endColumn;
   },
 
   /**
@@ -97,14 +98,14 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getLastPartiallyVisibleColumn(): number {
+  getLastPartiallyVisibleColumn(this: Table): number {
     const endColumn = this.dataAccessObject.endColumnPartiallyVisible;
 
     if (endColumn === null) {
       return -1;
     }
 
-    return endColumn as number;
+    return endColumn;
   },
 
   /**
@@ -113,8 +114,8 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getRenderedColumnsCount(): number {
-    return this.dataAccessObject.countColumnsRendered as number;
+  getRenderedColumnsCount(this: Table): number {
+    return this.dataAccessObject.countColumnsRendered;
   },
 
   /**
@@ -123,8 +124,8 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getVisibleColumnsCount(): number {
-    return this.dataAccessObject.countColumnsVisible as number;
+  getVisibleColumnsCount(this: Table): number {
+    return this.dataAccessObject.countColumnsVisible;
   },
 
   /**
@@ -133,8 +134,8 @@ const calculatedColumns = {
    * @returns {number}
    * @this Table
    */
-  getRowHeadersCount(): number {
-    return (this.dataAccessObject.rowHeaders as unknown[]).length;
+  getRowHeadersCount(this: Table): number {
+    return this.dataAccessObject.rowHeaders.length;
   },
 };
 

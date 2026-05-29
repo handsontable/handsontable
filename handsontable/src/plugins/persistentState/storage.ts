@@ -91,9 +91,9 @@ class Storage {
    */
   loadSavedKeys() {
     const keysJSON = this.rootWindow.localStorage.getItem(`${this.prefix}__persistentStateKeys`);
-    const keys = typeof keysJSON === 'string' ? JSON.parse(keysJSON) : undefined;
+    const keys: string[] | undefined = typeof keysJSON === 'string' ? JSON.parse(keysJSON) as string[] : undefined;
 
-    this.savedKeys = keys || [];
+    this.savedKeys = keys ?? [];
   }
 
   /**

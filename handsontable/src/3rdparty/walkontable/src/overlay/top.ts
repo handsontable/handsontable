@@ -76,7 +76,7 @@ export class TopOverlay extends Overlay {
 
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const { rootWindow } = this.domBindings;
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
     let overlayPosition = 0;
     let skipInnerBorderAdjusting = false;
 
@@ -199,7 +199,7 @@ export class TopOverlay extends Overlay {
     const { rootDocument, rootWindow } = this.domBindings;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const overlayRootStyle = overlayRoot.style;
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
 
     if (this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal') {
       let width = wtViewport.getWorkspaceWidth();
@@ -251,7 +251,7 @@ export class TopOverlay extends Overlay {
    * Adjust the overlay dimensions and position.
    */
   applyToDOM() {
-    const total = this.wtSettings.getSetting('totalRows');
+    const total: number = this.wtSettings.getSetting('totalRows') ?? 0;
 
     if (typeof this.wot.wtViewport.rowsRenderCalculator?.startPosition === 'number') {
       this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
@@ -381,7 +381,7 @@ export class TopOverlay extends Overlay {
    */
   getOverlayOffset() {
     const { rootWindow } = this.domBindings;
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
     let overlayOffset = 0;
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
@@ -409,7 +409,7 @@ export class TopOverlay extends Overlay {
   adjustHeaderBordersPosition(position: number, skipInnerBorderAdjusting = false) {
     const { wtSettings } = this;
     const masterParent = this.wot.wtTable.holder.parentNode as HTMLElement;
-    const totalColumns = wtSettings.getSetting('totalColumns');
+    const totalColumns: number = wtSettings.getSetting('totalColumns') ?? 0;
     const preventHorizontalOverflow = wtSettings.getSetting('preventOverflow') === 'horizontal';
 
     if (totalColumns) {

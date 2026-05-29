@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
 
 export const KEY = 'col_right';
@@ -8,18 +9,28 @@ export const KEY = 'col_right';
 export default function columnRightItem() {
   return {
     key: KEY,
-    name(): string {
+    name(this: HotInstance): string {
       const label: string = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_INSERT_RIGHT);
 
       return label;
     },
-    callback() {
-      const activeSelection = this.getSelectedRangeActive().getTopRightCorner();
+    callback(this: HotInstance) {
+      const range = this.getSelectedRangeActive();
+
+      if (!range) {
+        return;
+      }
+
+      const activeSelection = range.getTopRightCorner();
       const alterAction = this.isRtl() ? 'insert_col_start' : 'insert_col_end';
+
+      if (activeSelection.col === null) {
+        return;
+      }
 
       this.alter(alterAction, activeSelection.col, 1, 'ContextMenu.columnRight');
     },
-    disabled() {
+    disabled(this: HotInstance) {
       if (!this.isColumnModificationAllowed()) {
         return true;
       }
@@ -29,15 +40,15 @@ export default function columnRightItem() {
       if (
         !range ||
         this.selection.isSelectedByRowHeader() ||
-        (range.isSingleHeader() && range.highlight.col < 0) ||
-        (this.countSourceCols() >= this.getSettings().maxCols)
+        (range.isSingleHeader() && (range.highlight.col ?? 0) < 0) ||
+        (this.countSourceCols() >= (this.getSettings().maxCols ?? Infinity))
       ) {
         return true;
       }
 
       return false;
     },
-    hidden() {
+    hidden(this: HotInstance) {
       return !this.getSettings().allowInsertColumn;
     }
   };

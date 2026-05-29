@@ -107,8 +107,7 @@ export default class TreeNode {
    *
    * @type {object}
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any = {};
+  data: Record<string, unknown> = {};
   /**
    * A parent node.
    *
@@ -122,8 +121,7 @@ export default class TreeNode {
    */
   childs: TreeNode[] = [];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(data: any) {
+  constructor(data: Record<string, unknown>) {
     this.data = data;
   }
 
@@ -209,10 +207,10 @@ export default class TreeNode {
    *
    * @param {Function} callback The callback function which will be called for each node.
    */
-  walkUp(callback: Function) {
+  walkUp(callback: (this: TreeNode, node: TreeNode) => boolean | void) {
     const context = this;
     const process = (node: TreeNode) => {
-      const continueTraverse = callback.call(context, node);
+      const continueTraverse = callback.call(context, node) as boolean | void;
 
       if (continueTraverse !== false && node.parent !== null) {
         process(node.parent);

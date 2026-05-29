@@ -617,6 +617,7 @@ class Border {
     let [checkRow, checkCol] = [toRow, toColumn];
 
     if (hookResult && Array.isArray(hookResult)) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [,, checkRow, checkCol] = hookResult;
     }
 

@@ -179,7 +179,7 @@ export class UndoRedo extends BasePlugin {
       return;
     }
 
-    const newAction = wrappedAction();
+    const newAction: unknown = wrappedAction();
     const undoneActionsCopy = this.undoneActions.slice();
 
     if (newAction !== null) {

@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 
@@ -44,13 +45,13 @@ class MergedCellCoords {
    *
    * @type {Function}
    */
-  cellCoordsFactory;
+  cellCoordsFactory: (row: number, col: number) => CellCoords;
   /**
    * The CellRange function factory.
    *
    * @type {Function}
    */
-  cellRangeFactory;
+  cellRangeFactory: (highlight: CellCoords, from: CellCoords, to: CellCoords) => CellRange;
   /**
    * The cached range coordinates of the merged cell.
    *
@@ -60,7 +61,8 @@ class MergedCellCoords {
 
   constructor(
     row: number, column: number, rowspan: number, colspan: number,
-    cellCoordsFactory: Function, cellRangeFactory: Function
+    cellCoordsFactory: (row: number, col: number) => CellCoords,
+    cellRangeFactory: (highlight: CellCoords, from: CellCoords, to: CellCoords) => CellRange
   ) {
     this.row = row;
     this.col = column;

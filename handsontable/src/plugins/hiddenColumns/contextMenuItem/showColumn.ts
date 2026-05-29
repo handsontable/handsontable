@@ -1,5 +1,6 @@
 import { arrayEach, arrayMap } from '../../../helpers/array';
 import * as C from '../../../i18n/constants';
+import type { HotInstance } from '../../../core/types';
 
 /**
  * @param {HiddenColumns} hiddenColumnsPlugin The plugin instance.
@@ -10,12 +11,12 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
 
   return {
     key: 'hidden_columns_show',
-    name(): string {
+    name(this: HotInstance): string {
       const pluralForm = columns.length > 1 ? 1 : 0;
 
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_SHOW_COLUMN, pluralForm) as string;
     },
-    callback() {
+    callback(this: HotInstance) {
       if (columns.length === 0) {
         return;
       }
@@ -46,9 +47,9 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
       }
     },
     disabled: false,
-    hidden() {
+    hidden(this: HotInstance) {
       const hiddenPhysicalColumns = arrayMap(hiddenColumnsPlugin.getHiddenColumns(), (visualColumnIndex) => {
-        return this.toPhysicalColumn(visualColumnIndex) as number;
+        return this.toPhysicalColumn(visualColumnIndex as number) as number;
       });
 
       if (!(this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner()) ||
@@ -59,8 +60,18 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
       columns.length = 0;
 
       const selectedRangeActive = this.getSelectedRangeActive();
+
+      if (!selectedRangeActive) {
+        return true;
+      }
+
       const visualStartColumn = selectedRangeActive.getTopStartCorner().col;
       const visualEndColumn = selectedRangeActive.getBottomEndCorner().col;
+
+      if (visualStartColumn === null || visualEndColumn === null) {
+        return true;
+      }
+
       const columnIndexMapper = this.columnIndexMapper;
       const renderableStartColumn = columnIndexMapper.getRenderableFromVisualIndex(visualStartColumn);
       const renderableEndColumn = columnIndexMapper.getRenderableFromVisualIndex(visualEndColumn);
@@ -68,6 +79,10 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
       const physicalColumnIndexes = [];
 
       if (visualStartColumn !== visualEndColumn) {
+        if (renderableStartColumn === null || renderableEndColumn === null) {
+          return true;
+        }
+
         const visualColumnsInRange = visualEndColumn - visualStartColumn + 1;
         const renderedColumnsInRange = renderableEndColumn - renderableStartColumn + 1;
 
@@ -91,12 +106,14 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
 
       } else {
         const lastVisualIndex = this.countCols() - 1;
-        const lastRenderableIndex = columnIndexMapper.getRenderableFromVisualIndex(
-          columnIndexMapper.getNearestNotHiddenIndex(lastVisualIndex, -1)
-        );
+        const nearestNotHidden = columnIndexMapper.getNearestNotHiddenIndex(lastVisualIndex, -1);
+        const lastRenderableIndex = nearestNotHidden !== null
+          ? columnIndexMapper.getRenderableFromVisualIndex(nearestNotHidden)
+          : null;
 
         // Handled column is the last rendered index and there are some visual indexes after it.
-        if (renderableEndColumn === lastRenderableIndex && lastVisualIndex > visualEndColumn) {
+        if (renderableEndColumn !== null && renderableEndColumn === lastRenderableIndex &&
+            lastVisualIndex > visualEndColumn) {
           physicalColumnIndexes.push(...notTrimmedColumnIndexes.slice(visualEndColumn + 1));
         }
       }

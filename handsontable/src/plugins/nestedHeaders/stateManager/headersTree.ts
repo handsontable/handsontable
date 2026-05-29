@@ -29,6 +29,8 @@ export interface HeaderSettings {
 export interface HeaderNodeData extends HeaderSettings {
   headerLevel: number;
   columnIndex: number;
+  /** A cloned subtree stored during collapse, restored on expand. */
+  clonedTree?: TreeNode | null;
 }
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -136,7 +138,9 @@ export default class HeadersTree {
 
     this.#rootsIndex.clear();
 
-    arrayEach(this.#rootNodes, ([, { data: { colspan } }]) => {
+    arrayEach(this.#rootNodes, ([, node]) => {
+      const { colspan } = node.data as HeaderNodeData;
+
       // Map tree range (colspan range/width) into visual column index of the root node.
       for (let i = columnIndex; i < columnIndex + colspan; i++) {
         this.#rootsIndex.set(i, columnIndex);
@@ -157,7 +161,7 @@ export default class HeadersTree {
 
     while (columnIndex < columnsCount) {
       const columnSettings = this.#sourceSettings!.getHeaderSettings(0, columnIndex) as HeaderSettings;
-      const rootNode = new TreeNode(undefined as unknown);
+      const rootNode = new TreeNode({});
 
       this.#rootNodes.set(columnIndex, rootNode);
       this.buildLeaves(rootNode, columnIndex, 0, columnSettings.origColspan);

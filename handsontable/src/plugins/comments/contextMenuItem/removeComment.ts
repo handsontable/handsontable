@@ -12,8 +12,12 @@ export default function removeCommentItem(plugin: Comments) {
     name(this: HotInstance): string {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COMMENT);
     },
-    callback() {
+    callback(this: HotInstance) {
       const range = this.getSelectedRangeActive();
+
+      if (!range) {
+        return;
+      }
 
       range.forAll((row: number, column: number) => {
         if (row >= 0 && column >= 0) {
@@ -23,7 +27,7 @@ export default function removeCommentItem(plugin: Comments) {
 
       this.render();
     },
-    disabled() {
+    disabled(this: HotInstance) {
       const range = this.getSelectedRangeActive();
 
       if (

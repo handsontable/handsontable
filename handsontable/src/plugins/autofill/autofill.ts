@@ -723,7 +723,7 @@ export class Autofill extends BasePlugin {
         const targetCellSourceData = this.hot.getSourceDataAtCell(rowIndex, columnIndex);
         const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
         const cellSource = cellMeta.source;
-        const cellSourceFirstItem = Array.isArray(cellSource) ? cellSource[0] : undefined;
+        const cellSourceFirstItem: unknown = Array.isArray(cellSource) ? cellSource[0] : undefined;
         const isComplexDataFormatCell =
           cellMeta._complexDataFormat ||
           isObject(cellSourceFirstItem) ||

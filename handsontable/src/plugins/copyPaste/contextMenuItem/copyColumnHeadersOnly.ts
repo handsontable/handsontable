@@ -25,7 +25,7 @@ export default function copyColumnHeadersOnlyItem(copyPastePlugin: CopyPastePlug
     callback() {
       copyPastePlugin.copyColumnHeadersOnly();
     },
-    disabled() {
+    disabled(this: HotInstance) {
       if (!this.hasColHeaders()) {
         return true;
       }

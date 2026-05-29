@@ -81,6 +81,7 @@ export default class ColumnUtils {
     const { wtSettings } = this;
     let rowHeaderWidthSetting = wtSettings.getSetting('rowHeaderWidth');
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     rowHeaderWidthSetting = wtSettings.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
     if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== undefined) {
@@ -88,9 +89,11 @@ export default class ColumnUtils {
       const defaultColumnWidth = wtSettings.getSetting('defaultColumnWidth');
 
       for (let visibleColumnIndex = 0; visibleColumnIndex < rowHeadersCount; visibleColumnIndex++) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         let width = Array.isArray(rowHeaderWidthSetting)
           ? rowHeaderWidthSetting[visibleColumnIndex] : rowHeaderWidthSetting;
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         width = (width === null || width === undefined) ? defaultColumnWidth : width;
 
         this.headerWidths.set(visibleColumnIndex, width);

@@ -1,5 +1,6 @@
 import { transformSelectionToColumnDistance } from '../../../selection/utils';
 import * as C from '../../../i18n/constants';
+import type { HotInstance } from '../../../core/types';
 
 export const KEY = 'remove_col';
 
@@ -9,7 +10,7 @@ export const KEY = 'remove_col';
 export default function removeColumnItem() {
   return {
     key: KEY,
-    name(): string {
+    name(this: HotInstance): string {
       const selection = this.getSelected();
       let pluralForm = 0;
 
@@ -27,10 +28,10 @@ export default function removeColumnItem() {
 
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_COLUMN, pluralForm) as string;
     },
-    callback() {
-      this.alter('remove_col', transformSelectionToColumnDistance(this), null, 'ContextMenu.removeColumn');
+    callback(this: HotInstance) {
+      this.alter('remove_col', transformSelectionToColumnDistance(this), undefined, 'ContextMenu.removeColumn');
     },
-    disabled(): boolean {
+    disabled(this: HotInstance): boolean {
       if (!this.isColumnModificationAllowed()) {
         return true;
       }
@@ -41,7 +42,7 @@ export default function removeColumnItem() {
         return true;
       }
 
-      if (range.isSingleHeader() && range.highlight.col < 0) {
+      if (range.isSingleHeader() && range.highlight.col !== null && range.highlight.col < 0) {
         return true;
       }
 
@@ -54,7 +55,7 @@ export default function removeColumnItem() {
 
       return (this.selection.isSelectedByRowHeader() as boolean) || totalColumns === 0;
     },
-    hidden() {
+    hidden(this: HotInstance) {
       return !this.getSettings().allowRemoveColumn;
     }
   };

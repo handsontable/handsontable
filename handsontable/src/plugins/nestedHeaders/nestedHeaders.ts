@@ -116,7 +116,7 @@ export class NestedHeaders extends BasePlugin {
    *
    * @type {CellCoords | null}
    */
-  #recentlyHighlightCoords: { row: number, col: number } | null = null;
+  #recentlyHighlightCoords: { row: number | null, col: number | null } | null = null;
   /**
    * Stores the header row level used as context for horizontal navigation when entering
    * and leaving rowspanned headers.
@@ -1096,8 +1096,7 @@ export class NestedHeaders extends BasePlugin {
   };
 
   #onBeforeSelectColumns = (
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    from: { row: number, col: number }, to: { row: number, col: number }, highlight: { clone: () => any }
+    from: { row: number, col: number }, to: { row: number, col: number }, highlight: { clone: () => CellCoords }
   ) => {
     const headerLevel = from.row;
     const startNodeData = this._getHeaderTreeNodeDataByCoords({

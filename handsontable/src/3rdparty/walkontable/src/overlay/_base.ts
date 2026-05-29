@@ -156,10 +156,7 @@ export abstract class Overlay {
 
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
-    if (preventOverflow === true) {
-      this.mainTableScrollableElement = rootWindow;
-
-    } else if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
+    if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
       this.mainTableScrollableElement = this.wot.wtTable.holder;
 
     } else if (
@@ -385,10 +382,7 @@ export abstract class Overlay {
     const computedOverflow = rootWindow.getComputedStyle(tableParent as Element)
       .getPropertyValue('overflow');
 
-    if (preventOverflow === true) {
-      this.mainTableScrollableElement = rootWindow;
-
-    } else if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
+    if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
       this.mainTableScrollableElement = wtTable.holder;
 
     } else if (

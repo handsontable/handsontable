@@ -15,7 +15,7 @@ export function duckSchema(object: unknown[] | object): unknown {
     schema = object.length ? new Array(object.length).fill(null) : [];
 
   } else {
-    const schemaObj: Record<string, unknown> = Object.create(null);
+    const schemaObj = Object.create(null) as Record<string, unknown>;
 
     objectEach(object, (value, key) => {
       if (key === '__children') {
@@ -459,7 +459,7 @@ export function createObjectPropListener(
     get(this: ObjectPropListener) {
       return this[privateProperty];
     },
-    set(value) {
+    set(value: unknown) {
       this._touched = true;
       this[privateProperty] = value;
     },

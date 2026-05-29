@@ -178,6 +178,7 @@ export default class Settings {
       totalRows: undefined as unknown,
       totalColumns: undefined as unknown,
       cellRenderer: (row: number, column: number, TD: HTMLTableCellElement) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const cellData = this.getSetting('data', row, column);
 
         fastInnerText(TD, cellData === undefined || cellData === null ? '' : cellData);
@@ -279,6 +280,18 @@ export default class Settings {
    * @returns {*}
    */
   getSetting(key: 'stylesHandler'): StylesHandler;
+  getSetting(key: 'preventOverflow'): 'horizontal' | 'vertical' | false;
+  getSetting(key: 'rtlMode'): boolean;
+  getSetting(key: 'isDataViewInstance'): boolean;
+  getSetting(key: 'fixedColumnsStart'): number;
+  getSetting(key: 'fixedRowsTop'): number;
+  getSetting(key: 'fixedRowsBottom'): number;
+  getSetting(key: 'totalRows'): number | undefined;
+  getSetting(key: 'totalColumns'): number | undefined;
+  getSetting(key: 'rowHeaderWidth'): number | undefined;
+  getSetting(key: 'defaultColumnWidth'): number | undefined;
+  getSetting(key: 'viewportRowRenderingThreshold'): number | 'auto';
+  getSetting(key: 'viewportColumnRenderingThreshold'): number | 'auto';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getSetting<T = any>(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown): T;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

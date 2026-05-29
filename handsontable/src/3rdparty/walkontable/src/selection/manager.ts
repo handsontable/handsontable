@@ -280,6 +280,7 @@ export class SelectionManager {
 
     // Set the attributes for the headers if they're focused.
     Array.from(headerAttributesMap.keys()).forEach((element) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       setAttribute(element, [...headerAttributesMap.get(element)]);
     });
   }
@@ -295,6 +296,7 @@ export class SelectionManager {
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const classesToRemove = this.#activeOverlaysWot!.wtSettings.getSetting('onBeforeRemoveCellClassNames');
 
     if (Array.isArray(classesToRemove)) {

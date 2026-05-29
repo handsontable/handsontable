@@ -179,7 +179,9 @@ class Highlight {
       return true;
     }
 
-    let disableHighlight = disabledCellSelection(coords.row, coords.col);
+    type DisabledCellSelectionFn = (row: number, col: number) => boolean | string | string[];
+    // coords.row and coords.col are always set when isEnabledFor is called on an active selection.
+    let disableHighlight = (disabledCellSelection as DisabledCellSelectionFn)(coords.row!, coords.col!);
 
     if (typeof disableHighlight === 'string') {
       disableHighlight = [disableHighlight];

@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
 
 /**
@@ -7,7 +8,7 @@ import * as C from '../../../i18n/constants';
 export default function hideColumnItem(hiddenColumnsPlugin: Record<string, Function>) {
   return {
     key: 'hidden_columns_hide',
-    name(): string {
+    name(this: HotInstance): string {
       const selection = this.getSelectedActive();
       let pluralForm = 0;
 
@@ -21,8 +22,19 @@ export default function hideColumnItem(hiddenColumnsPlugin: Record<string, Funct
 
       return (this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_COLUMN, pluralForm) as string);
     },
-    callback() {
-      const { from, to } = this.getSelectedRangeActive();
+    callback(this: HotInstance) {
+      const selectedRange = this.getSelectedRangeActive();
+
+      if (!selectedRange) {
+        return;
+      }
+
+      const { from, to } = selectedRange;
+
+      if (from.col === null || to.col === null) {
+        return;
+      }
+
       const start = Math.max(Math.min(from.col, to.col), 0);
       const end = Math.max(from.col, to.col);
       const columnsToHide = [];
@@ -36,7 +48,7 @@ export default function hideColumnItem(hiddenColumnsPlugin: Record<string, Funct
       const lastHiddenColumn = columnsToHide[columnsToHide.length - 1];
       const columnToSelect = this.columnIndexMapper.getNearestNotHiddenIndex(lastHiddenColumn, 1, true);
 
-      if (Number.isInteger(columnToSelect) && columnToSelect >= 0) {
+      if (columnToSelect !== null && Number.isInteger(columnToSelect) && columnToSelect >= 0) {
         this.selectColumns(columnToSelect);
 
       } else {
@@ -47,7 +59,7 @@ export default function hideColumnItem(hiddenColumnsPlugin: Record<string, Funct
       this.render();
     },
     disabled: false,
-    hidden() {
+    hidden(this: HotInstance) {
       return !(this.selection.isSelectedByColumnHeader() || this.selection.isSelectedByCorner());
     }
   };

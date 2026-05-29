@@ -374,11 +374,9 @@ export function htmlToGridSettings(element: HTMLTableElement | string, rootDocum
 
   countRows = dataRows.length;
 
-  const dataArr = new Array(countRows);
-
-  for (let r = 0; r < countRows; r++) {
-    dataArr[r] = new Array(countCols);
-  }
+  const dataArr: Array<Array<string | null | undefined>> = Array.from({ length: countRows }, () =>
+    Array.from<string | null | undefined>({ length: countCols })
+  );
 
   const mergeCells: unknown[] = [];
   const rowHeaders: unknown[] = [];
@@ -396,7 +394,7 @@ export function htmlToGridSettings(element: HTMLTableElement | string, rootDocum
         rowSpan: rowspan,
         colSpan: colspan,
       } = cell;
-      const col = dataArr[row].findIndex((value: unknown) => value === undefined);
+      const col: number = dataArr[row].findIndex((value: string | null | undefined) => value === undefined);
 
       if (nodeName === 'TD') {
         if (rowspan > 1 || colspan > 1) {

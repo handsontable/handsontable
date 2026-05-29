@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
 import { checkSelectionBorders } from '../utils';
 import type { CustomBordersPlugin } from '../utils';
@@ -9,7 +10,7 @@ import type { CustomBordersPlugin } from '../utils';
 export default function noBorders(customBordersPlugin: CustomBordersPlugin) {
   return {
     key: 'borders:no_borders',
-    name(): string {
+    name(this: HotInstance): string {
       const label: string = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_BORDERS);
 
       return label;
@@ -17,7 +18,7 @@ export default function noBorders(customBordersPlugin: CustomBordersPlugin) {
     callback(key: string, selected: Record<string, unknown>[]) {
       customBordersPlugin.prepareBorder(selected, 'noBorders', undefined);
     },
-    disabled() {
+    disabled(this: HotInstance) {
       return !checkSelectionBorders(this);
     }
   };
