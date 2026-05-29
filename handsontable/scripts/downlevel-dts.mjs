@@ -161,6 +161,59 @@ async function* walkDts(dir) {
   }
 }
 
+const EXPORT_STAR_AS_RE = /\bexport\s+\*\s+as\b/;
+
+/**
+ * Recursively yields all *.mjs and *.js file paths under `dir`.
+ *
+ * @param {string} dir - Directory to walk.
+ * @returns {AsyncGenerator<string>}
+ */
+async function* walkEsm(dir) {
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    const fullPath = join(dir, entry.name);
+
+    if (entry.isDirectory()) {
+      yield* walkEsm(fullPath);
+    } else if (
+      entry.isFile() &&
+      (entry.name.endsWith('.mjs') || entry.name.endsWith('.js'))
+    ) {
+      yield fullPath;
+    }
+  }
+}
+
+// Regression guard: fail if "export * as" appears in ESM runtime output.
+// This syntax crashes Parcel v1 silently. The fix belongs in the source file,
+// not here — this check only detects regressions.
+const violations = [];
+
+for await (const filePath of walkEsm(tmpDir)) {
+  const content = await readFile(filePath, 'utf8');
+  const lines = content.split('\n');
+
+  for (let i = 0; i < lines.length; i++) {
+    if (EXPORT_STAR_AS_RE.test(lines[i])) {
+      violations.push(`  ${filePath}:${i + 1}: ${lines[i].trim()}`);
+    }
+  }
+}
+
+if (violations.length > 0) {
+  console.error(
+    'downlevel-dts: FATAL — "export * as" found in ESM output.\n' +
+    'This syntax crashes Parcel v1 consumers. Fix the source file by replacing:\n' +
+    "  export * as X from 'y';\n" +
+    'with:\n' +
+    "  import * as X from 'y';\n" +
+    '  export { X };\n\n' +
+    'Offending locations:\n' +
+    violations.join('\n')
+  );
+  process.exit(1);
+}
+
 let filesRewrote = 0;
 let totalReplacements = 0;
 
