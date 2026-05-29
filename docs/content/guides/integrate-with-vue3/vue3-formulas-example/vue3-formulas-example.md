@@ -44,10 +44,9 @@ const hfInstance = markRaw(HyperFormula.buildEmpty());
 
 This keeps the engine untouched and ensures it behaves exactly as intended.
 
-::: example #example1 :vue3 --html 1 --js 2
+::: example #example1 :vue3
 
-@[code](@/content/guides/integrate-with-vue3/vue3-formulas-example/vue/example1.html)
-@[code](@/content/guides/integrate-with-vue3/vue3-formulas-example/vue/example1.js)
+@[code](@/content/guides/integrate-with-vue3/vue3-formulas-example/vue/example1.vue)
 
 :::
 
