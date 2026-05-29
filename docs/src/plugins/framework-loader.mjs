@@ -1052,6 +1052,7 @@ const FRAMEWORK_PREFIX_MAP = {
   javascript: 'javascript-data-grid',
   react: 'react-data-grid',
   angular: 'angular-data-grid',
+  vue: 'vue-data-grid',
 };
 
 /**
@@ -1072,7 +1073,7 @@ function resolveAtLink(rawLink, prefix, contentDir) {
   let targetPrefix = prefix;
   let filePath = rawLink;
 
-  const frameworkMatch = rawLink.match(/^(javascript|react|angular)\/(.+)/);
+  const frameworkMatch = rawLink.match(/^(javascript|react|angular|vue)\/(.+)/);
 
   if (frameworkMatch) {
     targetPrefix = FRAMEWORK_PREFIX_MAP[frameworkMatch[1]];
