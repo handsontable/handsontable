@@ -1212,10 +1212,10 @@ function applyVuepressPreprocessing(content, prefix, contentDir) {
   // CodeSandbox links resolve to the correct in-progress build artifact.
   result = result.replace(/\{\{\s*\$currentVersion\s*\}\}/g, CURRENT_DOCS_VERSION);
 
-  // Fix {{$currentMinorVersion}} → major.minor version string.
-  // Production builds strip the patch (e.g. "17.1.0" → "17.1") to match the
-  // prod-docs/X.Y branch naming convention used for GitHub source-code links.
-  // Staging/dev builds resolve to "develop".
+  // Fix {{$currentMinorVersion}} → GitHub branch path for source-code links.
+  // Production builds produce "prod-docs/X.Y" (e.g. "prod-docs/17.1").
+  // Staging/dev builds resolve to "develop" (no prod-docs/ prefix, since
+  // the prod-docs/develop branch does not exist).
   result = result.replace(/\{\{\s*\$currentMinorVersion\s*\}\}/g, CURRENT_DOCS_MINOR_VERSION);
 
   // Transform @/framework/path.md links to absolute Starlight URLs using permalinks.

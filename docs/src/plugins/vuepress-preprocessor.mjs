@@ -12,7 +12,7 @@
  * - ::: source-code-link URL  (convert to <a> tag)
  * - $withBase('/path') → /path
  * - {{$currentVersion}} → resolved Handsontable version string (full semver, e.g. "17.1.0")
- * - {{$currentMinorVersion}} → major.minor version (e.g. "17.1") for prod-docs GitHub branch links
+ * - {{$currentMinorVersion}} → GitHub branch path for source-code links (e.g. "prod-docs/17.1" or "develop")
  * - @/framework/path links  → /path (cross-framework alias)
  * - <div class="boxes-list"> ... </div>  → Starlight-styled card grid HTML
  */
@@ -93,10 +93,10 @@ function preprocessMarkdown(content, framework) {
   //     CodeSandbox links resolve to the correct in-progress build artifact.
   result = result.replace(/\{\{\s*\$currentVersion\s*\}\}/g, CURRENT_DOCS_VERSION);
 
-  // 6d. Fix {{$currentMinorVersion}} → major.minor version string.
-  //     Production builds strip the patch (e.g. "17.1.0" → "17.1") to match the
-  //     prod-docs/X.Y branch naming convention used for GitHub source-code links.
-  //     Staging/dev builds resolve to "develop".
+  // 6d. Fix {{$currentMinorVersion}} → GitHub branch path for source-code links.
+  //     Production builds produce "prod-docs/X.Y" (e.g. "prod-docs/17.1").
+  //     Staging/dev builds resolve to "develop" (no prod-docs/ prefix, since
+  //     the prod-docs/develop branch does not exist).
   result = result.replace(/\{\{\s*\$currentMinorVersion\s*\}\}/g, CURRENT_DOCS_MINOR_VERSION);
 
   // 7. Transform @/framework/... cross-framework alias links to absolute paths.

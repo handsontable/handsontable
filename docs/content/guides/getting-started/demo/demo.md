@@ -53,11 +53,11 @@ Explore Handsontable core features in this interactive demo. Click cells, sort c
 
 <div class="boxes-list gray">
 
-- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentMinorVersion}}/examples/next/docs/js/demo/)
-- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentMinorVersion}}/examples/next/docs/ts/demo/)
-- [Angular demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentMinorVersion}}/examples/next/docs/angular-wrapper/demo/)
-- [React demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentMinorVersion}}/examples/next/docs/react-wrapper/demo/)
-- [Vue demo app](https://github.com/handsontable/handsontable/tree/prod-docs/{{$currentMinorVersion}}/examples/next/docs/vue3/demo/)
+- [JavaScript demo app](https://github.com/handsontable/handsontable/tree/{{$currentMinorVersion}}/examples/next/docs/js/demo/)
+- [TypeScript demo app](https://github.com/handsontable/handsontable/tree/{{$currentMinorVersion}}/examples/next/docs/ts/demo/)
+- [Angular demo app](https://github.com/handsontable/handsontable/tree/{{$currentMinorVersion}}/examples/next/docs/angular-wrapper/demo/)
+- [React demo app](https://github.com/handsontable/handsontable/tree/{{$currentMinorVersion}}/examples/next/docs/react-wrapper/demo/)
+- [Vue demo app](https://github.com/handsontable/handsontable/tree/{{$currentMinorVersion}}/examples/next/docs/vue3/demo/)
 
 </div>
 
