@@ -751,9 +751,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /** Extracts the @Component selector value, defaulting to 'app-root'. */
   function extractAngularSelector(tsCode) {
-    var m = tsCode.match(/selector\s*:\s*['"]([^'"]+)['"]/);
+    // Use the LAST selector in the file -- helper components (editors, renderers)
+    // are defined before the root AppComponent, so the last selector is correct.
+    var matches = tsCode.match(/selector\s*:\s*['"]([^'"]+)['"]/g);
 
-    return m ? m[1] : 'app-root';
+    if (!matches || !matches.length) return 'app-root';
+    var last = matches[matches.length - 1].match(/selector\s*:\s*['"]([^'"]+)['"]/);
+
+    return last ? last[1] : 'app-root';
   }
 
   function buildAngularProject(hotVersion, exampleId, userFiles, extraDeps) {
