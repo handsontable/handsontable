@@ -16,6 +16,9 @@ react:
 angular:
   id: qhqjtdsr
   metaTitle: Column virtualization - Angular Data Grid | Handsontable
+vue:
+  id: y0yzk8sd
+  metaTitle: Column virtualization - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---

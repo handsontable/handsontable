@@ -12,6 +12,9 @@ react:
 angular:
   id: 377lnttu
   metaTitle: Cell functions - Angular Data Grid | Handsontable
+vue:
+  id: bc7idv59
+  metaTitle: Cell functions - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
 ---

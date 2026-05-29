@@ -22,6 +22,9 @@ react:
 angular:
   id: a3b7c9e1
   metaTitle: Handsontable with MUI - Angular Data Grid | Handsontable
+vue:
+  id: 6qpczr7i
+  metaTitle: Handsontable with MUI - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Themes
 ---

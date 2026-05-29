@@ -12,6 +12,8 @@ react:
 angular:
   id: kojv7mkj
   metaTitle: Basic example - Vue 3 Data Grid | Handsontable
+vue:
+  id: 5vt9e553
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

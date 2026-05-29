@@ -12,6 +12,9 @@ react:
 angular:
   id: 2x5025ww
   metaTitle: Password cell type - Angular Data Grid | Handsontable
+vue:
+  id: lfsxgjsp
+  metaTitle: Password cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---

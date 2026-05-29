@@ -22,6 +22,9 @@ react:
 angular:
   id: iifvbgu0
   metaTitle: Events and hooks - Angular Data Grid | Handsontable
+vue:
+  id: nmvkusp7
+  metaTitle: Events and hooks - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Data management
 ---

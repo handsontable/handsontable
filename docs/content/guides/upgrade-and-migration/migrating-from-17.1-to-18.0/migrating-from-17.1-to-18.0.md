@@ -13,6 +13,9 @@ react:
 angular:
   id: k3jb6ts0
   metaTitle: Migrate from 17.1 to 18.0 - Angular Data Grid | Handsontable
+vue:
+  id: 205js05l
+  metaTitle: Migrate from 17.1 to 18.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

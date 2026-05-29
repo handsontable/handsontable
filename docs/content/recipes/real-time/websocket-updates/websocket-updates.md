@@ -18,6 +18,9 @@ react:
 angular:
   id: d9b1e5f3
   metaTitle: Real-time WebSocket Updates - Angular Data Grid | Handsontable
+vue:
+  id: fvoen1lx
+  metaTitle: Real-time WebSocket Updates - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Real-time & Integrations
 type: how-to

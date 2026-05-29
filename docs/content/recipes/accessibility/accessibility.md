@@ -15,6 +15,9 @@ react:
 angular:
   id: v3c5d7e9
   metaTitle: Accessibility and UX Recipes - Angular Data Grid | Handsontable
+vue:
+  id: 88pek0th
+  metaTitle: Accessibility and UX Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 

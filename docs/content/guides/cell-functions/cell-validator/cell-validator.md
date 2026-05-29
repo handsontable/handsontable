@@ -12,6 +12,9 @@ react:
 angular:
   id: ut7amcaz
   metaTitle: Cell validator - Angular Data Grid | Handsontable
+vue:
+  id: bcog8al2
+  metaTitle: Cell validator - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
 ---

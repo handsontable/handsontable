@@ -14,6 +14,9 @@ react:
 angular:
   id: zclxcsij
   metaTitle: Column menu - Angular Data Grid | Handsontable
+vue:
+  id: km8rip58
+  metaTitle: Column menu - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---

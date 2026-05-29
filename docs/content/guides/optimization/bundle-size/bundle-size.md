@@ -14,6 +14,9 @@ react:
 angular:
   id: qdq3dmts
   metaTitle: Bundle size - Angular Data Grid | Handsontable
+vue:
+  id: 3hb79ptx
+  metaTitle: Bundle size - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
 ---

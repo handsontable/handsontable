@@ -12,6 +12,8 @@ react:
 angular:
   id: fp49yb44
   metaTitle: Custom context menu - Vue 3 Data Grid | Handsontable
+vue:
+  id: 8wqgvxxv
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

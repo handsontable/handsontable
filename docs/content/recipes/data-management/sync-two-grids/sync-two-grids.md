@@ -16,6 +16,9 @@ react:
 angular:
   id: a6d4c1b8
   metaTitle: Sync two grids - Angular Data Grid | Handsontable
+vue:
+  id: cjulyg8p
+  metaTitle: Sync two grids - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 type: how-to

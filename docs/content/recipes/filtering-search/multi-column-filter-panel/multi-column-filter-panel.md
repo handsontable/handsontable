@@ -18,6 +18,9 @@ react:
 angular:
   id: f6b25d0a
   metaTitle: Multi-column Filter Panel - Angular Data Grid | Handsontable
+vue:
+  id: ypksrbh0
+  metaTitle: Multi-column Filter Panel - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Filtering and Search
 type: how-to

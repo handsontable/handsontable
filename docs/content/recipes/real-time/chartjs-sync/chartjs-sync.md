@@ -17,6 +17,9 @@ react:
 angular:
   id: c6f9e2a5
   metaTitle: Sync selected rows to a Chart.js chart - Angular Data Grid | Handsontable
+vue:
+  id: w5h61ok1
+  metaTitle: Sync selected rows to a Chart.js chart - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Real-time and Integrations
 type: how-to

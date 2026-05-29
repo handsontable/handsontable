@@ -16,6 +16,9 @@ react:
 angular:
   id: q7wwbzzr
   metaTitle: Searching values - Angular Data Grid | Handsontable
+vue:
+  id: bzxlya7r
+  metaTitle: Searching values - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
 ---

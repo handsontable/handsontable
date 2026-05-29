@@ -19,6 +19,9 @@ react:
 angular:
   id: zggveqea
   metaTitle: Testing - Angular Data Grid | Handsontable
+vue:
+  id: kx1qz7jh
+  metaTitle: Testing - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
 ---

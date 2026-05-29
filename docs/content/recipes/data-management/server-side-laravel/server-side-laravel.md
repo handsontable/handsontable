@@ -18,6 +18,9 @@ react:
 angular:
   id: v9x1z3b5
   metaTitle: Server-side data with Laravel - Angular Data Grid | Handsontable
+vue:
+  id: vzywhp2f
+  metaTitle: Server-side data with Laravel - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 ---

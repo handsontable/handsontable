@@ -12,6 +12,9 @@ react:
 angular:
   id: cewiknc8
   metaTitle: Handsontable cell type - Angular Data Grid | Handsontable
+vue:
+  id: wd9yzry6
+  metaTitle: Handsontable cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---

@@ -12,6 +12,8 @@ react:
 angular:
   id: 9zzwqp3r
   metaTitle: Custom ID, class, and style - Vue 3 Data Grid | Handsontable
+vue:
+  id: g8a1yt31
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

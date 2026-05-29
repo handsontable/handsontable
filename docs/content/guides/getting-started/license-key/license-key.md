@@ -12,6 +12,9 @@ react:
 angular:
   id: bcvwr25r
   metaTitle: License key - Angular Data Grid | Handsontable
+vue:
+  id: 7pgm711u
+  metaTitle: License key - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---

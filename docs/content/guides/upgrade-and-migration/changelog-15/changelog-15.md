@@ -12,6 +12,9 @@ react:
 angular:
   id: m8s84zjg
   metaTitle: Changelog 15.0 - Angular Data Grid | Handsontable
+vue:
+  id: 6tqfgd15
+  metaTitle: Changelog 15.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

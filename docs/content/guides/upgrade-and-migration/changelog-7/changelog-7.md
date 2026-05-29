@@ -12,6 +12,9 @@ react:
 angular:
   id: fqniwvjh
   metaTitle: Older versions - Angular Data Grid | Handsontable
+vue:
+  id: v80zhxm8
+  metaTitle: Older versions - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
