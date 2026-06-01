@@ -24,7 +24,7 @@ Route to the lowest correct scope. `AGENTS.md` answers "what must I never get wr
 | Angular wrapper | `wrappers/angular-wrapper/AGENTS.md` |
 | Vue 3 wrapper | `wrappers/vue3/AGENTS.md` |
 | Visual regression tests | `visual-tests/AGENTS.md` |
-| Step-by-step task workflows | `.claude/skills/` (e.g., `handsontable-dev`, `handsontable-plugin-dev`, `linting`, `pr-creation`) |
+| Step-by-step task workflows | `.claude/skills/` (e.g., `handsontable-dev`, `handsontable-plugin-dev`, `handsontable-code-review`, `pr-creation`) |
 
 `.ai/` reference locations:
 

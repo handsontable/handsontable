@@ -63,4 +63,4 @@ The `conditionCollection` and `conditionUpdateObserver` in the Filters plugin op
 
 ## Source files
 
-Implementation lives in `src/translations/` - see `indexMapper.js`, `maps/`, and `mapCollections/`. For deeper architectural context, see `handsontable/.ai/ARCHITECTURE.md`.
+Implementation lives in `src/translations/` - see `indexMapper.ts`, `maps/`, and `mapCollections/`. For the deep subsystem reference (map types, translation methods, cache, observers, registration lifecycle), see `handsontable/.ai/INDEX-MAPPING.md`; for wider system context, `handsontable/.ai/ARCHITECTURE.md`.

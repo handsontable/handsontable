@@ -52,12 +52,13 @@
 - Used by: Core (via `datamap` and `dataSource` internal variables)
 
 **Metadata Layer (MetaManager):**
-- Purpose: Cascading configuration system - GlobalMeta -> TableMeta -> ColumnMeta -> CellMeta
+- Purpose: Cascading configuration system - cell → column → global defaults (TableMeta is a sibling instance, not a cascade link)
 - Location: `handsontable/src/dataMap/metaManager/`
 - Contains: Four meta layers (`metaLayers/globalMeta.ts`, `tableMeta.ts`, `columnMeta.ts`, `cellMeta.ts`), meta schema (`metaSchema.ts`), modifier mods (`mods/`)
 - Depends on: Helpers
 - Used by: Core, plugins (via `hot.getCellMeta()`, `hot.getSettings()`)
-- Pattern: Prototype chain inheritance. GlobalMeta is the prototype of ColumnMeta, which is the prototype of CellMeta. TableMeta is a direct instance of GlobalMeta. This allows cascading: cell-level settings override column-level, which override table-level, which override global defaults.
+- Pattern: Prototype chain inheritance. GlobalMeta is the prototype of ColumnMeta, which is the prototype of CellMeta, so cell-level settings override column-level, which override global defaults. TableMeta is a sibling instance holding `getSettings()` output, not a link in the cell chain — instance settings reach cells through GlobalMeta.
+- Deep dive: `handsontable/.ai/META-MANAGEMENT.md` (cascade mechanism, `metaSchema`, MetaManager API, dynamic meta, physical-index keying)
 
 **Index Translation Layer:**
 - Purpose: Manages the three coordinate systems (physical, visual, renderable) and index maps (hiding, trimming)
@@ -65,6 +66,7 @@
 - Contains: `IndexMapper` (main class), `maps/` (HidingMap, TrimmingMap, IndexesSequence, PhysicalIndexToValueMap, LinkedPhysicalIndexToValueMap), `mapCollections/` (AggregatedCollection, MapCollection), `changesObservable/`
 - Depends on: Helpers, mixins
 - Used by: Core (`hot.rowIndexMapper`, `hot.columnIndexMapper`), plugins that modify row/column visibility
+- Deep dive: `handsontable/.ai/INDEX-MAPPING.md` (map types, translation methods, cache, observers, registration lifecycle)
 
 **Selection Layer:**
 - Purpose: Manages cell/range selection, multi-selection, focus, and selection transformations
@@ -89,6 +91,7 @@
 - Depends on: Helpers
 - Used by: Core, all plugins, EditorManager, Selection
 - Pattern: Global singleton + per-instance buckets. Hooks can be added globally or per-instance. Plugins use `this.addHook()` (auto-cleaned on disable) vs `this.hot.addHook()` (manual cleanup).
+- Deep dive: `handsontable/.ai/HOOKS.md` (Hooks API, registration two-step, `run` semantics, removed/deprecated hooks)
 
 **Editor System:**
 - Purpose: Manages cell editors (text input, dropdown, date picker, etc.)

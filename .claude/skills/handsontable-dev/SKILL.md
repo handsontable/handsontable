@@ -30,7 +30,7 @@ Always invoke `handsontable-code-review` (architecture dimension) alongside the 
 | Build a **demo / test page** | `handsontable-demo-page` |
 | Work on **CSS / themes** | `handsontable-css-dev` |
 | Walkontable rendering engine | `walkontable-dev` / `walkontable-testing` |
-| Lint violations | `linting` |
+| Lint violations | `handsontable/AGENTS.md` (Lint) + `handsontable/.ai/CONVENTIONS.md` |
 | Coordinate translation (physical/visual/renderable) | `coordinate-systems` |
 | i18n / translations | `i18n-translations` |
 | Visual regression tests | `visual-testing` |
@@ -129,7 +129,7 @@ Mixing value and type imports defeats tree-shaking and creates accidental runtim
 
 ### 4. Find shared types in `core/` — don't re-declare them inline
 
-There is **no `src/common.ts`**. Shared core types live where they belong:
+Shared core types live in `core/` — import them, don't re-declare them. (Consumers get the same types from the package: `import type { GridSettings } from 'handsontable'`; see `docs/content/guides/tools-and-building/typescript-types/typescript-types.md`.)
 
 | Type | Location |
 |---|---|

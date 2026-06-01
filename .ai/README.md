@@ -39,6 +39,9 @@ Internals of the core data grid package.
 | `handsontable/.ai/CONVENTIONS.md` | Core coding conventions. |
 | `handsontable/.ai/CONCERNS.md` | Core technical debt. |
 | `handsontable/.ai/STRUCTURE.md` | `handsontable/src/` tree and plugin inventory. |
+| `handsontable/.ai/INDEX-MAPPING.md` | The index-mapping subsystem (`src/translations/`): IndexMapper, map types, the physical/visual/renderable translation chain, cache, and observers. |
+| `handsontable/.ai/META-MANAGEMENT.md` | The metadata subsystem (`src/dataMap/metaManager/`): the cell → column → global cascade, `metaSchema` defaults, MetaManager API, dynamic meta, and physical-index keying. |
+| `handsontable/.ai/HOOKS.md` | The hook / event system (`src/core/hooks/`): the `Hooks` singleton and per-instance buckets, the `before*`/`after*` bus, registration, and removed/deprecated hooks. |
 | `handsontable/.ai/INTEGRATIONS.md` | External integrations and framework bridging. |
 | `handsontable/.ai/TESTING.md` | Full core testing detail: Jest and Jasmine setup, theme-aware assertions, helpers, mocking, fixtures, custom matchers. |
 
