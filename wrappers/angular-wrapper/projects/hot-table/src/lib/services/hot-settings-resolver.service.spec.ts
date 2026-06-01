@@ -149,12 +149,30 @@ describe('HotSettingsResolver', () => {
       ],
     };
     const envInjector = TestBed.inject(EnvironmentInjector);
-    service.applyCustomSettings(mergedSettings);
+    const result = service.applyCustomSettings(mergedSettings);
 
-    const settings = mergedSettings.columns[0] as ColumnSettingsInternal;
+    const settings = result.columns[0] as ColumnSettingsInternal;
     expect(settings.editor).toBeDefined();
     expect(settings._editorComponentReference.instance instanceof TestEditorComponent).toBe(true);
     expect(settings._environmentInjector).toBe(envInjector);
+  });
+
+  it('should not mutate the input settings object or its columns', () => {
+    const column = { editor: TestEditorComponent, validator: (v: any) => true } as ColumnSettings;
+    const inputSettings: GridSettings = { afterChange: jest.fn(), columns: [column] };
+
+    const result = service.applyCustomSettings(inputSettings);
+
+    // Returned (cloned) object carries the resolved editor/validator/hook.
+    const resolvedColumn = result.columns[0] as ColumnSettingsInternal;
+    expect(resolvedColumn._editorComponentReference).toBeDefined();
+    expect(result).not.toBe(inputSettings);
+    expect(result.columns[0]).not.toBe(column);
+
+    // Input object and its column are left untouched, so they can be safely reused across tables.
+    expect((inputSettings.columns[0] as ColumnSettingsInternal)._editorComponentReference).toBeUndefined();
+    expect(inputSettings.columns[0].editor).toBe(TestEditorComponent);
+    expect((column.validator as Function).length).toBe(1);
   });
 
   it('should use advanced editor mode when editor is Advanced component', () => {
@@ -166,9 +184,9 @@ describe('HotSettingsResolver', () => {
       ],
     };
 
-    service.applyCustomSettings(mergedSettings);
+    const result = service.applyCustomSettings(mergedSettings);
 
-    const settings = mergedSettings.columns[0] as ColumnSettingsInternal;
+    const settings = result.columns[0] as ColumnSettingsInternal;
     expect(settings.editor).toBeDefined();
     expect(typeof settings.editor).toBe('function');
     // ComponentRef is stored so ngOnDestroy can destroy it — advanced editors do NOT set _environmentInjector.
@@ -186,9 +204,9 @@ describe('HotSettingsResolver', () => {
     };
     const envInjector = TestBed.inject(EnvironmentInjector);
 
-    service.applyCustomSettings(mergedSettings);
+    const result = service.applyCustomSettings(mergedSettings);
 
-    const settings = mergedSettings.columns[0] as ColumnSettingsInternal;
+    const settings = result.columns[0] as ColumnSettingsInternal;
     expect(settings.editor).toBeDefined();
     expect(settings._editorComponentReference.instance instanceof TestEditorComponent).toBe(true);
     expect(settings._environmentInjector).toBe(envInjector);
@@ -224,9 +242,9 @@ describe('HotSettingsResolver', () => {
     const mergedSettings: GridSettings = {
       columns: [{ validator: (value: any) => true } as ColumnSettings],
     };
-    service.applyCustomSettings(mergedSettings);
-    expect(mergedSettings.columns[0].validator).toBeDefined();
-    expect(mergedSettings.columns[0].validator.length).toBe(2);
+    const result = service.applyCustomSettings(mergedSettings);
+    expect(result.columns[0].validator).toBeDefined();
+    expect(result.columns[0].validator.length).toBe(2);
   });
 
   it('should not update column validator when validator is string', () => {
@@ -262,9 +280,9 @@ describe('HotSettingsResolver', () => {
     const mergedSettings: GridSettings = {
       columns: [{ validator: (v: any): boolean => v === 'valid' } as ColumnSettings],
     };
-    service.applyCustomSettings(mergedSettings);
+    const result = service.applyCustomSettings(mergedSettings);
 
-    const wrappedValidator = mergedSettings.columns[0].validator as Function;
+    const wrappedValidator = result.columns[0].validator as Function;
     const callback = jest.fn();
     wrappedValidator('valid', callback);
 
@@ -275,9 +293,9 @@ describe('HotSettingsResolver', () => {
     const mergedSettings: GridSettings = {
       columns: [{ validator: (v: any): boolean => v !== null } as ColumnSettings],
     };
-    service.applyCustomSettings(mergedSettings);
+    const result = service.applyCustomSettings(mergedSettings);
 
-    const wrappedValidator = mergedSettings.columns[0].validator as Function;
+    const wrappedValidator = result.columns[0].validator as Function;
     const cbFalse = jest.fn();
 
     wrappedValidator(null, cbFalse);
@@ -321,15 +339,53 @@ describe('HotSettingsResolver', () => {
       ],
     };
 
-    service.applyCustomSettings(mergedSettings);
+    const result = service.applyCustomSettings(mergedSettings);
 
-    const settings0 = mergedSettings.columns[0] as ColumnSettingsInternal;
-    const settings1 = mergedSettings.columns[1] as ColumnSettingsInternal;
-    const settings2 = mergedSettings.columns[2] as ColumnSettingsInternal;
+    const settings0 = result.columns[0] as ColumnSettingsInternal;
+    const settings1 = result.columns[1] as ColumnSettingsInternal;
+    const settings2 = result.columns[2] as ColumnSettingsInternal;
 
     expect(settings0._editorComponentReference).toBeDefined(); // advanced — tracked for cleanup
     expect(settings1._editorComponentReference).toBeDefined();
     expect(settings2._editorComponentReference).toBeDefined();
+  });
+
+  describe('editor component recycling across settings changes', () => {
+    it('should recycle the editor component when the same editor type sits at the same index', () => {
+      const first = service.applyCustomSettings({ columns: [{ editor: TestEditorComponent } as ColumnSettings] });
+      const firstRef = (first.columns[0] as ColumnSettingsInternal)._editorComponentReference;
+      const destroySpy = jest.spyOn(firstRef, 'destroy');
+
+      const second = service.applyCustomSettings(
+        { columns: [{ editor: TestEditorComponent } as ColumnSettings] },
+        first.columns as ColumnSettings[]
+      );
+
+      // Same component instance is reused, not recreated or destroyed.
+      expect((second.columns[0] as ColumnSettingsInternal)._editorComponentReference).toBe(firstRef);
+      expect(destroySpy).not.toHaveBeenCalled();
+    });
+
+    it('should create a fresh editor component when the editor type at the index changes', () => {
+      const first = service.applyCustomSettings({ columns: [{ editor: TestEditorComponent } as ColumnSettings] });
+      const firstRef = (first.columns[0] as ColumnSettingsInternal)._editorComponentReference;
+
+      const second = service.applyCustomSettings(
+        { columns: [{ editor: TestEditorAdvancedComponent } as ColumnSettings] },
+        first.columns as ColumnSettings[]
+      );
+
+      expect((second.columns[0] as ColumnSettingsInternal)._editorComponentReference).not.toBe(firstRef);
+    });
+
+    it('should not recycle when no previous columns are provided', () => {
+      const first = service.applyCustomSettings({ columns: [{ editor: TestEditorComponent } as ColumnSettings] });
+      const firstRef = (first.columns[0] as ColumnSettingsInternal)._editorComponentReference;
+
+      const second = service.applyCustomSettings({ columns: [{ editor: TestEditorComponent } as ColumnSettings] });
+
+      expect((second.columns[0] as ColumnSettingsInternal)._editorComponentReference).not.toBe(firstRef);
+    });
   });
 
   describe('null / undefined columns edge cases', () => {
@@ -376,9 +432,9 @@ describe('HotSettingsResolver', () => {
       const hookFn = jest.fn().mockReturnValue('result');
       const mergedSettings = { afterChange: hookFn } as unknown as GridSettings;
 
-      service.applyCustomSettings(mergedSettings);
+      const result = service.applyCustomSettings(mergedSettings);
 
-      const wrappedHook = (mergedSettings as any).afterChange;
+      const wrappedHook = (result as any).afterChange;
       expect(wrappedHook).not.toBe(hookFn);
       expect(typeof wrappedHook).toBe('function');
     });
@@ -391,15 +447,16 @@ describe('HotSettingsResolver', () => {
       expect((mergedSettings as any).readOnly).toBe(true);
     });
 
-    it('should not double-wrap a hook when applyCustomSettings is called twice with the same settings object', () => {
+    it('should not double-wrap a hook that is already zone-wrapped', () => {
       const hookFn = jest.fn();
-      const mergedSettings = { afterChange: hookFn } as unknown as GridSettings;
 
-      service.applyCustomSettings(mergedSettings);
-      const wrappedOnce = (mergedSettings as any).afterChange;
+      const firstResult = service.applyCustomSettings({ afterChange: hookFn } as unknown as GridSettings);
+      const wrappedOnce = (firstResult as any).afterChange;
+      expect(wrappedOnce).not.toBe(hookFn);
 
-      service.applyCustomSettings(mergedSettings);
-      const wrappedTwice = (mergedSettings as any).afterChange;
+      // Feeding the already-wrapped hook back in must not wrap it a second time.
+      const secondResult = service.applyCustomSettings({ afterChange: wrappedOnce } as unknown as GridSettings);
+      const wrappedTwice = (secondResult as any).afterChange;
 
       expect(wrappedTwice).toBe(wrappedOnce);
     });

@@ -115,9 +115,13 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     if (changes.settings && !changes.settings.firstChange) {
       // Capture old editor refs before applying new settings so HOT can close any active editor first.
       const prevColumns = this.__hotInstance?.getSettings().columns;
+      const prevColumnsArray = Array.isArray(prevColumns) ? prevColumns : undefined;
 
+      // Pass the previous columns so unchanged editor types recycle their existing component
+      // instead of creating a fresh one on every settings change.
       const newOptions: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(
-        changes.settings.currentValue
+        changes.settings.currentValue,
+        prevColumnsArray
       );
 
       // updateHotTable closes any active editor via HOT.updateSettings before we destroy old refs.
@@ -126,9 +130,16 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
       // Only destroy old editor refs when new settings actually replace columns.
       // If newOptions has no columns, HOT keeps the old column objects active — destroying
       // their refs would crash FactoryEditorAdapter / BaseEditorAdapter on next edit.
-      if (Array.isArray(prevColumns) && Array.isArray(newOptions.columns)) {
-        prevColumns.forEach((column) => {
-          if (column._editorComponentReference) {
+      if (prevColumnsArray && Array.isArray(newOptions.columns)) {
+        // Refs recycled into the new columns must survive — destroy only the ones left behind.
+        const reusedRefs = new Set(
+          newOptions.columns
+            .map((column) => column._editorComponentReference)
+            .filter((ref): ref is NonNullable<typeof ref> => !!ref)
+        );
+
+        prevColumnsArray.forEach((column) => {
+          if (column._editorComponentReference && !reusedRefs.has(column._editorComponentReference)) {
             column._editorComponentReference.destroy();
           }
         });
@@ -151,7 +162,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
 
       // Destroy renderer Angular components attached to table cells before HOT removes the DOM.
       if (this.container) {
-        this._dynamicComponentService.cleanupContainer(this.container.nativeElement);
+        this._dynamicComponentService.cleanupContainer(this.container.nativeElement, this.__hotInstance);
       }
 
       const columns = this.__hotInstance.getSettings().columns;

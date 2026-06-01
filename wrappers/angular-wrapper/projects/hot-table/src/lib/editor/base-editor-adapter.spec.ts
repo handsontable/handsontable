@@ -95,6 +95,41 @@ describe('BaseEditorAdapter', () => {
 
       expect(destroySpy).toHaveBeenCalled();
     });
+
+    it('should unsubscribe finish/cancel edit subscriptions on afterDestroy hook (no subscription leak)', () => {
+      adapter.prepare(0, 0, 'prop', document.createElement('td'), 1, <CellProperties>{});
+      const finishSub = (adapter as any)._finishEditSubscription;
+      const cancelSub = (adapter as any)._cancelEditSubscription;
+      const finishUnsubSpy = jest.spyOn(finishSub, 'unsubscribe');
+      const cancelUnsubSpy = jest.spyOn(cancelSub, 'unsubscribe');
+
+      instance.runHooks('afterDestroy');
+
+      expect(finishUnsubSpy).toHaveBeenCalled();
+      expect(cancelUnsubSpy).toHaveBeenCalled();
+      expect((adapter as any)._finishEditSubscription).toBeUndefined();
+      expect((adapter as any)._cancelEditSubscription).toBeUndefined();
+    });
+  });
+
+  describe('guards when refs are not initialized (called before prepare)', () => {
+    it('should not throw when focus() is called before prepare()', () => {
+      expect(() => adapter.focus()).not.toThrow();
+    });
+
+    it('should not throw when open() is called before prepare()', () => {
+      expect(() => adapter.open()).not.toThrow();
+    });
+
+    it('should not throw when setValue() is called before prepare()', () => {
+      expect(() => adapter.setValue(1)).not.toThrow();
+    });
+
+    it('should not throw when close() runs while opened but refs are not initialized', () => {
+      jest.spyOn(adapter, 'isOpened').mockReturnValue(true);
+
+      expect(() => adapter.close()).not.toThrow();
+    });
   });
 
   describe('prepare', () => {

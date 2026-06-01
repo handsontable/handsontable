@@ -1,8 +1,8 @@
-import { createComponent, EnvironmentInjector, Injectable, NgZone, TemplateRef, Type } from '@angular/core';
+import { ComponentRef, createComponent, EnvironmentInjector, Injectable, NgZone, TemplateRef, Type } from '@angular/core';
 import { DynamicComponentService } from '../renderer/hot-dynamic-renderer-component.service';
 import { BaseEditorAdapter } from '../editor/base-editor-adapter';
 import { GridSettings, GridSettingsInternal } from '../models/grid-settings';
-import { CustomValidatorFn, ColumnSettings } from '../models/column-settings';
+import { CustomValidatorFn, ColumnSettings, ColumnSettingsInternal } from '../models/column-settings';
 import { HotCellRendererComponent } from '../renderer/hot-cell-renderer.component';
 import { HotCellEditorComponent } from '../editor/hot-cell-editor.component';
 import Handsontable from 'handsontable/base';
@@ -27,13 +27,25 @@ export class HotSettingsResolver {
   /**
    * Applies custom settings to the provided GridSettings.
    * @param settings The original grid settings.
+   * @param previousColumns The previously resolved columns (from the prior settings cycle). When
+   *   supplied, an editor component already created for a column whose editor type is unchanged is
+   *   recycled instead of being recreated, avoiding needless Angular component teardown/rebuild.
    * @returns The merged grid settings with custom settings applied.
    */
-  applyCustomSettings(settings: GridSettings): GridSettingsInternal {
-    const mergedSettings: GridSettings = settings;
+  applyCustomSettings(settings: GridSettings, previousColumns?: ColumnSettings[]): GridSettingsInternal {
+    // Shallow-clone the user settings (and each column) before mutating. Otherwise we would
+    // write generated renderers/editors and `_editorComponentReference` straight onto the
+    // caller's objects. When the same settings/columns are shared across two <hot-table>
+    // instances, the second resolution would overwrite the first instance's editor refs,
+    // leaking them and cross-wiring a single editor component between tables.
+    const mergedSettings: GridSettings = { ...settings };
+
+    if (Array.isArray(mergedSettings.columns)) {
+      mergedSettings.columns = mergedSettings.columns.map((column) => ({ ...column }));
+    }
 
     this.updateColumnRendererForGivenCustomRenderer(mergedSettings);
-    this.updateColumnEditorForGivenCustomEditor(mergedSettings);
+    this.updateColumnEditorForGivenCustomEditor(mergedSettings, previousColumns);
     this.updateColumnValidatorForGivenCustomValidator(mergedSettings);
 
     this.wrapHooksInNgZone(mergedSettings);
@@ -91,32 +103,64 @@ export class HotSettingsResolver {
 
   /**
    * Updates the column editor for columns with a custom editor.
+   *
+   * Iterates by original column index (not a filtered subset) so each column can be matched against
+   * the column at the same index in `previousColumns` for editor-component recycling.
+   *
    * @param mergedSettings The merged grid settings.
+   * @param previousColumns The previously resolved columns, used to recycle editor components.
    */
-  private updateColumnEditorForGivenCustomEditor(mergedSettings: GridSettings): void {
+  private updateColumnEditorForGivenCustomEditor(mergedSettings: GridSettings, previousColumns?: ColumnSettings[]): void {
     if (!Array.isArray(mergedSettings?.columns)) {
       return;
     }
 
-    (mergedSettings?.columns as ColumnSettings[])
-      ?.filter((settings) => this.isEditorComponentRefType(settings.editor) || this.isAdvancedEditorComponentRefType(settings.editor))
-      ?.forEach((cellSettings) => {
-        if (this.isAdvancedEditorComponentRefType(cellSettings.editor)) {
-          const component = createComponent(cellSettings.editor, {
-            environmentInjector: this.environmentInjector,
-          });
-          // Store the ref so ngOnDestroy / ngOnChanges can destroy it alongside basic editors.
-          cellSettings['_editorComponentReference'] = component;
-          cellSettings.editor = FactoryEditorAdapter(component);
-        } else {
-          const component = createComponent(cellSettings.editor as Type<HotCellEditorComponent<any>>, {
-            environmentInjector: this.environmentInjector,
-          });
-          cellSettings['_editorComponentReference'] = component;
-          cellSettings['_environmentInjector'] = this.environmentInjector;
-          cellSettings.editor = BaseEditorAdapter;
-        }
+    (mergedSettings.columns as ColumnSettings[]).forEach((cellSettings, index) => {
+      const isAdvanced = this.isAdvancedEditorComponentRefType(cellSettings.editor);
+      const isBasic = this.isEditorComponentRefType(cellSettings.editor);
+
+      if (!isAdvanced && !isBasic) {
+        return;
+      }
+
+      const editorType = cellSettings.editor as Type<HotCellEditorComponent<any>> | Type<HotCellEditorAdvancedComponent<any>>;
+      const reusableRef = this.reusableEditorRef(previousColumns?.[index], editorType);
+      const internalSettings = cellSettings as ColumnSettingsInternal;
+
+      // Recycle the editor component from the previous settings cycle when the same editor type
+      // sits at the same column index. Recreating it on every settings change would tear down and
+      // rebuild an Angular component (and its DOM/internal state) for no reason. The reused ref is
+      // carried into the new column; HotTableComponent.ngOnChanges detects it by identity and skips
+      // destroying it.
+      const component = reusableRef ?? createComponent(editorType as Type<any>, {
+        environmentInjector: this.environmentInjector,
       });
+
+      internalSettings._editorComponentReference = component as ComponentRef<HotCellEditorComponent<any>>;
+
+      if (isAdvanced) {
+        cellSettings.editor = FactoryEditorAdapter(component as ComponentRef<HotCellEditorAdvancedComponent<any>>);
+      } else {
+        internalSettings._environmentInjector = this.environmentInjector;
+        cellSettings.editor = BaseEditorAdapter;
+      }
+    });
+  }
+
+  /**
+   * Returns the previous column's editor component ref when it can be reused for the new editor
+   * type (same component type at the same index), or `undefined` to signal a fresh component is
+   * needed.
+   *
+   * @param previousColumn The column at the same index in the previous settings cycle.
+   * @param editorType The editor component type requested for the new column.
+   */
+  private reusableEditorRef(
+    previousColumn: ColumnSettings | undefined,
+    editorType: Type<unknown>
+  ): ComponentRef<any> | undefined {
+    const previousRef = (previousColumn as ColumnSettingsInternal | undefined)?._editorComponentReference;
+    return previousRef && previousRef.componentType === editorType ? previousRef : undefined;
   }
 
   /**

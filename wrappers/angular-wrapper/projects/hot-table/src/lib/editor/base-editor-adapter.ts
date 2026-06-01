@@ -71,15 +71,7 @@ export class BaseEditorAdapter extends Handsontable.editors.BaseEditor {
 
       this._componentRef = columnMeta._editorComponentReference;
 
-      if (this._finishEditSubscription) {
-        this._finishEditSubscription.unsubscribe();
-        this._finishEditSubscription = undefined;
-      }
-
-      if (this._cancelEditSubscription) {
-        this._cancelEditSubscription.unsubscribe();
-        this._cancelEditSubscription = undefined;
-      }
+      this.cleanupSubscriptions();
 
       this._finishEditSubscription = this._componentRef.instance.finishEdit
         .pipe(take(1))
@@ -101,9 +93,9 @@ export class BaseEditorAdapter extends Handsontable.editors.BaseEditor {
   close(): void {
     if (this.isOpened()) {
       this.resetEditorState();
-      this._editorPlaceHolderRef.changeDetectorRef.detectChanges();
-      this._editorPlaceHolderRef.instance.detachEditor();
-      this._componentRef.instance.onClose();
+      this._editorPlaceHolderRef?.changeDetectorRef.detectChanges();
+      this._editorPlaceHolderRef?.instance.detachEditor();
+      this._componentRef?.instance.onClose();
     }
   }
 
@@ -111,7 +103,7 @@ export class BaseEditorAdapter extends Handsontable.editors.BaseEditor {
    * Focuses the editor. This event is triggered by Handsontable.
    */
   focus(): void {
-    this._componentRef.instance.onFocus();
+    this._componentRef?.instance.onFocus();
   }
 
   /**
@@ -132,7 +124,7 @@ export class BaseEditorAdapter extends Handsontable.editors.BaseEditor {
   open(event?: Event): void {
     this.hot.getShortcutManager().setActiveContextName('editor');
     this.applyPropsToEditor();
-    this._componentRef.instance.onOpen(event);
+    this._componentRef?.instance.onOpen(event);
   }
 
   /**
@@ -140,14 +132,18 @@ export class BaseEditorAdapter extends Handsontable.editors.BaseEditor {
    * @param newValue The value to set.
    */
   setValue(newValue?: any): void {
-    this._componentRef.instance?.setValue(newValue);
-    this._componentRef.changeDetectorRef.detectChanges();
+    this._componentRef?.instance?.setValue(newValue);
+    this._componentRef?.changeDetectorRef.detectChanges();
   }
 
   /**
    * Applies properties to the custom editor and editor placeholder.
    */
   private applyPropsToEditor(): void {
+    if (!this._componentRef || !this._editorPlaceHolderRef) {
+      return;
+    }
+
     const rect = this.getEditedCellRect();
 
     if (!this.isInFullEditMode()) {
@@ -210,7 +206,25 @@ export class BaseEditorAdapter extends Handsontable.editors.BaseEditor {
    * Handles the after destroy event.
    */
   private onAfterDestroy(): void {
+    this.cleanupSubscriptions();
     this._editorPlaceHolderRef?.destroy();
+  }
+
+  /**
+   * Unsubscribes the finish/cancel edit subscriptions if they are still active.
+   * Without this, destroying the table while an editor was prepared but never
+   * finished/cancelled leaves the `take(1)` subscriptions hanging (they never emit).
+   */
+  private cleanupSubscriptions(): void {
+    if (this._finishEditSubscription) {
+      this._finishEditSubscription.unsubscribe();
+      this._finishEditSubscription = undefined;
+    }
+
+    if (this._cancelEditSubscription) {
+      this._cancelEditSubscription.unsubscribe();
+      this._cancelEditSubscription = undefined;
+    }
   }
 
   /**
@@ -219,6 +233,10 @@ export class BaseEditorAdapter extends Handsontable.editors.BaseEditor {
    * to store multiple references to the custom editor.
    */
   private resetEditorState(): void {
+    if (!this._editorPlaceHolderRef) {
+      return;
+    }
+
     this._editorPlaceHolderRef.setInput('top', undefined);
     this._editorPlaceHolderRef.setInput('left', undefined);
     this._editorPlaceHolderRef.setInput('height', undefined);

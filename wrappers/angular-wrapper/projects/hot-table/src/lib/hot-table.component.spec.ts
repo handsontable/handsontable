@@ -117,7 +117,8 @@ describe('HotTableComponent', () => {
 
       component.ngOnChanges(changes);
 
-      expect(applyCustomSettingsSpy).toHaveBeenCalledWith(newSettings);
+      // Second arg is the previous columns (undefined here — no columns configured) used for editor recycling.
+      expect(applyCustomSettingsSpy).toHaveBeenCalledWith(newSettings, undefined);
       expect(updateHotTableSpy).toHaveBeenCalledWith(newSettings, false);
     });
 
@@ -195,6 +196,35 @@ describe('HotTableComponent', () => {
       fixture.componentInstance.ngOnChanges(changes);
 
       expect(editorRefMock.destroy).toHaveBeenCalled();
+    });
+
+    it('should NOT destroy an editor ref that was recycled into the new columns', () => {
+      const editorRefMock = { destroy: jest.fn(), componentType: class {} } as any;
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {
+        ...settings,
+        columns: [{ _editorComponentReference: editorRefMock }],
+      };
+      fixture.detectChanges();
+
+      // Resolver recycles the same ref into the new column (same editor type at the same index).
+      const hotSettingsResolver = fixture.componentRef.injector.get(HotSettingsResolver);
+      jest.spyOn(hotSettingsResolver, 'applyCustomSettings').mockReturnValue({
+        ...settings,
+        columns: [{ _editorComponentReference: editorRefMock }],
+      } as any);
+
+      const changes: SimpleChanges = {
+        settings: new SimpleChange(
+          fixture.componentInstance.settings,
+          { ...settings, columns: [{}] },
+          false
+        ),
+      };
+
+      fixture.componentInstance.ngOnChanges(changes);
+
+      expect(editorRefMock.destroy).not.toHaveBeenCalled();
     });
 
     it('should NOT destroy old editor refs when new settings do not include columns', () => {
@@ -381,10 +411,12 @@ describe('HotTableComponent', () => {
       const dynamicComponentService = TestBed.inject(DynamicComponentService);
       const cleanupSpy = jest.spyOn(dynamicComponentService, 'cleanupContainer');
       const containerEl = (fixture.componentInstance as any).container.nativeElement;
+      const hotInstance = fixture.componentInstance.hotInstance;
 
       fixture.componentInstance.ngOnDestroy();
 
-      expect(cleanupSpy).toHaveBeenCalledWith(containerEl);
+      // The instance is passed so the service can tear down that table's per-instance registries.
+      expect(cleanupSpy).toHaveBeenCalledWith(containerEl, hotInstance);
     });
   });
 
