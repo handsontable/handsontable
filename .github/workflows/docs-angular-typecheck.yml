@@ -6,10 +6,14 @@ on:
     paths:
       - 'docs/content/**/angular/*.ts'
       - 'docs/angular-type-check/**'
+      - 'handsontable/**'
+      - 'wrappers/angular-wrapper/**'
   push:
     paths:
       - 'docs/content/**/angular/*.ts'
       - 'docs/angular-type-check/**'
+      - 'handsontable/**'
+      - 'wrappers/angular-wrapper/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

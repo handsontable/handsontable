@@ -7,6 +7,7 @@ import type {
   DataProviderQueryParameters,
   DataProviderFetchOptions,
   RowUpdatePayload,
+  DataProviderBeforeFetchParameters,
 } from 'handsontable/plugins/dataProvider/dataProvider';
 
 type DemoRow = {
@@ -334,7 +335,7 @@ export class AppComponent {
       contextMenu: true,
       emptyDataState: true,
       notification: true,
-      beforeDataProviderFetch: (params: { skipLoading?: boolean; [key: string]: unknown }) => {
+      beforeDataProviderFetch: (params: DataProviderBeforeFetchParameters) => {
         this.setFetchStatus(
           params.skipLoading
             ? 'Updating after sort or edit…'

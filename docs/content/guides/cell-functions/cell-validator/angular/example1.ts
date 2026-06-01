@@ -106,7 +106,7 @@ export class AppComponent implements OnInit {
     const componentInstance = this;
 
     this.hotSettings = {
-      beforeChange(changes: Handsontable.CellChange[]) {
+      beforeChange(changes: (Handsontable.CellChange | null)[]) {
         for (let i = changes.length - 1; i >= 0; i--) {
           const currChange = changes[i];
 
