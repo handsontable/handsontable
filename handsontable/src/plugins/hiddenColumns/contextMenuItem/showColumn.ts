@@ -68,23 +68,23 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
       const visualStartColumn = selectedRangeActive.getTopStartCorner().col;
       const visualEndColumn = selectedRangeActive.getBottomEndCorner().col;
 
-      if (visualStartColumn === null || visualEndColumn === null) {
-        return true;
-      }
-
       const columnIndexMapper = this.columnIndexMapper;
-      const renderableStartColumn = columnIndexMapper.getRenderableFromVisualIndex(visualStartColumn);
-      const renderableEndColumn = columnIndexMapper.getRenderableFromVisualIndex(visualEndColumn);
+      const renderableStartColumn = visualStartColumn !== null
+        ? columnIndexMapper.getRenderableFromVisualIndex(visualStartColumn)
+        : null;
+      const renderableEndColumn = visualEndColumn !== null
+        ? columnIndexMapper.getRenderableFromVisualIndex(visualEndColumn)
+        : null;
       const notTrimmedColumnIndexes = columnIndexMapper.getNotTrimmedIndexes();
       const physicalColumnIndexes = [];
 
       if (visualStartColumn !== visualEndColumn) {
-        if (renderableStartColumn === null || renderableEndColumn === null) {
+        if (visualStartColumn === null || visualEndColumn === null) {
           return true;
         }
 
         const visualColumnsInRange = visualEndColumn - visualStartColumn + 1;
-        const renderedColumnsInRange = renderableEndColumn - renderableStartColumn + 1;
+        const renderedColumnsInRange = (renderableEndColumn ?? 0) - (renderableStartColumn ?? 0) + 1;
 
         // Collect not trimmed columns if there are some hidden columns in the selection range.
         if (visualColumnsInRange > renderedColumnsInRange) {
@@ -95,7 +95,7 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
         }
 
       // Handled column is the first rendered index and there are some visual indexes before it.
-      } else if (renderableStartColumn === 0 && renderableStartColumn < visualStartColumn) {
+      } else if (renderableStartColumn === 0 && visualStartColumn !== null && renderableStartColumn < visualStartColumn) {
         // not trimmed indexes -> array of mappings from visual (native array's index) to physical indexes (value).
         physicalColumnIndexes.push(...notTrimmedColumnIndexes.slice(0, visualStartColumn)); // physical indexes
 
@@ -112,8 +112,8 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
           : null;
 
         // Handled column is the last rendered index and there are some visual indexes after it.
-        if (renderableEndColumn !== null && renderableEndColumn === lastRenderableIndex &&
-            lastVisualIndex > visualEndColumn) {
+        if (renderableEndColumn !== null && visualEndColumn !== null &&
+            renderableEndColumn === lastRenderableIndex && lastVisualIndex > visualEndColumn) {
           physicalColumnIndexes.push(...notTrimmedColumnIndexes.slice(visualEndColumn + 1));
         }
       }

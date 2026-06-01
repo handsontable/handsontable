@@ -68,23 +68,23 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
       const visualStartRow = selectedRangeActive.getTopStartCorner().row;
       const visualEndRow = selectedRangeActive.getBottomEndCorner().row;
 
-      if (visualStartRow === null || visualEndRow === null) {
-        return true;
-      }
-
       const rowIndexMapper = this.rowIndexMapper;
-      const renderableStartRow = rowIndexMapper.getRenderableFromVisualIndex(visualStartRow);
-      const renderableEndRow = rowIndexMapper.getRenderableFromVisualIndex(visualEndRow);
+      const renderableStartRow = visualStartRow !== null
+        ? rowIndexMapper.getRenderableFromVisualIndex(visualStartRow)
+        : null;
+      const renderableEndRow = visualEndRow !== null
+        ? rowIndexMapper.getRenderableFromVisualIndex(visualEndRow)
+        : null;
       const notTrimmedRowIndexes = rowIndexMapper.getNotTrimmedIndexes();
       const physicalRowIndexes = [];
 
       if (visualStartRow !== visualEndRow) {
-        if (renderableEndRow === null || renderableStartRow === null) {
+        if (visualStartRow === null || visualEndRow === null) {
           return true;
         }
 
         const visualRowsInRange = visualEndRow - visualStartRow + 1;
-        const renderedRowsInRange = renderableEndRow - renderableStartRow + 1;
+        const renderedRowsInRange = (renderableEndRow ?? 0) - (renderableStartRow ?? 0) + 1;
 
         // Collect not trimmed rows if there are some hidden rows in the selection range.
         if (visualRowsInRange > renderedRowsInRange) {
@@ -96,7 +96,7 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
         }
 
         // Handled row is the first rendered index and there are some visual indexes before it.
-      } else if (renderableStartRow === 0 && renderableStartRow < visualStartRow) {
+      } else if (renderableStartRow === 0 && visualStartRow !== null && renderableStartRow < visualStartRow) {
         // not trimmed indexes -> array of mappings from visual (native array's index) to physical indexes (value).
         physicalRowIndexes.push(...notTrimmedRowIndexes.slice(0, visualStartRow)); // physical indexes
 
@@ -116,7 +116,7 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
         }
 
         // Handled row is the last rendered index and there are some visual indexes after it.
-        if (renderableEndRow === lastRenderableIndex && lastVisualIndex > visualEndRow) {
+        if (visualEndRow !== null && renderableEndRow === lastRenderableIndex && lastVisualIndex > visualEndRow) {
           physicalRowIndexes.push(...notTrimmedRowIndexes.slice(visualEndRow + 1));
         }
       }
