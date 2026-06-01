@@ -95,7 +95,8 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
         }
 
       // Handled column is the first rendered index and there are some visual indexes before it.
-      } else if (renderableStartColumn === 0 && visualStartColumn !== null && renderableStartColumn < visualStartColumn) {
+      } else if (renderableStartColumn === 0 && visualStartColumn !== null &&
+        renderableStartColumn < visualStartColumn) {
         // not trimmed indexes -> array of mappings from visual (native array's index) to physical indexes (value).
         physicalColumnIndexes.push(...notTrimmedColumnIndexes.slice(0, visualStartColumn)); // physical indexes
 
