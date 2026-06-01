@@ -17,6 +17,9 @@ react:
 angular:
   id: wm5j9ry1
   metaTitle: Export to Excel - Angular Data Grid | Handsontable
+vue:
+  id: 2a0aqf2z
+  metaTitle: Export to Excel - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 menuTag: new

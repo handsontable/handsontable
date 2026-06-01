@@ -17,6 +17,9 @@ react:
 angular:
   id: yatyane1
   metaTitle: Dropdown cell type - Angular Data Grid | Handsontable
+vue:
+  id: k3c8d136
+  metaTitle: Dropdown cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---

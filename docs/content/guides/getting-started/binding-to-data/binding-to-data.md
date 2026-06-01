@@ -16,6 +16,9 @@ react:
 angular:
   id: xnqn2zg9
   metaTitle: Binding to data - Angular Data Grid | Handsontable
+vue:
+  id: lahmb9og
+  metaTitle: Binding to data - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---

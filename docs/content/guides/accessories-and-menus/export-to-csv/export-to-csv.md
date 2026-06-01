@@ -15,6 +15,9 @@ react:
 angular:
   id: hwhzgoir
   metaTitle: Export to CSV - Angular Data Grid | Handsontable
+vue:
+  id: z1ogjdj0
+  metaTitle: Export to CSV - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 menuTag: updated

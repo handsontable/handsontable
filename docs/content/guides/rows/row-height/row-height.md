@@ -23,6 +23,9 @@ react:
 angular:
   id: h42skmvo
   metaTitle: Row heights - Angular Data Grid | Handsontable
+vue:
+  id: xj52ap5s
+  metaTitle: Row heights - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

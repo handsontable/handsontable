@@ -13,6 +13,9 @@ react:
 angular:
   id: e9gbxrvk
   metaTitle: Migrate from 11.1 to 12.0 - Angular Data Grid | Handsontable
+vue:
+  id: cxu9kcv7
+  metaTitle: Migrate from 11.1 to 12.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

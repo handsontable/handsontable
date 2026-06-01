@@ -12,6 +12,8 @@ react:
 angular:
   id: zjy408sj
   metaTitle: Language change - Vue 3 Data Grid | Handsontable
+vue:
+  id: jvniuywb
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

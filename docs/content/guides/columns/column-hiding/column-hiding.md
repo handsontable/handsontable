@@ -14,6 +14,9 @@ react:
 angular:
   id: 69k5r1oh
   metaTitle: Column hiding - Angular Data Grid | Handsontable
+vue:
+  id: hwodm9tg
+  metaTitle: Column hiding - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---

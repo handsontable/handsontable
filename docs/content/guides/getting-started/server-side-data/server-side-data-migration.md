@@ -16,6 +16,9 @@ react:
 angular:
   id: s5p9n3l8
   metaTitle: Migrate to server-side data - Angular Data Grid | Handsontable
+vue:
+  id: 0c1h1cah
+  metaTitle: Migrate to server-side data - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Server-side data
 ---

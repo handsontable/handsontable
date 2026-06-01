@@ -19,6 +19,9 @@ react:
 angular:
   id: wq2llzfz
   metaTitle: Loading - Angular Data Grid | Handsontable
+vue:
+  id: odrgfc3c
+  metaTitle: Loading - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Dialog
 ---

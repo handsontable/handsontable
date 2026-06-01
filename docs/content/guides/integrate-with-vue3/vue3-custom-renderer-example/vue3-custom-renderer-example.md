@@ -12,6 +12,8 @@ react:
 angular:
   id: karjf4av
   metaTitle: Custom cell renderer - Vue 3 Data Grid | Handsontable
+vue:
+  id: 3a3ut00h
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

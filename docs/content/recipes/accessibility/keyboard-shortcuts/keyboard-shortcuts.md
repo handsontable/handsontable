@@ -17,6 +17,9 @@ react:
 angular:
   id: c4f03e47
   metaTitle: Custom keyboard shortcuts - Angular Data Grid | Handsontable
+vue:
+  id: 423pgfmi
+  metaTitle: Custom keyboard shortcuts - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Accessibility & UX
 type: how-to

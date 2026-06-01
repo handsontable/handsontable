@@ -23,6 +23,9 @@ react:
 angular:
   id: xau2jfok
   metaTitle: Theme Customization - Angular Data Grid | Handsontable
+vue:
+  id: 2t881imb
+  metaTitle: Theme Customization - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
 menuTag: updated

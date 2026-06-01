@@ -16,6 +16,9 @@ react:
 angular:
   id: a1c9e582
   metaTitle: Sparkline cell renderer - Angular Data Grid | Handsontable
+vue:
+  id: x00kh9c9
+  metaTitle: Sparkline cell renderer - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Rendering and styling
 type: how-to

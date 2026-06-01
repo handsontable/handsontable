@@ -12,6 +12,8 @@ react:
 angular:
   id: p3omli89
   metaTitle: Modules - Vue 3 Data Grid | Handsontable
+vue:
+  id: 7e5s8exy
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

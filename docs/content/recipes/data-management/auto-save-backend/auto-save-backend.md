@@ -18,6 +18,9 @@ react:
 angular:
   id: b5c2q9k7
   metaTitle: Auto-save changes to a backend - Angular Data Grid | Handsontable
+vue:
+  id: 5v0khjzx
+  metaTitle: Auto-save changes to a backend - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 type: how-to

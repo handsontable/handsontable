@@ -12,6 +12,9 @@ react:
 angular:
   id: 25m4fmia
   metaTitle: Security - Angular Data Grid | Handsontable
+vue:
+  id: jwm6n1b7
+  metaTitle: Security - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Security
 ---

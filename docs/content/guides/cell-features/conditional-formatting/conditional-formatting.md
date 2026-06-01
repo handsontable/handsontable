@@ -12,6 +12,9 @@ react:
 angular:
   id: uz3qc620
   metaTitle: Conditional formatting - Angular Data Grid | Handsontable
+vue:
+  id: 6w0okh8i
+  metaTitle: Conditional formatting - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

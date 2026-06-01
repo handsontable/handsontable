@@ -16,6 +16,9 @@ react:
 angular:
   id: 16bofyho
   metaTitle: Configuration options - Angular Data Grid | Handsontable
+vue:
+  id: 4xi8scx0
+  metaTitle: Configuration options - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---

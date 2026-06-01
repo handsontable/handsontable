@@ -14,6 +14,9 @@ react:
 angular:
   id: a7fpjwud
   metaTitle: Supported browsers - Angular Data Grid | Handsontable
+vue:
+  id: 6kn7722c
+  metaTitle: Supported browsers - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Technical specification
 ---

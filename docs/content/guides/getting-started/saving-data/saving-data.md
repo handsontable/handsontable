@@ -16,6 +16,9 @@ react:
 angular:
   id: uny2nvqk
   metaTitle: Saving data - Angular Data Grid | Handsontable
+vue:
+  id: qnevlxum
+  metaTitle: Saving data - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---

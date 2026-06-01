@@ -153,7 +153,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   const jsRef  = (!codeOnly && !isAngularDir && !isReactDir && !isVueDir) ? fileRefs.find(r => r.endsWith('.js')) : null;
   const jsxRef = (!codeOnly && isReactDir) ? fileRefs.find(r => r.endsWith('.jsx') || r.endsWith('.tsx')) : null;
   const tsRef  = (!codeOnly && isAngularDir) ? fileRefs.find(r => r.endsWith('.ts')) : null;
-  const vueRef = (!codeOnly && isVueDir) ? fileRefs.find(r => r.endsWith('.js')) : null;
+  const vueRef = (!codeOnly && isVueDir) ? fileRefs.find(r => r.endsWith('.vue')) : null;
 
   const files = fileRefs.map((ref) => {
     const absPath = join(contentDir, ref);
@@ -186,12 +186,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   } else if (jsxRef) {
     exampleAttr = ` data-example-jsx="/content/${escapeHtml(jsxRef)}" data-example-id="${escapeHtml(id)}"`;
   } else if (vueRef) {
-    const htmlRef = fileRefs.find((ref) => ref.endsWith('.html'));
-
     exampleAttr = ` data-example-vue="/content/${escapeHtml(vueRef)}" data-example-id="${escapeHtml(id)}"`;
-    if (htmlRef) {
-      exampleAttr += ` data-example-html="/content/${escapeHtml(htmlRef)}"`;
-    }
   } else if (tsRef) {
     const htmlRef = fileRefs.find((ref) => ref.endsWith('.html'));
 
@@ -227,7 +222,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   // its content into the preview area instead of a bare <div id="…"></div>.
   let htmlPreviewContent = '';
 
-  if (jsRef || vueRef) {
+  if (jsRef) {
     const htmlFile = files.find(f => f.ext === 'html');
 
     if (htmlFile) {
@@ -485,17 +480,18 @@ function processExampleBlocks(content, contentDir) {
   return result.join('\n');
 }
 
-const FRAMEWORKS = ['javascript', 'react', 'angular'];
+const FRAMEWORKS = ['javascript', 'react', 'angular', 'vue'];
 
 const PREFIXES = {
   javascript: 'javascript-data-grid',
   react: 'react-data-grid',
   angular: 'angular-data-grid',
+  vue: 'vue-data-grid',
 };
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v35';
+const LOADER_VERSION = 'v36';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -1051,6 +1047,7 @@ const FRAMEWORK_PREFIX_MAP = {
   javascript: 'javascript-data-grid',
   react: 'react-data-grid',
   angular: 'angular-data-grid',
+  vue: 'vue-data-grid',
 };
 
 /**
@@ -1071,7 +1068,7 @@ function resolveAtLink(rawLink, prefix, contentDir) {
   let targetPrefix = prefix;
   let filePath = rawLink;
 
-  const frameworkMatch = rawLink.match(/^(javascript|react|angular)\/(.+)/);
+  const frameworkMatch = rawLink.match(/^(javascript|react|angular|vue)\/(.+)/);
 
   if (frameworkMatch) {
     targetPrefix = FRAMEWORK_PREFIX_MAP[frameworkMatch[1]];

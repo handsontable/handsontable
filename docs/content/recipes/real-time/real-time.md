@@ -15,6 +15,9 @@ react:
 angular:
   id: y6f8g0h2
   metaTitle: Real-time and Integration Recipes - Angular Data Grid | Handsontable
+vue:
+  id: g4d4zmrv
+  metaTitle: Real-time and Integration Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 

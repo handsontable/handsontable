@@ -12,6 +12,9 @@ react:
 angular:
   id: kc0urkyj
   metaTitle: Third-party licenses - Angular Data Grid | Handsontable
+vue:
+  id: ztyi7ggq
+  metaTitle: Third-party licenses - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Technical specification
 ---

@@ -12,6 +12,8 @@ react:
 angular:
   id: 4h37k7c4
   metaTitle: Formulas integration in Vue 3 - Vue 3 Data Grid | Handsontable
+vue:
+  id: u9v86qrr
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

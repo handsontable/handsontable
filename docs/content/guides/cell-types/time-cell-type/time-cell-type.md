@@ -12,6 +12,9 @@ react:
 angular:
   id: fu9fqphw
   metaTitle: Time cell type - Angular Data Grid | Handsontable
+vue:
+  id: bxoffcid
+  metaTitle: Time cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---

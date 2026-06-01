@@ -16,6 +16,9 @@ react:
 angular:
   id: ompl9j5i
   metaTitle: Custom plugins - Angular Data Grid | Handsontable
+vue:
+  id: 8w2zb1ze
+  metaTitle: Custom plugins - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
 ---

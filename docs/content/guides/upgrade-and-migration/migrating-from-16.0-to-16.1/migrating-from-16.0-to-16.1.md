@@ -13,6 +13,9 @@ react:
 angular:
   id: bv25a4sd
   metaTitle: Migrate from 16.0 to 16.1 - Angular Data Grid | Handsontable
+vue:
+  id: d7wjzk8v
+  metaTitle: Migrate from 16.0 to 16.1 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

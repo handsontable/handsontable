@@ -16,6 +16,9 @@ react:
 angular:
   id: q473yaal
   metaTitle: Clipboard - Angular Data Grid | Handsontable
+vue:
+  id: hiuseqwy
+  metaTitle: Clipboard - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

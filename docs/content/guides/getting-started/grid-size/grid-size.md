@@ -17,6 +17,9 @@ react:
 angular:
   id: w6lvb55f
   metaTitle: Grid size - Angular Data Grid | Handsontable
+vue:
+  id: ej8mo5um
+  metaTitle: Grid size - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---
