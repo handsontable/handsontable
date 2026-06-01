@@ -15,11 +15,11 @@ description: >
 
 ## Dispatch table — always invoke the specialist first
 
-Always invoke `architecture-review` alongside the task-specific specialist — it carries the SOLID / Law-of-Demeter / plugin-decoupling / breaking-changes rules that apply to **every** change, not just reviews. Treat its checks as the design lens; treat the task skill as the implementation guide.
+Always invoke `handsontable-code-review` (architecture dimension) alongside the task-specific specialist — it carries the SOLID / Law-of-Demeter / plugin-decoupling / breaking-changes rules that apply to **every** change, not just reviews. Treat its checks as the design lens; treat the task skill as the implementation guide.
 
 | Task | Skill |
 |---|---|
-| Any feature / fix in core (design-level rules) | `architecture-review` — load first, regardless of task |
+| Any feature / fix in core (design-level rules) | `handsontable-code-review` (architecture dimension) — load first, regardless of task |
 | Create / modify a **plugin** | `handsontable-plugin-dev` |
 | Create / modify an **editor** | `handsontable-editor-dev` |
 | Create / modify a **renderer** | `handsontable-renderer-dev` |
@@ -36,11 +36,11 @@ Always invoke `architecture-review` alongside the task-specific specialist — i
 | Visual regression tests | `visual-testing` |
 | Docs pages | `writing-docs-pages` |
 
-The task-specific skills hold the deep how-to. `architecture-review` holds the design constraints. This skill holds the TS conventions that cut across both.
+The task-specific skills hold the deep how-to. `handsontable-code-review` (architecture dimension) holds the design constraints. This skill holds the TS conventions that cut across both.
 
-## Design rules from `architecture-review` (apply to every change)
+## Design rules from `handsontable-code-review` (apply to every change)
 
-The full rules live in that skill — load it for the complete checklist. The non-negotiables to keep in mind while writing or modifying code:
+The full rules live in that skill's `references/architecture.md` — load it for the complete checklist. The non-negotiables to keep in mind while writing or modifying code:
 
 - **Plugin decoupling.** No direct cross-plugin imports. Talk via hooks; reach for another plugin's API only through `hot.getPlugin('Name')`. No circular plugin dependencies.
 - **Conflict ownership.** The plugin that introduces an incompatibility owns the blocking logic. Don't sprinkle `if (otherPluginEnabled) return;` checks across unrelated plugins. For hard conflicts, use `registerConflict()` from `src/plugins/base/conflictRegistry.ts` at module load time.

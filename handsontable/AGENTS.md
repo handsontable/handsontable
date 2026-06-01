@@ -41,10 +41,6 @@ Gold standard: `src/plugins/pagination/pagination.ts`
 Translate with `hot.rowIndexMapper` / `hot.columnIndexMapper`.
 Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` uses visual.
 
-## DataProvider and Notification
-
-For server-backed grids (`dataProvider` with `fetchRows` and CRUD callbacks), enable **`notification`** if you want built-in error toasts on failed fetches or mutations. **`dialog: true` alone does not** show those errors. Failed **fetch** toasts include a **Refetch** button that calls `fetchData()` again (`duration: 0` until dismissed or Refetch). Use **`afterDataProviderFetchError`** and **`afterRowsMutationError`** for custom UI when Notification is disabled. See `src/plugins/dataProvider/dataProvider.ts` and AGENTS.md Gotchas.
-
 ## Testing
 
 | Type | Pattern | Framework | Run |
@@ -95,13 +91,6 @@ For server-backed grids (`dataProvider` with `fetchRows` and CRUD callbacks), en
 | Build/test task definitions | `scripts/tasks.json` |
 | Shortcut contexts | `src/shortcuts/contexts/` |
 
-## Column Stretching
-
-- Always respect defined column widths as **minimum values**.
-- If a column would shrink below its base width, disable stretching entirely.
-- The `'all'` and `'last'` strategies must behave consistently regarding minimum width handling.
-- Strategy implementations: `src/plugins/stretchColumns/strategies/`.
-
 ## Performance
 
 - Never `arr.push(...largeArray)` with 10k+ elements — it overflows the stack. Use a `forEach` loop.
@@ -114,17 +103,6 @@ For server-backed grids (`dataProvider` with `fetchRows` and CRUD callbacks), en
 - Expose all necessary methods in the public API. Keep them discoverable and documented in guides.
 - Every configuration option must fit the cascading configuration model (`cell` → `column` → `global`).
 - The public API must give good code completion in IDEs and AI assistants.
-
-## Context Menu vs Column Menu
-
-| | Context menu | Column menu (dropdown menu) |
-|---|---|---|
-| **Plugin class / key** | `ContextMenu` / `'contextMenu'` | `DropdownMenu` / `'dropdownMenu'` |
-| **Trigger** | Right-click (or `Ctrl+Shift+\` / `Shift+F10`) | Column header button (or `Shift+Alt+ArrowDown`) |
-| **Scope** | Cells and headers across rows and columns | Column-specific operations only |
-| **Hook prefix** | `beforeContextMenu*`, `afterContextMenu*` | `beforeDropdownMenu*`, `afterDropdownMenu*` |
-
-`DropdownMenu` is built on the shared `Menu` class from `contextMenu` but configured and triggered independently.
 
 ## Lint
 

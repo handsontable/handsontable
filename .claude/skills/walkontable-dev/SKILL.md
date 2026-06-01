@@ -1,5 +1,6 @@
 ---
 name: walkontable-dev
+path: handsontable/src/3rdparty/walkontable/**
 description: Use when modifying the Walkontable rendering engine in src/3rdparty/walkontable/ - overlay system, viewport calculations, scroll handling, DOM management, or the TableView bridge between core Handsontable and Walkontable
 ---
 

@@ -1,5 +1,6 @@
 ---
 name: writing-docs-pages
+path: docs/**
 description: Use when creating or editing documentation pages in docs/content/guides/ - covers YAML frontmatter, page structure, framework-specific example embedding, writing style, and sidebar registration
 ---
 

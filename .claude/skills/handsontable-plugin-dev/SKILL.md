@@ -1,5 +1,6 @@
 ---
 name: handsontable-plugin-dev
+path: handsontable/src/plugins/**
 description: Use when creating a new Handsontable plugin, modifying an existing plugin's behavior, adding hooks or options to a plugin, or working with the plugin lifecycle (enablePlugin, disablePlugin, updatePlugin). Covers the full plugin contract, conflict registration, settings validation, and IndexMapper integration.
 ---
 

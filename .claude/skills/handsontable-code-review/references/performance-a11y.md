@@ -1,15 +1,8 @@
----
-name: performance-a11y-review
-description: Use when reviewing code changes for performance impact and accessibility compliance - covers large array handling, render batching, WCAG 2.1 AA conformance, keyboard navigation modes, and ARIA semantics
----
+# Performance and accessibility dimension
 
-# Performance and Accessibility Review
+Review staged or changed code for performance regressions and accessibility (a11y) violations. Both are critical - performance affects large-dataset users and a11y is a compliance requirement.
 
-## Purpose
-
-Review staged or changed code for performance regressions and accessibility (a11y) violations. Both areas are critical - performance affects large-dataset users and a11y is a compliance requirement.
-
-## Performance Checks
+## Performance checks
 
 1. **Large array safety:**
    - Never use `arr.push(...largeArray)` when the array may exceed 10k elements. This causes stack overflow. Use a `forEach` loop instead.
@@ -51,12 +44,6 @@ Review staged or changed code for performance regressions and accessibility (a11
 
 5. **Focus management:**
    - Focus must not be lost after interactions (cell editing, menu open/close, dialog dismiss). Verify focus returns to a logical position.
-
-## Output Format
-
-Group findings into **Performance** and **Accessibility** sections. Use severity levels: Critical, High, Medium, Low. Include `file:line` references.
-
-If no issues are found, output exactly: `No blocking issues found.`
 
 ## References
 
