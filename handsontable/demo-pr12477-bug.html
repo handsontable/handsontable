@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12477 — BUG (clear() leaves all cells selected)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .bad { color: #f48771; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-run { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
+    .btn-run:hover { background: #c62828; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 200px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 15px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.ok { color: #2e7d32; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+    .status-box { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-family: monospace; min-height: 40px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>PR #12477 - <code>clear()</code> leaves all cells selected</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12477-fix.html">PR #12477 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    Calling <code>hot.clear()</code> clears all cell data correctly, but leaves every cell in a
+    selected state. Internally it calls <code>selectAll()</code> to collect cells for emptying
+    but never calls <code>deselectCell()</code> afterwards, so the full-table selection persists
+    as a visible side-effect.
+  </div>
+
+  <pre><span class="comment">// BUG — core.js clear() before fix:</span>
+this.clear = function() {
+  this.selectAll();
+  this.emptySelectedCells();
+  <span class="bad">// ← missing: this.deselectCell()</span>
+  <span class="comment">// all cells remain selected after this returns</span>
+};</pre>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>The grid starts with some data and a cell selected at (0, 0).</li>
+      <li>Click <strong>"hot.clear()"</strong>.</li>
+      <li>BUG: all cells are highlighted / selected after clearing — <code>getSelected()</code> is not <code>undefined</code>.</li>
+      <li>Compare with the <a href="demo-pr12477-fix.html">Fix page</a>.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-run" id="btn-clear">hot.clear()</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Data cleared?</div>
+      <div class="metric-value neutral" id="m-data">—</div>
+      <div class="metric-sub">Expected: YES (all cells null)</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Selection after clear</div>
+      <div class="metric-value neutral" id="m-sel">—</div>
+      <div class="metric-sub">Expected: none (undefined) — BUG: all cells selected</div>
+    </div>
+  </div>
+
+  <div class="status-box" id="status">Click "hot.clear()" to test.</div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    function initHot() {
+      if (window.hot) { window.hot.destroy(); window.hot = null; }
+
+      ['m-data', 'm-sel'].forEach(id => {
+        document.getElementById(id).textContent = '—';
+        document.getElementById(id).className = 'metric-value neutral';
+      });
+      document.getElementById('status').textContent = 'Click "hot.clear()" to test.';
+
+      window.hot = new Handsontable(document.getElementById('hot-container'), {
+        data: [
+          ['Toyota', 2021, 25000],
+          ['Honda',  2020, 22000],
+          ['Ford',   2019, 19000],
+        ],
+        colHeaders: ['Car', 'Year', 'Price'],
+        rowHeaders: true,
+        width: '100%',
+        height: 200,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      // pre-select a cell so we have something to observe changing
+      window.hot.selectCell(0, 0);
+    }
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      window.hot.clear();
+
+      const data = window.hot.getData();
+      const sel = window.hot.getSelected();
+
+      const allNull = data.every(row => row.every(v => v === null));
+
+      document.getElementById('m-data').textContent = allNull ? 'YES ✓' : 'NO ✗';
+      document.getElementById('m-data').className = 'metric-value ' + (allNull ? 'ok' : 'bad');
+
+      const selStr = sel ? JSON.stringify(sel) : 'undefined';
+      document.getElementById('m-sel').textContent = selStr;
+      document.getElementById('m-sel').className = 'metric-value ' + (sel === undefined ? 'ok' : 'bad');
+
+      document.getElementById('status').textContent =
+        'After hot.clear():\n' +
+        '  getData() all null: ' + allNull + '\n' +
+        '  getSelected():      ' + selStr + '\n\n' +
+        (sel !== undefined
+          ? 'BUG: selection was not cleared — all cells are still selected (highlighted).'
+          : 'OK: no cells selected.');
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', initHot);
+
+    initHot();
+  </script>
+</body>
+</html>
