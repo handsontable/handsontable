@@ -1,6 +1,5 @@
 .controlsQuickFilter {
   position: relative;
-  z-index: 0;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -24,6 +23,11 @@
 
 #filterField:focus {
   border-color: var(--sl-color-accent, #1A42E8);
+}
+
+#filterField:focus-visible {
+  border-color: var(--sl-color-accent, #1A42E8);
+  box-shadow: 0 0 0 1px var(--sl-color-accent, #1A42E8);
 }
 
 /* Filter dropdown */
