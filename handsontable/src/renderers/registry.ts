@@ -1,5 +1,6 @@
 import { staticRegister } from '../utils/staticRegister';
 import { throwWithCause } from '../helpers/errors';
+import type { BaseRenderer } from './baseRenderer';
 import type { RENDERER_TYPE as AUTOCOMPLETE_RENDERER } from './autocompleteRenderer';
 import type { RENDERER_TYPE as BASE_RENDERER } from './baseRenderer';
 import type { RENDERER_TYPE as CHECKBOX_RENDERER } from './checkboxRenderer';
@@ -28,9 +29,9 @@ const {
  * Retrieve renderer function.
  *
  * @param {string} name Renderer identification.
- * @returns {Function} Returns renderer function.
+ * @returns {BaseRenderer} Returns renderer function.
  */
-function _getItem(name: string | Function): Function {
+function _getItem(name: string | BaseRenderer): BaseRenderer {
   if (typeof name === 'function') {
     return name;
   }
@@ -38,16 +39,16 @@ function _getItem(name: string | Function): Function {
     throwWithCause(`No registered renderer found under "${name}" name`);
   }
 
-  return getItem(name) as Function;
+  return getItem(name) as BaseRenderer;
 }
 
 /**
  * Register renderer under its alias.
  *
- * @param {string|Function} name Renderer's alias or renderer function with its descriptor.
- * @param {Function} [renderer] Renderer function.
+ * @param {string|BaseRenderer} name Renderer's alias or renderer function with its descriptor.
+ * @param {BaseRenderer} [renderer] Renderer function.
  */
-function _register(name: string | (Function & { RENDERER_TYPE: string }), renderer?: Function): void {
+function _register(name: string | (BaseRenderer & { RENDERER_TYPE: string }), renderer?: BaseRenderer): void {
   if (typeof name !== 'string') {
     renderer = name;
     name = name.RENDERER_TYPE;

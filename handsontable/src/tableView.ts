@@ -1,4 +1,5 @@
 import type { HotInstance } from './core/types';
+import type { BaseRenderer } from './renderers/baseRenderer';
 import type { WalkontableInstance, DataAccessObject, ScrollDao } from './3rdparty/walkontable/src/types';
 import type { RowsCalculationType, ColumnsCalculationType } from './3rdparty/walkontable/src/calculator/viewportBase';
 import {
@@ -929,8 +930,8 @@ class TableView {
 
         this.hot.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
 
-        const rendererArgs = [
-          this.hot,
+        const rendererArgs: Parameters<BaseRenderer> = [
+          this.hot as HotInstance,
           TD,
           visualRowIndex,
           visualColumnIndex,

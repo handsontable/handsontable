@@ -16,7 +16,7 @@ export interface SummaryEndpoint {
   forceNumeric?: boolean;
   type?: string;
   result?: number | string;
-  customFunction?: ((endpoint: SummaryEndpoint) => number | string) | null;
+  customFunction?: ((this: ColumnSummary, endpoint: SummaryEndpoint) => number | string) | null;
   [key: string]: unknown;
 }
 
@@ -277,7 +277,7 @@ export class ColumnSummary extends BasePlugin {
         endpoint.result = this.calculateAverage(endpoint);
         break;
       case 'custom':
-        endpoint.result = endpoint.customFunction!(endpoint);
+        endpoint.result = endpoint.customFunction!.call(this, endpoint);
         break;
       default:
         break;

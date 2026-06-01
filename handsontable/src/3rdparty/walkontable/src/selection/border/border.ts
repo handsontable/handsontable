@@ -170,7 +170,7 @@ class Border {
      */
     function handler(handlerEvent: MouseEvent) {
       if (isOutside(handlerEvent)) {
-        _this.eventManager.removeEventListener(documentBody, 'mousemove', handler);
+        _this.eventManager.removeEventListener(documentBody, 'mousemove', handler as (event: Event) => void);
         parentElement.style.display = 'block';
       }
     }

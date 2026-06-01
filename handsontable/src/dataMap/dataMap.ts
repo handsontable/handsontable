@@ -100,7 +100,7 @@ class DataMap {
   tableMeta: Record<string, unknown> & {
     maxRows?: number;
     maxCols?: number;
-    columns?: Function | Record<string, unknown>[];
+    columns?: ((column: number) => Record<string, unknown>) | Record<string, unknown>[];
     dataSchema?: unknown;
     startRows?: number;
     startCols?: number;

@@ -10,8 +10,7 @@ import type { GridSettings } from './core/settings';
  * Row objects can have any data assigned to them, not just column data, and can define a `__children` array for nested rows.
  */
 export interface RowObject {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [prop: string]: any;
+    [prop: string]: unknown;
   }
 
 /**
@@ -66,8 +65,7 @@ export interface ColumnSettings extends Omit<GridSettings, 'data'> {
     /**
      * Column and cell meta data is extensible, developers can add any properties they want.
      */
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    [key: string]: any;
+    [key: string]: unknown;
   }
 
 /**

@@ -20,6 +20,7 @@ import { staticRegister } from './utils/staticRegister';
 import { getPlugin, getPluginsNames } from './plugins/registry';
 import type { BasePlugin } from './plugins/base/base';
 import { getRenderer } from './renderers/registry';
+import type { BaseRenderer } from './renderers/baseRenderer';
 import { getEditor } from './editors/registry';
 import { getValidator } from './validators/registry';
 import { randomString, toUpperCaseFirst } from './helpers/string';
@@ -1867,7 +1868,7 @@ export default function Core(
     cellProperties: Record<string, unknown> & {
       hidden?: boolean, visualCol?: number, visualRow?: number, prop?: string, valid?: boolean, allowInvalid?: boolean
     },
-    callback: Function,
+    callback: (valid: boolean) => void,
     source: string
   ) {
 
@@ -4190,7 +4191,7 @@ export default function Core(
       return getRenderer(cellRenderer);
     }
 
-    return isUndefined(cellRenderer) ? getRenderer('text') : cellRenderer as Function;
+    return isUndefined(cellRenderer) ? getRenderer('text') : cellRenderer as BaseRenderer;
   };
 
   /**
@@ -4217,7 +4218,9 @@ export default function Core(
       return getEditor(cellEditor);
     }
 
-    return (isUndefined(cellEditor) ? getEditor('text') : cellEditor) as Function;
+    type EditorConstructor = (new (hotInstance: HotInstance) => unknown) & { EDITOR_TYPE?: string };
+
+    return (isUndefined(cellEditor) ? getEditor('text') : cellEditor) as EditorConstructor;
   };
 
   /**
@@ -4244,7 +4247,7 @@ export default function Core(
       return getValidator(cellValidator);
     }
 
-    return cellValidator as Function | RegExp | undefined;
+    return cellValidator as ((value: unknown, callback: (valid: boolean) => void) => void) | RegExp | undefined;
   };
 
   /**
@@ -4271,7 +4274,7 @@ export default function Core(
    * })
    * ```
    */
-  this.validateCells = function(callback: Function) {
+  this.validateCells = function(callback?: (valid: boolean) => void) {
     this._validateCells(callback);
   };
 
@@ -4294,7 +4297,7 @@ export default function Core(
    * })
    * ```
    */
-  this.validateRows = function(rows: number[], callback: Function) {
+  this.validateRows = function(rows: number[], callback?: (valid: boolean) => void) {
     if (!Array.isArray(rows)) {
       throwWithCause('validateRows parameter `rows` must be an array');
     }
@@ -4320,7 +4323,7 @@ export default function Core(
    * })
    * ```
    */
-  this.validateColumns = function(columns: number[], callback: Function) {
+  this.validateColumns = function(columns: number[], callback?: (valid: boolean) => void) {
     if (!Array.isArray(columns)) {
       throwWithCause('validateColumns parameter `columns` must be an array');
     }
@@ -5323,7 +5326,7 @@ export default function Core(
    * @param {Function} [callback] The callback function to call after the viewport is scrolled.
    * @returns {boolean} `true` if the viewport was scrolled, `false` otherwise.
    */
-  this.scrollToFocusedCell = function(callback: Function) {
+  this.scrollToFocusedCell = function(callback?: () => void) {
     if (!instance.selection.isSelected()) {
       return false;
     }

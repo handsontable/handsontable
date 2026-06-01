@@ -17,13 +17,15 @@ const {
   getValues,
 } = staticRegister('validators');
 
+type CellValidator = (value: unknown, callback: (valid: boolean) => void) => void;
+
 /**
  * Retrieve validator function.
  *
  * @param {string} name Validator identification.
- * @returns {Function} Returns validator function.
+ * @returns {CellValidator} Returns validator function.
  */
-function _getItem(name: string | Function): Function {
+function _getItem(name: string | CellValidator): CellValidator {
   if (typeof name === 'function') {
     return name;
   }
@@ -31,16 +33,16 @@ function _getItem(name: string | Function): Function {
     throwWithCause(`No registered validator found under "${name}" name`);
   }
 
-  return getItem(name) as Function;
+  return getItem(name) as CellValidator;
 }
 
 /**
  * Register validator under its alias.
  *
- * @param {string|Function} name Validator's alias or validator function with its descriptor.
- * @param {Function} [validator] Validator function.
+ * @param {string|CellValidator} name Validator's alias or validator function with its descriptor.
+ * @param {CellValidator} [validator] Validator function.
  */
-function _register(name: string | (Function & { VALIDATOR_TYPE: string }), validator?: Function): void {
+function _register(name: string | (CellValidator & { VALIDATOR_TYPE: string }), validator?: CellValidator): void {
   if (typeof name !== 'string') {
     validator = name;
     name = name.VALIDATOR_TYPE;

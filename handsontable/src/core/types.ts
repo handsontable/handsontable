@@ -19,6 +19,7 @@ import type { default as EditorManagerInstance } from '../editorManager';
 import type { BaseEditor as BaseEditorInstance } from '../editors/baseEditor/baseEditor';
 import type { StylesHandler } from '../utils/stylesHandler';
 import type { ThemeManager } from '../themes/engine/manager';
+import type { BaseRenderer } from '../renderers/baseRenderer';
 
 /**
  * Represents a selection range with start/end row/col coordinates.
@@ -137,10 +138,14 @@ export interface HotInstance {
   spliceCellsMeta(visualIndex: number, deleteAmount?: number, ...cellMetaRows: unknown[]): void;
   getCellsMeta(): Record<string, unknown>[];
   getColumnMeta(column: number): Record<string, unknown>;
-  getCellRenderer(rowOrMeta: number | Record<string, unknown>, column?: number): Function;
-  getCellEditor(rowOrMeta: number | Record<string, unknown>, column?: number): Function;
-  getCellValidator(rowOrMeta: number | Record<string, unknown>, column?: number): Function | RegExp | undefined;
-  validateCell(value: unknown, cellProperties: Record<string, unknown>, callback: Function, source?: string): void;
+  getCellRenderer(rowOrMeta: number | Record<string, unknown>, column?: number): BaseRenderer;
+  getCellEditor(rowOrMeta: number | Record<string, unknown>, column?: number):
+    (new (hotInstance: HotInstance) => unknown) & { EDITOR_TYPE?: string };
+  getCellValidator(rowOrMeta: number | Record<string, unknown>, column?: number):
+    ((value: unknown, callback: (valid: boolean) => void) => void) | RegExp | undefined;
+  validateCell(
+    value: unknown, cellProperties: Record<string, unknown>, callback: (valid: boolean) => void, source?: string
+  ): void;
 
   // Dimensions
   countRows(): number;
@@ -170,23 +175,23 @@ export interface HotInstance {
   // Rendering
   render(): void;
   forceFullRender: boolean;
-  batchRender(wrappedOperations: Function): unknown;
-  batchExecution(wrappedOperations: Function, forceFlushChanges?: boolean): unknown;
-  batch(wrappedOperations: Function): unknown;
+  batchRender(wrappedOperations: () => unknown): unknown;
+  batchExecution(wrappedOperations: () => unknown, forceFlushChanges?: boolean): unknown;
+  batch(wrappedOperations: () => unknown): unknown;
   refreshDimensions(): void;
   isRenderSuspended(): boolean;
   suspendRender(): void;
   resumeRender(): void;
-  validateCells(callback?: Function): void;
-  validateRows(rows: number[], callback?: Function): void;
-  validateColumns(columns: number[], callback?: Function): void;
+  validateCells(callback?: (valid: boolean) => void): void;
+  validateRows(rows: number[], callback?: (valid: boolean) => void): void;
+  validateColumns(columns: number[], callback?: (valid: boolean) => void): void;
   scrollViewportTo(
     options: {
       row?: number; col?: number; horizontalSnap?: string; verticalSnap?: string; considerHiddenIndexes?: boolean;
     } | number,
     ...args: unknown[]
   ): boolean;
-  scrollToFocusedCell(callback?: Function): void;
+  scrollToFocusedCell(callback?: () => void): boolean;
 
   // View
   view: ViewInstance;

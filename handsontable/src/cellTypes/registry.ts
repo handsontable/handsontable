@@ -3,6 +3,8 @@ import { throwWithCause } from '../helpers/errors';
 import { registerEditor } from '../editors/registry';
 import { registerRenderer } from '../renderers/registry';
 import { registerValidator } from '../validators/registry';
+import type { BaseRenderer } from '../renderers/baseRenderer';
+import type { HotInstance } from '../core/types';
 import type { CELL_TYPE as AUTOCOMPLETE_TYPE } from './autocompleteType';
 import type { CELL_TYPE as CHECKBOX_TYPE } from './checkboxType';
 import type { CELL_TYPE as DATE_TYPE } from './dateType';
@@ -18,9 +20,9 @@ import type { CELL_TYPE as TIME_TYPE } from './timeType';
 
 export interface CellTypeObject {
   CELL_TYPE: string;
-  editor?: Function;
-  renderer?: Function;
-  validator?: Function;
+  editor?: new (hotInstance: HotInstance) => unknown;
+  renderer?: BaseRenderer;
+  validator?: (value: unknown, callback: (valid: boolean) => void) => void;
   [key: string]: unknown;
 }
 
