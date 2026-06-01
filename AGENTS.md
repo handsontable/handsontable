@@ -34,6 +34,8 @@ Route to the lowest correct scope. `AGENTS.md` answers "what must I never get wr
 | `handsontable/.ai/` | Core — architecture, conventions, concerns, structure, integrations, testing detail |
 | `handsontable/src/3rdparty/walkontable/.ai/` | Rendering engine — architecture, concerns |
 
+In every directory, `CLAUDE.md` is a symlink to its sibling `AGENTS.md`. Edit `AGENTS.md` — the symlink keeps Claude Code and Cursor reading the same single source.
+
 ---
 
 ## Workspace packages

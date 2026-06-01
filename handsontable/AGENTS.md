@@ -93,7 +93,6 @@ Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` us
 
 ## Performance
 
-- Never `arr.push(...largeArray)` with 10k+ elements — it overflows the stack. Use a `forEach` loop.
 - Batch scroll updates with `requestAnimationFrame`. Target 60fps with 100k+ row datasets.
 - Wrap multi-operation work in `batch()` / `batchRender()` / `suspendRender()` / `resumeRender()` to avoid redundant redraws.
 - Performance must not degrade across releases (library size, render speed, memory).
