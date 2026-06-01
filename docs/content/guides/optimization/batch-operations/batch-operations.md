@@ -16,6 +16,9 @@ react:
 angular:
   id: tnvv2pjr
   metaTitle: Batch operations - Angular Data Grid | Handsontable
+vue:
+  id: 2h71fwls
+  metaTitle: Batch operations - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
 ---

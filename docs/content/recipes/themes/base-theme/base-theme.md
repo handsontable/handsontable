@@ -22,6 +22,8 @@ react:
 angular:
   id: w5r2d8h4
   metaTitle: Handsontable with Base Web - Angular Data Grid | Handsontable
+vue:
+  id: x4lqd0rx
 searchCategory: Recipes
 category: Themes
 ---

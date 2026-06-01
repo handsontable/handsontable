@@ -1,15 +1,19 @@
 ---
 type: explanation
+id: de2hxgso
 title: Cell type
 metaTitle: Cell type - JavaScript Data Grid | Handsontable
 description: Use Handsontable's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
 permalink: /cell-type
 canonicalUrl: /cell-type
 react:
+  id: m60w87tn
   metaTitle: Cell type - React Data Grid | Handsontable
 angular:
+  id: aho23taw
   metaTitle: Cell type - Angular Data Grid | Handsontable
 vue:
+  id: 8y6p0z00
   metaTitle: Cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
@@ -70,29 +74,6 @@ settings = {
 
 :::
 
-::: only-for vue
-
-```vue
-<script setup>
-import { ref } from 'vue';
-import { HotTable } from '@handsontable/vue3';
-import { registerAllModules } from 'handsontable/registry';
-
-registerAllModules();
-
-const hotSettings = ref({
-  columns: [{ type: 'password' }],
-  licenseKey: 'non-commercial-and-evaluation',
-});
-</script>
-
-<template>
-  <HotTable :settings="hotSettings" />
-</template>
-```
-
-:::
-
 the functions [`editor`](@/api/options.md#editor), [`renderer`](@/api/options.md#renderer), and [`copyable`](@/api/options.md#copyable) are automatically set as follows:
 
 ::: only-for javascript
@@ -131,33 +112,6 @@ settings = {
     },
   ],
 };
-```
-
-:::
-
-::: only-for vue
-
-```vue
-<script setup>
-import { ref } from 'vue';
-import { HotTable } from '@handsontable/vue3';
-import { registerAllModules } from 'handsontable/registry';
-
-registerAllModules();
-
-const hotSettings = ref({
-  columns: [{
-    editor: Handsontable.editors.PasswordEditor,
-    renderer: Handsontable.renderers.PasswordRenderer,
-    copyable: false,
-  }],
-  licenseKey: 'non-commercial-and-evaluation',
-});
-</script>
-
-<template>
-  <HotTable :settings="hotSettings" />
-</template>
 ```
 
 :::
@@ -208,35 +162,6 @@ settings = {
     },
   ],
 };
-```
-
-:::
-
-::: only-for vue
-
-```vue
-<script setup>
-import { ref } from 'vue';
-import { HotTable } from '@handsontable/vue3';
-import { registerAllModules } from 'handsontable/registry';
-
-registerAllModules();
-
-const hotSettings = ref({
-  columns: [{
-    editor: false,
-    renderer: Handsontable.renderers.TextRenderer,
-    className: 'my-cell',
-    readOnly: true,
-    myCustomProperty: 'foo',
-  }],
-  licenseKey: 'non-commercial-and-evaluation',
-});
-</script>
-
-<template>
-  <HotTable :settings="hotSettings" />
-</template>
 ```
 
 :::
@@ -366,29 +291,6 @@ settings = {
 
 :::
 
-::: only-for vue
-
-```vue
-<script setup>
-import { ref } from 'vue';
-import { HotTable } from '@handsontable/vue3';
-import { registerAllModules } from 'handsontable/registry';
-
-registerAllModules();
-
-const hotSettings = ref({
-  columns: [{ type: 'my.custom' }],
-  licenseKey: 'non-commercial-and-evaluation',
-});
-</script>
-
-<template>
-  <HotTable :settings="hotSettings" />
-</template>
-```
-
-:::
-
 ## Precedence
 
 It is possible to define the [`type`](@/api/options.md#type) option together with options such as [`renderer`](@/api/options.md#renderer), [`editor`](@/api/options.md#editor) or [`validator`](@/api/options.md#validator). For example:
@@ -437,33 +339,6 @@ settings = {
 
 ```html
 <hot-table [settings]="settings" />
-```
-
-:::
-
-::: only-for vue
-
-```vue
-<script setup>
-import { ref } from 'vue';
-import { HotTable } from '@handsontable/vue3';
-import { registerAllModules } from 'handsontable/registry';
-
-registerAllModules();
-
-const hotSettings = ref({
-  columns: [{
-    type: 'numeric',
-    // validator function defined elsewhere
-    validator: customValidator,
-  }],
-  licenseKey: 'non-commercial-and-evaluation',
-});
-</script>
-
-<template>
-  <HotTable :settings="hotSettings" />
-</template>
 ```
 
 :::
@@ -518,33 +393,6 @@ settings = {
 
 :::
 
-::: only-for vue
-
-```vue
-<script setup>
-import { ref } from 'vue';
-import { HotTable } from '@handsontable/vue3';
-import { registerAllModules } from 'handsontable/registry';
-
-registerAllModules();
-
-const hotSettings = ref({
-  columns: [{
-    renderer: Handsontable.renderers.TextRenderer,
-    editor: Handsontable.editors.TextEditor,
-    validator: customValidator,
-  }],
-  licenseKey: 'non-commercial-and-evaluation',
-});
-</script>
-
-<template>
-  <HotTable :settings="hotSettings" />
-</template>
-```
-
-:::
-
 There is one more way you can define the configuration using types:
 
 ::: only-for javascript
@@ -591,30 +439,6 @@ settings = {
 
 ```html
 <hot-table [settings]="settings" />
-```
-
-:::
-
-::: only-for vue
-
-```vue
-<script setup>
-import { ref } from 'vue';
-import { HotTable } from '@handsontable/vue3';
-import { registerAllModules } from 'handsontable/registry';
-
-registerAllModules();
-
-const hotSettings = ref({
-  validator: customValidator,
-  columns: [{ type: 'my.custom' }],
-  licenseKey: 'non-commercial-and-evaluation',
-});
-</script>
-
-<template>
-  <HotTable :settings="hotSettings" />
-</template>
 ```
 
 :::
@@ -703,42 +527,6 @@ settings = {
 
 :::
 
-::: only-for vue
-
-```vue
-<script setup>
-import { ref } from 'vue';
-import { HotTable } from '@handsontable/vue3';
-import { registerAllModules } from 'handsontable/registry';
-
-registerAllModules();
-
-function customValidator(query, callback) {
-  // ...validator logic
-  callback(/* Pass `true` or `false` */);
-}
-
-const hotSettings = ref({
-  columns: [{
-    renderer: Handsontable.renderers.PasswordRenderer,
-    editor: Handsontable.editors.PasswordEditor,
-    validator: undefined,
-  }, {
-    renderer: Handsontable.renderers.TextRenderer,
-    editor: Handsontable.editors.TextEditor,
-    validator: customValidator,
-  }],
-  licenseKey: 'non-commercial-and-evaluation',
-});
-</script>
-
-<template>
-  <HotTable :settings="hotSettings" />
-</template>
-```
-
-:::
-
 ## Built-in cell types example
 
 The example below shows some of the built-in cell types, i.e. combinations of cell renderers and editors available in Handsontable. The example also shows the declaration of custom cell renderers, namely `yellowRenderer` and `greenRenderer`.
@@ -771,16 +559,6 @@ The example below shows some of the built-in cell types, i.e. combinations of ce
 
 @[code](@/content/guides/cell-types/cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/cell-type/angular/example1.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example1 :vue3
-
-@[code](@/content/guides/cell-types/cell-type/vue/example1.vue)
 
 :::
 
@@ -824,16 +602,6 @@ Please keep in mind that opening a cell with `undefined` and `null` values resul
 
 @[code](@/content/guides/cell-types/cell-type/angular/example2.ts)
 @[code](@/content/guides/cell-types/cell-type/angular/example2.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example2 :vue3
-
-@[code](@/content/guides/cell-types/cell-type/vue/example2.vue)
 
 :::
 

@@ -18,6 +18,9 @@ react:
 angular:
   id: n3p5r7t9
   metaTitle: Server-side Data with NestJS - Angular Data Grid | Handsontable
+vue:
+  id: f362z4hr
+  metaTitle: Server-side Data with NestJS - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 ---

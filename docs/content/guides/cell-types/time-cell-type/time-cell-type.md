@@ -1,15 +1,19 @@
 ---
 type: how-to
+id: q63yhvq5
 title: Time cell type
 metaTitle: Time cell type - JavaScript Data Grid | Handsontable
 description: Display, format, sort, and filter time values correctly by using the time cell type. Use Intl.DateTimeFormat (recommended) or the legacy moment.js-based configuration.
 permalink: /time-cell-type
 canonicalUrl: /time-cell-type
 react:
+  id: 34n5nwja
   metaTitle: Time cell type - React Data Grid | Handsontable
 angular:
+  id: fu9fqphw
   metaTitle: Time cell type - Angular Data Grid | Handsontable
 vue:
+  id: bxoffcid
   metaTitle: Time cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
@@ -54,16 +58,6 @@ In the following demo, the **Start**, **Break start**, and **End** columns use t
 @[code](@/content/guides/cell-types/time-cell-type/angular/example1.html)
 
 :::
-:::
-
-::: only-for vue
-
-::: example #example1 :vue3
-
-@[code](@/content/guides/cell-types/time-cell-type/vue/example1.vue)
-
-:::
-
 :::
 
 ## Use the time cell type
@@ -182,60 +176,6 @@ settings3 = {
 
 :::
 
-::: only-for vue
-
-```vue
-<script setup lang="ts">
-import { ref } from 'vue';
-import { HotTable } from '@handsontable/vue3';
-import { registerAllModules } from 'handsontable/registry';
-import type { GridSettings } from 'handsontable/settings';
-
-registerAllModules();
-
-// set the time cell type for the entire grid (Intl, recommended)
-const hotSettings = ref<GridSettings>({
-  type: 'intl-time',
-  locale: 'en-US',
-  timeFormat: {
-    hour: 'numeric',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true
-  },
-  licenseKey: 'non-commercial-and-evaluation',
-});
-
-// set the time cell type for a single column
-const hotSettingsColumn = ref<GridSettings>({
-  columns: [
-    {
-      type: 'intl-time',
-      locale: 'en-US',
-      timeFormat: { timeStyle: 'medium' }
-    }
-  ],
-  licenseKey: 'non-commercial-and-evaluation',
-});
-
-// set the time cell type for a single cell
-const hotSettingsCell = ref<GridSettings>({
-  cell: [
-    {
-      row: 0,
-      col: 2,
-      type: 'intl-time',
-      locale: 'en-US',
-      timeFormat: { hour: '2-digit', minute: '2-digit', hour12: true }
-    }
-  ],
-  licenseKey: 'non-commercial-and-evaluation',
-});
-</script>
-```
-
-:::
-
 For `intl-time` cells, source data **must** be in **24-hour time format** (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`) for times to work correctly. The `timeFormat` object only affects how times are displayed; sorting and filtering rely on the underlying value.
 
 ## Format times
@@ -319,46 +259,6 @@ settings = {
     }
   ]
 };
-```
-
-:::
-
-::: only-for vue
-
-```vue
-<script setup lang="ts">
-import { ref } from 'vue';
-import { HotTable } from '@handsontable/vue3';
-import { registerAllModules } from 'handsontable/registry';
-import type { GridSettings } from 'handsontable/settings';
-
-registerAllModules();
-
-const hotSettings = ref<GridSettings>({
-  columns: [
-    {
-      type: 'intl-time',
-      locale: 'en-US',
-      timeFormat: {
-        hour: 'numeric',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: true
-      }
-    },
-    {
-      type: 'intl-time',
-      locale: 'de-DE',
-      timeFormat: { timeStyle: 'medium' }
-    }
-  ],
-  licenseKey: 'non-commercial-and-evaluation',
-});
-</script>
-
-<template>
-  <HotTable :settings="hotSettings" />
-</template>
 ```
 
 :::

@@ -12,6 +12,9 @@ react:
 angular:
   id: owl7h4t1
   metaTitle: Column headers - Angular Data Grid | Handsontable
+vue:
+  id: j4ac3057
+  metaTitle: Column headers - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---

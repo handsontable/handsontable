@@ -17,6 +17,9 @@ react:
 angular:
   id: me99ozqr
   metaTitle: Row pre-populating - Angular Data Grid | Handsontable
+vue:
+  id: 8y54l1cw
+  metaTitle: Row pre-populating - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

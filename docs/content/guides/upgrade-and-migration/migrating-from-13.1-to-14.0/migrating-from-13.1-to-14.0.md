@@ -14,6 +14,7 @@ angular:
   id: rxlauyd8-13.1-to-14.0-react
   metaTitle: Migrate from 13.1 to 14.0 - Angular Data Grid | Handsontable
 vue:
+  id: 40f19qus
   metaTitle: Migrate from 13.1 to 14.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration

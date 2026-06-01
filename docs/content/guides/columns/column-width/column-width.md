@@ -21,6 +21,9 @@ react:
 angular:
   id: eourt93b
   metaTitle: Column widths - Angular Data Grid | Handsontable
+vue:
+  id: tp1u20zm
+  metaTitle: Column widths - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---

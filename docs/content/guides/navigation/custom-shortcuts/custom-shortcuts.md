@@ -1,5 +1,6 @@
 ---
 type: how-to
+id: g7139vli
 title: Custom shortcuts
 metaTitle: Custom shortcuts - JavaScript Data Grid | Handsontable
 description: Customize Handsontable's keyboard shortcuts.
@@ -17,10 +18,13 @@ tags:
   - custom shortcuts
   - shortcut keys
 react:
+  id: d5ay8gj1
   metaTitle: Custom shortcuts - React Data Grid | Handsontable
 angular:
+  id: lqk5kuws
   metaTitle: Custom shortcuts - Angular Data Grid | Handsontable
 vue:
+  id: 8i6v370n
   metaTitle: Custom shortcuts - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
@@ -48,18 +52,6 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
-
-:::
-
-:::
-
-::: only-for vue
-
-::: tip
-
-To use the Handsontable API, use a template ref on `HotTable` and read `hotRef.value.hotInstance`.
-
-For more information, see [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md).
 
 :::
 
@@ -313,22 +305,6 @@ settings = {
 
 ```html
 <hot-table [settings]="settings" />
-```
-
-:::
-
-::: only-for vue
-
-```js
-const hotSettings = ref({
-  beforeKeyDown(event) {
-    // the `Enter` shortcut won't work
-    if (event.key === 'enter') {
-      return false;
-    }
-  },
-  // ...other settings
-});
 ```
 
 :::

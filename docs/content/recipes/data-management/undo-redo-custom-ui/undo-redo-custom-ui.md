@@ -18,6 +18,9 @@ react:
 angular:
   id: c4e9b8a1
   metaTitle: Undo / redo with a custom UI - Angular Data Grid | Handsontable
+vue:
+  id: 3ku6qxps
+  metaTitle: Undo / redo with a custom UI - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 type: how-to

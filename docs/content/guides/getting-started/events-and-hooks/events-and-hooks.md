@@ -1,5 +1,6 @@
 ---
 type: explanation
+id: own6evdy
 title: Events and hooks
 metaTitle: Events and hooks - JavaScript Data Grid | Handsontable
 description: Run your code before or after specific data grid actions, using Handsontable's API hooks (callbacks). For example, control what happens with the user's input.
@@ -16,10 +17,13 @@ tags:
 - events
 - hooks
 react:
+  id: d966se98
   metaTitle: Events and hooks - React Data Grid | Handsontable
 angular:
+  id: iifvbgu0
   metaTitle: Events and hooks - Angular Data Grid | Handsontable
 vue:
+  id: nmvkusp7
   metaTitle: Events and hooks - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Data management
@@ -61,19 +65,6 @@ hot.addHook('afterCreateRow', (row, amount) => {
 ```ts
 hotTable.hotInstance.addHook("afterCreateRow", (row, amount) => {
   console.log(`${amount} row(s) were created, starting at index ${row}`);
-});
-```
-
-:::
-
-::: only-for vue
-
-```js
-const hotSettings = ref({
-  afterCreateRow(row, amount) {
-    console.log(`${amount} row(s) were created, starting at index ${row}`);
-  },
-  // ...other settings
 });
 ```
 
@@ -123,21 +114,6 @@ gridSettings: GridSettings = {
 
 ```html
 <hot-table [settings]="gridSettings" />
-```
-
-:::
-
-::: only-for vue
-
-```js
-const hotSettings = ref({
-  modifyColWidth(width, column) {
-    if (column > 10) {
-      return 150;
-    }
-  },
-  // ...other settings
-});
 ```
 
 :::
@@ -197,21 +173,6 @@ gridSettings: GridSettings = {
 
 :::
 
-::: only-for vue
-
-```js
-const hotSettings = ref({
-  beforeCreateRow(row, amount) {
-    if (!hyperFormula.isItPossibleToAddRows(0, [row, amount])) {
-      return false;
-    }
-  },
-  // ...other settings
-});
-```
-
-:::
-
 The first argument may be modified and passed on through the Handsontable hooks that are next in the queue. This characteristic is shared between `before` and `after` hooks but is more common with the former. Before something happens, we can run the data through a pipeline of hooks that may modify or reject the operation. This provides many possibilities to extend the default Handsontable functionality and customize it for your application.
 
 ::: only-for react
@@ -234,16 +195,6 @@ The first argument may be modified and passed on through the Handsontable hooks 
 
 @[code](@/content/guides/getting-started/events-and-hooks/angular/example3.ts)
 @[code](@/content/guides/getting-started/events-and-hooks/angular/example3.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example3 :vue --js 1
-
-@[code](@/content/guides/getting-started/events-and-hooks/vue/example3.vue)
 
 :::
 
@@ -353,16 +304,6 @@ The following demo uses [`beforeKeyDown`](@/api/hooks.md#beforekeydown) callback
 
 @[code](@/content/guides/getting-started/events-and-hooks/angular/example2.ts)
 @[code](@/content/guides/getting-started/events-and-hooks/angular/example2.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example2 :vue --js 1
-
-@[code](@/content/guides/getting-started/events-and-hooks/vue/example2.vue)
 
 :::
 

@@ -23,6 +23,9 @@ react:
 angular:
   id: orgwjmih
   metaTitle: Layout direction - Angular Data Grid | Handsontable
+vue:
+  id: ubzdplj2
+  metaTitle: Layout direction - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
 ---

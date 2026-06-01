@@ -21,6 +21,9 @@ react:
 angular:
   id: a3b8c2d1
   metaTitle: Load Data from a REST API - Angular Data Grid | Handsontable
+vue:
+  id: o4k4wnz7
+  metaTitle: Load Data from a REST API - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 type: how-to

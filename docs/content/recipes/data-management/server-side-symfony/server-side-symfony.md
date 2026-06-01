@@ -18,6 +18,9 @@ react:
 angular:
   id: h7j2m4n6
   metaTitle: Server-side data with Symfony - Angular Data Grid | Handsontable
+vue:
+  id: nwl1vnb4
+  metaTitle: Server-side data with Symfony - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 ---

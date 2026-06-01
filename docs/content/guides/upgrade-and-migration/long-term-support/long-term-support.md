@@ -12,6 +12,9 @@ react:
 angular:
   id: 0dc19b1b
   metaTitle: Long Term Support (LTS) - Angular Data Grid | Handsontable
+vue:
+  id: tydr1bbr
+  metaTitle: Long Term Support (LTS) - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

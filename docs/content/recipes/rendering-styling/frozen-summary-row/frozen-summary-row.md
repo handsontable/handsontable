@@ -17,6 +17,9 @@ react:
 angular:
   id: h3j6vs2b
   metaTitle: Frozen summary row recipe - Angular Data Grid | Handsontable
+vue:
+  id: 3udunsuv
+  metaTitle: Frozen summary row recipe - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Rendering and styling
 type: how-to

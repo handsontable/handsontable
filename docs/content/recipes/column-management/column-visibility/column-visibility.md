@@ -16,6 +16,9 @@ react:
 angular:
   id: c7d4e5f6
   metaTitle: Dynamic Column Visibility Toggle - Angular Data Grid | Handsontable
+vue:
+  id: jqwr4haq
+  metaTitle: Dynamic Column Visibility Toggle - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Column Management
 type: how-to

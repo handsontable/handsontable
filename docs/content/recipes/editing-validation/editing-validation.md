@@ -15,6 +15,9 @@ react:
 angular:
   id: j7v2y6h9
   metaTitle: Editing and Validation Recipes - Angular Data Grid | Handsontable
+vue:
+  id: ack3fz98
+  metaTitle: Editing and Validation Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 

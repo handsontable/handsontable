@@ -1,15 +1,19 @@
 ---
 type: how-to
+id: epmvqw9m
 title: Formatting cells
 metaTitle: Formatting cells - JavaScript Data Grid | Handsontable
 description: Change the appearance of cells, using custom CSS classes, inline styles, or custom cell borders.
 permalink: /formatting-cells
 canonicalUrl: /formatting-cells
 react:
+  id: qywqgovy
   metaTitle: Formatting cells - React Data Grid | Handsontable
 angular:
+  id: 0eswjne7
   metaTitle: Formatting cells - Angular Data Grid | Handsontable
 vue:
+  id: dqqkqp0d
   metaTitle: Formatting cells - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
@@ -66,16 +70,6 @@ In this example, we add a custom class `custom-cell` to the cell in the top left
 
 :::
 
-::: only-for vue
-
-::: example #example1 :vue3
-
-@[code](@/content/guides/cell-features/formatting-cells/vue/example1.vue)
-
-:::
-
-:::
-
 ## Apply inline styles
 
 You can apply inline styles directly to the DOM element using its `style` property. You can use the [`renderer`](@/api/options.md#renderer) option to do that.
@@ -108,16 +102,6 @@ You can apply inline styles directly to the DOM element using its `style` proper
 
 @[code](@/content/guides/cell-features/formatting-cells/angular/example2.ts)
 @[code](@/content/guides/cell-features/formatting-cells/angular/example2.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example2 :vue3
-
-@[code](@/content/guides/cell-features/formatting-cells/vue/example2.vue)
 
 :::
 
@@ -174,16 +158,6 @@ The example below demonstrates different border styles applied to various cell r
 
 @[code](@/content/guides/cell-features/formatting-cells/angular/example3.ts)
 @[code](@/content/guides/cell-features/formatting-cells/angular/example3.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example3 :vue3
-
-@[code](@/content/guides/cell-features/formatting-cells/vue/example3.vue)
 
 :::
 

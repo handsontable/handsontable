@@ -20,6 +20,8 @@ react:
 angular:
   id: c4b7e1a9
   metaTitle: Handsontable with Ant Design - Angular Data Grid | Handsontable
+vue:
+  id: 1idm09eu
 searchCategory: Recipes
 category: Themes
 type: how-to

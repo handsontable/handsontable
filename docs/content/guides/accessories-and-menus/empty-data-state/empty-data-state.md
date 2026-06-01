@@ -1,5 +1,6 @@
 ---
 type: how-to
+id: 7b3d9f2e
 title: Empty Data State
 metaTitle: Empty Data State - JavaScript Data Grid | Handsontable
 description: Display empty data state overlays and provide user feedback when your data grid has no data to display using the Empty Data State plugin.
@@ -13,10 +14,13 @@ tags:
   - user feedback
   - overlay
 react:
+  id: c8e4a1b5
   metaTitle: Empty Data State - React Data Grid | Handsontable
 angular:
+  id: 9f2e8c4a
   metaTitle: Empty Data State - Angular Data Grid | Handsontable
 vue:
+  id: qx83am9a
   metaTitle: Empty Data State - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and Menus
@@ -81,16 +85,6 @@ To enable the Empty Data State plugin, set the [`emptyDataState`](@/api/options.
 
 :::
 
-::: only-for vue
-
-::: example #example1 :vue3
-
-@[code](@/content/guides/accessories-and-menus/empty-data-state/vue/example1.vue)
-
-:::
-
-:::
-
 ## Custom configuration
 
 The empty data state supports customization of the title, description, and action buttons.
@@ -128,16 +122,6 @@ The empty data state supports customization of the title, description, and actio
 
 :::
 
-::: only-for vue
-
-::: example #example2 :vue3
-
-@[code](@/content/guides/accessories-and-menus/empty-data-state/vue/example2.vue)
-
-:::
-
-:::
-
 ## Dynamic messages based on source
 
 You can provide different messages based on the source of the empty state (e.g., filters vs. no data). This allows for more contextual user guidance.
@@ -170,16 +154,6 @@ You can provide different messages based on the source of the empty state (e.g.,
 
 @[code](@/content/guides/accessories-and-menus/empty-data-state/angular/example3.ts)
 @[code](@/content/guides/accessories-and-menus/empty-data-state/angular/example3.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example3 :vue3
-
-@[code](@/content/guides/accessories-and-menus/empty-data-state/vue/example3.vue)
 
 :::
 

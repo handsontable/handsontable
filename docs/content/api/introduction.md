@@ -13,6 +13,9 @@ react:
 angular:
   id: 48gjbys8
   metaTitle: API reference - Angular Data Grid | Handsontable
+vue:
+  id: lk8x28al
+  metaTitle: API reference - Vue Data Grid | Handsontable
 ---
 This page describes the Handsontable API -- the methods, hooks, and plugin interfaces you use to control the grid programmatically.
 

@@ -1,5 +1,6 @@
 ---
 type: how-to
+id: yfus6qpz
 title: Legacy Style
 metaTitle: Legacy Style - JavaScript Data Grid | Handsontable
 description: The legacy stylesheet was removed in Handsontable 17.0.0. Learn how to migrate to the Classic theme using the Theme API or CSS imports.
@@ -13,10 +14,13 @@ tags:
   - classic theme
   - legacy
 react:
+  id: jn3po47i
   metaTitle: Legacy Style - React Data Grid | Handsontable
 angular:
+  id: 1sco7djp
   metaTitle: Legacy Style - Angular Data Grid | Handsontable
 vue:
+  id: 6xwhqf4v
   metaTitle: Legacy Style - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
@@ -90,29 +94,6 @@ export class AppComponent {
 
 :::
 
-::: only-for vue
-
-```ts
-import { ref } from 'vue';
-import { HotTable } from '@handsontable/vue3';
-import { registerAllModules } from 'handsontable/registry';
-import { classicTheme } from 'handsontable/themes';
-
-registerAllModules();
-
-const hotSettings = ref({
-  theme: classicTheme,
-  // ... other options
-  licenseKey: 'non-commercial-and-evaluation',
-});
-```
-
-```html
-<HotTable :settings="hotSettings" />
-```
-
-:::
-
 ### Option 2: Using CSS files with theme as string
 
 Alternatively, you can use CSS files and pass the theme name as a string to the `theme` option.
@@ -164,22 +145,6 @@ const hot = new Handsontable(container, {
   theme: 'ht-theme-classic'
 }">
 </hot-table>
-```
-
-:::
-
-::: only-for vue
-
-```ts
-const hotSettings = ref({
-  theme: 'ht-theme-classic',
-  // ... other options
-  licenseKey: 'non-commercial-and-evaluation',
-});
-```
-
-```html
-<HotTable :settings="hotSettings" />
 ```
 
 :::

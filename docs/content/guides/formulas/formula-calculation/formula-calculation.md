@@ -1,5 +1,6 @@
 ---
 type: how-to
+id: g7i1xok4
 title: Formula calculation
 metaTitle: Formula calculation - JavaScript Data Grid | Handsontable
 description: Perform calculations on cells' values, using a powerful calculation engine that handles nearly 400 functions, custom functions, named expressions, and more.
@@ -16,10 +17,13 @@ tags:
   - function
   - hyperformula
 react:
+  id: 05z3cjez
   metaTitle: Formula calculation - React Data Grid | Handsontable
 angular:
+  id: hqzll0fz
   metaTitle: Formula calculation - Angular Data Grid | Handsontable
 vue:
+  id: 57yg2rca
   metaTitle: Formula calculation - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Formulas
@@ -71,23 +75,6 @@ Double click on a cell to open the editor and preview the formula.
 
 :::
 
-::: only-for vue
-
-::: tip
-
-When using HyperFormula with Vue 3, always wrap HyperFormula instances with `markRaw()`. Vue's reactivity proxy interferes with the engine's internal state, which leads to subtle bugs and degraded performance. The examples on this page use `markRaw()` for this reason.
-
-:::
-
-::: example #example1 :vue3 --css 1
-
-@[code](@/content/guides/formulas/formula-calculation/vue/example1.css)
-@[code](@/content/guides/formulas/formula-calculation/vue/example1.vue)
-
-:::
-
-:::
-
 ## Data grid example
 
 This example is more typical of data grids than spreadsheets. Calculations are present in two places
@@ -121,16 +108,6 @@ This example is more typical of data grids than spreadsheets. Calculations are p
 
 @[code collapse={17-126}](@/content/guides/formulas/formula-calculation/angular/example2.ts)
 @[code](@/content/guides/formulas/formula-calculation/angular/example2.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example-data-grid :vue3
-
-@[code collapse={9-112}](@/content/guides/formulas/formula-calculation/vue/example-data-grid.vue)
 
 :::
 
@@ -206,19 +183,6 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 
 :::
 
-::: only-for vue
-
-```js
-const hotSettings = ref({
-  formulas: {
-    engine: HyperFormula,
-    // [plugin configuration]
-  },
-});
-```
-
-:::
-
 or
 
 ::: only-for javascript
@@ -271,24 +235,6 @@ or
     // [plugin configuration]
   }
 }
-```
-
-:::
-
-::: only-for vue
-
-```js
-const hotSettings = ref({
-  formulas: {
-    engine: {
-      hyperformula: HyperFormula, // or `engine: hyperformulaInstance`
-      leapYear1900: false,
-      // ...and more engine configuration options.
-      // See https://handsontable.github.io/hyperformula/api/interfaces/configparams.html#number
-    },
-    // [plugin configuration]
-  },
-});
 ```
 
 :::
@@ -360,30 +306,6 @@ const configurationOptions: GridSettings = {
 
 :::
 
-::: only-for vue
-
-```js
-const hyperformulaInstance = markRaw(
-  HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
-  })
-);
-
-const hotSettings = ref({
-  formulas: {
-    engine: hyperformulaInstance,
-  },
-});
-```
-
-```html
-<HotTable :settings="hotSettings" />
-```
-
-:::
-
 ### Multiple independent Handsontable instances
 
 ::: only-for javascript
@@ -451,33 +373,6 @@ const ExampleComponent = () => {
     // [plugin configuration]
   }
 }
-```
-
-:::
-
-::: only-for vue
-
-```js
-// Instance 1
-const hotSettings1 = ref({
-  formulas: {
-    engine: HyperFormula,
-    // [plugin configuration]
-  },
-});
-
-// Instance 2
-const hotSettings2 = ref({
-  formulas: {
-    engine: HyperFormula,
-    // [plugin configuration]
-  },
-});
-```
-
-```html
-<HotTable :settings="hotSettings1" />
-<HotTable :settings="hotSettings2" />
 ```
 
 :::
@@ -603,43 +498,6 @@ const hyperformulaInstance = HyperFormula.buildEmpty({
 
 :::
 
-::: only-for vue
-
-```js
-const hyperformulaInstance = markRaw(
-  HyperFormula.buildEmpty({
-    // to use an external HyperFormula instance,
-    // initialize it with the `'internal-use-in-handsontable'` license key
-    licenseKey: 'internal-use-in-handsontable',
-  })
-);
-
-// Instance 1
-const hotSettings1 = ref({
-  formulas: {
-    engine: hyperformulaInstance,
-    sheetName: 'Sheet1',
-    // [plugin configuration]
-  },
-});
-
-// Instance 2
-const hotSettings2 = ref({
-  formulas: {
-    engine: hyperformulaInstance,
-    sheetName: 'Sheet2',
-    // [plugin configuration]
-  },
-});
-```
-
-```html
-<HotTable :settings="hotSettings1" />
-<HotTable :settings="hotSettings2" />
-```
-
-:::
-
 ## Available options and methods
 
 For the full list of configuration options and plugin methods, see the
@@ -722,27 +580,6 @@ const configurationOptions: GridSettings = {
 
 ```html
 <hot-table [settings]="configurationOptions"></hot-table>
-```
-
-:::
-
-::: only-for vue
-
-```js
-const hotSettings = ref({
-  formulas: {
-    engine: HyperFormula,
-  },
-  afterFormulasValuesUpdate(changes) {
-    changes.forEach((change) => {
-      console.log('change', change.address, change.newValue);
-    });
-  },
-});
-```
-
-```html
-<HotTable :settings="hotSettings" />
 ```
 
 :::
@@ -843,16 +680,6 @@ using `changeNamedExpression()`.
 
 :::
 
-::: only-for vue
-
-::: example #example-named-expressions1 :vue3
-
-@[code](@/content/guides/formulas/formula-calculation/vue/example-named-expressions1.vue)
-
-:::
-
-:::
-
 ### Demo: formula-based named expressions
 
 The example below registers `Q1_TOTAL` and `Q2_TOTAL` as range-sum formulas on a pre-built
@@ -888,16 +715,6 @@ HyperFormula instance. The "Totals" row references those names directly as `=Q1_
 
 @[code](@/content/guides/formulas/formula-calculation/angular/example4.ts)
 @[code](@/content/guides/formulas/formula-calculation/angular/example4.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example-named-expressions2 :vue3
-
-@[code](@/content/guides/formulas/formula-calculation/vue/example-named-expressions2.vue)
 
 :::
 

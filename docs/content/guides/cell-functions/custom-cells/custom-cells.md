@@ -12,6 +12,9 @@ react:
 angular:
   id: 29d3662c
   metaTitle: Custom Cell Definitions - Angular Data Grid | Handsontable
+vue:
+  id: q319vaao
+  metaTitle: Custom Cell Definitions - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
 ---

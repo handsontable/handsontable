@@ -16,6 +16,9 @@ react:
 angular:
   id: c5e3a907
   metaTitle: Custom context menu actions - Angular Data Grid | Handsontable
+vue:
+  id: hq16t08r
+  metaTitle: Custom context menu actions - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Context Menu
 type: how-to

@@ -1,15 +1,19 @@
 ---
 type: how-to
+id: p8sggqin
 title: Checkbox cell type
 metaTitle: Checkbox cell type - JavaScript Data Grid | Handsontable
 description: Create interactive elements that can be checked or unchecked, by using the checkbox cell type.
 permalink: /checkbox-cell-type
 canonicalUrl: /checkbox-cell-type
 react:
+  id: tfr1gisf
   metaTitle: Checkbox cell type - React Data Grid | Handsontable
 angular:
+  id: 4cn9mp6z
   metaTitle: Checkbox cell type - Angular Data Grid | Handsontable
 vue:
+  id: 2a1x3jgu
   metaTitle: Checkbox cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
@@ -67,16 +71,6 @@ This is the default usage scenario where column data has a `true` or `false` val
 
 :::
 
-::: only-for vue
-
-::: example #example1 :vue3
-
-@[code](@/content/guides/cell-types/checkbox-cell-type/vue/example1.vue)
-
-:::
-
-:::
-
 ## Checkbox template
 
 If you want to use values other than `true` and `false`, you have to provide this information using [`checkedTemplate`](@/api/options.md#checkedtemplate) and [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate). Handsontable will then update your data using the appropriate template.
@@ -109,16 +103,6 @@ If you want to use values other than `true` and `false`, you have to provide thi
 
 @[code](@/content/guides/cell-types/checkbox-cell-type/angular/example2.ts)
 @[code](@/content/guides/cell-types/checkbox-cell-type/angular/example2.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example2 :vue3
-
-@[code](@/content/guides/cell-types/checkbox-cell-type/vue/example2.vue)
 
 :::
 
@@ -161,16 +145,6 @@ To add a label to the checkbox, use the [`label`](@/api/options.md#label) option
 
 :::
 
-::: only-for vue
-
-::: example #example3 :vue3
-
-@[code](@/content/guides/cell-types/checkbox-cell-type/vue/example3.vue)
-
-:::
-
-:::
-
 ### Label value as a function
 
 The `value` property of the `label` option can also be a function. The function receives four arguments: `row`, `column`, `prop`, and `value`, where `value` is the current cell value. This lets you generate label text dynamically based on the cell's state.
@@ -203,16 +177,6 @@ The `value` property of the `label` option can also be a function. The function 
 
 @[code](@/content/guides/cell-types/checkbox-cell-type/angular/example4.ts)
 @[code](@/content/guides/cell-types/checkbox-cell-type/angular/example4.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example4 :vue3
-
-@[code](@/content/guides/cell-types/checkbox-cell-type/vue/example4.vue)
 
 :::
 

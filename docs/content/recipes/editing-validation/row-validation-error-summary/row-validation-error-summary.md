@@ -16,6 +16,9 @@ react:
 angular:
   id: h8s4n9q6
   metaTitle: Row Validation Error Summary Recipe - Angular Data Grid | Handsontable
+vue:
+  id: 94krzohb
+  metaTitle: Row Validation Error Summary Recipe - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Editing and Validation
 type: how-to

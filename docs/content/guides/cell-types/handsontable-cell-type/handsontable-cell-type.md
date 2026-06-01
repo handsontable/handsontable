@@ -1,15 +1,19 @@
 ---
 type: how-to
+id: kdie9yhz
 title: Handsontable cell type
 metaTitle: Handsontable cell type - JavaScript Data Grid | Handsontable
 description: Add a spreadsheet editor in a popup, by using the Handsontable cell type.
 permalink: /handsontable-cell-type
 canonicalUrl: /handsontable-cell-type
 react:
+  id: fcxtj167
   metaTitle: Handsontable cell type - React Data Grid | Handsontable
 angular:
+  id: cewiknc8
   metaTitle: Handsontable cell type - Angular Data Grid | Handsontable
 vue:
+  id: wd9yzry6
   metaTitle: Handsontable cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
@@ -60,16 +64,6 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 
 @[code](@/content/guides/cell-types/handsontable-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/handsontable-cell-type/angular/example1.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example1 .docs-height-small :vue3
-
-@[code](@/content/guides/cell-types/handsontable-cell-type/vue/example1.vue)
 
 :::
 

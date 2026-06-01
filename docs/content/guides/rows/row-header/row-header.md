@@ -16,6 +16,9 @@ react:
 angular:
   id: jtqk0t2p
   metaTitle: Row headers - Angular Data Grid | Handsontable
+vue:
+  id: 27seavlh
+  metaTitle: Row headers - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

@@ -480,17 +480,18 @@ function processExampleBlocks(content, contentDir) {
   return result.join('\n');
 }
 
-const FRAMEWORKS = ['javascript', 'react', 'angular'];
+const FRAMEWORKS = ['javascript', 'react', 'angular', 'vue'];
 
 const PREFIXES = {
   javascript: 'javascript-data-grid',
   react: 'react-data-grid',
   angular: 'angular-data-grid',
+  vue: 'vue-data-grid',
 };
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v35';
+const LOADER_VERSION = 'v36';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -1046,6 +1047,7 @@ const FRAMEWORK_PREFIX_MAP = {
   javascript: 'javascript-data-grid',
   react: 'react-data-grid',
   angular: 'angular-data-grid',
+  vue: 'vue-data-grid',
 };
 
 /**
@@ -1066,7 +1068,7 @@ function resolveAtLink(rawLink, prefix, contentDir) {
   let targetPrefix = prefix;
   let filePath = rawLink;
 
-  const frameworkMatch = rawLink.match(/^(javascript|react|angular)\/(.+)/);
+  const frameworkMatch = rawLink.match(/^(javascript|react|angular|vue)\/(.+)/);
 
   if (frameworkMatch) {
     targetPrefix = FRAMEWORK_PREFIX_MAP[frameworkMatch[1]];

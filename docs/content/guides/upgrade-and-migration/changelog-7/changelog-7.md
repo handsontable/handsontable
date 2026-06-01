@@ -1,15 +1,19 @@
 ---
 type: reference
+id: 5t9ao5jq
 title: Older versions
 metaTitle: Older versions - JavaScript Data Grid | Handsontable
 description: See the full history of changes made to older versions of Handsontable.
 permalink: /changelog-older
 canonicalUrl: /changelog-older
 react:
+  id: dhzkd73r
   metaTitle: Older versions - React Data Grid | Handsontable
 angular:
+  id: fqniwvjh
   metaTitle: Older versions - Angular Data Grid | Handsontable
 vue:
+  id: v80zhxm8
   metaTitle: Older versions - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration

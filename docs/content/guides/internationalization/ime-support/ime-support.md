@@ -1,5 +1,6 @@
 ---
 type: explanation
+id: bhst4cl4
 title: IME support
 metaTitle: IME support - JavaScript Data Grid | Handsontable
 description: Convert keystrokes to characters not available on the keyboard, using the Input Method Editor. This feature is always enabled and available for cell editors.
@@ -12,10 +13,13 @@ tags:
   - chinese
   - latin
 react:
+  id: 8pqhhu5r
   metaTitle: IME support - React Data Grid | Handsontable
 angular:
+  id: 7u4izjbt
   metaTitle: IME support - Angular Data Grid | Handsontable
 vue:
+  id: 0m1fmtge
   metaTitle: IME support - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
