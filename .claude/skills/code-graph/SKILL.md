@@ -1,6 +1,6 @@
 ---
 name: code-graph
-description: Use the pre-built code-review-graph knowledge graph for ANY cross-file task in this monorepo — exploring and understanding code, debugging from symptom to root cause, planning a safe refactor or rename, or reviewing a branch/PR. Reach for this BEFORE manual Grep+Read traversal of call chains; the graph returns structured results 2-6x cheaper. Trigger on "who calls X", "what imports Y", "where is X used", "find references", "dependency chain", "callers/callees of", "methods of class", "blast radius", "why does X fail", "trace this bug", "what changed recently", "rename X across the codebase", "find dead code", "what would break if I change", "review this PR/branch", "what's the risk of this change" — or any question that spans multiple files, even when Grep seems enough.
+description: Use the pre-built code-review-graph knowledge graph for ANY cross-file task in this monorepo — exploring code, debugging symptom→root-cause, planning a safe refactor/rename, or reviewing a branch/PR. Reach for this BEFORE manual Grep+Read of call chains; results are 2-6x cheaper. Trigger on "who calls X", "what imports Y", "where is X used", "dependency chain", "blast radius", "trace this bug", "rename X across the codebase", "find dead code", "what would break if I change", "review this PR" — or any question that spans multiple files, even when Grep seems enough.
 ---
 
 # Code graph (code-review-graph MCP)

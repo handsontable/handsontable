@@ -26,6 +26,7 @@ Monorepo-wide orientation, not core internals.
 | [`STACK.md`](STACK.md) | Tech stack and tooling: languages, runtime, frameworks, build and test tools with versions, build outputs, CSS themes, platform targets, CI workflows. |
 | [`STRUCTURE.md`](STRUCTURE.md) | Top-level monorepo tree and workspace map. |
 | [`BUILD-RELEASE.md`](BUILD-RELEASE.md) | Build order (core before wrappers), build variants, output locations, `env-cmd`, SemVer and LTS policy, branching, changelog and release flow. |
+| [`DOC-STANDARDS.md`](DOC-STANDARDS.md) | Monorepo-wide documentation standards: when docs are required, docs branch conventions, the 13 writing-style rules, migration-guide spec, and trademark rules. |
 | [`TESTING.md`](TESTING.md) | Overview of every test pipeline with its run command and a pointer to the deep reference. |
 | [`MCP.md`](MCP.md) | code-review-graph and context tooling (monorepo-wide). |
 
