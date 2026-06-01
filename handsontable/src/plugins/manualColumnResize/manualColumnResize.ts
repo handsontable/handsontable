@@ -14,7 +14,7 @@ import {
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
-import { getElementScaleFactor, normalizeVisualDelta } from './utils';
+import { getElementScaleFactor, normalizeVisualDelta, shouldSkipResizeHandlePositioning } from './utils';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
@@ -286,7 +286,7 @@ export class ManualColumnResize extends BasePlugin {
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH: HTMLTableHeaderCellElement) {
-    if (!TH.parentNode || this.#dblclick > 1) {
+    if (shouldSkipResizeHandlePositioning(TH, this.#dblclick)) {
       return;
     }
 
@@ -544,8 +544,12 @@ export class ManualColumnResize extends BasePlugin {
         });
       }
     }
-    this.#dblclick = 0;
     this.#autoresizeTimeout = null;
+    this.#dblclick = 0;
+
+    if (this.#currentTH) {
+      this.setupHandlePosition(this.#currentTH);
+    }
   }
 
   /**

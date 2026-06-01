@@ -776,6 +776,29 @@ describe('manualColumnResize', () => {
     expect(widthAfter).toBe(hot().getColWidth(2));
   });
 
+  it('should reposition the resize handle after double click auto-size', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+    });
+
+    await resizeColumn(0, 150);
+
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
+
+    await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
+    await waitForNextAnimationFrames(63);
+
+    const $columnHeader = getTopClone().find('thead tr:eq(0) th:eq(0)');
+    const handleLeft = $resizer.offset().left;
+    const headerRight = $columnHeader.offset().left + $columnHeader.width();
+
+    expect(colWidth(spec().$container, 0)).toBeLessThan(150);
+    expect(headerRight - 5).toBeCloseTo(handleLeft, 0);
+  });
+
   it('should autosize column after double click (when initial width is defined by the `colWidths` option)', async() => {
     handsontable({
       data: createSpreadsheetData(3, 3),
