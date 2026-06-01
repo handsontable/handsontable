@@ -27,6 +27,7 @@ Monorepo-wide orientation, not core internals.
 | [`STRUCTURE.md`](STRUCTURE.md) | Top-level monorepo tree and workspace map. |
 | [`BUILD.md`](BUILD.md) | Build order (core before wrappers), build orchestration (`run.mjs`, `tasks.json`), build variants, output locations, `env-cmd`. Releasing is automated and not documented. |
 | [`DOC-STANDARDS.md`](DOC-STANDARDS.md) | Monorepo-wide documentation standards: when docs are required, docs branch conventions, the 13 writing-style rules, migration-guide spec, and trademark rules. |
+| [`BREAKING-CHANGES.md`](BREAKING-CHANGES.md) | Full breaking-changes policy: the per-change table (CSS classes, APIs, hooks, options, defaults), legacy vs deprecated, and what is NOT considered breaking. |
 | [`TESTING.md`](TESTING.md) | Overview of every test pipeline with its run command and a pointer to the deep reference. |
 | [`MCP.md`](MCP.md) | code-review-graph and context tooling (monorepo-wide). |
 
