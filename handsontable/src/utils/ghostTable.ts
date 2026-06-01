@@ -1,4 +1,5 @@
 import type { HotInstance } from '../core/types';
+import type { CellProperties } from '../settings';
 import { addClass } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
 import { throwWithCause } from '../helpers/errors';
@@ -318,7 +319,7 @@ class GhostTable {
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
         const column = string.col!;
-        const cellProperties = this.hot!.getCellMeta(row, column);
+        const cellProperties = this.hot!.getCellMeta<CellProperties>(row, column);
         const renderer = this.hot!.getCellRenderer(cellProperties);
         const td = rootDocument.createElement('td');
 
@@ -382,7 +383,7 @@ class GhostTable {
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
         const row = string.row!;
-        const cellProperties = this.hot!.getCellMeta(row, column);
+        const cellProperties = this.hot!.getCellMeta<CellProperties>(row, column);
         const renderer = this.hot!.getCellRenderer(cellProperties);
         const td = rootDocument.createElement('td');
         const tr = rootDocument.createElement('tr');

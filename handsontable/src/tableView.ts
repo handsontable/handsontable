@@ -1,5 +1,6 @@
 import type { HotInstance } from './core/types';
 import type { BaseRenderer } from './renderers/baseRenderer';
+import type { CellProperties } from './settings';
 import type { WalkontableInstance, DataAccessObject, ScrollDao } from './3rdparty/walkontable/src/types';
 import type { RowsCalculationType, ColumnsCalculationType } from './3rdparty/walkontable/src/calculator/viewportBase';
 import {
@@ -906,7 +907,7 @@ class TableView {
           [visualRowToCheck, visualColumnToCheck] = modifiedCellCoords as [number, number];
         }
 
-        const cellProperties = this.hot.getCellMeta(visualRowToCheck, visualColumnToCheck);
+        const cellProperties = this.hot.getCellMeta<CellProperties>(visualRowToCheck, visualColumnToCheck);
         const prop = this.hot.colToProp(visualColumnToCheck) as string;
         let value = this.hot.getDataAtRowProp(visualRowToCheck, prop);
 
