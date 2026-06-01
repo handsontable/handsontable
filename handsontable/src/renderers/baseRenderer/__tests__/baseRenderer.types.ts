@@ -7,7 +7,7 @@
  * would prevent custom renderers typed against Handsontable.CellProperties
  * from being passed to registerRenderer.
  */
-import Handsontable from 'handsontable';
+import type Handsontable from 'handsontable';
 import type { CellProperties } from 'handsontable';
 import {
   baseRenderer,
