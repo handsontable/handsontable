@@ -30,7 +30,7 @@ Route to the lowest correct scope. `AGENTS.md` answers "what must I never get wr
 
 | `.ai/` location | Scope |
 |---|---|
-| `.ai/` (root) | Monorepo — stack, structure, build/release, testing overview, MCP tooling |
+| `.ai/` (root) | Monorepo — stack, structure, build, testing overview, MCP tooling |
 | `handsontable/.ai/` | Core — architecture, conventions, concerns, structure, integrations, testing detail |
 | `handsontable/src/3rdparty/walkontable/.ai/` | Rendering engine — architecture, concerns |
 
@@ -146,20 +146,13 @@ These standards apply to **all** documentation across the monorepo — guides, t
 
 - Feature branches: `feature/issue-xxxx` (e.g., `feature/issue-9024`)
 - Documentation branches: `docs/issue-xxxx` (e.g., `docs/issue-9024`)
-- Release branches: `release/x.y.z`
-- LTS branches: `lts/[major].x`
+
+(Release and LTS branches are maintainer-managed; the `pr-creation` skill has the full convention.)
 
 ### Git rules
 
 - **Never force-push** to `master`, `develop`, or feature branches bound to Pull Requests. Force-pushing diverges history in other clones and makes PR review history incomprehensible.
 - Follow the **Git flow** branching strategy.
-
-### Versioning
-
-- Uses **SemVer**. Patch releases are for critical fixes only.
-- Even-numbered major releases (16, 18, 20, 22) become **LTS releases**.
-- Odd-numbered major releases (17, 19, 21) are **Current-only** (6-month lifecycle).
-- No more than 4 major releases per year (preferably 0). If multiple breaking changes are needed, bulk them into a single major release.
 
 ---
 

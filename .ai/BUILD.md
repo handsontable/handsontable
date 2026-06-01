@@ -1,9 +1,13 @@
-# Build Orchestration and Release (Monorepo)
+# Build Orchestration (Monorepo)
 
-This file covers how the monorepo builds and releases. For the tool and version
+This file covers how the monorepo builds. For the tool and version
 inventory (Rspack, SWC, Sass, output paths, CSS themes, CI workflow names), see
 [`.ai/STACK.md`](STACK.md). For core-internal build scripts and tasks, see
 `handsontable/.ai/` and `handsontable/AGENTS.md`.
+
+Releasing and publishing are fully automated (the `publish.yml` workflow with a
+coordinated `HOT_VERSION`); agents do not drive them, so they are not documented
+here.
 
 ## Build order across the workspace
 
@@ -60,46 +64,5 @@ Type declarations come from `tsc --emitDeclarationOnly` (the `build:types` task,
 using `tsconfig.build-types.json`). Published `.d.ts` files are downleveled so
 TypeScript 5.1+ (Angular 16's maximum) can consume them.
 
-## Versioning policy
-
-The monorepo uses SemVer with coordinated versioning across all packages.
-
-- Patch releases are for critical fixes only.
-- Even-numbered major releases (16, 18, 20, 22) become **LTS releases**.
-- Odd-numbered major releases (17, 19, 21) are **Current-only** (6-month lifecycle).
-- No more than 4 major releases per year (preferably 0). Bulk multiple breaking
-  changes into a single major release.
-- Each release must include no less functionality than its predecessor.
-
-## Branching
-
-- Feature branches: `feature/issue-xxxx`.
-- Documentation branches: `docs/issue-xxxx`.
-- Release branches: `release/x.y.z`.
-- Release documentation branches: `release/x.y.z-docs`, branched from `release/x.y.z`.
-- LTS branches: `lts/[major].x`.
-
-Follow the Git flow strategy. Never force-push to `master`, `develop`, or any
-feature branch bound to an open pull request.
-
-## Changelog and release flow
-
-- Every pull request that changes package source code must include a changelog
-  entry. Create one with `bin/changelog entry` (interactive CLI). Entries live
-  in `.changelogs/` and follow the Keep a Changelog format
-  (see `.changelogs/README.md`).
-- Skip the changelog only for non-source changes by writing `[skip changelog]`
-  in the pull request description. New documentation pages are an exception — do
-  not skip the changelog for them.
-- Pull requests merge with **Squash and merge** in the GitHub UI, by the author,
-  after full approval.
-
-### Release steps
-
-1. **Coordinate the version.** Update `HOT_VERSION` in `hot.config.js`; all
-   packages share it.
-2. **Build.** Run the full build pipeline across the workspace.
-3. **Package and publish.** Publish to npm with the coordinated version. The
-   `publish.yml` GitHub Actions workflow handles publishing.
-4. **Distribute.** Packages are available on npm and CDNs (jsDelivr and unpkg
-   serve `dist/handsontable.full.min.js`).
+For the branch-naming and changelog rules that gate a pull request, see the root
+`AGENTS.md` and the `pr-creation` / `changelog-creation` skills.

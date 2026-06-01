@@ -34,7 +34,7 @@ global helpers, mocking, fixtures, custom matchers), see
   skill for the trace-based measurement system and the golden-snapshot workflow.
 - Build the core package before running wrapper tests. Wrappers consume the
   core `tmp/` output through workspace linking. See
-  [`.ai/BUILD-RELEASE.md`](BUILD-RELEASE.md).
+  [`.ai/BUILD.md`](BUILD.md).
 
 ## Inside a package
 
