@@ -78,6 +78,6 @@ If no issues are found, output exactly: `No blocking issues found.`
 
 ## References
 
-- `.ai/CONVENTIONS.md` for the complete coding conventions.
+- `handsontable/.ai/CONVENTIONS.md` for the complete coding conventions.
 - `.eslintrc.js` (root) and `handsontable/.eslintrc.js` for ESLint configuration.
 - `browser-targets.js` for supported browser list.

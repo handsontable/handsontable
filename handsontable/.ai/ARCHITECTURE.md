@@ -260,3 +260,165 @@
 **DOM Abstraction:** All DOM access goes through `handsontable/src/helpers/dom/element.ts` and `handsontable/src/helpers/dom/event.ts`. Global `window`/`document` are banned; use `this.hot.rootWindow`/`this.hot.rootDocument`.
 
 **Event Management:** `handsontable/src/eventManager.ts` provides centralized DOM event listener management with automatic cleanup.
+
+## Architecture diagrams
+
+These diagrams summarize the relationships described above. They are a visual companion to the prose — the prose remains authoritative on any detail.
+
+### Core / microkernel architecture
+
+The `Core` constructor is the microkernel. It owns every subsystem and exposes the public API. All features attach as plugins through the hook bus; the DOM is reached only through `TableView` → Walkontable.
+
+```mermaid
+graph TD
+  User["End users / framework wrappers<br/>(React, Angular, Vue 3)"] --> Core
+
+  subgraph Kernel["Core (handsontable/src/core.ts, ~5656 lines)"]
+    Core["Core (public API)"]
+  end
+
+  Core --> MetaManager["MetaManager<br/>(cascading config)"]
+  Core --> DataMap["DataMap + DataSource<br/>(source data)"]
+  Core --> IndexMapper["IndexMapper x2<br/>(row + column)"]
+  Core --> Selection["Selection<br/>(ranges, focus, highlight)"]
+  Core --> EditorManager["EditorManager + editors"]
+  Core --> Hooks["Hooks (event bus)"]
+  Core --> Shortcuts["ShortcutManager"]
+  Core --> Focus["FocusGridManager"]
+  Core --> Theme["ThemeManager / StylesHandler"]
+  Core --> TableView["TableView (Core ↔ Walkontable bridge)"]
+  Core --> Plugins["Plugin layer (~40 plugins)"]
+
+  TableView --> Walkontable["Walkontable rendering engine<br/>(src/3rdparty/walkontable)"]
+  Walkontable --> DOM["DOM (master table + overlays)"]
+
+  Plugins -. "this.addHook() / this.hot" .-> Hooks
+  Plugins -. "register maps" .-> IndexMapper
+  Renderers["Renderer registry"] --> Walkontable
+  Validators["Validator registry"] --> Core
+  CellTypes["Cell type registry"] --> MetaManager
+```
+
+System context (concept → code entity mapping): grid concepts that users reason about map to specific code entities. Data cells, columns, rows, selections, and edits are realized by `Core`, `DataSource`, `MetaManager`, `TableView`, and the plugin layer. The rendering engine is Walkontable (virtualized rendering, overlays). Extensions are the 40+ built-in plugins plus custom plugins.
+
+Key design principles: separation of concerns (data, rendering, interaction, and extensions are distinct layers); extensibility via plugins; virtualization (only visible cells render); three-tier indexing (physical/visual/renderable); metadata inheritance (global → table → column → cell); and a synchronous, cancellable hook system.
+
+### Plugin system and lifecycle
+
+`BasePlugin` is the superclass for every plugin. The registry instantiates plugins in `PLUGIN_PRIORITY` order; each plugin coordinates with the rest of the system only through the hook bus and through IndexMapper maps — never via direct cross-plugin imports.
+
+```mermaid
+stateDiagram-v2
+  [*] --> Constructed: constructor(hotInstance)
+  Constructed --> Disabled: isEnabled() == false
+  Constructed --> Enabled: isEnabled() == true / enablePlugin()
+  note right of Enabled
+    enablePlugin():
+      set internal state
+      register hooks (this.addHook)
+      register IndexMapper maps
+      attach event listeners
+      super.enablePlugin() AT END
+  end note
+  Enabled --> Enabled: updatePlugin() = disablePlugin then enablePlugin then super.updatePlugin
+  Enabled --> Disabled: disablePlugin() — super.disablePlugin FIRST, then clean up
+  Disabled --> Enabled: enablePlugin()
+  Enabled --> [*]: destroy() — null out fields, super.destroy AT END
+  Disabled --> [*]: destroy()
+```
+
+Lifecycle stages in detail: (1) **Instantiation** — the plugin receives the Handsontable instance but is not yet enabled. (2) **`isEnabled()`** — checks `this.hot.getSettings()[PLUGIN_KEY]`. (3) **Enabling** — guards against double-enable, sets internal state, registers hooks, attaches listeners, then calls `super.enablePlugin()`. (4) **Updating** — usually disables then re-enables to apply new config; some plugins implement optimized update logic. (5) **Disabling** — removes listeners and state, calls `super.disablePlugin()` (which clears the EventManager and the plugin's hooks). (6) **Destruction** — final cleanup; hooks are removed automatically and references are nulled for garbage collection.
+
+`PluginManager` responsibilities: registration and instantiation, lifecycle and priority ordering, and conflict-free coordination between plugins. Plugins integrate exclusively through the hook system, executing code at designated extension points.
+
+Built-in plugins (~40) group roughly into: **state-transformation** plugins that modify index mapping (`ColumnSorting`, `MultiColumnSorting`, `Filters`, `HiddenRows`, `HiddenColumns`, `TrimRows`, `ManualRowMove`, `ManualColumnMove`); **auto-sizing** (`AutoRowSize`, `AutoColumnSize`, `StretchColumns`); **data-enhancement** (`Formulas`, `ColumnSummary`, `MergeCells`); **UI-enhancement** (`ContextMenu`, `DropdownMenu`, `CopyPaste`, `Comments`, `MultipleSelectionHandles`, `Dialog`, `Notification`, `TouchScroll`, `DragToScroll`); and the rest (`UndoRedo`, `Search`, `Pagination`, `BindRowsWithHeaders`, `CustomBorders`, `ExportFile`, `Autofill`, `NestedHeaders`, `NestedRows`, `ManualColumnFreeze`, `ManualColumnResize`, `ManualRowResize`, `EmptyDataState`, `Loading`, `CollapsibleColumns`). See `handsontable/.ai/STRUCTURE.md` for the full directory inventory.
+
+### Data-binding and modification flow
+
+`DataSource` wraps the user's original array (array-of-arrays or array-of-objects). It returns shallow clones for safe reads, prevents prototype pollution, and supports the `modifyRowData` / `modifySourceData` hooks for dynamic transformations. Source data stays stable; visual data reflects sorting, filtering, trimming, and hiding.
+
+```mermaid
+graph TD
+  A["User edit / API:<br/>setDataAtCell, populateFromArray, alter"] --> B["Core validates coords + change"]
+  B --> C{"beforeChange hook<br/>(return false to cancel)"}
+  C -->|cancelled| Z["No-op"]
+  C -->|proceed| D["DataMap.set()"]
+  D --> E["DataSource.setAtCell()<br/>updates raw data<br/>(fires modifySourceData)"]
+  E --> F{"validators configured?"}
+  F -->|yes| G["MetaManager re-runs validators"]
+  F -->|no| H
+  G --> H["afterChange hook"]
+  H --> I["TableView schedules re-render<br/>of affected rows/columns"]
+```
+
+`loadData(data)` versus `updateData(data)`: `loadData` replaces the entire dataset (clears old data, resets indexes, triggers a full re-render); `updateData` performs a selective update that preserves structure and is more efficient. `DataSource` exposes `getData()`, `getAtRow()`, `getAtCell()`, and `getAtColumn()` for reads, and `setAtCell()` (with validation) for writes.
+
+### Rendering pipeline overview
+
+`TableView` coordinates between Core and Walkontable. Walkontable renders only the cells in the viewport (plus a small buffer), reuses cell DOM nodes, and renders frozen rows/columns as synchronized overlay clones. This is a high-level overview — the detailed rendering-engine architecture lives in `handsontable/src/3rdparty/walkontable/.ai/ARCHITECTURE.md`.
+
+```mermaid
+graph TD
+  Trigger["Render trigger:<br/>scroll, data update, settings change, manual render"] --> TV["TableView.render()"]
+  TV --> VP["Determine viewport<br/>(ViewportRows/ColumnsCalculator)"]
+  VP --> IT["Index translation<br/>visual → renderable (IndexMapper)"]
+  IT --> FD["Fetch cell data from DataSource"]
+  FD --> MD["Apply cell metadata (MetaManager)"]
+  MD --> RC["Walkontable renders cells<br/>via renderer registry"]
+  RC --> AR["afterRenderer hook (per renderable cell)"]
+  RC --> OV["Render overlays<br/>(top, bottom, inlineStart, corners)"]
+  OV --> DOM["DOM"]
+```
+
+Virtualization behavior: only visible cells plus a small buffer render; hidden rows/columns are excluded from renderable indexes and have size zero in layout; `getColWidth()` returns `0` for hidden columns; and `beforeRenderer` / `afterRenderer` fire only for renderable cells. Rendering is controlled through `batch()`, `suspendRender()`, and `resumeRender()`.
+
+### Hook / event system
+
+The `Hooks` singleton is the internal event bus. Unlike DOM events, hooks are usually synchronous and cancellable. Global registrations live on the singleton; per-instance registrations live in a per-instance `HooksBucket`.
+
+```mermaid
+graph LR
+  subgraph Bus["Hooks (handsontable/src/core/hooks)"]
+    Singleton["Hooks singleton<br/>(global registrations)"]
+    Bucket["Per-instance HooksBucket"]
+    Constants["constants.ts:<br/>REGISTERED_HOOKS,<br/>REMOVED_HOOKS,<br/>DEPRECATED_HOOKS"]
+  end
+
+  Core["Core.runHooks('beforeRender', ...)"] --> Bus
+  PluginAdd["Plugin: this.addHook()<br/>(auto-cleaned on disable)"] --> Bucket
+  HotAdd["hot.addHook() / hot.removeHook()<br/>(manual cleanup)"] --> Bucket
+  Bus --> Callbacks["Ordered callbacks<br/>(orderIndex)"]
+```
+
+Hook taxonomy:
+
+- **Before hooks** (for example `beforeChange`, `beforeRender`, `beforeSelection`) run before an action and can return `false` to cancel it.
+- **After hooks** (for example `afterChange`, `afterRender`, `afterSelection`) run after an action and are informational.
+- **Modify hooks** (for example `modifyRowData`, `modifySourceData`) intercept and transform data in flight.
+
+Registration and execution APIs: `hot.addHook(name, callback)` and `hot.removeHook(name, callback)` manage subscriptions; Core dispatches with `this.runHooks(name, ...args)`. Common hook groups span grid lifecycle (`beforeInit`/`afterInit`, `beforeDestroy`/`afterDestroy`), data modification (`beforeChange`/`afterChange`, `beforeCreateRow`/`afterCreateRow`, `beforeRemoveRow`/`afterRemoveRow`), rendering (`beforeRender`/`afterRender`, `beforeRenderer`/`afterRenderer`, `afterGetCellMeta`), selection (`beforeSelection`/`afterSelection`), and settings (`afterUpdateSettings`).
+
+### End-to-end example: cell edit
+
+The path a single cell edit takes, tying the layers together:
+
+```mermaid
+sequenceDiagram
+  participant U as User
+  participant EM as EditorManager
+  participant C as Core
+  participant DS as DataSource
+  participant MM as MetaManager
+  participant TV as TableView
+  participant W as Walkontable
+
+  U->>EM: types value, confirms
+  EM->>C: setDataAtCell(row, col, value)
+  C->>C: runHooks('beforeChange') (cancellable)
+  C->>DS: setAtCell() updates raw data
+  C->>MM: re-run validators (if configured)
+  C->>C: runHooks('afterChange')
+  C->>TV: schedule re-render of affected cells
+  TV->>W: render viewport
+  W->>W: afterRenderer hooks fire (renderable cells)
+```

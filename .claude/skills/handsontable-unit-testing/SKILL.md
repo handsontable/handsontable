@@ -106,7 +106,7 @@ import type { SelectionManager } from 'handsontable';
 
 ## Further Reading
 
-- `.ai/TESTING.md` for the full testing strategy.
+- `handsontable/.ai/TESTING.md` for the full testing strategy.
 - `handsontable/jest.config.js` for Jest configuration.
 - `handsontable/test/__mocks__/` for available mock implementations.
 - `handsontable/test/bootstrap.js` for the test setup.

@@ -14,6 +14,9 @@ This is the core data grid package. **TypeScript** - source files in `src/` are 
 - No hardcoded user-visible strings in source - add constants to `src/i18n/constants.ts` and update all language files in `src/i18n/languages/`
 - No direct cross-plugin imports - use hooks for inter-plugin communication, or `hot.getPlugin('Name')` if API access is required
 - Never use raw `setTimeout` - use `this.hot._registerTimeout(fn, delay)` instead; it auto-clears on `hot.destroy()`, preventing memory leaks
+- DRY: reuse existing helpers and mixins; if code repeats, extract a generic helper rather than duplicating
+- Method ordering: public methods first, then private listeners
+- In text and comments, always write `Handsontable`, never `HOT` (a `hot` variable holding an instance is fine)
 
 ## Plugin Lifecycle
 
@@ -56,6 +59,7 @@ For server-backed grids (`dataProvider` with `fetchRows` and CRUD callbacks), en
 - Targeted e2e: `npm run test:e2e --testPathPattern=<regex>` or `npm run test:e2e -- --testPathPattern=<regex>` (e.g. `collapsibleColumns`, `textEditor`, `nestedHeaders/__tests__/hidingColumns`)
 - E2E with theme: `npm run test:e2e --testPathPattern=<regex> --theme=horizon` (themes: `classic`, `main`, `horizon`; default: `main`)
 - **Rebuild before E2E:** E2E runner loads `dist/handsontable.js` - rebuild after changing `src/`
+- Verify no exceptions appear in the console during tests
 
 ## Common Pitfalls
 
@@ -90,6 +94,26 @@ For server-backed grids (`dataProvider` with `fetchRows` and CRUD callbacks), en
 | TypeScript config (emit declarations) | `tsconfig.build-types.json` |
 | Build/test task definitions | `scripts/tasks.json` |
 | Shortcut contexts | `src/shortcuts/contexts/` |
+
+## Column Stretching
+
+- Always respect defined column widths as **minimum values**.
+- If a column would shrink below its base width, disable stretching entirely.
+- The `'all'` and `'last'` strategies must behave consistently regarding minimum width handling.
+- Strategy implementations: `src/plugins/stretchColumns/strategies/`.
+
+## Performance
+
+- Never `arr.push(...largeArray)` with 10k+ elements — it overflows the stack. Use a `forEach` loop.
+- Batch scroll updates with `requestAnimationFrame`. Target 60fps with 100k+ row datasets.
+- Wrap multi-operation work in `batch()` / `batchRender()` / `suspendRender()` / `resumeRender()` to avoid redundant redraws.
+- Performance must not degrade across releases (library size, render speed, memory).
+
+## API Design
+
+- Expose all necessary methods in the public API. Keep them discoverable and documented in guides.
+- Every configuration option must fit the cascading configuration model (`cell` → `column` → `global`).
+- The public API must give good code completion in IDEs and AI assistants.
 
 ## Context Menu vs Column Menu
 

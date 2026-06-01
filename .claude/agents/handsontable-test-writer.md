@@ -68,4 +68,4 @@ describe('Feature', () => {
 
 - Test helpers: `test/helpers/common.js`, `test/helpers/mouseEvents.js`, `test/helpers/keyboardEvents.js`
 - Gold standard test organization: `src/plugins/pagination/__tests__/`
-- Full testing docs: `.ai/TESTING.md`
+- Full testing docs: `handsontable/.ai/TESTING.md`

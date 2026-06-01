@@ -58,4 +58,4 @@ Keep every function at **15 or below** on the Sonar cognitive-complexity metric.
 - `handsontable/stylelint.config.js` - Stylelint configuration.
 - `browser-targets.js` - Browser compatibility targets for `compat/compat`.
 
-See `.ai/CONVENTIONS.md` for full coding conventions.
+See `handsontable/.ai/CONVENTIONS.md` for full coding conventions.

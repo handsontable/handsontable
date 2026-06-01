@@ -73,7 +73,7 @@ The Pagination plugin (`src/plugins/pagination/`) demonstrates the expected patt
 
 ## References
 
-- `.ai/ARCHITECTURE.md` for full system architecture details.
-- `.ai/CONCERNS.md` for known issues and technical debt.
+- `handsontable/.ai/ARCHITECTURE.md` for full system architecture details.
+- `handsontable/.ai/CONCERNS.md` for known issues and technical debt.
 - `src/plugins/base/base.ts` for the BasePlugin contract.
 - `src/plugins/base/conflictRegistry.ts` for conflict registration API.

@@ -144,4 +144,4 @@ If your plugin provides UI elements (buttons, inputs, navigation bars), you must
 - Test interactions with other plugins (sorting, filters, hidden rows).
 
 **Gold standard:** `src/plugins/pagination/pagination.ts`. **Base class:** `src/plugins/base/base.ts`.
-See `.ai/ARCHITECTURE.md` and `.ai/CONVENTIONS.md` for deeper context.
+See `handsontable/.ai/ARCHITECTURE.md` and `handsontable/.ai/CONVENTIONS.md` for deeper context.

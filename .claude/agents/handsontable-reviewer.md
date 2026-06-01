@@ -65,7 +65,7 @@ Include `file:line` for each finding. If no blocking issues: `No blocking issues
 
 ## Reference
 
-- Conventions: `.ai/CONVENTIONS.md`
-- Architecture: `.ai/ARCHITECTURE.md`
-- Known issues: `.ai/CONCERNS.md`
+- Conventions: `handsontable/.ai/CONVENTIONS.md`
+- Architecture: `handsontable/.ai/ARCHITECTURE.md`
+- Known issues: `handsontable/.ai/CONCERNS.md`
 - Review rules: `handsontable/.cursor/BUGBOT.md`

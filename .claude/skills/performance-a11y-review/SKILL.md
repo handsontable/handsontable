@@ -60,6 +60,6 @@ If no issues are found, output exactly: `No blocking issues found.`
 
 ## References
 
-- `.ai/CONCERNS.md` for known performance bottlenecks and a11y gaps.
+- `handsontable/.ai/CONCERNS.md` for known performance bottlenecks and a11y gaps.
 - `browser-targets.js` for supported browser list.
 - `src/plugins/base/base.ts` for plugin lifecycle and cleanup patterns.

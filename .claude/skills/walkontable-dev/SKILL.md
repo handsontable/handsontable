@@ -15,14 +15,14 @@ Walkontable source lives entirely within `src/3rdparty/walkontable/src/` and is 
 
 ## Key subsystems
 
-- **Overlay system** (6 types): Manages frozen rows and columns and their scroll synchronization. This subsystem is fragile and well-documented in `.ai/CONCERNS.md`. Proceed with extreme caution when modifying overlay positioning or synchronization logic.
+- **Overlay system** (6 types): Manages frozen rows and columns and their scroll synchronization. This subsystem is fragile and well-documented in `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md`. Proceed with extreme caution when modifying overlay positioning or synchronization logic.
 - **Viewport calculation**: Determines which rows and columns are visible based on scroll position and container size.
 - **Renderer**: DOM element management, row and column painting, cell element reuse.
 - **Scroll handling**: Coordinates scroll between overlays and the main table. Uses `requestAnimationFrame` batching.
 
 ## Known technical debt
 
-These issues are documented in `.ai/CONCERNS.md`:
+These issues are documented in `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md`:
 
 - **DAO layer**: Uses Data Access Objects instead of dependency injection. Over 20 TODO comments exist around this pattern. The DAO layer is not unit tested.
 - **Filter object recreation**: Walkontable filter objects are recreated on every render pass instead of being updated in place. This is a known performance concern.
@@ -66,7 +66,7 @@ Even within Walkontable itself, prefer wrapping DOM logic in abstract modules ra
 - Not testing with frozen rows and columns, which misses overlay edge cases.
 - Forgetting `requestAnimationFrame` for scroll-related changes, causing layout thrashing.
 
-For deeper context, see `.ai/ARCHITECTURE.md` (Walkontable section) and `.ai/CONCERNS.md` (DAO layer, overlay fragility).
+For deeper context, see `handsontable/src/3rdparty/walkontable/.ai/ARCHITECTURE.md` and `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md` (DAO layer, overlay fragility).
 
 ---
 
