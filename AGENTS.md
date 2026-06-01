@@ -12,9 +12,9 @@ The core package (`handsontable/`) is TypeScript. Wrappers are framework-idiomat
 
 ## Where to look
 
-Route to the lowest correct scope. `AGENTS.md` answers "what must I never get wrong here, and where do I look next." `.ai/` answers "how does this work and why." Skills answer "how do I do task X."
+Route to the lowest correct scope. `AGENTS.md` answers "what must I never get wrong here, and where do I look next." `.ai/` answers "how does this work and why." Skills answer "how do I do task X." Package `AGENTS.md` files auto-load when you work in their subtree; the `.ai/` references need an explicit read.
 
-| You are working on | Read |
+| You are working on | Look here |
 |---|---|
 | Anything monorepo-wide (build orchestration, release, workspace) | This file; `.ai/` (root) |
 | Core grid internals (`handsontable/src/`) | `handsontable/AGENTS.md`; `handsontable/.ai/` |
