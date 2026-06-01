@@ -71,7 +71,9 @@ describe('Core_count', () => {
     it('should return number of visible columns', async() => {
       const instance = handsontable({
         data: createSpreadsheetData(10, 10),
-        width: 100
+        // Wide enough that all columns fit in the viewport. With `width` set and no `height`, the root uses
+        // horizontal clipping so `countVisibleCols` reflects the visible viewport (DEV-1025).
+        width: 600
       });
 
       expect(instance.countVisibleCols()).toEqual(10);
