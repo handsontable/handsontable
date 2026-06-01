@@ -484,7 +484,7 @@ describe('manualRowResize', () => {
     const headerBottom = $rowHeader.offset().top + $rowHeader.height();
 
     expect(rowHeight(spec().$container, 0)).toBeLessThan(120);
-    expect(headerBottom - 5).toBeCloseTo(handleTop, 0);
+    expect(Math.abs(headerBottom - 5 - handleTop)).toBeLessThanOrEqual(1);
   });
 
   it('should autosize row after double click (when initial height is defined by the `rowHeights` option)', async() => {

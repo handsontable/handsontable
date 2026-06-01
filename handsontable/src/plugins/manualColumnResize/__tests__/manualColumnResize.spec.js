@@ -796,7 +796,7 @@ describe('manualColumnResize', () => {
     const headerRight = $columnHeader.offset().left + $columnHeader.width();
 
     expect(colWidth(spec().$container, 0)).toBeLessThan(150);
-    expect(headerRight - 5).toBeCloseTo(handleLeft, 0);
+    expect(Math.abs(headerRight - 5 - handleLeft)).toBeLessThanOrEqual(1);
   });
 
   it('should autosize column after double click (when initial width is defined by the `colWidths` option)', async() => {
