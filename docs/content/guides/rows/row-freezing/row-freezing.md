@@ -16,6 +16,9 @@ react:
 angular:
   id: mskor25j
   metaTitle: Row freezing - Angular Data Grid | Handsontable
+vue:
+  id: 42j169m6
+  metaTitle: Row freezing - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

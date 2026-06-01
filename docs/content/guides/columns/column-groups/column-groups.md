@@ -18,6 +18,9 @@ react:
 angular:
   id: 2k8cam98
   metaTitle: Column groups - Angular Data Grid | Handsontable
+vue:
+  id: ogbyqaox
+  metaTitle: Column groups - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 menuTag: updated

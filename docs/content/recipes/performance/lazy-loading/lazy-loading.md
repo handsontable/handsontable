@@ -19,6 +19,9 @@ react:
 angular:
   id: d5f8e2a9
   metaTitle: Lazy loading with pagination - Angular Data Grid | Handsontable
+vue:
+  id: agk0hqm7
+  metaTitle: Lazy loading with pagination - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Performance
 type: how-to

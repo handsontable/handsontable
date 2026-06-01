@@ -14,6 +14,9 @@ react:
 angular:
   id: o4jcn137
   metaTitle: Comments - Angular Data Grid | Handsontable
+vue:
+  id: 5vq1pcjg
+  metaTitle: Comments - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

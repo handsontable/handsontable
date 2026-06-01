@@ -18,6 +18,9 @@ react:
 angular:
   id: f1d4a6c9
   metaTitle: Load Data from a GraphQL API - Angular Data Grid | Handsontable
+vue:
+  id: oo25pxah
+  metaTitle: Load Data from a GraphQL API - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 type: how-to

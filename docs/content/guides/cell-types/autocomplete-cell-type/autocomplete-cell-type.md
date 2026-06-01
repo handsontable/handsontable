@@ -17,6 +17,9 @@ react:
 angular:
   id: md3vhixm
   metaTitle: Autocomplete cell type - Angular Data Grid | Handsontable
+vue:
+  id: 1w3x57l3
+  metaTitle: Autocomplete cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---

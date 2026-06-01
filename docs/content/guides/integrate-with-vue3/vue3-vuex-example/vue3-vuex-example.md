@@ -12,6 +12,8 @@ react:
 angular:
   id: b16i0n4r
   metaTitle: Integration with Vuex - Vue 3 Data Grid - Handsontable
+vue:
+  id: tv2zzko8
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

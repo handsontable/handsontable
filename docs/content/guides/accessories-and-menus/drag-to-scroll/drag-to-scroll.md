@@ -18,6 +18,9 @@ react:
 angular:
   id: h2vz7cfs
   metaTitle: Drag to scroll - Angular Data Grid | Handsontable
+vue:
+  id: axdawq9z
+  metaTitle: Drag to scroll - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 menuTag: new

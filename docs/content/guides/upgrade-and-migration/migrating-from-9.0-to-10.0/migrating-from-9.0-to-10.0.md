@@ -13,6 +13,9 @@ react:
 angular:
   id: a1bu3jwp
   metaTitle: Migrate from 9.0 to 10.0 - Angular Data Grid | Handsontable
+vue:
+  id: k9w710b0
+  metaTitle: Migrate from 9.0 to 10.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

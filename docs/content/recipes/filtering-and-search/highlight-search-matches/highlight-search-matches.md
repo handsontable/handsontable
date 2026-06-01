@@ -17,6 +17,9 @@ react:
 angular:
   id: c4d8e1b5
   metaTitle: Highlight Search Matches - Angular Data Grid | Handsontable
+vue:
+  id: trf4mxau
+  metaTitle: Highlight Search Matches - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Filtering and Search
 type: how-to

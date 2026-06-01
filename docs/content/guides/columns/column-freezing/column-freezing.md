@@ -17,6 +17,9 @@ react:
 angular:
   id: i85vqeao
   metaTitle: Column freezing - Angular Data Grid | Handsontable
+vue:
+  id: yfngr43j
+  metaTitle: Column freezing - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---

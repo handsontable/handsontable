@@ -20,6 +20,9 @@ react:
 angular:
   id: o21k5bjr
   metaTitle: Undo and redo - Angular Data Grid | Handsontable
+vue:
+  id: lf37v5ul
+  metaTitle: Undo and redo - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 ---

@@ -17,6 +17,9 @@ react:
 angular:
   id: 1e23a45b
   metaTitle: Numbro Cell Type - Angular Data Grid | Handsontable
+vue:
+  id: teohjohf
+  metaTitle: Numbro Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
 ---

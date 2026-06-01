@@ -13,6 +13,9 @@ react:
 angular:
   id: tulale8x
   metaTitle: Migrate from 8.4 to 9.0 - Angular Data Grid | Handsontable
+vue:
+  id: cdw8pqqn
+  metaTitle: Migrate from 8.4 to 9.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

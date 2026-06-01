@@ -14,6 +14,9 @@ react:
 angular:
   id: y52wtu7t
   metaTitle: Installation - Angular Data Grid | Handsontable
+vue:
+  id: gflge7lk
+  metaTitle: Installation - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---

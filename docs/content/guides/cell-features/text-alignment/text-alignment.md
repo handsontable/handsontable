@@ -12,6 +12,9 @@ react:
 angular:
   id: h6sbjq1g
   metaTitle: Text alignment - Angular Data Grid | Handsontable
+vue:
+  id: bqfjy5q5
+  metaTitle: Text alignment - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

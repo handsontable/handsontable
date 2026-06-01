@@ -12,6 +12,9 @@ react:
 angular:
   id: 0eswjne7
   metaTitle: Formatting cells - Angular Data Grid | Handsontable
+vue:
+  id: dqqkqp0d
+  metaTitle: Formatting cells - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

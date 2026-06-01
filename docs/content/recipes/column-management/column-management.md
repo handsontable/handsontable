@@ -15,6 +15,9 @@ react:
 angular:
   id: b9i1j3k5
   metaTitle: Column Management Recipes - Angular Data Grid | Handsontable
+vue:
+  id: xhr39rj8
+  metaTitle: Column Management Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 

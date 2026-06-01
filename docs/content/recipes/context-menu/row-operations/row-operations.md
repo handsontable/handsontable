@@ -15,6 +15,9 @@ react:
 angular:
   id: c5d8e3f6
   metaTitle: Programmatic row operations - Angular Data Grid | Handsontable
+vue:
+  id: f2cq2guh
+  metaTitle: Programmatic row operations - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Context Menu and Interaction
 type: how-to
