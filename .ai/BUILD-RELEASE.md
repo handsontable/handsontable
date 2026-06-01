@@ -10,7 +10,7 @@ inventory (Rspack, SWC, Sass, output paths, CSS themes, CI workflow names), see
 The core package must build before the wrappers. Each wrapper depends on the
 built core output, not on core source.
 
-1. **Build core first.** `pnpm --filter handsontable run build`.
+1. **Build core first.** `npm --prefix handsontable run build`.
 2. **Then build wrappers.** React, Angular, and Vue 3 wrappers consume the core
    `tmp/` output through pnpm workspace linking
    (`"handsontable": "workspace:^"` override in the root `package.json`).

@@ -61,16 +61,16 @@ The authoritative workspace list is `pnpm-workspace.yaml`.
 
 ## Build, lint, test
 
-Run monorepo-level commands with `pnpm` from the workspace root:
+Run package scripts with `npm --prefix <dir>` from the workspace root:
 
-- **Build core**: `pnpm --filter handsontable run build` (do this before wrapper tests — wrappers consume the built `handsontable/tmp/` output).
-- **Lint core**: `pnpm --filter handsontable run eslint` and `pnpm --filter handsontable run stylelint`.
-- **Unit tests (core)**: `pnpm --filter handsontable run test:unit` (Jest, ~2200 tests).
-- **E2E tests (core)**: `pnpm --filter handsontable run test:e2e` (Puppeteer/Jasmine, headless Chrome).
-- **Walkontable tests**: `pnpm --filter handsontable run test:walkontable` (separate pipeline).
-- **React tests**: `pnpm --filter @handsontable/react-wrapper run test`.
-- **Vue3 tests**: `pnpm --filter @handsontable/vue3 run test`.
-- **Angular tests**: `pnpm --filter @handsontable/angular-wrapper run test` (uses `--openssl-legacy-provider` automatically).
+- **Build core**: `npm --prefix handsontable run build` (do this before wrapper tests — wrappers consume the built `handsontable/tmp/` output).
+- **Lint core**: `npm --prefix handsontable run eslint` and `npm --prefix handsontable run stylelint`.
+- **Unit tests (core)**: `npm --prefix handsontable run test:unit` (Jest, ~2200 tests).
+- **E2E tests (core)**: `npm --prefix handsontable run test:e2e` (Puppeteer/Jasmine, headless Chrome).
+- **Walkontable tests**: `npm --prefix handsontable run test:walkontable` (separate pipeline).
+- **React tests**: `npm --prefix wrappers/react-wrapper run test`.
+- **Vue3 tests**: `npm --prefix wrappers/vue3 run test`.
+- **Angular tests**: `npm --prefix wrappers/angular-wrapper run test` (uses `--openssl-legacy-provider` automatically).
 
 Inside an individual package (e.g., `cd handsontable`), use `npm run ...` directly. For build output paths, variants, and core task details, see `handsontable/AGENTS.md`.
 

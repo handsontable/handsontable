@@ -23,9 +23,9 @@ npm run test:e2e.watch             # Watch mode for E2E tests
 npm run test:types                 # TypeScript type checking only
 npm run test                       # Full pipeline: lint + unit + types + walkontable + e2e + production
 
-# From monorepo root (pnpm):
-pnpm --filter handsontable run test:unit
-pnpm --filter handsontable run test:e2e
+# From monorepo root (npm --prefix):
+npm --prefix handsontable run test:unit
+npm --prefix handsontable run test:e2e
 
 # Run specific unit test pattern (must be run from handsontable/ directory):
 npm run test:unit --testPathPattern=cellMeta
