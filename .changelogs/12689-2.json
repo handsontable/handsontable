@@ -2,7 +2,7 @@
   "issuesOrigin": "public",
   "title": "Removed the @handsontable/pikaday dependency. The date editor now uses a native browser input[type=date] instead of the Pikaday calendar widget.",
   "type": "removed",
-  "issueOrPR": 12662,
+  "issueOrPR": 12689,
   "breaking": true,
   "framework": "none"
 }

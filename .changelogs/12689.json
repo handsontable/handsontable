@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Removed the numbro dependency. The numericFormat.pattern and numericFormat.culture options now emit a one-time warning and fall back to Intl.NumberFormat formatting.",
+  "type": "removed",
+  "issueOrPR": 12689,
+  "breaking": true,
+  "framework": "none"
+}
