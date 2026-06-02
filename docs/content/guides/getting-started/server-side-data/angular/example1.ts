@@ -249,11 +249,11 @@ function createInventoryDemoServer(): InventoryDemoServer {
       store.rows.splice(insertAt, 0, ...newRows);
     },
     async onRowsUpdate(rows) {
-      rows.forEach(({ rowId, data }) => {
-        const row = store.rows.find((r) => r.id === rowId);
+      rows.forEach(({ id, changes }) => {
+        const row = store.rows.find((r) => r.id === id);
 
         if (row) {
-          Object.assign(row, data);
+          Object.assign(row, changes);
         }
       });
     },
