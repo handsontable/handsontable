@@ -80,6 +80,16 @@ The example below presents a data grid displaying 1 million cells (1000 rows x 1
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-virtualization/vue/example1.vue)
+
+:::
+
+:::
+
 ## Known limitations
 
 Using row virtualization has the following side effects:
