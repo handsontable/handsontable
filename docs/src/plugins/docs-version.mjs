@@ -96,3 +96,27 @@ function computeDocsVersion() {
  * @type {string}
  */
 export const CURRENT_DOCS_VERSION = computeDocsVersion();
+
+/**
+ * The GitHub branch path used for source-code links in documentation pages.
+ *
+ * Production builds produce a `prod-docs/X.Y` path (e.g. `prod-docs/17.1`)
+ * by stripping the patch segment from CURRENT_DOCS_VERSION, matching the
+ * prod-docs/X.Y branch naming convention used in the repository.
+ *
+ * Non-production builds fall back to `develop` so that links point directly
+ * to the always-current develop branch. The `prod-docs/` prefix is intentionally
+ * omitted in this case because the `prod-docs/develop` branch does not exist.
+ *
+ * @type {string}
+ */
+export const CURRENT_DOCS_MINOR_VERSION = (() => {
+  if (process.env.BUILD_MODE === 'production') {
+    const match = CURRENT_DOCS_VERSION.match(/^(\d+\.\d+)/);
+    const minorVersion = match ? match[1] : CURRENT_DOCS_VERSION;
+
+    return `prod-docs/${minorVersion}`;
+  }
+
+  return 'develop';
+})();
