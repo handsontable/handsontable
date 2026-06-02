@@ -1216,7 +1216,7 @@ export function addClassesToRows(
   row: number,
   column: number,
   _prop: string | number,
-  _value: CellValue,
+  _value: Handsontable.CellValue,
   cellProperties: CellProperties
 ) {
   // Adding classes to `TR` just while rendering first visible `TD` element
