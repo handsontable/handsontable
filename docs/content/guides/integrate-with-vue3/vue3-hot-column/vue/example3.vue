@@ -1,9 +1,9 @@
-import { defineComponent } from 'vue';
+<script setup>
+import { ref } from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue3';
 import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
 
-// register Handsontable's modules
 registerAllModules();
 
 class CustomEditor extends TextEditor {
@@ -19,29 +19,27 @@ class CustomEditor extends TextEditor {
   }
 }
 
-const ExampleComponent = defineComponent({
-  data() {
-    return {
-      customEditor: CustomEditor,
-      hotData: [
-        ['A1', 'B1'],
-        ['A2', 'B2'],
-        ['A3', 'B3'],
-        ['A4', 'B4'],
-        ['A5', 'B5'],
-      ],
-      settings: {
-        height: 'auto',
-        autoWrapRow: true,
-        autoWrapCol: true,
-        licenseKey: 'non-commercial-and-evaluation',
-      },
-    };
-  },
-  components: {
-    HotTable,
-    HotColumn,
-  }
+const customEditor = CustomEditor;
+const hotData = ref([
+  ['A1', 'B1'],
+  ['A2', 'B2'],
+  ['A3', 'B3'],
+  ['A4', 'B4'],
+  ['A5', 'B5'],
+]);
+const settings = ref({
+  height: 'auto',
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
 });
+</script>
 
-export default ExampleComponent;
+<template>
+  <div id="example3">
+    <HotTable :data="hotData" :settings="settings">
+      <HotColumn title="Column A" :editor="customEditor" />
+      <HotColumn title="Column B" :read-only="true" />
+    </HotTable>
+  </div>
+</template>
