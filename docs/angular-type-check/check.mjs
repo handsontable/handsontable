@@ -360,7 +360,7 @@ if (process.env.GITHUB_ACTIONS === 'true') {
   // file annotations which are easy to overlook on a green step.
   const summaryFile = process.env.GITHUB_STEP_SUMMARY;
   if (summaryFile) {
-    const row = (e, scope) => `| ${e.exampleId} | \`${e.code}\` | ${scope} | ${e.message.replace(/\|/g, '\\|')} |`;
+    const row = (e, scope) => `| ${e.exampleId} | \`${e.code}\` | ${scope} | ${String(e.message).replace(/\\/g, '\\\\').replace(/\|/g, '\\|')} |`;
     const lines = [];
     lines.push('## Angular docs type-check');
     lines.push('');
