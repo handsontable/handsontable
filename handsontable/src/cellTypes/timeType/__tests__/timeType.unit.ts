@@ -60,6 +60,9 @@ describe('TimeCellType', () => {
         editor: getEditor('time'),
         renderer: getRenderer('time'),
         validator: getValidator('time'),
+        sourceDataValidator: expect.any(Function),
+        sourceDataWarningMessage: expect.any(String),
+        valueFormatter: expect.any(Function),
       });
     });
   });

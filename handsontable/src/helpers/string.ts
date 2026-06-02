@@ -101,15 +101,7 @@ export function substitute(template: string, variables: Record<string, unknown> 
  * @returns {string}
  */
 export function stripTags(string: string): string {
-  let value = String(string);
-  let previousValue;
-
-  do {
-    previousValue = value;
-    value = value.replace(/<[^>]*>/g, '');
-  } while (value !== previousValue);
-
-  return value;
+  return String(string).replace(/<[^>]*>/g, '');
 }
 
 /**

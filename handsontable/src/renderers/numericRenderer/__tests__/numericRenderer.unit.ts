@@ -86,7 +86,7 @@ describe('numericRenderer', () => {
 
           expect(console.warn).toHaveBeenCalledTimes(1);
           expect(console.warn).toHaveBeenCalledWith(expect.stringContaining(
-            'numericFormat.pattern and numericFormat.culture options are deprecated'
+            'numericFormat.pattern and numericFormat.culture options are not supported'
           ));
 
           // Second call with the same instance — should NOT warn again
