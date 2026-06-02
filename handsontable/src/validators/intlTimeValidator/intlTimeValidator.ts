@@ -1,4 +1,4 @@
-import { timeValidator, sourceDataValidator } from '../timeValidator/timeValidator';
+import { timeValidator } from '../timeValidator/timeValidator';
 
 export const VALIDATOR_TYPE = 'intl-time';
 export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). ' +
@@ -6,7 +6,7 @@ export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). 
   '[affectedCells]\n\n' +
   'Expected a value compatible with the 24-hour time format ("HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS").';
 
-export { sourceDataValidator };
+export { sourceDataValidator } from '../timeValidator/timeValidator';
 
 type CellMeta = Record<string, unknown> & { allowEmpty?: boolean };
 

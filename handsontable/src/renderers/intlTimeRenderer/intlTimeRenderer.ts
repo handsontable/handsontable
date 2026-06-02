@@ -1,8 +1,8 @@
-import { timeRenderer, valueFormatter } from '../timeRenderer/timeRenderer';
+import { timeRenderer } from '../timeRenderer/timeRenderer';
 
 export const RENDERER_TYPE = 'intl-time';
 
-export { valueFormatter };
+export { valueFormatter } from '../timeRenderer/timeRenderer';
 
 type HotInstance = Record<string, unknown>;
 

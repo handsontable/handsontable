@@ -76,7 +76,6 @@ export interface DateRendererFn {
  * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
  */
 function _dateRenderer(
-  this: unknown,
   hotInstance: HotInstance,
   TD: HTMLTableCellElement,
   row: number,

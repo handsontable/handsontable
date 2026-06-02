@@ -73,7 +73,6 @@ export interface TimeRendererFn {
  * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
  */
 function _timeRenderer(
-  this: unknown,
   hotInstance: HotInstance,
   TD: HTMLTableCellElement,
   row: number,
