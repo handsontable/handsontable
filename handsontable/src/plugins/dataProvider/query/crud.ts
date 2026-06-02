@@ -8,7 +8,7 @@ import {
   DATA_PROVIDER_ERROR_UPDATE_MISSING_ROW_ID,
   dataProviderErrorRemoveMissingRowId,
 } from '../constants';
-import type { RowUpdatePayload } from '../dataProvider';
+import type { RowUpdatePayload, RowsCreatePayload } from '../dataProvider';
 
 /**
  * Row id option — a property name string, a resolver function, or absent.
@@ -669,13 +669,11 @@ export function queueCrud(
 
 type BeforeAlterForCrudCtx = {
   hot: HotInstance;
-  getOnRowsCreate: () => ((payload: { position?: string; referenceRowId?: unknown; rowsAmount?: number }) =>
-    Promise<unknown> | void) | undefined;
+  getOnRowsCreate: () => ((payload: RowsCreatePayload) => Promise<unknown> | void) | undefined;
   getOnRowsRemove: () => ((rowIds: unknown[]) => Promise<unknown> | void) | undefined;
   getRowIdOption: () => RowIdOption;
   getRowId: (visualRow: number) => unknown;
-  createRows: (payload: { position?: string; referenceRowId?: unknown; rowsAmount?: number }) =>
-    Promise<void> | void;
+  createRows: (payload: Partial<RowsCreatePayload>) => Promise<void> | void;
   removeRows: (rowIds: unknown[]) => Promise<void> | void;
 };
 
