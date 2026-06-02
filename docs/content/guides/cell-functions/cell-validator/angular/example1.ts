@@ -111,7 +111,7 @@ export class AppComponent implements OnInit {
           const currChange = changes[i];
 
           if (!currChange) {
-            return false;
+            continue;
           }
 
           // gently don't accept the word "foo" (remove the change at index i)
