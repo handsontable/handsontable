@@ -38,3 +38,9 @@ The same capabilities, exposed as LangChain and LangGraph tools. Agents built on
 A Model Context Protocol server that exposes HyperFormula to any MCP client -- Claude Desktop, Cursor, and others. The server publishes the same formula evaluation, cell manipulation, and dependency tracing tools as the SDK integrations, so an MCP-enabled assistant can do exact financial modeling, what-if analysis, and data validation without inventing numbers.
 
 [Open the HyperFormula MCP Server page](https://hyperformula.handsontable.com/docs/guide/mcp-server.html)
+
+---
+
+::: tip Trademark notice
+Microsoft® and Excel® are registered trademarks of Microsoft Corporation.
+:::

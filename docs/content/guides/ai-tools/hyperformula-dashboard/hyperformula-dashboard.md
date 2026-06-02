@@ -38,3 +38,9 @@ Because the output is a real spreadsheet formula, the same logic works if you pa
 The HyperFormula Dashboard is a free tool and demo app built in Lovable. You can use the live version as-is, or copy it, connect your own API or database, and build on top of the same spreadsheet UI and formula engine.
 
 [Open the HyperFormula Dashboard](https://hyperformula-dashboard.lovable.app)
+
+---
+
+::: tip Trademark notice
+Microsoft® and Excel® are registered trademarks of Microsoft Corporation. Google® and Google Sheets™ are trademarks of Google LLC.
+:::

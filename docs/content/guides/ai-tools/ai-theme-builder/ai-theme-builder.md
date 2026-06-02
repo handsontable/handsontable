@@ -34,6 +34,4 @@ Click the **Generate code** button, then choose your framework, and copy the the
 ## Test in StackBlitz
 Try out your theme in a live web application by clicking the **Open in StackBlitz** button. This opens a new tab in StackBlitz where you can test and edit the theme in the web instead of downloading the files to run locally. 
 
-[Open the Theme Builder](https://handsontable.com/ai-theme-builder) 
-
-## 
+[Open the Theme Builder](https://handsontable.com/ai-theme-builder)
