@@ -20,6 +20,9 @@ react:
 angular:
   id: xat52y9g
   metaTitle: Focus scopes - Angular Data Grid | Handsontable
+vue:
+  id: 42scu64a
+  metaTitle: Focus scopes - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
 ---

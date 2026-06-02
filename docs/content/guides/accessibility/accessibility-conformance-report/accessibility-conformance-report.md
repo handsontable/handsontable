@@ -20,6 +20,9 @@ react:
 angular:
   id: r7vpat03
   metaTitle: Accessibility conformance report (VPAT) - Angular Data Grid | Handsontable
+vue:
+  id: vvtwmknl
+  metaTitle: Accessibility conformance report (VPAT) - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessibility
 ---

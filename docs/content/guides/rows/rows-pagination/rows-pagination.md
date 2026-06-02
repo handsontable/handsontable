@@ -25,6 +25,9 @@ react:
 angular:
   id: lt6sgwts
   metaTitle: Row pagination - Angular Data Grid | Handsontable
+vue:
+  id: 57pnumth
+  metaTitle: Row pagination - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 menuTag: updated

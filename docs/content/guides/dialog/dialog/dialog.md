@@ -19,6 +19,9 @@ react:
 angular:
   id: vq1llzfz
   metaTitle: Dialog - Angular Data Grid | Handsontable
+vue:
+  id: r8xzqxzt
+  metaTitle: Dialog - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Dialog
 ---

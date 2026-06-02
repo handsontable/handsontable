@@ -18,6 +18,9 @@ react:
 angular:
   id: 7u4izjbt
   metaTitle: IME support - Angular Data Grid | Handsontable
+vue:
+  id: 0m1fmtge
+  metaTitle: IME support - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
 ---

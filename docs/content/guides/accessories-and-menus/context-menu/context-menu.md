@@ -17,6 +17,9 @@ react:
 angular:
   id: 3xspgb3u
   metaTitle: Context menu - Angular Data Grid | Handsontable
+vue:
+  id: qgm3koe6
+  metaTitle: Context menu - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 menuTag: updated

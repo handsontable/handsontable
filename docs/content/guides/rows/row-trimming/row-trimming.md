@@ -12,6 +12,9 @@ react:
 angular:
   id: fhh1b0n6
   metaTitle: Row trimming - Angular Data Grid | Handsontable
+vue:
+  id: 0dah88rc
+  metaTitle: Row trimming - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

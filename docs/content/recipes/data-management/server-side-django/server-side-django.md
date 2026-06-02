@@ -17,6 +17,9 @@ react:
 angular:
   id: q1s3u5w7
   metaTitle: Server-side Data with Django - Angular Data Grid | Handsontable
+vue:
+  id: avzy0eqi
+  metaTitle: Server-side Data with Django - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 type: how-to

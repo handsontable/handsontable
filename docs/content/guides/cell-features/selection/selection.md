@@ -15,6 +15,9 @@ react:
 angular:
   id: 8l4fmyur
   metaTitle: Selection - Angular Data Grid | Handsontable
+vue:
+  id: tnavl8bq
+  metaTitle: Selection - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

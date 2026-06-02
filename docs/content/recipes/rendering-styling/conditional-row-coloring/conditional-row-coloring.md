@@ -16,6 +16,9 @@ react:
 angular:
   id: b2d804e6
   metaTitle: Conditional row coloring - Angular Data Grid | Handsontable
+vue:
+  id: 99nmgb2v
+  metaTitle: Conditional row coloring - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Rendering and styling
 type: how-to

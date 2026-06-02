@@ -656,7 +656,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // ── Vue 3 project ─────────────────────────────────────────────────────────
 
   function buildVueProject(hotVersion, exampleId, userFiles, extraDeps) {
-    var jsFile = findFile(userFiles, '.js') || 'App.js';
+    var jsFile = findFile(userFiles, '.vue') || 'App.vue';
     var appCode = userFiles[jsFile] || '';
 
     var deps = Object.assign(
@@ -687,7 +687,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var main = [
       'import { createApp } from "vue";',
-      'import App from "./App.js";',
+      'import App from "./App.vue";',
       '',
       'createApp(App).mount("#' + exampleId + '");',
     ].join('\n');
@@ -721,7 +721,7 @@ document.addEventListener('DOMContentLoaded', function () {
       'vite.config.js': viteConfig,
       'index.html':  html,
       'src/main.js': main,
-      'src/App.js':  appCode,
+      'src/App.vue': appCode,
     };
   }
 

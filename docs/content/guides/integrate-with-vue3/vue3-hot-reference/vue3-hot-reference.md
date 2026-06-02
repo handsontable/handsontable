@@ -12,6 +12,8 @@ react:
 angular:
   id: 7d76fp5u
   metaTitle: Referencing Handsontable - Vue 3 Data Grid | Handsontable
+vue:
+  id: u812ka23
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

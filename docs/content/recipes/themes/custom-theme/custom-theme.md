@@ -23,6 +23,8 @@ react:
 angular:
   id: b582k93d
   metaTitle: Handsontable with shadcn/ui - Angular Data Grid | Handsontable
+vue:
+  id: jo0cv4kp
 searchCategory: Recipes
 category: Themes
 ---

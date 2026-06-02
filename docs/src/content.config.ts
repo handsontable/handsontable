@@ -2,8 +2,8 @@
  * Astro content collection schema.
  *
  * Uses a custom framework-loader that reads all .md files from docs/content/
- * and creates 3 entries per file — one per framework (JavaScript, React,
- * Angular). The loader applies per-framework only-for content filtering and
+ * and creates 4 entries per file — one per framework (JavaScript, React,
+ * Angular, Vue). The loader applies per-framework only-for content filtering and
  * all other VuePress preprocessing at load time.
  *
  * Entry IDs follow the pattern: {framework-prefix}/{slug}
@@ -49,7 +49,7 @@ export const collections = {
         /** Framework-specific frontmatter overrides (Phase 3). */
         react: z.record(z.string(), z.unknown()).optional(),
         angular: z.record(z.string(), z.unknown()).optional(),
-        vue3: z.record(z.string(), z.unknown()).optional(),
+        vue: z.record(z.string(), z.unknown()).optional(),
 
         /** Sidebar badge label (e.g. "Updated", "New"). */
         menuTag: z.string().optional(),

@@ -19,6 +19,9 @@ react:
 angular:
   id: 9f2e8c4a
   metaTitle: Empty Data State - Angular Data Grid | Handsontable
+vue:
+  id: qx83am9a
+  metaTitle: Empty Data State - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and Menus
 ---

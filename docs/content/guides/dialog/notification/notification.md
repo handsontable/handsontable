@@ -17,6 +17,9 @@ react:
 angular:
   id: xr3llzfz
   metaTitle: Notification - Angular Data Grid | Handsontable
+vue:
+  id: i9f864ry
+  metaTitle: Notification - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Dialog
 menuTag: new

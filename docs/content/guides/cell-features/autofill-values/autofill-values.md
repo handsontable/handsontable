@@ -20,6 +20,9 @@ react:
 angular:
   id: 8tftfxgq
   metaTitle: Autofill values - Angular Data Grid | Handsontable
+vue:
+  id: mhnmzkay
+  metaTitle: Autofill values - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

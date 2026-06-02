@@ -24,6 +24,9 @@ react:
 angular:
   id: 99l3uae8
   metaTitle: Accessibility - Angular Data Grid | Handsontable
+vue:
+  id: br13tylp
+  metaTitle: Accessibility - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessibility
 ---

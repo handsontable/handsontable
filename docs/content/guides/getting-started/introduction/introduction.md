@@ -12,6 +12,9 @@ react:
 angular:
   id: igd8lqh8
   metaTitle: Angular Data Grid - Documentation | Handsontable
+vue:
+  id: xpwj6wcn
+  metaTitle: Vue Data Grid - Documentation | Handsontable
 searchCategory: Guides
 category: Getting started
 ---

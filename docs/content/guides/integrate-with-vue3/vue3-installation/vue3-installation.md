@@ -12,6 +12,8 @@ react:
 angular:
   id: od7j5cpt
   metaTitle: Installation - Vue 3 Data Grid | Handsontable
+vue:
+  id: zt7xpt7w
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

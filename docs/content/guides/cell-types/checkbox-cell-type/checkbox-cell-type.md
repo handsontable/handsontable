@@ -12,6 +12,9 @@ react:
 angular:
   id: 4cn9mp6z
   metaTitle: Checkbox cell type - Angular Data Grid | Handsontable
+vue:
+  id: 2a1x3jgu
+  metaTitle: Checkbox cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---

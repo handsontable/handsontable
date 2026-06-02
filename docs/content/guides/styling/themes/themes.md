@@ -28,6 +28,9 @@ react:
 angular:
   id: 1sco6djp
   metaTitle: Themes - Angular Data Grid | Handsontable
+vue:
+  id: ioop937e
+  metaTitle: Themes - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
 ---

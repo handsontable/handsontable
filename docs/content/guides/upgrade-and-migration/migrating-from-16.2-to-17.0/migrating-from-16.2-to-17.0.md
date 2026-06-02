@@ -13,6 +13,9 @@ react:
 angular:
   id: 9r25a4sd
   metaTitle: Migrate from 16.2 to 17.0 - Angular Data Grid | Handsontable
+vue:
+  id: pv0dplqt
+  metaTitle: Migrate from 16.2 to 17.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

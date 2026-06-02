@@ -17,6 +17,9 @@ react:
 angular:
   id: a5vj6hsz
   metaTitle: TypeScript types - Angular Data Grid | Handsontable
+vue:
+  id: v8j6vpbp
+  metaTitle: TypeScript types - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
 menuTag: new

@@ -20,6 +20,9 @@ react:
 angular:
   id: 1rptt5bu
   metaTitle: Column summary - Angular Data Grid | Handsontable
+vue:
+  id: hqbq312j
+  metaTitle: Column summary - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---

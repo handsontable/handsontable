@@ -25,6 +25,11 @@
   border-color: var(--sl-color-accent, #1A42E8);
 }
 
+#filterField:focus-visible {
+  border-color: var(--sl-color-accent, #1A42E8);
+  box-shadow: 0 0 0 1px var(--sl-color-accent, #1A42E8);
+}
+
 /* Filter dropdown */
 .filter-dropdown {
   position: relative;

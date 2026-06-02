@@ -12,6 +12,9 @@ react:
 angular:
   id: ntz1a9ns
   metaTitle: Row moving - Angular Data Grid | Handsontable
+vue:
+  id: hhbbqpe7
+  metaTitle: Row moving - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

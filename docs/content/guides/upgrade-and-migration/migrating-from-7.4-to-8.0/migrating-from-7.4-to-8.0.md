@@ -13,6 +13,9 @@ react:
 angular:
   id: wo49dhyu
   metaTitle: Migrate from 7.4 to 8.0 - Angular Data Grid | Handsontable
+vue:
+  id: 0nffktzd
+  metaTitle: Migrate from 7.4 to 8.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

@@ -22,6 +22,9 @@ react:
 angular:
   id: v7sq2x22
   metaTitle: Keyboard shortcuts - Angular Data Grid | Handsontable
+vue:
+  id: h8l2k0pm
+  metaTitle: Keyboard shortcuts - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
 ---

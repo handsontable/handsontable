@@ -15,7 +15,7 @@
 // ── Glob maps resolved by Vite at build time ──────────────────────────────
 const jsModules       = import.meta.glob('/content/**/example*.js');
 const jsxModules      = import.meta.glob('/content/**/example*.jsx');
-const vueModules      = import.meta.glob('/content/**/vue/example*.js');
+const vueModules      = import.meta.glob('/content/**/vue/example*.vue');
 const angularModules  = import.meta.glob('/content/**/example*.ts');
 const htmlTemplates   = import.meta.glob('/content/**/example*.html', { query: '?raw', import: 'default' });
 const cssModules      = import.meta.glob('/content/**/example*.css', { query: '?raw', import: 'default' });
@@ -177,9 +177,8 @@ async function runExamples(): Promise<void> {
     const { createApp } = await import('vue');
 
     for (const el of vueEls) {
-      const src     = el.dataset.exampleVue!;
-      const htmlSrc = el.dataset.exampleHtml;
-      const id      = el.dataset.exampleId;
+      const src = el.dataset.exampleVue!;
+      const id  = el.dataset.exampleId;
       const loader  = vueModules[src];
 
       if (!loader) {
@@ -197,14 +196,6 @@ async function runExamples(): Promise<void> {
       }
 
       try {
-        if (htmlSrc) {
-          const htmlLoader = htmlTemplates[htmlSrc];
-
-          if (htmlLoader) {
-            container.innerHTML = await htmlLoader() as string;
-          }
-        }
-
         const mod = await loader() as { default: any };
         const app = createApp(mod.default);
 

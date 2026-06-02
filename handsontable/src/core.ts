@@ -3214,6 +3214,32 @@ export default function Core(
       instance.rootElement.style.width = isNaN(width as number) ? `${width}` : `${width}px`;
     }
 
+    // When height is absent the table uses window scroll, so the `overflow: clip` shorthand from the
+    // height block is not applied. Set overflowX: clip to prevent the inner table from visually
+    // overflowing a constrained width. Read the effective values from the DOM (after both height and
+    // width blocks ran) so partial updateSettings calls see the correct state.
+    // When height IS set, the height block's `overflow: clip` shorthand handles both axes — leave
+    // overflowX untouched to avoid breaking that shorthand.
+    // Browser compatibility: `overflow-x: clip` requires Safari 16+. On Safari 14.1–15.x it silently
+    // falls back to `visible` (graceful degradation — pre-existing behavior, not a new regression).
+    if (typeof settings.height !== 'undefined' || typeof settings.width !== 'undefined') {
+      const effectiveHeight = instance.rootElement.style.height;
+      const effectiveWidth = instance.rootElement.style.width;
+
+      if (!effectiveHeight) {
+        const currentOverflowX = instance.rootElement.style.overflowX;
+
+        // Only manage the overflow-x we own (`clip`) or that is unset. Preserve a user-defined
+        // overflow (e.g. `overflow: hidden` restored from the initial style) so it is not stomped
+        // by `clip`. Unlike `hidden`, `clip` creates no block formatting context and allows no
+        // programmatic scroll.
+        if (currentOverflowX === '' || currentOverflowX === 'clip') {
+          instance.rootElement.style.overflowX =
+            (effectiveWidth && effectiveWidth !== 'auto') ? 'clip' : '';
+        }
+      }
+    }
+
     if (!init) {
       if (instance.view) {
         instance.view._wt.wtViewport.resetHasOversizedColumnHeadersMarked();

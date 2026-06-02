@@ -17,6 +17,9 @@ react:
 angular:
   id: d8k4t7u1
   metaTitle: Dependent Dropdowns Recipe - Angular Data Grid | Handsontable
+vue:
+  id: 499xqog9
+  metaTitle: Dependent Dropdowns Recipe - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Editing and Validation
 type: how-to

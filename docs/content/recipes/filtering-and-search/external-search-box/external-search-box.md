@@ -17,6 +17,9 @@ react:
 angular:
   id: d2f7b43a
   metaTitle: External search box recipe - Angular Data Grid | Handsontable
+vue:
+  id: 226dbr7q
+  metaTitle: External search box recipe - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Filtering and Search
 type: how-to

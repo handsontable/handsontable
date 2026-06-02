@@ -12,6 +12,9 @@ react:
 angular:
   id: fsfvsoi3
   metaTitle: Column moving - Angular Data Grid | Handsontable
+vue:
+  id: 79rgvlew
+  metaTitle: Column moving - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
