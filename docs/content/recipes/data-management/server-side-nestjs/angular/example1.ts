@@ -93,7 +93,7 @@ export class AppComponent {
 
       // Fires after a cell edit, paste, or autofill batch.
       onRowsUpdate: async (rows: RowUpdatePayload[]) => {
-        const payload = rows.map(({ rowId, data }) => ({ id: rowId, ...data }));
+        const payload = rows.map(({ id, changes }) => ({ id, ...changes }));
         const res = await fetch('/tickets', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },

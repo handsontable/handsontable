@@ -144,17 +144,15 @@ export interface DataProviderFetchOptions {
 export type DataProviderOptions = DataProviderFetchOptions;
 
 export interface RowsCreatePayload {
-  index?: number;
-  amount?: number;
-  data?: unknown[];
-  position?: string;
+  position: 'above' | 'below';
   referenceRowId?: unknown;
-  rowsAmount?: number;
+  rowsAmount: number;
 }
 
 export interface RowUpdatePayload {
-  rowId: unknown;
-  data: Record<string, unknown>;
+  id: unknown;
+  changes: Record<string | number, unknown>;
+  rowData?: Record<string, unknown> | unknown[];
 }
 
 export interface RowMutationCreatePayload {
@@ -162,7 +160,7 @@ export interface RowMutationCreatePayload {
 }
 
 export interface RowMutationUpdatePayload {
-  rowsUpdate: RowUpdatePayload[];
+  rows: RowUpdatePayload[];
 }
 
 export interface RowMutationRemovePayload {
@@ -175,7 +173,6 @@ export interface DataProviderConfig {
   rowId: string;
   fetchRows: (queryParameters: DataProviderQueryParameters, options: DataProviderFetchOptions) =>
     Promise<DataProviderFetchResult>;
-  onRowCreate?: (payload: RowsCreatePayload) => Promise<unknown[]>;
   onRowsCreate?: (payload: RowsCreatePayload) => Promise<unknown[]>;
   onRowsUpdate?: (payload: RowUpdatePayload[]) => Promise<void>;
   onRowsRemove?: (payload: unknown[]) => Promise<void>;

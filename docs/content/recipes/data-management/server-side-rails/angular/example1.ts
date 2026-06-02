@@ -119,7 +119,7 @@ export class AppComponent {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            rows: rows.map((r) => ({ id: r.rowId, changes: r.data })),
+            rows: rows.map((r) => ({ id: r.id, changes: r.changes })),
           }),
         });
 
