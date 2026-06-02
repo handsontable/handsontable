@@ -8,6 +8,7 @@ import {
   DATA_PROVIDER_ERROR_UPDATE_MISSING_ROW_ID,
   dataProviderErrorRemoveMissingRowId,
 } from '../constants';
+import type { RowUpdatePayload } from '../dataProvider';
 
 /**
  * Row id option — a property name string, a resolver function, or absent.
@@ -20,13 +21,9 @@ type RowIdOption = string | ((rowData: object | unknown[]) => unknown) | undefin
 type ChangeTuple = [number, string | number, unknown, unknown];
 
 /**
- * Internal per-row update payload used inside CRUD helpers.
+ * Internal per-row update payload used inside CRUD helpers (fields are optional during construction).
  */
-type InternalRowUpdatePayload = {
-  id?: unknown;
-  changes?: Record<string | number, unknown>;
-  rowData?: Record<string, unknown> | unknown[];
-};
+type InternalRowUpdatePayload = Partial<RowUpdatePayload>;
 
 /**
  * Runs `beforeRowsMutation`. Return `false` from a listener to cancel.

@@ -153,8 +153,9 @@ export interface RowsCreatePayload {
 }
 
 export interface RowUpdatePayload {
-  rowId: unknown;
-  data: Record<string, unknown>;
+  id: unknown;
+  changes: Record<string | number, unknown>;
+  rowData?: Record<string, unknown> | unknown[];
 }
 
 export interface RowMutationCreatePayload {

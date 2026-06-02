@@ -81,7 +81,7 @@ hot.addHook('afterRowsMutation', (operation: string, payload: RowMutationPayload
     void payload.rowsRemove[0];
   }
   if (operation === 'update' && 'rowsUpdate' in payload && payload.rowsUpdate[0]) {
-    void payload.rowsUpdate[0].rowId;
+    void payload.rowsUpdate[0].id;
   }
 });
 
