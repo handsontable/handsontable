@@ -4,7 +4,13 @@ export const command = {
   name: 'extendCellsSelectionToMostInlineEnd',
   callback(hot: HotInstance) {
     const { selection, columnIndexMapper } = hot;
-    const { highlight, from, to } = hot.getSelectedRangeActive();
+    const activeRange = hot.getSelectedRangeActive();
+
+    if (!activeRange) {
+      return;
+    }
+
+    const { highlight, from, to } = activeRange;
 
     if (
       !selection.isSelectedByRowHeader() &&
@@ -18,7 +24,7 @@ export const command = {
 
       selection.markSource('keyboard');
       selection.setRangeStart(newFrom, undefined, false, highlight.clone());
-      selection.setRangeEnd(hot._createCellCoords(to.row, column));
+      selection.setRangeEnd(hot._createCellCoords(to.row ?? 0, column ?? 0));
       selection.markEndSource();
     }
   },

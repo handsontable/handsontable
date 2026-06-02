@@ -183,7 +183,7 @@ export class ColumnStatesManager {
   getColumnSortState(column: number) {
     const sortOrder = this.getSortOrderOfColumn(column);
 
-    if (isDefined(sortOrder)) {
+    if (sortOrder !== undefined) {
       return {
         column,
         sortOrder,
@@ -213,6 +213,6 @@ export class ColumnStatesManager {
    */
   destroy() {
     this.hot.columnIndexMapper.unregisterMap(this.mapName);
-    this.sortingStates = null;
+    Reflect.set(this, 'sortingStates', null);
   }
 }

@@ -12,6 +12,8 @@ react:
 angular:
   id: nmw9ha36
   metaTitle: Custom cell editor - Vue 3 Data Grid | Handsontable
+vue:
+  id: 9a852yq1
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

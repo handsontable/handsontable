@@ -140,7 +140,7 @@ export class StylesHandler {
       visualRowIndex === this.#hot.view.getFirstRenderedVisibleRow()
     ) {
       // add 1px border-top-width compensation for the first rendered row
-      return rowHeight + 1;
+      return (rowHeight ?? 0) + 1;
     }
 
     return rowHeight;

@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../../core/types';
+import type { GridSettings } from '../../../core/settings';
 import type { MenuItemConfig } from '../contextMenu';
 import { Positioner } from './positioner';
 import { createMenuNavigator } from './navigator';
@@ -130,7 +131,7 @@ export class Menu {
   /**
    * @type {boolean}
    */
-  origOutsideClickDeselects: boolean | ((target: HTMLElement) => boolean) | null = null;
+  origOutsideClickDeselects: GridSettings['outsideClickDeselects'] = undefined;
   declare addLocalHook: (key: string, callback: Function) => object;
   declare runLocalHooks: (key: string, ...args: unknown[]) => void;
   declare clearLocalHooks: () => object;
@@ -217,7 +218,7 @@ export class Menu {
    * @private
    */
   registerEvents() {
-    let frame: Window = this.hot.rootWindow;
+    let frame: Window | null = this.hot.rootWindow;
 
     while (frame) {
       this.eventManager.addEventListener(frame.document, 'mousedown', event => this.onDocumentMouseDown(event));
@@ -312,7 +313,7 @@ export class Menu {
     this.container.removeAttribute('style');
     this.container.style.display = 'block';
 
-    const delayedOpenSubMenu = debounce((row: number) => this.openSubMenu(row), 300);
+    const delayedOpenSubMenu = debounce((...args: unknown[]) => this.openSubMenu(args[0] as number), 300);
     const minWidthOfMenu = (Number(this.options.minWidth) || MIN_WIDTH);
     let noItemsDefined = false;
 
@@ -481,9 +482,11 @@ export class Menu {
           if (selection) {
             const cell = this.parentMenu!.hotMenu!.getCell(selection[0], 0);
 
-            setAttribute(cell, [
-              A11Y_EXPANDED(false),
-            ]);
+            if (cell) {
+              setAttribute(cell, [
+                A11Y_EXPANDED(false),
+              ]);
+            }
           }
         }
 
@@ -551,7 +554,7 @@ export class Menu {
       const cell = this.hotMenu!.getCell(row, 0);
 
       // Update the accessibility tags on the cell being the base for the submenu.
-      if (this.hot.getSettings().ariaTags) {
+      if (cell && this.hot.getSettings().ariaTags) {
         setAttribute(cell, [
           A11Y_EXPANDED(false),
         ]);
@@ -584,7 +587,7 @@ export class Menu {
         preventScroll: true,
       });
       this.getKeyboardShortcutsCtrl()!.listen();
-      this.hotMenu.listen();
+      this.hotMenu!.listen();
     }
   }
 
@@ -697,10 +700,10 @@ export class Menu {
     const holderStyle = wtTable.holder.style;
     const currentHiderWidth = parseInt(hiderStyle.width, 10);
 
-    const realHeight = arrayReduce<unknown[] | object, number>(data,
+    const realHeight = arrayReduce<unknown[] | object, number>(data ?? [],
       (accumulator, value, index) => {
         const itemCell = this.hotMenu!.getCell(index, 0);
-        const currentRowHeight = itemCell ? outerHeight(this.hotMenu!.getCell(index, 0)) : 0;
+        const currentRowHeight = itemCell ? outerHeight(itemCell) : 0;
         const isSeparator = hasName(value) && value.name === SEPARATOR;
 
         return accumulator + (isSeparator ? 1 : currentRowHeight);

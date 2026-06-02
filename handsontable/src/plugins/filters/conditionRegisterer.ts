@@ -29,7 +29,7 @@ export function getCondition(name: string, args: unknown[]) {
   };
 
   return function(dataRow: DataRow) {
-    return condition.apply(dataRow.meta.instance, [].concat([dataRow], [conditionArguments]));
+    return condition.apply(dataRow.meta.instance, [dataRow, conditionArguments]);
   };
 }
 

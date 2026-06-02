@@ -17,6 +17,9 @@ react:
 angular:
   id: arpg1wyq
   metaTitle: Locale - Angular Data Grid | Handsontable
+vue:
+  id: rt5nxjxz
+  metaTitle: Locale - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
 ---

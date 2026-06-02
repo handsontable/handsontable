@@ -15,6 +15,9 @@ react:
 angular:
   id: d8a41e6f
   metaTitle: Filtering and Search Recipes - Angular Data Grid | Handsontable
+vue:
+  id: g6b02455
+  metaTitle: Filtering and Search Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 

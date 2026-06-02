@@ -157,7 +157,7 @@ export class ColumnSummary extends BasePlugin {
    * @type {null|Endpoints}
    */
   endpoints: Endpoints | null = null;
-  declare settings: Record<string, unknown>;
+  declare settings: Record<string, unknown> | null;
   declare currentEndpoint: unknown;
 
   /**
@@ -294,7 +294,7 @@ export class ColumnSummary extends BasePlugin {
   calculateSum(endpoint: SummaryEndpoint): number {
     let sum = 0;
 
-    for (const range of endpoint.ranges) {
+    for (const range of endpoint.ranges!) {
       sum += this.getPartialSum(range, endpoint.sourceColumn!);
     }
 
@@ -347,7 +347,7 @@ export class ColumnSummary extends BasePlugin {
   calculateMinMax(endpoint: SummaryEndpoint, type: 'min' | 'max'): number | string {
     let result: number | null = null;
 
-    for (const range of endpoint.ranges) {
+    for (const range of endpoint.ranges!) {
       const partialResult = this.getPartialMinMax(range, endpoint.sourceColumn!, type);
 
       if (result === null && partialResult !== null) {
@@ -448,7 +448,7 @@ export class ColumnSummary extends BasePlugin {
    */
   countEntries(endpoint: SummaryEndpoint): number {
     let result = 0;
-    const ranges = endpoint.ranges;
+    const ranges = endpoint.ranges!;
 
     for (const range of ranges) {
       const partial = range[1] === undefined ? 1 : range[1] - range[0] + 1;
@@ -605,11 +605,11 @@ export class ColumnSummary extends BasePlugin {
     const changedVisualColumns = new Set<number>();
 
     this.endpoints.getAllEndpoints().forEach((endpoint) => {
-      const hfSourceColumn = formulasPlugin.columnAxisSyncer
-        .getHfIndexFromVisualIndex(endpoint.sourceColumn);
+      const hfSourceColumn = formulasPlugin.columnAxisSyncer!
+        .getHfIndexFromVisualIndex(endpoint.sourceColumn ?? 0);
 
       if (changedHfColumns.has(hfSourceColumn)) {
-        changedVisualColumns.add(endpoint.sourceColumn);
+        changedVisualColumns.add(endpoint.sourceColumn ?? 0);
       }
     });
 
@@ -635,6 +635,6 @@ export class ColumnSummary extends BasePlugin {
    */
   #onAfterRowMove = (rows: number[], finalIndex: number) => {
     this.endpoints!.resetSetupBeforeStructureAlteration('move_row', rows[0], rows.length);
-    this.endpoints!.resetSetupAfterStructureAlteration('move_row', finalIndex, rows.length, rows, this.pluginName);
+    this.endpoints!.resetSetupAfterStructureAlteration('move_row', finalIndex, rows.length, rows, this.pluginName!);
   };
 }

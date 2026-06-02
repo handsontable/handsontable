@@ -31,6 +31,9 @@ react:
 angular:
   id: kzkj37v5
   metaTitle: Rows sorting - Angular Data Grid | Handsontable
+vue:
+  id: d43129gx
+  metaTitle: Rows sorting - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

@@ -136,16 +136,16 @@ export class TouchScroll extends BasePlugin {
     this.clones = [];
 
     if (topOverlay.needFullRender) {
-      this.clones.push(topOverlay.clone.wtTable.holder.parentNode);
+      this.clones.push(topOverlay.clone?.wtTable.holder.parentNode);
     }
     if (bottomOverlay.needFullRender) {
-      this.clones.push(bottomOverlay.clone.wtTable.holder.parentNode);
+      this.clones.push(bottomOverlay.clone?.wtTable.holder.parentNode);
     }
     if (inlineStartOverlay.needFullRender) {
-      this.clones.push(inlineStartOverlay.clone.wtTable.holder.parentNode);
+      this.clones.push(inlineStartOverlay.clone?.wtTable.holder.parentNode);
     }
     if (topInlineStartCornerOverlay) {
-      this.clones.push(topInlineStartCornerOverlay.clone.wtTable.holder.parentNode);
+      this.clones.push(topInlineStartCornerOverlay.clone?.wtTable.holder.parentNode);
     }
     if (bottomInlineStartCornerOverlay && bottomInlineStartCornerOverlay.clone) {
       this.clones.push(bottomInlineStartCornerOverlay.clone.wtTable.holder.parentNode);

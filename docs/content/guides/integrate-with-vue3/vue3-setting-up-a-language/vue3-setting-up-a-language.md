@@ -12,6 +12,8 @@ react:
 angular:
   id: wangjjlr
   metaTitle: Setting up a translation - Vue 3 Data Grid | Handsontable
+vue:
+  id: luusja1i
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

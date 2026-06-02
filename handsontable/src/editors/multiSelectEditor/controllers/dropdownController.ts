@@ -21,7 +21,7 @@ import {
   createListItemElement,
 } from './utils';
 
-type DropdownEntry = { key?: string; value?: string } | string;
+export type DropdownEntry = { key?: string; value?: string } | string;
 
 interface DropdownControllerCache {
   visibleRowsNumberSetting: number | null;
@@ -239,7 +239,9 @@ export class DropdownController {
   }
 
   focusPreviousItem(): void {
-    if (!this.#dropdownListElement) { return; }
+    if (!this.#dropdownListElement) {
+      return;
+    }
     if (this.#cache.currentlySelectedItemIndex === 0) {
       this.focusSearchInput();
 
@@ -253,7 +255,9 @@ export class DropdownController {
   }
 
   focusNextItem(): void {
-    if (!this.#dropdownListElement) { return; }
+    if (!this.#dropdownListElement) {
+      return;
+    }
     if (this.#cache.currentlySelectedItemIndex === this.#cache.entriesCount - 1) {
       return;
     }
@@ -291,7 +295,9 @@ export class DropdownController {
   }
 
   getHeight(maxRowsCalculation = false, outerWidth = false): number {
-    if (!this.#rootDocument || !this.#containerElement) { return 0; }
+    if (!this.#rootDocument || !this.#containerElement) {
+      return 0;
+    }
     const computedStyle = this.#rootDocument.defaultView!.getComputedStyle(this.#containerElement);
 
     return (
@@ -306,7 +312,9 @@ export class DropdownController {
   }
 
   removeAllDropdownItems(): void {
-    if (!this.#dropdownListElement) { return; }
+    if (!this.#dropdownListElement) {
+      return;
+    }
     Array.from(this.#dropdownListElement.children).forEach(itemElement =>
       this.#unregisterEvents(itemElement as HTMLLIElement)
     );
@@ -345,7 +353,9 @@ export class DropdownController {
   }
 
   #toggleVerticalFlip(availableSpace: { cellHeight: number }): void {
-    if (!this.#containerElement) { return; }
+    if (!this.#containerElement) {
+      return;
+    }
     const { cellHeight } = availableSpace;
     const flipNeeded = this.#cache.flippedVertically;
 
@@ -359,7 +369,9 @@ export class DropdownController {
   }
 
   #getEntryHeight(): number {
-    if (!this.#rootDocument || !this.#containerElement) { return 0; }
+    if (!this.#rootDocument || !this.#containerElement) {
+      return 0;
+    }
     const computedStyle = this.#rootDocument.defaultView!.getComputedStyle(this.#containerElement);
 
     return (
@@ -407,7 +419,9 @@ export class DropdownController {
     checked?: boolean;
     disabled?: boolean;
   }): void {
-    if (!this.#dropdownListElement || this.#instanceId === null) { return; }
+    if (!this.#dropdownListElement || this.#instanceId === null) {
+      return;
+    }
     const itemElement = createListItemElement({
       rootDocument,
       instanceId: this.#instanceId,
@@ -429,7 +443,9 @@ export class DropdownController {
   #registerEvents(itemElement: HTMLLIElement): void {
     const checkbox = getCheckboxElement(itemElement);
 
-    if (!checkbox || !this.#dropdownListElement) { return; }
+    if (!checkbox || !this.#dropdownListElement) {
+      return;
+    }
 
     const checkboxChangeListener = () => {
       if (checkbox.dataset.disabled === 'true' && checkbox.checked) {
@@ -471,7 +487,9 @@ export class DropdownController {
   #unregisterEvents(itemElement: HTMLLIElement): void {
     const checkbox = getCheckboxElement(itemElement);
 
-    if (!checkbox) { return; }
+    if (!checkbox) {
+      return;
+    }
     const checkboxListeners = this.#cache.checkboxChangeListeners.get(checkbox);
 
     if (checkboxListeners) {

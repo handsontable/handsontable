@@ -188,7 +188,7 @@ export class ManualRowMove extends BasePlugin {
     this.#cachedDropIndex = undefined;
 
     if (beforeMoveHook === false) {
-      return;
+      return false;
     }
 
     if (movePossible) {
@@ -308,8 +308,11 @@ export class ManualRowMove extends BasePlugin {
       const renderableIndex = rowMapper.getRenderableFromVisualIndex(visualRowIndex);
 
       if (renderableIndex !== null) {
-        rowsHeight += this.hot.view._wt.wtTable.getRowHeight(renderableIndex)
-          || this.hot.stylesHandler.getDefaultRowHeight();
+        const wt = this.hot.view._wt;
+        const wtRowHeight = wt?.wtTable?.getRowHeight(renderableIndex);
+        const rowHeight = wtRowHeight !== null && wtRowHeight !== undefined ? wtRowHeight : 0;
+
+        rowsHeight += rowHeight || (this.hot.stylesHandler.getDefaultRowHeight() ?? 0);
       }
     }
 
@@ -344,7 +347,7 @@ export class ManualRowMove extends BasePlugin {
    * @returns {boolean}
    */
   isFixedRowTop(row: number) {
-    return row < this.hot.getSettings().fixedRowsTop;
+    return row < (this.hot.getSettings().fixedRowsTop ?? 0);
   }
 
   /**
@@ -355,7 +358,7 @@ export class ManualRowMove extends BasePlugin {
    * @returns {boolean}
    */
   isFixedRowBottom(row: number) {
-    return row > this.hot.countRows() - 1 - this.hot.getSettings().fixedRowsBottom;
+    return row > this.hot.countRows() - 1 - (this.hot.getSettings().fixedRowsBottom ?? 0);
   }
 
   /**
@@ -399,8 +402,8 @@ export class ManualRowMove extends BasePlugin {
     }
 
     const { from, to } = selection;
-    const start = Math.min(from.row, to.row);
-    const end = Math.max(from.row, to.row);
+    const start = Math.min(from.row ?? 0, to.row ?? 0);
+    const end = Math.max(from.row ?? 0, to.row ?? 0);
 
     rangeEach(start, end, (i) => {
       selectedRows.push(i);
@@ -427,11 +430,18 @@ export class ManualRowMove extends BasePlugin {
     const countRows = this.hot.countRows();
 
     if (this.isFixedRowTop(coords.row) && firstVisible > 0) {
-      this.hot.scrollViewportTo(this.hot.rowIndexMapper.getNearestNotHiddenIndex(firstVisible - 1, -1));
+      const nearestTop = this.hot.rowIndexMapper.getNearestNotHiddenIndex(firstVisible - 1, -1);
+
+      if (nearestTop !== null) {
+        this.hot.scrollViewportTo(nearestTop);
+      }
     }
     if (this.isFixedRowBottom(coords.row) && lastVisible < countRows) {
-      this.hot.scrollViewportTo(
-        this.hot.rowIndexMapper.getNearestNotHiddenIndex(lastVisible + 1, 1), undefined, true);
+      const nearestBottom = this.hot.rowIndexMapper.getNearestNotHiddenIndex(lastVisible + 1, 1);
+
+      if (nearestBottom !== null) {
+        this.hot.scrollViewportTo(nearestBottom, undefined, true);
+      }
     }
 
     const wtTable = this.hot.view._wt.wtTable;
@@ -445,7 +455,7 @@ export class ManualRowMove extends BasePlugin {
     const pixelsAbove = rootElementOffset.top - trimmingContainerScroll;
     const pixelsRelToTableStart = (this.#target.eventPageY ?? 0) - pixelsAbove + tableScroll;
     const hiderHeight = wtTable.hider.offsetHeight;
-    const tbodyOffsetTop = wtTable.TBODY.offsetTop;
+    const tbodyOffsetTop = wtTable.TBODY?.offsetTop ?? 0;
     const backlightElemMarginTop = this.#backlight.getOffset().top;
     const backlightElemHeight = this.#backlight.getSize().height;
     const tdMiddle = (TD.offsetHeight / 2);
@@ -523,8 +533,8 @@ export class ManualRowMove extends BasePlugin {
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   #onBeforeOnCellMouseDown = (
-    event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement,
-    controller: Record<string, boolean>
+    event: MouseEvent, coords: { row: number; col: number }, TD: HTMLTableCellElement,
+    controller: { row: boolean; column: boolean; cell: boolean }
   ) => {
     const { wtTable, wtViewport } = this.hot.view._wt;
     const isHeaderSelection = this.hot.selection.isSelectedByRowHeader();
@@ -547,8 +557,8 @@ export class ManualRowMove extends BasePlugin {
     }
 
     const { from, to } = selection;
-    const start = Math.min(from.row, to.row);
-    const end = Math.max(from.row, to.row);
+    const start = Math.min(from.row ?? 0, to.row ?? 0);
+    const end = Math.max(from.row ?? 0, to.row ?? 0);
 
     if (coords.col < 0 && (coords.row >= start && coords.row <= end)) {
       controller.row = true;
@@ -601,8 +611,8 @@ export class ManualRowMove extends BasePlugin {
    *                            a boolean value that allows or disallows changing the selection for that particular area.
    */
   #onBeforeOnCellMouseOver = (
-    event: MouseEvent, coords: { row: number, col: number }, TD: HTMLTableCellElement,
-    controller: Record<string, boolean>
+    _event: MouseEvent, coords: { row: number; col: number }, TD: HTMLTableCellElement,
+    controller: { row: boolean; column: boolean; cell: boolean }
   ) => {
     const selectedRange = this.hot.getSelectedRangeActive();
 

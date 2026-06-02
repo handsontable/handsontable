@@ -12,6 +12,9 @@ react:
 angular:
   id: 1q96vyfn
   metaTitle: Versioning policy - Angular Data Grid | Handsontable
+vue:
+  id: x4d3c7e7
+  metaTitle: Versioning policy - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

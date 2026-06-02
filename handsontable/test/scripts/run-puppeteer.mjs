@@ -232,6 +232,13 @@ page.on('pageerror', async(msg) => {
   await cleanup(1);
 });
 
+page.on('console', (msg) => {
+  if (msg.text().startsWith('DEBUG')) {
+    /* eslint-disable no-console */
+    console.log('[BROWSER]', msg.text());
+  }
+});
+
 const packagePath = path.relative(rootPath, process.cwd());
 
 try {

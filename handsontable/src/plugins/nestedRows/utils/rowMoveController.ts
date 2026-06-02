@@ -104,7 +104,7 @@ export default class RowMoveController {
     const dropToLastRow = dropIndex === this.hot.countRows();
     const physicalDropIndex = dropToLastRow ?
       this.hot.countSourceRows() :
-      this.dataManager.translateTrimmedRow(dropIndex);
+      this.dataManager.translateTrimmedRow(dropIndex ?? 0);
     let allowMove = true;
     const physicalStartIndexes = rows.map((rowIndex: number) => {
       // Don't do the logic for the rest of the rows, as it's bound to fail anyway.
@@ -312,28 +312,29 @@ export default class RowMoveController {
 
     if (this.movedToCollapsed) {
       let physicalDropIndex = null;
+      const safeDropIndex = dropIndex ?? 0;
 
-      if (rows[rowsLen - 1] < dropIndex) {
-        physicalDropIndex = this.dataManager.translateTrimmedRow(dropIndex - rowsLen);
+      if ((rows[rowsLen - 1] ?? 0) < safeDropIndex) {
+        physicalDropIndex = this.dataManager.translateTrimmedRow(safeDropIndex - rowsLen);
 
       } else {
-        physicalDropIndex = this.dataManager.translateTrimmedRow(dropIndex);
+        physicalDropIndex = this.dataManager.translateTrimmedRow(safeDropIndex);
       }
 
       const parentObject = this.dataManager.getRowParent(
         physicalDropIndex === null ? this.hot.countSourceRows() - 1 : physicalDropIndex - 1
       );
-      const parentIndex = this.dataManager.getRowIndex(parentObject);
+      const parentIndex = this.dataManager.getRowIndex(parentObject) ?? 0;
 
       startRow = this.dataManager.untranslateTrimmedRow(parentIndex);
       endRow = startRow;
 
-    } else if (rows[rowsLen - 1] < dropIndex) {
-      endRow = dropIndex - 1;
+    } else if ((rows[rowsLen - 1] ?? 0) < (dropIndex ?? 0)) {
+      endRow = (dropIndex ?? 0) - 1;
       startRow = endRow - rowsLen + 1;
 
     } else {
-      startRow = dropIndex;
+      startRow = dropIndex ?? 0;
       endRow = startRow + rowsLen - 1;
     }
 

@@ -23,6 +23,9 @@ react:
 angular:
   id: vru7jook
   metaTitle: Design System / UI Kit - Angular Data Grid | Handsontable
+vue:
+  id: ehyr1ulk
+  metaTitle: Design System / UI Kit - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
 ---

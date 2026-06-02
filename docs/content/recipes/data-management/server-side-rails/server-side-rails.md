@@ -17,6 +17,9 @@ react:
 angular:
   id: s6n1q8t3
   metaTitle: Server-side Data with Ruby on Rails - Angular Data Grid | Handsontable
+vue:
+  id: adgrh6zv
+  metaTitle: Server-side Data with Ruby on Rails - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 type: how-to

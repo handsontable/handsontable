@@ -3,7 +3,8 @@ import EventManager from '../eventManager';
 import { throwWithCause } from '../helpers/errors';
 import { CellProperties, CellValue } from '../settings';
 import { Context } from '../shortcuts/context';
-type EditorBaseFactoryParams<E> = Record<string, (editor: E, ...args: unknown[]) => unknown>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type EditorBaseFactoryParams<E> = Record<string, (editor: E, ...args: any[]) => unknown>;
 
 /**
  * Factory function for creating custom Handsontable editors by extending BaseEditor.
@@ -137,7 +138,7 @@ export const editorFactory = <TProperties, TMethods = Record<string, unknown>>(
     const contextConfig = { group: shortcutsGroup };
 
     if (shortcuts) {
-      editorContext.addShortcuts(shortcuts.map(shortcut => ({
+      editorContext!.addShortcuts(shortcuts.map(shortcut => ({
         ...shortcut,
         relativeToGroup: shortcut.relativeToGroup ?? 'editorManager.handlingEditor',
         position: shortcut.position ?? 'before',
@@ -223,7 +224,9 @@ export const editorFactory = <TProperties, TMethods = Record<string, unknown>>(
       } else {
         const rect = editor.getEditedCellRect();
 
-        if (!rect) { return; }
+        if (!rect) {
+          return;
+        }
         containerStyle.top = `${rect.top}px`;
         containerStyle[editor.hot.isRtl() ? 'right' : 'left'] = `${rect.start}px`;
         containerStyle.width = `${rect.width}px`;
@@ -258,7 +261,7 @@ export const editorFactory = <TProperties, TMethods = Record<string, unknown>>(
       const shortcutManager = editor.hot.getShortcutManager();
       const editorContext = shortcutManager.getContext('editor');
 
-      editorContext.removeShortcutsByGroup(shortcutsGroup);
+      editorContext!.removeShortcutsByGroup(shortcutsGroup ?? '');
 
       if (typeof afterClose === 'function') {
         afterClose(editor);

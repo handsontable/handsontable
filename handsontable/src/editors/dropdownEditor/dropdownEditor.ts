@@ -44,7 +44,7 @@ export class DropdownEditor extends AutocompleteEditor {
         isUndefined(lastSelectedRange) ||
         (
           isDefined(lastSelectedRange) &&
-          !lastSelectedRange.includes(this.hot._createCellCoords(this.row, this.col))
+          !lastSelectedRange!.includes(this.hot._createCellCoords(this.row!, this.col!))
         )
       ) {
         restoreOriginalValue = true;

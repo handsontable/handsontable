@@ -120,6 +120,7 @@ module.exports = {
         'no-undef': 'off',
         'handsontable/restricted-module-imports': 'off',
         'handsontable/require-async-in-it': 'error',
+        'brace-style': ['error', '1tbs', { allowSingleLine: true }],
       }
     },
     {
@@ -132,6 +133,7 @@ module.exports = {
         'jsdoc/require-returns': 'off',
         'handsontable/restricted-module-imports': 'off',
         'handsontable/require-async-in-it': 'error',
+        'brace-style': ['error', '1tbs', { allowSingleLine: true }],
       }
     },
     {
@@ -139,6 +141,7 @@ module.exports = {
       rules: {
         'handsontable/require-async-in-it': 'off',
         'handsontable/require-await': 'off',
+        'brace-style': ['error', '1tbs', { allowSingleLine: true }],
       }
     },
     // TypeScript type-test files — intentionally use `document`, `new X()`, and
@@ -156,6 +159,7 @@ module.exports = {
         'default-case': 'off',
         'handsontable/restricted-module-imports': 'off',
         'jsdoc/require-param-description': 'off',
+        'brace-style': ['error', '1tbs', { allowSingleLine: true }],
       }
     },
     {

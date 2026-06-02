@@ -23,6 +23,9 @@ react:
 angular:
   id: lqk5kuws
   metaTitle: Custom shortcuts - Angular Data Grid | Handsontable
+vue:
+  id: 8i6v370n
+  metaTitle: Custom shortcuts - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
 ---

@@ -126,7 +126,7 @@ class HeadersUI extends BaseUI {
 
     if (rowLevel) {
       const { rootDocument } = this.hot;
-      const initialContent = innerSpan.cloneNode(true);
+      const initialContent = innerSpan!.cloneNode(true);
 
       innerDiv.innerHTML = '';
 

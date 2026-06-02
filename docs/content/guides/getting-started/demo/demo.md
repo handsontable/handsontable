@@ -17,6 +17,9 @@ angular:
   id: i2n378hh
   metaTitle: Demo - Angular Data Grid | Handsontable
   description: Play around with a demo of Handsontable in Angular.
+vue:
+  id: c104k1nn
+  metaTitle: Demo - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---

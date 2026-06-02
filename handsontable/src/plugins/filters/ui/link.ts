@@ -21,7 +21,7 @@ export class LinkUI extends BaseUI {
    *
    * @type {HTMLLinkElement}
    */
-  #link: HTMLAnchorElement;
+  #link: HTMLAnchorElement | null = null;
 
   constructor(hotInstance: HotInstance, options: Record<string, unknown>) {
     super(hotInstance, extend(LinkUI.DEFAULTS, options) as BaseUIOptions);
@@ -33,7 +33,9 @@ export class LinkUI extends BaseUI {
   build() {
     super.build();
 
-    this.#link = this._element.firstChild as HTMLAnchorElement;
+    if (this._element) {
+      this.#link = this._element.firstChild as HTMLAnchorElement;
+    }
   }
 
   /**
@@ -46,14 +48,16 @@ export class LinkUI extends BaseUI {
 
     const text = (this.options as Record<string, unknown>).textContent as string;
 
-    this.#link.textContent = String(this.translateIfPossible(text));
+    if (this.#link) {
+      this.#link.textContent = String(this.translateIfPossible(text));
+    }
   }
 
   /**
    * Focus element.
    */
   focus() {
-    if (this.isBuilt()) {
+    if (this.isBuilt() && this.#link) {
       this.#link.focus();
     }
   }
@@ -62,6 +66,6 @@ export class LinkUI extends BaseUI {
    * Activate the element.
    */
   activate() {
-    this.#link.click();
+    this.#link?.click();
   }
 }

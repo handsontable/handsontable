@@ -16,6 +16,9 @@ react:
 angular:
   id: 8748f2d9
   metaTitle: Flatpickr Cell Type - Angular Data Grid | Handsontable
+vue:
+  id: 9gjg0yyt
+  metaTitle: Flatpickr Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
 ---

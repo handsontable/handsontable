@@ -1,3 +1,5 @@
+import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
+
 /**
  * Get direction between positions and cords of selections difference (drag area).
  *
@@ -8,7 +10,7 @@
  */
 export function getDragDirectionAndRange(
   startSelection: number[], endSelection: number[],
-  cellCoordsFactory: (row: number, col: number) => { row: number; col: number; normalize: () => void }
+  cellCoordsFactory: (row: number, col: number) => CellCoords
 ) {
   let startOfDragCoords;
   let endOfDragCoords;

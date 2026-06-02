@@ -16,6 +16,9 @@ react:
 angular:
   id: u7x3q0n5
   metaTitle: Server-side configuration - Angular Data Grid | Handsontable
+vue:
+  id: fqk72s67
+  metaTitle: Server-side configuration - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Server-side data
 ---

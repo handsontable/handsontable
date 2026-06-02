@@ -12,6 +12,9 @@ react:
 angular:
   id: 7qb4y4u4
   metaTitle: Cell editor - Angular Data Grid | Handsontable
+vue:
+  id: qwv2hoqe
+  metaTitle: Cell editor - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
 ---

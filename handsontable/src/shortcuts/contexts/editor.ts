@@ -16,19 +16,19 @@ export function shortcutsEditorContext(hot: HotInstance) {
 
   context.addShortcuts([{
     keys: [['Enter'], ['Enter', 'Shift']],
-    callback: (event: KeyboardEvent, keys: string[]) => commandsPool.editorCloseAndSaveByEnter(event, keys),
+    callback: (event: KeyboardEvent, keys?: string[]) => commandsPool.editorCloseAndSaveByEnter(event, keys),
   }, {
     keys: [['Enter', 'Control/Meta'], ['Enter', 'Control/Meta', 'Shift']],
     captureCtrl: true,
-    callback: (event: KeyboardEvent, keys: string[]) => commandsPool.editorCloseAndSaveByEnter(event, keys),
+    callback: (event: KeyboardEvent, keys?: string[]) => commandsPool.editorCloseAndSaveByEnter(event, keys),
   }, {
     keys: [['Tab'], ['Tab', 'Shift'], ['PageDown'], ['PageUp']],
     forwardToContext: hot.getShortcutManager().getContext(GRID_SCOPE),
-    callback: (event: KeyboardEvent, keys: string[]) => commandsPool.editorCloseAndSave(event, keys),
+    callback: (event: KeyboardEvent, keys?: string[]) => commandsPool.editorCloseAndSave(event, keys),
   }, {
     keys: [['ArrowDown'], ['ArrowUp'], ['ArrowLeft'], ['ArrowRight']],
     preventDefault: false,
-    callback: (event: KeyboardEvent, keys: string[]) => commandsPool.editorCloseAndSaveByArrowKeys(event, keys),
+    callback: (event: KeyboardEvent, keys?: string[]) => commandsPool.editorCloseAndSaveByArrowKeys(event, keys),
   }, {
     keys: [['Escape'], ['Escape', 'Control/Meta']],
     callback: () => commandsPool.editorCloseWithoutSaving(),

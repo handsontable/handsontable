@@ -13,7 +13,7 @@ export const command = {
     const column = columnIndexMapper.getNearestNotHiddenIndex(hot.countCols() - 1, -1);
 
     selection.markSource('keyboard');
-    selection.setRangeStart(hot._createCellCoords(row, column));
+    selection.setRangeStart(hot._createCellCoords(row ?? -1, column ?? -1));
     selection.markEndSource();
   },
 };

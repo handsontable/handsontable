@@ -206,7 +206,7 @@ export class PasswordEditor extends TextEditor {
       // Cursor position after browser insertion tells us exactly where chars were inserted
       // and how many masked chars follow — works for append, mid-string, select-replace,
       // paste, drag-drop, IME composition, and replacement text.
-      const cursorAfter = this.TEXTAREA.selectionStart;
+      const cursorAfter = this.TEXTAREA.selectionStart ?? 0;
       const insertionStart = cursorAfter - data.length;
       const maskedSuffix = this.TEXTAREA.value.length - cursorAfter;
 
@@ -234,7 +234,7 @@ export class PasswordEditor extends TextEditor {
       // Cursor after deletion + deleted-count (derived from display length change) lets us
       // splice the correct characters from any position.
       const prevRealLength = this.#realValue.length;
-      const cursorAfter = this.TEXTAREA.selectionStart;
+      const cursorAfter = this.TEXTAREA.selectionStart ?? 0;
       const deletedCount = prevRealLength - this.TEXTAREA.value.length;
 
       this.#realValue =

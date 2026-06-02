@@ -12,6 +12,9 @@ react:
 angular:
   id: pbcdsao1
   metaTitle: Merge cells - Angular Data Grid | Handsontable
+vue:
+  id: lo9jkbbq
+  metaTitle: Merge cells - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

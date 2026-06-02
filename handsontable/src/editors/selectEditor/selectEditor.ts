@@ -150,7 +150,7 @@ export class SelectEditor extends BaseEditor {
 
     if (typeof selectOptions === 'function') {
       type OptionsFn = (row: number, col: number, prop: string | number) => unknown;
-      options = this.prepareOptions((selectOptions as OptionsFn)(this.row, this.col, this.prop));
+      options = this.prepareOptions((selectOptions as OptionsFn)(this.row!, this.col!, this.prop!));
     } else {
       options = this.prepareOptions(selectOptions);
     }
@@ -203,7 +203,7 @@ export class SelectEditor extends BaseEditor {
    * @private
    */
   refreshValue(): void {
-    const sourceData = this.hot.getSourceDataAtCell(this.row, this.prop as number);
+    const sourceData = this.hot.getSourceDataAtCell(this.row!, this.prop as number);
 
     this.originalValue = sourceData;
 
@@ -230,12 +230,13 @@ export class SelectEditor extends BaseEditor {
       return;
     }
 
-    const {
-      top,
-      start,
-      width,
-      height,
-    } = this.getEditedCellRect();
+    const cellRect = this.getEditedCellRect();
+
+    if (!cellRect) {
+      return;
+    }
+
+    const { top, start, width, height } = cellRect;
     const selectStyle = this.selectWrapper.style;
 
     selectStyle.height = `${height}px`;
@@ -261,7 +262,7 @@ export class SelectEditor extends BaseEditor {
 
     if (this.isInFullEditMode()) {
       // The arrow-related shortcuts should work only in full edit mode.
-      editorContext.addShortcuts([{
+      editorContext!.addShortcuts([{
         keys: [['ArrowUp']],
         callback: () => {
           const previousOptionIndex = this.select.selectedIndex - 1;
@@ -292,7 +293,7 @@ export class SelectEditor extends BaseEditor {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
 
-    editorContext.removeShortcutsByGroup(SHORTCUTS_GROUP);
+    editorContext!.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**

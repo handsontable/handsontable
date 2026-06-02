@@ -15,6 +15,9 @@ react:
 angular:
   id: b9c5e04a
   metaTitle: Export Handsontable to PDF - Angular Data Grid | Handsontable
+vue:
+  id: m4s0kgub
+  metaTitle: Export Handsontable to PDF - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Import and Export
 type: how-to

@@ -15,17 +15,17 @@ export const command = {
 
     if (
       (
-        selectedRanges.some((range: object) =>
+        selectedRanges?.some((range: object) =>
           selection.isMultiple(range as import('../../../../3rdparty/walkontable/src/cell/range').default)) ||
-        selectedRanges.length > 1
+        (selectedRanges?.length ?? 0) > 1
       ) &&
-      !selectedRange.isHeader() &&
+      !selectedRange?.isHeader() &&
       hot.countRenderedCols() > 0 &&
       hot.countRenderedRows() > 0
     ) {
-      selection.transformFocus(tabMoves.row, tabMoves.col);
+      selection.transformFocus(tabMoves?.row ?? 0, tabMoves?.col ?? 0);
     } else {
-      selection.transformStart(tabMoves.row, tabMoves.col);
+      selection.transformStart(tabMoves?.row ?? 0, tabMoves?.col ?? 0);
     }
 
     selection.markEndSource();

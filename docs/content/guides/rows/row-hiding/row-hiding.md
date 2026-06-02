@@ -12,6 +12,9 @@ react:
 angular:
   id: 2dxb42jh
   metaTitle: Row hiding - Angular Data Grid | Handsontable
+vue:
+  id: e9gf8ukv
+  metaTitle: Row hiding - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

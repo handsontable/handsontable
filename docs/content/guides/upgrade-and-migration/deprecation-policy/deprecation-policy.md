@@ -12,6 +12,9 @@ react:
 angular:
   id: d5ac977b
   metaTitle: Deprecation policy - Angular Data Grid | Handsontable
+vue:
+  id: yqn3hlb4
+  metaTitle: Deprecation policy - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

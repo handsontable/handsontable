@@ -55,7 +55,7 @@ export function createPriorityMap(
    * @returns {*}
    */
   function getItems(order = ASC) {
-    const [left, right] = ORDER_MAP.get(order) || ORDER_MAP.get(ASC);
+    const [left, right] = ORDER_MAP.get(order) || ORDER_MAP.get(ASC)!;
 
     return [...priorityMap]
       // we want to be sure we sort over a priority key

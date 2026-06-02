@@ -43,7 +43,9 @@ export class EditorResizeObserver {
    * Stops observing the element.
    */
   unobserve() {
-    this.#observer.unobserve(this.#observedElement);
+    if (this.#observedElement) {
+      this.#observer.unobserve(this.#observedElement);
+    }
   }
 
   /**
@@ -51,7 +53,10 @@ export class EditorResizeObserver {
    */
   observe() {
     this.#ignoreInitialCall = true;
-    this.#observer.observe(this.#observedElement);
+
+    if (this.#observedElement) {
+      this.#observer.observe(this.#observedElement);
+    }
   }
 
   /**

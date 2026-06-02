@@ -441,7 +441,10 @@ export class CopyPaste extends BasePlugin {
 
     this.#copyableRangesFactory.setSelectedRange(selectionRange);
 
-    const groupedRanges = new Map([
+    type RangeEntry = {
+      isRangeTrimmed: boolean; startRow: number; startCol: number; endRow: number; endCol: number
+    } | null;
+    const groupedRanges = new Map<string, RangeEntry>([
       ['headers', null],
       ['cells', null],
     ]);
@@ -468,7 +471,7 @@ export class CopyPaste extends BasePlugin {
 
     const cellsRange = groupedRanges.get('cells');
 
-    if (cellsRange !== null && cellsRange.isRangeTrimmed) {
+    if (cellsRange !== null && cellsRange !== undefined && cellsRange.isRangeTrimmed) {
       const {
         startRow, startCol, endRow, endCol
       } = cellsRange;
@@ -500,12 +503,15 @@ export class CopyPaste extends BasePlugin {
 
       if (activeSelectedRange) {
         const { row: highlightRow, col: highlightColumn } = activeSelectedRange.highlight;
-        const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
 
-        if (currentlySelectedCell) {
-          runWithSelectedContendEditableElement(currentlySelectedCell, () => {
-            this.hot.rootDocument.execCommand(eventName);
-          });
+        if (highlightRow !== null && highlightColumn !== null) {
+          const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
+
+          if (currentlySelectedCell) {
+            runWithSelectedContendEditableElement(currentlySelectedCell, () => {
+              this.hot.rootDocument.execCommand(eventName);
+            });
+          }
         }
       }
 
@@ -563,8 +569,16 @@ export class CopyPaste extends BasePlugin {
     const populatedColumnsLength = plainData[0].length;
     const newRows = [];
 
+    if (!selection) {
+      return [null, null, null, null];
+    }
+
     const { row: startRow, col: startColumn } = selection.getTopStartCorner();
     const { row: endRowFromSelection, col: endColumnFromSelection } = selection.getBottomEndCorner();
+
+    if (startRow === null || startColumn === null || endRowFromSelection === null || endColumnFromSelection === null) {
+      return [null, null, null, null];
+    }
 
     let visualRowForPopulatedData: number = startRow;
     let visualColumnForPopulatedData: number = startColumn;
@@ -641,6 +655,11 @@ export class CopyPaste extends BasePlugin {
 
       if (activeSelectedRange) {
         const { row: highlightRow, col: highlightColumn } = activeSelectedRange.highlight;
+
+        if (highlightRow === null || highlightColumn === null) {
+          return;
+        }
+
         const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
 
         if (currentlySelectedCell) {
@@ -660,6 +679,11 @@ export class CopyPaste extends BasePlugin {
 
       if (activeSelectedRange) {
         const { row: highlightRow, col: highlightColumn } = activeSelectedRange.highlight;
+
+        if (highlightRow === null || highlightColumn === null) {
+          return;
+        }
+
         const currentlySelectedCell = this.hot.getCell(highlightRow, highlightColumn, true);
 
         if (currentlySelectedCell?.hasAttribute('contenteditable')) {
@@ -786,7 +810,7 @@ export class CopyPaste extends BasePlugin {
     let pastedSourceData: unknown;
 
     if (event && typeof event.clipboardData !== 'undefined') {
-      const clipboardData = event.clipboardData;
+      const clipboardData = event.clipboardData!;
       const sourceDataHTML = clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE);
 
       if (sourceDataHTML) {
@@ -797,7 +821,7 @@ export class CopyPaste extends BasePlugin {
         });
         const parsedSourceConfig = htmlToGridSettings(sanitizedSourceDataHTML, this.hot.rootDocument);
 
-        pastedSourceData = parsedSourceConfig.data;
+        pastedSourceData = parsedSourceConfig?.data;
       }
 
       const rawTextHTML = clipboardData.getData('text/html') ?? '';
@@ -813,9 +837,17 @@ export class CopyPaste extends BasePlugin {
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
         const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);
 
-        pastedData = parsedConfig.data;
+        pastedData = parsedConfig?.data;
       } else {
         pastedData = clipboardData.getData('text/plain');
+
+        // Excel terminates every row (including the last) with a CRLF. For a single-cell copy that
+        // produces a trailing newline, which `SheetClip.parse` would read as a row separator and emit
+        // an extra empty row, blanking the cell below the paste target. Treat a single trailing
+        // newline as a terminator, not a separator.
+        if (typeof pastedData === 'string') {
+          pastedData = pastedData.replace(/(\r\n|\r|\n)$/, '');
+        }
       }
 
     } else if (typeof ClipboardEvent === 'undefined' &&
@@ -845,7 +877,7 @@ export class CopyPaste extends BasePlugin {
       originalPlainData: originalPastedData as unknown[][],
     });
 
-    if (startRow !== null && startColumn !== null) {
+    if (startRow !== null && startColumn !== null && endRow !== null && endColumn !== null) {
       this.hot.selectCell(
         startRow,
         startColumn,

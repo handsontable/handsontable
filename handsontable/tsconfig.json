@@ -11,11 +11,12 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "strict": false,
+    "strict": true,
     "noImplicitAny": true,
     "noImplicitThis": false,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": false,
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "handsontable/*": ["src/*"]

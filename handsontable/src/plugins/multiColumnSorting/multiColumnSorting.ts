@@ -128,25 +128,29 @@ export class MultiColumnSorting extends ColumnSorting {
     super.registerShortcuts();
     this.hot.getShortcutManager()
       .getContext('grid')
-      .addShortcut({
+      ?.addShortcut({
         keys: [['Shift', 'Enter']],
         callback: () => {
-          const { highlight } = this.hot.getSelectedRangeActive();
+          const activeRange = this.hot.getSelectedRangeActive();
 
-          if (highlight.row === -1 && highlight.col >= 0) {
-            const sortConfig = this.getNextSortConfig(highlight.col, APPEND_COLUMN_CONFIG_STRATEGY);
+          if (activeRange) {
+            const { highlight } = activeRange;
 
-            this.sort(sortConfig as SortConfig[]);
+            if ((highlight.row ?? 0) === -1 && (highlight.col ?? 0) >= 0) {
+              const sortConfig = this.getNextSortConfig(highlight.col ?? 0, APPEND_COLUMN_CONFIG_STRATEGY);
+
+              this.sort(sortConfig as SortConfig[]);
+            }
           }
 
           // prevent default Enter behavior (move to the next row within a selection range)
           return false;
         },
-        runOnlyIf: () => {
+        runOnlyIf: (): boolean => {
           const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
-          return highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
-            this.hot.selection.isCellVisible(highlight) && highlight.isHeader();
+          return !!(highlight && this.hot.getSelectedRangeActive()?.isSingle() &&
+            this.hot.selection.isCellVisible(highlight) && highlight.isHeader());
         },
         relativeToGroup: SHORTCUTS_GROUP_EDITOR,
         position: 'before',
@@ -163,7 +167,7 @@ export class MultiColumnSorting extends ColumnSorting {
     super.unregisterShortcuts();
     this.hot.getShortcutManager()
       .getContext('grid')
-      .removeShortcutsByGroup(SHORTCUTS_GROUP);
+      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**

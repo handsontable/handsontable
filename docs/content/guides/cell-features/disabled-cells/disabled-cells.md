@@ -18,6 +18,9 @@ react:
 angular:
   id: 2epog9e1
   metaTitle: Disabled cells - Angular Data Grid | Handsontable
+vue:
+  id: jn1egqb7
+  metaTitle: Disabled cells - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

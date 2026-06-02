@@ -17,6 +17,9 @@ react:
 angular:
   id: a5vj6hsz
   metaTitle: TypeScript types - Angular Data Grid | Handsontable
+vue:
+  id: v8j6vpbp
+  metaTitle: TypeScript types - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
 menuTag: new
@@ -25,6 +28,16 @@ menuTag: new
 Handsontable ships TypeScript declarations for its entire public API. This page lists every type you can import and shows how to use them in common scenarios.
 
 [[toc]]
+
+## Supported TypeScript versions
+
+The published `.d.ts` files require **TypeScript 5.1 or later**.
+
+Handsontable is built with the latest TypeScript release for the strictest internal type checks and the newest language features. The published declarations are then downleveled to TS 5.1 compatibility by replacing types that only exist in TS 5.2 or later (`WeakKey`, `Disposable`) and TS 5.6 or later (`ArrayIterator`, `IteratorObject`) with their TS 5.1 equivalents.
+
+If you use TypeScript older than 5.1, upgrade your TypeScript version before using these declarations.
+
+Raising the minimum supported TypeScript version in a future major release is a breaking change for consumers. Any such change will be called out in the migration guide for that release.
 
 ## Entry points
 

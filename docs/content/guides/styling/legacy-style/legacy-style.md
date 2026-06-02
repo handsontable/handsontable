@@ -19,6 +19,9 @@ react:
 angular:
   id: 1sco7djp
   metaTitle: Legacy Style - Angular Data Grid | Handsontable
+vue:
+  id: 6xwhqf4v
+  metaTitle: Legacy Style - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
 ---

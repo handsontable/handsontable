@@ -22,6 +22,9 @@ react:
 angular:
   id: hqzll0fz
   metaTitle: Formula calculation - Angular Data Grid | Handsontable
+vue:
+  id: 57yg2rca
+  metaTitle: Formula calculation - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Formulas
 ---

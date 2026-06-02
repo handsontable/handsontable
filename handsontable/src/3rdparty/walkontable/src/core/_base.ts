@@ -84,7 +84,8 @@ export default class CoreAbstract {
     const originalHeaders: string[] = [];
 
     // find original headers
-    if (this.wtTable.THEAD.childNodes.length && this.wtTable.THEAD.childNodes[0].childNodes.length) {
+    if (this.wtTable.THEAD && this.wtTable.THEAD.childNodes.length &&
+        this.wtTable.THEAD.childNodes[0].childNodes.length) {
       for (let c = 0, clen = this.wtTable.THEAD.childNodes[0].childNodes.length; c < clen; c++) {
         originalHeaders.push((this.wtTable.THEAD.childNodes[0].childNodes[c] as HTMLElement).innerHTML);
       }
@@ -153,8 +154,12 @@ export default class CoreAbstract {
    *                                  from the top overlay.
    * @returns {HTMLElement}
    */
-  getCell(coords: { row: number; col: number }, topmost = false) {
-    const cellCoords = coords as CellCoords;
+  getCell(coords: { row: number | null; col: number | null }, topmost = false) {
+    if (coords.row === null || coords.col === null) {
+      return undefined;
+    }
+
+    const cellCoords = coords as unknown as CellCoords;
 
     if (!topmost) {
       return this.wtTable.getCell(cellCoords);
@@ -166,23 +171,19 @@ export default class CoreAbstract {
     const fixedColumnsStart = this.wtSettings.getSetting<number>('fixedColumnsStart');
 
     if (coords.row < fixedRowsTop && coords.col < fixedColumnsStart) {
-      return this.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.getCell(cellCoords);
+      return this.wtOverlays.topInlineStartCornerOverlay.clone?.wtTable.getCell(cellCoords);
 
     } else if (coords.row < fixedRowsTop) {
-      return this.wtOverlays.topOverlay.clone.wtTable.getCell(cellCoords);
+      return this.wtOverlays.topOverlay.clone?.wtTable.getCell(cellCoords);
 
     } else if (coords.col < fixedColumnsStart && coords.row >= totalRows - fixedRowsBottom) {
-      if (this.wtOverlays.bottomInlineStartCornerOverlay && this.wtOverlays.bottomInlineStartCornerOverlay.clone) {
-        return this.wtOverlays.bottomInlineStartCornerOverlay.clone.wtTable.getCell(cellCoords);
-      }
+      return this.wtOverlays.bottomInlineStartCornerOverlay?.clone?.wtTable.getCell(cellCoords);
 
     } else if (coords.col < fixedColumnsStart) {
-      return this.wtOverlays.inlineStartOverlay.clone.wtTable.getCell(cellCoords);
+      return this.wtOverlays.inlineStartOverlay.clone?.wtTable.getCell(cellCoords);
 
     } else if (coords.row < totalRows && coords.row >= totalRows - fixedRowsBottom) {
-      if (this.wtOverlays.bottomOverlay && this.wtOverlays.bottomOverlay.clone) {
-        return this.wtOverlays.bottomOverlay.clone.wtTable.getCell(cellCoords);
-      }
+      return this.wtOverlays.bottomOverlay?.clone?.wtTable.getCell(cellCoords);
 
     }
 
@@ -201,8 +202,12 @@ export default class CoreAbstract {
    * the table. When `'auto'`, the viewport is scrolled only when the row is outside of the viewport.
    * @returns {boolean}
    */
-  scrollViewport(coords: { row: number; col: number }, horizontalSnap: string, verticalSnap: string) {
-    return this.wtScroll.scrollViewport(coords, horizontalSnap, verticalSnap);
+  scrollViewport(coords: { row: number | null; col: number | null }, horizontalSnap: string, verticalSnap: string) {
+    if (coords.row === null || coords.col === null) {
+      return false;
+    }
+
+    return this.wtScroll.scrollViewport(coords as { row: number; col: number }, horizontalSnap, verticalSnap);
   }
 
   /**
@@ -347,49 +352,49 @@ export default class CoreAbstract {
         return wot.wtViewport.columnsRenderCalculator?.startColumn ?? null;
       },
       get startColumnVisible() {
-        return wot.wtViewport.columnsVisibleCalculator.startColumn;
+        return wot.wtViewport.columnsVisibleCalculator?.startColumn ?? null;
       },
       get startColumnPartiallyVisible() {
-        return wot.wtViewport.columnsPartiallyVisibleCalculator.startColumn;
+        return wot.wtViewport.columnsPartiallyVisibleCalculator?.startColumn ?? null;
       },
       get endColumnRendered() {
         return wot.wtViewport.columnsRenderCalculator?.endColumn ?? null;
       },
       get endColumnVisible() {
-        return wot.wtViewport.columnsVisibleCalculator.endColumn;
+        return wot.wtViewport.columnsVisibleCalculator?.endColumn ?? null;
       },
       get endColumnPartiallyVisible() {
-        return wot.wtViewport.columnsPartiallyVisibleCalculator.endColumn;
+        return wot.wtViewport.columnsPartiallyVisibleCalculator?.endColumn ?? null;
       },
       get countColumnsRendered() {
         return wot.wtViewport.columnsRenderCalculator?.count ?? 0;
       },
       get countColumnsVisible() {
-        return wot.wtViewport.columnsVisibleCalculator.count;
+        return wot.wtViewport.columnsVisibleCalculator?.count ?? 0;
       },
       get startRowRendered() {
         return wot.wtViewport.rowsRenderCalculator?.startRow ?? null;
       },
       get startRowVisible() {
-        return wot.wtViewport.rowsVisibleCalculator.startRow;
+        return wot.wtViewport.rowsVisibleCalculator?.startRow ?? null;
       },
       get startRowPartiallyVisible() {
-        return wot.wtViewport.rowsPartiallyVisibleCalculator.startRow;
+        return wot.wtViewport.rowsPartiallyVisibleCalculator?.startRow ?? null;
       },
       get endRowRendered() {
         return wot.wtViewport.rowsRenderCalculator?.endRow ?? null;
       },
       get endRowVisible() {
-        return wot.wtViewport.rowsVisibleCalculator.endRow;
+        return wot.wtViewport.rowsVisibleCalculator?.endRow ?? null;
       },
       get endRowPartiallyVisible() {
-        return wot.wtViewport.rowsPartiallyVisibleCalculator.endRow;
+        return wot.wtViewport.rowsPartiallyVisibleCalculator?.endRow ?? null;
       },
       get countRowsRendered() {
         return wot.wtViewport.rowsRenderCalculator?.count ?? 0;
       },
       get countRowsVisible() {
-        return wot.wtViewport.rowsVisibleCalculator.count;
+        return wot.wtViewport.rowsVisibleCalculator?.count ?? 0;
       },
       get columnHeaders() {
         return wot.wtSettings.getSetting<Function[]>('columnHeaders');

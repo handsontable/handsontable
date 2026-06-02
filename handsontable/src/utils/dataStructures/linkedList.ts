@@ -61,7 +61,7 @@ class LinkedList {
       this.last = node;
 
     } else {
-      const temp = this.last;
+      const temp = this.last!;
 
       this.last = node;
       node.prev = temp;
@@ -122,7 +122,7 @@ class LinkedList {
       return false;
     }
 
-    let temp = this.first;
+    let temp: NodeStructure | null = this.first;
     let next;
     let prev;
 
@@ -162,8 +162,8 @@ class LinkedList {
    * @returns {boolean} Returns true if linked list contains cycle.
    */
   hasCycle() {
-    let fast = this.first;
-    let slow = this.first;
+    let fast: NodeStructure | null = this.first;
+    let slow: NodeStructure | null = this.first;
 
     while (true) {
       if (fast === null) {
@@ -177,7 +177,7 @@ class LinkedList {
       }
 
       fast = fast.next;
-      slow = slow.next;
+      slow = slow!.next;
 
       if (fast === slow) {
         return true;
@@ -256,9 +256,9 @@ class LinkedList {
       return;
     }
 
-    let current = this.first.next;
-    let prev = this.first;
-    let temp;
+    let current: NodeStructure | null = this.first.next;
+    let prev: NodeStructure = this.first;
+    let temp: NodeStructure | null = null;
 
     while (current) {
       temp = current.next;
@@ -269,7 +269,7 @@ class LinkedList {
     }
 
     this.first.next = null;
-    this.last.prev = null;
+    this.last!.prev = null;
     temp = this.first;
     this.first = prev;
     this.last = temp;

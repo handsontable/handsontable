@@ -117,13 +117,13 @@ class TableView {
   /**
    * @type {boolean}
    */
-  #mouseDown: boolean;
+  #mouseDown: boolean = false;
   /**
    * Main <TABLE> element.
    *
    * @type {HTMLTableElement}
    */
-  #table: HTMLTableElement;
+  #table: HTMLTableElement = null as unknown as HTMLTableElement;
   /**
    * Cached width of the rootElement.
    *
@@ -576,7 +576,7 @@ class TableView {
       return 0;
     }
 
-    return indexMapper.getRenderableFromVisualIndex(firstNotHiddenIndex) + 1;
+    return (indexMapper.getRenderableFromVisualIndex(firstNotHiddenIndex) ?? 0) + 1;
   }
 
   /**
@@ -643,9 +643,9 @@ class TableView {
 
     const searchDirection: 1 | -1 = incrementBy < 0 ? -1 : 1;
     const firstVisibleIndex = indexMapper.getNearestNotHiddenIndex(visualIndex, searchDirection);
-    const renderableIndex = indexMapper.getRenderableFromVisualIndex(firstVisibleIndex);
+    const renderableIndex = indexMapper.getRenderableFromVisualIndex(firstVisibleIndex!);
 
-    if (!Number.isInteger(renderableIndex)) {
+    if (renderableIndex === null || !Number.isInteger(renderableIndex)) {
       return 0;
     }
 
@@ -834,7 +834,7 @@ class TableView {
             const visualRowIndex = renderableRowIndex >= 0 ?
               this.hot.rowIndexMapper.getVisualFromRenderableIndex(renderableRowIndex) : renderableRowIndex;
 
-            this.appendRowHeader(visualRowIndex, TH);
+            this.appendRowHeader(visualRowIndex!, TH);
           });
         }
 
@@ -861,7 +861,7 @@ class TableView {
             const visualColumnsIndex = renderedColumnIndex >= 0 ?
               this.hot.columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex) : renderedColumnIndex;
 
-            this.appendColHeader(visualColumnsIndex, TH);
+            this.appendColHeader(visualColumnsIndex!, TH);
           });
         }
 
@@ -1138,12 +1138,13 @@ class TableView {
         let visualRow = renderableRow;
 
         if (!areColumnHeadersSelected) {
-          visualRow = rowMapper.getVisualFromRenderableIndex(renderableRow);
+          const mappedRow = rowMapper.getVisualFromRenderableIndex(renderableRow);
 
           // for an empty data return index as is
-          if (visualRow === null) {
+          if (mappedRow === null) {
             return renderableRow;
           }
+          visualRow = mappedRow;
         }
 
         visualRow = this.hot.runHooks<number>('beforeViewportScrollVertically', visualRow, snapping);
@@ -1161,12 +1162,13 @@ class TableView {
         let visualColumn = renderableColumn;
 
         if (!areRowHeadersSelected) {
-          visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
+          const mappedColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
 
           // for an empty data return index as is
-          if (visualColumn === null) {
+          if (mappedColumn === null) {
             return renderableColumn;
           }
+          visualColumn = mappedColumn;
         }
 
         visualColumn = this.hot.runHooks<number>('beforeViewportScrollHorizontally', visualColumn, snapping);
@@ -1195,14 +1197,14 @@ class TableView {
         let visualRow = renderableRow;
 
         if (!areColumnHeadersSelected) {
-          visualRow = rowMapper.getVisualFromRenderableIndex(renderableRow);
+          visualRow = rowMapper.getVisualFromRenderableIndex(renderableRow) ?? renderableRow;
         }
 
         const newVisualRow = this.hot
           .runHooks<number>('beforeHighlightingRowHeader', visualRow, headerLevel, highlightMeta);
 
         if (!areColumnHeadersSelected) {
-          return rowMapper.getRenderableFromVisualIndex(rowMapper.getNearestNotHiddenIndex(newVisualRow, 1));
+          return rowMapper.getRenderableFromVisualIndex(rowMapper.getNearestNotHiddenIndex(newVisualRow, 1)!);
         }
 
         return newVisualRow;
@@ -1215,14 +1217,14 @@ class TableView {
         let visualColumn = renderableColumn;
 
         if (!areRowHeadersSelected) {
-          visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn);
+          visualColumn = columnMapper.getVisualFromRenderableIndex(renderableColumn) ?? renderableColumn;
         }
 
         const newVisualColumn = this.hot
           .runHooks<number>('beforeHighlightingColumnHeader', visualColumn, headerLevel, highlightMeta);
 
         if (!areRowHeadersSelected) {
-          return columnMapper.getRenderableFromVisualIndex(columnMapper.getNearestNotHiddenIndex(newVisualColumn, 1));
+          return columnMapper.getRenderableFromVisualIndex(columnMapper.getNearestNotHiddenIndex(newVisualColumn, 1)!);
         }
 
         return newVisualColumn;
@@ -1238,7 +1240,8 @@ class TableView {
           const selectionForLayer = selectedRange.peekByIndex(layerLevel ?? 0);
 
           cornersOfSelection = [
-            selectionForLayer.from.row, selectionForLayer.from.col, selectionForLayer.to.row, selectionForLayer.to.col
+            selectionForLayer!.from.row, selectionForLayer!.from.col,
+            selectionForLayer!.to.row, selectionForLayer!.to.col
           ];
         }
 
@@ -1280,13 +1283,13 @@ class TableView {
           // Result of the hook is handled by the Walkontable (renderable indexes).
           return [
             visualRowFrom >= 0 ? rowMapper.getRenderableFromVisualIndex(
-              rowMapper.getNearestNotHiddenIndex(visualRowFrom, 1)) : visualRowFrom,
+              rowMapper.getNearestNotHiddenIndex(visualRowFrom, 1)!) : visualRowFrom,
             visualColumnFrom >= 0 ? columnMapper.getRenderableFromVisualIndex(
-              columnMapper.getNearestNotHiddenIndex(visualColumnFrom, 1)) : visualColumnFrom,
+              columnMapper.getNearestNotHiddenIndex(visualColumnFrom, 1)!) : visualColumnFrom,
             visualRowTo >= 0 ? rowMapper.getRenderableFromVisualIndex(
-              rowMapper.getNearestNotHiddenIndex(visualRowTo, -1)) : visualRowTo,
+              rowMapper.getNearestNotHiddenIndex(visualRowTo, -1)!) : visualRowTo,
             visualColumnTo >= 0 ? columnMapper.getRenderableFromVisualIndex(
-              columnMapper.getNearestNotHiddenIndex(visualColumnTo, -1)) : visualColumnTo
+              columnMapper.getNearestNotHiddenIndex(visualColumnTo, -1)!) : visualColumnTo
           ];
         }
       },
@@ -1306,9 +1309,9 @@ class TableView {
 
           return [
             visualRow >= 0 ? rowMapper.getRenderableFromVisualIndex(
-              rowMapper.getNearestNotHiddenIndex(visualRow, 1)) : visualRow,
+              rowMapper.getNearestNotHiddenIndex(visualRow, 1)!) : visualRow,
             visualColumn >= 0 ? columnMapper.getRenderableFromVisualIndex(
-              columnMapper.getNearestNotHiddenIndex(visualColumn, 1)) : visualColumn,
+              columnMapper.getNearestNotHiddenIndex(visualColumn, 1)!) : visualColumn,
           ];
         }
       },
@@ -1322,8 +1325,8 @@ class TableView {
           const firstRenderedRow = calc.startRow!;
           const lastRenderedRow = calc.endRow!;
 
-          calc.startRow = Math.max(firstRenderedRow - viewportOffset, 0);
-          calc.endRow = Math.min(lastRenderedRow + viewportOffset, renderableRows - 1);
+          calc.startRow = Math.max(firstRenderedRow - (viewportOffset ?? 0), 0);
+          calc.endRow = Math.min(lastRenderedRow + (viewportOffset ?? 0), renderableRows - 1);
         }
         this.hot.runHooks('afterViewportRowCalculatorOverride', calc);
       },
@@ -1337,8 +1340,8 @@ class TableView {
           const firstRenderedColumn = calc.startColumn!;
           const lastRenderedColumn = calc.endColumn!;
 
-          calc.startColumn = Math.max(firstRenderedColumn - viewportOffset, 0);
-          calc.endColumn = Math.min(lastRenderedColumn + viewportOffset, renderableColumns - 1);
+          calc.startColumn = Math.max(firstRenderedColumn - (viewportOffset ?? 0), 0);
+          calc.endColumn = Math.min(lastRenderedColumn + (viewportOffset ?? 0), renderableColumns - 1);
         }
         this.hot.runHooks('afterViewportColumnCalculatorOverride', calc);
       },
@@ -1616,10 +1619,10 @@ class TableView {
     // prevent wrong calculations from SampleGenerator
     if (element.parentNode) {
       if (hasClass(element, 'colHeader')) {
-        renderedIndex = parentOverlay.wtTable.columnFilter.sourceToRendered(index);
+        renderedIndex = parentOverlay.wtTable.columnFilter!.sourceToRendered(index);
 
       } else if (hasClass(element, 'rowHeader')) {
-        renderedIndex = parentOverlay.wtTable.rowFilter.sourceToRendered(index);
+        renderedIndex = parentOverlay.wtTable.rowFilter!.sourceToRendered(index);
       }
     }
 
@@ -2072,7 +2075,7 @@ class TableView {
    * @returns {number} The value of the `aria-colcount` attribute.
    */
   #getAriaColcount() {
-    return parseInt(this.hot.rootElement.getAttribute('aria-colcount'), 10);
+    return parseInt(this.hot.rootElement.getAttribute('aria-colcount') ?? '0', 10);
   }
 
   /**

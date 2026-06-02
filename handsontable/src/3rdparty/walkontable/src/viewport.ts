@@ -43,8 +43,8 @@ class Viewport {
   declare rowHeaderWidth: number;
   declare rowsVisibleCalculator: RowsCalculationType | null;
   declare columnsVisibleCalculator: ColumnsCalculationType | null;
-  declare rowsCalculatorTypes: Map<string, Function>;
-  declare columnsCalculatorTypes: Map<string, Function>;
+  declare rowsCalculatorTypes: Map<string, () => CalculationTypeLike>;
+  declare columnsCalculatorTypes: Map<string, () => CalculationTypeLike>;
   declare eventManager: EventManager;
   declare rowsRenderCalculator: RowsCalculationType | null;
   declare columnsRenderCalculator: ColumnsCalculationType | null;
@@ -77,13 +77,15 @@ class Viewport {
     this.rowHeaderWidth = NaN;
     this.rowsVisibleCalculator = null;
     this.columnsVisibleCalculator = null;
-    this.rowsCalculatorTypes = new Map<string, Function>([
+    type CalcTypeFactory = () => CalculationTypeLike;
+
+    this.rowsCalculatorTypes = new Map<string, CalcTypeFactory>([
       ['rendered', () => (this.wtSettings.getSetting('renderAllRows') ?
         new RenderedAllRowsCalculationType() : new RenderedRowsCalculationType())],
       ['fullyVisible', () => new FullyVisibleRowsCalculationType()],
       ['partiallyVisible', () => new PartiallyVisibleRowsCalculationType()],
     ]);
-    this.columnsCalculatorTypes = new Map<string, Function>([
+    this.columnsCalculatorTypes = new Map<string, CalcTypeFactory>([
       ['rendered', () => (this.wtSettings.getSetting('renderAllColumns') ?
         new RenderedAllColumnsCalculationType() : new RenderedColumnsCalculationType())],
       ['fullyVisible', () => new FullyVisibleColumnsCalculationType()],
@@ -98,7 +100,7 @@ class Viewport {
      */
     this.rowHeightCache = new PositionCache({
       totalItemsFn: () => wtSettings.getSetting<number>('totalRows'),
-      sizeFn: sourceRow => wtTable.getRowHeight(sourceRow),
+      sizeFn: sourceRow => wtTable.getRowHeight(sourceRow) ?? NaN,
       defaultSizeFn: () => wtSettings.getSetting('stylesHandler').getDefaultRowHeight(),
     });
     /**
@@ -303,7 +305,7 @@ class Viewport {
     if (!columnHeaders.length) {
       this.columnHeaderHeight = 0;
     } else if (isNaN(this.columnHeaderHeight)) {
-      this.columnHeaderHeight = outerHeight(this.wtTable.THEAD);
+      this.columnHeaderHeight = this.wtTable.THEAD ? outerHeight(this.wtTable.THEAD) : 0;
     }
 
     return this.columnHeaderHeight;
@@ -396,8 +398,11 @@ class Viewport {
     }
 
     return new ViewportRowsCalculator({
-      calculationTypes: calculatorTypes.map(
-        type => [type, this.rowsCalculatorTypes.get(type)()] as [string, CalculationTypeLike]),
+      calculationTypes: calculatorTypes.flatMap((type): Array<[string, CalculationTypeLike]> => {
+        const factory = this.rowsCalculatorTypes.get(type);
+
+        return factory ? [[type, factory()]] : [];
+      }),
       viewportHeight: height,
       scrollOffset: pos,
       totalRows,
@@ -438,8 +443,11 @@ class Viewport {
     }
 
     return new ViewportColumnsCalculator({
-      calculationTypes: calculatorTypes.map(
-        type => [type, this.columnsCalculatorTypes.get(type)()] as [string, CalculationTypeLike]),
+      calculationTypes: calculatorTypes.flatMap((type): Array<[string, CalculationTypeLike]> => {
+        const factory = this.columnsCalculatorTypes.get(type);
+
+        return factory ? [[type, factory()]] : [];
+      }),
       viewportWidth: width,
       scrollOffset: pos,
       totalColumns,
@@ -484,14 +492,14 @@ class Viewport {
     }
 
     if (!fastDraw) {
-      this.rowsRenderCalculator = rowsCalculator.getResultsFor('rendered');
-      this.columnsRenderCalculator = columnsCalculator.getResultsFor('rendered');
+      this.rowsRenderCalculator = rowsCalculator.getResultsFor('rendered') ?? null;
+      this.columnsRenderCalculator = columnsCalculator.getResultsFor('rendered') ?? null;
     }
 
-    this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible');
-    this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible');
-    this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible');
-    this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible');
+    this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible') ?? null;
+    this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible') ?? null;
+    this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible') ?? null;
+    this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible') ?? null;
 
     return fastDraw;
   }
@@ -504,10 +512,10 @@ class Viewport {
     const rowsCalculator = this.createRowsCalculator(['fullyVisible', 'partiallyVisible']);
     const columnsCalculator = this.createColumnsCalculator(['fullyVisible', 'partiallyVisible']);
 
-    this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible');
-    this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible');
-    this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible');
-    this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible');
+    this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible') ?? null;
+    this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible') ?? null;
+    this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible') ?? null;
+    this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible') ?? null;
   }
 
   /**
@@ -520,9 +528,10 @@ class Viewport {
    *                    Returns `false` if at least one proposed visible row is not already rendered (meaning: redraw is needed).
    */
   areAllProposedVisibleRowsAlreadyRendered(
-    proposedFullyVisibleRowsCalculator: RowsCalculationType,
-    proposedPartiallyVisibleRowsCalculator: RowsCalculationType) {
-    if (!this.rowsVisibleCalculator || !this.rowsRenderCalculator) {
+    proposedFullyVisibleRowsCalculator: RowsCalculationType | undefined,
+    proposedPartiallyVisibleRowsCalculator: RowsCalculationType | undefined) {
+    if (!this.rowsVisibleCalculator || !this.rowsRenderCalculator ||
+        !proposedFullyVisibleRowsCalculator || !proposedPartiallyVisibleRowsCalculator) {
       return false;
     }
 
@@ -536,7 +545,9 @@ class Viewport {
     if (startRow === null && endRow === null) {
       if (
         !proposedFullyVisibleRowsCalculator.isVisibleInTrimmingContainer &&
+        partiallyVisibleStartRow !== null &&
         !this.wtTable.isRowBeforeRenderedRows(partiallyVisibleStartRow) &&
+        partiallyVisibleEndRow !== null &&
         !this.wtTable.isRowAfterRenderedRows(partiallyVisibleEndRow)
       ) {
         return true;
@@ -546,12 +557,20 @@ class Viewport {
       endRow = partiallyVisibleEndRow;
     }
 
+    if (startRow === null || endRow === null) {
+      return false;
+    }
+
     const {
       startRow: renderedStartRow,
       endRow: renderedEndRow,
       rowStartOffset,
       rowEndOffset,
     } = this.rowsRenderCalculator;
+
+    if (renderedStartRow === null || renderedEndRow === null) {
+      return false;
+    }
 
     const totalRows = this.wtSettings.getSetting<number>('totalRows') - 1;
     const renderingThreshold = this.wtSettings.getSetting('viewportRowRenderingThreshold');
@@ -585,10 +604,11 @@ class Viewport {
    *                    Returns `false` if at least one proposed visible column is not already rendered (meaning: redraw is needed).
    */
   areAllProposedVisibleColumnsAlreadyRendered(
-    proposedFullyVisibleColumnsCalculator: ColumnsCalculationType,
-    proposedPartiallyVisibleColumnsCalculator: ColumnsCalculationType
+    proposedFullyVisibleColumnsCalculator: ColumnsCalculationType | undefined,
+    proposedPartiallyVisibleColumnsCalculator: ColumnsCalculationType | undefined
   ) {
-    if (!this.columnsVisibleCalculator || !this.columnsRenderCalculator) {
+    if (!this.columnsVisibleCalculator || !this.columnsRenderCalculator ||
+        !proposedFullyVisibleColumnsCalculator || !proposedPartiallyVisibleColumnsCalculator) {
       return false;
     }
 
@@ -602,7 +622,9 @@ class Viewport {
     if (startColumn === null && endColumn === null) {
       if (
         !proposedFullyVisibleColumnsCalculator.isVisibleInTrimmingContainer &&
+        partiallyVisibleStartColumn !== null &&
         !this.wtTable.isColumnBeforeRenderedColumns(partiallyVisibleStartColumn) &&
+        partiallyVisibleEndColumn !== null &&
         !this.wtTable.isColumnAfterRenderedColumns(partiallyVisibleEndColumn)
       ) {
         return true;
@@ -612,12 +634,20 @@ class Viewport {
       endColumn = partiallyVisibleEndColumn;
     }
 
+    if (startColumn === null || endColumn === null) {
+      return false;
+    }
+
     const {
       startColumn: renderedStartColumn,
       endColumn: renderedEndColumn,
       columnStartOffset,
       columnEndOffset,
     } = this.columnsRenderCalculator;
+
+    if (renderedStartColumn === null || renderedEndColumn === null) {
+      return false;
+    }
 
     const totalColumns = this.wtSettings.getSetting<number>('totalColumns') - 1;
     const renderingThreshold = this.wtSettings.getSetting('viewportColumnRenderingThreshold');

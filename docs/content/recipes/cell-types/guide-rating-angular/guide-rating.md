@@ -16,6 +16,9 @@ react:
 angular:
   id: 66fxpbip
   metaTitle: "Star Rating Editor - Angular Data Grid | Handsontable"
+vue:
+  id: lod409ks
+  metaTitle: "Star Rating Editor - Vue Data Grid | Handsontable"
 searchCategory: Recipes
 category: Cell Types
 ---

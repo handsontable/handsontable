@@ -1,3 +1,4 @@
+import type { Shortcut } from '../../../shortcuts/context';
 import type { Menu } from './menu';
 
 /**
@@ -6,26 +7,30 @@ import type { Menu } from './menu';
  * @param {Menu} menu The main menu instance.
  * @returns {KeyboardShortcut[]}
  */
-export function createDefaultShortcutsList(menu: Menu) {
+export function createDefaultShortcutsList(menu: Menu): Shortcut[] {
   const hot = menu.hot;
   const hotMenu = menu.hotMenu;
 
+  const gridContext = hot.getShortcutManager().getContext('grid');
+
   return [{
     keys: [['Control/Meta', 'A']],
-    forwardToContext: hot.getShortcutManager().getContext('grid'),
+    ...(gridContext ? { forwardToContext: gridContext } : {}),
     callback: () => menu.close(true)
   }, {
     keys: [['Tab'], ['Shift', 'Tab']],
-    callback: (event: Event, keys: string[]) => {
+    callback: (event: KeyboardEvent, keys?: string[]) => {
       const settings = hot.getSettings();
       const tabMoves = typeof settings.tabMoves === 'function'
         ? settings.tabMoves(event as KeyboardEvent)
         : settings.tabMoves;
 
-      if (keys.includes('shift')) {
-        hot.selection.transformStart(-tabMoves.row, -tabMoves.col);
-      } else {
-        hot.selection.transformStart(tabMoves.row, tabMoves.col);
+      if (tabMoves) {
+        if (keys?.includes('shift')) {
+          hot.selection.transformStart(-tabMoves.row, -tabMoves.col);
+        } else {
+          hot.selection.transformStart(tabMoves.row, tabMoves.col);
+        }
       }
 
       menu.close(true);
@@ -35,10 +40,10 @@ export function createDefaultShortcutsList(menu: Menu) {
     callback: () => menu.close(),
   }, {
     keys: [['ArrowDown']],
-    callback: () => menu.getNavigator().toNextItem(),
+    callback: () => menu.getNavigator()?.toNextItem(),
   }, {
     keys: [['ArrowUp']],
-    callback: () => menu.getNavigator().toPreviousItem(),
+    callback: () => menu.getNavigator()?.toPreviousItem(),
   }, {
     keys: [[hot.isRtl() ? 'ArrowLeft' : 'ArrowRight']],
     callback: () => {
@@ -48,7 +53,7 @@ export function createDefaultShortcutsList(menu: Menu) {
         const subMenu = menu.openSubMenu(selection[0]);
 
         if (subMenu) {
-          subMenu.getNavigator().toFirstItem();
+          subMenu.getNavigator()?.toFirstItem();
         }
       }
     }
@@ -67,10 +72,10 @@ export function createDefaultShortcutsList(menu: Menu) {
     },
   }, {
     keys: [['Control/Meta', 'ArrowUp'], ['Home']],
-    callback: () => menu.getNavigator().toFirstItem(),
+    callback: () => menu.getNavigator()?.toFirstItem(),
   }, {
     keys: [['Control/Meta', 'ArrowDown'], ['End']],
-    callback: () => menu.getNavigator().toLastItem(),
+    callback: () => menu.getNavigator()?.toLastItem(),
   }, {
     keys: [['Enter'], ['Space']],
     callback: (event: Event) => {
@@ -84,7 +89,7 @@ export function createDefaultShortcutsList(menu: Menu) {
         const subMenu = menu.openSubMenu(selection[0]);
 
         if (subMenu) {
-          subMenu.getNavigator().toFirstItem();
+          subMenu.getNavigator()?.toFirstItem();
         }
       } else {
         menu.executeCommand(event);
@@ -99,7 +104,7 @@ export function createDefaultShortcutsList(menu: Menu) {
       if (selection) {
         hotMenu?.selection.transformStart(-hotMenu.countVisibleRows(), 0);
       } else {
-        menu.getNavigator().toFirstItem();
+        menu.getNavigator()?.toFirstItem();
       }
     },
   }, {
@@ -110,7 +115,7 @@ export function createDefaultShortcutsList(menu: Menu) {
       if (selection) {
         hotMenu?.selection.transformStart(hotMenu.countVisibleRows(), 0);
       } else {
-        menu.getNavigator().toLastItem();
+        menu.getNavigator()?.toLastItem();
       }
     },
   }];

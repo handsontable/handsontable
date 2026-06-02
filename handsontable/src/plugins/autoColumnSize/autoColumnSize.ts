@@ -430,7 +430,7 @@ export class AutoColumnSize extends BasePlugin {
   ): void {
     let current = 0;
     const length = this.hot.countCols() - 1;
-    let timer: number | null = null;
+    let timer = 0;
 
     this.inProgress = true;
 
@@ -575,7 +575,7 @@ export class AutoColumnSize extends BasePlugin {
    * @param {boolean} [keepMinimum=true] If `true` then returned value won't be smaller then 50 (default column width).
    * @returns {number}
    */
-  getColumnWidth(column: number, defaultWidth?: number, keepMinimum: boolean = true): number {
+  getColumnWidth(column: number, defaultWidth?: number, keepMinimum: boolean = true): number | undefined {
     let width = defaultWidth;
 
     if (width === undefined) {
@@ -686,7 +686,7 @@ export class AutoColumnSize extends BasePlugin {
    * @param {Array} sourceData Source data.
    * @param {boolean} isFirstLoad `true` if this is the first load.
    */
-  #onAfterLoadData = (sourceData: unknown[][], isFirstLoad: boolean) => {
+  #onAfterLoadData = (_sourceData: unknown[], isFirstLoad: boolean) => {
     if (!isFirstLoad) {
       this.recalculateAllColumnsWidth();
     }
@@ -697,16 +697,16 @@ export class AutoColumnSize extends BasePlugin {
    *
    * @param {Array} changes An array of modified data.
    */
-  #onBeforeChange = (changes: unknown[][][]) => {
-    const changedColumns = changes.reduce((acc: number[], [, columnProperty]: unknown[]) => {
+  #onBeforeChange = (changes: unknown[][]) => {
+    const changedColumns = changes.reduce<number[]>((acc, [, columnProperty]: unknown[]) => {
       const visualColumn = this.hot.propToCol(columnProperty as string | number);
 
-      if (Number.isInteger(visualColumn) && acc.indexOf(visualColumn) === -1) {
+      if (visualColumn !== null && Number.isInteger(visualColumn) && acc.indexOf(visualColumn) === -1) {
         acc.push(visualColumn);
       }
 
       return acc;
-    }, []);
+    }, [] as number[]);
 
     this.#visualColumnsToRefresh.push(...changedColumns);
   };
@@ -725,7 +725,7 @@ export class AutoColumnSize extends BasePlugin {
     if (isDblClick) {
       this.calculateColumnsWidth(column, undefined, true);
 
-      newSize = this.getColumnWidth(column, undefined, false);
+      newSize = this.getColumnWidth(column, undefined, false) ?? newSize;
     }
 
     return newSize;
@@ -745,7 +745,7 @@ export class AutoColumnSize extends BasePlugin {
    *
    * @param {Array} changes An array of modified data.
    */
-  #onAfterFormulasValuesUpdate = (changes: Record<string, unknown>[]) => {
+  #onAfterFormulasValuesUpdate = (changes: unknown[]) => {
     if (!this.#isInitialized) {
       return;
     }
@@ -753,23 +753,26 @@ export class AutoColumnSize extends BasePlugin {
     const formulasPlugin = this.hot.getPlugin('formulas');
     const sheetId = (formulasPlugin as unknown as Record<string, unknown> | undefined)?.sheetId;
 
-    const changedColumns = changes.reduce((acc: number[], change: Record<string, unknown>) => {
-      if (sheetId !== null && sheetId !== undefined && (change.address as Record<string, unknown>)?.sheet !== sheetId) {
+    const changedColumns = changes.reduce<number[]>((acc, change: unknown) => {
+      const changeRecord = change as Record<string, unknown>;
+
+      if (sheetId !== null && sheetId !== undefined &&
+          (changeRecord.address as Record<string, unknown>)?.sheet !== sheetId) {
         return acc;
       }
 
-      const physicalColumn = Number((change.address as Record<string, unknown>)?.col);
+      const physicalColumn = Number((changeRecord.address as Record<string, unknown>)?.col);
 
       if (Number.isInteger(physicalColumn)) {
         const visualColumn = this.hot.toVisualColumn(physicalColumn);
 
-        if (acc.indexOf(visualColumn) === -1) {
+        if (visualColumn !== null && acc.indexOf(visualColumn) === -1) {
           acc.push(visualColumn);
         }
       }
 
       return acc;
-    }, []);
+    }, [] as number[]);
 
     this.#visualColumnsToRefresh.push(...changedColumns);
   };

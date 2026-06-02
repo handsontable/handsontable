@@ -19,15 +19,17 @@ export class FocusTransformation extends BaseTransformation {
   calculateOffset() {
     const range = this.getCurrentSelection();
     const { row, col } = range.getOuterTopStartCorner();
-    const columnsInRange = this.tableApi.countRenderableColumnsInRange(0, col - 1);
-    const rowsInRange = this.tableApi.countRenderableRowsInRange(0, row - 1);
+    const rowNum = row ?? 0;
+    const colNum = col ?? 0;
+    const columnsInRange = this.tableApi.countRenderableColumnsInRange(0, colNum - 1);
+    const rowsInRange = this.tableApi.countRenderableRowsInRange(0, rowNum - 1);
     const isHeaderSelection = range.highlight.isHeader();
-    const headerX = isHeaderSelection ? Math.abs(col) : 0;
-    const headerY = isHeaderSelection ? Math.abs(row) : 0;
+    const headerX = isHeaderSelection ? Math.abs(colNum) : 0;
+    const headerY = isHeaderSelection ? Math.abs(rowNum) : 0;
 
     return {
-      x: col < 0 ? headerX : -columnsInRange,
-      y: row < 0 ? headerY : -rowsInRange
+      x: colNum < 0 ? headerX : -columnsInRange,
+      y: rowNum < 0 ? headerY : -rowsInRange
     };
   }
 
@@ -40,7 +42,7 @@ export class FocusTransformation extends BaseTransformation {
   countRenderableRows() {
     const range = this.getCurrentSelection();
 
-    return this.tableApi.countRenderableRowsInRange(0, range.getOuterBottomEndCorner().row);
+    return this.tableApi.countRenderableRowsInRange(0, range.getOuterBottomEndCorner().row ?? 0);
   }
 
   /**
@@ -52,7 +54,7 @@ export class FocusTransformation extends BaseTransformation {
   countRenderableColumns() {
     const range = this.getCurrentSelection();
 
-    return this.tableApi.countRenderableColumnsInRange(0, range.getOuterBottomEndCorner().col);
+    return this.tableApi.countRenderableColumnsInRange(0, range.getOuterBottomEndCorner().col ?? 0);
   }
 
   /**

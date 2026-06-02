@@ -45,8 +45,8 @@ export class RowsRenderer extends BaseRenderer {
 
     this.orderView = new OrderView(
       rootNode,
-      (sourceRowIndex: number) => this.nodesPool.obtain(sourceRowIndex),
-      this.nodeType,
+      (sourceRowIndex?: number) => this.nodesPool!.obtain(sourceRowIndex ?? 0) as HTMLElement,
+      this.nodeType!,
     );
   }
 
@@ -89,6 +89,10 @@ export class RowsRenderer extends BaseRenderer {
 
       const TR = this.orderView.getCurrentNode();
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
+
+      if (!TR) {
+        continue; // eslint-disable-line no-continue
+      }
 
       if (this.table.isAriaEnabled()) {
         setAttribute(TR, [

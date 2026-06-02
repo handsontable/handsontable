@@ -24,8 +24,13 @@ async function run(cmd, opts = {}) {
   console.log(`> ${cmd}`);
   const { stdout, stderr } = await execAsync(cmd, { ...opts, maxBuffer: 50 * 1024 * 1024 });
 
-  if (stdout) { console.log(stdout); }
-  if (stderr) { console.error(stderr); }
+  if (stdout) {
+    console.log(stdout);
+  }
+
+  if (stderr) {
+    console.error(stderr);
+  }
 }
 
 // 1. Install workspace dependencies (provides cross-env-shell, webpack, etc.)

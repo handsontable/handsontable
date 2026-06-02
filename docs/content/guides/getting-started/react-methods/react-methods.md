@@ -17,6 +17,9 @@ react:
 angular:
   id: 7a8puryp
   metaTitle: Instance methods - Angular Data Grid | Handsontable
+vue:
+  id: dzj81kmk
+  metaTitle: Instance methods - Vue Data Grid | Handsontable
 searchCategory: Guides
 onlyFor: react
 category: Getting started

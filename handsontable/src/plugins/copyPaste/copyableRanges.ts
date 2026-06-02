@@ -13,7 +13,7 @@ export class CopyableRangesFactory {
   /**
    * @type {CellRange}
    */
-  #selectedRange: CellRange;
+  #selectedRange!: CellRange;
   /**
    * @type {function(): number}
    */
@@ -86,6 +86,10 @@ export class CopyableRangesFactory {
       col: endCol,
     } = this.#selectedRange.getBottomEndCorner();
 
+    if (startRow === null || startCol === null || endRow === null || endCol === null) {
+      return null;
+    }
+
     const finalEndRow = this.#trimRowsRange(startRow, endRow);
     const finalEndCol = this.#trimColumnsRange(startCol, endCol);
     const isRangeTrimmed = endRow !== finalEndRow || endCol !== finalEndCol;
@@ -117,6 +121,10 @@ export class CopyableRangesFactory {
       col: endCol,
     } = this.#selectedRange.getBottomEndCorner();
 
+    if (startCol === null || endCol === null) {
+      return null;
+    }
+
     const finalEndCol = this.#trimColumnsRange(startCol, endCol);
     const isRangeTrimmed = endCol !== finalEndCol;
 
@@ -146,6 +154,10 @@ export class CopyableRangesFactory {
     const {
       col: endCol,
     } = this.#selectedRange.getBottomEndCorner();
+
+    if (startCol === null || endCol === null) {
+      return null;
+    }
 
     const finalEndCol = this.#trimColumnsRange(startCol, endCol);
     const isRangeTrimmed = endCol !== finalEndCol;

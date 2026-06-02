@@ -16,6 +16,8 @@ Hooks.getSingleton().register('afterUnhideRows');
 export const PLUGIN_KEY = 'hiddenRows';
 export const PLUGIN_PRIORITY = 320;
 
+const SKIP_ROW_ON_PASTE_BY_PLUGIN = Symbol('skipRowOnPasteByHiddenRows');
+
 /* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
@@ -230,8 +232,8 @@ export class HiddenRows extends BasePlugin {
     }
 
     this.#hiddenRowsMap = new HidingMap();
-    this.#hiddenRowsMap.addLocalHook('init', () => this.#onMapInit());
-    this.hot.rowIndexMapper.registerMap(this.pluginName, this.#hiddenRowsMap);
+    this.#hiddenRowsMap!.addLocalHook('init', () => this.#onMapInit());
+    this.hot.rowIndexMapper.registerMap(this.pluginName!, this.#hiddenRowsMap);
 
     this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);
@@ -261,7 +263,7 @@ export class HiddenRows extends BasePlugin {
   disablePlugin() {
     super.disablePlugin();
 
-    this.hot.rowIndexMapper.unregisterMap(this.pluginName);
+    this.hot.rowIndexMapper.unregisterMap(this.pluginName!);
     this.resetCellsMeta();
   }
 
@@ -274,7 +276,7 @@ export class HiddenRows extends BasePlugin {
     const currentHideConfig = this.getHiddenRows();
     const isValidConfig = this.isValidConfig(rows);
     let destinationHideConfig = currentHideConfig;
-    const hidingMapValues = this.#hiddenRowsMap.getValues().slice();
+    const hidingMapValues = this.#hiddenRowsMap!.getValues().slice();
     const isAnyRowShowed = rows.length > 0;
 
     if (isValidConfig && isAnyRowShowed) {
@@ -303,7 +305,7 @@ export class HiddenRows extends BasePlugin {
     }
 
     if (isValidConfig && isAnyRowShowed) {
-      this.#hiddenRowsMap.setValues(hidingMapValues);
+      this.#hiddenRowsMap!.setValues(hidingMapValues);
     }
 
     this.hot.runHooks('afterUnhideRows', currentHideConfig, destinationHideConfig, isValidConfig && isAnyRowShowed,
@@ -342,7 +344,7 @@ export class HiddenRows extends BasePlugin {
     if (isConfigValid) {
       this.hot.batchExecution(() => {
         arrayEach(rows, (visualRow) => {
-          this.#hiddenRowsMap.setValueAtIndex(this.hot.toPhysicalRow(visualRow), true);
+          this.#hiddenRowsMap!.setValueAtIndex(this.hot.toPhysicalRow(visualRow), true);
         });
       }, true);
     }
@@ -366,7 +368,7 @@ export class HiddenRows extends BasePlugin {
    * @returns {number[]}
    */
   getHiddenRows(): number[] {
-    return arrayMap(this.#hiddenRowsMap.getHiddenIndexes(), (physicalRowIndex) => {
+    return arrayMap(this.#hiddenRowsMap!.getHiddenIndexes(), (physicalRowIndex) => {
       return this.hot.toVisualRow(physicalRowIndex)!;
     });
   }
@@ -378,7 +380,7 @@ export class HiddenRows extends BasePlugin {
    * @returns {boolean}
    */
   isHidden(row: number): boolean {
-    return this.#hiddenRowsMap.getValueAtIndex<boolean>(this.hot.toPhysicalRow(row)) || false;
+    return this.#hiddenRowsMap!.getValueAtIndex<boolean>(this.hot.toPhysicalRow(row)) || false;
   }
 
   /**
@@ -404,7 +406,12 @@ export class HiddenRows extends BasePlugin {
    */
   resetCellsMeta() {
     arrayEach(this.hot.getCellsMeta(), (meta) => {
-      (meta as Record<string, unknown>).skipRowOnPaste = false;
+      const cellMeta = meta as Record<string | symbol, unknown>;
+
+      if (cellMeta[SKIP_ROW_ON_PASTE_BY_PLUGIN]) {
+        delete cellMeta.skipRowOnPaste;
+        delete cellMeta[SKIP_ROW_ON_PASTE_BY_PLUGIN];
+      }
     });
   }
 
@@ -433,9 +440,22 @@ export class HiddenRows extends BasePlugin {
    * @param {object} cellProperties Object containing the cell properties.
    */
   #onAfterGetCellMeta = (row: number, column: number, cellProperties: Record<string, unknown>) => {
-    if (this.getSetting('copyPasteEnabled') === false && this.isHidden(row)) {
-      // Cell property handled by the `Autofill` and the `CopyPaste` plugins.
-      cellProperties.skipRowOnPaste = true;
+    if (this.getSetting('copyPasteEnabled') === false) {
+      // Cell property handled by the `Autofill` and the `CopyPaste` plugins. The plugin only sets
+      // and marks cells whose `skipRowOnPaste` it actually flips to `true`. Cells that already
+      // had `true` from user configuration (`cells`, or `cell`) are left untouched, so that
+      // unhiding the row does not erase the user-defined value.
+      const cellPropsWithMarker = cellProperties as Record<string | symbol, unknown>;
+
+      if (this.isHidden(row)) {
+        if (cellProperties.skipRowOnPaste !== true) {
+          cellProperties.skipRowOnPaste = true;
+          cellPropsWithMarker[SKIP_ROW_ON_PASTE_BY_PLUGIN] = true;
+        }
+      } else if (cellPropsWithMarker[SKIP_ROW_ON_PASTE_BY_PLUGIN]) {
+        delete cellProperties.skipRowOnPaste;
+        delete cellPropsWithMarker[SKIP_ROW_ON_PASTE_BY_PLUGIN];
+      }
     }
 
     if (this.isHidden(row - 1)) {

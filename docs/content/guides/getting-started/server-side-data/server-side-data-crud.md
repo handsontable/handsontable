@@ -16,6 +16,9 @@ react:
 angular:
   id: w9z5s1q7
   metaTitle: Server-side CRUD - Angular Data Grid | Handsontable
+vue:
+  id: aryloxoj
+  metaTitle: Server-side CRUD - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Server-side data
 ---

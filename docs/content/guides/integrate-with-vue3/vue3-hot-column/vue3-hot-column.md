@@ -12,6 +12,8 @@ react:
 angular:
   id: 65dx0xyo
   metaTitle: HotColumn component - Vue 3 Data Grid | Handsontable
+vue:
+  id: xhip154b
 searchCategory: Guides
 category: Integrate with Vue 3
 ---

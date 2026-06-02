@@ -92,7 +92,7 @@ class AxisSyncer {
     this.#removedIndexes = removedIndexes.map((physicalIndex: number) => {
       const visualIndex = this.#indexMapper.getVisualFromPhysicalIndex(physicalIndex);
 
-      return this.getHfIndexFromVisualIndex(visualIndex);
+      return this.getHfIndexFromVisualIndex(visualIndex ?? -1);
     });
 
     return this.#removedIndexes;
@@ -152,15 +152,20 @@ class AxisSyncer {
   syncMoves(moves: Array<{ from: number; to: number }>) {
     const NUMBER_OF_MOVED_INDEXES = 1;
     const SYNC_MOVE_METHOD_NAME = `move${toUpperCaseFirst(this.#axis)}s`;
+    const engine = this.#indexSyncer.getEngine();
 
-    this.#indexSyncer.getEngine().batch(() => {
+    if (!engine) {
+      return;
+    }
+
+    engine.batch(() => {
       moves.forEach((move: { from: number; to: number }) => {
         const moveToTheSamePosition = move.from !== move.to;
         // Moving from left to right (or top to bottom) to a line (drop index) right after already moved element.
         const anotherMoveWithoutEffect = move.from + 1 !== move.to;
 
         if (moveToTheSamePosition && anotherMoveWithoutEffect) {
-          this.#indexSyncer.getEngine()[SYNC_MOVE_METHOD_NAME](this.#indexSyncer.getSheetId(), move.from,
+          engine[SYNC_MOVE_METHOD_NAME](this.#indexSyncer.getSheetId()!, move.from,
             NUMBER_OF_MOVED_INDEXES, move.to);
         }
       });
@@ -198,7 +203,7 @@ class AxisSyncer {
       return;
     }
 
-    const calculatedMoves = getMoves(this.#movedIndexes, this.#finalIndex, this.#indexMapper.getNumberOfIndexes());
+    const calculatedMoves = getMoves(this.#movedIndexes, this.#finalIndex ?? 0, this.#indexMapper.getNumberOfIndexes());
 
     if (this.#indexSyncer.getSheetId() === null) {
       this.#indexSyncer.getPostponeAction(() => this.syncMoves(calculatedMoves));
@@ -225,7 +230,7 @@ class AxisSyncer {
 
       if (source === 'update' && newSequence.length > 0) {
         const relativeTransformation = this.#indexesSequence.map(index => newSequence.indexOf(index));
-        const sheetDimensions = this.#indexSyncer.getEngine().getSheetDimensions(this.#indexSyncer.getSheetId());
+        const sheetDimensions = this.#indexSyncer.getEngine()!.getSheetDimensions(this.#indexSyncer.getSheetId()!);
         let sizeForAxis;
 
         if (this.#axis === 'row') {
@@ -244,7 +249,7 @@ class AxisSyncer {
           relativeTransformation.push(i);
         }
 
-        this.#indexSyncer.getEngine()[SYNC_ORDER_CHANGE_METHOD_NAME](this.#indexSyncer.getSheetId(),
+        this.#indexSyncer.getEngine()![SYNC_ORDER_CHANGE_METHOD_NAME](this.#indexSyncer.getSheetId()!,
           relativeTransformation);
       }
 

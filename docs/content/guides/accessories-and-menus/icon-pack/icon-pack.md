@@ -15,6 +15,9 @@ react:
 angular:
   id: 5qu8t28e
   metaTitle: Icon pack - Angular Data Grid | Handsontable
+vue:
+  id: x2vg8kb0
+  metaTitle: Icon pack - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 ---

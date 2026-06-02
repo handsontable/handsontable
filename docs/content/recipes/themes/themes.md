@@ -15,6 +15,9 @@ react:
 angular:
   id: c5f6d93e
   metaTitle: Theme Recipes - Angular Data Grid | Handsontable
+vue:
+  id: iyf124u6
+  metaTitle: Theme Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 

@@ -16,6 +16,9 @@ react:
 angular:
   id: 2imqjvmp
   metaTitle: Row virtualization - Angular Data Grid | Handsontable
+vue:
+  id: 0d3wrjhf
+  metaTitle: Row virtualization - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

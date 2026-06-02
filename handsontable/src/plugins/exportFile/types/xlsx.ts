@@ -334,7 +334,7 @@ class Xlsx extends BaseType {
     const frozenColumns = dataProvider.getFrozenColumns();
     const nestedColumnHeaders = dataProvider.getNestedColumnHeaders();
     const isRtl = dataProvider.getLayoutDirection() === 'rtl';
-    const { exportFormulas } = options;
+    const exportFormulas: boolean = options.exportFormulas ?? false;
 
     // Build a fast O(1) lookup: "dataRowIndex:dataColIndex" → summary descriptor.
     // Always built so the protection pre-scan can identify ColumnSummary destination
@@ -342,7 +342,9 @@ class Xlsx extends BaseType {
     const summaryMap = new Map();
     const columnSummaries = dataProvider.getColumnSummaries();
 
-    columnSummaries.forEach((summary: ColumnSummaryDescriptor) => {
+    columnSummaries.forEach((summaryRaw: object) => {
+      const summary = summaryRaw as ColumnSummaryDescriptor;
+
       summaryMap.set(`${summary.destRow}:${summary.destCol}`, summary);
     });
 
@@ -654,7 +656,7 @@ class Xlsx extends BaseType {
         value: {
           formula: normalizeFormula(
             sourceValue, formulasSeparator, dataRowOffset - 1, dataColOffset - 1,
-            excludedHiddenRows, excludedHiddenCols
+            excludedHiddenRows ?? undefined, excludedHiddenCols ?? undefined
           ),
         },
         numFmt: null,

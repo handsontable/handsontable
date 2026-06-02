@@ -30,7 +30,7 @@ export class BaseRenderer {
    *
    * @type {TableRenderer}
    */
-  table: TableRenderer = null;
+  declare table: TableRenderer;
   /**
    * Counter of nodes already added.
    *
@@ -41,7 +41,10 @@ export class BaseRenderer {
   constructor(nodeType: string | null, rootNode?: HTMLElement) {
     this.nodesPool = typeof nodeType === 'string' ? new NodesPool(nodeType) : null;
     this.nodeType = nodeType;
-    this.rootNode = rootNode;
+
+    if (rootNode !== undefined) {
+      this.rootNode = rootNode;
+    }
   }
 
   /**

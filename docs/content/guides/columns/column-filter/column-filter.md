@@ -25,6 +25,9 @@ react:
 angular:
   id: woyi876m
   metaTitle: Column filter - Angular Data Grid | Handsontable
+vue:
+  id: mv5nc30h
+  metaTitle: Column filter - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---

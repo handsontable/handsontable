@@ -219,14 +219,30 @@ export class ContextMenu extends BasePlugin {
   registerShortcuts() {
     this.hot.getShortcutManager()
       .getContext('grid')
-      .addShortcut({
+      ?.addShortcut({
         keys: [['Control/Meta', 'Shift', 'Backslash'], ['Shift', 'F10']],
         callback: () => {
-          const { highlight } = this.hot.getSelectedRangeActive();
+          const activeRange = this.hot.getSelectedRangeActive();
+
+          if (!activeRange) {
+            return;
+          }
+
+          const { highlight } = activeRange;
+
+          if (highlight.row === null || highlight.col === null) {
+            return;
+          }
 
           this.hot.scrollToFocusedCell();
 
-          const rect = this.hot.getCell(highlight.row, highlight.col, true).getBoundingClientRect();
+          const cell = this.hot.getCell(highlight.row, highlight.col, true);
+
+          if (!cell) {
+            return;
+          }
+
+          const rect = cell.getBoundingClientRect();
           const offset = getDocumentOffsetByElement(this.menu!.container, this.hot.rootDocument);
 
           this.open({
@@ -257,18 +273,17 @@ export class ContextMenu extends BasePlugin {
   unregisterShortcuts() {
     this.hot.getShortcutManager()
       .getContext('grid')
-      .removeShortcutsByGroup(SHORTCUTS_GROUP);
+      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
-   * Opens menu and re-position it based on the passed coordinates.
+   * Opens the menu and positions it based on the passed coordinates.
    *
    * @param {{ top: number, left: number }|Event} position An object with `top` and `left` properties
-   * which contains coordinates relative to the browsers viewport (without included scroll offsets).
-   * Or if the native event is passed the menu will be positioned based on the `pageX` and `pageY`
-   * coordinates.
-   * @param {{ above: number, below: number, left: number, right: number }} offset An object allows applying
-   * the offset to the menu position.
+   * (coordinates relative to the browser viewport, without scroll offsets), or a native browser
+   * `Event` instance (e.g., a `MouseEvent`).
+   * @param {{ above: number, below: number, left: number, right: number }} offset An object that applies
+   * an offset to the menu position.
    * @fires Hooks#beforeContextMenuShow
    * @fires Hooks#afterContextMenuShow
    * @example

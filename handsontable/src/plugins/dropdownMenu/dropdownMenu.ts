@@ -220,8 +220,8 @@ export class DropdownMenu extends BasePlugin {
     this.callOnPluginsReady(() => {
       this.hot.runHooks('afterDropdownMenuDefaultOptions', predefinedItems);
 
-      this.itemsFactory.setPredefinedItems(predefinedItems.items);
-      const menuItems = this.itemsFactory.getItems(settings);
+      this.itemsFactory!.setPredefinedItems(predefinedItems.items);
+      const menuItems = this.itemsFactory!.getItems(settings);
 
       if (this.menu) {
         this.menu.destroy();
@@ -239,7 +239,8 @@ export class DropdownMenu extends BasePlugin {
       this.menu.addLocalHook('afterOpen', () => this.#onMenuAfterOpen());
       this.menu.addLocalHook('afterSubmenuOpen', (subMenuInstance: Menu) => this.#onSubMenuAfterOpen(subMenuInstance));
       this.menu.addLocalHook('afterClose', () => this.#onMenuAfterClose());
-      this.menu.addLocalHook('executeCommand', (...params: unknown[]) => this.executeCommand.call(this, ...params));
+      this.menu.addLocalHook('executeCommand',
+        (commandName: string, ...params: unknown[]) => this.executeCommand(commandName, ...params));
 
       // Register all commands. Predefined and added by user or by plugins
       arrayEach(menuItems, (command) => {
@@ -287,15 +288,22 @@ export class DropdownMenu extends BasePlugin {
   registerShortcuts() {
     const gridContext = this.hot.getShortcutManager().getContext('grid');
     const callback = () => {
-      const { highlight } = this.hot.getSelectedRangeActive();
+      const activeRange = this.hot.getSelectedRangeActive();
+
+      if (!activeRange) {
+        return;
+      }
+
+      const { highlight } = activeRange;
       const highlightedHeaderElement = highlight.isHeader() ?
-        this.hot.getCell(highlight.row, highlight.col, true) :
+        this.hot.getCell(highlight.row ?? 0, highlight.col ?? 0, true) :
         null;
       const isBottomMostHeaderSelected = highlight.isHeader() &&
-        highlight.col >= 0 &&
+        (highlight.col ?? -1) >= 0 &&
+        !!highlightedHeaderElement &&
         isBottomMostColumnHeader(highlightedHeaderElement);
       const isHiddenNestedPlaceholderSelected = highlight.isHeader() &&
-        highlight.col >= 0 &&
+        (highlight.col ?? -1) >= 0 &&
         highlightedHeaderElement &&
         hasClass(highlightedHeaderElement, 'hiddenHeader');
 
@@ -303,31 +311,38 @@ export class DropdownMenu extends BasePlugin {
         isHiddenNestedPlaceholderSelected ||
         highlight.isCell();
 
-      if (isValidSelection && highlight.col >= 0) {
-        let headerRow = isBottomMostHeaderSelected || isHiddenNestedPlaceholderSelected ? highlight.row : -1;
+      if (isValidSelection && (highlight.col ?? -1) >= 0) {
+        let headerRow: number =
+          isBottomMostHeaderSelected || isHiddenNestedPlaceholderSelected ? (highlight.row ?? -1) : -1;
 
-        this.hot.selectColumns(highlight.col, highlight.col, headerRow);
+        this.hot.selectColumns(highlight.col ?? 0, highlight.col ?? 0, headerRow);
 
-        const { from } = this.hot.getSelectedRangeActive();
-        const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
-        let target = this.hot.getCell(headerRow, from.col, true)?.querySelector(`.${BUTTON_CLASS_NAME}`);
+        const refreshedRange = this.hot.getSelectedRangeActive();
+
+        if (!refreshedRange) {
+          return;
+        }
+
+        const { from } = refreshedRange;
+        const offset = getDocumentOffsetByElement(this.menu?.container ?? this.hot.rootElement, this.hot.rootDocument);
+        let target = this.hot.getCell(headerRow, from.col ?? 0, true)?.querySelector(`.${BUTTON_CLASS_NAME}`);
 
         if (!target) {
           for (let row = -this.hot.view.getColumnHeadersCount(); row <= -1; row++) {
-            const candidate = this.hot.getCell(row, from.col, true)?.querySelector(`.${BUTTON_CLASS_NAME}`);
+            const candidate = this.hot.getCell(row, from.col ?? 0, true)?.querySelector(`.${BUTTON_CLASS_NAME}`);
 
             if (candidate) {
               target = candidate;
               headerRow = row;
 
-              this.hot.selectColumns(highlight.col, highlight.col, headerRow);
+              this.hot.selectColumns(highlight.col ?? 0, highlight.col ?? 0, headerRow);
               break;
             }
           }
         }
 
         if (!target && isHiddenNestedPlaceholderSelected) {
-          for (let column = from.col - 1; column >= 0; column--) {
+          for (let column = (from.col ?? 0) - 1; column >= 0; column--) {
             const candidateHeader = this.hot.getCell(headerRow, column, true);
 
             if (!candidateHeader || hasClass(candidateHeader, 'hiddenHeader')) {
@@ -374,37 +389,37 @@ export class DropdownMenu extends BasePlugin {
         });
         // Make sure the first item is selected (role=menuitem). Otherwise, screen readers
         // will block the Esc key for the whole menu.
-        this.menu.getNavigator().toFirstItem();
+        this.menu?.getNavigator()?.toFirstItem();
       }
     };
 
-    gridContext.addShortcuts([{
+    gridContext?.addShortcuts([{
       keys: [['Shift', 'Alt', 'ArrowDown'], ['Control/Meta', 'Enter']],
       callback,
-      runOnlyIf: () => {
+      runOnlyIf: (): boolean => {
         const highlight = this.hot.getSelectedRangeActive()?.highlight;
         const highlightedHeaderElement = highlight?.isHeader() ?
-          this.hot.getCell(highlight.row, highlight.col, true) :
+          this.hot.getCell(highlight.row ?? 0, highlight.col ?? 0, true) :
           null;
         const isHiddenNestedPlaceholderSelected = highlight?.isHeader() &&
-          highlight.col >= 0 &&
+          (highlight.col ?? -1) >= 0 &&
           highlightedHeaderElement &&
           hasClass(highlightedHeaderElement, 'hiddenHeader');
 
-        return highlight && !this.menu.isOpened() &&
+        return !!(highlight && !this.menu?.isOpened() &&
           highlight.isHeader() &&
-          (this.hot.selection.isCellVisible(highlight) || isHiddenNestedPlaceholderSelected);
+          (this.hot.selection.isCellVisible(highlight) || isHiddenNestedPlaceholderSelected));
       },
       captureCtrl: true,
       group: SHORTCUTS_GROUP,
     }, {
       keys: [['Shift', 'Alt', 'ArrowDown']],
       callback,
-      runOnlyIf: () => {
+      runOnlyIf: (): boolean => {
         const highlight = this.hot.getSelectedRangeActive()?.highlight;
 
-        return highlight && this.hot.selection.isCellVisible(highlight) &&
-          highlight.isCell() && !this.menu.isOpened();
+        return !!(highlight && this.hot.selection.isCellVisible(highlight) &&
+          highlight.isCell() && !this.menu?.isOpened());
       },
       group: SHORTCUTS_GROUP,
     }]);
@@ -418,7 +433,7 @@ export class DropdownMenu extends BasePlugin {
   unregisterShortcuts() {
     this.hot.getShortcutManager()
       .getContext('grid')
-      .removeShortcutsByGroup(SHORTCUTS_GROUP);
+      ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
   /**
@@ -431,14 +446,13 @@ export class DropdownMenu extends BasePlugin {
   }
 
   /**
-   * Opens menu and re-position it based on the passed coordinates.
+   * Opens the menu and positions it based on the passed coordinates.
    *
    * @param {{ top: number, left: number }|Event} position An object with `top` and `left` properties
-   * which contains coordinates relative to the browsers viewport (without included scroll offsets).
-   * Or if the native event is passed the menu will be positioned based on the `pageX` and `pageY`
-   * coordinates.
-   * @param {{ above: number, below: number, left: number, right: number }} offset An object allows applying
-   * the offset to the menu position.
+   * (coordinates relative to the browser viewport, without scroll offsets), or a native browser
+   * `Event` instance (e.g., a `MouseEvent`).
+   * @param {{ above: number, below: number, left: number, right: number }} offset An object that applies
+   * an offset to the menu position.
    * @fires Hooks#beforeDropdownMenuShow
    * @fires Hooks#afterDropdownMenuShow
    * @example
@@ -462,12 +476,12 @@ export class DropdownMenu extends BasePlugin {
     // open flow below proceeds on the fresh `this.menu` instance with the new items.
     this.hot.runHooks('beforeDropdownMenuShow', this);
 
-    this.menu.open();
+    this.menu?.open();
 
     objectEach(offset, (value, key) => {
-      this.menu.setOffset(key as string, value as number);
+      this.menu?.setOffset(key as string, value as number);
     });
-    this.menu.setPosition(position);
+    this.menu?.setPosition(position);
   }
 
   /**
@@ -515,8 +529,8 @@ export class DropdownMenu extends BasePlugin {
    * @param {boolean} listen Turn on listening when value is set to true, otherwise turn it off.
    */
   setListening(listen = true) {
-    if (this.menu.isOpened()) {
-      const hotMenu = this.menu.hotMenu as { listen(): void; unlisten(): void };
+    if (this.menu?.isOpened()) {
+      const hotMenu = this.menu!.hotMenu as { listen(): void; unlisten(): void };
 
       if (listen) {
         hotMenu.listen();
@@ -534,7 +548,7 @@ export class DropdownMenu extends BasePlugin {
   #addCustomShortcuts(menuInstance: Menu) {
     menuInstance
       .getKeyboardShortcutsCtrl()
-      .addCustomShortcuts([{
+      ?.addCustomShortcuts([{
         keys: [['Control/Meta', 'A']],
         callback: () => false,
       }]);
@@ -550,7 +564,7 @@ export class DropdownMenu extends BasePlugin {
     const target = eventTargetEl(event)!;
 
     if (hasClass(target, BUTTON_CLASS_NAME)) {
-      const offset = getDocumentOffsetByElement(this.menu.container, this.hot.rootDocument);
+      const offset = getDocumentOffsetByElement(this.menu?.container ?? this.hot.rootElement, this.hot.rootDocument);
       const buttonRect = this.#getButtonRect(target);
 
       event.stopPropagation();
@@ -624,7 +638,7 @@ export class DropdownMenu extends BasePlugin {
     // Plugin disabled and buttons still exists, so remove them.
     if (!this.enabled) {
       if (existingButton) {
-        existingButton.parentNode.removeChild(existingButton);
+        existingButton.parentNode?.removeChild(existingButton);
       }
 
       return;

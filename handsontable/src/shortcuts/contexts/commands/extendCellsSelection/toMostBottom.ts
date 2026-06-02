@@ -4,7 +4,13 @@ export const command = {
   name: 'extendCellsSelectionToMostBottom',
   callback(hot: HotInstance) {
     const { selection, rowIndexMapper } = hot;
-    const { highlight, from, to } = hot.getSelectedRangeActive();
+    const activeRange = hot.getSelectedRangeActive();
+
+    if (!activeRange) {
+      return;
+    }
+
+    const { highlight, from, to } = activeRange;
     const isFocusHighlightedByHeader = highlight.isHeader() && selection.isSelectedByRowHeader();
 
     if (highlight.isCell() || isFocusHighlightedByHeader) {
@@ -21,7 +27,7 @@ export const command = {
         selection.selectedByRowHeader.add(selection.getLayerLevel());
       }
 
-      selection.setRangeEnd(hot._createCellCoords(row, to.col));
+      selection.setRangeEnd(hot._createCellCoords(row ?? 0, to.col ?? 0));
       selection.markEndSource();
     }
   },

@@ -130,7 +130,7 @@ export function filtersPayloadToConditionsStack(
 export function applyFiltersFromFiltersPluginToQueryParameters(
   hot: HotInstance,
   queryParameters: { filters: FilterPayloadColumn[] | null },
-  getFetchFn: () => ((...args: unknown[]) => unknown) | undefined
+  getFetchFn: () => Function | undefined
 ): void {
   if (!isFunction(getFetchFn())) {
     return;

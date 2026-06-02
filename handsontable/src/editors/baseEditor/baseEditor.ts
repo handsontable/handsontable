@@ -1,6 +1,7 @@
 import type { HotInstance } from '../../core/types';
 import { stringify } from '../../helpers/mixed';
 import { throwWithCause } from '../../helpers/errors';
+import { warn } from '../../helpers/console';
 import { mixin } from '../../helpers/object';
 import hooksRefRegisterer from '../../mixins/hooksRefRegisterer';
 import {
@@ -104,7 +105,7 @@ export class BaseEditor {
    *
    * @type {object}
    */
-  cellProperties: Record<string, unknown> = null;
+  declare cellProperties: Record<string, unknown>;
 
   // Mixin-injected methods from hooksRefRegisterer
   declare _hooksStorage: Record<string, Function[]>;
@@ -220,13 +221,13 @@ export class BaseEditor {
     // if ctrl+enter and multiple cells selected, behave like Excel (finish editing and apply to all cells)
     if (ctrlDown) {
       const activeRange = this.hot.getSelectedRangeActive();
-      const topStartCorner = activeRange.getTopStartCorner();
-      const bottomEndCorner = activeRange.getBottomEndCorner();
+      const topStartCorner = activeRange?.getTopStartCorner();
+      const bottomEndCorner = activeRange?.getBottomEndCorner();
 
-      visualRowFrom = topStartCorner.row;
-      visualColumnFrom = topStartCorner.col;
-      visualRowTo = bottomEndCorner.row;
-      visualColumnTo = bottomEndCorner.col;
+      visualRowFrom = topStartCorner?.row ?? this.row;
+      visualColumnFrom = topStartCorner?.col ?? this.col;
+      visualRowTo = bottomEndCorner?.row ?? this.row;
+      visualColumnTo = bottomEndCorner?.col ?? this.col;
 
     } else {
       [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = [this.row, this.col, null, null];
@@ -255,14 +256,22 @@ export class BaseEditor {
       return;
     }
 
+    if (this.row === null || this.col === null) {
+      warn('Editor opened without valid cell coordinates.');
+
+      return;
+    }
+
     const hotInstance = this.hot;
     // We have to convert visual indexes into renderable indexes
     // due to hidden columns don't participate in the rendering process
     const renderableRowIndex = hotInstance.rowIndexMapper.getRenderableFromVisualIndex(this.row);
     const renderableColumnIndex = hotInstance.columnIndexMapper.getRenderableFromVisualIndex(this.col);
 
-    hotInstance.view
-      .scrollViewport(hotInstance._createCellCoords(renderableRowIndex, renderableColumnIndex));
+    if (renderableRowIndex !== null && renderableColumnIndex !== null) {
+      hotInstance.view
+        .scrollViewport({ row: renderableRowIndex, col: renderableColumnIndex });
+    }
 
     this.state = EDITOR_STATE.EDITING;
 
@@ -376,6 +385,10 @@ export class BaseEditor {
 
     // validator was defined and failed
     if (result === false && this.cellProperties.allowInvalid !== true) {
+      if (this.row === null || this.col === null) {
+        return;
+      }
+
       this.hot.selectCell(this.row, this.col);
       this.focus();
       this.state = EDITOR_STATE.EDITING;
@@ -466,8 +479,8 @@ export class BaseEditor {
     const cellWidth = outerWidth(TD);
     const containerOffset = offset(this.hot.rootElement);
     const containerWidth = outerWidth(this.hot.rootElement);
-    const scrollableContainerTop = wtOverlays.topOverlay.holder;
-    const scrollableContainerLeft = wtOverlays.inlineStartOverlay.holder;
+    const scrollableContainerTop = wtOverlays.topOverlay?.holder;
+    const scrollableContainerLeft = wtOverlays.inlineStartOverlay?.holder;
     const containerScrollTop = scrollableContainerTop !== rootWindow ?
       (scrollableContainerTop as HTMLElement).scrollTop : 0;
     const containerScrollLeft = scrollableContainerLeft !== rootWindow ?
@@ -495,32 +508,32 @@ export class BaseEditor {
     // by the overlays' position (position relative to the table viewport). In other cases, the overlay's
     // position always returns 0.
     if (['top', 'top_inline_start_corner'].includes(overlayName)) {
-      topPos += wtOverlays.topOverlay.getOverlayOffset();
+      topPos += wtOverlays.topOverlay?.getOverlayOffset() ?? 0;
     }
 
     if (['inline_start', 'top_inline_start_corner'].includes(overlayName)) {
-      inlineStartPos += Math.abs(wtOverlays.inlineStartOverlay.getOverlayOffset());
+      inlineStartPos += Math.abs(wtOverlays.inlineStartOverlay?.getOverlayOffset() ?? 0);
     }
 
     const hasColumnHeaders = this.hot.hasColHeaders();
-    const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row);
-    const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col);
+    const renderableRow = this.hot.rowIndexMapper.getRenderableFromVisualIndex(this.row ?? 0);
+    const renderableColumn = this.hot.columnIndexMapper.getRenderableFromVisualIndex(this.col ?? 0);
     const nrOfRenderableRowIndexes = this.hot.rowIndexMapper.getRenderableIndexesLength();
     const firstRowIndexOfTheBottomOverlay =
       nrOfRenderableRowIndexes - (this.hot.view._wt.getSetting('fixedRowsBottom') as number);
 
-    if (hasColumnHeaders && renderableRow <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
+    if (hasColumnHeaders && (renderableRow ?? 0) <= 0 || renderableRow === firstRowIndexOfTheBottomOverlay) {
       topPos += 1;
     }
 
-    if (renderableColumn <= 0) {
+    if ((renderableColumn ?? 0) <= 0) {
       inlineStartPos += 1;
     }
 
-    const firstRowOffset = wtViewport.rowsRenderCalculator.startPosition;
-    const firstColumnOffset = wtViewport.columnsRenderCalculator.startPosition;
-    const horizontalScrollPosition = Math.abs(wtOverlays.inlineStartOverlay.getScrollPosition());
-    const verticalScrollPosition = wtOverlays.topOverlay.getScrollPosition();
+    const firstRowOffset = wtViewport.rowsRenderCalculator?.startPosition ?? 0;
+    const firstColumnOffset = wtViewport.columnsRenderCalculator?.startPosition ?? 0;
+    const horizontalScrollPosition = Math.abs(wtOverlays.inlineStartOverlay?.getScrollPosition() ?? 0);
+    const verticalScrollPosition = wtOverlays.topOverlay?.getScrollPosition() ?? 0;
     const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
     let cellTopOffset = TD.offsetTop;
 
@@ -528,11 +541,11 @@ export class BaseEditor {
       cellTopOffset += firstRowOffset - verticalScrollPosition;
     }
 
-    if (['bottom', 'bottom_inline_start_corner'].includes(overlayName) && wtOverlays.bottomOverlay.clone) {
+    if (['bottom', 'bottom_inline_start_corner'].includes(overlayName) && wtOverlays.bottomOverlay?.clone) {
       const {
         wtViewport: bottomWtViewport,
         wtTable: bottomWtTable,
-      } = wtOverlays.bottomOverlay.clone;
+      } = wtOverlays.bottomOverlay!.clone!;
 
       cellTopOffset += bottomWtViewport.getWorkspaceHeight() - bottomWtTable.getHeight() - scrollbarWidth;
     }
@@ -555,18 +568,20 @@ export class BaseEditor {
       cellStartOffset += firstColumnOffset - horizontalScrollPosition;
     }
 
-    const cellComputedStyle = rootWindow.getComputedStyle(this.TD);
+    const cellComputedStyle = rootWindow.getComputedStyle(TD);
     const borderPhysicalWidthProp = this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
     const inlineStartBorderCompensation = Number.parseInt(cellComputedStyle[borderPhysicalWidthProp], 10) > 0 ? 0 : 1;
     const topBorderCompensation = Number.parseInt(cellComputedStyle.borderTopWidth, 10) > 0 ? 0 : 1;
     const width = outerWidth(TD) + inlineStartBorderCompensation;
     const height = outerHeight(TD) + topBorderCompensation;
-    const actualVerticalScrollbarWidth = hasVerticalScrollbar(scrollableContainerTop) ? scrollbarWidth : 0;
-    const actualHorizontalScrollbarWidth = hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
+    const actualVerticalScrollbarWidth = scrollableContainerTop &&
+      hasVerticalScrollbar(scrollableContainerTop) ? scrollbarWidth : 0;
+    const actualHorizontalScrollbarWidth = scrollableContainerLeft &&
+      hasHorizontalScrollbar(scrollableContainerLeft) ? scrollbarWidth : 0;
     const maxWidth = this.hot.view.maximumVisibleElementWidth(cellStartOffset) -
       actualVerticalScrollbarWidth + inlineStartBorderCompensation;
-    const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset) -
-      actualHorizontalScrollbarWidth + topBorderCompensation, this.hot.stylesHandler.getDefaultRowHeight());
+    const maxHeight = Math.max(this.hot.view.maximumVisibleElementHeight(cellTopOffset ?? 0) -
+      actualHorizontalScrollbarWidth + topBorderCompensation, this.hot.stylesHandler.getDefaultRowHeight() ?? 0);
 
     return {
       top: topPos,
@@ -609,6 +624,10 @@ export class BaseEditor {
    * @returns {HTMLTableCellElement|null}
    */
   getEditedCell(): HTMLTableCellElement | null {
+    if (this.row === null || this.col === null) {
+      return null;
+    }
+
     return this.hot.getCell(this.row, this.col, true);
   }
 
@@ -619,6 +638,10 @@ export class BaseEditor {
    * @returns {string}
    */
   checkEditorSection(): string {
+    if (this.row === null || this.col === null) {
+      return '';
+    }
+
     const totalRows = this.hot.countRows();
     const settings = this.hot.getSettings();
     let section = '';

@@ -72,61 +72,61 @@ export class TableRenderer {
    *
    * @type {RowHeadersRenderer}
    */
-  rowHeaders: RowHeadersRenderer = null;
+  rowHeaders: RowHeadersRenderer | null = null;
   /**
    * Renderer class responsible for rendering column header rows (TR elements in THEAD).
    *
    * @type {ColumnHeaderRowsRenderer}
    */
-  columnHeaderRows: ColumnHeaderRowsRenderer = null;
+  columnHeaderRows: ColumnHeaderRowsRenderer | null = null;
   /**
    * Renderer class responsible for rendering column headers (TH elements in TR).
    *
    * @type {ColumnHeadersRenderer}
    */
-  columnHeaders: ColumnHeadersRenderer = null;
+  columnHeaders: ColumnHeadersRenderer | null = null;
   /**
    * Renderer class responsible for rendering col in colgroup.
    *
    * @type {ColGroupRenderer}
    */
-  colGroup: ColGroupRenderer = null;
+  colGroup: ColGroupRenderer | null = null;
   /**
    * Renderer class responsible for rendering rows in tbody.
    *
    * @type {RowsRenderer}
    */
-  rows: RowsRenderer = null;
+  rows: RowsRenderer | null = null;
   /**
    * Renderer class responsible for rendering cells.
    *
    * @type {CellsRenderer}
    */
-  cells: CellsRenderer = null;
+  cells: CellsRenderer | null = null;
   /**
    * Row filter which contains all necessary information about row index transformation.
    *
    * @type {RowFilter}
    */
-  rowFilter: RowFilter = null;
+  rowFilter: RowFilter | null = null;
   /**
    * Column filter which contains all necessary information about column index transformation.
    *
    * @type {ColumnFilter}
    */
-  columnFilter: ColumnFilter = null;
+  columnFilter: ColumnFilter | null = null;
   /**
    * Row utils class which contains all necessary information about sizes of the rows.
    *
    * @type {RowUtils}
    */
-  rowUtils: RowUtils = null;
+  rowUtils: RowUtils | null = null;
   /**
    * Column utils class which contains all necessary information about sizes of the columns.
    *
    * @type {ColumnUtils}
    */
-  columnUtils: ColumnUtils = null;
+  columnUtils: ColumnUtils | null = null;
   /**
    * Indicates how much rows should be rendered to fill whole table viewport.
    *
@@ -185,8 +185,8 @@ export class TableRenderer {
     { cellRenderer, stylesHandler }: { cellRenderer?: Function; stylesHandler?: StylesHandler } = {}) {
     this.rootNode = rootNode;
     this.rootDocument = this.rootNode.ownerDocument;
-    this.cellRenderer = cellRenderer;
-    this.stylesHandler = stylesHandler;
+    this.cellRenderer = cellRenderer!;
+    this.stylesHandler = stylesHandler!;
   }
 
   /**
@@ -286,7 +286,7 @@ export class TableRenderer {
    * @returns {number}
    */
   renderedRowToSource(rowIndex: number) {
-    return this.rowFilter.renderedToSource(rowIndex);
+    return this.rowFilter!.renderedToSource(rowIndex);
   }
 
   /**
@@ -296,7 +296,7 @@ export class TableRenderer {
    * @returns {number}
    */
   renderedColumnToSource(columnIndex: number) {
-    return this.columnFilter.renderedToSource(columnIndex);
+    return this.columnFilter!.renderedToSource(columnIndex);
   }
 
   /**
@@ -305,34 +305,34 @@ export class TableRenderer {
    * @returns {boolean}
    */
   isAriaEnabled() {
-    return this.rowUtils.wtSettings.getSetting('ariaTags');
+    return this.rowUtils!.wtSettings.getSetting('ariaTags');
   }
 
   /**
    * Renders the table.
    */
   render() {
-    this.columnHeaderRows.render();
-    this.columnHeaders.render();
-    this.rows.render();
-    this.rowHeaders.render();
-    this.cells.render();
+    this.columnHeaderRows!.render();
+    this.columnHeaders!.render();
+    this.rows!.render();
+    this.rowHeaders!.render();
+    this.cells!.render();
 
     // After the cells are rendered calculate columns width to prepare proper values
     // for colGroup renderer (which renders COL elements).
-    this.columnUtils.calculateWidths();
-    this.colGroup.render();
+    this.columnUtils!.calculateWidths();
+    this.colGroup!.render();
 
     const { rowsToRender, rows } = this;
 
     // Fix for multi-line content and for supporting `rowHeights` option.
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
-      const TR = rows.getRenderedNode(visibleRowIndex);
+      const TR = rows!.getRenderedNode(visibleRowIndex);
       const rowUtils = this.rowUtils;
 
-      if (TR.firstChild) {
+      if (TR && TR.firstChild) {
         const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
-        const rowHeight = rowUtils.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName);
+        const rowHeight = rowUtils!.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName);
         const isBorderBoxSizing = this.stylesHandler.areCellsBorderBox();
         const borderCompensation = isBorderBoxSizing ? 0 : 1;
 

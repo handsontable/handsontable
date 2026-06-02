@@ -36,9 +36,9 @@ export class SelectUI extends BaseUI {
    */
   #menu: Menu | null = null;
   #items: SelectMenuItem[] = [];
-  #caption: BaseUI | null;
-  #captionElement: HTMLElement;
-  #dropdown: BaseUI | null;
+  #caption: BaseUI | null = null;
+  #captionElement: HTMLElement | null = null;
+  #dropdown: BaseUI | null = null;
 
   constructor(hotInstance: HotInstance, options: Record<string, unknown>) {
     super(hotInstance, extend(SelectUI.DEFAULTS as Record<string, unknown>, options) as Record<string, unknown>);
@@ -95,7 +95,15 @@ export class SelectUI extends BaseUI {
    */
   build() {
     super.build();
-    this.#menu = new Menu(this.hot, {
+
+    if (!this.hot || !this._element) {
+      return;
+    }
+
+    const hot = this.hot;
+    const rootElement = this._element;
+
+    this.#menu = new Menu(hot, {
       className: 'htSelectUI htFiltersConditionsMenu',
       keepInViewport: false,
       standalone: true,
@@ -103,11 +111,11 @@ export class SelectUI extends BaseUI {
     });
     this.#menu.setMenuItems(this.#items);
 
-    const caption = new BaseUI(this.hot, {
+    const caption = new BaseUI(hot, {
       className: 'htUISelectCaption'
     });
 
-    const dropdown = new BaseUI(this.hot, {
+    const dropdown = new BaseUI(hot, {
       className: 'htUISelectDropdown'
     });
 
@@ -115,17 +123,27 @@ export class SelectUI extends BaseUI {
     this.#captionElement = caption.element;
     this.#dropdown = dropdown;
 
-    if (this.hot.getSettings().ariaTags) {
-      setAttribute(dropdown.element, [
-        A11Y_HIDDEN()
-      ]);
+    if (hot.getSettings().ariaTags) {
+      const dropdownEl = dropdown.element;
 
-      setAttribute(this._element, [
+      if (dropdownEl) {
+        setAttribute(dropdownEl, [
+          A11Y_HIDDEN()
+        ]);
+      }
+
+      setAttribute(rootElement, [
         A11Y_LISTBOX()
       ]);
     }
 
-    arrayEach([caption, dropdown] as BaseUI[], element => this._element.appendChild((element as BaseUI).element));
+    arrayEach([caption, dropdown] as BaseUI[], (element) => {
+      const el = (element as BaseUI).element;
+
+      if (el) {
+        rootElement.appendChild(el);
+      }
+    });
 
     this.#menu.addLocalHook('select', (command: Record<string, unknown>) => this.#onMenuSelect(command));
     this.#menu.addLocalHook('afterClose', () => this.#onMenuClosed());
@@ -146,10 +164,12 @@ export class SelectUI extends BaseUI {
       conditionName = (this.options.value as SelectMenuItem).name;
 
     } else {
-      conditionName = this.#menu.hot.getTranslatedPhrase(C.FILTERS_CONDITIONS_NONE);
+      conditionName = this.#menu?.hot?.getTranslatedPhrase(C.FILTERS_CONDITIONS_NONE);
     }
 
-    this.#captionElement.textContent = conditionName;
+    if (this.#captionElement) {
+      this.#captionElement.textContent = conditionName ?? null;
+    }
     super.update();
   }
 
@@ -157,18 +177,24 @@ export class SelectUI extends BaseUI {
    * Open select dropdown menu with available options.
    */
   openOptions() {
-    const rect = this.element.getBoundingClientRect();
+    const el = this.element;
+
+    if (!el) {
+      return;
+    }
+
+    const rect = el.getBoundingClientRect();
 
     if (this.#menu) {
       this.#menu.open();
       this.#menu.setPosition({
-        left: this.hot.isLtr() ? rect.left - 5 : rect.left - 31,
+        left: this.hot?.isLtr() ? rect.left - 5 : rect.left - 31,
         top: rect.top - 1,
         width: rect.width,
         height: rect.height,
       });
-      this.#menu.getNavigator().toFirstItem();
-      this.#menu.getKeyboardShortcutsCtrl().addCustomShortcuts([{
+      this.#menu?.getNavigator()?.toFirstItem();
+      this.#menu?.getKeyboardShortcutsCtrl()?.addCustomShortcuts([{
         keys: [['Tab'], ['Shift', 'Tab']],
         callback: (event: Event) => {
           this.closeOptions();
@@ -195,7 +221,7 @@ export class SelectUI extends BaseUI {
    */
   focus() {
     if (this.isBuilt()) {
-      this.element.focus();
+      this.element?.focus();
     }
   }
 
