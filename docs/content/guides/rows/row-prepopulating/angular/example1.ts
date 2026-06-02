@@ -91,12 +91,16 @@ export class AppComponent implements AfterViewInit {
         const ch = changes === null ? [] : changes!;
 
         for (let i = 0; i < ch.length; i++) {
+          const currChange = ch[i];
+
+          if (!currChange) continue;
+
           // if oldVal is empty
-          if (ch[i]![2] === null && ch[i]![3] !== null) {
-            if (isEmptyRow(instance, ch[i]![0])) {
+          if (currChange[2] === null && currChange[3] !== null) {
+            if (isEmptyRow(instance, currChange[0])) {
               // add this row/col combination to the cache so it will not be overwritten by the template
-              rowColumnSeen[`${ch[i]![0]}/${ch[i]![1]}`] = true;
-              rowsToFill[String(ch[i]![0])] = true;
+              rowColumnSeen[`${currChange[0]}/${currChange[1]}`] = true;
+              rowsToFill[String(currChange[0])] = true;
             }
           }
         }
