@@ -30,10 +30,9 @@ Each of them will be applied to the root Handsontable element, allowing further 
 
 ## Example
 
-::: example #example1 :vue3 --html 1 --js 2
+::: example #example1 :vue3
 
-@[code](@/content/guides/integrate-with-vue3/vue3-custom-id-class-style/vue/example1.html)
-@[code](@/content/guides/integrate-with-vue3/vue3-custom-id-class-style/vue/example1.js)
+@[code](@/content/guides/integrate-with-vue3/vue3-custom-id-class-style/vue/example1.vue)
 
 :::
 
