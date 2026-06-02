@@ -107,9 +107,9 @@ export function stripTags(string: string): string {
 
   for (let i = 0; i < str.length; i++) {
     if (str[i] === '<') {
-      depth++;
+      depth += 1;
     } else if (str[i] === '>' && depth > 0) {
-      depth--;
+      depth -= 1;
     } else if (depth === 0) {
       result += str[i];
     }
