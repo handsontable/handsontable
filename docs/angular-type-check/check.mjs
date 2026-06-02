@@ -327,6 +327,104 @@ for (const e of inBoth) printErr('[BOTH      ]', e);
 for (const e of localOnly) printErr('[LOCAL-ONLY]', e);
 for (const e of latestOnly) printErr('[LATEST-ONLY]', e);
 
+const warnCount = localOnly.length + latestOnly.length;
+
+// Markdown body shared by the job summary panel and the published check-run.
+function buildReportMarkdown() {
+  const row = (e, scope) => `| ${e.exampleId} | \`${e.code}\` | ${scope} | ${String(e.message).replace(/\\/g, '\\\\').replace(/\|/g, '\\|')} |`;
+  const lines = [];
+  lines.push('## Angular docs type-check');
+  lines.push('');
+  lines.push(`**Result:** ${inBoth.length > 0 ? '❌ FAILED' : '⚠️ PASSED WITH WARNINGS'} (latest = ${version})`);
+  lines.push('');
+  lines.push(`- ❌ Errors in **both** versions (fail the run): **${inBoth.length}**`);
+  lines.push(`- ⚠️ Version-specific issues (warnings only): **${warnCount}**`);
+  lines.push('');
+  if (inBoth.length + warnCount > 0) {
+    lines.push('| Example | Code | Scope | Message |');
+    lines.push('| --- | --- | --- | --- |');
+    for (const e of inBoth) lines.push(row(e, '❌ both versions'));
+    for (const e of localOnly) lines.push(row(e, '⚠️ local only'));
+    for (const e of latestOnly) lines.push(row(e, '⚠️ latest only'));
+    lines.push('');
+  }
+  return lines.join('\n');
+}
+
+const reportMarkdown = buildReportMarkdown();
+
+/**
+ * Publishes a Check Run via the GitHub Checks API. This is the only way to get
+ * a "neutral" entry in the PR checks summary ("… 1 neutral …") — a normal step
+ * can only resolve to success (exit 0) or failure (exit !=0), never neutral.
+ * Requires GITHUB_TOKEN with `checks: write` permission.
+ */
+async function publishCheckRun(conclusion, title) {
+  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+  const repo = process.env.GITHUB_REPOSITORY;
+
+  if (typeof fetch !== 'function') {
+    console.log('(skipping check-run publish: global fetch unavailable — needs Node 18+)');
+    return;
+  }
+  if (!token || !repo) {
+    console.log(`::warning::Cannot publish a "${conclusion}" check-run: missing `
+      + `${!token ? 'GITHUB_TOKEN/GH_TOKEN' : 'GITHUB_REPOSITORY'}. `
+      + 'Grant `checks: write` and pass the token to surface this as a neutral check in the PR.');
+    return;
+  }
+
+  const [owner, name] = repo.split('/');
+
+  // For pull_request events GITHUB_SHA is the merge commit; the check must be
+  // attached to the PR head SHA to show up in the PR's checks summary.
+  let headSha = process.env.GITHUB_SHA;
+  try {
+    const eventPath = process.env.GITHUB_EVENT_PATH;
+    if (eventPath && fs.existsSync(eventPath)) {
+      const ev = JSON.parse(fs.readFileSync(eventPath, 'utf8'));
+      if (ev.pull_request && ev.pull_request.head && ev.pull_request.head.sha) {
+        headSha = ev.pull_request.head.sha;
+      }
+    }
+  } catch {
+    // fall back to GITHUB_SHA
+  }
+
+  try {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${name}/check-runs`, {
+      method: 'POST',
+      headers: {
+        authorization: `Bearer ${token}`,
+        accept: 'application/vnd.github+json',
+        'x-github-api-version': '2022-11-28',
+        'content-type': 'application/json',
+        'user-agent': 'angular-type-check',
+      },
+      body: JSON.stringify({
+        name: 'Angular docs type-check',
+        head_sha: headSha,
+        status: 'completed',
+        conclusion, // 'neutral' | 'failure'
+        output: {
+          title,
+          summary: reportMarkdown.slice(0, 65000),
+        },
+      }),
+    });
+
+    if (res.ok) {
+      console.log(`Published check-run "Angular docs type-check" (conclusion=${conclusion}).`);
+    } else {
+      const body = await res.text().catch(() => '');
+      console.log(`::warning::Failed to publish "${conclusion}" check-run `
+        + `(${res.status} ${res.statusText}). Needs \`checks: write\` permission. ${body.slice(0, 300)}`);
+    }
+  } catch (err) {
+    console.log(`::warning::Error publishing "${conclusion}" check-run: ${err.message}`);
+  }
+}
+
 // GitHub Actions annotations: shared errors become red ::error annotations
 // (and the step fails below with exit 1 -> "Error: Process completed with exit
 // code 1."), while version-specific errors become yellow ::warning annotations
@@ -343,8 +441,6 @@ if (process.env.GITHUB_ACTIONS === 'true') {
   for (const e of localOnly) annotate('warning', e, 'local dev build only');
   for (const e of latestOnly) annotate('warning', e, 'handsontable@latest only');
 
-  const warnCount = localOnly.length + latestOnly.length;
-
   // When the step passes but version-specific issues exist, a green check alone
   // makes it look problem-free. Emit a top-level ::warning so the run shows the
   // yellow "this run has warnings" banner even with exit 0.
@@ -360,25 +456,16 @@ if (process.env.GITHUB_ACTIONS === 'true') {
   // file annotations which are easy to overlook on a green step.
   const summaryFile = process.env.GITHUB_STEP_SUMMARY;
   if (summaryFile) {
-    const row = (e, scope) => `| ${e.exampleId} | \`${e.code}\` | ${scope} | ${String(e.message).replace(/\\/g, '\\\\').replace(/\|/g, '\\|')} |`;
-    const lines = [];
-    lines.push('## Angular docs type-check');
-    lines.push('');
-    lines.push(`**Result:** ${inBoth.length > 0 ? '❌ FAILED' : '⚠️ PASSED WITH WARNINGS'} `
-      + `(latest = ${version})`);
-    lines.push('');
-    lines.push(`- ❌ Errors in **both** versions (fail the run): **${inBoth.length}**`);
-    lines.push(`- ⚠️ Version-specific issues (warnings only): **${localOnly.length + latestOnly.length}**`);
-    lines.push('');
-    if (inBoth.length + localOnly.length + latestOnly.length > 0) {
-      lines.push('| Example | Code | Scope | Message |');
-      lines.push('| --- | --- | --- | --- |');
-      for (const e of inBoth) lines.push(row(e, '❌ both versions'));
-      for (const e of localOnly) lines.push(row(e, '⚠️ local only'));
-      for (const e of latestOnly) lines.push(row(e, '⚠️ latest only'));
-      lines.push('');
-    }
-    fs.appendFileSync(summaryFile, `${lines.join('\n')}\n`);
+    fs.appendFileSync(summaryFile, `${reportMarkdown}\n`);
+  }
+
+  // Publish a separate, explicitly-named check-run so the PR checks summary
+  // shows the right conclusion: NEUTRAL for warnings-only (visible as
+  // "1 neutral" instead of being hidden among "successful"), FAILURE otherwise.
+  if (inBoth.length > 0) {
+    await publishCheckRun('failure', `Failed: ${inBoth.length} error(s) in both local and latest`);
+  } else if (warnCount > 0) {
+    await publishCheckRun('neutral', `Passed with ${warnCount} version-specific issue(s)`);
   }
 }
 
@@ -388,11 +475,12 @@ console.log(
 
 // FALSE only when at least one error occurs in BOTH versions. Exit 1 makes the
 // GitHub Actions step fail so the user sees "Error: Process completed with exit
-// code 1.". Version-specific errors alone keep the step green (warnings only).
+// code 1.". Version-specific errors alone keep the step green (warnings only),
+// while the published check-run carries the "neutral" conclusion in the PR.
 if (inBoth.length > 0) {
   console.error('\nSTATUS: FALSE — at least one error occurs in BOTH versions (step fails).');
   process.exit(1);
 }
 
-console.log('\nSTATUS: TRUE — only version-specific errors (reported as warnings, step passes).');
+console.log('\nSTATUS: TRUE — only version-specific errors (warnings + neutral PR check, step passes).');
 process.exit(0);
