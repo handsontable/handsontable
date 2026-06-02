@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed `RowUpdatePayload` fields being accidentally renamed from `{ id, changes }` to `{ rowId, data }` during TypeScript migration.",
+  "type": "fixed",
+  "issueOrPR": 12684,
+  "breaking": false,
+  "framework": "none"
+}
