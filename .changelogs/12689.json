@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Removed the numbro dependency. The numericFormat.pattern and numericFormat.culture options now emit a one-time warning and fall back to Intl.NumberFormat formatting.",
+  "title": "Removed the numbro, moment.js, DOMPurify, and @handsontable/pikaday dependencies. Numeric formatting now uses Intl.NumberFormat; date and time formatting uses Intl.DateTimeFormat; the date editor uses a native input[type=date]; HTML sanitization is a pass-through unless a sanitizer option is provided.",
   "type": "removed",
   "issueOrPR": 12689,
   "breaking": true,
