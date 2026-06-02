@@ -113,7 +113,9 @@ export interface HotInstance {
   getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): string;
   getCopyableData(row: number, column: number): string;
   getCopyableSourceData(row: number, column: number): string;
-  setDataAtCell(row: number | unknown[][], column?: number | null, value?: unknown, source?: string): void;
+  // `column` accepts a string so the documented `setDataAtCell(changes, source)` array form
+  // type-checks (the change source is read from the 2nd argument when the first is an array).
+  setDataAtCell(row: number | unknown[][], column?: number | string | null, value?: unknown, source?: string): void;
   setDataAtRowProp(row: number | unknown[][], prop?: string | number, value?: unknown, source?: string): void;
   setSourceDataAtCell(row: number | unknown[][], column?: number | string, value?: unknown, source?: string): void;
   loadData(data: unknown[], source?: string): void;
