@@ -342,6 +342,44 @@ if (process.env.GITHUB_ACTIONS === 'true') {
   for (const e of inBoth) annotate('error', e, 'fails on BOTH local and latest');
   for (const e of localOnly) annotate('warning', e, 'local dev build only');
   for (const e of latestOnly) annotate('warning', e, 'handsontable@latest only');
+
+  const warnCount = localOnly.length + latestOnly.length;
+
+  // When the step passes but version-specific issues exist, a green check alone
+  // makes it look problem-free. Emit a top-level ::warning so the run shows the
+  // yellow "this run has warnings" banner even with exit 0.
+  if (inBoth.length === 0 && warnCount > 0) {
+    console.log(
+      `::warning title=Angular type-check passed with ${warnCount} version-specific issue(s)::`
+      + esc(`${warnCount} example(s) type-check on only one Handsontable version. `
+        + 'The step passed (no error shared by both versions) but these need attention — see annotations / job summary.'),
+    );
+  }
+
+  // Job summary: a markdown panel on the run page that is hard to miss, unlike
+  // file annotations which are easy to overlook on a green step.
+  const summaryFile = process.env.GITHUB_STEP_SUMMARY;
+  if (summaryFile) {
+    const row = (e, scope) => `| ${e.exampleId} | \`${e.code}\` | ${scope} | ${e.message.replace(/\|/g, '\\|')} |`;
+    const lines = [];
+    lines.push('## Angular docs type-check');
+    lines.push('');
+    lines.push(`**Result:** ${inBoth.length > 0 ? '❌ FAILED' : '⚠️ PASSED WITH WARNINGS'} `
+      + `(latest = ${version})`);
+    lines.push('');
+    lines.push(`- ❌ Errors in **both** versions (fail the run): **${inBoth.length}**`);
+    lines.push(`- ⚠️ Version-specific issues (warnings only): **${localOnly.length + latestOnly.length}**`);
+    lines.push('');
+    if (inBoth.length + localOnly.length + latestOnly.length > 0) {
+      lines.push('| Example | Code | Scope | Message |');
+      lines.push('| --- | --- | --- | --- |');
+      for (const e of inBoth) lines.push(row(e, '❌ both versions'));
+      for (const e of localOnly) lines.push(row(e, '⚠️ local only'));
+      for (const e of latestOnly) lines.push(row(e, '⚠️ latest only'));
+      lines.push('');
+    }
+    fs.appendFileSync(summaryFile, `${lines.join('\n')}\n`);
+  }
 }
 
 console.log(
