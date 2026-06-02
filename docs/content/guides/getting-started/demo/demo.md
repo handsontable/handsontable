@@ -52,6 +52,16 @@ Explore Handsontable core features in this interactive demo. Click cells, sort c
 
 :::
 
+::: only-for vue
+
+::: example-without-tabs #example3 :vue
+
+@[code](@/content/guides/getting-started/demo/vue/example3.vue)
+
+:::
+
+:::
+
 ## Find the code on GitHub
 
 <div class="boxes-list gray">
