@@ -97,7 +97,7 @@ const hot = new Handsontable(container, {
       return { rows: json.rows as Product[], totalRows: json.totalRows as number };
     },
 
-    onRowsCreate: async (payload: { position: string; referenceRowId: number; rowsAmount: number }): Promise<Product[]> => {
+    onRowsCreate: async (payload: { position: 'above' | 'below'; referenceRowId: number; rowsAmount: number }): Promise<Product[]> => {
       const res = await fetch('/api/products/create-rows', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
