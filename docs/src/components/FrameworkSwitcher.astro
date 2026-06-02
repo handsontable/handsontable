@@ -16,12 +16,15 @@ const currentPrefix = pathname.includes('/react-data-grid/')
   ? 'react-data-grid'
   : pathname.includes('/angular-data-grid/')
     ? 'angular-data-grid'
-    : 'javascript-data-grid';
+    : pathname.includes('/vue-data-grid/')
+      ? 'vue-data-grid'
+      : 'javascript-data-grid';
 
 const frameworks = [
   { id: 'javascript-data-grid', label: 'JS', fullName: 'JavaScript', icon: 'i-javascript' },
   { id: 'react-data-grid', label: 'React', fullName: 'React', icon: 'i-react' },
   { id: 'angular-data-grid', label: 'Angular', fullName: 'Angular', icon: 'i-angular' },
+  { id: 'vue-data-grid', label: 'Vue', fullName: 'Vue 3', icon: 'i-vue' },
 ];
 
 const current = frameworks.find((f) => f.id === currentPrefix)!;
@@ -142,5 +145,10 @@ const items = frameworks.map((fw) => ({
   .i-angular {
     -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M5.428 17.245l6.076 3.471a1 1 0 0 0 .992 0l6.076 -3.471a1 1 0 0 0 .495 -.734l1.323 -9.704a1 1 0 0 0 -.658 -1.078l-7.4 -2.612a1 1 0 0 0 -.665 0l-7.399 2.613a1 1 0 0 0 -.658 1.078l1.323 9.704a1 1 0 0 0 .495 .734l0 -.001'/%3E%3Cpath d='M9 15l3 -8l3 8'/%3E%3Cpath d='M10 13h4'/%3E%3C/svg%3E");
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M5.428 17.245l6.076 3.471a1 1 0 0 0 .992 0l6.076 -3.471a1 1 0 0 0 .495 -.734l1.323 -9.704a1 1 0 0 0 -.658 -1.078l-7.4 -2.612a1 1 0 0 0 -.665 0l-7.399 2.613a1 1 0 0 0 -.658 1.078l1.323 9.704a1 1 0 0 0 .495 .734l0 -.001'/%3E%3Cpath d='M9 15l3 -8l3 8'/%3E%3Cpath d='M10 13h4'/%3E%3C/svg%3E");
+  }
+
+  .i-vue {
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M16.5 4l-4.5 8l-4.5 -8'/%3E%3Cpath d='M3 4l9 16l9 -16'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath stroke='none' d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M16.5 4l-4.5 8l-4.5 -8'/%3E%3Cpath d='M3 4l9 16l9 -16'/%3E%3C/svg%3E");
   }
 </style>
