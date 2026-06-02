@@ -2,7 +2,8 @@
   "name": "docs-angular-type-check",
   "private": true,
   "scripts": {
-    "typecheck": "node check.mjs"
+    "typecheck": "node check.mjs",
+    "report": "node check.mjs --report"
   },
   "devDependencies": {
     "@angular/common": "^19.2.20",
