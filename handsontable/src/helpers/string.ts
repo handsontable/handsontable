@@ -101,7 +101,21 @@ export function substitute(template: string, variables: Record<string, unknown> 
  * @returns {string}
  */
 export function stripTags(string: string): string {
-  return String(string).replace(/<[^>]*>/g, '');
+  const str = String(string);
+  let result = '';
+  let depth = 0;
+
+  for (let i = 0; i < str.length; i++) {
+    if (str[i] === '<') {
+      depth++;
+    } else if (str[i] === '>' && depth > 0) {
+      depth--;
+    } else if (depth === 0) {
+      result += str[i];
+    }
+  }
+
+  return result;
 }
 
 /**

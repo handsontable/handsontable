@@ -68,7 +68,7 @@ describe('String helper', () => {
     it('should strip any HTML tags from the string', () => {
       expect(stripTags('')).toBe('');
       expect(stripTags('<i>foo</i>')).toBe('foo');
-      expect(stripTags('<i<test>mg src onerror=alert(1)>test')).toBe('mg src onerror=alert(1)>test');
+      expect(stripTags('<i<test>mg src onerror=alert(1)>test')).toBe('test');
       expect(stripTags('<script>alert()</script>')).toBe('alert()');
       expect(stripTags('<strong>Hello</strong> <span class="my">my</span> world<sup>2</sup>')).toBe('Hello my world2');
       expect(stripTags('This is my <a href="https://handsontable.com">link</a>')).toBe('This is my link');
