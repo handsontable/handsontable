@@ -5,7 +5,13 @@ export const CONDITION_NAME = 'by_value';
 
 type DataRow = {
   value: unknown;
-  meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown };
+  meta: {
+    type?: string;
+    locale?: string;
+    dateFormat?: Intl.DateTimeFormatOptions;
+    instance?: unknown;
+    [key: string]: unknown
+  };
 };
 
 /**

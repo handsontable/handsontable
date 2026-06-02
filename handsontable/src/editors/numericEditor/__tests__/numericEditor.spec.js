@@ -619,12 +619,12 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(2, 1)).toEqual('12aaa');
   });
 
-  it('should display a string in a format \'$X,XXX.XX\' when using language=en, appropriate format in column settings and \'XXXX.XX\' as ' +
+  it('should display a string in a format \'$X,XXX.XX\' when using locale=en-US, appropriate format in column settings and \'XXXX.XX\' as ' +
      'an input string', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        { data: 'id', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
+        { data: 'id', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' }, locale: 'en-US' },
         { data: 'name' },
         { data: 'lastName' }
       ]
@@ -642,12 +642,12 @@ describe('NumericEditor', () => {
     expect(getCell(2, 0).innerHTML).toEqual('$2,456.22');
   });
 
-  it('should display a string in a format \'X.XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX,XX\' as an ' +
-     'input string (that comes from manual input)', async() => {
+  it('should display a string in a format \'X.XXX,XX €\' when using locale=de-DE, appropriate format in column settings and \'XXXX.XX\' as an ' +
+     'input string', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00 $', culture: 'de-DE' } },
+        { data: 'id', type: 'numeric', numericFormat: { style: 'currency', currency: 'EUR' }, locale: 'de-DE' },
         { data: 'name' },
         { data: 'lastName' }
       ]
@@ -656,23 +656,23 @@ describe('NumericEditor', () => {
     await selectCell(2, 0);
     await keyDownUp('enter');
 
-    document.activeElement.value = '2456,22';
+    document.activeElement.value = '2456.22';
 
     destroyEditor();
 
     await waitForNextAnimationFrames(2);
 
-    expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
+    expect(getCell(2, 0).innerHTML).toEqual('2.456,22&nbsp;€');
   });
 
-  it('should display a string in a format \'X.XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX.XX\' as an ' +
+  it('should display a string in a format \'X.XXX,XX €\' when using locale=de-DE, appropriate format in column settings and \'XXXX.XX\' as an ' +
      'input string (that comes from paste)', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00 $', culture: 'de-DE' } },
+        { data: 'id', type: 'numeric', numericFormat: { style: 'currency', currency: 'EUR' }, locale: 'de-DE' },
         { data: 'name' },
         { data: 'lastName' }
       ],
@@ -688,10 +688,10 @@ describe('NumericEditor', () => {
 
     await waitForNextAnimationFrames(2);
 
-    expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
+    expect(getCell(2, 0).innerHTML).toEqual('2.456,22&nbsp;€');
   });
 
-  it('should display a string in a format \'X XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX,XX\' as an ' +
+  it('should display a string in a format \'X XXX,XX €\' when using locale=de-DE, appropriate format in column settings and \'XXXX.XX\' as an ' +
      'input string and ignore not needed zeros at the end', async() => {
     handsontable({
       data: [
@@ -707,23 +707,23 @@ describe('NumericEditor', () => {
         { id: 10, name: 'Eve', lastName: 'Branson', money: 0 }
       ],
       columns: [
-        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00 $', culture: 'de-DE' } },
+        { data: 'id', type: 'numeric', numericFormat: { style: 'currency', currency: 'EUR' }, locale: 'de-DE' },
         { data: 'name' },
         { data: 'lastName' },
-        { data: 'money', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } }
+        { data: 'money', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' }, locale: 'en-US' }
       ]
     });
 
     await selectCell(2, 0);
     await keyDownUp('enter');
 
-    document.activeElement.value = '2456,220';
+    document.activeElement.value = '2456.220';
 
     destroyEditor();
 
     await waitForNextAnimationFrames(2);
 
-    expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
+    expect(getCell(2, 0).innerHTML).toEqual('2.456,22&nbsp;€');
 
     await selectCell(2, 3);
     await keyDownUp('enter');

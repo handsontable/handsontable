@@ -1,4 +1,3 @@
-import DOMPurify, { type Config as DOMPurifyConfig } from 'dompurify';
 import { stringify } from './mixed';
 
 /**
@@ -102,18 +101,19 @@ export function substitute(template: string, variables: Record<string, unknown> 
  * @returns {string}
  */
 export function stripTags(string: string): string {
-  return sanitize(`${string}`, { ALLOWED_TAGS: [] });
+  return String(string).replace(/<[^>]*>/g, '');
 }
 
 /**
- * Sanitizes string from potential security vulnerabilities.
+ * Returns the string unchanged.
  *
- * @param {string} string String to sanitize.
- * @param {object} [options] DOMPurify's configuration object.
+ * @deprecated Default sanitization is now a pass-through. Use the sanitizer
+ * configuration option to supply a custom sanitizer function.
+ * @param {string} string String to return.
  * @returns {string}
  */
-export function sanitize(string: string, options?: DOMPurifyConfig): string {
-  return DOMPurify.sanitize(string, options) as unknown as string;
+export function sanitize(string: string): string {
+  return string;
 }
 
 /**

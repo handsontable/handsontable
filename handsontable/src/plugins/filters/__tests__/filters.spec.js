@@ -184,8 +184,7 @@ describe('Filters', () => {
     const warnSpy = spyOnConsoleWarn();
 
     handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
+      data: createSpreadsheetData(10, 5),
       dropdownMenu: true,
       filters: true,
       width: 500,
@@ -219,8 +218,7 @@ describe('Filters', () => {
     const warnSpy = spyOnConsoleWarn();
 
     handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
+      data: createSpreadsheetData(10, 5),
       dropdownMenu: true,
       filters: true,
       width: 500,
@@ -245,8 +243,7 @@ describe('Filters', () => {
     const warnSpy = spyOnConsoleWarn();
 
     handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
+      data: createSpreadsheetData(10, 5),
       filters: true,
       width: 500,
       height: 300

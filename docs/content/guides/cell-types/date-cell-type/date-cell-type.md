@@ -26,7 +26,7 @@ The date cell type provides a date picker for selecting and displaying dates. It
 
 ## Overview
 
-The date cell type lets you treat cell values as dates: format how they are displayed, validate input, and use an interactive date picker in the editor. Handsontable supports two configurations: the **object-style** configuration using the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API (recommended), and a **string-style** configuration using [Moment.js](https://github.com/moment/moment) (deprecated).
+The date cell type lets you treat cell values as dates: format how they are displayed, validate input, and use an interactive date picker in the editor. Use the `intl-date` cell type with the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API and ISO 8601 date strings.
 
 ## Date cell type demo
 
@@ -299,43 +299,6 @@ settings = {
 
 For a complete reference, see the [`dateFormat` API documentation](@/api/options.md#dateformat) or [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
 
-### Using string format with Moment.js (deprecated)
-
-::: warning Deprecated
-The **string form** of [`dateFormat`](@/api/options.md#dateformat) (e.g. `'DD/MM/YYYY'`, `'YYYY-MM-DD'`) is deprecated and will be removed in the next major release. It is used only by the `date` cell type, which relies on [Moment.js](https://github.com/moment/moment) and [Pikaday](https://github.com/dbushell/Pikaday). Migrate to the `intl-date` cell type with an `Intl.DateTimeFormat` options object.
-:::
-
-The `date` cell type with a string `dateFormat` is still supported but will be removed in next major release.
-
-**Deprecated options:**
-
-| Option               | Description | Replacement |
-| -------------------- | ----------- | ----------- |
-| `dateFormat` (string)| Moment.js format (e.g. `'DD/MM/YYYY'`) | Use `intl-date` with `dateFormat` object (see above) |
-| `correctFormat`      | Auto-correct entered date to match format | May be handled by [`valueParser`](@/api/options.md#valueparser) and/or [`valueSetter`](@/api/options.md#valuesetter) options |
-| `datePickerConfig`   | Pikaday options for the date picker | `intl-date` uses a native date picker; no direct equivalent |
-
-**Migration example:**
-
-```js
-// Before (deprecated)
-columns: [{
-  type: 'date',
-  dateFormat: 'YYYY-MM-DD',
-}]
-
-// After (recommended)
-columns: [{
-  type: 'intl-date',
-  locale: 'en-US',
-  dateFormat: {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }
-}]
-```
-
 ### Editor behavior
 
 The [`dateFormat`](@/api/options.md#dateformat) option controls how dates are displayed in the cell. The editor (date picker or text input) may show the value in a normalized form; for `intl-date`, the underlying value remains in ISO 8601 format.
@@ -361,8 +324,6 @@ After configuring the date cell type, cells display dates formatted according to
 - [dateFormat](@/api/options.md#dateformat)
 - [locale](@/api/options.md#locale)
 - [type](@/api/options.md#type)
-- [correctFormat](@/api/options.md#correctformat)
-- [datePickerConfig](@/api/options.md#datepickerconfig)
 - [defaultDate](@/api/options.md#defaultdate)
 - [valueFormatter](@/api/options.md#valueformatter)
 - [valueParser](@/api/options.md#valueparser)

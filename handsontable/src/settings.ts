@@ -10,8 +10,8 @@ import type { GridSettings } from './core/settings';
  * Row objects can have any data assigned to them, not just column data, and can define a `__children` array for nested rows.
  */
 export interface RowObject {
-    [prop: string]: any;
-  }
+  [prop: string]: any;
+}
 
 /**
  * A cell value, which can be anything to support custom cell data types, but by default is `string | number | boolean | undefined`.
@@ -31,9 +31,9 @@ export interface SelectOptionsObject {
 export type SourceRowData = RowObject | CellValue[];
 
 export interface ColumnDataGetterSetterFunction {
-    (row: RowObject | CellValue[]): CellValue;
-    (row: RowObject | CellValue[], value: CellValue): void;
-  }
+  (row: RowObject | CellValue[]): CellValue;
+  (row: RowObject | CellValue[], value: CellValue): void;
+}
 
 /**
  * A cell change represented by `[row, column, prevValue, nextValue]`.
@@ -52,7 +52,7 @@ export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'updateData' | 'popula
   'ColumnSummary.reset' | 'DataProvider.revert';
 
 /**
- * Numeric format options (numbro or Intl).
+ * Numeric format options (Intl.NumberFormat).
  */
 export type NumericFormatOptions = Record<string, unknown> | Intl.NumberFormatOptions;
 
@@ -61,32 +61,32 @@ export type { GridSettings } from './core/settings';
  * Column settings inherit grid settings but overload the meaning of `data` to be specific to each column.
  */
 export interface ColumnSettings extends Omit<GridSettings, 'data'> {
-    data?: string | number | ColumnDataGetterSetterFunction;
-    /**
-     * Column and cell meta data is extensible, developers can add any properties they want.
-     */
-    [key: string]: any;
-  }
+  data?: string | number | ColumnDataGetterSetterFunction;
+  /**
+   * Column and cell meta data is extensible, developers can add any properties they want.
+   */
+  [key: string]: any;
+}
 
 /**
  * Additional cell-specific meta data.
  */
 export interface CellMeta extends ColumnSettings {
-    valid?: boolean;
-    comment?: CommentObject;
-    isSearchResult?: boolean;
-    hidden?: boolean;
-    skipRowOnPaste?: boolean;
-  }
+  valid?: boolean;
+  comment?: CommentObject;
+  isSearchResult?: boolean;
+  hidden?: boolean;
+  skipRowOnPaste?: boolean;
+}
 
 /**
  * A rendered cell object with computed properties.
  */
 export interface CellProperties extends CellMeta {
-    row: number;
-    col: number;
-    instance: Handsontable;
-    visualRow: number;
-    visualCol: number;
-    prop: string | number;
-  }
+  row: number;
+  col: number;
+  instance: Handsontable;
+  visualRow: number;
+  visualCol: number;
+  prop: string | number;
+}

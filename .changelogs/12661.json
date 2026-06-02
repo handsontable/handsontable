@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Removed the DOMPurify dependency. Default HTML sanitization is now a pass-through. Use the sanitizer option to provide a custom sanitization function.",
+  "type": "removed",
+  "issueOrPR": 12661,
+  "breaking": true,
+  "framework": "none"
+}

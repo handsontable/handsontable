@@ -3,7 +3,7 @@ type: how-to
 id: q63yhvq5
 title: Time cell type
 metaTitle: Time cell type - JavaScript Data Grid | Handsontable
-description: Display, format, sort, and filter time values correctly by using the time cell type. Use Intl.DateTimeFormat (recommended) or the legacy moment.js-based configuration.
+description: Display, format, sort, and filter time values correctly by using the time cell type.
 permalink: /time-cell-type
 canonicalUrl: /time-cell-type
 react:
@@ -26,7 +26,7 @@ The time cell type formats time values using a configurable format string. Use i
 
 ## Overview
 
-The time cell type lets you treat cell values as times: format how they are displayed and validate input. Handsontable supports two configurations: the **object-style** configuration using the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API (recommended), and a **string-style** configuration using [Moment.js](https://github.com/moment/moment) (deprecated).
+The time cell type lets you treat cell values as times: format how they are displayed and validate input. Use the `intl-time` cell type with the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API and 24-hour time strings.
 
 ## Time cell type demo
 
@@ -294,43 +294,6 @@ settings = {
 
 For a complete reference, see the [`timeFormat` API documentation](@/api/options.md#timeformat) or [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
 
-### Using string format with Moment.js (deprecated)
-
-::: warning Deprecated
-The **string form** of [`timeFormat`](@/api/options.md#timeformat) (e.g. `'h:mm:ss a'`) is deprecated and will be removed in the next major release. It is used only by the `time` cell type, which relies on [Moment.js](https://github.com/moment/moment). Migrate to the `intl-time` cell type with an `Intl.DateTimeFormat` options object.
-:::
-
-The `time` cell type with a string `timeFormat` is still supported but will be removed in next major release.
-
-**Deprecated options:**
-
-| Option               | Description | Replacement |
-| -------------------- | ----------- | ----------- |
-| `timeFormat` (string)| Moment.js format (e.g. `'h:mm:ss a'`) | Use `intl-time` with `timeFormat` object (see above) |
-| `correctFormat`      | Auto-correct entered time to match format | May be handled by [`valueParser`](@/api/options.md#valueparser) and/or [`valueSetter`](@/api/options.md#valuesetter) options |
-
-**Migration example:**
-
-```js
-// Before (deprecated)
-columns: [{
-  type: 'time',
-  timeFormat: 'h:mm:ss a',
-}]
-
-// After (recommended)
-columns: [{
-  type: 'intl-time',
-  locale: 'en-US',
-  timeFormat: {
-    hour: 'numeric',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-  }
-}]
-```
-
 ### Editor behavior
 
 The [`timeFormat`](@/api/options.md#timeformat) option controls how times are displayed in the cell. The editor may show the value in a normalized form; for `intl-time`, the underlying value remains in 24-hour format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`).
@@ -356,7 +319,6 @@ After configuring the time cell type, cells display time values formatted accord
 - [timeFormat](@/api/options.md#timeformat)
 - [locale](@/api/options.md#locale)
 - [type](@/api/options.md#type)
-- [correctFormat](@/api/options.md#correctformat)
 - [valueFormatter](@/api/options.md#valueformatter)
 - [valueParser](@/api/options.md#valueparser)
 - [valueSetter](@/api/options.md#valuesetter)

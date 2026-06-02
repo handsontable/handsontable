@@ -1,4 +1,4 @@
-describe('IntlTimeType - allowEmpty', () => {
+describe('TimeType - allowEmpty', () => {
   const id = 'testContainer';
 
   beforeEach(function() {

@@ -1,4 +1,4 @@
-describe('IntlDateType - allowEmpty', () => {
+describe('DateType - allowEmpty', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -17,7 +17,7 @@ describe('IntlDateType - allowEmpty', () => {
 
     handsontable({
       data: [['2026-01-28']],
-      type: 'intl-date',
+      type: 'date',
       allowEmpty: true,
     });
 
@@ -31,14 +31,14 @@ describe('IntlDateType - allowEmpty', () => {
 
     handsontable({
       data: [['2026-01-28']],
-      type: 'intl-date',
+      type: 'date',
       allowEmpty: false,
     });
 
     await setSourceDataAtCell(0, 0, '');
 
     expect(warnSpy).toHaveBeenCalledWith('Source data warning (1 cell). ' +
-      'Invalid value for "intl-date" cell type.\n\n' +
+      'Invalid value for "date" cell type.\n\n' +
       'Affected cells:\n' +
       '  - row 0, col 0, value: ""\n\n' +
       'Expected a value compatible with the ISO 8601 date format ("YYYY-MM-DD").'
@@ -50,7 +50,7 @@ describe('IntlDateType - allowEmpty', () => {
 
     handsontable({
       data: [['2026-01-28']],
-      type: 'intl-date',
+      type: 'date',
       allowEmpty: false,
     });
 

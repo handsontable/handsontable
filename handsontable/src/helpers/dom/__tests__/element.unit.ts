@@ -742,54 +742,30 @@ describe('DomElement helper', () => {
   // Handsontable.helper.fastInnerHTML
   //
   describe('fastInnerHTML', () => {
-    it('should print a deprecation warning if the default sanitizer is used', () => {
-      spyOn(console, 'warn');
-
-      fastInnerHTML({ innerHTML: '' }, '<img src onerror=alert(1)>');
-
-      // eslint-disable-next-line no-console
-      expect(console.warn).toHaveBeenCalledWith(
-        'Deprecated: The HTML sanitization using DOMPurify library is deprecated and will be removed in ' +
-        'the next major release. Use the `sanitizer` option instead.\n\n' +
-        'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
-        '`sanitizer` documentation: https://handsontable.com/docs/api/options/#sanitizer'
-      );
-    });
-
-    it('should not print a deprecation warning if a custom sanitizer is used', () => {
-      spyOn(console, 'warn');
-
-      fastInnerHTML({ innerHTML: '' }, '<img src onerror=alert(1)>', (content) => {
-        return content.replace('alert(1)', 'alert(2)');
-      });
-
-      // eslint-disable-next-line no-console
-      expect(console.warn).not.toHaveBeenCalled();
-    });
-
-    it('should be possible to sanitize the HTML (by default the content is sanitized)', () => {
+    it('should pass the HTML through unchanged when the default sanitizer (pass-through) is used', () => {
       const elementMock = {
         innerHTML: '',
       };
 
       fastInnerHTML(elementMock, '<img src onerror=alert(1)>');
 
-      expect(elementMock.innerHTML).toBe('<img src="">');
+      expect(elementMock.innerHTML).toBe('<img src onerror=alert(1)>');
 
       fastInnerHTML(elementMock, '<script>alert()</script>');
 
-      expect(elementMock.innerHTML).toBe('');
+      expect(elementMock.innerHTML).toBe('<script>alert()</script>');
 
       fastInnerHTML(elementMock, '<strong>Hello</strong> <span class="my">my <sup>world</span>2</sup>');
 
-      expect(elementMock.innerHTML).toBe('<strong>Hello</strong> <span class="my">my <sup>world</sup></span>2');
+      expect(elementMock.innerHTML).toBe('<strong>Hello</strong> <span class="my">my <sup>world</span>2</sup>');
 
       fastInnerHTML(
         elementMock,
         '<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>'
       );
 
-      expect(elementMock.innerHTML).toBe('This is my <a href="https://handsontable.com">link</a>');
+      expect(elementMock.innerHTML)
+        .toBe('<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>');
     });
 
     it('should be possible to disable content sanitization', () => {

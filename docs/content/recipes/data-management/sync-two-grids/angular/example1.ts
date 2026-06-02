@@ -96,7 +96,7 @@ export class AppComponent {
       { data: 'plan', type: 'dropdown', source: ['Starter', 'Team', 'Business', 'Enterprise'], width: 130 },
       { data: 'seats', type: 'numeric', width: 70 },
       { data: 'pricePerSeat', type: 'numeric', numericFormat: { pattern: '$0,0.00' }, width: 105 },
-      { data: 'lastActive', type: 'date', dateFormat: 'YYYY-MM-DD', correctFormat: true, width: 130 },
+      { data: 'lastActive', type: 'date', width: 130 },
     ],
     rowHeaders: true,
     height: 260,

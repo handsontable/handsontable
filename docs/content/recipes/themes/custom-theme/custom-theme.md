@@ -310,7 +310,6 @@ const DataGrid = forwardRef<HotTableRef, unknown>(function DataGrid(_, ref) {
       data="lastLoginDate"
       type="date"
       className="htRight"
-      correctFormat={true}
       dateFormat="MMM DD, YYYY"
       width={180}
     />
@@ -318,7 +317,6 @@ const DataGrid = forwardRef<HotTableRef, unknown>(function DataGrid(_, ref) {
       data="lastLoginTime"
       type="time"
       className="htRight"
-      correctFormat={true}
       timeFormat="HH:mm"
       width={180}
     />

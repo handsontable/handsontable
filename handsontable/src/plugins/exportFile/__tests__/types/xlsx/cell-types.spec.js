@@ -69,24 +69,6 @@ describe('exportFile XLSX type — cell types', () => {
       expect(ws.getRow(1).getCell(2).value).toBe(3.14);
     });
 
-    it('should apply the numericFormat pattern as an Excel numFmt', async() => {
-      handsontable({
-        data: [[142000, 3.14, 0.75]],
-        columns: [
-          { type: 'numeric', numericFormat: { pattern: '$0,0.00' } },
-          { type: 'numeric', numericFormat: { pattern: '0,0.00' } },
-          { type: 'numeric', numericFormat: { pattern: '0.00%' } },
-        ],
-        exportFile: { engines: { xlsx: ExcelJS } },
-      });
-
-      const ws = await parseXlsx();
-
-      expect(ws.getRow(1).getCell(1).numFmt).toBe('$#,##0.00');
-      expect(ws.getRow(1).getCell(2).numFmt).toBe('#,##0.00');
-      expect(ws.getRow(1).getCell(3).numFmt).toBe('0.00%');
-    });
-
     it('should place the currency symbol before the number for prefix locales (en-US / USD)', async() => {
       handsontable({
         data: [[1234.56]],
@@ -157,8 +139,9 @@ describe('exportFile XLSX type — cell types', () => {
     // The test is disabled until the post-processing step is implemented.
     //
     // To reproduce manually: export any Handsontable with a `numeric`-type column using
-    // `numericFormat: { pattern: '$0,0.00' }`, open the XLSX in Excel for Mac, select a
-    // numeric cell, press ⌘1 — Category shows "Custom" instead of "Currency".
+    // `numericFormat: { style: 'currency', currency: 'USD' }` and `locale: 'en-US'`,
+    // open the XLSX in Excel for Mac, select a numeric cell,
+    // press ⌘1 — Category shows "Custom" instead of "Currency".
     xit('should render currency cells in the "Currency" format category (not "Custom") in Excel', async() => {
       // OOXML built-in format IDs that Excel maps to the "Currency" category:
       // 5 → $#,##0_);($#,##0)    6 → $#,##0_);[Red]($#,##0)
@@ -170,7 +153,11 @@ describe('exportFile XLSX type — cell types', () => {
 
       handsontable({
         data: [[142000]],
-        columns: [{ type: 'numeric', numericFormat: { pattern: '$0,0.00' } }],
+        columns: [{
+          type: 'numeric',
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2 },
+          locale: 'en-US',
+        }],
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 

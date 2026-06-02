@@ -1,4 +1,4 @@
-describe('IntlDateType - allowInvalid', () => {
+describe('TimeType - allowInvalid', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -14,65 +14,65 @@ describe('IntlDateType - allowInvalid', () => {
 
   it('should pass-through non valid value when allowInvalid is true', async() => {
     handsontable({
-      data: [['2026-01-28', '2026-01', 'test', '2026-01-29']],
-      type: 'intl-date',
-      dateFormat: { dateStyle: 'short' },
+      data: [['12:00', '12:00:00', '12:00:00.000', 'test']],
+      type: 'intl-time',
+      timeFormat: { timeStyle: 'short' },
       allowInvalid: true,
     });
 
-    expect(getData()).toEqual([['2026-01-28', '2026-01', 'test', '2026-01-29']]);
-    expect(getSourceData()).toEqual([['2026-01-28', '2026-01', 'test', '2026-01-29']]);
-    expect(getCell(0, 0).innerText).toBe('1/28/26');
+    expect(getData()).toEqual([['12:00', '12:00:00', '12:00:00.000', 'test']]);
+    expect(getSourceData()).toEqual([['12:00', '12:00:00', '12:00:00.000', 'test']]);
+    expect(getCell(0, 0).innerText).toBe('12:00 PM');
 
     await setDataAtCell(0, 0, 'test');
     await waitForNextAnimationFrames(1);
 
-    expect(getData()).toEqual([['test', '2026-01', 'test', '2026-01-29']]);
-    expect(getSourceData()).toEqual([['test', '2026-01', 'test', '2026-01-29']]);
+    expect(getData()).toEqual([['test', '12:00:00', '12:00:00.000', 'test']]);
+    expect(getSourceData()).toEqual([['test', '12:00:00', '12:00:00.000', 'test']]);
     expect(getCell(0, 0).innerText).toBe('#bad-value#');
 
     await setSourceDataAtCell(0, 0, 'test2');
     await waitForNextAnimationFrames(1);
 
-    expect(getData()).toEqual([['test2', '2026-01', 'test', '2026-01-29']]);
-    expect(getSourceData()).toEqual([['test2', '2026-01', 'test', '2026-01-29']]);
+    expect(getData()).toEqual([['test2', '12:00:00', '12:00:00.000', 'test']]);
+    expect(getSourceData()).toEqual([['test2', '12:00:00', '12:00:00.000', 'test']]);
     expect(getCell(0, 0).innerText).toBe('#bad-value#');
   });
 
   it('should reject non valid value when allowInvalid is false', async() => {
     handsontable({
-      data: [['2026-01-28', '2026-01', 'test', '2026-01-29']],
-      type: 'intl-date',
-      dateFormat: { dateStyle: 'short' },
+      data: [['12:00', '56:00', '11:11', 'test']],
+      type: 'intl-time',
+      timeFormat: { timeStyle: 'short' },
       allowEmpty: true,
       allowInvalid: false,
     });
 
-    expect(getData()).toEqual([['2026-01-28', null, null, '2026-01-29']]);
-    expect(getSourceData()).toEqual([['2026-01-28', null, null, '2026-01-29']]);
-    expect(getCell(0, 0).innerText).toBe('1/28/26');
+    expect(getData()).toEqual([['12:00', null, '11:11', null]]);
+    expect(getSourceData()).toEqual([['12:00', null, '11:11', null]]);
+    expect(getCell(0, 0).innerText).toBe('12:00 PM');
 
     await setDataAtCell(0, 0, 'test');
     await waitForNextAnimationFrames(1);
 
-    expect(getData()).toEqual([['2026-01-28', null, null, '2026-01-29']]);
-    expect(getSourceData()).toEqual([['2026-01-28', null, null, '2026-01-29']]);
-    expect(getCell(0, 0).innerText).toBe('1/28/26');
+    expect(getData()).toEqual([['12:00', null, '11:11', null]]);
+    expect(getSourceData()).toEqual([['12:00', null, '11:11', null]]);
+    expect(getCell(0, 0).innerText).toBe('12:00 PM');
 
     await setSourceDataAtCell(0, 0, 'test');
     await waitForNextAnimationFrames(1);
 
-    expect(getData()).toEqual([['2026-01-28', null, null, '2026-01-29']]);
-    expect(getSourceData()).toEqual([['2026-01-28', null, null, '2026-01-29']]);
-    expect(getCell(0, 0).innerText).toBe('1/28/26');
+    expect(getData()).toEqual([['12:00', null, '11:11', null]]);
+    expect(getSourceData()).toEqual([['12:00', null, '11:11', null]]);
+    expect(getCell(0, 0).innerText).toBe('12:00 PM');
   });
 
   it('should not print warning message on `setSourceDataAtCell` when source data is empty and allowInvalid is true', async() => {
     const warnSpy = spyOnConsoleWarn();
 
     handsontable({
-      data: [['2026-01-28']],
-      type: 'intl-date',
+      data: [['12:00']],
+      type: 'intl-time',
       allowInvalid: true,
     });
 
@@ -85,8 +85,8 @@ describe('IntlDateType - allowInvalid', () => {
     const warnSpy = spyOnConsoleWarn();
 
     handsontable({
-      data: [['2026-01-28']],
-      type: 'intl-date',
+      data: [['12:00']],
+      type: 'intl-time',
       allowInvalid: false,
       allowEmpty: false,
     });
@@ -94,21 +94,21 @@ describe('IntlDateType - allowInvalid', () => {
     await setSourceDataAtCell(0, 0, '');
 
     expect(warnSpy).toHaveBeenCalledWith('Source data warning (1 cell). ' +
-      'Invalid value for "intl-date" cell type.\n\n' +
+      'Invalid value for "intl-time" cell type.\n\n' +
       'Affected cells:\n' +
       '  - row 0, col 0, value: ""\n\n' +
-      'Expected a value compatible with the ISO 8601 date format ("YYYY-MM-DD").'
+      'Expected a value compatible with the 24-hour time format ("HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS").'
     );
 
     warnSpy.calls.reset();
 
-    await setSourceDataAtCell(0, 0, '2026-01');
+    await setSourceDataAtCell(0, 0, '12:000');
 
     expect(warnSpy).toHaveBeenCalledWith('Source data warning (1 cell). ' +
-      'Invalid value for "intl-date" cell type.\n\n' +
+      'Invalid value for "intl-time" cell type.\n\n' +
       'Affected cells:\n' +
-      '  - row 0, col 0, value: "2026-01"\n\n' +
-      'Expected a value compatible with the ISO 8601 date format ("YYYY-MM-DD").'
+      '  - row 0, col 0, value: "12:000"\n\n' +
+      'Expected a value compatible with the 24-hour time format ("HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS").'
     );
   });
 
@@ -116,8 +116,8 @@ describe('IntlDateType - allowInvalid', () => {
     const warnSpy = spyOnConsoleWarn();
 
     handsontable({
-      data: [['2026-01-28']],
-      type: 'intl-date',
+      data: [['12:00']],
+      type: 'intl-time',
       allowInvalid: false,
       allowEmpty: false,
     });

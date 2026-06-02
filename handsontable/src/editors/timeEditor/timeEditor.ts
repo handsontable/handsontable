@@ -1,4 +1,7 @@
 import { TextEditor } from '../textEditor';
+import { isValidTime } from '../../helpers/dateTime';
+import { warn } from '../../helpers/console';
+import { toSingleLine } from '../../helpers/templateLiteralTag';
 
 export const EDITOR_TYPE = 'time';
 
@@ -11,21 +14,45 @@ export class TimeEditor extends TextEditor {
     return EDITOR_TYPE;
   }
 
-  /**
-   * Prepares editor's meta data.
-   *
-   * @param {number} row The visual row index.
-   * @param {number} col The visual column index.
-   * @param {number|string} prop The column property (passed when datasource is an array of objects).
-   * @param {HTMLTableCellElement} td The rendered cell element.
-   * @param {*} value The rendered value.
-   * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
-   */
-  prepare(
-    row: number, col: number, prop: string | number,
-    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
-    super.prepare(row, col, prop, td, value, cellProperties);
+  init(): void {
+    super.init();
 
-    this.TEXTAREA.dir = 'ltr';
+    this.hot.addHook('afterSetTheme', (themeName: string, firstRun: boolean) => {
+      if (!firstRun) {
+        this.close();
+      }
+    });
+  }
+
+  createElements(type?: string): void {
+    super.createElements('input');
+
+    this.TEXTAREA.setAttribute('type', 'time');
+    this.TEXTAREA.setAttribute('dir', 'ltr');
+  }
+
+  setValue(value?: unknown): void {
+    if (!isValidTime(value)) {
+      warn(toSingleLine`TimeEditor: value must be in 24-hour time format ("HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS")\x20
+        required by the native time input. Received:`, value);
+
+      return;
+    }
+
+    super.setValue(value);
+  }
+
+  focus(): void {
+    this.TEXTAREA.select();
+  }
+
+  open(): void {
+    super.open();
+
+    try {
+      (this.TEXTAREA as HTMLInputElement).showPicker();
+    } catch {
+      // Prevents showPicker() user-gesture errors in tests
+    }
   }
 }

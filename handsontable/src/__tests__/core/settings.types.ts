@@ -111,7 +111,6 @@ const allSettings: Required<Handsontable.GridSettings> = {
   contextMenu: true,
   copyable: true,
   copyPaste: true,
-  correctFormat: true,
   currentColClassName: 'foo',
   currentHeaderClassName: 'foo',
   currentRowClassName: 'foo',
@@ -126,16 +125,9 @@ const allSettings: Required<Handsontable.GridSettings> = {
     onRowsRemove: async() => {},
   },
   dataSchema: oneOf({}, [[]], (index: number) => oneOf([index], { index })),
-  dateFormat: oneOf('foo', { year: 'numeric', month: '2-digit', day: '2-digit' } as Intl.DateTimeFormatOptions),
-  datePickerConfig: {
-    firstDay: 0,
-    showWeekNumber: true,
-    numberOfMonths: 3,
-    disableDayFn(date) {
-      return date.getDay() === 0 || date.getDay() === 6;
-    }
-  },
+  dateFormat: oneOf({ year: 'numeric', month: '2-digit', day: '2-digit' } as Intl.DateTimeFormatOptions),
   defaultDate: 'foo',
+  timeFormat: oneOf({ hour: 'numeric', minute: '2-digit' } as Intl.DateTimeFormatOptions),
   tabNavigation: oneOf(false),
   disableVisualSelection: oneOf(
     true,

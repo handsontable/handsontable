@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Removed the moment.js dependency. Date and time validation, filtering, sorting, and formula integration now operate on ISO 8601 values natively. The intl-date and intl-time cell type keys remain as legacy aliases.",
+  "type": "removed",
+  "issueOrPR": 12663,
+  "breaking": true,
+  "framework": "none"
+}

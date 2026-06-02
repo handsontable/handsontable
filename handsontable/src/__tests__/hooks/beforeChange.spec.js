@@ -103,9 +103,6 @@ describe('Hook', () => {
         columns: [
           {
             type: 'date',
-            dateFormat: 'MM/DD/YYYY',
-            correctFormat: true,
-            defaultDate: '01/01/1900',
           },
           {
             // 2nd cell is simple text, no special options here

@@ -1,5 +1,6 @@
 export {
   VALIDATOR_TYPE,
-  correctFormat,
+  SOURCE_DATA_WARNING_MESSAGE,
   dateValidator,
+  sourceDataValidator,
 } from './dateValidator';

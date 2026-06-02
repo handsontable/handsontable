@@ -87,7 +87,7 @@ describe('NumericCellType', () => {
       })).toBe(1234567);
     });
 
-    it('should parse grouped values when only a numbro pattern is set (no locale or culture)', () => {
+    it('should parse grouped values when only a numericFormat pattern is set (no locale)', () => {
       expect(valueSetter('100,000', 0, 0, {
         numericFormat: {
           pattern: '0,0',

@@ -1,6 +1,5 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import numbro from 'numbro';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -62,7 +61,7 @@ function log_events(event, data) {
     const now = new Date().getTime();
     const diff = now - start;
     let str;
-    const vals = [i, `@${numbro(diff / 1000).format('0.000')}`, `[${event}]`];
+    const vals = [i, `@${(diff / 1000).toFixed(3)}`, `[${event}]`];
 
     for (let d = 0; d < data.length; d++) {
       try {
@@ -87,7 +86,7 @@ function log_events(event, data) {
     }
 
     if (window.console) {
-      console.log(i, `@${numbro(diff / 1000).format('0.000')}`, `[${event}]`, data);
+      console.log(i, `@${(diff / 1000).toFixed(3)}`, `[${event}]`, data);
     }
 
     const div = document.createElement('div');

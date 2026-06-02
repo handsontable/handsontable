@@ -109,8 +109,8 @@ describe('NumericRenderer', () => {
     expect(getCell(0, 0).className).toEqual('someClass someClass2 htRight htNumeric');
   });
 
-  it('should print deprecation message if numericFormat.pattern is used', async() => {
-    const warnSpy = spyOnConsoleDeprecatedWarn();
+  it('should print warn message if numericFormat.pattern is used', async() => {
+    const warnSpy = spyOnConsoleWarn();
 
     handsontable({
       data: [[123]],
@@ -119,17 +119,13 @@ describe('NumericRenderer', () => {
     });
 
     expect(warnSpy).toHaveBeenCalledWith(
-      'Deprecated: The `numericFormat.pattern` and `numericFormat.culture` options are deprecated ' +
-      'and will be removed in the next major release. Pass `Intl.NumberFormat` options ' +
-      'directly to `numericFormat` and use the `locale` cell property instead of `culture`.\n\n' +
-      'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
-      '`numericFormat` documentation: https://handsontable.com/docs/api/options/#numericformat\n' +
-      '`locale` documentation: https://handsontable.com/docs/api/options/#locale'
+      'The numericFormat.pattern and numericFormat.culture options are not supported. ' +
+      'Use Intl.NumberFormat options instead (numericFormat: { style, currency, ... }).'
     );
   });
 
-  it('should print deprecation message if numericFormat.culture is used', async() => {
-    const warnSpy = spyOnConsoleDeprecatedWarn();
+  it('should print warn message if numericFormat.culture is used', async() => {
+    const warnSpy = spyOnConsoleWarn();
 
     handsontable({
       data: [[123]],
@@ -138,17 +134,13 @@ describe('NumericRenderer', () => {
     });
 
     expect(warnSpy).toHaveBeenCalledWith(
-      'Deprecated: The `numericFormat.pattern` and `numericFormat.culture` options are deprecated ' +
-      'and will be removed in the next major release. Pass `Intl.NumberFormat` options ' +
-      'directly to `numericFormat` and use the `locale` cell property instead of `culture`.\n\n' +
-      'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
-      '`numericFormat` documentation: https://handsontable.com/docs/api/options/#numericformat\n' +
-      '`locale` documentation: https://handsontable.com/docs/api/options/#locale'
+      'The numericFormat.pattern and numericFormat.culture options are not supported. ' +
+      'Use Intl.NumberFormat options instead (numericFormat: { style, currency, ... }).'
     );
   });
 
-  it('should not print deprecation message if Intl.NumberFormat object format is used', async() => {
-    const warnSpy = spyOnConsoleDeprecatedWarn();
+  it('should not print warn message if Intl.NumberFormat object format is used', async() => {
+    const warnSpy = spyOnConsoleWarn();
 
     handsontable({
       data: [[123]],

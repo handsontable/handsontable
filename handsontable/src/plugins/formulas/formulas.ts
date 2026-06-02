@@ -161,9 +161,9 @@ export class Formulas extends BasePlugin {
     let newValue: unknown;
 
     if (cellMeta.type === 'date') {
-      newValue = getDateFromExcelDate(change.newValue, cellMeta.dateFormat as string);
+      newValue = getDateFromExcelDate(change.newValue);
     } else if (cellMeta.type === 'time') {
-      newValue = getTimeFromHfTimeFraction(change.newValue, cellMeta.timeFormat as string);
+      newValue = getTimeFromHfTimeFraction(change.newValue);
     } else {
       return change;
     }
@@ -758,9 +758,9 @@ export class Formulas extends BasePlugin {
     const cellMeta = this.hot.getCellMeta(row, column);
 
     if (isDate(newValue, cellMeta.type)) {
-      if (isDateValid(newValue, cellMeta.dateFormat)) {
+      if (isDateValid(newValue)) {
         // Rewriting date in HOT format to HF format.
-        newValue = getDateInHfFormat(newValue, cellMeta.dateFormat);
+        newValue = getDateInHfFormat(newValue);
 
       } else if (isFormula(newValue) === false) {
         // Escaping value from date parsing using "'" sign (HF feature).
@@ -877,9 +877,9 @@ export class Formulas extends BasePlugin {
       let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel-like date).
 
       if (cellMeta.type === 'date' && isNumeric(cellValue)) {
-        cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
+        cellValue = getDateFromExcelDate(cellValue);
       } else if (cellMeta.type === 'time' && isNumeric(cellValue)) {
-        cellValue = getTimeFromHfTimeFraction(cellValue as number, cellMeta.timeFormat as string);
+        cellValue = getTimeFromHfTimeFraction(cellValue as number);
       }
 
       // If `cellValue` is an object it is expected to be an error
@@ -966,7 +966,7 @@ export class Formulas extends BasePlugin {
           } else if (this.isFormulaCellType(sourceRow, sourceColumn, this.sheetId) === false) {
             // Populating date in proper format, coming from the source cell.
             fillRangeData[populatedRowIndex][populatedColumnIndex] =
-              getDateInHotFormat(populatedValue, sourceCellMeta.dateFormat);
+              getDateInHotFormat(populatedValue);
           }
         }
       }
@@ -1009,12 +1009,11 @@ export class Formulas extends BasePlugin {
     sourceDataArray.forEach((rowData: unknown[], rowIndex: number) => {
       rowData.forEach((cellValue: unknown, columnIndex: number) => {
         const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex, { skipMetaExtension: true });
-        const dateFormat = cellMeta.dateFormat;
 
         if (isDate(cellValue, cellMeta.type)) {
-          if (isDateValid(cellValue, dateFormat)) {
+          if (isDateValid(cellValue)) {
             // Rewriting date in HOT format to HF format.
-            sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue, dateFormat);
+            sourceDataArray[rowIndex][columnIndex] = getDateInHfFormat(cellValue);
           } else if (!cellValue.startsWith('=')) {
             // Escaping value from date parsing using "'" sign (HF feature).
             sourceDataArray[rowIndex][columnIndex] = `'${cellValue}`;
@@ -1118,9 +1117,9 @@ export class Formulas extends BasePlugin {
     const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, { skipMetaExtension: true });
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
-      cellValue = getDateFromExcelDate(cellValue, cellMeta.dateFormat);
+      cellValue = getDateFromExcelDate(cellValue);
     } else if (cellMeta.type === 'time' && isNumeric(cellValue)) {
-      cellValue = getTimeFromHfTimeFraction(cellValue as number, cellMeta.timeFormat as string);
+      cellValue = getTimeFromHfTimeFraction(cellValue as number);
     }
 
     // If `cellValue` is an object it is expected to be an error

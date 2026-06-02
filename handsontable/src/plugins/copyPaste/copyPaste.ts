@@ -2,8 +2,9 @@ import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
-import { sanitize, isJSON } from '../../helpers/string';
+import { isJSON } from '../../helpers/string';
 import { isObject, deepClone } from '../../helpers/object';
+import { warn } from '../../helpers/console';
 import {
   removeContentEditableFromElementAndDeselect,
   runWithSelectedContendEditableElement,
@@ -46,8 +47,6 @@ const META_HEAD = [
   '<meta name="generator" content="Handsontable"/>',
   '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
 ].join('');
-
-const sanitizeDeprecatedMessageShown = new WeakSet();
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -165,6 +164,10 @@ export class CopyPaste extends BasePlugin {
    * @default false
    */
   #enableCopyColumnHeadersOnly = false;
+  /**
+   * Tracks whether the no-sanitizer warning has already been shown for this instance.
+   */
+  #sanitizerWarnShown = false;
   /**
    * Defines the data range to copy. Possible values:
    *  * `'cells-only'` Copy selected cells only;
@@ -814,25 +817,23 @@ export class CopyPaste extends BasePlugin {
       const sourceDataHTML = clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE);
 
       if (sourceDataHTML) {
-        const sanitizedSourceDataHTML = sanitize(sourceDataHTML, {
-          ADD_TAGS: ['meta', 'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'colgroup', 'col'],
-          ADD_ATTR: ['colspan', 'rowspan', 'content'],
-          FORCE_BODY: true,
-        });
-        const parsedSourceConfig = htmlToGridSettings(sanitizedSourceDataHTML, this.hot.rootDocument);
+        const parsedSourceConfig = htmlToGridSettings(sourceDataHTML, this.hot.rootDocument);
 
         pastedSourceData = parsedSourceConfig?.data;
       }
 
       const rawTextHTML = clipboardData.getData('text/html') ?? '';
       const customSanitizer = this.hot.getSettings().sanitizer;
+
+      if (rawTextHTML && typeof customSanitizer !== 'function' && !this.#sanitizerWarnShown) {
+        this.#sanitizerWarnShown = true;
+        warn('HTML content is being pasted to the DOM without a sanitizer. ' +
+          'Configure the "sanitizer" option to prevent XSS vulnerabilities.');
+      }
+
       const textHTML: string = typeof customSanitizer === 'function'
         ? customSanitizer(rawTextHTML, 'CopyPaste.paste')
-        : sanitize(rawTextHTML, {
-          ADD_TAGS: ['meta'],
-          ADD_ATTR: ['content'],
-          FORCE_BODY: true,
-        });
+        : rawTextHTML;
 
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
         const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);

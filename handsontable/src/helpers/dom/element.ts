@@ -1,7 +1,5 @@
-import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
 import { isSafariBefore261, isMobileBrowser, isIpadOS, isWindowsOS } from '../browser';
-import { deprecatedWarn } from '../console';
 import { throwWithCause } from '../../helpers/errors';
 
 /**
@@ -506,20 +504,15 @@ export function empty(element: HTMLElement): void {
 }
 
 export const HTML_CHARACTERS = /(<([^>]*)>|&([^;]*);)/;
-const dompurifyDeprecatedMessageShown = false;
 
 /**
  * Insert content into element trying to avoid innerHTML method.
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
- * @param {boolean|function(string, string): string} [sanitizer] When true, use default sanitizer; when a function, use it; when false, skip sanitization.
+ * @param {boolean|function(string, string): string} [sanitizer] When a function, use it as the sanitizer; when false,
+ * skip sanitization; when true (default), assign the content directly.
  * @param {string} [context] The sanitization context passed as the second argument to a custom sanitizer function.
- */
-let fastInnerHTMLDeprecationWarned = false;
-
-/**
- *
  */
 export function fastInnerHTML(
   element: HTMLElement, content: string,
@@ -530,18 +523,6 @@ export function fastInnerHTML(
 
     if (typeof sanitizer === 'function') {
       sanitized = sanitizer(content, context);
-    } else if (sanitizer) {
-      if (!fastInnerHTMLDeprecationWarned) {
-        fastInnerHTMLDeprecationWarned = true;
-        deprecatedWarn(
-          'The HTML sanitization using DOMPurify library is deprecated and will be removed in the ' +
-          'next major release. Use the `sanitizer` option instead.\n\n' +
-          'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
-          '`sanitizer` documentation: https://handsontable.com/docs/api/options/#sanitizer'
-        );
-      }
-
-      sanitized = sanitize(content, undefined);
     } else {
       sanitized = content;
     }
