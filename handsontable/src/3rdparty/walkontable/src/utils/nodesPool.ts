@@ -21,6 +21,11 @@ export class NodesPool {
    * @type {string}
    */
   nodeType;
+  /**
+   * The root document object for creating DOM elements.
+   *
+   * @type {Document}
+   */
   declare rootDocument: Document;
   /**
    * The holder for all created DOM nodes (THs, TDs).
@@ -29,6 +34,11 @@ export class NodesPool {
    */
   pool: Map<number, HTMLElement> = new Map();
 
+  /**
+   * Creates a new NodesPool instance.
+   *
+   * @param {string} nodeType The type of DOM node to generate (e.g. 'TH', 'TD').
+   */
   constructor(nodeType: string) {
     this.nodeType = nodeType.toUpperCase();
   }

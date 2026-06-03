@@ -26,6 +26,11 @@ export class ColGroupRenderer extends BaseRenderer {
    */
   orderView;
 
+  /**
+   * Creates a new ColGroupRenderer instance.
+   *
+   * @param {HTMLElement} rootNode - The root HTML element (colgroup) for rendering COL elements.
+   */
   constructor(rootNode: HTMLElement) {
     super('COL', rootNode);
 

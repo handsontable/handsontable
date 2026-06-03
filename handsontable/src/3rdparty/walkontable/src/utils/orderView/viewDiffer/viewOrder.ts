@@ -5,9 +5,25 @@
  * @class {ViewOrder}
  */
 export class ViewOrder {
+  /**
+   * Array of offset indexes representing the order of rendered elements.
+   *
+   * @type {number[]}
+   */
   order: number[] = [];
+  /**
+   * Set of offset indexes for O(1) membership checks.
+   *
+   * @type {Set<number>}
+   */
   #indexSet = new Set<number>();
 
+  /**
+   * Creates a new ViewOrder instance with offset indexes from viewOffset to viewOffset + viewSize.
+   *
+   * @param {number} viewOffset The starting offset index.
+   * @param {number} viewSize The number of elements in the view.
+   */
   constructor(viewOffset: number, viewSize: number) {
     const order = new Array<number>(viewSize);
     const indexSet = this.#indexSet;

@@ -38,6 +38,9 @@ export class CellsRenderer extends BaseRenderer {
    */
   sourceRowIndex = 0;
 
+  /**
+   * Creates a new CellsRenderer instance.
+   */
   constructor() {
     super('TD');
   }

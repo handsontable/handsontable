@@ -70,6 +70,11 @@ export class SelectionManager {
    */
   #selectionBorders = new Map<Selection, Map<WalkontableInstance, Border>>();
 
+  /**
+   * Creates a new SelectionManager instance.
+   *
+   * @param {SelectionsContainer | null} selections The Highlight instance that holds Selection instances.
+   */
   constructor(selections: SelectionsContainer | null) {
     this.#selections = selections;
   }

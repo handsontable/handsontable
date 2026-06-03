@@ -27,25 +27,85 @@ const BORDER_STYLE_HORIZONTAL_SUFFIX = '-horizontal';
  *
  */
 class Border {
+  /**
+   * @type {EventManager}
+   */
   declare eventManager: EventManager;
+  /**
+   * @type {WalkontableInstance}
+   */
   declare instance: WalkontableInstance;
+  /**
+   * @type {WalkontableInstance}
+   */
   declare wot: WalkontableInstance;
+  /**
+   * @type {BorderInstanceSettings}
+   */
   declare settings: BorderInstanceSettings;
+  /**
+   * @type {boolean}
+   */
   declare mouseDown: boolean;
+  /**
+   * @type {HTMLDivElement | null}
+   */
   declare main: HTMLDivElement | null;
+  /**
+   * @type {HTMLElement | null}
+   */
   declare top: HTMLElement | null;
+  /**
+   * @type {HTMLElement | null}
+   */
   declare bottom: HTMLElement | null;
+  /**
+   * @type {HTMLElement | null}
+   */
   declare start: HTMLElement | null;
+  /**
+   * @type {HTMLElement | null}
+   */
   declare end: HTMLElement | null;
+  /**
+   * @type {CSSStyleDeclaration | null}
+   */
   declare topStyle: CSSStyleDeclaration | null;
+  /**
+   * @type {CSSStyleDeclaration | null}
+   */
   declare bottomStyle: CSSStyleDeclaration | null;
+  /**
+   * @type {CSSStyleDeclaration | null}
+   */
   declare startStyle: CSSStyleDeclaration | null;
+  /**
+   * @type {CSSStyleDeclaration | null}
+   */
   declare endStyle: CSSStyleDeclaration | null;
+  /**
+   * @type {CornerDefaultStyle}
+   */
   declare cornerDefaultStyle: CornerDefaultStyle;
+  /**
+   * @type {number}
+   */
   declare cornerCenterPointOffset: number;
+  /**
+   * @type {HTMLElement | null}
+   */
   declare corner: HTMLElement | null;
+  /**
+   * @type {CSSStyleDeclaration | null}
+   */
   declare cornerStyle: CSSStyleDeclaration | null;
+  /**
+   * @type {SelectionHandles}
+   */
   declare selectionHandles: SelectionHandles;
+  /**
+   * @type {boolean}
+   */
   declare disabled: boolean;
 
   // TODO As this is an internal class, should be designed for using {Walkontable}. It uses the facade,

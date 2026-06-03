@@ -28,8 +28,16 @@ interface RendererOptions {
  * @class Renderer
  */
 class Renderer {
+  /**
+   * @type {TableRenderer}
+   */
   declare renderer: TableRenderer;
 
+  /**
+   * Creates a new Renderer instance.
+   *
+   * @param {RendererOptions} options The renderer configuration options.
+   */
   constructor({
     TABLE, THEAD, COLGROUP, TBODY, rowUtils, columnUtils, cellRenderer, stylesHandler
   }: RendererOptions = {}) {
