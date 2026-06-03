@@ -275,15 +275,15 @@ if (process.argv.includes('--report')) {
 console.log('\n[1/2] Type-checking against local build (../../handsontable/tmp) ...');
 const local = runCheck({ label: 'local', htDir: '../../handsontable/tmp' });
 
-if (local.ok) {
-  console.log('\nNo type errors. STATUS: TRUE');
-  process.exit(0);
-}
+console.log(local.ok
+  ? 'Local build type-checks cleanly; verifying against handsontable@latest to catch latest-only breakages ...'
+  : 'Local build reported errors; verifying against handsontable@latest to classify them ...');
 
-console.log('Local build reported errors; verifying against handsontable@latest ...');
-
-// 2) Always run latest too, so every local error can be classified as
-//    LOCAL-ONLY (present only on the dev build) or BOTH (present on both).
+// 2) Always run latest too — even when local is clean — so issues can be
+//    classified as LOCAL-ONLY, LATEST-ONLY, or BOTH. Skipping latest on a clean
+//    local run would hide a "DEV-ONLY" example (type-checks on the dev build but
+//    is broken on the published version): it should surface as a neutral check,
+//    not a silent green.
 const { htPath, version } = ensureLatestHandsontable();
 console.log(`\n[2/2] Type-checking against handsontable@latest (${version}) ...`);
 const latest = runCheck({ label: 'latest', htDir: path.relative(__dirname, htPath).split(path.sep).join('/') });
@@ -328,7 +328,9 @@ for (const key of allKeys) {
 }
 
 // Every error is reported as info, tagged with where it occurs.
-console.log('\n===== Type-check errors (each listed as info) =====\n');
+if (allKeys.length > 0) {
+  console.log('\n===== Type-check errors (each listed as info) =====\n');
+}
 
 const printErr = (tag, e) => {
   console.log(`${tag}  ${e.exampleId}:${e.location}  ${e.code}: ${e.message}`);
@@ -503,5 +505,9 @@ if (inBoth.length > 0) {
   process.exit(1);
 }
 
-console.log('\nSTATUS: TRUE — only version-specific errors (warnings + neutral PR check, step passes).');
+if (warnCount === 0) {
+  console.log('\nNo type errors on either version. STATUS: TRUE');
+} else {
+  console.log('\nSTATUS: TRUE — only version-specific errors (warnings + neutral PR check, step passes).');
+}
 process.exit(0);
