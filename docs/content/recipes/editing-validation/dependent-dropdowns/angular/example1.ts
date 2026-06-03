@@ -2,7 +2,6 @@
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
-import { RowObject } from 'handsontable';
 
 const CATEGORY_COL = 0;
 const SUBCATEGORY_COL = 1;

@@ -1,7 +1,7 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
-import { CellValue } from 'handsontable';
+import type { CellValue } from "handsontable";
 import { CellProperties } from 'handsontable/settings';
 import { PredefinedMenuItemKey } from 'handsontable/plugins/contextMenu';
 
