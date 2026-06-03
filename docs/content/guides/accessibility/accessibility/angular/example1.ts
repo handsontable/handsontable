@@ -1,7 +1,7 @@
 /* file: app.component.ts */
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable';
+import type Handsontable from 'handsontable/base';
 
 @Component({
   selector: 'app-example1',
@@ -16,7 +16,7 @@ import { RowObject } from 'handsontable';
 export class AppComponent implements OnInit {
   @ViewChild(HotTableComponent, {static: false}) hotTable!: HotTableComponent;
 
-  hotData: RowObject[] = [];
+  hotData: Handsontable.RowObject[] = [];
 
   hotSettings!: GridSettings;
 
