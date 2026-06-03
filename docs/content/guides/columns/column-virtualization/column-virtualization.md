@@ -84,6 +84,16 @@ The demo below presents a data grid displaying one million cells (1000 rows x 10
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-virtualization/vue/example1.vue)
+
+:::
+
+:::
+
 ## Known limitations
 
 Using column virtualization has the following side effects:

@@ -1,4 +1,5 @@
 import { defineGetter } from '../../../../../helpers/object';
+import type Table from '../../table';
 
 const MIXIN_NAME = 'stickyRowsTop';
 
@@ -17,7 +18,7 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getFirstRenderedRow() {
+  getFirstRenderedRow(this: Table) {
     const allStickyRows = this.getRenderedRowsCount();
 
     if (allStickyRows === 0) {
@@ -34,8 +35,8 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getFirstVisibleRow() {
-    return this.getFirstRenderedRow();
+  getFirstVisibleRow(this: Table): number {
+    return this.getFirstRenderedRow() as number;
   },
 
   /**
@@ -45,8 +46,8 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getFirstPartiallyVisibleRow() {
-    return this.getFirstRenderedRow();
+  getFirstPartiallyVisibleRow(this: Table): number {
+    return this.getFirstRenderedRow() as number;
   },
 
   /**
@@ -55,7 +56,7 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getLastRenderedRow() {
+  getLastRenderedRow(this: Table) {
     return this.getRenderedRowsCount() - 1;
   },
 
@@ -66,8 +67,8 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getLastVisibleRow() {
-    return this.getLastRenderedRow();
+  getLastVisibleRow(this: Table): number {
+    return this.getLastRenderedRow() as number;
   },
 
   /**
@@ -77,8 +78,8 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getLastPartiallyVisibleRow() {
-    return this.getLastRenderedRow();
+  getLastPartiallyVisibleRow(this: Table): number {
+    return this.getLastRenderedRow() as number;
   },
 
   /**
@@ -87,9 +88,9 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getRenderedRowsCount() {
+  getRenderedRowsCount(this: Table) {
     return Math.min(
-      this.wtSettings.getSetting('totalRows'),
+      this.wtSettings.getSetting('totalRows') ?? 0,
       this.wtSettings.getSetting('fixedRowsTop'),
     );
   },
@@ -101,8 +102,8 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getVisibleRowsCount() {
-    return this.getRenderedRowsCount();
+  getVisibleRowsCount(this: Table): number {
+    return this.getRenderedRowsCount() as number;
   },
 
   /**
@@ -111,7 +112,7 @@ const stickyRowsTop = {
    * @returns {number}
    * @this Table
    */
-  getColumnHeadersCount() {
+  getColumnHeadersCount(this: Table): number {
     return this.dataAccessObject.columnHeaders.length;
   }
 };

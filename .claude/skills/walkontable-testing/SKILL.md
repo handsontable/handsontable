@@ -1,5 +1,6 @@
 ---
 name: walkontable-testing
+path: handsontable/src/3rdparty/walkontable/**
 description: Use when writing tests for the Walkontable rendering engine - has its own separate test pipeline, runner, and configuration distinct from main Handsontable E2E tests
 ---
 

@@ -4,7 +4,8 @@ import {
   CONTEXTMENU_ITEMS_EXPORT_FILE_CSV,
   CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX,
 } from '../../../i18n/constants';
-import { PLUGIN_KEY, ExportFile } from '../exportFile';
+import type { ExportFile } from '../exportFile';
+import { PLUGIN_KEY } from '../exportFile';
 import { getExportOptions } from './utils';
 
 /**
@@ -21,8 +22,8 @@ import { getExportOptions } from './utils';
 export default function exportItem(exportFilePlugin: ExportFile): object {
   return {
     key: 'export_file',
-    name() {
-      return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT);
+    name(): string {
+      return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT) as string;
     },
     hidden() {
       return this.getSettings()[PLUGIN_KEY] === undefined;
@@ -31,8 +32,8 @@ export default function exportItem(exportFilePlugin: ExportFile): object {
       items: [
         {
           key: 'export_file:csv',
-          name() {
-            return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT_FILE_CSV);
+          name(): string {
+            return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT_FILE_CSV) as string;
           },
           callback() {
             exportFilePlugin.downloadFile('csv', getExportOptions(this) as Record<string, unknown>);
@@ -41,8 +42,8 @@ export default function exportItem(exportFilePlugin: ExportFile): object {
         },
         {
           key: 'export_file:xlsx',
-          name() {
-            return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX);
+          name(): string {
+            return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX) as string;
           },
           callback() {
             exportFilePlugin.downloadFileAsync(

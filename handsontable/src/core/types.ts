@@ -6,7 +6,7 @@
 import type { HookCallback } from './hooks/bucket';
 import type { PluginTypeMap } from '../plugins/types';
 import type { BasePlugin } from '../plugins/base';
-import { IndexMapper } from '../translations';
+import type { IndexMapper } from '../translations';
 import type CellCoords from '../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../3rdparty/walkontable/src/cell/range';
 import type { Events, GridSettings } from './settings';
@@ -18,6 +18,8 @@ import type { FocusScopeManager as FocusScopeManagerInstance } from '../focusMan
 import type { default as EditorManagerInstance } from '../editorManager';
 import type { BaseEditor as BaseEditorInstance } from '../editors/baseEditor/baseEditor';
 import type { StylesHandler } from '../utils/stylesHandler';
+import type { ThemeManager } from '../themes/engine/manager';
+import type { BaseRenderer } from '../renderers/baseRenderer';
 
 /**
  * Represents a selection range with start/end row/col coordinates.
@@ -84,7 +86,9 @@ export interface HotInstance {
   selectCell(
     row: number, column: number, endRow?: number, endCol?: number, scrollToCell?: boolean, changeListener?: boolean
   ): boolean;
-  selectCells(selectionRanges: unknown[], scrollToCell?: boolean, changeListener?: boolean): boolean;
+  selectCells(
+    selectionRanges?: (number | undefined)[][] | unknown[], scrollToCell?: boolean, changeListener?: boolean
+  ): boolean;
   selectColumns(start: number, end?: number, focusPosition?: unknown): boolean;
   selectRows(start: number, end?: number, focusPosition?: unknown): boolean;
   deselectCell(): void;
@@ -100,6 +104,7 @@ export interface HotInstance {
   colToProp(column: number): string | number;
 
   // Data access
+  getSchema(): unknown[] | Record<string, unknown>;
   getData(row?: number, column?: number, row2?: number, column2?: number): unknown[][];
   getDataAtCell(row: number, column: number): unknown;
   getDataAtCol(column: number): unknown[];
@@ -113,8 +118,6 @@ export interface HotInstance {
   getDataType(rowFrom: number, columnFrom: number, rowTo: number, columnTo: number): string;
   getCopyableData(row: number, column: number): string;
   getCopyableSourceData(row: number, column: number): string;
-  // `column` accepts a string so the documented `setDataAtCell(changes, source)` array form
-  // type-checks (the change source is read from the 2nd argument when the first is an array).
   setDataAtCell(row: number | unknown[][], column?: number | string | null, value?: unknown, source?: string): void;
   setDataAtRowProp(row: number | unknown[][], prop?: string | number, value?: unknown, source?: string): void;
   setSourceDataAtCell(row: number | unknown[][], column?: number | string, value?: unknown, source?: string): void;
@@ -122,8 +125,9 @@ export interface HotInstance {
   updateData(data: unknown[][] | object[], source?: string): void;
   emptySelectedCells(source?: string): void;
   populateFromArray(
-    row: number, column: number, input: unknown[][], endRow?: number, endCol?: number, source?: string, method?: string
-  ): object | undefined;
+    row: number, column: number, input: unknown[][], endRow?: number | null, endCol?: number | null,
+    source?: string, method?: string
+  ): object | false | undefined;
 
   // Cell meta
   getCellMeta<M extends object = Record<string, unknown>>(row: number, column: number, options?: object): M;
@@ -134,10 +138,14 @@ export interface HotInstance {
   spliceCellsMeta(visualIndex: number, deleteAmount?: number, ...cellMetaRows: unknown[]): void;
   getCellsMeta(): Record<string, unknown>[];
   getColumnMeta(column: number): Record<string, unknown>;
-  getCellRenderer(rowOrMeta: number | Record<string, unknown>, column?: number): Function;
-  getCellEditor(rowOrMeta: number | Record<string, unknown>, column?: number): Function;
-  getCellValidator(rowOrMeta: number | Record<string, unknown>, column?: number): Function | RegExp | undefined;
-  validateCell(value: unknown, cellProperties: Record<string, unknown>, callback: Function, source?: string): void;
+  getCellRenderer(rowOrMeta: number | Record<string, unknown>, column?: number): BaseRenderer;
+  getCellEditor(rowOrMeta: number | Record<string, unknown>, column?: number):
+    (new (hotInstance: HotInstance) => unknown) & { EDITOR_TYPE?: string };
+  getCellValidator(rowOrMeta: number | Record<string, unknown>, column?: number):
+    ((value: unknown, callback: (valid: boolean) => void) => void) | RegExp | undefined;
+  validateCell(
+    value: unknown, cellProperties: Record<string, unknown>, callback: (valid: boolean) => void, source?: string
+  ): void;
 
   // Dimensions
   countRows(): number;
@@ -167,9 +175,9 @@ export interface HotInstance {
   // Rendering
   render(): void;
   forceFullRender: boolean;
-  batchRender(wrappedOperations: Function): unknown;
-  batchExecution(wrappedOperations: Function, forceFlushChanges?: boolean): unknown;
-  batch(wrappedOperations: Function): unknown;
+  batchRender(wrappedOperations: () => unknown): unknown;
+  batchExecution(wrappedOperations: () => unknown, forceFlushChanges?: boolean): unknown;
+  batch(wrappedOperations: () => unknown): unknown;
   refreshDimensions(): void;
   isRenderSuspended(): boolean;
   suspendRender(): void;
@@ -183,7 +191,7 @@ export interface HotInstance {
     } | number,
     ...args: unknown[]
   ): boolean;
-  scrollToFocusedCell(callback?: Function): void;
+  scrollToFocusedCell(callback?: () => void): boolean;
 
   // View
   view: ViewInstance;
@@ -203,8 +211,12 @@ export interface HotInstance {
   getLastRenderedVisibleColumn(): number;
 
   // Coordinates factory
-  _createCellCoords(row: number, column: number): CellCoords;
-  _createCellRange(highlight: CellCoords, from?: CellCoords, to?: CellCoords): CellRange;
+  _createCellCoords(row: number | null, column: number | null): CellCoords;
+  _createCellRange(
+    highlight: { row: number | null; col: number | null } | CellCoords,
+    from?: { row: number | null; col: number | null } | CellCoords,
+    to?: { row: number | null; col: number | null } | CellCoords
+  ): CellRange;
 
   // Undo/Redo
   undo?(): void;
@@ -259,9 +271,29 @@ export interface HotInstance {
   // Styles
   stylesHandler: StylesHandler;
 
+  // Theme management
+  themeManager: ThemeManager | null | undefined;
+  useTheme(themeName: string | null): void;
+
+  // Execution control
+  suspendExecution(): void;
+  resumeExecution(forceFlushChanges?: boolean): void;
+
+  // Index mapper initialization
+  initIndexMappers(): void;
+
+  // Empty row/col checks
+  countEmptyRows(ending?: boolean): number;
+  countEmptyCols(ending?: boolean): number;
+  isEmptyRow(row: number): boolean;
+  isEmptyCol(column: number): boolean;
+
   // Internal
   _registerTimeout(callback: Function | ReturnType<typeof setTimeout>, delay?: number): ReturnType<typeof setTimeout>;
   _registerImmediate(handle: Function): void;
+  _registerMicrotask(callback: Function): void;
+  _clearMicrotasks(): void;
+  _clearTimeouts(): void;
 
   // Lifecycle
   init(): void;

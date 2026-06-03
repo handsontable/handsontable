@@ -26,7 +26,7 @@ import { DIALOG_CLASS_NAME } from './constants';
 /**
  * Represents the compiled template object returned by template factory functions.
  */
-interface DialogTemplateResult {
+export interface DialogTemplateResult {
   TEMPLATE_NAME: string;
   dialogA11YOptions(): Record<string, string | undefined>;
   compile(): { fragment: DocumentFragment; refs: Record<string, HTMLElement> };

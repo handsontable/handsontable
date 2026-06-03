@@ -256,7 +256,7 @@ class Scroll {
     } = this.dataAccessObject;
 
     if (inlineStartOverlay.mainTableScrollableElement === rootWindow) {
-      const isRtl = wtSettings.getSetting('rtlMode');
+      const isRtl: boolean = wtSettings.getSetting('rtlMode');
       let inlineStartRootElementOffset = null;
 
       if (isRtl) {

@@ -358,6 +358,7 @@ class Event {
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const { coords, isOutside } = this.#getCellCoordsFromMousePosition(event.clientX, event.clientY);
 
     if (isOutside) {
@@ -367,6 +368,7 @@ class Event {
         const TD = this.#wtTable.getCell(coords);
 
         if (TD instanceof HTMLElement) {
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
           this.#mouseOverOutsideLastCoords = { row: coords.row, col: coords.col };
           this.callListener('onCellMouseOverOutside', event, coords, TD);
         }
@@ -386,22 +388,29 @@ class Event {
    * @returns {{ coords: CellCoords, isOutside: boolean }}
    */
   #getCellCoordsFromMousePosition(mouseX: number, mouseY: number) {
-    const isRtl = this.#wtSettings.getSetting('rtlMode');
+    const isRtl = this.#wtSettings.getSetting<boolean>('rtlMode');
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const wot = this.#facadeGetter();
 
     const numberOfFixedColumnsStart = this.#wtSettings.getSetting<number>('fixedColumnsStart');
     const numberOfFixedRowsTop = this.#wtSettings.getSetting<number>('fixedRowsTop');
     const numberOfFixedRowsBottom = this.#wtSettings.getSetting<number>('fixedRowsBottom');
 
-    const firstPartiallyVisibleRow = wot.wtScroll.getFirstPartiallyVisibleRow();
-    const lastPartiallyVisibleRow = wot.wtScroll.getLastPartiallyVisibleRow();
-    const firstPartiallyVisibleColumn = wot.wtScroll.getFirstPartiallyVisibleColumn();
-    const lastPartiallyVisibleColumn = wot.wtScroll.getLastPartiallyVisibleColumn();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const firstPartiallyVisibleRow: number = wot.wtScroll.getFirstPartiallyVisibleRow();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const lastPartiallyVisibleRow: number = wot.wtScroll.getLastPartiallyVisibleRow();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const firstPartiallyVisibleColumn: number = wot.wtScroll.getFirstPartiallyVisibleColumn();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const lastPartiallyVisibleColumn: number = wot.wtScroll.getLastPartiallyVisibleColumn();
     const tableOffset = this.#wtTable.wtRootElement.getBoundingClientRect();
 
-    const columnHeaderHeight = (this.#wtSettings.getSetting('columnHeaders') as unknown[]).length > 0
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const columnHeaderHeight: number = (this.#wtSettings.getSetting('columnHeaders') as unknown[]).length > 0
       ? wot.wtViewport.getColumnHeaderHeight() : 0;
-    const rowHeaderWidth = (this.#wtSettings.getSetting('rowHeaders') as unknown[]).length > 0
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const rowHeaderWidth: number = (this.#wtSettings.getSetting('rowHeaders') as unknown[]).length > 0
       ? wot.wtViewport.getRowHeaderWidth() : 0;
     const { rootWindow } = this.#domBindings;
     // When the window is the scroll container and tableOffset.left/top > 0 (e.g. RTL
@@ -413,13 +422,16 @@ class Event {
     const tableViewportLeft = wot.wtViewport.isHorizontallyScrollableByWindow()
       ? Math.min(0, tableOffset.left)
       : tableOffset.left;
-    const tableViewportTop = wot.wtViewport.isVerticallyScrollableByWindow()
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const tableViewportTop: number = wot.wtViewport.isVerticallyScrollableByWindow()
       ? Math.min(0, tableOffset.top)
       : tableOffset.top;
-    const tableViewportRight = wot.wtViewport.isHorizontallyScrollableByWindow()
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const tableViewportRight: number = wot.wtViewport.isHorizontallyScrollableByWindow()
       ? rootWindow.innerWidth
       : tableOffset.left + wot.wtViewport.getViewportWidth() + rowHeaderWidth;
-    const tableViewportBottom = wot.wtViewport.isVerticallyScrollableByWindow()
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const tableViewportBottom: number = wot.wtViewport.isVerticallyScrollableByWindow()
       ? rootWindow.innerHeight
       : tableOffset.top + wot.wtViewport.getViewportHeight() + columnHeaderHeight;
 
@@ -429,6 +441,7 @@ class Event {
     let foundColumn = null;
 
     if (numberOfFixedColumnsStart > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const fixedCell = wot.getCell({ row: firstPartiallyVisibleRow, col: 0 }, true);
 
       if (fixedCell instanceof HTMLElement) {
@@ -440,6 +453,7 @@ class Event {
     }
 
     if (foundColumn === null) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const scrollCell = wot.getCell({ row: firstPartiallyVisibleRow, col: firstPartiallyVisibleColumn }, true);
 
       if (scrollCell instanceof HTMLElement) {
@@ -465,6 +479,7 @@ class Event {
     let foundRow = null;
 
     if (numberOfFixedRowsTop > 0) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const fixedCell = wot.getCell({ row: 0, col: firstPartiallyVisibleColumn }, true);
 
       if (fixedCell instanceof HTMLElement) {
@@ -479,6 +494,7 @@ class Event {
       const totalRows = this.#wtSettings.getSetting<number>('totalRows');
       const bottomStartRow = totalRows - numberOfFixedRowsBottom;
       const bottomEndRow = totalRows - 1;
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const fixedBottomCell = wot.getCell({ row: bottomStartRow, col: firstPartiallyVisibleColumn }, true);
 
       if (fixedBottomCell instanceof HTMLElement) {
@@ -496,6 +512,7 @@ class Event {
     }
 
     if (foundRow === null) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const scrollCell = wot.getCell({ row: firstPartiallyVisibleRow, col: firstPartiallyVisibleColumn }, true);
 
       if (scrollCell instanceof HTMLElement) {
@@ -519,6 +536,7 @@ class Event {
     }
 
     return {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       coords: wot.createCellCoords(foundRow, foundColumn),
       isOutside: mouseX < tableViewportLeft ||
                  mouseX > tableViewportRight ||

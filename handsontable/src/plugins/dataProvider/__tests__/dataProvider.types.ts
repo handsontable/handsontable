@@ -6,6 +6,7 @@ import type {
   DataProviderFetchResult,
   DataProviderQueryParameters,
   RowMutationPayload,
+  RowMutationUpdatePayload,
   RowsCreatePayload,
 } from 'handsontable/plugins/dataProvider';
 
@@ -24,7 +25,7 @@ const minimalConfig: DataProviderConfig = {
     return { rows: [], totalRows: 0 };
   },
   onRowsCreate: async(p: RowsCreatePayload) => {
-    void p.amount;
+    void p.rowsAmount;
 
     return [];
   },
@@ -75,13 +76,13 @@ hot.addHook('afterDataProviderFetchAbort', (queryParameters: DataProviderQueryPa
 
 hot.addHook('afterRowsMutation', (operation: string, payload: RowMutationPayload) => {
   if (operation === 'create' && 'rowsCreate' in payload) {
-    void payload.rowsCreate.amount;
+    void payload.rowsCreate.rowsAmount;
   }
   if (operation === 'remove' && 'rowsRemove' in payload && payload.rowsRemove[0]) {
     void payload.rowsRemove[0];
   }
-  if (operation === 'update' && 'rowsUpdate' in payload && payload.rowsUpdate[0]) {
-    void payload.rowsUpdate[0].rowId;
+  if (operation === 'update' && 'rows' in payload && (payload as RowMutationUpdatePayload).rows[0]) {
+    void (payload as RowMutationUpdatePayload).rows[0].id;
   }
 });
 

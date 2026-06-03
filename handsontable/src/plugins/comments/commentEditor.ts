@@ -68,7 +68,9 @@ class CommentEditor {
     this.#editor = this.createEditor();
     this.#editorStyle = this.#editor.style;
     this.#resizeObserver.setObservedElement(this.getInputElement()!);
-    this.#resizeObserver.addLocalHook('resize', (...args: unknown[]) => this.runLocalHooks('resize', ...args));
+    this.#resizeObserver.addLocalHook('resize', (...args: unknown[]): void => {
+      this.runLocalHooks('resize', ...args);
+    });
 
     this.hide();
   }

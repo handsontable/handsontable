@@ -1,5 +1,6 @@
 ---
 name: handsontable-celltype-dev
+path: handsontable/src/cellTypes/**
 description: Use when creating or modifying a Handsontable cell type that composes an editor, renderer, and validator into a reusable configuration object registered by name
 ---
 

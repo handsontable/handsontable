@@ -179,8 +179,8 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
 
         return { done: true, value: undefined as unknown as [number, V] };
       },
-      [Symbol.iterator]() {
-        return this;
+      [Symbol.iterator](): SelfIterator {
+        return iterator;
       },
     };
 

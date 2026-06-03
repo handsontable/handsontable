@@ -32,7 +32,7 @@ export function expandNode(
   const isNodeReflected = isNodeReflectsFirstChildColspan(nodeToProcess as NodeWithData);
 
   if (isNodeReflected) {
-    return expandNode(nodeChilds[0] as { data: HeaderNodeData, childs: TreeNode[] });
+    return expandNode(nodeChilds[0] as unknown as { data: HeaderNodeData, childs: TreeNode[] });
   }
 
   nodeData.isCollapsed = false;
@@ -46,10 +46,12 @@ export function expandNode(
       const treeNode = node as TreeNode;
 
       // Restore original state of the collapsed headers.
-      treeNode.replaceTreeWith(treeNode.data.clonedTree);
-      treeNode.data.clonedTree = null;
+      const treeNodeData = treeNode.data as HeaderNodeData;
 
-      const leafData = treeNode.data;
+      treeNode.replaceTreeWith(treeNodeData.clonedTree as TreeNode);
+      treeNodeData.clonedTree = null;
+
+      const leafData = treeNodeData;
 
       // Calculate by how many colspan it needs to increase the headings.
       colspanCompensation += leafData.colspan;
@@ -75,8 +77,8 @@ export function expandNode(
     }
   }
 
-  (nodeToProcess as TreeNode).walkUp((node: TreeNode) => {
-    const { data } = node;
+  (nodeToProcess as unknown as TreeNode).walkUp((node: TreeNode) => {
+    const data = node.data as HeaderNodeData;
 
     data.colspan += colspanCompensation;
 
@@ -86,7 +88,7 @@ export function expandNode(
 
     } else if (isNodeReflectsFirstChildColspan(node as NodeWithData)) {
       type NodeWithChilds = { childs: { data: Record<string, unknown> }[] };
-      data.isCollapsed = getFirstChildProperty(node as NodeWithChilds, 'isCollapsed');
+      data.isCollapsed = getFirstChildProperty(node as NodeWithChilds, 'isCollapsed') as boolean;
     }
   });
 

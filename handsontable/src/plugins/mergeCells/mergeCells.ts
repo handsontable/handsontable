@@ -605,7 +605,8 @@ export class MergeCells extends BasePlugin {
     }
 
     const mergedCell = this.mergedCellsCollection.get(from.row, from.col);
-    const mergedCellCoversWholeRange = mergedCell.row === from.row &&
+    const mergedCellCoversWholeRange = mergedCell !== false &&
+      mergedCell.row === from.row &&
       mergedCell.col === from.col &&
       mergedCell.row + mergedCell.rowspan - 1 === to.row &&
       mergedCell.col + mergedCell.colspan - 1 === to.col;
@@ -1225,7 +1226,7 @@ export class MergeCells extends BasePlugin {
     for (let visualColumnIndex = 0; visualColumnIndex < nrOfColumns; visualColumnIndex += 1) {
       const mergeParentForViewportStart = this.mergedCellsCollection.get(visualStartRow, visualColumnIndex);
 
-      if (isObject(mergeParentForViewportStart)) {
+      if (mergeParentForViewportStart !== false) {
         const nearestNotHiddenRow = rowMapper.getNearestNotHiddenIndex(mergeParentForViewportStart.row, 1);
         const renderableIndexAtMergeStart = nearestNotHiddenRow !== null
           ? rowMapper.getRenderableFromVisualIndex(nearestNotHiddenRow)
@@ -1255,7 +1256,7 @@ export class MergeCells extends BasePlugin {
     for (let visualColumnIndex = 0; visualColumnIndex < nrOfColumns; visualColumnIndex += 1) {
       const mergeParentForViewportEnd = this.mergedCellsCollection.get(visualEndRow, visualColumnIndex);
 
-      if (isObject(mergeParentForViewportEnd)) {
+      if (mergeParentForViewportEnd !== false) {
         const mergeEnd = mergeParentForViewportEnd.row + mergeParentForViewportEnd.rowspan - 1;
         const nearestRow = rowMapper.getNearestNotHiddenIndex(mergeEnd, -1);
 
@@ -1303,7 +1304,7 @@ export class MergeCells extends BasePlugin {
     for (let visualRowIndex = 0; visualRowIndex < nrOfRows; visualRowIndex += 1) {
       const mergeParentForViewportStart = this.mergedCellsCollection.get(visualRowIndex, visualStartCol);
 
-      if (isObject(mergeParentForViewportStart)) {
+      if (mergeParentForViewportStart !== false) {
         const nearestCol = columnMapper.getNearestNotHiddenIndex(mergeParentForViewportStart.col, 1);
 
         if (nearestCol !== null) {
@@ -1334,7 +1335,7 @@ export class MergeCells extends BasePlugin {
     for (let visualRowIndex = 0; visualRowIndex < nrOfRows; visualRowIndex += 1) {
       const mergeParentForViewportEnd = this.mergedCellsCollection.get(visualRowIndex, visualEndCol);
 
-      if (isObject(mergeParentForViewportEnd)) {
+      if (mergeParentForViewportEnd !== false) {
         const mergeEnd = mergeParentForViewportEnd.col + mergeParentForViewportEnd.colspan - 1;
         const nearestCol = columnMapper.getNearestNotHiddenIndex(mergeEnd, -1);
 

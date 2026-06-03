@@ -68,6 +68,16 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue --js 1
+
+@[code](@/content/guides/getting-started/saving-data/vue/example1.vue)
+
+:::
+
+:::
+
 ## Save data locally
 
 To persist table state (e.g. column order, column widths, row order) across page reloads, use the browser's [`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) API or [`sessionStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage) in your application. Listen to the appropriate hooks (e.g. `afterColumnMove`, `afterColumnResize`) and save or restore state as needed.

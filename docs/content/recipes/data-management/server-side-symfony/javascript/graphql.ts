@@ -103,7 +103,7 @@ const hot = new Handsontable(container, {
     },
 
     onRowsCreate: async (payload) => {
-      const typedPayload = payload as { rowsAmount: number; position: string; referenceRowId?: number };
+      const typedPayload = payload as { rowsAmount: number; position: 'above' | 'below'; referenceRowId?: number };
       const data = await gql(CREATE_PRODUCTS, {
         rowsAmount:     typedPayload.rowsAmount,
         position:       typedPayload.position,

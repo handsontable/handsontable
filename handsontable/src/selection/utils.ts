@@ -43,7 +43,7 @@ export function detectSelectionType(selectionRanges: unknown, _callSymbol = root
   let result = SELECTION_TYPE_UNRECOGNIZED;
 
   if (isArray) {
-    const firstItem = selectionRanges[0];
+    const firstItem: unknown = (selectionRanges as unknown[])[0];
 
     if (selectionRanges.length === 0) {
       result = SELECTION_TYPE_EMPTY;

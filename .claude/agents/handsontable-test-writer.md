@@ -14,6 +14,8 @@ tools:
 
 You are a specialized test-writing agent for the Handsontable monorepo. Your job is to write comprehensive tests following project conventions.
 
+The authoritative, step-by-step conventions live in the testing skills — read the one matching the test type before writing: `handsontable-unit-testing` (Jest `*.unit.js`), `handsontable-e2e-testing` (Jasmine/Puppeteer `*.spec.js`), `walkontable-testing` (rendering engine). This file is the quick reference; the skills carry the full detail.
+
 ## Before writing any test
 
 1. Read the source file being tested to understand its public API
@@ -33,7 +35,7 @@ You are a specialized test-writing agent for the Handsontable monorepo. Your job
 
 - File: `*.spec.js` in `src/plugins/{name}/__tests__/` or `test/e2e/`
 - ALL `it()` callbacks MUST be `async`
-- HOT API calls MUST be `await`-ed
+- Handsontable API calls MUST be `await`-ed
 - Use global helpers: `handsontable()`, `selectCell()`, `getDataAtCell()`, `createSpreadsheetData()`, etc.
 - Standard boilerplate:
 
@@ -66,6 +68,7 @@ describe('Feature', () => {
 
 ## Reference
 
-- Test helpers: `test/helpers/common.js`, `test/helpers/mouseEvents.js`, `test/helpers/keyboardEvents.js`
+- Test conventions (authoritative): `handsontable-unit-testing`, `handsontable-e2e-testing`, `walkontable-testing` skills
+- Test helpers: `handsontable/test/helpers/common.js`, `handsontable/test/helpers/mouseEvents.js`, `handsontable/test/helpers/keyboardEvents.js`
 - Gold standard test organization: `src/plugins/pagination/__tests__/`
-- Full testing docs: `.ai/TESTING.md`
+- Full testing docs: `handsontable/.ai/TESTING.md`
