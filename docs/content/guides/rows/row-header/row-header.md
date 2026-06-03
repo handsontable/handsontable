@@ -84,6 +84,16 @@ Possible values:
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-header/vue/example1.vue)
+
+:::
+
+:::
+
 ## Tree grid
 
 A tree grid enables you to represent the nested data structures within the data grid. To learn more about this feature, see the [Row parent-child](@/guides/rows/row-parent-child/row-parent-child.md) page.

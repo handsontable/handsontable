@@ -69,6 +69,16 @@ The following example specifies two fixed rows with `fixedRowsTop: 2`. Horizonta
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-freezing/vue/example1.vue)
+
+:::
+
+:::
+
 ## Related API reference
 
 **Configuration options**

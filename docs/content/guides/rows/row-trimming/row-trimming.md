@@ -134,6 +134,16 @@ Note that the second, third, and sixth rows are missing in the following example
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-trimming/vue/example1.vue)
+
+:::
+
+:::
+
 ## Result
 
 After completing this guide, rows you specify are excluded from rendering and from `DataMap`. You can trim rows at initialization or dynamically at runtime using the plugin API.
