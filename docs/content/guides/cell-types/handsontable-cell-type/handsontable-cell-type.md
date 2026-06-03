@@ -69,6 +69,16 @@ While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused 
 
 :::
 
+::: only-for vue
+
+::: example #example1 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/handsontable-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ## Keyboard shortcuts
 
 | Key | Action |

@@ -48,7 +48,7 @@ In every directory, `CLAUDE.md` is a symlink to its sibling `AGENTS.md`. Edit `A
 | `@handsontable/vue3` | `wrappers/vue3/` | Vue 3 wrapper |
 | `handsontable-visual-tests` | `visual-tests/` | Playwright visual regression tests |
 | `handsontable-examples-internal` | `examples/` | Code examples |
-| `handsontable-documentation` | `docs/` | Documentation site (requires Node 20) |
+| `handsontable-documentation` | `docs/` | Documentation site (requires Node 22) |
 
 The authoritative workspace list is `pnpm-workspace.yaml`.
 
@@ -190,6 +190,6 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. Changel
 - The Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider`; this is wired into the `test` script.
 - `pnpm-workspace.yaml` has `ignoredBuiltDependencies` and `onlyBuiltDependencies` lists. If pnpm warns about ignored build scripts (e.g., `less`), this is expected.
 - Root-level `npm run lint` and `npm run test` use a custom `translate-to-native-npm.mjs` script to fan out across all workspace packages.
-- The docs site (`docs/`) uses Node 20 (its own `.nvmrc`) and is not needed for core library development.
+- The docs site (`docs/`) uses Node 22 (its own `.nvmrc`) and is not needed for core library development.
 - Walkontable (the rendering engine) lives inside `handsontable/src/3rdparty/walkontable/` and has its **own test runner** — do not mix Walkontable tests with main E2E tests.
 - No Docker, databases, or external services are required.
