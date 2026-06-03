@@ -85,6 +85,16 @@ To enable the Empty Data State plugin, set the [`emptyDataState`](@/api/options.
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/accessories-and-menus/empty-data-state/vue/example1.vue)
+
+:::
+
+:::
+
 ## Custom configuration
 
 The empty data state supports customization of the title, description, and action buttons.
@@ -122,6 +132,16 @@ The empty data state supports customization of the title, description, and actio
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/accessories-and-menus/empty-data-state/vue/example2.vue)
+
+:::
+
+:::
+
 ## Dynamic messages based on source
 
 You can provide different messages based on the source of the empty state (e.g., filters vs. no data). This allows for more contextual user guidance.
@@ -154,6 +174,16 @@ You can provide different messages based on the source of the empty state (e.g.,
 
 @[code](@/content/guides/accessories-and-menus/empty-data-state/angular/example3.ts)
 @[code](@/content/guides/accessories-and-menus/empty-data-state/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/accessories-and-menus/empty-data-state/vue/example3.vue)
 
 :::
 
