@@ -151,6 +151,23 @@ settings: GridSettings = {
 
 :::
 
+::: only-for vue
+
+```html
+<HotTable :settings="{
+  type: 'text',
+  columns: [
+    { type: 'numeric' },
+    { type: 'text' },
+  ],
+  cell: [
+    { row: 0, col: 0, type: 'checkbox' },
+  ],
+}" />
+```
+
+:::
+
 
 ## Mixing renderer, editor, and validator
 
@@ -190,6 +207,16 @@ The example below shows a product inventory table. Each column uses a different 
 
 @[code](@/content/guides/cell-functions/cell-function/angular/example1.ts)
 @[code](@/content/guides/cell-functions/cell-function/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-functions/cell-function/vue/example1.vue)
 
 :::
 
@@ -241,6 +268,33 @@ const renderer = cellProperties.renderer;   // renderer function
 const editor = cellProperties.editor;       // editor class
 const validator = cellProperties.validator; // validator function or RegExp
 const type = cellProperties.type;           // cell type string
+```
+
+:::
+
+::: only-for vue
+
+```html
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+
+const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+
+onMounted(() => {
+  const hot = hotRef.value?.hotInstance;
+  const cellProperties = hot?.getCellMeta(0, 0);
+
+  cellProperties?.renderer;   // renderer function
+  cellProperties?.editor;     // editor class
+  cellProperties?.validator;  // validator function or RegExp
+  cellProperties?.type;       // cell type string
+});
+</script>
+
+<template>
+  <HotTable ref="hotRef" />
+</template>
 ```
 
 :::
@@ -328,6 +382,33 @@ export class AppComponent implements AfterViewInit {
     const type = cellProperties.type;           // 'numeric'
   }
 }
+```
+
+:::
+
+::: only-for vue
+
+```html
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+
+const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+
+onMounted(() => {
+  const hot = hotRef.value?.hotInstance;
+  const cellProperties = hot?.getCellMeta(0, 0);
+
+  cellProperties?.renderer;   // numericRenderer function
+  cellProperties?.editor;     // NumericEditor class
+  cellProperties?.validator;  // numericValidator function
+  cellProperties?.type;       // 'numeric'
+});
+</script>
+
+<template>
+  <HotTable ref="hotRef" :settings="{ columns: [{ type: 'numeric' }] }" />
+</template>
 ```
 
 :::
