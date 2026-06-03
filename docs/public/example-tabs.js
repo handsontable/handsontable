@@ -624,6 +624,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
       '  <title>Handsontable React Example</title>',
       '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
+      '  <style>body { padding: 1rem; font-family: system-ui, -apple-system, sans-serif; }</style>',
     ];
 
     var defaultMountDivR = '<div id="' + exampleId + '"></div>';
@@ -908,6 +909,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <title>Handsontable Angular Example</title>',
       '  <base href="/">',
       '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
+      '  <style>body { padding: 1rem; font-family: system-ui, -apple-system, sans-serif; }</style>',
     ];
 
     var defaultBodyMarkup = '  <' + selector + '></' + selector + '>';
