@@ -483,7 +483,7 @@ describe('Filters', () => {
       expect(getData()[1][0]).toBe(24);
       expect(getData()[1][1]).toBe('Greta Patterson');
       expect(getData()[1][2]).toBe('Bartonsville');
-      expect(getData()[1][3]).toBe(moment().add(-2, 'days').format(FILTERS_DATE_FORMAT));
+      expect(getData()[1][3]).toBe(addDays(-2));
       expect(getData()[1][4]).toBe('green');
       expect(getData()[1][5]).toBe(2437.58);
       expect(getData()[1][6]).toBe(false);

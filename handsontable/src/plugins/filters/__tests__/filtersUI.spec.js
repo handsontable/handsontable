@@ -551,14 +551,14 @@ describe('Filters UI', () => {
       expect(getData()[0][0]).toBe(26);
       expect(getData()[0][1]).toBe('Stanton Britt');
       expect(getData()[0][2]).toBe('Nipinnawasee');
-      expect(getData()[0][3]).toBe(moment().add(-1, 'days').format(FILTERS_DATE_FORMAT));
+      expect(getData()[0][3]).toBe(addDays(-1));
       expect(getData()[0][4]).toBe('green');
       expect(getData()[0][5]).toBe(3592.18);
       expect(getData()[0][6]).toBe(false);
       expect(getDataAtCol(3).join()).toBe([
-        moment().add(-1, 'days').format(FILTERS_DATE_FORMAT),
-        moment().add(-1, 'days').format(FILTERS_DATE_FORMAT),
-        moment().add(-1, 'days').format(FILTERS_DATE_FORMAT),
+        addDays(-1),
+        addDays(-1),
+        addDays(-1),
       ].join());
     });
 
@@ -793,7 +793,7 @@ describe('Filters UI', () => {
       expect(getData()[1][0]).toBe(24);
       expect(getData()[1][1]).toBe('Greta Patterson');
       expect(getData()[1][2]).toBe('Bartonsville');
-      expect(getData()[1][3]).toBe(moment().add(-2, 'days').format(FILTERS_DATE_FORMAT));
+      expect(getData()[1][3]).toBe(addDays(-2));
       expect(getData()[1][4]).toBe('green');
       expect(getData()[1][5]).toBe(2437.58);
       expect(getData()[1][6]).toBe(false);
@@ -849,7 +849,7 @@ describe('Filters UI', () => {
       expect(getData()[1][0]).toBe(24);
       expect(getData()[1][1]).toBe('Greta Patterson');
       expect(getData()[1][2]).toBe('Bartonsville');
-      expect(getData()[1][3]).toBe(moment().add(-2, 'days').format(FILTERS_DATE_FORMAT));
+      expect(getData()[1][3]).toBe(addDays(-2));
       expect(getData()[1][4]).toBe('green');
       expect(getData()[1][5]).toBe(2437.58);
       expect(getData()[1][6]).toBe(false);
