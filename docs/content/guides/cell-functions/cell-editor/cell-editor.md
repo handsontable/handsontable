@@ -1,15 +1,19 @@
 ---
 type: how-to
+id: u00oul7m
 title: Cell editor
 metaTitle: Cell editor - JavaScript Data Grid | Handsontable
 description: Create a custom cell editor function, to have full control over how editing works in the cells of your data grid.
 permalink: /cell-editor
 canonicalUrl: /cell-editor
 react:
+  id: 6i8ttta0
   metaTitle: Cell editor - React Data Grid | Handsontable
 angular:
+  id: 7qb4y4u4
   metaTitle: Cell editor - Angular Data Grid | Handsontable
 vue:
+  id: qwv2hoqe
   metaTitle: Cell editor - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
@@ -452,7 +456,7 @@ class ExtendedSelectEditor extends MySelectEditor {
 
 - [Custom editor in React](@/react/guides/cell-functions/cell-editor/cell-editor.md)
 - [Custom editor in Angular](@/angular/guides/cell-functions/cell-editor/cell-editor.md)
-- [Custom editor in Vue 3](@/vue/guides/cell-functions/cell-editor/cell-editor.md)
+- [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example/vue3-custom-editor-example.md)
 
 </div>
 

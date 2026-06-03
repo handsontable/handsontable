@@ -1,15 +1,19 @@
 ---
 type: how-to
+id: ohjf69hj
 title: Cell renderer
 metaTitle: Cell renderer - JavaScript Data Grid | Handsontable
 description: Create a custom cell renderer function, to have full control over how a cell looks.
 permalink: /cell-renderer
 canonicalUrl: /cell-renderer
 react:
+  id: 2ej30mcg
   metaTitle: Cell renderer - React Data Grid | Handsontable
 angular:
+  id: 36rymylj
   metaTitle: Cell renderer - Angular Data Grid | Handsontable
 vue:
+  id: hsxnm2ev
   metaTitle: Cell renderer - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
@@ -201,17 +205,11 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 
 :::
 
+If your component needs access to a Vue application context -- for example, global components, plugins, or `provide` / `inject` -- create a dedicated app per cell with `createApp(Component, props).mount(td)` instead of `render()`. Track the returned app instances so you can call `app.unmount()` when the grid is destroyed.
+
 ::: example #example1 :vue3
 
 @[code](@/content/guides/cell-functions/cell-renderer/vue/example1.vue)
-
-:::
-
-If your component needs access to a Vue application context -- for example, global components, plugins, or `provide` / `inject` -- use `createApp(Component, props).mount(td)` instead of `render()`. Store a reference to the mounted app on the `td` element and call `app.unmount()` at the start of each render call to avoid leaking app instances:
-
-::: example #example2 :vue3
-
-@[code](@/content/guides/cell-functions/cell-renderer/vue/example2.vue)
 
 :::
 
@@ -722,7 +720,8 @@ In this example, `valueFormatter` adds the currency symbol and formatting, while
 
 - [Custom renderer in React](@/react/guides/cell-functions/cell-renderer/cell-renderer.md)
 - [Custom renderer in Angular](@/angular/guides/cell-functions/cell-renderer/cell-renderer.md)
-- [Custom renderer in Vue 3](@/vue/guides/cell-functions/cell-renderer/cell-renderer.md)
+- [Custom renderer in Vue](@/guides/integrate-with-vue3/vue3-custom-renderer-example/vue3-custom-renderer-example.md)
+- [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example/vue3-custom-renderer-example.md)
 
 </div>
 
