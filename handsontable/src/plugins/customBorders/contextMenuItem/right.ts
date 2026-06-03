@@ -1,6 +1,7 @@
 import * as C from '../../../i18n/constants';
 import { checkSelectionBorders, markSelected } from '../utils';
 import type { CustomBordersPlugin } from '../utils';
+import type { HotInstance } from '../../../core/types';
 
 /**
  * @param {CustomBorders} customBordersPlugin The plugin instance.
@@ -11,8 +12,8 @@ export default function right(customBordersPlugin: CustomBordersPlugin) {
 
   return {
     key: 'borders:right',
-    name() {
-      let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_RIGHT);
+    name(this: HotInstance): string {
+      let label: string = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_RIGHT);
       const hasBorder = checkSelectionBorders(this, borderDirection);
 
       if (hasBorder) {
@@ -21,7 +22,7 @@ export default function right(customBordersPlugin: CustomBordersPlugin) {
 
       return label;
     },
-    callback(key: string, selected: Record<string, unknown>[]) {
+    callback(this: HotInstance, key: string, selected: Record<string, unknown>[]) {
       const hasBorder = checkSelectionBorders(this, borderDirection);
 
       customBordersPlugin.prepareBorder(selected, borderDirection, hasBorder);

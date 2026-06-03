@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import { transformSelectionToRowDistance } from '../../../selection/utils';
 import * as C from '../../../i18n/constants';
 
@@ -9,7 +10,7 @@ export const KEY = 'remove_row';
 export default function removeRowItem() {
   return {
     key: KEY,
-    name() {
+    name(this: HotInstance): string {
       const selection = this.getSelected();
       let pluralForm = 0;
 
@@ -25,21 +26,21 @@ export default function removeRowItem() {
         }
       }
 
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_ROW, pluralForm);
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_REMOVE_ROW, pluralForm) as string;
     },
-    callback() {
+    callback(this: HotInstance) {
       // TODO: Please keep in mind that below `1` may be improper. The table's way of work, before change `f1747b3912ea3b21fe423fd102ca94c87db81379` was restored.
       // There is still problem when removing more than one row.
       this.alter('remove_row', transformSelectionToRowDistance(this), 1, 'ContextMenu.removeRow');
     },
-    disabled() {
+    disabled(this: HotInstance): boolean {
       const range = this.getSelectedRangeActive();
 
       if (!range) {
         return true;
       }
 
-      if (range.isSingleHeader() && range.highlight.row < 0) {
+      if (range.isSingleHeader() && range.highlight.row !== null && range.highlight.row < 0) {
         return true;
       }
 
@@ -50,9 +51,9 @@ export default function removeRowItem() {
         return totalRows === 0;
       }
 
-      return this.selection.isSelectedByColumnHeader() || totalRows === 0;
+      return (this.selection.isSelectedByColumnHeader() as boolean) || totalRows === 0;
     },
-    hidden() {
+    hidden(this: HotInstance) {
       return !this.getSettings().allowRemoveRow;
     }
   };

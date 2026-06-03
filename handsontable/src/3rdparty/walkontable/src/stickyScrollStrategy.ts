@@ -387,7 +387,7 @@ export class StickyScrollStrategy {
    *
    * @returns {boolean}
    */
-  #isRtl() {
-    return this.#overlays.wtSettings.getSetting('rtlMode');
+  #isRtl(): boolean {
+    return this.#overlays.wtSettings.getSetting<boolean>('rtlMode');
   }
 }

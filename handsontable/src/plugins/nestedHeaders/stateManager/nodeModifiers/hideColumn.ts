@@ -49,7 +49,7 @@ the last node, the hide column modification can be applied.`);
   }
 
   nodeToProcess.walkUp((node: TreeNode) => {
-    const { data } = node as { data: NestedHeaderNodeData };
+    const { data } = node as unknown as { data: NestedHeaderNodeData };
 
     data.crossHiddenColumns.push(gridColumnIndex);
 

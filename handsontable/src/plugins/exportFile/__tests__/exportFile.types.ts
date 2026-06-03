@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import {
+import type {
   ExportFileSettings,
   SheetOptions,
   ConditionalFormattingDescriptor,

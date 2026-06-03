@@ -2,6 +2,7 @@
 import { arrayEach } from '../../../helpers/array';
 import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './utils';
 import type TreeNode from '../../../utils/dataStructures/tree';
+import type { HeaderNodeData } from './headersTree';
 
 /**
  * A function that dump a tree structure into multidimensional array. That structure is
@@ -38,7 +39,7 @@ export function generateMatrix(headerRoots: TreeNode[]) {
 
   arrayEach(headerRoots, (rootNode) => {
     (rootNode as { walkDown: (cb: (node: TreeNode) => void | boolean) => void }).walkDown((node: TreeNode) => {
-      const nodeData = node.data;
+      const nodeData = node.data as HeaderNodeData;
       const {
         origColspan,
         columnIndex,

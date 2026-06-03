@@ -1,5 +1,6 @@
 ---
 name: handsontable-validator-dev
+path: handsontable/src/validators/**
 description: Use when creating or modifying a Handsontable cell validator - async callback-based validation functions that determine if cell values are valid
 ---
 

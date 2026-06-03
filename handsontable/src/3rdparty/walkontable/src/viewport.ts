@@ -322,7 +322,7 @@ class Viewport {
       this.rowHeaderWidth = 0;
 
       for (let i = 0, len = rowHeaders.length; i < len; i++) {
-        this.rowHeaderWidth += (rowHeadersWidthSetting as number[])[i] || (rowHeadersWidthSetting as number);
+        this.rowHeaderWidth += (rowHeadersWidthSetting as unknown as number[])[i] || (rowHeadersWidthSetting as number);
       }
     }
 
@@ -575,7 +575,7 @@ class Viewport {
     const totalRows = this.wtSettings.getSetting<number>('totalRows') - 1;
     const renderingThreshold = this.wtSettings.getSetting('viewportRowRenderingThreshold');
 
-    if (Number.isInteger(renderingThreshold) && renderingThreshold > 0) {
+    if (typeof renderingThreshold === 'number' && Number.isInteger(renderingThreshold) && renderingThreshold > 0) {
       startRow = Math.max(0, startRow - Math.min(rowStartOffset, renderingThreshold));
       endRow = Math.min(totalRows, endRow + Math.min(rowEndOffset, renderingThreshold));
 
@@ -652,7 +652,7 @@ class Viewport {
     const totalColumns = this.wtSettings.getSetting<number>('totalColumns') - 1;
     const renderingThreshold = this.wtSettings.getSetting('viewportColumnRenderingThreshold');
 
-    if (Number.isInteger(renderingThreshold) && renderingThreshold > 0) {
+    if (typeof renderingThreshold === 'number' && Number.isInteger(renderingThreshold) && renderingThreshold > 0) {
       startColumn = Math.max(0, startColumn - Math.min(columnStartOffset, renderingThreshold));
       endColumn = Math.min(totalColumns, endColumn + Math.min(columnEndOffset, renderingThreshold));
 

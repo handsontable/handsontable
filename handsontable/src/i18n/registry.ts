@@ -79,8 +79,8 @@ export function getLanguageDictionary(languageCode: string): object | null {
  * @param {string} languageCode Language code for specific language i.e. 'en-US', 'pt-BR', 'de-DE'.
  * @returns {boolean}
  */
-export function hasLanguageDictionary(languageCode: string) {
-  return hasGlobalLanguageDictionary(languageCode);
+export function hasLanguageDictionary(languageCode: string): boolean {
+  return hasGlobalLanguageDictionary(languageCode) as boolean;
 }
 
 /**
@@ -97,8 +97,8 @@ export function getDefaultLanguageDictionary() {
  *
  * @returns {Array}
  */
-export function getLanguagesDictionaries() {
-  return getGlobalLanguagesDictionaries();
+export function getLanguagesDictionaries(): object[] {
+  return getGlobalLanguagesDictionaries() as object[];
 }
 
 /**
@@ -132,6 +132,8 @@ export function getTranslatedPhrase(languageCode: string, dictionaryKey: string,
   return formattedPhrase;
 }
 
+type PhraseFormatter = (phrase: string | string[], args: unknown) => string | string[];
+
 /**
  * Get formatted phrase from phrases propositions for specified dictionary key.
  *
@@ -141,10 +143,11 @@ export function getTranslatedPhrase(languageCode: string, dictionaryKey: string,
  *
  * @returns {Array|string}
  */
-function getFormattedPhrase(phrasePropositions: unknown, argumentsForFormatters: unknown) {
-  return getPhraseFormatters().reduce((phrase: unknown, formatter: Function) => {
-    return formatter(phrase, argumentsForFormatters);
-  }, phrasePropositions);
+function getFormattedPhrase(phrasePropositions: unknown, argumentsForFormatters: unknown): string | string[] {
+  return (getPhraseFormatters() as PhraseFormatter[]).reduce(
+    (phrase, formatter) => {
+      return formatter(phrase, argumentsForFormatters);
+    }, phrasePropositions as string | string[]);
 }
 
 /**

@@ -1,7 +1,8 @@
 import type { HotInstance } from '../../../core/types';
 import { addClass, eventTargetEl } from '../../../helpers/dom/element';
 import { clone, extend } from '../../../helpers/object';
-import { BaseUI, BaseUIOptions } from './_base';
+import type { BaseUIOptions } from './_base';
+import { BaseUI } from './_base';
 
 /**
  * @private

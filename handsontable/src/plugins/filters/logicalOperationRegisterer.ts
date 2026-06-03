@@ -15,8 +15,8 @@ export function getOperationFunc(id: string) {
 
   const func = operations[id].func;
 
-  return function(conditions: unknown[], value: unknown) {
-    return func(conditions, value);
+  return function(conditions: unknown[], value: unknown): boolean {
+    return (func as (c: unknown[], v: unknown) => boolean)(conditions, value);
   };
 }
 

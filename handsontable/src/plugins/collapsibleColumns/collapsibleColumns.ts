@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { HidingMap } from '../../translations';
+import type { HidingMap } from '../../translations';
 import { arrayEach, arrayFilter, arrayUnique } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { warn } from '../../helpers/console';

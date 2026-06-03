@@ -66,6 +66,16 @@ The example below splits **in-memory server logic** (catalog, simulated latency,
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/getting-started/server-side-data/vue/example1.vue)
+
+:::
+
+:::
+
 ## What the DataProvider plugin does
 
 When you pass a **complete** `dataProvider` configuration, Handsontable:

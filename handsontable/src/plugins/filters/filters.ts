@@ -13,7 +13,8 @@ import { SEPARATOR } from '../contextMenu/predefinedItems';
 import * as constants from '../../i18n/constants';
 import { ConditionComponent } from './component/condition';
 import { OperatorsComponent } from './component/operators';
-import { ValueComponent, StateInfo } from './component/value';
+import type { StateInfo } from './component/value';
+import { ValueComponent } from './component/value';
 import { ActionBarComponent } from './component/actionBar';
 import ConditionCollection from './conditionCollection';
 import DataFilter from './dataFilter';
@@ -21,6 +22,7 @@ import ConditionUpdateObserver from './conditionUpdateObserver';
 import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils';
 import { getSortComparatorForMeta } from './sortComparators';
 import { createMenuFocusController } from './menu/focusController';
+import type { Menu } from '../contextMenu/menu/menu';
 import {
   CONDITION_NONE,
   CONDITION_BY_VALUE,
@@ -29,7 +31,7 @@ import {
   OPERATION_OR_THEN_VARIABLE
 } from './constants';
 import { TrimmingMap } from '../../translations';
-import { BaseComponent } from './component/_base';
+import type { BaseComponent } from './component/_base';
 
 /**
  * Interface for a DropdownMenu's Menu instance.
@@ -424,7 +426,8 @@ export class Filters extends BasePlugin {
             }
 
             const menu = navigator.getMenu();
-            const menuNavigator = menu.getNavigator();
+            const menuNavigator: ReturnType<DropdownMenuInterface['getNavigator']> =
+              menu.getNavigator() as ReturnType<DropdownMenuInterface['getNavigator']>;
             const lastSelectedMenuItem = navigator.getLastMenuPage();
 
             menu.focus();
@@ -442,7 +445,7 @@ export class Filters extends BasePlugin {
       ];
 
       this.#menuFocusNavigator = createMenuFocusController(
-        this.dropdownMenuPlugin.menu, focusableItems) as MenuFocusNavigatorInterface;
+        this.dropdownMenuPlugin.menu as unknown as Menu, focusableItems) as unknown as MenuFocusNavigatorInterface;
 
       const forwardToFocusNavigation = (event: KeyboardEvent) => {
         this.#menuFocusNavigator?.listen();
@@ -1235,7 +1238,7 @@ export class Filters extends BasePlugin {
     arrayEach(filteredColumns, (physicalColumn: number) => {
       this.conditionUpdateObserver?.updateStatesAtColumn(physicalColumn);
     });
-  }
+  };
 
   /**
    * After dataProvider fetch listener.
@@ -1529,7 +1532,7 @@ export class Filters extends BasePlugin {
         if (stack.column === column && conditions.length > 0) {
           stack.conditions.forEach((condition) => {
             if (condition.name === 'by_value') {
-              condition.args = [[...conditionArgsChange]];
+              condition.args = [[...(conditionArgsChange as unknown[])]];
             }
           });
         }

@@ -20,7 +20,7 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 - DAO layer uses Data Access Objects instead of DI (20+ TODO comments)
 - Filter objects are recreated instead of updated
-- See `.ai/CONCERNS.md` for full list
+- See `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md` for full list
 
 ## Performance
 

@@ -9,7 +9,7 @@ import { CHECKBOX_CHECKED, CHECKBOX_UNCHECKED } from '../../i18n/constants';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
 
 const isListeningKeyDownEvent = new WeakMap();
-const isCheckboxListenerAdded = new WeakMap();
+const isCheckboxListenerAdded = new WeakMap<HotInstance, EventManager>();
 const BAD_VALUE_CLASS = 'htBadValue';
 const ATTR_ROW = 'data-row';
 const ATTR_COLUMN = 'data-col';
@@ -18,7 +18,7 @@ const SHORTCUTS_GROUP = 'checkboxRenderer';
 export const RENDERER_TYPE: 'checkbox' = 'checkbox';
 
 Hooks.getSingleton().add('modifyAutoColumnSizeSeed',
-  function(_bundleSeed: unknown, cellMeta: unknown, cellValue: unknown) {
+  function(this: HotInstance, _bundleSeed: unknown, cellMeta: unknown, cellValue: unknown) {
     const { label, type, row, column, prop } = cellMeta as Record<string, unknown>;
 
     if (type !== RENDERER_TYPE || !label) {
@@ -34,7 +34,7 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed',
         labelValue(row, column, prop, cellValue) : labelValue;
 
     } else if (labelProperty) {
-      const labelData = this.getDataAtRowProp(row, labelProperty);
+      const labelData = this.getDataAtRowProp(row as number, String(labelProperty));
 
       labelText = labelData !== null ? labelData : cellValue;
     }
@@ -116,8 +116,10 @@ export function checkboxRenderer(
     let labelText = '';
 
     if (labelOptions.value) {
+      const labelFn = labelOptions.value as (...args: unknown[]) => unknown;
+
       labelText = typeof labelOptions.value === 'function' ?
-        labelOptions.value.call(this, row, col, prop, value) : String(labelOptions.value);
+        String(labelFn(row, col, prop, value)) : String(labelOptions.value);
 
     } else if (labelOptions.property) {
       const labelValue = hotInstance.getDataAtRowProp(row, String(labelOptions.property));
@@ -220,7 +222,7 @@ export function checkboxRenderer(
 
     const selRange = hotInstance.getSelectedRange();
     const changesPerSubSelection: number[] = [];
-    const nonCheckboxChanges = new Map();
+    const nonCheckboxChanges = new Map<number, ChangeEntry[]>();
     let changes: ChangeEntry[] = [];
     let changeCounter = 0;
 
@@ -257,7 +259,7 @@ export function checkboxRenderer(
             if (uncheckCheckbox === true && !cachedCellProperties.readOnly) {
               if (nonCheckboxChanges.has(changesPerSubSelection.length)) {
                 nonCheckboxChanges.set(changesPerSubSelection.length, [
-                  ...nonCheckboxChanges.get(changesPerSubSelection.length),
+                  ...nonCheckboxChanges.get(changesPerSubSelection.length)!,
                   [visualRow, visualColumn, null]
                 ]);
 
@@ -320,9 +322,11 @@ export function checkboxRenderer(
         let changesChunk = changes.splice(0, changesCount);
 
         if (nonCheckboxChanges.size && nonCheckboxChanges.has(sectionCount)) {
+          const nonCheckboxChunk = nonCheckboxChanges.get(sectionCount) ?? [];
+
           changesChunk = [
             ...changesChunk,
-            ...nonCheckboxChanges.get(sectionCount)
+            ...nonCheckboxChunk
           ];
         }
 

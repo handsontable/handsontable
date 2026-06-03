@@ -14,16 +14,19 @@ export function rootComparator(sortingOrders: unknown[], columnMetas: unknown[])
     const [, ...values] = rowIndexWithValues;
     const [, ...nextValues] = nextRowIndexWithValues;
 
-    return (function getCompareResult(column) {
+    return (function getCompareResult(column): number {
       const sortingOrder = sortingOrders[column];
       const columnMeta = columnMetas[column];
       const value = values[column];
       const nextValue = nextValues[column];
-      const typedMeta = columnMeta as { columnSorting?: { compareFunctionFactory?: Function }; type?: string };
+
+      type CompareFn = (a: unknown, b: unknown) => number;
+      type CompareFnFactory = (order: unknown, meta: unknown, settings: unknown) => CompareFn;
+      const typedMeta = columnMeta as { columnSorting?: { compareFunctionFactory?: CompareFnFactory }; type?: string };
       const pluginSettings = typedMeta.columnSorting;
-      const compareFunctionFactory = pluginSettings?.compareFunctionFactory ?
-        pluginSettings.compareFunctionFactory : getCompareFunctionFactory(typedMeta.type ?? '');
-      const compareResult = compareFunctionFactory(sortingOrder, columnMeta, pluginSettings)(value, nextValue);
+      const compareFunctionFactory: CompareFnFactory = pluginSettings?.compareFunctionFactory ?
+        pluginSettings.compareFunctionFactory : getCompareFunctionFactory(typedMeta.type ?? '') as CompareFnFactory;
+      const compareResult: number = compareFunctionFactory(sortingOrder, columnMeta, pluginSettings)(value, nextValue);
 
       // DIFF - MultiColumnSorting & ColumnSorting: removed iteration through next sorted columns.
 

@@ -47,7 +47,7 @@ These are injected automatically. Do not import them manually.
 - **Selection:** `selectCell()`, `selectCells()`, `getSelected()`
 - **DOM:** `getCell()`, `spec()`, `hot()`
 - **Plugins:** `getPlugin()`
-- **Theme layout:** `getLoadedTheme()`, `getThemeLayout()` (see `.ai/TESTING.md`)
+- **Theme layout:** `getLoadedTheme()`, `getThemeLayout()` (see `handsontable/.ai/TESTING.md`)
 - **Iframe `doc.write` theme CSS:** `getE2eThemeStylesheetLinkTagsHtml()` (all themes), `getE2eThemeStylesheetLinkTagHtml(key)`, `getE2eNormalizeStylesheetLinkTagHtml()` - from `common.js`; theme list is `E2E_REGISTERED_THEME_KEYS` in `themeLayoutFromTokens.js`, auto-discovered from `src/themes/theme/index.ts` (add a theme there and the list updates automatically).
 - Full list in `test/helpers/common.js`.
 
@@ -82,7 +82,7 @@ Prefer, in order: (1) named `layout.e2e*()` helpers when a shared formula exists
 
 **Do not** branch on `getLoadedTheme()` in spec files for pixel expectations. Every test should run under every theme.
 
-See `.ai/TESTING.md` ("Data-Driven Theme Assertions") for full details and all available metrics.
+See `handsontable/.ai/TESTING.md` ("Data-Driven Theme Assertions") for full details and all available metrics.
 
 ## Event simulation
 
@@ -179,4 +179,4 @@ See `src/plugins/pagination/__tests__/` for reference - separate dirs for option
 - Missing edge cases: large datasets, coordinate boundaries, enable/disable cycles.
 - Not testing both keyboard navigation modes (spreadsheet + data grid).
 
-Reference `.ai/TESTING.md` for full testing docs. Key files: `test/helpers/common.js`, `test/helpers/mouseEvents.js`, `test/helpers/keyboardEvents.js`.
+Reference `handsontable/.ai/TESTING.md` for full testing docs. Key files: `test/helpers/common.js`, `test/helpers/mouseEvents.js`, `test/helpers/keyboardEvents.js`.
