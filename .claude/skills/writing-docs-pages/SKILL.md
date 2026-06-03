@@ -1,5 +1,6 @@
 ---
 name: writing-docs-pages
+path: docs/**
 description: Use when creating or editing documentation pages in docs/content/guides/ - covers YAML frontmatter, page structure, framework-specific example embedding, writing style, and sidebar registration
 ---
 
@@ -99,10 +100,12 @@ Embed runnable code examples using this pattern. The `--js 1 --ts 2` flags set t
 
 ## 5. Writing Style
 
+Full site voice and the words-to-avoid list are in `docs/AGENTS.md` §2.2 (the docs-site override of the monorepo standards in `.ai/DOC-STANDARDS.md`). Key points for pages:
+
 - Active voice, American English, short sentences.
 - Address the reader as "you", never "we". Use the Oxford comma.
 - No evaluative adjectives ("easy", "simple", "obvious").
-- Use en dashes (-) to separate clauses, not hyphens.
+- Use hyphens (`-`) or double hyphens (`--`) to separate clauses, not en dashes — this is the docs-site convention (unlike JSDoc/changelog, which use en dashes).
 - Bold for UI elements: **Add comment**. Inline code for API names: `comments`.
 - Internal links: `[text](@/path/to/file.md#anchor)` syntax.
 - End every sentence with a full stop, including in lists.

@@ -1,5 +1,6 @@
 ---
 name: creating-visual-test-examples
+path: examples/**
 description: Use when creating standalone examples in examples/next/docs/ for visual regression testing or documentation demos - covers the Vite-based example structure, sample data patterns, and multi-feature demonstration
 ---
 

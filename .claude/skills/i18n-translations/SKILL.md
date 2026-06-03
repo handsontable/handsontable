@@ -1,5 +1,6 @@
 ---
 name: i18n-translations
+path: handsontable/src/i18n/**
 description: Use when adding user-facing text to Handsontable, creating new language constants, updating translation files, or working with RTL layouts and internationalization
 ---
 

@@ -1,11 +1,4 @@
----
-name: code-quality-review
-description: Use when reviewing code changes for adherence to Handsontable coding conventions, ESLint compliance, JSDoc requirements, naming standards, and code quality - produces numbered findings by severity with file:line references
----
-
-# Code Quality Review
-
-## Purpose
+# Code quality dimension
 
 Review staged or changed code for compliance with Handsontable coding conventions. Run `git diff` (or `git diff --staged`) to collect the changes, then check each item below.
 
@@ -63,21 +56,8 @@ Review staged or changed code for compliance with Handsontable coding convention
     - Check for collisions with existing API names (options, hooks, methods, plugin keys, CSS classes) before approving.
     - Public API names carry long-term maintenance weight - once released, they must be maintained indefinitely.
 
-## Output Format
-
-List findings numbered by severity. Use these levels:
-
-- **Critical** - will break builds, tests, or runtime behavior.
-- **High** - violates enforced ESLint rules or mandatory conventions.
-- **Medium** - style or maintainability concern.
-- **Low** - suggestion for improvement.
-
-Each finding must include `file:line` reference and a short explanation.
-
-If no issues are found, output exactly: `No blocking issues found.`
-
 ## References
 
-- `.ai/CONVENTIONS.md` for the complete coding conventions.
+- `handsontable/.ai/CONVENTIONS.md` for the complete coding conventions.
 - `.eslintrc.js` (root) and `handsontable/.eslintrc.js` for ESLint configuration.
 - `browser-targets.js` for supported browser list.

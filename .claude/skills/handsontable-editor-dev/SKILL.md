@@ -1,5 +1,6 @@
 ---
 name: handsontable-editor-dev
+path: handsontable/src/editors/**
 description: Use when creating or modifying a Handsontable cell editor - covers the editor lifecycle state machine (VIRGIN/EDITING/WAITING/FINISHED), DOM management, focus handling, positioning with getEditedCellRect, and validation integration
 ---
 
