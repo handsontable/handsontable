@@ -22,7 +22,7 @@ handsontable/
 │   ├── react-wrapper/          # @handsontable/react-wrapper
 │   ├── angular-wrapper/        # @handsontable/angular-wrapper
 │   └── vue3/                   # @handsontable/vue3
-├── docs/                       # Astro Starlight documentation site (Node 20)
+├── docs/                       # Astro Starlight documentation site (Node 22)
 │   └── angular-type-check/     # Internal Angular type-check workspace (docs-angular-type-check)
 ├── examples/                   # Code examples
 ├── visual-tests/               # Playwright visual regression tests
