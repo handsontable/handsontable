@@ -179,6 +179,36 @@ export class Component {
 
 :::
 
+::: only-for vue
+
+<ol class="sl-steps">
+<li>
+
+**ES modules (ESM)**
+
+```js
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
+
+registerAllModules();
+registerLanguageDictionary(deDE);
+
+const hotSettings = ref({
+  language: deDE.languageCode,
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+</li>
+</ol>
+
+:::
+
 ### Demo
 
 To see the translated context menu, right-click on a cell.
@@ -213,6 +243,16 @@ Language files were loaded after loading Handsontable.
 
 @[code](@/content/guides/internationalization/language/angular/example1.ts)
 @[code](@/content/guides/internationalization/language/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3-languages
+
+@[code](@/content/guides/internationalization/language/vue/example1.vue)
 
 :::
 

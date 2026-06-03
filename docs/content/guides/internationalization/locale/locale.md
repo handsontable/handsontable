@@ -84,6 +84,21 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  // set the entire grid's locale to Polish
+  locale: 'pl-PL',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 You can set the [`locale`](@/api/options.md#locale) option to any valid and canonicalized Unicode BCP 47 locale tag.
 
 ## Set a column's locale
@@ -156,6 +171,33 @@ settings = {
 
 ```html
 <hot-table [settings]="settings" />
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  columns: [
+    {
+      // set the first column's locale to Polish
+      locale: 'pl-PL',
+    },
+    {
+      // set the second column's locale to German
+      locale: 'de-DE',
+    },
+    {
+      // set the third column's locale to Japanese
+      locale: 'ja-JP',
+    },
+  ],
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
 ```
 
 :::
