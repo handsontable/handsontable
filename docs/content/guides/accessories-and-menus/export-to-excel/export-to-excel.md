@@ -81,6 +81,18 @@ readonly hotSettings: GridSettings = {
 
 :::
 
+::: only-for vue
+
+```js
+import ExcelJS from 'exceljs';
+
+const hotSettings = ref({
+  exportFile: { engines: { xlsx: ExcelJS } },
+});
+```
+
+:::
+
 ## Example
 
 The table below is a Q1 sales report that demonstrates the main XLSX export features: nested column headers, numeric and checkbox cell types, a column summary total, merged cells, a custom border, a frozen first column, and a cell comment on Alice's row.
@@ -115,6 +127,16 @@ Click **Export XLSX** to download the file and open it in Microsoft Excel or any
 :::
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/accessories-and-menus/export-to-excel/vue/example1.vue)
+
+:::
+
+:::
+
 ## Available methods
 
 ::: only-for react
@@ -124,6 +146,18 @@ Click **Export XLSX** to download the file and open it in Microsoft Excel or any
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
+
+:::
+
+:::
+
+::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you need access to the Handsontable instance. Use a template ref on the `HotTable` component and read its `hotInstance` property.
+
+For more information, see the [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md) page.
 
 :::
 
@@ -156,6 +190,16 @@ const blob = await exportPlugin.exportAsBlob('xlsx', { filename: 'my-report' });
 
 ```jsx
 const exportPlugin = hotRef.current?.hotInstance?.getPlugin('exportFile');
+
+await exportPlugin?.downloadFileAsync('xlsx', { filename: 'my-report' });
+```
+
+:::
+
+::: only-for vue
+
+```js
+const exportPlugin = hotRef.value?.hotInstance?.getPlugin('exportFile');
 
 await exportPlugin?.downloadFileAsync('xlsx', { filename: 'my-report' });
 ```
@@ -229,6 +273,16 @@ Use the `sheets` option to export multiple Handsontable instances into a single 
 :::
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/accessories-and-menus/export-to-excel/vue/example2.vue)
+
+:::
+
+:::
+
 ## Context menu
 
 When the context menu is enabled, **Export to CSV** and **Export to Excel** items are automatically added to the grid's context menu. No extra configuration in `exportFile` is needed.
@@ -263,6 +317,16 @@ When you select a cell range before opening the context menu, the export covers 
 @[code](@/content/guides/accessories-and-menus/export-to-excel/angular/example3.html)
 
 :::
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/accessories-and-menus/export-to-excel/vue/example3.vue)
+
+:::
+
 :::
 
 ## Cell types and styling

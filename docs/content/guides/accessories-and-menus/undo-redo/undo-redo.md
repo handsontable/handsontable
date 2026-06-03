@@ -73,6 +73,16 @@ Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>⌘
 
 :::
 
+::: only-for vue
+
+::: example #example :vue3
+
+@[code](@/content/guides/accessories-and-menus/undo-redo/vue/example.vue)
+
+:::
+
+:::
+
 ## Known limitations
 
 Not all user-triggered actions are recorded in the undo-and-redo history.

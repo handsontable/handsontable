@@ -68,6 +68,16 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/accessories-and-menus/context-menu/vue/example1.vue)
+
+:::
+
+:::
+
 
 ## Context menu with selected options
 
@@ -147,6 +157,16 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/accessories-and-menus/context-menu/vue/example2.vue)
+
+:::
+
+:::
+
 ::: only-for react
 
 ## Context menu with custom options
@@ -159,6 +179,22 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 
 @[code](@/content/guides/accessories-and-menus/context-menu/react/example4.jsx)
 @[code](@/content/guides/accessories-and-menus/context-menu/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for vue
+
+## Context menu with custom options
+
+In addition to built-in options, you can equip your context menu with custom options.
+
+To see the context menu, right-click on a cell. On touch devices, long-press a cell to open the context menu.
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/accessories-and-menus/context-menu/vue/example4.vue)
 
 :::
 
@@ -252,6 +288,16 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 
 @[code](@/content/guides/accessories-and-menus/context-menu/angular/example3.ts)
 @[code](@/content/guides/accessories-and-menus/context-menu/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/accessories-and-menus/context-menu/vue/example3.vue)
 
 :::
 

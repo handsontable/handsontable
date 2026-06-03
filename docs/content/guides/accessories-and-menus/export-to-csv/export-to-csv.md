@@ -57,6 +57,14 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 :::
 :::
 
+::: only-for vue
+::: example #example1 :vue3
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example1.vue)
+
+:::
+:::
+
 ### Export as a JavaScript Blob object
 
 Open a console in browser developer tools to see the result for the below example.
@@ -85,6 +93,14 @@ Open a console in browser developer tools to see the result for the below exampl
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example2.ts)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example2.html)
+
+:::
+:::
+
+::: only-for vue
+::: example #example2 :vue3
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example2.vue)
 
 :::
 :::
@@ -121,6 +137,14 @@ Open a console in browser developer tools to see the result for the below exampl
 :::
 :::
 
+::: only-for vue
+::: example #example3 :vue3
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example3.vue)
+
+:::
+:::
+
 ### Prevent CSV Injection attack
 
 "CSV Injection, also known as Formula Injection, occurs when websites embed untrusted input inside CSV files. When a spreadsheet program such as Microsoft Excel or LibreOffice Calc is used to open a CSV, any cells starting with = will be interpreted by the software as a formula." (from [OWASP website](https://owasp.org/www-community/attacks/CSV_Injection))
@@ -152,6 +176,14 @@ To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolea
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example4.ts)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example4.html)
+
+:::
+:::
+
+::: only-for vue
+::: example #example4 :vue3
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example4.vue)
 
 :::
 :::
