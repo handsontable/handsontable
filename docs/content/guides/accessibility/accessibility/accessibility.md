@@ -1,5 +1,6 @@
 ---
 type: how-to
+id: o4qhm1bg
 title: Accessibility
 metaTitle: Accessibility - JavaScript Data Grid | Handsontable
 description: Learn about Handsontable's accessibility features.
@@ -18,10 +19,13 @@ tags:
   - compliance
   - vpat
 react:
+  id: x82phf34
   metaTitle: Accessibility - React Data Grid | Handsontable
 angular:
+  id: 99l3uae8
   metaTitle: Accessibility - Angular Data Grid | Handsontable
 vue:
+  id: br13tylp
   metaTitle: Accessibility - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessibility
@@ -161,7 +165,7 @@ Check out the interactive demo below to see how various Handsontable settings im
 
 ::: example #example2 :vue3 --css 1
 
-@[code](@/content/guides/accessibility/accessibility/vue/example2.css)
+@[code](@/content/guides/accessibility/accessibility/react/example2.css)
 @[code](@/content/guides/accessibility/accessibility/vue/example2.vue)
 
 :::
