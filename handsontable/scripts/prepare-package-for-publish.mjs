@@ -14,6 +14,21 @@ const {
 } = handsontable;
 
 /**
+ * Create .d.mts copies of every .d.ts file in tmp/ so the `import` condition
+ * in the exports map can reference explicitly-ESM type declarations.
+ *
+ * This step is intentionally done here (and not only in downlevel-dts.mjs)
+ * because CI may run `npm run postbuild` after partial build steps without
+ * going through the full `npm run build` → downlevel:types pipeline.
+ */
+glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) => {
+  const mtsPath = path.resolve(TARGET_PATH, dtsFile.replace(/\.d\.ts$/, '.d.mts'));
+  const dtsPath = path.resolve(TARGET_PATH, dtsFile);
+
+  fse.copySync(dtsPath, mtsPath, { overwrite: true });
+});
+
+/**
  * Copy necessary files we don't need to process.
  */
 FILES_TO_COPY.forEach((fileToCopy) => {
