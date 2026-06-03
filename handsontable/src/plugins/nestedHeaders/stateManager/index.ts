@@ -157,7 +157,6 @@ export default class StateManager {
     return this.triggerNodeModification(action, -1, columnIndex);
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * @memberof StateManager#
    * @function rowCoordsToLevel
@@ -166,10 +165,6 @@ export default class StateManager {
    *
    * @param {number} rowIndex A visual row index.
    * @returns {number|null} Returns unsigned number.
-   */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
-  /**
-   * Translates a visual row index into the corresponding header level index, returning null for non-header rows.
    */
   rowCoordsToLevel(rowIndex: number): number | null {
     if (rowIndex >= 0) {
@@ -185,7 +180,6 @@ export default class StateManager {
     return headerLevel;
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * @memberof StateManager#
    * @function levelToRowCoords
@@ -194,10 +188,6 @@ export default class StateManager {
    *
    * @param {number} headerLevel Header level index.
    * @returns {number} Returns negative number.
-   */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
-  /**
-   * Translates a header level index into the corresponding negative row coordinate used by Handsontable's header system.
    */
   levelToRowCoords(headerLevel: number): number | null {
     if (headerLevel < 0) {

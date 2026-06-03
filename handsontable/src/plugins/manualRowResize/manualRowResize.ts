@@ -22,8 +22,6 @@ export const PLUGIN_KEY = 'manualRowResize';
 export const PLUGIN_PRIORITY = 30;
 const PERSISTENT_STATE_KEY = PLUGIN_KEY;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin ManualRowResize
  * @class ManualRowResize

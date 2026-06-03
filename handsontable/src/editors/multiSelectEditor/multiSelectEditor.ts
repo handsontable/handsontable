@@ -22,6 +22,9 @@ const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 /**
  * Cell editor that lets users pick one or more values from a checkbox dropdown list.
  * Saves on every check/uncheck rather than on editor close.
+ *
+ * @private
+ * @class MultiSelectEditor
  */
 export class MultiSelectEditor extends BaseEditor {
   /**

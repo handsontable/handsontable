@@ -2,7 +2,6 @@ import CellCoords from './../cell/coords';
 
 type DirectionType = 'NW-SE' | 'NE-SW' | 'SE-NW' | 'SW-NE';
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
  *

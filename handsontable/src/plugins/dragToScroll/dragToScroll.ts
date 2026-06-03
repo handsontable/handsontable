@@ -19,8 +19,6 @@ interface Boundaries {
   bottom: number;
 }
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @description
  * Plugin used to scroll Handsontable by selecting a cell and dragging outside of the visible viewport.

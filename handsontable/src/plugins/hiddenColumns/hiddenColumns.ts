@@ -18,8 +18,6 @@ export const PLUGIN_PRIORITY = 310;
 
 const SKIP_COLUMN_ON_PASTE_BY_PLUGIN = Symbol('skipColumnOnPasteByHiddenColumns');
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin HiddenColumns
  * @class HiddenColumns

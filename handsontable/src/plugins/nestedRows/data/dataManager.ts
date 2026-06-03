@@ -803,7 +803,7 @@ class DataManager {
 
   /* eslint-enable jsdoc/require-param */
   /**
-   * Moves a row from one position to another within the nested data structure, updating parent–child relationships accordingly.
+   *
    */
   moveRow(fromIndex: number, toIndex: number, moveToCollapsed: boolean, moveToLastChild: boolean) {
     const moveToLastRow = toIndex === this.hot.countRows();

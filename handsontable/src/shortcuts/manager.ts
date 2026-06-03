@@ -8,7 +8,6 @@ import { useRecorder } from './recorder';
 import { getEventKeyCombinations } from './utils';
 import { toSingleLine } from '../helpers/templateLiteralTag';
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The `ShortcutManager` API lets you store and manage [keyboard shortcut contexts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#keyboard-shortcut-contexts) ([`ShortcutContext`](@/api/shortcutContext.md)).
  *

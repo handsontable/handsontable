@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/require-description-complete-sentence */
 import { arrayEach, arrayMap } from '../../../helpers/array';
 import { isObject } from '../../../helpers/object';
 import { stringify } from '../../../helpers/mixed';

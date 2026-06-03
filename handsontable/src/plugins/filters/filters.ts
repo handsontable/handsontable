@@ -556,7 +556,6 @@ export class Filters extends BasePlugin {
       ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * @memberof Filters#
    * @function addCondition
@@ -946,10 +945,6 @@ export class Filters extends BasePlugin {
    * @param {Array} args Condition arguments. The expected format depends on the condition - see the table above for details.
    * @param {string} [operationId=conjunction] `id` of operation which is performed on the column.
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
-  /**
-   * Adds a filter condition to the specified column, optionally combining it with other conditions using the given logical operation.
-   */
   addCondition(column: number, name: string, args: unknown[], operationId: string = OPERATION_AND): void {
     if (name === CONDITION_BY_VALUE && this.#isDataProviderActive) {
       return;
@@ -1001,7 +996,6 @@ export class Filters extends BasePlugin {
     this.conditionCollection?.importAllConditions(conditions);
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Exports filter conditions for all columns from the plugin.
    * The array represents the filter state for each column. For example:
@@ -1031,7 +1025,6 @@ export class Filters extends BasePlugin {
   exportConditions(): ColumnConditions[] {
     return this.conditionCollection?.exportAllConditions() ?? [];
   }
-  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Filters data based on added filter conditions.

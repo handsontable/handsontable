@@ -2,7 +2,6 @@ import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/r
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import type { IndexMapper } from '../../translations';
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * CellRangeToRenderableMapper is a utility responsible for converting CellRange instances
  * defined in visual coordinates (which may include hidden rows/columns) into renderable

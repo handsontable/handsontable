@@ -159,7 +159,6 @@ export default class TreeNode {
    * @param {TreeNode} [nodeTree=this] A TreeNode to clone.
    * @returns {TreeNode}
    */
-  // eslint-disable-next-line jsdoc/require-description-complete-sentence
   cloneTree(nodeTree: TreeNode = this) {
     const clonedNode = new TreeNode({
       ...nodeTree.data,

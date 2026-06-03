@@ -11,7 +11,6 @@ export const PLUGIN_PRIORITY = 360;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin Dialog
  * @class Dialog
@@ -160,9 +159,6 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * </hot-table>
  * ```
  * :::
- */
-/**
- * Plugin that provides a modal dialog system for displaying custom content and user interactions within Handsontable.
  */
 export class Dialog extends BasePlugin {
   /**

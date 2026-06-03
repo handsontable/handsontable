@@ -5,7 +5,6 @@ import { isDefined } from '../../../helpers/mixed';
 import { isUnsignedNumber } from '../../../helpers/number';
 import type ColumnMeta from './columnMeta';
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @class CellMeta
  *
@@ -34,7 +33,6 @@ import type ColumnMeta from './columnMeta';
  *                    │ (instance)  │
  *                    +-------------+
  */
-// eslint-disable-next-line jsdoc/require-description-complete-sentence
 export default class CellMeta {
   /**
    * Reference to the ColumnMeta layer. While creating new cell meta objects, all new objects
@@ -124,9 +122,6 @@ export default class CellMeta {
    * @param {number} physicalColumn The physical column index.
    * @param {string} [key] If the key exists its value will be returned, otherwise the whole cell meta object.
    * @returns {object}
-   */
-  /**
-   * Returns the full cell meta object for the given physical row and column.
    */
   getMeta(physicalRow: number, physicalColumn: number): Record<string, unknown>;
   /**

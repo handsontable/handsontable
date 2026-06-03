@@ -51,7 +51,6 @@ const META_HEAD = [
 
 const sanitizeDeprecatedMessageShown = new WeakSet();
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
  * Copy, cut, and paste data by using the `CopyPaste` plugin.

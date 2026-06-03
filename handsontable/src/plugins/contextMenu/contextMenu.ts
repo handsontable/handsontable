@@ -56,7 +56,6 @@ Hooks.getSingleton().register('afterContextMenuShow');
 Hooks.getSingleton().register('afterContextMenuHide');
 Hooks.getSingleton().register('afterContextMenuExecute');
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @class ContextMenu
  * @description

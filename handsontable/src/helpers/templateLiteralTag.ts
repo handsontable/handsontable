@@ -19,7 +19,6 @@ export function toSingleLine(strings: TemplateStringsArray | string[], ...expres
   return result.trim();
 }
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * Creates DOM element from the string. For example:
  * ```
@@ -70,4 +69,3 @@ export function html(strings: TemplateStringsArray, ...values: unknown[]) {
 
   return { fragment, refs };
 }
-/* eslint-enable jsdoc/require-description-complete-sentence */

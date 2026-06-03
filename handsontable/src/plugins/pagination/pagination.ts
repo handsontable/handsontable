@@ -24,7 +24,6 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requires the \`autoRowSize\`\x20
   plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin Pagination
  * @class Pagination

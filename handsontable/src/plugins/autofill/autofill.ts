@@ -20,8 +20,6 @@ const SETTING_KEY = 'fillHandle';
 const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row_below';
 const INTERVAL_FOR_ADDING_ROW = 200;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * This plugin provides "drag-down" and "copy-down" functionalities, both operated using the small square in the right
  * bottom of the cell selection.
@@ -33,9 +31,6 @@ const INTERVAL_FOR_ADDING_ROW = 200;
  *
  * @class Autofill
  * @plugin Autofill
- */
-/**
- * Plugin providing drag-down and copy-down fill handle functionality for extending cell values across a selection.
  */
 export class Autofill extends BasePlugin {
   /**

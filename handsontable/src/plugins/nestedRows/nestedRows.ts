@@ -14,7 +14,6 @@ export const PLUGIN_KEY = 'nestedRows';
 export const PLUGIN_PRIORITY = 300;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * Error message for the wrong data type error.
  */

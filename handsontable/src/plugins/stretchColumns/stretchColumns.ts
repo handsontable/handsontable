@@ -4,7 +4,6 @@ import { StretchCalculator } from './calculator';
 export const PLUGIN_KEY = 'stretchColumns';
 export const PLUGIN_PRIORITY = 155;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin StretchColumns
  * @class StretchColumns
@@ -64,10 +63,6 @@ export const PLUGIN_PRIORITY = 155;
  * <hot-table [settings]="settings"></hot-table>
  * ```
  * :::
- */
-/* eslint-enable jsdoc/require-description-complete-sentence */
-/**
- * Plugin that stretches columns to fill the available horizontal space using the configured stretching strategy.
  */
 export class StretchColumns extends BasePlugin {
   /**

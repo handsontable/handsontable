@@ -463,7 +463,6 @@ export class BaseEditor {
     return this.state === EDITOR_STATE.WAITING;
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Gets the object that provides information about the edited cell size and its position
    * relative to the table viewport.
@@ -607,7 +606,6 @@ export class BaseEditor {
       maxWidth,
     };
   }
-  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Gets className of the edited cell if exist.

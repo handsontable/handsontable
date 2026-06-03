@@ -16,7 +16,6 @@ export const PLUGIN_KEY = 'autoColumnSize';
 export const PLUGIN_PRIORITY = 10;
 const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin AutoColumnSize
  * @class AutoColumnSize
@@ -158,10 +157,6 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  * ```
  *
  * :::
- */
-/* eslint-enable jsdoc/require-description-complete-sentence */
-/**
- * Plugin that automatically calculates and sets column widths based on the widest cell content in each column.
  */
 export class AutoColumnSize extends BasePlugin {
   /**

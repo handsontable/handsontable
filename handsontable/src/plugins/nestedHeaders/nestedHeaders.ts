@@ -20,8 +20,6 @@ import { resolveRowspanNavigationContextRow } from './utils/navigation';
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin NestedHeaders
  * @class NestedHeaders

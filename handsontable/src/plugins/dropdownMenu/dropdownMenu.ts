@@ -40,7 +40,6 @@ interface DropdownMenuSettings {
   [key: string]: unknown;
 }
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin DropdownMenu
  * @class DropdownMenu
@@ -103,9 +102,6 @@ interface DropdownMenuSettings {
  * <hot-table [settings]="settings"></hot-table>
  * ```
  * :::
- */
-/**
- * Plugin that adds a dropdown menu to column headers, providing column-specific operations such as sorting and filtering.
  */
 export class DropdownMenu extends BasePlugin {
   /**

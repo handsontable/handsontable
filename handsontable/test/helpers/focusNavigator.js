@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The module emulates the browser's focus traversal algorithm.
  */

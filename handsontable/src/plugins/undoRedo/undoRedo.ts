@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/require-description-complete-sentence */
 import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';

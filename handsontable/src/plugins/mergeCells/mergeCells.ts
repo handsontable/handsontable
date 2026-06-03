@@ -28,8 +28,6 @@ export const PLUGIN_KEY = 'mergeCells';
 export const PLUGIN_PRIORITY = 150;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin MergeCells
  * @class MergeCells

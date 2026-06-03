@@ -81,7 +81,6 @@ export class ChangesObservable {
    *
    * @returns {ChangesObserver}
    */
-  // eslint-disable-next-line jsdoc/require-description-complete-sentence
   createObserver() {
     const observer = new ChangesObserver();
 

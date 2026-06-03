@@ -63,7 +63,6 @@ interface CommentRange {
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin Comments
  * @class Comments

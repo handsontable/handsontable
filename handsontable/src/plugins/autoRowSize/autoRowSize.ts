@@ -15,7 +15,6 @@ const ROW_WIDTHS_MAP_NAME = 'autoRowSize';
 const FIRST_COLUMN_NOT_RENDERED_CLASS_NAME = 'htFirstDatasetColumnNotRendered';
 const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin AutoRowSize
  * @class AutoRowSize
@@ -146,10 +145,6 @@ const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
  * }
  * ```
  * :::
- */
-/* eslint-enable jsdoc/require-description-complete-sentence */
-/**
- * Plugin that automatically calculates and sets row heights based on the tallest cell content in each row.
  */
 export class AutoRowSize extends BasePlugin {
   /**

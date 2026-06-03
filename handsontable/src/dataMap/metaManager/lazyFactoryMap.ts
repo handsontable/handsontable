@@ -1,7 +1,6 @@
 import { assert, isNullish } from './utils';
 import { isUnsignedNumber } from '../../helpers/number';
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @class LazyFactoryMap
  *
@@ -12,10 +11,6 @@ import { isUnsignedNumber } from '../../helpers/number';
  *
  * It's essential to notice that the "key" index under which the item was created
  * is volatile. After altering the grid, the "key" index can change.
- */
-/* eslint-enable jsdoc/require-description-complete-sentence */
-/**
- * Lazy map that creates values on demand using a factory function and supports index-based insertion and removal operations.
  */
 export default class LazyFactoryMap<V = Record<string, unknown>> {
   /**

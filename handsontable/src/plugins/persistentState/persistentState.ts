@@ -12,8 +12,6 @@ export const PLUGIN_PRIORITY = 0;
 
 const deprecationWarningInstances = new WeakSet();
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin PersistentState
  * @class PersistentState

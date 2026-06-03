@@ -37,9 +37,6 @@ export class SelectUI extends BaseUI {
    *
    * @type {Menu}
    */
-  /**
-   * Dropdown menu instance used to display the list of selectable operator options.
-   */
   #menu: Menu | null = null;
   /**
    * List of available operator menu items displayed in the dropdown.

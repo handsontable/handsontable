@@ -43,8 +43,6 @@ interface CellSearchMeta {
   queryMethod?: typeof DEFAULT_QUERY_METHOD;
 }
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin Search
  * @class Search

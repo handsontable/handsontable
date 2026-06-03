@@ -20,8 +20,6 @@ export interface SummaryEndpoint {
   [key: string]: unknown;
 }
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin ColumnSummary
  * @class ColumnSummary

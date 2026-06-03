@@ -21,8 +21,6 @@ const mappings = new Map([
   ['down', 'arrowdown'],
 ]);
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * Get a single, normalized string from the list of the `KeyboardEvent.key` properties.
  *

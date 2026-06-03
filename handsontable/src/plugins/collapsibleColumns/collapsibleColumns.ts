@@ -67,8 +67,6 @@ const actionDictionary = new Map([
   }],
 ]);
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin CollapsibleColumns
  * @class CollapsibleColumns

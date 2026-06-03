@@ -18,8 +18,6 @@ export const PLUGIN_PRIORITY = 320;
 
 const SKIP_ROW_ON_PASTE_BY_PLUGIN = Symbol('skipRowOnPasteByHiddenRows');
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin HiddenRows
  * @class HiddenRows

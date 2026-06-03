@@ -210,9 +210,6 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * ```
  * :::
  */
-/**
- * Plugin that renders a customizable overlay when the data source is empty, replacing the standard empty grid display.
- */
 export class EmptyDataState extends BasePlugin {
   /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.

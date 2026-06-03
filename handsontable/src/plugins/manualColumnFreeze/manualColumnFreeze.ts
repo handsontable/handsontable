@@ -11,8 +11,6 @@ Hooks.getSingleton().register('afterColumnUnfreeze');
 export const PLUGIN_KEY = 'manualColumnFreeze';
 export const PLUGIN_PRIORITY = 110;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin ManualColumnFreeze
  * @class ManualColumnFreeze

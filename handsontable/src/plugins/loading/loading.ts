@@ -119,10 +119,6 @@ export { LOADING_CLASS_NAME };
  * ```
  * :::
  */
-
-/**
- * Plugin that displays a loading overlay with a spinner and optional title and description while data is being processed.
- */
 export class Loading extends BasePlugin {
   /**
    * Returns the plugin key used to identify this plugin in Handsontable settings.
