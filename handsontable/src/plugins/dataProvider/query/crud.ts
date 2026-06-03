@@ -703,7 +703,7 @@ function handleInsertRowAlterForCrud(
   const position = action === 'insert_row_below' ? 'below' : 'above';
   const visualIndex = index ?? (position === 'below' ? n : 0);
 
-  createRows({
+  void createRows({
     position,
     referenceRowId: typeof visualIndex === 'number' && visualIndex >= 0 ? getRowId(visualIndex) : undefined,
     rowsAmount: typeof amount === 'number' && amount >= 1 ? amount : 1,
@@ -733,7 +733,7 @@ function handleRemoveRowAlterForCrud(
     return;
   }
 
-  removeRows(rowIds);
+  void removeRows(rowIds);
 
   return false;
 }

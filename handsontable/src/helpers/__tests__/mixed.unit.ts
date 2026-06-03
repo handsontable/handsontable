@@ -119,7 +119,7 @@ describe('Mixed helper', () => {
       expect(isRegExp({ a: /\d+/ })).toBeFalsy();
 
       expect(isRegExp(/\d+/)).toBeTruthy();
-      expect(isRegExp(new RegExp('d+'))).toBeTruthy();
+      expect(isRegExp(/d+/)).toBeTruthy();
     });
   });
 

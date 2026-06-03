@@ -19,9 +19,13 @@ import { isFunction } from '../../../helpers/function';
  * the logic is triggered only once per one Handsontable slow render cycle.
  */
 type MetaManagerWithHot = MetaManagerInstance & {
-  hot: { colToProp: Function; runHooks: Function; [key: string]: unknown };
-  addLocalHook: Function;
-  updateCellMeta: Function;
+  hot: {
+    colToProp: (column: number) => string | number;
+    runHooks: (...args: unknown[]) => unknown;
+    [key: string]: unknown;
+  };
+  addLocalHook: (hookName: string, callback: (...args: unknown[]) => void) => void;
+  updateCellMeta: (...args: unknown[]) => void;
   [key: string]: unknown;
 };
 

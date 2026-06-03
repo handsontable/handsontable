@@ -104,8 +104,8 @@ export class CellsRenderer extends BaseRenderer {
 
         // Remove all accessibility-related attributes for the cell to start fresh.
         removeAttribute(TD, [
-          new RegExp('aria-(.*)'),
-          new RegExp('role')
+          /aria-(.*)/,
+          /role/
         ]);
 
         this.table.cellRenderer(sourceRowIndex, sourceColumnIndex, TD);

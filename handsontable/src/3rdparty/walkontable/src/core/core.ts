@@ -22,6 +22,7 @@ export default class Walkontable extends CoreAbstract {
   constructor(table: HTMLTableElement, settings: Record<string, unknown>) {
     super(table, new Settings(settings));
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const facadeGetter = this.wtSettings.getSetting('facade', this); // todo rethink. I would like to have no access to facade from the internal scope.
 
     this.wtTable = new MasterTable(

@@ -11,10 +11,17 @@ export default function jQueryWrapper(Handsontable: Record<string, unknown>) {
     return;
   }
 
+  type JQueryElement = {
+    first(): JQueryElement;
+    data(key: string): Record<string, Function> | undefined;
+    data(key: string, value: unknown): void;
+    removeData(): void;
+    [index: number]: Element;
+  };
   type JQueryWithHOT = ((...jqueryArgs: unknown[]) => unknown) & { fn: Record<string, unknown> };
 
-  (jQuery as JQueryWithHOT).fn.handsontable = function(action: unknown, ...args: unknown[]) {
-    const $this = this.first(); // Use only first element from list
+  (jQuery as JQueryWithHOT).fn.handsontable = function(action: unknown, ...args: unknown[]): unknown {
+    const $this = (this as JQueryElement).first(); // Use only first element from list
     let instance = $this.data('handsontable');
 
     // Init case
@@ -31,15 +38,15 @@ export default function jQueryWrapper(Handsontable: Record<string, unknown>) {
         instance.init();
       }
 
-      return $this;
+      return $this as unknown;
     }
 
-    let output;
+    let output: unknown;
 
     // Action case
     if (instance) {
       if (typeof instance[action] !== 'undefined') {
-        output = instance[action].call(instance, ...args);
+        output = instance[action].call(instance, ...args) as unknown;
 
         if (action === 'destroy') {
           $this.removeData();
@@ -50,6 +57,6 @@ export default function jQueryWrapper(Handsontable: Record<string, unknown>) {
       }
     }
 
-    return output;
+    return output as unknown;
   };
 }

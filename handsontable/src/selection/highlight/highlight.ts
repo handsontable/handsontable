@@ -9,7 +9,7 @@ import { createHighlight as createCustomHighlight } from './types/customSelectio
 import { createHighlight as createFillHighlight } from './types/fill';
 import { createHighlight as createHeaderHighlight } from './types/header';
 import { createHighlight as createRowHighlight } from './types/row';
-import VisualSelection from './visualSelection';
+import type VisualSelection from './visualSelection';
 import {
   HIGHLIGHT_ACTIVE_HEADER_TYPE,
   HIGHLIGHT_AREA_TYPE,
@@ -179,7 +179,9 @@ class Highlight {
       return true;
     }
 
-    let disableHighlight = disabledCellSelection(coords.row, coords.col);
+    type DisabledCellSelectionFn = (row: number, col: number) => boolean | string | string[];
+    // coords.row and coords.col are always set when isEnabledFor is called on an active selection.
+    let disableHighlight = (disabledCellSelection as DisabledCellSelectionFn)(coords.row!, coords.col!);
 
     if (typeof disableHighlight === 'string') {
       disableHighlight = [disableHighlight];

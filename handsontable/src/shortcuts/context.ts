@@ -130,7 +130,7 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
       const hasKeyCombination = SHORTCUTS.hasItem(normalizedKeys);
 
       if (hasKeyCombination) {
-        const shortcuts = SHORTCUTS.getItem(normalizedKeys);
+        const shortcuts = SHORTCUTS.getItem(normalizedKeys) as Partial<Shortcut>[];
         let insertionIndex = shortcuts.findIndex((shortcut: Partial<Shortcut>) => shortcut.group === relativeToGroup);
 
         if (insertionIndex !== -1) {
@@ -205,15 +205,16 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
     const shortcuts = SHORTCUTS.getItems();
 
     shortcuts.forEach(([normalizedKeys, shortcutOptions]) => {
-      const leftOptions = shortcutOptions.filter((option: Partial<Shortcut>) => option.group !== group);
+      const typedOptions = shortcutOptions as Partial<Shortcut>[];
+      const leftOptions = typedOptions.filter((option: Partial<Shortcut>) => option.group !== group);
 
       if (leftOptions.length === 0) {
-        removeShortcutsByKeys(getKeysList(normalizedKeys));
+        removeShortcutsByKeys(getKeysList(normalizedKeys as string));
 
       } else {
-        shortcutOptions.length = 0;
+        typedOptions.length = 0;
 
-        shortcutOptions.push(...leftOptions);
+        typedOptions.push(...leftOptions);
       }
     });
   };
@@ -231,7 +232,7 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
     const normalizedKeys = normalizeKeys(keys);
     const shortcuts = SHORTCUTS.getItem(normalizedKeys);
 
-    return isDefined(shortcuts) ? shortcuts.slice() : [];
+    return isDefined(shortcuts) ? (shortcuts as Shortcut[]).slice() : [];
   };
 
   /**

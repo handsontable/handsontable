@@ -1,6 +1,7 @@
 import * as C from '../../../i18n/constants';
 import { checkSelectionBorders, markSelected } from '../utils';
 import type { CustomBordersPlugin } from '../utils';
+import type { HotInstance } from '../../../core/types';
 
 /**
  * @param {CustomBorders} customBordersPlugin The plugin instance.
@@ -9,8 +10,8 @@ import type { CustomBordersPlugin } from '../utils';
 export default function top(customBordersPlugin: CustomBordersPlugin) {
   return {
     key: 'borders:top',
-    name() {
-      let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_TOP);
+    name(this: HotInstance): string {
+      let label: string = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS_TOP);
       const hasBorder = checkSelectionBorders(this, 'top');
 
       if (hasBorder) {
@@ -19,7 +20,7 @@ export default function top(customBordersPlugin: CustomBordersPlugin) {
 
       return label;
     },
-    callback(key: string, selected: Record<string, unknown>[]) {
+    callback(this: HotInstance, key: string, selected: Record<string, unknown>[]) {
       const hasBorder = checkSelectionBorders(this, 'top');
 
       customBordersPlugin.prepareBorder(selected, 'top', hasBorder);

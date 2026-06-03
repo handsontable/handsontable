@@ -7,7 +7,7 @@ import type {
   CellCoords as WalkontableCellCoords,
   CellRange as WalkontableCellRange,
 } from '../3rdparty/walkontable/src';
-import type { CellChange, ChangeSource, RowObject, CellValue, CellProperties } from '../settings';
+import type { CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings } from '../settings';
 import type { ColumnConditions } from '../plugins/filters';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
@@ -64,7 +64,7 @@ export interface GridSettings {
   data?: unknown[][] | object[];
   dataSchema?: object | ((rowIndex: number) => Record<string, unknown>);
   dataDotNotation?: boolean;
-  columns?: Record<string, any>[] | ((column: number) => Record<string, any>); // eslint-disable-line @typescript-eslint/no-explicit-any
+  columns?: ColumnSettings[] | ((column: number) => ColumnSettings);
   cell?: object[];
   cells?: (row: number, column: number, prop: string | number) => object;
   source?: unknown[] | ((query: string, callback: (items: unknown[]) => void) => void);

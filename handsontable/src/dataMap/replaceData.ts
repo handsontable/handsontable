@@ -44,7 +44,10 @@ interface ReplaceDataConfig {
  * @fires Hooks#afterChange
  */
 function replaceData(
-  data: unknown[], setDataMapFunction: Function, callbackFunction: Function, config: ReplaceDataConfig
+  data: unknown[],
+  setDataMapFunction: (dataMap: DataMap) => void,
+  callbackFunction: (dataMap: DataMap) => void,
+  config: ReplaceDataConfig
 ) {
   const {
     hotInstance,
@@ -100,7 +103,7 @@ function replaceData(
         (data as unknown[]).push(row);
 
       } else if (hotInstance.dataType === 'array') {
-        row = deepClone(dataSchema[0]);
+        row = deepClone((dataSchema as unknown[])[0]);
         (data as unknown[]).push(row);
 
       } else {

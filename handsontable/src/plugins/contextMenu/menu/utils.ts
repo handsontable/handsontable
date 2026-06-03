@@ -8,7 +8,7 @@ interface CellRangeLike {
   getBottomEndCorner(): { row: number | null; col: number | null };
 }
 
-interface MenuItemLike {
+export interface MenuItemLike {
   name?: string;
   disabled?: boolean | (() => boolean);
   disableSelection?: boolean;

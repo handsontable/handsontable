@@ -1,8 +1,8 @@
 import Handsontable, {
   CellCoords,
 } from 'handsontable/base';
-import { HotInstance } from 'handsontable';
-import { BasePlugin } from 'handsontable/plugins';
+import type { HotInstance } from 'handsontable';
+import type { BasePlugin } from 'handsontable/plugins';
 
 interface CellProperties {
   row: number;

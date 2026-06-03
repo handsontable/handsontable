@@ -27,7 +27,7 @@ export class NodesPool {
    *
    * @type {Map<number, HTMLElement>}
    */
-  pool = new Map();
+  pool: Map<number, HTMLElement> = new Map();
 
   constructor(nodeType: string) {
     this.nodeType = nodeType.toUpperCase();

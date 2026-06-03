@@ -219,7 +219,7 @@ export function isArrayOfObjects(data: unknown[]): boolean {
  * @param {*} row Row value from the source data.
  * @returns {*}
  */
-export function cloneRow(row: unknown) {
+export function cloneRow(row: unknown): unknown[] | Record<string, unknown> | unknown {
   if (Array.isArray(row)) {
     return row.slice();
   }

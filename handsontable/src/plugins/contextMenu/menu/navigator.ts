@@ -13,9 +13,9 @@ import {
  */
 export function createMenuNavigator(hotMenu: Record<string, Function>) {
   return createPaginator({
-    size: () => hotMenu.countRows(),
+    size: (): number => hotMenu.countRows() as number,
     onItemSelect(currentItem: number, directItemChange: boolean) {
-      const cell = hotMenu.getCell(currentItem, 0);
+      const cell: HTMLElement | null = hotMenu.getCell(currentItem, 0) as HTMLElement | null;
 
       if (!cell || isSeparator(cell) || isDisabled(cell) || isSelectionDisabled(cell)) {
         return false;

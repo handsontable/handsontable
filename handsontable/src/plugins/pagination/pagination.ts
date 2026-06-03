@@ -1075,7 +1075,7 @@ export class Pagination extends BasePlugin {
     if (!this.#internalExecutionCall && this.hot?.view) {
       this.#computeAndApplyState();
     }
-  }
+  };
 
   /**
    * Destroys the plugin instance.

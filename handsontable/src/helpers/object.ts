@@ -15,7 +15,7 @@ export function duckSchema(object: unknown[] | object): unknown {
     schema = object.length ? new Array(object.length).fill(null) : [];
 
   } else {
-    const schemaObj: Record<string, unknown> = Object.create(null);
+    const schemaObj = Object.create(null) as Record<string, unknown>;
 
     objectEach(object, (value, key) => {
       if (key === '__children') {
@@ -126,7 +126,7 @@ export function deepExtend(target: Record<string, unknown>, extension: Record<st
  */
 export function deepClone<T>(obj: T): T {
   if (Array.isArray(obj)) {
-    return obj.map(item => deepClone(item)) as T;
+    return obj.map((item: unknown) => deepClone(item)) as T;
   }
   if (obj instanceof Date) {
     return new Date(obj) as T;
@@ -456,10 +456,10 @@ export function createObjectPropListener(
   };
 
   Object.defineProperty(holder, propertyToListen, {
-    get() {
+    get(this: ObjectPropListener) {
       return this[privateProperty];
     },
-    set(value) {
+    set(value: unknown) {
       this._touched = true;
       this[privateProperty] = value;
     },

@@ -4,6 +4,8 @@ import type StateManager from '../stateManager';
 import type TreeNode from '../../../utils/dataStructures/tree';
 import type { HeaderSettings } from '../stateManager/headersTree';
 
+type SanitizerFn = (value: unknown, context: string) => string;
+
 /**
  * The class generates the nested headers structure in the DOM and reads the column width for
  * each column.
@@ -114,7 +116,7 @@ class GhostTable {
     // used, a column's TH may appear only in an upper row, so "tr:last-of-type th"
     // would miss it. By iterating all THs and keeping the last colspan=1 entry per
     // column, we ensure every individual column is measured at its own width.
-    const columnElementByVisual = new Map();
+    const columnElementByVisual = new Map<number, HTMLTableCellElement>();
 
     for (let i = 0; i < allColumns.length; i++) {
       const th = allColumns[i] as HTMLTableCellElement;
@@ -171,11 +173,11 @@ class GhostTable {
     const fullTable = this.container?.querySelector('[data-ghost-table="full"]');
 
     if (!fullTable) {
-      return new Map();
+      return new Map<number, number>();
     }
 
     const fullColumns = fullTable.querySelectorAll('tr:last-of-type th');
-    const fullWidthByPhysical = new Map();
+    const fullWidthByPhysical = new Map<number, number>();
 
     for (let column = 0; column < fullColumns.length; column++) {
       const columnDataset = (fullColumns[column] as HTMLTableCellElement).dataset.column;
@@ -270,7 +272,8 @@ class GhostTable {
    * @returns {string} HTML string for the full table.
    */
   #buildFullColumnsTableHTML(
-    maxColumnsCount: number, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean, sanitizer: Function | undefined
+    maxColumnsCount: number, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean,
+    sanitizer: SanitizerFn | undefined
   ) {
     let rowsHTML = '';
 
@@ -303,7 +306,8 @@ class GhostTable {
    * @returns {string} HTML string for the rendered table.
    */
   #buildRenderedTableHTML(
-    maxColumnsCount: number, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean, sanitizer: Function | undefined
+    maxColumnsCount: number, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean,
+    sanitizer: SanitizerFn | undefined
   ) {
     let rowsHTML = '';
 
@@ -345,7 +349,7 @@ class GhostTable {
    */
   #buildHeaderLabelHTML(
     headerSettings: HeaderSettings, isDropdownEnabled: boolean, isCollapsibleEnabled: boolean,
-    sanitizer: Function | undefined
+    sanitizer: SanitizerFn | undefined
   ) {
     const label = typeof sanitizer === 'function'
       ? sanitizer(headerSettings.label, 'innerHTML')

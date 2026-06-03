@@ -1,5 +1,5 @@
 import AxisSyncer from './axisSyncer';
-import { IndexMapper } from '../../../translations';
+import type { IndexMapper } from '../../../translations';
 import type { HyperFormulaEngine } from '../engine/types';
 
 /**

@@ -26,7 +26,7 @@ const DEFAULT_ERROR_PRIORITY_NAN = (priority: unknown) => `The priority '${prior
  */
 export function createPriorityMap(
   { errorPriorityExists, errorPriorityNaN }: { errorPriorityExists?: Function; errorPriorityNaN?: Function } = {}) {
-  const priorityMap = new Map();
+  const priorityMap = new Map<number, unknown>();
 
   const errorExistsFn = isFunction(errorPriorityExists) ? errorPriorityExists : DEFAULT_ERROR_PRIORITY_EXISTS;
   const errorNaNFn = isFunction(errorPriorityNaN) ? errorPriorityNaN : DEFAULT_ERROR_PRIORITY_NAN;

@@ -1,9 +1,11 @@
 import { arrayMap, arrayReduce } from '../../../helpers/array';
 import SourceSettings from './sourceSettings';
-import HeadersTree, { HeaderNodeData } from './headersTree';
+import type { HeaderNodeData } from './headersTree';
+import HeadersTree from './headersTree';
 import { triggerNodeModification } from './nodeModifiers';
 import { generateMatrix } from './matrixGenerator';
-import TreeNode, { TRAVERSAL_DF_PRE } from '../../../utils/dataStructures/tree';
+import type TreeNode from '../../../utils/dataStructures/tree';
+import { TRAVERSAL_DF_PRE } from '../../../utils/dataStructures/tree';
 
 /**
  * The state manager is a source of truth for nested headers configuration.
@@ -89,7 +91,7 @@ export default class StateManager {
    *
    * @param {Function} callback A function that is called for every header source settings.
    */
-  mapState(callback: Function) {
+  mapState(callback: (headerSettings: Record<string, unknown>) => unknown) {
     this.#sourceSettings.map(callback);
     this.#headersTree.buildTree();
     this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
@@ -104,7 +106,7 @@ export default class StateManager {
   mapNodes(callback: Function) {
     return arrayReduce(this.#headersTree.getRoots(), (acc, rootNode) => {
       (rootNode as TreeNode).walkDown((node: TreeNode) => {
-        const result = callback(node.data);
+        const result: unknown = callback(node.data);
 
         if (result !== undefined) {
           (acc as unknown[]).push(result);
@@ -123,7 +125,9 @@ export default class StateManager {
    * @param {number} columnIndex A visual column index.
    * @returns {object|undefined}
    */
-  triggerNodeModification(action: string, headerLevel: number, columnIndex: number) {
+  triggerNodeModification(
+    action: string, headerLevel: number, columnIndex: number
+  ): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } | undefined {
     if (headerLevel < 0) {
       headerLevel = this.rowCoordsToLevel(headerLevel) ?? 0;
     }
@@ -137,7 +141,7 @@ export default class StateManager {
       this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
     }
 
-    return actionResult;
+    return actionResult ?? undefined;
   }
 
   /**
@@ -147,7 +151,9 @@ export default class StateManager {
    * @param {number} columnIndex A visual column index.
    * @returns {object|undefined}
    */
-  triggerColumnModification(action: string, columnIndex: number) {
+  triggerColumnModification(
+    action: string, columnIndex: number
+  ): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } | undefined {
     return this.triggerNodeModification(action, -1, columnIndex);
   }
 
@@ -235,7 +241,7 @@ export default class StateManager {
     }
 
     return {
-      ...node.data,
+      ...(node.data as HeaderNodeData),
     };
   }
 
