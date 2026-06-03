@@ -989,7 +989,6 @@ class Table {
     return Math.abs(row) <= columnHeadersCount;
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Check if the given row index is lower than the index of the first row that
    * is currently rendered and return TRUE in that case, or FALSE otherwise.
@@ -1018,7 +1017,6 @@ class Table {
    * @function isRowBeforeRenderedRows
    * @returns {boolean}
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   isRowBeforeRenderedRows(row: number) {
     const first = this.getFirstRenderedRow();
 
@@ -1031,7 +1029,6 @@ class Table {
     return row < first;
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Check if the given column index is greater than the index of the last column that
    * is currently rendered and return TRUE in that case, or FALSE otherwise.
@@ -1063,12 +1060,10 @@ class Table {
    * @function isRowAfterRenderedRows
    * @returns {boolean}
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   isRowAfterRenderedRows(row: number) {
     return row > this.getLastRenderedRow();
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Check if the given column index is lower than the index of the first column that
    * is currently rendered and return TRUE in that case, or FALSE otherwise.
@@ -1096,7 +1091,6 @@ class Table {
    * @function isColumnBeforeRenderedColumns
    * @returns {boolean}
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   isColumnBeforeRenderedColumns(column: number) {
     const first = this.getFirstRenderedColumn();
 
@@ -1109,7 +1103,6 @@ class Table {
     return column < first;
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Check if the given column index is greater than the index of the last column that
    * is currently rendered and return TRUE in that case, or FALSE otherwise.
@@ -1140,7 +1133,6 @@ class Table {
    * @function isColumnAfterRenderedColumns
    * @returns {boolean}
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   isColumnAfterRenderedColumns(column: number) {
     return this.columnFilter && (column > this.getLastRenderedColumn());
   }

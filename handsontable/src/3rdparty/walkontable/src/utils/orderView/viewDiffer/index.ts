@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/require-description-complete-sentence */
 import type { ViewSizeSet } from '../viewSizeSet';
 import {
   WORKING_SPACE_BOTTOM,
