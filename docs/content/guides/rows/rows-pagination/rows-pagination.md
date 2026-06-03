@@ -67,6 +67,16 @@ Use the controls below the grid to switch between pages.
 :::
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/rows-pagination/vue/example1.vue)
+
+:::
+
+:::
+
 ## Enable pagination
 
 To enable pagination set the [`pagination`](@/api/options.md#pagination) option to `true`.
@@ -155,6 +165,16 @@ In the data grid below, several pagination options are applied to provide a cust
 :::
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/rows/rows-pagination/vue/example2.vue)
+
+:::
+
+:::
+
 ## Control pagination programmatically
 
 Build your own pagination UI using API methods such as [`setPage()`](@/api/pagination.md#setpage), [`nextPage()`](@/api/pagination.md#nextpage), [`prevPage()`](@/api/pagination.md#prevpage), and more. For a complete list of available methods and hooks, see the [`Pagination`](@/api/pagination.md) plugin API reference.
@@ -185,6 +205,16 @@ Build your own pagination UI using API methods such as [`setPage()`](@/api/pagin
 @[code](@/content/guides/rows/rows-pagination/angular/example3.html)
 
 :::
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/rows/rows-pagination/vue/example3.vue)
+
+:::
+
 :::
 
 ## Choose where to display the pagination UI
@@ -220,6 +250,16 @@ By default, the pagination UI is displayed at the bottom of the grid. You can ch
 :::
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/rows/rows-pagination/vue/example4.vue)
+
+:::
+
+:::
+
 ## Modify paged data
 
 Sometimes you need to modify data only on the currently visible page. Core method like [`setDataAtCell`](@/api/core.md#setdataatcell) operates on all rows, including those hidden by pagination. To modify data only on the current page, you can use the [`getPaginationData`](@/api/pagination.md#getpaginationdata) method to get the pagination state and use it in conjunction with Core method.
@@ -250,6 +290,16 @@ Sometimes you need to modify data only on the currently visible page. Core metho
 @[code](@/content/guides/rows/rows-pagination/angular/example5.html)
 
 :::
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/rows/rows-pagination/vue/example5.vue)
+
+:::
+
 :::
 
 ## Use pagination hooks
@@ -344,6 +394,16 @@ The example below demonstrates how to customize the translation of the paginatio
 @[code](@/content/guides/rows/rows-pagination/angular/example6.html)
 
 :::
+:::
+
+::: only-for vue
+
+::: example #example6 :vue3
+
+@[code](@/content/guides/rows/rows-pagination/vue/example6.vue)
+
+:::
+
 :::
 
 ## Customize pagination UI
