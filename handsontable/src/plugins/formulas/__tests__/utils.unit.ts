@@ -50,10 +50,10 @@ describe('Formulas utils', () => {
     });
 
     it('should return false for empty/null/undefined values', () => {
-      expect(isDateValid({} as any)).toBe(false);
-      expect(isDateValid(null as any)).toBe(false);
-      expect(isDateValid(undefined as any)).toBe(false);
-      expect(isDateValid('' as any)).toBe(false);
+      expect(isDateValid({} as unknown as string)).toBe(false);
+      expect(isDateValid(null as unknown as string)).toBe(false);
+      expect(isDateValid(undefined as unknown as string)).toBe(false);
+      expect(isDateValid('' as unknown as string)).toBe(false);
     });
   });
 
