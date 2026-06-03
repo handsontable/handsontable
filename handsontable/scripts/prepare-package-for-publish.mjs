@@ -14,18 +14,34 @@ const {
 } = handsontable;
 
 /**
- * Create .d.mts copies of every .d.ts file in tmp/ so the `import` condition
+ * Generate thin .d.mts wrapper files for every .d.ts so the `import` condition
  * in the exports map can reference explicitly-ESM type declarations.
  *
- * This step is intentionally done here (and not only in downlevel-dts.mjs)
- * because CI may run `npm run postbuild` after partial build steps without
- * going through the full `npm run build` → downlevel:types pipeline.
+ * Copying .d.ts verbatim as .d.mts does NOT work: the emitted declarations use
+ * extensionless imports (e.g. `from './base'`) that fail to resolve under ESM
+ * moduleResolution (node16/bundler), causing attw InternalResolutionError.
+ *
+ * The wrapper approach avoids this: each .d.mts re-exports from its .js sibling,
+ * which TypeScript maps to the .d.ts via its declaration-lookup rules. The .d.ts
+ * files handle all internal resolution under their own CJS context.
+ *
+ * This step runs here (not only in downlevel-dts.mjs) because CI may call
+ * `npm run postbuild` after partial build steps without running downlevel:types.
  */
 glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) => {
   const mtsPath = path.resolve(TARGET_PATH, dtsFile.replace(/\.d\.ts$/, '.d.mts'));
   const dtsPath = path.resolve(TARGET_PATH, dtsFile);
+  const jsRef = `./${path.basename(dtsFile, '.d.ts')}.js`;
+  const dtsContent = fse.readFileSync(dtsPath, 'utf8');
+  const hasDefault = /\bexport\s+default\b/.test(dtsContent);
 
-  fse.copySync(dtsPath, mtsPath, { overwrite: true });
+  let mtsContent = `export * from '${jsRef}';\n`;
+
+  if (hasDefault) {
+    mtsContent += `export { default } from '${jsRef}';\n`;
+  }
+
+  fse.outputFileSync(mtsPath, mtsContent);
 });
 
 /**
