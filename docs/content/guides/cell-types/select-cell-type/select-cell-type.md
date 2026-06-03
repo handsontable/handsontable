@@ -65,6 +65,16 @@ The select cell type is a simpler form of the [dropdown](@/guides/cell-types/dro
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-types/select-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ## Result
 
 After configuring the select cell type, cells render a native HTML `<select>` element when the user activates them. The user picks a value from the list and the selected value is written to the data source.

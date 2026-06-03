@@ -1,5 +1,6 @@
 ---
 name: handsontable-renderer-dev
+path: handsontable/src/renderers/**
 description: Use when creating or modifying a Handsontable cell renderer function that controls how cell content is displayed in the DOM - pure functions that take cell data and modify TD element
 ---
 

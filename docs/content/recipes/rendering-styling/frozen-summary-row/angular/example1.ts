@@ -2,7 +2,6 @@
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
-import type { CellChange, ChangeSource } from 'handsontable/base';
 
 const SUMMARY_SOURCE = 'updateSummary';
 
@@ -119,8 +118,8 @@ export class AppComponent {
     },
     afterChange(
       this: Handsontable,
-      changes: CellChange[] | null,
-      source: ChangeSource,
+      changes: Handsontable.CellChange[] | null,
+      source: Handsontable.ChangeSource,
     ): void {
       if (!changes || (source as string) === SUMMARY_SOURCE) {
         return;

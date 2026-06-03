@@ -43,3 +43,19 @@ jobs:
           "
           npx -y -p typescript@5.1.6 tsc -p tsconfig.verify-types.json
           rm tsconfig.verify-types.json
+      - name: Check package exports and well-formedness (publint)
+        run: |
+          cd handsontable/tmp
+          npx -y publint@0.3.21
+      - name: Check type-declaration resolution (attw)
+        run: |
+          cd handsontable/tmp
+          # Ignored rules rationale:
+          # false-export-default  — Babel CJS interop artefact: index.js uses
+          #                         exports.__esModule=true so .default is reachable
+          #                         at runtime for all esModuleInterop:true consumers.
+          # untyped-resolution    — dist/ UMD bundles and languages/ files intentionally
+          #                         ship no type declarations.
+          # no-resolution         — CSS and theme-asset exports have no JS/TS to resolve.
+          npx -y @arethetypeswrong/cli@0.18.3 --pack . --format table \
+            --ignore-rules false-export-default untyped-resolution no-resolution

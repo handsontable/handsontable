@@ -1,4 +1,5 @@
 import { defineGetter } from '../../../../../helpers/object';
+import type Table from '../../table';
 
 const MIXIN_NAME = 'stickyColumnsStart';
 
@@ -17,7 +18,7 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getFirstRenderedColumn() {
+  getFirstRenderedColumn(this: Table) {
     const allStickyColumns = this.getRenderedColumnsCount();
 
     if (allStickyColumns === 0) {
@@ -34,8 +35,8 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getFirstVisibleColumn() {
-    return this.getFirstRenderedColumn();
+  getFirstVisibleColumn(this: Table): number {
+    return this.getFirstRenderedColumn() as number;
   },
 
   /**
@@ -45,8 +46,8 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getFirstPartiallyVisibleColumn() {
-    return this.getFirstRenderedColumn();
+  getFirstPartiallyVisibleColumn(this: Table): number {
+    return this.getFirstRenderedColumn() as number;
   },
 
   /**
@@ -55,7 +56,7 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getLastRenderedColumn() {
+  getLastRenderedColumn(this: Table) {
     return this.getRenderedColumnsCount() - 1;
   },
 
@@ -66,8 +67,8 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getLastVisibleColumn() {
-    return this.getLastRenderedColumn();
+  getLastVisibleColumn(this: Table): number {
+    return this.getLastRenderedColumn() as number;
   },
 
   /**
@@ -77,8 +78,8 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getLastPartiallyVisibleColumn() {
-    return this.getLastRenderedColumn();
+  getLastPartiallyVisibleColumn(this: Table): number {
+    return this.getLastRenderedColumn() as number;
   },
 
   /**
@@ -87,9 +88,9 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getRenderedColumnsCount() {
+  getRenderedColumnsCount(this: Table) {
     return Math.min(
-      this.wtSettings.getSetting('totalColumns'),
+      this.wtSettings.getSetting('totalColumns') ?? 0,
       this.wtSettings.getSetting('fixedColumnsStart'),
     );
   },
@@ -101,8 +102,8 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getVisibleColumnsCount() {
-    return this.getRenderedColumnsCount();
+  getVisibleColumnsCount(this: Table): number {
+    return this.getRenderedColumnsCount() as number;
   },
 
   /**
@@ -111,7 +112,7 @@ const stickyColumnsStart = {
    * @returns {number}
    * @this Table
    */
-  getRowHeadersCount() {
+  getRowHeadersCount(this: Table): number {
     return this.dataAccessObject.rowHeaders.length;
   },
 };

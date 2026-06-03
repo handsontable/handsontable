@@ -187,7 +187,7 @@ export class SelectEditor extends BaseEditor {
    */
   prepareOptions(optionsToPrepare?: unknown): unknown[] | Record<string, unknown> {
     if (Array.isArray(optionsToPrepare)) {
-      return optionsToPrepare;
+      return optionsToPrepare as unknown[];
     }
 
     if (typeof optionsToPrepare === 'object') {

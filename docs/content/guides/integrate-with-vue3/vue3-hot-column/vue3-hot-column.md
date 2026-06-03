@@ -27,10 +27,9 @@ HotColumn is a Vue 3 component that lets you define column settings declarativel
 
 To declare column-specific settings, pass the settings as `hot-column` properties, either separately or wrapped as a `settings` property, exactly as you would for `hot-table`.
 
-::: example #example1 :vue3 --html 1 --js 2
+::: example #example1 :vue3
 
-@[code](@/content/guides/integrate-with-vue3/vue3-hot-column/vue/example1.html)
-@[code](@/content/guides/integrate-with-vue3/vue3-hot-column/vue/example1.js)
+@[code](@/content/guides/integrate-with-vue3/vue3-hot-column/vue/example1.vue)
 
 :::
 
@@ -38,10 +37,9 @@ To declare column-specific settings, pass the settings as `hot-column` propertie
 
 To work with an array of objects for the `hot-column` component, you need to provide precise information about the data structure for the columns. To do this, refer to the data for a column in properties as `data`.
 
-::: example #example2 :vue3 --html 1 --js 2
+::: example #example2 :vue3
 
-@[code](@/content/guides/integrate-with-vue3/vue3-hot-column/vue/example2.html)
-@[code](@/content/guides/integrate-with-vue3/vue3-hot-column/vue/example2.js)
+@[code](@/content/guides/integrate-with-vue3/vue3-hot-column/vue/example2.vue)
 
 :::
 
@@ -49,10 +47,9 @@ To work with an array of objects for the `hot-column` component, you need to pro
 
 You can declare a custom editor by creating a class that extends `TextEditor` and passing it to a `hot-column` via the `editor` prop. The editor's input element uses a `placeholder` attribute to display a hint when the cell value is empty.
 
-::: example #example3 :vue3 --html 1 --js 2
+::: example #example3 :vue3
 
-@[code](@/content/guides/integrate-with-vue3/vue3-hot-column/vue/example3.html)
-@[code](@/content/guides/integrate-with-vue3/vue3-hot-column/vue/example3.js)
+@[code](@/content/guides/integrate-with-vue3/vue3-hot-column/vue/example3.vue)
 
 :::
 

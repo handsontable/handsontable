@@ -87,6 +87,7 @@ function detectPlugins() {
   );
 }
 
+// eslint-disable-next-line jsdoc/require-returns-check -- process.exit() is not recognized as a terminal by jsdoc
 /**
  * Locates the esbuild binary in the monorepo's pnpm node_modules.
  *

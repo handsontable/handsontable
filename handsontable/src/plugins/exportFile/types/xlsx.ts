@@ -750,7 +750,11 @@ class Xlsx extends BaseType {
       return null;
     }
 
-    return value.map(item => (item !== null && typeof item === 'object' ? item.value : item)).join(', ');
+    return value
+      .map(item => (item !== null && typeof item === 'object'
+        ? String((item as { value: unknown }).value)
+        : String(item)))
+      .join(', ');
   }
 
   /**
@@ -1129,7 +1133,7 @@ class Xlsx extends BaseType {
    * @returns {Map<string, string>} Map from source JSON key to range reference.
    */
   #buildValidationSheet(workbook: ExcelJsWorkbook, cellsMeta: CellMeta[][]): Map<string, string> {
-    const sourceMap = new Map();
+    const sourceMap = new Map<string, unknown[]>();
 
     for (let rowIndex = 0; rowIndex < cellsMeta.length; rowIndex++) {
       for (let colIndex = 0; colIndex < cellsMeta[rowIndex].length; colIndex++) {
@@ -1163,7 +1167,7 @@ class Xlsx extends BaseType {
 
     validationSheet.state = 'veryHidden';
 
-    const validationMap = new Map();
+    const validationMap = new Map<string, string>();
     let colNumber = 1;
 
     sourceMap.forEach((source, key) => {
@@ -1171,7 +1175,7 @@ class Xlsx extends BaseType {
         const item = source[rowNumber];
 
         validationSheet.getCell(rowNumber + 1, colNumber).value = isKeyValueObject(item)
-          ? String(item.value)
+          ? String((item as { value: unknown }).value)
           : String(item);
       }
 

@@ -11,6 +11,7 @@ import CoreAbstract from '../core/_base';
  * @inheritDoc
  */
 export default class WalkontableFacade {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   declare _wot: CoreAbstract & Record<string, any>;
 
   /**
@@ -24,6 +25,7 @@ export default class WalkontableFacade {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   _initFromSettings(settings: Record<string, any>) {
     settings.facade = (instance: CoreAbstract) => {
       const facade = new WalkontableFacade(instance);
@@ -31,6 +33,7 @@ export default class WalkontableFacade {
       return () => facade;
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this._wot = new Walkontable(settings.table, settings) as CoreAbstract & Record<string, any>;
   }
 
@@ -51,8 +54,8 @@ export default class WalkontableFacade {
   get cloneSource() {
     return this._wot.cloneSource; // todo create facade
   }
-  get cloneOverlay() {
-    return this._wot.cloneOverlay; // todo create facade
+  get cloneOverlay(): Overlay {
+    return this._wot.cloneOverlay as Overlay; // todo create facade
   }
   get selectionManager() {
     return this._wot.selectionManager; // todo create facade
@@ -87,20 +90,20 @@ export default class WalkontableFacade {
   set drawInterrupted(value) {
     this._wot.drawInterrupted = value;
   }
-  get lastMouseOver() {
-    return this._wot.lastMouseOver;
+  get lastMouseOver(): HTMLElement | null {
+    return this._wot.lastMouseOver as HTMLElement | null;
   }
   set lastMouseOver(value) {
     this._wot.lastMouseOver = value;
   }
-  get momentumScrolling() {
-    return this._wot.momentumScrolling;
+  get momentumScrolling(): { ongoing?: boolean; _timeout?: ReturnType<typeof setTimeout> } {
+    return this._wot.momentumScrolling as { ongoing?: boolean; _timeout?: ReturnType<typeof setTimeout> };
   }
   set momentumScrolling(value) {
     this._wot.momentumScrolling = value;
   }
-  get touchApplied() {
-    return this._wot.touchApplied;
+  get touchApplied(): boolean {
+    return this._wot.touchApplied as boolean;
   }
   set touchApplied(value) {
     this._wot.touchApplied = value;
@@ -108,8 +111,8 @@ export default class WalkontableFacade {
   get domBindings() {
     return this._wot.domBindings;
   }
-  get eventListeners() {
-    return this._wot.eventListeners;
+  get eventListeners(): unknown[] {
+    return this._wot.eventListeners as unknown[];
   }
   set eventListeners(value) {
     this._wot.eventListeners = value;
@@ -155,12 +158,12 @@ export default class WalkontableFacade {
     return this._wot.cloneOverlay ? (this._wot.cloneOverlay as Overlay).type : 'master';
   }
 
-  getOverlayByName(overlayName: string) {
-    return this._wot.getOverlayByName(overlayName);
+  getOverlayByName(overlayName: string): Overlay | null {
+    return this._wot.getOverlayByName(overlayName) as Overlay | null;
   }
 
-  exportSettingsAsClassNames() {
-    return this._wot.exportSettingsAsClassNames();
+  exportSettingsAsClassNames(): void {
+    this._wot.exportSettingsAsClassNames();
   }
 
   update(settings: string | Record<string, unknown>, value: unknown) {
@@ -169,8 +172,8 @@ export default class WalkontableFacade {
     return this;
   }
 
-  getSetting(key: string, param1: unknown, param2: unknown, param3: unknown, param4: unknown) {
-    return this._wot.wtSettings.getSetting(key, param1, param2, param3, param4);
+  getSetting(key: string, param1: unknown, param2: unknown, param3: unknown, param4: unknown): unknown {
+    return this._wot.wtSettings.getSetting(key, param1, param2, param3, param4) as unknown;
   }
 
   hasSetting(key: string) {

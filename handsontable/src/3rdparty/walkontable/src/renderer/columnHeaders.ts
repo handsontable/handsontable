@@ -31,7 +31,7 @@ export class ColumnHeadersRenderer extends BaseRenderer {
    *
    * @type {WeakMap}
    */
-  orderViews = new WeakMap();
+  orderViews = new WeakMap<HTMLElement, OrderView>();
   /**
    * Row index which specifies the row position of the processed column header.
    *
@@ -102,8 +102,8 @@ export class ColumnHeadersRenderer extends BaseRenderer {
 
         // Remove all accessibility-related attributes for the header to start fresh.
         removeAttribute(TH, [
-          new RegExp('aria-(.*)'),
-          new RegExp('role')
+          /aria-(.*)/,
+          /role/
         ]);
 
         if (this.table.isAriaEnabled()) {

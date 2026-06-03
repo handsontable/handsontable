@@ -3,11 +3,13 @@ import { Component, NgZone, ViewChild, inject } from '@angular/core';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 import { HotTableComponent } from '@handsontable/angular-wrapper';
 import type {
-  DataProviderFilterColumn,
   DataProviderQueryParameters,
   DataProviderFetchOptions,
   RowUpdatePayload,
-} from 'handsontable/plugins/dataProvider/dataProvider';
+  DataProviderBeforeFetchParameters,
+} from 'handsontable/plugins/dataProvider';
+
+type DataProviderFilterColumn = NonNullable<DataProviderQueryParameters['filters']>[number];
 
 type DemoRow = {
   id: number;
@@ -249,11 +251,11 @@ function createInventoryDemoServer(): InventoryDemoServer {
       store.rows.splice(insertAt, 0, ...newRows);
     },
     async onRowsUpdate(rows) {
-      rows.forEach(({ rowId, data }) => {
-        const row = store.rows.find((r) => r.id === rowId);
+      rows.forEach(({ id, changes }) => {
+        const row = store.rows.find((r) => r.id === id);
 
         if (row) {
-          Object.assign(row, data);
+          Object.assign(row, changes);
         }
       });
     },
@@ -334,7 +336,7 @@ export class AppComponent {
       contextMenu: true,
       emptyDataState: true,
       notification: true,
-      beforeDataProviderFetch: (params: { skipLoading?: boolean; [key: string]: unknown }) => {
+      beforeDataProviderFetch: (params: DataProviderBeforeFetchParameters) => {
         this.setFetchStatus(
           params.skipLoading
             ? 'Updating after sort or edit…'

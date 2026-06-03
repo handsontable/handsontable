@@ -1,4 +1,6 @@
 import type { HotInstance } from './core/types';
+import type { BaseRenderer } from './renderers/baseRenderer';
+import type { CellProperties } from './settings';
 import type { WalkontableInstance, DataAccessObject, ScrollDao } from './3rdparty/walkontable/src/types';
 import type { RowsCalculationType, ColumnsCalculationType } from './3rdparty/walkontable/src/calculator/viewportBase';
 import {
@@ -902,10 +904,10 @@ class TableView {
         let visualColumnToCheck = visualColumnIndex;
 
         if (Array.isArray(modifiedCellCoords)) {
-          [visualRowToCheck, visualColumnToCheck] = modifiedCellCoords;
+          [visualRowToCheck, visualColumnToCheck] = modifiedCellCoords as [number, number];
         }
 
-        const cellProperties = this.hot.getCellMeta(visualRowToCheck, visualColumnToCheck);
+        const cellProperties = this.hot.getCellMeta<CellProperties>(visualRowToCheck, visualColumnToCheck);
         const prop = this.hot.colToProp(visualColumnToCheck) as string;
         let value = this.hot.getDataAtRowProp(visualRowToCheck, prop);
 
@@ -929,8 +931,8 @@ class TableView {
 
         this.hot.runHooks('beforeRenderer', TD, visualRowIndex, visualColumnIndex, prop, value, cellProperties);
 
-        const rendererArgs = [
-          this.hot,
+        const rendererArgs: Parameters<BaseRenderer> = [
+          this.hot as HotInstance,
           TD,
           visualRowIndex,
           visualColumnIndex,
@@ -1264,7 +1266,7 @@ class TableView {
       onModifyRowHeaderWidth: (rowHeaderWidth: number) => this.hot.runHooks('modifyRowHeaderWidth', rowHeaderWidth),
       onModifyGetCellCoords: (
         renderableRowIndex: number, renderableColumnIndex: number, topmost: boolean, source: string
-      ) => {
+      ): (number | null)[] | undefined => {
         const rowMapper = this.hot.rowIndexMapper;
         const columnMapper = this.hot.columnIndexMapper;
 
@@ -1278,7 +1280,8 @@ class TableView {
           .runHooks('modifyGetCellCoords', visualRowIndex, visualColumnIndex, topmost, source);
 
         if (Array.isArray(visualIndexes)) {
-          const [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] = visualIndexes;
+          const [visualRowFrom, visualColumnFrom, visualRowTo, visualColumnTo] =
+            visualIndexes as number[];
 
           // Result of the hook is handled by the Walkontable (renderable indexes).
           return [
@@ -1293,7 +1296,9 @@ class TableView {
           ];
         }
       },
-      onModifyGetCoordsElement: (renderableRowIndex: number, renderableColumnIndex: number) => {
+      onModifyGetCoordsElement: (
+        renderableRowIndex: number, renderableColumnIndex: number
+      ): (number | null)[] | undefined => {
         const rowMapper = this.hot.rowIndexMapper;
         const columnMapper = this.hot.columnIndexMapper;
 
@@ -1305,7 +1310,7 @@ class TableView {
         const visualIndexes = this.hot.runHooks('modifyGetCoordsElement', visualRowIndex, visualColumnIndex);
 
         if (Array.isArray(visualIndexes)) {
-          const [visualRow, visualColumn] = visualIndexes;
+          const [visualRow, visualColumn] = visualIndexes as number[];
 
           return [
             visualRow >= 0 ? rowMapper.getRenderableFromVisualIndex(
@@ -1545,7 +1550,7 @@ class TableView {
     label = this.hot.getColHeader,
     headerLevel = 0
   ) {
-    const getColumnHeaderClassNames = () => {
+    const getColumnHeaderClassNames = (): string[] => {
       const metaHeaderClassNames =
         visualColumnIndex >= 0 ?
           this.hot.getColumnMeta(visualColumnIndex).headerClassName :
@@ -1555,8 +1560,8 @@ class TableView {
         return [];
       }
 
-      const classes = Array.isArray(metaHeaderClassNames)
-        ? metaHeaderClassNames
+      const classes: string[] = Array.isArray(metaHeaderClassNames)
+        ? (metaHeaderClassNames as string[])
         : (metaHeaderClassNames as string).split(' ');
 
       return classes.flatMap(cls => cls.split(' ')).filter(cls => cls.length > 0);

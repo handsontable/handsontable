@@ -27,6 +27,7 @@ import {
 import type { BorderSettings, BorderObject, CustomBorderConfig } from './utils';
 import { detectSelectionType, normalizeSelectionFactory } from '../../selection';
 import { isDefined } from '../../helpers/mixed';
+import type { HotInstance } from '../../core/types';
 import type Selection from '../../3rdparty/walkontable/src/selection/selection';
 import type Border from '../../3rdparty/walkontable/src/selection/border/border';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
@@ -924,10 +925,10 @@ The border style will be ignored.`);
       name: '---------',
     }, {
       key: 'borders',
-      name() {
+      name(this: HotInstance): string {
         return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_BORDERS);
       },
-      disabled() {
+      disabled(this: HotInstance): boolean {
         const range = this.getSelectedRangeActive();
 
         if (!range) {

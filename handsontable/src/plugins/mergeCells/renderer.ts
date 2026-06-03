@@ -19,12 +19,12 @@ interface MergedCellEntry {
 interface MergeCellsPluginInstance {
   hot: HotInstance;
   mergedCellsCollection: {
-    get(row: number, col: number): MergedCellEntry | null;
+    get(row: number, col: number): MergedCellEntry | false;
   };
   translateMergedCellToRenderable(
     row: number, rowspan: number, col: number, colspan: number
   ): [number, number];
-  getSetting(key: string): unknown;
+  getSetting<T = unknown>(key: string): T;
 }
 
 /**
@@ -61,7 +61,7 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
   function after(TD: HTMLTableCellElement, row: number, col: number) {
     const mergedCell = plugin.mergedCellsCollection.get(row, col);
 
-    if (mergedCell === null || !isObject(mergedCell)) {
+    if (mergedCell === false) {
       TD.removeAttribute('rowspan');
       TD.removeAttribute('colspan');
 

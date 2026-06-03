@@ -1,8 +1,8 @@
 import Handsontable, {
   CellCoords,
 } from 'handsontable/base';
-import { HotInstance } from 'handsontable';
-import { BasePlugin } from 'handsontable/plugins';
+import type { HotInstance } from 'handsontable';
+import type { BasePlugin } from 'handsontable/plugins';
 
 interface CellProperties {
   row: number;
@@ -213,10 +213,10 @@ hot.selectRows(1, 4);
 hot.selectRows(1);
 hot.setCellMeta(123, 123, 'foo', 'foo');
 hot.setCellMetaObject(123, 123, {});
-(hot as any).setDataAtCell([[123, 123, 'foo'], [123, 123, { myProperty: 'foo' }]], 'foo');
+hot.setDataAtCell([[123, 123, 'foo'], [123, 123, { myProperty: 'foo' }]], 'foo');
 hot.setDataAtCell(123, 123, 'foo', 'foo');
 hot.setDataAtCell(123, 123, { myProperty: 'foo' }, 'foo');
-(hot as any).setDataAtRowProp([[123, 'foo', 'foo'], [123, 'foo', 'foo']], 'foo');
+hot.setDataAtRowProp([[123, 'foo', 'foo'], [123, 'foo', 'foo']], 'foo');
 (hot as any).setDataAtRowProp(123, 'foo', 'foo', 'foo');
 hot.setSourceDataAtCell([[1, 'foo', 'foo']]);
 hot.setSourceDataAtCell([[1, 'foo', 'foo']], 'sourceString');

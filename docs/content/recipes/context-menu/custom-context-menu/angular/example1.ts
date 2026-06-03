@@ -1,10 +1,10 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import type { RowObject } from "handsontable";
+import type Handsontable from 'handsontable/base';
 
 /* start:skip-in-preview */
-const data: RowObject[] = [
+const data: Handsontable.RowObject[] = [
   { task: 'Deploy API v2', assignee: 'Alice Chen', status: 'In Progress', priority: 'High', dueDate: '2026-05-10' },
   { task: 'Write unit tests', assignee: 'Bob Smith', status: 'To Do', priority: 'Medium', dueDate: '2026-05-15' },
   { task: 'Review PR #142', assignee: 'Carol Davis', status: 'Done', priority: 'Low', dueDate: '2026-04-30' },
@@ -31,7 +31,7 @@ const flaggedRows = new Set<number>();
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
-  readonly data: RowObject[] = data;
+  readonly data: Handsontable.RowObject[] = data;
 
   readonly gridSettings: GridSettings = {
     rowHeaders: true,

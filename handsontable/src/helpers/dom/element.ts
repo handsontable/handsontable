@@ -217,9 +217,9 @@ export function isChildOf(child: HTMLElement | Document, parent: HTMLElement | D
 
   if (typeof parent === 'string') {
     if (child instanceof Document) {
-      queriedParents = Array.prototype.slice.call(child.querySelectorAll(parent), 0);
+      queriedParents = Array.from(child.querySelectorAll(parent));
     } else {
-      queriedParents = Array.prototype.slice.call(child.ownerDocument.querySelectorAll(parent), 0);
+      queriedParents = Array.from(child.ownerDocument.querySelectorAll(parent));
     }
   } else {
     queriedParents.push(parent);

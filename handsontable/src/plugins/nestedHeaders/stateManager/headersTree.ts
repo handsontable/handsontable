@@ -1,6 +1,6 @@
 import { arrayEach } from '../../../helpers/array';
 import TreeNode from '../../../utils/dataStructures/tree';
-import SourceSettings from './sourceSettings';
+import type SourceSettings from './sourceSettings';
 
 /**
  * Interface representing the base header settings shape.
@@ -29,6 +29,8 @@ export interface HeaderSettings {
 export interface HeaderNodeData extends HeaderSettings {
   headerLevel: number;
   columnIndex: number;
+  /** A cloned subtree stored during collapse, restored on expand. */
+  clonedTree?: TreeNode | null;
 }
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -44,14 +46,14 @@ export default class HeadersTree {
    * @private
    * @type {Map<number, TreeNode>}
    */
-  readonly #rootNodes = new Map();
+  readonly #rootNodes = new Map<number, TreeNode>();
   /**
    * A map that translates the visual column indexes.
    *
    * @private
    * @type {Map<number, number>}
    */
-  readonly #rootsIndex = new Map();
+  readonly #rootsIndex = new Map<number, number>();
   /**
    * The instance of the SourceSettings class.
    *
@@ -83,7 +85,7 @@ export default class HeadersTree {
     let node;
 
     if (this.#rootsIndex.has(columnIndex)) {
-      node = this.#rootNodes.get(this.#rootsIndex.get(columnIndex));
+      node = this.#rootNodes.get(this.#rootsIndex.get(columnIndex)!);
     }
 
     return node;
@@ -105,7 +107,7 @@ export default class HeadersTree {
 
     // Normalize the visual column index to a 0-based system for a specific "box" defined
     // by root node colspan width.
-    const normColumnIndex = columnIndex - this.#rootsIndex.get(columnIndex);
+    const normColumnIndex = columnIndex - this.#rootsIndex.get(columnIndex)!;
     let columnCursor = 0;
     let treeNode;
 
@@ -136,7 +138,9 @@ export default class HeadersTree {
 
     this.#rootsIndex.clear();
 
-    arrayEach(this.#rootNodes, ([, { data: { colspan } }]) => {
+    arrayEach(this.#rootNodes, ([, node]) => {
+      const { colspan } = node.data as HeaderNodeData;
+
       // Map tree range (colspan range/width) into visual column index of the root node.
       for (let i = columnIndex; i < columnIndex + colspan; i++) {
         this.#rootsIndex.set(i, columnIndex);
@@ -157,7 +161,7 @@ export default class HeadersTree {
 
     while (columnIndex < columnsCount) {
       const columnSettings = this.#sourceSettings!.getHeaderSettings(0, columnIndex) as HeaderSettings;
-      const rootNode = new TreeNode(undefined as unknown);
+      const rootNode = new TreeNode({});
 
       this.#rootNodes.set(columnIndex, rootNode);
       this.buildLeaves(rootNode, columnIndex, 0, columnSettings.origColspan);

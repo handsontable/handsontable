@@ -22,8 +22,8 @@ export function register(name: string, formatterFn: Function) {
  *
  * @returns {Array}
  */
-export function getAll() {
-  return getGlobalPhraseFormatters();
+export function getAll(): Function[] {
+  return getGlobalPhraseFormatters() as Function[];
 }
 
 export {

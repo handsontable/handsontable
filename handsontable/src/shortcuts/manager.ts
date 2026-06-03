@@ -2,7 +2,8 @@ import { createUniqueMap } from '../utils/dataStructures/uniqueMap';
 import { throwWithCause } from '../helpers/errors';
 import { stopImmediatePropagation } from '../helpers/dom/event';
 import { isMacOS } from '../helpers/browser';
-import { createContext, isContextObject, Context } from './context';
+import type { Context } from './context';
+import { createContext, isContextObject } from './context';
 import { useRecorder } from './recorder';
 import { getEventKeyCombinations } from './utils';
 import { toSingleLine } from '../helpers/templateLiteralTag';
@@ -92,7 +93,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
    * @returns {object|undefined} A [`ShortcutContext`](@/api/shortcutContext.md) object that stores registered shortcuts.
    */
   const getContext = (contextName: string): Context | undefined => {
-    return CONTEXTS.getItem(contextName);
+    return CONTEXTS.getItem(contextName) as Context | undefined;
   };
 
   /**
@@ -214,7 +215,7 @@ export const createShortcutManager = ({ ownerWindow, handleEvent, beforeKeyDown,
     const items = CONTEXTS.getItems();
 
     for (let i = 0; i < items.length; i += 1) {
-      const [, context] = items[i];
+      const [, context] = items[i] as [string, Context];
 
       if (context.scope !== 'global') {
         continue;
