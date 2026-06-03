@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12490 — FIX (dragToScroll object config accepted by TypeScript)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .new { color: #b5cea8; font-weight: 700; }
+    pre .ok { color: #4ec9b0; }
+    pre .comment { color: #6a9955; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; line-height: 1.5; }
+    .ts-ok { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 12px; font-family: monospace; line-height: 1.6; color: #1b5e20; }
+    .ts-ok .ok-label { font-weight: 700; margin-bottom: 4px; }
+    .section-title { font-size: 13px; font-weight: 700; color: #555; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-apply { background: #388e3c; color: #fff; border-color: #2e7d32; font-weight: 600; }
+    .btn-apply:hover { background: #2e7d32; }
+    .config-row { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .config-card { flex: 1; min-width: 220px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; font-size: 12px; font-family: monospace; cursor: pointer; transition: border-color 0.15s; }
+    .config-card.selected { border-color: #388e3c; background: #f1f8f1; }
+    .config-card .card-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 6px; font-family: sans-serif; }
+    .status-box { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-family: monospace; min-height: 36px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>PR #12490 - <code>dragToScroll</code> object config accepted by TypeScript</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12490-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR #12490 Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12490).</strong>
+    The <code>dragToScroll</code> TypeScript type now correctly reflects the full API:
+    <code>boolean | { interval?: { min?: number; max?: number }; rampDistance?: number }</code>.
+    All object-form configurations that were always valid at runtime now compile without error.
+  </div>
+
+  <div id="patch-info">
+    This page loads <code>dist/handsontable.full.min.js</code> built from the <code>develop</code> branch which includes PR #12490.
+    The fix is a one-line change in <code>dragToScroll.d.ts</code> — no runtime code was modified.
+  </div>
+
+  <div class="section-title">Type declaration (after fix)</div>
+  <pre><span class="comment">// dragToScroll.d.ts — AFTER fix</span>
+export type Settings = <span class="new">boolean | {
+  interval?: { min?: number; max?: number };
+  rampDistance?: number;
+};</span></pre>
+
+  <div class="section-title">All forms now valid TypeScript ✓</div>
+  <pre><span class="comment">// boolean — unchanged, still valid</span>
+<span class="ok">dragToScroll: true</span>
+
+<span class="comment">// full object</span>
+<span class="ok">dragToScroll: { interval: { min: 20, max: 500 }, rampDistance: 120 }</span>
+
+<span class="comment">// partial — only interval.min</span>
+<span class="ok">dragToScroll: { interval: { min: 50 } }</span>
+
+<span class="comment">// partial — only rampDistance</span>
+<span class="ok">dragToScroll: { rampDistance: 80 }</span></pre>
+
+  <div class="ts-ok">
+    <div class="ok-label">TypeScript — no errors (after fix) ✓</div>
+    All four configurations above compile cleanly. No <code>as any</code> cast required.
+  </div>
+
+  <div class="hint">
+    <strong>Live demo — try different <code>dragToScroll</code> configs:</strong><br>
+    Select a config card below and click <strong>"Apply &amp; reload grid"</strong>. Then drag a cell selection
+    beyond the grid edge and hold — observe how scroll speed changes with <code>interval.min/max</code>
+    and how quickly scrolling ramps up with <code>rampDistance</code>.
+  </div>
+
+  <div class="config-row">
+    <div class="config-card selected" id="cfg-default" onclick="selectConfig('default')">
+      <div class="card-title">Default (boolean)</div>
+      dragToScroll: true
+    </div>
+    <div class="config-card" id="cfg-slow" onclick="selectConfig('slow')">
+      <div class="card-title">Slow scroll</div>
+      dragToScroll: {<br>
+      &nbsp;&nbsp;interval: { min: 200, max: 800 },<br>
+      &nbsp;&nbsp;rampDistance: 200<br>
+      }
+    </div>
+    <div class="config-card" id="cfg-fast" onclick="selectConfig('fast')">
+      <div class="card-title">Fast scroll</div>
+      dragToScroll: {<br>
+      &nbsp;&nbsp;interval: { min: 20, max: 100 },<br>
+      &nbsp;&nbsp;rampDistance: 30<br>
+      }
+    </div>
+    <div class="config-card" id="cfg-partial" onclick="selectConfig('partial')">
+      <div class="card-title">Partial (rampDistance only)</div>
+      dragToScroll: {<br>
+      &nbsp;&nbsp;rampDistance: 80<br>
+      }
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-apply" id="btn-apply">Apply &amp; reload grid</button>
+  </div>
+
+  <div class="status-box" id="status">Active config: dragToScroll: true</div>
+
+  <div id="hot-container"></div>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    const CONFIGS = {
+      default:  { label: 'dragToScroll: true',                                              value: true },
+      slow:     { label: 'dragToScroll: { interval: { min: 200, max: 800 }, rampDistance: 200 }', value: { interval: { min: 200, max: 800 }, rampDistance: 200 } },
+      fast:     { label: 'dragToScroll: { interval: { min: 20, max: 100 }, rampDistance: 30 }',   value: { interval: { min: 20, max: 100 }, rampDistance: 30 } },
+      partial:  { label: 'dragToScroll: { rampDistance: 80 }',                             value: { rampDistance: 80 } },
+    };
+
+    let currentConfig = 'default';
+
+    function selectConfig(key) {
+      currentConfig = key;
+      document.querySelectorAll('.config-card').forEach(el => el.classList.remove('selected'));
+      document.getElementById('cfg-' + key).classList.add('selected');
+    }
+
+    function buildGrid(configKey) {
+      if (window.hot) { window.hot.destroy(); window.hot = null; }
+
+      const data = [];
+      for (let r = 0; r < 50; r++) {
+        const row = [];
+        for (let c = 0; c < 20; c++) row.push('R' + (r + 1) + 'C' + (c + 1));
+        data.push(row);
+      }
+
+      const cfg = CONFIGS[configKey];
+
+      window.hot = new Handsontable(document.getElementById('hot-container'), {
+        data,
+        rowHeaders: true,
+        colHeaders: true,
+        width: '100%',
+        height: 300,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+        dragToScroll: cfg.value,
+      });
+
+      document.getElementById('status').textContent = 'Active config: ' + cfg.label;
+    }
+
+    document.getElementById('btn-apply').addEventListener('click', () => {
+      buildGrid(currentConfig);
+    });
+
+    buildGrid('default');
+  </script>
+</body>
+</html>
