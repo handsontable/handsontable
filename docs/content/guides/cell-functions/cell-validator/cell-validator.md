@@ -127,6 +127,14 @@ const hot = new Handsontable(container, {
 
 :::
 
+::: only-for vue
+
+```html
+<HotTable :settings="{ columns: [{ validator: 'my.custom' }] }" />
+```
+
+:::
+
 ## Full featured example
 
 Use the validator method to easily validate synchronous or asynchronous changes to a cell. If you need more control, [`beforeValidate`](@/api/hooks.md#beforevalidate) and [`afterValidate`](@/api/hooks.md#aftervalidate) hooks are available. In the below example, `email_validator_fn` is an async validator that resolves after 1000 ms.
@@ -157,6 +165,14 @@ invalidCellClassName="myInvalidClass"
 
 ```ts
 invalidCellClassName: 'myInvalidClass'
+```
+
+:::
+
+::: only-for vue
+
+```html
+<HotTable :settings="{ invalidCellClassName: 'myInvalidClass' }" />
 ```
 
 :::
@@ -199,6 +215,20 @@ columns: [
 
 :::
 
+::: only-for vue
+
+```html
+<HotTable :settings="{
+  columns: [
+    { data: 'firstName', invalidCellClassName: 'myInvalidClass' },
+    { data: 'lastName', invalidCellClassName: 'myInvalidSecondClass' },
+    { data: 'address' }
+  ]
+}" />
+```
+
+:::
+
 Callback console log:
 
 ::: only-for javascript
@@ -230,6 +260,16 @@ Callback console log:
 
 @[code collapse={33-98}](@/content/guides/cell-functions/cell-validator/angular/example1.ts)
 @[code](@/content/guides/cell-functions/cell-validator/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-functions/cell-validator/vue/example1.vue)
 
 :::
 

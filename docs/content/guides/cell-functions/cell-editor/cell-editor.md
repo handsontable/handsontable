@@ -260,6 +260,16 @@ Override only the methods you need. The `PasswordEditor` below extends `TextEdit
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-functions/cell-editor/vue/example1.vue)
+
+:::
+
+:::
+
 ### Building an editor from scratch
 
 Extend `BaseEditor` directly for full control. The `SelectEditor` below renders a `<select>` dropdown. It also overrides keyboard behavior so <kbd>**Arrow Up**</kbd> / <kbd>**Arrow Down**</kbd> cycle through options rather than closing the editor.
@@ -291,6 +301,16 @@ To use a class-based editor from scratch in React, pass the editor class as the 
 ::: only-for angular
 
 To use a class-based editor from scratch in Angular, pass the editor class as the `editor` property in a column configuration object. See the [class-based editors](#class-based-editors) section for an example.
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-functions/cell-editor/vue/example2.vue)
+
+:::
 
 :::
 
@@ -351,6 +371,14 @@ settings = { columns: [{ editor: 'myEditor' }] };
 
 ```html
 <hot-table [settings]="settings" />
+```
+
+:::
+
+::: only-for vue
+
+```html
+<HotTable :settings="{ columns: [{ editor: 'myEditor' }] }" />
 ```
 
 :::
