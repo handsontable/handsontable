@@ -358,7 +358,10 @@ function buildReportMarkdown() {
   const lines = [];
   lines.push('## Angular docs type-check');
   lines.push('');
-  lines.push(`**Result:** ${inBoth.length > 0 ? '❌ FAILED' : '⚠️ PASSED WITH WARNINGS'} (latest = ${version})`);
+  const result = inBoth.length > 0
+    ? '❌ FAILED'
+    : warnCount > 0 ? '⚠️ PASSED WITH WARNINGS' : '✅ PASSED';
+  lines.push(`**Result:** ${result} (latest = ${version})`);
   lines.push('');
   lines.push(`- ❌ Errors in **both** versions (fail the run): **${inBoth.length}**`);
   lines.push(`- ⚠️ Version-specific issues (warnings only): **${warnCount}**`);
