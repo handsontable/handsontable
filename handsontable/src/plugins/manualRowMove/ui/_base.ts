@@ -28,6 +28,9 @@ class BaseUI {
    */
   state = STATE_INITIALIZED;
 
+  /**
+   * Initializes the base row-move UI element with a reference to the Handsontable instance.
+   */
   constructor(hotInstance: HotInstance) {
     this.hot = hotInstance;
   }

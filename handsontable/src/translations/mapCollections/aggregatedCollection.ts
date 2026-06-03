@@ -8,6 +8,9 @@ import { isDefined } from '../../helpers/mixed';
  */
 export class AggregatedCollection extends MapCollection {
   // Mixin-injected properties/methods (added by `mixin(MapCollection, localHooks)`)
+  /**
+   * Registers a callback function for the given local hook name on this aggregated collection.
+   */
   declare addLocalHook: (key: string, callback: Function) => this;
 
   /**
@@ -25,6 +28,9 @@ export class AggregatedCollection extends MapCollection {
    */
   fallbackValue;
 
+  /**
+   * Initializes the aggregated collection with a function that combines per-index values and a fallback value for indexes with no data.
+   */
   constructor(aggregationFunction: (valuesForIndex: unknown[]) => unknown, fallbackValue: unknown) {
     super();
     this.aggregationFunction = aggregationFunction;

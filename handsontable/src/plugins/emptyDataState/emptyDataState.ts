@@ -15,7 +15,9 @@ function isPlainRecord(v: unknown): v is Record<string, unknown> {
   return isObject(v);
 }
 
-/** The possible shapes of the `message` setting value. */
+/**
+ * The possible shapes of the `message` setting value.
+ */
 type MessageSetting =
   | string
   | Record<string, unknown>
@@ -208,22 +210,36 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * ```
  * :::
  */
-
+/**
+ * Plugin that renders a customizable overlay when the data source is empty, replacing the standard empty grid display.
+ */
 export class EmptyDataState extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   */
   static get DEFAULT_SETTINGS() {
     return {
       message: undefined as string | Record<string, unknown> | undefined,
     };
   }
 
+  /**
+   * Returns validator functions for each plugin setting to verify their values are valid before applying them.
+   */
   static get SETTINGS_VALIDATORS() {
     return {
       message: (value: unknown) => {

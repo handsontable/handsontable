@@ -97,52 +97,59 @@ export const PLUGIN_PRIORITY = 280;
  * :::
  */
 export class NestedHeaders extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Manages the state tree of nested header spans and their visibility.
+   */
   #stateManager = new StateManager();
+  /**
+   * Observer that synchronizes column hiding state with the nested headers visibility.
+   */
   #hidingIndexMapObserver: { unsubscribe: () => void } | null = null;
+  /**
+   * Stores the initial focus coordinates before a column header click initiates a range selection.
+   */
   #focusInitialCoords: { row: number, col: number, clone: () => CellCoords } | null = null;
+  /**
+   * Indicates whether a column selection drag triggered by a nested header click is currently in progress.
+   */
   #isColumnsSelectionInProgress = false;
   /**
    * Keeps the last highlight position made by column selection. The coords are necessary to scroll
    * the viewport to the correct position when the nested header is clicked when the `navigableHeaders`
    * option is disabled.
-   *
-   * @type {CellCoords | null}
    */
   #recentlyHighlightCoords: { row: number | null, col: number | null } | null = null;
   /**
    * Stores the header row level used as context for horizontal navigation when entering
    * and leaving rowspanned headers.
-   *
-   * @type {number|null}
    */
   #rowspanHeaderNavigationContextRow: number | null = null;
   /**
    * Stores the expected next highlight coordinates after keyboard navigation. If the next
    * keyboard move starts from different coordinates, the horizontal navigation context
    * is considered stale and should be reset.
-   *
-   * @type {{row: number, col: number}|null}
    */
   #expectedNextKeyboardHighlightCoords: { row: number; col: number } | null = null;
   /**
    * Determines if the widths map should be updated.
-   *
-   * @type {boolean}
    */
   #updateWidthsMap = false;
   /**
    * Custom helper for getting widths of the nested headers.
-   *
-   * @private
-   * @type {GhostTable}
    */
   // @TODO This should be changed after refactor handsontable/utils/ghostTable.
   ghostTable = new GhostTable({
@@ -152,21 +159,23 @@ export class NestedHeaders extends BasePlugin {
   /**
    * The flag which determines that the nested header settings contains overlapping headers
    * configuration.
-   *
-   * @type {boolean}
    */
   detectedOverlappedHeaders = false;
   /**
    * Determines if the current nested headers state contains headers with `rowspan`.
-   *
-   * @type {boolean}
    */
   #hasRowspanHeaders = false;
 
+  /**
+   * Returns whether the plugin is enabled based on the presence of the `nestedHeaders` settings key.
+   */
   isEnabled(): boolean {
     return !!this.hot.getSettings()[PLUGIN_KEY];
   }
 
+  /**
+   * Enables the plugin by registering all required hooks and initializing the header state.
+   */
   enablePlugin() {
     if (this.enabled) {
       return;
@@ -208,6 +217,9 @@ export class NestedHeaders extends BasePlugin {
     this.updatePlugin();
   }
 
+  /**
+   * Updates the plugin state when Handsontable settings change, rebuilding the header tree and refreshing column widths.
+   */
   updatePlugin() {
     if (!this.hot.view) {
       return;
@@ -275,6 +287,9 @@ export class NestedHeaders extends BasePlugin {
     super.updatePlugin();
   }
 
+  /**
+   * Disables the plugin by removing all registered hooks, clearing header state, and resetting visual indicators.
+   */
   disablePlugin() {
     this.hot.rowIndexMapper
       .removeLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
@@ -295,18 +310,30 @@ export class NestedHeaders extends BasePlugin {
     super.disablePlugin();
   }
 
+  /**
+   * Returns the internal state manager that tracks the nested header spans and their layout configuration.
+   */
   getStateManager() {
     return this.#stateManager;
   }
 
+  /**
+   * Returns the number of nested header rows currently configured in the plugin.
+   */
   getLayersCount() {
     return this.#stateManager.getLayersCount();
   }
 
+  /**
+   * Returns the header settings node for the specified header level and column index.
+   */
   getHeaderSettings(headerLevel: number, columnIndex: number) {
     return this.#stateManager.getHeaderSettings(headerLevel, columnIndex);
   }
 
+  /**
+   * Removes all colspan and rowspan attributes from the rendered header cells in all overlays.
+   */
   clearColspans() {
     if (!this.hot.view) {
       return;
@@ -361,6 +388,9 @@ export class NestedHeaders extends BasePlugin {
     }
   }
 
+  /**
+   * Creates and returns a header renderer function for the specified header layer level.
+   */
   headerRendererFactory(headerLevel: number) {
     const fixedColumnsStart = this.hot.view._wt.getSetting('fixedColumnsStart') as number;
 
@@ -450,6 +480,9 @@ export class NestedHeaders extends BasePlugin {
     };
   }
 
+  /**
+   * Returns the display value for a nested header cell at the given visual column index and header level.
+   */
   getColumnHeaderValue(visualColumnIndex: number, headerLevel: number) {
     const {
       isHidden,
@@ -464,6 +497,9 @@ export class NestedHeaders extends BasePlugin {
     return this.hot.getColHeader(visualColumnIndex, headerLevel);
   }
 
+  /**
+   * Updates the focus highlight position in the selection model to reflect the current nested header layout.
+   */
   readonly #updateFocusHighlightPosition = () => {
     const selection = this.hot?.getSelectedRangeActive();
 
@@ -669,6 +705,9 @@ export class NestedHeaders extends BasePlugin {
     return mostLeftColumnIndex <= firstVisibleColumn ? mostLeftColumnIndex : mostRightColumnIndex;
   };
 
+  /**
+   * Adjusts the column highlight start index and width to align with the nested header spanning configuration.
+   */
   #onBeforeHighlightingColumnHeader = (
     visualColumn: number, headerLevel: number,
     highlightMeta: { columnCursor: number, selectionType: string, selectionWidth: number }
@@ -703,6 +742,9 @@ export class NestedHeaders extends BasePlugin {
     return visualColumn;
   };
 
+  /**
+   * Enriches copied data with nested column header labels when column headers are included in the copy range.
+   */
   #onBeforeCopy = (
     data: unknown[][],
     copyableRanges: { startRow: number, startCol: number, endRow: number, endCol: number }[],
@@ -763,6 +805,9 @@ export class NestedHeaders extends BasePlugin {
     }
   };
 
+  /**
+   * Initiates a column selection when a nested header cell is clicked, selecting all columns covered by the header span.
+   */
   #onAfterOnCellMouseDown = (event: MouseEvent, coords: CellCoords) => {
     if (coords.row === null || coords.col === null) {
       return;
@@ -810,6 +855,9 @@ export class NestedHeaders extends BasePlugin {
     }
   };
 
+  /**
+   * Extends the column selection range when the pointer moves over a nested header cell during a drag selection.
+   */
   #onBeforeOnCellMouseOver = (
     event: MouseEvent, coords: { row: number, col: number }, TD: HTMLElement,
     controller: { column: boolean, cell: boolean }
@@ -858,10 +906,16 @@ export class NestedHeaders extends BasePlugin {
     this.hot.selection.selectColumns(...columnsToSelect);
   };
 
+  /**
+   * Clears the in-progress column selection flag when the pointer button is released.
+   */
   #onBeforeOnCellMouseUp = () => {
     this.#isColumnsSelectionInProgress = false;
   };
 
+  /**
+   * Adjusts the selection highlight position when navigable headers are enabled and a multi-column header is selected.
+   */
   #onBeforeSelectionHighlightSet = () => {
     const { navigableHeaders } = this.hot.getSettings();
 
@@ -905,6 +959,9 @@ export class NestedHeaders extends BasePlugin {
     }
   };
 
+  /**
+   * Corrects the keyboard navigation delta when traversing across rowspanned nested header cells.
+   */
   #onModifyTransformStart = (delta: { row: number, col: number }) => {
     const activeRange = this.hot.getSelectedRangeActive();
 
@@ -1095,6 +1152,9 @@ export class NestedHeaders extends BasePlugin {
     };
   };
 
+  /**
+   * Expands the column selection range to fully include the header spans at the start and end columns.
+   */
   #onBeforeSelectColumns = (
     from: { row: number, col: number }, to: { row: number, col: number }, highlight: { clone: () => CellCoords }
   ) => {
@@ -1130,6 +1190,9 @@ export class NestedHeaders extends BasePlugin {
     }
   };
 
+  /**
+   * Replaces the default column header renderer array with layer-specific renderers generated by this plugin.
+   */
   #onAfterGetColumnHeaderRenderers = (renderersArray: unknown[]) => {
     if (this.#stateManager.getLayersCount() > 0) {
       renderersArray.length = 0;
@@ -1140,6 +1203,9 @@ export class NestedHeaders extends BasePlugin {
     }
   };
 
+  /**
+   * Extends the viewport start column to include any header spans that begin outside the calculated viewport boundary.
+   */
   #onAfterViewportColumnCalculatorOverride = (calc: { startColumn: number }) => {
     const headerLayersCount = this.#stateManager.getLayersCount();
     let newStartColumn = calc.startColumn;
@@ -1171,10 +1237,6 @@ export class NestedHeaders extends BasePlugin {
    * When `autoColumnSize` is explicitly disabled, the user opts out of auto-sizing
    * columns based on content; the plugin respects user-provided widths and does
    * not override them with the ghost-table-measured header label width.
-   *
-   * @param {number} width Width from hook.
-   * @param {number} column Visual index of an column.
-   * @returns {number}
    */
   #onModifyColWidth = (width: number, column: number) => {
     if (this.hot.getSettings().autoColumnSize === false) {
@@ -1188,8 +1250,6 @@ export class NestedHeaders extends BasePlugin {
 
   /**
    * Equalizes all nested column header layers' heights when rowspans are used.
-   *
-   * @returns {number[]|undefined}
    */
   #onModifyColumnHeaderHeight = (): number[] | undefined => {
     if (!this.#hasRowspanHeaders) {
@@ -1212,13 +1272,12 @@ export class NestedHeaders extends BasePlugin {
    * Listens the `modifyColumnHeaderValue` hook that overwrites the column headers values based on
    * the internal state and settings of the plugin.
    *
-   * @param {string} value The column header value.
-   * @param {number} visualColumnIndex The visual column index.
-   * @param {number} headerLevel The index of header level. The header level accepts positive (0 to N)
-   *                             and negative (-1 to -N) values. For positive values, 0 points to the
-   *                             top most header, and for negative direction, -1 points to the most bottom
-   *                             header (the header closest to the cells).
-   * @returns {string} Returns the column header value to update.
+   * @param value The column header value.
+   * @param visualColumnIndex The visual column index.
+   * @param headerLevel The index of header level. The header level accepts positive (0 to N)
+   *                    and negative (-1 to -N) values. For positive values, 0 points to the
+   *                    top most header, and for negative direction, -1 points to the most bottom
+   *                    header (the header closest to the cells).
    */
   #onModifyColumnHeaderValue = (value: string, visualColumnIndex: number, headerLevel: number): string => {
     const {
@@ -1228,6 +1287,9 @@ export class NestedHeaders extends BasePlugin {
     return label;
   };
 
+  /**
+   * Returns the leftmost DOM cell element within the nested header span at the given row and column when in a header row.
+   */
   #onModifyFocusedElement = (row: number, column: number) => {
     if (row < 0) {
       return this.hot.getCell(row, this.#stateManager.findLeftMostColumnIndex(row, column), true) ?? undefined;
@@ -1267,9 +1329,6 @@ export class NestedHeaders extends BasePlugin {
    * observer only fires on hidden/visible value changes, so a move that does not
    * change which physical columns are hidden would otherwise leave the tree state
    * pointing at stale visual indexes.
-   *
-   * @param {object} payload The `cacheUpdated` payload.
-   * @param {boolean} payload.indexesSequenceChanged True when the column order changed.
    */
   #onColumnIndexMapperCacheUpdated = ({ indexesSequenceChanged }: { indexesSequenceChanged: boolean }) => {
     if (!indexesSequenceChanged) {
@@ -1287,6 +1346,9 @@ export class NestedHeaders extends BasePlugin {
     this.updatePlugin();
   };
 
+  /**
+   * Re-initializes the plugin state after new data is loaded, unless this is the initial data load.
+   */
   #onAfterLoadData = (sourceData: unknown[], initialLoad: boolean) => {
     if (!initialLoad) {
       this.updatePlugin();
@@ -1320,6 +1382,9 @@ export class NestedHeaders extends BasePlugin {
     super.destroy();
   }
 
+  /**
+   * Returns the header tree node data for the given coordinates, or undefined if the coordinates do not point to a header cell.
+   */
   _getHeaderTreeNodeDataByCoords(coords: { row: number, col: number }): HeaderNodeData | null | undefined {
     if (coords.row >= 0 || coords.col < 0) {
       return;

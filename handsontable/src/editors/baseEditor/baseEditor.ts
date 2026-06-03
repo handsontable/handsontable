@@ -26,6 +26,9 @@ export const EDITOR_STATE = Object.freeze({
  * @class BaseEditor
  */
 export class BaseEditor {
+  /**
+   * Returns the unique editor type identifier for the base editor.
+   */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }
@@ -108,9 +111,21 @@ export class BaseEditor {
   declare cellProperties: Record<string, unknown>;
 
   // Mixin-injected methods from hooksRefRegisterer
+  /**
+   * Internal storage map for hook callbacks registered on this editor instance.
+   */
   declare _hooksStorage: Record<string, Function[]>;
+  /**
+   * Registers a hook callback for the given hook name on this editor instance.
+   */
   declare addHook: (...args: unknown[]) => unknown;
+  /**
+   * Removes all hook callbacks registered under the given key on this editor instance.
+   */
   declare removeHooksByKey: (...args: unknown[]) => unknown;
+  /**
+   * Removes all hook callbacks registered on this editor instance.
+   */
   declare clearHooks: (...args: unknown[]) => unknown;
 
   /**

@@ -21,6 +21,9 @@ interface SelectMenuItem {
  * @class SelectUI
  */
 export class SelectUI extends BaseUI {
+  /**
+   * Returns the default configuration options for the select UI component.
+   */
   static get DEFAULTS(): BaseUIOptions {
     return clone({
       className: 'htUISelect',
@@ -34,12 +37,30 @@ export class SelectUI extends BaseUI {
    *
    * @type {Menu}
    */
+  /**
+   * Dropdown menu instance used to display the list of selectable operator options.
+   */
   #menu: Menu | null = null;
+  /**
+   * List of available operator menu items displayed in the dropdown.
+   */
   #items: SelectMenuItem[] = [];
+  /**
+   * UI component that renders the currently selected operator label.
+   */
   #caption: BaseUI | null = null;
+  /**
+   * Reference to the DOM element that displays the currently selected operator caption.
+   */
   #captionElement: HTMLElement | null = null;
+  /**
+   * UI component that wraps the dropdown toggle and menu.
+   */
   #dropdown: BaseUI | null = null;
 
+  /**
+   * Initializes the select UI component and registers event hooks for dropdown interaction.
+   */
   constructor(hotInstance: HotInstance, options: Record<string, unknown>) {
     super(hotInstance, extend(SelectUI.DEFAULTS as Record<string, unknown>, options) as Record<string, unknown>);
     this.registerHooks();

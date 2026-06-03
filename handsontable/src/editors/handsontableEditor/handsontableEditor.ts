@@ -16,6 +16,9 @@ export const EDITOR_TYPE = 'handsontable';
  * @class HandsontableEditor
  */
 export class HandsontableEditor extends TextEditor {
+  /**
+   * Returns the unique editor type identifier for the Handsontable editor.
+   */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }
@@ -40,7 +43,13 @@ export class HandsontableEditor extends TextEditor {
   declare htOptions: Record<string, unknown>;
 
   // Mixin methods from hooksRefRegisterer (applied to BaseEditor at runtime).
+  /**
+   * Registers a hook callback for the given hook name on this editor instance.
+   */
   declare addHook: (...args: unknown[]) => unknown;
+  /**
+   * Removes all hook callbacks registered under the given key on this editor instance.
+   */
   declare removeHooksByKey: (...args: unknown[]) => unknown;
 
   /**

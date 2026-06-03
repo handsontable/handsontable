@@ -29,6 +29,10 @@ type MetaManagerWithHot = MetaManagerInstance & {
   [key: string]: unknown;
 };
 
+/**
+ * Modifier that extends cell meta objects dynamically through Handsontable hooks and the `cells` option,
+ * memoizing results per render cycle to avoid redundant work.
+ */
 export class DynamicCellMetaMod {
   /**
    * @type {MetaManager}
@@ -39,6 +43,9 @@ export class DynamicCellMetaMod {
    */
   metaSyncMemo = new Map();
 
+  /**
+   * Initializes the modifier, registers the `afterGetCellMeta` local hook, and subscribes to `beforeRender` to clear the memo on full renders.
+   */
   constructor(metaManager: MetaManagerWithHot) {
     this.metaManager = metaManager;
 

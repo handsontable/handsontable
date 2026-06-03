@@ -45,6 +45,9 @@ class ContextMenuUI extends BaseUI {
    */
   dataManager = this.plugin.dataManager;
 
+  /**
+   * Map of context menu entry keys to their handler functions that modify the nested row structure.
+   */
   #menuEntries: Record<string, (key: string, selection: ContextMenuSelection[]) => void> = {
     row_above: (key: string, selection: ContextMenuSelection[]) => {
       const lastSelection = selection[selection.length - 1];

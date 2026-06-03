@@ -49,6 +49,9 @@ class GhostTable {
    */
   widthsMap;
 
+  /**
+   * Initializes the ghost table with the Handsontable instance and headers state manager, and registers the widths index map.
+   */
   constructor({ hot, headersStateManager }: { hot: HotInstance; headersStateManager: StateManager }) {
     this.hot = hot;
     this.headersStateManager = headersStateManager;

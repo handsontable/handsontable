@@ -52,6 +52,9 @@ export default class ColumnMeta {
    */
   metas = new LazyFactoryMap(() => this._createMeta());
 
+  /**
+   * Initializes the column meta layer with a reference to the GlobalMeta layer and sets up the lazy map for per-column meta objects.
+   */
   constructor(globalMeta: { getMetaConstructor(): Function }) {
     this.globalMeta = globalMeta;
     this.metas = new LazyFactoryMap(() => this._createMeta());

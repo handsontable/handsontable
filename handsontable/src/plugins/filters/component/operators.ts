@@ -25,6 +25,9 @@ export class OperatorsComponent extends BaseComponent {
    */
   name = '';
 
+  /**
+   * Initializes the operators component with the given ID and display name, and builds the operators UI element.
+   */
   constructor(hotInstance: HotInstance, options: { id: string; name: string }) {
     super(hotInstance, {
       id: options.id,

@@ -57,6 +57,9 @@ export class ColumnStatesManager {
    */
   mapName;
 
+  /**
+   * Initializes the column states manager with the Handsontable instance and registers the sorting states index map under the given map name.
+   */
   constructor(hot: HotInstance, mapName: string) {
     this.hot = hot;
     this.mapName = mapName;

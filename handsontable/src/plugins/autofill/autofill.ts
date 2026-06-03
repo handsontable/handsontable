@@ -34,22 +34,36 @@ const INTERVAL_FOR_ADDING_ROW = 200;
  * @class Autofill
  * @plugin Autofill
  */
-
+/**
+ * Plugin providing drag-down and copy-down fill handle functionality for extending cell values across a selection.
+ */
 export class Autofill extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
+   */
   static get SETTING_KEYS() {
     return [
       SETTING_KEY,
     ];
   }
 
+  /**
+   * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   */
   static get DEFAULT_SETTINGS(): { direction: string | undefined; autoInsertRow: boolean } {
     return {
       direction: undefined,
@@ -57,6 +71,9 @@ export class Autofill extends BasePlugin {
     };
   }
 
+  /**
+   * Returns validator functions for each plugin setting to verify their values are valid before applying them.
+   */
   static get SETTINGS_VALIDATORS() {
     return {
       direction: (value: unknown) =>

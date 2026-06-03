@@ -8,7 +8,13 @@ import { includesValue } from '../utils/utils';
  * @class SelectedItemsController
  */
 export class SelectedItemsController {
+  /**
+   * The set holding the currently selected item values.
+   */
   selectedItems: Set<unknown>;
+  /**
+   * The maximum number of items that can be selected simultaneously.
+   */
   maxSelectionsCount: number;
 
   /**

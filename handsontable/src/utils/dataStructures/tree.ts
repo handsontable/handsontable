@@ -121,6 +121,9 @@ export default class TreeNode {
    */
   childs: TreeNode[] = [];
 
+  /**
+   * Initializes the tree node with the provided data object.
+   */
   constructor(data: Record<string, unknown>) {
     this.data = data;
   }
@@ -135,7 +138,6 @@ export default class TreeNode {
     this.childs.push(node);
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * @memberof TreeNode#
    * @function cloneTree
@@ -157,7 +159,7 @@ export default class TreeNode {
    * @param {TreeNode} [nodeTree=this] A TreeNode to clone.
    * @returns {TreeNode}
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
+  // eslint-disable-next-line jsdoc/require-description-complete-sentence
   cloneTree(nodeTree: TreeNode = this) {
     const clonedNode = new TreeNode({
       ...nodeTree.data,

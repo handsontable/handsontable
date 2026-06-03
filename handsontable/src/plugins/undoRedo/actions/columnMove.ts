@@ -19,12 +19,18 @@ export class ColumnMoveAction extends BaseAction {
    */
   finalColumnIndex;
 
+  /**
+   * Initializes the column move action with the array of moved column indexes and their destination index.
+   */
   constructor({ columns, finalIndex }: { columns: number[], finalIndex: number }) {
     super('col_move');
     this.columns = columns.slice();
     this.finalColumnIndex = finalIndex;
   }
 
+  /**
+   * Registers the `beforeColumnMove` hook listener that records a new ColumnMoveAction whenever columns are moved.
+   */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('beforeColumnMove', (columns: unknown, finalIndex: unknown) => {
       if (columns === false) {

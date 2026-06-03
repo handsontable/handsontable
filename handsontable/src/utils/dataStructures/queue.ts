@@ -3,7 +3,13 @@
  * @util
  */
 class Queue {
+  /**
+   * The ordered collection of items held in the queue, where index 0 is the front.
+   */
   declare items: unknown[];
+  /**
+   * Initializes the queue with an optional pre-populated array of items.
+   */
   constructor(initial: unknown[] = []) {
     /**
      * Items collection.

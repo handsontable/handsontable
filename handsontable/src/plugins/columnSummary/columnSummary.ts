@@ -142,10 +142,16 @@ export interface SummaryEndpoint {
  * :::
  */
 export class ColumnSummary extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
@@ -157,7 +163,13 @@ export class ColumnSummary extends BasePlugin {
    * @type {null|Endpoints}
    */
   endpoints: Endpoints | null = null;
+  /**
+   * Plugin settings provided by the user, or `null` if none were supplied.
+   */
   declare settings: Record<string, unknown> | null;
+  /**
+   * The endpoint configuration object currently being processed during a summary calculation.
+   */
   declare currentEndpoint: unknown;
 
   /**

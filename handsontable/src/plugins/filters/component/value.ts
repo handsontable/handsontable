@@ -68,6 +68,9 @@ export class ValueComponent extends BaseComponent {
    */
   hiddenWhen: (() => boolean) | undefined;
 
+  /**
+   * Initializes the value component with the given ID, display name, search mode, and optional visibility predicate.
+   */
   constructor(hotInstance: HotInstance, options: {
     id: string; name: string | (() => string); searchMode: unknown; hiddenWhen?: (() => boolean);
   }) {

@@ -13,10 +13,16 @@ export const PLUGIN_PRIORITY = 160;
  * @class MultipleSelectionHandles
  */
 export class MultipleSelectionHandles extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
@@ -223,6 +229,9 @@ export class MultipleSelectionHandles extends BasePlugin {
     });
   }
 
+  /**
+   * Calculates the new selection range coordinates after dragging a touch handle, accounting for drag direction and handle position.
+   */
   getCurrentRangeCoords(
     selectedRange: CellRange, currentTouch: CellCoords, touchStartDirection: string,
     currentDirection: string, draggedHandle: string

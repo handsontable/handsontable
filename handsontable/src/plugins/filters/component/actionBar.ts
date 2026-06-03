@@ -17,13 +17,22 @@ export class ActionBarComponent extends BaseComponent {
    */
   name = '';
 
+  /**
+   * Returns the identifier string for the OK action button.
+   */
   static get BUTTON_OK() {
     return 'ok';
   }
+  /**
+   * Returns the identifier string for the Cancel action button.
+   */
   static get BUTTON_CANCEL() {
     return 'cancel';
   }
 
+  /**
+   * Initializes the action bar component with OK and Cancel buttons.
+   */
   constructor(hotInstance: HotInstance, options: { id: string; name: string }) {
     super(hotInstance, {
       id: options.id,

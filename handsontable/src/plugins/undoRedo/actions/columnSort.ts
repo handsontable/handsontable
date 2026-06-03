@@ -19,12 +19,18 @@ export class ColumnSortAction extends BaseAction {
    */
   nextSortState;
 
+  /**
+   * Initializes the column sort action with the previous and next sort state snapshots.
+   */
   constructor({ currentSortState, newSortState }: { currentSortState: unknown, newSortState: unknown }) {
     super('col_sort');
     this.previousSortState = currentSortState;
     this.nextSortState = newSortState;
   }
 
+  /**
+   * Registers the `beforeColumnSort` hook listener that records a new ColumnSortAction whenever sorting changes.
+   */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('beforeColumnSort', (currentSortState: unknown, newSortState: unknown, sortPossible: unknown) => {
       if (!sortPossible) {

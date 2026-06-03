@@ -62,6 +62,9 @@ class IndexSyncer {
    */
   #sheetId: number | null = null;
 
+  /**
+   * Initializes the index syncer by creating row and column axis syncers and storing the deferred action callback.
+   */
   constructor(rowIndexMapper: IndexMapper, columnIndexMapper: IndexMapper, postponeAction: Function) {
     this.#rowIndexSyncer = new AxisSyncer('row', rowIndexMapper, this);
     this.#columnIndexSyncer = new AxisSyncer('column', columnIndexMapper, this);

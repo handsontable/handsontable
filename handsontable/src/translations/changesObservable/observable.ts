@@ -52,11 +52,13 @@ export class ChangesObservable {
    */
   #initialIndexValue: unknown = false;
 
+  /**
+   * Initializes the observable with an optional initial index value used as the baseline for generating first-time change events.
+   */
   constructor({ initialIndexValue }: { initialIndexValue?: unknown } = {}) {
     this.#initialIndexValue = initialIndexValue ?? false;
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Creates and returns a new instance of the ChangesObserver object. The resource
    * allows subscribing to the index changes that during the code running may change.
@@ -79,7 +81,7 @@ export class ChangesObservable {
    *
    * @returns {ChangesObserver}
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
+  // eslint-disable-next-line jsdoc/require-description-complete-sentence
   createObserver() {
     const observer = new ChangesObserver();
 

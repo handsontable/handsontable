@@ -158,26 +158,41 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * :::
  */
 export class Filters extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   */
   static get DEFAULT_SETTINGS() {
     return {
       searchMode: 'show',
     };
   }
 
+  /**
+   * Returns validator functions for each plugin setting to verify their values are valid before applying them.
+   */
   static get SETTINGS_VALIDATORS() {
     return {
       searchMode: (value: unknown) => typeof value === 'string' && ['show', 'apply'].includes(value),
     };
   }
 
+  /**
+   * Returns the list of plugin dependencies required before this plugin can be initialized.
+   */
   static get PLUGIN_DEPS() {
     return [
       'plugin:DropdownMenu',
@@ -262,6 +277,9 @@ export class Filters extends BasePlugin {
    */
   #isDataProviderActive = false;
 
+  /**
+   * Initializes the plugin and registers the column header hook needed to inject the filter UI.
+   */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
     // One listener for the enable/disable functionality
@@ -929,6 +947,9 @@ export class Filters extends BasePlugin {
    * @param {string} [operationId=conjunction] `id` of operation which is performed on the column.
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
+  /**
+   * Adds a filter condition to the specified column, optionally combining it with other conditions using the given logical operation.
+   */
   addCondition(column: number, name: string, args: unknown[], operationId: string = OPERATION_AND): void {
     if (name === CONDITION_BY_VALUE && this.#isDataProviderActive) {
       return;

@@ -148,19 +148,34 @@ const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
  * :::
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
+/**
+ * Plugin that automatically calculates and sets row heights based on the tallest cell content in each row.
+ */
 export class AutoRowSize extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns `true` so the plugin updates on every `updateSettings` call, regardless of config object contents.
+   */
   static get SETTING_KEYS(): string[] | boolean {
     return true;
   }
 
+  /**
+   * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   */
   static get DEFAULT_SETTINGS(): { useHeaders: boolean; samplingRatio: number | null; allowSampleDuplicates: boolean } {
     return {
       useHeaders: true,
@@ -169,10 +184,16 @@ export class AutoRowSize extends BasePlugin {
     };
   }
 
+  /**
+   * Returns the number of rows processed in a single calculation step during asynchronous sizing.
+   */
   static get CALCULATION_STEP() {
     return 50;
   }
 
+  /**
+   * Returns the maximum number of rows whose heights are calculated synchronously before switching to async mode.
+   */
   static get SYNC_CALCULATION_LIMIT() {
     return 500;
   }
@@ -267,6 +288,9 @@ export class AutoRowSize extends BasePlugin {
    */
   #isInitialized = false;
 
+  /**
+   * Initializes the plugin, registers the row heights map, and sets up the row resize hook.
+   */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
     this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
@@ -683,14 +707,16 @@ export class AutoRowSize extends BasePlugin {
   }
 
   /**
-   * `beforeViewRender` hook listener.
+   * Toggles the `htFirstDatasetColumnNotRendered` CSS class based on whether the first
+   * physical column is currently in the renderable viewport.
    */
   #onBeforeViewRender = () => {
     this.#toggleFirstDatasetColumnRenderedClassName();
   };
 
   /**
-   * `beforeRender` hook listener.
+   * Recalculates heights for currently visible rows and processes any rows queued by data
+   * changes before the next render.
    */
   #onBeforeRender = () => {
     this.calculateVisibleRowsHeight();
@@ -702,12 +728,8 @@ export class AutoRowSize extends BasePlugin {
   };
 
   /**
-   * On before row resize listener.
-   *
-   * @param {number} size The size of the current row index.
-   * @param {number} row Current row index.
-   * @param {boolean} isDblClick Indicates if the resize was triggered by doubleclick.
-   * @returns {number}
+   * Recalculates the row height from content on a double-click and returns it as the new
+   * size; returns the user-dragged size otherwise.
    */
   #onBeforeRowResize = (size: number, row: number, isDblClick: boolean) => {
     let newSize = size;
@@ -722,10 +744,8 @@ export class AutoRowSize extends BasePlugin {
   };
 
   /**
-   * On after load data listener.
-   *
-   * @param {Array} sourceData Source data.
-   * @param {boolean} isFirstLoad `true` if this is the first load.
+   * Triggers a full row height recalculation after new data is loaded, skipping the initial
+   * load since `#onInit` already handles it.
    */
   #onAfterLoadData = (_sourceData: unknown[], isFirstLoad: boolean) => {
     if (!isFirstLoad) {
@@ -734,9 +754,8 @@ export class AutoRowSize extends BasePlugin {
   };
 
   /**
-   * On before change listener.
-   *
-   * @param {Array} changes 2D array containing information about each of the edited cells.
+   * Queues the visual row indexes affected by the incoming changes so their heights are
+   * recalculated on the next render.
    */
   #onBeforeChange = (changes: unknown[][]) => {
     const changedRows = changes.reduce<number[]>((acc, [row]: unknown[]) => {
@@ -753,7 +772,7 @@ export class AutoRowSize extends BasePlugin {
   };
 
   /**
-   * On after Handsontable init plugin with all necessary values.
+   * Triggers the first full row height recalculation after Handsontable has finished initializing.
    */
   #onInit = () => {
     this.recalculateAllRowsHeight();
@@ -761,9 +780,8 @@ export class AutoRowSize extends BasePlugin {
   };
 
   /**
-   * After formulas values updated listener.
-   *
-   * @param {Array} changes An array of modified data.
+   * Queues visual row indexes whose formula results changed so their heights are recalculated
+   * before the next render. Skips changes belonging to a different sheet.
    */
   #onAfterFormulasValuesUpdate = (changes: unknown[]) => {
     if (!this.#isInitialized) {

@@ -18,12 +18,18 @@ export class CreateRowAction extends BaseAction {
    */
   amount;
 
+  /**
+   * Initializes the create row action with the visual insertion index and the number of rows created.
+   */
   constructor({ index, amount }: { index: number, amount: number }) {
     super('insert_row');
     this.index = index;
     this.amount = amount;
   }
 
+  /**
+   * Registers the `afterCreateRow` hook listener that records a new CreateRowAction after rows are inserted.
+   */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('afterCreateRow', (index: number, amount: number, source: string) => {
       (undoRedoPlugin as { done: (...args: unknown[]) => void }).done(

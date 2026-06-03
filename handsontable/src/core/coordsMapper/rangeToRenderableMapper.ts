@@ -35,6 +35,9 @@ export class CellRangeToRenderableMapper {
    */
   #columnIndexMapper;
 
+  /**
+   * Initializes the mapper with the row and column IndexMapper instances used to resolve renderable coordinates.
+   */
   constructor({ rowIndexMapper, columnIndexMapper }: { rowIndexMapper: IndexMapper; columnIndexMapper: IndexMapper }) {
     this.#rowIndexMapper = rowIndexMapper;
     this.#columnIndexMapper = columnIndexMapper;

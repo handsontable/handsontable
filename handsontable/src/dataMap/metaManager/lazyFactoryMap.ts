@@ -14,6 +14,9 @@ import { isUnsignedNumber } from '../../helpers/number';
  * is volatile. After altering the grid, the "key" index can change.
  */
 /* eslint-enable jsdoc/require-description-complete-sentence */
+/**
+ * Lazy map that creates values on demand using a factory function and supports index-based insertion and removal operations.
+ */
 export default class LazyFactoryMap<V = Record<string, unknown>> {
   /**
    * The data factory function.
@@ -42,6 +45,9 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
    */
   holes = new Set<number>();
 
+  /**
+   * Initializes the map with the given factory function used to create values for new keys on first access.
+   */
   constructor(valueFactory: (key: number) => V) {
     this.valueFactory = valueFactory;
   }

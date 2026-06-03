@@ -168,6 +168,9 @@ export default class StateManager {
    * @returns {number|null} Returns unsigned number.
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
+  /**
+   * Translates a visual row index into the corresponding header level index, returning null for non-header rows.
+   */
   rowCoordsToLevel(rowIndex: number): number | null {
     if (rowIndex >= 0) {
       return null;
@@ -193,6 +196,9 @@ export default class StateManager {
    * @returns {number} Returns negative number.
    */
   /* eslint-enable jsdoc/require-description-complete-sentence */
+  /**
+   * Translates a header level index into the corresponding negative row coordinate used by Handsontable's header system.
+   */
   levelToRowCoords(headerLevel: number): number | null {
     if (headerLevel < 0) {
       return null;

@@ -152,6 +152,9 @@ class Highlight {
    */
   customSelections: VisualSelection[] = [];
 
+  /**
+   * Initializes the highlight manager with configuration options and creates the focus and fill highlight instances.
+   */
   constructor(options: Record<string, unknown>) {
     this.options = options;
     this.focus = createFocusHighlight(options);

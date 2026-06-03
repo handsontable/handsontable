@@ -42,15 +42,45 @@ interface DropdownControllerCache {
  * @class DropdownController
  */
 export class DropdownController {
+  /**
+   * The Handsontable instance GUID used to scope checkbox IDs within the dropdown.
+   */
   #instanceId: string | null = null;
+  /**
+   * The host div element that contains the search wrapper, separator, and list.
+   */
   #containerElement: HTMLDivElement | null = null;
+  /**
+   * The `<ul>` element that holds the individual checkbox list items.
+   */
   #dropdownListElement: HTMLUListElement | null = null;
+  /**
+   * The `<input>` element used for filtering dropdown entries.
+   */
   #searchInputElement: HTMLInputElement | null = null;
+  /**
+   * The horizontal rule element separating the search input from the item list.
+   */
   #separatorElement: HTMLElement | null = null;
+  /**
+   * The wrapper div that groups the search icon and search input.
+   */
   #searchInputWrapper: HTMLDivElement | null = null;
+  /**
+   * The controller managing the search input element and its filter events.
+   */
   #inputController: InputController | null = null;
+  /**
+   * The root document derived from the container element's owner document.
+   */
   #rootDocument: Document | null = null;
+  /**
+   * The event manager used to register and remove DOM event listeners on checkbox items.
+   */
   #eventManager = new EventManager(this);
+  /**
+   * Runtime cache storing settings, state flags, and event listener references.
+   */
   #cache: DropdownControllerCache = {
     visibleRowsNumberSetting: null,
     entriesCount: 0,
@@ -61,10 +91,25 @@ export class DropdownController {
     sourceSortFunction: null,
   };
 
+  /**
+   * Internal storage map for local hook callbacks mixed in at runtime.
+   */
   declare _localHooks: Record<string, Function[]>;
+  /**
+   * Registers a local hook callback for the given key on this controller.
+   */
   declare addLocalHook: (key: string, callback: Function) => this;
+  /**
+   * Removes a specific local hook callback for the given key.
+   */
   declare removeLocalHook: (key: string, callback: Function) => this;
+  /**
+   * Runs all local hook callbacks registered under the given key, passing any extra arguments.
+   */
   declare runLocalHooks: (key: string, ...args: unknown[]) => void;
+  /**
+   * Removes all local hook callbacks registered on this controller.
+   */
   declare clearLocalHooks: () => this;
 
   /**
@@ -108,14 +153,23 @@ export class DropdownController {
     });
   }
 
+  /**
+   * Stores the maximum number of visible rows used when constraining the dropdown's rendered height.
+   */
   setVisibleRowsNumberSetting(visibleRowsNumber: number): void {
     this.#cache.visibleRowsNumberSetting = visibleRowsNumber;
   }
 
+  /**
+   * Stores a comparator function applied to the source entries before rendering; pass null to remove sorting.
+   */
   setSourceSortFunction(sourceSortFunction: ((entries: DropdownEntry[]) => DropdownEntry[]) | null): void {
     this.#cache.sourceSortFunction = sourceSortFunction ?? null;
   }
 
+  /**
+   * Shows or hides the search input and separator elements and toggles the input controller's listener.
+   */
   setSearchInputVisibility(searchInput = true): void {
     if (!this.#searchInputWrapper || !this.#separatorElement || !this.#inputController) {
       return;
@@ -216,28 +270,43 @@ export class DropdownController {
     this.#containerElement.scrollTop = 0;
   }
 
+  /**
+   * Returns the pixel width of the dropdown list element, or 0 if the list is not yet mounted.
+   */
   getDropdownWidth(): number {
     return this.#dropdownListElement
       ? getDropdownWidth({ dropdownListElement: this.#dropdownListElement })
       : 0;
   }
 
+  /**
+   * Unchecks all checkboxes in the dropdown list.
+   */
   deselectAllItems(): void {
     if (this.#dropdownListElement) {
       deselectAllItems({ dropdownListElement: this.#dropdownListElement });
     }
   }
 
+  /**
+   * Focuses the first item in the dropdown list if at least one entry exists.
+   */
   focusFirstItem(): void {
     if (this.#cache.entriesCount > 0) {
       this.#focusItem(0);
     }
   }
 
+  /**
+   * Focuses the dropdown item at the given absolute index.
+   */
   focusItem(index: number): void {
     this.#focusItem(index);
   }
 
+  /**
+   * Moves focus to the previous item, or to the search input when already at the first item.
+   */
   focusPreviousItem(): void {
     if (!this.#dropdownListElement) {
       return;
@@ -254,6 +323,9 @@ export class DropdownController {
     this.#focusItem(this.#cache.currentlySelectedItemIndex - 1);
   }
 
+  /**
+   * Moves focus to the next item in the list, stopping at the last entry.
+   */
   focusNextItem(): void {
     if (!this.#dropdownListElement) {
       return;
@@ -268,12 +340,18 @@ export class DropdownController {
     this.#focusItem(this.#cache.currentlySelectedItemIndex + 1);
   }
 
+  /**
+   * Transfers DOM focus to the search input element.
+   */
   focusSearchInput(): void {
     if (this.#searchInputElement) {
       this.#searchInputElement.focus();
     }
   }
 
+  /**
+   * Clears all dropdown items, resets internal cache state, clears the search input value, and resets container styles.
+   */
   reset(): void {
     this.removeAllDropdownItems();
     this.#resetCache();
@@ -290,10 +368,16 @@ export class DropdownController {
     }
   }
 
+  /**
+   * Returns true when the dropdown is currently rendered above the edited cell instead of below.
+   */
   isFlippedVertically(): boolean {
     return this.#cache.flippedVertically;
   }
 
+  /**
+   * Calculates the total pixel height of the dropdown including the item list and search input wrapper.
+   */
   getHeight(maxRowsCalculation = false, outerWidth = false): number {
     if (!this.#rootDocument || !this.#containerElement) {
       return 0;
@@ -307,10 +391,16 @@ export class DropdownController {
     );
   }
 
+  /**
+   * Returns the InputController instance that manages the search input, or null if not yet initialized.
+   */
   getInputController(): InputController | null {
     return this.#inputController;
   }
 
+  /**
+   * Removes all list items from the dropdown, unregisters their event listeners, and clears the checkbox listener cache.
+   */
   removeAllDropdownItems(): void {
     if (!this.#dropdownListElement) {
       return;
@@ -322,6 +412,9 @@ export class DropdownController {
     this.#dropdownListElement.innerHTML = '';
   }
 
+  /**
+   * Disables all unchecked checkboxes in the dropdown and sets the internal disabled flag.
+   */
   disableCheckboxes(): void {
     this.#cache.areCheckboxesDisabled = true;
 
@@ -330,6 +423,9 @@ export class DropdownController {
     }
   }
 
+  /**
+   * Re-enables all checkboxes in the dropdown and clears the internal disabled flag.
+   */
   enableCheckboxes(): void {
     this.#cache.areCheckboxesDisabled = false;
 
@@ -338,6 +434,9 @@ export class DropdownController {
     }
   }
 
+  /**
+   * Updates the focused item index cache and applies the focus highlight to the item at the given position.
+   */
   #focusItem(index: number): void {
     this.#cache.currentlySelectedItemIndex = index;
 
@@ -346,12 +445,18 @@ export class DropdownController {
     }
   }
 
+  /**
+   * Returns true when the dropdown is taller than the space below the cell and there is more space above.
+   */
   #requiresFlippingVertically(availableSpace: { spaceAbove: number; spaceBelow: number; cellHeight: number }): boolean {
     const { spaceAbove, spaceBelow, cellHeight } = availableSpace;
 
     return this.getHeight(true) > spaceBelow && spaceAbove > spaceBelow + cellHeight;
   }
 
+  /**
+   * Applies or removes the absolute positioning that renders the dropdown above the edited cell.
+   */
   #toggleVerticalFlip(availableSpace: { cellHeight: number }): void {
     if (!this.#containerElement) {
       return;
@@ -368,6 +473,9 @@ export class DropdownController {
     }
   }
 
+  /**
+   * Calculates the pixel height of a single dropdown row using CSS custom properties from the container's computed style.
+   */
   #getEntryHeight(): number {
     if (!this.#rootDocument || !this.#containerElement) {
       return 0;
@@ -380,6 +488,9 @@ export class DropdownController {
     );
   }
 
+  /**
+   * Returns the pixel height occupied by the list items, using either the actual rendered count or the full entry count when calculating the maximum.
+   */
   #getListHeight(maxRowsCalculation: boolean): number {
     const maxRenderedItems = this.#cache.entriesCount;
     const actualRenderedItems = maxRowsCalculation
@@ -390,6 +501,9 @@ export class DropdownController {
     return actualRenderedItems * entryHeight;
   }
 
+  /**
+   * Returns the combined pixel height of the search input wrapper and separator, or 0 when the input is hidden.
+   */
   #getSearchInputWrapperHeight(): number {
     if (!this.#inputController?.enabled || !this.#searchInputWrapper ||
         !this.#separatorElement || !this.#rootDocument || !this.#containerElement) {
@@ -404,6 +518,9 @@ export class DropdownController {
     return searchInputWrapperHeight + separatorHeight;
   }
 
+  /**
+   * Creates a list item element for the given entry, marks it as selected if needed, registers events, and appends it to the list.
+   */
   #addDropdownItem({
     rootDocument,
     itemKey,
@@ -440,6 +557,9 @@ export class DropdownController {
     this.#dropdownListElement.appendChild(itemElement);
   }
 
+  /**
+   * Attaches change and click event listeners to the checkbox inside the given list item and stores them for later removal.
+   */
   #registerEvents(itemElement: HTMLLIElement): void {
     const checkbox = getCheckboxElement(itemElement);
 
@@ -484,6 +604,9 @@ export class DropdownController {
     this.#eventManager.addEventListener(itemElement, 'click', itemClickListener);
   }
 
+  /**
+   * Removes the change and click listeners previously registered on the checkbox inside the given list item.
+   */
   #unregisterEvents(itemElement: HTMLLIElement): void {
     const checkbox = getCheckboxElement(itemElement);
 
@@ -499,6 +622,9 @@ export class DropdownController {
     }
   }
 
+  /**
+   * Resets all cached state values to their initial defaults, clearing listeners and counters.
+   */
   #resetCache(): void {
     this.#cache.visibleRowsNumberSetting = null;
     this.#cache.entriesCount = 0;

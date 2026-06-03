@@ -44,6 +44,9 @@ type ChoiceArray = unknown[];
  * @class AutocompleteEditor
  */
 export class AutocompleteEditor extends HandsontableEditor {
+  /**
+   * Returns the unique editor type identifier for the autocomplete editor.
+   */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }

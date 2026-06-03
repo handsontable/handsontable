@@ -76,6 +76,9 @@ class Endpoints {
    */
   cellsToSetCache: [number, number | undefined, unknown][] = [];
 
+  /**
+   * Initializes the endpoints manager with a reference to the ColumnSummary plugin and the summary endpoint configuration.
+   */
   constructor(plugin: ColumnSummary, settings: EndpointConfig[] | ((...args: unknown[]) => EndpointConfig[])) {
     this.plugin = plugin;
     this.hot = this.plugin.hot;

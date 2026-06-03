@@ -29,6 +29,9 @@ export const EDITOR_TYPE = 'text';
  * @class TextEditor
  */
 export class TextEditor extends BaseEditor {
+  /**
+   * Returns the unique editor type identifier for the text editor.
+   */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }

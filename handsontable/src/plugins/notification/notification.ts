@@ -102,14 +102,23 @@ const TICK_MS = 200;
  * ```
  */
 export class Notification extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   */
   static get DEFAULT_SETTINGS() {
     return {
       stackLimit: 10,
@@ -117,6 +126,9 @@ export class Notification extends BasePlugin {
     };
   }
 
+  /**
+   * Returns an object of validator functions used to type-check each settings property at runtime.
+   */
   static get SETTINGS_VALIDATORS() {
     return {
       stackLimit: (value: unknown) => typeof value === 'number' && value > 0 && Number.isInteger(value),

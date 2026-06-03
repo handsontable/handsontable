@@ -186,6 +186,9 @@ export class StylesHandler {
     return this.#themeName;
   }
 
+  /**
+   * Injects the core Handsontable stylesheet into the document head, skipping injection if it is already present.
+   */
   #injectCoreStyles() {
     if (!this.#hot || !this.#rootDocument || !this.#rootDocument.head) {
       return;

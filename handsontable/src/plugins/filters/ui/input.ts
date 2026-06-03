@@ -9,6 +9,9 @@ import { BaseUI } from './_base';
  * @class InputUI
  */
 export class InputUI extends BaseUI {
+  /**
+   * Returns the default configuration options for the input UI component, including placeholder, type, and tab index.
+   */
   static get DEFAULTS(): BaseUIOptions {
     return clone({
       placeholder: '',
@@ -25,6 +28,9 @@ export class InputUI extends BaseUI {
    */
   #input: HTMLInputElement | null = null;
 
+  /**
+   * Initializes the input UI component and registers event hooks for keyboard interaction.
+   */
   constructor(hotInstance: HotInstance, options: Record<string, unknown>) {
     super(hotInstance, extend(InputUI.DEFAULTS, options) as Record<string, unknown>);
     this.registerHooks();

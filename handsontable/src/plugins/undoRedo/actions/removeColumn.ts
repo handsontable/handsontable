@@ -49,6 +49,9 @@ export class RemoveColumnAction extends BaseAction {
    */
   removedCellMetas;
 
+  /**
+   * Initializes the remove column action with the removed data, column indexes, headers, position sequences, and cell meta backup.
+   */
   constructor({
     index,
     indexes,
@@ -75,6 +78,9 @@ export class RemoveColumnAction extends BaseAction {
     this.removedCellMetas = removedCellMetas;
   }
 
+  /**
+   * Registers the `beforeRemoveCol` hook listener that captures removed column data and records a RemoveColumnAction.
+   */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('beforeRemoveCol', (index: number, amount: number, logicColumns: unknown, source: string) => {
       const wrappedAction = () => {
