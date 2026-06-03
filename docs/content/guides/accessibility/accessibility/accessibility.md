@@ -125,7 +125,7 @@ Each new version of Handsontable is thoroughly tested for accessibility with the
 
 Check out the interactive demo below to see how various Handsontable settings impact its accessibility level and affect the user experience.
 
-::: only-for javascript vue
+::: only-for javascript
 
 ::: example #example1 --html 1 --css 2 --js 3 --ts 4
 
@@ -156,6 +156,17 @@ Check out the interactive demo below to see how various Handsontable settings im
 
 @[code collapse={22-482}](@/content/guides/accessibility/accessibility/angular/example1.ts)
 @[code](@/content/guides/accessibility/accessibility/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3 --css 1
+
+@[code](@/content/guides/accessibility/accessibility/react/example2.css)
+@[code](@/content/guides/accessibility/accessibility/vue/example2.vue)
 
 :::
 
@@ -218,6 +229,23 @@ const configurationOptions: GridSettings = {
 
 ```html
 <hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```ts
+const hotSettings = ref({
+  // disable column virtualization
+  renderAllColumns: true,
+  // disable row virtualization
+  renderAllRows: true,
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
 ```
 
 :::
