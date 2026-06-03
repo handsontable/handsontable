@@ -16,6 +16,7 @@
 const jsModules       = import.meta.glob('/content/**/example*.js');
 const jsxModules      = import.meta.glob('/content/**/example*.jsx');
 const vueModules      = import.meta.glob('/content/**/vue/example*.vue');
+const vueJsModules    = import.meta.glob('/content/**/vue/example*.js');
 const angularModules  = import.meta.glob('/content/**/example*.ts');
 const htmlTemplates   = import.meta.glob('/content/**/example*.html', { query: '?raw', import: 'default' });
 const cssModules      = import.meta.glob('/content/**/example*.css', { query: '?raw', import: 'default' });
@@ -179,13 +180,6 @@ async function runExamples(): Promise<void> {
     for (const el of vueEls) {
       const src = el.dataset.exampleVue!;
       const id  = el.dataset.exampleId;
-      const loader  = vueModules[src];
-
-      if (!loader) {
-        console.warn('[hot-example] No Vue module for:', src);
-        markLoaded(el);
-        continue;
-      }
 
       const container = id ? document.getElementById(id) : null;
 
@@ -196,10 +190,23 @@ async function runExamples(): Promise<void> {
       }
 
       try {
+        // Inject HTML template for JS-based Vue components (in-DOM template pattern).
+        const htmlSrc = el.dataset.exampleHtml;
+
+        if (htmlSrc) {
+          const htmlLoader = htmlTemplates[htmlSrc];
+
+          if (htmlLoader) {
+            container.innerHTML = await htmlLoader() as string;
+          }
+        }
+
+        const loader = vueModules[src] ?? vueJsModules[src];
         const mod = await loader() as { default: any };
+        const mountTarget = container.querySelector('[id]') ?? container;
         const app = createApp(mod.default);
 
-        app.mount(container);
+        app.mount(mountTarget);
         markLoaded(el);
         renderInstances(el);
       } catch (err) {

@@ -39,6 +39,7 @@ const ExampleComponent = defineComponent({
         height: 'auto',
         autoWrapRow: true,
         autoWrapCol: true,
+        locale: 'en-US',
         licenseKey: 'non-commercial-and-evaluation'
       }
     };

@@ -172,7 +172,7 @@ use the [`numericFormat`](@/api/options.md#numericformat) option.
 
 Since Handsontable 17.0, the `numericFormat` option supports the native [`Intl.NumberFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat) API, which provides better performance and broader browser support without external dependencies.
 
-### Using Intl.NumberFormat (recommended)
+### Using Intl.NumberFormat
 
 The `numericFormat` option accepts all properties of [`Intl.NumberFormatOptions`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat). The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
 
