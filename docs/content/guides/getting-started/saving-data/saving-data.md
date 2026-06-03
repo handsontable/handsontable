@@ -16,6 +16,9 @@ react:
 angular:
   id: uny2nvqk
   metaTitle: Saving data - Angular Data Grid | Handsontable
+vue:
+  id: qnevlxum
+  metaTitle: Saving data - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---
@@ -60,6 +63,16 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 @[code](@/content/guides/getting-started/saving-data/angular/example1.ts)
 @[code](@/content/guides/getting-started/saving-data/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue --js 1
+
+@[code](@/content/guides/getting-started/saving-data/vue/example1.vue)
 
 :::
 

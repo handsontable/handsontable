@@ -2,14 +2,15 @@
  * Re-exports of core settings types for external consumers.
  * Wrappers and user code can import from 'handsontable/settings'.
  */
-import Handsontable from './base';
-import { CommentObject } from './plugins/comments';
+import type Handsontable from './base';
+import type { CommentObject } from './plugins/comments';
 import type { GridSettings } from './core/settings';
 /**
  * A row object, one of the two ways to supply data to the table, the alternative being an array of values.
  * Row objects can have any data assigned to them, not just column data, and can define a `__children` array for nested rows.
  */
 export interface RowObject {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [prop: string]: any;
   }
 
@@ -65,6 +66,7 @@ export interface ColumnSettings extends Omit<GridSettings, 'data'> {
     /**
      * Column and cell meta data is extensible, developers can add any properties they want.
      */
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     [key: string]: any;
   }
 

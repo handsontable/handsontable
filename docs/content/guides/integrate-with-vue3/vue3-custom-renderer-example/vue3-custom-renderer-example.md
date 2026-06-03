@@ -12,6 +12,8 @@ react:
 angular:
   id: karjf4av
   metaTitle: Custom cell renderer - Vue 3 Data Grid | Handsontable
+vue:
+  id: 3a3ut00h
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
@@ -29,10 +31,9 @@ You can declare a custom renderer for the `HotTable` component by declaring it a
 
 The following example is an implementation of `@handsontable/vue3` with a custom renderer added. It takes an image URL as the input and renders the image in the edited cell.
 
-::: example #example1 :vue3 --html 1 --js 2
+::: example #example1 :vue3
 
-@[code](@/content/guides/integrate-with-vue3/vue3-custom-renderer-example/vue/example1.html)
-@[code](@/content/guides/integrate-with-vue3/vue3-custom-renderer-example/vue/example1.js)
+@[code](@/content/guides/integrate-with-vue3/vue3-custom-renderer-example/vue/example1.vue)
 
 :::
 
@@ -42,10 +43,9 @@ You can use a Vue 3 component as a custom cell renderer by mounting it into the 
 
 The renderer function receives the same arguments as a regular function-based renderer. You build a VNode from your component with `h(Component, props)` and pass it to `render()` together with the TD element. To pass static props alongside cell data, merge them into the second argument of `h()`.
 
-::: example #example2 :vue3 --html 1 --js 2
+::: example #example2 :vue3
 
-@[code](@/content/guides/integrate-with-vue3/vue3-custom-renderer-example/vue/example2.html)
-@[code](@/content/guides/integrate-with-vue3/vue3-custom-renderer-example/vue/example2.js)
+@[code](@/content/guides/integrate-with-vue3/vue3-custom-renderer-example/vue/example2.vue)
 
 :::
 

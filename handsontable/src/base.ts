@@ -354,8 +354,8 @@ declare namespace Handsontable {
 
   export namespace renderers {
     export type AutocompleteRenderer = typeof import('./renderers/autocompleteRenderer').autocompleteRenderer;
-    export type BaseRenderer = typeof import('./renderers/baseRenderer').baseRenderer;
-    export type cellDecorator = typeof import('./renderers/baseRenderer').baseRenderer;
+    export type BaseRenderer = import('./renderers/baseRenderer').BaseRenderer;
+    export type cellDecorator = import('./renderers/baseRenderer').BaseRenderer;
     export type CheckboxRenderer = typeof import('./renderers/checkboxRenderer').checkboxRenderer;
     export type DateRenderer = typeof import('./renderers/dateRenderer').dateRenderer;
     export type DropdownRenderer = typeof import('./renderers/dropdownRenderer').dropdownRenderer;

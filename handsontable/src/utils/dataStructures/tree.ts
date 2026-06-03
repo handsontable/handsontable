@@ -11,8 +11,8 @@ export const TRAVERSAL_DF_PRE = 'DF-pre-order';
  * @param {*} context A context to pass through.
  * @returns {boolean}
  */
-export function depthFirstPreOrder(this: TreeNode, callback: Function, context: unknown) {
-  let continueTraverse = callback.call(context, this);
+export function depthFirstPreOrder(this: TreeNode, callback: Function, context: unknown): unknown {
+  let continueTraverse: unknown = callback.call(context, this);
 
   for (let i = 0; i < this.childs.length; i++) {
     if (continueTraverse === false) {
@@ -36,7 +36,7 @@ export const TRAVERSAL_DF_POST = 'DF-post-order';
  * @param {*} context A context to pass through.
  * @returns {boolean}
  */
-function depthFirstPostOrder(this: TreeNode, callback: Function, context: unknown) {
+function depthFirstPostOrder(this: TreeNode, callback: Function, context: unknown): unknown {
   for (let i = 0; i < this.childs.length; i++) {
     const continueTraverse = depthFirstPostOrder.call(this.childs[i] as TreeNode, callback, context);
 
@@ -45,7 +45,7 @@ function depthFirstPostOrder(this: TreeNode, callback: Function, context: unknow
     }
   }
 
-  return callback.call(context, this);
+  return callback.call(context, this) as unknown;
 }
 
 /**
@@ -107,8 +107,7 @@ export default class TreeNode {
    *
    * @type {object}
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any = {};
+  data: Record<string, unknown> = {};
   /**
    * A parent node.
    *
@@ -122,8 +121,7 @@ export default class TreeNode {
    */
   childs: TreeNode[] = [];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(data: any) {
+  constructor(data: Record<string, unknown>) {
     this.data = data;
   }
 
@@ -209,10 +207,10 @@ export default class TreeNode {
    *
    * @param {Function} callback The callback function which will be called for each node.
    */
-  walkUp(callback: Function) {
+  walkUp(callback: (this: TreeNode, node: TreeNode) => boolean | void) {
     const context = this;
     const process = (node: TreeNode) => {
-      const continueTraverse = callback.call(context, node);
+      const continueTraverse = callback.call(context, node) as boolean | void;
 
       if (continueTraverse !== false && node.parent !== null) {
         process(node.parent);

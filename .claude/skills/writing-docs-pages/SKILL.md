@@ -82,9 +82,21 @@ Embed runnable code examples using this pattern. The `--js 1 --ts 2` flags set t
 :::
 
 :::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/category/feature/vue/example1.vue)
+
+:::
+
+:::
 ```
 
-For Vue examples, use `:vue3` with `--html 1 --js 2`. For Angular, use `:angular` with `--ts 1 --html 2`.
+**Vue 3:** Embed a single TypeScript SFC (`vue/example1.vue` with `<script setup lang="ts">`). Use the `:vue3` preset (or `:vue3-numbro`, `:vue3-languages`, `:vue3-vuex` when the feature needs extra dependencies). Do not use `--html` / `--js` tabs for new Vue examples. See skill `creating-docs-examples` for the full Vue SFC pattern.
+
+**Angular:** Use `:angular` with `--ts 1 --html 2`.
 
 ## 5. Writing Style
 
@@ -114,13 +126,15 @@ Use `onlyFor: ['react']` or `onlyFor: ['angular']` if the page is framework-spec
 
 ## 8. Code Example Generation
 
-Always edit the TypeScript example file first (it is the primary source). Then generate the JavaScript variant from the `docs/` directory:
+For **JavaScript** and **React** examples, edit the TypeScript source first (`.ts` or `.tsx`). Then generate the JavaScript variant from the `docs/` directory:
 
 ```bash
 cd docs && npm run docs:code-examples:generate-js -- <path-to-ts-file>
 ```
 
 Use a path relative to `docs/` (for example `content/recipes/foo/javascript/example1.ts`).
+
+For **Vue** examples, write TypeScript directly in the `.vue` file (`<script setup lang="ts">`). There is no separate JS file to generate.
 
 ## Reference
 

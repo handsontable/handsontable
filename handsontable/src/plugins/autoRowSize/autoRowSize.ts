@@ -221,7 +221,7 @@ export class AutoRowSize extends BasePlugin {
       cellValue = this.hot.getDataAtCell(row, column);
 
       if (typeof cellMeta?.valueFormatter === 'function') {
-        cellValue = cellMeta.valueFormatter(cellValue, cellMeta);
+        cellValue = (cellMeta.valueFormatter as (v: unknown, meta: unknown) => unknown)(cellValue, cellMeta);
       }
     } else if (row === -1) {
       cellValue = this.hot.getColHeader(column);

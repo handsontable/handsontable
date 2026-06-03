@@ -16,6 +16,9 @@ react:
 angular:
   id: 098p9wiw
   metaTitle: Custom builds - Angular Data Grid | Handsontable
+vue:
+  id: kg9fj032
+  metaTitle: Custom builds - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
 ---

@@ -13,7 +13,7 @@ export interface EndpointConfig {
   type?: string;
   forceNumeric?: boolean;
   suppressDataTypeErrors?: boolean;
-  customFunction?: Function | null;
+  customFunction?: ((endpoint: Record<string, unknown>) => number | string) | null;
   readOnly?: boolean;
   roundFloat?: number | boolean;
   result?: number | string;
@@ -478,7 +478,7 @@ class Endpoints {
 
     arrayEach(this.getAllEndpoints(), (value: EndpointConfig) => {
       this.currentEndpoint = value;
-      this.plugin.calculate(value);
+      this.plugin.calculate(value as unknown as Parameters<typeof this.plugin.calculate>[0]);
       this.setEndpointValue(value, 'init');
     });
     this.currentEndpoint = null;
@@ -580,7 +580,7 @@ class Endpoints {
    */
   refreshEndpoint(endpoint: EndpointConfig) {
     this.currentEndpoint = endpoint;
-    this.plugin.calculate(endpoint);
+    this.plugin.calculate(endpoint as unknown as Parameters<typeof this.plugin.calculate>[0]);
     this.setEndpointValue(endpoint, undefined);
     this.currentEndpoint = null;
   }

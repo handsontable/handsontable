@@ -14,6 +14,9 @@ react:
 angular:
   id: 9i62e6cn
   metaTitle: Modules - Angular Data Grid | Handsontable
+vue:
+  id: xvedd0on
+  metaTitle: Modules - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
 menuTag: updated

@@ -45,7 +45,7 @@ export function toSingleLine(strings: TemplateStringsArray | string[], ...expres
  *
  * @param {string} strings Parts of the entire string without expressions.
  * @param  {*} values Expressions converted to strings, which are added to the entire string.
- * @returns {{ fragment: DocumentFragment, refs: object.<string, HTMLElement> }}
+ * @returns {{ fragment: DocumentFragment, refs: {[key: string]: HTMLElement} }}
  */
 export function html(strings: TemplateStringsArray, ...values: unknown[]) {
   // eslint-disable-next-line no-restricted-globals

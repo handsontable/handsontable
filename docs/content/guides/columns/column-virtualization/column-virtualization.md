@@ -16,6 +16,9 @@ react:
 angular:
   id: qhqjtdsr
   metaTitle: Column virtualization - Angular Data Grid | Handsontable
+vue:
+  id: y0yzk8sd
+  metaTitle: Column virtualization - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
@@ -76,6 +79,16 @@ The demo below presents a data grid displaying one million cells (1000 rows x 10
 
 @[code](@/content/guides/columns/column-virtualization/angular/example1.ts)
 @[code](@/content/guides/columns/column-virtualization/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-virtualization/vue/example1.vue)
 
 :::
 

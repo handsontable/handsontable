@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../core/types';
 import { arrayEach } from '../../helpers/array';
 
 interface CellRangeLike {
@@ -186,9 +187,9 @@ export function getDocumentOffsetByElement(elementToCheck: HTMLElement, baseDocu
  * Use with .bind, .call or .apply to pass the Handsontable instance.
  */
 export function getAlignmentComparatorByClass(htClassName: string) {
-  return function(this: Record<string, Function>, row: number, col: number) {
-    const className = this.getCellMeta(row, col).className;
+  return function(this: HotInstance, row: number, col: number): boolean {
+    const className = this.getCellMeta(row, col).className as string | string[] | undefined;
 
-    return (className && className.indexOf(htClassName) !== -1);
+    return Boolean(className && className.indexOf(htClassName) !== -1);
   };
 }

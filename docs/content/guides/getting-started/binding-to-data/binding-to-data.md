@@ -16,6 +16,9 @@ react:
 angular:
   id: xnqn2zg9
   metaTitle: Binding to data - Angular Data Grid | Handsontable
+vue:
+  id: lahmb9og
+  metaTitle: Binding to data - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---
@@ -66,6 +69,16 @@ Array of arrays is a good choice for the more grid-like scenarios where you need
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example1.vue)
+
+:::
+
+:::
+
 ### Array of arrays with a selective display of columns
 
 The following example shows how you would use the array of arrays with a selective display of columns. This scenario uses the same data source as in the previous example, this time omitting the `Tesla` column from the grid.
@@ -98,6 +111,16 @@ The following example shows how you would use the array of arrays with a selecti
 
 @[code](@/content/guides/getting-started/binding-to-data/angular/example2.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example2.vue)
 
 :::
 
@@ -140,6 +163,16 @@ An array of objects can be used as a data source as follows:
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example3.vue)
+
+:::
+
+:::
+
 ### Array of objects with column as a function
 
 You can set the [`columns`](@/api/options.md#columns) configuration option to a function. This is good practice when you want to bind data more dynamically.
@@ -177,6 +210,16 @@ You can set the [`columns`](@/api/options.md#columns) configuration option to a 
 
 :::
 
+::: only-for vue
+
+::: example #example4 .custom-class :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example4.vue)
+
+:::
+
+:::
+
 ### Array of objects with column mapping
 
 In a scenario where you have nested objects, you can use them as the data source by mapping the columns using the [`columns`](@/api/options.md#columns) option.
@@ -209,6 +252,16 @@ In a scenario where you have nested objects, you can use them as the data source
 
 @[code](@/content/guides/getting-started/binding-to-data/angular/example5.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example5.vue)
 
 :::
 
@@ -253,6 +306,16 @@ In a scenario where you start with an empty data source, you will need to provid
 
 :::
 
+::: only-for vue
+
+::: example #example6 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example6.vue)
+
+:::
+
+:::
+
 ### Function data source and schema
 
 If your [`dataSchema`](@/api/options.md#dataschema) is a constructor of an object that doesn't directly expose its members, you can specify functions for the [`data`](@/api/options.md#data) member of each [`columns`](@/api/options.md#columns) item.
@@ -292,6 +355,16 @@ The example below shows how to use such objects:
 
 :::
 
+::: only-for vue
+
+::: example #example7 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example7.vue)
+
+:::
+
+:::
+
 ### No data
 
 By default, if you don't provide any data, Handsontable renders as an empty 5x5 grid.
@@ -324,6 +397,16 @@ By default, if you don't provide any data, Handsontable renders as an empty 5x5 
 
 @[code](@/content/guides/getting-started/binding-to-data/angular/example9.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example9.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example9 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example9.vue)
 
 :::
 
@@ -383,6 +466,16 @@ the [`setDataAtCell()`](@/api/core.md#setdataatcell) method.
 
 :::
 
+::: only-for vue
+
+::: example #example10 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example10.vue)
+
+:::
+
+:::
+
 There are multiple ways you can insert your data into Handsontable. Let's go through the most useful ones:
 
 ### The [`data`](@/api/options.md#data) configuration option
@@ -428,6 +521,28 @@ gridSettings: GridSettings = {};
 
 :::
 
+::: only-for vue
+
+You will probably want to initialize the table with some data (if you don't, the table will render an empty 5x5 grid for you). The easiest way to do it is by passing your data array inside the `hotSettings` ref bound to `HotTable`:
+
+```vue
+<script setup>
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+
+const hotSettings = ref({
+  data: newDataset,
+  // ... other config options
+});
+</script>
+
+<template>
+  <HotTable :settings="hotSettings" />
+</template>
+```
+
+:::
+
 ### The data-loading API methods
 
 ::: only-for react
@@ -450,6 +565,16 @@ To use the Handsontable API, you'll need access to the Handsontable instance. Yo
 to the `HotTableComponent`, and reading its `hotInstance` property.
 
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+:::
+
+:::
+
+::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by adding a template `ref` to the `HotTable` component and reading its `hotInstance` property.
+
 :::
 
 :::
@@ -638,6 +763,16 @@ When working with a copy of data for Handsontable, it is best practice is to clo
 
 @[code](@/content/guides/getting-started/binding-to-data/angular/example11.ts)
 @[code](@/content/guides/getting-started/binding-to-data/angular/example11.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example11 :vue --js 1
+
+@[code](@/content/guides/getting-started/binding-to-data/vue/example11.vue)
 
 :::
 

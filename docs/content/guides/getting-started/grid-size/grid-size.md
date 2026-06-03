@@ -17,6 +17,9 @@ react:
 angular:
   id: w6lvb55f
   metaTitle: Grid size - Angular Data Grid | Handsontable
+vue:
+  id: ej8mo5um
+  metaTitle: Grid size - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---
@@ -131,6 +134,35 @@ gridSettings: GridSettings = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  width: '100px',
+  height: '100px',
+});
+```
+
+or
+
+```js
+const hotSettings = ref({
+  width: '75%',
+  height: '75%',
+});
+```
+
+or
+
+```js
+const hotSettings = ref({
+  width: 100,
+  height: 100,
+});
+```
+
+:::
+
 These dimensions will be set as inline styles in a container element, and `overflow: hidden` will be added automatically.
 
 If container is a block element, then its parent has to have defined `height`. By default block element is `0px` height, so `100%` from `0px` is still `0px`.
@@ -197,6 +229,25 @@ gridSettings: GridSettings = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  height: 'auto',
+});
+```
+
+You can combine it with `width: 'auto'` to let the grid follow its parent container's width:
+
+```js
+const hotSettings = ref({
+  height: 'auto',
+  width: 'auto',
+});
+```
+
+:::
+
 `height: 'auto'` is different from leaving `height` unset:
 
 | Setting            | Inline styles on root                                       | Scroll parent                                                                  | Row virtualization          |
@@ -213,14 +264,14 @@ With `height: 'auto'`, every row is laid out in the DOM at once. Avoid this valu
 
 ### Troubleshooting with 100% height
 
-When the `height` option is set to 100%, there are three ways to define the container’s height. Assuming you're creating an Handsontable instance that has `100% height` and container is element with id `#example`. 
+When the `height` option is set to 100%, there are three ways to define the container’s height. Assuming you're creating an Handsontable instance that has `100% height` and container is element with id `#example`.
 
 ```js
 const container = document.querySelector('#example');
 
 const hot = new Handsontable(container, {
   height: '100%',
-  // ...rest of config 
+  // ...rest of config
 }
 ```
 
@@ -326,6 +377,16 @@ gridSettings: GridSettings = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  beforeRefreshDimensions() { return false; },
+});
+```
+
+:::
+
 ## Manual resizing
 
 The Handsontable instance exposes the [`refreshDimensions()`](@/api/core.md#refreshdimensions) method, which helps you to resize grid elements properly.
@@ -350,6 +411,18 @@ To use the Handsontable API, you'll need access to the Handsontable instance. Yo
 to the `HotTableComponent`, and reading its `hotInstance` property.
 
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+:::
+
+:::
+
+::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. Use a template ref on the `HotTable` component and read its `hotInstance` property.
+
+For more information, see the [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md) page.
+
 :::
 
 :::
@@ -391,6 +464,16 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 
 @[code](@/content/guides/getting-started/grid-size/angular/example.ts)
 @[code](@/content/guides/getting-started/grid-size/angular/example.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example :vue --js 1
+
+@[code](@/content/guides/getting-started/grid-size/vue/example.vue)
 
 :::
 

@@ -19,7 +19,7 @@ export class LinkedPhysicalIndexToValueMap extends IndexMap {
    * @private
    * @type {Array<number>}
    */
-  orderOfIndexes: number[] = []
+  orderOfIndexes: number[] = [];
 
   /**
    * Get full list of ordered values for particular indexes.

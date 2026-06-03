@@ -61,6 +61,8 @@
     "@octokit/rest": "^18.6.7",
     "@playwright/test": "1.45.x",
     "@types/node": "^20.11.27",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "@vue/compiler-sfc": "^3.5.35",
     "broken-link-checker": "^0.7.8",
     "chalk": "^4.1.1",
     "cross-env": "^7.0.3",

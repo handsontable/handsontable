@@ -1,8 +1,8 @@
 import { BaseEditor } from './baseEditor/baseEditor';
 import EventManager from '../eventManager';
 import { throwWithCause } from '../helpers/errors';
-import { CellProperties, CellValue } from '../settings';
-import { Context } from '../shortcuts/context';
+import type { CellProperties, CellValue } from '../settings';
+import type { Context } from '../shortcuts/context';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type EditorBaseFactoryParams<E> = Record<string, (editor: E, ...args: any[]) => unknown>;
 
@@ -120,7 +120,7 @@ export const editorFactory = <TProperties, TMethods = Record<string, unknown>>(
       originalValue: CellValue;
       cellProperties: CellProperties;
     }) => void;
-    getValue?: (editor: ExtendedEditor<TProperties & TMethods>) => any;
+    getValue?: (editor: ExtendedEditor<TProperties & TMethods>) => unknown;
     setValue?: (editor: ExtendedEditor<TProperties & TMethods>, value: CellValue) => void;
     onFocus?: (editor: ExtendedEditor<TProperties & TMethods>) => void;
     shortcutsGroup?: string;

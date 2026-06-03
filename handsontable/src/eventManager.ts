@@ -3,7 +3,7 @@ import { stopImmediatePropagation as _stopImmediatePropagation } from './helpers
 interface EventListenerEntry {
   element: Element | Document | Window;
   event: string;
-  callback: Function;
+  callback: (event: Event) => void;
   callbackProxy: (event: Event) => void;
   options: boolean | AddEventListenerOptions;
   // eslint-disable-next-line no-use-before-define
@@ -57,7 +57,7 @@ class EventManager {
       return () => {};
     }
 
-    const callbackRef: Function = callback;
+    const callbackRef = callback as (event: Event) => void;
 
     /**
      * @private
@@ -70,7 +70,7 @@ class EventManager {
     this.context.eventListeners.push({
       element,
       event: eventName,
-      callback,
+      callback: callback as (event: Event) => void,
       callbackProxy,
       options,
       eventManager: this
@@ -80,7 +80,7 @@ class EventManager {
     listenersCounter += 1;
 
     return () => {
-      this.removeEventListener(element, eventName, callback);
+      this.removeEventListener(element, eventName, callback as (event: Event) => void);
     };
   }
 
@@ -93,7 +93,7 @@ class EventManager {
    * @param {boolean} [onlyOwnEvents] Whether whould remove only events registered using this instance of EventManager.
    */
   removeEventListener(
-    element: Element | Document | Window, eventName: string, callback: Function, onlyOwnEvents = false
+    element: Element | Document | Window, eventName: string, callback: (event: Event) => void, onlyOwnEvents = false
   ): void {
     if (!this.context) {
       return;

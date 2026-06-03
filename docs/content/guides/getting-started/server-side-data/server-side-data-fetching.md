@@ -17,6 +17,9 @@ react:
 angular:
   id: y1b7u3s9
   metaTitle: Server-side fetching and examples - Angular Data Grid | Handsontable
+vue:
+  id: 5wb5dzit
+  metaTitle: Server-side fetching and examples - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Server-side data
 ---

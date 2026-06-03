@@ -16,6 +16,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, symlin
 import { relative, join } from 'path';
 import { createRequire } from 'module';
 import { transformWithEsbuild } from 'vite';
+import vue from '@vitejs/plugin-vue';
 
 // TypeScript is used to transpile Angular example .ts files because it
 // correctly strips type-only imports (e.g. ApplicationConfig, HotGlobalConfig)
@@ -734,15 +735,18 @@ export default defineConfig({
       ],
 
       sidebar: [
-        { label: 'JavaScript', collapsed: true, items: allSidebars.javascript },
-        { label: 'React', collapsed: true, items: allSidebars.react },
-        { label: 'Angular', collapsed: true, items: allSidebars.angular },
-        { label: 'JavaScript Recipes', collapsed: true, items: allSidebars.javascriptRecipes },
-        { label: 'React Recipes', collapsed: true, items: allSidebars.reactRecipes },
-        { label: 'Angular Recipes', collapsed: true, items: allSidebars.angularRecipes },
+        { label: 'JavaScript',           collapsed: true, items: allSidebars.javascript },
+        { label: 'React',                collapsed: true, items: allSidebars.react },
+        { label: 'Angular',              collapsed: true, items: allSidebars.angular },
+        { label: 'Vue 3',                collapsed: true, items: allSidebars.vue },
+        { label: 'JavaScript Recipes',   collapsed: true, items: allSidebars.javascriptRecipes },
+        { label: 'React Recipes',        collapsed: true, items: allSidebars.reactRecipes },
+        { label: 'Angular Recipes',      collapsed: true, items: allSidebars.angularRecipes },
+        { label: 'Vue 3 Recipes',        collapsed: true, items: allSidebars.vueRecipes },
         { label: 'JavaScript Changelog', collapsed: true, items: allSidebars.javascriptChangelog },
-        { label: 'React Changelog', collapsed: true, items: allSidebars.reactChangelog },
-        { label: 'Angular Changelog', collapsed: true, items: allSidebars.angularChangelog },
+        { label: 'React Changelog',      collapsed: true, items: allSidebars.reactChangelog },
+        { label: 'Angular Changelog',    collapsed: true, items: allSidebars.angularChangelog },
+        { label: 'Vue 3 Changelog',      collapsed: true, items: allSidebars.vueChangelog },
       ],
 
       components: {
@@ -901,6 +905,9 @@ export default defineConfig({
       // to local monorepo builds. Required because docs/ does not install these
       // packages in its own node_modules.
       resolveMonorepoPackages(),
+
+      // Enables Vite to process .vue SFC files used by Vue 3 doc examples.
+      vue(),
     ],
 
     // resolve.alias entries are honoured by both the Vite dev server and the

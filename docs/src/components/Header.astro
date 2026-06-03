@@ -30,7 +30,9 @@ const currentPrefix = pathname.includes('/react-data-grid/')
   ? 'react-data-grid'
   : pathname.includes('/angular-data-grid/')
     ? 'angular-data-grid'
-    : 'javascript-data-grid';
+    : pathname.includes('/vue-data-grid/')
+      ? 'vue-data-grid'
+      : 'javascript-data-grid';
 
 const guidesUrl = `/docs/${currentPrefix}/`;
 const recipesUrl = `/docs/${currentPrefix}/recipes/`;
@@ -50,6 +52,7 @@ const frameworks = [
   { id: 'javascript-data-grid', label: 'JavaScript' },
   { id: 'react-data-grid', label: 'React' },
   { id: 'angular-data-grid', label: 'Angular' },
+  { id: 'vue-data-grid', label: 'Vue' },
 ];
 ---
 

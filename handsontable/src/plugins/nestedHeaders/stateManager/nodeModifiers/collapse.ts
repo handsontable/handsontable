@@ -32,7 +32,7 @@ export function collapseNode(
   const isNodeReflected = isNodeReflectsFirstChildColspan(nodeToProcess as NodeWithData);
 
   if (isNodeReflected) {
-    return collapseNode(nodeChilds[0] as { data: HeaderNodeData, childs: TreeNode[] });
+    return collapseNode(nodeChilds[0] as unknown as { data: HeaderNodeData, childs: TreeNode[] });
   }
 
   nodeData.isCollapsed = true;
@@ -78,8 +78,8 @@ export function collapseNode(
   ) as number | undefined;
   const colspanCompensation = nodeData.colspan - (firstChildColspan ?? 1);
 
-  (nodeToProcess as TreeNode).walkUp((node: TreeNode) => {
-    const { data } = node;
+  (nodeToProcess as unknown as TreeNode).walkUp((node: TreeNode) => {
+    const data = node.data as HeaderNodeData;
 
     data.colspan -= colspanCompensation;
 
@@ -88,7 +88,7 @@ export function collapseNode(
       data.isCollapsed = true;
 
     } else if (isNodeReflectsFirstChildColspan(node as NodeWithData)) {
-      data.isCollapsed = getFirstChildProperty(node as NodeWithChilds, 'isCollapsed');
+      data.isCollapsed = getFirstChildProperty(node as NodeWithChilds, 'isCollapsed') as boolean;
     }
   });
 

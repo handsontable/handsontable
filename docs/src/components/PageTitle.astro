@@ -65,6 +65,7 @@ const FRAMEWORK_LABELS: Record<string, string> = {
   'javascript-data-grid': 'JavaScript Data Grid',
   'react-data-grid':      'React Data Grid',
   'angular-data-grid':    'Angular Data Grid',
+  'vue-data-grid':        'Vue Data Grid',
 };
 
 // ── Current page data ─────────────────────────────────────────────────────────
@@ -76,7 +77,9 @@ const prefix = pathname.includes('/react-data-grid/')
   ? 'react-data-grid'
   : pathname.includes('/angular-data-grid/')
     ? 'angular-data-grid'
-    : 'javascript-data-grid';
+    : pathname.includes('/vue-data-grid/')
+      ? 'vue-data-grid'
+      : 'javascript-data-grid';
 
 const frameworkLabel = FRAMEWORK_LABELS[prefix];
 const homeLabel      = hotVersion ? `${hotVersion} ${frameworkLabel}` : frameworkLabel;

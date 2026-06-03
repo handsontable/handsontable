@@ -11,7 +11,7 @@ interface HotInstance {
   render(): void;
   runHooks(hookName: string, ...args: unknown[]): void;
   // eslint-disable-next-line no-use-before-define
-  themeManager: ThemeManager | null;
+  themeManager: ThemeManager | null | undefined;
   [key: string]: unknown;
 }
 

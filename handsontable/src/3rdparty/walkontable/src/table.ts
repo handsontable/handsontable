@@ -167,6 +167,7 @@ class Table {
     this.columnFilter = null; // TODO refactoring, eliminate all (re)creations of this object, then updates state when needed.
     this.correctHeaderWidth = false;
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const origRowHeaderWidth = this.wtSettings.getSettingPure('rowHeaderWidth');
 
     // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
@@ -647,10 +648,12 @@ class Table {
 
     let row = coords.row;
     let column = coords.col;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const hookResult = this.wtSettings
       .getSetting('onModifyGetCellCoords', row, column, !this.isMaster, 'render');
 
     if (hookResult && Array.isArray(hookResult)) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [row, column] = hookResult;
     }
 
@@ -864,10 +867,12 @@ class Table {
       col = this.columnFilter!.visibleRowHeadedColumnToSourceColumn(col);
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const hookResult = this.wtSettings
       .getSetting('onModifyGetCoordsElement', row, col);
 
     if (hookResult && Array.isArray(hookResult)) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       [row, col] = hookResult;
     }
 
@@ -1190,8 +1195,8 @@ class Table {
    * @param {number} sourceColumn The physical column index.
    * @returns {number}
    */
-  getColumnWidth(sourceColumn: number) {
-    return this.columnUtils.getWidth(sourceColumn);
+  getColumnWidth(sourceColumn: number): number {
+    return this.columnUtils.getWidth(sourceColumn) as number;
   }
 
   /**

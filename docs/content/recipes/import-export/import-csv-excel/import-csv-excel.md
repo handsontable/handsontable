@@ -17,6 +17,9 @@ react:
 angular:
   id: s9t2u7v0
   metaTitle: Import CSV or Excel - Angular Data Grid | Handsontable
+vue:
+  id: 9z4rb007
+  metaTitle: Import CSV or Excel - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Import and Export
 type: how-to

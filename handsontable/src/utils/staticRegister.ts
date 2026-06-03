@@ -1,4 +1,4 @@
-export const collection = new Map();
+export const collection = new Map<string, Map<string, unknown>>();
 
 /**
  * @param {string} namespace The namespace for the storage.
@@ -8,7 +8,7 @@ export function staticRegister(namespace = 'common') {
   if (!collection.has(namespace)) {
     collection.set(namespace, new Map());
   }
-  const subCollection = collection.get(namespace);
+  const subCollection = collection.get(namespace)!;
 
   /**
    * Register an item to the collection. If the item under the same was exist earlier then this item will be replaced with new one.
@@ -26,7 +26,7 @@ export function staticRegister(namespace = 'common') {
    * @param {string} name Identification of the item.
    * @returns {*} Returns item which was saved in the collection.
    */
-  function getItem(name: string) {
+  function getItem(name: string): unknown {
     return subCollection.get(name);
   }
 
@@ -36,7 +36,7 @@ export function staticRegister(namespace = 'common') {
    * @param {string} name Identification of the item.
    * @returns {boolean} Returns `true` or `false` depends on if element exists in the collection.
    */
-  function hasItem(name: string) {
+  function hasItem(name: string): boolean {
     return subCollection.has(name);
   }
 
@@ -45,7 +45,7 @@ export function staticRegister(namespace = 'common') {
    *
    * @returns {Array} Returns an array of strings with all names under which objects are stored.
    */
-  function getNames() {
+  function getNames(): string[] {
     return [...subCollection.keys()];
   }
 
@@ -54,7 +54,7 @@ export function staticRegister(namespace = 'common') {
    *
    * @returns {Array} Returns an array with all values stored in the collection.
    */
-  function getValues() {
+  function getValues(): unknown[] {
     return [...subCollection.values()];
   }
 
@@ -83,6 +83,6 @@ export function staticRegister(namespace = 'common') {
  * @param {string} name The name of the item to retrieve.
  * @returns {*}
  */
-export function resolveWithInstance(hotInstance: Record<string, unknown>, name: string) {
-  return collection?.get(hotInstance.guid)?.get(name);
+export function resolveWithInstance(hotInstance: Record<string, unknown>, name: string): unknown {
+  return collection?.get(hotInstance.guid as string)?.get(name);
 }

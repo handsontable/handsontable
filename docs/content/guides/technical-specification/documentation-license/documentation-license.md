@@ -12,6 +12,9 @@ react:
 angular:
   id: g9ytiw67
   metaTitle: Documentation license - Angular Data Grid | Handsontable
+vue:
+  id: cr13gd09
+  metaTitle: Documentation license - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Technical specification
 ---

@@ -53,7 +53,8 @@ class DataProvider {
    *   pushed into the row array.
    * @returns {Array[]}
    */
-  _extractDataMatrix(getCellValue: (row: number, col: number) => any) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  _extractDataMatrix<T = any>(getCellValue: (row: number, col: number) => T): T[][] {
     const { startRow, startCol, endRow, endCol } = this._getDataRange();
     const options = this.options;
     const data = [];
@@ -312,8 +313,10 @@ class DataProvider {
    *
    * @returns {Array}
    */
-  getCellsMeta() {
-    return this._extractDataMatrix((row: number, col: number) => this.hot.getCellMeta(row, col));
+  getCellsMeta(): Record<string, unknown>[][] {
+    return this._extractDataMatrix(
+      (row: number, col: number): Record<string, unknown> => this.hot.getCellMeta(row, col)
+    );
   }
 
   /**
@@ -403,10 +406,10 @@ class DataProvider {
    *
    * @returns {Array}
    */
-  getColumnsWidths() {
+  getColumnsWidths(): number[] {
     const { startCol, endCol } = this._getDataRange();
     const options = this.options;
-    const widths = [];
+    const widths: number[] = [];
 
     for (let colIndex = startCol; colIndex <= endCol; colIndex++) {
       if (options.exportHiddenColumns === false && this._isHiddenColumn(colIndex)) {
@@ -434,10 +437,10 @@ class DataProvider {
    *
    * @returns {Array}
    */
-  getRowsHeights() {
+  getRowsHeights(): number[] {
     const { startRow, endRow } = this._getDataRange();
     const options = this.options;
-    const heights = [];
+    const heights: number[] = [];
 
     for (let rowIndex = startRow; rowIndex <= endRow; rowIndex++) {
       if (options.exportHiddenRows === false && this._isHiddenRow(rowIndex)) {
@@ -648,7 +651,7 @@ class DataProvider {
     // (e.g. SUM at row 6 references MIN at row 7, and MIN at row 7 references SUM at row 6).
     const allDestRows = new Set<number>();
 
-    allEndpoints.forEach((endpoint: SummaryEndpoint) => {
+    (allEndpoints as unknown as SummaryEndpoint[]).forEach((endpoint: SummaryEndpoint) => {
       if (endpoint.destinationRow === undefined) {
         return;
       }
@@ -663,7 +666,7 @@ class DataProvider {
     // Second pass: translate each endpoint into an export-coordinate summary descriptor.
     const summaries: object[] = [];
 
-    allEndpoints.forEach((endpoint: SummaryEndpoint) => {
+    (allEndpoints as unknown as SummaryEndpoint[]).forEach((endpoint: SummaryEndpoint) => {
       const summary = this._transformEndpointToSummary(
         endpoint, startRow, endRow, startCol, endCol, allDestRows
       );
@@ -851,21 +854,21 @@ class DataProvider {
    * @param {number} colIndex Visual column index.
    * @returns {number}
    */
-  _getNaturalColWidth(colIndex: number) {
+  _getNaturalColWidth(colIndex: number): number {
     const settings = this.hot.getSettings();
     const metaWidth = this.hot.getColumnMeta(colIndex).width;
 
     if (metaWidth !== null && metaWidth !== undefined) {
-      return metaWidth;
+      return metaWidth as number;
     }
 
     const { colWidths, defaultColumnWidth } = settings;
-    const fallback = defaultColumnWidth ?? 50;
+    const fallback: number = (defaultColumnWidth as number | undefined) ?? 50;
 
     if (Array.isArray(colWidths)) {
-      return colWidths[colIndex] ?? fallback;
+      return (colWidths[colIndex] as number | undefined) ?? fallback;
     } else if (typeof colWidths === 'function') {
-      return colWidths(colIndex) ?? fallback;
+      return (colWidths(colIndex) as number | undefined) ?? fallback;
     } else if (typeof colWidths === 'number') {
       return colWidths;
     }
@@ -884,15 +887,15 @@ class DataProvider {
    * @param {number} rowIndex Visual row index.
    * @returns {number}
    */
-  _getNaturalRowHeight(rowIndex: number) {
+  _getNaturalRowHeight(rowIndex: number): number {
     const settings = this.hot.getSettings();
     const { rowHeights, defaultRowHeight } = settings;
-    const fallback = defaultRowHeight ?? 23;
+    const fallback: number = (defaultRowHeight as number | undefined) ?? 23;
 
     if (Array.isArray(rowHeights)) {
-      return rowHeights[rowIndex] ?? fallback;
+      return (rowHeights[rowIndex] as number | undefined) ?? fallback;
     } else if (typeof rowHeights === 'function') {
-      return rowHeights(rowIndex) ?? fallback;
+      return (rowHeights(rowIndex) as number | undefined) ?? fallback;
     } else if (typeof rowHeights === 'number') {
       return rowHeights;
     }

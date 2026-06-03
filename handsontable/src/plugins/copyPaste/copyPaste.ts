@@ -629,7 +629,7 @@ export class CopyPaste extends BasePlugin {
         let cellValue: unknown = plainData[insertedRow][insertedColumn];
 
         if (parsePastedValue && sourceData && isJSON(sourceCellValue as string) && cellValue === originalCellValue) {
-          const parsedCellValue = JSON.parse(sourceCellValue as string);
+          const parsedCellValue: unknown = JSON.parse(sourceCellValue as string);
 
           cellValue = parsedCellValue;
         }
@@ -840,6 +840,14 @@ export class CopyPaste extends BasePlugin {
         pastedData = parsedConfig?.data;
       } else {
         pastedData = clipboardData.getData('text/plain');
+
+        // Excel terminates every row (including the last) with a CRLF. For a single-cell copy that
+        // produces a trailing newline, which `SheetClip.parse` would read as a row separator and emit
+        // an extra empty row, blanking the cell below the paste target. Treat a single trailing
+        // newline as a terminator, not a separator.
+        if (typeof pastedData === 'string') {
+          pastedData = pastedData.replace(/(\r\n|\r|\n)$/, '');
+        }
       }
 
     } else if (typeof ClipboardEvent === 'undefined' &&

@@ -15,6 +15,9 @@ react:
 angular:
   id: e6f0c13b
   metaTitle: Import and Export Recipes - Angular Data Grid | Handsontable
+vue:
+  id: z9gel8zf
+  metaTitle: Import and Export Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 

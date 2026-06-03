@@ -216,7 +216,7 @@ export function normalizeFormula(
       /("(?:[^"]|"")*"|'[^']*')|(?<!\d)(\$?)([A-Z]{1,3})(\$?)(\d{1,7})(?!\()/g,
       (match, strLiteral, colAbs, colLetters, rowAbs, rowStr) => {
         if (strLiteral !== undefined) {
-          return strLiteral;
+          return strLiteral as string;
         }
 
         const hotPhysCol = colLetterToIndex(colLetters) - 1; // 0-based physical HOT column

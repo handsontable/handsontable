@@ -18,6 +18,9 @@ react:
 angular:
   id: 2k8cam98
   metaTitle: Column groups - Angular Data Grid | Handsontable
+vue:
+  id: ogbyqaox
+  metaTitle: Column groups - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 menuTag: updated
@@ -63,6 +66,19 @@ nestedHeaders={[
 
 :::
 
+::: only-for vue
+
+```js
+nestedHeaders: [
+  ['A', { label: 'B', colspan: 8 }, 'C'],
+  ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+  ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+  ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'],
+],
+```
+
+:::
+
 ### Example
 
 ::: only-for javascript
@@ -93,6 +109,16 @@ nestedHeaders={[
 
 @[code](@/content/guides/columns/column-groups/angular/example1.ts)
 @[code](@/content/guides/columns/column-groups/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-groups/vue/example1.vue)
 
 :::
 
@@ -135,6 +161,17 @@ nestedHeaders: [
   [{ label: 'A', rowspan: 2 }, { label: 'B', colspan: 2 }],
   ['', 'C', 'D'],
 ];
+```
+
+:::
+
+::: only-for vue
+
+```js
+nestedHeaders: [
+  [{ label: 'A', rowspan: 2 }, { label: 'B', colspan: 2 }],
+  ['', 'C', 'D'],
+],
 ```
 
 :::
@@ -188,6 +225,17 @@ collapsibleColumns: [
 
 :::
 
+::: only-for vue
+
+```js
+collapsibleColumns: [
+  { row: -4, col: 1, collapsible: true }, // Add the button to the 4th-level header of the 1st column - counting from the first table row upwards.
+  { row: -3, col: 5, collapsible: true }, // Add the button to the 3rd-level header of the 5th column - counting from the first table row upwards.
+],
+```
+
+:::
+
 ### Example
 
 ::: only-for javascript
@@ -218,6 +266,16 @@ collapsibleColumns: [
 
 @[code](@/content/guides/columns/column-groups/angular/example2.ts)
 @[code](@/content/guides/columns/column-groups/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/columns/column-groups/vue/example2.vue)
 
 :::
 

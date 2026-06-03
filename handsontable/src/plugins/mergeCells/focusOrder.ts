@@ -1,6 +1,8 @@
-import LinkedList, { NodeStructure } from '../../utils/dataStructures/linkedList';
+import type { NodeStructure } from '../../utils/dataStructures/linkedList';
+import LinkedList from '../../utils/dataStructures/linkedList';
 import type { IndexMapper } from '../../translations';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
+import type MergedCellCoords from './cellCoords';
 
 /**
  * Data shape for focus order linked list nodes.
@@ -41,8 +43,7 @@ export class FocusOrder {
   /**
    * The merged cells getter function.
    */
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  #mergedCellsGetter!: Function;
+  #mergedCellsGetter!: (row: number, column: number) => MergedCellCoords | false;
   /**
    * The row index mapper.
    */
@@ -53,7 +54,8 @@ export class FocusOrder {
   #columnIndexMapper!: IndexMapper;
 
   constructor({ mergedCellsGetter, rowIndexMapper, columnIndexMapper }: {
-    mergedCellsGetter: Function, rowIndexMapper: IndexMapper, columnIndexMapper: IndexMapper
+    mergedCellsGetter: (row: number, column: number) => MergedCellCoords | false,
+    rowIndexMapper: IndexMapper, columnIndexMapper: IndexMapper
   }) {
     this.#mergedCellsGetter = mergedCellsGetter;
     this.#rowIndexMapper = rowIndexMapper;

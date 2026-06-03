@@ -3,16 +3,25 @@ import { fastCall } from './../helpers/function';
 
 const MIXIN_NAME = 'localHooks';
 
+interface LocalHooks {
+  _localHooks: Record<string, Function[]>;
+  addLocalHook(key: string, callback: Function): this;
+  removeLocalHook(key: string, callback: Function): this;
+  runLocalHooks(key: string,
+                arg1?: unknown, arg2?: unknown, arg3?: unknown, arg4?: unknown, arg5?: unknown, arg6?: unknown): void;
+  clearLocalHooks(): this;
+}
+
 /**
  * Mixin object to extend objects functionality for local hooks.
  *
  * @type {object}
  */
-const localHooks = {
+const localHooks: LocalHooks = {
   /**
    * Internal hooks storage.
    */
-  _localHooks: Object.create(null),
+  _localHooks: Object.create(null) as Record<string, Function[]>,
 
   /**
    * Add hook to the collection.
@@ -21,7 +30,7 @@ const localHooks = {
    * @param {Function} callback The hook callback.
    * @returns {object}
    */
-  addLocalHook(key: string, callback: Function) {
+  addLocalHook(this: LocalHooks, key: string, callback: Function): LocalHooks {
     if (!this._localHooks[key]) {
       this._localHooks[key] = [];
     }
@@ -37,7 +46,7 @@ const localHooks = {
    * @param {*} callback The hook callback.
    * @returns {object}
    */
-  removeLocalHook(key: string, callback: Function) {
+  removeLocalHook(this: LocalHooks, key: string, callback: Function): LocalHooks {
     if (this._localHooks[key]) {
       const index = this._localHooks[key].indexOf(callback);
 
@@ -60,7 +69,7 @@ const localHooks = {
    * @param {*} [arg5] An additional parameter passed to the callback function.
    * @param {*} [arg6] An additional parameter passed to the callback function.
    */
-  runLocalHooks(key: string,
+  runLocalHooks(this: LocalHooks, key: string,
                 arg1?: unknown, arg2?: unknown, arg3?: unknown, arg4?: unknown, arg5?: unknown, arg6?: unknown) {
     if (this._localHooks[key]) {
       const length = this._localHooks[key].length;
@@ -69,7 +78,7 @@ const localHooks = {
       // otherwise, performance will decrease because of garbage collection
       // using the `...rest` syntax (ES6 and later) will decrease performance as well
       for (let i = 0; i < length; i++) {
-        fastCall(this._localHooks[key][i], this, arg1, arg2, arg3, arg4, arg5, arg6);
+        fastCall(this._localHooks[key][i] as (...args: unknown[]) => unknown, this, arg1, arg2, arg3, arg4, arg5, arg6);
       }
     }
   },
@@ -79,7 +88,7 @@ const localHooks = {
    *
    * @returns {object}
    */
-  clearLocalHooks() {
+  clearLocalHooks(this: LocalHooks): LocalHooks {
     this._localHooks = {};
 
     return this;

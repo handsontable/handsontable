@@ -12,6 +12,8 @@ react:
 angular:
   id: nmw9ha36
   metaTitle: Custom cell editor - Vue 3 Data Grid | Handsontable
+vue:
+  id: 9a852yq1
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
@@ -29,10 +31,9 @@ You can declare a custom editor for the `HotTable` component by declaring it as 
 
 The following example implements the `@handsontable/vue3` component with a custom editor added, utilizing the `placeholder` attribute in the editor's `input` element.
 
-::: example #example1 :vue3 --html 1 --js 2
+::: example #example1 :vue3
 
-@[code](@/content/guides/integrate-with-vue3/vue3-custom-editor-example/vue/example1.html)
-@[code](@/content/guides/integrate-with-vue3/vue3-custom-editor-example/vue/example1.js)
+@[code](@/content/guides/integrate-with-vue3/vue3-custom-editor-example/vue/example1.vue)
 
 :::
 

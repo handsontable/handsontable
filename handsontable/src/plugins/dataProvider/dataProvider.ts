@@ -144,17 +144,15 @@ export interface DataProviderFetchOptions {
 export type DataProviderOptions = DataProviderFetchOptions;
 
 export interface RowsCreatePayload {
-  index?: number;
-  amount?: number;
-  data?: unknown[];
-  position?: string;
+  position: 'above' | 'below';
   referenceRowId?: unknown;
-  rowsAmount?: number;
+  rowsAmount: number;
 }
 
 export interface RowUpdatePayload {
-  rowId: unknown;
-  data: Record<string, unknown>;
+  id: unknown;
+  changes: Record<string | number, unknown>;
+  rowData?: Record<string, unknown> | unknown[];
 }
 
 export interface RowMutationCreatePayload {
@@ -162,7 +160,7 @@ export interface RowMutationCreatePayload {
 }
 
 export interface RowMutationUpdatePayload {
-  rowsUpdate: RowUpdatePayload[];
+  rows: RowUpdatePayload[];
 }
 
 export interface RowMutationRemovePayload {
@@ -175,7 +173,6 @@ export interface DataProviderConfig {
   rowId: string;
   fetchRows: (queryParameters: DataProviderQueryParameters, options: DataProviderFetchOptions) =>
     Promise<DataProviderFetchResult>;
-  onRowCreate?: (payload: RowsCreatePayload) => Promise<unknown[]>;
   onRowsCreate?: (payload: RowsCreatePayload) => Promise<unknown[]>;
   onRowsUpdate?: (payload: RowUpdatePayload[]) => Promise<void>;
   onRowsRemove?: (payload: unknown[]) => Promise<void>;
@@ -294,7 +291,7 @@ export class DataProvider extends BasePlugin {
     this.enablePlugin();
 
     if (this.hot.view) {
-      this.fetchData();
+      void this.fetchData();
     }
 
     super.updatePlugin();
@@ -751,7 +748,7 @@ export class DataProvider extends BasePlugin {
               notificationPlugin.hide(toastId);
             }
 
-            this.fetchData();
+            void this.fetchData();
           },
         },
       ];
@@ -820,7 +817,7 @@ export class DataProvider extends BasePlugin {
    * @returns {void}
    */
   readonly #onAfterInit = () => {
-    this.fetchData();
+    void this.fetchData();
   };
 
   /**
@@ -882,7 +879,7 @@ export class DataProvider extends BasePlugin {
       applyFiltersAndRefetch: (filtersForProvider) => {
         this.#queryParameters.filters = filtersForProvider ?? null;
         this.#queryParameters.page = 1;
-        this.fetchData();
+        void this.fetchData();
       },
     },
     conditionsStack
@@ -952,7 +949,7 @@ export class DataProvider extends BasePlugin {
       return;
     }
 
-    this.#enqueueMutation(() => runUpdateFromChanges(this.hot, {
+    void this.#enqueueMutation(() => runUpdateFromChanges(this.hot, {
       getRowIdOption: () => this.#getRowIdOption(),
       commitRowsUpdate: (payloads, opts) => this.#commitRowsUpdate(payloads, opts),
     }, valid));

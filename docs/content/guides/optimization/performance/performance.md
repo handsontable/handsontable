@@ -14,6 +14,9 @@ react:
 angular:
   id: 34wyxzpj
   metaTitle: Performance - Angular Data Grid | Handsontable
+vue:
+  id: 983rpyud
+  metaTitle: Performance - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
 menuTag: updated

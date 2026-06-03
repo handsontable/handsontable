@@ -12,6 +12,9 @@ react:
 angular:
   id: mdg4dixm
   metaTitle: MultiSelect cell type - Angular Data Grid | Handsontable
+vue:
+  id: 6zrsi767
+  metaTitle: MultiSelect cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---

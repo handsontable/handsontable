@@ -18,6 +18,9 @@ react:
 angular:
   id: eujz2e6s
   metaTitle: Language - Angular Data Grid | Handsontable
+vue:
+  id: np656che
+  metaTitle: Language - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
 ---

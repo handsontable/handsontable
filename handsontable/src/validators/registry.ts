@@ -1,13 +1,13 @@
 import { staticRegister } from '../utils/staticRegister';
 import { throwWithCause } from '../helpers/errors';
-import { VALIDATOR_TYPE as AUTOCOMPLETE_VALIDATOR } from './autocompleteValidator';
-import { VALIDATOR_TYPE as DATE_VALIDATOR } from './dateValidator';
-import { VALIDATOR_TYPE as DROPDOWN_VALIDATOR } from './dropdownValidator';
-import { VALIDATOR_TYPE as INTL_DATE_VALIDATOR } from './intlDateValidator';
-import { VALIDATOR_TYPE as INTL_TIME_VALIDATOR } from './intlTimeValidator';
-import { VALIDATOR_TYPE as MULTI_SELECT_VALIDATOR } from './multiSelectValidator';
-import { VALIDATOR_TYPE as NUMERIC_VALIDATOR } from './numericValidator';
-import { VALIDATOR_TYPE as TIME_VALIDATOR } from './timeValidator';
+import type { VALIDATOR_TYPE as AUTOCOMPLETE_VALIDATOR } from './autocompleteValidator';
+import type { VALIDATOR_TYPE as DATE_VALIDATOR } from './dateValidator';
+import type { VALIDATOR_TYPE as DROPDOWN_VALIDATOR } from './dropdownValidator';
+import type { VALIDATOR_TYPE as INTL_DATE_VALIDATOR } from './intlDateValidator';
+import type { VALIDATOR_TYPE as INTL_TIME_VALIDATOR } from './intlTimeValidator';
+import type { VALIDATOR_TYPE as MULTI_SELECT_VALIDATOR } from './multiSelectValidator';
+import type { VALIDATOR_TYPE as NUMERIC_VALIDATOR } from './numericValidator';
+import type { VALIDATOR_TYPE as TIME_VALIDATOR } from './timeValidator';
 
 const {
   register,
@@ -17,13 +17,15 @@ const {
   getValues,
 } = staticRegister('validators');
 
+type CellValidator = (value: unknown, callback: (valid: boolean) => void) => void;
+
 /**
  * Retrieve validator function.
  *
  * @param {string} name Validator identification.
- * @returns {Function} Returns validator function.
+ * @returns {CellValidator} Returns validator function.
  */
-function _getItem(name: string | Function): Function {
+function _getItem(name: string | CellValidator): CellValidator {
   if (typeof name === 'function') {
     return name;
   }
@@ -31,16 +33,16 @@ function _getItem(name: string | Function): Function {
     throwWithCause(`No registered validator found under "${name}" name`);
   }
 
-  return getItem(name);
+  return getItem(name) as CellValidator;
 }
 
 /**
  * Register validator under its alias.
  *
- * @param {string|Function} name Validator's alias or validator function with its descriptor.
- * @param {Function} [validator] Validator function.
+ * @param {string|CellValidator} name Validator's alias or validator function with its descriptor.
+ * @param {CellValidator} [validator] Validator function.
  */
-function _register(name: string | (Function & { VALIDATOR_TYPE: string }), validator?: Function): void {
+function _register(name: string | (CellValidator & { VALIDATOR_TYPE: string }), validator?: CellValidator): void {
   if (typeof name !== 'string') {
     validator = name;
     name = name.VALIDATOR_TYPE;

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the table visually overflowing the configured `width` when `height` was not set.",
+  "type": "fixed",
+  "issueOrPR": 12517,
+  "breaking": false,
+  "framework": "none"
+}

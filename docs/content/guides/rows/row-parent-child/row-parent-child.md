@@ -21,6 +21,9 @@ react:
 angular:
   id: ojdl5nkd
   metaTitle: Row parent-child - Angular Data Grid | Handsontable
+vue:
+  id: 9ww894yr
+  metaTitle: Row parent-child - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
