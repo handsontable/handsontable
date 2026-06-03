@@ -89,10 +89,10 @@ export default class SourceSettings {
    *
    * @param {Function} callback A function that is called for every header settings.
    */
-  map(callback: Function) {
+  map(callback: (headerSettings: Record<string, unknown>) => unknown) {
     arrayEach(this.#data, (header) => {
       arrayEach(header, (headerSettings) => {
-        const propsToExtend = callback({ ...(headerSettings as Record<string, unknown>) });
+        const propsToExtend: unknown = callback({ ...(headerSettings as Record<string, unknown>) });
 
         if (isObject(propsToExtend)) {
           extend(

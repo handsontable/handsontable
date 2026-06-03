@@ -1,4 +1,5 @@
 import type { HotInstance } from '../core/types';
+import type { CellProperties } from '../settings';
 import { addClass } from './../helpers/dom/element';
 import { arrayEach } from './../helpers/array';
 import { throwWithCause } from '../helpers/errors';
@@ -318,14 +319,14 @@ class GhostTable {
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
         const column = string.col!;
-        const cellProperties = this.hot!.getCellMeta(row, column);
+        const cellProperties = this.hot!.getCellMeta<CellProperties>(row, column);
         const renderer = this.hot!.getCellRenderer(cellProperties);
         const td = rootDocument.createElement('td');
 
         // Indicate that this element is created and supported by GhostTable. It can be useful to
         // exclude rendering performance costly logic or exclude logic which doesn't work within a hidden table.
         td.setAttribute('ghost-table', '1');
-        renderer(this.hot, td, row, column, this.hot!.colToProp(column), string.value, cellProperties);
+        renderer(this.hot!, td, row, column, this.hot!.colToProp(column), string.value, cellProperties);
         fragment.appendChild(td);
       });
     });
@@ -382,7 +383,7 @@ class GhostTable {
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
         const row = string.row!;
-        const cellProperties = this.hot!.getCellMeta(row, column);
+        const cellProperties = this.hot!.getCellMeta<CellProperties>(row, column);
         const renderer = this.hot!.getCellRenderer(cellProperties);
         const td = rootDocument.createElement('td');
         const tr = rootDocument.createElement('tr');
@@ -390,7 +391,7 @@ class GhostTable {
         // Indicate that this element is created and supported by GhostTable. It can be useful to
         // exclude rendering performance costly logic or exclude logic which doesn't work within a hidden table.
         td.setAttribute('ghost-table', '1');
-        renderer(this.hot, td, row, column, this.hot!.colToProp(column), string.value, cellProperties);
+        renderer(this.hot!, td, row, column, this.hot!.colToProp(column), string.value, cellProperties);
         tr.appendChild(td);
         fragment.appendChild(tr);
       });

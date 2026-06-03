@@ -29,8 +29,7 @@ The following example shows a Handsontable instance with translations set up in 
 
 ::: example #example1 :vue3 --html 1 --js 2
 
-@[code](@/content/guides/integrate-with-vue3/vue3-setting-up-a-language/vue/example1.html)
-@[code](@/content/guides/integrate-with-vue3/vue3-setting-up-a-language/vue/example1.js)
+@[code](@/content/guides/integrate-with-vue3/vue3-setting-up-a-language/vue/example1.vue)
 
 :::
 

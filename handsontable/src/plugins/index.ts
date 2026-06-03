@@ -43,6 +43,55 @@ import {
 } from './registry';
 
 /**
+ * Maps plugin name string literals to their constructor types for type-safe `getPlugin()` calls.
+ * When adding a new plugin: import its class above, register it in `registerAllPlugins()`, add it
+ * to the `export {}` block, and add one entry here — all in this file.
+ */
+declare module './registry' {
+  interface PluginClassMap {
+    autoColumnSize: typeof AutoColumnSize;
+    autofill: typeof Autofill;
+    autoRowSize: typeof AutoRowSize;
+    bindRowsWithHeaders: typeof BindRowsWithHeaders;
+    collapsibleColumns: typeof CollapsibleColumns;
+    columnSorting: typeof ColumnSorting;
+    columnSummary: typeof ColumnSummary;
+    comments: typeof Comments;
+    contextMenu: typeof ContextMenu;
+    copyPaste: typeof CopyPaste;
+    customBorders: typeof CustomBorders;
+    dataProvider: typeof DataProvider;
+    dragToScroll: typeof DragToScroll;
+    dropdownMenu: typeof DropdownMenu;
+    exportFile: typeof ExportFile;
+    filters: typeof Filters;
+    formulas: typeof Formulas;
+    hiddenColumns: typeof HiddenColumns;
+    hiddenRows: typeof HiddenRows;
+    manualColumnFreeze: typeof ManualColumnFreeze;
+    manualColumnMove: typeof ManualColumnMove;
+    manualColumnResize: typeof ManualColumnResize;
+    manualRowMove: typeof ManualRowMove;
+    manualRowResize: typeof ManualRowResize;
+    mergeCells: typeof MergeCells;
+    multiColumnSorting: typeof MultiColumnSorting;
+    multipleSelectionHandles: typeof MultipleSelectionHandles;
+    nestedHeaders: typeof NestedHeaders;
+    nestedRows: typeof NestedRows;
+    pagination: typeof Pagination;
+    search: typeof Search;
+    stretchColumns: typeof StretchColumns;
+    touchScroll: typeof TouchScroll;
+    trimRows: typeof TrimRows;
+    undoRedo: typeof UndoRedo;
+    dialog: typeof Dialog;
+    loading: typeof Loading;
+    notification: typeof Notification;
+    emptyDataState: typeof EmptyDataState;
+  }
+}
+
+/**
  * Registers all available plugins.
  */
 export function registerAllPlugins() {

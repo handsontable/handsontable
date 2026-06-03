@@ -178,6 +178,7 @@ export default class Settings {
       totalRows: undefined as unknown,
       totalColumns: undefined as unknown,
       cellRenderer: (row: number, column: number, TD: HTMLTableCellElement) => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const cellData = this.getSetting('data', row, column);
 
         fastInnerText(TD, cellData === undefined || cellData === null ? '' : cellData);
@@ -256,9 +257,9 @@ export default class Settings {
    * @param {*} value The value to set if the first argument is passed as string.
    * @returns {Settings}
    */
-  update(settings: string | Record<string, any>, value?: unknown) {
+  update(settings: string | Record<string, unknown>, value?: unknown) {
     if (value === undefined) { // settings is object
-      objectEach(settings as Record<string, any>, (settingValue: unknown, key: string) => {
+      objectEach(settings as Record<string, unknown>, (settingValue: unknown, key: string) => {
         this.settings[key] = settingValue;
       });
     } else { // if value is defined then settings is the key
@@ -279,17 +280,31 @@ export default class Settings {
    * @returns {*}
    */
   getSetting(key: 'stylesHandler'): StylesHandler;
+  getSetting(key: 'preventOverflow'): 'horizontal' | 'vertical' | false;
+  getSetting(key: 'rtlMode'): boolean;
+  getSetting(key: 'isDataViewInstance'): boolean;
+  getSetting(key: 'fixedColumnsStart'): number;
+  getSetting(key: 'fixedRowsTop'): number;
+  getSetting(key: 'fixedRowsBottom'): number;
+  getSetting(key: 'totalRows'): number | undefined;
+  getSetting(key: 'totalColumns'): number | undefined;
+  getSetting(key: 'rowHeaderWidth'): number | undefined;
+  getSetting(key: 'defaultColumnWidth'): number | undefined;
+  getSetting(key: 'viewportRowRenderingThreshold'): number | 'auto';
+  getSetting(key: 'viewportColumnRenderingThreshold'): number | 'auto';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getSetting<T = any>(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown): T;
-  getSetting(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  getSetting(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown): unknown {
     if (typeof this.settings[key] === 'function') {
-      return this.settings[key](param1, param2, param3, param4);
+      return (this.settings[key] as (...args: unknown[]) => unknown)(param1, param2, param3, param4);
 
     } else if (param1 !== undefined && Array.isArray(this.settings[key])) {
-      return this.settings[key][param1];
+      return (this.settings[key] as unknown[])[param1 as number];
 
     }
 
-    return this.settings[key];
+    return this.settings[key] as unknown;
   }
 
   /**
@@ -298,6 +313,7 @@ export default class Settings {
    * @param {string} key The settings key to retrieve.
    * @returns {*}
    */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getSettingPure<T = any>(key: string): T;
   getSettingPure(key: string) {
     return this.settings[key];

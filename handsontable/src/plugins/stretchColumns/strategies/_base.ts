@@ -26,13 +26,13 @@ export class StretchStrategy {
    *
    * @type {Map<number, number>}
    */
-  baseWidths = new Map();
+  baseWidths = new Map<number, number>();
   /**
    * The map that stores the calculated, stretched column widths.
    *
    * @type {Map<number, number>}
    */
-  stretchedWidths = new Map();
+  stretchedWidths = new Map<number, number>();
 
   constructor(overwriteColumnWidthFn: (width: number, column: number) => number) {
     this.overwriteColumnWidthFn = overwriteColumnWidthFn;

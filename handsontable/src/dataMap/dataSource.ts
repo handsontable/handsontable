@@ -11,6 +11,8 @@ import { arrayEach } from '../helpers/array';
 import { rangeEach } from '../helpers/number';
 import { isFunction } from '../helpers/function';
 
+type DataAccessorFn = (dataRow: unknown) => unknown;
+
 /**
  * @class DataSource
  * @private
@@ -165,7 +167,7 @@ class DataSource {
           const prop = this.colToProp(column);
 
           if (column >= (startColumn || rangeStart) && column <= (endColumn || rangeEnd) && !Number.isInteger(prop)) {
-            const cellValue = this.getAtPhysicalCell(row, prop as string | number | Function, dataRow);
+            const cellValue = this.getAtPhysicalCell(row, prop as string | number | DataAccessorFn, dataRow);
 
             if (toArray) {
               (newDataRow as unknown as unknown[]).push(cellValue);
@@ -271,7 +273,7 @@ class DataSource {
    * @param {Array|object} dataRow A representation of a data row.
    * @returns {*} Value at the provided coordinates.
    */
-  getAtPhysicalCell(row: number, column: number | string | Function, dataRow: unknown) {
+  getAtPhysicalCell(row: number, column: number | string | DataAccessorFn, dataRow: unknown): unknown {
     let result = null;
 
     if (dataRow) {
@@ -310,10 +312,10 @@ class DataSource {
    * @param {number} columnOrProp Visual column index or property.
    * @returns {*}
    */
-  getAtCell(row: number, columnOrProp: number | string) {
+  getAtCell(row: number, columnOrProp: number | string): unknown {
     const dataRow = this.modifyRowData(row);
 
-    return this.getAtPhysicalCell(row, this.colToProp(columnOrProp) as number | string | Function, dataRow);
+    return this.getAtPhysicalCell(row, this.colToProp(columnOrProp) as number | string | DataAccessorFn, dataRow);
   }
 
   /**
@@ -367,7 +369,7 @@ class DataSource {
    * @since 16.1.0
    * @returns {string}
    */
-  getCopyable(row: number, prop: string | number) {
+  getCopyable(row: number, prop: string | number): unknown {
     const visualColumn = this.propToCol(prop);
 
     if (typeof visualColumn === 'number' && this.hot!.getCellMeta(row, visualColumn).copyable) {

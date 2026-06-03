@@ -1,5 +1,6 @@
 ---
 name: visual-testing
+path: visual-tests/**
 description: Use when writing Playwright visual regression tests or creating visual test examples for Handsontable - covers the custom tablePage fixture, screenshot workflow, Argos CI integration, and example creation in examples/next/docs/
 ---
 

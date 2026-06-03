@@ -75,7 +75,7 @@ export class BottomOverlay extends Overlay {
     overlayRoot.style.top = '';
 
     let overlayPosition = 0;
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    const preventOverflow = this.wtSettings.getSetting<boolean | string>('preventOverflow');
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       overlayPosition = this.getOverlayOffset();
@@ -213,7 +213,7 @@ export class BottomOverlay extends Overlay {
     const { rootDocument, rootWindow } = this.domBindings;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const overlayRootStyle = overlayRoot.style;
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    const preventOverflow = this.wtSettings.getSetting<boolean | string>('preventOverflow');
 
     if (this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal') {
       let width = wtViewport.getWorkspaceWidth();
@@ -260,7 +260,7 @@ export class BottomOverlay extends Overlay {
    * Adjust the overlay dimensions and position.
    */
   applyToDOM() {
-    const total = this.wtSettings.getSetting('totalRows');
+    const total = this.wtSettings.getSetting<number>('totalRows');
 
     if (typeof this.wot.wtViewport.rowsRenderCalculator?.startPosition === 'number') {
       this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
@@ -358,7 +358,7 @@ export class BottomOverlay extends Overlay {
    */
   getOverlayOffset() {
     const { rootWindow } = this.domBindings;
-    const preventOverflow = this.wtSettings.getSetting('preventOverflow');
+    const preventOverflow = this.wtSettings.getSetting<boolean | string>('preventOverflow');
     let overlayOffset = 0;
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical') && this.clone) {

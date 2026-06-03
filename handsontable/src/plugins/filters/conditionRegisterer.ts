@@ -34,8 +34,8 @@ export function getCondition(name: string, args: unknown[]) {
     };
   };
 
-  return function(dataRow: DataRow) {
-    return condition.apply(dataRow.meta.instance, [dataRow, conditionArguments]);
+  return function(dataRow: DataRow): boolean {
+    return (condition.apply(dataRow.meta.instance, [dataRow, conditionArguments]) as boolean);
   };
 }
 

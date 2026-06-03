@@ -21,7 +21,7 @@ const DEFAULT_ERROR_ID_EXISTS = (id: unknown) => `The id '${id}' is already decl
  * @returns {UniqueMap}
  */
 export function createUniqueMap({ errorIdExists }: { errorIdExists?: Function } = {}) {
-  const uniqueMap = new Map();
+  const uniqueMap = new Map<unknown, unknown>();
 
   const errorFn = isFunction(errorIdExists) ? errorIdExists : DEFAULT_ERROR_ID_EXISTS;
 

@@ -146,7 +146,7 @@ export class HandsontableEditor extends TextEditor {
       autoWrapRow: false,
       ariaTags: false,
       themeName: this.hot.getCurrentThemeName(),
-      afterOnCellMouseDown(_: Event, coords: Record<string, number>) {
+      afterOnCellMouseDown(this: HotInstance, _: Event, coords: Record<string, number>) {
         if (coords.row < 0 || coords.col < 0) {
           return;
         }

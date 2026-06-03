@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
 
 /**
@@ -14,13 +15,13 @@ interface CopyPastePluginLike {
 export default function cutItem(copyPastePlugin: CopyPastePluginLike) {
   return {
     key: 'cut',
-    name() {
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_CUT);
+    name(this: HotInstance): string {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_CUT) as string;
     },
     callback() {
       copyPastePlugin.cut();
     },
-    disabled() {
+    disabled(this: HotInstance) {
       if (this.countRows() === 0 || this.countCols() === 0) {
         return true;
       }

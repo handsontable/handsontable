@@ -31,7 +31,7 @@ class MergedCellsCollection {
    *
    * @type {Array}
    */
-  mergedCellsMatrix = new Map();
+  mergedCellsMatrix = new Map<number, Map<number, MergedCellCoords>>();
   /**
    * The Handsontable instance.
    *
@@ -70,7 +70,7 @@ class MergedCellsCollection {
       return false;
     }
 
-    return this.mergedCellsMatrix.get(row).get(column) ?? false;
+    return this.mergedCellsMatrix.get(row)!.get(column) ?? false;
   }
 
   /**
@@ -271,7 +271,7 @@ class MergedCellsCollection {
     });
 
     this.mergedCells.length = 0;
-    this.mergedCellsMatrix = new Map();
+    this.mergedCellsMatrix = new Map<number, Map<number, MergedCellCoords>>();
   }
 
   /**
@@ -687,7 +687,7 @@ class MergedCellsCollection {
           this.mergedCellsMatrix.set(row, new Map());
         }
 
-        this.mergedCellsMatrix.get(row).set(col, mergedCell);
+        this.mergedCellsMatrix.get(row)!.set(col, mergedCell);
       }
     }
   }
@@ -700,7 +700,7 @@ class MergedCellsCollection {
   #removeMergedCellFromMatrix(mergedCell: MergedCellCoords) {
     for (let row = mergedCell.row; row < mergedCell.row + mergedCell.rowspan; row++) {
       for (let col = mergedCell.col; col < mergedCell.col + mergedCell.colspan; col++) {
-        this.mergedCellsMatrix.get(row).delete(col);
+        this.mergedCellsMatrix.get(row)?.delete(col);
       }
     }
   }

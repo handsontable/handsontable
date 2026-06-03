@@ -53,7 +53,7 @@ class Selection {
    * Local hooks mixin properties.
    */
   declare runLocalHooks: (...args: unknown[]) => void;
-  declare addLocalHook: (...args: unknown[]) => object;
+  declare addLocalHook: (...args: unknown[]) => this;
 
   /**
    * Handsontable settings instance.

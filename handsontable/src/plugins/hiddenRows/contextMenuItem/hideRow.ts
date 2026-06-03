@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
 
 /**
@@ -7,7 +8,7 @@ import * as C from '../../../i18n/constants';
 export default function hideRowItem(hiddenRowsPlugin: Record<string, Function>) {
   return {
     key: 'hidden_rows_hide',
-    name() {
+    name(this: HotInstance): string {
       const selection = this.getSelectedActive();
       let pluralForm = 0;
 
@@ -19,10 +20,21 @@ export default function hideRowItem(hiddenRowsPlugin: Record<string, Function>) 
         }
       }
 
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_ROW, pluralForm);
+      return (this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_HIDE_ROW, pluralForm) as string);
     },
-    callback() {
-      const { from, to } = this.getSelectedRangeActive();
+    callback(this: HotInstance) {
+      const selectedRange = this.getSelectedRangeActive();
+
+      if (!selectedRange) {
+        return;
+      }
+
+      const { from, to } = selectedRange;
+
+      if (from.row === null || to.row === null) {
+        return;
+      }
+
       const start = Math.max(Math.min(from.row, to.row), 0);
       const end = Math.max(from.row, to.row);
       const rowsToHide = [];
@@ -36,7 +48,7 @@ export default function hideRowItem(hiddenRowsPlugin: Record<string, Function>) 
       const lastHiddenRow = rowsToHide[rowsToHide.length - 1];
       const rowToSelect = this.rowIndexMapper.getNearestNotHiddenIndex(lastHiddenRow, 1, true);
 
-      if (Number.isInteger(rowToSelect) && rowToSelect >= 0) {
+      if (rowToSelect !== null && Number.isInteger(rowToSelect) && rowToSelect >= 0) {
         this.selectRows(rowToSelect);
 
       } else {
@@ -47,7 +59,7 @@ export default function hideRowItem(hiddenRowsPlugin: Record<string, Function>) 
       this.render();
     },
     disabled: false,
-    hidden() {
+    hidden(this: HotInstance) {
       return !(this.selection.isSelectedByRowHeader() || this.selection.isSelectedByCorner());
     }
   };

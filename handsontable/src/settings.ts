@@ -2,8 +2,8 @@
  * Re-exports of core settings types for external consumers.
  * Wrappers and user code can import from 'handsontable/settings'.
  */
-import Handsontable from './base';
-import { CommentObject } from './plugins/comments';
+import type Handsontable from './base';
+import type { CommentObject } from './plugins/comments';
 import type { GridSettings } from './core/settings';
 /**
  * A row object, one of the two ways to supply data to the table, the alternative being an array of values.

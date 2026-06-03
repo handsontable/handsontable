@@ -310,8 +310,8 @@ export class BasePlugin {
       const validator = settingsValidators[settingName];
 
       if (validator && typeof validator === 'function') {
-        return ((...args: unknown[]) => {
-          const result = settingValue(...args);
+        return ((...args: unknown[]): unknown => {
+          const result: unknown = settingValue(...args);
           const isValid = validator(result);
 
           if (isValid === false) {

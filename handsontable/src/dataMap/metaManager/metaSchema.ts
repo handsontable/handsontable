@@ -1,5 +1,6 @@
 import { isEmpty } from '../../helpers/mixed';
 import { isObjectEqual } from '../../helpers/object';
+import type { HotInstance } from '../../core/types';
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
 /**
@@ -3273,20 +3274,20 @@ export default (): Record<string, unknown> => {
      * },
      * ```
      */
-    isEmptyCol(col: number) {
+    isEmptyCol(this: HotInstance, col: number) {
       let row;
-      let rowLen;
       let value;
       const hasExplicitSchema = !!this.getSettings().dataSchema;
-      const schema = this.getSchema();
+      const schema = this.getSchema() as Record<string | number, unknown>;
       const prop = this.colToProp(col);
+      const rowLen = this.countRows();
 
-      for (row = 0, rowLen = this.countRows(); row < rowLen; row++) {
+      for (row = 0; row < rowLen; row++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
           if (typeof value === 'object') {
-            if (isObjectEqual(schema[prop], value) === false) {
+            if (isObjectEqual(schema[prop] as object | unknown[], value as object | unknown[]) === false) {
               return false;
             }
 
@@ -3329,21 +3330,21 @@ export default (): Record<string, unknown> => {
      * },
      * ```
      */
-    isEmptyRow(row: number) {
+    isEmptyRow(this: HotInstance, row: number) {
       let col;
-      let colLen;
       let value;
       const hasExplicitSchema = !!this.getSettings().dataSchema;
-      const schema = this.getSchema();
+      const schema = this.getSchema() as Record<string | number, unknown>;
+      const colLen = this.countCols();
 
-      for (col = 0, colLen = this.countCols(); col < colLen; col++) {
+      for (col = 0; col < colLen; col++) {
         value = this.getDataAtCell(row, col);
 
         if (isEmpty(value) === false) {
           const prop = this.colToProp(col);
 
           if (typeof value === 'object') {
-            if (isObjectEqual(schema[prop], value) === false) {
+            if (isObjectEqual(schema[prop] as object | unknown[], value as object | unknown[]) === false) {
               return false;
             }
 

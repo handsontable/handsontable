@@ -12,7 +12,7 @@ export class StretchAllStrategy extends StretchStrategy {
    * Calculates the columns widths.
    */
   calculate() {
-    const allColumnsWidth = Array.from(this.baseWidths).reduce((sum, [, width]) => sum + width, 0);
+    const allColumnsWidth = Array.from(this.baseWidths).reduce((sum, [, width]: [number, number]) => sum + width, 0);
     const remainingViewportWidth = this.viewportWidth - allColumnsWidth;
 
     if (remainingViewportWidth < 0) {

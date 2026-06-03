@@ -473,7 +473,7 @@ describe('DomElement helper', () => {
     });
 
     it('should remove CSS class passed as a RegExp without removing rest CSS classes', () => {
-      removeClass(element, new RegExp('(.*)1'));
+      removeClass(element, /(.*)1/);
 
       expect(element.className).toBe('test3');
     });
@@ -493,7 +493,7 @@ describe('DomElement helper', () => {
     it('should remove multiple CSS classes passed as regexes (in an array)', () => {
       element.className = 'test1 test2 test3 test4';
 
-      removeClass(element, [new RegExp('(.*)1'), new RegExp('(.*)3'), new RegExp('(.*)4')]);
+      removeClass(element, [/(.*)1/, /(.*)3/, /(.*)4/]);
 
       expect(element.className).toBe('test2');
     });
@@ -501,7 +501,7 @@ describe('DomElement helper', () => {
     it('should remove CSS multiple classes passed as a mix of regexes and strings (in an array)', () => {
       element.className = 'test1 test2 test3 test4';
 
-      removeClass(element, [new RegExp('(.*)1'), 'test3', new RegExp('(.*)4')]);
+      removeClass(element, [/(.*)1/, 'test3', /(.*)4/]);
 
       expect(element.className).toBe('test2');
     });
@@ -623,7 +623,7 @@ describe('DomElement helper', () => {
     });
 
     it('should remove attributes by passing a single regex', () => {
-      removeAttribute(element, new RegExp('(.*)1'));
+      removeAttribute(element, /(.*)1/);
 
       expect(element.attributes.length).toBe(3);
       expect(element.getAttributeNames()).toEqual(['test2', 'test3', 'test4']);
@@ -644,14 +644,14 @@ describe('DomElement helper', () => {
     });
 
     it('should remove multiple attributes by passing regexes in an array', () => {
-      removeAttribute(element, [new RegExp('(.*)1'), new RegExp('(.*)3'), new RegExp('(.*)4')]);
+      removeAttribute(element, [/(.*)1/, /(.*)3/, /(.*)4/]);
 
       expect(element.attributes.length).toBe(1);
       expect(element.getAttributeNames()).toEqual(['test2']);
     });
 
     it('should remove multiple attributes by passing as a mix of regexes and strings in an array', () => {
-      removeAttribute(element, [new RegExp('(.*)1'), 'test3', new RegExp('(.*)4')]);
+      removeAttribute(element, [/(.*)1/, 'test3', /(.*)4/]);
 
       expect(element.attributes.length).toBe(1);
       expect(element.getAttributeNames()).toEqual(['test2']);

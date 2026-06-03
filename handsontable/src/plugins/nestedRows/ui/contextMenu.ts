@@ -70,8 +70,8 @@ class ContextMenuUI extends BaseUI {
     const newEntries = [
       {
         key: 'add_child',
-        name() {
-          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD);
+        name(): string {
+          return String(this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD));
         },
         callback: () => {
           const selectedActive = this.hot.getSelectedActive();
@@ -89,8 +89,8 @@ class ContextMenuUI extends BaseUI {
       },
       {
         key: 'detach_from_parent',
-        name() {
-          return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD);
+        name(): string {
+          return String(this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD));
         },
         callback: () => {
           this.dataManager!.detachFromParent(this.hot.getSelectedActive() ?? []);

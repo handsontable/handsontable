@@ -1,3 +1,5 @@
+import type { HotInstance } from '../../../core/types';
+import type { MenuItemLike } from './utils';
 import {
   isItemSubMenu,
   isItemDisabled,
@@ -33,9 +35,7 @@ const sanitizerWarnShownInstances = new WeakSet<object>();
  * @param {Core} mainTableHot The main table Handsontable instance.
  * @returns {Function}
  */
-export function createMenuItemRenderer(mainTableHot: Record<string, unknown>) {
-  const hot = mainTableHot as Record<string, Function>;
-
+export function createMenuItemRenderer(mainTableHot: HotInstance) {
   /**
    * Menu item renderer.
    *
@@ -49,21 +49,25 @@ export function createMenuItemRenderer(mainTableHot: Record<string, unknown>) {
    * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
    */
   return (
-    menuHot: Record<string, Function>, TD: HTMLTableCellElement, row: number, col: number,
+    menuHot: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
     prop: string, value: unknown, cellProperties: Record<string, unknown>
   ) => {
-    const item = menuHot.getSourceDataAtRow(row);
-    const wrapper = (hot.rootDocument as unknown as Document).createElement('div');
-    const itemValue = typeof value === 'function' ? value.call(mainTableHot) : value;
-    const ariaLabel = typeof item.ariaLabel === 'function' ? item.ariaLabel.call(mainTableHot) : item.ariaLabel;
-    const ariaChecked = typeof item.ariaChecked === 'function' ? item.ariaChecked.call(mainTableHot) : item.ariaChecked;
+    const item = menuHot.getSourceDataAtRow(row) as MenuItemLike;
+    const wrapper = mainTableHot.rootDocument.createElement('div');
+    const itemValue: string = (typeof value === 'function' ? value.call(mainTableHot) : value) as string;
+    const ariaLabel: string = (typeof (item as Record<string, unknown>).ariaLabel === 'function'
+      ? ((item as Record<string, unknown>).ariaLabel as (...args: unknown[]) => unknown).call(mainTableHot)
+      : (item as Record<string, unknown>).ariaLabel) as string;
+    const ariaChecked: boolean | string = (typeof (item as Record<string, unknown>).ariaChecked === 'function'
+      ? ((item as Record<string, unknown>).ariaChecked as (...args: unknown[]) => unknown).call(mainTableHot)
+      : (item as Record<string, unknown>).ariaChecked) as boolean | string;
 
     cellProperties.readOnlyCellClassName = '';
 
     empty(TD);
     addClass(wrapper, 'htItemWrapper');
 
-    if (hot.getSettings().ariaTags) {
+    if (mainTableHot.getSettings().ariaTags) {
       const isFocusable = !isItemDisabled(item, mainTableHot) &&
         !isItemSelectionDisabled(item) &&
         !isItemSeparator(item);
@@ -89,7 +93,7 @@ export function createMenuItemRenderer(mainTableHot: Record<string, unknown>) {
     if (isItemSeparator(item)) {
       addClass(TD, 'htSeparator');
 
-    } else if (typeof item.renderer === 'function') {
+    } else if (typeof (item as Record<string, unknown>).renderer === 'function') {
       addClass(TD, 'htCustomMenuRenderer');
       TD.appendChild(
         ((item as { renderer: (...args: unknown[]) => HTMLElement }).renderer)(
@@ -98,7 +102,7 @@ export function createMenuItemRenderer(mainTableHot: Record<string, unknown>) {
       );
 
     } else {
-      const sanitizer = (hot.getSettings() as { sanitizer?: (html: string) => string }).sanitizer;
+      const sanitizer = (mainTableHot.getSettings() as { sanitizer?: (html: string) => string }).sanitizer;
       const itemStr = String(itemValue);
 
       if (!sanitizerWarnShownInstances.has(mainTableHot) &&

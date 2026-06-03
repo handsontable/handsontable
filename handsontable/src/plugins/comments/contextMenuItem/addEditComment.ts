@@ -1,4 +1,5 @@
 import * as C from '../../../i18n/constants';
+import type { HotInstance } from '../../../core/types';
 import type { Comments } from '../comments';
 
 /**
@@ -8,23 +9,26 @@ import type { Comments } from '../comments';
 export default function addEditCommentItem(plugin: Comments) {
   return {
     key: 'commentsAddEdit',
-    name() {
+    name(this: HotInstance): string {
       const highlight = this.getSelectedRangeActive()?.highlight;
 
-      if (highlight?.isCell() && plugin.getCommentAtCell(highlight.row, highlight.col)) {
-        return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_EDIT_COMMENT);
+      if (highlight?.isCell() && highlight.row !== null && highlight.col !== null &&
+          plugin.getCommentAtCell(highlight.row, highlight.col)) {
+        return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_EDIT_COMMENT) as string;
       }
 
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ADD_COMMENT);
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ADD_COMMENT) as string;
     },
-    callback() {
+    callback(this: HotInstance) {
       const range = this.getSelectedRangeActive();
 
-      plugin.setRange(range);
+      if (range) {
+        plugin.setRange({ from: range.from, to: range.to });
+      }
       plugin.show();
       plugin.focusEditor();
     },
-    disabled() {
+    disabled(this: HotInstance) {
       const range = this.getSelectedRangeActive();
 
       if (
