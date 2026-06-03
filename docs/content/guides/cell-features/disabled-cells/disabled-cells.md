@@ -75,6 +75,16 @@ To make the entire grid read-only, set [`readOnly`](@/api/options.md#readonly) t
 
 :::
 
+::: only-for vue
+
+::: example #exampleReadOnlyGrid :vue3
+
+@[code](@/content/guides/cell-features/disabled-cells/vue/exampleReadOnlyGrid.vue)
+
+:::
+
+:::
+
 ## To disable a column
 
 To make a column read-only, declare it in the [`columns`](@/api/options.md#columns) configuration option. The column remains available for keyboard navigation and copying data (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>), but editing and pasting are disabled. You can also define a special renderer function that will dim the read-only values, providing a visual cue for the user that the cells are read-only.
@@ -114,6 +124,16 @@ To make a column read-only, declare it in the [`columns`](@/api/options.md#colum
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-features/disabled-cells/vue/example1.vue)
+
+:::
+
+:::
+
 ## To disable a row
 
 To make specific cells read-only, use the [`cells`](@/api/options.md#cells) function to set the [`readOnly`](@/api/options.md#readonly) property conditionally. The example below makes cells that contain the word "Nissan" read-only.
@@ -146,6 +166,16 @@ To make specific cells read-only, use the [`cells`](@/api/options.md#cells) func
 
 @[code](@/content/guides/cell-features/disabled-cells/angular/example2.ts)
 @[code](@/content/guides/cell-features/disabled-cells/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-features/disabled-cells/vue/example2.vue)
 
 :::
 
@@ -190,6 +220,16 @@ To make a column non-editable, declare it in the [`columns`](@/api/options.md#co
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-features/disabled-cells/vue/example3.vue)
+
+:::
+
+:::
+
 ## To disable a cell
 
 To make specific cells non-editable, set `editor: false` in the cell configuration. The following example shows a table with non-editable cells containing the word "Nissan".
@@ -222,6 +262,16 @@ To make specific cells non-editable, set `editor: false` in the cell configurati
 
 @[code](@/content/guides/cell-features/disabled-cells/angular/example4.ts)
 @[code](@/content/guides/cell-features/disabled-cells/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/cell-features/disabled-cells/vue/example4.vue)
 
 :::
 

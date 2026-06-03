@@ -81,6 +81,16 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-features/selection/vue/example1.vue)
+
+:::
+
+:::
+
 ## Get data from the selected ranges
 
 To retrieve the selected cells as an array of arrays, you use the [`getSelected()`](@/api/core.md#getselected) or [`getSelectedRange()`](@/api/core.md#getselectedrange) methods.
@@ -114,6 +124,16 @@ To retrieve the selected cells as an array of arrays, you use the [`getSelected(
 
 @[code](@/content/guides/cell-features/selection/angular/example2.ts)
 @[code](@/content/guides/cell-features/selection/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-features/selection/vue/example2.vue)
 
 :::
 
@@ -154,6 +174,16 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 
 @[code](@/content/guides/cell-features/selection/angular/example3.ts)
 @[code](@/content/guides/cell-features/selection/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-features/selection/vue/example3.vue)
 
 :::
 
@@ -203,6 +233,16 @@ The example below customizes the color of each selection layer using these CSS c
 
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/cell-features/selection/vue/example4.vue)
+
+:::
+
+:::
+
 Unfortunately, there is no easy way to change the border color of the selection.
 
 ## Select cells programmatically
@@ -238,6 +278,16 @@ Use [`selectCell()`](@/api/core.md#selectcell) to select a single cell or a rang
 
 @[code](@/content/guides/cell-features/selection/angular/example5.ts)
 @[code](@/content/guides/cell-features/selection/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/cell-features/selection/vue/example5.vue)
 
 :::
 

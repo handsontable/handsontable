@@ -69,6 +69,16 @@ This demo shows how to use the cell type renderer feature to make some condition
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-features/conditional-formatting/vue/example1.vue)
+
+:::
+
+:::
+
 ## Related articles
 
 **Related guides**

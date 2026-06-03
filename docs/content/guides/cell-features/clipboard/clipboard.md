@@ -83,6 +83,14 @@ You can use them in the same way as the rest of the predefined items in the [con
 :::
 :::
 
+::: only-for vue
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-features/clipboard/vue/example1.vue)
+
+:::
+:::
+
 ### Trigger copy & cut programmatically
 
 ::: only-for react
@@ -101,6 +109,14 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
+:::
+
+::: only-for vue
+::: tip
+
+To use the Handsontable API, add a template `ref` on `<HotTable>` and read `hotTableRef.value?.hotInstance`.
 
 :::
 :::
@@ -142,6 +158,14 @@ The [`CopyPaste`](@/api/copyPaste.md) plugin listens to the browser's `copy` and
 
 @[code](@/content/guides/cell-features/clipboard/angular/example3.ts)
 @[code](@/content/guides/cell-features/clipboard/angular/example3.html)
+
+:::
+:::
+
+::: only-for vue
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-features/clipboard/vue/example3.vue)
 
 :::
 :::
@@ -204,6 +228,14 @@ Right-click on a cell to try it out:
 :::
 :::
 
+::: only-for vue
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-features/clipboard/vue/example2.vue)
+
+:::
+:::
+
 To add the context menu items, configure the [`CopyPaste`](@/api/copyPaste.md) plugin with these options:
 
 - [`copyColumnHeaders`](@/api/options.md#copypaste-additional-options)
@@ -240,6 +272,14 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
+:::
+
+::: only-for vue
+::: tip
+
+To use the Handsontable API, add a template `ref` on `<HotTable>` and read `hotTableRef.value?.hotInstance`.
 
 :::
 :::
