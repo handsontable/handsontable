@@ -50,8 +50,12 @@ jobs:
       - name: Check type-declaration resolution (attw)
         run: |
           cd handsontable/tmp
-          # false-export-default is a known Babel CJS interop artefact:
-          # index.js uses exports.__esModule=true (not module.exports=X), so .default
-          # is reachable at runtime for all esModuleInterop:true consumers.
+          # Ignored rules rationale:
+          # false-export-default  — Babel CJS interop artefact: index.js uses
+          #                         exports.__esModule=true so .default is reachable
+          #                         at runtime for all esModuleInterop:true consumers.
+          # untyped-resolution    — dist/ UMD bundles and languages/ files intentionally
+          #                         ship no type declarations.
+          # no-resolution         — CSS and theme-asset exports have no JS/TS to resolve.
           npx -y @arethetypeswrong/cli@0.18.3 --pack . --format table \
-            --ignore-rules false-export-default
+            --ignore-rules false-export-default untyped-resolution no-resolution
