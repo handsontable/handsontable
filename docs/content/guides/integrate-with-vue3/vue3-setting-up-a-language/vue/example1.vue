@@ -1,22 +1,18 @@
 <script setup>
 import { HotTable, HotColumn } from '@handsontable/vue3';
-import numbro from 'numbro';
-import jaJP from 'numbro/languages/ja-JP';
-import trTR from 'numbro/languages/tr-TR';
 import { registerAllModules } from 'handsontable/registry';
 
 registerAllModules();
 
-numbro.registerLanguage(jaJP);
-numbro.registerLanguage(trTR);
-
 const formatJP = {
-  pattern: '0,0.00 $',
-  culture: 'ja-JP',
+  style: 'currency',
+  currency: 'JPY',
+  minimumFractionDigits: 2,
 };
 const formatTR = {
-  pattern: '0,0.00 $',
-  culture: 'tr-TR',
+  style: 'currency',
+  currency: 'TRY',
+  minimumFractionDigits: 2,
 };
 const hotData = [
   {
@@ -39,6 +35,7 @@ const settings = {
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,
+  locale: 'en-US',
   licenseKey: 'non-commercial-and-evaluation'
 };
 </script>
@@ -55,6 +52,7 @@ const settings = {
       <HotColumn
         title="Price in Japan"
         type="numeric"
+        locale="ja-JP"
         :numeric-format="formatJP"
         data="JP_price"
         width="120"
@@ -63,6 +61,7 @@ const settings = {
         title="Price in Turkey"
         data="TR_price"
         type="numeric"
+        locale="tr-TR"
         :numeric-format="formatTR"
         width="120"
       />

@@ -5,7 +5,7 @@ import { warn } from '../../helpers/console';
 import { intlFormatter } from './utils';
 
 export const RENDERER_TYPE: 'numeric' = 'numeric';
-const deprecatedMessageShown = new WeakSet<object>();
+const unsupportedFormatMessageShown = new WeakSet<object>();
 
 /**
  * Formats the value using the numeric format.
@@ -38,13 +38,13 @@ export function numericRenderer(
   hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
   prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void {
   const numericFormat = cellProperties.numericFormat as Record<string, unknown> | undefined;
-  const hasLegacyFormat = numericFormat?.pattern !== undefined || numericFormat?.culture !== undefined;
+  const hasUnsupportedFormat = numericFormat?.pattern !== undefined || numericFormat?.culture !== undefined;
 
-  if (hasLegacyFormat) {
+  if (hasUnsupportedFormat) {
     const instance = cellProperties.instance as object;
 
-    if (!deprecatedMessageShown.has(instance)) {
-      deprecatedMessageShown.add(instance);
+    if (!unsupportedFormatMessageShown.has(instance)) {
+      unsupportedFormatMessageShown.add(instance);
       warn(
         'The numericFormat.pattern and numericFormat.culture options are not supported. ' +
         'Use Intl.NumberFormat options instead (numericFormat: { style, currency, ... }).'

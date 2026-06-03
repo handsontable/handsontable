@@ -4288,12 +4288,6 @@ export default (): Record<string, unknown> => {
      * Configures the number format for [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
      * cells, including currency, units, precision, and other display options.
      *
-     * ::: warning
-     * The `numericFormat.pattern` and `numericFormat.culture` options are deprecated and will be
-     * removed in the next major release. Pass `Intl.NumberFormat` options directly to `numericFormat`
-     * and use the `locale` cell property instead of `culture`.
-     * :::
-     *
      * Since v17.0.0, this option accepts all properties of the
      * [`Intl.NumberFormatOptions`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat)
      * object. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
@@ -4359,38 +4353,7 @@ export default (): Record<string, unknown> => {
      * - [`locale`](@/api/options.md#locale)
      * - [Numeric cell type](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
      * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
-     * - [Numbro cell type](@/recipes/cell-types/numbro/numbro.md)
      * - [Third-party licenses](@/guides/technical-specification/third-party-licenses/third-party-licenses.md)
-     *
-     * ---
-     *
-     * **Deprecated options:**
-     *
-     * The `pattern` and `culture` properties (numbro.js-based formatting) are deprecated and will be
-     * removed in the next major release. Migrate to the `Intl.NumberFormat` API shown above.
-     *
-     * | Deprecated property | Possible values                                                               | Replacement                                           |
-     * | ------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------- |
-     * | `pattern`           | All [`numbro.js` number formats](https://numbrojs.com/format.html#numbers)    | Use `Intl.NumberFormat` options (see tables above)    |
-     * | `culture`           | All [`numbro.js` currency formats](https://numbrojs.com/format.html#currency) | Use the [`locale`](@/api/options.md#locale) option    |
-     *
-     * **Migration example:**
-     *
-     * ```js
-     * // Before (deprecated)
-     * numericFormat: {
-     *   pattern: '0,0.00 $',
-     *   culture: 'en-US'
-     * }
-     *
-     * // After (recommended)
-     * locale: 'en-US',
-     * numericFormat: {
-     *   style: 'currency',
-     *   currency: 'USD',
-     *   minimumFractionDigits: 2
-     * }
-     * ```
      *
      * @memberof Options#
      * @since 0.35.0

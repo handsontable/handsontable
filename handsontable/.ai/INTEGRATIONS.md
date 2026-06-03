@@ -6,7 +6,7 @@ Handsontable is a frontend-only library with no built-in external API integratio
 
 **Formula Engine (Optional):**
 - HyperFormula - Spreadsheet formula calculation engine
-  - Package: `hyperformula` ^3.0.0 (optional dependency)
+  - Package: `hyperformula` ^3.0.0 (devDependency — user must install it separately)
   - Integration: Plugin-based via `handsontable/src/plugins/formulas/`
   - Engine setup: `handsontable/src/plugins/formulas/engine/register.ts`
   - No network calls; runs entirely in-browser
@@ -67,7 +67,7 @@ Handsontable is a frontend-only library with no built-in external API integratio
   - `HOT_FILENAME` - Output filename (`handsontable`)
   - `HOT_VERSION` - Library version string (`17.0.0`)
   - `HOT_PACKAGE_NAME` - npm package name (`handsontable`)
-  - `HOT_BUILD_DATE` - Build timestamp (generated via `moment().format()`)
+  - `HOT_BUILD_DATE` - Build timestamp
   - `HOT_RELEASE_DATE` - Release date string
 - Build mode variables: `NODE_ENV`, `BABEL_ENV`
 
@@ -89,13 +89,7 @@ These are the only external libraries bundled or referenced at runtime:
 
 | Library | Version | Purpose | Integration Point |
 |---|---|---|---|
-| `dompurify` | ^3.1.7 | XSS sanitization of HTML content | Used internally for cell content sanitization |
-| `numbro` | 2.5.0 | Number formatting | Used by numeric cell type and renderers |
-| `moment` | 2.30.1 | Date parsing/formatting | Used by date cell type and Pikaday editor |
-| `@handsontable/pikaday` | ^1.0.0 | Date picker UI | Date editor plugin (forked from original Pikaday) |
-| `hyperformula` | ^3.0.0 | Formula engine | Optional; integrated via Formulas plugin (`src/plugins/formulas/`) |
-
-**Note:** Numbro locale files and Moment locale files are excluded from the build via empty-loader (`handsontable/.config/loader/empty-loader.js`) to reduce bundle size. Only the base libraries are included.
+| `hyperformula` | ^3.0.0 | Formula engine | User-supplied peer dep; devDependency for tests only. Integrated via Formulas plugin (`src/plugins/formulas/`). |
 
 ## Framework Wrapper Integration Points
 

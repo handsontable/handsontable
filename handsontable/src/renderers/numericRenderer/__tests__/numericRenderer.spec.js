@@ -109,7 +109,7 @@ describe('NumericRenderer', () => {
     expect(getCell(0, 0).className).toEqual('someClass someClass2 htRight htNumeric');
   });
 
-  it('should print warn message if numericFormat.pattern is used', async() => {
+  it('should print warn message if unsupported numericFormat.pattern is used', async() => {
     const warnSpy = spyOnConsoleWarn();
 
     handsontable({
@@ -124,7 +124,7 @@ describe('NumericRenderer', () => {
     );
   });
 
-  it('should print warn message if numericFormat.culture is used', async() => {
+  it('should print warn message if unsupported numericFormat.culture is used', async() => {
     const warnSpy = spyOnConsoleWarn();
 
     handsontable({
@@ -139,7 +139,7 @@ describe('NumericRenderer', () => {
     );
   });
 
-  it('should not print warn message if Intl.NumberFormat object format is used', async() => {
+  it('should not print warn message if supported Intl.NumberFormat object format is used', async() => {
     const warnSpy = spyOnConsoleWarn();
 
     handsontable({

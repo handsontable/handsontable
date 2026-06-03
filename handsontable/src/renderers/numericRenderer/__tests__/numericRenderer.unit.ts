@@ -65,7 +65,7 @@ describe('numericRenderer', () => {
         expect(cellMeta.className).toBe('htRight htNumeric');
       });
 
-      it('should emit a deprecation warning once per instance when numericFormat.pattern is present', () => {
+      it('should emit an unsupported-format warning once per instance when numericFormat.pattern is present', () => {
         /* eslint-disable no-console */
         /* eslint-disable no-restricted-globals */
         const originalWarn = console.warn;
@@ -102,7 +102,7 @@ describe('numericRenderer', () => {
         /* eslint-enable no-console */
       });
 
-      it('should emit the deprecation warning when numericFormat.culture is present', () => {
+      it('should emit an unsupported-format warning when numericFormat.culture is present', () => {
         /* eslint-disable no-console */
         /* eslint-disable no-restricted-globals */
         const originalWarn = console.warn;
@@ -129,7 +129,7 @@ describe('numericRenderer', () => {
         /* eslint-enable no-console */
       });
 
-      it('should not emit a deprecation warning when only Intl.NumberFormat options are present', () => {
+      it('should not emit an unsupported-format warning when only Intl.NumberFormat options are present', () => {
         /* eslint-disable no-console */
         /* eslint-disable no-restricted-globals */
         const originalWarn = console.warn;
