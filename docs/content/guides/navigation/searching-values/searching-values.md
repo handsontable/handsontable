@@ -47,6 +47,18 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 
 :::
 
+::: only-for vue
+
+::: tip
+
+To use the Handsontable API, use a template ref on `HotTable` and read `hotRef.value.hotInstance`.
+
+For more information, see [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md).
+
+:::
+
+:::
+
 The [`Search`](@/api/search.md) plugin lets you scan all cells in the grid and get back a list of matches. Enable it by setting the [`search`](@/api/options.md#search) option to `true` or to a configuration object.
 
 Once enabled, the plugin exposes the [`query(queryStr)`](@/api/search.md#query) method. Call it with a search string whenever the user types. By default, the search is case-insensitive and matches partial cell values.
@@ -88,6 +100,16 @@ The example below:
 
 @[code](@/content/guides/navigation/searching-values/angular/example1.ts)
 @[code](@/content/guides/navigation/searching-values/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/navigation/searching-values/vue/example1.vue)
 
 :::
 
@@ -145,6 +167,17 @@ The example below highlights search results with a pink background and red text.
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3 --css 1
+
+@[code](@/content/guides/navigation/searching-values/react/example2.css)
+@[code](@/content/guides/navigation/searching-values/vue/example2.vue)
+
+:::
+
+:::
+
 ## Custom query method
 
 You can replace the built-in substring search with a custom query method, using the [`queryMethod`](@/api/options.md#search) option.
@@ -189,6 +222,16 @@ The example below searches only for exact matches. To do this, it:
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/navigation/searching-values/vue/example3.vue)
+
+:::
+
+:::
+
 ## Custom callback
 
 You can add a custom callback function, using the [`Search`](@/api/search.md) plugin's [`callback`](@/api/options.md#search) option.
@@ -228,6 +271,16 @@ The example below displays the number of matching search results. To do this, it
 
 @[code](@/content/guides/navigation/searching-values/angular/example4.ts)
 @[code](@/content/guides/navigation/searching-values/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/navigation/searching-values/vue/example4.vue)
 
 :::
 

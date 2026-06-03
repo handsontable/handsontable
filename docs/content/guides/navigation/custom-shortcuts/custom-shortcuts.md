@@ -54,6 +54,18 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 
 :::
 
+::: only-for vue
+
+::: tip
+
+To use the Handsontable API, use a template ref on `HotTable` and read `hotRef.value.hotInstance`.
+
+For more information, see [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md).
+
+:::
+
+:::
+
 <ol class="sl-steps">
 <li>
 
@@ -302,6 +314,22 @@ settings = {
 
 ```html
 <hot-table [settings]="settings" />
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  beforeKeyDown(event) {
+    // the `Enter` shortcut won't work
+    if (event.key === 'enter') {
+      return false;
+    }
+  },
+  // ...other settings
+});
 ```
 
 :::
