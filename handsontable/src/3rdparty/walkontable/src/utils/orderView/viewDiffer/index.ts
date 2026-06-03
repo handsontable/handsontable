@@ -8,7 +8,7 @@ import {
   CMD_INSERT_BEFORE,
   CMD_REPLACE,
 } from '../constants';
-import { ViewOrder } from './viewOrder';
+import from './viewOrder';
 
 /**
  * A class which is responsible for generating commands/leads which has to be executed
@@ -17,8 +17,14 @@ import { ViewOrder } from './viewOrder';
  * @class {ViewDiffer}
  */
 export class ViewDiffer {
+  /**
+   * The view size set that supplies the current and next offset and size values used to compute the diff.
+   */
   sizeSet;
 
+  /**
+   * @param sizeSet The view size set instance used to determine current and target viewport dimensions.
+   */
   constructor(sizeSet: ViewSizeSet) {
     this.sizeSet = sizeSet;
   }
@@ -45,10 +51,10 @@ export class ViewDiffer {
    *     ├ <tr> (append this element at index 3)
    *     └ <tr> (append this element at index 4)
    *
-   * @returns {Array[]} Returns an array with generated commands/leads.
+   * @returns Returns an array with generated commands/leads.
    */
   diff(): number[][] {
-    const { sizeSet } = this;
+    const = this;
     const {
       currentSize: currentViewSize,
       nextSize: nextViewSize,

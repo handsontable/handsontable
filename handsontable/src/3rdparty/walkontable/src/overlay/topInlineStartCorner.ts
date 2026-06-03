@@ -1,4 +1,4 @@
-import type { DataAccessObject, DomBindings, WalkontableInstance } from '../types';
+import type from '../types';
 import type Settings from '../settings';
 import {
   outerHeight,
@@ -7,7 +7,7 @@ import {
   resetCssTransform,
 } from '../../../../helpers/dom/element';
 import TopInlineStartCornerOverlayTable from '../table/topInlineStartCorner';
-import { Overlay } from './_base';
+import from './_base';
 import {
   CLONE_TOP_INLINE_START_CORNER,
 } from './constants';
@@ -19,23 +19,21 @@ export class TopInlineStartCornerOverlay extends Overlay {
   /**
    * The instance of the Top overlay.
    *
-   * @type {TopOverlay}
    */
   declare topOverlay: Overlay;
   /**
    * The instance of the InlineStart overlay.
    *
-   * @type {InlineStartOverlay}
    */
   declare inlineStartOverlay: Overlay;
 
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
-   * @param {FacadeGetter} facadeGetter Function which return proper facade.
-   * @param {Settings} wtSettings The Walkontable settings.
-   * @param {DomBindings} domBindings Dom elements bound to the current instance.
-   * @param {TopOverlay} topOverlay The instance of the Top overlay.
-   * @param {InlineStartOverlay} inlineStartOverlay The instance of the InlineStart overlay.
+   * @param wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
+   * @param facadeGetter Function which return proper facade.
+   * @param wtSettings The Walkontable settings.
+   * @param domBindings Dom elements bound to the current instance.
+   * @param topOverlay The instance of the Top overlay.
+   * @param inlineStartOverlay The instance of the InlineStart overlay.
    */
   constructor(
     wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings,
@@ -49,8 +47,8 @@ export class TopInlineStartCornerOverlay extends Overlay {
    * Factory method to create a subclass of `Table` that is relevant to this overlay.
    *
    * @see Table#constructor
-   * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
-   * @returns {TopInlineStartCornerOverlayTable}
+   * @param args Parameters that will be forwarded to the `Table` constructor.
+   * @returns 
    */
   createTable(...args: [DataAccessObject, Function, DomBindings, Settings]) {
     return new TopInlineStartCornerOverlayTable(...args);
@@ -59,33 +57,68 @@ export class TopInlineStartCornerOverlay extends Overlay {
   /**
    * Checks if overlay should be fully rendered.
    *
-   * @returns {boolean}
+   * @returns 
    */
   shouldBeRendered(): boolean {
     return (this.wtSettings.getSetting('shouldRenderTopOverlay') as boolean)
       && (this.wtSettings.getSetting('shouldRenderInlineStartOverlay') as boolean);
   }
 
+  /**
+   * No-op implementation. The corner overlay does not scroll independently.
+   */
   setScrollPosition(_pos: number) {
     return false;
   }
+
+  /**
+   * Returns 0 because the corner overlay has no independent scroll position.
+   */
   getScrollPosition() {
     return 0;
   }
+
+  /**
+   * Returns 0 because the corner overlay has no parent offset relevant to scrolling.
+   */
   getTableParentOffset() {
     return 0;
   }
+
+  /**
+   * Returns 0 because the corner overlay position is controlled entirely by the top and inline-start overlays.
+   */
   getOverlayOffset() {
     return 0;
   }
+
+  /**
+   * No-op implementation. The corner overlay does not handle scroll events.
+   */
   onScroll() {}
+
+  /**
+   * Returns 0 because the corner overlay does not measure cell sizes independently.
+   */
   sumCellSizes(_from: number, _to: number) {
     return 0;
   }
+
+  /**
+   * No-op implementation. Element sizes for the corner are controlled by `resetFixedPosition`.
+   */
   adjustElementsSize() { // intentionally empty
   }
+
+  /**
+   * No-op implementation. DOM application is handled by `resetFixedPosition`.
+   */
   applyToDOM() { // intentionally empty
   }
+
+  /**
+   * No-op implementation. The corner overlay does not support programmatic scrolling.
+   */
   scrollTo(_sourceIndex: number, _snapToEdge: boolean) {
     return false;
   }
@@ -93,7 +126,7 @@ export class TopInlineStartCornerOverlay extends Overlay {
   /**
    * Updates the corner overlay position.
    *
-   * @returns {boolean}
+   * @returns 
    */
   resetFixedPosition() {
     this.updateTrimmingContainer();

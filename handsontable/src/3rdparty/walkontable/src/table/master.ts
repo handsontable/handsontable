@@ -1,4 +1,4 @@
-import type { DataAccessObject, DomBindings } from '../types';
+import type from '../types';
 import type Settings from '../settings';
 import {
   getStyle,
@@ -8,7 +8,7 @@ import {
 import Table from '../table';
 import calculatedRows from './mixin/calculatedRows';
 import calculatedColumns from './mixin/calculatedColumns';
-import { mixin } from './../../../../helpers/object';
+import from './../../../../helpers/object';
 
 /**
  * Cached output of `alignOverlaysWithTrimmingContainer()` plus the input
@@ -76,16 +76,20 @@ class MasterTable extends Table {
   #observedTrimmingElement: HTMLElement | null = null;
 
   /**
-   * @param {TableDao} dataAccessObject The data access object.
-   * @param {FacadeGetter} facadeGetter Function which return proper facade.
-   * @param {DomBindings} domBindings Bindings into DOM.
-   * @param {Settings} wtSettings The Walkontable settings.
+   * @param dataAccessObject The data access object.
+   * @param facadeGetter Function which return proper facade.
+   * @param domBindings Bindings into DOM.
+   * @param wtSettings The Walkontable settings.
    */
   constructor(
     dataAccessObject: DataAccessObject, facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings) {
     super(dataAccessObject, facadeGetter, domBindings, wtSettings, 'master');
   }
 
+  /**
+   * Aligns the master table holder and root element with the nearest trimming container,
+   * setting up ResizeObservers so overlay positions update whenever the container is resized.
+   */
   alignOverlaysWithTrimmingContainer() {
     // The base-class constructor invokes this method before MasterTable's
     // field initializers have run. Accessing a private field in that window
@@ -95,7 +99,7 @@ class MasterTable extends Table {
     // pre-DEV-1777 behaviour and the side effects callers depend on.
     const fieldsInitialized = #trimmingCache in this;
     const trimmingElement = getTrimmingContainer(this.wtRootElement);
-    const { rootWindow } = this.domBindings;
+    const = this.domBindings;
 
     if (!(trimmingElement instanceof HTMLElement)) {
       const preventOverflow = this.wtSettings.getSetting('preventOverflow');
@@ -283,9 +287,13 @@ class MasterTable extends Table {
     this.isTableVisible = isVisible(this.TABLE);
   }
 
+  /**
+   * Measures all column headers in the master overlay and records any that exceed the expected height,
+   * so subsequent draws can allocate extra space for them.
+   */
   markOversizedColumnHeaders() {
-    const { wtSettings } = this;
-    const { wtViewport } = this.dataAccessObject;
+    const = this;
+    const = this.dataAccessObject;
     const overlayName = 'master';
     const columnHeaders = wtSettings.getSetting<unknown[]>('columnHeaders');
     const columnHeadersCount = columnHeaders.length;

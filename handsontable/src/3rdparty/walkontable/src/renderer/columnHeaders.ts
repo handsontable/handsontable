@@ -2,8 +2,8 @@ import {
   setAttribute,
   removeAttribute,
 } from '../../../../helpers/dom/element';
-import { BaseRenderer } from './_base';
-import { OrderView } from '../utils/orderView';
+import from './_base';
+import from '../utils/orderView';
 import {
   A11Y_COLINDEX,
   A11Y_COLUMNHEADER,
@@ -29,16 +29,17 @@ export class ColumnHeadersRenderer extends BaseRenderer {
   /**
    * Cache for OrderView classes connected to specified node.
    *
-   * @type {WeakMap}
    */
   orderViews = new WeakMap<HTMLElement, OrderView>();
   /**
    * Row index which specifies the row position of the processed column header.
    *
-   * @type {number}
    */
   sourceRowIndex: number = 0;
 
+  /**
+   * Initializes the column headers renderer and configures the nodes pool to create TH elements.
+   */
   constructor() {
     super('TH');
   }
@@ -46,8 +47,8 @@ export class ColumnHeadersRenderer extends BaseRenderer {
   /**
    * Obtains the instance of the OrderView class which is responsible for rendering the nodes to the root node.
    *
-   * @param {HTMLTableRowElement} rootNode The TR element, which is root element for column headers (TH).
-   * @returns {OrderView}
+   * @param rootNode The TR element, which is root element for column headers (TH).
+   * @returns 
    */
   obtainOrderView(rootNode: HTMLElement): OrderView {
     if (!this.orderViews.has(rootNode)) {

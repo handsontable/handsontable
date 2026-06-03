@@ -1,6 +1,6 @@
 import type CellCoords from '../cell/coords';
 import type CellRange from '../cell/range';
-import { mixin } from '../../../../helpers/object';
+import from '../../../../helpers/object';
 import localHooks from '../../../../mixins/localHooks';
 
 /**
@@ -12,19 +12,40 @@ import localHooks from '../../../../mixins/localHooks';
  * @class Selection
  */
 class Selection {
+  /**
+   * Configuration object for this selection, including callbacks for creating ranges.
+   */
   declare settings: Record<string, unknown>;
+  /**
+   * The cell range that defines the currently selected cells, or `null` when the selection is empty.
+   */
   declare cellRange: CellRange | null;
 
   // Properties/methods added dynamically by mixin(Selection, localHooks)
+  /**
+   * Internal registry of local hook callbacks indexed by hook name.
+   */
   declare _localHooks: Record<string, Function[]>;
+  /**
+   * Registers a callback for a named local hook on this selection instance.
+   */
   declare addLocalHook: (key: string, callback: (...args: unknown[]) => void) => this;
+  /**
+   * Removes a previously registered callback from the named local hook.
+   */
   declare removeLocalHook: (key: string, callback: Function) => this;
+  /**
+   * Invokes all callbacks registered under the named local hook.
+   */
   declare runLocalHooks: (key: string, ...args: unknown[]) => void;
+  /**
+   * Removes all registered callbacks from every local hook on this instance.
+   */
   declare clearLocalHooks: () => this;
 
   /**
-   * @param {object} settings The selection settings object. @todo type.
-   * @param {CellRange} cellRange The cell range instance.
+   * @param settings The selection settings object. @todo type.
+   * @param cellRange The cell range instance.
    */
   constructor(settings: Record<string, unknown>, cellRange?: CellRange | null) {
     this.settings = settings;
@@ -34,7 +55,7 @@ class Selection {
   /**
    * Checks if selection is empty.
    *
-   * @returns {boolean}
+   * @returns 
    */
   isEmpty() {
     return this.cellRange === null;
@@ -43,8 +64,8 @@ class Selection {
   /**
    * Adds a cell coords to the selection.
    *
-   * @param {CellCoords} coords The cell coordinates to add.
-   * @returns {Selection}
+   * @param coords The cell coordinates to add.
+   * @returns 
    */
   add(coords: CellCoords) {
     if (this.isEmpty()) {
@@ -61,9 +82,9 @@ class Selection {
    * If selection range from or to property equals oldCoords, replace it with newCoords. Return boolean
    * information about success.
    *
-   * @param {CellCoords} oldCoords An old cell coordinates to replace.
-   * @param {CellCoords} newCoords The new cell coordinates.
-   * @returns {boolean}
+   * @param oldCoords An old cell coordinates to replace.
+   * @param newCoords The new cell coordinates.
+   * @returns 
    */
   replace(oldCoords: CellCoords, newCoords: CellCoords) {
     if (!this.isEmpty()) {
@@ -85,7 +106,7 @@ class Selection {
   /**
    * Clears selection.
    *
-   * @returns {Selection}
+   * @returns 
    */
   clear() {
     this.cellRange = null;
@@ -96,7 +117,7 @@ class Selection {
   /**
    * Returns the top left (or top right in RTL) and bottom right (or bottom left in RTL) selection coordinates.
    *
-   * @returns {number[]} Returns array of coordinates for example `[1, 1, 5, 5]`.
+   * @returns Returns array of coordinates for example `[1, 1, 5, 5]`.
    */
   getCorners() {
     const topStart = this.cellRange!.getOuterTopStartCorner();

@@ -1,6 +1,6 @@
-import { SharedOrderView } from '../utils/orderView';
-import { BaseRenderer } from './_base';
-import { setAttribute, removeAttribute } from '../../../../helpers/dom/element';
+import from '../utils/orderView';
+import from './_base';
+import from '../../../../helpers/dom/element';
 import {
   A11Y_COLINDEX,
   A11Y_ROWHEADER,
@@ -25,16 +25,17 @@ export class RowHeadersRenderer extends BaseRenderer {
   /**
    * Cache for OrderView classes connected to specified node.
    *
-   * @type {WeakMap}
    */
   orderViews: WeakMap<object, SharedOrderView> = new WeakMap();
   /**
    * Row index which specifies the row position of the processed row header.
    *
-   * @type {number}
    */
   sourceRowIndex = 0;
 
+  /**
+   * Initializes the renderer using the `TH` node type.
+   */
   constructor() {
     super('TH');
   }
@@ -42,8 +43,8 @@ export class RowHeadersRenderer extends BaseRenderer {
   /**
    * Obtains the instance of the SharedOrderView class which is responsible for rendering the nodes to the root node.
    *
-   * @param {HTMLTableRowElement} rootNode The TR element, which is root element for row headers (TH).
-   * @returns {SharedOrderView}
+   * @param rootNode The TR element, which is root element for row headers (TH).
+   * @returns 
    */
   obtainOrderView(rootNode: HTMLElement): SharedOrderView {
     if (!this.orderViews.has(rootNode)) {
@@ -61,7 +62,7 @@ export class RowHeadersRenderer extends BaseRenderer {
    * Renders the cells.
    */
   render() {
-    const { rowsToRender, rowHeaderFunctions, rowHeadersCount, rows, cells } = this.table;
+    const = this.table;
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);

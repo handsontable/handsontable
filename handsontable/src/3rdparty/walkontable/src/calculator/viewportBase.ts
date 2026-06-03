@@ -1,10 +1,10 @@
 /**
- * @typedef {object} ColumnsCalculationType
- * @property {number | null} startColumn The column index of the first column in the viewport.
- * @property {number | null} endColumn The column index of the last column in the viewport.
- * @property {number} count Total number of columns.
- * @property {number | null} startPosition Position of the first fully column (in px).
- * @property {boolean} isVisibleInTrimmingContainer Determines if the viewport is visible in the trimming container.
+ * @typedef ColumnsCalculationType
+ * @property startColumn The column index of the first column in the viewport.
+ * @property endColumn The column index of the last column in the viewport.
+ * @property count Total number of columns.
+ * @property startPosition Position of the first fully column (in px).
+ * @property isVisibleInTrimmingContainer Determines if the viewport is visible in the trimming container.
  */
 export interface ColumnsCalculationType {
   startColumn: number | null;
@@ -17,12 +17,12 @@ export interface ColumnsCalculationType {
 }
 
 /**
- * @typedef {object} RowsCalculationType
- * @property {number | null} startRow The row index of the first row in the viewport.
- * @property {number | null} endRow The row index of the last row in the viewport.
- * @property {number} count Total number of rows.
- * @property {number | null} startPosition Position of the first fully row (in px).
- * @property {boolean} isVisibleInTrimmingContainer Determines if the viewport is visible in the trimming container.
+ * @typedef RowsCalculationType
+ * @property startRow The row index of the first row in the viewport.
+ * @property endRow The row index of the last row in the viewport.
+ * @property count Total number of rows.
+ * @property startPosition Position of the first fully row (in px).
+ * @property isVisibleInTrimmingContainer Determines if the viewport is visible in the trimming container.
  */
 export interface RowsCalculationType {
   startRow: number | null;
@@ -50,16 +50,17 @@ export class ViewportBaseCalculator {
   /**
    * The calculation types to be performed.
    *
-   * @type {Array}
    */
   calculationTypes: Array<[string, CalculationTypeLike]> = [];
   /**
    * The calculation results.
    *
-   * @type {Map<string, ColumnsCalculationType | RowsCalculationType>}
    */
   calculationResults: Map<string, CalculationTypeLike> = new Map();
 
+  /**
+   * Stores the provided calculation types so they are available to the `_initialize` and `getResultsFor` methods.
+   */
   constructor(calculationTypes: Array<[string, CalculationTypeLike]>) {
     this.calculationTypes = calculationTypes;
   }
@@ -67,7 +68,7 @@ export class ViewportBaseCalculator {
   /**
    * Initializes all calculators (triggers all calculators before calculating the rows/columns sizes).
    *
-   * @param {*} context The context object (rows or columns viewport calculator).
+   * @param context The context object (rows or columns viewport calculator).
    */
   _initialize(context: unknown): void {
     this.calculationTypes.forEach(([id, calculator]) => {
@@ -79,8 +80,8 @@ export class ViewportBaseCalculator {
   /**
    * Processes the row/column at the given index.
    *
-   * @param {number} index The index of the row/column.
-   * @param {*} context The context object (rows or columns viewport calculator).
+   * @param index The index of the row/column.
+   * @param context The context object (rows or columns viewport calculator).
    */
   _process(index: number, context: unknown): void {
     this.calculationTypes.forEach(([, calculator]) => calculator.process(index, context));
@@ -89,7 +90,7 @@ export class ViewportBaseCalculator {
   /**
    * Finalizes all calculators (triggers all calculators after calculating the rows/columns sizes).
    *
-   * @param {*} context The context object (rows or columns viewport calculator).
+   * @param context The context object (rows or columns viewport calculator).
    */
   _finalize(context: unknown): void {
     this.calculationTypes.forEach(([, calculator]) => calculator.finalize(context));
@@ -98,8 +99,8 @@ export class ViewportBaseCalculator {
   /**
    * Gets the results for the given calculator.
    *
-   * @param {string} calculatorId The id of the calculator.
-   * @returns {ColumnsCalculationType | RowsCalculationType}
+   * @param calculatorId The id of the calculator.
+   * @returns 
    */
   getResultsFor(calculatorId: string): CalculationTypeLike | undefined {
     return this.calculationResults.get(calculatorId);

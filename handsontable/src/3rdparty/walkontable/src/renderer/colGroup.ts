@@ -1,8 +1,8 @@
-import { BaseRenderer } from './_base';
-import { warn } from '../../../../helpers/console';
-import { toSingleLine } from '../../../../helpers/templateLiteralTag';
-import { addClass } from '../../../../helpers/dom/element';
-import { OrderView } from '../utils/orderView';
+import from './_base';
+import from '../../../../helpers/console';
+import from '../../../../helpers/templateLiteralTag';
+import from '../../../../helpers/dom/element';
+import from '../utils/orderView';
 
 let performanceWarningAppeared = false;
 
@@ -22,10 +22,12 @@ export class ColGroupRenderer extends BaseRenderer {
   /**
    * OrderView instance responsible for managing COL elements in the COLGROUP.
    *
-   * @type {OrderView}
    */
   orderView;
 
+  /**
+   * Creates a ColGroupRenderer and initializes the OrderView for managing COL elements.
+   */
   constructor(rootNode: HTMLElement) {
     super('COL', rootNode);
 
@@ -40,7 +42,7 @@ export class ColGroupRenderer extends BaseRenderer {
    * Renders the col group elements.
    */
   render() {
-    const { columnsToRender, rowHeadersCount } = this.table;
+    const = this.table;
     const allColumnsToRender = columnsToRender + rowHeadersCount;
 
     if (!performanceWarningAppeared && columnsToRender > 1000) {

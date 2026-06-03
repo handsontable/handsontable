@@ -1,6 +1,6 @@
-import { ViewSizeSet } from './viewSizeSet';
-import { ViewDiffer } from './viewDiffer';
-import { createRendererAdapter } from './rendererAdapter';
+import from './viewSizeSet';
+import from './viewDiffer';
+import from './rendererAdapter';
 
 /**
  * Executive model for each table renderer. It's responsible for injecting DOM nodes in a
@@ -14,47 +14,45 @@ export class OrderView {
   /**
    * The root node to manage with.
    *
-   * @type {HTMLElement}
    */
   rootNode;
   /**
    * Factory for newly created DOM elements.
    *
-   * @type {function(number): HTMLElement}
    */
   nodesPool;
   /**
    * Holder for sizing and positioning of the view.
    *
-   * @type {ViewSizeSet}
    */
   sizeSet = new ViewSizeSet();
   /**
    * The list of DOM elements which are rendered for this render cycle.
    *
-   * @type {HTMLElement[]}
    */
   collectedNodes: HTMLElement[] = [];
   /**
    * The differ which calculates the differences between current and next view. It generates
    * commands that are processed by the OrderView (see `applyCommand` method).
    *
-   * @type {ViewDiffer}
    */
   viewDiffer = new ViewDiffer(this.sizeSet);
   /**
    * Node type which the order view will manage while rendering the DOM elements.
    *
-   * @type {string}
    */
   childNodeType;
   /**
    * The renderer adapter that handles browser-specific rendering logic.
    *
-   * @type {StandardRendererAdapter|FirefoxRendererAdapter}
    */
   rendererAdapter;
 
+  /**
+   * @param rootNode The parent DOM element that contains the child nodes managed by this view.
+   * @param nodesPool A factory function that supplies or recycles DOM elements by source index.
+   * @param childNodeType The tag name of the DOM nodes this view manages (e.g., `'TR'` or `'TD'`).
+   */
   constructor(rootNode: HTMLElement, nodesPool: (index?: number) => HTMLElement, childNodeType: string) {
     this.rootNode = rootNode;
     this.nodesPool = nodesPool;
@@ -66,8 +64,8 @@ export class OrderView {
    * Sets the size for rendered elements. It can be a size for rows, cells or size for row
    * headers etc. It depends for what table renderer this instance was created.
    *
-   * @param {number} size The size.
-   * @returns {OrderView}
+   * @param size The size.
+   * @returns 
    */
   setSize(size: number) {
     this.sizeSet.setSize(size);
@@ -79,8 +77,8 @@ export class OrderView {
    * Sets the offset for rendered elements. The offset describes the shift between 0 and
    * the first rendered element according to the scroll position.
    *
-   * @param {number} offset The offset.
-   * @returns {OrderView}
+   * @param offset The offset.
+   * @returns 
    */
   setOffset(offset: number) {
     this.sizeSet.setOffset(offset);
@@ -93,7 +91,7 @@ export class OrderView {
    * a row (TR) as a root node is managed by two OrderView instances. If this happens another DOM injection
    * algorithm is performed to achieve consistent order.
    *
-   * @returns {boolean}
+   * @returns 
    */
   isSharedViewSet() {
     return this.sizeSet.isShared();
@@ -102,8 +100,8 @@ export class OrderView {
   /**
    * Returns rendered DOM element based on visual index.
    *
-   * @param {number} visualIndex The visual index.
-   * @returns {HTMLElement}
+   * @param visualIndex The visual index.
+   * @returns 
    */
   getNode(visualIndex: number) {
     return visualIndex < this.collectedNodes.length ? this.collectedNodes[visualIndex] : null;
@@ -112,7 +110,7 @@ export class OrderView {
   /**
    * Returns currently processed DOM element.
    *
-   * @returns {HTMLElement}
+   * @returns 
    */
   getCurrentNode() {
     const length = this.collectedNodes.length;

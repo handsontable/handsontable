@@ -1,9 +1,9 @@
 import type CellCoords from './cell/coords';
 import type CellRange from './cell/range';
-import type { DomBindings } from './types';
+import type from './types';
 import type Settings from './settings';
 import type Table from './table';
-import type { SelectionManager } from './selection/manager';
+import type from './selection/manager';
 import type EventManager from '../../../eventManager';
 import {
   closestDown,
@@ -12,12 +12,12 @@ import {
   isChildOf,
   getParent,
 } from '../../../helpers/dom/element';
-import { partial } from '../../../helpers/function';
-import { clamp } from '../../../helpers/number';
-import { findColumnAtX, findRowAtY } from './utils/cellCoords';
-import { isTouchSupported } from '../../../helpers/feature';
-import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from '../../../helpers/browser';
-import { isDefined } from '../../../helpers/mixed';
+import from '../../../helpers/function';
+import from '../../../helpers/number';
+import from './utils/cellCoords';
+import from '../../../helpers/feature';
+import from '../../../helpers/browser';
+import from '../../../helpers/mixed';
 
 const LONG_PRESS_DELAY = 500;
 const LONG_PRESS_MOVE_THRESHOLD = 10;
@@ -26,19 +26,42 @@ const LONG_PRESS_MOVE_THRESHOLD = 10;
  * @class Event
  */
 class Event {
+  /**
+   * Tracks momentum (inertial) scroll state and the timer used to detect when it ends.
+   */
   declare momentumScrolling: { ongoing?: boolean; _timeout?: ReturnType<typeof setTimeout> };
+  /**
+   * Indicates that the current interaction originated from a touch event rather than a mouse event.
+   */
   declare touchApplied: boolean;
+  /**
+   * The last TD or TH element that received a `mouseover` event in this table.
+   */
   declare lastMouseOver: HTMLElement | null;
 
+  /**
+   * Walkontable settings instance used to read configuration values and trigger setting callbacks.
+   */
   #wtSettings;
+  /**
+   * Bindings to the root document and window used for attaching global event listeners.
+   */
   #domBindings;
+  /**
+   * The Table instance this event handler is attached to.
+   */
   #wtTable;
+  /**
+   * Manages the active cell selections and provides access to focus and area selection ranges.
+   */
   #selectionManager: SelectionManager;
+  /**
+   * Reference to the parent Event instance for overlay tables; null for the master table.
+   */
   #parent;
   /**
    * Instance of {@link EventManager}.
    *
-   * @type {EventManager}
    */
   #eventManager;
   /**
@@ -49,56 +72,46 @@ class Event {
    *   dependency).
    * @todo Con. Maybe passing listener caller as an ioc from faced resolves this issue. To rethink later.
    *
-   * @type {FacadeGetter}
    */
   #facadeGetter;
   /**
-   * @type {boolean}
    */
   #selectedCellBeforeTouchEnd: CellRange | null = null;
   /**
-   * @type {number[]}
    */
   #dblClickTimeout: (ReturnType<typeof setTimeout> | null)[] = [null, null];
   /**
-   * @type {number[]}
    */
   #dblClickOrigin: (HTMLElement | null)[] = [null, null];
   /**
    * Timer ID for the long-press gesture detection.
    *
-   * @type {number|null}
    */
   #longPressTimeout: ReturnType<typeof setTimeout> | null = null;
   /**
    * Marks that the long-press contextmenu gesture has been triggered for the current touch.
    *
-   * @type {boolean}
    */
   #longPressFired: boolean = false;
   /**
    * Starting coordinates of a touch gesture (used to detect movement that cancels long-press
    * and to distinguish a tap from a scroll).
    *
-   * @type {{ x: number, y: number }|null}
    */
-  #touchStartCoords: { x: number; y: number } | null = null;
+  #touchStartCoords: | null = null;
   /**
    * Marks that the current touch gesture has moved beyond the threshold and should be treated
    * as a scroll rather than a tap.
    *
-   * @type {boolean}
    */
   #touchWasMoved: boolean = false;
   /**
    * The original `touchstart` event captured so the synthesized mousedown can be deferred to
    * `touchend` and only fired when the gesture is a tap (not a scroll).
    *
-   * @type {TouchEvent|null}
    */
   #deferredTouchStartEvent: TouchEvent | null = null;
   /**
-   * @type {boolean}
    */
   #mouseDown: boolean = false;
   /**
@@ -106,18 +119,18 @@ class Event {
    * Used to skip the `onCellMouseOverOutside` listener call (and therefore `setRangeEnd`) when
    * repeated mousemove events land on the same edge cell.
    *
-   * @type {{ row: number, col: number } | null}
+   * @type | null}
    */
-  #mouseOverOutsideLastCoords: { row: number; col: number } | null = null;
+  #mouseOverOutsideLastCoords: | null = null;
 
   /**
-   * @param {FacadeGetter} facadeGetter Gets an instance facade.
-   * @param {DomBindings} domBindings Bindings into dom.
-   * @param {Settings} wtSettings The walkontable settings.
-   * @param {EventManager} eventManager The walkontable event manager.
-   * @param {Table} wtTable The table.
-   * @param {SelectionManager} selectionManager Selections.
-   * @param {Event} [parent=null] The main Event instance.
+   * @param facadeGetter Gets an instance facade.
+   * @param domBindings Bindings into dom.
+   * @param wtSettings The walkontable settings.
+   * @param eventManager The walkontable event manager.
+   * @param wtTable The table.
+   * @param selectionManager Selections.
+   * @param [parent=null] The main Event instance.
    */
   constructor(
     facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings,
@@ -196,8 +209,8 @@ class Event {
    * Checks if an element is already selected.
    *
    * @private
-   * @param {Element} touchTarget An element to check.
-   * @returns {boolean}
+   * @param touchTarget An element to check.
+   * @returns 
    */
   selectedCellWasTouched(touchTarget: Element | null) {
     const cellUnderFinger = this.parentCell(touchTarget);
@@ -217,11 +230,11 @@ class Event {
    * Gets closest TD or TH element.
    *
    * @private
-   * @param {Element} elem An element from the traversing starts.
-   * @returns {object} Contains coordinates and reference to TD or TH if it exists. Otherwise it's empty object.
+   * @param elem An element from the traversing starts.
+   * @returns Contains coordinates and reference to TD or TH if it exists. Otherwise it's empty object.
    */
   parentCell(elem: Element | null) {
-    const cell: { coords: CellCoords | null; TD: HTMLTableCellElement | null } = { coords: null, TD: null };
+    const cell: = { coords: null, TD: null };
     const TABLE = this.#wtTable.TABLE;
     const TD = closestDown(elem, ['TD', 'TH'], TABLE);
 
@@ -255,7 +268,7 @@ class Event {
    * OnMouseDown callback.
    *
    * @private
-   * @param {MouseEvent} event The mouse event object.
+   * @param event The mouse event object.
    */
   onMouseDown(event: MouseEvent | TouchEvent) {
     const activeElement = this.#domBindings.rootDocument.activeElement;
@@ -307,7 +320,7 @@ class Event {
    * OnContextMenu callback.
    *
    * @private
-   * @param {MouseEvent} event The mouse event object.
+   * @param event The mouse event object.
    */
   onContextMenu(event: MouseEvent) {
     this.#cancelLongPressTimer();
@@ -325,7 +338,7 @@ class Event {
    * OnMouseOver callback.
    *
    * @private
-   * @param {MouseEvent} event The mouse event object.
+   * @param event The mouse event object.
    */
   onMouseOver(event: MouseEvent) {
     if (!this.#wtSettings.has('onCellMouseOver')) {
@@ -351,7 +364,7 @@ class Event {
    * OnMouseMove callback.
    *
    * @private
-   * @param {MouseEvent} event The mouse event object.
+   * @param event The mouse event object.
    */
   onMouseMove(event: MouseEvent) {
     if (!this.#mouseDown) {
@@ -359,7 +372,7 @@ class Event {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const { coords, isOutside } = this.#getCellCoordsFromMousePosition(event.clientX, event.clientY);
+    const = this.#getCellCoordsFromMousePosition(event.clientX, event.clientY);
 
     if (isOutside) {
       const lastCoords = this.#mouseOverOutsideLastCoords;
@@ -383,9 +396,9 @@ class Event {
    * outside the visible viewport. When the mouse is outside, the nearest edge cell is returned.
    *
    * @private
-   * @param {number} mouseX Client X coordinate of the mouse.
-   * @param {number} mouseY Client Y coordinate of the mouse.
-   * @returns {{ coords: CellCoords, isOutside: boolean }}
+   * @param mouseX Client X coordinate of the mouse.
+   * @param mouseY Client Y coordinate of the mouse.
+   * @returns }
    */
   #getCellCoordsFromMousePosition(mouseX: number, mouseY: number) {
     const isRtl = this.#wtSettings.getSetting<boolean>('rtlMode');
@@ -412,7 +425,7 @@ class Event {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const rowHeaderWidth: number = (this.#wtSettings.getSetting('rowHeaders') as unknown[]).length > 0
       ? wot.wtViewport.getRowHeaderWidth() : 0;
-    const { rootWindow } = this.#domBindings;
+    const = this.#domBindings;
     // When the window is the scroll container and tableOffset.left/top > 0 (e.g. RTL
     // at max-left scroll where tableOffset.left can exceed innerWidth), using it as the
     // clamp minimum causes clamp(min > max) to always return min, mapping every mouse
@@ -549,7 +562,7 @@ class Event {
    * OnMouseOut callback.
    *
    * @private
-   * @param {MouseEvent} event The mouse event object.
+   * @param event The mouse event object.
    */
   onMouseOut(event: MouseEvent) {
     if (!this.#wtSettings.has('onCellMouseOut')) {
@@ -578,7 +591,7 @@ class Event {
    * OnMouseUp callback.
    *
    * @private
-   * @param {MouseEvent} event The mouse event object.
+   * @param event The mouse event object.
    */
   onMouseUp(event: MouseEvent | TouchEvent) {
     this.#mouseDown = false;
@@ -624,7 +637,7 @@ class Event {
    * re-triggering the cell selection (see issue #11659).
    *
    * @private
-   * @param {TouchEvent} event The touch event object.
+   * @param event The touch event object.
    */
   onTouchStart(event: TouchEvent) {
     this.#selectedCellBeforeTouchEnd = this.#selectionManager.getFocusSelection()?.cellRange ?? null;
@@ -642,7 +655,7 @@ class Event {
    * selection stays untouched (see issue #11659).
    *
    * @private
-   * @param {TouchEvent} event The touch event object.
+   * @param event The touch event object.
    */
   onTouchEnd(event: TouchEvent) {
     const wasScrolled = this.#touchWasMoved;
@@ -711,7 +724,7 @@ class Event {
    * (and ContextMenu plugin) work without changes.
    *
    * @private
-   * @param {TouchEvent} event The original `touchstart` event.
+   * @param event The original `touchstart` event.
    */
   #startLongPressTimer(event: TouchEvent) {
     this.#cancelLongPressTimer();
@@ -814,7 +827,7 @@ class Event {
    * scroll so `touchend` skips firing the deferred mousedown, and cancels the long-press timer.
    *
    * @private
-   * @param {TouchEvent} event The touch event object.
+   * @param event The touch event object.
    */
   onTouchMove(event: TouchEvent) {
     if (this.#touchStartCoords === null) {
@@ -843,10 +856,10 @@ class Event {
    * Call listener with backward compatibility.
    *
    * @private
-   * @param {string} name Name of listener.
-   * @param {MouseEvent} event The event object.
-   * @param {CellCoords} coords Coordinates.
-   * @param {HTMLElement} target Event target.
+   * @param name Name of listener.
+   * @param event The event object.
+   * @param coords Coordinates.
+   * @param target Event target.
    */
   callListener(name: string, event: Event | MouseEvent | TouchEvent, coords: CellCoords, target: HTMLElement) {
     type ListenerFn = (

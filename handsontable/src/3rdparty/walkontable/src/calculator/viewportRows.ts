@@ -1,18 +1,18 @@
-import type { PositionCache } from '../utils/positionCache';
-import type { AxisCalculatorContext } from './axisCalculation';
-import { calculateAxis } from './axisCalculation';
-import type { CalculationTypeLike, RowsCalculationType } from './viewportBase';
-import { ViewportBaseCalculator } from './viewportBase';
+import type from '../utils/positionCache';
+import type from './axisCalculation';
+import from './axisCalculation';
+import type from './viewportBase';
+import from './viewportBase';
 
 /**
- * @typedef {object} ViewportRowsCalculatorOptions
- * @property {Map<string, ViewportBaseCalculator>} calculationTypes The calculation types to be performed.
- * @property {number} viewportHeight Height of the viewport.
- * @property {number} scrollOffset Current vertical scroll position of the viewport.
- * @property {number} totalRows Total number of rows.
- * @property {Function} overrideFn Function that allows to adjust the `startRow` and `endRow` parameters.
- * @property {number} horizontalScrollbarHeight The scrollbar height.
- * @property {PositionCache} rowHeightCache A built prefix sum cache. The single source of truth for row sizes.
+ * @typedef ViewportRowsCalculatorOptions
+ * @property calculationTypes The calculation types to be performed.
+ * @property viewportHeight Height of the viewport.
+ * @property scrollOffset Current vertical scroll position of the viewport.
+ * @property totalRows Total number of rows.
+ * @property overrideFn Function that allows to adjust the `startRow` and `endRow` parameters.
+ * @property horizontalScrollbarHeight The scrollbar height.
+ * @property rowHeightCache A built prefix sum cache. The single source of truth for row sizes.
  */
 export interface ViewportRowsCalculatorOptions {
   calculationTypes: Array<[string, CalculationTypeLike]>;
@@ -30,21 +30,57 @@ export interface ViewportRowsCalculatorOptions {
  * @class ViewportRowsCalculator
  */
 export class ViewportRowsCalculator extends ViewportBaseCalculator {
+  /**
+   * The total height of the viewport in pixels.
+   */
   viewportHeight: number = 0;
+  /**
+   * The current vertical scroll offset of the viewport in pixels.
+   */
   scrollOffset: number = 0;
+  /**
+   * The scroll offset clamped to a minimum of zero, used for index calculations.
+   */
   zeroBasedScrollOffset: number = 0;
+  /**
+   * The total number of rows in the data source.
+   */
   totalRows: number = 0;
+  /**
+   * The height of the most recently measured row in pixels.
+   */
   rowHeight: number = 0;
+  /**
+   * An optional function that receives the calculator context and can adjust start and end row indexes.
+   */
   overrideFn: ((calc: unknown) => void) | null = null;
+  /**
+   * The height of the horizontal scrollbar in pixels, subtracted from the available viewport height.
+   */
   horizontalScrollbarHeight: number = 0;
+  /**
+   * The bottom boundary of the visible viewport in pixels, accounting for scroll and scrollbar height.
+   */
   innerViewportHeight: number = 0;
+  /**
+   * The cumulative height of all rows rendered so far during a calculation pass.
+   */
   totalCalculatedHeight: number = 0;
+  /**
+   * Indicates that the render order should be reversed during axis traversal when needed.
+   */
   needReverse: boolean = true;
+  /**
+   * The position cache providing row height and cumulative offset data.
+   */
   positionCache: PositionCache | null = null;
+  /**
+   * The index of the last row processed during the most recent calculation pass.
+   */
   lastProcessedIndex: number = -1;
 
   /**
-   * @param {ViewportRowsCalculatorOptions} options Object with all options specified for row viewport calculation.
+   * @param options Object with all options specified for row viewport calculation.
    */
   constructor({
     calculationTypes,
@@ -92,8 +128,8 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
   }
 
   /**
-   * @param {string} calculatorId The id of the calculator.
-   * @returns {RowsCalculationType | undefined}
+   * @param calculatorId The id of the calculator.
+   * @returns 
    */
   getResultsFor(calculatorId: string): (RowsCalculationType & CalculationTypeLike) | undefined {
     return this.calculationResults.get(calculatorId) as (RowsCalculationType & CalculationTypeLike) | undefined;
@@ -102,8 +138,8 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
   /**
    * Gets the row height at the specified row index.
    *
-   * @param {number} row Row index.
-   * @returns {number}
+   * @param row Row index.
+   * @returns 
    */
   getRowHeight(row: number): number {
     return this.positionCache?.getSizeAt(row) ?? 0;

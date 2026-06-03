@@ -1,11 +1,10 @@
-import { isFirefox } from '../../../../helpers/browser';
+import from '../../../../helpers/browser';
 
 /**
  * Multiplier used to pack (row, column) into a single numeric Map key.
  * 2^20 (1 048 576) supports up to ~1M columns while keeping the combined
  * value well within the 2^53 safe-integer range for any realistic row count.
  *
- * @type {number}
  */
 const COLUMN_OFFSET = 1048576;
 
@@ -18,17 +17,21 @@ export class NodesPool {
   /**
    * Node type to generate (e.g. 'TH', 'TD').
    *
-   * @type {string}
    */
   nodeType;
+  /**
+   * The document instance used to create new DOM elements when no pooled element is available.
+   */
   declare rootDocument: Document;
   /**
    * The holder for all created DOM nodes (THs, TDs).
    *
-   * @type {Map<number, HTMLElement>}
    */
   pool: Map<number, HTMLElement> = new Map();
 
+  /**
+   * @param nodeType The HTML tag name for nodes to create (e.g. `'TD'` or `'TH'`).
+   */
   constructor(nodeType: string) {
     this.nodeType = nodeType.toUpperCase();
   }
@@ -36,7 +39,7 @@ export class NodesPool {
   /**
    * Set document owner for this instance.
    *
-   * @param {Document} rootDocument The document window owner.
+   * @param rootDocument The document window owner.
    */
   setRootDocument(rootDocument: Document) {
     this.rootDocument = rootDocument;
@@ -45,9 +48,9 @@ export class NodesPool {
   /**
    * Obtains an element.
    *
-   * @param {number} rowIndex The row index.
-   * @param {number} [columnIndex] The column index.
-   * @returns {HTMLElement}
+   * @param rowIndex The row index.
+   * @param [columnIndex] The column index.
+   * @returns 
    */
   obtain(rowIndex: number, columnIndex?: number) {
     // Firefox requires creating new DOM elements instead of reusing pooled nodes to avoid

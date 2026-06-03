@@ -1,4 +1,4 @@
-import type { DataAccessObject, WalkontableInstance, DomBindings } from './types';
+import type from './types';
 import type Settings from './settings';
 import {
   hasClass,
@@ -13,10 +13,10 @@ import {
   isVisible,
   setAttribute,
 } from '../../../helpers/dom/element';
-import { isFunction } from '../../../helpers/function';
+import from '../../../helpers/function';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
-import { Renderer } from './renderer';
+import from './renderer';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
 import {
@@ -26,8 +26,8 @@ import {
   CLONE_TOP_INLINE_START_CORNER,
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from './overlay';
-import { A11Y_PRESENTATION, A11Y_TABINDEX } from '../../../helpers/a11y';
-import { throwWithCause } from '../../../helpers/errors';
+import from '../../../helpers/a11y';
+import from '../../../helpers/errors';
 
 /**
  * @todo These mixes are never added to the class Table, however their members are used here.
@@ -45,89 +45,219 @@ class Table {
    * The walkontable settings.
    *
    * @protected
-   * @type {Settings}
    */
   declare wtSettings: Settings;
+  /**
+   * Bindings to DOM nodes shared across all table instances.
+   */
   domBindings;
+  /**
+   * The rendered table body section element.
+   */
   TBODY: HTMLTableSectionElement | null = null;
+  /**
+   * The rendered table header section element.
+   */
   THEAD: HTMLTableSectionElement | null = null;
+  /**
+   * The rendered column group element that controls column widths.
+   */
   COLGROUP: HTMLTableColElement | null = null;
   /**
    * Indicates if the table has height bigger than 0px.
    *
-   * @type {boolean}
    */
   hasTableHeight = true;
   /**
    * Indicates if the table has width bigger than 0px.
    *
-   * @type {boolean}
    */
   hasTableWidth = true;
   /**
    * Indicates if the table is visible. By visible, it means that the holder
    * element has CSS 'display' property different than 'none'.
    *
-   * @type {boolean}
    */
   isTableVisible = false;
-  tableOffset: number | { top: number; left: number } = 0;
-  holderOffset: number | { top: number; left: number } = 0;
+  /**
+   * Cached offset of the TABLE element relative to the document, updated before each full redraw.
+   */
+  tableOffset: number | = 0;
+  /**
+   * Cached offset of the holder element relative to the document, updated before each full redraw.
+   */
+  holderOffset: number | = 0;
 
+  /**
+   * Container element for selection border overlays.
+   */
   declare bordersHolder?: HTMLElement;
+  /**
+   * Indicates if this instance is the master table (not an overlay clone).
+   */
   declare isMaster: boolean;
+  /**
+   * Identifies the overlay type (e.g. `'master'`, `'top'`, `'inline_start'`) or `'master'` for the main table.
+   */
   declare name: string;
+  /**
+   * Data access object that bridges Walkontable to the core Handsontable instance.
+   */
   declare dataAccessObject: DataAccessObject;
+  /**
+   * Function that returns the public facade instance for the current Walkontable.
+   */
   declare facadeGetter: Function;
+  /**
+   * Reference to the Walkontable instance (legacy alias; prefer `wot`).
+   */
   declare instance: WalkontableInstance;
+  /**
+   * Reference to the Walkontable instance.
+   */
   declare wot: WalkontableInstance;
+  /**
+   * The root `<table>` DOM element managed by this instance.
+   */
   declare TABLE: HTMLTableElement;
+  /**
+   * Wrapper `<div class="wtSpreader">` element that positions the table inside the hider.
+   */
   declare spreader: HTMLElement;
+  /**
+   * Wrapper `<div class="wtHider">` element that clips overflow for the table.
+   */
   declare hider: HTMLElement;
+  /**
+   * Scroll container `<div class="wtHolder">` element that receives scroll events.
+   */
   declare holder: HTMLElement;
+  /**
+   * The root element of the Walkontable DOM subtree — the direct parent of the holder element.
+   */
   declare wtRootElement: HTMLElement;
+  /**
+   * Filter that translates between source and rendered row indexes for this overlay.
+   */
   declare rowFilter: RowFilter | null;
+  /**
+   * Filter that translates between source and rendered column indexes for this overlay.
+   */
   declare columnFilter: ColumnFilter | null;
+  /**
+   * When true, adds 1px to the last row-header column width to compensate for a subpixel shift when the table is scrolled.
+   */
   declare correctHeaderWidth: boolean;
+  /**
+   * Utility that provides row height information for the current viewport.
+   */
   declare rowUtils: RowUtils;
+  /**
+   * Utility that provides column width information for the current viewport.
+   */
   declare columnUtils: ColumnUtils;
+  /**
+   * The renderer instance responsible for building and updating the DOM table structure.
+   */
   declare tableRenderer: Renderer;
 
   // Methods provided by mixins (calculatedRows, calculatedColumns, stickyRowsTop,
   // stickyRowsBottom, stickyColumnsStart) applied to Table subclasses at runtime.
+  /**
+   * Returns the index of the first rendered row in the current viewport.
+   */
   declare getFirstRenderedRow: () => number;
+  /**
+   * Returns the index of the first fully visible row in the current viewport.
+   */
   declare getFirstVisibleRow: () => number;
+  /**
+   * Returns the index of the first at least partially visible row in the current viewport.
+   */
   declare getFirstPartiallyVisibleRow: () => number;
+  /**
+   * Returns the index of the last rendered row in the current viewport.
+   */
   declare getLastRenderedRow: () => number;
+  /**
+   * Returns the index of the last fully visible row in the current viewport.
+   */
   declare getLastVisibleRow: () => number;
+  /**
+   * Returns the index of the last at least partially visible row in the current viewport.
+   */
   declare getLastPartiallyVisibleRow: () => number;
+  /**
+   * Returns the total number of rendered rows in the current viewport.
+   */
   declare getRenderedRowsCount: () => number;
+  /**
+   * Returns the total number of fully visible rows in the current viewport.
+   */
   declare getVisibleRowsCount: () => number;
+  /**
+   * Returns the number of column header rows rendered above the data area.
+   */
   declare getColumnHeadersCount: () => number;
+  /**
+   * Returns the index of the first rendered column in the current viewport.
+   */
   declare getFirstRenderedColumn: () => number;
+  /**
+   * Returns the index of the first fully visible column in the current viewport.
+   */
   declare getFirstVisibleColumn: () => number;
+  /**
+   * Returns the index of the first at least partially visible column in the current viewport.
+   */
   declare getFirstPartiallyVisibleColumn: () => number;
+  /**
+   * Returns the index of the last rendered column in the current viewport.
+   */
   declare getLastRenderedColumn: () => number;
+  /**
+   * Returns the index of the last fully visible column in the current viewport.
+   */
   declare getLastVisibleColumn: () => number;
+  /**
+   * Returns the index of the last at least partially visible column in the current viewport.
+   */
   declare getLastPartiallyVisibleColumn: () => number;
+  /**
+   * Returns the total number of rendered columns in the current viewport.
+   */
   declare getRenderedColumnsCount: () => number;
+  /**
+   * Returns the total number of fully visible columns in the current viewport.
+   */
   declare getVisibleColumnsCount: () => number;
+  /**
+   * Returns the number of row header columns rendered to the left of the data area.
+   */
   declare getRowHeadersCount: () => number;
 
   // Methods defined in subclass MasterTable but called from Table via `this.isMaster` guards.
+  /**
+   * Aligns the overlay container elements with the trimming container boundaries.
+   * Overridden in MasterTable; the base implementation is intentionally empty.
+   */
   alignOverlaysWithTrimmingContainer(): void { // intentionally empty
   }
+  /**
+   * Marks column headers whose rendered height exceeds the default row height as oversized.
+   * Overridden in MasterTable; the base implementation is intentionally empty.
+   */
   markOversizedColumnHeaders(): void { // intentionally empty
   }
 
   /**
    *
    * @abstract
-   * @param {TableDao} dataAccessObject The data access object.
-   * @param {FacadeGetter} facadeGetter Function which return proper facade.
-   * @param {DomBindings} domBindings Bindings into DOM.
-   * @param {Settings} wtSettings The Walkontable settings.
-   * @param {'master'|CLONE_TYPES_ENUM} name Overlay name.
+   * @param dataAccessObject The data access object.
+   * @param facadeGetter Function which return proper facade.
+   * @param domBindings Bindings into DOM.
+   * @param wtSettings The Walkontable settings.
+   * @param name Overlay name.
    */
   constructor(
     dataAccessObject: DataAccessObject, facadeGetter: Function, domBindings: DomBindings,
@@ -136,7 +266,6 @@ class Table {
     /**
      * Indicates if this instance is of type `MasterTable` (i.e. It is NOT an overlay).
      *
-     * @type {boolean}
      */
     this.isMaster = name === 'master';
     this.name = name;
@@ -192,8 +321,8 @@ class Table {
    * Returns a boolean that is true if this Table represents a specific overlay, identified by the overlay name.
    * For MasterTable, it returns false.
    *
-   * @param {string} overlayTypeName The overlay type.
-   * @returns {boolean}
+   * @param overlayTypeName The overlay type.
+   * @returns 
    */
   is(overlayTypeName: string) { // todo refactoring: eliminate all protected and private usages
     return this.name === overlayTypeName;
@@ -226,8 +355,8 @@ class Table {
   }
 
   /**
-   * @param {HTMLTableElement} table An element to process.
-   * @returns {HTMLElement}
+   * @param table An element to process.
+   * @returns 
    */
   createSpreader(table: HTMLTableElement) {
     const parent = table.parentNode;
@@ -259,8 +388,8 @@ class Table {
   }
 
   /**
-   * @param {HTMLElement} spreader An element to the hider element is injected.
-   * @returns {HTMLElement}
+   * @param spreader An element to the hider element is injected.
+   * @returns 
    */
   createHider(spreader: HTMLElement) {
     const parent = spreader.parentNode;
@@ -289,8 +418,8 @@ class Table {
 
   /**
    *
-   * @param {HTMLElement} hider An element to the holder element is injected.
-   * @returns {HTMLElement}
+   * @param hider An element to the holder element is injected.
+   * @returns 
    */
   createHolder(hider: HTMLElement) {
     const parent = hider.parentNode;
@@ -342,13 +471,13 @@ class Table {
   /**
    * Redraws the table.
    *
-   * @param {boolean} [fastDraw=false] If TRUE, will try to avoid full redraw and only update the border positions.
+   * @param [fastDraw=false] If TRUE, will try to avoid full redraw and only update the border positions.
    *                                   If FALSE or UNDEFINED, will perform a full redraw.
-   * @returns {Table}
+   * @returns 
    */
   draw(fastDraw = false) {
-    const { wtSettings } = this;
-    const { wtOverlays, wtViewport } = this.dataAccessObject;
+    const = this;
+    const = this.dataAccessObject;
     const totalRows = wtSettings.getSetting('totalRows');
     const totalColumns = wtSettings.getSetting('totalColumns');
     const rowHeaders = wtSettings.getSetting<Function[]>('rowHeaders');
@@ -400,7 +529,7 @@ class Table {
       // Only master table rendering can be skipped
       if (this.isMaster) {
         this.alignOverlaysWithTrimmingContainer(); // todo It calls method from child class (MasterTable).
-        const skipRender: { skipRender?: boolean } = {};
+        const skipRender: = {};
 
         this.wtSettings.getSetting('beforeDraw', true, skipRender);
         performRedraw = skipRender.skipRender !== true;
@@ -497,7 +626,7 @@ class Table {
   }
 
   /**
-   * @param {number} col The visual column index.
+   * @param col The visual column index.
    */
   markIfOversizedColumnHeader(col: number) {
     const sourceColIndex = this.columnFilter!.renderedToSource(col);
@@ -549,7 +678,7 @@ class Table {
    *
    */
   adjustColumnHeaderHeights() {
-    const { wtSettings } = this;
+    const = this;
     const children = this.THEAD!.childNodes;
     const oversizedColumnHeaders = this.dataAccessObject.wtViewport.oversizedColumnHeaders;
     const columnHeaders = wtSettings.getSetting<Function[]>('columnHeaders');
@@ -576,7 +705,7 @@ class Table {
    * overlay tables receive the correct values during their own `adjustColumnHeaderHeights`.
    */
   syncOversizedColumnHeadersWithDOM() {
-    const { wtSettings } = this;
+    const = this;
     const children = this.THEAD!.childNodes;
     const oversizedColumnHeaders = this.dataAccessObject.wtViewport.oversizedColumnHeaders;
     const columnHeaders = wtSettings.getSetting<unknown[]>('columnHeaders');
@@ -601,8 +730,8 @@ class Table {
    * when new cell values have content which increases/decreases cell height.
    */
   resetOversizedRows() {
-    const { wtSettings } = this;
-    const { wtViewport } = this.dataAccessObject;
+    const = this;
+    const = this.dataAccessObject;
 
     if (!this.isMaster && !this.is(CLONE_BOTTOM)) {
       return;
@@ -634,8 +763,8 @@ class Table {
    * are given. Thus, if both the row and the column coords are out of the rendered bounds,
    * the method returns the error code for the row.
    *
-   * @param {CellCoords} coords The cell coordinates.
-   * @returns {HTMLElement|number} HTMLElement on success or Number one of the exit codes on error:
+   * @param coords The cell coordinates.
+   * @returns HTMLElement on success or Number one of the exit codes on error:
    *  -1 row before viewport
    *  -2 row after viewport
    *  -3 column before viewport
@@ -696,8 +825,8 @@ class Table {
   /**
    * Get the DOM element of the row with the provided index.
    *
-   * @param {number} rowIndex Row index.
-   * @returns {HTMLTableRowElement|boolean} Return the row's DOM element or `false` if the row with the provided
+   * @param rowIndex Row index.
+   * @returns Return the row's DOM element or `false` if the row with the provided
    * index doesn't exist.
    */
   getRow(rowIndex: number): HTMLTableRowElement | false {
@@ -728,9 +857,9 @@ class Table {
   /**
    * GetColumnHeader.
    *
-   * @param {number} col Column index.
-   * @param {number} [level=0] Header level (0 = most distant to the table).
-   * @returns {object} HTMLElement on success or undefined on error.
+   * @param col Column index.
+   * @param [level=0] Header level (0 = most distant to the table).
+   * @returns HTMLElement on success or undefined on error.
    */
   getColumnHeader(col: number, level = 0): HTMLElement | undefined {
     const TR = this.THEAD!.childNodes[level];
@@ -742,8 +871,8 @@ class Table {
   /**
    * Gets all columns headers (TH elements) from the table.
    *
-   * @param {number} column A source column index.
-   * @returns {HTMLTableCellElement[]}
+   * @param column A source column index.
+   * @returns 
    */
   getColumnHeaders(column: number) {
     const THs: HTMLTableCellElement[] = [];
@@ -763,9 +892,9 @@ class Table {
   /**
    * GetRowHeader.
    *
-   * @param {number} row Row index.
-   * @param {number} [level=0] Header level (0 = most distant to the table).
-   * @returns {HTMLElement} HTMLElement on success or Number one of the exit codes on error: `null table doesn't have
+   * @param row Row index.
+   * @param [level=0] Header level (0 = most distant to the table).
+   * @returns HTMLElement on success or Number one of the exit codes on error: `null table doesn't have
    *   row headers`.
    */
   getRowHeader(row: number, level = 0): HTMLElement | undefined {
@@ -787,8 +916,8 @@ class Table {
   /**
    * Gets all rows headers (TH elements) from the table.
    *
-   * @param {number} row A source row index.
-   * @returns {HTMLTableCellElement[]}
+   * @param row A source row index.
+   * @returns 
    */
   getRowHeaders(row: number) {
     const THs = [];
@@ -809,8 +938,8 @@ class Table {
   /**
    * Returns cell coords object for a given TD (or a child element of a TD element).
    *
-   * @param {HTMLTableCellElement} TD A cell DOM element (or a child of one).
-   * @returns {CellCoords|null} The coordinates of the provided TD element (or the closest TD element) or null, if the
+   * @param TD A cell DOM element (or a child of one).
+   * @returns The coordinates of the provided TD element (or the closest TD element) or null, if the
    *   provided element is not applicable.
    */
   getCoords(TD: HTMLTableCellElement | HTMLElement) {
@@ -905,7 +1034,7 @@ class Table {
       return;
     }
 
-    const { wtViewport } = this.dataAccessObject;
+    const = this.dataAccessObject;
     let hasChanges = false;
 
     while (rowCount) {
@@ -948,8 +1077,8 @@ class Table {
   }
 
   /**
-   * @param {number} row The visual row index.
-   * @returns {HTMLTableRowElement}
+   * @param row The visual row index.
+   * @returns 
    */
   getTrForRow(row: number): HTMLTableRowElement {
     return this.TBODY!.childNodes[this.rowFilter!.sourceToRendered(row)] as HTMLTableRowElement;
@@ -958,8 +1087,8 @@ class Table {
   /**
    * Checks if the column index (negative value from -1 to N) is rendered.
    *
-   * @param {number} column The column index (negative value from -1 to N).
-   * @returns {boolean}
+   * @param column The column index (negative value from -1 to N).
+   * @returns 
    */
   isColumnHeaderRendered(column: number) {
     if (column >= 0) {
@@ -975,8 +1104,8 @@ class Table {
   /**
    * Checks if the row index (negative value from -1 to N) is rendered.
    *
-   * @param {number} row The row index (negative value from -1 to N).
-   * @returns {boolean}
+   * @param row The row index (negative value from -1 to N).
+   * @returns 
    */
   isRowHeaderRendered(row: number) {
     if (row >= 0) {
@@ -1012,10 +1141,10 @@ class Table {
    *                                                                │
    *                                                                │ FALSE
    *
-   * @param {number} row The visual row index.
+   * @param row The visual row index.
    * @memberof Table#
    * @function isRowBeforeRenderedRows
-   * @returns {boolean}
+   * @returns 
    */
   isRowBeforeRenderedRows(row: number) {
     const first = this.getFirstRenderedRow();
@@ -1028,6 +1157,7 @@ class Table {
 
     return row < first;
   }
+  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Check if the given column index is greater than the index of the last column that
@@ -1055,14 +1185,15 @@ class Table {
    *                                                                │
    *                                                                │ TRUE
    *
-   * @param {number} row The visual row index.
+   * @param row The visual row index.
    * @memberof Table#
    * @function isRowAfterRenderedRows
-   * @returns {boolean}
+   * @returns 
    */
   isRowAfterRenderedRows(row: number) {
     return row > this.getLastRenderedRow();
   }
+  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Check if the given column index is lower than the index of the first column that
@@ -1086,10 +1217,10 @@ class Table {
    *                           rendered         rendered
    *                           column           column
    *
-   * @param {number} column The visual column index.
+   * @param column The visual column index.
    * @memberof Table#
    * @function isColumnBeforeRenderedColumns
-   * @returns {boolean}
+   * @returns 
    */
   isColumnBeforeRenderedColumns(column: number) {
     const first = this.getFirstRenderedColumn();
@@ -1102,6 +1233,7 @@ class Table {
 
     return column < first;
   }
+  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Check if the given column index is greater than the index of the last column that
@@ -1128,39 +1260,61 @@ class Table {
    *                           rendered         rendered
    *                           column           column
    *
-   * @param {number} column The visual column index.
+   * @param column The visual column index.
    * @memberof Table#
    * @function isColumnAfterRenderedColumns
-   * @returns {boolean}
+   * @returns 
    */
   isColumnAfterRenderedColumns(column: number) {
     return this.columnFilter && (column > this.getLastRenderedColumn());
   }
+  /* eslint-enable jsdoc/require-description-complete-sentence */
 
+  /**
+   * Checks if the column is beyond the last visible column in the current viewport.
+   */
   isColumnAfterViewport(column: number) {
     return this.columnFilter && (column > this.getLastVisibleColumn());
   }
 
+  /**
+   * Checks if the row is beyond the last visible row in the current viewport.
+   */
   isRowAfterViewport(row: number) {
     return this.rowFilter && (row > this.getLastVisibleRow());
   }
 
+  /**
+   * Checks if the column is before the first visible column in the current viewport.
+   */
   isColumnBeforeViewport(column: number) {
     return this.columnFilter && (this.columnFilter!.sourceToRendered(column) < 0 && column >= 0);
   }
 
+  /**
+   * Checks if the last row is entirely within the visible viewport.
+   */
   isLastRowFullyVisible() {
     return this.getLastVisibleRow() === this.getLastRenderedRow();
   }
 
+  /**
+   * Checks if the last column is entirely within the visible viewport.
+   */
   isLastColumnFullyVisible() {
     return this.getLastVisibleColumn() === this.getLastRenderedColumn();
   }
 
+  /**
+   * Checks if all rows fit within the current viewport without scrolling.
+   */
   allRowsInViewport() {
     return this.wtSettings.getSetting('totalRows') === this.getVisibleRowsCount();
   }
 
+  /**
+   * Checks if all columns fit within the current viewport without scrolling.
+   */
   allColumnsInViewport() {
     return this.wtSettings.getSetting('totalColumns') === this.getVisibleColumnsCount();
   }
@@ -1168,24 +1322,24 @@ class Table {
   /**
    * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height.
    *
-   * @param {number} sourceRow The physical row index.
-   * @returns {number}
+   * @param sourceRow The physical row index.
+   * @returns 
    */
   getRowHeight(sourceRow: number) {
     return this.rowUtils.getHeight(sourceRow);
   }
 
   /**
-   * @param {number} level The column level.
-   * @returns {number}
+   * @param level The column level.
+   * @returns 
    */
   getColumnHeaderHeight(level: number) {
     return this.columnUtils.getHeaderHeight(level);
   }
 
   /**
-   * @param {number} sourceColumn The physical column index.
-   * @returns {number}
+   * @param sourceColumn The physical column index.
+   * @returns 
    */
   getColumnWidth(sourceColumn: number): number {
     return this.columnUtils.getWidth(sourceColumn) as number;
@@ -1195,7 +1349,7 @@ class Table {
    * Checks if the table has defined size. It returns `true` when the table has width and height
    * set bigger than `0px`.
    *
-   * @returns {boolean}
+   * @returns 
    */
   hasDefinedSize() {
     return this.hasTableHeight && this.hasTableWidth;
@@ -1205,7 +1359,7 @@ class Table {
    * Gets table's width. The returned width is the width of the rendered cells that fit in the
    * current viewport. The value may change depends on the viewport position (scroll position).
    *
-   * @returns {number}
+   * @returns 
    */
   getWidth() {
     return outerWidth(this.TABLE);
@@ -1215,7 +1369,7 @@ class Table {
    * Gets table's height. The returned height is the height of the rendered cells that fit in the
    * current viewport. The value may change depends on the viewport position (scroll position).
    *
-   * @returns {number}
+   * @returns 
    */
   getHeight() {
     return outerHeight(this.TABLE);
@@ -1225,7 +1379,7 @@ class Table {
    * Gets table's total width. The returned width is the width of all rendered cells (including headers)
    * that can be displayed in the table.
    *
-   * @returns {number}
+   * @returns 
    */
   getTotalWidth() {
     const width = outerWidth(this.hider);
@@ -1238,7 +1392,7 @@ class Table {
    * Gets table's total height. The returned height is the height of all rendered cells (including headers)
    * that can be displayed in the table.
    *
-   * @returns {number}
+   * @returns 
    */
   getTotalHeight() {
     const height = outerHeight(this.hider);
@@ -1251,7 +1405,7 @@ class Table {
    * Checks if the table is visible. It returns `true` when the holder element (or its parents)
    * has CSS 'display' property different than 'none'.
    *
-   * @returns {boolean}
+   * @returns 
    */
   isVisible() {
     return isVisible(this.TABLE);
@@ -1261,8 +1415,8 @@ class Table {
    * Modify row header widths provided by user in class contructor.
    *
    * @private
-   * @param {Function | number | null} rowHeaderWidthFactory The function which can provide default width values for rows..
-   * @returns {number}
+   * @param rowHeaderWidthFactory The function which can provide default width values for rows..
+   * @returns 
    */
   _modifyRowHeaderWidth(rowHeaderWidthFactory: ((...args: unknown[]) => number | number[]) | number | null) {
     const rawWidths: number | number[] | null = typeof rowHeaderWidthFactory === 'function'
@@ -1284,8 +1438,8 @@ class Table {
    * Correct row header width if necessary.
    *
    * @private
-   * @param {number | null} width The width to process.
-   * @returns {number}
+   * @param width The width to process.
+   * @returns 
    */
   _correctRowHeaderWidth(width: number | null) {
     let rowHeaderWidth: number = typeof width === 'number'
