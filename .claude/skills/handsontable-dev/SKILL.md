@@ -182,6 +182,105 @@ ESLint will fail the build if a function gets too branchy. The fix is almost alw
 
 ---
 
+## JSDoc
+
+### When it is required
+
+`jsdoc/require-jsdoc` is set to `error` for `src/**/*.ts` and `scripts/**/*.mjs`. Every **class**, **method**, **function declaration**, and **class field** must have a JSDoc block. Test and type files (`*.unit.ts`, `*.spec.ts`, `*.types.ts`, `*.d.ts`) are exempt.
+
+### Format — always multiline
+
+Never write a single-line block. Even a one-sentence description needs the three-line form so it can be extended later:
+
+```ts
+// ✗ Bad
+/** Returns the active editor instance. */
+
+// ✓ Good
+/**
+ * Returns the active editor instance.
+ */
+```
+
+There must be a blank line before `/**` and after the closing `*/` (i.e., at least one empty line separating the JSDoc block from the previous code and from the next declaration).
+
+### Type annotations and sync with TypeScript
+
+`.ts` files are fully typed — **do not duplicate types in JSDoc** `@param` or `@returns` tags. TypeScript already carries the type information; adding `{Type}` in JSDoc of `.ts` files is noise and causes TS warning `[80004]`.
+
+```ts
+// ✗ Bad — type duplicated, will trigger TS [80004]
+/**
+ * Sets the value at the given coordinates.
+ *
+ * @param {number} row - The visual row index.
+ * @param {number} col - The visual column index.
+ * @param {*} value - The value to set.
+ */
+setValue(row: number, col: number, value: unknown): void
+
+// ✓ Good — description only, TypeScript owns the types
+/**
+ * Sets the value at the given coordinates.
+ *
+ * @param row - The visual row index.
+ * @param col - The visual column index.
+ * @param value - The value to set.
+ */
+setValue(row: number, col: number, value: unknown): void
+```
+
+**Exception — existing public API JSDoc**: some methods in the codebase already carry `@param {Type}` annotations. These feed the `docs:api` generator (`jsdoc-to-markdown` reads `handsontable/tmp/`, which is compiled JS that preserves JSDoc verbatim). **Do not strip `{Type}` from pre-existing public-method JSDoc.** If you touch such a method, keep the `{Type}` annotation and make sure it stays in sync with the actual TypeScript signature — an outdated type in JSDoc is worse than no type.
+
+```ts
+// Pre-existing public API — keep {Type}, keep it in sync
+/**
+ * Calculates and caches the column width.
+ *
+ * @param {number|object} colRange - Visual column index or range object.
+ * @param {boolean} [overwriteCache=false] - Force recalculation.
+ */
+calculateColumnsWidth(colRange: number | { from: number; to: number }, overwriteCache = false): void
+```
+
+### Private `#` fields
+
+Add a description block but omit `@private` — the `#` prefix is the privacy marker:
+
+```ts
+// ✗ Bad
+/**
+ * @private
+ * The plugin's internal state map.
+ */
+#stateMap: Map<number, boolean> = new Map();
+
+// ✓ Good
+/**
+ * Internal state map keyed by visual column index.
+ */
+#stateMap: Map<number, boolean> = new Map();
+```
+
+### Description quality
+
+Descriptions must be substantive — explain what the member does or represents, not just restate its name. American English, active voice, short sentences.
+
+```ts
+// ✗ Bad — circular
+/**
+ * The column widths cache.
+ */
+
+// ✓ Good — tells the reader something new
+/**
+ * Stores calculated column widths keyed by visual column index.
+ * Populated on demand; invalidated when column configuration changes.
+ */
+```
+
+---
+
 ## DOM and data gotchas
 
 - **Merged cells: read meta, not DOM.** Always read `colspan`/`rowspan` from `hot.getCellMeta(row, col)`, never from `td.colSpan` / `td.rowSpan`. The MergeCells plugin sets `cellProperties.colspan` via `afterGetCellMeta` — that value is authoritative. The DOM attribute may be missing when the cell is outside the viewport, and it ignores custom `afterGetCellMeta` overrides.
@@ -248,6 +347,6 @@ The CI `verify-emitted-types` job reports the exact leaked identifier with `TS23
 - [ ] `npm run build` (or `build:types` + `downlevel:types`) run if public types changed
 - [ ] Wired into all relevant index / factory files
 - [ ] Added to `metaSchema.ts` if a new option was introduced
-- [ ] JSDoc on all exported functions and classes
+- [ ] JSDoc on every class, method, function declaration, and class field (multiline format; no `{Type}` in new blocks; existing public-API `{Type}` kept in sync with TS signature; no `@private` on `#` fields)
 - [ ] No breaking change introduced (or the breaking change is explicitly called out)
 - [ ] Changelog entry added (`bin/changelog entry`)
