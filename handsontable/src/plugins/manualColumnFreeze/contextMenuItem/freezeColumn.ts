@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import * as C from '../../../i18n/constants';
 
 /**
@@ -7,10 +8,12 @@ import * as C from '../../../i18n/constants';
 export default function freezeColumnItem(manualColumnFreezePlugin: unknown) {
   return {
     key: 'freeze_column',
-    name() {
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_FREEZE_COLUMN);
+    name(this: HotInstance): string {
+      const phrase: string = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_FREEZE_COLUMN);
+
+      return phrase;
     },
-    callback(key: unknown, selected: { start: { col: number } }[]) {
+    callback(this: HotInstance, key: unknown, selected: { start: { col: number } }[]) {
       const [{ start: { col: selectedColumn } }] = selected;
 
       (manualColumnFreezePlugin as { freezeColumn: Function }).freezeColumn(selectedColumn);
@@ -18,7 +21,7 @@ export default function freezeColumnItem(manualColumnFreezePlugin: unknown) {
       this.view.adjustElementsSize();
       this.render();
     },
-    hidden() {
+    hidden(this: HotInstance) {
       const selection = this.getSelectedRange();
       let hide = false;
 
@@ -28,8 +31,8 @@ export default function freezeColumnItem(manualColumnFreezePlugin: unknown) {
       } else if (selection.length > 1) {
         hide = true;
 
-      } else if ((selection[0].from.col !== selection[0].to.col) ||
-                 (selection[0].from.col <= this.getSettings().fixedColumnsStart - 1)) {
+      } else if ((selection[0]!.from.col !== selection[0]!.to.col) ||
+                 (selection[0]!.from.col! <= (this.getSettings().fixedColumnsStart ?? 0) - 1)) {
         hide = true;
       }
 

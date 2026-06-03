@@ -72,6 +72,14 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```html
+<HotTable :settings="{ columns: [{ renderer: 'numeric' }] }" />
+```
+
+:::
+
 ::: only-for react
 
 ## Declare a custom renderer as a component
@@ -176,6 +184,32 @@ The following example implements `@handsontable/angular-wrapper` with a custom r
 
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example4.ts)
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+## Declare a custom renderer as a component
+
+Handsontable's Vue wrapper lets you create custom cell renderers using Vue components.
+
+To use a Vue component as a renderer, define the component with `defineComponent`, then write a renderer function that mounts it into the cell `td` element with Vue's `render` and `h` helpers. Mounting with `render(h(Component, props), td)` reuses the same component instance across re-renders -- Vue patches the existing tree instead of remounting it. To pass static props alongside the cell data, merge them into the second argument of `h()`.
+
+::: tip
+
+Handsontable's [`autoRowSize`](@/api/options.md#autorowsize) and [`autoColumnSize`](@/api/options.md#autocolumnsize) options require calculating the widths/heights of some of the cells before rendering them into the table. For this reason, it's not currently possible to use them alongside component-based renderers, as they're created after the table's initialization.
+
+Be sure to turn those options off in your Handsontable configuration, as keeping them enabled may cause unexpected results. Please note that [`autoColumnSize`](@/api/options.md#autocolumnsize) is enabled by default.
+
+:::
+
+If your component needs access to a Vue application context -- for example, global components, plugins, or `provide` / `inject` -- create a dedicated app per cell with `createApp(Component, props).mount(td)` instead of `render()`. Track the returned app instances so you can call `app.unmount()` when the grid is destroyed.
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-functions/cell-renderer/vue/example1.vue)
 
 :::
 
@@ -316,6 +350,14 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```html
+<HotTable :settings="{ columns: [{ renderer: 'my.custom' }] }" />
+```
+
+:::
+
 ## Render custom HTML in cells
 
 This example shows how to use custom cell renderers to display HTML content in a cell. This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS attacks. In the below configuration:
@@ -356,6 +398,16 @@ This example shows how to use custom cell renderers to display HTML content in a
 :::
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/cell-functions/cell-renderer/vue/example4.vue)
+
+:::
+
+:::
+
 ## Render custom HTML in header
 
 You can also put HTML into row and column headers. If you need to attach events to DOM elements like the checkbox below, just remember to identify the element by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id attribute must be unique.
@@ -390,6 +442,16 @@ You can also put HTML into row and column headers. If you need to attach events 
 @[code](@/content/guides/cell-functions/cell-renderer/angular/example6.html)
 
 :::
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/cell-functions/cell-renderer/vue/example5.vue)
+
+:::
+
 :::
 
 ## Add event listeners in cell renderer function
@@ -543,6 +605,21 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```html
+<HotTable :settings="{
+  columns: [{
+    data: 'price',
+    valueFormatter(value) {
+      return value ? `$${value.toFixed(2)}` : '';
+    }
+  }]
+}" />
+```
+
+:::
+
 #### Key differences
 
 | Aspect | `valueFormatter` | `renderer` |
@@ -609,6 +686,24 @@ settings = {
     }
   ]
 };
+```
+
+:::
+
+::: only-for vue
+
+```html
+<HotTable :settings="{
+  columns: [{
+    data: 'amount',
+    valueFormatter(value) {
+      return `$${value.toFixed(2)}`;
+    },
+    renderer(hotInstance, td, row, col, prop, value, cellProperties) {
+      td.innerHTML = `<div class='amount-cell'><span class='currency'>${value}</span></div>`;
+    }
+  }]
+}" />
 ```
 
 :::

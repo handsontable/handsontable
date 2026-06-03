@@ -73,7 +73,7 @@ function toCssValue(value: unknown, key?: string): string {
 
   if (Array.isArray(value)) {
     if (value.length >= 2) {
-      const [light, dark] = value;
+      const [light, dark]: [unknown, unknown] = value as [unknown, unknown];
 
       if (typeof light === 'string' && typeof dark === 'string') {
         return `light-dark(${toCssValue(light, key)}, ${toCssValue(dark, key)})`;

@@ -90,6 +90,16 @@ Click a column header to sort in ascending (↑) or descending (↓) order. Clic
 
 :::
 
+::: only-for vue
+
+::: example #exampleSortingDemo :vue3
+
+@[code](@/content/guides/rows/rows-sorting/vue/exampleSortingDemo.vue)
+
+:::
+
+:::
+
 ## Enable sorting
 
 To enable sorting for all columns, set [`columnSorting`](@/api/options.md#columnsorting) to `true`.
@@ -165,6 +175,16 @@ To disable sorting for specific columns, set [`headerAction`](@/api/options.md#c
 
 @[code](@/content/guides/rows/rows-sorting/angular/example2.ts)
 @[code](@/content/guides/rows/rows-sorting/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleEnableSortingForColumns :vue3
+
+@[code](@/content/guides/rows/rows-sorting/vue/exampleEnableSortingForColumns.vue)
 
 :::
 
@@ -361,6 +381,16 @@ You can also define a custom cell type. See [Cell type](@/guides/cell-types/cell
 
 @[code](@/content/guides/rows/rows-sorting/angular/example3.ts)
 @[code](@/content/guides/rows/rows-sorting/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleSortDifferentTypes :vue3
+
+@[code](@/content/guides/rows/rows-sorting/vue/exampleSortDifferentTypes.vue)
 
 :::
 
@@ -595,6 +625,16 @@ You can prevent specific top or bottom rows from being sorted. This is useful wh
 
 :::
 
+::: only-for vue
+
+::: example #exampleExcludeRowsFromSorting :vue3
+
+@[code](@/content/guides/rows/rows-sorting/vue/exampleExcludeRowsFromSorting.vue)
+
+:::
+
+:::
+
 ## Control sorting programmatically
 
 Use the [`ColumnSorting`](@/api/columnSorting.md) plugin API and [`updateSettings()`](@/api/core.md#updatesettings) to control sorting at runtime. This lets you, for example, enable or disable sorting based on conditions, or trigger sorting from outside the grid.
@@ -776,6 +816,16 @@ To see how it works, try out the following demo:
 
 :::
 
+::: only-for vue
+
+::: example #exampleSortByAPI :vue3
+
+@[code](@/content/guides/rows/rows-sorting/vue/exampleSortByAPI.vue)
+
+:::
+
+:::
+
 ## MultiColumnSorting plugin
 
 The [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin extends [`ColumnSorting`](@/api/columnSorting.md) to sort rows by multiple columns at the same time.
@@ -936,6 +986,16 @@ Try the following demo:
 
 :::
 
+::: only-for vue
+
+::: example #exampleSortByMultipleColumns :vue3
+
+@[code](@/content/guides/rows/rows-sorting/vue/exampleSortByMultipleColumns.vue)
+
+:::
+
+:::
+
 ### Set an initial multi-column sort order
 
 Use `initialConfig` with an **array** of sort config objects to apply a multi-column sort at initialization. Each object has a `column` property (visual column index) and a `sortOrder` property (`'asc'` or `'desc'`). The array order determines sort priority: the first entry has the highest priority.
@@ -971,6 +1031,16 @@ In the following demo, the data is initially sorted by **Brand** ascending, then
 
 @[code](@/content/guides/rows/rows-sorting/angular/example5.ts)
 @[code](@/content/guides/rows/rows-sorting/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleInitialSortOrder :vue3
+
+@[code](@/content/guides/rows/rows-sorting/vue/exampleInitialSortOrder.vue)
 
 :::
 
@@ -1126,6 +1196,16 @@ To see how it works, try out the following demo:
 
 :::
 
+::: only-for vue
+
+::: example #exampleSortByAPIMultipleColumns :vue3
+
+@[code](@/content/guides/rows/rows-sorting/vue/exampleSortByAPIMultipleColumns.vue)
+
+:::
+
+:::
+
 ## Add custom sort icons
 
 The default sort icons (↑↓) are rendered using CSS `-webkit-mask-image`. Override the following pseudo-elements to replace them:
@@ -1169,6 +1249,17 @@ The default sort icons (↑↓) are rendered using CSS `-webkit-mask-image`. Ove
 
 :::
 
+::: only-for vue
+
+::: example #exampleCustomSortIcons :vue3 --css 2
+
+@[code](@/content/guides/rows/rows-sorting/vue/exampleCustomSortIcons.vue)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons.css)
+
+:::
+
+:::
+
 To replace the column-priority number indicators used by the `MultiColumnSorting` plugin (<sub>1</sub>, <sub>2</sub>, etc.), override the `content` of `.columnSorting.sort-1::after` and subsequent pseudo-elements:
 
 ::: only-for javascript
@@ -1202,6 +1293,17 @@ To replace the column-priority number indicators used by the `MultiColumnSorting
 
 @[code](@/content/guides/rows/rows-sorting/angular/example7.ts)
 @[code](@/content/guides/rows/rows-sorting/angular/example7.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleCustomSortIcons3 :vue3 --css 2
+
+@[code](@/content/guides/rows/rows-sorting/vue/exampleCustomSortIcons3.vue)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleCustomSortIcons3.css)
 
 :::
 

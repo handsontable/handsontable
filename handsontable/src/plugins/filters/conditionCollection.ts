@@ -76,7 +76,7 @@ class ConditionCollection {
    * @param {number} column The physical column index.
    * @returns {boolean}
    */
-  isMatch(value: unknown, column: number) {
+  isMatch(value: unknown, column: number): boolean {
     const stateForColumn = this.filteringStates.getValueAtIndex<Record<string, unknown> | null>(column);
     const conditions = (stateForColumn?.conditions ?? []) as unknown[];
     const operation = stateForColumn?.operation as string;
@@ -92,9 +92,9 @@ class ConditionCollection {
    * @param {string} [operationType='conjunction'] Type of conditions operation.
    * @returns {boolean}
    */
-  isMatchInConditions(conditions: unknown[], value: unknown, operationType = OPERATION_AND) {
+  isMatchInConditions(conditions: unknown[], value: unknown, operationType = OPERATION_AND): boolean {
     if (conditions.length) {
-      return getOperationFunc(operationType)(conditions, value);
+      return getOperationFunc(operationType)(conditions, value) as boolean;
     }
 
     return true;
@@ -289,7 +289,7 @@ class ConditionCollection {
     }
 
     this.clearLocalHooks();
-    (this as any).filteringStates = null;
+    (this as unknown as { filteringStates: null }).filteringStates = null;
   }
 }
 

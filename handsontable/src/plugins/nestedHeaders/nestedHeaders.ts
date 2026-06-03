@@ -107,7 +107,7 @@ export class NestedHeaders extends BasePlugin {
 
   #stateManager = new StateManager();
   #hidingIndexMapObserver: { unsubscribe: () => void } | null = null;
-  #focusInitialCoords: { row: number, col: number, clone: () => any } | null = null;
+  #focusInitialCoords: { row: number, col: number, clone: () => CellCoords } | null = null;
   #isColumnsSelectionInProgress = false;
   /**
    * Keeps the last highlight position made by column selection. The coords are necessary to scroll
@@ -116,7 +116,7 @@ export class NestedHeaders extends BasePlugin {
    *
    * @type {CellCoords | null}
    */
-  #recentlyHighlightCoords: { row: number, col: number } | null = null;
+  #recentlyHighlightCoords: { row: number | null, col: number | null } | null = null;
   /**
    * Stores the header row level used as context for horizontal navigation when entering
    * and leaving rowspanned headers.
@@ -499,7 +499,7 @@ export class NestedHeaders extends BasePlugin {
       focusVisualCellRange.to.col = columnIndex;
       focusHighlight.commit();
     }
-  }
+  };
 
   /**
    * Finds the first visible header row for the passed coordinates. If the passed coordinates point
@@ -691,7 +691,7 @@ export class NestedHeaders extends BasePlugin {
 
     if (selectionType === HEADER_TYPE) {
       if (!isRoot) {
-        return headerNodeData.columnIndex;
+        return headerNodeData.columnIndex as number;
       }
 
     } else if (selectionType === ACTIVE_HEADER_TYPE) {
@@ -877,10 +877,15 @@ export class NestedHeaders extends BasePlugin {
 
     const columnStart = selectedRange.getTopStartCorner().col;
     const columnEnd = selectedRange.getBottomEndCorner().col;
-    const {
-      columnIndex,
-      origColspan,
-    } = this.#stateManager.getHeaderTreeNodeData(this.#focusInitialCoords!.row, this.#focusInitialCoords!.col);
+    const headerNodeData = this.#stateManager.getHeaderTreeNodeData(
+      this.#focusInitialCoords!.row, this.#focusInitialCoords!.col
+    );
+
+    if (!headerNodeData) {
+      return;
+    }
+
+    const { columnIndex, origColspan } = headerNodeData;
 
     selectedRange.setHighlight(this.#focusInitialCoords as unknown as CellCoords);
 
@@ -1091,7 +1096,7 @@ export class NestedHeaders extends BasePlugin {
   };
 
   #onBeforeSelectColumns = (
-    from: { row: number, col: number }, to: { row: number, col: number }, highlight: { clone: () => any }
+    from: { row: number, col: number }, to: { row: number, col: number }, highlight: { clone: () => CellCoords }
   ) => {
     const headerLevel = from.row;
     const startNodeData = this._getHeaderTreeNodeDataByCoords({
@@ -1156,7 +1161,7 @@ export class NestedHeaders extends BasePlugin {
 
     calc.startColumn =
       nonRenderable ?
-        this.#stateManager.getHeaderTreeNodeData(0, newStartColumn).columnIndex :
+        (this.#stateManager.getHeaderTreeNodeData(0, newStartColumn)?.columnIndex ?? newStartColumn) :
         newStartColumn;
   };
 
@@ -1186,7 +1191,7 @@ export class NestedHeaders extends BasePlugin {
    *
    * @returns {number[]|undefined}
    */
-  #onModifyColumnHeaderHeight = () => {
+  #onModifyColumnHeaderHeight = (): number[] | undefined => {
     if (!this.#hasRowspanHeaders) {
       return;
     }
@@ -1200,7 +1205,7 @@ export class NestedHeaders extends BasePlugin {
       return;
     }
 
-    return new Array(this.getLayersCount()).fill(baseHeaderHeight);
+    return (new Array(this.getLayersCount()) as number[]).fill(baseHeaderHeight);
   };
 
   /**
@@ -1215,7 +1220,7 @@ export class NestedHeaders extends BasePlugin {
    *                             header (the header closest to the cells).
    * @returns {string} Returns the column header value to update.
    */
-  #onModifyColumnHeaderValue = (value: string, visualColumnIndex: number, headerLevel: number) => {
+  #onModifyColumnHeaderValue = (value: string, visualColumnIndex: number, headerLevel: number): string => {
     const {
       label,
     } = this.#stateManager.getHeaderTreeNodeData(headerLevel, visualColumnIndex) ?? { label: '' };
@@ -1315,7 +1320,7 @@ export class NestedHeaders extends BasePlugin {
     super.destroy();
   }
 
-  _getHeaderTreeNodeDataByCoords(coords: { row: number, col: number }) {
+  _getHeaderTreeNodeDataByCoords(coords: { row: number, col: number }): HeaderNodeData | null | undefined {
     if (coords.row >= 0 || coords.col < 0) {
       return;
     }

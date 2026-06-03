@@ -117,6 +117,16 @@ Here's an example:
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-parent-child/vue/example1.vue)
+
+:::
+
+:::
+
 In the example above, we’ve created a data object consisting of 2016’s Grammy nominees of the “Rock” genre. Each _0-level_ entry declares a category, while
 their children declare nominees - assigned under the `__children` properties.
 

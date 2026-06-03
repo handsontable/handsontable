@@ -4,6 +4,7 @@ import {
 } from '../utils';
 import { KEY as SEPARATOR } from './separator';
 import * as C from '../../../i18n/constants';
+import type { HotInstance } from '../../../core/types';
 
 export const KEY = 'alignment';
 
@@ -13,10 +14,10 @@ export const KEY = 'alignment';
 export default function alignmentItem() {
   return {
     key: KEY,
-    name() {
+    name(this: HotInstance): string {
       return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT);
     },
-    disabled() {
+    disabled(this: HotInstance) {
       if (this.countRows() === 0 || this.countCols() === 0) {
         return true;
       }
@@ -37,13 +38,13 @@ export default function alignmentItem() {
       items: [
         {
           key: `${KEY}:left`,
-          name() {
+          name(this: HotInstance): string {
             return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_LEFT);
           },
-          callback() {
-            const selectedRange = this.getSelectedRange();
+          callback(this: HotInstance) {
+            const selectedRange = this.getSelectedRange() ?? [];
             const stateBefore = getAlignmentClasses(selectedRange,
-              (row: number, col: number) => this.getCellMeta(row, col).className);
+              (row: number, col: number) => this.getCellMeta(row, col).className as string);
             const type = 'horizontal';
             const alignment = 'htLeft';
 
@@ -56,13 +57,13 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:center`,
-          name() {
+          name(this: HotInstance): string {
             return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_CENTER);
           },
-          callback() {
-            const selectedRange = this.getSelectedRange();
+          callback(this: HotInstance) {
+            const selectedRange = this.getSelectedRange() ?? [];
             const stateBefore = getAlignmentClasses(selectedRange,
-              (row: number, col: number) => this.getCellMeta(row, col).className);
+              (row: number, col: number) => this.getCellMeta(row, col).className as string);
             const type = 'horizontal';
             const alignment = 'htCenter';
 
@@ -75,13 +76,13 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:right`,
-          name() {
+          name(this: HotInstance): string {
             return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_RIGHT);
           },
-          callback() {
-            const selectedRange = this.getSelectedRange();
+          callback(this: HotInstance) {
+            const selectedRange = this.getSelectedRange() ?? [];
             const stateBefore = getAlignmentClasses(selectedRange,
-              (row: number, col: number) => this.getCellMeta(row, col).className);
+              (row: number, col: number) => this.getCellMeta(row, col).className as string);
             const type = 'horizontal';
             const alignment = 'htRight';
 
@@ -94,13 +95,13 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:justify`,
-          name() {
+          name(this: HotInstance): string {
             return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_JUSTIFY);
           },
-          callback() {
-            const selectedRange = this.getSelectedRange();
+          callback(this: HotInstance) {
+            const selectedRange = this.getSelectedRange() ?? [];
             const stateBefore = getAlignmentClasses(selectedRange,
-              (row: number, col: number) => this.getCellMeta(row, col).className);
+              (row: number, col: number) => this.getCellMeta(row, col).className as string);
             const type = 'horizontal';
             const alignment = 'htJustify';
 
@@ -116,13 +117,13 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:top`,
-          name() {
+          name(this: HotInstance): string {
             return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_TOP);
           },
-          callback() {
-            const selectedRange = this.getSelectedRange();
+          callback(this: HotInstance) {
+            const selectedRange = this.getSelectedRange() ?? [];
             const stateBefore = getAlignmentClasses(selectedRange,
-              (row: number, col: number) => this.getCellMeta(row, col).className);
+              (row: number, col: number) => this.getCellMeta(row, col).className as string);
             const type = 'vertical';
             const alignment = 'htTop';
 
@@ -135,13 +136,13 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:middle`,
-          name() {
+          name(this: HotInstance): string {
             return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_MIDDLE);
           },
-          callback() {
-            const selectedRange = this.getSelectedRange();
+          callback(this: HotInstance) {
+            const selectedRange = this.getSelectedRange() ?? [];
             const stateBefore = getAlignmentClasses(selectedRange,
-              (row: number, col: number) => this.getCellMeta(row, col).className);
+              (row: number, col: number) => this.getCellMeta(row, col).className as string);
             const type = 'vertical';
             const alignment = 'htMiddle';
 
@@ -154,13 +155,13 @@ export default function alignmentItem() {
         },
         {
           key: `${KEY}:bottom`,
-          name() {
+          name(this: HotInstance): string {
             return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_ALIGNMENT_BOTTOM);
           },
-          callback() {
-            const selectedRange = this.getSelectedRange();
+          callback(this: HotInstance) {
+            const selectedRange = this.getSelectedRange() ?? [];
             const stateBefore = getAlignmentClasses(selectedRange,
-              (row: number, col: number) => this.getCellMeta(row, col).className);
+              (row: number, col: number) => this.getCellMeta(row, col).className as string);
             const type = 'vertical';
             const alignment = 'htBottom';
 

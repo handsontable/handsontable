@@ -28,8 +28,8 @@ export function getCondition(name: string, args: unknown[]) {
     meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown };
   };
 
-  return function(dataRow: DataRow) {
-    return condition.apply(dataRow.meta.instance, [dataRow, conditionArguments]);
+  return function(dataRow: DataRow): boolean {
+    return (condition.apply(dataRow.meta.instance, [dataRow, conditionArguments]) as boolean);
   };
 }
 

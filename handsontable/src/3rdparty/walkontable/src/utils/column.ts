@@ -17,7 +17,7 @@ export default class ColumnUtils {
   /**
    * @type {Map<number, number>}
    */
-  headerWidths = new Map();
+  headerWidths = new Map<number, number>();
 
   /**
    * @param {TableDao} dataAccessObject The table Data Access Object.
@@ -34,9 +34,9 @@ export default class ColumnUtils {
    * @param {number} sourceIndex Column source index.
    * @returns {number}
    */
-  getWidth(sourceIndex: number) {
-    const width = this.wtSettings.getSetting('columnWidth', sourceIndex)
-      || this.wtSettings.getSetting('defaultColumnWidth');
+  getWidth(sourceIndex: number): number | undefined {
+    const width = this.wtSettings.getSetting<number | undefined>('columnWidth', sourceIndex)
+      || this.wtSettings.getSetting<number | undefined>('defaultColumnWidth');
 
     return width;
   }
@@ -81,6 +81,7 @@ export default class ColumnUtils {
     const { wtSettings } = this;
     let rowHeaderWidthSetting = wtSettings.getSetting('rowHeaderWidth');
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     rowHeaderWidthSetting = wtSettings.getSetting('onModifyRowHeaderWidth', rowHeaderWidthSetting);
 
     if (rowHeaderWidthSetting !== null && rowHeaderWidthSetting !== undefined) {
@@ -88,9 +89,11 @@ export default class ColumnUtils {
       const defaultColumnWidth = wtSettings.getSetting('defaultColumnWidth');
 
       for (let visibleColumnIndex = 0; visibleColumnIndex < rowHeadersCount; visibleColumnIndex++) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         let width = Array.isArray(rowHeaderWidthSetting)
           ? rowHeaderWidthSetting[visibleColumnIndex] : rowHeaderWidthSetting;
 
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         width = (width === null || width === undefined) ? defaultColumnWidth : width;
 
         this.headerWidths.set(visibleColumnIndex, width);

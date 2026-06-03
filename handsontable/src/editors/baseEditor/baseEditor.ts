@@ -236,7 +236,7 @@ export class BaseEditor {
     const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', visualRowFrom, visualColumnFrom, false, 'meta');
 
     if (Array.isArray(modifiedCellCoords)) {
-      [visualRowFrom, visualColumnFrom] = modifiedCellCoords;
+      [visualRowFrom, visualColumnFrom] = modifiedCellCoords as [number, number];
     }
 
     // Saving values using the modified coordinates.

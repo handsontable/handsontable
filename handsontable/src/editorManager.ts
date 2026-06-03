@@ -4,7 +4,7 @@ import type { default as SelectionManager } from './selection/selection';
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { isImmediatePropagationStopped } from './helpers/dom/event';
 import { getEditorInstance } from './editors/registry';
-import { BaseEditor } from './editors/baseEditor';
+import type { BaseEditor } from './editors/baseEditor';
 import EventManager from './eventManager';
 
 class EditorManager {
@@ -108,7 +108,9 @@ class EditorManager {
     const { row: rowNullable, col: colNullable } = highlight;
     const row = rowNullable!;
     const col = colNullable!;
-    const modifiedCellCoords = this.hot.runHooks('modifyGetCellCoords', row, col, false, 'meta');
+    const modifiedCellCoords = this.hot.runHooks<void | [number, number] | [number, number, number, number]>(
+      'modifyGetCellCoords', row, col, false, 'meta'
+    );
     let visualRowToCheck = row;
     let visualColumnToCheck = col;
 
@@ -360,7 +362,7 @@ class EditorManager {
   }
 }
 
-const instances = new WeakMap();
+const instances = new WeakMap<object, EditorManager>();
 
 /**
  * @param {Core} hotInstance The Handsontable instance.
@@ -370,7 +372,7 @@ const instances = new WeakMap();
  */
 (EditorManager as unknown as Record<string, Function>).getInstance = function(
   hotInstance: HotInstance, tableMeta: GridSettings, selection: SelectionManager
-) {
+): EditorManager {
   let editorManager = instances.get(hotInstance);
 
   if (!editorManager) {

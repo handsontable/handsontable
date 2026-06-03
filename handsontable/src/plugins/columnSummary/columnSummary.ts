@@ -16,7 +16,7 @@ export interface SummaryEndpoint {
   forceNumeric?: boolean;
   type?: string;
   result?: number | string;
-  customFunction?: Function | null;
+  customFunction?: ((this: ColumnSummary, endpoint: SummaryEndpoint) => number | string) | null;
   [key: string]: unknown;
 }
 

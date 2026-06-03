@@ -629,7 +629,7 @@ export class CopyPaste extends BasePlugin {
         let cellValue: unknown = plainData[insertedRow][insertedColumn];
 
         if (parsePastedValue && sourceData && isJSON(sourceCellValue as string) && cellValue === originalCellValue) {
-          const parsedCellValue = JSON.parse(sourceCellValue as string);
+          const parsedCellValue: unknown = JSON.parse(sourceCellValue as string);
 
           cellValue = parsedCellValue;
         }

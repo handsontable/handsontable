@@ -1,3 +1,4 @@
+import type { Menu } from '../../contextMenu/menu/menu';
 import { createFocusNavigator } from './focusNavigator';
 import { SelectUI } from '../ui/select';
 import { BaseUI } from '../ui/_base';
@@ -23,18 +24,18 @@ const SHORTCUTS_MENU_CONTEXT = 'filters';
  * @param {BaseUI[]} menuItems The list of the component's elements to paginate to.
  * @returns {Paginator}
  */
-export function createMenuFocusController(mainMenu: Record<string, unknown>, menuItems: unknown[]) {
+export function createMenuFocusController(mainMenu: Menu, menuItems: unknown[]) {
   /**
    * @type {number} The last selected menu item (before clearing the the menu state after going
    * into the focus mode triggered by the TAB or SHIFT+TAB keys).
    */
   let lastSelectedMenuItem = -1;
-  let menuInstance: Record<string, Function>;
+  let menuInstance: Menu;
 
   const focusNavigator = createFocusNavigator(menuItems);
   const updateNavigatorPosition = (element: unknown) => () => {
     if (menuInstance.isOpened()) {
-      menuInstance.getKeyboardShortcutsCtrl().listen(SHORTCUTS_MENU_CONTEXT);
+      menuInstance.getKeyboardShortcutsCtrl()!.listen(SHORTCUTS_MENU_CONTEXT);
     }
 
     focusNavigator.setCurrentPage(menuItems.indexOf(element));
@@ -49,16 +50,16 @@ export function createMenuFocusController(mainMenu: Record<string, unknown>, men
     }
   });
 
-  setMenu(mainMenu as Record<string, Function>);
+  setMenu(mainMenu);
 
   /**
    * Extends the menu and submenus with new keyboard shortcuts.
    *
    * @param {*} menu The menu (as main menu or submenu) instance.
    */
-  function addKeyboardShortcuts(menu: Record<string, Function>) {
-    const mainMenuShortcutsCtrl = menuInstance.getKeyboardShortcutsCtrl();
-    const currentMenuShortcutsCtrl = menu.getKeyboardShortcutsCtrl();
+  function addKeyboardShortcuts(menu: Menu) {
+    const mainMenuShortcutsCtrl = menuInstance.getKeyboardShortcutsCtrl()!;
+    const currentMenuShortcutsCtrl = menu.getKeyboardShortcutsCtrl()!;
 
     focusNavigator.clear();
 
@@ -81,7 +82,7 @@ export function createMenuFocusController(mainMenu: Record<string, unknown>, men
     mainMenuShortcutsCtrl.addCustomShortcuts([{
       keys: [['Tab'], ['Shift', 'Tab']],
       callback: (event: KeyboardEvent) => {
-        const menuNavigator = menuInstance.getNavigator();
+        const menuNavigator = menuInstance.getNavigator()!;
 
         if (menuNavigator.getCurrentPage() > -1) {
           lastSelectedMenuItem = menuNavigator.getCurrentPage();
@@ -129,7 +130,7 @@ export function createMenuFocusController(mainMenu: Record<string, unknown>, men
    */
   function listen() {
     menuInstance.focus();
-    menuInstance.getKeyboardShortcutsCtrl().listen(SHORTCUTS_MENU_CONTEXT);
+    menuInstance.getKeyboardShortcutsCtrl()!.listen(SHORTCUTS_MENU_CONTEXT);
   }
 
   /**
@@ -137,7 +138,7 @@ export function createMenuFocusController(mainMenu: Record<string, unknown>, men
    *
    * @param {Menu} menu The new menu instance.
    */
-  function setMenu(menu: Record<string, Function>) {
+  function setMenu(menu: Menu) {
     menu.addLocalHook('afterSelectionChange', (selectedItem: Record<string, unknown>) => {
       if (!(selectedItem.key as string).startsWith('filter_')) {
         focusNavigator.clear();

@@ -32,8 +32,8 @@ export class ExtendMetaPropertiesMod {
     ],
     ['fixedColumnsLeft', {
       target: 'fixedColumnsStart',
-      onChange(propName: unknown) {
-        const isRtl = this.metaManager.hot.isRtl();
+      onChange(this: ExtendMetaPropertiesMod, propName: unknown) {
+        const isRtl: boolean = this.metaManager.hot.isRtl();
 
         if (isRtl && propName === 'fixedColumnsLeft') {
           throwWithCause('The `fixedColumnsLeft` is not supported for RTL. Please use option `fixedColumnsStart`.');
@@ -46,7 +46,7 @@ export class ExtendMetaPropertiesMod {
       }
     }],
     ['correctFormat', {
-      onChange() {
+      onChange(this: ExtendMetaPropertiesMod) {
         if (!correctFormatDeprecatedMessageShown.has(this.metaManager.hot)) {
           correctFormatDeprecatedMessageShown.add(this.metaManager.hot);
           deprecatedWarn(
@@ -57,7 +57,7 @@ export class ExtendMetaPropertiesMod {
       }
     }],
     ['datePickerConfig', {
-      onChange() {
+      onChange(this: ExtendMetaPropertiesMod) {
         if (!datePickerConfigDeprecatedMessageShown.has(this.metaManager.hot)) {
           datePickerConfigDeprecatedMessageShown.add(this.metaManager.hot);
           deprecatedWarn(
@@ -99,7 +99,7 @@ export class ExtendMetaPropertiesMod {
     if (!isInitialChange) {
       throwWithCause(`The \`${propName}\` option can not be updated after the Handsontable is initialized.`);
     }
-  }
+  };
 
   /**
    * Extends the meta options based on the object descriptors from the `propDescriptors` list.
@@ -152,10 +152,10 @@ export class ExtendMetaPropertiesMod {
     const self = this;
 
     Object.defineProperty(this.metaManager.globalMeta.meta, propName as string, {
-      get() {
+      get(): unknown {
         return this[origProp as string];
       },
-      set(value) {
+      set(value: unknown) {
         const isInitialChange = !self.usageTracker.has(propName);
 
         self.usageTracker.add(propName);

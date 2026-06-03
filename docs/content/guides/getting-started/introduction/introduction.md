@@ -35,7 +35,7 @@ Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. 
 - <i class="ico i-angular"></i>
 [Angular](@/angular/guides/getting-started/installation/installation.md)
 - <i class="ico i-vue"></i>
-[Vue 3](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)
+[Vue 3](@/vue/guides/getting-started/installation/installation.md)
 
 </div>
 

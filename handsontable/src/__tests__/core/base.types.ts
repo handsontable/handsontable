@@ -2,7 +2,7 @@ import Handsontable, {
   CellCoords,
   CellRange,
 } from 'handsontable/base';
-import { HotInstance } from 'handsontable';
+import type { HotInstance } from 'handsontable';
 import EventManager from 'handsontable/eventManager';
 
 const elem = document.createElement('div');

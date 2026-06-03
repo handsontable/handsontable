@@ -57,7 +57,8 @@ export class AggregatedCollection extends MapCollection {
     // |    0    | [[ value,  value,  value,  value,  value ], |
     // |    1    | [  value,  value,  value,  value,  value ]] |
     // +---------+----------+-------+-------+-------+----------+
-    const mapsValuesMatrix = arrayMap(this.get(), (map: unknown) => (map as { getValues(): unknown[] }).getValues());
+    const mapsValuesMatrix = arrayMap(this.get() as unknown[], (map: unknown) =>
+      (map as { getValues(): unknown[] }).getValues());
     // Below variable stores values for every particular index. Example describing situation when we have 2 registered maps,
     // with length equal to 5.
     //

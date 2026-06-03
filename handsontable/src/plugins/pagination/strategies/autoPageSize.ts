@@ -28,7 +28,7 @@ export class AutoPageSizeStrategy {
    * @param {function(): number} options.viewportSizeProvider A function that returns the size of the viewport in pixels.
    */
   calculate({ itemsSizeProvider, viewportSizeProvider }: {
-    itemsSizeProvider: Function, viewportSizeProvider: Function
+    itemsSizeProvider: () => number[], viewportSizeProvider: () => number
   }) {
     const itemSizes = itemsSizeProvider();
     const viewportSize = viewportSizeProvider();

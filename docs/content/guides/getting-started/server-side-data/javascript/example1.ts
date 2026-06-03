@@ -4,9 +4,10 @@ import type {
   DataProviderQueryParameters,
   DataProviderFetchOptions,
   DataProviderBeforeFetchParameters,
-  DataProviderFilterColumn,
   RowUpdatePayload,
 } from 'handsontable/plugins/dataProvider';
+
+type DataProviderFilterColumn = NonNullable<DataProviderQueryParameters['filters']>[number];
 
 registerAllModules();
 

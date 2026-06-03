@@ -6,9 +6,9 @@ All coding rules and conventions are in `/AGENTS.md`. Apply those rules to every
 
 Read and apply the review checklists from these files:
 
-- @.claude/skills/code-quality-review/SKILL.md -- ESLint rules, JSDoc, naming, cognitive complexity, bundle size
-- @.claude/skills/architecture-review/SKILL.md -- SOLID, Law of Demeter, plugin decoupling, breaking changes, convention over configuration
-- @.claude/skills/performance-a11y-review/SKILL.md -- large arrays, render batching, WCAG 2.1 AA, keyboard navigation
+- @.claude/skills/handsontable-code-review/references/code-quality.md -- ESLint rules, JSDoc, naming, cognitive complexity, bundle size
+- @.claude/skills/handsontable-code-review/references/architecture.md -- SOLID, Law of Demeter, plugin decoupling, breaking changes, convention over configuration
+- @.claude/skills/handsontable-code-review/references/performance-a11y.md -- large arrays, render batching, WCAG 2.1 AA, keyboard navigation
 
 ## Repository-level checks
 

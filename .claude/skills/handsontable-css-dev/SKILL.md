@@ -1,5 +1,6 @@
 ---
 name: handsontable-css-dev
+path: handsontable/src/{styles,themes}/**
 description: Use when working with Handsontable themes, CSS custom properties, SCSS files, theme tokens, or visual styling - covers theme architecture, CSS variable API, the strict CSS/JS separation rule, and the four-layer process for adding or renaming theme tokens
 ---
 

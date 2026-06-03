@@ -20,7 +20,7 @@ const {
  * @returns {boolean}
  */
 export function hasTheme(themeName: string): boolean {
-  return hasItem(themeName);
+  return hasItem(themeName) as boolean;
 }
 
 /**
@@ -36,7 +36,7 @@ export function getTheme(themeName: string): ThemeBuilder | undefined {
     return undefined;
   }
 
-  return getItem(themeName);
+  return getItem(themeName) as ThemeBuilder;
 }
 
 /**
@@ -45,7 +45,7 @@ export function getTheme(themeName: string): ThemeBuilder | undefined {
  * @returns {string[]}
  */
 export function getThemeNames(): string[] {
-  return getNames();
+  return getNames() as string[];
 }
 
 /**
@@ -54,7 +54,7 @@ export function getThemeNames(): string[] {
  * @returns {object[]}
  */
 export function getThemes(): ThemeBuilder[] {
-  return getValues();
+  return getValues() as ThemeBuilder[];
 }
 
 /**

@@ -226,7 +226,7 @@ export function handleBeforeColumnSortForServer(
 
   columnSorting.setSortConfig(destinationSortConfigs as unknown as ColumnSortingConfig[]);
   applyQueryParametersFromPlugins();
-  fetchData({ skipLoading: true });
+  void fetchData({ skipLoading: true });
 
   return false;
 }

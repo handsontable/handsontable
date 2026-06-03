@@ -1,3 +1,4 @@
+import type { HotInstance } from '../../../core/types';
 import { checkSelectionConsistency, markLabelAsSelected } from '../utils';
 import * as C from '../../../i18n/constants';
 
@@ -10,24 +11,24 @@ export default function readOnlyItem() {
   return {
     key: KEY,
     checkable: true,
-    ariaChecked() {
+    ariaChecked(this: HotInstance) {
       const atLeastOneReadOnly = checkSelectionConsistency(
-        this.getSelectedRange(),
-        (row: number, col: number) => this.getCellMeta(row, col).readOnly
+        this.getSelectedRange() ?? [],
+        (row: number, col: number) => Boolean(this.getCellMeta(row, col).readOnly)
       );
 
       return atLeastOneReadOnly;
     },
 
-    ariaLabel() {
-      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY);
+    ariaLabel(this: HotInstance): string {
+      return this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY) as string;
     },
 
-    name() {
-      let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY);
+    name(this: HotInstance): string {
+      let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY) as string;
       const atLeastOneReadOnly = checkSelectionConsistency(
-        this.getSelectedRange(),
-        (row: number, col: number) => this.getCellMeta(row, col).readOnly
+        this.getSelectedRange() ?? [],
+        (row: number, col: number) => Boolean(this.getCellMeta(row, col).readOnly)
       );
 
       if (atLeastOneReadOnly) {
@@ -36,11 +37,11 @@ export default function readOnlyItem() {
 
       return label;
     },
-    callback() {
-      const ranges = this.getSelectedRange();
+    callback(this: HotInstance) {
+      const ranges = this.getSelectedRange() ?? [];
       const atLeastOneReadOnly = checkSelectionConsistency(
         ranges,
-        (row: number, col: number) => this.getCellMeta(row, col).readOnly
+        (row: number, col: number) => Boolean(this.getCellMeta(row, col).readOnly)
       );
 
       for (const range of ranges) {
@@ -53,7 +54,7 @@ export default function readOnlyItem() {
 
       this.render();
     },
-    disabled() {
+    disabled(this: HotInstance) {
       const range = this.getSelectedRangeActive();
 
       if (!range) {
@@ -72,7 +73,7 @@ export default function readOnlyItem() {
         return true;
       }
 
-      if (!this.getSelectedRange() || this.getSelectedRange().length === 0) {
+      if (!this.getSelectedRange()?.length) {
         return true;
       }
 

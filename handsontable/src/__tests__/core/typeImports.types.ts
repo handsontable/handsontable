@@ -2,7 +2,7 @@
 // exports from both the main `handsontable` entry and the tree-shakeable
 // `handsontable/base` entry. Regression test for issue #11240.
 
-import {
+import type {
   CellChange,
   CellMeta,
   CellProperties,
@@ -33,7 +33,7 @@ import {
   ThemeTokensConfig,
 } from 'handsontable';
 
-import {
+import type {
   CellChange as BaseCellChange,
   CellMeta as BaseCellMeta,
   CellProperties as BaseCellProperties,

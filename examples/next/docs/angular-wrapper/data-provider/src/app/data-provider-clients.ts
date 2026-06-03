@@ -172,7 +172,7 @@ export function createWarehouseDataProvider(restApi: string) {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          updates: rows.map(({ rowId, data }) => ({ id: String(rowId), changes: data })),
+          updates: rows.map(({ id, changes }) => ({ id: String(id), changes })),
         }),
       });
 
@@ -217,9 +217,9 @@ export function createTicketsDataProvider(graphqlUrl: string) {
       await gqlFetch(graphqlUrl, {
         query: M_UPDATE,
         variables: {
-          updates: rows.map(({ rowId, data }) => ({
-            id: String(rowId),
-            changes: data,
+          updates: rows.map(({ id, changes }) => ({
+            id: String(id),
+            changes,
           })),
         },
       });

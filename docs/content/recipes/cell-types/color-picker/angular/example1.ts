@@ -6,7 +6,6 @@ import {
   HotCellRendererAdvancedComponent,
   HotTableModule
 } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable';
 import Pickr from '@simonwep/pickr';
 import '@simonwep/pickr/dist/themes/nano.min.css';
 
