@@ -68,10 +68,10 @@ const regexpJSFiles = /\.(m?js|d\.ts|d\.mts)$/;
 // Each entry maps a file extension to [condition, subKey] in the nested exports object:
 //   { import: { types: ".d.mts", default: ".mjs" }, require: { types: ".d.ts", default: ".js" } }
 const entrypointMap = {
-  '.mts': ['import', 'types'],   // .d.mts  → import.types
-  '.mjs': ['import', 'default'], // .mjs    → import.default
-  '.ts': ['require', 'types'],   // .d.ts   → require.types
-  '.js': ['require', 'default'], // .js     → require.default
+  '.mts': ['import', 'types'], // .d.mts → import.types
+  '.mjs': ['import', 'default'], // .mjs → import.default
+  '.ts': ['require', 'types'], // .d.ts → require.types
+  '.js': ['require', 'default'], // .js → require.default
 };
 const groupedExports = EXPORTS_RULES.flatMap((rule) => {
   if (typeof rule !== 'string') {
@@ -168,6 +168,10 @@ PACKAGE_FIELDS_TO_COPY.forEach((field) => {
 
 fse.writeJSONSync(`${TARGET_PATH}/package.json`, {
   ...newPackageJson,
+  // Explicitly mark the published package as CJS so .d.ts files are treated as
+  // CJS type declarations under moduleResolution: "node16". Not added to the
+  // source package.json to avoid breaking ESM import syntax in test files.
+  type: 'commonjs',
   exports: {
     ...targetExports,
   },

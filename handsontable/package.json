@@ -239,7 +239,6 @@
       "bugs",
       "author",
       "version",
-      "type",
       "main",
       "module",
       "jsnext:main",
@@ -252,7 +251,6 @@
       "sideEffects"
     ]
   },
-  "type": "commonjs",
   "sideEffects": [
     "**/*.css",
     "./languages/*",
