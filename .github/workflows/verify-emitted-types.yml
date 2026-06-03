@@ -43,3 +43,15 @@ jobs:
           "
           npx -y -p typescript@5.1.6 tsc -p tsconfig.verify-types.json
           rm tsconfig.verify-types.json
+      - name: Check package exports and well-formedness (publint)
+        run: |
+          cd handsontable/tmp
+          npx -y publint@0.3.21
+      - name: Check type-declaration resolution (attw)
+        run: |
+          cd handsontable/tmp
+          # false-export-default is a known Babel CJS interop artefact:
+          # index.js uses exports.__esModule=true (not module.exports=X), so .default
+          # is reachable at runtime for all esModuleInterop:true consumers.
+          npx -y @arethetypeswrong/cli@0.18.3 --pack . --format table \
+            --ignore-rules false-export-default

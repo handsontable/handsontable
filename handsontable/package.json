@@ -196,43 +196,38 @@
       "./themes/static/variables/**/*",
       {
         ".": {
-          "types": "./index.d.ts",
-          "import": "./index.mjs",
-          "require": "./index.js"
+          "import": { "types": "./index.d.mts", "default": "./index.mjs" },
+          "require": { "types": "./index.d.ts", "default": "./index.js" }
         }
       },
       {
         "./base": {
-          "types": "./base.d.ts",
-          "import": "./base.mjs",
-          "require": "./base.js"
+          "import": { "types": "./base.d.mts", "default": "./base.mjs" },
+          "require": { "types": "./base.d.ts", "default": "./base.js" }
         }
       },
       {
         "./languages/all": {
-          "import": "./languages/index.mjs",
-          "require": "./languages/all.js"
+          "import": { "default": "./languages/index.mjs" },
+          "require": { "default": "./languages/all.js" }
         }
       },
       {
         "./registry": {
-          "types": "./registry.d.ts",
-          "import": "./registry.mjs",
-          "require": "./registry.js"
+          "import": { "types": "./registry.d.mts", "default": "./registry.mjs" },
+          "require": { "types": "./registry.d.ts", "default": "./registry.js" }
         }
       },
       {
         "./settings": {
-          "types": "./settings.d.ts",
-          "import": "./settings.mjs",
-          "require": "./settings.js"
+          "import": { "types": "./settings.d.mts", "default": "./settings.mjs" },
+          "require": { "types": "./settings.d.ts", "default": "./settings.js" }
         }
       },
       {
         "./themes": {
-          "types": "./themes/index.d.ts",
-          "import": "./themes/index.mjs",
-          "require": "./themes/index.js"
+          "import": { "types": "./themes/index.d.mts", "default": "./themes/index.mjs" },
+          "require": { "types": "./themes/index.d.ts", "default": "./themes/index.js" }
         }
       }
     ],
@@ -244,6 +239,7 @@
       "bugs",
       "author",
       "version",
+      "type",
       "main",
       "module",
       "jsnext:main",
@@ -256,6 +252,7 @@
       "sideEffects"
     ]
   },
+  "type": "commonjs",
   "sideEffects": [
     "**/*.css",
     "./languages/*",

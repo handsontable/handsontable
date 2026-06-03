@@ -8,7 +8,7 @@
  * The published .d.ts must be consumable by TypeScript 5.1+.
  * The dev compiler may be a newer TS version — only the output is downleveled.
  */
-import { readdir, readFile, writeFile } from 'node:fs/promises';
+import { copyFile, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -193,6 +193,13 @@ try {
       filesRewrote += 1;
       totalReplacements += fileReplacements;
     }
+
+    // Copy every .d.ts to a sibling .d.mts so the package `exports` map can point
+    // the ESM `import` condition at a file TypeScript explicitly treats as ESM types.
+    // Content is identical; the .mts extension is the only signal needed.
+    const mtsPath = filePath.replace(/\.d\.ts$/, '.d.mts');
+
+    await copyFile(filePath, mtsPath);
   }
 
   console.log(`downlevel-dts: rewrote ${filesRewrote} files (${totalReplacements} replacements)`);
