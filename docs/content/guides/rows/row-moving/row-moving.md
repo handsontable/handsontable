@@ -61,6 +61,16 @@ A draggable move handle appears above the selected row header. You can click and
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-moving/vue/example1.vue)
+
+:::
+
+:::
+
 ## Set a pre-defined row order
 
 Instead of setting [`manualRowMove`](@/api/options.md#manualrowmove) to `true`, you can pass an **array of physical row indexes** to define the initial visual order of rows on render.

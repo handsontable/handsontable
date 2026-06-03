@@ -70,10 +70,13 @@ export class AppComponent {
     width: 500,
     height: 220,
     rowHeaders: true,
+    // Configurable `interval`/`rampDistance` for `dragToScroll` is not available in 17.1.0, where
+    // the option is typed as `boolean`. The cast keeps the example compiling against 17.1.0; at
+    // runtime the object is truthy, so drag-to-scroll is enabled (the custom speed is ignored there).
     dragToScroll: {
       interval: { min: this.intervalMin, max: this.intervalMax },
       rampDistance: this.rampDistance,
-    },
+    } as unknown as GridSettings['dragToScroll'],
   };
 
   onSliderChange(event: Event, field: 'intervalMin' | 'intervalMax' | 'rampDistance'): void {
@@ -87,7 +90,7 @@ export class AppComponent {
       dragToScroll: {
         interval: { min: this.intervalMin, max: this.intervalMax },
         rampDistance: this.rampDistance,
-      },
+      } as unknown as GridSettings['dragToScroll'],
     };
   }
 }

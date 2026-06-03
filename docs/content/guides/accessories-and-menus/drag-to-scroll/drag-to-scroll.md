@@ -84,6 +84,16 @@ To see drag-to-scroll in action, click any cell in the grid below, hold the mous
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/accessories-and-menus/drag-to-scroll/vue/example1.vue)
+
+:::
+
+:::
+
 ## Configure scroll speed
 
 Pass an object to [`dragToScroll`](@/api/options.md#dragtoscroll) to control how quickly the viewport scrolls:
@@ -140,6 +150,16 @@ Use the sliders below to adjust all three parameters. The grid reloads with the 
 
 @[code](@/content/guides/accessories-and-menus/drag-to-scroll/angular/example2.ts)
 @[code](@/content/guides/accessories-and-menus/drag-to-scroll/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/accessories-and-menus/drag-to-scroll/vue/example2.vue)
 
 :::
 

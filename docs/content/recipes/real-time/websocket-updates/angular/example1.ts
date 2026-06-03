@@ -2,7 +2,6 @@
 import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
-import type { CellChange, ChangeSource } from 'handsontable/base';
 
 type StockRow = {
   symbol: string;
@@ -51,7 +50,7 @@ export class AppComponent implements OnInit, OnDestroy {
     height: 'auto',
     width: '100%',
     stretchH: 'all',
-    afterChange: (changes: CellChange[] | null, source: ChangeSource) => {
+    afterChange: (changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) => {
       if ((source as string) !== 'external' || !changes) {
         return;
       }

@@ -80,6 +80,16 @@ You can provide the `source` option as an array of values that will be used as t
 :::
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-types/multiselect-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ### Array of objects
 
 You can provide the `source` option as an array of objects with `key` and `value` properties. The `value` property will be used as the MultiSelect's option label, while the entire object will be used as the value saved to the cell's source data.
@@ -113,6 +123,16 @@ You can provide the `source` option as an array of objects with `key` and `value
 @[code](@/content/guides/cell-types/multiselect-cell-type/angular/example2.html)
 
 :::
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-types/multiselect-cell-type/vue/example2.vue)
+
+:::
+
 :::
 
 ## Keyboard navigation
@@ -173,6 +193,16 @@ The demo below showcases some the options in an interactive example.
 @[code](@/content/guides/cell-types/multiselect-cell-type/angular/example3.html)
 
 :::
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-types/multiselect-cell-type/vue/example3.vue)
+
+:::
+
 :::
 
 #### API methods

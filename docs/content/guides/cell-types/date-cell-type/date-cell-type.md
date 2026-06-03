@@ -63,6 +63,16 @@ In the following demo, multiple columns use the date cell type with different fo
 :::
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-types/date-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ## Use the date cell type
 
 Use the **object-style** configuration by setting the [`type`](@/api/options.md#type) option to `'intl-date'` or `'date'` and [`dateFormat`](@/api/options.md#dateformat) to an object. The locale is controlled via the [`locale`](@/api/options.md#locale) option.
@@ -176,6 +186,47 @@ settings3 = {
 
 :::
 
+::: only-for vue
+
+```js
+// set the date cell type for the entire grid (Intl, recommended)
+const hotSettings = ref({
+  type: 'intl-date',
+  locale: 'en-US',
+  dateFormat: {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }
+});
+
+// set the date cell type for a single column
+const hotSettings = ref({
+  columns: [
+    {
+      type: 'intl-date',
+      locale: 'en-US',
+      dateFormat: { dateStyle: 'short' }
+    }
+  ]
+});
+
+// set the date cell type for a single cell
+const hotSettings = ref({
+  cell: [
+    {
+      row: 0,
+      col: 2,
+      type: 'intl-date',
+      locale: 'en-US',
+      dateFormat: { dateStyle: 'medium' }
+    }
+  ]
+});
+```
+
+:::
+
 For `intl-date` and `date` cells, source data **must** be in **ISO 8601 date format** (`YYYY-MM-DD`) for dates to work correctly. The `dateFormat` object only affects how dates are displayed; sorting and filtering rely on the underlying ISO value.
 
 ## Format dates
@@ -256,6 +307,31 @@ settings = {
     }
   ]
 };
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  columns: [
+    {
+      type: 'intl-date',
+      locale: 'en-US',
+      dateFormat: {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }
+    },
+    {
+      type: 'intl-date',
+      locale: 'de-DE',
+      dateFormat: { dateStyle: 'long' }
+    }
+  ]
+});
 ```
 
 :::

@@ -1,7 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable';
 import Handsontable from 'handsontable/base';
 
 interface MasterRow {
@@ -129,7 +128,7 @@ export class AppComponent {
         const updates = (Object.entries(DETAIL_COLUMN_MAP) as [keyof DetailRow, number][])
           .map(([prop, columnIndex]) => [rowIndex, columnIndex, detailRow[prop]] as [number, number, DetailRow[keyof DetailRow]]);
 
-        detailHot.setDataAtCell(updates as unknown[][], null, undefined, SOURCE_SYNC_FROM_MASTER);
+        detailHot.setDataAtCell(updates, SOURCE_SYNC_FROM_MASTER);
       });
     },
   };

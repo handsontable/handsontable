@@ -60,6 +60,16 @@ In the following demo, the **Start**, **Break start**, and **End** columns use t
 :::
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-types/time-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ## Use the time cell type
 
 Use the **object-style** configuration by setting the [`type`](@/api/options.md#type) option to `'intl-time'` or `'time'` and [`timeFormat`](@/api/options.md#timeformat) to an object. The locale is controlled via the [`locale`](@/api/options.md#locale) option.
@@ -176,6 +186,60 @@ settings3 = {
 
 :::
 
+::: only-for vue
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
+
+registerAllModules();
+
+// set the time cell type for the entire grid (Intl, recommended)
+const hotSettings = ref<GridSettings>({
+  type: 'intl-time',
+  locale: 'en-US',
+  timeFormat: {
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+// set the time cell type for a single column
+const hotSettingsColumn = ref<GridSettings>({
+  columns: [
+    {
+      type: 'intl-time',
+      locale: 'en-US',
+      timeFormat: { timeStyle: 'medium' }
+    }
+  ],
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+// set the time cell type for a single cell
+const hotSettingsCell = ref<GridSettings>({
+  cell: [
+    {
+      row: 0,
+      col: 2,
+      type: 'intl-time',
+      locale: 'en-US',
+      timeFormat: { hour: '2-digit', minute: '2-digit', hour12: true }
+    }
+  ],
+  licenseKey: 'non-commercial-and-evaluation',
+});
+</script>
+```
+
+:::
+
 For `intl-time` and `time` cells, source data **must** be in **24-hour time format** (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`) for times to work correctly. The `timeFormat` object only affects how times are displayed; sorting and filtering rely on the underlying value.
 
 ## Format times
@@ -259,6 +323,46 @@ settings = {
     }
   ]
 };
+```
+
+:::
+
+::: only-for vue
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
+
+registerAllModules();
+
+const hotSettings = ref<GridSettings>({
+  columns: [
+    {
+      type: 'intl-time',
+      locale: 'en-US',
+      timeFormat: {
+        hour: 'numeric',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      }
+    },
+    {
+      type: 'intl-time',
+      locale: 'de-DE',
+      timeFormat: { timeStyle: 'medium' }
+    }
+  ],
+  licenseKey: 'non-commercial-and-evaluation',
+});
+</script>
+
+<template>
+  <HotTable :settings="hotSettings" />
+</template>
 ```
 
 :::

@@ -61,6 +61,16 @@ The password cell type behaves like a text cell, the only difference being that 
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-types/password-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ## Fixed hash length
 
 By default, every hash has a length equal to the length of its corresponding value. Use option `hashLength` to set a fixed hash length.
@@ -93,6 +103,16 @@ By default, every hash has a length equal to the length of its corresponding val
 
 @[code](@/content/guides/cell-types/password-cell-type/angular/example2.ts)
 @[code](@/content/guides/cell-types/password-cell-type/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-types/password-cell-type/vue/example2.vue)
 
 :::
 
@@ -135,6 +155,16 @@ By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-types/password-cell-type/vue/example3.vue)
+
+:::
+
+:::
+
 ## Reveal delay
 
 Use the `hashRevealDelay` option to briefly show each character as you type it. After the delay (in milliseconds) elapses, the character is replaced by the hash symbol. This lets you confirm what you typed without permanently exposing the value.
@@ -169,6 +199,16 @@ When `hashRevealDelay` is set, the editor switches from a native `<input type="p
 
 @[code](@/content/guides/cell-types/password-cell-type/angular/example4.ts)
 @[code](@/content/guides/cell-types/password-cell-type/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/cell-types/password-cell-type/vue/example4.vue)
 
 :::
 

@@ -61,6 +61,16 @@ settings = { className: "htCenter" };
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = {
+  className: 'htCenter',
+};
+```
+
+:::
+
 ## Basic example
 
 The following code sample configures the grid to use `htCenter` and configures individual cells to use different alignments.
@@ -93,6 +103,16 @@ The following code sample configures the grid to use `htCenter` and configures i
 
 @[code](@/content/guides/cell-features/text-alignment/angular/example1.ts)
 @[code](@/content/guides/cell-features/text-alignment/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-features/text-alignment/vue/example1.vue)
 
 :::
 

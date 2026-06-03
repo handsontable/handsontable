@@ -1,7 +1,7 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
-import { CellValue } from 'handsontable';
+import type Handsontable from 'handsontable/base';
 import { CellProperties } from 'handsontable/settings';
 import { PredefinedMenuItemKey } from 'handsontable/plugins/contextMenu';
 
@@ -1216,7 +1216,7 @@ export function addClassesToRows(
   row: number,
   column: number,
   _prop: string | number,
-  _value: CellValue,
+  _value: Handsontable.CellValue,
   cellProperties: CellProperties
 ) {
   // Adding classes to `TR` just while rendering first visible `TD` element
