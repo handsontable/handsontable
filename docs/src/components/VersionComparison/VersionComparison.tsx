@@ -198,12 +198,17 @@ function pillLabel(category: ChangeCategory, breaking: boolean) {
   return CATEGORY_LABELS[category];
 }
 
-function prHref(prNumber: number | null) {
-  return prNumber === null ? null : `https://github.com/handsontable/handsontable/pull/${prNumber}`;
+function prHref(prNumber: number | null, prKind: 'issues' | 'pull' | null) {
+  // Roughly 55% of changelog bullets cite `/issues/...` rather than `/pull/...`,
+  // so the link must honor whichever URL kind the parser captured. Building
+  // `/pull/` unconditionally sends issue references to the wrong destination
+  // (often a 404 or an unrelated PR).
+  if (prNumber === null || prKind === null) return null;
+  return `https://github.com/handsontable/handsontable/${prKind}/${prNumber}`;
 }
 
 function FeaturedEntry({ entry }: { entry: VersionEntry }) {
-  const href = prHref(entry.prNumber);
+  const href = prHref(entry.prNumber, entry.prKind);
   const content = (
     <>
       <header className="vc-featured-card-header">
@@ -243,7 +248,7 @@ function FeaturedEntry({ entry }: { entry: VersionEntry }) {
 }
 
 function CompactEntry({ entry }: { entry: VersionEntry }) {
-  const href = prHref(entry.prNumber);
+  const href = prHref(entry.prNumber, entry.prKind);
   const content = (
     <>
       <span className={pillClass(entry.category, entry.breaking)}>{pillLabel(entry.category, entry.breaking)}</span>

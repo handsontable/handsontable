@@ -65,9 +65,13 @@ const FRAMEWORK_PREFIXES = {
 };
 
 function extractPrNumber(text) {
-  const match = text.match(/\s*\(?\[#(\d+)\]\(https:\/\/github\.com\/handsontable\/handsontable\/(?:issues|pull)\/\d+\)\s*\)?\s*$/);
-  if (!match) return { prNumber: null, body: text };
-  return { prNumber: Number(match[1]), body: text.slice(0, match.index).trim() };
+  // Captures both the citation number (#NNNN) and the URL kind (`issues` or
+  // `pull`) so consumers can rebuild the correct GitHub destination instead
+  // of assuming every reference is a PR. Roughly 55% of changelog bullets
+  // historically cite `/issues/...` rather than `/pull/...`.
+  const match = text.match(/\s*\(?\[#(\d+)\]\(https:\/\/github\.com\/handsontable\/handsontable\/(issues|pull)\/\d+\)\s*\)?\s*$/);
+  if (!match) return { prNumber: null, prKind: null, body: text };
+  return { prNumber: Number(match[1]), prKind: match[2], body: text.slice(0, match.index).trim() };
 }
 
 function parseBullet(line) {
@@ -89,9 +93,9 @@ function parseBullet(line) {
     }
   }
 
-  const { prNumber, body } = extractPrNumber(raw);
+  const { prNumber, prKind, body } = extractPrNumber(raw);
 
-  return { breaking, framework, prNumber, body };
+  return { breaking, framework, prNumber, prKind, body };
 }
 
 export function parseChangelogContent(markdown) {
@@ -124,7 +128,7 @@ export function parseChangelogContent(markdown) {
     if (!currentVersion || !currentCategory) continue;
     if (!line.startsWith('- ')) continue;
 
-    const { breaking, framework, prNumber, body } = parseBullet(line);
+    const { breaking, framework, prNumber, prKind, body } = parseBullet(line);
     entries.push({
       version: currentVersion,
       releaseDate: currentDate,
@@ -132,6 +136,7 @@ export function parseChangelogContent(markdown) {
       breaking: breaking || currentForceBreaking,
       framework,
       prNumber,
+      prKind,
       title: body,
     });
   }

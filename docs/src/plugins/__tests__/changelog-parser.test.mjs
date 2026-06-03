@@ -142,6 +142,25 @@ test('bullets under "#### Breaking changes" heading get breaking: true without a
   assert.equal(result[2].category, 'changed');
 });
 
+test('captures prKind so issue links and pull links resolve to distinct URLs', () => {
+  const md = [
+    '## 17.0.0',
+    'Released on March 9th, 2026',
+    '',
+    '#### Fixed',
+    '- Fixed a regression with column sorting. [#11849](https://github.com/handsontable/handsontable/issues/11849)',
+    '- Fixed a regression with row resizing. [#11852](https://github.com/handsontable/handsontable/pull/11852)',
+  ].join('\n');
+
+  const result = parseChangelogContent(md);
+
+  assert.equal(result.length, 2);
+  assert.equal(result[0].prNumber, 11849);
+  assert.equal(result[0].prKind, 'issues');
+  assert.equal(result[1].prNumber, 11852);
+  assert.equal(result[1].prKind, 'pull');
+});
+
 test('parseAllChangelogs returns entries from every changelog-X file (v6..v17)', () => {
   const result = parseAllChangelogs();
   const majors = new Set(result.map((e) => Number(e.version.split('.')[0])));

@@ -9,6 +9,7 @@ export interface VersionEntry {
   breaking: boolean;
   framework: Framework;
   prNumber: number | null;
+  prKind: 'issues' | 'pull' | null;
   title: string;
   highlighted: boolean;
   tagline?: string;
