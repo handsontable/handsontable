@@ -187,11 +187,13 @@ function failingExamples(output) {
   return ids;
 }
 
-const ERROR_DETAIL_RE = /(\.tmp[/\\][^\s:]+?\.ts):(\d+):(\d+)\s*-\s*error\s+(TS\d+):\s*(.*)/g;
+// Matches both TypeScript (`TS\d+`) and Angular template (`NG\d+`) diagnostics;
+// ngc reports the latter against the inline-template location in the .ts file.
+const ERROR_DETAIL_RE = /(\.tmp[/\\][^\s:]+?\.ts):(\d+):(\d+)\s*-\s*error\s+((?:TS|NG)\d+):\s*(.*)/g;
 
 /**
  * Parses an ngc output blob into a Map of individual errors keyed by
- * `file:line:col TScode` (stable across versions because the generated .tmp
+ * `file|code|message` (TS or NG; stable across versions because the generated .tmp
  * files are identical between runs — only the Handsontable types differ).
  * Each value carries the friendly example id and the human-readable message.
  */
@@ -288,6 +290,25 @@ const latest = runCheck({ label: 'latest', htDir: path.relative(__dirname, htPat
 
 const localErrors = parseErrors(local.output);
 const latestErrors = parseErrors(latest.output);
+
+// Guard: if ngc exited non-zero but we couldn't extract a single `error TS…`
+// line from its output, the failure is in a form the parser doesn't understand
+// (Angular NG… template diagnostics, a compiler crash, a bad tsconfig, a failed
+// install, etc.). The classification below only ever fails the run on a parsed
+// `error TS…` shared by both versions, so without this guard such a failure
+// would slip through as "STATUS: TRUE". Dump the raw output and fail hard.
+const unparsedFailures = [];
+if (!local.ok && localErrors.size === 0) unparsedFailures.push(['local', local.output]);
+if (!latest.ok && latestErrors.size === 0) unparsedFailures.push(['latest', latest.output]);
+
+if (unparsedFailures.length > 0) {
+  console.error('\nSTATUS: FALSE — ngc failed but produced no recognizable `error TS…` lines.');
+  for (const [label, output] of unparsedFailures) {
+    console.error(`\n----- raw ngc output (${label}) -----`);
+    console.error(output.trim() || '(no output captured)');
+  }
+  process.exit(1);
+}
 
 // Union of every distinct error seen across both versions.
 const allKeys = [...new Set([...localErrors.keys(), ...latestErrors.keys()])].sort();
