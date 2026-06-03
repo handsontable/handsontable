@@ -1,6 +1,7 @@
 import { A11Y_HIDDEN } from '../a11y';
 import { isSafariBefore261, isMobileBrowser, isIpadOS, isWindowsOS } from '../browser';
 import { throwWithCause } from '../../helpers/errors';
+import { warnOnce } from '../../helpers/console';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -506,24 +507,51 @@ export function empty(element: HTMLElement): void {
 export const HTML_CHARACTERS = /(<([^>]*)>|&([^;]*);)/;
 
 /**
+ * Shared "warn once" key for every missing-sanitizer warning, so that all DOM
+ * write surfaces (headers, context menu, dialogs, notifications, editors)
+ * collapse into a single warning per Handsontable instance.
+ */
+export const SANITIZER_WARN_KEY = 'sanitizer';
+
+/**
+ * Default scope used when a caller writes raw HTML without supplying a per-instance
+ * scope. Keeps the warning to once per process for such callers.
+ */
+const defaultSanitizerWarnScope = {};
+
+/**
  * Insert content into element trying to avoid innerHTML method.
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
- * @param {boolean|function(string, string): string} [sanitizer] When a function, use it as the sanitizer; when false,
- * skip sanitization; when true (default), assign the content directly.
- * @param {string} [context] The sanitization context passed as the second argument to a custom sanitizer function.
+ * @param {boolean|function(string, string): string} [sanitizer] When a function, use it as the sanitizer; when `false`,
+ * write the content as raw HTML on purpose (no warning); when `true` (the default), write the content as raw HTML and
+ * warn once that no sanitizer is configured.
+ * @param {string} [context] The sanitization context passed as the second argument to a custom sanitizer function, and
+ * used in the missing-sanitizer warning to identify the write surface.
+ * @param {object} [scope] Object the "warn once" state is bound to (for example, `hot.rootGridElement`), so the warning
+ * is shown at most once per Handsontable instance.
  */
 export function fastInnerHTML(
   element: HTMLElement, content: string,
   sanitizer: boolean | ((html: string, context: string) => string) = true,
-  context = 'innerHTML'): void {
+  context = 'innerHTML',
+  scope: object = defaultSanitizerWarnScope): void {
   if (HTML_CHARACTERS.test(content)) {
     let sanitized: string;
 
     if (typeof sanitizer === 'function') {
       sanitized = sanitizer(content, context);
     } else {
+      // `false` means the caller renders raw HTML deliberately (for example, the `html` cell type).
+      // Any other non-function value (the default `true`) is an implicit raw write, so nudge once
+      // toward configuring a sanitizer to prevent XSS.
+      if (sanitizer !== false) {
+        warnOnce(scope, SANITIZER_WARN_KEY,
+          `HTML content is being written to the DOM ("${context}") without a sanitizer. ` +
+          'Configure the "sanitizer" option to prevent XSS vulnerabilities.');
+      }
+
       sanitized = content;
     }
 

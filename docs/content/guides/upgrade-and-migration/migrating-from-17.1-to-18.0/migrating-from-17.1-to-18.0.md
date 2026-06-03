@@ -267,6 +267,10 @@ The `intl-time` key is the canonical name. The `time` key continues to work as a
 
 Filters and sort operations now require date values in ISO 8601 format (`YYYY-MM-DD`). If your data source stored dates in another format, convert the values before passing them to Handsontable.
 
+### `correctFormat` option
+
+The `correctFormat` option (which auto-corrected entered date and time values to match a Moment.js format string) is removed. The `date`, `time`, `intl-date`, and `intl-time` cell types work with ISO 8601 values and do not reformat input. Remove `correctFormat` from your configuration. To normalize or correct entered values, use the [`valueParser`](@/api/options.md#valueparser) or [`valueSetter`](@/api/options.md#valuesetter) options.
+
 ### `datePickerConfig` option
 
 The `datePickerConfig` option (which passed options to Pikaday) no longer has any effect. The `intl-date` cell type uses the browser's native date input. Remove `datePickerConfig` from your configuration.
@@ -320,6 +324,7 @@ If you render untrusted user HTML without a `sanitizer`, your users are exposed 
 | `handsontable/common` subpath removed | Any project importing TypeScript types from `handsontable/common` | Replace `from 'handsontable/common'` with `from 'handsontable'` (or `from 'handsontable/base'`) |
 | `numericFormat.pattern` and `numericFormat.culture` removed | Projects using Numbro.js-based numeric formatting | Migrate to `Intl.NumberFormat` options; move locale to `locale` option |
 | Moment.js and Pikaday removed; ISO 8601 required for date/time cells | Projects using non-ISO date strings or string `dateFormat`/`timeFormat` | Convert source data to ISO 8601; use `intl-date`/`intl-time` with object `dateFormat`/`timeFormat` |
+| `correctFormat` and `datePickerConfig` options removed | Projects using `correctFormat` or `datePickerConfig` on `date`/`time` cells | Remove both options; use `valueParser`/`valueSetter` for value correction |
 | DOMPurify removed; no built-in HTML sanitization | Projects rendering untrusted user HTML | Add a `sanitizer` function (for example, using DOMPurify) to the Handsontable configuration |
 
 ## Related resources

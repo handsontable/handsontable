@@ -281,7 +281,8 @@ export class DialogUI {
       // Render new dialog content
       if (typeof content === 'string') {
         fastInnerHTML(contentElement, content,
-          this.#sanitizer ? (html: string, ctx: string) => this.#sanitizer!(html) ?? html : undefined);
+          this.#sanitizer ? (html: string, ctx: string) => this.#sanitizer!(html) ?? html : undefined,
+          'dialog', this.#rootElement);
 
       } else if (isHTMLElement(content) || content instanceof DocumentFragment) {
         contentElement.appendChild(content);

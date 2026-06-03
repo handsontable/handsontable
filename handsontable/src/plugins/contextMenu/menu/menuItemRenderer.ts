@@ -12,9 +12,7 @@ import {
   empty,
   fastInnerHTML,
   setAttribute,
-  HTML_CHARACTERS,
 } from '../../../helpers/dom/element';
-import { warn } from '../../../helpers/console';
 import {
   A11Y_MENU_ITEM_CHECKBOX,
   A11Y_DISABLED,
@@ -24,9 +22,6 @@ import {
   A11Y_TABINDEX,
   A11Y_CHECKED,
 } from '../../../helpers/a11y';
-
-// Tracks which HOT instances have already shown the no-sanitizer warning (persists across menu re-opens).
-const sanitizerWarnShownInstances = new WeakSet<object>();
 
 /**
  * Creates the menu renderer function.
@@ -105,15 +100,7 @@ export function createMenuItemRenderer(mainTableHot: HotInstance) {
       const sanitizer = (mainTableHot.getSettings() as { sanitizer?: (html: string) => string }).sanitizer;
       const itemStr = String(itemValue);
 
-      if (!sanitizerWarnShownInstances.has(mainTableHot) &&
-          typeof sanitizer !== 'function' &&
-          HTML_CHARACTERS.test(itemStr)) {
-        sanitizerWarnShownInstances.add(mainTableHot);
-        warn('An HTML context menu item name is being written to the DOM without a sanitizer. ' +
-          'Configure the "sanitizer" option to prevent XSS vulnerabilities.');
-      }
-
-      fastInnerHTML(wrapper, itemStr, sanitizer);
+      fastInnerHTML(wrapper, itemStr, sanitizer, 'contextMenu', mainTableHot.rootGridElement);
     }
 
     if (isItemDisabled(item, mainTableHot)) {

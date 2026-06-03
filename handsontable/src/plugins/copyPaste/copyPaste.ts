@@ -4,13 +4,14 @@ import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
 import { isJSON } from '../../helpers/string';
 import { isObject, deepClone } from '../../helpers/object';
-import { warn } from '../../helpers/console';
+import { warnOnce } from '../../helpers/console';
 import {
   removeContentEditableFromElementAndDeselect,
   runWithSelectedContendEditableElement,
   makeElementContentEditableAndSelectItsContent,
   isHTMLElement,
   isInternalElement,
+  SANITIZER_WARN_KEY,
 } from '../../helpers/dom/element';
 import { isSafari } from '../../helpers/browser';
 import copyItem from './contextMenuItem/copy';
@@ -164,10 +165,6 @@ export class CopyPaste extends BasePlugin {
    * @default false
    */
   #enableCopyColumnHeadersOnly = false;
-  /**
-   * Tracks whether the no-sanitizer warning has already been shown for this instance.
-   */
-  #sanitizerWarnShown = false;
   /**
    * Defines the data range to copy. Possible values:
    *  * `'cells-only'` Copy selected cells only;
@@ -825,9 +822,9 @@ export class CopyPaste extends BasePlugin {
       const rawTextHTML = clipboardData.getData('text/html') ?? '';
       const customSanitizer = this.hot.getSettings().sanitizer;
 
-      if (rawTextHTML && typeof customSanitizer !== 'function' && !this.#sanitizerWarnShown) {
-        this.#sanitizerWarnShown = true;
-        warn('HTML content is being pasted to the DOM without a sanitizer. ' +
+      if (rawTextHTML && typeof customSanitizer !== 'function') {
+        warnOnce(this.hot.rootGridElement, SANITIZER_WARN_KEY,
+          'HTML content is being pasted to the DOM without a sanitizer. ' +
           'Configure the "sanitizer" option to prevent XSS vulnerabilities.');
       }
 

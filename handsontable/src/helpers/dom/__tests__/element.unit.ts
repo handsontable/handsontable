@@ -742,6 +742,19 @@ describe('DomElement helper', () => {
   // Handsontable.helper.fastInnerHTML
   //
   describe('fastInnerHTML', () => {
+    let originalWarn;
+    let warnSpy;
+
+    beforeEach(() => {
+      originalWarn = console.warn; // eslint-disable-line no-console
+      warnSpy = jasmine.createSpy('warn');
+      console.warn = warnSpy; // eslint-disable-line no-console
+    });
+
+    afterEach(() => {
+      console.warn = originalWarn; // eslint-disable-line no-console
+    });
+
     it('should pass the HTML through unchanged when the default sanitizer (pass-through) is used', () => {
       const elementMock = {
         innerHTML: '',
@@ -810,6 +823,51 @@ describe('DomElement helper', () => {
       });
 
       expect(elementMock.innerHTML).toBe('<img src onerror=alert(2)>');
+    });
+
+    it('should warn once per scope when raw HTML is written with the default (implicit) sanitizer', () => {
+      const elementMock = { innerHTML: '' };
+      const scope = {};
+
+      fastInnerHTML(elementMock, '<b>one</b>', true, 'header', scope);
+      fastInnerHTML(elementMock, '<b>two</b>', true, 'header', scope);
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(jasmine.stringMatching(/without a sanitizer/));
+    });
+
+    it('should warn again for a different scope (per-instance state)', () => {
+      const elementMock = { innerHTML: '' };
+
+      fastInnerHTML(elementMock, '<b>one</b>', true, 'header', {});
+      fastInnerHTML(elementMock, '<b>two</b>', true, 'header', {});
+
+      expect(warnSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('should NOT warn when sanitization is disabled on purpose with `false`', () => {
+      const elementMock = { innerHTML: '' };
+
+      fastInnerHTML(elementMock, '<img src onerror=alert(1)>', false, 'html', {});
+
+      expect(elementMock.innerHTML).toBe('<img src onerror=alert(1)>');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should NOT warn when a function sanitizer is provided', () => {
+      const elementMock = { innerHTML: '' };
+
+      fastInnerHTML(elementMock, '<b>x</b>', content => content, 'header', {});
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should NOT warn when the content has no HTML characters', () => {
+      const element = document.createElement('div');
+
+      fastInnerHTML(element, 'plain text', true, 'header', {});
+
+      expect(warnSpy).not.toHaveBeenCalled();
     });
   });
 
