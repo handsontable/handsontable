@@ -1,5 +1,9 @@
 export const FORMULAS_DATE_FORMAT = 'YYYY-MM-DD';
 
+/**
+ * @param {number} days Number of days to add (negative to subtract).
+ * @returns {string} Date string in YYYY-MM-DD format.
+ */
 function addDays(days) {
   const d = new Date();
   const pad = n => String(n).padStart(2, '0');
