@@ -77,6 +77,16 @@ Use the locale selector above the table to see how different locales affect numb
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-types/numeric-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ## Use the numeric cell type
 
 To use the numeric cell type, set the [`type`](@/api/options.md#type) option to `'numeric'`:
@@ -123,6 +133,21 @@ cell={[{
   col: 0,
   type: 'numeric',
 }]}
+```
+
+:::
+
+::: only-for vue
+
+```html
+<!-- set the numeric cell type for each cell of the entire grid -->
+<HotTable :settings="{ type: 'numeric' }" />
+
+<!-- set the numeric cell type for each cell of a single column -->
+<HotTable :settings="{ columns: [{ type: 'numeric' }] }" />
+
+<!-- set the numeric cell type for a single cell -->
+<HotTable :settings="{ cell: [{ row: 0, col: 0, type: 'numeric' }] }" />
 ```
 
 :::
@@ -224,6 +249,34 @@ columns: [
       minimumFractionDigits: 2
     }
   }]}
+/>
+```
+
+:::
+
+::: only-for vue
+
+```html
+<HotTable
+  :settings="{
+    columns: [{
+      type: 'numeric',
+      locale: 'en-US',
+      numericFormat: {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2
+      }
+    }, {
+      type: 'numeric',
+      locale: 'de-DE',
+      numericFormat: {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: 2
+      }
+    }]
+  }"
 />
 ```
 
@@ -359,6 +412,16 @@ In the following demo, columns **Price in Japan** and **Price in Turkey** use tw
 
 @[code](@/content/guides/cell-types/numeric-cell-type/angular/example3.ts)
 @[code](@/content/guides/cell-types/numeric-cell-type/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3-numbro
+
+@[code](@/content/guides/cell-types/numeric-cell-type/vue/example3.vue)
 
 :::
 

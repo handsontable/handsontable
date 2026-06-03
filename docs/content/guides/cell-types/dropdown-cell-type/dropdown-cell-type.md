@@ -55,6 +55,12 @@ Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocompl
 
 :::
 
+::: only-for vue
+
+Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocomplete', strict: true, filter: false }`. Therefore you can think of `dropdown` as a searchable `<select>`.
+
+:::
+
 ::: only-for javascript
 
 ::: example #example1 .docs-height-small --js 1 --ts 2
@@ -83,6 +89,16 @@ Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocompl
 
 @[code](@/content/guides/cell-types/dropdown-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/dropdown-cell-type/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/vue/example1.vue)
 
 :::
 
@@ -140,6 +156,16 @@ You can provide the `source` option as an array of values that will be used as t
 
 :::
 
+::: only-for vue
+
+::: example #example2 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/vue/example2.vue)
+
+:::
+
+:::
+
 ### Array of objects
 
 You can provide the `source` option as an array of objects with `key` and `value` properties. The `value` property will be used as the dropdown option, while the entire object will be used as the value of the cell.
@@ -183,6 +209,16 @@ You can provide the `source` option as an array of objects with `key` and `value
 
 @[code](@/content/guides/cell-types/dropdown-cell-type/angular/example3.html)
 
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/vue/example3.vue)
 
 :::
 
