@@ -27,7 +27,7 @@ export function init() {
       );
     })(),
     type: 'date',
-    dateFormat: 'YYYY-MM-DD',
+    dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' },
     layoutDirection: getDirectionFromURL(),
     language: getDirectionFromURL() === "rtl" ? arAR.languageCode : "en-US",
     themeName: getThemeNameFromURL(),
