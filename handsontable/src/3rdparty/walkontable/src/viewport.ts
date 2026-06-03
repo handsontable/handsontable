@@ -1,15 +1,15 @@
-import type from './types';
+import type { DataAccessObject, DomBindings, WalkontableInstance } from './types';
 import type Settings from './settings';
 import type Table from './table';
 import type EventManager from '../../../eventManager';
-import type from './calculator/viewportBase';
+import type { CalculationTypeLike, ColumnsCalculationType, RowsCalculationType } from './calculator/viewportBase';
 import {
   getScrollbarWidth,
   offset,
   outerHeight,
   outerWidth,
 } from '../../../helpers/dom/element';
-import from '../../../helpers/object';
+import { objectEach } from '../../../helpers/object';
 import {
   FullyVisibleColumnsCalculationType,
   FullyVisibleRowsCalculationType,
@@ -22,112 +22,43 @@ import {
   ViewportColumnsCalculator,
   ViewportRowsCalculator,
 } from './calculator';
-import from './utils/positionCache';
-import from './constants';
+import { PositionCache } from './utils/positionCache';
+import { DEFAULT_COLUMN_WIDTH } from './constants';
 
 /**
  * @class Viewport
  */
 class Viewport {
-  /**
-   * Data access object used to reach overlay-specific scroll positions and trimming containers.
-   */
   declare dataAccessObject: DataAccessObject;
-  /**
-   * The master Walkontable instance. Kept for legacy support.
-   */
   declare wot: WalkontableInstance;
-  /**
-   * Alias for `wot`. Kept for backward-compatibility.
-   */
   declare instance: WalkontableInstance;
-  /**
-   * DOM element bindings for the root document and window.
-   */
   declare domBindings: DomBindings;
-  /**
-   * The Walkontable settings object.
-   */
   declare wtSettings: Settings;
-  /**
-   * The master table instance.
-   */
   declare wtTable: Table;
-  /**
-   * Cache of overridden row heights, keyed by visual row index.
-   */
   declare oversizedRows: Record<number, number | undefined>;
-  /**
-   * Cache of overridden column header heights, keyed by header level.
-   */
   declare oversizedColumnHeaders: Record<number, number | undefined>;
-  /**
-   * Tracks which overlay names have already had their oversized column headers marked in the current render cycle.
-   */
   declare hasOversizedColumnHeadersMarked: Record<string, unknown>;
-  /**
-   * Last measured client height of the viewport container.
-   */
   declare clientHeight: number;
-  /**
-   * Cached pixel height of all column header rows combined.
-   */
   declare columnHeaderHeight: number;
-  /**
-   * Cached pixel width of all row header columns combined.
-   */
   declare rowHeaderWidth: number;
-  /**
-   * Calculator that holds the range of fully visible rows after the last draw.
-   */
   declare rowsVisibleCalculator: RowsCalculationType | null;
-  /**
-   * Calculator that holds the range of fully visible columns after the last draw.
-   */
   declare columnsVisibleCalculator: ColumnsCalculationType | null;
-  /**
-   * Factory map for row calculator types, keyed by calculation type name.
-   */
   declare rowsCalculatorTypes: Map<string, () => CalculationTypeLike>;
-  /**
-   * Factory map for column calculator types, keyed by calculation type name.
-   */
   declare columnsCalculatorTypes: Map<string, () => CalculationTypeLike>;
-  /**
-   * The event manager used to bind and unbind DOM listeners.
-   */
   declare eventManager: EventManager;
-  /**
-   * Calculator that holds the range of rows that were rendered in the last full draw.
-   */
   declare rowsRenderCalculator: RowsCalculationType | null;
-  /**
-   * Calculator that holds the range of columns that were rendered in the last full draw.
-   */
   declare columnsRenderCalculator: ColumnsCalculationType | null;
-  /**
-   * Calculator that holds the range of partially visible rows after the last draw.
-   */
   declare rowsPartiallyVisibleCalculator: RowsCalculationType | null;
-  /**
-   * Calculator that holds the range of partially visible columns after the last draw.
-   */
   declare columnsPartiallyVisibleCalculator: ColumnsCalculationType | null;
-  /**
-   * Cumulative row height prefix sum cache. Enables O(log n) scroll-to-row lookups.
-   */
   declare rowHeightCache: PositionCache;
-  /**
-   * Cumulative column width prefix sum cache. Enables O(log n) scroll-to-column lookups.
-   */
   declare columnWidthCache: PositionCache;
 
   /**
-   * @param dataAccessObject The Walkontable instance.
-   * @param domBindings Bindings into DOM.
-   * @param wtSettings The Walkontable settings.
-   * @param eventManager The instance event manager.
-   * @param wtTable The table.
+   * @param {ViewportDao} dataAccessObject The Walkontable instance.
+   * @param {DomBindings} domBindings Bindings into DOM.
+   * @param {Settings} wtSettings The Walkontable settings.
+   * @param {EventManager} eventManager The instance event manager.
+   * @param {Table} wtTable The table.
    */
   constructor(
     dataAccessObject: DataAccessObject, domBindings: DomBindings, wtSettings: Settings,
@@ -165,6 +96,7 @@ class Viewport {
      * Cumulative row height prefix sum cache. Enables O(log n) scroll-to-row lookups
      * when custom row heights are configured.
      *
+     * @type {PositionCache}
      */
     this.rowHeightCache = new PositionCache({
       totalItemsFn: () => wtSettings.getSetting<number>('totalRows'),
@@ -175,6 +107,7 @@ class Viewport {
      * Cumulative column width prefix sum cache. Enables O(log n) scroll-to-column lookups
      * when custom column widths are configured.
      *
+     * @type {PositionCache}
      */
     this.columnWidthCache = new PositionCache({
       totalItemsFn: () => wtSettings.getSetting<number>('totalColumns'),
@@ -189,7 +122,7 @@ class Viewport {
   }
 
   /**
-   * @returns 
+   * @returns {number}
    */
   getWorkspaceHeight() {
     const currentDocument = this.domBindings.rootDocument;
@@ -218,7 +151,7 @@ class Viewport {
   }
 
   /**
-   * @returns 
+   * @returns {number}
    */
   getViewportHeight() {
     let containerHeight = this.getWorkspaceHeight();
@@ -241,10 +174,10 @@ class Viewport {
    * This is a bug, as the method should always return stable values, always without scrollbar width.
    * Changing this behavior would break the column calculators, which would also need to be adjusted.
    *
-   * @returns 
+   * @returns {number}
    */
   getWorkspaceWidth() {
-    const = this.domBindings;
+    const { rootDocument, rootWindow } = this.domBindings;
     const trimmingContainer = this.dataAccessObject.inlineStartOverlayTrimmingContainer;
     let width;
 
@@ -265,7 +198,7 @@ class Viewport {
   }
 
   /**
-   * @returns 
+   * @returns {number}
    */
   getViewportWidth() {
     const containerWidth = this.getWorkspaceWidth();
@@ -282,7 +215,7 @@ class Viewport {
   /**
    * Checks if viewport has vertical scroll.
    *
-   * @returns 
+   * @returns {boolean}
    */
   hasVerticalScroll() {
     if (this.isVerticallyScrollableByWindow()) {
@@ -291,7 +224,7 @@ class Viewport {
       return documentElement.scrollHeight > documentElement.clientHeight;
     }
 
-    const = this.wtTable;
+    const { holder, hider } = this.wtTable;
     const holderHeight = holder.clientHeight;
     const hiderOffsetHeight = hider.offsetHeight;
 
@@ -305,7 +238,7 @@ class Viewport {
   /**
    * Checks if viewport has horizontal scroll.
    *
-   * @returns 
+   * @returns {boolean}
    */
   hasHorizontalScroll() {
     if (this.isVerticallyScrollableByWindow()) {
@@ -314,7 +247,7 @@ class Viewport {
       return documentElement.scrollWidth > documentElement.clientWidth;
     }
 
-    const = this.wtTable;
+    const { hider } = this.wtTable;
     const hiderOffsetWidth = hider.offsetWidth;
     const scrollbarWidth = this.hasVerticalScroll() ? getScrollbarWidth() : 0;
 
@@ -324,7 +257,7 @@ class Viewport {
   /**
    * Checks if the table uses the window as a viewport and if there is a vertical scrollbar.
    *
-   * @returns 
+   * @returns {boolean}
    */
   isVerticallyScrollableByWindow() {
     return this.dataAccessObject.topOverlayTrimmingContainer === this.domBindings.rootWindow;
@@ -333,16 +266,16 @@ class Viewport {
   /**
    * Checks if the table uses the window as a viewport and if there is a horizontal scrollbar.
    *
-   * @returns 
+   * @returns {boolean}
    */
   isHorizontallyScrollableByWindow() {
     return this.dataAccessObject.inlineStartOverlayTrimmingContainer === this.domBindings.rootWindow;
   }
 
   /**
-   * @param from The visual column index from the width sum is start calculated.
-   * @param length The length of the column to traverse.
-   * @returns 
+   * @param {number} from The visual column index from the width sum is start calculated.
+   * @param {number} length The length of the column to traverse.
+   * @returns {number}
    */
   sumColumnWidths(from: number, length: number) {
     let sum = 0;
@@ -357,14 +290,14 @@ class Viewport {
   }
 
   /**
-   * @returns 
+   * @returns {number}
    */
   getWorkspaceOffset() {
     return offset(this.wtTable.holder);
   }
 
   /**
-   * @returns 
+   * @returns {number}
    */
   getColumnHeaderHeight() {
     const columnHeaders = this.wtSettings.getSetting<Function[]>('columnHeaders');
@@ -379,7 +312,7 @@ class Viewport {
   }
 
   /**
-   * @returns 
+   * @returns {number}
    */
   getRowHeaderWidth() {
     const rowHeadersWidthSetting = this.wtSettings.getSetting('rowHeaderWidth');
@@ -428,11 +361,11 @@ class Viewport {
    *  - 'fullyVisible' Calculates rows that are fully visible (used mostly for scrolling purposes);
    *  - 'partiallyVisible' Calculates rows that are partially visible (used mostly for scrolling purposes).
    *
-   * @param calculatorTypes The list of the calculation types.
-   * @returns 
+   * @param {'rendered' | 'fullyVisible' | 'partiallyVisible'} calculatorTypes The list of the calculation types.
+   * @returns {ViewportRowsCalculator}
    */
   createRowsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
-    const = this;
+    const { wtSettings, wtTable } = this;
     const totalRows = wtSettings.getSetting<number>('totalRows');
 
     let height = this.getViewportHeight();
@@ -485,11 +418,11 @@ class Viewport {
    *  - 'fullyVisible' Calculates columns that are fully visible (used mostly for scrolling purposes);
    *  - 'partiallyVisible' Calculates columns that are partially visible (used mostly for scrolling purposes).
    *
-   * @param calculatorTypes The list of the calculation types.
-   * @returns 
+   * @param {'rendered' | 'fullyVisible' | 'partiallyVisible'} calculatorTypes The list of the calculation types.
+   * @returns {ViewportColumnsCalculator}
    */
   createColumnsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
-    const = this;
+    const { wtSettings, wtTable } = this;
     const totalColumns = wtSettings.getSetting<number>('totalColumns');
 
     let width = this.getViewportWidth();
@@ -528,12 +461,12 @@ class Viewport {
    * Creates rowsRenderCalculator and columnsRenderCalculator (before draw, to determine what rows and
    * cols should be rendered).
    *
-   * @param fastDraw If `true`, will try to avoid full redraw and only update the border positions.
+   * @param {boolean} fastDraw If `true`, will try to avoid full redraw and only update the border positions.
    *                           If `false` or `undefined`, will perform a full redraw.
-   * @returns The fastDraw value, possibly modified.
+   * @returns {boolean} The fastDraw value, possibly modified.
    */
   createCalculators(fastDraw = false) {
-    const = this;
+    const { wtSettings } = this;
 
     const rowsCalculator = this.createRowsCalculator();
     const columnsCalculator = this.createColumnsCalculator();
@@ -589,9 +522,9 @@ class Viewport {
    * Returns information whether proposedFullyVisibleRowsCalculator viewport
    * is contained inside rows rendered in previous draw (cached in rowsRenderCalculator).
    *
-   * @param proposedFullyVisibleRowsCalculator The instance of the fully visible rows viewport calculator to compare with.
-   * @param proposedPartiallyVisibleRowsCalculator The instance of the partially visible rows viewport calculator to compare with.
-   * @returns Returns `true` if all proposed visible rows are already rendered (meaning: redraw is not needed).
+   * @param {ViewportRowsCalculator} proposedFullyVisibleRowsCalculator The instance of the fully visible rows viewport calculator to compare with.
+   * @param {ViewportRowsCalculator} proposedPartiallyVisibleRowsCalculator The instance of the partially visible rows viewport calculator to compare with.
+   * @returns {boolean} Returns `true` if all proposed visible rows are already rendered (meaning: redraw is not needed).
    *                    Returns `false` if at least one proposed visible row is not already rendered (meaning: redraw is needed).
    */
   areAllProposedVisibleRowsAlreadyRendered(
@@ -602,7 +535,7 @@ class Viewport {
       return false;
     }
 
-    let = proposedFullyVisibleRowsCalculator;
+    let { startRow, endRow } = proposedFullyVisibleRowsCalculator;
     const {
       startRow: partiallyVisibleStartRow,
       endRow: partiallyVisibleEndRow
@@ -665,9 +598,9 @@ class Viewport {
    * Returns information whether proposedFullyVisibleColumnsCalculator viewport
    * is contained inside column rendered in previous draw (cached in columnsRenderCalculator).
    *
-   * @param proposedFullyVisibleColumnsCalculator The instance of the fully visible columns viewport calculator to compare with.
-   * @param proposedPartiallyVisibleColumnsCalculator The instance of the partially visible columns viewport calculator to compare with.
-   * @returns Returns `true` if all proposed visible columns are already rendered (meaning: redraw is not needed).
+   * @param {ViewportRowsCalculator} proposedFullyVisibleColumnsCalculator The instance of the fully visible columns viewport calculator to compare with.
+   * @param {ViewportRowsCalculator} proposedPartiallyVisibleColumnsCalculator The instance of the partially visible columns viewport calculator to compare with.
+   * @returns {boolean} Returns `true` if all proposed visible columns are already rendered (meaning: redraw is not needed).
    *                    Returns `false` if at least one proposed visible column is not already rendered (meaning: redraw is needed).
    */
   areAllProposedVisibleColumnsAlreadyRendered(
@@ -679,7 +612,7 @@ class Viewport {
       return false;
     }
 
-    let = proposedFullyVisibleColumnsCalculator;
+    let { startColumn, endColumn } = proposedFullyVisibleColumnsCalculator;
     const {
       startColumn: partiallyVisibleStartColumn,
       endColumn: partiallyVisibleEndColumn

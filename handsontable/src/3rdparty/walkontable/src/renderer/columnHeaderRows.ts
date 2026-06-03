@@ -1,6 +1,6 @@
-import from './_base';
-import from '../utils/orderView';
-import from '../../../../helpers/dom/element';
+import { BaseRenderer } from './_base';
+import { OrderView } from '../utils/orderView';
+import { setAttribute } from '../../../../helpers/dom/element';
 import {
   A11Y_ROW,
   A11Y_ROWGROUP,
@@ -23,12 +23,10 @@ export class ColumnHeaderRowsRenderer extends BaseRenderer {
   /**
    * OrderView instance responsible for managing TR elements in the THEAD.
    *
+   * @type {OrderView}
    */
   orderView: OrderView;
 
-  /**
-   * @param rootNode The THEAD element that acts as the container for header row TR elements.
-   */
   constructor(rootNode: HTMLElement) {
     super('TR', rootNode);
 
@@ -42,8 +40,8 @@ export class ColumnHeaderRowsRenderer extends BaseRenderer {
   /**
    * Returns currently rendered node.
    *
-   * @param visualIndex Visual index of the rendered node (it always goes from 0 to N).
-   * @returns 
+   * @param {number} visualIndex Visual index of the rendered node (it always goes from 0 to N).
+   * @returns {HTMLTableRowElement}
    */
   getRenderedNode(visualIndex: number): HTMLElement | null {
     return this.orderView.getNode(visualIndex);
@@ -53,7 +51,7 @@ export class ColumnHeaderRowsRenderer extends BaseRenderer {
    * Renders the TR elements.
    */
   render() {
-    const = this.table;
+    const { columnHeadersCount } = this.table;
 
     if (this.table.isAriaEnabled()) {
       setAttribute(this.rootNode, [

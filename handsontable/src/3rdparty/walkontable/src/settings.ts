@@ -1,84 +1,84 @@
-import from '../../../helpers/dom/element';
-import from '../../../helpers/object';
-import from '../../../helpers/errors';
-import type from './types';
+import { fastInnerText } from '../../../helpers/dom/element';
+import { objectEach } from '../../../helpers/object';
+import { throwWithCause } from '../../../helpers/errors';
+import type { StylesHandler } from './types';
 
 /**
  * @todo Describe options.
  * @typedef SettingsPure
  *
- * @property facade @todo desc.
- * @property ariaTags Option `ariaTags`.
- * @property cellRenderer Option `cellRenderer`.
- * @property columnHeaders Option `columnHeaders`.
- * @property columnWidth Option `columnWidth`.
- * @property currentRowClassName Option `currentRowClassName`.
- * @property data Option `data`.
- * @property defaultColumnWidth Option `defaultColumnWidth`.
- * @property externalRowCalculator Option `externalRowCalculator`.
- * @property fixedColumnsStart Option `fixedColumnsStart`.
- * @property fixedRowsBottom Option `fixedRowsBottom`.
- * @property fixedRowsTop Option `fixedRowsTop`.
- * @property groups Option `groups`.
- * @property hideBorderOnMouseDownOver Option `hideBorderOnMouseDownOver`.
- * @property isRtl Option `isRtl`.
- * @property isDataViewInstance Option `isDataViewInstance`.
- * @property minSpareRows Option `minSpareRows`.
- * @property onBeforeHighlightingColumnHeader Option `onBeforeHighlightingColumnHeader`.
- * @property onBeforeHighlightingRowHeader Option `onBeforeHighlightingRowHeader`.
- * @property onBeforeRemoveCellClassNames Option `onBeforeRemoveCellClassNames`.
- * @property preventOverflow Option `preventOverflow`.
- * @property preventWheel Option `preventWheel`.
- * @property renderAllColumns Option `renderAllColumns`.
- * @property renderAllRows Option `renderAllRows`.
- * @property rowHeaders Option `rowHeaders`.
- * @property rowHeightOption `rowHeight`.
- * @property rowHeightByOverlayName Option `rowHeightByOverlayName`.
- * @property shouldRenderBottomOverlay Option `shouldRenderBottomOverlay`.
- * @property shouldRenderInlineStartOverlay Option `shouldRenderInlineStartOverlay`.
- * @property shouldRenderTopOverlay Option `shouldRenderTopOverlay`.
- * @property table Option `table`.
- * @property totalColumns Option `totalColumns`.
- * @property totalRows Option `totalRows`.
- * @property beforeDraw Option `beforeDraw`.
- * @property columnHeaderHeight Option `columnHeaderHeight`.
- * @property currentColumnClassName Option `currentColumnClassName`.
- * @property headerClassName Option `headerClassName`.
- * @property onAfterDrawSelection Option `onAfterDrawSelection`.
- * @property onAfterMomentumScroll Option `onAfterMomentumScroll`.
- * @property onBeforeDrawBorders Option `onBeforeDrawBorders`.
- * @property onBeforeTouchScroll Option `onBeforeTouchScroll`.
- * @property onCellContextMenu Option `onCellContextMenu`.
- * @property onCellCornerDblClick Option `onCellCornerDblClick`.
- * @property onCellCornerMouseDown Option `onCellCornerMouseDown`.
- * @property onCellDblClick Option `onCellDblClick`.
- * @property onCellMouseDown Option `onCellMouseDown`.
- * @property onCellMouseOut Option `onCellMouseOut`.
- * @property onCellMouseOver Option `onCellMouseOver`.
- * @property onCellMouseOverOutside Option `onCellMouseOverOutside`.
- * @property onCellMouseUp Option `onCellMouseUp`.
- * @property onDraw Option `onDraw`.
- * @property onModifyGetCellCoords Option `onModifyGetCellCoords`.
- * @property onModifyGetCoordsElement Option `onModifyGetCoordsElement`.
- * @property onModifyGetCoords Option `onModifyGetCoords`.
- * @property onModifyRowHeaderWidth Option `onModifyRowHeaderWidth`.
- * @property onBeforeViewportScrollHorizontally Option `onBeforeViewportScrollHorizontally`.
- * @property onBeforeViewportScrollVertically Option `onBeforeViewportScrollVertically`.
- * @property onScrollHorizontally Option `onScrollHorizontally`.
- * @property onScrollVertically Option `onScrollVertically`.
- * @property onWindowResize Option `onWindowResize`.
- * @property rowHeaderWidth Option `rowHeaderWidth`.
- * @property selections Option `selections`.
- * @property viewportColumnCalculatorOverride Option `viewportColumnCalculatorOverride`.
- * @property viewportRowCalculatorOverride Option `viewportRowCalculatorOverride`.
- * @property viewportColumnRenderingThreshold Option `viewportColumnRenderingThreshold`.
- * @property viewportRowRenderingThreshold Option `viewportRowRenderingThreshold`.
- * @property stylesHandler Option `stylesHandler`.
+ * @property {Option} facade @todo desc.
+ * @property {Option} ariaTags Option `ariaTags`.
+ * @property {Option} cellRenderer Option `cellRenderer`.
+ * @property {Option} columnHeaders Option `columnHeaders`.
+ * @property {Option} columnWidth Option `columnWidth`.
+ * @property {Option} currentRowClassName Option `currentRowClassName`.
+ * @property {Option} data Option `data`.
+ * @property {Option} defaultColumnWidth Option `defaultColumnWidth`.
+ * @property {Option} externalRowCalculator Option `externalRowCalculator`.
+ * @property {Option} fixedColumnsStart Option `fixedColumnsStart`.
+ * @property {Option} fixedRowsBottom Option `fixedRowsBottom`.
+ * @property {Option} fixedRowsTop Option `fixedRowsTop`.
+ * @property {Option} groups Option `groups`.
+ * @property {Option} hideBorderOnMouseDownOver Option `hideBorderOnMouseDownOver`.
+ * @property {Option} isRtl Option `isRtl`.
+ * @property {Option} isDataViewInstance Option `isDataViewInstance`.
+ * @property {Option} minSpareRows Option `minSpareRows`.
+ * @property {Option} onBeforeHighlightingColumnHeader Option `onBeforeHighlightingColumnHeader`.
+ * @property {Option} onBeforeHighlightingRowHeader Option `onBeforeHighlightingRowHeader`.
+ * @property {Option} onBeforeRemoveCellClassNames Option `onBeforeRemoveCellClassNames`.
+ * @property {Option} preventOverflow Option `preventOverflow`.
+ * @property {Option} preventWheel Option `preventWheel`.
+ * @property {Option} renderAllColumns Option `renderAllColumns`.
+ * @property {Option} renderAllRows Option `renderAllRows`.
+ * @property {Option} rowHeaders Option `rowHeaders`.
+ * @property {Option} rowHeightOption `rowHeight`.
+ * @property {Option} rowHeightByOverlayName Option `rowHeightByOverlayName`.
+ * @property {Option} shouldRenderBottomOverlay Option `shouldRenderBottomOverlay`.
+ * @property {Option} shouldRenderInlineStartOverlay Option `shouldRenderInlineStartOverlay`.
+ * @property {Option} shouldRenderTopOverlay Option `shouldRenderTopOverlay`.
+ * @property {Option} table Option `table`.
+ * @property {Option} totalColumns Option `totalColumns`.
+ * @property {Option} totalRows Option `totalRows`.
+ * @property {?Option} beforeDraw Option `beforeDraw`.
+ * @property {?Option} columnHeaderHeight Option `columnHeaderHeight`.
+ * @property {?Option} currentColumnClassName Option `currentColumnClassName`.
+ * @property {?Option} headerClassName Option `headerClassName`.
+ * @property {?Option} onAfterDrawSelection Option `onAfterDrawSelection`.
+ * @property {?Option} onAfterMomentumScroll Option `onAfterMomentumScroll`.
+ * @property {?Option} onBeforeDrawBorders Option `onBeforeDrawBorders`.
+ * @property {?Option} onBeforeTouchScroll Option `onBeforeTouchScroll`.
+ * @property {?Option} onCellContextMenu Option `onCellContextMenu`.
+ * @property {?Option} onCellCornerDblClick Option `onCellCornerDblClick`.
+ * @property {?Option} onCellCornerMouseDown Option `onCellCornerMouseDown`.
+ * @property {?Option} onCellDblClick Option `onCellDblClick`.
+ * @property {?Option} onCellMouseDown Option `onCellMouseDown`.
+ * @property {?Option} onCellMouseOut Option `onCellMouseOut`.
+ * @property {?Option} onCellMouseOver Option `onCellMouseOver`.
+ * @property {?Option} onCellMouseOverOutside Option `onCellMouseOverOutside`.
+ * @property {?Option} onCellMouseUp Option `onCellMouseUp`.
+ * @property {?Option} onDraw Option `onDraw`.
+ * @property {?Option} onModifyGetCellCoords Option `onModifyGetCellCoords`.
+ * @property {?Option} onModifyGetCoordsElement Option `onModifyGetCoordsElement`.
+ * @property {?Option} onModifyGetCoords Option `onModifyGetCoords`.
+ * @property {?Option} onModifyRowHeaderWidth Option `onModifyRowHeaderWidth`.
+ * @property {?Option} onBeforeViewportScrollHorizontally Option `onBeforeViewportScrollHorizontally`.
+ * @property {?Option} onBeforeViewportScrollVertically Option `onBeforeViewportScrollVertically`.
+ * @property {?Option} onScrollHorizontally Option `onScrollHorizontally`.
+ * @property {?Option} onScrollVertically Option `onScrollVertically`.
+ * @property {?Option} onWindowResize Option `onWindowResize`.
+ * @property {?Option} rowHeaderWidth Option `rowHeaderWidth`.
+ * @property {?Option} selections Option `selections`.
+ * @property {?Option} viewportColumnCalculatorOverride Option `viewportColumnCalculatorOverride`.
+ * @property {?Option} viewportRowCalculatorOverride Option `viewportRowCalculatorOverride`.
+ * @property {?Option} viewportColumnRenderingThreshold Option `viewportColumnRenderingThreshold`.
+ * @property {?Option} viewportRowRenderingThreshold Option `viewportRowRenderingThreshold`.
+ * @property {?Option} stylesHandler Option `stylesHandler`.
  */
 
 /**
  * @template TValue.
- * @typedef Option
+ * @typedef { TValue | Array.<TValue> | (function(...*): TValue) } Option
  */
 
 /**
@@ -90,6 +90,7 @@ export default class Settings {
    * Reference to settings.
    *
    * @protected
+   * @type {SettingsPure}
    */
   settings: Record<string, unknown> = {};
 
@@ -98,11 +99,12 @@ export default class Settings {
    * Void 0 means it is required, null means it can be empty.
    *
    * @public
+   * @type {Readonly<SettingsPure>}
    */
   defaults: Record<string, unknown> = Object.freeze(this.getDefaults());
 
   /**
-   * @param settings The user defined settings.
+   * @param {SettingsPure} settings The user defined settings.
    */
   constructor(settings: Record<string, unknown>) {
     objectEach(this.defaults, (value: unknown, key: string) => {
@@ -123,7 +125,7 @@ export default class Settings {
    * Void 0 means it is required, null means it can be empty.
    *
    * @private
-   * @returns 
+   * @returns {SettingsPure}
    */
   getDefaults() {
     return {
@@ -251,9 +253,9 @@ export default class Settings {
   /**
    * Update settings.
    *
-   * @param settings The singular settings to update or if passed as object to merge with.
-   * @param value The value to set if the first argument is passed as string.
-   * @returns 
+   * @param {object|string} settings The singular settings to update or if passed as object to merge with.
+   * @param {*} value The value to set if the first argument is passed as string.
+   * @returns {Settings}
    */
   update(settings: string | Record<string, unknown>, value?: unknown) {
     if (value === undefined) { // settings is object
@@ -270,70 +272,28 @@ export default class Settings {
   /**
    * Get setting by name.
    *
-   * @param key The settings key to retrieve.
-   * @param [param1] Additional parameter passed to the options defined as function.
-   * @param [param2] Additional parameter passed to the options defined as function.
-   * @param [param3] Additional parameter passed to the options defined as function.
-   * @param [param4] Additional parameter passed to the options defined as function.
-   * @returns 
+   * @param {$Keys<SettingsPure>} key The settings key to retrieve.
+   * @param {*} [param1] Additional parameter passed to the options defined as function.
+   * @param {*} [param2] Additional parameter passed to the options defined as function.
+   * @param {*} [param3] Additional parameter passed to the options defined as function.
+   * @param {*} [param4] Additional parameter passed to the options defined as function.
+   * @returns {*}
    */
   getSetting(key: 'stylesHandler'): StylesHandler;
-  /**
-   * Returns the `preventOverflow` setting value.
-   */
   getSetting(key: 'preventOverflow'): 'horizontal' | 'vertical' | false;
-  /**
-   * Returns the `rtlMode` setting value.
-   */
   getSetting(key: 'rtlMode'): boolean;
-  /**
-   * Returns the `isDataViewInstance` setting value.
-   */
   getSetting(key: 'isDataViewInstance'): boolean;
-  /**
-   * Returns the `fixedColumnsStart` setting value.
-   */
   getSetting(key: 'fixedColumnsStart'): number;
-  /**
-   * Returns the `fixedRowsTop` setting value.
-   */
   getSetting(key: 'fixedRowsTop'): number;
-  /**
-   * Returns the `fixedRowsBottom` setting value.
-   */
   getSetting(key: 'fixedRowsBottom'): number;
-  /**
-   * Returns the `totalRows` setting value.
-   */
   getSetting(key: 'totalRows'): number | undefined;
-  /**
-   * Returns the `totalColumns` setting value.
-   */
   getSetting(key: 'totalColumns'): number | undefined;
-  /**
-   * Returns the `rowHeaderWidth` setting value.
-   */
   getSetting(key: 'rowHeaderWidth'): number | undefined;
-  /**
-   * Returns the `defaultColumnWidth` setting value.
-   */
   getSetting(key: 'defaultColumnWidth'): number | undefined;
-  /**
-   * Returns the `viewportRowRenderingThreshold` setting value.
-   */
   getSetting(key: 'viewportRowRenderingThreshold'): number | 'auto';
-  /**
-   * Returns the `viewportColumnRenderingThreshold` setting value.
-   */
   getSetting(key: 'viewportColumnRenderingThreshold'): number | 'auto';
-  /**
-   * Generic overload that retrieves any setting value by key with optional parameters.
-   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getSetting<T = any>(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown): T;
-  /**
-   * Implementation that evaluates function-type settings and supports array-indexed access.
-   */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getSetting(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown): unknown {
     if (typeof this.settings[key] === 'function') {
@@ -350,14 +310,11 @@ export default class Settings {
   /**
    * Get a setting value without any evaluation.
    *
-   * @param key The settings key to retrieve.
-   * @returns 
+   * @param {string} key The settings key to retrieve.
+   * @returns {*}
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getSettingPure<T = any>(key: string): T;
-  /**
-   * Returns the raw setting value for the given key, without evaluating function-type settings.
-   */
   getSettingPure(key: string) {
     return this.settings[key];
   }
@@ -365,8 +322,8 @@ export default class Settings {
   /**
    * Checks if setting exists.
    *
-   * @param key The settings key to check.
-   * @returns 
+   * @param {boolean} key The settings key to check.
+   * @returns {boolean}
    */
   has(key: string) {
     return !!this.settings[key];

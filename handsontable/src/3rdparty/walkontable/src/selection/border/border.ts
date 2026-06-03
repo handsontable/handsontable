@@ -1,7 +1,7 @@
 
-import type from '../../types';
+import type { WalkontableInstance } from '../../types';
 import type EventManager from '../../../../../eventManager';
-import type from './types';
+import type { BorderInstanceSettings, CornerDefaultStyle, SelectionHandles } from './types';
 import {
   addClass,
   hasClass,
@@ -14,10 +14,10 @@ import {
   outerWidth,
   isHTMLElement,
 } from '../../../../../helpers/dom/element';
-import from '../../../../../helpers/dom/event';
-import from '../../../../../helpers/object';
-import from '../../../../../helpers/browser';
-import from './utils';
+import { stopImmediatePropagation } from '../../../../../helpers/dom/event';
+import { objectEach } from '../../../../../helpers/object';
+import { isMobileBrowser } from '../../../../../helpers/browser';
+import { getCornerStyle } from './utils';
 
 const BORDER_STYLE_CLASS_PREFIX = 'ht-border-style-';
 const BORDER_STYLE_VERTICAL_SUFFIX = '-vertical';
@@ -27,93 +27,33 @@ const BORDER_STYLE_HORIZONTAL_SUFFIX = '-horizontal';
  *
  */
 class Border {
-  /**
-   * The event manager instance used to register and remove DOM event listeners.
-   */
   declare eventManager: EventManager;
-  /**
-   * The Walkontable instance that owns this border.
-   */
   declare instance: WalkontableInstance;
-  /**
-   * Alias for the Walkontable instance, kept for backward compatibility.
-   */
   declare wot: WalkontableInstance;
-  /**
-   * The border configuration settings supplied during construction.
-   */
   declare settings: BorderInstanceSettings;
-  /**
-   * Tracks whether the primary mouse button is currently held down.
-   */
   declare mouseDown: boolean;
-  /**
-   * The container div element that wraps all border segment elements.
-   */
   declare main: HTMLDivElement | null;
-  /**
-   * The element representing the top border segment.
-   */
   declare top: HTMLElement | null;
-  /**
-   * The element representing the bottom border segment.
-   */
   declare bottom: HTMLElement | null;
-  /**
-   * The element representing the inline-start (left in LTR) border segment.
-   */
   declare start: HTMLElement | null;
-  /**
-   * The element representing the inline-end (right in LTR) border segment.
-   */
   declare end: HTMLElement | null;
-  /**
-   * The inline style object for the top border segment, cached for performance.
-   */
   declare topStyle: CSSStyleDeclaration | null;
-  /**
-   * The inline style object for the bottom border segment, cached for performance.
-   */
   declare bottomStyle: CSSStyleDeclaration | null;
-  /**
-   * The inline style object for the inline-start border segment, cached for performance.
-   */
   declare startStyle: CSSStyleDeclaration | null;
-  /**
-   * The inline style object for the inline-end border segment, cached for performance.
-   */
   declare endStyle: CSSStyleDeclaration | null;
-  /**
-   * The default style properties (size, color, border style) for the fill-handle corner element.
-   */
   declare cornerDefaultStyle: CornerDefaultStyle;
-  /**
-   * Pixel offset used to center the corner handle relative to the selection edge.
-   */
   declare cornerCenterPointOffset: number;
-  /**
-   * The element representing the fill-handle corner of the selection border.
-   */
   declare corner: HTMLElement | null;
-  /**
-   * The inline style object for the corner handle element, cached for performance.
-   */
   declare cornerStyle: CSSStyleDeclaration | null;
-  /**
-   * The set of DOM elements and their style references used for mobile selection handles.
-   */
   declare selectionHandles: SelectionHandles;
-  /**
-   * When `true`, this border will not be rendered on the next `appear()` call.
-   */
   declare disabled: boolean;
 
   // TODO As this is an internal class, should be designed for using {Walkontable}. It uses the facade,
   // TODO Con. Because the class is created on place where the instance reference comes from external origin.
   // TODO Imho, the discrimination for handling both, facade and non-facade should be handled.
   /**
-   * @param wotInstance The Walkontable instance.
-   * @param settings The border settings.
+   * @param {WalkontableFacade} wotInstance The Walkontable instance.
+   * @param {object} settings The border settings.
    */
   constructor(wotInstance: WalkontableInstance, settings: BorderInstanceSettings) {
     if (!settings) {
@@ -189,8 +129,8 @@ class Border {
    * Mouse enter listener for fragment selection functionality.
    *
    * @private
-   * @param event Dom event.
-   * @param parentElement Part of border element.
+   * @param {Event} event Dom event.
+   * @param {HTMLElement} parentElement Part of border element.
    */
   onMouseEnter(event: MouseEvent, parentElement: HTMLElement) {
     if (!this.mouseDown || !this.wot.getSetting('hideBorderOnMouseDownOver')) {
@@ -207,8 +147,8 @@ class Border {
     parentElement.style.display = 'none';
 
     /**
-     * @param mouseEvent The mouse event object.
-     * @returns 
+     * @param {Event} mouseEvent The mouse event object.
+     * @returns {boolean}
      */
     function isOutside(mouseEvent: MouseEvent) {
       if (mouseEvent.clientY < Math.floor(bounds.top)) {
@@ -226,7 +166,7 @@ class Border {
     }
 
     /**
-     * @param handlerEvent The mouse event object.
+     * @param {Event} handlerEvent The mouse event object.
      */
     function handler(handlerEvent: MouseEvent) {
       if (isOutside(handlerEvent)) {
@@ -241,10 +181,10 @@ class Border {
   /**
    * Create border elements.
    *
-   * @param settings The border settings.
+   * @param {object} settings The border settings.
    */
   createBorders(settings: BorderInstanceSettings) {
-    const = this.wot;
+    const { rootDocument } = this.wot;
 
     this.main = rootDocument.createElement('div');
 
@@ -323,7 +263,7 @@ class Border {
     }
     this.disappear();
 
-    const = this.wot;
+    const { wtTable } = this.wot;
     let bordersHolder = wtTable.bordersHolder;
 
     if (!bordersHolder) {
@@ -339,7 +279,7 @@ class Border {
    * Create multiple selector handler for mobile devices.
    */
   createMultipleSelectorHandles() {
-    const = this.wot;
+    const { rootDocument, wtSettings } = this.wot;
     const stylesHandler = wtSettings.getSetting('stylesHandler');
     const cellMobileHandleSize = stylesHandler.getCSSVariableValue('cell-mobile-handle-size');
     const cellMobileHandleBorderRadius = stylesHandler.getCSSVariableValue('cell-mobile-handle-border-radius');
@@ -402,9 +342,9 @@ class Border {
    * Checks if the given coordinates are south-east of the area selection. If `true` then
    * the fill handler should be visible.
    *
-   * @param row The visual row index.
-   * @param col The visual column index.
-   * @returns 
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @returns {boolean}
    */
   isSouthEastOfAreaSelection(row: number, col: number) {
     const areaSelection = this.wot.selectionManager.getAreaSelection();
@@ -425,12 +365,12 @@ class Border {
   }
 
   /**
-   * @param row The visual row index.
-   * @param col The visual column index.
-   * @param top The top position of the handler.
-   * @param left The left position of the handler.
-   * @param width The width of the handler.
-   * @param height The height of the handler.
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number} top The top position of the handler.
+   * @param {number} left The left position of the handler.
+   * @param {number} width The width of the handler.
+   * @param {number} height The height of the handler.
    */
   updateMultipleSelectionHandlesPosition(
     row: number, col: number, top: number, left: number, width: number, height: number) {
@@ -512,7 +452,7 @@ class Border {
   /**
    * Show border around one or many cells.
    *
-   * @param corners The corner coordinates.
+   * @param {Array} corners The corner coordinates.
    */
   appear(corners: number[]) {
     if (this.disabled) {
@@ -528,7 +468,7 @@ class Border {
       return;
     }
 
-    const = this.wot;
+    const { wtTable, rootDocument, rootWindow } = this.wot;
     const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
     const firstRenderedRow = wtTable.getFirstRenderedRow();
     const lastRenderedRow = wtTable.getLastRenderedRow();
@@ -770,9 +710,9 @@ class Border {
    * Check whether an entire column of cells is selected.
    *
    * @private
-   * @param startRowIndex Start row index.
-   * @param endRowIndex End row index.
-   * @returns 
+   * @param {number} startRowIndex Start row index.
+   * @param {number} endRowIndex End row index.
+   * @returns {boolean}
    */
   isEntireColumnSelected(startRowIndex: number, endRowIndex: number) {
     return startRowIndex === this.wot.wtTable.getFirstRenderedRow() &&
@@ -783,9 +723,9 @@ class Border {
    * Check whether an entire row of cells is selected.
    *
    * @private
-   * @param startColumnIndex Start column index.
-   * @param endColumnIndex End column index.
-   * @returns 
+   * @param {number} startColumnIndex Start column index.
+   * @param {number} endColumnIndex End column index.
+   * @returns {boolean}
    */
   isEntireRowSelected(startColumnIndex: number, endColumnIndex: number) {
     return startColumnIndex === this.wot.wtTable.getFirstRenderedColumn() &&
@@ -796,17 +736,17 @@ class Border {
    * Get left/top index and width/height depending on the `direction` provided.
    *
    * @private
-   * @param direction `rows` or `columns`, defines if an entire column or row is selected.
-   * @param fromIndex Start index of the selection.
-   * @param toIndex End index of the selection.
-   * @param headerIndex The header index as negative value.
-   * @param containerOffset Offset of the container.
-   * @returns Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
+   * @param {string} direction `rows` or `columns`, defines if an entire column or row is selected.
+   * @param {number} fromIndex Start index of the selection.
+   * @param {number} toIndex End index of the selection.
+   * @param {number} headerIndex The header index as negative value.
+   * @param {number} containerOffset Offset of the container.
+   * @returns {Array|boolean} Returns an array of [headerElement, left, width] or [headerElement, top, height], depending on `direction` (`false` in case of an error getting the headers).
    */
   getDimensionsFromHeader(
     direction: string, fromIndex: number, toIndex: number, headerIndex: number,
     containerOffset: { top: number; left: number }): false | [HTMLElement, number, number] {
-    const = this.wot;
+    const { wtTable } = this.wot;
     const rootHotElement = wtTable.wtRootElement.parentNode as HTMLElement;
     let getHeaderFn: ((...args: unknown[]) => HTMLElement | undefined) | null = null;
     let dimensionFn: ((el: HTMLElement) => number) | null = null;
@@ -865,8 +805,8 @@ class Border {
    * Change border style.
    *
    * @private
-   * @param borderElement Coordinate where add/remove border: top, bottom, start, end.
-   * @param border The border object descriptor.
+   * @param {string} borderElement Coordinate where add/remove border: top, bottom, start, end.
+   * @param {object} border The border object descriptor.
    */
   changeBorderStyle(borderElement: 'top' | 'bottom' | 'start' | 'end', border: Record<string, unknown>) {
     const element = this[borderElement]!;
@@ -897,7 +837,7 @@ class Border {
    * Change border style to default.
    *
    * @private
-   * @param position The position type ("top", "bottom", "start", "end") to change.
+   * @param {string} position The position type ("top", "bottom", "start", "end") to change.
    */
   changeBorderToDefaultStyle(position: 'top' | 'bottom' | 'start' | 'end') {
     const defaultBorder = {
@@ -915,8 +855,8 @@ class Border {
    * Toggle class 'hidden' to element.
    *
    * @private
-   * @param borderElement Coordinate where add/remove border: top, bottom, start, end.
-   * @param [remove] Defines type of the action to perform.
+   * @param {string} borderElement Coordinate where add/remove border: top, bottom, start, end.
+   * @param {boolean} [remove] Defines type of the action to perform.
    */
   toggleHiddenClass(borderElement: 'top' | 'bottom' | 'start' | 'end', remove: boolean) {
     this.changeBorderToDefaultStyle(borderElement);

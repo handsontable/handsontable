@@ -1,4 +1,4 @@
-import type from '../types';
+import type { DataAccessObject, DomBindings, WalkontableInstance } from '../types';
 import type Settings from '../settings';
 import {
   getScrollbarWidth,
@@ -7,7 +7,7 @@ import {
   resetCssTransform
 } from '../../../../helpers/dom/element';
 import BottomInlineStartCornerOverlayTable from '../table/bottomInlineStartCorner';
-import from './_base';
+import { Overlay } from './_base';
 import {
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from './constants';
@@ -16,22 +16,16 @@ import {
  * @class BottomInlineStartCornerOverlay
  */
 export class BottomInlineStartCornerOverlay extends Overlay {
-  /**
-   * The bottom overlay instance used to calculate the vertical offset for this corner overlay.
-   */
   declare bottomOverlay: Overlay;
-  /**
-   * The inline-start overlay instance used to calculate the horizontal offset for this corner overlay.
-   */
   declare inlineStartOverlay: Overlay;
 
   /**
-   * @param wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
-   * @param facadeGetter Function which return proper facade.
-   * @param wtSettings The Walkontable settings.
-   * @param domBindings Dom elements bound to the current instance.
-   * @param bottomOverlay The instance of the Top overlay.
-   * @param inlineStartOverlay The instance of the InlineStart overlay.
+   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
+   * @param {FacadeGetter} facadeGetter Function which return proper facade.
+   * @param {Settings} wtSettings The Walkontable settings.
+   * @param {DomBindings} domBindings Dom elements bound to the current instance.
+   * @param {BottomOverlay} bottomOverlay The instance of the Top overlay.
+   * @param {InlineStartOverlay} inlineStartOverlay The instance of the InlineStart overlay.
    */
   constructor(
     wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings,
@@ -45,8 +39,8 @@ export class BottomInlineStartCornerOverlay extends Overlay {
    * Factory method to create a subclass of `Table` that is relevant to this overlay.
    *
    * @see Table#constructor
-   * @param args Parameters that will be forwarded to the `Table` constructor.
-   * @returns 
+   * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
+   * @returns {BottomInlineStartCornerOverlayTable}
    */
   createTable(...args: [DataAccessObject, Function, DomBindings, Settings]) {
     return new BottomInlineStartCornerOverlayTable(...args);
@@ -55,7 +49,7 @@ export class BottomInlineStartCornerOverlay extends Overlay {
   /**
    * Checks if overlay should be fully rendered.
    *
-   * @returns 
+   * @returns {boolean}
    */
   shouldBeRendered(): boolean {
     return (this.wtSettings.getSetting('shouldRenderBottomOverlay') as boolean)
@@ -65,14 +59,14 @@ export class BottomInlineStartCornerOverlay extends Overlay {
   /**
    * Updates the corner overlay position.
    *
-   * @returns 
+   * @returns {boolean}
    */
   resetFixedPosition() {
-    const = this;
+    const { wot } = this;
 
     this.updateTrimmingContainer();
 
-    const = this;
+    const { clone } = this;
 
     if (!(wot.wtTable.holder.parentNode as HTMLElement) || !clone) {
       // removed from DOM
@@ -111,61 +105,26 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     return true;
   }
 
-  /**
-   * Not applicable for this corner overlay. Always returns `false`.
-   */
   setScrollPosition(_pos: number) {
     return false;
   }
-
-  /**
-   * Not applicable for this corner overlay. Always returns `0`.
-   */
   getScrollPosition() {
     return 0;
   }
-
-  /**
-   * Not applicable for this corner overlay. Always returns `0`.
-   */
   getTableParentOffset() {
     return 0;
   }
-
-  /**
-   * Not applicable for this corner overlay. Always returns `0`.
-   */
   getOverlayOffset() {
     return 0;
   }
-
-  /**
-   * Not applicable for this corner overlay. Intentionally a no-op.
-   */
   onScroll() {}
-
-  /**
-   * Not applicable for this corner overlay. Always returns `0`.
-   */
   sumCellSizes(_from: number, _to: number) {
     return 0;
   }
-
-  /**
-   * Not applicable for this corner overlay. Intentionally a no-op.
-   */
   adjustElementsSize() { // intentionally empty
   }
-
-  /**
-   * Not applicable for this corner overlay. Intentionally a no-op.
-   */
   applyToDOM() { // intentionally empty
   }
-
-  /**
-   * Not applicable for this corner overlay. Always returns `false`.
-   */
   scrollTo(_sourceIndex: number, _snapToEdge: boolean) {
     return false;
   }
@@ -178,8 +137,8 @@ export class BottomInlineStartCornerOverlay extends Overlay {
       return;
     }
 
-    const = this.wot;
-    const = this.domBindings;
+    const { wtTable, wtViewport } = this.wot;
+    const { rootDocument } = this.domBindings;
     const cloneRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     let bottomOffset = 0;
 

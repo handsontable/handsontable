@@ -5,18 +5,9 @@
  * @class {ViewOrder}
  */
 export class ViewOrder {
-  /**
-   * The ordered list of offset indexes representing the current render window.
-   */
   order: number[] = [];
-  /**
-   * A shadow set mirroring `order` for O(1) membership lookups.
-   */
   #indexSet = new Set<number>();
 
-  /**
-   * Initializes the view order with a contiguous range of indexes starting at `viewOffset`.
-   */
   constructor(viewOffset: number, viewSize: number) {
     const order = new Array<number>(viewSize);
     const indexSet = this.#indexSet;
@@ -33,7 +24,7 @@ export class ViewOrder {
   /**
    * The length of the view order.
    *
-   * @returns 
+   * @returns {number}
    */
   get length() {
     return this.order.length;
@@ -42,8 +33,8 @@ export class ViewOrder {
   /**
    * Checks if the view order contains the offset index.
    *
-   * @param offsetIndex The offset index.
-   * @returns 
+   * @param {number} offsetIndex The offset index.
+   * @returns {boolean}
    */
   has(offsetIndex: number) {
     return this.#indexSet.has(offsetIndex);
@@ -53,8 +44,8 @@ export class ViewOrder {
    * Gets the offset index at the given zero-based index. If the index
    * is out of bounds, -1 is returned.
    *
-   * @param zeroBasedIndex The zero-based index.
-   * @returns 
+   * @param {number} zeroBasedIndex The zero-based index.
+   * @returns {number}
    */
   get(zeroBasedIndex: number): number {
     return zeroBasedIndex < this.order.length ? (this.order[zeroBasedIndex] ?? -1) : -1;
@@ -63,7 +54,7 @@ export class ViewOrder {
   /**
    * Removes the offset index from the view order.
    *
-   * @param offsetIndex The offset index.
+   * @param {number} offsetIndex The offset index.
    */
   remove(offsetIndex: number) {
     const idx = this.order.indexOf(offsetIndex);
@@ -78,8 +69,8 @@ export class ViewOrder {
    * Prepends the offset index to the view order. To keep the order length constant,
    * the last offset index is removed.
    *
-   * @param offsetIndex The offset index.
-   * @returns 
+   * @param {number} offsetIndex The offset index.
+   * @returns {number}
    */
   prepend(offsetIndex: number): number {
     this.order.unshift(offsetIndex);

@@ -1,5 +1,5 @@
-import type from '../view';
-import from '../constants';
+import type { OrderView } from '../view';
+import { WORKING_SPACE_TOP, WORKING_SPACE_BOTTOM } from '../constants';
 
 /**
  * Direct DOM renderer adapter that uses direct DOM manipulation.
@@ -7,18 +7,16 @@ import from '../constants';
  * @class {DirectDomRendererAdapter}
  */
 export class DirectDomRendererAdapter {
-  /**
-   * The OrderView instance that owns this adapter and provides access to the root node and node pool.
-   */
   declare orderView: OrderView;
   /**
    * The visual index of currently processed row.
    *
+   * @type {number}
    */
   visualIndex = 0;
 
   /**
-   * @param orderView The OrderView instance.
+   * @param {OrderView} orderView The OrderView instance.
    */
   constructor(orderView: OrderView) {
     this.orderView = orderView;
@@ -27,10 +25,10 @@ export class DirectDomRendererAdapter {
   /**
    * Returns rendered child count for this instance.
    *
-   * @returns 
+   * @returns {number}
    */
   getRenderedChildCount() {
-    const = this.orderView;
+    const { rootNode, sizeSet } = this.orderView;
     let childElementCount = 0;
 
     if (this.orderView.isSharedViewSet()) {
@@ -60,9 +58,9 @@ export class DirectDomRendererAdapter {
     this.orderView.collectedNodes.length = 0;
     this.visualIndex = 0;
 
-    const = this.orderView;
+    const { rootNode, sizeSet } = this.orderView;
     const isShared = this.orderView.isSharedViewSet();
-    const = sizeSet.getViewSize();
+    const { nextSize } = sizeSet.getViewSize();
 
     let childElementCount = this.getRenderedChildCount();
 
@@ -94,7 +92,7 @@ export class DirectDomRendererAdapter {
    * This method has to be called as many times as the size count is met (to cover all previously rendered DOM elements).
    */
   render() {
-    const = this.orderView;
+    const { rootNode, sizeSet } = this.orderView;
     let visualIndex = this.visualIndex;
 
     if (this.orderView.isSharedViewSet() && sizeSet.isPlaceOn(WORKING_SPACE_BOTTOM) && sizeSet.sharedSize) {

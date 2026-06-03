@@ -1,4 +1,4 @@
-import type from '../types';
+import type { WalkontableInstance } from '../types';
 import type Selection from './selection';
 
 /**
@@ -20,7 +20,7 @@ import {
   setAttribute,
   removeAttribute
 } from '../../../../helpers/dom/element';
-import from './scanner';
+import { SelectionScanner } from './scanner';
 import Border from './border/border';
 
 /**
@@ -34,39 +34,42 @@ export class SelectionManager {
   /**
    * The overlay's Walkontable instance that are currently processed.
    *
+   * @type {Walkontable}
    */
   #activeOverlaysWot: WalkontableInstance | null = null;
   /**
    * The Highlight instance that holds Selections instances within it.
    *
+   * @type {Highlight|null}
    */
   #selections: SelectionsContainer | null;
   /**
    * The SelectionScanner allows to scan and collect the cell and header elements that matches
    * to the coords defined in the selections.
    *
+   * @type {SelectionScanner}
    */
   #scanner = new SelectionScanner();
   /**
    * The Map tracks applied CSS classes. It's used to reset the elements state to their initial state.
    *
+   * @type {WeakMap}
    */
   #appliedClasses = new WeakMap<WalkontableInstance, Set<string>>();
   /**
    * The Map tracks applied "destroy" listeners for Selection instances.
    *
+   * @type {WeakMap}
    */
   #destroyListeners = new WeakSet();
   /**
    * The Map holds references to Border classes for Selection instances which requires that when
    * the "border" setting is defined.
    *
+   * @type {Map}
    */
   #selectionBorders = new Map<Selection, Map<WalkontableInstance, Border>>();
 
-  /**
-   * Stores the provided selections container so it is available to all manager methods.
-   */
   constructor(selections: SelectionsContainer | null) {
     this.#selections = selections;
   }
@@ -74,8 +77,8 @@ export class SelectionManager {
   /**
    * Sets the active Walkontable instance.
    *
-   * @param activeWot The overlays or master Walkontable instance.
-   * @returns 
+   * @param {Walkontable} activeWot The overlays or master Walkontable instance.
+   * @returns {SelectionManager}
    */
   setActiveOverlay(activeWot: WalkontableInstance) {
     this.#activeOverlaysWot = activeWot;
@@ -91,7 +94,7 @@ export class SelectionManager {
   /**
    * Gets the Selection instance of the "focus" type.
    *
-   * @returns 
+   * @returns {Selection|null}
    */
   getFocusSelection() {
     return this.#selections !== null ? this.#selections.getFocus() : null;
@@ -100,7 +103,7 @@ export class SelectionManager {
   /**
    * Gets the Selection instance of the "area" type.
    *
-   * @returns 
+   * @returns {Selection|null}
    */
   getAreaSelection() {
     return this.#selections !== null ? this.#selections.createLayeredArea() : null;
@@ -109,8 +112,8 @@ export class SelectionManager {
   /**
    * Gets the Border instance associated with Selection instance.
    *
-   * @param selection The selection instance.
-   * @returns Returns the Border instance (new for each overlay Walkontable instance).
+   * @param {Selection} selection The selection instance.
+   * @returns {Border|null} Returns the Border instance (new for each overlay Walkontable instance).
    */
   getBorderInstance(selection: Selection) {
     if (!selection.settings.border) {
@@ -141,8 +144,8 @@ export class SelectionManager {
   /**
    * Gets all Border instances associated with Selection instance for all overlays.
    *
-   * @param selection The selection instance.
-   * @returns 
+   * @param {Selection} selection The selection instance.
+   * @returns {Border[]}
    */
   getBorderInstances(selection: Selection) {
     return Array.from(this.#selectionBorders.get(selection)?.values() ?? []);
@@ -151,7 +154,7 @@ export class SelectionManager {
   /**
    * Destroys the Border instance associated with Selection instance.
    *
-   * @param selection The selection instance.
+   * @param {Selection} selection The selection instance.
    */
   destroyBorders(selection: Selection) {
     this.#selectionBorders.get(selection)?.forEach(border => border.destroy());
@@ -178,7 +181,7 @@ export class SelectionManager {
   /**
    * Renders all the selections (add CSS classes to cells and draw borders).
    *
-   * @param fastDraw Indicates the render cycle type (fast/slow).
+   * @param {boolean} fastDraw Indicates the render cycle type (fast/slow).
    */
   render(fastDraw: boolean) {
     if (this.#selections === null) {

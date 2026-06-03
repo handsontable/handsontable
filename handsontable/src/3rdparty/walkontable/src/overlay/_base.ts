@@ -1,4 +1,4 @@
-import type from '../types';
+import type { DomBindings, WalkontableInstance } from '../types';
 import type Settings from '../settings';
 import {
   getScrollableElement,
@@ -6,8 +6,8 @@ import {
   getScrollbarWidth,
   setAttribute,
 } from '../../../../helpers/dom/element';
-import from '../../../../helpers/object';
-import from '../../../../helpers/console';
+import { defineGetter } from '../../../../helpers/object';
+import { warn } from '../../../../helpers/console';
 import {
   CLONE_TYPES,
   CLONE_CLASS_NAMES,
@@ -15,8 +15,8 @@ import {
   CLONE_INLINE_START,
 } from './constants';
 import Clone from '../core/clone';
-import from '../../../../helpers/a11y';
-import from '../../../../helpers/errors';
+import { A11Y_PRESENTATION } from '../../../../helpers/a11y';
+import { throwWithCause } from '../../../../helpers/errors';
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
@@ -24,79 +24,38 @@ import from '../../../../helpers/errors';
  *
  * @abstract
  * @class Overlay
- * @property wot The Walkontable instance.
+ * @property {Walkontable} wot The Walkontable instance.
  */
 export abstract class Overlay {
   /**
    *  The Walkontable settings.
    *
    * @private
+   * @type {Settings}
    */
   wtSettings!: Settings;
 
-  /**
-   * The master Walkontable instance this overlay belongs to.
-   */
   declare wot: WalkontableInstance;
-  /**
-   * DOM element bindings for the root document and window.
-   */
   declare domBindings: DomBindings;
-  /**
-   * Factory function that returns the correct public facade for the current instance.
-   */
   declare facadeGetter: Function;
-  /**
-   * Alias for `wot`. Kept for backward-compatibility.
-   */
   declare instance: WalkontableInstance;
-  /**
-   * The overlay type identifier (one of the CLONE_* constants).
-   */
   declare type: string;
-  /**
-   * The element or window that the overlay attaches scroll listeners to. Assigned during `makeClone()`.
-   */
   declare mainTableScrollableElement: HTMLElement | Window; // assigned in makeClone() called from constructor
-  /**
-   * The TABLE element of the master table, referenced for DOM measurements.
-   */
   declare TABLE: HTMLTableElement;
-  /**
-   * The hider element that masks overflow outside the visible viewport.
-   */
   declare hider: HTMLElement;
-  /**
-   * The spreader element that expands to the full scrollable size of the table.
-   */
   declare spreader: HTMLElement;
-  /**
-   * The holder element (or window) that clips the overlay content and handles scrolling.
-   */
   declare holder: HTMLElement | Window;
-  /**
-   * The outermost root element of the Walkontable instance in the DOM.
-   */
   declare wtRootElement: HTMLElement;
-  /**
-   * The nearest ancestor element (or window) that acts as the scroll trimming boundary.
-   */
   declare trimmingContainer: HTMLElement | Window;
-  /**
-   * Indicates whether the overlay should be fully rendered in the current and future draw cycles.
-   */
   declare needFullRender: boolean;
-  /**
-   * The cloned Walkontable instance that renders frozen rows or columns for this overlay.
-   */
   declare clone: WalkontableInstance | null;
 
   /**
-   * @param wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
-   * @param facadeGetter Function which return proper facade.
-   * @param type The overlay type name (clone name).
-   * @param wtSettings The Walkontable settings.
-   * @param domBindings Dom elements bound to the current instance.
+   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
+   * @param {FacadeGetter} facadeGetter Function which return proper facade.
+   * @param {CLONE_TYPES_ENUM} type The overlay type name (clone name).
+   * @param {Settings} wtSettings The Walkontable settings.
+   * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
   constructor(
     wotInstance: WalkontableInstance, facadeGetter: Function, type: string,
@@ -145,7 +104,7 @@ export abstract class Overlay {
   /**
    * Checks if the overlay rendering state has changed.
    *
-   * @returns 
+   * @returns {boolean}
    */
   hasRenderingStateChanged() {
     return this.needFullRender !== this.shouldBeRendered();
@@ -159,7 +118,7 @@ export abstract class Overlay {
    * the `needFullRender` property is set to `false` which means that the overlay will be fully rendered in the
    * current draw cycle but it will not be rendered in the next draw cycles.
    *
-   * @param drawPhase The phase of the rendering process.
+   * @param {'before' | 'after'} drawPhase The phase of the rendering process.
    */
   updateStateOfRendering(drawPhase: 'before' | 'after') {
     if (drawPhase === 'before' && this.shouldBeRendered()) {
@@ -173,7 +132,7 @@ export abstract class Overlay {
   /**
    * Checks if overlay should be fully rendered.
    *
-   * @returns 
+   * @returns {boolean}
    */
   shouldBeRendered(): boolean {
     return true;
@@ -190,8 +149,8 @@ export abstract class Overlay {
    * Update the main scrollable element.
    */
   updateMainScrollableElement() {
-    const = this.wot;
-    const = this.domBindings;
+    const { wtTable } = this.wot;
+    const { rootWindow } = this.domBindings;
     const computedOverflow = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode as Element)
       .getPropertyValue('overflow');
 
@@ -215,10 +174,10 @@ export abstract class Overlay {
    * Calculates coordinates of the provided element, relative to the root Handsontable element.
    * NOTE: The element needs to be a child of the overlay in order for the method to work correctly.
    *
-   * @param element The cell element to calculate the position for.
-   * @param rowIndex Visual row index.
-   * @param columnIndex Visual column index.
-   * @returns |undefined}
+   * @param {HTMLElement} element The cell element to calculate the position for.
+   * @param {number} rowIndex Visual row index.
+   * @param {number} columnIndex Visual column index.
+   * @returns {{top: number, start: number}|undefined}
    */
   getRelativeCellPosition(element: HTMLElement, rowIndex: number, columnIndex: number) {
     if (!this.clone || this.clone.wtTable.holder.contains(element) === false) {
@@ -260,8 +219,8 @@ export abstract class Overlay {
   /**
    * Get inline start value depending of direction.
    *
-   * @param el Element.
-   * @returns 
+   * @param {HTMLElement} el Element.
+   * @returns {number}
    */
   getRelativeStartPosition(el: HTMLElement) {
     return this.isRtl()
@@ -274,11 +233,11 @@ export abstract class Overlay {
    * as a scrollable element.
    *
    * @private
-   * @param onFixedRowTop `true` if the coordinates point to a place within the top fixed rows.
-   * @param onFixedColumn `true` if the coordinates point to a place within the fixed columns.
-   * @param elementOffset Offset position of the cell element.
-   * @param spreaderOffset Offset position of the spreader element.
-   * @returns }
+   * @param {boolean} onFixedRowTop `true` if the coordinates point to a place within the top fixed rows.
+   * @param {boolean} onFixedColumn `true` if the coordinates point to a place within the fixed columns.
+   * @param {number} elementOffset Offset position of the cell element.
+   * @param {number} spreaderOffset Offset position of the spreader element.
+   * @returns {{top: number, left: number}}
    */
   getRelativeCellPositionWithinWindow(
     onFixedRowTop: boolean, onFixedColumn: boolean,
@@ -329,12 +288,12 @@ export abstract class Overlay {
    * as a scrollable element.
    *
    * @private
-   * @param onFixedRowTop `true` if the coordinates point to a place within the top fixed rows.
-   * @param onFixedRowBottom `true` if the coordinates point to a place within the bottom fixed rows.
-   * @param onFixedColumn `true` if the coordinates point to a place within the fixed columns.
-   * @param elementOffset Offset position of the cell element.
-   * @param spreaderOffset Offset position of the spreader element.
-   * @returns }
+   * @param {boolean} onFixedRowTop `true` if the coordinates point to a place within the top fixed rows.
+   * @param {boolean} onFixedRowBottom `true` if the coordinates point to a place within the bottom fixed rows.
+   * @param {boolean} onFixedColumn `true` if the coordinates point to a place within the fixed columns.
+   * @param {number} elementOffset Offset position of the cell element.
+   * @param {number} spreaderOffset Offset position of the spreader element.
+   * @returns {{top: number, left: number}}
    */
   getRelativeCellPositionWithinHolder(
     onFixedRowTop: boolean, onFixedRowBottom: boolean, onFixedColumn: boolean,
@@ -369,7 +328,7 @@ export abstract class Overlay {
   /**
    * Make a clone of table for overlay.
    *
-   * @returns 
+   * @returns {Clone}
    */
   makeClone() {
     if (CLONE_TYPES.indexOf(this.type) === -1) {
@@ -379,7 +338,7 @@ export abstract class Overlay {
       wtTable,
       wtSettings
     } = this.wot;
-    const = this.domBindings;
+    const { rootDocument, rootWindow } = this.domBindings;
     const clone = rootDocument.createElement('div');
     const clonedTable = rootDocument.createElement('table');
     const tableParent = wtTable.wtRootElement.parentNode;
@@ -449,7 +408,7 @@ export abstract class Overlay {
   /**
    * Refresh/Redraw overlay.
    *
-   * @param [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
+   * @param {boolean} [fastDraw=false] When `true`, try to refresh only the positions of borders without rerendering
    *                                   the data. It will only work if Table.draw() does not force
    *                                   rendering anyway.
    */
@@ -486,7 +445,7 @@ export abstract class Overlay {
   /**
    * Determine if Walkontable is running in RTL mode.
    *
-   * @returns 
+   * @returns {boolean}
    */
   isRtl() {
     return this.wtSettings.getSetting<boolean>('rtlMode');

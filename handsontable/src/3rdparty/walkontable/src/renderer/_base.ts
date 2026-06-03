@@ -1,5 +1,5 @@
-import from '../utils/nodesPool';
-import type from './table';
+import { NodesPool } from '../utils/nodesPool';
+import type { TableRenderer } from './table';
 
 /**
  * Base renderer class, abstract logic for specialized renderers.
@@ -10,32 +10,34 @@ export class BaseRenderer {
   /**
    * Factory for newly created DOM elements.
    *
+   * @type {NodesPool|null}
    */
   nodesPool: NodesPool | null = null;
   /**
    * Node type which the renderer will manage while building the table (eg. 'TD', 'TR', 'TH').
    *
+   * @type {string}
    */
   declare nodeType: string | null;
   /**
    * The root node to which newly created elements will be inserted.
    *
+   * @type {HTMLElement}
    */
   declare rootNode: HTMLElement;
   /**
    * The instance of the Table class, a wrapper for all renderers and holder for properties describe table state.
    *
+   * @type {TableRenderer}
    */
   declare table: TableRenderer;
   /**
    * Counter of nodes already added.
    *
+   * @type {number}
    */
   renderedNodes: number = 0;
 
-  /**
-   * Initializes the renderer with the given element type and an optional pre-existing root node.
-   */
   constructor(nodeType: string | null, rootNode?: HTMLElement) {
     this.nodesPool = typeof nodeType === 'string' ? new NodesPool(nodeType) : null;
     this.nodeType = nodeType;
@@ -48,7 +50,7 @@ export class BaseRenderer {
   /**
    * Sets the table renderer instance to the current renderer.
    *
-   * @param table The TableRenderer instance.
+   * @param {TableRenderer} table The TableRenderer instance.
    */
   setTable(table: TableRenderer) {
     if (this.nodesPool) {

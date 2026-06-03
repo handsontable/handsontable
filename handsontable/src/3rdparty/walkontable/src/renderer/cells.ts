@@ -3,8 +3,8 @@ import {
   removeAttribute,
   setAttribute,
 } from '../../../../helpers/dom/element';
-import from '../utils/orderView';
-import from './_base';
+import { SharedOrderView } from '../utils/orderView';
+import { BaseRenderer } from './_base';
 import {
   A11Y_COLINDEX,
   A11Y_GRIDCELL,
@@ -28,17 +28,16 @@ export class CellsRenderer extends BaseRenderer {
   /**
    * Cache for OrderView classes connected to specified node.
    *
+   * @type {WeakMap}
    */
   orderViews: WeakMap<object, SharedOrderView> = new WeakMap();
   /**
    * Row index which specifies the row position of the processed cell.
    *
+   * @type {number}
    */
   sourceRowIndex = 0;
 
-  /**
-   * Initializes the renderer using the `TD` node type.
-   */
   constructor() {
     super('TD');
   }
@@ -46,8 +45,8 @@ export class CellsRenderer extends BaseRenderer {
   /**
    * Obtains the instance of the SharedOrderView class which is responsible for rendering the nodes to the root node.
    *
-   * @param rootNode The TR element, which is root element for cells (TD).
-   * @returns 
+   * @param {HTMLTableRowElement} rootNode The TR element, which is root element for cells (TD).
+   * @returns {SharedOrderView}
    */
   obtainOrderView(rootNode: HTMLElement): SharedOrderView {
     if (!this.orderViews.has(rootNode)) {
@@ -65,7 +64,7 @@ export class CellsRenderer extends BaseRenderer {
    * Renders the cells.
    */
   render() {
-    const = this.table;
+    const { rowsToRender, columnsToRender, rows, rowHeaders } = this.table;
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);

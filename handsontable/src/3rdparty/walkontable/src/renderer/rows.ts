@@ -1,7 +1,7 @@
-import from './_base';
-import from '../../../../helpers/console';
-import from '../../../../helpers/templateLiteralTag';
-import from '../utils/orderView';
+import { BaseRenderer } from './_base';
+import { warn } from '../../../../helpers/console';
+import { toSingleLine } from '../../../../helpers/templateLiteralTag';
+import { OrderView } from '../utils/orderView';
 import {
   addClass,
   hasClass,
@@ -36,12 +36,10 @@ export class RowsRenderer extends BaseRenderer {
   /**
    * Cache for OrderView classes connected to specified node.
    *
+   * @type {WeakMap}
    */
   declare orderView: OrderView;
 
-  /**
-   * Creates a RowsRenderer and initializes the OrderView for managing TR elements.
-   */
   constructor(rootNode: HTMLElement) {
     super('TR', rootNode);
 
@@ -55,8 +53,8 @@ export class RowsRenderer extends BaseRenderer {
   /**
    * Returns currently rendered node.
    *
-   * @param visualIndex Visual index of the rendered node (it always goeas from 0 to N).
-   * @returns 
+   * @param {string} visualIndex Visual index of the rendered node (it always goeas from 0 to N).
+   * @returns {HTMLTableRowElement}
    */
   getRenderedNode(visualIndex: number) {
     return this.orderView.getNode(visualIndex);
@@ -66,7 +64,7 @@ export class RowsRenderer extends BaseRenderer {
    * Renders the cells.
    */
   render() {
-    const = this.table;
+    const { rowsToRender } = this.table;
 
     if (!performanceWarningAppeared && rowsToRender > 1000) {
       performanceWarningAppeared = true;
