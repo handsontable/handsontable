@@ -1,7 +1,7 @@
 /* file: app.component.ts */
 import { Component, ViewChild, ChangeDetectorRef, inject } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
+import type Handsontable from 'handsontable/base';
 
 const COLUMN_LABELS = ['Item', 'Quantity', 'Unit price'];
 
@@ -38,21 +38,19 @@ function cellKey(row: number, col: number): string {
   imports: [HotTableModule],
   selector: 'example1-row-validation-error-summary',
   template: `
-    <div class="row-validation-demo">
-      <div class="row-validation-demo__toolbar">
-        <button type="button" (click)="onSubmit()">
-          Submit orders
-        </button>
+    <div class="example-controls-container">
+      <div class="controls">
+        <button type="button" (click)="onSubmit()">Submit orders</button>
       </div>
-      <hot-table [data]="data" [settings]="gridSettings"></hot-table>
-      <div class="row-validation-demo__summary" aria-live="polite">
-        <h3 class="row-validation-demo__summary-title">Validation issues</h3>
-        <ul class="row-validation-demo__summary-list">
-          @for (issue of issues; track $index) {
-            <li>Row {{ issue.row + 1 }}, {{ columnLabels[issue.col] }}: {{ issue.message }}</li>
-          }
-        </ul>
-      </div>
+    </div>
+    <hot-table [data]="data" [settings]="gridSettings"></hot-table>
+    <div class="example-controls-container validation-summary" aria-live="polite">
+      <p class="validation-summary__title">Validation issues</p>
+      <ul class="validation-summary__list">
+        @for (issue of issues; track $index) {
+          <li>Row {{ issue.row + 1 }}, {{ columnLabels[issue.col] }}: {{ issue.message }}</li>
+        }
+      </ul>
     </div>
   `,
 })
@@ -88,7 +86,7 @@ export class AppComponent {
         ? 'var(--ht-cell-error-background-color, #ffe4e4)'
         : '';
     },
-    afterChange: (changes, source) => {
+    afterChange: (changes: Handsontable.CellChange[] | null, source: string) => {
       if (source === 'loadData' || !changes) {
         return;
       }
@@ -123,7 +121,6 @@ export class AppComponent {
       return;
     }
 
-    // Clear previous highlights
     this.invalidCells.forEach((key) => {
       const [r, c] = key.split(':').map(Number);
       hot.removeCellMeta(r, c, 'className');
