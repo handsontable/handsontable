@@ -206,10 +206,10 @@ There must be a blank line before `/**` and after the closing `*/` (i.e., at lea
 
 ### Type annotations and sync with TypeScript
 
-`.ts` files are fully typed — **do not duplicate types in JSDoc** `@param` or `@returns` tags. TypeScript already carries the type information; adding `{Type}` in JSDoc of `.ts` files is noise and causes TS warning `[80004]`.
+**Always include `{Type}` in `@param` and `@returns` tags** — for every method, public or private. The `docs:api` generator (`jsdoc-to-markdown`) reads `handsontable/tmp/` (compiled JS that preserves JSDoc verbatim), and the type annotations are what appear in the API reference. Without them, type information is absent from the generated docs.
 
 ```ts
-// ✗ Bad — type duplicated, will trigger TS [80004]
+// ✓ Good — {Type} present, keeps docs accurate
 /**
  * Sets the value at the given coordinates.
  *
@@ -219,7 +219,7 @@ There must be a blank line before `/**` and after the closing `*/` (i.e., at lea
  */
 setValue(row: number, col: number, value: unknown): void
 
-// ✓ Good — description only, TypeScript owns the types
+// ✗ Bad — no type information in docs
 /**
  * Sets the value at the given coordinates.
  *
@@ -230,18 +230,23 @@ setValue(row: number, col: number, value: unknown): void
 setValue(row: number, col: number, value: unknown): void
 ```
 
-**Exception — existing public API JSDoc**: some methods in the codebase already carry `@param {Type}` annotations. These feed the `docs:api` generator (`jsdoc-to-markdown` reads `handsontable/tmp/`, which is compiled JS that preserves JSDoc verbatim). **Do not strip `{Type}` from pre-existing public-method JSDoc.** If you touch such a method, keep the `{Type}` annotation and make sure it stays in sync with the actual TypeScript signature — an outdated type in JSDoc is worse than no type.
+**Types must stay in sync with the TypeScript signature.** When you change a parameter's TS type, update the JSDoc `{Type}` to match. An outdated type in JSDoc is actively misleading — it appears verbatim in the generated docs.
 
 ```ts
-// Pre-existing public API — keep {Type}, keep it in sync
+// ✗ Bad — JSDoc says {number} but TS accepts a range object too
 /**
- * Calculates and caches the column width.
- *
- * @param {number|object} colRange - Visual column index or range object.
- * @param {boolean} [overwriteCache=false] - Force recalculation.
+ * @param {number} colRange - Visual column index.
  */
-calculateColumnsWidth(colRange: number | { from: number; to: number }, overwriteCache = false): void
+calculateColumnsWidth(colRange: number | { from: number; to: number }): void
+
+// ✓ Good — JSDoc matches the TS signature
+/**
+ * @param {number|object} colRange - Visual column index or a range object with `from`/`to`.
+ */
+calculateColumnsWidth(colRange: number | { from: number; to: number }): void
 ```
+
+The TS `[80004]` lint warning ("JSDoc types may be moved to TypeScript types") is **suppressed** in this codebase for `.ts` source files — do not let it discourage you from writing `{Type}` annotations.
 
 ### Private `#` fields
 
@@ -347,6 +352,6 @@ The CI `verify-emitted-types` job reports the exact leaked identifier with `TS23
 - [ ] `npm run build` (or `build:types` + `downlevel:types`) run if public types changed
 - [ ] Wired into all relevant index / factory files
 - [ ] Added to `metaSchema.ts` if a new option was introduced
-- [ ] JSDoc on every class, method, function declaration, and class field (multiline format; no `{Type}` in new blocks; existing public-API `{Type}` kept in sync with TS signature; no `@private` on `#` fields)
+- [ ] JSDoc on every class, method, function declaration, and class field (multiline format; `{Type}` in every `@param`/`@returns`, in sync with the TS signature; no `@private` on `#` fields)
 - [ ] No breaking change introduced (or the breaking change is explicitly called out)
 - [ ] Changelog entry added (`bin/changelog entry`)
