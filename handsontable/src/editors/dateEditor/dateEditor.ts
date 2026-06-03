@@ -50,6 +50,8 @@ export class DateEditor extends TextEditor {
       warn(toSingleLine`DateEditor: value must be in ISO date format ("YYYY-MM-DD")\x20
         required by the native date input. Received:`, value);
 
+      super.setValue('');
+
       return;
     }
 

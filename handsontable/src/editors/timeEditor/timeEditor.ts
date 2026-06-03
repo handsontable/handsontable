@@ -36,6 +36,8 @@ export class TimeEditor extends TextEditor {
       warn(toSingleLine`TimeEditor: value must be in 24-hour time format ("HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS")\x20
         required by the native time input. Received:`, value);
 
+      super.setValue('');
+
       return;
     }
 
