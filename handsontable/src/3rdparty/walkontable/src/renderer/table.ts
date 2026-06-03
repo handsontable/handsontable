@@ -184,7 +184,7 @@ export class TableRenderer {
    * Creates a new TableRenderer instance.
    *
    * @param {HTMLTableElement} rootNode The HTML table element to use as the root node for rendering.
-   * @param {Object} options The configuration options.
+   * @param {object} options The configuration options.
    * @param {Function} [options.cellRenderer] The cell renderer function.
    * @param {StylesHandler} [options.stylesHandler] The styles handler instance.
    */
