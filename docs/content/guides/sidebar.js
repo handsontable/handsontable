@@ -8,6 +8,7 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/angular-hot-instance/angular-hot-instance', onlyFor: ['angular'] },
   { path: 'guides/getting-started/license-key/license-key' },
   { path: 'guides/getting-started/react-redux/react-redux', onlyFor: ['react'] },
+  { path: 'guides/getting-started/vue3-custom-id-class-style/vue3-custom-id-class-style', onlyFor: ['vue'] },
 ];
 
 const stylingItems = [
