@@ -377,7 +377,7 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by
 utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
-For more information, see the [Referencing the Handsontable instance](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md) page.
+For more information, see the [Referencing the Handsontable instance](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
 
 :::
 
