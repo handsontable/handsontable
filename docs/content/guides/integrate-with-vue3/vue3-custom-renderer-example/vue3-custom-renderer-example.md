@@ -114,5 +114,5 @@ If your component needs access to a Vue application context -- for example, glob
 ## Next steps
 
 - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) -- explore the full renderer API.
-- [HotColumn component in Vue 3](@/guides/integrate-with-vue3/vue3-hot-column/vue3-hot-column.md) -- assign renderers per column declaratively.
+- [HotColumn component in Vue 3](@/guides/getting-started/vue3-hot-column/vue3-hot-column.md) -- assign renderers per column declaratively.
 - [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example/vue3-custom-editor-example.md) -- pair your renderer with a custom editor.

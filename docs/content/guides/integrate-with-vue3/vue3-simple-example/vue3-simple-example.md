@@ -43,6 +43,6 @@ In this example, a `div` element of `id="example1"` where the `@handsontable/vue
 
 ## Next steps
 
-- [HotColumn component in Vue 3](@/guides/integrate-with-vue3/vue3-hot-column/vue3-hot-column.md) -- define column settings declaratively with HotColumn.
+- [HotColumn component in Vue 3](@/guides/getting-started/vue3-hot-column/vue3-hot-column.md) -- define column settings declaratively with HotColumn.
 - [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example/vue3-custom-renderer-example.md) -- customize how cell content is displayed.
 - [Language change in Vue 3](@/guides/integrate-with-vue3/vue3-language-change-example/vue3-language-change-example.md) -- switch the grid UI language at runtime.
