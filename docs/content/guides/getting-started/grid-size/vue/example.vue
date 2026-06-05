@@ -1,7 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
@@ -14,17 +15,21 @@ const data = new Array(100)
   );
 
 const isContainerExpanded = ref(false);
-const hotRef = ref(null);
+const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
 
 function triggerBtnClickCallback() {
   isContainerExpanded.value = !isContainerExpanded.value;
   const parent = document.getElementById('exampleParent');
 
+  if (!parent) {
+    return;
+  }
+
   parent.style.height = isContainerExpanded.value ? '410px' : '157px';
   hotRef.value?.hotInstance?.refreshDimensions();
 }
 
-const hotSettings = ref({
+const hotSettings = ref<GridSettings>({
   data,
   rowHeaders: true,
   colHeaders: true,

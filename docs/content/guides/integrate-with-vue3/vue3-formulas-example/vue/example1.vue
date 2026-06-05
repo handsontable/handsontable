@@ -1,8 +1,9 @@
-<script setup>
+<script setup lang="ts">
 import { ref, markRaw } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import { HyperFormula } from 'hyperformula';
+import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
@@ -12,7 +13,7 @@ const hfRaw = markRaw(
   })
 );
 
-const hotSettings = ref({
+const hotSettings = ref<GridSettings>({
   data: [
     ['4', '=IF(A1>4, "TRUE", "FALSE")', 'C1'],
     ['2', 'B2', '=A1+A2'],

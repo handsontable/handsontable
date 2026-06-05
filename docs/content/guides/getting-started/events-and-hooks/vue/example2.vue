@@ -1,13 +1,15 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
+import type { GridSettings } from 'handsontable/settings';
+import type { CellChange } from 'handsontable/common';
 
 registerAllModules();
 
-const hotRef = ref(null);
-let lastChange = null;
+const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+let lastChange: CellChange[] | null = null;
 
 onMounted(() => {
   const hot = hotRef.value?.hotInstance;
@@ -36,7 +38,7 @@ onMounted(() => {
   });
 });
 
-const hotSettings = ref({
+const hotSettings = ref<GridSettings>({
   data: [
     ['Tesla', 2017, 'black', 'black'],
     ['Nissan', 2018, 'blue', 'blue'],
@@ -47,7 +49,7 @@ const hotSettings = ref({
   rowHeaders: true,
   height: 'auto',
   minSpareRows: 1,
-  beforeChange(changes, source) {
+  beforeChange(changes) {
     lastChange = changes;
   },
   autoWrapRow: true,

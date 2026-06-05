@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import {
@@ -25,6 +25,7 @@ import {
   zhTW
 } from 'handsontable/i18n';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
 
 registerLanguageDictionary(arAR);
 registerLanguageDictionary(csCZ);
@@ -48,7 +49,7 @@ registerLanguageDictionary(zhTW);
 
 registerAllModules();
 
-const hotSettings = ref({
+const hotSettings = ref<GridSettings>({
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1'],
     ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2'],
@@ -66,25 +67,25 @@ const hotSettings = ref({
 });
 const language = ref('en-US');
 const isOpen = ref(false);
-const languages = ref([]);
-const dropdown = ref(null);
+const languages = ref<string[]>([]);
+const dropdown = ref<HTMLElement | null>(null);
 
 function toggleDropdown() {
   isOpen.value = !isOpen.value;
 }
 
-function selectLanguage(lang) {
+function selectLanguage(lang: string) {
   language.value = lang;
   isOpen.value = false;
 }
 
-function handleClickOutside(e) {
-  if (dropdown.value && !dropdown.value.contains(e.target)) {
+function handleClickOutside(e: MouseEvent) {
+  if (dropdown.value && !dropdown.value.contains(e.target as Node)) {
     isOpen.value = false;
   }
 }
 
-function handleEscape(e) {
+function handleEscape(e: KeyboardEvent) {
   if (e.key === 'Escape') {
     isOpen.value = false;
   }

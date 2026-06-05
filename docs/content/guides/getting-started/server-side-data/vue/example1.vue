@@ -1,12 +1,32 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
+import type {
+  DataProviderQueryParameters,
+  DataProviderFetchOptions,
+  DataProviderBeforeFetchParameters,
+  RowUpdatePayload,
+} from 'handsontable/plugins/dataProvider';
 
 registerAllModules();
 
+type DemoRow = {
+  id: number;
+  product: string;
+  sku: string;
+  category: string;
+  unitPrice: number;
+  inStock: number;
+};
+
+type FilterCondition = { name?: string; args?: unknown[] };
+
+type DataProviderFilterColumn = NonNullable<DataProviderQueryParameters['filters']>[number];
+
 const LATENCY_MS = 450;
-const SEED_CATALOG = [
+const SEED_CATALOG: readonly DemoRow[] = [
   {
     id: 1,
     product: 'Wireless ergonomic keyboard',
@@ -233,7 +253,7 @@ const SEED_CATALOG = [
   },
 ];
 
-function delay(ms, signal) {
+function delay(ms: number, signal: AbortSignal) {
   return new Promise((resolve, reject) => {
     if (signal.aborted) {
       reject(new DOMException('Aborted', 'AbortError'));
@@ -254,7 +274,7 @@ function delay(ms, signal) {
   });
 }
 
-function asLowerString(cell) {
+function asLowerString(cell: unknown) {
   if (cell === null || cell === undefined) {
     return '';
   }
@@ -262,7 +282,7 @@ function asLowerString(cell) {
   return String(cell).toLowerCase();
 }
 
-function matchesCondition(cell, cond) {
+function matchesCondition(cell: unknown, cond: FilterCondition) {
   const args = Array.isArray(cond.args) ? cond.args : [];
   const name = cond.name;
 
@@ -304,7 +324,7 @@ function matchesCondition(cell, cond) {
   }
 }
 
-function rowMatchesFilterColumn(row, colFilter) {
+function rowMatchesFilterColumn(row: DemoRow, colFilter: DataProviderFilterColumn) {
   const value = row[colFilter.prop];
   const conditions = colFilter.conditions ?? [];
   const op = colFilter.operation ?? 'conjunction';
@@ -326,7 +346,7 @@ function rowMatchesFilterColumn(row, colFilter) {
   return parts.every((fn) => fn());
 }
 
-function applyQueryFilters(rows, filters) {
+function applyQueryFilters(rows: DemoRow[], filters: DataProviderQueryParameters['filters']) {
   if (!filters || filters.length === 0) {
     return rows;
   }
@@ -349,7 +369,7 @@ function createInventoryDemoServer() {
     setFailNextFetch() {
       failNextFetch = true;
     },
-    fetchRows(queryParameters, { signal }) {
+    fetchRows(queryParameters: DataProviderQueryParameters, { signal }: DataProviderFetchOptions) {
       const { page, pageSize, sort, filters } = queryParameters;
       let rows = [...store.rows];
 
@@ -391,8 +411,12 @@ function createInventoryDemoServer() {
         };
       });
     },
-    async onRowsCreate({ rowsAmount, position, referenceRowId }) {
-      const newRows = [];
+    async onRowsCreate({ rowsAmount, position, referenceRowId }: {
+      rowsAmount: number;
+      position: 'above' | 'below';
+      referenceRowId?: number | string;
+    }) {
+      const newRows: DemoRow[] = [];
 
       for (let i = 0; i < rowsAmount; i += 1) {
         store.nextId += 1;
@@ -418,7 +442,7 @@ function createInventoryDemoServer() {
 
       store.rows.splice(insertAt, 0, ...newRows);
     },
-    async onRowsUpdate(rows) {
+    async onRowsUpdate(rows: RowUpdatePayload[]) {
       rows.forEach(({ id, changes }) => {
         const row = store.rows.find((r) => r.id === id);
 
@@ -427,7 +451,7 @@ function createInventoryDemoServer() {
         }
       });
     },
-    async onRowsRemove(rowIds) {
+    async onRowsRemove(rowIds: Array<number | string>) {
       const idSet = new Set(rowIds);
 
       store.rows = store.rows.filter((r) => !idSet.has(r.id));
@@ -436,12 +460,12 @@ function createInventoryDemoServer() {
 }
 
 const server = createInventoryDemoServer();
-const hotRef = ref(null);
+const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
 const status = ref('Initializing…');
 
 // hotSettings is a plain const (not reactive) to prevent updateSettings being triggered
 // when status changes — avoids re-fetching data on every status text update.
-const hotSettings = {
+const hotSettings: GridSettings = {
   dataProvider: {
     rowId: 'id',
     fetchRows: (queryParameters, options) => server.fetchRows(queryParameters, options),
@@ -468,13 +492,13 @@ const hotSettings = {
   contextMenu: true,
   emptyDataState: true,
   notification: true,
-  beforeDataProviderFetch(params) {
+  beforeDataProviderFetch(params: DataProviderBeforeFetchParameters) {
     status.value = params.skipLoading ? 'Updating after sort or edit…' : 'Loading data…';
   },
   afterDataProviderFetch() {
     status.value = `Ready (simulated ${LATENCY_MS}ms request).`;
   },
-  afterDataProviderFetchError(error) {
+  afterDataProviderFetchError(error: Error) {
     status.value = `Could not load data: ${error.message}`;
   },
 };

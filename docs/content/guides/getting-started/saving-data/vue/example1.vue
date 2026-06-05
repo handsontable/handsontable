@@ -1,17 +1,21 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
+import type { CellChange, ChangeSource } from 'handsontable/common';
 
 registerAllModules();
 
-const hotRef = ref(null);
+const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
 const output = ref('Click "Load" to load data from server');
 const isAutosave = ref(false);
 
-function autosaveClickCallback(event) {
-  isAutosave.value = event.target.checked;
-  output.value = event.target.checked
+function autosaveClickCallback(event: Event) {
+  const checked = (event.target as HTMLInputElement).checked;
+
+  isAutosave.value = checked;
+  output.value = checked
     ? 'Changes will be autosaved'
     : 'Changes will not be autosaved';
 }
@@ -20,7 +24,7 @@ function loadClickCallback() {
   const hot = hotRef.value?.hotInstance;
 
   fetch('/docs/scripts/json/load.json').then((response) => {
-    response.json().then((data) => {
+    response.json().then((data: { data: unknown[][] }) => {
       hot?.loadData(data.data);
       output.value = 'Data loaded';
     });
@@ -41,7 +45,7 @@ function saveClickCallback() {
   });
 }
 
-function afterChange(change, source) {
+function afterChange(change: CellChange[] | null, source: ChangeSource) {
   if (source === 'loadData') {
     return;
   }
@@ -61,7 +65,7 @@ function afterChange(change, source) {
   });
 }
 
-const hotSettings = ref({
+const hotSettings = ref<GridSettings>({
   startRows: 8,
   startCols: 6,
   rowHeaders: true,
