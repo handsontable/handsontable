@@ -6,6 +6,7 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/grid-size/grid-size' },
   { path: 'guides/getting-started/react-methods/react-methods', onlyFor: ['react'] },
   { path: 'guides/getting-started/angular-hot-instance/angular-hot-instance', onlyFor: ['angular'] },
+  { path: 'guides/getting-started/vue3-hot-reference/vue3-hot-reference', onlyFor: ['vue'] },
   { path: 'guides/getting-started/license-key/license-key' },
   { path: 'guides/getting-started/react-redux/react-redux', onlyFor: ['react'] },
 ];

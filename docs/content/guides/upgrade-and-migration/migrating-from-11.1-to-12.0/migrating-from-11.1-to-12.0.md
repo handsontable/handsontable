@@ -94,8 +94,8 @@ To replace [`data`](@/api/options.md#data) and reset the states, call the [`load
 Read more on referencing the Handsontable instance:
 - [Referencing the Handsontable instance in Angular](@/angular/guides/getting-started/angular-hot-instance/angular-hot-instance.md)
 - [Referencing the Handsontable instance in React](@/react/guides/getting-started/react-methods/react-methods.md)
-- [Referencing the Handsontable instance in Vue](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md)
-- [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md)
+- [Referencing the Handsontable instance in Vue](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md)
+- [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md)
 
 :::
 
