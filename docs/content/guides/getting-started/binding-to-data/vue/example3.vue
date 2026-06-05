@@ -1,11 +1,12 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
-const hotSettings = ref({
+const hotSettings = ref<GridSettings>({
   data: [
     { id: 1, name: 'Ted Right', address: '' },
     { id: 2, name: 'Frank Honest', address: '' },

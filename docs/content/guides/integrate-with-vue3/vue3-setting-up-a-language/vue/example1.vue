@@ -1,14 +1,21 @@
-<script setup>
+<script setup lang="ts">
 import { HotTable, HotColumn } from '@handsontable/vue3';
 import numbro from 'numbro';
 import jaJP from 'numbro/languages/ja-JP';
 import trTR from 'numbro/languages/tr-TR';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
 numbro.registerLanguage(jaJP);
 numbro.registerLanguage(trTR);
+
+type ProductRow = {
+  productName: string;
+  JP_price: number;
+  TR_price: number;
+};
 
 const formatJP = {
   pattern: '0,0.00 $',
@@ -18,7 +25,7 @@ const formatTR = {
   pattern: '0,0.00 $',
   culture: 'tr-TR',
 };
-const hotData = [
+const hotData: ProductRow[] = [
   {
     productName: 'Product A',
     JP_price: 1.32,
@@ -35,7 +42,7 @@ const hotData = [
     TR_price: 678.1,
   },
 ];
-const settings = {
+const settings: GridSettings = {
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,

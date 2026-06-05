@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import ExcelJS from 'exceljs';
@@ -7,7 +7,7 @@ import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
-const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 
 const hotData = [
   ['Alice Martin', 'North', 142000, true, 'Exceeded Q1 target by 18%.'],

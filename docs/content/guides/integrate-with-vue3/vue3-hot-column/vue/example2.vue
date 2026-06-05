@@ -1,19 +1,26 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
-const hotData = ref([
+type ProductRow = {
+  id: number;
+  name: string;
+  payment: { price: number; currency: string };
+};
+
+const hotData = ref<ProductRow[]>([
   { id: 1, name: 'Table tennis racket', payment: { price: 13, currency: 'PLN' } },
   { id: 2, name: 'Outdoor game ball', payment: { price: 14, currency: 'USD' } },
   { id: 3, name: 'Mountain bike', payment: { price: 300, currency: 'USD' } }
 ]);
-const secondColumnSettings = ref({
+const secondColumnSettings = ref<GridSettings>({
   title: 'Second column header'
 });
-const settings = ref({
+const settings = ref<GridSettings>({
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,

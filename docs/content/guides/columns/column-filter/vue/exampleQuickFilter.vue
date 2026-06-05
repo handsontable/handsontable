@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
@@ -16,8 +16,8 @@ const columnOptions = [
   { value: '5', label: 'In stock' },
 ];
 
-const hotTableRef = ref<any>(null);
-const dropdownRef = ref<HTMLDivElement | null>(null);
+const hotTableRef = useTemplateRef<InstanceType<typeof HotTable>>('hotTableRef');
+const dropdownRef = useTemplateRef<HTMLDivElement>('dropdownRef');
 const selectedColumn = ref('0');
 const open = ref(false);
 

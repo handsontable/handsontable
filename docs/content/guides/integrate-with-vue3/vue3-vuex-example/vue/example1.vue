@@ -1,12 +1,22 @@
-<script setup>
-import { ref, onMounted } from 'vue';
+<script setup lang="ts">
+import { ref, onMounted, useTemplateRef } from 'vue';
 import { createStore } from 'vuex';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
-const store = createStore({
+type VuexState = {
+  hotData: string[][] | null;
+  hotSettings: {
+    readOnly: boolean;
+    autoWrapRow: boolean;
+    autoWrapCol: boolean;
+  };
+};
+
+const store = createStore<VuexState>({
   state() {
     return {
       hotData: null,
@@ -18,17 +28,17 @@ const store = createStore({
     };
   },
   mutations: {
-    updateData(state, hotData) {
+    updateData(state, hotData: string[][]) {
       state.hotData = hotData;
     },
-    updateSettings(state, updateObj) {
+    updateSettings(state, updateObj: { prop: keyof VuexState['hotSettings']; value: boolean }) {
       state.hotSettings[updateObj.prop] = updateObj.value;
     }
   }
 });
 
-const wrapper = ref(null);
-const hotSettings = ref({
+const wrapper = useTemplateRef<InstanceType<typeof HotTable>>('wrapper');
+const hotSettings = ref<GridSettings>({
   data: [
     ['A1', 'B1', 'C1', 'D1'],
     ['A2', 'B2', 'C2', 'D2'],
@@ -42,20 +52,27 @@ const hotSettings = ref({
   autoWrapRow: true,
   autoWrapCol: true,
   afterChange: () => {
-    if (wrapper.value) {
-      store.commit('updateData', wrapper.value.hotInstance.getSourceData());
+    if (wrapper.value?.hotInstance) {
+      store.commit('updateData', wrapper.value.hotInstance.getSourceData() as string[][]);
     }
   },
   licenseKey: 'non-commercial-and-evaluation'
 });
 
-function toggleReadOnly(event) {
-  hotSettings.value.readOnly = event.target.checked;
-  store.commit('updateSettings', { prop: 'readOnly', value: hotSettings.value.readOnly });
+function toggleReadOnly(event: Event) {
+  const checked = (event.target as HTMLInputElement).checked;
+
+  hotSettings.value.readOnly = checked;
+  store.commit('updateSettings', { prop: 'readOnly', value: checked });
 }
 
 function updateVuexPreview() {
   const previewTable = document.querySelector('#vuex-preview pre');
+
+  if (!previewTable) {
+    return;
+  }
+
   let newInnerHtml = '<div>';
 
   for (const [key, value] of Object.entries(store.state)) {
@@ -78,8 +95,8 @@ function updateVuexPreview() {
     } else if (key === 'hotSettings') {
       newInnerHtml += '<strong>hotSettings:</strong> <ul>';
 
-      for (const settingsKey of Object.keys(value)) {
-        newInnerHtml += `<li>${settingsKey}: ${store.state.hotSettings[settingsKey]}</li>`;
+      for (const settingsKey of Object.keys(value as VuexState['hotSettings'])) {
+        newInnerHtml += `<li>${settingsKey}: ${store.state.hotSettings[settingsKey as keyof VuexState['hotSettings']]}</li>`;
       }
 
       newInnerHtml += '</ul>';
@@ -94,7 +111,7 @@ function updateVuexPreview() {
 
 onMounted(() => {
   store.subscribe(() => updateVuexPreview());
-  store.commit('updateData', wrapper.value.hotInstance.getSourceData());
+  store.commit('updateData', wrapper.value?.hotInstance?.getSourceData() as string[][]);
 });
 </script>
 

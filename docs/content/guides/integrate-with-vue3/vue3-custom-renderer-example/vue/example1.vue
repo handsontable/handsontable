@@ -1,11 +1,28 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
+import type { BaseRenderer } from 'handsontable/renderers';
 
 registerAllModules();
 
-const hotSettings = ref({
+const imageRenderer: BaseRenderer = (_instance, td, _row, _col, _prop, value) => {
+  const img = document.createElement('img');
+
+  img.src = String(value);
+
+  img.addEventListener('mousedown', (event) => {
+    event.preventDefault();
+  });
+
+  td.innerText = '';
+  td.appendChild(img);
+
+  return td;
+};
+
+const hotSettings = ref<GridSettings>({
   data: [
     ['A1', '/docs/img/examples/professional-javascript-developers-nicholas-zakas.jpg'],
     ['A2', '/docs/img/examples/javascript-the-good-parts.jpg']
@@ -13,20 +30,7 @@ const hotSettings = ref({
   columns: [
     {},
     {
-      renderer(instance, td, row, col, prop, value) {
-        const img = document.createElement('img');
-
-        img.src = value;
-
-        img.addEventListener('mousedown', (event) => {
-          event.preventDefault();
-        });
-
-        td.innerText = '';
-        td.appendChild(img);
-
-        return td;
-      }
+      renderer: imageRenderer
     }
   ],
   colHeaders: true,

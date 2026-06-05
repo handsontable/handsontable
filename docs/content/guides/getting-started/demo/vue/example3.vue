@@ -1,13 +1,21 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type { CellProperties, GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
 const SELECTED_CLASS = 'selected';
 
-function addClassesToRows(TD, row, column, _prop, _value, cellProperties) {
+function addClassesToRows(
+  TD: HTMLTableCellElement,
+  row: number,
+  column: number,
+  _prop: string | number,
+  _value: unknown,
+  cellProperties: CellProperties,
+) {
   if (column !== 0) {
     return;
   }
@@ -127,7 +135,7 @@ const data = [
   [false, 'Photofeed', 'China', 'HL Mountain Frame', '2025-07-14', '94-5088099', true, '106', 1, 4],
 ];
 
-const hotSettings = ref({
+const hotSettings = ref<GridSettings>({
   data,
   height: 450,
   width: '100%',
