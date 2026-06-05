@@ -499,10 +499,11 @@ describe('manualRowResize', () => {
     $rowHeader.simulate('mouseover');
 
     const $resizer = spec().$container.find('.manualRowResizer');
-    const guide = spec().$container.find('.manualRowResizerGuide')[0];
     const handleTop = $resizer[0].getBoundingClientRect().top;
 
     $resizer.simulate('mousedown', { clientY: handleTop });
+    const guide = spec().$container.find('.manualRowResizerGuide')[0];
+
     $resizer.simulate('mousemove', { clientY: handleTop + 40 });
 
     const handleBoxAfterMove = $resizer[0].getBoundingClientRect();

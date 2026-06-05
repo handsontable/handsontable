@@ -812,10 +812,11 @@ describe('manualColumnResize', () => {
     $columnHeader.simulate('mouseover');
 
     const $resizer = spec().$container.find('.manualColumnResizer');
-    const guide = spec().$container.find('.manualColumnResizerGuide')[0];
     const handleLeft = $resizer[0].getBoundingClientRect().left;
 
     $resizer.simulate('mousedown', { clientX: handleLeft });
+    const guide = spec().$container.find('.manualColumnResizerGuide')[0];
+
     $resizer.simulate('mousemove', { clientX: handleLeft + 40 });
 
     const handleBoxAfterMove = $resizer[0].getBoundingClientRect();
