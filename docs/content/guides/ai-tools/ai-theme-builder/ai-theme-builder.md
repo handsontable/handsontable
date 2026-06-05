@@ -16,6 +16,7 @@ vue:
   metaTitle: AI Theme Builder - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: AI Tools
+menuTag: new
 ---
 The <a href="https://handsontable.com/theme-builder" target="_blank" rel="noopener noreferrer">Theme Builder</a> is a free web tool for building Handsontable themes visually, instead of writing code. You can manually adjust over 200 design tokens with UI controls and see the table update in real-time. Then you can export the theme and use it in your own app!
 

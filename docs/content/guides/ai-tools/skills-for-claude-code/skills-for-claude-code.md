@@ -16,6 +16,7 @@ vue:
   metaTitle: Skills for Claude Code - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: AI Tools
+menuTag: new
 ---
 Skills for Claude Code are bundled instructions that give Claude deep knowledge of Handsontable and HyperFormula. Install them once, then ask Claude to build, configure, or debug -- it pulls from the same product docs you're reading right now, so the code it writes matches current APIs instead of guessing from outdated training data.
 

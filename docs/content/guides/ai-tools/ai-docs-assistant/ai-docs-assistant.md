@@ -16,6 +16,7 @@ vue:
   metaTitle: AI Docs Assistant - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: AI Tools
+menuTag: new
 ---
 The AI Docs Assistant is the **Ask AI** button in the docs header. It answers questions about Handsontable and HyperFormula, writes code examples, and links you to the relevant guide or API reference page.
 
