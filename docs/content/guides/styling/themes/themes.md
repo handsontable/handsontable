@@ -88,6 +88,17 @@ If you want to use the `main` theme without any modifications, you don't need to
 
 :::
 
+::: only-for vue
+
+::: example #exampleTheme .disable-auto-theme :vue3 --css 1
+
+@[code collapse={14-116,221-233}](@/content/guides/styling/themes/vue/exampleTheme.vue)
+@[code](@/content/guides/styling/themes/react/exampleTheme.css)
+
+:::
+
+:::
+
 ## Light and dark modes
 
 Each theme comes with three modes:
@@ -158,6 +169,29 @@ export class AppComponent {
     // ... other options
   };
 }
+```
+
+:::
+
+::: only-for vue
+
+```ts
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+import { mainTheme } from 'handsontable/themes';
+
+registerAllModules();
+
+const hotSettings = ref({
+  theme: mainTheme,
+  // ... other options
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
 ```
 
 :::
@@ -263,6 +297,30 @@ export class AppComponent {
 
 :::
 
+::: only-for vue
+
+```ts
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+const theme = registerTheme(mainTheme)
+  .setColorScheme('auto')
+  .setDensityType('comfortable');
+
+const hotSettings = ref({
+  theme: theme,
+  // ... other options
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ### Option 2: Using CSS files
 
 Alternatively, you can load theme CSS files and pass the theme name as a string to the `theme` option.
@@ -337,6 +395,22 @@ const hot = new Handsontable(container, {
   theme: 'ht-theme-main'
 }">
 </hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```ts
+const hotSettings = ref({
+  theme: 'ht-theme-main',
+  // ... other options
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
 ```
 
 :::
