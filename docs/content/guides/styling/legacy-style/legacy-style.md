@@ -94,6 +94,29 @@ export class AppComponent {
 
 :::
 
+::: only-for vue
+
+```ts
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+import { classicTheme } from 'handsontable/themes';
+
+registerAllModules();
+
+const hotSettings = ref({
+  theme: classicTheme,
+  // ... other options
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ### Option 2: Using CSS files with theme as string
 
 Alternatively, you can use CSS files and pass the theme name as a string to the `theme` option.
@@ -145,6 +168,22 @@ const hot = new Handsontable(container, {
   theme: 'ht-theme-classic'
 }">
 </hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```ts
+const hotSettings = ref({
+  theme: 'ht-theme-classic',
+  // ... other options
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
 ```
 
 :::
