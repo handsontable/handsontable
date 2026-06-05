@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Updated Angular peer dependency minimum version to 19 in `@handsontable/angular-wrapper`",
+  "type": "changed",
+  "issueOrPR": 1836,
+  "breaking": true,
+  "framework": "angular"
+}
