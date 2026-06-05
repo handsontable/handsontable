@@ -7,18 +7,8 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/react-methods/react-methods', onlyFor: ['react'] },
   { path: 'guides/getting-started/angular-hot-instance/angular-hot-instance', onlyFor: ['angular'] },
   { path: 'guides/getting-started/vue3-hot-reference/vue3-hot-reference', onlyFor: ['vue'] },
-  { path: 'guides/getting-started/vue3-hot-column/vue3-hot-column', onlyFor: ['vue'] },
-  { path: 'guides/getting-started/vue3-custom-id-class-style/vue3-custom-id-class-style', onlyFor: ['vue'] },
-  { path: 'guides/getting-started/react-redux/react-redux', onlyFor: ['react'] },
-  { path: 'guides/getting-started/vue3-vuex/vue3-vuex', onlyFor: ['vue'] },
-  { path: 'guides/getting-started/vue3-nuxt/vue3-nuxt', onlyFor: ['vue'] },
   { path: 'guides/getting-started/license-key/license-key' },
-];
-
-const aiToolsItems = [
-  { path: 'guides/ai-tools/skills-for-claude-code/skills-for-claude-code' },
-  { path: 'guides/ai-tools/ai-theme-builder/ai-theme-builder' },
-  { path: 'guides/ai-tools/ai-docs-assistant/ai-docs-assistant' },
+  { path: 'guides/getting-started/react-redux/react-redux', onlyFor: ['react'] },
 ];
 
 const stylingItems = [
@@ -45,6 +35,21 @@ const dataManagementItems = [
   { path: 'guides/cell-features/clipboard/clipboard' },
 ];
 
+const integrateWithVue3Items = [
+  { path: 'guides/integrate-with-vue3/vue3-installation/vue3-installation' },
+  { path: 'guides/integrate-with-vue3/vue3-simple-example/vue3-simple-example' },
+  { path: 'guides/integrate-with-vue3/vue3-modules/vue3-modules' },
+  { path: 'guides/integrate-with-vue3/vue3-hot-column/vue3-hot-column' },
+  { path: 'guides/integrate-with-vue3/vue3-setting-up-a-language/vue3-setting-up-a-language' },
+  { path: 'guides/integrate-with-vue3/vue3-custom-id-class-style/vue3-custom-id-class-style' },
+  { path: 'guides/integrate-with-vue3/vue3-custom-context-menu-example/vue3-custom-context-menu-example' },
+  { path: 'guides/integrate-with-vue3/vue3-custom-editor-example/vue3-custom-editor-example' },
+  { path: 'guides/integrate-with-vue3/vue3-custom-renderer-example/vue3-custom-renderer-example' },
+  { path: 'guides/integrate-with-vue3/vue3-language-change-example/vue3-language-change-example' },
+  { path: 'guides/integrate-with-vue3/vue3-vuex-example/vue3-vuex-example' },
+  { path: 'guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference' },
+  { path: 'guides/integrate-with-vue3/vue3-formulas-example/vue3-formulas-example' },
+];
 
 const columnsItems = [
   { path: 'guides/columns/react-hot-column/react-hot-column', onlyFor: ['react'] },
@@ -122,6 +127,7 @@ const navigationAndAccessibilityItems = [
 
 const accessoriesAndMenusItems = [
   { path: 'guides/accessories-and-menus/context-menu/context-menu' },
+  { path: 'guides/accessories-and-menus/drag-to-scroll/drag-to-scroll' },
   { path: 'guides/accessories-and-menus/undo-redo/undo-redo' },
   { path: 'guides/accessories-and-menus/icon-pack/icon-pack' },
   { path: 'guides/accessories-and-menus/empty-data-state/empty-data-state' },
@@ -140,6 +146,7 @@ const internationalizationItems = [
 const buildingAndToolingItems = [
   { path: 'guides/tools-and-building/packages/packages', onlyFor: ['javascript'] },
   { path: 'guides/tools-and-building/modules/modules' },
+  { path: 'guides/tools-and-building/typescript-types/typescript-types' },
   { path: 'guides/tools-and-building/custom-plugins/custom-plugins' },
   { path: 'guides/tools-and-building/custom-builds/custom-builds' },
   { path: 'guides/tools-and-building/testing/testing' },
@@ -184,6 +191,7 @@ const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
   { path: 'guides/upgrade-and-migration/deprecation-policy/deprecation-policy' },
   { path: 'guides/upgrade-and-migration/long-term-support/long-term-support' },
+  { path: 'guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1' },
   { path: 'guides/upgrade-and-migration/migrating-from-15.3-to-16.0/migrating-from-15.3-to-16.0' },
@@ -200,7 +208,6 @@ const upgradeAndMigrationItems = [
 module.exports = {
   sidebar: [
     { title: 'Getting started', children: gettingStartedItems },
-    { title: 'AI Tools', children: aiToolsItems },
     { title: 'Styling', children: stylingItems },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },
@@ -213,7 +220,7 @@ module.exports = {
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
     { title: 'Accessibility and navigation', children: navigationAndAccessibilityItems },
-
+    { title: 'Integrate with Vue', children: integrateWithVue3Items },
     { title: 'Tools and building', children: buildingAndToolingItems },
     { title: 'Optimization', children: optimizationItems },
     { title: 'Security', children: securityItems },
