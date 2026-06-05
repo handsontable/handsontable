@@ -250,8 +250,6 @@ From the `/wrappers/angular-wrapper` directory, You can also run individual Angu
 
 :::
 
-::: only-for javascript
-
 ### Build the Vue package
 
 To build the Vue package:
@@ -293,8 +291,6 @@ From the `/wrappers/vue3` directory, you can also run individual Vue `build` tas
   - Creates the minified bundles:
     - `/wrappers/vue3/dist/vue-handsontable.min.js`
     - `/wrappers/vue3/dist/vue-handsontable.min.js.map`
-
-:::
 
 :::
 
