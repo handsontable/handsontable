@@ -1,5 +1,6 @@
 ---
 type: how-to
+id: g7i1xok4
 title: Formula calculation
 metaTitle: Formula calculation - JavaScript Data Grid | Handsontable
 description: Perform calculations on cells' values, using a powerful calculation engine that handles nearly 400 functions, custom functions, named expressions, and more.
@@ -16,10 +17,13 @@ tags:
   - function
   - hyperformula
 react:
+  id: 05z3cjez
   metaTitle: Formula calculation - React Data Grid | Handsontable
 angular:
+  id: hqzll0fz
   metaTitle: Formula calculation - Angular Data Grid | Handsontable
 vue:
+  id: 57yg2rca
   metaTitle: Formula calculation - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Formulas
@@ -73,15 +77,9 @@ Double click on a cell to open the editor and preview the formula.
 
 ::: only-for vue
 
-::: tip
-
-When using HyperFormula with Vue 3, always wrap HyperFormula instances with `markRaw()`. Vue's reactivity proxy interferes with the engine's internal state, which leads to subtle bugs and degraded performance. The examples on this page use `markRaw()` for this reason.
-
-:::
-
 ::: example #example1 :vue3 --css 1
 
-@[code](@/content/guides/formulas/formula-calculation/vue/example1.css)
+@[code](@/content/guides/formulas/formula-calculation/react/example1.css)
 @[code](@/content/guides/formulas/formula-calculation/vue/example1.vue)
 
 :::
