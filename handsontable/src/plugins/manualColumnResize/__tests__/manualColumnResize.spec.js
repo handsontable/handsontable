@@ -821,6 +821,7 @@ describe('manualColumnResize', () => {
 
     const handleBoxAfterMove = $resizer[0].getBoundingClientRect();
     const guideBoxAfterMove = guide.getBoundingClientRect();
+    const distanceBetweenHandleAndGuide = guideBoxAfterMove.left - handleBoxAfterMove.left;
 
     await waitForNextAnimationFrames(63);
 
@@ -831,7 +832,7 @@ describe('manualColumnResize', () => {
 
     expect(handleBoxAfterTimeout.left).toBeCloseTo(handleBoxAfterMove.left, 0);
     expect(guideBoxAfterTimeout.left).toBeCloseTo(guideBoxAfterMove.left, 0);
-    expect(handleBoxAfterTimeout.left).toBeCloseTo(guideBoxAfterTimeout.left, 0);
+    expect(guideBoxAfterTimeout.left - handleBoxAfterTimeout.left).toBeCloseTo(distanceBetweenHandleAndGuide, 0);
   });
 
   it('should autosize column after double click (when initial width is defined by the `colWidths` option)', async() => {

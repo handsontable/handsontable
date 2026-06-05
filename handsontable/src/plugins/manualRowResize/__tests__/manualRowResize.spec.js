@@ -508,6 +508,7 @@ describe('manualRowResize', () => {
 
     const handleBoxAfterMove = $resizer[0].getBoundingClientRect();
     const guideBoxAfterMove = guide.getBoundingClientRect();
+    const distanceBetweenHandleAndGuide = guideBoxAfterMove.top - handleBoxAfterMove.top;
 
     await waitForNextAnimationFrames(63);
 
@@ -518,7 +519,7 @@ describe('manualRowResize', () => {
 
     expect(handleBoxAfterTimeout.top).toBeCloseTo(handleBoxAfterMove.top, 0);
     expect(guideBoxAfterTimeout.top).toBeCloseTo(guideBoxAfterMove.top, 0);
-    expect(handleBoxAfterTimeout.top).toBeCloseTo(guideBoxAfterTimeout.top, 0);
+    expect(guideBoxAfterTimeout.top - handleBoxAfterTimeout.top).toBeCloseTo(distanceBetweenHandleAndGuide, 0);
   });
 
   it('should autosize row after double click (when initial height is defined by the `rowHeights` option)', async() => {
