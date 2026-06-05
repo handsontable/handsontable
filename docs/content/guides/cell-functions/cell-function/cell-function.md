@@ -276,10 +276,10 @@ const type = cellProperties.type;           // cell type string
 
 ```html
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { onMounted, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 
-const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 
 onMounted(() => {
   const hot = hotRef.value?.hotInstance;
@@ -390,10 +390,10 @@ export class AppComponent implements AfterViewInit {
 
 ```html
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { onMounted, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 
-const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 
 onMounted(() => {
   const hot = hotRef.value?.hotInstance;

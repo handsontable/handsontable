@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
@@ -7,7 +7,7 @@ import type { CellChange, ChangeSource } from 'handsontable/common';
 
 registerAllModules();
 
-const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 const output = ref('Click "Load" to load data from server');
 const isAutosave = ref(false);
 

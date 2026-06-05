@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, useTemplateRef } from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
@@ -110,7 +110,7 @@ const tableData = [
   { model: 'Cycling Cap', price: 444.79, sellDate: '2025-09-11', sellTime: '10:05', inStock: false },
 ];
 
-const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 const isListening = ref(false);
 const focusScope = ref<string | null>(null);
 const shortcutsContext = ref<string | null>(null);

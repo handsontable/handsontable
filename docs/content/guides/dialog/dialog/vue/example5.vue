@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, useTemplateRef } from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
-const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
-const dropdownRef = ref<HTMLDivElement | null>(null);
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
+const dropdownRef = useTemplateRef<HTMLDivElement>('dropdownRef');
 const isOpen = ref(false);
 const selected = ref<'solid' | 'semi-transparent'>('solid');
 

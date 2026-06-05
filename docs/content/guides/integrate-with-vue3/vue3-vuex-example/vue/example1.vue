@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, useTemplateRef } from 'vue';
 import { createStore } from 'vuex';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
@@ -37,7 +37,7 @@ const store = createStore<VuexState>({
   }
 });
 
-const wrapper = ref<InstanceType<typeof HotTable> | null>(null);
+const wrapper = useTemplateRef<InstanceType<typeof HotTable>>('wrapper');
 const hotSettings = ref<GridSettings>({
   data: [
     ['A1', 'B1', 'C1', 'D1'],

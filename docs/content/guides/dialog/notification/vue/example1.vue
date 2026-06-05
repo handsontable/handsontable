@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
-const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 
 const data = [
   ['Review pricing sheet', 'Draft', 'Apr 12', 'Morgan Lee', 'Medium', 'Finance'],

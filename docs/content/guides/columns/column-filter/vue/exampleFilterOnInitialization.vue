@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // you need a template ref to call Handsontable's instance methods
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
@@ -8,7 +8,7 @@ import type { GridSettings } from 'handsontable/settings';
 // register Handsontable's modules
 registerAllModules();
 
-const hotTableRef = ref<any>(null);
+const hotTableRef = useTemplateRef<InstanceType<typeof HotTable>>('hotTableRef');
 
 onMounted(() => {
   const handsontableInstance = hotTableRef.value?.hotInstance;

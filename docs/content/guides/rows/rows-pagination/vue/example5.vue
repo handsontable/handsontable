@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
@@ -109,7 +109,7 @@ const data = [
   { model: 'Cycling Cap', price: 444.79, sellDate: '2025-09-11', sellTime: '10:05', inStock: false },
 ];
 
-const hotRef = ref(null);
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 
 const hotSettings = ref<GridSettings>({
   data,

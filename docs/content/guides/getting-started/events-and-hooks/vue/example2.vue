@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
@@ -8,7 +8,7 @@ import type { CellChange } from 'handsontable/common';
 
 registerAllModules();
 
-const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 let lastChange: CellChange[] | null = null;
 
 onMounted(() => {

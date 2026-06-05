@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, onMounted, onBeforeUnmount, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import {
   registerLanguageDictionary,
@@ -68,7 +68,7 @@ const hotSettings = ref<GridSettings>({
 const language = ref('en-US');
 const isOpen = ref(false);
 const languages = ref<string[]>([]);
-const dropdown = ref<HTMLElement | null>(null);
+const dropdown = useTemplateRef<HTMLElement>('dropdown');
 
 function toggleDropdown() {
   isOpen.value = !isOpen.value;
