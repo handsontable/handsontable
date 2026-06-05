@@ -1,5 +1,6 @@
 ---
 type: how-to
+id: jn1po47i
 title: Themes
 metaTitle: Themes - JavaScript Data Grid | Handsontable
 description: Apply themes using the Theme API or CSS files. Built-in themes include main, horizon, and classic with automatic light and dark modes.
@@ -22,10 +23,13 @@ tags:
   - visual tokens
   - design system
 react:
+  id: jn2po47i
   metaTitle: Themes - React Data Grid | Handsontable
 angular:
+  id: 1sco6djp
   metaTitle: Themes - Angular Data Grid | Handsontable
 vue:
+  id: ioop937e
   metaTitle: Themes - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
@@ -80,8 +84,7 @@ If you want to use the `main` theme without any modifications, you don't need to
 
 ::: only-for angular
 
-::: example #example1 :angular --css 1 --ts 2 --html 3
-@[code](@/content/guides/styling/themes/angular/exampleTheme.css)
+::: example #example1 :angular --ts 1 --html 2
 @[code](@/content/guides/styling/themes/angular/example1.ts)
 @[code](@/content/guides/styling/themes/angular/example1.html)
 :::
@@ -92,8 +95,8 @@ If you want to use the `main` theme without any modifications, you don't need to
 
 ::: example #exampleTheme .disable-auto-theme :vue3 --css 1
 
-@[code](@/content/guides/styling/themes/vue/exampleTheme.css)
 @[code collapse={14-116,221-233}](@/content/guides/styling/themes/vue/exampleTheme.vue)
+@[code](@/content/guides/styling/themes/react/exampleTheme.css)
 
 :::
 
