@@ -59,3 +59,17 @@ export function shouldSkipResizeHandlePositioning(
 ): boolean {
   return !header.parentNode || resizeClickCount > 1;
 }
+
+/**
+ * Checks if resize handle position should be refreshed after auto-size.
+ *
+ * @param {{ parentNode: ParentNode | null } | null} header The header element.
+ * @param {number} resizeClickCount The resize handle click count.
+ * @returns {boolean}
+ */
+export function shouldRefreshHandleAfterAutoResize(
+  header: { parentNode: ParentNode | null } | null,
+  resizeClickCount: number,
+): boolean {
+  return !!header?.parentNode && resizeClickCount >= 2;
+}

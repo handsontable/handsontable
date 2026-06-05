@@ -799,6 +799,40 @@ describe('manualColumnResize', () => {
     expect(Math.abs(headerRight - 5 - handleLeft)).toBeLessThanOrEqual(1);
   });
 
+  it('should keep the resize handle and guide position after the drag timer fires', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      colHeaders: true,
+      autoColumnSize: false,
+      manualColumnResize: true,
+    });
+
+    const $columnHeader = getTopClone().find('thead tr:eq(0) th:eq(1)');
+
+    $columnHeader.simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const guide = spec().$container.find('.manualColumnResizerGuide')[0];
+    const handleLeft = $resizer[0].getBoundingClientRect().left;
+
+    $resizer.simulate('mousedown', { clientX: handleLeft });
+    $resizer.simulate('mousemove', { clientX: handleLeft + 40 });
+
+    const handleBoxAfterMove = $resizer[0].getBoundingClientRect();
+    const guideBoxAfterMove = guide.getBoundingClientRect();
+
+    await waitForNextAnimationFrames(63);
+
+    const handleBoxAfterTimeout = $resizer[0].getBoundingClientRect();
+    const guideBoxAfterTimeout = guide.getBoundingClientRect();
+
+    $resizer.simulate('mouseup');
+
+    expect(handleBoxAfterTimeout.left).toBeCloseTo(handleBoxAfterMove.left, 0);
+    expect(guideBoxAfterTimeout.left).toBeCloseTo(guideBoxAfterMove.left, 0);
+    expect(handleBoxAfterTimeout.left).toBeCloseTo(guideBoxAfterTimeout.left, 0);
+  });
+
   it('should autosize column after double click (when initial width is defined by the `colWidths` option)', async() => {
     handsontable({
       data: createSpreadsheetData(3, 3),

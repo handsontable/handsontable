@@ -14,7 +14,12 @@ import {
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
-import { getElementScaleFactor, normalizeVisualDelta, shouldSkipResizeHandlePositioning } from '../manualResize/utils';
+import {
+  getElementScaleFactor,
+  normalizeVisualDelta,
+  shouldRefreshHandleAfterAutoResize,
+  shouldSkipResizeHandlePositioning,
+} from '../manualResize/utils';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualColumnResize.js
 
@@ -504,6 +509,10 @@ export class ManualRowResize extends BasePlugin {
    * @fires Hooks#afterRowResize
    */
   afterMouseDownTimeout() {
+    const shouldRefreshHandlePosition = shouldRefreshHandleAfterAutoResize(
+      this.#currentTH,
+      this.#dblclick,
+    );
     const render = () => {
       this.hot.view.adjustElementsSize();
       this.hot.render();
@@ -545,7 +554,7 @@ export class ManualRowResize extends BasePlugin {
     this.#autoresizeTimeout = null;
     this.#dblclick = 0;
 
-    if (this.#currentTH) {
+    if (shouldRefreshHandlePosition && this.#currentTH) {
       this.setupHandlePosition(this.#currentTH);
     }
   }
