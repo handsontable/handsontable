@@ -16,7 +16,7 @@ HotColumn is a Vue 3 component that lets you define column settings declarativel
 
 [[toc]]
 
-[Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md#vue-3-version-support)
+[Find out which Vue 3 versions are supported](@/guides/getting-started/installation/installation.md#supported-versions-of-vue)
 
 ## Declare column settings
 
@@ -24,7 +24,7 @@ To declare column-specific settings, pass the settings as `<HotColumn/>` propert
 
 ::: example #example1 :vue3
 
-@[code](@/content/guides/integrate-with-vue3/vue3-hot-column/vue/example1.vue)
+@[code](@/content/guides/getting-started/vue3-hot-column/vue/example1.vue)
 
 :::
 
@@ -34,7 +34,7 @@ To work with an array of objects for the `<HotColumn/>` component, you need to p
 
 ::: example #example2 :vue3
 
-@[code](@/content/guides/integrate-with-vue3/vue3-hot-column/vue/example2.vue)
+@[code](@/content/guides/getting-started/vue3-hot-column/vue/example2.vue)
 
 :::
 
@@ -44,7 +44,7 @@ You can declare a custom editor by creating a class that extends `TextEditor` an
 
 ::: example #example3 :vue3
 
-@[code](@/content/guides/integrate-with-vue3/vue3-hot-column/vue/example3.vue)
+@[code](@/content/guides/getting-started/vue3-hot-column/vue/example3.vue)
 
 :::
 
