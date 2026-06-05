@@ -24,7 +24,7 @@
 
 ## Build & Test
 
-- Build: ng-packagr 16
+- Build: ng-packagr 19
 - Test: `npm run test --prefix wrappers/angular-wrapper` (Jest + jest-preset-angular)
 - Gotcha: Tests use `NODE_OPTIONS=--openssl-legacy-provider`
 
