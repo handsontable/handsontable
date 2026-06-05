@@ -9,6 +9,7 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/vue3-hot-reference/vue3-hot-reference', onlyFor: ['vue'] },
   { path: 'guides/getting-started/license-key/license-key' },
   { path: 'guides/getting-started/react-redux/react-redux', onlyFor: ['react'] },
+  { path: 'guides/getting-started/vue3-vuex/vue3-vuex', onlyFor: ['vue'] },
 ];
 
 const stylingItems = [
