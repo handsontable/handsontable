@@ -85,7 +85,7 @@ watch(
 watch(
   () => store.employees,
   (val) => {
-    hotSettings.value = { ...hotSettings.value, data: val.map(e => Object.values(e)) };
+    wrapper.value?.hotInstance?.loadData(val.map(e => Object.values(e)));
   },
   { deep: true }
 );
