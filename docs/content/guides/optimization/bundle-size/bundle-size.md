@@ -90,6 +90,27 @@ export class ExampleComponent {
 
 :::
 
+::: only-for vue
+
+```js
+import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/vue3';
+import { registerPlugin, ContextMenu } from 'handsontable/plugins';
+
+registerPlugin(ContextMenu);
+
+const hotSettings = ref({
+  contextMenu: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ## Optimize Moment.js
 
 By default, [Moment.js](https://momentjs.com/) (Handsontable's dependency) comes with all possible locales, which increases the bundle size.
@@ -188,6 +209,34 @@ export class ExampleComponent {
     type: "date",
   };
 }
+```
+
+:::
+
+::: only-for vue
+
+```js
+import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/vue3';
+import { registerCellType, DateCellType } from 'handsontable/cellTypes';
+
+// explicitly import Moment.js
+import moment from 'moment';
+// explicitly import a Moment.js locale of your choice
+import 'moment/locale/ja';
+
+// register the Moment.js locale of your choice
+moment.locale('ja');
+registerCellType(DateCellType);
+
+const hotSettings = ref({
+  type: 'date',
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
 ```
 
 :::
