@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12344 — BEFORE (drag-select stops at viewport edge during auto-scroll)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .bad { color: #f48771; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 200px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 15px; font-weight: 700; font-family: monospace; color: #333; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+    .status-box { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-family: monospace; min-height: 36px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>PR #12344 - Drag-select during auto-scroll (DragToScroll)</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12344-fix.html">PR #12344 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    When you hold the left mouse button and drag past the viewport edge, the grid auto-scrolls
+    to reveal new cells — but the selection range <strong>freezes at the last visible edge cell</strong>.
+    The viewport scrolls away under the cursor, but the selection never extends into the
+    newly revealed area.
+    <ul style="margin: 6px 0 0 20px; line-height: 1.8;">
+      <li>Auto-scroll fires — the grid scrolls correctly. ✓</li>
+      <li>Selection stops at the edge cell visible when dragging began. ✗</li>
+      <li>Newly revealed rows/columns are never included in the selection. ✗</li>
+    </ul>
+  </div>
+
+  <pre><span class="comment">// BUG — DragToScroll plugin (v17.0.1):</span>
+<span class="comment">// Auto-scroll tick fires but only scrolls — no selection update:</span>
+runVertically(row) {
+  this.hot.scrollViewportTo({ row, col: this.hot.getSelectedRangeLast()?.to.col });
+  <span class="bad">// selection.setRangeEnd() is NEVER called — selection stays frozen</span>
+}
+runHorizontally(col) {
+  this.hot.scrollViewportTo({ row: this.hot.getSelectedRangeLast()?.to.row, col });
+  <span class="bad">// same: scroll happens, selection does not follow</span>
+}</pre>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>Click a cell near the <strong>middle of the grid</strong> (e.g., row 10, column D).</li>
+      <li>Hold the left mouse button and slowly drag <strong>downward past the bottom edge</strong> of the grid.</li>
+      <li>BUG: the grid scrolls, but the selection range freezes — newly revealed rows are not highlighted.</li>
+      <li>Release and check the <strong>"Last selection"</strong> counter below — it stops at the edge row.</li>
+      <li>Compare with the <a href="demo-pr12344-fix.html">Fix page</a> where the selection tracks the scroll.</li>
+    </ol>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Last selection range</div>
+      <div class="metric-value" id="m-range">—</div>
+      <div class="metric-sub">Watch this while dragging past the edge</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Selected cell count</div>
+      <div class="metric-value" id="m-count">—</div>
+      <div class="metric-sub">BUG: count stops growing when edge is reached</div>
+    </div>
+  </div>
+
+  <div class="status-box" id="status">Click a cell, then drag past the grid edge to test.</div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const ROWS = 50;
+    const COLS = 20;
+
+    function makeData() {
+      return Array.from({ length: ROWS }, (_, r) =>
+        Array.from({ length: COLS }, (_, c) => 'R' + (r + 1) + 'C' + (c + 1))
+      );
+    }
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: makeData(),
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 340,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      dragToScroll: true,
+      afterSelectionEnd(r1, c1, r2, c2) {
+        const rows = Math.abs(r2 - r1) + 1;
+        const cols = Math.abs(c2 - c1) + 1;
+        document.getElementById('m-range').textContent =
+          '(' + r1 + ',' + c1 + ') → (' + r2 + ',' + c2 + ')';
+        document.getElementById('m-count').textContent = rows * cols + ' cells';
+        document.getElementById('status').textContent =
+          'Selection ended: rows ' + r1 + '–' + r2 + ', cols ' + c1 + '–' + c2 +
+          '\n' + rows + ' rows × ' + cols + ' cols = ' + (rows * cols) + ' cells selected.';
+      },
+      afterSelection(r1, c1, r2, c2) {
+        const rows = Math.abs(r2 - r1) + 1;
+        const cols = Math.abs(c2 - c1) + 1;
+        document.getElementById('m-range').textContent =
+          '(' + r1 + ',' + c1 + ') → (' + r2 + ',' + c2 + ')';
+        document.getElementById('m-count').textContent = rows * cols + ' cells';
+      },
+    });
+  </script>
+</body>
+</html>

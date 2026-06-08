@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12344 — FIX (drag-select extends into auto-scrolled area)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .new { color: #b5cea8; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; line-height: 1.5; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 200px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 15px; font-weight: 700; font-family: monospace; color: #333; }
+    .metric-value.growing { color: #2e7d32; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+    .status-box { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-family: monospace; min-height: 36px; white-space: pre-wrap; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; font-size: 13px; }
+    .controls label { display: flex; align-items: center; gap: 6px; }
+    .badge-feature { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #e8f5e9; color: #2e7d32; font-weight: 600; margin-left: 6px; vertical-align: middle; }
+  </style>
+</head>
+<body>
+  <h1>PR #12344 - Drag-select during auto-scroll (DragToScroll) <span class="badge-feature">NEW FEATURE</span></h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12344-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR #12344 Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12344).</strong>
+    Drag-select now <strong>extends the selection on every auto-scroll tick</strong>, matching the behavior
+    of Excel and Google Sheets. On each scroll tick, <code>afterScroll</code> fires,
+    <code>getCellCoordsFromMousePosition</code> maps the last known mouse position to the current edge
+    cell, and <code>selection.setRangeEnd</code> extends the range to that cell.
+    <ul style="margin: 6px 0 0 20px; line-height: 1.8;">
+      <li>Drag down past the bottom edge → selection grows into newly revealed rows. ✓</li>
+      <li>Drag right past the right edge → selection grows into newly revealed columns. ✓</li>
+      <li>Drag back → selection shrinks naturally. ✓</li>
+      <li>Two new public hooks: <code>beforeOnCellMouseOverOutside</code> and <code>afterOnCellMouseOverOutside</code>. ✓</li>
+    </ul>
+  </div>
+
+  <pre><span class="comment">// FIX — DragToScroll plugin (PR #12344):</span>
+<span class="comment">// On each auto-scroll tick, afterScroll fires and extends the selection:</span>
+<span class="new">#onAfterScroll = () => {
+  const lastMousePos = this.#lastMousePosition;
+  if (!lastMousePos || !this.hot.selection.isInProgress()) return;
+
+  const coords = getCellCoordsFromMousePosition(this.hot, lastMousePos.x, lastMousePos.y);
+  if (coords) {
+    this.hot.selection.setRangeEnd(coords);  // extends range to edge cell
+  }
+};</span>
+
+<span class="comment">// New document-level mousemove in Walkontable detects out-of-viewport pointer:</span>
+<span class="new">// → fires onCellMouseOverOutside callback
+// → bridges to beforeOnCellMouseOverOutside / afterOnCellMouseOverOutside hooks</span></pre>
+
+  <div id="patch-info">
+    This page loads <code>dist/handsontable.full.min.js</code> built from the <code>develop</code>
+    branch which includes PR #12344.
+  </div>
+
+  <div class="hint">
+    <strong>How to verify the fix:</strong>
+    <ol>
+      <li>Click a cell near the <strong>middle of the grid</strong> (e.g., row 10, column D).</li>
+      <li>Hold the left mouse button and slowly drag <strong>downward past the bottom edge</strong>.</li>
+      <li>FIX: the selection keeps <strong>extending into newly revealed rows</strong> as the grid scrolls. ✓</li>
+      <li>Drag back up — the selection shrinks. ✓</li>
+      <li>Try dragging <strong>right</strong>, <strong>left</strong>, and <strong>up</strong> past the edge too. ✓</li>
+      <li>Watch the <strong>"Selected cell count"</strong> metric — it grows while dragging. ✓</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <label>
+      Scroll speed:
+      <select id="speed-select">
+        <option value="default">Default</option>
+        <option value="slow">Slow (interval min: 100ms)</option>
+        <option value="fast">Fast (interval min: 10ms)</option>
+      </select>
+    </label>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Last selection range</div>
+      <div class="metric-value" id="m-range">—</div>
+      <div class="metric-sub">Watch this grow while dragging past the edge</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Selected cell count</div>
+      <div class="metric-value" id="m-count">—</div>
+      <div class="metric-sub">FIX: count keeps growing during auto-scroll ✓</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">afterOnCellMouseOverOutside fires</div>
+      <div class="metric-value" id="m-hook">0</div>
+      <div class="metric-sub">New hook: increments on each out-of-viewport drag tick</div>
+    </div>
+  </div>
+
+  <div class="status-box" id="status">Click a cell, then drag past the grid edge to test.</div>
+
+  <div id="hot-container"></div>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    const ROWS = 50;
+    const COLS = 20;
+
+    let hookCount = 0;
+
+    function makeData() {
+      return Array.from({ length: ROWS }, (_, r) =>
+        Array.from({ length: COLS }, (_, c) => 'R' + (r + 1) + 'C' + (c + 1))
+      );
+    }
+
+    function getSpeedConfig(val) {
+      if (val === 'slow') return { interval: { min: 100, max: 400 } };
+      if (val === 'fast') return { interval: { min: 10,  max: 80  } };
+      return true;
+    }
+
+    function initHot() {
+      if (window.hot) { window.hot.destroy(); window.hot = null; }
+      hookCount = 0;
+      document.getElementById('m-hook').textContent = '0';
+
+      const speedVal = document.getElementById('speed-select').value;
+
+      window.hot = new Handsontable(document.getElementById('hot-container'), {
+        data: makeData(),
+        colHeaders: true,
+        rowHeaders: true,
+        width: '100%',
+        height: 340,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+        dragToScroll: getSpeedConfig(speedVal),
+        afterSelection(r1, c1, r2, c2) {
+          const rows = Math.abs(r2 - r1) + 1;
+          const cols = Math.abs(c2 - c1) + 1;
+          document.getElementById('m-range').textContent =
+            '(' + r1 + ',' + c1 + ') → (' + r2 + ',' + c2 + ')';
+          document.getElementById('m-count').textContent = rows * cols + ' cells';
+          document.getElementById('m-count').className = 'metric-value growing';
+        },
+        afterSelectionEnd(r1, c1, r2, c2) {
+          const rows = Math.abs(r2 - r1) + 1;
+          const cols = Math.abs(c2 - c1) + 1;
+          document.getElementById('status').textContent =
+            'Selection ended: rows ' + r1 + '–' + r2 + ', cols ' + c1 + '–' + c2 +
+            '\n' + rows + ' rows × ' + cols + ' cols = ' + (rows * cols) + ' cells selected.\n' +
+            'afterOnCellMouseOverOutside fired ' + hookCount + ' time(s) during this drag.';
+          document.getElementById('m-count').className = 'metric-value';
+        },
+        afterOnCellMouseOverOutside() {
+          hookCount++;
+          document.getElementById('m-hook').textContent = hookCount;
+        },
+      });
+    }
+
+    document.getElementById('speed-select').addEventListener('change', initHot);
+
+    initHot();
+  </script>
+</body>
+</html>
