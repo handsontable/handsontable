@@ -13,6 +13,7 @@ export const RENDERER_TYPE: 'html' = 'html';
  * @param {*} value The rendered value.
  */
 export function htmlRenderer(
+  this: unknown,
   hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
   prop: string | number, value: unknown): void {
   // The `html` cell type renders raw HTML on purpose, so pass `false` to write it directly without

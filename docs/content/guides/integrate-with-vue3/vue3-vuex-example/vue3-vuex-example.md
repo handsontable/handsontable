@@ -42,5 +42,11 @@ The following example implements the `@handsontable/vue3` component with a [`rea
 ## Next steps
 
 - [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) -- access the Handsontable API directly from your component.
-- [HotColumn component in Vue 3](@/guides/integrate-with-vue3/vue3-hot-column/vue3-hot-column.md) -- configure columns declaratively alongside your store.
+- [HotColumn component in Vue 3](@/guides/getting-started/vue3-hot-column/vue3-hot-column.md) -- configure columns declaratively alongside your store.
 - [Formulas integration in Vue 3](@/guides/integrate-with-vue3/vue3-formulas-example/vue3-formulas-example.md) -- combine Vuex-managed data with formula calculations.
+
+:::: only-for vue
+
+See also [Pinia in Vue 3](@/guides/getting-started/vue3-pinia/vue3-pinia.md) -- the officially recommended state-management library for Vue 3.
+
+::::

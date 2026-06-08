@@ -82,6 +82,7 @@ function _timeRenderer(
   cellProperties: CellProperties
 ): void {
   (textRenderer as (...args: unknown[]) => void).apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
+
   TD.dir = 'ltr';
 }
 
