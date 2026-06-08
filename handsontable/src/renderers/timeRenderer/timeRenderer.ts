@@ -16,6 +16,7 @@ export const RENDERER_TYPE: 'time' = 'time';
  * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
  */
 export function timeRenderer(
+  this: unknown,
   hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
   prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void {
   textRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);

@@ -4,6 +4,7 @@ import {
   CONTEXTMENU_ITEMS_EXPORT_FILE_CSV,
   CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX,
 } from '../../../i18n/constants';
+import type { HotInstance } from '../../../core/types';
 import type { ExportFile } from '../exportFile';
 import { PLUGIN_KEY } from '../exportFile';
 import { getExportOptions } from './utils';
@@ -22,30 +23,30 @@ import { getExportOptions } from './utils';
 export default function exportItem(exportFilePlugin: ExportFile): object {
   return {
     key: 'export_file',
-    name(): string {
+    name(this: HotInstance): string {
       return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT) as string;
     },
-    hidden() {
+    hidden(this: HotInstance) {
       return this.getSettings()[PLUGIN_KEY] === undefined;
     },
     submenu: {
       items: [
         {
           key: 'export_file:csv',
-          name(): string {
+          name(this: HotInstance): string {
             return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT_FILE_CSV) as string;
           },
-          callback() {
+          callback(this: HotInstance) {
             exportFilePlugin.downloadFile('csv', getExportOptions(this) as Record<string, unknown>);
           },
           disabled: false,
         },
         {
           key: 'export_file:xlsx',
-          name(): string {
+          name(this: HotInstance): string {
             return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX) as string;
           },
-          callback() {
+          callback(this: HotInstance) {
             exportFilePlugin.downloadFileAsync(
               'xlsx', getExportOptions(this) as Record<string, unknown>
             ).catch((err) => {

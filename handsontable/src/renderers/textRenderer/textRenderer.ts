@@ -17,6 +17,7 @@ export const RENDERER_TYPE: 'text' = 'text';
  * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
  */
 export function textRenderer(
+  this: unknown,
   hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
   prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void {
   let escaped = value;

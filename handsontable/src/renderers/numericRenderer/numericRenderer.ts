@@ -39,6 +39,7 @@ export function valueFormatter(value: unknown, cellProperties: Record<string, un
  * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
  */
 export function numericRenderer(
+  this: unknown,
   hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
   prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void {
   const isNumbroFormat = isNumbroScheme(cellProperties);

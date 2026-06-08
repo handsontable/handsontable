@@ -1,6 +1,7 @@
 import { rangeEach } from '../../../helpers/number';
 import { arrayEach } from '../../../helpers/array';
 import * as C from '../../../i18n/constants';
+import type { HotInstance } from '../../../core/types';
 import BaseUI from './_base';
 
 /**
@@ -73,7 +74,7 @@ class ContextMenuUI extends BaseUI {
     const newEntries = [
       {
         key: 'add_child',
-        name(): string {
+        name(this: HotInstance): string {
           return String(this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_INSERT_CHILD));
         },
         callback: () => {
@@ -92,7 +93,7 @@ class ContextMenuUI extends BaseUI {
       },
       {
         key: 'detach_from_parent',
-        name(): string {
+        name(this: HotInstance): string {
           return String(this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_NESTED_ROWS_DETACH_CHILD));
         },
         callback: () => {
