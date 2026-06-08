@@ -34,7 +34,7 @@ Before using any state management library, make sure you know how Handsontable h
 
 The following example implements the `@handsontable/vue3` component with a [`readOnly`](@/api/options.md#readonly) toggle switch and the Vuex state manager. Editing a cell commits a mutation to the store, and a live store dump displays the current state below the grid.
 
-[Find out which Vue 3 versions are supported](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md#vue-3-version-support)
+[Find out which Vue 3 versions are supported](@/guides/getting-started/installation/installation.md#supported-versions-of-vue)
 
 ::: example #example1 :vue3-vuex
 

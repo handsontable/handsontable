@@ -452,7 +452,7 @@ class ExtendedSelectEditor extends MySelectEditor {
 
 - [Custom editor in React](@/react/guides/cell-functions/cell-editor/cell-editor.md)
 - [Custom editor in Angular](@/angular/guides/cell-functions/cell-editor/cell-editor.md)
-- [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example/vue3-custom-editor-example.md)
+- [Custom editor in Vue 3](@/vue/guides/cell-functions/cell-editor/cell-editor.md)
 
 </div>
 
