@@ -7,6 +7,10 @@ import { getEditorInstance } from './editors/registry';
 import type { BaseEditor } from './editors/baseEditor';
 import EventManager from './eventManager';
 
+/**
+ * Manages the lifecycle of cell editors — opening, closing, and delegating keyboard events to
+ * the active editor during user interaction with the grid.
+ */
 class EditorManager {
   /**
    * Instance of {@link Handsontable}.

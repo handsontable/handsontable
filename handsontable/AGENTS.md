@@ -113,6 +113,8 @@ npm run stylelint --prefix handsontable
 
 Common violations and their fixes (the rules behind them are in Critical Rules above; the full custom-rule catalog with test-file overrides is in `handsontable/.ai/CONVENTIONS.md`, and the rule implementations live in `.config/plugin/eslint/rules/`):
 
+Source `.ts` files (`src/**/*.ts`, excluding walkontable and test/type files) and build scripts (`scripts/**/*.mjs`) now enforce `jsdoc/require-jsdoc` at `error` level for classes, methods, functions, and class fields. Test and type files (`*.unit.ts`, `*.spec.ts`, `*.types.ts`, `*.d.ts`) are exempt.
+
 | Violation | Fix |
 |---|---|
 | `throw new Error('message')` | `import { throwWithCause } from 'helpers/errors'; throwWithCause('message', cause);` |
@@ -122,6 +124,7 @@ Common violations and their fixes (the rules behind them are in Critical Rules a
 | `window.scrollTo(...)` | `this.hot.rootWindow.scrollTo(...)` |
 | `document.querySelector(...)` | `this.hot.rootDocument.querySelector(...)` |
 | `console.warn(...)` | `import { warn } from 'helpers/console'; warn(...);` |
+| Missing JSDoc comment (`jsdoc/require-jsdoc`) on a class/method/field/function | Add a multiline block above it with a blank line before `/**` and after `*/` — `/**` on its own line, then ` * Description.`, then ` */`; no `@private` tag on `#`-fields; no `@param`/`@returns` in `.ts` files |
 
 ## Build
 

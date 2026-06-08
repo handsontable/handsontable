@@ -31,6 +31,9 @@ interface PikadayInstance {
  * @class DateEditor
  */
 export class DateEditor extends TextEditor {
+  /**
+   * Returns the unique editor type identifier for the date editor.
+   */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }
@@ -52,6 +55,9 @@ export class DateEditor extends TextEditor {
    */
   declare datePickerStyle: CSSStyleDeclaration;
 
+  /**
+   * Verifies that moment.js and Pikaday are available, then initializes the editor and registers lifecycle hooks.
+   */
   init(): void {
     if (typeof moment !== 'function') {
       throwWithCause('You need to include moment.js to your project.');

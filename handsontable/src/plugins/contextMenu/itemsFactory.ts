@@ -27,6 +27,9 @@ export class ItemsFactory {
    */
   declare defaultOrderPattern: string[];
 
+  /**
+   * Initializes the items factory with a Handsontable instance and an optional default ordering pattern for menu items.
+   */
   constructor(hotInstance: HotInstance, orderPattern: string[] | null = null) {
     this.hot = hotInstance;
     this.defaultOrderPattern = orderPattern || [];

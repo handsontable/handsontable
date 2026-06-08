@@ -25,10 +25,22 @@ export class IndexMap {
   initValueOrFn;
 
   // Mixin declarations for localHooks (signature must match mixin for subclass assignability)
+  /**
+   * Triggers all callbacks registered under the given local hook name, returning any results.
+   */
   declare runLocalHooks: (key: string, ...args: unknown[]) => unknown;
+  /**
+   * Registers a callback function for the given local hook name on this map instance.
+   */
   declare addLocalHook: (key: string, callback: Function) => unknown;
+  /**
+   * Removes all locally registered hook callbacks from this map instance.
+   */
   declare clearLocalHooks: () => void;
 
+  /**
+   * Initializes the index map with an optional default value or factory function applied to each index.
+   */
   constructor(initValueOrFn: unknown = null) {
     this.initValueOrFn = initValueOrFn;
   }

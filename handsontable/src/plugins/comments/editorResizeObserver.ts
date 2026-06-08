@@ -8,7 +8,13 @@ import localHooks from '../../mixins/localHooks';
  * @class EditorResizeObserver
  */
 export class EditorResizeObserver {
+  /**
+   * Registers a local hook listener scoped to this instance. Provided by the `localHooks` mixin.
+   */
   declare addLocalHook: Function;
+  /**
+   * Executes all local hook listeners registered under the given name. Provided by the `localHooks` mixin.
+   */
   declare runLocalHooks: Function;
   /**
    * The flag that indicates if the initial call should be ignored. It is used to prevent the initial call

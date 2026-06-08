@@ -11,8 +11,17 @@ let registeredMaps = 0;
  */
 export class MapCollection {
   // Mixin-injected properties/methods (added by `mixin(MapCollection, localHooks)`)
+  /**
+   * Internal storage map for local hook callbacks, keyed by hook name.
+   */
   declare _localHooks: Record<string, Function[]>;
+  /**
+   * Registers a callback function for the given local hook name on this collection.
+   */
   declare addLocalHook: (key: string, callback: Function) => this;
+  /**
+   * Triggers all callbacks registered under the given local hook name across this collection.
+   */
   declare runLocalHooks: (key: string, ...args: unknown[]) => void;
 
   /**

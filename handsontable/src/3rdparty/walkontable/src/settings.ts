@@ -280,6 +280,7 @@ export default class Settings {
    * @returns {*}
    */
   getSetting(key: 'stylesHandler'): StylesHandler;
+  /* eslint-disable jsdoc/require-jsdoc -- TypeScript overload signatures share the JSDoc of the first overload above */
   getSetting(key: 'preventOverflow'): 'horizontal' | 'vertical' | false;
   getSetting(key: 'rtlMode'): boolean;
   getSetting(key: 'isDataViewInstance'): boolean;
@@ -306,6 +307,7 @@ export default class Settings {
 
     return this.settings[key] as unknown;
   }
+  /* eslint-enable jsdoc/require-jsdoc */
 
   /**
    * Get a setting value without any evaluation.
@@ -315,6 +317,7 @@ export default class Settings {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getSettingPure<T = any>(key: string): T;
+  // eslint-disable-next-line jsdoc/require-jsdoc -- TypeScript overload implementation; documented in the overload signature above
   getSettingPure(key: string) {
     return this.settings[key];
   }

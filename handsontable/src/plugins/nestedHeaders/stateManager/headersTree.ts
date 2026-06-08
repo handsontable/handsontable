@@ -29,16 +29,18 @@ export interface HeaderSettings {
 export interface HeaderNodeData extends HeaderSettings {
   headerLevel: number;
   columnIndex: number;
-  /** A cloned subtree stored during collapse, restored on expand. */
+  /**
+   * A cloned subtree stored during collapse, restored on expand.
+   */
   clonedTree?: TreeNode | null;
 }
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
+ * Builds and manages a tree structure representing the nested headers configuration, mapping visual column indexes to header nodes.
+ *
  * @private
  * @class HeadersTree
  */
-/* eslint-enable jsdoc/require-description-complete-sentence */
 export default class HeadersTree {
   /**
    * The collection of nested headers settings structured into trees.
@@ -62,6 +64,9 @@ export default class HeadersTree {
    */
   readonly #sourceSettings: SourceSettings | null = null;
 
+  /**
+   * Initializes the headers tree with the given source settings used to build the nested header structure.
+   */
   constructor(sourceSettings: SourceSettings) {
     this.#sourceSettings = sourceSettings;
   }

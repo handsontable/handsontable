@@ -22,8 +22,6 @@ export const PLUGIN_KEY = 'manualColumnResize';
 export const PLUGIN_PRIORITY = 130;
 const PERSISTENT_STATE_KEY = PLUGIN_KEY;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin ManualColumnResize
  * @class ManualColumnResize
@@ -36,12 +34,21 @@ const PERSISTENT_STATE_KEY = PLUGIN_KEY;
  * - guide - the helper guide that shows the desired width as a vertical guide.
  */
 export class ManualColumnResize extends BasePlugin {
+  /**
+   * Stores the horizontal pointer position at the start of a column resize drag operation.
+   */
   declare startX: number;
 
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
@@ -125,6 +132,9 @@ export class ManualColumnResize extends BasePlugin {
    */
   #config!: unknown[];
 
+  /**
+   * Initializes the plugin and applies CSS classes to the resize handle and guide elements.
+   */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
 

@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/require-description-complete-sentence */
 import { arrayEach } from '../../../helpers/array';
 import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './utils';
 import type TreeNode from '../../../utils/dataStructures/tree';

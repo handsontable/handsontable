@@ -30,16 +30,49 @@ export interface ViewportColumnsCalculatorOptions {
  * @class ViewportColumnsCalculator
  */
 export class ViewportColumnsCalculator extends ViewportBaseCalculator {
+  /**
+   * @type {number}
+   */
   viewportWidth: number = 0;
+  /**
+   * @type {number}
+   */
   scrollOffset: number = 0;
+  /**
+   * @type {number}
+   */
   zeroBasedScrollOffset: number = 0;
+  /**
+   * @type {number}
+   */
   totalColumns: number = 0;
+  /**
+   * @type {number}
+   */
   columnWidth: number = 0;
+  /**
+   * @type {((calc: unknown) => void) | null}
+   */
   overrideFn: ((calc: unknown) => void) | null = null;
+  /**
+   * @type {number}
+   */
   inlineStartOffset: number = 0;
+  /**
+   * @type {number}
+   */
   totalCalculatedWidth: number = 0;
+  /**
+   * @type {boolean}
+   */
   needReverse: boolean = true;
+  /**
+   * @type {PositionCache | null}
+   */
   positionCache: PositionCache | null = null;
+  /**
+   * @type {number}
+   */
   lastProcessedIndex: number = -1;
 
   /**

@@ -1,11 +1,9 @@
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * autoResize - resizes a DOM element to the width and height of another DOM element
  *
  * Copyright 2014, Marcin Warpechowski
  * Licensed under the MIT license
  */
-/* eslint-enable jsdoc/require-description-complete-sentence */
 /**
  * Attaches an event listener to the given element.
  *

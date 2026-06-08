@@ -7,6 +7,11 @@ import { WORKING_SPACE_TOP, WORKING_SPACE_BOTTOM } from '../constants';
  * @class {DirectDomRendererAdapter}
  */
 export class DirectDomRendererAdapter {
+  /**
+   * The OrderView instance associated with this adapter.
+   *
+   * @type {OrderView}
+   */
   declare orderView: OrderView;
   /**
    * The visual index of currently processed row.

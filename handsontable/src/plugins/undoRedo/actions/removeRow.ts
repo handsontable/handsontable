@@ -41,6 +41,9 @@ export class RemoveRowAction extends BaseAction {
    */
   removedMergedCells;
 
+  /**
+   * Initializes the remove row action with the removed data, row index sequence, fixed-row counts, cell meta backup, and affected merged cells.
+   */
   constructor({
     index,
     data,
@@ -64,6 +67,9 @@ export class RemoveRowAction extends BaseAction {
     this.removedMergedCells = removedMergedCells;
   }
 
+  /**
+   * Registers the `beforeRemoveRow` hook listener that captures removed row data and records a RemoveRowAction.
+   */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('beforeRemoveRow', (index: number, amount: number, logicRows: unknown, source: string) => {
       const wrappedAction = () => {

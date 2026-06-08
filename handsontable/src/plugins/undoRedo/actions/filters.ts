@@ -18,6 +18,9 @@ export class FiltersAction extends BaseAction {
    */
   previousConditionsStack;
 
+  /**
+   * Initializes the filters action with the current and previous filter condition stacks.
+   */
   constructor({ conditionsStack, previousConditionsStack }: {
     conditionsStack: unknown, previousConditionsStack: unknown
   }) {
@@ -26,6 +29,9 @@ export class FiltersAction extends BaseAction {
     this.previousConditionsStack = previousConditionsStack;
   }
 
+  /**
+   * Registers the `beforeFilter` hook listener that records a new FiltersAction whenever filter conditions change.
+   */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('beforeFilter', (conditionsStack: unknown, previousConditionsStack: unknown) => {
       (undoRedoPlugin as { done: (...args: unknown[]) => void }).done(() => new FiltersAction({

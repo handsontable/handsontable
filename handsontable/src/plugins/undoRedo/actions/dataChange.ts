@@ -35,6 +35,9 @@ export class DataChangeAction extends BaseAction {
    */
   declare countRows: number;
 
+  /**
+   * Initializes the data change action with the recorded cell changes, selection state, and grid dimensions at the time of the change.
+   */
   constructor({ changes, selected, countCols, countRows }: {
     changes: unknown[][], selected: unknown[], countCols: number, countRows: number
   }) {
@@ -45,6 +48,9 @@ export class DataChangeAction extends BaseAction {
     this.countRows = countRows;
   }
 
+  /**
+   * Registers the `beforeChange` hook listener that captures effective cell value changes and records them as DataChangeActions.
+   */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     const plugin = undoRedoPlugin as UndoRedoPluginLike;
 

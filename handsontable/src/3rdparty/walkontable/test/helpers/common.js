@@ -23,7 +23,6 @@ afterAll(() => {
   $('.jasmine_html-reporter').show();
 });
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The function allows you to run the test suites based on different parameters (object configuration, datasets etc).
  *
@@ -53,7 +52,6 @@ export function using(name, parameters, func) {
     });
   });
 }
-/* eslint-enable jsdoc/require-description-complete-sentence */
 
 /**
  * @param {number} [delay=100] The delay in ms after which the Promise is resolved.

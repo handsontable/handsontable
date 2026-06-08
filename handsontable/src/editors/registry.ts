@@ -51,9 +51,18 @@ const {
  * Wraps an editor class and lazily creates a single editor instance per Handsontable instance.
  */
 export class RegisteredEditor {
+  /**
+   * The editor constructor wrapped by this registered editor entry.
+   */
   #editorClass: EditorConstructorWithType;
+  /**
+   * Map from Handsontable instance GUID to the lazily created editor instance.
+   */
   #instances: Record<string, unknown> = {};
 
+  /**
+   * Wraps the given editor class and registers an afterDestroy hook to clean up instances.
+   */
   constructor(editorClass: EditorConstructorWithType) {
     this.#editorClass = editorClass;
 

@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * Checks if the passed value is numeric one. For example these values (passed as string or number)
  * are considered as numeric values:
@@ -44,7 +43,6 @@ export function isNumeric(value: unknown, additionalDelimiters: string[] = []): 
 
   return false;
 }
-/* eslint-enable jsdoc/require-description-complete-sentence */
 
 /**
  * Checks if the passed value is numeric-like value. The helper returns `true` for the same

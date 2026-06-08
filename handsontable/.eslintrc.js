@@ -108,6 +108,34 @@ module.exports = {
         'handsontable/require-await': 'off',
       },
     },
+    // Source files and build scripts must document classes, methods, functions, and fields
+    // so the Typedoc API reference and guides render complete descriptions. Test/type files are
+    // excluded (require-jsdoc is already off for *.unit.js / *.spec.js elsewhere in this config).
+    {
+      files: [
+        'src/**/*.ts',
+        'scripts/**/*.mjs',
+      ],
+      excludedFiles: [
+        'src/3rdparty/walkontable/test/**', // walkontable test helpers — exempt
+        'src/**/__tests__/**',
+        'src/**/test/**',
+        '*.unit.ts',
+        '*.spec.ts',
+        '*.types.ts',
+        '*.d.ts',
+      ],
+      rules: {
+        'jsdoc/require-jsdoc': ['error', {
+          require: {
+            FunctionDeclaration: true,
+            MethodDefinition: true,
+            ClassDeclaration: true,
+          },
+          contexts: ['PropertyDefinition'], // class fields
+        }],
+      },
+    },
     {
       files: ['scripts/**'],
       rules: {

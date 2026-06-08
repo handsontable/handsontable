@@ -38,6 +38,12 @@ export class BaseRenderer {
    */
   renderedNodes: number = 0;
 
+  /**
+   * Creates a new BaseRenderer instance.
+   *
+   * @param {string | null} nodeType - The node type which the renderer will manage while building the table (eg. 'TD', 'TR', 'TH'), or null.
+   * @param {HTMLElement} rootNode - The root node to which newly created elements will be inserted.
+   */
   constructor(nodeType: string | null, rootNode?: HTMLElement) {
     this.nodesPool = typeof nodeType === 'string' ? new NodesPool(nodeType) : null;
     this.nodeType = nodeType;

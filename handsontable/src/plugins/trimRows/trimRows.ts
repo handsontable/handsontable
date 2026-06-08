@@ -5,8 +5,6 @@ import { arrayEach, arrayReduce } from '../../helpers/array';
 export const PLUGIN_KEY = 'trimRows';
 export const PLUGIN_PRIORITY = 330;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin TrimRows
  * @class TrimRows
@@ -154,14 +152,23 @@ export const PLUGIN_PRIORITY = 330;
  * :::
  */
 export class TrimRows extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the list of settings keys observed by the plugin for configuration changes.
+   */
   static get SETTING_KEYS() {
     return [PLUGIN_KEY];
   }

@@ -25,6 +25,9 @@ class Storage {
    */
   savedKeys: string[] = [];
 
+  /**
+   * Initializes the storage with a namespace prefix and a window reference, then loads previously saved keys from localStorage.
+   */
   // eslint-disable-next-line no-restricted-globals
   constructor(prefix: string, rootWindow = window) {
     this.rootWindow = rootWindow;

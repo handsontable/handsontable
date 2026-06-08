@@ -66,26 +66,64 @@ export class TopInlineStartCornerOverlay extends Overlay {
       && (this.wtSettings.getSetting('shouldRenderInlineStartOverlay') as boolean);
   }
 
+  /**
+   * Prevents scroll position changes for this overlay.
+   * @param {number} _pos The scroll position to set (ignored).
+   * @returns {boolean} Always returns false.
+   */
   setScrollPosition(_pos: number) {
     return false;
   }
+  /**
+   * Gets the scroll position for this overlay.
+   * @returns {number} Always returns 0.
+   */
   getScrollPosition() {
     return 0;
   }
+  /**
+   * Gets the parent table offset for this overlay.
+   * @returns {number} Always returns 0.
+   */
   getTableParentOffset() {
     return 0;
   }
+  /**
+   * Gets the overlay offset for this corner overlay.
+   * @returns {number} Always returns 0.
+   */
   getOverlayOffset() {
     return 0;
   }
+  /**
+   * Handles scroll events (intentionally empty for corner overlay).
+   */
   onScroll() {}
+  /**
+   * Sums cell sizes within a range.
+   * @param {number} _from The starting cell index (ignored).
+   * @param {number} _to The ending cell index (ignored).
+   * @returns {number} Always returns 0.
+   */
   sumCellSizes(_from: number, _to: number) {
     return 0;
   }
+  /**
+   * Adjusts overlay element sizes (intentionally empty for corner overlay).
+   */
   adjustElementsSize() { // intentionally empty
   }
+  /**
+   * Applies changes to the DOM (intentionally empty for corner overlay).
+   */
   applyToDOM() { // intentionally empty
   }
+  /**
+   * Scrolls the overlay to a specified position.
+   * @param {number} _sourceIndex The source index to scroll to (ignored).
+   * @param {boolean} _snapToEdge Whether to snap to edge (ignored).
+   * @returns {boolean} Always returns false.
+   */
   scrollTo(_sourceIndex: number, _snapToEdge: boolean) {
     return false;
   }

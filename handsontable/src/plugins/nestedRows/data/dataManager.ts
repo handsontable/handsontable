@@ -66,6 +66,9 @@ class DataManager {
     nodeInfo: new WeakMap<object, NodeInfo>()
   };
 
+  /**
+   * Initializes the data manager with references to the NestedRows plugin and the Handsontable instance.
+   */
   constructor(nestedRowsPlugin: NestedRows, hotInstance: HotInstance) {
     this.hot = hotInstance;
     this.plugin = nestedRowsPlugin;
@@ -799,6 +802,9 @@ class DataManager {
    */
 
   /* eslint-enable jsdoc/require-param */
+  /**
+   *
+   */
   moveRow(fromIndex: number, toIndex: number, moveToCollapsed: boolean, moveToLastChild: boolean) {
     const moveToLastRow = toIndex === this.hot.countRows();
     const fromParent = this.getRowParent(fromIndex)!;

@@ -74,6 +74,9 @@ class BaseType {
    */
   declare options: Record<string, unknown>;
 
+  /**
+   * Initializes the export type with the data provider and merges the given options with the class defaults.
+   */
   constructor(dataProvider: DataProvider, options: Record<string, unknown>) {
     this.dataProvider = dataProvider;
     this.options = this._mergeOptions(options);

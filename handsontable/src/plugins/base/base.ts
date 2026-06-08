@@ -35,13 +35,28 @@ let initializedPlugins: string[] | null = null;
  * @property {Core} hot Handsontable instance.
  */
 export class BasePlugin {
+  /**
+   * Reference to the Handsontable instance this plugin belongs to.
+   */
   declare hot: HotInstance;
+  /**
+   * Translation helper object provided by the i18n system, if available.
+   */
   declare t?: Record<string, Function>;
+  /**
+   * Reference to the plugin's own class constructor, used for static property access at runtime.
+   */
   declare ['constructor']: typeof BasePlugin;
 
   // Allow child classes to define isEnabled
+  /**
+   * Returns `true` if the plugin should be active based on current Handsontable settings. Defined by each subclass.
+   */
   isEnabled?(): boolean;
 
+  /**
+   * Returns the plugin key used to identify and look up this plugin in Handsontable settings and the plugin registry.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
@@ -146,6 +161,9 @@ export class BasePlugin {
     this.hot.addHook('beforeInit', () => this.init());
   }
 
+  /**
+   * Initializes the plugin by resolving its name, applying settings, and checking required dependencies.
+   */
   init(): void {
     this.pluginName = this.hot.getPluginName(this);
     this.updatePluginSettings(this.hot.getSettings()[this.constructor.PLUGIN_KEY]);
@@ -405,6 +423,9 @@ export class BasePlugin {
    *                              If 0 or no order index is provided, the callback will be added between the "negative" and "positive" indexes.
    */
   addHook<K extends keyof Events>(name: K, callback: Events[K], orderIndex?: number): void;
+  /**
+   * Registers a hook listener and tracks it so it can be removed automatically when the plugin is disabled.
+   */
   addHook(name: string, callback: HookCallback, orderIndex?: number): void {
     this.#hooks[name] = (this.#hooks[name] || []);
 

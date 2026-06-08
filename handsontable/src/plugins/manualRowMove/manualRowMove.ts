@@ -16,8 +16,6 @@ const CSS_SHOW_UI = 'show-ui';
 const CSS_ON_MOVING = 'on-moving--rows';
 const CSS_AFTER_SELECTION = 'after-selection--rows';
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin ManualRowMove
  * @class ManualRowMove
@@ -42,14 +40,23 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * @plugin ManualRowMove
  */
 export class ManualRowMove extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the list of settings keys observed by the plugin for configuration changes.
+   */
   static get SETTING_KEYS() {
     return [PLUGIN_KEY];
   }

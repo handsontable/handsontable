@@ -20,12 +20,47 @@ import CellRange from '../cell/range';
  * @class Walkontable
  */
 export default class CoreAbstract {
+  /**
+   * The main table instance.
+   *
+   * @type {Table}
+   */
   declare wtTable: Table;
+  /**
+   * The scroll handler instance.
+   *
+   * @type {Scroll}
+   */
   declare wtScroll: Scroll;
+  /**
+   * The viewport calculator instance.
+   *
+   * @type {Viewport}
+   */
   declare wtViewport: Viewport;
+  /**
+   * The overlays manager instance.
+   *
+   * @type {Overlays}
+   */
   declare wtOverlays: Overlays;
+  /**
+   * The selection manager instance.
+   *
+   * @type {SelectionManager}
+   */
   declare selectionManager: SelectionManager;
+  /**
+   * The event handler instance.
+   *
+   * @type {Event}
+   */
   declare wtEvent: Event;
+  /**
+   * Reference to the source CoreAbstract instance (used for clones).
+   *
+   * @type {CoreAbstract}
+   */
   declare cloneSource: CoreAbstract;
   /**
    * The walkontable instance id.
@@ -34,7 +69,17 @@ export default class CoreAbstract {
    * @type {Readonly<string>}
    */
   guid = `wt_${randomString()}`;
+  /**
+   * Flag indicating whether the current drawing operation was interrupted.
+   *
+   * @type {boolean}
+   */
   drawInterrupted = false;
+  /**
+   * Flag indicating whether the table has been drawn.
+   *
+   * @type {boolean}
+   */
   drawn = false;
 
   /**
@@ -61,6 +106,11 @@ export default class CoreAbstract {
    */
   declare wtSettings: Settings;
 
+  /**
+   * Gets or creates the event manager instance.
+   *
+   * @returns {EventManager} The event manager instance.
+   */
   get eventManager(): EventManager {
     return new EventManager(this);
   }
@@ -80,6 +130,9 @@ export default class CoreAbstract {
     this.wtScroll = new Scroll(this.createScrollDao());
   }
 
+  /**
+   * Finds and stores original table headers, setting up column header rendering callbacks if not already configured.
+   */
   findOriginalHeaders() {
     const originalHeaders: string[] = [];
 

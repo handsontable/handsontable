@@ -2,7 +2,6 @@ import { isEmpty } from '../../helpers/mixed';
 import { isObjectEqual } from '../../helpers/object';
 import type { HotInstance } from '../../core/types';
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @alias Options
  * @class Options
@@ -121,8 +120,6 @@ import type { HotInstance } from '../../core/types';
  */
 export default (): Record<string, unknown> => {
   return {
-
-    /* eslint-disable jsdoc/require-description-complete-sentence */
 
     /**
      * Information on which of the meta properties were added automatically.
@@ -6868,6 +6865,5 @@ export default (): Record<string, unknown> => {
      */
     parsePastedValue: false,
 
-    /* eslint-enable jsdoc/require-description-complete-sentence */
   };
 };

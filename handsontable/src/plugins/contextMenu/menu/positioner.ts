@@ -46,6 +46,9 @@ export class Positioner {
     right: 0,
   };
 
+  /**
+   * Initializes the positioner with a flag indicating whether the menu should be kept within the viewport boundaries.
+   */
   constructor(keepInViewport: boolean) {
     this.#keepInViewport = keepInViewport;
   }

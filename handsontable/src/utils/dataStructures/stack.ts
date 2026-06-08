@@ -3,7 +3,13 @@
  * @util
  */
 class Stack {
+  /**
+   * The ordered collection of items held in the stack, where the last element is the top.
+   */
   declare items: unknown[];
+  /**
+   * Initializes the stack with an optional pre-populated array of items.
+   */
   constructor(initial: unknown[] = []) {
     /**
      * Items collection.

@@ -19,8 +19,6 @@ interface Boundaries {
   bottom: number;
 }
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @description
  * Plugin used to scroll Handsontable by selecting a cell and dragging outside of the visible viewport.
@@ -30,14 +28,23 @@ interface Boundaries {
  * @plugin DragToScroll
  */
 export class DragToScroll extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   */
   static get DEFAULT_SETTINGS() {
     return {
       interval: {

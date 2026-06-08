@@ -12,14 +12,23 @@ export const PLUGIN_PRIORITY = 200;
  * @class TouchScroll
  */
 export class TouchScroll extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns whether the plugin handles its own settings keys without a dedicated key list.
+   */
   static get SETTING_KEYS(): true {
     return true;
   }

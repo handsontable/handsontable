@@ -48,6 +48,9 @@ class CollapsingUI extends BaseUI {
    */
   declare lastCollapsedRows: number[] | undefined;
 
+  /**
+   * Initializes the collapsing UI component and sets up the stash mechanism for preserving collapsed row state across operations.
+   */
   constructor(nestedRowsPlugin: NestedRows, hotInstance: HotInstance) {
     super(nestedRowsPlugin, hotInstance);
 

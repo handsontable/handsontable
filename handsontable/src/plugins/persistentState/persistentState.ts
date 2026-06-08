@@ -12,8 +12,6 @@ export const PLUGIN_PRIORITY = 0;
 
 const deprecationWarningInstances = new WeakSet();
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin PersistentState
  * @class PersistentState
@@ -45,10 +43,16 @@ const deprecationWarningInstances = new WeakSet();
  *
  */
 export class PersistentState extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify and access this plugin within Handsontable.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority value that determines the plugin's initialization order relative to other plugins.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }

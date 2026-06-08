@@ -9,8 +9,6 @@ const modifierKeysObserver = createKeysObserver();
 const modKeyListeners: Array<{event: 'keydown' | 'keyup'; listener: (event: KeyboardEvent) => void}> = [];
 let instanceCounter = 0;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * A key recorder, used for tracking key events.
  *

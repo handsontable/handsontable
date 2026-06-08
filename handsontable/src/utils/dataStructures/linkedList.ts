@@ -32,6 +32,9 @@ class NodeStructure {
    */
   prev: NodeStructure | null = null;
 
+  /**
+   * Initializes the node with the given data value.
+   */
   constructor(data: unknown) {
     this.data = data;
   }
@@ -44,7 +47,13 @@ class NodeStructure {
  * @util
  */
 class LinkedList {
+  /**
+   * The first node in the list, or null when the list is empty.
+   */
   first: NodeStructure | null = null;
+  /**
+   * The last node in the list, or null when the list is empty.
+   */
   last: NodeStructure | null = null;
 
   /**

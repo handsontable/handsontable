@@ -25,6 +25,9 @@ interface SelectItem {
  * @class MultipleSelectUI
  */
 export class MultipleSelectUI extends BaseUI {
+  /**
+   * Returns the default configuration options for the multiple select UI component.
+   */
   static get DEFAULTS(): BaseUIOptions {
     return clone({
       className: 'htUIMultipleSelect',
@@ -38,12 +41,30 @@ export class MultipleSelectUI extends BaseUI {
    * @type {Array}
    */
   #items: SelectItem[] = [];
+  /**
+   * Nested Handsontable instance used to render the list of selectable filter values.
+   */
   #itemsBox: HotInstance | null = null;
+  /**
+   * Current locale string used for sorting and comparing filter values.
+   */
   #locale: string = '';
+  /**
+   * Input component for searching within the list of selectable filter values.
+   */
   #searchInput: InputUI | null = null;
+  /**
+   * Link component for selecting all available filter values at once.
+   */
   #selectAllUI: LinkUI | null = null;
+  /**
+   * Link component for clearing all selected filter values at once.
+   */
   #clearAllUI: LinkUI | null = null;
 
+  /**
+   * Initializes the multiple select UI component, creates child input and link components, and registers event hooks.
+   */
   constructor(hotInstance: HotInstance, options: Record<string, unknown>) {
     super(hotInstance, extend(
       MultipleSelectUI.DEFAULTS as Record<string, unknown>, options

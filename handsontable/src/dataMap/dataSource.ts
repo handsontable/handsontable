@@ -38,10 +38,22 @@ class DataSource {
    */
   dataType = 'array';
 
+  /**
+   * Translates a visual column index to the corresponding data property key. May be overridden by DataMap when object data is used.
+   */
   colToProp: (column: unknown) => unknown = (_column: unknown) => undefined;
+  /**
+   * Translates a data property key to the corresponding visual column index. May be overridden by DataMap when object data is used.
+   */
   propToCol: (prop: unknown) => unknown = (_prop: unknown) => undefined;
+  /**
+   * Returns the number of columns derived from the data source cache; injected externally when object-based data is used.
+   */
   countCachedColumns?: () => number;
 
+  /**
+   * Initializes the data source with a reference to the Handsontable instance and the raw data array.
+   */
   constructor(hotInstance: HotInstance, dataSource: unknown[][] | object[][] = []) {
     this.hot = hotInstance;
     this.data = dataSource;

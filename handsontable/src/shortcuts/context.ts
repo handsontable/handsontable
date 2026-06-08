@@ -43,7 +43,6 @@ export function isContextObject(objectToCheck: unknown): objectToCheck is Contex
   return isObject(objectToCheck) && (objectToCheck as Record<string, unknown>).__kindOf === __kindOf;
 }
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The `ShortcutContext` API lets you store and manage [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md) in a given [context](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#keyboard-shortcut-contexts).
  *

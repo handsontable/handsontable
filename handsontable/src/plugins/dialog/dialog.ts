@@ -11,7 +11,6 @@ export const PLUGIN_PRIORITY = 360;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin Dialog
  * @class Dialog
@@ -161,16 +160,24 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * ```
  * :::
  */
-
 export class Dialog extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   */
   static get DEFAULT_SETTINGS() {
     return {
       template: null as object | null,
@@ -189,6 +196,9 @@ export class Dialog extends BasePlugin {
     };
   }
 
+  /**
+   * Returns validator functions for each plugin setting to verify their values are valid before applying them.
+   */
   static get SETTINGS_VALIDATORS() {
     return {
       template: (value: unknown) => isPlainObject(value) &&

@@ -16,7 +16,13 @@ import {
  * @class BottomInlineStartCornerOverlay
  */
 export class BottomInlineStartCornerOverlay extends Overlay {
+  /**
+   * @type {Overlay}
+   */
   declare bottomOverlay: Overlay;
+  /**
+   * @type {Overlay}
+   */
   declare inlineStartOverlay: Overlay;
 
   /**
@@ -105,26 +111,64 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     return true;
   }
 
+  /**
+   * Sets the scroll position (no-op for corner overlay).
+   * @param {number} _pos The scroll position (unused).
+   * @returns {boolean} Always returns false.
+   */
   setScrollPosition(_pos: number) {
     return false;
   }
+  /**
+   * Gets the scroll position (no-op for corner overlay).
+   * @returns {number} Always returns 0.
+   */
   getScrollPosition() {
     return 0;
   }
+  /**
+   * Gets the table parent offset (no-op for corner overlay).
+   * @returns {number} Always returns 0.
+   */
   getTableParentOffset() {
     return 0;
   }
+  /**
+   * Gets the overlay offset (no-op for corner overlay).
+   * @returns {number} Always returns 0.
+   */
   getOverlayOffset() {
     return 0;
   }
+  /**
+   * Handles scroll events (no-op for corner overlay).
+   */
   onScroll() {}
+  /**
+   * Sums the size of cells between two indexes (no-op for corner overlay).
+   * @param {number} _from The starting cell index (unused).
+   * @param {number} _to The ending cell index (unused).
+   * @returns {number} Always returns 0.
+   */
   sumCellSizes(_from: number, _to: number) {
     return 0;
   }
+  /**
+   * Adjusts the size of overlay elements (intentionally empty).
+   */
   adjustElementsSize() { // intentionally empty
   }
+  /**
+   * Applies changes to the DOM (intentionally empty).
+   */
   applyToDOM() { // intentionally empty
   }
+  /**
+   * Scrolls to a specified cell index (no-op for corner overlay).
+   * @param {number} _sourceIndex The source row or column index (unused).
+   * @param {boolean} _snapToEdge Whether to snap to the edge (unused).
+   * @returns {boolean} Always returns false.
+   */
   scrollTo(_sourceIndex: number, _snapToEdge: boolean) {
     return false;
   }

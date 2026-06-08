@@ -15,11 +15,17 @@ export class UnmergeCellsAction extends BaseAction {
    */
   cellRange;
 
+  /**
+   * Initializes the unmerge cells action with the cell range that was unmerged.
+   */
   constructor({ cellRange }: { cellRange: CellRange }) {
     super('unmerge_cells');
     this.cellRange = cellRange;
   }
 
+  /**
+   * Registers the `afterUnmergeCells` hook listener that records a new UnmergeCellsAction after cells are manually unmerged.
+   */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('afterUnmergeCells', (cellRange: unknown, auto: unknown) => {
       if (auto) {

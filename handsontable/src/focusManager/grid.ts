@@ -29,6 +29,10 @@ interface ActiveEditorInstance {
   [key: string]: unknown;
 }
 
+/**
+ * Manages browser focus within the grid to ensure correct behavior for keyboard navigation,
+ * screen readers, and IME text composition.
+ */
 export class FocusGridManager {
   /**
    * The Handsontable instance.
@@ -81,10 +85,16 @@ export class FocusGridManager {
    */
   #isSuspended = false;
 
+  /**
+   * Initializes the manager with a reference to the Handsontable instance.
+   */
   constructor(hotInstance: HotInstance) {
     this.#hot = hotInstance;
   }
 
+  /**
+   * Registers hooks to track selection changes and apply focus logic based on the configured focus mode.
+   */
   init() {
     const hotSettings = this.#hot.getSettings();
 

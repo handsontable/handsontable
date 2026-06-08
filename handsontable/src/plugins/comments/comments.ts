@@ -63,7 +63,6 @@ interface CommentRange {
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin Comments
  * @class Comments
@@ -207,14 +206,23 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
  * :::
  */
 export class Comments extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   */
   static get DEFAULT_SETTINGS() {
     return {
       displayDelay: 250,
@@ -809,12 +817,27 @@ export class Comments extends BasePlugin {
    * @param {string} property Cell meta property.
    * @returns {Mixed}
    */
+  /**
+   * @overload
+   */
   getCommentMeta(row: number, column: number, property: typeof META_COMMENT_VALUE): string | undefined;
+  /**
+   * @overload
+   */
   getCommentMeta(row: number, column: number, property: typeof META_READONLY): boolean | undefined;
+  /**
+   * @overload
+   */
   getCommentMeta(
     row: number, column: number, property: typeof META_STYLE
   ): { width: number; height: number } | undefined;
+  /**
+   * @overload
+   */
   getCommentMeta(row: number, column: number, property: string): unknown;
+  /**
+   * Returns the value of a specific meta property from the comment attached to the given cell.
+   */
   getCommentMeta(row: number, column: number, property: string): unknown {
     const cellMeta = this.hot.getCellMeta<{ [META_COMMENT]?: CommentMeta }>(row, column);
     const comment = cellMeta[META_COMMENT];

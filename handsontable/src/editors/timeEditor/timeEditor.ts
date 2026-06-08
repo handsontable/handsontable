@@ -7,6 +7,9 @@ export const EDITOR_TYPE = 'time';
  * @class TimeEditor
  */
 export class TimeEditor extends TextEditor {
+  /**
+   * Returns the unique editor type identifier for the time editor.
+   */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }
