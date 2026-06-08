@@ -1,5 +1,6 @@
 import { AutocompleteEditor } from '../autocompleteEditor';
 import { isUndefined, isDefined } from '../../helpers/mixed';
+import type { CellProperties } from '../../settings';
 
 export const EDITOR_TYPE = 'dropdown';
 
@@ -25,7 +26,7 @@ export class DropdownEditor extends AutocompleteEditor {
    */
   prepare(
     row: number, col: number, prop: string | number,
-    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+    td: HTMLTableCellElement, value: unknown, cellProperties: CellProperties): void {
     cellProperties.filter = false;
     cellProperties.strict = true;
 

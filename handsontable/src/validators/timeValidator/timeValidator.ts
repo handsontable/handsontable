@@ -1,4 +1,5 @@
 import moment from 'moment';
+import type { CellProperties } from '../../settings';
 
 // Formats which are correctly parsed to time (supported by momentjs)
 const STRICT_FORMATS = [
@@ -16,7 +17,7 @@ export const VALIDATOR_TYPE: 'time' = 'time';
  * @param {*} value Value of edited cell.
  * @param {Function} callback Callback called with validation result.
  */
-export function timeValidator(this: Record<string, unknown>, value: unknown, callback: (valid: boolean) => void): void {
+export function timeValidator(this: CellProperties, value: unknown, callback: (valid: boolean) => void): void {
   const timeFormat = (this.timeFormat || 'h:mm:ss a') as string;
   let valid = true;
   let valueToValidate = value;

@@ -1,3 +1,4 @@
+import type { CellProperties } from '../../settings';
 import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
 import { EDITOR_STATE } from '../baseEditor';
@@ -139,7 +140,7 @@ export class DateEditor extends TextEditor {
    */
   prepare(
     row: number, col: number, prop: string | number,
-    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+    td: HTMLTableCellElement, value: unknown, cellProperties: CellProperties): void {
     super.prepare(row, col, prop, td, value, cellProperties);
   }
 
@@ -263,7 +264,7 @@ export class DateEditor extends TextEditor {
       }
 
     } else if (this.cellProperties.defaultDate) {
-      dateStr = this.cellProperties.defaultDate;
+      dateStr = this.cellProperties.defaultDate as string | undefined;
 
       if (moment(dateStr, dateFormat, true).isValid()) {
         this.$datePicker.setMoment(moment(dateStr, dateFormat), true);

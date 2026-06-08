@@ -1,4 +1,5 @@
 import numbro from 'numbro';
+import type { CellProperties } from '../../settings';
 
 const DEFAULT_INTL_FORMAT = {
   useGrouping: false,
@@ -12,7 +13,7 @@ const DEFAULT_INTL_FORMAT = {
  * @param {CellMeta} cellProperties Cell meta object.
  * @returns {*} Returns the formatted value.
  */
-export function numbroFormatter(value: unknown, cellProperties: Record<string, unknown>) {
+export function numbroFormatter(value: unknown, cellProperties: CellProperties) {
   const numericFormat = cellProperties.numericFormat as Record<string, unknown> | undefined;
   const cellCulture = numericFormat && numericFormat.culture as string || '-';
   const cellFormatPattern = numericFormat && numericFormat.pattern as string;
@@ -40,7 +41,7 @@ export function numbroFormatter(value: unknown, cellProperties: Record<string, u
  * @param {CellMeta} cellProperties Cell meta object.
  * @returns {*} Returns the formatted value.
  */
-export function intlFormatter(value: unknown, cellProperties: Record<string, unknown>) {
+export function intlFormatter(value: unknown, cellProperties: CellProperties) {
   const { numericFormat, locale } = cellProperties;
 
   return new Intl.NumberFormat(
@@ -53,7 +54,7 @@ export function intlFormatter(value: unknown, cellProperties: Record<string, unk
  * @param {CellMeta} cellProperties Cell meta object.
  * @returns {boolean} Returns true if the numericFormat object contains any numbro-specific format keys, false otherwise.
  */
-export function isNumbroScheme(cellProperties: Record<string, unknown>) {
+export function isNumbroScheme(cellProperties: CellProperties) {
   const numericFormat = cellProperties.numericFormat as Record<string, unknown> | undefined;
 
   return numericFormat?.pattern !== undefined || numericFormat?.culture !== undefined;

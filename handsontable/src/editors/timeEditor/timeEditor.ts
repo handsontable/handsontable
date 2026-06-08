@@ -1,4 +1,5 @@
 import { TextEditor } from '../textEditor';
+import type { CellProperties } from '../../settings';
 
 export const EDITOR_TYPE = 'time';
 
@@ -26,7 +27,7 @@ export class TimeEditor extends TextEditor {
    */
   prepare(
     row: number, col: number, prop: string | number,
-    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+    td: HTMLTableCellElement, value: unknown, cellProperties: CellProperties): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
     this.TEXTAREA.dir = 'ltr';

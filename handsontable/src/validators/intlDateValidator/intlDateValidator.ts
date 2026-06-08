@@ -1,5 +1,6 @@
 import { isValidISODate } from '../../helpers/dateTime';
 import { isEmpty } from '../../helpers/mixed';
+import type { CellProperties } from '../../settings';
 
 export const VALIDATOR_TYPE = 'intl-date';
 export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). ' +
@@ -7,12 +8,10 @@ export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). 
   '[affectedCells]\n\n' +
   'Expected a value compatible with the ISO 8601 date format ("YYYY-MM-DD").';
 
-type CellMeta = Record<string, unknown> & { allowEmpty?: boolean };
-
 /**
  *
  */
-export function sourceDataValidator(value: unknown, cellMeta: CellMeta): boolean {
+export function sourceDataValidator(value: unknown, cellMeta: CellProperties): boolean {
   if (cellMeta.allowEmpty && isEmpty(value)) {
     return true;
   }
@@ -23,7 +22,7 @@ export function sourceDataValidator(value: unknown, cellMeta: CellMeta): boolean
 /**
  *
  */
-export function intlDateValidator(this: CellMeta, value: unknown, callback: (valid: boolean) => void): void {
+export function intlDateValidator(this: CellProperties, value: unknown, callback: (valid: boolean) => void): void {
   if (this.allowEmpty && isEmpty(value)) {
     callback(true);
 

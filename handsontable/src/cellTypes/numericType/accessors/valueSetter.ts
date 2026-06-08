@@ -6,8 +6,7 @@ import {
   getParsedNumber,
 } from '../../../helpers/number';
 import { isNullish } from '../../../dataMap/metaManager/utils';
-
-type NumericCellMeta = { numericFormat?: { culture?: string; pattern?: string }; locale?: string };
+import type { CellProperties } from '../../../settings';
 
 /**
  * Gets the decimal separator preferred by the cell.
@@ -15,8 +14,9 @@ type NumericCellMeta = { numericFormat?: { culture?: string; pattern?: string };
  * @param {object} [cellMeta] The cell meta object.
  * @returns {'.'|','|undefined}
  */
-function getCellDecimalSeparator(cellMeta: NumericCellMeta) {
-  const locale = cellMeta?.numericFormat?.culture ?? cellMeta?.locale;
+function getCellDecimalSeparator(cellMeta: CellProperties) {
+  const numericFormat = cellMeta?.numericFormat as { culture?: string; pattern?: string } | undefined;
+  const locale = numericFormat?.culture ?? (cellMeta?.locale as string | undefined);
 
   if (typeof locale === 'string' && locale.length > 0) {
     try {
@@ -32,7 +32,7 @@ function getCellDecimalSeparator(cellMeta: NumericCellMeta) {
     }
   }
 
-  const pattern = cellMeta?.numericFormat?.pattern;
+  const pattern = numericFormat?.pattern;
 
   if (typeof pattern === 'string') {
     const dotIndex = pattern.lastIndexOf('.');
@@ -61,7 +61,7 @@ function getCellDecimalSeparator(cellMeta: NumericCellMeta) {
  * @param {object} cellMeta The cell meta object.
  * @returns {*} The new value to be set.
  */
-export function valueSetter(newValue: unknown, row: number, column: number, cellMeta: NumericCellMeta): unknown {
+export function valueSetter(newValue: unknown, row: number, column: number, cellMeta: CellProperties): unknown {
   void row;
   void column;
 

@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 /**
  * Adds appropriate CSS class to table cell, based on cellProperties.
  */
@@ -25,8 +26,8 @@ const TEXT_ELLIPSIS_CLASS_NAME = 'htTextEllipsis';
  */
 export function baseRenderer(
   hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
-  prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void {
-  const ariaEnabled = cellProperties.ariaTags;
+  prop: string | number, value: unknown, cellProperties: CellProperties): void {
+  const ariaEnabled = cellProperties.ariaTags as boolean | undefined;
   const classesToAdd: unknown[] = [];
   const classesToRemove: unknown[] = [];
   const attributesToRemove: unknown[] = [];
@@ -36,7 +37,7 @@ export function baseRenderer(
   cellProperties._isBaseRendererCalled = true;
 
   if (cellProperties.className) {
-    addClass(TD, cellProperties.className as string | string[]);
+    addClass(TD, cellProperties.className);
   }
 
   if (cellProperties.readOnly) {

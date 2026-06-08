@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import { TextEditor } from '../textEditor';
 import { setCaretPosition } from '../../helpers/dom/element';
 import {
@@ -136,7 +137,7 @@ export class HandsontableEditor extends TextEditor {
    */
   prepare(
     row: number, col: number, prop: string | number,
-    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+    td: HTMLTableCellElement, value: unknown, cellProperties: CellProperties): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
     const parent = this;

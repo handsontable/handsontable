@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import { textRenderer } from '../textRenderer';
 
 export const RENDERER_TYPE: 'time' = 'time';
@@ -18,7 +19,7 @@ export const RENDERER_TYPE: 'time' = 'time';
 export function timeRenderer(
   this: unknown,
   hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
-  prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void {
+  prop: string | number, value: unknown, cellProperties: CellProperties): void {
   textRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
 
   TD.dir = 'ltr';

@@ -216,7 +216,7 @@ const _umdTextRendererResult = UMDTextRenderer(
 );
 
 const UMDNumericValidator = Handsontable.validators.NumericValidator;
-const _umdValidatorResult = UMDNumericValidator.call(hot, 42, () => {});
+const _umdValidatorResult = UMDNumericValidator.call(hot as unknown as Handsontable.CellProperties, 42, () => {});
 
 // ---------------------------------------------------------------------------
 // dom namespace: Handsontable.dom.* must be properly typed (not unknown)

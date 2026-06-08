@@ -1,5 +1,6 @@
 import type { HotInstance } from './core/types';
 import type { GridSettings } from './core/settings';
+import type { CellProperties } from './settings';
 import type { default as SelectionManager } from './selection/selection';
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { isImmediatePropagationStopped } from './helpers/dom/event';
@@ -59,7 +60,7 @@ class EditorManager {
    *
    * @type {object}
    */
-  declare cellProperties: Record<string, unknown>;
+  declare cellProperties: CellProperties;
 
   /**
    * @param {Core} hotInstance The Handsontable instance.
