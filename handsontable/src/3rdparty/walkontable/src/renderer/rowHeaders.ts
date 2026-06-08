@@ -35,6 +35,9 @@ export class RowHeadersRenderer extends BaseRenderer {
    */
   sourceRowIndex = 0;
 
+  /**
+   * Creates a new RowHeadersRenderer instance.
+   */
   constructor() {
     super('TH');
   }

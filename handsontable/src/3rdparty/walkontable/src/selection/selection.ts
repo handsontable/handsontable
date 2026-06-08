@@ -12,14 +12,44 @@ import localHooks from '../../../../mixins/localHooks';
  * @class Selection
  */
 class Selection {
+  /**
+   * @type {Record<string, unknown>}
+   */
   declare settings: Record<string, unknown>;
+  /**
+   * @type {CellRange | null}
+   */
   declare cellRange: CellRange | null;
 
   // Properties/methods added dynamically by mixin(Selection, localHooks)
+  /**
+   * @type {Record<string, Function[]>}
+   */
   declare _localHooks: Record<string, Function[]>;
+  /**
+   * Adds a local hook callback to the hooks registry.
+   * @param {string} key - The hook key identifier.
+   * @param {(...args: unknown[]) => void} callback - The callback function to register.
+   * @returns {this}
+   */
   declare addLocalHook: (key: string, callback: (...args: unknown[]) => void) => this;
+  /**
+   * Removes a local hook callback from the hooks registry.
+   * @param {string} key - The hook key identifier.
+   * @param {Function} callback - The callback function to unregister.
+   * @returns {this}
+   */
   declare removeLocalHook: (key: string, callback: Function) => this;
+  /**
+   * Runs all local hook callbacks registered for the given key.
+   * @param {string} key - The hook key identifier.
+   * @param {...unknown[]} args - Arguments to pass to the hook callbacks.
+   */
   declare runLocalHooks: (key: string, ...args: unknown[]) => void;
+  /**
+   * Clears all local hooks from the registry.
+   * @returns {this}
+   */
   declare clearLocalHooks: () => this;
 
   /**

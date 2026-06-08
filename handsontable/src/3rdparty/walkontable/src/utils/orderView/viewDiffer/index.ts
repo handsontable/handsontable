@@ -17,8 +17,16 @@ import { ViewOrder } from './viewOrder';
  * @class {ViewDiffer}
  */
 export class ViewDiffer {
+  /**
+   * @type {ViewSizeSet}
+   */
   sizeSet;
 
+  /**
+   * Creates a new ViewDiffer instance.
+   *
+   * @param {ViewSizeSet} sizeSet - The view size configuration to use for generating commands.
+   */
   constructor(sizeSet: ViewSizeSet) {
     this.sizeSet = sizeSet;
   }

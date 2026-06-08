@@ -60,6 +60,11 @@ export class ViewportBaseCalculator {
    */
   calculationResults: Map<string, CalculationTypeLike> = new Map();
 
+  /**
+   * Creates a new ViewportBaseCalculator instance.
+   *
+   * @param {Array<[string, CalculationTypeLike]>} calculationTypes - The calculation types to be performed.
+   */
   constructor(calculationTypes: Array<[string, CalculationTypeLike]>) {
     this.calculationTypes = calculationTypes;
   }

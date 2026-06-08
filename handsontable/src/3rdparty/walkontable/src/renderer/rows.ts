@@ -40,6 +40,11 @@ export class RowsRenderer extends BaseRenderer {
    */
   declare orderView: OrderView;
 
+  /**
+   * Creates a new RowsRenderer instance.
+   *
+   * @param {HTMLElement} rootNode - The root node (TBODY element) for managing TR elements.
+   */
   constructor(rootNode: HTMLElement) {
     super('TR', rootNode);
 

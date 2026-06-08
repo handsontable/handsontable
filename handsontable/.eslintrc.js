@@ -117,7 +117,7 @@ module.exports = {
         'scripts/**/*.mjs',
       ],
       excludedFiles: [
-        'src/3rdparty/walkontable/**', // own build/test pipeline — out of scope for now
+        'src/3rdparty/walkontable/test/**', // walkontable test helpers — exempt
         'src/**/__tests__/**',
         'src/**/test/**',
         '*.unit.ts',

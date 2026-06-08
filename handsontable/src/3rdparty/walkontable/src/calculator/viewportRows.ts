@@ -30,17 +30,53 @@ export interface ViewportRowsCalculatorOptions {
  * @class ViewportRowsCalculator
  */
 export class ViewportRowsCalculator extends ViewportBaseCalculator {
+  /**
+   * @type {number}
+   */
   viewportHeight: number = 0;
+  /**
+   * @type {number}
+   */
   scrollOffset: number = 0;
+  /**
+   * @type {number}
+   */
   zeroBasedScrollOffset: number = 0;
+  /**
+   * @type {number}
+   */
   totalRows: number = 0;
+  /**
+   * @type {number}
+   */
   rowHeight: number = 0;
+  /**
+   * @type {((calc: unknown) => void) | null}
+   */
   overrideFn: ((calc: unknown) => void) | null = null;
+  /**
+   * @type {number}
+   */
   horizontalScrollbarHeight: number = 0;
+  /**
+   * @type {number}
+   */
   innerViewportHeight: number = 0;
+  /**
+   * @type {number}
+   */
   totalCalculatedHeight: number = 0;
+  /**
+   * @type {boolean}
+   */
   needReverse: boolean = true;
+  /**
+   * @type {PositionCache | null}
+   */
   positionCache: PositionCache | null = null;
+  /**
+   * @type {number}
+   */
   lastProcessedIndex: number = -1;
 
   /**

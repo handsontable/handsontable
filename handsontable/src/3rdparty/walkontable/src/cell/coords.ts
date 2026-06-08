@@ -35,6 +35,13 @@ class CellCoords {
    */
   #isRtl: boolean = false;
 
+  /**
+   * Creates a new CellCoords instance.
+   *
+   * @param {number} [row] A visual row index.
+   * @param {number} [column] A visual column index.
+   * @param {boolean} [isRtl=false] A flag which determines if the coordinates run in RTL mode.
+   */
   constructor(row?: number, column?: number, isRtl: boolean = false) {
     this.#isRtl = isRtl;
 
