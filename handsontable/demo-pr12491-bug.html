@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12491 — BEFORE (password cell type — no hashRevealDelay)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-before { background: #fdecea; color: #b71c1c; }
+    .badge-after  { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-before { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-before strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .bad { color: #f48771; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-primary { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
+    .btn-primary:hover { background: #c62828; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .status-box { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-family: monospace; min-height: 40px; white-space: pre-wrap; }
+    .label { font-size: 12px; font-weight: 600; color: #555; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.04em; }
+  </style>
+</head>
+<body>
+  <h1>PR #12491 - Password cell type — <code>hashRevealDelay</code> option</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-before">BEFORE</span></span>
+    <a class="nav-btn" href="demo-pr12491-fix.html">PR #12491 Fix <span class="badge badge-after">AFTER</span></a>
+  </nav>
+
+  <div class="info info-before">
+    <strong>BEFORE (v17.0.1).</strong>
+    The <code>type: 'password'</code> cell type uses a native <code>&lt;input type="password"&gt;</code>
+    which hides each character immediately as you type. There is no way to briefly show the typed
+    character before masking it — a UX pattern common in mobile keyboards and password fields.
+    The <code>hashRevealDelay</code> option does not exist yet.
+    <ul style="margin: 6px 0 0 20px; line-height: 1.8;">
+      <li>Every character is hidden the instant you press a key.</li>
+      <li>No feedback — you cannot tell if you mistyped.</li>
+      <li><code>hashRevealDelay</code> passed as a setting is silently ignored.</li>
+    </ul>
+  </div>
+
+  <pre><span class="comment">// BEFORE — password editor (v17.0.1):</span>
+<span class="comment">// PasswordEditor always uses &lt;input type="password"&gt; — instant masking:</span>
+createElements() {
+  super.createElements();
+  <span class="bad">this.TEXTAREA.type = 'password';</span>  <span class="comment">// set once, never switched to "text"</span>
+  this.TEXTAREA.className = 'handsontableInput';
+}
+<span class="comment">// No hashRevealDelay, no #realValue, no #revealTimer — option is ignored entirely.</span></pre>
+
+  <div class="hint">
+    <strong>How to observe the behavior:</strong>
+    <ol>
+      <li>Double-click any cell in the <strong>"Password"</strong> column to open the editor.</li>
+      <li>Start typing — every character is <strong>immediately hidden</strong> as a bullet (●).</li>
+      <li>Press Enter. The stored value is masked with <code>*</code> as expected.</li>
+      <li>Click <strong>"Read stored values"</strong> to see <code>getSourceDataAtCell()</code> returns the real string.</li>
+      <li>Compare with the <a href="demo-pr12491-fix.html">Fix page</a> where <code>hashRevealDelay: 1000</code> keeps each character visible for 1 second.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-primary" id="btn-read">Read stored values</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="label">Stored values (getSourceDataAtCell)</div>
+  <div class="status-box" id="status">Click "Read stored values" after editing cells.</div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const INITIAL_DATA = [
+      { user: 'alice@example.com',   password: 'secret123' },
+      { user: 'bob@example.com',     password: 'p@ssw0rd!' },
+      { user: 'charlie@example.com', password: 'hunter2'   },
+    ];
+
+    function cloneData() {
+      return INITIAL_DATA.map(r => ({ ...r }));
+    }
+
+    function initHot() {
+      if (window.hot) { window.hot.destroy(); window.hot = null; }
+      document.getElementById('status').textContent = 'Click "Read stored values" after editing cells.';
+
+      window.hot = new Handsontable(document.getElementById('hot-container'), {
+        data: cloneData(),
+        columns: [
+          { data: 'user',     type: 'text',     title: 'Email' },
+          {
+            data: 'password',
+            type: 'password',
+            hashSymbol: '*',
+            // hashRevealDelay is NOT a recognized option in v17.0.1 — ignored silently:
+            hashRevealDelay: 1000,
+          },
+        ],
+        colHeaders: ['Email', 'Password (type: password)'],
+        rowHeaders: true,
+        width: '100%',
+        height: 180,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    }
+
+    document.getElementById('btn-read').addEventListener('click', () => {
+      const lines = [];
+      for (let row = 0; row < window.hot.countRows(); row++) {
+        const email    = window.hot.getSourceDataAtCell(row, 0);
+        const password = window.hot.getSourceDataAtCell(row, 1);
+        lines.push('row ' + row + ':  email=' + email + '  password=' + JSON.stringify(password));
+      }
+      document.getElementById('status').textContent = lines.join('\n');
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', initHot);
+
+    initHot();
+  </script>
+</body>
+</html>
