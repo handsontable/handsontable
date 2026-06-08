@@ -1,16 +1,12 @@
 import { isObjectEqual, isKeyValueObject } from '../../helpers/object';
+import type { CellProperties } from '../../settings';
 
 export const VALIDATOR_TYPE = 'multiselect';
-
-type CellMeta = Record<string, unknown> & {
-  allowEmpty?: boolean;
-  source?: unknown[] | ((value: unknown[], fn: (source: unknown[]) => void) => void);
-};
 
 /**
  *
  */
-export function multiSelectValidator(this: CellMeta, value: unknown, callback: (valid: boolean) => void): void {
+export function multiSelectValidator(this: CellProperties, value: unknown, callback: (valid: boolean) => void): void {
   let valueToValidate = value;
 
   if (valueToValidate === null || valueToValidate === undefined) {

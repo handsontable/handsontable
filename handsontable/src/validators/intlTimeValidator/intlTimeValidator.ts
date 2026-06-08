@@ -1,3 +1,4 @@
+import type { CellProperties } from '../../settings';
 import { isValidTime } from '../../helpers/dateTime';
 import { isEmpty } from '../../helpers/mixed';
 
@@ -7,12 +8,10 @@ export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). 
   '[affectedCells]\n\n' +
   'Expected a value compatible with the 24-hour time format ("HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS").';
 
-type CellMeta = Record<string, unknown> & { allowEmpty?: boolean };
-
 /**
  *
  */
-export function sourceDataValidator(value: unknown, cellMeta: CellMeta): boolean {
+export function sourceDataValidator(value: unknown, cellMeta: CellProperties): boolean {
   if (cellMeta.allowEmpty && isEmpty(value)) {
     return true;
   }
@@ -23,7 +22,7 @@ export function sourceDataValidator(value: unknown, cellMeta: CellMeta): boolean
 /**
  *
  */
-export function intlTimeValidator(this: CellMeta, value: unknown, callback: (valid: boolean) => void): void {
+export function intlTimeValidator(this: CellProperties, value: unknown, callback: (valid: boolean) => void): void {
   if (this.allowEmpty && isEmpty(value)) {
     callback(true);
 

@@ -817,3 +817,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const colDelta: number | null = delta.row;
   },
 };
+
+// === cell-meta typing regression ===
+// Assert that CellProperties has well-known members typed precisely (not widened to `any` via the index signature)
+declare const cellProperties: CellProperties;
+const _readOnly: boolean | undefined = cellProperties.readOnly;
+
+// Assert that a CellProperties value is assignable as the last argument of a renderer function
+const _rendererCellProps: Handsontable.CellProperties = cellProperties;
+
+// Assert that a CellProperties value is assignable as the validator `this` context type
+const _validatorCellProps: CellProperties = cellProperties;

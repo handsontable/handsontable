@@ -3,6 +3,7 @@ import { parseToLocalDate } from '../../helpers/dateTime';
 import { isEmpty } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
+import type { CellProperties } from '../../settings';
 
 export const RENDERER_TYPE = 'intl-date';
 
@@ -10,10 +11,6 @@ const DEFAULT_INTL_FORMAT: Intl.DateTimeFormatOptions = {
   year: 'numeric',
   month: '2-digit',
   day: '2-digit',
-};
-
-type CellProperties = Record<string, unknown> & {
-  dateFormat?: Intl.DateTimeFormatOptions; locale?: string; allowEmpty?: boolean;
 };
 
 /**

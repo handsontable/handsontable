@@ -3,16 +3,13 @@ import { isEmpty } from '../../helpers/mixed';
 import { isObject } from '../../helpers/object';
 import { BAD_VALUE_TEXT } from '../../helpers/constants';
 import { parseToLocalTime } from '../../helpers/dateTime';
+import type { CellProperties } from '../../settings';
 
 export const RENDERER_TYPE = 'intl-time';
 
 const DEFAULT_INTL_FORMAT: Intl.DateTimeFormatOptions = {
   hour: 'numeric',
   minute: '2-digit',
-};
-
-type CellProperties = Record<string, unknown> & {
-  timeFormat?: Intl.DateTimeFormatOptions; locale?: string; allowEmpty?: boolean;
 };
 
 /**

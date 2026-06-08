@@ -1,5 +1,6 @@
 import { staticRegister } from '../utils/staticRegister';
 import { throwWithCause } from '../helpers/errors';
+import type { CellProperties } from '../settings';
 import type { BaseRenderer } from './baseRenderer';
 import type { RENDERER_TYPE as AUTOCOMPLETE_RENDERER } from './autocompleteRenderer';
 import type { RENDERER_TYPE as BASE_RENDERER } from './baseRenderer';
@@ -109,13 +110,13 @@ export type RendererType = typeof AUTOCOMPLETE_RENDERER | typeof BASE_RENDERER |
  */
 type RegistryRendererParams = {
   instance: object; td: HTMLTableCellElement; row: number; column: number;
-  prop: string | number; value: unknown; cellProperties: Record<string, unknown>;
+  prop: string | number; value: unknown; cellProperties: CellProperties;
 };
 
 export const rendererFactory = (callback: (params: RegistryRendererParams) => void) => {
   return (
     instance: object, td: HTMLTableCellElement, row: number, column: number,
-    prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void => {
+    prop: string | number, value: unknown, cellProperties: CellProperties): void => {
     return callback({ instance, td, row, column, prop, value, cellProperties });
   };
 };

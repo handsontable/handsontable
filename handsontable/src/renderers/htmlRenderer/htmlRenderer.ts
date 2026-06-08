@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import { fastInnerHTML } from '../../helpers/dom/element';
 
 export const RENDERER_TYPE: 'html' = 'html';
@@ -14,7 +15,7 @@ export const RENDERER_TYPE: 'html' = 'html';
  */
 export function htmlRenderer(
   hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
-  prop: string | number, value: unknown): void {
+  prop: string | number, value: unknown, _cellProperties?: CellProperties): void {
   fastInnerHTML(TD, value === null || value === undefined ? '' : value as string, false);
 }
 
