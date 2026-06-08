@@ -203,6 +203,15 @@ describe('BaseEditorAdapter', () => {
 
       expect(getValueSpy).toHaveBeenCalled();
     });
+
+    it('should not throw and return undefined when called before prepare() sets the component ref', () => {
+      let value: any;
+
+      expect(() => {
+        value = adapter.getValue();
+      }).not.toThrow();
+      expect(value).toBeUndefined();
+    });
   });
 
   describe('open', () => {

@@ -14,8 +14,6 @@ import { HotCellRendererBase } from './hot-cell-renderer-base.directive';
 import { HotCellRendererComponent } from './hot-cell-renderer.component';
 import { HotCellRendererAdvancedComponent } from './hot-cell-renderer-advanced.component';
 
-type BaseRendererParameters = Parameters<BaseRenderer>;
-
 export const INVALID_RENDERER_WARNING =
   'The provided renderer component was not recognized as a valid custom renderer. ' +
   'It must either extend HotCellRendererComponent or be a valid TemplateRef. ' +
@@ -38,6 +36,12 @@ interface BaseRendererParametersObject {
   value: any;
   cellProperties: Handsontable.CellProperties;
 }
+
+// Renderer component inputs, listed once at module scope so the per-cell render path can set them
+// without allocating a fresh key array (via Object.keys) on every cell of every render frame.
+const RENDERER_INPUT_KEYS: (keyof BaseRendererParametersObject)[] = [
+  'instance', 'td', 'row', 'col', 'prop', 'value', 'cellProperties',
+];
 
 /**
  * Type guard that checks if the given object is a TemplateRef.
@@ -140,11 +144,9 @@ export class DynamicComponentService {
         cellProperties,
       };
 
-      Object.assign(cellProperties, { rendererProps: componentProps });
+      (cellProperties as any).rendererProps = componentProps;
 
-      const rendererParameters: BaseRendererParameters = [instance, td, row, col, prop, value, cellProperties];
-
-      baseRenderer.apply(this, rendererParameters);
+      baseRenderer.call(this, instance, td, row, col, prop, value, cellProperties);
 
       this.registerSweepHook(instance);
 
@@ -203,12 +205,11 @@ export class DynamicComponentService {
         cellProperties,
       };
 
-      Object.assign(cellProperties, { rendererProps: componentProps });
+      (cellProperties as any).rendererProps = componentProps;
 
       // Apply the base renderer so the TD gets the same base classes/attributes as the
       // createRendererFromComponent path (rendererFactory itself does not call it).
-      const rendererParameters: BaseRendererParameters = [instance, td, row, column, prop, value, cellProperties];
-      baseRenderer.apply(this, rendererParameters);
+      baseRenderer.call(this, instance, td, row, column, prop, value, cellProperties);
 
       this.registerSweepHook(instance);
 
@@ -462,7 +463,7 @@ export class DynamicComponentService {
    * @param rendererParameters - The renderer parameters to assign.
    */
   private applyInputs<T>(componentRef: ComponentRef<T>, rendererParameters: BaseRendererParametersObject): void {
-    (Object.keys(rendererParameters) as (keyof BaseRendererParametersObject)[]).forEach((key) => {
+    RENDERER_INPUT_KEYS.forEach((key) => {
       componentRef.setInput(key, rendererParameters[key]);
     });
   }

@@ -19,6 +19,7 @@ import { HotSettingsResolver } from './services/hot-settings-resolver.service';
 import { HotGlobalConfigService } from './services/hot-global-config.service';
 import { GridSettings } from './models/grid-settings';
 import { DynamicComponentService } from './renderer/hot-dynamic-renderer-component.service';
+import { HotInstanceWithAngularInjector } from './editor/models/factory-editor-properties';
 import { skip } from 'rxjs/operators';
 
 export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' + ' used properly.';
@@ -94,7 +95,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.ngZone.runOutsideAngular(() => {
       this.hotInstance = new Handsontable.Core(this.container.nativeElement, options);
 
-      (this.hotInstance as any)._angularEnvironmentInjector = this.environmentInjector;
+      (this.hotInstance as HotInstanceWithAngularInjector)._angularEnvironmentInjector = this.environmentInjector;
 
       this.hotInstance.init();
     });

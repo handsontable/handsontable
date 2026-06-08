@@ -111,7 +111,7 @@ export class BaseEditorAdapter extends Handsontable.editors.BaseEditor {
    * @returns The value from the editor.
    */
   getValue(): any {
-    return this._componentRef.instance?.getValue();
+    return this._componentRef?.instance?.getValue();
   }
 
   /**

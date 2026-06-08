@@ -1,6 +1,6 @@
 import { ComponentRef, createComponent, EnvironmentInjector } from '@angular/core';
 import { CustomEditorPlaceholderComponent } from './custom-editor-placeholder.component';
-import { AngularEditorProperties } from './models/factory-editor-properties';
+import { AngularEditorProperties, HotInstanceWithAngularInjector } from './models/factory-editor-properties';
 import { editorFactory, ExtendedEditor } from 'handsontable/editors/factory';
 import { take } from 'rxjs/operators';
 import { HotCellEditorAdvancedComponent } from './hot-cell-editor-advanced.component';
@@ -32,7 +32,7 @@ export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorAdv
       editor._finishEditSubscription = undefined;
       editor._cancelEditSubscription = undefined;
 
-      createEditorPlaceholder(editor, (editor.hot as any)._angularEnvironmentInjector);
+      createEditorPlaceholder(editor, (editor.hot as HotInstanceWithAngularInjector)._angularEnvironmentInjector);
       editor.input = editor._editorPlaceHolderRef?.location.nativeElement ?? document.createElement('div');
 
       editor._afterRowResizeCallback = (): void => {
