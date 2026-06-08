@@ -2,6 +2,7 @@ import { TextEditor } from '../textEditor';
 import { isValidTime } from '../../helpers/dateTime';
 import { warn } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
+import type { CellProperties } from '../../settings';
 
 export const EDITOR_TYPE = 'time';
 

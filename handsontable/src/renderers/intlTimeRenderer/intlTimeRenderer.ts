@@ -1,14 +1,10 @@
 import { timeRenderer } from '../timeRenderer/timeRenderer';
+import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 
 export const RENDERER_TYPE = 'intl-time';
 
 export { valueFormatter } from '../timeRenderer/timeRenderer';
-
-type HotInstance = Record<string, unknown>;
-
-type CellProperties = Record<string, unknown> & {
-  timeFormat?: Intl.DateTimeFormatOptions; locale?: string; allowEmpty?: boolean;
-};
 
 export interface IntlTimeRendererFn {
   (this: unknown, hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,

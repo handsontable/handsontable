@@ -1,3 +1,5 @@
+import type { CellProperties } from '../../settings';
+
 const DEFAULT_INTL_FORMAT = {
   useGrouping: false,
   maximumFractionDigits: 20,
@@ -12,7 +14,7 @@ const formatterCache = new Map<string, Intl.NumberFormat>();
  * @param {CellMeta} cellProperties Cell meta object.
  * @returns {*} Returns the formatted value.
  */
-export function intlFormatter(value: unknown, cellProperties: Record<string, unknown>) {
+export function intlFormatter(value: unknown, cellProperties: CellProperties) {
   const { numericFormat, locale } = cellProperties;
   const options = (numericFormat ?? DEFAULT_INTL_FORMAT) as Intl.NumberFormatOptions;
   const cacheKey = `${(locale as string) ?? ''}:${JSON.stringify(options)}`;

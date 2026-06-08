@@ -1,4 +1,5 @@
 import { timeValidator } from '../timeValidator/timeValidator';
+import type { CellProperties } from '../../settings';
 
 export const VALIDATOR_TYPE = 'intl-time';
 export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). ' +
@@ -8,8 +9,6 @@ export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). 
 
 export { sourceDataValidator } from '../timeValidator/timeValidator';
 
-type CellMeta = Record<string, unknown> & { allowEmpty?: boolean };
-
 /**
  * The IntlTime cell validator.
  *
@@ -17,7 +16,7 @@ type CellMeta = Record<string, unknown> & { allowEmpty?: boolean };
  * @param {*} value Value of edited cell.
  * @param {Function} callback Callback called with validation result.
  */
-export function intlTimeValidator(this: CellMeta, value: unknown, callback: (valid: boolean) => void): void {
+export function intlTimeValidator(this: CellProperties, value: unknown, callback: (valid: boolean) => void): void {
   timeValidator.call(this, value, callback);
 }
 

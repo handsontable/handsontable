@@ -1,4 +1,5 @@
 import { dateValidator } from '../dateValidator/dateValidator';
+import type { CellProperties } from '../../settings';
 
 export const VALIDATOR_TYPE = 'intl-date';
 export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). ' +
@@ -8,8 +9,6 @@ export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). 
 
 export { sourceDataValidator } from '../dateValidator/dateValidator';
 
-type CellMeta = Record<string, unknown> & { allowEmpty?: boolean };
-
 /**
  * The IntlDate cell validator.
  *
@@ -17,7 +16,7 @@ type CellMeta = Record<string, unknown> & { allowEmpty?: boolean };
  * @param {*} value Value of edited cell.
  * @param {Function} callback Callback called with validation result.
  */
-export function intlDateValidator(this: CellMeta, value: unknown, callback: (valid: boolean) => void): void {
+export function intlDateValidator(this: CellProperties, value: unknown, callback: (valid: boolean) => void): void {
   dateValidator.call(this, value, callback);
 }
 

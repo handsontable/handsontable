@@ -1,5 +1,6 @@
 import { isValidTime } from '../../helpers/dateTime';
 import { isEmpty } from '../../helpers/mixed';
+import type { CellProperties } from '../../settings';
 
 export const VALIDATOR_TYPE: 'time' = 'time';
 export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). ' +
@@ -7,16 +8,14 @@ export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). 
   '[affectedCells]\n\n' +
   'Expected a value compatible with the 24-hour time format ("HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS").';
 
-type CellMeta = Record<string, unknown> & { allowEmpty?: boolean };
-
 /**
  * Validates a time value against the source data format.
  *
  * @param {unknown} value The value to validate.
- * @param {CellMeta} cellMeta The cell meta object.
+ * @param {CellProperties} cellMeta The cell meta object.
  * @returns {boolean} True if valid.
  */
-export function sourceDataValidator(value: unknown, cellMeta: CellMeta): boolean {
+export function sourceDataValidator(value: unknown, cellMeta: CellProperties): boolean {
   if (cellMeta.allowEmpty && isEmpty(value)) {
     return true;
   }
@@ -41,7 +40,7 @@ sourceDataValidator.rowIndependent = true;
  * @param {*} value Value of edited cell.
  * @param {Function} callback Callback called with validation result.
  */
-export function timeValidator(this: CellMeta, value: unknown, callback: (valid: boolean) => void): void {
+export function timeValidator(this: CellProperties, value: unknown, callback: (valid: boolean) => void): void {
   if (this.allowEmpty && isEmpty(value)) {
     callback(true);
 
