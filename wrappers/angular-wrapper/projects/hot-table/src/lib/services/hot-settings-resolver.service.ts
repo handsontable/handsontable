@@ -152,6 +152,15 @@ export class HotSettingsResolver {
    * type (same component type at the same index), or `undefined` to signal a fresh component is
    * needed.
    *
+   * Matching by index + component type (rather than by logical column identity) is intentional and
+   * safe even when columns are reordered, shortened, or otherwise reshuffled so a different logical
+   * column lands on an index. A Handsontable editor is not per-cell rendered state: it is a single
+   * on-demand component that `BaseEditorAdapter`/`FactoryEditorAdapter` re-prepare on every edit —
+   * `prepare()` re-reads the ref from the *current* column meta and `applyPropsToEditor()` re-applies
+   * the full cell context (value, row, column, prop, cellProperties) on each `open()`. Reusing a
+   * same-type ref for a different logical column is therefore observationally identical to creating a
+   * fresh one, minus the Angular teardown/rebuild — no stale editor state leaks to the cell.
+   *
    * @param previousColumn The column at the same index in the previous settings cycle.
    * @param editorType The editor component type requested for the new column.
    */

@@ -378,6 +378,28 @@ describe('HotSettingsResolver', () => {
       expect((second.columns[0] as ColumnSettingsInternal)._editorComponentReference).not.toBe(firstRef);
     });
 
+    it('should recycle by index + editor type even when a different logical column occupies the index', () => {
+      // Regression guard: reordering/reshuffling columns so a *different* logical column (different
+      // `data`/`title`) lands on an index with the same editor type must still recycle the ref. This
+      // is safe because the editor is re-prepared per edit (BaseEditorAdapter.prepare re-reads the ref
+      // from the current column meta and re-applies the full cell context on open) — no stale editor
+      // state leaks to the cell. See HotSettingsResolver.reusableEditorRef.
+      const first = service.applyCustomSettings({
+        columns: [{ data: 'firstName', editor: TestEditorComponent } as ColumnSettings],
+      });
+      const firstRef = (first.columns[0] as ColumnSettingsInternal)._editorComponentReference;
+      const destroySpy = jest.spyOn(firstRef, 'destroy');
+
+      // Same index, same editor type, but a different logical column (different `data`).
+      const second = service.applyCustomSettings(
+        { columns: [{ data: 'lastName', editor: TestEditorComponent } as ColumnSettings] },
+        first.columns as ColumnSettings[]
+      );
+
+      expect((second.columns[0] as ColumnSettingsInternal)._editorComponentReference).toBe(firstRef);
+      expect(destroySpy).not.toHaveBeenCalled();
+    });
+
     it('should not recycle when no previous columns are provided', () => {
       const first = service.applyCustomSettings({ columns: [{ editor: TestEditorComponent } as ColumnSettings] });
       const firstRef = (first.columns[0] as ColumnSettingsInternal)._editorComponentReference;
