@@ -199,7 +199,7 @@ export default (): Record<string, unknown> => {
      * columns: [
      *   {
      *     type: 'date',
-     *     dateFormat: 'DD/MM/YYYY',
+     *     dateFormat: { day: '2-digit', month: '2-digit', year: 'numeric' },
      *     // allow empty values in each cell of the 'date' column
      *     allowEmpty: true
      *   }
@@ -872,7 +872,10 @@ export default (): Record<string, unknown> => {
      *     // column options for the first (by physical index) column
      *     type: 'numeric',
      *     numericFormat: {
-     *       pattern: '0,0.00 $'
+     *       style: 'currency',
+     *       currency: 'USD',
+     *       minimumFractionDigits: 2,
+     *       maximumFractionDigits: 2
      *     }
      *   },
      *   {
@@ -4505,7 +4508,7 @@ export default (): Record<string, unknown> => {
      * columns: [
      *   {
      *     data: 'date',
-     *     dateFormat: 'DD/MM/YYYY',
+     *     dateFormat: { day: '2-digit', month: '2-digit', year: 'numeric' },
      *     // display 'Empty date cell' text
      *     // in every empty cell of the `date` column
      *     placeholder: 'Empty date cell'

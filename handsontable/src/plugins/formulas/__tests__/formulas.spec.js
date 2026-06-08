@@ -535,10 +535,10 @@ describe('Formulas general', () => {
       },
       columns: [{
         type: 'date',
-        dateFormat: 'DD/MM/YYYY'
+        dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
       }, {
         type: 'date',
-        dateFormat: 'DD/MM/YYYY'
+        dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
       }],
       width: 500,
       height: 300
@@ -1849,7 +1849,7 @@ describe('Formulas general', () => {
           { type: 'text' },
           { type: 'text' },
           { type: 'text' },
-          { type: 'date', dateFormat: 'M/D/YYYY' },
+          { type: 'date', dateFormat: { year: 'numeric', month: 'numeric', day: 'numeric' } },
           { type: 'numeric' }
         ],
         colHeaders: true,
@@ -1881,7 +1881,7 @@ describe('Formulas general', () => {
           { type: 'text' },
           { type: 'text' },
           { type: 'text' },
-          { type: 'date', dateFormat: 'M/D/YYYY' },
+          { type: 'date', dateFormat: { year: 'numeric', month: 'numeric', day: 'numeric' } },
           { type: 'numeric' }
         ],
         colHeaders: true,
@@ -2349,7 +2349,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD/MM/YYYY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         }],
       });
 
@@ -2377,7 +2377,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD/MM/YYYY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         }],
       });
 
@@ -2434,7 +2434,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'MM/DD/YYYY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         }],
       });
 
@@ -2479,7 +2479,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD-MM-YYYY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         }],
       });
 
@@ -2785,19 +2785,24 @@ describe('Formulas general', () => {
         columns: [{
           type: 'numeric',
           numericFormat: {
-            pattern: '0,0.00000'
+            minimumFractionDigits: 5,
+            maximumFractionDigits: 5,
           }
         },
         {
           type: 'numeric',
           numericFormat: {
-            pattern: '0,0.00000'
+            minimumFractionDigits: 5,
+            maximumFractionDigits: 5,
           }
         },
         {
           type: 'numeric',
           numericFormat: {
-            pattern: '0,0.00 $',
+            style: 'currency',
+            currency: 'USD',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
           }
         }],
       });
@@ -2826,7 +2831,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'MM/DD/YYYY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         }],
       });
 
@@ -2871,7 +2876,7 @@ describe('Formulas general', () => {
         },
         columns: [{
           type: 'date',
-          dateFormat: 'DD-MM-YYYY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         }],
       });
 

@@ -60,7 +60,6 @@ The table below lists the complete set of types that were available from `handso
 | `ChangeSource` | `handsontable` |
 | `RowObject` | `handsontable` |
 | `SourceRowData` | `handsontable` |
-| `NumericFormatOptions` | `handsontable` |
 | `SelectOptionsObject` | `handsontable` |
 | `RangeType` | `handsontable` |
 | `CellCoords` | `handsontable` |

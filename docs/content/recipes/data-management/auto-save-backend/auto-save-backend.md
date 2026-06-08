@@ -266,7 +266,7 @@ if (container instanceof HTMLElement) {
       { data: 'id', type: 'numeric', readOnly: true, width: 70 },
       { data: 'product', type: 'text', width: 180 },
       { data: 'stock', type: 'numeric', width: 90 },
-      { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00' }, width: 110 },
+      { data: 'price', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }, width: 110 },
       { data: 'status', type: 'text', width: 120 },
     ],
     stretchH: 'all',

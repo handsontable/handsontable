@@ -380,8 +380,18 @@ describe('NumericEditor', () => {
       columns: [
         { data: 'id' },
         { data: 'price_eur', type: 'numeric' },
-        { data: 'price_pln', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
-        { data: 'price_aud', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } }
+        {
+          data: 'price_pln',
+          type: 'numeric',
+          locale: 'en-US',
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        },
+        {
+          data: 'price_aud',
+          type: 'numeric',
+          locale: 'de-DE',
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        }
       ]
     });
 
@@ -537,7 +547,12 @@ describe('NumericEditor', () => {
       data: arrayOfObjects(),
       columns: [
         { data: 'id', type: 'numeric' },
-        { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } },
+        {
+          data: 'price',
+          type: 'numeric',
+          locale: 'de-DE',
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        },
         { data: 'lastName' }
       ]
     });
@@ -746,8 +761,18 @@ describe('NumericEditor', () => {
       columns: [
         { data: 'id', type: 'numeric' },
         { data: 'price_eur', type: 'numeric' },
-        { data: 'price_pln', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
-        { data: 'price_aud', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } }
+        {
+          data: 'price_pln',
+          type: 'numeric',
+          locale: 'en-US',
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        },
+        {
+          data: 'price_aud',
+          type: 'numeric',
+          locale: 'de-DE',
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        }
       ]
     });
 
@@ -798,8 +823,18 @@ describe('NumericEditor', () => {
       columns: [
         { data: 'id', type: 'numeric' },
         { data: 'price_eur', type: 'numeric' },
-        { data: 'price_pln', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
-        { data: 'price_aud', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } }
+        {
+          data: 'price_pln',
+          type: 'numeric',
+          locale: 'en-US',
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        },
+        {
+          data: 'price_aud',
+          type: 'numeric',
+          locale: 'de-DE',
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        }
       ]
     });
 
@@ -897,7 +932,12 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00', culture: 'en-US' } },
+        {
+          data: 'id',
+          type: 'numeric',
+          locale: 'en-US',
+          numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        },
         { data: 'name' },
         { data: 'lastName' }
       ],
@@ -992,7 +1032,12 @@ describe('NumericEditor', () => {
           { data: 'id' },
           { data: 'name' },
           { data: 'lastName' },
-          { data: 'money', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } }
+          {
+            data: 'money',
+            type: 'numeric',
+            locale: 'en-US',
+            numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+          }
         ]
       });
 
@@ -1014,7 +1059,12 @@ describe('NumericEditor', () => {
           { data: 'id' },
           { data: 'name' },
           { data: 'lastName' },
-          { data: 'money', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } }
+          {
+            data: 'money',
+            type: 'numeric',
+            locale: 'en-US',
+            numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+          }
         ]
       });
 
@@ -1115,9 +1165,12 @@ describe('NumericEditor', () => {
     it('should focus editable element after a timeout when selecting the cell if `imeFastEdit` is enabled', async() => {
       handsontable({
         type: 'numeric',
+        locale: 'en-US',
         numericFormat: {
-          pattern: '$0,0.00',
-          culture: 'en-US'
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
         },
         imeFastEdit: true,
       });

@@ -129,7 +129,7 @@ describe('ColumnSorting', () => {
       columns: [
         {},
         {},
-        { type: 'date', dateFormat: 'MM/DD/YYYY' },
+        { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
         { type: 'numeric' },
         {}
       ],
@@ -164,7 +164,7 @@ describe('ColumnSorting', () => {
       columns: [
         {},
         {},
-        { type: 'date', dateFormat: 'MM/DD/YYYY' },
+        { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
         { type: 'numeric' },
         {}
       ],
@@ -319,7 +319,7 @@ describe('ColumnSorting', () => {
         {},
         {
           type: 'date',
-          dateFormat: 'mm/dd/yy'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         },
         {
           type: 'numeric'
@@ -815,7 +815,7 @@ describe('ColumnSorting', () => {
           {},
           {
             type: 'date',
-            dateFormat: 'YYYY-MM-DD'
+            dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
           }
         ],
         columnSorting: {
@@ -866,7 +866,7 @@ describe('ColumnSorting', () => {
           {},
           {
             type: 'date',
-            dateFormat: 'YYYY-MM-DD'
+            dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
           }
         ],
         columnSorting: {
@@ -899,7 +899,7 @@ describe('ColumnSorting', () => {
       using('data set', [
         {
           values: ['2032-02-01', '2023-02-11', '2023-05-01', '1975-02-01'],
-          dateFormat: 'YYYY-MM-DD'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         },
       ], ({ values, dateFormat }) => {
         it('it should be sorted properly', async() => {
@@ -927,11 +927,11 @@ describe('ColumnSorting', () => {
       using('data set', [
         {
           values: ['1.2.2032', '11.2.2023', '1.5.2023', '1.2.1975'],
-          dateFormat: 'D.M.YY'
+          dateFormat: { year: 'numeric', month: 'numeric', day: 'numeric' }
         },
         {
           values: ['1-2-2032', '11-2-2023', '1-5-2023', '1-2-1975'],
-          dateFormat: 'DD/MM/YY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         },
 
       ], ({ values, dateFormat }) => {
@@ -1003,9 +1003,24 @@ describe('ColumnSorting', () => {
 
     describe('sorting time-typed files', () => {
       using('data set', [
-        { values: ['23:15', '20:44', '21:00', '14:12'], timeFormat: 'HH:mm' },
-        { values: ['23:15:22', '20:44:11', '21:00:11', '14:12:11'], timeFormat: 'HH:mm:ss' },
-        { values: ['23:15:22.100', '20:44:11.200', '21:00:11.300', '14:12:11.400'], timeFormat: 'HH:mm:ss.SSS' },
+        {
+          values: ['23:15', '20:44', '21:00', '14:12'],
+          timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false }
+        },
+        {
+          values: ['23:15:22', '20:44:11', '21:00:11', '14:12:11'],
+          timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
+        },
+        {
+          values: ['23:15:22.100', '20:44:11.200', '21:00:11.300', '14:12:11.400'],
+          timeFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            fractionalSecondDigits: 3,
+            hour12: false
+          }
+        },
       ], ({ values, timeFormat }) => {
         it('it should be sorted properly', async() => {
           const data = values.map((value, ind) => [value, ind]);
@@ -1063,7 +1078,7 @@ describe('ColumnSorting', () => {
           handsontable({
             data,
             columns: [
-              { type: 'intl-time', timeFormat },
+              { type: 'time', timeFormat },
               { type: 'numeric' },
             ],
             columnSorting: true
@@ -1096,7 +1111,7 @@ describe('ColumnSorting', () => {
           {},
           {
             type: 'date',
-            dateFormat: 'YYYY-MM-DD'
+            dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
           },
           {
             type: 'numeric'
@@ -1622,7 +1637,7 @@ describe('ColumnSorting', () => {
         {},
         {
           type: 'date',
-          dateFormat: 'mm/dd/yy'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         },
         {
           type: 'numeric'
@@ -2856,7 +2871,7 @@ describe('ColumnSorting', () => {
         columns: [
           { columnSorting: { headerAction: false } },
           {},
-          { type: 'date', dateFormat: 'MM/DD/YYYY' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
           { type: 'numeric' },
           {}
         ],
@@ -2898,7 +2913,7 @@ describe('ColumnSorting', () => {
         columns: [
           { columnSorting: { headerAction: false } },
           {},
-          { type: 'date', dateFormat: 'MM/DD/YYYY' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
           { type: 'numeric' },
           {}
         ],
@@ -2929,7 +2944,7 @@ describe('ColumnSorting', () => {
         columns: [
           {},
           {},
-          { type: 'date', dateFormat: 'MM/DD/YYYY' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
           { type: 'numeric' },
           {}
         ],

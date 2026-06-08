@@ -41,7 +41,8 @@ describe('Hook', () => {
         data: [[1, 2]],
         type: 'numeric',
         numericFormat: {
-          pattern: '0,0.00000'
+          minimumFractionDigits: 5,
+          maximumFractionDigits: 5,
         },
         beforeChange(changes) {
           dataChanges = structuredClone(changes);

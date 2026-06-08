@@ -2121,7 +2121,7 @@ describe('Filters UI', () => {
           ['2022-03-01'],
           ['2021-06-20'],
         ],
-        columns: [{ type: 'date', dateFormat: 'YYYY-MM-DD' }],
+        columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
         colHeaders: true,
         dropdownMenu: true,
         filters: true,
@@ -2175,7 +2175,9 @@ describe('Filters UI', () => {
           [null],
           ['2021-06-20'],
         ],
-        columns: [{ type: 'date', dateFormat: 'YYYY-MM-DD', allowEmpty: true }],
+        columns: [{
+          type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }, allowEmpty: true
+        }],
         colHeaders: true,
         dropdownMenu: true,
         filters: true,

@@ -1,4 +1,4 @@
-export const FILTERS_DATE_FORMAT = 'YYYY-MM-DD';
+export const FILTERS_DATE_FORMAT = { year: 'numeric', month: '2-digit', day: '2-digit' };
 
 /**
  * @param {number} days Number of days to add (negative to subtract).
@@ -380,9 +380,14 @@ export function getColumnsForFilters() {
     { data: 'id', type: 'numeric', title: 'ID' },
     { data: 'name', type: 'text', title: 'Full name' },
     { data: 'address', type: 'text', title: 'Address' },
-    { data: 'registered', type: 'date', title: 'Registered', dateFormat: FILTERS_DATE_FORMAT },
+    { data: 'registered', type: 'date', title: 'Registered', dateFormat: FILTERS_DATE_FORMAT, locale: 'en-CA' },
     { data: 'eyeColor.color', type: 'dropdown', title: 'Eye color', source: ['blue', 'brown', 'green'] },
-    { data: 'balance', type: 'numeric', title: 'Balance', numericFormat: { pattern: '0,00.00 $' } },
+    {
+      data: 'balance',
+      type: 'numeric',
+      title: 'Balance',
+      numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+    },
     { data: 'active', type: 'checkbox', title: 'Active' },
   ];
 }

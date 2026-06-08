@@ -129,7 +129,7 @@ describe('MultiColumnSorting', () => {
       columns: [
         {},
         {},
-        { type: 'date', dateFormat: 'YYYY-MM-DD' },
+        { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
         { type: 'numeric' },
         {}
       ],
@@ -164,7 +164,7 @@ describe('MultiColumnSorting', () => {
       columns: [
         {},
         {},
-        { type: 'date', dateFormat: 'YYYY-MM-DD' },
+        { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
         { type: 'numeric' },
         {}
       ],
@@ -277,7 +277,7 @@ describe('MultiColumnSorting', () => {
         {},
         {
           type: 'date',
-          dateFormat: 'MM/DD/YY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         },
         {
           type: 'numeric'
@@ -755,7 +755,7 @@ describe('MultiColumnSorting', () => {
           {},
           {
             type: 'date',
-            dateFormat: 'YYYY-MM-DD'
+            dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
           }
         ],
         multiColumnSorting: {
@@ -806,7 +806,7 @@ describe('MultiColumnSorting', () => {
           {},
           {
             type: 'date',
-            dateFormat: 'YYYY-MM-DD'
+            dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
           }
         ],
         multiColumnSorting: {
@@ -849,7 +849,7 @@ describe('MultiColumnSorting', () => {
           {},
           {
             type: 'date',
-            dateFormat: 'YYYY-MM-DD'
+            dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
           },
           {
             type: 'numeric'
@@ -892,7 +892,7 @@ describe('MultiColumnSorting', () => {
           {},
           {
             type: 'date',
-            dateFormat: 'YYYY-MM-DD'
+            dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
           },
           {
             type: 'numeric'
@@ -1334,7 +1334,7 @@ describe('MultiColumnSorting', () => {
         {},
         {
           type: 'date',
-          dateFormat: 'MM/DD/YY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         },
         {
           type: 'numeric'
@@ -2481,7 +2481,7 @@ describe('MultiColumnSorting', () => {
           columns: [
             {},
             {},
-            { type: 'date', dateFormat: 'YYYY-MM-DD' },
+            { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
             { type: 'numeric' },
             { multiColumnSorting: { sortEmptyCells: true } }
           ],
@@ -2505,7 +2505,7 @@ describe('MultiColumnSorting', () => {
           columns: [
             {},
             {},
-            { type: 'date', dateFormat: 'YYYY-MM-DD' },
+            { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
             { type: 'numeric' },
             { multiColumnSorting: { sortEmptyCells: true } }
           ],
@@ -2529,7 +2529,7 @@ describe('MultiColumnSorting', () => {
           columns: [
             {},
             {},
-            { type: 'date', dateFormat: 'YYYY-MM-DD' },
+            { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
             { type: 'numeric' },
             { multiColumnSorting: { sortEmptyCells: true } }
           ],
@@ -2553,7 +2553,7 @@ describe('MultiColumnSorting', () => {
           columns: [
             {},
             {},
-            { type: 'date', dateFormat: 'YYYY-MM-DD' },
+            { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
             { type: 'numeric' },
             { multiColumnSorting: { sortEmptyCells: true } }
           ],
@@ -2585,7 +2585,7 @@ describe('MultiColumnSorting', () => {
           columns: [
             {},
             {},
-            { type: 'date', dateFormat: 'YYYY-MM-DD' },
+            { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
             { type: 'numeric' },
             {}
           ],
@@ -2615,7 +2615,7 @@ describe('MultiColumnSorting', () => {
           columns: [
             {},
             {},
-            { type: 'date', dateFormat: 'YYYY-MM-DD' },
+            { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
             { type: 'numeric' },
             { multiColumnSorting: { sortEmptyCells: true } }
           ],
@@ -2924,7 +2924,7 @@ describe('MultiColumnSorting', () => {
         columns: [
           {},
           {},
-          { type: 'date', dateFormat: 'YYYY-MM-DD' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
           { type: 'numeric' },
           {}
         ],
@@ -2949,7 +2949,7 @@ describe('MultiColumnSorting', () => {
         columns: [
           {},
           {},
-          { type: 'date', dateFormat: 'YYYY-MM-DD' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
           { type: 'numeric' },
           {}
         ],
@@ -2983,7 +2983,7 @@ describe('MultiColumnSorting', () => {
         columns: [
           { multiColumnSorting: { headerAction: false } },
           {},
-          { type: 'date', dateFormat: 'YYYY-MM-DD' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
           { type: 'numeric' },
           {}
         ],
@@ -3025,7 +3025,7 @@ describe('MultiColumnSorting', () => {
         columns: [
           { multiColumnSorting: { headerAction: false } },
           {},
-          { type: 'date', dateFormat: 'YYYY-MM-DD' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
           { type: 'numeric' },
           {}
         ],
@@ -3056,7 +3056,7 @@ describe('MultiColumnSorting', () => {
         columns: [
           {},
           {},
-          { type: 'date', dateFormat: 'YYYY-MM-DD' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
           { type: 'numeric' },
           {}
         ],

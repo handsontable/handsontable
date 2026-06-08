@@ -122,7 +122,7 @@ const masterHot = new Handsontable(masterContainer, {
     { data: 'lastName', type: 'text', width: 120 },
     { data: 'plan', type: 'dropdown', source: ['Starter', 'Team', 'Business', 'Enterprise'], width: 130 },
     { data: 'seats', type: 'numeric', width: 70 },
-    { data: 'pricePerSeat', type: 'numeric', numericFormat: { pattern: '$0,0.00' }, width: 105 },
+    { data: 'pricePerSeat', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }, width: 105 },
     { data: 'lastActive', type: 'date', width: 130 },
   ],
   rowHeaders: true,

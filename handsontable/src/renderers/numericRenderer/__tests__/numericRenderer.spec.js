@@ -17,7 +17,7 @@ describe('NumericRenderer', () => {
       cells() {
         return {
           renderer: 'numeric',
-          numericFormat: { pattern: '$0,0.00' }
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
         };
       },
     });

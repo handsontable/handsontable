@@ -198,7 +198,7 @@ describe('exportFile XLSX type — cell types', () => {
     it('should export a `date` type cell as an Excel date serial (recognized as Date category in Excel)', async() => {
       handsontable({
         data: [['2016-02-28']],
-        columns: [{ type: 'date', dateFormat: 'YYYY-MM-DD' }],
+        columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
@@ -215,7 +215,7 @@ describe('exportFile XLSX type — cell types', () => {
     it('should apply the mm-dd-yy numFmt to date cells', async() => {
       handsontable({
         data: [['2020-01-15']],
-        columns: [{ type: 'date', dateFormat: 'YYYY-MM-DD' }],
+        columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
@@ -243,7 +243,7 @@ describe('exportFile XLSX type — cell types', () => {
     it('should export an empty date cell as null', async() => {
       handsontable({
         data: [[null]],
-        columns: [{ type: 'date', dateFormat: 'YYYY-MM-DD' }],
+        columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
@@ -255,7 +255,7 @@ describe('exportFile XLSX type — cell types', () => {
     it('should fall back to a plain string when the value is not a valid ISO 8601 date', async() => {
       handsontable({
         data: [['not-a-date']],
-        columns: [{ type: 'date', dateFormat: 'YYYY-MM-DD' }],
+        columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
@@ -269,7 +269,9 @@ describe('exportFile XLSX type — cell types', () => {
     it('should export a `time` type cell as an Excel time serial with h:mm:ss numFmt', async() => {
       handsontable({
         data: [['12:30:00']],
-        columns: [{ type: 'time', timeFormat: 'HH:mm:ss' }],
+        columns: [{
+          type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
+        }],
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
@@ -287,7 +289,9 @@ describe('exportFile XLSX type — cell types', () => {
     it('should apply the h:mm:ss numFmt to time cells so Excel categorizes it as Time not Custom', async() => {
       handsontable({
         data: [['08:05:30']],
-        columns: [{ type: 'time', timeFormat: 'HH:mm:ss' }],
+        columns: [{
+          type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
+        }],
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
@@ -299,7 +303,9 @@ describe('exportFile XLSX type — cell types', () => {
     it('should export midnight (00:00:00) correctly', async() => {
       handsontable({
         data: [['00:00:00']],
-        columns: [{ type: 'time', timeFormat: 'HH:mm:ss' }],
+        columns: [{
+          type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
+        }],
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
@@ -315,7 +321,9 @@ describe('exportFile XLSX type — cell types', () => {
     it('should export a 12-hour time string with AM/PM', async() => {
       handsontable({
         data: [['3:45:00 PM']],
-        columns: [{ type: 'time', timeFormat: 'h:mm:ss A' }],
+        columns: [{
+          type: 'time', timeFormat: { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true }
+        }],
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
@@ -330,7 +338,9 @@ describe('exportFile XLSX type — cell types', () => {
     it('should fall back to a plain string when the value is not a valid time', async() => {
       handsontable({
         data: [['not-a-time']],
-        columns: [{ type: 'time', timeFormat: 'HH:mm:ss' }],
+        columns: [{
+          type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
+        }],
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 
@@ -360,7 +370,9 @@ describe('exportFile XLSX type — cell types', () => {
 
       handsontable({
         data: [['09:30:00']],
-        columns: [{ type: 'time', timeFormat: 'HH:mm:ss' }],
+        columns: [{
+          type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
+        }],
         exportFile: { engines: { xlsx: ExcelJS } },
       });
 

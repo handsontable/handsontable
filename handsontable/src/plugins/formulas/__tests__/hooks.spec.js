@@ -150,8 +150,8 @@ describe('Formulas general', () => {
             ['16:00', '=A1']
           ],
           columns: [
-            { type: 'time', timeFormat: 'HH:mm' },
-            { type: 'time', timeFormat: 'HH:mm' },
+            { type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false } },
+            { type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false } },
           ],
           formulas: {
             engine: spec().hfInstance
@@ -204,8 +204,8 @@ describe('Formulas general', () => {
             ['16:00', '=A1']
           ],
           columns: [
-            { type: 'time', timeFormat: 'HH:mm' },
-            { type: 'time', timeFormat: 'HH:mm' },
+            { type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false } },
+            { type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false } },
           ],
           formulas: {
             engine: spec().hfInstance
