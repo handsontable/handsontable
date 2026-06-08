@@ -68,6 +68,7 @@ export interface ColumnSettings extends Omit<GridSettings, 'data'> {
  */
 export interface CellMeta extends ColumnSettings {
   className?: string | string[];
+  readOnly?: boolean;
   valid?: boolean;
   comment?: CommentObject;
   isSearchResult?: boolean;
