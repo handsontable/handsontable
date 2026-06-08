@@ -226,7 +226,7 @@ data: [
 ]
 ```
 
-The `intl-date` key is the canonical name. The `date` key continues to work as an alias without a warning, so you can migrate the data format and display format independently.
+The `date` key is the canonical name. The `intl-date` key is an alias for backward compatibility and continues to work without a warning, so you can migrate the data format and display format independently.
 
 ### How to migrate -- time cells
 
@@ -260,7 +260,7 @@ columns: [{
 data: [{ start: '14:30:00' }]
 ```
 
-The `intl-time` key is the canonical name. The `time` key continues to work as an alias without a warning.
+The `time` key is the canonical name. The `intl-time` key is an alias for backward compatibility and continues to work without a warning.
 
 ### Sorting and filtering dates
 
@@ -272,30 +272,36 @@ The `correctFormat` option (which auto-corrected entered date and time values to
 
 ### `datePickerConfig` option
 
-The `datePickerConfig` option (which passed options to Pikaday) no longer has any effect. The `intl-date` cell type uses the browser's native date input. Remove `datePickerConfig` from your configuration.
+The `datePickerConfig` option (which passed options to Pikaday) no longer has any effect. The `date` and `intl-date` cell types use the browser's native date input. Remove `datePickerConfig` from your configuration.
 
 ## 4. Replace built-in DOMPurify with a custom sanitizer
 
-Handsontable 18.0 removes the built-in DOMPurify dependency. HTML content passed to Handsontable -- cell values, headers, context-menu labels, and clipboard payloads -- is no longer sanitized automatically.
+Handsontable 18.0 removes the built-in DOMPurify dependency. HTML passed to the following surfaces is no longer sanitized automatically:
+
+- `colHeaders` and `rowHeaders`
+- Context menu item labels
+- HTML pasted from the clipboard
+- Dialog and notification content
+- Select editor dropdown option values
 
 ### Who is affected
 
 You are affected if any of the following apply:
 
-- You render user-supplied or third-party HTML in cells (for example, using the `html` renderer).
-- You relied on Handsontable to strip `<script>` tags or event handlers from HTML cell content.
+- You pass user-supplied or third-party HTML in `colHeaders`, `rowHeaders`, context-menu labels, or select editor `selectOptions`.
+- You relied on Handsontable to strip `<script>` tags or event handlers from HTML passed to those surfaces.
 - You use the `sanitizer` option or test sanitization behavior.
 
 ### How to migrate
 
-If you render untrusted HTML, supply your own sanitizer via the [`sanitizer`](@/api/options.md#sanitizer) option. The function receives the raw HTML string and returns a sanitized string.
+If you pass untrusted HTML to headers or other configuration options, supply your own sanitizer via the [`sanitizer`](@/api/options.md#sanitizer) option. The function receives the raw HTML string and returns a sanitized string.
 
 **Before (automatic DOMPurify behavior):**
 
 ```javascript
 // DOMPurify was applied automatically in 17.x -- no configuration needed
 new Handsontable(container, {
-  columns: [{ renderer: 'html' }]
+  colHeaders: ['<b>Name</b>', '<b>Score</b>', '<i>Status</i>']
 });
 ```
 
@@ -306,7 +312,7 @@ import DOMPurify from 'dompurify';
 
 new Handsontable(container, {
   sanitizer: (html) => DOMPurify.sanitize(html),
-  columns: [{ renderer: 'html' }]
+  colHeaders: ['<b>Name</b>', '<b>Score</b>', '<i>Status</i>']
 });
 ```
 
