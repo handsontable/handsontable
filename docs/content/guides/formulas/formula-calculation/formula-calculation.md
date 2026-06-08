@@ -73,9 +73,15 @@ Double click on a cell to open the editor and preview the formula.
 
 ::: only-for vue
 
+::: tip
+
+When using HyperFormula with Vue 3, always wrap HyperFormula instances with `markRaw()`. Vue's reactivity proxy interferes with the engine's internal state, which leads to subtle bugs and degraded performance. The examples on this page use `markRaw()` for this reason.
+
+:::
+
 ::: example #example1 :vue3 --css 1
 
-@[code](@/content/guides/formulas/formula-calculation/react/example1.css)
+@[code](@/content/guides/formulas/formula-calculation/vue/example1.css)
 @[code](@/content/guides/formulas/formula-calculation/vue/example1.vue)
 
 :::
