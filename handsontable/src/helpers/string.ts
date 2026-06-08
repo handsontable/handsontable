@@ -104,14 +104,23 @@ export function stripTags(string: string): string {
   const str = String(string);
   let result = '';
   let depth = 0;
+  let inQuote = false;
+  let quoteChar = '';
 
   for (let i = 0; i < str.length; i++) {
-    if (str[i] === '<') {
+    const ch = str[i];
+
+    if (depth > 0 && !inQuote && (ch === '"' || ch === '\'')) {
+      inQuote = true;
+      quoteChar = ch;
+    } else if (inQuote && ch === quoteChar) {
+      inQuote = false;
+    } else if (!inQuote && ch === '<') {
       depth += 1;
-    } else if (str[i] === '>' && depth > 0) {
+    } else if (!inQuote && ch === '>' && depth > 0) {
       depth -= 1;
     } else if (depth === 0) {
-      result += str[i];
+      result += ch;
     }
   }
 

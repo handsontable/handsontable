@@ -3,6 +3,8 @@ const DEFAULT_INTL_FORMAT = {
   maximumFractionDigits: 20,
 };
 
+const formatterCache = new Map<string, Intl.NumberFormat>();
+
 /**
  * Formats the value using the intl format.
  *
@@ -12,7 +14,15 @@ const DEFAULT_INTL_FORMAT = {
  */
 export function intlFormatter(value: unknown, cellProperties: Record<string, unknown>) {
   const { numericFormat, locale } = cellProperties;
+  const options = (numericFormat ?? DEFAULT_INTL_FORMAT) as Intl.NumberFormatOptions;
+  const cacheKey = `${(locale as string) ?? ''}:${JSON.stringify(options)}`;
 
-  return new Intl.NumberFormat(
-    locale as string, (numericFormat ?? DEFAULT_INTL_FORMAT) as Intl.NumberFormatOptions).format(value as number);
+  let formatter = formatterCache.get(cacheKey);
+
+  if (formatter === undefined) {
+    formatter = new Intl.NumberFormat(locale as string, options);
+    formatterCache.set(cacheKey, formatter);
+  }
+
+  return formatter.format(value as number);
 }

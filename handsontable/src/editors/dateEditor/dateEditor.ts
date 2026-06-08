@@ -1,6 +1,6 @@
 import { TextEditor } from '../textEditor';
 import { isValidISODate } from '../../helpers/dateTime';
-import { warn } from '../../helpers/console';
+import { warn, warnOnce } from '../../helpers/console';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { isEmpty } from '../../helpers/mixed';
 
@@ -37,6 +37,12 @@ export class DateEditor extends TextEditor {
   prepare(row: number, col: number, prop: string | number, td: HTMLTableCellElement,
           value: unknown, cellProperties: Record<string, unknown>): void {
     super.prepare(row, col, prop, td, value, cellProperties);
+
+    if ((cellProperties as Record<string, unknown>).datePickerConfig !== undefined) {
+      warnOnce(this.hot.rootElement, 'datePickerConfig',
+        'The "datePickerConfig" option is not supported. The native date input is used instead of Pikaday.');
+    }
+
     // The value passed to prepare() is the formatted display value (from valueFormatter).
     // Replace originalValue with the raw source data so the native date input receives an ISO string.
     const physicalRow = this.hot.toPhysicalRow(row);

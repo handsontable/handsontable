@@ -838,7 +838,7 @@ export class CopyPaste extends BasePlugin {
       const customSanitizer = this.hot.getSettings().sanitizer;
 
       if (rawTextHTML && typeof customSanitizer !== 'function') {
-        warnOnce(this.hot.rootGridElement, SANITIZER_WARN_KEY,
+        warnOnce(this.hot.rootElement, SANITIZER_WARN_KEY,
           'HTML content is being pasted to the DOM without a sanitizer. ' +
           'Configure the "sanitizer" option to prevent XSS vulnerabilities.');
       }
