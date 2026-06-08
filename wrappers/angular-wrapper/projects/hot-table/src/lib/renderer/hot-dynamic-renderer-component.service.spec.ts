@@ -463,6 +463,34 @@ describe('DynamicComponentService - sweepDetachedViews (virtual scroll cleanup)'
     expect(detachSpy).toHaveBeenCalledTimes(2);
   });
 
+  it('should re-render a TD recycled after its ref was swept, without re-destroying the stale ref', () => {
+    const { instance, fireAfterViewRender } = createHookableInstance();
+    const td = createConnectedTD();
+
+    const rendererFn = service.createRendererFromComponent(DummyRendererComponent, {}, false);
+    rendererFn(instance, td, 0, 0, 'prop', 'first', {} as any);
+    appRef.tick();
+
+    // Row leaves the viewport: the sweep destroys the ref but leaves the stale entry in _tdComponentRefs.
+    td.remove();
+    fireAfterViewRender();
+
+    // Handsontable recycles the same TD for a new row. Re-rendering must not touch the stale (already
+    // destroyed) ref — only attach the fresh component.
+    document.body.appendChild(td);
+    const detachSpy = jest.spyOn(appRef, 'detachView');
+
+    expect(() => {
+      rendererFn(instance, td, 1, 0, 'prop', 'second', {} as any);
+      appRef.tick();
+    }).not.toThrow();
+
+    // The guard skips detaching the stale ref; the path only creates/attaches the new component.
+    expect(detachSpy).not.toHaveBeenCalled();
+    expect(td.innerHTML).toContain('Component Renderer: second');
+    expect(td.innerHTML).not.toContain('Component Renderer: first');
+  });
+
   it('should register the afterViewRender sweep hook only once per instance', () => {
     const { instance } = createHookableInstance();
     const addHookSpy = jest.spyOn(instance, 'addHook');
@@ -505,6 +533,24 @@ describe('DynamicComponentService - destroyComponent', () => {
 
     expect(detachSpy).toHaveBeenCalledWith(compRef.hostView);
     expect(destroySpy).toHaveBeenCalled();
+  });
+
+  it('should be idempotent when called twice on the same ref', () => {
+    const compRef = createComponent(DummyRendererComponent, {
+      environmentInjector: TestBed.inject(EnvironmentInjector),
+    });
+    appRef.attachView(compRef.hostView);
+
+    service.destroyComponent(compRef);
+
+    const detachSpy = jest.spyOn(appRef, 'detachView');
+    const destroySpy = jest.spyOn(compRef, 'destroy');
+
+    // A recycled TD can still map to this already-destroyed ref in _tdComponentRefs, so the next
+    // render path may reach destroyComponent again. The destroyed guard must skip the redundant work.
+    expect(() => service.destroyComponent(compRef)).not.toThrow();
+    expect(detachSpy).not.toHaveBeenCalled();
+    expect(destroySpy).not.toHaveBeenCalled();
   });
 });
 

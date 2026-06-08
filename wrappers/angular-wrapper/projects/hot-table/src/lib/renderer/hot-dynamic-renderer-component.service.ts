@@ -247,7 +247,7 @@ export class DynamicComponentService {
       }
       const embView = this._tdEmbeddedViews.get(td);
       if (embView) {
-        embView.destroy();
+        this.destroyEmbeddedView(embView);
         this._tdEmbeddedViews.delete(td);
         embViews?.delete(embView);
       }
@@ -259,7 +259,7 @@ export class DynamicComponentService {
     // the per-instance registries so a repeated cleanup call is a no-op. (Entries removed in the
     // loop above are already gone from these sets, so nothing is destroyed twice.)
     compRefs?.forEach((ref) => this.destroyComponent(ref));
-    embViews?.forEach((view) => view.destroy());
+    embViews?.forEach((view) => this.destroyEmbeddedView(view));
 
     if (instance) {
       this._instanceComponentRefs.delete(instance);
@@ -304,7 +304,7 @@ export class DynamicComponentService {
     const embViews = this._instanceEmbeddedViews.get(instance);
     embViews?.forEach((view) => {
       if (!this.isViewConnected(view)) {
-        view.destroy();
+        this.destroyEmbeddedView(view);
         embViews.delete(view);
       }
     });
@@ -334,7 +334,7 @@ export class DynamicComponentService {
 
     const prevView = this._tdEmbeddedViews.get(td);
     if (prevView) {
-      prevView.destroy();
+      this.destroyEmbeddedView(prevView);
       this._tdEmbeddedViews.delete(td);
       this._instanceEmbeddedViews.get(instance)?.delete(prevView);
     }
@@ -483,10 +483,32 @@ export class DynamicComponentService {
   /**
    * Destroys a dynamically created component and detaches its view from the Angular application.
    *
+   * Idempotent: a TD recycled after `sweepDetachedViews` already destroyed its ref still maps to that
+   * stale ref in `_tdComponentRefs`, so the next render path may reach this with an already-destroyed
+   * ref. Guarding on `destroyed` skips the redundant detach/destroy instead of relying on Angular's
+   * internal no-op behaviour.
+   *
    * @param componentRef - The reference to the component to be destroyed.
    */
   destroyComponent<T>(componentRef: ComponentRef<T>): void {
-    this.appRef.detachView(componentRef.hostView);
+    const hostView = componentRef.hostView as EmbeddedViewRef<T>;
+    if (hostView.destroyed) {
+      return;
+    }
+    this.appRef.detachView(hostView);
     componentRef.destroy();
+  }
+
+  /**
+   * Destroys an embedded view. Idempotent for the same reason as {@link destroyComponent}: a recycled
+   * TD can still map to an already-destroyed view in `_tdEmbeddedViews`.
+   *
+   * @param view - The embedded view to destroy.
+   */
+  private destroyEmbeddedView(view: EmbeddedViewRef<any>): void {
+    if (view.destroyed) {
+      return;
+    }
+    view.destroy();
   }
 }
