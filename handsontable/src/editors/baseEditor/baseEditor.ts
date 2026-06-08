@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import { stringify } from '../../helpers/mixed';
 import { throwWithCause } from '../../helpers/errors';
 import { warn } from '../../helpers/console';
@@ -108,7 +109,7 @@ export class BaseEditor {
    *
    * @type {object}
    */
-  declare cellProperties: Record<string, unknown>;
+  declare cellProperties: CellProperties;
 
   // Mixin-injected methods from hooksRefRegisterer
   /**
@@ -202,7 +203,7 @@ export class BaseEditor {
    */
   prepare(
     row: number, col: number, prop: string | number,
-    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+    td: HTMLTableCellElement, value: unknown, cellProperties: CellProperties): void {
     this.TD = td;
     this.row = row;
     this.col = col;

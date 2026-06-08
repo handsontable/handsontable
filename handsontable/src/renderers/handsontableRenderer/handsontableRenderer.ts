@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import { autocompleteRenderer } from '../autocompleteRenderer';
 
 export const RENDERER_TYPE: 'handsontable' = 'handsontable';
@@ -18,7 +19,7 @@ export const RENDERER_TYPE: 'handsontable' = 'handsontable';
 export function handsontableRenderer(
   this: unknown,
   hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
-  prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void {
+  prop: string | number, value: unknown, cellProperties: CellProperties): void {
   autocompleteRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
 }
 

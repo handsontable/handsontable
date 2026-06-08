@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import { fastInnerHTML } from '../../helpers/dom/element';
 import { stringify } from '../../helpers/mixed';
 
@@ -11,7 +12,7 @@ export const RENDERER_TYPE: 'password' = 'password';
  * @param {CellMeta} cellProperties Cell meta object.
  * @returns {*} Returns the formatted value.
  */
-export function valueFormatter(value: unknown, cellProperties: Record<string, unknown>) {
+export function valueFormatter(value: unknown, cellProperties: CellProperties) {
   const hashLength = (cellProperties.hashLength || stringify(value).length) as number;
   const hashSymbol = String(cellProperties.hashSymbol ?? '*');
 

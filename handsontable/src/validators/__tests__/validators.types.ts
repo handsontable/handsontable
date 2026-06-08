@@ -9,20 +9,10 @@ import {
   getValidator,
 } from 'handsontable/validators';
 
-interface CellProperties {
-  row: number;
-  col: number;
-  instance: unknown;
-  visualRow: number;
-  visualCol: number;
-  prop: string | number;
-  [key: string]: unknown;
-}
-
 const elem = document.createElement('div');
 const hot = Handsontable(elem, {});
 
-const cellProperties: CellProperties = {
+const cellProperties: Handsontable.CellProperties = {
   row: 0,
   col: 0,
   instance: hot,

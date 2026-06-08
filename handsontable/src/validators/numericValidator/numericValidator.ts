@@ -1,4 +1,5 @@
 import { isNumeric } from '../../helpers/number';
+import type { CellProperties } from '../../settings';
 
 export const VALIDATOR_TYPE: 'numeric' = 'numeric';
 
@@ -10,7 +11,7 @@ export const VALIDATOR_TYPE: 'numeric' = 'numeric';
  * @param {Function} callback Callback called with validation result.
  */
 export function numericValidator(
-  this: Record<string, unknown>, value: unknown, callback: (valid: boolean) => void): void {
+  this: CellProperties, value: unknown, callback: (valid: boolean) => void): void {
   let valueToValidate = value;
 
   if (valueToValidate === null || valueToValidate === undefined) {

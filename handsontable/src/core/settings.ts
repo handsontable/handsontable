@@ -261,7 +261,7 @@ export interface GridSettings {
   afterEmptyDataStateShow?: () => void;
   afterFilter?: (conditionsStack: ColumnConditions[]) => void;
   afterFormulasValuesUpdate?: (changes: unknown[]) => void;
-  afterGetCellMeta?: (row: number, column: number, cellProperties: Record<string, unknown>) => void;
+  afterGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
   afterGetColHeader?: (column: number, TH: HTMLTableHeaderCellElement, headerLevel: number) => void;
   afterGetColumnHeaderRenderers?: (renderers: Array<(...args: unknown[]) => unknown>) => void;
   afterGetRowHeader?: (row: number, TH: HTMLTableHeaderCellElement) => void;
@@ -318,7 +318,7 @@ export interface GridSettings {
   afterRemoveRow?: (index: number, amount: number, physicalRows: number[], source?: ChangeSource) => void;
   afterRender?: (isForced: boolean) => void;
   afterRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number,
-    value: CellValue, cellProperties: Record<string, unknown>) => void;
+    value: CellValue, cellProperties: CellProperties) => void;
   afterRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean, orderChanged: boolean) => void;
   afterRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => void;
@@ -423,7 +423,7 @@ export interface GridSettings {
   beforeEmptyDataStateShow?: () => void;
   beforeFilter?: (conditionsStack: ColumnConditions[], previousConditionsStack: ColumnConditions[])
     => void | boolean;
-  beforeGetCellMeta?: (row: number, column: number, cellProperties: Record<string, unknown>) => void;
+  beforeGetCellMeta?: (row: number, column: number, cellProperties: CellProperties) => void;
   beforeHeightChange?: (height: number | string) => number | string;
   beforeHideColumns?: (currentHideConfig: number[], destinationHideConfig: number[],
     actionPossible: boolean) => void | boolean;
@@ -472,7 +472,7 @@ export interface GridSettings {
   beforeRemoveRow?: (index: number, amount: number, physicalRows: number[], source?: ChangeSource) => void;
   beforeRender?: (isForced: boolean) => void;
   beforeRenderer?: (TD: HTMLTableCellElement, row: number, column: number, prop: string | number,
-    value: CellValue, cellProperties: Record<string, unknown>) => void;
+    value: CellValue, cellProperties: CellProperties) => void;
   beforeRowMove?: (movedRows: number[], finalIndex: number, dropIndex: number | undefined,
     movePossible: boolean) => void | boolean;
   beforeRowResize?: (newSize: number, row: number, isDoubleClick: boolean) => number | void | false;
@@ -506,7 +506,7 @@ export interface GridSettings {
     actionPossible: boolean) => void | boolean;
   beforeUpdateData?: (sourceData: unknown[], initialLoad: boolean, source: ChangeSource | undefined) => void;
   beforeValidate?: (value: CellValue, row: number, prop: string | number, source?: ChangeSource) => void;
-  beforeValueRender?: (value: CellValue, cellProperties: Record<string, unknown>) => void;
+  beforeValueRender?: (value: CellValue, cellProperties: CellProperties) => void;
   beforeViewportScroll?: () => void;
   beforeViewportScrollHorizontally?: (visualColumn: number, snapping: 'auto' | 'start' | 'end')
     => number | boolean | null;
@@ -518,7 +518,7 @@ export interface GridSettings {
   dialogFocusPreviousElement?: () => void;
   hasExternalDataSource?: () => boolean | void;
   init?: () => void;
-  modifyAutoColumnSizeSeed?: (seed: string, cellProperties: Record<string, unknown>,
+  modifyAutoColumnSizeSeed?: (seed: string, cellProperties: CellProperties,
     cellValue: CellValue) => string | void;
   modifyAutofillRange?: (entireArea: [number, number, number, number],
     startArea: [number, number, number, number]) => [number, number, number, number] | void;
@@ -528,7 +528,7 @@ export interface GridSettings {
   modifyColWidth?: (width: number, column: number, source?: string) => void | number;
   modifyCopyableRange?: (copyableRanges: RangeType[]) => void;
   modifyData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
-  modifyFiltersMultiSelectValue?: (value: string, meta: Record<string, unknown>) => void | string;
+  modifyFiltersMultiSelectValue?: (value: string, meta: CellProperties) => void | string;
   modifyFocusedElement?: (row: number, column: number, focusedElement: HTMLElement) => void | HTMLElement;
   modifyFocusOnTabNavigation?: (tabActivationDir: string, visualCoords: WalkontableCellCoords) => void;
   modifyGetCellCoords?: (row: number, column: number, topmost: boolean, source: string | undefined)

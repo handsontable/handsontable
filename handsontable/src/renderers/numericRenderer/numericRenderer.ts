@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import { textRenderer } from '../textRenderer';
 import { isNumeric } from '../../helpers/number';
 import { warn } from '../../helpers/console';
@@ -14,7 +15,7 @@ const unsupportedFormatMessageShown = new WeakSet<object>();
  * @param {CellMeta} cellProperties Cell meta object.
  * @returns {*} Returns the formatted value.
  */
-export function valueFormatter(value: unknown, cellProperties: Record<string, unknown>) {
+export function valueFormatter(value: unknown, cellProperties: CellProperties) {
   if (isNumeric(value)) {
     value = intlFormatter(value, cellProperties);
   }
@@ -37,7 +38,7 @@ export function valueFormatter(value: unknown, cellProperties: Record<string, un
 export function numericRenderer(
   this: unknown,
   hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
-  prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void {
+  prop: string | number, value: unknown, cellProperties: CellProperties): void {
   const numericFormat = cellProperties.numericFormat as Record<string, unknown> | undefined;
   const hasUnsupportedFormat = numericFormat?.pattern !== undefined || numericFormat?.culture !== undefined;
 

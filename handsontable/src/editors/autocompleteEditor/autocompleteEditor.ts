@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import { HandsontableEditor } from '../handsontableEditor';
 import { pivot } from '../../helpers/array';
 import { isKeyValueObject, isObject } from '../../helpers/object';
@@ -129,7 +130,7 @@ export class AutocompleteEditor extends HandsontableEditor {
    */
   prepare(
     row: number, col: number, prop: string | number,
-    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+    td: HTMLTableCellElement, value: unknown, cellProperties: CellProperties): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
     if (this.hot.getSettings().ariaTags) {
@@ -152,7 +153,8 @@ export class AutocompleteEditor extends HandsontableEditor {
   open(): void {
     super.open();
 
-    const trimDropdown = this.cellProperties.trimDropdown === undefined ? true : this.cellProperties.trimDropdown;
+    const trimDropdownSetting = this.cellProperties.trimDropdown as boolean | undefined;
+    const trimDropdown = trimDropdownSetting === undefined ? true : trimDropdownSetting;
     const rootInstanceAriaTagsEnabled = this.hot.getSettings().ariaTags;
     const sourceArray = Array.isArray(this.cellProperties.source) ? this.cellProperties.source as unknown[] : null;
     const sourceSize = sourceArray?.length;
@@ -168,7 +170,7 @@ export class AutocompleteEditor extends HandsontableEditor {
       autoColumnSize: true,
       renderer: (
         hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
-        prop: string | number, value: unknown, cellProperties: Record<string, unknown>) => {
+        prop: string | number, value: unknown, cellProperties: CellProperties) => {
         textRenderer(hotInstance, TD, row, col, prop, value, cellProperties);
 
         const { filteringCaseSensitive, allowHtml } = this.cellProperties;
@@ -289,7 +291,8 @@ export class AutocompleteEditor extends HandsontableEditor {
    * @param {string} query The query.
    */
   queryChoices(query: string): void {
-    const source = this.cellProperties.source;
+    type SourceValue = unknown[] | ((query: string, callback: (choices: unknown[]) => void) => void);
+    const source = this.cellProperties.source as SourceValue | undefined;
 
     this.query = query;
 
@@ -317,8 +320,8 @@ export class AutocompleteEditor extends HandsontableEditor {
   updateChoicesList(choicesList: ChoiceArray): void {
     const pos = getCaretPosition(this.TEXTAREA);
     const endPos = getSelectionEndPosition(this.TEXTAREA);
-    const sortByRelevanceSetting = this.cellProperties.sortByRelevance;
-    const filterSetting = this.cellProperties.filter;
+    const sortByRelevanceSetting = this.cellProperties.sortByRelevance as boolean | undefined;
+    const filterSetting = this.cellProperties.filter as boolean | undefined;
     const value = this.stripValueIfNeeded(this.getValue());
     const comparableValue = this.#isKeyValueObject(value) ? (value as Record<string, unknown>).value : value;
 
@@ -331,7 +334,7 @@ export class AutocompleteEditor extends HandsontableEditor {
 
     const filteredChoiceIndexes: number[] = [];
     const locale = this.cellProperties.locale as string | undefined;
-    const filteringCaseSensitive = this.cellProperties.filteringCaseSensitive;
+    const filteringCaseSensitive = this.cellProperties.filteringCaseSensitive as boolean | undefined;
     const valueToMatch = filteringCaseSensitive ? comparableValue : String(comparableValue).toLocaleLowerCase(locale);
 
     for (let i = 0; i < choices.length; i++) {

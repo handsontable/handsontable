@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import { BaseEditor } from '../baseEditor';
 import EventManager from '../../eventManager';
 import { DropdownController, type DropdownEntry } from './controllers/dropdownController';
@@ -107,7 +108,7 @@ export class MultiSelectEditor extends BaseEditor {
     prop: string | number,
     td: HTMLTableCellElement,
     value: unknown,
-    cellProperties: Record<string, unknown>
+    cellProperties: CellProperties
   ): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 

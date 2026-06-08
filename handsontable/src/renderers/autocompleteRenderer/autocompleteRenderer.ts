@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import { htmlRenderer } from '../htmlRenderer';
 import { textRenderer } from '../textRenderer';
 import EventManager from '../../eventManager';
@@ -22,7 +23,7 @@ export const RENDERER_TYPE: 'autocomplete' = 'autocomplete';
 export function autocompleteRenderer(
   this: unknown,
   hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
-  prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void {
+  prop: string | number, value: unknown, cellProperties: CellProperties): void {
   const { rootDocument } = hotInstance;
   const rendererFunc = cellProperties.allowHtml ? htmlRenderer : textRenderer;
   const ARROW = rootDocument.createElement('DIV');

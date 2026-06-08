@@ -1,3 +1,4 @@
+import type { CellProperties } from '../../settings';
 import { TextEditor } from '../textEditor';
 import { isValidISODate } from '../../helpers/dateTime';
 import { warn, warnOnce } from '../../helpers/console';
@@ -35,7 +36,7 @@ export class DateEditor extends TextEditor {
    * Prepares the editor, replacing the display value with the raw ISO source data for the native date input.
    */
   prepare(row: number, col: number, prop: string | number, td: HTMLTableCellElement,
-          value: unknown, cellProperties: Record<string, unknown>): void {
+          value: unknown, cellProperties: CellProperties): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
     if ((cellProperties as Record<string, unknown>).datePickerConfig !== undefined) {

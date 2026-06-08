@@ -1,4 +1,5 @@
 import { BaseEditor, EDITOR_STATE } from '../baseEditor';
+import type { CellProperties } from '../../settings';
 import {
   addClass,
   empty,
@@ -145,10 +146,11 @@ export class SelectEditor extends BaseEditor {
    */
   prepare(
     row: number, col: number, prop: string | number,
-    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+    td: HTMLTableCellElement, value: unknown, cellProperties: CellProperties): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
-    const selectOptions = this.cellProperties.selectOptions;
+    type SelectOpts = (string | number | object)[] | Record<string, string> | undefined;
+    const selectOptions = this.cellProperties.selectOptions as SelectOpts;
     let options;
 
     if (typeof selectOptions === 'function') {

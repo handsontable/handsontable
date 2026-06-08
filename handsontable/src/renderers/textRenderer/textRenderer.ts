@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import { fastInnerText } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
 
@@ -19,7 +20,7 @@ export const RENDERER_TYPE: 'text' = 'text';
 export function textRenderer(
   this: unknown,
   hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
-  prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void {
+  prop: string | number, value: unknown, cellProperties: CellProperties): void {
   let escaped = value;
 
   if (isEmpty(escaped) && cellProperties.placeholder) {
