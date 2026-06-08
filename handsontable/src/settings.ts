@@ -67,6 +67,7 @@ export interface ColumnSettings extends Omit<GridSettings, 'data'> {
  * Additional cell-specific meta data.
  */
 export interface CellMeta extends ColumnSettings {
+  className?: string | string[];
   valid?: boolean;
   comment?: CommentObject;
   isSearchResult?: boolean;
