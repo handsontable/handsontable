@@ -20,6 +20,7 @@ export const RENDERER_TYPE: 'autocomplete' = 'autocomplete';
  * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
  */
 export function autocompleteRenderer(
+  this: unknown,
   hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
   prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void {
   const { rootDocument } = hotInstance;
@@ -35,7 +36,8 @@ export function autocompleteRenderer(
 
   ARROW.appendChild(rootDocument.createTextNode(String.fromCharCode(9660)));
 
-  rendererFunc.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
+  (rendererFunc as (this: unknown, ...args: unknown[]) => void)
+    .apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
 
   if (!TD.firstChild) { // http://jsperf.com/empty-node-if-needed
     // otherwise empty fields appear borderless in demo/renderers.html (IE)

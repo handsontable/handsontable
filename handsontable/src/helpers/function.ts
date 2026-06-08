@@ -29,7 +29,7 @@ export function throttle(func: (...args: unknown[]) => unknown, wait: number = 2
    * @param {...*} args The list of arguments passed during the function invocation.
    * @returns {object}
    */
-  function _throttle(...args: unknown[]) {
+  function _throttle(this: unknown, ...args: unknown[]) {
     const stamp = Date.now();
     let needCall = false;
 
@@ -86,7 +86,7 @@ export function throttleAfterHits(
    * @param {*} args The list of arguments passed during the function invocation.
    * @returns {*}
    */
-  function _throttleAfterHits(...args: unknown[]) {
+  function _throttleAfterHits(this: unknown, ...args: unknown[]) {
     if (remainHits) {
       remainHits -= 1;
 
@@ -118,7 +118,7 @@ export function debounce(
    * @param {*} args The list of arguments passed during the function invocation.
    * @returns {*}
    */
-  function _debounce(...args: unknown[]) {
+  function _debounce(this: unknown, ...args: unknown[]) {
     if (lastTimer) {
       clearTimeout(lastTimer);
     }
@@ -155,7 +155,7 @@ export function debounce(
 export function pipe(...functions: Array<(...args: unknown[]) => unknown>): (...args: unknown[]) => unknown {
   const [firstFunc, ...restFunc] = functions;
 
-  return function _pipe(...args) {
+  return function _pipe(this: unknown, ...args: unknown[]) {
     return arrayReduce(
       restFunc, (acc, fn) => (fn as (...args: unknown[]) => unknown)(acc), firstFunc.apply(this, args));
   };
@@ -169,7 +169,7 @@ export function pipe(...functions: Array<(...args: unknown[]) => unknown>): (...
  * @returns {Function}
  */
 export function partial(func: (...args: unknown[]) => unknown, ...params: unknown[]): (...args: unknown[]) => unknown {
-  return function _partial(...restParams) {
+  return function _partial(this: unknown, ...restParams: unknown[]) {
     return func.apply(this, params.concat(restParams));
   };
 }
@@ -204,7 +204,7 @@ export function curry(func: (...args: unknown[]) => unknown): (...args: unknown[
    * @returns {Function}
    */
   function given(argsSoFar: unknown[]) {
-    return function _curry(...params: unknown[]) {
+    return function _curry(this: unknown, ...params: unknown[]) {
       const passedArgsSoFar = argsSoFar.concat(params);
       let result;
 
@@ -251,7 +251,7 @@ export function curryRight(func: (...args: unknown[]) => unknown): (...args: unk
    * @returns {Function}
    */
   function given(argsSoFar: unknown[]) {
-    return function _curry(...params: unknown[]) {
+    return function _curry(this: unknown, ...params: unknown[]) {
       const passedArgsSoFar = argsSoFar.concat(params.reverse());
       let result;
 
