@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12479 — BUG (columnSorting does nothing on boolean text columns)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .bad { color: #f48771; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-asc  { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
+    .btn-asc:hover  { background: #c62828; }
+    .btn-desc { background: #b71c1c; color: #fff; border-color: #7f0000; font-weight: 600; }
+    .btn-desc:hover { background: #7f0000; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 200px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 15px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.ok { color: #2e7d32; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+    .status-box { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-family: monospace; min-height: 40px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>PR #12479 - <code>columnSorting</code> with boolean values in <code>type: 'text'</code> column</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12479-fix.html">PR #12479 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    When a column contains boolean data (<code>true</code>/<code>false</code>) and is typed as
+    <code>type: 'text'</code>, clicking the column header to sort does nothing — the row order never changes.
+    <br><br>
+    Root cause: the default comparator calls <code>isNaN(value)</code>. <code>isNaN(true) === false</code>
+    (JS coerces booleans to numbers), so booleans enter the numeric path. But <code>parseFloat(true)</code>
+    returns <code>NaN</code> (it stringifies first: <code>"true"</code> cannot parse as a float).
+    <code>NaN &lt; NaN</code> and <code>NaN &gt; NaN</code> are both <code>false</code>, so every pair
+    returns <code>DO_NOT_SWAP</code> and the column never reorders.
+  </div>
+
+  <pre><span class="comment">// BUG — sortFunction/default.js comparator (before fix):</span>
+return function(value, nextValue) {
+  <span class="comment">// isNaN(true) === false → booleans pass this check</span>
+  if (isNaN(value) === false && isNaN(nextValue) === false) {
+    <span class="bad">value = parseFloat(value);      // parseFloat(true) → NaN (stringifies first)</span>
+    <span class="bad">nextValue = parseFloat(nextValue);</span>
+  }
+  <span class="comment">// NaN &lt; NaN === false, NaN &gt; NaN === false → always DO_NOT_SWAP</span>
+};</pre>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>Click <strong>"Sort "Active" ASC"</strong> or <strong>"Sort "Active" DESC"</strong>.</li>
+      <li>BUG: the column header shows a sort indicator but rows do <strong>not</strong> reorder.</li>
+      <li>The "Active" column (boolean, type: 'text') should have all <code>false</code> rows first (ASC) or all <code>true</code> rows first (DESC).</li>
+      <li>Click the "Active" header directly to toggle sort — same non-result.</li>
+      <li>Compare with the <a href="demo-pr12479-fix.html">Fix page</a>.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-asc"  id="btn-asc">Sort "Active" ASC</button>
+    <button class="btn btn-desc" id="btn-desc">Sort "Active" DESC</button>
+    <button class="btn btn-reset" id="btn-reset">Reset (unsort)</button>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Row order after sort</div>
+      <div class="metric-value neutral" id="m-order">—</div>
+      <div class="metric-sub">Expected ASC: false,false,false,true,true,true</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Sort actually worked?</div>
+      <div class="metric-value neutral" id="m-worked">—</div>
+      <div class="metric-sub">Expected: YES — BUG: NO</div>
+    </div>
+  </div>
+
+  <div class="status-box" id="status">Click a sort button to test. You can also click the "Active" column header directly.</div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const ORIGINAL_DATA = [
+      { active: false, name: 'Charlie', score: 3  },
+      { active: true,  name: 'Alice',   score: -4 },
+      { active: false, name: 'Eve',     score: 11 },
+      { active: true,  name: 'Bob',     score: 1  },
+      { active: false, name: 'Diana',   score: 7  },
+      { active: true,  name: 'Frank',   score: -2 },
+    ];
+
+    function deepClone(arr) { return arr.map(r => ({ ...r })); }
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: deepClone(ORIGINAL_DATA),
+      columns: [
+        { data: 'active', type: 'text',    title: 'Active'  },
+        { data: 'name',   type: 'text',    title: 'Name'    },
+        { data: 'score',  type: 'numeric', title: 'Score'   },
+      ],
+      colHeaders: ['Active (text)', 'Name', 'Score'],
+      rowHeaders: true,
+      width: '100%',
+      height: 250,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      columnSorting: true,
+    });
+
+    function checkSort(order) {
+      const data = window.hot.getData();
+      const boolCol = data.map(r => r[0]);
+      const orderStr = boolCol.join(', ');
+
+      const isSortedAsc  = boolCol.every((v, i, a) => i === 0 || !v || a[i - 1]);  // no true before false
+      const isSortedDesc = boolCol.every((v, i, a) => i === 0 || v || !a[i - 1]); // no false before true
+
+      const worked = order === 'asc' ? isSortedAsc : isSortedDesc;
+
+      document.getElementById('m-order').textContent = orderStr;
+      document.getElementById('m-order').className = 'metric-value ' + (worked ? 'ok' : 'bad');
+
+      document.getElementById('m-worked').textContent = worked ? 'YES ✓' : 'NO ✗ (unchanged)';
+      document.getElementById('m-worked').className = 'metric-value ' + (worked ? 'ok' : 'bad');
+
+      document.getElementById('status').textContent =
+        'After sort ' + order.toUpperCase() + ' on "Active" column:\n' +
+        '  Row values: [' + orderStr + ']\n\n' +
+        (worked
+          ? 'Sort worked correctly.'
+          : 'BUG: rows did not reorder. Every comparison returned DO_NOT_SWAP due to NaN arithmetic on booleans.');
+    }
+
+    document.getElementById('btn-asc').addEventListener('click', () => {
+      window.hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+      setTimeout(() => checkSort('asc'), 50);
+    });
+
+    document.getElementById('btn-desc').addEventListener('click', () => {
+      window.hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      setTimeout(() => checkSort('desc'), 50);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      window.hot.getPlugin('columnSorting').clearSort();
+      ['m-order', 'm-worked'].forEach(id => {
+        document.getElementById(id).textContent = '—';
+        document.getElementById(id).className = 'metric-value neutral';
+      });
+      document.getElementById('status').textContent = 'Click a sort button to test.';
+    });
+  </script>
+</body>
+</html>

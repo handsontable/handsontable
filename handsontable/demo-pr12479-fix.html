@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12479 — FIX (columnSorting correctly sorts boolean text columns)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .new { color: #b5cea8; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; line-height: 1.5; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-asc  { background: #388e3c; color: #fff; border-color: #2e7d32; font-weight: 600; }
+    .btn-asc:hover  { background: #2e7d32; }
+    .btn-desc { background: #1565c0; color: #fff; border-color: #0d47a1; font-weight: 600; }
+    .btn-desc:hover { background: #0d47a1; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 200px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 15px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.ok { color: #2e7d32; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+    .status-box { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-family: monospace; min-height: 40px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>PR #12479 - <code>columnSorting</code> correctly sorts boolean values in <code>type: 'text'</code> column</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12479-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR #12479 Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12479).</strong>
+    Boolean values in a <code>type: 'text'</code> column now sort correctly: <code>false</code> sorts
+    before <code>true</code> ascending (and after descending). The fix converts booleans to numbers
+    (<code>false</code> → <code>0</code>, <code>true</code> → <code>1</code>) at the start of the
+    comparator, before the <code>isNaN</code> check, so they flow through the existing numeric sort path cleanly.
+  </div>
+
+  <pre><span class="comment">// FIX — sortFunction/default.js (4 lines added at the top of the comparator):</span>
+return function(value, nextValue) {
+  const { sortEmptyCells } = columnPluginSettings;
+
+  <span class="new">if (typeof value === 'boolean') {
+    value = Number(value);       // false → 0, true → 1
+  }
+  if (typeof nextValue === 'boolean') {
+    nextValue = Number(nextValue);
+  }</span>
+
+  if (typeof value === 'string') {    <span class="comment">// existing string path unchanged</span>
+    value = value.toLocaleLowerCase(locale);
+  }
+  <span class="comment">// ... rest of comparator (numeric, then string comparison)</span>
+};</pre>
+
+  <div id="patch-info">
+    This page loads <code>dist/handsontable.full.min.js</code> built from the <code>develop</code>
+    branch which includes PR #12479.
+  </div>
+
+  <div class="hint">
+    <strong>How to verify the fix:</strong>
+    <ol>
+      <li>Click <strong>"Sort "Active" ASC"</strong> — all <code>false</code> rows appear first, then <code>true</code>. ✓</li>
+      <li>Click <strong>"Sort "Active" DESC"</strong> — all <code>true</code> rows appear first. ✓</li>
+      <li>You can also click the <strong>"Active (text)"</strong> column header directly to toggle sort.</li>
+      <li>Compare with the <a href="demo-pr12479-bug.html">Bug page</a> where rows never reorder.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-asc"  id="btn-asc">Sort "Active" ASC</button>
+    <button class="btn btn-desc" id="btn-desc">Sort "Active" DESC</button>
+    <button class="btn btn-reset" id="btn-reset">Reset (unsort)</button>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Row order after sort</div>
+      <div class="metric-value neutral" id="m-order">—</div>
+      <div class="metric-sub">Expected ASC: false, false, false, true, true, true ✓</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Sort actually worked?</div>
+      <div class="metric-value neutral" id="m-worked">—</div>
+      <div class="metric-sub">Expected: YES ✓</div>
+    </div>
+  </div>
+
+  <div class="status-box" id="status">Click a sort button to test. You can also click the "Active (text)" column header directly.</div>
+
+  <div id="hot-container"></div>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    const ORIGINAL_DATA = [
+      { active: false, name: 'Charlie', score: 3  },
+      { active: true,  name: 'Alice',   score: -4 },
+      { active: false, name: 'Eve',     score: 11 },
+      { active: true,  name: 'Bob',     score: 1  },
+      { active: false, name: 'Diana',   score: 7  },
+      { active: true,  name: 'Frank',   score: -2 },
+    ];
+
+    function deepClone(arr) { return arr.map(r => ({ ...r })); }
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: deepClone(ORIGINAL_DATA),
+      columns: [
+        { data: 'active', type: 'text',    title: 'Active'  },
+        { data: 'name',   type: 'text',    title: 'Name'    },
+        { data: 'score',  type: 'numeric', title: 'Score'   },
+      ],
+      colHeaders: ['Active (text)', 'Name', 'Score'],
+      rowHeaders: true,
+      width: '100%',
+      height: 250,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      columnSorting: true,
+    });
+
+    function checkSort(order) {
+      const data = window.hot.getData();
+      const boolCol = data.map(r => r[0]);
+      const orderStr = boolCol.join(', ');
+
+      // For ASC: no true should appear before any false
+      const isSortedAsc  = boolCol.every((v, i, a) => i === 0 || !v || a[i - 1]);
+      // For DESC: no false should appear before any true
+      const isSortedDesc = boolCol.every((v, i, a) => i === 0 || v || !a[i - 1]);
+
+      const worked = order === 'asc' ? isSortedAsc : isSortedDesc;
+
+      document.getElementById('m-order').textContent = orderStr;
+      document.getElementById('m-order').className = 'metric-value ' + (worked ? 'ok' : 'bad');
+
+      document.getElementById('m-worked').textContent = worked ? 'YES ✓' : 'NO ✗';
+      document.getElementById('m-worked').className = 'metric-value ' + (worked ? 'ok' : 'bad');
+
+      document.getElementById('status').textContent =
+        'After sort ' + order.toUpperCase() + ' on "Active" column:\n' +
+        '  Row values: [' + orderStr + ']\n\n' +
+        (worked
+          ? 'FIX: rows correctly reordered. false=0, true=1 via Number() conversion. ✓'
+          : 'Unexpected: sort did not work.');
+    }
+
+    document.getElementById('btn-asc').addEventListener('click', () => {
+      window.hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+      setTimeout(() => checkSort('asc'), 50);
+    });
+
+    document.getElementById('btn-desc').addEventListener('click', () => {
+      window.hot.getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      setTimeout(() => checkSort('desc'), 50);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      window.hot.getPlugin('columnSorting').clearSort();
+      ['m-order', 'm-worked'].forEach(id => {
+        document.getElementById(id).textContent = '—';
+        document.getElementById(id).className = 'metric-value neutral';
+      });
+      document.getElementById('status').textContent = 'Click a sort button to test.';
+    });
+  </script>
+</body>
+</html>
