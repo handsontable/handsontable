@@ -24,7 +24,7 @@ export default function exportItem(exportFilePlugin: ExportFile): object {
   return {
     key: 'export_file',
     name(this: HotInstance): string {
-      return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT) as string;
+      return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT);
     },
     hidden(this: HotInstance) {
       return this.getSettings()[PLUGIN_KEY] === undefined;
@@ -34,7 +34,7 @@ export default function exportItem(exportFilePlugin: ExportFile): object {
         {
           key: 'export_file:csv',
           name(this: HotInstance): string {
-            return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT_FILE_CSV) as string;
+            return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT_FILE_CSV);
           },
           callback(this: HotInstance) {
             exportFilePlugin.downloadFile('csv', getExportOptions(this) as Record<string, unknown>);
@@ -44,7 +44,7 @@ export default function exportItem(exportFilePlugin: ExportFile): object {
         {
           key: 'export_file:xlsx',
           name(this: HotInstance): string {
-            return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX) as string;
+            return this.getTranslatedPhrase(CONTEXTMENU_ITEMS_EXPORT_FILE_XLSX);
           },
           callback(this: HotInstance) {
             exportFilePlugin.downloadFileAsync(
