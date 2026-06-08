@@ -23,6 +23,7 @@ import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils'
 import { getSortComparatorForMeta } from './sortComparators';
 import { createMenuFocusController } from './menu/focusController';
 import type { Menu } from '../contextMenu/menu/menu';
+import type { DropdownMenu } from '../dropdownMenu/dropdownMenu';
 import {
   CONDITION_NONE,
   CONDITION_BY_VALUE,
@@ -32,62 +33,6 @@ import {
 } from './constants';
 import { TrimmingMap } from '../../translations';
 import type { BaseComponent } from './component/_base';
-
-/**
- * Interface for a DropdownMenu's Menu instance.
- */
-interface DropdownMenuInterface {
-  clearLocalHooks(): void;
-  updateMenuDimensions(): void;
-  menuItems: { key: string; [key: string]: unknown }[];
-  hotMenu: {
-    getPlugin(name: string): {
-      showRows(indexes: number[]): void;
-      hideRows(indexes: number[]): void;
-      [key: string]: unknown;
-    };
-    render(): void;
-    [key: string]: unknown;
-  };
-  getNavigator(): {
-    getCurrentPage(): number;
-    setCurrentPage(page: number): void;
-    toFirstItem(): void;
-    clear(): void;
-  };
-  focus(): void;
-  [key: string]: unknown;
-}
-
-/**
- * Interface for the DropdownMenu plugin.
- */
-interface DropdownMenuPluginInterface {
-  menu: DropdownMenuInterface;
-  enabled: boolean;
-  disablePlugin(): void;
-  enablePlugin(): void;
-  close(): void;
-  setListening(): void;
-  [key: string]: unknown;
-}
-
-/**
- * Interface for the menu focus navigator.
- */
-interface MenuFocusNavigatorInterface {
-  setCurrentPage(page: number): void;
-  getCurrentPage(): number;
-  toFirstItem(): void;
-  toLastItem(): void;
-  toNextItem(): void;
-  toPreviousItem(): void;
-  clear(): void;
-  listen(): void;
-  setMenu(menu: DropdownMenuInterface): void;
-  getMenu(): Record<string, Function>;
-  getLastMenuPage(): number;
-}
 
 export type OperationType = 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
 
@@ -207,7 +152,7 @@ export class Filters extends BasePlugin {
    * @private
    * @type {DropdownMenu}
    */
-  dropdownMenuPlugin: DropdownMenuPluginInterface | null = null;
+  dropdownMenuPlugin: DropdownMenu | null = null;
   /**
    * Instance of {@link ConditionCollection}.
    *
@@ -247,13 +192,13 @@ export class Filters extends BasePlugin {
    *
    * @type {MenuFocusNavigator|undefined}
    */
-  #menuFocusNavigator: MenuFocusNavigatorInterface | undefined;
+  #menuFocusNavigator: ReturnType<typeof createMenuFocusController> | undefined;
   /**
    * Traces the new menu instances to apply the focus navigation to the latest one.
    *
    * @type {WeakSet<Menu>}
    */
-  #dropdownMenuTraces = new WeakSet<DropdownMenuInterface>();
+  #dropdownMenuTraces = new WeakSet<Menu>();
   /**
    * Stores the previous state of the condition stack before the latest filter operation.
    * This is used in the `beforeFilter` plugin to allow performing the undo operation.
@@ -329,7 +274,7 @@ export class Filters extends BasePlugin {
     this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
 
     this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName ?? '', new TrimmingMap()) as TrimmingMap;
-    this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu') as unknown as DropdownMenuPluginInterface;
+    this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
     const uiContainerCandidate = typeof dropdownSettings === 'object'
@@ -444,16 +389,15 @@ export class Filters extends BasePlugin {
             }
 
             const menu = navigator.getMenu();
-            const menuNavigator: ReturnType<DropdownMenuInterface['getNavigator']> =
-              menu.getNavigator() as ReturnType<DropdownMenuInterface['getNavigator']>;
+            const menuNavigator = menu.getNavigator();
             const lastSelectedMenuItem = navigator.getLastMenuPage();
 
             menu.focus();
 
             if (lastSelectedMenuItem > 0) {
-              menuNavigator.setCurrentPage(lastSelectedMenuItem);
+              menuNavigator?.setCurrentPage(lastSelectedMenuItem);
             } else {
-              menuNavigator.toFirstItem();
+              menuNavigator?.toFirstItem();
             }
           },
         },
@@ -463,7 +407,7 @@ export class Filters extends BasePlugin {
       ];
 
       this.#menuFocusNavigator = createMenuFocusController(
-        this.dropdownMenuPlugin.menu as unknown as Menu, focusableItems) as unknown as MenuFocusNavigatorInterface;
+        this.dropdownMenuPlugin.menu!, focusableItems);
 
       const forwardToFocusNavigation = (event: KeyboardEvent) => {
         this.#menuFocusNavigator?.listen();
@@ -504,7 +448,7 @@ export class Filters extends BasePlugin {
   disablePlugin() {
     if (this.enabled) {
       if (this.dropdownMenuPlugin?.enabled) {
-        this.dropdownMenuPlugin.menu.clearLocalHooks();
+        this.dropdownMenuPlugin.menu?.clearLocalHooks();
       }
 
       this.components.forEach((component, key) => {
@@ -1593,10 +1537,14 @@ export class Filters extends BasePlugin {
 
     const menu = this.dropdownMenuPlugin.menu;
 
+    if (!menu) {
+      return indexes;
+    }
+
     arrayEach(components, (component) => {
       const comp = (component as unknown) as { getMenuItemDescriptor(): { key: string } };
 
-      arrayEach(menu.menuItems, (item, index) => {
+      arrayEach(menu.menuItems ?? [], (item, index) => {
         if ((item as { key: string }).key === comp.getMenuItemDescriptor().key) {
 
           indexes.push(index);
@@ -1620,7 +1568,17 @@ export class Filters extends BasePlugin {
     }
 
     const menu = this.dropdownMenuPlugin.menu;
+
+    if (!menu) {
+      return;
+    }
+
     const hotMenu = menu.hotMenu;
+
+    if (!hotMenu) {
+      return;
+    }
+
     const hiddenRows = hotMenu.getPlugin('hiddenRows');
     const indexes = this.getIndexesOfComponents(...components);
 
