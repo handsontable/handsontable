@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Removed the deprecated `PersistentState` plugin, its `persistentState` option, and the `persistentStateSave`, `persistentStateLoad`, and `persistentStateReset` hooks. Deprecated `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, and `loadManualRowHeights()` — these now no-op and will be removed in the next major release.",
+  "type": "removed",
+  "issueOrPR": 0,
+  "breaking": true,
+  "framework": "none"
+}
