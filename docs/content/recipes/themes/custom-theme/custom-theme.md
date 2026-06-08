@@ -188,8 +188,8 @@ export const config: Partial<HotTableProps> = {
 };
 
 export const data = [
-  { name: "Alice", age: 28, country: "USA", city: "New York", isActive: true, interest: "Tech Gadgets", favoriteProduct: "Laptop", lastLoginDate: "Jan 15, 2025", lastLoginTime: "09:30" },
-  { name: "Bob", age: 34, country: "UK", city: "London", isActive: false, interest: "Books & Literature", favoriteProduct: "Headphones", lastLoginDate: "Feb 01, 2025", lastLoginTime: "14:00" },
+  { name: "Alice", age: 28, country: "USA", city: "New York", isActive: true, interest: "Tech Gadgets", favoriteProduct: "Laptop", lastLoginDate: "2025-01-15", lastLoginTime: "09:30" },
+  { name: "Bob", age: 34, country: "UK", city: "London", isActive: false, interest: "Books & Literature", favoriteProduct: "Headphones", lastLoginDate: "2025-02-01", lastLoginTime: "14:00" },
   // Add more rows; keys must match HotColumn data props
 ];
 ```
