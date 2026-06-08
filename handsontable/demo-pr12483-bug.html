@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12483 — BUG (date validator infinite loop with correctFormat + allowInvalid: false)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .bad { color: #f48771; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-run { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
+    .btn-run:hover { background: #c62828; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 180px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 20px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.ok { color: #2e7d32; }
+    .metric-value.neutral { color: #555; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+    .status-box { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-family: monospace; min-height: 40px; white-space: pre-wrap; }
+    .warn { background: #fff3e0; border: 1px solid #ffb74d; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #e65100; }
+  </style>
+</head>
+<body>
+  <h1>PR #12483 - <code>date</code> validator infinite loop</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12483-fix.html">PR #12483 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    Pasting a numeric value (e.g. <code>50000</code>) into a <code>date</code> cell configured with
+    <code>correctFormat: true</code> and <code>allowInvalid: false</code> causes an infinite validation loop:
+    <br><br>
+    <code>paste "50000"</code> → validator calls <code>correctFormat()</code> → returns <code>"Invalid date"</code>
+    → <code>setDataAtCell("Invalid date")</code> → <code>afterChange</code> → validator on <code>"Invalid date"</code>
+    → <code>allowInvalid: false</code> reverts to <code>"50000"</code> → <code>afterChange</code> → validator on <code>"50000"</code> → ∞
+  </div>
+
+  <pre><span class="comment">// BUG — dateValidator.js (before fix):</span>
+if (isValidDate && !isValidFormat) {
+  if (this.correctFormat === true) {
+    const correctedValue = correctFormat(valueToValidate, this.dateFormat);
+    <span class="comment">// correctedValue may be "Invalid date" — but we call setDataAtCell anyway:</span>
+    <span class="bad">this.instance.setDataAtCell(this.visualRow, this.visualCol, correctedValue, 'dateValidator');</span>
+    <span class="bad">valid = true;</span>  <span class="comment">// marked valid even when correctedValue === "Invalid date"</span>
+  }
+}</pre>
+
+  <div class="warn">
+    <strong>Safety guard enabled:</strong> This demo limits <code>afterChange</code> to 20 calls and then
+    destroys the grid to prevent the browser tab from freezing. In a real app without a guard,
+    this would lock the browser.
+  </div>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>Click <strong>"Paste '50000' into date cell"</strong>.</li>
+      <li>BUG: <code>afterChange</code> fires 20+ times before the guard kills the grid.</li>
+      <li>Compare with the <a href="demo-pr12483-fix.html">Fix page</a> where it fires at most 2 times.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-run" id="btn-paste">Paste "50000" into date cell</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">afterChange call count</div>
+      <div class="metric-value neutral" id="m-count">—</div>
+      <div class="metric-sub">Expected: ≤ 2 — BUG: keeps climbing</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Infinite loop detected?</div>
+      <div class="metric-value neutral" id="m-loop">—</div>
+      <div class="metric-sub">Expected: NO — BUG: YES</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Final cell value</div>
+      <div class="metric-value neutral" id="m-val">—</div>
+      <div class="metric-sub">Expected: "03-FEBRUARY-2022" (reverted)</div>
+    </div>
+  </div>
+
+  <div class="status-box" id="status">Click "Paste '50000' into date cell" to test.</div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const ORIGINAL_DATE = '03-FEBRUARY-2022';
+    const MAX_CALLS = 20;
+    let afterChangeCount = 0;
+    let guardTriggered = false;
+
+    function updateCountDisplay() {
+      document.getElementById('m-count').textContent = afterChangeCount;
+      document.getElementById('m-count').className =
+        'metric-value ' + (afterChangeCount <= 2 ? 'ok' : 'bad');
+    }
+
+    function initHot() {
+      if (window.hot) { window.hot.destroy(); window.hot = null; }
+      afterChangeCount = 0;
+      guardTriggered = false;
+
+      ['m-count', 'm-loop', 'm-val'].forEach(id => {
+        document.getElementById(id).textContent = '—';
+        document.getElementById(id).className = 'metric-value neutral';
+      });
+      document.getElementById('status').textContent = 'Click "Paste \'50000\' into date cell" to test.';
+
+      window.hot = new Handsontable(document.getElementById('hot-container'), {
+        data: [[ORIGINAL_DATE, 'Notes for this date']],
+        columns: [
+          {
+            type: 'date',
+            dateFormat: 'DD-MMMM-YYYY',
+            correctFormat: true,
+          },
+          { type: 'text' },
+        ],
+        colHeaders: ['Date (DD-MMMM-YYYY)', 'Notes'],
+        rowHeaders: true,
+        width: '100%',
+        height: 120,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+        allowInvalid: false,
+        afterChange(changes, source) {
+          if (!changes) return;
+          afterChangeCount++;
+          updateCountDisplay();
+
+          if (afterChangeCount >= MAX_CALLS && !guardTriggered) {
+            guardTriggered = true;
+            const finalVal = this.getDataAtCell(0, 0);
+
+            document.getElementById('m-loop').textContent = 'YES ✗';
+            document.getElementById('m-loop').className = 'metric-value bad';
+
+            document.getElementById('m-val').textContent = String(finalVal);
+            document.getElementById('m-val').className = 'metric-value bad';
+
+            document.getElementById('status').textContent =
+              'BUG: afterChange fired ' + afterChangeCount + ' times — infinite loop detected!\n' +
+              'Guard triggered: grid destroyed to prevent browser freeze.\n\n' +
+              'Loop:\n' +
+              '  paste "50000" → correctFormat() → "Invalid date" → setDataAtCell("Invalid date")\n' +
+              '  → afterChange → allowInvalid:false reverts to "50000" → afterChange → ...\n\n' +
+              'Final cell value before guard: "' + finalVal + '"';
+
+            // Destroy to stop the loop
+            setTimeout(() => {
+              if (window.hot) { window.hot.destroy(); window.hot = null; }
+            }, 0);
+          }
+        },
+      });
+    }
+
+    document.getElementById('btn-paste').addEventListener('click', () => {
+      if (!window.hot) {
+        document.getElementById('status').textContent = 'Grid was destroyed by the guard. Click Reset to reinitialize.';
+        return;
+      }
+      afterChangeCount = 0;
+      updateCountDisplay();
+      document.getElementById('m-loop').textContent = '—';
+      document.getElementById('m-loop').className = 'metric-value neutral';
+      document.getElementById('m-val').textContent = '—';
+      document.getElementById('m-val').className = 'metric-value neutral';
+      document.getElementById('status').textContent = 'Pasting "50000" — watching afterChange count...';
+
+      window.hot.setDataAtCell(0, 0, '50000');
+
+      // Check result after loop has had time to run (or guard has stopped it)
+      setTimeout(() => {
+        if (window.hot && !guardTriggered) {
+          const finalVal = window.hot.getDataAtCell(0, 0);
+          const loopDetected = afterChangeCount > 2;
+
+          document.getElementById('m-loop').textContent = loopDetected ? 'YES ✗' : 'NO ✓';
+          document.getElementById('m-loop').className = 'metric-value ' + (loopDetected ? 'bad' : 'ok');
+
+          document.getElementById('m-val').textContent = String(finalVal);
+          document.getElementById('m-val').className = 'metric-value neutral';
+
+          document.getElementById('status').textContent =
+            'afterChange called ' + afterChangeCount + ' time(s).\n' +
+            'Final cell value: "' + finalVal + '"\n\n' +
+            (loopDetected ? 'BUG: loop detected.' : 'No loop detected.');
+        }
+      }, 500);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', initHot);
+
+    initHot();
+  </script>
+</body>
+</html>
