@@ -106,4 +106,4 @@ This keeps the engine untouched and ensures it behaves exactly as intended.
 
 - [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md) -- learn the full Formulas plugin API.
 - [Modules in Vue 3](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md) -- reduce bundle size by importing only required modules.
-- [HotColumn component in Vue 3](@/guides/integrate-with-vue3/vue3-hot-column/vue3-hot-column.md) -- configure columns declaratively.
+- [HotColumn component in Vue 3](@/guides/getting-started/vue3-hot-column/vue3-hot-column.md) -- configure columns declaratively.

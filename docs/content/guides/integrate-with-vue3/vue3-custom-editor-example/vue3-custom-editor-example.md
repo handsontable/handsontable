@@ -98,5 +98,5 @@ The following example implements the `@handsontable/vue3` component with a custo
 ## Next steps
 
 - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md) -- read the full editor API documentation.
-- [HotColumn component in Vue 3](@/guides/integrate-with-vue3/vue3-hot-column/vue3-hot-column.md) -- declare editors per column using HotColumn.
+- [HotColumn component in Vue 3](@/guides/getting-started/vue3-hot-column/vue3-hot-column.md) -- declare editors per column using HotColumn.
 - [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example/vue3-custom-renderer-example.md) -- complement your editor with a custom renderer.
