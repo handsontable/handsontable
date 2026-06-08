@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12482 — FIX (numeric European locale dot-thousands correctly parsed)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .new { color: #b5cea8; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; line-height: 1.5; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-run { background: #388e3c; color: #fff; border-color: #2e7d32; font-weight: 600; }
+    .btn-run:hover { background: #2e7d32; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    table.test-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 13px; background: #fff; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.1); }
+    table.test-table th { background: #f5f5f5; font-weight: 600; padding: 8px 12px; text-align: left; border-bottom: 2px solid #ddd; font-size: 12px; }
+    table.test-table td { padding: 7px 12px; border-bottom: 1px solid #eee; font-family: monospace; }
+    table.test-table tr:last-child td { border-bottom: none; }
+    .val-bad { color: #b71c1c; font-weight: 700; }
+    .val-ok  { color: #2e7d32; font-weight: 700; }
+    .status-box { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-family: monospace; min-height: 40px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>PR #12482 - Numeric European locale dot-thousands correctly parsed</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12482-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR #12482 Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12482).</strong>
+    Two new helpers — <code>isDotThousandsGroupedInteger</code> and <code>isDotThousandsGroupedFloat</code>
+    — detect European dot-grouped inputs when <code>decimalSeparator === ','</code>. <code>getParsedNumber</code>
+    and the numeric <code>valueSetter</code> now strip the dots and normalize the comma before calling
+    <code>parseFloat</code>, so all three cases are stored correctly:
+    <ul style="margin: 6px 0 0 20px; line-height: 1.8;">
+      <li><code>7.000</code> → stored as <strong>7000</strong> ✓</li>
+      <li><code>1.234.567</code> → stored as <strong>1234567</strong> ✓</li>
+      <li><code>7.000,25</code> → stored as <strong>7000.25</strong> ✓</li>
+    </ul>
+  </div>
+
+  <pre><span class="comment">// FIX — helpers/number.js getParsedNumber (two new branches added):</span>
+<span class="new">if (isDotThousandsGroupedInteger(numericData, decimalSeparator)) {
+  return parseFloat(normalizedNumericData.replace(/\./g, ''));
+  // "7.000"     → remove dots → parseFloat("7000")     → 7000
+  // "1.234.567" → remove dots → parseFloat("1234567")  → 1234567
+}
+
+if (isDotThousandsGroupedFloat(numericData, decimalSeparator)) {
+  return parseFloat(normalizedNumericData.replace(/\./g, '').replace(',', '.'));
+  // "7.000,25"  → remove dots, comma→dot → parseFloat("7000.25") → 7000.25
+}</span></pre>
+
+  <div id="patch-info">
+    This page loads <code>dist/handsontable.full.min.js</code> built from the <code>develop</code>
+    branch which includes PR #12482.
+  </div>
+
+  <div class="hint">
+    <strong>How to verify the fix:</strong>
+    <ol>
+      <li>Click <strong>"Run test cases"</strong> — all rows should show <strong>PASS ✓</strong>. ✓</li>
+      <li>Double-click any cell and type a value like <code>1.234.567</code>, press Enter — the cell shows <code>1.234.567</code> (formatted) and stores <code>1234567</code>. ✓</li>
+      <li>Compare with the <a href="demo-pr12482-bug.html">Bug page</a> where dots are treated as decimals.</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-run" id="btn-run">Run test cases</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <table class="test-table" id="results-table">
+    <thead>
+      <tr>
+        <th>Input typed</th>
+        <th>Stored value (getSourceDataAtCell)</th>
+        <th>Expected</th>
+        <th>Result</th>
+      </tr>
+    </thead>
+    <tbody id="results-body">
+      <tr><td colspan="4" style="color:#999;font-style:italic;font-family:sans-serif;">Click "Run test cases" to populate.</td></tr>
+    </tbody>
+  </table>
+
+  <div class="status-box" id="status">Click "Run test cases" to test dot-thousands parsing.</div>
+
+  <div id="hot-container"></div>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    const TEST_CASES = [
+      { input: '7.000',      expected: 7000,    label: 'integer dot-thousands' },
+      { input: '1.234.567',  expected: 1234567, label: 'multi-group integer' },
+      { input: '7.000,25',   expected: 7000.25, label: 'float dot-thousands + comma decimal' },
+      { input: '100,25',     expected: 100.25,  label: 'simple comma decimal (no thousands)' },
+      { input: '50000',      expected: 50000,   label: 'plain integer (no grouping)' },
+    ];
+
+    function initHot() {
+      if (window.hot) { window.hot.destroy(); window.hot = null; }
+      document.getElementById('results-body').innerHTML =
+        '<tr><td colspan="4" style="color:#999;font-style:italic;font-family:sans-serif;">Click "Run test cases" to populate.</td></tr>';
+      document.getElementById('status').textContent = 'Click "Run test cases" to test dot-thousands parsing.';
+
+      window.hot = new Handsontable(document.getElementById('hot-container'), {
+        data: TEST_CASES.map(() => [0]),
+        columns: [{ type: 'numeric', numericFormat: { pattern: '0,0.[00]', culture: 'de-DE' }, locale: 'de-DE' }],
+        colHeaders: ['Amount (de-DE locale)'],
+        rowHeaders: TEST_CASES.map(tc => tc.input),
+        width: '100%',
+        height: 220,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    }
+
+    document.getElementById('btn-run').addEventListener('click', () => {
+      TEST_CASES.forEach((tc, row) => {
+        window.hot.setDataAtCell(row, 0, tc.input);
+      });
+
+      setTimeout(() => {
+        const tbody = document.getElementById('results-body');
+        tbody.innerHTML = '';
+
+        let allPass = true;
+        TEST_CASES.forEach((tc, row) => {
+          const actual = window.hot.getSourceDataAtCell(row, 0);
+          const pass = actual === tc.expected;
+          if (!pass) allPass = false;
+
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>${tc.input}</td>
+            <td class="${pass ? 'val-ok' : 'val-bad'}">${JSON.stringify(actual)}</td>
+            <td>${JSON.stringify(tc.expected)}</td>
+            <td class="${pass ? 'val-ok' : 'val-bad'}">${pass ? 'PASS ✓' : 'FAIL ✗'}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+
+        document.getElementById('status').textContent =
+          allPass
+            ? 'FIX: all 5 test cases passed. Dot-thousands correctly parsed for de-DE locale. ✓'
+            : 'Some cases failed unexpectedly.';
+      }, 100);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', initHot);
+
+    initHot();
+  </script>
+</body>
+</html>
