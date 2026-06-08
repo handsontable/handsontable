@@ -40,21 +40,6 @@ const dataManagementItems = [
   { path: 'guides/cell-features/clipboard/clipboard' },
 ];
 
-const integrateWithVue3Items = [
-  { path: 'guides/integrate-with-vue3/vue3-installation/vue3-installation' },
-  { path: 'guides/integrate-with-vue3/vue3-simple-example/vue3-simple-example' },
-  { path: 'guides/integrate-with-vue3/vue3-modules/vue3-modules' },
-  { path: 'guides/integrate-with-vue3/vue3-hot-column/vue3-hot-column' },
-  { path: 'guides/integrate-with-vue3/vue3-setting-up-a-language/vue3-setting-up-a-language' },
-  { path: 'guides/integrate-with-vue3/vue3-custom-id-class-style/vue3-custom-id-class-style' },
-  { path: 'guides/integrate-with-vue3/vue3-custom-context-menu-example/vue3-custom-context-menu-example' },
-  { path: 'guides/integrate-with-vue3/vue3-custom-editor-example/vue3-custom-editor-example' },
-  { path: 'guides/integrate-with-vue3/vue3-custom-renderer-example/vue3-custom-renderer-example' },
-  { path: 'guides/integrate-with-vue3/vue3-language-change-example/vue3-language-change-example' },
-  { path: 'guides/integrate-with-vue3/vue3-vuex-example/vue3-vuex-example' },
-  { path: 'guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference' },
-  { path: 'guides/integrate-with-vue3/vue3-formulas-example/vue3-formulas-example' },
-];
 
 const columnsItems = [
   { path: 'guides/columns/react-hot-column/react-hot-column', onlyFor: ['react'] },
@@ -225,7 +210,7 @@ module.exports = {
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
     { title: 'Internationalization', children: internationalizationItems },
     { title: 'Accessibility and navigation', children: navigationAndAccessibilityItems },
-    { title: 'Integrate with Vue', children: integrateWithVue3Items },
+
     { title: 'Tools and building', children: buildingAndToolingItems },
     { title: 'Optimization', children: optimizationItems },
     { title: 'Security', children: securityItems },
