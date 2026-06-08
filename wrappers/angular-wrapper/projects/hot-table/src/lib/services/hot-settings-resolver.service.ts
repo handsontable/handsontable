@@ -124,14 +124,14 @@ export class HotSettingsResolver {
       }
 
       const editorType = cellSettings.editor as Type<HotCellEditorComponent<any>> | Type<HotCellEditorAdvancedComponent<any>>;
-      const reusableRef = this.reusableEditorRef(previousColumns?.[index], editorType);
+      const reusableRef = this.reusableEditorRef(previousColumns?.[index], cellSettings, editorType);
       const internalSettings = cellSettings as ColumnSettingsInternal;
 
       // Recycle the editor component from the previous settings cycle when the same editor type
-      // sits at the same column index. Recreating it on every settings change would tear down and
-      // rebuild an Angular component (and its DOM/internal state) for no reason. The reused ref is
-      // carried into the new column; HotTableComponent.ngOnChanges detects it by identity and skips
-      // destroying it.
+      // sits at the same column index AND the same logical column (by `data`) still occupies it.
+      // Recreating it on every settings change would tear down and rebuild an Angular component
+      // (and its DOM/internal state) for no reason. The reused ref is carried into the new column;
+      // HotTableComponent.ngOnChanges detects it by identity and skips destroying it.
       const component = reusableRef ?? createComponent(editorType as Type<any>, {
         environmentInjector: this.environmentInjector,
       });
@@ -148,28 +148,41 @@ export class HotSettingsResolver {
   }
 
   /**
-   * Returns the previous column's editor component ref when it can be reused for the new editor
-   * type (same component type at the same index), or `undefined` to signal a fresh component is
-   * needed.
+   * Returns the previous column's editor component ref when it can be reused for the new column, or
+   * `undefined` to signal a fresh component is needed.
    *
-   * Matching by index + component type (rather than by logical column identity) is intentional and
-   * safe even when columns are reordered, shortened, or otherwise reshuffled so a different logical
-   * column lands on an index. A Handsontable editor is not per-cell rendered state: it is a single
-   * on-demand component that `BaseEditorAdapter`/`FactoryEditorAdapter` re-prepare on every edit —
-   * `prepare()` re-reads the ref from the *current* column meta and `applyPropsToEditor()` re-applies
-   * the full cell context (value, row, column, prop, cellProperties) on each `open()`. Reusing a
-   * same-type ref for a different logical column is therefore observationally identical to creating a
-   * fresh one, minus the Angular teardown/rebuild — no stale editor state leaks to the cell.
+   * A ref is only recycled when, at the same index, both the editor component type AND the logical
+   * column identity (its `data` binding) are unchanged. The component-type check alone would already
+   * be functionally safe — a Handsontable editor is not per-cell rendered state but a single
+   * on-demand component that `BaseEditorAdapter`/`FactoryEditorAdapter` re-prepare on every edit
+   * (`prepare()` re-reads the ref from the *current* column meta and `applyPropsToEditor()` re-applies
+   * the full cell context on each `open()`). The extra `data` check is a defensive guard: when columns
+   * are reordered/shortened so a *different* logical column lands on an index, we build a fresh editor
+   * rather than carry the previous column's instance over, so no custom editor that caches
+   * column-specific config at construction can leak stale state into the new cell.
    *
    * @param previousColumn The column at the same index in the previous settings cycle.
+   * @param currentColumn The column now occupying this index.
    * @param editorType The editor component type requested for the new column.
    */
   private reusableEditorRef(
     previousColumn: ColumnSettings | undefined,
+    currentColumn: ColumnSettings,
     editorType: Type<unknown>
   ): ComponentRef<any> | undefined {
     const previousRef = (previousColumn as ColumnSettingsInternal | undefined)?._editorComponentReference;
-    return previousRef && previousRef.componentType === editorType ? previousRef : undefined;
+
+    if (!previousRef || previousRef.componentType !== editorType) {
+      return undefined;
+    }
+
+    // Same logical column still occupies this index. Columns without a `data` binding are identified
+    // purely by position, so two `undefined` data values compare equal and recycle as before.
+    const sameLogicalColumn =
+      (previousColumn as Handsontable.ColumnSettings | undefined)?.data ===
+      (currentColumn as Handsontable.ColumnSettings).data;
+
+    return sameLogicalColumn ? previousRef : undefined;
   }
 
   /**

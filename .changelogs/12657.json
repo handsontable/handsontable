@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed subscription leak, missing EmbeddedViewRef cleanup, repeated registerRenderer calls, wrong constructor.name, incorrect prop type, missing null guard in ngOnDestroy, and premature editor destruction.",
+  "title": "Fixed subscription leak, missing EmbeddedViewRef cleanup, repeated registerRenderer calls, wrong constructor.name, incorrect prop type, missing null guard in ngOnDestroy, premature editor destruction, redundant double-destroy of already-swept renderer refs, and stale editor reuse when a different column takes an index.",
   "type": "fixed",
   "issueOrPR": 12657,
   "breaking": false,
