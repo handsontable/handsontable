@@ -10,10 +10,16 @@ export const EDITOR_TYPE = 'time';
  * @class TimeEditor
  */
 export class TimeEditor extends TextEditor {
+  /**
+   * Returns the unique editor type identifier for the time editor.
+   */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }
 
+  /**
+   * Initializes the editor and registers an afterSetTheme hook to close on theme changes.
+   */
   init(): void {
     super.init();
 
@@ -24,6 +30,9 @@ export class TimeEditor extends TextEditor {
     });
   }
 
+  /**
+   * Creates the editor's textarea element as a native time input.
+   */
   createElements(type?: string): void {
     super.createElements('input');
 
@@ -31,6 +40,9 @@ export class TimeEditor extends TextEditor {
     this.TEXTAREA.setAttribute('dir', 'ltr');
   }
 
+  /**
+   * Sets the editor value and warns if the value does not match the 24-hour time format required by the native time input.
+   */
   setValue(value?: unknown): void {
     if (!isValidTime(value)) {
       warn(toSingleLine`TimeEditor: value must be in 24-hour time format ("HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS")\x20
@@ -44,10 +56,16 @@ export class TimeEditor extends TextEditor {
     super.setValue(value);
   }
 
+  /**
+   * Selects all text in the time input element when the editor receives focus.
+   */
   focus(): void {
     this.TEXTAREA.select();
   }
 
+  /**
+   * Opens the editor and programmatically invokes the native time picker via showPicker().
+   */
   open(): void {
     super.open();
 

@@ -20,6 +20,9 @@ class SelectionRange {
    */
   createCellRange: (...args: CellCoords[]) => CellRange;
 
+  /**
+   * Initializes the collection with a factory function used to create new CellRange instances.
+   */
   constructor(createCellRange: (...args: CellCoords[]) => CellRange) {
     this.createCellRange = createCellRange;
   }
@@ -219,6 +222,9 @@ class SelectionRange {
     return cellRange;
   }
 
+  /**
+   * Returns an iterator over all CellRange entries stored in the collection, enabling use in for-of loops.
+   */
   [Symbol.iterator]() {
     return this.ranges[Symbol.iterator]();
   }

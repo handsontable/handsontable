@@ -52,6 +52,9 @@ export class ExtendMetaPropertiesMod {
     }],
   ]);
 
+  /**
+   * Initializes the modifier with a reference to the MetaManager and immediately extends the global meta with calculated property values.
+   */
   constructor(metaManager: MetaManagerInstance & {
     hot: { isRtl: () => boolean; [key: string]: unknown };
     globalMeta: { meta: Record<string, unknown>; [key: string]: unknown };

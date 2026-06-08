@@ -2,7 +2,6 @@ import CellCoords from './../cell/coords';
 
 type DirectionType = 'NW-SE' | 'NE-SW' | 'SE-NW' | 'SW-NE';
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
  *
@@ -51,6 +50,14 @@ class CellRange {
    */
   #isRtl: boolean = false;
 
+  /**
+   * Creates a new CellRange instance.
+   *
+   * @param {CellCoords} highlight The cell where selection was started.
+   * @param {CellCoords} from The start of the range.
+   * @param {CellCoords} to The end of the range.
+   * @param {boolean} isRtl A flag indicating whether to use right-to-left (RTL) layout.
+   */
   constructor(highlight: CellCoords, from: CellCoords = highlight, to: CellCoords = highlight, isRtl: boolean = false) {
     this.highlight = highlight.clone();
     this.from = from.clone();

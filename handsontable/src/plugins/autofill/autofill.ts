@@ -20,8 +20,6 @@ const SETTING_KEY = 'fillHandle';
 const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row_below';
 const INTERVAL_FOR_ADDING_ROW = 200;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * This plugin provides "drag-down" and "copy-down" functionalities, both operated using the small square in the right
  * bottom of the cell selection.
@@ -34,22 +32,33 @@ const INTERVAL_FOR_ADDING_ROW = 200;
  * @class Autofill
  * @plugin Autofill
  */
-
 export class Autofill extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
+   */
   static get SETTING_KEYS() {
     return [
       SETTING_KEY,
     ];
   }
 
+  /**
+   * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   */
   static get DEFAULT_SETTINGS(): { direction: string | undefined; autoInsertRow: boolean } {
     return {
       direction: undefined,
@@ -57,6 +66,9 @@ export class Autofill extends BasePlugin {
     };
   }
 
+  /**
+   * Returns validator functions for each plugin setting to verify their values are valid before applying them.
+   */
   static get SETTINGS_VALIDATORS() {
     return {
       direction: (value: unknown) =>

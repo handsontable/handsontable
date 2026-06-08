@@ -39,6 +39,9 @@ class MergedCellsCollection {
    */
   declare hot: HotInstance;
 
+  /**
+   * Initializes the cells collection with references to the MergeCells plugin and the Handsontable instance.
+   */
   constructor(mergeCellsPlugin: MergeCells) {
     this.plugin = mergeCellsPlugin;
     this.hot = mergeCellsPlugin.hot;

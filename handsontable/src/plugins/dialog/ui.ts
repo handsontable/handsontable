@@ -98,6 +98,9 @@ export class DialogUI {
    */
   #sanitizer?: (html: string) => string | undefined;
 
+  /**
+   * Initializes the dialog UI with a root element, RTL layout flag, and an optional HTML sanitizer, then installs the DOM structure.
+   */
   constructor({ rootElement, isRtl, sanitizer }: {
     rootElement: HTMLElement; isRtl: boolean; sanitizer?: (html: string) => string | undefined;
   }) {

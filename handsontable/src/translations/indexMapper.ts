@@ -47,9 +47,21 @@ const deprecationWarns = new Set();
  */
 export class IndexMapper {
   // Mixin-injected properties/methods (added by `mixin(IndexMapper, localHooks)`)
+  /**
+   * Internal storage map for local hook callbacks, keyed by hook name.
+   */
   declare _localHooks: Record<string, Function[]>;
+  /**
+   * Registers a callback function for the given local hook name on this index mapper.
+   */
   declare addLocalHook: (key: string, callback: Function) => this;
+  /**
+   * Removes a previously registered callback function for the given local hook name.
+   */
   declare removeLocalHook: (key: string, callback: Function) => this;
+  /**
+   * Triggers all callbacks registered under the given local hook name, passing any additional arguments.
+   */
   declare runLocalHooks: (key: string, ...args: unknown[]) => void;
 
   /**
@@ -187,6 +199,9 @@ export class IndexMapper {
    */
   readonly #dirtyObservedMaps = new Set<IndexMap>();
 
+  /**
+   * Initializes the IndexMapper by wiring change listeners on the indexes sequence, trimming, and hiding map collections to keep caches up to date.
+   */
   constructor() {
     this.indexesSequence.addLocalHook('change', () => {
       this.indexesSequenceChanged = true;

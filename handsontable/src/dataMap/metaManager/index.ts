@@ -34,39 +34,57 @@ import { throwWithCause } from '../../helpers/errors';
  * A more detailed description of the specific layers can be found in the "metaLayers/" modules description.
  */
 export default class MetaManager {
+  /**
+   * The Handsontable instance passed to this manager on construction.
+   */
   declare hot: unknown;
+  /**
+   * The global meta layer that holds default settings shared across the entire grid.
+   */
   declare globalMeta: GlobalMeta;
+  /**
+   * The table meta layer that holds instance-level settings applied to the whole table.
+   */
   declare tableMeta: TableMeta;
+  /**
+   * The column meta layer that holds per-column settings keyed by physical column index.
+   */
   declare columnMeta: ColumnMeta;
+  /**
+   * The cell meta layer that holds per-cell settings keyed by physical row and column index.
+   */
   declare cellMeta: CellMeta;
 
   // Mixin-injected properties/methods (added by `mixin(MetaManager, localHooks)`)
+  /**
+   * Registry of local hook callbacks, keyed by hook name and injected by the `localHooks` mixin.
+   */
   declare _localHooks: Record<string, Function[]>;
+  /**
+   * Registers a callback for the given local hook name; returns this instance for chaining.
+   */
   declare addLocalHook: (key: string, callback: Function) => this;
+  /**
+   * Unregisters a previously added callback from the given local hook name; returns this instance for chaining.
+   */
   declare removeLocalHook: (key: string, callback: Function) => this;
+  /**
+   * Executes all callbacks registered under the given local hook name, passing any extra arguments.
+   */
   declare runLocalHooks: (key: string, ...args: unknown[]) => void;
+  /**
+   * Removes all registered local hook callbacks and returns this instance for chaining.
+   */
   declare clearLocalHooks: () => this;
 
+  /**
+   * Initializes all meta layers, applies custom settings to global meta, and instantiates any meta modifier classes.
+   */
   constructor(hot: unknown, customSettings: Record<string, unknown> = {}, metaMods: unknown[] = []) {
-    /**
-     * @type {Handsontable}
-     */
     this.hot = hot;
-    /**
-     * @type {GlobalMeta}
-     */
     this.globalMeta = new GlobalMeta(hot);
-    /**
-     * @type {TableMeta}
-     */
     this.tableMeta = new TableMeta(this.globalMeta);
-    /**
-     * @type {ColumnMeta}
-     */
     this.columnMeta = new ColumnMeta(this.globalMeta);
-    /**
-     * @type {CellMeta}
-     */
     this.cellMeta = new CellMeta(this.columnMeta);
 
     (metaMods as Array<new (metaManager: MetaManager) => unknown>).forEach(ModifierClass => new ModifierClass(this));

@@ -39,6 +39,9 @@ class BaseUI {
    */
   declare inlineProperty: 'left' | 'right';
 
+  /**
+   * Initializes the base UI element with the Handsontable instance and sets the inline CSS property name based on the document layout direction.
+   */
   constructor(hotInstance: HotInstance) {
     this.hot = hotInstance;
     this.inlineProperty = hotInstance.isRtl() ? 'right' : 'left';

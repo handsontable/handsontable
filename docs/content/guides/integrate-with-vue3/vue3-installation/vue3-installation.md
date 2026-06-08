@@ -87,6 +87,14 @@ You can reduce the size of your bundle by importing and registering only the
 
 :::
 
+## Next steps
+
+::: only-for vue
+
+- If you use Nuxt 3, read [Use Handsontable in Nuxt](@/guides/getting-started/vue3-nuxt/vue3-nuxt.md) to handle SSR.
+
+:::
+
 ## Related API reference
 
 **Configuration options**

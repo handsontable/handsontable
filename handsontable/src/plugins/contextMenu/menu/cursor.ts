@@ -52,9 +52,18 @@ export class Cursor {
    * @type {number}
    */
   cellWidth;
+  /**
+   * Reference to the root window used for reading scroll offsets and dimensions.
+   */
   declare rootWindow: Window;
+  /**
+   * Indicates the source type of the cursor position: either `'literal'` or `'event'`.
+   */
   declare type: string;
 
+  /**
+   * Initializes the cursor position by computing coordinates from either a literal object or a DOM event.
+   */
   constructor(object: CursorSourceLiteral | Event, rootWindow: Window) {
     const windowScrollTop = rootWindow.scrollY;
     const windowScrollLeft = rootWindow.scrollX;

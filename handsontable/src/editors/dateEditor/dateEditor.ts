@@ -11,10 +11,16 @@ export const EDITOR_TYPE = 'date';
  * @class DateEditor
  */
 export class DateEditor extends TextEditor {
+  /**
+   * Returns the unique editor type identifier for the date editor.
+   */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }
 
+  /**
+   * Initializes the editor and registers an afterSetTheme hook to close on theme changes.
+   */
   init(): void {
     super.init();
 
@@ -25,6 +31,9 @@ export class DateEditor extends TextEditor {
     });
   }
 
+  /**
+   * Prepares the editor, replacing the display value with the raw ISO source data for the native date input.
+   */
   prepare(row: number, col: number, prop: string | number, td: HTMLTableCellElement,
           value: unknown, cellProperties: Record<string, unknown>): void {
     super.prepare(row, col, prop, td, value, cellProperties);
@@ -35,12 +44,18 @@ export class DateEditor extends TextEditor {
     this.originalValue = this.hot.getSourceDataAtCell(physicalRow, col);
   }
 
+  /**
+   * Creates the editor's textarea element as a native date input.
+   */
   createElements(type?: string): void {
     super.createElements('input');
 
     this.TEXTAREA.setAttribute('type', 'date');
   }
 
+  /**
+   * Sets the editor value, falling back to `defaultDate` when the value is empty, and warns if the value is not a valid ISO date string.
+   */
   setValue(value?: unknown): void {
     if (isEmpty(value)) {
       value = this.cellProperties.defaultDate;
@@ -58,10 +73,16 @@ export class DateEditor extends TextEditor {
     super.setValue(value);
   }
 
+  /**
+   * Selects all text in the date input element when the editor receives focus.
+   */
   focus(): void {
     this.TEXTAREA.select();
   }
 
+  /**
+   * Opens the editor and programmatically invokes the native date picker via showPicker().
+   */
   open(): void {
     super.open();
 

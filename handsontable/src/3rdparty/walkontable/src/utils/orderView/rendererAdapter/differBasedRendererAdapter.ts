@@ -14,6 +14,9 @@ import {
  * @class {DifferBasedRendererAdapter}
  */
 export class DifferBasedRendererAdapter {
+  /**
+   * @type {OrderView}
+   */
   declare orderView: OrderView;
   /**
    * The list of render commands to execute. The command is an array with the following

@@ -1,11 +1,12 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
-const hotSettings = ref({
+const hotSettings = ref<GridSettings>({
   data: [
     ['A1', 'B1'],
     ['A2', 'B2'],
@@ -23,7 +24,7 @@ const hotSettings = ref({
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
 });
-const secondColumnSettings = ref({
+const secondColumnSettings = ref<GridSettings>({
   title: 'Second column header',
 });
 </script>

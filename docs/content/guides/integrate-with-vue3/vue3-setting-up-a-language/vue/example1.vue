@@ -1,6 +1,7 @@
-<script setup>
+<script setup lang="ts">
 import { HotTable, HotColumn } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
@@ -14,7 +15,7 @@ const formatTR = {
   currency: 'TRY',
   minimumFractionDigits: 2,
 };
-const hotData = [
+const hotData: ProductRow[] = [
   {
     productName: 'Product A',
     JP_price: 1.32,
@@ -31,7 +32,7 @@ const hotData = [
     TR_price: 678.1,
   },
 ];
-const settings = {
+const settings: GridSettings = {
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,

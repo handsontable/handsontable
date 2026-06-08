@@ -10,6 +10,9 @@ import { getDecreasedIndexes, getIncreasedIndexes } from './utils';
  * @class IndexesSequence
  */
 export class IndexesSequence extends IndexMap {
+  /**
+   * Initializes the sequence map with an identity function so each index maps to its own physical value.
+   */
   constructor() {
     // Not handling custom init function or init value.
     super((index: number) => index);

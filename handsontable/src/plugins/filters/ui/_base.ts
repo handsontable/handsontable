@@ -27,6 +27,9 @@ export interface BaseUIOptions {
  * @private
  */
 export class BaseUI {
+  /**
+   * Returns the default configuration options applied to a new UI component instance.
+   */
   static get DEFAULTS(): BaseUIOptions {
     return clone({
       className: '',
@@ -69,6 +72,9 @@ export class BaseUI {
    */
   declare buildState: string | undefined;
 
+  /**
+   * Initializes the UI component with the Handsontable instance and merged configuration options.
+   */
   constructor(hotInstance: HotInstance, options: Record<string, unknown>) {
     this.hot = hotInstance;
     this.options = extend(BaseUI.DEFAULTS, options) as BaseUIOptions;
@@ -247,6 +253,9 @@ export class BaseUI {
   focus() { // intentionally empty
   }
 
+  /**
+   * Destroys the UI component by releasing the event manager, nulling references, and removing the element from the DOM.
+   */
   destroy() {
     this.eventManager?.destroy();
     this.eventManager = null;

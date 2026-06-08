@@ -99,6 +99,9 @@ class GhostTable {
    */
   table: GhostTableStruct | null = null;
 
+  /**
+   * Initializes the ghost table utility with a reference to the Handsontable instance used for DOM context.
+   */
   constructor(hotInstance: HotInstance | object) {
     this.hot = hotInstance as HotInstance;
   }

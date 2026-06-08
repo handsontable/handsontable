@@ -19,8 +19,17 @@ class DisplaySwitch {
    * @type {boolean}
    */
   wasLastActionShow = true;
+  /**
+   * Registers a local hook listener scoped to this instance. Provided by the `localHooks` mixin.
+   */
   declare addLocalHook: (key: string, callback: Function) => void;
+  /**
+   * Executes all local hook listeners registered under the given name. Provided by the `localHooks` mixin.
+   */
   declare runLocalHooks: Function;
+  /**
+   * Removes all local hook listeners. Provided by the `localHooks` mixin.
+   */
   declare clearLocalHooks: Function;
   /**
    * Show comment after predefined delay. It keeps reference to immutable `debounce` function.
@@ -35,6 +44,9 @@ class DisplaySwitch {
    */
   hidingTimer: ReturnType<typeof setTimeout> | null = null;
 
+  /**
+   * Initializes the display switch and configures the debounced show delay.
+   */
   constructor(displayDelay: number) {
     this.updateDelay(displayDelay);
   }

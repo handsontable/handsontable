@@ -8,6 +8,9 @@ import { arrayReduce } from '../../helpers/array';
  * @class HidingMap
  */
 export class HidingMap extends PhysicalIndexToValueMap {
+  /**
+   * Initializes the hiding map with an optional default value, defaulting to `false` (not hidden).
+   */
   constructor(initValueOrFn = false) {
     super(initValueOrFn);
   }

@@ -14,7 +14,14 @@ interface VisualSelectionSettings {
   [key: string]: unknown;
 }
 
+/**
+ * Extends the Walkontable Selection class to operate on visual coordinates, translating them to
+ * renderable indexes when committing the selection to the DOM.
+ */
 class VisualSelection extends Selection {
+  /**
+   * The settings object that includes index mappers and coordinate factory helpers specific to visual selection.
+   */
   declare settings: VisualSelectionSettings;
 
   /**
@@ -24,6 +31,9 @@ class VisualSelection extends Selection {
    */
   visualCellRange: CellRange | null = null;
 
+  /**
+   * Initializes the visual selection with optional settings overrides and an initial visual cell range.
+   */
   constructor(settings: Record<string, unknown>, visualCellRange?: CellRange | null) {
     super(settings, null);
     this.visualCellRange = visualCellRange || null;

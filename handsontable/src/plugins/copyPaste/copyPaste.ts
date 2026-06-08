@@ -26,7 +26,9 @@ import {
 } from './copyableRanges';
 import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
 
-/** Internet Explorer-specific window extension with legacy clipboard API. */
+/**
+ * Internet Explorer-specific window extension with legacy clipboard API.
+ */
 interface IEWindow extends Window {
   clipboardData: DataTransfer;
 }
@@ -50,6 +52,7 @@ const META_HEAD = [
 ].join('');
 
 /* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @description
  * Copy, cut, and paste data by using the `CopyPaste` plugin.
@@ -85,10 +88,16 @@ const META_HEAD = [
  * @plugin CopyPaste
  */
 export class CopyPaste extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
+   */
   static get SETTING_KEYS() {
     return [
       PLUGIN_KEY,
@@ -96,10 +105,16 @@ export class CopyPaste extends BasePlugin {
     ];
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   */
   static get DEFAULT_SETTINGS() {
     return {
       pasteMode: 'overwrite',

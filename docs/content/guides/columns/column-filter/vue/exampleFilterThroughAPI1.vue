@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
@@ -7,7 +7,7 @@ import type { GridSettings } from 'handsontable/settings';
 // register Handsontable's modules
 registerAllModules();
 
-const hotTableRef = ref<any>(null);
+const hotTableRef = useTemplateRef<InstanceType<typeof HotTable>>('hotTableRef');
 
 const filterBelow200 = () => {
   // get the `Filters` plugin, so you can use its API

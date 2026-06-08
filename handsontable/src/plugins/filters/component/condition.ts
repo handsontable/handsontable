@@ -40,6 +40,9 @@ export class ConditionComponent extends BaseComponent {
    */
   addSeparator = false;
 
+  /**
+   * Initializes the condition component with the given ID, display name, separator flag, and optional menu container.
+   */
   constructor(hotInstance: HotInstance, options: {
     id: string; name: string | (() => string); addSeparator: boolean; menuContainer?: HTMLElement
   }) {

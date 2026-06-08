@@ -158,26 +158,41 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * :::
  */
 export class Filters extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   */
   static get DEFAULT_SETTINGS() {
     return {
       searchMode: 'show',
     };
   }
 
+  /**
+   * Returns validator functions for each plugin setting to verify their values are valid before applying them.
+   */
   static get SETTINGS_VALIDATORS() {
     return {
       searchMode: (value: unknown) => typeof value === 'string' && ['show', 'apply'].includes(value),
     };
   }
 
+  /**
+   * Returns the list of plugin dependencies required before this plugin can be initialized.
+   */
   static get PLUGIN_DEPS() {
     return [
       'plugin:DropdownMenu',
@@ -262,6 +277,9 @@ export class Filters extends BasePlugin {
    */
   #isDataProviderActive = false;
 
+  /**
+   * Initializes the plugin and registers the column header hook needed to inject the filter UI.
+   */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
     // One listener for the enable/disable functionality
@@ -538,7 +556,6 @@ export class Filters extends BasePlugin {
       ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * @memberof Filters#
    * @function addCondition
@@ -928,7 +945,6 @@ export class Filters extends BasePlugin {
    * @param {Array} args Condition arguments. The expected format depends on the condition - see the table above for details.
    * @param {string} [operationId=conjunction] `id` of operation which is performed on the column.
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   addCondition(column: number, name: string, args: unknown[], operationId: string = OPERATION_AND): void {
     if (name === CONDITION_BY_VALUE && this.#isDataProviderActive) {
       return;
@@ -980,7 +996,6 @@ export class Filters extends BasePlugin {
     this.conditionCollection?.importAllConditions(conditions);
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Exports filter conditions for all columns from the plugin.
    * The array represents the filter state for each column. For example:
@@ -1010,7 +1025,6 @@ export class Filters extends BasePlugin {
   exportConditions(): ColumnConditions[] {
     return this.conditionCollection?.exportAllConditions() ?? [];
   }
-  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Filters data based on added filter conditions.

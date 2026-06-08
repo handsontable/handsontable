@@ -54,6 +54,9 @@ class SamplesGenerator {
    */
   includeHidden = false;
 
+  /**
+   * Initializes the samples generator with the data factory function used to retrieve cell values during sampling.
+   */
   constructor(dataFactory: DataFactory) {
     this.dataFactory = dataFactory;
   }

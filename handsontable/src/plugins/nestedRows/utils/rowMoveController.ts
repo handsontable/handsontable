@@ -72,6 +72,9 @@ export default class RowMoveController {
    */
   movedToCollapsed: boolean = false;
 
+  /**
+   * Initializes the row move controller with references to the NestedRows plugin, the Handsontable instance, the data manager, and the collapsing UI.
+   */
   constructor(plugin: NestedRowsPlugin) {
     this.plugin = plugin;
     this.hot = plugin.hot;

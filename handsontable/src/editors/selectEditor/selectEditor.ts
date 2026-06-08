@@ -19,6 +19,9 @@ export const EDITOR_TYPE = 'select';
  * @class SelectEditor
  */
 export class SelectEditor extends BaseEditor {
+  /**
+   * Returns the unique editor type identifier for the select editor.
+   */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }

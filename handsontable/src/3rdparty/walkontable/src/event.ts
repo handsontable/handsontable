@@ -26,14 +26,54 @@ const LONG_PRESS_MOVE_THRESHOLD = 10;
  * @class Event
  */
 class Event {
+  /**
+   * State object tracking momentum scrolling status and timeout.
+   *
+   * @type {{ ongoing?: boolean; _timeout?: ReturnType<typeof setTimeout> }}
+   */
   declare momentumScrolling: { ongoing?: boolean; _timeout?: ReturnType<typeof setTimeout> };
+  /**
+   * Flag indicating whether a touch event is currently being processed.
+   *
+   * @type {boolean}
+   */
   declare touchApplied: boolean;
+  /**
+   * Reference to the last element the mouse was over, or null if none.
+   *
+   * @type {HTMLElement | null}
+   */
   declare lastMouseOver: HTMLElement | null;
 
+  /**
+   * Walkontable settings instance.
+   *
+   * @type {Settings}
+   */
   #wtSettings;
+  /**
+   * DOM bindings for walkontable elements.
+   *
+   * @type {DomBindings}
+   */
   #domBindings;
+  /**
+   * Reference to the walkontable table.
+   *
+   * @type {Table}
+   */
   #wtTable;
+  /**
+   * Selection manager instance.
+   *
+   * @type {SelectionManager}
+   */
   #selectionManager: SelectionManager;
+  /**
+   * Parent Event instance, or null for the root instance.
+   *
+   * @type {Event | null}
+   */
   #parent;
   /**
    * Instance of {@link EventManager}.

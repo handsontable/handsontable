@@ -1,11 +1,15 @@
 import type { HotInstance } from '../../core/types';
 import type { OperationType, ConditionId, ColumnConditions } from './filters';
 
-/** Internal representation of a condition — extends the public ConditionId with the resolved function. */
+/**
+ * Internal representation of a condition — extends the public ConditionId with the resolved function.
+ */
 interface StoredCondition extends ConditionId {
   func: Function;
 }
-/** Internal column state as stored in filteringStates. */
+/**
+ * Internal column state as stored in filteringStates.
+ */
 interface StoredColumnState {
   operation: OperationType;
   conditions: StoredCondition[];
@@ -48,6 +52,9 @@ class ConditionCollection {
    */
   filteringStates = new IndexToValueMap();
 
+  /**
+   * Initializes the condition collection with the Handsontable instance, optionally registering the filtering states index map on the column index mapper.
+   */
   constructor(hot: HotInstance, isMapRegistrable = true) {
     this.hot = hot;
     this.isMapRegistrable = isMapRegistrable;

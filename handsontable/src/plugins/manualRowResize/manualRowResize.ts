@@ -22,8 +22,6 @@ export const PLUGIN_KEY = 'manualRowResize';
 export const PLUGIN_PRIORITY = 30;
 const PERSISTENT_STATE_KEY = PLUGIN_KEY;
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin ManualRowResize
  * @class ManualRowResize
@@ -36,10 +34,16 @@ const PERSISTENT_STATE_KEY = PLUGIN_KEY;
  * - guide - the helper guide that shows the desired height as a horizontal guide.
  */
 export class ManualRowResize extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
@@ -123,6 +127,9 @@ export class ManualRowResize extends BasePlugin {
    */
   #config!: unknown[];
 
+  /**
+   * Initializes the plugin and applies CSS classes to the resize handle and guide elements.
+   */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
 

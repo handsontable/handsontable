@@ -1,12 +1,13 @@
-<script setup>
-import { ref } from 'vue';
+<script setup lang="ts">
+import { ref, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
-const hotTableComponent = ref(null);
-const hotSettings = ref({
+const hotTableComponent = useTemplateRef<InstanceType<typeof HotTable>>('hotTableComponent');
+const hotSettings = ref<GridSettings>({
   data: [
     ['A1', 'B1', 'C1', 'D1'],
     ['A2', 'B2', 'C2', 'D2'],
@@ -21,7 +22,7 @@ const hotSettings = ref({
 });
 
 function swapHotData() {
-  hotTableComponent.value.hotInstance.loadData([['new', 'data']]);
+  hotTableComponent.value?.hotInstance?.loadData([['new', 'data']]);
 }
 </script>
 

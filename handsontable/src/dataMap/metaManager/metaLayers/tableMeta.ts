@@ -34,6 +34,9 @@ export default class TableMeta {
    */
   declare meta: Record<string, unknown>;
 
+  /**
+   * Initializes the table meta layer by instantiating a new meta object from the GlobalMeta constructor.
+   */
   constructor(globalMeta: { getMetaConstructor(): new (...args: unknown[]) => unknown }) {
     const MetaCtor = globalMeta.getMetaConstructor();
 

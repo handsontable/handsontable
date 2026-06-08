@@ -1,11 +1,12 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
-const hotSettings = ref({
+const hotSettings = ref<GridSettings>({
   data: [
     ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1', 'J1', 'K1', 'L1'],
     ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2', 'J2', 'K2', 'L2'],
@@ -26,20 +27,28 @@ const hotSettings = ref({
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-function onFixedRowsChange(event) {
-  hotSettings.value = { ...hotSettings.value, fixedRowsTop: event.target.checked ? 2 : 0 };
+function onFixedRowsChange(event: Event) {
+  const checked = (event.target as HTMLInputElement).checked;
+
+  hotSettings.value = { ...hotSettings.value, fixedRowsTop: checked ? 2 : 0 };
 }
 
-function onFixedColumnsChange(event) {
-  hotSettings.value = { ...hotSettings.value, fixedColumnsStart: event.target.checked ? 2 : 0 };
+function onFixedColumnsChange(event: Event) {
+  const checked = (event.target as HTMLInputElement).checked;
+
+  hotSettings.value = { ...hotSettings.value, fixedColumnsStart: checked ? 2 : 0 };
 }
 
-function onRowHeadersChange(event) {
-  hotSettings.value = { ...hotSettings.value, rowHeaders: event.target.checked };
+function onRowHeadersChange(event: Event) {
+  const checked = (event.target as HTMLInputElement).checked;
+
+  hotSettings.value = { ...hotSettings.value, rowHeaders: checked };
 }
 
-function onColHeadersChange(event) {
-  hotSettings.value = { ...hotSettings.value, colHeaders: event.target.checked };
+function onColHeadersChange(event: Event) {
+  const checked = (event.target as HTMLInputElement).checked;
+
+  hotSettings.value = { ...hotSettings.value, colHeaders: checked };
 }
 </script>
 

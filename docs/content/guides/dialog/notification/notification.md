@@ -72,6 +72,16 @@ Enable the plugin with [`notification: true`](@/api/options.md#notification), th
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/dialog/notification/vue/example1.vue)
+
+:::
+
+:::
+
 ## Toolbar actions (inventory-style)
 
 Use separate buttons for save, error recovery, and warnings. Primary and secondary actions on an error toast can call `hideAll()` before showing follow-up feedback.
@@ -105,6 +115,16 @@ Use separate buttons for save, error recovery, and warnings. Primary and seconda
 
 @[code](@/content/guides/dialog/notification/angular/example2.ts)
 @[code](@/content/guides/dialog/notification/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/dialog/notification/vue/example2.vue)
 
 :::
 

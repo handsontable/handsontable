@@ -330,9 +330,9 @@ const settings: GridSettings = {
 };
 ```
 
-### Type the HOT instance in a React ref
-
 ::: only-for react
+
+### Type the HOT instance in a React ref
 
 ```tsx
 import { useRef } from 'react';
@@ -358,9 +358,9 @@ export function Grid() {
 
 :::
 
-### Type the HOT instance in Angular
-
 ::: only-for angular
+
+### Type the HOT instance in Angular
 
 ```typescript
 import { Component, ViewChild } from '@angular/core';
@@ -381,6 +381,33 @@ export class GridComponent {
   };
 }
 ```
+
+:::
+
+::: only-for vue
+
+### Type the HOT instance in a Vue ref
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import type { GridSettings } from 'handsontable';
+
+const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+
+const settings: GridSettings = {
+  data: myData,
+  licenseKey: 'non-commercial-and-evaluation',
+};
+</script>
+
+<template>
+  <HotTable ref="hotRef" :settings="settings" />
+</template>
+```
+
+The ref is typed as the `HotTable` component; read the `HotInstance` through `hotRef.value?.hotInstance`.
 
 :::
 

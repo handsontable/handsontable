@@ -8,6 +8,9 @@ import {
  * Map from physical index to another index.
  */
 class StrictBindsMap extends IndexMap {
+  /**
+   * Initializes the strict binds map with an identity function so each row header index initially maps to itself.
+   */
   constructor() {
     super((index: number) => index);
   }

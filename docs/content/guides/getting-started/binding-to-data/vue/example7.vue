@@ -1,11 +1,14 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
-function model(opts) {
+type ModelOpts = Record<string, unknown>;
+
+function model(opts: ModelOpts) {
   const _pub = {
     id: undefined,
     name: undefined,
@@ -20,7 +23,7 @@ function model(opts) {
     }
   }
 
-  _pub.attr = function(attr, val) {
+  _pub.attr = function(attr: string, val?: unknown) {
     if (typeof val === 'undefined') {
       window.console && console.log('GET the', attr, 'value of', _pub);
       return _priv[attr];
@@ -33,11 +36,11 @@ function model(opts) {
   return _pub;
 }
 
-function property(attr) {
-  return (row, value) => row.attr(attr, value);
+function property(attr: string) {
+  return (row: ReturnType<typeof model>, value: unknown) => row.attr(attr, value);
 }
 
-const hotSettings = ref({
+const hotSettings = ref<GridSettings>({
   data: [
     model({ id: 1, name: 'Ted Right', address: '' }),
     model({ id: 2, name: 'Frank Honest', address: '' }),

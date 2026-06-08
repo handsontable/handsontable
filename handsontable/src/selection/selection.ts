@@ -50,9 +50,12 @@ function isFocusPositionObject(value: unknown): value is { row: number; col: num
  */
 class Selection {
   /**
-   * Local hooks mixin properties.
+   * Triggers registered local hook callbacks for the given hook name, passing any additional arguments.
    */
   declare runLocalHooks: (...args: unknown[]) => void;
+  /**
+   * Registers a local hook callback for the given hook name on this instance.
+   */
   declare addLocalHook: (...args: unknown[]) => this;
 
   /**
@@ -146,6 +149,9 @@ class Selection {
    */
   #activeSelectionLayer = 0;
 
+  /**
+   * Initializes the Selection manager with grid settings and table API references, and sets up transformation modules and highlight layers.
+   */
   constructor(settings: SelectionSettings, tableProps: SelectionTableProps) {
     this.settings = settings;
     this.tableProps = tableProps;

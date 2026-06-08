@@ -8,6 +8,9 @@ import { BaseUI } from './_base';
  * @class LinkUI
  */
 export class LinkUI extends BaseUI {
+  /**
+   * Returns the default configuration options for the link UI component, including href, tag name, and tab index.
+   */
   static get DEFAULTS(): BaseUIOptions {
     return clone({
       href: '#',
@@ -24,6 +27,9 @@ export class LinkUI extends BaseUI {
    */
   #link: HTMLAnchorElement | null = null;
 
+  /**
+   * Initializes the link UI component with the Handsontable instance and merged configuration options.
+   */
   constructor(hotInstance: HotInstance, options: Record<string, unknown>) {
     super(hotInstance, extend(LinkUI.DEFAULTS, options) as BaseUIOptions);
   }

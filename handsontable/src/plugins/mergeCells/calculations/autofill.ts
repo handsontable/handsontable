@@ -37,6 +37,9 @@ class AutofillCalculations {
    */
   currentFillData: Record<string, unknown> | null = null;
 
+  /**
+   * Initializes the autofill calculations helper with a reference to the MergeCells plugin and its merged cells collection.
+   */
   constructor(plugin: MergeCellsPlugin) {
     this.plugin = plugin;
     this.mergedCellsCollection = this.plugin.mergedCellsCollection;

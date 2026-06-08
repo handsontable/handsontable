@@ -8,6 +8,9 @@ export const EDITOR_TYPE = 'dropdown';
  * @class DropdownEditor
  */
 export class DropdownEditor extends AutocompleteEditor {
+  /**
+   * Returns the unique editor type identifier for the dropdown editor.
+   */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }

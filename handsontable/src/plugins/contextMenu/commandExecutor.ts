@@ -33,6 +33,9 @@ export class CommandExecutor {
    */
   commonCallback: Function | null = null;
 
+  /**
+   * Initializes the command executor with a reference to the Handsontable instance.
+   */
   constructor(hotInstance: HotInstance) {
     this.hot = hotInstance;
   }

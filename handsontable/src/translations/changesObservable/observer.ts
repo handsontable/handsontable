@@ -9,9 +9,21 @@ import localHooks from '../../mixins/localHooks';
  */
 export class ChangesObserver {
   // Mixin-injected properties/methods (added by `mixin(ChangesObserver, localHooks)`)
+  /**
+   * Internal storage map for local hook callbacks, keyed by hook name.
+   */
   declare _localHooks: Record<string, Function[]>;
+  /**
+   * Registers a callback function for the given local hook name.
+   */
   declare addLocalHook: (key: string, callback: Function) => this;
+  /**
+   * Triggers all callbacks registered under the given local hook name.
+   */
   declare runLocalHooks: (key: string, ...args: unknown[]) => void;
+  /**
+   * Removes all locally registered hook callbacks from this observer instance.
+   */
   declare clearLocalHooks: () => this;
 
   /**

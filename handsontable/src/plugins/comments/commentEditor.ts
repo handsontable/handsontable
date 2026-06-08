@@ -10,20 +10,38 @@ import { EditorResizeObserver } from './editorResizeObserver';
  * @class CommentEditor
  */
 class CommentEditor {
+  /**
+   * Registers a local hook listener scoped to this instance. Provided by the `localHooks` mixin.
+   */
   declare addLocalHook: (key: string, callback: Function) => void;
+  /**
+   * Executes all local hook listeners registered under the given name. Provided by the `localHooks` mixin.
+   */
   declare runLocalHooks: Function;
+  /**
+   * Returns the CSS class name applied to the outer comments container element.
+   */
   static get CLASS_EDITOR_CONTAINER() {
     return 'htCommentsContainer';
   }
 
+  /**
+   * Returns the CSS class name applied to the comment editor element.
+   */
   static get CLASS_EDITOR() {
     return 'htComments';
   }
 
+  /**
+   * Returns the CSS class name applied to the comment textarea input element.
+   */
   static get CLASS_INPUT() {
     return 'htCommentTextArea';
   }
 
+  /**
+   * Returns the CSS class name applied to cells that have comments attached.
+   */
   static get CLASS_CELL() {
     return 'htCommentCell';
   }
@@ -61,6 +79,9 @@ class CommentEditor {
    */
   #resizeObserver = new EditorResizeObserver();
 
+  /**
+   * Initializes the comment editor, builds its DOM structure, and attaches the resize observer.
+   */
   constructor(rootDocument: Document, isRtl: boolean, rootPortalElement: HTMLElement) {
     this.#rootDocument = rootDocument;
     this.#rootPortalElement = rootPortalElement;

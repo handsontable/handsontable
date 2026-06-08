@@ -20,24 +20,51 @@ const SHORTCUTS_GROUP = 'multiselectEditor';
 const EDITOR_VISIBLE_CLASS_NAME = 'ht_editor_visible';
 
 /**
+ * Cell editor that lets users pick one or more values from a checkbox dropdown list.
+ * Saves on every check/uncheck rather than on editor close.
+ *
  * @private
  * @class MultiSelectEditor
  */
 export class MultiSelectEditor extends BaseEditor {
+  /**
+   * Overrides the base flag to keep the editor open after data changes — multiselect saves on each selection.
+   */
   _closeAfterDataChange = false;
 
+  /**
+   * Controller managing the set of currently selected values in the editor.
+   */
   #selectedItems = new SelectedItemsController();
+  /**
+   * The outer wrapper element that positions the dropdown relative to the edited cell.
+   */
   #editorContainer: HTMLDivElement | null = null;
 
+  /**
+   * The container element passed to `DropdownController` that holds the dropdown UI.
+   */
   dropdownContainerElement: HTMLDivElement | null = null;
+  /**
+   * The controller responsible for rendering and managing the dropdown list.
+   */
   dropdownController: DropdownController | null = null;
 
+  /**
+   * The event manager used to register and clean up DOM event listeners.
+   */
   declare eventManager: InstanceType<typeof EventManager>;
 
+  /**
+   * Returns the unique editor type identifier for the multiselect editor.
+   */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }
 
+  /**
+   * Initializes the editor, creates DOM elements, and binds dropdown and hook events.
+   */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
 
@@ -47,6 +74,9 @@ export class MultiSelectEditor extends BaseEditor {
     this.bindEvents();
   }
 
+  /**
+   * Creates the outer container, dropdown container, accessibility attributes, and the DropdownController instance.
+   */
   createElements(): void {
     const { rootDocument } = this.hot;
 
@@ -68,6 +98,9 @@ export class MultiSelectEditor extends BaseEditor {
     this.dropdownController = new DropdownController(this.dropdownContainerElement, this.hot.guid);
   }
 
+  /**
+   * Prepares the editor for the given cell, resets the dropdown, syncs the current selection, and applies cell settings.
+   */
   prepare(
     row: number,
     col: number,
@@ -101,10 +134,16 @@ export class MultiSelectEditor extends BaseEditor {
     }
   }
 
+  /**
+   * Delegates to the base finishEditing to complete saving or restoring the cell value.
+   */
   finishEditing(restoreOriginalValue: boolean, ctrlDown: boolean, callback?: Function): void {
     super.finishEditing(restoreOriginalValue, ctrlDown, callback);
   }
 
+  /**
+   * Wires dropdown check/uncheck hooks, scroll hooks, destroy cleanup, and the search filter trigger.
+   */
   bindEvents(): void {
     this.dropdownController!.addLocalHook('afterDropdownItemChecked',
       (selectedKey: string, selectedValue: string) => {
@@ -135,6 +174,9 @@ export class MultiSelectEditor extends BaseEditor {
       'triggerFilter', (value: string) => this.#filterEntries(value));
   }
 
+  /**
+   * Shows the dropdown, positions it next to the edited cell, registers keyboard shortcuts, and focuses the appropriate element.
+   */
   open(event?: Event | null): void {
     const keyCode = event && 'keyCode' in event ? (event as { keyCode: number }).keyCode : 0;
     const keyStr = event && 'key' in event ? (event as { key: string }).key : '';
@@ -162,20 +204,32 @@ export class MultiSelectEditor extends BaseEditor {
 
   }
 
+  /**
+   * Hides the dropdown element, unregisters keyboard shortcuts, and stops the search input listener.
+   */
   close(): void {
     this.#hideEditableElement();
     this.#unregisterShortcuts();
     this.dropdownController!.getInputController()!.unlisten();
   }
 
+  /**
+   * Returns the currently selected values as an array to be written to the cell.
+   */
   getValue(): unknown[] {
     return this.#selectedItems.getItemsArray();
   }
 
+  /**
+   * No-op override — MultiSelectEditor saves data immediately on each check/uncheck event.
+   */
   setValue(): void {
     // Currently not implemented - MultiSelectEditor saves data after every change.
   }
 
+  /**
+   * Repositions the dropdown next to the edited cell; closes the editor if the cell is no longer rendered.
+   */
   refreshDimensions(): void {
     if (!this.getEditedCell()) {
       this.close();
@@ -192,6 +246,9 @@ export class MultiSelectEditor extends BaseEditor {
     addClass(this.#editorContainer!, EDITOR_VISIBLE_CLASS_NAME);
   }
 
+  /**
+   * Focuses the first dropdown item when search input is disabled, or the search input otherwise.
+   */
   focus(): void {
     if (this.#getEditorSetting('searchInput') === false) {
       this.dropdownController!.focusFirstItem();
@@ -200,19 +257,31 @@ export class MultiSelectEditor extends BaseEditor {
     }
   }
 
+  /**
+   * Returns the underlying search input element from the dropdown's input controller.
+   */
   getInputElement(): HTMLInputElement {
     return this.dropdownController!.getInputController()!.getInputElement();
   }
 
+  /**
+   * Closes the editor and resets the dropdown controller state, releasing DOM resources.
+   */
   destroy(): void {
     this.close();
     this.dropdownController!.reset();
   }
 
+  /**
+   * Returns the `source` cell property as an array of dropdown entries, defaulting to an empty array.
+   */
   #getSource(): DropdownEntry[] {
     return (this.cellProperties.source as DropdownEntry[]) ?? [];
   }
 
+  /**
+   * Registers ArrowUp/ArrowDown and Enter/Space shortcuts for keyboard navigation and checkbox toggling.
+   */
   #registerShortcuts(): void {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
@@ -263,6 +332,9 @@ export class MultiSelectEditor extends BaseEditor {
     });
   }
 
+  /**
+   * Removes all keyboard shortcuts registered under the multiselect editor's shortcut group.
+   */
   #unregisterShortcuts(): void {
     const shortcutManager = this.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
@@ -270,22 +342,37 @@ export class MultiSelectEditor extends BaseEditor {
     editorContext!.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
+  /**
+   * Makes the outer editor container visible by clearing its `display` style.
+   */
   #showEditableElement(): void {
     this.#editorContainer!.style.display = '';
   }
 
+  /**
+   * Hides the outer editor container by setting its `display` style to `'none'`.
+   */
   #hideEditableElement(): void {
     this.#editorContainer!.style.display = 'none';
   }
 
+  /**
+   * Disables all unchecked checkboxes in the dropdown when the maximum selection count is reached.
+   */
   #blockNewSelections(): void {
     this.dropdownController!.disableCheckboxes();
   }
 
+  /**
+   * Re-enables all checkboxes in the dropdown when the selection count drops below the maximum.
+   */
   #unblockNewSelections(): void {
     this.dropdownController!.enableCheckboxes();
   }
 
+  /**
+   * Filters the source entries by the given query string and re-renders the dropdown with matching items.
+   */
   #filterEntries(
     query: string,
     filterSelectedItems: boolean = this.#getEditorSetting<boolean>('filterSelectedItems') ?? true
@@ -310,6 +397,9 @@ export class MultiSelectEditor extends BaseEditor {
     this.dropdownController!.updateDimensions(this.#getAvailableSpace(), true);
   }
 
+  /**
+   * Calculates the available vertical space above and below the edited cell for positioning the dropdown.
+   */
   #getAvailableSpace(): { spaceAbove: number; spaceBelow: number; cellHeight: number } {
     const cellRect = this.getEditedCellRect()!;
     const isVerticallyScrollableByWindow = this.hot.view.isVerticallyScrollableByWindow();
@@ -332,12 +422,18 @@ export class MultiSelectEditor extends BaseEditor {
     };
   }
 
+  /**
+   * Reads the current selected items array and writes it to the cell via saveValue.
+   */
   #saveCurrentSelection(): void {
     const value = this.#selectedItems.getItemsArray();
 
     this.saveValue([[value]]);
   }
 
+  /**
+   * Adds the given key/value pair (or bare value) to the selected items and persists the new selection.
+   */
   #addSelectedValue(selectedKey: string, selectedValue: string): void {
     if (selectedKey) {
       this.#selectedItems.add({ key: selectedKey, value: selectedValue });
@@ -348,6 +444,9 @@ export class MultiSelectEditor extends BaseEditor {
     this.refreshDimensions();
   }
 
+  /**
+   * Removes the given key/value pair (or bare value) from the selected items and persists the new selection.
+   */
   #removeSelectedValue(deselectedKey: string, deselectedValue: string): void {
     if (deselectedKey) {
       this.#selectedItems.remove({ key: deselectedKey, value: deselectedValue });
@@ -358,6 +457,9 @@ export class MultiSelectEditor extends BaseEditor {
     this.refreshDimensions();
   }
 
+  /**
+   * Replaces the internal SelectedItemsController with a new one pre-populated from the given values array.
+   */
   #syncSelectedValues(valuesArray: unknown[]): void {
     if (valuesArray.length > 0) {
       this.#selectedItems = new SelectedItemsController(valuesArray);
@@ -366,10 +468,16 @@ export class MultiSelectEditor extends BaseEditor {
     }
   }
 
+  /**
+   * Reads a typed setting value from the cell properties by the given key.
+   */
   #getEditorSetting<T>(settingKey: string): T {
     return this.cellProperties[settingKey] as T;
   }
 
+  /**
+   * Handles the afterSetSourceDataAtCell hook to re-sync the dropdown when the renderer updates the source data for the edited cell.
+   */
   #onAfterSetSourceDataAtCell(changes: unknown[][], source: string): void {
     if (
       this.isOpened() &&

@@ -157,7 +157,6 @@ export default class StateManager {
     return this.triggerNodeModification(action, -1, columnIndex);
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * @memberof StateManager#
    * @function rowCoordsToLevel
@@ -167,7 +166,6 @@ export default class StateManager {
    * @param {number} rowIndex A visual row index.
    * @returns {number|null} Returns unsigned number.
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   rowCoordsToLevel(rowIndex: number): number | null {
     if (rowIndex >= 0) {
       return null;
@@ -182,7 +180,6 @@ export default class StateManager {
     return headerLevel;
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * @memberof StateManager#
    * @function levelToRowCoords
@@ -192,7 +189,6 @@ export default class StateManager {
    * @param {number} headerLevel Header level index.
    * @returns {number} Returns negative number.
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   levelToRowCoords(headerLevel: number): number | null {
     if (headerLevel < 0) {
       return null;

@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * SheetClip - Spreadsheet Clipboard Parser.
  * version 0.2
