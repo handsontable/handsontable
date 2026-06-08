@@ -1633,7 +1633,7 @@ class TableView {
 
     if (renderedIndex > -1) {
       fastInnerHTML(element, String(content(index, headerLevel)), this.hot.getSettings().sanitizer ?? true,
-        'header', this.hot.rootGridElement);
+        'header', this.hot.rootGridElement ?? undefined);
 
     } else {
       // workaround for https://github.com/handsontable/handsontable/issues/1946

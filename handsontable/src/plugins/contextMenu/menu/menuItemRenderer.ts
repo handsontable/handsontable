@@ -100,7 +100,7 @@ export function createMenuItemRenderer(mainTableHot: HotInstance) {
       const sanitizer = (mainTableHot.getSettings() as { sanitizer?: (html: string) => string }).sanitizer;
       const itemStr = String(itemValue);
 
-      fastInnerHTML(wrapper, itemStr, sanitizer, 'contextMenu', mainTableHot.rootGridElement);
+      fastInnerHTML(wrapper, itemStr, sanitizer, 'contextMenu', mainTableHot.rootGridElement ?? undefined);
     }
 
     if (isItemDisabled(item, mainTableHot)) {
