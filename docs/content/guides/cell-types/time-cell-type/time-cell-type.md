@@ -1,19 +1,15 @@
 ---
 type: how-to
-id: q63yhvq5
 title: Time cell type
 metaTitle: Time cell type - JavaScript Data Grid | Handsontable
 description: Display, format, sort, and filter time values correctly by using the time cell type. Use Intl.DateTimeFormat (recommended) or the legacy moment.js-based configuration.
 permalink: /time-cell-type
 canonicalUrl: /time-cell-type
 react:
-  id: 34n5nwja
   metaTitle: Time cell type - React Data Grid | Handsontable
 angular:
-  id: fu9fqphw
   metaTitle: Time cell type - Angular Data Grid | Handsontable
 vue:
-  id: bxoffcid
   metaTitle: Time cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types

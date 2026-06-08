@@ -1,19 +1,15 @@
 ---
 type: how-to
-id: ohjf69hj
 title: Cell renderer
 metaTitle: Cell renderer - JavaScript Data Grid | Handsontable
 description: Create a custom cell renderer function, to have full control over how a cell looks.
 permalink: /cell-renderer
 canonicalUrl: /cell-renderer
 react:
-  id: 2ej30mcg
   metaTitle: Cell renderer - React Data Grid | Handsontable
 angular:
-  id: 36rymylj
   metaTitle: Cell renderer - Angular Data Grid | Handsontable
 vue:
-  id: hsxnm2ev
   metaTitle: Cell renderer - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions

@@ -1,19 +1,15 @@
 ---
 type: how-to
-id: zbx8ayzw
 title: License key
 metaTitle: License key - JavaScript Data Grid | Handsontable
 description: Activate Handsontable, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
 permalink: /license-key
 canonicalUrl: /license-key
 react:
-  id: vyfski60
   metaTitle: License key - React Data Grid | Handsontable
 angular:
-  id: bcvwr25r
   metaTitle: License key - Angular Data Grid | Handsontable
 vue:
-  id: 7pgm711u
   metaTitle: License key - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: j1zswn3i
 title: Row headers
 metaTitle: Row headers - JavaScript Data Grid | Handsontable
 description: Use default row headers (1, 2, 3), or set them to custom values provided by an array or a function.
@@ -11,13 +10,10 @@ tags:
   - bind rows with headers
   - row id
 react:
-  id: prlcpqk8
   metaTitle: Row headers - React Data Grid | Handsontable
 angular:
-  id: jtqk0t2p
   metaTitle: Row headers - Angular Data Grid | Handsontable
 vue:
-  id: 27seavlh
   metaTitle: Row headers - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
