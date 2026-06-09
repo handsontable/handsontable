@@ -1417,6 +1417,17 @@ export function isHTMLElement(element: unknown): element is HTMLElement {
 }
 
 /**
+ * Check if the element is an HTMLTableCellElement (TD or TH). Cross-realm safe: uses the
+ * element's own realm's constructor via `ownerDocument.defaultView`.
+ *
+ * @param {unknown} element Element to check.
+ * @returns {boolean} `true` if the element is an HTMLTableCellElement.
+ */
+export function isHTMLTableCellElement(element: unknown): element is HTMLTableCellElement {
+  return isHTMLElement(element) && (element.tagName === 'TD' || element.tagName === 'TH');
+}
+
+/**
  * Check if the element is an HTMLInputElement.
  *
  * @param {HTMLElement} element Element to check.
