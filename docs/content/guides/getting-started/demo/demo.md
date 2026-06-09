@@ -1,6 +1,5 @@
 ---
 type: tutorial
-id: jnwpo47i
 title: Demo
 metaTitle: Demo - JavaScript Data Grid | Handsontable
 description: Play around with a demo of Handsontable, in your favorite framework.
@@ -10,15 +9,12 @@ tags:
   - demo
   - hello world
 react:
-  id: ccqbm8hn
   metaTitle: Demo - React Data Grid | Handsontable
   description: Play around with a demo of Handsontable in React.
 angular:
-  id: i2n378hh
   metaTitle: Demo - Angular Data Grid | Handsontable
   description: Play around with a demo of Handsontable in Angular.
 vue:
-  id: c104k1nn
   metaTitle: Demo - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 6elqkmhr
 title: Column hiding
 metaTitle: Column hiding - JavaScript Data Grid | Handsontable
 description:
@@ -9,13 +8,10 @@ description:
 permalink: /column-hiding
 canonicalUrl: /column-hiding
 react:
-  id: u1aw329h
   metaTitle: Column hiding - React Data Grid | Handsontable
 angular:
-  id: 69k5r1oh
   metaTitle: Column hiding - Angular Data Grid | Handsontable
 vue:
-  id: hwodm9tg
   metaTitle: Column hiding - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns

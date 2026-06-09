@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: m4hz9xy1
 title: Migrating from 17.1 to 18.0
 metaTitle: Migrating from 17.1 to 18.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 17.1 to Handsontable 18.0 -- update TypeScript imports from the removed handsontable/common subpath.
@@ -8,13 +7,10 @@ permalink: /migration-from-17.1-to-18.0
 canonicalUrl: /migration-from-17.1-to-18.0
 pageClass: migration-guide
 react:
-  id: p8qn2wr5
   metaTitle: Migrate from 17.1 to 18.0 - React Data Grid | Handsontable
 angular:
-  id: k3jb6ts0
   metaTitle: Migrate from 17.1 to 18.0 - Angular Data Grid | Handsontable
 vue:
-  id: 205js05l
   metaTitle: Migrate from 17.1 to 18.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
