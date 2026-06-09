@@ -6,7 +6,7 @@ description: Use the Pinia store to maintain the data and configuration options 
 permalink: /vue-pinia
 canonicalUrl: /vue-pinia
 vue:
-  metaTitle: Pinia in Vue 3 - Vue Data Grid | Handsontable
+  metaTitle: Pinia state management - Vue Data Grid | Handsontable
 searchCategory: Guides
 onlyFor: vue
 category: Getting started
