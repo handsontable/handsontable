@@ -1240,9 +1240,6 @@ In the example below, some cells are read-only, and some cells are editable:
 
 :::
 
-
-
-
 ::: only-for react
 
 ## Non-Idempotent Options
@@ -1302,7 +1299,7 @@ Use [`initialState`](@/api/options.md#initialstate) to apply these options only 
 
 ::: only-for vue
 
-::: example #example6 :vue --js 1
+::: example #example6 :vue3
 
 @[code](@/content/guides/getting-started/configuration-options/vue/example6.vue)
 
