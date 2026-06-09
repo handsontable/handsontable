@@ -13,6 +13,7 @@ import {
 } from '../../helpers/dom/element';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
+import { deprecatedWarn } from '../../helpers/console';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { getElementScaleFactor, normalizeVisualDelta } from '../manualResize/utils';
 
@@ -20,7 +21,6 @@ import { getElementScaleFactor, normalizeVisualDelta } from '../manualResize/uti
 
 export const PLUGIN_KEY = 'manualRowResize';
 export const PLUGIN_PRIORITY = 30;
-const PERSISTENT_STATE_KEY = PLUGIN_KEY;
 
 /**
  * @plugin ManualRowResize
@@ -208,28 +208,28 @@ export class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be
-   * enabled).
+   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op and will be removed in a
+   * future major release.
    *
-   * @fires Hooks#persistentStateSave
+   * @deprecated
    */
   saveManualRowHeights(): void {
-    this.hot.runHooks('persistentStateSave', PERSISTENT_STATE_KEY, this.#rowHeightsMap.getValues());
+    deprecatedWarn('`saveManualRowHeights()` is deprecated and will be removed in a future major release. ' +
+      'The PersistentState plugin has been removed.');
   }
 
   /**
-   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option
-   * has be enabled).
+   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op and will be removed in a
+   * future major release.
    *
+   * @deprecated
    * @returns {Array}
-   * @fires Hooks#persistentStateLoad
    */
   loadManualRowHeights(): Array<number | null> {
-    const storedState: Record<string, unknown> = {};
+    deprecatedWarn('`loadManualRowHeights()` is deprecated and will be removed in a future major release. ' +
+      'The PersistentState plugin has been removed.');
 
-    this.hot.runHooks('persistentStateLoad', PERSISTENT_STATE_KEY, storedState);
-
-    return storedState.value as Array<number | null>;
+    return [];
   }
 
   /**
@@ -624,8 +624,6 @@ export class ManualRowResize extends BasePlugin {
       if (forceRender) {
         render();
       }
-
-      this.saveManualRowHeights();
 
       if (hookNewSize !== false) {
         this.hot.runHooks('afterRowResize', this.getActualRowHeight(row), row, false);

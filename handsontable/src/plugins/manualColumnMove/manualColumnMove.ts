@@ -358,33 +358,6 @@ export class ManualColumnMove extends BasePlugin {
   }
 
   /**
-   * Saves the manual column positions to the persistent state (the {@link Options#persistentState} option has to be enabled).
-   *
-   * @private
-   * @fires Hooks#persistentStateSave
-   */
-  persistentStateSave() {
-    // The `PersistentState` plugin should be refactored.
-    this.hot.runHooks('persistentStateSave', 'manualColumnMove',
-      this.hot.columnIndexMapper.getIndexesSequence());
-  }
-
-  /**
-   * Loads the manual column positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
-   *
-   * @private
-   * @fires Hooks#persistentStateLoad
-   * @returns {Array} Stored state.
-   */
-  persistentStateLoad(): number[] {
-    const storedState: Record<string, unknown> = {};
-
-    this.hot.runHooks('persistentStateLoad', 'manualColumnMove', storedState);
-
-    return (storedState.value ? storedState.value : []) as number[];
-  }
-
-  /**
    * Prepares an array of indexes based on actual selection.
    *
    * @private
