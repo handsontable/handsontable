@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 39o3uw0q
 title: Custom plugins
 metaTitle: Custom plugins - JavaScript Data Grid | Handsontable
 description: Extend Handsontable's functionality by writing your custom plugin. Use the BasePlugin for a quick start.
@@ -11,13 +10,10 @@ tags:
   - skeleton
   - extend
 react:
-  id: y66k6b2h
   metaTitle: Custom plugins - React Data Grid | Handsontable
 angular:
-  id: ompl9j5i
   metaTitle: Custom plugins - Angular Data Grid | Handsontable
 vue:
-  id: 8w2zb1ze
   metaTitle: Custom plugins - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
@@ -462,7 +458,7 @@ export class ExampleComponent implements AfterViewInit {
 
 To use the Handsontable API, create a reference to the `HotTable` component, and read its `hotInstance` property.
 
-For more information, see the [Instance methods](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md) page.
+For more information, see the [Instance methods](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
 
 :::
 

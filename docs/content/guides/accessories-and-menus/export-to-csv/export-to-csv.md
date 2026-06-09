@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 51aacis1
 title: Export to CSV
 metaTitle: Export to CSV - JavaScript Data Grid | Handsontable
 description: Export your grid's raw data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
@@ -10,13 +9,10 @@ tags:
   - export to file
   - save file
 react:
-  id: sfxo3g54
   metaTitle: Export to CSV - React Data Grid | Handsontable
 angular:
-  id: hwhzgoir
   metaTitle: Export to CSV - Angular Data Grid | Handsontable
 vue:
-  id: z1ogjdj0
   metaTitle: Export to CSV - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
@@ -204,6 +200,18 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 :::
 
 :::
+
+:::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance methods](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
+
+:::
+
+::::
 
 The plugin exposes the following methods to export data.
 

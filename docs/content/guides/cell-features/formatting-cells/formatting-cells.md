@@ -1,19 +1,15 @@
 ---
 type: how-to
-id: epmvqw9m
 title: Formatting cells
 metaTitle: Formatting cells - JavaScript Data Grid | Handsontable
 description: Change the appearance of cells, using custom CSS classes, inline styles, or custom cell borders.
 permalink: /formatting-cells
 canonicalUrl: /formatting-cells
 react:
-  id: qywqgovy
   metaTitle: Formatting cells - React Data Grid | Handsontable
 angular:
-  id: 0eswjne7
   metaTitle: Formatting cells - Angular Data Grid | Handsontable
 vue:
-  id: dqqkqp0d
   metaTitle: Formatting cells - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features

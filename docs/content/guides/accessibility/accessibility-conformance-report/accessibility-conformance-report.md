@@ -1,6 +1,5 @@
 ---
 type: reference
-id: r7vpat01
 title: Accessibility conformance report (VPAT)
 metaTitle: Accessibility conformance report (VPAT) - JavaScript Data Grid | Handsontable
 description: Review Handsontable's Voluntary Product Accessibility Template (VPAT) report, covering WCAG 2.2 Level A and AA conformance.
@@ -15,13 +14,10 @@ tags:
   - conformance
   - section 508
 react:
-  id: r7vpat02
   metaTitle: Accessibility conformance report (VPAT) - React Data Grid | Handsontable
 angular:
-  id: r7vpat03
   metaTitle: Accessibility conformance report (VPAT) - Angular Data Grid | Handsontable
 vue:
-  id: vvtwmknl
   metaTitle: Accessibility conformance report (VPAT) - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessibility

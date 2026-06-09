@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: g7ligsfi
 title: Migrate from 7.4 to 8.0
 metaTitle: Migrate from 7.4 to 8.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 7.4 to Handsontable 8.0, released on August 5, 2020.
@@ -8,13 +7,10 @@ permalink: /migration-from-7.4-to-8.0
 canonicalUrl: /migration-from-7.4-to-8.0
 pageClass: migration-guide
 react:
-  id: ivkac4xa
   metaTitle: Migrate from 7.4 to 8.0 - React Data Grid | Handsontable
 angular:
-  id: wo49dhyu
   metaTitle: Migrate from 7.4 to 8.0 - Angular Data Grid | Handsontable
 vue:
-  id: 0nffktzd
   metaTitle: Migrate from 7.4 to 8.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration

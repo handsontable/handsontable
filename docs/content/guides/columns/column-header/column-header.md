@@ -1,19 +1,15 @@
 ---
 type: how-to
-id: qiasr3y1
 title: Column headers
 metaTitle: Column headers - JavaScript Data Grid | Handsontable
 description: Use default column headers (A, B, C), or set them to custom values provided by an array or a function.
 permalink: /column-header
 canonicalUrl: /column-header
 react:
-  id: 5e0tnexi
   metaTitle: Column headers - React Data Grid | Handsontable
 angular:
-  id: owl7h4t1
   metaTitle: Column headers - Angular Data Grid | Handsontable
 vue:
-  id: j4ac3057
   metaTitle: Column headers - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns

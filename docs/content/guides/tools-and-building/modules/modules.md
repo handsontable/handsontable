@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: ffimaicc
 title: Modules
 metaTitle: Modules - JavaScript Data Grid | Handsontable
 description: Reduce the size of your JavaScript bundle, by importing only the modules that you need. The base module is mandatory, all other modules are optional.
@@ -9,13 +8,10 @@ canonicalUrl: /modules
 tags:
   - tree shaking
 react:
-  id: weudz1vh
   metaTitle: Modules - React Data Grid | Handsontable
 angular:
-  id: 9i62e6cn
   metaTitle: Modules - Angular Data Grid | Handsontable
 vue:
-  id: xvedd0on
   metaTitle: Modules - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
@@ -1341,7 +1337,7 @@ You can also use modules with Handsontable's framework wrappers:
 
 - [Using modules with React](@/react/guides/tools-and-building/modules/modules.md)
 - [Using modules with Angular](@/angular/guides/tools-and-building/modules/modules.md)
-- [Using modules with Vue](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md)
+- [Using modules with Vue](@/vue/guides/tools-and-building/modules/modules.md)
 
 </div>
 
@@ -1360,7 +1356,7 @@ You can also use modules with Handsontable's framework wrappers:
 
 - [Modules in React](@/react/guides/tools-and-building/modules/modules.md)
 - [Modules in Angular](@/angular/guides/tools-and-building/modules/modules.md)
-- [Modules in Vue](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md)
+- [Modules in Vue](@/vue/guides/tools-and-building/modules/modules.md)
 
 :::
 

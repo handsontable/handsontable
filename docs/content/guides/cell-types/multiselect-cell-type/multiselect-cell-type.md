@@ -1,19 +1,15 @@
 ---
 type: how-to
-id: cjih3fhw
 title: MultiSelect cell type
 metaTitle: MultiSelect cell type - JavaScript Data Grid | Handsontable
 description: Collect user input with a list of multiple-selection entries, by using the MultiSelect cell type.
 permalink: /multiselect-cell-type
 canonicalUrl: /multiselect-cell-type
 react:
-  id: vnhtf396
   metaTitle: MultiSelect cell type - React Data Grid | Handsontable
 angular:
-  id: mdg4dixm
   metaTitle: MultiSelect cell type - Angular Data Grid | Handsontable
 vue:
-  id: 6zrsi767
   metaTitle: MultiSelect cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types

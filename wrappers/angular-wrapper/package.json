@@ -54,7 +54,7 @@
     "release": "npm run test && npm run publish-package"
   },
   "peerDependencies": {
-    "@angular/core": ">=16.0.0 <22.0.0",
+    "@angular/core": ">=19.0.0 <22.0.0",
     "handsontable": "^17.0.0",
     "rxjs": "^7.0.0"
   },

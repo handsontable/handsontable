@@ -1,7 +1,6 @@
 ---
 type: how-to
-id: h7xv9mwq
-title: Using the HotColumn component in Vue 3
+title: HotColumn component
 metaTitle: HotColumn component - JavaScript Data Grid | Handsontable
 description: Configure the Vue 3 data grid's columns, using the props of the "HotColumn" component. Define a custom cell editor or a custom cell renderer.
 permalink: /vue-hot-column
@@ -45,6 +44,16 @@ You can declare a custom editor by creating a class that extends `TextEditor` an
 ::: example #example3 :vue3
 
 @[code](@/content/guides/getting-started/vue3-hot-column/vue/example3.vue)
+
+:::
+
+## Declare a custom renderer
+
+You can declare a custom renderer by creating a function that matches the [`BaseRenderer`](@/api/renderers.md) signature and passing it to a `<HotColumn/>` via the `renderer` prop. The renderer receives the cell's `td` element and the cell value, and must return the modified `td`.
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/getting-started/vue3-hot-column/vue/example4.vue)
 
 :::
 

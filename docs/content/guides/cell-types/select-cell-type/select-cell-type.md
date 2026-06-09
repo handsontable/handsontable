@@ -1,19 +1,15 @@
 ---
 type: how-to
-id: pqe1xozj
 title: Select cell type
 metaTitle: Select cell type - JavaScript Data Grid | Handsontable
 description: Use the select cell type to collect user input with an HTML <select> element that creates a multi-item dropdown list.
 permalink: /select-cell-type
 canonicalUrl: /select-cell-type
 react:
-  id: xmdreeu3
   metaTitle: Select cell type - React Data Grid | Handsontable
 angular:
-  id: dtzqxytv
   metaTitle: Select cell type - Angular Data Grid | Handsontable
 vue:
-  id: phqvirxa
   metaTitle: Select cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types

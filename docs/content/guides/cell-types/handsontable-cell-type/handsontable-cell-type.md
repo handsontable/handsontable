@@ -1,19 +1,15 @@
 ---
 type: how-to
-id: kdie9yhz
 title: Handsontable cell type
 metaTitle: Handsontable cell type - JavaScript Data Grid | Handsontable
 description: Add a spreadsheet editor in a popup, by using the Handsontable cell type.
 permalink: /handsontable-cell-type
 canonicalUrl: /handsontable-cell-type
 react:
-  id: fcxtj167
   metaTitle: Handsontable cell type - React Data Grid | Handsontable
 angular:
-  id: cewiknc8
   metaTitle: Handsontable cell type - Angular Data Grid | Handsontable
 vue:
-  id: wd9yzry6
   metaTitle: Handsontable cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types

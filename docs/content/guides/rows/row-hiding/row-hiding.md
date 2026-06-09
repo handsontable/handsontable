@@ -1,19 +1,15 @@
 ---
 type: how-to
-id: 37786931
 title: Row hiding
 metaTitle: Row hiding - JavaScript Data Grid | Handsontable
 description: Hide individual rows to avoid rendering them as DOM elements. It helps you reduce screen clutter and improve the grid's performance.
 permalink: /row-hiding
 canonicalUrl: /row-hiding
 react:
-  id: al1djb6l
   metaTitle: Row hiding - React Data Grid | Handsontable
 angular:
-  id: 2dxb42jh
   metaTitle: Row hiding - Angular Data Grid | Handsontable
 vue:
-  id: e9gf8ukv
   metaTitle: Row hiding - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
@@ -359,6 +355,18 @@ ngAfterViewInit() {
 ```
 
 :::
+
+:::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance methods](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
+
+:::
+
+::::
 
 ### Access the `HiddenRows` plugin instance
 

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: m946ghwr
 title: Migrating from 10.0 to 11.0
 metaTitle: Migrate from 10.0 to 11.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 10.0 to Handsontable 11.0, released on November 17, 2021.
@@ -8,13 +7,10 @@ permalink: /migration-from-10.0-to-11.0
 canonicalUrl: /migration-from-10.0-to-11.0
 pageClass: migration-guide
 react:
-  id: sney23fh
   metaTitle: Migrate from 10.0 to 11.0 - React Data Grid | Handsontable
 angular:
-  id: 1fc8toqq
   metaTitle: Migrate from 10.0 to 11.0 - Angular Data Grid | Handsontable
 vue:
-  id: cvsqifxl
   metaTitle: Migrate from 10.0 to 11.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
@@ -30,7 +26,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 ## Step 1: React, Angular, Vue – register your modules
 
-Starting with Handsontable 11.0.0, the [React wrapper](@/react/guides/getting-started/introduction/introduction.md), the [Angular wrapper](@/angular/guides/getting-started/introduction/introduction.md), and the [Vue wrapper](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md) support [modularization](@/guides/tools-and-building/modules/modules.md).
+Starting with Handsontable 11.0.0, the [React wrapper](@/react/guides/getting-started/introduction/introduction.md), the [Angular wrapper](@/angular/guides/getting-started/introduction/introduction.md), and the [Vue wrapper](@/vue/guides/getting-started/installation/installation.md) support [modularization](@/guides/tools-and-building/modules/modules.md).
 
 If you don't use any of the wrappers, you don't need to change anything.
 
@@ -52,7 +48,7 @@ registerAllModules();
 To start using individual Handsontable modules with your wrapper, see the following guides:
 - [Using modules with React](@/react/guides/tools-and-building/modules/modules.md)
 - [Using modules with Angular](@/angular/guides/tools-and-building/modules/modules.md)
-- [Using modules with Vue](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md)
+- [Using modules with Vue](@/vue/guides/tools-and-building/modules/modules.md)
 
 :::
 
