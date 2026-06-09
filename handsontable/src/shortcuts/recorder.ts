@@ -6,8 +6,44 @@ import { isMacOS } from '../helpers/browser';
 import { isFunction } from '../helpers/function';
 
 const modifierKeysObserver = createKeysObserver();
-const modKeyListeners: Array<{event: 'keydown' | 'keyup'; listener: (event: KeyboardEvent) => void}> = [];
-let instanceCounter = 0;
+
+/**
+ * Tracks how many recorder instances reference the shared modifier-key listeners on a given
+ * `documentElement`. The listeners are attached on the first reference and removed on the last,
+ * so every document that hosts a Handsontable instance feeds the shared observer - not only the
+ * document of the first instance created in the realm.
+ */
+const modKeyListenerRefs = new WeakMap<HTMLElement, number>();
+
+/**
+ * `KeyboardEvent`'s callback function for observing the pressed state of the mod keys.
+ *
+ * @param {KeyboardEvent} event The event object
+ */
+const onkeydownForModKeys = (event: KeyboardEvent) => {
+  if (typeof event.key === 'string') {
+    const pressedKey = normalizeEventKey(event);
+
+    if (isModifierKey(pressedKey)) {
+      modifierKeysObserver.press(pressedKey);
+    }
+  }
+};
+
+/**
+ * `KeyboardEvent`'s callback function for observing the released state of the mod keys.
+ *
+ * @param {KeyboardEvent} event The event object
+ */
+const onkeyupForModKeys = (event: KeyboardEvent) => {
+  if (typeof event.key === 'string') {
+    const pressedKey = normalizeEventKey(event);
+
+    if (isModifierKey(pressedKey)) {
+      modifierKeysObserver.release(pressedKey);
+    }
+  }
+};
 
 /**
  * A key recorder, used for tracking key events.
@@ -110,38 +146,6 @@ export function useRecorder(
   };
 
   /**
-   * `KeyboardEvent`'s callback function for observing the pressed state of the mod keys.
-   *
-   * @private
-   * @param {KeyboardEvent} event The event object
-   */
-  const onkeydownForModKeys = (event: KeyboardEvent) => {
-    if (typeof event.key === 'string') {
-      const pressedKey = normalizeEventKey(event);
-
-      if (isModifierKey(pressedKey)) {
-        modifierKeysObserver.press(pressedKey);
-      }
-    }
-  };
-
-  /**
-   * `KeyboardEvent`'s callback function for observing the pressed state of the mod keys.
-   *
-   * @private
-   * @param {KeyboardEvent} event The event object
-   */
-  const onkeyupForModKeys = (event: KeyboardEvent) => {
-    if (typeof event.key === 'string') {
-      const pressedKey = normalizeEventKey(event);
-
-      if (isModifierKey(pressedKey)) {
-        modifierKeysObserver.release(pressedKey);
-      }
-    }
-  };
-
-  /**
    * `FocusEvent`'s callback function
    *
    * @private
@@ -151,54 +155,54 @@ export function useRecorder(
   };
 
   /**
-   * Add event listeners to the starting window and its parents' windows.
+   * Add event listeners to the starting window and its parents' windows. The shared modifier-key
+   * listeners are attached once per `documentElement` (reference-counted), so every document that
+   * hosts an instance - including documents of instances that are not the first one created -
+   * feeds the shared observer.
    */
   const mount = () => {
     let eventTarget: Window | null = ownerWindow;
 
-    instanceCounter += 1;
-
     while (eventTarget) {
-      if (instanceCounter === 1) {
-        eventTarget.document.documentElement.addEventListener('keydown', onkeydownForModKeys);
-        modKeyListeners.push({ event: 'keydown', listener: onkeydownForModKeys });
+      const { documentElement } = eventTarget.document;
+      const refCount = modKeyListenerRefs.get(documentElement) ?? 0;
 
-        eventTarget.document.documentElement.addEventListener('keyup', onkeyupForModKeys);
-        modKeyListeners.push({ event: 'keyup', listener: onkeyupForModKeys });
+      if (refCount === 0) {
+        documentElement.addEventListener('keydown', onkeydownForModKeys);
+        documentElement.addEventListener('keyup', onkeyupForModKeys);
       }
 
-      eventTarget.document.documentElement.addEventListener('keydown', onkeydown);
-      eventTarget.document.documentElement.addEventListener('blur', onblur);
+      modKeyListenerRefs.set(documentElement, refCount + 1);
+
+      documentElement.addEventListener('keydown', onkeydown);
+      documentElement.addEventListener('blur', onblur);
 
       eventTarget = getParentWindow(eventTarget);
     }
   };
 
   /**
-   * Remove event listeners from the starting window and its parents' windows.
+   * Remove event listeners from the starting window and its parents' windows. The shared
+   * modifier-key listeners are removed from a `documentElement` only once the last instance
+   * referencing it is unmounted.
    */
   const unmount = () => {
     let eventTarget: Window | null = ownerWindow;
 
-    instanceCounter -= 1;
-
     while (eventTarget) {
-      if (instanceCounter === 0) {
-        for (let i = 0; i < modKeyListeners.length; i++) {
-          const { event: eventType, listener } = modKeyListeners[i];
+      const { documentElement } = eventTarget.document;
+      const refCount = modKeyListenerRefs.get(documentElement) ?? 0;
 
-          if (eventType === 'keydown') {
-            eventTarget.document.documentElement.removeEventListener('keydown', listener);
-          } else {
-            eventTarget.document.documentElement.removeEventListener('keyup', listener);
-          }
-        }
-
-        modKeyListeners.length = 0;
+      if (refCount <= 1) {
+        documentElement.removeEventListener('keydown', onkeydownForModKeys);
+        documentElement.removeEventListener('keyup', onkeyupForModKeys);
+        modKeyListenerRefs.delete(documentElement);
+      } else {
+        modKeyListenerRefs.set(documentElement, refCount - 1);
       }
 
-      eventTarget.document.documentElement.removeEventListener('keydown', onkeydown);
-      eventTarget.document.documentElement.removeEventListener('blur', onblur);
+      documentElement.removeEventListener('keydown', onkeydown);
+      documentElement.removeEventListener('blur', onblur);
 
       eventTarget = getParentWindow(eventTarget);
     }
