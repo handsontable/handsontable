@@ -221,7 +221,7 @@ The example below demonstrates how to use the Loading plugin with pagination in 
 
 ::: example #example4 :vue3 --css 1
 
-@[code](@/content/guides/dialog/loading/react/example4.css)
+@[code](@/content/guides/dialog/loading/vue/example4.css)
 @[code collapse={78-107,122-124}](@/content/guides/dialog/loading/vue/example4.vue)
 
 :::

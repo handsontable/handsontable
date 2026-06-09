@@ -1,0 +1,75 @@
+.checkbox-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0 -1rem 0 !important;
+  padding: 0 1rem 0.75rem;
+  border-bottom: 1px solid var(--sl-color-gray-5, #e0e0e0);
+}
+
+.checkbox-container > div {
+  display: flex;
+}
+
+.checkbox-container > div > label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.external-link {
+  margin-left: 0.5rem;
+  position: relative;
+  top: 2px;
+  color: var(--sl-color-text, #333333);
+}
+
+.external-link:hover {
+  color: var(--sl-color-accent, #1A42E8);
+}
+
+.placeholder-input {
+  max-width: 20rem;
+  padding: 0.4rem 0.625rem;
+  font-size: var(--sl-text-sm, 0.875rem);
+  line-height: 1.25rem;
+  color: var(--sl-color-text, #333333);
+  background: none;
+  border: 1px solid var(--sl-color-gray-5, #e0e0e0);
+  border-radius: 0;
+  outline: none;
+}
+
+.placeholder-input::placeholder {
+  color: var(--sl-color-gray-3, #777777);
+}
+
+.placeholder-input:focus {
+  border-color: var(--sl-color-accent, #1A42E8);
+}
+
+.option-label {
+  color: var(--sl-color-text, #333333);
+  font-size: var(--sl-text-sm, 0.875rem);
+}
+
+/*
+  We want the focus to be around input and label, in order to achieve this,
+  we remove focus from the input and add it to the label (wrapper in this case)
+  we then use the :focus-within pseudo class plus native focus styles
+  https://css-tricks.com/copy-the-browsers-native-focus-styles/
+*/
+.option-label:focus-within {
+  outline: 5px auto Highlight;
+  outline: 5px auto -webkit-focus-ring-color;
+}
+
+.option-label > input:focus {
+  outline: none;
+}
+
+.example-container {
+  gap: 1rem;
+  display: flex;
+  flex-direction: column;
+}
