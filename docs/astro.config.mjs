@@ -818,13 +818,6 @@ export default defineConfig({
     server: {
       allowedHosts: ['.trycloudflare.com'],
     },
-    build: {
-      // Target ES2019 so that esbuild transpiles optional-chaining (?.  ?.())
-      // into conditional expressions. Without this, Starlight's a11y-utils
-      // bundle fails with "SyntaxError: Unexpected token ." on Edge 122 and
-      // any other engine that does not implement optional chaining natively.
-      target: 'es2019',
-    },
     // Use the React automatic JSX runtime for .tsx source files under src/,
     // so components don't need an explicit `import React from 'react'`.
     // (Content-tree .jsx examples are handled separately by the custom
