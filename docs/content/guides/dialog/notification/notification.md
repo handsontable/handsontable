@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 3zi3znot
 title: Notification
 metaTitle: Notification - JavaScript Data Grid | Handsontable
 description: Show non-blocking toast notifications anchored to the grid with the Notification plugin.
@@ -12,11 +11,11 @@ tags:
   - dialog
   - accessibility
 react:
-  id: 77z5zjaz
   metaTitle: Notification - React Data Grid | Handsontable
 angular:
-  id: xr3llzfz
   metaTitle: Notification - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Notification - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Dialog
 menuTag: new

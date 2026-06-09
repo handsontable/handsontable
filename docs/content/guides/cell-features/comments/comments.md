@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: deqvum60
 title: Comments
 metaTitle: Comments - JavaScript Data Grid | Handsontable
 description: Add a comment (a note) to a cell, using the context menu, just like in Excel. Edit and delete comments. Make comments read-only.
@@ -9,11 +8,11 @@ canonicalUrl: /comments
 tags:
   - notes
 react:
-  id: lxw2632u
   metaTitle: Comments - React Data Grid | Handsontable
 angular:
-  id: o4jcn137
   metaTitle: Comments - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Comments - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---

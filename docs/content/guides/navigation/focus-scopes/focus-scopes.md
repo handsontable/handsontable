@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: cdahp04c
 title: Focus scopes
 metaTitle: Focus scopes - JavaScript Data Grid | Handsontable
 description: Manage focus boundaries and keyboard shortcuts contexts with focus scopes.
@@ -15,11 +14,11 @@ tags:
   - shortcuts context
   - tab navigation
 react:
-  id: lx9qi7uu
   metaTitle: Focus scopes - React Data Grid | Handsontable
 angular:
-  id: xat52y9g
   metaTitle: Focus scopes - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Focus scopes - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
 ---

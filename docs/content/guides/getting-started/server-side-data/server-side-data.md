@@ -1,6 +1,5 @@
 ---
 type: tutorial
-id: xm9k2p7q
 title: Server-side data
 metaTitle: Server-side data - JavaScript Data Grid | Handsontable
 description: Load paged data with Handsontable DataProvider—fetchRows, CRUD callbacks, migration from client-side arrays, pagination, sorting, filters, REST and GraphQL examples, and a JavaScript monorepo project with two Node servers.
@@ -12,11 +11,11 @@ tags:
   - pagination
   - REST
 react:
-  id: ym8j3n4r
   metaTitle: Server-side data - React Data Grid | Handsontable
 angular:
-  id: zn7h5m6s
   metaTitle: Server-side data - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Server-side data - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 menuTag: new
@@ -58,6 +57,16 @@ The example below splits **in-memory server logic** (catalog, simulated latency,
 
 @[code](@/content/guides/getting-started/server-side-data/angular/example1.ts)
 @[code](@/content/guides/getting-started/server-side-data/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/getting-started/server-side-data/vue/example1.vue)
 
 :::
 

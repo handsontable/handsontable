@@ -1,6 +1,5 @@
 ---
 type: reference
-id: nbp8i3mk
 title: Changelog
 metaTitle: Changelog - JavaScript Data Grid | Handsontable
 description:
@@ -14,11 +13,11 @@ tags:
   - upgrade
   - breaking change
 react:
-  id: 7y9fco03
   metaTitle: Changelog - React Data Grid | Handsontable
 angular:
-  id: um6ros3a
   metaTitle: Changelog - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Changelog - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

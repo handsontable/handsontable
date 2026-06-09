@@ -1,6 +1,5 @@
 ---
 type: explanation
-id: vasj6t6t
 title: Row virtualization
 metaTitle: Row virtualization - JavaScript Data Grid | Handsontable
 description: Render thousands of rows without freezing the browser, using row virtualization.
@@ -11,11 +10,11 @@ tags:
   - render all rows
   - offset
 react:
-  id: kjsl63sh
   metaTitle: Row virtualization - React Data Grid | Handsontable
 angular:
-  id: 2imqjvmp
   metaTitle: Row virtualization - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Row virtualization - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

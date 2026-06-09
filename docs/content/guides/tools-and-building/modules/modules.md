@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: ffimaicc
 title: Modules
 metaTitle: Modules - JavaScript Data Grid | Handsontable
 description: Reduce the size of your JavaScript bundle, by importing only the modules that you need. The base module is mandatory, all other modules are optional.
@@ -9,11 +8,11 @@ canonicalUrl: /modules
 tags:
   - tree shaking
 react:
-  id: weudz1vh
   metaTitle: Modules - React Data Grid | Handsontable
 angular:
-  id: 9i62e6cn
   metaTitle: Modules - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Modules - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
 menuTag: updated

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: g7139vli
 title: Custom shortcuts
 metaTitle: Custom shortcuts - JavaScript Data Grid | Handsontable
 description: Customize Handsontable's keyboard shortcuts.
@@ -18,11 +17,11 @@ tags:
   - custom shortcuts
   - shortcut keys
 react:
-  id: d5ay8gj1
   metaTitle: Custom shortcuts - React Data Grid | Handsontable
 angular:
-  id: lqk5kuws
   metaTitle: Custom shortcuts - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Custom shortcuts - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
 ---

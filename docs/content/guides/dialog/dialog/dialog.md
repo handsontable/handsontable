@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 1xi1xek4
 title: Dialog
 metaTitle: Dialog - JavaScript Data Grid | Handsontable
 description: Display modal dialogs, alerts, loading indicators, and notifications to enhance user interaction and provide feedback in your data grid application.
@@ -14,11 +13,11 @@ tags:
   - confirm
   - prompt
 react:
-  id: 55z3zjaz
   metaTitle: Dialog - React Data Grid | Handsontable
 angular:
-  id: vq1llzfz
   metaTitle: Dialog - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Dialog - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Dialog
 ---

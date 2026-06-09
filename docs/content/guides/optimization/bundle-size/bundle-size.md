@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: vjcvrdeh
 title: Bundle size
 metaTitle: Bundle size - JavaScript Data Grid | Handsontable
 description: Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable modules and Moment.js locales.
@@ -9,11 +8,11 @@ canonicalUrl: /bundle-size
 tags:
   - size
 react:
-  id: c8onyes4
   metaTitle: Bundle size - React Data Grid | Handsontable
 angular:
-  id: qdq3dmts
   metaTitle: Bundle size - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Bundle size - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
 ---

@@ -1,17 +1,16 @@
 ---
 type: how-to
-id: zbx8ayzw
 title: License key
 metaTitle: License key - JavaScript Data Grid | Handsontable
 description: Activate Handsontable, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
 permalink: /license-key
 canonicalUrl: /license-key
 react:
-  id: vyfski60
   metaTitle: License key - React Data Grid | Handsontable
 angular:
-  id: bcvwr25r
   metaTitle: License key - Angular Data Grid | Handsontable
+vue:
+  metaTitle: License key - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---
@@ -116,6 +115,31 @@ export const appConfig: ApplicationConfig = {
 
 :::
 
+::: only-for vue
+
+Pass the license key as a prop:
+
+```html
+<HotTable licenseKey="00000-00000-00000-00000-00000" />
+```
+
+Or include it in the settings object passed to `:settings`:
+
+```vue
+<script setup>
+  const hotSettings = ref({
+    licenseKey: '00000-00000-00000-00000-00000',
+    // ... other options
+  });
+</script>
+
+<template>
+  <HotTable :settings="hotSettings" />
+</template>
+```
+
+:::
+
 ## Non-Commercial license
 
 If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass the string  `'non-commercial-and-evaluation'`.
@@ -134,7 +158,7 @@ const settings = {
 ::: only-for react
 
 ```jsx
-<HotTable 
+<HotTable
   autoWrapRow={true}
   autoWrapCol={true}
   licenseKey="non-commercial-and-evaluation" />
@@ -184,6 +208,14 @@ export const appConfig: ApplicationConfig = {
 
 :::
 
+::: only-for vue
+
+```html
+<HotTable licenseKey="non-commercial-and-evaluation" />
+```
+
+:::
+
 ## The validation process
 
 We validate the license key to determine whether you are entitled to use the software. To do that, we compare the time between two dates. These dates come from two sources of information. One is the `build date` that is provided in each version of Handsontable. The other is the `creation date` that comes with the license key. This process does not trigger any connection to any server.
@@ -213,7 +245,7 @@ To get a commercial license key for your Handsontable copy, contact our [Sales T
 ### Related guides
 
 <div class="boxes-list gray">
- 
+
 - [Software license](@/guides/technical-specification/software-license/software-license.md)
 
 </div>

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: x2u15qpx
 title: Theme Customization
 metaTitle: Theme Customization - JavaScript Data Grid | Handsontable
 description: Customize Handsontable's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
@@ -18,11 +17,11 @@ tags:
   - local variables
   - tokens
 react:
-  id: 0m19ic0d
   metaTitle: Theme Customization - React Data Grid | Handsontable
 angular:
-  id: xau2jfok
   metaTitle: Theme Customization - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Theme Customization - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
 menuTag: updated

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 7a5vawwl
 title: Custom builds
 metaTitle: Custom builds - JavaScript Data Grid | Handsontable
 description: Handsontable's building process transforms the source files located in the code repository into dedicated packages.
@@ -11,11 +10,11 @@ tags:
   - bundling
   - contributing
 react:
-  id: pcflnieu
   metaTitle: Custom builds - React Data Grid | Handsontable
 angular:
-  id: 098p9wiw
   metaTitle: Custom builds - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Custom builds - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
 ---

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 85u4f81b
 title: Rows pagination
 metaTitle: Rows pagination - JavaScript Data Grid | Handsontable
 description: The pagination component splits the data into a range of pages, allowing users to easily navigate through large data sets.
@@ -20,11 +19,11 @@ tags:
   - range of pages
   - chunks
 react:
-  id: 5inhebcn
   metaTitle: Row pagination - React Data Grid | Handsontable
 angular:
-  id: lt6sgwts
   metaTitle: Row pagination - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Row pagination - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 menuTag: updated

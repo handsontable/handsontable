@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: ivtc0o9b
 title: Row parent-child
 metaTitle: Row parent-child - JavaScript Data Grid | Handsontable
 description:
@@ -16,11 +15,11 @@ tags:
   - grouping rows
   - master detail
 react:
-  id: vo8uukt2
   metaTitle: Row parent-child - React Data Grid | Handsontable
 angular:
-  id: ojdl5nkd
   metaTitle: Row parent-child - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Row parent-child - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---

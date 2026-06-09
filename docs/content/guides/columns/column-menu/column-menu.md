@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 25b7vhfs
 title: Column menu
 metaTitle: Column menu - JavaScript Data Grid | Handsontable
 description: Display a configurable dropdown menu, triggered by clicking on a button in a column header.
@@ -9,11 +8,11 @@ canonicalUrl: /column-menu
 tags:
   - dropdown menu
 react:
-  id: uc7w8gu1
   metaTitle: Column menu - React Data Grid | Handsontable
 angular:
-  id: zclxcsij
   metaTitle: Column menu - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column menu - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
@@ -63,6 +62,16 @@ To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) co
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-menu/vue/example1.vue)
+
+:::
+
+:::
+
 ## Plugin configuration
 
 To use the default dropdown contents, set it to `true`, or to customize it by setting it to use a custom list of actions. For the available entry options reference, see the [Context Menu demo](@/guides/accessories-and-menus/context-menu/context-menu.md#page-specific).
@@ -95,6 +104,16 @@ To use the default dropdown contents, set it to `true`, or to customize it by se
 
 @[code](@/content/guides/columns/column-menu/angular/example2.ts)
 @[code](@/content/guides/columns/column-menu/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/columns/column-menu/vue/example2.vue)
 
 :::
 

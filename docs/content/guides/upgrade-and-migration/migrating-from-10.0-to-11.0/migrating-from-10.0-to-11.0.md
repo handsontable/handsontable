@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: m946ghwr
 title: Migrating from 10.0 to 11.0
 metaTitle: Migrate from 10.0 to 11.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 10.0 to Handsontable 11.0, released on November 17, 2021.
@@ -8,11 +7,11 @@ permalink: /migration-from-10.0-to-11.0
 canonicalUrl: /migration-from-10.0-to-11.0
 pageClass: migration-guide
 react:
-  id: sney23fh
   metaTitle: Migrate from 10.0 to 11.0 - React Data Grid | Handsontable
 angular:
-  id: 1fc8toqq
   metaTitle: Migrate from 10.0 to 11.0 - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Migrate from 10.0 to 11.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
