@@ -13,7 +13,7 @@
     "docs:code-examples:generate-js": "node scripts/transpile-doc-example.mjs",
     "build": "npm run docs:api && astro build",
     "preview": "astro preview",
-    "docs:test:plugins": "node --test src/plugins/__tests__/*.test.mjs src/lib/__tests__/*.test.mjs",
+    "docs:test:plugins": "node --test src/plugins/__tests__/*.test.mjs src/lib/__tests__/*.test.mjs src/components/__tests__/*.test.mjs",
     "docs:lint": "eslint --ext .js,.mjs,.ts,.astro src content",
     "docs:lint:fix": "eslint --ext .js,.mjs,.ts,.astro src content --fix",
     "docs:docker:build:production": "cross-env BUILD_MODE=production npm run build && docker build -f docker/Dockerfile -t docs-md:production .",
