@@ -9,11 +9,11 @@ on:
       test_env:
         type: choice
         description: Test enviroment
-        default: 'http://localhost:8080/docs'
+        default: 'http://localhost:4321/docs'
         options:
           - https://dev.handsontable.com/docs
           - https://handsontable.com/docs
-          - http://localhost:8080/docs
+          - http://localhost:4321/docs
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -42,7 +42,7 @@ jobs:
         with:
           cache: 'pnpm'
           cache-dependency-path: pnpm-lock.yaml
-          node-version: "20"
+          node-version: "22"
           check-latest: true
 
       - name: Install monorepo dependencies (including docs)
@@ -53,19 +53,19 @@ jobs:
         run: pnpm exec playwright install --with-deps
 
       - name: Install the monorepo dependencies and build the packages
-        if: ${{inputs.test_env == 'http://localhost:8080/docs'}}
+        if: ${{inputs.test_env == 'http://localhost:4321/docs'}}
         working-directory: .
         run: npm run all build -- --e examples visual-tests
 
       - name: Generate API refs
-        if: ${{inputs.test_env == 'http://localhost:8080/docs'}}
+        if: ${{inputs.test_env == 'http://localhost:4321/docs'}}
         run: |
           npm run docs:api
 
       - name: Build documentation
-        if: ${{inputs.test_env == 'http://localhost:8080/docs'}}
+        if: ${{inputs.test_env == 'http://localhost:4321/docs'}}
         run: |
-          npm run docs:build
+          npm run build
 
       - name: Set up cache
         id: cache
@@ -73,7 +73,8 @@ jobs:
         with:
           key: plawyright-cache/${{github.repository}}/${{github.ref}}
           restore-keys: plawyright-cache/${{github.repository}}/refs/heads/develop
-          path: '**/test-artifacts/**'
+          path: docs/tests/test-artifacts
+          save-always: true
 
       - name: Check if cache was restored
         id: check-cache

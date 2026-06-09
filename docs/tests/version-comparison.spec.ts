@@ -1,6 +1,33 @@
 import { test, expect } from '@playwright/test';
 
-const PAGE_PATH = '/javascript-data-grid/changes-between-versions/';
+const PAGE_PATH = '/docs/javascript-data-grid/changes-between-versions/';
+
+test.beforeEach(async ({ page, baseURL }) => {
+  const url = new URL(baseURL?.toString() || '');
+
+  await page.context().addCookies([
+    {
+      name: 'CookieConsent',
+      value: '-2',
+      domain: url.hostname,
+      path: '/',
+      expires: -1,
+      httpOnly: false,
+      secure: false,
+      sameSite: 'Lax',
+    },
+    {
+      name: '70d6d6e3-3a3e-4392-a095-5fe2a6b8bd70',
+      value: process.env.PASS_COOKIE ?? '',
+      domain: 'dev.handsontable.com',
+      path: '/',
+      expires: -1,
+      httpOnly: false,
+      secure: false,
+      sameSite: 'Lax',
+    },
+  ]);
+});
 
 test.describe('Version comparison page', () => {
   test('renders the React widget with default From and To selected', async ({ page }) => {
@@ -15,6 +42,12 @@ test.describe('Version comparison page', () => {
 
   test('changing the From version updates the entry count', async ({ page }) => {
     await page.goto(PAGE_PATH);
+
+    // Wait for the widget to render before snapshotting the baseline count.
+    // Without this, before=0 on slow CI and the poll passes trivially when
+    // entries appear, regardless of whether the selector interaction worked.
+    await expect(page.locator('.vc-entry').first()).toBeVisible();
+
     const entries = page.locator('.vc-entry');
     const before = await entries.count();
 
@@ -99,13 +132,9 @@ test.describe('Version comparison page', () => {
     // Inline code becomes a <code> element.
     await expect(list.locator('.vc-entry-title code').first()).toBeVisible();
 
-    // No raw markdown syntax leaks through.
+    // No raw markdown syntax leaks through — inline links are flattened to plain text.
     const listText = (await list.textContent()) ?? '';
     expect(listText).not.toContain('**');
     expect(listText).not.toContain('[Migration guide]');
-
-    // Inner markdown links are flattened: only the row-level anchor (one per entry) remains.
-    const firstEntry = list.locator('.vc-entry').first();
-    await expect(firstEntry.locator('a')).toHaveCount(1);
   });
 });

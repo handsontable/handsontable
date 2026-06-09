@@ -94,8 +94,17 @@ recipePages.forEach(({ path: pagePath, framework, hasExamples }) => {
     await page.waitForLoadState('domcontentloaded');
 
     if (hasExamples) {
-      // Angular bootstrapApplication is the slowest initializer — 30 s is safe.
-      const loadTimeout = framework === 'angular-data-grid' ? 30_000 : 20_000;
+      // Angular bootstrapApplication is the slowest initializer. 30 s is also
+      // needed for JS/React recipes when the dev server is under parallel load.
+      const loadTimeout = 30_000;
+
+      // Wait for JS to hydrate the example container before checking loading state.
+      // Recipe pages use .hot-example-loader (not .hot-example-preview--loading) so
+      // the negative wait below resolves immediately — this positive wait prevents
+      // the count check from racing ahead of hydration.
+      await expect(page.locator('.hot-example').first()).toBeAttached({
+        timeout: loadTimeout,
+      });
 
       // Every .hot-example-preview--loading class must be removed before we check.
       await expect(page.locator('.hot-example-preview--loading')).toHaveCount(0, {
