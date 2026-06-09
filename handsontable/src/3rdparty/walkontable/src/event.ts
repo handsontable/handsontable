@@ -447,10 +447,10 @@ class Event {
     const tableOffset = this.#wtTable.wtRootElement.getBoundingClientRect();
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const columnHeaderHeight: number = (this.#wtSettings.getSetting('columnHeaders') as unknown[]).length > 0
+    const columnHeaderHeight: number = this.#wtSettings.getSetting<Function[]>('columnHeaders').length > 0
       ? wot.wtViewport.getColumnHeaderHeight() : 0;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const rowHeaderWidth: number = (this.#wtSettings.getSetting('rowHeaders') as unknown[]).length > 0
+    const rowHeaderWidth: number = this.#wtSettings.getSetting<Function[]>('rowHeaders').length > 0
       ? wot.wtViewport.getRowHeaderWidth() : 0;
     const { rootWindow } = this.#domBindings;
     // When the window is the scroll container and tableOffset.left/top > 0 (e.g. RTL

@@ -107,7 +107,7 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
       return;
     }
 
-    calculateAxis(this as unknown as AxisCalculatorContext, {
+    calculateAxis(this, {
       totalCount: this.totalColumns,
       zeroBasedScrollOffset: this.zeroBasedScrollOffset,
       scrollEnd: this.zeroBasedScrollOffset + this.viewportWidth,
@@ -118,7 +118,7 @@ export class ViewportColumnsCalculator extends ViewportBaseCalculator {
       setTotalCalculated: (ctx, v) => {
         ctx.totalCalculatedWidth = v;
       },
-      getTotalCalculated: ctx => ctx.totalCalculatedWidth as number,
+      getTotalCalculated: ctx => ctx.totalCalculatedWidth,
     });
   }
 

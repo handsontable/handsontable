@@ -212,10 +212,8 @@ export default class CoreAbstract {
       return undefined;
     }
 
-    const cellCoords = coords as unknown as CellCoords;
-
     if (!topmost) {
-      return this.wtTable.getCell(cellCoords);
+      return this.wtTable.getCell(coords);
     }
 
     const totalRows = this.wtSettings.getSetting<number>('totalRows');
@@ -224,23 +222,23 @@ export default class CoreAbstract {
     const fixedColumnsStart = this.wtSettings.getSetting<number>('fixedColumnsStart');
 
     if (coords.row < fixedRowsTop && coords.col < fixedColumnsStart) {
-      return this.wtOverlays.topInlineStartCornerOverlay.clone?.wtTable.getCell(cellCoords);
+      return this.wtOverlays.topInlineStartCornerOverlay.clone?.wtTable.getCell(coords);
 
     } else if (coords.row < fixedRowsTop) {
-      return this.wtOverlays.topOverlay.clone?.wtTable.getCell(cellCoords);
+      return this.wtOverlays.topOverlay.clone?.wtTable.getCell(coords);
 
     } else if (coords.col < fixedColumnsStart && coords.row >= totalRows - fixedRowsBottom) {
-      return this.wtOverlays.bottomInlineStartCornerOverlay?.clone?.wtTable.getCell(cellCoords);
+      return this.wtOverlays.bottomInlineStartCornerOverlay?.clone?.wtTable.getCell(coords);
 
     } else if (coords.col < fixedColumnsStart) {
-      return this.wtOverlays.inlineStartOverlay.clone?.wtTable.getCell(cellCoords);
+      return this.wtOverlays.inlineStartOverlay.clone?.wtTable.getCell(coords);
 
     } else if (coords.row < totalRows && coords.row >= totalRows - fixedRowsBottom) {
-      return this.wtOverlays.bottomOverlay?.clone?.wtTable.getCell(cellCoords);
+      return this.wtOverlays.bottomOverlay?.clone?.wtTable.getCell(coords);
 
     }
 
-    return this.wtTable.getCell(cellCoords);
+    return this.wtTable.getCell(coords);
   }
 
   /**
