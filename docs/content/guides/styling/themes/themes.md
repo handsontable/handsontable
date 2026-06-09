@@ -80,7 +80,8 @@ If you want to use the `main` theme without any modifications, you don't need to
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2
+::: example #example1 :angular --css 1 --ts 2 --html 3
+@[code](@/content/guides/styling/themes/angular/exampleTheme.css)
 @[code](@/content/guides/styling/themes/angular/example1.ts)
 @[code](@/content/guides/styling/themes/angular/example1.html)
 :::
