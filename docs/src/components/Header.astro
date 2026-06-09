@@ -62,7 +62,7 @@ const frameworks = [
     <div class="title-wrapper sl-flex">
       <SiteTitle />
     </div>
-    <div class="sl-hidden md:sl-flex print:hidden search-wrapper">
+    <div class="sl-hidden md:sl-flex print:hidden search-wrapper" transition:persist="docs-search">
       {shouldRenderSearch && <Search />}
     </div>
     <div class="sl-hidden md:sl-flex print:hidden right-group">
