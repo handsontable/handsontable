@@ -63,7 +63,7 @@ describe('Formulas general', () => {
       // Closing the editor and saving changes.
       await keyDownUp('enter');
 
-      await sleep(100); // Validator is asynchronous.
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
 
       expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(false);
 
@@ -73,7 +73,7 @@ describe('Formulas general', () => {
       // Closing the editor and saving changes.
       await keyDownUp('enter');
 
-      await sleep(100); // Validator is asynchronous.
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
 
       expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(true);
     });
@@ -94,7 +94,7 @@ describe('Formulas general', () => {
 
       await setDataAtCell(0, 0, 'text');
 
-      await sleep(100); // Validator is asynchronous.
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
 
       expect(beforeValidate).toHaveBeenCalledWith('text', 0, 0);
       expect(beforeValidate).toHaveBeenCalledWith('text', 0, 1);
@@ -122,7 +122,7 @@ describe('Formulas general', () => {
 
       await setDataAtCell(0, 0, '=B1+5a');
 
-      await sleep(100); // Validator is asynchronous.
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
 
       expect(beforeValidate).toHaveBeenCalledWith('#ERROR!', 0, 0);
       expect(beforeValidate).toHaveBeenCalledWith('#ERROR!', 0, 2);
@@ -132,7 +132,7 @@ describe('Formulas general', () => {
       expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(true);
 
       await setDataAtCell(0, 0, '=B1+5');
-      await sleep(100); // Validator is asynchronous.
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
 
       expect(beforeValidate).toHaveBeenCalledWith(7, 0, 0);
       expect(beforeValidate).toHaveBeenCalledWith(7, 0, 2);
@@ -157,7 +157,7 @@ describe('Formulas general', () => {
       });
 
       await setDataAtCell(0, 0, '=C1');
-      await sleep(100); // Validator is asynchronous.
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
 
       expect(beforeValidate).toHaveBeenCalledWith('#CYCLE!', 0, 0);
       expect(beforeValidate).toHaveBeenCalledWith('#CYCLE!', 0, 2);
@@ -167,7 +167,7 @@ describe('Formulas general', () => {
       expect($(getCell(0, 3)).hasClass(getSettings().invalidCellClassName)).toBe(true);
 
       await setDataAtCell(0, 0, '=B1+5');
-      await sleep(100); // Validator is asynchronous.
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
 
       expect(beforeValidate).toHaveBeenCalledWith(7, 0, 0);
       expect(beforeValidate).toHaveBeenCalledWith(7, 0, 2);
@@ -192,7 +192,7 @@ describe('Formulas general', () => {
       });
 
       await alter('remove_col', 4);
-      await sleep(100); // Validator is asynchronous.
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
 
       expect(beforeValidate).not.toHaveBeenCalled();
       expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(false);
@@ -223,7 +223,7 @@ describe('Formulas general', () => {
 
       getPlugin('formulas').engine.setCellContents({ sheet: 0, row: 0, col: 0 }, '=B1');
 
-      await sleep(100); // Validator is asynchronous.
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
 
       expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(false);
       expect($(getCell(0, 2)).hasClass(getSettings().invalidCellClassName)).toBe(false);
@@ -292,7 +292,7 @@ describe('Formulas general', () => {
 
       await setDataAtCell(0, 1, 6);
 
-      await sleep(100); // Validator is asynchronous.
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
 
       expect(validator1).toHaveBeenCalledTimes(2);
       expect(validator1).toHaveBeenCalledWith(6, jasmine.any(Function));
@@ -303,7 +303,7 @@ describe('Formulas general', () => {
 
       await setDataAtCell(0, 4, 'bar');
 
-      await sleep(100); // Validator is asynchronous.
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
 
       expect(validator1).toHaveBeenCalledTimes(3);
       expect(validator1).toHaveBeenCalledWith('bar', jasmine.any(Function));
@@ -335,7 +335,7 @@ describe('Formulas general', () => {
 
       await render();
       await setDataAtCell(3, 0, 6);
-      await sleep(100); // Validator is asynchronous.
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
 
       expect(beforeValidate).toHaveBeenCalledTimes(2);
       expect(beforeValidate).toHaveBeenCalledWith(6, 3, 0);

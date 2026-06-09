@@ -1,5 +1,5 @@
 ---
-id: kgegbmgz
+type: how-to
 title: Batch operations
 metaTitle: Batch operations - JavaScript Data Grid | Handsontable
 description: Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid's performance.
@@ -10,17 +10,14 @@ tags:
   - batching
   - performance
 react:
-  id: 3xqdvk3u
   metaTitle: Batch operations - React Data Grid | Handsontable
 angular:
-  id: tnvv2pjr
   metaTitle: Batch operations - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Batch operations - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
 ---
-
-# Batch operations
-
 Batch CRUD operations, to avoid unnecessary rendering cycles and boost your grid's performance.
 
 [[toc]]
@@ -84,6 +81,18 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 
 :::
 
+::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. Use a template ref on the `HotTable` component and read its `hotInstance` property.
+
+For more information, see the [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md) page.
+
+:::
+
+:::
+
 ```js
 // call the batch method on an instance
 hot.batch(() => {
@@ -100,7 +109,7 @@ Suspending the render results in better performance, which is especially noticea
 
 <span class="img-invert">
 
-![batch_operations_comparison]({{$basePath}}/img/batch_operations_comparison.png)
+![batch_operations_comparison](/img/batch_operations_comparison.png)
 
 </span>
 
@@ -166,7 +175,7 @@ hot.batchRender(() => {
 
 #### batchExecution
 
-The [`batchExecution()`](@/api/core.md#batchexecution) is a callback function. Excessive renders can be skipped by placing the API calls inside of it. The table will be rendered after executing the callback. It is less prone to errors as you don't have to remember to resume the operations. The only drawback to this method is that it doesn't support async operations.
+The [`batchExecution()`](@/api/core.md#batchexecution) method aggregates multi-line API calls into a callback and postpones the table execution process. After the execution of the operations, the internal table cache is recalculated once. As a result, it improves the performance of wrapped operations. Without batching, a similar case could trigger multiple table cache rebuilds. It is less prone to errors as you don't have to remember to resume the operations. The only drawback to this method is that it doesn't support async operations.
 
 ```js
 hot.batchExecution(() => {
@@ -197,7 +206,9 @@ hot.resumeRender(); // remember to resume rendering
 
 #### suspendExecution and resumeExecution
 
-To suspend the rendering process, you can call the [`suspendExecution()`](@/api/core.md#suspendexecution) method just before the actions you want to batch. This is a manual approach. After suspending, you must remember to resume the process with the [`resumeExecution()`](@/api/core.md#resumeexecution) method.
+The [`suspendExecution()`](@/api/core.md#suspendexecution) method suspends the execution process. It's helpful to wrap the table logic changes such as index changes into one call after which the cache is updated. The method is intended to be used by advanced users. Suspending the execution process could cause visual glitches caused by not updating the internal table cache.
+
+To suspend, call [`suspendExecution()`](@/api/core.md#suspendexecution) just before the actions you want to batch. This is a manual approach. After suspending, you must remember to resume the process with the [`resumeExecution()`](@/api/core.md#resumeexecution) method. In combination, these two methods allow aggregating the table logic changes after which the cache is updated. Resuming the state automatically invokes the table cache updating process.
 
 ```js
 hot.suspendExecution();
@@ -247,17 +258,27 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/optimization/batch-operations/vue/example1.vue)
+
+:::
+
+:::
+
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Performance](@/guides/optimization/performance/performance.md)
 
 </div>
 
-### Related blog articles
+**Related blog articles**
 
 <div class="boxes-list">
 
@@ -265,28 +286,43 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 
 </div>
 
-### Related API reference
+**Configuration options**
 
-- Configuration options:
-  - [`maxCols`](@/api/options.md#maxcols)
-  - [`maxRows`](@/api/options.md#maxrows)
-  - [`observeDOMVisibility`](@/api/options.md#observedomvisibility)
-  - [`renderAllColumns`](@/api/options.md#renderallcolumns)
-  - [`renderAllRows`](@/api/options.md#renderallrows)
-- Core methods:
-  - [`batch()`](@/api/core.md#batch)
-  - [`batchExecution()`](@/api/core.md#batchexecution)
-  - [`batchRender()`](@/api/core.md#batchrender)
-  - [`isExecutionSuspended()`](@/api/core.md#isexecutionsuspended)
-  - [`suspendExecution()`](@/api/core.md#suspendexecution)
-  - [`isRenderSuspended()`](@/api/core.md#isrendersuspended)
-  - [`render()`](@/api/core.md#render)
-  - [`resumeExecution()`](@/api/core.md#resumeexecution)
-  - [`resumeRender()`](@/api/core.md#render)
-  - [`suspendRender()`](@/api/core.md#suspendrender)
-- Hooks:
-  - [`afterRender`](@/api/hooks.md#afterrender)
-  - [`afterViewRender`](@/api/hooks.md#afterviewrender)
-  - [`beforeChangeRender`](@/api/hooks.md#beforechangerender)
-  - [`beforeRender`](@/api/hooks.md#beforerender)
-  - [`beforeViewRender`](@/api/hooks.md#beforeviewrender)
+<div class="boxes-list">
+
+- [maxCols](@/api/options.md#maxcols)
+- [maxRows](@/api/options.md#maxrows)
+- [observeDOMVisibility](@/api/options.md#observedomvisibility)
+- [renderAllColumns](@/api/options.md#renderallcolumns)
+- [renderAllRows](@/api/options.md#renderallrows)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [batch()](@/api/core.md#batch)
+- [batchExecution()](@/api/core.md#batchexecution)
+- [batchRender()](@/api/core.md#batchrender)
+- [isExecutionSuspended()](@/api/core.md#isexecutionsuspended)
+- [suspendExecution()](@/api/core.md#suspendexecution)
+- [isRenderSuspended()](@/api/core.md#isrendersuspended)
+- [render()](@/api/core.md#render)
+- [resumeExecution()](@/api/core.md#resumeexecution)
+- [resumeRender()](@/api/core.md#render)
+- [suspendRender()](@/api/core.md#suspendrender)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterRender](@/api/hooks.md#afterrender)
+- [afterViewRender](@/api/hooks.md#afterviewrender)
+- [beforeChangeRender](@/api/hooks.md#beforechangerender)
+- [beforeRender](@/api/hooks.md#beforerender)
+- [beforeViewRender](@/api/hooks.md#beforeviewrender)
+
+</div>

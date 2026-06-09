@@ -1,8 +1,15 @@
 import Handsontable from "handsontable";
 import {
-  SELECTED_CLASS,
-  ODD_ROW_CLASS
+  SELECTED_CLASS
 } from "./constants";
+
+// Handsontable.dom is not exposed in the auto-generated type definitions.
+const dom = (Handsontable as unknown as {
+  dom: {
+    addClass(el: HTMLElement, className: string): void;
+    removeClass(el: HTMLElement, className: string): void;
+  };
+}).dom;
 
 type AddClassesToRows = (
   TD: HTMLTableCellElement,
@@ -34,16 +41,9 @@ export const addClassesToRows: AddClassesToRows = (
 
   // Add class to selected rows
   if (cellProperties.instance.getDataAtRowProp(row, "0")) {
-    Handsontable.dom.addClass(parentElement, SELECTED_CLASS);
+    dom.addClass(parentElement, SELECTED_CLASS);
   } else {
-    Handsontable.dom.removeClass(parentElement, SELECTED_CLASS);
-  }
-
-  // Add class to odd TRs
-  if (row % 2 === 0) {
-    Handsontable.dom.addClass(parentElement, ODD_ROW_CLASS);
-  } else {
-    Handsontable.dom.removeClass(parentElement, ODD_ROW_CLASS);
+    dom.removeClass(parentElement, SELECTED_CLASS);
   }
 };
 
@@ -90,6 +90,6 @@ export const changeCheckboxCell: ChangeCheckboxCell = function changeCheckboxCel
   if (coords.col === -1 && event.target && target.nodeName === "INPUT") {
     event.preventDefault(); // Handsontable will render checked/unchecked checkbox by it own.
 
-    this.setDataAtRowProp(coords.row, "0", !target.checked);
+    (this as any).setDataAtRowProp(coords.row, "0", !target.checked);
   }
 };

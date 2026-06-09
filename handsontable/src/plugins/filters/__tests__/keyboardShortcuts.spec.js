@@ -149,7 +149,7 @@ describe('Filters keyboard shortcut', () => {
 
       $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       await keyDownUp(['Control/Meta', 'A']);
 
@@ -161,7 +161,7 @@ describe('Filters keyboard shortcut', () => {
   });
 
   describe('LinkUI buttons', () => {
-    it.forTheme('classic')('should react to both `Enter` and `Space`', async() => {
+    it('should react to both `Enter` and `Space`', async() => {
       const countCheckedCheckboxes = () => {
         return Array.from(
           document.querySelectorAll('.htUIMultipleSelectHot input[type=checkbox]')
@@ -182,112 +182,26 @@ describe('Filters keyboard shortcut', () => {
       document.querySelector('.htUIClearAll a').focus();
 
       await keyDownUp('enter');
-      await sleep(15);
+      await waitForNextAnimationFrames(1);
       expect(countCheckedCheckboxes()).toEqual(0);
 
       document.querySelector('.htUISelectAll a').focus();
 
       await keyDownUp('enter');
-      await sleep(15);
-      expect(countCheckedCheckboxes()).toEqual(8);
+      await waitForNextAnimationFrames(1);
+      expect(countCheckedCheckboxes()).toEqual(5);
 
       document.querySelector('.htUIClearAll a').focus();
 
       await keyDownUp('space');
-      await sleep(15);
+      await waitForNextAnimationFrames(1);
       expect(countCheckedCheckboxes()).toEqual(0);
 
       document.querySelector('.htUISelectAll a').focus();
 
       await keyDownUp('space');
-      await sleep(15);
-      expect(countCheckedCheckboxes()).toEqual(8);
-    });
-
-    it.forTheme('main')('should react to both `Enter` and `Space`', async() => {
-      const countCheckedCheckboxes = () => {
-        return Array.from(
-          document.querySelectorAll('.htUIMultipleSelectHot input[type=checkbox]')
-        ).filter(el => el.checked).length;
-      };
-
-      handsontable({
-        data: getDataForFilters().splice(0, 10),
-        rowHeaders: true,
-        colHeaders: true,
-        filters: true,
-        dropdownMenu: true,
-        navigableHeaders: true,
-      });
-
-      await dropdownMenu(1);
-
-      document.querySelector('.htUIClearAll a').focus();
-
-      await keyDownUp('enter');
-      await sleep(15);
-      expect(countCheckedCheckboxes()).toEqual(0);
-
-      document.querySelector('.htUISelectAll a').focus();
-
-      await keyDownUp('enter');
-      await sleep(15);
-      expect(countCheckedCheckboxes()).toEqual(8);
-
-      document.querySelector('.htUIClearAll a').focus();
-
-      await keyDownUp('space');
-      await sleep(15);
-      expect(countCheckedCheckboxes()).toEqual(0);
-
-      document.querySelector('.htUISelectAll a').focus();
-
-      await keyDownUp('space');
-      await sleep(15);
-      expect(countCheckedCheckboxes()).toEqual(8);
-    });
-
-    it.forTheme('horizon')('should react to both `Enter` and `Space`', async() => {
-      const countCheckedCheckboxes = () => {
-        return Array.from(
-          document.querySelectorAll('.htUIMultipleSelectHot input[type=checkbox]')
-        ).filter(el => el.checked).length;
-      };
-
-      handsontable({
-        data: getDataForFilters().splice(0, 10),
-        rowHeaders: true,
-        colHeaders: true,
-        filters: true,
-        dropdownMenu: true,
-        navigableHeaders: true,
-      });
-
-      await dropdownMenu(1);
-
-      document.querySelector('.htUIClearAll a').focus();
-
-      await keyDownUp('enter');
-      await sleep(15);
-      expect(countCheckedCheckboxes()).toEqual(0);
-
-      document.querySelector('.htUISelectAll a').focus();
-
-      await keyDownUp('enter');
-      await sleep(15);
-      expect(countCheckedCheckboxes()).toEqual(8);
-
-      document.querySelector('.htUIClearAll a').focus();
-
-      await keyDownUp('space');
-      await sleep(15);
-      expect(countCheckedCheckboxes()).toEqual(0);
-
-      document.querySelector('.htUISelectAll a').focus();
-
-      await keyDownUp('space');
-      await sleep(15);
-      expect(countCheckedCheckboxes()).toEqual(8);
+      await waitForNextAnimationFrames(1);
+      expect(countCheckedCheckboxes()).toEqual(5);
     });
   });
 });

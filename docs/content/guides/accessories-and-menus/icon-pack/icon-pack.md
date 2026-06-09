@@ -1,5 +1,5 @@
 ---
-id: zu0ja2qo
+type: reference
 title: Icon pack
 metaTitle: Icon pack - JavaScript Data Grid | Handsontable
 description: Create toolbars, menu bars, and context menus with our set of icons, designed specifically for tables, spreadsheets, and data-rich components.
@@ -9,18 +9,15 @@ tags:
   - spreadsheet icons
   - toolbar icons
 react:
-  id: 24wgu6o9
   metaTitle: Icon pack - React Data Grid | Handsontable
 angular:
-  id: 5qu8t28e
   metaTitle: Icon pack - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Icon pack - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 ---
-
-# Icon pack
-
-Create toolbars, menu bars, and context menus with our set of icons, designed specifically for tables, spreadsheets, and data-rich components.
+The Handsontable icon pack contains SVG icons used throughout the grid UI. Download and use these icons to maintain visual consistency in custom components.
 
 [[toc]]
 
@@ -219,5 +216,14 @@ npm install @handsontable/spreadsheet-icons
 <div class="boxes-list">
 
 - [Introducing the new Handsontable spreadsheet icons](https://handsontable.com/blog/handsontable-spreadsheet-icons)
+
+</div>
+
+## Related
+
+<div class="boxes-list">
+
+- [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
+- [Column menu](@/guides/columns/column-menu/column-menu.md)
 
 </div>

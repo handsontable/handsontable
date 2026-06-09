@@ -1,0 +1,35 @@
+import { TextEditor } from '../textEditor';
+import type { CellProperties } from '../../settings';
+
+export const EDITOR_TYPE = 'time';
+
+/**
+ * @private
+ * @class TimeEditor
+ */
+export class TimeEditor extends TextEditor {
+  /**
+   * Returns the unique editor type identifier for the time editor.
+   */
+  static get EDITOR_TYPE() {
+    return EDITOR_TYPE;
+  }
+
+  /**
+   * Prepares editor's meta data.
+   *
+   * @param {number} row The visual row index.
+   * @param {number} col The visual column index.
+   * @param {number|string} prop The column property (passed when datasource is an array of objects).
+   * @param {HTMLTableCellElement} td The rendered cell element.
+   * @param {*} value The rendered value.
+   * @param {object} cellProperties The cell meta object (see {@link Core#getCellMeta}).
+   */
+  prepare(
+    row: number, col: number, prop: string | number,
+    td: HTMLTableCellElement, value: unknown, cellProperties: CellProperties): void {
+    super.prepare(row, col, prop, td, value, cellProperties);
+
+    this.TEXTAREA.dir = 'ltr';
+  }
+}

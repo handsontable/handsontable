@@ -1,22 +1,19 @@
 ---
-id: zbx8ayzw
+type: how-to
 title: License key
 metaTitle: License key - JavaScript Data Grid | Handsontable
 description: Activate Handsontable, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
 permalink: /license-key
 canonicalUrl: /license-key
 react:
-  id: vyfski60
   metaTitle: License key - React Data Grid | Handsontable
 angular:
-  id: bcvwr25r
   metaTitle: License key - Angular Data Grid | Handsontable
+vue:
+  metaTitle: License key - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---
-
-# License key
-
 Activate Handsontable, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
 
 [[toc]]
@@ -85,11 +82,13 @@ To use it with a framework, pass the string to a [`licenseKey`](@/api/options.md
 
 ::: only-for angular
 
+Pass the license key through `GridSettings` in your component:
+
 ```ts
 import { GridSettings } from "@handsontable/angular-wrapper";
 
-gridSettings: GridSettings = {
-  licenseKey = "00000-00000-00000-00000-00000",
+readonly gridSettings: GridSettings = {
+  licenseKey: '00000-00000-00000-00000-00000',
 };
 ```
 
@@ -97,7 +96,47 @@ gridSettings: GridSettings = {
 <hot-table [settings]="gridSettings" />
 ```
 
-or you can configure it in global object provided by [`HOT_GLOBAL_CONFIG`](@/guides/getting-started/installation/installation.md#configure-global-settings)
+Or set it globally for all tables via `HOT_GLOBAL_CONFIG` in `app.config.ts`:
+
+```ts
+import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig } from "@handsontable/angular-wrapper";
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    {
+      provide: HOT_GLOBAL_CONFIG,
+      useValue: { license: '00000-00000-00000-00000-00000' } as HotGlobalConfig,
+    },
+  ],
+};
+```
+
+:::
+
+::: only-for vue
+
+Pass the license key as a prop:
+
+```html
+<HotTable licenseKey="00000-00000-00000-00000-00000" />
+```
+
+Or include it in the settings object passed to `:settings`:
+
+```vue
+<script setup>
+  const hotSettings = ref({
+    licenseKey: '00000-00000-00000-00000-00000',
+    // ... other options
+  });
+</script>
+
+<template>
+  <HotTable :settings="hotSettings" />
+</template>
+```
 
 :::
 
@@ -119,7 +158,7 @@ const settings = {
 ::: only-for react
 
 ```jsx
-<HotTable 
+<HotTable
   autoWrapRow={true}
   autoWrapCol={true}
   licenseKey="non-commercial-and-evaluation" />
@@ -129,14 +168,16 @@ const settings = {
 
 ::: only-for angular
 
+Pass the license key through `GridSettings` in your component:
+
 ```ts
 import {
   GridSettings,
   NON_COMMERCIAL_LICENSE,
 } from "@handsontable/angular-wrapper";
 
-gridSettings: GridSettings = {
-  licenseKey = NON_COMMERCIAL_LICENSE, // the value for this const is 'non-commercial-and-evaluation'
+readonly gridSettings: GridSettings = {
+  licenseKey: NON_COMMERCIAL_LICENSE,
 };
 ```
 
@@ -144,7 +185,35 @@ gridSettings: GridSettings = {
 <hot-table [settings]="gridSettings" />
 ```
 
-or you can configure it in global object provided by [`HOT_GLOBAL_CONFIG`](@/guides/getting-started/installation/installation.md#configure-global-settings)
+Or set it globally for all tables via `HOT_GLOBAL_CONFIG` in `app.config.ts`:
+
+```ts
+import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
+import {
+  HOT_GLOBAL_CONFIG,
+  HotGlobalConfig,
+  NON_COMMERCIAL_LICENSE,
+} from "@handsontable/angular-wrapper";
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
+    {
+      provide: HOT_GLOBAL_CONFIG,
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
+  ],
+};
+```
+
+:::
+
+::: only-for vue
+
+```html
+<HotTable licenseKey="non-commercial-and-evaluation" />
+```
+
 :::
 
 ## The validation process
@@ -176,12 +245,20 @@ To get a commercial license key for your Handsontable copy, contact our [Sales T
 ### Related guides
 
 <div class="boxes-list gray">
- 
+
 - [Software license](@/guides/technical-specification/software-license/software-license.md)
 
 </div>
 
 ### Related API reference
 
+<div class="boxes-list gray">
+
 - Configuration options:
   - [`licenseKey`](@/api/options.md#licensekey)
+
+</div>
+
+## Result
+
+Your grid is now licensed. A valid commercial key removes the license notice from the grid header.

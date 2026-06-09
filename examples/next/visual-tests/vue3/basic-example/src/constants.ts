@@ -1201,8 +1201,6 @@ export const data = [
   }
 ];
 
-export const ODD_ROW_CLASS = "odd";
-
 export const MESSAGE = {
   BAD_VALUE: "#bad-value#"
 };

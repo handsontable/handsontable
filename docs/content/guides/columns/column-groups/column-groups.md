@@ -1,5 +1,5 @@
 ---
-id: k4mb003v
+type: how-to
 title: Column groups
 metaTitle: Column groups - JavaScript Data Grid | Handsontable
 description: Group your columns, using multiple levels of nested column headers, to better reflect the structure of your data.
@@ -10,28 +10,29 @@ tags:
   - nestedHeaders
   - collapsing columns
   - colspan
+  - rowspan
 react:
-  id: 2ei1omu0
   metaTitle: Column groups - React Data Grid | Handsontable
 angular:
-  id: 2k8cam98
   metaTitle: Column groups - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column groups - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
+menuTag: updated
 ---
-
-# Column groups
-
 Group your columns, using multiple levels of nested column headers, to better reflect the structure of your data.
 
 [[toc]]
 
 ## Nested column headers
 
-The [`NestedHeaders`](@/api/nestedHeaders.md) plugin allows you to create a nested headers structure by using the `colspan` attribute.
+The [`NestedHeaders`](@/api/nestedHeaders.md) plugin allows you to create a nested headers structure by using the HTML `colspan` and `rowspan` attributes.
 
 To create a header that spans multiple columns, its corresponding configuration array element should be provided as an object with `label` and `colspan`
 properties. The `label` property defines the header's label, while the `colspan` property defines the number of columns that the header should cover.
+
+To create a header that spans multiple header rows, add a `rowspan` property to that object. See [Rowspan](#rowspan) below.
 
 ### Configuration
 
@@ -57,6 +58,19 @@ nestedHeaders={[
   ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
   ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W']
 ]}
+```
+
+:::
+
+::: only-for vue
+
+```js
+nestedHeaders: [
+  ['A', { label: 'B', colspan: 8 }, 'C'],
+  ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+  ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+  ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'],
+],
 ```
 
 :::
@@ -93,6 +107,68 @@ nestedHeaders={[
 @[code](@/content/guides/columns/column-groups/angular/example1.html)
 
 :::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-groups/vue/example1.vue)
+
+:::
+
+:::
+
+### Rowspan
+
+The `rowspan` property sets how many header rows a single header cell should cover. Use an integer greater than `1`. Positions in lower rows that sit under that cell can use an empty string `''` as a placeholder, but those placeholders are optional. Handsontable can infer covered slots when you omit them.
+
+You can combine `rowspan` and `colspan` on the same header object. The same rules apply as for colspan only: a header cannot be wider than its parent in the hierarchy, and overlapping header definitions are not supported.
+
+#### Configuration
+
+::: only-for javascript
+
+```js
+nestedHeaders: [
+  [{ label: 'A', rowspan: 2 }, { label: 'B', colspan: 2 }],
+  ['', 'C', 'D'],
+];
+```
+
+:::
+
+::: only-for react
+
+```jsx
+nestedHeaders={[
+  [{ label: 'A', rowspan: 2 }, { label: 'B', colspan: 2 }],
+  ['', 'C', 'D'],
+]}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+nestedHeaders: [
+  [{ label: 'A', rowspan: 2 }, { label: 'B', colspan: 2 }],
+  ['', 'C', 'D'],
+];
+```
+
+:::
+
+::: only-for vue
+
+```js
+nestedHeaders: [
+  [{ label: 'A', rowspan: 2 }, { label: 'B', colspan: 2 }],
+  ['', 'C', 'D'],
+],
+```
 
 :::
 
@@ -145,6 +221,17 @@ collapsibleColumns: [
 
 :::
 
+::: only-for vue
+
+```js
+collapsibleColumns: [
+  { row: -4, col: 1, collapsible: true }, // Add the button to the 4th-level header of the 1st column - counting from the first table row upwards.
+  { row: -3, col: 5, collapsible: true }, // Add the button to the 3rd-level header of the 5th column - counting from the first table row upwards.
+],
+```
+
+:::
+
 ### Example
 
 ::: only-for javascript
@@ -180,11 +267,22 @@ collapsibleColumns: [
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/columns/column-groups/vue/example2.vue)
+
+:::
+
+:::
+
 ## Known limitations
 
 - A column header can span up to 1000 columns, as the [HTML table specification](https://html.spec.whatwg.org/multipage/tables.html#dom-tdth-colspan) sets the
   limit of `colspan` to `1000`.
 - A nested column header can't be wider than its parent element (headers can't overlap).
+- If `rowspan` is larger than the number of header rows below the cell, Handsontable clamps it to the remaining header levels.
 
 ## Related keyboard shortcuts
 
@@ -194,16 +292,39 @@ collapsibleColumns: [
 
 ## Related API reference
 
-- Configuration options:
-  - [`collapsibleColumns`](@/api/options.md#collapsiblecolumns)
-  - [`nestedHeaders`](@/api/options.md#nestedheaders)
-- Core methods:
-  - [`isColumnModificationAllowed()`](@/api/core.md#iscolumnmodificationallowed)
-- Hooks:
-  - [`afterColumnCollapse`](@/api/hooks.md#aftercolumncollapse)
-  - [`afterColumnExpand`](@/api/hooks.md#aftercolumnexpand)
-  - [`beforeColumnCollapse`](@/api/hooks.md#beforecolumncollapse)
-  - [`beforeColumnExpand`](@/api/hooks.md#beforecolumnexpand)
-- Plugins:
-  - [`CollapsibleColumns`](@/api/collapsibleColumns.md)
-  - [`NestedHeaders`](@/api/nestedHeaders.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [collapsibleColumns](@/api/options.md#collapsiblecolumns)
+- [nestedHeaders](@/api/options.md#nestedheaders)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [isColumnModificationAllowed()](@/api/core.md#iscolumnmodificationallowed)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterColumnCollapse](@/api/hooks.md#aftercolumncollapse)
+- [afterColumnExpand](@/api/hooks.md#aftercolumnexpand)
+- [beforeColumnCollapse](@/api/hooks.md#beforecolumncollapse)
+- [beforeColumnExpand](@/api/hooks.md#beforecolumnexpand)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [CollapsibleColumns](@/api/collapsibleColumns.md)
+- [NestedHeaders](@/api/nestedHeaders.md)
+
+</div>

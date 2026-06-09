@@ -80,6 +80,8 @@ export function init() {
       indicators: true,
     },
     fixedColumnsStart: 3,
+    viewportRowRenderingOffset: 10,
+    viewportColumnRenderingOffset: 10,
     columns: [
       { data: 'id', type: 'numeric', width: 150 },
       {

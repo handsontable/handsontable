@@ -1,0 +1,69 @@
+---
+/**
+ * SiteTitle component override.
+ *
+ * Renders the logo as a link to handsontable.com (the marketing site)
+ * instead of the docs root, matching the pre-Astro behavior so the docs
+ * header still offers a direct path back to the main website.
+ *
+ * Adds a "dev" badge when BUILD_MODE is not 'production'. The framework
+ * switcher lives in the header nav row (FrameworkSwitcher.astro).
+ */
+import { logos } from 'virtual:starlight/user-images';
+import config from 'virtual:starlight/user-config';
+
+const { siteTitle } = Astro.locals.starlightRoute;
+const isProduction = import.meta.env.PUBLIC_BUILD_MODE === 'production';
+---
+<div class="site-title-wrapper">
+  <a href="https://handsontable.com" class="site-title sl-flex">
+    {
+      config.logo && logos.dark && (
+        <>
+          <img
+            class:list={{ 'light:sl-hidden print:hidden': !('src' in config.logo) }}
+            alt={config.logo.alt}
+            src={logos.dark.src}
+            width={logos.dark.width}
+            height={logos.dark.height}
+          />
+          {!('src' in config.logo) && (
+            <img
+              class="dark:sl-hidden print:block"
+              alt={config.logo.alt}
+              src={logos.light?.src}
+              width={logos.light?.width}
+              height={logos.light?.height}
+            />
+          )}
+        </>
+      )
+    }
+    <span class:list={{ 'sr-only': config.logo?.replacesTitle }} translate="no">
+      {siteTitle}
+    </span>
+  </a>
+  {!isProduction && <span class="dev-badge" aria-label="Development build">dev</span>}
+</div>
+
+<style>
+  .site-title-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .dev-badge {
+    background: var(--sl-color-accent, #4e94f8);
+    border: 1px solid var(--sl-color-accent, #4e94f8);
+    border-radius: 99px;
+    color: #fff;
+    font-family: var(--sl-font-system, system-ui, sans-serif);
+    font-size: 0.65rem;
+    font-weight: 400;
+    line-height: 1;
+    padding: 0.25rem 0.5rem;
+    text-transform: capitalize;
+    vertical-align: middle;
+  }
+</style>

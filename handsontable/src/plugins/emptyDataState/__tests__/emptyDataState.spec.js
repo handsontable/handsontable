@@ -130,7 +130,7 @@ describe('EmptyDataState', () => {
       pagination: true,
     });
 
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootOverlaysElement);
   });
@@ -151,7 +151,7 @@ describe('EmptyDataState', () => {
       pagination: true,
     });
 
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootOverlaysElement);
   });
@@ -258,7 +258,7 @@ describe('EmptyDataState', () => {
         height: 'auto',
       });
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       const borderBottomWidth = getComputedStyle(getEmptyDataStateContainerElement()).borderBottomWidth;
 
@@ -273,7 +273,7 @@ describe('EmptyDataState', () => {
         height: 'auto',
       });
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       const borderBottomWidth = getComputedStyle(getEmptyDataStateContainerElement()).borderBottomWidth;
 

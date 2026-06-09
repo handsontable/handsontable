@@ -1,0 +1,106 @@
+/* ── 404 page ─────────────────────────────────────────────────────────────── */
+
+.not-found {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--sl-color-gray-5);
+}
+
+/* ── Left column: text + button ───────────────────────────────────────────── */
+
+.not-found__info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+  padding-left: 4rem;
+}
+
+.not-found__code {
+  font-size: 6rem;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--sl-color-white);
+  letter-spacing: -0.02em;
+}
+
+.not-found__heading {
+  margin: 1rem 0 0 0 !important;
+  font-size: var(--sl-text-2xl);
+  font-weight: 600;
+  color: var(--sl-color-white);
+}
+
+.not-found__text {
+  margin: 0.25rem 0 0;
+  font-size: var(--sl-text-base);
+  color: var(--sl-color-gray-2);
+  max-width: 28rem;
+}
+
+.not-found__cta {
+  margin: 1rem 0 0;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-3);
+}
+
+.not-found .not-found__link,
+.not-found .not-found__link:hover {
+  text-decoration: none !important;
+}
+
+.not-found .not-found__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 2rem;
+  color: var(--sl-color-accent);
+  font-size: var(--sl-text-sm);
+  font-weight: 500;
+  border: 1px solid var(--sl-color-accent);
+  padding: 0.5rem 1.25rem;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.not-found .not-found__link:hover {
+  background: var(--sl-color-accent);
+  color: #fff !important;
+}
+
+/* ── Mobile: stack vertically ─────────────────────────────────────────────── */
+
+@media (max-width: 49.99rem) {
+  .not-found {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem 1rem 2rem;
+    gap: 1.5rem;
+  }
+
+  .not-found__info {
+    align-items: center;
+    text-align: center;
+    padding-left: 0;
+  }
+
+  .not-found__code {
+    font-size: 4rem;
+  }
+}
+
+/* Hide breadcrumbs, page title, footer, and mobile subheader on the 404 splash page */
+main:has(.not-found) .hot-footer,
+main:has(.not-found) .sl-footer-built-ins,
+main:has(.not-found) .hot-page-header,
+main:has(.not-found) .content-panel:first-child {
+  display: none !important;
+}
+
+body:has(.not-found) .mobile-subheader {
+  display: none !important;
+}

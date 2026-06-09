@@ -1,5 +1,5 @@
 ---
-id: w6bvsin5
+type: how-to
 title: Performance
 metaTitle: Performance - JavaScript Data Grid | Handsontable
 description: Boost your grid's performance by setting a constant column size, suspending rendering, deciding how many rows and columns are pre-rendered, and more.
@@ -8,17 +8,15 @@ canonicalUrl: /performance
 tags:
   - speed
 react:
-  id: gbdbrlc8
   metaTitle: Performance - React Data Grid | Handsontable
 angular:
-  id: 34wyxzpj
   metaTitle: Performance - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Performance - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
+menuTag: updated
 ---
-
-# Performance
-
 Boost your grid's performance by setting a constant column size, suspending rendering, deciding how many rows and columns are pre-rendered, and more.
 
 [[toc]]
@@ -70,6 +68,22 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  colWidths: [50, 150, 45],
+  rowHeights: [40, 40, 40, 40],
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 When taking this approach, make sure that the contents of your cells fit in your row and column sizes, or let the user change [column widths](@/guides/columns/column-width/column-width.md#adjust-the-column-width-manually) and [row heights](@/guides/rows/row-height/row-height.md#adjust-row-heights-manually) manually.
 
 Read more:
@@ -96,6 +110,18 @@ For more information, see our documentation for [rows](@/api/options.md#viewport
 
 Changing your background, font colors, etc., shouldn't lower the performance. However, adding too many CSS animations, transitions, and other calculation-consuming attributes may impact the performance, so keep them at a reasonable level.
 
+## Avoid the `cells` option when possible
+
+The [`cells`](@/api/options.md#cells) option is a function invoked before each of Handsontable's [rendering cycles](@/guides/optimization/batch-operations/batch-operations.md). Because it runs on every render for every visible cell, even a small amount of work inside it adds up quickly and can noticeably slow down the grid.
+
+Prefer lighter alternatives when they meet your needs:
+
+- [`cell`](@/api/options.md#cell) - a static array of per-cell options, evaluated once.
+- [`columns`](@/api/options.md#columns) - a static array of per-column options, evaluated once.
+- [`setCellMeta()`](@/api/core.md#setcellmeta) - updates a single cell's metadata imperatively, without re-evaluating every cell.
+
+Use the [`cells`](@/api/options.md#cells) option only if the above alternatives can't express the logic you need.
+
 ## Suspend rendering
 
 By default, Handsontable will call the render after each CRUD operation. Usually, this is expected behavior, but you may find it slightly excessive in some use cases. By using one of the batching methods, you can suspend rendering and call it just once at the end. For example:
@@ -116,6 +142,16 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
+:::
+
+::: only-for vue
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. Use a template ref on the `HotTable` component and read its `hotInstance` property.
+
+For more information, see the [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md) page.
 
 :::
 :::
@@ -152,6 +188,8 @@ For more information, see our [Pagination guide](@/guides/rows/rows-pagination/r
 
 ### Related guides
 
+<div class="boxes-list">
+
 - [Batch operations](@/guides/optimization/batch-operations/batch-operations.md)
 - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
 - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
@@ -159,12 +197,40 @@ For more information, see our [Pagination guide](@/guides/rows/rows-pagination/r
 - [Modules](@/guides/tools-and-building/modules/modules.md)
 - [Bundle size](@/guides/optimization/bundle-size/bundle-size.md)
 
+</div>
+
+### Related blog articles
+
+<div class="boxes-list">
+
+- [Handsontable 15.1.0: Performance and stability improvements](https://handsontable.com/blog/handsontable-15.1.0-performance-and-stability-improvements)
+- [Handsontable 14.5.0: Improved performance and flexible column header class](https://handsontable.com/blog/handsontable-14.5.0-improved-performance-and-flexible-column-header-class)
+- [Handsontable 10.0.0: Improved performance and consistency](https://handsontable.com/blog/handsontable-10.0.0-improved-performance-and-consistency)
+
+</div>
+
 ### Related API reference
 
-- Configuration options:
-  - [`pagination`](@/api/options.md#pagination)
-  - [`autoColumnSize`](@/api/options.md#autocolumnsize)
-  - [`autoRowSize`](@/api/options.md#autorowsize)
-  - [`colWidths`](@/api/options.md#colwidths)
-  - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
-  - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
+**Configuration options:**
+
+<div class="boxes-list">
+
+- [`pagination`](@/api/options.md#pagination)
+- [`autoColumnSize`](@/api/options.md#autocolumnsize)
+- [`autoRowSize`](@/api/options.md#autorowsize)
+- [`cell`](@/api/options.md#cell)
+- [`cells`](@/api/options.md#cells)
+- [`colWidths`](@/api/options.md#colwidths)
+- [`columns`](@/api/options.md#columns)
+- [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
+- [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
+
+</div>
+
+**Core methods:**
+
+<div class="boxes-list">
+
+- [`setCellMeta()`](@/api/core.md#setcellmeta)
+
+</div>

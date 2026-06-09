@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 6sl4ak1f
 title: Installation in Vue 3
 metaTitle: Installation - Vue 3 Data Grid | Handsontable
@@ -11,12 +12,11 @@ react:
 angular:
   id: od7j5cpt
   metaTitle: Installation - Vue 3 Data Grid | Handsontable
+vue:
+  id: zt7xpt7w
 searchCategory: Guides
 category: Integrate with Vue 3
 ---
-
-# Installation in Vue 3
-
 Install Handsontable's Vue 3 wrapper via npm, import the stylesheets, and get your application up and running.
 
 [[toc]]
@@ -87,19 +87,38 @@ You can reduce the size of your bundle by importing and registering only the
 
 :::
 
+## Next steps
+
+::: only-for vue
+
+- If you use Nuxt 3, read [Use Handsontable in Nuxt](@/guides/getting-started/vue3-nuxt/vue3-nuxt.md) to handle SSR.
+
+:::
+
 ## Related API reference
 
-- Configuration options:
-  - [`maxCols`](@/api/options.md#maxcols)
-  - [`maxRows`](@/api/options.md#maxrows)
-  - [`minCols`](@/api/options.md#mincols)
-  - [`minRows`](@/api/options.md#minrows)
-  - [`minSpareCols`](@/api/options.md#minsparecols)
-  - [`minSpareRows`](@/api/options.md#minsparerows)
-  - [`startCols`](@/api/options.md#startcols)
-  - [`startRows`](@/api/options.md#startrows)
-- Hooks:
-  - [`afterInit`](@/api/hooks.md#afterinit)
-  - [`beforeInit`](@/api/hooks.md#beforeinit)
-  - [`beforeInitWalkontable`](@/api/hooks.md#beforeinitwalkontable)
-  - [`construct`](@/api/hooks.md#construct)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [`maxCols`](@/api/options.md#maxcols)
+- [`maxRows`](@/api/options.md#maxrows)
+- [`minCols`](@/api/options.md#mincols)
+- [`minRows`](@/api/options.md#minrows)
+- [`minSpareCols`](@/api/options.md#minsparecols)
+- [`minSpareRows`](@/api/options.md#minsparerows)
+- [`startCols`](@/api/options.md#startcols)
+- [`startRows`](@/api/options.md#startrows)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [`afterInit`](@/api/hooks.md#afterinit)
+- [`beforeInit`](@/api/hooks.md#beforeinit)
+- [`beforeInitWalkontable`](@/api/hooks.md#beforeinitwalkontable)
+- [`construct`](@/api/hooks.md#construct)
+
+</div>

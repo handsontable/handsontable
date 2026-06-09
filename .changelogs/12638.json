@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed Ctrl/Cmd+click selection highlight jumping between cells when `disableVisualSelection` is set to a non-`false` value.",
+  "type": "fixed",
+  "issueOrPR": 12638,
+  "breaking": false,
+  "framework": "none"
+}

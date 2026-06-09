@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed `clear()` selecting all cells after the table data is cleared.",
+  "type": "fixed",
+  "issueOrPR": 12477,
+  "breaking": false,
+  "framework": "none"
+}

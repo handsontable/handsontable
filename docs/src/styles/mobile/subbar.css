@@ -1,0 +1,100 @@
+/* -------------------------------------------------------------------------
+ * Mobile sub-bar (row 2): sidebar toggle | breadcrumbs | ToC toggle
+ * Sits below the main header bar, both fixed.
+ * ------------------------------------------------------------------------- */
+.mobile-subheader {
+  display: none;
+}
+
+@media screen and (max-width: 71.99rem) {
+  .mobile-subheader {
+    display: flex !important;
+    align-items: center;
+    position: fixed;
+    top: var(--sl-nav-height);
+    right: 0;
+    height: var(--sl-mobile-subheader-height);
+    z-index: 10099;
+    background-color: var(--sl-rapide-ui-header-bg-color);
+    -webkit-backdrop-filter: blur(0.5rem);
+    backdrop-filter: blur(0.5rem);
+    border-top: none;
+    border-bottom: 1px solid var(--sl-color-gray-5);
+    padding: 0 0.5rem;
+    gap: 0.25rem;
+  }
+}
+
+/* On mobile subheader goes full width; on tablet starts after sidebar */
+@media screen and (max-width: 49.99rem) {
+  .mobile-subheader {
+    left: 0;
+  }
+
+  /* Ensure header bar compact on mobile — fixed height must match --sl-nav-height */
+  header.header {
+    height: var(--sl-nav-height) !important;
+    padding-block: 0.625rem 0.5rem;
+    box-sizing: border-box;
+  }
+
+  header.header > .header {
+    width: 100%;
+  }
+}
+
+/* Sub-bar buttons — WCAG 2.5.8 minimum 44px touch targets */
+.mobile-sidebar-toggle,
+.mobile-toc-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--sl-color-gray-2);
+  cursor: pointer;
+  padding: 0.25rem 0.375rem;
+  min-width: 44px;
+  min-height: 44px;
+  flex-shrink: 0;
+  transition: color 0.15s;
+}
+
+.mobile-sidebar-toggle:hover,
+.mobile-toc-toggle:hover {
+  color: var(--sl-color-white);
+}
+
+/* Sidebar toggle icon switching: hamburger on mobile, collapse/expand on tablet */
+.sidebar-icon-collapse,
+.sidebar-icon-expand {
+  display: none;
+}
+
+@media (min-width: 50rem) and (max-width: 71.99rem) {
+  .sidebar-icon-hamburger {
+    display: none;
+  }
+  .sidebar-icon-collapse {
+    display: block;
+  }
+  body[data-sidebar-collapsed] .sidebar-icon-collapse {
+    display: none;
+  }
+  body[data-sidebar-collapsed] .sidebar-icon-expand {
+    display: block;
+  }
+}
+
+/* Breadcrumbs */
+.mobile-breadcrumbs {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  color: var(--sl-color-gray-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  padding: 0 0.25rem;
+}

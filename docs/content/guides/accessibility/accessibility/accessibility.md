@@ -1,5 +1,5 @@
 ---
-id: o4qhm1bg
+type: how-to
 title: Accessibility
 metaTitle: Accessibility - JavaScript Data Grid | Handsontable
 description: Learn about Handsontable's accessibility features.
@@ -18,18 +18,17 @@ tags:
   - compliance
   - vpat
 react:
-  id: x82phf34
   metaTitle: Accessibility - React Data Grid | Handsontable
 angular:
-  id: 99l3uae8
   metaTitle: Accessibility - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Accessibility - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessibility
 ---
+Handsontable supports keyboard navigation, screen readers, and ARIA roles. Use these steps to configure accessible behavior for your users.
 
-# Accessibility
-
-Handsontable is designed to be accessible, aligning with global standards. We prioritize inclusivity, ensuring web applications are usable by people with disabilities. 
+Handsontable is designed to be accessible, aligning with global standards. We prioritize inclusivity, ensuring web applications are usable by people with disabilities.
 
 [[toc]]
 
@@ -47,18 +46,31 @@ Most global standards and regulations are created in accordance with WCAG (Web C
 Handsontable meets requirements outlined in the [WCAG 2.1 AA](https://www.w3.org/WAI/WCAG21/quickref/) guidelines,
 which makes it compatible with most local standards, such as:
 
-### Region
+**USA**
 
-#### USA
-- [Section 508 of the US Rehabilitation Act](https://www.section508.gov/)
-- [Americans with Disabilities Act (ADA)](https://www.ada.gov/resources/web-guidance/) 
+<div class="boxes-list">
 
-#### Europe
-- [European Accessibility Act (EAA)](https://ec.europa.eu/social/main.jsp?catId=1202)
-- [Web Accessibility Directive (WAD)](https://eur-lex.europa.eu/legal-content/EN/LSU/?uri=CELEX:32016L2102)
+- [Section 508 of the US Rehabilitation Act](https://www.section508.gov/){target="_blank"}
+- [Americans with Disabilities Act (ADA)](https://www.ada.gov/resources/web-guidance/){target="_blank"}
 
-#### Canada
-- [Standard on Web Accessibility](https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601) 
+</div>
+
+**Europe**
+
+<div class="boxes-list">
+
+- [European Accessibility Act (EAA)](https://ec.europa.eu/social/main.jsp?catId=1202){target="_blank"}
+- [Web Accessibility Directive (WAD)](https://eur-lex.europa.eu/legal-content/EN/LSU/?uri=CELEX:32016L2102){target="_blank"}
+
+</div>
+
+**Canada**
+
+<div class="boxes-list">
+
+- [Standard on Web Accessibility](https://www.tbs-sct.canada.ca/pol/doc-eng.aspx?id=23601){target="_blank"}
+
+</div>
 
 ## Keyboard navigation
 
@@ -85,13 +97,13 @@ Handsontable provides a wide range of [keyboard shortcuts](@/guides/navigation/k
 
 | Windows                                                                                                 | macOS                                                                                                  | Action              | Focused element |
 | ------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------- | --------------- |
-| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd>                                                | <kbd>**Shift**</kbd>+<kbd>**Option**</kbd>+<kbd>**↓**</kbd>                                            | Open a column menu  | Any cell        |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                                                                | <kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd>                                                                | Open a column menu  | Column header   |
+| <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd>                                                | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**↓**</kbd>                                            | Open a column menu  | Any cell        |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                                                                | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                                                                | Open a column menu  | Column header   |
 | <kbd>**Enter**</kbd>                                                                                    | <kbd>**Enter**</kbd>                                                                                   | Sort data           | Column header   |
-| <kbd>**Alt**</kbd>+<kbd>**A**</kbd>                                                                     | <kbd>**Option**</kbd>+<kbd>**A**</kbd>                                                                 | Clear filters       | Any cell        |
-| <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                                                                | <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>*                                                              | Select a column     | Any cell        |
-| <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                                                               | <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                                                              | Select a row        | Any cell        |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**\\**</kbd> <br> <kbd>**Shift**</kbd>+<kbd>**F10**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**\\**</kbd> <br> <kbd>**Shift**</kbd>+<kbd>**F10**</kbd> | Open a context menu | Any cell        |
+| <kbd>**Alt**</kbd>+<kbd>**A**</kbd>                                                                     | <kbd>⌥</kbd>+<kbd>**A**</kbd>                                                                 | Clear filters       | Any cell        |
+| <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                                                                | <kbd>⌃</kbd>+<kbd>**Space**</kbd>*                                                              | Select a column     | Any cell        |
+| <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                                                               | <kbd>⇧</kbd>+<kbd>**Space**</kbd>                                                              | Select a row        | Any cell        |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**\\**</kbd> <br> <kbd>**Shift**</kbd>+<kbd>**F10**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**\\**</kbd> <br> <kbd>⇧</kbd>+<kbd>**F10**</kbd> | Open a context menu | Any cell        |
 
 *To use this shortcut, disable the default macOS behavior for the <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd> key combination, under **System Settings** > **Keyboard** > **Keyboard Shortcuts** > **Input Sources**.
 
@@ -109,14 +121,14 @@ Each new version of Handsontable is thoroughly tested for accessibility with the
 
 Check out the interactive demo below to see how various Handsontable settings impact its accessibility level and affect the user experience.
 
-::: only-for javascript vue
+::: only-for javascript
 
 ::: example #example1 --html 1 --css 2 --js 3 --ts 4
 
 @[code](@/content/guides/accessibility/accessibility/javascript/example1.html)
 @[code](@/content/guides/accessibility/accessibility/javascript/example1.css)
-@[code](@/content/guides/accessibility/accessibility/javascript/example1.js)
-@[code](@/content/guides/accessibility/accessibility/javascript/example1.ts)
+@[code collapse={8-468}](@/content/guides/accessibility/accessibility/javascript/example1.js)
+@[code collapse={19-479}](@/content/guides/accessibility/accessibility/javascript/example1.ts)
 
 :::
 
@@ -127,8 +139,8 @@ Check out the interactive demo below to see how various Handsontable settings im
 ::: example #example2 :react --css 1 --js 2 --ts 3
 
 @[code](@/content/guides/accessibility/accessibility/react/example2.css)
-@[code](@/content/guides/accessibility/accessibility/react/example2.jsx)
-@[code](@/content/guides/accessibility/accessibility/react/example2.tsx)
+@[code collapse={8-468}](@/content/guides/accessibility/accessibility/react/example2.jsx)
+@[code collapse={30-490}](@/content/guides/accessibility/accessibility/react/example2.tsx)
 
 :::
 
@@ -138,8 +150,19 @@ Check out the interactive demo below to see how various Handsontable settings im
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/accessibility/accessibility/angular/example1.ts)
+@[code collapse={22-482}](@/content/guides/accessibility/accessibility/angular/example1.ts)
 @[code](@/content/guides/accessibility/accessibility/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3 --css 1
+
+@[code](@/content/guides/accessibility/accessibility/vue/example2.css)
+@[code](@/content/guides/accessibility/accessibility/vue/example2.vue)
 
 :::
 
@@ -206,6 +229,23 @@ const configurationOptions: GridSettings = {
 
 :::
 
+::: only-for vue
+
+```ts
+const hotSettings = ref({
+  // disable column virtualization
+  renderAllColumns: true,
+  // disable row virtualization
+  renderAllRows: true,
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ## High-contrast theme
 
 The recommended [minimum contrast ratio](https://www.w3.org/WAI/WCAG21/quickref/#contrast-minimum) for text against images or backgrounds is 4.5:1. To achieve this level of contrast with Handsontable's default theme, you can:
@@ -251,23 +291,45 @@ We make sure our data grid remains accessible by taking the following measures:
 
 For the list of [options](@/guides/getting-started/configuration-options/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to accessibility, see the following API reference pages:
 
+**Configuration options**
+
+<div class="boxes-list">
+
 - [`autoWrapCol`](@/api/options.md#autowrapcol)
 - [`autoWrapRow`](@/api/options.md#autowraprow)
-- [`tabNavigation`](@/api/options.md#tabnavigation)
 - [`enterBeginsEditing`](@/api/options.md#enterbeginsediting)
 - [`enterMoves`](@/api/options.md#entermoves)
 - [`navigableHeaders`](@/api/options.md#navigableheaders)
 - [`renderAllColumns`](@/api/options.md#renderallcolumns)
 - [`renderAllRows`](@/api/options.md#renderallrows)
+- [`tabNavigation`](@/api/options.md#tabnavigation)
 - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
 - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
 
+</div>
+
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 15.3.0: CSV sanitization, accessibility updates, and 30+ fixes](https://handsontable.com/blog/handsontable-15.3.0-csv-sanitization-accessibility-updates-and-30-fixes)
+- [What's new in Handsontable 14: Improvements to accessibility](https://handsontable.com/blog/whats-new-in-handsontable-14-improvements-to-accessibility)
+
+</div>
+
 ## Troubleshooting
 
-Try the following links if you didn't find what you need:
+Didn't find what you need? Try this:
+
+<div class="boxes-list">
 
 - [View related topics](https://github.com/handsontable/handsontable/labels/Accessibility) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
 - [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
+
+</div>
+
+## Result
+
+Your grid now supports keyboard navigation, screen reader announcements, and ARIA attributes for all major interactive elements.

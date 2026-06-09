@@ -25,14 +25,14 @@ describe('IntlDateType - allowInvalid', () => {
     expect(getCell(0, 0).innerText).toBe('1/28/26');
 
     await setDataAtCell(0, 0, 'test');
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     expect(getData()).toEqual([['test', '2026-01', 'test', '2026-01-29']]);
     expect(getSourceData()).toEqual([['test', '2026-01', 'test', '2026-01-29']]);
     expect(getCell(0, 0).innerText).toBe('#bad-value#');
 
     await setSourceDataAtCell(0, 0, 'test2');
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     expect(getData()).toEqual([['test2', '2026-01', 'test', '2026-01-29']]);
     expect(getSourceData()).toEqual([['test2', '2026-01', 'test', '2026-01-29']]);
@@ -53,14 +53,14 @@ describe('IntlDateType - allowInvalid', () => {
     expect(getCell(0, 0).innerText).toBe('1/28/26');
 
     await setDataAtCell(0, 0, 'test');
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     expect(getData()).toEqual([['2026-01-28', null, null, '2026-01-29']]);
     expect(getSourceData()).toEqual([['2026-01-28', null, null, '2026-01-29']]);
     expect(getCell(0, 0).innerText).toBe('1/28/26');
 
     await setSourceDataAtCell(0, 0, 'test');
-    await sleep(10);
+    await waitForNextAnimationFrames(1);
 
     expect(getData()).toEqual([['2026-01-28', null, null, '2026-01-29']]);
     expect(getSourceData()).toEqual([['2026-01-28', null, null, '2026-01-29']]);

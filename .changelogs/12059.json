@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed column width calculation for collapsed columns",
-  "type": "fixed",
-  "issueOrPR": 12059,
-  "breaking": false,
-  "framework": "none"
-}

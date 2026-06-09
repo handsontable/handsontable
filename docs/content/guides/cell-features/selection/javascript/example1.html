@@ -1,12 +1,16 @@
 <div class="example-controls-container">
   <div class="controls">
-    <label>
-      <select id="selectOption">
-        <option>Single selection</option>
-        <option>Range selection</option>
-        <option selected="selected">Multiple ranges selection</option>
-      </select>
-    </label>
+    <div class="theme-dropdown" id="selectionDropdown">
+      <button class="theme-dropdown-trigger" id="selectionTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+        <span id="selectionLabel">Multiple ranges selection</span>
+        <svg class="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+      </button>
+      <ul class="theme-dropdown-menu" id="selectionMenu" role="listbox" hidden>
+        <li role="option" data-value="single">Single selection</li>
+        <li role="option" data-value="range">Range selection</li>
+        <li role="option" data-value="multiple" aria-selected="true">Multiple ranges selection</li>
+      </ul>
+    </div>
   </div>
 </div>
 <div id="example1"></div>

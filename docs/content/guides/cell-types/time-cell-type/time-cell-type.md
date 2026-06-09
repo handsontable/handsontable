@@ -1,24 +1,22 @@
 ---
-id: q63yhvq5
+type: how-to
 title: Time cell type
 metaTitle: Time cell type - JavaScript Data Grid | Handsontable
 description: Display, format, sort, and filter time values correctly by using the time cell type. Use Intl.DateTimeFormat (recommended) or the legacy moment.js-based configuration.
 permalink: /time-cell-type
 canonicalUrl: /time-cell-type
 react:
-  id: 34n5nwja
   metaTitle: Time cell type - React Data Grid | Handsontable
 angular:
-  id: fu9fqphw
   metaTitle: Time cell type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Time cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
-menuTag: updated
 ---
-
-# Time cell type
-
 Display, format, sort, and filter time values correctly by using the time cell type. Edit times via the cell editor.
+
+The time cell type formats time values using a configurable format string. Use it for scheduling, logging, or any time-based data.
 
 [[toc]]
 
@@ -34,8 +32,8 @@ In the following demo, the **Start**, **Break start**, and **End** columns use t
 ::: example #example1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-types/time-cell-type/javascript/example1.html)
-@[code](@/content/guides/cell-types/time-cell-type/javascript/example1.js)
-@[code](@/content/guides/cell-types/time-cell-type/javascript/example1.ts)
+@[code collapse={12-18,23-53}](@/content/guides/cell-types/time-cell-type/javascript/example1.js)
+@[code collapse={12-18,23-53}](@/content/guides/cell-types/time-cell-type/javascript/example1.ts)
 
 :::
 :::
@@ -43,8 +41,8 @@ In the following demo, the **Start**, **Break start**, and **End** columns use t
 ::: only-for react
 ::: example #example1 :react --js 1 --ts 2
 
-@[code](@/content/guides/cell-types/time-cell-type/react/example1.jsx)
-@[code](@/content/guides/cell-types/time-cell-type/react/example1.tsx)
+@[code collapse={8-30,67-73,113-143}](@/content/guides/cell-types/time-cell-type/react/example1.jsx)
+@[code collapse={9-31,68-74,114-144}](@/content/guides/cell-types/time-cell-type/react/example1.tsx)
 
 :::
 :::
@@ -52,10 +50,20 @@ In the following demo, the **Start**, **Break start**, and **End** columns use t
 ::: only-for angular
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/time-cell-type/angular/example1.ts)
+@[code collapse={54-84,89-126}](@/content/guides/cell-types/time-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/time-cell-type/angular/example1.html)
 
 :::
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-types/time-cell-type/vue/example1.vue)
+
+:::
+
 :::
 
 ## Use the time cell type
@@ -174,6 +182,60 @@ settings3 = {
 
 :::
 
+::: only-for vue
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
+
+registerAllModules();
+
+// set the time cell type for the entire grid (Intl, recommended)
+const hotSettings = ref<GridSettings>({
+  type: 'intl-time',
+  locale: 'en-US',
+  timeFormat: {
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+// set the time cell type for a single column
+const hotSettingsColumn = ref<GridSettings>({
+  columns: [
+    {
+      type: 'intl-time',
+      locale: 'en-US',
+      timeFormat: { timeStyle: 'medium' }
+    }
+  ],
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+// set the time cell type for a single cell
+const hotSettingsCell = ref<GridSettings>({
+  cell: [
+    {
+      row: 0,
+      col: 2,
+      type: 'intl-time',
+      locale: 'en-US',
+      timeFormat: { hour: '2-digit', minute: '2-digit', hour12: true }
+    }
+  ],
+  licenseKey: 'non-commercial-and-evaluation',
+});
+</script>
+```
+
+:::
+
 For `intl-time` cells, source data **must** be in **24-hour time format** (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`) for times to work correctly. The `timeFormat` object only affects how times are displayed; sorting and filtering rely on the underlying value.
 
 ## Format times
@@ -261,6 +323,46 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
+
+registerAllModules();
+
+const hotSettings = ref<GridSettings>({
+  columns: [
+    {
+      type: 'intl-time',
+      locale: 'en-US',
+      timeFormat: {
+        hour: 'numeric',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      }
+    },
+    {
+      type: 'intl-time',
+      locale: 'de-DE',
+      timeFormat: { timeStyle: 'medium' }
+    }
+  ],
+  licenseKey: 'non-commercial-and-evaluation',
+});
+</script>
+
+<template>
+  <HotTable :settings="hotSettings" />
+</template>
+```
+
+:::
+
 **Time-specific options**
 
 **Style shortcuts:**
@@ -333,33 +435,56 @@ columns: [{
 
 The [`timeFormat`](@/api/options.md#timeformat) option controls how times are displayed in the cell. The editor may show the value in a normalized form; for `intl-time`, the underlying value remains in 24-hour format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`).
 
+## Result
+
+After configuring the time cell type, cells display time values formatted according to your `timeFormat` configuration. Source data is stored in 24-hour format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`) regardless of the display format.
+
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`timeFormat`](@/api/options.md#timeformat)
-  - [`locale`](@/api/options.md#locale)
-  - [`type`](@/api/options.md#type)
-  - [`correctFormat`](@/api/options.md#correctformat)
-  - [`valueFormatter`](@/api/options.md#valueformatter)
-  - [`valueParser`](@/api/options.md#valueparser)
-  - [`valueSetter`](@/api/options.md#valuesetter)
-  - [`valueGetter`](@/api/options.md#valuegetter)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [timeFormat](@/api/options.md#timeformat)
+- [locale](@/api/options.md#locale)
+- [type](@/api/options.md#type)
+- [correctFormat](@/api/options.md#correctformat)
+- [valueFormatter](@/api/options.md#valueformatter)
+- [valueParser](@/api/options.md#valueparser)
+- [valueSetter](@/api/options.md#valuesetter)
+- [valueGetter](@/api/options.md#valuegetter)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getDataType()](@/api/core.md#getdatatype)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>

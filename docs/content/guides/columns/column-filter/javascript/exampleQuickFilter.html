@@ -1,17 +1,20 @@
 <div class="example-controls-container">
   <div class="controlsQuickFilter">
-    <label for="columns" class="selectColumn">Select a column:
-      <select name="columns" id="columns">
-        <option value="0">Brand</option>
-        <option value="1">Model</option>
-        <option value="2">Price</option>
-        <option value="3">Date</option>
-        <option value="4">Time</option>
-        <option value="5">In stock</option>
-      </select>
-    </label>
-  </div>
-  <div class="controlsQuickFilter">
+    <div class="filter-dropdown" id="filterDropdown">
+      <label class="filter-dropdown-label">Select a column:</label>
+      <button class="filter-dropdown-trigger" id="filterTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+        <span class="filter-dropdown-text" id="filterTriggerLabel">Brand</span>
+        <svg class="filter-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+      </button>
+      <ul class="filter-dropdown-menu" id="filterMenu" role="listbox" hidden>
+        <li role="option" data-value="0" aria-selected="true">Brand</li>
+        <li role="option" data-value="1">Model</li>
+        <li role="option" data-value="2">Price</li>
+        <li role="option" data-value="3">Date</li>
+        <li role="option" data-value="4">Time</li>
+        <li role="option" data-value="5">In stock</li>
+      </ul>
+    </div>
     <input id="filterField" type="text" placeholder="Filter" />
   </div>
 </div>

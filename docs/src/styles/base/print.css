@@ -1,0 +1,34 @@
+/* -------------------------------------------------------------------------
+ * Print styles
+ * ------------------------------------------------------------------------- */
+@media print {
+  /* Hide nav rows, mobile subheader, breadcrumbs, and footer — keep logo */
+  .header-row-2,
+  .mobile-subheader,
+  .hot-page-header,
+  .hot-footer,
+  .sl-footer-built-ins {
+    display: none !important;
+  }
+
+  /* Hide everything in header row 1 except the logo */
+  .header-row-1 .search-wrapper,
+  .header-row-1 .right-group,
+  .header-row-1 .mobile-controls {
+    display: none !important;
+  }
+
+  /* Collapse the gap between header and content */
+  .page > .main-frame {
+    padding-top: 0 !important;
+  }
+  main,
+  main > .content-panel:first-child {
+    padding-block-start: 0 !important;
+  }
+
+  /* Reduce overall text size */
+  :root {
+    font-size: 13px;
+  }
+}

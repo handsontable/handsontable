@@ -1,0 +1,4 @@
+.htSummaryRow {
+  font-weight: 600;
+  background-color: var(--ht-background-color-extra-light, #f2f3f5);
+}

@@ -178,5 +178,45 @@ describe('WalkontableTable', () => {
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'master').toBe(0);
       expectWtTable(wt, wtTable => wtTable.getFirstRenderedRow(), 'bottom').toBe(0);
     });
+
+    it('should return -1 without throwing when the table is initialized inside a hidden container', async() => {
+      createDataArray(18, 4);
+      spec().$wrapper.width(250).height(170).css('display', 'none');
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      // draw() is interrupted because the container is hidden — rowsRenderCalculator stays undefined
+      wt.draw();
+
+      // should return -1 instead of throwing "can't access property 'startRow', rowsRenderCalculator is undefined"
+      expect(wt.wtTable.getFirstRenderedRow()).toBe(-1);
+    });
+
+    it('should not throw when draw(fastDraw=true) is called after the container becomes visible for the first time', async() => {
+      createDataArray(18, 4);
+      spec().$wrapper.width(250).height(170).css('display', 'none');
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+      });
+
+      // Initial draw is interrupted — rowsRenderCalculator is never set
+      wt.draw();
+
+      // Container becomes visible (e.g. accordion opens)
+      spec().$wrapper.css('display', '');
+
+      // draw(true) must not throw even though rowsRenderCalculator was undefined;
+      // the guard in areAllProposedVisibleRowsAlreadyRendered forces a full redraw,
+      // which sets rowsRenderCalculator and recovers correctly
+      expect(() => wt.draw(true)).not.toThrow();
+      expect(wt.wtTable.getFirstRenderedRow()).toBe(0);
+    });
   });
 });

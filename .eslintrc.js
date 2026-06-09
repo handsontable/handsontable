@@ -1,4 +1,5 @@
 module.exports = {
+  root: true,
   extends: ['airbnb-base'],
   parser: '@babel/eslint-parser',
   parserOptions: {
@@ -32,6 +33,7 @@ module.exports = {
     'class-methods-use-this': 'off',
     'comma-dangle': 'off',
     'consistent-return': 'off',
+    'brace-style': ['error', '1tbs', { allowSingleLine: false }],
     curly: ['error', 'all'],
     'func-names': 'off',
     'import/no-extraneous-dependencies': 'off',
@@ -50,7 +52,7 @@ module.exports = {
       {
         code: 120,
         ignoreComments: true,
-        ignorePattern: '^\\s*x?it\\s*\\(', // Ignore long test names (e.q: `it("something long")`).
+        ignorePattern: '^\\s*x?(?:f?it)(?:\\.\\w+)?\\s*\\(', // Ignore long test names (e.g. `it("...")`, `it.flaky("...")`).
       }
     ],
     'newline-per-chained-call': 'off',
@@ -135,7 +137,6 @@ module.exports = {
     'jsdoc/empty-tags': 'error',
     'jsdoc/implements-on-classes': 'error',
     'jsdoc/match-description': 'off',
-    'jsdoc/newline-after-description': 'error',
     'jsdoc/no-bad-blocks': 'off',
     'jsdoc/no-defaults': 'off',
     'jsdoc/no-types': 'off',
@@ -174,6 +175,13 @@ module.exports = {
     'getter-return': 'off',
     'switch-colon-spacing': 'off',
     'operator-assignment': 'off',
+    // New in airbnb-base v15 — disabled to avoid breaking API signatures and noisy diffs
+    'default-param-last': 'off',
+    'function-call-argument-newline': 'off',
+    // export { X as default } is a valid re-export pattern throughout the codebase
+    'no-restricted-exports': 'off',
+    // Cross-package relative imports are used in test bootstrap files (test/bootstrap.js etc.)
+    'import/no-relative-packages': 'off',
   },
   overrides: [
     {

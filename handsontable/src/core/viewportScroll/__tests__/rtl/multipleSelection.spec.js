@@ -84,7 +84,7 @@ describe('Multiple selection scroll (RTL mode)', () => {
       scrollIntoViewSpy.calls.reset();
       await keyDownUp(['shift', 'arrowleft']);
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(inlineStartOverlay().getScrollPosition()).toBe(25);
       expect(scrollIntoViewSpy).not.toHaveBeenCalled();

@@ -1,6 +1,7 @@
 /* file: app.component.ts */
 import { Component, OnInit } from '@angular/core';
-import { GridSettings } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import type Handsontable from 'handsontable/base';
 
 const ipValidatorRegexp =
   /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
@@ -24,7 +25,8 @@ const emailValidator = (value: string, callback: (arg0: boolean) => void) => {
       [settings]="hotSettings!" [data]="hotData">
     </hot-table>
   `,
-  standalone: false
+  standalone: true,
+  imports: [HotTableModule],
 })
 export class AppComponent implements OnInit {
   output = 'Here you will see the log';
@@ -104,12 +106,12 @@ export class AppComponent implements OnInit {
     const componentInstance = this;
 
     this.hotSettings = {
-      beforeChange(changes) {
+      beforeChange(changes: (Handsontable.CellChange | null)[]) {
         for (let i = changes.length - 1; i >= 0; i--) {
           const currChange = changes[i];
 
           if (!currChange) {
-            return false;
+            continue;
           }
 
           // gently don't accept the word "foo" (remove the change at index i)
@@ -125,7 +127,7 @@ export class AppComponent implements OnInit {
             currChange[1] === 'name.first' ||
             currChange[1] === 'name.last'
           ) {
-            if (currChange[3] !== null) {
+            if (currChange[3] !== null && typeof currChange[3] === 'string') {
               changes[i]![3] =
                 currChange[3].charAt(0).toUpperCase() + currChange[3].slice(1);
             }
@@ -134,7 +136,7 @@ export class AppComponent implements OnInit {
 
         return true;
       },
-      afterChange(changes, source) {
+      afterChange(changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) {
         if (source !== 'loadData') {
           componentInstance.output = JSON.stringify(changes);
         }
@@ -157,38 +159,22 @@ export class AppComponent implements OnInit {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
-/* start:skip-in-compilation */
-import { AppComponent } from './app.component';
-/* end:skip-in-compilation */
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ AppComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ AppComponent ]
-})
-
-export class AppModule { }
 /* end-file */

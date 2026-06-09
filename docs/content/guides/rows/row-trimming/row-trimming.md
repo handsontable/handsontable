@@ -1,22 +1,19 @@
 ---
-id: 4q2wi29j
+type: how-to
 title: Row trimming
 metaTitle: Row trimming - JavaScript Data Grid | Handsontable
 description: Hide individual rows from your interface and exclude them from the rendering process and DataMap. This feature is similar, but not the same, as "hiding rows".
 permalink: /row-trimming
 canonicalUrl: /row-trimming
 react:
-  id: fkcjw0q1
   metaTitle: Row trimming - React Data Grid | Handsontable
 angular:
-  id: fhh1b0n6
   metaTitle: Row trimming - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Row trimming - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
-
-# Row trimming
-
 Hide individual rows from your interface and exclude them from the rendering process and `DataMap`.
 
 [[toc]]
@@ -61,6 +58,15 @@ trimRows: true,
 
 :::
 
+::: only-for vue
+
+```ts
+// enable the `TrimRows` plugin
+trimRows: true,
+```
+
+:::
+
 To both enable row trimming and trim selected rows at Handsontable's initialization, set the [`trimRows`](@/api/options.md#trimrows) option to an array of physical row indexes.
 
 ::: only-for javascript
@@ -87,6 +93,16 @@ trimRows: [5, 10, 15],
 :::
 
 ::: only-for angular
+
+```ts
+// enable the `TrimRows` plugin
+// at Handsontable's initialization, trim rows 5, 10, and 15
+trimRows: [5, 10, 15],
+```
+
+:::
+
+::: only-for vue
 
 ```ts
 // enable the `TrimRows` plugin
@@ -133,7 +149,23 @@ Note that the second, third, and sixth rows are missing in the following example
 
 :::
 
-## API examples
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-trimming/vue/example1.vue)
+
+:::
+
+:::
+
+## Result
+
+After completing this guide, rows you specify are excluded from rendering and from `DataMap`. You can trim rows at initialization or dynamically at runtime using the plugin API.
+
+## Related API
+
+### Plugin methods
 
 ::: only-for react
 
@@ -162,6 +194,18 @@ ngAfterViewInit() {
   // ...
 }
 ```
+
+:::
+
+::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance methods](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
+
+:::
 
 :::
 
@@ -198,14 +242,31 @@ plugin.untrimRows([0, 4, 6]);
 
 To see the changes made, call `hot.render();` to re-render the table.
 
-## Related API reference
+### API reference
 
-- Options:
-  - [`trimRows`](@/api/options.md#trimrows)
-- Hooks:
-  - [`afterTrimRow`](@/api/hooks.md#aftertrimrow)
-  - [`afterUntrimRow`](@/api/hooks.md#afteruntrimrow)
-  - [`beforeTrimRow`](@/api/hooks.md#beforetrimrow)
-  - [`beforeUntrimRow`](@/api/hooks.md#beforeuntrimrow)
-- Plugins:
-  - [`TrimRows`](@/api/trimRows.md)
+**Options**
+
+<div class="boxes-list">
+
+- [trimRows](@/api/options.md#trimrows)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterTrimRow](@/api/hooks.md#aftertrimrow)
+- [afterUntrimRow](@/api/hooks.md#afteruntrimrow)
+- [beforeTrimRow](@/api/hooks.md#beforetrimrow)
+- [beforeUntrimRow](@/api/hooks.md#beforeuntrimrow)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [TrimRows](@/api/trimRows.md)
+
+</div>

@@ -70,7 +70,7 @@ describe('Editor common cases', () => {
     getActiveEditor().TEXTAREA.value = 'x1';
 
     await keyDownUp('tab');
-    await sleep(20);
+    await waitForNextAnimationFrames(2);
     await keyDownUp('enter');
 
     expect(getActiveEditor()).toBeInstanceOf(X1Editor);

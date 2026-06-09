@@ -1,5 +1,5 @@
 ---
-id: ffimaicc
+type: how-to
 title: Modules
 metaTitle: Modules - JavaScript Data Grid | Handsontable
 description: Reduce the size of your JavaScript bundle, by importing only the modules that you need. The base module is mandatory, all other modules are optional.
@@ -8,18 +8,15 @@ canonicalUrl: /modules
 tags:
   - tree shaking
 react:
-  id: weudz1vh
   metaTitle: Modules - React Data Grid | Handsontable
 angular:
-  id: 9i62e6cn
   metaTitle: Modules - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Modules - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
 menuTag: updated
 ---
-
-# Modules
-
 Reduce the size of your JavaScript bundle, by importing only the modules that you need. The base module is mandatory, all other modules are optional.
 
 [[toc]]
@@ -73,6 +70,12 @@ To get the base JavaScript module, import Handsontable from `handsontable/base` 
 :::
 
 ::: only-for angular
+
+To get the base JavaScript module, import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the full distribution package):
+
+:::
+
+::: only-for vue
 
 To get the base JavaScript module, import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the full distribution package):
 
@@ -135,33 +138,50 @@ Each cell type module contains a different cell type:
 
 #### Import a cell type module
 
-1. Make sure you import the [base module](#base-module):
-    ```js
-    import Handsontable from 'handsontable/base';
-    ```
-2. Import the registering function and a cell type module of your choice. For example:
-    ```js
-    import {
-      registerCellType,
-      NumericCellType,
-    } from 'handsontable/cellTypes';
-    ```
-3. Register your cell type module, to let Handsontable recognize it. For example:
-    ```js
-    registerCellType(NumericCellType);
-    ```
+<ol class="sl-steps">
+<li>
 
-    A full example:
+Make sure you import the [base module](#base-module):
 
-    ```js
-    import Handsontable from 'handsontable/base';
-    import {
-      registerCellType,
-      NumericCellType,
-    } from 'handsontable/cellTypes';
+```js
+import Handsontable from 'handsontable/base';
+```
 
-    registerCellType(NumericCellType);
-    ```
+</li>
+<li>
+
+Import the registering function and a cell type module of your choice. For example:
+
+```js
+import {
+  registerCellType,
+  NumericCellType,
+} from 'handsontable/cellTypes';
+```
+
+</li>
+<li>
+
+Register your cell type module, to let Handsontable recognize it. For example:
+
+```js
+registerCellType(NumericCellType);
+```
+
+A full example:
+
+```js
+import Handsontable from 'handsontable/base';
+import {
+  registerCellType,
+  NumericCellType,
+} from 'handsontable/cellTypes';
+
+registerCellType(NumericCellType);
+```
+
+</li>
+</ol>
 
 #### Renderer, editor, and validator modules
 
@@ -264,6 +284,36 @@ export class ExampleComponent {
     ],
   };
 }
+```
+
+:::
+
+::: only-for vue
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import type { GridSettings } from 'handsontable/settings';
+import {
+  registerCellType,
+  NumericCellType,
+} from 'handsontable/cellTypes';
+
+registerCellType(NumericCellType);
+
+const hotSettings = ref<GridSettings>({
+  columns: [
+    {
+      type: 'numeric',
+    },
+  ],
+});
+</script>
+
+<template>
+  <HotTable :settings="hotSettings" />
+</template>
 ```
 
 :::
@@ -386,6 +436,50 @@ export class ExampleComponent {
 
 :::
 
+::: only-for vue
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import type { GridSettings } from 'handsontable/settings';
+import {
+  registerRenderer,
+  numericRenderer,
+} from 'handsontable/renderers';
+import {
+  registerEditor,
+  NumericEditor,
+} from 'handsontable/editors';
+import {
+  registerValidator,
+  numericValidator,
+} from 'handsontable/validators';
+
+registerRenderer(numericRenderer);
+registerEditor(NumericEditor);
+registerValidator(numericValidator);
+
+const hotSettings = ref<GridSettings>({
+  columns: [
+    {
+      renderer: 'numeric',
+      editor: 'numeric',
+      validator: 'numeric',
+      dataType: 'number',
+      type: 'numeric',
+    },
+  ],
+});
+</script>
+
+<template>
+  <HotTable :settings="hotSettings" />
+</template>
+```
+
+:::
+
 ### Plugin modules
 
 Plugin modules contain Handsontable's [plugins](@/api/plugins.md).
@@ -477,34 +571,50 @@ Each plugin module contains a different plugin:
 
 #### Import a plugin module
 
-1. Make sure you import the [base module](#base-module):
-    ```js
-    import Handsontable from 'handsontable/base';
-    ```
-2. Import registering function and a plugin module of your choice. For example:
-    ```js
-    import {
-      registerPlugin,
-      ContextMenu,
-    } from 'handsontable/plugins';
-    ```
-3. Register your plugin module, to let Handsontable recognize it. For example:
+<ol class="sl-steps">
+<li>
 
-    ```js
-    registerPlugin(ContextMenu);
-    ```
+Make sure you import the [base module](#base-module):
 
-    A full example:
+```js
+import Handsontable from 'handsontable/base';
+```
 
-    ```js
-    import Handsontable from 'handsontable/base';
-    import {
-      registerPlugin,
-      ContextMenu,
-    } from 'handsontable/plugins';
+</li>
+<li>
 
-    registerPlugin(ContextMenu);
-    ```
+Import the registering function and a plugin module of your choice. For example:
+
+```js
+import {
+  registerPlugin,
+  ContextMenu,
+} from 'handsontable/plugins';
+```
+
+</li>
+<li>
+
+Register your plugin module, to let Handsontable recognize it. For example:
+
+```js
+registerPlugin(ContextMenu);
+```
+
+A full example:
+
+```js
+import Handsontable from 'handsontable/base';
+import {
+  registerPlugin,
+  ContextMenu,
+} from 'handsontable/plugins';
+
+registerPlugin(ContextMenu);
+```
+
+</li>
+</ol>
 
 ### Translation modules
 
@@ -571,34 +681,50 @@ Each translation module contains a different translation package:
 
 #### Import a translation module
 
-1. Make sure you import the [base module](#base-module):
-    ```js
-    import Handsontable from 'handsontable/base';
-    ```
-2. Import the registering function and and a translation module of your choice. For example:
-    ```js
-    import {
-      registerLanguageDictionary,
-      plPL,
-    } from 'handsontable/i18n';
-    ```
-3. Register your translation module, to let Handsontable recognize it. For example:
+<ol class="sl-steps">
+<li>
 
-    ```js
-    registerLanguageDictionary(plPL);
-    ```
+Make sure you import the [base module](#base-module):
 
-    A full example:
+```js
+import Handsontable from 'handsontable/base';
+```
 
-    ```js
-    import Handsontable from 'handsontable/base';
-    import {
-      registerLanguageDictionary,
-      plPL,
-    } from 'handsontable/i18n';
+</li>
+<li>
 
-    registerLanguageDictionary(plPL);
-    ```
+Import the registering function and a translation module of your choice. For example:
+
+```js
+import {
+  registerLanguageDictionary,
+  plPL,
+} from 'handsontable/i18n';
+```
+
+</li>
+<li>
+
+Register your translation module, to let Handsontable recognize it. For example:
+
+```js
+registerLanguageDictionary(plPL);
+```
+
+A full example:
+
+```js
+import Handsontable from 'handsontable/base';
+import {
+  registerLanguageDictionary,
+  plPL,
+} from 'handsontable/i18n';
+
+registerLanguageDictionary(plPL);
+```
+
+</li>
+</ol>
 
 ## List of all modules
 
@@ -612,6 +738,93 @@ The table below lists all of Handsontable's modules:
 | [Cell editors](@/guides/cell-functions/cell-editor/cell-editor.md)       | `AutocompleteEditor`<br>`BaseEditor`<br>`CheckboxEditor`<br>`DateEditor`<br>`DropdownEditor`<br>`HandsontableEditor`<br>`NumericEditor`<br>`PasswordEditor`<br>`SelectEditor`<br>`TextEditor`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | Optional            |
 | [Cell validators](@/guides/cell-functions/cell-validator/cell-validator.md) | `autocompleteValidator`<br>`dateValidator`<br>`dropdownValidator`<br>`numericValidator`<br>`timeValidator`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               | Optional            |
 | [Plugins](@/api/plugins.md)                                  | [`AutoColumnSize`](@/api/autoColumnSize.md)<br>[`Autofill`](@/api/autofill.md)<br>[`AutoRowSize`](@/api/autoRowSize.md)<br>[`BasePlugin`](@/api/basePlugin.md)<br>[`BindRowsWithHeaders`](@/api/bindRowsWithHeaders.md)<br>[`CollapsibleColumns`](@/api/collapsibleColumns.md)<br>[`ColumnSorting`](@/api/columnSorting.md)<br>[`ColumnSummary`](@/api/columnSummary.md)<br>[`Comments`](@/api/comments.md)<br>[`ContextMenu`](@/api/contextMenu.md)<br>[`CopyPaste`](@/api/copyPaste.md)<br>[`CustomBorders`](@/api/customBorders.md)<br>[`DragToScroll`](@/api/dragToScroll.md)<br>[`DropdownMenu`](@/api/dropdownMenu.md)<br>[`ExportFile`](@/api/exportFile.md)<br>[`Filters`](@/api/filters.md)<br>[`Formulas`](@/api/formulas.md)<br>[`HiddenColumns`](@/api/hiddenColumns.md)<br>[`HiddenRows`](@/api/hiddenRows.md)<br>[`ManualColumnFreeze`](@/api/manualColumnFreeze.md)<br>[`ManualColumnMove`](@/api/manualColumnMove.md)<br>[`ManualColumnResize`](@/api/manualColumnResize.md)<br>[`ManualRowMove`](@/api/manualRowMove.md)<br>[`ManualRowResize`](@/api/manualRowResize.md)<br>[`MergeCells`](@/api/mergeCells.md)<br>[`MultiColumnSorting`](@/api/multiColumnSorting.md)<br>`MultipleSelectionHandles`<br>[`NestedHeaders`](@/api/nestedHeaders.md)<br>[`NestedRows`](@/api/nestedRows.md)<br>[`Search`](@/api/search.md)<br>[`StretchColumns`](@/api/stretchColumns.md)<br>`TouchScroll`<br>[`TrimRows`](@/api/trimRows.md)<br>[`UndoRedo`](@/api/undoRedo.md) | Optional            || [Translations](@/guides/internationalization/language/language.md)    | `arAR` `csCZ` `deCH` `deDE` `enUS` `esMX`<br>`frFR` `faIR` `hrHR` `itIT` `jaJP` `koKR`<br>`lvLV` `nbNO` `nlNL` `plPL`<br>`ptBR` `ruRU` `srSP` `zhCN` `zhTW`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          | Optional            |
+
+## Build weight
+
+The tables below show the minified and gzip sizes of each module when bundled on top of the base module. The **gzip** column represents the size after gzip compression - the most relevant metric for network transfer.
+
+<!-- module-sizes:start -->
+Measurements were made with esbuild using minification, against **Handsontable 17.0.1** (2026-04-08).
+
+**Base module sizes:**
+
+| Package | Minified | Gzip |
+| ------- | -------- | ---- |
+| `handsontable` (full, no tree shaking) | 1420.3 kB | 316.6 kB |
+| `handsontable/base` | 631.1 kB | 141.2 kB |
+
+**Size added by each optional module (on top of `handsontable/base`):**
+
+::: details Cell type modules
+
+| Module | Minified | Gzip |
+| ------ | -------- | ---- |
+| `AutocompleteCellType` | +15.1 kB | +4.2 kB |
+| `CheckboxCellType` | +6.0 kB | +2.0 kB |
+| `DateCellType` | +87.2 kB | +28.2 kB |
+| `DropdownCellType` | +15.5 kB | +4.3 kB |
+| `HandsontableCellType` | +6.5 kB | +1.5 kB |
+| `IntlDateCellType` | +1.7 kB | +0.7 kB |
+| `IntlTimeCellType` | +1.8 kB | +0.7 kB |
+| `MultiSelectCellType` | +24.0 kB | +6.2 kB |
+| `NumericCellType` | +44.1 kB | +17.1 kB |
+| `PasswordCellType` | +1.4 kB | +0.3 kB |
+| `SelectCellType` | +3.1 kB | +0.7 kB |
+| `TextCellType` | included in base | included in base |
+| `TimeCellType` | +64.2 kB | +21.0 kB |
+
+:::
+
+::: details Plugin modules
+
+| Module | Minified | Gzip |
+| ------ | -------- | ---- |
+| `AutoColumnSize` | +22.1 kB | +5.8 kB |
+| `AutoRowSize` | +22.7 kB | +5.9 kB |
+| `Autofill` | +15.5 kB | +4.5 kB |
+| `BindRowsWithHeaders` | +9.3 kB | +2.7 kB |
+| `CollapsibleColumns` | +14.3 kB | +4.2 kB |
+| `ColumnSorting` | +85.4 kB | +26.6 kB |
+| `ColumnSummary` | +20.2 kB | +5.2 kB |
+| `Comments` | +32.5 kB | +8.0 kB |
+| `ContextMenu` | +42.7 kB | +10.9 kB |
+| `CopyPaste` | +27.4 kB | +7.9 kB |
+| `CustomBorders` | +16.8 kB | +4.8 kB |
+| `Dialog` | +19.4 kB | +5.7 kB |
+| `DragToScroll` | +9.5 kB | +2.8 kB |
+| `DropdownMenu` | +45.9 kB | +11.7 kB |
+| `EmptyDataState` | +18.4 kB | +5.2 kB |
+| `ExportFile` | +39.9 kB | +12.5 kB |
+| `Filters` | +155.4 kB | +42.7 kB |
+| `Formulas` | +96.1 kB | +28.6 kB |
+| `HiddenColumns` | +22.9 kB | +5.8 kB |
+| `HiddenRows` | +22.6 kB | +5.7 kB |
+| `Loading` | +9.9 kB | +3.1 kB |
+| `ManualColumnFreeze` | +9.5 kB | +2.8 kB |
+| `ManualColumnMove` | +16.6 kB | +4.7 kB |
+| `ManualColumnResize` | +14.9 kB | +4.2 kB |
+| `ManualRowMove` | +15.6 kB | +4.4 kB |
+| `ManualRowResize` | +14.6 kB | +4.2 kB |
+| `MergeCells` | +52.2 kB | +12.3 kB |
+| `MultiColumnSorting` | +88.2 kB | +27.1 kB |
+| `MultipleSelectionHandles` | +10.9 kB | +3.0 kB |
+| `NestedHeaders` | +42.8 kB | +11.6 kB |
+| `NestedRows` | +35.1 kB | +8.1 kB |
+| `Pagination` | +28.9 kB | +7.5 kB |
+| `Search` | +10.0 kB | +2.8 kB |
+| `StretchColumns` | +13.4 kB | +3.8 kB |
+| `TouchScroll` | +9.3 kB | +2.7 kB |
+| `TrimRows` | +9.6 kB | +2.7 kB |
+| `UndoRedo` | +29.3 kB | +6.1 kB |
+
+:::
+
+::: tip
+
+The `Formulas` module requires the external [`hyperformula`](https://hyperformula.handsontable.com/) package. Its size is not included in the measurements above.
+
+:::
+<!-- module-sizes:end -->
 
 ## List of all module imports
 
@@ -1132,9 +1345,9 @@ You can also use modules with Handsontable's framework wrappers:
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Bundle size](@/guides/optimization/bundle-size/bundle-size.md)
 - [Installation](@/guides/getting-started/installation/installation.md)
@@ -1149,7 +1362,7 @@ You can also use modules with Handsontable's framework wrappers:
 
 </div>
 
-### Related blog articles
+**Related blog articles**
 
 <div class="boxes-list">
 
@@ -1157,3 +1370,7 @@ You can also use modules with Handsontable's framework wrappers:
 - [Handsontable 11.0.0: modularization for React, Angular, and Vue](https://handsontable.com/blog/handsontable-11.0.0-modularization-for-react-angular-and-vue)
 
 </div>
+
+## Result
+
+Your bundle now includes only the modules you imported, reducing its size compared to the full Handsontable package.

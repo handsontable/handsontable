@@ -65,7 +65,7 @@ describe('DateEditor (RTL mode)', () => {
       });
 
       await selectCell(20, 6);
-      await sleep(50);
+      await waitForNextAnimationFrames(2);
       await keyDownUp('enter');
 
       const cellElement = $(getActiveEditor().TD);

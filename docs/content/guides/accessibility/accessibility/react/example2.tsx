@@ -31,7 +31,7 @@ const data: Product[] = [
   {
     companyName: 'Hodkiewicz - Hintz',
     productName: 'Rustic Soft Ball',
-    sellDate: '05/07/2023',
+    sellDate: '2023-07-05',
     inStock: false,
     qty: 82,
     orderId: '16-3974628',
@@ -40,7 +40,7 @@ const data: Product[] = [
   {
     companyName: 'Rath LLC',
     productName: 'Small Frozen Tuna',
-    sellDate: '31/05/2023',
+    sellDate: '2023-05-31',
     inStock: false,
     qty: 459,
     orderId: '77-7839351',
@@ -49,7 +49,7 @@ const data: Product[] = [
   {
     companyName: 'Reichert LLC',
     productName: 'Rustic Soft Ball',
-    sellDate: '16/03/2023',
+    sellDate: '2023-03-16',
     inStock: false,
     qty: 318,
     orderId: '75-6343150',
@@ -58,7 +58,7 @@ const data: Product[] = [
   {
     companyName: 'Kozey Inc',
     productName: 'Sleek Wooden Bacon',
-    sellDate: '24/04/2023',
+    sellDate: '2023-04-24',
     inStock: true,
     qty: 177,
     orderId: '56-3608689',
@@ -67,7 +67,7 @@ const data: Product[] = [
   {
     companyName: 'Nader - Fritsch',
     productName: 'Awesome Wooden Hat',
-    sellDate: '29/04/2023',
+    sellDate: '2023-04-29',
     inStock: true,
     qty: 51,
     orderId: '58-1204318',
@@ -76,7 +76,7 @@ const data: Product[] = [
   {
     companyName: 'Gerhold - Rowe',
     productName: 'Tasty Frozen Table',
-    sellDate: '27/03/2023',
+    sellDate: '2023-03-27',
     inStock: false,
     qty: 439,
     orderId: '62-6066132',
@@ -85,7 +85,7 @@ const data: Product[] = [
   {
     companyName: 'Rath LLC',
     productName: 'Awesome Wooden Hat',
-    sellDate: '24/11/2022',
+    sellDate: '2022-11-24',
     inStock: false,
     qty: 493,
     orderId: '76-7785471',
@@ -94,7 +94,7 @@ const data: Product[] = [
   {
     companyName: 'Kozey Inc',
     productName: 'Rustic Soft Ball',
-    sellDate: '11/08/2023',
+    sellDate: '2023-08-11',
     inStock: false,
     qty: 225,
     orderId: '34-3551159',
@@ -103,7 +103,7 @@ const data: Product[] = [
   {
     companyName: 'Hodkiewicz - Hintz',
     productName: 'Awesome Wooden Hat',
-    sellDate: '07/02/2023',
+    sellDate: '2023-02-07',
     inStock: false,
     qty: 261,
     orderId: '77-1112514',
@@ -112,7 +112,7 @@ const data: Product[] = [
   {
     companyName: 'Hegmann Inc',
     productName: 'Tasty Frozen Table',
-    sellDate: '06/05/2023',
+    sellDate: '2023-05-06',
     inStock: false,
     qty: 439,
     orderId: '12-3252385',
@@ -121,7 +121,7 @@ const data: Product[] = [
   {
     companyName: 'Weber Inc',
     productName: 'Awesome Wooden Hat',
-    sellDate: '22/04/2023',
+    sellDate: '2023-04-22',
     inStock: true,
     qty: 235,
     orderId: '71-7639998',
@@ -130,7 +130,7 @@ const data: Product[] = [
   {
     companyName: 'Jacobi - Kutch',
     productName: 'Sleek Wooden Bacon',
-    sellDate: '13/12/2022',
+    sellDate: '2022-12-13',
     inStock: true,
     qty: 163,
     orderId: '68-1588829',
@@ -139,7 +139,7 @@ const data: Product[] = [
   {
     companyName: 'Jenkins LLC',
     productName: 'Small Rubber Shoes',
-    sellDate: '26/03/2023',
+    sellDate: '2023-03-26',
     inStock: true,
     qty: 8,
     orderId: '61-6324553',
@@ -148,7 +148,7 @@ const data: Product[] = [
   {
     companyName: 'Koepp and Sons',
     productName: 'Sleek Wooden Bacon',
-    sellDate: '04/05/2023',
+    sellDate: '2023-05-04',
     inStock: true,
     qty: 355,
     orderId: '74-6985005',
@@ -157,7 +157,7 @@ const data: Product[] = [
   {
     companyName: 'Doyle Group',
     productName: 'Awesome Wooden Hat',
-    sellDate: '01/08/2023',
+    sellDate: '2023-08-01',
     inStock: false,
     qty: 186,
     orderId: '84-4370131',
@@ -166,7 +166,7 @@ const data: Product[] = [
   {
     companyName: 'Rempel - Durgan',
     productName: 'Tasty Frozen Table',
-    sellDate: '30/09/2023',
+    sellDate: '2023-09-30',
     inStock: false,
     qty: 284,
     orderId: '13-6461825',
@@ -175,7 +175,7 @@ const data: Product[] = [
   {
     companyName: 'Lesch - Jakubowski',
     productName: 'Small Fresh Bacon',
-    sellDate: '26/09/2023',
+    sellDate: '2023-09-26',
     inStock: true,
     qty: 492,
     orderId: '13-9465439',
@@ -184,7 +184,7 @@ const data: Product[] = [
   {
     companyName: 'Jacobi - Kutch',
     productName: 'Rustic Cotton Ball',
-    sellDate: '04/05/2023',
+    sellDate: '2023-05-04',
     inStock: true,
     qty: 300,
     orderId: '76-5194058',
@@ -193,7 +193,7 @@ const data: Product[] = [
   {
     companyName: 'Gerhold - Rowe',
     productName: 'Rustic Cotton Ball',
-    sellDate: '07/07/2023',
+    sellDate: '2023-07-07',
     inStock: true,
     qty: 493,
     orderId: '61-8600792',
@@ -202,7 +202,7 @@ const data: Product[] = [
   {
     companyName: 'Johnston - Wisozk',
     productName: 'Small Fresh Fish',
-    sellDate: '14/07/2023',
+    sellDate: '2023-07-14',
     inStock: false,
     qty: 304,
     orderId: '10-6007287',
@@ -211,7 +211,7 @@ const data: Product[] = [
   {
     companyName: 'Gutkowski Inc',
     productName: 'Small Fresh Bacon',
-    sellDate: '10/01/2023',
+    sellDate: '2023-01-10',
     inStock: true,
     qty: 375,
     orderId: '25-1164132',
@@ -220,7 +220,7 @@ const data: Product[] = [
   {
     companyName: 'Koepp and Sons',
     productName: 'Small Fresh Fish',
-    sellDate: '30/03/2023',
+    sellDate: '2023-03-30',
     inStock: false,
     qty: 365,
     orderId: '75-7975820',
@@ -229,7 +229,7 @@ const data: Product[] = [
   {
     companyName: 'Zboncak and Sons',
     productName: 'Small Fresh Fish',
-    sellDate: '17/08/2023',
+    sellDate: '2023-08-17',
     inStock: false,
     qty: 308,
     orderId: '59-6251875',
@@ -238,7 +238,7 @@ const data: Product[] = [
   {
     companyName: 'Mills Group',
     productName: 'Rustic Soft Ball',
-    sellDate: '30/09/2023',
+    sellDate: '2023-09-30',
     inStock: false,
     qty: 191,
     orderId: '67-7521441',
@@ -247,7 +247,7 @@ const data: Product[] = [
   {
     companyName: 'Zboncak and Sons',
     productName: 'Awesome Wooden Hat',
-    sellDate: '18/03/2023',
+    sellDate: '2023-03-18',
     inStock: false,
     qty: 208,
     orderId: '19-4264192',
@@ -256,7 +256,7 @@ const data: Product[] = [
   {
     companyName: 'Rath LLC',
     productName: 'Rustic Soft Ball',
-    sellDate: '14/06/2023',
+    sellDate: '2023-06-14',
     inStock: true,
     qty: 191,
     orderId: '78-5742060',
@@ -265,7 +265,7 @@ const data: Product[] = [
   {
     companyName: 'Upton - Reichert',
     productName: 'Tasty Frozen Table',
-    sellDate: '27/02/2023',
+    sellDate: '2023-02-27',
     inStock: false,
     qty: 45,
     orderId: '26-6191298',
@@ -274,7 +274,7 @@ const data: Product[] = [
   {
     companyName: 'Carroll Group',
     productName: 'Rustic Soft Ball',
-    sellDate: '12/12/2022',
+    sellDate: '2022-12-12',
     inStock: true,
     qty: 385,
     orderId: '13-7828353',
@@ -283,7 +283,7 @@ const data: Product[] = [
   {
     companyName: 'Reichel Group',
     productName: 'Small Frozen Tuna',
-    sellDate: '12/12/2022',
+    sellDate: '2022-12-12',
     inStock: true,
     qty: 117,
     orderId: '67-9643738',
@@ -292,7 +292,7 @@ const data: Product[] = [
   {
     companyName: 'Kozey Inc',
     productName: 'Rustic Soft Ball',
-    sellDate: '24/03/2023',
+    sellDate: '2023-03-24',
     inStock: false,
     qty: 335,
     orderId: '78-1331653',
@@ -301,7 +301,7 @@ const data: Product[] = [
   {
     companyName: 'Brown LLC',
     productName: 'Small Rubber Shoes',
-    sellDate: '13/06/2023',
+    sellDate: '2023-06-13',
     inStock: true,
     qty: 305,
     orderId: '63-2315723',
@@ -310,7 +310,7 @@ const data: Product[] = [
   {
     companyName: 'Weber Inc',
     productName: 'Rustic Cotton Ball',
-    sellDate: '07/09/2023',
+    sellDate: '2023-09-07',
     inStock: true,
     qty: 409,
     orderId: '53-6782557',
@@ -319,7 +319,7 @@ const data: Product[] = [
   {
     companyName: 'OReilly LLC',
     productName: 'Tasty Frozen Table',
-    sellDate: '18/05/2023',
+    sellDate: '2023-05-18',
     inStock: true,
     qty: 318,
     orderId: '91-7787675',
@@ -328,7 +328,7 @@ const data: Product[] = [
   {
     companyName: 'Weber Inc',
     productName: 'Sleek Wooden Bacon',
-    sellDate: '20/04/2023',
+    sellDate: '2023-04-20',
     inStock: false,
     qty: 234,
     orderId: '41-3560672',
@@ -337,7 +337,7 @@ const data: Product[] = [
   {
     companyName: 'Hodkiewicz Inc',
     productName: 'Tasty Frozen Table',
-    sellDate: '19/10/2023',
+    sellDate: '2023-10-19',
     inStock: true,
     qty: 136,
     orderId: '48-6028776',
@@ -346,7 +346,7 @@ const data: Product[] = [
   {
     companyName: 'Lesch and Sons',
     productName: 'Rustic Cotton Ball',
-    sellDate: '29/09/2023',
+    sellDate: '2023-09-29',
     inStock: false,
     qty: 187,
     orderId: '84-3770456',
@@ -355,7 +355,7 @@ const data: Product[] = [
   {
     companyName: 'Pouros - Brakus',
     productName: 'Small Frozen Tuna',
-    sellDate: '29/01/2023',
+    sellDate: '2023-01-29',
     inStock: false,
     qty: 350,
     orderId: '08-4844950',
@@ -364,7 +364,7 @@ const data: Product[] = [
   {
     companyName: 'Batz - Rice',
     productName: 'Small Rubber Shoes',
-    sellDate: '06/11/2023',
+    sellDate: '2023-11-06',
     inStock: false,
     qty: 252,
     orderId: '88-4899852',
@@ -373,7 +373,7 @@ const data: Product[] = [
   {
     companyName: 'Kub Inc',
     productName: 'Small Fresh Fish',
-    sellDate: '05/09/2023',
+    sellDate: '2023-09-05',
     inStock: true,
     qty: 306,
     orderId: '06-5022461',
@@ -382,7 +382,7 @@ const data: Product[] = [
   {
     companyName: 'Hills and Sons',
     productName: 'Small Frozen Tuna',
-    sellDate: '07/11/2023',
+    sellDate: '2023-11-07',
     inStock: false,
     qty: 435,
     orderId: '99-5539911',
@@ -391,7 +391,7 @@ const data: Product[] = [
   {
     companyName: 'Shanahan - Boyle',
     productName: 'Small Frozen Tuna',
-    sellDate: '19/06/2023',
+    sellDate: '2023-06-19',
     inStock: true,
     qty: 171,
     orderId: '82-8162453',
@@ -400,7 +400,7 @@ const data: Product[] = [
   {
     companyName: 'Luettgen Inc',
     productName: 'Awesome Wooden Hat',
-    sellDate: '30/09/2023',
+    sellDate: '2023-09-30',
     inStock: false,
     qty: 6,
     orderId: '02-8118250',
@@ -409,7 +409,7 @@ const data: Product[] = [
   {
     companyName: 'Hegmann Inc',
     productName: 'Small Rubber Shoes',
-    sellDate: '16/02/2023',
+    sellDate: '2023-02-16',
     inStock: true,
     qty: 278,
     orderId: '07-9773343',
@@ -418,7 +418,7 @@ const data: Product[] = [
   {
     companyName: 'Kub Inc',
     productName: 'Small Frozen Tuna',
-    sellDate: '08/08/2023',
+    sellDate: '2023-08-08',
     inStock: false,
     qty: 264,
     orderId: '66-4470479',
@@ -427,7 +427,7 @@ const data: Product[] = [
   {
     companyName: 'Kub Inc',
     productName: 'Tasty Frozen Table',
-    sellDate: '06/06/2023',
+    sellDate: '2023-06-06',
     inStock: true,
     qty: 494,
     orderId: '13-1175339',
@@ -436,7 +436,7 @@ const data: Product[] = [
   {
     companyName: 'Hahn - Welch',
     productName: 'Small Frozen Tuna',
-    sellDate: '12/06/2023',
+    sellDate: '2023-06-12',
     inStock: false,
     qty: 485,
     orderId: '32-9127309',
@@ -445,7 +445,7 @@ const data: Product[] = [
   {
     companyName: 'Nader - Fritsch',
     productName: 'Small Frozen Tuna',
-    sellDate: '08/04/2023',
+    sellDate: '2023-04-08',
     inStock: true,
     qty: 332,
     orderId: '41-3774568',
@@ -454,7 +454,7 @@ const data: Product[] = [
   {
     companyName: 'Crona and Sons',
     productName: 'Small Fresh Bacon',
-    sellDate: '21/06/2023',
+    sellDate: '2023-06-21',
     inStock: true,
     qty: 104,
     orderId: '48-9995090',
@@ -463,7 +463,7 @@ const data: Product[] = [
   {
     companyName: 'Lind Group',
     productName: 'Rustic Cotton Ball',
-    sellDate: '17/08/2023',
+    sellDate: '2023-08-17',
     inStock: false,
     qty: 51,
     orderId: '68-9599400',
@@ -472,7 +472,7 @@ const data: Product[] = [
   {
     companyName: 'Labadie LLC',
     productName: 'Small Fresh Bacon',
-    sellDate: '20/04/2023',
+    sellDate: '2023-04-20',
     inStock: true,
     qty: 155,
     orderId: '52-4334332',
@@ -481,7 +481,7 @@ const data: Product[] = [
   {
     companyName: 'Doyle Group',
     productName: 'Sleek Wooden Bacon',
-    sellDate: '23/07/2023',
+    sellDate: '2023-07-23',
     inStock: false,
     qty: 465,
     orderId: '63-8894526',
@@ -549,7 +549,7 @@ const ExampleComponent = () => {
         {/* Define HotColumns for the data */}
         <HotColumn data="companyName" type="text" />
         <HotColumn data="productName" type="text" />
-        <HotColumn data="sellDate" dateFormat="DD/MM/YYYY" correctFormat type="date" />
+        <HotColumn data="sellDate" locale="en-GB" dateFormat={{ day: '2-digit', month: '2-digit', year: 'numeric' }} type="intl-date" />
         <HotColumn data="inStock" type="checkbox" className="htCenter" headerClassName="htCenter" />
         <HotColumn data="qty" type="numeric" headerClassName="htRight" />
         <HotColumn data="orderId" type="text" />
@@ -635,7 +635,6 @@ function DemoOptions({
   return (
     <>
       <div className="checkbox-container">
-        <div className="checkbox-group">
           <div>
             <label className="option-label" htmlFor="enable-tab-navigation" id="tab-navigation-label">
               <input
@@ -655,25 +654,9 @@ function DemoOptions({
               rel="noopener noreferrer"
               aria-label="Learn more enabling/disabling tab navigation (opens in a new window)"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-                focusable="false"
-                x="0px"
-                y="0px"
-                viewBox="0 0 100 100"
-                width="15"
-                height="15"
-                className="icon outbound"
-              >
-                <path
-                  fill="currentColor"
-                  d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
-                />
-                <polygon
-                  fill="currentColor"
-                  points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" className="icon outbound">
+                <path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z" />
+                <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9" />
               </svg>
             </a>
           </div>
@@ -696,25 +679,9 @@ function DemoOptions({
               rel="noopener noreferrer"
               aria-label="Learn more about enabling/disabling tab navigation across headers (opens in a new window)"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-                focusable="false"
-                x="0px"
-                y="0px"
-                viewBox="0 0 100 100"
-                width="15"
-                height="15"
-                className="icon outbound"
-              >
-                <path
-                  fill="currentColor"
-                  d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
-                />
-                <polygon
-                  fill="currentColor"
-                  points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" className="icon outbound">
+                <path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z" />
+                <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9" />
               </svg>
             </a>
           </div>
@@ -737,25 +704,9 @@ function DemoOptions({
               rel="noopener noreferrer"
               aria-label="Learn more about row virtualization (opens in a new window)"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-                focusable="false"
-                x="0px"
-                y="0px"
-                viewBox="0 0 100 100"
-                width="15"
-                height="15"
-                className="icon outbound"
-              >
-                <path
-                  fill="currentColor"
-                  d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
-                />
-                <polygon
-                  fill="currentColor"
-                  points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" className="icon outbound">
+                <path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z" />
+                <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9" />
               </svg>
             </a>
           </div>
@@ -778,36 +729,14 @@ function DemoOptions({
               rel="noopener noreferrer"
               aria-label="Learn more about Enter key cell editing (opens in a new window)"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-                focusable="false"
-                x="0px"
-                y="0px"
-                viewBox="0 0 100 100"
-                width="15"
-                height="15"
-                className="icon outbound"
-              >
-                <path
-                  fill="currentColor"
-                  d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
-                />
-                <polygon
-                  fill="currentColor"
-                  points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" className="icon outbound">
+                <path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z" />
+                <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9" />
               </svg>
             </a>
           </div>
-        </div>
-        <div className="checkbox-group">
           <div>
-            <label
-              className="option-label"
-              htmlFor="enable-arrow-rl-first-last-column"
-              id="arrow-rl-first-last-column-label"
-            >
+            <label className="option-label" htmlFor="enable-arrow-rl-first-last-column" id="arrow-rl-first-last-column-label">
               <input
                 checked={autoWrapRow}
                 type="checkbox"
@@ -825,34 +754,14 @@ function DemoOptions({
               rel="noopener noreferrer"
               aria-label="Learn more about right/left arrow key behavior (opens in a new window)"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-                focusable="false"
-                x="0px"
-                y="0px"
-                viewBox="0 0 100 100"
-                width="15"
-                height="15"
-                className="icon outbound"
-              >
-                <path
-                  fill="currentColor"
-                  d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
-                />
-                <polygon
-                  fill="currentColor"
-                  points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" className="icon outbound">
+                <path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z" />
+                <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9" />
               </svg>
             </a>
           </div>
           <div>
-            <label
-              className="option-label"
-              htmlFor="enable-arrow-td-first-last-column"
-              id="arrow-td-first-last-column-label"
-            >
+            <label className="option-label" htmlFor="enable-arrow-td-first-last-column" id="arrow-td-first-last-column-label">
               <input
                 checked={autoWrapCol}
                 type="checkbox"
@@ -870,25 +779,9 @@ function DemoOptions({
               rel="noopener noreferrer"
               aria-label="Learn more about up/down arrow key behavior (opens in a new window)"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-                focusable="false"
-                x="0px"
-                y="0px"
-                viewBox="0 0 100 100"
-                width="15"
-                height="15"
-                className="icon outbound"
-              >
-                <path
-                  fill="currentColor"
-                  d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
-                />
-                <polygon
-                  fill="currentColor"
-                  points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" className="icon outbound">
+                <path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z" />
+                <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9" />
               </svg>
             </a>
           </div>
@@ -911,29 +804,12 @@ function DemoOptions({
               rel="noopener noreferrer"
               aria-label="Learn more about Enter key focus behavior (opens in a new window)"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                aria-hidden="true"
-                focusable="false"
-                x="0px"
-                y="0px"
-                viewBox="0 0 100 100"
-                width="15"
-                height="15"
-                className="icon outbound"
-              >
-                <path
-                  fill="currentColor"
-                  d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"
-                />
-                <polygon
-                  fill="currentColor"
-                  points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" className="icon outbound">
+                <path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z" />
+                <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9" />
               </svg>
             </a>
           </div>
-        </div>
       </div>
     </>
   );

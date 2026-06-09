@@ -1,5 +1,5 @@
 ---
-id: cdahp04c
+type: how-to
 title: Focus scopes
 metaTitle: Focus scopes - JavaScript Data Grid | Handsontable
 description: Manage focus boundaries and keyboard shortcuts contexts with focus scopes.
@@ -14,25 +14,17 @@ tags:
   - shortcuts context
   - tab navigation
 react:
-  id: lx9qi7uu
   metaTitle: Focus scopes - React Data Grid | Handsontable
 angular:
-  id: xat52y9g
   metaTitle: Focus scopes - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Focus scopes - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
-menuTag: updated
 ---
-
-# Focus scopes
-
-Manage focus boundaries and keyboard shortcuts contexts with focus scopes.
+Use focus scopes to create isolated focus boundaries within a Handsontable instance and control which keyboard shortcuts are active for each part of the UI. Focus scopes come in two types: `inline` (default) allows natural DOM tab order, and `modal` blocks focus outside the scope -- useful for dialogs and overlays.
 
 [[toc]]
-
-## Overview
-
-Focus scopes allow you to create isolated focus boundaries within your Handsontable instance, enabling seamless focus switching between the grid and your custom UI elements. They automatically manage keyboard shortcuts contexts and provide fine-grained control over which elements can receive focus and which shortcuts are active.
 
 ::: only-for react
 ::: tip
@@ -54,33 +46,48 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 :::
 :::
 
-1. Access the [`FocusScopeManager`](@/api/focusScopeManager.md) API:
-  ```js
-  hot.getFocusScopeManager();
-  ```
-2. Register a focus scope with a container element:
-  ```js
-  const focusScopeManager = hot.getFocusScopeManager();
+::: only-for vue
 
-  focusScopeManager.registerScope('customScope', containerElement, {
-    shortcutsContextName: 'plugin:customScope',
-    onActivate: (focusSource) => {
-      // Focus the first focusable element in your plugin's UI
-      // container
-    },
-  });
-  ```
+::: tip
 
-## Focus scope types
+To use the Handsontable API, use a template ref on `HotTable` and read `hotRef.value.hotInstance`.
 
-Focus scopes come in two types, each with different behavior:
+For more information, see [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md).
 
-| Type     | Description                                                                                                 |
-| -------- | ----------------------------------------------------------------------------------------------------------- |
-| `inline` (default) | The scope is inline and allows the rest of the component to receive focus in the order of the rendered elements in the DOM. |
-| `modal`  | The scope is modal and blocks the rest of the component from receiving focus. Only elements within the scope can be focused. |
+:::
 
-### Inline scopes
+:::
+
+<ol class="sl-steps">
+<li>
+
+**Access the [`FocusScopeManager`](@/api/focusScopeManager.md) API:**
+
+```js
+hot.getFocusScopeManager();
+```
+
+</li>
+<li>
+
+**Register a focus scope with a container element:**
+
+```js
+const focusScopeManager = hot.getFocusScopeManager();
+
+focusScopeManager.registerScope('customScope', containerElement, {
+  shortcutsContextName: 'plugin:customScope',
+  onActivate: (focusSource) => {
+    // Focus the first focusable element in your plugin's UI
+    // container
+  },
+});
+```
+
+</li>
+</ol>
+
+## Inline scopes
 
 Inline scopes allow natural tab navigation through the DOM. Users can  navigate to other parts of the grid using the <kbd>Tab</kbd> or <kbd>Shift</kbd>+<kbd>Tab</kbd> keys.
 
@@ -125,6 +132,17 @@ to the bottom text input and how the internal state changes.
 @[code](@/content/guides/navigation/focus-scopes/angular/example1.html)
 
 :::
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3 --css 1
+
+@[code](@/content/guides/navigation/focus-scopes/vue/example1.css)
+@[code collapse={17-118,145-147,220-222}](@/content/guides/navigation/focus-scopes/vue/example1.vue)
+
+:::
+
 :::
 
 ### Modal scopes
@@ -176,19 +194,41 @@ appears after the inline scope elements in the DOM.
 :::
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3 --css 1
+
+@[code](@/content/guides/navigation/focus-scopes/vue/example2.css)
+@[code collapse={17-118,145-147,228-236}](@/content/guides/navigation/focus-scopes/vue/example2.vue)
+
+:::
+
+:::
+
 ## Register a focus scope
 
 To register a focus scope:
 
-1. Access the [`FocusScopeManager`](@/api/focusScopeManager.md) API:
-  ```js
-  const focusScopeManager = hot.getFocusScopeManager();
-  ```
-2. Use the [`registerScope()`](@/api/focusScopeManager.md#registerscope) method:
+<ol class="sl-steps">
+<li>
 
-  ```js
-  focusScopeManager.registerScope('customScope', containerElement);
-  ```
+**Access the [`FocusScopeManager`](@/api/focusScopeManager.md) API:**
+
+```js
+const focusScopeManager = hot.getFocusScopeManager();
+```
+
+</li>
+<li>
+
+**Use the [`registerScope()`](@/api/focusScopeManager.md#registerscope) method:**
+
+```js
+focusScopeManager.registerScope('customScope', containerElement);
+```
+
+</li>
+</ol>
 
 ### Connect a scope with a shortcuts context
 
@@ -328,30 +368,64 @@ The focus scope manager automatically:
 
 For the complete API reference, see the following pages:
 
-- APIs:
-  - [`FocusScopeManager`](@/api/focusScopeManager.md)
-- Configuration options:
-  - [`tabMoves`](@/api/options.md#tabmoves)
-  - [`tabNavigation`](@/api/options.md#tabnavigation)
-  - [`navigableHeaders`](@/api/options.md#navigableheaders)
-- Core methods:
-  - [`getFocusScopeManager()`](@/api/core.md#getfocusscopemanager)
-  - [`isListening()`](@/api/core.md#islistening)
-  - [`listen()`](@/api/core.md#listen)
-  - [`unlisten()`](@/api/core.md#unlisten)
-- Hooks:
-  - [`afterDocumentKeyDown`](@/api/hooks.md#afterdocumentkeydown)
-  - [`beforeKeyDown`](@/api/hooks.md#beforekeydown)
+**APIs**
+
+<div class="boxes-list">
+
+- [FocusScopeManager](@/api/focusScopeManager.md)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [tabMoves](@/api/options.md#tabmoves)
+- [tabNavigation](@/api/options.md#tabnavigation)
+- [navigableHeaders](@/api/options.md#navigableheaders)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getFocusScopeManager()](@/api/core.md#getfocusscopemanager)
+- [isListening()](@/api/core.md#islistening)
+- [listen()](@/api/core.md#listen)
+- [unlisten()](@/api/core.md#unlisten)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterDocumentKeyDown](@/api/hooks.md#afterdocumentkeydown)
+- [beforeKeyDown](@/api/hooks.md#beforekeydown)
+
+</div>
+
+## Result
+
+After registering a focus scope, Handsontable automatically activates it when the user clicks inside the container or tabs to it. The associated shortcuts context switches accordingly, and tab navigation flows through your registered scopes in the correct order.
+
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 14.3.0: Enhanced navigation and bug fixes](https://handsontable.com/blog/handsontable-14.3.0-enhanced-navigation-and-bug-fixes)
+
+</div>
 
 ## Troubleshooting
 
 Didn't find what you need? Try this:
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [View related topics](https://github.com/handsontable/handsontable/issues) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
 - [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 

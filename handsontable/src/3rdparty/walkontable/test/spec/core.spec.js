@@ -49,11 +49,8 @@ describe('WalkontableCore', () => {
     expect(spec().$table.find('td').length).toBe(400);
   });
 
-  it('should bootstrap column headers if THEAD is given', async() => {
-    spec().$table.remove();
-    spec().$table = $('<table><thead><tr><th>A</th><th>B</th><th>C</th><th>D</th></tr></thead></table>')
-      .addClass('htCore');
-    spec().$table.appendTo(spec().$container);
+  it('should bootstrap row headers if TABLE is given', async() => {
+    spec().$wrapper.width(200).height(200);
 
     const wt = walkontable({
       data: getData,
@@ -66,9 +63,25 @@ describe('WalkontableCore', () => {
 
     wt.draw();
 
-    expect(spec().$table.find('thead th').length).toBe(5); // include corner TH
     expect(spec().$table.find('tbody tr:first th').length).toBe(1);
-    expect(spec().$table.find('tbody tr:first td').length).toBe(4);
+    expect(spec().$table.find('tbody tr:first td').length).toBe(3);
+  });
+
+  it('should bootstrap column headers if TABLE is given', async() => {
+    spec().$wrapper.width(200).height(200);
+
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      columnHeaders: [function(col, TH) {
+        TH.innerHTML = col + 1;
+      }]
+    });
+
+    wt.draw();
+
+    expect(spec().$table.find('thead tr:first th').length).toBe(4);
   });
 
   it('should figure out how many columns to display if width param given', async() => {

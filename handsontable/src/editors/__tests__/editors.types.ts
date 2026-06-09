@@ -1,9 +1,27 @@
 import Handsontable from 'handsontable';
+import type { HotInstance } from 'handsontable';
+import type {
+  BaseEditor } from 'handsontable/editors';
+import {
+  AutocompleteEditor,
+  CheckboxEditor,
+  DateEditor,
+  DropdownEditor,
+  HandsontableEditor,
+  NumericEditor,
+  PasswordEditor,
+  SelectEditor,
+  TextEditor,
+  TimeEditor,
+  getEditor,
+  registerEditor,
+  editorFactory,
+} from 'handsontable/editors';
 
 const elem = document.createElement('div');
-const hot = new Handsontable(elem, {});
+const hot = Handsontable(elem, {}) as unknown as HotInstance;
 
-const autocomplete = new Handsontable.editors.AutocompleteEditor(hot);
+const autocomplete = new AutocompleteEditor(hot);
 
 autocomplete.beginEditing('test');
 autocomplete.beginEditing();
@@ -19,20 +37,22 @@ autocomplete.finishEditing();
 autocomplete.focus();
 autocomplete.getEditedCell();
 autocomplete.getEditedCellRect();
-autocomplete.getEditedCellsZIndex();
+autocomplete.getEditedCellsLayerClass();
 autocomplete.getValue();
 autocomplete.init();
 autocomplete.isInFullEditMode();
 autocomplete.isOpened();
 autocomplete.isWaiting();
 autocomplete.open();
-autocomplete.prepare(1, 2, 'test', (document.createElement('TD') as HTMLTableCellElement), 'test', hot.getCellMeta(0 , 0));
+autocomplete.prepare(
+  1, 2, 'test', (document.createElement('TD') as HTMLTableCellElement), 'test', hot.getCellMeta(0, 0)
+);
 autocomplete.saveValue('test', true);
-autocomplete.saveValue();
+autocomplete.saveValue(undefined);
 autocomplete.setValue('test');
 autocomplete.setValue();
 
-const checkbox = new Handsontable.editors.CheckboxEditor(hot);
+const checkbox = new CheckboxEditor(hot);
 
 checkbox.beginEditing('test');
 checkbox.beginEditing();
@@ -43,12 +63,12 @@ checkbox.discardEditor(true);
 checkbox.discardEditor();
 checkbox.enableFullEditMode();
 checkbox.extend();
-checkbox.finishEditing(true, false, () => {});
+checkbox.finishEditing();
 checkbox.finishEditing();
 checkbox.focus();
 checkbox.getEditedCell();
 checkbox.getEditedCellRect();
-checkbox.getEditedCellsZIndex();
+checkbox.getEditedCellsLayerClass();
 checkbox.getValue();
 checkbox.init();
 checkbox.isInFullEditMode();
@@ -57,11 +77,11 @@ checkbox.isWaiting();
 checkbox.open();
 checkbox.prepare(1, 2, 'test', (document.createElement('TD') as HTMLTableCellElement), 'test', hot.getCellMeta(0, 0));
 checkbox.saveValue('test', true);
-checkbox.saveValue();
-checkbox.setValue('test');
+checkbox.saveValue(undefined);
+checkbox.setValue();
 checkbox.setValue();
 
-const date = new Handsontable.editors.DateEditor(hot);
+const date = new DateEditor(hot);
 
 date.beginEditing('test');
 date.beginEditing();
@@ -72,12 +92,12 @@ date.discardEditor(true);
 date.discardEditor();
 date.enableFullEditMode();
 date.extend();
-date.finishEditing(true, false, () => {});
+date.finishEditing(true, false);
 date.finishEditing();
 date.focus();
 date.getEditedCell();
 date.getEditedCellRect();
-date.getEditedCellsZIndex();
+date.getEditedCellsLayerClass();
 date.getValue();
 date.init();
 date.isInFullEditMode();
@@ -86,7 +106,7 @@ date.isWaiting();
 date.open();
 date.prepare(1, 2, 'test', (document.createElement('TD') as HTMLTableCellElement), 'test', hot.getCellMeta(0, 0));
 date.saveValue('test', true);
-date.saveValue();
+date.saveValue(undefined);
 date.setValue('test');
 date.setValue();
 
@@ -94,7 +114,7 @@ date.getDatePickerConfig();
 date.showDatepicker();
 date.hideDatepicker();
 
-const dropdown = new Handsontable.editors.DropdownEditor(hot);
+const dropdown = new DropdownEditor(hot);
 
 dropdown.beginEditing('test');
 dropdown.beginEditing();
@@ -110,7 +130,7 @@ dropdown.finishEditing();
 dropdown.focus();
 dropdown.getEditedCell();
 dropdown.getEditedCellRect();
-dropdown.getEditedCellsZIndex();
+dropdown.getEditedCellsLayerClass();
 dropdown.getValue();
 dropdown.init();
 dropdown.isInFullEditMode();
@@ -119,11 +139,11 @@ dropdown.isWaiting();
 dropdown.open();
 dropdown.prepare(1, 2, 'test', (document.createElement('TD') as HTMLTableCellElement), 'test', hot.getCellMeta(0, 0));
 dropdown.saveValue('test', true);
-dropdown.saveValue();
+dropdown.saveValue(undefined);
 dropdown.setValue('test');
 dropdown.setValue();
 
-const hansontable = new Handsontable.editors.HandsontableEditor(hot);
+const hansontable = new HandsontableEditor(hot);
 
 hansontable.beginEditing('test');
 hansontable.beginEditing();
@@ -139,20 +159,22 @@ hansontable.finishEditing();
 hansontable.focus();
 hansontable.getEditedCell();
 hansontable.getEditedCellRect();
-hansontable.getEditedCellsZIndex();
+hansontable.getEditedCellsLayerClass();
 hansontable.getValue();
 hansontable.init();
 hansontable.isInFullEditMode();
 hansontable.isOpened();
 hansontable.isWaiting();
 hansontable.open();
-hansontable.prepare(1, 2, 'test', (document.createElement('TD') as HTMLTableCellElement), 'test', hot.getCellMeta(0, 0));
+hansontable.prepare(
+  1, 2, 'test', (document.createElement('TD') as HTMLTableCellElement), 'test', hot.getCellMeta(0, 0)
+);
 hansontable.saveValue('test', true);
-hansontable.saveValue();
+hansontable.saveValue(undefined);
 hansontable.setValue('test');
 hansontable.setValue();
 
-const numeric = new Handsontable.editors.NumericEditor(hot);
+const numeric = new NumericEditor(hot);
 
 numeric.beginEditing('test');
 numeric.beginEditing();
@@ -168,7 +190,7 @@ numeric.finishEditing();
 numeric.focus();
 numeric.getEditedCell();
 numeric.getEditedCellRect();
-numeric.getEditedCellsZIndex();
+numeric.getEditedCellsLayerClass();
 numeric.getValue();
 numeric.init();
 numeric.isInFullEditMode();
@@ -177,11 +199,11 @@ numeric.isWaiting();
 numeric.open();
 numeric.prepare(1, 2, 'test', (document.createElement('TD') as HTMLTableCellElement), 'test', hot.getCellMeta(0, 0));
 numeric.saveValue('test', true);
-numeric.saveValue();
+numeric.saveValue(undefined);
 numeric.setValue('test');
 numeric.setValue();
 
-const password = new Handsontable.editors.PasswordEditor(hot);
+const password = new PasswordEditor(hot);
 
 password.beginEditing('test');
 password.beginEditing();
@@ -197,7 +219,7 @@ password.finishEditing();
 password.focus();
 password.getEditedCell();
 password.getEditedCellRect();
-password.getEditedCellsZIndex();
+password.getEditedCellsLayerClass();
 password.getValue();
 password.init();
 password.isInFullEditMode();
@@ -206,11 +228,11 @@ password.isWaiting();
 password.open();
 password.prepare(1, 2, 'test', (document.createElement('TD') as HTMLTableCellElement), 'test', hot.getCellMeta(0, 0));
 password.saveValue('test', true);
-password.saveValue();
+password.saveValue(undefined);
 password.setValue('test');
 password.setValue();
 
-const select = new Handsontable.editors.SelectEditor(hot);
+const select = new SelectEditor(hot);
 
 select.beginEditing('test');
 select.beginEditing();
@@ -226,7 +248,7 @@ select.finishEditing();
 select.focus();
 select.getEditedCell();
 select.getEditedCellRect();
-select.getEditedCellsZIndex();
+select.getEditedCellsLayerClass();
 select.getValue();
 select.init();
 select.isInFullEditMode();
@@ -235,13 +257,13 @@ select.isWaiting();
 select.open();
 select.prepare(1, 2, 'test', (document.createElement('TD') as HTMLTableCellElement), 'test', hot.getCellMeta(0, 0));
 select.saveValue('test', true);
-select.saveValue();
+select.saveValue(undefined);
 select.setValue('test');
 select.setValue();
 
 select.prepareOptions([]);
 
-const text = new Handsontable.editors.TextEditor(hot);
+const text = new TextEditor(hot);
 
 text.beginEditing('test');
 text.beginEditing();
@@ -257,7 +279,7 @@ text.finishEditing();
 text.focus();
 text.getEditedCell();
 text.getEditedCellRect();
-text.getEditedCellsZIndex();
+text.getEditedCellsLayerClass();
 text.getValue();
 text.init();
 text.isInFullEditMode();
@@ -266,11 +288,11 @@ text.isWaiting();
 text.open();
 text.prepare(1, 2, 'test', (document.createElement('TD') as HTMLTableCellElement), 'test', hot.getCellMeta(0, 0));
 text.saveValue('test', true);
-text.saveValue();
+text.saveValue(undefined);
 text.setValue('test');
 text.setValue();
 
-const time = new Handsontable.editors.TimeEditor(hot);
+const time = new TimeEditor(hot);
 
 time.beginEditing('test');
 time.beginEditing();
@@ -286,7 +308,7 @@ time.finishEditing();
 time.focus();
 time.getEditedCell();
 time.getEditedCellRect();
-time.getEditedCellsZIndex();
+time.getEditedCellsLayerClass();
 time.getValue();
 time.init();
 time.isInFullEditMode();
@@ -295,30 +317,30 @@ time.isWaiting();
 time.open();
 time.prepare(1, 2, 'test', (document.createElement('TD') as HTMLTableCellElement), 'test', hot.getCellMeta(0, 0));
 time.saveValue('test', true);
-time.saveValue();
+time.saveValue(undefined);
 time.setValue('test');
 time.setValue();
 
 // Verify top-level editors API
-class CustomEditor extends Handsontable.editors.getEditor('text') {
+class CustomEditor extends (getEditor('text') as typeof BaseEditor) {
   open() {}
   close() {}
   getValue() {}
-  setValue(value: any) {}
+  setValue(value?: unknown) {}
   focus() {}
 }
-Handsontable.editors.registerEditor('custom', CustomEditor);
+registerEditor('custom', CustomEditor);
 
-Handsontable.editors.editorFactory({
-  init(editor) {},
-  afterInit(editor) {},
-  afterOpen(editor) {},
-  afterClose(editor) {},
-  beforeOpen(editor) {},
-  getValue(editor) {},
-  setValue(editor, value) {},
-  onFocus(editor) {},
-  render(editor) {},
+editorFactory({
+  init(editor: BaseEditor) {},
+  afterInit(editor: BaseEditor) {},
+  afterOpen(editor: BaseEditor) {},
+  afterClose(editor: BaseEditor) {},
+  beforeOpen(editor: BaseEditor) {},
+  getValue(editor: BaseEditor) {},
+  setValue(editor: BaseEditor, value: unknown) {},
+  onFocus(editor: BaseEditor) {},
+  render(editor: BaseEditor) {},
   position: 'container',
   value: 'test',
   config: {
@@ -328,7 +350,7 @@ Handsontable.editors.editorFactory({
   shortcuts: [
     {
       keys: [['Enter']],
-      callback: (editor) => {
+      callback: (editor: BaseEditor) => {
         return false;
       },
     },
@@ -336,4 +358,4 @@ Handsontable.editors.editorFactory({
   args: {
     test: 'test',
   },
-})
+});

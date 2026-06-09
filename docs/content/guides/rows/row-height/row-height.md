@@ -1,5 +1,5 @@
 ---
-id: fehmrn1j
+type: how-to
 title: Row heights
 metaTitle: Row heights - JavaScript Data Grid | Handsontable
 description: Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable's interface.
@@ -17,17 +17,14 @@ tags:
   - row dimensions
   - manual resize
 react:
-  id: 87ulwfs2
   metaTitle: Row heights - React Data Grid | Handsontable
 angular:
-  id: h42skmvo
   metaTitle: Row heights - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Row heights - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
-
-# Row heights
-
 Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable's interface.
 
 [[toc]]
@@ -78,6 +75,16 @@ We set the same height of `40px` for all rows across the entire grid in this exa
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-height/vue/example1.vue)
+
+:::
+
+:::
+
 ## Set row heights with an array
 
 In this example, the height is only set for the first rows. Each additional row would be automatically adjusted to the content.
@@ -115,6 +122,16 @@ In this example, the height is only set for the first rows. Each additional row 
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/rows/row-height/vue/example2.vue)
+
+:::
+
+:::
+
 ## Set row heights with a function
 
 The row height can be set using a function. In this example, the size of all rows is set using a function that takes a row `index` (1, 2 ...) and multiplies it by `20px` for each consecutive row.
@@ -147,6 +164,16 @@ The row height can be set using a function. In this example, the size of all row
 
 @[code](@/content/guides/rows/row-height/angular/example3.ts)
 @[code](@/content/guides/rows/row-height/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/rows/row-height/vue/example3.vue)
 
 :::
 
@@ -191,18 +218,51 @@ You can adjust the size of one or multiple rows simultaneously, even if the sele
 
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/rows/row-height/vue/example4.vue)
+
+:::
+
+:::
+
 ## Related API reference
 
-- Configuration options:
-  - [`autoRowSize`](@/api/options.md#autorowsize)
-  - [`manualRowResize`](@/api/options.md#manualrowresize)
-  - [`minRowHeights`](@/api/options.md#minRowHeights)
-- Core methods:
-  - [`getRowHeight()`](@/api/core.md#getrowheight)
-- Hooks:
-  - [`afterRowResize`](@/api/hooks.md#afterrowresize)
-  - [`beforeRowResize`](@/api/hooks.md#beforerowresize)
-  - [`modifyRowHeight`](@/api/hooks.md#modifyrowheight)
-- Plugins:
-  - [`AutoRowSize`](@/api/autoRowSize.md)
-  - [`ManualRowResize`](@/api/manualRowResize.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [autoRowSize](@/api/options.md#autorowsize)
+- [manualRowResize](@/api/options.md#manualrowresize)
+- [minRowHeights](@/api/options.md#minRowHeights)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getRowHeight()](@/api/core.md#getrowheight)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterRowResize](@/api/hooks.md#afterrowresize)
+- [beforeRowResize](@/api/hooks.md#beforerowresize)
+- [modifyRowHeight](@/api/hooks.md#modifyrowheight)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [AutoRowSize](@/api/autoRowSize.md)
+- [ManualRowResize](@/api/manualRowResize.md)
+
+</div>

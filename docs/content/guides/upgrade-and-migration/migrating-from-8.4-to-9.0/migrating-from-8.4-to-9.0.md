@@ -1,5 +1,5 @@
 ---
-id: 3cqz2dy9
+type: how-to
 title: Migrating from 8.4 to 9.0
 metaTitle: Migrate from 8.4 to 9.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 8.4 to Handsontable 9.0, released on June 1, 2021.
@@ -7,17 +7,14 @@ permalink: /migration-from-8.4-to-9.0
 canonicalUrl: /migration-from-8.4-to-9.0
 pageClass: migration-guide
 react:
-  id: yns5r79k
   metaTitle: Migrate from 8.4 to 9.0 - React Data Grid | Handsontable
 angular:
-  id: tulale8x
   metaTitle: Migrate from 8.4 to 9.0 - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Migrate from 8.4 to 9.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Migrate from 8.4 to 9.0
-
 Migrate from Handsontable 8.4 to Handsontable 9.0, released on June 1, 2021.
 
 More information about this release can be found in the [`9.0.0` release blog post](https://handsontable.com/blog/handsontable-9.0.0-new-formula-plugin).<br/>
@@ -27,7 +24,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 ## Overview
 
-The purpose of this guide is to make it easier to migrate from v8.4.0 to v9.0.0. In the version 9.0 we have introduced a new formula engine with has completely replaced the previous one. There is a breaking change in the formula API - even in the way the plugin itself is initialized.
+The purpose of this guide is to make it easier to migrate from v8.4.0 to v9.0.0. Handsontable 9.0 introduces a new formula engine that completely replaces the previous one. There is a breaking change in the formula API - even in the way the plugin itself is initialized.
 
 ## Plugin initialization
 
@@ -59,13 +56,13 @@ See other available initialization methods [here](@/guides/formulas/formula-calc
 | [`disablePlugin`](https://handsontable.com/docs/8.4.0/Formulas.html#disablePlugin)               | `hot.getPlugin('formulas').disablePlugin()`                   | Unchanged.                                                                                                                                                                            |
 | [`enablePlugin`](https://handsontable.com/docs/8.4.0/Formulas.html#enablePlugin)                 | `hot.getPlugin('formulas').enablePlugin()`                    | Unchanged, but do keep in mind that if you didn't pass in the plugin's config through either `updateSettings` or during Handsontable initialization this method will not do anything. |
 | [`getCellValue`](https://handsontable.com/docs/8.4.0/Formulas.html#getCellValue)                 | `hot.getPlugin('formulas').getCellValue(row, column)`         | Use base Handsontable API instead, for example `hot.getDataAtCell(row, column)`.                                                                                                      |
-| [`getVariable`](https://handsontable.com/docs/8.4.0/Formulas.html#getVariable)                   | `hot.getPlugin('formulas').getVariable(variableName)`         | "Variables" in the plugin have been replaced by a more powerful alternative, [named expressions](@/guides/formulas/formula-calculation/formula-calculation.md#named-expressions).                         |
+| [`getVariable`](https://handsontable.com/docs/8.4.0/Formulas.html#getVariable)                   | `hot.getPlugin('formulas').getVariable(variableName)`         | "Variables" in the plugin are replaced by a more powerful alternative, [named expressions](@/guides/formulas/formula-calculation/formula-calculation.md#named-expressions).                         |
 | [`hasComputedCellValue`](https://handsontable.com/docs/8.4.0/Formulas.html#hasComputedCellValue) | `hot.getPlugin('formulas').hasComputedCellValue(row, column)` | `hot.getPlugin('formulas').getCellType(row, column) === 'FORMULA'`                                                                                                                    |
 | [`isEnabled`](https://handsontable.com/docs/8.4.0/Formulas.html#isEnabled)                       | `hot.getPlugin('formulas').isEnabled()`                       | Unchanged.                                                                                                                                                                            |
 | [`recalculate`](https://handsontable.com/docs/8.4.0/Formulas.html#recalculate)                   | `hot.getPlugin('formulas').recalculate()`                     | `hot.getPlguin('formulas').engine.rebuildAndRecalculate()`                                                                                                                            |
 | [`recalculateFull`](https://handsontable.com/docs/8.4.0/Formulas.html#recalculateFull)           | `hot.getPlugin('formulas').recalculateFull()`                 | `hot.getPlguin('formulas').engine.rebuildAndRecalculate()`                                                                                                                            |
 | [`recalculateOptimized`](https://handsontable.com/docs/8.4.0/Formulas.html#recalculateOptimized) | `hot.getPlugin('formulas').recalculateOptimized()`            | `hot.getPlguin('formulas').engine.rebuildAndRecalculate()`                                                                                                                            |
-| [`setVariable`](https://handsontable.com/docs/8.4.0/Formulas.html#setVariable)                   | `hot.getPlugin('formulas').setVariable(variableName, value)`  | "Variables" in the plugin have been replaced by a more powerful alternative, named expressions.                                                                                       |
+| [`setVariable`](https://handsontable.com/docs/8.4.0/Formulas.html#setVariable)                   | `hot.getPlugin('formulas').setVariable(variableName, value)`  | "Variables" in the plugin are replaced by a more powerful alternative, named expressions.                                                                                       |
 
 ## Available functions
 
@@ -73,7 +70,7 @@ See other available initialization methods [here](@/guides/formulas/formula-calc
 
 ## Autofill hooks
 
-To make autofill hooks more consistent and more powerful, [`beforeAutofill`](@/api/hooks.md#beforeautofill) and [`afterAutofill`](@/api/hooks.md#afterautofill) hooks have had their signatures changed.
+To make autofill hooks more consistent and more powerful, [`beforeAutofill`](@/api/hooks.md#beforeautofill) and [`afterAutofill`](@/api/hooks.md#afterautofill) hooks have new signatures.
 
 Before 9.0.0:
 
@@ -147,7 +144,7 @@ In [`beforeAutofill`](@/api/hooks.md#beforeautofill) instead of mutating [`data`
 
 ## Removed plugins
 
-In Handsontable `9.0.0` we removed the following, previously-deprecated plugins:
+Handsontable 9.0.0 removes the following previously deprecated plugins:
 
 - Header Tooltips
 - Observe Changes
@@ -211,3 +208,7 @@ const onAfterGetHeader = function(index, TH) {
 ### Observe Changes
 
 The plugin fired the [`afterChangesObserved`](@/api/hooks.md#afterchangesobserved) hook. Be sure to stop listening to it after updating to version `>=9.0.0`.
+
+## Result
+
+Your application now runs on Handsontable 9.0.

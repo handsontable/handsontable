@@ -1,5 +1,5 @@
 ---
-id: m946ghwr
+type: how-to
 title: Migrating from 10.0 to 11.0
 metaTitle: Migrate from 10.0 to 11.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 10.0 to Handsontable 11.0, released on November 17, 2021.
@@ -7,17 +7,14 @@ permalink: /migration-from-10.0-to-11.0
 canonicalUrl: /migration-from-10.0-to-11.0
 pageClass: migration-guide
 react:
-  id: sney23fh
   metaTitle: Migrate from 10.0 to 11.0 - React Data Grid | Handsontable
 angular:
-  id: 1fc8toqq
   metaTitle: Migrate from 10.0 to 11.0 - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Migrate from 10.0 to 11.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Migrating from 10.0 to 11.0
-
 Migrate from Handsontable 10.0 to Handsontable 11.0, released on November 17, 2021.
 
 More information about this release can be found in the [`11.0.0` release blog post](https://handsontable.com/blog/handsontable-11.0.0-modularization-for-react-angular-and-vue).<br/>
@@ -82,7 +79,7 @@ To see how to benefit from using individual Handsontable modules, see the [Modul
 
 ## Step 2: Adapt to the type definition changes
 
-In Handsontable 11.0.0, we reorganized the TypeScript definitions files, and improved the overall consistency of Handsontable's types.
+In Handsontable 11.0.0, Handsontable reorganizes the TypeScript definitions files and improves the overall consistency of the types.
 
 For more details, see [this pull request](https://github.com/handsontable/handsontable/pull/8875).
 
@@ -90,7 +87,7 @@ For more details, see [this pull request](https://github.com/handsontable/handso
 
 #### Before
 
-Before, all of Handsontable's TypeScript definitions were kept in one file, placed in the root directory: `/handsontable.d.ts`.
+Before, all TypeScript definitions were kept in one file in the root directory: `/handsontable.d.ts`.
 
 The only way to import types was to get all of them by importing the `Handsontable` package:
 
@@ -111,7 +108,7 @@ import { registerPlugin, HiddenRows } from 'handsontable/plugins';
 
 ### Editors' interfaces
 
-When improving the consistency of Handsontable's types, we needed to change the editors' interfaces.
+Handsontable 11.0.0 changes the editors' interfaces to improve type consistency.
 
 #### Before
 
@@ -134,8 +131,8 @@ For more details, see [this pull request](https://github.com/handsontable/handso
 #### Before
 
 - [`populateFromArray()`](@/api/core.md#populatefromarray) performed a separate [`spliceRow`](@/api/options.md#splicerow) action for each populated row, and a separate `spliceColumn` action for each populated column.
-- The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks were triggered multiple times, separately for each populated row and column.
-- The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks were triggered by each [`spliceRow`](@/api/options.md#splicerow) and `spliceColumn` action, with the `source` argument defined as [`spliceRow`](@/api/options.md#splicerow) or [`spliceCol`](@/api/core.md#splicecol).
+- The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks trigger multiple times, separately for each populated row and column.
+- The [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) hooks trigger for each [`spliceRow`](@/api/options.md#splicerow) and `spliceColumn` action, with the `source` argument defined as [`spliceRow`](@/api/options.md#splicerow) or [`spliceCol`](@/api/core.md#splicecol).
 
 ::: only-for javascript
 
@@ -198,3 +195,7 @@ new Handsontable(element, {
 ```
 
 :::
+
+## Result
+
+Your application now runs on Handsontable 11.0.

@@ -56,6 +56,12 @@ new Handsontable(document.createElement('div'), {
               },
             ],
           };
+        case 'loading':
+          return {
+            title: 'Loading',
+            description: 'Please wait.',
+            loading: true,
+          };
         default:
           return {
             title: 'No data available',

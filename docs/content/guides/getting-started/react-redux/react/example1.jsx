@@ -33,11 +33,13 @@ const ExampleComponentContent = () => {
     <div className="dump-example-container">
       <div id="example-container">
         <div id="example-preview">
-          <div className="controls">
-            <label>
-              <input onClick={toggleReadOnly} type="checkbox" />
-              Toggle <code>readOnly</code> for the entire table
-            </label>
+          <div className="example-controls-container">
+            <div className="controls">
+              <label>
+                <input onClick={toggleReadOnly} type="checkbox" />
+                Toggle <code>readOnly</code> for the entire table
+              </label>
+            </div>
           </div>
 
           <HotTable
@@ -106,7 +108,7 @@ const initialReduxStoreState = {
 const updatesReducer = (state = initialReduxStoreState, action) => {
   switch (action.type) {
     case 'updateData':
-      const newData = [...state.data];
+      const newData = state.data.map((row) => [...row]);
 
       action.dataChanges.forEach(([row, column, oldValue, newValue]) => {
         newData[row][column] = newValue;

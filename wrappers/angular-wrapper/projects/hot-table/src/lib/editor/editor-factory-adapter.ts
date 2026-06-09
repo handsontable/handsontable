@@ -1,6 +1,6 @@
 import { ComponentRef, createComponent, EnvironmentInjector } from '@angular/core';
 import { CustomEditorPlaceholderComponent } from './custom-editor-placeholder.component';
-import { AngularEditorProperties } from './models/factory-editor-properties';
+import { AngularEditorProperties, HotInstanceWithAngularInjector } from './models/factory-editor-properties';
 import { editorFactory, ExtendedEditor } from 'handsontable/editors/factory';
 import { take } from 'rxjs/operators';
 import { HotCellEditorAdvancedComponent } from './hot-cell-editor-advanced.component';
@@ -32,8 +32,8 @@ export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorAdv
       editor._finishEditSubscription = undefined;
       editor._cancelEditSubscription = undefined;
 
-      createEditorPlaceholder(editor, (editor.hot as any)._angularEnvironmentInjector);
-      editor.input = editor._editorPlaceHolderRef.location.nativeElement;
+      createEditorPlaceholder(editor, (editor.hot as HotInstanceWithAngularInjector)._angularEnvironmentInjector);
+      editor.input = editor._editorPlaceHolderRef?.location.nativeElement ?? document.createElement('div');
 
       editor._afterRowResizeCallback = (): void => {
         if (editor.isOpened()) {
@@ -48,6 +48,7 @@ export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorAdv
       };
 
       editor._afterDestroyCallback = (): void => {
+        cleanupSubscriptions(editor);
         if (editor._editorPlaceHolderRef) {
           editor._editorPlaceHolderRef.destroy();
         }
@@ -80,8 +81,8 @@ export const FactoryEditorAdapter = (componentRef: ComponentRef<HotCellEditorAdv
     onFocus: (editor) => editor._componentRef.instance.onFocus?.(editor),
     afterClose: (editor: EditorInstance) => {
       resetEditorState(editor);
-      editor._editorPlaceHolderRef.changeDetectorRef.detectChanges();
-      editor._editorPlaceHolderRef.instance.detachEditor();
+      editor._editorPlaceHolderRef?.changeDetectorRef.detectChanges();
+      editor._editorPlaceHolderRef?.instance.detachEditor();
       editor._componentRef.instance.afterClose?.(editor);
     },
     getValue: (editor) => editor._componentRef.instance.getValue(),
@@ -126,8 +127,8 @@ function applyPropsToEditor(editor: EditorInstance): void {
   const rect = editor.hot.getCell(editor.row, editor.col)?.getBoundingClientRect();
 
   editor._editorPlaceHolderRef.setInput('placeholderCustomClass', '');
-  editor._editorPlaceHolderRef.setInput('height', rect.height);
-  editor._editorPlaceHolderRef.setInput('width', rect.width);
+  editor._editorPlaceHolderRef.setInput('height', rect?.height ?? 0);
+  editor._editorPlaceHolderRef.setInput('width', rect?.width ?? 0);
   editor._editorPlaceHolderRef.setInput('isVisible', true);
   editor._editorPlaceHolderRef.setInput('componentRef', editor._componentRef);
 

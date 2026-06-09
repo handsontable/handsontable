@@ -112,4 +112,45 @@ describe('Loading', () => {
     expect(plugin.isVisible()).toBe(false);
     expect(plugin.enabled).toBe(false);
   });
+
+  it('should not throw when showing loading indicator from afterChange hook during editor close (#12341)', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(5, 5),
+      loading: true,
+      afterChange(changes, source) {
+        if (source === 'edit') {
+          hot.getPlugin('loading').show();
+        }
+      },
+    });
+
+    await selectCell(0, 0);
+
+    await keyDownUp('enter');
+    document.activeElement.value = 'new value';
+    await keyDownUp('enter');
+
+    expect(getDataAtCell(0, 0)).toBe('new value');
+    expect(hot.getPlugin('loading').isVisible()).toBe(true);
+  });
+
+  it('should not throw when calling deselectCell from afterChange hook during editor close (#12341)', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(5, 5),
+      afterChange(changes, source) {
+        if (source === 'edit') {
+          hot.deselectCell();
+        }
+      },
+    });
+
+    await selectCell(0, 0);
+
+    await keyDownUp('enter');
+    document.activeElement.value = 'new value';
+    await keyDownUp('enter');
+
+    expect(getDataAtCell(0, 0)).toBe('new value');
+    expect(hot.getSelected()).toBeUndefined();
+  });
 });

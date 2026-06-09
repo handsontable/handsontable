@@ -20,8 +20,10 @@ describe('Pagination with conflicting options', () => {
     });
 
     // eslint-disable-next-line no-console
-    expect(console.warn).toHaveBeenCalledWith('The `pagination` plugin cannot be used with ' +
-      'the `fixedRowsTop` option. This combination is not supported. The plugin will remain disabled.');
+    expect(console.warn).toHaveBeenCalledWith(
+      'The `pagination` plugin cannot be used with the `fixedRowsTop` option. ' +
+        'This combination is not supported. The plugin will remain disabled.',
+    );
     expect(getSettings().pagination).toBe(false);
     expect(getPlugin('pagination').isEnabled()).toBe(false);
   });
@@ -36,8 +38,10 @@ describe('Pagination with conflicting options', () => {
     });
 
     // eslint-disable-next-line no-console
-    expect(console.warn).toHaveBeenCalledWith('The `pagination` plugin cannot be used with ' +
-      'the `fixedRowsBottom` option. This combination is not supported. The plugin will remain disabled.');
+    expect(console.warn).toHaveBeenCalledWith(
+      'The `pagination` plugin cannot be used with the `fixedRowsBottom` option. ' +
+        'This combination is not supported. The plugin will remain disabled.',
+    );
     expect(getSettings().pagination).toBe(false);
     expect(getPlugin('pagination').isEnabled()).toBe(false);
   });

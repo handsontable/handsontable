@@ -4,7 +4,9 @@ import {
   GridSettings,
   HotCellEditorAdvancedComponent,
   HotCellRendererAdvancedComponent,
+  HotTableModule,
 } from '@handsontable/angular-wrapper';
+import { FormsModule } from '@angular/forms';
 import { format, parse, isValid } from 'date-fns';
 
 export const inputData = [
@@ -57,7 +59,8 @@ export const inputData = [
       style="width: 100%; height: 100%; padding: 8px; border: 2px solid #4CAF50; border-radius: 4px; font-size: 14px; box-sizing: border-box;"
     />
   `,
-  standalone: false,
+  standalone: true,
+  imports: [FormsModule],
 })
 export class DateEditorComponent extends HotCellEditorAdvancedComponent<string> {
   dateValue: string = '';
@@ -140,7 +143,8 @@ export class DateEditorComponent extends HotCellEditorAdvancedComponent<string> 
   template: ` <div>
     {{ formattedDate }}
   </div>`,
-  standalone: false,
+  standalone: true,
+  imports: [],
 })
 export class DateRendererComponent extends HotCellRendererAdvancedComponent<string, { renderFormat: string }> {
   get formattedDate(): string {
@@ -153,12 +157,13 @@ const DATE_FORMAT_EU = 'dd/MM/yyyy';
 
 @Component({
   selector: 'example1-guide-datepicker-angular',
-  standalone: false,
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
-export class Example1GuideDatepickerAngularComponent {
+export class AppComponent {
   readonly data = inputData.map((el) => ({
     ...el,
     stars: Math.floor(Math.random() * 5) + 1,
@@ -203,23 +208,16 @@ export class Example1GuideDatepickerAngularComponent {
 }
 /* end-file */
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-import { FormsModule } from '@angular/forms';
-/* start:skip-in-compilation */
-import { Example1GuideDatepickerAngularComponent, DateEditorComponent, DateRendererComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
-// register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
@@ -228,12 +226,4 @@ export const appConfig: ApplicationConfig = {
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule, FormsModule],
-  declarations: [Example1GuideDatepickerAngularComponent, DateEditorComponent, DateRendererComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [Example1GuideDatepickerAngularComponent],
-})
-export class AppModule {}
 /* end-file */

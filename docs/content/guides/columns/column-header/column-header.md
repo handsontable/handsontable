@@ -1,22 +1,19 @@
 ---
-id: qiasr3y1
+type: how-to
 title: Column headers
 metaTitle: Column headers - JavaScript Data Grid | Handsontable
 description: Use default column headers (A, B, C), or set them to custom values provided by an array or a function.
 permalink: /column-header
 canonicalUrl: /column-header
 react:
-  id: 5e0tnexi
   metaTitle: Column headers - React Data Grid | Handsontable
 angular:
-  id: owl7h4t1
   metaTitle: Column headers - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column headers - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
-
-# Column headers
-
 Use default column headers (A, B, C), or set them to custom values provided by an array or a function.
 
 [[toc]]
@@ -48,6 +45,16 @@ Setting the [`colHeaders`](@/api/options.md#colheaders) option to `true` enables
 
 @[code](@/content/guides/columns/column-header/react/example1.jsx)
 @[code](@/content/guides/columns/column-header/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example1.vue)
 
 :::
 
@@ -89,6 +96,16 @@ An array of labels can be used to set the [`colHeaders`](@/api/options.md#colhea
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example2.vue)
+
+:::
+
+:::
+
 ::: only-for angular
 
 ::: example #example2 :angular --ts 1 --html 2
@@ -120,6 +137,16 @@ The [`colHeaders`](@/api/options.md#colheaders) can also be populated using a fu
 
 @[code](@/content/guides/columns/column-header/react/example3.jsx)
 @[code](@/content/guides/columns/column-header/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example3.vue)
 
 :::
 
@@ -164,6 +191,16 @@ You can also set the alignment for a specific column by using the [`columns`](@/
 
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example4.vue)
+
+:::
+
+:::
+
 ::: only-for angular
 
 ::: example #example4 :angular --ts 1 --html 2
@@ -201,6 +238,16 @@ If you want to style the header labels, you can pass any number of class names, 
 
 :::
 
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example5.vue)
+
+:::
+
+:::
+
 ::: only-for angular
 
 ::: example #example5 :angular --ts 1 --html 2
@@ -218,31 +265,60 @@ More complex data structures can be displayed with multiple headers, each repres
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Column groups](@/guides/columns/column-groups/column-groups.md)
 
 </div>
 
-### Related API reference
+**Related blog articles**
 
-- Configuration options:
-  - [`activeHeaderClassName`](@/api/options.md#activeheaderclassname)
-  - [`colHeaders`](@/api/options.md#colheaders)
-  - [`columnHeaderHeight`](@/api/options.md#columnheaderheight)
-  - [`currentHeaderClassName`](@/api/options.md#currentheaderclassname)
-  - [`nestedHeaders`](@/api/options.md#nestedheaders)
-  - [`title`](@/api/options.md#title)
-- Core methods:
-  - [`getColHeader()`](@/api/core.md#getcolheader)
-  - [`hasColHeaders()`](@/api/core.md#hascolheaders)
-- Hooks:
-  - [`afterGetColHeader`](@/api/hooks.md#aftergetcolheader)
-  - [`afterGetColumnHeaderRenderers`](@/api/hooks.md#aftergetcolumnheaderrenderers)
-  - [`beforeHighlightingColumnHeader`](@/api/hooks.md#beforehighlightingcolumnheader)
-  - [`modifyColHeader`](@/api/hooks.md#modifycolheader)
-  - [`modifyColumnHeaderHeight`](@/api/hooks.md#modifycolumnheaderheight)
-- Plugins:
-  - [`NestedHeaders`](@/api/nestedHeaders.md)
+<div class="boxes-list">
+
+- [Handsontable 14.5.0: Improved performance and flexible column header class](https://handsontable.com/blog/handsontable-14.5.0-improved-performance-and-flexible-column-header-class)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [activeHeaderClassName](@/api/options.md#activeheaderclassname)
+- [colHeaders](@/api/options.md#colheaders)
+- [columnHeaderHeight](@/api/options.md#columnheaderheight)
+- [currentHeaderClassName](@/api/options.md#currentheaderclassname)
+- [nestedHeaders](@/api/options.md#nestedheaders)
+- [title](@/api/options.md#title)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getColHeader()](@/api/core.md#getcolheader)
+- [hasColHeaders()](@/api/core.md#hascolheaders)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetColHeader](@/api/hooks.md#aftergetcolheader)
+- [afterGetColumnHeaderRenderers](@/api/hooks.md#aftergetcolumnheaderrenderers)
+- [beforeHighlightingColumnHeader](@/api/hooks.md#beforehighlightingcolumnheader)
+- [modifyColHeader](@/api/hooks.md#modifycolheader)
+- [modifyColumnHeaderHeight](@/api/hooks.md#modifycolumnheaderheight)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [NestedHeaders](@/api/nestedHeaders.md)
+
+</div>

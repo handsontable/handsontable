@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed an issue with scrolling issue that occurs when preventOverflow is enabled",
-  "type": "fixed",
-  "issueOrPR": 12086,
-  "breaking": false,
-  "framework": "none"
-}

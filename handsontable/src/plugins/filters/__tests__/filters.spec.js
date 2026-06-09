@@ -25,7 +25,7 @@ describe('Filters', () => {
     await dropdownMenu(1);
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Begins with');
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     // Begins with 'c'
     document.activeElement.value = 'c';
@@ -200,15 +200,17 @@ describe('Filters', () => {
     plugin.filter();
 
     expect(warnSpy.calls.mostRecent().args).toEqual(['The filter conditions have been applied properly, ' +
-      'but couldn’t be displayed visually. The overall amount of conditions exceed the capability of the ' +
-      'dropdown menu. For more details see the documentation.']);
+      'but couldn’t be displayed visually. The dropdown menu supports at most 2 regular conditions and 1 ' +
+      '\'filter by value\' condition per column, but more were provided. ' +
+      'For more details see the documentation.']);
 
     plugin.addCondition(0, 'contains', ['o']);
     plugin.filter();
 
     expect(warnSpy.calls.mostRecent().args).toEqual(['The filter conditions have been applied properly, ' +
-      'but couldn’t be displayed visually. The overall amount of conditions exceed the capability of the ' +
-      'dropdown menu. For more details see the documentation.']);
+      'but couldn’t be displayed visually. The dropdown menu supports at most 2 regular conditions and 1 ' +
+      '\'filter by value\' condition per column, but more were provided. ' +
+      'For more details see the documentation.']);
     expect(warnSpy.calls.count()).toBe(2);
   });
 
@@ -803,5 +805,156 @@ describe('Filters', () => {
         ],
       });
     });
+  });
+
+  describe('Visual/Physical column index conversion (issue #11832)', () => {
+    it('should correctly update filter conditions after moving columns and adding data', async() => {
+      handsontable({
+        data: [
+          ['Mar 27, 2023', 'Product A', 'Cycling Cap'],
+          ['Oct 15, 2023', 'Product B', 'HL Mountain Shirt']
+        ],
+        colHeaders: ['Sold on', 'Product', 'Model'],
+        dropdownMenu: true,
+        manualColumnMove: true,
+        filters: true,
+        width: 500,
+        height: 300
+      });
+
+      const plugin = getPlugin('filters');
+      const manualColumnMove = getPlugin('manualColumnMove');
+
+      // Move first column (Sold on) to third position
+      manualColumnMove.moveColumn(0, 2);
+      await render();
+
+      // Add condition to the moved column (now at physical index 0, but visual index 2)
+      plugin.addCondition(2, 'by_value', [['Mar 27, 2023', 'Oct 15, 2023']]);
+      plugin.filter();
+
+      // Add new row and set data
+      await alter('insert_row_below', 1);
+      // Set data at the moved column (physical index 0, visual index 2)
+      await setDataAtCell(2, 2, 'Mar 27, 2023');
+
+      await sleep(100);
+
+      // Verify that the filter still has conditions for the correct column
+      const conditions = plugin.conditionCollection.getConditions(0); // Physical column 0
+
+      expect(conditions.length).toBeGreaterThan(0);
+      expect(conditions[0].name).toBe('by_value');
+    });
+
+    it('should use physical column index when checking and updating conditions in #onAfterChange', async() => {
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2']
+        ],
+        colHeaders: true,
+        manualColumnMove: true,
+        filters: true
+      });
+
+      const plugin = getPlugin('filters');
+      const manualColumnMove = getPlugin('manualColumnMove');
+
+      // Move column 0 to position 2
+      manualColumnMove.moveColumn(0, 2);
+      await render();
+
+      // Add condition to physical column 0 (which is now at visual position 2)
+      // Physical column 0 corresponds to the original first column
+      const physicalColumn = 0;
+
+      plugin.addCondition(toVisualColumn(physicalColumn), 'by_value', [['A1', 'A2']]);
+      plugin.filter();
+
+      // Spy on updateValueComponentCondition to verify it's called with physical index
+      spyOn(plugin, 'updateValueComponentCondition').and.callThrough();
+
+      // Change data using the property name (which will be converted to column index)
+      // The first column in the original data has index 0
+      await setDataAtCell(0, toVisualColumn(physicalColumn), 'A1-modified');
+
+      // Verify that updateValueComponentCondition was called with the physical column index
+      expect(plugin.updateValueComponentCondition).toHaveBeenCalledWith(physicalColumn);
+    });
+
+    it('should convert visual to physical index in updateValueComponentCondition', async() => {
+      handsontable({
+        data: [
+          ['A1', 'B1', 'C1'],
+          ['A2', 'B2', 'C2']
+        ],
+        colHeaders: true,
+        manualColumnMove: true,
+        filters: true
+      });
+
+      const plugin = getPlugin('filters');
+      const manualColumnMove = getPlugin('manualColumnMove');
+
+      // Move column 0 to position 2
+      manualColumnMove.moveColumn(0, 2);
+      await render();
+
+      const physicalColumn = 0;
+      const visualColumn = toVisualColumn(physicalColumn);
+
+      plugin.addCondition(visualColumn, 'by_value', [['A1', 'A2']]);
+      plugin.filter();
+
+      // Spy on hot.getDataAtCol to verify it's called with visual index
+      const hotInstance = plugin.hot;
+
+      spyOn(hotInstance, 'getDataAtCol').and.callThrough();
+      spyOn(hotInstance, 'toVisualColumn').and.callThrough();
+
+      // Call updateValueComponentCondition with physical index
+      plugin.updateValueComponentCondition(physicalColumn);
+
+      // Verify that toVisualColumn was called to convert physical to visual
+      expect(hotInstance.toVisualColumn).toHaveBeenCalledWith(physicalColumn);
+      // Verify that getDataAtCol was called with the visual index
+      expect(hotInstance.getDataAtCol).toHaveBeenCalledWith(visualColumn);
+    });
+  });
+
+  describe('Editing a cell in an earlier filtered column (issue #8874)', () => {
+    it('should keep dependent column by_value selection in cached state after editing earlier filtered column',
+      async() => {
+        handsontable({
+          data: [
+            { id: 1, country: 'Germany', company: 'BMW' },
+            { id: 2, country: 'Germany', company: 'Mercedes' },
+            { id: 3, country: 'Italy', company: 'Fiat' },
+            { id: 4, country: 'France', company: 'Renault' },
+          ],
+          columns: [
+            { data: 'id', type: 'numeric' },
+            { data: 'country' },
+            { data: 'company' },
+          ],
+          colHeaders: ['ID', 'Country', 'Company'],
+          dropdownMenu: true,
+          filters: true,
+        });
+
+        const filters = getPlugin('filters');
+
+        filters.addCondition(1, 'by_value', [['Germany', 'France']]);
+        filters.filter();
+        filters.addCondition(2, 'by_value', [['Mercedes', 'Renault']]);
+        filters.filter();
+
+        await setDataAtCell(0, 1, 'France');
+
+        const valueComponentState = filters.components.get('filter_by_value').state.getValueAtIndex(2);
+
+        expect(valueComponentState.args[0]).toEqual(['Mercedes', 'Renault']);
+      });
   });
 });

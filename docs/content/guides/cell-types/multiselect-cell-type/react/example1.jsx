@@ -19,10 +19,16 @@ const shipmentCategories = [
 
 const data = [
   ['Los Angeles International Airport', ['Electronics and Gadgets', 'Medical Supplies']],
-  ['Chicago O\'Hare International Airport', ['Auto Parts', 'Fresh Produce']],
+  ["Chicago O'Hare International Airport", ['Auto Parts', 'Fresh Produce']],
   ['Charles de Gaulle Airport', ['Textiles', 'Industrial Equipment']],
   ['Tokyo Haneda Airport', ['Pharmaceuticals', 'Consumer Goods']],
   ['Singapore Changi Airport', ['Machine Parts', 'Food Products']],
+  ['Luton Airport', ['Electronics and Gadgets', 'Pharmaceuticals']],
+  ['Frankfurt Airport', ['Industrial Equipment', 'Auto Parts', 'Consumer Goods']],
+  ['Sydney Kingsford Smith Airport', ['Fresh Produce', 'Food Products']],
+  ['Toronto Pearson International Airport', ['Medical Supplies', 'Textiles']],
+  ['Hong Kong International Airport', ['Machine Parts', 'Electronics and Gadgets', 'Industrial Equipment']],
+  ['Heathrow Airport', ['Textiles', 'Consumer Goods']],
 ];
 
 const ExampleComponent = () => {
@@ -42,8 +48,9 @@ const ExampleComponent = () => {
           title: 'Shipment',
         },
       ]}
-      preventOverflow="horizontal"
-      colWidths={300}
+      height="auto"
+      stretchH="last"
+      width="100%"
     />
   );
 };

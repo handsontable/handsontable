@@ -1,5 +1,5 @@
 ---
-id: vjcvrdeh
+type: how-to
 title: Bundle size
 metaTitle: Bundle size - JavaScript Data Grid | Handsontable
 description: Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable modules and Moment.js locales.
@@ -8,17 +8,14 @@ canonicalUrl: /bundle-size
 tags:
   - size
 react:
-  id: c8onyes4
   metaTitle: Bundle size - React Data Grid | Handsontable
 angular:
-  id: qdq3dmts
   metaTitle: Bundle size - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Bundle size - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
 ---
-
-# Bundle size
-
 Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable modules and Moment.js locales.
 
 [[toc]]
@@ -89,20 +86,41 @@ export class ExampleComponent {
 
 :::
 
+::: only-for vue
+
+```js
+import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/vue3';
+import { registerPlugin, ContextMenu } from 'handsontable/plugins';
+
+registerPlugin(ContextMenu);
+
+const hotSettings = ref({
+  contextMenu: true,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ## Optimize Moment.js
 
 By default, [Moment.js](https://momentjs.com/) (Handsontable's dependency) comes with all possible locales, which increases the bundle size.
 
-To [optimize Moment.js locales](https://github.com/jmblog/how-to-optimize-momentjs-with-webpack), use [webpack's `IgnorePlugin`](https://webpack.js.org/plugins/ignore-plugin/):
+To optimize Moment.js locales, use your bundler's ignore plugin. The example below works with both [Rspack](https://rspack.dev/) and [webpack](https://webpack.js.org/):
 
 ```js
-const webpack = require('webpack');
+const { IgnorePlugin } = require('@rspack/core'); // or require('webpack')
 
 module.exports = {
   //...
   plugins: [
     // ignore all Moment.js locale files
-    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
+    new IgnorePlugin(/^\.\/locale$/, /moment$/),
   ],
 };
 ```
@@ -191,6 +209,38 @@ export class ExampleComponent {
 
 :::
 
+::: only-for vue
+
+```js
+import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/vue3';
+import { registerCellType, DateCellType } from 'handsontable/cellTypes';
+
+// explicitly import Moment.js
+import moment from 'moment';
+// explicitly import a Moment.js locale of your choice
+import 'moment/locale/ja';
+
+// register the Moment.js locale of your choice
+moment.locale('ja');
+registerCellType(DateCellType);
+
+const hotSettings = ref({
+  type: 'date',
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ## Related guides
 
+<div class="boxes-list">
+
 - [Modules](@/guides/tools-and-building/modules/modules.md)
+
+</div>

@@ -47,8 +47,6 @@ registerCellType(NumericCellType);
 
 registerLanguageDictionary(arAR);
 
-import { addClassesToRows } from "./hooksCallbacks";
-
 const example = document.getElementById("example");
 
 new Handsontable(example, {
@@ -101,7 +99,6 @@ new Handsontable(example, {
   navigableHeaders: true,
   autoWrapCol: true,
   headerClassName: 'htLeft',
-  beforeRenderer: addClassesToRows,
   licenseKey: "non-commercial-and-evaluation"
 });
 

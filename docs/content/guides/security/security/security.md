@@ -1,23 +1,19 @@
 ---
-id: nb36sme6
+type: explanation
 title: Security
 metaTitle: Security - JavaScript Data Grid | Handsontable
 description: Learn about the security measures we take to make sure you can safely implement Handsontable in your client-side application.
 permalink: /security
 canonicalUrl: /security
 react:
-  id: h8zg4ign
   metaTitle: Security - React Data Grid | Handsontable
 angular:
-  id: 25m4fmia
   metaTitle: Security - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Security - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Security
-menuTag: updated
 ---
-
-# Security
-
 Learn about the security measures we take to make sure you can safely implement Handsontable in your client-side application.
 
 [[toc]]
@@ -82,10 +78,10 @@ The latest security audits:
 
 | Audit firm | Concluded on | Certificate                                              |
 |------------|--------------|----------------------------------------------------------|
-| Seqred     | Feb 21, 2022 | [Download]({{$basePath}}/seqred-certificate.pdf)         |
-| TestArmy   | Apr 28, 2023 | [Download]({{$basePath}}/testarmy-certificate.pdf)       |
-| TestArmy   | Apr 19, 2024 | [Download]({{$basePath}}/testarmy-certificate-2024.pdf)  |
-| TestArmy   | May 13, 2025 | [Download]({{$basePath}}/testarmy-certificate-2025.pdf)  |
+| Seqred     | Feb 21, 2022 | [Download](/seqred-certificate.pdf)         |
+| TestArmy   | Apr 28, 2023 | [Download](/testarmy-certificate.pdf)       |
+| TestArmy   | Apr 19, 2024 | [Download](/testarmy-certificate-2024.pdf)  |
+| TestArmy   | May 13, 2025 | [Download](/testarmy-certificate-2025.pdf)  |
 
 
 The security audits were carried out in accordance with industry-standard methodologies, including:
@@ -133,3 +129,11 @@ Security of our software and its application in our customers' system is our top
 ## Bug bounty
 
 We don't offer a bug bounty program, but we sincerely appreciate the work done by security researchers and independent developers.
+
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 15.3.0: CSV sanitization, accessibility updates, and 30+ fixes](https://handsontable.com/blog/handsontable-15.3.0-csv-sanitization-accessibility-updates-and-30-fixes)
+
+</div>

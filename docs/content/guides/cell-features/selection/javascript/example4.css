@@ -1,0 +1,14 @@
+/* First selection layer — applied to every selected cell */
+#example4 td.area {
+  background-color: rgba(75, 137, 255, 0.2);
+}
+
+/* Second non-adjacent selection layer (Ctrl/Cmd + click) */
+#example4 td.area.area-1 {
+  background-color: rgba(75, 137, 255, 0.4);
+}
+
+/* Third non-adjacent selection layer */
+#example4 td.area.area-2 {
+  background-color: rgba(75, 137, 255, 0.6);
+}

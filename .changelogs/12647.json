@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed autofill and paste skipping a row or column that was hidden and then shown again, when `hiddenRows`/`hiddenColumns` had `copyPasteEnabled` set to `false`.",
+  "type": "fixed",
+  "issueOrPR": 12647,
+  "breaking": false,
+  "framework": "none"
+}

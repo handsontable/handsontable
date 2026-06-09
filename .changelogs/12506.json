@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the dropdown/autocomplete editor overflowing the table's right boundary when `trimDropdown` is set to `false`.",
+  "type": "fixed",
+  "issueOrPR": 12506,
+  "breaking": false,
+  "framework": "none"
+}

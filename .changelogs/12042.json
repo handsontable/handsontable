@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed a bug where the editor does not receive the user inputs",
-  "type": "fixed",
-  "issueOrPR": 12042,
-  "breaking": false,
-  "framework": "none"
-}

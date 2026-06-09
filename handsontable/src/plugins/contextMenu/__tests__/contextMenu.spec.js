@@ -97,12 +97,17 @@ describe('ContextMenu', () => {
       await contextMenu();
       await sleep(300);
 
+      // The hider width is the theme-invariant MIN_WIDTH constant used by the
+      // menu plugin. The outer menu width equals hider width plus the menu
+      // container's horizontal borders, which differ between themes.
+      const menuEl = $menu.filter(':visible')[0] || $menu[0];
+      const htMaster = menuEl.querySelector('.ht_master');
+      const cs = htMaster ? window.getComputedStyle(htMaster) : null;
+      const bLM = cs ? (parseFloat(cs.borderLeftWidth) || 0) : 0;
+      const bRM = cs ? (parseFloat(cs.borderRightWidth) || 0) : 0;
+
       expect($menu.find('.wtHider').width()).toEqual(215);
-      expect($menu.width()).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(217);
-        main.toEqual(217);
-        horizon.toEqual(215);
-      });
+      expect($menu.width()).toEqual(215 + bLM + bRM);
     });
 
     it('should expand menu when one of items is wider then default width of the menu', async() => {
@@ -322,7 +327,9 @@ describe('ContextMenu', () => {
         colHeaders: true,
         rowHeaders: true,
         contextMenu: true,
-        height: 100
+        height: 100,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await selectColumns(1, 4);
@@ -350,7 +357,9 @@ describe('ContextMenu', () => {
         colHeaders: true,
         rowHeaders: true,
         contextMenu: true,
-        height: 100
+        height: 100,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await selectRows(1, 3);
@@ -1717,11 +1726,7 @@ describe('ContextMenu', () => {
         .simulate('mouseenter')
         .simulate('mouseover');
 
-      expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(undefined);
-        main.toEqual(undefined);
-        horizon.toEqual(undefined);
-      });
+      expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).toEqual(undefined);
     });
   });
 
@@ -1879,7 +1884,10 @@ describe('ContextMenu', () => {
     it('should disable Remove col in context menu when rows are selected by headers', async() => {
       handsontable({
         contextMenu: ['remove_col', 'remove_row'],
-        height: 100,
+        // Use containerHeightForRows(3) so that rows 0-2 are fully rendered in every theme.
+        // height: 100 was too small for themes with larger row heights (e.g. horizon) and left
+        // row headers for rows 1-2 out of the DOM, breaking the drag selection simulation.
+        height: containerHeightForRows(3),
         colHeaders: true,
         rowHeaders: true
       });
@@ -2424,7 +2432,9 @@ describe('ContextMenu', () => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         contextMenu: true,
-        height: 200
+        height: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await mouseDown(getCell(0, 0));
@@ -2452,7 +2462,9 @@ describe('ContextMenu', () => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         contextMenu: true,
-        height: 200
+        height: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await mouseDown(getCell(0, 0));
@@ -2480,7 +2492,9 @@ describe('ContextMenu', () => {
       handsontable({
         data: createSpreadsheetData(10, 10),
         contextMenu: true,
-        height: 200
+        height: 200,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await mouseDown(getCell(0, 0));
@@ -2543,20 +2557,12 @@ describe('ContextMenu', () => {
         .simulate('mouseover');
 
       expect(getPlugin('contextMenu').menu.getNavigator().getCurrentPage()).toBe(3);
-      expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(undefined);
-        main.toEqual(undefined);
-        horizon.toEqual(undefined);
-      });
+      expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).toEqual(undefined);
 
       await keyDownUp('arrowDown');
 
       expect(getPlugin('contextMenu').menu.getNavigator().getCurrentPage()).toBe(4);
-      expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual('col_right');
-        main.toEqual('col_right');
-        horizon.toEqual('col_right');
-      });
+      expect(getPlugin('contextMenu').menu.getSelectedItem()?.key).toEqual('col_right');
     });
   });
 
@@ -3163,5 +3169,50 @@ describe('ContextMenu', () => {
     hot.useTheme(undefined);
 
     expect($('.htContextMenu').is(':visible')).toBe(false);
+  });
+
+  describe('updateSettings called from beforeContextMenuShow', () => {
+    it('should open the menu without throwing when the hook callback calls ' +
+      'updateSettings({ contextMenu })', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        contextMenu: true,
+        height: 200,
+        beforeContextMenuShow() {
+          this.updateSettings({
+            contextMenu: ['row_above'],
+          });
+        },
+      });
+
+      await selectCell(0, 0);
+
+      await expectAsync((async() => {
+        await contextMenu();
+      })()).toBeResolved();
+
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+    });
+
+    it('should apply the updated contextMenu items on the same open', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        contextMenu: true,
+        height: 200,
+        beforeContextMenuShow() {
+          this.updateSettings({
+            contextMenu: ['row_above'],
+          });
+        },
+      });
+
+      await selectCell(0, 0);
+      await contextMenu();
+
+      const items = $('.htContextMenu tbody td').not('.htSeparator');
+
+      expect(items.length).toBe(1);
+      expect(items.text()).toContain('Insert row above');
+    });
   });
 });

@@ -57,7 +57,7 @@ describe('HandsontableEditor', () => {
     expect(editor.isOpened()).toBe(true);
 
     await selectCell(1, 0);
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     expect(editor.isOpened()).toBe(false);
   });
@@ -798,7 +798,7 @@ describe('HandsontableEditor', () => {
       await selectCell(0, 0, 0, 0, true, false);
 
       // The `imeFastEdit` timeout is set to 50ms.
-      await sleep(55);
+      await waitForNextAnimationFrames(2);
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });
@@ -855,6 +855,151 @@ describe('HandsontableEditor', () => {
     expect(getSelected()).toEqual([[1, 2, 1, 2]]);
   });
 
+  describe('with filters and dropdownMenu enabled (issue #7032)', () => {
+    function getManufacturerDataWithFilters() {
+      return [
+        { name: 'BMW', country: 'Germany' },
+        { name: 'Chrysler', country: 'USA' },
+        { name: 'Nissan', country: 'Japan' },
+        { name: 'Toyota', country: 'Japan' },
+      ];
+    }
+
+    it('should inherit rootPortalElement from the outer HOT instance', async() => {
+      const hot = handsontable({
+        data: [['BMW'], ['Nissan']],
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country'],
+            data: getManufacturerDataWithFilters(),
+            filters: true,
+            dropdownMenu: true,
+          }
+        }]
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const innerHot = getActiveEditor().htEditor;
+
+      expect(innerHot.rootPortalElement).toBe(hot.rootPortalElement);
+    });
+
+    it('should not remove the outer HOT portal element when the editor is reopened', async() => {
+      const hot = handsontable({
+        data: [['BMW'], ['Nissan']],
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country'],
+            data: getManufacturerDataWithFilters(),
+            filters: true,
+            dropdownMenu: true,
+          }
+        }]
+      });
+
+      const portal = hot.rootPortalElement;
+
+      // Open, close, reopen — each open() destroys the previous inner HOT
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp('escape');
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await keyDownUp('escape');
+
+      expect(hot.rootPortalElement).toBe(portal);
+      expect(document.body.contains(portal)).toBe(true);
+    });
+
+    it('should not close the editor when clicking a dropdown menu item in the inner HOT', async() => {
+      handsontable({
+        data: [['BMW'], ['Nissan']],
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country'],
+            data: getManufacturerDataWithFilters(),
+            filters: true,
+            dropdownMenu: true,
+          }
+        }]
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor();
+
+      expect(editor.isOpened()).toBe(true);
+
+      // Open the dropdown menu on the first column header of the inner HOT
+      const innerHot = editor.htEditor;
+      const dropdownBtn = innerHot.rootElement.querySelector('.changeType');
+
+      $(dropdownBtn).simulate('mousedown');
+      $(dropdownBtn).simulate('mouseup');
+      $(dropdownBtn).simulate('click');
+
+      await waitForNextAnimationFrames(2);
+
+      // Editor must stay open after interacting with the inner HOT's dropdown
+      expect(editor.isOpened()).toBe(true);
+    });
+
+    it('should set the correct value when clicking a filtered row', async() => {
+      const data = [['BMW'], ['Nissan'], ['Chrysler'], ['Toyota']];
+
+      handsontable({
+        data,
+        columns: [{
+          type: 'handsontable',
+          handsontable: {
+            colHeaders: ['Marque', 'Country'],
+            data: getManufacturerDataWithFilters(),
+            filters: true,
+            dropdownMenu: true,
+            getValue() {
+              const selection = this.getSelectedLast();
+              const physicalRow = this.toPhysicalRow(Math.max(selection[0], 0));
+
+              return this.getSourceDataAtRow(physicalRow).name;
+            },
+          }
+        }]
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor();
+      const innerHot = editor.htEditor;
+
+      // Apply a filter: keep only rows where country === 'Japan' (Nissan, Toyota)
+      const filters = innerHot.getPlugin('filters');
+
+      filters.addCondition(1, 'eq', ['Japan']);
+      filters.filter();
+
+      await waitForNextAnimationFrames(2);
+
+      // After filtering, visual row 0 = Nissan (physical row 2), visual row 1 = Toyota (physical row 3)
+      // Click visual row 1 (Toyota)
+      const cell = innerHot.getCell(1, 0);
+
+      $(cell).simulate('mousedown');
+      $(cell).simulate('mouseup');
+
+      await waitForNextAnimationFrames(2);
+
+      expect(getDataAtCell(0, 0)).toBe('Toyota');
+    });
+  });
+
   it('should close the handsontable editor after call `useTheme`', async() => {
     const hot = handsontable({
       columns: [
@@ -899,18 +1044,10 @@ describe('HandsontableEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    const container = getActiveEditor().htContainer;
+    const box = getInnerEditorListBox();
 
-    expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(324);
-      main.toBe(357);
-      horizon.toBe(381);
-    });
-    expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(188);
-      main.toBe(213);
-      horizon.toBe(273);
-    });
+    expect(box.clientWidth).toBe(box.settingsWidth);
+    expect(box.clientHeight).toBe(box.settingsHeight);
   });
 
   it('should open editor with the correct size after other handsontable editor was open beforehand (#dev-2112)', async() => {
@@ -940,17 +1077,9 @@ describe('HandsontableEditor', () => {
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    const container = getActiveEditor().htContainer;
+    const box = getInnerEditorListBox();
 
-    expect(container.clientWidth).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(324);
-      main.toBe(357);
-      horizon.toBe(381);
-    });
-    expect(container.clientHeight).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(188);
-      main.toBe(213);
-      horizon.toBe(273);
-    });
+    expect(box.clientWidth).toBe(box.settingsWidth);
+    expect(box.clientHeight).toBe(box.settingsHeight);
   });
 });

@@ -739,7 +739,9 @@ describe('Selection using mouse interaction', () => {
       height: getDefaultRowHeight() * 5,
       startRows: 10,
       startCols: 5,
-      colHeaders: true
+      colHeaders: true,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     spec().$container.find('thead th:eq(0)').simulate('mousedown');
@@ -769,6 +771,8 @@ describe('Selection using mouse interaction', () => {
       startCols: 5,
       colHeaders: true,
       rowHeaders: true,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     spec().$container.find('thead th:eq(3)').simulate('mousedown');
@@ -803,6 +807,8 @@ describe('Selection using mouse interaction', () => {
       startCols: 5,
       colHeaders: true,
       rowHeaders: true,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await selectCell(0, 0);
@@ -837,10 +843,12 @@ describe('Selection using mouse interaction', () => {
       colHeaders: true,
       rowHeaders: true,
       fixedRowsTop: 2,
-      fixedColumnsStart: 2
+      fixedColumnsStart: 2,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
-    spec().$container.find('.ht_clone_top_inline_start_corner thead th:eq(1)').simulate('mousedown');
+    await simulateClick(getCell(-1, 0, true));
 
     expect(getSelected()).toEqual([[-1, 0, 9, 0]]);
     expect(`
@@ -878,20 +886,15 @@ describe('Selection using mouse interaction', () => {
     });
     await simulateClick(spec().$container.find('.ht_master thead th:eq(2)'));
 
-    expect(getSelected()).toEqual([[-1, 1, 9, 1]]);
+    expect(getSelected()).toEqual([[-1, 9, 9, 9]]);
     expect(`
-      |   ║   : * |   :   :   :   :   :   :   :   |
-      |===:===:===:===:===:===:===:===:===:===:===|
-      | - ║   : A |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
-      | - ║   : 0 |   :   :   :   :   :   :   :   |
+      |   ║   : * |
+      |===:===:===|
+      | - ║   : A |
+      | - ║   : 0 |
+      | - ║   : 0 |
+      | - ║   : 0 |
+      | - ║   : 0 |
     `).toBeMatchToSelectionPattern();
   });
 
@@ -902,7 +905,9 @@ describe('Selection using mouse interaction', () => {
       startRows: 20,
       startCols: 20,
       colHeaders: true,
-      rowHeaders: true
+      rowHeaders: true,
+      viewportRowRenderingOffset: 10,
+      viewportColumnRenderingOffset: 10,
     });
 
     await scrollViewportTo({
@@ -913,32 +918,29 @@ describe('Selection using mouse interaction', () => {
     });
     await mouseDown(getCell(12, 11));
 
-    spec().$container.find('.ht_clone_top thead th:eq(6)').simulate('mouseover'); // Header `L`
+    $(getCell(-1, 11, true)).simulate('mouseover'); // Header `L`
 
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     expect(getSelected()).toEqual([[12, 11, 0, 11]]);
     expect(`
-      | - ║   :   :   :   :   : - :   :   :   :   :   |
-      |===:===:===:===:===:===:===:===:===:===:===:===|
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : 0 :   :   :   :   :   |
-      | - ║   :   :   :   :   : A :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   :   : - :   |
+      |===:===:===:===:===:===:===:===:===:===:===:===:===:===|
+      | - ║   :   :   :   :   :   :   :   :   :   :   : 0 :   |
+      | - ║   :   :   :   :   :   :   :   :   :   :   : 0 :   |
+      | - ║   :   :   :   :   :   :   :   :   :   :   : 0 :   |
+      | - ║   :   :   :   :   :   :   :   :   :   :   : 0 :   |
+      | - ║   :   :   :   :   :   :   :   :   :   :   : 0 :   |
+      | - ║   :   :   :   :   :   :   :   :   :   :   : 0 :   |
+      | - ║   :   :   :   :   :   :   :   :   :   :   : 0 :   |
+      | - ║   :   :   :   :   :   :   :   :   :   :   : 0 :   |
+      | - ║   :   :   :   :   :   :   :   :   :   :   : 0 :   |
+      | - ║   :   :   :   :   :   :   :   :   :   :   : 0 :   |
+      | - ║   :   :   :   :   :   :   :   :   :   :   : 0 :   |
+      | - ║   :   :   :   :   :   :   :   :   :   :   : 0 :   |
+      | - ║   :   :   :   :   :   :   :   :   :   :   : A :   |
+      |   ║   :   :   :   :   :   :   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   :   :   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
   });
 
@@ -949,7 +951,7 @@ describe('Selection using mouse interaction', () => {
       startRows: 20,
       startCols: 20,
       colHeaders: true,
-      rowHeaders: true
+      rowHeaders: true,
     });
 
     await scrollViewportTo({
@@ -960,36 +962,29 @@ describe('Selection using mouse interaction', () => {
     });
     await mouseDown(getCell(12, 11));
 
-    spec().$container.find('.ht_clone_inline_start tbody th:eq(12)')
+    $(getCell(12, -1, true))
       .simulate('mouseover')
       .simulate('mouseup');
 
-    await sleep(30);
+    await waitForNextAnimationFrames(2);
 
     expect(getSelected()).toEqual([[12, 11, 12, 0]]);
     expect(`
-      | - ║ - : - : - : - : - : - :   :   :   :   :   |
-      |===:===:===:===:===:===:===:===:===:===:===:===|
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      | - ║ 0 : 0 : 0 : 0 : 0 : A :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
-      |   ║   :   :   :   :   :   :   :   :   :   :   |
+      | - ║ - : - : - :   :   |
+      |===:===:===:===:===:===|
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      | - ║ 0 : 0 : A :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
+      |   ║   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
   });
 

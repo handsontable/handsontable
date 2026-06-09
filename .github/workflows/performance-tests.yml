@@ -1,0 +1,215 @@
+name: Performance tests
+
+on:
+  push:
+    branches:
+      - 'develop'
+    paths:
+      - 'handsontable/src/**'
+      - 'performance-tests/**'
+      - '.github/workflows/performance-tests.yml'
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - 'handsontable/**'
+      - 'performance-tests/**'
+      - '.github/workflows/performance-tests.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: read
+
+jobs:
+  performance-tests:
+    name: Performance tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      PERF_MODE: ${{ github.event_name == 'push' && 'golden' || 'compare' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+        with:
+          version: 10.30.2
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - name: Fetch golden snapshots from GitHub Pages
+        if: env.PERF_MODE == 'compare'
+        run: |
+          git fetch origin gh-pages:gh-pages 2>/dev/null || true
+          mkdir -p performance-tests/golden
+          if git show gh-pages:performance-reports/develop/latest.json > performance-tests/golden/snapshots.json 2>/dev/null; then
+            echo "Golden baseline restored from gh-pages"
+          else
+            echo "No golden baseline found on gh-pages -- running without baseline"
+            rm -f performance-tests/golden/snapshots.json
+          fi
+
+      - name: Compute report URL
+        id: report-url
+        if: github.event_name == 'pull_request'
+        run: |
+          BRANCH_SLUG=$(echo "${{ github.head_ref }}" | sed 's/[^a-zA-Z0-9._-]/-/g')
+          PAGES_URL="https://handsontable.github.io/handsontable/performance-reports/${BRANCH_SLUG}/"
+          echo "branch_slug=${BRANCH_SLUG}" >> "$GITHUB_OUTPUT"
+          echo "pages_url=${PAGES_URL}" >> "$GITHUB_OUTPUT"
+
+      - name: Run performance tests
+        working-directory: performance-tests
+        env:
+          CI: true
+          PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+          PAGES_URL: ${{ steps.report-url.outputs.pages_url || '' }}
+          GITHUB_HEAD_REF: ${{ github.head_ref || '' }}
+        run: node scripts/run.mjs
+
+      - name: Upload performance-tests output
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: performance-tests-output
+          path: performance-tests/output
+          retention-days: 14
+          if-no-files-found: warn
+
+      - name: Deploy golden to GitHub Pages
+        if: always() && env.PERF_MODE == 'golden'
+        run: |
+          if [ ! -f performance-tests/output/snapshots.json ]; then
+            echo "No snapshots.json to deploy"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin gh-pages:gh-pages 2>/dev/null || true
+
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
+          DEPLOY_DIR="performance-reports/develop/${TIMESTAMP}"
+
+          WORK_DIR=$(mktemp -d)
+          git worktree add "$WORK_DIR" gh-pages
+
+          # Deploy timestamped snapshot + report
+          mkdir -p "${WORK_DIR}/${DEPLOY_DIR}"
+          cp performance-tests/output/snapshots.json "${WORK_DIR}/${DEPLOY_DIR}/snapshots.json"
+          if [ -f performance-tests/output/report.html ]; then
+            cp performance-tests/output/report.html "${WORK_DIR}/${DEPLOY_DIR}/index.html"
+          fi
+
+          # Update latest.json pointer
+          cp performance-tests/output/snapshots.json "${WORK_DIR}/performance-reports/develop/latest.json"
+
+          # Build history index
+          node performance-tests/lib/build-history-index.mjs "${WORK_DIR}/performance-reports/develop"
+
+          cd "$WORK_DIR"
+          git add performance-reports/develop/
+          if git diff --cached --quiet; then
+            echo "No changes to deploy"
+          else
+            git commit -m "perf: golden baseline ${TIMESTAMP}"
+            pushed=false
+            for attempt in 1 2 3; do
+              if git push origin gh-pages; then
+                echo "Deployed golden to ${DEPLOY_DIR}/"
+                pushed=true
+                break
+              fi
+              echo "Push attempt $attempt failed, pulling and retrying..."
+              git pull --rebase origin gh-pages
+            done
+            if [ "$pushed" = false ]; then
+              echo "ERROR: all push attempts failed"
+              exit 1
+            fi
+          fi
+
+          cd -
+          git worktree remove "$WORK_DIR" --force
+
+      - name: Deploy PR report to GitHub Pages
+        if: always() && github.event_name == 'pull_request'
+        env:
+          BRANCH_SLUG: ${{ steps.report-url.outputs.branch_slug }}
+        run: |
+          if [ ! -f performance-tests/output/report.html ]; then
+            echo "No report.html to deploy"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git fetch origin gh-pages:gh-pages 2>/dev/null || true
+
+          DEPLOY_DIR="performance-reports/${BRANCH_SLUG}"
+
+          WORK_DIR=$(mktemp -d)
+          git worktree add "$WORK_DIR" gh-pages
+
+          mkdir -p "${WORK_DIR}/${DEPLOY_DIR}"
+          cp performance-tests/output/report.html "${WORK_DIR}/${DEPLOY_DIR}/index.html"
+
+          cd "$WORK_DIR"
+          git add "${DEPLOY_DIR}/index.html"
+
+          if git diff --cached --quiet; then
+            echo "No changes to deploy"
+          else
+            git commit -m "perf: update report for ${BRANCH_SLUG}"
+            pushed=false
+            for attempt in 1 2 3; do
+              if git push origin gh-pages; then
+                echo "Deployed to ${DEPLOY_DIR}/"
+                pushed=true
+                break
+              fi
+              echo "Push attempt $attempt failed, pulling and retrying..."
+              git pull --rebase origin gh-pages
+            done
+            if [ "$pushed" = false ]; then
+              echo "ERROR: all push attempts failed"
+              exit 1
+            fi
+          fi
+
+          cd -
+          git worktree remove "$WORK_DIR" --force
+
+      - name: Ensure PR comment body exists
+        if: always() && github.event_name == 'pull_request'
+        run: |
+          mkdir -p performance-tests/output
+          if [ ! -f performance-tests/output/result.md ]; then
+            {
+              echo '## Performance tests'
+              echo
+              echo 'No result.md was generated. Check the workflow log and downloaded artifacts.'
+            } > performance-tests/output/result.md
+          fi
+
+      - name: Post performance summary to pull request
+        if: always() && github.event_name == 'pull_request'
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
+        with:
+          header: performance-tests
+          path: performance-tests/output/result.md

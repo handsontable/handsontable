@@ -1,10 +1,11 @@
 ---
+type: how-to
 id: 0slrmsni
 title: "Date picker"
 metaTitle: "Date picker - JavaScript Data Grid | Handsontable"
 description: Learn how to create a custom Handsontable cell type using Flatpickr for a powerful, customizable date picker experience directly inside your data grid.
-permalink: /recipes/datepicker-angular
-canonicalUrl: /recipes/datepicker-angular
+permalink: /recipes/cell-types/datepicker
+canonicalUrl: /recipes/cell-types/datepicker
 tags:
   - guides
   - tutorial
@@ -15,13 +16,25 @@ react:
 angular:
   id: o1ijr8z3
   metaTitle: Date picker - Angular Data Grid | Handsontable
+vue:
+  id: mgyg0ys8
+  metaTitle: "Date picker - Vue Data Grid | Handsontable"
 searchCategory: Recipes
 category: Cells
 ---
 
-# Native Date Picker Cell - Step-by-Step Guide
+This tutorial shows you how to build a date picker cell in Angular using custom editor and renderer components with the native HTML5 date input and the `date-fns` library.
 
-[[toc]]
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+
+@[code](@/content/recipes/cell-types/guide-datepicker-angular/angular/example1.ts)
+@[code](@/content/recipes/cell-types/guide-datepicker-angular/angular/example1.html)
+
+:::
+
+:::
 
 ## Overview
 
@@ -49,19 +62,6 @@ npm install date-fns
 ```
 
 Ensure you have `@handsontable/angular-wrapper` installed in your Angular project.
-
-## Complete Example
-
-::: only-for angular
-
-::: example #example1 :angular --ts 1 --html 2
-
-@[code](@/content/recipes/cell-types/guide-datepicker-angular/angular/example1.ts)
-@[code](@/content/recipes/cell-types/guide-datepicker-angular/angular/example1.html)
-
-:::
-
-:::
 
 ## Step 1: Import Dependencies
 
@@ -95,7 +95,7 @@ const DATE_FORMAT_EU = "dd/MM/yyyy";
 
 - Reusability across renderer and column configuration
 - Single source of truth
-- Easy to add more formats (ISO, custom, etc.)
+- Add more formats (ISO, custom, etc.) by extending this list
 
 ## Step 3: Create the Renderer Component
 
@@ -106,7 +106,8 @@ The renderer displays the date in a human-readable format using an Angular compo
   selector: "date-renderer",
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: ` <div>{{ formattedDate }}</div>`,
-  standalone: false,
+  standalone: true,
+  imports: [],
 })
 export class DateRendererComponent extends HotCellRendererAdvancedComponent<string, { renderFormat: string }> {
   get formattedDate(): string {
@@ -165,7 +166,8 @@ The editor component handles user input with a native HTML5 date picker.
       style="width: 100%; height: 100%; padding: 8px; border: 2px solid #4CAF50; border-radius: 4px; font-size: 14px; box-sizing: border-box;"
     />
   `,
-  standalone: false,
+  standalone: true,
+  imports: [FormsModule],
 })
 export class DateEditorComponent extends HotCellEditorAdvancedComponent<string> {
   dateValue: string = "";
@@ -317,13 +319,14 @@ const DATE_FORMAT_US = "MM/dd/yyyy";
 const DATE_FORMAT_EU = "dd/MM/yyyy";
 
 @Component({
-  selector: "app-date-picker-example",
-  standalone: false,
+  selector: "app-root",
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
-export class DatePickerExampleComponent {
+export class AppComponent {
   readonly data = [
     { id: 640329, itemName: "Lunar Core", restockDate: "2025-08-01" },
     { id: 863104, itemName: "Zero Thrusters", restockDate: "2025-09-15" },
@@ -378,32 +381,28 @@ export class DatePickerExampleComponent {
 - **Same data source**: Both columns display `restockDate`
 - **Different presentation**: EU (dd/MM/yyyy) vs US (MM/dd/yyyy)
 
-**Amazing feature:**
+**Key feature:**
 
 - One data column (`restockDate`)
 - Two visual representations
 - Same editor and renderer components
 - Configuration-driven behavior
 
-## Step 9: Module Configuration
+## Step 9: Configure app.config.ts
 
-Register components in your Angular module:
+Configure Handsontable globally in `app.config.ts`. With standalone components, no `@NgModule` is needed.
 
 ```typescript
-import { NgModule, ApplicationConfig } from "@angular/core";
-import { BrowserModule } from "@angular/platform-browser";
+import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
 import { registerAllModules } from "handsontable/registry";
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from "@handsontable/angular-wrapper";
-import { CommonModule } from "@angular/common";
-import { NON_COMMERCIAL_LICENSE } from "@handsontable/angular-wrapper";
-import { FormsModule } from "@angular/forms";
-import { DatePickerExampleComponent, DateEditorComponent, DateRendererComponent } from "./app.component";
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from "@handsontable/angular-wrapper";
 
 // Register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
@@ -412,21 +411,13 @@ export const appConfig: ApplicationConfig = {
     },
   ],
 };
-
-@NgModule({
-  imports: [BrowserModule, HotTableModule, CommonModule, FormsModule],
-  declarations: [DatePickerExampleComponent, DateEditorComponent, DateRendererComponent],
-  providers: [...appConfig.providers],
-  bootstrap: [DatePickerExampleComponent],
-})
-export class AppModule {}
 ```
 
 **Important notes:**
 
-- **FormsModule**: Required for `[(ngModel)]` in editor template
-- **Component declarations**: Both DateEditorComponent and DateRendererComponent must be declared in the NgModule declarations array
-- **registerAllModules()**: Registers all Handsontable features
+- **FormsModule**: Add to the `imports` array of `DateEditorComponent` (the component that uses `[(ngModel)]`) -- not in any module
+- **Standalone imports**: Each component declares its own `imports` -- `DateEditorComponent` imports `[FormsModule]`, `AppComponent` imports `[HotTableModule]`
+- **registerAllModules()**: Registers all Handsontable features, called once in `app.config.ts`
 - **HOT_GLOBAL_CONFIG**: Global configuration for all tables in the app
 
 ## Advanced Enhancements
@@ -507,7 +498,8 @@ Use component styles:
       box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
     }
   `],
-  standalone: false,
+  standalone: true,
+  imports: [FormsModule],
 })
 ```
 
@@ -554,9 +546,9 @@ import { FormControl, ReactiveFormsModule } from "@angular/forms";
 
 @Component({
   template: `<input type="date" [formControl]="dateControl" #editorInput />`,
-  standalone: false,
+  standalone: true,
+  imports: [ReactiveFormsModule],
 })
-// Note: Import ReactiveFormsModule in your NgModule
 export class DateEditorComponent extends HotCellEditorAdvancedComponent<string> {
   dateControl = new FormControl("");
 
@@ -590,12 +582,21 @@ import { DatePipe } from "@angular/common";
 @Component({
   selector: "date-renderer",
   template: `<div>{{ value | date : getProps().renderFormat }}</div>`,
-  standalone: false,
+  standalone: true,
+  imports: [DatePipe],
 })
 export class DateRendererComponent extends HotCellRendererAdvancedComponent<string, { renderFormat: string }> {}
-// Note: DatePipe is available through CommonModule imported in your NgModule
 ```
 
 ---
 
-**Congratulations!** You've created a production-ready date picker with full localization support and advanced configuration.
+
+## What you learned
+
+You built a date picker cell in Angular using `HotCellEditorAdvancedComponent` and `HotCellRendererAdvancedComponent`. You used `date-fns` to parse and format dates, the native HTML5 `<input type="date">` for the editor, and `rendererProps` to drive per-column display formats.
+
+## Next steps
+
+- [Flatpickr](@/javascript/recipes/cell-types/flatpickr/flatpickr.md) - A JavaScript date picker using the Flatpickr library with dark theme support.
+- [Pikaday](@/javascript/recipes/cell-types/pikaday/pikaday.md) - An alternative date picker using Pikaday and Moment.js.
+- [Feedback Editor (Angular)](@/angular/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - Another Angular cell editor using `HotCellEditorAdvancedComponent`.

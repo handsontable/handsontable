@@ -1,0 +1,248 @@
+/* Search button: fill wrapper, no border */
+@media (min-width: 50rem) {
+  button[data-open-modal] {
+    max-width: 100%;
+    background-color: var(--sl-color-gray-6) !important;
+  }
+}
+
+/* Constrain logo height in the header */
+.site-title img {
+  max-height: 24px;
+  width: auto;
+}
+
+/* Skip-to-content link: must sit above the header (z-index: 10100) */
+:root {
+  --sl-z-index-skiplink: 10200;
+}
+
+/* Hide Starlight's built-in hamburger and mobile ToC — replaced by custom ones in Header.astro */
+@media (max-width: 49.99rem) {
+  starlight-menu-button {
+    display: none !important;
+  }
+}
+
+/* Hide "On this page" button below 72rem — subheader handles it */
+@media (max-width: 71.99rem) {
+  mobile-starlight-toc {
+    display: none !important;
+  }
+}
+
+/* Override Starlight's `height: auto` on iframes so the HTML attribute works */
+.sl-markdown-content iframe:not(:where(.not-content *)) {
+  height: revert;
+  margin-top: 20px;
+}
+
+/* Responsive 16:9 embed (YouTube and similar) */
+.sl-markdown-content .docs-video-embed {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin-top: 20px;
+}
+
+.sl-markdown-content .docs-video-embed iframe {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  width: 100%;
+  height: 100%;
+  margin-top: 0;
+}
+
+/* -------------------------------------------------------------------------
+ * Constrain entire page layout to ~1500px on wide viewports
+ * ------------------------------------------------------------------------- */
+.page {
+  max-width: 1500px;
+  margin-inline: auto;
+}
+
+/* Header bar spans full viewport; inner content matches page max-width */
+header.header {
+  height: auto !important;
+  padding-block: 1rem 0.5rem;
+  padding-right: 8px;
+  z-index: 10100;
+}
+
+/* DocSearch modal must appear above the sticky header (z-index: 10100) */
+.DocSearch-Container {
+  z-index: 10200 !important;
+}
+
+/* Search bar: starlight-docsearch adds a ::before icon on .DocSearch-Button-Keys and
+   @docsearch/js injects a "/" .DocSearch-Button-Key — together they read as a broken
+   shortcut hint (DEV-1681). */
+@media (min-width: 50rem) {
+  sl-doc-search .DocSearch-Button-Keys::before {
+    display: none;
+  }
+
+  sl-doc-search .DocSearch-Button-Key {
+    display: none;
+  }
+}
+
+/* Modal footer: global kbd styles add margin and box-shadow that throw off centering. */
+.DocSearch-Button-Key,
+.DocSearch-Commands-Key {
+  align-items: center;
+  justify-content: center;
+  top: 0;
+  line-height: 1;
+  padding-bottom: 0;
+}
+
+header.header > .header {
+  max-width: 1500px;
+  margin-inline: auto;
+}
+
+starlight-theme-select button,
+starlight-theme-select label {
+  color: var(--sl-color-gray-1);
+}
+
+starlight-theme-select button:hover,
+starlight-theme-select label:hover {
+  color: var(--sl-color-white);
+}
+
+starlight-theme-select :is(:hover, :focus-visible) :is(.moon, .sun) {
+  fill: var(--sl-color-white) !important;
+}
+
+/* Align fixed sidebar with the constrained page */
+@media (min-width: 50rem) {
+  .sidebar-pane {
+    inset-inline-start: max(0px, calc(50vw - 750px)) !important;
+  }
+}
+
+/* Align sidebar and TOC tops */
+.sidebar-pane {
+  padding-top: 0 !important;
+}
+
+.sidebar-pane ul {
+  padding: 0.5rem 0;
+}
+
+starlight-toc > nav > ul {
+  padding: 0.5rem 0;
+}
+
+/* Hide the "Overview" entry (h1#_top) from the ToC */
+starlight-toc a[href='#_top'] {
+  display: none;
+}
+
+starlight-toc nav {
+  padding-top: 0 !important;
+}
+
+starlight-toc ul {
+  padding: 0;
+}
+
+/* Push TOC down so "On this page" aligns with content below the breadcrumb/button row */
+starlight-toc {
+  display: block !important;
+  padding-top: 1rem !important;
+  font-size: var(--sl-text-sm);
+  line-height: 20px;
+}
+
+#starlight__on-this-page {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+#starlight__on-this-page::before {
+  content: '';
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+  background: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l11 0'/%3E%3Cpath d='M9 12l11 0'/%3E%3Cpath d='M9 18l11 0'/%3E%3Cpath d='M5 6l0 .01'/%3E%3Cpath d='M5 12l0 .01'/%3E%3Cpath d='M5 18l0 .01'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l11 0'/%3E%3Cpath d='M9 12l11 0'/%3E%3Cpath d='M9 18l11 0'/%3E%3Cpath d='M5 6l0 .01'/%3E%3Cpath d='M5 12l0 .01'/%3E%3Cpath d='M5 18l0 .01'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+/* Right sidebar — match header height */
+.right-sidebar {
+  padding-top: var(--sl-nav-height) !important;
+}
+
+@media (max-width: 71.99rem) {
+  .right-sidebar {
+    display: none !important;
+  }
+}
+
+.right-sidebar-panel {
+  padding-left: 4rem;
+}
+
+/* Main frame — extra breathing room below fixed header */
+.main-frame {
+  padding-top: 8.75rem !important;
+}
+
+.sl-container > * + * {
+  margin-top: 3rem;
+}
+
+.sl-steps {
+  margin-top: 2rem;
+}
+
+.sl-steps > li {
+  padding-bottom: 2rem;
+}
+
+.sl-markdown-content ul:not(:where(.not-content *)) {
+  list-style: disc;
+}
+
+/* Push main content down so breadcrumbs align with the "On this page" heading */
+.content-panel:first-child {
+  padding-top: 0.8rem;
+}
+
+.content-panel {
+  padding: 0 !important;
+}
+
+/* Horizontal padding on mobile/tablet so content doesn't run edge-to-edge */
+@media (max-width: 71.99rem) {
+  .content-panel {
+    padding-inline: 1rem !important;
+  }
+}
+
+/* Page title — extra top margin */
+main h1 {
+  margin-top: 2rem !important;
+  font-weight: 500;
+}
+
+main {
+  padding-bottom: 4rem !important;
+}
+
+/* Paragraph right after h2/h3 — no extra gap */
+h2 + p,
+h3 + p {
+  margin-top: 0.5rem;
+}

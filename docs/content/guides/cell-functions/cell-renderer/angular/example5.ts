@@ -1,15 +1,16 @@
 /* file: app.component.ts */
-import {AfterViewInit, Component} from '@angular/core';
-import {GridSettings} from '@handsontable/angular-wrapper';
+import { AfterViewInit, Component } from '@angular/core';
+import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import Handsontable from 'handsontable/base';
 
 function safeHtmlRenderer(
-  _instance,
-  td,
-  _row,
-  _col,
-  _prop,
-  value,
-  _cellProperties
+  _instance: Handsontable,
+  td: HTMLTableCellElement,
+  _row: number,
+  _col: number,
+  _prop: string | number,
+  value: string,
+  _cellProperties: Handsontable.CellProperties
 ) {
   // WARNING: Be sure you only allow certain HTML tags to avoid XSS threats.
   // Sanitize the "value" before passing it to the innerHTML property.
@@ -18,13 +19,13 @@ function safeHtmlRenderer(
 }
 
 function coverRenderer(
-  _instance,
-  td,
-  _row,
-  _col,
-  _prop,
-  value,
-  _cellProperties
+  _instance: Handsontable,
+  td: HTMLTableCellElement,
+  _row: number,
+  _col: number,
+  _prop: string | number,
+  value: string,
+  _cellProperties: Handsontable.CellProperties
 ) {
   const img = document.createElement('img');
 
@@ -41,11 +42,12 @@ function coverRenderer(
 @Component({
   selector: 'app-example5',
   template: `
-    <hot-table *ngIf="hotSettings"
-               [settings]="hotSettings!" [data]="hotData">
-    </hot-table>
+    @if (hotSettings) {
+      <hot-table [settings]="hotSettings!" [data]="hotData"></hot-table>
+    }
   `,
-  standalone: false
+  standalone: true,
+  imports: [HotTableModule],
 })
 export class AppComponent implements AfterViewInit {
 
@@ -57,7 +59,7 @@ export class AppComponent implements AfterViewInit {
         'This <a href="https://bit.ly/sM1bDf">book</a> provides a developer-level introduction along with more advanced and useful features of <b>JavaScript</b>.',
       comments: 'I would rate it ★★★★☆',
       cover:
-        '{{$basePath}}/img/examples/professional-javascript-developers-nicholas-zakas.jpg',
+        '/docs/img/examples/professional-javascript-developers-nicholas-zakas.jpg',
     },
     {
       title:
@@ -65,7 +67,7 @@ export class AppComponent implements AfterViewInit {
       description:
         'This book provides a developer-level introduction along with <b>more advanced</b> and useful features of JavaScript.',
       comments: 'This is the book about JavaScript',
-      cover: '{{$basePath}}/img/examples/javascript-the-good-parts.jpg',
+      cover: '/docs/img/examples/javascript-the-good-parts.jpg',
     },
     {
       title:
@@ -74,7 +76,7 @@ export class AppComponent implements AfterViewInit {
         '<em>JavaScript: The Definitive Guide</em> provides a thorough description of the core <b>JavaScript</b> language and both the legacy and standard DOMs implemented in web browsers.',
       comments:
         'I\'ve never actually read it, but the <a href="https://shop.oreilly.com/product/9780596805531.do">comments</a> are highly <strong>positive</strong>.',
-      cover: '{{$basePath}}/img/examples/javascript-the-definitive-guide.jpg',
+      cover: '/docs/img/examples/javascript-the-definitive-guide.jpg',
     }
   ];
 
@@ -99,38 +101,22 @@ export class AppComponent implements AfterViewInit {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
-/* start:skip-in-compilation */
-import { AppComponent } from './app.component';
-/* end:skip-in-compilation */
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ AppComponent  ],
-  providers: [...appConfig.providers],
-  bootstrap: [ AppComponent ]
-})
-
-export class AppModule { }
 /* end-file */

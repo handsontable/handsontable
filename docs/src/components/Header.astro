@@ -1,0 +1,777 @@
+---
+/**
+ * Starlight Header component override.
+ *
+ * Extends the default header with framework-aware navigation links (Guides,
+ * Recipes, API, Changelog), a Support dropdown, a versions dropdown, a
+ * Headway changelog widget, and a GitHub stars badge.
+ *
+ * Mobile: two-row header (main bar + sub-bar) with separate overlay for
+ * main nav, sidebar toggle (delegates to Starlight), and ToC panel.
+ */
+import LanguageSelect from 'virtual:starlight/components/LanguageSelect';
+import Search from 'virtual:starlight/components/Search';
+import SiteTitle from 'virtual:starlight/components/SiteTitle';
+import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
+import VersionsDropdown from './VersionsDropdown.astro';
+import SupportDropdown from './SupportDropdown.astro';
+import FrameworkSwitcher from './FrameworkSwitcher.astro';
+
+const isProduction = import.meta.env.PUBLIC_BUILD_MODE === 'production';
+
+// Hide search in non-production builds (dev / staging) -- results would be
+// stale or empty. The search provider (Algolia or Starlight default) is
+// configured independently of this flag.
+const shouldRenderSearch = isProduction;
+
+const pathname = Astro.url.pathname;
+
+const currentPrefix = pathname.includes('/react-data-grid/')
+  ? 'react-data-grid'
+  : pathname.includes('/angular-data-grid/')
+    ? 'angular-data-grid'
+    : pathname.includes('/vue-data-grid/')
+      ? 'vue-data-grid'
+      : 'javascript-data-grid';
+
+const guidesUrl = `/docs/${currentPrefix}/`;
+const recipesUrl = `/docs/${currentPrefix}/recipes/`;
+const apiUrl = `/docs/${currentPrefix}/api/`;
+const changelogUrl = `/docs/${currentPrefix}/changelog-17/`;
+const isApiPage = pathname.includes('/api/');
+const isRecipesPage = pathname.includes('/recipes/');
+const isChangelogPage =
+  /\/changelog(-|\/)/.test(pathname) ||
+  pathname.includes('/migration-from-') ||
+  pathname.includes('/versioning-policy/') ||
+  pathname.includes('/deprecation-policy/') ||
+  pathname.includes('/long-term-support/');
+const isGuidesPage = !isApiPage && !isRecipesPage && !isChangelogPage;
+
+const frameworks = [
+  { id: 'javascript-data-grid', label: 'JavaScript' },
+  { id: 'react-data-grid', label: 'React' },
+  { id: 'angular-data-grid', label: 'Angular' },
+  { id: 'vue-data-grid', label: 'Vue' },
+];
+---
+
+<div class="header">
+  <!-- Row 1: Logo, framework, search, version, GitHub, theme -->
+  <div class="header-row-1">
+    <div class="title-wrapper sl-flex">
+      <SiteTitle />
+    </div>
+    <div class="sl-hidden md:sl-flex print:hidden search-wrapper">
+      {shouldRenderSearch && <Search />}
+    </div>
+    <div class="sl-hidden md:sl-flex print:hidden right-group">
+      <!-- Docs assistant toggle -->
+      <button
+        type="button"
+        class="header-assistant-btn"
+        id="header-assistant-btn"
+        aria-label="Open docs assistant"
+        title="Docs assistant"
+      >
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12" /><path d="M9.5 9h.01" /><path d="M14.5 9h.01" /><path d="M9.5 13a3.5 3.5 0 0 0 5 0" /></svg>
+        <span>Ask AI</span>
+      </button>
+      <!-- GitHub stars badge -->
+      <a
+        href="https://github.com/handsontable/handsontable"
+        class="github-stars"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Handsontable on GitHub (opens in new window)"
+        id="github-stars-link"
+      >
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+        <span class="github-stars__count" id="github-stars-count" aria-live="polite"></span>
+      </a>
+      <ThemeSelect />
+      <LanguageSelect />
+    </div>
+    <!-- Mobile-only controls: search, theme, hamburger (main nav overlay) -->
+    <div class="sl-flex md:sl-hidden print:hidden mobile-controls">
+      {shouldRenderSearch && (
+        <div class="mobile-search-wrapper">
+          <button
+            type="button"
+            class="mobile-search-btn sl-flex"
+            aria-label="Search"
+          >
+            <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="18" height="18"
+                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.3-4.3"/>
+            </svg>
+          </button>
+        </div>
+      )}
+      <div class="mobile-theme-toggle">
+        <ThemeSelect />
+      </div>
+      <button
+        type="button"
+        class="header-assistant-btn mobile-assistant-btn"
+        id="mobile-assistant-btn"
+        aria-label="Open docs assistant"
+        title="Docs assistant"
+      >
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12" /><path d="M9.5 9h.01" /><path d="M14.5 9h.01" /><path d="M9.5 13a3.5 3.5 0 0 0 5 0" /></svg>
+      </button>
+      <button class="mobile-menu-btn" aria-label="Open navigation menu" aria-expanded="false" aria-controls="mobile-nav-overlay">
+        <svg class="mobile-menu-icon-open" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg>
+        <svg class="mobile-menu-icon-close" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+      </button>
+    </div>
+  </div>
+  <!-- Row 2: Navigation links (desktop only) -->
+  <nav class="sl-hidden md:sl-flex print:hidden header-row-2" aria-label="Main navigation">
+    <a
+      href={guidesUrl}
+      class:list={['nav-link', { 'nav-link--active': isGuidesPage }]}
+      aria-current={isGuidesPage ? 'page' : undefined}
+    >
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0"/><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0"/><path d="M3 6l0 13"/><path d="M12 6l0 13"/><path d="M21 6l0 13"/></svg>
+      Guides
+    </a>
+    <a
+      href={apiUrl}
+      class:list={['nav-link', { 'nav-link--active': isApiPage }]}
+      aria-current={isApiPage ? 'page' : undefined}
+    >
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8l-4 4l4 4"/><path d="M17 8l4 4l-4 4"/><path d="M14 4l-4 16"/></svg>
+      API
+    </a>
+    <a
+      href={recipesUrl}
+      class:list={['nav-link', { 'nav-link--active': isRecipesPage }]}
+      aria-current={isRecipesPage ? 'page' : undefined}
+    >
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 3h5"/><path d="M12 3v2"/><path d="M8 7h8a2 2 0 0 1 2 2v1a4 4 0 0 1-1.5 3.12"/><path d="M16 16a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-3h8z"/><path d="M12 21v-3"/></svg>
+      Recipes
+    </a>
+    <a
+      href={changelogUrl}
+      class:list={['nav-link', { 'nav-link--active': isChangelogPage }]}
+      aria-current={isChangelogPage ? 'page' : undefined}
+    >
+      <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+      Updates
+    </a>
+    <SupportDropdown />
+    <div class="nav-spacer"></div>
+    <FrameworkSwitcher />
+    <VersionsDropdown />
+  </nav>
+</div>
+
+<!-- Mobile sub-bar (row 2): sidebar toggle | breadcrumbs | ToC toggle -->
+<div class="sl-flex md:sl-hidden print:hidden mobile-subheader">
+  <button class="mobile-sidebar-toggle" aria-label="Toggle sidebar" aria-expanded="false" aria-controls="starlight__sidebar">
+    <svg class="sidebar-icon-hamburger" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M4 12h8"/><path d="M4 18h16"/></svg>
+    <svg class="sidebar-icon-collapse" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M9 4v16"/><path d="M15 10l-2 2l2 2"/></svg>
+    <svg class="sidebar-icon-expand" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M9 4v16"/><path d="M14 10l2 2l-2 2"/></svg>
+  </button>
+  <nav class="mobile-breadcrumbs" aria-label="Breadcrumbs"></nav>
+  <button class="mobile-toc-toggle" aria-label="On this page" aria-expanded="false" aria-controls="mobile-toc-panel">
+    <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l11 0"/><path d="M9 12l11 0"/><path d="M9 18l11 0"/><path d="M5 6l0 .01"/><path d="M5 12l0 .01"/><path d="M5 18l0 .01"/></svg>
+  </button>
+</div>
+
+<!-- Mobile main nav overlay (hidden by default) -->
+<div class="mobile-nav-overlay" id="mobile-nav-overlay" role="dialog" aria-modal="true" aria-label="Navigation menu" hidden>
+  <nav aria-label="Main navigation">
+    <div class="mobile-nav-links">
+      <a
+        href={guidesUrl}
+        class:list={['mobile-nav-link', { 'mobile-nav-link--active': isGuidesPage }]}
+        aria-current={isGuidesPage ? 'page' : undefined}
+      >
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19a9 9 0 0 1 9 0a9 9 0 0 1 9 0"/><path d="M3 6a9 9 0 0 1 9 0a9 9 0 0 1 9 0"/><path d="M3 6l0 13"/><path d="M12 6l0 13"/><path d="M21 6l0 13"/></svg>
+        Guides
+      </a>
+      <a
+        href={apiUrl}
+        class:list={['mobile-nav-link', { 'mobile-nav-link--active': isApiPage }]}
+        aria-current={isApiPage ? 'page' : undefined}
+      >
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8l-4 4l4 4"/><path d="M17 8l4 4l-4 4"/><path d="M14 4l-4 16"/></svg>
+        API
+      </a>
+      <a
+        href={recipesUrl}
+        class:list={['mobile-nav-link', { 'mobile-nav-link--active': isRecipesPage }]}
+        aria-current={isRecipesPage ? 'page' : undefined}
+      >
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 3h5"/><path d="M12 3v2"/><path d="M8 7h8a2 2 0 0 1 2 2v1a4 4 0 0 1-1.5 3.12"/><path d="M16 16a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-3h8z"/><path d="M12 21v-3"/></svg>
+        Recipes
+      </a>
+      <a
+        href={changelogUrl}
+        class:list={['mobile-nav-link', { 'mobile-nav-link--active': isChangelogPage }]}
+        aria-current={isChangelogPage ? 'page' : undefined}
+      >
+        <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+        Updates
+      </a>
+    </div>
+    <div class="mobile-nav-frameworks-section">
+      <span class="mobile-nav-frameworks-label">Select framework:</span>
+      <div class="mobile-nav-frameworks">
+        {frameworks.map(fw => (
+          <a
+            href={pathname.replace(currentPrefix, fw.id)}
+            class:list={['mobile-nav-fw', { 'mobile-nav-fw--active': fw.id === currentPrefix }]}
+            aria-current={fw.id === currentPrefix ? 'page' : undefined}
+          >
+            {fw.label}
+          </a>
+        ))}
+      </div>
+    </div>
+  </nav>
+</div>
+
+<!-- Mobile ToC panel (hidden by default) -->
+<div class="mobile-toc-panel" id="mobile-toc-panel" role="region" aria-label="Table of contents" hidden>
+  <nav aria-label="On this page">
+    <!-- Populated by JS from starlight-toc -->
+  </nav>
+</div>
+
+<!-- GitHub stars: fetch count client-side and inject into badge -->
+<script>
+  (async () => {
+    try {
+      const res = await fetch('https://api.github.com/repos/handsontable/handsontable');
+      if (!res.ok) return;
+      const data = await res.json();
+      const count = data?.stargazers_count ?? 0;
+      const formatted =
+        Math.abs(count) > 999
+          ? `${(Math.sign(count) * (Math.abs(count) / 1000)).toFixed(1)}k`
+          : String(count);
+      const el = document.getElementById('github-stars-count');
+      if (el) el.textContent = formatted;
+    } catch {
+      // Network unavailable — badge stays empty
+    }
+  })();
+</script>
+
+<!-- Mobile navigation: overlay, sidebar delegation, ToC panel, breadcrumbs -->
+<script>
+  import { createFocusTrap } from '../scripts/a11y-utils';
+
+  let cleanupPrevious: (() => void) | null = null;
+
+  function initMobileNav() {
+    // Clean up previous invocation (view transitions)
+    cleanupPrevious?.();
+    const controller = new AbortController();
+    const { signal } = controller;
+    // --- Move fixed-position panels to <body> so they escape the header's
+    //     containing block (backdrop-filter breaks position:fixed children) ---
+    const subheader = document.querySelector('.mobile-subheader');
+    const overlay = document.querySelector('.mobile-nav-overlay') as HTMLElement | null;
+    const tocPanel = document.querySelector('.mobile-toc-panel') as HTMLElement | null;
+    if (subheader && subheader.parentElement !== document.body) {
+      document.body.appendChild(subheader);
+    }
+    if (overlay && overlay.parentElement !== document.body) {
+      document.body.appendChild(overlay);
+    }
+    if (tocPanel && tocPanel.parentElement !== document.body) {
+      document.body.appendChild(tocPanel);
+    }
+
+    // --- Elements ---
+    const menuBtn = document.querySelector('.mobile-menu-btn') as HTMLButtonElement | null;
+    const sidebarToggle = document.querySelector('.mobile-sidebar-toggle') as HTMLButtonElement | null;
+    const tocToggle = document.querySelector('.mobile-toc-toggle') as HTMLButtonElement | null;
+    const breadcrumbs = document.querySelector('.mobile-breadcrumbs') as HTMLElement | null;
+    const starlightBtn = document.querySelector('starlight-menu-button button') as HTMLButtonElement | null;
+    const iconOpen = menuBtn?.querySelector('.mobile-menu-icon-open') as HTMLElement | null;
+    const iconClose = menuBtn?.querySelector('.mobile-menu-icon-close') as HTMLElement | null;
+    const sidebarPane = document.querySelector('.sidebar-pane') as HTMLElement | null;
+    const mainFrame = document.querySelector('.main-frame') as HTMLElement | null;
+    const mobileSearchBtn = document.querySelector('.mobile-search-btn') as HTMLButtonElement | null;
+
+    // --- Mobile search: delegate click to the desktop sl-doc-search button ---
+    mobileSearchBtn?.addEventListener('click', () => {
+      document.querySelector<HTMLButtonElement>('sl-doc-search .DocSearch-Button')?.click();
+    }, { signal });
+
+    // --- Docs assistant: ensure React is mounted, then toggle (iOS needs touchend too) ---
+    const bindAssistantBtn = (btn: HTMLButtonElement | null) => {
+      if (!btn) return;
+      let lastTap = 0;
+      const onAssistantTap = (e: Event) => {
+        e.preventDefault();
+        const now = Date.now();
+        if (now - lastTap < 400) return;
+        lastTap = now;
+        const ensure = window.docsAssistantEnsureMounted?.() ?? Promise.resolve();
+        void ensure.then(() => {
+          window.dispatchEvent(new CustomEvent('docs-assistant:toggle'));
+        });
+      };
+      btn.addEventListener('click', onAssistantTap, { signal });
+      btn.addEventListener('touchend', onAssistantTap, { signal });
+    };
+    bindAssistantBtn(document.getElementById('header-assistant-btn') as HTMLButtonElement | null);
+    bindAssistantBtn(document.getElementById('mobile-assistant-btn') as HTMLButtonElement | null);
+
+    let overlayOpen = false;
+    let tocOpen = false;
+    let overlayTrapCleanup: (() => void) | null = null;
+    let tocTrapCleanup: (() => void) | null = null;
+
+    // --- Helpers ---
+    function isSidebarOpen() {
+      return document.body.hasAttribute('data-mobile-menu-expanded');
+    }
+
+    function closeSidebar() {
+      if (isSidebarOpen() && starlightBtn) {
+        starlightBtn.click();
+      }
+    }
+
+    function setInertBehind(open: boolean, keepSubheader = false) {
+      if (mainFrame) mainFrame.inert = open;
+      if (!keepSubheader && subheader) {
+        (subheader as HTMLElement).inert = open;
+      }
+    }
+
+    function setOverlay(open: boolean) {
+      overlayOpen = open;
+      if (overlay) overlay.hidden = !open;
+      if (menuBtn) {
+        menuBtn.setAttribute('aria-expanded', String(open));
+        menuBtn.setAttribute('aria-label', open ? 'Close navigation menu' : 'Open navigation menu');
+      }
+      if (iconOpen) iconOpen.style.display = open ? 'none' : 'block';
+      if (iconClose) iconClose.style.display = open ? 'block' : 'none';
+      document.body.style.overflow = open ? 'hidden' : '';
+
+      // Make background content inert (subheader too, since overlay covers it)
+      setInertBehind(open);
+
+      // Focus trap + focus first link
+      if (open && overlay) {
+        overlayTrapCleanup = createFocusTrap(overlay);
+        const firstLink = overlay.querySelector('a, button') as HTMLElement | null;
+        firstLink?.focus();
+      } else {
+        overlayTrapCleanup?.();
+        overlayTrapCleanup = null;
+        menuBtn?.focus();
+      }
+    }
+
+    function setToc(open: boolean) {
+      tocOpen = open;
+      if (tocPanel) tocPanel.hidden = !open;
+      if (tocToggle) tocToggle.setAttribute('aria-expanded', String(open));
+
+      // Make background content inert (keep subheader interactive for close button)
+      setInertBehind(open, true);
+
+      if (open) {
+        populateToc();
+        // Focus trap + focus first link
+        if (tocPanel) {
+          tocTrapCleanup = createFocusTrap(tocPanel);
+          const firstLink = tocPanel.querySelector('a') as HTMLElement | null;
+          firstLink?.focus();
+        }
+      } else {
+        tocTrapCleanup?.();
+        tocTrapCleanup = null;
+        tocToggle?.focus();
+      }
+    }
+
+    function closeAll() {
+      setOverlay(false);
+      closeSidebar();
+      setToc(false);
+    }
+
+    // --- Sidebar aria-hidden on tablet collapse (Phase 3B) ---
+    function updateSidebarAriaHidden() {
+      if (!sidebarPane) return;
+      const collapsed = document.body.hasAttribute('data-sidebar-collapsed');
+      if (collapsed) {
+        sidebarPane.setAttribute('aria-hidden', 'true');
+      } else {
+        sidebarPane.removeAttribute('aria-hidden');
+      }
+    }
+
+    // --- Populate ToC from desktop starlight-toc ---
+    let tocPopulated = false;
+    function populateToc() {
+      if (tocPopulated) return;
+      const desktopToc = document.querySelector('starlight-toc nav ul');
+      const panelNav = tocPanel?.querySelector('nav');
+      if (desktopToc && panelNav && !panelNav.querySelector('ul')) {
+        const clone = desktopToc.cloneNode(true) as HTMLUListElement;
+        panelNav.appendChild(clone);
+        tocPopulated = true;
+      }
+    }
+
+    // --- Populate breadcrumbs from sidebar ---
+    function updateBreadcrumbs() {
+      if (!breadcrumbs) return;
+      const activeLink = document.querySelector('#starlight__sidebar a[aria-current="page"]');
+      if (!activeLink) {
+        breadcrumbs.textContent = '';
+        return;
+      }
+      const pageName = activeLink.textContent?.trim() || '';
+      // Walk up to find parent <details> → <summary> .large
+      let groupName = '';
+      let el: HTMLElement | null = activeLink.closest('li');
+      while (el) {
+        const details = el.closest('details');
+        if (details) {
+          const summary = details.querySelector('summary .large');
+          if (summary) {
+            groupName = summary.textContent?.trim() || '';
+            break;
+          }
+        }
+        el = details?.parentElement?.closest('li') as HTMLElement | null;
+      }
+      breadcrumbs.textContent = groupName ? `${groupName} / ${pageName}` : pageName;
+    }
+
+    // --- Hamburger: toggle main nav overlay ---
+    menuBtn?.addEventListener('click', () => {
+      if (overlayOpen) {
+        setOverlay(false);
+      } else {
+        closeSidebar();
+        setToc(false);
+        setOverlay(true);
+      }
+    });
+
+    // --- Sidebar toggle ---
+    const isTablet = () => window.matchMedia('(min-width: 50rem) and (max-width: 71.99rem)').matches;
+
+    sidebarToggle?.addEventListener('click', () => {
+      setOverlay(false);
+      setToc(false);
+      if (isTablet()) {
+        // Tablet: collapse/expand sidebar via data attribute
+        document.body.toggleAttribute('data-sidebar-collapsed');
+        const collapsed = document.body.hasAttribute('data-sidebar-collapsed');
+        sidebarToggle.setAttribute('aria-expanded', String(!collapsed));
+        updateSidebarAriaHidden();
+      } else {
+        // Mobile: delegate to Starlight's mobile menu
+        if (starlightBtn) starlightBtn.click();
+        requestAnimationFrame(() => {
+          sidebarToggle.setAttribute('aria-expanded', String(isSidebarOpen()));
+        });
+      }
+    });
+
+    // Observe body attribute to sync sidebar toggle state (e.g. Escape key)
+    const observer = new MutationObserver(() => {
+      const open = isSidebarOpen();
+      sidebarToggle?.setAttribute('aria-expanded', String(open));
+    });
+    observer.observe(document.body, { attributes: true, attributeFilter: ['data-mobile-menu-expanded'] });
+
+    // Also observe data-sidebar-collapsed for aria-hidden sync
+    const collapseObserver = new MutationObserver(() => {
+      updateSidebarAriaHidden();
+    });
+    collapseObserver.observe(document.body, { attributes: true, attributeFilter: ['data-sidebar-collapsed'] });
+
+    // --- ToC toggle ---
+    tocToggle?.addEventListener('click', () => {
+      if (tocOpen) {
+        setToc(false);
+      } else {
+        setOverlay(false);
+        closeSidebar();
+        setToc(true);
+      }
+    });
+
+    // --- Escape key: close everything ---
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        if (overlayOpen || tocOpen) {
+          e.preventDefault();
+          if (overlayOpen) setOverlay(false);
+          if (tocOpen) setToc(false);
+        }
+      }
+    }, { signal });
+
+    // --- Close ToC when clicking a link inside it ---
+    tocPanel?.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('a')) {
+        setToc(false);
+      }
+    });
+
+    // --- Initial state ---
+    setOverlay(false);
+    setToc(false);
+    setInertBehind(false);
+    updateBreadcrumbs();
+    updateSidebarAriaHidden();
+
+    // Store cleanup for view transitions
+    cleanupPrevious = () => {
+      controller.abort();
+      observer.disconnect();
+      collapseObserver.disconnect();
+      overlayTrapCleanup?.();
+      tocTrapCleanup?.();
+    };
+  }
+
+  // Run on initial load and after Astro view transitions
+  initMobileNav();
+  document.addEventListener('astro:after-swap', initMobileNav);
+</script>
+
+<style>
+  .header {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    justify-content: space-between;
+  }
+
+  .header-row-1 {
+    display: grid;
+    grid-template-columns: 1fr 240px 1fr;
+    align-items: center;
+    gap: var(--sl-nav-gap);
+    padding-bottom: 1rem;
+  }
+
+  /* On mobile: logo left, mobile-controls right */
+  @media (max-width: 49.99rem) {
+    .header-row-1 {
+      grid-template-columns: auto 1fr;
+      padding-bottom: 0;
+    }
+  }
+
+  .title-wrapper {
+    overflow: visible;
+    padding: 0.25rem;
+    margin: -0.25rem;
+    min-width: 0;
+    justify-self: start;
+  }
+
+  .search-wrapper {
+    justify-self: center;
+    width: 100%;
+    max-width: 36rem;
+  }
+
+  .right-group {
+    gap: 0.5rem;
+    align-items: center;
+    justify-self: end;
+  }
+
+  .header-row-2 {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    padding-top: 0;
+    margin-bottom: -0.5rem;
+    border-top: none;
+    border-bottom: 0;
+    position: relative;
+  }
+
+  @media (max-width: 49.99rem) {
+    .header-row-2 {
+      display: none !important;
+    }
+  }
+
+  .header-row-2::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100vw;
+    height: 1px;
+    background: var(--sl-color-gray-5);
+  }
+
+  .nav-spacer {
+    flex: 1;
+  }
+
+  /* Spreadsheet-cell nav links (Guides / API / Recipes / Changelog) */
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-sm);
+    font-weight: 500;
+    text-decoration: none;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid transparent;
+    border-top-color: var(--sl-color-gray-5);
+    border-right-color: var(--sl-color-gray-5);
+    margin-left: 0;
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+    white-space: nowrap;
+    position: relative;
+  }
+
+  .nav-link:first-child {
+    border-left-color: var(--sl-color-gray-5);
+  }
+
+  .nav-link:hover {
+    color: var(--sl-color-white);
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+  }
+
+  /* Active = Excel-style blue selection border */
+  .nav-link--active,
+  .nav-link--active:first-child {
+    color: var(--sl-color-white);
+    font-weight: 600;
+    border-color: var(--sl-color-accent);
+    z-index: 1;
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+  }
+
+  /* Docs assistant header button — matches ht-link-card visual style */
+  .header-assistant-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0;
+    padding: 0.15rem 0.6rem;
+    color: var(--sl-color-gray-1);
+    font-family: inherit;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.15s, background-color 0.15s;
+    white-space: nowrap;
+  }
+  .header-assistant-btn:hover {
+    color: var(--sl-color-white);
+    background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+  }
+  .mobile-assistant-btn span {
+    display: none;
+  }
+
+  /* GitHub stars badge */
+  .github-stars {
+    align-items: center;
+    border: none;
+    color: var(--sl-color-gray-1);
+    display: inline-flex;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    gap: 0.35rem;
+    padding: 0.25rem;
+    text-decoration: none;
+    transition: color 0.15s;
+    white-space: nowrap;
+  }
+
+  .github-stars:hover {
+    color: var(--sl-color-white);
+  }
+
+  .github-stars__count {
+    min-width: 36px;
+  }
+
+  .github-stars__count:empty::before {
+    /* Reserve space with a transparent placeholder to prevent layout shift */
+    content: '\00a0\00a0\00a0';
+    visibility: hidden;
+  }
+
+  /* ── Mobile controls (search + theme + hamburger) ──────────────────── */
+  .mobile-controls {
+    align-items: center;
+    justify-content: flex-end;
+    justify-self: end;
+    gap: 0.25rem;
+  }
+
+  .mobile-menu-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    color: var(--sl-color-gray-1);
+    cursor: pointer;
+    padding: 0.375rem;
+    min-width: 44px;
+    min-height: 44px;
+    transition: color 0.15s;
+  }
+
+  .mobile-menu-btn:hover {
+    color: var(--sl-color-white);
+  }
+
+  .mobile-menu-icon-close {
+    display: none;
+  }
+
+  .mobile-search-wrapper {
+    flex-shrink: 0;
+  }
+
+  .mobile-search-btn {
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.25rem;
+    color: var(--sl-color-gray-1);
+    border-radius: 0.25rem;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .mobile-search-btn:hover {
+    color: var(--sl-color-white);
+  }
+
+  .mobile-theme-toggle {
+    flex-shrink: 0;
+  }
+</style>

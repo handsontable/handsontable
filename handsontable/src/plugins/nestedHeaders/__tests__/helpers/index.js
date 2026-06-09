@@ -90,6 +90,8 @@ const colspanSettingsAbbreviations = new Map([
   ['l', 'label'],
   ['cs', 'colspan'],
   ['ocs', 'origColspan'],
+  ['rs', 'rowspan'],
+  ['ors', 'origRowspan'],
 ]);
 
 /**
@@ -111,11 +113,14 @@ export function createColspanSettings(overwriteProps = {}) {
     label: '',
     colspan: 1,
     origColspan: 1,
+    rowspan: 1,
+    origRowspan: 1,
     isHidden: false,
     isCollapsed: false,
     collapsible: false,
     isRoot: true,
     isPlaceholder: false,
+    isRowspanPlaceholder: false,
     headerClassNames: [],
     ...overwriteProps,
   };

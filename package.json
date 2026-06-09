@@ -15,13 +15,14 @@
     "in": "cross-env-shell COMMAND_ENV=in node scripts/translate-to-native-npm.mjs",
     "all": "cross-env-shell COMMAND_ENV=all node scripts/translate-to-native-npm.mjs",
     "clean:node_modules": "node ./scripts/clean-node-modules.mjs",
-    "lint": "npm run eslint && npm run all lint -- --if-present",
+    "lint": "npm run eslint && npm run all lint -- --if-present && npm run lint --prefix performance-tests",
     "eslint": "eslint .github/scripts/ bin/changelog scripts/",
     "test": "npm run all test -- -e=examples",
     "build": "npm run all build -- -e=examples",
     "freeze": "node scripts/freeze.mjs",
     "release": "node scripts/release.mjs",
     "changelog": "bin/changelog",
+    "sync-skills": "node scripts/sync-skills-to-cursor.mjs",
     "publish-all": "npm run all publish-package -- -e=examples",
     "pre-release": "node scripts/pre-release.mjs && npm run all build -- -e=examples visual-tests && npm run publish-all --tag experimental",
     "examples:version": "node examples/scripts/code-examples.mjs version",
@@ -31,9 +32,9 @@
     "examples:start": "http-server ./examples/tmp"
   },
   "devDependencies": {
-    "@actions/core": "^1.2.6",
-    "@actions/github": "^4.0.0",
-    "@angular/compiler": "^17.3.12",
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0",
+    "@angular/compiler": "^19.2.16",
     "@babel/cli": "^7.8.3",
     "@babel/core": "^7.11.4",
     "@babel/eslint-parser": "^7.13.14",
@@ -43,7 +44,6 @@
     "@babel/plugin-syntax-import-assertions": "^7.16.7",
     "@babel/plugin-syntax-jsx": "^7.24.7",
     "@babel/plugin-transform-runtime": "^7.11.0",
-    "core-js": "^3.37.0",
     "@babel/preset-env": "^7.11.0",
     "@babel/register": "^7.8.3",
     "@babel/runtime": "^7.11.2",
@@ -52,17 +52,18 @@
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "babel-plugin-transform-require-ignore": "^0.1.1",
     "chalk": "^4.1.2",
+    "core-js": "^3.37.0",
     "cross-env": "^7.0.3",
-    "eslint": "^7.32.0",
-    "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-jsdoc": "^32.3.3",
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsdoc": "^46.0.0",
     "execa": "^5.0.0",
     "fs-extra": "^4.0.2",
     "glob": "^7.1.2",
-    "jsdom": "24.0.0",
     "global-jsdom": "^24.0.0",
     "inquirer": "^7.3.3",
+    "jsdom": "24.0.0",
     "lodash": "^4.17.21",
     "moment": "2.29.4",
     "replace-in-file": "^6.1.0",
@@ -70,16 +71,41 @@
     "semver": "^5.7.1",
     "yargs": "^16.2.0"
   },
-  "overrides": {
-    "@types/babel__traverse": "7.18.2",
-    "loader-utils": "2.0.4",
-    "postcss": "^8.4.3",
-    "undici": "6.11.1",
-    "tough-cookie": "4.1.3"
-  },
   "pnpm": {
     "overrides": {
-      "generic-names@1>loader-utils": "^2.0.0"
+      "generic-names@1>loader-utils": "^2.0.0",
+      "handsontable": "workspace:^",
+      "convict": "^6.2.5",
+      "handlebars": "^4.7.9",
+      "@angular/common": "^19.2.20",
+      "@angular/core": "^19.2.20",
+      "@angular/compiler": "^19.2.20",
+      "nx>minimatch": "^3.1.4",
+      "postcss-url>minimatch": "^3.1.4",
+      "@typescript-eslint/typescript-estree>minimatch": "^9.0.7",
+      "node-forge": "^1.4.0",
+      "path-to-regexp": "^0.1.13",
+      "anymatch>picomatch": "^2.3.2",
+      "readdirp>picomatch": "^2.3.2",
+      "micromatch>picomatch": "^2.3.2",
+      "jest-util>picomatch": "^2.3.2",
+      "@angular-devkit/build-angular>picomatch": "^2.3.2",
+      "@angular-devkit/core>picomatch": "^2.3.2",
+      "@parcel/watcher>picomatch": "^4.0.4",
+      "@rollup/pluginutils>picomatch": "^4.0.4",
+      "serialize-javascript": "^7.0.3",
+      "pacote>tar": "^7.5.11",
+      "node-gyp>tar": "^7.5.11",
+      "cacache>tar": "^7.5.11",
+      "undici": "^6.24.0",
+      "react-star-rating-component>react": "18.3.1",
+      "@astrojs/mdx": "^6.0.1"
+    },
+    "auditConfig": {
+      "ignoreCves": [
+        "CVE-2023-30533",
+        "CVE-2024-22363"
+      ]
     }
   },
   "license": "SEE LICENSE IN LICENSE.txt",
@@ -90,7 +116,8 @@
     "handsontable",
     "wrappers/*",
     "visual-tests",
-    "examples"
+    "examples",
+    "docs"
   ],
   "packageManager": "pnpm@10.30.2"
 }

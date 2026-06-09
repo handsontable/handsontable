@@ -46,17 +46,17 @@ describe('UndoRedo -> DataChange action', () => {
     });
 
     await setDataAtCell([[4, 0, 'x'], [5, 0, 'y'], [6, 0, 'z']]);
-    await sleep(50); // wait for async validation
+    await sleep(64); // wait for async validation
 
     getPlugin('undoRedo').undo();
 
-    await sleep(50); // wait for async validation
+    await sleep(64); // wait for async validation
 
     expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5']);
 
     getPlugin('undoRedo').redo();
 
-    await sleep(50); // wait for async validation
+    await sleep(64); // wait for async validation
 
     expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'x', 'y', 'z']);
   });

@@ -11,14 +11,14 @@
       position: relative;
       width: var(--ht-icon-button-hit-area-size);
       height: var(--ht-icon-button-hit-area-size);
-      margin: calc(-1 * (var(--ht-icon-button-hit-area-size) - var(--ht-icon-size)) / 2);
+      margin: calc(-1 * (var(--ht-icon-button-hit-area-size) - var(--ht-icon-size)) / 2 + 1px);
       box-sizing: border-box;
       overflow: visible;
       cursor: pointer;
       /* hide text */
       text-indent: -100px;
       font-size: 0;
-      float: right;
+      flex-shrink: 0;
 
       /* Icon: mask + currentColor from ht-icons-main.css; keep ::before for icon only */
       &::before {
@@ -105,12 +105,6 @@
       }
     }
 
-    .collapsibleIndicator {
-      top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
-      margin-inline-start: calc(var(--ht-gap-size) - (var(--ht-icon-button-hit-area-size) - var(--ht-icon-size)) / 2);
-      margin-inline-end: calc(1px - (var(--ht-icon-button-hit-area-size) - var(--ht-icon-size)) / 2);
-    }
-
     th {
       &.ht__active_highlight {
         .collapsibleIndicator,
@@ -145,10 +139,4 @@
     }
   }
 
-  [dir="rtl"].handsontable {
-    .collapsibleIndicator,
-    .ht_nestingButton {
-      float: left;
-    }
-  }
 }

@@ -1,0 +1,91 @@
+/* -------------------------------------------------------------------------
+ * Asides / callouts — card-like feel
+ * ------------------------------------------------------------------------- */
+.starlight-aside {
+  border-radius: 0;
+  padding: 0.75rem 1rem;
+  color: var(--sl-color-white);
+}
+
+.starlight-aside__title {
+  display: none;
+}
+
+.starlight-aside__content {
+  margin-top: 0;
+}
+
+.starlight-aside--tip {
+  border-color: var(--sl-color-accent);
+  --sl-color-asides-text-accent: #adaeaf;
+}
+
+/* Inline code inside asides — chip / badge style */
+.sl-markdown-content .starlight-aside :not(pre) > code:not(:where(.not-content *)) {
+  padding: 0.2em 0.5em;
+  background-color: var(--sl-color-gray-5);
+  border: 1px solid var(--sl-color-gray-4);
+  border-radius: 4px;
+  font-size: 0.85em;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+/* -------------------------------------------------------------------------
+ * Collapsible <details> sections
+ * ------------------------------------------------------------------------- */
+.sl-markdown-content details:not(:where(.not-content *)) {
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0;
+  margin: 1rem 0;
+}
+
+.sl-markdown-content details:not(:where(.not-content *)) summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 0.875rem;
+  font-weight: 500;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-white);
+  cursor: pointer;
+  list-style: none;
+}
+
+.sl-markdown-content details:not(:where(.not-content *)) summary::-webkit-details-marker {
+  display: none;
+}
+
+.sl-markdown-content details:not(:where(.not-content *)) summary::before {
+  content: '';
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid var(--sl-color-gray-3);
+  border-bottom: 2px solid var(--sl-color-gray-3);
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
+  flex-shrink: 0;
+  margin-right: 0.25rem;
+  /* Reset Starlight's SVG-mask marker that cascades from @layer starlight.content */
+  background-color: transparent;
+  -webkit-mask-image: none;
+  mask-image: none;
+  margin-inline: 0;
+  vertical-align: baseline;
+}
+
+.sl-markdown-content details[open]:not(:where(.not-content *)) summary::before {
+  transform: rotate(45deg);
+}
+
+.sl-markdown-content details:not(:where(.not-content *)) > :not(summary) {
+  padding: 0 0.875rem;
+}
+
+.sl-markdown-content details > .table-container,
+.sl-markdown-content details > .expressive-code {
+  margin: 0 0 0 -1rem;
+  border: none;
+  padding: 0;
+}

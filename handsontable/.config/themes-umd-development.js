@@ -5,27 +5,16 @@
  */
 const path = require('path');
 const fs = require('fs');
-const webpack = require('webpack');
-const compilationDoneMarker = require('./plugin/webpack/compilation-done-marker');
+const rspack = require('@rspack/core');
+const compilationDoneMarker = require('./plugin/rspack/compilation-done-marker');
+const { BROWSERS_LIST } = require('../../browser-targets.js');
+const { getLicenseBody } = require('./helper/license');
 
 const PACKAGE_FILENAME = process.env.HOT_FILENAME;
 const NEW_LINE_CHAR = '\n';
 const SOURCE_THEMES_DIRECTORY = 'src/themes/theme';
 const SOURCE_VARIABLES_DIRECTORY = 'src/themes/static/variables';
 const OUTPUT_THEMES_DIRECTORY = 'themes';
-
-/**
- * Generate the license body text with version and date info.
- *
- * @returns {string} The formatted license text.
- */
-function getLicenseBody() {
-  const license = fs.readFileSync(path.resolve(__dirname, '../../LICENSE.txt'), 'utf8');
-  const version = `Version: ${process.env.HOT_VERSION}`;
-  const releaseDate = `Release date: ${process.env.HOT_RELEASE_DATE} (built at ${process.env.HOT_BUILD_DATE})`;
-
-  return [license, version, releaseDate].join(NEW_LINE_CHAR);
-}
 
 /**
  * Create the Handsontable import statement.
@@ -60,7 +49,7 @@ function createHandsontableExternals() {
  * 2. Registers the theme before export using Handsontable.themes.registerTheme
  */
 const ruleForThemeRegistration = {
-  test: /theme\/[\w-]+\.js$/,
+  test: /theme\/[\w-]+\.ts$/,
   loader: 'string-replace-loader',
   options: {
     multiple: [
@@ -127,7 +116,7 @@ function buildNamespaceLines(namespacePath, variableName) {
  */
 function createRuleForVariablesRegistration(variableName, namespacePath) {
   return {
-    test: /static\/variables\/.*\.js$/,
+    test: /static\/variables\/.*\.ts$/,
     loader: 'string-replace-loader',
     options: {
       multiple: [
@@ -139,8 +128,9 @@ function createRuleForVariablesRegistration(variableName, namespacePath) {
           flags: ''
         },
         {
-          // Transform default export to namespace registration (no export, just side effect)
-          search: /export default (\{[\s\S]*\});/,
+          // Transform typed const + default export to namespace registration (no export, just side effect)
+          // Matches: const varName: Type = { ... };\n\nexport default varName;
+          search: /const \w+(?::\s*\w+)?\s*=\s*(\{[\s\S]*\});\s*\n+export default \w+;/,
           replace: (match, objectBody) => {
             const lines = [
               `const ${variableName} = ${objectBody};`,
@@ -205,15 +195,15 @@ function getThemeEntryFiles() {
   }
 
   const entries = {};
-  const JS_EXTENSION = /\.js$/;
+  const TS_EXTENSION = /\.ts$/;
 
   for (const fileName of fs.readdirSync(themesDir)) {
-    // Skip index.js - only process individual theme files
-    if (!JS_EXTENSION.test(fileName) || fileName === 'index.js') {
+    // Skip index.ts - only process individual theme files
+    if (!TS_EXTENSION.test(fileName) || fileName === 'index.ts') {
       continue;
     }
 
-    const baseName = fileName.replace(JS_EXTENSION, '');
+    const baseName = fileName.replace(TS_EXTENSION, '');
     const filePath = path.resolve(themesDir, fileName);
     const fileContent = fs.readFileSync(filePath, 'utf8');
     const exportName = extractNamedExport(fileContent, `${baseName}Theme`);
@@ -247,8 +237,8 @@ function getVariablesEntryFiles() {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       const { name } = entry;
 
-      if (entry.isFile() && name.endsWith('.js')) {
-        const baseName = name.replace('.js', '');
+      if (entry.isFile() && name.endsWith('.ts')) {
+        const baseName = name.replace('.ts', '');
 
         entries[`${prefix}/${baseName}`] = {
           entryPath: path.resolve(dir, name),
@@ -319,6 +309,7 @@ function createConfig({
 
   return {
     mode: 'none',
+    devtool: false,
     entry: { [entryName]: entryPath },
     output: {
       filename: `${OUTPUT_THEMES_DIRECTORY}/${entryName}.js`,
@@ -327,20 +318,50 @@ function createConfig({
       umdNamedDefine: true,
       library: createLibraryConfig(isThemeFile, exportName, libraryName),
     },
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+    },
     module: {
       rules: [
         {
           test: /\.js$/,
-          loader: 'babel-loader',
+          loader: 'builtin:swc-loader',
           exclude: /node_modules/,
+          options: {
+            env: {
+              targets: BROWSERS_LIST.join(', '),
+            },
+            jsc: {
+              parser: {
+                syntax: 'ecmascript',
+              },
+            },
+          },
+        },
+        {
+          test: /\.(ts|tsx)$/,
+          loader: 'builtin:swc-loader',
+          exclude: /node_modules/,
+          options: {
+            env: {
+              targets: BROWSERS_LIST.join(', '),
+            },
+            jsc: {
+              parser: {
+                syntax: 'typescript',
+                tsx: true,
+                decorators: true,
+              },
+            },
+          },
         },
         registrationRule,
       ],
     },
     externals: createHandsontableExternals(),
     plugins: [
-      new webpack.BannerPlugin(getLicenseBody()),
-      new webpack.DefinePlugin({
+      new rspack.BannerPlugin({ banner: getLicenseBody() }),
+      new rspack.DefinePlugin({
         __ENV_ARGS__: JSON.stringify(envArgs),
       }),
       compilationDoneMarker(),

@@ -1,16 +1,22 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
-import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import { AfterViewInit, Component, ViewChild, ViewEncapsulation } from '@angular/core';
+import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
+  standalone: true,
+  imports: [HotTableModule],
   selector: 'app-example3',
+  encapsulation: ViewEncapsulation.None,
   template: `
-    <div style="margin-bottom: 16px; display: flex; gap: 10px">
-      <button 
-        [disabled]="isLoading" 
-        (click)="loadData()"
-        [innerHTML]="buttonText">
-      </button>
+    <div class="example-controls-container">
+      <div class="controls">
+        <button
+          type="button"
+          [disabled]="isLoading"
+          (click)="loadData()"
+          [innerHTML]="buttonText">
+        </button>
+      </div>
     </div>
     <hot-table
       #hotTable
@@ -19,7 +25,6 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
     >
     </hot-table>
   `,
-  standalone: false
 })
 export class AppComponent implements AfterViewInit {
   @ViewChild('hotTable') hotTable!: HotTableComponent;
@@ -42,30 +47,32 @@ export class AppComponent implements AfterViewInit {
         type: 'numeric',
         data: 'price',
         width: 80,
+        locale: 'en-US',
         numericFormat: {
-          pattern: '$0,0.00',
-          culture: 'en-US',
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 2,
         },
         className: 'htRight',
         headerClassName: 'htRight',
       },
       {
         title: 'Date',
-        type: 'date',
+        type: 'intl-date',
         data: 'sellDate',
         width: 130,
-        dateFormat: 'MMM D, YYYY',
-        correctFormat: true,
+        locale: 'en-US',
+        dateFormat: { month: 'short', day: 'numeric', year: 'numeric' },
         className: 'htRight',
         headerClassName: 'htRight',
       },
       {
         title: 'Time',
-        type: 'time',
+        type: 'intl-time',
         data: 'sellTime',
         width: 90,
-        timeFormat: 'hh:mm A',
-        correctFormat: true,
+        locale: 'en-US',
+        timeFormat: { hour: '2-digit', minute: '2-digit', hour12: true },
         className: 'htRight',
         headerClassName: 'htRight',
       },
@@ -114,16 +121,16 @@ export class AppComponent implements AfterViewInit {
 
       // Simulated data
       const data = [
-        { model: 'Trail Helmet', price: 1298.14, sellDate: 'Aug 31, 2025', sellTime: '02:12 PM', inStock: true },
-        { model: 'Windbreaker Jacket', price: 178.9, sellDate: 'May 10, 2025', sellTime: '10:26 PM', inStock: false },
-        { model: 'Cycling Cap', price: 288.1, sellDate: 'Sep 15, 2025', sellTime: '09:37 AM', inStock: true },
-        { model: 'HL Mountain Frame', price: 94.49, sellDate: 'Jan 17, 2025', sellTime: '02:19 PM', inStock: false },
-        { model: 'Racing Socks', price: 430.38, sellDate: 'May 10, 2025', sellTime: '01:42 PM', inStock: true },
-        { model: 'Racing Socks', price: 138.85, sellDate: 'Sep 20, 2025', sellTime: '02:48 PM', inStock: true },
-        { model: 'HL Mountain Frame', price: 1909.63, sellDate: 'Sep 5, 2025', sellTime: '09:35 AM', inStock: false },
-        { model: 'Carbon Handlebar', price: 1080.7, sellDate: 'Oct 24, 2025', sellTime: '10:58 PM', inStock: false },
-        { model: 'Aero Bottle', price: 1571.13, sellDate: 'May 24, 2025', sellTime: '12:24 AM', inStock: true },
-        { model: 'Windbreaker Jacket', price: 919.09, sellDate: 'Jul 16, 2025', sellTime: '07:11 PM', inStock: true },
+        { model: 'Trail Helmet', price: 1298.14, sellDate: '2025-08-31', sellTime: '14:12', inStock: true },
+        { model: 'Windbreaker Jacket', price: 178.9, sellDate: '2025-05-10', sellTime: '22:26', inStock: false },
+        { model: 'Cycling Cap', price: 288.1, sellDate: '2025-09-15', sellTime: '09:37', inStock: true },
+        { model: 'HL Mountain Frame', price: 94.49, sellDate: '2025-01-17', sellTime: '14:19', inStock: false },
+        { model: 'Racing Socks', price: 430.38, sellDate: '2025-05-10', sellTime: '13:42', inStock: true },
+        { model: 'Racing Socks', price: 138.85, sellDate: '2025-09-20', sellTime: '14:48', inStock: true },
+        { model: 'HL Mountain Frame', price: 1909.63, sellDate: '2025-09-05', sellTime: '09:35', inStock: false },
+        { model: 'Carbon Handlebar', price: 1080.7, sellDate: '2025-10-24', sellTime: '22:58', inStock: false },
+        { model: 'Aero Bottle', price: 1571.13, sellDate: '2025-05-24', sellTime: '00:24', inStock: true },
+        { model: 'Windbreaker Jacket', price: 919.09, sellDate: '2025-07-16', sellTime: '19:11', inStock: true },
       ];
 
       // Load data into the table
@@ -147,38 +154,22 @@ export class AppComponent implements AfterViewInit {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
-import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
-/* start:skip-in-compilation */
-import { AppComponent } from './app.component';
-/* end:skip-in-compilation */
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { registerAllModules } from 'handsontable/registry';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ AppComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ AppComponent ]
-})
-
-export class AppModule { }
 /* end-file */

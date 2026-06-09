@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Adjusted TypeScript source code to comply with strict: true compiler option.",
+  "type": "fixed",
+  "issueOrPR": 12635,
+  "breaking": false,
+  "framework": "none"
+}

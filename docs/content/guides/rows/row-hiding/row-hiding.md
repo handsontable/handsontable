@@ -1,22 +1,19 @@
 ---
-id: 37786931
+type: how-to
 title: Row hiding
 metaTitle: Row hiding - JavaScript Data Grid | Handsontable
 description: Hide individual rows to avoid rendering them as DOM elements. It helps you reduce screen clutter and improve the grid's performance.
 permalink: /row-hiding
 canonicalUrl: /row-hiding
 react:
-  id: al1djb6l
   metaTitle: Row hiding - React Data Grid | Handsontable
 angular:
-  id: 2dxb42jh
   metaTitle: Row hiding - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Row hiding - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
-
-# Row hiding
-
 Hide individual rows to avoid rendering them as DOM elements. It helps you reduce screen clutter and improve the grid's performance.
 
 [[toc]]
@@ -61,6 +58,16 @@ To enable row hiding, use the [`hiddenRows`](@/api/options.md#hiddenrows) option
 
 @[code](@/content/guides/rows/row-hiding/angular/example1.ts)
 @[code](@/content/guides/rows/row-hiding/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-hiding/vue/example1.vue)
 
 :::
 
@@ -111,6 +118,16 @@ Now, those rows are hidden by default:
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/rows/row-hiding/vue/example2.vue)
+
+:::
+
+:::
+
 ### Step 2: Show UI indicators
 
 To easily see which rows are currently hidden, display UI indicators.
@@ -145,6 +162,16 @@ To enable the UI indicators, in the `hiddenRows` object, set the `indicators` pr
 
 @[code](@/content/guides/rows/row-hiding/angular/example3.ts)
 @[code](@/content/guides/rows/row-hiding/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/rows/row-hiding/vue/example3.vue)
 
 :::
 
@@ -189,6 +216,16 @@ Enable both the [`ContextMenu`](@/api/contextMenu.md) plugin and the [`HiddenRow
 
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/rows/row-hiding/vue/example4.vue)
+
+:::
+
+:::
+
 You can also add the row hiding menu items individually, by adding the [`hidden_rows_show`](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options) and [`hidden_rows_hide`](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options) strings to the `contextMenu` parameter:
 
 ::: only-for javascript
@@ -219,6 +256,16 @@ You can also add the row hiding menu items individually, by adding the [`hidden_
 
 @[code](@/content/guides/rows/row-hiding/angular/example5.ts)
 @[code](@/content/guides/rows/row-hiding/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/rows/row-hiding/vue/example5.vue)
 
 :::
 
@@ -263,6 +310,16 @@ To exclude hidden rows from copying and pasting, in the `hiddenRows` object, set
 
 :::
 
+::: only-for vue
+
+::: example #example6 :vue3
+
+@[code](@/content/guides/rows/row-hiding/vue/example6.vue)
+
+:::
+
+:::
+
 ## Row hiding API methods
 
 ::: only-for react
@@ -298,6 +355,18 @@ ngAfterViewInit() {
 ```
 
 :::
+
+:::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance methods](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
+
+:::
+
+::::
 
 ### Access the `HiddenRows` plugin instance
 
@@ -357,12 +426,29 @@ plugin.showRows([0, 4, 6]);
 
 ## Related API reference
 
-- Configuration options:
-  - [`hiddenRows`](@/api/options.md#hiddenrows)
-- Hooks:
-  - [`afterHideRows`](@/api/hooks.md#afterhiderows)
-  - [`afterUnhideRows`](@/api/hooks.md#afterunhiderows)
-  - [`beforeHideRows`](@/api/hooks.md#beforehiderows)
-  - [`beforeUnhideRows`](@/api/hooks.md#beforeunhiderows)
-- Plugins:
-  - [`HiddenRows`](@/api/hiddenRows.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [hiddenRows](@/api/options.md#hiddenrows)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterHideRows](@/api/hooks.md#afterhiderows)
+- [afterUnhideRows](@/api/hooks.md#afterunhiderows)
+- [beforeHideRows](@/api/hooks.md#beforehiderows)
+- [beforeUnhideRows](@/api/hooks.md#beforeunhiderows)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [HiddenRows](@/api/hiddenRows.md)
+
+</div>

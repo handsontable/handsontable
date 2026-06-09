@@ -2,15 +2,18 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/introduction/introduction' },
   { path: 'guides/getting-started/demo/demo' },
   { path: 'guides/getting-started/installation/installation' },
-  { path: 'guides/getting-started/binding-to-data/binding-to-data' },
-  { path: 'guides/getting-started/saving-data/saving-data' },
   { path: 'guides/getting-started/configuration-options/configuration-options' },
   { path: 'guides/getting-started/grid-size/grid-size' },
   { path: 'guides/getting-started/react-methods/react-methods', onlyFor: ['react'] },
   { path: 'guides/getting-started/angular-hot-instance/angular-hot-instance', onlyFor: ['angular'] },
-  { path: 'guides/getting-started/events-and-hooks/events-and-hooks' },
+  { path: 'guides/getting-started/vue3-hot-reference/vue3-hot-reference', onlyFor: ['vue'] },
+  { path: 'guides/getting-started/vue3-hot-column/vue3-hot-column', onlyFor: ['vue'] },
+  { path: 'guides/getting-started/vue3-nuxt/vue3-nuxt', onlyFor: ['vue'] },
   { path: 'guides/getting-started/license-key/license-key' },
   { path: 'guides/getting-started/react-redux/react-redux', onlyFor: ['react'] },
+  { path: 'guides/getting-started/vue3-custom-id-class-style/vue3-custom-id-class-style', onlyFor: ['vue'] },
+  { path: 'guides/getting-started/vue3-vuex/vue3-vuex', onlyFor: ['vue'] },
+  { path: 'guides/getting-started/vue3-pinia/vue3-pinia', onlyFor: ['vue'] },
 ];
 
 const stylingItems = [
@@ -18,6 +21,23 @@ const stylingItems = [
   { path: 'guides/styling/design-system/design-system' },
   { path: 'guides/styling/theme-customization/theme-customization' },
   { path: 'guides/styling/legacy-style/legacy-style' },
+];
+
+const serverSideItems = [
+  { path: 'guides/getting-started/server-side-data/server-side-data' },
+  { path: 'guides/getting-started/server-side-data/server-side-data-migration' },
+  { path: 'guides/getting-started/server-side-data/server-side-data-configuration' },
+  { path: 'guides/getting-started/server-side-data/server-side-data-crud' },
+  { path: 'guides/getting-started/server-side-data/server-side-data-fetching' },
+];
+
+const dataManagementItems = [
+  { path: 'guides/getting-started/binding-to-data/binding-to-data' },
+  { path: 'guides/getting-started/saving-data/saving-data' },
+  { path: 'guides/getting-started/events-and-hooks/events-and-hooks' },
+  { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
+  { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
+  { path: 'guides/cell-features/clipboard/clipboard' },
 ];
 
 const integrateWithVue3Items = [
@@ -65,7 +85,6 @@ const rowsItems = [
 ];
 
 const cellFeaturesItems = [
-  { path: 'guides/cell-features/clipboard/clipboard' },
   { path: 'guides/cell-features/selection/selection' },
   { path: 'guides/cell-features/merge-cells/merge-cells' },
   { path: 'guides/cell-features/conditional-formatting/conditional-formatting' },
@@ -102,29 +121,24 @@ const formulasItems = [
   { path: 'guides/formulas/formula-calculation/formula-calculation' },
 ];
 
-const navigationItems = [
+const navigationAndAccessibilityItems = [
   { path: 'guides/navigation/keyboard-shortcuts/keyboard-shortcuts' },
   { path: 'guides/navigation/custom-shortcuts/custom-shortcuts' },
   { path: 'guides/navigation/focus-scopes/focus-scopes' },
   { path: 'guides/navigation/searching-values/searching-values' },
-];
-
-const accessibilityItems = [
   { path: 'guides/accessibility/accessibility/accessibility' },
+  { path: 'guides/accessibility/accessibility-conformance-report/accessibility-conformance-report' },
 ];
 
 const accessoriesAndMenusItems = [
   { path: 'guides/accessories-and-menus/context-menu/context-menu' },
+  { path: 'guides/accessories-and-menus/drag-to-scroll/drag-to-scroll' },
   { path: 'guides/accessories-and-menus/undo-redo/undo-redo' },
   { path: 'guides/accessories-and-menus/icon-pack/icon-pack' },
-  { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
   { path: 'guides/accessories-and-menus/empty-data-state/empty-data-state' },
-  // TODO { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
-];
-
-const dialogItems = [
   { path: 'guides/dialog/dialog/dialog' },
   { path: 'guides/dialog/loading/loading' },
+  { path: 'guides/dialog/notification/notification' },
 ];
 
 const internationalizationItems = [
@@ -137,6 +151,7 @@ const internationalizationItems = [
 const buildingAndToolingItems = [
   { path: 'guides/tools-and-building/packages/packages', onlyFor: ['javascript'] },
   { path: 'guides/tools-and-building/modules/modules' },
+  { path: 'guides/tools-and-building/typescript-types/typescript-types' },
   { path: 'guides/tools-and-building/custom-plugins/custom-plugins' },
   { path: 'guides/tools-and-building/custom-builds/custom-builds' },
   { path: 'guides/tools-and-building/testing/testing' },
@@ -162,11 +177,26 @@ const technicalSpecificationItems = [
   { path: 'guides/technical-specification/documentation-license/documentation-license' },
 ];
 
+const changelogItems = [
+  { path: 'guides/upgrade-and-migration/changelog-17/changelog-17' },
+  { path: 'guides/upgrade-and-migration/changelog-16/changelog-16' },
+  { path: 'guides/upgrade-and-migration/changelog-15/changelog-15' },
+  { path: 'guides/upgrade-and-migration/changelog-14/changelog-14' },
+  { path: 'guides/upgrade-and-migration/changelog-13/changelog-13' },
+  { path: 'guides/upgrade-and-migration/changelog-12/changelog-12' },
+  { path: 'guides/upgrade-and-migration/changelog-11/changelog-11' },
+  { path: 'guides/upgrade-and-migration/changelog-10/changelog-10' },
+  { path: 'guides/upgrade-and-migration/changelog-9/changelog-9' },
+  { path: 'guides/upgrade-and-migration/changelog-8/changelog-8' },
+  { path: 'guides/upgrade-and-migration/changelog-7/changelog-7' },
+];
+
 const upgradeAndMigrationItems = [
-  { path: 'guides/upgrade-and-migration/changelog/changelog' },
+  ...changelogItems,
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
   { path: 'guides/upgrade-and-migration/deprecation-policy/deprecation-policy' },
   { path: 'guides/upgrade-and-migration/long-term-support/long-term-support' },
+  { path: 'guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1' },
   { path: 'guides/upgrade-and-migration/migrating-from-15.3-to-16.0/migrating-from-15.3-to-16.0' },
@@ -190,11 +220,11 @@ module.exports = {
     { title: 'Cell functions', children: cellFunctionsItems },
     { title: 'Cell types', children: cellTypesItems },
     { title: 'Formulas', children: formulasItems },
-    { title: 'Navigation', children: navigationItems },
-    { title: 'Accessibility', children: accessibilityItems },
+    { title: 'Server-side data', children: serverSideItems },
+    { title: 'Data management', children: dataManagementItems },
     { title: 'Accessories and menus', children: accessoriesAndMenusItems },
-    { title: 'Dialog', children: dialogItems },
     { title: 'Internationalization', children: internationalizationItems },
+    { title: 'Accessibility and navigation', children: navigationAndAccessibilityItems },
     { title: 'Integrate with Vue', children: integrateWithVue3Items },
     { title: 'Tools and building', children: buildingAndToolingItems },
     { title: 'Optimization', children: optimizationItems },

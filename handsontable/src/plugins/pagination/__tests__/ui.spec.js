@@ -228,16 +228,14 @@ describe('Pagination UI', () => {
   it('should adjust the table height to fit the pagination container in declared height (all sections are visible)', async() => {
     handsontable({
       data: createSpreadsheetData(50, 10),
-      width: 500,
+      width: 800,
       height: 400,
       pagination: true,
     });
 
-    expect(tableView().getViewportHeight()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(367);
-      main.toBe(356);
-      horizon.toBe(352);
-    });
+    const paginationHeight = spec().$container.find('.ht-pagination')[0].offsetHeight;
+
+    expect(tableView().getViewportHeight()).toBe(400 - paginationHeight);
   });
 
   it('should adjust the table height to fit the pagination container in declared height (all sections are hidden)', async() => {

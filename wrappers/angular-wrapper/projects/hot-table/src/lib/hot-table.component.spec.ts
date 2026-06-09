@@ -3,17 +3,16 @@ import { CUSTOM_ELEMENTS_SCHEMA, NgZone, SimpleChange, SimpleChanges } from '@an
 import Handsontable from 'handsontable';
 import { registerPlugin, CopyPaste } from 'handsontable/plugins';
 import { HotTableModule } from './hot-table.module';
-import { HotTableComponent } from './hot-table.component';
+import { HOT_DESTROYED_WARNING, HotTableComponent } from './hot-table.component';
 import { GridSettings } from './models/grid-settings';
 import { createSpreadsheetData } from './test-helpers/create-spreadsheet-data';
 import { HotSettingsResolver } from './services/hot-settings-resolver.service';
-import { NON_COMMERCIAL_LICENSE } from './services/hot-global-config.service';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfigService, NON_COMMERCIAL_LICENSE } from './services/hot-global-config.service';
+import { DynamicComponentService } from './renderer/hot-dynamic-renderer-component.service';
 
 registerPlugin(CopyPaste);
 
 describe('HotTableComponent', () => {
-  let zone;
-
   let fixture: ComponentFixture<HotTableComponent>;
   const settings = <GridSettings>{
     licenseKey: NON_COMMERCIAL_LICENSE,
@@ -21,11 +20,10 @@ describe('HotTableComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-      imports: [HotTableModule.forRoot()],
+      imports: [HotTableModule],
       schemas: [CUSTOM_ELEMENTS_SCHEMA]
     }).compileComponents();
 
-    zone = TestBed.inject(NgZone)
   });
 
   it(`should render 'hot-table'`, () => {
@@ -54,6 +52,33 @@ describe('HotTableComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.hotInstance.getDataAtCell(0, 0)).toBe('A1');
+  });
+
+  it(`should render with empty data array`, () => {
+    fixture = TestBed.createComponent(HotTableComponent);
+    fixture.componentInstance.settings = { ...settings };
+    fixture.componentInstance.data = [];
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.hotInstance.countRows()).toBe(0);
+  });
+
+  it(`should use data from settings when [data] input is not bound`, () => {
+    const settingsData = createSpreadsheetData(3, 3);
+
+    fixture = TestBed.createComponent(HotTableComponent);
+    // GridSettings intentionally omits 'data' (users should use [data] binding),
+    // but we cast here to verify the runtime merge does not override it with null
+    // when [data] is unbound (e.g. JavaScript users or future API changes).
+    fixture.componentInstance.settings = {
+      ...settings,
+      data: settingsData,
+    } as unknown as GridSettings;
+    // [data] input is intentionally not set — remains null (the default)
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.hotInstance.getDataAtCell(0, 0)).toBe('A1');
+    expect(fixture.componentInstance.hotInstance.countRows()).toBe(3);
   });
 
   it(`should be possible to set some option and pass it to Handsontable`, () => {
@@ -92,7 +117,8 @@ describe('HotTableComponent', () => {
 
       component.ngOnChanges(changes);
 
-      expect(applyCustomSettingsSpy).toHaveBeenCalledWith(newSettings, zone);
+      // Second arg is the previous columns (undefined here — no columns configured) used for editor recycling.
+      expect(applyCustomSettingsSpy).toHaveBeenCalledWith(newSettings, undefined);
       expect(updateHotTableSpy).toHaveBeenCalledWith(newSettings, false);
     });
 
@@ -148,6 +174,177 @@ describe('HotTableComponent', () => {
 
       component.ngOnChanges(changes);
       expect(updateDataSpy).not.toHaveBeenCalledWith(newData);
+    });
+
+    it('should destroy old editor component refs when settings change with new column objects', () => {
+      const editorRefMock = { destroy: jest.fn() } as any;
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {
+        ...settings,
+        columns: [{ _editorComponentReference: editorRefMock }],
+      };
+      fixture.detectChanges();
+
+      const changes: SimpleChanges = {
+        settings: new SimpleChange(
+          fixture.componentInstance.settings,
+          { ...settings, columns: [{}] },
+          false
+        ),
+      };
+
+      fixture.componentInstance.ngOnChanges(changes);
+
+      expect(editorRefMock.destroy).toHaveBeenCalled();
+    });
+
+    it('should NOT destroy an editor ref that was recycled into the new columns', () => {
+      const editorRefMock = { destroy: jest.fn(), componentType: class {} } as any;
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {
+        ...settings,
+        columns: [{ _editorComponentReference: editorRefMock }],
+      };
+      fixture.detectChanges();
+
+      // Resolver recycles the same ref into the new column (same editor type at the same index).
+      const hotSettingsResolver = fixture.componentRef.injector.get(HotSettingsResolver);
+      jest.spyOn(hotSettingsResolver, 'applyCustomSettings').mockReturnValue({
+        ...settings,
+        columns: [{ _editorComponentReference: editorRefMock }],
+      } as any);
+
+      const changes: SimpleChanges = {
+        settings: new SimpleChange(
+          fixture.componentInstance.settings,
+          { ...settings, columns: [{}] },
+          false
+        ),
+      };
+
+      fixture.componentInstance.ngOnChanges(changes);
+
+      expect(editorRefMock.destroy).not.toHaveBeenCalled();
+    });
+
+    it('should NOT destroy old editor refs when new settings do not include columns', () => {
+      const editorRefMock = { destroy: jest.fn() } as any;
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {
+        ...settings,
+        columns: [{ _editorComponentReference: editorRefMock }],
+      };
+      fixture.detectChanges();
+
+      const changes: SimpleChanges = {
+        settings: new SimpleChange(
+          fixture.componentInstance.settings,
+          { ...settings, readOnly: true },
+          false
+        ),
+      };
+
+      fixture.componentInstance.ngOnChanges(changes);
+
+      expect(editorRefMock.destroy).not.toHaveBeenCalled();
+    });
+
+    it('should not pass init-only settings to updateSettings after initialization', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {
+        renderAllRows: false,
+        width: 300,
+      };
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+      const updateSettingsSpy = jest.spyOn(component.hotInstance, 'updateSettings');
+
+      const changes: SimpleChanges = {
+        settings: new SimpleChange(
+          { renderAllRows: false, width: 300 },
+          { renderAllRows: true, width: 500 },
+          false
+        ),
+      };
+
+      component.ngOnChanges(changes);
+
+      const passedSettings = updateSettingsSpy.mock.calls[0][0];
+
+      expect(passedSettings.renderAllRows).toBe(void 0);
+      expect(passedSettings.width).toBe(500);
+    });
+
+    it('should apply each change when settings change multiple times rapidly', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = { ...settings };
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+      const updateSettingsSpy = jest.spyOn(component.hotInstance, 'updateSettings');
+
+      const rapidChanges = [
+        { readOnly: true },
+        { readOnly: false },
+        { width: 200 },
+      ];
+
+      rapidChanges.forEach((next, i) => {
+        const prev = i === 0 ? component.settings : rapidChanges[i - 1];
+        component.ngOnChanges({
+          settings: new SimpleChange(prev, next, false),
+        });
+      });
+
+      expect(updateSettingsSpy).toHaveBeenCalledTimes(3);
+      expect(updateSettingsSpy.mock.calls[2][0]).toMatchObject({ width: 200 });
+    });
+
+    it('should handle data changed to empty array', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = { ...settings };
+      fixture.componentInstance.data = createSpreadsheetData(3, 3);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+      const updateDataSpy = jest.spyOn(component.hotInstance, 'updateData');
+
+      component.ngOnChanges({
+        data: new SimpleChange(component.data, [], false),
+      });
+
+      expect(updateDataSpy).toHaveBeenCalledWith([]);
+    });
+
+    it('should handle data changed to null', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = { ...settings };
+      fixture.componentInstance.data = createSpreadsheetData(3, 3);
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+      const updateDataSpy = jest.spyOn(component.hotInstance, 'updateData');
+
+      component.ngOnChanges({
+        data: new SimpleChange(component.data, null, false),
+      });
+
+      expect(updateDataSpy).toHaveBeenCalledWith(null);
+    });
+
+    it('should update both settings and data when both change simultaneously', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = { ...settings };
+      fixture.detectChanges();
+      const component = fixture.componentInstance;
+      const updateSettingsSpy = jest.spyOn(component.hotInstance, 'updateSettings');
+      const updateDataSpy = jest.spyOn(component.hotInstance, 'updateData');
+
+      const newData = [[1, 2, 3]];
+      component.ngOnChanges({
+        settings: new SimpleChange(component.settings, { readOnly: true }, false),
+        data: new SimpleChange(null, newData, false),
+      });
+
+      expect(updateSettingsSpy).toHaveBeenCalled();
+      expect(updateDataSpy).toHaveBeenCalledWith(newData);
     });
   });
 
@@ -205,10 +402,26 @@ describe('HotTableComponent', () => {
       fixture.componentInstance.ngOnDestroy();
       expect(destroySpy).toHaveBeenCalled();
     });
+
+    it('should call cleanupContainer on DynamicComponentService before destroying the HOT instance', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = { ...settings };
+      fixture.detectChanges();
+
+      const dynamicComponentService = TestBed.inject(DynamicComponentService);
+      const cleanupSpy = jest.spyOn(dynamicComponentService, 'cleanupContainer');
+      const containerEl = (fixture.componentInstance as any).container.nativeElement;
+      const hotInstance = fixture.componentInstance.hotInstance;
+
+      fixture.componentInstance.ngOnDestroy();
+
+      // The instance is passed so the service can tear down that table's per-instance registries.
+      expect(cleanupSpy).toHaveBeenCalledWith(containerEl, hotInstance);
+    });
   });
 
   describe('hooks', () => {
-    it(`should use Handsontable as a hook's context, if is defined as a component's method`, () => {
+    it(`should use Handsontable as a hook's context, if is defined as a function in settings object`, () => {
       fixture = TestBed.createComponent(HotTableComponent);
       fixture.componentInstance.settings = {
         ...settings,
@@ -218,24 +431,7 @@ describe('HotTableComponent', () => {
       };
       fixture.detectChanges();
 
-      const instance: Handsontable = fixture.componentInstance.hotInstance;
-      instance.runHooks('afterInit');
-
-      expect(instance.getPlugin).toBeDefined();
-      expect(instance.getPlugin('copyPaste')).toBeTruthy();
-    });
-
-    it(`should use Handsontable as a hook's context, if is defined as a function in settings object`, async () => {
-      fixture = TestBed.createComponent(HotTableComponent);
-      fixture.componentInstance.settings = {
-        ...settings,
-        afterInit: function () {
-          return this;
-        },
-      };
-      fixture.detectChanges();
-
-      const instance: Handsontable = fixture.componentInstance.hotInstance.runHooks('afterInit');
+      const instance = fixture.componentInstance.hotInstance.runHooks('afterInit') as unknown as Handsontable;
 
       expect(instance.getPlugin).toBeDefined();
       expect(instance.getPlugin('copyPaste')).toBeTruthy();
@@ -262,6 +458,168 @@ describe('HotTableComponent', () => {
       component.hotInstance.setDataAtCell(0, 0, 'test');
 
       expect(afterChangeResult).toBe(false);
+    });
+  });
+
+  describe('getNegotiatedSettings', () => {
+    it('should return early from ngOnChanges when hotInstance is null', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = { ...settings };
+      fixture.detectChanges();
+
+      jest.spyOn(fixture.componentInstance, 'hotInstance', 'get').mockReturnValue(null);
+
+      const hotSettingsResolver = fixture.componentRef.injector.get(HotSettingsResolver);
+      const applyCustomSettingsSpy = jest.spyOn(hotSettingsResolver, 'applyCustomSettings');
+
+      const changes: SimpleChanges = {
+        settings: new SimpleChange(null, { readOnly: true }, false),
+      };
+
+      fixture.componentInstance.ngOnChanges(changes);
+
+      expect(applyCustomSettingsSpy).not.toHaveBeenCalled();
+    });
+
+    it('should pass theme from global config to Handsontable init options', () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [HotTableModule],
+        providers: [
+          { provide: HOT_GLOBAL_CONFIG, useValue: { license: NON_COMMERCIAL_LICENSE, theme: 'ht-theme-main' } },
+        ],
+        schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      });
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {};
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.hotInstance).toBeTruthy();
+    });
+
+    it('should pass themeName from settings to Handsontable init options', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {
+        ...settings,
+        themeName: 'ht-theme-main' as any,
+      };
+      fixture.detectChanges();
+
+      expect(fixture.componentInstance.hotInstance).toBeTruthy();
+    });
+
+    it('should update Handsontable when global config changes after initialization', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = { ...settings };
+      fixture.detectChanges();
+      const updateSettingsSpy = jest.spyOn(fixture.componentInstance.hotInstance, 'updateSettings');
+
+      TestBed.inject(HotGlobalConfigService).setConfig({ license: NON_COMMERCIAL_LICENSE });
+
+      expect(updateSettingsSpy).toHaveBeenCalled();
+    });
+
+    it('should pass language from global config when settings does not specify it', () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [HotTableModule],
+        providers: [
+          { provide: HOT_GLOBAL_CONFIG, useValue: { license: NON_COMMERCIAL_LICENSE, language: 'en-US' } },
+        ],
+        schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      });
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {};
+      fixture.detectChanges();
+      const updateSettingsSpy = jest.spyOn(fixture.componentInstance.hotInstance, 'updateSettings');
+
+      TestBed.inject(HotGlobalConfigService).setConfig({ license: NON_COMMERCIAL_LICENSE, language: 'en-US' });
+
+      expect(updateSettingsSpy).toHaveBeenCalled();
+      const calledWith = updateSettingsSpy.mock.calls[0][0];
+      expect(calledWith.language).toBe('en-US');
+    });
+
+    it('should not pass layoutDirection from global config when triggered after initialization', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = { ...settings };
+      fixture.detectChanges();
+      const updateSettingsSpy = jest.spyOn(fixture.componentInstance.hotInstance, 'updateSettings');
+
+      TestBed.inject(HotGlobalConfigService).setConfig({ license: NON_COMMERCIAL_LICENSE, layoutDirection: 'rtl' });
+
+      expect(updateSettingsSpy).toHaveBeenCalled();
+      const calledWith = updateSettingsSpy.mock.calls[0][0];
+      expect(calledWith.layoutDirection).toBeUndefined();
+    });
+
+    it('should prefer theme over themeName when both are provided in global config', () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [HotTableModule],
+        providers: [
+          {
+            provide: HOT_GLOBAL_CONFIG,
+            useValue: { license: NON_COMMERCIAL_LICENSE, theme: 'ht-theme-main', themeName: 'ht-theme-horizon' },
+          },
+        ],
+        schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      });
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = {};
+      fixture.detectChanges();
+      const updateSettingsSpy = jest.spyOn(fixture.componentInstance.hotInstance, 'updateSettings');
+
+      TestBed.inject(HotGlobalConfigService).setConfig({
+        license: NON_COMMERCIAL_LICENSE,
+        theme: 'ht-theme-main',
+        themeName: 'ht-theme-horizon',
+      });
+
+      expect(updateSettingsSpy).toHaveBeenCalled();
+      const calledWith = updateSettingsSpy.mock.calls[0][0];
+      expect(calledWith.theme).toBe('ht-theme-main');
+      expect(calledWith.themeName).toBeUndefined();
+    });
+  });
+
+  describe('hotInstance getter', () => {
+    it('should return null and emit HOT_DESTROYED_WARNING when the HOT instance has been destroyed', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      fixture.componentInstance.settings = { ...settings };
+      fixture.detectChanges();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+      // Destroy HOT directly — bypasses ngOnDestroy so the private ref stays set
+      (fixture.componentInstance as any).__hotInstance.destroy();
+
+      const result = fixture.componentInstance.hotInstance;
+
+      expect(result).toBeNull();
+      expect(warnSpy).toHaveBeenCalledWith(HOT_DESTROYED_WARNING);
+      warnSpy.mockRestore();
+    });
+  });
+
+  describe('NgZone hook wrapping', () => {
+    it('should run hook callbacks inside Angular zone even when triggered from outside', () => {
+      fixture = TestBed.createComponent(HotTableComponent);
+      const ngZone = TestBed.inject(NgZone);
+      let capturedZoneState = false;
+
+      fixture.componentInstance.settings = {
+        ...settings,
+        afterInit: function () {
+          capturedZoneState = NgZone.isInAngularZone();
+        },
+      };
+      fixture.detectChanges();
+
+      ngZone.runOutsideAngular(() => {
+        fixture.componentInstance.hotInstance.runHooks('afterInit');
+      });
+
+      expect(capturedZoneState).toBe(true);
     });
   });
 });

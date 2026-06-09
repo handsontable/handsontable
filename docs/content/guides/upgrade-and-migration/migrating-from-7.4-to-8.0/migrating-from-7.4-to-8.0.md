@@ -1,5 +1,5 @@
 ---
-id: g7ligsfi
+type: how-to
 title: Migrate from 7.4 to 8.0
 metaTitle: Migrate from 7.4 to 8.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 7.4 to Handsontable 8.0, released on August 5, 2020.
@@ -7,17 +7,14 @@ permalink: /migration-from-7.4-to-8.0
 canonicalUrl: /migration-from-7.4-to-8.0
 pageClass: migration-guide
 react:
-  id: ivkac4xa
   metaTitle: Migrate from 7.4 to 8.0 - React Data Grid | Handsontable
 angular:
-  id: wo49dhyu
   metaTitle: Migrate from 7.4 to 8.0 - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Migrate from 7.4 to 8.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Migrate from 7.4 to 8.0
-
 Migrate from Handsontable 7.4 to Handsontable 8.0, released on August 5, 2020.
 
 More information about this release can be found in the [`8.0.0` release blog post](https://handsontable.com/blog/the-new-handsontable-8-is-now-available).<br/>
@@ -136,7 +133,7 @@ npm install handsontable@8 @handsontable/angular@6
 
 ### Index-related Handsontable hooks were removed
 
-As we introduce a new architecture for index management ([`IndexMapper`](@/api/indexMapper.md)), we remove [Handsontable hooks](@/api/hooks.md) related to indexes.
+Handsontable 8.0.0 introduces a new architecture for index management ([`IndexMapper`](@/api/indexMapper.md)) and removes [Handsontable hooks](@/api/hooks.md) related to indexes.
 
 To keep your app's behavior unchanged, recreate affected functionalities, using the [`IndexMapper`](@/api/indexMapper.md)'s API methods.
 
@@ -160,7 +157,7 @@ modifyRow(row) {
 }
 ```
 
-In 8.0.0 it is no longer the case. To achieve the same functionality you need to use [`rowIndexMapper()`](@/api/core.md#rowindexmapper):
+In 8.0.0, this is no longer the case. To achieve the same functionality, use [`rowIndexMapper()`](@/api/core.md#rowindexmapper):
 
 ::: only-for javascript
 
@@ -589,7 +586,7 @@ The following Handsontable hooks have different sets of parameters now:
 - [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove)
 - [`afterColumnMove`](@/api/hooks.md#aftercolumnmove)
 
-Methods [`moveColumn()`](@/api/manualColumnMove.md#movecolumn), [`moveColumns()`](@/api/manualColumnMove.md#movecolumns), [`moveRow()`](@/api/manualRowMove.md#moverow), and [`moveRows()`](@/api/manualRowMove.md#moverows) have different parameters now. Starting with Handsontable 8.0.0, the `target` parameter was changed to `finalIndex`. They work differently now and a new [`dragRow()`](@/api/manualRowMove.md#dragrow), [`dragRows()`](@/api/manualRowMove.md#dragrows), [`dragColumn`](@/api/manualColumnMove.md#dragcolumn) and [`dragColumns()`](@/api/manualColumnMove.md#dragcolumns) methods took over the old methods' functionality.
+Methods [`moveColumn()`](@/api/manualColumnMove.md#movecolumn), [`moveColumns()`](@/api/manualColumnMove.md#movecolumns), [`moveRow()`](@/api/manualRowMove.md#moverow), and [`moveRows()`](@/api/manualRowMove.md#moverows) have different parameters now. Starting with Handsontable 8.0.0, the `target` parameter is renamed to `finalIndex`. They work differently now and a new [`dragRow()`](@/api/manualRowMove.md#dragrow), [`dragRows()`](@/api/manualRowMove.md#dragrows), [`dragColumn`](@/api/manualColumnMove.md#dragcolumn) and [`dragColumns()`](@/api/manualColumnMove.md#dragcolumns) methods took over the old methods' functionality.
 
 To preserve the previous functionality of [`moveRows()`](@/api/manualRowMove.md#moverows) rename it to [`dragRows()`](@/api/manualRowMove.md#dragrows).
 
@@ -601,7 +598,7 @@ The `drag*` methods come with a parameter called `dropIndex`. It directs where t
 
 <span class="img-invert">
 
-![drag_action]({{$basePath}}/img/drag_action.svg)
+![drag_action](/img/drag_action.svg)
 
 </span>
 
@@ -609,7 +606,7 @@ The `move*` methods come with a parameter called `finalIndex`. It tells where to
 
 <span class="img-invert">
 
-![move_action]({{$basePath}}/img/move_action.svg)
+![move_action](/img/move_action.svg)
 
 </span>
 
@@ -667,7 +664,7 @@ The results before:
 
 <span class="img-invert">
 
-![before_8]({{$basePath}}/img/spare_before_8.svg)
+![before_8](/img/spare_before_8.svg)
 
 </span>
 
@@ -675,7 +672,7 @@ The results after:
 
 <span class="img-invert">
 
-![after_8]({{$basePath}}/img/spare_after_8.svg)
+![after_8](/img/spare_after_8.svg)
 
 </span>
 
@@ -822,7 +819,7 @@ const physicalRow = hotInstance.toPhysicalRow(visualRow) ?? visualRow;
 
 ### `RecordTranslator` in plugins
 
-The `RecordTranslator` object was removed, as a consequence, `t` property is no longer available in the plugins. This alias could be used to translate between visual and physical indexes with four methods: `t.toVisualRow`, `t.toPhysicalRow`, `t.toVisualColumn`, `t.toPhysicalColumn`. It is advised to call the following methods directly on the instance: `hotInstance.toVisualRow`, `hotInstance.toPhysicalRow`, `hotInstance.toVisualColumn`, `hotInstance.toPhysicalColumn`. The mappers can be accessed using `hotInstance.rowIndexMapper` and `hotInstance.columnIndexMapper` properties.
+Handsontable 8.0.0 removes the `RecordTranslator` object; as a consequence, the `t` property is no longer available in the plugins. This alias was used to translate between visual and physical indexes with four methods: `t.toVisualRow`, `t.toPhysicalRow`, `t.toVisualColumn`, `t.toPhysicalColumn`. Call the following methods directly on the instance instead: `hotInstance.toVisualRow`, `hotInstance.toPhysicalRow`, `hotInstance.toVisualColumn`, `hotInstance.toPhysicalColumn`. The mappers can be accessed using `hotInstance.rowIndexMapper` and `hotInstance.columnIndexMapper` properties.
 
 This example shows how to migrate plugins from using `t` property to calling the method directly on the instance:
 
@@ -846,7 +843,7 @@ It used to select just one cell:
 
 <span class="img-invert">
 
-![LMB_was]({{$basePath}}/img/LMB_was.gif)
+![LMB_was](/img/LMB_was.gif)
 
 </span>
 
@@ -854,7 +851,7 @@ Now the expected behavior is to select all cells:
 
 <span class="img-invert">
 
-![LMB_is]({{$basePath}}/img/LMB_is.gif)
+![LMB_is](/img/LMB_is.gif)
 
 </span>
 
@@ -979,10 +976,14 @@ hotTableComponentRef.current.hotInstance.getSelectedRangeLast().from.clone().nor
 
 ### Removals
 
-Handsontable's `skipLengthCache` hook was removed, as [`IndexMapper`](@/api/indexMapper.md) is now responsible for the cache and length.
+Handsontable 8.0.0 removes the `skipLengthCache` hook, as [`IndexMapper`](@/api/indexMapper.md) is now responsible for the cache and length.
 
-Public methods `colOffset()` and `rowOffset()` were removed and their functionality is now for internal use only.
+Public methods `colOffset()` and `rowOffset()` are removed and their functionality is now for internal use only.
 
-Also, an experimental feature called `ganttChart` was removed and is no longer supported.
+Handsontable 8.0.0 also removes the experimental `ganttChart` feature, which is no longer supported.
 
 If you use these features in your project and need backward compatibility, contact our [Technical Support Team](https://handsontable.com/contact?category=technical_support).
+
+## Result
+
+Your application now runs on Handsontable 8.0.

@@ -1,53 +1,56 @@
 /* file: app.component.ts */
-import {Component, ViewChild, ViewEncapsulation} from '@angular/core';
-import { HotTableComponent } from '@handsontable/angular-wrapper';
+import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
+import { HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'example3-events-hooks',
-  standalone: false,
-  template: ` <div class="controls">
-      <label>
-        <input
-          (change)="handleChange('fixedRowsTop', [0, 2], $event)"
-          type="checkbox"
-        />
-        Add fixed rows
-      </label>
-      <br />
+  standalone: true,
+  imports: [HotTableModule],
+  template: ` <div class="example-controls-container">
+      <div class="controls">
+        <label>
+          <input
+            (change)="handleChange('fixedRowsTop', [0, 2], $event)"
+            type="checkbox"
+          />
+          Add fixed rows
+        </label>
+        <br />
 
-      <label>
-        <input
-          (change)="handleChange('fixedColumnsStart', [0, 2], $event)"
-          type="checkbox"
-        />
-        Add fixed columns
-      </label>
-      <br />
+        <label>
+          <input
+            (change)="handleChange('fixedColumnsStart', [0, 2], $event)"
+            type="checkbox"
+          />
+          Add fixed columns
+        </label>
+        <br />
 
-      <label>
-        <input
-          (change)="handleChange('rowHeaders', [false, true], $event)"
-          type="checkbox"
-        />
-        Enable row headers
-      </label>
-      <br />
+        <label>
+          <input
+            (change)="handleChange('rowHeaders', [false, true], $event)"
+            type="checkbox"
+          />
+          Enable row headers
+        </label>
+        <br />
 
-      <label>
-        <input
-          (change)="handleChange('colHeaders', [false, true], $event)"
-          type="checkbox"
-        />
-        Enable column headers
-      </label>
-      <br />
+        <label>
+          <input
+            (change)="handleChange('colHeaders', [false, true], $event)"
+            type="checkbox"
+          />
+          Enable column headers
+        </label>
+        <br />
+      </div>
     </div>
     <div style="max-width: 440px">
       <hot-table [data]="data" [settings]="initialState"></hot-table>
     </div>`,
   encapsulation: ViewEncapsulation.None
 })
-export class Example3EventsHooksComponent {
+export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   readonly data = [
@@ -124,37 +127,22 @@ export class Example3EventsHooksComponent {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example3EventsHooksComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ Example3EventsHooksComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ Example3EventsHooksComponent ]
-})
-
-export class AppModule { }
 /* end-file */

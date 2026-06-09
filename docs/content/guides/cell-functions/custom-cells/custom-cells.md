@@ -1,22 +1,19 @@
 ---
-id: c2670b72
+type: explanation
 title: Custom Cells
 metaTitle: Simplified Custom Cell Definitions - JavaScript Data Grid | Handsontable
 description: Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
 permalink: /custom-cells
 canonicalUrl: /custom-cells
 react:
-  id: 6b3e971b
   metaTitle: Custom Cell Definitions - React Data Grid | Handsontable
 angular:
-  id: 29d3662c
   metaTitle: Custom Cell Definitions - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Custom Cell Definitions - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
-menuTag: new
 ---
-
-# Simplified Custom Cell Definitions
 
 [[toc]]
 
@@ -894,6 +891,54 @@ This information is also applicable in Angular when you need lower-level control
 
 :::
 
+::: only-for vue
+
+## Vue
+
+The Vue 3 wrapper does not provide a component-based editor API equivalent to React's `EditorComponent` or Angular's `HotCellEditorAdvancedComponent`. Instead, you use Handsontable's standard renderer functions and editor classes directly — the same primitives that work in vanilla JavaScript — but you can also mount Vue components into cells using Vue's `render` function.
+
+### Custom renderers
+
+A **renderer function** receives the cell's `td` element and fills it with whatever markup you need. You pass it directly to the `renderer` option on a column.
+
+#### Function renderer
+
+The simplest approach: write a plain function, manipulate the `td` element, and return it.
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-functions/custom-cells/vue/example1.vue)
+
+:::
+
+#### Vue component renderer
+
+For richer cell content, use Vue's `h` and `render` helpers to mount a Vue component into the `td` element on every render call.
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-functions/custom-cells/vue/example2.vue)
+
+:::
+
+### Custom editors
+
+Create a custom editor by extending one of Handsontable's built-in editor classes (for example, `TextEditor`) and overriding the methods you need to change. Pass the class to the `editor` option on a column.
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-functions/custom-cells/vue/example3.vue)
+
+:::
+
+::: tip
+
+The sections below describe the framework-agnostic `rendererFactory` and `editorFactory` helpers. You can use both helpers in Vue 3 projects — pass the result to the `renderer` or `editor` column option the same way you would pass a renderer function or editor class.
+
+:::
+
+:::
+
 
 ## Renderers
 
@@ -930,7 +975,7 @@ Just use the parameters you need.
 
 ---
 
-# Using `editorFactory`
+## Using `editorFactory`
 
 The `editorFactory` helper is the **recommended approach** for creating custom editors. It handles container creation, positioning, lifecycle management, and shortcuts automatically, allowing you to focus on your editor's unique functionality.
 
@@ -1010,7 +1055,7 @@ editorFactory<CustomProperties, CustomMethods = {}>({
 
 ## Lifecycle Methods
 
-Understanding when each method is called:
+Each method runs at a specific point in the editor lifecycle:
 
 1. **`init(editor)`** - Called once when the editor is created (singleton pattern)
    - Create your input element (assign to `editor.input`)
@@ -1051,7 +1096,7 @@ Understanding when each method is called:
    - In case of special `focus` management, add your logic in this hook
 
 9. **`render(editor)`** - Custom render function
-   - Optional - can be used for custom rendering logic
+   - Optional - use for custom rendering logic
    - Receives the editor instance as parameter
 
 10. **`value`** - Initial value property
@@ -1235,7 +1280,7 @@ Handsontable has default keyboard behaviors that control how editors open, close
 - Clicking on another cell (saves changes)
 - Pressing <kbd>Enter</kbd> (saves changes and moves selection one cell down)
 - Pressing <kbd>Shift</kbd>+<kbd>Enter</kbd> (saves changes and moves selection one cell up)
-- Pressing <kbd>Ctrl</kbd>/<kbd>Cmd</kbd>+<kbd>Enter</kbd> or <kbd>Alt</kbd>/<kbd>Option</kbd>+<kbd>Enter</kbd> (adds a new line inside the cell)
+- Pressing <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Enter</kbd> or <kbd>Alt</kbd>/<kbd>⌥</kbd>+<kbd>Enter</kbd> (adds a new line inside the cell)
 - Pressing <kbd>Escape</kbd> (aborts changes)
 - Pressing <kbd>Tab</kbd> (saves changes and moves one cell to the right or to the left, depending on your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md#elements-affected-by-layout-direction))
 - Pressing <kbd>Shift</kbd>+<kbd>Tab</kbd> (saves changes and moves one cell to the left or to the right, depending on your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md#elements-affected-by-layout-direction))
@@ -1269,7 +1314,7 @@ editor: editorFactory<{input: HTMLDivElement, value: string, config: string[]}>(
 ```
 
 **How it works:**
-- Keyboard shortcut `callback` is called for every key press when the editor is active (open)
+- Handsontable calls the keyboard shortcut `callback` for every key press when the editor is active (open)
 - Return `false` to prevent Handsontable's default behavior for that key
 - Return `true` (or nothing) to allow the default behavior
 - This gives you full control over keyboard interactions within your editor
@@ -1406,7 +1451,7 @@ new Handsontable(container, {
 
 ### 2. Positioning
 
-Positioning is handled automatically by `editorFactory`. You don't need to position the editor manually. The container is automatically positioned over the cell when `open()` is called.
+`editorFactory` handles positioning automatically. You don't need to position the editor manually. The container positions itself over the cell when `open()` runs.
 
 ### 3. Cleanup
 
@@ -1442,7 +1487,6 @@ We provide complete working examples for common use cases. All examples use the 
 3. **[Flatpickr Date Picker](@/recipes/cell-types/flatpickr/flatpickr.md)** - Advanced date picker with options using `factoryEditor`
 4. **[Pikaday Date Picker](@/recipes/cell-types/pikaday/pikaday.md)** - Integrate Pikaday date picker using `factoryEditor`
 5. **[Star Rating](@/recipes/cell-types/rating/rating.md)** - Interactive star rating using `factoryEditor`
-6. **[Multiple Select](@/recipes/cell-types/select-multiple/select-multiple.md)** - Multi-select dropdown using `factoryEditor`
 
 ## Migration from Traditional Approach
 
@@ -1496,7 +1540,7 @@ const editor = editorFactory<{input: HTMLInputElement}>({
 
 - Container positioning is handled automatically
 - Check that `init()` creates `editor.input` element
-- Verify `afterOpen()` is called if you need to trigger UI elements
+- Verify `afterOpen()` runs if you need to trigger UI elements
 
 ### Value Not Saving
 
@@ -1520,3 +1564,16 @@ Have you created a useful custom cell? Consider contributing it as an example!
 ---
 
 *This approach aims to make Handsontable custom cells as accessible as possible, enabling teams to create custom cells in minutes rather than hours.*
+
+## What you learned
+
+- How `rendererFactory` and `editorFactory` simplify custom cell creation compared to the class-based approach.
+- How to use lifecycle hooks (`init`, `beforeOpen`, `afterOpen`, `afterClose`) to control editor behavior.
+- How to add per-cell configuration, keyboard shortcuts, and custom positioning strategies.
+- How `registerCellType` bundles a renderer, editor, and validator under a reusable alias.
+
+## Next steps
+
+- Browse the [recipes](@/recipes/introduction.md) for complete working examples such as color pickers, star ratings, and multi-select dropdowns.
+- Learn how the traditional class-based approach works in the [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md) guide.
+- Explore [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md) and [Cell validator](@/guides/cell-functions/cell-validator/cell-validator.md) for standalone function-based customization.

@@ -1,5 +1,5 @@
 ---
-id: xndxqkoc
+type: how-to
 title: Column summary
 metaTitle: Column summary - JavaScript Data Grid | Handsontable
 description: Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable's aggregate functions.
@@ -14,17 +14,14 @@ tags:
   - destinationColumn
   - reversedRowCoords
 react:
-  id: r3x4l0gp
   metaTitle: Column summary - React Data Grid | Handsontable
 angular:
-  id: 1rptt5bu
   metaTitle: Column summary - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column summary - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
-
-# Column summary
-
 Calculate sum, min, max, count, average or custom aggregates of individual columns' data, using Handsontable's aggregate functions.
 
 [[toc]]
@@ -73,6 +70,16 @@ This example calculates and displays five different column summaries:
 
 @[code](@/content/guides/columns/column-summary/angular/example1.ts)
 @[code](@/content/guides/columns/column-summary/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-summary/vue/example1.vue)
 
 :::
 
@@ -192,6 +199,38 @@ const configurationOptions: GridSettings = {
 
 :::
 
+::: only-for vue
+
+```js
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+
+registerAllModules();
+
+const hotSettings = {
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    [1, 2, 3, 4, 5],
+    [6, 7, 8, 9, 10],
+    [11, 12, 13, 14, 15]
+  ],
+  colHeaders: true,
+  rowHeaders: true,
+  // set the `columnSummary` configuration option to an array of
+  // objects
+  columnSummary: [
+    {},
+    {}
+  ],
+};
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 You can also set the [`columnSummary`](@/api/options.md#columnsummary) option [to a function](#set-up-column-summaries-using-a-function).
 
 ### Step 2: Select cells that you want to summarize
@@ -253,6 +292,25 @@ columnSummary: [
     sourceColumn: 1,
   },
 ];
+```
+
+:::
+
+::: only-for vue
+
+```js
+columnSummary: [
+  {
+    // set this column summary to summarize the first column
+    // (i.e. a column with physical index `0`)
+    sourceColumn: 0,
+  },
+  {
+    // set this column summary to summarize the second column
+    // (i.e. a column with physical index `1`)
+    sourceColumn: 1,
+  }
+]
 ```
 
 :::
@@ -330,6 +388,31 @@ columnSummary: [
 
 :::
 
+::: only-for vue
+
+```js
+columnSummary: [
+  {
+    sourceColumn: 0,
+    // set this column summary to only summarize rows with physical
+    // indexes 0-2, 4, and 6-8
+    ranges: [
+      [0, 2], [4], [6, 8]
+    ],
+  },
+  {
+    sourceColumn: 0,
+    // set this column summary to only summarize rows with physical
+    // indexes 0-5
+    ranges: [
+      [0, 5]
+    ],
+  }
+]
+```
+
+:::
+
 ### Step 3: Calculate your summary
 
 Now, decide how you want to calculate your column summary.
@@ -398,6 +481,27 @@ columnSummary: [
     type: "min",
   },
 ];
+```
+
+:::
+
+::: only-for vue
+
+```js
+columnSummary: [
+  {
+    sourceColumn: 0,
+    // set this column summary to return the sum all values in the
+    // summarized column
+    type: 'sum',
+  },
+  {
+    sourceColumn: 1,
+    // set this column summary to return the lowest value in the
+    // summarized column
+    type: 'min',
+  }
+]
 ```
 
 :::
@@ -477,6 +581,29 @@ columnSummary: [
 
 :::
 
+::: only-for vue
+
+```js
+columnSummary: [
+  {
+    sourceColumn: 0,
+    type: 'sum',
+    // set this column summary to display its result in cell (4, 0)
+    destinationRow: 4,
+    destinationColumn: 0
+  },
+  {
+    sourceColumn: 1,
+    type: 'min',
+    // set this column summary to display its result in cell (4, 1)
+    destinationRow: 4,
+    destinationColumn: 1
+  }
+]
+```
+
+:::
+
 ::: tip
 
 Don't change the [`className`](@/api/options.md#classname) metadata of the summary row.
@@ -533,6 +660,16 @@ To reverse row coordinates for your column summary, set the [`reversedRowCoords`
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/columns/column-summary/vue/example2.vue)
+
+:::
+
+:::
+
 ## Set up column summaries, using a function
 
 Instead of [setting up the column summary options manually](#set-up-a-column-summary), you can provide the whole column summary configuration as a function that returns a required array of objects.
@@ -578,6 +715,16 @@ The example below sets up five different column summaries. To do this, it:
 
 :::
 
+::: only-for vue
+
+::: example #example7 :vue3
+
+@[code](@/content/guides/columns/column-summary/vue/example7.vue)
+
+:::
+
+:::
+
 Using a function to provide a column summary configuration lets you set up all sorts of more complex column summaries. For example, you can sum subtotals for nested groups:
 
 ::: only-for javascript
@@ -608,6 +755,16 @@ Using a function to provide a column summary configuration lets you set up all s
 
 @[code](@/content/guides/columns/column-summary/angular/example4.ts)
 @[code](@/content/guides/columns/column-summary/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example8 :vue3
+
+@[code](@/content/guides/columns/column-summary/vue/example8.vue)
 
 :::
 
@@ -669,6 +826,21 @@ columnSummary: [
 
 :::
 
+::: only-for vue
+
+```js
+columnSummary: [{
+    sourceColumn: 1,
+    // set the `type` option to `'custom'`
+    type: 'custom',
+    destinationRow: 0,
+    destinationColumn: 5,
+    reversedRowCoords: true
+}]
+```
+
+:::
+
 3. In your column summary object, add your custom summary function:
 
 ::: only-for javascript
@@ -724,6 +896,23 @@ columnSummary: [
 
 :::
 
+::: only-for vue
+
+```js
+columnSummary: [{
+    type: 'custom',
+    destinationRow: 0,
+    destinationColumn: 5,
+    reversedRowCoords: true,
+    // add your custom summary function
+    customFunction: function(endpoint) {
+      // implement your function here
+    }
+}]
+```
+
+:::
+
 This example implements a function that counts the number of even values in a column:
 
 ::: only-for javascript
@@ -754,6 +943,16 @@ This example implements a function that counts the number of even values in a co
 
 @[code](@/content/guides/columns/column-summary/angular/example5.ts)
 @[code](@/content/guides/columns/column-summary/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example9 :vue3
+
+@[code](@/content/guides/columns/column-summary/vue/example9.vue)
 
 :::
 
@@ -794,6 +993,16 @@ See the following example:
 
 @[code](@/content/guides/columns/column-summary/angular/example6.ts)
 @[code](@/content/guides/columns/column-summary/angular/example6.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example12 :vue3
+
+@[code](@/content/guides/columns/column-summary/vue/example12.vue)
 
 :::
 
@@ -868,6 +1077,16 @@ To enable this feature, set the [`forceNumeric`](@/api/columnSummary.md) option 
 
 :::
 
+::: only-for vue
+
+::: example #example10 :vue3
+
+@[code](@/content/guides/columns/column-summary/vue/example10.vue)
+
+:::
+
+:::
+
 ### Throw data type errors
 
 You can throw a data type error whenever a non-numeric value is passed to your column summary.
@@ -907,9 +1126,30 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 
 :::
 
+::: only-for vue
+
+::: example #example11 :vue3
+
+@[code](@/content/guides/columns/column-summary/vue/example11.vue)
+
+:::
+
+:::
+
 ## Related API reference
 
-- Configuration options:
-  - [`columnSummary`](@/api/options.md#columnsummary)
-- Plugins:
-  - [`ColumnSummary`](@/api/columnSummary.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [columnSummary](@/api/options.md#columnsummary)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ColumnSummary](@/api/columnSummary.md)
+
+</div>

@@ -1,5 +1,5 @@
 ---
-id: h5waqmlx
+type: reference
 title: Column component
 metaTitle: Column component - React Data Grid | Handsontable
 description: Configure the React data grid's columns, using the props of the "HotColumn" component. Pass your component as a custom cell editor or a custom cell renderer.
@@ -11,9 +11,6 @@ searchCategory: Guides
 onlyFor: react
 category: Columns
 ---
-
-# Column component
-
 Configure your grid's columns, using the props of the `HotColumn` component. Pass your component as a custom cell editor or a custom cell renderer.
 
 [[toc]]

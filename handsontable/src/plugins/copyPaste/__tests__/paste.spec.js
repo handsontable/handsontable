@@ -93,7 +93,7 @@ describe('CopyPaste', () => {
       await selectCell(3, 4); // selectAll
       triggerPaste('Kia\tNissan\tToyota');
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
 
       const expected = arrayOfArrays();
 
@@ -113,7 +113,7 @@ describe('CopyPaste', () => {
       await selectCell(1, 0); // selectAll
       triggerPaste('Kia\tNissan\tToyota');
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
 
       expect(getData().length).toEqual(4);
       expect(getData(0, 0, 2, 4)).toEqual([
@@ -135,7 +135,7 @@ describe('CopyPaste', () => {
       await selectCell(1, 0); // selectAll
       triggerPaste('Kia\tNissan\tToyota');
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
 
       expect(getData().length).toEqual(6);
       expect(getData(0, 0, 2, 4)).toEqual([
@@ -157,7 +157,7 @@ describe('CopyPaste', () => {
       await selectCell(1, 0); // selectAll
       triggerPaste('Kia\tNissan\tToyota');
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
 
       expect(getData()[0].length).toEqual(5);
       expect(getDataAtRow(1)).toEqual(['Kia', 'Nissan', 'Toyota', '2008', 10]);
@@ -175,7 +175,7 @@ describe('CopyPaste', () => {
       await selectCell(1, 0); // selectAll
       triggerPaste('Kia\tNissan\tToyota');
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
       expect(getData()[0].length).toEqual(9);
       expect(getDataAtRow(1)).toEqual(['Kia', 'Nissan', 'Toyota', '2008', 10, 11, 12, 13, null]);
     });
@@ -203,7 +203,7 @@ describe('CopyPaste', () => {
         errors += 1;
       }
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
 
       expect(errors).toEqual(0);
     });
@@ -239,16 +239,16 @@ describe('CopyPaste', () => {
 
       triggerPaste(copiedData1);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual('A3');
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
       await selectCell(1, 0, 2, 0);
       triggerPaste(copiedData2);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual(copiedData2);
       expect(spec().$container.find('tbody tr:eq(2) td:eq(0)').text()).toEqual(copiedData2);
@@ -276,7 +276,7 @@ describe('CopyPaste', () => {
 
       triggerPaste(copiedData);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('A1');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
@@ -297,7 +297,7 @@ describe('CopyPaste', () => {
       await keyDownUp(['control/meta', 'v']);
       triggerPaste('Kia');
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
 
       expect(beforePasteSpy.calls.count()).toEqual(1);
       expect(beforePasteSpy).toHaveBeenCalledWith(
@@ -323,7 +323,7 @@ describe('CopyPaste', () => {
       await keyDownUp(['control/meta', 'v']);
       triggerPaste('Kia');
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
 
       expect(afterPasteSpy.calls.count()).toEqual(0);
     });
@@ -340,7 +340,7 @@ describe('CopyPaste', () => {
       await keyDownUp(['control/meta', 'v']);
       triggerPaste('Kia\nToyota');
 
-      await sleep(60);
+      await waitForNextAnimationFrames(2);
 
       expect(spec().$container.find('tbody tr:eq(0) td:eq(0)').text()).toEqual('Toyota');
       expect(spec().$container.find('tbody tr:eq(1) td:eq(0)').text()).toEqual('A2');
@@ -452,6 +452,22 @@ describe('CopyPaste', () => {
       plugin.onPaste(clipboardEvent);
 
       expect(getDataAtCell(0, 0)).toEqual('very\r\nlong\r\n\r\ntext');
+    });
+
+    it('should keep a single quoted cell with bare mid-cell quote chars on one row (issue #11001)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 2),
+      });
+
+      await selectCell(0, 0);
+
+      // Apple Numbers wraps a multi-line cell with `"..."` and writes bare ASCII `"` chars
+      // (not `""`-escaped) inside the content. Internal `\n` characters must not split the
+      // cell into multiple rows, and bare `"` chars must be preserved.
+      triggerPaste('"Test: Some stage\nClick "check balance" on 42” tile.\nNote: text."');
+
+      expect(getDataAtCell(0, 0)).toBe('Test: Some stage\nClick "check balance" on 42” tile.\nNote: text.');
+      expect(getDataAtCell(1, 0)).toBe('A2');
     });
 
     it('should properly paste data with excel-style multiline text', async() => {
@@ -598,53 +614,13 @@ describe('CopyPaste', () => {
       expect(getSelectedRange()).toEqualCellRange(['highlight: 0,1 from: 0,1 to: 9,9']);
     });
 
-    it.forTheme('classic')('should paste data without scrolling the viewport', async() => {
+    it('should paste data without scrolling the viewport', async() => {
+      // Size the container so row 6 fits inside the viewport regardless of theme row height;
+      // otherwise `selectCell(6, 2)` below would auto-scroll and defeat the purpose of the test.
       handsontable({
         data: createSpreadsheetData(50, 50),
         width: 200,
-        height: 200,
-      });
-
-      await selectCell(6, 2);
-      triggerPaste([
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-      ].join('\n'));
-
-      expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-    });
-
-    it.forTheme('main')('should paste data without scrolling the viewport', async() => {
-      handsontable({
-        data: createSpreadsheetData(50, 50),
-        width: 200,
-        height: 250,
-      });
-
-      await selectCell(6, 2);
-      triggerPaste([
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-        'test\ttest\ttest\ttest\ttest\ttest',
-      ].join('\n'));
-
-      expect(topOverlay().getScrollPosition()).toBe(0);
-      expect(inlineStartOverlay().getScrollPosition()).toBe(0);
-    });
-
-    it.forTheme('horizon')('should paste data without scrolling the viewport', async() => {
-      handsontable({
-        data: createSpreadsheetData(50, 50),
-        width: 200,
-        height: 319,
+        height: containerHeightForRows(7),
       });
 
       await selectCell(6, 2);
@@ -681,7 +657,7 @@ describe('CopyPaste', () => {
 
       plugin.onPaste(clipboardEvent);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onErrorSpy).not.toHaveBeenCalled();
       expect(window.__testFunction).not.toHaveBeenCalled();
@@ -713,7 +689,7 @@ describe('CopyPaste', () => {
 
       plugin.onPaste(clipboardEvent);
 
-      await sleep(100);
+      await waitForNextAnimationFrames(2);
 
       expect(onErrorSpy).not.toHaveBeenCalled();
       expect(window.__testFunction).not.toHaveBeenCalled();
@@ -859,7 +835,7 @@ describe('CopyPaste', () => {
       const plugin = getPlugin('CopyPaste');
 
       await selectCells([[0, 0, 0, 49]]);
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       const pasteEvent = getClipboardEvent({
         target: document.activeElement,

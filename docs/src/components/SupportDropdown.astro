@@ -1,0 +1,180 @@
+---
+/**
+ * Support dropdown for the site header.
+ *
+ * Shows a "Support" button that opens a menu with links to community and
+ * support channels. All links open in a new tab.
+ */
+
+const links = [
+  { label: 'Developers Forum', href: 'https://forum.handsontable.com' },
+  { label: 'GitHub Issues', href: 'https://github.com/handsontable/handsontable/issues' },
+  { label: 'Contact support', href: 'https://handsontable.com/contact?category=technical_support' },
+  { label: 'Schedule a call', href: 'https://meetings-eu1.hubspot.com/aleksandra-budnik/book-a-support-call' },
+];
+---
+
+<div class="support-dropdown">
+  <button
+    class="support-trigger"
+    aria-haspopup="true"
+    aria-expanded="false"
+    id="support-trigger"
+    type="button"
+  >
+    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M15 15l3.35 3.35"/><path d="M9 15l-3.35 3.35"/><path d="M5.65 5.65l3.35 3.35"/><path d="M18.35 5.65l-3.35 3.35"/></svg>
+    Support
+    <svg class="support-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+  </button>
+
+  <ul class="support-menu" role="menu" aria-labelledby="support-trigger" hidden>
+    {links.map(({ label, href }) => (
+      <li role="none">
+        <a
+          href={href}
+          class="support-item"
+          role="menuitem"
+          tabindex="-1"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${label} (opens in new window)`}
+        >
+          {label}
+          <svg aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg>
+        </a>
+      </li>
+    ))}
+  </ul>
+</div>
+
+<script>
+  import { attachDropdownKeyboardNav } from '../scripts/a11y-utils';
+
+  const wrapper = document.querySelector('.support-dropdown') as HTMLElement | null;
+  const trigger = document.getElementById('support-trigger') as HTMLButtonElement | null;
+  const menu = document.querySelector('.support-menu') as HTMLElement | null;
+
+  if (wrapper && trigger && menu) {
+    function openMenu() {
+      menu!.hidden = false;
+      trigger!.setAttribute('aria-expanded', 'true');
+    }
+
+    function closeMenu() {
+      menu!.hidden = true;
+      trigger!.setAttribute('aria-expanded', 'false');
+    }
+
+    trigger.addEventListener('click', () => {
+      const isOpen = !menu.hidden;
+      if (isOpen) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!wrapper.contains(e.target as Node)) {
+        closeMenu();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !menu.hidden) {
+        closeMenu();
+        trigger.focus();
+      }
+    });
+
+    attachDropdownKeyboardNav(trigger, menu, {
+      itemSelector: 'a[role="menuitem"]',
+      onOpen: openMenu,
+      onClose: closeMenu,
+      isOpen: () => !menu.hidden,
+    });
+  }
+</script>
+
+<style>
+  .support-dropdown {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .support-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    background: none;
+    border: none;
+    border-right: 1px solid var(--sl-color-gray-5);
+    color: var(--sl-color-gray-2);
+    cursor: pointer;
+    font-size: var(--sl-text-sm);
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    transition: color 0.15s, border-color 0.15s, background-color 0.15s;
+    white-space: nowrap;
+  }
+
+  .support-trigger:hover {
+    color: var(--sl-color-white);
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+  }
+
+  .support-chevron {
+    flex-shrink: 0;
+    margin-inline-start: 0.1rem;
+    transition: transform 0.15s;
+  }
+
+  .support-trigger[aria-expanded='true'] .support-chevron {
+    transform: rotate(180deg);
+  }
+
+  .support-menu {
+    background: var(--sl-color-bg-nav);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0;
+    box-shadow: none;
+    inset-inline-end: 0;
+    list-style: none;
+    margin: 0;
+    min-width: 11rem;
+    padding: 0;
+    position: absolute;
+    top: 100%;
+    z-index: 100;
+  }
+
+  .support-menu[hidden] {
+    display: none;
+  }
+
+  .support-item {
+    align-items: center;
+    color: var(--sl-color-text);
+    display: flex;
+    font-size: var(--sl-text-sm);
+    gap: 0.4rem;
+    justify-content: space-between;
+    padding: 0.5rem 0.75rem;
+    text-decoration: none;
+    border-bottom: 1px solid var(--sl-color-gray-5);
+    transition: background 0.1s, color 0.1s;
+    white-space: nowrap;
+  }
+
+  .support-item:last-child {
+    border-bottom: none;
+  }
+
+  .support-item:hover,
+  .support-item:focus-visible {
+    background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+    color: var(--sl-color-white);
+    outline: none;
+  }
+</style>

@@ -1,6 +1,7 @@
 import {
   AfterViewInit,
   Component,
+  DestroyRef,
   ElementRef,
   EnvironmentInjector,
   Input,
@@ -9,13 +10,17 @@ import {
   OnDestroy,
   SimpleChanges,
   ViewChild,
-  ViewEncapsulation
+  ViewEncapsulation,
+  inject
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import Handsontable from 'handsontable/base';
 import { HotSettingsResolver } from './services/hot-settings-resolver.service';
 import { HotGlobalConfigService } from './services/hot-global-config.service';
 import { GridSettings } from './models/grid-settings';
-import { Subscription } from 'rxjs';
+import { DynamicComponentService } from './renderer/hot-dynamic-renderer-component.service';
+import { HotInstanceWithAngularInjector } from './editor/models/factory-editor-properties';
+import { skip } from 'rxjs/operators';
 
 export const HOT_DESTROYED_WARNING = 'The Handsontable instance bound to this component was destroyed and cannot be' + ' used properly.';
 
@@ -45,13 +50,14 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   /** The Handsontable instance. */
   private __hotInstance: Handsontable | null = null;
-  private configSubscription: Subscription;
+  private readonly _destroyRef = inject(DestroyRef);
 
   constructor(
     private _hotSettingsResolver: HotSettingsResolver,
     private _hotConfig: HotGlobalConfigService,
     public ngZone: NgZone,
-    private readonly environmentInjector: EnvironmentInjector
+    private readonly environmentInjector: EnvironmentInjector,
+    private readonly _dynamicComponentService: DynamicComponentService
   ) {}
 
   /**
@@ -59,7 +65,7 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    * @returns The Handsontable instance or `null` if it's not yet been created or has been destroyed.
    */
   public get hotInstance(): Handsontable | null {
-    if (!this.__hotInstance || (this.__hotInstance && !this.__hotInstance.isDestroyed)) {
+    if (!this.__hotInstance || !this.__hotInstance.isDestroyed) {
       // Will return the Handsontable instance or `null` if it's not yet been created.
       return this.__hotInstance;
     } else {
@@ -81,20 +87,20 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    * The initial settings of the table are also prepared here
    */
   ngAfterViewInit(): void {
-    let options: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(this.settings, this.ngZone);
+    let options: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(this.settings);
 
     const negotiatedSettings = this.getNegotiatedSettings(options);
-    options = { ...options, ...negotiatedSettings, data: this.data };
+    options = { ...options, ...negotiatedSettings, ...(this.data != null ? { data: this.data } : {}) };
 
     this.ngZone.runOutsideAngular(() => {
       this.hotInstance = new Handsontable.Core(this.container.nativeElement, options);
 
-      (this.hotInstance as any)._angularEnvironmentInjector = this.environmentInjector;
+      (this.hotInstance as HotInstanceWithAngularInjector)._angularEnvironmentInjector = this.environmentInjector;
 
       this.hotInstance.init();
     });
 
-    this.configSubscription = this._hotConfig.config$.subscribe((config) => {
+    this._hotConfig.config$.pipe(skip(1), takeUntilDestroyed(this._destroyRef)).subscribe((config) => {
       if (this.hotInstance) {
         const negotiatedSettings = this.getNegotiatedSettings(this.settings);
         this.updateHotTable(negotiatedSettings);
@@ -108,12 +114,37 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
 
     if (changes.settings && !changes.settings.firstChange) {
+      // Capture old editor refs before applying new settings so HOT can close any active editor first.
+      const prevColumns = this.__hotInstance?.getSettings().columns;
+      const prevColumnsArray = Array.isArray(prevColumns) ? prevColumns : undefined;
+
+      // Pass the previous columns so unchanged editor types recycle their existing component
+      // instead of creating a fresh one on every settings change.
       const newOptions: Handsontable.GridSettings = this._hotSettingsResolver.applyCustomSettings(
         changes.settings.currentValue,
-        this.ngZone
+        prevColumnsArray
       );
 
+      // updateHotTable closes any active editor via HOT.updateSettings before we destroy old refs.
       this.updateHotTable(newOptions);
+
+      // Only destroy old editor refs when new settings actually replace columns.
+      // If newOptions has no columns, HOT keeps the old column objects active — destroying
+      // their refs would crash FactoryEditorAdapter / BaseEditorAdapter on next edit.
+      if (prevColumnsArray && Array.isArray(newOptions.columns)) {
+        // Refs recycled into the new columns must survive — destroy only the ones left behind.
+        const reusedRefs = new Set(
+          newOptions.columns
+            .map((column) => column._editorComponentReference)
+            .filter((ref): ref is NonNullable<typeof ref> => !!ref)
+        );
+
+        prevColumnsArray.forEach((column) => {
+          if (column._editorComponentReference && !reusedRefs.has(column._editorComponentReference)) {
+            column._editorComponentReference.destroy();
+          }
+        });
+      }
     }
 
     if (changes.data && !changes.data.firstChange) {
@@ -126,11 +157,16 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
    */
   ngOnDestroy(): void {
     this.ngZone.runOutsideAngular(() => {
-      if (!this.hotInstance) {
+      if (!this.__hotInstance || this.__hotInstance.isDestroyed) {
         return;
       }
 
-      const columns = this.hotInstance.getSettings().columns;
+      // Destroy renderer Angular components attached to table cells before HOT removes the DOM.
+      if (this.container) {
+        this._dynamicComponentService.cleanupContainer(this.container.nativeElement, this.__hotInstance);
+      }
+
+      const columns = this.__hotInstance.getSettings().columns;
 
       if (columns && Array.isArray(columns)) {
         columns.forEach((column) => {
@@ -140,10 +176,8 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
         });
       }
 
-      this.hotInstance.destroy();
+      this.__hotInstance.destroy();
     });
-
-    this.configSubscription.unsubscribe();
   }
 
   /**
@@ -155,8 +189,19 @@ export class HotTableComponent implements AfterViewInit, OnChanges, OnDestroy {
       return;
     }
 
+    const initOnlySettingKeys = new Set<string>(
+      (this.hotInstance.getSettings() as any)?._initOnlySettings ?? []
+    );
+    const filteredSettings: Handsontable.GridSettings = {};
+
+    for (const key of Object.keys(newSettings)) {
+      if (!initOnlySettingKeys.has(key)) {
+        (filteredSettings as any)[key] = (newSettings as any)[key];
+      }
+    }
+
     this.ngZone.runOutsideAngular(() => {
-      this.hotInstance?.updateSettings(newSettings, false);
+      this.hotInstance?.updateSettings(filteredSettings, false);
     });
   }
 

@@ -1,5 +1,5 @@
 ---
-id: 1xi1xek4
+type: how-to
 title: Dialog
 metaTitle: Dialog - JavaScript Data Grid | Handsontable
 description: Display modal dialogs, alerts, loading indicators, and notifications to enhance user interaction and provide feedback in your data grid application.
@@ -13,17 +13,14 @@ tags:
   - confirm
   - prompt
 react:
-  id: 55z3zjaz
   metaTitle: Dialog - React Data Grid | Handsontable
 angular:
-  id: vq1llzfz
   metaTitle: Dialog - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Dialog - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Dialog
 ---
-
-# Dialog
-
 Display modal dialogs, alerts, loading indicators, and notifications to enhance user interaction and provide feedback in your data grid application.
 
 [[toc]]
@@ -71,6 +68,16 @@ To enable the Dialog plugin, set the [`dialog`](@/api/options.md#dialog) option 
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code collapse={11-32,50-54}](@/content/guides/dialog/dialog/vue/example1.vue)
+
+:::
+
+:::
+
 ## Content types
 
 The dialog supports multiple content types including plain text, HTML strings, and DOM elements.
@@ -108,6 +115,18 @@ The dialog supports multiple content types including plain text, HTML strings, a
 
 :::
 
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code collapse={11-32,55-57}](@/content/guides/dialog/dialog/vue/example2.vue)
+
+:::
+
+:::
+
 ### HTML content
 
 ::: only-for javascript
@@ -138,6 +157,16 @@ The dialog supports multiple content types including plain text, HTML strings, a
 
 @[code](@/content/guides/dialog/dialog/angular/example3.ts)
 @[code](@/content/guides/dialog/dialog/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code collapse={11-32,55-67}](@/content/guides/dialog/dialog/vue/example3.vue)
 
 :::
 
@@ -177,6 +206,16 @@ The plugin offers two new methods to display predefined dialog templates: [`show
 :::
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code collapse={11-32,50-147}](@/content/guides/dialog/dialog/vue/example4.vue)
+
+:::
+
+:::
+
 ## Background variants
 
 The dialog supports two background variants: `solid` and `semi-transparent`.
@@ -210,6 +249,16 @@ The dialog supports two background variants: `solid` and `semi-transparent`.
 
 @[code](@/content/guides/dialog/dialog/angular/example5.ts)
 @[code](@/content/guides/dialog/dialog/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code collapse={19-40,95-101}](@/content/guides/dialog/dialog/vue/example5.vue)
 
 :::
 
@@ -252,6 +301,15 @@ The dialog content can have a background color using the `contentBackground` opt
 
 :::
 
+::: only-for vue
+
+::: example #example6 :vue3
+
+@[code collapse={11-32,55-57}](@/content/guides/dialog/dialog/vue/example6.vue)
+
+:::
+
+:::
 
 ## Dialog accessibility
 
@@ -290,6 +348,16 @@ The dialog plugin provides accessibility features through ARIA attributes. You c
 
 @[code](@/content/guides/dialog/dialog/angular/example7.ts)
 @[code](@/content/guides/dialog/dialog/angular/example7.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example7 :vue3
+
+@[code collapse={11-32,59-61}](@/content/guides/dialog/dialog/vue/example7.vue)
 
 :::
 
@@ -335,7 +403,30 @@ You can control the dialog programmatically using the plugin's methods.
 
 :::
 
+::: only-for vue
+
+::: example #example8 :vue3
+
+@[code collapse={11-32,52-58}](@/content/guides/dialog/dialog/vue/example8.vue)
+
+:::
+
+:::
+
 ## Related API reference
 
-- [Options: `dialog`](@/api/options.md#dialog)
-- [Plugins: `Dialog`](@/api/dialog.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [dialog](@/api/options.md#dialog)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [Dialog](@/api/dialog.md)
+
+</div>

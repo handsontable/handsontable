@@ -1,22 +1,19 @@
 ---
-id: k5920uow
+type: how-to
 title: Merge cells
 metaTitle: Merge cells - JavaScript Data Grid | Handsontable
 description: Merge adjacent cells, using the "Ctrl + M" shortcut or the context menu. Control merged cells, using Handsontable's API.
 permalink: /merge-cells
 canonicalUrl: /merge-cells
 react:
-  id: ulndkavi
   metaTitle: Merge cells - React Data Grid | Handsontable
 angular:
-  id: pbcdsao1
   metaTitle: Merge cells - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Merge cells - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---
-
-# Merge cells
-
 Merge adjacent cells, using the <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> shortcut or the context menu. Control merged cells, using Handsontable's API.
 
 [[toc]]
@@ -51,6 +48,16 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = {
+  mergeCells: [{ row: 1, col: 1, rowspan: 2, colspan: 2 }],
+};
+```
+
+:::
+
 ::: only-for javascript
 
 ::: example #example1 --js 1 --ts 2
@@ -79,6 +86,16 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 
 @[code](@/content/guides/cell-features/merge-cells/angular/example1.ts)
 @[code](@/content/guides/cell-features/merge-cells/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-features/merge-cells/vue/example1.vue)
 
 :::
 
@@ -125,6 +142,19 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = {
+  mergeCells: {
+    virtualized: true,
+    cells: [{ row: 1, col: 1, rowspan: 200, colspan: 2 }],
+  },
+};
+```
+
+:::
+
 The example below uses virtualized merged cells. It's also recommended to increase the buffer of rendered rows/columns to minimize the flickering effects.
 
 ::: only-for javascript
@@ -160,24 +190,64 @@ The example below uses virtualized merged cells. It's also recommended to increa
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-features/merge-cells/vue/example2.vue)
+
+:::
+
+:::
+
+## Behavior during row/column reorder and column freeze
+
+When a merged cell's underlying rows or columns are reordered (through [`manualColumnMove`](@/api/options.md#manualcolumnmove), [`manualRowMove`](@/api/options.md#manualrowmove), or [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze)), Handsontable follows the merge to the new visual position. Two side effects can occur:
+
+- **Auto-split**: if the move bisects a merge so the underlying cells are no longer contiguous in the new visual order, the merge is split into separate merges, one per contiguous run. The cross-axis span (`rowspan` for column moves, `colspan` for row moves) is preserved on every fragment.
+- **Silent drop of single-cell fragments**: any resulting fragment that ends up as a single cell (`rowspan === 1 && colspan === 1`) is removed, because a single cell is no longer a merge. The [`afterMergeCells`](@/api/hooks.md#aftermergecells) hook is not fired for the dropped fragment.
+
+[`undo`](@/api/options.md#undo) and [`redo`](@/api/options.md#redo) restore the pre-move state, including any merges that were split or dropped by the reorder.
+
 ## Related keyboard shortcuts
 
 | Windows                                | macOS                                  | Action                              |  Excel  | Sheets  |
 | -------------------------------------- | -------------------------------------- | ----------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
+| <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>**M**</kbd> | Merge or unmerge the selected cells | &cross; | &cross; |
 
 ## Related API reference
 
-- Configuration options:
-  - [`mergeCells`](@/api/options.md#mergecells)
-  - [`viewportColumnRenderingThreshold`](@/api/options.md#viewportcolumnrenderingthreshold)
-  - [`viewportRowRenderingThreshold`](@/api/options.md#viewportrowrenderingthreshold)
-  - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
-  - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
-- Hooks:
-  - [`afterMergeCells`](@/api/hooks.md#aftermergecells)
-  - [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells)
-  - [`beforeMergeCells`](@/api/hooks.md#beforemergecells)
-  - [`beforeUnmergeCells`](@/api/hooks.md#beforeunmergecells)
-- Plugins:
-  - [`MergeCells`](@/api/mergeCells.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [mergeCells](@/api/options.md#mergecells)
+- [viewportColumnRenderingThreshold](@/api/options.md#viewportcolumnrenderingthreshold)
+- [viewportRowRenderingThreshold](@/api/options.md#viewportrowrenderingthreshold)
+- [viewportColumnRenderingOffset](@/api/options.md#viewportcolumnrenderingoffset)
+- [viewportRowRenderingOffset](@/api/options.md#viewportrowrenderingoffset)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterMergeCells](@/api/hooks.md#aftermergecells)
+- [afterUnmergeCells](@/api/hooks.md#afterunmergecells)
+- [beforeMergeCells](@/api/hooks.md#beforemergecells)
+- [beforeUnmergeCells](@/api/hooks.md#beforeunmergecells)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [MergeCells](@/api/mergeCells.md)
+
+</div>
+
+## Result
+
+Cells at the configured positions are now merged. Users see a single cell spanning multiple rows or columns.

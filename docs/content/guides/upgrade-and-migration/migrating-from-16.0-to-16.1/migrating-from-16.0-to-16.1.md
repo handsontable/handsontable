@@ -1,5 +1,5 @@
 ---
-id: sf7vrh9z
+type: how-to
 title: Migrating from 16.0 to 16.1
 metaTitle: Migrating from 16.0 to 16.1 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 16.0 to Handsontable 16.1, released on September 15, 2025.
@@ -7,17 +7,14 @@ permalink: /migration-from-16.0-to-16.1
 canonicalUrl: /migration-from-16.0-to-16.1
 pageClass: migration-guide
 react:
-  id: 1k2grh9z
   metaTitle: Migrate from 16.0 to 16.1 - React Data Grid | Handsontable
 angular:
-  id: bv25a4sd
   metaTitle: Migrate from 16.0 to 16.1 - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Migrate from 16.0 to 16.1 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
-
-# Migrate from 16.0 to 16.1
-
 Migrate from Handsontable 16.0 to Handsontable 16.1, released on September 15, 2025.
 
 More information about this release can be found in the [`16.1.0` release blog post](https://handsontable.com/blog/handsontable-16.1-row-pagination-loading-plugin-and-long-term-support-policy).<br/>
@@ -27,7 +24,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 ## 1. Migrate from Legacy Styles to Classic Theme
 
-Handsontable 16.1 introduces a new **Classic** theme that replaces the legacy theme. The legacy styles will be removed in version 17.0.
+Handsontable 16.1 introduces a new **Classic** theme that replaces the legacy theme. Handsontable 17.0 will remove the legacy styles.
 
 ### What Changed
 
@@ -37,7 +34,7 @@ Handsontable 16.1 introduces a new **Classic** theme that replaces the legacy th
 
 ### Why This Change
 
-The legacy style was built with hardcoded styles that couldn't be customized. The new Classic theme provides the same visual appearance but with the flexibility of CSS variables, making it easier to customize and maintain consistency with your application's design system.
+The legacy style uses hardcoded styles that cannot be customized. The new Classic theme provides the same visual appearance but with the flexibility of CSS variables, making it easier to customize and maintain consistency with your application's design system.
 
 ### How to Migrate
 
@@ -140,6 +137,10 @@ The new theme supports over 180 CSS variables for [customization](@/guides/styli
 ### Timeline
 
 - **Version 16.1**: New Classic theme introduced
-- **Version 17.0**: Legacy style will be removed
+- **Version 17.0**: Handsontable removes the legacy style
 
 We recommend migrating as soon as possible to avoid issues when version 17.0 is released.
+
+## Result
+
+Your application now runs on Handsontable 16.1.

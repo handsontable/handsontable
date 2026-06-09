@@ -1,6 +1,7 @@
 .eslintcache
 .stylelintcache
 test/E2ERunner.html
+test/E2ERunner-*.html
 test/UnitRunner.html
 test/MobileRunner.html
 test/dist/
@@ -19,5 +20,7 @@ commonjs/
 es/
 coverage/
 tmp/
+tmp_styles/
 /styles/
 src/styles/handsontableStyles.js
+src/styles/handsontableStyles.ts

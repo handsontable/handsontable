@@ -1,22 +1,19 @@
 ---
-id: hpr42b2a
+type: reference
 title: Documentation license
 metaTitle: Documentation license - JavaScript Data Grid | Handsontable
 description: Learn about the licensing terms of Handsontable's documentation.
 permalink: /documentation-license
 canonicalUrl: /documentation-license
 react:
-  id: u3lvnmzh
   metaTitle: Documentation license - React Data Grid | Handsontable
 angular:
-  id: g9ytiw67
   metaTitle: Documentation license - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Documentation license - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Technical specification
 ---
-
-# Documentation license
-
 Learn about the licensing terms of Handsontable's documentation.
 
 [[toc]]

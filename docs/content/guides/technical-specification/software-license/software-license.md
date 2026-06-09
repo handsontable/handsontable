@@ -1,22 +1,19 @@
 ---
-id: jgk5hkn4
+type: reference
 title: Software license
 metaTitle: Software license - JavaScript Data Grid | Handsontable
 description: Learn about the licensing terms of the Handsontable data grid.
 permalink: /software-license
 canonicalUrl: /software-license
 react:
-  id: ea206i3o
   metaTitle: Software license - React Data Grid | Handsontable
 angular:
-  id: fe9wliki
   metaTitle: Software license - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Software license - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Technical specification
 ---
-
-# Software license
-
 Learn about the licensing terms of the Handsontable data grid.
 
 [[toc]]
@@ -88,7 +85,7 @@ For many years Handsontable was available as an open-source software, and releas
 
 ### Related guides
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [License key](@/guides/getting-started/license-key/license-key.md)
 
@@ -96,5 +93,14 @@ For many years Handsontable was available as an open-source software, and releas
 
 ### Related API reference
 
-- Options:
-  - [`licenseKey`](@/api/options.md#licensekey)
+**Options:**
+
+<div class="boxes-list">
+
+- [`licenseKey`](@/api/options.md#licensekey)
+
+</div>
+
+## Next steps
+
+To purchase a commercial license or talk to the sales team, visit the [pricing page](https://handsontable.com/pricing) or contact [sales@handsontable.com](mailto:sales@handsontable.com).

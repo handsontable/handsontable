@@ -1,11 +1,12 @@
 /* file: app.component.ts */
-import {Component, ViewChild, ViewEncapsulation} from '@angular/core';
-import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
+import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
 
 @Component({
   selector: 'example1-saving-data',
-  standalone: false,
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <div class="example-controls-container">
       <div class="controls">
         <button
@@ -40,7 +41,7 @@ import Handsontable from 'handsontable/base';
     </div>`,
   encapsulation: ViewEncapsulation.None
 })
-export class Example1SavingDataComponent {
+export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   isAutoSave = false;
@@ -67,7 +68,7 @@ export class Example1SavingDataComponent {
         return;
       }
 
-      fetch('https://handsontable.com/docs/scripts/json/save.json', {
+      fetch('/docs/scripts/json/save.json', {
         method: 'POST',
         mode: 'no-cors',
         headers: {
@@ -98,7 +99,7 @@ export class Example1SavingDataComponent {
   loadClickCallback(event: MouseEvent): void {
     const hot = this.hotTable?.hotInstance;
 
-    fetch('https://handsontable.com/docs/scripts/json/load.json').then(
+    fetch('/docs/scripts/json/load.json').then(
       (response) => {
         response.json().then((data) => {
           hot?.loadData(data.data);
@@ -113,7 +114,7 @@ export class Example1SavingDataComponent {
     const hot = this.hotTable?.hotInstance;
 
     // save all cell's data
-    fetch('https://handsontable.com/docs/scripts/json/save.json', {
+    fetch('/docs/scripts/json/save.json', {
       method: 'POST',
       mode: 'no-cors',
       headers: {
@@ -129,37 +130,22 @@ export class Example1SavingDataComponent {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example1SavingDataComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ Example1SavingDataComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ Example1SavingDataComponent ]
-})
-
-export class AppModule { }
 /* end-file */

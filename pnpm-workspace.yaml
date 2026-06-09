@@ -8,6 +8,8 @@ packages:
   - wrappers/*
   - visual-tests
   - examples
+  - docs
+  - docs/angular-type-check
 
 ignoredBuiltDependencies:
   - nice-napi

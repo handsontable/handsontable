@@ -1,14 +1,16 @@
 module.exports = {
   testEnvironment: 'jsdom',
+  setupFiles: ['<rootDir>/test/cryptoSetup.js'],
   roots: [
-    '<rootDir>/src'
+    '<rootDir>/src',
+    '<rootDir>/test'
   ],
   coverageDirectory: '<rootDir>/coverage',
   coverageReporters: ['json', 'lcov', 'clover'],
   setupFilesAfterEnv: [
     '<rootDir>/test/bootstrap.js'
   ],
-  testRegex: '\\.unit\\.js$',
+  testRegex: '\\.(unit\\.js|unit\\.ts)$',
   testPathIgnorePatterns: [
     '<rootDir>/node_modules/'
   ],

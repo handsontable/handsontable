@@ -29,6 +29,8 @@ describe('NestedHeaders', () => {
         ],
       });
 
+      const widthBefore = colWidth(spec().$container, 1);
+
       getTopClone().find('thead tr:eq(1) th:eq(2)').simulate('mouseover');
       const $resizer = spec().$container.find('.manualColumnResizer');
       const resizerPosition = $resizer.position();
@@ -37,11 +39,9 @@ describe('NestedHeaders', () => {
       $resizer.simulate('mousemove', { clientX: resizerPosition.left - 50 });
       $resizer.simulate('mouseup');
 
-      expect(colWidth(spec().$container, 1)).forThemes(({ classic, main, horizon }) => {
-        classic.toBe(28);
-        main.toBe(37);
-        horizon.toBe(45);
-      });
+      // The column should have been resized down by approximately 50px.
+      expect(colWidth(spec().$container, 1))
+        .toBeAroundValue(widthBefore - 50);
     });
 
     it('should be possible to resize a column using the `manualColumnSize` settings when both `manualColumnResize` and `nestedHeaders` plugins are enabled', async() => {

@@ -1,0 +1,117 @@
+.import-csv-excel-wrap {
+  display: flex;
+  flex-direction: column;
+  margin: 0 -1rem;
+}
+
+.import-dropzone {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  border: 0;
+  border-bottom: 1px solid var(--sl-color-gray-5, #e0e0e0);
+  border-radius: 0;
+  background: transparent;
+  color: var(--sl-color-gray-2, #555555);
+  font-size: var(--sl-text-xs, 0.75rem);
+  transition: background 0.15s ease;
+}
+
+.import-dropzone p {
+  margin: 0 0 0.75rem;
+}
+
+.import-dropzone.import-dropzone--active {
+  background: var(--sl-color-gray-6, #eeeeee);
+}
+
+.import-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.import-file-label {
+  display: inline-block;
+  cursor: pointer;
+}
+
+.import-file-label span,
+.import-sample-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid var(--sl-color-gray-5, #e0e0e0);
+  border-radius: 0;
+  background: var(--sl-color-gray-6, #eeeeee);
+  color: var(--sl-color-gray-2, #555555);
+  font-family: var(--sl-font, Inter, system-ui, -apple-system, sans-serif);
+  font-size: var(--sl-text-xs, 0.75rem);
+  font-weight: 500;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.import-file-label:hover span,
+.import-sample-btn:hover {
+  background: var(--sl-color-gray-5, #e0e0e0);
+  color: var(--sl-color-white, #333333);
+}
+
+.import-file-label input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.import-msg {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  border-radius: 0;
+  font-size: var(--sl-text-xs, 0.75rem);
+}
+
+.import-msg--error {
+  border-bottom: 1px solid var(--sl-color-red, #ef4444);
+  background: var(--sl-color-red-low, rgba(239, 68, 68, 0.12));
+  color: var(--sl-color-red, #ef4444);
+}
+
+.import-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2.5rem 1rem;
+  min-height: 200px;
+  color: var(--sl-color-gray-2, #555555);
+  text-align: center;
+}
+
+.import-empty-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 0.25rem;
+  border: 1px solid var(--sl-color-gray-5, #e0e0e0);
+  color: var(--sl-color-gray-3, #777777);
+}
+
+.import-empty-title {
+  margin: 0;
+  color: var(--sl-color-white, #333333);
+  font-size: var(--sl-text-sm, 0.875rem);
+  font-weight: 600;
+}
+
+.import-empty-text {
+  margin: 0;
+  max-width: 38ch;
+  font-size: var(--sl-text-xs, 0.75rem);
+  line-height: 1.5;
+}

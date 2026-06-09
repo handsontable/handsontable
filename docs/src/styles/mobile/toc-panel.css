@@ -1,0 +1,76 @@
+/* -------------------------------------------------------------------------
+ * Mobile ToC panel — slides down from sub-bar
+ * ------------------------------------------------------------------------- */
+.mobile-toc-panel {
+  position: fixed;
+  top: calc(var(--sl-nav-height) + var(--sl-mobile-subheader-height));
+  left: 0;
+  right: 0;
+  z-index: 10049;
+  background: var(--sl-color-bg);
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  max-height: 60vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.75rem 1rem;
+}
+
+.mobile-toc-panel[hidden] {
+  display: none !important;
+}
+
+.mobile-toc-panel nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.mobile-toc-panel nav li {
+  margin: 0;
+}
+
+.mobile-toc-panel nav a {
+  display: block;
+  padding: 0.375rem 0.5rem;
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-gray-2);
+  text-decoration: none;
+  border-inline-start: 2px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  line-height: 20px;
+}
+
+.mobile-toc-panel nav a:hover {
+  color: var(--sl-color-white);
+  border-inline-start-color: var(--sl-color-gray-4);
+}
+
+.mobile-toc-panel nav a[aria-current='true'],
+.mobile-toc-panel nav a[aria-current='true']:hover,
+.mobile-toc-panel nav a[aria-current='true']:focus {
+  color: var(--sl-color-text);
+  background-color: transparent;
+  border-inline-start-color: var(--sl-color-accent);
+}
+
+/* Indent nested ToC levels */
+.mobile-toc-panel nav ul ul {
+  padding-inline-start: 1rem;
+}
+
+/* Hide the "Overview" / #_top link in mobile ToC too */
+.mobile-toc-panel nav a[href='#_top'] {
+  display: none;
+}
+
+/* On tablet, ToC panel starts after left sidebar */
+@media (min-width: 50rem) and (max-width: 71.99rem) {
+  .mobile-toc-panel {
+    left: var(--sl-sidebar-width, 18.75rem);
+    transition: left 0.2s ease;
+  }
+
+  body[data-sidebar-collapsed] .mobile-toc-panel {
+    left: 0;
+  }
+}

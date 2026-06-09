@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed rounded corners that may be applied in incorrect use cases",
-  "type": "fixed",
-  "issueOrPR": 12052,
-  "breaking": false,
-  "framework": "none"
-}

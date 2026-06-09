@@ -1,25 +1,8 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import numbro from 'numbro';
-import jaJP from 'numbro/languages/ja-JP';
-import trTR from 'numbro/languages/tr-TR';
 
 // Register all Handsontable's modules.
 registerAllModules();
-// register the languages you need
-numbro.registerLanguage(jaJP);
-numbro.registerLanguage(trTR);
-
-// define formats
-const formatJP = {
-  pattern: '0,0.00 $',
-  culture: 'ja-JP',
-};
-
-const formatTR = {
-  pattern: '0,0.00 $',
-  culture: 'tr-TR',
-};
 
 const container = document.querySelector('#example3');
 
@@ -51,13 +34,25 @@ new Handsontable(container, {
       data: 'JP_price',
       type: 'numeric',
       width: '150',
-      numericFormat: formatJP,
+      locale: 'ja-JP',
+      numericFormat: {
+        style: 'decimal',
+        useGrouping: true,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      },
     },
     {
       data: 'TR_price',
       type: 'numeric',
       width: '150',
-      numericFormat: formatTR,
+      locale: 'tr-TR',
+      numericFormat: {
+        style: 'decimal',
+        useGrouping: true,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      },
     },
   ],
   autoRowSize: false,

@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: e23f98e7
 title: Feedback
 metaTitle:  Feedback Cell Type - JavaScript Data Grid | Handsontable
@@ -15,33 +16,14 @@ react:
 angular:
   id: 8e13e6d5
   metaTitle: Feedback Cell Type - Angular Data Grid | Handsontable
+vue:
+  id: n99hdtp4
+  metaTitle: Feedback Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
 ---
 
-# Feedback Cell Type - Step-by-Step Guide
-
-[[toc]]
-
-## Overview
-
-This guide shows how to create a simple feedback editor cell using emoji buttons. Perfect for quick feedback selection, status indicators, or any scenario where users need to choose from a small set of visual options.
-
-**Difficulty:** Beginner
-**Time:** ~15 minutes
-**Libraries:** None (pure HTML)
-
-## What You'll Build
-
-A cell that:
-- Displays emoji feedback buttons (rounded) when editing
-- Shows the selected emoji when viewing
-- Uses Handsontable CSS tokens for theme-aware styling
-- Supports keyboard navigation (arrow keys, Tab)
-- Provides click-to-select functionality
-- Works without any external libraries
-
-## Complete Example
+This tutorial shows you how to build an emoji feedback cell using Handsontable's `editorFactory` helper, with Handsontable CSS tokens for theme-aware styling and keyboard navigation.
 
 ::: only-for javascript vue
 
@@ -54,6 +36,47 @@ A cell that:
 :::
 
 :::
+
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+
+@[code](@/content/recipes/cell-types/feedback/react/example1.css)
+@[code](@/content/recipes/cell-types/feedback/react/example1.jsx)
+@[code](@/content/recipes/cell-types/feedback/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --css 3
+
+@[code](@/content/recipes/cell-types/feedback/angular/example1.ts)
+@[code](@/content/recipes/cell-types/feedback/angular/example1.html)
+@[code](@/content/recipes/cell-types/feedback/angular/example1.css)
+
+:::
+
+:::
+
+## Overview
+
+This guide shows how to create a feedback editor cell using emoji buttons. Use it for status indicators or any scenario where users choose from a small set of visual options.
+
+**Difficulty:** Beginner
+**Time:** ~15 minutes
+**Libraries:** None (pure HTML)
+
+## What You'll Build
+
+A cell that:
+- Displays emoji feedback buttons (rounded) when editing
+- Shows the selected emoji when viewing
+- Uses Handsontable CSS tokens for theme-aware styling
+- Supports keyboard navigation (arrow keys, <kbd>Tab</kbd>)
+- Provides click-to-select functionality
+- Works without any external libraries
 
 ## Prerequisites
 
@@ -74,7 +97,7 @@ registerAllModules();
 - No date libraries
 - No UI component libraries
 - No external emoji libraries
-- Just Handsontable.
+- Handsontable only.
 
 ## Step 2: Add CSS Styling
 
@@ -141,8 +164,14 @@ Create the DOM structure with emoji buttons, this function will be called only o
 init(editor) {
   editor.input = document.createElement('DIV') as HTMLDivElement;
   editor.input.classList.add('feedback-editor');
+  editor._openedAt = 0;
 
   editor.input.addEventListener('click', (event) => {
+    // Ignore synthetic click events that Android fires right after the editor
+    // opens — they land on the button that just appeared at the touch position.
+    if (Date.now() - editor._openedAt < 300) {
+      return;
+    }
     if (event.target instanceof HTMLButtonElement) {
       editor.setValue(event.target.innerText);
       editor.finishEditing();
@@ -208,8 +237,8 @@ shortcuts: [
 ```
 
 **What's happening:**
-- **ArrowRight**: Move to next option (wraps to first if at end)
-- **ArrowLeft**: Move to previous option (wraps to last if at start)
+- <kbd>ArrowRight</kbd>: Move to next option (wraps to first if at end)
+- <kbd>ArrowLeft</kbd>: Move to previous option (wraps to last if at start)
 - Finds current index in config array
 - Updates value and triggers render automatically
 
@@ -221,8 +250,8 @@ shortcuts: [
 ## Step 6: Editor – Custom Tab Key Behavior
 
 By default, pressing <kbd>Tab</kbd> in Handsontable saves the cell and moves the selection horizontally, following your [layout direction](@/guides/internationalization/layout-direction/layout-direction.md#elements-affected-by-layout-direction).
-In this example, we want <kbd>Tab</kbd> to cycle through feedback options—just like the arrow keys—without moving to another cell.
-To achieve this, we use the editor's `shortcuts`  and return `false` in callback to prevent the default action (saving and moving to the next cell).
+In this example, <kbd>Tab</kbd> cycles through feedback options -- the same as the arrow keys -- without moving to another cell.
+The editor's `shortcuts` option handles this by returning `false` in the callback to prevent the default action (saving and moving to the next cell).
 
 ```typescript
 shortcuts: [
@@ -303,13 +332,20 @@ const cellDefinition = {
     init: (editor) => {
       editor.input = document.createElement('DIV') as HTMLDivElement;
       editor.input.classList.add('feedback-editor');
+      editor._openedAt = 0;
       editor.input.addEventListener('click', (event) => {
+        if (Date.now() - editor._openedAt < 300) {
+          return;
+        }
         if (event.target instanceof HTMLButtonElement) {
           editor.setValue(event.target.innerText);
           editor.finishEditing();
         }
       });
       editor.render(editor);
+    },
+    afterOpen: (editor) => {
+      editor._openedAt = Date.now();
     },
     beforeOpen: (editor, { originalValue, cellProperties }) => {
       editor.setValue(originalValue);
@@ -321,7 +357,7 @@ const cellDefinition = {
 **What's happening:**
 - **config**: Array of emoji options (`👍`, `👎`, `🤷`)
 - **value**: Default/initial value
-- **shortcuts**: Keyboard navigation (ArrowLeft/Right cycle options, Tab cycles and prevents default)
+- **shortcuts**: Keyboard navigation (<kbd>ArrowLeft</kbd>/<kbd>ArrowRight</kbd> cycle options, <kbd>Tab</kbd> cycles and prevents default)
 - **render**: Creates button HTML with `active` CSS class for the selected option
 - **init**: Sets up the container with `feedback-editor` class and click handler
 - **beforeOpen**: Initializes editor with the current cell value
@@ -373,13 +409,13 @@ const hot = new Handsontable(container, hotOptions);
 ## How It Works - Complete Flow
 
 1. **Initial Render**: Cell displays the emoji value (👍, 👎, or 🤷)
-2. **User Double-Clicks or Enter**: Editor opens over cell showing three rounded buttons with the Handsontable blue border
+2. **User Double-Clicks or <kbd>Enter</kbd>**: Editor opens over cell showing three rounded buttons with the Handsontable blue border
 3. **Button Display**: All options visible, current value highlighted using `--ht-accent-color`
 4. **User Interaction**:
    - Click a button: Selects value and closes editor
-   - Press ArrowLeft/Right: Cycles through options
-   - Press Tab: Cycles through options (stays in editor)
-   - Enter key saves value and closes editor
+   - Press <kbd>ArrowLeft</kbd>/<kbd>ArrowRight</kbd>: Cycles through options
+   - Press <kbd>Tab</kbd>: Cycles through options (stays in editor)
+   - <kbd>Enter</kbd> key saves value and closes editor
 5. **Visual Feedback**: Selected button highlighted with accent color
 6. **Save**: Value saved to cell
 7. **Editor Closes**: Cell shows selected emoji
@@ -442,12 +478,21 @@ config: ['Positive', 'Negative', 'Neutral'],
 ## Accessibility
 
 **Keyboard navigation:**
-- **Tab**: Cycles through feedback options (stays in editor)
-- **Arrow Left/Right**: Cycles through options
-- **Enter**: Saves value and closes editor
-- **Escape**: Cancels editing
+- <kbd>Tab</kbd>: Cycles through feedback options (stays in editor)
+- <kbd>ArrowLeft</kbd> / <kbd>ArrowRight</kbd>: Cycles through options
+- <kbd>Enter</kbd>: Saves value and closes editor
+- <kbd>Escape</kbd>: Cancels editing
 - **Click**: Direct selection
 
 ---
 
-**Congratulations!** You've created a theme-aware feedback editor with emoji buttons using Handsontable CSS tokens, perfect for quick feedback selection in your data grid!
+
+## What you learned
+
+You built an emoji feedback cell editor using Handsontable's `editorFactory` helper. You used Handsontable CSS custom properties to style the editor in a theme-aware way, and registered the result as a reusable cell type with `registerCellType`.
+
+## Next steps
+
+- [Feedback (React)](@/react/recipes/cell-types/feedback-react/feedback-react.md) - The same pattern using React's `EditorComponent`.
+- [Feedback Editor (Angular)](@/angular/recipes/cell-types/guide-feedback-angular/guide-feedback.md) - The Angular version using `HotCellEditorAdvancedComponent`.
+- [Star Rating](@/recipes/cell-types/rating/rating.md) - Another custom editor built with `editorFactory` and SVG stars.

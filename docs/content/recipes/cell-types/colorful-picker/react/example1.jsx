@@ -2,6 +2,7 @@ import { HotTable, HotColumn, EditorComponent } from '@handsontable/react-wrappe
 import { registerAllModules } from 'handsontable/registry';
 import { rendererFactory } from 'handsontable/renderers';
 import { HexColorPicker } from 'react-colorful';
+import './example1.css';
 
 registerAllModules();
 

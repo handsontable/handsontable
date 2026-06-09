@@ -24,7 +24,7 @@ describe('NumericRenderer', () => {
 
     await setDataAtCell(2, 2, '123 simple test');
 
-    await sleep(100);
+    await waitForNextAnimationFrames(2);
 
     expect(getCell(2, 2).innerHTML).toEqual('123 simple test');
   });

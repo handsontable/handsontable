@@ -1,5 +1,5 @@
 ---
-id: 51aacis1
+type: how-to
 title: Export to CSV
 metaTitle: Export to CSV - JavaScript Data Grid | Handsontable
 description: Export your grid's raw data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
@@ -9,17 +9,15 @@ tags:
   - export to file
   - save file
 react:
-  id: sfxo3g54
   metaTitle: Export to CSV - React Data Grid | Handsontable
 angular:
-  id: hwhzgoir
   metaTitle: Export to CSV - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Export to CSV - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
+menuTag: updated
 ---
-
-# Export to CSV
-
 Export your grid's raw data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
 
 [[toc]]
@@ -58,6 +56,14 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 :::
 :::
 
+::: only-for vue
+::: example #example1 :vue3
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example1.vue)
+
+:::
+:::
+
 ### Export as a JavaScript Blob object
 
 Open a console in browser developer tools to see the result for the below example.
@@ -90,6 +96,14 @@ Open a console in browser developer tools to see the result for the below exampl
 :::
 :::
 
+::: only-for vue
+::: example #example2 :vue3
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example2.vue)
+
+:::
+:::
+
 ### Export as a string
 
 Open a console in browser developer tools to see the result for the below example.
@@ -118,6 +132,14 @@ Open a console in browser developer tools to see the result for the below exampl
 
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example3.ts)
 @[code](@/content/guides/accessories-and-menus/export-to-csv/angular/example3.html)
+
+:::
+:::
+
+::: only-for vue
+::: example #example3 :vue3
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example3.vue)
 
 :::
 :::
@@ -157,6 +179,14 @@ To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolea
 :::
 :::
 
+::: only-for vue
+::: example #example4 :vue3
+
+@[code](@/content/guides/accessories-and-menus/export-to-csv/vue/example4.vue)
+
+:::
+:::
+
 ## Available methods
 
 ::: only-for react
@@ -171,21 +201,34 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 
 :::
 
+:::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance methods](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
+
+:::
+
+::::
+
 The plugin exposes the following methods to export data.
 
-- [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - allows you to generate a downloadable file, directly in your browser.
+- [`downloadFile(format, options)`](@/api/exportFile.md#downloadfile) - generates a downloadable file directly in the browser. Synchronous; supports text-based formats only (e.g. CSV). For XLSX, use [`downloadFileAsync`](@/api/exportFile.md#downloadfileasync).
+- [`downloadFileAsync(format, options)`](@/api/exportFile.md#downloadfileasync) - generates a downloadable file and returns a `Promise`. Supports all formats including XLSX.
 - [`exportAsBlob(format, options)`](@/api/exportFile.md#exportasblob) - allows you to export a JavaScript Blob object.
-- [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - allows you to export data as a string.
+- [`exportAsString(format, options)`](@/api/exportFile.md#exportasstring) - allows you to export data as a string. Supports text-based formats only (e.g. CSV).
 
-Each method takes two parameters. The first, `format`, is required; the only supported value is `'csv'`. The second, `options`, is an optional object that overrides or extends the default CSV configuration. The table below lists all supported options.
+Each method takes two parameters. The first, `format`, is required. The second, `options`, is an optional object that overrides or extends the default export configuration. The table below lists all supported options for CSV export.
 
 ## Available options in the export configuration
 
 | Property               | Type / Default                          | Description |
 | ---------------------- | --------------------------------------- | ----------- |
 | `bom`                  | `Boolean`, default `true`               | Prepend output with BOM (UTF-8). Browser uses _EF BB BF_. |
+| `colHeaders`           | `Boolean`, default `false`              | Include column headers. Does not support the [NestedHeaders](@/api/nestedHeaders.md) plugin. |
 | `columnDelimiter`      | `String`, default `','`                | Column delimiter. |
-| `columnHeaders`        | `Boolean`, default `false`              | Include column headers. Does not support the [NestedHeaders](@/api/nestedHeaders.md) plugin. |
 | `exportHiddenColumns`  | `Boolean`, default `false`              | Include hidden columns. |
 | `exportHiddenRows`    | `Boolean`, default `false`              | Include hidden rows. |
 | `fileExtension`       | `String`, default `'csv'`               | File extension. Used by `downloadFile()`. |
@@ -196,7 +239,20 @@ Each method takes two parameters. The first, `format`, is required; the only sup
 | `rowHeaders`           | `Boolean`, default `false`              | Include row headers. |
 | `sanitizeValues`       | `Boolean` \| `RegExp` \| `Function`, default `false` | Value sanitization. `true` = [OWASP CSV injection](https://owasp.org/www-community/attacks/CSV_Injection) rules; `RegExp` = escape matching values; `Function` = replace with return value. |
 
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [Handsontable 15.3.0: CSV sanitization, accessibility updates, and 30+ fixes](https://handsontable.com/blog/handsontable-15.3.0-csv-sanitization-accessibility-updates-and-30-fixes)
+
+</div>
+
 ## Related API reference
 
-- Plugins:
-  - [`ExportFile`](@/api/exportFile.md)
+**Plugins**
+
+<div class="boxes-list">
+
+- [ExportFile](@/api/exportFile.md)
+
+</div>

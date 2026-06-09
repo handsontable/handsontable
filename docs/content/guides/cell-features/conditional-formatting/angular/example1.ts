@@ -1,19 +1,20 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
-import { GridSettings } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
 import { registerRenderer } from 'handsontable/renderers';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 const firstRowRenderer = (
   instance: Handsontable,
   td: HTMLTableCellElement,
   row: number,
   col: number,
-  prop: any,
-  value: any,
-  cellProperties: any
+  prop: string | number,
+  value: Handsontable.CellValue,
+  cellProperties: Handsontable.CellProperties
 ) => {
-  Handsontable.renderers.TextRenderer(
+  textRenderer(
     instance,
     td,
     row,
@@ -32,11 +33,11 @@ const negativeValueRenderer = (
   td: HTMLTableCellElement,
   row: number,
   col: number,
-  prop: any,
-  value: any,
-  cellProperties: any
+  prop: string | number,
+  value: Handsontable.CellValue,
+  cellProperties: Handsontable.CellProperties
 ) => {
-  Handsontable.renderers.TextRenderer(
+  textRenderer(
     instance,
     td,
     row,
@@ -47,7 +48,7 @@ const negativeValueRenderer = (
   );
 
   // if the row contains a negative number
-  if (parseInt(value, 10) < 0) {
+  if (parseInt(value as string, 10) < 0) {
     td.style.color = '#FF5A12';
   }
 
@@ -67,12 +68,13 @@ registerRenderer('negativeValueRenderer', negativeValueRenderer);
 
 @Component({
   selector: 'example1-conditional-formatting',
-  standalone: false,
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
-export class Example1ConditionalFormattingComponent {
+export class AppComponent {
 
   readonly data = [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda'],
@@ -85,10 +87,10 @@ export class Example1ConditionalFormattingComponent {
     autoWrapRow: true,
     autoWrapCol: true,
     height: 'auto',
-    afterSelection: function (this: Handsontable, _row, _col, row2, col2) {
+    afterSelection: function (this: Handsontable, _row: number, _col: number, row2: number, col2: number) {
       const meta = this.getCellMeta(row2, col2);
 
-      if (meta.readOnly) {
+      if (meta['readOnly']) {
         this.updateSettings({
           fillHandle: false,
         });
@@ -98,18 +100,18 @@ export class Example1ConditionalFormattingComponent {
         });
       }
     },
-    cells: function (row, col) {
+    cells: function (row: number, col: number) {
       const cellProperties: Handsontable.CellMeta = {};
-      const data = this.instance.getData();
+      const data = (this as any).instance.getData();
 
       if (row === 0 || (data[row] && data[row][col] === 'readOnly')) {
-        cellProperties.readOnly = true; // make cell read-only if it is first row or the text reads 'readOnly'
+        cellProperties['readOnly'] = true; // make cell read-only if it is first row or the text reads 'readOnly'
       }
 
       if (row === 0) {
-        cellProperties.renderer = firstRowRenderer;
+        cellProperties['renderer'] = firstRowRenderer;
       } else {
-        cellProperties.renderer = 'negativeValueRenderer';
+        cellProperties['renderer'] = 'negativeValueRenderer';
       }
 
       return cellProperties;
@@ -119,37 +121,21 @@ export class Example1ConditionalFormattingComponent {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example1ConditionalFormattingComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ Example1ConditionalFormattingComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ Example1ConditionalFormattingComponent ]
-})
-
-export class AppModule { }
 /* end-file */

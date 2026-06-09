@@ -1,5 +1,5 @@
 ---
-id: 2anhuqf7
+type: how-to
 title: Column freezing
 metaTitle: Column freezing - JavaScript Data Grid | Handsontable
 description: Lock (freeze) the position of specified columns, keeping them visible while scrolling to another area of the grid.
@@ -11,17 +11,14 @@ tags:
   - pinning columns
   - fixedColumns
 react:
-  id: otumcpty
   metaTitle: Column freezing - React Data Grid | Handsontable
 angular:
-  id: i85vqeao
   metaTitle: Column freezing - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column freezing - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
-
-# Column freezing
-
 Lock the position of specified columns, keeping them visible when scrolling.
 
 [[toc]]
@@ -73,6 +70,16 @@ If your [layout direction](@/guides/internationalization/layout-direction/layout
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-freezing/vue/example1.vue)
+
+:::
+
+:::
+
 ## User-triggered freeze
 
 To enable manual column freezing, set [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze) to `true`. This lets you freeze and unfreeze columns by using the grid's [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md).
@@ -112,10 +119,31 @@ Mind that when you unfreeze a frozen column, it doesn't go back to the original 
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/columns/column-freezing/vue/example2.vue)
+
+:::
+
+:::
+
 ## Related API reference
 
-- Configuration options:
-  - [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart)
-  - [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze)
-- Plugins:
-  - [`ManualColumnFreeze`](@/api/manualColumnFreeze.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [fixedColumnsStart](@/api/options.md#fixedcolumnsstart)
+- [manualColumnFreeze](@/api/options.md#manualcolumnfreeze)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ManualColumnFreeze](@/api/manualColumnFreeze.md)
+
+</div>

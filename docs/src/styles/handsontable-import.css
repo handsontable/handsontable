@@ -1,0 +1,6 @@
+/**
+ * Imports Handsontable base styles from the local monorepo build.
+ * The relative path goes up from docs/src/styles/ to the repo root,
+ * then into handsontable/styles/.
+ */
+@import '../../../handsontable/styles/handsontable.min.css';

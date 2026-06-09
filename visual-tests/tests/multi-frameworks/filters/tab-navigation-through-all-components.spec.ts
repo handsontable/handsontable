@@ -1,4 +1,4 @@
-import { test } from '../../../src/test-runner';
+import { test, expect } from '../../../src/test-runner';
 import { helpers } from '../../../src/helpers';
 import { selectCell, tryToEscapeFromTheComponentsFocus } from '../../../src/page-helpers';
 
@@ -32,7 +32,9 @@ test(__filename, async({ tablePage }) => {
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('ArrowDown');
-  await tablePage.keyboard.press('Enter'); // select and accept "Is between" option
+  await tablePage.keyboard.press('ArrowDown');
+  await tablePage.keyboard.press('ArrowDown');
+  await tablePage.keyboard.press('Enter'); // select and accept "Is between" option (9 presses: None→Is empty→Is not empty→Is equal to→Is not equal to→Before→Before or equal to→After→After or equal to→Is between)
   await tryToEscapeFromTheComponentsFocus();
 
   // take a screenshot of the focused input after selecting and accepting the condition option
@@ -67,6 +69,11 @@ test(__filename, async({ tablePage }) => {
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('ArrowDown');
   await tablePage.keyboard.press('Enter'); // select and accept "Is equal" option
+  const isEqualValueInput = tablePage
+    .getByRole('menuitem').filter({ hasText: 'Is equal to' })
+    .getByPlaceholder('Value', { exact: true });
+
+  await expect(isEqualValueInput).toBeFocused();
   await tryToEscapeFromTheComponentsFocus();
 
   // take a screenshot of the focused input after selecting and accepting the condition option

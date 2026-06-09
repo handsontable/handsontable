@@ -13,9 +13,12 @@ describe('Dialog - animation option', () => {
   });
 
   function getTableTransitionDuration() {
-    // the classic stylesheet has no animation duration, so we use 10ms as a fallback
-    return getLoadedTheme() !== 'classic' ?
-      Number.parseFloat(getComputedStyle(hot().rootElement).getPropertyValue('--ht-table-transition')) * 1000 : 10;
+    const cssValue = getComputedStyle(hot().rootElement).getPropertyValue('--ht-table-transition');
+    const parsed = Number.parseFloat(cssValue) * 1000;
+
+    // Some themes (e.g. classic) set transition to 0s. Use 10ms as a minimum fallback
+    // so timeout-based assertions don't run with 0 delay.
+    return parsed > 0 ? parsed : 10;
   }
 
   it('should have animation enabled by default', async() => {
@@ -174,11 +177,11 @@ describe('Dialog - animation option', () => {
 
     dialogPlugin.show();
 
-    await sleep(getTableTransitionDuration() / 2);
+    await waitForNextAnimationFrames((getTableTransitionDuration() / 2) / 16);
 
     dialogPlugin.hide();
 
-    await sleep(getTableTransitionDuration());
+    await waitForNextAnimationFrames((getTableTransitionDuration()) / 16);
 
     expect(getDialogContainerElement()).not.toBeVisible();
   });
@@ -196,11 +199,11 @@ describe('Dialog - animation option', () => {
 
     dialogPlugin.show();
 
-    await sleep(getTableTransitionDuration() * 2);
+    await waitForNextAnimationFrames((getTableTransitionDuration() * 2) / 16);
 
     dialogPlugin.hide();
 
-    await sleep(getTableTransitionDuration() + 100);
+    await waitForNextAnimationFrames((getTableTransitionDuration() + 100) / 16);
 
     expect(getDialogContainerElement()).not.toBeVisible();
   });
@@ -254,11 +257,11 @@ describe('Dialog - animation option', () => {
 
     dialogPlugin.show();
 
-    await sleep(getTableTransitionDuration() / 2);
+    await waitForNextAnimationFrames((getTableTransitionDuration() / 2) / 16);
 
     dialogPlugin.hide();
 
-    await sleep(getTableTransitionDuration() / 2);
+    await waitForNextAnimationFrames((getTableTransitionDuration() / 2) / 16);
 
     dialogPlugin.show();
 
@@ -278,11 +281,11 @@ describe('Dialog - animation option', () => {
 
     dialogPlugin.show();
 
-    await sleep(getTableTransitionDuration() * 2);
+    await waitForNextAnimationFrames((getTableTransitionDuration() * 2) / 16);
 
     dialogPlugin.hide();
 
-    await sleep(getTableTransitionDuration() * 2);
+    await waitForNextAnimationFrames((getTableTransitionDuration() * 2) / 16);
 
     dialogPlugin.show();
 

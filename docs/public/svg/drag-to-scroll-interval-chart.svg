@@ -1,0 +1,73 @@
+<svg viewBox="0 0 570 285" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    text { font-family: monospace, monospace; font-size: 10px; fill: #64748b; }
+    text.title { font-family: sans-serif, sans-serif; font-size: 11px; fill: #334155; }
+    text.annotation { fill: #dc2626; }
+  </style>
+
+  <!-- Chart background -->
+  <rect x="70" y="30" width="410" height="200" fill="#f8fafc" stroke="#e2e8f0" stroke-width="1"/>
+
+  <!-- Horizontal grid lines at 400, 300, 200, 100 ms -->
+  <line x1="70" y1="80"  x2="480" y2="80"  stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="70" y1="119" x2="480" y2="119" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="70" y1="159" x2="480" y2="159" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+  <line x1="70" y1="198" x2="480" y2="198" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="4,3"/>
+
+  <!-- Axes -->
+  <line x1="70" y1="230" x2="480" y2="230" stroke="#475569" stroke-width="1.5"/>
+  <line x1="70" y1="30"  x2="70"  y2="230" stroke="#475569" stroke-width="1.5"/>
+
+  <!-- Log curve: points from calculateInterval(d, {min:20,max:500}, 120) -->
+  <polyline
+    points="70,40 77,92 87,120 104,143 138,167 172,181 207,191 241,199 275,205 343,216 412,224 480,230"
+    fill="none" stroke="#1d4ed8" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"
+  />
+
+  <!-- Y-axis ticks and labels -->
+  <line x1="65" y1="40"  x2="70" y2="40"  stroke="#475569" stroke-width="1"/>
+  <text x="62" y="44"  text-anchor="end">500</text>
+  <line x1="65" y1="80"  x2="70" y2="80"  stroke="#475569" stroke-width="1"/>
+  <text x="62" y="84"  text-anchor="end">400</text>
+  <line x1="65" y1="119" x2="70" y2="119" stroke="#475569" stroke-width="1"/>
+  <text x="62" y="123" text-anchor="end">300</text>
+  <line x1="65" y1="159" x2="70" y2="159" stroke="#475569" stroke-width="1"/>
+  <text x="62" y="163" text-anchor="end">200</text>
+  <line x1="65" y1="198" x2="70" y2="198" stroke="#475569" stroke-width="1"/>
+  <text x="62" y="202" text-anchor="end">100</text>
+  <line x1="65" y1="230" x2="70" y2="230" stroke="#475569" stroke-width="1"/>
+  <text x="62" y="234" text-anchor="end">20</text>
+
+  <!-- X-axis ticks and labels -->
+  <line x1="70"  y1="230" x2="70"  y2="235" stroke="#475569" stroke-width="1"/>
+  <text x="70"  y="246" text-anchor="middle">0</text>
+  <line x1="172" y1="230" x2="172" y2="235" stroke="#475569" stroke-width="1"/>
+  <text x="172" y="246" text-anchor="middle">30</text>
+  <line x1="275" y1="230" x2="275" y2="235" stroke="#475569" stroke-width="1"/>
+  <text x="275" y="246" text-anchor="middle">60</text>
+  <line x1="378" y1="230" x2="378" y2="235" stroke="#475569" stroke-width="1"/>
+  <text x="378" y="246" text-anchor="middle">90</text>
+  <line x1="480" y1="230" x2="480" y2="235" stroke="#475569" stroke-width="1"/>
+  <text x="480" y="246" text-anchor="middle">120</text>
+
+  <!-- Axis titles -->
+  <text x="275" y="268" text-anchor="middle" class="title">Distance outside viewport (px)</text>
+  <text x="14"  y="130" text-anchor="middle" class="title" transform="rotate(-90,14,130)">Interval (ms)</text>
+
+  <!-- Annotation: interval.max -->
+  <line x1="70" y1="40" x2="130" y2="40" stroke="#dc2626" stroke-width="1" stroke-dasharray="4,3" opacity="0.8"/>
+  <text x="133" y="36" class="annotation">interval.max = 500 ms</text>
+
+  <!-- Annotation: interval.min -->
+  <line x1="420" y1="230" x2="480" y2="230" stroke="#dc2626" stroke-width="1" stroke-dasharray="4,3" opacity="0.8"/>
+  <text x="330" y="226" class="annotation">interval.min = 20 ms</text>
+
+  <!-- Annotation: rampDistance -->
+  <line x1="480" y1="30" x2="480" y2="230" stroke="#dc2626" stroke-width="1" stroke-dasharray="4,3" opacity="0.8"/>
+  <text x="484" y="55"  class="annotation">rampDistance</text>
+  <text x="484" y="67"  class="annotation">= 120 px</text>
+
+  <!-- Curve endpoint markers -->
+  <circle cx="70"  cy="40"  r="3.5" fill="#1d4ed8"/>
+  <circle cx="480" cy="230" r="3.5" fill="#1d4ed8"/>
+</svg>

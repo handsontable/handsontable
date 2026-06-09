@@ -75,11 +75,12 @@ const getOuterTopEndCorner: CellCoords = cellRange.getOuterTopEndCorner();
 const getOuterTopRightCorner: CellCoords = cellRange.getOuterTopRightCorner();
 const getOuterBottomStartCorner: CellCoords = cellRange.getOuterBottomStartCorner();
 const getOuterBottomLeftCorner: CellCoords = cellRange.getOuterBottomLeftCorner();
+
 {
   const isCorner: boolean = cellRange.isCorner(cellCoords);
 }
 {
-  const getOppositeCorner: CellCoords = cellRange.getOppositeCorner(cellCoords);
+  const getOppositeCorner: CellCoords = cellRange.getOppositeCorner(cellCoords)!;
 }
 const getBordersSharedWith: Array<'top' | 'right' | 'bottom' | 'left'> = cellRange.getBordersSharedWith(cellRangeRTL);
 const getInner: CellCoords[] = cellRange.getInner();
@@ -88,4 +89,9 @@ const getAll: CellCoords[] = cellRange.getAll();
 cellRange.forAll(() => true);
 
 const clone: CellRange = cellRange.clone();
-const toObject: { from: { row: number, col: number}, to: { row: number, col: number} } = cellRange.toObject();
+
+type CellRangeObject = {
+  from: { row: number | null, col: number | null },
+  to: { row: number | null, col: number | null }
+};
+const toObject: CellRangeObject = cellRange.toObject();

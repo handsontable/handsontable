@@ -1,0 +1,43 @@
+.example-controls-container .controls + .controls {
+  margin-top: 0.5rem;
+}
+
+.freeze-controls__freeze-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.freeze-controls__footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.freeze-controls button {
+  border: 1px solid var(--sl-color-gray-5, #e0e0e0);
+  background: var(--sl-color-bg-nav, #ffffff);
+  color: var(--sl-color-text, #333333);
+  font-size: var(--sl-text-sm, 0.875rem);
+  line-height: 1.2;
+  padding: 0.4rem 0.75rem;
+  border-radius: 0;
+  cursor: pointer;
+  transition: color 0.15s, background-color 0.15s, border-color 0.15s;
+}
+
+.freeze-controls button:hover {
+  color: var(--sl-color-white, #333333);
+  background: var(--sl-color-gray-6, #eeeeee);
+}
+
+.freeze-controls button:focus-visible {
+  outline: 1px solid var(--sl-color-accent, #1A42E8);
+  outline-offset: 1px;
+}
+
+.freeze-controls__status {
+  font-size: var(--sl-text-sm, 0.875rem);
+  font-style: italic;
+  color: var(--sl-color-gray-2, #555555);
+}

@@ -14,7 +14,7 @@ const ExampleComponent = () => {
     exportPlugin?.downloadFile('csv', {
       bom: false,
       columnDelimiter: ',',
-      columnHeaders: false,
+      colHeaders: false,
       exportHiddenColumns: true,
       exportHiddenRows: true,
       fileExtension: 'csv',
@@ -31,7 +31,7 @@ const ExampleComponent = () => {
     exportPlugin?.downloadFile('csv', {
       bom: false,
       columnDelimiter: ',',
-      columnHeaders: false,
+      colHeaders: false,
       exportHiddenColumns: true,
       exportHiddenRows: true,
       fileExtension: 'csv',
@@ -49,7 +49,7 @@ const ExampleComponent = () => {
     exportPlugin?.downloadFile('csv', {
       bom: false,
       columnDelimiter: ',',
-      columnHeaders: false,
+      colHeaders: false,
       exportHiddenColumns: true,
       exportHiddenRows: true,
       fileExtension: 'csv',
@@ -67,7 +67,7 @@ const ExampleComponent = () => {
     exportPlugin?.downloadFile('csv', {
       bom: false,
       columnDelimiter: ',',
-      columnHeaders: false,
+      colHeaders: false,
       exportHiddenColumns: true,
       exportHiddenRows: true,
       fileExtension: 'csv',

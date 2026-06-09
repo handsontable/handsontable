@@ -35,7 +35,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     await contextMenu();
 
-    await sleep(50);
+    await waitForNextAnimationFrames(4);
 
     expect(getPlugin('contextMenu').menu.container.getAttribute('role')).toEqual('menu');
   });
@@ -63,7 +63,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     });
 
     await openContextSubmenuOption('Alignment');
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     const cMenu = getPlugin('contextMenu').menu.hotSubMenus.alignment;
 
@@ -102,7 +102,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     await contextMenu();
     await selectContextMenuOption('Read only');
-    await sleep(50);
+    await waitForNextAnimationFrames(4);
     await contextMenu();
 
     {
@@ -114,7 +114,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     await contextMenu();
     await selectContextMenuOption('Read only');
-    await sleep(50);
+    await waitForNextAnimationFrames(4);
     await contextMenu();
 
     {
@@ -134,7 +134,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     const cMenu = getPlugin('contextMenu').menu;
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     const ariaLabelledCells = [...cMenu.container.querySelectorAll('td')]
       .filter(el => el.ariaLabel !== undefined);
@@ -199,13 +199,13 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     $expandableItem.simulate('mouseover');
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toEqual('true');
 
     $unExpandableItem.simulate('mouseover');
 
-    await sleep(50);
+    await waitForNextAnimationFrames(4);
 
     expect($expandableItem.get(0).getAttribute('aria-expanded')).toEqual('false');
   });

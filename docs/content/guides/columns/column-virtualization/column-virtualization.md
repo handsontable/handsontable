@@ -1,5 +1,5 @@
 ---
-id: xv8sf6at
+type: explanation
 title: Column virtualization
 metaTitle: Column virtualization - JavaScript Data Grid | Handsontable
 description: Render hundreds of columns without freezing the browser, using column virtualization.
@@ -10,17 +10,14 @@ tags:
   - render all columns
   - offset
 react:
-  id: 24n21dwi
   metaTitle: Column virtualization - React Data Grid | Handsontable
 angular:
-  id: qhqjtdsr
   metaTitle: Column virtualization - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column virtualization - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
-
-# Column virtualization
-
 Render hundreds of columns without freezing the browser, using column virtualization.
 
 [[toc]]
@@ -83,6 +80,16 @@ The demo below presents a data grid displaying one million cells (1000 rows x 10
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-virtualization/vue/example1.vue)
+
+:::
+
+:::
+
 ## Known limitations
 
 Using column virtualization has the following side effects:
@@ -93,13 +100,20 @@ Using column virtualization has the following side effects:
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
 - [Performance](@/guides/optimization/performance/performance.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`viewportColumnRenderingOffset`](@/api/options.md#viewportcolumnrenderingoffset)
-  - [`renderAllColumns`](@/api/options.md#renderallcolumns)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [viewportColumnRenderingOffset](@/api/options.md#viewportcolumnrenderingoffset)
+- [renderAllColumns](@/api/options.md#renderallcolumns)
+
+</div>

@@ -60,5 +60,28 @@ describe('ContextMenu', () => {
 
       expect(compatibleEntries.size()).toEqual(1);
     });
+
+    it('should resolve `hidden_columns_hide` to the plugin-provided full entry when items are passed as an' +
+      ' object', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        rowHeaders: true,
+        colHeaders: true,
+        hiddenColumns: true,
+        contextMenu: {
+          items: {
+            hidden_columns_hide: {},
+          }
+        }
+      });
+
+      await selectColumns(0);
+      await contextMenu();
+
+      const compatibleEntries = getHideColumnCMElement();
+
+      expect(compatibleEntries.size()).toEqual(1);
+      expect(compatibleEntries.hasClass('htDisabled')).toBe(false);
+    });
   });
 });

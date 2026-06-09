@@ -1,45 +1,195 @@
 # AGENTS.md
 
-## Cursor Cloud specific instructions
+This is the **monorepo-level** guide. It carries product-wide rules and a navigation map. Package-specific rules live in each package's own `AGENTS.md` (see [Where to look](#where-to-look)).
 
-### Overview
+## Overview
 
-Handsontable is a JavaScript/TypeScript data grid monorepo (pnpm workspace). It contains the core library plus React, Angular, and Vue 3 wrappers.
+Handsontable is a JavaScript/TypeScript data grid monorepo (pnpm workspace). It contains the core library plus React, Angular, and Vue 3 wrappers. It runs entirely in the browser — frontend-only, no server-side logic. It cannot access the internet unless explicitly configured (air-gapped environment support). There is no built-in telemetry.
 
-### Workspace packages
+The core package (`handsontable/`) is TypeScript. Wrappers are framework-idiomatic and maintain feature parity with the core.
+
+---
+
+## Where to look
+
+Route to the lowest correct scope. `AGENTS.md` answers "what must I never get wrong here, and where do I look next." `.ai/` answers "how does this work and why." Skills answer "how do I do task X." Package `AGENTS.md` files auto-load when you work in their subtree; the `.ai/` references need an explicit read.
+
+| You are working on | Look here |
+|---|---|
+| Anything monorepo-wide (build orchestration, release, workspace) | This file; `.ai/` (root) |
+| Core grid internals (`handsontable/src/`) | `handsontable/AGENTS.md`; `handsontable/.ai/` |
+| Rendering engine (`handsontable/src/3rdparty/walkontable/`) | `handsontable/src/3rdparty/walkontable/AGENTS.md`; `handsontable/src/3rdparty/walkontable/.ai/` |
+| Documentation site (`docs/`) | `docs/AGENTS.md` |
+| React wrapper | `wrappers/react-wrapper/AGENTS.md` |
+| Angular wrapper | `wrappers/angular-wrapper/AGENTS.md` |
+| Vue 3 wrapper | `wrappers/vue3/AGENTS.md` |
+| Visual regression tests | `visual-tests/AGENTS.md` |
+| Step-by-step task workflows | `.claude/skills/` (e.g., `handsontable-dev`, `handsontable-plugin-dev`, `handsontable-code-review`, `pr-creation`) |
+
+`.ai/` reference locations:
+
+| `.ai/` location | Scope |
+|---|---|
+| `.ai/` (root) | Monorepo — stack, structure, build, testing overview, MCP tooling |
+| `handsontable/.ai/` | Core — architecture, conventions, concerns, structure, integrations, testing detail |
+| `handsontable/src/3rdparty/walkontable/.ai/` | Rendering engine — architecture, concerns |
+
+In every directory, `CLAUDE.md` is a symlink to its sibling `AGENTS.md`. Edit `AGENTS.md` — the symlink keeps Claude Code and Cursor reading the same single source.
+
+---
+
+## Workspace packages
 
 | Package | Directory | Purpose |
 |---|---|---|
-| `handsontable` | `handsontable/` | Core data grid (vanilla JS) |
+| `handsontable` | `handsontable/` | Core data grid (TypeScript) |
 | `@handsontable/react-wrapper` | `wrappers/react-wrapper/` | React wrapper |
 | `@handsontable/angular-wrapper` | `wrappers/angular-wrapper/` | Angular wrapper |
 | `@handsontable/vue3` | `wrappers/vue3/` | Vue 3 wrapper |
 | `handsontable-visual-tests` | `visual-tests/` | Playwright visual regression tests |
 | `handsontable-examples-internal` | `examples/` | Code examples |
-| `handsontable-documentation` | `docs/` | VuePress docs site (requires Node 20) |
+| `handsontable-documentation` | `docs/` | Documentation site (requires Node 22) |
 
-### Prerequisites
+The authoritative workspace list is `pnpm-workspace.yaml`.
 
-- **Node.js 22** (see `.nvmrc`)
-- **pnpm 10.30.2** (see `packageManager` in root `package.json`); activate via `corepack enable && corepack prepare pnpm@10.30.2 --activate`
+---
 
-### Build, lint, test
+## Prerequisites
 
-All commands below run from the workspace root (`/workspace`).
+- **Node.js 22** (see `.nvmrc`). The docs site (`docs/`) uses its own Node 20.
+- **pnpm 10.30.2** (see `packageManager` in root `package.json`); activate via `corepack enable && corepack prepare pnpm@10.30.2 --activate`.
 
-- **Build core**: `pnpm --filter handsontable run build` (must be done before wrapper tests, since wrappers depend on the built `tmp/` output)
-- **Lint core**: `pnpm --filter handsontable run eslint` and `pnpm --filter handsontable run stylelint`
-- **Unit tests (core)**: `pnpm --filter handsontable run test:unit` (Jest, ~2200 tests)
-- **E2E tests (core)**: `pnpm --filter handsontable run test:e2e` (Puppeteer/Jasmine, headless Chrome)
-- **React tests**: `pnpm --filter @handsontable/react-wrapper run test`
-- **Vue3 tests**: `pnpm --filter @handsontable/vue3 run test`
-- **Angular tests**: `pnpm --filter @handsontable/angular-wrapper run test` (requires `--openssl-legacy-provider`; already handled via `cross-env` in `package.json` scripts)
+---
 
-### Gotchas
+## Build, lint, test
 
-- The core build outputs to `handsontable/tmp/` (not `dist/` for wrappers' consumption). The UMD/minified builds go to `handsontable/dist/` and CSS to `handsontable/styles/`. Wrapper packages reference the `tmp/` build via workspace linking.
-- The Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider`; this is already wired into the `test` script.
-- The `pnpm-workspace.yaml` has `ignoredBuiltDependencies` and `onlyBuiltDependencies` lists. If pnpm warns about ignored build scripts (e.g., `less`), this is expected.
-- Root-level `npm run lint` and `npm run test` scripts use a custom `translate-to-native-npm.mjs` script to fan out across all workspace packages.
-- The docs site (`docs/`) uses Node 20 (its own `.nvmrc`) and is not needed for core library development.
+Run package scripts with `npm --prefix <dir>` from the workspace root:
+
+- **Build core**: `npm --prefix handsontable run build` (do this before wrapper tests — wrappers consume the built `handsontable/tmp/` output).
+- **Lint core**: `npm --prefix handsontable run eslint` and `npm --prefix handsontable run stylelint`.
+- **Unit tests (core)**: `npm --prefix handsontable run test:unit` (Jest, ~2200 tests).
+- **E2E tests (core)**: `npm --prefix handsontable run test:e2e` (Puppeteer/Jasmine, headless Chrome).
+- **Walkontable tests**: `npm --prefix handsontable run test:walkontable` (separate pipeline).
+- **React tests**: `npm --prefix wrappers/react-wrapper run test`.
+- **Vue3 tests**: `npm --prefix wrappers/vue3 run test`.
+- **Angular tests**: `npm --prefix wrappers/angular-wrapper run test` (uses `--openssl-legacy-provider` automatically).
+
+Inside an individual package (e.g., `cd handsontable`), use `npm run ...` directly. For build output paths, variants, and core task details, see `handsontable/AGENTS.md`.
+
+---
+
+## Breaking changes policy
+
+**Agents must try to avoid introducing breaking changes** — the single most important constraint; existing customers depend on API stability. When a solution requires one, state it in **bold**.
+
+- **Never change a default setting value** — strictly forbidden.
+- Keep renamed CSS classes, APIs, hooks, and options working. **Legacy** = kept forever, no warning. **Deprecated** = works until the next stable release, then removed, with a one-time console warning.
+- Tests must verify the old name still works.
+
+Full rules (what counts, the per-change table, legacy vs deprecated, what is NOT breaking): **`.ai/BREAKING-CHANGES.md`**.
+
+---
+
+## Mandatory checklist for every change
+
+Every code change produced by an agent **must** satisfy all of the following:
+
+1. **Tests are required.** Every change must include both **unit tests** (Jest, `*.unit.js`) and **E2E tests** (Jasmine/Puppeteer, `*.spec.js`). No change is complete without test coverage for the new or modified behavior.
+2. **Documentation must be updated.** If a change affects the public API, configuration options, hooks, behavior, or user-facing experience, update the corresponding documentation (guides, API reference via JSDoc/Typedoc, migration guide) in the same change. See [Documentation standards](#documentation-standards-all-packages).
+3. **Update AGENTS.md.** If a change introduces new conventions, patterns, constraints, file locations, or gotchas that future agents should know, update the `AGENTS.md` at the correct scope.
+
+---
+
+## Architecture constraints
+
+High-level principles. Core-internal detail lives in `handsontable/.ai/ARCHITECTURE.md`.
+
+- **Frontend-only**: No server-side logic. Everything runs in the browser. No network requests unless the user explicitly configures them.
+- **Microkernel plugin system**: All extensions hook into the core through the plugin API. Respect the plugin lifecycle (see `handsontable/AGENTS.md`).
+- **Cascading configuration**: All feature configuration must work with the cascading model (`cell` → `column` → `global`).
+- **Design system theming**: CSS variables are the public API for theme customization. The token hierarchy is declared in Figma and exported as CSS variables.
+- **Framework wrapper parity**: Official wrappers (React, Angular, Vue) must be idiomatic for each framework and maintain feature parity.
+- **XSS prevention**: Strict input sanitization on user-facing cell content, custom formulas, and cell scripts. Safe plugin architecture to minimize attack surfaces.
+- **Internationalization**: Must handle RTL layouts, Unicode input (IME), and translations.
+- **No global namespace pollution**: Integration via NPM/CDN must not pollute the global namespace.
+- **Minimal dependencies**: Avoid adding third-party libraries (see [Dependency management](#dependency-management)).
+- **Functional continuity**: Each release must include no less functionality than its predecessor.
+
+---
+
+## Documentation standards (all packages)
+
+These standards apply to **all** documentation across the monorepo — guides, the API reference (JSDoc/Typedoc inside `handsontable/src`), code comments, changelog entries, release notes, migration guides, and READMEs. An agent editing core JSDoc applies them without opening `docs/AGENTS.md`. **Full reference: `.ai/DOC-STANDARDS.md`** (the complete 13 writing-style rules, migration-guide spec, trademark rules, and docs branch conventions). The docs *site* has additional mechanics (frontmatter, sidebar, example embedding, voice overrides) in `docs/AGENTS.md`.
+
+- **When docs are required:** any public-API change updates JSDoc/Typedoc + guides; any user-facing behavior change is documented; any breaking change adds a migration guide step; a PR that adds a new docs page goes in the changelog (no `[skip changelog]`).
+- **Writing style (most-violated):** short sentences, active voice, American English (`behavior` not `behaviour`), "you" not "we", Oxford comma, no evaluative adjectives ("easy"/"simple"/"obvious"), en dashes (–) in non-site text. Full list in `.ai/DOC-STANDARDS.md`.
+- **Trademarks:** pages mentioning "Excel" (and "Google Sheets") need the trademark disclaimer — see `.ai/DOC-STANDARDS.md`.
+
+---
+
+## Git and branching
+
+### Branch naming
+
+- Feature branches: `feature/issue-xxxx` (e.g., `feature/issue-9024`)
+- Documentation branches: `docs/issue-xxxx` (e.g., `docs/issue-9024`)
+
+(Release and LTS branches are maintainer-managed; the `pr-creation` skill has the full convention.)
+
+### Git rules
+
+- **Never force-push** to `master`, `develop`, or feature branches bound to Pull Requests. Force-pushing diverges history in other clones and makes PR review history incomprehensible.
+- Follow the **Git flow** branching strategy.
+
+---
+
+## Pull requests and changelog
+
+### PR requirements
+
+- Every PR must be connected to a GitHub issue.
+- Every PR that changes package source code must include a changelog entry. Use the `changelog-creation` and `pr-creation` skills for the entry format and PR flow.
+- To skip changelog (for non-source-code changes only), write `[skip changelog]` in the PR description.
+- PRs are merged using **"Squash and merge"** in the GitHub UI by the PR author after full approval.
+- The PR author addresses reviewer comments. The reviewer confirms resolution by clicking **Resolve conversation**.
+
+### Changelog format
+
+Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. Changelog entries live in `.changelogs/`; see `.changelogs/README.md` for full details. The root changelog is `CHANGELOG.md`.
+
+### Visibility of work
+
+- If a task spans multiple days, create a draft PR and commit daily.
+- All work must be tracked as a GitHub issue. If no issue exists, create one.
+
+---
+
+## Dependency management
+
+- **Discuss with the team before adding any third-party dependency.**
+- All dependencies must have permissive open-source licenses (MIT, BSD, Apache, etc.).
+- All dependencies must be actively maintained.
+- These rules apply transitively to all sub-dependencies.
+- Adding dependencies under non-permissive licenses requires notifying clients through the Sales team.
+
+---
+
+## Security
+
+- Strict XSS prevention in user-facing cell content.
+- Input sanitization on custom formulas and cell scripts.
+- Safe plugin architecture to minimize attack surfaces.
+- CLA must be signed before merging external contributions.
+
+---
+
+## Monorepo gotchas
+
+- The core build outputs ES/CJS modules to `handsontable/tmp/` for wrappers, UMD/minified bundles to `handsontable/dist/`, and CSS to `handsontable/styles/`. Wrapper packages reference the `tmp/` build via workspace linking.
+- Two Handsontable builds exist: `handsontable.js` (base, external deps) and `handsontable.full.js` (includes HyperFormula). When testing build-time behavior, ensure both variants work.
+- The Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider`; this is wired into the `test` script.
+- `pnpm-workspace.yaml` has `ignoredBuiltDependencies` and `onlyBuiltDependencies` lists. If pnpm warns about ignored build scripts (e.g., `less`), this is expected.
+- Root-level `npm run lint` and `npm run test` use a custom `translate-to-native-npm.mjs` script to fan out across all workspace packages.
+- The docs site (`docs/`) uses Node 22 (its own `.nvmrc`) and is not needed for core library development.
+- Walkontable (the rendering engine) lives inside `handsontable/src/3rdparty/walkontable/` and has its **own test runner** — do not mix Walkontable tests with main E2E tests.
 - No Docker, databases, or external services are required.

@@ -1,5 +1,5 @@
 ---
-id: yfus6qpz
+type: how-to
 title: Legacy Style
 metaTitle: Legacy Style - JavaScript Data Grid | Handsontable
 description: The legacy stylesheet was removed in Handsontable 17.0.0. Learn how to migrate to the Classic theme using the Theme API or CSS imports.
@@ -13,18 +13,14 @@ tags:
   - classic theme
   - legacy
 react:
-  id: jn3po47i
   metaTitle: Legacy Style - React Data Grid | Handsontable
 angular:
-  id: 1sco7djp
   metaTitle: Legacy Style - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Legacy Style - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
-menuTag: updated
 ---
-
-# Legacy Style
-
 Starting from **version 17.0.0**, the legacy stylesheet has been removed from Handsontable. If you're upgrading from an earlier version, you must migrate to the **Classic** theme.
 
 [[toc]]
@@ -94,6 +90,29 @@ export class AppComponent {
 
 :::
 
+::: only-for vue
+
+```ts
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+import { classicTheme } from 'handsontable/themes';
+
+registerAllModules();
+
+const hotSettings = ref({
+  theme: classicTheme,
+  // ... other options
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ### Option 2: Using CSS files with theme as string
 
 Alternatively, you can use CSS files and pass the theme name as a string to the `theme` option.
@@ -149,6 +168,22 @@ const hot = new Handsontable(container, {
 
 :::
 
+::: only-for vue
+
+```ts
+const hotSettings = ref({
+  theme: 'ht-theme-classic',
+  // ... other options
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ### Why migrate to Classic?
 
 The Classic theme provides the same visual appearance as the legacy style, but with significant improvements:
@@ -157,10 +192,15 @@ The Classic theme provides the same visual appearance as the legacy style, but w
 - **Better maintainability**: The theming system is designed for long-term support
 - **Consistency**: Works seamlessly with the new Design System
 
-For more detailed migration instructions, see:
+**Related guides**
+
+<div class="boxes-list">
 
 - [Migrate from 16.2 to 17.0](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md)
-
-For more information about the theming system, see:
-
 - [Themes](@/guides/styling/themes/themes.md)
+
+</div>
+
+## Result
+
+Your grid now uses the legacy stylesheet. The visual style matches pre-14.0 Handsontable.

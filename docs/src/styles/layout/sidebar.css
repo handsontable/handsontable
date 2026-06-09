@@ -1,0 +1,176 @@
+/* -------------------------------------------------------------------------
+ * Sidebar menu-tag badges  (menuTag: new | updated in frontmatter)
+ *
+ * Starlight renders these as .sl-badge.success / .sl-badge.caution.
+ * Badge colours are handled by starlight-theme-rapide. Only size and
+ * layout adjustments for the sidebar context are applied here.
+ * ------------------------------------------------------------------------- */
+
+/* Compact pill style inside the sidebar */
+.sidebar-content .sl-badge {
+  font-family: var(--sl-font-system, system-ui, sans-serif);
+  font-size: 0.65rem;
+  font-weight: 400;
+  text-transform: capitalize;
+  padding: 0.25rem 0.5rem;
+  border-radius: 99px;
+  vertical-align: middle;
+  margin-inline-start: 0.35rem;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+}
+
+/* Green badge — "Updated" (caution variant) */
+.sidebar-content .sl-badge.caution {
+  --sl-color-bg-badge: #41a167;
+  --sl-color-border-badge: #41a167;
+  color: #121316;
+}
+
+/* Blue badge — "New" (success variant) — matches versions-tag accent */
+.sidebar-content .sl-badge.success {
+  --sl-color-bg-badge: var(--sl-color-accent);
+  --sl-color-border-badge: var(--sl-color-accent);
+  color: #fff;
+}
+
+/* Light mode: soft background + dark text for 4.5:1+ contrast */
+:root[data-theme='light'] .sidebar-content .sl-badge.caution {
+  --sl-color-bg-badge: oklch(93% 0.03 160);
+  --sl-color-border-badge: oklch(85% 0.05 160);
+  color: oklch(33% 0.07 160);
+}
+
+:root[data-theme='light'] .sidebar-content .sl-badge.success {
+  --sl-color-bg-badge: oklch(93% 0.03 255);
+  --sl-color-border-badge: oklch(85% 0.05 255);
+  color: oklch(33% 0.07 255);
+}
+
+/* When on the active page keep badge colors */
+.sidebar-content a[aria-current='page'] > .sl-badge.caution {
+  --sl-color-bg-badge: #41a167;
+  --sl-color-border-badge: #41a167;
+  color: #121316;
+}
+
+.sidebar-content a[aria-current='page'] > .sl-badge.success {
+  --sl-color-bg-badge: var(--sl-color-accent);
+  --sl-color-border-badge: var(--sl-color-accent);
+  color: #fff;
+}
+
+/* Light mode: active page badges keep soft style */
+:root[data-theme='light'] .sidebar-content a[aria-current='page'] > .sl-badge.caution {
+  --sl-color-bg-badge: oklch(93% 0.03 160);
+  --sl-color-border-badge: oklch(85% 0.05 160);
+  color: oklch(33% 0.07 160);
+}
+
+:root[data-theme='light'] .sidebar-content a[aria-current='page'] > .sl-badge.success {
+  --sl-color-bg-badge: oklch(93% 0.03 255);
+  --sl-color-border-badge: oklch(85% 0.05 255);
+  color: oklch(33% 0.07 255);
+}
+
+/* -------------------------------------------------------------------------
+ * Active sidebar link & TOC link — accent text + blue accent bar
+ * ------------------------------------------------------------------------- */
+.sidebar-pane a[aria-current='page'],
+.sidebar-pane a[aria-current='page']:hover,
+.sidebar-pane a[aria-current='page']:focus {
+  color: var(--sl-color-text) !important;
+  background-color: transparent !important;
+  border-color: transparent !important;
+  font-weight: 600 !important;
+}
+
+/* Main nav active link — no bold */
+nav[aria-label="Main navigation"] a[aria-current='page'] {
+  font-weight: 500 !important;
+}
+
+.sidebar-pane ul ul li:has(> a[aria-current='page']) {
+  border-inline-start-color: var(--sl-color-accent) !important;
+}
+
+/* Sidebar hover border — subtle */
+.sidebar-pane ul ul li:has(> a:not([aria-current='page']):is(:hover, :focus-visible)) {
+  border-inline-start-color: var(--sl-color-gray-4) !important;
+}
+
+/* Sidebar & TOC link color — use gray-3 for softer text */
+.sidebar-pane :where(a) {
+  color: var(--sl-color-text);
+  line-height: 20px;
+}
+
+.right-sidebar-panel :where(a) {
+  color: var(--sl-color-text);
+  line-height: 20px;
+}
+
+starlight-toc a[aria-current='true'],
+starlight-toc a[aria-current='true']:hover,
+starlight-toc a[aria-current='true']:focus {
+  color: var(--sl-color-text) !important;
+  background-color: transparent !important;
+  border-color: var(--sl-color-accent) !important;
+}
+
+/* TOC hover border — subtle */
+starlight-toc a:not([aria-current='true']):hover {
+  border-inline-start-color: var(--sl-color-gray-4) !important;
+}
+
+/* -------------------------------------------------------------------------
+ * Sidebar group headings — match "On this page" heading style
+ * ------------------------------------------------------------------------- */
+.sidebar-pane summary {
+  gap: 0.5rem;
+  padding-inline-start: 0.75rem;
+}
+
+.sidebar-pane summary .large {
+  font-size: var(--sl-text-h5);
+  font-weight: 600;
+  line-height: var(--sl-line-height-headings);
+  color: var(--sl-color-white);
+  transition: color 0.15s;
+}
+
+.sidebar-pane summary:hover .large {
+  color: var(--sl-color-white);
+}
+
+.sidebar-pane summary:hover svg.caret,
+.sidebar-pane summary svg.caret {
+  color: var(--sl-color-gray-3) !important;
+}
+
+.sidebar-content {
+  scroll-behavior: smooth;
+  padding-inline: 0.25rem;
+}
+
+/* Align submenu item text with group heading text */
+.sidebar-pane ul ul li {
+  margin-inline-start: 1.25rem;
+}
+
+/* Override Starlight's filled caret with a Tabler-style stroke chevron */
+.sidebar-pane svg.caret path {
+  display: none;
+}
+
+.sidebar-pane svg.caret {
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6l-6 6'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 6l6 6l-6 6'/%3E%3C/svg%3E");
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}

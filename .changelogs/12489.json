@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed `columnSummary` to include cells calculated by the `formulas` plugin in sum, min, max, average and count results.",
+  "type": "fixed",
+  "issueOrPR": 12489,
+  "breaking": false,
+  "framework": "none"
+}

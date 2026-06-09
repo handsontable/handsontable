@@ -1,0 +1,229 @@
+/* -------------------------------------------------------------------------
+ * Table wrapper — added by rehype-table-wrapper.mjs
+ * Enables horizontal scrolling on narrow viewports.
+ * ------------------------------------------------------------------------- */
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-block: 1.5rem;
+}
+
+/* -------------------------------------------------------------------------
+ * API method header — heading + action buttons (source code + Ask AI) in a
+ * visual row. A client-side script groups .source-code-link and
+ * .ask-about-api-btn into an .api-member-actions container inside the
+ * preceding heading, enabling absolute positioning within it.
+ * ------------------------------------------------------------------------- */
+
+/* Before JS moves elements: apply heading border/padding early to prevent FOUC */
+.sl-markdown-content :is(h2, h3, h4):has(+ p > .source-code-link),
+.sl-markdown-content :is(h2, h3, h4):has(+ p > .ask-about-api-btn) {
+  border-top: 1px solid var(--sl-color-gray-5);
+  padding-top: 1rem;
+  margin-bottom: 0;
+}
+
+/* Before JS: hide standalone <p> wrappers to prevent flash */
+.sl-markdown-content p:has(> .source-code-link:only-child),
+.sl-markdown-content p:has(> .ask-about-api-btn:only-child) {
+  display: none;
+}
+
+/* After JS: heading with the actions container */
+.sl-markdown-content :is(h2, h3, h4):has(> .api-member-actions) {
+  position: relative;
+  border-top: 1px solid var(--sl-color-gray-5);
+  padding-top: 1rem;
+  margin-bottom: 0;
+}
+
+/* Actions container — positioned at the top-right of the heading */
+.api-member-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: inline-flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+/* Shared visual styles for both action buttons */
+.source-code-link,
+.ask-about-api-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-3);
+  text-decoration: none;
+  border: 1px solid var(--sl-color-gray-5);
+  border-top: none;
+  border-radius: 0;
+  padding: 0 0.75em;
+  min-height: 40px;
+  white-space: nowrap;
+  transition: color 0.15s, background-color 0.15s;
+}
+
+/* Source code link: standalone absolute position (no container) */
+.source-code-link {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/* Ask AI button: reset default button styles */
+.ask-about-api-btn {
+  cursor: pointer;
+  background: none;
+  font-family: inherit;
+  border-right: none;
+}
+
+/* Source code link inside the container: flow as a flex item, no left border overlap */
+.api-member-actions .source-code-link {
+  position: static;
+  border-left: none;
+}
+
+.source-code-link::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22'/%3E%3C/svg%3E");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  flex-shrink: 0;
+}
+
+/* Ask AI button icon — chat bubble */
+.ask-about-api-btn::before {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'/%3E%3C/svg%3E");
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  flex-shrink: 0;
+}
+
+.source-code-link:hover,
+.ask-about-api-btn:hover {
+  color: var(--sl-color-white);
+  background-color: var(--sl-color-gray-6);
+}
+
+/* -------------------------------------------------------------------------
+ * Remove Starlight's default table styles from the markdown content area.
+ * Handsontable renders its own <table> elements inside the preview containers
+ * and those rules collide with the grid rendering.
+ * ------------------------------------------------------------------------- */
+.sl-markdown-content table:not(:where(.not-content *)) {
+  display: revert;
+  overflow: revert;
+  border-spacing: revert;
+}
+
+.sl-markdown-content :is(th, td):not(:where(.not-content *)) {
+  border-bottom: revert;
+  padding: revert;
+}
+
+.sl-markdown-content th:not(:where(.not-content *)) {
+  color: revert;
+  font-weight: revert;
+}
+
+.sl-markdown-content th:not([align]):not(:where(.not-content *)) {
+  text-align: revert;
+}
+
+.sl-markdown-content .starlight-aside :is(th, td, hr, blockquote):not(:where(.not-content *)) {
+  border-color: revert;
+}
+
+/* -------------------------------------------------------------------------
+ * Handsontable grid demo containers — remove default content margins
+ * and prevent Starlight's content-gap leak into grid internals.
+ * ------------------------------------------------------------------------- */
+.ht-grid {
+  margin: 0;
+}
+
+/* -------------------------------------------------------------------------
+ * Markdown tables — scoped re-styling
+ *
+ * Revert Starlight styles ONLY inside Handsontable grid containers so
+ * the grid renders correctly. Then apply clean table styles for
+ * documentation tables.
+ * ------------------------------------------------------------------------- */
+.table-container,
+.sl-markdown-content > .table-container:not(:where(.not-content *)) {
+  background-color: var(--sl-color-block-bg);
+  border-radius: 0;
+  border: 1px solid var(--sl-color-gray-5);
+}
+
+pre .table-container {
+  background-color: transparent;
+  border: none;
+}
+
+.table-container table,
+.sl-markdown-content > table:not(:where(.not-content *)) {
+  min-width: 600px;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-container th:not(:where(.not-content *)),
+.sl-markdown-content > table:not(:where(.not-content *)) th {
+  font-size: var(--sl-text-sm);
+  font-weight: 600;
+  background-color: var(--sl-color-bg);
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  padding: 0.75rem 1.25rem;
+  text-align: left !important;
+}
+
+.table-container td:not(:where(.not-content *)),
+.sl-markdown-content > table:not(:where(.not-content *)) td {
+  font-size: var(--sl-text-sm);
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  padding: 0.75rem 1.25rem;
+}
+
+.table-container tr:last-child td:not(:where(.not-content *)),
+.sl-markdown-content > table:not(:where(.not-content *)) tr:last-child td {
+  border-bottom: none;
+}
+
+.table-container tr:nth-child(2n):not(:where(.not-content *)),
+.sl-markdown-content > table:not(:where(.not-content *)) tr:nth-child(2n) {
+  background-color: transparent;
+}
+
+.table-container strong:not(:where(.not-content *)),
+.sl-markdown-content > table:not(:where(.not-content *)) strong {
+  color: var(--sl-color-white);
+}
+
+/* VPAT conformance tables */
+.vpat-table td:nth-child(3) {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.vpat-table td ol {
+  margin: 0.5em 0 0.25em;
+  padding-left: 1.5em;
+}
+
+.vpat-table td ol li {
+  margin-bottom: 0.35em;
+}

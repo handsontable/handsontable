@@ -34,10 +34,12 @@ const ExampleComponent = () => {
 
   return (
     <>
-      <div className="controls">
-        <button id="set-data-action" onClick={() => buttonClickCallback()}>
-          Click to modify the selected cells
-        </button>
+      <div className="example-controls-container">
+        <div className="controls">
+          <button id="set-data-action" onClick={() => buttonClickCallback()}>
+            Click to modify the selected cells
+          </button>
+        </div>
       </div>
       <HotTable
         ref={hotRef}

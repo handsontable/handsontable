@@ -1,0 +1,262 @@
+/* ── Minesweeper 404 game ──────────────────────────────────────────────────── */
+
+.minesweeper {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  margin: -1px;
+  border: 1px solid var(--sl-color-gray-5);
+  flex-shrink: 0;
+  overflow: visible;
+}
+
+/* ── Status bar ───────────────────────────────────────────────────────────── */
+
+.minesweeper-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  background: none;
+  border-bottom: 1px solid var(--sl-color-gray-5);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--sl-color-white);
+  user-select: none;
+}
+
+.minesweeper-mines,
+.minesweeper-timer {
+  min-width: 2.5ch;
+  text-align: center;
+  color: var(--sl-color-white);
+  padding: 2px 6px;
+  letter-spacing: 0.05em;
+}
+
+/* ── Mobile controls (below grid, mobile only) ────────────────────────────── */
+
+.minesweeper-mobile-controls {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 8px;
+  border-top: 1px solid var(--sl-color-gray-5);
+}
+
+@media (max-width: 49.99rem) {
+  .minesweeper-mobile-controls {
+    display: flex;
+  }
+}
+
+.minesweeper-mobile-hint {
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-3);
+}
+
+.minesweeper-flag-toggle {
+  cursor: pointer;
+  background: none;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 4px;
+  padding: 4px 10px;
+  color: var(--sl-color-gray-3);
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--sl-text-xs);
+  transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.minesweeper-flag-toggle:hover {
+  border-color: var(--sl-color-accent);
+  color: var(--sl-color-accent);
+}
+
+.minesweeper-flag-toggle.active {
+  background: var(--sl-color-accent);
+  border-color: var(--sl-color-accent);
+  color: #fff;
+}
+
+.minesweeper-reset {
+  cursor: pointer;
+  font-size: 1.25rem;
+  line-height: 1;
+  background: none;
+  border: none;
+  padding: 0 4px;
+}
+
+/* ── Footer bar ──────────────────────────────────────────────────────────── */
+
+.minesweeper-footer {
+  margin: 0;
+  padding: 12px;
+  border-top: 1px solid var(--sl-color-gray-5);
+  font-size: 11px;
+  color: var(--sl-color-gray-3);
+  text-align: right;
+  user-select: none;
+  -webkit-user-select: none;
+  letter-spacing: 0.02em;
+}
+
+/* ── Grid container ───────────────────────────────────────────────────────── */
+
+.minesweeper-grid {
+  line-height: 1;
+  margin: -1px;
+  overflow: hidden;
+  width: 354px;
+  height: 353px;
+  min-height: 353px;
+}
+
+/* Reset HOT border-radius */
+.minesweeper-grid .handsontable,
+.minesweeper-grid .handsontable.ht-wrapper,
+.minesweeper-grid .wtHolder,
+.minesweeper-grid table.htCore {
+  border-radius: 0 !important;
+}
+
+.minesweeper-grid .handsontable {
+  font-size: 14px;
+}
+
+.minesweeper-grid .handsontable.ht-wrapper {
+  --ht-wrapper-border-radius: 0;
+  margin-top: 0;
+  border: none !important;
+}
+
+.minesweeper-grid .wtHolder {
+  /* Prevent scrollbars -- the grid fits exactly */
+  overflow: hidden !important;
+}
+
+.minesweeper-grid .ht_clone_top.handsontable,
+.minesweeper-grid .ht_clone_top .wtHolder {
+  width: auto !important;
+}
+
+.minesweeper-grid .ht_clone_inline_start.handsontable,
+.minesweeper-grid .ht_clone_inline_start .wtHolder {
+  height: auto !important;
+}
+
+/* Style row & column headers to match the minesweeper aesthetic */
+.minesweeper-grid .handsontable th {
+  background: var(--sl-color-gray-6) !important;
+  color: var(--sl-color-gray-3) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.minesweeper-grid .handsontable span.rowHeader {
+  line-height: 26px;
+}
+
+/* ── Cell rendering ───────────────────────────────────────────────────────── */
+
+/* Force all borders -- HOT removes top/left borders on first row/col cells */
+.minesweeper-grid td.ms-cell {
+  text-align: center;
+  vertical-align: middle;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 0 !important;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.minesweeper-grid td.ms-cell svg {
+  display: block;
+  margin: auto;
+}
+
+/* Hidden (unrevealed) cell -- grid lines mimic the docs table style */
+.minesweeper-grid td.ms-hidden {
+  background: var(--sl-color-gray-6) !important;
+  border: 5px outset var(--sl-color-gray-6) !important;
+}
+
+.minesweeper-grid td.ms-hidden:active:not(.ms-flagged) {
+  border-style: inset !important;
+  background: var(--sl-color-gray-7, #1a1a2e) !important;
+}
+
+/* Revealed cell */
+.minesweeper-grid td.ms-revealed {
+  background: var(--sl-color-bg) !important;
+}
+
+/* Flagged cell -- accent background with 3D borders */
+.minesweeper-grid td.ms-flagged {
+  background: var(--sl-color-accent) !important;
+  border-width: 5px !important;
+  border-style: solid !important;
+  border-top-color: var(--sl-color-accent-high) !important;
+  border-left-color: var(--sl-color-accent-high) !important;
+  border-bottom-color: var(--sl-color-accent-dark) !important;
+  border-right-color: var(--sl-color-accent-dark) !important;
+}
+
+/* Mine cell (game over reveal) */
+.minesweeper-grid td.ms-mine {
+  background: var(--sl-color-gray-6) !important;
+  border: 1px solid var(--sl-color-gray-5) !important;
+}
+
+/* The mine that was actually clicked */
+.minesweeper-grid td.ms-hit {
+  background: #c0392b !important;
+}
+
+/* Wrong flag (flagged a non-mine) */
+.minesweeper-grid td.ms-wrong {
+  background: var(--sl-color-gray-6) !important;
+  border: 1px solid var(--sl-color-gray-5) !important;
+  text-decoration: line-through;
+  text-decoration-color: #c0392b;
+}
+
+/* Correctly flagged mine (game over - deactivated) */
+.minesweeper-grid td.ms-flagged-correct {
+  position: relative;
+}
+
+.minesweeper-grid td.ms-flagged-correct::after {
+  content: '✕';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #c0392b;
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Number colors (classic Minesweeper palette) */
+.minesweeper-grid td.ms-1 { color: #2563eb; }
+.minesweeper-grid td.ms-2 { color: #16a34a; }
+.minesweeper-grid td.ms-3 { color: #dc2626; }
+.minesweeper-grid td.ms-4 { color: #1e3a8a; }
+.minesweeper-grid td.ms-5 { color: #7f1d1d; }
+.minesweeper-grid td.ms-6 { color: #0d9488; }
+.minesweeper-grid td.ms-7 { color: #18181b; }
+.minesweeper-grid td.ms-8 { color: #6b7280; }
+
+/* Dark mode adjustments for number colors that need better contrast */
+:root[data-theme='dark'] .minesweeper-grid td.ms-7 { color: #d4d4d8; }

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed and issue with table backround overflow",
-  "type": "fixed",
-  "issueOrPR": 12063,
-  "breaking": false,
-  "framework": "none"
-}

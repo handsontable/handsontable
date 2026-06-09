@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed checkbox cells not toggling on mobile touch when disableVisualSelection is 'current' or true.",
+  "type": "fixed",
+  "issueOrPR": 12637,
+  "breaking": false,
+  "framework": "none"
+}

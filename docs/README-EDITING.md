@@ -10,7 +10,7 @@ When adding new documentation files, check the documentation [directory structur
 
 * Use only lower-case characters.
 * To separate words, use `-`.
-* Use the `.md` file extension. The `.vue` extension is disabled.
+* Use the `.md` file extension.
 
 ### Frontmatter
 
@@ -26,7 +26,10 @@ Each Markdown file can start with the following frontmatter tags:
 | `description`    | The page's SEO meta description.                     | None (not required)                                        |
 | `tags`           | Search tags used by the documentation search engine. | None (not required)                                 |
 | `react`          | Holds an alternative set of frontmatter tags (applied only to the React version of the page) | None (not required)                                             |
+| `angular`        | Holds an alternative set of frontmatter tags (applied only to the Angular version of the page) | None (not required)                                             |
 | `searchCategory` | Search category used by the search engine to categorize the search results. | If not set, the search result will be listed under the default "Guides" section. |
+| `menuTag`        | A tag displayed next to the page title in the sidebar menu. | None (not required) |
+| `category`       | The content category for organizing pages. | None (not required) |
 
 You can set different frontmatter tags for different framework versions of the page. For example, you can set `metaTitle` to say either `JS data grid` or `React data table`, depending on the framework:
 
@@ -37,10 +40,15 @@ metaTitle: JS data grid
 // applies to the React version of the page
 react:
   metaTitle: React data table
+
+// applies to the Angular version of the page
+angular:
+  metaTitle: Angular data table
 \```
 
 You can use the following framework keys:
 - `react`
+- `angular`
 
 Frontmatter example:
 
@@ -57,28 +65,22 @@ react:
   metaTitle: Installation - Guide - Handsontable Documentation for React
   description: Install the wrapper for React via npm, import stylesheets, and use it to get up and running your application.
   customValue: Custom # Custom value that can be used within template and will be available only for React framework
+angular:
+  id: abc12345
+  metaTitle: Installation - Guide - Handsontable Documentation for Angular
+  description: Install the wrapper for Angular via npm, import stylesheets, and use it to get up and running your application.
 tags:
   - api
   - api ref
-searchCategory: API Reference # The list of categories can be found here ./docs/.vuepress/config.js#L258
----
-```
-
-### Sitemap frontmatter
-
-The [`vuepress-plugin-sitemap`](https://www.npmjs.com/package/vuepress-plugin-sitemap) lets us use additional tags to customize the documentation site map:
-
-```
----
-sitemap:
-  exclude: false
-  changefreq: hourly
+searchCategory: API Reference
 ---
 ```
 
 ## Editing the documentation
 
 When editing the documentation content, follow the guidelines below.
+
+> **Note:** Content `.md` files and the example source files they embed hot reload automatically in `npm run dev`. The custom content loader (`src/plugins/framework-loader.mjs`) watches `content/` and re-syncs the affected pages on each change. If content ever looks stale, restart the dev server with `npm run dev -- --force` to rebuild Astro's data store from scratch.
 
 ### Editing the `next` documentation version
 
@@ -88,7 +90,7 @@ The `next` version of the documentation is available only locally and on the sta
 
 To display the `next` version in a browser:
 1. Start a [local Handsontable documentation server](./README.md#getting-started-with-handsontable-documentation).
-2. In your browser, go to http://localhost:8080/docs/.
+2. In your browser, go to http://localhost:4321/docs/.
 
 ### Editing a published documentation version
 
@@ -96,7 +98,7 @@ To edit an already-published documentation version, go to the [`prod-docs/<MAJOR
 
 To display a published documentation version in a browser:
 1. Start a [local Handsontable documentation server](./README.md#getting-started-with-handsontable-documentation).
-2. In your browser, go to http://localhost:8080/docs/{MAJOR.MINOR}/.
+2. In your browser, go to http://localhost:4321/docs/.
 
 If you're editing the `latest` version (a version with the largest `<MAJOR.MINOR>` number), remember to make the same edits to the `next` version as well.
 
@@ -118,23 +120,12 @@ To edit a published version's API reference:
 ## Reviewing the documentation
 
 When reviewing someone else's changes, you can see the documentation output in a few different ways:
-- Switch to the reviewed branch, pull the latest changes, and [start a local documentation server](./README.md#getting-started-with-handsontable-documentation) ([link redirects](./docker/redirects.conf) won't work, though).
+- Switch to the reviewed branch, pull the latest changes, and [start a local documentation server](./README.md#getting-started-with-handsontable-documentation).
 - [Deploy the documentation to the staging environment](./README-DEPLOYMENT.md#manually-deploying-the-documentation-to-the-staging-environment) (https://dev.handsontable.com/docs).
-- [Deploy the documentation locally at a specific commit](#deploying-the-documentation-locally-at-a-specific-commit).
-
-### Deploying the documentation locally at a specific commit
-
-To deploy the documentation locally at a `[COMMIT_HASH]` commit:
-1. If you don't have [Docker Desktop](https://www.docker.com/products/docker-desktop), install it.
-2. From the `docs` directory, run the following command:
-   ```bash
-   npm run docs:review [COMMIT_HASH]
-   ```
-3. In your browser, go to: http://localhost:8000/docs/.
 
 ## Documentation versioning
 
-New documentation is created automatically after the Handsontable is released. The `stable-publish` job in `.github/workflows/publish.yml` creates or updates the documentation production branch, generates API content from source code, commits, and pushes — which then triggers the Netlify deployment.
+New documentation is created automatically after the Handsontable is released. The `stable-publish` job in `.github/workflows/publish.yml` creates or updates the documentation production branch, generates API content from source code, commits, and pushes - which then triggers the Netlify deployment.
 
 ## Markdown links
 
@@ -166,56 +157,19 @@ For example, to link to a file called `./content/guides/getting-started/react-me
 
 When there is no framework defined in the link URL, the generated link will be pointed to the currently viewed framework. For example, link `[Core](@/api/core.md)` for Javascript will point to `/docs/javascript-data-grid/api/core` and for chosen React framework to `/docs/react-data-grid/api/core`.
 
-List of available frameworks: `javascript`, `react`.
+List of available frameworks: `javascript`, `react`, `angular`.
 
 Follow these rules:
-* After the `@` character, provide the target's relative file path (from the current version's root directory).<br>
+* After the `@` character, provide the target's relative file path (from the current version's root directory).
   For example: `[Clipboard][@/guides/cell-features/clipboard/clipboard.md]`.
-* After the target file's name, add the `.md` [extension](#filenames)<br>
+* After the target file's name, add the `.md` [extension](#filenames).
   For example: `[Autofill](@/api/autofill.md)`.
-* To link to a specific section, use anchors.<br>
+* To link to a specific section, use anchors.
   For example: `[Core](@/api/core.md#some-anchor)`.
 
 Also, the following rules apply:
 * The target file needs to have the `permalink` [frontmatter](#frontmatter) tag defined.
-* If generating a final URL link fails, the initial value gets output as a relative link.<br>
-  The documentation's [link checker](./README.md#documentation-npm-scripts) catches such failed links.
-
-### Checking for broken links
-
-To check for broken links:
-
-1. Generate the Handsontable API reference. From the `docs` directory, run:
-    ```bash
-    npm run docs:api
-    ```
-2. Build the documentation output. From the `docs` directory, run:
-    ```bash
-    npm run docs:build
-    ```
-3. Check for broken links. From the `docs` directory, run:
-   ```bash
-   npm run docs:check-links
-   ```
-4. Open the broken links report: `/docs/report-check-links.xlsx`.
-
-
-## Markdown variables
-
-It is possible to include metadata from VuePress or frontmatter in the content using the `$page` object and the following syntax:
-
-```
-Welcome the users of {{ $page.frameworkName }}!
-```
-
-The above code prints the following text in the React variant of the docs:
-
-> Welcome the users of React!
-
-The full list of available variables is available at:
-
-- https://vuepress.vuejs.org/guide/frontmatter.html (official)
-- https://github.com/handsontable/handsontable/blob/develop/docs/.vuepress/plugins/extend-page-data/index.js#L76-L82 (our modifications)
+* If generating a final URL link fails, the initial value gets output as a relative link.
 
 ## Markdown containers
 
@@ -240,7 +194,9 @@ We use the following Markdown containers:
 | `::: source-code-link <URL>` | Adds a source code link to the API ref header.    |
 | `::: example [options]`      | Renders a code example as specified in [options]. |
 
-For more information, see the [VuePress documentation](https://v1.vuepress.vuejs.org/guide/markdown.html#custom-containers).
+These containers are processed by the `vuepress-preprocessor.mjs` plugin in `src/plugins/`, which converts the VuePress-style syntax into Astro/Starlight-compatible output.
+
+For `tip` / `warning` / `danger` / `note` callouts, the body is not full CommonMark. The preprocessor turns inline `` `code` ``, `**bold**`, and `[label](url)` into HTML (see `aside-inline-markdown.mjs`).
 
 ### Adding code examples
 
@@ -288,24 +244,6 @@ To display just the result of the code you want to present, use the `<Handsontab
 ```
 
 **Note: Remember to place all the needed HTML and `<style>` elements in the markdown file as well.**
-
-### Finding the broken examples
-
-The `example-checker` script checks if:
-- Every example container's code initializes at least one Handsontable instance.
-- The number of Handsontable instances implemented in the example containers corresponds to the number of Handsontable instance DOM containers being rendered on the page.
-
-To use the `example-checker` script: (all the commands need to be run from the `docs` directory)
-1. Build the documentation.
-  ```bash
-  npm run docs:build
-  ```
-2. Run the script:
-  ```bash
-  npm run docs:test:example-checker
-  ```
-
-The script is also automatically executed by the `Docs Staging Deployment` Github Actions workflow.
 
 ## React style guide
 

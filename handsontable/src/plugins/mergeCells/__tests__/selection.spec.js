@@ -224,11 +224,9 @@ describe('MergeCells Selection', () => {
     await alter('insert_row_above', 1);
 
     expect(getSelected()).toEqual([[2, 1, 3, 2]]);
-    expect($borderTop.position().top).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(topPositionBefore + 26); // adds default row height
-      main.toBe(topPositionBefore + 29);
-      horizon.toBe(topPositionBefore + 37);
-    });
+    expect($borderTop.position().top).toBe(
+      getThemeLayout().e2eMergeCellsBorderTopAfterScroll(topPositionBefore),
+    );
   });
 
   it('should keep the selection on merged cells after inserting column to left to the merged cells', async() => {
@@ -344,12 +342,14 @@ describe('MergeCells Selection', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('classic')('should keep the highlight (area selection) on the virtualized merged cell ' +
+  it('should keep the highlight (area selection) on the virtualized merged cell ' +
     'after vertical scroll', async() => {
     handsontable({
       data: createSpreadsheetData(100, 10),
       width: 200,
-      height: 200,
+      // TODO(I14): Cannot migrate to containerHeightForRows -- the scrollbar consumes a variable,
+      // OS-dependent slice of the height, so the visible row count is not predictable here.
+      height: scaleHeightWithScrollbar(248),
       viewportRowRenderingOffset: 0,
       mergeCells: {
         virtualized: true,
@@ -361,93 +361,19 @@ describe('MergeCells Selection', () => {
     await selectCells([[20, 1, 0, 0]]);
 
     expect(`
-      | 0 : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : 0 :   :   :   :   |
-      |   : A :   :   :   :   |
-      |   :   :   :   :   :   |
+      | 0 : 0 :   :   :   |
     `).toBeMatchToSelectionPattern();
 
     await scrollViewportTo({ row: 24, col: 0 }); // the merged cell is partially visible
 
     expect(`
-      | 0 : 0 :   :   :   :   |
-      |   : A :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('main')('should keep the highlight (area selection) on the virtualized merged cell ' +
-    'after vertical scroll', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 248, // TODO: needs to be very specific to work, worth investigating if correct
-      viewportRowRenderingOffset: 0,
-      mergeCells: {
-        virtualized: true,
-      },
-    });
-
-    getPlugin('mergeCells').merge(0, 0, 20, 0);
-
-    await selectCells([[20, 1, 0, 0]]);
-
-    expect(`
-      | 0 : 0 :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-
-    await scrollViewportTo({ row: 24, col: 0 }); // the merged cell is partially visible
-
-    expect(`
-      | 0 : 0 :   :   :   :   |
-      |   : A :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('horizon')('should keep the highlight (area selection) on the virtualized merged cell ' +
-    'after vertical scroll', async() => {
-    handsontable({
-      data: createSpreadsheetData(100, 10),
-      width: 200,
-      height: 312, // TODO: needs to be very specific to work, worth investigating if correct
-      viewportRowRenderingOffset: 0,
-      mergeCells: {
-        virtualized: true,
-      },
-    });
-
-    getPlugin('mergeCells').merge(0, 0, 20, 0);
-
-    await selectCells([[20, 1, 0, 0]]);
-
-    expect(`
-      | 0 : 0 :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-
-    await scrollViewportTo({ row: 24, col: 0 }); // the merged cell is partially visible
-
-    expect(`
-      | 0 : 0 :   :   :   :   |
-      |   : A :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
-      |   :   :   :   :   :   |
+      | 0 : 0 :   :   :   |
+      |   : A :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
+      |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
   });
 
@@ -455,7 +381,7 @@ describe('MergeCells Selection', () => {
     handsontable({
       data: createSpreadsheetData(3, 30),
       width: 200,
-      height: 200,
+      height: containerHeightForRows(3, 0),
       viewportColumnRenderingOffset: 1,
       fixedColumnsStart: 2,
       mergeCells: {
@@ -503,7 +429,7 @@ describe('MergeCells Selection', () => {
     handsontable({
       data: createSpreadsheetData(3, 30),
       width: 200,
-      height: 200,
+      height: containerHeightForRows(3, 0),
       viewportColumnRenderingOffset: 1,
       fixedColumnsStart: 2,
       mergeCells: {
@@ -526,12 +452,15 @@ describe('MergeCells Selection', () => {
     expect(getInlineStartClone().find('tr:first td.area.fullySelectedMergedCell-0:first:visible').text()).toBe('A1');
   });
 
-  it.forTheme('classic')('should keep focus selection on the high virtualized merged cell that ' +
+  it('should keep focus selection on the high virtualized merged cell that ' +
     'intersects the top overlay', async() => {
     handsontable({
       data: createSpreadsheetData(30, 3),
       width: 200,
-      height: 200,
+      // TODO(I14): Cannot migrate to containerHeightForRows -- test intent is "viewport smaller
+      // than the merged cell span" not a specific visible row count; the exact row count varies
+      // by theme and interacts with fixedRowsTop + viewportRowRenderingOffset in non-trivial ways.
+      height: scaleHeight(248),
       viewportRowRenderingOffset: 1,
       fixedRowsTop: 2,
       mergeCells: {
@@ -546,70 +475,7 @@ describe('MergeCells Selection', () => {
     expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
     expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
     expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
-    expect(`
-      | # :   :   |
-      |   :   :   |
-      |---:---:---|
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `).toBeMatchToSelectionPattern();
 
-    await scrollViewportTo({ row: 25, col: 0 }); // the merged cell is partially visible
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A28');
-    expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
-    expect(`
-      |   :   :   |
-      |   :   :   |
-      |---:---:---|
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `).toBeMatchToSelectionPattern();
-
-    await scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A26');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
-    expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
-    expect(`
-      |   :   :   |
-      |   :   :   |
-      |---:---:---|
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('main')('should keep focus selection on the high virtualized merged cell that ' +
-    'intersects the top overlay', async() => {
-    // TODO: The test is tightly bound to this specific table height. Probably worth looking into it.
-    handsontable({
-      data: createSpreadsheetData(30, 3),
-      width: 200,
-      height: 248,
-      viewportRowRenderingOffset: 1,
-      fixedRowsTop: 2,
-      mergeCells: {
-        virtualized: true,
-      },
-    });
-
-    getPlugin('mergeCells').merge(0, 0, 20, 0);
-
-    await selectCell(0, 0);
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
-    expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
     expect(`
       | # :   :   |
       |   :   :   |
@@ -625,9 +491,12 @@ describe('MergeCells Selection', () => {
 
     await scrollViewportTo({ row: 25, col: 0 }); // the merged cell is partially visible
 
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
+    const firstVisibleAfterPartialScroll = 'A1';
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe(firstVisibleAfterPartialScroll);
     expect(getHtCore().find('tr:last td:first').text()).toBe('A28');
     expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
+
     expect(`
       | # :   :   |
       |   :   :   |
@@ -643,78 +512,12 @@ describe('MergeCells Selection', () => {
 
     await scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
 
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A24');
+    const firstVisibleAfterMergeOutOfView = 'A24';
+
+    expect(getHtCore().find('tr:first td:first').text()).toBe(firstVisibleAfterMergeOutOfView);
     expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
     expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
-    expect(`
-      |   :   :   |
-      |   :   :   |
-      |---:---:---|
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
 
-  it.forTheme('horizon')('should keep focus selection on the high virtualized merged cell that ' +
-    'intersects the top overlay', async() => {
-    // TODO: The test is tightly bound to this specific table height. Probably worth looking into it.
-    handsontable({
-      data: createSpreadsheetData(30, 3),
-      width: 200,
-      height: 313,
-      viewportRowRenderingOffset: 1,
-      fixedRowsTop: 2,
-      mergeCells: {
-        virtualized: true,
-      },
-    });
-
-    getPlugin('mergeCells').merge(0, 0, 20, 0);
-
-    await selectCell(0, 0);
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
-    expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
-    expect(`
-      | # :   :   |
-      |   :   :   |
-      |---:---:---|
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `).toBeMatchToSelectionPattern();
-
-    await scrollViewportTo({ row: 25, col: 0 }); // the merged cell is partially visible
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A28');
-    expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
-    expect(`
-      | # :   :   |
-      |   :   :   |
-      |---:---:---|
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `).toBeMatchToSelectionPattern();
-
-    await scrollViewportTo({ row: 29, col: 0 }); // the merged cell is not visible (out of the viewport)
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A24');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
-    expect(getTopClone().find('tr:first td.current:first:visible').text()).toBe('A1');
     expect(`
       |   :   :   |
       |   :   :   |
@@ -731,7 +534,9 @@ describe('MergeCells Selection', () => {
     handsontable({
       data: createSpreadsheetData(30, 3),
       width: 200,
-      height: 200,
+      // TODO(I14): Cannot migrate to containerHeightForRows -- same rationale as the sibling test
+      // above: intent is "viewport smaller than merged span" with fixedRowsTop complication.
+      height: scaleHeight(200),
       viewportRowRenderingOffset: 1,
       fixedRowsTop: 2,
       mergeCells: {

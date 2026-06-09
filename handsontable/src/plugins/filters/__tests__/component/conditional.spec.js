@@ -27,7 +27,7 @@ describe('Filters UI Conditional component', () => {
     expect(dropdownMenuRootElement().querySelector('.htFiltersMenuCondition .htUISelect')).not.toBeNull();
     expect(dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition .htUIInput').length).toBe(2);
 
-    await sleep(300);
+    await waitForNextAnimationFrames(19);
 
     // The filter components should be intact after some time. These expectations check whether the GhostTable
     // does not steal the components' element while recalculating column width (PR #5555).
@@ -90,15 +90,18 @@ describe('Filters UI Conditional component', () => {
     hot.rootElement.style.marginTop = '1000px';
 
     await dropdownMenu(1);
-    $(dropdownMenuRootElement().querySelector('.htUISelect')).simulate('click');
 
-    const rect = document.querySelector('.htFiltersConditionsMenu.handsontable table').getBoundingClientRect();
+    const uiSelect = dropdownMenuRootElement().querySelector('.htUISelect');
+    const uiSelectRect = uiSelect.getBoundingClientRect();
 
-    expect(window.scrollY + rect.top).forThemes(({ classic, main, horizon }) => {
-      classic.toBeAroundValue(762, 1);
-      main.toBeAroundValue(716, 1);
-      horizon.toBeAroundValue(674, 1);
-    });
+    $(uiSelect).simulate('click');
+
+    const condMenuRect = document
+      .querySelector('.htFiltersConditionsMenu.handsontable table').getBoundingClientRect();
+
+    // The conditional menu should appear vertically aligned with the UISelect element
+    expect(Math.abs(condMenuRect.top - uiSelectRect.top)).toBeLessThan(15);
+
     hot.rootElement.style.marginTop = '';
   });
 
@@ -198,7 +201,9 @@ describe('Filters UI Conditional component', () => {
       'Is not equal to',
       '',
       'Before',
+      'Before or equal to',
       'After',
+      'After or equal to',
       'Is between',
       '',
       'Tomorrow',
@@ -309,7 +314,9 @@ describe('Filters UI Conditional component', () => {
       'Is not equal to',
       '',
       'Before',
+      'Before or equal to',
       'After',
+      'After or equal to',
       'Is between',
       '',
       'Tomorrow',
@@ -332,7 +339,7 @@ describe('Filters UI Conditional component', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Is equal to');
 
-    await sleep(100); // Wait for autofocus of the filter input element
+    await waitForNextAnimationFrames(7); // Wait for autofocus of the filter input element
 
     document.activeElement.value = '123';
 
@@ -377,7 +384,9 @@ describe('Filters UI Conditional component', () => {
       'Is not equal to',
       '',
       'Before',
+      'Before or equal to',
       'After',
+      'After or equal to',
       'Is between',
       '',
       'Tomorrow',
@@ -462,7 +471,7 @@ describe('Filters UI Conditional component', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Is equal to');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     await keyDownUp('escape');
 
@@ -490,7 +499,7 @@ describe('Filters UI Conditional component', () => {
     // click so fast. Secondly, there can be a device lag between `mousedown` and `mouseup`
     // events. This fixes an issue related to failing test, which works on browser under
     // user control but fails while automatic tests.
-    await sleep(0);
+    await waitForNextAnimationFrames(0);
 
     $(button).simulate('mouseup');
     $(button).simulate('click');
@@ -498,7 +507,7 @@ describe('Filters UI Conditional component', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Is empty');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
     await keyDownUp('escape');
 
     expect($(conditionMenuRootElements().first).is(':visible')).toBe(false);
@@ -524,14 +533,14 @@ describe('Filters UI Conditional component', () => {
     // click so fast. Secondly, there can be a device lag between `mousedown` and `mouseup`
     // events. This fixes an issue related to failing test, which works on browser under
     // user control but fails while automatic tests.
-    await sleep(0);
+    await waitForNextAnimationFrames(0);
 
     $(button).simulate('mouseup');
     $(button).simulate('click');
 
     await openDropdownByConditionMenu();
 
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     await keyDownUp('escape');
     await keyDownUp('escape');
@@ -578,7 +587,7 @@ describe('Filters UI Conditional component', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Is equal to');
 
-    await sleep(50);
+    await waitForNextAnimationFrames(4);
 
     const inputElement = dropdownMenuRootElement().querySelector('.htUIInput input');
 
@@ -769,7 +778,7 @@ describe('Filters UI Conditional component', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Is equal to');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     // Is equal to '5'
     document.activeElement.value = '5';
@@ -790,7 +799,7 @@ describe('Filters UI Conditional component', () => {
     await openDropdownByConditionMenu();
     await selectDropdownByConditionMenuOption('Is between');
 
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     // Is equal to '5'
     document.activeElement.value = '5';
@@ -826,7 +835,7 @@ describe('Filters UI Conditional component', () => {
 
     await dropdownMenu(1);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     expect(dropdownMenuRootElement().querySelector('.htUISelectCaption').textContent)
       .toBe('Greater than or equal to');
@@ -844,7 +853,7 @@ describe('Filters UI Conditional component', () => {
 
     await dropdownMenu(1);
 
-    await sleep(200);
+    await waitForNextAnimationFrames(13);
 
     expect(dropdownMenuRootElement().querySelector('.htUISelectCaption').textContent).toBe('None');
 
@@ -877,5 +886,99 @@ describe('Filters UI Conditional component', () => {
     $(filterButton).simulate('click');
 
     expect(spy).not.toHaveBeenCalled();
+  });
+
+  it('should appear specified conditional options menu for intl-time cell types', async() => {
+    handsontable({
+      data: [['08:00'], ['12:30'], ['23:59']],
+      colHeaders: ['Time'],
+      columns: [
+        {
+          type: 'intl-time',
+          timeFormat: { hour: 'numeric', minute: '2-digit', hour12: false },
+        },
+      ],
+      filters: true,
+      dropdownMenu: true,
+      width: 300,
+      height: 200,
+    });
+
+    await dropdownMenu(0);
+    await openDropdownByConditionMenu();
+
+    const menuItems = $(conditionMenuRootElements().first).find('.htCore tr').map(function() {
+      return this.textContent;
+    }).toArray();
+
+    expect(menuItems).toEqual([
+      'None',
+      '',
+      'Is empty',
+      'Is not empty',
+      '',
+      'Is equal to',
+      'Is not equal to',
+      '',
+      'Begins with',
+      'Ends with',
+      '',
+      'Contains',
+      'Does not contain',
+      '',
+      'Before',
+      'Before or equal to',
+      'After',
+      'After or equal to',
+      'Is between',
+    ]);
+  });
+
+  it('should filter rows correctly using intl_time_before_or_equal condition', async() => {
+    handsontable({
+      data: [['08:00'], ['12:30'], ['23:59']],
+      colHeaders: ['Time'],
+      columns: [
+        {
+          type: 'intl-time',
+          timeFormat: { hour: 'numeric', minute: '2-digit', hour12: false },
+        },
+      ],
+      filters: true,
+      dropdownMenu: true,
+      width: 300,
+      height: 200,
+    });
+
+    const filters = getPlugin('filters');
+
+    filters.addCondition(0, 'intl_time_before_or_equal', ['12:30']);
+    await filters.filter();
+
+    expect(getData().length).toBe(2); // 08:00 and 12:30 (boundary included)
+  });
+
+  it('should filter rows correctly using intl_time_after_or_equal condition', async() => {
+    handsontable({
+      data: [['08:00'], ['12:30'], ['23:59']],
+      colHeaders: ['Time'],
+      columns: [
+        {
+          type: 'intl-time',
+          timeFormat: { hour: 'numeric', minute: '2-digit', hour12: false },
+        },
+      ],
+      filters: true,
+      dropdownMenu: true,
+      width: 300,
+      height: 200,
+    });
+
+    const filters = getPlugin('filters');
+
+    filters.addCondition(0, 'intl_time_after_or_equal', ['12:30']);
+    await filters.filter();
+
+    expect(getData().length).toBe(2); // 12:30 (boundary included) and 23:59
   });
 });

@@ -1,5 +1,5 @@
 ---
-id: vasj6t6t
+type: explanation
 title: Row virtualization
 metaTitle: Row virtualization - JavaScript Data Grid | Handsontable
 description: Render thousands of rows without freezing the browser, using row virtualization.
@@ -10,17 +10,14 @@ tags:
   - render all rows
   - offset
 react:
-  id: kjsl63sh
   metaTitle: Row virtualization - React Data Grid | Handsontable
 angular:
-  id: 2imqjvmp
   metaTitle: Row virtualization - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Row virtualization - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
-
-# Row virtualization
-
 Render thousands of rows without freezing the browser, using row virtualization.
 
 [[toc]]
@@ -79,6 +76,16 @@ The example below presents a data grid displaying 1 million cells (1000 rows x 1
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-virtualization/vue/example1.vue)
+
+:::
+
+:::
+
 ## Known limitations
 
 Using row virtualization has the following side effects:
@@ -89,13 +96,29 @@ Using row virtualization has the following side effects:
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
 - [Performance](@/guides/optimization/performance/performance.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`renderAllRows`](@/api/options.md#renderallrows)
-  - [`viewportRowRenderingOffset`](@/api/options.md#viewportrowrenderingoffset)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [renderAllRows](@/api/options.md#renderallrows)
+- [viewportRowRenderingOffset](@/api/options.md#viewportrowrenderingoffset)
+
+</div>
+
+## Related
+
+<div class="boxes-list">
+
+- [Performance](@/guides/optimization/performance/performance.md) -- tips for optimizing grid rendering speed with large data sets
+- [Row height](@/guides/rows/row-height/row-height.md) -- configure fixed or dynamic row heights, which affects viewport calculations during virtualization
+
+</div>

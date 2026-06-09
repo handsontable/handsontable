@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed undo/redo stack desync with formulas engine",
-  "type": "fixed",
-  "issueOrPR": 12056,
-  "breaking": false,
-  "framework": "none"
-}

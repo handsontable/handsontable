@@ -1,9 +1,11 @@
 /* file: app.component.ts */
 import { Component, ViewChild, ViewEncapsulation } from '@angular/core';
-import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
   selector: 'app-example4',
+  standalone: true,
+  imports: [HotTableModule],
   template: `
     <div class="example-controls-container">
       <div class="controls">
@@ -18,7 +20,6 @@ import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
       [settings]="hotSettings!" [data]="hotData">
     </hot-table>
   `,
-  standalone: false,
   encapsulation: ViewEncapsulation.None
 })
 export class AppComponent {
@@ -44,7 +45,7 @@ export class AppComponent {
     exportPlugin.downloadFile('csv', {
       bom: false,
       columnDelimiter: ',',
-      columnHeaders: false,
+      colHeaders: false,
       exportHiddenColumns: true,
       exportHiddenRows: true,
       fileExtension: 'csv',
@@ -60,7 +61,7 @@ export class AppComponent {
     exportPlugin.downloadFile('csv', {
       bom: false,
       columnDelimiter: ',',
-      columnHeaders: false,
+      colHeaders: false,
       exportHiddenColumns: true,
       exportHiddenRows: true,
       fileExtension: 'csv',
@@ -71,13 +72,13 @@ export class AppComponent {
     });
   }
 
-  downloadCSVWithNoSanitization() {
+  downloadCSVWithRegexpSanitization() {
     const exportPlugin = this.hotTable.hotInstance!.getPlugin('exportFile');
 
     exportPlugin.downloadFile('csv', {
       bom: false,
       columnDelimiter: ',',
-      columnHeaders: false,
+      colHeaders: false,
       exportHiddenColumns: true,
       exportHiddenRows: true,
       fileExtension: 'csv',
@@ -94,14 +95,14 @@ export class AppComponent {
     exportPlugin.downloadFile('csv', {
       bom: false,
       columnDelimiter: ',',
-      columnHeaders: false,
+      colHeaders: false,
       exportHiddenColumns: true,
       exportHiddenRows: true,
       fileExtension: 'csv',
       filename: 'Handsontable-CSV-file_[YYYY]-[MM]-[DD]',
       mimeType: 'text/csv',
       rowDelimiter: '\r\n',
-      sanitizeValues: (value) => {
+      sanitizeValues: (value: string) => {
         return /WEBSERVICE/.test(value) ? 'REMOVED SUSPICIOUS CELL CONTENT' : value;
       },
     });
@@ -109,39 +110,22 @@ export class AppComponent {
 }
 /* end-file */
 
-
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
-/* start:skip-in-compilation */
-import { AppComponent } from './app.component';
-/* end:skip-in-compilation */
-
-// register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
       useValue: {
         license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ AppComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ AppComponent ]
-})
-
-export class AppModule { }
 /* end-file */

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Removed the `languages` folder from git + updated the `17.0+` release workflow.",
-  "type": "removed",
-  "issueOrPR": 12049,
-  "breaking": false,
-  "framework": "none"
-}

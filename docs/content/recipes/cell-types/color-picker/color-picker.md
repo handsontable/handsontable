@@ -1,4 +1,5 @@
 ---
+type: how-to
 id: 2d2b22ef
 title: Color picker
 metaTitle: Color Picker Cell Type - JavaScript Data Grid | Handsontable
@@ -15,13 +16,48 @@ react:
 angular:
   id: a471c83c
   metaTitle: Color Picker Cell Type - Angular Data Grid | Handsontable
+vue:
+  id: y6983gwr
+  metaTitle: Color Picker Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
 ---
 
-# Color Picker Cell Type - Step-by-Step Guide
+This tutorial shows you how to integrate the Pickr color picker library as a custom Handsontable cell editor, with a swatch renderer and hex validation.
 
-[[toc]]
+::: only-for javascript vue
+
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps @simonwep/pickr
+
+@[code collapse={11-196}](@/content/recipes/cell-types/color-picker/javascript/example1.js)
+@[code collapse={11-198}](@/content/recipes/cell-types/color-picker/javascript/example1.ts)
+@[code](@/content/recipes/cell-types/color-picker/javascript/example1.css)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3 --deps @simonwep/pickr
+
+@[code](@/content/recipes/cell-types/color-picker/react/example1.css)
+@[code](@/content/recipes/cell-types/color-picker/react/example1.jsx)
+@[code](@/content/recipes/cell-types/color-picker/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2 --deps @simonwep/pickr
+
+@[code](@/content/recipes/cell-types/color-picker/angular/example1.ts)
+@[code](@/content/recipes/cell-types/color-picker/angular/example1.html)
+
+:::
+
+:::
 
 ## Overview
 
@@ -30,20 +66,6 @@ This guide shows how to create a custom color picker cell using the [Pickr](http
 **Difficulty:** Beginner
 **Time:** ~15 minutes
 **Libraries:** `@simonwep/pickr`
-
-## Complete Example
-
-::: only-for javascript vue
-
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps @simonwep/pickr
-
-@[code](@/content/recipes/cell-types/color-picker/javascript/example1.js)
-@[code](@/content/recipes/cell-types/color-picker/javascript/example1.ts)
-@[code](@/content/recipes/cell-types/color-picker/javascript/example1.css)
-
-:::
-
-:::
 
 ## What You'll Build
 
@@ -125,7 +147,7 @@ Create a separate CSS file for the cell and editor styles. This uses Handsontabl
 
 ## Step 3: Create the Renderer
 
-The renderer controls how the cell looks when not being edited. It displays a colored circle swatch.
+The renderer controls how the cell looks when not being edited. The renderer displays a colored circle swatch.
 
 ```typescript
 renderer: rendererFactory(({ td, value }) => {
@@ -136,7 +158,7 @@ renderer: rendererFactory(({ td, value }) => {
 **What's happening:**
 - `td` is the table cell DOM element
 - `value` is the cell's current value (e.g., "#ff0000")
-- We render a circle swatch with the color as its background
+- The renderer displays a circle swatch with the color as its background
 - The swatch is centered inside the cell via CSS flexbox
 
 ## Step 4: Create the Validator
@@ -197,11 +219,18 @@ afterInit(editor) {
     el: button,
     theme: 'nano',
     default: editor.input.value || '#000000',
+    autoReposition: false,
+    padding: 0,
     components: {
       preview: true,
       hue: true,
     }
   });
+
+  // Collapse the Pickr trigger button so it doesn't add vertical space
+  // between the cell editor and the popup.
+  editor.pickr._root.root.style.height = '0';
+  editor.pickr._root.root.style.overflow = 'hidden';
 
   editor.preventCloseElement = editor.pickr._root.app;
 
@@ -213,6 +242,11 @@ afterInit(editor) {
   });
 
   editor.pickr.on('hide', () => {
+    if (Date.now() - editor._openedAt < 400) {
+      editor.pickr.show();
+
+      return;
+    }
     editor.finishEditing();
   });
 }
@@ -235,8 +269,20 @@ Set the current color and show the Pickr picker.
 
 ```typescript
 afterOpen(editor) {
+  editor._openedAt = Date.now();
   editor.pickr.setColor(editor.input.value || '#000000');
   editor.pickr.show();
+
+  // Pickr positions its popup relative to the trigger button with an
+  // internal offset. Use double-rAF to ensure Pickr's own positioning
+  // is complete before overriding the top to sit flush below the cell.
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const cellRect = editor.TD.getBoundingClientRect();
+
+      editor.pickr._root.app.style.top = `${cellRect.bottom}px`;
+    });
+  });
 }
 ```
 
@@ -254,6 +300,7 @@ Ensure the Pickr popup is hidden when the editor closes.
 
 ```typescript
 afterClose(editor) {
+  editor.pickr._root.app.classList.remove('visible');
   editor.pickr.hide();
 }
 ```
@@ -282,7 +329,7 @@ setValue(editor, value) {
 **What's happening:**
 - `getValue` returns the input's current value (hex color code) when Handsontable saves the cell
 - `setValue` initializes the editor with the cell's current color value
-- On Pickr's `change` event we set `editor.input.value` from the selected color; when the user closes the picker, `hide` fires and we call `editor.finishEditing()`
+- On Pickr's `change` event, `editor.input.value` is set from the selected color; when the user closes the picker, `hide` fires and `editor.finishEditing()` is called
 
 ## Step 10: Editor - Keyboard Shortcuts
 
@@ -338,21 +385,47 @@ const cellDefinition = {
         el: button,
         theme: 'nano',
         default: editor.input.value || '#000000',
+        autoReposition: false,
+        padding: 0,
         components: { preview: true, hue: true },
       });
+
+      // Collapse the Pickr trigger button so it doesn't add vertical space
+      // between the cell editor and the popup.
+      editor.pickr._root.root.style.height = '0';
+      editor.pickr._root.root.style.overflow = 'hidden';
 
       editor.preventCloseElement = editor.pickr._root.app;
 
       editor.pickr.on('change', (color) => {
         if (color) editor.input.value = color.toHEXA().toString();
       });
-      editor.pickr.on('hide', () => editor.finishEditing());
+      editor.pickr.on('hide', () => {
+        if (Date.now() - editor._openedAt < 400) {
+          editor.pickr.show();
+
+          return;
+        }
+        editor.finishEditing();
+      });
     },
     afterOpen(editor) {
+      editor._openedAt = Date.now();
       editor.pickr.setColor(editor.input.value || '#000000');
       editor.pickr.show();
+
+      // Pickr positions its popup relative to the trigger button with an
+      // internal offset. Override the top to sit flush below the cell.
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          const cellRect = editor.TD.getBoundingClientRect();
+
+          editor.pickr._root.app.style.top = `${cellRect.bottom}px`;
+        });
+      });
     },
     afterClose(editor) {
+      editor.pickr._root.app.classList.remove('visible');
       editor.pickr.hide();
     },
     getValue(editor) {
@@ -422,10 +495,10 @@ const hot = new Handsontable(container, hotOptions);
 ## How It Works - Complete Flow
 
 1. **Initial Render**: Cell displays a colored circle swatch
-2. **User Double-Clicks or F2**: Editor opens with a styled input and an "Open color picker" button
+2. **User Double-Clicks or <kbd>F2</kbd>**: Editor opens with a styled input and an "Open color picker" button
 3. **Color Picker Opens**: `afterOpen` sets the current color and calls `pickr.show()`
 4. **User Selects Color**: Pickr updates the preview; the `change` event updates `editor.input.value` with the hex from `color.toHEXA().toString()`
-5. **User Closes Picker (or presses Tab)**: The `hide` event fires (or Tab triggers `pickr.hide()`), we call `editor.finishEditing()`
+5. **User Closes Picker (or presses Tab)**: The `hide` event fires (or Tab triggers `pickr.hide()`), then `editor.finishEditing()` is called
 6. **Validation**: Validator checks hex format (# followed by 6 characters)
 7. **Save**: If valid, value is saved to cell; if invalid, editor may stay open
 8. **Editor Closes**: `afterClose` calls `editor.pickr.hide()`, cell renderer shows updated swatch
@@ -488,4 +561,13 @@ theme: 'classic',
 
 ---
 
-**Congratulations!** You've created a fully functional color picker cell using the Pickr library (nano theme) with the `editorFactory` helper, a button to open the picker, a circle swatch renderer, and native Handsontable editor styling!
+
+## What you learned
+
+You integrated the Pickr color picker library as a Handsontable cell editor. You used `editorFactory` to manage the editor lifecycle, `rendererFactory` to display a color swatch, and Handsontable's CSS tokens to style the editor consistently with the rest of the grid.
+
+## Next steps
+
+- [Colorful Picker (React)](@/react/recipes/cell-types/colorful-picker/colorful-picker.md) - The same pattern using `react-colorful` and React's `EditorComponent`.
+- [Color Picker (Angular)](@/angular/recipes/cell-types/guide-color-picker-angular/guide-color-picker.md) - The same pattern using Angular components and the native HTML5 color input.
+- [Star Rating](@/recipes/cell-types/rating/rating.md) - Another custom editor built with `editorFactory` and SVG.

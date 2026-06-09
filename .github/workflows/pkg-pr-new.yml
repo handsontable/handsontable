@@ -1,0 +1,99 @@
+name: Preview packages (pkg.pr.new)
+
+# NOTE: The pkg.pr.new GitHub App must be installed on this repository
+# for the publish step to post a PR comment with install links.
+# Install at: https://github.com/apps/pkg-pr-new
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - 'handsontable/**'
+      - 'wrappers/**'
+      - '.github/workflows/pkg-pr-new.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  publish-preview:
+    name: Build and publish preview packages
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build all packages
+        run: npm run all build -- --e examples visual-tests
+
+      - name: Publish preview packages
+        run: |
+          npx pkg-pr-new publish \
+            --template ./examples/prs/js \
+            --template ./examples/prs/ts \
+            --template ./examples/prs/react \
+            ./handsontable/tmp \
+            './wrappers/angular-wrapper/dist/hot-table' \
+            ./wrappers/react-wrapper \
+            ./wrappers/vue3
+
+      - name: Compute short SHA
+        id: vars
+        run: echo "short_sha=${PR_HEAD_SHA::7}" >> $GITHUB_OUTPUT
+        env:
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+
+      - name: Post PR preview comment
+        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
+        with:
+          header: pr-preview
+          message: |
+            ## 📦 PR Preview Packages
+
+            Install packages from this PR (commit `${{ steps.vars.outputs.short_sha }}`):
+
+            ```sh
+            npm i https://pkg.pr.new/handsontable@${{ github.event.pull_request.number }}
+            npm i https://pkg.pr.new/@handsontable/react-wrapper@${{ github.event.pull_request.number }}
+            npm i https://pkg.pr.new/@handsontable/vue3@${{ github.event.pull_request.number }}
+            npm i https://pkg.pr.new/@handsontable/angular-wrapper@${{ github.event.pull_request.number }}
+            ```
+
+            ## 📚 Examples
+
+            | Framework | Link |
+            |-----------|------|
+            | Angular | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=${{ github.event.pull_request.number }}) |
+            | Vanilla JS | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=javascript&handsontable-version=${{ github.event.pull_request.number }}) |
+            | React TS | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=react&handsontable-version=${{ github.event.pull_request.number }}) |
+            | React JS | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=react-js&handsontable-version=${{ github.event.pull_request.number }}) |
+            | TypeScript | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=typescript&handsontable-version=${{ github.event.pull_request.number }}) |
+            | Vue 3 | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=${{ github.event.pull_request.number }}) |
+
+            **SSR Examples:**
+
+            | Framework | Link |
+            |-----------|------|
+            | Next.js | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=next.js&handsontable-version=${{ github.event.pull_request.number }}) |
+            | Astro | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=astro&handsontable-version=${{ github.event.pull_request.number }}) |
+            | Remix | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=remix&handsontable-version=${{ github.event.pull_request.number }}) |
+            | Nuxt | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=nuxt&handsontable-version=${{ github.event.pull_request.number }}) |

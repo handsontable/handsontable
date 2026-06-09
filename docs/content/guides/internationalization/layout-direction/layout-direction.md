@@ -1,5 +1,5 @@
 ---
-id: gcdt3pns
+type: how-to
 title: Layout direction
 metaTitle: Layout direction - JavaScript Data Grid | Handsontable
 description: Set the layout direction for right-to-left languages. Automatically inherit your HTML file's "dir" property, or set the layout direction manually.
@@ -17,17 +17,14 @@ tags:
   - L10n
   - i18n
 react:
-  id: g4mu790t
   metaTitle: Layout direction - React Data Grid | Handsontable
 angular:
-  id: orgwjmih
   metaTitle: Layout direction - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Layout direction - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
 ---
-
-# Layout direction
-
 Set the layout direction for right-to-left languages. Automatically inherit your HTML file's `dir` property, or set the layout direction manually.
 
 [[toc]]
@@ -81,6 +78,16 @@ To try out Handsontable's RTL support, check out the demo below:
 
 @[code](@/content/guides/internationalization/layout-direction/angular/example1.ts)
 @[code](@/content/guides/internationalization/layout-direction/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3-languages
+
+@[code](@/content/guides/internationalization/layout-direction/vue/example1.vue)
 
 :::
 
@@ -156,6 +163,16 @@ In the example below, the RTL layout direction is inherited from a `dir` attribu
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/internationalization/layout-direction/vue/example2.vue)
+
+:::
+
+:::
+
 ### Set the layout direction to RTL
 
 You can render Handsontable from the right to the left, regardless of your HTML document's `dir` attribute.
@@ -191,6 +208,16 @@ and set it to `'rtl'`:
 
 @[code](@/content/guides/internationalization/layout-direction/angular/example3.ts)
 @[code](@/content/guides/internationalization/layout-direction/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/internationalization/layout-direction/vue/example3.vue)
 
 :::
 
@@ -236,6 +263,16 @@ and set it to `'ltr'`:
 
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/internationalization/layout-direction/vue/example4.vue)
+
+:::
+
+:::
+
 ## Set the horizontal text alignment
 
 You can apply different horizontal [text alignment](@/guides/cell-features/text-alignment/text-alignment.md) settings, overwriting the horizontal text alignment resulting from your grid's layout direction.
@@ -275,6 +312,16 @@ In the example below, some columns are explicitly aligned to the left, center, o
 
 :::
 
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/internationalization/layout-direction/vue/example5.vue)
+
+:::
+
+:::
+
 You can apply the horizontal text alignment settings to:
 - [The entire grid](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options), by setting [`className`](@/api/options.md#classname) on the global level
 - [Individual columns](@/guides/getting-started/configuration-options/configuration-options.md#set-column-options), by setting [`className`](@/api/options.md#classname) on the column level
@@ -284,9 +331,9 @@ You can apply the horizontal text alignment settings to:
 
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Language](@/guides/internationalization/language/language.md)
 - [Locale](@/guides/internationalization/locale/locale.md)
@@ -294,17 +341,40 @@ You can apply the horizontal text alignment settings to:
 
 </div>
 
-### Related API reference
+**Related blog articles**
 
-- Configuration options:
-  - [`language`](@/api/options.md#language)
-  - [`layoutDirection`](@/api/options.md#layoutdirection)
-  - [`locale`](@/api/options.md#locale)
-- Core methods:
-  - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
-  - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
-  - [`isLtr()`](@/api/core.md#isltr)
-  - [`isRtl()`](@/api/core.md#isrtl)
-- Hooks:
-  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
-  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)
+<div class="boxes-list gray">
+
+- [Handsontable 12.0.0: RTL support, and a new keyboard shortcuts API](https://handsontable.com/blog/handsontable-12.0.0-data-grid-rtl-support-and-a-new-keyboard-shortcuts-api)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [language](@/api/options.md#language)
+- [layoutDirection](@/api/options.md#layoutdirection)
+- [locale](@/api/options.md#locale)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getDirectionFactor()](@/api/core.md#getdirectionfactor)
+- [getTranslatedPhrase()](@/api/core.md#gettranslatedphrase)
+- [isLtr()](@/api/core.md#isltr)
+- [isRtl()](@/api/core.md#isrtl)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterLanguageChange](@/api/hooks.md#afterlanguagechange)
+- [beforeLanguageChange](@/api/hooks.md#beforelanguagechange)
+
+</div>

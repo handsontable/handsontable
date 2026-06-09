@@ -2,6 +2,7 @@ import { HotTable } from '@handsontable/react-wrapper';
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { registerRenderer } from 'handsontable/renderers';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 // register Handsontable's modules
 registerAllModules();
@@ -15,14 +16,14 @@ const ExampleComponent = () => {
   ];
 
   const firstRowRenderer = (instance, td, ...rest) => {
-    Handsontable.renderers.TextRenderer(instance, td, ...rest);
+    textRenderer(instance, td, ...rest);
     td.style.fontWeight = 'bold';
     td.style.color = 'green';
     td.style.background = '#CEC';
   };
 
   const negativeValueRenderer = (instance, td, row, col, prop, value, cellProperties) => {
-    Handsontable.renderers.TextRenderer(instance, td, row, col, prop, value, cellProperties);
+    textRenderer(instance, td, row, col, prop, value, cellProperties);
 
     // if the row contains a negative number
     if (parseInt(value, 10) < 0) {

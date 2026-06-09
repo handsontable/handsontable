@@ -1,4 +1,5 @@
 ---
+type: explanation
 id: 6o0dghoa
 title: Introduction
 metaTitle: API reference - JavaScript Data Grid | Handsontable
@@ -12,9 +13,11 @@ react:
 angular:
   id: 48gjbys8
   metaTitle: API reference - Angular Data Grid | Handsontable
+vue:
+  id: lk8x28al
+  metaTitle: API reference - Vue Data Grid | Handsontable
 ---
-
-# Handsontable API reference
+This page describes the Handsontable API -- the methods, hooks, and plugin interfaces you use to control the grid programmatically.
 
 [[toc]]
 
@@ -48,3 +51,9 @@ The plugins extend the capabilities of Handsontable.
 ## Getting help
 
 If you need help using the API reference, please [contact our Support](https://handsontable.com/contact?category=technical_support).
+
+## Related
+
+- [Configuration options](@/guides/getting-started/configuration-options/configuration-options.md)
+- [Events and hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md)
+- [Plugins](@/api/plugins.md)

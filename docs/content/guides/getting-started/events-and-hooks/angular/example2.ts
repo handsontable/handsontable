@@ -1,15 +1,17 @@
 /* file: app.component.ts */
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
-import { GridSettings, HotTableComponent } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
+import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
 
 @Component({
   selector: 'example2-events-hooks',
-  standalone: false,
+  standalone: true,
+  imports: [HotTableModule],
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
-export class Example2EventsHooksComponent implements AfterViewInit {
+export class AppComponent implements AfterViewInit {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   lastChange: string | any[] | null = null;
@@ -41,11 +43,15 @@ export class Example2EventsHooksComponent implements AfterViewInit {
         const selection = hot?.getSelected()?.[0];
 
         if (!selection) return;
+
+        // Ignore header and corner selections (row or column index < 0)
+        if (selection[0] < 0 || selection[1] < 0) return;
+
         console.log(selection);
 
         // BACKSPACE or DELETE
         if (e.keyCode === 8 || e.keyCode === 46) {
-          e.stopImmediatePropagation();
+          stopImmediatePropagation(e);
           // remove data at cell, shift up
           hot.spliceCol(selection[1], selection[0], 1);
           e.preventDefault();
@@ -58,7 +64,7 @@ export class Example2EventsHooksComponent implements AfterViewInit {
             this.lastChange.length === 1 &&
             this.lastChange[0][2] == this.lastChange[0][3]
           ) {
-            e.stopImmediatePropagation();
+            stopImmediatePropagation(e);
             hot.spliceCol(selection[1], selection[0], 0, '');
             // add new cell
             hot.selectCell(selection[0], selection[1]);
@@ -74,37 +80,22 @@ export class Example2EventsHooksComponent implements AfterViewInit {
 /* end-file */
 
 
-/* file: app.module.ts */
-import { NgModule, ApplicationConfig } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+
+/* file: app.config.ts */
+import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { registerAllModules } from 'handsontable/registry';
-import { HOT_GLOBAL_CONFIG, HotGlobalConfig, HotTableModule } from '@handsontable/angular-wrapper';
-import { CommonModule } from '@angular/common';
-import { NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
-/* start:skip-in-compilation */
-import { Example2EventsHooksComponent } from './app.component';
-/* end:skip-in-compilation */
+import { HOT_GLOBAL_CONFIG, HotGlobalConfig, NON_COMMERCIAL_LICENSE } from '@handsontable/angular-wrapper';
 
 // register Handsontable's modules
 registerAllModules();
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     {
       provide: HOT_GLOBAL_CONFIG,
-      useValue: {
-        license: NON_COMMERCIAL_LICENSE,
-      } as HotGlobalConfig
-    }
+      useValue: { license: NON_COMMERCIAL_LICENSE } as HotGlobalConfig,
+    },
   ],
 };
-
-@NgModule({
-  imports: [ BrowserModule, HotTableModule, CommonModule ],
-  declarations: [ Example2EventsHooksComponent ],
-  providers: [...appConfig.providers],
-  bootstrap: [ Example2EventsHooksComponent ]
-})
-
-export class AppModule { }
 /* end-file */

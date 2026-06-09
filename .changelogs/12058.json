@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed and issue with column headers styles",
-  "type": "fixed",
-  "issueOrPR": 12058,
-  "breaking": false,
-  "framework": "none"
-}

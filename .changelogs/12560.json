@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the `beforeValidate`, `afterValidate`, and `postAfterValidate` hooks receiving the data accessor function instead of the visual column index when `columns[i].data` is a function.",
+  "type": "fixed",
+  "issueOrPR": 12560,
+  "breaking": false,
+  "framework": "none"
+}

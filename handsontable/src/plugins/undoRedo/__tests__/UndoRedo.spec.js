@@ -884,7 +884,7 @@ describe('UndoRedo', () => {
         await setDataAtCell(1, 0, 'X2');
         await setDataAtCell(0, 1, 'Y1');
 
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getDataAtCell(0, 0)).toBe('X1');
         expect(getDataAtCell(1, 0)).toBe('X2');
@@ -892,7 +892,7 @@ describe('UndoRedo', () => {
 
         getPlugin('undoRedo').undo();
 
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getDataAtCell(0, 0)).toBe('X1');
         expect(getDataAtCell(1, 0)).toBe('X2');
@@ -900,7 +900,7 @@ describe('UndoRedo', () => {
 
         getPlugin('undoRedo').undo();
 
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getDataAtCell(0, 0)).toBe('X1');
         expect(getDataAtCell(1, 0)).toBe('A2');
@@ -908,7 +908,7 @@ describe('UndoRedo', () => {
 
         getPlugin('undoRedo').undo();
 
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getDataAtCell(0, 0)).toBe('A1');
         expect(getDataAtCell(1, 0)).toBe('A2');
@@ -1169,29 +1169,29 @@ describe('UndoRedo', () => {
         await setDataAtCell(1, 0, 'X2');
         await setDataAtCell(0, 1, 'Y1');
 
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
         getPlugin('undoRedo').undo();
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
         getPlugin('undoRedo').undo();
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
         getPlugin('undoRedo').undo();
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
         getPlugin('undoRedo').redo();
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getDataAtCell(0, 0)).toBe('X1');
         expect(getDataAtCell(1, 0)).toBe('A2');
         expect(getDataAtCell(0, 1)).toBe('B1');
 
         getPlugin('undoRedo').redo();
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getDataAtCell(0, 0)).toBe('X1');
         expect(getDataAtCell(1, 0)).toBe('X2');
         expect(getDataAtCell(0, 1)).toBe('B1');
 
         getPlugin('undoRedo').redo();
-        await sleep(10);
+        await waitForNextAnimationFrames(1);
 
         expect(getDataAtCell(0, 0)).toBe('X1');
         expect(getDataAtCell(1, 0)).toBe('X2');

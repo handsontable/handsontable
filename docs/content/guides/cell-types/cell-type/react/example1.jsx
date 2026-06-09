@@ -1,6 +1,6 @@
 import { HotTable } from '@handsontable/react-wrapper';
-import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 // register Handsontable's modules
 registerAllModules();
@@ -8,12 +8,12 @@ registerAllModules();
 const ExampleComponent = () => {
   const colors = ['yellow', 'red', 'orange', 'green', 'blue', 'gray', 'black', 'white'];
   const yellowRenderer = (instance, td, ...rest) => {
-    Handsontable.renderers.TextRenderer(instance, td, ...rest);
+    textRenderer(instance, td, ...rest);
     td.style.backgroundColor = 'yellow';
   };
 
   const greenRenderer = (instance, td, ...rest) => {
-    Handsontable.renderers.TextRenderer(instance, td, ...rest);
+    textRenderer(instance, td, ...rest);
     td.style.backgroundColor = 'green';
   };
 
@@ -41,7 +41,12 @@ const ExampleComponent = () => {
         { data: 'name', renderer: yellowRenderer },
         // use default 'text' cell type but overwrite its renderer with yellowRenderer
         { data: 'isActive', type: 'checkbox' },
-        { data: 'date', type: 'date', dateFormat: 'YYYY-MM-DD' },
+        {
+          data: 'date',
+          type: 'intl-date',
+          locale: 'en-US',
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' },
+        },
         { data: 'color', type: 'autocomplete', source: colors },
       ]}
       cell={[{ row: 1, col: 0, renderer: greenRenderer }]}

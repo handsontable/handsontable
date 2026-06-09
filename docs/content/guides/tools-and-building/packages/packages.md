@@ -1,5 +1,5 @@
 ---
-id: xt5zuczu
+type: reference
 title: Packages
 metaTitle: Packages - JavaScript Data Grid | Handsontable
 description: Instantly add Handsontable to your web app, using pre-built UMD packages of JavaScript and CSS.
@@ -7,12 +7,8 @@ permalink: /packages
 canonicalUrl: /packages
 searchCategory: Guides
 category: Tools and building
-menuTag: updated
 ---
-
-# Packages
-
-Instantly add Handsontable to your web app, using pre-built UMD packages of JavaScript and CSS.
+Handsontable is distributed as multiple packages targeting different use cases. This page describes each option and when to use it.
 
 [[toc]]
 
@@ -120,9 +116,18 @@ If you want to build your own custom Handsontable package distribution check out
 
 ## Related guides
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Building](@/guides/tools-and-building/custom-builds/custom-builds.md)
 - [Testing](@/guides/tools-and-building/testing/testing.md)
+
+</div>
+
+## Related
+
+<div class="boxes-list">
+
+- [Modules](@/guides/tools-and-building/modules/modules.md)
+- [Themes](@/guides/styling/themes/themes.md)
 
 </div>

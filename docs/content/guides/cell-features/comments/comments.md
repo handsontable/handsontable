@@ -1,5 +1,5 @@
 ---
-id: deqvum60
+type: how-to
 title: Comments
 metaTitle: Comments - JavaScript Data Grid | Handsontable
 description: Add a comment (a note) to a cell, using the context menu, just like in Excel. Edit and delete comments. Make comments read-only.
@@ -8,20 +8,19 @@ canonicalUrl: /comments
 tags:
   - notes
 react:
-  id: lxw2632u
   metaTitle: Comments - React Data Grid | Handsontable
 angular:
-  id: o4jcn137
   metaTitle: Comments - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Comments - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---
-
-# Comments
-
 Add a comment (a note) to a cell, using the context menu, just like in Excel. Edit and delete comments. Make comments read-only.
 
 [[toc]]
+
+The Comments plugin lets users attach text notes to individual cells. Use it when reviewers need to annotate data without changing cell values.
 
 ## Enable the plugin
 
@@ -75,6 +74,23 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = {
+  data: [
+    ['A1', 'B1', 'C1'],
+    ['A2', 'B2', 'C2'],
+  ],
+  comments: true,
+  autoWrapRow: true,
+  autoWrapCol: true,
+  licenseKey: 'non-commercial-and-evaluation',
+};
+```
+
+:::
+
 ## Add comments via the context menu
 
 After you've enabled the plugin, the [Context Menu](@/guides/accessories-and-menus/context-menu/context-menu.md) gains a few new items:
@@ -117,6 +133,18 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = {
+  cell: [
+    { row: 1, col: 1, comment: { value: 'Hello world!' } },
+  ],
+};
+```
+
+:::
+
 In this example, the comment "Hello world!" is added to the cell at `(1,1)`.
 
 ## Basic example
@@ -149,6 +177,16 @@ In this example, the comment "Hello world!" is added to the cell at `(1,1)`.
 
 @[code](@/content/guides/cell-features/comments/angular/example1.ts)
 @[code](@/content/guides/cell-features/comments/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-features/comments/vue/example1.vue)
 
 :::
 
@@ -191,6 +229,16 @@ By default, all comments are editable. To change this, set the [`readOnly`](@/ap
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-features/comments/vue/example2.vue)
+
+:::
+
+:::
+
 ## Set a comment box's size
 
 To set the width and height of a comment box, use the [`style`](@/api/options.md#comments) parameter.
@@ -223,6 +271,16 @@ To set the width and height of a comment box, use the [`style`](@/api/options.md
 
 @[code](@/content/guides/cell-features/comments/angular/example3.ts)
 @[code](@/content/guides/cell-features/comments/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-features/comments/vue/example3.vue)
 
 :::
 
@@ -265,16 +323,35 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/cell-features/comments/vue/example4.vue)
+
+:::
+
+:::
+
 ## Related keyboard shortcuts
 
 | Windows                                                 | macOS                                                      | Action                                  |  Excel  | Sheets  |
 | ------------------------------------------------------- | ---------------------------------------------------------- | --------------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**M**</kbd> | <kbd>**Ctrl**</kbd>+<kbd>**Option**</kbd>+<kbd>**M**</kbd> | Add or edit a comment                   | &cross; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                | <kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd>                    | Save and exit the current comment       | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Alt**</kbd>+<kbd>**M**</kbd> | <kbd>⌃</kbd>+<kbd>⌥</kbd>+<kbd>**M**</kbd> | Add or edit a comment                   | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                    | Save and exit the current comment       | &cross; | &check; |
 | <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                                      | Exit the current comment without saving | &cross; | &cross; |
 
 ## Related API reference
 
-- Configuration options:
-  - [`commentedCellClassName`](@/api/options.md#commentedcellclassname)
-  - [`comments`](@/api/options.md#comments)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [commentedCellClassName](@/api/options.md#commentedcellclassname)
+- [comments](@/api/options.md#comments)
+
+</div>
+
+## Result
+
+Cells with comments display a small indicator in the corner. Users can view, edit, or delete comments through the context menu, and pre-configured comments appear when the table loads.

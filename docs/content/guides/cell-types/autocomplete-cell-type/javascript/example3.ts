@@ -7,6 +7,7 @@ registerAllModules();
 const container = document.querySelector('#example3')!;
 
 new Handsontable(container, {
+  height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
   data: [
     ['BMW', 2017, 'black', 'black'],
@@ -19,7 +20,7 @@ new Handsontable(container, {
     {
       type: 'autocomplete',
       source(_query, process) {
-        fetch('{{$basePath}}/scripts/json/autocomplete.json')
+        fetch('/docs/scripts/json/autocomplete.json')
           .then((response) => response.json())
           .then((response) => process(response.data));
       },

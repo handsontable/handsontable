@@ -54,6 +54,7 @@
 &nbsp;&nbsp;✅&nbsp; [Pinned/frozen columns](https://handsontable.com/docs/column-freezing/) <br>
 &nbsp;&nbsp;✅&nbsp; [Hiding columns](https://handsontable.com/docs/column-hiding/) <br>
 &nbsp;&nbsp;✅&nbsp; [Right-click context menu](https://handsontable.com/docs/context-menu/) <br>
+&nbsp;&nbsp;✅&nbsp; [Row pagination](https://handsontable.com/docs/rows-pagination/) <br>
 
 <div id="installation">
 
@@ -134,6 +135,31 @@ Use this data grid as you would any other component in your application. [Option
 </div>
 
 <br>
+
+## 🎨 Themes
+
+Handsontable themes control how your data table looks: colors, spacing, typography, borders, and overall visual style.
+
+You get three built-in themes out of the box:
+- main – modern, clean, default choice
+- horizon – lighter, spacious feel
+- classic – traditional spreadsheet look
+
+Each theme supports:
+- ️Light mode
+- Dark mode
+
+<picture>
+  <img width="780" alt="JavaScript data grid preview" src="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-themes.png?raw=true"/>
+</picture>
+
+## 🏗️ Custom Themes
+
+You can style Handsontable to match your product's visual identity by creating a custom theme. Use the Theme API to extend a built-in theme and apply your own styling while keeping support for light/dark modes and density settings.
+
+To stay aligned with design, you can rely on the:
+- [Theme Builder](https://handsontable.com/theme-builder)
+- [Handsontable Design System](https://www.figma.com/community/file/1487445656371116081)
 
 ## 🚀 Resources
 

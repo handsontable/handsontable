@@ -1,11 +1,15 @@
-<div class="example-controls-container" style="padding-bottom: 16px">
-  <div class="controlsQuickFilter">
-    <label for="background-select" class="selectColumn">Select a background:
-      <select id="background-select">
-        <option value="solid">Solid</option>
-        <option value="semi-transparent">Semi-transparent</option>
-      </select>
-    </label>
+<div class="example-controls-container">
+  <div class="controls">
+    <div class="theme-dropdown" id="backgroundDropdown">
+      <button class="theme-dropdown-trigger" id="backgroundTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+        <span id="backgroundLabel">Solid</span>
+        <svg class="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+      </button>
+      <ul class="theme-dropdown-menu" id="backgroundMenu" role="listbox" hidden>
+        <li role="option" data-value="solid" aria-selected="true">Solid</li>
+        <li role="option" data-value="semi-transparent">Semi-transparent</li>
+      </ul>
+    </div>
   </div>
 </div>
 <div id="example5"></div>

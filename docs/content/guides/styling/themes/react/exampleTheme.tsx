@@ -12,144 +12,201 @@ registerTheme(classicTheme);
 
 // constants.js
 export const data: (string | number | boolean)[][] = [
-  [false, 'Tagcat', 'United Kingdom', 'Classic Vest', '11/10/2025', '01-2331942', true, '172', 2, 2],
-  [true, 'Zoomzone', 'Indonesia', 'Cycling Cap', '03/05/2025', '88-2768633', true, '188', 6, 2],
-  [true, 'Meeveo', 'United States', 'Full-Finger Gloves', '27/03/2025', '51-6775945', true, '162', 1, 3],
-  [false, 'Buzzdog', 'Philippines', 'HL Mountain Frame', '29/08/2025', '44-4028109', true, '133', 7, 1],
-  [true, 'Katz', 'India', 'Half-Finger Gloves', '02/10/2025', '08-2758492', true, '87', 1, 3],
-  [false, 'Jaxbean', 'China', 'HL Road Frame', '28/09/2025', '84-3557705', false, '26', 8, 1],
-  [false, 'Wikido', 'Brazil', 'HL Touring Frame', '24/06/2025', '20-9397637', false, '110', 4, 1],
-  [false, 'Browsedrive', 'United States', 'LL Mountain Frame', '13/03/2025', '36-0079556', true, '50', 4, 4],
-  [false, 'Twinder', 'United Kingdom', 'LL Road Frame', '06/04/2025', '41-1489542', false, '160', 6, 1],
-  [false, 'Jetwire', 'China', 'LL Touring Frame', '01/02/2025', '37-1531629', true, '30', 8, 5],
-  [false, 'Chatterpoint', 'China', 'Long-Sleeve Logo Jersey', '14/07/2025', '25-5083429', true, '39', 7, 2],
-  [false, 'Twinder', 'Egypt', "Men's Bib-Shorts", '31/08/2025', '04-4281278', false, '96', 6, 1],
-  [false, 'Midel', 'United States', "Men's Sports Shorts", '27/06/2025', '55-1711908', true, '108', 10, 3],
-  [false, 'Yodo', 'India', 'ML Mountain Frame', '16/03/2025', '58-8360815', false, '46', 1, 1],
-  [false, 'Camido', 'Russia', 'ML Mountain Frame-W', '13/09/2025', '10-3786104', true, '97', 8, 3],
-  [false, 'Eire', 'Thailand', 'ML Road Frame', '10/04/2025', '45-1186054', true, '161', 1, 4],
-  [false, 'Vinte', 'United Kingdom', 'ML Road Frame-W', '22/01/2025', '62-6202742', true, '58', 4, 3],
-  [false, 'Twitterlist', 'China', 'Mountain Bike Socks', '09/11/2025', '88-9646223', true, '92', 8, 3],
-  [false, 'Eidel', 'Bangladesh', 'Mountain-100', '19/09/2025', '45-5588112', true, '5', 6, 5],
-  [false, 'Trunyx', 'Nigeria', 'Mountain-200', '09/03/2025', '66-6271819', true, '158', 4, 1],
-  [false, 'Katz', 'Turkey', 'Mountain-300', '05/03/2025', '38-9245023', false, '121', 5, 4],
-  [false, 'Kaymbo', 'United States', 'Mountain-400-W', '24/12/2025', '44-5916927', false, '61', 5, 4],
-  [false, 'Ozu', 'Pakistan', 'Mountain-500', '13/06/2025', '31-5449914', true, '155', 2, 2],
-  [false, 'Rhynyx', 'India', 'Racing Socks', '05/12/2025', '19-9413869', true, '162', 2, 4],
-  [false, 'Flashset', 'Iran', 'Road-150', '14/12/2025', '25-9807605', false, '46', 7, 1],
-  [false, 'Yata', 'Congo (Kinshasa)', 'Road-250', '12/06/2025', '74-4291983', true, '47', 4, 4],
-  [false, 'Brainlounge', 'Vietnam', 'Road-350-W', '10/03/2025', '83-0980643', true, '104', 2, 3],
-  [false, 'Babblestorm', 'United States', 'Road-450', '10/10/2025', '19-2878430', true, '101', 6, 4],
-  [false, 'Youspan', 'Brazil', 'Road-550-W', '16/12/2025', '19-1838230', true, '150', 10, 3],
-  [false, 'Nlounge', 'China', 'Road-650', '31/10/2025', '32-2267938', true, '42', 4, 2],
-  [false, 'Twinte', 'India', 'Road-750', '17/08/2025', '79-2821972', true, '144', 9, 3],
-  [false, 'Oyonder', 'United Kingdom', 'Short-Sleeve Classic Jersey', '04/12/2025', '46-6597557', true, '195', 4, 1],
-  [false, 'Gigabox', 'Pakistan', 'Sport-100', '03/02/2025', '15-1793960', true, '199', 4, 4],
-  [false, 'Livetube', 'France', 'Touring-1000', '16/05/2025', '86-0811003', true, '110', 4, 5],
-  [false, 'Voomm', 'United Kingdom', 'Touring-2000', '15/07/2025', '95-3068680', true, '51', 4, 4],
-  [false, 'Voonyx', 'China', 'Touring-3000', '27/11/2025', '35-3085360', false, '69', 2, 5],
-  [false, 'Zoombeat', 'United States', "Women's Mountain Shorts", '03/11/2025', '56-8673088', false, '53', 2, 3],
-  [false, 'Roomm', 'China', "Women's Tights", '16/03/2025', '76-0085918', true, '168', 1, 1],
-  [false, 'Leenti', 'China', 'Mountain-400', '16/05/2025', '03-0893276', false, '58', 1, 4],
-  [false, 'Jetpulse', 'United States', 'Road-550', '08/02/2025', '79-9013306', true, '152', 9, 3],
-  [false, 'Katz', 'Peru', 'Road-350', '15/02/2025', '55-7799920', true, '66', 4, 2],
-  [false, 'Cogidoo', 'India', 'LL Mountain Front Wheel', '04/06/2025', '07-0881122', false, '112', 9, 2],
-  [false, 'Divavu', 'Colombia', 'Touring Rear Wheel', '24/02/2025', '58-6157387', true, '50', 10, 4],
-  [false, 'Mydeo', 'China', 'Touring Front Wheel', '07/12/2025', '12-2810010', false, '31', 3, 5],
-  [false, 'Browsebug', 'Japan', 'ML Mountain Front Wheel', '14/01/2025', '64-9249984', true, '132', 5, 5],
-  [false, 'Layo', 'China', 'HL Mountain Front Wheel', '24/04/2025', '45-0739652', true, '45', 1, 5],
-  [false, 'Snaptags', 'United Kingdom', 'LL Touring Handlebars', '06/08/2025', '09-5712761', true, '197', 4, 2],
-  [false, 'Cogilith', 'China', 'HL Touring Handlebars', '31/05/2025', '01-7345008', true, '190', 4, 3],
-  [false, 'Reallinks', 'United Kingdom', 'LL Road Front Wheel', '14/05/2025', '62-1065350', true, '184', 3, 4],
-  [false, 'Quaxo', 'United States', 'ML Road Front Wheel', '23/03/2025', '44-7241323', true, '169', 3, 4],
-  [false, 'Devify', 'China', 'HL Road Front Wheel', '12/12/2025', '52-0295699', false, '152', 4, 4],
-  [false, 'Youopia', 'Angola', 'LL Mountain Handlebars', '01/04/2025', '52-2650922', false, '182', 6, 4],
-  [false, 'Ainyx', 'China', 'Touring Pedal', '27/02/2025', '48-3618525', true, '141', 6, 1],
-  [false, 'Browsetype', 'Malaysia', 'ML Mountain Handlebars', '28/04/2025', '51-8893923', true, '169', 7, 1],
-  [false, 'Muxo', 'China', 'HL Mountain Handlebars', '22/08/2025', '68-5911361', false, '39', 7, 1],
-  [false, 'Bubbletube', 'China', 'LL Road Handlebars', '04/10/2025', '41-5880042', true, '71', 8, 3],
-  [false, 'Fadeo', 'Vietnam', 'ML Road Handlebars', '23/04/2025', '90-5913983', true, '148', 10, 3],
-  [false, 'Yadel', 'United Kingdom', 'HL Road Handlebars', '18/04/2025', '92-0960699', true, '116', 8, 1],
-  [false, 'Blognation', 'China', 'LL Headset', '10/01/2025', '06-9493898', true, '96', 10, 1],
-  [false, 'Devpoint', 'China', 'ML Headset', '25/12/2025', '69-5878565', true, '35', 4, 2],
-  [false, 'Aibox', 'United Kingdom', 'HL Headset', '18/03/2025', '13-1133017', true, '16', 8, 2],
-  [false, 'Brightdog', 'China', 'LL Mountain Pedal', '11/09/2025', '39-6530433', true, '194', 2, 5],
-  [false, 'Gabcube', 'Nigeria', 'ML Mountain Pedal', '22/04/2025', '96-6860388', true, '24', 1, 3],
-  [false, 'Muxo', 'China', 'HL Mountain Pedal', '05/06/2025', '30-0356137', true, '170', 4, 4],
-  [false, 'Tambee', 'China', 'ML Touring Seat/Saddle', '22/02/2025', '93-9058255', true, '184', 9, 5],
-  [false, 'Cogilith', 'India', 'LL Touring Seat/Saddle', '06/04/2025', '82-9268909', false, '153', 10, 4],
-  [false, 'Dynabox', 'Hong Kong', 'HL Touring Seat/Saddle', '10/01/2025', '20-6913815', false, '88', 10, 1],
-  [false, 'Shuffledrive', 'Sudan', 'LL Road Pedal', '16/09/2025', '08-8238817', true, '57', 9, 2],
-  [false, 'Fivechat', 'China', 'ML Road Pedal', '26/08/2025', '44-7370350', false, '62', 4, 1],
-  [false, 'Meembee', 'United States', 'HL Road Pedal', '27/12/2025', '01-3525949', true, '123', 2, 4],
-  [false, 'Dynazzy', 'United Kingdom', 'LL Mountain Seat/Saddle 1', '15/12/2025', '04-2414623', true, '77', 10, 5],
-  [false, 'Eare', 'China', 'ML Mountain Seat/Saddle 1', '04/04/2025', '15-1917509', false, '199', 9, 4],
-  [false, 'Yozio', 'China', 'HL Mountain Seat/Saddle 1', '15/03/2025', '06-2526845', true, '149', 8, 2],
-  [false, 'Quinu', "Xi'an", '425-777-7829', '22/02/2025', '83-1713558', false, '191', 9, 5],
-  [false, 'Jazzy', 'United Kingdom', 'ML Road Seat/Saddle 1', '07/08/2025', '00-8892524', true, '150', 10, 2],
-  [false, 'Thoughtsphere', 'China', 'HL Road Seat/Saddle 1', '28/11/2025', '39-5538991', true, '130', 7, 3],
-  [false, 'Leenti', 'China', 'ML Road Rear Wheel', '29/12/2025', '06-9002973', true, '179', 1, 2],
-  [false, 'Quaxo', 'United Kingdom', 'HL Road Rear Wheel', '06/09/2025', '73-6104901', true, '98', 5, 3],
-  [false, 'Tanoodle', 'Chile', 'LL Mountain Seat/Saddle 2', '24/05/2025', '68-7384479', true, '175', 2, 3],
-  [false, 'Feednation', 'China', 'ML Mountain Seat/Saddle 2', '21/11/2025', '26-7757763', true, '11', 1, 3],
-  [false, 'Kayveo', 'China', 'HL Mountain Seat/Saddle 2', '21/06/2025', '07-4873562', false, '184', 7, 4],
-  [false, 'Meevee', 'Saudi Arabia', 'LL Road Seat/Saddle 1', '16/11/2025', '46-5819554', false, '27', 9, 3],
-  [false, 'Twitterworks', 'China', 'ML Road Seat/Saddle 2', '19/04/2025', '01-2666826', true, '186', 3, 2],
-  [false, 'Wikizz', 'Tanzania', 'HL Road Seat/Saddle 2', '08/03/2025', '54-7090503', true, '20', 3, 3],
-  [false, 'Yoveo', 'United States', 'LL Mountain Tire', '14/10/2025', '78-7658520', false, '153', 2, 1],
-  [false, 'Yakidoo', 'China', 'ML Mountain Tire', '12/10/2025', '23-9926318', true, '161', 8, 5],
-  [false, 'Oyope', 'China', 'HL Mountain Tire', '20/09/2025', '20-0179517', true, '98', 10, 5],
-  [false, 'Skipstorm', 'United States', 'LL Road Tire', '01/10/2025', '02-9543343', true, '30', 7, 3],
-  [false, 'Minyx', 'United States', 'ML Road Tire', '07/07/2025', '98-3938169', true, '73', 10, 2],
-  [false, 'Miboo', 'China', 'HL Road Tire', '25/07/2025', '68-5197934', true, '158', 9, 1],
-  [false, 'Realfire', 'United States', 'Touring Tire', '27/08/2025', '39-8260460', true, '122', 5, 2],
-  [false, 'Shufflester', 'China', 'Mountain Tire Tube', '08/06/2025', '45-9776170', true, '33', 2, 4],
-  [false, 'Ntag', 'China', 'Road Tire Tube', '06/12/2025', '45-0858451', true, '107', 6, 2],
-  [false, 'Jabberbean', 'United States', 'Touring Tire Tube', '26/04/2025', '15-4247305', true, '15', 1, 2],
-  [false, 'Thoughtblab', 'China', 'LL Bottom Bracket', '21/05/2025', '15-8534931', true, '168', 5, 2],
-  [false, 'Jabbertype', 'China', 'Classic Vest', '25/07/2025', '23-1251557', true, '135', 4, 2],
-  [false, 'Buzzshare', 'United Kingdom', 'Cycling Cap', '07/07/2025', '86-5920601', true, '11', 1, 4],
-  [false, 'Roodel', 'United States', 'Full-Finger Gloves', '13/01/2025', '48-1055459', true, '41', 6, 4],
-  [false, 'Zoovu', 'China', 'Half-Finger Gloves', '03/06/2025', '12-7842022', true, '144', 6, 1],
-  [false, 'Photofeed', 'China', 'HL Mountain Frame', '14/07/2025', '94-5088099', true, '106', 1, 4],
+  [false, 'Tagcat', 'United Kingdom', 'Classic Vest', '2025-10-11', '01-2331942', true, '172', 2, 2],
+  [true, 'Zoomzone', 'Indonesia', 'Cycling Cap', '2025-05-03', '88-2768633', true, '188', 6, 2],
+  [true, 'Meeveo', 'United States', 'Full-Finger Gloves', '2025-03-27', '51-6775945', true, '162', 1, 3],
+  [false, 'Buzzdog', 'Philippines', 'HL Mountain Frame', '2025-08-29', '44-4028109', true, '133', 7, 1],
+  [true, 'Katz', 'India', 'Half-Finger Gloves', '2025-10-02', '08-2758492', true, '87', 1, 3],
+  [false, 'Jaxbean', 'China', 'HL Road Frame', '2025-09-28', '84-3557705', false, '26', 8, 1],
+  [false, 'Wikido', 'Brazil', 'HL Touring Frame', '2025-06-24', '20-9397637', false, '110', 4, 1],
+  [false, 'Browsedrive', 'United States', 'LL Mountain Frame', '2025-03-13', '36-0079556', true, '50', 4, 4],
+  [false, 'Twinder', 'United Kingdom', 'LL Road Frame', '2025-04-06', '41-1489542', false, '160', 6, 1],
+  [false, 'Jetwire', 'China', 'LL Touring Frame', '2025-02-01', '37-1531629', true, '30', 8, 5],
+  [false, 'Chatterpoint', 'China', 'Long-Sleeve Logo Jersey', '2025-07-14', '25-5083429', true, '39', 7, 2],
+  [false, 'Twinder', 'Egypt', "Men's Bib-Shorts", '2025-08-31', '04-4281278', false, '96', 6, 1],
+  [false, 'Midel', 'United States', "Men's Sports Shorts", '2025-06-27', '55-1711908', true, '108', 10, 3],
+  [false, 'Yodo', 'India', 'ML Mountain Frame', '2025-03-16', '58-8360815', false, '46', 1, 1],
+  [false, 'Camido', 'Russia', 'ML Mountain Frame-W', '2025-09-13', '10-3786104', true, '97', 8, 3],
+  [false, 'Eire', 'Thailand', 'ML Road Frame', '2025-04-10', '45-1186054', true, '161', 1, 4],
+  [false, 'Vinte', 'United Kingdom', 'ML Road Frame-W', '2025-01-22', '62-6202742', true, '58', 4, 3],
+  [false, 'Twitterlist', 'China', 'Mountain Bike Socks', '2025-11-09', '88-9646223', true, '92', 8, 3],
+  [false, 'Eidel', 'Bangladesh', 'Mountain-100', '2025-09-19', '45-5588112', true, '5', 6, 5],
+  [false, 'Trunyx', 'Nigeria', 'Mountain-200', '2025-03-09', '66-6271819', true, '158', 4, 1],
+  [false, 'Katz', 'Turkey', 'Mountain-300', '2025-03-05', '38-9245023', false, '121', 5, 4],
+  [false, 'Kaymbo', 'United States', 'Mountain-400-W', '2025-12-24', '44-5916927', false, '61', 5, 4],
+  [false, 'Ozu', 'Pakistan', 'Mountain-500', '2025-06-13', '31-5449914', true, '155', 2, 2],
+  [false, 'Rhynyx', 'India', 'Racing Socks', '2025-12-05', '19-9413869', true, '162', 2, 4],
+  [false, 'Flashset', 'Iran', 'Road-150', '2025-12-14', '25-9807605', false, '46', 7, 1],
+  [false, 'Yata', 'Congo (Kinshasa)', 'Road-250', '2025-06-12', '74-4291983', true, '47', 4, 4],
+  [false, 'Brainlounge', 'Vietnam', 'Road-350-W', '2025-03-10', '83-0980643', true, '104', 2, 3],
+  [false, 'Babblestorm', 'United States', 'Road-450', '2025-10-10', '19-2878430', true, '101', 6, 4],
+  [false, 'Youspan', 'Brazil', 'Road-550-W', '2025-12-16', '19-1838230', true, '150', 10, 3],
+  [false, 'Nlounge', 'China', 'Road-650', '2025-10-31', '32-2267938', true, '42', 4, 2],
+  [false, 'Twinte', 'India', 'Road-750', '2025-08-17', '79-2821972', true, '144', 9, 3],
+  [false, 'Oyonder', 'United Kingdom', 'Short-Sleeve Classic Jersey', '2025-12-04', '46-6597557', true, '195', 4, 1],
+  [false, 'Gigabox', 'Pakistan', 'Sport-100', '2025-02-03', '15-1793960', true, '199', 4, 4],
+  [false, 'Livetube', 'France', 'Touring-1000', '2025-05-16', '86-0811003', true, '110', 4, 5],
+  [false, 'Voomm', 'United Kingdom', 'Touring-2000', '2025-07-15', '95-3068680', true, '51', 4, 4],
+  [false, 'Voonyx', 'China', 'Touring-3000', '2025-11-27', '35-3085360', false, '69', 2, 5],
+  [false, 'Zoombeat', 'United States', "Women's Mountain Shorts", '2025-11-03', '56-8673088', false, '53', 2, 3],
+  [false, 'Roomm', 'China', "Women's Tights", '2025-03-16', '76-0085918', true, '168', 1, 1],
+  [false, 'Leenti', 'China', 'Mountain-400', '2025-05-16', '03-0893276', false, '58', 1, 4],
+  [false, 'Jetpulse', 'United States', 'Road-550', '2025-02-08', '79-9013306', true, '152', 9, 3],
+  [false, 'Katz', 'Peru', 'Road-350', '2025-02-15', '55-7799920', true, '66', 4, 2],
+  [false, 'Cogidoo', 'India', 'LL Mountain Front Wheel', '2025-06-04', '07-0881122', false, '112', 9, 2],
+  [false, 'Divavu', 'Colombia', 'Touring Rear Wheel', '2025-02-24', '58-6157387', true, '50', 10, 4],
+  [false, 'Mydeo', 'China', 'Touring Front Wheel', '2025-12-07', '12-2810010', false, '31', 3, 5],
+  [false, 'Browsebug', 'Japan', 'ML Mountain Front Wheel', '2025-01-14', '64-9249984', true, '132', 5, 5],
+  [false, 'Layo', 'China', 'HL Mountain Front Wheel', '2025-04-24', '45-0739652', true, '45', 1, 5],
+  [false, 'Snaptags', 'United Kingdom', 'LL Touring Handlebars', '2025-08-06', '09-5712761', true, '197', 4, 2],
+  [false, 'Cogilith', 'China', 'HL Touring Handlebars', '2025-05-31', '01-7345008', true, '190', 4, 3],
+  [false, 'Reallinks', 'United Kingdom', 'LL Road Front Wheel', '2025-05-14', '62-1065350', true, '184', 3, 4],
+  [false, 'Quaxo', 'United States', 'ML Road Front Wheel', '2025-03-23', '44-7241323', true, '169', 3, 4],
+  [false, 'Devify', 'China', 'HL Road Front Wheel', '2025-12-12', '52-0295699', false, '152', 4, 4],
+  [false, 'Youopia', 'Angola', 'LL Mountain Handlebars', '2025-04-01', '52-2650922', false, '182', 6, 4],
+  [false, 'Ainyx', 'China', 'Touring Pedal', '2025-02-27', '48-3618525', true, '141', 6, 1],
+  [false, 'Browsetype', 'Malaysia', 'ML Mountain Handlebars', '2025-04-28', '51-8893923', true, '169', 7, 1],
+  [false, 'Muxo', 'China', 'HL Mountain Handlebars', '2025-08-22', '68-5911361', false, '39', 7, 1],
+  [false, 'Bubbletube', 'China', 'LL Road Handlebars', '2025-10-04', '41-5880042', true, '71', 8, 3],
+  [false, 'Fadeo', 'Vietnam', 'ML Road Handlebars', '2025-04-23', '90-5913983', true, '148', 10, 3],
+  [false, 'Yadel', 'United Kingdom', 'HL Road Handlebars', '2025-04-18', '92-0960699', true, '116', 8, 1],
+  [false, 'Blognation', 'China', 'LL Headset', '2025-01-10', '06-9493898', true, '96', 10, 1],
+  [false, 'Devpoint', 'China', 'ML Headset', '2025-12-25', '69-5878565', true, '35', 4, 2],
+  [false, 'Aibox', 'United Kingdom', 'HL Headset', '2025-03-18', '13-1133017', true, '16', 8, 2],
+  [false, 'Brightdog', 'China', 'LL Mountain Pedal', '2025-09-11', '39-6530433', true, '194', 2, 5],
+  [false, 'Gabcube', 'Nigeria', 'ML Mountain Pedal', '2025-04-22', '96-6860388', true, '24', 1, 3],
+  [false, 'Muxo', 'China', 'HL Mountain Pedal', '2025-06-05', '30-0356137', true, '170', 4, 4],
+  [false, 'Tambee', 'China', 'ML Touring Seat/Saddle', '2025-02-22', '93-9058255', true, '184', 9, 5],
+  [false, 'Cogilith', 'India', 'LL Touring Seat/Saddle', '2025-04-06', '82-9268909', false, '153', 10, 4],
+  [false, 'Dynabox', 'Hong Kong', 'HL Touring Seat/Saddle', '2025-01-10', '20-6913815', false, '88', 10, 1],
+  [false, 'Shuffledrive', 'Sudan', 'LL Road Pedal', '2025-09-16', '08-8238817', true, '57', 9, 2],
+  [false, 'Fivechat', 'China', 'ML Road Pedal', '2025-08-26', '44-7370350', false, '62', 4, 1],
+  [false, 'Meembee', 'United States', 'HL Road Pedal', '2025-12-27', '01-3525949', true, '123', 2, 4],
+  [false, 'Dynazzy', 'United Kingdom', 'LL Mountain Seat/Saddle 1', '2025-12-15', '04-2414623', true, '77', 10, 5],
+  [false, 'Eare', 'China', 'ML Mountain Seat/Saddle 1', '2025-04-04', '15-1917509', false, '199', 9, 4],
+  [false, 'Yozio', 'China', 'HL Mountain Seat/Saddle 1', '2025-03-15', '06-2526845', true, '149', 8, 2],
+  [false, 'Quinu', "Xi'an", '425-777-7829', '2025-02-22', '83-1713558', false, '191', 9, 5],
+  [false, 'Jazzy', 'United Kingdom', 'ML Road Seat/Saddle 1', '2025-08-07', '00-8892524', true, '150', 10, 2],
+  [false, 'Thoughtsphere', 'China', 'HL Road Seat/Saddle 1', '2025-11-28', '39-5538991', true, '130', 7, 3],
+  [false, 'Leenti', 'China', 'ML Road Rear Wheel', '2025-12-29', '06-9002973', true, '179', 1, 2],
+  [false, 'Quaxo', 'United Kingdom', 'HL Road Rear Wheel', '2025-09-06', '73-6104901', true, '98', 5, 3],
+  [false, 'Tanoodle', 'Chile', 'LL Mountain Seat/Saddle 2', '2025-05-24', '68-7384479', true, '175', 2, 3],
+  [false, 'Feednation', 'China', 'ML Mountain Seat/Saddle 2', '2025-11-21', '26-7757763', true, '11', 1, 3],
+  [false, 'Kayveo', 'China', 'HL Mountain Seat/Saddle 2', '2025-06-21', '07-4873562', false, '184', 7, 4],
+  [false, 'Meevee', 'Saudi Arabia', 'LL Road Seat/Saddle 1', '2025-11-16', '46-5819554', false, '27', 9, 3],
+  [false, 'Twitterworks', 'China', 'ML Road Seat/Saddle 2', '2025-04-19', '01-2666826', true, '186', 3, 2],
+  [false, 'Wikizz', 'Tanzania', 'HL Road Seat/Saddle 2', '2025-03-08', '54-7090503', true, '20', 3, 3],
+  [false, 'Yoveo', 'United States', 'LL Mountain Tire', '2025-10-14', '78-7658520', false, '153', 2, 1],
+  [false, 'Yakidoo', 'China', 'ML Mountain Tire', '2025-10-12', '23-9926318', true, '161', 8, 5],
+  [false, 'Oyope', 'China', 'HL Mountain Tire', '2025-09-20', '20-0179517', true, '98', 10, 5],
+  [false, 'Skipstorm', 'United States', 'LL Road Tire', '2025-10-01', '02-9543343', true, '30', 7, 3],
+  [false, 'Minyx', 'United States', 'ML Road Tire', '2025-07-07', '98-3938169', true, '73', 10, 2],
+  [false, 'Miboo', 'China', 'HL Road Tire', '2025-07-25', '68-5197934', true, '158', 9, 1],
+  [false, 'Realfire', 'United States', 'Touring Tire', '2025-08-27', '39-8260460', true, '122', 5, 2],
+  [false, 'Shufflester', 'China', 'Mountain Tire Tube', '2025-06-08', '45-9776170', true, '33', 2, 4],
+  [false, 'Ntag', 'China', 'Road Tire Tube', '2025-12-06', '45-0858451', true, '107', 6, 2],
+  [false, 'Jabberbean', 'United States', 'Touring Tire Tube', '2025-04-26', '15-4247305', true, '15', 1, 2],
+  [false, 'Thoughtblab', 'China', 'LL Bottom Bracket', '2025-05-21', '15-8534931', true, '168', 5, 2],
+  [false, 'Jabbertype', 'China', 'Classic Vest', '2025-07-25', '23-1251557', true, '135', 4, 2],
+  [false, 'Buzzshare', 'United Kingdom', 'Cycling Cap', '2025-07-07', '86-5920601', true, '11', 1, 4],
+  [false, 'Roodel', 'United States', 'Full-Finger Gloves', '2025-01-13', '48-1055459', true, '41', 6, 4],
+  [false, 'Zoovu', 'China', 'Half-Finger Gloves', '2025-06-03', '12-7842022', true, '144', 6, 1],
+  [false, 'Photofeed', 'China', 'HL Mountain Frame', '2025-07-14', '94-5088099', true, '106', 1, 4],
 ];
 
 const ExampleComponent = () => {
   const hotRef = useRef(null);
-  const currentTheme = document.querySelector('html')?.classList.contains('theme-dark')
+  const currentTheme = document.documentElement.getAttribute('data-theme') === 'dark'
     ? 'horizon-dark'
     : 'horizon-light';
 
   const [themeName, setThemeName] = useState(currentTheme);
+  const [menuOpen, setMenuOpen] = useState(false);
 
-  const handleOnChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const theme = event.target.value;
+  const themeOptions = [
+    { value: 'main-light', label: 'Main Light', themeClass: 'ht-theme-main' },
+    { value: 'main-dark', label: 'Main Dark', themeClass: 'ht-theme-main-dark' },
+    { value: 'horizon-light', label: 'Horizon Light', themeClass: 'ht-theme-horizon' },
+    { value: 'horizon-dark', label: 'Horizon Dark', themeClass: 'ht-theme-horizon-dark' },
+    { value: 'classic-light', label: 'Classic Light', themeClass: 'ht-theme-classic' },
+    { value: 'classic-dark', label: 'Classic Dark', themeClass: 'ht-theme-classic-dark' },
+  ];
 
-    setThemeName(theme);
-  };
+  const currentOption = themeOptions.find((o) => o.value === themeName) || themeOptions[0];
+  const [dotColors, setDotColors] = useState({ fg: '', bg: '', accent: '' });
+
+  useEffect(() => {
+    const [, colorScheme] = themeName.split('-');
+    const container = document.getElementById('exampleTheme');
+
+    if (container) container.dataset.colorScheme = colorScheme || 'auto';
+  }, [themeName]);
+
+  useEffect(() => {
+    const gridEl = hotRef.current?.hotInstance?.rootElement;
+
+    if (gridEl) {
+      const helper = document.createElement('div');
+
+      helper.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none;';
+      gridEl.appendChild(helper);
+
+      const resolve = (varName: string) => {
+        helper.style.color = `var(${varName})`;
+
+        return getComputedStyle(helper).color;
+      };
+
+      setDotColors({
+        fg: resolve('--ht-foreground-color'),
+        bg: resolve('--ht-background-color'),
+        accent: resolve('--ht-accent-color'),
+      });
+
+      gridEl.removeChild(helper);
+    }
+  }, [themeName]);
 
   return (
     <>
-      <div className="theme-examples-controls">
-        <div className="example-container">
-          <label className="color-select">
-            <select value={`${themeName}`} onChange={handleOnChange}>
-              <option value="main-light">Main Light</option>
-              <option value="main-dark">Main Dark</option>
-              <option value="horizon-light">Horizon Light</option>
-              <option value="horizon-dark">Horizon Dark</option>
-              <option value="classic-light">Classic Light</option>
-              <option value="classic-dark">Classic Dark</option>
-            </select>
-            <div className={`color-box ht-theme-${themeName.split('-')[0]}`}>
-              <span className="color" style={{ background: 'var(--ht-foreground-color)' }} />
-              <span className="color" style={{ background: 'var(--ht-background-color)' }} />
-              <span className="color" style={{ background: 'var(--ht-accent-color)' }} />
-            </div>
-          </label>
+      <div className="example-controls-container">
+        <div className="controls">
+          <div className="theme-dropdown" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="theme-dropdown-trigger"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen(!menuOpen)}
+            >
+              <span className="theme-dropdown-colors">
+                <span className="color" style={{ background: dotColors.fg }} />
+                <span className="color" style={{ background: dotColors.bg }} />
+                <span className="color" style={{ background: dotColors.accent }} />
+              </span>
+              <span className="theme-dropdown-label">{currentOption.label}</span>
+              <svg className="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6l6 -6" /></svg>
+            </button>
+            {menuOpen && (
+              <ul className="theme-dropdown-menu" role="listbox">
+                {themeOptions.map((opt) => (
+                  <li
+                    key={opt.value}
+                    role="option"
+                    aria-selected={opt.value === themeName}
+                    onClick={() => {
+                      setThemeName(opt.value);
+                      setMenuOpen(false);
+                    }}
+                  >
+                    {opt.label}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
-
       <HotTable
         key={themeName}
         ref={hotRef}
@@ -183,9 +240,10 @@ const ExampleComponent = () => {
           },
           {
             data: 4,
-            type: 'date',
+            type: 'intl-date',
             allowInvalid: false,
-            dateFormat: 'DD/MM/YYYY',
+            locale: 'en-GB',
+            dateFormat: { day: '2-digit', month: '2-digit', year: 'numeric' },
             headerClassName: 'htLeft',
           },
           {
@@ -225,15 +283,7 @@ const ExampleComponent = () => {
         manualColumnResize={true}
         navigableHeaders={true}
         licenseKey="non-commercial-and-evaluation"
-      >
-        <HotColumn data={1} />
-        <HotColumn data={3} />
-        <HotColumn data={4} type="date" />
-        <HotColumn data={6} type="checkbox" className="htCenter" />
-        <HotColumn data={7} type="numeric" />
-        <HotColumn data={5} />
-        <HotColumn data={2} />
-      </HotTable>
+      />
     </>
   );
 };

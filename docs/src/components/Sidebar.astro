@@ -1,0 +1,166 @@
+---
+/**
+ * Framework-aware Sidebar override.
+ *
+ * Starlight includes all framework sidebar groups in a single sidebar config.
+ * This component inspects the current URL path to:
+ *
+ * 1. Filter to only the active framework's entries (JavaScript / React / Angular).
+ * 2. On API pages (/api/): show only the API reference items.
+ *    On guide pages: show only the guide sections (API reference group hidden).
+ *    On recipe pages (/recipes/): show only the recipes sidebar.
+ *
+ * After filtering, hidden elements are rendered for the Algolia crawler so the
+ * legacy VuePress selectors (p.sidebar-heading.open, .sidebar-links .active)
+ * continue to match without any changes to the crawler config.
+ */
+import Default from '@astrojs/starlight/components/Sidebar.astro';
+
+interface SidebarEntry {
+  type: string;
+  label: string;
+  href?: string;
+  isCurrent?: boolean;
+  entries?: SidebarEntry[];
+}
+
+/** Walk the sidebar tree and return the active link label and its group heading. */
+function findCurrentPage(
+  entries: SidebarEntry[],
+  groupLabel = ''
+): { pageLabel: string; groupLabel: string } | null {
+  for (const entry of entries) {
+    if (entry.type === 'link' && entry.isCurrent) {
+      return { pageLabel: entry.label, groupLabel };
+    }
+    if (entry.type === 'group' && entry.entries) {
+      const found = findCurrentPage(entry.entries, entry.label);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+const pathname = Astro.url.pathname;
+
+const prefix = pathname.includes('/react-data-grid/')
+  ? 'react-data-grid'
+  : pathname.includes('/angular-data-grid/')
+    ? 'angular-data-grid'
+    : pathname.includes('/vue-data-grid/')
+      ? 'vue-data-grid'
+      : 'javascript-data-grid';
+
+const GUIDE_LABELS: Record<string, string> = {
+  'javascript-data-grid': 'JavaScript',
+  'react-data-grid': 'React',
+  'angular-data-grid': 'Angular',
+  'vue-data-grid': 'Vue 3',
+};
+
+const RECIPE_LABELS: Record<string, string> = {
+  'javascript-data-grid': 'JavaScript Recipes',
+  'react-data-grid': 'React Recipes',
+  'angular-data-grid': 'Angular Recipes',
+  'vue-data-grid': 'Vue 3 Recipes',
+};
+
+const CHANGELOG_LABELS: Record<string, string> = {
+  'javascript-data-grid': 'JavaScript Changelog',
+  'react-data-grid': 'React Changelog',
+  'angular-data-grid': 'Angular Changelog',
+  'vue-data-grid': 'Vue 3 Changelog',
+};
+
+const isRecipePage = pathname.includes('/recipes/');
+const isChangelogPage =
+  /\/changelog(-|\/)/.test(pathname) ||
+  pathname.includes('/migration-from-') ||
+  pathname.includes('/versioning-policy/') ||
+  pathname.includes('/deprecation-policy/') ||
+  pathname.includes('/long-term-support/');
+
+const { sidebar } = Astro.locals.starlightRoute;
+
+if (isRecipePage) {
+  // On recipe pages: show only the recipes sidebar for the active framework.
+  const recipesGroup = sidebar.find(
+    (e: any) => e.type === 'group' && e.label === RECIPE_LABELS[prefix]
+  );
+
+  (Astro.locals.starlightRoute as any).sidebar = recipesGroup
+    ? (recipesGroup as any).entries.filter((e: any) => e.type === 'group')
+    : [];
+} else if (isChangelogPage) {
+  // On changelog / migration pages: show only the changelog sidebar items.
+  const changelogGroup = sidebar.find(
+    (e: any) => e.type === 'group' && e.label === CHANGELOG_LABELS[prefix]
+  );
+
+  const changelogEntries: any[] = changelogGroup ? (changelogGroup as any).entries : [];
+
+  // Ensure the active page is marked as current. Starlight may not match the
+  // entry automatically when sidebar links are manual (not auto-generated from
+  // the content collection), so we explicitly walk the tree and set isCurrent.
+  const markCurrent = (entries: any[]) => {
+    for (const entry of entries) {
+      if (entry.type === 'link') {
+        const hrefPath = entry.href.replace(/\/$/, '');
+        const currentPath = pathname.replace(/\/$/, '');
+        if (hrefPath === currentPath || currentPath.endsWith(hrefPath)) {
+          entry.isCurrent = true;
+        }
+      } else if (entry.type === 'group' && entry.entries) {
+        markCurrent(entry.entries);
+      }
+    }
+  };
+  markCurrent(changelogEntries);
+
+  (Astro.locals.starlightRoute as any).sidebar = changelogEntries;
+} else {
+  const matchingGroup = sidebar.find(
+    (e: any) => e.type === 'group' && e.label === GUIDE_LABELS[prefix]
+  );
+
+  if (matchingGroup) {
+    const entries: any[] = (matchingGroup as any).entries;
+
+    if (pathname.includes('/api/')) {
+      // On API pages: show only the API reference items (the last group, labelled
+      // 'API reference'). The items inside it are the flat API nav list.
+      const apiGroup = entries.findLast((e: any) => e.type === 'group' && e.label === 'API reference');
+      (Astro.locals.starlightRoute as any).sidebar = apiGroup ? apiGroup.entries : entries;
+    } else {
+      // On guide pages: show guide sections only, without the API reference group.
+      (Astro.locals.starlightRoute as any).sidebar = entries.filter(
+        (e: any) => !(e.type === 'group' && e.label === 'API reference')
+      );
+    }
+  }
+}
+
+// Walk the filtered sidebar to find the active page's label and its group
+// heading. Used below to render server-side Algolia compatibility elements.
+const algoliaInfo = findCurrentPage(
+  Astro.locals.starlightRoute.sidebar as SidebarEntry[]
+);
+---
+<Default {...Astro.props} />
+
+{/*
+  Visually-hidden elements for the Algolia crawler.
+  The legacy VuePress selectors `p.sidebar-heading.open` (lvl0) and
+  `.sidebar-links .active` (lvl1) are satisfied here using server-rendered
+  HTML derived from the sidebar data -- no JavaScript required.
+*/}
+{algoliaInfo && (
+  <div aria-hidden="true" style="position:absolute;left:-9999px;width:0;height:0;overflow:hidden;">
+    {algoliaInfo.groupLabel && (
+      <p class="sidebar-heading open">{algoliaInfo.groupLabel}</p>
+    )}
+    <ul class="sidebar-links">
+      <li><a class="active" href={Astro.url.pathname}>{algoliaInfo.pageLabel}</a></li>
+    </ul>
+  </div>
+)}

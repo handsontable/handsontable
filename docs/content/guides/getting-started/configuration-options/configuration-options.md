@@ -1,5 +1,5 @@
 ---
-id: p7oq0ph7
+type: how-to
 title: Configuration options
 metaTitle: Configuration options - JavaScript Data Grid | Handsontable
 description: Configure the data grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
@@ -10,18 +10,14 @@ tags:
   - config
   - options
 react:
-  id: gmpbmisy
   metaTitle: Configuration options - React Data Grid | Handsontable
 angular:
-  id: 16bofyho
   metaTitle: Configuration options - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Configuration options - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
-menuTag: updated
 ---
-
-# Configuration options
-
 Configure your grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
 
 [[toc]]
@@ -119,6 +115,44 @@ gridSettings: GridSettings = {
 
 :::
 
+::: only-for vue
+
+To apply configuration options in Vue 3, pass them inside a `hotSettings` ref bound to the `HotTable` component with the `:settings` prop:
+
+```vue
+<script setup>
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+
+registerAllModules();
+
+const hotSettings = ref({
+  licenseKey: 'non-commercial-and-evaluation',
+  data: [
+    ['A1', 'B1', 'C1', 'D1'],
+    ['A2', 'B2', 'C2', 'D2'],
+    ['A3', 'B3', 'C3', 'D3'],
+  ],
+  width: 400,
+  height: 300,
+  colHeaders: true,
+  rowHeaders: true,
+  customBorders: true,
+  dropdownMenu: true,
+  multiColumnSorting: true,
+  filters: true,
+  manualRowMove: true,
+});
+</script>
+
+<template>
+  <HotTable :settings="hotSettings" />
+</template>
+```
+
+:::
+
 Depending on your needs, you can apply configuration options to different elements of your grid, such as:
 
 - [The entire grid](#set-grid-options)
@@ -161,11 +195,15 @@ For more details on Handsontable's cascading configuration, see the [MetaManager
 
 ### Plugin options
 
-Configuration options can come from:
+Configuration options come from:
 
-- Handsontable's [Core](@/api/core.md)
-- Handsontable's [plugins](@/api/plugins.md)
-- Handsontable's [hooks](@/api/hooks.md)
+<div class="boxes-list">
+
+- [Core](@/api/core.md)
+- [Plugins](@/api/plugins.md)
+- [Hooks](@/api/hooks.md)
+
+</div>
 
 If you use Handsontable through [modules](@/guides/tools-and-building/modules/modules.md): to use an option that comes from a Handsontable plugin, you need to import and register that plugin when initializing your Handsontable instance.
 
@@ -230,7 +268,23 @@ gridSettings: GridSettings = {
 
 :::
 
-#### Example
+::: only-for vue
+
+```ts
+const hotSettings = ref({
+  // top-level grid options that apply to the entire grid
+  width: 400,
+  height: 300,
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+### Example
 
 To configure each cell in the grid as read-only, apply the [`readOnly`](@/api/options.md#readonly) option as a top-level grid option.
 
@@ -269,6 +323,16 @@ As a result, each cell in the grid is read-only:
 
 @[code](@/content/guides/getting-started/configuration-options/angular/example1.ts)
 @[code](@/content/guides/getting-started/configuration-options/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue --js 1
+
+@[code](@/content/guides/getting-started/configuration-options/vue/example1.vue)
 
 :::
 
@@ -339,7 +403,25 @@ gridSettings: GridSettings = {
 
 :::
 
-#### Example
+::: only-for vue
+
+```ts
+const hotSettings = ref({
+  columns: [
+    { width: 100 }, // column options for the first (by physical index) column
+    { width: 100 }, // column options for the second (by physical index) column
+    { width: 100 }, // column options for the third (by physical index) column
+  ],
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+### Example
 
 In the example below, the [`columns`](@/api/options.md#columns) option is set to a function.
 
@@ -380,6 +462,16 @@ As a result, each cell in the third and ninth columns is read-only:
 
 @[code](@/content/guides/getting-started/configuration-options/angular/example2.ts)
 @[code](@/content/guides/getting-started/configuration-options/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue --js 1
+
+@[code](@/content/guides/getting-started/configuration-options/vue/example2.vue)
 
 :::
 
@@ -477,7 +569,29 @@ gridSettings: GridSettings = {
 
 :::
 
-#### Example
+::: only-for vue
+
+```ts
+const hotSettings = ref({
+  cells(row, col, prop) {
+    if (row === 1 || row === 4) {
+      return {
+        // row options, which apply to each cell of the second row
+        // and to each cell of the fifth row
+        readOnly: true,
+      };
+    }
+  },
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+### Example
 
 In the example below, the [`cells`](@/api/options.md#cells) option sets each cell in the first and fourth row as [`readOnly`](@/api/options.md#readonly).
 
@@ -511,6 +625,16 @@ Options modified through [`cells`](@/api/options.md#cells) overwrite all other o
 
 @[code](@/content/guides/getting-started/configuration-options/angular/example3.ts)
 @[code](@/content/guides/getting-started/configuration-options/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue --js 1
+
+@[code](@/content/guides/getting-started/configuration-options/vue/example3.vue)
 
 :::
 
@@ -594,7 +718,36 @@ gridSettings: GridSettings = {
 
 :::
 
-#### Example
+::: only-for vue
+
+```ts
+const hotSettings = ref({
+  cell: [
+    {
+      // cell options, apply only to a cell with coordinates (0, 0)
+      row: 0,
+      col: 0,
+      readOnly: true,
+    },
+    {
+      // cell options, apply only to a cell with coordinates (1, 1)
+      row: 1,
+      col: 1,
+      readOnly: true,
+    },
+  ],
+  autoWrapRow: true,
+  autoWrapCol: true,
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+### Example
 
 In the example below, the [`cell`](@/api/options.md#cell) option sets cell `A1`(`0, 0`) and cell `B2`(`1, 1`) as [`readOnly`](@/api/options.md#readonly).
 
@@ -631,6 +784,16 @@ The modified [`cell`](@/api/options.md#cell) options:
 
 @[code](@/content/guides/getting-started/configuration-options/angular/example4.ts)
 @[code](@/content/guides/getting-started/configuration-options/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue --js 1
+
+@[code](@/content/guides/getting-started/configuration-options/vue/example4.vue)
 
 :::
 
@@ -747,6 +910,23 @@ hotTable.hotInstance.getCellMeta(1, 1).readOnly;
 
 :::
 
+::: only-for vue
+
+```ts
+// Access the Handsontable instance via the template ref:
+const hot = hotRef.value?.hotInstance;
+
+// for cell (0, 0), the `readOnly` option is the default (`false`)
+// returns `false`
+hot?.getCellMeta(0, 0).readOnly;
+
+// for cell (1, 1), the `cell` option overwrote the default `readOnly` value
+// returns `true`
+hot?.getCellMeta(1, 1).readOnly;
+```
+
+:::
+
 ### Change cell options
 
 When Handsontable is running, you can change the initial cell options, using the [`setCellMeta()`](@/api/core.md#setcellmeta) method.
@@ -821,6 +1001,20 @@ hotTable.hotInstance.getCellMeta(1, 1).readOnly;
 
 ```html
 <hot-table [settings]="gridSettings" />
+```
+
+:::
+
+::: only-for vue
+
+```ts
+const hot = hotRef.value?.hotInstance;
+
+// changes the `readOnly` option of cell (1, 1) back to `false`
+hot?.setCellMeta(1, 1, 'readOnly', false);
+
+// returns `false`
+hot?.getCellMeta(1, 1).readOnly;
 ```
 
 :::
@@ -911,7 +1105,27 @@ gridSettings: GridSettings = {
 
 :::
 
-#### Example
+::: only-for vue
+
+```ts
+const hotSettings = ref({
+  cells(row, col) {
+    if ((row === 1 || row === 5) && col === 1) {
+      return {
+        readOnly: true,
+      };
+    }
+  },
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
+### Example
 
 In the example below, the modified [`cells`](@/api/options.md#cells) options overwrite the top-level grid options.
 
@@ -966,6 +1180,28 @@ hot.getCellMeta(1, 1).readOnly;
 
 :::
 
+::: only-for vue
+
+```ts
+const hot = hotRef.value?.hotInstance;
+
+// for cell (0, 0), the `readOnly` option is the default (`false`)
+// returns `false`
+hot?.getCellMeta(0, 0).readOnly;
+
+// for cell (1, 1), the `cell` option overwrote the default `readOnly` value
+// returns `true`
+hot?.getCellMeta(1, 1).readOnly;
+
+// changes the `readOnly` option of cell (1, 1) back to `false`
+hot?.setCellMeta(1, 1, 'readOnly', false);
+
+// returns `false`
+hot?.getCellMeta(1, 1).readOnly;
+```
+
+:::
+
 ## Configuration example
 
 In the example below, some cells are read-only, and some cells are editable:
@@ -1000,16 +1236,13 @@ In the example below, some cells are read-only, and some cells are editable:
 
 :::
 
-
-
-
 ::: only-for react
 
 ## Non-Idempotent Options
 
 A non-idempotent option is one that produces different results when applied multiple times. In the context of Handsontable and `<HotTable/>` component, options like `manualColumnMove=[1, 0]` will swap columns every time they're applied - first application swaps columns, second application swaps them back, third swaps again, and so on.
 
-### Problem 
+### Problem
 
 Non-idempotent options like `manualColumnMove` and `manualRowMove` cause unwanted visual changes on every React re-render because they operate on visual indexes.
 
@@ -1036,7 +1269,7 @@ Use [`initialState`](@/api/options.md#initialstate) to apply these options only 
 
 ```jsx
 <HotTable
-  initialState={{ 
+  initialState={{
     manualColumnMove: [1, 0]  // Applied only once
   }}
   data={[['A', 'B'], [0, 1]]}
@@ -1060,24 +1293,55 @@ Use [`initialState`](@/api/options.md#initialstate) to apply these options only 
 
 :::
 
+::: only-for vue
+
+::: example #example6 :vue3
+
+@[code](@/content/guides/getting-started/configuration-options/vue/example6.vue)
+
+:::
+
+:::
+
 ## Related API reference
 
-- Configuration options:
-  - [List of all options](@/api/options.md)
-  - [`cell`](@/api/options.md#cell)
-  - [`cells`](@/api/options.md#cells)
-  - [`columns`](@/api/options.md#columns)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-  - [`getSettings()`](@/api/core.md#getsettings)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-  - [`updateSettings()`](@/api/core.md#updatesettings)
-  - [`spliceCellsMeta()`](@/api/core.md#splicecellsmeta)
-- Hooks:
-  - [`afterCellMetaReset`](@/api/hooks.md#aftercellmetareset)
-  - [`afterUpdateSettings`](@/api/hooks.md#afterupdatesettings)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [List of all options](@/api/options.md)
+- [cell](@/api/options.md#cell)
+- [cells](@/api/options.md#cells)
+- [columns](@/api/options.md#columns)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+- [getSettings()](@/api/core.md#getsettings)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+- [updateSettings()](@/api/core.md#updatesettings)
+- [spliceCellsMeta()](@/api/core.md#splicecellsmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterCellMetaReset](@/api/hooks.md#aftercellmetareset)
+- [afterUpdateSettings](@/api/hooks.md#afterupdatesettings)
+
+</div>
+
+## Result
+
+Your grid now applies configuration options at the scope you specified -- grid-wide, per column, per row, or per individual cell -- using Handsontable's cascading configuration system.

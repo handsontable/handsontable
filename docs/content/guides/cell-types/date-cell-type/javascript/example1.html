@@ -1,66 +1,35 @@
 <div class="example-controls-container">
   <div class="controls">
-    <label>
-      Select locale:
-      <select id="localeSelect">
-        <option value="ar-AR">Arabic (Global)</option>
-        <option value="cs-CZ">Czech (Czechia)</option>
-        <option value="de-CH">German (Switzerland)</option>
-        <option value="de-DE">German (Germany)</option>
-        <option value="en-US" selected>English (United States)</option>
-        <option value="es-MX">Spanish (Mexico)</option>
-        <option value="fa-IR">Persian (Iran)</option>
-        <option value="fr-FR">French (France)</option>
-        <option value="hr-HR">Croatian (Croatia)</option>
-        <option value="it-IT">Italian (Italy)</option>
-        <option value="ja-JP">Japanese (Japan)</option>
-        <option value="ko-KR">Korean (Korea)</option>
-        <option value="lv-LV">Latvian (Latvia)</option>
-        <option value="nb-NO">Norwegian Bokmal (Norway)</option>
-        <option value="nl-NL">Dutch (Netherlands)</option>
-        <option value="pl-PL">Polish (Poland)</option>
-        <option value="pt-BR">Portuguese (Brazil)</option>
-        <option value="ru-RU">Russian (Russia)</option>
-        <option value="sr-SP">Serbian Latin (Serbia)</option>
-        <option value="zh-CN">Chinese (Simplified, China)</option>
-        <option value="zh-TW">Chinese (Traditional, Taiwan)</option>
-      </select>
-    </label>
+    <div class="theme-dropdown" id="localeDropdown">
+      <button class="theme-dropdown-trigger" id="localeTrigger" type="button" aria-haspopup="listbox" aria-expanded="false">
+        <span id="localeLabel">English (United States)</span>
+        <svg class="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+      </button>
+      <ul class="theme-dropdown-menu" id="localeMenu" role="listbox" hidden>
+        <li role="option" data-value="ar-AR">Arabic (Global)</li>
+        <li role="option" data-value="cs-CZ">Czech (Czechia)</li>
+        <li role="option" data-value="de-CH">German (Switzerland)</li>
+        <li role="option" data-value="de-DE">German (Germany)</li>
+        <li role="option" data-value="en-US" aria-selected="true">English (United States)</li>
+        <li role="option" data-value="es-MX">Spanish (Mexico)</li>
+        <li role="option" data-value="fa-IR">Persian (Iran)</li>
+        <li role="option" data-value="fr-FR">French (France)</li>
+        <li role="option" data-value="hr-HR">Croatian (Croatia)</li>
+        <li role="option" data-value="it-IT">Italian (Italy)</li>
+        <li role="option" data-value="ja-JP">Japanese (Japan)</li>
+        <li role="option" data-value="ko-KR">Korean (Korea)</li>
+        <li role="option" data-value="lv-LV">Latvian (Latvia)</li>
+        <li role="option" data-value="nb-NO">Norwegian Bokmal (Norway)</li>
+        <li role="option" data-value="nl-NL">Dutch (Netherlands)</li>
+        <li role="option" data-value="pl-PL">Polish (Poland)</li>
+        <li role="option" data-value="pt-BR">Portuguese (Brazil)</li>
+        <li role="option" data-value="ru-RU">Russian (Russia)</li>
+        <li role="option" data-value="sr-SP">Serbian Latin (Serbia)</li>
+        <li role="option" data-value="zh-CN">Chinese (Simplified, China)</li>
+        <li role="option" data-value="zh-TW">Chinese (Traditional, Taiwan)</li>
+      </ul>
+    </div>
   </div>
 </div>
 
 <div id="example1"></div>
-
-<style>
-.example-controls-container .controls {
-  padding-top: 0;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.example-controls-container .controls label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-}
-
-.example-controls-container .controls select {
-  padding: 6px 12px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  font-size: 14px;
-  cursor: pointer;
-}
-
-.example-controls-container .controls select:hover {
-  border-color: #999;
-}
-
-.example-controls-container .controls select:focus {
-  outline: none;
-  border-color: #0066cc;
-  box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.2);
-}
-</style>

@@ -34,27 +34,28 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+        name: Install pnpm
+
       - name: Set up Node
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
         with:
           cache: 'pnpm'
+          cache-dependency-path: pnpm-lock.yaml
           node-version: "20"
           check-latest: true
 
-      - name: Install documentation dependencies
-        run: |
-          npm install
-          npx playwright install --with-deps
+      - name: Install monorepo dependencies (including docs)
+        working-directory: .
+        run: pnpm install
 
-      - uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # https://github.com/pnpm/action-setup/releases/tag/v4.2.0
-        name: Install pnpm
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps
 
       - name: Install the monorepo dependencies and build the packages
         if: ${{inputs.test_env == 'http://localhost:8080/docs'}}
-        run: |
-          cd ..
-          pnpm install
-          npm run all build -- --e examples visual-tests
+        working-directory: .
+        run: npm run all build -- --e examples visual-tests
 
       - name: Generate API refs
         if: ${{inputs.test_env == 'http://localhost:8080/docs'}}

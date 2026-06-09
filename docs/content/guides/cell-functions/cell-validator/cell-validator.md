@@ -1,29 +1,27 @@
 ---
-id: h840od8r
+type: how-to
 title: Cell validator
 metaTitle: Cell validator - JavaScript Data Grid | Handsontable
 description: Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
 permalink: /cell-validator
 canonicalUrl: /cell-validator
 react:
-  id: fvou30a5
   metaTitle: Cell validator - React Data Grid | Handsontable
 angular:
-  id: ut7amcaz
   metaTitle: Cell validator - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Cell validator - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
 ---
 
-# Cell validator
-
-Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
+Cell validators run when a user finishes editing a cell. Use them to enforce data rules such as required fields, numeric ranges, or pattern matching.
 
 [[toc]]
 
 ## Overview
 
-When you create a validator, a good idea is to assign it as an alias that will refer to this particular validator function. Handsontable defines 5 aliases by default:
+When you create a validator, assign it an alias so you can reference it by name in column configuration. Handsontable defines 5 aliases by default:
 
 - `autocomplete` for `Handsontable.validators.AutocompleteValidator`
 - `date` for `Handsontable.validators.DateValidator`
@@ -31,7 +29,7 @@ When you create a validator, a good idea is to assign it as an alias that will r
 - `numeric` for `Handsontable.validators.NumericValidator`
 - `time` for `Handsontable.validators.TimeValidator`
 
-It gives users a convenient way for defining which validator should be used when table validation was triggered. User doesn't need to know which validator function is responsible for checking the cell value, he does not even need to know that there is any function at all. What is more, you can change the validator function associated with an alias without a need to change code that defines a table.
+Aliases give you a convenient way to specify which validator runs when table validation triggers. You don't need to reference the validator function directly, and you can swap the function behind an alias without changing your column configuration.
 
 ## Register custom cell validator
 
@@ -70,7 +68,7 @@ That's better.
 
 ## Using an alias
 
-The final touch is to use the registered aliases, so that users can easily refer to it without the need to now the actual validator function is.
+The final touch is to use the registered aliases, so that you can easily refer to them without knowing the actual validator function.
 
 To sum up, a well prepared validator function should look like this:
 
@@ -128,6 +126,14 @@ const hot = new Handsontable(container, {
 
 :::
 
+::: only-for vue
+
+```html
+<HotTable :settings="{ columns: [{ validator: 'my.custom' }] }" />
+```
+
+:::
+
 ## Full featured example
 
 Use the validator method to easily validate synchronous or asynchronous changes to a cell. If you need more control, [`beforeValidate`](@/api/hooks.md#beforevalidate) and [`afterValidate`](@/api/hooks.md#aftervalidate) hooks are available. In the below example, `email_validator_fn` is an async validator that resolves after 1000 ms.
@@ -158,6 +164,14 @@ invalidCellClassName="myInvalidClass"
 
 ```ts
 invalidCellClassName: 'myInvalidClass'
+```
+
+:::
+
+::: only-for vue
+
+```html
+<HotTable :settings="{ invalidCellClassName: 'myInvalidClass' }" />
 ```
 
 :::
@@ -200,6 +214,20 @@ columns: [
 
 :::
 
+::: only-for vue
+
+```html
+<HotTable :settings="{
+  columns: [
+    { data: 'firstName', invalidCellClassName: 'myInvalidClass' },
+    { data: 'lastName', invalidCellClassName: 'myInvalidSecondClass' },
+    { data: 'address' }
+  ]
+}" />
+```
+
+:::
+
 Callback console log:
 
 ::: only-for javascript
@@ -207,8 +235,8 @@ Callback console log:
 ::: example #example1 --js 2 --ts 3 --html 1
 
 @[code](@/content/guides/cell-functions/cell-validator/javascript/example1.html)
-@[code](@/content/guides/cell-functions/cell-validator/javascript/example1.js)
-@[code](@/content/guides/cell-functions/cell-validator/javascript/example1.ts)
+@[code collapse={24-89}](@/content/guides/cell-functions/cell-validator/javascript/example1.js)
+@[code collapse={25-90}](@/content/guides/cell-functions/cell-validator/javascript/example1.ts)
 
 :::
 
@@ -218,8 +246,8 @@ Callback console log:
 
 ::: example #example1 :react --js 1 --ts 2
 
-@[code](@/content/guides/cell-functions/cell-validator/react/example1.jsx)
-@[code](@/content/guides/cell-functions/cell-validator/react/example1.tsx)
+@[code collapse={32-97}](@/content/guides/cell-functions/cell-validator/react/example1.jsx)
+@[code collapse={34-99}](@/content/guides/cell-functions/cell-validator/react/example1.tsx)
 
 :::
 
@@ -229,8 +257,18 @@ Callback console log:
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-functions/cell-validator/angular/example1.ts)
+@[code collapse={33-98}](@/content/guides/cell-functions/cell-validator/angular/example1.ts)
 @[code](@/content/guides/cell-functions/cell-validator/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-functions/cell-validator/vue/example1.vue)
 
 :::
 
@@ -242,27 +280,54 @@ Mind that changes in table are applied after running all validators (both synchr
 
 ## Related API reference
 
-- APIs:
-  - [`BasePlugin`](@/api/basePlugin.md)
-- Configuration options:
-  - [`allowEmpty`](@/api/options.md#allowempty)
-  - [`allowInvalid`](@/api/options.md#allowinvalid)
-  - [`invalidCellClassName`](@/api/options.md#invalidcellclassname)
-  - [`validator`](@/api/options.md#validator)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getCellValidator()`](@/api/core.md#getcellvalidator)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-  - [`validateCell()`](@/api/core.md#validatecell)
-  - [`validateCells()`](@/api/core.md#validatecells)
-  - [`validateColumns()`](@/api/core.md#validatecolumns)
-  - [`validateRows()`](@/api/core.md#validaterows)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterValidate`](@/api/hooks.md#aftervalidate)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeValidate`](@/api/hooks.md#beforevalidate)
+**APIs**
+
+<div class="boxes-list">
+
+- [BasePlugin](@/api/basePlugin.md)
+
+</div>
+
+**Configuration options**
+
+<div class="boxes-list">
+
+- [allowEmpty](@/api/options.md#allowempty)
+- [allowInvalid](@/api/options.md#allowinvalid)
+- [invalidCellClassName](@/api/options.md#invalidcellclassname)
+- [validator](@/api/options.md#validator)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getCellValidator()](@/api/core.md#getcellvalidator)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+- [validateCell()](@/api/core.md#validatecell)
+- [validateCells()](@/api/core.md#validatecells)
+- [validateColumns()](@/api/core.md#validatecolumns)
+- [validateRows()](@/api/core.md#validaterows)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterValidate](@/api/hooks.md#aftervalidate)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeValidate](@/api/hooks.md#beforevalidate)
+
+</div>
+
+## Result
+
+You now have a cell validator that enforces data rules when a user finishes editing. Register it under an alias to reference it by name across your column configuration, and use `allowInvalid: false` to keep the editor open until the user enters a valid value.

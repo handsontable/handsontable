@@ -1,5 +1,5 @@
 ---
-id: oi78d8nv
+type: how-to
 title: Dropdown cell type
 metaTitle: Dropdown cell type - JavaScript Data Grid | Handsontable
 description: Collect user input with a searchable list of choices, by using the dropdown cell type.
@@ -11,18 +11,17 @@ tags:
   - autocomplete
   - key value
 react:
-  id: 5i86kjqu
   metaTitle: Dropdown cell type - React Data Grid | Handsontable
 angular:
-  id: yatyane1
   metaTitle: Dropdown cell type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Dropdown cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---
-
-# Dropdown cell type
-
 Collect user input with a searchable list of choices, by using the dropdown cell type.
+
+The dropdown cell type lets users select a value from a predefined list. It is a simplified version of autocomplete with strict mode always on.
 
 [[toc]]
 
@@ -47,6 +46,12 @@ Internally, cell `type="dropdown"` is equivalent to cell `type="autocomplete" st
 :::
 
 ::: only-for angular
+
+Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocomplete', strict: true, filter: false }`. Therefore you can think of `dropdown` as a searchable `<select>`.
+
+:::
+
+::: only-for vue
 
 Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocomplete', strict: true, filter: false }`. Therefore you can think of `dropdown` as a searchable `<select>`.
 
@@ -80,6 +85,16 @@ Internally, cell `{ type: 'dropdown' }` is equivalent to cell `{ type:'autocompl
 
 @[code](@/content/guides/cell-types/dropdown-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/dropdown-cell-type/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/vue/example1.vue)
 
 :::
 
@@ -137,6 +152,16 @@ You can provide the `source` option as an array of values that will be used as t
 
 :::
 
+::: only-for vue
+
+::: example #example2 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/vue/example2.vue)
+
+:::
+
+:::
+
 ### Array of objects
 
 You can provide the `source` option as an array of objects with `key` and `value` properties. The `value` property will be used as the dropdown option, while the entire object will be used as the value of the cell.
@@ -185,6 +210,16 @@ You can provide the `source` option as an array of objects with `key` and `value
 
 :::
 
+::: only-for vue
+
+::: example #example3 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/dropdown-cell-type/vue/example3.vue)
+
+:::
+
+:::
+
 
 #### API methods
 
@@ -197,11 +232,15 @@ When working with object-based dropdown data, you can use methods like [`getSour
 
 :::
 
+## Result
+
+After configuring the dropdown cell type, cells display a button that opens a dropdown list of options. Users can search the list by typing. Only values from the source list are accepted. The selected value is stored in the data source.
+
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Autocomplete cell type](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md)
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
@@ -209,26 +248,41 @@ When working with object-based dropdown data, you can use methods like [`getSour
 
 </div>
 
-### Related API reference
+**Configuration options**
 
-- Configuration options:
-  - [`allowHtml`](@/api/options.md#allowhtml)
-  - [`source`](@/api/options.md#source)
-  - [`trimDropdown`](@/api/options.md#trimdropdown)
-  - [`type`](@/api/options.md#type)
-  - [`valueGetter`](@/api/options.md#valuegetter)
-  - [`valueSetter`](@/api/options.md#valueSetter)
-  - [`visibleRows`](@/api/options.md#visiblerows)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+<div class="boxes-list">
+
+- [allowHtml](@/api/options.md#allowhtml)
+- [source](@/api/options.md#source)
+- [trimDropdown](@/api/options.md#trimdropdown)
+- [type](@/api/options.md#type)
+- [valueGetter](@/api/options.md#valuegetter)
+- [valueSetter](@/api/options.md#valueSetter)
+- [visibleRows](@/api/options.md#visiblerows)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getDataType()](@/api/core.md#getdatatype)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>

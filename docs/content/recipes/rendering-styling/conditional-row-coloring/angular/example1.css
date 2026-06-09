@@ -1,0 +1,20 @@
+.handsontable td.ht-demo-row-status-active {
+  background-color: rgba(26, 66, 232, 0.12);
+  background-color: color-mix(in srgb, var(--ht-accent-color, #1a42e8) 12%, var(--ht-background-color, #ffffff));
+}
+
+.handsontable td.ht-demo-row-status-pending {
+  background-color: rgba(202, 138, 4, 0.14);
+  background-color: color-mix(in srgb, var(--ht-warn-color, #ca8a04) 14%, var(--ht-background-color, #ffffff));
+}
+
+.handsontable td.ht-demo-row-status-inactive {
+  background-color: var(--ht-background-secondary-color, #f3f4f6);
+  color: var(--ht-foreground-secondary-color, #6b7280);
+}
+
+/* Flash feedback for rejected edits (allowInvalid: false) */
+.handsontable td.ht-demo-invalid-flash {
+  background-color: var(--ht-cell-error-background-color, rgba(250, 77, 50, 0.2)) !important;
+  color: inherit;
+}

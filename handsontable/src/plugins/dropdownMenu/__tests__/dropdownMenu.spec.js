@@ -93,7 +93,7 @@ describe('DropdownMenu', () => {
 
       $item.simulate('mouseover');
 
-      await sleep(300);
+      await waitForNextAnimationFrames(19);
 
       const $contextSubMenu = $(`.htDropdownMenuSub_${$item.text()}`);
 
@@ -313,20 +313,12 @@ describe('DropdownMenu', () => {
         .simulate('mouseover');
 
       expect(getPlugin('dropdownMenu').menu.getNavigator().getCurrentPage()).toBe(3);
-      expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(undefined);
-        main.toEqual(undefined);
-        horizon.toEqual(undefined);
-      });
+      expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).toEqual(undefined);
 
       await keyDownUp('arrowDown');
 
       expect(getPlugin('dropdownMenu').menu.getNavigator().getCurrentPage()).toBe(5);
-      expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual('clear_column');
-        main.toEqual('clear_column');
-        horizon.toEqual('clear_column');
-      });
+      expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).toEqual('clear_column');
     });
   });
 
@@ -468,11 +460,7 @@ describe('DropdownMenu', () => {
         .simulate('mouseenter')
         .simulate('mouseover');
 
-      expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).forThemes(({ classic, main, horizon }) => {
-        classic.toEqual(undefined);
-        main.toEqual(undefined);
-        horizon.toEqual(undefined);
-      });
+      expect(getPlugin('dropdownMenu').menu.getSelectedItem()?.key).toEqual(undefined);
     });
   });
 
@@ -732,7 +720,7 @@ describe('DropdownMenu', () => {
       });
 
       await dropdownMenu();
-      await sleep(200);
+      await waitForNextAnimationFrames(13);
 
       const items = $('.htDropdownMenu tbody td');
       const actions = items.not('.htSeparator');
@@ -760,7 +748,7 @@ describe('DropdownMenu', () => {
       });
 
       await dropdownMenu();
-      await sleep(200);
+      await waitForNextAnimationFrames(13);
 
       expect(keys).toEqual(['make_read_only', 'col_left']);
 
@@ -974,18 +962,71 @@ describe('DropdownMenu', () => {
 
     await scrollViewportTo({ row: 0, col: 8 }); // make the column `G` partially visible
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(666);
-      main.toBe(666);
-      horizon.toBe(666);
-    });
+    expect(inlineStartOverlay().getScrollPosition()).toBe(666);
 
     await dropdownMenu(6); // click on the column `G` header button
 
-    expect(inlineStartOverlay().getScrollPosition()).forThemes(({ classic, main, horizon }) => {
-      classic.toBe(666);
-      main.toBe(666);
-      horizon.toBe(666);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(666);
+  });
+
+  describe('updateSettings called from beforeDropdownMenuShow', () => {
+    it('should open the menu without throwing when the hook callback calls ' +
+      'updateSettings({ dropdownMenu })', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        dropdownMenu: true,
+        height: 200,
+        beforeDropdownMenuShow() {
+          this.updateSettings({
+            dropdownMenu: ['row_above'],
+          });
+        },
+      });
+
+      await expectAsync((async() => {
+        await dropdownMenu(0);
+      })()).toBeResolved();
+
+      expect($('.htDropdownMenu').is(':visible')).toBe(true);
+    });
+
+    it('should apply the updated dropdownMenu items on the same open', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        dropdownMenu: true,
+        height: 200,
+        beforeDropdownMenuShow() {
+          this.updateSettings({
+            dropdownMenu: ['row_above'],
+          });
+        },
+      });
+
+      await dropdownMenu(0);
+
+      const items = $('.htDropdownMenu tbody td').not('.htSeparator');
+
+      expect(items.length).toBe(1);
+      expect(items.text()).toContain('Insert row above');
+    });
+
+    it('should still apply unrelated settings changed inside the hook immediately', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        dropdownMenu: true,
+        height: 200,
+        beforeDropdownMenuShow() {
+          this.updateSettings({ rowHeaders: false });
+        },
+      });
+
+      await dropdownMenu(0);
+
+      expect(getSettings().rowHeaders).toBe(false);
     });
   });
 });

@@ -1,0 +1,55 @@
+#example {
+  box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+}
+
+#stock-grid,
+#tickets-grid {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.demo-chrome {
+  margin-bottom: 1.25rem;
+  font-family: system-ui, sans-serif;
+  font-size: 14px;
+}
+
+.demo-lead {
+  margin: 0;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.demo-lead code {
+  font-size: 0.92em;
+  padding: 0.1em 0.35em;
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.demo-panel {
+  margin-bottom: 2rem;
+}
+
+.demo-panel-title {
+  margin: 0 0 0.35rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-family: system-ui, sans-serif;
+  color: #0f172a;
+}
+
+.demo-panel-note {
+  margin: 0 0 0.65rem;
+  font-family: system-ui, sans-serif;
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.demo-panel-note code {
+  font-size: 0.92em;
+}

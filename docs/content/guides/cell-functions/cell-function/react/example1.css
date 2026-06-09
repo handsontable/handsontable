@@ -1,0 +1,30 @@
+.htStockBar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 4px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.htStockBarTrack {
+  flex: 1;
+  height: 8px;
+  background: var(--ht-background-secondary-color);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.htStockBarFill {
+  height: 100%;
+  border-radius: 4px;
+  min-width: 2px;
+}
+
+.htStockBarLabel {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  min-width: 28px;
+  text-align: right;
+  white-space: nowrap;
+}

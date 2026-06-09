@@ -12,9 +12,7 @@
       box-sizing: border-box;
       width: var(--ht-icon-button-hit-area-size);
       height: var(--ht-icon-button-hit-area-size);
-      margin: calc(-0.5 * (var(--ht-icon-button-hit-area-size) - var(--ht-icon-size)));
-      margin-inline-start: calc(var(--ht-gap-size) - (var(--ht-icon-button-hit-area-size) - var(--ht-icon-size)) / 2);
-      margin-inline-end: calc(1px - (var(--ht-icon-button-hit-area-size) - var(--ht-icon-size)) / 2);
+      margin: calc(-1 * (var(--ht-icon-button-hit-area-size) - var(--ht-icon-size)) / 2 + 1px);
       border: none;
       outline: none;
       box-shadow: none;
@@ -22,10 +20,8 @@
       background-color: transparent;
       color: inherit;
       padding: 0;
-      order: 1;
       z-index: 1;
-      float: right;
-      top: calc((var(--ht-line-height) - var(--ht-icon-size)) / 2);
+      flex-shrink: 0;
       overflow: visible;
 
       /* Icon: mask + currentColor from ht-icons-main.css; keep ::before for icon only */
@@ -108,12 +104,6 @@
             var(--ht-header-active-background-color),
             var(--ht-header-filter-background-color) 20%
           );
-
-          .changeType {
-            &::after {
-              background-color: var(--ht-header-active-foreground-color);
-            }
-          }
         }
       }
     }
@@ -338,8 +328,5 @@
       }
     }
 
-    .changeType {
-      float: left;
-    }
   }
 }

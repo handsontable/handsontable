@@ -1,5 +1,5 @@
 ---
-id: bpcuomaq
+type: how-to
 title: Column widths
 metaTitle: Column widths - JavaScript Data Grid | Handsontable
 description: Configure column widths, using an array or a function. Let your users manually change column widths using Handsontable's interface.
@@ -15,17 +15,14 @@ tags:
   - column dimensions
   - manual resize
 react:
-  id: gr6w8qsy
   metaTitle: Column widths - React Data Grid | Handsontable
 angular:
-  id: eourt93b
   metaTitle: Column widths - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column widths - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
-
-# Column widths
-
 Configure column widths, using an array or a function. Let your users manually change column widths using Handsontable's interface.
 
 [[toc]]
@@ -73,6 +70,16 @@ In this example we set the same width of `100px` for all columns across the enti
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-width/vue/example1.vue)
+
+:::
+
+:::
+
 ## Set the column width in an array
 
 In this example, the width is only set for the first four columns. Each additional column would automatically adjust to the content.
@@ -106,6 +113,16 @@ In this example, the width is only set for the first four columns. Each addition
 
 @[code](@/content/guides/columns/column-width/angular/example2.ts)
 @[code](@/content/guides/columns/column-width/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/columns/column-width/vue/example2.vue)
 
 :::
 
@@ -148,6 +165,16 @@ In this example, the size of all columns is set using a function by taking a col
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/columns/column-width/vue/example3.vue)
+
+:::
+
+:::
+
 ## Adjust the column width manually
 
 Set the option [`manualColumnResize`](@/api/options.md#manualcolumnresize) to `true` to allow users to manually resize the column width by dragging the handle between the adjacent column headers. If you double-click on that handle, the width will be instantly adjusted to the size of the longest value in the column. Don't forget to enable column headers by setting [`colHeaders`](@/api/options.md#colheaders) to `true`.
@@ -182,6 +209,16 @@ You can adjust the size of one or multiple columns simultaneously, even if the s
 
 @[code](@/content/guides/columns/column-width/angular/example4.ts)
 @[code](@/content/guides/columns/column-width/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/columns/column-width/vue/example4.vue)
 
 :::
 
@@ -234,6 +271,16 @@ This example fits all columns to the container's width equally by setting the op
 
 :::
 
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/columns/column-width/vue/example5.vue)
+
+:::
+
+:::
+
 ### Stretch only the last column
 
 In this example, the first three columns are set to be 80px wide, and the last column automatically fills the remaining space. This is achieved by setting the option [`stretchH: 'last'`](@/api/options.md#stretchh).
@@ -272,6 +319,16 @@ In this example, the first three columns are set to be 80px wide, and the last c
 
 :::
 
+::: only-for vue
+
+::: example #example6 :vue3
+
+@[code](@/content/guides/columns/column-width/vue/example6.vue)
+
+:::
+
+:::
+
 ## A note about the performance
 
 As mentioned above, the default width of the column is based on the widest value in any cell within the column. You may be wondering how it's possible for data sets containing hundreds of thousands of records.
@@ -286,19 +343,42 @@ Setting the dimensions of the container that holds Handsontable is described in 
 
 ## Related API reference
 
-- Configuration options:
-  - [`autoColumnSize`](@/api/options.md#autocolumnsize)
-  - [`colWidths`](@/api/options.md#colwidths)
-  - [`manualColumnResize`](@/api/options.md#manualcolumnresize)
-  - [`stretchH`](@/api/options.md#stretchh)
-- Core methods:
-  - [`getColWidth()`](@/api/core.md#getcolwidth)
-- Hooks:
-  - [`afterColumnResize`](@/api/hooks.md#aftercolumnresize)
-  - [`beforeColumnResize`](@/api/hooks.md#beforecolumnresize)
-  - [`beforeStretchingColumnWidth`](@/api/hooks.md#beforestretchingcolumnwidth)
-  - [`modifyAutoColumnSizeSeed`](@/api/hooks.md#modifyautocolumnsizeseed)
-  - [`modifyColWidth`](@/api/hooks.md#modifycolwidth)
-- Plugins:
-  - [`AutoColumnSize`](@/api/autoColumnSize.md)
-  - [`ManualColumnResize`](@/api/manualColumnResize.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [autoColumnSize](@/api/options.md#autocolumnsize)
+- [colWidths](@/api/options.md#colwidths)
+- [manualColumnResize](@/api/options.md#manualcolumnresize)
+- [stretchH](@/api/options.md#stretchh)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getColWidth()](@/api/core.md#getcolwidth)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterColumnResize](@/api/hooks.md#aftercolumnresize)
+- [beforeColumnResize](@/api/hooks.md#beforecolumnresize)
+- [beforeStretchingColumnWidth](@/api/hooks.md#beforestretchingcolumnwidth)
+- [modifyAutoColumnSizeSeed](@/api/hooks.md#modifyautocolumnsizeseed)
+- [modifyColWidth](@/api/hooks.md#modifycolwidth)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [AutoColumnSize](@/api/autoColumnSize.md)
+- [ManualColumnResize](@/api/manualColumnResize.md)
+
+</div>

@@ -28,11 +28,42 @@ const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
 });
 
-const selectOption = document.querySelector('#selectOption');
+const dropdown = document.querySelector('#selectionDropdown');
+const trigger = document.querySelector('#selectionTrigger');
+const menu = document.querySelector('#selectionMenu');
+const label = document.querySelector('#selectionLabel');
 
-selectOption.addEventListener('change', (event) => {
-  const value = event.target.value;
-  const first = value.split(' ')[0].toLowerCase();
+trigger.addEventListener('click', () => {
+  const isOpen = !menu.hidden;
 
-  hot.updateSettings({ selectionMode: first });
+  menu.hidden = isOpen;
+  trigger.setAttribute('aria-expanded', String(!isOpen));
+});
+
+menu.addEventListener('click', (e) => {
+  const item = e.target.closest('li[data-value]');
+
+  if (item) {
+    label.textContent = item.textContent.trim();
+    menu.querySelectorAll('li').forEach((li) => li.setAttribute('aria-selected', 'false'));
+    item.setAttribute('aria-selected', 'true');
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    hot.updateSettings({ selectionMode: item.dataset.value });
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (!dropdown.contains(e.target)) {
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && !menu.hidden) {
+    menu.hidden = true;
+    trigger.setAttribute('aria-expanded', 'false');
+    trigger.focus();
+  }
 });

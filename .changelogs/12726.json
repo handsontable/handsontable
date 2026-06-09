@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Strengthened the TypeScript type of the cell-properties parameter in all built-in renderers, editors, and validators from Record<string, unknown> to the canonical CellProperties interface.",
+  "type": "changed",
+  "issueOrPR": 12726,
+  "breaking": false,
+  "framework": "none"
+}

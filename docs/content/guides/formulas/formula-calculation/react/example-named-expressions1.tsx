@@ -33,6 +33,19 @@ const ExampleComponent = () => {
 
   return (
     <>
+      <div className="example-controls-container">
+        <div className="controls">
+          <input
+            id="named-expressions-input"
+            type="text"
+            defaultValue={namedExpressionValue}
+            onChange={(...args) => inputChangeCallback(...args)}
+          />
+          <button id="named-expressions-button" onClick={() => buttonClickCallback()}>
+            Calculate the price
+          </button>
+        </div>
+      </div>
       <HotTable
         ref={hotNamedExpressionsRef}
         data={data}
@@ -54,17 +67,6 @@ const ExampleComponent = () => {
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="controls">
-        <input
-          id="named-expressions-input"
-          type="text"
-          defaultValue={namedExpressionValue}
-          onChange={(...args) => inputChangeCallback(...args)}
-        />
-        <button id="named-expressions-button" onClick={() => buttonClickCallback()}>
-          Calculate the price
-        </button>
-      </div>
     </>
   );
 };

@@ -1,6 +1,7 @@
 import { HotTable, HotColumn, EditorComponent } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import StarRatingComponent from 'react-star-rating-component';
+import './example1.css';
 
 registerAllModules();
 

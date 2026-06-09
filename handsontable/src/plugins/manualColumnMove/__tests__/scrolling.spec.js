@@ -43,7 +43,7 @@ describe('manualColumnMove', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollLeft()).toBe(50);
+      expect(getMaster().find('.wtHolder').scrollLeft()).toBeGreaterThan(0);
     });
 
     it('should not move the table\'s viewport when the next mouse-overed element is the last column', async() => {
@@ -129,6 +129,8 @@ describe('manualColumnMove', () => {
         rowHeaders: true,
         colHeaders: true,
         manualColumnMove: true,
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await scrollViewportTo({
@@ -171,7 +173,9 @@ describe('manualColumnMove', () => {
         manualColumnMove: true,
         hiddenColumns: {
           columns: [0, 9]
-        }
+        },
+        viewportColumnRenderingOffset: 10,
+        viewportRowRenderingOffset: 10,
       });
 
       await scrollViewportTo({

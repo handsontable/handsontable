@@ -1,0 +1,32 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v pipx >/dev/null 2>&1 && pipx run code-review-graph==2.3.2 update --skip-flows || true",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "command -v pipx >/dev/null 2>&1 && pipx run code-review-graph==2.3.2 status || true",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

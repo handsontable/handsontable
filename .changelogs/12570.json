@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a memory leak caused by ThemeManager not unsubscribing from the shared theme object on destroy.",
+  "type": "fixed",
+  "issueOrPR": 12570,
+  "breaking": false,
+  "framework": "none"
+}

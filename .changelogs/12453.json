@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a bug where placing Handsontable inside a container with `overflow-y: hidden` and no explicit height caused the container to expand to the browser's CSS height limit (~2²⁵ px).",
+  "type": "fixed",
+  "issueOrPR": 12453,
+  "breaking": false,
+  "framework": "none"
+}

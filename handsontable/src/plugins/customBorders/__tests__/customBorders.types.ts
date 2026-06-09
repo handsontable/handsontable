@@ -1,9 +1,9 @@
 import Handsontable from 'handsontable';
-import { ComputedBorder } from 'handsontable/plugins/customBorders';
 
 const hot = new Handsontable(document.createElement('div'), {
   customBorders: true,
 });
+
 // borders using range
 new Handsontable(document.createElement('div'), {
   customBorders: [
@@ -75,6 +75,6 @@ customBorders.clearBorders(hot.getSelected()!);
 customBorders.clearBorders(hot.getSelectedRange()!);
 customBorders.clearBorders();
 
-const borders1: ComputedBorder[] = customBorders.getBorders(hot.getSelected()!);
-const borders2: ComputedBorder[] = customBorders.getBorders(hot.getSelectedRange()!);
-const borders3: ComputedBorder[] = customBorders.getBorders();
+const borders1: Record<string, unknown>[] = customBorders.getBorders(hot.getSelected()!);
+const borders2: Record<string, unknown>[] = customBorders.getBorders(hot.getSelectedRange()!);
+const borders3: Record<string, unknown>[] = customBorders.getBorders();

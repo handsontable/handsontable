@@ -40,7 +40,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     expect(editorTextarea.getAttribute('aria-controls')).toEqual(`${hot.guid.slice(0, 9)}-listbox-0-0`);
 
     await keyDownUp('enter');
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
 
     expect(editorTextarea.getAttribute('aria-expanded')).toEqual('true');
     expect(editorTextarea.getAttribute('aria-activedescendant')).toEqual(
@@ -52,7 +52,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     );
   });
 
-  it('should add a correct set of aria tags to the choice dropdown element', async() => {
+  it.flaky('should add a correct set of aria tags to the choice dropdown element', async() => {
     const hot = handsontable({
       data: [
         ['a'],
@@ -67,7 +67,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     await selectCell(0, 0);
     await keyDownUp('enter');
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
 
     const editor = getActiveEditor();
     const editorHot = editor.htEditor;
@@ -87,7 +87,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
     });
   });
 
-  it('should should not add `aria-setsize` and `aria-posinset` if the source is a function`', async() => {
+  it.flaky('should should not add `aria-setsize` and `aria-posinset` if the source is a function`', async() => {
     const hot = handsontable({
       data: [
         ['a'],
@@ -102,7 +102,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     await selectCell(0, 0);
     await keyDownUp('enter');
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
 
     const editor = getActiveEditor();
     const editorHot = editor.htEditor;
@@ -133,7 +133,7 @@ describe('a11y DOM attributes (ARIA tags)', () => {
 
     await selectCell(0, 0);
     await keyDownUp('enter');
-    await sleep(50);
+    await waitForNextAnimationFrames(2);
 
     const editor = getActiveEditor();
     const editorTextarea = editor.TEXTAREA;

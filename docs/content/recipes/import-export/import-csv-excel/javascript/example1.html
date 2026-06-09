@@ -1,0 +1,33 @@
+<div class="import-csv-excel-wrap">
+  <div
+    class="import-dropzone"
+    id="import-dropzone"
+    tabindex="0"
+    role="button"
+    aria-label="Drop a CSV or Excel file here"
+  >
+    <p>Drop a <code>.csv</code> or <code>.xlsx</code> file here, or pick a source.</p>
+    <div class="import-actions">
+      <label class="import-file-label">
+        <span>Choose file</span>
+        <input id="import-file" type="file" accept=".csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,text/csv" />
+      </label>
+      <button type="button" id="import-load-sample" class="import-sample-btn">Load sample data</button>
+    </div>
+  </div>
+
+  <div id="import-error" class="import-msg import-msg--error" hidden></div>
+
+  <div id="import-empty" class="import-empty">
+    <span class="import-empty-icon" aria-hidden="true">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="18" height="18"/>
+        <path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>
+      </svg>
+    </span>
+    <p class="import-empty-title">No data loaded yet</p>
+    <p class="import-empty-text">Drop a CSV or Excel file above, choose a file, or load the sample data to populate the table.</p>
+  </div>
+
+  <div id="example1" hidden></div>
+</div>

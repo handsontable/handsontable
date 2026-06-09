@@ -33,7 +33,7 @@ describe('Filters UI', () => {
 
     await dropdownMenu(1);
 
-    await sleep(100);
+    await sleep(112);
 
     $(dropdownMenuRootElement().querySelector('.htUIClearAll a')).simulate('click');
 
@@ -51,7 +51,7 @@ describe('Filters UI', () => {
     });
 
     await dropdownMenu(1);
-    await sleep(100);
+    await sleep(112);
 
     $(dropdownMenuRootElement().querySelector('.htUIClearAll a')).simulate('click');
 
@@ -80,25 +80,25 @@ describe('Filters UI', () => {
 
     const multipleSelectElement = byValueMultipleSelect().element;
 
-    await sleep(100);
+    await sleep(112);
 
     $(dropdownMenuRootElement().querySelector('.htUIClearAll a')).simulate('click');
 
-    await sleep(200);
+    await sleep(208);
 
     expect(byValueMultipleSelect().getItems().map(o => o.checked).indexOf(true)).toBe(-1);
 
     await scrollWindowBy(0, 9500);
 
-    await sleep(200);
+    await sleep(208);
 
     await scrollWindowBy(0, -9500);
 
-    await sleep(200);
+    await sleep(208);
 
     multipleSelectElement.querySelector('.handsontable .wtHolder').scrollBy(0, 10);
 
-    await sleep(200);
+    await sleep(208);
 
     expect(byValueMultipleSelect().getItems().map(o => o.checked).indexOf(true)).toBe(-1);
   });
@@ -214,6 +214,77 @@ describe('Filters UI', () => {
     expect(checkboxes.length).toBe(2);
   });
 
+  it('should refresh the "Filter by value" list to include newly added values after `updateData` ' +
+    'is called while a `by_value` filter is active #9259', async() => {
+    handsontable({
+      data: [['Adam']],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      width: 500,
+      height: 300
+    });
+
+    const plugin = getPlugin('filters');
+
+    plugin.addCondition(0, 'by_value', [['Adam']]);
+    plugin.filter();
+
+    await updateData([['Adam'], ['John'], ['Tim']]);
+
+    await dropdownMenu(0);
+    await sleep(112);
+
+    const items = byValueMultipleSelect().getItems();
+    const values = items.map(item => item.value);
+    const checked = items.map(item => item.checked);
+
+    expect(values).toEqual(['Adam', 'John', 'Tim']);
+    expect(checked).toEqual([true, false, false]);
+  });
+
+  it('should refresh the "Filter by value" list on every filtered column after `updateData` #9259', async() => {
+    handsontable({
+      data: [['Adam', 'NY']],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      width: 500,
+      height: 300
+    });
+
+    const plugin = getPlugin('filters');
+
+    plugin.addCondition(0, 'by_value', [['Adam']]);
+    plugin.addCondition(1, 'by_value', [['NY']]);
+    plugin.filter();
+
+    await updateData([
+      ['Adam', 'NY'],
+      ['Adam', 'LA'],
+      ['John', 'SF'],
+    ]);
+
+    await dropdownMenu(0);
+    await sleep(112);
+
+    const col0Items = byValueMultipleSelect().getItems();
+
+    expect(col0Items.map(i => i.value)).toEqual(['Adam', 'John']);
+    expect(col0Items.map(i => i.checked)).toEqual([true, false]);
+
+    await dropdownMenu(1);
+    await sleep(112);
+
+    // The "Filter by value" picker for column 1 lists values from source rows that pass
+    // all preceding columns' conditions (standard pivot behavior). Column 0 keeps `by_value=[Adam]`,
+    // so only rows with `Adam` contribute: values `NY` and `LA`.
+    const col1Items = byValueMultipleSelect().getItems();
+
+    expect(col1Items.map(i => i.value)).toEqual(['LA', 'NY']);
+    expect(col1Items.map(i => i.checked)).toEqual([false, true]);
+  });
+
   it('should restore correct components\' state after altering columns', async() => {
     handsontable({
       data: [
@@ -236,7 +307,7 @@ describe('Filters UI', () => {
     await simulateClick(dropdownMenuRootElement().querySelectorAll('.htUISelect')[0]);
     await selectDropdownByConditionMenuOption('Contains');
 
-    await sleep(200);
+    await sleep(208);
 
     // Contains '2'
     document.activeElement.value = '2';
@@ -245,7 +316,7 @@ describe('Filters UI', () => {
     await simulateClick(dropdownMenuRootElement().querySelectorAll('.htUISelect')[1]);
     await selectDropdownByConditionMenuOption('Contains', 'second');
 
-    await sleep(200);
+    await sleep(208);
 
     // Contains '5'
     document.activeElement.value = '5';
@@ -412,7 +483,7 @@ describe('Filters UI', () => {
       await dropdownMenu(0);
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Greater than');
-      await sleep(200);
+      await sleep(208);
 
       // Greater than 12
       document.activeElement.value = '12';
@@ -443,7 +514,7 @@ describe('Filters UI', () => {
       await dropdownMenu(1);
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Contains');
-      await sleep(200);
+      await sleep(208);
 
       // Contains ej
       document.activeElement.value = 'ej';
@@ -501,11 +572,12 @@ describe('Filters UI', () => {
         height: 300
       });
 
+      await selectCell(0, 6);
       await dropdownMenu(6);
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Contains');
 
-      await sleep(200);
+      await sleep(208);
 
       // Is equal to 'true'
       document.activeElement.value = 'true';
@@ -537,7 +609,7 @@ describe('Filters UI', () => {
       });
 
       await dropdownMenu(2);
-      await sleep(200);
+      await sleep(208);
 
       // disable first 5 records
       $(byValueBoxRootElement()).find('tr:nth-child(1) :checkbox').simulate('click');
@@ -565,7 +637,7 @@ describe('Filters UI', () => {
       await dropdownMenu(0);
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Is equal to');
-      await sleep(200);
+      await sleep(208);
 
       // Is equal to '5'
       document.activeElement.value = '5';
@@ -579,7 +651,7 @@ describe('Filters UI', () => {
       await dropdownMenu(0);
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Less than');
-      await sleep(200);
+      await sleep(208);
 
       // Less than
       document.activeElement.value = '8';
@@ -588,7 +660,7 @@ describe('Filters UI', () => {
 
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      await sleep(10);
+      await sleep(16);
 
       expect(getData().length).toEqual(7);
     });
@@ -607,7 +679,7 @@ describe('Filters UI', () => {
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Less than');
 
-      await sleep(200);
+      await sleep(208);
 
       // Less than
       document.activeElement.value = '8';
@@ -624,12 +696,12 @@ describe('Filters UI', () => {
       document.activeElement.value = '99';
 
       await keyDownUp('enter');
-      await sleep(200);
+      await sleep(208);
       await dropdownMenu(0);
 
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      await sleep(10);
+      await sleep(16);
 
       expect(getData().length).toBe(6);
     });
@@ -645,13 +717,13 @@ describe('Filters UI', () => {
       });
 
       await dropdownMenu(2);
-      await sleep(200);
+      await sleep(208);
 
       byValueMultipleSelect().setValue(['Bowie', 'Coral']);
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await dropdownMenu(2);
-      await sleep(200);
+      await sleep(208);
 
       byValueMultipleSelect().setValue(['Alamo', 'Coral', 'Canby']);
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
@@ -675,7 +747,7 @@ describe('Filters UI', () => {
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Greater than');
 
-      await sleep(100);
+      await sleep(112);
 
       // Greater than 12
       document.activeElement.value = '12';
@@ -687,7 +759,7 @@ describe('Filters UI', () => {
       await dropdownMenu(2);
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Begins with');
-      await sleep(100);
+      await sleep(112);
 
       document.activeElement.value = 'b';
 
@@ -696,11 +768,11 @@ describe('Filters UI', () => {
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       // this condition needs extra time to apply filters
-      await sleep(10);
+      await sleep(16);
       await dropdownMenu(4);
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Is equal to');
-      await sleep(100);
+      await sleep(112);
 
       document.activeElement.value = 'green';
 
@@ -708,7 +780,7 @@ describe('Filters UI', () => {
 
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      await sleep(10);
+      await sleep(16);
 
       expect(getData().length).toEqual(2);
       expect(getData()[0][0]).toBe(17);
@@ -740,7 +812,7 @@ describe('Filters UI', () => {
       await dropdownMenu(0);
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Greater than');
-      await sleep(200);
+      await sleep(208);
 
       // Greater than 12
       document.activeElement.value = '12';
@@ -751,7 +823,7 @@ describe('Filters UI', () => {
       await dropdownMenu(2);
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Begins with');
-      await sleep(200);
+      await sleep(208);
 
       document.activeElement.value = 'b';
       await keyUp('b');
@@ -761,10 +833,10 @@ describe('Filters UI', () => {
       // uncheck first record
       await simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
 
-      await sleep(200);
+      await sleep(208);
       await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
-      await sleep(10);
+      await sleep(16);
 
       expect(getData().length).toEqual(2);
       expect(getData()[0][0]).toBe(17);
@@ -797,7 +869,7 @@ describe('Filters UI', () => {
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Greater than');
 
-      await sleep(200);
+      await sleep(208);
 
       // Greater than 12
       document.activeElement.value = '12';
@@ -809,7 +881,7 @@ describe('Filters UI', () => {
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Begins with');
 
-      await sleep(200);
+      await sleep(208);
 
       document.activeElement.value = 'b';
 
@@ -821,7 +893,7 @@ describe('Filters UI', () => {
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Is between');
 
-      await sleep(200);
+      await sleep(208);
       const inputs = dropdownMenuRootElement().querySelectorAll('.htFiltersMenuCondition input');
 
       inputs[0].value = '1';
@@ -830,7 +902,7 @@ describe('Filters UI', () => {
       await keyUp('5', { target: inputs[1] });
       await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
-      await sleep(10);
+      await sleep(16);
 
       expect(getData().length).toEqual(1);
       expect(getData()[0][0]).toBe(14);
@@ -856,7 +928,7 @@ describe('Filters UI', () => {
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Greater than');
 
-      await sleep(200);
+      await sleep(208);
 
       // Greater than 25
       document.activeElement.value = '25';
@@ -864,7 +936,7 @@ describe('Filters UI', () => {
       await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       await dropdownMenu(2);
-      await sleep(200);
+      await sleep(208);
 
       // uncheck
       await simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
@@ -873,7 +945,7 @@ describe('Filters UI', () => {
       await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       await dropdownMenu(1);
-      await sleep(200);
+      await sleep(208);
 
       // uncheck
       await simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
@@ -884,7 +956,7 @@ describe('Filters UI', () => {
       expect(byValueMultipleSelect().getValue().length).toBe(9);
 
       await dropdownMenu(4);
-      await sleep(200);
+      await sleep(208);
 
       // uncheck
       await simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
@@ -895,7 +967,7 @@ describe('Filters UI', () => {
       expect(byValueMultipleSelect().getValue().length).toBe(1);
 
       await dropdownMenu(2);
-      await sleep(200);
+      await sleep(208);
 
       // check again (disable filter)
       await simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
@@ -904,13 +976,13 @@ describe('Filters UI', () => {
       await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
       await dropdownMenu(1);
-      await sleep(200);
+      await sleep(208);
 
       expect(byValueMultipleSelect().getItems().length).toBe(14);
       expect(byValueMultipleSelect().getValue().length).toBe(9);
 
       await dropdownMenu(4);
-      await sleep(200);
+      await sleep(208);
 
       // unchanged state for condition behind second condition
       expect(byValueMultipleSelect().getItems().length).toBe(3);
@@ -932,7 +1004,7 @@ describe('Filters UI', () => {
       await simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(1) [type=checkbox]'));
       await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
-      await sleep(200);
+      await sleep(208);
       await alter('remove_col', 0);
 
       expect(getData()).toEqual([
@@ -976,7 +1048,7 @@ describe('Filters UI', () => {
       await simulateClick(byValueBoxRootElement().querySelector('tr:nth-child(4) [type=checkbox]'));
       await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
-      await sleep(300);
+      await sleep(304);
 
       await dropdownMenu(0);
       expect(byValueMultipleSelect().getItems().length).toBe(5);
@@ -1001,7 +1073,7 @@ describe('Filters UI', () => {
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Begins with');
 
-      await sleep(200);
+      await sleep(208);
 
       document.activeElement.value = 'm';
 
@@ -1028,7 +1100,7 @@ describe('Filters UI', () => {
       await dropdownMenu(1);
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Begins with');
-      await sleep(300);
+      await sleep(304);
 
       document.activeElement.value = 'm';
 
@@ -1039,7 +1111,7 @@ describe('Filters UI', () => {
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await dropdownMenu(1);
-      await sleep(300);
+      await sleep(304);
 
       expect(getData().length).toBe(5);
 
@@ -1047,7 +1119,7 @@ describe('Filters UI', () => {
       $(conditionRadioInput(0).element).find('input[type="radio"]').simulate('click');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      await sleep(300);
+      await sleep(304);
 
       expect(getData().length).toBe(5);
     });
@@ -1066,7 +1138,7 @@ describe('Filters UI', () => {
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Begins with');
 
-      await sleep(300);
+      await sleep(304);
 
       document.activeElement.value = 'm';
 
@@ -1075,7 +1147,7 @@ describe('Filters UI', () => {
       await openDropdownByConditionMenu('second');
       await selectDropdownByConditionMenuOption('Ends with', 'second');
 
-      await sleep(300);
+      await sleep(304);
 
       document.activeElement.value = 'e';
 
@@ -1086,7 +1158,7 @@ describe('Filters UI', () => {
       expect(getData().length).toBe(3);
 
       await dropdownMenu(1);
-      await sleep(300);
+      await sleep(304);
 
       // disjunction
       $(conditionRadioInput(1).element).find('input[type="radio"]').simulate('click');
@@ -1095,7 +1167,7 @@ describe('Filters UI', () => {
       expect(getData().length).toBe(7);
 
       await dropdownMenu(1);
-      await sleep(300);
+      await sleep(304);
       // conjunction
       $(conditionRadioInput(0).element).find('input[type="radio"]').simulate('click');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
@@ -1117,14 +1189,14 @@ describe('Filters UI', () => {
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Begins with');
 
-      await sleep(200);
+      await sleep(208);
 
       document.activeElement.value = 'm';
 
       await keyUp('m');
       await openDropdownByConditionMenu('second');
       await selectDropdownByConditionMenuOption('Ends with', 'second');
-      await sleep(200);
+      await sleep(208);
 
       document.activeElement.value = 'e';
 
@@ -1132,9 +1204,9 @@ describe('Filters UI', () => {
 
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      await sleep(200);
+      await sleep(208);
       await dropdownMenu(1);
-      await sleep(200);
+      await sleep(208);
 
       document.activeElement.value = '';
 
@@ -1142,7 +1214,7 @@ describe('Filters UI', () => {
 
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      await sleep(200);
+      await sleep(208);
 
       expect(getData().length).toBe(5);
     });
@@ -1161,14 +1233,14 @@ describe('Filters UI', () => {
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Begins with');
 
-      await sleep(300);
+      await sleep(304);
 
       document.activeElement.value = 'm';
 
       await keyUp('m');
       await openDropdownByConditionMenu('second');
       await selectDropdownByConditionMenuOption('Ends with', 'second');
-      await sleep(300);
+      await sleep(304);
 
       document.activeElement.value = 'e';
 
@@ -1176,16 +1248,16 @@ describe('Filters UI', () => {
 
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      await sleep(300);
+      await sleep(304);
       await dropdownMenu(1);
-      await sleep(300);
+      await sleep(304);
 
       await openDropdownByConditionMenu('second');
       await selectDropdownByConditionMenuOption('None', 'second');
 
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      await sleep(300);
+      await sleep(304);
 
       expect(getData().length).toBe(5);
       expect($(conditionSelectRootElements().second).text()).toEqual('None');
@@ -1206,7 +1278,7 @@ describe('Filters UI', () => {
       await dropdownMenu(1);
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Begins with');
-      await sleep(200);
+      await sleep(208);
 
       document.activeElement.value = 'm';
 
@@ -1214,12 +1286,12 @@ describe('Filters UI', () => {
 
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      await sleep(10);
+      await sleep(16);
 
       expect(getData().length).toBe(5);
 
       await dropdownMenu(1);
-      await sleep(200);
+      await sleep(208);
 
       const $multipleSelectElements = $(byValueMultipleSelect().element
         .querySelectorAll('.htUIMultipleSelectHot td input'));
@@ -1229,7 +1301,7 @@ describe('Filters UI', () => {
       $(conditionRadioInput(1).element).find('input[type="radio"]').simulate('click');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      await sleep(10);
+      await sleep(16);
 
       expect(getData().length).toBe(4);
     });
@@ -1248,14 +1320,14 @@ describe('Filters UI', () => {
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Begins with');
 
-      await sleep(200);
+      await sleep(208);
 
       document.activeElement.value = 'm';
 
       await keyUp('m');
       await openDropdownByConditionMenu('second');
       await selectDropdownByConditionMenuOption('Ends with', 'second');
-      await sleep(200);
+      await sleep(208);
 
       document.activeElement.value = 'e';
 
@@ -1264,7 +1336,7 @@ describe('Filters UI', () => {
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await dropdownMenu(1);
-      await sleep(200);
+      await sleep(208);
 
       const $multipleSelectElements = $(byValueMultipleSelect().element
         .querySelectorAll('.htUIMultipleSelectHot td input'));
@@ -1272,7 +1344,7 @@ describe('Filters UI', () => {
       $multipleSelectElements.eq(0).simulate('click');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      await sleep(10);
+      await sleep(16);
 
       expect(getData().length).toBe(2);
     });
@@ -1291,14 +1363,14 @@ describe('Filters UI', () => {
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Begins with');
 
-      await sleep(200);
+      await sleep(208);
 
       document.activeElement.value = 'm';
 
       await keyUp('m');
       await openDropdownByConditionMenu('second');
       await selectDropdownByConditionMenuOption('Ends with', 'second');
-      await sleep(200);
+      await sleep(208);
 
       document.activeElement.value = 'e';
 
@@ -1311,7 +1383,7 @@ describe('Filters UI', () => {
       $multipleSelectElements.eq(0).simulate('click');
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      await sleep(10);
+      await sleep(16);
 
       expect(getData().length).toBe(3);
     });
@@ -1329,7 +1401,7 @@ describe('Filters UI', () => {
       await dropdownMenu(1);
       await openDropdownByConditionMenu();
       await selectDropdownByConditionMenuOption('Begins with');
-      await sleep(200);
+      await sleep(208);
 
       document.activeElement.value = 'm';
 
@@ -1337,7 +1409,7 @@ describe('Filters UI', () => {
 
       await openDropdownByConditionMenu('second');
       await selectDropdownByConditionMenuOption('Ends with', 'second');
-      await sleep(200);
+      await sleep(208);
 
       document.activeElement.value = 'e';
 
@@ -1350,7 +1422,7 @@ describe('Filters UI', () => {
 
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
-      await sleep(10);
+      await sleep(16);
 
       expect(getData().length).toBe(2);
     });
@@ -1373,7 +1445,7 @@ describe('Filters UI', () => {
       plugin.filter();
 
       await dropdownMenu(1);
-      await sleep(200);
+      await sleep(208);
 
       expect($(conditionSelectRootElements().first).text()).toEqual('Begins with');
       expect($(conditionSelectRootElements().second).text()).toEqual('Ends with');
@@ -1398,12 +1470,12 @@ describe('Filters UI', () => {
       const dataLength = getData().length;
 
       await dropdownMenu(1);
-      await sleep(200);
+      await sleep(208);
 
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await dropdownMenu(1);
-      await sleep(200);
+      await sleep(208);
 
       expect(getData().length).toEqual(dataLength);
       expect($(conditionSelectRootElements().first).text()).toEqual('Begins with');
@@ -1428,7 +1500,7 @@ describe('Filters UI', () => {
       const dateLength = getData().length;
 
       await dropdownMenu(1);
-      await sleep(200);
+      await sleep(208);
 
       const $multipleSelectElements = $(byValueMultipleSelect().element
         .querySelectorAll('.htUIMultipleSelectHot td input'));
@@ -1437,7 +1509,7 @@ describe('Filters UI', () => {
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await dropdownMenu(1);
-      await sleep(200);
+      await sleep(208);
 
       expect($(conditionSelectRootElements().first).text()).toEqual('Begins with');
       expect($(conditionSelectRootElements().second).text()).toEqual('None');
@@ -1465,7 +1537,7 @@ describe('Filters UI', () => {
       const dateLength = getData().length;
 
       await dropdownMenu(1);
-      await sleep(200);
+      await sleep(208);
 
       const $multipleSelectElements = $(byValueMultipleSelect().element
         .querySelectorAll('.htUIMultipleSelectHot td input'));
@@ -1474,7 +1546,7 @@ describe('Filters UI', () => {
       $(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input')).simulate('click');
 
       await dropdownMenu(1);
-      await sleep(200);
+      await sleep(208);
 
       expect($(conditionSelectRootElements().first).text()).toEqual('Begins with');
       expect($(conditionSelectRootElements().second).text()).toEqual('Ends with');
@@ -1502,7 +1574,7 @@ describe('Filters UI', () => {
 
       byValueMultipleSelect().element.querySelector('input').focus();
 
-      await sleep(200);
+      await sleep(208);
 
       const event = new Event('input', {
         bubbles: true,
@@ -1536,7 +1608,7 @@ describe('Filters UI', () => {
 
       byValueMultipleSelect().element.querySelector('input').focus();
 
-      await sleep(200);
+      await sleep(208);
 
       const event = new Event('input', {
         bubbles: true,
@@ -1550,7 +1622,7 @@ describe('Filters UI', () => {
 
       $multipleSelectElements.eq(1).simulate('click');
 
-      await sleep(200);
+      await sleep(208);
 
       await simulateClick(dropdownMenuRootElement().querySelector('.htUIButton.htUIButtonOK input'));
 
@@ -1574,7 +1646,7 @@ describe('Filters UI', () => {
 
       byValueMultipleSelect().element.querySelector('input').focus();
 
-      await sleep(200);
+      await sleep(208);
 
       const event = new Event('input', {
         bubbles: true,
@@ -1591,6 +1663,133 @@ describe('Filters UI', () => {
 
       expect(getData()[0][2]).toBe('Cascades');
       expect(getData().length).toBe(5);
+    });
+
+    it('should call `hideRows` once with all non-matching indices when searchMode is `apply` (#12104)', async() => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: {
+          searchMode: 'apply'
+        },
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      await dropdownMenu(2);
+
+      const multipleSelect = byValueMultipleSelect();
+      const itemsBox = multipleSelect.getItemsBox();
+      const hiddenRows = itemsBox.getPlugin('hiddenRows');
+
+      spyOn(hiddenRows, 'hideRows').and.callThrough();
+      spyOn(hiddenRows, 'hideRow').and.callThrough();
+
+      multipleSelect.element.querySelector('input').focus();
+
+      await sleep(200);
+
+      const event = new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      });
+
+      document.activeElement.value = 'c';
+      document.activeElement.dispatchEvent(event);
+
+      expect(hiddenRows.hideRows).toHaveBeenCalledTimes(1);
+      expect(hiddenRows.hideRow).not.toHaveBeenCalled();
+    });
+
+    it('should correctly check matching items and hide non-matching items when searchMode is `apply`', async() => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: {
+          searchMode: 'apply'
+        },
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      await dropdownMenu(2);
+
+      const multipleSelect = byValueMultipleSelect();
+
+      multipleSelect.element.querySelector('input').focus();
+
+      await sleep(200);
+
+      const event = new Event('input', {
+        bubbles: true,
+        cancelable: true,
+      });
+
+      document.activeElement.value = 'c';
+      document.activeElement.dispatchEvent(event);
+
+      const items = multipleSelect.getItems();
+      const checkedItems = items.filter(item => item.checked);
+      const uncheckedItems = items.filter(item => !item.checked);
+
+      checkedItems.forEach((item) => {
+        expect(`${item.value}`.toLowerCase()).toContain('c');
+      });
+
+      uncheckedItems.forEach((item) => {
+        expect(`${item.value}`.toLowerCase()).not.toContain('c');
+      });
+
+      const itemsBox = multipleSelect.getItemsBox();
+      const hiddenRowsPlugin = itemsBox.getPlugin('hiddenRows');
+      const hiddenRowCount = hiddenRowsPlugin.getHiddenRows().length;
+
+      expect(hiddenRowCount).toBe(uncheckedItems.length);
+    });
+
+    it('should correctly update visible items after consecutive searches when searchMode is `apply`', async() => {
+      handsontable({
+        data: getDataForFilters(),
+        columns: getColumnsForFilters(),
+        filters: {
+          searchMode: 'apply'
+        },
+        dropdownMenu: true,
+        width: 500,
+        height: 300
+      });
+
+      await dropdownMenu(2);
+
+      const multipleSelect = byValueMultipleSelect();
+
+      multipleSelect.element.querySelector('input').focus();
+
+      await sleep(200);
+
+      const inputEvent = new Event('input', { bubbles: true, cancelable: true });
+
+      document.activeElement.value = 'c';
+      document.activeElement.dispatchEvent(inputEvent);
+
+      const firstSearchChecked = multipleSelect.getItems().filter(item => item.checked).length;
+
+      const inputEvent2 = new Event('input', { bubbles: true, cancelable: true });
+
+      document.activeElement.value = '';
+      document.activeElement.dispatchEvent(inputEvent2);
+
+      const afterClearChecked = multipleSelect.getItems().filter(item => item.checked).length;
+
+      expect(afterClearChecked).toBe(multipleSelect.getItems().length);
+      expect(afterClearChecked).toBeGreaterThan(firstSearchChecked);
+
+      const itemsBox = multipleSelect.getItemsBox();
+      const hiddenRowsPlugin = itemsBox.getPlugin('hiddenRows');
+
+      expect(hiddenRowsPlugin.getHiddenRows().length).toBe(0);
     });
   });
 
@@ -1684,7 +1883,7 @@ describe('Filters UI', () => {
     });
 
     await dropdownMenu(0);
-    await sleep(200);
+    await sleep(208);
 
     const inputElement = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
     const event = new Event('input', {
@@ -1695,7 +1894,7 @@ describe('Filters UI', () => {
     $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
     $(inputElement).focus();
 
-    await sleep(200);
+    await sleep(208);
 
     document.activeElement.value = 'inanç';
     document.activeElement.dispatchEvent(event);
@@ -1723,14 +1922,14 @@ describe('Filters UI', () => {
     });
 
     await dropdownMenu(0);
-    await sleep(200);
+    await sleep(208);
 
     const inputElement = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
 
     $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
     $(inputElement).focus();
 
-    await sleep(200);
+    await sleep(208);
     await keyDownUp('arrowdown');
 
     expect(byValueMultipleSelect().getItemsBox().getSelected()).toEqual([[0, 0, 0, 0]]);
@@ -1815,14 +2014,14 @@ describe('Filters UI', () => {
     await simulateClick(dropdownMenuRootElement().querySelectorAll('.htUISelect')[0]);
     await selectDropdownByConditionMenuOption('Greater than');
 
-    await sleep(100);
+    await sleep(112);
 
     expect(dropdownMenuRootElement().offsetHeight).toBeGreaterThan(initialDropdownHeight);
 
     await simulateClick(dropdownMenuRootElement().querySelectorAll('.htUISelect')[0]);
     await selectDropdownByConditionMenuOption('None');
 
-    await sleep(100);
+    await sleep(112);
 
     expect(dropdownMenuRootElement().offsetHeight).toBe(initialDropdownHeight);
   });
@@ -1889,7 +2088,7 @@ describe('Filters UI', () => {
     });
 
     await dropdownMenu(1);
-    await sleep(100);
+    await sleep(112);
     await simulateClick(getFilterDropdownMenuOKButton());
 
     expect(isListening()).toBe(true);
@@ -1907,10 +2106,205 @@ describe('Filters UI', () => {
     });
 
     await dropdownMenu(1);
-    await sleep(100);
+    await sleep(112);
     await simulateClick(getFilterDropdownMenuCancelButton());
 
     expect(isListening()).toBe(true);
     expect(getShortcutManager().getActiveContextName()).toBe('grid');
+  });
+
+  describe('Date sorting in "Filter by value" list', () => {
+    it('should sort "date" cell type values chronologically in the filter dropdown (not alphabetically)', async() => {
+      handsontable({
+        data: [
+          ['15/12/2023'],
+          ['01/03/2022'],
+          ['20/06/2021'],
+        ],
+        columns: [{ type: 'date', dateFormat: 'DD/MM/YYYY' }],
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+        width: 400,
+        height: 300,
+      });
+
+      await dropdownMenu(0);
+      await sleep(112);
+
+      const items = byValueMultipleSelect().getItems();
+
+      expect(items.length).toBe(3);
+      // Chronological order: 20/06/2021 < 01/03/2022 < 15/12/2023
+      expect(items[0].value).toBe('20/06/2021');
+      expect(items[1].value).toBe('01/03/2022');
+      expect(items[2].value).toBe('15/12/2023');
+    });
+
+    it('should sort "date" cell type values chronologically when dateFormat is MM/DD/YYYY', async() => {
+      handsontable({
+        data: [
+          ['12/15/2023'],
+          ['03/01/2022'],
+          ['06/20/2021'],
+        ],
+        columns: [{ type: 'date', dateFormat: 'MM/DD/YYYY' }],
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+        width: 400,
+        height: 300,
+      });
+
+      await dropdownMenu(0);
+      await sleep(112);
+
+      const items = byValueMultipleSelect().getItems();
+
+      expect(items.length).toBe(3);
+      // Chronological order: 06/20/2021 < 03/01/2022 < 12/15/2023
+      expect(items[0].value).toBe('06/20/2021');
+      expect(items[1].value).toBe('03/01/2022');
+      expect(items[2].value).toBe('12/15/2023');
+    });
+
+    it('should sort "intl-date" cell type values chronologically in the filter dropdown', async() => {
+      handsontable({
+        data: [
+          ['2023-12-15'],
+          ['2022-03-01'],
+          ['2021-06-20'],
+        ],
+        columns: [{ type: 'intl-date' }],
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+        width: 400,
+        height: 300,
+      });
+
+      await dropdownMenu(0);
+      await sleep(112);
+
+      const items = byValueMultipleSelect().getItems();
+
+      expect(items.length).toBe(3);
+      // Chronological order: 2021-06-20 < 2022-03-01 < 2023-12-15
+      expect(items[0].value).toBe('2021-06-20');
+      expect(items[1].value).toBe('2022-03-01');
+      expect(items[2].value).toBe('2023-12-15');
+    });
+
+    it('should place empty values at the top of the "date" column filter list', async() => {
+      handsontable({
+        data: [
+          ['15/12/2023'],
+          [null],
+          ['20/06/2021'],
+        ],
+        columns: [{ type: 'date', dateFormat: 'DD/MM/YYYY', allowEmpty: true }],
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+        width: 400,
+        height: 300,
+      });
+
+      await dropdownMenu(0);
+      await sleep(112);
+
+      const items = byValueMultipleSelect().getItems();
+
+      expect(items.length).toBe(3);
+      expect(items[0].value).toBe('');
+      expect(items[1].value).toBe('20/06/2021');
+      expect(items[2].value).toBe('15/12/2023');
+    });
+  });
+
+  describe('Editing a cell in an earlier filtered column (issue #8874)', () => {
+    it('should preserve dependent column "Filter by value" checkboxes when editing earlier filtered column',
+      async() => {
+        handsontable({
+          data: [
+            { id: 1, country: 'Germany', company: 'BMW' },
+            { id: 2, country: 'Germany', company: 'Mercedes' },
+            { id: 3, country: 'Italy', company: 'Fiat' },
+            { id: 4, country: 'France', company: 'Renault' },
+          ],
+          columns: [
+            { data: 'id', type: 'numeric' },
+            { data: 'country' },
+            { data: 'company' },
+          ],
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true,
+          width: 500,
+          height: 300,
+        });
+
+        const filters = getPlugin('filters');
+
+        filters.addCondition(1, 'by_value', [['Germany', 'France']]);
+        filters.filter();
+        filters.addCondition(2, 'by_value', [['Mercedes', 'Renault']]);
+        filters.filter();
+
+        await setDataAtCell(0, 1, 'France');
+
+        await dropdownMenu(2);
+        await sleep(112);
+
+        const items = byValueMultipleSelect().getItems();
+        const checkedValues = items.filter(item => item.checked).map(item => item.value);
+
+        expect(checkedValues).toEqual(['Mercedes', 'Renault']);
+      });
+
+    it('should preserve dependent column checkboxes when edit reintroduces a filtered-out value (issue repro)',
+      async() => {
+        handsontable({
+          data: [
+            { id: 1, country: 'Germany', company: 'BMW' },
+            { id: 2, country: 'Germany', company: 'Mercedes' },
+            { id: 3, country: 'Germany', company: 'Fiat' },
+            { id: 4, country: 'France', company: 'Renault' },
+            { id: 5, country: 'Italy', company: 'Ferrari' },
+            { id: 6, country: 'France', company: 'Peugeot' },
+            { id: 7, country: 'Italy', company: 'Lamborghini' },
+            { id: 8, country: 'Germany', company: 'Audi' },
+          ],
+          columns: [
+            { data: 'id', type: 'numeric' },
+            { data: 'country' },
+            { data: 'company' },
+          ],
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true,
+          width: 500,
+          height: 360,
+        });
+
+        const filters = getPlugin('filters');
+
+        filters.addCondition(1, 'by_value', [['Germany', 'France']]);
+        filters.filter();
+        filters.addCondition(2, 'by_value',
+          [['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi']]);
+        filters.filter();
+
+        await setDataAtCell(2, 1, 'Italy');
+
+        await dropdownMenu(2);
+        await sleep(112);
+
+        const items = byValueMultipleSelect().getItems();
+        const checkedValues = items.filter(item => item.checked).map(item => item.value);
+
+        expect(checkedValues).toEqual(
+          jasmine.arrayWithExactContents(['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi']));
+      });
   });
 });

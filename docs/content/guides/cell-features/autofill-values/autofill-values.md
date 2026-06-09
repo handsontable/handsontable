@@ -1,5 +1,5 @@
 ---
-id: if13we5c
+type: how-to
 title: Autofill values
 metaTitle: Autofill values - JavaScript Data Grid | Handsontable
 description: Copy a cell's value into multiple other cells, using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable's API.
@@ -14,20 +14,19 @@ tags:
   - auto-fill
   - auto fill
 react:
-  id: m4x3zpiw
   metaTitle: Autofill values - React Data Grid | Handsontable
 angular:
-  id: 8tftfxgq
   metaTitle: Autofill values - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Autofill values - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---
-
-# Autofill values
-
 Copy a cell's value into multiple other cells, using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable's API.
 
 [[toc]]
+
+Autofill lets users drag the fill handle to copy or extend values across adjacent cells. Use it to speed up repetitive data entry.
 
 ## Autofill in all directions
 
@@ -61,6 +60,16 @@ Using the tiny square known as the 'fill handle' in the corner of the selected c
 
 @[code](@/content/guides/cell-features/autofill-values/angular/example1.ts)
 @[code](@/content/guides/cell-features/autofill-values/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-features/autofill-values/vue/example1.vue)
 
 :::
 
@@ -103,13 +112,44 @@ In this configuration, the fill handle is restricted to move only vertically. Ne
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-features/autofill-values/vue/example2.vue)
+
+:::
+
+:::
+
 ## Related API reference
 
-- Configuration options:
-  - [`fillHandle`](@/api/options.md#fillhandle)
-- Hooks:
-  - [`afterAutofill`](@/api/hooks.md#afterautofill)
-  - [`beforeAutofill`](@/api/hooks.md#beforeautofill)
-  - [`modifyAutofillRange`](@/api/hooks.md#modifyautofillrange)
-- Plugins:
-  - [`Autofill`](@/api/autofill.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [fillHandle](@/api/options.md#fillhandle)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterAutofill](@/api/hooks.md#afterautofill)
+- [beforeAutofill](@/api/hooks.md#beforeautofill)
+- [modifyAutofillRange](@/api/hooks.md#modifyautofillrange)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [Autofill](@/api/autofill.md)
+
+</div>
+
+## Result
+
+The fill handle appears on the selected cell. Dragging it copies or extends values into adjacent cells in the configured direction.

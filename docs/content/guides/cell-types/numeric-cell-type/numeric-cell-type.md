@@ -1,24 +1,22 @@
 ---
-id: l5a447bl
+type: how-to
 title: Numeric cell type
 metaTitle: Numeric cell type - JavaScript Data Grid | Handsontable
 description: Display, format, sort, and filter numbers correctly by using the numeric cell type.
 permalink: /numeric-cell-type
 canonicalUrl: /numeric-cell-type
 react:
-  id: e6zmmawj
   metaTitle: Numeric cell type - React Data Grid | Handsontable
 angular:
-  id: odhu846f
   metaTitle: Numeric cell type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Numeric cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
-menuTag: updated
 ---
-
-# Numeric cell type
-
 Display, format, sort, and filter numbers correctly by using the numeric cell type.
+
+The numeric cell type formats numbers using Intl.NumberFormat, right-aligns values, and restricts input to valid numbers.
 
 [[toc]]
 
@@ -46,8 +44,8 @@ Use the locale selector above the table to see how different locales affect numb
 ::: example #example1 --html 1 --js 2 --ts 3
 
 @[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.html)
-@[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.js)
-@[code](@/content/guides/cell-types/numeric-cell-type/javascript/example1.ts)
+@[code collapse={13-64,70-134}](@/content/guides/cell-types/numeric-cell-type/javascript/example1.js)
+@[code collapse={14-65,71-135}](@/content/guides/cell-types/numeric-cell-type/javascript/example1.ts)
 
 :::
 
@@ -57,8 +55,8 @@ Use the locale selector above the table to see how different locales affect numb
 
 ::: example #example1 :react --js 1 --ts 2
 
-@[code](@/content/guides/cell-types/numeric-cell-type/react/example1.jsx)
-@[code](@/content/guides/cell-types/numeric-cell-type/react/example1.tsx)
+@[code collapse={8-30,68-119,159-223}](@/content/guides/cell-types/numeric-cell-type/react/example1.jsx)
+@[code collapse={20-42,80-131,171-235}](@/content/guides/cell-types/numeric-cell-type/react/example1.tsx)
 
 :::
 
@@ -68,8 +66,18 @@ Use the locale selector above the table to see how different locales affect numb
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-types/numeric-cell-type/angular/example1.ts)
+@[code collapse={58-133,144-208}](@/content/guides/cell-types/numeric-cell-type/angular/example1.ts)
 @[code](@/content/guides/cell-types/numeric-cell-type/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-types/numeric-cell-type/vue/example1.vue)
 
 :::
 
@@ -121,6 +129,21 @@ cell={[{
   col: 0,
   type: 'numeric',
 }]}
+```
+
+:::
+
+::: only-for vue
+
+```html
+<!-- set the numeric cell type for each cell of the entire grid -->
+<HotTable :settings="{ type: 'numeric' }" />
+
+<!-- set the numeric cell type for each cell of a single column -->
+<HotTable :settings="{ columns: [{ type: 'numeric' }] }" />
+
+<!-- set the numeric cell type for a single cell -->
+<HotTable :settings="{ cell: [{ row: 0, col: 0, type: 'numeric' }] }" />
 ```
 
 :::
@@ -222,6 +245,34 @@ columns: [
       minimumFractionDigits: 2
     }
   }]}
+/>
+```
+
+:::
+
+::: only-for vue
+
+```html
+<HotTable
+  :settings="{
+    columns: [{
+      type: 'numeric',
+      locale: 'en-US',
+      numericFormat: {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2
+      }
+    }, {
+      type: 'numeric',
+      locale: 'de-DE',
+      numericFormat: {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: 2
+      }
+    }]
+  }"
 />
 ```
 
@@ -362,6 +413,16 @@ In the following demo, columns **Price in Japan** and **Price in Turkey** use tw
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue3-numbro
+
+@[code](@/content/guides/cell-types/numeric-cell-type/vue/example3.vue)
+
+:::
+
+:::
+
 **Deprecated options:**
 
 | Option | Description | Replacement |
@@ -400,34 +461,59 @@ you edit a numeric cell:
   separator or currency symbol.<br>For example, during editing `$7,000.02`, the number displays as
   `7000.02`.
 - You can enter a decimal separator either with a period (`.`), or with a comma (`,`).
-- You can't enter a thousands separator. After you finish editing the cell, the thousands
-  separator is added automatically, based on your [`numericFormat`](@/api/options.md#numericformat)
+- For European locales where the decimal separator is a comma (e.g., `de-DE`, `fr-FR`, `es-ES`),
+  you can enter a dot-thousands grouped value such as `7.000` or `7.000,25`. Handsontable parses
+  these as `7000` and `7000.25` respectively. For other locales, the thousands separator is added
+  automatically after editing, based on your [`numericFormat`](@/api/options.md#numericformat)
   configuration.
+
+## Result
+
+After configuring the numeric cell type, cells right-align their values and display them using the format you defined in `numericFormat`. Invalid (non-numeric) input is rejected. The underlying data source stores the raw number.
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 - [Migrating from 16.2 to 17.0](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#1-migrate-from-numbro-format-to-intlnumberformat) - Migration guide for Intl.NumberFormat
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`numericFormat`](@/api/options.md#numericformat)
-  - [`locale`](@/api/options.md#locale)
-  - [`type`](@/api/options.md#type)
-  - [`valueFormatter`](@/api/options.md#valueformatter)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [numericFormat](@/api/options.md#numericformat)
+- [locale](@/api/options.md#locale)
+- [type](@/api/options.md#type)
+- [valueFormatter](@/api/options.md#valueformatter)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getDataType()](@/api/core.md#getdatatype)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>

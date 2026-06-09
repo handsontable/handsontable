@@ -1,0 +1,210 @@
+---
+/**
+ * PageTitle component override.
+ *
+ * Renders:
+ *  1. A top bar with breadcrumbs.
+ *  2. The page <h1> (id="_top" preserved — required by Starlight's skip-link
+ *     and on-page TOC behaviour).
+ *
+ * Page-action buttons (Copy Markdown, Open in…) are rendered by the
+ * PageSidebar override below the table of contents.
+ *
+ * Breadcrumb structure (matches the VuePress docs):
+ *   🏠 17.0.0 JavaScript Data Grid  ›  Current Page Title
+ */
+
+import { createRequire } from 'module';
+import { dirname, join } from 'path';
+import { fileURLToPath } from 'url';
+
+import { shouldShowNewerVersionBanner } from '../lib/newer-version-banner.mjs';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const require   = createRequire(import.meta.url);
+
+// ── Library version ───────────────────────────────────────────────────────────
+let hotVersion = '';
+
+try {
+  const pkg = require(join(__dirname, '../../..', 'handsontable', 'package.json'));
+
+  hotVersion = pkg.version ?? '';
+} catch {
+  // Fallback: version label omitted from the home crumb.
+}
+
+// ── Version comparison (newer-version banner) ────────────────────────────────
+const currentMinor = hotVersion
+  ? hotVersion.split('.').slice(0, 2).join('.')
+  : '';
+
+interface DocsData {
+  latestVersion: string;
+  versionsWithPatches: [string, string[]][];
+}
+
+let latestVersion = '';
+
+try {
+  const res = await fetch('https://handsontable.com/docs/data/common.json');
+
+  if (res.ok) {
+    const docsData: DocsData = await res.json();
+
+    latestVersion = docsData.latestVersion ?? '';
+  }
+} catch {
+  // Network unavailable — banner will be hidden (graceful degradation).
+}
+
+const showNewerBanner = shouldShowNewerVersionBanner(currentMinor, latestVersion);
+
+// ── Framework labels ──────────────────────────────────────────────────────────
+const FRAMEWORK_LABELS: Record<string, string> = {
+  'javascript-data-grid': 'JavaScript Data Grid',
+  'react-data-grid':      'React Data Grid',
+  'angular-data-grid':    'Angular Data Grid',
+  'vue-data-grid':        'Vue Data Grid',
+};
+
+// ── Current page data ─────────────────────────────────────────────────────────
+const pathname   = Astro.url.pathname;
+const entry      = Astro.locals.starlightRoute.entry;
+const pageTitle  = entry.data.title;
+
+const prefix = pathname.includes('/react-data-grid/')
+  ? 'react-data-grid'
+  : pathname.includes('/angular-data-grid/')
+    ? 'angular-data-grid'
+    : pathname.includes('/vue-data-grid/')
+      ? 'vue-data-grid'
+      : 'javascript-data-grid';
+
+const frameworkLabel = FRAMEWORK_LABELS[prefix];
+const homeLabel      = hotVersion ? `${hotVersion} ${frameworkLabel}` : frameworkLabel;
+const homeHref       = `/docs/${prefix}/`;
+const pageHref       = pathname;
+---
+
+<div class="hot-page-header">
+  <!-- ── Breadcrumbs ──────────────────────────────────────────────────────── -->
+  <nav class="hot-breadcrumbs" aria-label="Breadcrumb">
+    <ol>
+      <li>
+        <a href={homeHref} class="hot-breadcrumbs__home">
+          <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/>
+            <path d="M9 21V12h6v9"/>
+          </svg>
+          <span>{homeLabel}</span>
+        </a>
+      </li>
+      <li aria-hidden="true" class="hot-breadcrumbs__sep">›</li>
+      <li>
+        <a href={pageHref} aria-current="page" class="hot-breadcrumbs__current">
+          <span>{pageTitle}</span>
+        </a>
+      </li>
+    </ol>
+  </nav>
+
+</div>
+
+{showNewerBanner && (
+  <aside class="starlight-aside starlight-aside--tip hot-newer-version-banner">
+    <p class="starlight-aside__content">
+      There is a newer version of Handsontable available.
+      <a href={`https://handsontable.com/docs/${latestVersion}/`}>Switch to the latest version &rarr;</a>
+    </p>
+  </aside>
+)}
+
+<h1 id="_top">{pageTitle}</h1>
+
+<style>
+  /* ── Page title ─────────────────────────────────────────────────────────── */
+  h1 {
+    color: var(--sl-color-white);
+  }
+
+  /* ── Top bar (breadcrumbs) ───────────────────────────────────────────────── */
+  .hot-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin-bottom: 0.25rem;
+  }
+
+  /* ── Breadcrumbs ──────────────────────────────────────────────────────────── */
+  .hot-breadcrumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .hot-breadcrumbs li {
+    display: flex;
+    align-items: center;
+  }
+
+  .hot-breadcrumbs__home {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    color: var(--sl-color-gray-2);
+    font-size: var(--sl-text-sm);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+
+  .hot-breadcrumbs__home:hover {
+    color: var(--sl-color-white);
+  }
+
+  .hot-breadcrumbs__sep {
+    color: var(--sl-color-gray-4);
+    font-size: var(--sl-text-sm);
+    user-select: none;
+  }
+
+  .hot-breadcrumbs__current {
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-sm);
+    text-decoration: none;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* Hide breadcrumbs on mobile/tablet — sub-header already shows this info */
+  @media (max-width: 71.99rem) {
+    .hot-breadcrumbs {
+      display: none;
+    }
+  }
+
+  /* ── Newer-version banner ─────────────────────────────────────────────────── */
+  .hot-newer-version-banner {
+    margin-block: 0.75rem 0.25rem;
+    padding: 0;
+    color: var(--sl-color-gray-3);
+  }
+
+  .hot-newer-version-banner a {
+    color: var(--sl-color-accent);
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .hot-newer-version-banner a:hover {
+    text-decoration: underline;
+  }
+
+</style>

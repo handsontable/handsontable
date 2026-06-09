@@ -1,4 +1,7 @@
 import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
+import { registerAllModules } from "handsontable/registry";
+
+registerAllModules();
 
 import {
   HOT_GLOBAL_CONFIG,

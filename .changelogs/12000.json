@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fix UndoRedo crash when nullified changes",
-  "type": "fixed",
-  "issueOrPR": 12000,
-  "breaking": false,
-  "framework": "none"
-}

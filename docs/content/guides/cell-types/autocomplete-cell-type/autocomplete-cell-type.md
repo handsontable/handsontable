@@ -1,5 +1,5 @@
 ---
-id: cjib1mhw
+type: how-to
 title: Autocomplete cell type
 metaTitle: Autocomplete cell type - JavaScript Data Grid | Handsontable
 description: Collect user input with a list of choices, by using the autocomplete cell type.
@@ -11,18 +11,17 @@ tags:
   - autocomplete
   - key value
 react:
-  id: vnnvp396
   metaTitle: Autocomplete cell type - React Data Grid | Handsontable
 angular:
-  id: md3vhixm
   metaTitle: Autocomplete cell type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Autocomplete cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---
-
-# Autocomplete cell type
-
 Collect user input with a list of choices, by using the autocomplete cell type.
+
+The autocomplete cell type provides a text input with suggestions from a predefined list. Use it when users should choose from known values but can also type freely.
 
 [[toc]]
 
@@ -75,6 +74,16 @@ This example uses the `autocomplete` feature in the default flexible mode. In th
 
 :::
 
+::: only-for vue
+
+::: example #example1 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ## Autocomplete strict mode
 
 This is the same example as above, the difference being that `autocomplete` now runs in strict mode. In this mode, the autocomplete cells will only accept values that are defined in the source array. The mouse and keyboard bindings are identical to the `Handsontable` cell type but with the differences below:
@@ -120,6 +129,16 @@ In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option deter
 
 :::
 
+::: only-for vue
+
+::: example #example2 .docs-height-large :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example2.vue)
+
+:::
+
+:::
+
 ## Autocomplete strict mode (Ajax)
 
 Autocomplete can also be used with Ajax data sources. In the example below, suggestions for the "Car" column are loaded from the server. To load data from a remote *asynchronous* source, assign a function to the 'source' property. The function should perform the server-side request and call the callback function when the result is available.
@@ -152,6 +171,16 @@ Autocomplete can also be used with Ajax data sources. In the example below, sugg
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example3.ts)
 @[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example3.vue)
 
 :::
 
@@ -192,6 +221,16 @@ You can provide the `source` option as an array of values that will be used as t
 :::
 :::
 
+::: only-for vue
+
+::: example #example4 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example4.vue)
+
+:::
+
+:::
+
 ### Array of objects
 
 You can provide the `source` option as an array of objects with `key` and `value` properties. The `value` property will be used as the autocomplete suggestion, while the entire object will be used as the value of the cell.
@@ -223,6 +262,15 @@ You can provide the `source` option as an array of objects with `key` and `value
 :::
 :::
 
+::: only-for vue
+
+::: example #example5 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example5.vue)
+
+:::
+
+:::
 
 #### API methods
 
@@ -236,35 +284,157 @@ When working with object-based autocomplete data, you can use methods like [`get
 :::
 
 
+## The `filter` option
+
+By default, the autocomplete dropdown hides options that don't match what the user is typing. Set `filter: false` to always show the full list of source options, regardless of the current input. This is useful when you want to give users a visual reference of all available choices while they type.
+
+The left column uses the default behavior (`filter: true`) — options are narrowed as you type. The right column has `filter: false` — all options remain visible no matter what you enter.
+
+::: only-for javascript
+
+::: example #example6 .docs-height-small --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example6.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example6.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example6 .docs-height-small :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example6.jsx)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example6.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example6 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example6.ts)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example6.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example6 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example6.vue)
+
+:::
+
+:::
+
+## The `filteringCaseSensitive` option
+
+By default, the autocomplete search is case-insensitive — typing `"bl"` matches both `"Black"` and `"blue"`. Set `filteringCaseSensitive: true` to require an exact case match when filtering suggestions.
+
+The left column uses the default case-insensitive behavior. The right column has `filteringCaseSensitive: true` — only options whose case matches the typed characters are shown.
+
+::: only-for javascript
+
+::: example #example7 .docs-height-small --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example7.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example7.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example7 .docs-height-small :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example7.jsx)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example7.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example7 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example7.ts)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example7.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example7 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example7.vue)
+
+:::
+
+:::
+
+## Result
+
+After configuring the autocomplete cell type, cells display a text input that shows matching suggestions as the user types. In strict mode, only values from the source list are accepted. In flexible mode, users can also enter custom values not in the list.
+
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
 - [Dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md)
 - [Select cell type](@/guides/cell-types/select-cell-type/select-cell-type.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`allowHtml`](@/api/options.md#allowhtml)
-  - [`filteringCaseSensitive`](@/api/options.md#filteringcasesensitive)
-  - [`sortByRelevance`](@/api/options.md#sortbyrelevance)
-  - [`source`](@/api/options.md#source)
-  - [`strict`](@/api/options.md#strict)
-  - [`trimDropdown`](@/api/options.md#trimdropdown)
-  - [`type`](@/api/options.md#type)
-  - [`visibleRows`](@/api/options.md#visiblerows)
-- Core methods:
-  - [`getCellMeta()`](@/api/core.md#getcellmeta)
-  - [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow)
-  - [`getCellsMeta()`](@/api/core.md#getcellsmeta)
-  - [`getDataType()`](@/api/core.md#getdatatype)
-  - [`setCellMeta()`](@/api/core.md#setcellmeta)
-  - [`setCellMetaObject()`](@/api/core.md#setcellmetaobject)
-  - [`removeCellMeta()`](@/api/core.md#removecellmeta)
-- Hooks:
-  - [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta)
-  - [`afterSetCellMeta`](@/api/hooks.md#aftersetcellmeta)
-  - [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta)
-  - [`beforeSetCellMeta`](@/api/hooks.md#beforesetcellmeta)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [allowHtml](@/api/options.md#allowhtml)
+- [filter](@/api/options.md#filter)
+- [filteringCaseSensitive](@/api/options.md#filteringcasesensitive)
+- [sortByRelevance](@/api/options.md#sortbyrelevance)
+- [source](@/api/options.md#source)
+- [strict](@/api/options.md#strict)
+- [trimDropdown](@/api/options.md#trimdropdown)
+- [type](@/api/options.md#type)
+- [visibleRows](@/api/options.md#visiblerows)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getCellMeta()](@/api/core.md#getcellmeta)
+- [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
+- [getCellsMeta()](@/api/core.md#getcellsmeta)
+- [getDataType()](@/api/core.md#getdatatype)
+- [setCellMeta()](@/api/core.md#setcellmeta)
+- [setCellMetaObject()](@/api/core.md#setcellmetaobject)
+- [removeCellMeta()](@/api/core.md#removecellmeta)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterGetCellMeta](@/api/hooks.md#aftergetcellmeta)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>

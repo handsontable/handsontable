@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the loading overlay resetting the grid scroll position to the top when no cell was selected before showing the overlay.",
+  "type": "fixed",
+  "issueOrPR": 12514,
+  "breaking": false,
+  "framework": "none"
+}

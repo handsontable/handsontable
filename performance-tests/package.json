@@ -1,0 +1,21 @@
+{
+  "name": "handsontable-performance-tests",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Performance measurement suite for Handsontable using Playwright + CDP traces",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint --ext .js,.mjs,.ts --ignore-pattern fixtures .",
+    "typecheck": "tsc --noEmit",
+    "test": "node scripts/run.mjs"
+  },
+  "author": "Handsoncode <hello@handsontable.com>",
+  "license": "ISC",
+  "devDependencies": {
+    "@playwright/test": "~1.58.2",
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.48.1",
+    "@typescript-eslint/parser": "^5.48.1",
+    "typescript": "~5.1.3"
+  }
+}

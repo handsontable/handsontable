@@ -1,5 +1,5 @@
 ---
-id: a52om5wr
+type: how-to
 title: Selection
 metaTitle: Selection - JavaScript Data Grid | Handsontable
 description: Select a single cell, a range of adjacent cells, or multiple non-adjacent ranges of cells.
@@ -9,20 +9,19 @@ tags:
   - selecting ranges
   - cell selection
 react:
-  id: k88lznt8
   metaTitle: Selection - React Data Grid | Handsontable
 angular:
-  id: 8l4fmyur
   metaTitle: Selection - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Selection - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---
-
-# Selection
-
 Select a single cell, a range of adjacent cells, or multiple non-adjacent ranges of cells.
 
 [[toc]]
+
+Use the selection API to control how users select cells -- single cells, ranges, columns, or rows -- and to read or set selections programmatically.
 
 ## Overview
 
@@ -32,25 +31,28 @@ Selection enables you to select a single cell or ranges of cells within Handsont
 
 With this feature, you can select single cells or ranges of cells across a grid. Easily retrieve the coordinates of the selected cells to clear or change the cells' content.
 
-Use <kbd>**Cmd**</kbd> on Mac or <kbd>**Ctrl**</kbd> on Windows to select non-adjacent ranges of cells.
+Use <kbd>⌘</kbd> on Mac or <kbd>**Ctrl**</kbd> on Windows to select non-adjacent ranges of cells.
+
+Click a column header to select all cells in that column. Click a row header to select all cells in that row. Both require [`colHeaders`](@/api/options.md#colheaders) or [`rowHeaders`](@/api/options.md#rowheaders) to be enabled.
 
 ## Select ranges
 
-There are different modes in which you can use this plugin. Choose between selecting a single cell, a range of adjacent cells, and multiple non-adjacent ranges of cells.
+There are different modes in which you can use this plugin. Choose between selecting a single cell, a range of adjacent cells, and multiple ranges of non-contiguous cells.
 
 Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
 - [`single`](@/api/options.md#selectionmode) - You can select a single cell.
 - [`range`](@/api/options.md#selectionmode) - You can select multiple cells within a single rangeselected.
-- [`multiple`](@/api/options.md#selectionmode) - You can select multiple, non-adjacent ranges of cells.
+- [`multiple`](@/api/options.md#selectionmode) - Multiple non-contiguous ranges of cells can be selected.
 
 ::: only-for javascript
 
-::: example #example1 --html 1 --js 2 --ts 3
+::: example #example1 --html 1 --js 2 --ts 3 --css 4
 
 @[code](@/content/guides/cell-features/selection/javascript/example1.html)
 @[code](@/content/guides/cell-features/selection/javascript/example1.js)
 @[code](@/content/guides/cell-features/selection/javascript/example1.ts)
+@[code](@/content/guides/cell-features/selection/javascript/example1.css)
 
 :::
 
@@ -73,6 +75,16 @@ Possible values of [`selectionMode`](@/api/options.md#selectionmode):
 
 @[code](@/content/guides/cell-features/selection/angular/example1.ts)
 @[code](@/content/guides/cell-features/selection/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-features/selection/vue/example1.vue)
 
 :::
 
@@ -111,6 +123,16 @@ To retrieve the selected cells as an array of arrays, you use the [`getSelected(
 
 @[code](@/content/guides/cell-features/selection/angular/example2.ts)
 @[code](@/content/guides/cell-features/selection/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-features/selection/vue/example2.vue)
 
 :::
 
@@ -156,13 +178,119 @@ You may want to delete, format, or otherwise change the selected cells. For exam
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-features/selection/vue/example3.vue)
+
+:::
+
+:::
+
 ## Style the selection area
 
-You can easily change the background color, using CSS styles. The main, light blue background color is defined in the `.area` class.
+You can change the background color of selected cells using CSS. The base selection color is defined in the `.area` class.
 
-For non-adjacent selection, multiple classes are making each level a bit darker. These classes are called `area-1`, `area-2`, etc.
+When using multiple non-adjacent selections (<kbd>**Cmd**</kbd>/<kbd>**Ctrl**</kbd> + click), each additional selection layer receives a numbered class: `area-1` for the second layer, `area-2` for the third, and so on. Each class is cumulative — a cell in the second layer has both `area` and `area-1`.
+
+The example below customizes the color of each selection layer using these CSS classes.
+
+::: only-for javascript
+
+::: example #example4 --html 1 --css 2 --js 3 --ts 4
+
+@[code](@/content/guides/cell-features/selection/javascript/example4.html)
+@[code](@/content/guides/cell-features/selection/javascript/example4.css)
+@[code](@/content/guides/cell-features/selection/javascript/example4.js)
+@[code](@/content/guides/cell-features/selection/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react --css 1 --js 2 --ts 3
+
+@[code](@/content/guides/cell-features/selection/react/example4.css)
+@[code](@/content/guides/cell-features/selection/react/example4.jsx)
+@[code](@/content/guides/cell-features/selection/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/selection/angular/example4.ts)
+@[code](@/content/guides/cell-features/selection/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/cell-features/selection/vue/example4.vue)
+
+:::
+
+:::
 
 Unfortunately, there is no easy way to change the border color of the selection.
+
+## Select cells programmatically
+
+Use [`selectCell()`](@/api/core.md#selectcell) to select a single cell or a range of cells from code. Pass the start and end row/column indices to define a range. Use [`deselectCell()`](@/api/core.md#deselectcell) to clear the selection.
+
+::: only-for javascript
+
+::: example #example5 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/cell-features/selection/javascript/example5.html)
+@[code](@/content/guides/cell-features/selection/javascript/example5.js)
+@[code](@/content/guides/cell-features/selection/javascript/example5.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example5 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/selection/react/example5.jsx)
+@[code](@/content/guides/cell-features/selection/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/selection/angular/example5.ts)
+@[code](@/content/guides/cell-features/selection/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/cell-features/selection/vue/example5.vue)
+
+:::
+
+:::
 
 ## Jump across the grid's edges
 
@@ -176,8 +304,8 @@ To enable jumping across the left and right edges:
 
 To jump across a vertical edge:
 
-- When cell selection is on a row's first cell, press the left arrow key.
-- When cell selection is on a row's last cell, press the right arrow key, or press <kbd>**Tab**</kbd>.
+- When cell selection is on a row's first cell, press <kbd>**←**</kbd>.
+- When cell selection is on a row's last cell, press <kbd>**→**</kbd>, or press <kbd>**Tab**</kbd>.
 
 #### Jump across horizontal edges
 
@@ -187,27 +315,27 @@ To enable jumping across the top and bottom edges:
 
 To jump across a horizontal edge:
 
-- When cell selection is on a column's first cell, press the up arrow key.
-- When cell selection is on a column's last cell, press the down arrow key, or press <kbd>**Enter**</kbd>.
+- When cell selection is on a column's first cell, press <kbd>**↑**</kbd>.
+- When cell selection is on a column's last cell, press <kbd>**↓**</kbd>, or press <kbd>**Enter**</kbd>.
 
 ## Related keyboard shortcuts
 
 | Windows                                                       | macOS                                                        | Action                                                                           |  Excel  | Sheets  |
 | ------------------------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------------------------- | :-----: | :-----: |
-| <kbd>**Ctrl**</kbd>+<kbd>**A**</kbd>                        | <kbd>**Cmd**</kbd>+<kbd>**A**</kbd>                        | Select all cells | &check; | &check; |
-|<kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Space**</kbd> |<kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Space**</kbd> | Select all cells and headers                                                      | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                    | <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                   | Select the entire column                                                         | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                   | <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                  | Select the entire row                                                            | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd> | Extend the selection to the first cell of the current column<sup>**</sup>        | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↓**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↓**</kbd> | Extend the selection to the last cell of the current column<sup>**</sup>         | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**←**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**←**</kbd> | Extend the selection to the leftmost cell of the current row<sup>**</sup>        | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**→**</kbd> | <kbd>**Cmd**</kbd>+<kbd>**Shift**</kbd>+<kbd>**→**</kbd> | Extend the selection to the rightmost cell of the current row<sup>**</sup>       | &check; | &check; |
-| <kbd>**Shift**</kbd> + Arrow keys                             | <kbd>**Shift**</kbd> + Arrow keys                            | Extend the selection by one cell                                                 | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Home**</kbd>                    | <kbd>**Shift**</kbd>+<kbd>**Home**</kbd>                   | Extend the selection to the first non-frozen cell of the current row<sup>*</sup> | &check; | &cross; |
-| <kbd>**Shift**</kbd>+<kbd>**End**</kbd>                     | <kbd>**Shift**</kbd>+<kbd>**End**</kbd>                    | Extend the selection to the last non-frozen cell of the current row<sup>*</sup>  | &cross; | &cross; |
-| <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                 | <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                | Extend the selection by one screen up                                            | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>               | <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>              | Extend the selection by one screen down                                          | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                    | <kbd>**Cmd**</kbd>+<kbd>**Enter**</kbd>                    | Fill the selected range of cells with the value of the active cell               | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**A**</kbd>                        | <kbd>⌘</kbd>+<kbd>**A**</kbd>                        | Select all cells | &check; | &check; |
+|<kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Space**</kbd> |<kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**Space**</kbd> | Select all cells and headers                                                      | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd>                    | <kbd>⌃</kbd>+<kbd>**Space**</kbd>                   | Select the entire column                                                         | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Space**</kbd>                   | <kbd>⇧</kbd>+<kbd>**Space**</kbd>                  | Select the entire row                                                            | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↑**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**↑**</kbd> | Extend the selection to the first cell of the current column<sup>**</sup>        | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**↓**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**↓**</kbd> | Extend the selection to the last cell of the current column<sup>**</sup>         | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**←**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**←**</kbd> | Extend the selection to the leftmost cell of the current row<sup>**</sup>        | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**→**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**→**</kbd> | Extend the selection to the rightmost cell of the current row<sup>**</sup>       | &check; | &check; |
+| <kbd>**Shift**</kbd> + Arrow keys                             | <kbd>⇧</kbd> + Arrow keys                            | Extend the selection by one cell                                                 | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Home**</kbd>                    | <kbd>⇧</kbd>+<kbd>**Home**</kbd>                   | Extend the selection to the first non-frozen cell of the current row<sup>*</sup> | &check; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**End**</kbd>                     | <kbd>⇧</kbd>+<kbd>**End**</kbd>                    | Extend the selection to the last non-frozen cell of the current row<sup>*</sup>  | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                 | <kbd>⇧</kbd>+<kbd>**Page Up**</kbd>                | Extend the selection by one screen up                                            | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>               | <kbd>⇧</kbd>+<kbd>**Page Down**</kbd>              | Extend the selection by one screen down                                          | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                    | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                    | Fill the selected range of cells with the value of the active cell               | &cross; | &check; |
 | <kbd>**Delete**</kbd>                                         | <kbd>**Delete**</kbd>                                        | Clear the contents of the selected cells                                         | &check; | &check; |
 | <kbd>**Backspace**</kbd>                                      | <kbd>**Backspace**</kbd>                                     | Clear the contents of the selected cells                                         | &check; | &check; |
 
@@ -216,34 +344,61 @@ To jump across a horizontal edge:
 
 ## Related API reference
 
-- Configuration options:
-  - [`autoWrapCol`](@/api/options.md#autowrapcol)
-  - [`autoWrapRow`](@/api/options.md#autowraprow)
-  - [`fragmentSelection`](@/api/options.md#fragmentselection)
-  - [`disableVisualSelection`](@/api/options.md#disablevisualselection)
-  - [`dragToScroll`](@/api/options.md#dragtoscroll)
-  - [`selectionMode`](@/api/options.md#selectionmode)
-  - [`outsideClickDeselects`](@/api/options.md#outsideclickdeselects)
-- Core methods:
-  - [`deselectCell()`](@/api/core.md#deselectcell)
-  - [`getSelected()`](@/api/core.md#getselected)
-  - [`getSelectedLast()`](@/api/core.md#getselectedlast)
-  - [`getSelectedRange()`](@/api/core.md#getselectedrange)
-  - [`getSelectedRangeLast()`](@/api/core.md#getselectedrangelast)
-  - [`selectAll()`](@/api/core.md#selectall)
-  - [`selectCell()`](@/api/core.md#selectcell)
-  - [`selectCells()`](@/api/core.md#selectcells)
-  - [`selectColumns()`](@/api/core.md#selectcolumns)
-  - [`selectRows()`](@/api/core.md#selectrows)
-- Hooks:
-  - [`afterDeselect`](@/api/hooks.md#afterdeselect)
-  - [`afterDrawSelection`](@/api/hooks.md#afterdrawselection)
-  - [`afterModifyTransformEnd`](@/api/hooks.md#aftermodifytransformend)
-  - [`afterModifyTransformStart`](@/api/hooks.md#aftermodifytransformstart)
-  - [`afterSelection`](@/api/hooks.md#afterselection)
-  - [`afterSelectionByProp`](@/api/hooks.md#afterselectionbyprop)
-  - [`afterSelectionEnd`](@/api/hooks.md#afterselectionend)
-  - [`afterSelectionEndByProp`](@/api/hooks.md#afterselectionendbyprop)
-  - [`modifyTransformStart`](@/api/hooks.md#modifytransformstart)
-- Plugins:
-  - [`DragToScroll`](@/api/dragToScroll.md)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [autoWrapCol](@/api/options.md#autowrapcol)
+- [autoWrapRow](@/api/options.md#autowraprow)
+- [fragmentSelection](@/api/options.md#fragmentselection)
+- [disableVisualSelection](@/api/options.md#disablevisualselection)
+- [dragToScroll](@/api/options.md#dragtoscroll)
+- [selectionMode](@/api/options.md#selectionmode)
+- [outsideClickDeselects](@/api/options.md#outsideclickdeselects)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [deselectCell()](@/api/core.md#deselectcell)
+- [getSelected()](@/api/core.md#getselected)
+- [getSelectedLast()](@/api/core.md#getselectedlast)
+- [getSelectedRange()](@/api/core.md#getselectedrange)
+- [getSelectedRangeLast()](@/api/core.md#getselectedrangelast)
+- [selectAll()](@/api/core.md#selectall)
+- [selectCell()](@/api/core.md#selectcell)
+- [selectCells()](@/api/core.md#selectcells)
+- [selectColumns()](@/api/core.md#selectcolumns)
+- [selectRows()](@/api/core.md#selectrows)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterDeselect](@/api/hooks.md#afterdeselect)
+- [afterDrawSelection](@/api/hooks.md#afterdrawselection)
+- [afterModifyTransformEnd](@/api/hooks.md#aftermodifytransformend)
+- [afterModifyTransformStart](@/api/hooks.md#aftermodifytransformstart)
+- [afterSelection](@/api/hooks.md#afterselection)
+- [afterSelectionByProp](@/api/hooks.md#afterselectionbyprop)
+- [afterSelectionEnd](@/api/hooks.md#afterselectionend)
+- [afterSelectionEndByProp](@/api/hooks.md#afterselectionendbyprop)
+- [modifyTransformStart](@/api/hooks.md#modifytransformstart)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [DragToScroll](@/api/dragToScroll.md)
+
+</div>
+
+## Result
+
+Users can select cells using the configured mode -- single cell, range, or multiple ranges. Programmatic selections take effect immediately and fire the relevant selection hooks.

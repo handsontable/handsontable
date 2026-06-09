@@ -1,5 +1,5 @@
 ---
-id: 97k6p9p7
+type: reference
 title: Locale
 metaTitle: Locale - JavaScript Data Grid | Handsontable
 description: Configure Handsontable's locale settings, to properly handle locale-related data and actions such as filtering, searching, or sorting.
@@ -11,18 +11,15 @@ tags:
   - L10n
   - i18n
 react:
-  id: 1ueuuazs
   metaTitle: Locale - React Data Grid | Handsontable
 angular:
-  id: arpg1wyq
   metaTitle: Locale - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Locale - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
 ---
-
-# Locale
-
-Configure Handsontable's locale settings, to properly handle locale-related data and actions such as filtering, searching, or sorting.
+The `locale` option configures number and date formatting using a BCP 47 language tag (for example `'en-US'` or `'de-DE'`).
 
 [[toc]]
 
@@ -82,6 +79,21 @@ settings = {
 
 ```html
 <hot-table [settings]="settings" />
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  // set the entire grid's locale to Polish
+  locale: 'pl-PL',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
 ```
 
 :::
@@ -162,11 +174,38 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  columns: [
+    {
+      // set the first column's locale to Polish
+      locale: 'pl-PL',
+    },
+    {
+      // set the second column's locale to German
+      locale: 'de-DE',
+    },
+    {
+      // set the third column's locale to Japanese
+      locale: 'ja-JP',
+    },
+  ],
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ## Related articles
 
-### Related guides
+**Related guides**
 
-<div class="boxes-list gray">
+<div class="boxes-list">
 
 - [Language](@/guides/internationalization/language/language.md)
 - [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
@@ -174,17 +213,41 @@ settings = {
 
 </div>
 
-### Related API reference
+**Configuration options**
 
-- Configuration options:
-  - [`language`](@/api/options.md#language)
-  - [`layoutDirection`](@/api/options.md#layoutdirection)
-  - [`locale`](@/api/options.md#locale)
-- Core methods:
-  - [`getDirectionFactor()`](@/api/core.md#getdirectionfactor)
-  - [`getTranslatedPhrase()`](@/api/core.md#gettranslatedphrase)
-  - [`isLtr()`](@/api/core.md#isltr)
-  - [`isRtl()`](@/api/core.md#isrtl)
-- Hooks:
-  - [`afterLanguageChange`](@/api/hooks.md#afterlanguagechange)
-  - [`beforeLanguageChange`](@/api/hooks.md#beforelanguagechange)
+<div class="boxes-list">
+
+- [language](@/api/options.md#language)
+- [layoutDirection](@/api/options.md#layoutdirection)
+- [locale](@/api/options.md#locale)
+
+</div>
+
+**Core methods**
+
+<div class="boxes-list">
+
+- [getDirectionFactor()](@/api/core.md#getdirectionfactor)
+- [getTranslatedPhrase()](@/api/core.md#gettranslatedphrase)
+- [isLtr()](@/api/core.md#isltr)
+- [isRtl()](@/api/core.md#isrtl)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterLanguageChange](@/api/hooks.md#afterlanguagechange)
+- [beforeLanguageChange](@/api/hooks.md#beforelanguagechange)
+
+</div>
+
+## Related
+
+<div class="boxes-list">
+
+- [Language](@/guides/internationalization/language/language.md)
+- [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
+
+</div>

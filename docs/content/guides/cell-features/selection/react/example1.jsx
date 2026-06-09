@@ -1,33 +1,82 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
 
-const ExampleComponent = () => {
-  const hotRef = useRef(null);
-  const selectOptionChangeCallback = (event) => {
-    const hot = hotRef.current?.hotInstance;
-    const value = event.target.value;
-    const first = value.split(' ')[0].toLowerCase();
+const options = [
+  { value: 'single', label: 'Single selection' },
+  { value: 'range', label: 'Range selection' },
+  { value: 'multiple', label: 'Multiple ranges selection' },
+];
 
-    hot?.updateSettings({ selectionMode: first });
+const ExampleComponent = () => {
+  const dropdownRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false);
+  const [selected, setSelected] = useState('multiple');
+
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    const handleEscape = (e) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('click', handleOutsideClick);
+    document.addEventListener('keydown', handleEscape);
+
+    return () => {
+      document.removeEventListener('click', handleOutsideClick);
+      document.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
+
+  const handleSelect = (value) => {
+    setSelected(value);
+    setIsOpen(false);
   };
+
+  const selectedLabel = options.find((o) => o.value === selected)?.label;
 
   return (
     <>
-      <div className="controls">
-        <label>
-          <select id="selectOption" onChange={(...args) => selectOptionChangeCallback(...args)} defaultValue="multiple">
-            <option value="single">Single selection</option>
-            <option value="range">Range selection</option>
-            <option value="multiple">Multiple ranges selection</option>
-          </select>
-        </label>
+      <div className="example-controls-container">
+        <div className="controls">
+          <div className="theme-dropdown" ref={dropdownRef}>
+            <button
+              className="theme-dropdown-trigger"
+              type="button"
+              aria-haspopup="listbox"
+              aria-expanded={isOpen}
+              onClick={() => setIsOpen(!isOpen)}
+            >
+              <span>{selectedLabel}</span>
+              <svg className="theme-dropdown-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
+            </button>
+            {isOpen && (
+              <ul className="theme-dropdown-menu" role="listbox">
+                {options.map((opt) => (
+                  <li
+                    key={opt.value}
+                    role="option"
+                    aria-selected={selected === opt.value}
+                    onClick={() => handleSelect(opt.value)}
+                  >
+                    {opt.label}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
       </div>
       <HotTable
-        ref={hotRef}
         data={[
           ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1', 'H1', 'I1'],
           ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2', 'H2', 'I2'],
@@ -44,7 +93,7 @@ const ExampleComponent = () => {
         colWidths={100}
         rowHeaders={true}
         colHeaders={true}
-        selectionMode="multiple" // 'single', 'range' or 'multiple',
+        selectionMode={selected}
         autoWrapRow={true}
         autoWrapCol={true}
         licenseKey="non-commercial-and-evaluation"

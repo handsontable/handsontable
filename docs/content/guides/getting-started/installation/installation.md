@@ -1,5 +1,5 @@
 ---
-id: rqtn1ajf
+type: how-to
 title: Installation
 metaTitle: Installation - JavaScript Data Grid | Handsontable
 description: Install Handsontable through your preferred package manager, or import Handsontable's assets directly from a CDN.
@@ -8,18 +8,14 @@ canonicalUrl: /installation
 tags:
   - quick start
 react:
-  id: zqk2jjw3
   metaTitle: Installation - React Data Grid | Handsontable
 angular:
-  id: y52wtu7t
   metaTitle: Installation - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Installation - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
-menuTag: updated
 ---
-
-# Installation
-
 ::: only-for angular
 
 Install Handsontable through your preferred package manager, and control your grid through the `HotTableComponent` props.
@@ -38,11 +34,22 @@ Install Handsontable through your preferred package manager, and control your gr
 
 :::
 
+::: only-for vue
+
+Install Handsontable through your preferred package manager, and control your grid through the `HotTable` component's props.
+
+:::
+
 [[toc]]
 
 <div class="instalationPage">
 
 ::: only-for angular
+
+## Prerequisites
+
+- [Node.js](https://nodejs.org/) version 18 or newer
+- Angular CLI version 16 or newer: `npm install -g @angular/cli`
 
 ## Install Handsontable
 
@@ -72,35 +79,21 @@ pnpm add handsontable @handsontable/angular-wrapper
   </code-block>
 </code-group>
 
-## Register Handsontable's modules
+## Configure `app.config.ts`
 
-Import and register all of Handsontable's modules with a single function call (for example, in `app.component.ts`):
-
-```ts
-import Handsontable from "handsontable/base";
-import { registerAllModules } from "handsontable/registry";
-
-registerAllModules();
-```
-
-Or, to reduce the size of your JavaScript bundle, [import only the modules that you need](@/guides/tools-and-building/modules/modules.md).
-
-## Configure global settings
-
-You can set global configuration values for the table during the application setup (`app.config.ts`). Using the `HOT_GLOBAL_CONFIG` token, you can define an object that will be read within the wrapper. At any time, you can modify these values using the `HotGlobalConfigService` or override them at the individual table level. All properties of `HotGlobalConfig` object are optional.
+In `app.config.ts`, register Handsontable's modules and set global configuration values via the `HOT_GLOBAL_CONFIG` token. You can modify these values at any time using `HotGlobalConfigService`, or override them per table. All properties of `HotGlobalConfig` are optional.
 
 ```ts
 import { ApplicationConfig, provideZoneChangeDetection } from "@angular/core";
-import { provideRouter } from "@angular/router";
-
-import { routes } from "./app.routes";
 import {
   HOT_GLOBAL_CONFIG,
   HotGlobalConfig,
   NON_COMMERCIAL_LICENSE,
 } from "@handsontable/angular-wrapper";
+import { registerAllModules } from "handsontable/registry";
 import { registerLanguageDictionary, enUS } from "handsontable/i18n";
 
+registerAllModules();
 registerLanguageDictionary(enUS);
 
 const globalHotConfig: HotGlobalConfig = {
@@ -111,33 +104,22 @@ const globalHotConfig: HotGlobalConfig = {
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideZoneChangeDetection({ eventCoalescing: true }),
     { provide: HOT_GLOBAL_CONFIG, useValue: globalHotConfig },
   ],
 };
 ```
 
+To reduce the size of your JavaScript bundle, [import only the modules that you need](@/guides/tools-and-building/modules/modules.md) instead of calling `registerAllModules()`.
+
 ## Use the `HotTable` Component
 
-The main Handsontable component is called `HotTableComponent`. To use it, you need to import the `HotTableModule` in your component or module.
+The main Handsontable component is called `HotTableComponent`. Import `HotTableModule` in your component and pass configuration via a `GridSettings` object:
 
 ```ts
-import {
-  HotTableModule,
-} from '@handsontable/angular-wrapper';
-
-@Component({
-  standalone: true,
-  imports: [HotTableModule],
-})
-```
-
-To set Handsontable's [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), use `GridSettings` object. For example:
-
-```ts
-import { Component, ViewChild } from "@angular/core";
+import { Component } from "@angular/core";
 import {
   GridSettings,
-  HotTableComponent,
   HotTableModule,
 } from "@handsontable/angular-wrapper";
 
@@ -145,20 +127,18 @@ import {
   standalone: true,
   imports: [HotTableModule],
   template: ` <div>
-    <hot-table [data]="data" [settings]="gridSettings" />
+    <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
 export class HotTableWrapperComponent {
-  @ViewChild(HotTableComponent, { static: false })
-  readonly hotTable!: HotTableComponent;
-
   readonly data = [
     ["", "Tesla", "Volvo", "Toyota", "Ford"],
     ["2019", 10, 11, 12, 13],
     ["2020", 20, 11, 14, 13],
     ["2021", 30, 15, 12, 13],
+    ["2022", 25, 20, 11, 14],
   ];
-  readonly gridSettings = <GridSettings>{
+  readonly gridSettings: GridSettings = {
     rowHeaders: true,
     colHeaders: true,
     height: "auto",
@@ -178,7 +158,8 @@ export class HotTableWrapperComponent {
 :::
 
 ## Supported versions of Angular
-`@handsontable/angular-wrapper` requires at least Angular@16. If you use a lower version of Angular, you can use the `@handsontable/angular` package instead.
+
+`@handsontable/angular-wrapper` requires at least Angular 16. If you use a lower version of Angular, you can use the `@handsontable/angular` package instead.
 
 For more information on `@handsontable/angular`, see the [15.3 documentation](https://handsontable.com/docs/15.3/javascript-data-grid/angular-installation/).
 
@@ -188,24 +169,22 @@ For more information on `@handsontable/angular`, see the [15.3 documentation](ht
 | 16 and newer    | [@handsontable/angular-wrapper](https://www.npmjs.com/package/@handsontable/angular-wrapper)        |
 
 ### Troubleshooting
+
 If you're using Angular 21 or newer, please note that older versions of `@handsontable/angular-wrapper` are incompatible due to recent breaking changes in Angular. To ensure smooth integration, upgrade to `@handsontable/angular-wrapper@16.2` or later.
 
 ## Server Side Rendering (SSR)
 
-Currently, `HotTable` cannot be rendered on the server-side. If your application uses SSR, render it only in the browser using an `*ngIf*` statement.
+Currently, `HotTable` cannot be rendered on the server-side. If your application uses SSR, render it only in the browser using the `@if` control flow block.
 
 ```ts
-import { CommonModule, isPlatformBrowser } from "@angular/common";
+import { isPlatformBrowser } from "@angular/common";
 import { Component, inject, PLATFORM_ID } from "@angular/core";
 import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
 
-import { registerAllModules } from "handsontable/registry";
-
-registerAllModules();
-
 @Component({
+  standalone: true,
   selector: "app-root",
-  imports: [HotTableModule, CommonModule],
+  imports: [HotTableModule],
   templateUrl: "./app.html",
   styleUrl: "./app.scss",
 })
@@ -218,6 +197,7 @@ export class App {
     ["2019", 10, 11, 12, 13],
     ["2020", 20, 11, 14, 13],
     ["2021", 30, 15, 12, 13],
+    ["2022", 25, 20, 11, 14],
   ];
   readonly gridSettings: GridSettings = {
     rowHeaders: true,
@@ -233,11 +213,15 @@ export class App {
 
 ```html
 <div>
-  <ng-container *ngIf="isBrowser">
+  @if (isBrowser) {
     <hot-table [data]="data" [settings]="gridSettings" />
-  </ng-container>
+  }
 </div>
 ```
+
+## Result
+
+Handsontable is installed and running in your Angular application. You can now [configure options](@/guides/getting-started/configuration-options/configuration-options.md) or [import only the modules you need](@/guides/tools-and-building/modules/modules.md) to reduce your bundle size.
 
 :::
 
@@ -442,27 +426,127 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 
 :::
 
+::: only-for vue
+
+## Install Handsontable
+
+To install Handsontable locally using a package manager, run one of these commands:
+
+<code-group>
+  <code-block title="npm">
+
+  ```bash
+  npm install handsontable @handsontable/vue3
+  ```
+
+  </code-block>
+  <code-block title="Yarn">
+
+  ```bash
+  yarn add handsontable @handsontable/vue3
+  ```
+
+  </code-block>
+  <code-block title="pnpm">
+
+  ```bash
+  pnpm add handsontable @handsontable/vue3
+  ```
+
+  </code-block>
+</code-group>
+
+## Register Handsontable's modules
+
+Import and register all of Handsontable's modules with a single function call:
+
+```js
+import { registerAllModules } from 'handsontable/registry';
+
+registerAllModules();
+```
+
+Or, to reduce the size of your JavaScript bundle, [import only the modules that you need](@/guides/tools-and-building/modules/modules.md).
+
+## Use the `HotTable` component
+
+The main Handsontable component is called `HotTable`.
+
+```js
+import { HotTable } from '@handsontable/vue3';
+```
+
+To set Handsontable's [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
+
+```html
+<HotTable
+  :data="data"
+  :row-headers="true"
+  :col-headers="true"
+  height="auto"
+  :auto-wrap-row="true"
+  :auto-wrap-col="true"
+  license-key="non-commercial-and-evaluation"
+/>
+```
+
+### Preview the result
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/getting-started/installation/vue/example1.vue)
+
+:::
+
+## Supported versions of Vue
+
+`@handsontable/vue3` requires Vue 3. Vue 2 is not supported -- use [Handsontable 16.2.0](https://handsontable.com/docs/16.2/javascript-data-grid/vue-installation/) if you need Vue 2.
+
+| Handsontable version | Vue 3 version      |
+| -------------------- | ------------------ |
+| `11.0.0` and lower   | No Vue 3 support   |
+| `11.1.0` and higher  | `3.2.0` and higher |
+
+:::
+
 </div>
 
 ## Related articles
 
-### Related guides
+**Related guides**
+
+<div class="boxes-list">
 
 - [Modules](@/guides/tools-and-building/modules/modules.md)
 
-### Related API reference
+</div>
 
-- Configuration options:
-  - [`maxCols`](@/api/options.md#maxcols)
-  - [`maxRows`](@/api/options.md#maxrows)
-  - [`minCols`](@/api/options.md#mincols)
-  - [`minRows`](@/api/options.md#minrows)
-  - [`minSpareCols`](@/api/options.md#minsparecols)
-  - [`minSpareRows`](@/api/options.md#minsparerows)
-  - [`startCols`](@/api/options.md#startcols)
-  - [`startRows`](@/api/options.md#startrows)
-- Hooks:
-  - [`afterInit`](@/api/hooks.md#afterinit)
-  - [`beforeInit`](@/api/hooks.md#beforeinit)
-  - [`beforeInitWalkontable`](@/api/hooks.md#beforeinitwalkontable)
-  - [`construct`](@/api/hooks.md#construct)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [maxCols](@/api/options.md#maxcols)
+- [maxRows](@/api/options.md#maxrows)
+- [minCols](@/api/options.md#mincols)
+- [minRows](@/api/options.md#minrows)
+- [minSpareCols](@/api/options.md#minsparecols)
+- [minSpareRows](@/api/options.md#minsparerows)
+- [startCols](@/api/options.md#startcols)
+- [startRows](@/api/options.md#startrows)
+
+</div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterInit](@/api/hooks.md#afterinit)
+- [beforeInit](@/api/hooks.md#beforeinit)
+- [beforeInitWalkontable](@/api/hooks.md#beforeinitwalkontable)
+- [construct](@/api/hooks.md#construct)
+
+</div>
+
+## Result
+
+Handsontable is installed and ready to use in your project. Import it and create your first grid instance.

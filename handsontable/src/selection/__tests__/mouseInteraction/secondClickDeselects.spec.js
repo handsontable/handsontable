@@ -554,4 +554,194 @@ describe('Selection using mouse interaction (cell deselect)', () => {
       |===:===:===:===|
       `).toBeMatchToSelectionPattern();
   });
+
+  describe('with `disableVisualSelection` enabled', () => {
+    it('should skip the dedup behavior when `disableVisualSelection: true`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        disableVisualSelection: true,
+      });
+
+      await selectCells([
+        [0, 0, 0, 0],
+        [1, 0, 1, 0],
+        [1, 1, 1, 1],
+      ]);
+
+      await keyDown('control/meta');
+      await simulateClick(getCell(1, 0));
+      await keyUp('control/meta');
+
+      // Ctrl+click on an already-selected cell adds a new layer; no dedup runs,
+      // so the just-clicked cell stays as the active selection.
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 0,0',
+        'highlight: 1,0 from: 1,0 to: 1,0',
+        'highlight: 1,1 from: 1,1 to: 1,1',
+        'highlight: 1,0 from: 1,0 to: 1,0',
+      ]);
+    });
+
+    it('should skip the dedup behavior when `disableVisualSelection: \'current\'`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        disableVisualSelection: 'current',
+      });
+
+      await selectCells([
+        [0, 0, 0, 0],
+        [1, 0, 1, 0],
+        [1, 1, 1, 1],
+      ]);
+
+      await keyDown('control/meta');
+      await simulateClick(getCell(1, 0));
+      await keyUp('control/meta');
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 0,0',
+        'highlight: 1,0 from: 1,0 to: 1,0',
+        'highlight: 1,1 from: 1,1 to: 1,1',
+        'highlight: 1,0 from: 1,0 to: 1,0',
+      ]);
+    });
+
+    it('should skip the dedup behavior when `disableVisualSelection` is passed as an array', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        disableVisualSelection: ['current', 'area'],
+      });
+
+      await selectCells([
+        [0, 0, 0, 0],
+        [1, 0, 1, 0],
+        [1, 1, 1, 1],
+      ]);
+
+      await keyDown('control/meta');
+      await simulateClick(getCell(1, 0));
+      await keyUp('control/meta');
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 0,0',
+        'highlight: 1,0 from: 1,0 to: 1,0',
+        'highlight: 1,1 from: 1,1 to: 1,1',
+        'highlight: 1,0 from: 1,0 to: 1,0',
+      ]);
+    });
+
+    it('should skip the dedup behavior when `disableVisualSelection: \'area\'`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        disableVisualSelection: 'area',
+      });
+
+      await selectCells([
+        [0, 0, 0, 0],
+        [1, 0, 1, 0],
+        [1, 1, 1, 1],
+      ]);
+
+      await keyDown('control/meta');
+      await simulateClick(getCell(1, 0));
+      await keyUp('control/meta');
+
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 0,0',
+        'highlight: 1,0 from: 1,0 to: 1,0',
+        'highlight: 1,1 from: 1,1 to: 1,1',
+        'highlight: 1,0 from: 1,0 to: 1,0',
+      ]);
+    });
+
+    it('should still run the dedup branch when `disableVisualSelection` is an empty array', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        disableVisualSelection: [],
+      });
+
+      await selectCells([
+        [0, 0, 0, 0],
+        [1, 0, 1, 0],
+        [1, 1, 1, 1],
+      ]);
+
+      await keyDown('control/meta');
+      await simulateClick(getCell(1, 0));
+      await keyUp('control/meta');
+
+      // [] means nothing disabled, so dedup must still run as if `false`.
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 0,0',
+        'highlight: 1,1 from: 1,1 to: 1,1',
+      ]);
+    });
+
+    it('should still run the dedup branch when `disableVisualSelection` is `false`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        disableVisualSelection: false,
+      });
+
+      await selectCells([
+        [0, 0, 0, 0],
+        [1, 0, 1, 0],
+        [1, 1, 1, 1],
+      ]);
+
+      await keyDown('control/meta');
+      await simulateClick(getCell(1, 0));
+      await keyUp('control/meta');
+
+      // dedup removes the duplicate layers, leaving the two unique selections
+      expect(getSelectedRange()).toEqualCellRange([
+        'highlight: 0,0 from: 0,0 to: 0,0',
+        'highlight: 1,1 from: 1,1 to: 1,1',
+      ]);
+    });
+  });
+
+  it('should not scroll the viewport when Ctrl+click deselects a cell layer', async() => {
+    handsontable({
+      data: createSpreadsheetData(50, 10),
+      colHeaders: true,
+      rowHeaders: true,
+      width: 200,
+      height: 200,
+    });
+
+    await selectCells([
+      [0, 0, 0, 0],
+      [40, 0, 40, 0],
+    ]);
+
+    await scrollViewportTo({
+      row: 40,
+      col: 0,
+    });
+
+    const scrollTopBefore = topOverlay().getScrollPosition();
+    const scrollLeftBefore = inlineStartOverlay().getScrollPosition();
+
+    await keyDown('control/meta');
+    await simulateClick(getCell(40, 0));
+
+    expect(topOverlay().getScrollPosition()).toBe(scrollTopBefore);
+    expect(inlineStartOverlay().getScrollPosition()).toBe(scrollLeftBefore);
+    expect(getSelectedRange()).toEqualCellRange([
+      'highlight: 0,0 from: 0,0 to: 0,0',
+    ]);
+  });
 });

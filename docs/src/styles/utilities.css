@@ -1,0 +1,133 @@
+/* -------------------------------------------------------------------------
+ * Micro-interactions & polish
+ * ------------------------------------------------------------------------- */
+::selection {
+  background-color: rgba(78, 148, 248, 0.2);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Omit demo `.placeholder-input` fields: their example CSS uses an accent border on `:focus`;
+   this outline would stack and read as a double ring. */
+:focus-visible:not(.handsontable *, .ht-portal *, .hot-example .placeholder-input, .DocSearch-Input) {
+  outline: 2px solid var(--sl-color-accent);
+  outline-offset: 2px;
+}
+
+.sl-markdown-content img:not(:where(.not-content *)) {
+  border-radius: 8px;
+}
+
+.sl-markdown-content p > img {
+  margin: 2rem 0;
+}
+
+/* Theme-aware images: show light variant in light mode, dark in dark mode */
+:root[data-theme='dark'] .img-light {
+  display: none;
+}
+
+:root[data-theme='light'] .img-dark {
+  display: none;
+}
+
+
+/* Invert light-background images in dark mode (SVGs, diagrams, etc.) */
+:root[data-theme='dark'] .img-invert img {
+  filter: invert(1);
+}
+
+/* ── Global checkbox styling ─────────────────────────────────────────── */
+
+/* .sl-markdown-content is the prose area — no HOT instance lives there, so
+ * an O(1) class check is safe. .hot-example contains the HOT instance itself,
+ * so we must exclude all HOT-internal inputs with :not(.handsontable input)
+ * to avoid overriding the multiSelectEditor's own checkbox appearance. The
+ * cost is low because the subject is a scoped input selector, not * . */
+.sl-markdown-content input[type="checkbox"]:not(.htCheckboxRendererInput),
+.hot-example input[type="checkbox"]:not(.handsontable input) {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0;
+  background: var(--sl-color-gray-6);
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.sl-markdown-content input[type="checkbox"]:checked:not(.htCheckboxRendererInput),
+.hot-example input[type="checkbox"]:checked:not(.handsontable input) {
+  background: var(--sl-color-accent);
+  border-color: var(--sl-color-accent);
+}
+
+.sl-markdown-content input[type="checkbox"]:checked:not(.htCheckboxRendererInput)::after,
+.hot-example input[type="checkbox"]:checked:not(.handsontable input)::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 4px;
+  height: 8px;
+  border: solid #ffffff;
+  border-width: 0 1px 1px 0;
+  transform: rotate(45deg);
+}
+
+/* -------------------------------------------------------------------------
+ * GitHub example CTA button — used in recipe pages to link to the full
+ * runnable example in the handsontable/examples repository.
+ * ------------------------------------------------------------------------- */
+.github-example-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-block: 1rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--sl-color-accent);
+  color: #fff !important;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none !important;
+  border-radius: 4px;
+  transition: filter 0.15s;
+}
+
+.github-example-cta:hover {
+  filter: brightness(0.85);
+}
+
+.github-example-cta svg {
+  flex-shrink: 0;
+}
+
+/* -------------------------------------------------------------------------
+ * Screen-reader-only utility — visually hidden but accessible to AT
+ * ------------------------------------------------------------------------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

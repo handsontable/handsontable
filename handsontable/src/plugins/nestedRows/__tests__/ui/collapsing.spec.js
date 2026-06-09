@@ -154,7 +154,7 @@ describe('NestedRows Collapsing UI', () => {
         plugin.collapsingUI.expandRows([3], true, true);
         await render();
 
-        await sleep(100);
+        await waitForNextAnimationFrames(2);
 
         expect(countRows()).toEqual(11);
       });
@@ -177,7 +177,7 @@ describe('NestedRows Collapsing UI', () => {
         plugin.collapsingUI.expandChildren(3);
         await render();
 
-        await sleep(100);
+        await waitForNextAnimationFrames(2);
 
         expect(countRows()).toEqual(13);
       });
@@ -198,7 +198,7 @@ describe('NestedRows Collapsing UI', () => {
         plugin.collapsingUI.expandChildren(0);
         await render();
 
-        await sleep(100);
+        await waitForNextAnimationFrames(2);
 
         expect(countRows()).toEqual(13);
       });

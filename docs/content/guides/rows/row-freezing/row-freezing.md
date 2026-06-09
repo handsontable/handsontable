@@ -1,5 +1,5 @@
 ---
-id: jgrtvjxx
+type: how-to
 title: Row freezing
 metaTitle: Row freezing - JavaScript Data Grid | Handsontable
 description: Lock (freeze) the position of specified rows, keeping them visible while scrolling to another area of the grid. This feature is sometimes called "pinned rows".
@@ -10,17 +10,14 @@ tags:
   - pinning rows
   - fixedRows
 react:
-  id: y5wx1mrk
   metaTitle: Row freezing - React Data Grid | Handsontable
 angular:
-  id: mskor25j
   metaTitle: Row freezing - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Row freezing - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
-
-# Row freezing
-
 Lock the position of specified rows, keeping them visible when scrolling.
 
 [[toc]]
@@ -68,8 +65,23 @@ The following example specifies two fixed rows with `fixedRowsTop: 2`. Horizonta
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-freezing/vue/example1.vue)
+
+:::
+
+:::
+
 ## Related API reference
 
-- Configuration options:
-  - [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom)
-  - [`fixedRowsTop`](@/api/options.md#fixedrowstop)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [fixedRowsBottom](@/api/options.md#fixedrowsbottom)
+- [fixedRowsTop](@/api/options.md#fixedrowstop)
+
+</div>

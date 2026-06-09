@@ -1378,8 +1378,8 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       // Click on the first visible cell (merged area).
       await simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
-      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(1) td:eq(4)').simulate('mouseover').simulate('mouseup');
+
+      simulateFillHandleDrag(getCell(1, 4));
 
       // TODO Empty strings should be equal to the `null` probably.
       expect(getData()).toEqual([
@@ -1411,8 +1411,8 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       // Click on the first visible cell (merged area).
       await simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
-      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(1) td:eq(4)').simulate('mouseover').simulate('mouseup');
+
+      simulateFillHandleDrag(getCell(1, 4));
 
       // TODO Empty strings should be equal to the `null` probably.
       expect(getData()).toEqual([
@@ -1444,8 +1444,8 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       // Click on the first visible cell (merged area).
       await simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
-      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(1) td:eq(4)').simulate('mouseover').simulate('mouseup');
+
+      simulateFillHandleDrag(getCell(1, 4));
 
       // TODO Empty strings should be equal to the `null` probably.
       expect(getData()).toEqual([
@@ -1477,8 +1477,8 @@ describe('MergeCells cooperation with hidden rows', () => {
 
       // Click on the first visible cell (merged area).
       await simulateClick(spec().$container.find('tr:eq(0) td:eq(0)'));
-      spec().$container.find('.wtBorder.current.corner').simulate('mousedown');
-      spec().$container.find('tbody tr:eq(1) td:eq(4)').simulate('mouseover').simulate('mouseup');
+
+      simulateFillHandleDrag(getCell(1, 4));
 
       // TODO Empty strings should be equal to the `null` probably.
       expect(getData()).toEqual([
@@ -2114,11 +2114,11 @@ describe('MergeCells cooperation with hidden rows', () => {
     });
   });
 
-  it.forTheme('classic')('should display properly high merged cell containing hidden columns', async() => {
+  it('should display properly high merged cell containing hidden columns', async() => {
     handsontable({
       data: createSpreadsheetData(50, 3),
       width: 200,
-      height: 230,
+      height: scaleHeight(245),
       viewportRowRenderingOffset: 0,
       mergeCells: true,
     });
@@ -2208,327 +2208,15 @@ describe('MergeCells cooperation with hidden rows', () => {
     `).toBeMatchToSelectionPattern();
   });
 
-  it.forTheme('main')('should display properly high merged cell containing hidden columns', async() => {
-    handsontable({
-      data: createSpreadsheetData(50, 3),
-      width: 200,
-      height: 245,
-      viewportRowRenderingOffset: 0,
-      mergeCells: true,
-    });
-
-    const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
-
-    rowMapper.setValueAtIndex(0, true);
-    rowMapper.setValueAtIndex(1, true);
-    rowMapper.setValueAtIndex(2, true);
-    rowMapper.setValueAtIndex(5, true);
-    await render();
-
-    getPlugin('mergeCells').merge(0, 0, 20, 0);
-
-    await selectCell(0, 0);
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
-    expect(`
-      | # :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `).toBeMatchToSelectionPattern();
-
-    await scrollViewportTo({ row: 28, col: 0 });
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
-    expect(`
-      | # :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `).toBeMatchToSelectionPattern();
-
-    await scrollViewportTo({ row: 29, col: 0 });
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A31');
-    expect(`
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('horizon')('should display properly high merged cell containing hidden columns', async() => {
-    handsontable({
-      data: createSpreadsheetData(50, 3),
-      width: 200,
-      height: 313,
-      viewportRowRenderingOffset: 0,
-      mergeCells: true,
-    });
-
-    const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
-
-    rowMapper.setValueAtIndex(0, true);
-    rowMapper.setValueAtIndex(1, true);
-    rowMapper.setValueAtIndex(2, true);
-    rowMapper.setValueAtIndex(5, true);
-    await render();
-
-    getPlugin('mergeCells').merge(0, 0, 20, 0);
-
-    await selectCell(0, 0);
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
-    expect(`
-      | # :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `).toBeMatchToSelectionPattern();
-
-    await scrollViewportTo({ row: 28, col: 0 });
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
-    expect(`
-      | # :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `).toBeMatchToSelectionPattern();
-
-    await scrollViewportTo({ row: 29, col: 0 });
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A31');
-    expect(`
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-      |   :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('classic')('should display properly high merged cell containing ' +
-      'hidden columns (virtualized)', async() => {
+  it('should display properly high merged cell containing ' +
+    'hidden columns (virtualized)', async() => {
     handsontable({
       data: createSpreadsheetData(50, 30),
       width: 200,
-      height: 224,
-      viewportRowRenderingOffset: 0,
-      mergeCells: {
-        virtualized: true,
-      },
-    });
-
-    const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
-
-    rowMapper.setValueAtIndex(0, true);
-    rowMapper.setValueAtIndex(1, true);
-    rowMapper.setValueAtIndex(2, true);
-    rowMapper.setValueAtIndex(5, true);
-    await render();
-
-    getPlugin('mergeCells').merge(0, 0, 20, 0);
-
-    await selectCell(0, 0);
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
-    expect(`
-      | # :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-
-    await scrollViewportTo({ row: 27, col: 0 });
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
-    expect(`
-      | # :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-
-    await scrollViewportTo({ row: 28, col: 0 });
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
-    expect(`
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('main')('should display properly high merged cell containing hidden columns (virtualized)', async() => {
-    // TODO: This test case is very bound to this specific table height, might be good to check if that's correct.
-    handsontable({
-      data: createSpreadsheetData(50, 30),
-      width: 200,
-      height: 248,
-      viewportRowRenderingOffset: 0,
-      mergeCells: {
-        virtualized: true,
-      },
-    });
-
-    const rowMapper = rowIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
-
-    rowMapper.setValueAtIndex(0, true);
-    rowMapper.setValueAtIndex(1, true);
-    rowMapper.setValueAtIndex(2, true);
-    rowMapper.setValueAtIndex(5, true);
-    await render();
-
-    getPlugin('mergeCells').merge(0, 0, 20, 0);
-
-    await selectCell(0, 0);
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
-    expect(`
-      | # :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-
-    await scrollViewportTo({ row: 27, col: 0 });
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A1');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A1');
-    expect(`
-      | # :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-
-    await scrollViewportTo({ row: 28, col: 0 });
-
-    expect(getHtCore().find('tr:first td:first').text()).toBe('A22');
-    expect(getHtCore().find('tr:last td:first').text()).toBe('A30');
-    expect(`
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-      |   :   :   :   :   |
-    `).toBeMatchToSelectionPattern();
-  });
-
-  it.forTheme('horizon')('should display properly high merged cell containing ' +
-      'hidden columns (virtualized)', async() => {
-    // TODO: This test case is very bound to this specific table height, might be good to check if that's correct.
-    handsontable({
-      data: createSpreadsheetData(50, 30),
-      width: 200,
-      height: 312,
+      // TODO(I14): Cannot migrate to containerHeightForRows -- 30 columns trigger a horizontal
+      // scrollbar whose OS-dependent height reduces the data area unpredictably; and the test
+      // intent is "viewport smaller than the 21-row merged span" with hidden rows interaction.
+      height: scaleHeightWithScrollbar(248),
       viewportRowRenderingOffset: 0,
       mergeCells: {
         virtualized: true,

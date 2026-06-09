@@ -45,13 +45,13 @@ describe('AutocompleteEditor key/value source', () => {
       });
 
       await setDataAtCell(0, 0, '');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
       await selectCell(0, 0);
 
       const editor = getActiveEditor();
 
       await keyDownUp('enter');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(editor.htEditor.countRows()).toEqual(airportKVChoices.length);
       expect(editor.htEditor.getData()).toEqual(airportKVChoices.map(item => [item.value]));
@@ -68,13 +68,13 @@ describe('AutocompleteEditor key/value source', () => {
         }],
       });
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
       await selectCell(0, 0);
 
       const editor = getActiveEditor();
 
       await keyDownUp('enter');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       editor.TEXTAREA.value = 'lo';
       editor.queryChoices(editor.TEXTAREA.value);
@@ -113,7 +113,7 @@ describe('AutocompleteEditor key/value source', () => {
       const editor = getActiveEditor();
 
       await keyDownUp('enter');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(editor.TEXTAREA.value).toEqual(airportKVChoices[0].value);
     });
@@ -138,7 +138,7 @@ describe('AutocompleteEditor key/value source', () => {
 
       await selectCell(0, 0);
       await keyDownUp('delete');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getDataAtCell(0, 0)).toBeNull();
     });
@@ -160,7 +160,7 @@ describe('AutocompleteEditor key/value source', () => {
 
       await selectCell(0, 0);
       await keyDownUp('backspace');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getDataAtCell(0, 0)).toBeNull();
     });
@@ -181,7 +181,7 @@ describe('AutocompleteEditor key/value source', () => {
       const editor = getActiveEditor();
 
       await keyDownUp('enter');
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       editor.TEXTAREA.value = '';
       editor.queryChoices(editor.TEXTAREA.value);
@@ -191,7 +191,7 @@ describe('AutocompleteEditor key/value source', () => {
 
       await keyDownUp('enter');
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getSourceDataAtCell(0, 0)).toEqual(airportKVChoices[1]);
     });
@@ -219,7 +219,7 @@ describe('AutocompleteEditor key/value source', () => {
       spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseover');
       spec().$container.find('tr:eq(2) td:eq(0)').simulate('mouseup');
 
-      await sleep(10);
+      await waitForNextAnimationFrames(1);
 
       expect(getDataAtCell(0, 0)).toBe(airportKVChoices[0].value);
       expect(getDataAtCell(1, 0)).toBe(airportKVChoices[0].value);

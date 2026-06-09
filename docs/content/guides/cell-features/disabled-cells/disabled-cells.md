@@ -1,5 +1,5 @@
 ---
-id: k41dcpud
+type: how-to
 title: Disabled cells
 metaTitle: Disabled cells - JavaScript Data Grid | Handsontable
 description: Make specified cells read-only to protect them from unwanted changes but still allow navigation and copying of data.
@@ -12,20 +12,19 @@ tags:
   - noneditable
   - locked
 react:
-  id: zhv7fs29
   metaTitle: Disabled cells - React Data Grid | Handsontable
 angular:
-  id: 2epog9e1
   metaTitle: Disabled cells - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Disabled cells - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---
-
-# Disabled cells
-
 Make specified cells read-only to protect them from unwanted changes but still allow navigation and copying of data.
 
 [[toc]]
+
+Disable individual cells, entire columns, or entire rows to prevent user edits. Use `readOnly` on cells, columns, or the whole grid.
 
 ## Overview
 
@@ -38,9 +37,9 @@ Disabling a cell makes the cell read-only or non-editable. Both have similar out
 | Drag-to-fill doesn't work                                                    | Drag-to-fill works                                                         |
 | Can't be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) | Can be changed by [`populateFromArray()`](@/api/core.md#populatefromarray) |
 
-## Read-only grid
+## To disable a cell
 
-You can make the entire grid read-only by setting [`readOnly`](@/api/options.md#readonly) to `true` as a [top-level grid option](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+To make the entire grid read-only, set [`readOnly`](@/api/options.md#readonly) to `true` as a [top-level grid option](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
 
 ::: only-for javascript
 
@@ -75,11 +74,19 @@ You can make the entire grid read-only by setting [`readOnly`](@/api/options.md#
 
 :::
 
-## Read-only columns
+::: only-for vue
 
-In many use cases, you will need to configure a certain column to be read-only. This column will be available for keyboard navigation and copying data (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>). Editing and pasting data will be disabled.
+::: example #exampleReadOnlyGrid :vue3
 
-To make a column read-only, declare it in the [`columns`](@/api/options.md#columns) configuration option. You can also define a special renderer function that will dim the read-only values, providing a visual cue for the user that the cells are read-only.
+@[code](@/content/guides/cell-features/disabled-cells/vue/exampleReadOnlyGrid.vue)
+
+:::
+
+:::
+
+## To disable a column
+
+To make a column read-only, declare it in the [`columns`](@/api/options.md#columns) configuration option. The column remains available for keyboard navigation and copying data (<kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>), but editing and pasting are disabled. You can also define a special renderer function that will dim the read-only values, providing a visual cue for the user that the cells are read-only.
 
 ::: only-for javascript
 
@@ -116,9 +123,19 @@ To make a column read-only, declare it in the [`columns`](@/api/options.md#colum
 
 :::
 
-## Read-only specific cells
+::: only-for vue
 
-This example makes cells that contain the word "Nissan" read-only. It forces all cells to be processed by the [`cells`](@/api/options.md#cells) function which will decide whether a cell's metadata should have the [`readOnly`](@/api/options.md#readonly) property set.
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-features/disabled-cells/vue/example1.vue)
+
+:::
+
+:::
+
+## To disable a row
+
+To make specific cells read-only, use the [`cells`](@/api/options.md#cells) function to set the [`readOnly`](@/api/options.md#readonly) property conditionally. The example below makes cells that contain the word "Nissan" read-only.
 
 ::: only-for javascript
 
@@ -153,13 +170,21 @@ This example makes cells that contain the word "Nissan" read-only. It forces all
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-features/disabled-cells/vue/example2.vue)
+
+:::
+
+:::
+
 Non-editable cells behave like any other cells apart from preventing you from manually changing their values.
 
-## Non-editable columns
+## To disable a column (non-editable)
 
-In many cases, you will need to configure a certain column to be non-editable. Doing this does not change its basic behaviour, apart from editing. This means that you can still use the keyboard navigation <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>, and <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**V**</kbd> functionalities, and drag-to-fill, etc.
-
-To make a column non-editable, declare it in the [`columns`](@/api/options.md#columns) configuration option. You can also define a special renderer function that will dim the `editor` value. This will provide the user with a visual cue that the cell is non-editable.
+To make a column non-editable, declare it in the [`columns`](@/api/options.md#columns) configuration option. The column's basic behavior does not change -- you can still use keyboard navigation, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**C**</kbd>, <kbd>**Ctrl**</kbd>/<kbd>**Cmd**</kbd>+<kbd>**V**</kbd>, and drag-to-fill. You can also define a special renderer function that will dim the `editor` value, providing a visual cue that the cell is non-editable.
 
 ::: only-for javascript
 
@@ -194,9 +219,19 @@ To make a column non-editable, declare it in the [`columns`](@/api/options.md#co
 
 :::
 
-## Non-editable specific cells
+::: only-for vue
 
-The following example shows the table with non-editable cells containing the word "Nissan". This cell property is optional and you can easily set it in the Handsontable configuration.
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-features/disabled-cells/vue/example3.vue)
+
+:::
+
+:::
+
+## To disable a cell
+
+To make specific cells non-editable, set `editor: false` in the cell configuration. The following example shows a table with non-editable cells containing the word "Nissan".
 
 ::: only-for javascript
 
@@ -231,8 +266,27 @@ The following example shows the table with non-editable cells containing the wor
 
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/cell-features/disabled-cells/vue/example4.vue)
+
+:::
+
+:::
+
 ## Related API reference
 
-- Configuration options:
-  - [`readOnly`](@/api/options.md#readonly)
-  - [`readOnlyCellClassName`](@/api/options.md#readonlycellclassname)
+**Configuration options**
+
+<div class="boxes-list">
+
+- [readOnly](@/api/options.md#readonly)
+- [readOnlyCellClassName](@/api/options.md#readonlycellclassname)
+
+</div>
+
+## Result
+
+Read-only cells display with the `htDimmed` CSS class and block paste and drag-to-fill operations. Non-editable cells block manual editing but allow copy-paste and drag-to-fill.

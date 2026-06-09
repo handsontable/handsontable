@@ -1,5 +1,5 @@
 ---
-id: 3xxlonuv
+type: how-to
 title: Column filter
 metaTitle: Column filter - JavaScript Data Grid | Handsontable
 description: Filter your data by values or by a set of conditions.
@@ -19,18 +19,14 @@ tags:
   - advanced filter
   - dropdown
 react:
-  id: vz7ct2bv
   metaTitle: Column filter - React Data Grid | Handsontable
 angular:
-  id: woyi876m
   metaTitle: Column filter - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column filter - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
-menuTag: updated
 ---
-
-# Column filter
-
 Filter data by values or by a set of conditions, using Handsontable's intuitive user interface or
 flexible API.
 
@@ -91,6 +87,16 @@ this behavior, set
 
 :::
 
+::: only-for vue
+
+::: example #exampleFilterBasicDemo :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleFilterBasicDemo.vue)
+
+:::
+
+:::
+
 ## Enable filtering
 
 To enable the filtering interface for all columns, you need to do two things:
@@ -144,6 +150,23 @@ const configurationOptions = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = {
+  // enable filtering
+  filters: true,
+  // enable the column menu
+  dropdownMenu: true,
+};
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 <span style="display: none;"></span>
 
 By default, the column menu presents the filtering interface along with other default items such as
@@ -180,6 +203,16 @@ the configuration.
 
 @[code](@/content/guides/columns/column-filter/angular/example2.ts)
 @[code](@/content/guides/columns/column-filter/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleShowFilterItemsOnly :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleShowFilterItemsOnly.vue)
 
 :::
 
@@ -226,9 +259,19 @@ useful items in the menu such as **Clear column**.
 
 :::
 
+::: only-for vue
+
+::: example #exampleEnableFilterInColumns :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleEnableFilterInColumns.vue)
+
+:::
+
+:::
+
 ### Enable filtering within already filtered results
 
-To apply filters based on the search input, set `searchMode` to `'apply'`. You can then apply the filter by either pressing the `Enter` key while the search input is focused or by clicking the `OK` button.
+To apply filters based on the search input, set `searchMode` to `'apply'`. You can then apply the filter by either pressing the <kbd>**Enter**</kbd> key while the search input is focused or by clicking the `OK` button.
 
 ::: only-for javascript
 
@@ -279,6 +322,25 @@ const configurationOptions = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = {
+  // enable filtering
+  filters: {
+    searchMode: 'apply'
+  },
+  // enable the column menu
+  dropdownMenu: true,
+};
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ::: only-for javascript
 
 ::: example #exampleSearchMode --html 1 --js 2 --ts 3
@@ -308,6 +370,16 @@ const configurationOptions = {
 
 @[code](@/content/guides/columns/column-filter/angular/example12.ts)
 @[code](@/content/guides/columns/column-filter/angular/example12.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleSearchMode :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleSearchMode.vue)
 
 :::
 
@@ -354,6 +426,16 @@ each data type.
 
 :::
 
+::: only-for vue
+
+::: example #exampleFilterDifferentTypes :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleFilterDifferentTypes.vue)
+
+:::
+
+:::
+
 
 The following table contains all available filter operators for each built-in data type.
 
@@ -362,7 +444,9 @@ The following table contains all available filter operators for each built-in da
 | All cell types                                                   | Default operators:<br><br>None<br>Is empty<br>Is not empty<br>Is equal to<br>Is not equal to                                                  |
 | text<br>time<br>checkbox<br>dropdown<br>autocomplete<br>password | Default operators plus:<br><br>Begins with<br>Ends with<br>Contains<br>Does not contain                                                       |
 | numeric                                                          | Default operators plus:<br><br>Greater than<br>Greater than or equal to<br>Less than<br>Less than or equal to<br>Is between<br>Is not between |
-| date                                                             | Default operators plus:<br><br>Before<br>After<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
+| date                                                             | Default operators plus:<br><br>Before (exclusive -- boundary date excluded)<br>Before or equal to (boundary date included)<br>After (exclusive -- boundary date excluded)<br>After or equal to (boundary date included)<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
+| intl-date                                                        | Default operators plus:<br><br>Before (exclusive -- boundary date excluded)<br>Before or equal to (boundary date included)<br>After (exclusive -- boundary date excluded)<br>After or equal to (boundary date included)<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
+| intl-time                                                        | Default operators plus:<br><br>Begins with<br>Ends with<br>Contains<br>Does not contain<br>Before (exclusive -- boundary time excluded)<br>Before or equal to (boundary time included)<br>After (exclusive -- boundary time excluded)<br>After or equal to (boundary time included)<br>Is between                      |
 
 ## Filter data on initialization
 
@@ -415,6 +499,20 @@ with a pre-applied filter to display only items priced less than $200.
 
 :::
 
+::: only-for vue
+
+To do this, use the API provided by the [`Filters`](@/api/filters.md) plugin. For instance, the demo
+below demonstrates how you can start with a pre-applied filter to display only items priced less
+than $200.
+
+::: example #exampleFilterOnInitialization :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleFilterOnInitialization.vue)
+
+:::
+
+:::
+
 
 ## External quick filter
 
@@ -453,6 +551,16 @@ accomplish this, use methods [`filters.addCondition()`](@/api/filters.md#addcond
 
 @[code](@/content/guides/columns/column-filter/angular/example6.ts)
 @[code](@/content/guides/columns/column-filter/angular/example6.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleQuickFilter :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleQuickFilter.vue)
 
 :::
 
@@ -500,6 +608,16 @@ down icon.
 
 :::
 
+::: only-for vue
+
+::: example #exampleCustomFilterButton :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleCustomFilterButton.vue)
+
+:::
+
+:::
+
 The column menu button is always visible, but if you want it to appear only when the mouse cursor is
 over the header, apply additional styling to `th .relative:hover .changeType`.
 
@@ -534,6 +652,16 @@ over the header, apply additional styling to `th .relative:hover .changeType`.
 
 @[code](@/content/guides/columns/column-filter/angular/example8.ts)
 @[code](@/content/guides/columns/column-filter/angular/example8.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleCustomFilterButton2 :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleCustomFilterButton2.vue)
 
 :::
 
@@ -592,6 +720,16 @@ filtering doesn't affect them.
 
 :::
 
+::: only-for vue
+
+::: example #exampleExcludeRowsFromFiltering :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleExcludeRowsFromFiltering.vue)
+
+:::
+
+:::
+
 ## Server-side filtering
 
 You can decide to use Handsontable as an intuitive filtering interface, but perform the actual
@@ -637,6 +775,16 @@ filters is logged to the console.
 
 @[code](@/content/guides/columns/column-filter/angular/example10.ts)
 @[code](@/content/guides/columns/column-filter/angular/example10.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleServerSideFilter :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleServerSideFilter.vue)
 
 :::
 
@@ -705,6 +853,26 @@ this.hotTable.hotInstance!.updateSettings({
 });
 
 this.hotTable.hotInstance!.updateSettings({
+  // disable filtering
+  filters: false,
+});
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotTableRef = useTemplateRef<InstanceType<typeof HotTable>>('hotTableRef');
+
+hotTableRef.value.hotInstance.updateSettings({
+  // enable filtering
+  filters: true,
+  // enable the column menu
+  dropdownMenu: true,
+});
+
+hotTableRef.value.hotInstance.updateSettings({
   // disable filtering
   filters: false,
 });
@@ -812,6 +980,40 @@ this.hotTable.hotInstance!.updateSettings({
 
 :::
 
+::: only-for vue
+
+```js
+const hotTableRef = useTemplateRef<InstanceType<typeof HotTable>>('hotTableRef');
+
+hotTableRef.value.hotInstance.updateSettings({
+  // enable filtering for all columns
+  filters: true,
+  // enable the column menu for all columns
+  // but display only the 'Filter by value' list and the 'OK' and
+  // 'Cancel' buttons
+  dropdownMenu: {
+    items: {
+      filter_by_value: {
+        // hide the 'Filter by value' list from all columns but the
+        // first one
+        hidden() {
+          return this.getSelectedRangeLast().to.col > 0;
+        },
+      },
+      filter_action_bar: {
+        // hide the 'OK' and 'Cancel' buttons from all columns but the
+        // first one
+        hidden() {
+          return this.getSelectedRangeLast().to.col > 0;
+        },
+      },
+    },
+  },
+});
+```
+
+:::
+
 
 ### Filter data programmatically
 
@@ -855,6 +1057,16 @@ Mind that before you apply new filter conditions, you need to clear the previous
 
 :::
 
+::: only-for vue
+
+::: example #exampleFilterThroughAPI1 :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleFilterThroughAPI1.vue)
+
+:::
+
+:::
+
 ## Import the filtering module
 
 You can reduce the size of your bundle by importing and registering only the
@@ -885,12 +1097,16 @@ At the moment, filtering comes with the following limitations:
 - There is no easy way to add custom filter operators to the user interface.
 - The list of values that you can filter by is generated automatically and there's no supported way
   of modifying it.
+- The filter's dropdown menu has a limited capacity per column: at most 2 regular conditions and 1
+  "filter by value" condition. If you add more conditions programmatically via
+  [`addCondition()`](@/api/filters.md), the extra conditions are applied to the data but are not
+  visible or editable in the dropdown menu.
 
 ## Related keyboard shortcuts
 
 | Windows                             | macOS                                  | Action            |  Excel  | Sheets  |
 | ----------------------------------- | -------------------------------------- | ----------------- | :-----: | :-----: |
-| <kbd>**Alt**</kbd>+<kbd>**A**</kbd> | <kbd>**Option**</kbd>+<kbd>**A**</kbd> | Clear all filters | &cross; | &cross; |
+| <kbd>**Alt**</kbd>+<kbd>**A**</kbd> | <kbd>⌥</kbd>+<kbd>**A**</kbd> | Clear all filters | &cross; | &cross; |
 
 ## API reference
 
@@ -898,17 +1114,24 @@ For the list of [options](@/guides/getting-started/configuration-options/configu
 [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to filtering, see the
 following API reference pages:
 
-- [`Filters`](@/api/filters.md)
-- [`DropdownMenu`](@/api/dropdownMenu.md)
+**Plugins**
+
+<div class="boxes-list">
+
+- [Filters](@/api/filters.md)
+- [DropdownMenu](@/api/dropdownMenu.md)
+
+</div>
 
 ## Troubleshooting
 
 Didn't find what you need? Try this:
 
+<div class="boxes-list">
+
 - [View related topics](https://github.com/handsontable/handsontable/labels/Filtering) on GitHub
 - [Report an issue](https://github.com/handsontable/handsontable/issues/new/choose) on GitHub
-- [Ask a question](https://stackoverflow.com/questions/tagged/handsontable) on Stack Overflow
-- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's
-  forum
-- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to
-  get help
+- [Start a discussion](https://forum.handsontable.com/c/getting-help/questions) on Handsontable's forum
+- [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
+
+</div>

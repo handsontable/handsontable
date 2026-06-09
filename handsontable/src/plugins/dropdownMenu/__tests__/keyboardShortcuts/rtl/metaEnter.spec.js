@@ -19,6 +19,7 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
 
     describe('"Control/meta" + "Enter"', () => {
       it('should be possible to open the dropdown menu in the correct position', async() => {
+
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(3, 8),
@@ -31,32 +32,33 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
         await selectCell(-1, 1);
         await keyDownUp(['control/meta', 'enter']);
 
-        const cell = getCell(-1, 1, true);
         const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
         const menuOffset = $dropdownMenu.offset();
         const menuWidth = $dropdownMenu.outerWidth();
-        const cellOffset = $(cell).offset();
         const buttonOffset = getDropdownMenuButtonIconOffset(-1, 1);
         const buttonWidth = getDropdownMenuButtonIconWidth(-1, 1);
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
-          main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
-          horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
-        });
+        // Menu top = icon bottom (doc) + positioner's (below + 1) = +4.
+        // See #getButtonRect and setPositionBelowCursor.
+        const expectedMenuTop = buttonOffset.top + buttonWidth + 4;
+
+        expect(menuOffset.top).toBeAroundValue(expectedMenuTop, 1);
         expect(menuOffset.left).toBeCloseTo(buttonOffset.left + buttonWidth - menuWidth, 0);
         expect(getSelectedRange()).toEqualCellRange(['highlight: -1,1 from: -1,1 to: 2,1']);
       });
 
       it('should be possible to open the dropdown menu on the right position when on the left there is no space left', async() => {
+
         handsontable({
           layoutDirection,
           data: createSpreadsheetData(4, Math.floor(window.innerWidth / 50)),
           colHeaders: true,
           rowHeaders: true,
           navigableHeaders: true,
-          dropdownMenu: true
+          dropdownMenu: true,
+          viewportColumnRenderingOffset: 10,
+          viewportRowRenderingOffset: 10,
         });
 
         const lastColumn = countCols() - 1;
@@ -64,18 +66,17 @@ describe('DropdownMenu keyboard shortcut (RTL mode)', () => {
         await selectCell(-1, lastColumn);
         await keyDownUp(['control/meta', 'enter']);
 
-        const cell = getCell(-1, lastColumn, true);
         const $dropdownMenu = $(document.body).find('.htDropdownMenu:visible');
         const menuOffset = $dropdownMenu.offset();
-        const cellOffset = $(cell).offset();
         const buttonOffset = getDropdownMenuButtonIconOffset(-1, lastColumn);
+        const buttonWidth = getDropdownMenuButtonIconWidth(-1, lastColumn);
 
         expect($dropdownMenu.length).toBe(1);
-        expect(menuOffset.top).forThemes(({ classic, main, horizon }) => {
-          classic.toBeCloseTo(cellOffset.top + cell.clientHeight - 2, 0);
-          main.toBeCloseTo(cellOffset.top + cell.clientHeight - 1, 0);
-          horizon.toBeCloseTo(cellOffset.top + cell.clientHeight - 5, 0);
-        });
+        // Menu top = icon bottom (doc) + positioner's (below + 1) = +4.
+        // See #getButtonRect and setPositionBelowCursor.
+        const expectedMenuTop = buttonOffset.top + buttonWidth + 4;
+
+        expect(menuOffset.top).toBeAroundValue(expectedMenuTop, 1);
         expect(menuOffset.left).toBeCloseTo(buttonOffset.left, 0);
         expect(getSelectedRange()).toEqualCellRange([
           `highlight: -1,${lastColumn} from: -1,${lastColumn} to: 3,${lastColumn}`

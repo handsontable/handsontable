@@ -1,0 +1,239 @@
+---
+/**
+ * Page footer override.
+ *
+ * Renders:
+ *  1. Starlight's built-in edit-link and prev/next pagination (preserved).
+ *  2. A footer bar with social icons, site links, and a live status dot.
+ *  3. A copyright line.
+ *
+ * The status dot color is fetched server-side from the updown.io status page
+ * by extracting the theme-color meta tag. In dev (SSR) mode the color is
+ * resolved on every page load; in production it reflects the build-time state.
+ */
+import Pagination from 'virtual:starlight/components/Pagination';
+
+// ── Server-side status (SSR fallback & build-time snapshot) ──────────────────
+// The updown.io page uses CSS class "status up" / "status down" on check divs.
+// We look for that class to determine operational state, then map to our own
+// palette so the dot matches the sidebar "Updated" badge green (#41a167).
+let statusColor = '#8e99a4'; // gray — unknown / network error
+let statusText = 'status unknown';
+
+try {
+  const res = await fetch('https://status.handsontable.com/');
+  if (res.ok) {
+    const html = await res.text();
+    const isUp = /class="status up"/.test(html);
+    const isDown = /class="status down"/.test(html);
+
+    if (isUp && !isDown) {
+      statusColor = '#41a167'; // green — matches sidebar "Updated" badge
+      statusText = 'all systems operational';
+    } else if (isDown) {
+      statusColor = '#e74c3c'; // red — incident
+      statusText = 'incident detected';
+    }
+  }
+} catch {
+  // Network unavailable — keep gray
+}
+
+const year = new Date().getFullYear();
+---
+
+<!-- Starlight built-ins: prev/next navigation -->
+<div class="sl-footer-built-ins">
+  <Pagination {...Astro.props} />
+</div>
+
+<!-- Custom footer bar -->
+<footer class="hot-footer">
+  <div class="hot-footer__inner">
+
+    <!-- Row 1: 6 nav links -->
+    <nav class="hot-footer__nav" aria-label="Footer navigation">
+      <a href="https://handsontable.com/privacy">Privacy policy</a>
+      <a href="https://handsontable.com/terms-of-use">Terms of use</a>
+      <a href="https://handsontable.com/contact?category=technical_support">Contact</a>
+      <a href="https://handsontable.com/blog/">Blog</a>
+      <a href="https://handsontable.com/pricing">Pricing</a>
+      <a
+        href="https://status.handsontable.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="hot-footer__status-link"
+        aria-label={`Status (opens in new window)`}
+      >
+        <span
+          class="hot-footer__status-dot"
+          style={`background-color: ${statusColor};`}
+          aria-hidden="true"
+        ></span>
+        Status
+        <span class="sr-only">({statusText})</span>
+      </a>
+    </nav>
+
+    <!-- Row 2: 3 social icons + copyright spanning 3 columns -->
+    <div class="hot-footer__bottom">
+      <a
+        href="https://github.com/handsontable/handsontable"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="GitHub (opens in new window)"
+        class="hot-footer__cell"
+      >
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+          <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+        </svg>
+      </a>
+      <a
+        href="https://www.linkedin.com/company/handsontable/"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="LinkedIn (opens in new window)"
+        class="hot-footer__cell"
+      >
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+        </svg>
+      </a>
+      <a
+        href="https://twitter.com/handsontable"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="X (Twitter) (opens in new window)"
+        class="hot-footer__cell"
+      >
+        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.747l7.73-8.835L1.254 2.25H8.08l4.259 5.631 5.905-5.631zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+        </svg>
+      </a>
+      <div class="hot-footer__copyright">
+        <p>© 2012 – {year} Handsoncode</p>
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+<style>
+  /* ── Starlight built-ins wrapper ─────────────────────────────────────────── */
+  .sl-footer-built-ins {
+    margin-block-end: 0;
+    padding-block-end: 0;
+  }
+
+  /* ── Footer — spreadsheet-style, attached to pagination ────────────────── */
+  .hot-footer {
+    border: 0;
+    border-left: 1px solid var(--sl-color-gray-5);
+    margin-block-start: 0;
+    padding: 0;
+    border-radius: 0;
+  }
+
+  .hot-footer__inner {
+    display: contents;
+  }
+
+  /* ── Row 1: 6 nav links ────────────────────────────────────────────────── */
+  .hot-footer__nav {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0;
+  }
+
+  .hot-footer__nav a {
+    align-items: center;
+    border: 0;
+    border-right: 1px solid var(--sl-color-gray-5);
+    border-bottom: 1px solid var(--sl-color-gray-5);
+    border-radius: 0;
+    color: var(--sl-color-gray-2);
+    display: flex;
+    font-size: var(--sl-text-xs);
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    transition: background-color 0.15s, color 0.15s;
+    white-space: nowrap;
+  }
+
+  .hot-footer__nav a:hover {
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+    color: var(--sl-color-white);
+  }
+
+  /* ── Status link & dot ───────────────────────────────────────────────────── */
+  .hot-footer__status-link {
+    gap: 0.35rem;
+  }
+
+  .hot-footer__status-dot {
+    background-color: #8e99a4;
+    border-radius: 50%;
+    display: inline-block;
+    flex-shrink: 0;
+    height: 0.5rem;
+    width: 0.5rem;
+  }
+
+  /* ── Row 2: 3 social icons + copyright (spans 3 cols) ──────────────────── */
+  .hot-footer__bottom {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 0;
+  }
+
+  .hot-footer__cell {
+    align-items: center;
+    border: 0;
+    border-right: 1px solid var(--sl-color-gray-5);
+    border-bottom: 1px solid var(--sl-color-gray-5);
+    border-radius: 0;
+    color: var(--sl-color-gray-2);
+    display: flex;
+    justify-content: center;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+    transition: background-color 0.15s, color 0.15s;
+  }
+
+  .hot-footer__cell:hover {
+    background: var(--sl-color-gray-7, var(--sl-color-gray-6));
+    color: var(--sl-color-white);
+  }
+
+  .hot-footer__copyright {
+    grid-column: span 3;
+    display: flex;
+    align-items: center;
+    border: 0;
+    border-right: 1px solid var(--sl-color-gray-5);
+    border-bottom: 1px solid var(--sl-color-gray-5);
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    padding: 0.75rem 1rem;
+  }
+
+  .hot-footer__copyright p {
+    margin: 0;
+  }
+
+  /* ── Responsive footer on mobile ──────────────────────────────────────── */
+  @media (max-width: 49.99rem) {
+    .hot-footer__nav {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .hot-footer__bottom {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .hot-footer__copyright {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

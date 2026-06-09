@@ -1,5 +1,5 @@
 ---
-id: x2u15qpx
+type: how-to
 title: Theme Customization
 metaTitle: Theme Customization - JavaScript Data Grid | Handsontable
 description: Customize Handsontable's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
@@ -17,18 +17,15 @@ tags:
   - local variables
   - tokens
 react:
-  id: 0m19ic0d
   metaTitle: Theme Customization - React Data Grid | Handsontable
 angular:
-  id: xau2jfok
   metaTitle: Theme Customization - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Theme Customization - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
 menuTag: updated
 ---
-
-# Theme Customization
-
 Customize Handsontable's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
 
 [[toc]]
@@ -125,6 +122,34 @@ myTheme.setDensityType('default');
 
 :::
 
+::: only-for vue
+
+```ts
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+registerAllModules();
+
+const myTheme = registerTheme(mainTheme);
+
+myTheme.setColorScheme('light');
+myTheme.setDensityType('default');
+
+const hotSettings = ref({
+  theme: myTheme,
+  // other options
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ### Configure theme parameters
 
 Use the `params()` method to update theme parameters dynamically:
@@ -176,6 +201,16 @@ The following example demonstrates using the Theme API to register a theme with 
 
 :::
 
+::: only-for vue
+
+::: example #example2 .disable-auto-theme :vue3
+
+@[code](@/content/guides/styling/theme-customization/vue/example2.vue)
+
+:::
+
+:::
+
 ## Option 2: Figma Theme Generator
 
 The Figma Theme Generator allows designers and developers to work together seamlessly by exporting design tokens directly from Figma into a CSS theme file.
@@ -222,6 +257,16 @@ Here's an example for `.ht-theme-main`:
 ::: example #example1 :angular --ts 1 --html 2
 @[code](@/content/guides/styling/theme-customization/angular/example1.ts)
 @[code](@/content/guides/styling/theme-customization/angular/example1.html)
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 .disable-auto-theme :vue3
+
+@[code](@/content/guides/styling/theme-customization/vue/example1.vue)
+
 :::
 
 :::
@@ -740,6 +785,19 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-dialog-content-border-radius` </div><div class="variables-table__item"><span>JS:</span> `dialogContentBorderRadius` </div>              | Border radius of dialog content                     |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-dialog-content-background-color` </div><div class="variables-table__item"><span>JS:</span> `dialogContentBackgroundColor` </div>           | Background color of dialog content                  |
 
+#### Notification Variables
+
+These variables style the [Notification](@/guides/dialog/notification/notification.md) plugin toasts. Shared layout tokens (for example `wrapperBorderRadius`, `tableTransition`, `gapSize`) and icon-button tokens still apply to the close control and spacing.
+
+| Variable | Description                                         |
+| -------- | --------------------------------------------------- |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-notification-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `notificationForegroundColor` </div>   | Text color of notification toasts                   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-notification-background-color` </div><div class="variables-table__item"><span>JS:</span> `notificationBackgroundColor` </div>   | Background color of notification toasts           |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-notification-border-color` </div><div class="variables-table__item"><span>JS:</span> `notificationBorderColor` </div>       | Border color of notification toasts                 |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-notification-success-accent` </div><div class="variables-table__item"><span>JS:</span> `notificationSuccessAccent` </div>       | Accent bar color for success toasts                 |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-notification-warning-accent` </div><div class="variables-table__item"><span>JS:</span> `notificationWarningAccent` </div>       | Accent bar color for warning toasts                 |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-notification-error-accent` </div><div class="variables-table__item"><span>JS:</span> `notificationErrorAccent` </div>         | Accent bar color for error toasts                   |
+
 #### Pagination Variables
 
 | Variable | Description                          |
@@ -748,5 +806,26 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-bar-background-color` </div><div class="variables-table__item"><span>JS:</span> `paginationBarBackgroundColor` </div>   | Background color of pagination bar   |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-bar-horizontal-padding` </div><div class="variables-table__item"><span>JS:</span> `paginationBarHorizontalPadding` </div> | Horizontal padding of pagination bar |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-bar-vertical-padding` </div><div class="variables-table__item"><span>JS:</span> `paginationBarVerticalPadding` </div>   | Vertical padding of pagination bar   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-border-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonBorderColor` </div>   | Border color of pagination navigation button |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonForegroundColor` </div>   | Icon color of pagination navigation button |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-background-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonBackgroundColor` </div>   | Background color of pagination navigation button |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-hover-border-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonHoverBorderColor` </div>   | Border color of pagination navigation button on hover |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-hover-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonHoverForegroundColor` </div>   | Icon color of pagination navigation button on hover |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-hover-background-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonHoverBackgroundColor` </div>   | Background color of pagination navigation button on hover |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-disabled-border-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonDisabledBorderColor` </div>   | Border color of pagination navigation button when disabled |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-disabled-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonDisabledForegroundColor` </div>   | Icon color of pagination navigation button when disabled |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-disabled-background-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonDisabledBackgroundColor` </div>   | Background color of pagination navigation button when disabled |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-focus-border-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonFocusBorderColor` </div>   | Border color of pagination navigation button on focus |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-focus-foreground-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonFocusForegroundColor` </div>   | Icon color of pagination navigation button on focus |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-pagination-button-focus-background-color` </div><div class="variables-table__item"><span>JS:</span> `paginationButtonFocusBackgroundColor` </div>   | Background color of pagination navigation button on focus |
+
+</div>
+
+## Related blog articles
+
+<div class="boxes-list gray">
+
+- [From components to tables: Designing a data table component in your design system](https://handsontable.com/blog/from-components-to-tables-designing-a-data-table-component-in-your-design-system)
+- [Handsontable 14.6.0: Easier styling and enhanced undo-redo](https://handsontable.com/blog/handsontable-14-6-0-easier-styling-and-enhanced-undo-redo)
 
 </div>
