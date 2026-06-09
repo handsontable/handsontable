@@ -1557,8 +1557,13 @@ export default function Core(
       installAccessibilityAnnouncer(instance.rootPortalElement);
       initLicenseNotification(instance);
 
-      // Update the width of the after-grid element after the table is rendered.
-      this.addHook('afterRender', () => {
+      // Keep the after-grid element (license notification, pagination) as wide as the table.
+      let lastAfterGridWidth = -1;
+      const syncAfterGridWidth = () => {
+        if (instance.isDestroyed || !instance.rootAfterGridElement) {
+          return;
+        }
+
         const { view } = instance;
 
         if (view) {
@@ -1569,9 +1574,16 @@ export default function Core(
             width = this.rootWrapperElement.offsetWidth;
           }
 
-          this.rootAfterGridElement.style.width = `${width}px`;
+          // Only write when the value actually changes — avoids a reflow → dimension-refresh
+          // → re-sync feedback loop, and needless layout writes during volatile renders.
+          if (width !== lastAfterGridWidth) {
+            lastAfterGridWidth = width;
+            this.rootAfterGridElement.style.width = `${width}px`;
+          }
         }
-      });
+      };
+
+      this.addHook('afterRefreshDimensions', syncAfterGridWidth);
     }
 
     instance.runHooks('init');

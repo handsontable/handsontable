@@ -41,6 +41,8 @@ describe('Pagination UI', () => {
       pagination: true,
     });
 
+    await waitForNextAnimationFrames(2);
+
     expect(hot().rootAfterGridElement.style.width).toBe('500px');
   });
 
