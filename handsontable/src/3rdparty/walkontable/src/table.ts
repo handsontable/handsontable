@@ -958,8 +958,8 @@ class Table {
     const TR = this.THEAD!.childNodes[level];
     const TH = TR?.childNodes[this.columnFilter!.sourceColumnToVisibleRowHeadedColumn(col)];
 
-    // Use nodeType check instead of instanceof HTMLElement so this works when the grid
-    // root element is in a different JS realm (e.g. React createPortal into an iframe).
+    // Use isHTMLElement() instead of instanceof so this works when the grid root
+    // is in a different JS realm (e.g. React createPortal into an iframe).
     return isHTMLElement(TH) ? TH : undefined;
   }
 
@@ -1060,9 +1060,8 @@ class Table {
       return null;
     }
 
-    // Use isHTMLElement() instead of `instanceof Element/HTMLTableCellElement` because the grid
-    // root may be in a different JS realm (e.g. React createPortal into an iframe), where raw
-    // instanceof checks against the parent realm's constructor always return false.
+    // Use isHTMLElement() / isHTMLTableCellElement() instead of `instanceof Element /
+    // HTMLTableCellElement` — cross-realm safe (iframe DOM vs parent JS realm).
     let row = isHTMLElement(TR) ? index(TR) : 0;
     let col = isHTMLTableCellElement(cellElement) ? cellElement.cellIndex : 0;
 
