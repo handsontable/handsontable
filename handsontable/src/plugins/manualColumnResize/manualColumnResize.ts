@@ -15,7 +15,12 @@ import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { deprecatedWarn } from '../../helpers/console';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
-import { getElementScaleFactor, normalizeVisualDelta } from './utils';
+import {
+  getElementScaleFactor,
+  normalizeVisualDelta,
+  shouldRefreshHandleAfterAutoResize,
+  shouldSkipResizeHandlePositioning,
+} from './utils';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
@@ -298,7 +303,7 @@ export class ManualColumnResize extends BasePlugin {
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH: HTMLTableHeaderCellElement) {
-    if (!TH.parentNode || this.#dblclick > 1) {
+    if (shouldSkipResizeHandlePositioning(TH, this.#dblclick)) {
       return;
     }
 
@@ -518,6 +523,10 @@ export class ManualColumnResize extends BasePlugin {
    * @fires Hooks#afterColumnResize
    */
   afterMouseDownTimeout() {
+    const shouldRefreshHandlePosition = shouldRefreshHandleAfterAutoResize(
+      this.#currentTH,
+      this.#dblclick,
+    );
     const render = () => {
       this.hot.view.adjustElementsSize();
       this.hot.render();
@@ -556,8 +565,12 @@ export class ManualColumnResize extends BasePlugin {
         });
       }
     }
-    this.#dblclick = 0;
     this.#autoresizeTimeout = null;
+    this.#dblclick = 0;
+
+    if (shouldRefreshHandlePosition && this.#currentTH) {
+      this.setupHandlePosition(this.#currentTH);
+    }
   }
 
   /**
