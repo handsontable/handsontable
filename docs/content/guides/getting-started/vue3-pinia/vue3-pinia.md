@@ -1,8 +1,7 @@
 ---
 type: how-to
-id: c0y2nwis
-title: Pinia in Vue 3
-metaTitle: Pinia in Vue 3 - Vue 3 Data Grid | Handsontable
+title: Pinia state management
+metaTitle: Pinia state management - Vue 3 Data Grid | Handsontable
 description: Use the Pinia store to maintain the data and configuration options of your Vue 3 data grid.
 permalink: /vue-pinia
 canonicalUrl: /vue-pinia
