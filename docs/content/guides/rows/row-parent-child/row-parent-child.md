@@ -70,6 +70,16 @@ const configurationOptions: GridSettings = {
 
 :::
 
+::: only-for vue
+
+```ts
+const hotSettings = {
+  nestedRows: true,
+};
+```
+
+:::
+
 Note that using all the functionalities provided by the plugin requires enabling the row headers and the Handsontable context menu. To do this set
 [`rowHeaders`](@/api/options.md#rowheaders) and [`contextMenu`](@/api/options.md#contextmenu) to `true`. The _collapse_ / _expand_ buttons are located in the
 row headers, and the row modification options _add row_, _insert child_, etc., are in the Context Menu.
