@@ -23,3 +23,37 @@
   display: flex;
   flex-direction: column;
 }
+
+strong:has(+ table.debug-table) {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--sl-color-white, #333333);
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0 0.35rem;
+  border-top: 1px solid var(--sl-color-gray-5, #e0e0e0);
+}
+
+table.debug-table {
+  width: 100%;
+  border-collapse: collapse;
+  box-sizing: border-box;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--sl-color-gray-2, #555555);
+  background: transparent;
+}
+
+table.debug-table td {
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid var(--sl-color-gray-5, #e0e0e0);
+  color: var(--sl-color-gray-2, #555555);
+}
+
+table.debug-table td:last-child {
+  font-family: var(--sl-font-mono, ui-monospace, monospace);
+}
+
+table.debug-table td code {
+  font-size: var(--sl-text-xs, 0.75rem);
+}
