@@ -268,7 +268,7 @@ Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`)
 
 ::: example #javascript-spring --code-only
 
-@[code js](@/recipes/data-management/server-side-spring/javascript/example1.js)
+@[code js](@/content/recipes/data-management/server-side-spring/javascript/example1.js)
 
 :::
 
@@ -278,7 +278,7 @@ Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`)
 
 ::: example #typescript-spring --code-only
 
-@[code ts](@/recipes/data-management/server-side-spring/javascript/example1.ts)
+@[code ts](@/content/recipes/data-management/server-side-spring/javascript/example1.ts)
 
 :::
 
