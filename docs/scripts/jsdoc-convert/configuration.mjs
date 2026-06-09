@@ -818,15 +818,6 @@ export default {
         id: 'g3t8p4xc',
       },
     },
-    'PersistentState.md': {
-      id: 'n6t2b5xv',
-      react: {
-        id: 'q7y1d5ne',
-      },
-      angular: {
-        id: 'j4u6h9lf',
-      },
-    },
     'CommentEditor.md': {
       id: 'r2v8z4mg',
       react: {

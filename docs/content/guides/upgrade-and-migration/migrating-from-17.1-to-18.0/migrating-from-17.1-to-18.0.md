@@ -120,11 +120,38 @@ If you use `handsontable/base` throughout your project, replace `'handsontable'`
 
 For a full reference of all exported types and usage examples, see [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md).
 
+## 2. Stop calling deprecated resize-state methods
+
+The following methods previously saved and loaded column or row sizes through the `PersistentState` plugin. Because `PersistentState` was removed in Handsontable 17.0, these methods no longer do anything. They are now formally deprecated and will be removed in the next major release.
+
+| Method | Plugin |
+| --- | --- |
+| `saveManualColumnWidths()` | `ManualColumnResize` |
+| `loadManualColumnWidths()` | `ManualColumnResize` |
+| `saveManualRowHeights()` | `ManualRowResize` |
+| `loadManualRowHeights()` | `ManualRowResize` |
+
+### Who is affected
+
+You are affected if your code calls any of these methods directly on the plugin instance, for example:
+
+```javascript
+hot.getPlugin('manualColumnResize').saveManualColumnWidths();
+hot.getPlugin('manualColumnResize').loadManualColumnWidths();
+hot.getPlugin('manualRowResize').saveManualRowHeights();
+hot.getPlugin('manualRowResize').loadManualRowHeights();
+```
+
+### How to migrate
+
+Remove all calls to these methods. They produce no effect and will throw in a future release. If you need to persist column widths or row heights across page loads, store the `columnWidths` and `rowHeights` values yourself -- for example in `localStorage` -- and pass them back as initial configuration when the grid initializes.
+
 ## Summary of breaking changes
 
 | Change | Who is affected | Action required |
 | --- | --- | --- |
 | `handsontable/common` subpath removed | Any project importing TypeScript types from `handsontable/common` | Replace `from 'handsontable/common'` with `from 'handsontable'` (or `from 'handsontable/base'`) |
+| `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, `loadManualRowHeights()` now no-op | Any project calling these methods | Remove calls; implement custom persistence if needed |
 
 ## Related resources
 
