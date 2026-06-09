@@ -82,9 +82,11 @@ jobs:
               - *hot-shared
               - './handsontable/test/e2e/**'
               - './handsontable/test/scripts/**'
+              - './examples/next/visual-tests/**'
             build-handsontable-es-cjs:
               - *hot-shared
               - 'wrappers/**'
+              - './examples/next/visual-tests/**'
             test-handsontable-unit:
               - *hot-shared
               - './handsontable/test/unit/**'
