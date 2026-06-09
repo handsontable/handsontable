@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12395 — BEFORE (dateFormat TS type accepts string only)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .ts-error { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 11px; font-family: 'Consolas', 'Courier New', monospace; line-height: 1.6; }
+    .ts-error .err { color: #f48771; }
+    .ts-error .path { color: #9cdcfe; }
+    .ts-error .dim { color: #666; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .bad { color: #f48771; font-weight: 700; }
+    pre .ok  { color: #b5cea8; }
+    pre .comment { color: #6a9955; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    .note { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; color: #1565c0; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <h1>PR #12395 - <code>dateFormat</code> TypeScript type for <code>intl-date</code> cell type</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12395-fix.html">PR #12395 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1 TypeScript types).</strong>
+    The <code>dateFormat</code> option in <code>settings.d.ts</code> is typed as <code>string</code> only.
+    The <code>intl-date</code> cell type passes <code>dateFormat</code> directly into
+    <code>new Intl.DateTimeFormat(locale, dateFormat)</code>, so it fully supports
+    <code>Intl.DateTimeFormatOptions</code> objects at runtime — but TypeScript rejects the object
+    form with <strong>TS2322</strong>.
+  </div>
+
+  <div class="note">
+    <strong>Note:</strong> This is a TypeScript types-only fix. Runtime behavior is not affected.
+    The grid below uses plain JavaScript — the object form of <code>dateFormat</code> already works
+    at runtime in v17.0.1. The bug is visible only in TypeScript projects.
+  </div>
+
+  <div class="ts-error">
+<span class="dim">// TypeScript error in v17.0.1 when using Intl.DateTimeFormatOptions object:</span>
+
+<span class="path">src/MyGrid.tsx:12:7</span> <span class="err">error TS2322:</span> Type '<span class="err">{ year: string; month: string; day: string; }</span>' is
+  not assignable to type '<span class="ok">string</span>'.
+
+  12 │   dateFormat: <span class="err">{ year: 'numeric', month: 'long', day: '2-digit' }</span>,
+     │   <span class="err">~~~~~~~~~~</span>
+
+<span class="dim">// The type declaration in settings.d.ts (v17.0.1):</span>
+<span class="bad">dateFormat?: string;</span>  <span class="dim">// ← too narrow; Intl.DateTimeFormatOptions not accepted</span>
+  </div>
+
+  <pre><span class="comment">// BUG — handsontable/types/settings.d.ts (v17.0.1):</span>
+interface GridSettings {
+  ...
+  <span class="bad">dateFormat?: string;</span>
+  <span class="comment">// Intl.DateTimeFormatOptions is NOT in the union → TS error TS2322</span>
+}</pre>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>In a TypeScript project with <code>handsontable@17.0.1</code>, configure an <code>intl-date</code> column with an object <code>dateFormat</code> (see snippet above).</li>
+      <li>BUG: <code>tsc</code> reports TS2322 — the object form is rejected even though it works at runtime.</li>
+      <li>Workaround (v17.0.1): cast with <code>dateFormat: {'{'} ... {'}'} as any</code> or <code>as string</code>.</li>
+      <li>The demo grid below uses <strong>plain JavaScript</strong> — the object form works fine at runtime. ✓</li>
+      <li>Compare with the <a href="demo-pr12395-fix.html">Fix page</a> where the type is widened.</li>
+    </ol>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    // Runtime: Intl.DateTimeFormatOptions object works even in v17.0.1
+    // TypeScript: would fail with TS2322 until this PR is applied
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: [
+        { event: 'Project kickoff',  date: '2024-01-15' },
+        { event: 'Alpha release',    date: '2024-03-22' },
+        { event: 'Beta testing',     date: '2024-06-08' },
+        { event: 'General release',  date: '2024-09-30' },
+      ],
+      columns: [
+        { data: 'event', type: 'text',     title: 'Event'  },
+        {
+          data: 'date',
+          type: 'date',
+          title: 'Date (string dateFormat)',
+          dateFormat: 'YYYY-MM-DD',
+        },
+      ],
+      colHeaders: ['Event', 'Date (string dateFormat — always worked TS-wise)'],
+      rowHeaders: true,
+      width: '100%',
+      height: 220,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>
