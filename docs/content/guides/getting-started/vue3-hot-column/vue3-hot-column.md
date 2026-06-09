@@ -48,6 +48,16 @@ You can declare a custom editor by creating a class that extends `TextEditor` an
 
 :::
 
+## Declare a custom renderer
+
+You can declare a custom renderer by creating a function that matches the [`BaseRenderer`](@/api/renderers.md) signature and passing it to a `<HotColumn/>` via the `renderer` prop. The renderer receives the cell's `td` element and the cell value, and must return the modified `td`.
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/getting-started/vue3-hot-column/vue/example4.vue)
+
+:::
+
 ## Result
 
 Using `HotColumn` child components, each column reads its settings declaratively from Vue props rather than from a flat `columns` array, keeping your template in sync with your column configuration.
