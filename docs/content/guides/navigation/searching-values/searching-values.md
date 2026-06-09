@@ -174,7 +174,7 @@ The example below highlights search results with a pink background and red text.
 
 ::: example #example2 :vue3 --css 1
 
-@[code](@/content/guides/navigation/searching-values/react/example2.css)
+@[code](@/content/guides/navigation/searching-values/vue/example2.css)
 @[code](@/content/guides/navigation/searching-values/vue/example2.vue)
 
 :::

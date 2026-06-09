@@ -360,6 +360,18 @@ ngAfterViewInit() {
 
 :::
 
+:::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance methods](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
+
+:::
+
+::::
+
 ### Access the `HiddenRows` plugin instance
 
 To access the [`HiddenRows`](@/api/hiddenRows.md) plugin instance, use the [`getPlugin()`](@/api/core.md#getplugin) method:
