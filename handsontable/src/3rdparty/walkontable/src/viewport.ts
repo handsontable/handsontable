@@ -391,7 +391,7 @@ class Viewport {
       this.rowHeaderWidth = 0;
 
       for (let i = 0, len = rowHeaders.length; i < len; i++) {
-        this.rowHeaderWidth += (rowHeadersWidthSetting as unknown as number[])[i] || (rowHeadersWidthSetting as number);
+        this.rowHeaderWidth += Array.isArray(rowHeadersWidthSetting) ? rowHeadersWidthSetting[i] : (rowHeadersWidthSetting as number);
       }
     }
 

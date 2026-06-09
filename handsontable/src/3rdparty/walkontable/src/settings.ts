@@ -305,7 +305,7 @@ export default class Settings {
 
     }
 
-    return this.settings[key] as unknown;
+    return this.settings[key];
   }
   /* eslint-enable jsdoc/require-jsdoc */
 

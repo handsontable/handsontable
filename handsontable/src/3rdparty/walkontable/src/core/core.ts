@@ -26,9 +26,9 @@ export default class Walkontable extends CoreAbstract {
     const facadeGetter = this.wtSettings.getSetting('facade', this); // todo rethink. I would like to have no access to facade from the internal scope.
 
     this.wtTable = new MasterTable(
-      this.getTableDao() as unknown as DataAccessObject, facadeGetter, this.domBindings, this.wtSettings);
+      this.getTableDao() as DataAccessObject, facadeGetter, this.domBindings, this.wtSettings);
     this.wtViewport = new Viewport(
-      this.getViewportDao() as unknown as DataAccessObject, this.domBindings,
+      this.getViewportDao() as DataAccessObject, this.domBindings,
       this.wtSettings, this.eventManager, this.wtTable);
     this.selectionManager = new SelectionManager(this.wtSettings.getSetting('selections'));
     this.wtEvent = new Event(
@@ -36,7 +36,7 @@ export default class Walkontable extends CoreAbstract {
     );
     this.wtOverlays = new Overlays(
       // TODO create DAO and remove reference to the Walkontable instance.
-      this as unknown as WalkontableInstance, facadeGetter, this.domBindings,
+      this as WalkontableInstance, facadeGetter, this.domBindings,
       this.wtSettings, this.eventManager, this.wtTable
     );
 
@@ -80,7 +80,7 @@ export default class Walkontable extends CoreAbstract {
    * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} overlayName The overlay name.
    * @returns {Overlay | null}
    */
-  getOverlayByName(overlayName: string) {
+  override getOverlayByName(overlayName: string): Overlay | null {
     if (!CLONE_TYPES.includes(overlayName)) {
       return null;
     }
@@ -96,7 +96,7 @@ export default class Walkontable extends CoreAbstract {
   }
 
   /**
-   * @returns {ViewportDao}
+   * @returns {Record<string, unknown>}
    */
   getViewportDao(): Record<string, unknown> {
     const wot = this;

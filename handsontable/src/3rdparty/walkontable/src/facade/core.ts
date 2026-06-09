@@ -247,7 +247,7 @@ export default class WalkontableFacade {
    * @returns {unknown[]} The array of event listeners.
    */
   get eventListeners(): unknown[] {
-    return this._wot.eventListeners as unknown[];
+    return this._wot.eventListeners;
   }
   /**
    * Sets the list of event listeners.
