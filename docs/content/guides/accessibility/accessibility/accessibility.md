@@ -165,7 +165,7 @@ Check out the interactive demo below to see how various Handsontable settings im
 
 ::: example #example2 :vue3 --css 1
 
-@[code](@/content/guides/accessibility/accessibility/react/example2.css)
+@[code](@/content/guides/accessibility/accessibility/vue/example2.css)
 @[code](@/content/guides/accessibility/accessibility/vue/example2.vue)
 
 :::
