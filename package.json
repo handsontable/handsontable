@@ -98,7 +98,6 @@
       "node-gyp>tar": "^7.5.11",
       "cacache>tar": "^7.5.11",
       "undici": "^6.24.0",
-      "react-star-rating-component>react": "18.3.1",
       "@astrojs/mdx": "^6.0.1"
     },
     "auditConfig": {
