@@ -1570,15 +1570,15 @@ export default function Core(
           let width = view.isHorizontallyScrollableByWindow()
             ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
-          if (width === 0 && this.rootWrapperElement) {
-            width = this.rootWrapperElement.offsetWidth;
+          if (width === 0 && instance.rootWrapperElement) {
+            width = instance.rootWrapperElement.offsetWidth;
           }
 
           // Only write when the value actually changes — avoids a reflow → dimension-refresh
           // → re-sync feedback loop, and needless layout writes during volatile renders.
           if (width !== lastAfterGridWidth) {
             lastAfterGridWidth = width;
-            this.rootAfterGridElement.style.width = `${width}px`;
+            instance.rootAfterGridElement.style.width = `${width}px`;
           }
         }
       };

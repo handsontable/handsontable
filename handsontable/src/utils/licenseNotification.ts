@@ -65,6 +65,9 @@ export function initLicenseNotification(hotInstance: HotInstance): void {
     return;
   }
 
+  // The scope is intentionally never unregistered: the license notification is created once during
+  // init, cannot be disabled, and lives for the whole instance lifetime. It is cleaned up when
+  // `getFocusScopeManager().destroy()` runs on `hot.destroy()`.
   hotInstance.getFocusScopeManager()
     .registerScope(SCOPE_ID, notificationElement, {
       shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
