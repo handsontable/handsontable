@@ -87,7 +87,7 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 
 To use the Handsontable API, you'll need access to the Handsontable instance. Use a template ref on the `HotTable` component and read its `hotInstance` property.
 
-For more information, see the [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md) page.
+For more information, see the [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
 
 :::
 
