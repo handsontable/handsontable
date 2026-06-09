@@ -384,14 +384,18 @@ class Viewport {
    * @returns {number}
    */
   getRowHeaderWidth() {
-    const rowHeadersWidthSetting = this.wtSettings.getSetting('rowHeaderWidth');
+    const rowHeadersWidthSetting = this.wtSettings.getSetting<number | Array<number | null>>('rowHeaderWidth');
     const rowHeaders = this.wtSettings.getSetting<Function[]>('rowHeaders');
 
     if (rowHeadersWidthSetting) {
       this.rowHeaderWidth = 0;
 
       for (let i = 0, len = rowHeaders.length; i < len; i++) {
-        this.rowHeaderWidth += Array.isArray(rowHeadersWidthSetting) ? rowHeadersWidthSetting[i] : (rowHeadersWidthSetting as number);
+        const w = Array.isArray(rowHeadersWidthSetting)
+          ? rowHeadersWidthSetting[i]
+          : (rowHeadersWidthSetting as number);
+
+        this.rowHeaderWidth += w ?? NaN;
       }
     }
 
