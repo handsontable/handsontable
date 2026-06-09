@@ -24,6 +24,10 @@ const test = baseTest.extend<TestParams>({
     PageHolder.getInstance().setPage(page);
     helpers.screenshotsCount = 0;
 
+    const isDarkTheme = helpers.hotTheme.includes('dark');
+
+    await page.emulateMedia({ colorScheme: isDarkTheme ? 'dark' : 'light' });
+
     if (shouldImplicitlyNavigate.has(page)) {
       await use(page);
 
@@ -74,6 +78,10 @@ const test = baseTest.extend<TestParams>({
   },
   async goto({ page }, use, testInfo) {
     shouldImplicitlyNavigate.add(page);
+
+    const isDarkTheme = helpers.hotTheme.includes('dark');
+
+    await page.emulateMedia({ colorScheme: isDarkTheme ? 'dark' : 'light' });
 
     await use(async(url) => {
       await page.goto(url);
