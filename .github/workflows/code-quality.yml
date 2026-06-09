@@ -62,6 +62,8 @@ jobs:
   fossa-scan:
       name: FOSSA Scan
       runs-on: ubuntu-latest
+      env:
+        FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
       steps:
         - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         - uses: fossas/fossa-action@ff70fe9fe17cbd2040648f1c45e8ec4e4884dcf3 # https://github.com/fossas/fossa-action/releases/tag/v1.9.0
