@@ -273,6 +273,33 @@ const configurationOptions: GridSettings = {
 
 :::
 
+::: only-for vue
+
+```ts
+const hotSettings = {
+  columnSorting: {
+    // enable click-to-sort on column headers (default: true)
+    headerAction: true,
+    // place empty cells at the end (default: false)
+    sortEmptyCells: false,
+    // show sort-order arrow in the column header (default: true)
+    indicator: true,
+    // sort column 1 descending at initialization
+    initialConfig: {
+      column: 1,
+      sortOrder: 'desc',
+    },
+    compareFunctionFactory(sortOrder, columnMeta) {
+      return function(value, nextValue) {
+        // return -1, 0, or 1
+      };
+    },
+  },
+};
+```
+
+:::
+
 You can also override `columnSorting` options per column, using the `columns` configuration:
 
 ::: only-for javascript
@@ -333,6 +360,26 @@ const configurationOptions: GridSettings = {
 
 ```html
 <hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```ts
+const hotSettings = {
+  columnSorting: true,
+  columns: [
+    {
+      columnSorting: {
+        // no sort icon for the first column
+        indicator: false,
+        // disable click-to-sort for the first column
+        headerAction: false,
+      },
+    },
+  ],
+};
 ```
 
 :::
@@ -451,6 +498,21 @@ const configurationOptions: GridSettings = {
 
 :::
 
+::: only-for vue
+
+```ts
+const hotSettings = {
+  columnSorting: {
+    initialConfig: {
+      column: 0,
+      sortOrder: 'asc',
+    },
+  },
+};
+```
+
+:::
+
 To set an initial sort order across multiple columns, use the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin with an array value for `initialConfig`. See [Set an initial multi-column sort order](#set-an-initial-multi-column-sort-order).
 
 ## Add a custom comparator
@@ -524,6 +586,24 @@ const configurationOptions: GridSettings = {
 
 :::
 
+::: only-for vue
+
+```ts
+const hotSettings = {
+  columnSorting: {
+    compareFunctionFactory: function(sortOrder, columnMeta) {
+      return function(value, nextValue) {
+        if (value < nextValue) return -1;
+        if (value > nextValue) return 1;
+        return 0;
+      };
+    },
+  },
+};
+```
+
+:::
+
 ## Use sorting hooks
 
 Run code before or after sorting using the following [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md):
@@ -583,6 +663,22 @@ const configurationOptions: GridSettings = {
 
 ```html
 <hot-table [settings]="configurationOptions"></hot-table>
+```
+
+:::
+
+::: only-for vue
+
+```ts
+const hotSettings = {
+  beforeColumnSort(currentSortConfig, destinationSortConfigs) {
+    // add your code here
+    return false; // return false to block front-end sorting
+  },
+  afterColumnSort(currentSortConfig, sortedSortConfigs) {
+    // add your code here
+  },
+};
 ```
 
 :::
