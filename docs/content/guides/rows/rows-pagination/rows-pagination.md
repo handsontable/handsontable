@@ -349,6 +349,27 @@ const configurationOptions = {
 ```
 :::
 
+::: only-for vue
+
+```ts
+const hotSettings = {
+  beforePageChange() {
+    // add your code here
+    return false; // to block page change
+  },
+  afterPageChange() {
+    // add your code here
+  },
+  beforePageSizeChange() {
+    // add your code here
+    return false; // to block page size change
+  },
+  // ...
+};
+```
+
+:::
+
 ## Localize pagination
 
 Translate default pagination labels - such as "Page size:", "Page" and more - using the global translations mechanism. The pagination introduces the following keys to the language dictionary that you can use to translate the pagination UI:

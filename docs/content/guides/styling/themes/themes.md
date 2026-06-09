@@ -92,8 +92,8 @@ If you want to use the `main` theme without any modifications, you don't need to
 
 ::: example #exampleTheme .disable-auto-theme :vue3 --css 1
 
+@[code](@/content/guides/styling/themes/vue/exampleTheme.css)
 @[code collapse={14-116,221-233}](@/content/guides/styling/themes/vue/exampleTheme.vue)
-@[code](@/content/guides/styling/themes/react/exampleTheme.css)
 
 :::
 

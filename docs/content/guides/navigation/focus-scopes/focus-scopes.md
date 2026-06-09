@@ -139,7 +139,7 @@ to the bottom text input and how the internal state changes.
 
 ::: example #example1 :vue3 --css 1
 
-@[code](@/content/guides/navigation/focus-scopes/react/example1.css)
+@[code](@/content/guides/navigation/focus-scopes/vue/example1.css)
 @[code collapse={17-118,145-147,220-222}](@/content/guides/navigation/focus-scopes/vue/example1.vue)
 
 :::
@@ -199,7 +199,7 @@ appears after the inline scope elements in the DOM.
 
 ::: example #example2 :vue3 --css 1
 
-@[code](@/content/guides/navigation/focus-scopes/react/example2.css)
+@[code](@/content/guides/navigation/focus-scopes/vue/example2.css)
 @[code collapse={17-118,145-147,228-236}](@/content/guides/navigation/focus-scopes/vue/example2.vue)
 
 :::

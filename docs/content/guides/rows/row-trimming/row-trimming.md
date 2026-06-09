@@ -59,6 +59,15 @@ trimRows: true,
 
 :::
 
+::: only-for vue
+
+```ts
+// enable the `TrimRows` plugin
+trimRows: true,
+```
+
+:::
+
 To both enable row trimming and trim selected rows at Handsontable's initialization, set the [`trimRows`](@/api/options.md#trimrows) option to an array of physical row indexes.
 
 ::: only-for javascript
@@ -85,6 +94,16 @@ trimRows: [5, 10, 15],
 :::
 
 ::: only-for angular
+
+```ts
+// enable the `TrimRows` plugin
+// at Handsontable's initialization, trim rows 5, 10, and 15
+trimRows: [5, 10, 15],
+```
+
+:::
+
+::: only-for vue
 
 ```ts
 // enable the `TrimRows` plugin
@@ -176,6 +195,18 @@ ngAfterViewInit() {
   // ...
 }
 ```
+
+:::
+
+::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance methods](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
+
+:::
 
 :::
 
