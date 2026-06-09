@@ -2,12 +2,9 @@ import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { deepClone } from '../../helpers/object';
-import { warn } from '../../helpers/console';
-import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { registerActions } from './actions';
 
 const SHORTCUTS_GROUP = 'undoRedo';
-const deprecationWarns = new Set<unknown>();
 
 export interface UndoRedoAction {
   actionType: string;
@@ -333,84 +330,6 @@ export class UndoRedo extends BasePlugin {
       this.clear();
     }
   };
-
-  /**
-   * Expose the plugin API to the Core. It is for backward compatibility and it should be removed in the future.
-   */
-  #exposeAPIToCore() {
-    const deprecatedWarn = (methodName: unknown) => {
-      if (!deprecationWarns.has(methodName)) {
-        warn(toSingleLine`The "${methodName}" method is deprecated and it will be removed\x20
-          from the Core API in the future. Please use the method from the UndoRedo plugin\x20
-          (e.g. \`hotInstance.getPlugin("undoRedo").${methodName}()\`).`);
-
-        deprecationWarns.add(methodName);
-      }
-    };
-
-    /**
-     * @alias undo
-     * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#undo-2) plugin.
-     * @memberof! Core#
-     */
-    this.hot.undo = () => {
-      deprecatedWarn('undo');
-      this.undo();
-    };
-    /**
-     * @alias redo
-     * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#redo) plugin.
-     * @memberof! Core#
-     */
-    this.hot.redo = () => {
-      deprecatedWarn('redo');
-      this.redo();
-    };
-    /**
-     * @alias isUndoAvailable
-     * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#isundoavailable) plugin.
-     * @memberof! Core#
-     * @returns {boolean}
-     */
-    this.hot.isUndoAvailable = () => {
-      deprecatedWarn('isUndoAvailable');
-
-      return this.isUndoAvailable();
-    };
-    /**
-     * @alias isRedoAvailable
-     * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#isredoavailable) plugin.
-     * @memberof! Core#
-     * @returns {boolean}
-     */
-    this.hot.isRedoAvailable = () => {
-      deprecatedWarn('isRedoAvailable');
-
-      return this.isRedoAvailable();
-    };
-    /**
-     * @alias clearUndo
-     * @deprecated This method is deprecated and it will be removed from the Core API in the future. Please use the method from the [`UndoRedo`](@/api/undoRedo.md#clear) plugin.
-     * @memberof! Core#
-     */
-    this.hot.clearUndo = () => {
-      deprecatedWarn('clear');
-      this.clear();
-    };
-    this.hot.undoRedo = this;
-  }
-
-  /**
-   * Removes the plugin API from the Core. It is for backward compatibility and it should be removed in the future.
-   */
-  #removeAPIFromCore() {
-    delete this.hot.undo;
-    delete this.hot.redo;
-    delete this.hot.isUndoAvailable;
-    delete this.hot.isRedoAvailable;
-    delete this.hot.clearUndo;
-    delete this.hot.undoRedo;
-  }
 
   /**
    * Destroys the plugin instance.

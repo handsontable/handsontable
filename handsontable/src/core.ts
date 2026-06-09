@@ -5693,14 +5693,6 @@ export default function Core(
    * @returns {string}
    */
   this.getPluginName = function(plugin: Record<string, unknown>) {
-    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
-    if (plugin === instance.undoRedo) {
-      const undoRedoWithCtor = instance.undoRedo as
-        Record<string, unknown> & { constructor: Record<string, unknown> };
-
-      return undoRedoWithCtor.constructor.PLUGIN_KEY as string;
-    }
-
     return pluginsRegistry.getId(plugin) as string;
   };
 

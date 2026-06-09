@@ -218,14 +218,6 @@ export interface HotInstance {
     to?: { row: number | null; col: number | null } | CellCoords
   ): CellRange;
 
-  // Undo/Redo
-  undo?(): void;
-  redo?(): void;
-  clearUndo?(): void;
-  isUndoAvailable?(): boolean;
-  isRedoAvailable?(): boolean;
-  undoRedo?: object;
-
   // Plugins
   getPlugin<K extends keyof PluginTypeMap>(pluginName: K): PluginTypeMap[K];
   getPlugin(pluginName: string): BasePlugin;
