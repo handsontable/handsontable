@@ -3675,6 +3675,9 @@ export const REMOVED_HOOKS = new Map([
   ['skipLengthCache', '8.0.0'],
   ['hiddenColumn', '8.0.0'],
   ['hiddenRow', '8.0.0'],
+  ['persistentStateSave', '17.0.0'],
+  ['persistentStateLoad', '17.0.0'],
+  ['persistentStateReset', '17.0.0'],
 ]);
 
 /**

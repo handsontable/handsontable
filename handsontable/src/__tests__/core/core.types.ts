@@ -82,7 +82,6 @@ Handsontable.plugins;
 (Handsontable.plugins as Record<string, unknown>).NestedHeaders;
 (Handsontable.plugins as Record<string, unknown>).NestedRows;
 (Handsontable.plugins as Record<string, unknown>).Pagination;
-(Handsontable.plugins as Record<string, unknown>).PersistentState;
 (Handsontable.plugins as Record<string, unknown>).Search;
 (Handsontable.plugins as Record<string, unknown>).TouchScroll;
 (Handsontable.plugins as Record<string, unknown>).TrimRows;

@@ -322,6 +322,32 @@ You can use any sanitization library or write your own sanitizer function. The `
 If you render untrusted user HTML without a `sanitizer`, your users are exposed to XSS attacks. Always sanitize untrusted HTML content.
 :::
 
+## 5. Stop calling deprecated resize-state methods
+
+The following methods previously saved and loaded column or row sizes through the `PersistentState` plugin. Because `PersistentState` was removed in Handsontable 17.0, these methods no longer do anything. They are now formally deprecated and will be removed in the next major release.
+
+| Method | Plugin |
+| --- | --- |
+| `saveManualColumnWidths()` | `ManualColumnResize` |
+| `loadManualColumnWidths()` | `ManualColumnResize` |
+| `saveManualRowHeights()` | `ManualRowResize` |
+| `loadManualRowHeights()` | `ManualRowResize` |
+
+### Who is affected
+
+You are affected if your code calls any of these methods directly on the plugin instance, for example:
+
+```javascript
+hot.getPlugin('manualColumnResize').saveManualColumnWidths();
+hot.getPlugin('manualColumnResize').loadManualColumnWidths();
+hot.getPlugin('manualRowResize').saveManualRowHeights();
+hot.getPlugin('manualRowResize').loadManualRowHeights();
+```
+
+### How to migrate
+
+Remove all calls to these methods. They produce no effect and will throw in a future release. If you need to persist column widths or row heights across page loads, store the `columnWidths` and `rowHeights` values yourself -- for example in `localStorage` -- and pass them back as initial configuration when the grid initializes.
+
 ## Summary of breaking changes
 
 | Change | Who is affected | Action required |
@@ -331,6 +357,7 @@ If you render untrusted user HTML without a `sanitizer`, your users are exposed 
 | Moment.js and Pikaday removed; ISO 8601 required for date/time cells | Projects using non-ISO date strings or string `dateFormat`/`timeFormat` | Convert source data to ISO 8601; use `intl-date`/`intl-time` with object `dateFormat`/`timeFormat` |
 | `correctFormat` and `datePickerConfig` options removed | Projects using `correctFormat` or `datePickerConfig` on `date`/`time` cells | Remove both options; use `valueParser`/`valueSetter` for value correction |
 | DOMPurify removed; no built-in HTML sanitization | Projects rendering untrusted user HTML | Add a `sanitizer` function (for example, using DOMPurify) to the Handsontable configuration |
+| `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, `loadManualRowHeights()` now no-op | Any project calling these methods | Remove calls; implement custom persistence if needed |
 
 ## Related resources
 

@@ -13,6 +13,7 @@ import {
 } from '../../helpers/dom/element';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
+import { deprecatedWarn } from '../../helpers/console';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { getElementScaleFactor, normalizeVisualDelta } from './utils';
 
@@ -20,7 +21,6 @@ import { getElementScaleFactor, normalizeVisualDelta } from './utils';
 
 export const PLUGIN_KEY = 'manualColumnResize';
 export const PLUGIN_PRIORITY = 130;
-const PERSISTENT_STATE_KEY = PLUGIN_KEY;
 
 /**
  * @plugin ManualColumnResize
@@ -214,26 +214,28 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op and will be removed in a
+   * future major release.
    *
-   * @fires Hooks#persistentStateSave
+   * @deprecated
    */
   saveManualColumnWidths(): void {
-    this.hot.runHooks('persistentStateSave', PERSISTENT_STATE_KEY, this.#columnWidthsMap.getValues());
+    deprecatedWarn('`saveManualColumnWidths()` is deprecated and will be removed in a future major release. ' +
+      'The PersistentState plugin has been removed.');
   }
 
   /**
-   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op and will be removed in a
+   * future major release.
    *
+   * @deprecated
    * @returns {Array}
-   * @fires Hooks#persistentStateLoad
    */
   loadManualColumnWidths(): Array<number | null> {
-    const storedState: Record<string, unknown> = {};
+    deprecatedWarn('`loadManualColumnWidths()` is deprecated and will be removed in a future major release. ' +
+      'The PersistentState plugin has been removed.');
 
-    this.hot.runHooks('persistentStateLoad', PERSISTENT_STATE_KEY, storedState);
-
-    return storedState.value as Array<number | null>;
+    return [];
   }
 
   /**
