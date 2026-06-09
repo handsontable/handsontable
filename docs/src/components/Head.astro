@@ -22,7 +22,7 @@ import Default from '@astrojs/starlight/components/Head.astro';
 <script is:inline>
   // Patch StarlightTOC to silently handle browsers that don't support :has() (Chrome < 105,
   // e.g. Chrome Mobile 75 on Android 6.0). The TOC uses :has() inside querySelectorAll which
-  // throws a SyntaxError in those browsers. Catching it degrades gracefully: the TOC renders
+  // throws a DOMException named "SyntaxError" in those browsers. Catching it degrades gracefully: the TOC renders
   // but doesn't highlight the active section while scrolling.
   customElements.whenDefined('starlight-toc').then(function () {
     var StarlightTOC = customElements.get('starlight-toc');
@@ -32,7 +32,7 @@ import Default from '@astrojs/starlight/components/Head.astro';
       try {
         _originalInit.call(this);
       } catch (e) {
-        if (e instanceof SyntaxError) return;
+        if (e instanceof DOMException && e.name === 'SyntaxError') return;
         throw e;
       }
     };
