@@ -744,4 +744,46 @@ describe('shortcutManager', () => {
       expect(gridContext.scope).toBe('global');
     });
   });
+
+  // Regression: https://github.com/handsontable/handsontable/issues/12707
+  describe('modifier-key tracking across multiple instances and documents', () => {
+    it('should report Ctrl as pressed for a second instance hosted in an iframe document', async() => {
+      const $iframe = $('<iframe width="500px" height="300px"/>').appendTo(spec().$container);
+      const iframeDoc = $iframe[0].contentDocument;
+
+      iframeDoc.open('text/html', 'replace');
+      iframeDoc.write(`
+        <!doctype html>
+        <head>
+          ${getE2eThemeStylesheetLinkTagsHtml()}
+        </head>
+      `);
+      iframeDoc.close();
+
+      handsontable();
+
+      const $iframeContainer = $('<div/>').appendTo(iframeDoc.body);
+
+      $iframeContainer.handsontable({});
+
+      const iframeShortcutManager = $iframeContainer.handsontable('getInstance').getShortcutManager();
+
+      expect(iframeShortcutManager.isCtrlPressed()).toBeFalse();
+
+      iframeDoc.documentElement.dispatchEvent(
+        new iframeDoc.defaultView.KeyboardEvent('keydown', { key: 'Control', bubbles: true })
+      );
+
+      expect(iframeShortcutManager.isCtrlPressed()).toBeTrue();
+
+      iframeDoc.documentElement.dispatchEvent(
+        new iframeDoc.defaultView.KeyboardEvent('keyup', { key: 'Control', bubbles: true })
+      );
+
+      expect(iframeShortcutManager.isCtrlPressed()).toBeFalse();
+
+      $iframeContainer.handsontable('destroy');
+      $iframe.remove();
+    });
+  });
 });

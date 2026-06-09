@@ -33,6 +33,109 @@ describe('Shortcut Manager', () => {
     });
   });
 
+  describe('modifier-key tracking across multiple instances and documents', () => {
+    it('should track Ctrl keydown for the first manager (regression baseline)', () => {
+      const manager = createTestManager();
+
+      document.documentElement.dispatchEvent(
+        new KeyboardEvent('keydown', { key: 'Control', bubbles: true })
+      );
+
+      expect(manager.isCtrlPressed()).toBe(true);
+
+      manager.releasePressedKeys();
+      manager.destroy();
+    });
+
+    it('should track Ctrl keydown for a second manager that lives in a different document (e.g. an iframe)',
+      () => {
+        // Manager A on the main document.
+        const managerA = createTestManager();
+
+        // Manager B on a separate document, simulating a Handsontable instance hosted in an iframe.
+        const otherDocument = document.implementation.createHTMLDocument('iframe');
+        // `parent: {}` keeps `getParentWindow()` happy without simulating a real frame chain
+        // (it returns `null` because `frameElement` is not an `HTMLIFrameElement`).
+        const otherWindow = { document: otherDocument, parent: {} } as unknown as Window;
+        const managerB = createTestManager({ ownerWindow: otherWindow });
+
+        // Ctrl is pressed inside the "iframe" document only.
+        otherDocument.documentElement.dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'Control', bubbles: true })
+        );
+
+        // Both managers share the module-level observer, so both must report Ctrl pressed.
+        // Before the fix, only the FIRST manager attached the modifier-key listeners on its
+        // own document chain, so this event was never observed and `isCtrlPressed()` was
+        // always `false` for the second manager.
+        expect(managerB.isCtrlPressed()).toBe(true);
+        expect(managerA.isCtrlPressed()).toBe(true);
+
+        otherDocument.documentElement.dispatchEvent(
+          new KeyboardEvent('keyup', { key: 'Control', bubbles: true })
+        );
+
+        expect(managerB.isCtrlPressed()).toBe(false);
+        expect(managerA.isCtrlPressed()).toBe(false);
+
+        managerA.destroy();
+        managerB.destroy();
+      });
+
+    it('should keep tracking Ctrl on the main document after a manager from a different document is destroyed',
+      () => {
+        const managerA = createTestManager();
+
+        const otherDocument = document.implementation.createHTMLDocument('iframe');
+        const otherWindow = { document: otherDocument, parent: {} } as unknown as Window;
+        const managerB = createTestManager({ ownerWindow: otherWindow });
+
+        managerB.destroy();
+
+        document.documentElement.dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'Control', bubbles: true })
+        );
+
+        expect(managerA.isCtrlPressed()).toBe(true);
+
+        managerA.releasePressedKeys();
+        managerA.destroy();
+      });
+
+    it('should detach modifier-key listeners from a document once its last manager is destroyed',
+      () => {
+        const otherDocument = document.implementation.createHTMLDocument('iframe');
+        const otherWindow = { document: otherDocument, parent: {} } as unknown as Window;
+
+        // Two managers attached to the same auxiliary document — refcount must hit 0 only after both go away.
+        const managerB1 = createTestManager({ ownerWindow: otherWindow });
+        const managerB2 = createTestManager({ ownerWindow: otherWindow });
+
+        managerB1.destroy();
+
+        otherDocument.documentElement.dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'Control', bubbles: true })
+        );
+
+        expect(managerB2.isCtrlPressed()).toBe(true);
+
+        managerB2.releasePressedKeys();
+        managerB2.destroy();
+
+        // After the last manager for this document is gone, dispatching a Ctrl keydown there
+        // must not affect any future manager's pressed-keys state.
+        otherDocument.documentElement.dispatchEvent(
+          new KeyboardEvent('keydown', { key: 'Control', bubbles: true })
+        );
+
+        const managerC = createTestManager();
+
+        expect(managerC.isCtrlPressed()).toBe(false);
+
+        managerC.destroy();
+      });
+  });
+
   describe('global scope shortcuts when the table shortcut pipeline is blocked', () => {
     it('should run shortcuts on global contexts when handleEvent returns false', () => {
       const spy = jasmine.createSpy('globalF6');

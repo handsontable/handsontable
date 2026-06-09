@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed `ShortcutManager.isCtrlPressed()` returning `false` for Handsontable instances created after the first one in a different document (e.g. another iframe), which caused `Ctrl/Cmd+click` additive selection to silently break in those instances.",
+  "type": "fixed",
+  "issueOrPR": 12707,
+  "breaking": false,
+  "framework": "none"
+}

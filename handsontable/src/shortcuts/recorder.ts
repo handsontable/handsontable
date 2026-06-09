@@ -6,8 +6,87 @@ import { isMacOS } from '../helpers/browser';
 import { isFunction } from '../helpers/function';
 
 const modifierKeysObserver = createKeysObserver();
-const modKeyListeners: Array<{event: 'keydown' | 'keyup'; listener: (event: KeyboardEvent) => void}> = [];
-let instanceCounter = 0;
+/**
+ * Tracks how many active recorder instances reference each document.
+ *
+ * The modifier-key listeners (`keydown` / `keyup`) feeding `modifierKeysObserver`
+ * must be attached exactly once per document, regardless of how many
+ * Handsontable instances live in that document, and regardless of which
+ * instance was created first. Using `Map<Document, number>` lets every new
+ * `useRecorder` call ensure its document has the listeners installed
+ * (cross-iframe safe), and lets the last unmounting instance remove them.
+ */
+const modKeyDocumentRefCounts = new Map<Document, number>();
+
+/**
+ * Module-level `keydown` listener that updates `modifierKeysObserver`.
+ * Hoisted out of `useRecorder` so the same function reference can be safely
+ * added/removed once per document.
+ *
+ * @param {KeyboardEvent} event The event object.
+ */
+function onkeydownForModKeys(event: KeyboardEvent) {
+  if (typeof event.key === 'string') {
+    const pressedKey = normalizeEventKey(event);
+
+    if (isModifierKey(pressedKey)) {
+      modifierKeysObserver.press(pressedKey);
+    }
+  }
+}
+
+/**
+ * Module-level `keyup` listener that updates `modifierKeysObserver`.
+ * Hoisted out of `useRecorder` so the same function reference can be safely
+ * added/removed once per document.
+ *
+ * @param {KeyboardEvent} event The event object.
+ */
+function onkeyupForModKeys(event: KeyboardEvent) {
+  if (typeof event.key === 'string') {
+    const pressedKey = normalizeEventKey(event);
+
+    if (isModifierKey(pressedKey)) {
+      modifierKeysObserver.release(pressedKey);
+    }
+  }
+}
+
+/**
+ * Ensures the modifier-key listeners are attached to the given document
+ * exactly once across every recorder instance using that document.
+ *
+ * @param {Document} doc The document to install the listeners on.
+ */
+function attachModKeyListeners(doc: Document) {
+  const refCount = modKeyDocumentRefCounts.get(doc) ?? 0;
+
+  if (refCount === 0) {
+    doc.documentElement.addEventListener('keydown', onkeydownForModKeys);
+    doc.documentElement.addEventListener('keyup', onkeyupForModKeys);
+  }
+
+  modKeyDocumentRefCounts.set(doc, refCount + 1);
+}
+
+/**
+ * Removes the modifier-key listeners from the given document when the last
+ * recorder instance using that document unmounts.
+ *
+ * @param {Document} doc The document to clean up.
+ */
+function detachModKeyListeners(doc: Document) {
+  const refCount = modKeyDocumentRefCounts.get(doc) ?? 0;
+
+  if (refCount <= 1) {
+    doc.documentElement.removeEventListener('keydown', onkeydownForModKeys);
+    doc.documentElement.removeEventListener('keyup', onkeyupForModKeys);
+    modKeyDocumentRefCounts.delete(doc);
+
+  } else {
+    modKeyDocumentRefCounts.set(doc, refCount - 1);
+  }
+}
 
 /**
  * A key recorder, used for tracking key events.
@@ -110,38 +189,6 @@ export function useRecorder(
   };
 
   /**
-   * `KeyboardEvent`'s callback function for observing the pressed state of the mod keys.
-   *
-   * @private
-   * @param {KeyboardEvent} event The event object
-   */
-  const onkeydownForModKeys = (event: KeyboardEvent) => {
-    if (typeof event.key === 'string') {
-      const pressedKey = normalizeEventKey(event);
-
-      if (isModifierKey(pressedKey)) {
-        modifierKeysObserver.press(pressedKey);
-      }
-    }
-  };
-
-  /**
-   * `KeyboardEvent`'s callback function for observing the pressed state of the mod keys.
-   *
-   * @private
-   * @param {KeyboardEvent} event The event object
-   */
-  const onkeyupForModKeys = (event: KeyboardEvent) => {
-    if (typeof event.key === 'string') {
-      const pressedKey = normalizeEventKey(event);
-
-      if (isModifierKey(pressedKey)) {
-        modifierKeysObserver.release(pressedKey);
-      }
-    }
-  };
-
-  /**
    * `FocusEvent`'s callback function
    *
    * @private
@@ -156,16 +203,8 @@ export function useRecorder(
   const mount = () => {
     let eventTarget: Window | null = ownerWindow;
 
-    instanceCounter += 1;
-
     while (eventTarget) {
-      if (instanceCounter === 1) {
-        eventTarget.document.documentElement.addEventListener('keydown', onkeydownForModKeys);
-        modKeyListeners.push({ event: 'keydown', listener: onkeydownForModKeys });
-
-        eventTarget.document.documentElement.addEventListener('keyup', onkeyupForModKeys);
-        modKeyListeners.push({ event: 'keyup', listener: onkeyupForModKeys });
-      }
+      attachModKeyListeners(eventTarget.document);
 
       eventTarget.document.documentElement.addEventListener('keydown', onkeydown);
       eventTarget.document.documentElement.addEventListener('blur', onblur);
@@ -180,22 +219,8 @@ export function useRecorder(
   const unmount = () => {
     let eventTarget: Window | null = ownerWindow;
 
-    instanceCounter -= 1;
-
     while (eventTarget) {
-      if (instanceCounter === 0) {
-        for (let i = 0; i < modKeyListeners.length; i++) {
-          const { event: eventType, listener } = modKeyListeners[i];
-
-          if (eventType === 'keydown') {
-            eventTarget.document.documentElement.removeEventListener('keydown', listener);
-          } else {
-            eventTarget.document.documentElement.removeEventListener('keyup', listener);
-          }
-        }
-
-        modKeyListeners.length = 0;
-      }
+      detachModKeyListeners(eventTarget.document);
 
       eventTarget.document.documentElement.removeEventListener('keydown', onkeydown);
       eventTarget.document.documentElement.removeEventListener('blur', onblur);
