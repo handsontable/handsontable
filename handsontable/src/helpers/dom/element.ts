@@ -71,7 +71,9 @@ export function eventTargetEl<T extends HTMLElement = HTMLElement>(event: Event)
 export function getFrameElement(frame: Window): HTMLIFrameElement | null {
   const { frameElement } = frame;
 
-  return Object.getPrototypeOf(frame.parent) &&
+  // `frame.parent` can be null when the iframe has been detached from the DOM. Guard before
+  // passing to Object.getPrototypeOf(), which throws on null/undefined.
+  return frame.parent && Object.getPrototypeOf(frame.parent) &&
     frameElement instanceof HTMLIFrameElement ? frameElement : null;
 }
 
