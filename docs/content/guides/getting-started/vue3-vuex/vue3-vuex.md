@@ -1,6 +1,5 @@
 ---
 type: tutorial
-id: m4v9kp2z
 title: Vuex state management
 metaTitle: Vuex state management - Vue Data Grid | Handsontable
 description: Use the Vuex state management pattern to maintain the data and configuration options of your Vue 3 data grid.

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: g7i1xok4
 title: Formula calculation
 metaTitle: Formula calculation - JavaScript Data Grid | Handsontable
 description: Perform calculations on cells' values, using a powerful calculation engine that handles nearly 400 functions, custom functions, named expressions, and more.
@@ -17,13 +16,10 @@ tags:
   - function
   - hyperformula
 react:
-  id: 05z3cjez
   metaTitle: Formula calculation - React Data Grid | Handsontable
 angular:
-  id: hqzll0fz
   metaTitle: Formula calculation - Angular Data Grid | Handsontable
 vue:
-  id: 57yg2rca
   metaTitle: Formula calculation - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Formulas

@@ -1,19 +1,15 @@
 ---
 type: how-to
-id: p8sggqin
 title: Checkbox cell type
 metaTitle: Checkbox cell type - JavaScript Data Grid | Handsontable
 description: Create interactive elements that can be checked or unchecked, by using the checkbox cell type.
 permalink: /checkbox-cell-type
 canonicalUrl: /checkbox-cell-type
 react:
-  id: tfr1gisf
   metaTitle: Checkbox cell type - React Data Grid | Handsontable
 angular:
-  id: 4cn9mp6z
   metaTitle: Checkbox cell type - Angular Data Grid | Handsontable
 vue:
-  id: 2a1x3jgu
   metaTitle: Checkbox cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types

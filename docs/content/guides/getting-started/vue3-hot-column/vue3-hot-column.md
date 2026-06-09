@@ -1,7 +1,6 @@
 ---
 type: how-to
-id: h7xv9mwq
-title: Using the HotColumn component in Vue 3
+title: HotColumn component
 metaTitle: HotColumn component - JavaScript Data Grid | Handsontable
 description: Configure the Vue 3 data grid's columns, using the props of the "HotColumn" component. Define a custom cell editor or a custom cell renderer.
 permalink: /vue-hot-column

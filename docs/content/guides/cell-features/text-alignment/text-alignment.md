@@ -1,19 +1,15 @@
 ---
 type: how-to
-id: chduupye
 title: Text alignment
 metaTitle: Text alignment - JavaScript Data Grid | Handsontable
 description: "Align values within cells: horizontally (to the right, left, center, or by justifying them), and vertically (to the top, middle, or bottom of the cell)."
 permalink: /text-alignment
 canonicalUrl: /text-alignment
 react:
-  id: 959g5cbf
   metaTitle: Text alignment - React Data Grid | Handsontable
 angular:
-  id: h6sbjq1g
   metaTitle: Text alignment - Angular Data Grid | Handsontable
 vue:
-  id: bqfjy5q5
   metaTitle: Text alignment - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features

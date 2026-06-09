@@ -1,6 +1,5 @@
 ---
 type: reference
-id: t9kx3mwp
 title: TypeScript types
 metaTitle: TypeScript types - JavaScript Data Grid | Handsontable
 description: A complete reference of the TypeScript types and interfaces that Handsontable exports, with usage examples for settings, hook callbacks, custom renderers, and editors.
@@ -12,13 +11,10 @@ tags:
   - interfaces
   - type safety
 react:
-  id: r2bq7nyc
   metaTitle: TypeScript types - React Data Grid | Handsontable
 angular:
-  id: a5vj6hsz
   metaTitle: TypeScript types - Angular Data Grid | Handsontable
 vue:
-  id: v8j6vpbp
   metaTitle: TypeScript types - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building

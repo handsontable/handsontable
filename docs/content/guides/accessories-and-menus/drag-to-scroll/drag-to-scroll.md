@@ -1,6 +1,5 @@
 ---
 type: reference
-id: k3mw9bpx
 title: Drag to scroll
 metaTitle: Drag to scroll - JavaScript Data Grid | Handsontable
 description: Scroll the grid automatically by dragging a cell selection or fill handle outside the visible viewport.
@@ -13,13 +12,10 @@ tags:
   - selection scroll
   - fill handle scroll
 react:
-  id: j8nt5qra
   metaTitle: Drag to scroll - React Data Grid | Handsontable
 angular:
-  id: h2vz7cfs
   metaTitle: Drag to scroll - Angular Data Grid | Handsontable
 vue:
-  id: axdawq9z
   metaTitle: Drag to scroll - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus

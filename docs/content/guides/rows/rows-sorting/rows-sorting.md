@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 6o0zftmc
 title: Rows sorting
 metaTitle: Rows sorting - JavaScript Data Grid | Handsontable
 description: Sort rows alphabetically or numerically, in ascending, descending or a custom order, by one or multiple columns.
@@ -26,13 +25,10 @@ tags:
   - sort rows
   - sort columns
 react:
-  id: h4jfevxj
   metaTitle: Rows sorting - React Data Grid | Handsontable
 angular:
-  id: kzkj37v5
   metaTitle: Rows sorting - Angular Data Grid | Handsontable
 vue:
-  id: d43129gx
   metaTitle: Rows sorting - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
