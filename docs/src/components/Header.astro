@@ -267,18 +267,16 @@ const frameworks = [
   import { createFocusTrap } from '../scripts/a11y-utils';
 
   let cleanupPrevious: (() => void) | null = null;
-  let initializedMenuButton: HTMLButtonElement | null = null;
 
   function initMobileNav() {
     const currentMenuButton = document.querySelector('.mobile-menu-btn') as HTMLButtonElement | null;
 
-    if (!currentMenuButton || initializedMenuButton === currentMenuButton) {
+    if (!currentMenuButton) {
       return;
     }
 
     // Clean up previous invocation (view transitions)
     cleanupPrevious?.();
-    initializedMenuButton = currentMenuButton;
     const controller = new AbortController();
     const { signal } = controller;
     // --- Move fixed-position panels to <body> so they escape the header's
@@ -549,24 +547,17 @@ const frameworks = [
       collapseObserver.disconnect();
       overlayTrapCleanup?.();
       tocTrapCleanup?.();
-      if (initializedMenuButton === currentMenuButton) {
-        initializedMenuButton = null;
-      }
     };
   }
 
-  // Run after the initial load and Astro view transitions.
-  // Use astro:page-load (not astro:after-swap) so that
-  // Preact islands are fully hydrated before initMobileNav() moves DOM nodes
-  // out of their server-rendered positions via document.body.appendChild().
-  // Moving nodes on astro:after-swap races with Preact hydration and causes
-  // "NotFoundError: insertBefore" failures (Sentry HANDSONTABLE-DOCS-1BT).
+  // Use astro:page-load (not astro:after-swap) so that Preact islands are fully
+  // hydrated before initMobileNav() moves DOM nodes out of their server-rendered
+  // positions via document.body.appendChild(). Moving nodes on astro:after-swap
+  // races with Preact hydration and causes "NotFoundError: insertBefore" failures
+  // (Sentry HANDSONTABLE-DOCS-1BT). astro:page-load fires on both the initial
+  // load and every subsequent view-transition navigation, so no separate
+  // DOMContentLoaded / direct call is needed.
   document.addEventListener('astro:page-load', initMobileNav);
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMobileNav, { once: true });
-  } else {
-    initMobileNav();
-  }
 </script>
 
 <style>

@@ -9,28 +9,31 @@ const mobileNavScriptBlock = headerSource.slice(
   headerSource.indexOf('let cleanupPrevious: (() => void) | null = null;'),
   headerSource.indexOf('</script>', headerSource.indexOf('let cleanupPrevious: (() => void) | null = null;'))
 );
-const mobileNavLifecycleBlock = headerSource.slice(headerSource.indexOf('// Run after the initial load'));
+const mobileNavLifecycleBlock = headerSource.slice(headerSource.indexOf('// Use astro:page-load'));
 
-test('mobile nav initializes from astro:page-load and full page load fallback', () => {
+test('mobile nav initializes only via astro:page-load, with no separate direct call', () => {
   assert.match(
     mobileNavLifecycleBlock,
     /document\.addEventListener\('astro:page-load', initMobileNav\);/
   );
-  assert.match(
+  // No separate DOMContentLoaded fallback or direct initMobileNav() call — astro:page-load
+  // fires on the initial load too, so a separate bootstrap path is not needed.
+  assert.doesNotMatch(
     mobileNavLifecycleBlock,
-    /document\.addEventListener\('DOMContentLoaded', initMobileNav, \{ once: true \}\);/
+    /document\.addEventListener\('DOMContentLoaded'/
   );
-  assert.match(mobileNavLifecycleBlock, /initMobileNav\(\);/);
+  assert.doesNotMatch(
+    mobileNavLifecycleBlock,
+    /^\s*initMobileNav\(\);/m,
+    'initMobileNav() must not be called directly (only via the astro:page-load listener)'
+  );
 });
 
-test('mobile nav skips duplicate initialization for the same menu button', () => {
-  assert.match(
+test('mobile nav does not use an initializedMenuButton guard that prevents re-init on navigation', () => {
+  assert.doesNotMatch(
     mobileNavScriptBlock,
-    /let initializedMenuButton: HTMLButtonElement \| null = null;/
-  );
-  assert.match(
-    mobileNavScriptBlock,
-    /initializedMenuButton === currentMenuButton/
+    /initializedMenuButton === currentMenuButton/,
+    'The initializedMenuButton guard must not exist — it prevents re-init when the header is persisted across navigations'
   );
 });
 
