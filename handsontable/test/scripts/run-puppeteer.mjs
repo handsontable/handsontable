@@ -226,6 +226,26 @@ await page.exposeFunction('getEventListeners', async(selector) => {
   });
 });
 
+// Overrides the device scale factor (emulates a non-100% browser zoom / fractional DPR) for the
+// current page via CDP. Pass 1 (or a falsy value) to clear the override. Used by tests that must
+// reproduce sub-pixel rendering bugs which only manifest when devicePixelRatio is not an integer.
+await page.exposeFunction('setDeviceScaleFactor', async(scaleFactor) => {
+  if (!scaleFactor || scaleFactor === 1) {
+    await cdpClient.send('Emulation.clearDeviceMetricsOverride');
+
+    return;
+  }
+
+  const { width, height } = page.viewport() ?? { width: 1280, height: 720 };
+
+  await cdpClient.send('Emulation.setDeviceMetricsOverride', {
+    width,
+    height,
+    deviceScaleFactor: scaleFactor,
+    mobile: false,
+  });
+});
+
 page.on('pageerror', async(msg) => {
   /* eslint-disable no-console */
   console.log(msg);

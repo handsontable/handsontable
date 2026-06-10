@@ -185,7 +185,15 @@ export class InlineStartOverlay extends Overlay {
       let height = wtViewport.getWorkspaceHeight();
 
       if (wtViewport.hasHorizontalScroll()) {
-        height -= getScrollbarWidth(rootDocument);
+        // Match the master holder's actual inner height instead of subtracting a rounded scrollbar
+        // width. `clientHeight` natively accounts for the horizontal scrollbar at the browser's
+        // sub-pixel accuracy; under fractional browser zoom a rounded `getScrollbarWidth()` diverges
+        // from the real scrollbar size, giving the frozen overlay a different vertical scroll range
+        // than the master. That mismatch clamps the overlay's scrollTop ~1px short at the bottom and
+        // shifts the frozen rows out of alignment (#12632).
+        const masterClientHeight = wtTable.holder.clientHeight;
+
+        height = masterClientHeight > 0 ? masterClientHeight : height - getScrollbarWidth(rootDocument);
       }
 
       height = Math.min(height, wtTable.wtRootElement.scrollHeight);
