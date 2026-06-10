@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a TypeScript duplicate identifier error for `isHTMLElement` in the Walkontable table module.",
+  "type": "fixed",
+  "issueOrPR": 12740,
+  "breaking": false,
+  "framework": "none"
+}
