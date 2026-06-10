@@ -180,6 +180,14 @@ export class TableRenderer {
    */
   declare stylesHandler: StylesHandler;
 
+  /**
+   * Creates a new TableRenderer instance.
+   *
+   * @param {HTMLTableElement} rootNode The HTML table element to use as the root node for rendering.
+   * @param {object} options The configuration options.
+   * @param {Function} [options.cellRenderer] The cell renderer function.
+   * @param {StylesHandler} [options.stylesHandler] The styles handler instance.
+   */
   constructor(
     rootNode: HTMLTableElement,
     { cellRenderer, stylesHandler }: { cellRenderer?: Function; stylesHandler?: StylesHandler } = {}) {

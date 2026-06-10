@@ -16,32 +16,7 @@ module.exports.create = function create(envArgs) {
     c.output.filename = PACKAGE_FILENAME + '.js';
     c.devtool = 'source-map';
     // Exclude all external dependencies from 'base' bundle (handsontable.js)
-    c.externals = {
-      numbro: {
-        root: 'numbro',
-        commonjs2: 'numbro',
-        commonjs: 'numbro',
-        amd: 'numbro',
-      },
-      moment: {
-        root: 'moment',
-        commonjs2: 'moment',
-        commonjs: 'moment',
-        amd: 'moment',
-      },
-      '@handsontable/pikaday': {
-        root: 'Pikaday',
-        commonjs2: '@handsontable/pikaday',
-        commonjs: '@handsontable/pikaday',
-        amd: '@handsontable/pikaday',
-      },
-      dompurify: {
-        root: 'DOMPurify',
-        commonjs2: 'dompurify',
-        commonjs: 'dompurify',
-        amd: 'dompurify',
-      },
-    };
+    c.externals = {};
   });
 
   configFull.forEach(function (c) {
@@ -49,48 +24,6 @@ module.exports.create = function create(envArgs) {
     c.entry = ['hyperformula', ...c.entry];
     // Export these dependencies to the window object. So they can be custom configured
     // before the Handsontable initializiation.
-    c.module.rules.unshift({
-      test: /numbro/,
-      use: [
-        {
-          loader: path.resolve(__dirname, 'loader/exports-to-window-loader.js'),
-          options: {
-            globals: {
-              numbro: 'numbro',
-            },
-            defaultExport: true
-          }
-        }
-      ]
-    });
-    c.module.rules.unshift({
-      test: /moment/,
-      use: [
-        {
-          loader: path.resolve(__dirname, 'loader/exports-to-window-loader.js'),
-          options: {
-            globals: {
-              moment: 'moment',
-            }
-          }
-        }
-      ]
-    });
-    c.module.rules.unshift({
-      test: /dompurify/,
-      use: [
-        {
-          loader: path.resolve(__dirname, 'loader/exports-to-window-loader-esm.js'),
-          options: {
-            globals: {
-              moduleToExport: 'DOMPurify',
-              moduleName: 'dompurify',
-              defaultExport: true,
-            }
-          }
-        }
-      ]
-    });
     c.module.rules.unshift({
       test: /hyperformula/,
       use: [

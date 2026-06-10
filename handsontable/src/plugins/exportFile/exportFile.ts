@@ -16,67 +16,117 @@ export const PLUGIN_KEY = 'exportFile';
  * Options for a single worksheet in a multi-sheet export (XLSX only).
  */
 export interface SheetOptions {
-  /** The Handsontable instance to export data from. */
+  /**
+   * The Handsontable instance to export data from.
+   */
   instance: HotInstance;
-  /** Worksheet name. Defaults to `'Sheet'` when omitted. */
+  /**
+   * Worksheet name. Defaults to `'Sheet'` when omitted.
+   */
   name?: string;
-  /** Include column headers. */
+  /**
+   * Include column headers.
+   */
   colHeaders?: boolean;
   /**
    * @deprecated Use `colHeaders` instead.
    */
   columnHeaders?: boolean;
-  /** Include row headers. */
+  /**
+   * Include row headers.
+   */
   rowHeaders?: boolean;
-  /** Controls how hidden columns are exported. */
+  /**
+   * Controls how hidden columns are exported.
+   */
   exportHiddenColumns?: boolean | 'hide';
-  /** Controls how hidden rows are exported. */
+  /**
+   * Controls how hidden rows are exported.
+   */
   exportHiddenRows?: boolean | 'hide';
-  /** Export cell formulas instead of computed values (XLSX only). */
+  /**
+   * Export cell formulas instead of computed values (XLSX only).
+   */
   exportFormulas?: boolean;
-  /** Cell range to export: `[startRow, startColumn, endRow, endColumn]`. */
+  /**
+   * Cell range to export: `[startRow, startColumn, endRow, endColumn]`.
+   */
   range?: number[];
 }
 
-/** Border style descriptor used in {@link HeaderStyle}. */
+/**
+ * Border style descriptor used in {@link HeaderStyle}.
+ */
 export interface HeaderStyleBorder {
-  /** Border line style (e.g. `'thin'`, `'medium'`, `'thick'`). */
+  /**
+   * Border line style (e.g. `'thin'`, `'medium'`, `'thick'`).
+   */
   style?: string;
-  /** Border color in hex (e.g. `'#000000'`). */
+  /**
+   * Border color in hex (e.g. `'#000000'`).
+   */
   argb?: string;
 }
 
-/** Style applied to header cells in XLSX exports. */
+/**
+ * Style applied to header cells in XLSX exports.
+ */
 export interface HeaderStyle {
-  /** Background fill color in hex (e.g. `'#f2f2f2'`). */
+  /**
+   * Background fill color in hex (e.g. `'#f2f2f2'`).
+   */
   backgroundColor?: string;
-  /** Font color in hex. */
+  /**
+   * Font color in hex.
+   */
   fontColor?: string;
-  /** Border descriptor applied to all sides. */
+  /**
+   * Border descriptor applied to all sides.
+   */
   border?: HeaderStyleBorder;
 }
 
-/** A single conditional formatting rule within a {@link ConditionalFormattingDescriptor}. */
+/**
+ * A single conditional formatting rule within a {@link ConditionalFormattingDescriptor}.
+ */
 export interface ConditionalFormattingRule {
-  /** Rule type (e.g. `'cellIs'`, `'colorScale'`, `'dataBar'`, `'iconSet'`). */
+  /**
+   * Rule type (e.g. `'cellIs'`, `'colorScale'`, `'dataBar'`, `'iconSet'`).
+   */
   type: string;
-  /** Comparison operator for `cellIs` rules (e.g. `'greaterThan'`, `'between'`). */
+  /**
+   * Comparison operator for `cellIs` rules (e.g. `'greaterThan'`, `'between'`).
+   */
   operator?: string;
-  /** Formula values used by the rule. */
+  /**
+   * Formula values used by the rule.
+   */
   formulae?: Array<string | number>;
-  /** ExcelJS format descriptor (color, icon set, etc.) applied when the rule matches. */
+  /**
+   * ExcelJS format descriptor (color, icon set, etc.) applied when the rule matches.
+   */
   format?: Record<string, unknown>;
-  /** Priority of the rule (lower number = higher priority). */
+  /**
+   * Priority of the rule (lower number = higher priority).
+   */
   priority?: number;
 }
 
-/** Descriptor for a conditional formatting region in an XLSX export. */
+/**
+ * Descriptor for a conditional formatting region in an XLSX export.
+ */
 export interface ConditionalFormattingDescriptor {
-  /** Row range `[startRow, endRow]` (visual indexes). Defaults to the full exported range. */
+  /**
+   * Row range `[startRow, endRow]` (visual indexes). Defaults to the full exported range.
+   */
   rows?: [number, number];
-  /** Column range `[startCol, endCol]` (visual indexes). Defaults to the full exported range. */
+  /**
+   * Column range `[startCol, endCol]` (visual indexes). Defaults to the full exported range.
+   */
   cols?: [number, number];
-  /** Conditional formatting rules to apply to the region. */
+  /**
+   * Conditional formatting rules to apply to the region.
+   */
   rules: ConditionalFormattingRule[];
 }
 
@@ -86,57 +136,101 @@ export interface ConditionalFormattingDescriptor {
  * {@link ExportFile#downloadFile}, and {@link ExportFile#downloadFileAsync}.
  */
 export interface ExportOptions {
-  /** MIME type (e.g. `'text/csv'`). Default depends on format. */
+  /**
+   * MIME type (e.g. `'text/csv'`). Default depends on format.
+   */
   mimeType?: string;
-  /** File extension (e.g. `'csv'`). Default depends on format. */
+  /**
+   * File extension (e.g. `'csv'`). Default depends on format.
+   */
   fileExtension?: string;
-  /** File name. Placeholders `[YYYY]`, `[MM]`, `[DD]` are replaced with the current date. */
+  /**
+   * File name. Placeholders `[YYYY]`, `[MM]`, `[DD]` are replaced with the current date.
+   */
   filename?: string;
-  /** Character encoding. Defaults to `'utf-8'`. */
+  /**
+   * Character encoding. Defaults to `'utf-8'`.
+   */
   encoding?: string;
-  /** Include BOM signature. Default depends on format. */
+  /**
+   * Include BOM signature. Default depends on format.
+   */
   bom?: boolean;
-  /** Column delimiter (CSV only). Defaults to `','`. */
+  /**
+   * Column delimiter (CSV only). Defaults to `','`.
+   */
   columnDelimiter?: string;
-  /** Row delimiter (CSV only). Defaults to `'\r\n'`. */
+  /**
+   * Row delimiter (CSV only). Defaults to `'\r\n'`.
+   */
   rowDelimiter?: string;
-  /** Include column headers. */
+  /**
+   * Include column headers.
+   */
   colHeaders?: boolean;
   /**
    * @deprecated Use `colHeaders` instead.
    */
   columnHeaders?: boolean;
-  /** Include row headers. */
+  /**
+   * Include row headers.
+   */
   rowHeaders?: boolean;
-  /** Controls how hidden columns are exported. */
+  /**
+   * Controls how hidden columns are exported.
+   */
   exportHiddenColumns?: boolean | 'hide';
-  /** Controls how hidden rows are exported. */
+  /**
+   * Controls how hidden rows are exported.
+   */
   exportHiddenRows?: boolean | 'hide';
-  /** Export cell formulas instead of computed values (XLSX only). */
+  /**
+   * Export cell formulas instead of computed values (XLSX only).
+   */
   exportFormulas?: boolean;
-  /** Cell range: `[startRow, startColumn, endRow, endColumn]`. */
+  /**
+   * Cell range: `[startRow, startColumn, endRow, endColumn]`.
+   */
   range?: number[];
-  /** Sanitize cell values before export (CSV only). */
+  /**
+   * Sanitize cell values before export (CSV only).
+   */
   sanitizeValues?: boolean | RegExp | ((val: string) => string);
-  /** Apply DEFLATE compression. `true` uses level 6; a number 1–9 sets a specific level (XLSX only). */
+  /**
+   * Apply DEFLATE compression. `true` uses level 6; a number 1–9 sets a specific level (XLSX only).
+   */
   compression?: boolean | number;
-  /** Conditional formatting rules to apply (XLSX only). */
+  /**
+   * Conditional formatting rules to apply (XLSX only).
+   */
   conditionalFormatting?: ConditionalFormattingDescriptor[];
-  /** Multi-sheet configuration. Each entry defines one worksheet (XLSX only). */
+  /**
+   * Multi-sheet configuration. Each entry defines one worksheet (XLSX only).
+   */
   sheets?: SheetOptions[];
-  /** Style for header cells (XLSX only). Pass `null` to disable. */
+  /**
+   * Style for header cells (XLSX only). Pass `null` to disable.
+   */
   headerStyle?: HeaderStyle | null;
-  /** ExcelJS engine instance. Overrides the engine from plugin settings for this call. */
+  /**
+   * ExcelJS engine instance. Overrides the engine from plugin settings for this call.
+   */
   engine?: object;
 }
 
-/** Plugin-level settings for the `exportFile` option in {@link GridSettings}. */
+/**
+ * Plugin-level settings for the `exportFile` option in {@link GridSettings}.
+ */
 export interface ExportFileSettings {
-  /** Map of export engines keyed by format name (e.g. `{ xlsx: ExcelJS }`). */
+  /**
+   * Map of export engines keyed by format name (e.g. `{ xlsx: ExcelJS }`).
+   */
   engines?: Record<string, object>;
 }
 
-/** @deprecated Use {@link ExportFileSettings} instead. */
+/**
+ * @deprecated Use {@link ExportFileSettings} instead.
+ */
 export type Settings = ExportFileSettings;
 export const PLUGIN_PRIORITY = 240;
 
@@ -280,14 +374,23 @@ function getPluginSettings(settings: unknown): ExportFileSettings | undefined {
  * :::
  */
 export class ExportFile extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
+   */
   static get SETTING_KEYS() {
     return [PLUGIN_KEY];
   }

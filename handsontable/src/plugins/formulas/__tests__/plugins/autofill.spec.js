@@ -218,13 +218,13 @@ describe('Formulas', () => {
         },
         columns: [{}, {}, {
           type: 'date',
-          dateFormat: 'MM/DD/YYYY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         }, {
           type: 'date',
-          dateFormat: 'DD/MM/YYYY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         }, {
           type: 'date',
-          dateFormat: 'MM/DD/YYYY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         }],
         fillHandle: true,
         width: 400,

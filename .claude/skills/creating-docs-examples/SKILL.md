@@ -180,12 +180,37 @@ const hotSettings = ref<GridSettings>({
 - The root `<div>` in `<template>` must use an `id` that matches the example container in the guide (`#example1` in `::: example #example1 :vue3`).
 - Prefer a single `:settings` object for grid options. Use individual props only when the guide text highlights a specific prop.
 - Put Handsontable hooks (`afterChange`, `beforeDataProviderFetch`, etc.) inside the settings object, not as Vue event listeners on `<HotTable>`.
-- Use `ref()` from `vue` for reactive state that the template or handlers update. Use a plain `const` for `hotSettings` when reactive deep updates would trigger unwanted `updateSettings()` calls (for example, when only a status label changes beside the grid).
-- Access the underlying instance with a template ref when needed: `const hotRef = ref(null)` and `<HotTable ref="hotRef" :settings="hotSettings" />`, then `hotRef.value?.hotInstance`.
+- Use `ref()` from `vue` for reactive state that the template or handlers update (`hotSettings`, toggles, selected values). Use a plain `const` for `hotSettings` when reactive deep updates would trigger unwanted `updateSettings()` calls (for example, when only a status label changes beside the grid).
+- Always use `useTemplateRef('refName')` for template refs bound via `ref="..."` in `<template>`. Never use `ref()` for template refs.
+- HotTable instance access:
+
+```vue
+import { useTemplateRef } from 'vue';
+
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
+```
+
+```vue
+<HotTable ref="hotRef" :settings="hotSettings" />
+```
+
+Access: `hotRef.value?.hotInstance`.
+
+- DOM element refs:
+
+```vue
+const dropdownRef = useTemplateRef<HTMLDivElement>('dropdownRef');
+```
+
+```vue
+<div ref="dropdownRef" class="theme-dropdown">...</div>
+```
+
+Access: `dropdownRef.value`. The string passed to `useTemplateRef(...)` must match the template `ref` attribute exactly.
 - For `HotColumn`, nest it inside `<HotTable>` in `<template>` and pass column options via `:settings` on each `HotColumn`.
 - Optional `<style scoped>` is allowed for example-only UI (buttons, status text). Example-runner CSS from the guide's `--css` slot still applies globally.
 
-**Presets** on the `::: example` directive select dependencies: `:vue3` (default), `:vue3-numbro`, `:vue3-languages`, `:vue3-vuex`. Match the preset to the feature the page demonstrates.
+**Presets** on the `::: example` directive select dependencies: `:vue3` (default), `:vue3-languages`, `:vue3-vuex`. Match the preset to the feature the page demonstrates.
 
 **Embedding a Vue SFC** (single tab, no `--html` / `--js`):
 

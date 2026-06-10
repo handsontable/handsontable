@@ -17,8 +17,6 @@ const CSS_SHOW_UI = 'show-ui';
 const CSS_ON_MOVING = 'on-moving--columns';
 const CSS_AFTER_SELECTION = 'after-selection--columns';
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin ManualColumnMove
  * @class ManualColumnMove
@@ -44,10 +42,16 @@ const CSS_AFTER_SELECTION = 'after-selection--columns';
  * @plugin ManualColumnMove
  */
 export class ManualColumnMove extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
@@ -351,33 +355,6 @@ export class ManualColumnMove extends BasePlugin {
    */
   isFixedColumnsStart(column: number) {
     return column < (this.hot.getSettings().fixedColumnsStart ?? 0);
-  }
-
-  /**
-   * Saves the manual column positions to the persistent state (the {@link Options#persistentState} option has to be enabled).
-   *
-   * @private
-   * @fires Hooks#persistentStateSave
-   */
-  persistentStateSave() {
-    // The `PersistentState` plugin should be refactored.
-    this.hot.runHooks('persistentStateSave', 'manualColumnMove',
-      this.hot.columnIndexMapper.getIndexesSequence());
-  }
-
-  /**
-   * Loads the manual column positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
-   *
-   * @private
-   * @fires Hooks#persistentStateLoad
-   * @returns {Array} Stored state.
-   */
-  persistentStateLoad(): number[] {
-    const storedState: Record<string, unknown> = {};
-
-    this.hot.runHooks('persistentStateLoad', 'manualColumnMove', storedState);
-
-    return (storedState.value ? storedState.value : []) as number[];
   }
 
   /**

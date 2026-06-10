@@ -25,6 +25,9 @@ class DataProvider {
    */
   options: Record<string, unknown> = {};
 
+  /**
+   * Initializes the data provider with a reference to the Handsontable instance used to retrieve data for export.
+   */
   constructor(hotInstance: HotInstance) {
     this.hot = hotInstance;
   }

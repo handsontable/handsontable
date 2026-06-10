@@ -59,6 +59,9 @@ class MergedCellCoords {
    */
   #cellRange: CellRange | null = null;
 
+  /**
+   * Initializes the merged cell coordinates with its top-left position, span dimensions, and factories for creating cell coordinate and range objects.
+   */
   constructor(
     row: number, column: number, rowspan: number, colspan: number,
     cellCoordsFactory: (row: number, col: number) => CellCoords,

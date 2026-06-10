@@ -1,19 +1,15 @@
 ---
 type: explanation
-id: neoo8dhv
 title: Cell functions
 metaTitle: Cell functions - JavaScript Data Grid | Handsontable
 description: Render, edit, and validate the contents of your cells, using Handsontable's cell functions. Quickly set up your cells, using cell types.
 permalink: /cell-function
 canonicalUrl: /cell-function
 react:
-  id: i2sqtwh6
   metaTitle: Cell functions - React Data Grid | Handsontable
 angular:
-  id: 377lnttu
   metaTitle: Cell functions - Angular Data Grid | Handsontable
 vue:
-  id: bc7idv59
   metaTitle: Cell functions - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
@@ -276,10 +272,10 @@ const type = cellProperties.type;           // cell type string
 
 ```html
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { onMounted, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 
-const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 
 onMounted(() => {
   const hot = hotRef.value?.hotInstance;
@@ -390,10 +386,10 @@ export class AppComponent implements AfterViewInit {
 
 ```html
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { onMounted, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 
-const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 
 onMounted(() => {
   const hot = hotRef.value?.hotInstance;

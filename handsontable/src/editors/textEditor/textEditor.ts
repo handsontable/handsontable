@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import { BaseEditor, EDITOR_STATE } from '../baseEditor';
 import EventManager from '../../eventManager';
 import { isEdge, isIOS } from '../../helpers/browser';
@@ -29,6 +30,9 @@ export const EDITOR_TYPE = 'text';
  * @class TextEditor
  */
 export class TextEditor extends BaseEditor {
+  /**
+   * Returns the unique editor type identifier for the text editor.
+   */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }
@@ -152,7 +156,7 @@ export class TextEditor extends BaseEditor {
    */
   prepare(
     row: number, col: number, prop: string | number,
-    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+    td: HTMLTableCellElement, value: unknown, cellProperties: CellProperties): void {
     const previousState = this.state;
 
     super.prepare(row, col, prop, td, value, cellProperties);

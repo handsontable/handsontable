@@ -1,4 +1,4 @@
-import moment from 'moment';
+import { parseToLocalDate, getRelativeLocalDate, isSameLocalDay } from '../../../../helpers/dateTime';
 import * as C from '../../../../i18n/constants';
 import { registerCondition } from '../../conditionRegisterer';
 
@@ -6,7 +6,13 @@ export const CONDITION_NAME = 'date_yesterday';
 
 type DataRow = {
   value: unknown;
-  meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown };
+  meta: {
+    type?: string;
+    locale?: string;
+    dateFormat?: Intl.DateTimeFormatOptions;
+    instance?: unknown;
+    [key: string]: unknown
+  };
 };
 
 /**
@@ -14,13 +20,13 @@ type DataRow = {
  * @returns {boolean}
  */
 export function condition(dataRow: DataRow) {
-  const date = moment(dataRow.value as string, dataRow.meta.dateFormat as string);
+  const date = parseToLocalDate(dataRow.value);
 
-  if (!date.isValid()) {
+  if (date === null) {
     return false;
   }
 
-  return date.isSame(moment().subtract(1, 'days').startOf('day'), 'd');
+  return isSameLocalDay(date, getRelativeLocalDate(-1));
 }
 
 registerCondition(CONDITION_NAME, condition, {

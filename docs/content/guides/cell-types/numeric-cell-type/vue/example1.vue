@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
@@ -31,8 +31,8 @@ const localeOptions = [
   { value: 'zh-TW', label: 'Chinese (Traditional, Taiwan)' },
 ];
 
-const hotTableComponent = ref(null);
-const dropdownRef = ref<HTMLDivElement | null>(null);
+const hotTableComponent = useTemplateRef<InstanceType<typeof HotTable>>('hotTableComponent');
+const dropdownRef = useTemplateRef<HTMLDivElement>('dropdownRef');
 const isOpen = ref(false);
 const locale = ref('en-US');
 

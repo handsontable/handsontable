@@ -50,6 +50,9 @@ export default class GlobalMeta {
    */
   declare meta: Record<string, unknown>;
 
+  /**
+   * Initializes the global meta layer, populates the meta prototype with schema defaults, and attaches the Handsontable instance reference.
+   */
   constructor(hot: unknown) {
     this.meta = this.metaCtor.prototype as Record<string, unknown>;
 

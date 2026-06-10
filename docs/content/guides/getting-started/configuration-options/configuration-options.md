@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: p7oq0ph7
 title: Configuration options
 metaTitle: Configuration options - JavaScript Data Grid | Handsontable
 description: Configure the data grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
@@ -11,13 +10,10 @@ tags:
   - config
   - options
 react:
-  id: gmpbmisy
   metaTitle: Configuration options - React Data Grid | Handsontable
 angular:
-  id: 16bofyho
   metaTitle: Configuration options - Angular Data Grid | Handsontable
 vue:
-  id: 4xi8scx0
   metaTitle: Configuration options - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
@@ -1240,9 +1236,6 @@ In the example below, some cells are read-only, and some cells are editable:
 
 :::
 
-
-
-
 ::: only-for react
 
 ## Non-Idempotent Options
@@ -1302,7 +1295,7 @@ Use [`initialState`](@/api/options.md#initialstate) to apply these options only 
 
 ::: only-for vue
 
-::: example #example6 :vue --js 1
+::: example #example6 :vue3
 
 @[code](@/content/guides/getting-started/configuration-options/vue/example6.vue)
 

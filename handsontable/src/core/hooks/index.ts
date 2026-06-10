@@ -16,7 +16,15 @@ const REMOVED_MESSAGE = toSingleLine`The plugin hook "[hookName]" was removed in
   Please consult release notes https://github.com/handsontable/handsontable/releases/tag/[removedInVersion] to\x20
   learn about the migration path.`;
 
+/**
+ * Manages the global and per-instance hook system for Handsontable.
+ * Acts as the central publish-subscribe bus that decouples core logic, plugins,
+ * and user code through named `before*` / `after*` lifecycle events.
+ */
 export class Hooks {
+  /**
+   * Returns the global singleton instance shared across all Handsontable instances.
+   */
   static getSingleton() {
     return getGlobalSingleton();
   }

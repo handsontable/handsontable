@@ -1,19 +1,15 @@
 ---
 type: reference
-id: kk7fprli
 title: Changelog 11.0
 metaTitle: Changelog 11.0 - JavaScript Data Grid | Handsontable
 description: See the full history of changes made to Handsontable 11.0 in each minor and patch release.
 permalink: /changelog-11
 canonicalUrl: /changelog-11
 react:
-  id: ny8fq2bb
   metaTitle: Changelog 11.0 - React Data Grid | Handsontable
 angular:
-  id: 9fzgv1of
   metaTitle: Changelog 11.0 - Angular Data Grid | Handsontable
 vue:
-  id: aitghfh1
   metaTitle: Changelog 11.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
@@ -41,7 +37,7 @@ For more information on this release, see:
   Handsontable's [`data`](@/api/options.md#data) without resetting the states of cells, rows and
   columns. [#7263](https://github.com/handsontable/handsontable/issues/7263)
 - Vue: Added [Vue 3](https://v3.vuejs.org/guide/migration/introduction.html#overview) support, by
-  introducing a [new wrapper](@/javascript/guides/integrate-with-vue3/vue3-simple-example/vue3-simple-example.md).
+  introducing a [new wrapper](@/vue/guides/getting-started/installation/installation.md).
   [#7545](https://github.com/handsontable/handsontable/issues/7545)
 
 #### Changed

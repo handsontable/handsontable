@@ -16,8 +16,6 @@ const CSS_SHOW_UI = 'show-ui';
 const CSS_ON_MOVING = 'on-moving--rows';
 const CSS_AFTER_SELECTION = 'after-selection--rows';
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin ManualRowMove
  * @class ManualRowMove
@@ -42,14 +40,23 @@ const CSS_AFTER_SELECTION = 'after-selection--rows';
  * @plugin ManualRowMove
  */
 export class ManualRowMove extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the list of settings keys observed by the plugin for configuration changes.
+   */
   static get SETTING_KEYS() {
     return [PLUGIN_KEY];
   }
@@ -320,7 +327,7 @@ export class ManualRowMove extends BasePlugin {
   }
 
   /**
-   * Loads initial settings when state was saved (e.g. via hooks) or when plugin was initialized as an array.
+   * Moves rows when the plugin was initialized as an array of row positions.
    *
    * @private
    */
@@ -329,13 +336,6 @@ export class ManualRowMove extends BasePlugin {
 
     if (Array.isArray(pluginSettings)) {
       this.moveRows(pluginSettings, 0);
-
-    } else if (pluginSettings !== undefined) {
-      const persistentState = this.persistentStateLoad() as number[];
-
-      if (persistentState.length) {
-        this.moveRows(persistentState, 0);
-      }
     }
   }
 
@@ -359,32 +359,6 @@ export class ManualRowMove extends BasePlugin {
    */
   isFixedRowBottom(row: number) {
     return row > this.hot.countRows() - 1 - (this.hot.getSettings().fixedRowsBottom ?? 0);
-  }
-
-  /**
-   * Saves the manual row positions to the persistent state (the {@link Options#persistentState} option has to be enabled).
-   *
-   * @private
-   * @fires Hooks#persistentStateSave
-   */
-  persistentStateSave() {
-    // The `PersistentState` plugin should be refactored.
-    this.hot.runHooks('persistentStateSave', 'manualRowMove', this.hot.rowIndexMapper.getIndexesSequence());
-  }
-
-  /**
-   * Loads the manual row positions from the persistent state (the {@link Options#persistentState} option has to be enabled).
-   *
-   * @private
-   * @fires Hooks#persistentStateLoad
-   * @returns {Array} Stored state.
-   */
-  persistentStateLoad() {
-    const storedState: Record<string, unknown> = {};
-
-    this.hot.runHooks('persistentStateLoad', 'manualRowMove', storedState);
-
-    return storedState.value ? storedState.value : [];
   }
 
   /**

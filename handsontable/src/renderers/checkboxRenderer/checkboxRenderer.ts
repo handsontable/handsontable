@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import EventManager from '../../eventManager';
 import { empty, addClass, eventTargetEl, setAttribute, isHTMLElement } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
@@ -55,7 +56,7 @@ Hooks.getSingleton().add('modifyAutoColumnSizeSeed',
  */
 export function checkboxRenderer(
   hotInstance: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
-  prop: string | number, value: unknown, cellProperties: Record<string, unknown>): void {
+  prop: string | number, value: unknown, cellProperties: CellProperties): void {
   const { rootDocument } = hotInstance;
   const ariaEnabled = hotInstance.getSettings().ariaTags;
 

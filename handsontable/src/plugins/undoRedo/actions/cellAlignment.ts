@@ -28,6 +28,9 @@ export class CellAlignmentAction extends BaseAction {
    */
   alignment;
 
+  /**
+   * Initializes the cell alignment action with the previous state, cell range, alignment axis, and CSS alignment class.
+   */
   constructor({ stateBefore, range, type, alignment }: {
     stateBefore: unknown[], range: CellRange[], type: string, alignment: string
   }) {
@@ -38,6 +41,9 @@ export class CellAlignmentAction extends BaseAction {
     this.alignment = alignment;
   }
 
+  /**
+   * Registers the `beforeCellAlignment` hook listener that records a new CellAlignmentAction whenever alignment changes.
+   */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('beforeCellAlignment', (stateBefore: unknown, range: CellRange[], type: string, alignment: unknown) => {
       (undoRedoPlugin as { done: (callback: () => CellAlignmentAction) => void }).done(() => new CellAlignmentAction({

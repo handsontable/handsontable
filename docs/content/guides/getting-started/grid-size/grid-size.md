@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: svu0391b
 title: Grid size
 metaTitle: Grid size - JavaScript Data Grid | Handsontable
 description: Set the width and height of the grid, using either absolute values or values relative to the parent container.
@@ -12,13 +11,10 @@ tags:
   - height
   - dimensions
 react:
-  id: cifepxzs
   metaTitle: Grid size - React Data Grid | Handsontable
 angular:
-  id: w6lvb55f
   metaTitle: Grid size - Angular Data Grid | Handsontable
 vue:
-  id: ej8mo5um
   metaTitle: Grid size - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
@@ -421,7 +417,7 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 
 To use the Handsontable API, you'll need access to the Handsontable instance. Use a template ref on the `HotTable` component and read its `hotInstance` property.
 
-For more information, see the [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md) page.
+For more information, see the [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
 
 :::
 

@@ -53,7 +53,13 @@ interface PaginationRefs {
  * @class PaginationUI
  */
 export class PaginationUI {
+  /**
+   * Triggers registered local hooks with the given hook name and arguments.
+   */
   declare runLocalHooks: (...args: unknown[]) => void;
+  /**
+   * Registers a callback to be executed when the specified local hook fires.
+   */
   declare addLocalHook: (hookName: string, callback: Function) => PaginationUI;
   /**
    * The root element where the pagination UI will be installed.
@@ -105,6 +111,9 @@ export class PaginationUI {
    */
   readonly #a11yAnnouncer: (message: unknown) => void;
 
+  /**
+   * Initializes the pagination UI by creating DOM elements, applying layout settings, and registering event listeners.
+   */
   constructor({
     rootElement,
     uiContainer,

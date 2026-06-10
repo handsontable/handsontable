@@ -151,6 +151,9 @@ export class EmptyDataStateUI {
    */
   #placeholderElement: HTMLElement | null = null;
 
+  /**
+   * Initializes the empty data state UI with the root element and document, then builds and inserts the DOM structure.
+   */
   constructor({
     rootElement,
     rootDocument,

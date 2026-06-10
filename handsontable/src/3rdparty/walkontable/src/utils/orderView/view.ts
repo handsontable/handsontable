@@ -55,6 +55,13 @@ export class OrderView {
    */
   rendererAdapter;
 
+  /**
+   * Creates a new OrderView instance.
+   *
+   * @param {HTMLElement} rootNode The root node to manage.
+   * @param {function(number?): HTMLElement} nodesPool Factory for creating new DOM elements.
+   * @param {string} childNodeType The type of child nodes to manage.
+   */
   constructor(rootNode: HTMLElement, nodesPool: (index?: number) => HTMLElement, childNodeType: string) {
     this.rootNode = rootNode;
     this.nodesPool = nodesPool;

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 6elqkmhr
 title: Column hiding
 metaTitle: Column hiding - JavaScript Data Grid | Handsontable
 description:
@@ -9,13 +8,10 @@ description:
 permalink: /column-hiding
 canonicalUrl: /column-hiding
 react:
-  id: u1aw329h
   metaTitle: Column hiding - React Data Grid | Handsontable
 angular:
-  id: 69k5r1oh
   metaTitle: Column hiding - Angular Data Grid | Handsontable
 vue:
-  id: hwodm9tg
   metaTitle: Column hiding - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
@@ -377,7 +373,7 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by
 utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
-For more information, see the [Referencing the Handsontable instance](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md) page.
+For more information, see the [Referencing the Handsontable instance](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
 
 :::
 

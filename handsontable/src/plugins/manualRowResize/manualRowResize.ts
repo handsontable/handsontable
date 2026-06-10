@@ -13,16 +13,19 @@ import {
 } from '../../helpers/dom/element';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
+import { deprecatedWarn } from '../../helpers/console';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
-import { getElementScaleFactor, normalizeVisualDelta } from '../manualResize/utils';
+import {
+  getElementScaleFactor,
+  normalizeVisualDelta,
+  shouldRefreshHandleAfterAutoResize,
+  shouldSkipResizeHandlePositioning,
+} from '../manualResize/utils';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualColumnResize.js
 
 export const PLUGIN_KEY = 'manualRowResize';
 export const PLUGIN_PRIORITY = 30;
-const PERSISTENT_STATE_KEY = PLUGIN_KEY;
-
-/* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
  * @plugin ManualRowResize
@@ -36,10 +39,16 @@ const PERSISTENT_STATE_KEY = PLUGIN_KEY;
  * - guide - the helper guide that shows the desired height as a horizontal guide.
  */
 export class ManualRowResize extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
@@ -123,6 +132,9 @@ export class ManualRowResize extends BasePlugin {
    */
   #config!: unknown[];
 
+  /**
+   * Initializes the plugin and applies CSS classes to the resize handle and guide elements.
+   */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
 
@@ -201,28 +213,28 @@ export class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be
-   * enabled).
+   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op and will be removed in a
+   * future major release.
    *
-   * @fires Hooks#persistentStateSave
+   * @deprecated
    */
   saveManualRowHeights(): void {
-    this.hot.runHooks('persistentStateSave', PERSISTENT_STATE_KEY, this.#rowHeightsMap.getValues());
+    deprecatedWarn('`saveManualRowHeights()` is deprecated and will be removed in a future major release. ' +
+      'The PersistentState plugin has been removed.');
   }
 
   /**
-   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option
-   * has be enabled).
+   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op and will be removed in a
+   * future major release.
    *
+   * @deprecated
    * @returns {Array}
-   * @fires Hooks#persistentStateLoad
    */
   loadManualRowHeights(): Array<number | null> {
-    const storedState: Record<string, unknown> = {};
+    deprecatedWarn('`loadManualRowHeights()` is deprecated and will be removed in a future major release. ' +
+      'The PersistentState plugin has been removed.');
 
-    this.hot.runHooks('persistentStateLoad', PERSISTENT_STATE_KEY, storedState);
-
-    return storedState.value as Array<number | null>;
+    return [];
   }
 
   /**
@@ -259,7 +271,7 @@ export class ManualRowResize extends BasePlugin {
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH: HTMLTableHeaderCellElement) {
-    if (!TH.parentNode || this.#dblclick > 1) {
+    if (shouldSkipResizeHandlePositioning(TH, this.#dblclick)) {
       return;
     }
 
@@ -504,6 +516,10 @@ export class ManualRowResize extends BasePlugin {
    * @fires Hooks#afterRowResize
    */
   afterMouseDownTimeout() {
+    const shouldRefreshHandlePosition = shouldRefreshHandleAfterAutoResize(
+      this.#currentTH,
+      this.#dblclick,
+    );
     const render = () => {
       this.hot.view.adjustElementsSize();
       this.hot.render();
@@ -542,8 +558,12 @@ export class ManualRowResize extends BasePlugin {
         });
       }
     }
-    this.#dblclick = 0;
     this.#autoresizeTimeout = null;
+    this.#dblclick = 0;
+
+    if (shouldRefreshHandlePosition && this.#currentTH) {
+      this.setupHandlePosition(this.#currentTH);
+    }
   }
 
   /**
@@ -617,8 +637,6 @@ export class ManualRowResize extends BasePlugin {
       if (forceRender) {
         render();
       }
-
-      this.saveManualRowHeights();
 
       if (hookNewSize !== false) {
         this.hot.runHooks('afterRowResize', this.getActualRowHeight(row), row, false);

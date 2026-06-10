@@ -39,7 +39,6 @@ import type { NestedHeaders } from './nestedHeaders';
 import type { NestedRows } from './nestedRows';
 import type { Notification } from './notification';
 import type { Pagination } from './pagination';
-import type { PersistentState } from './persistentState';
 import type { Search } from './search';
 import type { StretchColumns } from './stretchColumns';
 import type { TouchScroll } from './touchScroll';
@@ -85,7 +84,6 @@ export interface PluginTypeMap {
   nestedRows: NestedRows;
   notification: Notification;
   pagination: Pagination;
-  persistentState: PersistentState;
   search: Search;
   stretchColumns: StretchColumns;
   touchScroll: TouchScroll;

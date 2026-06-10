@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: cdahp04c
 title: Focus scopes
 metaTitle: Focus scopes - JavaScript Data Grid | Handsontable
 description: Manage focus boundaries and keyboard shortcuts contexts with focus scopes.
@@ -15,13 +14,10 @@ tags:
   - shortcuts context
   - tab navigation
 react:
-  id: lx9qi7uu
   metaTitle: Focus scopes - React Data Grid | Handsontable
 angular:
-  id: xat52y9g
   metaTitle: Focus scopes - Angular Data Grid | Handsontable
 vue:
-  id: 42scu64a
   metaTitle: Focus scopes - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
@@ -56,7 +52,7 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 
 To use the Handsontable API, use a template ref on `HotTable` and read `hotRef.value.hotInstance`.
 
-For more information, see [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md).
+For more information, see [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md).
 
 :::
 
@@ -142,7 +138,7 @@ to the bottom text input and how the internal state changes.
 
 ::: example #example1 :vue3 --css 1
 
-@[code](@/content/guides/navigation/focus-scopes/react/example1.css)
+@[code](@/content/guides/navigation/focus-scopes/vue/example1.css)
 @[code collapse={17-118,145-147,220-222}](@/content/guides/navigation/focus-scopes/vue/example1.vue)
 
 :::
@@ -202,7 +198,7 @@ appears after the inline scope elements in the DOM.
 
 ::: example #example2 :vue3 --css 1
 
-@[code](@/content/guides/navigation/focus-scopes/react/example2.css)
+@[code](@/content/guides/navigation/focus-scopes/vue/example2.css)
 @[code collapse={17-118,145-147,228-236}](@/content/guides/navigation/focus-scopes/vue/example2.vue)
 
 :::

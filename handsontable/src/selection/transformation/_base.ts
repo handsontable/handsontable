@@ -23,9 +23,12 @@ import localHooks from '../../mixins/localHooks';
  */
 export class BaseTransformation {
   /**
-   * Mixin property declarations for localHooks.
+   * Triggers registered local hook callbacks for the given hook name, passing any additional arguments.
    */
   declare runLocalHooks: (...args: unknown[]) => void;
+  /**
+   * Registers a local hook callback for the given hook name on this transformation instance.
+   */
   declare addLocalHook: (...args: unknown[]) => object;
 
   /**
@@ -54,6 +57,9 @@ export class BaseTransformation {
    */
   declare tableApi: SelectionTableProps;
 
+  /**
+   * Initializes the transformation module with the selection range collection and the table API reference.
+   */
   constructor(range: SelectionRange, tableApi: SelectionTableProps) {
     this.#range = range;
     this.tableApi = tableApi;

@@ -1,6 +1,10 @@
 import { TimeEditor } from '../../editors/timeEditor';
-import { timeRenderer } from '../../renderers/timeRenderer';
-import { timeValidator } from '../../validators/timeValidator';
+import { timeRenderer, valueFormatter } from '../../renderers/timeRenderer';
+import {
+  SOURCE_DATA_WARNING_MESSAGE,
+  timeValidator,
+  sourceDataValidator,
+} from '../../validators/timeValidator';
 
 export const CELL_TYPE: 'time' = 'time';
 export const TimeCellType = {
@@ -8,4 +12,7 @@ export const TimeCellType = {
   editor: TimeEditor,
   renderer: timeRenderer,
   validator: timeValidator,
+  sourceDataValidator,
+  sourceDataWarningMessage: SOURCE_DATA_WARNING_MESSAGE,
+  valueFormatter,
 };

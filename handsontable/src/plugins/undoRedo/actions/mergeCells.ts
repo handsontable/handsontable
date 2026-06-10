@@ -14,14 +14,23 @@ export class MergeCellsAction extends BaseAction {
    * @param {CellRange} cellRange The merged cell range.
    */
   cellRange;
+  /**
+   * Stores the cell data captured before the merge, used to restore values when the action is undone.
+   */
   declare data: unknown;
 
+  /**
+   * Initializes the merge cells action with the affected cell range and the original cell data.
+   */
   constructor({ data, cellRange }: { data: unknown, cellRange: CellRange }) {
     super('merge_cells');
     this.cellRange = cellRange;
     this.data = data;
   }
 
+  /**
+   * Registers the hooks needed to capture merge and unmerge events so they can be tracked for undo and redo.
+   */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('beforeMergeCells', (cellRange: unknown, auto: unknown) => {
       if (auto) {

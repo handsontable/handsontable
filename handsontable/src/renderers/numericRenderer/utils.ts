@@ -1,37 +1,9 @@
-import numbro from 'numbro';
-
 const DEFAULT_INTL_FORMAT = {
   useGrouping: false,
   maximumFractionDigits: 20,
 };
 
-/**
- * Formats the value using the numbro format.
- *
- * @param {*} value Value to be formatted.
- * @param {CellMeta} cellProperties Cell meta object.
- * @returns {*} Returns the formatted value.
- */
-export function numbroFormatter(value: unknown, cellProperties: Record<string, unknown>) {
-  const numericFormat = cellProperties.numericFormat as Record<string, unknown> | undefined;
-  const cellCulture = numericFormat && numericFormat.culture as string || '-';
-  const cellFormatPattern = numericFormat && numericFormat.pattern as string;
-
-  if (typeof cellCulture !== 'undefined' && !numbro.languages()[cellCulture]) {
-    const shortTag = cellCulture.replace('-', '');
-    const numbroWithLangs = numbro as unknown as { allLanguages?: Record<string, unknown> } & Record<string, unknown>;
-    const langData = numbroWithLangs.allLanguages
-      ? numbroWithLangs.allLanguages[cellCulture] : numbroWithLangs[shortTag];
-
-    if (langData) {
-      numbro.registerLanguage(langData as numbro.NumbroLanguage);
-    }
-  }
-
-  numbro.setLanguage(cellCulture);
-
-  return numbro(value).format(cellFormatPattern || '0');
-}
+const formatterCache = new Map<string, Intl.NumberFormat>();
 
 /**
  * Formats the value using the intl format.
@@ -42,19 +14,15 @@ export function numbroFormatter(value: unknown, cellProperties: Record<string, u
  */
 export function intlFormatter(value: unknown, cellProperties: Record<string, unknown>) {
   const { numericFormat, locale } = cellProperties;
+  const options = (numericFormat ?? DEFAULT_INTL_FORMAT) as Intl.NumberFormatOptions;
+  const cacheKey = `${(locale as string) ?? ''}:${JSON.stringify(options)}`;
 
-  return new Intl.NumberFormat(
-    locale as string, (numericFormat ?? DEFAULT_INTL_FORMAT) as Intl.NumberFormatOptions).format(value as number);
-}
+  let formatter = formatterCache.get(cacheKey);
 
-/**
- * Checks if the numericFormat object contains any numbro-specific format keys.
- *
- * @param {CellMeta} cellProperties Cell meta object.
- * @returns {boolean} Returns true if the numericFormat object contains any numbro-specific format keys, false otherwise.
- */
-export function isNumbroScheme(cellProperties: Record<string, unknown>) {
-  const numericFormat = cellProperties.numericFormat as Record<string, unknown> | undefined;
+  if (formatter === undefined) {
+    formatter = new Intl.NumberFormat(locale as string, options);
+    formatterCache.set(cacheKey, formatter);
+  }
 
-  return numericFormat?.pattern !== undefined || numericFormat?.culture !== undefined;
+  return formatter.format(value as number);
 }

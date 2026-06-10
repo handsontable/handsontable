@@ -34,6 +34,9 @@ export class HooksBucket {
    */
   #needsSort: Set<string> = new Set();
 
+  /**
+   * Initializes the bucket and pre-creates empty hook collections for all currently registered hook names.
+   */
   constructor() {
     REGISTERED_HOOKS.forEach(hookName => this.#createHooksCollection(hookName));
   }

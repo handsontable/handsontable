@@ -93,7 +93,9 @@ interface ExcelJsWorkbook {
   };
 }
 
-/** Descriptor for a merge cell, in data-array coordinate space. */
+/**
+ * Descriptor for a merge cell, in data-array coordinate space.
+ */
 interface MergeDescriptor {
   row: number;
   col: number;
@@ -101,7 +103,9 @@ interface MergeDescriptor {
   colspan: number;
 }
 
-/** Descriptor for a ColumnSummary destination, in data-array coordinate space. */
+/**
+ * Descriptor for a ColumnSummary destination, in data-array coordinate space.
+ */
 interface ColumnSummaryDescriptor {
   type: string;
   destRow: number;
@@ -110,14 +114,18 @@ interface ColumnSummaryDescriptor {
   sourceRanges: [number, number][];
 }
 
-/** One entry in the `conditionalFormatting` option array. */
+/**
+ * One entry in the `conditionalFormatting` option array.
+ */
 interface ConditionalFormattingDescriptor {
   rows?: [number, number];
   cols?: [number, number];
   rules: unknown[];
 }
 
-/** An entry in a nested-header layer returned by DataProvider#getNestedColumnHeaders. */
+/**
+ * An entry in a nested-header layer returned by DataProvider#getNestedColumnHeaders.
+ */
 interface NestedHeaderEntry {
   label: string | null;
   colspan: number;
@@ -174,7 +182,9 @@ const PIXELS_TO_POINTS_RATIO = 0.75;
 // when row headers are exported. Chosen to comfortably fit typical row-index numbers.
 const ROW_HEADER_DEFAULT_WIDTH = 5;
 
-/** Typed view of the options object used internally within the Xlsx exporter. */
+/**
+ * Typed view of the options object used internally within the Xlsx exporter.
+ */
 interface XlsxOptions extends Record<string, unknown> {
   exportFormulas?: boolean;
   headerStyle?: { backgroundColor?: string; border?: { style?: string; color?: string } | null } | null;
@@ -194,6 +204,9 @@ class Xlsx extends BaseType {
     return true;
   }
 
+  /**
+   * Returns true to indicate that XLSX data should be treated as binary output.
+   */
   get binary() {
     return true;
   }

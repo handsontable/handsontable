@@ -1250,4 +1250,44 @@ describe('Notification', () => {
       expect(document.activeElement).not.toBe(close1);
     });
   });
+
+  describe('sanitizer', () => {
+    it('should warn once when a string message contains HTML and no sanitizer is configured', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        notification: true,
+      });
+
+      const plugin = getPlugin('notification');
+      const warnSpy = spyOnConsoleWarn();
+
+      plugin.showMessage({ message: '<b>Bold message</b>' });
+      await waitForNextAnimationFrames(1);
+
+      expect(warnSpy).toHaveBeenCalledWith(jasmine.stringMatching(/without a sanitizer/));
+
+      // A second HTML toast on the same instance must not emit a second warning.
+      warnSpy.calls.reset();
+      plugin.showMessage({ message: '<i>Another</i>' });
+      await waitForNextAnimationFrames(1);
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should NOT warn when a sanitizer is configured', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        sanitizer: content => content,
+        notification: true,
+      });
+
+      const plugin = getPlugin('notification');
+      const warnSpy = spyOnConsoleWarn();
+
+      plugin.showMessage({ message: '<b>Bold message</b>' });
+      await waitForNextAnimationFrames(1);
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+  });
 });

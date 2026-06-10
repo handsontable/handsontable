@@ -18,6 +18,9 @@ class DataFilter {
    */
   columnDataFactory;
 
+  /**
+   * Initializes the data filter with a condition collection that provides filtering logic and a factory function that supplies column source data.
+   */
   constructor(
     conditionCollection: { getFilteredColumns: () => unknown[]; isMatch: (value: unknown, column: number) => boolean },
     columnDataFactory: (column: number) => unknown[] = () => []

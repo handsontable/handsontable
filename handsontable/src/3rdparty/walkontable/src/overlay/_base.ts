@@ -35,19 +35,89 @@ export abstract class Overlay {
    */
   wtSettings!: Settings;
 
+  /**
+   * The Walkontable instance.
+   *
+   * @type {WalkontableInstance}
+   */
   declare wot: WalkontableInstance;
+  /**
+   * DOM elements bound to the current instance.
+   *
+   * @type {DomBindings}
+   */
   declare domBindings: DomBindings;
+  /**
+   * Function that returns the proper facade.
+   *
+   * @type {Function}
+   */
   declare facadeGetter: Function;
+  /**
+   * Legacy support for the Walkontable instance.
+   *
+   * @type {WalkontableInstance}
+   */
   declare instance: WalkontableInstance;
+  /**
+   * The overlay type name.
+   *
+   * @type {string}
+   */
   declare type: string;
+  /**
+   * The main table scrollable element.
+   *
+   * @type {HTMLElement | Window}
+   */
   declare mainTableScrollableElement: HTMLElement | Window; // assigned in makeClone() called from constructor
+  /**
+   * The table element.
+   *
+   * @type {HTMLTableElement}
+   */
   declare TABLE: HTMLTableElement;
+  /**
+   * The hider element.
+   *
+   * @type {HTMLElement}
+   */
   declare hider: HTMLElement;
+  /**
+   * The spreader element.
+   *
+   * @type {HTMLElement}
+   */
   declare spreader: HTMLElement;
+  /**
+   * The holder element.
+   *
+   * @type {HTMLElement | Window}
+   */
   declare holder: HTMLElement | Window;
+  /**
+   * The Walkontable root element.
+   *
+   * @type {HTMLElement}
+   */
   declare wtRootElement: HTMLElement;
+  /**
+   * The trimming container.
+   *
+   * @type {HTMLElement | Window}
+   */
   declare trimmingContainer: HTMLElement | Window;
+  /**
+   * Flag indicating if full render is needed.
+   *
+   * @type {boolean}
+   */
   declare needFullRender: boolean;
+  /**
+   * The cloned Walkontable instance.
+   *
+   * @type {WalkontableInstance | null}
+   */
   declare clone: WalkontableInstance | null;
 
   /**
@@ -402,7 +472,7 @@ export abstract class Overlay {
       viewport: this.wot.wtViewport, // todo ioc , or factor func if used only here
       event: this.wot.wtEvent, // todo ioc , or factory func if used only here
       selectionManager: this.wot.selectionManager, // todo ioc , or factory func if used only here
-    }) as unknown as WalkontableInstance;
+    }) as WalkontableInstance;
   }
 
   /**

@@ -47,6 +47,9 @@ export class BaseComponent {
    */
   state;
 
+  /**
+   * Initializes the filter component with a Handsontable instance, assigns the component ID, and optionally registers a column index map for stateful components.
+   */
   constructor(hotInstance: HotInstance, { id, stateless = true }: { id: string; stateless?: boolean }) {
     this.hot = hotInstance;
     this.id = id;

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 85u4f81b
 title: Rows pagination
 metaTitle: Rows pagination - JavaScript Data Grid | Handsontable
 description: The pagination component splits the data into a range of pages, allowing users to easily navigate through large data sets.
@@ -20,13 +19,10 @@ tags:
   - range of pages
   - chunks
 react:
-  id: 5inhebcn
   metaTitle: Row pagination - React Data Grid | Handsontable
 angular:
-  id: lt6sgwts
   metaTitle: Row pagination - Angular Data Grid | Handsontable
 vue:
-  id: 57pnumth
   metaTitle: Row pagination - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
@@ -190,9 +186,10 @@ Build your own pagination UI using API methods such as [`setPage()`](@/api/pagin
 :::
 
 ::: only-for react
-::: example #example3 :react --js 1 --ts 2
+::: example #example3 :react --js 1 --css 2 --ts 3
 
 @[code collapse={8-107, 200-230}](@/content/guides/rows/rows-pagination/react/example3.jsx)
+@[code](@/content/guides/rows/rows-pagination/react/example3.css)
 @[code collapse={8-107, 200-230}](@/content/guides/rows/rows-pagination/react/example3.tsx)
 
 :::
@@ -275,9 +272,10 @@ Sometimes you need to modify data only on the currently visible page. Core metho
 :::
 
 ::: only-for react
-::: example #example5 :react --js 1 --ts 2
+::: example #example5 :react --js 1 --css 2 --ts 3
 
 @[code collapse={8-107, 158-188}](@/content/guides/rows/rows-pagination/react/example5.jsx)
+@[code](@/content/guides/rows/rows-pagination/react/example5.css)
 @[code collapse={8-107, 159-189}](@/content/guides/rows/rows-pagination/react/example5.tsx)
 
 :::
@@ -350,6 +348,27 @@ const configurationOptions = {
   // ...
 />
 ```
+:::
+
+::: only-for vue
+
+```ts
+const hotSettings = {
+  beforePageChange() {
+    // add your code here
+    return false; // to block page change
+  },
+  afterPageChange() {
+    // add your code here
+  },
+  beforePageSizeChange() {
+    // add your code here
+    return false; // to block page size change
+  },
+  // ...
+};
+```
+
 :::
 
 ## Localize pagination

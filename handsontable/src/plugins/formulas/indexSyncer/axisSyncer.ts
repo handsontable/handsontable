@@ -76,6 +76,9 @@ class AxisSyncer {
    */
   #removedIndexes: number[] = [];
 
+  /**
+   * Initializes the axis syncer for the given axis with the corresponding index mapper and parent index syncer references.
+   */
   constructor(axis: string, indexMapper: AxisIndexMapper, indexSyncer: ParentIndexSyncer) {
     this.#axis = axis;
     this.#indexMapper = indexMapper;

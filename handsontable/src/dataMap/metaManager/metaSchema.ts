@@ -2,7 +2,6 @@ import { isEmpty } from '../../helpers/mixed';
 import { isObjectEqual } from '../../helpers/object';
 import type { HotInstance } from '../../core/types';
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @alias Options
  * @class Options
@@ -122,8 +121,6 @@ import type { HotInstance } from '../../core/types';
 export default (): Record<string, unknown> => {
   return {
 
-    /* eslint-disable jsdoc/require-description-complete-sentence */
-
     /**
      * Information on which of the meta properties were added automatically.
      * For example: setting the `renderer` property directly won't extend the `_automaticallyAssignedMetaProps`
@@ -202,7 +199,7 @@ export default (): Record<string, unknown> => {
      * columns: [
      *   {
      *     type: 'date',
-     *     dateFormat: 'DD/MM/YYYY',
+     *     dateFormat: { day: '2-digit', month: '2-digit', year: 'numeric' },
      *     // allow empty values in each cell of the 'date' column
      *     allowEmpty: true
      *   }
@@ -875,7 +872,10 @@ export default (): Record<string, unknown> => {
      *     // column options for the first (by physical index) column
      *     type: 'numeric',
      *     numericFormat: {
-     *       pattern: '0,0.00 $'
+     *       style: 'currency',
+     *       currency: 'USD',
+     *       minimumFractionDigits: 2,
+     *       maximumFractionDigits: 2
      *     }
      *   },
      *   {
@@ -1347,55 +1347,6 @@ export default (): Record<string, unknown> => {
     copyPaste: true,
 
     /**
-     * The `correctFormat` option configures whether incorrectly-formatted times and dates are amended or not.
-     *
-     * When the user enters dates and times, Handsontable can automatically adjust their format
-     * to match the [`dateFormat`](#dateFormat) and [`timeFormat`](@/guides/cell-types/time-cell-type/time-cell-type.md) settings.
-     *
-     * You can set the `correctFormat` option to one of the following:
-     *
-     * | Setting           | Description                                                                                                                                               |
-     * | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-     * | `false` (default) | Don't correct the format of the entered date or time (treat the entered date or time as invalid)                                                          |
-     * | `true`            | Correct the format of the entered date or time to match the [`dateFormat`](#dateFormat) or [`timeFormat`](@/guides/cell-types/time-cell-type/time-cell-type.md) settings |
-     *
-     * Read more:
-     * - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
-     * - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
-     * - [`dateFormat`](#dateFormat)
-     *
-     * @deprecated This option is deprecated and will be removed in the next major release.
-     * @memberof Options#
-     * @type {boolean}
-     * @default false
-     * @category Core
-     *
-     * @example
-     * ```js
-     * columns: [
-     *   {
-     *   // set the `type` of each cell in this column to `date`
-     *   type: 'date',
-     *   // for every `date` cell of this column, set the date format to `YYYY-MM-DD`
-     *   dateFormat: 'YYYY-MM-DD',
-     *   // enforce the `YYYY-MM-DD` date format
-     *   correctFormat: true
-     *   },
-     *
-     *   {
-     *   // set the `type` of each cell in this column to `time`
-     *   type: 'time',
-     *   // for every `time` cell of this column, set the time format to `h:mm:ss a`
-     *   timeFormat: 'h:mm:ss a',
-     *   // enforce the `h:mm:ss a` time format
-     *   correctFormat: true
-     *   },
-     * ],
-     * ```
-     */
-    correctFormat: false,
-
-    /**
      * The `currentColClassName` option lets you add a CSS class name
      * to each cell of the currently-visible, currently-selected columns.
      *
@@ -1772,23 +1723,14 @@ export default (): Record<string, unknown> => {
     dataSchema: undefined,
 
     /**
-     * Configures the date format for date cells. Accepts either a string (legacy, for [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md)
-     * cells) or an object of [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
-     * options (for [`intl-date`](@/guides/cell-types/date-cell-type/date-cell-type.md) cells).
+     * Configures the date format for date cells using an
+     * [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
+     * options object.
      *
-     * ::: warning
-     * The string form of `dateFormat` is deprecated and will be removed in the next major release.
-     * It is used only by the `date` cell type (moment.js-based). Use the `intl-date` cell type
-     * with an `Intl.DateTimeFormat` options object instead. In the next major release, `intl-date`
-     * will become the default `date` cell type, and `intl-date` will be an alias for `date`.
-     * :::
-     *
-     * **Object form (Intl.DateTimeFormat options):**
-     *
-     * The object form is supported only when the cell type is `intl-date`. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
+     * The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
      *
      * ::: tip Source data format
-     * For `intl-date` cells, source data must be in an ISO 8601 date format (`YYYY-MM-DD`). Otherwise operations such
+     * Source data must be in ISO 8601 date format (`YYYY-MM-DD`). Otherwise operations such
      * as sorting and filtering can be unstable or unpredictable. The `dateFormat` object affects only how dates are
      * displayed; the underlying value should remain ISO.
      * :::
@@ -1798,7 +1740,6 @@ export default (): Record<string, unknown> => {
      * | Property     | Possible values                                    | Description                                              |
      * | ------------ | -------------------------------------------------- | -------------------------------------------------------- |
      * | `dateStyle`  | `'full'`, `'long'`, `'medium'`, `'short'`          | Date formatting style (expands to weekday, day, month, year, era) |
-     * | `timeStyle`  | `'full'`, `'long'`, `'medium'`, `'short'`          | Time formatting style (expands to hour, minute, second, timeZoneName) |
      *
      * **Date-time component options:**
      *
@@ -1834,45 +1775,16 @@ export default (): Record<string, unknown> => {
      * - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
      * - [`locale`](@/api/options.md#locale)
      *
-     * ---
-     *
-     * **Deprecated: string form**
-     *
-     * Passing a string (e.g. `'DD/MM/YYYY'`, `'YYYY-MM-DD'`) is deprecated and works only with the `date` cell type.
-     * Migrate to the `intl-date` cell type and pass an `Intl.DateTimeFormat` options object.
-     *
-     * **Migration example:**
-     *
-     * ```js
-     * // Before (deprecated)
-     * columns: [{
-     *   type: 'date',
-     *   dateFormat: 'YYYY-MM-DD'
-     * }]
-     *
-     * // After (recommended)
-     * columns: [{
-     *   type: 'intl-date',
-     *   locale: 'en-US',
-     *   dateFormat: {
-     *     year: 'numeric',
-     *     month: '2-digit',
-     *     day: '2-digit'
-     *   }
-     * }]
-     * ```
-     *
      * @memberof Options#
-     * @type {string|object}
-     * @default 'DD/MM/YYYY'
+     * @type {Intl.DateTimeFormatOptions}
+     * @default { year: 'numeric', month: '2-digit', day: '2-digit' }
      * @category Core
      *
      * @example
      * ```js
-     * // intl-date cell type with Intl options
      * columns: [
      *   {
-     *     type: 'intl-date',
+     *     type: 'date',
      *     locale: 'en-US',
      *     dateFormat: {
      *       dateStyle: 'short'
@@ -1880,38 +1792,16 @@ export default (): Record<string, unknown> => {
      *   }
      * ]
      * ```
-     *
-     * @example
-     * ```js
-     * // Legacy: date cell type with string format (deprecated)
-     * columns: [
-     *   {
-     *     type: 'date',
-     *     dateFormat: 'YYYY-MM-DD'
-     *   }
-     * ]
-     * ```
      */
-    dateFormat: 'DD/MM/YYYY',
+    dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' },
 
     /**
-     * Configures the time format for time cells. Accepts either a string (legacy, for [`time`](@/guides/cell-types/time-cell-type/time-cell-type.md)
-     * cells) or an object of [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
-     * options (for [`intl-time`](@/guides/cell-types/time-cell-type/time-cell-type.md) cells).
-     *
-     * ::: warning
-     * The string form of `timeFormat` is deprecated and will be removed in the next major release.
-     * It is used only by the `time` cell type. Use the `intl-time` cell type with an `Intl.DateTimeFormat`
-     * options object instead.
-     * :::
-     *
-     * **Object form (Intl.DateTimeFormat options):**
-     *
-     * The object form is supported only when the cell type is `intl-time`. The locale is controlled separately
-     * via the [`locale`](@/api/options.md#locale) option.
+     * Configures the time format for `intl-time` cells using an
+     * [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat)
+     * options object. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
      *
      * ::: tip Source data format
-     * For `intl-time` cells, source data must be in 24-hour time format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`), matching
+     * Source data must be in 24-hour time format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`), matching
      * the HTML `input type="time"` value. Otherwise operations such as sorting and filtering can be unstable or unpredictable.
      * The `timeFormat` object affects only how times are displayed; the underlying value should remain in that format.
      * :::
@@ -1949,43 +1839,13 @@ export default (): Record<string, unknown> => {
      * - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
      * - [`locale`](@/api/options.md#locale)
      *
-     * ---
-     *
-     * **Deprecated: string form**
-     *
-     * Passing a string (e.g. `'h:mm:ss a'`) is deprecated and works only with the `time` cell type.
-     * Migrate to the `intl-time` cell type and pass an `Intl.DateTimeFormat` options object.
-     *
-     * **Migration example:**
-     *
-     * ```js
-     * // Before (deprecated)
-     * columns: [{
-     *   type: 'time',
-     *   timeFormat: 'h:mm:ss a'
-     * }]
-     *
-     * // After (recommended)
-     * columns: [{
-     *   type: 'intl-time',
-     *   locale: 'en-US',
-     *   timeFormat: {
-     *     hour: 'numeric',
-     *     minute: '2-digit',
-     *     second: '2-digit',
-     *     hour12: true
-     *   }
-     * }]
-     * ```
-     *
      * @memberof Options#
-     * @type {string|object}
-     * @default 'h:mm:ss a'
+     * @type {object}
+     * @default { hour: '2-digit', minute: '2-digit' }
      * @category Core
      *
      * @example
      * ```js
-     * // intl-time cell type with Intl options
      * columns: [
      *   {
      *     type: 'intl-time',
@@ -1996,50 +1856,8 @@ export default (): Record<string, unknown> => {
      *   }
      * ]
      * ```
-     *
-     * @example
-     * ```js
-     * // Legacy: time cell type with string format (deprecated)
-     * columns: [
-     *   {
-     *     type: 'time',
-     *     timeFormat: 'h:mm:ss a'
-     *   }
-     * ]
-     * ```
      */
-    timeFormat: 'h:mm:ss a',
-
-    /**
-     * The `datePickerConfig` option configures the `date` [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)'s date picker, which uses an external dependency: [Pikaday](https://github.com/Pikaday/Pikaday/tree/1.8.2).
-     *
-     * You can set the `datePickerConfig` option to an object with any of the available [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration),
-     * except for the following, which are always overwritten by the `date` [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md):
-     * - `bound`
-     * - `container`
-     * - `field`
-     * - `trigger`
-     *
-     * If the `datePickerConfig` option is not defined, the `date` [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md) overwrites the following [Pikaday options](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration) as well:
-     *
-     * | Pikaday option       | Handsontable's setting |
-     * | -------------------- | ---------------------- |
-     * | `format`             | `'DD/MM/YYYY'`         |
-     * | `reposition`         | `false`                |
-     *
-     * Read more:
-     * - [`editor`](#editor)
-     * - [`dateFormat`](#dateFormat)
-     * - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
-     * - [All Pikaday options &#8594;](https://github.com/Pikaday/Pikaday/tree/1.8.2#configuration)
-     *
-     * @deprecated This option is deprecated and will be removed in the next major release.
-     * @memberof Options#
-     * @type {object}
-     * @default undefined
-     * @category Core
-     */
-    datePickerConfig: undefined,
+    timeFormat: { hour: '2-digit', minute: '2-digit' },
 
     /**
      * The `defaultDate` option configures the date pre-selected in the date picker editor
@@ -4470,12 +4288,6 @@ export default (): Record<string, unknown> => {
      * Configures the number format for [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
      * cells, including currency, units, precision, and other display options.
      *
-     * ::: warning
-     * The `numericFormat.pattern` and `numericFormat.culture` options are deprecated and will be
-     * removed in the next major release. Pass `Intl.NumberFormat` options directly to `numericFormat`
-     * and use the `locale` cell property instead of `culture`.
-     * :::
-     *
      * Since v17.0.0, this option accepts all properties of the
      * [`Intl.NumberFormatOptions`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat)
      * object. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
@@ -4541,38 +4353,7 @@ export default (): Record<string, unknown> => {
      * - [`locale`](@/api/options.md#locale)
      * - [Numeric cell type](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
      * - [Cell renderer](@/guides/cell-functions/cell-renderer/cell-renderer.md)
-     * - [Numbro cell type](@/recipes/cell-types/numbro/numbro.md)
      * - [Third-party licenses](@/guides/technical-specification/third-party-licenses/third-party-licenses.md)
-     *
-     * ---
-     *
-     * **Deprecated options:**
-     *
-     * The `pattern` and `culture` properties (numbro.js-based formatting) are deprecated and will be
-     * removed in the next major release. Migrate to the `Intl.NumberFormat` API shown above.
-     *
-     * | Deprecated property | Possible values                                                               | Replacement                                           |
-     * | ------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------- |
-     * | `pattern`           | All [`numbro.js` number formats](https://numbrojs.com/format.html#numbers)    | Use `Intl.NumberFormat` options (see tables above)    |
-     * | `culture`           | All [`numbro.js` currency formats](https://numbrojs.com/format.html#currency) | Use the [`locale`](@/api/options.md#locale) option    |
-     *
-     * **Migration example:**
-     *
-     * ```js
-     * // Before (deprecated)
-     * numericFormat: {
-     *   pattern: '0,0.00 $',
-     *   culture: 'en-US'
-     * }
-     *
-     * // After (recommended)
-     * locale: 'en-US',
-     * numericFormat: {
-     *   style: 'currency',
-     *   currency: 'USD',
-     *   minimumFractionDigits: 2
-     * }
-     * ```
      *
      * @memberof Options#
      * @since 0.35.0
@@ -4727,7 +4508,7 @@ export default (): Record<string, unknown> => {
      * columns: [
      *   {
      *     data: 'date',
-     *     dateFormat: 'DD/MM/YYYY',
+     *     dateFormat: { day: '2-digit', month: '2-digit', year: 'numeric' },
      *     // display 'Empty date cell' text
      *     // in every empty cell of the `date` column
      *     placeholder: 'Empty date cell'
@@ -6760,8 +6541,10 @@ export default (): Record<string, unknown> => {
      * Whenever Handsontable sets HTML (e.g. cell content, headers, context menu labels, dialog content,
      * paste from clipboard), it can pass the string through this function first. Sanitization is important
      * when content comes from users or external sources to prevent XSS (e.g. script injection, event handlers).
-     * If no sanitizer is set, HTML is applied as-is. Set a sanitizer when you need to allow rich content
-     * while stripping or neutralizing dangerous markup.
+     *
+     * By default (when no sanitizer is set), HTML is applied as-is (pass-through). You are responsible for
+     * XSS protection. Set a sanitizer when you need to allow rich content while stripping or neutralizing
+     * dangerous markup.
      *
      * The function receives the raw HTML string and an optional second argument (source) indicating where
      * the content is used (e.g. `'innerHTML'`, `'CopyPaste.paste'`), so you can apply different rules per source.
@@ -6778,20 +6561,8 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // Allowlist-based sanitization based on the DOMPurify library
-     * import DOMPurify from 'dompurify';
-     *
-     * sanitizer: (content, source) {
-     *   if (source === 'CopyPaste.paste') {
-     *     return DOMPurify.sanitize(content, {
-     *       ADD_TAGS: ['meta'],
-     *       ADD_ATTR: ['content'],
-     *       FORCE_BODY: true,
-     *     });
-     *   }
-     *
-     *   return DOMPurify.sanitize(content);
-     * },
+     * // Allowlist-based sanitization using a custom library
+     * sanitizer: (content, source) => myLibrary.sanitize(content),
      * ```
      *
      * @example
@@ -6818,11 +6589,11 @@ export default (): Record<string, unknown> => {
      * // Trusted Types: wrap sanitization in a policy so the sink accepts the result.
      * // Add the policy name to the CSP trusted-types directive (e.g. trusted-types default handsontable).
      * const policy = window.trustedTypes?.createPolicy('handsontable', {
-     *   createHTML: (input) => DOMPurify.sanitize(input),
+     *   createHTML: (input) => myLibrary.sanitize(input),
      * });
      *
      * sanitizer: (content, source) =>
-     *   policy ? policy.createHTML(content) : DOMPurify.sanitize(content),
+     *   policy ? policy.createHTML(content) : myLibrary.sanitize(content),
      * ```
      */
     sanitizer: undefined,
@@ -6868,6 +6639,5 @@ export default (): Record<string, unknown> => {
      */
     parsePastedValue: false,
 
-    /* eslint-enable jsdoc/require-description-complete-sentence */
   };
 };

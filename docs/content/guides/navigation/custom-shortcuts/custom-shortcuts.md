@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: g7139vli
 title: Custom shortcuts
 metaTitle: Custom shortcuts - JavaScript Data Grid | Handsontable
 description: Customize Handsontable's keyboard shortcuts.
@@ -18,13 +17,10 @@ tags:
   - custom shortcuts
   - shortcut keys
 react:
-  id: d5ay8gj1
   metaTitle: Custom shortcuts - React Data Grid | Handsontable
 angular:
-  id: lqk5kuws
   metaTitle: Custom shortcuts - Angular Data Grid | Handsontable
 vue:
-  id: 8i6v370n
   metaTitle: Custom shortcuts - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
@@ -63,7 +59,7 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 
 To use the Handsontable API, use a template ref on `HotTable` and read `hotRef.value.hotInstance`.
 
-For more information, see [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md).
+For more information, see [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md).
 
 :::
 

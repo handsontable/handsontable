@@ -32,6 +32,7 @@ export function registerAllRenderers() {
   registerRenderer(selectRenderer);
   registerRenderer(textRenderer);
   registerRenderer(timeRenderer);
+  registerRenderer(dateRenderer);
 }
 
 export {

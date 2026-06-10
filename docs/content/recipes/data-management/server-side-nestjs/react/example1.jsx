@@ -166,7 +166,7 @@ const ExampleComponent = () => {
             width: 90,
           },
           { data: 'assignee', type: 'text', width: 140 },
-          { data: 'createdAt', type: 'date', dateFormat: 'YYYY-MM-DD', width: 110 },
+          { data: 'createdAt', type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }, width: 110 },
         ]}
         rowHeaders={true}
         height="auto"

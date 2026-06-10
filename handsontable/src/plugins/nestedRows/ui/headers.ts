@@ -67,6 +67,9 @@ class HeadersUI extends BaseUI {
     };
   }
 
+  /**
+   * Initializes the headers UI component and sets up the data manager reference used to determine nesting levels for each row header.
+   */
   constructor(nestedRowsPlugin: NestedRows, hotInstance: HotInstance) {
     super(nestedRowsPlugin, hotInstance);
     /**

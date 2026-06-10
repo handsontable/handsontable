@@ -30,7 +30,7 @@ const COLUMNS = [
   { data: 'sku', type: 'text' },
   { data: 'name', type: 'text' },
   { data: 'category', type: 'text' },
-  { data: 'price', type: 'numeric', numericFormat: { pattern: '0,0.00' } },
+  { data: 'price', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
   { data: 'stock', type: 'numeric' },
   { data: 'status', type: 'text' },
 ];

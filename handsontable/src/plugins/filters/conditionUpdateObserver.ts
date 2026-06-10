@@ -62,6 +62,9 @@ class ConditionUpdateObserver {
    */
   latestOrderStack: number[] = [];
 
+  /**
+   * Initializes the observer with the Handsontable instance, a condition collection to watch, and an optional factory for column source data.
+   */
   constructor(
     hot: HotInstance,
     conditionCollection: ConditionCollection,

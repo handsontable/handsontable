@@ -14,7 +14,7 @@ export const data = [
   {
     companyName: randCompanyName({ maxCharCount: 18 }),
     productName: randProductName({ maxCharCount: 18 }),
-    sellDate: randPastDate().toLocaleDateString("en-gb"),
+    sellDate: randPastDate().toISOString().slice(0, 10),
     inStock: randBoolean(),
     qty: randNumber({ max: 500 }),
     orderId: `${randNumber({ max: 9, min: 0 })}${randNumber({
@@ -29,7 +29,7 @@ export const data = [
   ...Array.from({ length: 150 }, () => ({
     companyName: randCompanyName({ maxCharCount: 18 }),
     productName: randProductName({ maxCharCount: 18 }),
-    sellDate: randPastDate().toLocaleDateString("en-gb"),
+    sellDate: randPastDate().toISOString().slice(0, 10),
     inStock: randBoolean(),
     qty: randNumber({ max: 500 }),
     orderId: `${randNumber({ max: 9, min: 0 })}${randNumber({

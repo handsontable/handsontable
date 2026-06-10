@@ -2,14 +2,16 @@ import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { stringify, parse } from '../../3rdparty/SheetClip';
 import { arrayEach } from '../../helpers/array';
-import { sanitize, isJSON } from '../../helpers/string';
+import { isJSON } from '../../helpers/string';
 import { isObject, deepClone } from '../../helpers/object';
+import { warnOnce } from '../../helpers/console';
 import {
   removeContentEditableFromElementAndDeselect,
   runWithSelectedContendEditableElement,
   makeElementContentEditableAndSelectItsContent,
   isHTMLElement,
   isInternalElement,
+  SANITIZER_WARN_KEY,
 } from '../../helpers/dom/element';
 import { isSafari } from '../../helpers/browser';
 import copyItem from './contextMenuItem/copy';
@@ -24,7 +26,9 @@ import {
 } from './copyableRanges';
 import { _dataToHTML, htmlToGridSettings } from '../../utils/parseTable';
 
-/** Internet Explorer-specific window extension with legacy clipboard API. */
+/**
+ * Internet Explorer-specific window extension with legacy clipboard API.
+ */
 interface IEWindow extends Window {
   clipboardData: DataTransfer;
 }
@@ -47,9 +51,8 @@ const META_HEAD = [
   '<style type="text/css">td{white-space:normal}br{mso-data-placement:same-cell}</style>',
 ].join('');
 
-const sanitizeDeprecatedMessageShown = new WeakSet();
-
 /* eslint-disable jsdoc/require-description-complete-sentence */
+
 /**
  * @description
  * Copy, cut, and paste data by using the `CopyPaste` plugin.
@@ -85,10 +88,16 @@ const sanitizeDeprecatedMessageShown = new WeakSet();
  * @plugin CopyPaste
  */
 export class CopyPaste extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the setting keys that trigger a plugin update when changed via `updateSettings`.
+   */
   static get SETTING_KEYS() {
     return [
       PLUGIN_KEY,
@@ -96,10 +105,16 @@ export class CopyPaste extends BasePlugin {
     ];
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   */
   static get DEFAULT_SETTINGS() {
     return {
       pasteMode: 'overwrite',
@@ -814,25 +829,23 @@ export class CopyPaste extends BasePlugin {
       const sourceDataHTML = clipboardData.getData(SOURCE_DATA_HTML_MIME_TYPE);
 
       if (sourceDataHTML) {
-        const sanitizedSourceDataHTML = sanitize(sourceDataHTML, {
-          ADD_TAGS: ['meta', 'table', 'thead', 'tbody', 'tfoot', 'tr', 'th', 'td', 'colgroup', 'col'],
-          ADD_ATTR: ['colspan', 'rowspan', 'content'],
-          FORCE_BODY: true,
-        });
-        const parsedSourceConfig = htmlToGridSettings(sanitizedSourceDataHTML, this.hot.rootDocument);
+        const parsedSourceConfig = htmlToGridSettings(sourceDataHTML, this.hot.rootDocument);
 
         pastedSourceData = parsedSourceConfig?.data;
       }
 
       const rawTextHTML = clipboardData.getData('text/html') ?? '';
       const customSanitizer = this.hot.getSettings().sanitizer;
+
+      if (rawTextHTML && typeof customSanitizer !== 'function') {
+        warnOnce(this.hot.rootElement, SANITIZER_WARN_KEY,
+          'HTML content is being pasted to the DOM without a sanitizer. ' +
+          'Configure the "sanitizer" option to prevent XSS vulnerabilities.');
+      }
+
       const textHTML: string = typeof customSanitizer === 'function'
         ? customSanitizer(rawTextHTML, 'CopyPaste.paste')
-        : sanitize(rawTextHTML, {
-          ADD_TAGS: ['meta'],
-          ADD_ATTR: ['content'],
-          FORCE_BODY: true,
-        });
+        : rawTextHTML;
 
       if (textHTML && /(<table)|(<TABLE)/g.test(textHTML)) {
         const parsedConfig = htmlToGridSettings(textHTML, this.hot.rootDocument);

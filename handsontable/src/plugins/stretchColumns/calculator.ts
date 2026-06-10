@@ -41,6 +41,9 @@ export class StretchCalculator {
    */
   #activeStrategy = 'none';
 
+  /**
+   * Initializes the stretch columns calculator with the Handsontable instance and registers the stretch widths index map.
+   */
   constructor(hotInstance: HotInstance) {
     this.#hot = hotInstance;
     this.#widthsMap = this.#hot.columnIndexMapper

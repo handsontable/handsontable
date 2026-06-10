@@ -40,7 +40,6 @@ interface DropdownMenuSettings {
   [key: string]: unknown;
 }
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @plugin DropdownMenu
  * @class DropdownMenu
@@ -104,16 +103,24 @@ interface DropdownMenuSettings {
  * ```
  * :::
  */
-
 export class DropdownMenu extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the list of plugin dependencies required before this plugin can be initialized.
+   */
   static get PLUGIN_DEPS() {
     return [
       'plugin:AutoColumnSize',
@@ -168,6 +175,9 @@ export class DropdownMenu extends BasePlugin {
    */
   #isButtonClicked = false;
 
+  /**
+   * Initializes the plugin and registers the column header hook needed to inject the dropdown button.
+   */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
 

@@ -183,10 +183,26 @@ export function runStep(cmd, opts = {}) {
  * On non-TTY each event is printed as a plain line (no ANSI cursor movement).
  */
 export class ParallelSpinner {
+  /**
+   * Tracks active spinner entries by name, storing the current animation frame index and start timestamp.
+   */
   #active = new Map(); // name → {frame, startMs}
+
+  /**
+   * Holds the interval handle returned by setInterval, or null when the spinner is not running.
+   */
   #timer = null;
+
+  /**
+   * Counts the number of spinner lines currently written to stdout so they can be erased on the next render.
+   */
   #lineCount = 0;
 
+  /**
+   * Registers a new task by name, prints a start indicator on non-TTY, or starts the animation interval on TTY.
+   *
+   * @param {string} name The unique name of the task to start.
+   */
   start(name) {
     this.#active.set(name, { frame: 0, startMs: performance.now() });
 
@@ -204,6 +220,13 @@ export class ParallelSpinner {
     this.#render();
   }
 
+  /**
+   * Marks a task as finished, prints the result line with a pass/fail indicator and elapsed time, then stops the spinner if no tasks remain.
+   *
+   * @param {string} name The unique name of the task that finished.
+   * @param {boolean} ok Whether the task succeeded.
+   * @param {number} elapsed The time in milliseconds the task took to complete.
+   */
   finish(name, ok, elapsed) {
     const mark = ok ? '\x1b[32m✓\x1b[0m' : '\x1b[31m✗\x1b[0m';
 
@@ -225,6 +248,9 @@ export class ParallelSpinner {
     }
   }
 
+  /**
+   * Clears the animation interval and erases any spinner lines still visible on screen.
+   */
   stop() {
     if (this.#timer) {
       clearInterval(this.#timer);
@@ -234,6 +260,9 @@ export class ParallelSpinner {
     this.#clear();
   }
 
+  /**
+   * Erases all spinner lines written since the last render by moving the cursor up and clearing each line.
+   */
   #clear() {
     if (!isTTY || this.#lineCount === 0) {
       return;
@@ -243,6 +272,9 @@ export class ParallelSpinner {
     this.#lineCount = 0;
   }
 
+  /**
+   * Clears previous spinner output and redraws a spinning indicator line for each active task.
+   */
   #render() {
     if (!isTTY || this.#active.size === 0) {
       return;

@@ -35,13 +35,13 @@ const DEFAULT_QUERY_METHOD = function(query: string, value: unknown, cellPropert
     .indexOf(query.toLocaleLowerCase(cellProperties.locale as string | undefined)) !== -1;
 };
 
-/** Per-cell overrides stored in the `search` meta property. */
+/**
+ * Per-cell overrides stored in the `search` meta property.
+ */
 interface CellSearchMeta {
   callback?: typeof DEFAULT_CALLBACK;
   queryMethod?: typeof DEFAULT_QUERY_METHOD;
 }
-
-/* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
  * @plugin Search
@@ -75,10 +75,16 @@ interface CellSearchMeta {
  * ```
  */
 export class Search extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify and access this plugin within Handsontable.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority value that determines the plugin's initialization order relative to other plugins.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }

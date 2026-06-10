@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
@@ -109,7 +109,7 @@ const data = [
   { model: 'Cycling Cap', price: 444.79, sellDate: '2025-09-11', sellTime: '10:05', inStock: false },
 ];
 
-const customContainerRef = ref<HTMLElement | null>(null);
+const customContainerRef = useTemplateRef<HTMLElement>('customContainerRef');
 
 const hotSettings = ref<GridSettings>({
   data,

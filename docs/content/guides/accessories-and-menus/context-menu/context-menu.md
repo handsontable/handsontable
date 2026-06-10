@@ -1,6 +1,5 @@
 ---
 type: reference
-id: 3hrrxxln
 title: Context menu
 metaTitle: Context menu - JavaScript Data Grid | Handsontable
 description: Quickly access contextual actions such as removing rows, inserting columns or copying data, by opening the context menu.
@@ -12,13 +11,10 @@ tags:
   - pop-up menu
   - right-click menu
 react:
-  id: r2x6mh6h
   metaTitle: Context menu - React Data Grid | Handsontable
 angular:
-  id: 3xspgb3u
   metaTitle: Context menu - Angular Data Grid | Handsontable
 vue:
-  id: qgm3koe6
   metaTitle: Context menu - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
@@ -330,8 +326,7 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 ::: only-for javascript
 - [Custom context menu in React](@/react/guides/accessories-and-menus/context-menu/context-menu.md)
 - [Custom context menu in Angular](@/angular/guides/accessories-and-menus/context-menu/context-menu.md)
-- [Custom context menu in Vue](@/guides/integrate-with-vue3/vue3-custom-context-menu-example/vue3-custom-context-menu-example.md)
-- [Custom context menu in Vue 3](@/guides/integrate-with-vue3/vue3-custom-context-menu-example/vue3-custom-context-menu-example.md)
+- [Custom context menu in Vue 3](@/vue/guides/accessories-and-menus/context-menu/context-menu.md)
 :::
 
 </div>

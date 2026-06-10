@@ -39,6 +39,9 @@ export class ColumnHeadersRenderer extends BaseRenderer {
    */
   sourceRowIndex: number = 0;
 
+  /**
+   * Creates a new ColumnHeadersRenderer instance.
+   */
   constructor() {
     super('TH');
   }

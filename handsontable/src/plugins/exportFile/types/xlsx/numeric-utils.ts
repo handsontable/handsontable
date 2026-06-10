@@ -1,31 +1,4 @@
 /**
- * Converts a Numbro.js format pattern to an Excel `numFmt` string.
- *
- * Applies the minimum transformation needed for common patterns.
- * Numbro uses `0,0` to mean "thousands-grouped, at least one digit";
- * Excel uses `#,##0` for the same. All other pattern characters are
- * compatible between the two systems.
- *
- * Examples:
- * - `'$0,0.00'` → `'$#,##0.00'`
- * - `'0,0.00'`  → `'#,##0.00'`
- * - `'0,0'`     → `'#,##0'`
- * - `'0.00'`    → `'0.00'` (unchanged)
- * - `'0%'`      → `'0%'` (unchanged)
- *
- * @private
- * @param {*} pattern Numbro format pattern string (e.g. `'$0,0.00'`).
- * @returns {string|null}
- */
-export function numbroPatternToExcelNumFmt(pattern: unknown): string | null {
-  if (!pattern || typeof pattern !== 'string') {
-    return null;
-  }
-
-  return pattern.replaceAll('0,0', '#,##0');
-}
-
-/**
  * Resolves the currency symbol and its position (prefix or suffix) for a given
  * ISO 4217 currency code and locale using the `Intl.NumberFormat` API.
  *
@@ -60,8 +33,7 @@ function getCurrencyInfo(currency: string, locale: string | undefined): { symbol
 /**
  * Converts a `numericFormat` cell meta option to an Excel `numFmt` string.
  *
- * Handles both the legacy numbro.js `pattern` form and the current
- * `Intl.NumberFormat` options form introduced in Handsontable 17.
+ * Handles the `Intl.NumberFormat` options form introduced in Handsontable 17.
  *
  * @private
  * @param {object|null|undefined} numericFormat The `numericFormat` cell meta value.
@@ -70,21 +42,15 @@ function getCurrencyInfo(currency: string, locale: string | undefined): { symbol
  */
 export function intlNumFormatToExcelNumFmt(
   numericFormat: {
-    pattern?: string; style?: string; currency?: string;
+    style?: string; currency?: string;
     minimumFractionDigits?: number; maximumFractionDigits?: number; useGrouping?: boolean;
   } | null | undefined,
-  locale: string | undefined
+  locale?: string | undefined
 ): string | null {
   if (!numericFormat) {
     return null;
   }
 
-  // Legacy: numbro.js pattern (deprecated since Handsontable 17).
-  if (numericFormat.pattern) {
-    return numbroPatternToExcelNumFmt(numericFormat.pattern);
-  }
-
-  // Current: Intl.NumberFormat options.
   const {
     style,
     currency,

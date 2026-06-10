@@ -132,8 +132,17 @@ export class Menu {
    * @type {boolean}
    */
   origOutsideClickDeselects: GridSettings['outsideClickDeselects'] = undefined;
+  /**
+   * Registers a local hook listener scoped to this instance. Provided by the `localHooks` mixin.
+   */
   declare addLocalHook: (key: string, callback: Function) => object;
+  /**
+   * Executes all local hook listeners registered under the given name. Provided by the `localHooks` mixin.
+   */
   declare runLocalHooks: (key: string, ...args: unknown[]) => void;
+  /**
+   * Removes all local hook listeners and returns this instance. Provided by the `localHooks` mixin.
+   */
   declare clearLocalHooks: () => object;
   /**
    * The controller module that allows modifying the menu item selection positions.

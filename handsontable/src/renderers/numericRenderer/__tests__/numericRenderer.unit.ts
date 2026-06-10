@@ -1,5 +1,3 @@
-import numbro from 'numbro';
-import deDE from 'numbro/languages/de-DE';
 import Core from 'handsontable/core';
 import {
   RENDERER_TYPE,
@@ -45,33 +43,6 @@ describe('numericRenderer', () => {
     }
 
     describe('formatting', () => {
-      it('should format value with numericFormat (numbro.js format)', () => {
-        const TD = document.createElement('td');
-        const instance = getInstance();
-        const cellValue = 1.002;
-        const cellMeta = {
-          instance,
-          numericFormat: {
-            culture: 'de-DE',
-            pattern: {
-              mantissa: 2,
-              output: 'currency',
-            }
-          }
-        };
-
-        spyOn(instance, 'getDataAtCell').and.returnValue(cellValue);
-
-        numbro.registerLanguage(deDE);
-
-        const formattedValue = numericRenderer.valueFormatter(cellValue, cellMeta);
-
-        numericRenderer(instance, TD, undefined, undefined, undefined, formattedValue, cellMeta);
-
-        expect(TD.outerHTML).toMatchHTML('<td dir="ltr">1,00€</td>', toMatchHTMLConfig);
-        expect(cellMeta.className).toBe('htRight htNumeric');
-      });
-
       it('should format value with numericFormat (Intl.NumberFormat format)', () => {
         const TD = document.createElement('td');
         const instance = getInstance();
@@ -92,6 +63,98 @@ describe('numericRenderer', () => {
 
         expect(TD.outerHTML).toMatchHTML('<td dir="ltr">1,00&nbsp;€</td>', toMatchHTMLConfig);
         expect(cellMeta.className).toBe('htRight htNumeric');
+      });
+
+      it('should emit an unsupported-format warning once per instance when numericFormat.pattern is present', () => {
+        /* eslint-disable no-console */
+        /* eslint-disable no-restricted-globals */
+        const originalWarn = console.warn;
+
+        console.warn = jasmine.createSpy('warn');
+
+        try {
+          const instance = getInstance();
+          const TD1 = document.createElement('td');
+          const cellMeta = {
+            instance,
+            numericFormat: { pattern: '$0,0.00' }
+          };
+
+          spyOn(instance, 'getDataAtCell').and.returnValue(1000);
+
+          numericRenderer(instance, TD1, 0, 0, 0, 1000, cellMeta);
+
+          expect(console.warn).toHaveBeenCalledTimes(1);
+          expect(console.warn).toHaveBeenCalledWith(expect.stringContaining(
+            'numericFormat.pattern and numericFormat.culture options are not supported'
+          ));
+
+          // Second call with the same instance — should NOT warn again
+          const TD2 = document.createElement('td');
+
+          numericRenderer(instance, TD2, 0, 0, 0, 1000, cellMeta);
+
+          expect(console.warn).toHaveBeenCalledTimes(1);
+        } finally {
+          console.warn = originalWarn;
+        }
+        /* eslint-enable no-restricted-globals */
+        /* eslint-enable no-console */
+      });
+
+      it('should emit an unsupported-format warning when numericFormat.culture is present', () => {
+        /* eslint-disable no-console */
+        /* eslint-disable no-restricted-globals */
+        const originalWarn = console.warn;
+
+        console.warn = jasmine.createSpy('warn');
+
+        try {
+          const instance = getInstance();
+          const TD = document.createElement('td');
+          const cellMeta = {
+            instance,
+            numericFormat: { culture: 'de-DE' }
+          };
+
+          spyOn(instance, 'getDataAtCell').and.returnValue(1000);
+
+          numericRenderer(instance, TD, 0, 0, 0, 1000, cellMeta);
+
+          expect(console.warn).toHaveBeenCalledTimes(1);
+        } finally {
+          console.warn = originalWarn;
+        }
+        /* eslint-enable no-restricted-globals */
+        /* eslint-enable no-console */
+      });
+
+      it('should not emit an unsupported-format warning when only Intl.NumberFormat options are present', () => {
+        /* eslint-disable no-console */
+        /* eslint-disable no-restricted-globals */
+        const originalWarn = console.warn;
+
+        console.warn = jasmine.createSpy('warn');
+
+        try {
+          const instance = getInstance();
+          const TD = document.createElement('td');
+          const cellMeta = {
+            instance,
+            locale: 'en-US',
+            numericFormat: { style: 'currency', currency: 'USD' }
+          };
+
+          spyOn(instance, 'getDataAtCell').and.returnValue(1000);
+
+          numericRenderer(instance, TD, 0, 0, 0, 1000, cellMeta);
+
+          expect(console.warn).not.toHaveBeenCalled();
+        } finally {
+          console.warn = originalWarn;
+        }
+        /* eslint-enable no-restricted-globals */
+        /* eslint-enable no-console */
       });
     });
 

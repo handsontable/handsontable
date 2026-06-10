@@ -27,6 +27,11 @@ export class ColumnHeaderRowsRenderer extends BaseRenderer {
    */
   orderView: OrderView;
 
+  /**
+   * Creates a new ColumnHeaderRowsRenderer instance.
+   *
+   * @param {HTMLElement} rootNode - The root HTML element (THEAD) to manage TR elements within.
+   */
   constructor(rootNode: HTMLElement) {
     super('TR', rootNode);
 

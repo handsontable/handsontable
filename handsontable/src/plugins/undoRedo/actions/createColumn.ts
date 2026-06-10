@@ -18,12 +18,18 @@ export class CreateColumnAction extends BaseAction {
    */
   amount;
 
+  /**
+   * Initializes the create column action with the visual insertion index and the number of columns created.
+   */
   constructor({ index, amount }: { index: number, amount: number }) {
     super('insert_col');
     this.index = index;
     this.amount = amount;
   }
 
+  /**
+   * Registers the `afterCreateCol` hook listener that records a new CreateColumnAction after columns are inserted.
+   */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('afterCreateCol', (index: number, amount: number, source: string) => {
       (undoRedoPlugin as { done: (...args: unknown[]) => void }).done(

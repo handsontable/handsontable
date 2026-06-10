@@ -515,7 +515,6 @@ const SITEMAP_PASSTHROUGH_SLUGS = new Set([
   'api/multi-column-sorting',
   'api/pagination',
   'api/manual-column-resize',
-  'api/persistent-state',
   'api/plugins',
   'api/samples-generator',
   'api/physical-index-to-value-map',

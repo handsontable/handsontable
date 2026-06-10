@@ -32,6 +32,7 @@ describe('`registerAllRenderers`', () => {
       'password',
       'select',
       'time',
+      'date',
     ]);
     expect(getRegisteredValidatorNames()).toEqual([]);
   });

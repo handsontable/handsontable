@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import { stringify } from '../../helpers/mixed';
 import { throwWithCause } from '../../helpers/errors';
 import { warn } from '../../helpers/console';
@@ -26,6 +27,9 @@ export const EDITOR_STATE = Object.freeze({
  * @class BaseEditor
  */
 export class BaseEditor {
+  /**
+   * Returns the unique editor type identifier for the base editor.
+   */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }
@@ -105,12 +109,24 @@ export class BaseEditor {
    *
    * @type {object}
    */
-  declare cellProperties: Record<string, unknown>;
+  declare cellProperties: CellProperties;
 
   // Mixin-injected methods from hooksRefRegisterer
+  /**
+   * Internal storage map for hook callbacks registered on this editor instance.
+   */
   declare _hooksStorage: Record<string, Function[]>;
+  /**
+   * Registers a hook callback for the given hook name on this editor instance.
+   */
   declare addHook: (...args: unknown[]) => unknown;
+  /**
+   * Removes all hook callbacks registered under the given key on this editor instance.
+   */
   declare removeHooksByKey: (...args: unknown[]) => unknown;
+  /**
+   * Removes all hook callbacks registered on this editor instance.
+   */
   declare clearHooks: (...args: unknown[]) => unknown;
 
   /**
@@ -187,7 +203,7 @@ export class BaseEditor {
    */
   prepare(
     row: number, col: number, prop: string | number,
-    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+    td: HTMLTableCellElement, value: unknown, cellProperties: CellProperties): void {
     this.TD = td;
     this.row = row;
     this.col = col;
@@ -448,7 +464,6 @@ export class BaseEditor {
     return this.state === EDITOR_STATE.WAITING;
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Gets the object that provides information about the edited cell size and its position
    * relative to the table viewport.
@@ -592,7 +607,6 @@ export class BaseEditor {
       maxWidth,
     };
   }
-  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Gets className of the edited cell if exist.

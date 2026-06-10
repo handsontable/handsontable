@@ -19,6 +19,9 @@ class BaseUI {
    */
   declare plugin: NestedRows;
 
+  /**
+   * Initializes the base UI component with references to the NestedRows plugin instance and the Handsontable instance.
+   */
   constructor(pluginInstance: NestedRows, hotInstance: HotInstance) {
     this.hot = hotInstance;
     this.plugin = pluginInstance;

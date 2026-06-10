@@ -98,6 +98,9 @@ export class DialogUI {
    */
   #sanitizer?: (html: string) => string | undefined;
 
+  /**
+   * Initializes the dialog UI with a root element, RTL layout flag, and an optional HTML sanitizer, then installs the DOM structure.
+   */
   constructor({ rootElement, isRtl, sanitizer }: {
     rootElement: HTMLElement; isRtl: boolean; sanitizer?: (html: string) => string | undefined;
   }) {
@@ -281,7 +284,8 @@ export class DialogUI {
       // Render new dialog content
       if (typeof content === 'string') {
         fastInnerHTML(contentElement, content,
-          this.#sanitizer ? (html: string, ctx: string) => this.#sanitizer!(html) ?? html : undefined);
+          this.#sanitizer ? (html: string, ctx: string) => this.#sanitizer!(html) ?? html : undefined,
+          'dialog', this.#rootElement);
 
       } else if (isHTMLElement(content) || content instanceof DocumentFragment) {
         contentElement.appendChild(content);

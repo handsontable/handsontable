@@ -4,6 +4,9 @@ import { requestAnimationFrame, cancelAnimationFrame } from './../helpers/featur
  * @class Interval
  */
 class Interval {
+  /**
+   * Creates and returns a new Interval instance for the given function and delay in milliseconds.
+   */
   static create(func: Function, delay: number) {
     return new Interval(func, delay);
   }
@@ -46,6 +49,9 @@ class Interval {
    */
   readonly #callback;
 
+  /**
+   * Initializes the interval with a callback function and a delay in milliseconds, binding the internal RAF callback.
+   */
   constructor(func: Function, delay: number) {
     this.#func = func;
     this.delay = parseDelay(delay);

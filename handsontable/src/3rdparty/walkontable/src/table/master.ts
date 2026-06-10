@@ -86,6 +86,11 @@ class MasterTable extends Table {
     super(dataAccessObject, facadeGetter, domBindings, wtSettings, 'master');
   }
 
+  /**
+   * Aligns overlays with the trimming container, applying cached measurements when possible
+   * or performing a full measurement of the container. Uses ResizeObservers to detect
+   * container and hider size changes, and validates the table visibility.
+   */
   alignOverlaysWithTrimmingContainer() {
     // The base-class constructor invokes this method before MasterTable's
     // field initializers have run. Accessing a private field in that window
@@ -283,6 +288,10 @@ class MasterTable extends Table {
     this.isTableVisible = isVisible(this.TABLE);
   }
 
+  /**
+   * Marks oversized column headers in the master overlay by iterating through all
+   * rendered columns and marking those that exceed their container dimensions.
+   */
   markOversizedColumnHeaders() {
     const { wtSettings } = this;
     const { wtViewport } = this.dataAccessObject;

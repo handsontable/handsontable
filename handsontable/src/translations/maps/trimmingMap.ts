@@ -8,6 +8,9 @@ import { arrayReduce } from '../../helpers/array';
  * @class TrimmingMap
  */
 export class TrimmingMap extends PhysicalIndexToValueMap {
+  /**
+   * Initializes the trimming map with an optional default value, defaulting to `false` (not trimmed).
+   */
   constructor(initValueOrFn = false) {
     super(initValueOrFn);
   }

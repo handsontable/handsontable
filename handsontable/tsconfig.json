@@ -1,27 +1,24 @@
 {
   "compilerOptions": {
-    "target": "es2015",
-    "module": "es2015",
-    "lib": ["es2015", "es2016", "es2017", "es2020", "esnext", "dom", "dom.iterable"],
+    "target": "es2020",
+    "module": "esnext",
+    "lib": ["esnext", "dom", "dom.iterable"],
     "allowJs": false,
     "checkJs": false,
     "noEmit": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "strict": true,
     "noImplicitAny": true,
-    "noImplicitThis": false,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": false,
-    "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
+    "forceConsistentCasingInFileNames": true,
     "paths": {
-      "handsontable/*": ["src/*"]
+      "handsontable/*": ["./src/*"]
     }
   },
   "include": ["src/**/*"],
-  "exclude": ["src/**/__tests__/**", "src/**/*.types.ts", "src/**/test/**", "src/3rdparty/**"]
+  "exclude": ["src/**/__tests__/**", "src/**/*.types.ts", "src/**/test/**"]
 }

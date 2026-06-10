@@ -5,6 +5,7 @@
 import {
   log,
   warn,
+  warnOnce,
   info,
   error,
   deprecatedWarn,
@@ -219,6 +220,63 @@ describe('Console', () => {
       });
 
       expect(logFunction).toHaveBeenCalledWith('1 cell');
+    });
+  });
+
+  describe('warnOnce', () => {
+    it('should warn only once for the same scope and key', () => {
+      console.warn = jasmine.createSpy('warn');
+
+      const scope = {};
+
+      warnOnce(scope, 'sanitizer', 'message');
+      warnOnce(scope, 'sanitizer', 'message');
+      warnOnce(scope, 'sanitizer', 'message');
+
+      expect(console.warn).toHaveBeenCalledTimes(1);
+      expect(console.warn).toHaveBeenCalledWith('message');
+    });
+
+    it('should warn again for the same key but a different scope', () => {
+      console.warn = jasmine.createSpy('warn');
+
+      warnOnce({}, 'sanitizer', 'message');
+      warnOnce({}, 'sanitizer', 'message');
+
+      expect(console.warn).toHaveBeenCalledTimes(2);
+    });
+
+    it('should warn again for the same scope but a different key', () => {
+      console.warn = jasmine.createSpy('warn');
+
+      const scope = {};
+
+      warnOnce(scope, 'keyA', 'a');
+      warnOnce(scope, 'keyB', 'b');
+
+      expect(console.warn).toHaveBeenCalledTimes(2);
+      expect(console.warn).toHaveBeenCalledWith('a');
+      expect(console.warn).toHaveBeenCalledWith('b');
+    });
+
+    it('should forward all arguments to `console.warn`', () => {
+      console.warn = jasmine.createSpy('warn');
+
+      warnOnce({}, 'k', 'a', 'b', 'c');
+
+      expect(console.warn).toHaveBeenCalledWith('a', 'b', 'c');
+    });
+
+    it('should not throw when `console` is not exposed', () => {
+      const cachedConsole = console;
+
+      console = undefined;
+
+      expect(() => {
+        warnOnce({}, 'k', 'message');
+      }).not.toThrow();
+
+      console = cachedConsole;
     });
   });
 });

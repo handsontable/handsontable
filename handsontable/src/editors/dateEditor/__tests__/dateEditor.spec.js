@@ -12,16 +12,6 @@ describe('DateEditor', () => {
     }
   });
 
-  function getDates() {
-    return [
-      ['01/14/2006'],
-      ['12/01/2008'],
-      ['11/19/2011'],
-      ['02/02/2004'],
-      ['07/24/2011']
-    ];
-  }
-
   it('should return true in the `isOpened` after open the date editor', async() => {
     handsontable({
       type: 'date'
@@ -54,6 +44,18 @@ describe('DateEditor', () => {
     await waitForNextAnimationFrames(2);
 
     expect(editor.isOpened()).toBe(false);
+  });
+
+  it('should render an input element with type="date"', async() => {
+    handsontable({
+      type: 'date',
+    });
+
+    await selectCell(0, 0);
+
+    const editor = getActiveEditor();
+
+    expect(editor.TEXTAREA.getAttribute('type')).toBe('date');
   });
 
   it('should render an editor in specified position at cell 0, 0', async() => {
@@ -328,258 +330,40 @@ describe('DateEditor', () => {
     expect(window.getComputedStyle(editor, 'focus').getPropertyValue('outline-style')).toBe('none');
   });
 
-  it('should display Pikaday calendar', async() => {
+  it('should set a valid ISO date value on the native input', async() => {
     handsontable({
-      data: getDates(),
-      columns: [
-        {
-          type: 'date'
-        }
-      ]
-    });
-
-    expect($('.pika-single').is(':visible')).toBe(false);
-
-    await selectCell(0, 0);
-    await keyDownUp('enter');
-
-    expect($('.pika-single').is(':visible')).toBe(true);
-  });
-
-  it('should pass date picker config object to Pikaday', async() => {
-    const onOpenSpy = jasmine.createSpy('open');
-    const onCloseSpy = jasmine.createSpy('close');
-
-    handsontable({
-      data: getDates(),
-      columns: [
-        {
-          type: 'date',
-          datePickerConfig: {
-            firstDay: 1,
-            field: 'field', // read only - shouldn't overwrite
-            trigger: 'trigger', // read only - shouldn't overwrite
-            container: 'container', // read only - shouldn't overwrite
-            bound: true, // read only - shouldn't overwrite
-            i18n: {
-              previousMonth: 'Poprzedni',
-              nextMonth: 'Następny',
-              months: ['January', 'February', 'March', 'April', 'May', 'June', 'July',
-                'August', 'September', 'October', 'November', 'December'],
-              weekdays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-              weekdaysShort: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-            },
-            onOpen: onOpenSpy,
-            onClose: onCloseSpy
-          }
-        }
-      ]
-    });
-
-    await selectCell(0, 0);
-    await keyDownUp('enter');
-    await keyDownUp('escape');
-
-    const config = getActiveEditor().$datePicker.config();
-
-    expect(config.field instanceof HTMLElement).toBe(true);
-    expect(config.trigger instanceof HTMLElement).toBe(true);
-    expect(config.container instanceof HTMLElement).toBe(true);
-    expect(config.bound).toBe(false);
-    expect(config.firstDay).toBe(1);
-    expect(config.i18n.previousMonth).toBe('Poprzedni');
-    expect(config.i18n.nextMonth).toBe('Następny');
-    expect(onOpenSpy).toHaveBeenCalled();
-    expect(onCloseSpy).toHaveBeenCalled();
-  });
-
-  it('should render Pikaday within element that contains correct "dir" attribute value', async() => {
-    handsontable({
-      data: createSpreadsheetData(5, 2),
-      columns: [
-        { type: 'date' },
-        { type: 'date' }
-      ]
-    });
-
-    await selectCell(1, 1);
-    await keyDown('enter');
-
-    const datePicker = getActiveEditor().datePicker;
-    const config = getActiveEditor().$datePicker.config();
-
-    expect(datePicker.getAttribute('dir')).toBe('ltr');
-    expect(config.isRTL).toBe(false);
-  });
-
-  it('should remove any HTML connected with Pikaday Calendar', async() => {
-    handsontable({
-      data: getDates(),
-      columns: [
-        {
-          type: 'date'
-        }
-      ]
-    });
-
-    expect($('.pika-single').length).toBe(0);
-
-    await selectCell(0, 0);
-    await keyDownUp('enter');
-
-    expect($('.pika-single').length).toBe(1);
-
-    destroy();
-
-    expect($('.pika-single').length).toBe(0);
-  });
-
-  it('should select date corresponding to cell value', async() => {
-    handsontable({
-      data: getDates(),
-      columns: [
-        {
-          type: 'date',
-          dateFormat: 'MM/DD/YYYY'
-        }
-      ]
+      data: [['2023-05-15']],
+      columns: [{ type: 'date' }],
     });
 
     await selectCell(0, 0);
     await keyDownUp('enter');
 
-    const date = new Date(getDates()[0][0]);
+    const editor = getActiveEditor();
 
-    expect($('.pika-single').find('.pika-select-year').find(':selected').val()).toMatch(date.getFullYear().toString());
-    expect($('.pika-single').find('.pika-select-month').find(':selected').val()).toMatch(date.getMonth().toString());
-    expect($('.pika-single').find('.pika-table .is-selected').text()).toMatch(date.getDate().toString());
+    expect(editor.TEXTAREA.value).toBe('2023-05-15');
   });
 
-  it('should save new date after clicked on calendar', async() => {
+  it('should emit a console warn when setValue receives a non-ISO date value', async() => {
+    const warnSpy = spyOn(console, 'warn');
+
     handsontable({
-      data: getDates(),
-      columns: [
-        {
-          type: 'date',
-          dateFormat: 'MM/DD/YYYY'
-        }
-      ]
+      data: [['foo']],
+      columns: [{ type: 'date' }],
     });
 
     await selectCell(0, 0);
 
-    expect(getDataAtCell(0, 0)).toMatch('01/14/2006');
+    const editor = getActiveEditor();
 
-    await keyDownUp('enter');
-    await mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
+    editor.beginEditing();
 
-    await waitForNextAnimationFrames(2);
-
-    expect(getDataAtCell(0, 0)).toMatch('01/01/2006');
+    expect(warnSpy).toHaveBeenCalled();
   });
 
-  it('should display fill handle after selected date on calendar', async() => {
+  it('should enable to input a valid ISO date value', async() => {
     handsontable({
-      data: getDates(),
-      columns: [
-        {
-          type: 'date',
-          dateFormat: 'MM/DD/YYYY'
-        }
-      ]
-    });
-
-    await selectCell(0, 0);
-
-    expect(getDataAtCell(0, 0)).toMatch('01/14/2006');
-
-    await keyDownUp('enter');
-    await mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
-
-    await waitForNextAnimationFrames(2);
-
-    expect(getDataAtCell(0, 0)).toMatch('01/01/2006');
-    expect($('.htBorders .current.corner').is(':visible')).toBe(true);
-  });
-
-  it('should setup in settings and display defaultDate on calendar', async() => {
-    handsontable({
-      data: getDates(),
-      minSpareRows: 1,
-      columns: [
-        {
-          type: 'date',
-          dateFormat: 'MM/DD/YYYY',
-          defaultDate: '01/01/1900'
-        }
-      ]
-    });
-
-    await selectCell(5, 0);
-
-    expect(getDataAtCell(5, 0)).toBe(null);
-
-    await keyDownUp('enter');
-
-    const date = new Date('01/01/1900');
-
-    expect($('.pika-single').find('.pika-select-year').find(':selected').val()).toMatch(date.getFullYear().toString());
-    expect($('.pika-single').find('.pika-select-month').find(':selected').val()).toMatch(date.getMonth().toString());
-    expect($('.pika-single').find('.pika-table .is-selected').text()).toMatch(date.getDate().toString());
-
-    await keyDownUp('enter');
-
-    await waitForNextAnimationFrames(2);
-
-    expect(getDataAtCell(5, 0)).toMatch('01/01/1900');
-  });
-
-  it('should correctly format date for an empty cell (#dev-1807)', async() => {
-    handsontable({
-      data: [['']],
-      columns: [
-        {
-          type: 'date',
-          dateFormat: 'YYYY-MM-DD',
-          correctFormat: true,
-          defaultDate: '2000-01-01'
-        }
-      ]
-    });
-
-    await selectCell(0, 0);
-    await keyDownUp('enter');
-    await keyDownUp('enter');
-
-    await waitForNextAnimationFrames(2);
-
-    expect(getDataAtCell(0, 0)).toBe('2000-01-01');
-  });
-
-  it('should close calendar after picking new date', async() => {
-    handsontable({
-      data: getDates(),
-      columns: [
-        {
-          type: 'date',
-          dateFormat: 'MM/DD/YYYY'
-        }
-      ]
-    });
-
-    await selectCell(0, 0);
-    await keyDownUp('enter');
-
-    expect($('.pika-single').is(':visible')).toBe(true);
-
-    await mouseDown($('.pika-single').find('.pika-table tbody tr:eq(0) td:eq(0) button'));
-
-    expect($('.pika-single').is(':visible')).toBe(false);
-  });
-
-  it('should enable to input any value in textarea', async() => {
-    handsontable({
-      data: getDates(),
+      data: [['2023-01-01']],
       columns: [
         {
           type: 'date'
@@ -595,23 +379,24 @@ describe('DateEditor', () => {
 
     expect(editor.isOpened()).toBe(true);
 
-    editor.TEXTAREA.value = 'foo';
+    editor.TEXTAREA.value = '2023-06-15';
 
-    await keyDownUp('o');
+    await keyDownUp('5');
 
-    expect(editor.getValue()).toEqual('foo');
+    expect(editor.getValue()).toEqual('2023-06-15');
 
     editor.finishEditing();
 
     await waitForNextAnimationFrames(2);
 
-    expect(getDataAtCell(0, 0)).toEqual('foo');
+    expect(getDataAtCell(0, 0)).toEqual('2023-06-15');
   });
 
   it('should not close editor when inserting wrong value and allowInvalid is set to false, (#5419)', async() => {
     handsontable({
-      data: getDates(),
+      data: [['2023-01-01']],
       allowInvalid: false,
+      allowEmpty: false,
       columns: [
         {
           type: 'date'
@@ -627,24 +412,24 @@ describe('DateEditor', () => {
 
     expect(editor.isOpened()).toBe(true);
 
-    editor.TEXTAREA.value = 'foo';
+    // The native date input rejects non-ISO strings: assigning an invalid value results in an empty string.
+    editor.TEXTAREA.value = '2023-13-01'; // invalid month → rejected by native input
 
-    expect(editor.getValue()).toEqual('foo');
+    expect(editor.getValue()).toEqual('');
 
     editor.finishEditing();
 
     await waitForNextAnimationFrames(2);
 
     expect(editor.isOpened()).toBe(true);
-    expect(editor.getValue()).toEqual('foo');
   });
 
   // Input element can not lose the focus while entering new characters. It breaks IME editor functionality for Asian users.
   it('should not lose the focus on input element while inserting new characters if `imeFastEdit` is enabled (#839)', async() => {
     handsontable({
       data: [
-        ['one', 'two'],
-        ['three', 'four']
+        ['2023-01-01', 'two'],
+        ['2023-06-15', 'four']
       ],
       columns: [
         {
@@ -673,29 +458,11 @@ describe('DateEditor', () => {
     await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(activeElement);
-
-    getActiveEditor().TEXTAREA.value = 't';
-
-    await keyDownUp('t');
-
-    expect(document.activeElement).toBe(activeElement);
-
-    getActiveEditor().TEXTAREA.value = 'te';
-
-    await keyDownUp('e');
-
-    expect(document.activeElement).toBe(activeElement);
-
-    getActiveEditor().TEXTAREA.value = 'teo';
-
-    await keyDownUp('o');
-
-    expect(document.activeElement).toBe(activeElement);
   });
 
-  it('should restore original when edited and pressed ESC ', async() => {
+  it('should restore original when edited and pressed ESC', async() => {
     handsontable({
-      data: getDates(),
+      data: [['2023-01-01']],
       columns: [
         {
           type: 'date'
@@ -711,60 +478,27 @@ describe('DateEditor', () => {
 
     expect(editor.isOpened()).toBe(true);
 
-    editor.TEXTAREA.value = 'foo';
+    editor.TEXTAREA.value = '2023-06-15';
 
-    expect(editor.getValue()).toEqual('foo');
+    expect(editor.getValue()).toEqual('2023-06-15');
 
     await keyDownUp('escape'); // cancel editing
 
     editor.finishEditing();
 
-    expect(getDataAtCell(0, 0)).toEqual('01/14/2006');
+    expect(getDataAtCell(0, 0)).toEqual('2023-01-01');
   });
 
-  it('should display a calendar based on a current date, even if a date in a wrong format was entered previously', async() => {
+  it('should not modify the edited date when opening the editor', async() => {
     handsontable({
-      data: createSpreadsheetData(5, 2),
-      columns: [
-        { type: 'date' },
-        { type: 'date', dateFormat: 'YYYY-MM-DD' }
-      ],
-      minSpareRows: 1
-    });
-
-    await setDataAtCell(4, 1, '15-11-11');
-
-    await waitForNextAnimationFrames(2);
-
-    await selectCell(5, 1);
-    await keyDownUp('enter');
-
-    expect($('.pika-single').is(':visible')).toBe(true);
-
-    await mouseDown($('.pika-single').find('.pika-table tbody tr:eq(3) td:eq(3) button'));
-
-    await waitForNextAnimationFrames(2);
-    const resultDate = getDataAtCell(5, 1);
-
-    expect(moment(resultDate).year()).toEqual(moment().year());
-    expect(moment(resultDate).month()).toEqual(moment().month());
-  });
-
-  it('should not modify the edited date and time, when opening the editor', async() => {
-    handsontable({
-      data: [['02/02/2015 8:00 AM']],
+      data: [['2015-02-02']],
       columns: [
         {
           type: 'date',
-          dateFormat: 'MM/DD/YYYY h:mm A',
-          correctFormat: true,
-          defaultDate: '01/01/1900',
-          allowEmpty: false,
         }
       ]
     });
 
-    // setDataAtCell(0, 0, '02/02/2015 8:00 AM');
     const cellValue = getDataAtCell(0, 0);
 
     await selectCell(0, 0);
@@ -775,48 +509,21 @@ describe('DateEditor', () => {
     expect(editor.TEXTAREA.value).toEqual(cellValue);
   });
 
-  it('should use the default Pikaday\'s configuration if cell does not customize picker', async() => {
-    handsontable({
-      data: [['10/12/2020', '01/14/2017']],
-      columns: [
-        {
-          type: 'date',
-          dateFormat: 'MM/DD/YYYY',
-          correctFormat: true,
-        },
-        {
-          type: 'date',
-          dateFormat: 'MM/DD/YYYY',
-          datePickerConfig: {
-            numberOfMonths: 3
-          }
-        }
-      ]
+  it('should close the date editor after call `useTheme`', async() => {
+    const hotInstance = handsontable({
+      columns: [{ type: 'date' }],
     });
 
     await selectCell(0, 0);
-    await keyDownUp('enter');
-    await waitForNextAnimationFrames(2);
+    const editor = getActiveEditor();
 
-    expect($('.pika-lendar').length).toEqual(1);
+    editor.beginEditing();
 
-    await keyDownUp('enter');
-    await waitForNextAnimationFrames(2);
+    expect(editor.isOpened()).toBe(true);
 
-    await selectCell(0, 1);
-    await keyDownUp('enter');
-    await waitForNextAnimationFrames(2);
+    hotInstance.useTheme(undefined);
 
-    expect($('.pika-lendar').length).toEqual(3);
-
-    await keyDownUp('enter');
-    await waitForNextAnimationFrames(2);
-
-    await selectCell(0, 0);
-    await keyDownUp('enter');
-    await waitForNextAnimationFrames(2);
-
-    expect($('.pika-lendar').length).toEqual(1);
+    expect(editor.isOpened()).toBe(false);
   });
 
   it('should render an editable editor\'s element without messing with "dir" attribute', async() => {
@@ -830,105 +537,6 @@ describe('DateEditor', () => {
     const editableElement = getActiveEditor().TEXTAREA;
 
     expect(editableElement.getAttribute('dir')).toBeNull();
-  });
-
-  using('data set', [
-    { date: '01/02/2023', dateFormat: 'DD/MM/YYYY', day: 1, month: 1, year: 2023 },
-    { date: '01/02/23', dateFormat: 'DD/MM/YY', day: 1, month: 1, year: 2023 },
-    { date: '1/2/23', dateFormat: 'D/M/YY', day: 1, month: 1, year: 2023 },
-    { date: '01/02/23', dateFormat: 'D/M/YY', day: 2, month: 0, year: 2023 },
-    { date: '01-02-2023', dateFormat: 'DD-MM-YYYY', day: 1, month: 1, year: 2023 },
-    { date: '1-2-23', dateFormat: 'D-M-YY', day: 1, month: 1, year: 2023 },
-    { date: '1-12-23', dateFormat: 'D-M-YY', day: 1, month: 11, year: 2023 },
-    { date: '1.2.23', dateFormat: 'D.M.YY', day: 1, month: 1, year: 2023 },
-    { date: '2023 February 2nd', dateFormat: 'YYYY MMMM Do', day: 2, month: 1, year: 2023 },
-    { date: 'Feb 2nd \'23', dateFormat: 'MMM Do \'YY', day: 2, month: 1, year: 2023 },
-    { date: 'The 2nd of February \'23', dateFormat: '[The] Do [of] MMMM \'YY', day: 2, month: 1, year: 2023 },
-    { date: 'Day: 2, Month: 2, Year: 2023',
-      dateFormat: '[Day:] D, [Month:] M, [Year:] YYYY',
-      day: 2,
-      month: 1,
-      year: 2023
-    },
-
-  ], ({ date, day, month, year, dateFormat }) => {
-    it('it should display the correct date in the date picker', async() => {
-      handsontable({
-        data: [[date]],
-        editor: 'date',
-        dateFormat
-      });
-
-      await selectCell(0, 0);
-      await keyDownUp('enter');
-
-      const datePickerDate = hot().getActiveEditor().$datePicker._d;
-
-      expect(datePickerDate.getDate()).toEqual(day);
-      expect(datePickerDate.getMonth()).toEqual(month);
-      expect(datePickerDate.getFullYear()).toEqual(year);
-    });
-  });
-
-  using('data set', [
-    { value: '01/02/23', dateFormat: 'DD/MM/YYYY', day: 1, month: 1, year: 2023 },
-    { value: '1/2/23', dateFormat: 'DD/MM/YY', day: 1, month: 1, year: 2023 },
-    { value: '01/02/2023', dateFormat: 'D/M/YY', day: 1, month: 1, year: 2023 },
-    { value: '1-2-23', dateFormat: 'DD-MM-YYYY', day: 1, month: 1, year: 2023 },
-    { value: '01/02/2023', dateFormat: 'DD-MM-YYYY', day: 1, month: 1, year: 2023 },
-    { value: '01-02-2023', dateFormat: 'DD.MM.YYYY', day: 1, month: 1, year: 2023 },
-    { value: '1-2-2023', dateFormat: 'D-M-YY', day: 1, month: 1, year: 2023 },
-    { value: '1.2.2023', dateFormat: 'D.M.YY', day: 1, month: 1, year: 2023 },
-    { value: '23 February 2nd', dateFormat: 'YYYY MMMM Do', day: 2, month: 1, year: 2023 },
-    { value: 'Feb 2nd \'2023', dateFormat: 'MMM Do \'YY', day: 2, month: 1, year: 2023 },
-    { value: 'The 2nd of February 2023', dateFormat: '[The] Do [of] MMMM \'YY', day: 2, month: 1, year: 2023 },
-    {
-      value: 'Day: 2, Month: 2, Year: 23',
-      dateFormat: '[Day:] D, [Month:] M, [Year:] YYYY',
-      day: 2,
-      month: 1,
-      year: 2023
-    },
-    {
-      value: 'Day: 2, Month: 2, Year: 2023',
-      dateFormat: '[Day:] D, [Month:] M, [Year:] YY',
-      day: 2,
-      month: 1,
-      year: 2023
-    },
-  ], ({ date, dateFormat }) => {
-    // TODO: Not sure which of these are intentional
-    it('it should NOT display the correct dat in the date picker (wrong date format)', async() => {
-      handsontable({
-        data: [[date]],
-        editor: 'date',
-        dateFormat
-      });
-
-      await selectCell(0, 0);
-      await keyDownUp('enter');
-
-      const datePickerDate = hot().getActiveEditor().$datePicker._d;
-
-      expect(datePickerDate).toEqual(undefined);
-    });
-  });
-
-  it('should close the date picker editor after call `useTheme`', async() => {
-    const hot = handsontable({
-      columns: [{ type: 'date' }],
-    });
-
-    await selectCell(0, 0);
-    const editor = getActiveEditor();
-
-    editor.beginEditing();
-
-    expect(editor.isOpened()).toBe(true);
-
-    hot.useTheme(undefined);
-
-    expect(editor.isOpened()).toBe(false);
   });
 
   describe('IME support', () => {
@@ -953,7 +561,7 @@ describe('DateEditor', () => {
   describe('Cleaning up after the editor', () => {
     it('should not leave any editor containers after destroying the Handsontable instance', async() => {
       handsontable({
-        data: [['02/02/2015 8:00 AM']],
+        data: [['2015-02-02']],
         columns: [
           {
             type: 'date'

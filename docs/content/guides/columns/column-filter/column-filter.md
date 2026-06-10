@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 3xxlonuv
 title: Column filter
 metaTitle: Column filter - JavaScript Data Grid | Handsontable
 description: Filter your data by values or by a set of conditions.
@@ -20,13 +19,10 @@ tags:
   - advanced filter
   - dropdown
 react:
-  id: vz7ct2bv
   metaTitle: Column filter - React Data Grid | Handsontable
 angular:
-  id: woyi876m
   metaTitle: Column filter - Angular Data Grid | Handsontable
 vue:
-  id: mv5nc30h
   metaTitle: Column filter - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
@@ -867,7 +863,7 @@ this.hotTable.hotInstance!.updateSettings({
 ::: only-for vue
 
 ```js
-const hotTableRef = ref(null);
+const hotTableRef = useTemplateRef<InstanceType<typeof HotTable>>('hotTableRef');
 
 hotTableRef.value.hotInstance.updateSettings({
   // enable filtering
@@ -987,7 +983,7 @@ this.hotTable.hotInstance!.updateSettings({
 ::: only-for vue
 
 ```js
-const hotTableRef = ref(null);
+const hotTableRef = useTemplateRef<InstanceType<typeof HotTable>>('hotTableRef');
 
 hotTableRef.value.hotInstance.updateSettings({
   // enable filtering for all columns

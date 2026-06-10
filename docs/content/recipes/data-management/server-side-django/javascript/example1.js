@@ -202,7 +202,7 @@ const hot = new Handsontable(container, {
     { data: 'last_name',  type: 'text' },
     { data: 'department', type: 'text' },
     { data: 'role',       type: 'text' },
-    { data: 'salary',     type: 'numeric', numericFormat: { pattern: '$0,0' } },
+    { data: 'salary',     type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 } },
   ],
 
   rowHeaders: true,

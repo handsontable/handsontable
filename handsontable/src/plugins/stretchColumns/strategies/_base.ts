@@ -34,6 +34,9 @@ export class StretchStrategy {
    */
   stretchedWidths = new Map<number, number>();
 
+  /**
+   * Initializes the stretch strategy with a function that overrides individual column widths during the stretch calculation.
+   */
   constructor(overwriteColumnWidthFn: (width: number, column: number) => number) {
     this.overwriteColumnWidthFn = overwriteColumnWidthFn;
   }

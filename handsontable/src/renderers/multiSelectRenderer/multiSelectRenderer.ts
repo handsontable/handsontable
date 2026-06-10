@@ -1,4 +1,5 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import { baseRenderer } from '../baseRenderer';
 import { addClass, empty, fastInnerText } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
@@ -26,7 +27,7 @@ export function multiSelectRenderer(
   col: number,
   prop: string | number,
   value: unknown,
-  cellProperties: Record<string, unknown>
+  cellProperties: CellProperties
 ): void {
   baseRenderer(hotInstance, TD, row, col, prop, value, cellProperties);
 

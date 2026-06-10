@@ -58,7 +58,7 @@ registerValidator('myValidator', myValidator);
 
 ## Correcting cell values inside a validator
 
-Validators may correct a cell's value before passing it to the callback. The built-in `dateValidator` and `timeValidator` do this via `correctFormat`. If your validator calls `setDataAtCell` to write a corrected value, **pass a source string that ends with `'Validator'`** (e.g. `'myCustomValidator'`):
+Validators may correct a cell's value before passing it to the callback. If your validator calls `setDataAtCell` to write a corrected value, **pass a source string that ends with `'Validator'`** (e.g. `'myCustomValidator'`):
 
 ```js
 this.instance.setDataAtCell(row, col, correctedValue, 'myCustomValidator');

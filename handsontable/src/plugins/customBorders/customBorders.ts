@@ -87,8 +87,6 @@ function isBorderSide(value: string): value is BorderSide {
 
 const SUPPORTED_STYLES = ['dashed', 'dotted', 'solid'];
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
-
 /**
  * @plugin CustomBorders
  * @class CustomBorders
@@ -142,10 +140,16 @@ const SUPPORTED_STYLES = ['dashed', 'dotted', 'solid'];
  * ```
  */
 export class CustomBorders extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }

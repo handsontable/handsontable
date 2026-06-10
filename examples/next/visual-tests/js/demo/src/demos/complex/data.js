@@ -8,7 +8,7 @@ export const data = [
     country: 'USA',
     city: 'New York',
     lastLoginDate: '2023-08-25',
-    lastLoginTime: '8:30:00 AM',
+    lastLoginTime: '08:30',
     favoriteProduct: 'iPhone 13 Pro',
   },
   {
@@ -20,7 +20,7 @@ export const data = [
     country: 'Canada',
     city: 'Toronto',
     lastLoginDate: '2023-09-01',
-    lastLoginTime: '2:15:00 PM',
+    lastLoginTime: '14:15',
     favoriteProduct: 'MacBook Air',
   },
   {
@@ -32,7 +32,7 @@ export const data = [
     country: 'UK',
     city: 'London',
     lastLoginDate: '2023-08-30',
-    lastLoginTime: '8:45:00 PM',
+    lastLoginTime: '20:45',
     favoriteProduct: 'Apple Watch Series 7',
   },
   {
@@ -44,7 +44,7 @@ export const data = [
     country: 'Australia',
     city: 'Sydney',
     lastLoginDate: '2023-09-02',
-    lastLoginTime: '12:00:00 PM',
+    lastLoginTime: '12:00',
     favoriteProduct: 'iPad Pro',
   },
   {
@@ -56,7 +56,7 @@ export const data = [
     country: 'USA',
     city: 'Los Angeles',
     lastLoginDate: '2023-08-22',
-    lastLoginTime: '10:20:00 AM',
+    lastLoginTime: '10:20',
     favoriteProduct: 'Fitness Tracker',
     __children: [
       {
@@ -68,7 +68,7 @@ export const data = [
         country: 'UK',
         city: 'London',
         lastLoginDate: '2023-08-30',
-        lastLoginTime: '8:45:00 PM',
+        lastLoginTime: '20:45',
         favoriteProduct: 'Apple Watch Series 7',
       },
       {
@@ -80,7 +80,7 @@ export const data = [
         country: 'Australia',
         city: 'Sydney',
         lastLoginDate: '2023-09-02',
-        lastLoginTime: '12:00:00 PM',
+        lastLoginTime: '12:00',
         favoriteProduct: 'iPad Pro',
       },
       {
@@ -92,7 +92,7 @@ export const data = [
         country: 'USA',
         city: 'Los Angeles',
         lastLoginDate: '2023-08-22',
-        lastLoginTime: '10:20:00 AM',
+        lastLoginTime: '10:20',
         favoriteProduct: 'Fitness Tracker',
       },
       {
@@ -104,7 +104,7 @@ export const data = [
         country: 'Spain',
         city: 'Barcelona',
         lastLoginDate: '2023-09-05',
-        lastLoginTime: '4:45:00 PM',
+        lastLoginTime: '16:45',
         favoriteProduct: 'Kindle Paperwhite',
       },
     ],
@@ -118,7 +118,7 @@ export const data = [
     country: 'Spain',
     city: 'Barcelona',
     lastLoginDate: '2023-09-05',
-    lastLoginTime: '4:45:00 PM',
+    lastLoginTime: '16:45',
     favoriteProduct: 'Kindle Paperwhite',
   },
   {
@@ -130,7 +130,7 @@ export const data = [
     country: 'Japan',
     city: 'Tokyo',
     lastLoginDate: '2023-08-27',
-    lastLoginTime: '3:10:00 PM',
+    lastLoginTime: '15:10',
     favoriteProduct: 'Nintendo Switch',
   },
   {
@@ -142,7 +142,7 @@ export const data = [
     country: 'UK',
     city: 'Manchester',
     lastLoginDate: '2023-09-03',
-    lastLoginTime: '9:50:00 AM',
+    lastLoginTime: '09:50',
     favoriteProduct: 'Makeup Set',
   },
   {
@@ -154,7 +154,7 @@ export const data = [
     country: 'Brazil',
     city: 'Sao Paulo',
     lastLoginDate: '2023-08-29',
-    lastLoginTime: '1:30:00 PM',
+    lastLoginTime: '13:30',
     favoriteProduct: "Chef's Knife Set",
   },
   {
@@ -166,7 +166,7 @@ export const data = [
     country: 'USA',
     city: 'Miami',
     lastLoginDate: '2023-09-04',
-    lastLoginTime: '5:55:00 PM',
+    lastLoginTime: '17:55',
     favoriteProduct: 'Travel Backpack',
   },
   {
@@ -178,7 +178,7 @@ export const data = [
     country: 'Spain',
     city: 'Madrid',
     lastLoginDate: '2023-08-28',
-    lastLoginTime: '7:25:00 PM',
+    lastLoginTime: '19:25',
     favoriteProduct: 'Oil Painting',
   },
   {
@@ -190,7 +190,7 @@ export const data = [
     country: 'South Korea',
     city: 'Seoul',
     lastLoginDate: '2023-08-26',
-    lastLoginTime: '11:10:00 AM',
+    lastLoginTime: '11:10',
     favoriteProduct: 'Smartphone',
   },
   {
@@ -202,7 +202,7 @@ export const data = [
     country: 'Canada',
     city: 'Vancouver',
     lastLoginDate: '2023-08-31',
-    lastLoginTime: '6:40:00 PM',
+    lastLoginTime: '18:40',
     favoriteProduct: 'Designer Handbag',
   },
   {
@@ -214,7 +214,7 @@ export const data = [
     country: 'Spain',
     city: 'Valencia',
     lastLoginDate: '2023-09-01',
-    lastLoginTime: '10:15:00 AM',
+    lastLoginTime: '10:15',
     favoriteProduct: 'Wireless Earbuds',
   },
   {
@@ -226,7 +226,7 @@ export const data = [
     country: 'USA',
     city: 'Chicago',
     lastLoginDate: '2023-08-30',
-    lastLoginTime: '3:40:00 PM',
+    lastLoginTime: '15:40',
     favoriteProduct: 'Home Lighting',
   },
   {
@@ -238,7 +238,7 @@ export const data = [
     country: 'Mexico',
     city: 'Mexico City',
     lastLoginDate: '2023-09-02',
-    lastLoginTime: '2:05:00 PM',
+    lastLoginTime: '14:05',
     favoriteProduct: 'Yoga Mat',
   },
   {
@@ -250,7 +250,7 @@ export const data = [
     country: 'Canada',
     city: 'Toronto',
     lastLoginDate: '2023-08-29',
-    lastLoginTime: '12:20:00 PM',
+    lastLoginTime: '12:20',
     favoriteProduct: 'Bestseller Novel',
   },
   {
@@ -262,7 +262,7 @@ export const data = [
     country: 'USA',
     city: 'Houston',
     lastLoginDate: '2023-08-27',
-    lastLoginTime: '8:55:00 AM',
+    lastLoginTime: '08:55',
     favoriteProduct: 'Skincare Set',
   },
   {
@@ -274,7 +274,7 @@ export const data = [
     country: 'Canada',
     city: 'Vancouver',
     lastLoginDate: '2023-08-31',
-    lastLoginTime: '6:40:00 PM',
+    lastLoginTime: '18:40',
     favoriteProduct: 'Travel Backpack',
   },
   {
@@ -286,7 +286,7 @@ export const data = [
     country: 'USA',
     city: 'New York',
     lastLoginDate: '2023-08-25',
-    lastLoginTime: '8:30:00 AM',
+    lastLoginTime: '08:30',
     favoriteProduct: 'iPhone 13 Pro',
   },
   {
@@ -298,7 +298,7 @@ export const data = [
     country: 'Canada',
     city: 'Toronto',
     lastLoginDate: '2023-09-01',
-    lastLoginTime: '2:15:00 PM',
+    lastLoginTime: '14:15',
     favoriteProduct: 'MacBook Air',
   },
   {
@@ -310,7 +310,7 @@ export const data = [
     country: 'UK',
     city: 'London',
     lastLoginDate: '2023-08-30',
-    lastLoginTime: '8:45:00 PM',
+    lastLoginTime: '20:45',
     favoriteProduct: 'Apple Watch Series 7',
   },
   {
@@ -322,7 +322,7 @@ export const data = [
     country: 'Australia',
     city: 'Sydney',
     lastLoginDate: '2023-09-02',
-    lastLoginTime: '12:00:00 PM',
+    lastLoginTime: '12:00',
     favoriteProduct: 'iPad Pro',
   },
   {
@@ -334,7 +334,7 @@ export const data = [
     country: 'USA',
     city: 'Los Angeles',
     lastLoginDate: '2023-08-22',
-    lastLoginTime: '10:20:00 AM',
+    lastLoginTime: '10:20',
     favoriteProduct: 'Fitness Tracker',
   },
   {
@@ -346,7 +346,7 @@ export const data = [
     country: 'Spain',
     city: 'Barcelona',
     lastLoginDate: '2023-09-05',
-    lastLoginTime: '4:45:00 PM',
+    lastLoginTime: '16:45',
     favoriteProduct: 'Kindle Paperwhite',
   },
   {
@@ -358,7 +358,7 @@ export const data = [
     country: 'Japan',
     city: 'Tokyo',
     lastLoginDate: '2023-08-27',
-    lastLoginTime: '3:10:00 PM',
+    lastLoginTime: '15:10',
     favoriteProduct: 'Nintendo Switch',
   },
   {
@@ -370,7 +370,7 @@ export const data = [
     country: 'UK',
     city: 'Manchester',
     lastLoginDate: '2023-09-03',
-    lastLoginTime: '9:50:00 AM',
+    lastLoginTime: '09:50',
     favoriteProduct: 'Makeup Set',
   },
   {
@@ -382,7 +382,7 @@ export const data = [
     country: 'Brazil',
     city: 'Sao Paulo',
     lastLoginDate: '2023-08-29',
-    lastLoginTime: '1:30:00 PM',
+    lastLoginTime: '13:30',
     favoriteProduct: "Chef's Knife Set",
   },
   {
@@ -394,7 +394,7 @@ export const data = [
     country: 'USA',
     city: 'Miami',
     lastLoginDate: '2023-09-04',
-    lastLoginTime: '5:55:00 PM',
+    lastLoginTime: '17:55',
     favoriteProduct: 'Travel Backpack',
   },
   {
@@ -406,7 +406,7 @@ export const data = [
     country: 'Spain',
     city: 'Madrid',
     lastLoginDate: '2023-08-28',
-    lastLoginTime: '7:25:00 PM',
+    lastLoginTime: '19:25',
     favoriteProduct: 'Oil Painting',
   },
   {
@@ -418,7 +418,7 @@ export const data = [
     country: 'South Korea',
     city: 'Seoul',
     lastLoginDate: '2023-08-26',
-    lastLoginTime: '11:10:00 AM',
+    lastLoginTime: '11:10',
     favoriteProduct: 'Smartphone',
   },
   {
@@ -430,7 +430,7 @@ export const data = [
     country: 'Canada',
     city: 'Vancouver',
     lastLoginDate: '2023-08-31',
-    lastLoginTime: '6:40:00 PM',
+    lastLoginTime: '18:40',
     favoriteProduct: 'Designer Handbag',
   },
   {
@@ -442,7 +442,7 @@ export const data = [
     country: 'Spain',
     city: 'Valencia',
     lastLoginDate: '2023-09-01',
-    lastLoginTime: '10:15:00 AM',
+    lastLoginTime: '10:15',
     favoriteProduct: 'Wireless Earbuds',
   },
   {
@@ -454,7 +454,7 @@ export const data = [
     country: 'USA',
     city: 'Chicago',
     lastLoginDate: '2023-08-30',
-    lastLoginTime: '3:40:00 PM',
+    lastLoginTime: '15:40',
     favoriteProduct: 'Home Lighting',
   },
   {
@@ -466,7 +466,7 @@ export const data = [
     country: 'Mexico',
     city: 'Mexico City',
     lastLoginDate: '2023-09-02',
-    lastLoginTime: '2:05:00 PM',
+    lastLoginTime: '14:05',
     favoriteProduct: 'Yoga Mat',
   },
   {
@@ -478,7 +478,7 @@ export const data = [
     country: 'Canada',
     city: 'Toronto',
     lastLoginDate: '2023-08-29',
-    lastLoginTime: '12:20:00 PM',
+    lastLoginTime: '12:20',
     favoriteProduct: 'Bestseller Novel',
   },
   {
@@ -490,7 +490,7 @@ export const data = [
     country: 'USA',
     city: 'Houston',
     lastLoginDate: '2023-08-27',
-    lastLoginTime: '8:55:00 AM',
+    lastLoginTime: '08:55',
     favoriteProduct: 'Skincare Set',
   },
   {
@@ -502,7 +502,7 @@ export const data = [
     country: 'Canada',
     city: 'Vancouver',
     lastLoginDate: '2023-08-31',
-    lastLoginTime: '6:40:00 PM',
+    lastLoginTime: '18:40',
     favoriteProduct: 'Travel Backpack',
   },
 ];

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: ffimaicc
 title: Modules
 metaTitle: Modules - JavaScript Data Grid | Handsontable
 description: Reduce the size of your JavaScript bundle, by importing only the modules that you need. The base module is mandatory, all other modules are optional.
@@ -9,13 +8,10 @@ canonicalUrl: /modules
 tags:
   - tree shaking
 react:
-  id: weudz1vh
   metaTitle: Modules - React Data Grid | Handsontable
 angular:
-  id: 9i62e6cn
   metaTitle: Modules - Angular Data Grid | Handsontable
 vue:
-  id: xvedd0on
   metaTitle: Modules - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
@@ -74,6 +70,12 @@ To get the base JavaScript module, import Handsontable from `handsontable/base` 
 :::
 
 ::: only-for angular
+
+To get the base JavaScript module, import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the full distribution package):
+
+:::
+
+::: only-for vue
 
 To get the base JavaScript module, import Handsontable from `handsontable/base` (not from `handsontable`, which would give you the full distribution package):
 
@@ -286,6 +288,36 @@ export class ExampleComponent {
 
 :::
 
+::: only-for vue
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import type { GridSettings } from 'handsontable/settings';
+import {
+  registerCellType,
+  NumericCellType,
+} from 'handsontable/cellTypes';
+
+registerCellType(NumericCellType);
+
+const hotSettings = ref<GridSettings>({
+  columns: [
+    {
+      type: 'numeric',
+    },
+  ],
+});
+</script>
+
+<template>
+  <HotTable :settings="hotSettings" />
+</template>
+```
+
+:::
+
 Or, you can import the `numeric` cell type's renderer, editor, and validator individually (the effect is the same as above):
 
 ::: only-for javascript
@@ -400,6 +432,50 @@ export class ExampleComponent {
     ],
   };
 }
+```
+
+:::
+
+::: only-for vue
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import type { GridSettings } from 'handsontable/settings';
+import {
+  registerRenderer,
+  numericRenderer,
+} from 'handsontable/renderers';
+import {
+  registerEditor,
+  NumericEditor,
+} from 'handsontable/editors';
+import {
+  registerValidator,
+  numericValidator,
+} from 'handsontable/validators';
+
+registerRenderer(numericRenderer);
+registerEditor(NumericEditor);
+registerValidator(numericValidator);
+
+const hotSettings = ref<GridSettings>({
+  columns: [
+    {
+      renderer: 'numeric',
+      editor: 'numeric',
+      validator: 'numeric',
+      dataType: 'number',
+      type: 'numeric',
+    },
+  ],
+});
+</script>
+
+<template>
+  <HotTable :settings="hotSettings" />
+</template>
 ```
 
 :::
@@ -1261,7 +1337,7 @@ You can also use modules with Handsontable's framework wrappers:
 
 - [Using modules with React](@/react/guides/tools-and-building/modules/modules.md)
 - [Using modules with Angular](@/angular/guides/tools-and-building/modules/modules.md)
-- [Using modules with Vue](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md)
+- [Using modules with Vue](@/vue/guides/tools-and-building/modules/modules.md)
 
 </div>
 
@@ -1280,7 +1356,7 @@ You can also use modules with Handsontable's framework wrappers:
 
 - [Modules in React](@/react/guides/tools-and-building/modules/modules.md)
 - [Modules in Angular](@/angular/guides/tools-and-building/modules/modules.md)
-- [Modules in Vue](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md)
+- [Modules in Vue](@/vue/guides/tools-and-building/modules/modules.md)
 
 :::
 

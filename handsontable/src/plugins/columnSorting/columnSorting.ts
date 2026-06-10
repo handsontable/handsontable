@@ -119,10 +119,16 @@ const pluginConflictsState = new WeakMap();
  * ```
  */
 export class ColumnSorting extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
@@ -457,54 +463,6 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Saves all sorting settings. Saving works only when {@link Options#persistentState} option is enabled.
-   *
-   * @param {Array} sortConfigs Sort configuration for all sorted columns. Objects contain `column` and `sortOrder` properties.
-   *
-   * @private
-   * @fires Hooks#persistentStateSave
-   */
-  saveAllSortSettings(sortConfigs: SortConfig[]) {
-    const allSortSettings = this.columnStatesManager!.getAllColumnsProperties();
-    const translateColumnToPhysical = ({ column: visualColumn, ...restOfProperties }: SortConfig) =>
-      ({ column: this.hot.toPhysicalColumn(visualColumn), ...restOfProperties });
-
-    allSortSettings.initialConfig = arrayMap(sortConfigs, translateColumnToPhysical);
-
-    this.hot.runHooks('persistentStateSave', 'columnSorting', allSortSettings);
-  }
-
-  /**
-   * Get all saved sorting settings. Loading works only when {@link Options#persistentState} option is enabled.
-   *
-   * @private
-   * @returns {object} Previously saved sort settings.
-   *
-   * @fires Hooks#persistentStateLoad
-   */
-  getAllSavedSortSettings(): Record<string, unknown> | undefined {
-    const storedAllSortSettings: Record<string, unknown> = {};
-
-    this.hot.runHooks('persistentStateLoad', 'columnSorting', storedAllSortSettings);
-
-    const { value } = storedAllSortSettings;
-
-    if (!isPlainObject(value)) {
-      return undefined;
-    }
-
-    const allSortSettings = value;
-    const translateColumnToVisual = ({ column: physicalColumn, ...restOfProperties }: SortConfig) =>
-      ({ column: this.hot.toVisualColumn(physicalColumn), ...restOfProperties });
-
-    if (Array.isArray(allSortSettings.initialConfig)) {
-      allSortSettings.initialConfig = arrayMap(allSortSettings.initialConfig, translateColumnToVisual);
-    }
-
-    return allSortSettings;
-  }
-
-  /**
    * Get next sort configuration for particular column. Object contain `column` and `sortOrder` properties.
    *
    * **Note**: Please keep in mind that returned object expose **visual** column index under the `column` key.
@@ -729,18 +687,12 @@ export class ColumnSorting extends BasePlugin {
   }
 
   /**
-   * Load saved settings or sort by predefined plugin configuration.
+   * Sort by predefined plugin configuration.
    */
   #loadOrSortBySettings = () => {
-    const storedAllSortSettings = this.getAllSavedSortSettings();
     const allSortSettings = (this.hot.getSettings() as Record<string, unknown>)[this.pluginKey];
 
-    if (storedAllSortSettings !== undefined) {
-      this.sortBySettings(storedAllSortSettings);
-
-    } else {
-      this.sortBySettings(allSortSettings);
-    }
+    this.sortBySettings(allSortSettings);
   };
 
   /**

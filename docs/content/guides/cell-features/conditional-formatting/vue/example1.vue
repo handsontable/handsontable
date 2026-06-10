@@ -6,7 +6,7 @@ import type { BaseRenderer } from 'handsontable/renderers';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 import type { GridSettings } from 'handsontable/settings';
 import type Handsontable from 'handsontable/base';
-import { ref } from 'vue';
+import { ref, useTemplateRef } from 'vue';
 
 registerAllModules();
 
@@ -44,7 +44,7 @@ const negativeValueRenderer: BaseRenderer = (instance, td, row, col, prop, value
 
 registerRenderer('negativeValueRenderer', negativeValueRenderer);
 
-const hotTableRef = ref<InstanceType<typeof HotTable> | null>(null);
+const hotTableRef = useTemplateRef<InstanceType<typeof HotTable>>('hotTableRef');
 
 const hotSettings: GridSettings = {
   data,

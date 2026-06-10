@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import { type BaseRenderer } from 'handsontable/renderers';
@@ -10,7 +10,7 @@ import type { GridSettings } from 'handsontable/settings';
 // Register all Handsontable's modules.
 registerAllModules();
 
-const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 
 const templateValues: string[] = ['one', 'two', 'three'];
 const data: (string | number)[][] = [

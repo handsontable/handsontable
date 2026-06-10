@@ -5,7 +5,6 @@ import { isDefined } from '../../../helpers/mixed';
 import { isUnsignedNumber } from '../../../helpers/number';
 import type ColumnMeta from './columnMeta';
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @class CellMeta
  *
@@ -34,7 +33,6 @@ import type ColumnMeta from './columnMeta';
  *                    │ (instance)  │
  *                    +-------------+
  */
-/* eslint-enable jsdoc/require-description-complete-sentence */
 export default class CellMeta {
   /**
    * Reference to the ColumnMeta layer. While creating new cell meta objects, all new objects
@@ -52,6 +50,9 @@ export default class CellMeta {
    */
   metas = new LazyFactoryMap(() => this._createRow());
 
+  /**
+   * Initializes the cell meta layer with a reference to the ColumnMeta layer used as the prototype source for new cell meta objects.
+   */
   constructor(columnMeta: ColumnMeta) {
     this.columnMeta = columnMeta;
   }
@@ -123,7 +124,13 @@ export default class CellMeta {
    * @returns {object}
    */
   getMeta(physicalRow: number, physicalColumn: number): Record<string, unknown>;
+  /**
+   * Returns the value of the specified property key from the cell meta object at the given physical row and column.
+   */
   getMeta(physicalRow: number, physicalColumn: number, key: string): unknown;
+  /**
+   * Returns the cell meta object or a specific property value from it, depending on whether a key is provided.
+   */
   getMeta(physicalRow: number, physicalColumn: number, key?: string): Record<string, unknown> | unknown {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 

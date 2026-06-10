@@ -17,6 +17,30 @@ import { GridSettings, HotTableComponent, HotTableModule } from "@handsontable/a
       padding: 0;
     }
 
+    .selectColumn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.875rem;
+      color: #555555;
+      white-space: nowrap;
+    }
+
+    .selectColumn select {
+      border: 1px solid #e0e0e0;
+      background: none;
+      color: #333333;
+      font-size: 0.875rem;
+      padding: 0.4rem 0.625rem;
+      outline: none;
+      border-radius: 0;
+      cursor: pointer;
+    }
+
+    .selectColumn select:focus {
+      border-color: #1A42E8;
+    }
+
     #filterField {
       border: 1px solid var(--sl-color-gray-5, #e0e0e0);
       background: none;

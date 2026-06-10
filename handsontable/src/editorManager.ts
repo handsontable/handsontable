@@ -1,5 +1,6 @@
 import type { HotInstance } from './core/types';
 import type { GridSettings } from './core/settings';
+import type { CellProperties } from './settings';
 import type { default as SelectionManager } from './selection/selection';
 import { isFunctionKey, isCtrlMetaKey } from './helpers/unicode';
 import { isImmediatePropagationStopped } from './helpers/dom/event';
@@ -7,6 +8,10 @@ import { getEditorInstance } from './editors/registry';
 import type { BaseEditor } from './editors/baseEditor';
 import EventManager from './eventManager';
 
+/**
+ * Manages the lifecycle of cell editors — opening, closing, and delegating keyboard events to
+ * the active editor during user interaction with the grid.
+ */
 class EditorManager {
   /**
    * Instance of {@link Handsontable}.
@@ -55,7 +60,7 @@ class EditorManager {
    *
    * @type {object}
    */
-  declare cellProperties: Record<string, unknown>;
+  declare cellProperties: CellProperties;
 
   /**
    * @param {Core} hotInstance The Handsontable instance.

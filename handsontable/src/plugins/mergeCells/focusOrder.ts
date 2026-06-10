@@ -53,6 +53,9 @@ export class FocusOrder {
    */
   #columnIndexMapper!: IndexMapper;
 
+  /**
+   * Initializes the focus order manager with the merged cell getter and row and column index mappers used to navigate focus through merged regions.
+   */
   constructor({ mergedCellsGetter, rowIndexMapper, columnIndexMapper }: {
     mergedCellsGetter: (row: number, column: number) => MergedCellCoords | false,
     rowIndexMapper: IndexMapper, columnIndexMapper: IndexMapper

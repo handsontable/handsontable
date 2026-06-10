@@ -103,6 +103,23 @@ const foreignHotInstances = new Map();
 const deprecationWarns = new Set();
 
 /**
+ * Internal Core properties not exposed in HotInstance but accessed by constructor-assigned
+ * function expressions. These are implementation details of the Core constructor that
+ * cannot be part of the public HotInstance interface.
+ *
+ * @private
+ */
+interface CoreInternals {
+  renderSuspendedCounter: number;
+  executionSuspendedCounter: number;
+  isExecutionSuspended(): boolean;
+  timeouts: ReturnType<typeof setTimeout>[];
+  microtasks: Array<{ cancelled: boolean }>;
+  _validateCells(callback?: (valid: boolean) => void, rows?: number[], columns?: number[]): void;
+  selectAll(includeRowHeaders?: boolean, includeColumnHeaders?: boolean, options?: Record<string, unknown>): void;
+}
+
+/**
  * Handsontable constructor.
  *
  * @core
@@ -1589,7 +1606,7 @@ export default function Core(
         this.validatorsInQueue = this.validatorsInQueue - 1 < 0 ? 0 : this.validatorsInQueue - 1;
         this.checkIfQueueIsEmpty();
       },
-      onQueueEmpty() { },
+      onQueueEmpty(_valid: boolean) { },
       checkIfQueueIsEmpty() {
         if (this.validatorsInQueue === 0 && resolved === false) {
           resolved = true;
@@ -2417,7 +2434,7 @@ export default function Core(
    * @since 8.3.0
    * @returns {boolean}
    */
-  this.isRenderSuspended = function() {
+  this.isRenderSuspended = function(this: HotInstance & CoreInternals) {
     return this.renderSuspendedCounter > 0;
   };
 
@@ -2455,7 +2472,7 @@ export default function Core(
    * hot.resumeRender(); // It re-renders the table internally
    * ```
    */
-  this.suspendRender = function() {
+  this.suspendRender = function(this: HotInstance & CoreInternals) {
     this.renderSuspendedCounter += 1;
   };
 
@@ -2489,7 +2506,7 @@ export default function Core(
    * hot.resumeRender(); // It re-renders the table internally
    * ```
    */
-  this.resumeRender = function() {
+  this.resumeRender = function(this: HotInstance & CoreInternals) {
     const nextValue = this.renderSuspendedCounter - 1;
 
     this.renderSuspendedCounter = Math.max(nextValue, 0);
@@ -2565,7 +2582,7 @@ export default function Core(
    * @since 8.3.0
    * @returns {boolean}
    */
-  this.isExecutionSuspended = function() {
+  this.isExecutionSuspended = function(this: HotInstance & CoreInternals) {
     return this.executionSuspendedCounter > 0;
   };
 
@@ -2591,7 +2608,7 @@ export default function Core(
    * hot.resumeExecution(); // It updates the cache internally
    * ```
    */
-  this.suspendExecution = function() {
+  this.suspendExecution = function(this: HotInstance & CoreInternals) {
     this.executionSuspendedCounter += 1;
     this.columnIndexMapper.suspendOperations();
     this.rowIndexMapper.suspendOperations();
@@ -2623,7 +2640,7 @@ export default function Core(
    * hot.resumeExecution(); // It updates the cache internally
    * ```
    */
-  this.resumeExecution = function(forceFlushChanges = false) {
+  this.resumeExecution = function(this: HotInstance & CoreInternals, forceFlushChanges = false) {
     const nextValue = this.executionSuspendedCounter - 1;
 
     this.executionSuspendedCounter = Math.max(nextValue, 0);
@@ -3406,7 +3423,7 @@ export default function Core(
    * @memberof Core#
    * @function clear
    */
-  this.clear = function() {
+  this.clear = function(this: HotInstance & CoreInternals) {
     this.selectAll();
     this.emptySelectedCells();
     this.deselectCell();
@@ -4032,7 +4049,8 @@ export default function Core(
    * @param {number} [deleteAmount=0] The number of items to be removed. If set to 0, no cell meta objects will be removed.
    * @param {...object} [cellMetaRows] The new cell meta row objects to be added to the cell meta collection.
    */
-  this.spliceCellsMeta = function(visualIndex: number, deleteAmount = 0, ...cellMetaRows: object[]) {
+  this.spliceCellsMeta = function(
+    this: HotInstance & CoreInternals, visualIndex: number, deleteAmount = 0, ...cellMetaRows: object[]) {
     if (cellMetaRows.length > 0 && !Array.isArray(cellMetaRows[0])) {
       throwWithCause('The 3rd argument (cellMetaRows) has to be passed as an array of cell meta objects array.');
     }
@@ -4046,7 +4064,9 @@ export default function Core(
         metaManager.createRow(instance.toPhysicalRow(visualIndex));
 
         arrayEach(cellMetaRow as unknown[],
-          (cellMeta, columnIndex) => this.setCellMetaObject(visualIndex, columnIndex, cellMeta));
+          (cellMeta, columnIndex) => {
+            this.setCellMetaObject(visualIndex, columnIndex, cellMeta as Record<string, unknown>);
+          });
       });
     }
 
@@ -4300,7 +4320,7 @@ export default function Core(
    * })
    * ```
    */
-  this.validateCells = function(callback?: (valid: boolean) => void) {
+  this.validateCells = function(this: HotInstance & CoreInternals, callback?: (valid: boolean) => void) {
     this._validateCells(callback);
   };
 
@@ -4323,7 +4343,7 @@ export default function Core(
    * })
    * ```
    */
-  this.validateRows = function(rows: number[], callback?: (valid: boolean) => void) {
+  this.validateRows = function(this: HotInstance & CoreInternals, rows: number[], callback?: (valid: boolean) => void) {
     if (!Array.isArray(rows)) {
       throwWithCause('validateRows parameter `rows` must be an array');
     }
@@ -4349,7 +4369,8 @@ export default function Core(
    * })
    * ```
    */
-  this.validateColumns = function(columns: number[], callback?: (valid: boolean) => void) {
+  this.validateColumns = function(
+    this: HotInstance & CoreInternals, columns: number[], callback?: (valid: boolean) => void) {
     if (!Array.isArray(columns)) {
       throwWithCause('validateColumns parameter `columns` must be an array');
     }
@@ -5672,14 +5693,6 @@ export default function Core(
    * @returns {string}
    */
   this.getPluginName = function(plugin: Record<string, unknown>) {
-    // Workaround for the UndoRedo plugin which, currently doesn't follow the plugin architecture.
-    if (plugin === instance.undoRedo) {
-      const undoRedoWithCtor = instance.undoRedo as
-        Record<string, unknown> & { constructor: Record<string, unknown> };
-
-      return undoRedoWithCtor.constructor.PLUGIN_KEY as string;
-    }
-
     return pluginsRegistry.getId(plugin) as string;
   };
 
@@ -5919,7 +5932,7 @@ export default function Core(
    * @returns {number} The timeout handle (usable with `clearTimeout`).
    * @private
    */
-  this._registerTimeout = function(handle: Function | number, delay = 0) {
+  this._registerTimeout = function(this: HotInstance & CoreInternals, handle: Function | number, delay = 0) {
     let handleFunc = handle;
 
     if (typeof handleFunc === 'function') {
@@ -5936,7 +5949,7 @@ export default function Core(
    *
    * @private
    */
-  this._clearTimeouts = function() {
+  this._clearTimeouts = function(this: HotInstance & CoreInternals) {
     arrayEach(this.timeouts, (handler: ReturnType<typeof setTimeout>) => {
       clearTimeout(handler);
     });
@@ -5950,7 +5963,7 @@ export default function Core(
    * @param {Function} callback Function to be delayed in execution.
    * @private
    */
-  this._registerMicrotask = function(callback: Function) {
+  this._registerMicrotask = function(this: HotInstance & CoreInternals, callback: Function) {
     const entry = { cancelled: false };
 
     this.microtasks.push(entry);
@@ -5966,7 +5979,7 @@ export default function Core(
    *
    * @private
    */
-  this._clearMicrotasks = function() {
+  this._clearMicrotasks = function(this: HotInstance & CoreInternals) {
     arrayEach(this.microtasks, (entry: { cancelled: boolean }) => {
       entry.cancelled = true;
     });

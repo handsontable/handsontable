@@ -12,7 +12,6 @@ import type {
   ColumnSettings,
   EditorType,
   GridSettings,
-  NumericFormatOptions,
   RendererType,
   RowObject,
   SelectOptionsObject,
@@ -43,7 +42,6 @@ import type {
   ColumnSettings as BaseColumnSettings,
   EditorType as BaseEditorType,
   GridSettings as BaseGridSettings,
-  NumericFormatOptions as BaseNumericFormatOptions,
   RendererType as BaseRendererType,
   RowObject as BaseRowObject,
   SelectOptionsObject as BaseSelectOptionsObject,
@@ -79,7 +77,7 @@ const cellType: CellType | null = null;
 const editorType: EditorType | null = null;
 const rendererType: RendererType | null = null;
 const validatorType: ValidatorType | null = null;
-const numericFormat: NumericFormatOptions | null = null;
+const numericFormat: Intl.NumberFormatOptions | null = null;
 const baseTheme: BaseTheme | null = null;
 const themeBuilder: ThemeBuilder | null = null;
 const themeColorScheme: ThemeColorScheme | null = null;
@@ -109,7 +107,7 @@ const baseCellType: BaseCellType | null = null;
 const baseEditorType: BaseEditorType | null = null;
 const baseRendererType: BaseRendererType | null = null;
 const baseValidatorType: BaseValidatorType | null = null;
-const baseNumericFormat: BaseNumericFormatOptions | null = null;
+const baseNumericFormat: Intl.NumberFormatOptions | null = null;
 const baseBaseTheme: BaseBaseTheme | null = null;
 const baseThemeBuilder: BaseThemeBuilder | null = null;
 const baseThemeColorScheme: BaseThemeColorScheme | null = null;

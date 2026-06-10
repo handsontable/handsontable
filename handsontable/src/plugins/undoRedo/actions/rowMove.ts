@@ -19,12 +19,18 @@ export class RowMoveAction extends BaseAction {
    */
   finalRowIndex;
 
+  /**
+   * Initializes the row move action with the array of moved row indexes and their destination index.
+   */
   constructor({ rows, finalIndex }: { rows: number[], finalIndex: number }) {
     super('row_move');
     this.rows = rows.slice();
     this.finalRowIndex = finalIndex;
   }
 
+  /**
+   * Registers the `beforeRowMove` hook listener that records a new RowMoveAction whenever rows are moved.
+   */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown) {
     hot.addHook('beforeRowMove', (rows: unknown, finalIndex: unknown) => {
       if (rows === false) {

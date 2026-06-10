@@ -13,16 +13,19 @@ import {
 } from '../../helpers/dom/element';
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
+import { deprecatedWarn } from '../../helpers/console';
 import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
-import { getElementScaleFactor, normalizeVisualDelta } from './utils';
+import {
+  getElementScaleFactor,
+  normalizeVisualDelta,
+  shouldRefreshHandleAfterAutoResize,
+  shouldSkipResizeHandlePositioning,
+} from './utils';
 
 // Developer note! Whenever you make a change in this file, make an analogous change in manualRowResize.js
 
 export const PLUGIN_KEY = 'manualColumnResize';
 export const PLUGIN_PRIORITY = 130;
-const PERSISTENT_STATE_KEY = PLUGIN_KEY;
-
-/* eslint-disable jsdoc/require-description-complete-sentence */
 
 /**
  * @plugin ManualColumnResize
@@ -36,12 +39,21 @@ const PERSISTENT_STATE_KEY = PLUGIN_KEY;
  * - guide - the helper guide that shows the desired width as a vertical guide.
  */
 export class ManualColumnResize extends BasePlugin {
+  /**
+   * Stores the horizontal pointer position at the start of a column resize drag operation.
+   */
   declare startX: number;
 
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
@@ -125,6 +137,9 @@ export class ManualColumnResize extends BasePlugin {
    */
   #config!: unknown[];
 
+  /**
+   * Initializes the plugin and applies CSS classes to the resize handle and guide elements.
+   */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
 
@@ -204,26 +219,28 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Saves the current sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op and will be removed in a
+   * future major release.
    *
-   * @fires Hooks#persistentStateSave
+   * @deprecated
    */
   saveManualColumnWidths(): void {
-    this.hot.runHooks('persistentStateSave', PERSISTENT_STATE_KEY, this.#columnWidthsMap.getValues());
+    deprecatedWarn('`saveManualColumnWidths()` is deprecated and will be removed in a future major release. ' +
+      'The PersistentState plugin has been removed.');
   }
 
   /**
-   * Loads the previously saved sizes using the persistentState plugin (the {@link Options#persistentState} option has to be enabled).
+   * Deprecated. The `PersistentState` plugin has been removed. This method is a no-op and will be removed in a
+   * future major release.
    *
+   * @deprecated
    * @returns {Array}
-   * @fires Hooks#persistentStateLoad
    */
   loadManualColumnWidths(): Array<number | null> {
-    const storedState: Record<string, unknown> = {};
+    deprecatedWarn('`loadManualColumnWidths()` is deprecated and will be removed in a future major release. ' +
+      'The PersistentState plugin has been removed.');
 
-    this.hot.runHooks('persistentStateLoad', PERSISTENT_STATE_KEY, storedState);
-
-    return storedState.value as Array<number | null>;
+    return [];
   }
 
   /**
@@ -286,7 +303,7 @@ export class ManualColumnResize extends BasePlugin {
    * @param {HTMLCellElement} TH TH HTML element.
    */
   setupHandlePosition(TH: HTMLTableHeaderCellElement) {
-    if (!TH.parentNode || this.#dblclick > 1) {
+    if (shouldSkipResizeHandlePositioning(TH, this.#dblclick)) {
       return;
     }
 
@@ -506,6 +523,10 @@ export class ManualColumnResize extends BasePlugin {
    * @fires Hooks#afterColumnResize
    */
   afterMouseDownTimeout() {
+    const shouldRefreshHandlePosition = shouldRefreshHandleAfterAutoResize(
+      this.#currentTH,
+      this.#dblclick,
+    );
     const render = () => {
       this.hot.view.adjustElementsSize();
       this.hot.render();
@@ -544,8 +565,12 @@ export class ManualColumnResize extends BasePlugin {
         });
       }
     }
-    this.#dblclick = 0;
     this.#autoresizeTimeout = null;
+    this.#dblclick = 0;
+
+    if (shouldRefreshHandlePosition && this.#currentTH) {
+      this.setupHandlePosition(this.#currentTH);
+    }
   }
 
   /**

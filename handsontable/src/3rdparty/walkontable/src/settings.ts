@@ -127,25 +127,25 @@ export default class Settings {
    * @private
    * @returns {SettingsPure}
    */
-  getDefaults() {
+  getDefaults(): Record<string, unknown> {
     return {
-      facade: undefined as unknown,
-      table: undefined as unknown,
+      facade: undefined,
+      table: undefined,
 
       // Determines whether the Walkontable instance is used as dataset viewer. When its instance is used as
       // a context menu, autocomplete list, etc, the returned value is `false`.
       isDataViewInstance: true,
       // presentation mode
       externalRowCalculator: false,
-      currentRowClassName: null as unknown,
-      currentColumnClassName: null as unknown,
+      currentRowClassName: null,
+      currentColumnClassName: null,
       preventOverflow() {
         return false;
       },
       preventWheel: false,
 
       // data source
-      data: undefined as unknown,
+      data: undefined,
       // Number of renderable columns for the left overlay.
       fixedColumnsStart: 0,
       // Number of renderable rows for the top overlay.
@@ -175,8 +175,8 @@ export default class Settings {
       columnHeaders(): unknown {
         return [];
       },
-      totalRows: undefined as unknown,
-      totalColumns: undefined as unknown,
+      totalRows: undefined,
+      totalColumns: undefined,
       cellRenderer: (row: number, column: number, TD: HTMLTableCellElement) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const cellData = this.getSetting('data', row, column);
@@ -195,58 +195,58 @@ export default class Settings {
         // return undefined means use default size for the rendered cell content
       },
       defaultColumnWidth: 50,
-      selections: null as unknown,
+      selections: null,
       hideBorderOnMouseDownOver: false,
-      viewportRowCalculatorOverride: null as unknown,
-      viewportColumnCalculatorOverride: null as unknown,
-      viewportRowRenderingThreshold: null as unknown,
-      viewportColumnRenderingThreshold: null as unknown,
+      viewportRowCalculatorOverride: null,
+      viewportColumnCalculatorOverride: null,
+      viewportRowRenderingThreshold: null,
+      viewportColumnRenderingThreshold: null,
 
       // callbacks
-      onCellMouseDown: null as unknown,
-      onCellContextMenu: null as unknown,
-      onCellMouseOver: null as unknown,
-      onCellMouseOverOutside: null as unknown,
-      onCellMouseOut: null as unknown,
-      onCellMouseUp: null as unknown,
+      onCellMouseDown: null,
+      onCellContextMenu: null,
+      onCellMouseOver: null,
+      onCellMouseOverOutside: null,
+      onCellMouseOut: null,
+      onCellMouseUp: null,
 
       // onCellMouseOut: null,
-      onCellDblClick: null as unknown,
-      onCellCornerMouseDown: null as unknown,
-      onCellCornerDblClick: null as unknown,
-      beforeDraw: null as unknown,
-      onDraw: null as unknown,
-      onBeforeRemoveCellClassNames: null as unknown,
-      onAfterDrawSelection: null as unknown,
-      onBeforeDrawBorders: null as unknown,
+      onCellDblClick: null,
+      onCellCornerMouseDown: null,
+      onCellCornerDblClick: null,
+      beforeDraw: null,
+      onDraw: null,
+      onBeforeRemoveCellClassNames: null,
+      onAfterDrawSelection: null,
+      onBeforeDrawBorders: null,
       // viewport scroll hooks
       onBeforeViewportScrollHorizontally: (column: number) => column,
       onBeforeViewportScrollVertically: (row: number) => row,
       // native scroll hooks
-      onScrollHorizontally: null as unknown,
-      onScrollVertically: null as unknown,
+      onScrollHorizontally: null,
+      onScrollVertically: null,
       //
-      onBeforeTouchScroll: null as unknown,
-      onAfterMomentumScroll: null as unknown,
-      onModifyRowHeaderWidth: null as unknown,
-      onModifyGetCellCoords: null as unknown,
-      onModifyGetCoordsElement: null as unknown,
-      onModifyGetCoords: null as unknown,
+      onBeforeTouchScroll: null,
+      onAfterMomentumScroll: null,
+      onModifyRowHeaderWidth: null,
+      onModifyGetCellCoords: null,
+      onModifyGetCoordsElement: null,
+      onModifyGetCoords: null,
       onBeforeHighlightingRowHeader: (sourceRow: number) => sourceRow,
       onBeforeHighlightingColumnHeader: (sourceCol: number) => sourceCol,
 
-      onWindowResize: null as unknown,
-      onContainerElementResize: null as unknown,
+      onWindowResize: null,
+      onContainerElementResize: null,
 
       renderAllColumns: false,
       renderAllRows: false,
       groups: false,
-      rowHeaderWidth: null as unknown,
-      columnHeaderHeight: null as unknown,
-      headerClassName: null as unknown,
+      rowHeaderWidth: null,
+      columnHeaderHeight: null,
+      headerClassName: null,
       rtlMode: false,
       ariaTags: true,
-      stylesHandler: null as unknown,
+      stylesHandler: null,
     };
   }
 
@@ -280,6 +280,7 @@ export default class Settings {
    * @returns {*}
    */
   getSetting(key: 'stylesHandler'): StylesHandler;
+  /* eslint-disable jsdoc/require-jsdoc -- TypeScript overload signatures share the JSDoc of the first overload above */
   getSetting(key: 'preventOverflow'): 'horizontal' | 'vertical' | false;
   getSetting(key: 'rtlMode'): boolean;
   getSetting(key: 'isDataViewInstance'): boolean;
@@ -300,12 +301,13 @@ export default class Settings {
       return (this.settings[key] as (...args: unknown[]) => unknown)(param1, param2, param3, param4);
 
     } else if (param1 !== undefined && Array.isArray(this.settings[key])) {
-      return (this.settings[key] as unknown[])[param1 as number];
+      return (this.settings[key] as Array<unknown>)[param1 as number];
 
     }
 
-    return this.settings[key] as unknown;
+    return this.settings[key];
   }
+  /* eslint-enable jsdoc/require-jsdoc */
 
   /**
    * Get a setting value without any evaluation.
@@ -315,6 +317,7 @@ export default class Settings {
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getSettingPure<T = any>(key: string): T;
+  // eslint-disable-next-line jsdoc/require-jsdoc -- TypeScript overload implementation; documented in the overload signature above
   getSettingPure(key: string) {
     return this.settings[key];
   }

@@ -29,28 +29,97 @@ import { DEFAULT_COLUMN_WIDTH } from './constants';
  * @class Viewport
  */
 class Viewport {
+  /**
+   * @type {DataAccessObject}
+   */
   declare dataAccessObject: DataAccessObject;
+  /**
+   * @type {WalkontableInstance}
+   */
   declare wot: WalkontableInstance;
+  /**
+   * @type {WalkontableInstance}
+   */
   declare instance: WalkontableInstance;
+  /**
+   * @type {DomBindings}
+   */
   declare domBindings: DomBindings;
+  /**
+   * @type {Settings}
+   */
   declare wtSettings: Settings;
+  /**
+   * @type {Table}
+   */
   declare wtTable: Table;
+  /**
+   * @type {Record<number, number | undefined>}
+   */
   declare oversizedRows: Record<number, number | undefined>;
+  /**
+   * @type {Record<number, number | undefined>}
+   */
   declare oversizedColumnHeaders: Record<number, number | undefined>;
+  /**
+   * @type {Record<string, unknown>}
+   */
   declare hasOversizedColumnHeadersMarked: Record<string, unknown>;
+  /**
+   * @type {number}
+   */
   declare clientHeight: number;
+  /**
+   * @type {number}
+   */
   declare columnHeaderHeight: number;
+  /**
+   * @type {number}
+   */
   declare rowHeaderWidth: number;
+  /**
+   * @type {RowsCalculationType | null}
+   */
   declare rowsVisibleCalculator: RowsCalculationType | null;
+  /**
+   * @type {ColumnsCalculationType | null}
+   */
   declare columnsVisibleCalculator: ColumnsCalculationType | null;
+  /**
+   * @type {Map<string, () => CalculationTypeLike>}
+   */
   declare rowsCalculatorTypes: Map<string, () => CalculationTypeLike>;
+  /**
+   * @type {Map<string, () => CalculationTypeLike>}
+   */
   declare columnsCalculatorTypes: Map<string, () => CalculationTypeLike>;
+  /**
+   * @type {EventManager}
+   */
   declare eventManager: EventManager;
+  /**
+   * @type {RowsCalculationType | null}
+   */
   declare rowsRenderCalculator: RowsCalculationType | null;
+  /**
+   * @type {ColumnsCalculationType | null}
+   */
   declare columnsRenderCalculator: ColumnsCalculationType | null;
+  /**
+   * @type {RowsCalculationType | null}
+   */
   declare rowsPartiallyVisibleCalculator: RowsCalculationType | null;
+  /**
+   * @type {ColumnsCalculationType | null}
+   */
   declare columnsPartiallyVisibleCalculator: ColumnsCalculationType | null;
+  /**
+   * @type {PositionCache}
+   */
   declare rowHeightCache: PositionCache;
+  /**
+   * @type {PositionCache}
+   */
   declare columnWidthCache: PositionCache;
 
   /**
@@ -315,14 +384,18 @@ class Viewport {
    * @returns {number}
    */
   getRowHeaderWidth() {
-    const rowHeadersWidthSetting = this.wtSettings.getSetting('rowHeaderWidth');
+    const rowHeadersWidthSetting = this.wtSettings.getSetting<number | Array<number | null>>('rowHeaderWidth');
     const rowHeaders = this.wtSettings.getSetting<Function[]>('rowHeaders');
 
     if (rowHeadersWidthSetting) {
       this.rowHeaderWidth = 0;
 
       for (let i = 0, len = rowHeaders.length; i < len; i++) {
-        this.rowHeaderWidth += (rowHeadersWidthSetting as unknown as number[])[i] || (rowHeadersWidthSetting as number);
+        const w = Array.isArray(rowHeadersWidthSetting)
+          ? rowHeadersWidthSetting[i]
+          : (rowHeadersWidthSetting as number);
+
+        this.rowHeaderWidth += w ?? NaN;
       }
     }
 

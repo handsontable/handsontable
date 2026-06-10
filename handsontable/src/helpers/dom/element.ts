@@ -1,8 +1,7 @@
-import { sanitize } from '../string';
 import { A11Y_HIDDEN } from '../a11y';
 import { isSafariBefore261, isMobileBrowser, isIpadOS, isWindowsOS } from '../browser';
-import { deprecatedWarn } from '../console';
 import { throwWithCause } from '../../helpers/errors';
+import { warnOnce } from '../../helpers/console';
 
 /**
  * Get the parent of the specified node in the DOM tree.
@@ -71,7 +70,9 @@ export function eventTargetEl<T extends HTMLElement = HTMLElement>(event: Event)
 export function getFrameElement(frame: Window): HTMLIFrameElement | null {
   const { frameElement } = frame;
 
-  return Object.getPrototypeOf(frame.parent) &&
+  // `frame.parent` can be null when the iframe has been detached from the DOM. Guard before
+  // passing to Object.getPrototypeOf(), which throws on null/undefined.
+  return frame.parent && Object.getPrototypeOf(frame.parent) &&
     frameElement instanceof HTMLIFrameElement ? frameElement : null;
 }
 
@@ -506,43 +507,53 @@ export function empty(element: HTMLElement): void {
 }
 
 export const HTML_CHARACTERS = /(<([^>]*)>|&([^;]*);)/;
-const dompurifyDeprecatedMessageShown = false;
+
+/**
+ * Shared "warn once" key for every missing-sanitizer warning, so that all DOM
+ * write surfaces (headers, context menu, dialogs, notifications, editors)
+ * collapse into a single warning per Handsontable instance.
+ */
+export const SANITIZER_WARN_KEY = 'sanitizer';
+
+/**
+ * Default scope used when a caller writes raw HTML without supplying a per-instance
+ * scope. Keeps the warning to once per process for such callers.
+ */
+const defaultSanitizerWarnScope = {};
 
 /**
  * Insert content into element trying to avoid innerHTML method.
  *
  * @param {HTMLElement} element An element to write into.
  * @param {string} content The text to write.
- * @param {boolean|function(string, string): string} [sanitizer] When true, use default sanitizer; when a function, use it; when false, skip sanitization.
- * @param {string} [context] The sanitization context passed as the second argument to a custom sanitizer function.
- */
-let fastInnerHTMLDeprecationWarned = false;
-
-/**
- *
+ * @param {boolean|function(string, string): string} [sanitizer] When a function, use it as the sanitizer; when `false`,
+ * write the content as raw HTML on purpose (no warning); when `true` (the default), write the content as raw HTML and
+ * warn once that no sanitizer is configured.
+ * @param {string} [context] The sanitization context passed as the second argument to a custom sanitizer function, and
+ * used in the missing-sanitizer warning to identify the write surface.
+ * @param {object} [scope] Object the "warn once" state is bound to (for example, `hot.rootGridElement`), so the warning
+ * is shown at most once per Handsontable instance.
  */
 export function fastInnerHTML(
   element: HTMLElement, content: string,
   sanitizer: boolean | ((html: string, context: string) => string) = true,
-  context = 'innerHTML'): void {
+  context = 'innerHTML',
+  scope: object = defaultSanitizerWarnScope): void {
   if (HTML_CHARACTERS.test(content)) {
     let sanitized: string;
 
     if (typeof sanitizer === 'function') {
       sanitized = sanitizer(content, context);
-    } else if (sanitizer) {
-      if (!fastInnerHTMLDeprecationWarned) {
-        fastInnerHTMLDeprecationWarned = true;
-        deprecatedWarn(
-          'The HTML sanitization using DOMPurify library is deprecated and will be removed in the ' +
-          'next major release. Use the `sanitizer` option instead.\n\n' +
-          'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/\n' +
-          '`sanitizer` documentation: https://handsontable.com/docs/api/options/#sanitizer'
-        );
+    } else {
+      // `false` means the caller renders raw HTML deliberately (for example, the `html` cell type).
+      // Any other non-function value (the default `true`) is an implicit raw write, so nudge once
+      // toward configuring a sanitizer to prevent XSS.
+      if (sanitizer !== false) {
+        warnOnce(scope, SANITIZER_WARN_KEY,
+          `HTML content is being written to the DOM ("${context}") without a sanitizer. ` +
+          'Configure the "sanitizer" option to prevent XSS vulnerabilities.');
       }
 
-      sanitized = sanitize(content, undefined);
-    } else {
       sanitized = content;
     }
 
@@ -1414,6 +1425,17 @@ export function isHTMLElement(element: unknown): element is HTMLElement {
     .ownerDocument?.defaultView?.Element;
 
   return !!(OwnElement && element instanceof OwnElement);
+}
+
+/**
+ * Check if the element is an HTMLTableCellElement (TD or TH). Cross-realm safe: uses the
+ * element's own realm's constructor via `ownerDocument.defaultView`.
+ *
+ * @param {unknown} element Element to check.
+ * @returns {boolean} `true` if the element is an HTMLTableCellElement.
+ */
+export function isHTMLTableCellElement(element: unknown): element is HTMLTableCellElement {
+  return isHTMLElement(element) && (element.tagName === 'TD' || element.tagName === 'TH');
 }
 
 /**

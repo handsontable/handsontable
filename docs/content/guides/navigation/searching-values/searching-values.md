@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: ct5f32ig
 title: Searching values
 metaTitle: Searching values - JavaScript Data Grid | Handsontable
 description: Search data across Handsontable, using built-in API methods and implementing your own search UI.
@@ -11,13 +10,10 @@ tags:
   - highlight values
   - search values
 react:
-  id: 48lhnrbd
   metaTitle: Searching values - React Data Grid | Handsontable
 angular:
-  id: q7wwbzzr
   metaTitle: Searching values - Angular Data Grid | Handsontable
 vue:
-  id: bzxlya7r
   metaTitle: Searching values - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
@@ -56,7 +52,7 @@ For more information, see the [Instance access](@/guides/getting-started/angular
 
 To use the Handsontable API, use a template ref on `HotTable` and read `hotRef.value.hotInstance`.
 
-For more information, see [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md).
+For more information, see [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md).
 
 :::
 
@@ -174,7 +170,7 @@ The example below highlights search results with a pink background and red text.
 
 ::: example #example2 :vue3 --css 1
 
-@[code](@/content/guides/navigation/searching-values/react/example2.css)
+@[code](@/content/guides/navigation/searching-values/vue/example2.css)
 @[code](@/content/guides/navigation/searching-values/vue/example2.vue)
 
 :::

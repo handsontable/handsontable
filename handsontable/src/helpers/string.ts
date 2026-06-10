@@ -1,4 +1,3 @@
-import DOMPurify, { type Config as DOMPurifyConfig } from 'dompurify';
 import { stringify } from './mixed';
 
 /**
@@ -102,18 +101,42 @@ export function substitute(template: string, variables: Record<string, unknown> 
  * @returns {string}
  */
 export function stripTags(string: string): string {
-  return sanitize(`${string}`, { ALLOWED_TAGS: [] });
+  const str = String(string);
+  let result = '';
+  let depth = 0;
+  let inQuote = false;
+  let quoteChar = '';
+
+  for (let i = 0; i < str.length; i++) {
+    const ch = str[i];
+
+    if (depth > 0 && !inQuote && (ch === '"' || ch === '\'')) {
+      inQuote = true;
+      quoteChar = ch;
+    } else if (inQuote && ch === quoteChar) {
+      inQuote = false;
+    } else if (!inQuote && ch === '<') {
+      depth += 1;
+    } else if (!inQuote && ch === '>' && depth > 0) {
+      depth -= 1;
+    } else if (depth === 0) {
+      result += ch;
+    }
+  }
+
+  return result;
 }
 
 /**
- * Sanitizes string from potential security vulnerabilities.
+ * Returns the string unchanged.
  *
- * @param {string} string String to sanitize.
- * @param {object} [options] DOMPurify's configuration object.
+ * @deprecated Default sanitization is now a pass-through. Use the sanitizer
+ * configuration option to supply a custom sanitizer function.
+ * @param {string} string String to return.
  * @returns {string}
  */
-export function sanitize(string: string, options?: DOMPurifyConfig): string {
-  return DOMPurify.sanitize(string, options) as unknown as string;
+export function sanitize(string: string): string {
+  return string;
 }
 
 /**

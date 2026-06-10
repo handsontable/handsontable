@@ -45,3 +45,31 @@ export function normalizeVisualDelta(visualDelta: number, scaleFactor: number): 
 
   return Math.round(visualDelta / scaleFactor);
 }
+
+/**
+ * Checks if the resize handle positioning should be skipped.
+ *
+ * @param {{ parentNode: ParentNode | null }} header The header element to position the handle against.
+ * @param {number} resizeClickCount The resize handle click count.
+ * @returns {boolean}
+ */
+export function shouldSkipResizeHandlePositioning(
+  header: { parentNode: ParentNode | null },
+  resizeClickCount: number,
+): boolean {
+  return !header.parentNode || resizeClickCount > 1;
+}
+
+/**
+ * Checks if resize handle position should be refreshed after auto-size.
+ *
+ * @param {{ parentNode: ParentNode | null } | null} header The header element.
+ * @param {number} resizeClickCount The resize handle click count.
+ * @returns {boolean}
+ */
+export function shouldRefreshHandleAfterAutoResize(
+  header: { parentNode: ParentNode | null } | null,
+  resizeClickCount: number,
+): boolean {
+  return !!header?.parentNode && resizeClickCount >= 2;
+}

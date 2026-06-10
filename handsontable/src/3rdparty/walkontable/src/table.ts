@@ -3,6 +3,8 @@ import type Settings from './settings';
 import {
   hasClass,
   index,
+  isHTMLElement,
+  isHTMLTableCellElement,
   offset,
   removeTextNodes,
   overlayContainsElement,
@@ -48,9 +50,29 @@ class Table {
    * @type {Settings}
    */
   declare wtSettings: Settings;
+  /**
+   * The DOM bindings for the table.
+   *
+   * @type {DomBindings}
+   */
   domBindings;
+  /**
+   * The table body element (TBODY).
+   *
+   * @type {HTMLTableSectionElement | null}
+   */
   TBODY: HTMLTableSectionElement | null = null;
+  /**
+   * The table head element (THEAD).
+   *
+   * @type {HTMLTableSectionElement | null}
+   */
   THEAD: HTMLTableSectionElement | null = null;
+  /**
+   * The column group element (COLGROUP).
+   *
+   * @type {HTMLTableColElement | null}
+   */
   COLGROUP: HTMLTableColElement | null = null;
   /**
    * Indicates if the table has height bigger than 0px.
@@ -71,52 +93,252 @@ class Table {
    * @type {boolean}
    */
   isTableVisible = false;
+  /**
+   * The offset of the table element.
+   *
+   * @type {number | { top: number; left: number }}
+   */
   tableOffset: number | { top: number; left: number } = 0;
+  /**
+   * The offset of the holder element.
+   *
+   * @type {number | { top: number; left: number }}
+   */
   holderOffset: number | { top: number; left: number } = 0;
 
+  /**
+   * The borders holder element.
+   *
+   * @type {HTMLElement}
+   */
   declare bordersHolder?: HTMLElement;
+  /**
+   * Indicates if this instance is of type MasterTable (i.e. it is NOT an overlay).
+   *
+   * @type {boolean}
+   */
   declare isMaster: boolean;
+  /**
+   * The name of the table (overlay name or 'master').
+   *
+   * @type {string}
+   */
   declare name: string;
+  /**
+   * The data access object.
+   *
+   * @type {DataAccessObject}
+   */
   declare dataAccessObject: DataAccessObject;
+  /**
+   * Function which returns the proper facade.
+   *
+   * @type {Function}
+   */
   declare facadeGetter: Function;
+  /**
+   * The Walkontable instance.
+   *
+   * @type {WalkontableInstance}
+   */
   declare instance: WalkontableInstance;
+  /**
+   * The Walkontable instance (legacy alias for instance).
+   *
+   * @type {WalkontableInstance}
+   */
   declare wot: WalkontableInstance;
+  /**
+   * The table element.
+   *
+   * @type {HTMLTableElement}
+   */
   declare TABLE: HTMLTableElement;
+  /**
+   * The spreader element.
+   *
+   * @type {HTMLElement}
+   */
   declare spreader: HTMLElement;
+  /**
+   * The hider element.
+   *
+   * @type {HTMLElement}
+   */
   declare hider: HTMLElement;
+  /**
+   * The holder element.
+   *
+   * @type {HTMLElement}
+   */
   declare holder: HTMLElement;
+  /**
+   * The root element.
+   *
+   * @type {HTMLElement}
+   */
   declare wtRootElement: HTMLElement;
+  /**
+   * The row filter.
+   *
+   * @type {RowFilter | null}
+   */
   declare rowFilter: RowFilter | null;
+  /**
+   * The column filter.
+   *
+   * @type {ColumnFilter | null}
+   */
   declare columnFilter: ColumnFilter | null;
+  /**
+   * Indicates if the header width should be corrected.
+   *
+   * @type {boolean}
+   */
   declare correctHeaderWidth: boolean;
+  /**
+   * The row utilities.
+   *
+   * @type {RowUtils}
+   */
   declare rowUtils: RowUtils;
+  /**
+   * The column utilities.
+   *
+   * @type {ColumnUtils}
+   */
   declare columnUtils: ColumnUtils;
+  /**
+   * The table renderer.
+   *
+   * @type {Renderer}
+   */
   declare tableRenderer: Renderer;
 
   // Methods provided by mixins (calculatedRows, calculatedColumns, stickyRowsTop,
   // stickyRowsBottom, stickyColumnsStart) applied to Table subclasses at runtime.
+  /**
+   * Gets the index of the first rendered row.
+   *
+   * @type {() => number}
+   */
   declare getFirstRenderedRow: () => number;
+  /**
+   * Gets the index of the first visible row.
+   *
+   * @type {() => number}
+   */
   declare getFirstVisibleRow: () => number;
+  /**
+   * Gets the index of the first partially visible row.
+   *
+   * @type {() => number}
+   */
   declare getFirstPartiallyVisibleRow: () => number;
+  /**
+   * Gets the index of the last rendered row.
+   *
+   * @type {() => number}
+   */
   declare getLastRenderedRow: () => number;
+  /**
+   * Gets the index of the last visible row.
+   *
+   * @type {() => number}
+   */
   declare getLastVisibleRow: () => number;
+  /**
+   * Gets the index of the last partially visible row.
+   *
+   * @type {() => number}
+   */
   declare getLastPartiallyVisibleRow: () => number;
+  /**
+   * Gets the count of rendered rows.
+   *
+   * @type {() => number}
+   */
   declare getRenderedRowsCount: () => number;
+  /**
+   * Gets the count of visible rows.
+   *
+   * @type {() => number}
+   */
   declare getVisibleRowsCount: () => number;
+  /**
+   * Gets the count of column headers.
+   *
+   * @type {() => number}
+   */
   declare getColumnHeadersCount: () => number;
+  /**
+   * Gets the index of the first rendered column.
+   *
+   * @type {() => number}
+   */
   declare getFirstRenderedColumn: () => number;
+  /**
+   * Gets the index of the first visible column.
+   *
+   * @type {() => number}
+   */
   declare getFirstVisibleColumn: () => number;
+  /**
+   * Gets the index of the first partially visible column.
+   *
+   * @type {() => number}
+   */
   declare getFirstPartiallyVisibleColumn: () => number;
+  /**
+   * Gets the index of the last rendered column.
+   *
+   * @type {() => number}
+   */
   declare getLastRenderedColumn: () => number;
+  /**
+   * Gets the index of the last visible column.
+   *
+   * @type {() => number}
+   */
   declare getLastVisibleColumn: () => number;
+  /**
+   * Gets the index of the last partially visible column.
+   *
+   * @type {() => number}
+   */
   declare getLastPartiallyVisibleColumn: () => number;
+  /**
+   * Gets the count of rendered columns.
+   *
+   * @type {() => number}
+   */
   declare getRenderedColumnsCount: () => number;
+  /**
+   * Gets the count of visible columns.
+   *
+   * @type {() => number}
+   */
   declare getVisibleColumnsCount: () => number;
+  /**
+   * Gets the count of row headers.
+   *
+   * @type {() => number}
+   */
   declare getRowHeadersCount: () => number;
 
   // Methods defined in subclass MasterTable but called from Table via `this.isMaster` guards.
+  /**
+   * Aligns overlays with the trimming container.
+   *
+   * @returns {void}
+   */
   alignOverlaysWithTrimmingContainer(): void { // intentionally empty
   }
+  /**
+   * Marks oversized column headers.
+   *
+   * @returns {void}
+   */
   markOversizedColumnHeaders(): void { // intentionally empty
   }
 
@@ -234,7 +456,7 @@ class Table {
     let spreader: HTMLDivElement | undefined;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
-        !(parent instanceof HTMLElement) || !hasClass(parent, 'wtHolder')) {
+        !isHTMLElement(parent) || !hasClass(parent, 'wtHolder')) {
       spreader = this.domBindings.rootDocument.createElement('div');
       spreader.className = 'wtSpreader';
 
@@ -267,7 +489,7 @@ class Table {
     let hider: HTMLDivElement | undefined;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
-        !(parent instanceof HTMLElement) || !hasClass(parent, 'wtHolder')) {
+        !isHTMLElement(parent) || !hasClass(parent, 'wtHolder')) {
       hider = this.domBindings.rootDocument.createElement('div');
       hider.className = 'wtHider';
 
@@ -297,7 +519,7 @@ class Table {
     let holder;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
-        !(parent instanceof HTMLElement) || !hasClass(parent, 'wtHolder')) {
+        !isHTMLElement(parent) || !hasClass(parent, 'wtHolder')) {
       holder = this.domBindings.rootDocument.createElement('div');
       holder.style.position = 'relative';
       holder.className = 'wtHolder';
@@ -316,7 +538,10 @@ class Table {
         const holderParent = holder.parentNode;
 
         // holderParent is null when TABLE is detached (e.g. in Jasmine tests); skip class assignment in that case.
-        if (holderParent instanceof HTMLElement) {
+        // isHTMLElement() is used instead of `instanceof HTMLElement` because the latter fails in
+        // cross-frame contexts (e.g. when HoT is mounted inside an <iframe> via React portals):
+        // the iframe's HTMLElement constructor !== the parent frame's HTMLElement.
+        if (isHTMLElement(holderParent)) {
           holderParent.className += 'ht_master handsontable';
           holderParent.setAttribute('dir', this.wtSettings.getSettingPure('rtlMode') ? 'rtl' : 'ltr');
 
@@ -561,7 +786,7 @@ class Table {
         }
         const firstChild = children[i].childNodes[0];
 
-        if (firstChild instanceof HTMLElement) {
+        if (isHTMLElement(firstChild)) {
           firstChild.style.height = `${oversizedColumnHeaders[i]}px`;
         }
       }
@@ -588,7 +813,7 @@ class Table {
       }
 
       const child = children[i];
-      const actualRowHeight = child instanceof HTMLElement ? innerHeight(child) : 0;
+      const actualRowHeight = isHTMLElement(child) ? innerHeight(child) : 0;
 
       if (actualRowHeight > (oversizedColumnHeaders[i] ?? 0) + borderCompensation) {
         oversizedColumnHeaders[i] = actualRowHeight;
@@ -736,7 +961,7 @@ class Table {
     const TR = this.THEAD!.childNodes[level];
     const TH = TR?.childNodes[this.columnFilter!.sourceColumnToVisibleRowHeadedColumn(col)];
 
-    return TH instanceof HTMLElement ? TH : undefined;
+    return isHTMLElement(TH) ? TH : undefined;
   }
 
   /**
@@ -752,7 +977,7 @@ class Table {
     this.THEAD!.childNodes.forEach((TR: ChildNode) => {
       const TH = TR.childNodes[visibleColumn];
 
-      if (TH instanceof HTMLTableCellElement) {
+      if (isHTMLTableCellElement(TH)) {
         THs.push(TH);
       }
     });
@@ -781,7 +1006,7 @@ class Table {
     const TR = parentElement?.childNodes[visibleRow];
     const TH = TR?.childNodes[level];
 
-    return TH instanceof HTMLElement ? TH : undefined;
+    return isHTMLElement(TH) ? TH : undefined;
   }
 
   /**
@@ -836,8 +1061,8 @@ class Table {
       return null;
     }
 
-    let row = TR instanceof Element ? index(TR) : 0;
-    let col = cellElement instanceof HTMLTableCellElement ? cellElement.cellIndex : 0;
+    let row = isHTMLElement(TR) ? index(TR) : 0;
+    let col = isHTMLTableCellElement(cellElement) ? cellElement.cellIndex : 0;
 
     if (overlayContainsElement(CLONE_TOP_INLINE_START_CORNER, cellElement, this.wtRootElement)
       || overlayContainsElement(CLONE_TOP, cellElement, this.wtRootElement)) {
@@ -989,7 +1214,6 @@ class Table {
     return Math.abs(row) <= columnHeadersCount;
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Check if the given row index is lower than the index of the first row that
    * is currently rendered and return TRUE in that case, or FALSE otherwise.
@@ -1018,7 +1242,6 @@ class Table {
    * @function isRowBeforeRenderedRows
    * @returns {boolean}
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   isRowBeforeRenderedRows(row: number) {
     const first = this.getFirstRenderedRow();
 
@@ -1031,7 +1254,6 @@ class Table {
     return row < first;
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Check if the given column index is greater than the index of the last column that
    * is currently rendered and return TRUE in that case, or FALSE otherwise.
@@ -1063,12 +1285,10 @@ class Table {
    * @function isRowAfterRenderedRows
    * @returns {boolean}
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   isRowAfterRenderedRows(row: number) {
     return row > this.getLastRenderedRow();
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Check if the given column index is lower than the index of the first column that
    * is currently rendered and return TRUE in that case, or FALSE otherwise.
@@ -1096,7 +1316,6 @@ class Table {
    * @function isColumnBeforeRenderedColumns
    * @returns {boolean}
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   isColumnBeforeRenderedColumns(column: number) {
     const first = this.getFirstRenderedColumn();
 
@@ -1109,7 +1328,6 @@ class Table {
     return column < first;
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Check if the given column index is greater than the index of the last column that
    * is currently rendered and return TRUE in that case, or FALSE otherwise.
@@ -1140,35 +1358,72 @@ class Table {
    * @function isColumnAfterRenderedColumns
    * @returns {boolean}
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   isColumnAfterRenderedColumns(column: number) {
     return this.columnFilter && (column > this.getLastRenderedColumn());
   }
 
+  /**
+   * Checks if the column is after the last visible column.
+   *
+   * @param {number} column The visual column index.
+   * @returns {boolean}
+   */
   isColumnAfterViewport(column: number) {
     return this.columnFilter && (column > this.getLastVisibleColumn());
   }
 
+  /**
+   * Checks if the row is after the last visible row.
+   *
+   * @param {number} row The visual row index.
+   * @returns {boolean}
+   */
   isRowAfterViewport(row: number) {
     return this.rowFilter && (row > this.getLastVisibleRow());
   }
 
+  /**
+   * Checks if the column is before the first visible column.
+   *
+   * @param {number} column The visual column index.
+   * @returns {boolean}
+   */
   isColumnBeforeViewport(column: number) {
     return this.columnFilter && (this.columnFilter!.sourceToRendered(column) < 0 && column >= 0);
   }
 
+  /**
+   * Checks if the last row is fully visible.
+   *
+   * @returns {boolean}
+   */
   isLastRowFullyVisible() {
     return this.getLastVisibleRow() === this.getLastRenderedRow();
   }
 
+  /**
+   * Checks if the last column is fully visible.
+   *
+   * @returns {boolean}
+   */
   isLastColumnFullyVisible() {
     return this.getLastVisibleColumn() === this.getLastRenderedColumn();
   }
 
+  /**
+   * Checks if all rows fit in the viewport.
+   *
+   * @returns {boolean}
+   */
   allRowsInViewport() {
     return this.wtSettings.getSetting('totalRows') === this.getVisibleRowsCount();
   }
 
+  /**
+   * Checks if all columns fit in the viewport.
+   *
+   * @returns {boolean}
+   */
   allColumnsInViewport() {
     return this.wtSettings.getSetting('totalColumns') === this.getVisibleColumnsCount();
   }

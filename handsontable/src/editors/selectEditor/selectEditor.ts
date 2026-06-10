@@ -1,4 +1,5 @@
 import { BaseEditor, EDITOR_STATE } from '../baseEditor';
+import type { CellProperties } from '../../settings';
 import {
   addClass,
   empty,
@@ -19,6 +20,9 @@ export const EDITOR_TYPE = 'select';
  * @class SelectEditor
  */
 export class SelectEditor extends BaseEditor {
+  /**
+   * Returns the unique editor type identifier for the select editor.
+   */
   static get EDITOR_TYPE() {
     return EDITOR_TYPE;
   }
@@ -142,10 +146,11 @@ export class SelectEditor extends BaseEditor {
    */
   prepare(
     row: number, col: number, prop: string | number,
-    td: HTMLTableCellElement, value: unknown, cellProperties: Record<string, unknown>): void {
+    td: HTMLTableCellElement, value: unknown, cellProperties: CellProperties): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
-    const selectOptions = this.cellProperties.selectOptions;
+    type SelectOpts = (string | number | object)[] | Record<string, string> | undefined;
+    const selectOptions = this.cellProperties.selectOptions as SelectOpts;
     let options;
 
     if (typeof selectOptions === 'function') {
@@ -164,7 +169,7 @@ export class SelectEditor extends BaseEditor {
         const optionElement = this.hot.rootDocument.createElement('OPTION') as HTMLOptionElement;
 
         optionElement.value = String(options[i]);
-        fastInnerHTML(optionElement, String(options[i]), sanitizer);
+        fastInnerHTML(optionElement, String(options[i]), sanitizer, 'selectEditor', this.hot.rootElement);
         this.select.appendChild(optionElement);
       }
     } else {
@@ -172,7 +177,7 @@ export class SelectEditor extends BaseEditor {
         const optionElement = this.hot.rootDocument.createElement('OPTION') as HTMLOptionElement;
 
         optionElement.value = key;
-        fastInnerHTML(optionElement, String(optionValue), sanitizer);
+        fastInnerHTML(optionElement, String(optionValue), sanitizer, 'selectEditor', this.hot.rootElement);
         this.select.appendChild(optionElement);
       });
     }

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: b4qs2km7
 title: Export to Excel
 metaTitle: Export to Excel - JavaScript Data Grid | Handsontable
 description: Export your grid data to an Excel (.xlsx) file, preserving cell types, styling, formulas, merged cells, and more. Requires ExcelJS as a peer dependency.
@@ -12,13 +11,10 @@ tags:
   - xlsx
   - excel
 react:
-  id: lf2p8nx3
   metaTitle: Export to Excel - React Data Grid | Handsontable
 angular:
-  id: wm5j9ry1
   metaTitle: Export to Excel - Angular Data Grid | Handsontable
 vue:
-  id: 2a0aqf2z
   metaTitle: Export to Excel - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
@@ -160,7 +156,7 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 
 To use the Handsontable API, you need access to the Handsontable instance. Use a template ref on the `HotTable` component and read its `hotInstance` property.
 
-For more information, see the [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md) page.
+For more information, see the [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
 
 :::
 

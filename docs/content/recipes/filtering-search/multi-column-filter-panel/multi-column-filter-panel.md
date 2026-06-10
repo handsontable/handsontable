@@ -89,7 +89,7 @@ const hot = new Handsontable(container, {
   columns: [
     { data: 'name' },
     { data: 'category' },
-    { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
+    { data: 'price', type: 'numeric', locale: 'en-US', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 } },
     { data: 'stock', type: 'numeric' },
   ],
   filters: true,

@@ -8,6 +8,9 @@ import { BaseUI } from './_base';
  * @class RadioInputUI
  */
 export class RadioInputUI extends BaseUI {
+  /**
+   * Returns the default configuration options for the radio input UI component, including type, tag name, and CSS class.
+   */
   static get DEFAULTS(): BaseUIOptions {
     return clone({
       type: 'radio',
@@ -30,6 +33,9 @@ export class RadioInputUI extends BaseUI {
    */
   #label: HTMLLabelElement | null = null;
 
+  /**
+   * Initializes the radio input UI component with the Handsontable instance and merged configuration options.
+   */
   constructor(hotInstance: HotInstance, options: Record<string, unknown>) {
     super(hotInstance, extend(RadioInputUI.DEFAULTS, options) as Record<string, unknown>);
   }

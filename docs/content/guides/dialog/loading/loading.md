@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 2yi2yfl5
 title: Loading
 metaTitle: Loading - JavaScript Data Grid | Handsontable
 description: Display loading indicators and progress feedback in your data grid application using the Loading plugin.
@@ -14,13 +13,10 @@ tags:
   - spinner
   - indicator
 react:
-  id: 66z4zjaz
   metaTitle: Loading - React Data Grid | Handsontable
 angular:
-  id: wq2llzfz
   metaTitle: Loading - Angular Data Grid | Handsontable
 vue:
-  id: odrgfc3c
   metaTitle: Loading - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Dialog
@@ -221,7 +217,7 @@ The example below demonstrates how to use the Loading plugin with pagination in 
 
 ::: example #example4 :vue3 --css 1
 
-@[code](@/content/guides/dialog/loading/react/example4.css)
+@[code](@/content/guides/dialog/loading/vue/example4.css)
 @[code collapse={78-107,122-124}](@/content/guides/dialog/loading/vue/example4.vue)
 
 :::

@@ -23,6 +23,7 @@ import { createArrayAssertion, toEmptyString, unifyColumnValues } from './utils'
 import { getSortComparatorForMeta } from './sortComparators';
 import { createMenuFocusController } from './menu/focusController';
 import type { Menu } from '../contextMenu/menu/menu';
+import type { DropdownMenu } from '../dropdownMenu/dropdownMenu';
 import {
   CONDITION_NONE,
   CONDITION_BY_VALUE,
@@ -32,62 +33,6 @@ import {
 } from './constants';
 import { TrimmingMap } from '../../translations';
 import type { BaseComponent } from './component/_base';
-
-/**
- * Interface for a DropdownMenu's Menu instance.
- */
-interface DropdownMenuInterface {
-  clearLocalHooks(): void;
-  updateMenuDimensions(): void;
-  menuItems: { key: string; [key: string]: unknown }[];
-  hotMenu: {
-    getPlugin(name: string): {
-      showRows(indexes: number[]): void;
-      hideRows(indexes: number[]): void;
-      [key: string]: unknown;
-    };
-    render(): void;
-    [key: string]: unknown;
-  };
-  getNavigator(): {
-    getCurrentPage(): number;
-    setCurrentPage(page: number): void;
-    toFirstItem(): void;
-    clear(): void;
-  };
-  focus(): void;
-  [key: string]: unknown;
-}
-
-/**
- * Interface for the DropdownMenu plugin.
- */
-interface DropdownMenuPluginInterface {
-  menu: DropdownMenuInterface;
-  enabled: boolean;
-  disablePlugin(): void;
-  enablePlugin(): void;
-  close(): void;
-  setListening(): void;
-  [key: string]: unknown;
-}
-
-/**
- * Interface for the menu focus navigator.
- */
-interface MenuFocusNavigatorInterface {
-  setCurrentPage(page: number): void;
-  getCurrentPage(): number;
-  toFirstItem(): void;
-  toLastItem(): void;
-  toNextItem(): void;
-  toPreviousItem(): void;
-  clear(): void;
-  listen(): void;
-  setMenu(menu: DropdownMenuInterface): void;
-  getMenu(): Record<string, Function>;
-  getLastMenuPage(): number;
-}
 
 export type OperationType = 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
 
@@ -158,26 +103,41 @@ const SHORTCUTS_GROUP = PLUGIN_KEY;
  * :::
  */
 export class Filters extends BasePlugin {
+  /**
+   * Returns the plugin key used to identify this plugin in Handsontable settings.
+   */
   static get PLUGIN_KEY() {
     return PLUGIN_KEY;
   }
 
+  /**
+   * Returns the priority order used to determine the order in which plugins are initialized.
+   */
   static get PLUGIN_PRIORITY() {
     return PLUGIN_PRIORITY;
   }
 
+  /**
+   * Returns the default settings applied when the plugin is enabled without explicit configuration.
+   */
   static get DEFAULT_SETTINGS() {
     return {
       searchMode: 'show',
     };
   }
 
+  /**
+   * Returns validator functions for each plugin setting to verify their values are valid before applying them.
+   */
   static get SETTINGS_VALIDATORS() {
     return {
       searchMode: (value: unknown) => typeof value === 'string' && ['show', 'apply'].includes(value),
     };
   }
 
+  /**
+   * Returns the list of plugin dependencies required before this plugin can be initialized.
+   */
   static get PLUGIN_DEPS() {
     return [
       'plugin:DropdownMenu',
@@ -192,7 +152,7 @@ export class Filters extends BasePlugin {
    * @private
    * @type {DropdownMenu}
    */
-  dropdownMenuPlugin: DropdownMenuPluginInterface | null = null;
+  dropdownMenuPlugin: DropdownMenu | null = null;
   /**
    * Instance of {@link ConditionCollection}.
    *
@@ -232,13 +192,13 @@ export class Filters extends BasePlugin {
    *
    * @type {MenuFocusNavigator|undefined}
    */
-  #menuFocusNavigator: MenuFocusNavigatorInterface | undefined;
+  #menuFocusNavigator: ReturnType<typeof createMenuFocusController> | undefined;
   /**
    * Traces the new menu instances to apply the focus navigation to the latest one.
    *
    * @type {WeakSet<Menu>}
    */
-  #dropdownMenuTraces = new WeakSet<DropdownMenuInterface>();
+  #dropdownMenuTraces = new WeakSet<Menu>();
   /**
    * Stores the previous state of the condition stack before the latest filter operation.
    * This is used in the `beforeFilter` plugin to allow performing the undo operation.
@@ -262,6 +222,9 @@ export class Filters extends BasePlugin {
    */
   #isDataProviderActive = false;
 
+  /**
+   * Initializes the plugin and registers the column header hook needed to inject the filter UI.
+   */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
     // One listener for the enable/disable functionality
@@ -311,7 +274,7 @@ export class Filters extends BasePlugin {
     this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
 
     this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName ?? '', new TrimmingMap()) as TrimmingMap;
-    this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu') as unknown as DropdownMenuPluginInterface;
+    this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
     const uiContainerCandidate = typeof dropdownSettings === 'object'
@@ -426,16 +389,15 @@ export class Filters extends BasePlugin {
             }
 
             const menu = navigator.getMenu();
-            const menuNavigator: ReturnType<DropdownMenuInterface['getNavigator']> =
-              menu.getNavigator() as ReturnType<DropdownMenuInterface['getNavigator']>;
+            const menuNavigator = menu.getNavigator();
             const lastSelectedMenuItem = navigator.getLastMenuPage();
 
             menu.focus();
 
             if (lastSelectedMenuItem > 0) {
-              menuNavigator.setCurrentPage(lastSelectedMenuItem);
+              menuNavigator?.setCurrentPage(lastSelectedMenuItem);
             } else {
-              menuNavigator.toFirstItem();
+              menuNavigator?.toFirstItem();
             }
           },
         },
@@ -445,7 +407,7 @@ export class Filters extends BasePlugin {
       ];
 
       this.#menuFocusNavigator = createMenuFocusController(
-        this.dropdownMenuPlugin.menu as unknown as Menu, focusableItems) as unknown as MenuFocusNavigatorInterface;
+        this.dropdownMenuPlugin.menu!, focusableItems);
 
       const forwardToFocusNavigation = (event: KeyboardEvent) => {
         this.#menuFocusNavigator?.listen();
@@ -486,7 +448,7 @@ export class Filters extends BasePlugin {
   disablePlugin() {
     if (this.enabled) {
       if (this.dropdownMenuPlugin?.enabled) {
-        this.dropdownMenuPlugin.menu.clearLocalHooks();
+        this.dropdownMenuPlugin.menu?.clearLocalHooks();
       }
 
       this.components.forEach((component, key) => {
@@ -538,7 +500,6 @@ export class Filters extends BasePlugin {
       ?.removeShortcutsByGroup(SHORTCUTS_GROUP);
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * @memberof Filters#
    * @function addCondition
@@ -928,7 +889,6 @@ export class Filters extends BasePlugin {
    * @param {Array} args Condition arguments. The expected format depends on the condition - see the table above for details.
    * @param {string} [operationId=conjunction] `id` of operation which is performed on the column.
    */
-  /* eslint-enable jsdoc/require-description-complete-sentence */
   addCondition(column: number, name: string, args: unknown[], operationId: string = OPERATION_AND): void {
     if (name === CONDITION_BY_VALUE && this.#isDataProviderActive) {
       return;
@@ -980,7 +940,6 @@ export class Filters extends BasePlugin {
     this.conditionCollection?.importAllConditions(conditions);
   }
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Exports filter conditions for all columns from the plugin.
    * The array represents the filter state for each column. For example:
@@ -1010,7 +969,6 @@ export class Filters extends BasePlugin {
   exportConditions(): ColumnConditions[] {
     return this.conditionCollection?.exportAllConditions() ?? [];
   }
-  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Filters data based on added filter conditions.
@@ -1579,10 +1537,14 @@ export class Filters extends BasePlugin {
 
     const menu = this.dropdownMenuPlugin.menu;
 
+    if (!menu) {
+      return indexes;
+    }
+
     arrayEach(components, (component) => {
       const comp = (component as unknown) as { getMenuItemDescriptor(): { key: string } };
 
-      arrayEach(menu.menuItems, (item, index) => {
+      arrayEach(menu.menuItems ?? [], (item, index) => {
         if ((item as { key: string }).key === comp.getMenuItemDescriptor().key) {
 
           indexes.push(index);
@@ -1606,7 +1568,17 @@ export class Filters extends BasePlugin {
     }
 
     const menu = this.dropdownMenuPlugin.menu;
+
+    if (!menu) {
+      return;
+    }
+
     const hotMenu = menu.hotMenu;
+
+    if (!hotMenu) {
+      return;
+    }
+
     const hiddenRows = hotMenu.getPlugin('hiddenRows');
     const indexes = this.getIndexesOfComponents(...components);
 

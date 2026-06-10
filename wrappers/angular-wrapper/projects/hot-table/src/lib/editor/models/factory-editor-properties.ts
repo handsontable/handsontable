@@ -1,7 +1,16 @@
-import { ComponentRef } from '@angular/core';
+import { ComponentRef, EnvironmentInjector } from '@angular/core';
 import { CustomEditorPlaceholderComponent } from '../custom-editor-placeholder.component';
 import { Subscription } from 'rxjs';
 import { HotCellEditorAdvancedComponent } from '../hot-cell-editor-advanced.component';
+
+/**
+ * Handsontable core instance augmented with the Angular `EnvironmentInjector` that the wrapper
+ * stores on it (in `HotTableComponent`) so editor adapters can create components with the right
+ * injection context. Typed here to avoid scattered `as any` casts at the assignment/read sites.
+ */
+export interface HotInstanceWithAngularInjector {
+  _angularEnvironmentInjector?: EnvironmentInjector;
+}
 
 /**
  * Angular-specific properties that will be added to the editor instance.

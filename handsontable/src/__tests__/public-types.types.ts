@@ -30,7 +30,6 @@ import type {
   CellChange,
   RowObject,
   ChangeSource,
-  NumericFormatOptions,
   CellMeta,
   CellProperties,
   ColumnSettings,
@@ -49,7 +48,7 @@ const sourceRow1: SourceRowData = { name: 'test' };
 const sourceRow2: SourceRowData = ['a', 1];
 const changeSource: ChangeSource = 'edit';
 const cellChange: CellChange = [0, 0, null, 'next'];
-const numericFormat: Partial<NumericFormatOptions> = { pattern: '0.00' };
+const numericFormat: Intl.NumberFormatOptions = { style: 'currency', currency: 'USD' };
 
 // CellCoords and CellRange are runtime value exports — constructible
 const coords = new CellCoordsValue(0, 0);
@@ -78,7 +77,6 @@ import type {
   CellChange as CellChange3,
   RowObject as RowObject3,
   ChangeSource as ChangeSource3,
-  NumericFormatOptions as NumericFormatOptions3,
   CellMeta as CellMeta3,
   CellProperties as CellProperties3,
   ColumnSettings as ColumnSettings3,

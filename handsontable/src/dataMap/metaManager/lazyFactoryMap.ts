@@ -1,7 +1,6 @@
 import { assert, isNullish } from './utils';
 import { isUnsignedNumber } from '../../helpers/number';
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @class LazyFactoryMap
  *
@@ -13,7 +12,6 @@ import { isUnsignedNumber } from '../../helpers/number';
  * It's essential to notice that the "key" index under which the item was created
  * is volatile. After altering the grid, the "key" index can change.
  */
-/* eslint-enable jsdoc/require-description-complete-sentence */
 export default class LazyFactoryMap<V = Record<string, unknown>> {
   /**
    * The data factory function.
@@ -42,6 +40,9 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
    */
   holes = new Set<number>();
 
+  /**
+   * Initializes the map with the given factory function used to create values for new keys on first access.
+   */
   constructor(valueFactory: (key: number) => V) {
     this.valueFactory = valueFactory;
   }

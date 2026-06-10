@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue';
+import { computed, onMounted, onUnmounted, ref, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
@@ -12,7 +12,7 @@ const options = [
   { value: 'multiple', label: 'Multiple ranges selection' },
 ] as const;
 
-const dropdownRef = ref<HTMLDivElement | null>(null);
+const dropdownRef = useTemplateRef<HTMLDivElement>('dropdownRef');
 const isOpen = ref(false);
 const selected = ref<'single' | 'range' | 'multiple'>('multiple');
 

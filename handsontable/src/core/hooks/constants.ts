@@ -1,4 +1,3 @@
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * @description
  *
@@ -127,7 +126,6 @@
  */
 
 export const REGISTERED_HOOKS = [
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * Fired after resetting a cell's meta. This happens when the {@link Core#updateSettings} method is called.
    *
@@ -3677,9 +3675,11 @@ export const REMOVED_HOOKS = new Map([
   ['skipLengthCache', '8.0.0'],
   ['hiddenColumn', '8.0.0'],
   ['hiddenRow', '8.0.0'],
+  ['persistentStateSave', '17.0.0'],
+  ['persistentStateLoad', '17.0.0'],
+  ['persistentStateReset', '17.0.0'],
 ]);
 
-/* eslint-disable jsdoc/require-description-complete-sentence */
 /**
  * The list of the hooks which are deprecated. The warning message is printed out in
  * the developer console when the hook is used.
@@ -3699,6 +3699,5 @@ export const REMOVED_HOOKS = new Map([
  *
  * @type {Map<string, string>}
  */
-/* eslint-enable jsdoc/require-description-complete-sentence */
 export const DEPRECATED_HOOKS = new Map<string, string>([
 ]);

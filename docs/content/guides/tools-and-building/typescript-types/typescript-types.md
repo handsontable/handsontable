@@ -1,6 +1,5 @@
 ---
 type: reference
-id: t9kx3mwp
 title: TypeScript types
 metaTitle: TypeScript types - JavaScript Data Grid | Handsontable
 description: A complete reference of the TypeScript types and interfaces that Handsontable exports, with usage examples for settings, hook callbacks, custom renderers, and editors.
@@ -12,13 +11,10 @@ tags:
   - interfaces
   - type safety
 react:
-  id: r2bq7nyc
   metaTitle: TypeScript types - React Data Grid | Handsontable
 angular:
-  id: a5vj6hsz
   metaTitle: TypeScript types - Angular Data Grid | Handsontable
 vue:
-  id: v8j6vpbp
   metaTitle: TypeScript types - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
@@ -80,7 +76,7 @@ import type { GridSettings, ColumnSettings } from 'handsontable';
 
 const columns: ColumnSettings[] = [
   { data: 'name', type: 'text' },
-  { data: 'revenue', type: 'numeric', numericFormat: { pattern: '$0,0.00' } },
+  { data: 'revenue', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 } },
 ];
 
 const settings: GridSettings = {
@@ -101,7 +97,6 @@ These types describe the values that move in and out of the grid.
 | `RowObject` | A data row as a plain object, used when `data` is an array of objects. |
 | `ChangeSource` | A string union of all built-in change source identifiers (e.g. `'edit'`, `'loadData'`, `'UndoRedo.undo'`). |
 | `SourceRowData` | A row from the original source data before any index translation. |
-| `NumericFormatOptions` | Options for the `numericFormat` column setting (delegates to the Numbro library). |
 | `SelectOptionsObject` | An option entry for the `select` and `autocomplete` cell types: `{ value, label }`. |
 | `RangeType` | A cell range descriptor: `{ from: CellCoords, to: CellCoords }`. |
 
@@ -261,7 +256,7 @@ const settings: GridSettings = {
   columns: [
     { data: 'name' },
     { data: 'department' },
-    { data: 'hireDate', type: 'date', dateFormat: 'YYYY-MM-DD' },
+    { data: 'hireDate', type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
   ],
   licenseKey: 'non-commercial-and-evaluation',
 };
@@ -330,9 +325,9 @@ const settings: GridSettings = {
 };
 ```
 
-### Type the HOT instance in a React ref
-
 ::: only-for react
+
+### Type the HOT instance in a React ref
 
 ```tsx
 import { useRef } from 'react';
@@ -358,9 +353,9 @@ export function Grid() {
 
 :::
 
-### Type the HOT instance in Angular
-
 ::: only-for angular
+
+### Type the HOT instance in Angular
 
 ```typescript
 import { Component, ViewChild } from '@angular/core';
@@ -381,6 +376,33 @@ export class GridComponent {
   };
 }
 ```
+
+:::
+
+::: only-for vue
+
+### Type the HOT instance in a Vue ref
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import type { GridSettings } from 'handsontable';
+
+const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+
+const settings: GridSettings = {
+  data: myData,
+  licenseKey: 'non-commercial-and-evaluation',
+};
+</script>
+
+<template>
+  <HotTable ref="hotRef" :settings="settings" />
+</template>
+```
+
+The ref is typed as the `HotTable` component; read the `HotInstance` through `hotRef.value?.hotInstance`.
 
 :::
 

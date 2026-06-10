@@ -33,7 +33,6 @@ import type {
   ColumnSettings as ColumnSettingsType,
   CellProperties as CellPropertiesType,
   CellMeta as CellMetaType,
-  NumericFormatOptions as NumericFormatOptionsType,
   CellChange as CellChangeType,
   ChangeSource as ChangeSourceType,
   RowObject as RowObjectType,
@@ -315,7 +314,6 @@ declare namespace Handsontable {
   export type CellProperties = CellPropertiesType;
   /** @deprecated Use CellProperties */
   export type CellMeta = CellMetaType;
-  export type NumericFormatOptions = NumericFormatOptionsType;
   export type CellChange = CellChangeType;
   export type ChangeSource = ChangeSourceType;
   export type RowObject = RowObjectType;
@@ -452,7 +450,7 @@ export {
 // Note: CellCoords and CellRange are already exported as runtime values above.
 export type { GridSettings, Events } from './core/settings';
 export type {
-  CellValue, CellChange, RowObject, SourceRowData, ChangeSource, NumericFormatOptions, CellMeta, CellProperties,
+  CellValue, CellChange, RowObject, SourceRowData, ChangeSource, CellMeta, CellProperties,
   ColumnSettings
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';

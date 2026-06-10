@@ -35,7 +35,6 @@ export class CopyableRangesFactory {
    */
   #countColumnHeaders;
 
-  /* eslint-disable jsdoc/require-description-complete-sentence */
   /**
    * @param {{
    *   countRows: function(): number,
@@ -55,7 +54,6 @@ export class CopyableRangesFactory {
     this.#columnsLimit = columnsLimit;
     this.#countColumnHeaders = countColumnHeaders;
   }
-  /* eslint-enable jsdoc/require-description-complete-sentence */
 
   /**
    * Sets the selection range to be processed.

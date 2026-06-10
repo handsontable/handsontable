@@ -44,12 +44,6 @@
 - Impact: Tests encode known-wrong behavior. When these bugs are fixed, the tests will break, creating confusion about whether the fix is correct.
 - Fix approach: File issues for each documented bug. Replace TODO comments with issue references. Fix bugs and update test assertions.
 
-**DOMPurify Deprecation In Progress:**
-- Issue: The built-in DOMPurify-based HTML sanitization is deprecated and scheduled for removal in the next major release. A migration path to a user-provided `sanitizer` option exists but the old path is still the default.
-- Files: `handsontable/src/helpers/dom/element.ts`, `handsontable/src/helpers/string.ts`
-- Impact: `dompurify` remains a runtime dependency (listed in `package.json` dependencies). Until removal, bundle size includes DOMPurify even when users provide a custom sanitizer.
-- Fix approach: Complete the migration in the next major release. Remove `dompurify` from `dependencies`. Make `sanitizer` option required or provide a lightweight built-in default.
-
 ## Known Bugs
 
 **CustomBorders Enable/Disable State Mismatch:**
@@ -72,11 +66,11 @@
 
 ## Security Considerations
 
-**HTML Sanitization Transition Period:**
-- Risk: During the DOMPurify deprecation transition, HTML content injected via `innerHTML` is sanitized by default using DOMPurify. If a user passes `sanitizer: false` or a weak custom sanitizer, XSS is possible in cell content.
-- Files: `handsontable/src/helpers/dom/element.ts`, `handsontable/src/helpers/string.ts`
-- Current mitigation: DOMPurify is the default sanitizer. The `fastInnerHTML` function checks for HTML characters before applying innerHTML.
-- Recommendations: Document clearly that `sanitizer: false` disables XSS protection. Add a console warning when sanitizer is set to a non-function falsy value. Consider keeping a lightweight built-in sanitizer after DOMPurify removal.
+**No Built-in HTML Sanitizer (Post-DOMPurify Removal):**
+- Risk: DOMPurify was removed in v18.0. HTML content injected via `innerHTML` is no longer sanitized by default. If a user does not provide a `sanitizer` option, HTML cell content is rendered unsanitized and XSS is possible.
+- Files: `handsontable/src/helpers/dom/element.ts`, `handsontable/src/plugins/contextMenu/menu/menuItemRenderer.ts`
+- Current mitigation: `fastInnerHTML` still accepts a `sanitizer` function and applies it when provided. `menuItemRenderer` emits a console warning (once per instance) when an HTML-containing context menu item name is rendered without a sanitizer configured.
+- Recommendations: Document that XSS protection is the user's responsibility when `type: 'html'` or raw HTML is passed as cell content. Encourage users to configure a `sanitizer` option (e.g. wrapping DOMPurify themselves).
 
 **innerHTML Usage in Template Literal Tag:**
 - Risk: The `templateLiteralTag.ts` helper uses `template.innerHTML` to parse tagged template literals. If user-supplied data flows into the template, it could introduce XSS.
@@ -139,40 +133,10 @@
 
 ## Dependencies at Risk
 
-**moment.js (pinned at 2.30.1):**
-- Risk: moment.js is in maintenance mode (no new features). The library is 67KB minified and has known issues with tree-shaking. It is used in 22 source files across date editors, validators, renderers, and filter conditions.
-- Impact: Bundle size penalty. The deprecation of `dateFormat` string options (using moment format patterns) is already underway.
-- Migration plan: The codebase is migrating date handling away from moment-based string formats. Complete the migration by removing all moment.js imports and replacing with a user-configurable date formatting approach or a lightweight alternative.
-
-**numbro (pinned at 2.5.0):**
-- Risk: numbro is used in 5 files for numeric formatting. The `numericFormat.pattern` and `numericFormat.culture` options using numbro are deprecated.
-- Impact: Bundle size; numbro adds significant weight for locale-aware number formatting.
-- Migration plan: The deprecation of numbro-based formatting is documented in `handsontable/src/dataMap/metaManager/metaSchema.ts` (line 4098). Complete migration to native `Intl.NumberFormat`.
-
-**TypeScript 3.8.2:**
-- Risk: TypeScript 3.8 is severely outdated (released March 2020). The `.d.ts` type definitions generated into `handsontable/tmp/` are limited to TS 3.8 features.
-- Impact: Cannot use modern TypeScript features in type definitions (template literal types, conditional types improvements, etc.). Users with newer TS versions may encounter compatibility issues.
-- Migration plan: Upgrade the TypeScript dev dependency and modernize type definitions incrementally. Test against multiple TS versions.
-
-**@typescript-eslint/parser and plugin (^4.33.0):**
-- Risk: Version 4.x is several major versions behind current (8.x). Compatibility with newer ESLint versions is limited.
-- Impact: Cannot adopt new linting rules and may miss detection of new TypeScript anti-patterns.
-- Migration plan: Upgrade alongside ESLint (currently ^7.25.0, also outdated).
-
-**ESLint ^7.25.0:**
-- Risk: ESLint 7 is end-of-life. Current stable is ESLint 9. The flat config format is not adopted.
-- Impact: Missing newer rule categories. Community plugin ecosystem is moving to ESLint 8/9.
-- Migration plan: Migrate to ESLint 9 flat config. Update `@typescript-eslint` packages simultaneously.
-
 **Jest ^27.5.1 and jasmine-core ^3.4.0:**
 - Risk: Jest 27 is two major versions behind current (30). Jasmine 3.4 is significantly behind current (5.x).
 - Impact: Missing performance improvements, better error messages, and modern testing features (e.g., better async handling in Jest 29+).
 - Migration plan: Upgrade Jest to 29+ (requires updating `babel-jest` and potentially test configuration). Evaluate Jasmine upgrade separately due to API changes.
-
-**@handsontable/pikaday (^1.0.0):**
-- Risk: A forked date picker library maintained by Handsontable. The `dateEditor` is being deprecated (string-based `dateFormat` with Pikaday). Only 6 source files reference it.
-- Impact: Maintenance burden for a forked dependency.
-- Migration plan: Complete the date editor modernization. Remove Pikaday dependency when the legacy date editor path is removed.
 
 ## Missing Critical Features
 

@@ -1,5 +1,6 @@
 import { isObjectEqual, isObject } from '../../helpers/object';
 import { isDefined } from '../../helpers/mixed';
+import type { CellProperties } from '../../settings';
 
 export const VALIDATOR_TYPE: 'autocomplete' = 'autocomplete';
 
@@ -11,7 +12,7 @@ export const VALIDATOR_TYPE: 'autocomplete' = 'autocomplete';
  * @param {Function} callback Callback called with validation result.
  */
 export function autocompleteValidator(
-  this: Record<string, unknown>, value: unknown, callback: (valid: boolean) => void): void {
+  this: CellProperties, value: unknown, callback: (valid: boolean) => void): void {
   const isKeyValueObject = (obj: unknown) => {
     const rec = obj as Record<string, unknown>;
 

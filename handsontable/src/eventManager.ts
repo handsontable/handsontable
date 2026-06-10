@@ -63,7 +63,7 @@ class EventManager {
      * @private
      * @param {Event} event The event object.
      */
-    function callbackProxy(event: Event) {
+    function callbackProxy(this: EventTarget, event: Event) {
       callbackRef.call(this, extendEvent(event));
     }
 

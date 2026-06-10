@@ -17,6 +17,9 @@ interface MergeCellsPluginRef {
   mergedCellsCollection: MergedCellsCollection;
 }
 
+/**
+ * Handles all selection-related calculations for merged cells, such as class name generation and full-selection detection.
+ */
 class SelectionCalculations {
   /**
    * Reference to the Merge Cells plugin.
@@ -37,6 +40,9 @@ class SelectionCalculations {
    */
   fullySelectedMergedCellClassName = 'fullySelectedMergedCell';
 
+  /**
+   * Initializes the selection calculations helper with a reference to the MergeCells plugin instance.
+   */
   constructor(plugin: MergeCellsPluginRef) {
     this.plugin = plugin;
     this.hot = plugin.hot;

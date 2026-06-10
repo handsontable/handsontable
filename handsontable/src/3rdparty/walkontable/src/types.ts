@@ -12,6 +12,7 @@ import type { default as WalkontableOverlays } from './overlays';
 import type { SelectionManager as WalkontableSelectionManager } from './selection/manager';
 import type { Overlay as WalkontableOverlay } from './overlay/_base';
 import type EventManager from '../../../eventManager';
+import type WalkontableEvent from './event';
 
 export interface DomBindings {
   rootDocument: Document;
@@ -31,17 +32,17 @@ export interface WalkontableInstance {
   drawn: boolean;
   domBindings: DomBindings;
   rootDocument: Document;
-  rootWindow: Window & typeof globalThis;
+  rootWindow: Window;
   eventManager: EventManager;
   activeOverlayName: string;
-  wtEvent: Record<string, unknown>;
+  wtEvent: WalkontableEvent | Record<string, unknown>;
   drawInterrupted: boolean;
   guid: string;
   createCellCoords(row: number, column: number): CellCoords;
   createCellRange(highlight: CellCoords, from: CellCoords, to: CellCoords): CellRange;
   getSetting(key: string, ...args: unknown[]): unknown;
-  update(key: string, value: unknown): WalkontableInstance;
-  draw(fastDraw?: boolean): WalkontableInstance;
+  update(key: string, value: unknown): void;
+  draw(fastDraw?: boolean): void;
   scrollViewport(
     coords: CellCoords | { row: number; col: number },
     snapToTop?: boolean | string, snapToRight?: boolean | string,
@@ -49,10 +50,8 @@ export interface WalkontableInstance {
   scrollViewportHorizontally(column: number, snapping?: string): boolean;
   scrollViewportVertically(row: number, snapping?: string): boolean;
   getCell(coords: CellCoords | { row: number; col: number }, topmost?: boolean): HTMLTableCellElement | number;
-  getOverlayName(): string;
-  getOverlayByName(name: string): WalkontableInstance | null;
-  exportSettingsAsClassNames(): string[];
-  hasSetting(key: string): boolean;
+  getOverlayByName(name: string): WalkontableInstance | WalkontableOverlay | null;
+  exportSettingsAsClassNames(): void;
   destroy(): void;
   wtScroll: WalkontableScroll;
   [key: string]: unknown;
@@ -129,7 +128,7 @@ export interface ScrollDao {
   wtTable: WalkontableTable;
   wtViewport: WalkontableViewport;
   wtSettings: WalkontableSettings;
-  rootWindow: Window & typeof globalThis;
+  rootWindow: Window;
   totalRows: number;
   totalColumns: number;
   fixedRowsTop: number;
