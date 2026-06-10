@@ -37,12 +37,13 @@ const currentPrefix = pathname.includes('/react-data-grid/')
 const guidesUrl = `/docs/${currentPrefix}/`;
 const recipesUrl = `/docs/${currentPrefix}/recipes/`;
 const apiUrl = `/docs/${currentPrefix}/api/`;
-const changelogUrl = `/docs/${currentPrefix}/changelog-17/`;
+const changelogUrl = `/docs/${currentPrefix}/changes-between-versions/`;
 const isApiPage = pathname.includes('/api/');
 const isRecipesPage = pathname.includes('/recipes/');
 const isChangelogPage =
   /\/changelog(-|\/)/.test(pathname) ||
   pathname.includes('/migration-from-') ||
+  pathname.includes('/changes-between-versions') ||
   pathname.includes('/versioning-policy/') ||
   pathname.includes('/deprecation-policy/') ||
   pathname.includes('/long-term-support/');
