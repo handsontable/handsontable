@@ -626,7 +626,21 @@
 
   .ht_master .wtHolder {
     overflow: auto;
-    overscroll-behavior: none;
+  }
+
+  // `overscroll-behavior: none` stops the macOS rubber-band/overscroll bounce
+  // from visually detaching the scrolling master content from the (non-bouncing)
+  // overlays. Only an axis the holder can actually scroll is able to bounce, so
+  // the value is applied per-axis: applying it to a non-scrollable axis would
+  // give no bounce protection while still blocking scroll chaining to the page
+  // (the window), trapping wheel events over a grid that cannot scroll that way.
+  // MasterTable toggles these classes from the actual holder scrollability.
+  .ht_master .wtHolder.htOverscrollContainX {
+    overscroll-behavior-x: none;
+  }
+
+  .ht_master .wtHolder.htOverscrollContainY {
+    overscroll-behavior-y: none;
   }
 
   [dir="rtl"].handsontable {
