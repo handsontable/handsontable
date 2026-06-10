@@ -123,7 +123,7 @@
     }
   }
 
-  .ht-root-wrapper:has(> .ht-after-grid > div) {
+  .ht-root-wrapper:has(> .ht-after-grid > .ht-slot-element) {
     .ht-empty-data-state {
       border-end-start-radius: 0;
       border-end-end-radius: 0;

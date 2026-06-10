@@ -85,7 +85,7 @@ export function focusGridScope(hot: HotInstance) {
     position: 'after',
   }]);
 
-  const container = hot.rootGridElement ?? hot.rootElement;
+  const container = hot.rootGridContentElement ?? hot.rootElement;
 
   hot.getFocusScopeManager().registerScope('grid', container, {
     contains: (target: HTMLElement) => {

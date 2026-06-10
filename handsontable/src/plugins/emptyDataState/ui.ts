@@ -127,11 +127,12 @@ function computeEmptyDataStateHeight(view: ViewInstance, cols: number, headerCol
  */
 export class EmptyDataStateUI {
   /**
-   * The overlay container where the emptyDataState UI will be installed (ht-overlays).
+   * The grid container where the emptyDataState UI will be installed (`ht-grid`). It overlays the
+   * grid, so it is a sibling of the grid content rather than a wrapper-level slot.
    *
    * @type {HTMLElement}
    */
-  #overlayContainer: HTMLElement;
+  #gridContainer: HTMLElement;
   /**
    * The root document where the emptyDataState UI will be installed.
    *
@@ -152,13 +153,13 @@ export class EmptyDataStateUI {
   #placeholderElement: HTMLElement | null = null;
 
   /**
-   * Initializes the empty data state UI with the overlay container and document, then builds and inserts the DOM structure.
+   * Initializes the empty data state UI with the grid container and document, then builds and inserts the DOM structure.
    */
   constructor({
-    overlayContainer,
+    gridContainer,
     rootDocument,
-  }: { overlayContainer: HTMLElement, rootDocument: Document }) {
-    this.#overlayContainer = overlayContainer;
+  }: { gridContainer: HTMLElement, rootDocument: Document }) {
+    this.#gridContainer = gridContainer;
     this.#rootDocument = rootDocument;
 
     this.install();
@@ -185,8 +186,8 @@ export class EmptyDataStateUI {
       A11Y_TABINDEX(-1),
     ]);
 
-    if (this.#overlayContainer) {
-      this.#overlayContainer.appendChild(elements.fragment);
+    if (this.#gridContainer) {
+      this.#gridContainer.appendChild(elements.fragment);
     }
   }
 

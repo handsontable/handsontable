@@ -1,4 +1,5 @@
 import { _injectProductInfo } from '../helpers/mixed';
+import { LAYOUT_SLOTS, LAYOUT_WEIGHTS } from '../core/layout';
 import type { HotInstance } from '../core/types';
 
 const SCOPE_ID = 'licenseNotification';
@@ -64,6 +65,12 @@ export function initLicenseNotification(hotInstance: HotInstance): void {
   if (!notificationElement) {
     return;
   }
+
+  // `_injectProductInfo` appended the element into the after-grid element; register it under the
+  // layout slot so the `layout` setting and weights control its order relative to other content.
+  hotInstance.getLayoutManager()
+    .getSlot(LAYOUT_SLOTS.AFTER_GRID)
+    .add('licenseNotification', notificationElement, LAYOUT_WEIGHTS.LICENSE_NOTIFICATION);
 
   // The scope is intentionally never unregistered: the license notification is created once during
   // init, cannot be disabled, and lives for the whole instance lifetime. It is cleaned up when

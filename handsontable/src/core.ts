@@ -69,6 +69,7 @@ import {
 import { initLicenseNotification } from './utils/licenseNotification';
 import { getValueSetterValue } from './utils/valueAccessors';
 import { createThemeManager } from './themes/engine';
+import { LayoutManager, SLOT_ITEM_NO_BORDER_CLASS, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
@@ -259,6 +260,25 @@ export default function Core(
   this.rootGridElement = null!;
 
   /**
+   * Reference to the grid content element. Wraps the grid (table) together with the grid focus-scope
+   * tab-catchers, so siblings of this element inside `ht-grid` (e.g. the empty-data-state) stay
+   * outside the grid focus scope.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootGridContentElement = null!;
+
+  /**
+   * Reference to the before-grid element. A wrapper slot rendered above the grid for plugin UI
+   * (for example toolbars). Ordered through the layout manager.
+   *
+   * @private
+   * @type {HTMLElement}
+   */
+  this.rootBeforeGridElement = null!;
+
+  /**
    * Reference to the after-grid element (pagination, license notification).
    *
    * @private
@@ -267,7 +287,8 @@ export default function Core(
   this.rootAfterGridElement = null!;
 
   /**
-   * Reference to the overlays element (empty-data-state, dialog).
+   * Reference to the overlays element (dialog). Note: the empty-data-state lives inside the grid
+   * element (`ht-grid`), not here.
    *
    * @private
    * @type {HTMLElement}
@@ -311,21 +332,27 @@ export default function Core(
 
     this.rootWrapperElement = this.rootDocument.createElement('div');
 
+    this.rootBeforeGridElement = this.rootDocument.createElement('div');
     this.rootGridElement = this.rootDocument.createElement('div');
+    this.rootGridContentElement = this.rootDocument.createElement('div');
     this.rootOverlaysElement = this.rootDocument.createElement('div');
     this.rootAfterGridElement = this.rootDocument.createElement('div');
     this.rootPortalElement = this.rootDocument.createElement('div');
 
     addClass(this.rootElement, ['ht-wrapper', 'handsontable']);
     addClass(this.rootWrapperElement, 'ht-root-wrapper');
+    addClass(this.rootBeforeGridElement, 'ht-before-grid');
     addClass(this.rootGridElement, 'ht-grid');
+    addClass(this.rootGridContentElement, 'ht-grid-content');
     addClass(this.rootOverlaysElement, 'ht-overlays');
     addClass(this.rootAfterGridElement, 'ht-after-grid');
 
-    this.rootGridElement.appendChild(this.rootElement);
+    this.rootGridContentElement.appendChild(this.rootElement);
+    this.rootGridElement.appendChild(this.rootGridContentElement);
+    this.rootWrapperElement.appendChild(this.rootBeforeGridElement);
     this.rootWrapperElement.appendChild(this.rootGridElement);
-    this.rootWrapperElement.appendChild(this.rootOverlaysElement);
     this.rootWrapperElement.appendChild(this.rootAfterGridElement);
+    this.rootWrapperElement.appendChild(this.rootOverlaysElement);
     this.rootContainer.appendChild(this.rootWrapperElement);
     (this.rootWrapperElement as HTMLElement & { __hotInstance: HotInstance }).__hotInstance = this;
 
@@ -1557,33 +1584,81 @@ export default function Core(
       installAccessibilityAnnouncer(instance.rootPortalElement);
       initLicenseNotification(instance);
 
-      // Keep the after-grid element (license notification, pagination) as wide as the table.
-      let lastAfterGridWidth = -1;
-      const syncAfterGridWidth = () => {
-        if (instance.isDestroyed || !instance.rootAfterGridElement) {
+      // Keep the edge slots (before-grid, after-grid) as wide as the table so their content
+      // (toolbars, pagination, license notification) aligns with the grid.
+      const lastEdgeWidths = { before: -1, after: -1 };
+      const syncEdgeSlotsWidth = () => {
+        if (instance.isDestroyed) {
           return;
         }
 
         const { view } = instance;
 
-        if (view) {
-          let width = view.isHorizontallyScrollableByWindow()
-            ? view.getTotalTableWidth() : view.getWorkspaceWidth();
+        if (!view) {
+          return;
+        }
 
-          if (width === 0 && instance.rootWrapperElement) {
-            width = instance.rootWrapperElement.offsetWidth;
-          }
+        let width = view.isHorizontallyScrollableByWindow()
+          ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
-          // Only write when the value actually changes — avoids a reflow → dimension-refresh
-          // → re-sync feedback loop, and needless layout writes during volatile renders.
-          if (width !== lastAfterGridWidth) {
-            lastAfterGridWidth = width;
-            instance.rootAfterGridElement.style.width = `${width}px`;
-          }
+        if (width === 0 && instance.rootWrapperElement) {
+          width = instance.rootWrapperElement.offsetWidth;
+        }
+
+        // Only write when the value actually changes — avoids a reflow → dimension-refresh
+        // → re-sync feedback loop, and needless layout writes during volatile renders.
+        if (instance.rootAfterGridElement && width !== lastEdgeWidths.after) {
+          lastEdgeWidths.after = width;
+          instance.rootAfterGridElement.style.width = `${width}px`;
+        }
+
+        if (instance.rootBeforeGridElement && width !== lastEdgeWidths.before) {
+          lastEdgeWidths.before = width;
+          instance.rootBeforeGridElement.style.width = `${width}px`;
         }
       };
 
-      this.addHook('afterRefreshDimensions', syncAfterGridWidth);
+      this.addHook('afterRefreshDimensions', syncEdgeSlotsWidth);
+
+      // Toggle the after-grid top separator on its first item. The separator is hidden when the
+      // grid sits flush against the slot (the grid's own bottom border already divides them).
+      // This is generic to any slot item (pagination, license notification, custom UI).
+      const syncAfterGridSeparator = () => {
+        if (instance.isDestroyed || !instance.rootAfterGridElement) {
+          return;
+        }
+
+        const items = Array.from(instance.rootAfterGridElement.children);
+
+        if (items.length === 0) {
+          return;
+        }
+
+        const { view } = instance;
+        let needsBorder = true;
+
+        if (view) {
+          if (view.isVerticallyScrollableByWindow()) {
+            needsBorder = false;
+          } else if (view.hasHorizontalScroll() || view.getTableHeight() < view.getWorkspaceHeight()) {
+            needsBorder = true;
+          } else {
+            const lastRenderedRow = view.getLastRenderedVisibleRow();
+
+            needsBorder = lastRenderedRow === null || view.getLastFullyVisibleRow() !== lastRenderedRow;
+          }
+        }
+
+        // Only the first item carries the grid separator; clear the modifier from the rest so a
+        // reordered former-first item does not keep it.
+        items.forEach((item, index) => {
+          item.classList.toggle(SLOT_ITEM_NO_BORDER_CLASS, index === 0 && !needsBorder);
+        });
+      };
+
+      this.addHook('afterRender', syncAfterGridSeparator);
+      this.addHook('afterScrollVertically', syncAfterGridSeparator);
+      this.addHook('afterRefreshDimensions', syncAfterGridSeparator);
     }
 
     instance.runHooks('init');
@@ -3423,6 +3498,10 @@ export default function Core(
     if (!init && instance.view && (currentHeight === '' || height === '' || height === undefined) &&
         currentHeight !== height) {
       instance.view._wt.wtOverlays.updateMainScrollableElements();
+    }
+
+    if (isRootInstance(instance)) {
+      layoutManager?.applyConfig(tableMeta.layout as LayoutConfig | undefined);
     }
   };
 
@@ -5472,6 +5551,7 @@ export default function Core(
     if (isRootInstance(this)) {
       uninstallAccessibilityAnnouncer();
       this.getFocusScopeManager().destroy();
+      layoutManager?.destroy();
 
       instance.themeManager?.destroy();
     }
@@ -6112,6 +6192,14 @@ export default function Core(
 
   const focusScopeManager = isRootInstance(this) ? createFocusScopeManager(instance) : null;
 
+  const layoutManager = isRootInstance(this)
+    ? new LayoutManager({
+      beforeGrid: instance.rootBeforeGridElement,
+      afterGrid: instance.rootAfterGridElement,
+      overlays: instance.rootOverlaysElement,
+    })
+    : null;
+
   /**
    * Return the Focus Manager responsible for managing the browser's focus in the table.
    *
@@ -6150,6 +6238,29 @@ export default function Core(
     }
 
     return focusScopeManager as FocusScopeManager;
+  };
+
+  /**
+   * Returns the Layout Manager. The module manages the order of plugin UI elements within the
+   * wrapper slots (`beforeGrid`, `afterGrid`, `overlays`). Use it to add or remove custom UI and
+   * order it via weights or the `layout` setting. Only available for the main instance.
+   *
+   * @memberof Core#
+   * @since 17.1.0
+   * @function getLayoutManager
+   * @returns {LayoutManager} Instance of {@link LayoutManager}
+   *
+   * @example
+   * ```js
+   * hot.getLayoutManager().getSlot('beforeGrid').add('myToolbar', toolbarElement, 100);
+   * ```
+   */
+  this.getLayoutManager = function() {
+    if (!isRootInstance(instance)) {
+      throwWithCause('The LayoutManager is only available for the main Handsontable instance.');
+    }
+
+    return layoutManager as LayoutManager;
   };
 
   const theme = mergedUserSettings.theme as ThemeBuilder | undefined;

@@ -136,6 +136,7 @@ const accessoriesAndMenusItems = [
   { path: 'guides/accessories-and-menus/undo-redo/undo-redo' },
   { path: 'guides/accessories-and-menus/icon-pack/icon-pack' },
   { path: 'guides/accessories-and-menus/empty-data-state/empty-data-state' },
+  { path: 'guides/accessories-and-menus/layout-slots/layout-slots' },
   { path: 'guides/dialog/dialog/dialog' },
   { path: 'guides/dialog/loading/loading' },
   { path: 'guides/dialog/notification/notification' },

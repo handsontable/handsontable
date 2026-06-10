@@ -11,15 +11,9 @@ describe('Pagination UI', () => {
   });
 
   function isTopBorderVisible() {
-    const {
-      borderTopColor,
-    } = getComputedStyle(getPaginationContainerElement());
-
-    if (!borderTopColor.startsWith('rgba')) {
-      return true;
-    }
-
-    return borderTopColor.slice(borderTopColor.lastIndexOf(',') + 1, -1) > 0;
+    // The separator is the first after-grid item's top border, toggled via `ht-slot-element--no-border`
+    // (sets `border-top-width: 0`). The pagination is that first item in these specs.
+    return getComputedStyle(getPaginationContainerElement()).borderTopWidth !== '0px';
   }
 
   it('should correctly calculate the width of the pagination container (table has defined size)', async() => {
@@ -29,6 +23,8 @@ describe('Pagination UI', () => {
       height: 300,
       pagination: true,
     });
+
+    await waitForNextAnimationFrames(2);
 
     expect(getPaginationContainerElement().offsetWidth).toBe(500);
   });
@@ -46,7 +42,7 @@ describe('Pagination UI', () => {
     expect(hot().rootAfterGridElement.style.width).toBe('500px');
   });
 
-  it('should correctly calculate the width of the pagination container (table has not defined size)', async() => {
+  it('should fill the after-grid slot width when the table has no defined size', async() => {
     handsontable({
       data: createSpreadsheetData(15, 10),
       pagination: {
@@ -54,7 +50,10 @@ describe('Pagination UI', () => {
       },
     });
 
-    expect(getPaginationContainerElement().offsetWidth).toBe(500);
+    await waitForNextAnimationFrames(2);
+
+    // The pagination no longer sets its own width - it fills the after-grid slot.
+    expect(getPaginationContainerElement().offsetWidth).toBe(hot().rootAfterGridElement.offsetWidth);
   });
 
   it('should hide the pagination container element when all sections are hidden', async() => {

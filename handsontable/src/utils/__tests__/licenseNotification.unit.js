@@ -20,6 +20,11 @@ function createMockHotInstance(overrides = {}) {
     getFocusScopeManager: jest.fn(() => ({
       registerScope: registerScopeMock,
     })),
+    getLayoutManager: jest.fn(() => ({
+      getSlot: jest.fn(() => ({
+        add: jest.fn(),
+      })),
+    })),
     ...overrides,
   };
 }

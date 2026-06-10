@@ -288,7 +288,7 @@
   .ht-root-wrapper {
     border-radius: var(--ht-wrapper-border-radius);
 
-    &:has(> .ht-after-grid > div) {
+    &:has(> .ht-after-grid > .ht-slot-element) {
       .ht-wrapper,
       .ht_master .wtHolder {
         border-end-start-radius: 0;
@@ -313,17 +313,73 @@
       }
     }
 
-    .ht-after-grid {
-      & > div {
-        &:not(:last-of-type) {
-          border-radius: 0;
-          border-bottom-width: 0;
+    // Mirror of the after-grid rules: the before-grid slot sits above the grid, so it squares the
+    // grid's top (block-start) corners instead of the bottom ones.
+    &:has(> .ht-before-grid > .ht-slot-element) {
+      .ht-wrapper,
+      .ht_master .wtHolder {
+        border-start-start-radius: 0;
+        border-start-end-radius: 0;
+      }
+
+      .htCore {
+        border-start-start-radius: 0 !important;
+        border-start-end-radius: 0 !important;
+
+        thead tr:first-child th:first-child,
+        tbody tr:first-child td:first-child,
+        tbody tr:first-child th:first-child {
+          border-start-start-radius: 0 !important;
         }
 
-        &:last-of-type {
-          border-start-start-radius: 0;
-          border-start-end-radius: 0;
+        thead tr:first-child th:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))),
+        tbody tr:first-child td:last-child,
+        tbody tr:first-child th:last-child {
+          border-start-end-radius: 0 !important;
         }
+      }
+    }
+
+    .ht-slot-element {
+      border-radius: var(--ht-wrapper-border-radius);
+    }
+
+    .ht-after-grid > .ht-slot-element {
+      // The first item's top border is the separator from the grid. Drop the top border on the
+      // following items so each seam shows a single divider (the upper item's bottom border).
+      &:not(:first-of-type) {
+        border-top-width: 0;
+      }
+
+      // Square the seams but keep the bottom border so adjacent items show a divider line.
+      &:not(:last-of-type) {
+        border-radius: 0;
+      }
+
+      &:last-of-type {
+        border-start-start-radius: 0;
+        border-start-end-radius: 0;
+      }
+    }
+
+    // Mirror of the after-grid slot div rules for the before-grid slot (stacked upward toward
+    // the grid): the outer (first) element keeps its top corners; the grid-facing edge is squared.
+    .ht-before-grid > .ht-slot-element {
+      // Drop the top border on the following items so each seam shows a single divider (the upper
+      // item's bottom border), and square the seam corners.
+      &:not(:first-of-type) {
+        border-top-width: 0;
+        border-radius: 0;
+      }
+
+      &:first-of-type {
+        border-end-start-radius: 0;
+        border-end-end-radius: 0;
+      }
+
+      // The last item sits against the grid below it, so it has no bottom border.
+      &:last-of-type {
+        border-bottom-width: 0;
       }
     }
   }

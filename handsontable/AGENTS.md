@@ -59,6 +59,7 @@ Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` us
 
 ## Common Pitfalls
 
+- **Wrapper UI placement**: The root wrapper has slots `ht-before-grid`, `ht-grid` (grid + empty-data-state), `ht-after-grid`, `ht-overlays` (last). Add plugin UI to an orderable slot via `hot.getLayoutManager().getSlot('beforeGrid'|'afterGrid'|'overlays').add(key, element, weight)` and `remove(key)` on teardown — do NOT `appendChild` directly into the slot elements. Order is user-overridable through the `layout` setting. `ht-grid` is internal and not orderable. `LayoutManager.destroy()` keeps its slot map (only clears contents) so a plugin's `disablePlugin` running after core destroy stays safe. See `src/core/layout/`.
 - **`arr.push(...largeArray)`**: Causes stack overflow with 10k+ elements. Use `forEach` loop instead.
 - **Merged cells**: Read `colspan`/`rowspan` from `hot.getCellMeta(row, col)`, NOT from DOM element attributes. The meta is authoritative regardless of viewport state.
 - **Filters visual/physical index**: `conditionCollection` uses physical indexes, `getDataAtCol()` uses visual. Always convert when `manualColumnMove` is active.

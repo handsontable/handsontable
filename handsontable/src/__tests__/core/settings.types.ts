@@ -186,6 +186,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
   isEmptyRow: row => row === 0,
   label: { property: 'name.last', position: 'after', value: oneOf('My label: ', () => 'My label') },
   language: 'foo',
+  layout: {
+    beforeGrid: ['toolbar'],
+    afterGrid: ['pagination', 'licenseNotification'],
+    overlays: ['dialog'],
+  },
   layoutDirection: oneOf('rtl', 'ltr', 'inherit'),
   licenseKey: '',
   locale: 'pl-PL',

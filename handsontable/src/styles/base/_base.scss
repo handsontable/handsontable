@@ -13,7 +13,8 @@
     height: 100%;
     box-shadow: 0 0 0 var(--ht-wrapper-border-width) var(--ht-wrapper-border-color);
 
-    &:has(> .ht-after-grid > div) {
+    &:has(> .ht-after-grid > .ht-slot-element),
+    &:has(> .ht-before-grid > .ht-slot-element) {
       .ht-wrapper {
         &:not(.htHorizontallyScrollableByWindow),
         &:not(.htVerticallyScrollableByWindow) {
@@ -41,8 +42,31 @@
   }
 
   .ht-grid {
+    position: relative;
     flex: 1 1 auto;
     min-height: 0;
+  }
+
+  .ht-grid-content {
+    height: 100%;
+  }
+
+  .ht-before-grid {
+    flex: 0 0 auto;
+  }
+
+  // Items added to the before-grid/after-grid slots. The slot item owns the border (the
+  // pagination, license notification, etc. do not draw their own). The border is on by default;
+  // `ht-slot-element--no-border` removes the top separator (used by the after-grid pagination when
+  // the grid is flush against it). The before-grid relies on the default border, so it needs no toggle.
+  .ht-slot-element {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--ht-border-color);
+
+    &.ht-slot-element--no-border {
+      border-top-width: 0;
+    }
   }
 
   // Style for scrollbar width calculation

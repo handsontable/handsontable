@@ -1,6 +1,8 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { DialogUI } from './ui';
+import { LAYOUT_SLOTS, LAYOUT_WEIGHTS } from '../../core/layout';
+import { isRootInstance } from '../../utils/rootInstance';
 import { isObject, isPlainObject } from '../../helpers/object';
 import { isHTMLElement } from '../../helpers/dom/element';
 import * as C from '../../i18n/constants';
@@ -281,6 +283,14 @@ export class Dialog extends BasePlugin {
     this.#registerShortcuts();
     this.#registerFocusScope();
 
+    // The layout manager only exists on the root instance. The UI itself is already in the DOM
+    // (the UI's `install` appends it to the overlays element); the slot only manages ordering.
+    if (isRootInstance(this.hot)) {
+      this.hot.getLayoutManager()
+        .getSlot(LAYOUT_SLOTS.OVERLAYS)
+        .add(PLUGIN_KEY, this.#ui.getContainer(), LAYOUT_WEIGHTS.DIALOG);
+    }
+
     this.addHook('afterViewRender', () => this.#onAfterViewRender());
 
     super.enablePlugin();
@@ -303,6 +313,10 @@ export class Dialog extends BasePlugin {
     this.hide();
     this.#unregisterShortcuts();
     this.#unregisterFocusScope();
+
+    if (isRootInstance(this.hot)) {
+      this.hot.getLayoutManager().getSlot(LAYOUT_SLOTS.OVERLAYS).remove(PLUGIN_KEY);
+    }
 
     super.disablePlugin();
   }

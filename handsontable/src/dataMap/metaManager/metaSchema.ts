@@ -3674,6 +3674,29 @@ export default (): Record<string, unknown> => {
     layoutDirection: 'inherit',
 
     /**
+     * The `layout` option configures the order of plugin UI elements within the wrapper slots
+     * rendered around the grid: `beforeGrid`, `afterGrid`, and `overlays`. Each slot takes an
+     * ordered array of element keys (for example `'pagination'`, `'licenseNotification'`,
+     * `'dialog'`). Keys you list are placed first in that order; any remaining elements follow
+     * by their default weight. The grid itself is not orderable.
+     *
+     * @since 17.1.0
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // render the license notification above pagination
+     * layout: {
+     *   afterGrid: ['licenseNotification', 'pagination'],
+     * },
+     * ```
+     */
+    layout: undefined,
+
+    /**
      * The `licenseKey` option sets your Handsontable license key.
      *
      * You can set the `licenseKey` option to one of the following:

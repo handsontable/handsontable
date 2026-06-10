@@ -118,13 +118,13 @@ describe('EmptyDataState', () => {
     expect(getEmptyDataStateContainerElement().style.display).toBe('none');
   });
 
-  it('should keep the emptyDateState DOM element inside ht-overlays', async() => {
+  it('should keep the emptyDateState DOM element inside ht-grid', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       emptyDataState: true,
     });
 
-    expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootOverlaysElement);
+    expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootGridElement);
 
     await updateSettings({
       pagination: true,
@@ -132,16 +132,16 @@ describe('EmptyDataState', () => {
 
     await waitForNextAnimationFrames(1);
 
-    expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootOverlaysElement);
+    expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootGridElement);
   });
 
-  it('should keep the emptyDateState DOM element inside ht-overlays after re-enabling the plugin', async() => {
+  it('should keep the emptyDateState DOM element inside ht-grid after re-enabling the plugin', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       emptyDataState: true,
     });
 
-    expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootOverlaysElement);
+    expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootGridElement);
 
     await updateSettings({
       emptyDataState: false,
@@ -153,7 +153,7 @@ describe('EmptyDataState', () => {
 
     await waitForNextAnimationFrames(1);
 
-    expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootOverlaysElement);
+    expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootGridElement);
   });
 
   it('should have correct top position after initialization', async() => {

@@ -314,7 +314,7 @@ export class EmptyDataState extends BasePlugin {
 
     if (!this.#ui) {
       this.#ui = new EmptyDataStateUI({
-        overlayContainer: this.hot.rootOverlaysElement,
+        gridContainer: this.hot.rootGridElement,
         rootDocument: this.hot.rootDocument,
       });
 

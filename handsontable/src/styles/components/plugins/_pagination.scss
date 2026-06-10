@@ -5,18 +5,19 @@
 @mixin output {
   .handsontable {
     &.ht-pagination {
+      width: 100%;
       color: var(--ht-pagination-bar-foreground-color);
       background: var(--ht-pagination-bar-background-color);
-      border: 1px solid var(--ht-border-color);
-      border-top-color: transparent;
-      border-radius: var(--ht-wrapper-border-radius);
       font-size: var(--ht-font-size);
       line-height: var(--ht-line-height);
       box-sizing: border-box;
       overflow-x: auto;
 
-      &--bordered {
-        border-top-color: var(--ht-border-color);
+      // In the after-grid slot the border is provided by `.ht-slot-element`. A standalone
+      // pagination (custom `uiContainer`, no `ht-slot-element`) draws its own full border.
+      &:not(.ht-slot-element) {
+        border: 1px solid var(--ht-border-color);
+        border-radius: var(--ht-wrapper-border-radius);
       }
 
       .ht-pagination__inner {

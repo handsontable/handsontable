@@ -207,6 +207,11 @@ export interface GridSettings {
 
   // Layout
   ariaTags?: boolean;
+  layout?: {
+    beforeGrid?: string[];
+    afterGrid?: string[];
+    overlays?: string[];
+  };
   layoutDirection?: 'inherit' | 'ltr' | 'rtl';
   licenseKey?: string;
   preventOverflow?: boolean | string;
