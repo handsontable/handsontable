@@ -15,6 +15,12 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/license-key/license-key' },
 ];
 
+const aiToolsItems = [
+  { path: 'guides/ai-tools/skills-for-claude-code/skills-for-claude-code' },
+  { path: 'guides/ai-tools/ai-theme-builder/ai-theme-builder' },
+  { path: 'guides/ai-tools/ai-docs-assistant/ai-docs-assistant' },
+];
+
 const stylingItems = [
   { path: 'guides/styling/themes/themes' },
   { path: 'guides/styling/design-system/design-system' },
@@ -194,6 +200,7 @@ const upgradeAndMigrationItems = [
 module.exports = {
   sidebar: [
     { title: 'Getting started', children: gettingStartedItems },
+    { title: 'AI Tools', children: aiToolsItems },
     { title: 'Styling', children: stylingItems },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },
