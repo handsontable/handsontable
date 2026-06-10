@@ -169,6 +169,7 @@ const technicalSpecificationItems = [
 ];
 
 const changelogItems = [
+  { path: 'guides/upgrade-and-migration/changes-between-versions/changes-between-versions' },
   { path: 'guides/upgrade-and-migration/changelog-17/changelog-17' },
   { path: 'guides/upgrade-and-migration/changelog-16/changelog-16' },
   { path: 'guides/upgrade-and-migration/changelog-15/changelog-15' },
@@ -180,6 +181,7 @@ const changelogItems = [
   { path: 'guides/upgrade-and-migration/changelog-9/changelog-9' },
   { path: 'guides/upgrade-and-migration/changelog-8/changelog-8' },
   { path: 'guides/upgrade-and-migration/changelog-7/changelog-7' },
+  { path: 'guides/upgrade-and-migration/changelog-6/changelog-6' },
 ];
 
 const upgradeAndMigrationItems = [
