@@ -49,21 +49,42 @@ test.describe('Version comparison page', () => {
     await expect(breakingTab).toHaveAttribute('aria-selected', 'true');
   });
 
-  test('right-sidebar TOC highlights the version closest to the top of viewport', async ({ page }) => {
+  test('TOC marker stays on a freshly-clicked short section', async ({ page }) => {
     await page.goto(`${PAGE_PATH}?from=14.0&to=17.0&category=all`);
+    await expect(page.locator('.vc-toc a').first()).toBeVisible();
 
-    const tocLinks = page.locator('.vc-toc a');
-    await expect(tocLinks.first()).toBeVisible();
+    // Click a patch release whose section is short enough that a mid-viewport
+    // focus line falls past its bottom edge. 16.1.1 ("Security" only) is the
+    // canonical case. A pure focus-line algorithm would pick the next-larger
+    // section; the hashchange override holds the clicked section active until
+    // the user scrolls away.
+    await page.locator('.vc-toc a', { hasText: '16.1.1' }).click();
 
-    // Align a mid-range section's top edge to the viewport top via explicit
-    // `block: 'start'`. Playwright's scrollIntoViewIfNeeded is a no-op when an
-    // element is "already visible enough" and its scroll alignment is browser-
-    // dependent — both make this assertion flaky.
+    await expect(page.locator('.vc-toc a.is-active')).toHaveText('16.1.1');
+  });
+
+  test('TOC marker tracks scroll across a section boundary in both directions', async ({ page }) => {
+    await page.goto(`${PAGE_PATH}?from=14.0&to=17.0&category=all`);
+    await expect(page.locator('.vc-toc a').first()).toBeVisible();
+
+    // Center 16.1.0 vertically: the focus-line rule must pick it.
     await page.evaluate(() => {
-      document.getElementById('vc-v16.1.0')?.scrollIntoView({ block: 'start' });
+      const el = document.getElementById('vc-v16.1.0');
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      window.scrollBy(0, rect.top + rect.height / 2 - window.innerHeight / 2);
     });
-
     await expect(page.locator('.vc-toc a.is-active')).toHaveText('16.1.0');
+
+    // Scroll back up so 16.1.1 (above) takes the focus line. The marker must
+    // move symmetrically — not lag behind by one version.
+    await page.evaluate(() => {
+      const el = document.getElementById('vc-v16.1.1');
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      window.scrollBy(0, rect.top + rect.height / 2 - window.innerHeight / 2);
+    });
+    await expect(page.locator('.vc-toc a.is-active')).toHaveText('16.1.1');
   });
 
   test('renders inline markdown in entry titles and flattens links', async ({ page }) => {

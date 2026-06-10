@@ -411,54 +411,108 @@ function useActiveVersion(versions: string[]): string | null {
   const [active, setActive] = useState<string | null>(versions[0] ?? null);
   useEffect(() => {
     if (versions.length === 0) return;
-    // Scroll-spy: on each intersection event, walk all observed sections and
-    // pick the one whose heading is the most recently passed. A section is
-    // "passed" when its `top` is at or above the page's `scroll-padding-top`
-    // line — i.e. the line that hash-link navigation aligns each heading to.
-    // Reading scroll-padding-top from the scrolling element lets the
-    // threshold match the actual layout (Starlight uses 124px on this page)
-    // instead of a magic number, and avoids two bugs:
-    //
-    // - Too-tight threshold (like a hard-coded 80) excludes freshly-clicked
-    //   headings, leaving only the section above qualifying → marker shows
-    //   the previous version (off-by-one above).
-    // - Too-loose threshold (like `top < window.innerHeight * 0.5`) lets
-    //   short sections below the current one qualify, and "largest top wins"
-    //   would pick a section the user hasn't reached yet → marker shows the
-    //   next version (off-by-one below).
-    //
-    // Among qualifying (passed) sections, picking the largest top yields the
-    // most recently passed heading — the one the reader is currently on.
-    // The observer only triggers the recompute — it does not influence which
-    // version wins.
-    const observer = new IntersectionObserver(
-      () => {
-        const scrollEl = document.scrollingElement || document.documentElement;
-        const padTop = parseFloat(getComputedStyle(scrollEl).scrollPaddingTop);
-        const threshold = Number.isFinite(padTop) ? padTop : 0;
-        let best: string | null = versions[0] ?? null;
-        let bestTop = -Infinity;
-        for (const v of versions) {
-          const el = document.getElementById(`vc-v${v}`);
-          if (!el) continue;
-          const rect = el.getBoundingClientRect();
-          if (rect.top <= threshold && rect.top > bestTop) {
-            bestTop = rect.top;
-            best = v;
-          }
+    let raf: number | null = null;
+    // After a hash-link click, hold the clicked section active until the user
+    // scrolls away from its landing position. This prevents the focus-line
+    // rule (below) from picking a different section when the clicked one is
+    // shorter than half the viewport (e.g. patch releases like 16.1.1).
+    let hashAnchorY: number | null = null;
+    let hashOverride: string | null = null;
+
+    const resolveHash = (): string | null => {
+      const m = window.location.hash.match(/^#vc-v(\d+\.\d+\.\d+)$/);
+      if (!m) return null;
+      return versions.includes(m[1]) ? m[1] : null;
+    };
+
+    const compute = () => {
+      raf = null;
+
+      // (1) Hash override — active until the user scrolls more than a small
+      // distance from the post-click landing point.
+      if (hashOverride !== null && hashAnchorY !== null) {
+        if (Math.abs(window.scrollY - hashAnchorY) < 24) {
+          setActive(hashOverride);
+          return;
         }
-        if (best) setActive(best);
-      },
-      { rootMargin: '-80px 0px -50% 0px', threshold: [0, 0.1, 0.5, 1] },
-    );
-    for (const v of versions) {
-      const el = document.getElementById(`vc-v${v}`);
-      if (el) {
-        el.dataset.vcVersion = v;
-        observer.observe(el);
+        hashOverride = null;
+        hashAnchorY = null;
       }
+
+      // (2) Page-top sentinel: while the first section's heading is still
+      // in view from above (rect.top >= 0), the user hasn't entered later
+      // sections yet. This handles the common case of landing at the top of
+      // the page when the first section is shorter than half the viewport
+      // (e.g. a patch release), where the focus-line rule below would
+      // otherwise pick the next, taller section.
+      const firstEl = document.getElementById(`vc-v${versions[0]}`);
+      if (firstEl && firstEl.getBoundingClientRect().top >= 0) {
+        setActive(versions[0]);
+        return;
+      }
+
+      // (3) Steady-state rule: pick the section spanning the mid-viewport
+      // focus line. Symmetric in both scroll directions, switches at the
+      // equal-area point where the next section starts dominating. Threshold-
+      // based rules (which the previous algorithm used) have an asymmetric
+      // early-switch where one direction lags the visual transition by one
+      // section. Starlight's built-in TOC scroll-spy has the same quirk; it
+      // is imperceptible on paragraph-sized sections but very visible on the
+      // multi-hundred-pixel release groups on this page.
+      const focusLine = window.innerHeight / 2;
+      let containedBy: string | null = null;
+      let lastPassed: string | null = null;
+      for (const v of versions) {
+        const el = document.getElementById(`vc-v${v}`);
+        if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= focusLine && rect.bottom > focusLine) {
+          containedBy = v;
+          break;
+        }
+        if (rect.bottom <= focusLine) {
+          lastPassed = v;
+        }
+      }
+      setActive(containedBy ?? lastPassed ?? versions[0] ?? null);
+    };
+
+    const onScroll = () => {
+      if (raf !== null) return;
+      raf = requestAnimationFrame(compute);
+    };
+
+    const onHashChange = () => {
+      const v = resolveHash();
+      if (!v) return;
+      hashOverride = v;
+      setActive(v);
+      // The browser's auto-scroll for the hash may still be settling, so
+      // capture the landing scrollY shortly after the event fires.
+      setTimeout(() => {
+        hashAnchorY = window.scrollY;
+      }, 150);
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('hashchange', onHashChange);
+
+    // Initial run handles two cases: loaded with a hash (set override via the
+    // same path as a click) and loaded without one (use focus-line).
+    const initialHash = resolveHash();
+    if (initialHash) {
+      hashOverride = initialHash;
+      setActive(initialHash);
+      setTimeout(() => { hashAnchorY = window.scrollY; }, 150);
+    } else {
+      compute();
     }
-    return () => observer.disconnect();
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('hashchange', onHashChange);
+      if (raf !== null) cancelAnimationFrame(raf);
+    };
   }, [versions.join('|')]);
   return active;
 }
