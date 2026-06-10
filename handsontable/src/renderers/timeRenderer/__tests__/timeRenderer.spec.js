@@ -12,40 +12,56 @@ describe('TimeRenderer', () => {
     }
   });
 
-  it('should render string', async() => {
+  it('should internally call base renderer once', async() => {
+    const originalBaseRenderer = Handsontable.renderers.BaseRenderer;
+
+    spyOn(Handsontable.renderers, 'BaseRenderer');
+
+    Handsontable.renderers.registerRenderer('base', Handsontable.renderers.BaseRenderer);
+    handsontable({
+      data: [['test']],
+      type: 'time',
+    });
+
+    expect(Handsontable.renderers.BaseRenderer).toHaveBeenCalledTimes(1);
+
+    Handsontable.renderers.registerRenderer('base', originalBaseRenderer);
+  });
+
+  it('should render #bad-value# for a non-time string', async() => {
     handsontable({
       renderer: 'time',
     });
     await setDataAtCell(2, 2, 'string');
 
-    expect(getCell(2, 2).innerHTML).toEqual('string');
+    expect(getCell(2, 2).innerHTML).toEqual('#bad-value#');
   });
 
-  it('should render number', async() => {
+  it('should render #bad-value# for a number', async() => {
     handsontable({
       renderer: 'time',
     });
     await setDataAtCell(2, 2, 13);
 
-    expect(getCell(2, 2).innerHTML).toEqual('13');
+    expect(getCell(2, 2).innerHTML).toEqual('#bad-value#');
   });
 
-  it('should render boolean true', async() => {
+  it('should render #bad-value# for boolean true', async() => {
     handsontable({
       renderer: 'time',
     });
     await setDataAtCell(2, 2, true);
 
-    expect(getCell(2, 2).innerHTML).toEqual('true');
+    expect(getCell(2, 2).innerHTML).toEqual('#bad-value#');
   });
 
-  it('should render boolean false', async() => {
+  it('should render #bad-value# for boolean false', async() => {
     handsontable({
       renderer: 'time',
     });
     await setDataAtCell(2, 2, false);
 
-    expect(getCell(2, 2).innerHTML).toEqual('false');
+    expect(getCell(2, 2).innerHTML).toEqual('#bad-value#');
   });
 
   it('should render null', async() => {
@@ -87,62 +103,14 @@ describe('TimeRenderer', () => {
     expect(getCell(0, 0).className).toEqual('someClass htDimmed');
   });
 
-  it('should render a multiline string', async() => {
+  it('should format a valid ISO time string using valueFormatter', async() => {
     handsontable({
-      renderer: 'time',
+      data: [['14:30']],
+      type: 'time',
+      timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
     });
-    await setDataAtCell(1, 2, 'a b');
-    await setDataAtCell(2, 2, 'a\nb');
 
-    expect($(getCell(2, 2)).height()).toBeGreaterThan($(getCell(1, 2)).height());
+    expect(getCell(0, 0).innerText).toBe('14:30');
   });
 
-  it('should wrap text when column width is limited', async() => {
-    handsontable({
-      renderer: 'time',
-      colWidths: [100],
-    });
-    await setDataAtCell(0, 0, 'short text');
-    await setDataAtCell(1, 0, 'long long long long long long long text');
-
-    expect($(getCell(1, 0)).height()).toBeGreaterThan($(getCell(0, 0)).height());
-  });
-
-  it('should wrap text when trimWhitespace option is false', async() => {
-    handsontable({
-      renderer: 'time',
-      trimWhitespace: false,
-      wordWrap: true,
-      data: [
-        ['text', 'long long long long long text']
-      ],
-      colWidths: [100, 500],
-    });
-
-    const oldRowHeight = $(getCell(0, 1)).height();
-
-    await updateSettings({
-      colWidths: [100, 100]
-    });
-
-    const newRowHeight = $(getCell(0, 1)).height();
-
-    expect(newRowHeight).toBeGreaterThan(oldRowHeight);
-  });
-
-  it('should internally call base renderer once', async() => {
-    const originalBaseRenderer = Handsontable.renderers.BaseRenderer;
-
-    spyOn(Handsontable.renderers, 'BaseRenderer');
-
-    Handsontable.renderers.registerRenderer('base', Handsontable.renderers.BaseRenderer);
-    handsontable({
-      data: [['test']],
-      renderer: 'time',
-    });
-
-    expect(Handsontable.renderers.BaseRenderer).toHaveBeenCalledTimes(1);
-
-    Handsontable.renderers.registerRenderer('base', originalBaseRenderer);
-  });
 });

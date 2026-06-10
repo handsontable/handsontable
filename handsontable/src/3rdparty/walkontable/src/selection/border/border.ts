@@ -15,7 +15,6 @@ import {
   isHTMLElement,
 } from '../../../../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../../../../helpers/dom/event';
-import { objectEach } from '../../../../../helpers/object';
 import { isMobileBrowser } from '../../../../../helpers/browser';
 import { getCornerStyle } from './utils';
 
@@ -370,32 +369,24 @@ class Border {
       bottomHitArea: this.selectionHandles.bottomHitArea.style
     };
 
-    const hitAreaStyle: Record<string, string> = {
-      position: 'absolute',
-      height: `${hitAreaWidth}px`,
-      width: `${hitAreaWidth}px`,
-      'border-radius': `${parseInt(String(hitAreaWidth / 1.5), 10)}px`,
-    };
+    const hitAreaTargets = [this.selectionHandles.styles.bottomHitArea, this.selectionHandles.styles.topHitArea];
 
-    objectEach(hitAreaStyle, (value: string, key: string) => {
-      (this.selectionHandles.styles.bottomHitArea as unknown as Record<string, string>)[key] = value;
-      (this.selectionHandles.styles.topHitArea as unknown as Record<string, string>)[key] = value;
-    });
+    for (const hitAreaStyleTarget of hitAreaTargets) {
+      hitAreaStyleTarget.position = 'absolute';
+      hitAreaStyleTarget.height = `${hitAreaWidth}px`;
+      hitAreaStyleTarget.width = `${hitAreaWidth}px`;
+      hitAreaStyleTarget.borderRadius = `${parseInt(String(hitAreaWidth / 1.5), 10)}px`;
+    }
 
-    const handleStyle: Record<string, string> = {
-      position: 'absolute',
-      height: `${cellMobileHandleSize}px`,
-      width: `${cellMobileHandleSize}px`,
-      'border-radius': `${cellMobileHandleBorderRadius}px`,
+    for (const handleStyleTarget of [this.selectionHandles.styles.bottom, this.selectionHandles.styles.top]) {
+      handleStyleTarget.position = 'absolute';
+      handleStyleTarget.height = `${cellMobileHandleSize}px`;
+      handleStyleTarget.width = `${cellMobileHandleSize}px`;
+      handleStyleTarget.borderRadius = `${cellMobileHandleBorderRadius}px`;
       // eslint-disable-next-line max-len
-      background: `color-mix(in srgb, ${cellMobileHandleBackgroundColor} ${cellMobileHandleBackgroundOpacity}%, transparent)`,
-      border: `${cellMobileHandleBorderWidth}px solid ${cellMobileHandleBorderColor}`
-    };
-
-    objectEach(handleStyle, (value: string, key: string) => {
-      (this.selectionHandles.styles.bottom as unknown as Record<string, string>)[key] = value;
-      (this.selectionHandles.styles.top as unknown as Record<string, string>)[key] = value;
-    });
+      handleStyleTarget.background = `color-mix(in srgb, ${cellMobileHandleBackgroundColor} ${cellMobileHandleBackgroundOpacity}%, transparent)`;
+      handleStyleTarget.border = `${cellMobileHandleBorderWidth}px solid ${cellMobileHandleBorderColor}`;
+    }
   }
 
   /**
@@ -700,7 +691,7 @@ class Border {
       this.cornerStyle!.display = 'none';
 
       let trimmingContainer: HTMLElement | Window = getTrimmingContainer(wtTable.TABLE);
-      const trimToWindow = (trimmingContainer as unknown) === rootWindow;
+      const trimToWindow = Object.is(trimmingContainer, rootWindow);
 
       if (trimToWindow) {
         trimmingContainer = rootDocument.documentElement;

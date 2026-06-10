@@ -3,6 +3,8 @@ import type Settings from './settings';
 import {
   hasClass,
   index,
+  isHTMLElement,
+  isHTMLTableCellElement,
   offset,
   removeTextNodes,
   overlayContainsElement,
@@ -454,7 +456,7 @@ class Table {
     let spreader: HTMLDivElement | undefined;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
-        !(parent instanceof HTMLElement) || !hasClass(parent, 'wtHolder')) {
+        !isHTMLElement(parent) || !hasClass(parent, 'wtHolder')) {
       spreader = this.domBindings.rootDocument.createElement('div');
       spreader.className = 'wtSpreader';
 
@@ -487,7 +489,7 @@ class Table {
     let hider: HTMLDivElement | undefined;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
-        !(parent instanceof HTMLElement) || !hasClass(parent, 'wtHolder')) {
+        !isHTMLElement(parent) || !hasClass(parent, 'wtHolder')) {
       hider = this.domBindings.rootDocument.createElement('div');
       hider.className = 'wtHider';
 
@@ -517,7 +519,7 @@ class Table {
     let holder;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
-        !(parent instanceof HTMLElement) || !hasClass(parent, 'wtHolder')) {
+        !isHTMLElement(parent) || !hasClass(parent, 'wtHolder')) {
       holder = this.domBindings.rootDocument.createElement('div');
       holder.style.position = 'relative';
       holder.className = 'wtHolder';
@@ -536,7 +538,10 @@ class Table {
         const holderParent = holder.parentNode;
 
         // holderParent is null when TABLE is detached (e.g. in Jasmine tests); skip class assignment in that case.
-        if (holderParent instanceof HTMLElement) {
+        // isHTMLElement() is used instead of `instanceof HTMLElement` because the latter fails in
+        // cross-frame contexts (e.g. when HoT is mounted inside an <iframe> via React portals):
+        // the iframe's HTMLElement constructor !== the parent frame's HTMLElement.
+        if (isHTMLElement(holderParent)) {
           holderParent.className += 'ht_master handsontable';
           holderParent.setAttribute('dir', this.wtSettings.getSettingPure('rtlMode') ? 'rtl' : 'ltr');
 
@@ -781,7 +786,7 @@ class Table {
         }
         const firstChild = children[i].childNodes[0];
 
-        if (firstChild instanceof HTMLElement) {
+        if (isHTMLElement(firstChild)) {
           firstChild.style.height = `${oversizedColumnHeaders[i]}px`;
         }
       }
@@ -808,7 +813,7 @@ class Table {
       }
 
       const child = children[i];
-      const actualRowHeight = child instanceof HTMLElement ? innerHeight(child) : 0;
+      const actualRowHeight = isHTMLElement(child) ? innerHeight(child) : 0;
 
       if (actualRowHeight > (oversizedColumnHeaders[i] ?? 0) + borderCompensation) {
         oversizedColumnHeaders[i] = actualRowHeight;
@@ -956,7 +961,7 @@ class Table {
     const TR = this.THEAD!.childNodes[level];
     const TH = TR?.childNodes[this.columnFilter!.sourceColumnToVisibleRowHeadedColumn(col)];
 
-    return TH instanceof HTMLElement ? TH : undefined;
+    return isHTMLElement(TH) ? TH : undefined;
   }
 
   /**
@@ -972,7 +977,7 @@ class Table {
     this.THEAD!.childNodes.forEach((TR: ChildNode) => {
       const TH = TR.childNodes[visibleColumn];
 
-      if (TH instanceof HTMLTableCellElement) {
+      if (isHTMLTableCellElement(TH)) {
         THs.push(TH);
       }
     });
@@ -1001,7 +1006,7 @@ class Table {
     const TR = parentElement?.childNodes[visibleRow];
     const TH = TR?.childNodes[level];
 
-    return TH instanceof HTMLElement ? TH : undefined;
+    return isHTMLElement(TH) ? TH : undefined;
   }
 
   /**
@@ -1056,8 +1061,8 @@ class Table {
       return null;
     }
 
-    let row = TR instanceof Element ? index(TR) : 0;
-    let col = cellElement instanceof HTMLTableCellElement ? cellElement.cellIndex : 0;
+    let row = isHTMLElement(TR) ? index(TR) : 0;
+    let col = isHTMLTableCellElement(cellElement) ? cellElement.cellIndex : 0;
 
     if (overlayContainsElement(CLONE_TOP_INLINE_START_CORNER, cellElement, this.wtRootElement)
       || overlayContainsElement(CLONE_TOP, cellElement, this.wtRootElement)) {

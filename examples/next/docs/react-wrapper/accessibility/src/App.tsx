@@ -85,7 +85,7 @@ function App() {
         <HotColumn data="productName" type="text" />
         <HotColumn
           data="sellDate"
-          dateFormat="DD/MM/YYYY"
+          dateFormat={{ day: '2-digit', month: '2-digit', year: 'numeric' }}
           correctFormat
           type="date"
           allowInvalid={false}

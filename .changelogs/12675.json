@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed resize handles moving out of sync during manual resize and after double-click auto-sizing.",
+  "type": "fixed",
+  "issueOrPR": 12675,
+  "breaking": false,
+  "framework": "none"
+}

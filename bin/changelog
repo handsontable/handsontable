@@ -10,7 +10,6 @@ const chalk = require('chalk');
 const inquirer = require('inquirer');
 const lodash = require('lodash');
 const glob = util.promisify(require('glob'));
-const moment = require('moment');
 const yargs = require('yargs/yargs');
 const { hideBin } = require('yargs/helpers');
 
@@ -208,7 +207,7 @@ const consumeCommand = async(args) => {
   const { dryRun } = args;
 
   const formattedDefault = args.date === undefined
-    ? moment(hotConfig.HOT_RELEASE_DATE, 'DD/MM/YYYY').format('YYYY-MM-DD')
+    ? hotConfig.HOT_RELEASE_DATE.split('/').reverse().join('-')
     : args.date;
 
   const { date } = isTTY ? await inquirer.prompt([

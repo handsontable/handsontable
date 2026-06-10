@@ -201,11 +201,17 @@ Be sure to turn those options off in your Handsontable configuration, as keeping
 
 :::
 
-If your component needs access to a Vue application context -- for example, global components, plugins, or `provide` / `inject` -- create a dedicated app per cell with `createApp(Component, props).mount(td)` instead of `render()`. Track the returned app instances so you can call `app.unmount()` when the grid is destroyed.
-
 ::: example #example1 :vue3
 
 @[code](@/content/guides/cell-functions/cell-renderer/vue/example1.vue)
+
+:::
+
+If your component needs access to a Vue application context -- for example, global components, plugins, or `provide` / `inject` -- use `createApp(Component, props).mount(td)` instead of `render()`. Store a reference to the mounted app on the `td` element and call `app.unmount()` at the start of each render call to avoid leaking app instances:
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-functions/cell-renderer/vue/example2.vue)
 
 :::
 
@@ -356,13 +362,15 @@ settings = {
 
 ## Render custom HTML in cells
 
-This example shows how to use custom cell renderers to display HTML content in a cell. This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS attacks. In the below configuration:
+This example shows how to use custom cell renderers to display HTML content in a cell. This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS attacks.
 
-::: warning Deprecated
-**DOMPurify will be removed in the next version.** After that, any string containing HTML will be stripped before rendering. To keep sanitized HTML (e.g. with DOMPurify), set the [`sanitizer`](@/api/options.md#sanitizer) option to your own sanitizer function.
+::: warning Security
+Handsontable does not include a built-in HTML sanitizer. When rendering untrusted user HTML, you must supply your own sanitizer via the [`sanitizer`](@/api/options.md#sanitizer) option. Without it, rendering untrusted HTML creates XSS vulnerabilities. See [Security](@/guides/security/security/security.md) for details.
 :::
 
-- **Title** column uses built-in HTML renderer that allows any HTML. This is unsafe if your code comes from untrusted source. Take notice that a Handsontable user can use it to enter `<script>` or other potentially malicious tags using the cell editor!
+In the below configuration:
+
+- **Title** column uses built-in HTML renderer that allows any HTML. This is unsafe if your data comes from an untrusted source. A Handsontable user can enter `<script>` or other potentially malicious tags using the cell editor.
 - **Description** column also uses HTML renderer (same as above)
 - **Comments** column uses a custom renderer (`safeHtmlRenderer`). This should be safe for user input, because only certain tags are allowed
 - **Cover** column accepts image URL as a string and converts it to a `<img>` in the renderer
@@ -408,8 +416,8 @@ This example shows how to use custom cell renderers to display HTML content in a
 
 You can also put HTML into row and column headers. If you need to attach events to DOM elements like the checkbox below, just remember to identify the element by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id attribute must be unique.
 
-::: warning Deprecated
-**DOMPurify will be removed in the next version.** After that, any string containing HTML will be stripped before rendering. To keep sanitized HTML (e.g. with DOMPurify), set the [`sanitizer`](@/api/options.md#sanitizer) option to your own sanitizer function.
+::: warning Security
+Handsontable does not include a built-in HTML sanitizer. When header content comes from untrusted sources, supply a [`sanitizer`](@/api/options.md#sanitizer) function to prevent XSS.
 :::
 
 ::: only-for javascript
@@ -716,8 +724,7 @@ In this example, `valueFormatter` adds the currency symbol and formatting, while
 
 - [Custom renderer in React](@/react/guides/cell-functions/cell-renderer/cell-renderer.md)
 - [Custom renderer in Angular](@/angular/guides/cell-functions/cell-renderer/cell-renderer.md)
-- [Custom renderer in Vue](@/guides/integrate-with-vue3/vue3-custom-renderer-example/vue3-custom-renderer-example.md)
-- [Custom renderer in Vue 3](@/guides/integrate-with-vue3/vue3-custom-renderer-example/vue3-custom-renderer-example.md)
+- [Custom renderer in Vue 3](@/vue/guides/cell-functions/cell-renderer/cell-renderer.md)
 
 </div>
 

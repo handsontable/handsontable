@@ -76,7 +76,7 @@ export class AppComponent {
     columns: [
       { data: 'item', type: 'text', width: 180 },
       { data: 'qty', type: 'numeric', width: 100 },
-      { data: 'price', type: 'numeric', numericFormat: { pattern: '0.00' }, width: 110 },
+      { data: 'price', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, width: 110 },
     ],
     rowHeaders: true,
     height: 'auto',

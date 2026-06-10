@@ -1,4 +1,4 @@
-import moment from 'moment';
+import { parseToLocalDate } from '../../../helpers/dateTime';
 import * as C from '../../../i18n/constants';
 import { registerCondition } from '../conditionRegisterer';
 
@@ -6,7 +6,13 @@ export const CONDITION_NAME = 'between';
 
 type DataRow = {
   value: unknown;
-  meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown };
+  meta: {
+    type?: string;
+    locale?: string;
+    dateFormat?: Intl.DateTimeFormatOptions;
+    instance?: unknown;
+    [key: string]: unknown
+  };
 };
 
 /**
@@ -28,15 +34,15 @@ export function condition(dataRow: DataRow, [from, to]: (string | number | undef
     toValue = Math.max(_from, _to);
 
   } else if (dataRow.meta.type === 'date') {
-    const date = moment(String(dataRow.value), dataRow.meta.dateFormat);
-    const fromDate = moment(fromValue, dataRow.meta.dateFormat);
-    const toDate = moment(toValue, dataRow.meta.dateFormat);
+    const date = parseToLocalDate(dataRow.value);
+    const fromDate = parseToLocalDate(fromValue);
+    const toDate = parseToLocalDate(toValue);
 
-    if (!date.isValid() || !fromDate.isValid() || !toDate.isValid()) {
+    if (date === null || fromDate === null || toDate === null) {
       return false;
     }
 
-    return date.diff(fromDate) >= 0 && date.diff(toDate) <= 0;
+    return date.getTime() >= fromDate.getTime() && date.getTime() <= toDate.getTime();
   }
 
   return (dataRow.value as number) >= (fromValue as number) && (dataRow.value as number) <= (toValue as number);

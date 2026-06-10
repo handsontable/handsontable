@@ -98,7 +98,7 @@ export const helpers = {
   },
 
   findCellEditor() {
-    return 'textarea.handsontableInput';
+    return '.handsontableInput';
   },
 
   testTitle(filename: string) {

@@ -22,7 +22,6 @@ export const inputData = [
       }
     </div>
   `,
-  styleUrls: ['./example1.css'],
 })
 export class FeedbackEditorComponent extends HotCellEditorAdvancedComponent<string> {
   override config = ['👍', '👎', '🤷'];

@@ -326,8 +326,7 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 ::: only-for javascript
 - [Custom context menu in React](@/react/guides/accessories-and-menus/context-menu/context-menu.md)
 - [Custom context menu in Angular](@/angular/guides/accessories-and-menus/context-menu/context-menu.md)
-- [Custom context menu in Vue](@/guides/integrate-with-vue3/vue3-custom-context-menu-example/vue3-custom-context-menu-example.md)
-- [Custom context menu in Vue 3](@/guides/integrate-with-vue3/vue3-custom-context-menu-example/vue3-custom-context-menu-example.md)
+- [Custom context menu in Vue 3](@/vue/guides/accessories-and-menus/context-menu/context-menu.md)
 :::
 
 </div>

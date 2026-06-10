@@ -658,7 +658,6 @@ const hotOptions: Handsontable.GridSettings = {
       ...cellDefinition,
       renderFormat: DATE_FORMAT_US,
       dateFormat: DATE_FORMAT_US,
-      correctFormat: true,
       defaultDate: '01/01/2020',
       datePickerConfig: {
         firstDay: 0,

@@ -171,7 +171,8 @@ export class NotificationUI {
     messageEl.className = `${NOTIFICATION_CLASS_NAME}__message`;
 
     if (typeof options.message === 'string') {
-      fastInnerHTML(messageEl, options.message, this.#sanitizer as boolean | ((html: string) => string));
+      fastInnerHTML(messageEl, options.message, this.#sanitizer as boolean | ((html: string) => string),
+        'notification', this.#rootElement);
     } else {
       messageEl.appendChild(options.message);
     }

@@ -65,7 +65,6 @@
     "inquirer": "^7.3.3",
     "jsdom": "24.0.0",
     "lodash": "^4.17.21",
-    "moment": "2.29.4",
     "replace-in-file": "^6.1.0",
     "rimraf": "^3.0.2",
     "semver": "^5.7.1",
@@ -98,7 +97,6 @@
       "node-gyp>tar": "^7.5.11",
       "cacache>tar": "^7.5.11",
       "undici": "^6.24.0",
-      "react-star-rating-component>react": "18.3.1",
       "@astrojs/mdx": "^6.0.1"
     },
     "auditConfig": {

@@ -52,18 +52,15 @@
 - Babel 7 - Retained only for Jest unit tests via `babel-jest` (see `handsontable/babel.config.js`); no longer used for production or test bundles
 - ng-packagr 16 - Angular library packaging
 - Sass 1.58 - SCSS compilation
-- TypeScript (core source + auto-generated types via `build:types` script using `tsconfig.build-types.json`), 5.1.6 (Angular), 4.x (Vue 3)
+- TypeScript ^6.0.0 (core source + auto-generated types via `build:types` script using `tsconfig.build-types.json`), 5.1.6 (Angular), 4.x (Vue 3)
 
 ## Key Dependencies
 
 **Critical (runtime):**
-- `dompurify` ^3.1.7 - XSS prevention, HTML sanitization for cell content
-- `numbro` 2.5.0 - Number formatting in cells
-- `moment` 2.30.1 - Date formatting and manipulation
-- `@handsontable/pikaday` ^1.0.0 - Date picker editor (forked Pikaday)
+- None. Number formatting uses the native `Intl.NumberFormat` API. HTML sanitization is user-provided via the `sanitizer` option.
 
-**Optional (runtime):**
-- `hyperformula` ^3.0.0 - Spreadsheet formula engine (optional dependency, integrated via `handsontable/src/plugins/formulas/`)
+**User-supplied (bring your own):**
+- `hyperformula` ^3.0.0 - Spreadsheet formula engine (devDependency for tests only; users must install it themselves to use the Formulas plugin)
 
 **Angular wrapper runtime:**
 - `rxjs` ^7.8.1 - Reactive extensions for Angular
@@ -71,7 +68,7 @@
 - `zone.js` ~0.13.0 - Angular change detection
 
 **Build tooling (key devDependencies):**
-- `eslint` 7 (core) / 8 (wrappers) - Linting with Airbnb base config
+- `eslint` ^8.57.1 (core) / 8 (wrappers) - Linting with Airbnb base config
 - `eslint-plugin-handsontable` - Custom ESLint rules (`handsontable/.config/plugin/eslint/`)
 - `eslint-plugin-compat` - Browser API compatibility enforcement
 - `stylelint` 16 - CSS/SCSS linting
@@ -88,7 +85,7 @@
 - No `.env` files in the repository (air-gapped environment support)
 
 **Rspack configs (`handsontable/.config/`):** (folder name predates the Webpack→Rspack migration)
-- `base.js` - Base configuration (UMD output, library name `Handsontable`, `builtin:swc-loader` for JS/TS with separate rules for `.js` ecmascript and `.ts`/`.tsx` typescript, empty-loader for numbro/moment locales)
+- `base.js` - Base configuration (UMD output, library name `Handsontable`, `builtin:swc-loader` for JS/TS with separate rules for `.js` ecmascript and `.ts`/`.tsx` typescript)
 - `development.js` / `production.js` - Dev and production UMD build configs
 - `watch.js` - Dev watcher config (used by `npm run watch`)
 - `styles-development.js` / `styles-production.js` - CSS build configs

@@ -37,7 +37,7 @@ Handsontable doesn't use external fonts, images or scripts.
 If you use CSP in your app, the only rules that you might need to add for Handsontable to run are `script-src` and `style-src`:
 
 - `script-src` loads Handsontable's script file. Point it at the origin (domain) where you placed your Handsontable assets.
-- `style-src ... 'unsafe-inline'` loads Handsontable's stylesheet file. Point it at the origin (domain) where you placed your Handsontable assets. Handsontable's XSS prevention logic (DOMPurify) needs the `'unsafe-inline'` source expression for certain features (for example, copy and paste).
+- `style-src ... 'unsafe-inline'` loads Handsontable's stylesheet file. Point it at the origin (domain) where you placed your Handsontable assets. The `'unsafe-inline'` source expression is required for certain features (for example, copy and paste).
 
 An example CSP rule for Handsontable hosted on the same app's origin:
 
@@ -56,13 +56,28 @@ We use dependencies in the form of third-party software, and we take a responsib
 
 ## Content sanitizing
 
-Handsontable sanitizes all HTML content before writing it to the DOM - cell values, headers, context-menu labels, dialog markup, and clipboard paste payloads. By default the grid uses [DOMPurify](https://www.npmjs.com/package/dompurify), so common XSS vectors (inline scripts, dangerous event handlers, etc.) are stripped automatically.
+Starting with **v18.0**, Handsontable does not include a built-in HTML sanitizer. HTML content written to the DOM -- cell values, headers, context-menu labels, dialog markup, and clipboard paste payloads -- passes through unchanged by default.
 
-Starting with **v17.0**, you control this via the [`sanitizer`](@/api/options.md#sanitizer) option. It accepts a function that receives the raw HTML string and returns a string (or, with Trusted Types, a `TrustedHTML`) safe to assign to the DOM. You can apply context-aware rules (e.g. stricter for paste, more permissive for trusted renderers) or use a different sanitization library.
+::: warning XSS risk
+If you render untrusted user HTML, you must supply your own sanitizer. Without one, malicious HTML in cell content can execute scripts in your users' browsers.
+:::
+
+Use the [`sanitizer`](@/api/options.md#sanitizer) option to provide a sanitizer function. It receives the raw HTML string and returns a string (or, with Trusted Types, a `TrustedHTML`) safe to assign to the DOM. You can apply context-aware rules (for example, stricter for paste, more permissive for trusted renderers) or use any sanitization library.
+
+**Example using DOMPurify:**
+
+```js
+import DOMPurify from 'dompurify';
+
+new Handsontable(container, {
+  sanitizer: (html) => DOMPurify.sanitize(html),
+  // ... other options
+});
+```
 
 **Trusted Types and CSP:** If you enforce Trusted Types (e.g. `require-trusted-types-for 'script'`), use a [Trusted Type policy](https://developer.mozilla.org/en-US/docs/Web/API/Trusted_Types_API) in your sanitizer and return its `createHTML` result. Add the policy name to your Content-Security-Policy `trusted-types` directive (e.g. `trusted-types default handsontable`); otherwise policy creation will be blocked.
 
-Regardless of the client-side strategy, we recommend complementing it with server-side validation for end-to-end data integrity.
+Regardless of the client-side strategy, complement it with server-side validation for end-to-end data integrity.
 
 ## High-quality code pledge
 

@@ -170,16 +170,9 @@ export interface GridSettings {
   checkedTemplate?: unknown;
   uncheckedTemplate?: unknown;
 
-  // Date
-  correctFormat?: boolean;
-  dateFormat?: string | Intl.DateTimeFormatOptions;
-  datePickerConfig?: {
-    firstDay?: number;
-    showWeekNumber?: boolean;
-    numberOfMonths?: number;
-    disableDayFn?: (date: Date) => boolean;
-    [key: string]: unknown;
-  };
+  // Date / Time
+  dateFormat?: Intl.DateTimeFormatOptions;
+  timeFormat?: Intl.DateTimeFormatOptions;
   defaultDate?: string;
 
   // Password

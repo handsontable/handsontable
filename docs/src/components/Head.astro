@@ -28,6 +28,26 @@ import Default from '@astrojs/starlight/components/Head.astro';
   document.querySelector('link[rel="shortcut icon"]')?.remove();
 </script>
 
+<script is:inline>
+  // Patch StarlightTOC to silently handle browsers that don't support :has() (Chrome < 105,
+  // e.g. Chrome Mobile 75 on Android 6.0). The TOC uses :has() inside querySelectorAll which
+  // throws a DOMException named "SyntaxError" in those browsers. Catching it degrades gracefully: the TOC renders
+  // but doesn't highlight the active section while scrolling.
+  customElements.whenDefined('starlight-toc').then(function () {
+    var StarlightTOC = customElements.get('starlight-toc');
+    if (!StarlightTOC || !StarlightTOC.prototype.init) return;
+    var _originalInit = StarlightTOC.prototype.init;
+    StarlightTOC.prototype.init = function () {
+      try {
+        _originalInit.call(this);
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'SyntaxError') return;
+        throw e;
+      }
+    };
+  });
+</script>
+
 <script>
   import Handsontable from 'handsontable/base';
 
@@ -41,6 +61,10 @@ import Default from '@astrojs/starlight/components/Head.astro';
 
 <script>
   import '../scripts/docs-assistant-bootstrap';
+</script>
+
+<script>
+  import '../scripts/version-comparison-bootstrap';
 </script>
 
 <script>

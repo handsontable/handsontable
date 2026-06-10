@@ -172,12 +172,12 @@ export class SelectionManager {
   refreshAllBorderHandleStyles() {
     this.#selectionBorders.forEach((bordersMap) => {
       bordersMap.forEach((border) => {
-        const borderAsRecord = border as unknown as Record<string, unknown>;
+        type BorderWithHandles = { updateMultipleSelectorHandlesStyles: () => void };
+        const hasMethod = 'updateMultipleSelectorHandlesStyles' in border &&
+          typeof (border as BorderWithHandles).updateMultipleSelectorHandlesStyles === 'function';
 
-        if ('updateMultipleSelectorHandlesStyles' in border &&
-            typeof borderAsRecord.updateMultipleSelectorHandlesStyles === 'function') {
-          type WithHandleStyles = { updateMultipleSelectorHandlesStyles: () => void };
-          (border as unknown as WithHandleStyles).updateMultipleSelectorHandlesStyles();
+        if (hasMethod) {
+          (border as BorderWithHandles).updateMultipleSelectorHandlesStyles();
         }
       });
     });
@@ -249,7 +249,9 @@ export class SelectionManager {
             }
 
             if (element.nodeName === 'TH') {
-              headerAttributesMap.get(element).push(...(headerAttributes as unknown[]));
+              const attrs = headerAttributes as Array<[string, string | number | boolean]>;
+
+              headerAttributesMap.get(element).push(...attrs);
             }
           }
         });

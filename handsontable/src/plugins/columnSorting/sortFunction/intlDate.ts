@@ -10,14 +10,10 @@ import { createIntlDateCompareFunction } from '../utils';
  */
 export function compareFunctionFactory(
   sortOrder: string,
-  columnMeta: Record<string, unknown>,
+  _columnMeta: Record<string, unknown>,
   columnPluginSettings: Record<string, unknown>
 ) {
-  return createIntlDateCompareFunction(
-    sortOrder,
-    columnMeta.dateFormat as string,
-    columnPluginSettings
-  );
+  return createIntlDateCompareFunction(sortOrder, columnPluginSettings);
 }
 
 export const COLUMN_DATA_TYPE = 'intl-date';

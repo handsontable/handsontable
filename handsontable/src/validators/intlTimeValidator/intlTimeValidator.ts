@@ -1,6 +1,4 @@
-import type { CellProperties } from '../../settings';
-import { isValidTime } from '../../helpers/dateTime';
-import { isEmpty } from '../../helpers/mixed';
+import { timeValidator } from '../timeValidator/timeValidator';
 
 export const VALIDATOR_TYPE = 'intl-time';
 export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). ' +
@@ -8,28 +6,19 @@ export const SOURCE_DATA_WARNING_MESSAGE = 'Source data warning ([itemsCount]). 
   '[affectedCells]\n\n' +
   'Expected a value compatible with the 24-hour time format ("HH:mm", "HH:mm:ss" or "HH:mm:ss.SSS").';
 
-/**
- *
- */
-export function sourceDataValidator(value: unknown, cellMeta: CellProperties): boolean {
-  if (cellMeta.allowEmpty && isEmpty(value)) {
-    return true;
-  }
+export { sourceDataValidator } from '../timeValidator/timeValidator';
 
-  return isValidTime(value);
-}
+type CellMeta = Record<string, unknown> & { allowEmpty?: boolean };
 
 /**
+ * The IntlTime cell validator.
  *
+ * @private
+ * @param {*} value Value of edited cell.
+ * @param {Function} callback Callback called with validation result.
  */
-export function intlTimeValidator(this: CellProperties, value: unknown, callback: (valid: boolean) => void): void {
-  if (this.allowEmpty && isEmpty(value)) {
-    callback(true);
-
-    return;
-  }
-
-  callback(isValidTime(value));
+export function intlTimeValidator(this: CellMeta, value: unknown, callback: (valid: boolean) => void): void {
+  timeValidator.call(this, value, callback);
 }
 
 intlTimeValidator.VALIDATOR_TYPE = VALIDATOR_TYPE;

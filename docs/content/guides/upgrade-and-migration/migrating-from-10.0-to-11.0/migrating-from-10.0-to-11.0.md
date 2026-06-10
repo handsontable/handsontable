@@ -26,7 +26,7 @@ For a detailed list of changes in this release, see the [Changelog](@/guides/upg
 
 ## Step 1: React, Angular, Vue – register your modules
 
-Starting with Handsontable 11.0.0, the [React wrapper](@/react/guides/getting-started/introduction/introduction.md), the [Angular wrapper](@/angular/guides/getting-started/introduction/introduction.md), and the [Vue wrapper](@/guides/integrate-with-vue3/vue3-installation/vue3-installation.md) support [modularization](@/guides/tools-and-building/modules/modules.md).
+Starting with Handsontable 11.0.0, the [React wrapper](@/react/guides/getting-started/introduction/introduction.md), the [Angular wrapper](@/angular/guides/getting-started/introduction/introduction.md), and the [Vue wrapper](@/vue/guides/getting-started/installation/installation.md) support [modularization](@/guides/tools-and-building/modules/modules.md).
 
 If you don't use any of the wrappers, you don't need to change anything.
 
@@ -48,7 +48,7 @@ registerAllModules();
 To start using individual Handsontable modules with your wrapper, see the following guides:
 - [Using modules with React](@/react/guides/tools-and-building/modules/modules.md)
 - [Using modules with Angular](@/angular/guides/tools-and-building/modules/modules.md)
-- [Using modules with Vue](@/guides/integrate-with-vue3/vue3-modules/vue3-modules.md)
+- [Using modules with Vue](@/vue/guides/tools-and-building/modules/modules.md)
 
 :::
 

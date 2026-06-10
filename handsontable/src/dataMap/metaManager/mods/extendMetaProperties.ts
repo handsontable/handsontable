@@ -1,9 +1,5 @@
 import type { default as MetaManagerInstance } from '..';
-import { deprecatedWarn } from '../../../helpers/console';
 import { throwWithCause } from '../../../helpers/errors';
-
-const correctFormatDeprecatedMessageShown = new WeakSet();
-const datePickerConfigDeprecatedMessageShown = new WeakSet();
 
 /**
  * @class ExtendMetaPropertiesMod
@@ -42,28 +38,6 @@ export class ExtendMetaPropertiesMod {
         if (this.usageTracker.has('fixedColumnsLeft') && this.usageTracker.has('fixedColumnsStart')) {
           throwWithCause('The `fixedColumnsLeft` and `fixedColumnsStart` should not be used together. ' +
             'Please use only the option `fixedColumnsStart`.');
-        }
-      }
-    }],
-    ['correctFormat', {
-      onChange(this: ExtendMetaPropertiesMod) {
-        if (!correctFormatDeprecatedMessageShown.has(this.metaManager.hot)) {
-          correctFormatDeprecatedMessageShown.add(this.metaManager.hot);
-          deprecatedWarn(
-            'The `correctFormat` option is deprecated and will be removed in the next major release.\n\n' +
-            'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/'
-          );
-        }
-      }
-    }],
-    ['datePickerConfig', {
-      onChange(this: ExtendMetaPropertiesMod) {
-        if (!datePickerConfigDeprecatedMessageShown.has(this.metaManager.hot)) {
-          datePickerConfigDeprecatedMessageShown.add(this.metaManager.hot);
-          deprecatedWarn(
-            'The `datePickerConfig` option is deprecated and will be removed in the next major release.\n\n' +
-            'Migration guide: https://handsontable.com/docs/migration-from-16.2-to-17.0/'
-          );
         }
       }
     }],

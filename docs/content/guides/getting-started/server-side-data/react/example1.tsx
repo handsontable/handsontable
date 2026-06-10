@@ -479,7 +479,7 @@ const columns = [
   { data: 'product' },
   { data: 'sku', readOnly: true },
   { data: 'category' },
-  { data: 'unitPrice', type: 'numeric', numericFormat: { pattern: '$0,0.00' } },
+  { data: 'unitPrice', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 } },
   { data: 'inStock', type: 'numeric' },
 ];
 

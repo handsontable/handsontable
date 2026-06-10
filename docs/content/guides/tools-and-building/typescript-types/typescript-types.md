@@ -76,7 +76,7 @@ import type { GridSettings, ColumnSettings } from 'handsontable';
 
 const columns: ColumnSettings[] = [
   { data: 'name', type: 'text' },
-  { data: 'revenue', type: 'numeric', numericFormat: { pattern: '$0,0.00' } },
+  { data: 'revenue', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 } },
 ];
 
 const settings: GridSettings = {
@@ -97,7 +97,6 @@ These types describe the values that move in and out of the grid.
 | `RowObject` | A data row as a plain object, used when `data` is an array of objects. |
 | `ChangeSource` | A string union of all built-in change source identifiers (e.g. `'edit'`, `'loadData'`, `'UndoRedo.undo'`). |
 | `SourceRowData` | A row from the original source data before any index translation. |
-| `NumericFormatOptions` | Options for the `numericFormat` column setting (delegates to the Numbro library). |
 | `SelectOptionsObject` | An option entry for the `select` and `autocomplete` cell types: `{ value, label }`. |
 | `RangeType` | A cell range descriptor: `{ from: CellCoords, to: CellCoords }`. |
 
@@ -257,7 +256,7 @@ const settings: GridSettings = {
   columns: [
     { data: 'name' },
     { data: 'department' },
-    { data: 'hireDate', type: 'date', dateFormat: 'YYYY-MM-DD' },
+    { data: 'hireDate', type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
   ],
   licenseKey: 'non-commercial-and-evaluation',
 };

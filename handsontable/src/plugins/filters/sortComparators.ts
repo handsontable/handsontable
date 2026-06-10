@@ -1,50 +1,4 @@
-import moment from 'moment';
 import { parseToLocalDate } from '../../helpers/dateTime';
-
-/**
- * Returns a comparator function for sorting `date` cell type values.
- * Empty strings sort before valid dates; unparseable strings sort after valid dates.
- *
- * @param {string} dateFormat Moment.js format string matching the column's `dateFormat` setting.
- * @returns {Function}
- */
-export function createDateSortComparator(dateFormat: string): (a: unknown, b: unknown) => number {
-  return (aVal: unknown, bVal: unknown) => {
-    const a = aVal as string;
-    const b = bVal as string;
-
-    if (a === '' && b === '') {
-      return 0;
-    }
-
-    if (a === '') {
-      return -1;
-    }
-
-    if (b === '') {
-      return 1;
-    }
-
-    const dateA = moment(a, dateFormat);
-    const dateB = moment(b, dateFormat);
-    const validA = dateA.isValid();
-    const validB = dateB.isValid();
-
-    if (!validA && !validB) {
-      return 0;
-    }
-
-    if (!validA) {
-      return 1;
-    }
-
-    if (!validB) {
-      return -1;
-    }
-
-    return dateA.diff(dateB);
-  };
-}
 
 /**
  * Returns a comparator function for sorting `intl-date` cell type values.
@@ -103,11 +57,7 @@ export function getSortComparatorForMeta(
     return undefined;
   }
 
-  if (meta.type === 'date') {
-    return createDateSortComparator(meta.dateFormat as string);
-  }
-
-  if (meta.type === 'intl-date') {
+  if (meta.type === 'date' || meta.type === 'intl-date') {
     return createISODateSortComparator();
   }
 

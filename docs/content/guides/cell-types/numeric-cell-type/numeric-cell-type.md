@@ -193,7 +193,7 @@ use the [`numericFormat`](@/api/options.md#numericformat) option.
 
 Since Handsontable 17.0, the `numericFormat` option supports the native [`Intl.NumberFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat) API, which provides better performance and broader browser support without external dependencies.
 
-### Using Intl.NumberFormat (recommended)
+### Using Intl.NumberFormat
 
 The `numericFormat` option accepts all properties of [`Intl.NumberFormatOptions`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat). The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
 
@@ -369,87 +369,6 @@ settings = {
 
 For a complete reference, see the [`numericFormat` API documentation](@/api/options.md#numericformat) or [MDN: Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat#options).
 
-### Using Numbro.js format options (deprecated)
-
-::: warning Deprecated
-The `numericFormat.pattern` and `numericFormat.culture` options (numbro.js-based formatting) are deprecated and will be removed in the next major release. Migrate to the `Intl.NumberFormat` API shown above.
-:::
-
-The following demo uses the deprecated numbro.js format options. These options are still supported but will be removed in version 18.0.
-
-In the following demo, columns **Price in Japan** and **Price in Turkey** use two different
-[`numericFormat`](@/api/options.md#numericformat) configurations.
-
-::: only-for javascript
-
-::: example #example3 :hot-numbro --js 1 --ts 2
-
-@[code](@/content/guides/cell-types/numeric-cell-type/javascript/example3.js)
-@[code](@/content/guides/cell-types/numeric-cell-type/javascript/example3.ts)
-
-:::
-
-:::
-
-::: only-for react
-
-::: example #example3 :react-numbro --js 1 --ts 2
-
-@[code](@/content/guides/cell-types/numeric-cell-type/react/example3.jsx)
-@[code](@/content/guides/cell-types/numeric-cell-type/react/example3.tsx)
-
-:::
-
-:::
-
-::: only-for angular
-
-::: example #example3 :angular-numbro --ts 1 --html 2
-
-@[code](@/content/guides/cell-types/numeric-cell-type/angular/example3.ts)
-@[code](@/content/guides/cell-types/numeric-cell-type/angular/example3.html)
-
-:::
-
-:::
-
-::: only-for vue
-
-::: example #example3 :vue3-numbro
-
-@[code](@/content/guides/cell-types/numeric-cell-type/vue/example3.vue)
-
-:::
-
-:::
-
-**Deprecated options:**
-
-| Option | Description | Replacement |
-|--------|-------------|-------------|
-| `pattern` | Numbro.js format pattern (e.g., `'0,0.00 $'`) | Use `Intl.NumberFormat` options (see above) |
-| `culture` | Numbro.js locale identifier (e.g., `'en-US'`) | Use the [`locale`](@/api/options.md#locale) option |
-
-**Migration example:**
-
-```js
-// Before (deprecated)
-numericFormat: {
-  pattern: '0,0.00 $',
-  culture: 'en-US'
-}
-
-// After (recommended)
-locale: 'en-US',
-numericFormat: {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 2
-}
-```
-
-For detailed migration instructions and more examples, see the [migration guide](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#1-migrate-from-numbro-format-to-intlnumberformat).
-
 ### Editor behavior
 
 Mind that the [`numericFormat`](@/api/options.md#numericformat) option doesn't change the way
@@ -478,7 +397,6 @@ After configuring the numeric cell type, cells right-align their values and disp
 <div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
-- [Migrating from 16.2 to 17.0](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#1-migrate-from-numbro-format-to-intlnumberformat) - Migration guide for Intl.NumberFormat
 
 </div>
 

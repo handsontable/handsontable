@@ -37,7 +37,7 @@ const correctFormat = (value: string, dateFormat: string): string => {
 };
 
 const cellDateTypeDefinition = {
-  renderer: getRenderer('autocomplete'),
+  renderer: getRenderer('text'),
   validator(this: any, value: string, callback: (valid: boolean) => void) {
     let valid = true;
 

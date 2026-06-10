@@ -84,3 +84,41 @@ export function parseToLocalTime(value: unknown): Date | null {
 export function isValidTime(value: unknown): value is string {
   return typeof value === 'string' && TIME_REGEX.test(value);
 }
+
+/**
+ * Returns a Date at local midnight for today.
+ *
+ * @returns {Date} A Date object representing today at local midnight.
+ */
+export function getTodayLocalDate(): Date {
+  const now = new Date();
+
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
+
+/**
+ * Returns a Date at local midnight offset by the given number of days from today.
+ *
+ * @param {number} days Number of days to offset from today. Positive values are in the future, negative in the past.
+ * @returns {Date} A Date object at local midnight offset by the given days.
+ */
+export function getRelativeLocalDate(days: number): Date {
+  const result = getTodayLocalDate();
+
+  result.setDate(result.getDate() + days);
+
+  return result;
+}
+
+/**
+ * Returns true if both Date objects fall on the same local calendar day.
+ *
+ * @param {Date} a The first date to compare.
+ * @param {Date} b The second date to compare.
+ * @returns {boolean} `true` if both dates are on the same local calendar day.
+ */
+export function isSameLocalDay(a: Date, b: Date): boolean {
+  return a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+}

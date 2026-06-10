@@ -110,9 +110,7 @@ date.saveValue(undefined);
 date.setValue('test');
 date.setValue();
 
-date.getDatePickerConfig();
-date.showDatepicker();
-date.hideDatepicker();
+// Note: getDatePickerConfig, showDatepicker, hideDatepicker were Pikaday-specific and removed in 18.0.
 
 const dropdown = new DropdownEditor(hot);
 

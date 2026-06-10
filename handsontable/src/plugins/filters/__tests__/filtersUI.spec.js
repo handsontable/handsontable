@@ -551,14 +551,14 @@ describe('Filters UI', () => {
       expect(getData()[0][0]).toBe(26);
       expect(getData()[0][1]).toBe('Stanton Britt');
       expect(getData()[0][2]).toBe('Nipinnawasee');
-      expect(getData()[0][3]).toBe(moment().add(-1, 'days').format(FILTERS_DATE_FORMAT));
+      expect(getData()[0][3]).toBe(addDays(-1));
       expect(getData()[0][4]).toBe('green');
       expect(getData()[0][5]).toBe(3592.18);
       expect(getData()[0][6]).toBe(false);
       expect(getDataAtCol(3).join()).toBe([
-        moment().add(-1, 'days').format(FILTERS_DATE_FORMAT),
-        moment().add(-1, 'days').format(FILTERS_DATE_FORMAT),
-        moment().add(-1, 'days').format(FILTERS_DATE_FORMAT),
+        addDays(-1),
+        addDays(-1),
+        addDays(-1),
       ].join());
     });
 
@@ -793,7 +793,7 @@ describe('Filters UI', () => {
       expect(getData()[1][0]).toBe(24);
       expect(getData()[1][1]).toBe('Greta Patterson');
       expect(getData()[1][2]).toBe('Bartonsville');
-      expect(getData()[1][3]).toBe(moment().add(-2, 'days').format(FILTERS_DATE_FORMAT));
+      expect(getData()[1][3]).toBe(addDays(-2));
       expect(getData()[1][4]).toBe('green');
       expect(getData()[1][5]).toBe(2437.58);
       expect(getData()[1][6]).toBe(false);
@@ -849,7 +849,7 @@ describe('Filters UI', () => {
       expect(getData()[1][0]).toBe(24);
       expect(getData()[1][1]).toBe('Greta Patterson');
       expect(getData()[1][2]).toBe('Bartonsville');
-      expect(getData()[1][3]).toBe(moment().add(-2, 'days').format(FILTERS_DATE_FORMAT));
+      expect(getData()[1][3]).toBe(addDays(-2));
       expect(getData()[1][4]).toBe('green');
       expect(getData()[1][5]).toBe(2437.58);
       expect(getData()[1][6]).toBe(false);
@@ -2117,11 +2117,11 @@ describe('Filters UI', () => {
     it('should sort "date" cell type values chronologically in the filter dropdown (not alphabetically)', async() => {
       handsontable({
         data: [
-          ['15/12/2023'],
-          ['01/03/2022'],
-          ['20/06/2021'],
+          ['2023-12-15'],
+          ['2022-03-01'],
+          ['2021-06-20'],
         ],
-        columns: [{ type: 'date', dateFormat: 'DD/MM/YYYY' }],
+        columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
         colHeaders: true,
         dropdownMenu: true,
         filters: true,
@@ -2135,37 +2135,10 @@ describe('Filters UI', () => {
       const items = byValueMultipleSelect().getItems();
 
       expect(items.length).toBe(3);
-      // Chronological order: 20/06/2021 < 01/03/2022 < 15/12/2023
-      expect(items[0].value).toBe('20/06/2021');
-      expect(items[1].value).toBe('01/03/2022');
-      expect(items[2].value).toBe('15/12/2023');
-    });
-
-    it('should sort "date" cell type values chronologically when dateFormat is MM/DD/YYYY', async() => {
-      handsontable({
-        data: [
-          ['12/15/2023'],
-          ['03/01/2022'],
-          ['06/20/2021'],
-        ],
-        columns: [{ type: 'date', dateFormat: 'MM/DD/YYYY' }],
-        colHeaders: true,
-        dropdownMenu: true,
-        filters: true,
-        width: 400,
-        height: 300,
-      });
-
-      await dropdownMenu(0);
-      await sleep(112);
-
-      const items = byValueMultipleSelect().getItems();
-
-      expect(items.length).toBe(3);
-      // Chronological order: 06/20/2021 < 03/01/2022 < 12/15/2023
-      expect(items[0].value).toBe('06/20/2021');
-      expect(items[1].value).toBe('03/01/2022');
-      expect(items[2].value).toBe('12/15/2023');
+      // Chronological order: 2021-06-20 < 2022-03-01 < 2023-12-15
+      expect(items[0].value).toBe('2021-06-20');
+      expect(items[1].value).toBe('2022-03-01');
+      expect(items[2].value).toBe('2023-12-15');
     });
 
     it('should sort "intl-date" cell type values chronologically in the filter dropdown', async() => {
@@ -2198,11 +2171,13 @@ describe('Filters UI', () => {
     it('should place empty values at the top of the "date" column filter list', async() => {
       handsontable({
         data: [
-          ['15/12/2023'],
+          ['2023-12-15'],
           [null],
-          ['20/06/2021'],
+          ['2021-06-20'],
         ],
-        columns: [{ type: 'date', dateFormat: 'DD/MM/YYYY', allowEmpty: true }],
+        columns: [{
+          type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }, allowEmpty: true
+        }],
         colHeaders: true,
         dropdownMenu: true,
         filters: true,
@@ -2217,8 +2192,8 @@ describe('Filters UI', () => {
 
       expect(items.length).toBe(3);
       expect(items[0].value).toBe('');
-      expect(items[1].value).toBe('20/06/2021');
-      expect(items[2].value).toBe('15/12/2023');
+      expect(items[1].value).toBe('2021-06-20');
+      expect(items[2].value).toBe('2023-12-15');
     });
   });
 

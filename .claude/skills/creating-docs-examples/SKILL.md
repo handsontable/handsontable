@@ -210,7 +210,7 @@ Access: `dropdownRef.value`. The string passed to `useTemplateRef(...)` must mat
 - For `HotColumn`, nest it inside `<HotTable>` in `<template>` and pass column options via `:settings` on each `HotColumn`.
 - Optional `<style scoped>` is allowed for example-only UI (buttons, status text). Example-runner CSS from the guide's `--css` slot still applies globally.
 
-**Presets** on the `::: example` directive select dependencies: `:vue3` (default), `:vue3-numbro`, `:vue3-languages`, `:vue3-vuex`. Match the preset to the feature the page demonstrates.
+**Presets** on the `::: example` directive select dependencies: `:vue3` (default), `:vue3-languages`, `:vue3-vuex`. Match the preset to the feature the page demonstrates.
 
 **Embedding a Vue SFC** (single tab, no `--html` / `--js`):
 

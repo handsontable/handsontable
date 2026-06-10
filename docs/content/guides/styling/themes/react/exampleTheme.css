@@ -49,7 +49,7 @@
   padding: 0;
   position: absolute;
   top: 100%;
-  z-index: 100;
+  z-index: 9999;
 }
 
 .theme-dropdown-menu[hidden] {

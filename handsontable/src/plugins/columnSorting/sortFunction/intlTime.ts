@@ -10,14 +10,10 @@ import { createIntlTimeCompareFunction } from '../utils';
  */
 export function compareFunctionFactory(
   sortOrder: string,
-  columnMeta: Record<string, unknown>,
+  _columnMeta: Record<string, unknown>,
   columnPluginSettings: Record<string, unknown>
 ) {
-  return createIntlTimeCompareFunction(
-    sortOrder,
-    columnMeta.timeFormat as string,
-    columnPluginSettings
-  );
+  return createIntlTimeCompareFunction(sortOrder, columnPluginSettings);
 }
 
 export const COLUMN_DATA_TYPE = 'intl-time';
