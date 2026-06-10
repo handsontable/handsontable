@@ -404,7 +404,7 @@ export default class WalkontableFacade {
    * @returns {unknown} The setting value.
    */
   getSetting(key: string, param1: unknown, param2: unknown, param3: unknown, param4: unknown): unknown {
-    return this._wot.wtSettings.getSetting(key, param1, param2, param3, param4) as unknown;
+    return this._wot.wtSettings.getSetting(key, param1, param2, param3, param4);
   }
 
   /**

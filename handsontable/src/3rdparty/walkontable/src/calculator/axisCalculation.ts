@@ -4,17 +4,16 @@ import type { ViewportBaseCalculator } from './viewportBase';
 export interface AxisCalculatorContext extends ViewportBaseCalculator {
   needReverse: boolean;
   lastProcessedIndex: number;
-  [key: string]: unknown;
 }
 
-export interface AxisCalculationParams {
+export interface AxisCalculationParams<T extends AxisCalculatorContext = AxisCalculatorContext> {
   totalCount: number;
   zeroBasedScrollOffset: number;
   scrollEnd: number;
   positionCache: PositionCache;
-  setSizeField: (ctx: AxisCalculatorContext, size: number) => void;
-  setTotalCalculated: (ctx: AxisCalculatorContext, value: number) => void;
-  getTotalCalculated: (ctx: AxisCalculatorContext) => number;
+  setSizeField: (ctx: T, size: number) => void;
+  setTotalCalculated: (ctx: T, value: number) => void;
+  getTotalCalculated: (ctx: T) => number;
 }
 
 /**
@@ -39,7 +38,7 @@ export interface AxisCalculationParams {
  * @param {Function} params.getTotalCalculated Callback `(ctx) => number` that reads the
  *   running cumulative total from the context.
  */
-export function calculateAxis(context: AxisCalculatorContext, {
+export function calculateAxis<T extends AxisCalculatorContext>(context: T, {
   totalCount,
   zeroBasedScrollOffset,
   scrollEnd,
@@ -47,7 +46,7 @@ export function calculateAxis(context: AxisCalculatorContext, {
   setSizeField,
   setTotalCalculated,
   getTotalCalculated,
-}: AxisCalculationParams): void {
+}: AxisCalculationParams<T>): void {
   context._initialize(context);
 
   let startIndex = 0;

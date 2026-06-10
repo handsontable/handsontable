@@ -1,0 +1,38 @@
+{
+  "version": "16.0",
+  "highlighted": [
+    {
+      "prNumber": 11579,
+      "tagline": "New DOM structure with wrapper and portal",
+      "whyItMatters": "Handsontable now renders inside a wrapper element and routes overlays through a portal. Stylesheets that depended on the previous DOM tree need updates, and any code that walks the rendered table from the outside must be reviewed.",
+      "migrationAnchor": "/migration-from-15.3-to-16.0#1-introducing-the-new-dom-structure"
+    },
+    {
+      "prNumber": 11470,
+      "tagline": "CSS theme variables renamed",
+      "whyItMatters": "Several theme CSS variables are renamed and new --ht-radio-* variables are added. Backward compatibility shims keep most pages rendering, but you should migrate to the new names to avoid future removal.",
+      "migrationAnchor": "/migration-from-15.3-to-16.0#2-updated-the-css-variables"
+    },
+    {
+      "prNumber": 11501,
+      "tagline": "modifyData hook uses visual indexes",
+      "whyItMatters": "The modifyData hook now receives visual row and column indexes instead of physical ones. Translate any cached physical indexes to visual coordinates inside your handler, or use toPhysicalRow / toPhysicalColumn for storage lookups.",
+      "codeBefore": "hot.addHook('modifyData', (row, column, valueHolder, ioMode) => {\n  // row and column were physical indexes\n  valueHolder.value = lookupByPhysical(row, column);\n});",
+      "codeAfter": "hot.addHook('modifyData', function(row, column, valueHolder, ioMode) {\n  const physicalRow = this.toPhysicalRow(row);\n  const physicalColumn = this.toPhysicalColumn(column);\n\n  valueHolder.value = lookupByPhysical(physicalRow, physicalColumn);\n});"
+    },
+    {
+      "prNumber": 11551,
+      "tagline": "Custom borders no longer overlap row headers",
+      "whyItMatters": "Custom borders now stay inside the data area and no longer paint over the row header. Layouts that relied on bordered cells bleeding into the header column will look different - adjust by widening row headers or moving the border one cell inward.",
+      "migrationAnchor": "/migration-from-15.3-to-16.0#3-updated-the-placement-of-custom-borders"
+    },
+    {
+      "prNumber": 11511,
+      "tagline": "New Angular wrapper (@handsontable/angular-wrapper)",
+      "whyItMatters": "A standalone-component Angular wrapper ships under @handsontable/angular-wrapper. The legacy @handsontable/angular package keeps working but is now in maintenance mode - new Angular apps should adopt the new wrapper.",
+      "codeBefore": "import { HotTableModule } from '@handsontable/angular';\n\n@NgModule({\n  imports: [HotTableModule]\n})\nexport class AppModule {}",
+      "codeAfter": "import { HotTableModule } from '@handsontable/angular-wrapper';\n\n@Component({\n  standalone: true,\n  imports: [HotTableModule],\n  template: '<hot-table [data]=\"data\" [settings]=\"settings\"></hot-table>'\n})\nexport class AppComponent {}",
+      "migrationAnchor": "/migration-from-15.3-to-16.0#4-switched-to-the-new-angular-wrapper-for-angular-16"
+    }
+  ]
+}

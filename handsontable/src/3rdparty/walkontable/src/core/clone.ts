@@ -35,7 +35,7 @@ export default class Clone extends CoreAbstract {
 
     const facadeGetter = this.wtSettings.getSetting<Function>('facade', this);
 
-    this.cloneSource = clone.source as unknown as CoreAbstract;
+    this.cloneSource = clone.source;
     this.cloneOverlay = clone.overlay;
     this.wtTable = this.cloneOverlay
       .createTable(this.getTableDao(), facadeGetter, this.domBindings, this.wtSettings) as typeof this.wtTable;

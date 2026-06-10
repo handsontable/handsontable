@@ -13,7 +13,6 @@ import {
   outerWidth,
   innerHeight,
   isVisible,
-  isHTMLElement,
   setAttribute,
 } from '../../../helpers/dom/element';
 import { isFunction } from '../../../helpers/function';

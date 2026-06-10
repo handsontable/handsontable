@@ -16,6 +16,12 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/license-key/license-key' },
 ];
 
+const aiToolsItems = [
+  { path: 'guides/ai-tools/skills-for-claude-code/skills-for-claude-code' },
+  { path: 'guides/ai-tools/ai-theme-builder/ai-theme-builder' },
+  { path: 'guides/ai-tools/ai-docs-assistant/ai-docs-assistant' },
+];
+
 const stylingItems = [
   { path: 'guides/styling/themes/themes' },
   { path: 'guides/styling/design-system/design-system' },
@@ -163,6 +169,7 @@ const technicalSpecificationItems = [
 ];
 
 const changelogItems = [
+  { path: 'guides/upgrade-and-migration/changes-between-versions/changes-between-versions' },
   { path: 'guides/upgrade-and-migration/changelog-17/changelog-17' },
   { path: 'guides/upgrade-and-migration/changelog-16/changelog-16' },
   { path: 'guides/upgrade-and-migration/changelog-15/changelog-15' },
@@ -174,6 +181,7 @@ const changelogItems = [
   { path: 'guides/upgrade-and-migration/changelog-9/changelog-9' },
   { path: 'guides/upgrade-and-migration/changelog-8/changelog-8' },
   { path: 'guides/upgrade-and-migration/changelog-7/changelog-7' },
+  { path: 'guides/upgrade-and-migration/changelog-6/changelog-6' },
 ];
 
 const upgradeAndMigrationItems = [
@@ -198,6 +206,7 @@ const upgradeAndMigrationItems = [
 module.exports = {
   sidebar: [
     { title: 'Getting started', children: gettingStartedItems },
+    { title: 'AI Tools', children: aiToolsItems },
     { title: 'Styling', children: stylingItems },
     { title: 'Columns', children: columnsItems },
     { title: 'Rows', children: rowsItems },

@@ -1,4 +1,4 @@
-import type { ScrollDao, DomBindings } from '../types';
+import type { ScrollDao, DomBindings, WalkontableInstance, DataAccessObject } from '../types';
 import type Settings from '../settings';
 import type Table from '../table';
 import type Viewport from '../viewport';
@@ -20,6 +20,10 @@ import CellRange from '../cell/range';
  * @class Walkontable
  */
 export default class CoreAbstract {
+  /**
+   * Index signature required for WalkontableInstance structural compatibility.
+   */
+  [key: string]: unknown;
   /**
    * The main table instance.
    *
@@ -57,11 +61,11 @@ export default class CoreAbstract {
    */
   declare wtEvent: Event;
   /**
-   * Reference to the source CoreAbstract instance (used for clones).
+   * Reference to the source walkontable instance (used for clones).
    *
-   * @type {CoreAbstract}
+   * @type {WalkontableInstance}
    */
-  declare cloneSource: CoreAbstract;
+  declare cloneSource: WalkontableInstance;
   /**
    * The walkontable instance id.
    *
@@ -116,6 +120,46 @@ export default class CoreAbstract {
   }
 
   /**
+   * Gets the root document from dom bindings.
+   *
+   * @returns {Document} The root document.
+   */
+  get rootDocument(): Document {
+    return this.domBindings.rootDocument;
+  }
+
+  /**
+   * Gets the root window from dom bindings.
+   *
+   * @returns {Window} The root window.
+   */
+  get rootWindow(): Window {
+    return this.domBindings.rootWindow;
+  }
+
+  /**
+   * Delegates to wtSettings.getSetting.
+   *
+   * @param {string} key The settings key.
+   * @param {...unknown} args Additional arguments.
+   * @returns {unknown}
+   */
+  getSetting(key: string, ...args: unknown[]): unknown {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return this.wtSettings.getSetting(key as any, ...(args as [any, unknown?, unknown?, unknown?]));
+  }
+
+  /**
+   * Delegates to wtSettings.update.
+   *
+   * @param {string} key The settings key.
+   * @param {unknown} value The value to set.
+   */
+  update(key: string, value: unknown): void {
+    this.wtSettings.update(key, value);
+  }
+
+  /**
    * @param {HTMLTableElement} table Main table.
    * @param {Settings} settings The Walkontable settings.
    */
@@ -123,8 +167,8 @@ export default class CoreAbstract {
     this.domBindings = {
       rootTable: table,
       rootDocument: table.ownerDocument,
-      rootWindow: table.ownerDocument.defaultView,
-    } as unknown as DomBindings;
+      rootWindow: table.ownerDocument.defaultView as Window,
+    } as DomBindings;
 
     this.wtSettings = settings;
     this.wtScroll = new Scroll(this.createScrollDao());
@@ -212,10 +256,8 @@ export default class CoreAbstract {
       return undefined;
     }
 
-    const cellCoords = coords as unknown as CellCoords;
-
     if (!topmost) {
-      return this.wtTable.getCell(cellCoords);
+      return this.wtTable.getCell(coords);
     }
 
     const totalRows = this.wtSettings.getSetting<number>('totalRows');
@@ -224,23 +266,23 @@ export default class CoreAbstract {
     const fixedColumnsStart = this.wtSettings.getSetting<number>('fixedColumnsStart');
 
     if (coords.row < fixedRowsTop && coords.col < fixedColumnsStart) {
-      return this.wtOverlays.topInlineStartCornerOverlay.clone?.wtTable.getCell(cellCoords);
+      return this.wtOverlays.topInlineStartCornerOverlay.clone?.wtTable.getCell(coords);
 
     } else if (coords.row < fixedRowsTop) {
-      return this.wtOverlays.topOverlay.clone?.wtTable.getCell(cellCoords);
+      return this.wtOverlays.topOverlay.clone?.wtTable.getCell(coords);
 
     } else if (coords.col < fixedColumnsStart && coords.row >= totalRows - fixedRowsBottom) {
-      return this.wtOverlays.bottomInlineStartCornerOverlay?.clone?.wtTable.getCell(cellCoords);
+      return this.wtOverlays.bottomInlineStartCornerOverlay?.clone?.wtTable.getCell(coords);
 
     } else if (coords.col < fixedColumnsStart) {
-      return this.wtOverlays.inlineStartOverlay.clone?.wtTable.getCell(cellCoords);
+      return this.wtOverlays.inlineStartOverlay.clone?.wtTable.getCell(coords);
 
     } else if (coords.row < totalRows && coords.row >= totalRows - fixedRowsBottom) {
-      return this.wtOverlays.bottomOverlay?.clone?.wtTable.getCell(cellCoords);
+      return this.wtOverlays.bottomOverlay?.clone?.wtTable.getCell(coords);
 
     }
 
-    return this.wtTable.getCell(cellCoords);
+    return this.wtTable.getCell(coords);
   }
 
   /**
@@ -303,6 +345,23 @@ export default class CoreAbstract {
   }
 
   /**
+   * Gets the overlay instance by its name. Returns null in the base implementation.
+   *
+   * @param {string} _overlayName The overlay name.
+   * @returns {object | null}
+   */
+  getOverlayByName(_overlayName: string): object | null {
+    return null;
+  }
+
+  /**
+   * Exports settings as CSS class names. No-op in the base implementation.
+   */
+  exportSettingsAsClassNames(): void {
+    // no-op; overridden in Walkontable (master table)
+  }
+
+  /**
    * Destroy instance.
    */
   destroy() {
@@ -357,7 +416,7 @@ export default class CoreAbstract {
       get fixedColumnsStart() {
         return wot.wtSettings.getSetting<number>('fixedColumnsStart');
       },
-    } as unknown as ScrollDao;
+    } as ScrollDao;
   }
   // TODO refactoring: it will be much better to not use DAO objects. They are needed for now to provide
   // dynamically access to related objects
@@ -365,7 +424,7 @@ export default class CoreAbstract {
    * Create data access object for wtTable.
    *
    * @protected
-   * @returns {TableDao}
+   * @returns {Record<string, unknown>}
    */
   getTableDao(): Record<string, unknown> {
     const wot = this;
