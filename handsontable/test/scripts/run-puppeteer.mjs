@@ -227,22 +227,20 @@ await page.exposeFunction('getEventListeners', async(selector) => {
 });
 
 // Overrides the device scale factor (emulates a non-100% browser zoom / fractional DPR) for the
-// current page via CDP. Pass 1 (or a falsy value) to clear the override. Used by tests that must
+// current page. Pass 1 (or a falsy value) to restore the default. Used by tests that must
 // reproduce sub-pixel rendering bugs which only manifest when devicePixelRatio is not an integer.
+//
+// This goes through `page.setViewport` rather than a raw `Emulation.setDeviceMetricsOverride` /
+// `clearDeviceMetricsOverride` pair on purpose: the CDP "clear" call would also drop Puppeteer's
+// own viewport override (the width/height set at launch), reverting the window to the browser
+// default size and breaking later specs that rely on the window as the scrollable element.
+// `page.setViewport` keeps the current dimensions and only changes the scale factor.
 await page.exposeFunction('setDeviceScaleFactor', async(scaleFactor) => {
-  if (!scaleFactor || scaleFactor === 1) {
-    await cdpClient.send('Emulation.clearDeviceMetricsOverride');
+  const viewport = page.viewport() ?? { width: 1280, height: 720 };
 
-    return;
-  }
-
-  const { width, height } = page.viewport() ?? { width: 1280, height: 720 };
-
-  await cdpClient.send('Emulation.setDeviceMetricsOverride', {
-    width,
-    height,
-    deviceScaleFactor: scaleFactor,
-    mobile: false,
+  await page.setViewport({
+    ...viewport,
+    deviceScaleFactor: scaleFactor || 1,
   });
 });
 
