@@ -1,0 +1,91 @@
+name: Component Source
+
+on:
+  push:
+    branches:
+      - master
+      # TEMP (debug only): run on every branch while iterating.
+      # Remove the line below to restrict the job to `master`.
+      - '**'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-componentsource:
+    name: Build component source artifact
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Read Handsontable version
+        id: version
+        run: echo "value=$(node -e "console.log(require('./hot.config.js').HOT_VERSION)")" >> "$GITHUB_OUTPUT"
+
+      - name: Assemble demo artifact
+        env:
+          HOT_VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          set -euo pipefail
+
+          ROOT="componentsource-build/demo"
+          DOCS="$ROOT/documentation and release notes"
+          EX="$ROOT/example"
+          mkdir -p "$DOCS" "$EX"
+
+          printf '%s\n' "Handsontable documentation for the following ${HOT_VERSION} version of the software can be found online at https://handsontable.com/docs/" > "$DOCS/documentation.txt"
+
+          printf '%s\n' "Release notes (changelog) for the following ${HOT_VERSION} version of the software can be found online at https://handsontable.com/docs/javascript-data-grid/changelog/" > "$DOCS/release notes.txt"
+
+          cat > "$EX/index.html" <<'HTML'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+              <meta charset="UTF-8">
+              <title>Handsontable Example</title>
+              <script src="handsontable.full.min.js"></script>
+          </head>
+          <body>
+
+
+          <div id="handsontable"></div>
+          <script>
+              var data = [
+              ['', 'Ford', 'Tesla', 'Toyota', 'Honda'],
+              ['2017', 10, 11, 12, 13],
+              ['2018', 20, 11, 14, 13],
+              ['2019', 30, 15, 12, 13]
+              ];
+
+              var container = document.querySelector('#handsontable');
+              var hot = new Handsontable(container, {
+                  data: data,
+                  rowHeaders: true,
+                  colHeaders: true,
+                  filters: true,
+                  dropdownMenu: true
+              });
+          </script>
+          </body>
+          </html>
+          HTML
+
+          curl -fL --retry 3 --retry-delay 2 \
+            "https://cdn.jsdelivr.net/npm/handsontable@${HOT_VERSION}/dist/handsontable.full.min.js" \
+            -o "$EX/handsontable.full.min.js"
+
+      - name: Upload component source artifact
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: componentsource-${{ steps.version.outputs.value }}
+          path: componentsource-build
