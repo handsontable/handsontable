@@ -30,9 +30,7 @@ const currentPrefix = pathname.includes('/react-data-grid/')
   ? 'react-data-grid'
   : pathname.includes('/angular-data-grid/')
     ? 'angular-data-grid'
-    : pathname.includes('/vue-data-grid/')
-      ? 'vue-data-grid'
-      : 'javascript-data-grid';
+    : 'javascript-data-grid';
 
 const guidesUrl = `/docs/${currentPrefix}/`;
 const recipesUrl = `/docs/${currentPrefix}/recipes/`;
@@ -52,7 +50,6 @@ const frameworks = [
   { id: 'javascript-data-grid', label: 'JavaScript' },
   { id: 'react-data-grid', label: 'React' },
   { id: 'angular-data-grid', label: 'Angular' },
-  { id: 'vue-data-grid', label: 'Vue' },
 ];
 ---
 
@@ -62,7 +59,7 @@ const frameworks = [
     <div class="title-wrapper sl-flex">
       <SiteTitle />
     </div>
-    <div class="sl-hidden md:sl-flex print:hidden search-wrapper" transition:persist="docs-search">
+    <div class="sl-hidden md:sl-flex print:hidden search-wrapper">
       {shouldRenderSearch && <Search />}
     </div>
     <div class="sl-hidden md:sl-flex print:hidden right-group">
@@ -272,12 +269,6 @@ const frameworks = [
   let cleanupPrevious: (() => void) | null = null;
 
   function initMobileNav() {
-    const currentMenuButton = document.querySelector('.mobile-menu-btn') as HTMLButtonElement | null;
-
-    if (!currentMenuButton) {
-      return;
-    }
-
     // Clean up previous invocation (view transitions)
     cleanupPrevious?.();
     const controller = new AbortController();
@@ -298,7 +289,7 @@ const frameworks = [
     }
 
     // --- Elements ---
-    const menuBtn = currentMenuButton;
+    const menuBtn = document.querySelector('.mobile-menu-btn') as HTMLButtonElement | null;
     const sidebarToggle = document.querySelector('.mobile-sidebar-toggle') as HTMLButtonElement | null;
     const tocToggle = document.querySelector('.mobile-toc-toggle') as HTMLButtonElement | null;
     const breadcrumbs = document.querySelector('.mobile-breadcrumbs') as HTMLElement | null;
@@ -313,26 +304,6 @@ const frameworks = [
     mobileSearchBtn?.addEventListener('click', () => {
       document.querySelector<HTMLButtonElement>('sl-doc-search .DocSearch-Button')?.click();
     }, { signal });
-
-    // --- Docs assistant: ensure React is mounted, then toggle (iOS needs touchend too) ---
-    const bindAssistantBtn = (btn: HTMLButtonElement | null) => {
-      if (!btn) return;
-      let lastTap = 0;
-      const onAssistantTap = (e: Event) => {
-        e.preventDefault();
-        const now = Date.now();
-        if (now - lastTap < 400) return;
-        lastTap = now;
-        const ensure = window.docsAssistantEnsureMounted?.() ?? Promise.resolve();
-        void ensure.then(() => {
-          window.dispatchEvent(new CustomEvent('docs-assistant:toggle'));
-        });
-      };
-      btn.addEventListener('click', onAssistantTap, { signal });
-      btn.addEventListener('touchend', onAssistantTap, { signal });
-    };
-    bindAssistantBtn(document.getElementById('header-assistant-btn') as HTMLButtonElement | null);
-    bindAssistantBtn(document.getElementById('mobile-assistant-btn') as HTMLButtonElement | null);
 
     let overlayOpen = false;
     let tocOpen = false;
@@ -463,7 +434,7 @@ const frameworks = [
     }
 
     // --- Hamburger: toggle main nav overlay ---
-    menuBtn.addEventListener('click', () => {
+    menuBtn?.addEventListener('click', () => {
       if (overlayOpen) {
         setOverlay(false);
       } else {
@@ -471,7 +442,7 @@ const frameworks = [
         setToc(false);
         setOverlay(true);
       }
-    }, { signal });
+    });
 
     // --- Sidebar toggle ---
     const isTablet = () => window.matchMedia('(min-width: 50rem) and (max-width: 71.99rem)').matches;
@@ -492,7 +463,7 @@ const frameworks = [
           sidebarToggle.setAttribute('aria-expanded', String(isSidebarOpen()));
         });
       }
-    }, { signal });
+    });
 
     // Observe body attribute to sync sidebar toggle state (e.g. Escape key)
     const observer = new MutationObserver(() => {
@@ -516,7 +487,7 @@ const frameworks = [
         closeSidebar();
         setToc(true);
       }
-    }, { signal });
+    });
 
     // --- Escape key: close everything ---
     document.addEventListener('keydown', (e) => {
@@ -534,7 +505,7 @@ const frameworks = [
       if ((e.target as HTMLElement).closest('a')) {
         setToc(false);
       }
-    }, { signal });
+    });
 
     // --- Initial state ---
     setOverlay(false);
@@ -553,14 +524,9 @@ const frameworks = [
     };
   }
 
-  // Use astro:page-load (not astro:after-swap) so that Preact islands are fully
-  // hydrated before initMobileNav() moves DOM nodes out of their server-rendered
-  // positions via document.body.appendChild(). Moving nodes on astro:after-swap
-  // races with Preact hydration and causes "NotFoundError: insertBefore" failures
-  // (Sentry HANDSONTABLE-DOCS-1BT). astro:page-load fires on both the initial
-  // load and every subsequent view-transition navigation, so no separate
-  // DOMContentLoaded / direct call is needed.
-  document.addEventListener('astro:page-load', initMobileNav);
+  // Run on initial load and after Astro view transitions
+  initMobileNav();
+  document.addEventListener('astro:after-swap', initMobileNav);
 </script>
 
 <style>
