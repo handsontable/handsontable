@@ -867,7 +867,7 @@ this.hotTable.hotInstance!.updateSettings({
 ::: only-for vue
 
 ```js
-const hotTableRef = ref(null);
+const hotTableRef = useTemplateRef<InstanceType<typeof HotTable>>('hotTableRef');
 
 hotTableRef.value.hotInstance.updateSettings({
   // enable filtering
@@ -987,7 +987,7 @@ this.hotTable.hotInstance!.updateSettings({
 ::: only-for vue
 
 ```js
-const hotTableRef = ref(null);
+const hotTableRef = useTemplateRef<InstanceType<typeof HotTable>>('hotTableRef');
 
 hotTableRef.value.hotInstance.updateSettings({
   // enable filtering for all columns

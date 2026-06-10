@@ -1,7 +1,8 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
@@ -14,7 +15,7 @@ const data = [
   ['2021', 10, 11, 12, 13, 15, 16],
 ];
 
-const hotSettings = ref({
+const hotSettings = ref<GridSettings>({
   data: structuredClone(data),
   height: 'auto',
   autoWrapRow: true,

@@ -1,13 +1,14 @@
-<script setup>
-import { ref, onMounted } from 'vue';
+<script setup lang="ts">
+import { ref, onMounted, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
-const hotRef = ref(null);
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 
-const hotSettings = ref({
+const hotSettings = ref<GridSettings>({
   data: [
     ['', 'Tesla', 'Nissan', 'Toyota', 'Honda', 'Mazda', 'Ford'],
     ['2017', 10, 11, 12, 13, 15, 16],

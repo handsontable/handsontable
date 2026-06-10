@@ -1,8 +1,9 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue3';
 import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
@@ -20,14 +21,14 @@ class CustomEditor extends TextEditor {
 }
 
 const customEditor = CustomEditor;
-const hotData = ref([
+const hotData = ref<string[][]>([
   ['A1', 'B1'],
   ['A2', 'B2'],
   ['A3', 'B3'],
   ['A4', 'B4'],
   ['A5', 'B5'],
 ]);
-const settings = ref({
+const settings = ref<GridSettings>({
   height: 'auto',
   autoWrapRow: true,
   autoWrapCol: true,

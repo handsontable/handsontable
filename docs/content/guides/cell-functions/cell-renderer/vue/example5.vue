@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
@@ -8,7 +8,7 @@ import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 registerAllModules();
 
-const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 const isChecked = ref(false);
 
 const customRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellProperties) => {

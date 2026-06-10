@@ -1,8 +1,9 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { TextEditor } from 'handsontable/editors/textEditor';
 import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
@@ -19,7 +20,7 @@ class CustomEditor extends TextEditor {
   }
 }
 
-const hotSettings = ref({
+const hotSettings = ref<GridSettings>({
   startRows: 5,
   columns: [
     {
