@@ -17,6 +17,9 @@ react:
 angular:
   id: o1ijr8z3
   metaTitle: Date picker - Angular Data Grid | Handsontable
+vue:
+  id: mgyg0ys8
+  metaTitle: "Date picker - Vue Data Grid | Handsontable"
 searchCategory: Recipes
 category: Cells
 ---

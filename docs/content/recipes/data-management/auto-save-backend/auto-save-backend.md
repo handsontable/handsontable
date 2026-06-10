@@ -18,6 +18,9 @@ react:
 angular:
   id: b5c2q9k7
   metaTitle: Auto-save changes to a backend - Angular Data Grid | Handsontable
+vue:
+  id: 5v0khjzx
+  metaTitle: Auto-save changes to a backend - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 type: how-to
@@ -27,19 +30,17 @@ In this tutorial, you will build an auto-save flow that sends grid edits to a ba
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
+::: example #example1 :hot-recipe --js 1 --ts 2
 @[code](@/content/recipes/data-management/auto-save-backend/javascript/example1.js)
 @[code](@/content/recipes/data-management/auto-save-backend/javascript/example1.ts)
-@[code](@/content/recipes/data-management/auto-save-backend/javascript/example1.css)
 :::
 
 :::
 
 ::: only-for react
 
-::: example #example1 :react-advanced --css 1 --js 2 --ts 3
+::: example #example1 :react-advanced --js 1 --ts 2
 
-@[code](@/content/recipes/data-management/auto-save-backend/react/example1.css)
 @[code](@/content/recipes/data-management/auto-save-backend/react/example1.jsx)
 @[code](@/content/recipes/data-management/auto-save-backend/react/example1.tsx)
 :::
@@ -48,11 +49,10 @@ In this tutorial, you will build an auto-save flow that sends grid edits to a ba
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2 --css 3
+::: example #example1 :angular --ts 1 --html 2
 
 @[code](@/content/recipes/data-management/auto-save-backend/angular/example1.ts)
 @[code](@/content/recipes/data-management/auto-save-backend/angular/example1.html)
-@[code](@/content/recipes/data-management/auto-save-backend/angular/example1.css)
 
 :::
 
@@ -353,4 +353,3 @@ if (container instanceof HTMLElement) {
 - Replace the mock save with a real `fetch` call to your API endpoint.
 - Add [undo/redo with a custom UI](@/recipes/data-management/undo-redo-custom-ui/undo-redo-custom-ui.md) to let users revert changes before they are auto-saved.
 - Explore [server-side data with NestJS](@/recipes/data-management/server-side-nestjs/server-side-nestjs.md) for a full server-driven CRUD approach with the `dataProvider` plugin.
-- Explore [server-side data with Symfony](@/recipes/data-management/server-side-symfony/server-side-symfony.md) for a full server-driven CRUD approach with a PHP/Symfony backend.

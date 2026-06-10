@@ -16,6 +16,9 @@ react:
 angular:
   id: b83502de
   metaTitle: Pikaday Cell Type - Angular Data Grid | Handsontable
+vue:
+  id: lnh85yd3
+  metaTitle: Pikaday Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
 ---

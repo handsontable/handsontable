@@ -18,6 +18,9 @@ react:
 angular:
   id: 4n6q9v2w
   metaTitle: Server-side Data with Express.js - Angular Data Grid | Handsontable
+vue:
+  id: 7r84584r
+  metaTitle: Server-side Data with Express.js - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 ---

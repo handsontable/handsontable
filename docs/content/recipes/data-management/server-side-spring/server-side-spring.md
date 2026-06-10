@@ -18,6 +18,9 @@ react:
 angular:
   id: d7f9h1j3
   metaTitle: Server-side Data with Spring Boot - Angular Data Grid | Handsontable
+vue:
+  id: yllq4802
+  metaTitle: Server-side Data with Spring Boot - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 ---

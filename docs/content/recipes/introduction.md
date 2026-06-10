@@ -13,6 +13,9 @@ react:
 angular:
   id: d2815b7b
   metaTitle: Recipes - Angular Data Grid | Handsontable
+vue:
+  id: 5axgi4x9
+  metaTitle: Recipes - Vue Data Grid | Handsontable
 ---
 
 This is a collection of practical, production-ready recipes for common Handsontable development tasks. Each recipe provides step-by-step instructions, complete working code, and real-world use cases.

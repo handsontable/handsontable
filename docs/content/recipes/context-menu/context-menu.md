@@ -15,6 +15,9 @@ react:
 angular:
   id: e2l4m6n8
   metaTitle: Context Menu Recipes - Angular Data Grid | Handsontable
+vue:
+  id: s4tb6gp7
+  metaTitle: Context Menu Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 

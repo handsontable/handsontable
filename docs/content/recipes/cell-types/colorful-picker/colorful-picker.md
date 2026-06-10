@@ -17,6 +17,8 @@ react:
 angular:
   id: 4f6678f9
   metaTitle: Color Picker Cell Type - Angular Data Grid | Handsontable
+vue:
+  id: hvnfgr8y
 searchCategory: Recipes
 category: Cell Types
 ---

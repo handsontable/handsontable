@@ -17,6 +17,8 @@ react:
 angular:
   id: 3a4f760c
   metaTitle: Star Rating Cell Type - Angular Data Grid | Handsontable
+vue:
+  id: cmt6617x
 searchCategory: Recipes
 category: Cell Types
 ---

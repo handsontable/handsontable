@@ -17,6 +17,9 @@ react:
 angular:
   id: dg9oi3jt
   metaTitle: "Feedback Editor - Angular Data Grid | Handsontable"
+vue:
+  id: 5dtfu7cq
+  metaTitle: "Feedback Editor - Vue Data Grid | Handsontable"
 searchCategory: Recipes
 category: Cells
 ---

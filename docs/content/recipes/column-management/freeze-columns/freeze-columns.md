@@ -17,6 +17,9 @@ react:
 angular:
   id: a7b2c5d9
   metaTitle: Freeze and unfreeze columns at runtime - Angular Data Grid | Handsontable
+vue:
+  id: 1r6wwd0v
+  metaTitle: Freeze and unfreeze columns at runtime - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Column Management
 type: how-to

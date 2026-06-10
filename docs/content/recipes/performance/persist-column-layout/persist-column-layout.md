@@ -20,6 +20,9 @@ react:
 angular:
   id: b5d3e7f0
   metaTitle: Persist and restore column widths and order - Angular Data Grid | Handsontable
+vue:
+  id: zohalhhu
+  metaTitle: Persist and restore column widths and order - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Performance
 type: how-to

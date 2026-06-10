@@ -499,7 +499,11 @@ document.addEventListener('DOMContentLoaded', function () {
     var jsFile = findFile(userFiles, '.js') || 'index.js';
     var jsCode = userFiles[jsFile] || '';
 
-    var deps = Object.assign({ handsontable: hotVersion, vite: 'latest' }, extraDeps);
+    // Pin Vite to v5 to avoid Vite 8/rolldown aggressively tree-shaking filter condition
+    // registration side effects due to sideEffects:false in the handsontable package.json.
+    // Once handsontable's package.json sideEffects is updated to include condition files,
+    // this can be changed back to 'latest'.
+    var deps = Object.assign({ handsontable: hotVersion, vite: '^5.4.0' }, extraDeps);
 
     var pkg = JSON.stringify({
       name: 'handsontable-example',
@@ -575,8 +579,12 @@ document.addEventListener('DOMContentLoaded', function () {
         '@handsontable/react-wrapper': hotVersion,
         react:                     '18.x',
         'react-dom':               '18.x',
-        vite:                      'latest',
-        '@vitejs/plugin-react':    'latest',
+        // Pin Vite to v5 to avoid Vite 8/rolldown aggressively tree-shaking filter condition
+        // registration side effects due to sideEffects:false in the handsontable package.json.
+        // Once handsontable's package.json sideEffects is updated to include condition files,
+        // this can be changed back to 'latest'.
+        vite:                      '^5.4.0',
+        '@vitejs/plugin-react':    '^4.0.0',
       },
       extraDeps,
     );
@@ -649,7 +657,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // ── Vue 3 project ─────────────────────────────────────────────────────────
 
   function buildVueProject(hotVersion, exampleId, userFiles, extraDeps) {
-    var jsFile = findFile(userFiles, '.js') || 'App.js';
+    var jsFile = findFile(userFiles, '.vue') || 'App.vue';
     var appCode = userFiles[jsFile] || '';
 
     var deps = Object.assign(
@@ -680,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var main = [
       'import { createApp } from "vue";',
-      'import App from "./App.js";',
+      'import App from "./App.vue";',
       '',
       'createApp(App).mount("#' + exampleId + '");',
     ].join('\n');
@@ -714,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function () {
       'vite.config.js': viteConfig,
       'index.html':  html,
       'src/main.js': main,
-      'src/App.js':  appCode,
+      'src/App.vue': appCode,
     };
   }
 

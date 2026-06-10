@@ -11,9 +11,10 @@
     "start": "astro dev",
     "docs:api": "node scripts/jsdoc-convert/index.mjs",
     "docs:code-examples:generate-js": "node scripts/transpile-doc-example.mjs",
-    "build": "npm run docs:api && astro build",
+    "build": "npm run docs:api && npm run docs:validate-highlights && astro build",
     "preview": "astro preview",
     "docs:test:plugins": "node --test src/plugins/__tests__/*.test.mjs src/lib/__tests__/*.test.mjs src/components/__tests__/*.test.mjs",
+    "docs:validate-highlights": "node scripts/validate-version-highlights.mjs",
     "docs:lint": "eslint --ext .js,.mjs,.ts,.astro src content",
     "docs:lint:fix": "eslint --ext .js,.mjs,.ts,.astro src content --fix",
     "docs:docker:build:production": "cross-env BUILD_MODE=production npm run build && docker build -f docker/Dockerfile -t docs-md:production .",
@@ -55,6 +56,7 @@
     "starlight-page-actions": "^0.5.0",
     "starlight-theme-rapide": "^0.5.2",
     "unist-util-visit": "^5.0.0",
+    "pinia": "^2.3.1",
     "vuex": "^4.1.0",
     "xlsx": "^0.18.5"
   },
@@ -62,6 +64,8 @@
     "@octokit/rest": "^18.6.7",
     "@playwright/test": "1.45.x",
     "@types/node": "^20.11.27",
+    "@vitejs/plugin-vue": "^6.0.7",
+    "@vue/compiler-sfc": "^3.5.35",
     "broken-link-checker": "^0.7.8",
     "chalk": "^4.1.1",
     "cross-env": "^7.0.3",
@@ -75,8 +79,7 @@
     "rimraf": "^3.0.2",
     "semver": "^5.7.1",
     "typescript": "^5.4.0",
-    "vite": "^7.3.2",
-    "@handsontable/angular-wrapper": "~17.1.0"
+    "vite": "^7.3.2"
   },
   "browserslist": [
     "last 2 Chrome versions",

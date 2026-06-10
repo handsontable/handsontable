@@ -30,19 +30,18 @@ const currentPrefix = pathname.includes('/react-data-grid/')
   ? 'react-data-grid'
   : pathname.includes('/angular-data-grid/')
     ? 'angular-data-grid'
-    : pathname.includes('/vue-data-grid/')
-      ? 'vue-data-grid'
-      : 'javascript-data-grid';
+    : 'javascript-data-grid';
 
 const guidesUrl = `/docs/${currentPrefix}/`;
 const recipesUrl = `/docs/${currentPrefix}/recipes/`;
 const apiUrl = `/docs/${currentPrefix}/api/`;
-const changelogUrl = `/docs/${currentPrefix}/changelog-17/`;
+const changelogUrl = `/docs/${currentPrefix}/changes-between-versions/`;
 const isApiPage = pathname.includes('/api/');
 const isRecipesPage = pathname.includes('/recipes/');
 const isChangelogPage =
   /\/changelog(-|\/)/.test(pathname) ||
   pathname.includes('/migration-from-') ||
+  pathname.includes('/changes-between-versions') ||
   pathname.includes('/versioning-policy/') ||
   pathname.includes('/deprecation-policy/') ||
   pathname.includes('/long-term-support/');
@@ -52,7 +51,6 @@ const frameworks = [
   { id: 'javascript-data-grid', label: 'JavaScript' },
   { id: 'react-data-grid', label: 'React' },
   { id: 'angular-data-grid', label: 'Angular' },
-  { id: 'vue-data-grid', label: 'Vue' },
 ];
 ---
 
@@ -313,26 +311,6 @@ const frameworks = [
     mobileSearchBtn?.addEventListener('click', () => {
       document.querySelector<HTMLButtonElement>('sl-doc-search .DocSearch-Button')?.click();
     }, { signal });
-
-    // --- Docs assistant: ensure React is mounted, then toggle (iOS needs touchend too) ---
-    const bindAssistantBtn = (btn: HTMLButtonElement | null) => {
-      if (!btn) return;
-      let lastTap = 0;
-      const onAssistantTap = (e: Event) => {
-        e.preventDefault();
-        const now = Date.now();
-        if (now - lastTap < 400) return;
-        lastTap = now;
-        const ensure = window.docsAssistantEnsureMounted?.() ?? Promise.resolve();
-        void ensure.then(() => {
-          window.dispatchEvent(new CustomEvent('docs-assistant:toggle'));
-        });
-      };
-      btn.addEventListener('click', onAssistantTap, { signal });
-      btn.addEventListener('touchend', onAssistantTap, { signal });
-    };
-    bindAssistantBtn(document.getElementById('header-assistant-btn') as HTMLButtonElement | null);
-    bindAssistantBtn(document.getElementById('mobile-assistant-btn') as HTMLButtonElement | null);
 
     let overlayOpen = false;
     let tocOpen = false;

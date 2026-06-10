@@ -1,0 +1,20 @@
+{
+  "version": "16.2",
+  "highlighted": [
+    {
+      "prNumber": 11913,
+      "tagline": "Simplified Theming",
+      "whyItMatters": "Support for easy creation of custom themes aligned with any design system, powered by the Theme Builder for visual customization."
+    },
+    {
+      "prNumber": 11902,
+      "tagline": "Notifications",
+      "whyItMatters": "Ability to display messages such as alert, info, success, error, or custom types."
+    },
+    {
+      "prNumber": 11879,
+      "tagline": "Empty State",
+      "whyItMatters": "Improved user experience with informative messages when data is missing or errors occur."
+    }
+  ]
+}

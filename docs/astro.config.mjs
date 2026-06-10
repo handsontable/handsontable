@@ -16,6 +16,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, symlin
 import { relative, join } from 'path';
 import { createRequire } from 'module';
 import { transformWithEsbuild } from 'vite';
+import vue from '@vitejs/plugin-vue';
 
 // TypeScript is used to transpile Angular example .ts files because it
 // correctly strips type-only imports (e.g. ApplicationConfig, HotGlobalConfig)
@@ -904,6 +905,9 @@ export default defineConfig({
       // to local monorepo builds. Required because docs/ does not install these
       // packages in its own node_modules.
       resolveMonorepoPackages(),
+
+      // Enables Vite to process .vue SFC files used by Vue 3 doc examples.
+      vue(),
     ],
 
     // resolve.alias entries are honoured by both the Vite dev server and the

@@ -97,6 +97,7 @@ const ExampleComponent = () => {
       return;
     }
 
+    // Clear existing highlights
     invalidCellsRef.current.forEach((key) => {
       const [r, c] = key.split(':').map(Number);
 
@@ -105,6 +106,7 @@ const ExampleComponent = () => {
     });
     invalidCellsRef.current.clear();
 
+    // Collect new issues
     const newIssues = [];
 
     for (let row = 0; row < hot.countRows(); row++) {
@@ -124,6 +126,7 @@ const ExampleComponent = () => {
       }
     }
 
+    // Apply highlights
     newIssues.forEach((issue) => {
       hot.setCellMeta(issue.row, issue.col, 'className', 'htInvalid');
       hot.setCellMeta(issue.row, issue.col, 'title', issue.message);
@@ -135,13 +138,11 @@ const ExampleComponent = () => {
   }
 
   return (
-    <>
-      <div className="example-controls-container">
-        <div className="controls">
-          <button type="button" onClick={handleSubmit}>
-            Submit orders
-          </button>
-        </div>
+    <div className="row-validation-demo">
+      <div className="row-validation-demo__toolbar">
+        <button type="button" onClick={handleSubmit}>
+          Submit orders
+        </button>
       </div>
       <HotTable
         ref={hotRef}
@@ -159,9 +160,9 @@ const ExampleComponent = () => {
         afterChange={afterChange}
         licenseKey="non-commercial-and-evaluation"
       />
-      <div className="example-controls-container validation-summary" aria-live="polite">
-        <p className="validation-summary__title">Validation issues</p>
-        <ul className="validation-summary__list">
+      <div className="row-validation-demo__summary" aria-live="polite">
+        <p className="row-validation-demo__summary-title">Validation summary</p>
+        <ul className="row-validation-demo__summary-list">
           {issues.map((issue) => (
             <li key={cellKey(issue.row, issue.col)}>
               Row {issue.row + 1}, {COLUMN_LABELS[issue.col]}: {issue.message}
@@ -169,7 +170,7 @@ const ExampleComponent = () => {
           ))}
         </ul>
       </div>
-    </>
+    </div>
   );
 };
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick, useTemplateRef } from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
@@ -14,8 +14,8 @@ type InventoryRow = {
   inStock: boolean;
 };
 
-const hotRef = ref<InstanceType<typeof HotTable> | null>(null);
-const paginationContainerRef = ref<HTMLDivElement | null>(null);
+const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
+const paginationContainerRef = useTemplateRef<HTMLDivElement>('paginationContainerRef');
 const tableData = ref<InventoryRow[]>([]);
 const isLoading = ref(false);
 

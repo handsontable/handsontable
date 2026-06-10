@@ -17,6 +17,9 @@ react:
 angular:
   id: b3e9f1a2
   metaTitle: ARIA-Friendly Grid with Row Descriptions - Angular Data Grid | Handsontable
+vue:
+  id: huyklmef
+  metaTitle: ARIA-Friendly Grid with Row Descriptions - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Accessibility & UX
 type: how-to

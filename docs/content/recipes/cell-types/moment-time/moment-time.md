@@ -18,6 +18,9 @@ react:
 angular:
   id: 3c87f9e1
   metaTitle: Moment.js time Cell Type - Angular Data Grid | Handsontable
+vue:
+  id: jplnv73m
+  metaTitle: Moment.js time Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
 ---

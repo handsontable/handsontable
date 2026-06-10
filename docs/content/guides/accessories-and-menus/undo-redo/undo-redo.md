@@ -117,6 +117,18 @@ Here's the list of all unsupported features:
 
 </div>
 
+**Core methods**
+
+<div class="boxes-list">
+
+- [clearUndo()](@/api/core.md#clearundo)
+- [isRedoAvailable()](@/api/core.md#isredoavailable)
+- [isUndoAvailable()](@/api/core.md#isundoavailable)
+- [redo()](@/api/core.md#redo)
+- [undo()](@/api/core.md#undo)
+
+</div>
+
 **Hooks**
 
 <div class="boxes-list">

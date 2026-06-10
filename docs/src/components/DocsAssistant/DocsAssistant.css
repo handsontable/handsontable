@@ -547,6 +547,12 @@
 }
 .da-input-wrap:focus-within {
   border-color: transparent;
+  outline: 0 !important;
+  outline-offset: 0 !important;
+}
+.da-input:focus-visible {
+  outline: 0 !important;
+  outline-offset: 0 !important;
 }
 .da-input {
   flex: 1;

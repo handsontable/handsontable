@@ -11,6 +11,7 @@ const gettingStartedItems = [
   { path: 'guides/getting-started/vue3-custom-id-class-style/vue3-custom-id-class-style', onlyFor: ['vue'] },
   { path: 'guides/getting-started/react-redux/react-redux', onlyFor: ['react'] },
   { path: 'guides/getting-started/vue3-vuex/vue3-vuex', onlyFor: ['vue'] },
+  { path: 'guides/getting-started/vue3-pinia/vue3-pinia', onlyFor: ['vue'] },
   { path: 'guides/getting-started/vue3-nuxt/vue3-nuxt', onlyFor: ['vue'] },
   { path: 'guides/getting-started/license-key/license-key' },
 ];
@@ -122,6 +123,7 @@ const navigationAndAccessibilityItems = [
 
 const accessoriesAndMenusItems = [
   { path: 'guides/accessories-and-menus/context-menu/context-menu' },
+  { path: 'guides/accessories-and-menus/drag-to-scroll/drag-to-scroll' },
   { path: 'guides/accessories-and-menus/undo-redo/undo-redo' },
   { path: 'guides/accessories-and-menus/icon-pack/icon-pack' },
   { path: 'guides/accessories-and-menus/empty-data-state/empty-data-state' },
@@ -140,6 +142,7 @@ const internationalizationItems = [
 const buildingAndToolingItems = [
   { path: 'guides/tools-and-building/packages/packages', onlyFor: ['javascript'] },
   { path: 'guides/tools-and-building/modules/modules' },
+  { path: 'guides/tools-and-building/typescript-types/typescript-types' },
   { path: 'guides/tools-and-building/custom-plugins/custom-plugins' },
   { path: 'guides/tools-and-building/custom-builds/custom-builds' },
   { path: 'guides/tools-and-building/testing/testing' },
@@ -166,6 +169,7 @@ const technicalSpecificationItems = [
 ];
 
 const changelogItems = [
+  { path: 'guides/upgrade-and-migration/changes-between-versions/changes-between-versions' },
   { path: 'guides/upgrade-and-migration/changelog-17/changelog-17' },
   { path: 'guides/upgrade-and-migration/changelog-16/changelog-16' },
   { path: 'guides/upgrade-and-migration/changelog-15/changelog-15' },
@@ -177,6 +181,7 @@ const changelogItems = [
   { path: 'guides/upgrade-and-migration/changelog-9/changelog-9' },
   { path: 'guides/upgrade-and-migration/changelog-8/changelog-8' },
   { path: 'guides/upgrade-and-migration/changelog-7/changelog-7' },
+  { path: 'guides/upgrade-and-migration/changelog-6/changelog-6' },
 ];
 
 const upgradeAndMigrationItems = [
@@ -184,6 +189,7 @@ const upgradeAndMigrationItems = [
   { path: 'guides/upgrade-and-migration/versioning-policy/versioning-policy' },
   { path: 'guides/upgrade-and-migration/deprecation-policy/deprecation-policy' },
   { path: 'guides/upgrade-and-migration/long-term-support/long-term-support' },
+  { path: 'guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0' },
   { path: 'guides/upgrade-and-migration/migrating-from-16.0-to-16.1/migrating-from-16.0-to-16.1' },
   { path: 'guides/upgrade-and-migration/migrating-from-15.3-to-16.0/migrating-from-15.3-to-16.0' },

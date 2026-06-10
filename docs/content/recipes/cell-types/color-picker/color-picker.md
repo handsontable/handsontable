@@ -16,6 +16,9 @@ react:
 angular:
   id: a471c83c
   metaTitle: Color Picker Cell Type - Angular Data Grid | Handsontable
+vue:
+  id: y6983gwr
+  metaTitle: Color Picker Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
 ---
@@ -26,8 +29,8 @@ This tutorial shows you how to integrate the Pickr color picker library as a cus
 
 ::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps @simonwep/pickr
 
-@[code collapse={11-196}](@/content/recipes/cell-types/color-picker/javascript/example1.js)
-@[code collapse={11-198}](@/content/recipes/cell-types/color-picker/javascript/example1.ts)
+@[code collapse={11-196}](@/recipes/cell-types/color-picker/javascript/example1.js)
+@[code collapse={11-198}](@/recipes/cell-types/color-picker/javascript/example1.ts)
 @[code](@/content/recipes/cell-types/color-picker/javascript/example1.css)
 
 :::
