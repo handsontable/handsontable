@@ -91,6 +91,16 @@ this behavior, set
 
 :::
 
+::: only-for vue
+
+::: example #exampleFilterBasicDemo :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleFilterBasicDemo.vue)
+
+:::
+
+:::
+
 ## Enable filtering
 
 To enable the filtering interface for all columns, you need to do two things:
@@ -144,6 +154,23 @@ const configurationOptions = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = {
+  // enable filtering
+  filters: true,
+  // enable the column menu
+  dropdownMenu: true,
+};
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 <span style="display: none;"></span>
 
 By default, the column menu presents the filtering interface along with other default items such as
@@ -185,6 +212,16 @@ the configuration.
 
 :::
 
+::: only-for vue
+
+::: example #exampleShowFilterItemsOnly :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleShowFilterItemsOnly.vue)
+
+:::
+
+:::
+
 ### Enable filtering for individual columns
 
 You have control over which columns are filterable and for which columns the column menu is enabled.
@@ -221,6 +258,16 @@ useful items in the menu such as **Clear column**.
 
 @[code](@/content/guides/columns/column-filter/angular/example3.ts)
 @[code](@/content/guides/columns/column-filter/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleEnableFilterInColumns :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleEnableFilterInColumns.vue)
 
 :::
 
@@ -279,6 +326,25 @@ const configurationOptions = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = {
+  // enable filtering
+  filters: {
+    searchMode: 'apply'
+  },
+  // enable the column menu
+  dropdownMenu: true,
+};
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ::: only-for javascript
 
 ::: example #exampleSearchMode --html 1 --js 2 --ts 3
@@ -308,6 +374,16 @@ const configurationOptions = {
 
 @[code](@/content/guides/columns/column-filter/angular/example12.ts)
 @[code](@/content/guides/columns/column-filter/angular/example12.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleSearchMode :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleSearchMode.vue)
 
 :::
 
@@ -349,6 +425,16 @@ each data type.
 
 @[code](@/content/guides/columns/column-filter/angular/example4.ts)
 @[code](@/content/guides/columns/column-filter/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleFilterDifferentTypes :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleFilterDifferentTypes.vue)
 
 :::
 
@@ -417,6 +503,20 @@ with a pre-applied filter to display only items priced less than $200.
 
 :::
 
+::: only-for vue
+
+To do this, use the API provided by the [`Filters`](@/api/filters.md) plugin. For instance, the demo
+below demonstrates how you can start with a pre-applied filter to display only items priced less
+than $200.
+
+::: example #exampleFilterOnInitialization :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleFilterOnInitialization.vue)
+
+:::
+
+:::
+
 
 ## External quick filter
 
@@ -455,6 +555,16 @@ accomplish this, use methods [`filters.addCondition()`](@/api/filters.md#addcond
 
 @[code](@/content/guides/columns/column-filter/angular/example6.ts)
 @[code](@/content/guides/columns/column-filter/angular/example6.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleQuickFilter :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleQuickFilter.vue)
 
 :::
 
@@ -502,6 +612,16 @@ down icon.
 
 :::
 
+::: only-for vue
+
+::: example #exampleCustomFilterButton :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleCustomFilterButton.vue)
+
+:::
+
+:::
+
 The column menu button is always visible, but if you want it to appear only when the mouse cursor is
 over the header, apply additional styling to `th .relative:hover .changeType`.
 
@@ -536,6 +656,16 @@ over the header, apply additional styling to `th .relative:hover .changeType`.
 
 @[code](@/content/guides/columns/column-filter/angular/example8.ts)
 @[code](@/content/guides/columns/column-filter/angular/example8.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleCustomFilterButton2 :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleCustomFilterButton2.vue)
 
 :::
 
@@ -594,6 +724,16 @@ filtering doesn't affect them.
 
 :::
 
+::: only-for vue
+
+::: example #exampleExcludeRowsFromFiltering :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleExcludeRowsFromFiltering.vue)
+
+:::
+
+:::
+
 ## Server-side filtering
 
 You can decide to use Handsontable as an intuitive filtering interface, but perform the actual
@@ -639,6 +779,16 @@ filters is logged to the console.
 
 @[code](@/content/guides/columns/column-filter/angular/example10.ts)
 @[code](@/content/guides/columns/column-filter/angular/example10.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleServerSideFilter :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleServerSideFilter.vue)
 
 :::
 
@@ -707,6 +857,26 @@ this.hotTable.hotInstance!.updateSettings({
 });
 
 this.hotTable.hotInstance!.updateSettings({
+  // disable filtering
+  filters: false,
+});
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotTableRef = ref(null);
+
+hotTableRef.value.hotInstance.updateSettings({
+  // enable filtering
+  filters: true,
+  // enable the column menu
+  dropdownMenu: true,
+});
+
+hotTableRef.value.hotInstance.updateSettings({
   // disable filtering
   filters: false,
 });
@@ -814,6 +984,40 @@ this.hotTable.hotInstance!.updateSettings({
 
 :::
 
+::: only-for vue
+
+```js
+const hotTableRef = ref(null);
+
+hotTableRef.value.hotInstance.updateSettings({
+  // enable filtering for all columns
+  filters: true,
+  // enable the column menu for all columns
+  // but display only the 'Filter by value' list and the 'OK' and
+  // 'Cancel' buttons
+  dropdownMenu: {
+    items: {
+      filter_by_value: {
+        // hide the 'Filter by value' list from all columns but the
+        // first one
+        hidden() {
+          return this.getSelectedRangeLast().to.col > 0;
+        },
+      },
+      filter_action_bar: {
+        // hide the 'OK' and 'Cancel' buttons from all columns but the
+        // first one
+        hidden() {
+          return this.getSelectedRangeLast().to.col > 0;
+        },
+      },
+    },
+  },
+});
+```
+
+:::
+
 
 ### Filter data programmatically
 
@@ -852,6 +1056,16 @@ Mind that before you apply new filter conditions, you need to clear the previous
 
 @[code](@/content/guides/columns/column-filter/angular/example11.ts)
 @[code](@/content/guides/columns/column-filter/angular/example11.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleFilterThroughAPI1 :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleFilterThroughAPI1.vue)
 
 :::
 
