@@ -76,6 +76,7 @@ const isRecipePage = pathname.includes('/recipes/');
 const isChangelogPage =
   /\/changelog(-|\/)/.test(pathname) ||
   pathname.includes('/migration-from-') ||
+  pathname.includes('/changes-between-versions') ||
   pathname.includes('/versioning-policy/') ||
   pathname.includes('/deprecation-policy/') ||
   pathname.includes('/long-term-support/');
