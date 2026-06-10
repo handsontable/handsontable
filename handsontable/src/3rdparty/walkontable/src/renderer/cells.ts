@@ -119,7 +119,7 @@ export class CellsRenderer extends BaseRenderer {
             A11Y_TABINDEX(-1),
             // `aria-colindex` is incremented by both tbody and thead rows.
             A11Y_COLINDEX(sourceColumnIndex + (
-              (this.table.rowUtils?.dataAccessObject?.rowHeaders as unknown[])?.length ?? 0
+              (this.table.rowUtils?.dataAccessObject?.rowHeaders as Function[])?.length ?? 0
             ) + 1),
           ]);
         }

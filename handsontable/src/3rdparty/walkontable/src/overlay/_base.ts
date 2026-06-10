@@ -472,7 +472,7 @@ export abstract class Overlay {
       viewport: this.wot.wtViewport, // todo ioc , or factor func if used only here
       event: this.wot.wtEvent, // todo ioc , or factory func if used only here
       selectionManager: this.wot.selectionManager, // todo ioc , or factory func if used only here
-    }) as unknown as WalkontableInstance;
+    }) as WalkontableInstance;
   }
 
   /**

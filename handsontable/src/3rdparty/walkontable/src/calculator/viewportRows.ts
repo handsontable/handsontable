@@ -112,7 +112,7 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
       return;
     }
 
-    calculateAxis(this as unknown as AxisCalculatorContext, {
+    calculateAxis(this, {
       totalCount: this.totalRows,
       zeroBasedScrollOffset: this.zeroBasedScrollOffset,
       scrollEnd: this.innerViewportHeight,
@@ -123,7 +123,7 @@ export class ViewportRowsCalculator extends ViewportBaseCalculator {
       setTotalCalculated: (ctx, v) => {
         ctx.totalCalculatedHeight = v;
       },
-      getTotalCalculated: ctx => ctx.totalCalculatedHeight as number,
+      getTotalCalculated: ctx => ctx.totalCalculatedHeight,
     });
   }
 
