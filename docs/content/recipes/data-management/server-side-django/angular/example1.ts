@@ -79,7 +79,7 @@ export class AppComponent {
     autoWrapRow: true,
   };
 
-  async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<unknown> {
+  async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<any> {
     const url = buildUrl('http://localhost:8000/api/employees/', {
       page: params['page'],
       pageSize: params['pageSize'],
@@ -95,7 +95,7 @@ export class AppComponent {
     return res.json();
   }
 
-  async onRowsCreate(rows: unknown): Promise<unknown> {
+  async onRowsCreate(rows: unknown): Promise<any> {
     const res = await fetch('http://localhost:8000/api/employees/create-rows/', {
       method: 'POST',
       headers: {

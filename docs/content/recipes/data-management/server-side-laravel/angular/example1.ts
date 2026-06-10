@@ -84,7 +84,7 @@ export class AppComponent {
     ],
   };
 
-  async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<{ rows: unknown[]; totalRows: number }> {
+  async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<{ rows: any[]; totalRows: number }> {
     const url = buildUrl('/api/products', {
       page: params['page'],
       pageSize: params['pageSize'],

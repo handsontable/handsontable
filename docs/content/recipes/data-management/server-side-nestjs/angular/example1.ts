@@ -84,7 +84,7 @@ export class AppComponent {
     autoWrapRow: true,
   };
 
-  async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<unknown> {
+  async fetchRows(params: Record<string, unknown>, signal: AbortSignal): Promise<any> {
     const url = buildUrl('http://localhost:3000/tickets', params);
     const res = await fetch(url, { signal });
 
@@ -95,7 +95,7 @@ export class AppComponent {
     return res.json();
   }
 
-  async onRowsCreate(payload: unknown): Promise<unknown> {
+  async onRowsCreate(payload: unknown): Promise<any> {
     const res = await fetch('http://localhost:3000/tickets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
