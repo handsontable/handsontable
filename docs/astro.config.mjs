@@ -16,6 +16,7 @@ import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, symlin
 import { relative, join } from 'path';
 import { createRequire } from 'module';
 import { transformWithEsbuild } from 'vite';
+import vue from '@vitejs/plugin-vue';
 
 // TypeScript is used to transpile Angular example .ts files because it
 // correctly strips type-only imports (e.g. ApplicationConfig, HotGlobalConfig)
@@ -678,6 +679,14 @@ export default defineConfig({
           tag: 'script',
           attrs: { src: '/docs/example-tabs.js', defer: true },
         },
+        // Prevent HOT from injecting a duplicate <style id="handsontable-core-styles"> at runtime.
+        // StylesHandler.#injectCoreStyles() skips injection when it finds an element with this ID.
+        // The actual HOT CSS is already loaded by handsontable-import.css via customCss above.
+        {
+          tag: 'style',
+          attrs: { id: 'handsontable-core-styles' },
+          content: '/* HOT base styles loaded via handsontable-import.css */',
+        },
         // ── All-environment 3rd-party scripts ──────────────────────────────
         // Sentry error monitoring
         {
@@ -893,6 +902,9 @@ export default defineConfig({
       // to local monorepo builds. Required because docs/ does not install these
       // packages in its own node_modules.
       resolveMonorepoPackages(),
+
+      // Enables Vite to process .vue SFC files used by Vue 3 doc examples.
+      vue(),
     ],
 
     // resolve.alias entries are honoured by both the Vite dev server and the
