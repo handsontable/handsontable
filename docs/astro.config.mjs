@@ -735,15 +735,18 @@ export default defineConfig({
       ],
 
       sidebar: [
-        { label: 'JavaScript', collapsed: true, items: allSidebars.javascript },
-        { label: 'React', collapsed: true, items: allSidebars.react },
-        { label: 'Angular', collapsed: true, items: allSidebars.angular },
-        { label: 'JavaScript Recipes', collapsed: true, items: allSidebars.javascriptRecipes },
-        { label: 'React Recipes', collapsed: true, items: allSidebars.reactRecipes },
-        { label: 'Angular Recipes', collapsed: true, items: allSidebars.angularRecipes },
+        { label: 'JavaScript',           collapsed: true, items: allSidebars.javascript },
+        { label: 'React',                collapsed: true, items: allSidebars.react },
+        { label: 'Angular',              collapsed: true, items: allSidebars.angular },
+        { label: 'Vue 3',                collapsed: true, items: allSidebars.vue },
+        { label: 'JavaScript Recipes',   collapsed: true, items: allSidebars.javascriptRecipes },
+        { label: 'React Recipes',        collapsed: true, items: allSidebars.reactRecipes },
+        { label: 'Angular Recipes',      collapsed: true, items: allSidebars.angularRecipes },
+        { label: 'Vue 3 Recipes',        collapsed: true, items: allSidebars.vueRecipes },
         { label: 'JavaScript Changelog', collapsed: true, items: allSidebars.javascriptChangelog },
-        { label: 'React Changelog', collapsed: true, items: allSidebars.reactChangelog },
-        { label: 'Angular Changelog', collapsed: true, items: allSidebars.angularChangelog },
+        { label: 'React Changelog',      collapsed: true, items: allSidebars.reactChangelog },
+        { label: 'Angular Changelog',    collapsed: true, items: allSidebars.angularChangelog },
+        { label: 'Vue 3 Changelog',      collapsed: true, items: allSidebars.vueChangelog },
       ],
 
       components: {
