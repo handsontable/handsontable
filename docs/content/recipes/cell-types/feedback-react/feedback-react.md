@@ -6,6 +6,7 @@ metaTitle:  Feedback Cell Type - React Data Grid | Handsontable
 description: Learn how to create a custom feedback cell type in React using EditorComponent—emoji buttons (e.g. thumbs up/down/neutral) for quick selection, keyboard navigation, and per-column config.
 permalink: /recipes/cell-types/feedback-react
 canonicalUrl: /recipes/cell-types/feedback-react
+framework: react
 tags:
   - guides
   - tutorial

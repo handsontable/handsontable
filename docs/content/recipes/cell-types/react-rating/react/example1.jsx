@@ -1,9 +1,25 @@
 import { HotTable, HotColumn, EditorComponent } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import StarRatingComponent from 'react-star-rating-component';
 import './example1.css';
 
 registerAllModules();
+
+function StarRating({ name, value, editing = true, onStarHover, onStarClick }) {
+  return (
+    <div className="star-rating" aria-label={`Rating: ${value} out of 5`}>
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span
+          key={`${name}-${star}`}
+          className={star <= value ? 'star filled' : 'star'}
+          onMouseEnter={editing ? () => onStarHover?.(star) : undefined}
+          onClick={editing ? () => onStarClick?.(star) : undefined}
+        >
+          ★
+        </span>
+      ))}
+    </div>
+  );
+}
 
 /* start:skip-in-preview */
 export const data = [
@@ -20,7 +36,7 @@ export const data = [
 
 const RatingCellRenderer = ({ value }) => (
   <div className="rating-cell">
-    <StarRatingComponent
+    <StarRating
       name="rating-cell"
       value={Number(value) || 0}
       editing={false}
@@ -38,7 +54,7 @@ export const RatingEditor = () => {
     <EditorComponent>
       {({ value, setValue, finishEditing }) => (
         <div className="rating-editor">
-          <StarRatingComponent
+          <StarRating
             name="rating"
             value={Number(value) || 0}
             onStarHover={(nextValue) => setValue(nextValue)}

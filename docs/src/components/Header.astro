@@ -62,7 +62,7 @@ const frameworks = [
     <div class="title-wrapper sl-flex">
       <SiteTitle />
     </div>
-    <div class="sl-hidden md:sl-flex print:hidden search-wrapper">
+    <div class="sl-hidden md:sl-flex print:hidden search-wrapper" transition:persist="docs-search">
       {shouldRenderSearch && <Search />}
     </div>
     <div class="sl-hidden md:sl-flex print:hidden right-group">
@@ -272,6 +272,12 @@ const frameworks = [
   let cleanupPrevious: (() => void) | null = null;
 
   function initMobileNav() {
+    const currentMenuButton = document.querySelector('.mobile-menu-btn') as HTMLButtonElement | null;
+
+    if (!currentMenuButton) {
+      return;
+    }
+
     // Clean up previous invocation (view transitions)
     cleanupPrevious?.();
     const controller = new AbortController();
@@ -292,7 +298,7 @@ const frameworks = [
     }
 
     // --- Elements ---
-    const menuBtn = document.querySelector('.mobile-menu-btn') as HTMLButtonElement | null;
+    const menuBtn = currentMenuButton;
     const sidebarToggle = document.querySelector('.mobile-sidebar-toggle') as HTMLButtonElement | null;
     const tocToggle = document.querySelector('.mobile-toc-toggle') as HTMLButtonElement | null;
     const breadcrumbs = document.querySelector('.mobile-breadcrumbs') as HTMLElement | null;
@@ -457,7 +463,7 @@ const frameworks = [
     }
 
     // --- Hamburger: toggle main nav overlay ---
-    menuBtn?.addEventListener('click', () => {
+    menuBtn.addEventListener('click', () => {
       if (overlayOpen) {
         setOverlay(false);
       } else {
@@ -465,7 +471,7 @@ const frameworks = [
         setToc(false);
         setOverlay(true);
       }
-    });
+    }, { signal });
 
     // --- Sidebar toggle ---
     const isTablet = () => window.matchMedia('(min-width: 50rem) and (max-width: 71.99rem)').matches;
@@ -486,7 +492,7 @@ const frameworks = [
           sidebarToggle.setAttribute('aria-expanded', String(isSidebarOpen()));
         });
       }
-    });
+    }, { signal });
 
     // Observe body attribute to sync sidebar toggle state (e.g. Escape key)
     const observer = new MutationObserver(() => {
@@ -510,7 +516,7 @@ const frameworks = [
         closeSidebar();
         setToc(true);
       }
-    });
+    }, { signal });
 
     // --- Escape key: close everything ---
     document.addEventListener('keydown', (e) => {
@@ -528,7 +534,7 @@ const frameworks = [
       if ((e.target as HTMLElement).closest('a')) {
         setToc(false);
       }
-    });
+    }, { signal });
 
     // --- Initial state ---
     setOverlay(false);
@@ -547,9 +553,14 @@ const frameworks = [
     };
   }
 
-  // Run on initial load and after Astro view transitions
-  initMobileNav();
-  document.addEventListener('astro:after-swap', initMobileNav);
+  // Use astro:page-load (not astro:after-swap) so that Preact islands are fully
+  // hydrated before initMobileNav() moves DOM nodes out of their server-rendered
+  // positions via document.body.appendChild(). Moving nodes on astro:after-swap
+  // races with Preact hydration and causes "NotFoundError: insertBefore" failures
+  // (Sentry HANDSONTABLE-DOCS-1BT). astro:page-load fires on both the initial
+  // load and every subsequent view-transition navigation, so no separate
+  // DOMContentLoaded / direct call is needed.
+  document.addEventListener('astro:page-load', initMobileNav);
 </script>
 
 <style>

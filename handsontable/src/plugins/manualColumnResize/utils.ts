@@ -1,1 +1,6 @@
-export { getElementScaleFactor, normalizeVisualDelta } from '../manualResize/utils';
+export {
+  getElementScaleFactor,
+  normalizeVisualDelta,
+  shouldRefreshHandleAfterAutoResize,
+  shouldSkipResizeHandlePositioning,
+} from '../manualResize/utils';

@@ -186,9 +186,10 @@ Build your own pagination UI using API methods such as [`setPage()`](@/api/pagin
 :::
 
 ::: only-for react
-::: example #example3 :react --js 1 --ts 2
+::: example #example3 :react --js 1 --css 2 --ts 3
 
 @[code collapse={8-107, 200-230}](@/content/guides/rows/rows-pagination/react/example3.jsx)
+@[code](@/content/guides/rows/rows-pagination/react/example3.css)
 @[code collapse={8-107, 200-230}](@/content/guides/rows/rows-pagination/react/example3.tsx)
 
 :::
@@ -271,9 +272,10 @@ Sometimes you need to modify data only on the currently visible page. Core metho
 :::
 
 ::: only-for react
-::: example #example5 :react --js 1 --ts 2
+::: example #example5 :react --js 1 --css 2 --ts 3
 
 @[code collapse={8-107, 158-188}](@/content/guides/rows/rows-pagination/react/example5.jsx)
+@[code](@/content/guides/rows/rows-pagination/react/example5.css)
 @[code collapse={8-107, 159-189}](@/content/guides/rows/rows-pagination/react/example5.tsx)
 
 :::
