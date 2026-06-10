@@ -19,6 +19,7 @@
  *   5. /docs/:ver/:page.html               → versioned framework pages (cookie)
  *   6. /docs/(javascript|angular|react)-data-grid/(row-sorting|column-sorting|release-notes)
  *   7. Cross-framework page fixes (angular/react wrong-prefix pages)
+ *  7a. Vue 3 legacy page redirects      → /docs/vue-data-grid/*
  *   8. Recipe cell-type slug mismatches
  *   9. Angular-only recipe redirects for React/JS
  *  10. JS/React-only recipe redirects for Angular/React
@@ -688,6 +689,23 @@ const FLAT_REACT_PAGES = {
   'react-hot-reference': '/docs/react-data-grid/instance-methods/',
 };
 
+// Old integrate-with-vue3 slugs redirect to the current Vue data grid pages.
+const VUE3_LEGACY_PAGES = {
+  'vue3-installation': '/docs/vue-data-grid/installation/',
+  'vue3-basic-example': '/docs/vue-data-grid/installation/',
+  'vue3-modules': '/docs/vue-data-grid/modules/',
+  'vue3-hot-column': '/docs/vue-data-grid/vue-hot-column/',
+  'vue3-hot-reference': '/docs/vue-data-grid/vue-instance-reference/',
+  'vue3-custom-renderer-example': '/docs/vue-data-grid/cell-renderer/',
+  'vue3-custom-editor-example': '/docs/vue-data-grid/cell-editor/',
+  'vue3-custom-context-menu-example': '/docs/vue-data-grid/context-menu/',
+  'vue3-custom-id-class-style': '/docs/vue-data-grid/vue-custom-id-class-style/',
+  'vue3-formulas-example': '/docs/vue-data-grid/formula-calculation/',
+  'vue3-language-change-example': '/docs/vue-data-grid/language/',
+  'vue3-setting-up-a-translation': '/docs/vue-data-grid/language/',
+  'vue3-vuex-example': '/docs/vue-data-grid/vue-vuex/',
+};
+
 // ---------------------------------------------------------------------------
 // Main worker
 // ---------------------------------------------------------------------------
@@ -841,6 +859,35 @@ export default {
       }
     }
 
+    // -- 7a. Vue 3 legacy pages ---------------------------------------------
+    {
+      const m = path.match(/^\/docs\/(javascript|react|angular|vue)-data-grid\/(vue3-[^/]+)\/?$/);
+
+      if (m) {
+        const page = m[2];
+
+        if (Object.prototype.hasOwnProperty.call(VUE3_LEGACY_PAGES, page)) {
+          return redirect301(abs(VUE3_LEGACY_PAGES[page], url));
+        }
+      }
+    }
+
+    // -- 7b. Versioned Vue 3 legacy pages -----------------------------------
+    {
+      const m = path.match(/^\/docs\/(\d+\.\d+)\/(vue3-[^/]+)\/?$/);
+
+      if (m) {
+        const version = m[1];
+        const page = m[2];
+
+        if (Object.prototype.hasOwnProperty.call(VUE3_LEGACY_PAGES, page)) {
+          const dest = `/docs/${version}${VUE3_LEGACY_PAGES[page].slice('/docs'.length)}`;
+
+          return redirect301(abs(dest, url));
+        }
+      }
+    }
+
     // -- 8. Recipe cell-type slug mismatches (Angular/React/JS) --------------
     {
       const forced301 = {
@@ -946,8 +993,8 @@ export default {
       const shortcuts = {
         '/docs/react': '/docs/react-data-grid/installation/',
         '/docs/angular': '/docs/javascript-data-grid/angular-installation/',
-        '/docs/vue': '/docs/javascript-data-grid/vue3-installation/',
-        '/docs/vue3': '/docs/javascript-data-grid/vue3-installation/',
+        '/docs/vue': VUE3_LEGACY_PAGES['vue3-installation'],
+        '/docs/vue3': VUE3_LEGACY_PAGES['vue3-installation'],
       };
 
       if (Object.prototype.hasOwnProperty.call(shortcuts, path)) {
