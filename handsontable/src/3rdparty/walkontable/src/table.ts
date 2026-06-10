@@ -11,6 +11,7 @@ import {
   outerWidth,
   innerHeight,
   isVisible,
+  isHTMLElement,
   setAttribute,
 } from '../../../helpers/dom/element';
 import { isFunction } from '../../../helpers/function';
@@ -454,7 +455,7 @@ class Table {
     let spreader: HTMLDivElement | undefined;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
-        !(parent instanceof HTMLElement) || !hasClass(parent, 'wtHolder')) {
+        !isHTMLElement(parent) || !hasClass(parent, 'wtHolder')) {
       spreader = this.domBindings.rootDocument.createElement('div');
       spreader.className = 'wtSpreader';
 
@@ -487,7 +488,7 @@ class Table {
     let hider: HTMLDivElement | undefined;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
-        !(parent instanceof HTMLElement) || !hasClass(parent, 'wtHolder')) {
+        !isHTMLElement(parent) || !hasClass(parent, 'wtHolder')) {
       hider = this.domBindings.rootDocument.createElement('div');
       hider.className = 'wtHider';
 
@@ -517,7 +518,7 @@ class Table {
     let holder;
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
-        !(parent instanceof HTMLElement) || !hasClass(parent, 'wtHolder')) {
+        !isHTMLElement(parent) || !hasClass(parent, 'wtHolder')) {
       holder = this.domBindings.rootDocument.createElement('div');
       holder.style.position = 'relative';
       holder.className = 'wtHolder';
@@ -536,7 +537,10 @@ class Table {
         const holderParent = holder.parentNode;
 
         // holderParent is null when TABLE is detached (e.g. in Jasmine tests); skip class assignment in that case.
-        if (holderParent instanceof HTMLElement) {
+        // isHTMLElement() is used instead of `instanceof HTMLElement` because the latter fails in
+        // cross-frame contexts (e.g. when HoT is mounted inside an <iframe> via React portals):
+        // the iframe's HTMLElement constructor !== the parent frame's HTMLElement.
+        if (isHTMLElement(holderParent)) {
           holderParent.className += 'ht_master handsontable';
           holderParent.setAttribute('dir', this.wtSettings.getSettingPure('rtlMode') ? 'rtl' : 'ltr');
 
