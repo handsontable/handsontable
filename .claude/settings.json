@@ -1,4 +1,5 @@
 {
+  "skillListingBudgetFraction": 0.05,
   "attribution": {
     "commit": "",
     "pr": ""

@@ -59,6 +59,9 @@ describe('DateCellType', () => {
         editor: getEditor('date'),
         renderer: getRenderer('date'),
         validator: getValidator('date'),
+        sourceDataValidator: expect.any(Function),
+        sourceDataWarningMessage: expect.any(String),
+        valueFormatter: expect.any(Function),
       });
     });
   });

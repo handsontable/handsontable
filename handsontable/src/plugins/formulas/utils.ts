@@ -1,7 +1,5 @@
-import moment from 'moment';
+import { isValidISODate } from '../../helpers/dateTime';
 import { valueGetter as multiSelectValueGetter } from '../../cellTypes/multiSelectType/accessors/valueGetter';
-
-const DEFAULT_DATE_FORMAT_HYPERFORMULA = 'DD/MM/YYYY';
 
 /**
  * Checks if provided formula expression is escaped.
@@ -45,49 +43,45 @@ export function isDate(value: unknown, cellType: unknown): value is string {
 }
 
 /**
- * Checks if provided date is a valid date according to cell date format.
+ * Checks if provided date is a valid ISO 8601 date string.
  *
  * @param {*} date Checked date.
- * @param {object} dateFormat Handled format for a date.
  * @returns {boolean}
  */
-export function isDateValid(date: string, dateFormat: unknown) {
-  return moment(date, String(dateFormat), true).isValid();
+export function isDateValid(date: string): boolean {
+  return isValidISODate(date);
 }
 
 /**
- * Returns date formatted in HF's default format.
+ * Returns date formatted for HyperFormula (ISO 8601 passthrough).
  *
- * @param {string} date Date formatted according to Handsontable cell date format.
- * @param {string} dateFormat The format used for the date passed.
+ * @param {string} date Date string in ISO 8601 format.
  * @returns {string}
  */
-export function getDateInHfFormat(date: string, dateFormat: unknown) {
-  return moment(date, String(dateFormat), true).format(DEFAULT_DATE_FORMAT_HYPERFORMULA);
+export function getDateInHfFormat(date: string): string {
+  return date;
 }
 
 /**
- * Returns date formatted in HF's default format.
+ * Returns date formatted for Handsontable (ISO 8601 passthrough).
  *
- * @param {string} date Date formatted according to Handsontable cell date format.
- * @param {string} dateFormat The format used for the date passed.
+ * @param {string} date Date string in ISO 8601 format.
  * @returns {string}
  */
-export function getDateInHotFormat(date: string, dateFormat: unknown) {
-  return moment(date, DEFAULT_DATE_FORMAT_HYPERFORMULA, true).format(String(dateFormat));
+export function getDateInHotFormat(date: string): string {
+  return date;
 }
 
 /**
- * Converts an HF day-fraction representation of a time value into a string formatted with the cell's
- * `timeFormat`. HyperFormula represents date-time values as a single number, where the integer part
+ * Converts an HF day-fraction representation of a time value into a string formatted as HH:mm:ss.
+ * HyperFormula represents date-time values as a single number, where the integer part
  * encodes the date (days since the HF epoch) and the fractional part encodes the time. This helper
  * ignores the integer part and formats the fractional part as a time string.
  *
  * @param {number} numericTime A number whose fractional part represents the time as a fraction of a day.
- * @param {string} timeFormat The moment.js-compatible format used to render the output time string.
  * @returns {string}
  */
-export function getTimeFromHfTimeFraction(numericTime: number, timeFormat: string) {
+export function getTimeFromHfTimeFraction(numericTime: number): string {
   const SECONDS_IN_DAY = 86400;
   const dayFraction = numericTime - Math.floor(numericTime);
   const totalSeconds = Math.round(dayFraction * SECONDS_IN_DAY);
@@ -95,24 +89,27 @@ export function getTimeFromHfTimeFraction(numericTime: number, timeFormat: strin
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
 
-  return moment({ hour: hours, minute: minutes, second: seconds }).format(timeFormat);
+  const hhmm = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+
+  return seconds > 0 ? `${hhmm}:${String(seconds).padStart(2, '0')}` : hhmm;
 }
 
 /**
- * Converts Excel-like dates into strings and formats them based on the handled date format.
+ * Converts Excel-like dates into ISO 8601 date strings.
  *
- * @param {number} numericDate An integer representing numbers of days from January 1, 1900.
- * @param {string} dateFormat The format used for parsing an output.
+ * @param {unknown} numericDate An integer representing numbers of days from the HF epoch (1899-12-30).
  * @returns {string}
  */
-export function getDateFromExcelDate(numericDate: unknown, dateFormat: unknown) {
-  // To replicate the behavior from the HyperFormula. UTC starts from 31/12/1899, while HF from 30/12/1899.
-  const dateOffset = -1;
+export function getDateFromExcelDate(numericDate: unknown): string {
+  // HF epoch is 1899-12-30 (UTC).
+  const epochMs = Date.UTC(1899, 11, 30);
+  const dateMs = epochMs + ((numericDate as number) * 86400000);
+  const d = new Date(dateMs);
+  const year = d.getUTCFullYear();
+  const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
 
-  // Based on solution from: https://stackoverflow.com/a/67130235.
-  const dateForFormatting = new Date(Date.UTC(0, 0, (numericDate as number) + dateOffset));
-
-  return moment(dateForFormatting).format(String(dateFormat));
+  return `${year}-${month}-${day}`;
 }
 
 /**

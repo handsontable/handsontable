@@ -120,7 +120,7 @@ A mod is a class constructed with the `MetaManager` instance. `MetaManager`'s co
 | Mod | File | Role |
 |---|---|---|
 | `DynamicCellMetaMod` | `mods/dynamicCellMeta.ts` | Extends each cell meta object with the result of the `cells` function and the `beforeGetCellMeta`/`afterGetCellMeta` hooks. |
-| `ExtendMetaPropertiesMod` | `mods/extendMetaProperties.ts` | Installs property watchers on global meta for aliased, init-only, and deprecated options (for example `fixedColumnsLeft` → `fixedColumnsStart`, and deprecation warnings for `correctFormat` and `datePickerConfig`). |
+| `ExtendMetaPropertiesMod` | `mods/extendMetaProperties.ts` | Installs property watchers on global meta for aliased and init-only options (for example `fixedColumnsLeft` → `fixedColumnsStart`). |
 
 ### The `cells` function
 

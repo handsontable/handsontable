@@ -21,7 +21,7 @@ describe('Date Editor', () => {
         ['02/02/2004'],
         ['07/24/2011'],
       ],
-      columns: [{ type: 'date', dateFormat: 'MM/DD/YYYY' }],
+      columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
     });
 
     const cell = hot.getCell(0, 0);
@@ -57,7 +57,7 @@ describe('Date Editor', () => {
         ['02/02/2004'],
         ['07/24/2011'],
       ],
-      columns: [{ type: 'date', dateFormat: 'MM/DD/YYYY' }],
+      columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
     });
 
     const cell = hot.getCell(0, 0);

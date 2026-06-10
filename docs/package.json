@@ -41,6 +41,7 @@
     "hyperformula": "^3.2.0",
     "jspdf": "^3.0.4",
     "jspdf-autotable": "^5.0.7",
+    "moment": "^2.30.1",
     "numbro": "^2.5.0",
     "papaparse": "^5.5.3",
     "react": "^18.3.1",

@@ -4,6 +4,10 @@ import {
   timeRenderer,
 } from '../';
 import {
+  RENDERER_TYPE as INTL_TIME_RENDERER_TYPE,
+  intlTimeRenderer,
+} from '../../intlTimeRenderer';
+import {
   getRegisteredRendererNames,
   getRenderer,
   registerRenderer,
@@ -112,6 +116,21 @@ describe('timeRenderer', () => {
       timeRenderer(instance, TD, undefined, undefined, undefined, value, cellMeta);
 
       expect(TD.dir).toBe('ltr');
+    });
+  });
+});
+
+describe('intlTimeRenderer (intl-time alias)', () => {
+  describe('registering', () => {
+    it('should have RENDERER_TYPE "intl-time"', () => {
+      expect(INTL_TIME_RENDERER_TYPE).toBe('intl-time');
+    });
+
+    it('should register as "intl-time" renderer', () => {
+      registerRenderer(INTL_TIME_RENDERER_TYPE, intlTimeRenderer);
+
+      expect(getRegisteredRendererNames()).toContain(INTL_TIME_RENDERER_TYPE);
+      expect(getRenderer(INTL_TIME_RENDERER_TYPE)).toBeInstanceOf(Function);
     });
   });
 });

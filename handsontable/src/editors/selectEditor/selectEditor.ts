@@ -169,7 +169,7 @@ export class SelectEditor extends BaseEditor {
         const optionElement = this.hot.rootDocument.createElement('OPTION') as HTMLOptionElement;
 
         optionElement.value = String(options[i]);
-        fastInnerHTML(optionElement, String(options[i]), sanitizer);
+        fastInnerHTML(optionElement, String(options[i]), sanitizer, 'selectEditor', this.hot.rootElement);
         this.select.appendChild(optionElement);
       }
     } else {
@@ -177,7 +177,7 @@ export class SelectEditor extends BaseEditor {
         const optionElement = this.hot.rootDocument.createElement('OPTION') as HTMLOptionElement;
 
         optionElement.value = key;
-        fastInnerHTML(optionElement, String(optionValue), sanitizer);
+        fastInnerHTML(optionElement, String(optionValue), sanitizer, 'selectEditor', this.hot.rootElement);
         this.select.appendChild(optionElement);
       });
     }

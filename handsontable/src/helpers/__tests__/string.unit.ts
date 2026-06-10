@@ -49,33 +49,15 @@ describe('String helper', () => {
   // Handsontable.helper.sanitize
   //
   describe('sanitize', () => {
-    it('should sanitize HTML from insecure values', () => {
+    it('should return the string unchanged (pass-through — DOMPurify removed)', () => {
       expect(sanitize('')).toBe('');
       expect(sanitize('<i aria-label="bar">foo</i>')).toBe('<i aria-label="bar">foo</i>');
-      expect(sanitize('<img src onerror=alert(1)>')).toBe('<img src="">');
-      expect(sanitize('<script>alert()</script>')).toBe('');
+      expect(sanitize('<img src onerror=alert(1)>')).toBe('<img src onerror=alert(1)>');
+      expect(sanitize('<script>alert()</script>')).toBe('<script>alert()</script>');
       expect(sanitize('<strong>Hello</strong> <span class="my">my <sup>world</span>2</sup>'))
-        .toBe('<strong>Hello</strong> <span class="my">my <sup>world</sup></span>2');
+        .toBe('<strong>Hello</strong> <span class="my">my <sup>world</span>2</sup>');
       expect(sanitize('<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>'))
-        .toBe('This is my <a href="https://handsontable.com">link</a>');
-    });
-
-    it('should be possible to pass custom options configuration to sanitizer', () => {
-      expect(sanitize(
-        '<meta name="Generator" content="Handsontable"><table><tr><td>A1</td></tr></table>',
-        {
-          ADD_TAGS: ['meta'],
-          FORCE_BODY: true,
-        }))
-        .toBe('<meta name="Generator"><table><tbody><tr><td>A1</td></tr></tbody></table>');
-      expect(sanitize(
-        '<meta name="Generator" content="Handsontable"><table><tr><td>A1</td></tr></table>',
-        {
-          ADD_TAGS: ['meta'],
-          ADD_ATTR: ['content'],
-          FORCE_BODY: false,
-        }))
-        .toBe('<table><tbody><tr><td>A1</td></tr></tbody></table>');
+        .toBe('<meta http-equiv="refresh" content="30">This is my <a href="https://handsontable.com">link</a>');
     });
   });
 
@@ -86,8 +68,8 @@ describe('String helper', () => {
     it('should strip any HTML tags from the string', () => {
       expect(stripTags('')).toBe('');
       expect(stripTags('<i>foo</i>')).toBe('foo');
-      expect(stripTags('<i<test>mg src onerror=alert(1)>test')).toBe('mg src onerror=alert(1)&gt;test');
-      expect(stripTags('<script>alert()</script>')).toBe('');
+      expect(stripTags('<i<test>mg src onerror=alert(1)>test')).toBe('test');
+      expect(stripTags('<script>alert()</script>')).toBe('alert()');
       expect(stripTags('<strong>Hello</strong> <span class="my">my</span> world<sup>2</sup>')).toBe('Hello my world2');
       expect(stripTags('This is my <a href="https://handsontable.com">link</a>')).toBe('This is my link');
     });

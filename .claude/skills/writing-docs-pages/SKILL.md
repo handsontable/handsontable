@@ -94,7 +94,7 @@ Embed runnable code examples using this pattern. The `--js 1 --ts 2` flags set t
 :::
 ```
 
-**Vue 3:** Embed a single TypeScript SFC (`vue/example1.vue` with `<script setup lang="ts">`). Use the `:vue3` preset (or `:vue3-numbro`, `:vue3-languages`, `:vue3-vuex` when the feature needs extra dependencies). Do not use `--html` / `--js` tabs for new Vue examples. See skill `creating-docs-examples` for the full Vue SFC pattern.
+**Vue 3:** Embed a single TypeScript SFC (`vue/example1.vue` with `<script setup lang="ts">`). Use the `:vue3` preset (or `:vue3-languages`, `:vue3-vuex` when the feature needs extra dependencies). Do not use `--html` / `--js` tabs for new Vue examples. See skill `creating-docs-examples` for the full Vue SFC pattern.
 
 **Angular:** Use `:angular` with `--ts 1 --html 2`.
 

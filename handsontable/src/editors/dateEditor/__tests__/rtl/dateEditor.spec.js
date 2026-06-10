@@ -33,26 +33,21 @@ describe('DateEditor (RTL mode)', () => {
       expect(editableElement.getAttribute('dir')).toBeNull();
     });
 
-    it('should render Pikaday within element that contains correct "dir" attribute value', async() => {
+    it('should render an input element with type="date" in RTL mode', async() => {
       handsontable({
         layoutDirection,
-        data: createSpreadsheetData(5, 2),
+        data: createSpreadsheetData(2, 5),
         columns: [
           { type: 'date' },
           { type: 'date' }
         ]
       });
 
-      await selectCell(1, 1);
-      await keyDown('enter');
+      await selectCell(0, 0);
 
-      const datePicker = getActiveEditor().datePicker;
-      const config = getActiveEditor().$datePicker.config();
+      const editor = getActiveEditor();
 
-      expect(datePicker.getAttribute('dir')).toBe('rtl');
-      // it's set as `false` in RTL due to https://github.com/Pikaday/Pikaday/issues/647 bug. The Pikaday layout
-      // direction mode is controlled by above "dir" attribute.
-      expect(config.isRTL).toBe(false);
+      expect(editor.TEXTAREA.getAttribute('type')).toBe('date');
     });
   });
 });

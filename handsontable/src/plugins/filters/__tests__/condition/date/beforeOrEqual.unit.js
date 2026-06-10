@@ -6,59 +6,56 @@ describe('Filters condition (`date_before_or_equal`)', () => {
   using('data set', [
     // Strictly before — always passes
     {
-      dateFormat: 'YYYY-MM-DD',
       testDate: '2015-12-20',
       startDate: '2015-12-24',
       assumption: true
     },
     // Equal to boundary — must pass (inclusive)
     {
-      dateFormat: 'YYYY-MM-DD',
       testDate: '2015-12-20',
       startDate: '2015-12-20',
       assumption: true
     },
     {
-      dateFormat: 'DD/MM/YYYY',
-      testDate: '12/05/2015',
-      startDate: '12/05/2015',
+      testDate: '2015-05-12',
+      startDate: '2015-05-12',
       assumption: true
     },
     {
-      dateFormat: 'DD/MM/YYYY',
-      testDate: '12/05/2015',
-      startDate: '13/05/2015',
+      testDate: '2015-05-12',
+      startDate: '2015-05-13',
       assumption: true
     },
     {
-      dateFormat: 'DD/MM/YYYY',
-      testDate: '12/05/2015',
-      startDate: '13/05/2099',
+      testDate: '2015-05-12',
+      startDate: '2099-05-13',
       assumption: true
     },
     // Strictly after — must not pass
     {
-      dateFormat: 'DD/MM/YYYY',
-      testDate: '12/05/2015',
-      startDate: '11/05/2015',
+      testDate: '2015-05-12',
+      startDate: '2015-05-11',
       assumption: false
     },
-    // Improper date format
+    // Non-ISO input dates → false
     {
-      dateFormat: 'DD/MM/YYYY',
       testDate: '12/05/2015',
+      startDate: '2015-05-13',
+      assumption: false
+    },
+    {
+      testDate: '2015-12-20',
       startDate: '06/2015',
       assumption: false
     },
     {
-      dateFormat: 'DD/MM/YYYY',
-      testDate: '12/05/2015',
+      testDate: '2015-12-20',
       startDate: '2017',
       assumption: false
     },
-  ], ({ dateFormat, testDate, startDate, assumption }) => {
-    it('should filter matching and non-matching values (date cell type)', () => {
-      const data = dateRowFactory({ type: 'date', dateFormat });
+  ], ({ testDate, startDate, assumption }) => {
+    it('should filter matching and non-matching values (ISO date)', () => {
+      const data = dateRowFactory({ type: 'date' });
 
       expect(condition(data(testDate), [startDate])).toBe(assumption);
     });

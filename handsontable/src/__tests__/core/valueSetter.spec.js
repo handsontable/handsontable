@@ -137,9 +137,10 @@ describe('valueSetter', () => {
       data: [[null]],
       columns: [{
         type: 'numeric',
+        locale: 'en-US',
         numericFormat: {
-          pattern: '0,0.00',
-          culture: 'en-US',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
         },
       }],
     });

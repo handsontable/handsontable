@@ -1,4 +1,17 @@
-export const FORMULAS_DATE_FORMAT = 'YYYY-MM-DD';
+export const FORMULAS_DATE_FORMAT = { year: 'numeric', month: '2-digit', day: '2-digit' };
+
+/**
+ * @param {number} days Number of days to add (negative to subtract).
+ * @returns {string} Date string in YYYY-MM-DD format.
+ */
+function addDays(days) {
+  const d = new Date();
+  const pad = n => String(n).padStart(2, '0');
+
+  d.setDate(d.getDate() + days);
+
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
 
 /**
  * @returns {Array[]}
@@ -260,7 +273,7 @@ export function getDataForFormulas(row, column, value) {
       id: 24,
       name: 'Greta Patterson',
       address: 'Bartonsville',
-      registered: moment().add(-2, 'days').format(FORMULAS_DATE_FORMAT),
+      registered: addDays(-2),
       eyeColor: {color: 'green'},
       balance: 2437.58,
       active: false,
@@ -278,7 +291,7 @@ export function getDataForFormulas(row, column, value) {
       id: 26,
       name: 'Stanton Britt',
       address: 'Nipinnawasee',
-      registered: moment().add(-1, 'days').format(FORMULAS_DATE_FORMAT),
+      registered: addDays(-1),
       eyeColor: {color: 'green'},
       balance: 3592.18,
       active: false,
@@ -287,7 +300,7 @@ export function getDataForFormulas(row, column, value) {
       id: 27,
       name: 'Peterson Bowers',
       address: 'Nelson',
-      registered: moment().add(-1, 'days').format(FORMULAS_DATE_FORMAT),
+      registered: addDays(-1),
       eyeColor: {color: 'green'},
       balance: 3710.07,
       active: false,
@@ -332,7 +345,7 @@ export function getDataForFormulas(row, column, value) {
       id: 32,
       name: 'Long Mathews',
       address: 'Masthope',
-      registered: moment().add(-1, 'days').format(FORMULAS_DATE_FORMAT),
+      registered: addDays(-1),
       eyeColor: {color: 'green'},
       balance: 3379.52,
       active: false,
@@ -350,7 +363,7 @@ export function getDataForFormulas(row, column, value) {
       id: 34,
       name: 'Rocha Maddox',
       address: 'Machias',
-      registered: moment().add(1, 'days').format(FORMULAS_DATE_FORMAT),
+      registered: addDays(1),
       eyeColor: {color: 'green'},
       balance: 3365.53,
       active: false,
@@ -359,7 +372,7 @@ export function getDataForFormulas(row, column, value) {
       id: 35,
       name: 'Craft Keith',
       address: 'Summerfield',
-      registered: moment().add(-3, 'days').format(FORMULAS_DATE_FORMAT),
+      registered: addDays(-3),
       eyeColor: {color: 'blue'},
       balance: 3468.15,
       active: false,
@@ -368,7 +381,7 @@ export function getDataForFormulas(row, column, value) {
       id: 36,
       name: 'Alyssa Francis',
       address: 'Nord',
-      registered: moment().add(-2, 'days').format(FORMULAS_DATE_FORMAT),
+      registered: addDays(-2),
       eyeColor: {color: 'blue'},
       balance: 3414.37,
       active: true,
@@ -377,7 +390,7 @@ export function getDataForFormulas(row, column, value) {
       id: 37,
       name: 'Milagros Parsons',
       address: 'Dunlo',
-      registered: moment().add(2, 'days').format(FORMULAS_DATE_FORMAT),
+      registered: addDays(2),
       eyeColor: {color: 'brown'},
       balance: 1230.63,
       active: false,
@@ -395,7 +408,7 @@ export function getDataForFormulas(row, column, value) {
       id: 39,
       name: 'Everett James',
       address: 'Manitou',
-      registered: moment().add(1, 'days').format(FORMULAS_DATE_FORMAT),
+      registered: addDays(1),
       eyeColor: {color: 'blue'},
       balance: 3347,
       active: false,
@@ -424,7 +437,7 @@ export function getColumnsForFormulas() {
     {data: 'address', type: 'text', title: 'Address'},
     {data: 'registered', type: 'date', title: 'Registered', dateFormat: FORMULAS_DATE_FORMAT},
     {data: 'eyeColor.color', type: 'dropdown', title: 'Eye color', source: ['blue', 'brown', 'green']},
-    {data: 'balance', type: 'numeric', title: 'Balance', numericFormat: {pattern: '0,00.00 $'}},
+    {data: 'balance', type: 'numeric', title: 'Balance', numericFormat: {style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2}},
     {data: 'active', type: 'checkbox', title: 'Active'},
   ];
 }

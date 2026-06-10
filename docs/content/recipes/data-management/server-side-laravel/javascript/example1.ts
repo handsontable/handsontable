@@ -215,7 +215,7 @@ const hot = new Handsontable(container, {
       type: 'dropdown',
       source: ['Electronics', 'Accessories', 'Storage', 'Networking', 'Peripherals'],
     },
-    { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00' } },
+    { data: 'price', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 } },
     { data: 'stock', type: 'numeric' },
   ],
   width: '100%',

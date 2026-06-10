@@ -172,8 +172,8 @@ const hot = new Handsontable(container, {
     { data: 'order_number', type: 'text' },
     { data: 'customer',     type: 'text' },
     { data: 'status',       type: 'text' },
-    { data: 'total',        type: 'numeric', numericFormat: { pattern: '$0,0.00' } },
-    { data: 'created_at',   type: 'date', dateFormat: 'YYYY-MM-DD', readOnly: true },
+    { data: 'total',        type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 } },
+    { data: 'created_at',   type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }, readOnly: true },
   ],
 
   rowHeaders:  true,

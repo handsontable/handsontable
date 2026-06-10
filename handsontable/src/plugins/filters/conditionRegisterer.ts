@@ -25,7 +25,13 @@ export function getCondition(name: string, args: unknown[]) {
 
   type DataRow = {
     value: unknown;
-    meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown };
+    meta: {
+      type?: string;
+      locale?: string;
+      dateFormat?: Intl.DateTimeFormatOptions;
+      instance?: unknown;
+      [key: string]: unknown
+    };
   };
 
   return function(dataRow: DataRow): boolean {

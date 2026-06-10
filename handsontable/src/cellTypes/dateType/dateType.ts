@@ -1,12 +1,18 @@
 import { DateEditor } from '../../editors/dateEditor';
-import { dateRenderer } from '../../renderers/dateRenderer';
-import { dateValidator } from '../../validators/dateValidator';
+import { dateRenderer, valueFormatter } from '../../renderers/dateRenderer';
+import {
+  SOURCE_DATA_WARNING_MESSAGE,
+  dateValidator,
+  sourceDataValidator,
+} from '../../validators/dateValidator';
 
 export const CELL_TYPE: 'date' = 'date';
 export const DateCellType = {
   CELL_TYPE,
   editor: DateEditor,
-  // displays small gray arrow on right side of the cell
   renderer: dateRenderer,
   validator: dateValidator,
+  sourceDataValidator,
+  sourceDataWarningMessage: SOURCE_DATA_WARNING_MESSAGE,
+  valueFormatter,
 };

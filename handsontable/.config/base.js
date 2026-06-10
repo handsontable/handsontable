@@ -30,14 +30,6 @@ module.exports.create = function create(envArgs) {
     module: {
       rules: [
         {
-          test: [
-            // Disable loading languages from numbro and moment into final bundle
-            /numbro\/languages/,
-            /moment\/locale/,
-          ],
-          loader: path.resolve(__dirname, 'loader/empty-loader.js'),
-        },
-        {
           test: /\.js$/,
           loader: 'builtin:swc-loader',
           exclude: [

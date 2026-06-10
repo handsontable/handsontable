@@ -150,8 +150,8 @@ describe('Formulas general', () => {
             ['16:00', '=A1']
           ],
           columns: [
-            { type: 'time', timeFormat: 'HH:mm' },
-            { type: 'time', timeFormat: 'HH:mm' },
+            { type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false } },
+            { type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false } },
           ],
           formulas: {
             engine: spec().hfInstance
@@ -175,11 +175,11 @@ describe('Formulas general', () => {
 
         handsontable({
           data: [
-            ['01/03/2020', '=A1']
+            ['2020-03-01', '=A1']
           ],
           columns: [
-            { type: 'date', dateFormat: 'MM/DD/YYYY' },
-            { type: 'date', dateFormat: 'MM/DD/YYYY' },
+            { type: 'date' },
+            { type: 'date' },
           ],
           formulas: {
             engine: spec().hfInstance
@@ -187,14 +187,14 @@ describe('Formulas general', () => {
           afterFormulasValuesUpdate,
         });
 
-        await setDataAtCell(0, 0, '02/04/2021');
+        await setDataAtCell(0, 0, '2021-02-04');
 
         const lastChanges = afterFormulasValuesUpdate.calls.mostRecent().args[0];
         const b1Change = lastChanges.find(change => change.address &&
           change.address.row === 0 && change.address.col === 1);
 
         expect(typeof b1Change.newValue).toBe('string');
-        expect(b1Change.newValue).toBe('02/04/2021');
+        expect(b1Change.newValue).toBe('2021-02-04');
       });
 
       it('should return a formatted time string (not a raw HF time fraction) from `getDataAtCell` for a formula' +
@@ -204,8 +204,8 @@ describe('Formulas general', () => {
             ['16:00', '=A1']
           ],
           columns: [
-            { type: 'time', timeFormat: 'HH:mm' },
-            { type: 'time', timeFormat: 'HH:mm' },
+            { type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false } },
+            { type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false } },
           ],
           formulas: {
             engine: spec().hfInstance

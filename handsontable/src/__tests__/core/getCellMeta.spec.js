@@ -338,7 +338,7 @@ describe('Core.getCellMeta', () => {
       handsontable({
         data: createSpreadsheetData(1, 1),
         columns: [
-          { type: 'date', dateFormat: 'DD/MM/YYYY' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
         ],
         cells: cellsSpy,
         beforeGetCellMeta: beforeGetCellMetaSpy,

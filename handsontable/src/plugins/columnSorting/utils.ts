@@ -1,4 +1,3 @@
-import moment from 'moment';
 import { isObject } from '../../helpers/object';
 import { isRightClick } from '../../helpers/dom/event';
 import { eventTargetEl, isBottomMostColumnHeader } from '../../helpers/dom/element';
@@ -116,79 +115,14 @@ export function wasHeaderClickedProperly(row: number, column: number, clickEvent
 }
 
 /**
- * Creates date or time sorting compare function.
- *
- * @param {string} sortOrder Sort order (`asc` for ascending, `desc` for descending).
- * @param {string} format Date or time format.
- * @param {object} columnPluginSettings Plugin settings for the column.
- * @returns {Function} The compare function.
- */
-export function createDateTimeCompareFunction(
-  sortOrder: string, format: string, columnPluginSettings: Record<string, unknown>
-) {
-  return function(value: unknown, nextValue: unknown) {
-    const { sortEmptyCells } = columnPluginSettings;
-
-    if (value === nextValue) {
-      return DO_NOT_SWAP;
-    }
-
-    if (isEmpty(value)) {
-      if (isEmpty(nextValue)) {
-        return DO_NOT_SWAP;
-      }
-
-      // Just fist value is empty and `sortEmptyCells` option was set
-      if (sortEmptyCells) {
-        return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
-      }
-
-      return FIRST_AFTER_SECOND;
-    }
-
-    if (isEmpty(nextValue)) {
-      // Just second value is empty and `sortEmptyCells` option was set
-      if (sortEmptyCells) {
-        return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
-      }
-
-      return FIRST_BEFORE_SECOND;
-    }
-
-    const firstDate = moment(String(value), format);
-    const nextDate = moment(String(nextValue), format);
-
-    if (!firstDate.isValid()) {
-      return FIRST_AFTER_SECOND;
-    }
-
-    if (!nextDate.isValid()) {
-      return FIRST_BEFORE_SECOND;
-    }
-
-    if (nextDate.isAfter(firstDate)) {
-      return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
-    }
-
-    if (nextDate.isBefore(firstDate)) {
-      return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
-    }
-
-    return DO_NOT_SWAP;
-  };
-}
-
-/**
  * Creates intl-date sorting compare function.
  *
  * @param {string} sortOrder Sort order (`asc` for ascending, `desc` for descending).
- * @param {string} format Date or time format.
  * @param {object} columnPluginSettings Plugin settings for the column.
  * @returns {Function} The compare function.
  */
 export function createIntlDateCompareFunction(
   sortOrder: string,
-  format: Intl.DateTimeFormatOptions | string,
   columnPluginSettings: Record<string, unknown>
 ): (value: unknown, nextValue: unknown) => number {
   return function(value: unknown, nextValue: unknown) {
@@ -247,13 +181,11 @@ export function createIntlDateCompareFunction(
  * Creates intl-time sorting compare function.
  *
  * @param {string} sortOrder Sort order (`asc` for ascending, `desc` for descending).
- * @param {string} format Date or time format.
  * @param {object} columnPluginSettings Plugin settings for the column.
  * @returns {Function} The compare function.
  */
 export function createIntlTimeCompareFunction(
   sortOrder: string,
-  format: Intl.DateTimeFormatOptions | string,
   columnPluginSettings: Record<string, unknown>
 ): (value: unknown, nextValue: unknown) => number {
   return function(value: unknown, nextValue: unknown) {

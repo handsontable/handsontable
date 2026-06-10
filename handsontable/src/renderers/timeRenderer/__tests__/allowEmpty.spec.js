@@ -1,4 +1,4 @@
-describe('IntlDateType - allowEmpty', () => {
+describe('TimeType - allowEmpty', () => {
   const id = 'testContainer';
 
   beforeEach(function() {
@@ -15,8 +15,8 @@ describe('IntlDateType - allowEmpty', () => {
   it('should render empty string as empty when allowEmpty is true', async() => {
     handsontable({
       data: [['']],
-      type: 'intl-date',
-      dateFormat: { dateStyle: 'short' },
+      type: 'time',
+      timeFormat: { timeStyle: 'short' },
       allowEmpty: true,
     });
 
@@ -31,8 +31,8 @@ describe('IntlDateType - allowEmpty', () => {
   it('should render BAD_VALUE_TEXT for empty string when allowEmpty is false', async() => {
     handsontable({
       data: [['']],
-      type: 'intl-date',
-      dateFormat: { dateStyle: 'short' },
+      type: 'time',
+      timeFormat: { timeStyle: 'short' },
       allowEmpty: false,
     });
 

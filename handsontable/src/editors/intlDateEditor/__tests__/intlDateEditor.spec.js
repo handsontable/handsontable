@@ -222,7 +222,7 @@ describe('IntlDateEditor', () => {
     const editorValue = hot().getActiveEditor().TEXTAREA.value;
 
     expect(editorValue).toEqual('');
-    expect(warnSpy).toHaveBeenCalledWith('IntlDateEditor: value must be in ISO date format ("YYYY-MM-DD")' +
+    expect(warnSpy).toHaveBeenCalledWith('DateEditor: value must be in ISO date format ("YYYY-MM-DD")' +
       ' required by the native date input. Received:', '2006-01');
   });
 

@@ -2112,30 +2112,31 @@ describe('ContextMenu', () => {
       expect(customItem.callback.calls.argsFor(0)[0]).toEqual('customItemKey');
     });
 
-    // TODO: To be changed in 18.0
-    it('should sanitize HTML for custom item by default', async() => {
+    it('should warn once when an HTML item name is rendered without a sanitizer configured', async() => {
       handsontable({
         contextMenu: {
           items: {
             customItemKey: {
-              name: '<img src onerror="__testFunction()"> XSS item',
+              name: '<b>Bold item</b>',
             }
           }
         },
       });
 
-      window.__testFunction = () => {};
-
-      spyOn(window, '__testFunction');
+      const warnSpy = spyOnConsoleWarn();
 
       await contextMenu();
       await sleep(10);
 
-      expect($('.htContextMenu .ht_master .htCore').find('tbody td').html())
-        .toBe('<div class="htItemWrapper"><img src=""> XSS item</div>');
-      expect(window.__testFunction).not.toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalledWith(jasmine.stringMatching(/without a sanitizer/));
 
-      delete window.__testFunction;
+      // Opening the menu again must NOT emit a second warning (once per instance).
+      warnSpy.calls.reset();
+      await closeContextMenu();
+      await contextMenu();
+      await sleep(10);
+
+      expect(warnSpy).not.toHaveBeenCalled();
     });
 
     it('should sanitize HTML for custom item when custom sanitizer is set', async() => {

@@ -96,4 +96,41 @@ describe('Dialog', () => {
 
     expect(dialogPlugin.isEnabled()).toBe(true);
   });
+
+  describe('sanitizer', () => {
+    it('should warn once when string content contains HTML and no sanitizer is configured', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        dialog: true,
+      });
+
+      const dialogPlugin = getPlugin('dialog');
+      const warnSpy = spyOnConsoleWarn();
+
+      dialogPlugin.show({ content: '<b>Bold dialog</b>' });
+
+      expect(warnSpy).toHaveBeenCalledWith(jasmine.stringMatching(/without a sanitizer/));
+
+      // Showing the dialog again on the same instance must not emit a second warning.
+      warnSpy.calls.reset();
+      dialogPlugin.show({ content: '<i>Another</i>' });
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should NOT warn when a sanitizer is configured', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        sanitizer: content => content,
+        dialog: true,
+      });
+
+      const dialogPlugin = getPlugin('dialog');
+      const warnSpy = spyOnConsoleWarn();
+
+      dialogPlugin.show({ content: '<b>Bold dialog</b>' });
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+  });
 });

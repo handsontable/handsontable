@@ -97,9 +97,10 @@ export function createMenuItemRenderer(mainTableHot: HotInstance) {
       );
 
     } else {
-      fastInnerHTML(
-        wrapper, String(itemValue), mainTableHot.getSettings().sanitizer as ((html: string) => string) | undefined
-      );
+      const sanitizer = (mainTableHot.getSettings() as { sanitizer?: (html: string) => string }).sanitizer;
+      const itemStr = String(itemValue);
+
+      fastInnerHTML(wrapper, itemStr, sanitizer, 'contextMenu', mainTableHot.rootElement);
     }
 
     if (isItemDisabled(item, mainTableHot)) {

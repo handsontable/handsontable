@@ -31,102 +31,61 @@ describe('Filters condition (`between`)', () => {
   });
 
   using('data set', [
+    // Valid ISO range comparisons
     {
-      dateFormat: 'YYYY-MM-DD',
       testDate: '2015-12-20',
       startDate: '2015-11-20',
       endDate: '2015-12-24',
       assumption: true
     },
+    // Inclusive boundary — should pass
     {
-      dateFormat: 'YYYY-MM-DD',
       testDate: '2015-12-20',
       startDate: '2015-12-20',
       endDate: '2015-12-20',
       assumption: true
     },
     {
-      dateFormat: 'YYYY-MM-DD',
-      testDate: '2015-12-20',
-      startDate: '2015',
-      endDate: '2016',
+      testDate: '2015-05-12',
+      startDate: '2015-05-11',
+      endDate: '2015-05-13',
       assumption: true
     },
     {
-      dateFormat: 'YYYY-MM-DD',
+      testDate: '2015-05-12',
+      startDate: '1999-05-11',
+      endDate: '2099-05-13',
+      assumption: true
+    },
+    // Out of range — should not pass
+    {
       testDate: '2015-12-20',
-      startDate: '2013',
-      endDate: '2014',
+      startDate: '2013-01-01',
+      endDate: '2014-12-31',
+      assumption: false
+    },
+    // Non-ISO dates → all parse to null → false
+    {
+      testDate: '20/12/2015',
+      startDate: '2015-11-20',
+      endDate: '2015-12-24',
       assumption: false
     },
     {
-      dateFormat: 'YYYY-MM-DD',
       testDate: '2015-12-20',
-      startDate: '2013',
+      startDate: '2013-01-01',
       endDate: 'bar',
       assumption: false
     },
     {
-      dateFormat: 'DD/MM/YY',
-      testDate: '20/12/15',
-      startDate: '01/01/14',
-      endDate: '01/01/16',
-      assumption: true
-    },
-    {
-      dateFormat: 'D.M.YY',
-      testDate: '20.12.15',
-      startDate: '1.1.14',
-      endDate: '1.1.16',
-      assumption: true
-    },
-    {
-      dateFormat: 'YYYY MMMM Do',
-      testDate: '2015 February 2nd',
-      startDate: '2003 March 11th',
-      endDate: '2032 March 13rd',
-      assumption: true
-    },
-    {
-      dateFormat: '[The] Do [of] MMMM \'YY',
-      testDate: 'The 2nd of February \'23',
-      startDate: 'The 2nd of March \'13',
-      endDate: 'The 12th of December \'23',
-      assumption: true
-    },
-
-    // Improper date format configuration:
-    {
-      dateFormat: 'YYYY-MM-DD',
-      testDate: '15-12-20',
-      startDate: '15-11-20',
-      endDate: '15-12-24',
-      assumption: true
-    },
-    {
-      dateFormat: 'YY-MM-DD',
       testDate: '2015-12-20',
-      startDate: '2015-12-20',
-      endDate: '2015-12-20',
-      assumption: true
-    },
-    {
-      dateFormat: 'YYYY-M-D',
-      testDate: '2015-05-03',
       startDate: '2015',
       endDate: '2016',
-      assumption: true
+      assumption: false // year-only is not valid ISO
     },
-    {
-      dateFormat: 'D.M.YY',
-      testDate: '1.2.2032',
-      startDate: '1.2.1975',
-      endDate: '1.2.2035',
-      assumption: true
-    },
-  ], ({ dateFormat, testDate, startDate, endDate, assumption }) => {
+  ], ({ testDate, startDate, endDate, assumption }) => {
     it('should filter matching and non-matching values (date cell type)', () => {
-      const data = dateRowFactory({ type: 'date', dateFormat });
+      const data = dateRowFactory({ type: 'date' });
 
       expect(condition(data(testDate), [startDate, endDate])).toBe(assumption);
     });

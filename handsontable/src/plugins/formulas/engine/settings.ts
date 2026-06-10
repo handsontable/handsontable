@@ -19,8 +19,8 @@ export const DEFAULT_SETTINGS = {
     day: 30
   },
   nullYear: 30,
-  dateFormats: ['DD/MM/YYYY', 'DD/MM/YY'],
-  timeFormats: ['hh:mm', 'hh:mm:ss.sss'],
+  dateFormats: ['YYYY-MM-DD'],
+  timeFormats: ['hh:mm', 'hh:mm:ss', 'hh:mm:ss.sss'],
   matchWholeCell: true,
   useRegularExpressions: false,
   useWildcards: true,

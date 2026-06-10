@@ -24,6 +24,16 @@ const test = baseTest.extend<TestParams>({
     PageHolder.getInstance().setPage(page);
     helpers.screenshotsCount = 0;
 
+    const isDarkTheme = helpers.hotTheme.includes('dark');
+
+    // Headless Chromium on CI defaults prefers-color-scheme to 'light', so native
+    // form controls (e.g. <input type="date">) always render in light mode even when
+    // the active Handsontable theme sets `color-scheme: dark` via CSS. The CSS property
+    // alone is not enough to override the browser-level media preference in headless mode.
+    // Emulating the color scheme here aligns the browser with the theme before any
+    // navigation happens, ensuring native controls render consistently with the theme.
+    await page.emulateMedia({ colorScheme: isDarkTheme ? 'dark' : 'light' });
+
     if (shouldImplicitlyNavigate.has(page)) {
       await use(page);
 
@@ -74,6 +84,11 @@ const test = baseTest.extend<TestParams>({
   },
   async goto({ page }, use, testInfo) {
     shouldImplicitlyNavigate.add(page);
+
+    const isDarkTheme = helpers.hotTheme.includes('dark');
+
+    // See the same call in tablePage for the full explanation.
+    await page.emulateMedia({ colorScheme: isDarkTheme ? 'dark' : 'light' });
 
     await use(async(url) => {
       await page.goto(url);

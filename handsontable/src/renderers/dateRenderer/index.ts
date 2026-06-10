@@ -1,4 +1,5 @@
 export {
   RENDERER_TYPE,
-  dateRenderer
+  dateRenderer,
+  valueFormatter,
 } from './dateRenderer';

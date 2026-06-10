@@ -1,4 +1,4 @@
-describe('IntlTimeRenderer timeFormat options', () => {
+describe('TimeRenderer timeFormat options', () => {
   const id = 'testContainer';
   const TIME_HH_MM = '14:30';
   const TIME_HH_MM_SS = '14:30:45';
@@ -19,11 +19,11 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should use default hour numeric, minute 2-digit', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
       });
 
-      // en-US default is 12h
-      expect(getCell(0, 0).innerText).toBe('2:30 PM');
+      // en-US default is 12h; Chrome 148+ ICU outputs zero-padded hour with hour:'numeric'
+      expect(getCell(0, 0).innerText).toBe('02:30 PM');
     });
   });
 
@@ -31,7 +31,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render with timeStyle "full"', async() => {
       handsontable({
         data: [[TIME_HH_MM_SS]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: { timeStyle: 'full' },
       });
 
@@ -42,7 +42,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render with timeStyle "long"', async() => {
       handsontable({
         data: [[TIME_HH_MM_SS]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: { timeStyle: 'long' },
       });
 
@@ -52,7 +52,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render with timeStyle "medium"', async() => {
       handsontable({
         data: [[TIME_HH_MM_SS]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: { timeStyle: 'medium' },
       });
 
@@ -62,7 +62,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render with timeStyle "short"', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: { timeStyle: 'short' },
       });
 
@@ -74,7 +74,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render hour numeric, minute 2-digit (24h)', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: { hour: 'numeric', minute: '2-digit', hour12: false },
       });
 
@@ -84,7 +84,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render hour 2-digit, minute 2-digit (24h)', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
       });
 
@@ -94,7 +94,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render hour and minute numeric (12h)', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: { hour: 'numeric', minute: 'numeric', hour12: true },
       });
 
@@ -106,7 +106,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render with second 2-digit', async() => {
       handsontable({
         data: [[TIME_HH_MM_SS]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: {
           hour: '2-digit',
           minute: '2-digit',
@@ -123,7 +123,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render with fractionalSecondDigits 1', async() => {
       handsontable({
         data: [[TIME_HH_MM_SS_MS]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: {
           hour: 'numeric',
           minute: '2-digit',
@@ -139,7 +139,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render with fractionalSecondDigits 2', async() => {
       handsontable({
         data: [[TIME_HH_MM_SS_MS]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: {
           hour: 'numeric',
           minute: '2-digit',
@@ -155,7 +155,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render with fractionalSecondDigits 3', async() => {
       handsontable({
         data: [[TIME_HH_MM_SS_MS]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: {
           hour: 'numeric',
           minute: '2-digit',
@@ -173,7 +173,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render 24-hour when hour12 is false', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
       });
 
@@ -183,7 +183,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render 12-hour when hour12 is true', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: { hour: 'numeric', minute: '2-digit', hour12: true },
       });
 
@@ -195,7 +195,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render with hourCycle h23 (0-23)', async() => {
       handsontable({
         data: [['00:30']],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' },
       });
 
@@ -205,7 +205,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render with hourCycle h12 (1-12)', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: { hour: 'numeric', minute: '2-digit', hourCycle: 'h12' },
       });
 
@@ -215,7 +215,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render with hourCycle h24 (1-24 for midnight)', async() => {
       handsontable({
         data: [['00:00']],
-        type: 'intl-time',
+        type: 'time',
         locale: 'en-GB',
         timeFormat: { hour: '2-digit', minute: '2-digit', hourCycle: 'h24' },
       });
@@ -229,7 +229,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render with dayPeriod short (12h)', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: {
           hour: 'numeric',
           minute: '2-digit',
@@ -244,7 +244,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should render with dayPeriod long (12h)', async() => {
       handsontable({
         data: [['09:30']],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: {
           hour: 'numeric',
           minute: '2-digit',
@@ -261,7 +261,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should format time in UTC', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: {
           hour: '2-digit',
           minute: '2-digit',
@@ -277,7 +277,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should format time in named timezone America/New_York', async() => {
       handsontable({
         data: [['12:00']],
-        type: 'intl-time',
+        type: 'time',
         locale: 'en-US',
         timeFormat: {
           hour: '2-digit',
@@ -296,7 +296,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should include short timeZoneName', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: {
           hour: 'numeric',
           minute: '2-digit',
@@ -311,7 +311,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should include longOffset timeZoneName', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: {
           hour: '2-digit',
           minute: '2-digit',
@@ -329,7 +329,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should format with en-US locale', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         locale: 'en-US',
         timeFormat: { timeStyle: 'short' },
       });
@@ -340,7 +340,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should format with en-GB locale (often 24h)', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         locale: 'en-GB',
         timeFormat: { timeStyle: 'short' },
       });
@@ -351,7 +351,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should format with de-DE locale', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         locale: 'de-DE',
         timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
       });
@@ -364,7 +364,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should format with numberingSystem latn', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: {
           hour: '2-digit',
           minute: '2-digit',
@@ -379,7 +379,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should format with numberingSystem arab (Arabic-Indic digits)', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         locale: 'ar-EG',
         timeFormat: {
           hour: '2-digit',
@@ -397,7 +397,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should use localeMatcher best fit', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: {
           hour: '2-digit',
           minute: '2-digit',
@@ -412,7 +412,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should use localeMatcher lookup', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: {
           hour: '2-digit',
           minute: '2-digit',
@@ -429,7 +429,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should use formatMatcher best fit', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: {
           hour: 'numeric',
           minute: '2-digit',
@@ -444,7 +444,7 @@ describe('IntlTimeRenderer timeFormat options', () => {
     it('should use formatMatcher basic', async() => {
       handsontable({
         data: [[TIME_HH_MM]],
-        type: 'intl-time',
+        type: 'time',
         timeFormat: {
           hour: '2-digit',
           minute: '2-digit',

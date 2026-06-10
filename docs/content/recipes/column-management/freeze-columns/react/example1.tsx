@@ -35,12 +35,12 @@ const colHeaders = ['Campaign', 'Channel', 'Impressions', 'Clicks', 'Conversions
 const columns = [
   { data: 'campaign', type: 'text' as const },
   { data: 'channel', type: 'text' as const },
-  { data: 'impressions', type: 'numeric' as const, numericFormat: { pattern: '0,0' } },
-  { data: 'clicks', type: 'numeric' as const, numericFormat: { pattern: '0,0' } },
-  { data: 'conversions', type: 'numeric' as const, numericFormat: { pattern: '0,0' } },
-  { data: 'cpc', type: 'numeric' as const, numericFormat: { pattern: '0.00' } },
-  { data: 'revenue', type: 'numeric' as const, numericFormat: { pattern: '$0,0' } },
-  { data: 'roi', type: 'numeric' as const, numericFormat: { pattern: '0.00' } },
+  { data: 'impressions', type: 'numeric' as const, numericFormat: { useGrouping: true, maximumFractionDigits: 0 } },
+  { data: 'clicks', type: 'numeric' as const, numericFormat: { useGrouping: true, maximumFractionDigits: 0 } },
+  { data: 'conversions', type: 'numeric' as const, numericFormat: { useGrouping: true, maximumFractionDigits: 0 } },
+  { data: 'cpc', type: 'numeric' as const, numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
+  { data: 'revenue', type: 'numeric' as const, numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 } },
+  { data: 'roi', type: 'numeric' as const, numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
 ];
 
 const ExampleComponent = () => {

@@ -1,4 +1,4 @@
-import moment from 'moment';
+import { parseToLocalDate } from '../../../../helpers/dateTime';
 import * as C from '../../../../i18n/constants';
 import { registerCondition } from '../../conditionRegisterer';
 
@@ -6,7 +6,13 @@ export const CONDITION_NAME = 'date_before_or_equal';
 
 type DataRow = {
   value: unknown;
-  meta: { type?: string; locale?: string; dateFormat?: string; instance?: unknown; [key: string]: unknown };
+  meta: {
+    type?: string;
+    locale?: string;
+    dateFormat?: Intl.DateTimeFormatOptions;
+    instance?: unknown;
+    [key: string]: unknown
+  };
 };
 
 /**
@@ -16,14 +22,14 @@ type DataRow = {
  * @returns {boolean}
  */
 export function condition(dataRow: DataRow, [value]: unknown[]): boolean {
-  const date = moment(dataRow.value as string, dataRow.meta.dateFormat as string);
-  const inputDate = moment(value as string, dataRow.meta.dateFormat as string);
+  const date = parseToLocalDate(dataRow.value);
+  const inputDate = parseToLocalDate(value);
 
-  if (!date.isValid() || !inputDate.isValid()) {
+  if (date === null || inputDate === null) {
     return false;
   }
 
-  return date.diff(inputDate) <= 0;
+  return date.getTime() <= inputDate.getTime();
 }
 
 registerCondition(CONDITION_NAME, condition, {
