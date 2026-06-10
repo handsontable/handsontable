@@ -31,7 +31,9 @@ jobs:
 
       - name: Read Handsontable version
         id: version
-        run: echo "value=$(node -e "console.log(require('./hot.config.js').HOT_VERSION)")" >> "$GITHUB_OUTPUT"
+        run: |
+          VERSION=$(node -e 'console.log(require("./hot.config.js").HOT_VERSION)')
+          echo "value=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Assemble demo artifact
         env:
