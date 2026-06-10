@@ -46,12 +46,12 @@ describe('WalkontableTable', () => {
 
       let iframe = null;
 
-      beforeEach(function() {
+      beforeEach(() => {
         iframe = document.createElement('iframe');
         document.body.appendChild(iframe);
       });
 
-      afterEach(function() {
+      afterEach(() => {
         // Destroy before removing the iframe so destroy() still has valid DOM refs.
         spec().wotInstance.destroy();
 
