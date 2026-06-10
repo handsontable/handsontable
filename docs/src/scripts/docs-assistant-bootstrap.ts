@@ -10,9 +10,35 @@
 import type { Root } from 'react-dom/client';
 
 const CONTAINER_ID = 'docs-assistant-root';
+const READY_EVENT = 'docs-assistant:ready';
+
+// Safety cap so a failed mount never leaves the trigger button permanently
+// unresponsive while waiting for the ready signal.
+const READY_TIMEOUT = 3000;
 
 let root: Root | null = null;
 let mountInFlight: Promise<void> | null = null;
+
+/**
+ * Resolves once the freshly mounted widget has attached its
+ * `docs-assistant:toggle` listener (it dispatches `docs-assistant:ready`
+ * from the same effect). Registering the listener before `root.render()`
+ * guarantees the signal cannot be missed. A timeout keeps the trigger
+ * button responsive even if the widget never reaches that effect.
+ */
+function waitForWidgetReady(): Promise<void> {
+  return new Promise<void>((resolve) => {
+    let timer = 0;
+    const done = () => {
+      window.clearTimeout(timer);
+      window.removeEventListener(READY_EVENT, done);
+      resolve();
+    };
+
+    window.addEventListener(READY_EVENT, done, { once: true });
+    timer = window.setTimeout(done, READY_TIMEOUT);
+  });
+}
 
 async function ensureMounted(): Promise<void> {
   if (typeof document === 'undefined') return;
@@ -45,8 +71,17 @@ async function ensureMounted(): Promise<void> {
     ]);
 
     if (!root) {
+      // Start listening for the ready signal *before* render so the widget's
+      // mount effect cannot fire it before we subscribe. Without this, the
+      // first `docs-assistant:toggle` dispatched by Header.astro right after
+      // this promise resolves would arrive before the widget's toggle
+      // listener exists, and the first click would be silently dropped.
+      const ready = waitForWidgetReady();
+
       root = createRoot(container);
       root.render(createElement(DocsAssistantWidget));
+
+      await ready;
     }
   })()
     .catch((err) => {

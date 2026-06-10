@@ -67,6 +67,11 @@ export function DocsAssistantWidget() {
   useEffect(() => {
     const onToggle = () => setOpen((v) => !v);
     window.addEventListener('docs-assistant:toggle', onToggle);
+    // Tell the bootstrap the toggle listener is now attached. The widget is
+    // mounted lazily on the first button click, and the bootstrap waits for
+    // this signal before dispatching that first toggle — otherwise the click
+    // would be lost to the mount/listener race and the panel would not open.
+    window.dispatchEvent(new Event('docs-assistant:ready'));
     return () => window.removeEventListener('docs-assistant:toggle', onToggle);
   }, []);
 
