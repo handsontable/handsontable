@@ -1,12 +1,10 @@
 name: Component Source
 
 on:
-  push:
-    branches:
-      - master
-      # TEMP (debug only): run on every branch while iterating.
-      # Remove the line below to restrict the job to `master`.
-      - '**'
+  workflow_run:
+    workflows: ['Publish']
+    types: [completed]
+    branches: [master]
   workflow_dispatch:
 
 concurrency:
@@ -20,6 +18,7 @@ jobs:
   build-componentsource:
     name: Build component source artifact
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
