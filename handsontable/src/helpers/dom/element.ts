@@ -70,7 +70,9 @@ export function eventTargetEl<T extends HTMLElement = HTMLElement>(event: Event)
 export function getFrameElement(frame: Window): HTMLIFrameElement | null {
   const { frameElement } = frame;
 
-  return Object.getPrototypeOf(frame.parent) &&
+  // `frame.parent` can be null when the iframe has been detached from the DOM. Guard before
+  // passing to Object.getPrototypeOf(), which throws on null/undefined.
+  return frame.parent && Object.getPrototypeOf(frame.parent) &&
     frameElement instanceof HTMLIFrameElement ? frameElement : null;
 }
 
@@ -1423,6 +1425,17 @@ export function isHTMLElement(element: unknown): element is HTMLElement {
     .ownerDocument?.defaultView?.Element;
 
   return !!(OwnElement && element instanceof OwnElement);
+}
+
+/**
+ * Check if the element is an HTMLTableCellElement (TD or TH). Cross-realm safe: uses the
+ * element's own realm's constructor via `ownerDocument.defaultView`.
+ *
+ * @param {unknown} element Element to check.
+ * @returns {boolean} `true` if the element is an HTMLTableCellElement.
+ */
+export function isHTMLTableCellElement(element: unknown): element is HTMLTableCellElement {
+  return isHTMLElement(element) && (element.tagName === 'TD' || element.tagName === 'TH');
 }
 
 /**

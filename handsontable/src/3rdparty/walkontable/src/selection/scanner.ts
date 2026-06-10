@@ -132,7 +132,9 @@ export class SelectionScanner {
           TH = wtTable.getColumnHeader(newSourceCol as number, positiveBasedHeaderLevel);
         }
 
-        callback(TH as HTMLElement);
+        if (isHTMLElement(TH)) {
+          callback(TH);
+        }
       }
 
       cursor += 1;
@@ -181,7 +183,9 @@ export class SelectionScanner {
           TH = wtTable.getRowHeader(newSourceRow as number, positiveBasedHeaderLevel);
         }
 
-        callback(TH as HTMLElement);
+        if (isHTMLElement(TH)) {
+          callback(TH);
+        }
       }
 
       cursor += 1;
@@ -198,7 +202,11 @@ export class SelectionScanner {
     const { wtTable } = this.#activeOverlaysWot!;
 
     this.#scanCellsRange((sourceRow: number, sourceColumn: number) => {
-      const cell = wtTable.getCell(this.#activeOverlaysWot!.createCellCoords(sourceRow, sourceColumn)) as HTMLElement;
+      const cell = wtTable.getCell(this.#activeOverlaysWot!.createCellCoords(sourceRow, sourceColumn));
+
+      if (!isHTMLElement(cell)) {
+        return;
+      }
 
       // support for old API
       const additionalSelectionClass = this.#activeOverlaysWot!
@@ -229,9 +237,11 @@ export class SelectionScanner {
 
     this.#scanViewportRange((sourceRow: number, sourceColumn: number) => {
       if (sourceRow >= topRow && sourceRow <= bottomRow) {
-        const cell = wtTable.getCell(this.#activeOverlaysWot!.createCellCoords(sourceRow, sourceColumn)) as HTMLElement;
+        const cell = wtTable.getCell(this.#activeOverlaysWot!.createCellCoords(sourceRow, sourceColumn));
 
-        callback(cell);
+        if (isHTMLElement(cell)) {
+          callback(cell);
+        }
       }
     });
   }
@@ -248,9 +258,11 @@ export class SelectionScanner {
 
     this.#scanViewportRange((sourceRow: number, sourceColumn: number) => {
       if (sourceColumn >= topColumn && sourceColumn <= bottomColumn) {
-        const cell = wtTable.getCell(this.#activeOverlaysWot!.createCellCoords(sourceRow, sourceColumn)) as HTMLElement;
+        const cell = wtTable.getCell(this.#activeOverlaysWot!.createCellCoords(sourceRow, sourceColumn));
 
-        callback(cell);
+        if (isHTMLElement(cell)) {
+          callback(cell);
+        }
       }
     });
   }

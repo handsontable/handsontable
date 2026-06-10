@@ -17,6 +17,7 @@ import {
   findFirstParentWithClass,
   isHTMLElement,
   isHTMLInputElement,
+  isHTMLTableCellElement,
   isShadowRoot,
   outerHeight,
   outerWidth,
@@ -970,6 +971,38 @@ describe('DomElement helper', () => {
 
     it('should return `true` for an input element', () => {
       expect(isHTMLInputElement(document.createElement('input'))).toBe(true);
+    });
+  });
+
+  //
+  // Handsontable.helper.isHTMLTableCellElement
+  //
+  describe('isHTMLTableCellElement', () => {
+    it('should return `false` for a non-object value', () => {
+      expect(isHTMLTableCellElement(null)).toBe(false);
+      expect(isHTMLTableCellElement(undefined)).toBe(false);
+      expect(isHTMLTableCellElement(42)).toBe(false);
+      expect(isHTMLTableCellElement('td')).toBe(false);
+    });
+
+    it('should return `false` for a regular div element', () => {
+      expect(isHTMLTableCellElement(document.createElement('div'))).toBe(false);
+    });
+
+    it('should return `false` for a TR element', () => {
+      expect(isHTMLTableCellElement(document.createElement('tr'))).toBe(false);
+    });
+
+    it('should return `false` for a TABLE element', () => {
+      expect(isHTMLTableCellElement(document.createElement('table'))).toBe(false);
+    });
+
+    it('should return `true` for a TD element', () => {
+      expect(isHTMLTableCellElement(document.createElement('td'))).toBe(true);
+    });
+
+    it('should return `true` for a TH element', () => {
+      expect(isHTMLTableCellElement(document.createElement('th'))).toBe(true);
     });
   });
 
