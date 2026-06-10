@@ -6,6 +6,7 @@ metaTitle: Star Rating Cell Type - React Data Grid | Handsontable
 description: Learn how to create a custom Handsontable cell type using a star rating component for selecting numeric ratings directly in your data grid.
 permalink: /recipes/cell-types/react-rating
 canonicalUrl: /recipes/cell-types/react-rating
+framework: react
 tags:
   - guides
   - tutorial

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 9w5zs3t2
 title: Migrating from 16.2 to 17.0
 metaTitle: Migrating from 16.2 to 17.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 16.2 to Handsontable 17.0, released on released on March 09, 2025.
@@ -8,11 +7,11 @@ permalink: /migration-from-16.2-to-17.0
 canonicalUrl: /migration-from-16.2-to-17.0
 pageClass: migration-guide
 react:
-  id: xc52w3t2
   metaTitle: Migrate from 16.2 to 17.0 - React Data Grid | Handsontable
 angular:
-  id: 9r25a4sd
   metaTitle: Migrate from 16.2 to 17.0 - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Migrate from 16.2 to 17.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

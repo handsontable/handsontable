@@ -1,17 +1,16 @@
 ---
 type: how-to
-id: 4q2wi29j
 title: Row trimming
 metaTitle: Row trimming - JavaScript Data Grid | Handsontable
 description: Hide individual rows from your interface and exclude them from the rendering process and DataMap. This feature is similar, but not the same, as "hiding rows".
 permalink: /row-trimming
 canonicalUrl: /row-trimming
 react:
-  id: fkcjw0q1
   metaTitle: Row trimming - React Data Grid | Handsontable
 angular:
-  id: fhh1b0n6
   metaTitle: Row trimming - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Row trimming - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
@@ -59,6 +58,15 @@ trimRows: true,
 
 :::
 
+::: only-for vue
+
+```ts
+// enable the `TrimRows` plugin
+trimRows: true,
+```
+
+:::
+
 To both enable row trimming and trim selected rows at Handsontable's initialization, set the [`trimRows`](@/api/options.md#trimrows) option to an array of physical row indexes.
 
 ::: only-for javascript
@@ -85,6 +93,16 @@ trimRows: [5, 10, 15],
 :::
 
 ::: only-for angular
+
+```ts
+// enable the `TrimRows` plugin
+// at Handsontable's initialization, trim rows 5, 10, and 15
+trimRows: [5, 10, 15],
+```
+
+:::
+
+::: only-for vue
 
 ```ts
 // enable the `TrimRows` plugin
@@ -131,6 +149,16 @@ Note that the second, third, and sixth rows are missing in the following example
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-trimming/vue/example1.vue)
+
+:::
+
+:::
+
 ## Result
 
 After completing this guide, rows you specify are excluded from rendering and from `DataMap`. You can trim rows at initialization or dynamically at runtime using the plugin API.
@@ -166,6 +194,18 @@ ngAfterViewInit() {
   // ...
 }
 ```
+
+:::
+
+::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Instance methods](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
+
+:::
 
 :::
 

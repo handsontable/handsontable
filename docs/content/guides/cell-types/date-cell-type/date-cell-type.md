@@ -1,17 +1,16 @@
 ---
 type: how-to
-id: p25m5sco
 title: Date cell type
 metaTitle: Date cell type - JavaScript Data Grid | Handsontable
 description: Display, format, sort, and filter dates correctly by using the date cell type.
 permalink: /date-cell-type
 canonicalUrl: /date-cell-type
 react:
-  id: u7t2rn0n
   metaTitle: Date cell type - React Data Grid | Handsontable
 angular:
-  id: 9vvupwbx
   metaTitle: Date cell type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Date cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---
@@ -58,6 +57,16 @@ In the following demo, multiple columns use the date cell type with different fo
 @[code](@/content/guides/cell-types/date-cell-type/angular/example1.html)
 
 :::
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-types/date-cell-type/vue/example1.vue)
+
+:::
+
 :::
 
 ## Use the date cell type
@@ -173,6 +182,47 @@ settings3 = {
 
 :::
 
+::: only-for vue
+
+```js
+// set the date cell type for the entire grid (Intl, recommended)
+const hotSettings = ref({
+  type: 'intl-date',
+  locale: 'en-US',
+  dateFormat: {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }
+});
+
+// set the date cell type for a single column
+const hotSettings = ref({
+  columns: [
+    {
+      type: 'intl-date',
+      locale: 'en-US',
+      dateFormat: { dateStyle: 'short' }
+    }
+  ]
+});
+
+// set the date cell type for a single cell
+const hotSettings = ref({
+  cell: [
+    {
+      row: 0,
+      col: 2,
+      type: 'intl-date',
+      locale: 'en-US',
+      dateFormat: { dateStyle: 'medium' }
+    }
+  ]
+});
+```
+
+:::
+
 For `intl-date` cells, source data **must** be in **ISO 8601 date format** (`YYYY-MM-DD`) for dates to work correctly. The `dateFormat` object only affects how dates are displayed; sorting and filtering rely on the underlying ISO value.
 
 ## Format dates
@@ -253,6 +303,31 @@ settings = {
     }
   ]
 };
+```
+
+:::
+
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  columns: [
+    {
+      type: 'intl-date',
+      locale: 'en-US',
+      dateFormat: {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }
+    },
+    {
+      type: 'intl-date',
+      locale: 'de-DE',
+      dateFormat: { dateStyle: 'long' }
+    }
+  ]
+});
 ```
 
 :::

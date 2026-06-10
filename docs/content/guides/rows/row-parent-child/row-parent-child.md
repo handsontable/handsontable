@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: ivtc0o9b
 title: Row parent-child
 metaTitle: Row parent-child - JavaScript Data Grid | Handsontable
 description:
@@ -16,11 +15,11 @@ tags:
   - grouping rows
   - master detail
 react:
-  id: vo8uukt2
   metaTitle: Row parent-child - React Data Grid | Handsontable
 angular:
-  id: ojdl5nkd
   metaTitle: Row parent-child - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Row parent-child - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
@@ -67,6 +66,16 @@ const configurationOptions: GridSettings = {
 
 :::
 
+::: only-for vue
+
+```ts
+const hotSettings = {
+  nestedRows: true,
+};
+```
+
+:::
+
 Note that using all the functionalities provided by the plugin requires enabling the row headers and the Handsontable context menu. To do this set
 [`rowHeaders`](@/api/options.md#rowheaders) and [`contextMenu`](@/api/options.md#contextmenu) to `true`. The _collapse_ / _expand_ buttons are located in the
 row headers, and the row modification options _add row_, _insert child_, etc., are in the Context Menu.
@@ -109,6 +118,16 @@ Here's an example:
 
 @[code](@/content/guides/rows/row-parent-child/angular/example1.ts)
 @[code](@/content/guides/rows/row-parent-child/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-parent-child/vue/example1.vue)
 
 :::
 

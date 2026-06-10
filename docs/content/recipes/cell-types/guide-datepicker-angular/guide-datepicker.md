@@ -6,6 +6,7 @@ metaTitle: "Date picker - JavaScript Data Grid | Handsontable"
 description: Learn how to create a custom Handsontable cell type using Flatpickr for a powerful, customizable date picker experience directly inside your data grid.
 permalink: /recipes/cell-types/datepicker
 canonicalUrl: /recipes/cell-types/datepicker
+framework: angular
 tags:
   - guides
   - tutorial

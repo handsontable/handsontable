@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 42px61id
 title: Row pre-populating
 metaTitle: Row pre-populating - JavaScript Data Grid | Handsontable
 description: Pre-populate spare rows with default values using minSpareRows, custom placeholder renderers, or auto-filling template values.
@@ -12,11 +11,11 @@ tags:
   - bottom rows
   - placeholder
 react:
-  id: kmqhr00y
   metaTitle: Row pre-populating - React Data Grid | Handsontable
 angular:
-  id: me99ozqr
   metaTitle: Row pre-populating - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Row pre-populating - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
@@ -61,6 +60,16 @@ To keep one empty row at the bottom of the grid, set [`minSpareRows`](@/api/opti
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-prepopulating/vue/example1.vue)
+
+:::
+
+:::
+
 ## Spare rows with placeholder styling
 
 To hint what to enter in the spare row, add a custom cell renderer that displays greyed-out placeholder text in empty cells. The renderer checks whether the whole row is empty, then shows a template value in a lighter color.
@@ -98,6 +107,16 @@ To hint what to enter in the spare row, add a custom cell renderer that displays
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/rows/row-prepopulating/vue/example2.vue)
+
+:::
+
+:::
+
 ## Auto-populating with template values
 
 For full pre-population, use the [`beforeChange`](@/api/hooks.md#beforechange) hook to fill all cells in a spare row with template values the moment the user starts editing. The `isEmptyRow()` helper detects whether the row is untouched, and the hook pushes changes for every column except the one the user is editing.
@@ -130,6 +149,16 @@ For full pre-population, use the [`beforeChange`](@/api/hooks.md#beforechange) h
 
 @[code](@/content/guides/rows/row-prepopulating/angular/example3.ts)
 @[code](@/content/guides/rows/row-prepopulating/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/rows/row-prepopulating/vue/example3.vue)
 
 :::
 

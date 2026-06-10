@@ -1,17 +1,16 @@
 ---
 type: how-to
-id: d2in9k81
 title: Row moving
 metaTitle: Row moving - JavaScript Data Grid | Handsontable
 description: Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
 permalink: /row-moving
 canonicalUrl: /row-moving
 react:
-  id: g5mksyu1
   metaTitle: Row moving - React Data Grid | Handsontable
 angular:
-  id: ntz1a9ns
   metaTitle: Row moving - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Row moving - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
 ---
@@ -53,6 +52,16 @@ A draggable move handle appears above the selected row header. You can click and
 
 @[code](@/content/guides/rows/row-moving/angular/example1.ts)
 @[code](@/content/guides/rows/row-moving/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/rows/row-moving/vue/example1.vue)
 
 :::
 

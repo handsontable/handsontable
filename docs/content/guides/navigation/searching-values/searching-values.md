@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: ct5f32ig
 title: Searching values
 metaTitle: Searching values - JavaScript Data Grid | Handsontable
 description: Search data across Handsontable, using built-in API methods and implementing your own search UI.
@@ -11,11 +10,11 @@ tags:
   - highlight values
   - search values
 react:
-  id: 48lhnrbd
   metaTitle: Searching values - React Data Grid | Handsontable
 angular:
-  id: q7wwbzzr
   metaTitle: Searching values - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Searching values - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
 ---
@@ -42,6 +41,18 @@ For more information, see the [Instance methods](@/guides/getting-started/react-
 To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
+
+:::
+
+:::
+
+::: only-for vue
+
+::: tip
+
+To use the Handsontable API, use a template ref on `HotTable` and read `hotRef.value.hotInstance`.
+
+For more information, see [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md).
 
 :::
 
@@ -88,6 +99,16 @@ The example below:
 
 @[code](@/content/guides/navigation/searching-values/angular/example1.ts)
 @[code](@/content/guides/navigation/searching-values/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/navigation/searching-values/vue/example1.vue)
 
 :::
 
@@ -145,6 +166,17 @@ The example below highlights search results with a pink background and red text.
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3 --css 1
+
+@[code](@/content/guides/navigation/searching-values/vue/example2.css)
+@[code](@/content/guides/navigation/searching-values/vue/example2.vue)
+
+:::
+
+:::
+
 ## Custom query method
 
 You can replace the built-in substring search with a custom query method, using the [`queryMethod`](@/api/options.md#search) option.
@@ -189,6 +221,16 @@ The example below searches only for exact matches. To do this, it:
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/navigation/searching-values/vue/example3.vue)
+
+:::
+
+:::
+
 ## Custom callback
 
 You can add a custom callback function, using the [`Search`](@/api/search.md) plugin's [`callback`](@/api/options.md#search) option.
@@ -228,6 +270,16 @@ The example below displays the number of matching search results. To do this, it
 
 @[code](@/content/guides/navigation/searching-values/angular/example4.ts)
 @[code](@/content/guides/navigation/searching-values/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/navigation/searching-values/vue/example4.vue)
 
 :::
 

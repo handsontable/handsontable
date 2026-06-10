@@ -1,6 +1,7 @@
 /* file: app.component.ts */
 import { Component, OnInit } from '@angular/core';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+import type Handsontable from 'handsontable/base';
 
 const ipValidatorRegexp =
   /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
@@ -105,12 +106,12 @@ export class AppComponent implements OnInit {
     const componentInstance = this;
 
     this.hotSettings = {
-      beforeChange(changes) {
+      beforeChange(changes: (Handsontable.CellChange | null)[]) {
         for (let i = changes.length - 1; i >= 0; i--) {
           const currChange = changes[i];
 
           if (!currChange) {
-            return false;
+            continue;
           }
 
           // gently don't accept the word "foo" (remove the change at index i)
@@ -126,7 +127,7 @@ export class AppComponent implements OnInit {
             currChange[1] === 'name.first' ||
             currChange[1] === 'name.last'
           ) {
-            if (currChange[3] !== null) {
+            if (currChange[3] !== null && typeof currChange[3] === 'string') {
               changes[i]![3] =
                 currChange[3].charAt(0).toUpperCase() + currChange[3].slice(1);
             }
@@ -135,7 +136,7 @@ export class AppComponent implements OnInit {
 
         return true;
       },
-      afterChange(changes, source) {
+      afterChange(changes: Handsontable.CellChange[] | null, source: Handsontable.ChangeSource) {
         if (source !== 'loadData') {
           componentInstance.output = JSON.stringify(changes);
         }

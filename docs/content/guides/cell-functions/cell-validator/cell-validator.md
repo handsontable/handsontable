@@ -1,17 +1,16 @@
 ---
 type: how-to
-id: h840od8r
 title: Cell validator
 metaTitle: Cell validator - JavaScript Data Grid | Handsontable
 description: Validate data added or changed by the user, with predefined or custom rules. Validation helps you make sure that the data matches the expected format.
 permalink: /cell-validator
 canonicalUrl: /cell-validator
 react:
-  id: fvou30a5
   metaTitle: Cell validator - React Data Grid | Handsontable
 angular:
-  id: ut7amcaz
   metaTitle: Cell validator - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Cell validator - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
 ---
@@ -127,6 +126,14 @@ const hot = new Handsontable(container, {
 
 :::
 
+::: only-for vue
+
+```html
+<HotTable :settings="{ columns: [{ validator: 'my.custom' }] }" />
+```
+
+:::
+
 ## Full featured example
 
 Use the validator method to easily validate synchronous or asynchronous changes to a cell. If you need more control, [`beforeValidate`](@/api/hooks.md#beforevalidate) and [`afterValidate`](@/api/hooks.md#aftervalidate) hooks are available. In the below example, `email_validator_fn` is an async validator that resolves after 1000 ms.
@@ -157,6 +164,14 @@ invalidCellClassName="myInvalidClass"
 
 ```ts
 invalidCellClassName: 'myInvalidClass'
+```
+
+:::
+
+::: only-for vue
+
+```html
+<HotTable :settings="{ invalidCellClassName: 'myInvalidClass' }" />
 ```
 
 :::
@@ -199,6 +214,20 @@ columns: [
 
 :::
 
+::: only-for vue
+
+```html
+<HotTable :settings="{
+  columns: [
+    { data: 'firstName', invalidCellClassName: 'myInvalidClass' },
+    { data: 'lastName', invalidCellClassName: 'myInvalidSecondClass' },
+    { data: 'address' }
+  ]
+}" />
+```
+
+:::
+
 Callback console log:
 
 ::: only-for javascript
@@ -230,6 +259,16 @@ Callback console log:
 
 @[code collapse={33-98}](@/content/guides/cell-functions/cell-validator/angular/example1.ts)
 @[code](@/content/guides/cell-functions/cell-validator/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-functions/cell-validator/vue/example1.vue)
 
 :::
 

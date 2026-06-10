@@ -1,17 +1,16 @@
 ---
 type: how-to
-id: l5a447bl
 title: Numeric cell type
 metaTitle: Numeric cell type - JavaScript Data Grid | Handsontable
 description: Display, format, sort, and filter numbers correctly by using the numeric cell type.
 permalink: /numeric-cell-type
 canonicalUrl: /numeric-cell-type
 react:
-  id: e6zmmawj
   metaTitle: Numeric cell type - React Data Grid | Handsontable
 angular:
-  id: odhu846f
   metaTitle: Numeric cell type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Numeric cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---
@@ -74,6 +73,16 @@ Use the locale selector above the table to see how different locales affect numb
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-types/numeric-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ## Use the numeric cell type
 
 To use the numeric cell type, set the [`type`](@/api/options.md#type) option to `'numeric'`:
@@ -120,6 +129,21 @@ cell={[{
   col: 0,
   type: 'numeric',
 }]}
+```
+
+:::
+
+::: only-for vue
+
+```html
+<!-- set the numeric cell type for each cell of the entire grid -->
+<HotTable :settings="{ type: 'numeric' }" />
+
+<!-- set the numeric cell type for each cell of a single column -->
+<HotTable :settings="{ columns: [{ type: 'numeric' }] }" />
+
+<!-- set the numeric cell type for a single cell -->
+<HotTable :settings="{ cell: [{ row: 0, col: 0, type: 'numeric' }] }" />
 ```
 
 :::
@@ -221,6 +245,34 @@ columns: [
       minimumFractionDigits: 2
     }
   }]}
+/>
+```
+
+:::
+
+::: only-for vue
+
+```html
+<HotTable
+  :settings="{
+    columns: [{
+      type: 'numeric',
+      locale: 'en-US',
+      numericFormat: {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2
+      }
+    }, {
+      type: 'numeric',
+      locale: 'de-DE',
+      numericFormat: {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: 2
+      }
+    }]
+  }"
 />
 ```
 
@@ -361,6 +413,16 @@ In the following demo, columns **Price in Japan** and **Price in Turkey** use tw
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue3-numbro
+
+@[code](@/content/guides/cell-types/numeric-cell-type/vue/example3.vue)
+
+:::
+
+:::
+
 **Deprecated options:**
 
 | Option | Description | Replacement |
@@ -399,8 +461,10 @@ you edit a numeric cell:
   separator or currency symbol.<br>For example, during editing `$7,000.02`, the number displays as
   `7000.02`.
 - You can enter a decimal separator either with a period (`.`), or with a comma (`,`).
-- You can't enter a thousands separator. After you finish editing the cell, the thousands
-  separator is added automatically, based on your [`numericFormat`](@/api/options.md#numericformat)
+- For European locales where the decimal separator is a comma (e.g., `de-DE`, `fr-FR`, `es-ES`),
+  you can enter a dot-thousands grouped value such as `7.000` or `7.000,25`. Handsontable parses
+  these as `7000` and `7000.25` respectively. For other locales, the thousands separator is added
+  automatically after editing, based on your [`numericFormat`](@/api/options.md#numericformat)
   configuration.
 
 ## Result

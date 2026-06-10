@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: dceorl8m
 title: Instance methods
 metaTitle: Instance methods - JavaScript Data Grid | Handsontable
 description: Reference a Handsontable instance from within a React component, to programmatically perform actions such as selecting cells.
@@ -15,8 +14,9 @@ tags:
 react:
   metaTitle: Instance methods - React Data Grid | Handsontable
 angular:
-  id: 7a8puryp
   metaTitle: Instance methods - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Instance methods - Vue Data Grid | Handsontable
 searchCategory: Guides
 onlyFor: react
 category: Getting started

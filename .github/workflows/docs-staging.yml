@@ -169,6 +169,7 @@ jobs:
           # RC release branches build in production mode to mimic the final
           # production deployment (GTM/HotJar injected, dev badge hidden).
           BUILD_MODE: ${{ steps.release-info.outputs.is_release == 'true' && 'production' || '' }}
+          PUBLIC_CHAT_API_URL: ${{ secrets.PUBLIC_CHAT_API_URL }}
 
       - name: Build and deploy the preview to Netlify
         run: |

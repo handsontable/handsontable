@@ -3,11 +3,13 @@ import { Component, NgZone, ViewChild, inject } from '@angular/core';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 import { HotTableComponent } from '@handsontable/angular-wrapper';
 import type {
-  DataProviderFilterColumn,
   DataProviderQueryParameters,
   DataProviderFetchOptions,
   RowUpdatePayload,
-} from 'handsontable/plugins/dataProvider/dataProvider';
+  DataProviderBeforeFetchParameters,
+} from 'handsontable/plugins/dataProvider';
+
+type DataProviderFilterColumn = NonNullable<DataProviderQueryParameters['filters']>[number];
 
 type DemoRow = {
   id: number;
@@ -334,7 +336,7 @@ export class AppComponent {
       contextMenu: true,
       emptyDataState: true,
       notification: true,
-      beforeDataProviderFetch: (params) => {
+      beforeDataProviderFetch: (params: DataProviderBeforeFetchParameters) => {
         this.setFetchStatus(
           params.skipLoading
             ? 'Updating after sort or edit…'
@@ -344,7 +346,7 @@ export class AppComponent {
       afterDataProviderFetch: () => {
         this.setFetchStatus(`Ready (simulated ${LATENCY_MS}ms request).`);
       },
-      afterDataProviderFetchError: (error) => {
+      afterDataProviderFetchError: (error: Error) => {
         this.setFetchStatus(`Could not load data: ${error.message}`);
       },
     };
