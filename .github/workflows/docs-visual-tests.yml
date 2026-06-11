@@ -93,7 +93,7 @@ jobs:
         run: BASE_URL=${{ github.event.inputs.test_env }} npx playwright test
 
       - name: Save snapshot cache
-        if: always()
+        if: ${{!cancelled() && (env.cache-restored != 'true' || github.event.inputs.update-snapshots == 'true')}}
         uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
         with:
           key: plawyright-cache/${{github.repository}}/${{github.ref}}
