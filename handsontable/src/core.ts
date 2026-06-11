@@ -6206,7 +6206,7 @@ export default function Core(
    * order it via weights or the `layout` setting. Only available for the main instance.
    *
    * @memberof Core#
-   * @since 17.1.0
+   * @since 18.0.0
    * @function getLayoutManager
    * @returns {LayoutManager} Instance of {@link LayoutManager}
    *

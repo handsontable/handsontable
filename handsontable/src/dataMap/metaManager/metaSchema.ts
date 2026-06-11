@@ -3501,7 +3501,7 @@ export default (): Record<string, unknown> => {
      * `'dialog'`). Keys you list are placed first in that order; any remaining elements follow
      * by their default weight. The grid itself is not orderable.
      *
-     * @since 17.1.0
+     * @since 18.0.0
      * @memberof Options#
      * @type {object}
      * @default undefined
