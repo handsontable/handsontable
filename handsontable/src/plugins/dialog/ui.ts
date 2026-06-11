@@ -286,7 +286,7 @@ export class DialogUI {
       if (typeof content === 'string') {
         fastInnerHTML(contentElement, content,
           this.#sanitizer ? (html: string, ctx: string) => this.#sanitizer!(html) ?? html : undefined,
-          'dialog');
+          'dialog', this.#overlayContainer);
 
       } else if (isHTMLElement(content) || content instanceof DocumentFragment) {
         contentElement.appendChild(content);
