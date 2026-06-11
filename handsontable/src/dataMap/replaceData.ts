@@ -25,7 +25,6 @@ interface ReplaceDataConfig {
 /**
  * Builds the initial empty dataset rows when `data` is `null`.
  *
- * @private
  * @param {HotInstance} hotInstance The Handsontable instance.
  * @param {DataMap} newDataMap The newly created DataMap instance.
  * @param {object} tableMeta The current table settings.

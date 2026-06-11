@@ -389,7 +389,6 @@ export class Autofill extends BasePlugin {
   /**
    * Adjusts fill data for reverse drag directions ('up' or 'left') by reordering rows or columns.
    *
-   * @private
    * @param {unknown[][]} res The original autofill hook result data.
    * @param {unknown[][]} fillData The current fill data to adjust.
    * @param {string} directionOfDrag The direction of the autofill drag.
@@ -443,7 +442,6 @@ export class Autofill extends BasePlugin {
   /**
    * Extends fill data with source data when source cells contain objects or arrays.
    *
-   * @private
    * @param {unknown[][]} fillData The current fill data.
    * @param {unknown[][]} selectionSourceData The original source selection data.
    * @param {{ row: number, col: number }} startCoords The start coordinates of the fill area.

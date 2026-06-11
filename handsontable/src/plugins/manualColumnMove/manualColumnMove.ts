@@ -454,7 +454,6 @@ export class ManualColumnMove extends BasePlugin {
   /**
    * Calculates the mouse offset from the start of the grid, accounting for RTL direction.
    *
-   * @private
    * @param {Window | HTMLElement} scrollableElement The scrollable container element.
    * @param {number} scrollStart The current scroll position.
    * @param {number} rootElementOffset The offset of the root element.
@@ -482,7 +481,6 @@ export class ManualColumnMove extends BasePlugin {
    * Calculates the target column based on hover position and updates `#target.col`.
    * Returns the updated tdOffsetStart value.
    *
-   * @private
    * @param {number} hoveredColumn The currently hovered column index.
    * @param {number} tdOffsetStart The current TD offset from the start.
    * @param {number} mouseOffsetStart The current mouse offset from the start.

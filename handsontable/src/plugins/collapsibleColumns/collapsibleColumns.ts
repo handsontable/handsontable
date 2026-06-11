@@ -585,7 +585,6 @@ export class CollapsibleColumns extends BasePlugin {
   /**
    * Checks whether a collapse or expand action is possible for the given filtered coordinates.
    *
-   * @private
    * @param {Array} filteredCoords Header coordinates filtered to header rows only.
    * @param {string} action Action definition ('collapse' or 'expand').
    * @returns {boolean}
@@ -617,7 +616,6 @@ export class CollapsibleColumns extends BasePlugin {
   /**
    * Adjusts the active cell selection after a collapse action moves selected cells out of view.
    *
-   * @private
    * @param {number[]} affectedColumnsIndexes Visual indexes of columns hidden by the collapse.
    */
   #adjustSelectionAfterCollapse(affectedColumnsIndexes: number[]): void {

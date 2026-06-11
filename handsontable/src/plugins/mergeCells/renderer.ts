@@ -31,7 +31,6 @@ interface MergeCellsPluginInstance {
  * Clamps the not-hidden row and column indexes to the virtual viewport boundaries
  * based on the active overlay, ensuring merged cells don't extend beyond the visible area.
  *
- * @private
  * @param {HotInstance} hot The Handsontable instance.
  * @param {number | null} notHiddenRow The nearest not-hidden row index.
  * @param {number | null} notHiddenColumn The nearest not-hidden column index.

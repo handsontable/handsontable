@@ -83,8 +83,6 @@ export function checkboxRenderer(
 
   /**
    * Determine and apply the checked state of the input element based on the cell value.
-   *
-   * @private
    */
   function applyCheckedState() {
     if (value === cellProperties.checkedTemplate ||
@@ -125,8 +123,6 @@ export function checkboxRenderer(
 
   /**
    * Apply label options to the cell, creating and positioning the label element.
-   *
-   * @private
    */
   function applyLabelOptions() {
     if (!badValue && labelOptions) {
