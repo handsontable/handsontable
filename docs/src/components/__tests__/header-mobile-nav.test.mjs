@@ -16,8 +16,10 @@ test('mobile nav initializes only via astro:page-load, with no separate direct c
     mobileNavLifecycleBlock,
     /document\.addEventListener\('astro:page-load', initMobileNav\);/
   );
-  // No separate DOMContentLoaded fallback or direct initMobileNav() call — astro:page-load
-  // fires on the initial load too, so a separate bootstrap path is not needed.
+  // No DOMContentLoaded fallback or standalone initMobileNav() call — the window.load
+  // fallback is allowed for pages without <ClientRouter /> (View Transitions), but it
+  // must be guarded so it never calls initMobileNav() on its own line (to keep the
+  // no-direct-call intent and avoid accidental Preact race regressions).
   assert.doesNotMatch(
     mobileNavLifecycleBlock,
     /document\.addEventListener\('DOMContentLoaded'/
@@ -25,7 +27,7 @@ test('mobile nav initializes only via astro:page-load, with no separate direct c
   assert.doesNotMatch(
     mobileNavLifecycleBlock,
     /^\s*initMobileNav\(\);/m,
-    'initMobileNav() must not be called directly (only via the astro:page-load listener)'
+    'initMobileNav() must not be a standalone call on its own line (guard it inline)'
   );
 });
 
