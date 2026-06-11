@@ -17,9 +17,19 @@ beforeEach(function() {
   }
 });
 
-afterEach(() => {
+afterEach(async() => {
   if (!DEBUG) {
     specContext.spec = null;
+  }
+
+  // Restore the default device pixel ratio if a spec changed it via `setDeviceScaleFactor`
+  // (exposed only by the Puppeteer e2e harness), so a fractional DPR cannot leak into the next
+  // spec and break viewport-dependent tests. The `devicePixelRatio !== 1` guard keeps this a
+  // no-op (a single property read) for the vast majority of specs that never touch the DPR.
+  if (!process.env.JEST_WORKER_ID
+      && typeof window.setDeviceScaleFactor === 'function'
+      && window.devicePixelRatio !== 1) {
+    await window.setDeviceScaleFactor(1);
   }
 });
 

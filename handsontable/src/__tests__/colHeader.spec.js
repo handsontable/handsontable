@@ -470,6 +470,59 @@ describe('ColHeader', () => {
     expect(Math.abs(inlineStartThead.offsetHeight - masterThead.offsetHeight)).toBeLessThanOrEqual(1);
   });
 
+  it('should keep all overlay THEAD heights in sync when a wrapped header in the frozen region is taller than the scrollable headers, under fractional zoom (#12632)', async() => {
+    const style = document.createElement('style');
+
+    style.textContent = '.wrapHeader { white-space: normal !important; }';
+    document.head.appendChild(style);
+
+    spec().$container.css('width', '400px');
+
+    // This bug only manifests at a non-integer devicePixelRatio (browser zoom != 100%), where the
+    // tall wrapped frozen header overflows the applied header height by a sub-pixel amount that the
+    // master THEAD (which never renders the frozen header) does not pick up. The global `afterEach`
+    // restores the default device pixel ratio after this spec.
+    await setDeviceScaleFactor(0.9);
+
+    handsontable({
+      data: createSpreadsheetData(100, 50),
+      colWidths: 100,
+      fixedColumnsStart: 2,
+      rowHeaders: false,
+      // The long, wrapping header sits inside the frozen region (column 1). It is never rendered
+      // in the master THEAD, only in the frozen overlays, so the master/top THEADs must be synced
+      // to the frozen overlays' (taller) height for the body rows to stay aligned.
+      colHeaders: ['A', 'This is a very long header that wraps onto multiple lines', 'C', 'D'],
+      columnHeaderHeight: 23,
+      height: 320,
+      headerClassName: 'wrapHeader',
+    });
+
+    await sleep(100);
+
+    const theadHeight = sel => spec().$container.find(`${sel} thead`)[0].getBoundingClientRect().height;
+
+    // The frozen header is taller than the configured columnHeaderHeight.
+    expect(theadHeight('.ht_master')).toBeGreaterThan(23);
+
+    // Scroll horizontally to the far right, then vertically to the last row. The master/top THEADs
+    // now render only short scrollable headers, while the frozen overlays still show the tall
+    // wrapped header. Before the fix the overlay THEADs diverged by ~1px (more under zoom),
+    // shifting the frozen rows out of alignment.
+    await scrollViewportTo({ col: countCols() - 1 });
+    await sleep(50);
+    await scrollViewportTo({ row: countRows() - 1, verticalSnap: 'bottom' });
+    await sleep(100);
+
+    const masterHeight = theadHeight('.ht_master');
+
+    expect(Math.abs(theadHeight('.ht_clone_top_inline_start_corner') - masterHeight)).toBeLessThan(0.5);
+    expect(Math.abs(theadHeight('.ht_clone_inline_start') - masterHeight)).toBeLessThan(0.5);
+    expect(Math.abs(theadHeight('.ht_clone_top') - masterHeight)).toBeLessThan(0.5);
+
+    style.remove();
+  });
+
   it('should allow defining custom column header height using the columnHeaderHeight config option', async() => {
     handsontable({
       startCols: 3,
