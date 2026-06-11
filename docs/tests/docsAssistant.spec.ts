@@ -75,6 +75,17 @@ async function seedOpenState(page: Page, open: boolean): Promise<void> {
   }, open ? 'true' : 'false');
 }
 
+/**
+ * Waits until the header init script has run and bound the Ask AI button.
+ * initMobileNav() relocates #mobile-nav-overlay to be a direct child of <body>
+ * as part of the same init that binds the button, so its presence there is a
+ * deterministic "button is now wired" signal. This avoids racing the binding,
+ * which the fix schedules on window.load.
+ */
+async function waitForHeaderInit(page: Page): Promise<void> {
+  await expect(page.locator('body > #mobile-nav-overlay')).toBeAttached();
+}
+
 test('opens the docs assistant on a single "Ask AI" click (from a closed panel)', async ({ page, baseURL }) => {
   const hydrationErrors = trackHydrationErrors(page);
 
@@ -83,6 +94,7 @@ test('opens the docs assistant on a single "Ask AI" click (from a closed panel)'
   await expect(page.getByText('Page not found (404)')).toHaveCount(0);
   // initMobileNav binds on DOMContentLoaded; the panel relocation runs on load.
   await page.waitForLoadState('load');
+  await waitForHeaderInit(page);
 
   const panel = page.locator('.da-panel');
   const askAiBtn = page.locator('#header-assistant-btn');
@@ -106,6 +118,7 @@ test('reopens the panel after the user closes it with the X (the reported flow)'
   await page.goto(`${baseURL}${PAGE}`);
   await expect(page.getByText('Page not found (404)')).toHaveCount(0);
   await page.waitForLoadState('load');
+  await waitForHeaderInit(page);
 
   const panel = page.locator('.da-panel');
   const askAiBtn = page.locator('#header-assistant-btn');
