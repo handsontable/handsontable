@@ -154,21 +154,35 @@ export function toHyphen(str: string): string {
 }
 
 /**
- * Characters whose lowercase mapping is tailored only by the Turkish, Azeri, and
- * Lithuanian locales. Used to detect at runtime — without a hardcoded locale list —
- * whether a locale changes the result of lowercasing.
+ * Most languages use the same uppercase-to-lowercase rules as plain English — for
+ * example, `'A'` always becomes `'a'`, `'Ö'` always becomes `'ö'`. Only three locales
+ * diverge: Turkish and Azeri treat dotted `'İ'` and dotless `'I'` as separate letters
+ * (so `'I'` lowercases to `'ı'`, not `'i'`), and Lithuanian inserts an extra dot when
+ * lowercasing `'Ì'`, `'Í'`, and `'Ĩ'`. These five characters are therefore the only
+ * ones in Unicode where locale matters for lowercasing, which makes them a reliable
+ * probe: if a locale changes how they lowercase, it needs special handling; every other
+ * locale can use the much faster `toLowerCase()`.
  */
 const LOCALE_LOWERCASE_PROBE = 'IİÌÍĨ';
 const LOCALE_LOWERCASE_PROBE_DEFAULT = LOCALE_LOWERCASE_PROBE.toLowerCase();
 const localeLowerCaseTailoringCache = new Map<string | undefined, boolean>();
 
 /**
- * Checks whether a locale changes the result of lowercasing compared with the
- * language-neutral Unicode mapping. The answer is immutable for a given JavaScript
- * engine, so it is cached per locale. Invalid or empty locale tags resolve to `false`.
+ * Returns `true` when the given locale changes how letters are lowercased compared
+ * with the standard rules. This is only true for Turkish, Azeri, and Lithuanian.
  *
- * @param {string} [locale] A BCP 47 locale tag, or `undefined` for the host default.
- * @returns {boolean} `true` when the locale tailors lowercasing (Turkish, Azeri, Lithuanian).
+ * The result is cached the first time a locale is seen because the answer never
+ * changes — it is a fixed property of the JavaScript engine, not of the data. Calling
+ * `updateSettings({ locale: 'tr-TR' })` does not invalidate the cache; it simply means
+ * the next call passes `'tr-TR'` as the locale string, which is already cached.
+ *
+ * An invalid or empty locale tag (e.g. `''` or `'en_US'` with an underscore) is treated
+ * as "does not change lowercasing" so the function never throws.
+ *
+ * @param {string} [locale] A BCP 47 locale tag such as `'tr-TR'`, or `undefined` to use
+ *   the host default.
+ * @returns {boolean} `true` for Turkish (`tr`), Azeri (`az`), and Lithuanian (`lt`);
+ *   `false` for everything else.
  */
 function localeAffectsLowerCase(locale?: string): boolean {
   const cached = localeLowerCaseTailoringCache.get(locale);
@@ -192,13 +206,21 @@ function localeAffectsLowerCase(locale?: string): boolean {
 }
 
 /**
- * Lowercases a string, honoring the locale only when the locale actually changes the
- * result (Turkish, Azeri, Lithuanian). For every other locale it uses the fast,
- * language-neutral `toLowerCase`, which is byte-identical to `toLocaleLowerCase` for
- * those locales but avoids the expensive Intl path. Invalid locale tags never throw.
+ * Lowercases a string in a locale-aware and performant way.
+ *
+ * The built-in `toLocaleLowerCase(locale)` is correct but slow — passing an explicit
+ * locale forces the JavaScript engine to use its full international library on every
+ * call, even for languages like German or French where the result would be exactly the
+ * same as plain `toLowerCase()`. This function checks first whether the given locale
+ * actually changes anything, and falls back to the faster `toLowerCase()` when it does
+ * not. The check result is cached, so the overhead is paid only once per locale.
+ *
+ * Invalid or empty locale tags (such as `''` or `'en_US'` with an underscore instead
+ * of a hyphen) are handled gracefully instead of throwing an error.
  *
  * @param {string} value The string to lowercase.
- * @param {string} [locale] A BCP 47 locale tag, or `undefined` for the host default.
+ * @param {string} [locale] A BCP 47 locale tag such as `'tr-TR'` or `'en-US'`,
+ *   or `undefined` to use the host default.
  * @returns {string} The lowercased string.
  */
 export function localeLowerCase(value: string, locale?: string): string {
