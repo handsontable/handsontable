@@ -277,7 +277,7 @@ export class ColumnSorting extends BasePlugin {
           const activeRange = this.hot.getSelectedRangeActive();
 
           if (!activeRange) {
-            return true;
+            return false;
           }
 
           const { highlight } = activeRange;

@@ -201,7 +201,7 @@ export class NestedRows extends BasePlugin {
           const activeRange = this.hot.getSelectedRangeActive();
 
           if (!activeRange) {
-            return;
+            return false;
           }
 
           const { highlight } = activeRange;
