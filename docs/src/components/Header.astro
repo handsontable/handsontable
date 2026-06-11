@@ -535,10 +535,15 @@ const frameworks = [
   // hydrated before initMobileNav() moves DOM nodes out of their server-rendered
   // positions via document.body.appendChild(). Moving nodes on astro:after-swap
   // races with Preact hydration and causes "NotFoundError: insertBefore" failures
-  // (Sentry HANDSONTABLE-DOCS-1BT). astro:page-load fires on both the initial
-  // load and every subsequent view-transition navigation, so no separate
-  // DOMContentLoaded / direct call is needed.
+  // (Sentry HANDSONTABLE-DOCS-1BT).
+  // Without <ClientRouter /> (View Transitions), astro:page-load never fires — not
+  // even on the initial page load. The window.load fallback covers that case:
+  // setTimeout(0) defers past any same-tick astro:page-load dispatch (ClientRouter
+  // fires it on window.load too) so we never call initMobileNav() twice.
   document.addEventListener('astro:page-load', initMobileNav);
+  window.addEventListener('load', () => setTimeout(() => {
+    if (document.getElementById('mobile-nav-overlay')?.parentElement !== document.body) initMobileNav();
+  }, 0), { once: true });
 </script>
 
 <style>
