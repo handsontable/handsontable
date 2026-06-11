@@ -140,7 +140,8 @@ export class HandsontableEditor extends TextEditor {
     td: HTMLTableCellElement, value: unknown, cellProperties: CellProperties): void {
     super.prepare(row, col, prop, td, value, cellProperties);
 
-    const parent = this;
+    const { hot } = this;
+    const setValue = this.setValue.bind(this);
     const options: Record<string, unknown> = {
       startRows: 0,
       startCols: 0,
@@ -165,9 +166,9 @@ export class HandsontableEditor extends TextEditor {
 
         // if the value is undefined then it means we don't want to set the value
         if (sourceValue !== undefined) {
-          parent.setValue(sourceValue);
+          setValue(sourceValue);
         }
-        parent.hot.destroyEditor();
+        hot.destroyEditor();
       },
       preventWheel: true,
       layoutDirection: this.hot.isRtl() ? 'rtl' : 'ltr',

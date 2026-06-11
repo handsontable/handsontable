@@ -8,6 +8,28 @@ interface MergeCellDescriptor {
   colspan: number;
 }
 
+interface NestedHeaderTreeNodeData {
+  columnIndex: number;
+  origColspan: number;
+  headerClassNames: string[];
+  label: string;
+}
+
+interface NestedHeaderSettings {
+  isRoot: boolean;
+  colspan: number;
+  headerClassNames: string[];
+  label: string;
+}
+
+type NestedHeadersPluginWithState = {
+  getStateManager(): { getHeaderTreeNodeData(layer: number, col: number): NestedHeaderTreeNodeData | null | undefined };
+};
+
+type NestedHeadersPluginWithSettings = {
+  getHeaderSettings(layer: number, col: number): NestedHeaderSettings | null | undefined;
+};
+
 /**
  * @private
  */
@@ -507,7 +529,7 @@ class DataProvider {
     const layers = [];
 
     for (let layer = 0; layer < layersCount; layer++) {
-      const layerHeaders = [];
+      const layerHeaders: Array<{ label: string; colspan: number; className: string }> = [];
       let col = startCol;
 
       while (col <= endCol) {
@@ -517,56 +539,9 @@ class DataProvider {
         }
 
         if (includeHidden) {
-          // When including hidden columns, the NestedHeaders state matrix has been
-          // modified by the HiddenColumns plugin: hidden span roots are replaced with
-          // placeholders and their colspan is transferred to the next visible column.
-          // Use the tree node data instead, which preserves the original columnIndex
-          // and origColspan regardless of the hidden state.
-          const treeNodeData = nestedHeadersPlugin.getStateManager().getHeaderTreeNodeData(layer, col);
-
-          if (!treeNodeData || treeNodeData.columnIndex === col) {
-            // This column is the root of its span (or has no tree node → single column).
-            const origColspan = treeNodeData?.origColspan ?? 1;
-            // Clamp to the export range end.
-            const effectiveColspan = Math.min(origColspan, endCol - col + 1);
-            // headerClassNames is an array of strings produced by the settings normalizer
-            // from the user-supplied `headerClassName` string.
-            const className = (treeNodeData?.headerClassNames ?? []).join(' ');
-
-            layerHeaders.push({ label: treeNodeData?.label ?? '', colspan: effectiveColspan, className });
-            col += origColspan;
-          } else {
-            // This column is inside a span whose root is before startCol. Emit a
-            // single-column placeholder to keep the column count correct.
-            layerHeaders.push({ label: '', colspan: 1, className: '' });
-            col += 1;
-          }
+          col = this._appendNestedHeaderWithHidden(nestedHeadersPlugin, layer, col, endCol, layerHeaders);
         } else {
-          const settings = nestedHeadersPlugin.getHeaderSettings(layer, col);
-
-          if (!settings || settings.isRoot) {
-            const spanColspan = settings?.colspan ?? 1;
-            let visibleColspan = 0;
-
-            for (let spanCol = col; spanCol < col + spanColspan && spanCol <= endCol; spanCol++) {
-              if (!this._isHiddenColumn(spanCol)) {
-                visibleColspan += 1;
-              }
-            }
-
-            // headerClassNames is an array of strings produced by the settings normalizer
-            // from the user-supplied `headerClassName` string.
-            const className = (settings?.headerClassNames ?? []).join(' ');
-
-            layerHeaders.push({ label: settings?.label ?? '', colspan: visibleColspan, className });
-            col += spanColspan;
-          } else {
-            // Continuation cell of a span that started at an earlier column.
-            // This can only occur when startCol falls inside a span — emit a
-            // single-column placeholder so the export column count stays correct.
-            layerHeaders.push({ label: '', colspan: 1, className: '' });
-            col += 1;
-          }
+          col = this._appendNestedHeaderWithoutHidden(nestedHeadersPlugin, layer, col, endCol, layerHeaders);
         }
       }
 
@@ -574,6 +549,91 @@ class DataProvider {
     }
 
     return layers;
+  }
+
+  /**
+   * Appends a nested header entry for a single column when hidden columns are included in the export.
+   *
+   * @param {object} nestedHeadersPlugin The NestedHeaders plugin instance.
+   * @param {number} layer The header layer index.
+   * @param {number} col The current column index.
+   * @param {number} endCol The last column index of the export range.
+   * @param {Array} layerHeaders The array to push the header entry into.
+   * @returns {number} The next column index to process.
+   */
+  _appendNestedHeaderWithHidden(
+    nestedHeadersPlugin: NestedHeadersPluginWithState, layer: number, col: number,
+    endCol: number, layerHeaders: Array<{ label: string; colspan: number; className: string }>
+  ) {
+    // When including hidden columns, the NestedHeaders state matrix has been
+    // modified by the HiddenColumns plugin: hidden span roots are replaced with
+    // placeholders and their colspan is transferred to the next visible column.
+    // Use the tree node data instead, which preserves the original columnIndex
+    // and origColspan regardless of the hidden state.
+    const treeNodeData = nestedHeadersPlugin.getStateManager().getHeaderTreeNodeData(layer, col);
+
+    if (!treeNodeData || treeNodeData.columnIndex === col) {
+      // This column is the root of its span (or has no tree node → single column).
+      const origColspan = treeNodeData?.origColspan ?? 1;
+      // Clamp to the export range end.
+      const effectiveColspan = Math.min(origColspan, endCol - col + 1);
+      // headerClassNames is an array of strings produced by the settings normalizer
+      // from the user-supplied `headerClassName` string.
+      const className = (treeNodeData?.headerClassNames ?? []).join(' ');
+
+      layerHeaders.push({ label: treeNodeData?.label ?? '', colspan: effectiveColspan, className });
+
+      return col + origColspan;
+    }
+
+    // This column is inside a span whose root is before startCol. Emit a
+    // single-column placeholder to keep the column count correct.
+    layerHeaders.push({ label: '', colspan: 1, className: '' });
+
+    return col + 1;
+  }
+
+  /**
+   * Appends a nested header entry for a single column when hidden columns are excluded from the export.
+   *
+   * @param {object} nestedHeadersPlugin The NestedHeaders plugin instance.
+   * @param {number} layer The header layer index.
+   * @param {number} col The current column index.
+   * @param {number} endCol The last column index of the export range.
+   * @param {Array} layerHeaders The array to push the header entry into.
+   * @returns {number} The next column index to process.
+   */
+  _appendNestedHeaderWithoutHidden(
+    nestedHeadersPlugin: NestedHeadersPluginWithSettings, layer: number, col: number,
+    endCol: number, layerHeaders: Array<{ label: string; colspan: number; className: string }>
+  ) {
+    const settings = nestedHeadersPlugin.getHeaderSettings(layer, col);
+
+    if (!settings || settings.isRoot) {
+      const spanColspan = settings?.colspan ?? 1;
+      let visibleColspan = 0;
+
+      for (let spanCol = col; spanCol < col + spanColspan && spanCol <= endCol; spanCol++) {
+        if (!this._isHiddenColumn(spanCol)) {
+          visibleColspan += 1;
+        }
+      }
+
+      // headerClassNames is an array of strings produced by the settings normalizer
+      // from the user-supplied `headerClassName` string.
+      const className = (settings?.headerClassNames ?? []).join(' ');
+
+      layerHeaders.push({ label: settings?.label ?? '', colspan: visibleColspan, className });
+
+      return col + spanColspan;
+    }
+
+    // Continuation cell of a span that started at an earlier column.
+    // This can only occur when startCol falls inside a span — emit a
+    // single-column placeholder so the export column count stays correct.
+    layerHeaders.push({ label: '', colspan: 1, className: '' });
+
+    return col + 1;
   }
 
   /**

@@ -312,45 +312,50 @@ export class StickyScrollStrategy {
       return;
     }
 
-    if (overlays.inlineStartOverlay.needFullRender && overlays.inlineStartOverlay.clone) {
-      const cloneSpreader = overlays.inlineStartOverlay.clone.wtTable.spreader;
+    this.#applyCloneSpreaderStyles(overlays.inlineStartOverlay, position, isSticky, stickyTop, null, isRtl);
+    this.#applyCloneSpreaderStyles(overlays.topOverlay, position, isSticky, null, stickyLeft, isRtl);
+    this.#applyCloneSpreaderStyles(overlays.bottomOverlay, position, isSticky, null, stickyLeft, isRtl);
+  }
 
-      cloneSpreader.style.position = position;
+  /**
+   * Applies position styles to a single overlay clone spreader when its overlay is fully rendered.
+   *
+   * @param {Overlay} overlay The overlay whose clone spreader to update.
+   * @param {'sticky'|'relative'} position The CSS position value.
+   * @param {boolean} isSticky Whether sticky mode is active.
+   * @param {number|null} stickyTop The vertical sticky offset, or null to skip.
+   * @param {number|null} stickyLeft The horizontal sticky offset, or null to skip.
+   * @param {boolean} isRtl Whether RTL mode is active.
+   */
+  #applyCloneSpreaderStyles(
+    overlay: Overlay,
+    position: 'sticky' | 'relative',
+    isSticky: boolean,
+    stickyTop: number | null,
+    stickyLeft: number | null,
+    isRtl: boolean
+  ): void {
+    if (!overlay.needFullRender || !overlay.clone) {
+      return;
+    }
 
-      if (isSticky) {
+    const cloneSpreader = overlay.clone.wtTable.spreader;
+    const leftProp = isRtl ? 'right' : 'left';
+
+    cloneSpreader.style.position = position;
+
+    if (isSticky) {
+      if (stickyTop !== null) {
         cloneSpreader.style.top = `${stickyTop}px`;
-
-      } else {
-        this.#clearSpreaderInsetStyles(cloneSpreader);
       }
-    }
 
-    if (overlays.topOverlay.needFullRender && overlays.topOverlay.clone) {
-      const cloneSpreader = overlays.topOverlay.clone.wtTable.spreader;
-
-      cloneSpreader.style.position = position;
-
-      if (isSticky) {
+      if (stickyLeft !== null) {
         cloneSpreader.style[leftProp] = `${stickyLeft}px`;
         cloneSpreader.style[isRtl ? 'left' : 'right'] = '';
-
-      } else {
-        this.#clearSpreaderInsetStyles(cloneSpreader);
       }
-    }
 
-    if (overlays.bottomOverlay.needFullRender && overlays.bottomOverlay.clone) {
-      const cloneSpreader = overlays.bottomOverlay.clone.wtTable.spreader;
-
-      cloneSpreader.style.position = position;
-
-      if (isSticky) {
-        cloneSpreader.style[leftProp] = `${stickyLeft}px`;
-        cloneSpreader.style[isRtl ? 'left' : 'right'] = '';
-
-      } else {
-        this.#clearSpreaderInsetStyles(cloneSpreader);
-      }
+    } else {
+      this.#clearSpreaderInsetStyles(cloneSpreader);
     }
   }
 

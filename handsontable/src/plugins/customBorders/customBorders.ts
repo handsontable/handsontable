@@ -923,8 +923,6 @@ The border style will be ignored.`);
       return;
     }
 
-    const plugin = this;
-
     items.push({
       name: '---------',
     }, {
@@ -947,11 +945,11 @@ The border style will be ignored.`);
       },
       submenu: {
         items: [
-          menuItemTop(plugin),
-          menuItemRight(plugin),
-          menuItemBottom(plugin),
-          menuItemLeft(plugin),
-          menuItemNoBorders(plugin)
+          menuItemTop(this),
+          menuItemRight(this),
+          menuItemBottom(this),
+          menuItemLeft(this),
+          menuItemNoBorders(this)
         ]
       }
     });

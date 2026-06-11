@@ -165,7 +165,7 @@ export class BaseUI {
 
     // prevents "hot.unlisten()" call when clicked
     // (https://github.com/handsontable/handsontable/blob/master/handsontable/src/tableView.js#L317-L321)
-    rootElement.setAttribute('data-hot-input', 'true');
+    rootElement.dataset.hotInput = 'true';
 
     if (this.options.tabIndex !== undefined) {
       rootElement.setAttribute('tabindex', String(this.options.tabIndex));
@@ -193,7 +193,7 @@ export class BaseUI {
 
       // prevents "hot.unlisten()" call when clicked
       // (https://github.com/handsontable/handsontable/blob/master/handsontable/src/tableView.js#L317-L321)
-      element.setAttribute('data-hot-input', 'true');
+      element.dataset.hotInput = 'true';
 
       objectEach(this.options as Record<string, unknown>, (value: unknown, key: string) => {
         if (element[key] !== undefined && key !== 'className' && key !== 'tagName' && key !== 'children') {
@@ -214,7 +214,7 @@ export class BaseUI {
    * Update DOM structure.
    */
   update() {
-
+    // Intentionally empty
   }
 
   /**

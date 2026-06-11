@@ -58,9 +58,9 @@ export function html(strings: TemplateStringsArray, ...values: unknown[]) {
   const refs: Record<string, HTMLElement> = {};
 
   fragment.querySelectorAll('[data-ref]').forEach((element: Element) => {
-    const name = element.getAttribute('data-ref');
+    const name = (element as HTMLElement).dataset.ref ?? null;
 
-    element.removeAttribute('data-ref');
+    delete (element as HTMLElement).dataset.ref;
 
     if (name !== null) {
       refs[name] = element as HTMLElement;

@@ -462,7 +462,7 @@ class Table {
 
       if (parent) {
         // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
-        parent.insertBefore(spreader, table);
+        table.before(spreader);
       }
       spreader.appendChild(table);
     }
@@ -495,7 +495,7 @@ class Table {
 
       if (parent) {
         // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
-        parent.insertBefore(hider, spreader);
+        spreader.before(hider);
       }
       hider.appendChild(spreader);
     }
@@ -532,7 +532,7 @@ class Table {
 
       if (parent) {
         // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
-        parent.insertBefore(holder, hider);
+        hider.before(holder);
       }
       if (this.isMaster) {
         const holderParent = holder.parentNode;
@@ -1642,7 +1642,9 @@ class Table {
   /**
    * Destroys the table instance. Overridden by MasterTable to release DOM resources.
    */
-  destroy() {}
+  destroy() {
+    // Intentionally empty
+  }
 }
 
 export default Table;

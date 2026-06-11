@@ -198,7 +198,6 @@ class Border {
     event.preventDefault();
     stopImmediatePropagation(event);
 
-    const _this = this;
     const documentBody = this.wot.rootDocument.body;
     const bounds = parentElement.getBoundingClientRect();
 
@@ -227,12 +226,12 @@ class Border {
     /**
      * @param {Event} handlerEvent The mouse event object.
      */
-    function handler(handlerEvent: MouseEvent) {
+    const handler = (handlerEvent: MouseEvent) => {
       if (isOutside(handlerEvent)) {
-        _this.eventManager.removeEventListener(documentBody, 'mousemove', handler as (event: Event) => void);
+        this.eventManager.removeEventListener(documentBody, 'mousemove', handler as (event: Event) => void);
         parentElement.style.display = 'block';
       }
-    }
+    };
 
     this.eventManager.addEventListener(documentBody, 'mousemove', handler);
   }

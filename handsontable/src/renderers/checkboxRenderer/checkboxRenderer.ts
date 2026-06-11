@@ -78,75 +78,92 @@ export function checkboxRenderer(
 
   const locale = cellProperties.locale as string | undefined;
 
-  if (value === cellProperties.checkedTemplate ||
-    stringify(value).toLocaleLowerCase(locale) ===
-    stringify(cellProperties.checkedTemplate).toLocaleLowerCase(locale)) {
-    input.checked = true;
+  applyCheckedState();
+  applyLabelOptions();
 
-  } else if (value === cellProperties.uncheckedTemplate ||
-    stringify(value).toLocaleLowerCase(locale) ===
-    stringify(cellProperties.uncheckedTemplate).toLocaleLowerCase(locale)) {
-    input.checked = false;
+  /**
+   * Determine and apply the checked state of the input element based on the cell value.
+   *
+   * @private
+   */
+  function applyCheckedState() {
+    if (value === cellProperties.checkedTemplate ||
+      stringify(value).toLocaleLowerCase(locale) ===
+      stringify(cellProperties.checkedTemplate).toLocaleLowerCase(locale)) {
+      input.checked = true;
 
-  } else if (isEmpty(value)) { // default value
-    addClass(input, 'noValue');
+    } else if (value === cellProperties.uncheckedTemplate ||
+      stringify(value).toLocaleLowerCase(locale) ===
+      stringify(cellProperties.uncheckedTemplate).toLocaleLowerCase(locale)) {
+      input.checked = false;
 
-  } else {
-    input.style.display = 'none';
-    addClass(input, BAD_VALUE_CLASS);
-    badValue = true;
-  }
+    } else if (isEmpty(value)) { // default value
+      addClass(input, 'noValue');
 
-  setAttribute(input, [
-    [ATTR_ROW, row],
-    [ATTR_COLUMN, col],
-  ]);
-
-  if (ariaEnabled) {
-    setAttribute(input, [
-      A11Y_LABEL(input.checked ?
-        hotInstance.getTranslatedPhrase(CHECKBOX_CHECKED) :
-        hotInstance.getTranslatedPhrase(CHECKBOX_UNCHECKED)
-      ),
-      A11Y_CHECKED(input.checked),
-      A11Y_CHECKBOX(),
-    ]);
-  }
-
-  if (!badValue && labelOptions) {
-    let labelText = '';
-
-    if (labelOptions.value) {
-      const labelFn = labelOptions.value as (...args: unknown[]) => unknown;
-
-      labelText = typeof labelOptions.value === 'function' ?
-        String(labelFn(row, col, prop, value)) : String(labelOptions.value);
-
-    } else if (labelOptions.property) {
-      const labelValue = hotInstance.getDataAtRowProp(row, String(labelOptions.property));
-
-      labelText = labelValue !== null ? String(labelValue) : '';
+    } else {
+      input.style.display = 'none';
+      addClass(input, BAD_VALUE_CLASS);
+      badValue = true;
     }
 
-    const label = createLabel(rootDocument, labelText, labelOptions.separated !== true);
+    setAttribute(input, [
+      [ATTR_ROW, row],
+      [ATTR_COLUMN, col],
+    ]);
 
-    if (labelOptions.position === 'before') {
-      if (labelOptions.separated) {
-        TD.appendChild(label);
-        TD.appendChild(input);
+    if (ariaEnabled) {
+      setAttribute(input, [
+        A11Y_LABEL(input.checked ?
+          hotInstance.getTranslatedPhrase(CHECKBOX_CHECKED) :
+          hotInstance.getTranslatedPhrase(CHECKBOX_UNCHECKED)
+        ),
+        A11Y_CHECKED(input.checked),
+        A11Y_CHECKBOX(),
+      ]);
+    }
+  }
 
-      } else {
-        label.appendChild(input);
-        inputOrWrapper = label;
+  /**
+   * Apply label options to the cell, creating and positioning the label element.
+   *
+   * @private
+   */
+  function applyLabelOptions() {
+    if (!badValue && labelOptions) {
+      let labelText = '';
+
+      if (labelOptions.value) {
+        const labelFn = labelOptions.value as (...args: unknown[]) => unknown;
+
+        labelText = typeof labelOptions.value === 'function' ?
+          String(labelFn(row, col, prop, value)) : String(labelOptions.value);
+
+      } else if (labelOptions.property) {
+        const labelValue = hotInstance.getDataAtRowProp(row, String(labelOptions.property));
+
+        labelText = labelValue !== null ? String(labelValue) : '';
       }
-    } else if (!labelOptions.position || labelOptions.position === 'after') {
-      if (labelOptions.separated) {
-        TD.appendChild(input);
-        TD.appendChild(label);
 
-      } else {
-        label.insertBefore(input, label.firstChild);
-        inputOrWrapper = label;
+      const label = createLabel(rootDocument, labelText, labelOptions.separated !== true);
+
+      if (labelOptions.position === 'before') {
+        if (labelOptions.separated) {
+          TD.appendChild(label);
+          TD.appendChild(input);
+
+        } else {
+          label.appendChild(input);
+          inputOrWrapper = label;
+        }
+      } else if (!labelOptions.position || labelOptions.position === 'after') {
+        if (labelOptions.separated) {
+          TD.appendChild(input);
+          TD.appendChild(label);
+
+        } else {
+          label.insertBefore(input, label.firstChild);
+          inputOrWrapper = label;
+        }
       }
     }
   }

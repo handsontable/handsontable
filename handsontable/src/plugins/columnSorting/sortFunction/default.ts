@@ -2,6 +2,67 @@ import { isEmpty } from '../../../helpers/mixed';
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortService';
 
 /**
+ * Normalizes a cell value for comparison by converting booleans to numbers and strings to lowercase.
+ *
+ * @param {unknown} value The value to normalize.
+ * @param {string | undefined} locale The locale to use for string lowercasing.
+ * @returns {unknown} The normalized value.
+ */
+function normalizeValue(value: unknown, locale: string | undefined): unknown {
+  if (typeof value === 'boolean') {
+    return Number(value);
+  }
+
+  if (typeof value === 'string') {
+    return value.toLocaleLowerCase(locale);
+  }
+
+  return value;
+}
+
+/**
+ * Compares two non-empty values, handling NaN and numeric coercion.
+ *
+ * @param {unknown} value The first value.
+ * @param {unknown} nextValue The second value.
+ * @param {string} sortOrder The sort order (`asc` or `desc`).
+ * @returns {number} The comparison result.
+ */
+function compareNonEmptyValues(value: unknown, nextValue: unknown, sortOrder: string): number {
+  const valueIsNaN = isNaN(value as number);
+  const nextValueIsNaN = isNaN(nextValue as number);
+
+  if (valueIsNaN && !nextValueIsNaN) {
+    return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
+  }
+
+  if (!valueIsNaN && nextValueIsNaN) {
+    return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
+  }
+
+  let comparableValue = value;
+  let comparableNextValue = nextValue;
+
+  if (!valueIsNaN && !nextValueIsNaN) {
+    comparableValue = parseFloat(String(value));
+    comparableNextValue = parseFloat(String(nextValue));
+  }
+
+  const a = comparableValue as string | number;
+  const b = comparableNextValue as string | number;
+
+  if (a < b) {
+    return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
+  }
+
+  if (a > b) {
+    return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
+  }
+
+  return DO_NOT_SWAP;
+}
+
+/**
  * Default sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
  *
  * @param {string} sortOrder Sort order (`asc` for ascending, `desc` for descending).
@@ -17,28 +78,15 @@ export function compareFunctionFactory(
   return function(value: unknown, nextValue: unknown) {
     const { sortEmptyCells } = columnPluginSettings;
 
-    if (typeof value === 'boolean') {
-      value = Number(value);
-    }
+    const normalizedValue = normalizeValue(value, locale);
+    const normalizedNextValue = normalizeValue(nextValue, locale);
 
-    if (typeof nextValue === 'boolean') {
-      nextValue = Number(nextValue);
-    }
-
-    if (typeof value === 'string') {
-      value = value.toLocaleLowerCase(locale);
-    }
-
-    if (typeof nextValue === 'string') {
-      nextValue = nextValue.toLocaleLowerCase(locale);
-    }
-
-    if (value === nextValue) {
+    if (normalizedValue === normalizedNextValue) {
       return DO_NOT_SWAP;
     }
 
-    if (isEmpty(value)) {
-      if (isEmpty(nextValue)) {
+    if (isEmpty(normalizedValue)) {
+      if (isEmpty(normalizedNextValue)) {
         return DO_NOT_SWAP;
       }
 
@@ -50,7 +98,7 @@ export function compareFunctionFactory(
       return FIRST_AFTER_SECOND;
     }
 
-    if (isEmpty(nextValue)) {
+    if (isEmpty(normalizedNextValue)) {
       // Just second value is empty and `sortEmptyCells` option was set
       if (sortEmptyCells) {
         return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
@@ -59,29 +107,7 @@ export function compareFunctionFactory(
       return FIRST_BEFORE_SECOND;
     }
 
-    if (isNaN(value as number) && !isNaN(nextValue as number)) {
-      return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
-
-    } else if (!isNaN(value as number) && isNaN(nextValue as number)) {
-      return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
-
-    } else if (!(isNaN(value as number) || isNaN(nextValue as number))) {
-      value = parseFloat(String(value));
-      nextValue = parseFloat(String(nextValue));
-    }
-
-    const comparableValue = value as string | number;
-    const comparableNextValue = nextValue as string | number;
-
-    if (comparableValue < comparableNextValue) {
-      return sortOrder === 'asc' ? FIRST_BEFORE_SECOND : FIRST_AFTER_SECOND;
-    }
-
-    if (comparableValue > comparableNextValue) {
-      return sortOrder === 'asc' ? FIRST_AFTER_SECOND : FIRST_BEFORE_SECOND;
-    }
-
-    return DO_NOT_SWAP;
+    return compareNonEmptyValues(normalizedValue, normalizedNextValue, sortOrder);
   };
 }
 

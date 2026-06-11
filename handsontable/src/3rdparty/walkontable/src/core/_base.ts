@@ -376,7 +376,7 @@ export default class CoreAbstract {
    * @returns {ScrollDao}
    */
   createScrollDao() {
-    const wot = this;
+    const wot = this; // NOSONAR
 
     return {
       get drawn() {
@@ -427,7 +427,7 @@ export default class CoreAbstract {
    * @returns {Record<string, unknown>}
    */
   getTableDao(): Record<string, unknown> {
-    const wot = this;
+    const wot = this; // NOSONAR
 
     return {
       get wot() {

@@ -457,7 +457,7 @@ export class DataProvider extends BasePlugin {
     const onRowsCreate = this.#getOnRowsCreate();
 
     if (!isFunction(onRowsCreate)) {
-      return Promise.resolve();
+      return;
     }
 
     const rowsCreatePayload = {
@@ -493,7 +493,7 @@ export class DataProvider extends BasePlugin {
     const onRowsRemove = this.#getOnRowsRemove();
 
     if (!isFunction(onRowsRemove)) {
-      return Promise.resolve();
+      return;
     }
 
     const ids = Array.isArray(rowIds) ? rowIds : [rowIds];

@@ -86,6 +86,49 @@ import DataMap from './dataMap/dataMap';
 let activeGuid: string | null = null;
 
 /**
+ * Normalizes an array of `[index, amount]` pairs by merging overlapping or adjacent groups
+ * into the smallest set of non-overlapping groups, sorted in ascending order.
+ *
+ * @param {number[][]} indexes Array of `[index, amount]` pairs to normalize.
+ * @returns {number[][]} Normalized array of `[index, amount]` pairs.
+ */
+function normalizeIndexesGroup(indexes: number[][]): number[][] {
+  if (indexes.length === 0) {
+    return [];
+  }
+
+  const sortedIndexes = [...indexes];
+
+  // Sort the indexes in ascending order.
+  sortedIndexes.sort(([indexA], [indexB]) => {
+    if (indexA === indexB) {
+      return 0;
+    }
+
+    return indexA > indexB ? 1 : -1;
+  });
+
+  // Normalize the {index, amount} groups into bigger groups.
+  const normalizedIndexes = arrayReduce(sortedIndexes, (acc: number[][], [groupIndex, groupAmount]: number[]) => {
+    const previousItem = acc[acc.length - 1];
+    const [prevIndex, prevAmount] = previousItem;
+    const prevLastIndex = prevIndex + prevAmount;
+
+    if (groupIndex <= prevLastIndex) {
+      const amountToAdd = Math.max(groupAmount - (prevLastIndex - groupIndex), 0);
+
+      previousItem[1] += amountToAdd;
+    } else {
+      acc.push([groupIndex, groupAmount]);
+    }
+
+    return acc;
+  }, [sortedIndexes[0]]);
+
+  return normalizedIndexes;
+}
+
+/**
  * Keeps the collection of the all Handsontable instances created on the same page. The
  * list is then used to trigger the "afterUnlisten" hook when the "listen()" method was
  * called on another instance.
@@ -756,45 +799,45 @@ export default function Core(
   });
 
   this.selection
-    .addLocalHook('beforeHighlightSet', () => void instance.runHooks('beforeSelectionHighlightSet'))
+    .addLocalHook('beforeHighlightSet', () => instance.runHooks('beforeSelectionHighlightSet'))
     .addLocalHook('beforeSetRangeStart',
-      (...args: unknown[]) => void instance.runHooks('beforeSetRangeStart', ...args))
+      (...args: unknown[]) => instance.runHooks('beforeSetRangeStart', ...args))
     .addLocalHook('beforeSetRangeStartOnly',
-      (...args: unknown[]) => void instance.runHooks('beforeSetRangeStartOnly', ...args))
+      (...args: unknown[]) => instance.runHooks('beforeSetRangeStartOnly', ...args))
     .addLocalHook('beforeSetRangeEnd',
-      (...args: unknown[]) => void instance.runHooks('beforeSetRangeEnd', ...args))
+      (...args: unknown[]) => instance.runHooks('beforeSetRangeEnd', ...args))
     .addLocalHook('beforeSelectColumns',
-      (...args: unknown[]) => void instance.runHooks('beforeSelectColumns', ...args))
+      (...args: unknown[]) => instance.runHooks('beforeSelectColumns', ...args))
     .addLocalHook('afterSelectColumns',
-      (...args: unknown[]) => void instance.runHooks('afterSelectColumns', ...args))
+      (...args: unknown[]) => instance.runHooks('afterSelectColumns', ...args))
     .addLocalHook('beforeSelectRows',
-      (...args: unknown[]) => void instance.runHooks('beforeSelectRows', ...args))
+      (...args: unknown[]) => instance.runHooks('beforeSelectRows', ...args))
     .addLocalHook('afterSelectRows',
-      (...args: unknown[]) => void instance.runHooks('afterSelectRows', ...args))
+      (...args: unknown[]) => instance.runHooks('afterSelectRows', ...args))
     .addLocalHook('beforeSelectAll',
-      (...args: unknown[]) => void instance.runHooks('beforeSelectAll', ...args))
+      (...args: unknown[]) => instance.runHooks('beforeSelectAll', ...args))
     .addLocalHook('afterSelectAll',
-      (...args: unknown[]) => void instance.runHooks('afterSelectAll', ...args))
+      (...args: unknown[]) => instance.runHooks('afterSelectAll', ...args))
     .addLocalHook('beforeModifyTransformStart',
-      (...args: unknown[]) => void instance.runHooks('modifyTransformStart', ...args))
+      (...args: unknown[]) => instance.runHooks('modifyTransformStart', ...args))
     .addLocalHook('afterModifyTransformStart',
-      (...args: unknown[]) => void instance.runHooks('afterModifyTransformStart', ...args))
+      (...args: unknown[]) => instance.runHooks('afterModifyTransformStart', ...args))
     .addLocalHook('beforeModifyTransformFocus',
-      (...args: unknown[]) => void instance.runHooks('modifyTransformFocus', ...args))
+      (...args: unknown[]) => instance.runHooks('modifyTransformFocus', ...args))
     .addLocalHook('afterModifyTransformFocus',
-      (...args: unknown[]) => void instance.runHooks('afterModifyTransformFocus', ...args))
+      (...args: unknown[]) => instance.runHooks('afterModifyTransformFocus', ...args))
     .addLocalHook('beforeModifyTransformEnd',
-      (...args: unknown[]) => void instance.runHooks('modifyTransformEnd', ...args))
+      (...args: unknown[]) => instance.runHooks('modifyTransformEnd', ...args))
     .addLocalHook('afterModifyTransformEnd',
-      (...args: unknown[]) => void instance.runHooks('afterModifyTransformEnd', ...args))
+      (...args: unknown[]) => instance.runHooks('afterModifyTransformEnd', ...args))
     .addLocalHook('beforeRowWrap',
-      (...args: unknown[]) => void instance.runHooks('beforeRowWrap', ...args))
+      (...args: unknown[]) => instance.runHooks('beforeRowWrap', ...args))
     .addLocalHook('beforeColumnWrap',
-      (...args: unknown[]) => void instance.runHooks('beforeColumnWrap', ...args))
+      (...args: unknown[]) => instance.runHooks('beforeColumnWrap', ...args))
     .addLocalHook('insertRowRequire',
-      (totalRows: number) => void instance.alter('insert_row_above', totalRows, 1, 'auto'))
+      (totalRows: number) => instance.alter('insert_row_above', totalRows, 1, 'auto'))
     .addLocalHook('insertColRequire',
-      (totalCols: number) => void instance.alter('insert_col_start', totalCols, 1, 'auto'));
+      (totalCols: number) => instance.alter('insert_col_start', totalCols, 1, 'auto'));
 
   grid = {
     /**
@@ -818,42 +861,6 @@ export default function Core(
       if (skipAlter === false) {
         return;
       }
-
-      const normalizeIndexesGroup = (indexes: number[][]) => {
-        if (indexes.length === 0) {
-          return [];
-        }
-
-        const sortedIndexes = [...indexes];
-
-        // Sort the indexes in ascending order.
-        sortedIndexes.sort(([indexA], [indexB]) => {
-          if (indexA === indexB) {
-            return 0;
-          }
-
-          return indexA > indexB ? 1 : -1;
-        });
-
-        // Normalize the {index, amount} groups into bigger groups.
-        const normalizedIndexes = arrayReduce(sortedIndexes, (acc: number[][], [groupIndex, groupAmount]: number[]) => {
-          const previousItem = acc[acc.length - 1];
-          const [prevIndex, prevAmount] = previousItem;
-          const prevLastIndex = prevIndex + prevAmount;
-
-          if (groupIndex <= prevLastIndex) {
-            const amountToAdd = Math.max(groupAmount - (prevLastIndex - groupIndex), 0);
-
-            previousItem[1] += amountToAdd;
-          } else {
-            acc.push([groupIndex, groupAmount]);
-          }
-
-          return acc;
-        }, [sortedIndexes[0]]);
-
-        return normalizedIndexes;
-      };
 
       /* eslint-disable no-case-declarations */
       switch (action) {
@@ -2412,13 +2419,15 @@ export default function Core(
         return;
       }
 
-      rangeEach(fromRow, toRow, (row) => {
+      const collectEmptyCellChanges = (row: number) => {
         rangeEach(fromColumn, toColumn, (column) => {
           if (!this.getCellMeta(row, column).readOnly) {
             changes.push([row, column, null]);
           }
         });
-      });
+      };
+
+      rangeEach(fromRow, toRow, collectEmptyCellChanges);
     });
 
     if (changes.length > 0) {
@@ -3284,7 +3293,7 @@ export default function Core(
       const initialStyle = instance.rootElement.getAttribute('style');
 
       if (initialStyle) {
-        instance.rootElement.setAttribute('data-initialstyle', instance.rootElement.getAttribute('style') ?? '');
+        instance.rootElement.dataset.initialstyle = instance.rootElement.getAttribute('style') ?? '';
       }
     }
 
@@ -3299,7 +3308,7 @@ export default function Core(
 
       if (height === null) {
 
-        const initialStyle = instance.rootElement.getAttribute('data-initialstyle');
+        const initialStyle = instance.rootElement.dataset.initialstyle;
 
         if (initialStyle && (initialStyle.indexOf('height') > -1 || initialStyle.indexOf('overflow') > -1)) {
           instance.rootElement.setAttribute('style', initialStyle);
@@ -5243,6 +5252,33 @@ export default function Core(
   };
 
   /**
+   * Resolves renderable row and column indexes for scrolling, accounting for hidden indexes.
+   *
+   * @param {number|undefined} row Visual row index.
+   * @param {number|undefined} col Visual column index.
+   * @returns {{renderableRow: number|undefined, renderableColumn: number|undefined}|false} Resolved
+   *   renderable indexes, or `false` when scrolling target is not reachable.
+   */
+  const resolveRenderableScrollTarget = (row: number | undefined, col: number | undefined) => {
+    const isValidRowGrid = row !== undefined && Number.isInteger(row) && row >= 0;
+    const isValidColumnGrid = col !== undefined && Number.isInteger(col) && col >= 0;
+
+    const visualRowToScroll = isValidRowGrid ? getIndexToScroll(instance.rowIndexMapper, row!) : undefined;
+    const visualColumnToScroll = isValidColumnGrid ? getIndexToScroll(instance.columnIndexMapper, col!) : undefined;
+
+    if (visualRowToScroll === null || visualColumnToScroll === null) {
+      return false;
+    }
+
+    const renderableRow = isValidRowGrid ?
+      (instance.rowIndexMapper.getRenderableFromVisualIndex(visualRowToScroll!) ?? undefined) : row;
+    const renderableColumn = isValidColumnGrid ?
+      (instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumnToScroll!) ?? undefined) : col;
+
+    return { renderableRow, renderableColumn };
+  };
+
+  /**
    * Scroll viewport to coordinates specified by the `row` and/or `col` object properties.
    *
    * ```js
@@ -5315,21 +5351,14 @@ export default function Core(
     }
 
     if (considerHiddenIndexes === undefined || considerHiddenIndexes) {
-      const isValidRowGrid = row !== undefined && Number.isInteger(row) && row >= 0;
-      const isValidColumnGrid = col !== undefined && Number.isInteger(col) && col >= 0;
+      const resolved = resolveRenderableScrollTarget(row, col);
 
-      const visualRowToScroll = isValidRowGrid ? getIndexToScroll(this.rowIndexMapper, row!) : undefined;
-      const visualColumnToScroll = isValidColumnGrid ? getIndexToScroll(this.columnIndexMapper, col!) : undefined;
-
-      if (visualRowToScroll === null || visualColumnToScroll === null) {
+      if (resolved === false) {
         return false;
       }
 
-      renderableRow = isValidRowGrid ?
-        (instance.rowIndexMapper.getRenderableFromVisualIndex(visualRowToScroll!) ?? undefined) : row;
-
-      renderableColumn = isValidColumnGrid ?
-        (instance.columnIndexMapper.getRenderableFromVisualIndex(visualColumnToScroll!) ?? undefined) : col;
+      renderableRow = resolved.renderableRow;
+      renderableColumn = resolved.renderableColumn;
     }
 
     const isRowInteger = Number.isInteger(renderableRow);

@@ -288,7 +288,7 @@ class TableView {
     const originalStyle = rootElement.getAttribute('style');
 
     if (originalStyle) {
-      rootElement.setAttribute('data-originalstyle', originalStyle); // needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
+      rootElement.dataset.originalstyle = originalStyle; // needed to retrieve original style in jsFiddle link generator in HT examples. may be removed in future versions
     }
 
     addClass(rootElement, 'handsontable');

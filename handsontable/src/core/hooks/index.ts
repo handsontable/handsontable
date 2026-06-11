@@ -210,61 +210,56 @@ export class Hooks {
     context: Record<string, unknown>, key: string,
     p1?: unknown, p2?: unknown, p3?: unknown, p4?: unknown, p5?: unknown, p6?: unknown
   ) {
-    {
-      const globalHandlers = this.getBucket().getHooks(key);
-      const length = globalHandlers ? globalHandlers.length : 0;
-      let index = 0;
+    p1 = this.#runHandlers(this.getBucket().getHooks(key), context, key, null, p1, p2, p3, p4, p5, p6);
+    p1 = this.#runHandlers(this.getBucket(context).getHooks(key), context, key, context, p1, p2, p3, p4, p5, p6);
 
-      if (length) {
-        // Do not optimize this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
-        while (index < length) {
-          if (!globalHandlers[index] || globalHandlers[index].skip) {
-            index += 1;
-            /* eslint-disable no-continue */
-            continue;
-          }
+    return p1;
+  }
 
-          const res = fastCall(globalHandlers[index].callback, context, p1, p2, p3, p4, p5, p6);
+  /**
+   * Runs all callbacks from a single handler list (global or local), threading the return value through p1.
+   *
+   * @param {Array|null} handlers The list of hook entries to iterate.
+   * @param {object} context Handsontable instance used as `this` for each callback.
+   * @param {string} key Hook/Event name.
+   * @param {object|null} removeContext Context passed to `remove` — null for global handlers.
+   * @param {*} p1 First argument (threaded through callbacks).
+   * @param {*} p2 Second argument.
+   * @param {*} p3 Third argument.
+   * @param {*} p4 Fourth argument.
+   * @param {*} p5 Fifth argument.
+   * @param {*} p6 Sixth argument.
+   * @returns {*} Updated p1 value after running all callbacks.
+   */
+  #runHandlers(
+    handlers: ReturnType<HooksBucket['getHooks']>,
+    context: Record<string, unknown>,
+    key: string,
+    removeContext: Record<string, unknown> | null,
+    p1: unknown, p2: unknown, p3: unknown, p4: unknown, p5: unknown, p6: unknown
+  ) {
+    const length = handlers ? handlers.length : 0;
+    let index = 0;
 
-          if (res !== undefined) {
-            // eslint-disable-next-line no-param-reassign
-            p1 = res;
-          }
-          if (globalHandlers[index] && globalHandlers[index].runOnce) {
-            this.remove(key, globalHandlers[index].callback);
-          }
-
+    if (length) {
+      // Do not optimize this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
+      while (index < length) {
+        if (!handlers[index] || handlers[index].skip) {
           index += 1;
+          /* eslint-disable no-continue */
+          continue;
         }
-      }
-    }
-    {
-      const localHandlers = this.getBucket(context).getHooks(key);
-      const length = localHandlers ? localHandlers.length : 0;
-      let index = 0;
 
-      if (length) {
-        // Do not optimize this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
-        while (index < length) {
-          if (!localHandlers[index] || localHandlers[index].skip) {
-            index += 1;
-            /* eslint-disable no-continue */
-            continue;
-          }
+        const res = fastCall(handlers[index].callback, context, p1, p2, p3, p4, p5, p6);
 
-          const res = fastCall(localHandlers[index].callback, context, p1, p2, p3, p4, p5, p6);
-
-          if (res !== undefined) {
-            // eslint-disable-next-line no-param-reassign
-            p1 = res;
-          }
-
-          if (localHandlers[index] && localHandlers[index].runOnce) {
-            this.remove(key, localHandlers[index].callback, context);
-          }
-
-          index += 1;
+        if (res !== undefined) {
+          p1 = res;
         }
+        if (handlers[index] && handlers[index].runOnce) {
+          this.remove(key, handlers[index].callback, removeContext);
+        }
+
+        index += 1;
       }
     }
 

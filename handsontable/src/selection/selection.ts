@@ -351,15 +351,15 @@ class Selection {
     if (!isMultipleMode || (isMultipleMode && !isMultipleSelection && isUndefined(multipleSelection))) {
       this.selectedRange.clear();
 
-      this.highlight.getAreas().forEach(highlight => void highlight.clear());
-      this.highlight.getLayeredAreas().forEach(highlight => void highlight.clear());
-      this.highlight.getRowHeaders().forEach(highlight => void highlight.clear());
-      this.highlight.getColumnHeaders().forEach(highlight => void highlight.clear());
-      this.highlight.getActiveRowHeaders().forEach(highlight => void highlight.clear());
-      this.highlight.getActiveColumnHeaders().forEach(highlight => void highlight.clear());
-      this.highlight.getActiveCornerHeaders().forEach(highlight => void highlight.clear());
-      this.highlight.getRowHighlights().forEach(highlight => void highlight.clear());
-      this.highlight.getColumnHighlights().forEach(highlight => void highlight.clear());
+      this.highlight.getAreas().forEach(highlight => highlight.clear());
+      this.highlight.getLayeredAreas().forEach(highlight => highlight.clear());
+      this.highlight.getRowHeaders().forEach(highlight => highlight.clear());
+      this.highlight.getColumnHeaders().forEach(highlight => highlight.clear());
+      this.highlight.getActiveRowHeaders().forEach(highlight => highlight.clear());
+      this.highlight.getActiveColumnHeaders().forEach(highlight => highlight.clear());
+      this.highlight.getActiveCornerHeaders().forEach(highlight => highlight.clear());
+      this.highlight.getRowHighlights().forEach(highlight => highlight.clear());
+      this.highlight.getColumnHighlights().forEach(highlight => highlight.clear());
     }
 
     this.selectedRange
@@ -549,71 +549,111 @@ class Selection {
     }
 
     if (this.highlight.isEnabledFor(HEADER_TYPE, cellRange.highlight)) {
-      if (!cellRange.isSingleHeader()) {
-        const rowCoordsFrom = this.tableProps.createCellCoords(Math.max(cellRange.from.row ?? 0, 0), -1);
-        const rowCoordsTo = this.tableProps.createCellCoords(cellRange.to.row ?? 0, -1);
-        const columnCoordsFrom = this.tableProps.createCellCoords(-1, Math.max(cellRange.from.col ?? 0, 0));
-        const columnCoordsTo = this.tableProps.createCellCoords(-1, cellRange.to.col ?? 0);
+      this.#applyHeaderHighlights(
+        cellRange,
+        countRows,
+        countCols,
+        rowHeaderHighlight,
+        columnHeaderHighlight,
+        activeRowHeaderHighlight,
+        activeColumnHeaderHighlight,
+        activeCornerHeaderHighlight,
+        rowHighlight,
+        columnHighlight,
+      );
+    }
+  }
 
-        if (this.settings.selectionMode === 'single') {
-          rowHeaderHighlight?.add(rowCoordsFrom).commit();
-          columnHeaderHighlight?.add(columnCoordsFrom).commit();
-          rowHighlight?.add(rowCoordsFrom).commit();
-          columnHighlight?.add(columnCoordsFrom).commit();
+  /**
+   * Applies header-type highlights for the given cell range.
+   *
+   * @param {CellRange} cellRange The cell range to highlight.
+   * @param {number} countRows The total number of rows.
+   * @param {number} countCols The total number of columns.
+   * @param {object | null | undefined} rowHeaderHighlight The row header highlight instance.
+   * @param {object | null | undefined} columnHeaderHighlight The column header highlight instance.
+   * @param {object | null | undefined} activeRowHeaderHighlight The active row header highlight instance.
+   * @param {object | null | undefined} activeColumnHeaderHighlight The active column header highlight instance.
+   * @param {object | null | undefined} activeCornerHeaderHighlight The active corner header highlight instance.
+   * @param {object | null | undefined} rowHighlight The row highlight instance.
+   * @param {object | null | undefined} columnHighlight The column highlight instance.
+   */
+  #applyHeaderHighlights(
+    cellRange: CellRange,
+    countRows: number,
+    countCols: number,
+    rowHeaderHighlight: ReturnType<Highlight['createRowHeader']>,
+    columnHeaderHighlight: ReturnType<Highlight['createColumnHeader']>,
+    activeRowHeaderHighlight: ReturnType<Highlight['createActiveRowHeader']>,
+    activeColumnHeaderHighlight: ReturnType<Highlight['createActiveColumnHeader']>,
+    activeCornerHeaderHighlight: ReturnType<Highlight['createActiveCornerHeader']>,
+    rowHighlight: ReturnType<Highlight['createRowHighlight']>,
+    columnHighlight: ReturnType<Highlight['createColumnHighlight']>,
+  ) {
+    if (!cellRange.isSingleHeader()) {
+      const rowCoordsFrom = this.tableProps.createCellCoords(Math.max(cellRange.from.row ?? 0, 0), -1);
+      const rowCoordsTo = this.tableProps.createCellCoords(cellRange.to.row ?? 0, -1);
+      const columnCoordsFrom = this.tableProps.createCellCoords(-1, Math.max(cellRange.from.col ?? 0, 0));
+      const columnCoordsTo = this.tableProps.createCellCoords(-1, cellRange.to.col ?? 0);
 
-        } else {
-          rowHeaderHighlight
-            ?.add(rowCoordsFrom)
-            .add(rowCoordsTo)
-            .commit();
-          columnHeaderHighlight
-            ?.add(columnCoordsFrom)
-            .add(columnCoordsTo)
-            .commit();
-          rowHighlight
-            ?.add(rowCoordsFrom)
-            .add(rowCoordsTo)
-            .commit();
-          columnHighlight
-            ?.add(columnCoordsFrom)
-            .add(columnCoordsTo)
-            .commit();
-        }
-      }
+      if (this.settings.selectionMode === 'single') {
+        rowHeaderHighlight?.add(rowCoordsFrom).commit();
+        columnHeaderHighlight?.add(columnCoordsFrom).commit();
+        rowHighlight?.add(rowCoordsFrom).commit();
+        columnHighlight?.add(columnCoordsFrom).commit();
 
-      const highlightRowHeaders = !this.#disableHeadersHighlight && (this.isEntireRowSelected() &&
-        (countCols > 0 && countCols === cellRange.getWidth() ||
-        countCols === 0 && this.isSelectedByRowHeader()));
-      const highlightColumnHeaders = !this.#disableHeadersHighlight && (this.isEntireColumnSelected() &&
-        (countRows > 0 && countRows === cellRange.getHeight() ||
-        countRows === 0 && this.isSelectedByColumnHeader()));
-
-      if (highlightRowHeaders) {
-        activeRowHeaderHighlight
-          ?.add(this.tableProps
-            .createCellCoords(Math.max(cellRange.from.row ?? 0, 0), Math.min(-this.tableProps.countRowHeaders(), -1)))
-          .add(this.tableProps
-            .createCellCoords(Math.max(cellRange.to.row ?? 0, 0), -1))
+      } else {
+        rowHeaderHighlight
+          ?.add(rowCoordsFrom)
+          .add(rowCoordsTo)
+          .commit();
+        columnHeaderHighlight
+          ?.add(columnCoordsFrom)
+          .add(columnCoordsTo)
+          .commit();
+        rowHighlight
+          ?.add(rowCoordsFrom)
+          .add(rowCoordsTo)
+          .commit();
+        columnHighlight
+          ?.add(columnCoordsFrom)
+          .add(columnCoordsTo)
           .commit();
       }
+    }
 
-      if (highlightColumnHeaders) {
-        activeColumnHeaderHighlight
-          ?.add(this.tableProps
-            .createCellCoords(Math.min(-this.tableProps.countColHeaders(), -1), Math.max(cellRange.from.col ?? 0, 0)))
-          .add(this.tableProps
-            .createCellCoords(-1, Math.max(cellRange.to.col ?? 0, 0)))
-          .commit();
-      }
+    const highlightRowHeaders = !this.#disableHeadersHighlight && (this.isEntireRowSelected() &&
+      (countCols > 0 && countCols === cellRange.getWidth() ||
+      countCols === 0 && this.isSelectedByRowHeader()));
+    const highlightColumnHeaders = !this.#disableHeadersHighlight && (this.isEntireColumnSelected() &&
+      (countRows > 0 && countRows === cellRange.getHeight() ||
+      countRows === 0 && this.isSelectedByColumnHeader()));
 
-      if (highlightRowHeaders && highlightColumnHeaders) {
-        activeCornerHeaderHighlight
-          ?.add(this.tableProps
-            .createCellCoords(-this.tableProps.countColHeaders(), -this.tableProps.countRowHeaders()))
-          .add(this.tableProps
-            .createCellCoords(-1, -1))
-          .commit();
-      }
+    if (highlightRowHeaders) {
+      activeRowHeaderHighlight
+        ?.add(this.tableProps
+          .createCellCoords(Math.max(cellRange.from.row ?? 0, 0), Math.min(-this.tableProps.countRowHeaders(), -1)))
+        .add(this.tableProps
+          .createCellCoords(Math.max(cellRange.to.row ?? 0, 0), -1))
+        .commit();
+    }
+
+    if (highlightColumnHeaders) {
+      activeColumnHeaderHighlight
+        ?.add(this.tableProps
+          .createCellCoords(Math.min(-this.tableProps.countColHeaders(), -1), Math.max(cellRange.from.col ?? 0, 0)))
+        .add(this.tableProps
+          .createCellCoords(-1, Math.max(cellRange.to.col ?? 0, 0)))
+        .commit();
+    }
+
+    if (highlightRowHeaders && highlightColumnHeaders) {
+      activeCornerHeaderHighlight
+        ?.add(this.tableProps
+          .createCellCoords(-this.tableProps.countColHeaders(), -this.tableProps.countRowHeaders()))
+        .add(this.tableProps
+          .createCellCoords(-1, -1))
+        .commit();
     }
   }
 

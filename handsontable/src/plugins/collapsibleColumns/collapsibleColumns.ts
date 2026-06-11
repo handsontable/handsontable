@@ -507,18 +507,7 @@ export class CollapsibleColumns extends BasePlugin {
 
     // Ignore coordinates which points to the cells range.
     const filteredCoords = arrayFilter(coords, ({ row }) => row < 0);
-    let isActionPossible = filteredCoords.length > 0;
-
-    arrayEach(filteredCoords, ({ row, col: column }) => {
-      const { collapsible, isCollapsed } = this.headerStateManager?.getHeaderSettings(row, column)
-        ?? {} as Record<string, unknown>;
-
-      if (!collapsible || isCollapsed && action === 'collapse' || !isCollapsed && action === 'expand') {
-        isActionPossible = false;
-
-        return false;
-      }
-    });
+    const isActionPossible = this.#checkIsActionPossible(filteredCoords, action!);
 
     const nodeModRollbacks: Function[] = [];
     const affectedColumnsIndexes: number[] = [];
@@ -576,23 +565,9 @@ export class CollapsibleColumns extends BasePlugin {
     }, true);
 
     const isActionPerformed = this.getCollapsedColumns().length !== currentCollapsedColumns.length;
-    const selectionRange = this.hot.getSelectedRangeActive();
 
-    if (action === 'collapse' && isActionPerformed && selectionRange) {
-      const { row, col } = selectionRange.highlight;
-
-      if (row !== null && col !== null) {
-        const isHidden = this.hot.rowIndexMapper.isHidden(row) || this.hot.columnIndexMapper.isHidden(col);
-
-        if (isHidden && affectedColumnsIndexes.includes(col)) {
-          const nextRow = row >= 0 ? this.hot.rowIndexMapper.getNearestNotHiddenIndex(row, 1, true) : row;
-          const nextColumn = col >= 0 ? this.hot.columnIndexMapper.getNearestNotHiddenIndex(col, 1, true) : col;
-
-          if (nextRow !== null && nextColumn !== null) {
-            this.hot.selectCell(nextRow, nextColumn);
-          }
-        }
-      }
+    if (action === 'collapse' && isActionPerformed) {
+      this.#adjustSelectionAfterCollapse(affectedColumnsIndexes);
     }
 
     this.hot.runHooks(
@@ -605,6 +580,69 @@ export class CollapsibleColumns extends BasePlugin {
 
     this.hot.view.adjustElementsSize();
     this.hot.render();
+  }
+
+  /**
+   * Checks whether a collapse or expand action is possible for the given filtered coordinates.
+   *
+   * @private
+   * @param {Array} filteredCoords Header coordinates filtered to header rows only.
+   * @param {string} action Action definition ('collapse' or 'expand').
+   * @returns {boolean}
+   */
+  #checkIsActionPossible(
+    filteredCoords: { row: number, col: number }[],
+    action: 'collapse' | 'expand'
+  ): boolean {
+    if (filteredCoords.length === 0) {
+      return false;
+    }
+
+    let isActionPossible = true;
+
+    arrayEach(filteredCoords, ({ row, col: column }) => {
+      const { collapsible, isCollapsed } = this.headerStateManager?.getHeaderSettings(row, column)
+        ?? {} as Record<string, unknown>;
+
+      if (!collapsible || isCollapsed && action === 'collapse' || !isCollapsed && action === 'expand') {
+        isActionPossible = false;
+
+        return false;
+      }
+    });
+
+    return isActionPossible;
+  }
+
+  /**
+   * Adjusts the active cell selection after a collapse action moves selected cells out of view.
+   *
+   * @private
+   * @param {number[]} affectedColumnsIndexes Visual indexes of columns hidden by the collapse.
+   */
+  #adjustSelectionAfterCollapse(affectedColumnsIndexes: number[]): void {
+    const selectionRange = this.hot.getSelectedRangeActive();
+
+    if (!selectionRange) {
+      return;
+    }
+
+    const { row, col } = selectionRange.highlight;
+
+    if (row === null || col === null) {
+      return;
+    }
+
+    const isHidden = this.hot.rowIndexMapper.isHidden(row) || this.hot.columnIndexMapper.isHidden(col);
+
+    if (isHidden && affectedColumnsIndexes.includes(col)) {
+      const nextRow = row >= 0 ? this.hot.rowIndexMapper.getNearestNotHiddenIndex(row, 1, true) : row;
+      const nextColumn = col >= 0 ? this.hot.columnIndexMapper.getNearestNotHiddenIndex(col, 1, true) : col;
+
+      if (nextRow !== null && nextColumn !== null) {
+        this.hot.selectCell(nextRow, nextColumn);
+      }
+    }
   }
 
   /**

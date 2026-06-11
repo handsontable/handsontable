@@ -28,6 +28,41 @@ interface MergeCellsPluginInstance {
 }
 
 /**
+ * Clamps the not-hidden row and column indexes to the virtual viewport boundaries
+ * based on the active overlay, ensuring merged cells don't extend beyond the visible area.
+ *
+ * @private
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {number | null} notHiddenRow The nearest not-hidden row index.
+ * @param {number | null} notHiddenColumn The nearest not-hidden column index.
+ * @returns {[number | null, number | null]} The clamped row and column indexes.
+ */
+function clampToVirtualViewport(
+  hot: HotInstance,
+  notHiddenRow: number | null,
+  notHiddenColumn: number | null
+): [number | null, number | null] {
+  const overlayName = hot.view.getActiveOverlayName();
+
+  if (!['top', 'top_inline_start_corner'].includes(overlayName)) {
+    const firstRenderedVisibleRow = hot.getFirstRenderedVisibleRow();
+
+    if (notHiddenRow !== null && firstRenderedVisibleRow !== null) {
+      notHiddenRow = Math.max(notHiddenRow, firstRenderedVisibleRow);
+    }
+  }
+  if (!['inline_start', 'top_inline_start_corner', 'bottom_inline_start_corner'].includes(overlayName)) {
+    const firstRenderedVisibleColumn = hot.getFirstRenderedVisibleColumn();
+
+    if (notHiddenColumn !== null && firstRenderedVisibleColumn !== null) {
+      notHiddenColumn = Math.max(notHiddenColumn, firstRenderedVisibleColumn);
+    }
+  }
+
+  return [notHiddenRow, notHiddenColumn];
+}
+
+/**
  * Creates a renderer object for the `MergeCells` plugin.
  *
  * @private
@@ -116,22 +151,9 @@ export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
     let notHiddenColumn = columnMapper.getNearestNotHiddenIndex(origColumn, 1);
 
     if (isVirtualRenderingEnabled) {
-      const overlayName = hot.view.getActiveOverlayName();
-
-      if (!['top', 'top_inline_start_corner'].includes(overlayName)) {
-        const firstRenderedVisibleRow = hot.getFirstRenderedVisibleRow();
-
-        if (notHiddenRow !== null && firstRenderedVisibleRow !== null) {
-          notHiddenRow = Math.max(notHiddenRow, firstRenderedVisibleRow);
-        }
-      }
-      if (!['inline_start', 'top_inline_start_corner', 'bottom_inline_start_corner'].includes(overlayName)) {
-        const firstRenderedVisibleColumn = hot.getFirstRenderedVisibleColumn();
-
-        if (notHiddenColumn !== null && firstRenderedVisibleColumn !== null) {
-          notHiddenColumn = Math.max(notHiddenColumn, firstRenderedVisibleColumn);
-        }
-      }
+      [notHiddenRow, notHiddenColumn] = clampToVirtualViewport(
+        hot, notHiddenRow, notHiddenColumn
+      );
     }
 
     const notHiddenRowspan = Math.min(origRowspan, maxRowSpan);

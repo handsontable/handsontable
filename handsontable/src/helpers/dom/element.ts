@@ -1289,7 +1289,7 @@ export function isInput(element: HTMLElement): boolean {
  * @returns {boolean}
  */
 export function isOutsideInput(element: HTMLElement): boolean {
-  return isInput(element) && element.hasAttribute('data-hot-input') === false;
+  return isInput(element) && ('hotInput' in element.dataset) === false;
 }
 
 /**

@@ -56,15 +56,12 @@ function getCellDecimalSeparator(cellMeta: CellProperties) {
  * Defines what value is set to a numeric-typed cell.
  *
  * @param {*} newValue The value to be set.
- * @param {number} row The row index.
- * @param {number} column The column index.
+ * @param {number} _row The row index.
+ * @param {number} _column The column index.
  * @param {object} cellMeta The cell meta object.
  * @returns {*} The new value to be set.
  */
-export function valueSetter(newValue: unknown, row: number, column: number, cellMeta: CellProperties): unknown {
-  void row;
-  void column;
-
+export function valueSetter(newValue: unknown, _row: number, _column: number, cellMeta: CellProperties): unknown {
   if (typeof newValue !== 'string') {
     return newValue;
   }

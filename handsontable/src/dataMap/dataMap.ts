@@ -162,46 +162,57 @@ class DataMap {
     }
 
     const columns = this.tableMeta.columns;
-    let i;
 
     this.colToPropCache = [];
     this.propToColCache = new Map();
 
     if (columns) {
-      let columnsLen = 0;
-      let filteredIndex = 0;
-      const isColumnsFn = typeof columns === 'function';
-
-      if (isColumnsFn) {
-        const schemaLen = deepObjectSize(schema);
-
-        columnsLen = schemaLen > 0 ? schemaLen : this.countFirstRowKeys();
-
-      } else {
-        const maxCols = this.tableMeta.maxCols;
-
-        columnsLen = Math.min(maxCols ?? Infinity, columns.length);
-      }
-
-      for (i = 0; i < columnsLen; i++) {
-        const column = typeof columns === 'function'
-          ? (columns as (index: number) => Record<string, unknown>)(i) : columns[i];
-
-        if (isObject(column)) {
-          if (typeof column.data !== 'undefined') {
-            const index = isColumnsFn ? filteredIndex : i;
-            const columnData = column.data as string | number;
-
-            this.colToPropCache[index] = columnData;
-            this.propToColCache!.set(columnData, index);
-          }
-
-          filteredIndex += 1;
-        }
-      }
-
+      this.#buildColumnCache(columns, schema);
     } else {
       this.recursiveDuckColumns(schema);
+    }
+  }
+
+  /**
+   * Builds the column property cache from the `columns` setting.
+   *
+   * @param {Function|Array} columns The columns setting value.
+   * @param {unknown} schema The current data schema.
+   */
+  #buildColumnCache(
+    columns: ((column: number) => Record<string, unknown>) | Record<string, unknown>[],
+    schema: unknown
+  ) {
+    let columnsLen = 0;
+    let filteredIndex = 0;
+    const isColumnsFn = typeof columns === 'function';
+
+    if (isColumnsFn) {
+      const schemaLen = deepObjectSize(schema);
+
+      columnsLen = schemaLen > 0 ? schemaLen : this.countFirstRowKeys();
+
+    } else {
+      const maxCols = this.tableMeta.maxCols;
+
+      columnsLen = Math.min(maxCols ?? Infinity, columns.length);
+    }
+
+    for (let i = 0; i < columnsLen; i++) {
+      const column = isColumnsFn
+        ? (columns as (index: number) => Record<string, unknown>)(i) : columns[i];
+
+      if (isObject(column)) {
+        if (typeof column.data !== 'undefined') {
+          const index = isColumnsFn ? filteredIndex : i;
+          const columnData = column.data as string | number;
+
+          this.colToPropCache[index] = columnData;
+          this.propToColCache!.set(columnData, index);
+        }
+
+        filteredIndex += 1;
+      }
     }
   }
 
@@ -479,28 +490,11 @@ class DataMap {
     for (
       let col = firstNewPhysicalColumnIndex;
       numberOfCreatedCols < amount && numberOfVisualCols + numberOfCreatedCols < (maxCols ?? Infinity);
-      col++
+      col++, numberOfCreatedCols++
     ) {
-      if (typeof visualColumnIndex !== 'number' || visualColumnIndex >= numberOfVisualCols + numberOfCreatedCols) {
-        if (numberOfSourceRows > 0) {
-          for (let row = 0; row < numberOfSourceRows; row += 1) {
-            if (typeof dataSource[row] === 'undefined') {
-              dataSource[row] = [];
-            }
-
-            (dataSource[row] as unknown[]).push(null);
-          }
-        } else {
-          dataSource.push([null]);
-        }
-
-      } else {
-        for (let row = 0; row < numberOfSourceRows; row++) {
-          (dataSource[row] as unknown[]).splice(col, 0, null);
-        }
-      }
-
-      numberOfCreatedCols += 1;
+      this.#insertColumnIntoDataSource(
+        dataSource, col, visualColumnIndex, numberOfVisualCols + numberOfCreatedCols, numberOfSourceRows
+      );
     }
 
     if (numberOfCreatedCols > 0) {
@@ -528,6 +522,42 @@ class DataMap {
       delta: numberOfCreatedCols,
       startPhysicalIndex: firstNewPhysicalColumnIndex,
     };
+  }
+
+  /**
+   * Inserts a single null column into the data source at the given physical column index.
+   *
+   * @param {Array} dataSource The data source array.
+   * @param {number} col The physical column index at which to splice.
+   * @param {number|undefined} visualColumnIndex The visual column index being inserted.
+   * @param {number} currentVisualColCount The current visual column count including already-created columns.
+   * @param {number} numberOfSourceRows The number of source rows.
+   */
+  #insertColumnIntoDataSource(
+    dataSource: (Record<string, unknown> | unknown[])[],
+    col: number,
+    visualColumnIndex: number | undefined,
+    currentVisualColCount: number,
+    numberOfSourceRows: number
+  ) {
+    if (typeof visualColumnIndex !== 'number' || visualColumnIndex >= currentVisualColCount) {
+      if (numberOfSourceRows > 0) {
+        for (let row = 0; row < numberOfSourceRows; row += 1) {
+          if (typeof dataSource[row] === 'undefined') {
+            dataSource[row] = [];
+          }
+
+          (dataSource[row] as unknown[]).push(null);
+        }
+      } else {
+        dataSource.push([null]);
+      }
+
+    } else {
+      for (let row = 0; row < numberOfSourceRows; row++) {
+        (dataSource[row] as unknown[]).splice(col, 0, null);
+      }
+    }
   }
 
   /**
@@ -621,26 +651,7 @@ class DataMap {
       }
     }
 
-    if (isTableUniform) {
-      for (let r = 0, rlen = this.hot!.countSourceRows(); r < rlen; r++) {
-        (data[r] as unknown[]).splice(removedPhysicalIndexes[0], amount);
-
-        if (r === 0) {
-          this.metaManager!.removeColumn(removedPhysicalIndexes[0], amount);
-        }
-      }
-
-    } else {
-      for (let r = 0, rlen = this.hot!.countSourceRows(); r < rlen; r++) {
-        for (let c = 0; c < removedColumnsCount; c++) {
-          (data[r] as unknown[]).splice(descendingPhysicalColumns[c], 1);
-
-          if (r === 0) {
-            this.metaManager!.removeColumn(descendingPhysicalColumns[c], 1);
-          }
-        }
-      }
-    }
+    this.#spliceRemovedColumns(data, isTableUniform, removedPhysicalIndexes, descendingPhysicalColumns, amount);
 
     if (columnIndex < this.hot!.countCols()) {
       this.hot!.columnIndexMapper.removeIndexes(removedPhysicalIndexes);
@@ -654,6 +665,47 @@ class DataMap {
     this.refreshDuckSchema();
 
     return true;
+  }
+
+  /**
+   * Splices the removed physical columns from each row in the data source,
+   * updating the meta manager for the first row.
+   *
+   * @param {Array} data The data source array.
+   * @param {boolean} isTableUniform Whether the removed columns form a contiguous range.
+   * @param {number[]} removedPhysicalIndexes Physical indexes of removed columns in ascending order.
+   * @param {number[]} descendingPhysicalColumns Physical indexes of removed columns in descending order.
+   * @param {number} amount The number of columns to remove.
+   */
+  #spliceRemovedColumns(
+    data: (Record<string, unknown> | unknown[])[],
+    isTableUniform: boolean,
+    removedPhysicalIndexes: number[],
+    descendingPhysicalColumns: number[],
+    amount: number
+  ) {
+    if (isTableUniform) {
+      for (let r = 0, rlen = this.hot!.countSourceRows(); r < rlen; r++) {
+        (data[r] as unknown[]).splice(removedPhysicalIndexes[0], amount);
+
+        if (r === 0) {
+          this.metaManager!.removeColumn(removedPhysicalIndexes[0], amount);
+        }
+      }
+
+    } else {
+      const removedColumnsCount = descendingPhysicalColumns.length;
+
+      for (let r = 0, rlen = this.hot!.countSourceRows(); r < rlen; r++) {
+        for (let c = 0; c < removedColumnsCount; c++) {
+          (data[r] as unknown[]).splice(descendingPhysicalColumns[c], 1);
+
+          if (r === 0) {
+            this.metaManager!.removeColumn(descendingPhysicalColumns[c], 1);
+          }
+        }
+      }
+    }
   }
 
   /**

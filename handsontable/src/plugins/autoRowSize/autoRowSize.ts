@@ -560,7 +560,7 @@ export class AutoRowSize extends BasePlugin {
         limit = valueAccordingPercent(rowsLimit, limit as unknown as string);
       } else {
         // Force to Number
-        limit >>= 0;
+        limit = Math.trunc(limit);
       }
     }
 

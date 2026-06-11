@@ -50,14 +50,14 @@ const platforms: Record<string, TesterResult> = {
 export function setBrowserMeta({ userAgent = navigator.userAgent, vendor = navigator.vendor }: {
   userAgent?: string; vendor?: string;
 } = {}): void {
-  objectEach(browsers, ({ test }) => void test(userAgent, vendor));
+  objectEach(browsers, ({ test }) => test(userAgent, vendor));
 }
 
 /**
  *
  */
 export function setPlatformMeta({ platform = navigator.platform }: { platform?: string } = {}): void {
-  objectEach(platforms, ({ test }) => void test(platform));
+  objectEach(platforms, ({ test }) => test(platform));
 }
 
 if (isCSR()) {

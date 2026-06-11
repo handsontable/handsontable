@@ -577,7 +577,7 @@ export class AutoColumnSize extends BasePlugin {
         limit = valueAccordingPercent(colsLimit, syncLimit);
       } else {
         // Force to Number
-        limit = Number(syncLimit) >> 0;
+        limit = Math.trunc(Number(syncLimit));
       }
     }
 
