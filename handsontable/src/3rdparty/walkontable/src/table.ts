@@ -606,6 +606,11 @@ class Table {
     if (runFastDraw) {
       if (this.isMaster) {
         wtOverlays.refresh(true);
+        // Fast (scroll) draws skip the full-render header-height pass below, so the master/top
+        // header heights can drift against the frozen overlays during scrolling (a tall wrapped
+        // frozen header that the master never renders). Re-sync here. The method is a cheap no-op
+        // unless the grid has frozen columns with column headers, so non-frozen grids are unaffected.
+        this.syncOversizedColumnHeadersWithFrozenOverlays();
       }
     } else {
       if (this.isMaster) {
@@ -670,6 +675,7 @@ class Table {
           }
 
           wtOverlays.refresh(false);
+          this.syncOversizedColumnHeadersWithFrozenOverlays();
           wtOverlays.applyToDOM();
 
           this.wtSettings.getSetting('onDraw', true);
@@ -818,6 +824,77 @@ class Table {
       if (actualRowHeight > (oversizedColumnHeaders[i] ?? 0) + borderCompensation) {
         oversizedColumnHeaders[i] = actualRowHeight;
       }
+    }
+  }
+
+  /**
+   * Frozen column headers (e.g., with `white-space: normal`) are rendered only in the frozen
+   * overlays, never in the master table's THEAD. When such a header is taller than the headers
+   * of the scrollable columns, the master and top overlay THEADs render shorter than the corner
+   * and inline-start overlays, so the frozen overlay body rows sit shifted against the master.
+   * The gap can be sub-pixel: under browser zoom the frozen header content is a fraction of a
+   * pixel taller than the applied height, and that fraction accumulates into a visible 1px shift.
+   *
+   * This method runs after the frozen overlays have rendered. It reads the corner overlay's
+   * content-driven THEAD row heights with sub-pixel precision and forces the matching master and
+   * top overlay header cells to the same height so every overlay THEAD ends up the same height
+   * and the body rows stay pixel-aligned.
+   *
+   * It deliberately does NOT write to `wtViewport.oversizedColumnHeaders`. That cache is applied
+   * back to the corner overlay on the next render; growing it here would inflate the corner cell,
+   * which would then be re-measured taller, ratcheting the height up every render. Reading the
+   * corner's natural (content-driven) height and only adjusting the master/top side keeps the
+   * synchronization stable and lets the header shrink again when the content allows.
+   */
+  syncOversizedColumnHeadersWithFrozenOverlays(): void {
+    const { wtOverlays } = this.dataAccessObject;
+    // Cheapest possible bail-out first: with no frozen columns the corner overlay is not cloned,
+    // so the overwhelmingly common (non-frozen) grids pay only a couple of property reads per draw.
+    const cornerClone = wtOverlays.topInlineStartCornerOverlay?.clone;
+
+    if (!cornerClone?.wtTable?.THEAD) {
+      return;
+    }
+
+    const columnHeaders = this.wtSettings.getSetting<unknown[]>('columnHeaders');
+
+    if (!columnHeaders.length) {
+      return;
+    }
+
+    const cornerChildren = cornerClone.wtTable.THEAD.childNodes;
+    const topClone = wtOverlays.topOverlay?.clone;
+    const targetTheads = [this.THEAD, topClone?.wtTable?.THEAD];
+    // Sub-pixel tolerance to avoid rewriting heights on floating-point jitter while still
+    // catching the fractional gaps (e.g. ~0.33px at 75% zoom) that read as a 1px shift.
+    const epsilon = 0.1;
+
+    for (let i = 0, len = columnHeaders.length; i < len; i++) {
+      const cornerChild = cornerChildren[i];
+
+      if (!(cornerChild instanceof HTMLElement)) {
+        continue;
+      }
+
+      const cornerRowHeight = cornerChild.getBoundingClientRect().height;
+
+      targetTheads.forEach((thead) => {
+        const targetRow = thead?.childNodes[i];
+
+        if (!(targetRow instanceof HTMLElement) || targetRow.childNodes.length === 0) {
+          return;
+        }
+
+        const firstChild = targetRow.childNodes[0];
+
+        if (!(firstChild instanceof HTMLElement)) {
+          return;
+        }
+
+        if (Math.abs(targetRow.getBoundingClientRect().height - cornerRowHeight) > epsilon) {
+          firstChild.style.height = `${cornerRowHeight}px`;
+        }
+      });
     }
   }
 

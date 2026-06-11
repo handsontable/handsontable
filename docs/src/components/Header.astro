@@ -283,12 +283,20 @@ const frameworks = [
     cleanupPrevious?.();
     const controller = new AbortController();
     const { signal } = controller;
-    // Panel element refs, used by the open/close handlers below. The actual
-    // relocation to <body> happens in relocateFixedPanels(), deferred until after
-    // island hydration (see the init block at the end of this script).
+    // --- Move fixed-position panels to <body> so they escape the header's
+    //     containing block (backdrop-filter breaks position:fixed children) ---
     const subheader = document.querySelector('.mobile-subheader');
     const overlay = document.querySelector('.mobile-nav-overlay') as HTMLElement | null;
     const tocPanel = document.querySelector('.mobile-toc-panel') as HTMLElement | null;
+    if (subheader && subheader.parentElement !== document.body) {
+      document.body.appendChild(subheader);
+    }
+    if (overlay && overlay.parentElement !== document.body) {
+      document.body.appendChild(overlay);
+    }
+    if (tocPanel && tocPanel.parentElement !== document.body) {
+      document.body.appendChild(tocPanel);
+    }
 
     // --- Elements ---
     const menuBtn = currentMenuButton;
@@ -546,52 +554,19 @@ const frameworks = [
     };
   }
 
-  // Move fixed-position panels to <body> so they escape the header's containing
-  // block (backdrop-filter breaks position:fixed children). Deferred until after
-  // Preact islands (e.g. DocSearch) hydrate: relocating body-level nodes mid-
-  // hydration races Preact's reconciler ("NotFoundError: insertBefore", Sentry
-  // HANDSONTABLE-DOCS-1BT). Idempotent -- the parentElement guards make re-runs safe.
-  function relocateFixedPanels() {
-    const panels = [
-      document.querySelector('.mobile-subheader'),
-      document.querySelector('.mobile-nav-overlay'),
-      document.querySelector('.mobile-toc-panel'),
-    ];
-
-    for (const panel of panels) {
-      if (panel && panel.parentElement !== document.body) {
-        document.body.appendChild(panel);
-      }
-    }
-  }
-
-  // Bind handlers as soon as the DOM is parsed. The Ask AI button and the mobile
-  // nav controls are static, server-rendered HTML (not inside Preact islands), so
-  // they can be wired immediately. The site has no Astro ClientRouter, so
-  // astro:page-load never fires on its own -- without this readyState-based call
-  // initMobileNav would never run, which left the whole header dead (the bug).
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initMobileNav, { once: true });
-  } else {
-    initMobileNav();
-  }
-
-  // Relocate the fixed panels only AFTER Preact islands (e.g. DocSearch) hydrate.
-  // Moving these body-level nodes mid-hydration races Preact's reconciler
-  // ("NotFoundError: insertBefore", Sentry HANDSONTABLE-DOCS-1BT), so this waits
-  // for the load event instead of running inline with initMobileNav.
-  if (document.readyState === 'complete') {
-    relocateFixedPanels();
-  } else {
-    window.addEventListener('load', relocateFixedPanels, { once: true });
-  }
-
-  // If the Astro ClientRouter is ever enabled, re-run on each navigation.
-  // Harmless today: the event does not fire without it.
-  document.addEventListener('astro:page-load', () => {
-    initMobileNav();
-    relocateFixedPanels();
-  });
+  // Use astro:page-load (not astro:after-swap) so that Preact islands are fully
+  // hydrated before initMobileNav() moves DOM nodes out of their server-rendered
+  // positions via document.body.appendChild(). Moving nodes on astro:after-swap
+  // races with Preact hydration and causes "NotFoundError: insertBefore" failures
+  // (Sentry HANDSONTABLE-DOCS-1BT).
+  // Without <ClientRouter /> (View Transitions), astro:page-load never fires — not
+  // even on the initial page load. The window.load fallback covers that case:
+  // setTimeout(0) defers past any same-tick astro:page-load dispatch (ClientRouter
+  // fires it on window.load too) so we never call initMobileNav() twice.
+  document.addEventListener('astro:page-load', initMobileNav);
+  window.addEventListener('load', () => setTimeout(() => {
+    if (document.getElementById('mobile-nav-overlay')?.parentElement !== document.body) initMobileNav();
+  }, 0), { once: true });
 </script>
 
 <style>
