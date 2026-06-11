@@ -105,6 +105,7 @@ async function ensureMounted(): Promise<void> {
   return mountInFlight;
 }
 
+
 declare global {
   interface Window {
     docsAssistantEnsureMounted?: () => Promise<void>;
