@@ -17,6 +17,7 @@ interface StoredColumnState {
 import { mixin } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
+import { localeLowerCase } from '../../helpers/string';
 import localHooks from '../../mixins/localHooks';
 import { getCondition } from './conditionRegisterer';
 import { OPERATION_ID as OPERATION_AND } from './logicalOperations/conjunction';
@@ -123,9 +124,9 @@ class ConditionCollection {
   addCondition(
     column: number, conditionDefinition: Record<string, unknown>, operation = OPERATION_AND, position?: number
   ) {
-    const localeForColumn = this.hot.getCellMeta(0, column).locale;
+    const localeForColumn = this.hot.getCellMeta(0, column).locale as string | undefined;
     const args = (conditionDefinition.args as unknown[])
-      .map((v: unknown) => (typeof v === 'string' ? v.toLocaleLowerCase(localeForColumn as string) : v));
+      .map((v: unknown) => (typeof v === 'string' ? localeLowerCase(v, localeForColumn) : v));
     const name = (conditionDefinition.name || (conditionDefinition.command as Record<string, unknown>).key) as string;
 
     this.runLocalHooks('beforeAdd', column);

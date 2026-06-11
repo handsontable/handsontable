@@ -152,3 +152,56 @@ export function toHyphen(str: string): string {
 
   return str.replace(/([A-Z])/g, '-$1').replaceAll('_', '-').toLowerCase();
 }
+
+/**
+ * Characters whose lowercase mapping is tailored only by the Turkish, Azeri, and
+ * Lithuanian locales. Used to detect at runtime — without a hardcoded locale list —
+ * whether a locale changes the result of lowercasing.
+ */
+const LOCALE_LOWERCASE_PROBE = 'IİÌÍĨ';
+const LOCALE_LOWERCASE_PROBE_DEFAULT = LOCALE_LOWERCASE_PROBE.toLowerCase();
+const localeLowerCaseTailoringCache = new Map<string | undefined, boolean>();
+
+/**
+ * Checks whether a locale changes the result of lowercasing compared with the
+ * language-neutral Unicode mapping. The answer is immutable for a given JavaScript
+ * engine, so it is cached per locale. Invalid or empty locale tags resolve to `false`.
+ *
+ * @param {string} [locale] A BCP 47 locale tag, or `undefined` for the host default.
+ * @returns {boolean} `true` when the locale tailors lowercasing (Turkish, Azeri, Lithuanian).
+ */
+function localeAffectsLowerCase(locale?: string): boolean {
+  const cached = localeLowerCaseTailoringCache.get(locale);
+
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  let affects: boolean;
+
+  try {
+    // eslint-disable-next-line no-restricted-syntax
+    affects = LOCALE_LOWERCASE_PROBE.toLocaleLowerCase(locale) !== LOCALE_LOWERCASE_PROBE_DEFAULT;
+  } catch {
+    affects = false;
+  }
+
+  localeLowerCaseTailoringCache.set(locale, affects);
+
+  return affects;
+}
+
+/**
+ * Lowercases a string, honoring the locale only when the locale actually changes the
+ * result (Turkish, Azeri, Lithuanian). For every other locale it uses the fast,
+ * language-neutral `toLowerCase`, which is byte-identical to `toLocaleLowerCase` for
+ * those locales but avoids the expensive Intl path. Invalid locale tags never throw.
+ *
+ * @param {string} value The string to lowercase.
+ * @param {string} [locale] A BCP 47 locale tag, or `undefined` for the host default.
+ * @returns {string} The lowercased string.
+ */
+export function localeLowerCase(value: string, locale?: string): string {
+  // eslint-disable-next-line no-restricted-syntax
+  return localeAffectsLowerCase(locale) ? value.toLocaleLowerCase(locale) : value.toLowerCase();
+}

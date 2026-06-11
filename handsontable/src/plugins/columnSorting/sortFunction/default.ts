@@ -1,5 +1,6 @@
 import { isEmpty } from '../../../helpers/mixed';
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortService';
+import { localeLowerCase } from '../../../helpers/string';
 
 /**
  * Default sorting compare function factory. Method get as parameters `sortOrder` and `columnMeta` and return compare function.
@@ -26,11 +27,11 @@ export function compareFunctionFactory(
     }
 
     if (typeof value === 'string') {
-      value = value.toLocaleLowerCase(locale);
+      value = localeLowerCase(value, locale);
     }
 
     if (typeof nextValue === 'string') {
-      nextValue = nextValue.toLocaleLowerCase(locale);
+      nextValue = localeLowerCase(nextValue, locale);
     }
 
     if (value === nextValue) {
