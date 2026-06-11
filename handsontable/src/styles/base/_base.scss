@@ -21,6 +21,7 @@
           .ht_master {
             .wtHolder {
               background-color: var(--ht-background-color);
+              box-shadow: inset 0 0 0 1px var(--ht-border-color);
             }
           }
         }
@@ -51,20 +52,32 @@
     height: 100%;
   }
 
-  .ht-before-grid {
+  .ht-before-grid, .ht-after-grid {
     flex: 0 0 auto;
   }
 
-  // Items added to the before-grid/after-grid slots. The slot item owns the border (the
-  // pagination, license notification, etc. do not draw their own). The border is on by default;
-  // `ht-slot-element--no-border` removes the top separator (used by the after-grid pagination when
-  // the grid is flush against it). The before-grid relies on the default border, so it needs no toggle.
   .ht-slot-element {
     width: 100%;
     box-sizing: border-box;
     border: 1px solid var(--ht-border-color);
+  }
 
-    &.ht-slot-element--no-border {
+  .ht-before-grid > .ht-slot-element {
+    &:not(:first-of-type) {
+      border-top-width: 0;
+    }
+
+    &:last-of-type {
+      border-bottom-width: 0;
+    }
+  }
+
+  .ht-after-grid > .ht-slot-element {
+    &:not(:last-of-type) {
+      border-bottom-width: 0;
+    }
+
+    &:first-of-type {
       border-top-width: 0;
     }
   }
@@ -175,6 +188,7 @@
         .ht_master {
           .wtHolder {
             background-color: var(--ht-background-color);
+            box-shadow: inset 0 0 0 1px var(--ht-border-color);
           }
         }
       }

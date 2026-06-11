@@ -257,7 +257,7 @@ describe('Layout slots', () => {
     expect(slotItemIds(slot)).toEqual(['b', 'a']);
   });
 
-  it('carries the no-border separator modifier on the first after-grid item only', async() => {
+  it('removes the top border of the first after-grid item', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
     const make = (elId) => {
       const el = document.createElement('div');
@@ -274,10 +274,12 @@ describe('Layout slots', () => {
 
     await waitForNextAnimationFrames(2);
 
-    const items = Array.from(hot.rootAfterGridElement.children);
+    const [first, second] = Array.from(hot.rootAfterGridElement.children);
 
-    // The separator modifier is only ever applied to the first item; the rest must never keep it.
-    expect(items.slice(1).some(item => item.classList.contains('ht-slot-element--no-border'))).toBe(false);
+    // The first after-grid item never draws a top border; non-first items are not targeted by the rule.
+    expect(getComputedStyle(first).borderTopWidth).toBe('0px');
+    expect(first.matches('.ht-after-grid > .ht-slot-element:first-child')).toBe(true);
+    expect(second.matches('.ht-after-grid > .ht-slot-element:first-child')).toBe(false);
   });
 
   it('throws when getLayoutManager is called on a non-root instance', async() => {

@@ -345,13 +345,7 @@
     }
 
     .ht-after-grid > .ht-slot-element {
-      // The first item's top border is the separator from the grid. Drop the top border on the
-      // following items so each seam shows a single divider (the upper item's bottom border).
-      &:not(:first-of-type) {
-        border-top-width: 0;
-      }
-
-      // Square the seams but keep the bottom border so adjacent items show a divider line.
+      // Square the seam corners. Border widths (the single divider per seam) live in `_base.scss`.
       &:not(:last-of-type) {
         border-radius: 0;
       }
@@ -365,21 +359,13 @@
     // Mirror of the after-grid slot div rules for the before-grid slot (stacked upward toward
     // the grid): the outer (first) element keeps its top corners; the grid-facing edge is squared.
     .ht-before-grid > .ht-slot-element {
-      // Drop the top border on the following items so each seam shows a single divider (the upper
-      // item's bottom border), and square the seam corners.
       &:not(:first-of-type) {
-        border-top-width: 0;
         border-radius: 0;
       }
 
       &:first-of-type {
         border-end-start-radius: 0;
         border-end-end-radius: 0;
-      }
-
-      // The last item sits against the grid below it, so it has no bottom border.
-      &:last-of-type {
-        border-bottom-width: 0;
       }
     }
   }

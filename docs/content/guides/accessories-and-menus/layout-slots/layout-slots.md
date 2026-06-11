@@ -105,7 +105,7 @@ Your element renders in the chosen slot, and the elements within each slot follo
 Every element you add to the `beforeGrid` or `afterGrid` slot receives the `ht-slot-element` class. The slot frames its items for you:
 
 - Each item gets a border, and adjacent items share a single divider line.
-- The first `afterGrid` item shows a top separator from the grid. The separator hides automatically when the grid sits flush against the slot (the grid's own bottom border divides them); that state is toggled with the `ht-slot-element--no-border` modifier.
+- The first `afterGrid` item drops its top border; the grid's own bottom border divides them.
 - The last `beforeGrid` item drops its grid-facing border for the same reason.
 
 Style your own slot UI through the `ht-slot-element` class so it matches this framing. The `overlays` slot holds floating UI (such as the dialog) and is not framed.

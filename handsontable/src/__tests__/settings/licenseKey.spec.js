@@ -20,7 +20,6 @@ describe('settings', () => {
       const info = spec().$container[0].querySelector('.hot-display-license-info');
 
       // `ht-slot-element` is added because the notification is registered on the after-grid layout slot.
-      // (`ht-slot-element--no-border` may also be present depending on the grid's separator state.)
       expect(info.classList.contains('handsontable')).toBe(true);
       expect(info.classList.contains('hot-display-license-info')).toBe(true);
       expect(info.classList.contains('ht-slot-element')).toBe(true);

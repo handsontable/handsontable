@@ -69,7 +69,7 @@ import {
 import { initLicenseNotification } from './utils/licenseNotification';
 import { getValueSetterValue } from './utils/valueAccessors';
 import { createThemeManager } from './themes/engine';
-import { LayoutManager, SLOT_ITEM_NO_BORDER_CLASS, type LayoutConfig } from './core/layout';
+import { LayoutManager, type LayoutConfig } from './core/layout';
 import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
@@ -1619,46 +1619,6 @@ export default function Core(
       };
 
       this.addHook('afterRefreshDimensions', syncEdgeSlotsWidth);
-
-      // Toggle the after-grid top separator on its first item. The separator is hidden when the
-      // grid sits flush against the slot (the grid's own bottom border already divides them).
-      // This is generic to any slot item (pagination, license notification, custom UI).
-      const syncAfterGridSeparator = () => {
-        if (instance.isDestroyed || !instance.rootAfterGridElement) {
-          return;
-        }
-
-        const items = Array.from(instance.rootAfterGridElement.children);
-
-        if (items.length === 0) {
-          return;
-        }
-
-        const { view } = instance;
-        let needsBorder = true;
-
-        if (view) {
-          if (view.isVerticallyScrollableByWindow()) {
-            needsBorder = false;
-          } else if (view.hasHorizontalScroll() || view.getTableHeight() < view.getWorkspaceHeight()) {
-            needsBorder = true;
-          } else {
-            const lastRenderedRow = view.getLastRenderedVisibleRow();
-
-            needsBorder = lastRenderedRow === null || view.getLastFullyVisibleRow() !== lastRenderedRow;
-          }
-        }
-
-        // Only the first item carries the grid separator; clear the modifier from the rest so a
-        // reordered former-first item does not keep it.
-        items.forEach((item, index) => {
-          item.classList.toggle(SLOT_ITEM_NO_BORDER_CLASS, index === 0 && !needsBorder);
-        });
-      };
-
-      this.addHook('afterRender', syncAfterGridSeparator);
-      this.addHook('afterScrollVertically', syncAfterGridSeparator);
-      this.addHook('afterRefreshDimensions', syncAfterGridSeparator);
     }
 
     instance.runHooks('init');

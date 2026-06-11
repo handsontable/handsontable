@@ -11,8 +11,8 @@ describe('Pagination UI', () => {
   });
 
   function isTopBorderVisible() {
-    // The separator is the first after-grid item's top border, toggled via `ht-slot-element--no-border`
-    // (sets `border-top-width: 0`). The pagination is that first item in these specs.
+    // The first after-grid item never draws a top border (the grid's own bottom border divides them).
+    // The pagination is that first item in these specs, so its top border is always 0.
     return getComputedStyle(getPaginationContainerElement()).borderTopWidth !== '0px';
   }
 
@@ -128,76 +128,23 @@ describe('Pagination UI', () => {
     expect(hot().rootElement).not.toHaveClass('htPagination');
   });
 
-  it('should draw border-top of the pagination container when the workspace height is bigger than tables content height', async() => {
-    handsontable({
-      data: createSpreadsheetData(15, 10),
-      width: 600,
-      height: 400,
-      pagination: true,
-    });
-
-    expect(isTopBorderVisible()).toBe(true);
-  });
-
-  it('should draw border-top of the pagination container when there is horizontal scroll', async() => {
+  it('should never draw the top border of the pagination container (it is the first after-grid item)', async() => {
     handsontable({
       data: createSpreadsheetData(50, 50),
-      width: 500,
-      height: 200,
-      pagination: true,
-    });
-
-    await scrollViewportVertically(10000); // scroll to the most-bottom position
-
-    expect(isTopBorderVisible()).toBe(true);
-  });
-
-  it('should not draw border-top of the pagination container when the workspace height is the same as tables content height', async() => {
-    handsontable({
-      data: createSpreadsheetData(15, 10),
-      width: 600,
-      height: (getDefaultRowHeight() * 10) + getPaginationContainerHeight(),
-      pagination: true,
-    });
-
-    expect(isTopBorderVisible()).toBe(false);
-  });
-
-  it('should draw border-top of the pagination container when the workspace height is smaller than tables content height', async() => {
-    handsontable({
-      data: createSpreadsheetData(15, 10),
       width: 600,
       height: 250,
       pagination: true,
     });
 
-    expect(isTopBorderVisible()).toBe(true);
-  });
+    // Workspace taller than content, scrollable content, scrolled to the bottom, and reflows -
+    // the first after-grid item's top border is always removed regardless.
+    expect(isTopBorderVisible()).toBe(false);
 
-  it('should not draw border-top of the pagination container when the last row is fully visible (the viewport is scroll to most-bottom position)', async() => {
-    handsontable({
-      data: createSpreadsheetData(15, 10),
-      width: 600,
-      height: getDefaultRowHeight() * 5,
-      pagination: true,
-    });
-
-    expect(isTopBorderVisible()).toBe(true);
-
-    await scrollViewportTo({ row: 8 });
-
-    expect(isTopBorderVisible()).toBe(true);
-
-    await scrollViewportTo({ row: 9 });
+    await scrollViewportVertically(10000);
 
     expect(isTopBorderVisible()).toBe(false);
-  });
 
-  it('should not draw border-top of the pagination container in any case when table has not defined size', async() => {
-    handsontable({
-      data: createSpreadsheetData(11, 10),
-      pagination: true,
-    });
+    await updateSettings({ height: 400 });
 
     expect(isTopBorderVisible()).toBe(false);
 
