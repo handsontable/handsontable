@@ -81,9 +81,15 @@
 
 .mobile-nav-frameworks {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   border-top: 1px solid var(--sl-color-gray-5);
   gap: 0;
+}
+
+@media (min-width: 28rem) {
+  .mobile-nav-frameworks {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .mobile-nav-fw {
@@ -102,8 +108,20 @@
   white-space: nowrap;
 }
 
-.mobile-nav-fw:last-child {
+/* 2-column layout: even items are in the right column */
+.mobile-nav-fw:nth-child(2n) {
   border-right: 0;
+}
+
+/* 4-column layout: restore right border for item 2, only last item has none */
+@media (min-width: 28rem) {
+  .mobile-nav-fw:nth-child(2n) {
+    border-right: 1px solid var(--sl-color-gray-5);
+  }
+
+  .mobile-nav-fw:last-child {
+    border-right: 0;
+  }
 }
 
 .mobile-nav-fw:hover {
