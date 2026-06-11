@@ -67,14 +67,13 @@ jobs:
         run: |
           npm run build
 
-      - name: Set up cache
+      - name: Restore snapshot cache
         id: cache
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
+        uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
         with:
           key: plawyright-cache/${{github.repository}}/${{github.ref}}
           restore-keys: plawyright-cache/${{github.repository}}/refs/heads/develop
           path: docs/tests/test-artifacts
-          save-always: true
 
       - name: Check if cache was restored
         id: check-cache
@@ -92,6 +91,13 @@ jobs:
       - name: Test
         if: ${{env.cache-restored == 'true' && github.event.inputs.update-snapshots != 'true'}}
         run: BASE_URL=${{ github.event.inputs.test_env }} npx playwright test
+
+      - name: Save snapshot cache
+        if: always()
+        uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
+        with:
+          key: plawyright-cache/${{github.repository}}/${{github.ref}}
+          path: docs/tests/test-artifacts
 
       - name: Upload test report
         if: always()
