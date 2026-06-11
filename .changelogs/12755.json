@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed Page Up and Page Down not scrolling the master viewport to align with the frozen rows overlay.",
+  "type": "fixed",
+  "issueOrPR": 12755,
+  "breaking": false,
+  "framework": "none"
+}
