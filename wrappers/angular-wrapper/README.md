@@ -6,7 +6,7 @@
     <img width="360" alt="Logo of Handsontable data grid" src="https://github.com/handsontable/handsontable/blob/develop/resources/handsontable-logo-black.svg?raw=true"/>
   </picture>
   <br><br>
-  <h3>The official <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="16" height="16"> Angular 19+ wrapper for Handsontable.
+  <h3>The official <img src="https://raw.githubusercontent.com/handsontable/handsontable/develop/resources/icons/angular-icon.svg" width="16" height="16"> Angular 16+ wrapper for Handsontable.
     <br>
     <a href="https://handsontable.com/docs/angular-data-grid" target="_blank">JavaScript Data Grid</a> with a spreadsheet-like look and feel.</h3>
 
