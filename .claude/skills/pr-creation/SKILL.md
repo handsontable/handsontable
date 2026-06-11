@@ -86,17 +86,20 @@ git push -u origin <branch-name>
 
 **Always write the PR body to a temp file and use `--body-file`.** Never use `--body "$(cat <<'EOF'...EOF)"` — backticks inside a heredoc passed through shell command substitution are stored as literal `\`` characters in GitHub, breaking all inline code formatting in the PR description.
 
+**Use a unique, task-scoped temp filename — not a fixed `/tmp/pr-body.md`.** The Write tool refuses to overwrite a file it has not read in the current session, so a stale `/tmp/pr-body.md` left over from an earlier session makes the write fail with "Error writing file." Name the file after the branch's task/issue ID so it is both unique per PR and easy to trace: `/tmp/pr-body-DEV-1860.md`, `/tmp/pr-body-issue-11832.md`. If that path somehow already exists, append a short unique suffix (e.g. `/tmp/pr-body-DEV-1860-2.md`).
+
 The correct workflow:
 
-1. Write the body to `/tmp/pr-body.md` using the Write tool (no shell escaping needed).
-2. Pass it with `--body-file /tmp/pr-body.md`.
+1. Write the body to `/tmp/pr-body-<task-id>.md` using the Write tool (no shell escaping needed).
+2. Pass it with `--body-file /tmp/pr-body-<task-id>.md`.
 
 ```bash
 # Step 1: write body to file first (use the Write tool, not shell echo/cat)
+#         e.g. /tmp/pr-body-DEV-1860.md
 # Step 2: create the PR
 gh pr create --draft --base develop \
   --title "DEV-xxx: Short description" \
-  --body-file /tmp/pr-body.md
+  --body-file /tmp/pr-body-DEV-xxx.md
 ```
 
 The body file template (write this with the Write tool, backticks and all, no escaping):
@@ -144,7 +147,7 @@ ClickUp task: https://app.clickup.com/t/9015210959/DEV-xxx
 
 ## 5a. Updating an Existing PR's Body
 
-When asked to update, fix, or re-fill a PR description, use the same temp-file approach: write the body to `/tmp/pr-body.md` with the Write tool, then `gh pr edit <number> --body-file /tmp/pr-body.md`. Keep the full template structure — do not replace it with a shorter summary. Never use `--body "$(cat <<'EOF'...EOF)"` — backticks are not shell-escaped in the Write tool output and will be stored as literal `\`` on GitHub.
+When asked to update, fix, or re-fill a PR description, use the same temp-file approach with a unique, task-scoped filename: write the body to `/tmp/pr-body-<task-id>.md` (e.g. `/tmp/pr-body-DEV-1860.md`) with the Write tool, then `gh pr edit <number> --body-file /tmp/pr-body-<task-id>.md`. A fixed `/tmp/pr-body.md` fails when a stale copy from an earlier session exists, because the Write tool will not overwrite a file it has not read this session. Keep the full template structure — do not replace it with a shorter summary. Never use `--body "$(cat <<'EOF'...EOF)"` — backticks are not shell-escaped in the Write tool output and will be stored as literal `\`` on GitHub.
 
 ## 6. Changelog Entry (after PR is created)
 

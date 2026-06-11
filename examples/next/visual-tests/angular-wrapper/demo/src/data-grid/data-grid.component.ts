@@ -48,7 +48,7 @@ export class DataGridComponent {
     columns: [
       { data: '1' },
       { data: '3' },
-      { data: '4', type: 'date', allowInvalid: false },
+      { data: '4', type: 'date', allowInvalid: false, dateFormat: { dateStyle: 'short' }, locale: 'en-US' },
       { data: '6', type: 'checkbox', className: 'htCenter', headerClassName: 'htCenter' },
       { data: '7', type: 'numeric', headerClassName: 'htRight' },
       { 
