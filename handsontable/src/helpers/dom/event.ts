@@ -41,6 +41,16 @@ export function isLeftClick(event: Event): boolean {
 }
 
 /**
+ * Check if provided event was triggered by clicking the middle mouse button (the scroll wheel).
+ *
+ * @param {Event} event The mouse event object.
+ * @returns {boolean}
+ */
+export function isMiddleClick(event: Event): boolean {
+  return (event as MouseEvent).button === 1;
+}
+
+/**
  * Check if the provided event is a touch event.
  *
  * @param {Event} event The event object.
