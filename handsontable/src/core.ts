@@ -1618,7 +1618,7 @@ export default function Core(
         }
       };
 
-      this.addHook('afterRefreshDimensions', syncEdgeSlotsWidth);
+      this.addHook('afterRender', syncEdgeSlotsWidth);
     }
 
     instance.runHooks('init');

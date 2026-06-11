@@ -153,6 +153,24 @@ describe('Layout slots', () => {
     expect(hot.rootBeforeGridElement.style.width).not.toBe('');
   });
 
+  it('sizes the after-grid slot to the table width on init (table narrower than the wrapper)', async() => {
+    // No defined size + columns narrower than the container: the after-grid slot must shrink to the
+    // table width on the first render, not stretch to the full wrapper width.
+    const hot = handsontable({
+      data: createSpreadsheetData(4, 3),
+      colWidths: 80,
+      pagination: true,
+    });
+
+    await waitForNextAnimationFrames(2);
+
+    const tableWidth = hot.rootWrapperElement.querySelector('.ht_master .htCore').offsetWidth;
+
+    expect(hot.rootAfterGridElement.style.width).not.toBe('');
+    expect(hot.rootAfterGridElement.offsetWidth).toBe(tableWidth);
+    expect(hot.rootAfterGridElement.offsetWidth).toBeLessThan(hot.rootWrapperElement.offsetWidth);
+  });
+
   it('registers the license notification under the afterGrid slot when present', async() => {
     // Pass `true` so the test helper does not inject the default evaluation license key,
     // which leaves the key missing and renders the license notification.
