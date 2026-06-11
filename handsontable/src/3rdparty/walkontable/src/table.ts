@@ -335,13 +335,6 @@ class Table {
   alignOverlaysWithTrimmingContainer(): void { // intentionally empty
   }
   /**
-   * Updates the per-axis overscroll containment on the master holder.
-   *
-   * @returns {void}
-   */
-  updateOverscrollContainment(): void { // intentionally empty
-  }
-  /**
    * Marks oversized column headers.
    *
    * @returns {void}
@@ -678,10 +671,6 @@ class Table {
 
           wtOverlays.refresh(false);
           wtOverlays.applyToDOM();
-
-          // Runs after render() so the holder reflects the freshly rendered
-          // content; only on full draws, so pure-scroll redraws add no reflow.
-          this.updateOverscrollContainment();
 
           this.wtSettings.getSetting('onDraw', true);
 

@@ -109,7 +109,6 @@ class MasterTable extends Table {
         this.holder.style.overflow = 'visible';
         this.wtRootElement.style.overflow = 'visible';
       }
-
     } else if (fieldsInitialized) {
       // Bind ResizeObservers on the first call, and re-bind on the rare draw
       // where the trimming container has changed (HOT reparented in the DOM).
@@ -326,23 +325,6 @@ class MasterTable extends Table {
     this.#trimmingContainerObserver = null;
     this.#hiderObserver = null;
     this.#observedTrimmingElement = null;
-  }
-
-  /**
-   * Updates the per-axis overscroll containment on the master holder. The
-   * `htOverscrollContain*` classes set `overscroll-behavior-*: none`, which
-   * stops the macOS rubber-band bounce from visually detaching the scrolling
-   * content from the overlays. The class is added only on an axis the holder
-   * can actually scroll — a non-scrollable axis keeps the default `auto`
-   * chaining so a wheel over a grid that cannot scroll that way still scrolls
-   * the page. Called after `render()` so the holder reflects the current
-   * content; only full draws re-measure, scroll draws keep the last state.
-   */
-  updateOverscrollContainment() {
-    const { holder } = this;
-
-    holder.classList.toggle('htOverscrollContainX', holder.scrollWidth > holder.clientWidth);
-    holder.classList.toggle('htOverscrollContainY', holder.scrollHeight > holder.clientHeight);
   }
 }
 
