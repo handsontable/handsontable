@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Added support for installing Angular 16 through 22, without the --force flag",
+  "type": "changed",
+  "issueOrPR": 12752,
+  "breaking": false,
+  "framework": "angular"
+}
