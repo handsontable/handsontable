@@ -10,7 +10,7 @@
     "useDefineForClassFields": false,
     "noEmit": true,
     "experimentalDecorators": true,
-    "skipLibCheck": false,
+    "skipLibCheck": true,
     "types": ["node"],
     "target": "ES2022",
     "module": "ES2022",

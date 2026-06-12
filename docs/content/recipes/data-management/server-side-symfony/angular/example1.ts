@@ -219,7 +219,7 @@ export class AppComponent {
         type: 'dropdown',
         source: ['Electronics', 'Accessories', 'Storage', 'Networking', 'Peripherals'],
       },
-      { data: 'price', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 } },
+      { data: 'price', type: 'numeric', numericFormat: { style: 'currency' as const, currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 } },
       { data: 'stock', type: 'numeric' },
     ],
     licenseKey: 'non-commercial-and-evaluation',
