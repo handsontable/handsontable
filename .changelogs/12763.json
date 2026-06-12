@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Add typed handsontable ColumnSettings property.",
+  "title": "Added a typed `handsontable` property to grid and column settings.",
   "type": "changed",
   "issueOrPR": 12763,
   "breaking": false,

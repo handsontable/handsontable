@@ -58,14 +58,16 @@ export type { GridSettings } from './core/settings';
 export interface ColumnSettings extends Omit<GridSettings, 'data'> {
   data?: string | number | ColumnDataGetterSetterFunction;
   /**
-   * Configuration of the nested grid used by the `handsontable` cell type. It accepts the same
-   * grid settings as the outer table, plus an optional `getValue` that controls which value is
-   * pulled back into the edited cell. It can be a property name of the focused row, or a function
-   * whose `this` is bound to the nested Handsontable instance (matching `Core#getValue`).
+   * Configuration of the nested grid used by the `handsontable` cell type — see {@link GridSettings.handsontable}.
+   *
+   * Re-declared here (identical to the inherited definition) on purpose. `ColumnSettings` combines
+   * the `[key: string]: unknown` index signature below with the `Omit<GridSettings, 'data'>` mapped
+   * type it extends; that combination makes TypeScript widen the *inherited* `handsontable` to the
+   * index signature when contextually typing an object literal, which drops the `this` binding on
+   * `getValue`. A direct property declaration takes precedence over the index signature and keeps
+   * the precise type intact.
    */
-  handsontable?: GridSettings & {
-    getValue?: string | ((this: Handsontable) => CellValue);
-  };
+  handsontable?: GridSettings['handsontable'];
   /**
    * Column and cell meta data is extensible, developers can add any properties they want.
    */

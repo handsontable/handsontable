@@ -69,6 +69,15 @@ export interface GridSettings {
   cells?: (row: number, column: number, prop: string | number) => object;
   source?: unknown[] | ((query: string, callback: (items: unknown[]) => void) => void);
   type?: string;
+  /**
+   * Configuration of the nested grid used by the `handsontable` cell type. It accepts the same
+   * grid settings as the outer table, plus an optional `getValue` that controls which value is
+   * pulled back into the edited cell. It can be a property name of the focused row, or a function
+   * whose `this` is bound to the nested Handsontable instance (matching `Core#getValue`).
+   */
+  handsontable?: GridSettings & {
+    getValue?: string | ((this: HotInstance) => CellValue);
+  };
 
   // Editing
   allowEmpty?: boolean;

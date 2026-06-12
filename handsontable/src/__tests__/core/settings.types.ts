@@ -120,6 +120,13 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   fragmentSelection: oneOf(true, 'cell'),
   headerClassName: 'htCenter test',
+  handsontable: {
+    data: [[]],
+    colHeaders: true,
+    getValue: oneOf('name', function(this: Handsontable) {
+      return this.getDataAtCell(0, 0);
+    }),
+  },
   hashLength: 8,
   hashRevealDelay: 1000,
   hashSymbol: '#',
@@ -784,3 +791,20 @@ const _rendererCellProps: Handsontable.CellProperties = cellProperties;
 
 // Assert that a CellProperties value is assignable as the validator `this` context type
 const _validatorCellProps: CellProperties = cellProperties;
+
+// === `handsontable` cell-type setting typing ===
+// The nested-grid config is exposed on both grid settings (global) and column settings (per-column),
+// and `getValue` accepts either a source property name or a function bound to the nested instance.
+const _hotGlobal: Handsontable.GridSettings = {
+  handsontable: { data: [[]], getValue: 'name' },
+};
+const _hotColumn: Handsontable.ColumnSettings = {
+  handsontable: { data: [[]], getValue: 'name' },
+};
+const _hotColumnGetValueFn: Handsontable.ColumnSettings = {
+  handsontable: {
+    getValue(this: Handsontable) {
+      return this.getDataAtCell(0, 0);
+    },
+  },
+};
