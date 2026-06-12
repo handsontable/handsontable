@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Added a typed `handsontable` property to grid and column settings.",
+  "title": "Added typing for the `handsontable` cell type configuration and the `getValue` setting.",
   "type": "changed",
   "issueOrPR": 12763,
   "breaking": false,
