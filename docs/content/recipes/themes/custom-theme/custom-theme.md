@@ -31,9 +31,13 @@ category: Themes
 
 This tutorial shows you how to integrate Handsontable into a Next.js app that uses shadcn/ui, registering a custom theme that maps shadcn CSS variables and Lucide icons to the Handsontable Theme API.
 
-<iframe src="https://4y8dv9-3000.csb.app/" title="Handsontable with shadcn/ui demo" width="100%" height="500" frameborder="0" allowfullscreen style="border-radius: 8px; min-height: 500px;"></iframe>
+<iframe src="https://codesandbox.io/p/devbox/5kjc5d?embed=1&file=%2Fcomponents%2FDataGrid.tsx"
+     style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
+     title="Handsontable with shadcn"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/devbox/github/handsontable/examples/tree/master/examples/next-shadcn.js)
+[**Open in CodeSandbox**](https://codesandbox.io/p/devbox/5kjc5d)
 
 ## Overview
 
