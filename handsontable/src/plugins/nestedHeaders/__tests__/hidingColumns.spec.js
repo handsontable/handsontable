@@ -1898,7 +1898,7 @@ describe('NestedHeaders', () => {
         expect(b4.classList.contains('afterHiddenColumn')).toBe(true);
       });
 
-      it('should keep the indicator on a single-level (leaf) header next to a hidden column', async() => {
+      it('should keep the indicator on the header closest to the cells next to a hidden column', async() => {
         handsontable({
           data: createSpreadsheetData(5, 6),
           colHeaders: true,
@@ -1912,7 +1912,7 @@ describe('NestedHeaders', () => {
           },
         });
 
-        // B4 is the leaf directly before hidden C - it must keep the indicator...
+        // B4 is the bottom header directly before hidden C - it must keep the indicator...
         const b4 = getHeaderByLabel(1, 'B4');
 
         expect(b4.classList.contains('beforeHiddenColumn')).toBe(true);
@@ -1921,6 +1921,31 @@ describe('NestedHeaders', () => {
         const groupB = getHeaderByLabel(0, 'Group B');
 
         expect(groupB.classList.contains('beforeHiddenColumn')).toBe(false);
+      });
+
+      // Even when stacked headers are all single columns (no groups), only the header closest to
+      // the cells carries the indicator - the ones above it must not duplicate it.
+      it('should add the indicator only to the bottom-most of stacked single-column headers', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 3),
+          colHeaders: true,
+          nestedHeaders: [
+            ['T', 'U', 'V'],
+            ['A', 'B', 'C'],
+          ],
+          hiddenColumns: {
+            columns: [1], // hide the middle column
+            indicators: true,
+          },
+        });
+
+        // Bottom row (closest to the cells) keeps the indicators next to the hidden column.
+        expect(getHeaderByLabel(1, 'A').classList.contains('beforeHiddenColumn')).toBe(true);
+        expect(getHeaderByLabel(1, 'C').classList.contains('afterHiddenColumn')).toBe(true);
+
+        // Top row headers, although they also border the hidden column, must not show it.
+        expect(getHeaderByLabel(0, 'T').classList.contains('beforeHiddenColumn')).toBe(false);
+        expect(getHeaderByLabel(0, 'V').classList.contains('afterHiddenColumn')).toBe(false);
       });
     });
   });

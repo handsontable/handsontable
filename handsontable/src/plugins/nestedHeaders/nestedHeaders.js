@@ -430,7 +430,6 @@ export class NestedHeaders extends BasePlugin {
 
       const {
         colspan,
-        origColspan,
         rowspan,
         isHidden,
         isPlaceholder,
@@ -484,10 +483,13 @@ export class NestedHeaders extends BasePlugin {
         headerLevel,
       );
 
-      // A header that spans more than one column (a nested parent) covers the hidden columns
-      // inside its own span, so the hidden-column indicator added by HiddenColumns would point
-      // at an internal boundary. Keep that indicator on the leaf headers only.
-      if (origColspan > 1) {
+      // The hidden-column indicator added by HiddenColumns must appear only on the header closest
+      // to the cells (the one whose bottom edge reaches the last header row). Upper-level headers -
+      // group parents, or single-column headers stacked above - would point at an internal or
+      // duplicated boundary, so strip the indicator from every header that does not touch the cells.
+      const reachesCells = headerLevel + rowspan === this.getLayersCount();
+
+      if (!reachesCells) {
         removeClass(TH, ['beforeHiddenColumn', 'afterHiddenColumn']);
       }
 
