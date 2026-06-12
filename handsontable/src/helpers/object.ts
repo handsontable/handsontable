@@ -165,6 +165,55 @@ export function clone(object: object): object {
 }
 
 /**
+ * Clones the initial value, performing a deep clone for objects and arrays.
+ *
+ * @param {unknown} newValue The value to clone.
+ * @returns {unknown}
+ */
+function mixinInitValue(newValue: unknown): unknown {
+  let result = newValue;
+
+  if (Array.isArray(result) || isObject(result)) {
+    result = deepClone(result);
+  }
+
+  return result;
+}
+
+/**
+ * Creates a getter function for a mixin property.
+ *
+ * @param {string} property The property name.
+ * @param {unknown} initialValue The initial value for the property.
+ * @returns {Function}
+ */
+function mixinGetter(property: string, initialValue: unknown): (this: Record<string, unknown>) => unknown {
+  const propertyName = `_${property}`;
+
+  return function(this: Record<string, unknown>) {
+    if (this[propertyName] === undefined) {
+      this[propertyName] = mixinInitValue(initialValue);
+    }
+
+    return this[propertyName];
+  };
+}
+
+/**
+ * Creates a setter function for a mixin property.
+ *
+ * @param {string} property The property name.
+ * @returns {Function}
+ */
+function mixinSetter(property: string): (this: Record<string, unknown>, newValue: unknown) => void {
+  const propertyName = `_${property}`;
+
+  return function(this: Record<string, unknown>, newValue: unknown) {
+    this[propertyName] = newValue;
+  };
+}
+
+/**
  * Extend the Base object (usually prototype) of the functionality the `mixins` objects.
  *
  * @param {object} Base Base object which will be extended.
@@ -186,38 +235,9 @@ export function mixin(Base: Function, ...mixins: object[]): object {
         Base.prototype[key] = value;
 
       } else {
-        const getter = function _getter(property: string, initialValue: unknown) {
-          const propertyName = `_${property}`;
-
-          const initValue = (newValue: unknown) => {
-            let result = newValue;
-
-            if (Array.isArray(result) || isObject(result)) {
-              result = deepClone(result);
-            }
-
-            return result;
-          };
-
-          return function(this: Record<string, unknown>) {
-            if (this[propertyName] === undefined) {
-              this[propertyName] = initValue(initialValue);
-            }
-
-            return this[propertyName];
-          };
-        };
-        const setter = function _setter(property: string) {
-          const propertyName = `_${property}`;
-
-          return function(this: Record<string, unknown>, newValue: unknown) {
-            this[propertyName] = newValue;
-          };
-        };
-
         Object.defineProperty(Base.prototype, key, {
-          get: getter(key, value),
-          set: setter(key),
+          get: mixinGetter(key, value),
+          set: mixinSetter(key),
           configurable: true,
         });
       }

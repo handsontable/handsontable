@@ -23,6 +23,45 @@ interface ReplaceDataConfig {
 }
 
 /**
+ * Builds the initial empty dataset rows when `data` is `null`.
+ *
+ * @param {HotInstance} hotInstance The Handsontable instance.
+ * @param {DataMap} newDataMap The newly created DataMap instance.
+ * @param {object} tableMeta The current table settings.
+ * @returns {unknown[]} The generated data array.
+ */
+function buildNullData(
+  hotInstance: HotInstance,
+  newDataMap: DataMap,
+  tableMeta: ReturnType<HotInstance['getSettings']>
+): unknown[] {
+  const dataSchema = newDataMap.getSchema();
+  const data: unknown[] = [];
+
+  for (let r = 0, rlen = tableMeta.startRows as number; r < rlen; r++) {
+    let row;
+
+    if ((hotInstance.dataType === 'object' || hotInstance.dataType === 'function') && tableMeta.dataSchema) {
+      row = deepClone(dataSchema);
+
+    } else if (hotInstance.dataType === 'array') {
+      row = deepClone((dataSchema as unknown[])[0]);
+
+    } else {
+      row = [];
+
+      for (let c = 0, clen = tableMeta.startCols as number; c < clen; c++) {
+        row.push(null);
+      }
+    }
+
+    data.push(row);
+  }
+
+  return data;
+}
+
+/**
  * Loads new data to Handsontable.
  *
  * @private
@@ -89,33 +128,8 @@ function replaceData(
     }
 
   } else if (data === null) {
-    const dataSchema = newDataMap.getSchema();
-
     // eslint-disable-next-line no-param-reassign
-    data = [];
-    let row;
-    let r = 0;
-    let rlen = 0;
-
-    for (r = 0, rlen = tableMeta.startRows as number; r < rlen; r++) {
-      if ((hotInstance.dataType === 'object' || hotInstance.dataType === 'function') && tableMeta.dataSchema) {
-        row = deepClone(dataSchema);
-        (data as unknown[]).push(row);
-
-      } else if (hotInstance.dataType === 'array') {
-        row = deepClone((dataSchema as unknown[])[0]);
-        (data as unknown[]).push(row);
-
-      } else {
-        row = [];
-
-        for (let c = 0, clen = tableMeta.startCols as number; c < clen; c++) {
-          row.push(null);
-        }
-
-        (data as unknown[]).push(row);
-      }
-    }
+    data = buildNullData(hotInstance, newDataMap, tableMeta);
 
   } else {
     throwWithCause(`${internalSource} only accepts array of objects or array of arrays (${typeof data} given)`);

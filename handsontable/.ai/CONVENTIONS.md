@@ -287,6 +287,16 @@ Use `?.` only when a value is genuinely optional by design. Do not use as a blan
 - Use `requestAnimationFrame` for batching scroll events
 - Target 60fps with 100k+ row datasets
 
+### Locale-aware lowercasing (dogfooding rule)
+
+**Never call `String.prototype.toLocaleLowerCase` or `toLocaleUpperCase` directly.** Always use `localeLowerCase(value, locale)` from `src/helpers/string.ts`.
+
+Passing an explicit locale argument to the native method forces V8's ICU path and is ~45× slower than `toLowerCase()`, even though the result is byte-identical for every locale except Turkish, Azeri, and Lithuanian (the only locales that tailor lowercasing — on the dotted/dotless-I family). The helper probes each locale once (cached) and takes the fast path otherwise. It also never throws on an invalid or empty locale tag.
+
+The only sanctioned direct calls are inside `localeLowerCase` itself, marked with `// eslint-disable-next-line no-restricted-syntax`. The `no-restricted-syntax` ESLint rule enforces this everywhere else (test files excepted).
+
+**Cache safety:** the helper caches only the immutable locale → "does it tailor?" classification, keyed by the locale string. Call sites read the locale live, so changing a cell's or column's `locale` after `updateSettings` just passes a different string — there is no stale cached locale or cached lowercased value. Do not add per-instance locale caches or memoize lowercased values.
+
 ## CSS Conventions
 
 - CSS and JavaScript are strictly separated -- never mix CSS into JavaScript files

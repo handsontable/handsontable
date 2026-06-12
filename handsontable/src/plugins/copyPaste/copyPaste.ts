@@ -717,7 +717,7 @@ export class CopyPaste extends BasePlugin {
   onCopy(event: ClipboardEvent) {
     const eventTarget = event.composedPath()[0];
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
-    const isHotInput = isHTMLElement(eventTarget) && eventTarget.hasAttribute('data-hot-input');
+    const isHotInput = isHTMLElement(eventTarget) && 'hotInput' in eventTarget.dataset;
 
     if (
       !this.hot.isListening() && !this.#isTriggeredByCopy ||
@@ -761,7 +761,7 @@ export class CopyPaste extends BasePlugin {
   onCut(event: ClipboardEvent) {
     const eventTarget = event.composedPath()[0];
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
-    const isHotInput = isHTMLElement(eventTarget) && eventTarget.hasAttribute('data-hot-input');
+    const isHotInput = isHTMLElement(eventTarget) && 'hotInput' in eventTarget.dataset;
 
     if (
       !this.hot.isListening() && !this.#isTriggeredByCut ||
@@ -802,7 +802,7 @@ export class CopyPaste extends BasePlugin {
   onPaste(event: ClipboardEvent | PasteEvent) {
     const eventTarget = event.composedPath()[0];
     const focusedElement = this.hot.getFocusManager().getRefocusElement();
-    const isHotInput = isHTMLElement(eventTarget) && eventTarget.hasAttribute('data-hot-input');
+    const isHotInput = isHTMLElement(eventTarget) && 'hotInput' in eventTarget.dataset;
 
     if (
       !this.hot.isListening() ||
@@ -821,6 +821,51 @@ export class CopyPaste extends BasePlugin {
 
     event.preventDefault?.();
 
+    const clipboardResult = this.#readClipboardData(event);
+    const { pastedSourceData } = clipboardResult;
+    let { pastedData } = clipboardResult;
+
+    if (typeof pastedData === 'string') {
+      pastedData = parse(pastedData);
+    }
+
+    if (pastedData === void 0 || Array.isArray(pastedData) && pastedData.length === 0) {
+      return;
+    }
+
+    // Store a copy of the original pasted data before user can modify it in beforePaste hook.
+    // This is needed to detect if user modified values and respect their modifications over source data.
+    const originalPastedData = deepClone(pastedData);
+
+    if (this.hot.runHooks('beforePaste', pastedData, this.copyableRanges) === false) {
+      return;
+    }
+
+    const [startRow, startColumn, endRow, endColumn] = this.populateValues({
+      plainData: pastedData as unknown[][],
+      sourceData: pastedSourceData as unknown[][],
+      originalPlainData: originalPastedData as unknown[][],
+    });
+
+    if (startRow !== null && startColumn !== null && endRow !== null && endColumn !== null) {
+      this.hot.selectCell(
+        startRow,
+        startColumn,
+        Math.min(this.hot.countRows() - 1, endRow),
+        Math.min(this.hot.countCols() - 1, endColumn),
+      );
+    }
+
+    this.hot.runHooks('afterPaste', pastedData, this.copyableRanges);
+  }
+
+  /**
+   * Reads pasted data and source data from a paste event's clipboard.
+   *
+   * @param {ClipboardEvent | PasteEvent} event The paste event.
+   * @returns {{ pastedData: unknown, pastedSourceData: unknown }} The pasted data and source data.
+   */
+  #readClipboardData(event: ClipboardEvent | PasteEvent): { pastedData: unknown; pastedSourceData: unknown } {
     let pastedData: unknown;
     let pastedSourceData: unknown;
 
@@ -868,38 +913,7 @@ export class CopyPaste extends BasePlugin {
       pastedData = (this.hot.rootWindow as unknown as IEWindow).clipboardData.getData('Text');
     }
 
-    if (typeof pastedData === 'string') {
-      pastedData = parse(pastedData);
-    }
-
-    if (pastedData === void 0 || Array.isArray(pastedData) && pastedData.length === 0) {
-      return;
-    }
-
-    // Store a copy of the original pasted data before user can modify it in beforePaste hook.
-    // This is needed to detect if user modified values and respect their modifications over source data.
-    const originalPastedData = deepClone(pastedData);
-
-    if (this.hot.runHooks('beforePaste', pastedData, this.copyableRanges) === false) {
-      return;
-    }
-
-    const [startRow, startColumn, endRow, endColumn] = this.populateValues({
-      plainData: pastedData as unknown[][],
-      sourceData: pastedSourceData as unknown[][],
-      originalPlainData: originalPastedData as unknown[][],
-    });
-
-    if (startRow !== null && startColumn !== null && endRow !== null && endColumn !== null) {
-      this.hot.selectCell(
-        startRow,
-        startColumn,
-        Math.min(this.hot.countRows() - 1, endRow),
-        Math.min(this.hot.countCols() - 1, endColumn),
-      );
-    }
-
-    this.hot.runHooks('afterPaste', pastedData, this.copyableRanges);
+    return { pastedData, pastedSourceData };
   }
 
   /**

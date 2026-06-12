@@ -169,6 +169,34 @@ export function createEmptyBorders(row: number, col: number): BorderObject {
 }
 
 /**
+ * Resolves a single border side value from the custom border config and assigns it to the default border object.
+ *
+ * @param {object} defaultBorder The default border object to update.
+ * @param {object} customBorder The border object with custom settings.
+ * @param {string} side The border side key ('top', 'bottom', 'start', or 'end').
+ */
+function applyBorderSide(
+  defaultBorder: BorderObject,
+  customBorder: CustomBorderConfig,
+  side: 'top' | 'bottom' | 'start' | 'end'
+): void {
+  if (!hasOwnProperty(customBorder, side) || !isDefined(customBorder[side])) {
+    return;
+  }
+
+  if (customBorder[side]) {
+    if (!isObject(customBorder[side])) {
+      customBorder[side] = createDefaultCustomBorder();
+    }
+
+    defaultBorder[side] = customBorder[side];
+  } else {
+    customBorder[side] = createSingleEmptyBorder();
+    defaultBorder[side] = customBorder[side];
+  }
+}
+
+/**
  * @param {object} defaultBorder The default border object.
  * @param {object} customBorder The border object with custom settings.
  * @returns {object}
@@ -178,62 +206,10 @@ export function extendDefaultBorder(defaultBorder: BorderObject, customBorder: C
     defaultBorder.border = customBorder.border;
   }
 
-  if (hasOwnProperty(customBorder, 'top') && isDefined(customBorder.top)) {
-    if (customBorder.top) {
-      if (!isObject(customBorder.top)) {
-        customBorder.top = createDefaultCustomBorder();
-      }
-
-      defaultBorder.top = customBorder.top;
-
-    } else {
-      customBorder.top = createSingleEmptyBorder();
-      defaultBorder.top = customBorder.top;
-    }
-  }
-
-  if (hasOwnProperty(customBorder, 'bottom') && isDefined(customBorder.bottom)) {
-    if (customBorder.bottom) {
-      if (!isObject(customBorder.bottom)) {
-        customBorder.bottom = createDefaultCustomBorder();
-      }
-
-      defaultBorder.bottom = customBorder.bottom;
-
-    } else {
-      customBorder.bottom = createSingleEmptyBorder();
-      defaultBorder.bottom = customBorder.bottom;
-    }
-  }
-
-  if (hasOwnProperty(customBorder, 'start') && isDefined(customBorder.start)) {
-    if (customBorder.start) {
-
-      if (!isObject(customBorder.start)) {
-        customBorder.start = createDefaultCustomBorder();
-      }
-
-      defaultBorder.start = customBorder.start;
-
-    } else {
-      customBorder.start = createSingleEmptyBorder();
-      defaultBorder.start = customBorder.start;
-    }
-  }
-
-  if (hasOwnProperty(customBorder, 'end') && isDefined(customBorder.end)) {
-    if (customBorder.end) {
-      if (!isObject(customBorder.end)) {
-        customBorder.end = createDefaultCustomBorder();
-      }
-
-      defaultBorder.end = customBorder.end;
-
-    } else {
-      customBorder.end = createSingleEmptyBorder();
-      defaultBorder.end = customBorder.end;
-    }
-  }
+  applyBorderSide(defaultBorder, customBorder, 'top');
+  applyBorderSide(defaultBorder, customBorder, 'bottom');
+  applyBorderSide(defaultBorder, customBorder, 'start');
+  applyBorderSide(defaultBorder, customBorder, 'end');
 
   return defaultBorder;
 }

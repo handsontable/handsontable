@@ -328,26 +328,45 @@ export class BasePlugin {
       const validator = settingsValidators[settingName];
 
       if (validator && typeof validator === 'function') {
-        return ((...args: unknown[]): unknown => {
-          const result: unknown = settingValue(...args);
-          const isValid = validator(result);
+        const wrappedFn = settingValue as (...args: unknown[]) => unknown;
 
-          if (isValid === false) {
-            const formattedArgs = args.map(arg => (typeof arg === 'string' ? `"${arg}"` : '')).join(', ');
-            const source = args.length > 0 ? formattedArgs : '';
-
-            warn(`${this.pluginName} Plugin: "${settingName}" function (${source}) result \
-               is not valid and will be ignored.`);
-
-            return;
-          }
-
-          return result;
-        }) as T;
+        return this.#wrapSettingWithValidator(wrappedFn, validator, settingName) as T;
       }
     }
 
     return settingValue as T;
+  }
+
+  /**
+   * Wraps a setting function with its validator, returning a guarded wrapper that emits a warning
+   * and returns undefined when the validator rejects the result.
+   *
+   * @param {Function} settingFn The setting function to wrap.
+   * @param {Function} validator The validator function for the setting.
+   * @param {string} settingName The name of the setting (used in the warning message).
+   * @returns {Function} A wrapped function that validates the result before returning it.
+   */
+  #wrapSettingWithValidator(
+    settingFn: (...args: unknown[]) => unknown,
+    validator: (result: unknown) => boolean,
+    settingName: string
+  ): (...args: unknown[]) => unknown {
+    return (...args: unknown[]): unknown => {
+      const result: unknown = settingFn(...args);
+      const isValid = validator(result);
+
+      if (isValid === false) {
+        const formattedArgs = args.map(arg => (typeof arg === 'string' ? `"${arg}"` : '')).join(', ');
+        const source = args.length > 0 ? formattedArgs : '';
+
+        warn(`${this.pluginName} Plugin: "${settingName}" function (${source}) result \
+               is not valid and will be ignored.`);
+
+        return;
+      }
+
+      return result;
+    };
   }
 
   /**
@@ -566,7 +585,7 @@ export class BasePlugin {
    * @private
    */
   updatePlugin(newSettings?: Record<string, unknown>): void {
-
+    // Intentionally empty
   }
 
   /**

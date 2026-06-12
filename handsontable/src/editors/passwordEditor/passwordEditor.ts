@@ -74,7 +74,7 @@ export class PasswordEditor extends TextEditor {
 
     this.TEXTAREA = this.hot.rootDocument.createElement('input');
     this.TEXTAREA.setAttribute('type', 'password');
-    this.TEXTAREA.setAttribute('data-hot-input', ''); // Makes the element recognizable by Hot as its own component's element.
+    this.TEXTAREA.dataset.hotInput = ''; // Makes the element recognizable by Hot as its own component's element.
     this.TEXTAREA.className = 'handsontableInput';
     this.textareaStyle = this.TEXTAREA.style;
     this.textareaStyle.width = '0';

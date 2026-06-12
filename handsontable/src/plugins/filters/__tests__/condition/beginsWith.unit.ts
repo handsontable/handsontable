@@ -55,4 +55,10 @@ describe('Filters condition (`begins_with`)', () => {
     expect(condition(data('İNANÇ'), ['inan'])).toBe(true);
     expect(condition(data('İNANÇ'), ['inanç'])).toBe(true);
   });
+
+  it('should not throw when the cell locale is an invalid BCP 47 tag', () => {
+    const data = dateRowFactory({ locale: 'en_US' });
+
+    expect(() => condition(data('ABC'), ['abc'])).not.toThrow();
+  });
 });

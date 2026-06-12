@@ -355,3 +355,4 @@ The CI `verify-emitted-types` job reports the exact leaked identifier with `TS23
 - [ ] JSDoc on every class, method, function declaration, and class field (multiline format; `{Type}` in every `@param`/`@returns`, in sync with the TS signature; no `@private` on `#` fields)
 - [ ] No breaking change introduced (or the breaking change is explicitly called out)
 - [ ] Changelog entry added (`bin/changelog entry`)
+- **Locale-aware lowercasing:** use `localeLowerCase(value, locale)` from `helpers/string`, never native `toLocaleLowerCase(locale)` (ICU-slow, throws on bad tags). Enforced by `no-restricted-syntax`.

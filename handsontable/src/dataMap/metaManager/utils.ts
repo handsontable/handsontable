@@ -41,7 +41,7 @@ export function extendByMetaType(
 
   if (metaObject._automaticallyAssignedMetaProps) {
     objectEach(settings, (_value: unknown, key: string) => {
-      void (metaObject._automaticallyAssignedMetaProps as Set<string>).delete(key);
+      (metaObject._automaticallyAssignedMetaProps as Set<string>).delete(key);
     });
   }
 

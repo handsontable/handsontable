@@ -474,15 +474,15 @@ class Highlight {
     this.focus.clear();
     this.fill.clear();
 
-    this.areas.forEach(highlight => void highlight.clear());
-    this.layeredAreas.forEach(highlight => void highlight.clear());
-    this.rowHeaders.forEach(highlight => void highlight.clear());
-    this.columnHeaders.forEach(highlight => void highlight.clear());
-    this.activeRowHeaders.forEach(highlight => void highlight.clear());
-    this.activeColumnHeaders.forEach(highlight => void highlight.clear());
-    this.activeCornerHeaders.forEach(highlight => void highlight.clear());
-    this.rowHighlights.forEach(highlight => void highlight.clear());
-    this.columnHighlights.forEach(highlight => void highlight.clear());
+    this.areas.forEach(highlight => highlight.clear());
+    this.layeredAreas.forEach(highlight => highlight.clear());
+    this.rowHeaders.forEach(highlight => highlight.clear());
+    this.columnHeaders.forEach(highlight => highlight.clear());
+    this.activeRowHeaders.forEach(highlight => highlight.clear());
+    this.activeColumnHeaders.forEach(highlight => highlight.clear());
+    this.activeCornerHeaders.forEach(highlight => highlight.clear());
+    this.rowHighlights.forEach(highlight => highlight.clear());
+    this.columnHighlights.forEach(highlight => highlight.clear());
   }
 
   /**

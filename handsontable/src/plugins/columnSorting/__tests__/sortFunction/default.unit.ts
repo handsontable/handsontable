@@ -37,3 +37,16 @@ it('defaultSort comparing function shouldn\'t change order when comparing empty 
   expect(defaultSort('asc', {}, {})(undefined, null)).toBe(0);
   expect(defaultSort('desc', {}, {})(undefined, null)).toBe(0);
 });
+
+it('should not throw when the column locale is an invalid BCP 47 tag', () => {
+  const compare = defaultSort('asc', { locale: 'en_US' }, {});
+
+  expect(() => compare('Beta', 'alpha')).not.toThrow();
+});
+
+it('should sort case-insensitively and identically to the default Unicode mapping', () => {
+  const compare = defaultSort('asc', { locale: 'en-US' }, {});
+
+  expect(compare('apple', 'Apple')).toBe(0);
+  expect(compare('Apple', 'banana')).toBeLessThan(0);
+});

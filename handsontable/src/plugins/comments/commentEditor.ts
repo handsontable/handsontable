@@ -254,7 +254,7 @@ class CommentEditor {
 
     addClass(editor, CommentEditor.CLASS_EDITOR);
     addClass(textarea, CommentEditor.CLASS_INPUT);
-    textarea.setAttribute('data-hot-input', 'true');
+    textarea.dataset.hotInput = 'true';
 
     editor.appendChild(textarea);
     this.#container.appendChild(editor);

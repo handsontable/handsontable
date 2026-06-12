@@ -120,6 +120,14 @@ const allSettings: Required<Handsontable.GridSettings> = {
   },
   fragmentSelection: oneOf(true, 'cell'),
   headerClassName: 'htCenter test',
+  getValue: oneOf('name', function(this: Handsontable) {
+    return this.getDataAtCell(0, 0);
+  }),
+  handsontable: {
+    data: [[]],
+    colHeaders: true,
+    getValue: 'name',
+  },
   hashLength: 8,
   hashRevealDelay: 1000,
   hashSymbol: '#',
@@ -784,3 +792,39 @@ const _rendererCellProps: Handsontable.CellProperties = cellProperties;
 
 // Assert that a CellProperties value is assignable as the validator `this` context type
 const _validatorCellProps: CellProperties = cellProperties;
+
+// === `handsontable` cell-type setting typing ===
+// `getValue` is a regular top-level grid setting (read by `Core#getValue`), usable both at the
+// instance level and inside the nested `handsontable` config of the `handsontable` cell type. Its
+// function form binds `this` to the instance.
+
+// `getValue` also works as a top-level grid setting (read by `Core#getValue`), not only nested.
+const _hotTopLevelGetValueString: Handsontable.GridSettings = { getValue: 'name' };
+const _hotTopLevelGetValueFn: Handsontable.GridSettings = {
+  getValue() {
+    return this.getDataAtCell(0, 0);
+  },
+};
+
+// Nested `handsontable` config (global and per-column), with both `getValue` forms.
+const _hotGlobal: Handsontable.GridSettings = {
+  handsontable: { data: [[]], getValue: 'name' },
+};
+const _hotColumn: Handsontable.ColumnSettings = {
+  handsontable: { data: [[]], getValue: 'name' },
+};
+const _hotColumnGetValueFn: Handsontable.ColumnSettings = {
+  handsontable: {
+    // Relies on the *contextual* `this` (no explicit annotation) on purpose: this fails to compile
+    // if a `[key: string]: unknown` index signature is re-added to `ColumnSettings`, because the
+    // value-type mismatch with the `[key: string]: any` inherited from `GridSettings` widens `this`
+    // to `{}`. Keeps the no-index-signature decision in `settings.ts` honest.
+    getValue() {
+      return this.getDataAtCell(0, 0);
+    },
+  },
+};
+
+// Custom plugin/meta keys still allowed via the `[key: string]: any` signature inherited from `GridSettings`.
+const _columnArbitraryKeys: Handsontable.ColumnSettings = { someCustomPluginKey: 123 };
+const _cellMetaArbitraryKeys: Handsontable.CellMeta = { someCustomMetaKey: true };

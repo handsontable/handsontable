@@ -14,7 +14,7 @@ import {
   setCaretPosition,
 } from '../../helpers/dom/element';
 import { isDefined, stringify } from '../../helpers/mixed';
-import { stripTags } from '../../helpers/string';
+import { stripTags, localeLowerCase } from '../../helpers/string';
 import { KEY_CODES, isPrintableChar } from '../../helpers/unicode';
 import { textRenderer } from '../../renderers/textRenderer';
 import {
@@ -182,7 +182,7 @@ export class AutocompleteEditor extends HandsontableEditor {
           TD.innerHTML = cellValue;
         } else if (cellValue && query && query.length > 0) {
           const indexOfMatch = filteringCaseSensitive === true ?
-            cellValue.indexOf(query) : cellValue.toLocaleLowerCase(locale).indexOf(query.toLocaleLowerCase(locale));
+            cellValue.indexOf(query) : localeLowerCase(cellValue, locale).indexOf(localeLowerCase(query, locale));
 
           if (indexOfMatch !== -1) {
             const match = cellValue.slice(indexOfMatch, indexOfMatch + query.length);
@@ -335,14 +335,14 @@ export class AutocompleteEditor extends HandsontableEditor {
     const filteredChoiceIndexes: number[] = [];
     const locale = this.cellProperties.locale as string | undefined;
     const filteringCaseSensitive = this.cellProperties.filteringCaseSensitive as boolean | undefined;
-    const valueToMatch = filteringCaseSensitive ? comparableValue : String(comparableValue).toLocaleLowerCase(locale);
+    const valueToMatch = filteringCaseSensitive ? comparableValue : localeLowerCase(String(comparableValue), locale);
 
     for (let i = 0; i < choices.length; i++) {
       const currentItem =
         this.#isKeyValueObject(choices[i]) ?
           stripTags(stringify((choices[i] as Record<string, unknown>).value)) :
           stripTags(stringify(choices[i]));
-      const itemToMatch = filteringCaseSensitive ? currentItem : currentItem.toLocaleLowerCase(locale);
+      const itemToMatch = filteringCaseSensitive ? currentItem : localeLowerCase(currentItem, locale);
 
       if (itemToMatch.indexOf(String(valueToMatch)) !== -1) {
         filteredChoiceIndexes.push(i);

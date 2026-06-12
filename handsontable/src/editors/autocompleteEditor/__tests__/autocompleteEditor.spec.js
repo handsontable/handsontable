@@ -4157,4 +4157,28 @@ describe('AutocompleteEditor', () => {
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });
   });
+
+  it('should filter choices case-insensitively under an invalid column locale', async() => {
+    handsontable({
+      columns: [{
+        editor: 'autocomplete',
+        source: ['Apple', 'Apricot', 'Banana'],
+        locale: 'en_US', // invalid tag — current code throws while filtering
+        filter: true,
+      }],
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter'); // open the editor
+
+    const editor = getActiveEditor();
+
+    editor.TEXTAREA.value = 'ap';
+    await keyDownUp('p', {}, editor.TEXTAREA); // trigger the query/filter pass
+    await waitForNextAnimationFrames(2); // allow the async filter render
+
+    // 'ap' matches 'Apple' and 'Apricot' case-insensitively. If filtering threw on the
+    // invalid locale, the inner list would not populate with exactly these two rows.
+    expect(editor.htEditor.countRows()).toBe(2);
+  });
 });

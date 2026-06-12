@@ -91,15 +91,18 @@ export class RemoveColumnAction extends BaseAction {
         const headers: unknown[] = [];
         const indexes: number[] = [];
 
-        rangeEach(originalData.length - 1, (i: number) => {
+        const collectColumnData = (origRow: unknown[], colFrom: number, colTo: number): number[] => {
           const column: number[] = [];
-          const origRow = originalData[i];
 
-          rangeEach(columnIndex, lastColumnIndex, (j) => {
+          rangeEach(colFrom, colTo, (j) => {
             column.push(origRow[hot.toPhysicalColumn(j)] as number);
           });
 
-          removedData.push(column);
+          return column;
+        };
+
+        rangeEach(originalData.length - 1, (i: number) => {
+          removedData.push(collectColumnData(originalData[i], columnIndex, lastColumnIndex));
         });
 
         rangeEach(amount - 1, (i: number) => {

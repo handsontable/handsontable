@@ -5,6 +5,7 @@ import { isKey } from '../../../helpers/unicode';
 import { dataRowToChangesArray } from '../../../helpers/data';
 import * as C from '../../../i18n/constants';
 import { stopImmediatePropagation } from '../../../helpers/dom/event';
+import { localeLowerCase } from '../../../helpers/string';
 import type { BaseUIOptions } from './_base';
 import { BaseUI } from './_base';
 import { InputUI } from './input';
@@ -357,7 +358,7 @@ export class MultipleSelectUI extends BaseUI {
    */
   #onInput(event: Event) {
     const trimmed = eventTargetEl<HTMLInputElement>(event)!.value.trim();
-    const value = trimmed.toLocaleLowerCase(this.getLocale());
+    const value = localeLowerCase(trimmed, this.getLocale());
 
     if ((this.options as Record<string, unknown>).searchMode === 'apply') {
       const hiddenRows = this.#itemsBox?.getPlugin('hiddenRows');
@@ -368,7 +369,7 @@ export class MultipleSelectUI extends BaseUI {
       }
 
       this.#items.forEach((item, index) => {
-        item.checked = `${item.value}`.toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0;
+        item.checked = localeLowerCase(`${item.value}`, this.getLocale()).indexOf(value) >= 0;
 
         if (!item.checked) {
           rowsToHide.push(index);
@@ -387,7 +388,7 @@ export class MultipleSelectUI extends BaseUI {
         filteredItems = [...this.#items];
       } else {
         filteredItems = this.#items
-          .filter(item => (`${item.value}`).toLocaleLowerCase(this.getLocale()).indexOf(value) >= 0);
+          .filter(item => localeLowerCase(`${item.value}`, this.getLocale()).indexOf(value) >= 0);
       }
 
       this.#itemsBox?.loadData(filteredItems);

@@ -126,18 +126,19 @@ export class ExtendMetaPropertiesMod {
   installPropWatcher(propName: string, origProp: string,
                      onChange: (this: unknown, changedPropName: string,
                                 value: unknown, isInitialChange: boolean) => void) {
-    const self = this;
+    const { usageTracker } = this;
+    const boundOnChange = onChange.bind(this);
 
     Object.defineProperty(this.metaManager.globalMeta.meta, propName as string, {
       get(): unknown {
         return this[origProp as string];
       },
       set(value: unknown) {
-        const isInitialChange = !self.usageTracker.has(propName);
+        const isInitialChange = !usageTracker.has(propName);
 
-        self.usageTracker.add(propName);
+        usageTracker.add(propName);
 
-        onChange.call(self, propName, value, isInitialChange);
+        boundOnChange(propName, value, isInitialChange);
 
         this[origProp as string] = value;
       },

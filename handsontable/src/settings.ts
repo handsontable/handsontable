@@ -57,10 +57,12 @@ export type { GridSettings } from './core/settings';
  */
 export interface ColumnSettings extends Omit<GridSettings, 'data'> {
   data?: string | number | ColumnDataGetterSetterFunction;
-  /**
-   * Column and cell meta data is extensible, developers can add any properties they want.
-   */
-  [key: string]: unknown;
+
+  // NOTE: do not add a `[key: string]: unknown` index signature here. Column and cell meta is already
+  // extensible with arbitrary keys through the `[key: string]: any` signature inherited from
+  // `GridSettings`. A second index signature with a different value type (`unknown` vs the inherited
+  // `any`) makes TypeScript drop the `this` binding on nested `handsontable.getValue` — contextual
+  // typing widens `this` to `{}`. The `_hotColumnGetValueFn` type test guards against re-adding it.
 }
 
 /**

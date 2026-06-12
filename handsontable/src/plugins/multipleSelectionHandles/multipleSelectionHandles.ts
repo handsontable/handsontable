@@ -67,7 +67,6 @@ export class MultipleSelectionHandles extends BasePlugin {
    * @private
    */
   registerListeners() {
-    const _this = this;
     const { rootElement } = this.hot;
 
     /**
@@ -75,40 +74,40 @@ export class MultipleSelectionHandles extends BasePlugin {
      * @param {string} query Query for the position.
      * @returns {boolean}
      */
-    function removeFromDragged(query: string) {
+    const removeFromDragged = (query: string) => {
 
-      if (_this.dragged.length === 1) {
+      if (this.dragged.length === 1) {
         // clear array
-        _this.dragged.splice(0, _this.dragged.length);
+        this.dragged.splice(0, this.dragged.length);
 
         return true;
       }
 
-      const entryPosition = _this.dragged.indexOf(query);
+      const entryPosition = this.dragged.indexOf(query);
 
       if (entryPosition === -1) {
         return false;
       } else if (entryPosition === 0) {
-        _this.dragged = _this.dragged.slice(0, 1);
+        this.dragged = this.dragged.slice(0, 1);
       } else if (entryPosition === 1) {
-        _this.dragged = _this.dragged.slice(-1);
+        this.dragged = this.dragged.slice(-1);
       }
-    }
+    };
 
     this.eventManager.addEventListener(rootElement, 'touchstart', (event) => {
       let selectedRange;
       const target = eventTargetEl(event)!;
 
       if (hasClass(target, 'topSelectionHandle-HitArea')) {
-        selectedRange = _this.hot.getSelectedRangeActive();
+        selectedRange = this.hot.getSelectedRangeActive();
 
         if (!selectedRange) {
           return false;
         }
 
-        _this.dragged.push('top');
+        this.dragged.push('top');
 
-        _this.touchStartRange = {
+        this.touchStartRange = {
           width: selectedRange.getWidth(),
           height: selectedRange.getHeight(),
           direction: selectedRange.getDirection()
@@ -119,15 +118,15 @@ export class MultipleSelectionHandles extends BasePlugin {
         return false;
 
       } else if (hasClass(target, 'bottomSelectionHandle-HitArea')) {
-        selectedRange = _this.hot.getSelectedRangeActive();
+        selectedRange = this.hot.getSelectedRangeActive();
 
         if (!selectedRange) {
           return false;
         }
 
-        _this.dragged.push('bottom');
+        this.dragged.push('bottom');
 
-        _this.touchStartRange = {
+        this.touchStartRange = {
           width: selectedRange.getWidth(),
           height: selectedRange.getHeight(),
           direction: selectedRange.getDirection()
@@ -143,18 +142,18 @@ export class MultipleSelectionHandles extends BasePlugin {
       const target = eventTargetEl(event)!;
 
       if (hasClass(target, 'topSelectionHandle-HitArea')) {
-        removeFromDragged.call(_this, 'top');
+        removeFromDragged('top');
 
-        _this.touchStartRange = undefined;
+        this.touchStartRange = undefined;
 
         event.preventDefault();
 
         return false;
 
       } else if (hasClass(target, 'bottomSelectionHandle-HitArea')) {
-        removeFromDragged.call(_this, 'bottom');
+        removeFromDragged('bottom');
 
-        _this.touchStartRange = undefined;
+        this.touchStartRange = undefined;
 
         event.preventDefault();
 
@@ -171,19 +170,19 @@ export class MultipleSelectionHandles extends BasePlugin {
       let rangeDirection;
       let newRangeCoords;
 
-      if (_this.dragged.length === 0) {
+      if (this.dragged.length === 0) {
         return;
       }
 
       const te = (event as TouchEvent).touches[0];
       const endTarget = rootDocument.elementFromPoint(te.clientX, te.clientY);
 
-      if (!endTarget || endTarget === _this.lastSetCell) {
+      if (!endTarget || endTarget === this.lastSetCell) {
         return;
       }
 
       if (endTarget.nodeName === 'TD' || endTarget.nodeName === 'TH') {
-        targetCoords = _this.hot.getCoords(endTarget as HTMLElement);
+        targetCoords = this.hot.getCoords(endTarget as HTMLElement);
 
         if (!targetCoords) {
           return;
@@ -193,7 +192,7 @@ export class MultipleSelectionHandles extends BasePlugin {
           targetCoords.col = 0;
         }
 
-        selectedRange = _this.hot.getSelectedRangeActive();
+        selectedRange = this.hot.getSelectedRangeActive();
 
         if (!selectedRange) {
           return;
@@ -204,24 +203,24 @@ export class MultipleSelectionHandles extends BasePlugin {
         rangeDirection = selectedRange.getDirection();
 
         if (rangeWidth === 1 && rangeHeight === 1) {
-          _this.hot.selection.setRangeEnd(targetCoords);
+          this.hot.selection.setRangeEnd(targetCoords);
         }
 
-        newRangeCoords = _this.getCurrentRangeCoords(
+        newRangeCoords = this.getCurrentRangeCoords(
           selectedRange,
           targetCoords,
-          _this.touchStartRange!.direction,
+          this.touchStartRange!.direction,
           rangeDirection,
-          _this.dragged[0]
+          this.dragged[0]
         );
 
         if (newRangeCoords.start !== null) {
-          _this.hot.selection.setRangeStart(newRangeCoords.start);
+          this.hot.selection.setRangeStart(newRangeCoords.start);
         }
 
-        _this.hot.selection.setRangeEnd(newRangeCoords.end!);
+        this.hot.selection.setRangeEnd(newRangeCoords.end!);
 
-        _this.lastSetCell = endTarget as HTMLElement;
+        this.lastSetCell = endTarget as HTMLElement;
 
       }
 

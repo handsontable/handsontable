@@ -559,8 +559,10 @@ export class AutoRowSize extends BasePlugin {
       if (isPercentValue(limit as unknown as string)) {
         limit = valueAccordingPercent(rowsLimit, limit as unknown as string);
       } else {
-        // Force to Number
-        limit >>= 0;
+        // Force to integer (NaN — e.g. when syncLimit is undefined — falls back to 0)
+        const numericLimit = Number(limit);
+
+        limit = Number.isFinite(numericLimit) ? Math.trunc(numericLimit) : 0;
       }
     }
 
