@@ -1,4 +1,3 @@
-import { isObject } from '../../helpers/object';
 import { isSafari } from '../../helpers/browser';
 import { sumCellsHeights } from './utils';
 import type { HotInstance } from '../../core/types';
@@ -30,11 +29,6 @@ interface MergeCellsPluginInstance {
 /**
  * Clamps the not-hidden row and column indexes to the virtual viewport boundaries
  * based on the active overlay, ensuring merged cells don't extend beyond the visible area.
- *
- * @param {HotInstance} hot The Handsontable instance.
- * @param {number | null} notHiddenRow The nearest not-hidden row index.
- * @param {number | null} notHiddenColumn The nearest not-hidden column index.
- * @returns {[number | null, number | null]} The clamped row and column indexes.
  */
 function clampToVirtualViewport(
   hot: HotInstance,
@@ -65,8 +59,6 @@ function clampToVirtualViewport(
  * Creates a renderer object for the `MergeCells` plugin.
  *
  * @private
- * @param {MergeCells} plugin The `MergeCells` plugin instance.
- * @returns {{before: Function, after: Function}}
  */
 export function createMergeCellRenderer(plugin: MergeCellsPluginInstance) {
   const hot = plugin.hot;
