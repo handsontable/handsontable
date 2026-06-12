@@ -16,7 +16,7 @@ import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
 import VersionsDropdown from './VersionsDropdown.astro';
 import SupportDropdown from './SupportDropdown.astro';
 import FrameworkSwitcher from './FrameworkSwitcher.astro';
-import { buildAllValidUrls } from '../sidebar.mjs';
+import { validUrlArrays } from 'virtual:valid-urls';
 
 const isProduction = import.meta.env.PUBLIC_BUILD_MODE === 'production';
 
@@ -65,7 +65,12 @@ const FRAMEWORK_KEY: Record<string, string> = {
 };
 
 const BASE = '/docs';
-const validUrls = buildAllValidUrls();
+// Reconstruct Sets from the pre-computed arrays in the virtual module.
+// validUrlArrays is static JSON baked in at build time so sidebar.mjs
+// (which uses createRequire) is not pulled into the prerender bundle.
+const validUrls = Object.fromEntries(
+  Object.entries(validUrlArrays).map(([k, v]) => [k, new Set(v)])
+);
 
 function getMobileFrameworkHref(fw: { id: string }): string {
   if (fw.id === currentPrefix) return pathname;

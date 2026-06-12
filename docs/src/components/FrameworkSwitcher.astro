@@ -10,7 +10,7 @@
  * preserved for backward compatibility with the Algolia crawler config that
  * targets `.nav-frameworks .dropdown-title .title`.
  */
-import { buildAllValidUrls } from '../sidebar.mjs';
+import { validUrlArrays } from 'virtual:valid-urls';
 
 const pathname = Astro.url.pathname;
 
@@ -38,7 +38,12 @@ const FRAMEWORK_KEY: Record<string, string> = {
 
 // Astro serves pages under the /docs base; sidebar links omit it.
 const BASE = '/docs';
-const validUrls = buildAllValidUrls();
+// Reconstruct Sets from the pre-computed arrays in the virtual module.
+// validUrlArrays is static JSON baked in at build time so sidebar.mjs
+// (which uses createRequire) is not pulled into the prerender bundle.
+const validUrls = Object.fromEntries(
+  Object.entries(validUrlArrays).map(([k, v]) => [k, new Set(v)])
+);
 
 const current = frameworks.find((f) => f.id === currentPrefix)!;
 
