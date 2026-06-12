@@ -10,6 +10,8 @@
  * preserved for backward compatibility with the Algolia crawler config that
  * targets `.nav-frameworks .dropdown-title .title`.
  */
+import { buildAllValidUrls } from '../sidebar.mjs';
+
 const pathname = Astro.url.pathname;
 
 const currentPrefix = pathname.includes('/react-data-grid/')
@@ -27,13 +29,34 @@ const frameworks = [
   { id: 'vue-data-grid', label: 'Vue', fullName: 'Vue 3', icon: 'i-vue' },
 ];
 
+const FRAMEWORK_KEY: Record<string, string> = {
+  'javascript-data-grid': 'javascript',
+  'react-data-grid': 'react',
+  'angular-data-grid': 'angular',
+  'vue-data-grid': 'vue',
+};
+
+// Astro serves pages under the /docs base; sidebar links omit it.
+const BASE = '/docs';
+const validUrls = buildAllValidUrls();
+
 const current = frameworks.find((f) => f.id === currentPrefix)!;
 
-const items = frameworks.map((fw) => ({
-  ...fw,
-  href: pathname.replace(currentPrefix, fw.id),
-  isCurrent: fw.id === currentPrefix,
-}));
+const items = frameworks.map((fw) => {
+  if (fw.id === currentPrefix) {
+    return { ...fw, href: pathname, isCurrent: true };
+  }
+
+  const targetPath = pathname.replace(currentPrefix, fw.id);
+  // Strip the /docs base to match sidebar link format (e.g. /react-data-grid/foo/)
+  const sidebarPath = targetPath.startsWith(BASE)
+    ? targetPath.slice(BASE.length)
+    : targetPath;
+  const fwKey = FRAMEWORK_KEY[fw.id];
+  const href = validUrls[fwKey]?.has(sidebarPath) ? targetPath : `${BASE}/${fw.id}/`;
+
+  return { ...fw, href, isCurrent: false };
+});
 ---
 
 <div class="fw-tabs nav-frameworks" role="group" aria-label="Framework">

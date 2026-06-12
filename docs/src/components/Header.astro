@@ -16,6 +16,7 @@ import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
 import VersionsDropdown from './VersionsDropdown.astro';
 import SupportDropdown from './SupportDropdown.astro';
 import FrameworkSwitcher from './FrameworkSwitcher.astro';
+import { buildAllValidUrls } from '../sidebar.mjs';
 
 const isProduction = import.meta.env.PUBLIC_BUILD_MODE === 'production';
 
@@ -55,6 +56,26 @@ const frameworks = [
   { id: 'angular-data-grid', label: 'Angular' },
   { id: 'vue-data-grid', label: 'Vue' },
 ];
+
+const FRAMEWORK_KEY: Record<string, string> = {
+  'javascript-data-grid': 'javascript',
+  'react-data-grid': 'react',
+  'angular-data-grid': 'angular',
+  'vue-data-grid': 'vue',
+};
+
+const BASE = '/docs';
+const validUrls = buildAllValidUrls();
+
+function getMobileFrameworkHref(fw: { id: string }): string {
+  if (fw.id === currentPrefix) return pathname;
+
+  const targetPath = pathname.replace(currentPrefix, fw.id);
+  const sidebarPath = targetPath.startsWith(BASE) ? targetPath.slice(BASE.length) : targetPath;
+  const fwKey = FRAMEWORK_KEY[fw.id];
+
+  return validUrls[fwKey]?.has(sidebarPath) ? targetPath : `${BASE}/${fw.id}/`;
+}
 ---
 
 <div class="header">
@@ -227,7 +248,7 @@ const frameworks = [
       <div class="mobile-nav-frameworks">
         {frameworks.map(fw => (
           <a
-            href={pathname.replace(currentPrefix, fw.id)}
+            href={getMobileFrameworkHref(fw)}
             class:list={['mobile-nav-fw', { 'mobile-nav-fw--active': fw.id === currentPrefix }]}
             aria-current={fw.id === currentPrefix ? 'page' : undefined}
           >
