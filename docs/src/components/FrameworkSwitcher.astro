@@ -52,8 +52,13 @@ const items = frameworks.map((fw) => {
   const sidebarPath = targetPath.startsWith(BASE)
     ? targetPath.slice(BASE.length)
     : targetPath;
+  // Normalize to trailing slash: sidebar links from toLink() always end with '/',
+  // but Astro.url.pathname may omit it. Without normalization the Set.has() check
+  // fails for otherwise-valid equivalent pages and incorrectly falls back to the
+  // framework root.
+  const normalizedSidebarPath = sidebarPath.endsWith('/') ? sidebarPath : `${sidebarPath}/`;
   const fwKey = FRAMEWORK_KEY[fw.id];
-  const href = validUrls[fwKey]?.has(sidebarPath) ? targetPath : `${BASE}/${fw.id}/`;
+  const href = validUrls[fwKey]?.has(normalizedSidebarPath) ? targetPath : `${BASE}/${fw.id}/`;
 
   return { ...fw, href, isCurrent: false };
 });
