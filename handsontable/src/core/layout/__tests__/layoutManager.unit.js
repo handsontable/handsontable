@@ -2,12 +2,11 @@ import { LayoutManager } from '../layoutManager';
 
 describe('LayoutManager', () => {
   function setup() {
-    const beforeGrid = document.createElement('div');
-    const afterGrid = document.createElement('div');
-    const overlays = document.createElement('div');
-    const manager = new LayoutManager({ beforeGrid, afterGrid, overlays });
+    const top = document.createElement('div');
+    const bottom = document.createElement('div');
+    const manager = new LayoutManager({ top, bottom });
 
-    return { manager, beforeGrid, afterGrid, overlays };
+    return { manager, top, bottom };
   }
 
   const ids = parent => Array.from(parent.children).map(c => c.dataset.id);
@@ -20,9 +19,9 @@ describe('LayoutManager', () => {
   };
 
   it('exposes a DomSlot per slot name bound to the right element', () => {
-    const { manager, afterGrid } = setup();
+    const { manager, bottom } = setup();
 
-    expect(manager.getSlot('afterGrid').getElement()).toBe(afterGrid);
+    expect(manager.getSlot('bottom').getElement()).toBe(bottom);
   });
 
   it('throws for an unknown slot name', () => {
@@ -32,104 +31,103 @@ describe('LayoutManager', () => {
   });
 
   it('applies per-slot order from a layout config', () => {
-    const { manager, afterGrid } = setup();
+    const { manager, bottom } = setup();
 
-    manager.getSlot('afterGrid').add('pagination', make('pagination'), 100);
-    manager.getSlot('afterGrid').add('licenseNotification', make('licenseNotification'), 200);
+    manager.getSlot('bottom').add('pagination', make('pagination'), 100);
+    manager.getSlot('bottom').add('licenseNotification', make('licenseNotification'), 200);
 
-    manager.applyConfig({ afterGrid: ['licenseNotification', 'pagination'] });
+    manager.applyConfig({ bottom: ['licenseNotification', 'pagination'] });
 
-    expect(ids(afterGrid)).toEqual(['licenseNotification', 'pagination']);
+    expect(ids(bottom)).toEqual(['licenseNotification', 'pagination']);
   });
 
   it('falls back to weight order when config omits the slot', () => {
-    const { manager, afterGrid } = setup();
+    const { manager, bottom } = setup();
 
-    manager.getSlot('afterGrid').add('pagination', make('pagination'), 100);
-    manager.getSlot('afterGrid').add('licenseNotification', make('licenseNotification'), 200);
+    manager.getSlot('bottom').add('pagination', make('pagination'), 100);
+    manager.getSlot('bottom').add('licenseNotification', make('licenseNotification'), 200);
 
     manager.applyConfig({});
 
-    expect(ids(afterGrid)).toEqual(['pagination', 'licenseNotification']);
+    expect(ids(bottom)).toEqual(['pagination', 'licenseNotification']);
   });
 
-  it('register places the element into the edge slot named by side and applies the weight', () => {
-    const { manager, beforeGrid, afterGrid } = setup();
+  it('register places the element into the slot named by side and applies the weight', () => {
+    const { manager, top, bottom } = setup();
 
-    manager.register('a', make('a'), { side: 'before' });
-    manager.register('b', make('b'), { side: 'after' });
+    manager.register('a', make('a'), { side: 'top' });
+    manager.register('b', make('b'), { side: 'bottom' });
 
-    expect(ids(beforeGrid)).toEqual(['a']);
-    expect(ids(afterGrid)).toEqual(['b']);
+    expect(ids(top)).toEqual(['a']);
+    expect(ids(bottom)).toEqual(['b']);
   });
 
-  it('register does not target the overlays slot (overlays use getSlot directly)', () => {
-    const { manager, overlays } = setup();
+  it('register throws for a non-slot side such as the internal overlays layer', () => {
+    const { manager } = setup();
 
-    // `overlays` is not a `LayoutSide`; register falls through to an undefined slot and throws.
+    // `overlays` is not a slot (it renders like the grid), so `getSlot('overlays')` is unknown.
     expect(() => manager.register('c', make('c'), { side: 'overlays' })).toThrow();
-    expect(ids(overlays)).toEqual([]);
   });
 
   it('register orders by weight within a side and the layout config overrides it', () => {
-    const { manager, afterGrid } = setup();
+    const { manager, bottom } = setup();
 
-    manager.register('pagination', make('pagination'), { side: 'after', weight: 100 });
-    manager.register('licenseNotification', make('licenseNotification'), { side: 'after', weight: 200 });
+    manager.register('pagination', make('pagination'), { side: 'bottom', weight: 100 });
+    manager.register('licenseNotification', make('licenseNotification'), { side: 'bottom', weight: 200 });
 
-    expect(ids(afterGrid)).toEqual(['pagination', 'licenseNotification']);
+    expect(ids(bottom)).toEqual(['pagination', 'licenseNotification']);
 
-    manager.applyConfig({ afterGrid: ['licenseNotification', 'pagination'] });
+    manager.applyConfig({ bottom: ['licenseNotification', 'pagination'] });
 
-    expect(ids(afterGrid)).toEqual(['licenseNotification', 'pagination']);
+    expect(ids(bottom)).toEqual(['licenseNotification', 'pagination']);
   });
 
   it('register defaults the weight to 0 when omitted', () => {
-    const { manager, afterGrid } = setup();
+    const { manager, bottom } = setup();
 
-    manager.register('first', make('first'), { side: 'after' });
-    manager.register('second', make('second'), { side: 'after', weight: -1 });
+    manager.register('first', make('first'), { side: 'bottom' });
+    manager.register('second', make('second'), { side: 'bottom', weight: -1 });
 
     // `second` has a lower weight, so it comes first despite registering later.
-    expect(ids(afterGrid)).toEqual(['second', 'first']);
+    expect(ids(bottom)).toEqual(['second', 'first']);
   });
 
   it('re-registering under the same key replaces the previous element', () => {
-    const { manager, afterGrid } = setup();
+    const { manager, bottom } = setup();
 
-    manager.register('x', make('x1'), { side: 'after' });
-    manager.register('x', make('x2'), { side: 'after' });
+    manager.register('x', make('x1'), { side: 'bottom' });
+    manager.register('x', make('x2'), { side: 'bottom' });
 
-    expect(afterGrid.children.length).toBe(1);
-    expect(ids(afterGrid)).toEqual(['x2']);
+    expect(bottom.children.length).toBe(1);
+    expect(ids(bottom)).toEqual(['x2']);
   });
 
   it('unregister detaches the element from the slot named by side', () => {
-    const { manager, afterGrid } = setup();
+    const { manager, bottom } = setup();
 
-    manager.register('a', make('a'), { side: 'after' });
-    manager.register('b', make('b'), { side: 'after' });
+    manager.register('a', make('a'), { side: 'bottom' });
+    manager.register('b', make('b'), { side: 'bottom' });
 
-    manager.unregister('a', 'after');
+    manager.unregister('a', 'bottom');
 
-    expect(ids(afterGrid)).toEqual(['b']);
+    expect(ids(bottom)).toEqual(['b']);
   });
 
   it('unregister is a no-op for an unknown key', () => {
-    const { manager, afterGrid } = setup();
+    const { manager, bottom } = setup();
 
-    manager.register('a', make('a'), { side: 'after' });
+    manager.register('a', make('a'), { side: 'bottom' });
 
-    expect(() => manager.unregister('missing', 'after')).not.toThrow();
-    expect(ids(afterGrid)).toEqual(['a']);
+    expect(() => manager.unregister('missing', 'bottom')).not.toThrow();
+    expect(ids(bottom)).toEqual(['a']);
   });
 
   it('clears all slots on destroy', () => {
-    const { manager, beforeGrid } = setup();
+    const { manager, top } = setup();
 
-    manager.getSlot('beforeGrid').add('x', make('x'));
+    manager.getSlot('top').add('x', make('x'));
     manager.destroy();
 
-    expect(beforeGrid.children.length).toBe(0);
+    expect(top.children.length).toBe(0);
   });
 });

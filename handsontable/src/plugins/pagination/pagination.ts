@@ -251,12 +251,12 @@ export class Pagination extends BasePlugin {
 
     }
 
-    // The layout manager owns the after-grid placement and ordering. With a custom `uiContainer`
+    // The layout manager owns the bottom-slot placement and ordering. With a custom `uiContainer`
     // the UI installs itself there instead, so the slot registration is skipped. The manager only
     // exists on the root instance, hence the guard.
     if (isRootInstance(this.hot) && !this.getSetting('uiContainer')) {
       this.hot.getLayoutManager()
-        .register(PLUGIN_KEY, this.#ui.getContainer(), { side: 'after', weight: LAYOUT_WEIGHT });
+        .register(PLUGIN_KEY, this.#ui.getContainer(), { side: 'bottom', weight: LAYOUT_WEIGHT });
     }
 
     // Place the onInit hook before others to make sure that the pagination state is computed
@@ -403,7 +403,7 @@ export class Pagination extends BasePlugin {
     this.#unregisterFocusScope();
 
     if (isRootInstance(this.hot)) {
-      this.hot.getLayoutManager().unregister(PLUGIN_KEY, 'after');
+      this.hot.getLayoutManager().unregister(PLUGIN_KEY, 'bottom');
     }
 
     this.#ui?.destroy();

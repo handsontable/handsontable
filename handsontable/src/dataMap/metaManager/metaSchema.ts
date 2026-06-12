@@ -3496,11 +3496,10 @@ export default (): Record<string, unknown> => {
 
     /**
      * The `layout` option configures the order of plugin UI elements within the user-orderable
-     * wrapper slots rendered around the grid: `beforeGrid` and `afterGrid`. Each slot takes an
-     * ordered array of element keys (for example `'pagination'`, `'licenseNotification'`).
-     * Keys you list are placed first in that order; any remaining elements follow by their default
-     * weight. The grid itself is not orderable, and the `overlays` slot (the modal layer, such as
-     * the dialog) is ordered by its plugins, not through this option.
+     * wrapper slots rendered around the grid: `top` and `bottom`. Each slot takes an ordered array
+     * of element keys (for example `'pagination'`, `'licenseNotification'`). Keys you list are placed
+     * first in that order; any remaining elements follow by their default weight. The grid and the
+     * overlays layer (the modal layer, such as the dialog) are not orderable through this option.
      *
      * @since 18.0.0
      * @memberof Options#
@@ -3512,7 +3511,7 @@ export default (): Record<string, unknown> => {
      * ```js
      * // render the license notification above pagination
      * layout: {
-     *   afterGrid: ['licenseNotification', 'pagination'],
+     *   bottom: ['licenseNotification', 'pagination'],
      * },
      * ```
      */

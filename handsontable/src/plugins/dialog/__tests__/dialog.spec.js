@@ -57,7 +57,7 @@ describe('Dialog', () => {
     expect(dialogPlugin.isVisible()).toBe(false);
   });
 
-  it('should render dialog container inside rootOverlaysElement (ht-overlays)', async() => {
+  it('should render dialog container inside rootOverlaysElement (ht-overlay)', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       dialog: true,

@@ -11,7 +11,7 @@ describe('Pagination UI', () => {
   });
 
   function isTopBorderVisible() {
-    // The first after-grid item never draws a top border (the grid's own bottom border divides them).
+    // The first bottom-slot item never draws a top border (the grid's own bottom border divides them).
     // The pagination is that first item in these specs, so its top border is always 0.
     return getComputedStyle(getPaginationContainerElement()).borderTopWidth !== '0px';
   }
@@ -29,7 +29,7 @@ describe('Pagination UI', () => {
     expect(getPaginationContainerElement().offsetWidth).toBe(500);
   });
 
-  it('should set rootAfterGridElement width after render when pagination is enabled', async() => {
+  it('should set rootSlotBottomElement width after render when pagination is enabled', async() => {
     handsontable({
       data: createSpreadsheetData(15, 20),
       width: 500,
@@ -39,10 +39,10 @@ describe('Pagination UI', () => {
 
     await waitForNextAnimationFrames(2);
 
-    expect(hot().rootAfterGridElement.style.width).toBe('500px');
+    expect(hot().rootSlotBottomElement.style.width).toBe('500px');
   });
 
-  it('should fill the after-grid slot width when the table has no defined size', async() => {
+  it('should fill the bottom slot width when the table has no defined size', async() => {
     handsontable({
       data: createSpreadsheetData(15, 10),
       pagination: {
@@ -52,8 +52,8 @@ describe('Pagination UI', () => {
 
     await waitForNextAnimationFrames(2);
 
-    // The pagination no longer sets its own width - it fills the after-grid slot.
-    expect(getPaginationContainerElement().offsetWidth).toBe(hot().rootAfterGridElement.offsetWidth);
+    // The pagination no longer sets its own width - it fills the bottom slot.
+    expect(getPaginationContainerElement().offsetWidth).toBe(hot().rootSlotBottomElement.offsetWidth);
   });
 
   it('should hide the pagination container element when all sections are hidden', async() => {
@@ -128,7 +128,7 @@ describe('Pagination UI', () => {
     expect(hot().rootElement).not.toHaveClass('htPagination');
   });
 
-  it('should never draw the top border of the pagination container (it is the first after-grid item)', async() => {
+  it('should never draw the top border of the pagination container (it is the first bottom-slot item)', async() => {
     handsontable({
       data: createSpreadsheetData(50, 50),
       width: 600,
@@ -137,7 +137,7 @@ describe('Pagination UI', () => {
     });
 
     // Workspace taller than content, scrollable content, scrolled to the bottom, and reflows -
-    // the first after-grid item's top border is always removed regardless.
+    // the first bottom-slot item's top border is always removed regardless.
     expect(isTopBorderVisible()).toBe(false);
 
     await scrollViewportVertically(10000);

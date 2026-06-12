@@ -143,8 +143,8 @@ const allSettings: Required<Handsontable.GridSettings> = {
   label: { property: 'name.last', position: 'after', value: oneOf('My label: ', () => 'My label') },
   language: 'foo',
   layout: {
-    beforeGrid: ['toolbar'],
-    afterGrid: ['pagination', 'licenseNotification'],
+    top: ['toolbar'],
+    bottom: ['pagination', 'licenseNotification'],
   },
   layoutDirection: oneOf('rtl', 'ltr', 'inherit'),
   licenseKey: '',

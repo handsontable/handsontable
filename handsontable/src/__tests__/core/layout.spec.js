@@ -12,33 +12,33 @@ describe('Layout slots', () => {
     }
   });
 
-  it('renders the ht-before-grid slot as the first wrapper child', async() => {
+  it('renders the ht-slot-top slot as the first wrapper child', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
     const children = Array.from(hot.rootWrapperElement.children).map(c => c.className);
 
-    expect(hot.rootBeforeGridElement).toBeTruthy();
-    expect(hot.rootBeforeGridElement.classList.contains('ht-before-grid')).toBe(true);
-    expect(children[0]).toContain('ht-before-grid');
+    expect(hot.rootSlotTopElement).toBeTruthy();
+    expect(hot.rootSlotTopElement.classList.contains('ht-slot-top')).toBe(true);
+    expect(children[0]).toContain('ht-slot-top');
   });
 
-  it('places ht-overlays as the last wrapper child', async() => {
+  it('places ht-overlay as the last wrapper child', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
     const children = Array.from(hot.rootWrapperElement.children).map(c => c.className);
 
-    expect(children.at(-1)).toContain('ht-overlays');
+    expect(children.at(-1)).toContain('ht-overlay');
   });
 
-  it('orders the wrapper slots before-grid, grid, after-grid, overlays', async() => {
+  it('orders the wrapper slots top, grid, bottom, overlays', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
     const classes = Array.from(hot.rootWrapperElement.children)
       .map(c => c.className.split(' ').find(n => n.startsWith('ht-')));
 
-    expect(classes).toEqual(['ht-before-grid', 'ht-grid', 'ht-after-grid', 'ht-overlays']);
+    expect(classes).toEqual(['ht-slot-top', 'ht-grid', 'ht-slot-bottom', 'ht-overlay']);
   });
 
   const slotItemIds = slot => Array.from(slot.getElement().children).map(c => c.dataset.id);
 
-  it('adds the ht-slot-element class to each edge-slot element', async() => {
+  it('adds the ht-slot-element class to each slot element', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
     const make = (elId) => {
       const el = document.createElement('div');
@@ -50,36 +50,27 @@ describe('Layout slots', () => {
     const a = make('a');
     const b = make('b');
 
-    hot.getLayoutManager().getSlot('beforeGrid').add('a', a);
-    hot.getLayoutManager().getSlot('afterGrid').add('b', b);
+    hot.getLayoutManager().getSlot('top').add('a', a);
+    hot.getLayoutManager().getSlot('bottom').add('b', b);
 
     expect(a.classList.contains('ht-slot-element')).toBe(true);
     expect(b.classList.contains('ht-slot-element')).toBe(true);
     // The elements are direct children of the slot - they are not wrapped.
-    expect(a.parentNode).toBe(hot.rootBeforeGridElement);
-    expect(b.parentNode).toBe(hot.rootAfterGridElement);
+    expect(a.parentNode).toBe(hot.rootSlotTopElement);
+    expect(b.parentNode).toBe(hot.rootSlotBottomElement);
   });
 
-  it('does not add the ht-slot-element class to overlays-slot elements', async() => {
-    const hot = handsontable({ data: createSpreadsheetData(3, 3) });
-    const el = document.createElement('div');
-
-    hot.getLayoutManager().getSlot('overlays').add('custom', el, 100);
-
-    expect(el.parentNode).toBe(hot.rootOverlaysElement);
-    expect(el.classList.contains('ht-slot-element')).toBe(false);
-  });
-
-  it('exposes getLayoutManager with the three orderable slots', async() => {
+  it('exposes getLayoutManager with the orderable top/bottom slots only', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
     const manager = hot.getLayoutManager();
 
-    expect(manager.getSlot('beforeGrid').getElement()).toBe(hot.rootBeforeGridElement);
-    expect(manager.getSlot('afterGrid').getElement()).toBe(hot.rootAfterGridElement);
-    expect(manager.getSlot('overlays').getElement()).toBe(hot.rootOverlaysElement);
+    expect(manager.getSlot('top').getElement()).toBe(hot.rootSlotTopElement);
+    expect(manager.getSlot('bottom').getElement()).toBe(hot.rootSlotBottomElement);
+    // Overlays is a fixed internal element (like the grid), not a slot.
+    expect(() => manager.getSlot('overlays')).toThrow();
   });
 
-  it('register places a custom element into the edge slot named by side', async() => {
+  it('register places a custom element into the slot named by side', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
     const make = (elId) => {
       const el = document.createElement('div');
@@ -88,14 +79,14 @@ describe('Layout slots', () => {
 
       return el;
     };
-    const before = make('before');
-    const after = make('after');
+    const top = make('top');
+    const bottom = make('bottom');
 
-    hot.getLayoutManager().register('a', before, { side: 'before' });
-    hot.getLayoutManager().register('b', after, { side: 'after', weight: 100 });
+    hot.getLayoutManager().register('a', top, { side: 'top' });
+    hot.getLayoutManager().register('b', bottom, { side: 'bottom', weight: 100 });
 
-    expect(before.parentNode).toBe(hot.rootBeforeGridElement);
-    expect(after.parentNode).toBe(hot.rootAfterGridElement);
+    expect(top.parentNode).toBe(hot.rootSlotTopElement);
+    expect(bottom.parentNode).toBe(hot.rootSlotBottomElement);
   });
 
   it('keeps focus on a slot element across updateSettings (no reorder churn)', async() => {
@@ -103,7 +94,7 @@ describe('Layout slots', () => {
     const link = document.createElement('button');
 
     link.textContent = 'Slot action';
-    hot.getLayoutManager().register('toolbar', link, { side: 'before', weight: 100 });
+    hot.getLayoutManager().register('toolbar', link, { side: 'top', weight: 100 });
 
     link.focus();
 
@@ -120,18 +111,18 @@ describe('Layout slots', () => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
     const el = document.createElement('div');
 
-    hot.getLayoutManager().register('custom', el, { side: 'after' });
+    hot.getLayoutManager().register('custom', el, { side: 'bottom' });
 
-    expect(el.parentNode).toBe(hot.rootAfterGridElement);
+    expect(el.parentNode).toBe(hot.rootSlotBottomElement);
 
-    hot.getLayoutManager().unregister('custom', 'after');
+    hot.getLayoutManager().unregister('custom', 'bottom');
 
     expect(el.parentNode).toBe(null);
   });
 
   it('adds and orders custom elements within a slot by weight', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
-    const slot = hot.getLayoutManager().getSlot('beforeGrid');
+    const slot = hot.getLayoutManager().getSlot('top');
     const make = (elId) => {
       const el = document.createElement('div');
 
@@ -149,9 +140,9 @@ describe('Layout slots', () => {
   it('orders slot elements according to the layout setting', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(3, 3),
-      layout: { beforeGrid: ['b', 'a'] },
+      layout: { top: ['b', 'a'] },
     });
-    const slot = hot.getLayoutManager().getSlot('beforeGrid');
+    const slot = hot.getLayoutManager().getSlot('top');
     const make = (elId) => {
       const el = document.createElement('div');
 
@@ -168,7 +159,7 @@ describe('Layout slots', () => {
 
   it('re-applies order when the layout setting changes via updateSettings', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
-    const slot = hot.getLayoutManager().getSlot('afterGrid');
+    const slot = hot.getLayoutManager().getSlot('bottom');
     const make = (elId) => {
       const el = document.createElement('div');
 
@@ -180,31 +171,31 @@ describe('Layout slots', () => {
     slot.add('a', make('a'), 100);
     slot.add('b', make('b'), 200);
 
-    await updateSettings({ layout: { afterGrid: ['b', 'a'] } });
+    await updateSettings({ layout: { bottom: ['b', 'a'] } });
 
     expect(slotItemIds(slot)).toEqual(['b', 'a']);
   });
 
-  it('keeps ht-before-grid the same width as ht-after-grid', async() => {
+  it('keeps ht-slot-top the same width as ht-slot-bottom', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(3, 3),
       width: 300,
       height: 200,
     });
 
-    hot.getLayoutManager().getSlot('beforeGrid')
+    hot.getLayoutManager().getSlot('top')
       .add('probe', document.createElement('div'), 100);
 
     hot.refreshDimensions();
 
     await sleep(50);
 
-    expect(hot.rootBeforeGridElement.style.width).toBe(hot.rootAfterGridElement.style.width);
-    expect(hot.rootBeforeGridElement.style.width).not.toBe('');
+    expect(hot.rootSlotTopElement.style.width).toBe(hot.rootSlotBottomElement.style.width);
+    expect(hot.rootSlotTopElement.style.width).not.toBe('');
   });
 
-  it('sizes the after-grid slot to the table width on init (table narrower than the wrapper)', async() => {
-    // No defined size + columns narrower than the container: the after-grid slot must shrink to the
+  it('sizes the bottom slot to the table width on init (table narrower than the wrapper)', async() => {
+    // No defined size + columns narrower than the container: the bottom slot must shrink to the
     // table width on the first render, not stretch to the full wrapper width.
     const hot = handsontable({
       data: createSpreadsheetData(4, 3),
@@ -216,28 +207,28 @@ describe('Layout slots', () => {
 
     const tableWidth = hot.rootWrapperElement.querySelector('.ht_master .htCore').offsetWidth;
 
-    expect(hot.rootAfterGridElement.style.width).not.toBe('');
-    expect(hot.rootAfterGridElement.offsetWidth).toBe(tableWidth);
-    expect(hot.rootAfterGridElement.offsetWidth).toBeLessThan(hot.rootWrapperElement.offsetWidth);
+    expect(hot.rootSlotBottomElement.style.width).not.toBe('');
+    expect(hot.rootSlotBottomElement.offsetWidth).toBe(tableWidth);
+    expect(hot.rootSlotBottomElement.offsetWidth).toBeLessThan(hot.rootWrapperElement.offsetWidth);
   });
 
-  it('registers the license notification under the afterGrid slot when present', async() => {
+  it('registers the license notification under the bottom slot when present', async() => {
     // Pass `true` so the test helper does not inject the default evaluation license key,
     // which leaves the key missing and renders the license notification.
     const hot = handsontable({ data: createSpreadsheetData(3, 3) }, true);
 
-    expect(hot.getLayoutManager().getSlot('afterGrid').has('licenseNotification')).toBe(true);
-    expect(hot.rootAfterGridElement.querySelector('.hot-display-license-info')).toBeTruthy();
+    expect(hot.getLayoutManager().getSlot('bottom').has('licenseNotification')).toBe(true);
+    expect(hot.rootSlotBottomElement.querySelector('.hot-display-license-info')).toBeTruthy();
   });
 
   it('orders pagination and license per the layout setting', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(3, 3),
       pagination: true,
-      layout: { afterGrid: ['licenseNotification', 'pagination'] },
+      layout: { bottom: ['licenseNotification', 'pagination'] },
     }, true);
 
-    const keys = Array.from(hot.getLayoutManager().getSlot('afterGrid').getElement().children).map((c) => {
+    const keys = Array.from(hot.getLayoutManager().getSlot('bottom').getElement().children).map((c) => {
       if (c.classList.contains('hot-display-license-info')) {
         return 'licenseNotification';
       }
@@ -258,24 +249,25 @@ describe('Layout slots', () => {
       pagination: true,
     });
 
-    expect(hot.getLayoutManager().getSlot('afterGrid').has('pagination')).toBe(true);
+    expect(hot.getLayoutManager().getSlot('bottom').has('pagination')).toBe(true);
 
     await updateSettings({ pagination: false });
 
-    expect(hot.getLayoutManager().getSlot('afterGrid').has('pagination')).toBe(false);
+    expect(hot.getLayoutManager().getSlot('bottom').has('pagination')).toBe(false);
   });
 
-  it('registers the dialog under the overlays slot', async() => {
+  it('renders the dialog in the overlays layer and removes it when disabled', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(3, 3),
       dialog: true,
     });
 
-    expect(hot.getLayoutManager().getSlot('overlays').has('dialog')).toBe(true);
+    // The dialog renders in the overlays layer (not a layout slot) and installs its element there.
+    expect(hot.rootOverlaysElement.children.length).toBe(1);
 
     await updateSettings({ dialog: false });
 
-    expect(hot.getLayoutManager().getSlot('overlays').has('dialog')).toBe(false);
+    expect(hot.rootOverlaysElement.children.length).toBe(0);
   });
 
   it('does not throw when destroying with layout-registered plugins', async() => {
@@ -288,46 +280,35 @@ describe('Layout slots', () => {
     expect(() => hot.destroy()).not.toThrow();
   });
 
-  it('keeps tab order before-grid -> grid -> after-grid', async() => {
+  it('keeps tab order top -> grid -> bottom', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
-    const beforeBtn = document.createElement('button');
-    const afterBtn = document.createElement('button');
+    const topBtn = document.createElement('button');
+    const bottomBtn = document.createElement('button');
 
-    beforeBtn.id = 'beforeBtn';
-    afterBtn.id = 'afterBtn';
+    topBtn.id = 'topBtn';
+    bottomBtn.id = 'bottomBtn';
 
-    hot.getLayoutManager().getSlot('beforeGrid').add('b', beforeBtn, 100);
-    hot.getLayoutManager().getSlot('afterGrid').add('a', afterBtn, 100);
+    hot.getLayoutManager().getSlot('top').add('t', topBtn, 100);
+    hot.getLayoutManager().getSlot('bottom').add('b', bottomBtn, 100);
 
-    const inDocOrder = Array.from(hot.rootWrapperElement.querySelectorAll('#beforeBtn, #afterBtn'))
+    const inDocOrder = Array.from(hot.rootWrapperElement.querySelectorAll('#topBtn, #bottomBtn'))
       .map(el => el.id);
 
-    expect(inDocOrder).toEqual(['beforeBtn', 'afterBtn']);
+    expect(inDocOrder).toEqual(['topBtn', 'bottomBtn']);
   });
 
-  it('ignores an overlays key in the layout setting (overlays are not user-orderable)', async() => {
+  it('ignores an overlays key in the layout setting (overlays is not a slot)', async() => {
+    // `overlays` is not a layout slot - it renders like the grid - so passing it must be harmless.
     const hot = handsontable({
       data: createSpreadsheetData(3, 3),
-      // `overlays` is not part of the public `layout` config; passing it must have no effect.
       layout: { overlays: ['b', 'a'] },
     });
-    const slot = hot.getLayoutManager().getSlot('overlays');
-    const make = (elId) => {
-      const el = document.createElement('div');
 
-      el.dataset.id = elId;
-
-      return el;
-    };
-
-    slot.add('a', make('a'), 100);
-    slot.add('b', make('b'), 200);
-
-    // Weight order is preserved; the ignored layout key does not reshuffle them.
-    expect(slotItemIds(slot)).toEqual(['a', 'b']);
+    expect(() => hot.getLayoutManager().getSlot('overlays')).toThrow();
+    expect(hot.rootOverlaysElement.classList.contains('ht-overlay')).toBe(true);
   });
 
-  it('removes the top border of the first after-grid item', async() => {
+  it('removes the top border of the first bottom-slot item', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
     const make = (elId) => {
       const el = document.createElement('div');
@@ -337,19 +318,19 @@ describe('Layout slots', () => {
       return el;
     };
 
-    hot.getLayoutManager().getSlot('afterGrid').add('first', make('first'), 100);
-    hot.getLayoutManager().getSlot('afterGrid').add('second', make('second'), 200);
+    hot.getLayoutManager().getSlot('bottom').add('first', make('first'), 100);
+    hot.getLayoutManager().getSlot('bottom').add('second', make('second'), 200);
 
     hot.render();
 
     await waitForNextAnimationFrames(2);
 
-    const [first, second] = Array.from(hot.rootAfterGridElement.children);
+    const [first, second] = Array.from(hot.rootSlotBottomElement.children);
 
-    // The first after-grid item never draws a top border; non-first items are not targeted by the rule.
+    // The first bottom-slot item never draws a top border; non-first items are not targeted by the rule.
     expect(getComputedStyle(first).borderTopWidth).toBe('0px');
-    expect(first.matches('.ht-after-grid > .ht-slot-element:first-child')).toBe(true);
-    expect(second.matches('.ht-after-grid > .ht-slot-element:first-child')).toBe(false);
+    expect(first.matches('.ht-slot-bottom > .ht-slot-element:first-child')).toBe(true);
+    expect(second.matches('.ht-slot-bottom > .ht-slot-element:first-child')).toBe(false);
   });
 
   it('throws when getLayoutManager is called on a non-root instance', async() => {

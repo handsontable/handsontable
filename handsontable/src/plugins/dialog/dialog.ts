@@ -1,7 +1,6 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { DialogUI } from './ui';
-import { LAYOUT_SLOTS } from '../../core/layout';
 import { isRootInstance } from '../../utils/rootInstance';
 import { isObject, isPlainObject } from '../../helpers/object';
 import { isHTMLElement } from '../../helpers/dom/element';
@@ -12,7 +11,6 @@ export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 360;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
-const LAYOUT_WEIGHT = 100;
 
 /**
  * @plugin Dialog
@@ -284,15 +282,9 @@ export class Dialog extends BasePlugin {
     this.#registerShortcuts();
     this.#registerFocusScope();
 
-    // The UI's `install` appends the container to the overlays element; adding it to the overlays
-    // slot lets the layout manager own the ordering. The overlays slot is internal (not user-orderable
-    // through the `layout` setting), so it is reached via `getSlot`, not `register`. The manager only
-    // exists on the root instance, hence the guard.
-    if (isRootInstance(this.hot)) {
-      this.hot.getLayoutManager()
-        .getSlot(LAYOUT_SLOTS.OVERLAYS)
-        .add(PLUGIN_KEY, this.#ui.getContainer(), LAYOUT_WEIGHT);
-    }
+    // The dialog renders in the overlays layer (`ht-overlay`), a fixed internal element like the
+    // grid — not a layout slot. The UI's `install` already appended its container into that element,
+    // so there is nothing to register with the layout manager.
 
     this.addHook('afterViewRender', () => this.#onAfterViewRender());
 
@@ -317,9 +309,10 @@ export class Dialog extends BasePlugin {
     this.#unregisterShortcuts();
     this.#unregisterFocusScope();
 
-    if (isRootInstance(this.hot)) {
-      this.hot.getLayoutManager().getSlot(LAYOUT_SLOTS.OVERLAYS).remove(PLUGIN_KEY);
-    }
+    // The dialog owns its element in the overlays layer (no layout slot to remove from), so detach
+    // it here and drop the UI; `enablePlugin` rebuilds it when the plugin is re-enabled.
+    this.#ui?.destroyDialog();
+    this.#ui = null;
 
     super.disablePlugin();
   }

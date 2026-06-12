@@ -22,12 +22,12 @@ Handsontable wraps the grid in a root element that contains four areas:
 
 | Slot | Class | Position | Orderable |
 |---|---|---|---|
-| `beforeGrid` | `ht-before-grid` | Above the grid | Yes |
+| `top` | `ht-slot-top` | Above the grid | Yes |
 | (grid) | `ht-grid` | The table and the empty-data-state | No |
-| `afterGrid` | `ht-after-grid` | Below the grid | Yes |
-| `overlays` | `ht-overlays` | On top of the grid (modal layer) | No |
+| `bottom` | `ht-slot-bottom` | Below the grid | Yes |
+| (overlays) | `ht-overlay` | On top of the grid (modal layer) | No |
 
-The grid area is internal and cannot be reordered. The `beforeGrid` and `afterGrid` slots are user-orderable through the `layout` setting. The `overlays` slot holds floating UI (such as the dialog); its ordering is owned by the plugins that register into it and is not part of the public `layout` config. You reach all slots with [`getLayoutManager()`](@/api/core.md#getlayoutmanager). Built-in UI already uses these slots: pagination and the license notification render in `afterGrid`, and the dialog renders in `overlays`.
+The grid and overlays areas are internal and cannot be reordered. The `top` and `bottom` slots are user-orderable through the `layout` setting; you reach them with [`getLayoutManager()`](@/api/core.md#getlayoutmanager). The overlays layer holds floating UI (such as the dialog) and renders like the grid -- a fixed internal element, not a slot. Built-in UI uses these areas: pagination and the license notification render in the `bottom` slot, and the dialog renders in the overlays layer.
 
 ## Prerequisites
 
@@ -38,7 +38,7 @@ The grid area is internal and cannot be reordered. The `beforeGrid` and `afterGr
 
 ### Add an element to a slot
 
-Call `register(key, element, options)` on the layout manager. The `key` is a unique string you choose. The `options.side` selects the user-orderable edge slot (`'before'` or `'after'`). The `options.weight` controls the order -- a lower weight comes first. The manager owns the placement, so you do not append the element to the DOM yourself. The `overlays` slot is internal and not a `register` target.
+Call `register(key, element, options)` on the layout manager. The `key` is a unique string you choose. The `options.side` selects the slot (`'top'` or `'bottom'`). The `options.weight` controls the order -- a lower weight comes first. The manager owns the placement, so you do not append the element to the DOM yourself.
 
 ```javascript
 const container = document.querySelector('#grid');
@@ -56,7 +56,7 @@ const toolbar = document.createElement('div');
 
 toolbar.textContent = 'Inventory';
 
-hot.getLayoutManager().register('toolbar', toolbar, { side: 'before', weight: 100 });
+hot.getLayoutManager().register('toolbar', toolbar, { side: 'top', weight: 100 });
 ```
 
 ### Remove an element from a slot
@@ -64,7 +64,7 @@ hot.getLayoutManager().register('toolbar', toolbar, { side: 'before', weight: 10
 Call `unregister(key, side)` with the same key and slot. This detaches the element from the DOM.
 
 ```javascript
-hot.getLayoutManager().unregister('toolbar', 'before');
+hot.getLayoutManager().unregister('toolbar', 'top');
 ```
 
 ### Order elements with the `layout` setting
@@ -80,7 +80,7 @@ const hot = new Handsontable(container, {
   ],
   pagination: true,
   layout: {
-    afterGrid: ['licenseNotification', 'pagination'],
+    bottom: ['licenseNotification', 'pagination'],
   },
   licenseKey: 'non-commercial-and-evaluation',
 });
@@ -91,7 +91,7 @@ You can change the order later with [`updateSettings()`](@/api/core.md#updateset
 ```javascript
 hot.updateSettings({
   layout: {
-    afterGrid: ['pagination', 'licenseNotification'],
+    bottom: ['pagination', 'licenseNotification'],
   },
 });
 ```
@@ -102,13 +102,13 @@ Your element renders in the chosen slot, and the elements within each slot follo
 
 ## Styling slot items
 
-Every element you add to the `beforeGrid` or `afterGrid` slot receives the `ht-slot-element` class. The slot frames its items for you:
+Every element you add to the `top` or `bottom` slot receives the `ht-slot-element` class. The slot frames its items for you:
 
 - Each item gets a border, and adjacent items share a single divider line.
-- The first `afterGrid` item drops its top border; the grid's own bottom border divides them.
-- The last `beforeGrid` item drops its grid-facing border for the same reason.
+- The first `bottom` item drops its top border; the grid's own bottom border divides them.
+- The last `top` item drops its grid-facing border for the same reason.
 
-Style your own slot UI through the `ht-slot-element` class so it matches this framing. The `overlays` slot holds floating UI (such as the dialog) and is not framed.
+Style your own slot UI through the `ht-slot-element` class so it matches this framing. The overlays layer holds floating UI (such as the dialog) and is not framed.
 
 ## Built-in keys
 
@@ -116,10 +116,10 @@ Use these keys in the `layout` setting to order the built-in UI:
 
 | Key | Slot | Provided by |
 |---|---|---|
-| `pagination` | `afterGrid` | The [`Pagination`](@/api/pagination.md) plugin |
-| `licenseNotification` | `afterGrid` | The license notification |
+| `pagination` | `bottom` | The [`Pagination`](@/api/pagination.md) plugin |
+| `licenseNotification` | `bottom` | The license notification |
 
-The [`Dialog`](@/api/dialog.md) plugin renders in the `overlays` slot, which is not user-orderable through the `layout` setting.
+The [`Dialog`](@/api/dialog.md) plugin renders in the overlays layer, which is not user-orderable through the `layout` setting.
 
 ## Related
 

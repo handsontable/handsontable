@@ -270,21 +270,21 @@ export default function Core(
   this.rootGridContentElement = null!;
 
   /**
-   * Reference to the before-grid element. A wrapper slot rendered above the grid for plugin UI
+   * Reference to the top slot element. A wrapper slot rendered above the grid for plugin UI
    * (for example toolbars). Ordered through the layout manager.
    *
    * @private
    * @type {HTMLElement}
    */
-  this.rootBeforeGridElement = null!;
+  this.rootSlotTopElement = null!;
 
   /**
-   * Reference to the after-grid element (pagination, license notification).
+   * Reference to the bottom slot element (pagination, license notification).
    *
    * @private
    * @type {HTMLElement}
    */
-  this.rootAfterGridElement = null!;
+  this.rootSlotBottomElement = null!;
 
   /**
    * Reference to the overlays element (dialog). Note: the empty-data-state lives inside the grid
@@ -332,26 +332,26 @@ export default function Core(
 
     this.rootWrapperElement = this.rootDocument.createElement('div');
 
-    this.rootBeforeGridElement = this.rootDocument.createElement('div');
+    this.rootSlotTopElement = this.rootDocument.createElement('div');
     this.rootGridElement = this.rootDocument.createElement('div');
     this.rootGridContentElement = this.rootDocument.createElement('div');
     this.rootOverlaysElement = this.rootDocument.createElement('div');
-    this.rootAfterGridElement = this.rootDocument.createElement('div');
+    this.rootSlotBottomElement = this.rootDocument.createElement('div');
     this.rootPortalElement = this.rootDocument.createElement('div');
 
     addClass(this.rootElement, ['ht-wrapper', 'handsontable']);
     addClass(this.rootWrapperElement, 'ht-root-wrapper');
-    addClass(this.rootBeforeGridElement, 'ht-before-grid');
+    addClass(this.rootSlotTopElement, 'ht-slot-top');
     addClass(this.rootGridElement, 'ht-grid');
     addClass(this.rootGridContentElement, 'ht-grid-content');
-    addClass(this.rootOverlaysElement, 'ht-overlays');
-    addClass(this.rootAfterGridElement, 'ht-after-grid');
+    addClass(this.rootOverlaysElement, 'ht-overlay');
+    addClass(this.rootSlotBottomElement, 'ht-slot-bottom');
 
     this.rootGridContentElement.appendChild(this.rootElement);
     this.rootGridElement.appendChild(this.rootGridContentElement);
-    this.rootWrapperElement.appendChild(this.rootBeforeGridElement);
+    this.rootWrapperElement.appendChild(this.rootSlotTopElement);
     this.rootWrapperElement.appendChild(this.rootGridElement);
-    this.rootWrapperElement.appendChild(this.rootAfterGridElement);
+    this.rootWrapperElement.appendChild(this.rootSlotBottomElement);
     this.rootWrapperElement.appendChild(this.rootOverlaysElement);
     this.rootContainer.appendChild(this.rootWrapperElement);
     (this.rootWrapperElement as HTMLElement & { __hotInstance: HotInstance }).__hotInstance = this;
@@ -1584,9 +1584,9 @@ export default function Core(
       installAccessibilityAnnouncer(instance.rootPortalElement);
       initLicenseNotification(instance);
 
-      // Keep the edge slots (before-grid, after-grid) as wide as the table so their content
+      // Keep the edge slots (top, bottom) as wide as the table so their content
       // (toolbars, pagination, license notification) aligns with the grid.
-      const lastEdgeWidths = { before: -1, after: -1 };
+      const lastEdgeWidths = { top: -1, bottom: -1 };
       const syncEdgeSlotsWidth = () => {
         if (instance.isDestroyed) {
           return;
@@ -1607,14 +1607,14 @@ export default function Core(
 
         // Only write when the value actually changes — avoids a reflow → dimension-refresh
         // → re-sync feedback loop, and needless layout writes during volatile renders.
-        if (instance.rootAfterGridElement && width !== lastEdgeWidths.after) {
-          lastEdgeWidths.after = width;
-          instance.rootAfterGridElement.style.width = `${width}px`;
+        if (instance.rootSlotBottomElement && width !== lastEdgeWidths.bottom) {
+          lastEdgeWidths.bottom = width;
+          instance.rootSlotBottomElement.style.width = `${width}px`;
         }
 
-        if (instance.rootBeforeGridElement && width !== lastEdgeWidths.before) {
-          lastEdgeWidths.before = width;
-          instance.rootBeforeGridElement.style.width = `${width}px`;
+        if (instance.rootSlotTopElement && width !== lastEdgeWidths.top) {
+          lastEdgeWidths.top = width;
+          instance.rootSlotTopElement.style.width = `${width}px`;
         }
       };
 
@@ -6154,9 +6154,8 @@ export default function Core(
 
   const layoutManager = isRootInstance(this)
     ? new LayoutManager({
-      beforeGrid: instance.rootBeforeGridElement,
-      afterGrid: instance.rootAfterGridElement,
-      overlays: instance.rootOverlaysElement,
+      top: instance.rootSlotTopElement,
+      bottom: instance.rootSlotBottomElement,
     })
     : null;
 
@@ -6202,7 +6201,7 @@ export default function Core(
 
   /**
    * Returns the Layout Manager. The module manages the order of plugin UI elements within the
-   * wrapper slots (`beforeGrid`, `afterGrid`, `overlays`). Use it to add or remove custom UI and
+   * user-orderable wrapper slots (`top`, `bottom`). Use it to add or remove custom UI and
    * order it via weights or the `layout` setting. Only available for the main instance.
    *
    * @memberof Core#
@@ -6212,7 +6211,7 @@ export default function Core(
    *
    * @example
    * ```js
-   * hot.getLayoutManager().register('myToolbar', toolbarElement, { side: 'before', weight: 100 });
+   * hot.getLayoutManager().register('myToolbar', toolbarElement, { side: 'top', weight: 100 });
    * ```
    */
   this.getLayoutManager = function() {

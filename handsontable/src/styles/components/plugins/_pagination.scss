@@ -13,7 +13,7 @@
       box-sizing: border-box;
       overflow-x: auto;
 
-      // In the after-grid slot the border is provided by `.ht-slot-element`. A standalone
+      // In the bottom slot the border is provided by `.ht-slot-element`. A standalone
       // pagination (custom `uiContainer`, no `ht-slot-element`) draws its own full border.
       &:not(.ht-slot-element) {
         border: 1px solid var(--ht-border-color);

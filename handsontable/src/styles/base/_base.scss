@@ -13,8 +13,8 @@
     height: 100%;
     box-shadow: 0 0 0 var(--ht-wrapper-border-width) var(--ht-wrapper-border-color);
 
-    &:has(> .ht-after-grid > .ht-slot-element),
-    &:has(> .ht-before-grid > .ht-slot-element) {
+    &:has(> .ht-slot-bottom > .ht-slot-element),
+    &:has(> .ht-slot-top > .ht-slot-element) {
       .ht-wrapper {
         &:not(.htHorizontallyScrollableByWindow),
         &:not(.htVerticallyScrollableByWindow) {
@@ -52,7 +52,7 @@
     height: 100%;
   }
 
-  .ht-before-grid, .ht-after-grid {
+  .ht-slot-top, .ht-slot-bottom {
     flex: 0 0 auto;
   }
 
@@ -62,7 +62,7 @@
     border: 1px solid var(--ht-border-color);
   }
 
-  .ht-before-grid > .ht-slot-element {
+  .ht-slot-top > .ht-slot-element {
     &:not(:first-of-type) {
       border-top-width: 0;
     }
@@ -72,7 +72,7 @@
     }
   }
 
-  .ht-after-grid > .ht-slot-element {
+  .ht-slot-bottom > .ht-slot-element {
     &:not(:last-of-type) {
       border-bottom-width: 0;
     }

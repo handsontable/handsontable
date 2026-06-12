@@ -180,7 +180,7 @@ export class PaginationUI {
     }
 
     // Without a custom `uiContainer`, the LayoutManager owns placement: it appends the container
-    // into the after-grid slot when the plugin registers it. The element stays detached until then.
+    // into the bottom slot when the plugin registers it. The element stays detached until then.
   }
 
   /**

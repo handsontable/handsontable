@@ -236,10 +236,10 @@ export interface HotInstance {
   rootDocument: Document;
   rootWindow: Window & typeof globalThis;
   rootPortalElement: HTMLElement;
-  rootBeforeGridElement: HTMLElement;
+  rootSlotTopElement: HTMLElement;
   rootGridElement: HTMLElement;
   rootGridContentElement: HTMLElement;
-  rootAfterGridElement: HTMLElement;
+  rootSlotBottomElement: HTMLElement;
   rootOverlaysElement: HTMLElement;
   rootWrapperElement: HTMLElement;
   rootContainer: HTMLElement;

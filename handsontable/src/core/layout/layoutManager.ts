@@ -1,24 +1,15 @@
 import { throwWithCause } from '../../helpers/errors';
 import { DomSlot } from './domSlot';
-import { LAYOUT_SLOTS, SLOT_ITEM_CLASS, type LayoutSlotName } from './constants';
+import { LAYOUT_SLOTS, SLOT_ITEM_CLASS, type LayoutSlotName, type LayoutSide } from './constants';
 
 /**
- * User-facing layout configuration: an ordered list of element keys per user-orderable slot.
+ * User-facing layout configuration: an ordered list of element keys per user-orderable slot. The
+ * shape derives from {@link LayoutSide}, so introducing a new slot extends it automatically.
  *
- * The `overlays` slot is intentionally absent: its ordering (e.g. the dialog layer) is owned by the
- * plugins that register into it, not user-reshuffled at runtime.
+ * The overlays layer is intentionally absent: it renders like the grid (a fixed internal element),
+ * not a slot users reorder at runtime.
  */
-export interface LayoutConfig {
-  beforeGrid?: string[];
-  afterGrid?: string[];
-}
-
-/**
- * The user-orderable edge slot a contributor registers into. A shorthand for the slot names, mapped
- * to {@link LAYOUT_SLOTS} by {@link LayoutManager#register}. The `overlays` slot is not included: it
- * is an internal layer reached through {@link LayoutManager#getSlot}, not part of `register`.
- */
-export type LayoutSide = 'before' | 'after';
+export type LayoutConfig = { [K in LayoutSide]?: string[] };
 
 /**
  * Options accepted by {@link LayoutManager#register}.
@@ -27,11 +18,6 @@ export interface LayoutRegisterOptions {
   side: LayoutSide;
   weight?: number;
 }
-
-const SIDE_TO_SLOT: Record<LayoutSide, LayoutSlotName> = {
-  before: LAYOUT_SLOTS.BEFORE_GRID,
-  after: LAYOUT_SLOTS.AFTER_GRID,
-};
 
 /**
  * Owns one {@link DomSlot} per orderable wrapper slot and applies the `layout` setting to them.
@@ -45,17 +31,15 @@ export class LayoutManager {
   #slots: Map<LayoutSlotName, DomSlot>;
 
   /**
-   * @param {object} elements The slot container elements.
-   * @param {HTMLElement} elements.beforeGrid The before-grid slot element.
-   * @param {HTMLElement} elements.afterGrid The after-grid slot element.
-   * @param {HTMLElement} elements.overlays The overlays slot element.
+   * @param {Record<LayoutSlotName, HTMLElement>} elements The slot container elements, keyed by slot name.
    */
-  constructor(elements: { beforeGrid: HTMLElement, afterGrid: HTMLElement, overlays: HTMLElement }) {
-    this.#slots = new Map([
-      [LAYOUT_SLOTS.BEFORE_GRID, new DomSlot(elements.beforeGrid, { itemClass: SLOT_ITEM_CLASS })],
-      [LAYOUT_SLOTS.AFTER_GRID, new DomSlot(elements.afterGrid, { itemClass: SLOT_ITEM_CLASS })],
-      [LAYOUT_SLOTS.OVERLAYS, new DomSlot(elements.overlays)],
-    ]);
+  constructor(elements: Record<LayoutSlotName, HTMLElement>) {
+    this.#slots = new Map(
+      (Object.keys(elements) as LayoutSlotName[]).map(name => [
+        name,
+        new DomSlot(elements[name], { itemClass: SLOT_ITEM_CLASS }),
+      ])
+    );
   }
 
   /**
@@ -88,7 +72,7 @@ export class LayoutManager {
    * @returns {void}
    */
   register(key: string, element: HTMLElement, { side, weight = 0 }: LayoutRegisterOptions): void {
-    this.getSlot(SIDE_TO_SLOT[side]).add(key, element, weight);
+    this.getSlot(side).add(key, element, weight);
   }
 
   /**
@@ -99,7 +83,7 @@ export class LayoutManager {
    * @returns {void}
    */
   unregister(key: string, side: LayoutSide): void {
-    this.getSlot(SIDE_TO_SLOT[side]).remove(key);
+    this.getSlot(side).remove(key);
   }
 
   /**
@@ -109,8 +93,7 @@ export class LayoutManager {
    * @returns {void}
    */
   applyConfig(config: LayoutConfig = {}): void {
-    this.getSlot(LAYOUT_SLOTS.BEFORE_GRID).setOrder(config.beforeGrid ?? []);
-    this.getSlot(LAYOUT_SLOTS.AFTER_GRID).setOrder(config.afterGrid ?? []);
+    Object.values(LAYOUT_SLOTS).forEach(side => this.getSlot(side).setOrder(config[side] ?? []));
   }
 
   /**

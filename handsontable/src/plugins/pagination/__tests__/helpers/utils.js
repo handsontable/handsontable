@@ -215,12 +215,12 @@ export function getPaginationContainerHeight() {
     autoRowSize: true,
     width: 600,
     height: 400,
-    // Use a valid key so the license notification does not join the after-grid slot. Otherwise the
+    // Use a valid key so the license notification does not join the bottom slot. Otherwise the
     // pagination would not be the last slot item and would gain a divider border, skewing the height.
     licenseKey: 'non-commercial-and-evaluation',
   });
 
-  // The pagination is the only after-grid item here (valid license, no notification), so it is the
+  // The pagination is the only bottom-slot item here (valid license, no notification), so it is the
   // last slot item and carries its full top+bottom slot border - the real height below the grid.
   const paginationEl = tempDiv.querySelector('.ht-pagination');
 

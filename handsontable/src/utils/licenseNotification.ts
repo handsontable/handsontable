@@ -13,7 +13,7 @@ const LAYOUT_WEIGHT = 200;
  * @returns {HTMLElement | null} The notification element or `null` when absent.
  */
 function getNotificationElement(hotInstance: HotInstance): HTMLElement | null {
-  return hotInstance.rootAfterGridElement?.querySelector<HTMLElement>(`.${LICENSE_INFO_CLASS}`) ?? null;
+  return hotInstance.rootSlotBottomElement?.querySelector<HTMLElement>(`.${LICENSE_INFO_CLASS}`) ?? null;
 }
 
 /**
@@ -34,7 +34,7 @@ function getFocusableElements(hotInstance: HotInstance): HTMLElement[] {
 
 /**
  * Initializes the built-in license notification: injects the product info message into the
- * after-grid element when the license is invalid, expired, or missing, and registers
+ * bottom slot element when the license is invalid, expired, or missing, and registers
  * a focus scope so keyboard navigation (Tab/Shift+Tab) includes the notification links.
  * Only runs for the root Handsontable instance. Cannot be disabled by the user.
  *
@@ -42,7 +42,7 @@ function getFocusableElements(hotInstance: HotInstance): HTMLElement[] {
  * @returns {void}
  */
 export function initLicenseNotification(hotInstance: HotInstance): void {
-  const container = hotInstance.rootAfterGridElement;
+  const container = hotInstance.rootSlotBottomElement;
 
   if (!container) {
     return;
@@ -64,11 +64,11 @@ export function initLicenseNotification(hotInstance: HotInstance): void {
     return;
   }
 
-  // `_injectProductInfo` appended this element into the after-grid element and returned it; register
+  // `_injectProductInfo` appended this element into the bottom slot element and returned it; register
   // it under the layout slot so the `layout` setting and weights control its order relative to other
   // content.
   hotInstance.getLayoutManager()
-    .register('licenseNotification', notificationElement, { side: 'after', weight: LAYOUT_WEIGHT });
+    .register('licenseNotification', notificationElement, { side: 'bottom', weight: LAYOUT_WEIGHT });
 
   // The scope is intentionally never unregistered: the license notification is created once during
   // init, cannot be disabled, and lives for the whole instance lifetime. It is cleaned up when

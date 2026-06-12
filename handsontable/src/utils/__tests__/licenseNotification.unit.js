@@ -13,7 +13,7 @@ function createMockHotInstance(overrides = {}) {
   const registerScopeMock = jest.fn();
 
   return {
-    rootAfterGridElement: container,
+    rootSlotBottomElement: container,
     getSettings: jest.fn(() => ({
       licenseKey: overrides.licenseKey,
     })),
@@ -33,10 +33,10 @@ describe('licenseNotification', () => {
   });
 
   describe('initLicenseNotification', () => {
-    it('should do nothing when rootAfterGridElement is null', () => {
+    it('should do nothing when rootSlotBottomElement is null', () => {
       const hotInstance = createMockHotInstance();
 
-      hotInstance.rootAfterGridElement = null;
+      hotInstance.rootSlotBottomElement = null;
 
       initLicenseNotification(hotInstance);
 
@@ -44,10 +44,10 @@ describe('licenseNotification', () => {
       expect(hotInstance.getFocusScopeManager).not.toHaveBeenCalled();
     });
 
-    it('should do nothing when rootAfterGridElement is undefined', () => {
+    it('should do nothing when rootSlotBottomElement is undefined', () => {
       const hotInstance = createMockHotInstance();
 
-      hotInstance.rootAfterGridElement = undefined;
+      hotInstance.rootSlotBottomElement = undefined;
 
       initLicenseNotification(hotInstance);
 
@@ -68,7 +68,7 @@ describe('licenseNotification', () => {
         expect.objectContaining({
           className: LICENSE_INFO_CLASS,
           key: 'test-key',
-          element: hotInstance.rootAfterGridElement,
+          element: hotInstance.rootSlotBottomElement,
           releaseDate: expect.any(String),
         })
       );
@@ -103,7 +103,7 @@ describe('licenseNotification', () => {
       const notificationEl = document.createElement('div');
 
       notificationEl.className = `handsontable ${LICENSE_INFO_CLASS}`;
-      hotInstance.rootAfterGridElement.appendChild(notificationEl);
+      hotInstance.rootSlotBottomElement.appendChild(notificationEl);
 
       _injectProductInfo.mockImplementation(({ element }) => {
         element.appendChild(notificationEl);
@@ -132,7 +132,7 @@ describe('licenseNotification', () => {
       const notificationEl = document.createElement('div');
 
       notificationEl.className = `handsontable ${LICENSE_INFO_CLASS}`;
-      hotInstance.rootAfterGridElement.appendChild(notificationEl);
+      hotInstance.rootSlotBottomElement.appendChild(notificationEl);
 
       _injectProductInfo.mockImplementation(() => notificationEl);
 
@@ -159,7 +159,7 @@ describe('licenseNotification', () => {
       notificationEl.className = `handsontable ${LICENSE_INFO_CLASS}`;
       notificationEl.appendChild(link1);
       notificationEl.appendChild(link2);
-      hotInstance.rootAfterGridElement.appendChild(notificationEl);
+      hotInstance.rootSlotBottomElement.appendChild(notificationEl);
 
       _injectProductInfo.mockImplementation(() => notificationEl);
 
@@ -190,7 +190,7 @@ describe('licenseNotification', () => {
       notificationEl.className = `handsontable ${LICENSE_INFO_CLASS}`;
       notificationEl.appendChild(link1);
       notificationEl.appendChild(link2);
-      hotInstance.rootAfterGridElement.appendChild(notificationEl);
+      hotInstance.rootSlotBottomElement.appendChild(notificationEl);
 
       _injectProductInfo.mockImplementation(() => notificationEl);
 
@@ -215,7 +215,7 @@ describe('licenseNotification', () => {
       const notificationEl = document.createElement('div');
 
       notificationEl.className = `handsontable ${LICENSE_INFO_CLASS}`;
-      hotInstance.rootAfterGridElement.appendChild(notificationEl);
+      hotInstance.rootSlotBottomElement.appendChild(notificationEl);
 
       _injectProductInfo.mockImplementation(() => notificationEl);
 
