@@ -144,6 +144,85 @@ export default class StateManager {
   }
 
   /**
+   * Inserts `amount` columns into the source settings at the visual `columnIndex`, then rebuilds
+   * the tree and re-derives visibility. Headers spanning the insertion point are extended; columns
+   * inserted at a header boundary become standalone headers.
+   *
+   * @param {number} columnIndex A visual column index at which the new columns are inserted.
+   * @param {number} amount The number of columns to insert.
+   */
+  insertColumns(columnIndex, amount) {
+    const collapsedNodes = this.#snapshotCollapsedNodes();
+
+    this.#sourceSettings.insertColumns(columnIndex, amount);
+    this.#headersTree.buildTree();
+    this.#reapplyCollapsedNodes(collapsedNodes, c => (c >= columnIndex ? c + amount : c));
+    this.#applySyncVisibility();
+  }
+
+  /**
+   * Removes `amount` columns from the source settings starting at the visual `columnIndex`, then
+   * rebuilds the tree and re-derives visibility. Headers overlapping the removed range are shrunk,
+   * re-anchored, or dropped when they lose all their columns.
+   *
+   * @param {number} columnIndex A visual column index from which the columns are removed.
+   * @param {number} amount The number of columns to remove.
+   */
+  removeColumns(columnIndex, amount) {
+    const collapsedNodes = this.#snapshotCollapsedNodes();
+    const endIndex = columnIndex + amount;
+
+    this.#sourceSettings.removeColumns(columnIndex, amount);
+    this.#headersTree.buildTree();
+    this.#reapplyCollapsedNodes(collapsedNodes, (c) => {
+      if (c < columnIndex) {
+        return c;
+      }
+
+      // The anchor column was removed but the group may survive - re-anchor to the range start.
+      return c >= endIndex ? c - amount : columnIndex;
+    });
+    this.#applySyncVisibility();
+  }
+
+  /**
+   * Captures the header level and visual column index of every currently collapsed node, so the
+   * collapsed state can be re-applied after a tree rebuild (e.g. after inserting/removing columns).
+   *
+   * @private
+   * @returns {Array<{headerLevel: number, columnIndex: number}>}
+   */
+  #snapshotCollapsedNodes() {
+    const collapsedNodes = [];
+
+    this.#headersTree.getRoots().forEach((rootNode) => {
+      rootNode.walkDown(({ data }) => {
+        if (data.isCollapsed) {
+          collapsedNodes.push({ headerLevel: data.headerLevel, columnIndex: data.columnIndex });
+        }
+      });
+    });
+
+    return collapsedNodes;
+  }
+
+  /**
+   * Re-collapses the nodes captured by #snapshotCollapsedNodes() on the freshly rebuilt tree. The
+   * `shiftColumnIndex` callback maps a pre-rebuild visual column index to its post-rebuild position.
+   * Re-running the collapse reconstructs both the `isCollapsed` flag (header indicator) and the
+   * `clonedTree` needed to expand the group later.
+   *
+   * @private
+   * @param {Array<{headerLevel: number, columnIndex: number}>} collapsedNodes The captured nodes.
+   * @param {function(number): number} shiftColumnIndex Maps an old visual column index to the new one.
+   */
+  #reapplyCollapsedNodes(collapsedNodes, shiftColumnIndex) {
+    collapsedNodes.forEach(({ headerLevel, columnIndex }) => {
+      this.triggerNodeModification('collapse', headerLevel, shiftColumnIndex(columnIndex));
+    });
+  }
+
+  /**
    * Maps the current tree nodes with a callback. For each node the callback function
    * is called. If the function returns value that value is added to returned array.
    *

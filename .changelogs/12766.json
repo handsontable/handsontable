@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed nested headers misaligning with the grid body when columns are hidden inside a collapsible header group.",
+  "title": "Fixed nested headers not staying aligned with the grid body when hiding or collapsing columns, and made them follow column insertion and removal.",
   "type": "fixed",
   "issueOrPR": 12766,
   "breaking": false,

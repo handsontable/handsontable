@@ -216,6 +216,8 @@ export class NestedHeaders extends BasePlugin {
 
     this.addHook('init', () => this.#onInit());
     this.addHook('afterLoadData', (...args) => this.#onAfterLoadData(...args));
+    this.addHook('afterCreateCol', (...args) => this.#onAfterCreateCol(...args));
+    this.addHook('afterRemoveCol', (...args) => this.#onAfterRemoveCol(...args));
     this.addHook('beforeOnCellMouseDown', (...args) => this.#onBeforeOnCellMouseDown(...args));
     this.addHook('afterOnCellMouseDown', (...args) => this.#onAfterOnCellMouseDown(...args));
     this.addHook('beforeOnCellMouseOver', (...args) => this.#onBeforeOnCellMouseOver(...args));
@@ -1348,6 +1350,32 @@ export class NestedHeaders extends BasePlugin {
     if (!initialLoad) {
       this.updatePlugin();
     }
+  }
+
+  /**
+   * Extends the nested headers structure when columns are inserted into the dataset, keeping the
+   * header tree aligned with the grid body. Headers spanning the insertion point are widened; a
+   * column inserted at a header boundary becomes a standalone header.
+   *
+   * @param {number} visualColumnIndex A visual column index at which the columns were inserted.
+   * @param {number} amount The number of inserted columns.
+   */
+  #onAfterCreateCol(visualColumnIndex, amount) {
+    this.#stateManager.insertColumns(visualColumnIndex, amount);
+    this.#updateWidthsMap = true;
+  }
+
+  /**
+   * Shrinks the nested headers structure when columns are removed from the dataset, keeping the
+   * header tree aligned with the grid body. Headers overlapping the removed range are shortened,
+   * re-anchored, or dropped when they lose all of their columns.
+   *
+   * @param {number} visualColumnIndex A visual column index from which the columns were removed.
+   * @param {number} amount The number of removed columns.
+   */
+  #onAfterRemoveCol(visualColumnIndex, amount) {
+    this.#stateManager.removeColumns(visualColumnIndex, amount);
+    this.#updateWidthsMap = true;
   }
 
   /**

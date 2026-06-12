@@ -680,4 +680,128 @@ describe('SourceSettings', () => {
       expect(settings.getColumnsCount()).toBe(0);
     });
   });
+
+  describe('insertColumns', () => {
+    function nestedSettings() {
+      const settings = new SourceSettings();
+
+      settings.setData([
+        ['A', { label: 'Group B', colspan: 4 }, 'C'],
+        ['A', { label: 'B-left', colspan: 2 }, { label: 'B-right', colspan: 2 }, 'C'],
+        ['A', 'B1', 'B2', 'B3', 'B4', 'C'],
+      ]);
+
+      return settings;
+    }
+
+    it('should extend every ancestor header spanning the insertion point', () => {
+      const settings = nestedSettings();
+
+      settings.insertColumns(2, 1); // inside Group B / B-left
+
+      const data = settings.getData();
+
+      expect(settings.getColumnsCount()).toBe(7);
+      // Group B widens 4 -> 5.
+      expect(data[0][1].label).toBe('Group B');
+      expect(data[0][1].colspan).toBe(5);
+      expect(data[0][1].origColspan).toBe(5);
+      expect(data[0][2].isPlaceholder).toBe(true);
+      // B-left widens 2 -> 3, B-right stays 2 (shifted right).
+      expect(data[1][1].label).toBe('B-left');
+      expect(data[1][1].colspan).toBe(3);
+      expect(data[1][4].label).toBe('B-right');
+      expect(data[1][4].colspan).toBe(2);
+      // The leaf level gets a standalone blank header at the insertion point.
+      expect(data[2][2].label).toBe('');
+      expect(data[2][2].colspan).toBe(1);
+      expect(data[2][2].isPlaceholder).toBe(false);
+    });
+
+    it('should insert a standalone header at a group boundary (not extend the group)', () => {
+      const settings = nestedSettings();
+
+      settings.insertColumns(1, 1); // A | Group B boundary
+
+      const data = settings.getData();
+
+      expect(settings.getColumnsCount()).toBe(7);
+      // A new standalone blank header lands at index 1...
+      expect(data[0][1].label).toBe('');
+      expect(data[0][1].colspan).toBe(1);
+      // ...and Group B is unchanged, just shifted right.
+      expect(data[0][2].label).toBe('Group B');
+      expect(data[0][2].colspan).toBe(4);
+    });
+
+    it('should append a standalone header when inserting at the end', () => {
+      const settings = nestedSettings();
+
+      settings.insertColumns(6, 1);
+
+      const data = settings.getData();
+
+      expect(settings.getColumnsCount()).toBe(7);
+      expect(data[0][6].label).toBe('');
+      expect(data[0][6].colspan).toBe(1);
+      expect(data[0][5].label).toBe('C');
+    });
+  });
+
+  describe('removeColumns', () => {
+    function nestedSettings() {
+      const settings = new SourceSettings();
+
+      settings.setData([
+        ['A', { label: 'Group B', colspan: 4 }, 'C'],
+        ['A', { label: 'B-left', colspan: 2 }, { label: 'B-right', colspan: 2 }, 'C'],
+        ['A', 'B1', 'B2', 'B3', 'B4', 'C'],
+      ]);
+
+      return settings;
+    }
+
+    it('should shrink the headers overlapping the removed column', () => {
+      const settings = nestedSettings();
+
+      settings.removeColumns(2, 1); // inside Group B / B-left
+
+      const data = settings.getData();
+
+      expect(settings.getColumnsCount()).toBe(5);
+      expect(data[0][1].label).toBe('Group B');
+      expect(data[0][1].colspan).toBe(3);
+      expect(data[1][1].label).toBe('B-left');
+      expect(data[1][1].colspan).toBe(1);
+    });
+
+    it('should re-anchor a header to the first surviving column when its anchor is removed', () => {
+      const settings = nestedSettings();
+
+      settings.removeColumns(1, 2); // remove both B-left columns (incl. Group B/B-left anchors)
+
+      const data = settings.getData();
+
+      expect(settings.getColumnsCount()).toBe(4);
+      // Group B keeps its label, shrunk and re-anchored.
+      expect(data[0][1].label).toBe('Group B');
+      expect(data[0][1].colspan).toBe(2);
+      // B-left is gone; B-right survives and is re-anchored to the new index 1.
+      expect(data[1][1].label).toBe('B-right');
+      expect(data[1][1].colspan).toBe(2);
+    });
+
+    it('should drop a header that loses all of its columns', () => {
+      const settings = nestedSettings();
+
+      settings.removeColumns(1, 4); // remove the whole Group B
+
+      const data = settings.getData();
+
+      expect(settings.getColumnsCount()).toBe(2);
+      expect(data[0][0].label).toBe('A');
+      expect(data[0][1].label).toBe('C');
+      expect(data[0].length).toBe(2);
+    });
+  });
 });
