@@ -466,5 +466,121 @@ describe('NestedHeaders', () => {
         expect(getMaster().find('tbody tr:eq(0) td').length).toBe(4);
       });
     });
+
+    describe('collapsing a group after a child column is hidden (DEV-294)', () => {
+      // Clicks the collapsible indicator found in a given (0-based, from the top) header row.
+      function clickIndicatorInRow(rowIndex) {
+        const tr = getMaster().find('thead tr')[rowIndex];
+        const indicator = tr ? tr.querySelector('.collapsibleIndicator') : null;
+
+        if (indicator) {
+          $(indicator).simulate('mousedown').simulate('mouseup').simulate('click');
+        }
+
+        return !!indicator;
+      }
+
+      // Image #6: with both sub-groups collapsed and B-left's visible representative hidden,
+      // collapsing the parent must not hide the last visible column - the group has to stay
+      // recoverable (a collapsible indicator must remain so it can be expanded again).
+      it('should keep the parent group recoverable when its only visible column would be removed', async() => {
+        handsontable({
+          data: createSpreadsheetData(12, 6),
+          colHeaders: true,
+          width: 400,
+          height: 300,
+          nestedHeaders: [
+            ['A', { label: 'Group B', colspan: 4 }, 'C'],
+            ['A', { label: 'B-left', colspan: 2 }, { label: 'B-right', colspan: 2 }, 'C'],
+            ['A', 'B1', 'B2', 'B3', 'B4', 'C'],
+          ],
+          collapsibleColumns: true,
+          hiddenColumns: { columns: [], indicators: true },
+        });
+
+        getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 1 }); // collapse B-left
+        await render();
+        getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 3 }); // collapse B-right
+        await render();
+        getPlugin('hiddenColumns').hideColumn(1); // hide B1 (the only visible column of B-left)
+        await render();
+
+        // Now A, B3 and C are visible (body: A1, D1, F1). Collapse the parent Group B via its indicator.
+        clickIndicatorInRow(0);
+        await render();
+
+        // The B3 column must stay visible - the group must not collapse into nothing.
+        expect(getMaster().find('tbody tr:eq(0) td').length).toBe(3);
+        // A collapsible indicator must remain in the headers so the group can be expanded again.
+        expect(getTopClone().find('thead .collapsibleIndicator').length).toBeGreaterThan(0);
+      });
+
+      // Across many orderings of collapse/expand (child and parent) interleaved with hiding and
+      // showing columns, the rendered header must stay aligned with the body - the top header row's
+      // total width must equal the body row's total width. A wider header row is the misalignment
+      // the client reported (a group spilling over the next column).
+      it('should keep the header row aligned with the body for collapse/hide/expand orderings', async() => {
+        const cw = el => Math.round(el.getBoundingClientRect().width);
+        const ops = {
+          collapseBLeft: () => getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 1 }),
+          collapseBRight: () => getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 3 }),
+          collapseParent: () => getPlugin('collapsibleColumns').collapseSection({ row: -3, col: 1 }),
+          expandBLeft: () => getPlugin('collapsibleColumns').expandSection({ row: -2, col: 1 }),
+          expandBRight: () => getPlugin('collapsibleColumns').expandSection({ row: -2, col: 3 }),
+          expandParent: () => getPlugin('collapsibleColumns').expandSection({ row: -3, col: 1 }),
+          hide1: () => getPlugin('hiddenColumns').hideColumn(1),
+          hide2: () => getPlugin('hiddenColumns').hideColumn(2),
+          hide3: () => getPlugin('hiddenColumns').hideColumn(3),
+          hide4: () => getPlugin('hiddenColumns').hideColumn(4),
+          showAll: () => getPlugin('hiddenColumns').showColumns([1, 2, 3, 4]),
+        };
+        const sequences = [
+          ['collapseBLeft', 'collapseBRight', 'hide1', 'collapseParent', 'expandParent', 'showAll'],
+          ['hide1', 'hide2', 'collapseParent', 'expandParent'],
+          ['collapseParent', 'hide3', 'hide4', 'expandParent'],
+          ['hide3', 'hide4', 'collapseParent', 'expandParent', 'showAll'],
+          ['collapseBLeft', 'hide3', 'hide4', 'expandBLeft'],
+          ['collapseBLeft', 'collapseBRight', 'collapseParent', 'expandParent', 'expandBRight', 'expandBLeft'],
+          ['hide1', 'hide2', 'hide3', 'hide4', 'collapseParent'],
+          ['collapseBLeft', 'collapseBRight', 'hide1', 'hide3', 'expandBLeft', 'expandBRight'],
+        ];
+
+        for (let s = 0; s < sequences.length; s++) {
+          const seq = sequences[s];
+
+          if (s > 0) {
+            destroy();
+          }
+
+          handsontable({
+            data: createSpreadsheetData(12, 6),
+            colHeaders: true,
+            width: 600,
+            height: 300,
+            nestedHeaders: [
+              ['A', { label: 'Group B', colspan: 4 }, 'C'],
+              ['A', { label: 'B-left', colspan: 2 }, { label: 'B-right', colspan: 2 }, 'C'],
+              ['A', 'B1', 'B2', 'B3', 'B4', 'C'],
+            ],
+            collapsibleColumns: true,
+            hiddenColumns: { columns: [], indicators: true },
+          });
+
+          for (let i = 0; i < seq.length; i++) {
+            ops[seq[i]]();
+            await render(); // eslint-disable-line no-await-in-loop
+
+            const bodyTotal = Array.from(getMaster().find('tbody tr:eq(0) td'))
+              .reduce((sum, td) => sum + cw(td), 0);
+            const headerTotal = Array.from(getMaster().find('thead tr')[0].querySelectorAll('th'))
+              .reduce((sum, th) => sum + cw(th), 0);
+
+            expect(headerTotal)
+              .withContext(`seq #${s} after [${seq.slice(0, i + 1).join(' > ')}]`)
+              .toBe(bodyTotal);
+          }
+        }
+      });
+    });
   });
 });

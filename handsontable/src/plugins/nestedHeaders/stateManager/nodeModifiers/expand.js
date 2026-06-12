@@ -41,12 +41,15 @@ export function expandNode(nodeToProcess) {
 
   nodeData.isCollapsed = false;
 
-  const allLeavesExceptMostLeft = nodeChilds.slice(1);
+  // Restore exactly the children that this node's collapse hid - they are the ones carrying a
+  // cloned tree. Mirrors the "first visible child" selection done in collapseNode, so children
+  // hidden by an external source (or by their own collapse) are left untouched.
+  const childsToRestore = nodeChilds.filter(({ data }) => data.clonedTree);
   const affectedColumns = new Set();
   let colspanCompensation = 0;
 
-  if (allLeavesExceptMostLeft.length > 0) {
-    arrayEach(allLeavesExceptMostLeft, (node) => {
+  if (childsToRestore.length > 0) {
+    arrayEach(childsToRestore, (node) => {
       // Restore original state of the collapsed headers.
       node.replaceTreeWith(node.data.clonedTree);
       node.data.clonedTree = null;
@@ -62,7 +65,7 @@ export function expandNode(nodeToProcess) {
       });
     });
 
-  } else {
+  } else if (nodeChilds.length === 0) {
     const {
       colspan,
       origColspan,

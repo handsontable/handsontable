@@ -40,13 +40,29 @@ export function collapseNode(nodeToProcess) {
     return collapseNode(nodeChilds[0]);
   }
 
-  nodeData.isCollapsed = true;
-
-  const allLeavesExceptMostLeft = nodeChilds.slice(1);
   const affectedColumns = new Set();
+  let colspanCompensation = 0;
 
-  if (allLeavesExceptMostLeft.length > 0) {
-    arrayEach(allLeavesExceptMostLeft, (node) => {
+  if (nodeChilds.length > 0) {
+    // Keep the first *visible* child as the representative and hide the visible children that
+    // follow it. Using the first visible child (instead of always the structurally-first child)
+    // means a group whose leading children are already hidden (by collapse or by HiddenColumns)
+    // never collapses into nothing - its last visible column and collapsible indicator survive.
+    const firstVisibleChildIndex = nodeChilds.findIndex(({ data }) => !data.isHidden);
+    const childsToHide = nodeChilds.filter(
+      ({ data }, index) => index > firstVisibleChildIndex && data.isHidden === false
+    );
+
+    // Nothing left to collapse - the group is already reduced to its first visible child.
+    if (firstVisibleChildIndex === -1 || childsToHide.length === 0) {
+      return {
+        rollbackModification: () => {},
+        affectedColumns: [],
+        colspanCompensation: 0,
+      };
+    }
+
+    arrayEach(childsToHide, (node) => {
       traverseHiddenNodeColumnIndexes(node, (gridColumnIndex) => {
         affectedColumns.add(gridColumnIndex);
       });
@@ -54,31 +70,47 @@ export function collapseNode(nodeToProcess) {
       // Clone the tree to preserve original tree state after header expanding.
       node.data.clonedTree = node.cloneTree();
 
-      // Hide all leaves except the first leaf on the left (on headers context hide all
-      // headers on the right).
+      // Hide all leaves of the children that follow the representative (on headers context
+      // hide all headers on the right).
       node.walkDown(({ data }) => {
         data.isHidden = true;
       });
     });
 
+    // Calculate by how many colspan it needs to reduce the headings to match them to
+    // the representative (first visible) child colspan width.
+    colspanCompensation = nodeData.colspan - (nodeChilds[firstVisibleChildIndex].data.colspan ?? 1);
+
   } else {
-    const {
-      origColspan,
-      columnIndex,
-    } = nodeData;
+    // Node without children (a header wider than one column). Keep the first *visible* column
+    // and mark the remaining visible columns of its span as affected.
+    const { origColspan, columnIndex } = nodeData;
+    const hiddenColumns = new Set(nodeData.crossHiddenColumns);
+    const visibleColumns = [];
 
-    // Add column to "affected" started from 1. The header without children can not be
-    // collapsed so the first have to be visible (untouched).
-    for (let i = 1; i < origColspan; i++) {
-      const gridColumnIndex = columnIndex + i;
-
-      affectedColumns.add(gridColumnIndex);
+    for (let i = columnIndex; i < columnIndex + origColspan; i++) {
+      if (!hiddenColumns.has(i)) {
+        visibleColumns.push(i);
+      }
     }
+
+    // Nothing left to collapse - only the first visible column (or none) remains.
+    if (visibleColumns.length <= 1) {
+      return {
+        rollbackModification: () => {},
+        affectedColumns: [],
+        colspanCompensation: 0,
+      };
+    }
+
+    arrayEach(visibleColumns.slice(1), (gridColumnIndex) => {
+      affectedColumns.add(gridColumnIndex);
+    });
+
+    colspanCompensation = visibleColumns.length - 1;
   }
 
-  // Calculate by how many colspan it needs to reduce the headings to match them to
-  // the first child colspan width.
-  const colspanCompensation = nodeData.colspan - (getFirstChildProperty(nodeToProcess, 'colspan') ?? 1);
+  nodeData.isCollapsed = true;
 
   nodeToProcess.walkUp((node) => {
     const { data } = node;
