@@ -430,6 +430,7 @@ export class NestedHeaders extends BasePlugin {
 
       const {
         colspan,
+        origColspan,
         rowspan,
         isHidden,
         isPlaceholder,
@@ -482,6 +483,13 @@ export class NestedHeaders extends BasePlugin {
         (...args) => this.getColumnHeaderValue(...args),
         headerLevel,
       );
+
+      // A header that spans more than one column (a nested parent) covers the hidden columns
+      // inside its own span, so the hidden-column indicator added by HiddenColumns would point
+      // at an internal boundary. Keep that indicator on the leaf headers only.
+      if (origColspan > 1) {
+        removeClass(TH, ['beforeHiddenColumn', 'afterHiddenColumn']);
+      }
 
       if (!isPlaceholder && !isHidden && !isRowspanPlaceholder) {
         const innerHeaderDiv = TH.querySelector('div.relative');

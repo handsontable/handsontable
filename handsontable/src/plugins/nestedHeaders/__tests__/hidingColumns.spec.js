@@ -1849,5 +1849,79 @@ describe('NestedHeaders', () => {
           `);
       });
     });
+
+    describe('hidden column indicators on nested headers', () => {
+      // Returns the header TH whose label matches, at the given thead row (0-based from top).
+      function getHeaderByLabel(rowIndex, label) {
+        const tr = getTopClone().find('thead tr')[rowIndex];
+
+        return Array.from(tr.querySelectorAll('th')).find((th) => {
+          const header = th.querySelector('.colHeader');
+
+          return header && header.innerText === label;
+        }) ?? null;
+      }
+
+      // When middle columns of a group are hidden, the hidden-column indicator (a thin arrow added
+      // by HiddenColumns `indicators: true`) must not be drawn on the wide parent header - the
+      // hidden columns sit inside its span, so the arrow only makes sense on the leaf headers.
+      it('should not show the indicator on a parent header wider than the hidden columns', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 6),
+          colHeaders: true,
+          nestedHeaders: [
+            ['A', { label: 'Group B', colspan: 4 }, 'C'],
+            ['A', { label: 'B-left', colspan: 2 }, { label: 'B-right', colspan: 2 }, 'C'],
+            ['A', 'B1', 'B2', 'B3', 'B4', 'C'],
+          ],
+          hiddenColumns: {
+            columns: [2, 3], // hide B2 and B3 - the middle of Group B
+            indicators: true,
+          },
+        });
+
+        // Parent headers spanning more than the hidden columns must carry no hidden-column arrow.
+        const groupB = getHeaderByLabel(0, 'Group B');
+        const bLeft = getHeaderByLabel(1, 'B-left');
+        const bRight = getHeaderByLabel(1, 'B-right');
+
+        expect(groupB.classList.contains('beforeHiddenColumn')).toBe(false);
+        expect(groupB.classList.contains('afterHiddenColumn')).toBe(false);
+        expect(bLeft.classList.contains('beforeHiddenColumn')).toBe(false);
+        expect(bRight.classList.contains('afterHiddenColumn')).toBe(false);
+
+        // The leaf-level headers next to the hidden columns must keep the indicator.
+        const b1 = getHeaderByLabel(2, 'B1');
+        const b4 = getHeaderByLabel(2, 'B4');
+
+        expect(b1.classList.contains('beforeHiddenColumn')).toBe(true);
+        expect(b4.classList.contains('afterHiddenColumn')).toBe(true);
+      });
+
+      it('should keep the indicator on a single-level (leaf) header next to a hidden column', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 6),
+          colHeaders: true,
+          nestedHeaders: [
+            ['A', { label: 'Group B', colspan: 4 }, 'C'],
+            ['A', 'B1', 'B2', 'B3', 'B4', 'C'],
+          ],
+          hiddenColumns: {
+            columns: [5], // hide C, which sits to the right of Group B's last leaf
+            indicators: true,
+          },
+        });
+
+        // B4 is the leaf directly before hidden C - it must keep the indicator...
+        const b4 = getHeaderByLabel(1, 'B4');
+
+        expect(b4.classList.contains('beforeHiddenColumn')).toBe(true);
+
+        // ...while Group B (a wide parent) must not, even though its last column borders C.
+        const groupB = getHeaderByLabel(0, 'Group B');
+
+        expect(groupB.classList.contains('beforeHiddenColumn')).toBe(false);
+      });
+    });
   });
 });
