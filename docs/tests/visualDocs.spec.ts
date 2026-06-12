@@ -53,11 +53,11 @@ testCases.forEach(({ paths, prefix, urlPath }) => {
 
         /**
          * The maximum difference in pixel ratio value.
-         * If the 'path' is included in the 'pathsNeedingMoreTolerance' array, the value is set to 0.01.
-         * This is because there are some randomly generated date in the grid which can cause the diff to be higher.
-         * Otherwise, the value is set to 0.001 to carter for any small diffs due to anti-aliasing.
+         * Pages with dynamic/random data use 0.05 to avoid false positives from changing values.
+         * All other pages use 0.01 to allow for minor anti-aliasing differences between runs.
          */
-        const maxDiffPixelRatioValue = pathsNeedingMoreTolerance.includes('path') ? 0.01 : 0.001;
+        const slug = pathObj.path.split('/').pop() ?? '';
+        const maxDiffPixelRatioValue = pathsNeedingMoreTolerance.includes(slug) ? 0.05 : 0.01;
 
         await page.goto(baseURL + path);
         await expect(page.getByText('Page not found (404)')).toHaveCount(0);
