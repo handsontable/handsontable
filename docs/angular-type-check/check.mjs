@@ -381,7 +381,7 @@ function buildReportMarkdown() {
   lines.push(`- ❌ Errors that fail the run: **${failCount}**`);
   lines.push(`- ⚠️ Warnings (do not fail the run): **${warnCount}**`);
   lines.push('');
-  if (inBoth.length + warnCount > 0) {
+  if (failCount + warnCount > 0) {
     lines.push('| Example | Code | Scope | Message |');
     lines.push('| --- | --- | --- | --- |');
     for (const e of inBoth) lines.push(row(e, '❌ both versions'));
