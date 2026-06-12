@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed nested headers misaligning with the grid body when columns are hidden inside a collapsible header group.",
+  "type": "fixed",
+  "issueOrPR": 12766,
+  "breaking": false,
+  "framework": "none"
+}
