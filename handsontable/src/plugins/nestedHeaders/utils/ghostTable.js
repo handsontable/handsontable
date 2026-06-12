@@ -80,6 +80,23 @@ class GhostTable {
     const hasCollapsedGroups = collapsedPhysicalColumns.size > 0;
     const currentThemeName = this.hot.getCurrentThemeName();
 
+    // Snapshot widths of collapsed columns before clearing the map. The rendered
+    // ghost table correctly reflects the pre-collapse effective column width (e.g.
+    // when a hidden column causes an intermediate header to render at colspan=1 with
+    // a collapsible indicator). Reading the full-uncollapsed table would use
+    // origColspan and miss that effect, so we preserve the previous measured value.
+    const previousWidthsByPhysical = new Map();
+
+    if (hasCollapsedGroups) {
+      collapsedPhysicalColumns.forEach((physCol) => {
+        const prevWidth = this.widthsMap.getValueAtIndex(physCol);
+
+        if (prevWidth !== null) {
+          previousWidthsByPhysical.set(physCol, prevWidth);
+        }
+      });
+    }
+
     this.container = this.hot.rootDocument.createElement('div');
     this.container.classList.add('handsontable', 'htGhostTable', 'htAutoSize', 'htNestedHeaders');
 
@@ -87,13 +104,9 @@ class GhostTable {
       this.container.classList.add(currentThemeName);
     }
 
-    this.#buildGhostTable(this.container, hasCollapsedGroups);
+    this.#buildGhostTable(this.container);
 
     this.hot.rootDocument.body.appendChild(this.container);
-
-    const fullWidthByPhysical = hasCollapsedGroups
-      ? this.#measureFullTable()
-      : null;
 
     const renderedTable = this.container.querySelector('[data-ghost-table="rendered"]');
     const allColumns = renderedTable.querySelectorAll('th[data-column]');
@@ -128,14 +141,10 @@ class GhostTable {
       let width;
 
       if (hasCollapsedGroups && collapsedPhysicalColumns.has(physicalColumnIndex)) {
-        const fullWidth = fullWidthByPhysical.get(physicalColumnIndex);
-
-        if (fullWidth !== undefined) {
-          width = fullWidth;
-        }
+        width = previousWidthsByPhysical.get(physicalColumnIndex);
       }
 
-      if (width === undefined) {
+      if (width === undefined || width === null) {
         width = thElement.getBoundingClientRect().width;
       }
 
@@ -144,26 +153,6 @@ class GhostTable {
 
     this.container.remove();
     this.container = null;
-  }
-
-  /**
-   * Measure widths from the full (uncollapsed) ghost table.
-   *
-   * @returns {Map<number, number>} Map of physical column index to width.
-   */
-  #measureFullTable() {
-    const fullTable = this.container.querySelector('[data-ghost-table="full"]');
-    const fullColumns = fullTable.querySelectorAll('tr:last-of-type th');
-    const fullWidthByPhysical = new Map();
-
-    for (let column = 0; column < fullColumns.length; column++) {
-      const visualColumnIndex = Number.parseInt(fullColumns[column].dataset.column, 10);
-      const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnIndex);
-
-      fullWidthByPhysical.set(physicalColumnIndex, fullColumns[column].getBoundingClientRect().width);
-    }
-
-    return fullWidthByPhysical;
   }
 
   /**
@@ -202,65 +191,21 @@ class GhostTable {
   }
 
   /**
-   * Build temporary tables for getting minimal columns widths. Builds two tables:
-   * - Full: one TH per column (no collapse/hidden), to store width of the first column of a collapsed
-   *   group and fix jump on collapse/uncollapse. Only built when collapsed groups exist.
-   * - Rendered: same structure as the main table (colspans, only visible roots), for width when a
-   *   column has children and one is hidden (parent gets the width of the visible one).
+   * Build a temporary table for measuring minimal column widths. The table mirrors
+   * the main table structure (colspans, only visible roots).
    *
    * @param {HTMLElement} container The element where the DOM nodes are injected.
-   * @param {boolean} hasCollapsedGroups Whether any collapsed groups exist.
    */
-  #buildGhostTable(container, hasCollapsedGroups) {
+  #buildGhostTable(container) {
     const settings = this.hot.getSettings();
     const isDropdownEnabled = !!settings.dropdownMenu;
     const isCollapsibleEnabled = !!settings.collapsibleColumns;
     const maxColumnsCount = this.hot.countCols();
     const sanitizer = settings.sanitizer;
 
-    if (hasCollapsedGroups) {
-      container.innerHTML = this.#buildFullColumnsTableHTML(
-        maxColumnsCount, isDropdownEnabled, isCollapsibleEnabled, sanitizer
-      ) + this.#buildRenderedTableHTML(
-        maxColumnsCount, isDropdownEnabled, isCollapsibleEnabled, sanitizer
-      );
-    } else {
-      container.innerHTML = this.#buildRenderedTableHTML(
-        maxColumnsCount, isDropdownEnabled, isCollapsibleEnabled, sanitizer
-      );
-    }
-  }
-
-  /**
-   * Build HTML string for a table with one TH per column (colspan = origColspan),
-   * regardless of hidden/collapsed state.
-   *
-   * @param {number} maxColumnsCount Total column count.
-   * @param {boolean} isDropdownEnabled Whether dropdown menu is enabled.
-   * @param {boolean} isCollapsibleEnabled Whether collapsible columns are enabled.
-   * @param {Function|undefined} sanitizer The sanitizer function.
-   * @returns {string} HTML string for the full table.
-   */
-  #buildFullColumnsTableHTML(maxColumnsCount, isDropdownEnabled, isCollapsibleEnabled, sanitizer) {
-    let rowsHTML = '';
-
-    for (let row = 0; row < this.layersCount; row++) {
-      let cellsHTML = '';
-
-      for (let col = 0; col < maxColumnsCount; col++) {
-        const headerSettings = this.headersStateManager.getHeaderTreeNodeData(row, col);
-
-        if (headerSettings && headerSettings.isRoot) {
-          cellsHTML += `<th data-column="${col}" colspan="${headerSettings.origColspan}">${
-            this.#buildHeaderLabelHTML(headerSettings, isDropdownEnabled, isCollapsibleEnabled, sanitizer)
-          }</th>`;
-        }
-      }
-
-      rowsHTML += `<tr>${cellsHTML}</tr>`;
-    }
-
-    return `<table data-ghost-table="full"><thead>${rowsHTML}</thead></table>`;
+    container.innerHTML = this.#buildRenderedTableHTML(
+      maxColumnsCount, isDropdownEnabled, isCollapsibleEnabled, sanitizer
+    );
   }
 
   /**

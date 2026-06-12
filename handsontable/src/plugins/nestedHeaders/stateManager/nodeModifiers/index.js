@@ -6,14 +6,10 @@ import { throwWithCause } from '../../../../helpers/errors';
  */
 import { collapseNode } from './collapse';
 import { expandNode } from './expand';
-import { hideColumn } from './hideColumn';
-import { showColumn } from './showColumn';
 
 const availableModifiers = new Map([
   ['collapse', collapseNode],
   ['expand', expandNode],
-  ['hide-column', hideColumn],
-  ['show-column', showColumn],
 ]);
 
 /**

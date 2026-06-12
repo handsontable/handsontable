@@ -3,6 +3,7 @@ import SourceSettings from './sourceSettings';
 import HeadersTree from './headersTree';
 import { triggerNodeModification } from './nodeModifiers';
 import { generateMatrix } from './matrixGenerator';
+import { syncVisibilityOnTree } from './syncVisibility';
 import { TRAVERSAL_DF_PRE } from '../../../utils/dataStructures/tree';
 
 /**
@@ -55,6 +56,14 @@ export default class StateManager {
    * @type {Array[]}
    */
   #stateMatrix = [[]];
+  /**
+   * The last column-visibility adapter passed to syncVisibility(). Stored so that
+   * mapState()/mergeStateWith() can re-apply it after rebuilding the tree.
+   *
+   * @private
+   * @type {import('./columnVisibility').ColumnVisibility|null}
+   */
+  #lastColumnVisibility = null;
 
   /**
    * Sets a new state for the nested headers plugin based on settings passed
@@ -75,7 +84,7 @@ export default class StateManager {
       hasError = true;
     }
 
-    this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
+    this.#applySyncVisibility();
 
     return hasError;
   }
@@ -108,9 +117,11 @@ export default class StateManager {
       };
     });
 
+    const savedIsCollapsed = this.#snapshotIsCollapsed();
+
     this.#sourceSettings.mergeWith(transformedSettings);
     this.#headersTree.buildTree();
-    this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
+    this.#applySyncVisibility(savedIsCollapsed);
   }
 
   /**
@@ -125,9 +136,11 @@ export default class StateManager {
    *                            header settings.
    */
   mapState(callback) {
+    const savedIsCollapsed = this.#snapshotIsCollapsed();
+
     this.#sourceSettings.map(callback);
     this.#headersTree.buildTree();
-    this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
+    this.#applySyncVisibility(savedIsCollapsed);
   }
 
   /**
@@ -192,6 +205,66 @@ export default class StateManager {
    */
   triggerColumnModification(action, columnIndex) {
     return this.triggerNodeModification(action, -1, columnIndex);
+  }
+
+  /**
+   * Derives tree-node visibility state (colspan, crossHiddenColumns, isHidden) from an external
+   * ColumnVisibility port, then regenerates the state matrix. Call this whenever the hiding map
+   * changes (HiddenColumns, CollapsibleColumns) or after column sequence changes.
+   *
+   * @param {import('./columnVisibility').ColumnVisibility} columnVisibility The visibility port.
+   */
+  syncVisibility(columnVisibility) {
+    this.#lastColumnVisibility = columnVisibility;
+    syncVisibilityOnTree(this.#headersTree.getRoots(), columnVisibility);
+    this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
+  }
+
+  /**
+   * Saves the current isCollapsed state of every tree node, keyed by columnIndex.
+   * Used by mapState()/mergeStateWith() to survive the tree rebuild that resets it.
+   *
+   * @private
+   * @returns {Set<number>} Set of column indexes whose node had isCollapsed=true.
+   */
+  #snapshotIsCollapsed() {
+    const collapsed = new Set();
+
+    this.#headersTree.getRoots().forEach((rootNode) => {
+      rootNode.walkDown(({ data }) => {
+        if (data.isCollapsed) {
+          collapsed.add(data.columnIndex);
+        }
+      });
+    });
+
+    return collapsed;
+  }
+
+  /**
+   * Re-applies the last column visibility adapter after a tree rebuild, so that mapState() and
+   * mergeStateWith() calls from CollapsibleColumns do not discard visibility state set earlier.
+   * Also restores isCollapsed flags that the tree rebuild resets to false.
+   *
+   * @private
+   * @param {Set<number>} [savedIsCollapsed] Column indexes whose isCollapsed was true before rebuild.
+   */
+  #applySyncVisibility(savedIsCollapsed) {
+    if (this.#lastColumnVisibility) {
+      syncVisibilityOnTree(this.#headersTree.getRoots(), this.#lastColumnVisibility);
+    }
+
+    if (savedIsCollapsed && savedIsCollapsed.size > 0) {
+      this.#headersTree.getRoots().forEach((rootNode) => {
+        rootNode.walkDown(({ data }) => {
+          if (savedIsCollapsed.has(data.columnIndex)) {
+            data.isCollapsed = true;
+          }
+        });
+      });
+    }
+
+    this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
   }
 
   /* eslint-disable jsdoc/require-description-complete-sentence */
@@ -491,5 +564,6 @@ export default class StateManager {
     this.#stateMatrix = [];
     this.#sourceSettings.clear();
     this.#headersTree.clear();
+    this.#lastColumnVisibility = null;
   }
 }

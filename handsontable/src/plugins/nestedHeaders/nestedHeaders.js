@@ -12,6 +12,7 @@ import {
 } from '../../selection';
 import { BasePlugin } from '../base';
 import StateManager from './stateManager';
+import { createColumnVisibilityAdapter } from './stateManager/columnVisibility';
 import GhostTable from './utils/ghostTable';
 import { resolveRowspanNavigationContextRow } from './utils/navigation';
 
@@ -110,12 +111,19 @@ export class NestedHeaders extends BasePlugin {
    */
   #stateManager = new StateManager();
   /**
-   * The instance of the ChangesObservable class that allows track the changes that happens in the
-   * column indexes.
+   * Handler bound to columnIndexMapper's cacheUpdated local hook. Keeps header colspan state
+   * in sync with the current hiding map whenever visibility or column order changes.
    *
-   * @type {ChangesObservable}
+   * @type {Function}
    */
-  #hidingIndexMapObserver = null;
+  #onColumnIndexMapperCacheUpdated = () => {
+    if (!this.enabled) {
+      return;
+    }
+
+    this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
+    this.ghostTable.buildWidthsMap();
+  };
   /**
    * Holds the coords that points to the place where the column selection starts.
    *
@@ -230,6 +238,7 @@ export class NestedHeaders extends BasePlugin {
       (...args) => this.#onAfterViewportColumnCalculatorOverride(...args)
     );
     this.addHook('modifyFocusedElement', (...args) => this.#onModifyFocusedElement(...args));
+    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onColumnIndexMapperCacheUpdated);
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
 
@@ -274,33 +283,10 @@ export class NestedHeaders extends BasePlugin {
     }
 
     if (this.enabled) {
-      // This line covers the case when a developer uses the external hiding maps to manipulate
-      // the columns' visibility. The tree state built from the settings - which is always built
-      // as if all the columns are visible, needs to be modified to be in sync with a dataset.
-      this.hot.columnIndexMapper
-        .hidingMapsCollection
-        .getMergedValues()
-        .forEach((isColumnHidden, physicalColumnIndex) => {
-          const actionName = isColumnHidden === true ? 'hide-column' : 'show-column';
-
-          this.#stateManager.triggerColumnModification(actionName, physicalColumnIndex);
-        });
-    }
-
-    if (!this.#hidingIndexMapObserver && this.enabled) {
-      this.#hidingIndexMapObserver = this.hot.columnIndexMapper
-        .createChangesObserver('hiding')
-        .subscribe((changes) => {
-          changes.forEach(({ op, index: columnIndex, newValue }) => {
-            if (op === 'replace') {
-              const actionName = newValue === true ? 'hide-column' : 'show-column';
-
-              this.#stateManager.triggerColumnModification(actionName, columnIndex);
-            }
-          });
-
-          this.ghostTable.buildWidthsMap();
-        });
+      // Derive tree colspan / isHidden state from the current hiding map. This covers columns
+      // that were already hidden before the plugin initialised (e.g. HiddenColumns configured
+      // together with nestedHeaders). Future changes are handled by #onColumnIndexMapperCacheUpdated.
+      this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
     }
 
     this.#updateWidthsMap = true;
@@ -316,14 +302,14 @@ export class NestedHeaders extends BasePlugin {
       .removeLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
     this.hot.columnIndexMapper
       .removeLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
+    this.hot.columnIndexMapper
+      .removeLocalHook('cacheUpdated', this.#onColumnIndexMapperCacheUpdated);
 
     this.clearColspans();
     this.#stateManager.clear();
     this.#rowspanHeaderNavigationContextRow = null;
     this.#expectedNextKeyboardHighlightCoords = null;
     removeClass(this.hot.rootElement, 'htHasRowspanHeaders');
-    this.#hidingIndexMapObserver.unsubscribe();
-    this.#hidingIndexMapObserver = null;
     this.ghostTable.clear();
 
     super.disablePlugin();
@@ -1372,11 +1358,6 @@ export class NestedHeaders extends BasePlugin {
   destroy() {
     this.#stateManager = null;
     removeClass(this.hot.rootElement, 'htHasRowspanHeaders');
-
-    if (this.#hidingIndexMapObserver !== null) {
-      this.#hidingIndexMapObserver.unsubscribe();
-      this.#hidingIndexMapObserver = null;
-    }
 
     super.destroy();
   }
