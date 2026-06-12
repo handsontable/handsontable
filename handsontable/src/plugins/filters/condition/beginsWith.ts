@@ -1,5 +1,6 @@
 import * as C from '../../../i18n/constants';
 import { stringify } from '../../../helpers/mixed';
+import { localeLowerCase } from '../../../helpers/string';
 import { registerCondition } from '../conditionRegisterer';
 
 export const CONDITION_NAME = 'begins_with';
@@ -22,7 +23,7 @@ type DataRow = {
  * @returns {boolean}
  */
 export function condition(dataRow: DataRow, [value]: unknown[]) {
-  return stringify(dataRow.value).toLocaleLowerCase(dataRow.meta.locale).startsWith(stringify(value));
+  return localeLowerCase(stringify(dataRow.value), dataRow.meta.locale).startsWith(stringify(value));
 }
 
 registerCondition(CONDITION_NAME, condition, {

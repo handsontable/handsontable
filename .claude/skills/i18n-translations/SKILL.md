@@ -59,3 +59,7 @@ The editor system handles IME composition events (`compositionstart`, `compositi
 | `src/i18n/constants.ts` | All language constant definitions |
 | `src/i18n/languages/` | Per-locale dictionary files (20+ locales) |
 | `src/i18n/languages/index.ts` | Barrel export for language modules |
+
+## Locale-aware string casing
+
+For case-insensitive comparison or lowercasing of cell data, use `localeLowerCase(value, locale)` from `src/helpers/string.ts` — never `String.prototype.toLocaleLowerCase` directly. The helper is locale-correct (Turkish/Azeri/Lithuanian keep their special casing) but takes the fast `toLowerCase()` path for all other locales, and it never throws on an invalid `locale` tag. This rule is enforced by ESLint (`no-restricted-syntax`).

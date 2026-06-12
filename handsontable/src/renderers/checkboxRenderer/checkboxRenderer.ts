@@ -3,6 +3,7 @@ import type { CellProperties } from '../../settings';
 import EventManager from '../../eventManager';
 import { empty, addClass, eventTargetEl, setAttribute, isHTMLElement } from '../../helpers/dom/element';
 import { isEmpty, stringify } from '../../helpers/mixed';
+import { localeLowerCase } from '../../helpers/string';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import { Hooks } from '../../core/hooks';
 import { A11Y_CHECKBOX, A11Y_CHECKED, A11Y_LABEL } from '../../helpers/a11y';
@@ -86,13 +87,13 @@ export function checkboxRenderer(
    */
   function applyCheckedState() {
     if (value === cellProperties.checkedTemplate ||
-      stringify(value).toLocaleLowerCase(locale) ===
-      stringify(cellProperties.checkedTemplate).toLocaleLowerCase(locale)) {
+      localeLowerCase(stringify(value), locale) ===
+      localeLowerCase(stringify(cellProperties.checkedTemplate), locale)) {
       input.checked = true;
 
     } else if (value === cellProperties.uncheckedTemplate ||
-      stringify(value).toLocaleLowerCase(locale) ===
-      stringify(cellProperties.uncheckedTemplate).toLocaleLowerCase(locale)) {
+      localeLowerCase(stringify(value), locale) ===
+      localeLowerCase(stringify(cellProperties.uncheckedTemplate), locale)) {
       input.checked = false;
 
     } else if (isEmpty(value)) { // default value

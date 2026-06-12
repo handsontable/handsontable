@@ -17,6 +17,7 @@ This is the core data grid package. **TypeScript** - source files in `src/` are 
 - DRY: reuse existing helpers and mixins; if code repeats, extract a generic helper rather than duplicating
 - Method ordering: public methods first, then private listeners
 - In text and comments, always write `Handsontable`, never `HOT` (a `hot` variable holding an instance is fine)
+- Never call `String.prototype.toLocaleLowerCase`/`toLocaleUpperCase` directly — use `localeLowerCase()` from `helpers/string` (faster, locale-correct, crash-safe). Enforced by `no-restricted-syntax`. See `.ai/CONVENTIONS.md`.
 
 ## Plugin Lifecycle
 
@@ -68,6 +69,7 @@ Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` us
 - **Two builds to test**: `handsontable.js` (base, no HyperFormula) and `handsontable.full.js` (includes HyperFormula). Test both when changing build-time behavior.
 - **Validator corrections via `setDataAtCell`**: If a validator calls `setDataAtCell` to write a corrected value (e.g. `correctFormat`), the source string **must end with `'Validator'`** (e.g. `'myCustomValidator'`). Without this suffix, the correction is silently overwritten when the same batch contains columns with async validators (async autocomplete `source`). See `src/core.ts` `validateChanges()` and the `handsontable-validator-dev` skill.
 - **Newer-than-TS-5.1 lib types in emitted `.d.ts`**: Published types must be consumable by TS 5.1 (Angular 16's max). If your code causes `tsc` to emit `ArrayIterator`, `WeakKey`, `IteratorObject`, or similar lib types added after TS 5.1, the `verify-emitted-types` CI job will fail. Two ways to fix: add an explicit annotation at the source (`IterableIterator<T>`, `WeakMap<object, any>`), or extend `scripts/downlevel-dts.mjs` with a new replacement row. The source file is still compiled by the modern dev TS — only the published `.d.ts` is downleveled.
+- **`toLocaleLowerCase(locale)` is a performance trap**: an explicit locale arg forces the ICU path (~45× slower) and throws on invalid tags. Use `localeLowerCase(value, locale)` from `helpers/string`. Only Turkish/Azeri/Lithuanian actually tailor lowercasing; the helper detects that and otherwise uses the fast `toLowerCase()`.
 
 ## Key File Locations
 

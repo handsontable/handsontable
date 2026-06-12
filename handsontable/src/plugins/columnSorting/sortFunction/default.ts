@@ -1,5 +1,6 @@
 import { isEmpty } from '../../../helpers/mixed';
 import { DO_NOT_SWAP, FIRST_BEFORE_SECOND, FIRST_AFTER_SECOND } from '../sortService';
+import { localeLowerCase } from '../../../helpers/string';
 
 /**
  * Normalizes a cell value for comparison by converting booleans to numbers and strings to lowercase.
@@ -14,7 +15,7 @@ function normalizeValue(value: unknown, locale: string | undefined): unknown {
   }
 
   if (typeof value === 'string') {
-    return value.toLocaleLowerCase(locale);
+    return localeLowerCase(value, locale);
   }
 
   return value;
