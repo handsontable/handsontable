@@ -51,7 +51,7 @@ export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'updateData' | 'popula
   'CopyPaste.paste' | 'CopyPaste.cut' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'ColumnSummary.set' |
   'ColumnSummary.reset' | 'DataProvider.revert';
 
-export type { GridSettings } from './core/settings';
+export type { GridSettings, HandsontableCellTypeSettings } from './core/settings';
 /**
  * Column settings inherit grid settings but overload the meaning of `data` to be specific to each column.
  */

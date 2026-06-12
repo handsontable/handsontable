@@ -70,14 +70,9 @@ export interface GridSettings {
   source?: unknown[] | ((query: string, callback: (items: unknown[]) => void) => void);
   type?: string;
   /**
-   * Configuration of the nested grid used by the `handsontable` cell type. It accepts the same
-   * grid settings as the outer table, plus an optional `getValue` that controls which value is
-   * pulled back into the edited cell. It can be a property name of the focused row, or a function
-   * whose `this` is bound to the nested Handsontable instance (matching `Core#getValue`).
+   * Configuration of the nested grid used by the `handsontable` cell type — see {@link HandsontableCellTypeSettings}.
    */
-  handsontable?: GridSettings & {
-    getValue?: string | ((this: HotInstance) => CellValue);
-  };
+  handsontable?: HandsontableCellTypeSettings;
 
   // Editing
   allowEmpty?: boolean;
@@ -556,6 +551,16 @@ export interface GridSettings {
   // Allow additional plugin-specific keys
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [key: string]: any;
+}
+
+/**
+ * Configuration of the nested grid used by the `handsontable` cell type. It accepts the same
+ * grid settings as the outer table, plus an optional `getValue` that controls which value is
+ * pulled back into the edited cell. It can be a property name of the focused row, or a function
+ * whose `this` is bound to the nested Handsontable instance (matching `Core#getValue`).
+ */
+export interface HandsontableCellTypeSettings extends GridSettings {
+  getValue?: string | ((this: HotInstance) => CellValue);
 }
 
 /**

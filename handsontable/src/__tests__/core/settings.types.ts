@@ -803,7 +803,10 @@ const _hotColumn: Handsontable.ColumnSettings = {
 };
 const _hotColumnGetValueFn: Handsontable.ColumnSettings = {
   handsontable: {
-    getValue(this: Handsontable) {
+    // Relies on the *contextual* `this` (no explicit annotation) on purpose: this fails to compile
+    // if the direct `handsontable` re-declaration on `ColumnSettings` is removed, because the
+    // `Omit<GridSettings, 'data'>` + index-signature combination would widen `this` to `{}`.
+    getValue() {
       return this.getDataAtCell(0, 0);
     },
   },
