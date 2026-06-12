@@ -24,6 +24,10 @@ module.exports = {
       'ForInStatement',
       'LabeledStatement',
       'WithStatement',
+      {
+        selector: "CallExpression[callee.property.name='toLocaleLowerCase'], CallExpression[callee.property.name='toLocaleUpperCase']",
+        message: 'Do not call String.prototype.toLocaleLowerCase/toLocaleUpperCase directly. Use localeLowerCase() from helpers/string — it avoids the slow Intl path for non-tailoring locales and is locale-correct. See handsontable/.ai/CONVENTIONS.md.',
+      },
     ],
     'handsontable/restricted-module-imports': [
       'error',

@@ -5,6 +5,7 @@ import {
   stripTags,
   isJSON,
   toHyphen,
+  localeLowerCase,
 } from 'handsontable/helpers/string';
 
 describe('String helper', () => {
@@ -146,6 +147,44 @@ describe('String helper', () => {
     it('should handle strings that are already hyphenated', () => {
       expect(toHyphen('already-hyphenated')).toBe('already-hyphenated');
       expect(toHyphen('my-component')).toBe('my-component');
+    });
+  });
+
+  //
+  // Handsontable.helper.localeLowerCase
+  //
+  describe('localeLowerCase', () => {
+    it('lowercases using the default Unicode mapping for the default and undefined locale', () => {
+      expect(localeLowerCase('ABC')).toBe('abc');
+      expect(localeLowerCase('ABC', 'en-US')).toBe('abc');
+      expect(localeLowerCase('İ', 'en-US')).toBe('İ'.toLowerCase());
+    });
+
+    it('returns output identical to native toLocaleLowerCase for non-tailoring locales', () => {
+      const samples = ['Apple', 'ÄÖÜ', 'STRASSE', 'ОЗЕРО', 'ΟΔΌΣ'];
+      const locales = ['en-US', 'de-DE', 'fr-FR', 'el-GR', 'ru-RU', undefined];
+
+      locales.forEach((locale) => {
+        samples.forEach((sample) => {
+          expect(localeLowerCase(sample, locale)).toBe(sample.toLocaleLowerCase(locale));
+        });
+      });
+    });
+
+    it('preserves Turkish and Azeri locale-aware lowercasing', () => {
+      expect(localeLowerCase('I', 'tr-TR')).toBe('ı');
+      expect(localeLowerCase('İ', 'tr-TR')).toBe('i');
+      expect(localeLowerCase('I', 'az-AZ')).toBe('ı');
+    });
+
+    it('preserves Lithuanian locale-aware lowercasing', () => {
+      expect(localeLowerCase('Ì', 'lt-LT')).toBe('Ì'.toLocaleLowerCase('lt-LT'));
+    });
+
+    it('does not throw on invalid or empty locale tags (falls back to the default mapping)', () => {
+      expect(localeLowerCase('I', '')).toBe('i');
+      expect(localeLowerCase('I', 'en_US')).toBe('i');
+      expect(localeLowerCase('ABC', 'not a locale!!')).toBe('abc');
     });
   });
 });

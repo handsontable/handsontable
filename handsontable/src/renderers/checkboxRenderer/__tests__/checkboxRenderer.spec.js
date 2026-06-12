@@ -672,4 +672,20 @@ describe('CheckboxRenderer', () => {
 
     Handsontable.renderers.registerRenderer('base', originalBaseRenderer);
   });
+
+  it('should match the checked template case-insensitively under an invalid column locale', async() => {
+    handsontable({
+      data: [['yes']],
+      columns: [{
+        type: 'checkbox',
+        checkedTemplate: 'Yes', // differs in case from the value, so the lowercase path runs
+        uncheckedTemplate: 'No',
+        locale: 'en_US', // invalid tag — current code throws during render
+      }],
+    });
+
+    // current code: RangeError from 'yes'.toLocaleLowerCase('en_US') while rendering.
+    // after migration: the cell renders as a checked checkbox.
+    expect(getCell(0, 0).querySelector('input').checked).toBe(true);
+  });
 });

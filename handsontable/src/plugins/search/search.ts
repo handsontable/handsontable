@@ -3,6 +3,7 @@ import { BasePlugin } from '../base';
 import { isObject } from '../../helpers/object';
 import { rangeEach } from '../../helpers/number';
 import { isUndefined } from '../../helpers/mixed';
+import { localeLowerCase } from '../../helpers/string';
 
 /**
  * Local type-guard narrowing `unknown` to `Record<string, unknown>`.
@@ -31,8 +32,9 @@ const DEFAULT_QUERY_METHOD = function(query: string, value: unknown, cellPropert
     return false;
   }
 
-  return String(value).toLocaleLowerCase(cellProperties.locale as string | undefined)
-    .indexOf(query.toLocaleLowerCase(cellProperties.locale as string | undefined)) !== -1;
+  const locale = cellProperties.locale as string | undefined;
+
+  return localeLowerCase(String(value), locale).indexOf(localeLowerCase(query, locale)) !== -1;
 };
 
 /**
