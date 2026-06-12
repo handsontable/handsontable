@@ -173,4 +173,88 @@ describe('DomSlot', () => {
     expect(() => slot.setOrder('not-an-array')).not.toThrow();
     expect(ids(parent)).toEqual(['b', 'a']);
   });
+
+  it('performs no DOM moves when the resolved order is already correct', () => {
+    const { parent, make } = setup();
+    const slot = new DomSlot(parent);
+
+    slot.add('a', make('a'), 100);
+    slot.add('b', make('b'), 200);
+
+    const insertBefore = jest.spyOn(parent, 'insertBefore');
+
+    // `applyConfig` calls `setOrder` on every `updateSettings()`; a re-apply of the same order
+    // must not touch the DOM.
+    slot.setOrder(['a', 'b']);
+
+    expect(insertBefore).not.toHaveBeenCalled();
+    expect(ids(parent)).toEqual(['a', 'b']);
+
+    insertBefore.mockRestore();
+  });
+
+  it('keeps keyboard focus when reordering does not change the order', () => {
+    const parent = document.createElement('div');
+
+    document.body.appendChild(parent);
+
+    const slot = new DomSlot(parent);
+    const make = (id) => {
+      const el = document.createElement('button');
+
+      el.dataset.id = id;
+
+      return el;
+    };
+    const focused = make('b');
+
+    slot.add('a', make('a'), 100);
+    slot.add('b', focused, 200);
+
+    focused.focus();
+
+    expect(document.activeElement).toBe(focused);
+
+    // Re-applying the same order must not blur the focused control by detaching its node.
+    slot.setOrder([]);
+
+    expect(document.activeElement).toBe(focused);
+
+    document.body.removeChild(parent);
+  });
+
+  it('produces the resolved order when fully reversed', () => {
+    const { parent, make } = setup();
+    const slot = new DomSlot(parent);
+
+    slot.add('a', make('a'), 100);
+    slot.add('b', make('b'), 200);
+    slot.add('c', make('c'), 300);
+
+    slot.setOrder(['c', 'b', 'a']);
+
+    expect(ids(parent)).toEqual(['c', 'b', 'a']);
+  });
+
+  it('moves only the out-of-place element when correcting the order', () => {
+    const { parent, make } = setup();
+    const slot = new DomSlot(parent);
+
+    slot.add('a', make('a'), 100);
+    slot.add('b', make('b'), 200);
+    slot.add('c', make('c'), 300);
+
+    const stable = parent.children[0];
+    const insertBefore = jest.spyOn(parent, 'insertBefore');
+
+    // Move 'c' before 'a'/'b'; 'a' and 'b' keep their relative order and must not be re-inserted.
+    slot.setOrder(['c']);
+
+    expect(ids(parent)).toEqual(['c', 'a', 'b']);
+    expect(insertBefore).toHaveBeenCalledTimes(1);
+    // 'a' (the first child before reordering) was not moved.
+    expect(parent.children[1]).toBe(stable);
+
+    insertBefore.mockRestore();
+  });
 });

@@ -79,6 +79,56 @@ describe('Layout slots', () => {
     expect(manager.getSlot('overlays').getElement()).toBe(hot.rootOverlaysElement);
   });
 
+  it('register places a custom element into the edge slot named by side', async() => {
+    const hot = handsontable({ data: createSpreadsheetData(3, 3) });
+    const make = (elId) => {
+      const el = document.createElement('div');
+
+      el.dataset.id = elId;
+
+      return el;
+    };
+    const before = make('before');
+    const after = make('after');
+
+    hot.getLayoutManager().register('a', before, { side: 'before' });
+    hot.getLayoutManager().register('b', after, { side: 'after', weight: 100 });
+
+    expect(before.parentNode).toBe(hot.rootBeforeGridElement);
+    expect(after.parentNode).toBe(hot.rootAfterGridElement);
+  });
+
+  it('keeps focus on a slot element across updateSettings (no reorder churn)', async() => {
+    const hot = handsontable({ data: createSpreadsheetData(3, 3) });
+    const link = document.createElement('button');
+
+    link.textContent = 'Slot action';
+    hot.getLayoutManager().register('toolbar', link, { side: 'before', weight: 100 });
+
+    link.focus();
+
+    expect(document.activeElement).toBe(link);
+
+    // `updateSettings` re-applies the layout config (setOrder on every slot). With the order
+    // unchanged, the element must not be detached/re-appended, so focus stays put.
+    await updateSettings({ rowHeaders: true });
+
+    expect(document.activeElement).toBe(link);
+  });
+
+  it('unregister removes a custom element registered through register', async() => {
+    const hot = handsontable({ data: createSpreadsheetData(3, 3) });
+    const el = document.createElement('div');
+
+    hot.getLayoutManager().register('custom', el, { side: 'after' });
+
+    expect(el.parentNode).toBe(hot.rootAfterGridElement);
+
+    hot.getLayoutManager().unregister('custom', 'after');
+
+    expect(el.parentNode).toBe(null);
+  });
+
   it('adds and orders custom elements within a slot by weight', async() => {
     const hot = handsontable({ data: createSpreadsheetData(3, 3) });
     const slot = hot.getLayoutManager().getSlot('beforeGrid');
@@ -255,9 +305,10 @@ describe('Layout slots', () => {
     expect(inDocOrder).toEqual(['beforeBtn', 'afterBtn']);
   });
 
-  it('orders overlays-slot elements according to the layout setting', async() => {
+  it('ignores an overlays key in the layout setting (overlays are not user-orderable)', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(3, 3),
+      // `overlays` is not part of the public `layout` config; passing it must have no effect.
       layout: { overlays: ['b', 'a'] },
     });
     const slot = hot.getLayoutManager().getSlot('overlays');
@@ -272,7 +323,8 @@ describe('Layout slots', () => {
     slot.add('a', make('a'), 100);
     slot.add('b', make('b'), 200);
 
-    expect(slotItemIds(slot)).toEqual(['b', 'a']);
+    // Weight order is preserved; the ignored layout key does not reshuffle them.
+    expect(slotItemIds(slot)).toEqual(['a', 'b']);
   });
 
   it('removes the top border of the first after-grid item', async() => {

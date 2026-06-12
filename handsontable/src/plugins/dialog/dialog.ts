@@ -1,7 +1,7 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { DialogUI } from './ui';
-import { LAYOUT_SLOTS, LAYOUT_WEIGHTS } from '../../core/layout';
+import { LAYOUT_SLOTS } from '../../core/layout';
 import { isRootInstance } from '../../utils/rootInstance';
 import { isObject, isPlainObject } from '../../helpers/object';
 import { isHTMLElement } from '../../helpers/dom/element';
@@ -12,6 +12,7 @@ export const PLUGIN_KEY = 'dialog';
 export const PLUGIN_PRIORITY = 360;
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
+const LAYOUT_WEIGHT = 100;
 
 /**
  * @plugin Dialog
@@ -283,12 +284,14 @@ export class Dialog extends BasePlugin {
     this.#registerShortcuts();
     this.#registerFocusScope();
 
-    // The layout manager only exists on the root instance. The UI itself is already in the DOM
-    // (the UI's `install` appends it to the overlays element); the slot only manages ordering.
+    // The UI's `install` appends the container to the overlays element; adding it to the overlays
+    // slot lets the layout manager own the ordering. The overlays slot is internal (not user-orderable
+    // through the `layout` setting), so it is reached via `getSlot`, not `register`. The manager only
+    // exists on the root instance, hence the guard.
     if (isRootInstance(this.hot)) {
       this.hot.getLayoutManager()
         .getSlot(LAYOUT_SLOTS.OVERLAYS)
-        .add(PLUGIN_KEY, this.#ui.getContainer(), LAYOUT_WEIGHTS.DIALOG);
+        .add(PLUGIN_KEY, this.#ui.getContainer(), LAYOUT_WEIGHT);
     }
 
     this.addHook('afterViewRender', () => this.#onAfterViewRender());

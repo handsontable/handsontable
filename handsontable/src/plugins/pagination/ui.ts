@@ -68,12 +68,6 @@ export class PaginationUI {
    */
   readonly #rootElement: HTMLElement;
   /**
-   * The after grid element where the pagination UI will be installed.
-   *
-   * @type {HTMLElement}
-   */
-  readonly #afterGridElement: HTMLElement;
-  /**
    * The container element where the pagination UI will be installed.
    * If not provided, the pagination container will be injected after the root element.
    *
@@ -116,7 +110,6 @@ export class PaginationUI {
    */
   constructor({
     rootElement,
-    afterGridElement,
     uiContainer,
     isRtl,
     themeName,
@@ -124,7 +117,6 @@ export class PaginationUI {
     a11yAnnouncer,
   }: Record<string, unknown>) {
     this.#rootElement = rootElement as HTMLElement;
-    this.#afterGridElement = afterGridElement as HTMLElement;
     this.#uiContainer = uiContainer as HTMLElement | null;
     this.#isRtl = isRtl as boolean;
     this.#themeName = themeName as string | undefined;
@@ -185,9 +177,10 @@ export class PaginationUI {
       this.#uiContainer.appendChild(elements.fragment);
 
       addClass(container, [this.#themeName ?? '', 'handsontable']);
-    } else {
-      this.#afterGridElement.appendChild(elements.fragment);
     }
+
+    // Without a custom `uiContainer`, the LayoutManager owns placement: it appends the container
+    // into the after-grid slot when the plugin registers it. The element stays detached until then.
   }
 
   /**

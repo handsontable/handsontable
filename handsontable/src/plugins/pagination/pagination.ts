@@ -4,7 +4,6 @@ import { getScrollbarWidth } from '../../helpers/dom/element';
 import { PaginationUI } from './ui';
 import { announce } from '../../utils/a11yAnnouncer';
 import { createPaginatorStrategy } from './strategies';
-import { LAYOUT_SLOTS, LAYOUT_WEIGHTS } from '../../core/layout';
 import { isRootInstance } from '../../utils/rootInstance';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
@@ -22,6 +21,7 @@ registerConflict('pagination', [
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
+const LAYOUT_WEIGHT = 100;
 
 const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requires the \`autoRowSize\`\x20
   plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
@@ -234,7 +234,6 @@ export class Pagination extends BasePlugin {
     if (!this.#ui) {
       this.#ui = new PaginationUI({
         rootElement: this.hot.rootGridElement,
-        afterGridElement: this.hot.rootAfterGridElement,
         uiContainer: this.getSetting('uiContainer'),
         isRtl: this.hot.isRtl(),
         themeName: this.hot.getCurrentThemeName(),
@@ -252,12 +251,12 @@ export class Pagination extends BasePlugin {
 
     }
 
-    // The layout manager only exists on the root instance. The UI itself is already in the DOM
-    // (the UI's `install` appends it to the after-grid element); the slot only manages ordering.
+    // The layout manager owns the after-grid placement and ordering. With a custom `uiContainer`
+    // the UI installs itself there instead, so the slot registration is skipped. The manager only
+    // exists on the root instance, hence the guard.
     if (isRootInstance(this.hot) && !this.getSetting('uiContainer')) {
       this.hot.getLayoutManager()
-        .getSlot(LAYOUT_SLOTS.AFTER_GRID)
-        .add(PLUGIN_KEY, this.#ui.getContainer(), LAYOUT_WEIGHTS.PAGINATION);
+        .register(PLUGIN_KEY, this.#ui.getContainer(), { side: 'after', weight: LAYOUT_WEIGHT });
     }
 
     // Place the onInit hook before others to make sure that the pagination state is computed
@@ -404,7 +403,7 @@ export class Pagination extends BasePlugin {
     this.#unregisterFocusScope();
 
     if (isRootInstance(this.hot)) {
-      this.hot.getLayoutManager().getSlot(LAYOUT_SLOTS.AFTER_GRID).remove(PLUGIN_KEY);
+      this.hot.getLayoutManager().unregister(PLUGIN_KEY, 'after');
     }
 
     this.#ui?.destroy();

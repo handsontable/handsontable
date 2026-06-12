@@ -1,10 +1,10 @@
 import { _injectProductInfo } from '../helpers/mixed';
-import { LAYOUT_SLOTS, LAYOUT_WEIGHTS } from '../core/layout';
 import type { HotInstance } from '../core/types';
 
 const SCOPE_ID = 'licenseNotification';
 const SHORTCUTS_CONTEXT_NAME = `plugin:${SCOPE_ID}`;
 const LICENSE_INFO_CLASS = 'hot-display-license-info';
+const LAYOUT_WEIGHT = 200;
 
 /**
  * Returns the license notification DOM element when present.
@@ -53,24 +53,22 @@ export function initLicenseNotification(hotInstance: HotInstance): void {
     ? process.env.HOT_RELEASE_DATE
     : '';
 
-  _injectProductInfo({
+  const notificationElement = _injectProductInfo({
     className: LICENSE_INFO_CLASS,
     key: licenseKey,
     element: container,
     releaseDate
   });
 
-  const notificationElement = getNotificationElement(hotInstance);
-
   if (!notificationElement) {
     return;
   }
 
-  // `_injectProductInfo` appended the element into the after-grid element; register it under the
-  // layout slot so the `layout` setting and weights control its order relative to other content.
+  // `_injectProductInfo` appended this element into the after-grid element and returned it; register
+  // it under the layout slot so the `layout` setting and weights control its order relative to other
+  // content.
   hotInstance.getLayoutManager()
-    .getSlot(LAYOUT_SLOTS.AFTER_GRID)
-    .add('licenseNotification', notificationElement, LAYOUT_WEIGHTS.LICENSE_NOTIFICATION);
+    .register('licenseNotification', notificationElement, { side: 'after', weight: LAYOUT_WEIGHT });
 
   // The scope is intentionally never unregistered: the license notification is created once during
   // init, cannot be disabled, and lives for the whole instance lifetime. It is cleaned up when

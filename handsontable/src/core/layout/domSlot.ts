@@ -177,13 +177,26 @@ export class DomSlot {
   }
 
   /**
-   * Re-appends registered elements into the container in resolved order.
+   * Reconciles the registered elements into the container in resolved order. Only elements that are
+   * not already at their target position are moved. Reordering an already-ordered slot performs no
+   * DOM moves, which avoids needless reflow and -- because moving a node that holds
+   * `document.activeElement` fires a blur -- avoids silently dropping keyboard focus on re-renders.
    *
    * @returns {void}
    */
   #reorder(): void {
+    let ref = this.#parent.firstChild;
+
     this.#sortedKeys().forEach((key) => {
-      this.#parent.appendChild(this.#entries.get(key)!.element);
+      const element = this.#entries.get(key)!.element;
+
+      if (element === ref) {
+        // Already in place; advance past it without touching the DOM.
+        ref = ref.nextSibling;
+      } else {
+        // Out of place; move it before the current reference node (or to the end when `ref` is null).
+        this.#parent.insertBefore(element, ref);
+      }
     });
   }
 }

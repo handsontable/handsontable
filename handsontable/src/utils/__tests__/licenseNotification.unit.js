@@ -21,9 +21,7 @@ function createMockHotInstance(overrides = {}) {
       registerScope: registerScopeMock,
     })),
     getLayoutManager: jest.fn(() => ({
-      getSlot: jest.fn(() => ({
-        add: jest.fn(),
-      })),
+      register: jest.fn(),
     })),
     ...overrides,
   };
@@ -109,6 +107,8 @@ describe('licenseNotification', () => {
 
       _injectProductInfo.mockImplementation(({ element }) => {
         element.appendChild(notificationEl);
+
+        return notificationEl;
       });
 
       initLicenseNotification(hotInstance);
@@ -134,7 +134,7 @@ describe('licenseNotification', () => {
       notificationEl.className = `handsontable ${LICENSE_INFO_CLASS}`;
       hotInstance.rootAfterGridElement.appendChild(notificationEl);
 
-      _injectProductInfo.mockImplementation(() => {});
+      _injectProductInfo.mockImplementation(() => notificationEl);
 
       initLicenseNotification(hotInstance);
 
@@ -161,7 +161,7 @@ describe('licenseNotification', () => {
       notificationEl.appendChild(link2);
       hotInstance.rootAfterGridElement.appendChild(notificationEl);
 
-      _injectProductInfo.mockImplementation(() => {});
+      _injectProductInfo.mockImplementation(() => notificationEl);
 
       const focusSpy1 = jest.spyOn(link1, 'focus').mockImplementation(() => {});
       const focusSpy2 = jest.spyOn(link2, 'focus').mockImplementation(() => {});
@@ -192,7 +192,7 @@ describe('licenseNotification', () => {
       notificationEl.appendChild(link2);
       hotInstance.rootAfterGridElement.appendChild(notificationEl);
 
-      _injectProductInfo.mockImplementation(() => {});
+      _injectProductInfo.mockImplementation(() => notificationEl);
 
       const focusSpy1 = jest.spyOn(link1, 'focus').mockImplementation(() => {});
       const focusSpy2 = jest.spyOn(link2, 'focus').mockImplementation(() => {});
@@ -217,7 +217,7 @@ describe('licenseNotification', () => {
       notificationEl.className = `handsontable ${LICENSE_INFO_CLASS}`;
       hotInstance.rootAfterGridElement.appendChild(notificationEl);
 
-      _injectProductInfo.mockImplementation(() => {});
+      _injectProductInfo.mockImplementation(() => notificationEl);
 
       initLicenseNotification(hotInstance);
 

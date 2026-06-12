@@ -6212,7 +6212,7 @@ export default function Core(
    *
    * @example
    * ```js
-   * hot.getLayoutManager().getSlot('beforeGrid').add('myToolbar', toolbarElement, 100);
+   * hot.getLayoutManager().register('myToolbar', toolbarElement, { side: 'before', weight: 100 });
    * ```
    */
   this.getLayoutManager = function() {

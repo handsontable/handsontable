@@ -3495,11 +3495,12 @@ export default (): Record<string, unknown> => {
     layoutDirection: 'inherit',
 
     /**
-     * The `layout` option configures the order of plugin UI elements within the wrapper slots
-     * rendered around the grid: `beforeGrid`, `afterGrid`, and `overlays`. Each slot takes an
-     * ordered array of element keys (for example `'pagination'`, `'licenseNotification'`,
-     * `'dialog'`). Keys you list are placed first in that order; any remaining elements follow
-     * by their default weight. The grid itself is not orderable.
+     * The `layout` option configures the order of plugin UI elements within the user-orderable
+     * wrapper slots rendered around the grid: `beforeGrid` and `afterGrid`. Each slot takes an
+     * ordered array of element keys (for example `'pagination'`, `'licenseNotification'`).
+     * Keys you list are placed first in that order; any remaining elements follow by their default
+     * weight. The grid itself is not orderable, and the `overlays` slot (the modal layer, such as
+     * the dialog) is ordered by its plugins, not through this option.
      *
      * @since 18.0.0
      * @memberof Options#

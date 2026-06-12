@@ -25,9 +25,9 @@ Handsontable wraps the grid in a root element that contains four areas:
 | `beforeGrid` | `ht-before-grid` | Above the grid | Yes |
 | (grid) | `ht-grid` | The table and the empty-data-state | No |
 | `afterGrid` | `ht-after-grid` | Below the grid | Yes |
-| `overlays` | `ht-overlays` | On top of the grid (modal layer) | Yes |
+| `overlays` | `ht-overlays` | On top of the grid (modal layer) | No |
 
-The grid area is internal and cannot be reordered. The other three slots are managed by the layout manager, which you reach with [`getLayoutManager()`](@/api/core.md#getlayoutmanager). Built-in UI already uses these slots: pagination and the license notification render in `afterGrid`, and the dialog renders in `overlays`.
+The grid area is internal and cannot be reordered. The `beforeGrid` and `afterGrid` slots are user-orderable through the `layout` setting. The `overlays` slot holds floating UI (such as the dialog); its ordering is owned by the plugins that register into it and is not part of the public `layout` config. You reach all slots with [`getLayoutManager()`](@/api/core.md#getlayoutmanager). Built-in UI already uses these slots: pagination and the license notification render in `afterGrid`, and the dialog renders in `overlays`.
 
 ## Prerequisites
 
@@ -38,7 +38,7 @@ The grid area is internal and cannot be reordered. The other three slots are man
 
 ### Add an element to a slot
 
-Get a slot from the layout manager and call `add(key, element, weight)`. The `key` is a unique string you choose. The `weight` controls the order -- a lower weight comes first.
+Call `register(key, element, options)` on the layout manager. The `key` is a unique string you choose. The `options.side` selects the user-orderable edge slot (`'before'` or `'after'`). The `options.weight` controls the order -- a lower weight comes first. The manager owns the placement, so you do not append the element to the DOM yourself. The `overlays` slot is internal and not a `register` target.
 
 ```javascript
 const container = document.querySelector('#grid');
@@ -56,15 +56,15 @@ const toolbar = document.createElement('div');
 
 toolbar.textContent = 'Inventory';
 
-hot.getLayoutManager().getSlot('beforeGrid').add('toolbar', toolbar, 100);
+hot.getLayoutManager().register('toolbar', toolbar, { side: 'before', weight: 100 });
 ```
 
 ### Remove an element from a slot
 
-Call `remove(key)` with the same key. This detaches the element from the DOM.
+Call `unregister(key, side)` with the same key and slot. This detaches the element from the DOM.
 
 ```javascript
-hot.getLayoutManager().getSlot('beforeGrid').remove('toolbar');
+hot.getLayoutManager().unregister('toolbar', 'before');
 ```
 
 ### Order elements with the `layout` setting
@@ -118,7 +118,8 @@ Use these keys in the `layout` setting to order the built-in UI:
 |---|---|---|
 | `pagination` | `afterGrid` | The [`Pagination`](@/api/pagination.md) plugin |
 | `licenseNotification` | `afterGrid` | The license notification |
-| `dialog` | `overlays` | The [`Dialog`](@/api/dialog.md) plugin |
+
+The [`Dialog`](@/api/dialog.md) plugin renders in the `overlays` slot, which is not user-orderable through the `layout` setting.
 
 ## Related
 

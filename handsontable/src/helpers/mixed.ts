@@ -121,7 +121,7 @@ export function _injectProductInfo(
     element?: HTMLElement;
     releaseDate?: string;
   }
-) {
+): HTMLElement | null {
   const hasValidType = !isEmpty(key);
   const isNonCommercial = typeof key === 'string' &&
     (key.toLowerCase() === 'non-commercial-and-evaluation' || key.toLowerCase() === 'ht68e-1f2b7-47158-70b05-0842f');
@@ -209,8 +209,12 @@ export function _injectProductInfo(
 
       messageNode.appendChild(innerNode);
       element.appendChild(messageNode);
+
+      return messageNode;
     }
   }
+
+  return null;
 }
 
 function _checkKeySchema(v: string) {

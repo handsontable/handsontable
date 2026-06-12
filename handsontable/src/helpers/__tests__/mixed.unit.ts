@@ -136,6 +136,33 @@ describe('Mixed helper', () => {
       _injectProductInfo = require('../mixed')._injectProductInfo;
     });
 
+    it('should return the injected notification element when a message is shown', () => {
+      spyOn(console, 'warn');
+
+      const element = document.createElement('div').appendChild(document.createElement('div'));
+
+      const result = _injectProductInfo({
+        className: LICENSE_INFO_CLASS, key: LICENSE_TEST_KEY, element, releaseDate: '24/05/2011'
+      });
+
+      // The returned node is the element appended to the container - no DOM re-query needed.
+      expect(result).toBe(element.querySelector('.hot-display-license-info'));
+      expect(result.classList.contains('hot-display-license-info')).toBe(true);
+    });
+
+    it('should return null when no notification is injected (valid license)', () => {
+      spyOn(console, 'info');
+
+      const element = document.createElement('div').appendChild(document.createElement('div'));
+
+      const result = _injectProductInfo({
+        className: LICENSE_INFO_CLASS, key: TRIAL_TEST_KEY, element, releaseDate: '24/05/2011'
+      });
+
+      expect(result).toBe(null);
+      expect(element.querySelector('.hot-display-license-info')).toBe(null);
+    });
+
     it('should not print any information if the license key is not expired (1 day to expire)', () => {
       spyOn(console, 'warn');
       spyOn(console, 'info');
