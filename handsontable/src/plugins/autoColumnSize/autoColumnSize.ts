@@ -576,8 +576,10 @@ export class AutoColumnSize extends BasePlugin {
       if (typeof syncLimit === 'string' && isPercentValue(syncLimit)) {
         limit = valueAccordingPercent(colsLimit, syncLimit);
       } else {
-        // Force to Number
-        limit = Number(syncLimit) >> 0;
+        // Force to integer (NaN — e.g. when syncLimit is undefined — falls back to 0)
+        const numericSyncLimit = Number(syncLimit);
+
+        limit = Number.isFinite(numericSyncLimit) ? Math.trunc(numericSyncLimit) : 0;
       }
     }
 

@@ -128,56 +128,61 @@ export function createInputElementResizer(ownerDocument: Document, initialOption
   }
 
   /**
+   * Resolves a dimension value from a config entry.
+   *
+   * @param {unknown} configValue The config value to resolve.
+   * @param {number} inheritValue The value to use when config is 'inherit'.
+   * @returns {number | undefined} The resolved value, or undefined if not applicable.
+   */
+  function resolveDimensionValue(configValue: unknown, inheritValue: number): number | undefined {
+    if (configValue === 'inherit') {
+      return inheritValue;
+    }
+
+    const parsed = Number.parseInt(String(configValue), 10);
+
+    if (!isNaN(parsed)) {
+      return parsed;
+    }
+
+    return undefined;
+  }
+
+  /**
    * Extends the default configuration.
    *
    * @param {InputElementResizerConfig} config The configuration to extend the defaults with.
    */
   function extendDefaults(config: Record<string, unknown>) {
     if (config && config.minHeight) {
-      if (config.minHeight === 'inherit') {
-        defaults.minHeight = observedElement.clientHeight;
-      } else {
-        const minHeight = Number.parseInt(String(config.minHeight), 10);
+      const value = resolveDimensionValue(config.minHeight, observedElement.clientHeight);
 
-        if (!isNaN(minHeight)) {
-          defaults.minHeight = minHeight;
-        }
+      if (value !== undefined) {
+        defaults.minHeight = value;
       }
     }
 
     if (config && config.maxHeight) {
-      if (config.maxHeight === 'inherit') {
-        defaults.maxHeight = observedElement.clientHeight;
-      } else {
-        const maxHeight = Number.parseInt(String(config.maxHeight), 10);
+      const value = resolveDimensionValue(config.maxHeight, observedElement.clientHeight);
 
-        if (!isNaN(maxHeight)) {
-          defaults.maxHeight = maxHeight;
-        }
+      if (value !== undefined) {
+        defaults.maxHeight = value;
       }
     }
 
     if (config && config.minWidth) {
-      if (config.minWidth === 'inherit') {
-        defaults.minWidth = observedElement.clientWidth;
-      } else {
-        const minWidth = Number.parseInt(String(config.minWidth), 10);
+      const value = resolveDimensionValue(config.minWidth, observedElement.clientWidth);
 
-        if (!isNaN(minWidth)) {
-          defaults.minWidth = minWidth;
-        }
+      if (value !== undefined) {
+        defaults.minWidth = value;
       }
     }
 
     if (config && config.maxWidth) {
-      if (config.maxWidth === 'inherit') {
-        defaults.maxWidth = observedElement.clientWidth;
-      } else {
-        const maxWidth = Number.parseInt(String(config.maxWidth), 10);
+      const value = resolveDimensionValue(config.maxWidth, observedElement.clientWidth);
 
-        if (!isNaN(maxWidth)) {
-          defaults.maxWidth = maxWidth;
-        }
+      if (value !== undefined) {
+        defaults.maxWidth = value;
       }
     }
 

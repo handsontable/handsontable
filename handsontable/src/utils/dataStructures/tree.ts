@@ -209,9 +209,8 @@ export default class TreeNode {
    * @param {Function} callback The callback function which will be called for each node.
    */
   walkUp(callback: (this: TreeNode, node: TreeNode) => boolean | void) {
-    const context = this;
     const process = (node: TreeNode) => {
-      const continueTraverse = callback.call(context, node) as boolean | void;
+      const continueTraverse = callback.call(this, node) as boolean | void;
 
       if (continueTraverse !== false && node.parent !== null) {
         process(node.parent);

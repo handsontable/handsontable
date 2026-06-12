@@ -361,49 +361,8 @@ export class Autofill extends BasePlugin {
       let fillData: unknown[][] = beforeAutofillHookResult;
       const res = beforeAutofillHookResult;
 
-      if (
-        (directionOfDrag === 'up' || directionOfDrag === 'left') &&
-        !(res.length === 1 && res[0].length === 0)
-      ) {
-        fillData = [];
-
-        if (directionOfDrag === 'up') {
-          const dragLength = endRow - startRow + 1;
-          const fillOffset = dragLength % res.length;
-
-          for (let i = 0; i < dragLength; i++) {
-            fillData.push(res[(i + (res.length - fillOffset)) % res.length]);
-          }
-
-        } else {
-          const dragLength = endCol - startCol + 1;
-          const fillOffset = dragLength % res[0].length;
-
-          for (let i = 0; i < res.length; i++) {
-            fillData.push([]);
-
-            for (let j = 0; j < dragLength; j++) {
-              fillData[i]
-                .push(res[i][(j + (res[i].length - fillOffset)) % res[i].length]);
-            }
-          }
-        }
-      }
-
-      // If the source data contains objects, we need to check every target cell for the data type.
-      if (selectionSourceData.some(row => row.some((cell: unknown) => (isObject(cell) || Array.isArray(cell))))) {
-        const fullFillData = this.#extendFillDataWithSourceData(
-          fillData,
-          selectionSourceData,
-          startCoords,
-          endCoords,
-          directionOfDrag,
-        );
-
-        if (fullFillData.length) {
-          fillData = fullFillData;
-        }
-      }
+      fillData = this.#adjustFillDataForDirection(res, fillData, directionOfDrag, startRow, endRow, startCol, endCol);
+      fillData = this.#applySourceDataExtension(fillData, selectionSourceData, startCoords, endCoords, directionOfDrag);
 
       this.hot.populateFromArray(
         startRow,
@@ -425,6 +384,95 @@ export class Autofill extends BasePlugin {
     }
 
     return true;
+  }
+
+  /**
+   * Adjusts fill data for reverse drag directions ('up' or 'left') by reordering rows or columns.
+   *
+   * @param {unknown[][]} res The original autofill hook result data.
+   * @param {unknown[][]} fillData The current fill data to adjust.
+   * @param {string} directionOfDrag The direction of the autofill drag.
+   * @param {number} startRow The start row index of the drag area.
+   * @param {number} endRow The end row index of the drag area.
+   * @param {number} startCol The start column index of the drag area.
+   * @param {number} endCol The end column index of the drag area.
+   * @returns {unknown[][]} The adjusted fill data.
+   */
+  #adjustFillDataForDirection(
+    res: unknown[][],
+    fillData: unknown[][],
+    directionOfDrag: string | undefined,
+    startRow: number,
+    endRow: number,
+    startCol: number,
+    endCol: number,
+  ): unknown[][] {
+    if (
+      (directionOfDrag !== 'up' && directionOfDrag !== 'left') ||
+      (res.length === 1 && res[0].length === 0)
+    ) {
+      return fillData;
+    }
+
+    const result: unknown[][] = [];
+
+    if (directionOfDrag === 'up') {
+      const dragLength = endRow - startRow + 1;
+      const fillOffset = dragLength % res.length;
+
+      for (let i = 0; i < dragLength; i++) {
+        result.push(res[(i + (res.length - fillOffset)) % res.length]);
+      }
+    } else {
+      const dragLength = endCol - startCol + 1;
+      const fillOffset = dragLength % res[0].length;
+
+      for (let i = 0; i < res.length; i++) {
+        result.push([]);
+
+        for (let j = 0; j < dragLength; j++) {
+          (result[i] as unknown[]).push(res[i][(j + (res[i].length - fillOffset)) % res[i].length]);
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Extends fill data with source data when source cells contain objects or arrays.
+   *
+   * @param {unknown[][]} fillData The current fill data.
+   * @param {unknown[][]} selectionSourceData The original source selection data.
+   * @param {{ row: number, col: number }} startCoords The start coordinates of the fill area.
+   * @param {{ row: number, col: number }} endCoords The end coordinates of the fill area.
+   * @param {string} directionOfDrag The direction of the autofill drag.
+   * @returns {unknown[][]} The extended fill data, or the original if no extension was needed.
+   */
+  #applySourceDataExtension(
+    fillData: unknown[][],
+    selectionSourceData: unknown[][],
+    startCoords: { row: number, col: number },
+    endCoords: { row: number, col: number },
+    directionOfDrag: string | undefined,
+  ): unknown[][] {
+    const hasComplexCells = selectionSourceData.some(
+      row => row.some((cell: unknown) => isObject(cell) || Array.isArray(cell))
+    );
+
+    if (!hasComplexCells) {
+      return fillData;
+    }
+
+    const fullFillData = this.#extendFillDataWithSourceData(
+      fillData,
+      selectionSourceData,
+      startCoords,
+      endCoords,
+      directionOfDrag,
+    );
+
+    return fullFillData.length ? fullFillData : fillData;
   }
 
   /**

@@ -69,7 +69,7 @@ export function isRegExp(variable: unknown): boolean {
   return Object.prototype.toString.call(variable) === '[object RegExp]';
 }
 
-/* eslint-disable */
+/* eslint-disable dot-notation, no-useless-escape, max-len, no-bitwise, computed-property-spacing, jsdoc/require-jsdoc, no-restricted-globals, no-console, prefer-const, no-unused-expressions, no-plusplus, space-infix-ops, comma-spacing, no-nested-ternary */
 const _m = '\x6C\x65\x6E\x67\x74\x68';
 const _hd = (v: string) => parseInt(v, 16);
 const _pi = (v: string) => parseInt(v, 10);

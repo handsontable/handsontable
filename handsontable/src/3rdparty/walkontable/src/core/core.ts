@@ -99,39 +99,37 @@ export default class Walkontable extends CoreAbstract {
    * @returns {Record<string, unknown>}
    */
   getViewportDao(): Record<string, unknown> {
-    const wot = this;
-
-    return {
+    return ((instance: this) => ({
       get wot() {
-        return wot;
+        return instance;
       },
       get topOverlayTrimmingContainer() {
-        return wot.wtOverlays.topOverlay.trimmingContainer;
+        return instance.wtOverlays.topOverlay.trimmingContainer;
       },
       get inlineStartOverlayTrimmingContainer() {
-        return wot.wtOverlays.inlineStartOverlay.trimmingContainer;
+        return instance.wtOverlays.inlineStartOverlay.trimmingContainer;
       },
       get topScrollPosition() {
-        return wot.wtOverlays.topOverlay.getScrollPosition();
+        return instance.wtOverlays.topOverlay.getScrollPosition();
       },
       get topParentOffset() {
-        return wot.wtOverlays.topOverlay.getTableParentOffset();
+        return instance.wtOverlays.topOverlay.getTableParentOffset();
       },
       get inlineStartScrollPosition() {
-        return wot.wtOverlays.inlineStartOverlay.getScrollPosition();
+        return instance.wtOverlays.inlineStartOverlay.getScrollPosition();
       },
       get inlineStartParentOffset() {
-        return wot.wtOverlays.inlineStartOverlay.getTableParentOffset();
+        return instance.wtOverlays.inlineStartOverlay.getTableParentOffset();
       },
       get topOverlay() {
-        return wot.wtOverlays.topOverlay; // TODO refactoring: move outside dao, use IOC
+        return instance.wtOverlays.topOverlay; // TODO refactoring: move outside dao, use IOC
       },
       get inlineStartOverlay() {
-        return wot.wtOverlays.inlineStartOverlay; // TODO refactoring: move outside dao, use IOC
+        return instance.wtOverlays.inlineStartOverlay; // TODO refactoring: move outside dao, use IOC
       },
       get bottomOverlay() {
-        return wot.wtOverlays.bottomOverlay; // TODO refactoring: move outside dao, use IOC
+        return instance.wtOverlays.bottomOverlay; // TODO refactoring: move outside dao, use IOC
       }
-    };
+    }))(this);
   }
 }

@@ -4,7 +4,7 @@ import { throwWithCause } from '../../helpers/errors';
  * @param {Core} Handsontable The Handsontable instance.
  */
 export default function jQueryWrapper(Handsontable: Record<string, unknown>) {
-  // eslint-disable-next-line
+  // eslint-disable-next-line no-restricted-globals
   const jQuery = typeof window === 'undefined' ? false : (window as Window & { jQuery?: Function }).jQuery;
 
   if (!jQuery) {

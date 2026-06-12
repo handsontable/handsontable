@@ -550,38 +550,10 @@ export class BaseEditor {
     const horizontalScrollPosition = Math.abs(wtOverlays.inlineStartOverlay?.getScrollPosition() ?? 0);
     const verticalScrollPosition = wtOverlays.topOverlay?.getScrollPosition() ?? 0;
     const scrollbarWidth = getScrollbarWidth(this.hot.rootDocument);
-    let cellTopOffset = TD.offsetTop;
-
-    if (['inline_start', 'master'].includes(overlayName)) {
-      cellTopOffset += firstRowOffset - verticalScrollPosition;
-    }
-
-    if (['bottom', 'bottom_inline_start_corner'].includes(overlayName) && wtOverlays.bottomOverlay?.clone) {
-      const {
-        wtViewport: bottomWtViewport,
-        wtTable: bottomWtTable,
-      } = wtOverlays.bottomOverlay!.clone!;
-
-      cellTopOffset += bottomWtViewport.getWorkspaceHeight() - bottomWtTable.getHeight() - scrollbarWidth;
-    }
-
-    let cellStartOffset = TD.offsetLeft;
-
-    if (this.hot.isRtl()) {
-      if (cellStartOffset >= 0) {
-        cellStartOffset = overlayTable.getWidth() - TD.offsetLeft;
-      } else {
-        // The `offsetLeft` returns negative values when the parent offset element has position relative
-        // (it happens when on the cell the selection is applied - the `area` CSS class).
-        // When it happens the `offsetLeft` value is calculated from the right edge of the parent element.
-        cellStartOffset = Math.abs(cellStartOffset);
-      }
-
-      cellStartOffset += firstColumnOffset - horizontalScrollPosition - cellWidth;
-
-    } else if (['top', 'master', 'bottom'].includes(overlayName)) {
-      cellStartOffset += firstColumnOffset - horizontalScrollPosition;
-    }
+    const cellTopOffset = this.#calcCellTopOffset(TD, overlayName, firstRowOffset,
+      verticalScrollPosition, scrollbarWidth);
+    const cellStartOffset = this.#calcCellStartOffset(TD, overlayName, overlayTable, cellWidth,
+      firstColumnOffset, horizontalScrollPosition);
 
     const cellComputedStyle = rootWindow.getComputedStyle(TD);
     const borderPhysicalWidthProp = this.hot.isRtl() ? 'borderRightWidth' : 'borderLeftWidth';
@@ -606,6 +578,75 @@ export class BaseEditor {
       width,
       maxWidth,
     };
+  }
+
+  /**
+   * Calculates the top offset of the edited cell within the overlay's coordinate space.
+   *
+   * @param {HTMLTableCellElement} TD The edited cell element.
+   * @param {string} overlayName The name of the overlay containing the cell.
+   * @param {number} firstRowOffset The start position of the rows render calculator.
+   * @param {number} verticalScrollPosition The current vertical scroll position.
+   * @param {number} scrollbarWidth The scrollbar width in pixels.
+   * @returns {number}
+   */
+  #calcCellTopOffset(
+    TD: HTMLTableCellElement, overlayName: string,
+    firstRowOffset: number, verticalScrollPosition: number, scrollbarWidth: number
+  ): number {
+    let cellTopOffset = TD.offsetTop;
+    const { wtOverlays } = this.hot.view._wt;
+
+    if (['inline_start', 'master'].includes(overlayName)) {
+      cellTopOffset += firstRowOffset - verticalScrollPosition;
+    }
+
+    if (['bottom', 'bottom_inline_start_corner'].includes(overlayName) && wtOverlays.bottomOverlay?.clone) {
+      const {
+        wtViewport: bottomWtViewport,
+        wtTable: bottomWtTable,
+      } = wtOverlays.bottomOverlay!.clone!;
+
+      cellTopOffset += bottomWtViewport.getWorkspaceHeight() - bottomWtTable.getHeight() - scrollbarWidth;
+    }
+
+    return cellTopOffset;
+  }
+
+  /**
+   * Calculates the inline-start offset of the edited cell within the overlay's coordinate space.
+   *
+   * @param {HTMLTableCellElement} TD The edited cell element.
+   * @param {string} overlayName The name of the overlay containing the cell.
+   * @param {object} overlayTable The Walkontable table instance for the overlay.
+   * @param {number} cellWidth The width of the edited cell.
+   * @param {number} firstColumnOffset The start position of the columns render calculator.
+   * @param {number} horizontalScrollPosition The current horizontal scroll position.
+   * @returns {number}
+   */
+  #calcCellStartOffset(
+    TD: HTMLTableCellElement, overlayName: string, overlayTable: { getWidth(): number },
+    cellWidth: number, firstColumnOffset: number, horizontalScrollPosition: number
+  ): number {
+    let cellStartOffset = TD.offsetLeft;
+
+    if (this.hot.isRtl()) {
+      if (cellStartOffset >= 0) {
+        cellStartOffset = overlayTable.getWidth() - TD.offsetLeft;
+      } else {
+        // The `offsetLeft` returns negative values when the parent offset element has position relative
+        // (it happens when on the cell the selection is applied - the `area` CSS class).
+        // When it happens the `offsetLeft` value is calculated from the right edge of the parent element.
+        cellStartOffset = Math.abs(cellStartOffset);
+      }
+
+      cellStartOffset += firstColumnOffset - horizontalScrollPosition - cellWidth;
+
+    } else if (['top', 'master', 'bottom'].includes(overlayName)) {
+      cellStartOffset += firstColumnOffset - horizontalScrollPosition;
+    }
+
+    return cellStartOffset;
   }
 
   /**

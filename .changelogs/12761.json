@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed multiple code quality issues reported by SonarCloud static analysis.",
+  "type": "fixed",
+  "issueOrPR": 12761,
+  "breaking": false,
+  "framework": "none"
+}

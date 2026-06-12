@@ -289,7 +289,7 @@ export default class StateManager {
 
       atLeastOneRootFound = true;
 
-      // eslint-disable-next-line
+      // eslint-disable-next-line no-loop-func
       rootNode.walkDown((node: TreeNode) => {
         const {
           columnIndex: nodeColumnIndex,

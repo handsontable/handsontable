@@ -402,20 +402,10 @@ export class ManualColumnMove extends BasePlugin {
     const backlightElemMarginStart = this.#backlight.getOffset().start;
     const backlightElemWidth = this.#backlight.getSize().width;
     let rowHeaderWidth = 0;
-    let mouseOffsetStart = 0;
 
-    if (this.hot.isRtl()) {
-      const rootWindow = this.hot.rootWindow;
-      const containerWidth = outerWidth(this.hot.rootElement);
-      const gridMostRightPos = rootWindow.innerWidth - rootElementOffset - containerWidth;
-
-      mouseOffsetStart = rootWindow.innerWidth - this.#target.eventPageX - gridMostRightPos -
-        (!(scrollableElement instanceof Window) ? scrollStart : 0);
-
-    } else {
-      mouseOffsetStart = this.#target.eventPageX -
-        (rootElementOffset - (!(scrollableElement instanceof Window) ? scrollStart : 0));
-    }
+    const mouseOffsetStart = this.#calculateMouseOffsetStart(
+      scrollableElement, scrollStart, rootElementOffset
+    );
 
     if (this.#hasRowHeaders) {
       const inlineClone = this.hot.view._wt.wtOverlays.inlineStartOverlay.clone;
@@ -429,26 +419,9 @@ export class ManualColumnMove extends BasePlugin {
 
     tdOffsetStart += rowHeaderWidth;
 
-    if (hoveredColumn < 0) {
-      // if hover on rowHeader
-      if (fixedColumnsStart > 0) {
-        this.#target.col = 0;
-      } else {
-        this.#target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
-      }
-
-    } else if (((this.#target.TD.offsetWidth / 2) + tdOffsetStart) <= mouseOffsetStart) {
-      const newCoordsCol = hoveredColumn >= this.#countCols ? this.#countCols - 1 : hoveredColumn;
-
-      // if hover on right part of TD
-      this.#target.col = newCoordsCol + 1;
-      // unfortunately first column is bigger than rest
-      tdOffsetStart += this.#target.TD.offsetWidth;
-
-    } else {
-      // elsewhere on table
-      this.#target.col = hoveredColumn;
-    }
+    tdOffsetStart = this.#calculateTargetCol(
+      hoveredColumn, tdOffsetStart, mouseOffsetStart, firstVisible, fixedColumnsStart
+    );
 
     let backlightStart = mouseOffsetStart;
     let guidelineStart = tdOffsetStart;
@@ -476,6 +449,74 @@ export class ManualColumnMove extends BasePlugin {
 
     this.#backlight.setPosition(undefined, backlightStart);
     this.#guideline.setPosition(undefined, guidelineStart);
+  }
+
+  /**
+   * Calculates the mouse offset from the start of the grid, accounting for RTL direction.
+   *
+   * @param {Window | HTMLElement} scrollableElement The scrollable container element.
+   * @param {number} scrollStart The current scroll position.
+   * @param {number} rootElementOffset The offset of the root element.
+   * @returns {number}
+   */
+  #calculateMouseOffsetStart(
+    scrollableElement: Window | Element,
+    scrollStart: number,
+    rootElementOffset: number
+  ): number {
+    if (this.hot.isRtl()) {
+      const rootWindow = this.hot.rootWindow;
+      const containerWidth = outerWidth(this.hot.rootElement);
+      const gridMostRightPos = rootWindow.innerWidth - rootElementOffset - containerWidth;
+
+      return rootWindow.innerWidth - this.#target.eventPageX - gridMostRightPos -
+        (!(scrollableElement instanceof Window) ? scrollStart : 0);
+    }
+
+    return this.#target.eventPageX -
+      (rootElementOffset - (!(scrollableElement instanceof Window) ? scrollStart : 0));
+  }
+
+  /**
+   * Calculates the target column based on hover position and updates `#target.col`.
+   * Returns the updated tdOffsetStart value.
+   *
+   * @param {number} hoveredColumn The currently hovered column index.
+   * @param {number} tdOffsetStart The current TD offset from the start.
+   * @param {number} mouseOffsetStart The current mouse offset from the start.
+   * @param {number} firstVisible The first fully visible column index.
+   * @param {number} fixedColumnsStart The number of fixed columns at the start.
+   * @returns {number}
+   */
+  #calculateTargetCol(
+    hoveredColumn: number,
+    tdOffsetStart: number,
+    mouseOffsetStart: number,
+    firstVisible: number,
+    fixedColumnsStart: number
+  ): number {
+    if (hoveredColumn < 0) {
+      // if hover on rowHeader
+      if (fixedColumnsStart > 0) {
+        this.#target.col = 0;
+      } else {
+        this.#target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
+      }
+
+    } else if (((this.#target.TD.offsetWidth / 2) + tdOffsetStart) <= mouseOffsetStart) {
+      const newCoordsCol = hoveredColumn >= this.#countCols ? this.#countCols - 1 : hoveredColumn;
+
+      // if hover on right part of TD
+      this.#target.col = newCoordsCol + 1;
+      // unfortunately first column is bigger than rest
+      tdOffsetStart += this.#target.TD.offsetWidth;
+
+    } else {
+      // elsewhere on table
+      this.#target.col = hoveredColumn;
+    }
+
+    return tdOffsetStart;
   }
 
   /**

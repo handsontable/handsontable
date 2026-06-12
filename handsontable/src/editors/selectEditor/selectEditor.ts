@@ -42,7 +42,7 @@ export class SelectEditor extends BaseEditor {
   init(): void {
     this.selectWrapper = this.hot.rootDocument.createElement('div');
     this.select = this.hot.rootDocument.createElement('select');
-    this.select.setAttribute('data-hot-input', 'true');
+    this.select.dataset.hotInput = 'true';
     this.selectWrapper.style.display = 'none';
 
     const ARROW = this.hot.rootDocument.createElement('DIV');

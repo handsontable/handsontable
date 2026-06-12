@@ -459,12 +459,15 @@ export class Pagination extends BasePlugin {
       const countRows = this.hot.countRows();
       let visibleCount = 0;
 
-      for (let rowIndex = startIndex; visibleCount < pageSize; rowIndex++) {
+      let rowIndex = startIndex;
+
+      while (visibleCount < pageSize) {
         if (rowIndex >= countRows) {
           break;
         }
 
         if (this.hot.rowIndexMapper.isHidden(this.hot.toPhysicalRow(rowIndex))) {
+          rowIndex += 1;
           // eslint-disable-next-line no-continue
           continue;
         }
@@ -475,6 +478,7 @@ export class Pagination extends BasePlugin {
 
         lastVisibleRowIndex = rowIndex;
         visibleCount += 1;
+        rowIndex += 1;
       }
     }
 

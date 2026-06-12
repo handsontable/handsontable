@@ -109,7 +109,7 @@ export class DirectDomRendererAdapter {
     if (node.tagName !== this.orderView.childNodeType) {
       const newNode = this.orderView.nodesPool();
 
-      rootNode.replaceChild(newNode, node);
+      node.replaceWith(newNode);
       node = newNode;
     }
 

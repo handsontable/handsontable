@@ -393,7 +393,7 @@ export class NestedHeaders extends BasePlugin {
     const fixedColumnsStart = this.hot.view._wt.getSetting('fixedColumnsStart') as number;
 
     return (renderedColumnIndex: number, TH: HTMLTableCellElement) => {
-      const { columnIndexMapper, view } = this.hot;
+      const { columnIndexMapper } = this.hot;
 
       let visualColumnIndex = columnIndexMapper.getVisualFromRenderableIndex(renderedColumnIndex);
 
@@ -428,35 +428,8 @@ export class NestedHeaders extends BasePlugin {
         addClass(TH, 'hiddenHeader');
 
       } else {
-        if (colspan !== undefined && colspan > 1) {
-          const { wtOverlays } = view._wt;
-          const isTopInlineStartOverlay = wtOverlays.topInlineStartCornerOverlay?.clone?.wtTable.THEAD?.contains(TH);
-          const isInlineStartOverlay = wtOverlays.inlineStartOverlay?.clone?.wtTable.THEAD?.contains(TH);
-          const isTopOverlay = wtOverlays.topOverlay?.clone?.wtTable.THEAD?.contains(TH);
-
-          if (isTopOverlay && visualColumnIndex < fixedColumnsStart) {
-            addClass(TH, 'hiddenHeaderText');
-          }
-
-          const correctedColspan = isTopInlineStartOverlay || isInlineStartOverlay ?
-            Math.min(colspan, fixedColumnsStart - renderedColumnIndex) : colspan;
-
-          if (correctedColspan > 1) {
-            TH.setAttribute('colspan', String(correctedColspan));
-          }
-        }
-
-        if (rowspan !== undefined && rowspan > 1) {
-          const isBottomMostRowspanHeader = headerLevel + rowspan === this.getLayersCount();
-
-          addClass(TH, 'htRowspanHeader');
-
-          if (isBottomMostRowspanHeader) {
-            addClass(TH, 'htRowspanBottomLevel');
-          }
-
-          TH.setAttribute('rowspan', String(rowspan));
-        }
+        this.#applyColspan(TH, colspan, visualColumnIndex, renderedColumnIndex, fixedColumnsStart);
+        this.#applyRowspan(TH, rowspan, headerLevel);
       }
 
       this.hot.view.appendColHeader(
@@ -476,6 +449,56 @@ export class NestedHeaders extends BasePlugin {
         }
       }
     };
+  }
+
+  /**
+   * Applies colspan attribute and related CSS classes to a header cell.
+   */
+  #applyColspan(
+    TH: HTMLTableCellElement,
+    colspan: number | undefined,
+    visualColumnIndex: number,
+    renderedColumnIndex: number,
+    fixedColumnsStart: number,
+  ) {
+    if (colspan === undefined || colspan <= 1) {
+      return;
+    }
+
+    const { wtOverlays } = this.hot.view._wt;
+    const isTopInlineStartOverlay = wtOverlays.topInlineStartCornerOverlay?.clone?.wtTable.THEAD?.contains(TH);
+    const isInlineStartOverlay = wtOverlays.inlineStartOverlay?.clone?.wtTable.THEAD?.contains(TH);
+    const isTopOverlay = wtOverlays.topOverlay?.clone?.wtTable.THEAD?.contains(TH);
+
+    if (isTopOverlay && visualColumnIndex < fixedColumnsStart) {
+      addClass(TH, 'hiddenHeaderText');
+    }
+
+    const correctedColspan = isTopInlineStartOverlay || isInlineStartOverlay ?
+      Math.min(colspan, fixedColumnsStart - renderedColumnIndex) : colspan;
+
+    if (correctedColspan > 1) {
+      TH.setAttribute('colspan', String(correctedColspan));
+    }
+  }
+
+  /**
+   * Applies rowspan attribute and related CSS classes to a header cell.
+   */
+  #applyRowspan(TH: HTMLTableCellElement, rowspan: number | undefined, headerLevel: number) {
+    if (rowspan === undefined || rowspan <= 1) {
+      return;
+    }
+
+    const isBottomMostRowspanHeader = headerLevel + rowspan === this.getLayersCount();
+
+    addClass(TH, 'htRowspanHeader');
+
+    if (isBottomMostRowspanHeader) {
+      addClass(TH, 'htRowspanBottomLevel');
+    }
+
+    TH.setAttribute('rowspan', String(rowspan));
   }
 
   /**
