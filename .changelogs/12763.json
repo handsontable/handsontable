@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Add typed handsontable ColumnSettings property.",
+  "type": "changed",
+  "issueOrPR": 12763,
+  "breaking": false,
+  "framework": "none"
+}
