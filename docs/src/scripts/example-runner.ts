@@ -62,27 +62,55 @@ function markLoaded(el: Element): void {
   el.querySelector('.hot-example-preview')?.classList.remove('hot-example-preview--loading');
 }
 
+/** Frame budget guarding the autoRowSize wait loop (~1s at 60fps) against a stuck inProgress flag. */
+const MAX_SETTLE_FRAMES = 60;
+
 /**
- * Calls render() on every Handsontable instance inside an example element.
+ * Refreshes the dimensions of every Handsontable instance inside an example element.
  *
- * The delay is intentional: autoRowSize sampling runs over several RAF cycles
- * immediately after mount. Calling render() mid-sampling produces 0 rows because
- * the plugin temporarily resets holder dimensions. 100ms lets sampling complete
- * before the forced re-render.
+ * Examples mount inside a zero-size loading shimmer, so the grid initializes with stale
+ * (often zero) dimensions. Once markLoaded() reveals the real container we must re-read its
+ * size. A fixed setTimeout(100) before render() used to do this, but it was a race:
+ * autoRowSize samples row heights across several requestAnimationFrame cycles, and on slow
+ * machines sampling outlasts 100ms. A render() fired mid-sampling computes 0 visible rows and
+ * leaves the grid in the broken initial state (default row-number headers instead of the
+ * configured empty ones).
+ *
+ * Instead, wait frame by frame until autoRowSize reports it has finished sampling, then call
+ * refreshDimensions(), which re-reads the container box and re-renders only when the size
+ * actually changed.
  */
 function renderInstances(el: Element): void {
-  setTimeout(() => {
-    try {
-      el.querySelectorAll<HTMLElement>('.ht-root-wrapper').forEach((wrapper) => {
-        const hot = (wrapper as any).__hotInstance;
+  el.querySelectorAll<HTMLElement>('.ht-root-wrapper').forEach((wrapper) => {
+    const hot = (wrapper as any).__hotInstance;
 
-        if (!hot || hot.isDestroyed) return;
-        hot.render();
-      });
-    } catch (err) {
-      console.warn('[hot-example] renderInstances failed:', err);
-    }
-  }, 100);
+    if (!hot) return;
+
+    let frames = 0;
+
+    const refreshWhenSettled = (): void => {
+      if (hot.isDestroyed) return;
+
+      const autoRowSize = hot.getPlugin?.('autoRowSize');
+
+      // autoRowSize samples row heights over several RAF cycles; refreshing mid-sampling
+      // produces 0 rows. Wait until it reports completion (capped, so a stuck flag can't hang).
+      if (autoRowSize?.isEnabled?.() && autoRowSize.inProgress && frames < MAX_SETTLE_FRAMES) {
+        frames += 1;
+        requestAnimationFrame(refreshWhenSettled);
+
+        return;
+      }
+
+      try {
+        hot.refreshDimensions();
+      } catch (err) {
+        console.warn('[hot-example] renderInstances failed:', err);
+      }
+    };
+
+    requestAnimationFrame(refreshWhenSettled);
+  });
 }
 
 // ── Main runner ───────────────────────────────────────────────────────────
