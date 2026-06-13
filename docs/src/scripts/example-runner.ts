@@ -74,16 +74,44 @@ function getInstances(el: Element): any[] {
 }
 
 /**
- * Re-renders a Handsontable instance once autoRowSize stops sampling.
+ * Forces a full overlay resync, mirroring what a user scroll does.
+ *
+ * The inline-start (row header) overlay is a separate clone element whose height is sized from the
+ * holder's height. When the grid first renders into a collapsed (0-height) container, that clone
+ * height is computed as 0, so its row numbers are clipped even though the inner table renders
+ * correctly. A plain render() does not recompute the clone height — but scrolling does. Nudging the
+ * holder's scroll position by a pixel and back triggers the same resync without moving the visible
+ * position. (Verified live: this is what turns the empty row-header column back into 1, 2, 3…)
+ */
+function resyncOverlays(hot: any): void {
+  const holder = hot?.view?._wt?.wtTable?.holder;
+
+  if (!holder) return;
+
+  const { scrollTop, scrollLeft } = holder;
+
+  holder.scrollTop = scrollTop + 1;
+  holder.scrollLeft = scrollLeft + 1;
+  holder.dispatchEvent(new Event('scroll'));
+  holder.scrollTop = scrollTop;
+  holder.scrollLeft = scrollLeft;
+  holder.dispatchEvent(new Event('scroll'));
+}
+
+/**
+ * Re-renders a Handsontable instance once autoRowSize stops sampling, then re-syncs its overlays.
  *
  * Examples sit in a flex layout where the grid fills its container (`.ht-wrapper { height: 100% }`)
  * while the container is sized by the grid's content. At first render — before the layout and CSS
- * settle — this resolves to a height of 0, and nothing breaks the deadlock on its own. A forced
- * render() applies the configured pixel height to the holder, which breaks the collapse.
+ * settle — this resolves to a height of 0, and nothing breaks the deadlock on its own.
  *
- * render() (not refreshDimensions()) is required here: refreshDimensions() only re-renders when the
- * container box reports a size change, so in the collapsed 0-height state it no-ops and the grid
- * stays broken.
+ * The fix is two passes:
+ *   1. render() applies the configured pixel height to the holder, which breaks the 0-height
+ *      collapse so the container reflows to its real size.
+ *   2. On the next frame — after the container has reflowed — resyncOverlays() nudges the scroll to
+ *      re-size the overlay clones against the now-correct holder height. Without this the
+ *      inline-start (row header) overlay keeps the 0 height it computed against the collapsed
+ *      viewport, so the row numbers stay clipped until the user scrolls.
  *
  * autoRowSize samples row heights across several requestAnimationFrame cycles, and rendering
  * mid-sampling computes 0 visible rows. So wait frame by frame until it reports completion
@@ -107,6 +135,11 @@ function refreshWhenSettled(hot: any): void {
 
     try {
       hot.render();
+
+      requestAnimationFrame(() => {
+        if (hot.isDestroyed) return;
+        resyncOverlays(hot);
+      });
     } catch (err) {
       console.warn('[hot-example] renderInstances failed:', err);
     }
