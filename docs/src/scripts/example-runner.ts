@@ -74,12 +74,21 @@ function getInstances(el: Element): any[] {
 }
 
 /**
- * Refreshes the dimensions of a Handsontable instance once autoRowSize stops sampling.
+ * Re-renders a Handsontable instance once autoRowSize stops sampling.
  *
- * autoRowSize samples row heights across several requestAnimationFrame cycles, and refreshing
+ * Examples sit in a flex layout where the grid fills its container (`.ht-wrapper { height: 100% }`)
+ * while the container is sized by the grid's content. At first render — before the layout and CSS
+ * settle — this resolves to a height of 0, and nothing breaks the deadlock on its own. A forced
+ * render() applies the configured pixel height to the holder, which breaks the collapse.
+ *
+ * render() (not refreshDimensions()) is required here: refreshDimensions() only re-renders when the
+ * container box reports a size change, so in the collapsed 0-height state it no-ops and the grid
+ * stays broken.
+ *
+ * autoRowSize samples row heights across several requestAnimationFrame cycles, and rendering
  * mid-sampling computes 0 visible rows. So wait frame by frame until it reports completion
- * (capped, so a stuck flag can't hang), then call refreshDimensions(), which re-reads the
- * container box and re-renders only when the size actually changed.
+ * (capped, so a stuck flag can't hang), then render. Using requestAnimationFrame means a grid
+ * loaded in a background tab refreshes as soon as the tab becomes visible, before any interaction.
  */
 function refreshWhenSettled(hot: any): void {
   let frames = 0;
@@ -97,7 +106,7 @@ function refreshWhenSettled(hot: any): void {
     }
 
     try {
-      hot.refreshDimensions();
+      hot.render();
     } catch (err) {
       console.warn('[hot-example] renderInstances failed:', err);
     }
