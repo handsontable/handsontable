@@ -47,7 +47,12 @@ function processReference(value, themes, refType) {
         if (tokenValue?.value) {
           const colorPath = getReferencePath(tokenValue.value);
 
-          result.push(transformReferencePath(colorPath, [1, 2]));
+          // A light/dark node may hold a plain literal instead of a `{…}` reference; getReferencePath
+          // then returns null. Skip it (the mode value ends up dropped) rather than passing null to
+          // transformReferencePath, which would throw and abort the whole generation.
+          if (colorPath) {
+            result.push(transformReferencePath(colorPath, [1, 2]));
+          }
         }
       });
 

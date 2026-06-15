@@ -22,6 +22,18 @@ test('processTokenValue resolves a {mode.*} reference that has both light and da
   assert.equal(result.length, 2);
 });
 
+test('processTokenValue does not throw when a mode variant holds a literal instead of a reference', () => {
+  const themes = {
+    mode: {
+      light: { background: { value: '#ffffffff' } }, // plain literal, not a {…} reference
+      dark: { background: { value: '{colors.palette.black}' } },
+    },
+  };
+
+  assert.doesNotThrow(() => processTokenValue('backgroundColor', { value: '{mode.x.background}' }, themes));
+  assert.equal(processTokenValue('backgroundColor', { value: '{mode.x.background}' }, themes), null);
+});
+
 test('processTokenValue passes plain literals through formatValue', () => {
   assert.equal(processTokenValue('fontSize', { value: 14 }, {}), '14px');
   assert.equal(processTokenValue('fontFamily', { value: 'Inter' }, {}), 'Inter');
