@@ -1,6 +1,7 @@
 /*
  * This file is auto-generated. Do not edit directly.
  */
+
 import type { ThemeSizingConfig } from '../../types';
 
 const sizing: ThemeSizingConfig = {

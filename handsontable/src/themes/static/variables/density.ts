@@ -1,6 +1,7 @@
 /*
  * This file is auto-generated. Do not edit directly.
  */
+
 import type { ThemeDensitySizes } from '../../types';
 
 const densitySizes: ThemeDensitySizes = {

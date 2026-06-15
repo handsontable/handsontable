@@ -64,6 +64,7 @@
     "build:themes-css.min": "node scripts/run.mjs build:themes-css.min",
     "build:themes-umd": "node scripts/run.mjs build:themes-umd",
     "build:themes-umd.min": "node scripts/run.mjs build:themes-umd.min",
+    "generate:themes": "node scripts/run.mjs generate:themes-static",
     "build:types": "node scripts/run.mjs build:types",
     "build:walkontable": "node scripts/run.mjs build:walkontable",
     "build:languages": "node scripts/run.mjs build:languages",
