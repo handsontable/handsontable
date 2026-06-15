@@ -7,7 +7,9 @@ const pathsNeedingMoreTolerance = [
   'migration-from-7.4-to-8.0',
   'layout-direction',
   'selection',
-  'events-and-hooks',
+  // Date-picker and sorting highlight animations make these less stable.
+  'column-filter',
+  'rows-sorting',
 ];
 
 test.beforeEach(async({ page, baseURL }) => {
@@ -67,7 +69,7 @@ testCases.forEach(({ paths, prefix, urlPath }) => {
         const screenshotName = `${prefix}-${pathObj.path.split('/').pop()}.png`;
 
         // eslint-disable-next-line max-len
-        await expect(page).toHaveScreenshot(screenshotName, { maxDiffPixelRatio: maxDiffPixelRatioValue, fullPage: true });
+        await expect(page).toHaveScreenshot(screenshotName, { maxDiffPixelRatio: maxDiffPixelRatioValue, fullPage: true, animations: 'disabled' });
       });
     });
   });

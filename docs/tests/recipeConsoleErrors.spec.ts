@@ -22,6 +22,11 @@ const IGNORED_ERROR_PATTERNS: RegExp[] = [
   /^HTTP \d{3}$/,
   // Vite dep-optimizer cache invalidation during dev-server warm-up.
   /Outdated Optimize Dep/i,
+  // CodeSandbox embeds in theme recipe pages fire a phishing-check fetch from
+  // *.csb.app → codesandbox.io/api that is always blocked by CORS policy.
+  // These errors originate in the iframe, not in Handsontable code.
+  /csb\.app/i,
+  /codesandbox\.io/i,
 ];
 
 function shouldIgnoreError(message: string): boolean {
