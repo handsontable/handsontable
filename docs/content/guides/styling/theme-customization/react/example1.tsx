@@ -19,7 +19,7 @@ const ExampleComponent = () => {
           --ht-row-cell-even-background-color: #e9ecef;
           --ht-cell-horizontal-border-color: #cbd5e0;
           --ht-cell-vertical-border-color: #cbd5e0;
-          --ht-wrapper-border-color: #a0aec0;
+          --ht-border-radius: 8px;
         }
       `}</style>
 

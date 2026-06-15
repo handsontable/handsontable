@@ -69,9 +69,7 @@
   --ht-gap-size: var(--ht-density-gap);
   --ht-icon-size: var(--ht-sizing-size-4);
   --ht-table-transition: 0.2s;
-  --ht-wrapper-border-width: 0px;
-  --ht-wrapper-border-radius: var(--ht-sizing-size-3);
-  --ht-wrapper-border-color: var(--ht-border-color);
+  --ht-border-radius: var(--ht-sizing-size-3);
   --ht-bar-foreground-color: var(--ht-foreground-color);
   --ht-bar-background-color: var(--ht-background-secondary-color);
   --ht-bar-horizontal-padding: var(--ht-density-bars-horizontal);

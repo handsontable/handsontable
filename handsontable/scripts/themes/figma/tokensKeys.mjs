@@ -25,11 +25,7 @@ const tokensKeys = [
   'gap-size',
   'icon-size',
   'table-transition',
-
-  // Wrapper Variables
-  'wrapper-border-width',
-  'wrapper-border-radius',
-  'wrapper-border-color',
+  'border-radius',
 
   // Bar Variables
   'bar-foreground-color',

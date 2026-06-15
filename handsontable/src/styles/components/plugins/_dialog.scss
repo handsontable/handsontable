@@ -18,7 +18,7 @@
     z-index: 1060;
     opacity: 0;
     overflow-y: auto;
-    border-radius: var(--ht-wrapper-border-radius);
+    border-radius: var(--ht-border-radius);
     border: 1px solid var(--ht-border-color);
     box-sizing: border-box !important;
 
@@ -66,7 +66,7 @@
       width: 100%;
       min-height: 100%;
       padding: calc(var(--ht-gap-size) * 4);
-      border-radius: var(--ht-wrapper-border-radius);
+      border-radius: var(--ht-border-radius);
     }
 
     &__content {
@@ -96,7 +96,7 @@
             justify-content: center;
             max-width: 480px;
             padding: calc(var(--ht-gap-size) * 2);
-            border-radius: var(--ht-wrapper-border-radius);
+            border-radius: var(--ht-border-radius);
 
             &--background {
               @include mixins.box-shadow;

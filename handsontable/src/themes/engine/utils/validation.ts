@@ -78,6 +78,7 @@ const VALID_TOKEN_KEYS = new Set([
   'gapSize',
   'iconSize',
   'tableTransition',
+  'borderRadius',
   // Base colors
   'borderColor',
   'accentColor',
@@ -104,10 +105,6 @@ const VALID_TOKEN_KEYS = new Set([
   'cellVerticalBorderColor',
   'cellHorizontalPadding',
   'cellVerticalPadding',
-  // Wrapper
-  'wrapperBorderWidth',
-  'wrapperBorderRadius',
-  'wrapperBorderColor',
   // Row
   'rowHeaderOddBackgroundColor',
   'rowHeaderEvenBackgroundColor',

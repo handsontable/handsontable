@@ -344,6 +344,68 @@ hot.getPlugin('manualRowResize').loadManualRowHeights();
 
 Remove all calls to these methods. They produce no effect and will throw in a future release. If you need to persist column widths or row heights across page loads, store the `columnWidths` and `rowHeights` values yourself -- for example in `localStorage` -- and pass them back as initial configuration when the grid initializes.
 
+## 6. Update theme wrapper border variables
+
+Handsontable 18.0 simplifies the table border theme variables. The `--ht-wrapper-border-radius` variable is renamed to `--ht-border-radius` (JS token `borderRadius`), and the `--ht-wrapper-border-width` and `--ht-wrapper-border-color` variables (JS tokens `wrapperBorderWidth` and `wrapperBorderColor`) are removed. Their defaults were `0px` and the base border color, so by default the table rendered no wrapper border.
+
+### Who is affected
+
+You are affected if any of the following apply:
+
+- Your CSS overrides `--ht-wrapper-border-radius`, `--ht-wrapper-border-width`, or `--ht-wrapper-border-color`.
+- You pass `wrapperBorderRadius`, `wrapperBorderWidth`, or `wrapperBorderColor` tokens to `createTheme()` or `params()`.
+
+### How to migrate
+
+Rename the radius variable. Replace the removed width and color variables with a CSS `box-shadow` on the table wrapper if you relied on a visible wrapper border.
+
+**Before:**
+
+```css
+.ht-theme-main {
+  --ht-wrapper-border-radius: 8px;
+  --ht-wrapper-border-width: 1px;
+  --ht-wrapper-border-color: #a0aec0;
+}
+```
+
+**After:**
+
+```css
+.ht-theme-main {
+  --ht-border-radius: 8px;
+}
+
+/* Restore a visible wrapper border, if needed */
+.ht-theme-main .ht-root-wrapper {
+  box-shadow: 0 0 0 1px #a0aec0;
+}
+```
+
+For the JS theme API, rename `wrapperBorderRadius` to `borderRadius` and remove `wrapperBorderWidth` and `wrapperBorderColor`.
+
+**Before:**
+
+```javascript
+createTheme('my-theme', {
+  tokens: {
+    wrapperBorderRadius: '8px',
+    wrapperBorderWidth: '1px',
+    wrapperBorderColor: ['colors.palette.200', 'colors.palette.700']
+  }
+});
+```
+
+**After:**
+
+```javascript
+createTheme('my-theme', {
+  tokens: {
+    borderRadius: '8px'
+  }
+});
+```
+
 ## Summary of breaking changes
 
 | Change | Who is affected | Action required |
@@ -354,6 +416,7 @@ Remove all calls to these methods. They produce no effect and will throw in a fu
 | `correctFormat` and `datePickerConfig` options removed | Projects using `correctFormat` or `datePickerConfig` on `date`/`time` cells | Remove both options; use `valueParser`/`valueSetter` for value correction |
 | DOMPurify removed; no built-in HTML sanitization | Projects rendering untrusted user HTML | Add a `sanitizer` function (for example, using DOMPurify) to the Handsontable configuration |
 | `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, `loadManualRowHeights()` now no-op | Any project calling these methods | Remove calls; implement custom persistence if needed |
+| `--ht-wrapper-border-radius` renamed to `--ht-border-radius`; `--ht-wrapper-border-width` and `--ht-wrapper-border-color` removed | Projects overriding these theme variables or passing the matching JS tokens | Rename to `--ht-border-radius` / `borderRadius`; recreate a wrapper border with `box-shadow` if needed |
 
 ## Related resources
 
