@@ -161,7 +161,10 @@ export default class StateManager {
 
     mutate();
     this.#headersTree.buildTree();
-    this.#applySyncVisibility();
+    // Derive visibility before re-collapsing, but skip the matrix here - #reapplyCollapsedNodes
+    // reads the tree (not the matrix) and the trailing #applySyncVisibility regenerates it once,
+    // so building the matrix at this point would only be discarded work.
+    this.#deriveVisibility();
     this.#reapplyCollapsedNodes(collapsedNodes, shiftColumnIndex);
     this.#applySyncVisibility();
   }
@@ -285,11 +288,19 @@ export default class StateManager {
    * The collapsed state is restored separately by #rebuildPreservingCollapse re-running the collapse.
    */
   #applySyncVisibility() {
+    this.#deriveVisibility();
+    this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
+  }
+
+  /**
+   * Re-derives tree-node visibility (colspan, isHidden, crossHiddenColumns) from the last column
+   * visibility adapter WITHOUT regenerating the state matrix. Used as the first pass of
+   * #rebuildPreservingCollapse, where the matrix would be immediately discarded by re-collapsing.
+   */
+  #deriveVisibility() {
     if (this.#lastColumnVisibility) {
       syncVisibilityOnTree(this.#headersTree.getRoots(), this.#lastColumnVisibility);
     }
-
-    this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
   }
 
   /**

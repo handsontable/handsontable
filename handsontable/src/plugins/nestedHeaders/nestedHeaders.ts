@@ -118,13 +118,22 @@ export class NestedHeaders extends BasePlugin {
    * Handler bound to columnIndexMapper's cacheUpdated local hook. Keeps header colspan state
    * in sync with the current hiding map whenever visibility or column order changes.
    */
-  #onColumnIndexMapperCacheUpdated = () => {
+  #onColumnIndexMapperCacheUpdated = ({ hiddenIndexesChanged }: { hiddenIndexesChanged: boolean }) => {
     if (!this.enabled) {
       return;
     }
 
+    // syncVisibility must run on every cache update (including a pure column move) so the tree's
+    // colspan / isHidden stay aligned with the current visual<->physical mapping (DEV-1717).
     this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
-    this.ghostTable.buildWidthsMap();
+
+    // Rebuilding the ghost table to re-measure widths is expensive (it builds and measures a
+    // detached DOM table). Only column visibility changes can alter the measured widths, so skip
+    // the rebuild on pure sequence changes (e.g. manualColumnMove) - the widths map is keyed by
+    // physical column and a move does not change them.
+    if (hiddenIndexesChanged) {
+      this.ghostTable.buildWidthsMap();
+    }
   };
   /**
    * Stores the initial focus coordinates before a column header click initiates a range selection.

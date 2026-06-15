@@ -697,6 +697,26 @@ describe('NestedHeaders', () => {
         expectHeaderBodyAligned();
       });
 
+      // The ghost table snapshots the pre-collapse width of a collapsed representative so expanding
+      // does not cause a layout jump. When a group is collapsed at the earliest point in the
+      // lifecycle, that snapshot can be empty (no prior uncollapsed measurement), so the collapsed
+      // representative falls back to measuring its own colspan-reduced TH. This verifies that
+      // fallback still yields a correct, body-aligned width - i.e. there is no width loss for a
+      // group that is collapsed right away.
+      it('should keep widths aligned for a group collapsed at the earliest point in the lifecycle', async() => {
+        buildGrid();
+
+        // Collapse before any other interaction - the closest reachable point to "initially collapsed".
+        getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 1 });
+        await render();
+
+        // The collapsed representative (B1, visual col 1) must keep a real, positive width...
+        expect(getColWidth(1)).toBeGreaterThan(0);
+        // ...and the header total must still equal the body total (no width lost on the collapse
+        // representative even when the pre-collapse width snapshot is empty).
+        expectHeaderBodyAligned();
+      });
+
       // When the only column a collapse would hide is already hidden by HiddenColumns, the collapse
       // still records itself: `isCollapsed` is set (the indicator shows collapsed) and the collapse
       // "owns" that column, so the group stays collapsed even if HiddenColumns later shows it.

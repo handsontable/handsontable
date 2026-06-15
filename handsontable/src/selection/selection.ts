@@ -1,6 +1,7 @@
 import type { default as CellCoords } from '../3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from '../3rdparty/walkontable/src/cell/range';
 import type { SelectionFocusPosition, SelectionSettings, SelectionTableProps } from './types';
+import type { IndexMapper } from '../translations';
 import Highlight, {
   AREA_TYPE,
   HEADER_TYPE,
@@ -32,6 +33,28 @@ function isFocusPositionObject(value: unknown): value is { row: number; col: num
   return typeof value === 'object' && value !== null
     && Number.isInteger((value as { row?: unknown }).row)
     && Number.isInteger((value as { col?: unknown }).col);
+}
+
+/**
+ * Snaps a shifted index to the nearest non-hidden index. Used after a selection shift so a
+ * single-line selection does not land on a hidden (non-rendered) row or column. Snapping is
+ * limited to single-line selections - a wider range legitimately keeps hidden indexes within its
+ * bounds (they stay part of copy/fill ranges), so its corners are returned unchanged. Headers
+ * (negative indexes) are returned unchanged as well.
+ *
+ * @param {IndexMapper} indexMapper The row or column index mapper to query for visibility.
+ * @param {number} index The shifted visual index to snap.
+ * @param {boolean} isSingleLine Whether the selection spans a single row/column on this axis.
+ * @returns {number}
+ */
+function snapToNearestVisible(indexMapper: IndexMapper, index: number, isSingleLine: boolean): number {
+  if (!isSingleLine || index < 0) {
+    return index;
+  }
+
+  const nearestIndex = indexMapper.getNearestNotHiddenIndex(index, 1, true);
+
+  return nearestIndex === null ? index : nearestIndex;
 }
 
 /**
@@ -791,19 +814,10 @@ class Selection {
 
       // After shifting, a single-row selection can land on a row that is hidden (e.g. removing a
       // row next to a hidden one), leaving the highlight on a non-rendered row. Snap it to the
-      // nearest visible row. This is scoped to single-row selections only - a wider range
-      // legitimately keeps hidden rows within its bounds (they stay part of copy/fill ranges), so
-      // its corners are never snapped.
+      // nearest visible row (see snapToNearestVisible for the single-line scoping rationale).
       const isSingleRow = from.row === to.row;
-      const clampToVisibleRow = (visualRow: number): number => {
-        if (!isSingleRow || visualRow < 0) {
-          return visualRow;
-        }
-
-        const nearestRow = this.tableProps.rowIndexMapper.getNearestNotHiddenIndex(visualRow, 1, true);
-
-        return nearestRow === null ? visualRow : nearestRow;
-      };
+      const clampToVisibleRow = (visualRow: number): number =>
+        snapToNearestVisible(this.tableProps.rowIndexMapper, visualRow, isSingleRow);
 
       // Remove from the stack the last added selection as that selection below will be
       // replaced by new transformed selection.
@@ -871,19 +885,10 @@ class Selection {
 
       // After shifting, a single-column selection can land on a column that is hidden (e.g. removing
       // a column next to a hidden one), leaving the highlight on a non-rendered column. Snap it to
-      // the nearest visible column. This is scoped to single-column selections only - a wider range
-      // legitimately keeps hidden columns within its bounds (they stay part of copy/fill ranges), so
-      // its corners are never snapped.
+      // the nearest visible column (see snapToNearestVisible for the single-line scoping rationale).
       const isSingleColumn = from.col === to.col;
-      const clampToVisibleColumn = (visualColumn: number): number => {
-        if (!isSingleColumn || visualColumn < 0) {
-          return visualColumn;
-        }
-
-        const nearestColumn = this.tableProps.columnIndexMapper.getNearestNotHiddenIndex(visualColumn, 1, true);
-
-        return nearestColumn === null ? visualColumn : nearestColumn;
-      };
+      const clampToVisibleColumn = (visualColumn: number): number =>
+        snapToNearestVisible(this.tableProps.columnIndexMapper, visualColumn, isSingleColumn);
 
       // Remove from the stack the last added selection as that selection below will be
       // replaced by new transformed selection.
