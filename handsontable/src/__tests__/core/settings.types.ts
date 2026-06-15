@@ -169,7 +169,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   navigableHeaders: true,
   multiColumnSorting: true,
   nestedHeaders: [
-    ['Region', { label: 'Q1 2025', colspan: 4, collapsible: true }],
+    ['Region', { label: 'Q1 2025', colspan: 4 }],
     [
       'Region',
       { label: 'Jan', visibleWhen: 'expanded' },

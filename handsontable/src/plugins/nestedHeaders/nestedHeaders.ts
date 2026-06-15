@@ -40,13 +40,9 @@ export interface NestedHeaderSettings {
    */
   headerClassName?: string;
   /**
-   * Whether the header can be collapsed/expanded by the `CollapsibleColumns` plugin.
-   */
-  collapsible?: boolean;
-  /**
    * In which collapse state the header (and its columns) stays visible:
    * `'collapsed'` (only while collapsed), `'expanded'` (only while expanded), or `'always'` (both,
-   * the default). See `CollapsibleColumns`.
+   * the default). Applies within a collapsible group - see the `CollapsibleColumns` plugin.
    */
   visibleWhen?: HeaderVisibility;
   [key: string]: unknown;
