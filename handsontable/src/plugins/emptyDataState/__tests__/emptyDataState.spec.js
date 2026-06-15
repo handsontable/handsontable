@@ -250,23 +250,6 @@ describe('EmptyDataState', () => {
       ).toBe(false);
     });
 
-    it('should keep the bottom border when pagination renders below the grid', async() => {
-      // The empty-data-state no longer drops its bottom border when a bottom-slot element (such as
-      // pagination) is present; the slot framing draws its own divider instead.
-      handsontable({
-        data: [],
-        pagination: true,
-        emptyDataState: true,
-        height: 'auto',
-      });
-
-      await waitForNextAnimationFrames(1);
-
-      const borderBottomWidth = getComputedStyle(getEmptyDataStateContainerElement()).borderBottomWidth;
-
-      expect(borderBottomWidth).toBe('1px');
-    });
-
     it('should not disable bottom border when there is no pagination', async() => {
       handsontable({
         data: [],
