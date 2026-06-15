@@ -6,9 +6,12 @@
  *   - "local"  -> the dev build in ../../handsontable/tmp
  *   - "latest" -> handsontable@latest installed into .latest/node_modules
  *
- * Reporting rule (run-level): an error is only surfaced when BOTH versions
- * fail. If either version type-checks cleanly, the run is considered OK and
- * no error is shown (it is treated as a version-transition artifact).
+ * Reporting rule (run-level): by default (strict mode) EVERY type error fails
+ * the run — including version-specific (LOCAL-ONLY / LATEST-ONLY) ones — and is
+ * reported to GitHub Actions as an ::error. Pass --no-strict (or STRICT=0) to
+ * restore the lenient dual-version rule where an error is only surfaced when
+ * BOTH versions fail and version-specific ones are warnings (treated as
+ * version-transition artifacts).
  *
  * Each source file uses the format:
  *   /* file: app.component.ts * /
@@ -27,6 +30,13 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const contentDir = path.resolve(__dirname, '../content');
 const tmpDir = path.resolve(__dirname, '.tmp');
 const latestDir = path.resolve(__dirname, '.latest');
+
+// Strict mode (default): every type error fails the run and is reported to GitHub
+// Actions as an ::error, regardless of whether it occurs on one version or both.
+// Pass --no-strict (or STRICT=0) to fall back to the lenient dual-version rule
+// where only errors shared by BOTH versions fail and version-specific ones are
+// warnings.
+const strict = !process.argv.includes('--no-strict') && process.env.STRICT !== '0';
 
 fs.rmSync(tmpDir, { recursive: true, force: true });
 fs.mkdirSync(tmpDir, { recursive: true });
@@ -350,7 +360,12 @@ for (const e of inBoth) printErr('[BOTH      ]', e);
 for (const e of localOnly) printErr('[LOCAL-ONLY]', e);
 for (const e of latestOnly) printErr('[LATEST-ONLY]', e);
 
-const warnCount = localOnly.length + latestOnly.length;
+// In strict mode (default) every error fails the run; in lenient mode only errors
+// shared by both versions fail and version-specific ones are warnings.
+const failing = strict ? [...inBoth, ...localOnly, ...latestOnly] : inBoth;
+const warnings = strict ? [] : [...localOnly, ...latestOnly];
+const failCount = failing.length;
+const warnCount = warnings.length;
 
 // Markdown body shared by the job summary panel and the published check-run.
 function buildReportMarkdown() {
@@ -358,15 +373,15 @@ function buildReportMarkdown() {
   const lines = [];
   lines.push('## Angular docs type-check');
   lines.push('');
-  const result = inBoth.length > 0
+  const result = failCount > 0
     ? '❌ FAILED'
     : warnCount > 0 ? '⚠️ PASSED WITH WARNINGS' : '✅ PASSED';
-  lines.push(`**Result:** ${result} (latest = ${version})`);
+  lines.push(`**Result:** ${result} (latest = ${version}, mode = ${strict ? 'strict' : 'lenient'})`);
   lines.push('');
-  lines.push(`- ❌ Errors in **both** versions (fail the run): **${inBoth.length}**`);
-  lines.push(`- ⚠️ Version-specific issues (warnings only): **${warnCount}**`);
+  lines.push(`- ❌ Errors that fail the run: **${failCount}**`);
+  lines.push(`- ⚠️ Warnings (do not fail the run): **${warnCount}**`);
   lines.push('');
-  if (inBoth.length + warnCount > 0) {
+  if (failCount + warnCount > 0) {
     lines.push('| Example | Code | Scope | Message |');
     lines.push('| --- | --- | --- | --- |');
     for (const e of inBoth) lines.push(row(e, '❌ both versions'));
@@ -463,14 +478,17 @@ if (process.env.GITHUB_ACTIONS === 'true') {
     const msg = `${e.code}: ${e.message} (${scope}; reported at ${e.location} of the generated type-check file)`;
     console.log(`::${level} file=${esc(file)},title=${esc(title)}::${esc(msg)}`);
   };
+  // In strict mode version-specific errors fail the run, so they are surfaced as
+  // ::error (red) too; in lenient mode they stay ::warning (yellow, non-failing).
+  const versionLevel = strict ? 'error' : 'warning';
   for (const e of inBoth) annotate('error', e, 'fails on BOTH local and latest');
-  for (const e of localOnly) annotate('warning', e, 'local dev build only');
-  for (const e of latestOnly) annotate('warning', e, 'handsontable@latest only');
+  for (const e of localOnly) annotate(versionLevel, e, 'local dev build only');
+  for (const e of latestOnly) annotate(versionLevel, e, 'handsontable@latest only');
 
   // When the step passes but version-specific issues exist, a green check alone
   // makes it look problem-free. Emit a top-level ::warning so the run shows the
   // yellow "this run has warnings" banner even with exit 0.
-  if (inBoth.length === 0 && warnCount > 0) {
+  if (failCount === 0 && warnCount > 0) {
     console.log(
       `::warning title=Angular type-check passed with ${warnCount} version-specific issue(s)::`
       + esc(`${warnCount} example(s) type-check on only one Handsontable version. `
@@ -488,23 +506,28 @@ if (process.env.GITHUB_ACTIONS === 'true') {
   // Publish a separate, explicitly-named check-run so the PR checks summary
   // shows the right conclusion: NEUTRAL for warnings-only (visible as
   // "1 neutral" instead of being hidden among "successful"), FAILURE otherwise.
-  if (inBoth.length > 0) {
-    await publishCheckRun('failure', `Failed: ${inBoth.length} error(s) in both local and latest`);
+  if (failCount > 0) {
+    await publishCheckRun('failure', `Failed: ${failCount} type error(s)`);
   } else if (warnCount > 0) {
     await publishCheckRun('neutral', `Passed with ${warnCount} version-specific issue(s)`);
   }
 }
 
 console.log(
-  `\nSummary: ${inBoth.length} in both, ${localOnly.length} local-only, ${latestOnly.length} latest-only (latest = ${version}).`,
+  `\nSummary: ${inBoth.length} in both, ${localOnly.length} local-only, ${latestOnly.length} latest-only `
+  + `(latest = ${version}, mode = ${strict ? 'strict — every error fails' : 'lenient — only shared errors fail'}).`,
 );
 
-// FALSE only when at least one error occurs in BOTH versions. Exit 1 makes the
+// FALSE when any error fails the run. In strict mode (default) that is every
+// error; in lenient mode only errors shared by BOTH versions. Exit 1 makes the
 // GitHub Actions step fail so the user sees "Error: Process completed with exit
-// code 1.". Version-specific errors alone keep the step green (warnings only),
-// while the published check-run carries the "neutral" conclusion in the PR.
-if (inBoth.length > 0) {
-  console.error('\nSTATUS: FALSE — at least one error occurs in BOTH versions (step fails).');
+// code 1.". Lenient version-specific errors alone keep the step green (warnings
+// only), while the published check-run carries the "neutral" conclusion in the PR.
+if (failCount > 0) {
+  console.error(
+    `\nSTATUS: FALSE — ${failCount} type error(s) failed the run`
+    + `${strict ? ' (strict mode: every error fails).' : ' (occurring in BOTH versions).'}`,
+  );
   process.exit(1);
 }
 
