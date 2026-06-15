@@ -23,10 +23,13 @@
  */
 
 /**
- * Determines in which collapse state a header (and its columns) stays visible:
+ * Explicitly sets in which collapse state a header (and its columns) stays visible:
  * - `'collapsed'` - visible only while the parent group is collapsed (hidden while expanded);
  * - `'expanded'` - visible only while the parent group is expanded (hidden while collapsed);
- * - `'always'` - visible in both states (the default).
+ * - `'always'` - visible in both states.
+ *
+ * When left unset (within a group that uses any of these markers), the header defaults to
+ * `'expanded'` - it is hidden when the group collapses, matching the default collapse behavior.
  */
 export type HeaderVisibility = 'collapsed' | 'expanded' | 'always';
 
@@ -50,7 +53,7 @@ export function createDefaultHeaderSettings({
   isPlaceholder = false,
   isRowspanPlaceholder = false,
   headerClassNames = [],
-  visibleWhen = 'always' as HeaderVisibility
+  visibleWhen
 }: {
   label?: string;
   colspan?: number;

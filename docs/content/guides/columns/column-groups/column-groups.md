@@ -283,9 +283,11 @@ By default, collapsing a group leaves its first column visible. To choose which 
 
 - `'collapsed'` - the column is visible only while its group is collapsed (hidden while expanded).
 - `'expanded'` - the column is visible only while its group is expanded (hidden while collapsed).
-- `'always'` - the column is visible in both states. This is the default when `visibleWhen` is omitted.
+- `'always'` - the column is visible in both states.
 
-In the example below, collapse the **Q1 2025** group: the per-month columns (`'expanded'`) hide and the **Total** column (`'collapsed'`) appears. Expanding the group reverses it.
+Once a group uses `visibleWhen` on any of its headers, the headers you leave unmarked default to `'expanded'` - they are hidden when the group collapses. So you only mark the column(s) you want to keep: tag one with `'always'` (stays in both states) or `'collapsed'` (a summary column that appears only on collapse). At least one column of a group always stays visible, so its collapse button is never lost.
+
+In the example below, collapse the **Q1 2025** group: the per-month columns (marked `'expanded'`) hide and the **Total** column (`'collapsed'`) appears. Expanding the group reverses it.
 
 ::: only-for javascript
 
@@ -330,7 +332,7 @@ In the example below, collapse the **Q1 2025** group: the per-month columns (`'e
 
 :::
 
-A header without any `visibleWhen` markers keeps the default behavior - collapsing leaves its first column visible. The `visibleWhen` property applies only to headers within a [`collapsible`](@/api/options.md#collapsiblecolumns) group.
+A group whose headers use no `visibleWhen` markers keeps the default behavior - collapsing leaves its first column visible. The `visibleWhen` property applies only to headers within a [`collapsible`](@/api/options.md#collapsiblecolumns) group.
 
 ## Known limitations
 

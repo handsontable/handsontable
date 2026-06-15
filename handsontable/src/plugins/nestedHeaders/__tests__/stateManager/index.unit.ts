@@ -963,5 +963,36 @@ describe('StateManager', () => {
       // No `visibleWhen` markers -> the legacy first-child collapse path owns visibility, not this one.
       expect(state.getVisibleWhenHiddenColumns()).toEqual([]);
     });
+
+    it('should hide unset siblings (default "expanded") and keep an explicit "always" column on collapse', () => {
+      const state = buildCollapsibleState([
+        ['A', { label: 'Group B', colspan: 4 }, 'C'],
+        ['A', 'B1', 'B2', { label: 'B3', visibleWhen: 'always' }, 'B4', 'C'],
+      ]);
+
+      // A single explicit marker makes the group declarative; unmarked siblings default to 'expanded'.
+      state.triggerNodeModification('collapse', 0, 1);
+
+      // B1, B2, B4 (unset -> 'expanded' -> columns 1, 2, 4) hide; B3 ('always') stays.
+      expect(state.getVisibleWhenHiddenColumns().slice().sort((a, b) => a - b)).toEqual([1, 2, 4]);
+    });
+
+    it('should keep the first column visible when every column would be hidden on collapse', () => {
+      const state = buildCollapsibleState([
+        ['A', { label: 'Group B', colspan: 4 }, 'C'],
+        ['A',
+          { label: 'B1', visibleWhen: 'expanded' },
+          { label: 'B2', visibleWhen: 'expanded' },
+          { label: 'B3', visibleWhen: 'expanded' },
+          { label: 'B4', visibleWhen: 'expanded' },
+          'C'],
+      ]);
+
+      state.triggerNodeModification('collapse', 0, 1);
+
+      // All four are 'expanded' (hidden on collapse); the guard keeps the first (B1), hiding only 2, 3, 4
+      // so the group's collapse indicator is never lost.
+      expect(state.getVisibleWhenHiddenColumns().slice().sort((a, b) => a - b)).toEqual([2, 3, 4]);
+    });
   });
 });

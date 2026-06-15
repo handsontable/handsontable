@@ -16,7 +16,7 @@ interface NormalizedHeaderSettings {
   isRoot: boolean;
   isPlaceholder: boolean;
   headerClassNames: string[];
-  visibleWhen: HeaderVisibility;
+  visibleWhen?: HeaderVisibility;
 }
 
 const VISIBLE_WHEN_VALUES = ['collapsed', 'expanded', 'always'];

@@ -52,15 +52,16 @@ export function traverseExposedColumnIndexes(node: TreeNode<HeaderNodeData>, cal
  * Checks whether a node is a "declarative" collapsible group - one whose collapse visibility is
  * driven by per-child `visibleWhen` markers (issue #10243) rather than the legacy first-visible-child
  * rule. A group is declarative when at least one of its direct children declares an explicit
- * `visibleWhen` ('collapsed' or 'expanded'). Declarative groups skip the first-child column claiming
- * in collapse/expand - their hidden set is derived separately from the markers and `isCollapsed`.
+ * `visibleWhen` ('collapsed', 'expanded', or 'always'). Declarative groups skip the first-child column
+ * claiming in collapse/expand - their hidden set is derived separately from the markers and
+ * `isCollapsed`.
  *
  * @param {TreeNode} node A tree node to check.
  * @returns {boolean}
  */
 export function isDeclarativeGroup(node: TreeNode<HeaderNodeData>): boolean {
   return node.childs.length > 0 &&
-    node.childs.some(({ data }) => data.visibleWhen !== undefined && data.visibleWhen !== 'always');
+    node.childs.some(({ data }) => data.visibleWhen !== undefined);
 }
 
 /**

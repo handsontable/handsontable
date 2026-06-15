@@ -22,9 +22,10 @@ export interface HeaderSettings {
   isRowspanPlaceholder?: boolean;
   headerClassNames: string[];
   /**
-   * Declares in which collapse state this header (and its columns) stays visible.
+   * Explicit per-header collapse-visibility marker. Unset means the header follows the default
+   * ('expanded' - hidden when its group collapses) within a group that uses `visibleWhen`.
    */
-  visibleWhen: HeaderVisibility;
+  visibleWhen?: HeaderVisibility;
   [key: string]: unknown;
 }
 

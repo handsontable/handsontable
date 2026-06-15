@@ -4211,12 +4211,12 @@ export default (): Record<string, unknown> => {
      * | `colspan`         | `number`  | The number of data columns the header spans (an integer greater than `1`). Groups the columns it covers.                                                                                                                                                                                             |
      * | `rowspan`         | `number`  | The number of header rows the header spans (an integer greater than `1`).                                                                                                                                                                                                                            |
      * | `headerClassName` | `string`  | One or more space-separated CSS class names added to the header element (for example, `'htRight'`).                                                                                                                                                                                                  |
-     * | `visibleWhen`     | `string`  | For a header inside a collapsible group, sets in which collapse state the header (and its columns) stays visible: `'collapsed'` (visible only while the group is collapsed), `'expanded'` (visible only while the group is expanded), or `'always'` (visible in both states - the default when omitted). |
+     * | `visibleWhen`     | `string`  | For a header inside a collapsible group, sets in which collapse state the header (and its columns) stays visible: `'collapsed'` (visible only while the group is collapsed), `'expanded'` (visible only while the group is expanded), or `'always'` (visible in both states). When omitted, a header in such a group defaults to `'expanded'` - it is hidden when the group collapses. At least one column of a group always stays visible. |
      *
      * ::: tip
      * A header group is made collapsible through the [`collapsibleColumns`](#collapsibleColumns) option, not through
-     * `nestedHeaders`. Once a group is collapsible, the `visibleWhen` property lets you choose which of its columns
-     * stay visible when it is collapsed or expanded.
+     * `nestedHeaders`. Once a group is collapsible, mark the column(s) you want to keep visible when it collapses
+     * with `visibleWhen: 'always'` (or `'collapsed'`); the remaining columns are hidden on collapse by default.
      * :::
      *
      * ::: tip
@@ -4243,16 +4243,11 @@ export default (): Record<string, unknown> => {
      *   ['H', 'I', 'J', 'K', 'L', 'M', 'N', 'R', 'S', 'T']
      * ],
      *
-     * // choose which column stays visible when a collapsible group is collapsed
+     * // choose which columns stay visible when a collapsible group is collapsed:
+     * // unmarked headers (Jan, Feb, Mar) are hidden on collapse; `Total` appears only when collapsed
      * nestedHeaders: [
      *   ['Region', {label: 'Q1 2025', colspan: 4}],
-     *   [
-     *     'Region',
-     *     {label: 'Jan', visibleWhen: 'expanded'},
-     *     {label: 'Feb', visibleWhen: 'expanded'},
-     *     {label: 'Mar', visibleWhen: 'expanded'},
-     *     {label: 'Total', visibleWhen: 'collapsed'}
-     *   ]
+     *   ['Region', 'Jan', 'Feb', 'Mar', {label: 'Total', visibleWhen: 'collapsed'}]
      * ],
      * collapsibleColumns: true,
      * ```

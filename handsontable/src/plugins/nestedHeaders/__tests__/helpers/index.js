@@ -122,7 +122,6 @@ export function createColspanSettings(overwriteProps = {}) {
     isPlaceholder: false,
     isRowspanPlaceholder: false,
     headerClassNames: [],
-    visibleWhen: 'always',
     ...overwriteProps,
   };
 }

@@ -171,7 +171,60 @@ describe('CollapsibleColumns visibleWhen option', () => {
     }
   });
 
-  it('should treat an invalid `visibleWhen` value as "always"', async() => {
+  it('should treat an invalid `visibleWhen` value as unset (hidden on collapse, the default)', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 6),
+      colHeaders: true,
+      rowHeaders: true,
+      nestedHeaders: [
+        ['A', { label: 'Group B', colspan: 4 }, 'C'],
+        ['A',
+          { label: 'B1', visibleWhen: 'always' },
+          { label: 'B2', visibleWhen: 'nonsense' }, // invalid -> unset -> default 'expanded'
+          'B3',
+          { label: 'B4', visibleWhen: 'expanded' },
+          'C'],
+      ],
+      collapsibleColumns: true,
+    });
+
+    collapseGroupB();
+    await render();
+
+    // B2's invalid value is ignored (treated as the default 'expanded'), so it hides on collapse
+    // like the unset B3 and the explicit B4; only the `always` column (B1) stays.
+    expect(bottomHeaderLabels()).toEqual(['A', 'B1', 'C']);
+  });
+
+  it('should hide unmarked siblings on collapse and keep the single `always` column', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 6),
+      colHeaders: true,
+      rowHeaders: true,
+      nestedHeaders: [
+        ['A', { label: 'Group B', colspan: 4 }, 'C'],
+        // Only B3 is marked; B1, B2, B4 are unmarked and default to 'expanded' (hidden on collapse).
+        ['A', 'B1', 'B2', { label: 'B3', visibleWhen: 'always' }, 'B4', 'C'],
+      ],
+      collapsibleColumns: true,
+    });
+
+    expect(bottomHeaderLabels()).toEqual(['A', 'B1', 'B2', 'B3', 'B4', 'C']);
+
+    collapseGroupB();
+    await render();
+
+    // A single `always` marker is enough: the unmarked siblings collapse away, leaving only B3.
+    expect(bottomHeaderLabels()).toEqual(['A', 'B3', 'C']);
+    expect(hasCollapsedIndicator()).toBe(true);
+
+    expandGroupB();
+    await render();
+
+    expect(bottomHeaderLabels()).toEqual(['A', 'B1', 'B2', 'B3', 'B4', 'C']);
+  });
+
+  it('should keep the first column (and its collapse button) visible when every column would hide', async() => {
     handsontable({
       data: createSpreadsheetData(3, 6),
       colHeaders: true,
@@ -180,7 +233,7 @@ describe('CollapsibleColumns visibleWhen option', () => {
         ['A', { label: 'Group B', colspan: 4 }, 'C'],
         ['A',
           { label: 'B1', visibleWhen: 'expanded' },
-          { label: 'B2', visibleWhen: 'nonsense' }, // invalid -> always visible
+          { label: 'B2', visibleWhen: 'expanded' },
           { label: 'B3', visibleWhen: 'expanded' },
           { label: 'B4', visibleWhen: 'expanded' },
           'C'],
@@ -191,8 +244,16 @@ describe('CollapsibleColumns visibleWhen option', () => {
     collapseGroupB();
     await render();
 
-    // B2 falls back to `always`, so it survives the collapse.
-    expect(bottomHeaderLabels()).toEqual(['A', 'B2', 'C']);
+    // Every child is `expanded` (hidden on collapse); the guard keeps the first one so the group
+    // never blanks out and stays expandable.
+    expect(bottomHeaderLabels()).toEqual(['A', 'B1', 'C']);
+    expect(hasCollapsedIndicator()).toBe(true);
+
+    // The kept indicator can still expand the group back.
+    expandGroupB();
+    await render();
+
+    expect(bottomHeaderLabels()).toEqual(['A', 'B1', 'B2', 'B3', 'B4', 'C']);
   });
 
   it('should keep the legacy first-child collapse for a group without any `visibleWhen` markers', async() => {

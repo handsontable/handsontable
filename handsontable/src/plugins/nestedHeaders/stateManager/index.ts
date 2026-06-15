@@ -556,10 +556,13 @@ export default class StateManager {
    * declarative collapsible groups (issue #10243), given each group's current `isCollapsed` state.
    *
    * A group is "declarative" when at least one of its direct children declares an explicit
-   * `visibleWhen` ('collapsed' or 'expanded'); legacy groups (no markers) are left to the regular
-   * first-visible-child collapse path and are skipped here. Only `collapsible` groups are considered -
-   * a group that cannot be collapsed keeps all its columns. The result is a pure function of the tree
-   * shape, the markers, and the `isCollapsed` flags, so it stays correct across tree rebuilds.
+   * `visibleWhen` ('collapsed', 'expanded', or 'always'); legacy groups (no markers) are left to the
+   * regular first-visible-child collapse path and are skipped here. Within a declarative group a child
+   * with no marker defaults to `'expanded'` - it is hidden when the group collapses, matching the
+   * default collapse behavior; `'always'` is the explicit opt-in for staying visible in both states.
+   * Only `collapsible` groups are considered. At least one column per group always stays visible so the
+   * group's collapse indicator survives. The result is a pure function of the tree shape, the markers,
+   * and the `isCollapsed` flags, so it stays correct across tree rebuilds.
    *
    * @returns {number[]} Visual column indexes to hide.
    */
@@ -574,23 +577,31 @@ export default class StateManager {
           return;
         }
 
-        const isDeclarative = childNodes.some(({ data }) => data.visibleWhen !== 'always');
+        const isDeclarative = childNodes.some(({ data }) => data.visibleWhen !== undefined);
 
         if (!isDeclarative) {
           return;
         }
 
         const isGroupCollapsed = node.data.isCollapsed === true;
+        const childrenToHide = childNodes.filter((childNode) => {
+          // An unset child defaults to 'expanded' (hidden on collapse).
+          const visibility = childNode.data.visibleWhen ?? 'expanded';
 
-        childNodes.forEach((childNode) => {
-          const { visibleWhen, columnIndex, origColspan } = childNode.data;
-          const hideChild = (visibleWhen === 'expanded' && isGroupCollapsed) ||
-            (visibleWhen === 'collapsed' && !isGroupCollapsed);
+          return (visibility === 'expanded' && isGroupCollapsed) ||
+            (visibility === 'collapsed' && !isGroupCollapsed);
+        });
 
-          if (hideChild) {
-            for (let i = 0; i < origColspan; i++) {
-              columnsToHide.push(columnIndex + i);
-            }
+        // Never hide every column of the group - the group header carries the collapse indicator, so
+        // keep the first child visible when a (mis)configuration would otherwise blank the whole group
+        // and leave no way to expand it back.
+        if (childrenToHide.length === childNodes.length) {
+          childrenToHide.shift();
+        }
+
+        childrenToHide.forEach(({ data: { columnIndex, origColspan } }) => {
+          for (let i = 0; i < origColspan; i++) {
+            columnsToHide.push(columnIndex + i);
           }
         });
       });

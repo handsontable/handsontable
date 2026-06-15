@@ -308,10 +308,10 @@ describe('normalizeSettings', () => {
   });
 
   describe('visibleWhen (issue #10243)', () => {
-    it('should default to "always" when not provided', () => {
+    it('should be left unset (undefined) when not provided', () => {
       const [[cell]] = normalizeSettings([['A1']]);
 
-      expect(cell.visibleWhen).toBe('always');
+      expect(cell.visibleWhen).toBeUndefined();
     });
 
     it('should carry a valid "collapsed" / "expanded" / "always" value', () => {
@@ -326,16 +326,16 @@ describe('normalizeSettings', () => {
       expect(row[2].visibleWhen).toBe('always');
     });
 
-    it('should fall back to "always" for an invalid or non-string value', () => {
+    it('should leave an invalid or non-string value unset (treated as the default)', () => {
       const [row] = normalizeSettings([[
         { label: 'A', visibleWhen: 'nonsense' },
         { label: 'B', visibleWhen: 123 },
         { label: 'C', visibleWhen: null },
       ]]);
 
-      expect(row[0].visibleWhen).toBe('always');
-      expect(row[1].visibleWhen).toBe('always');
-      expect(row[2].visibleWhen).toBe('always');
+      expect(row[0].visibleWhen).toBeUndefined();
+      expect(row[1].visibleWhen).toBeUndefined();
+      expect(row[2].visibleWhen).toBeUndefined();
     });
   });
 });
