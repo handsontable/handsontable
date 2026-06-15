@@ -1,5 +1,8 @@
 / /docs
 
+# Redirect legacy single-file sitemap URL to Astro's sitemap index
+/docs/sitemap.xml /docs/sitemap-index.xml 301
+
 /docs/:version/redirect pageId=:pageId /docs/javascript-data-grid/changelog 301
 /docs/redirect pageId=:pageId /docs/javascript-data-grid/changelog 301
 
