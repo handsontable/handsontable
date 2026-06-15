@@ -138,7 +138,7 @@ export function createMuiDataGridTheme(theme: Theme) {
   }).params({
     tokens: {
       // Match MUI's default rounded corners.
-      wrapperBorderRadius: '4px',
+      borderRadius: '4px',
     },
   });
 }
@@ -231,7 +231,7 @@ export default function App() {
 
 ## What you learned
 
-You registered a custom Handsontable theme that maps MUI palette values to Handsontable colors. You used `useTheme()` to read MUI palette values at runtime, `useMemo` to avoid unnecessary theme re-registrations, and `registerTheme` with Horizon tokens and a `wrapperBorderRadius` override.
+You registered a custom Handsontable theme that maps MUI palette values to Handsontable colors. You used `useTheme()` to read MUI palette values at runtime, `useMemo` to avoid unnecessary theme re-registrations, and `registerTheme` with Horizon tokens and a `borderRadius` override.
 
 ## Next steps
 

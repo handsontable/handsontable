@@ -90,6 +90,7 @@ export type TokenKey =
   | 'iconSize'
   | 'iconButtonHitAreaSize'
   | 'tableTransition'
+  | 'borderRadius'
   // Base colors
   | 'borderColor'
   | 'accentColor'
@@ -116,10 +117,6 @@ export type TokenKey =
   | 'cellVerticalBorderColor'
   | 'cellHorizontalPadding'
   | 'cellVerticalPadding'
-  // Wrapper
-  | 'wrapperBorderWidth'
-  | 'wrapperBorderRadius'
-  | 'wrapperBorderColor'
   // Row
   | 'rowHeaderOddBackgroundColor'
   | 'rowHeaderEvenBackgroundColor'

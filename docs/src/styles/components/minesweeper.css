@@ -130,7 +130,7 @@
 }
 
 .minesweeper-grid .handsontable.ht-wrapper {
-  --ht-wrapper-border-radius: 0;
+  --ht-border-radius: 0;
   margin-top: 0;
   border: none !important;
 }

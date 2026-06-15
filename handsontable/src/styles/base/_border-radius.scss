@@ -2,7 +2,7 @@
 @mixin output {
   .handsontable {
     &.ht-wrapper {
-      border-radius: var(--ht-wrapper-border-radius);
+      border-radius: var(--ht-border-radius);
 
       &:not(.htColumnHeaders) {
         .ht_master {
@@ -12,11 +12,11 @@
                 &:first-child {
                   td {
                     &:first-child {
-                      border-start-start-radius: var(--ht-wrapper-border-radius);
+                      border-start-start-radius: var(--ht-border-radius);
                     }
 
                     &:last-child {
-                      border-start-end-radius: var(--ht-wrapper-border-radius);
+                      border-start-end-radius: var(--ht-border-radius);
                     }
                   }
                 }
@@ -32,7 +32,7 @@
                 &:first-child {
                   td {
                     &:first-child {
-                      border-start-start-radius: var(--ht-wrapper-border-radius);
+                      border-start-start-radius: var(--ht-border-radius);
                     }
                   }
                 }
@@ -48,11 +48,11 @@
                 &:first-child {
                   td {
                     &:first-child {
-                      border-start-start-radius: var(--ht-wrapper-border-radius);
+                      border-start-start-radius: var(--ht-border-radius);
                     }
 
                     &:last-child {
-                      border-start-end-radius: var(--ht-wrapper-border-radius);
+                      border-start-end-radius: var(--ht-border-radius);
                     }
                   }
                 }
@@ -69,7 +69,7 @@
                   th,
                   td {
                     &:first-child {
-                      border-start-start-radius: var(--ht-wrapper-border-radius);
+                      border-start-start-radius: var(--ht-border-radius);
                     }
                   }
                 }
@@ -81,22 +81,22 @@
 
       .ht_master {
         .wtHolder {
-          border-radius: var(--ht-wrapper-border-radius);
+          border-radius: var(--ht-border-radius);
         }
 
         .htCore {
-          border-radius: var(--ht-wrapper-border-radius);
+          border-radius: var(--ht-border-radius);
 
           thead {
             tr {
               &:first-child {
                 th {
                   &:first-child {
-                    border-start-start-radius: var(--ht-wrapper-border-radius);
+                    border-start-start-radius: var(--ht-border-radius);
                   }
 
                   &:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))) {
-                    border-start-end-radius: var(--ht-wrapper-border-radius);
+                    border-start-end-radius: var(--ht-border-radius);
                   }
                 }
               }
@@ -104,11 +104,11 @@
               &:last-child {
                 th {
                   &:first-child {
-                    border-end-start-radius: var(--ht-wrapper-border-radius);
+                    border-end-start-radius: var(--ht-border-radius);
                   }
 
                   &:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))) {
-                    border-end-end-radius: var(--ht-wrapper-border-radius);
+                    border-end-end-radius: var(--ht-border-radius);
                   }
                 }
               }
@@ -120,11 +120,11 @@
               &:last-child {
                 td {
                   &:first-child {
-                    border-end-start-radius: var(--ht-wrapper-border-radius);
+                    border-end-start-radius: var(--ht-border-radius);
                   }
 
                   &:last-child {
-                    border-end-end-radius: var(--ht-wrapper-border-radius);
+                    border-end-end-radius: var(--ht-border-radius);
                   }
                 }
               }
@@ -135,14 +135,14 @@
 
       .ht_clone_top_inline_start_corner {
         .htCore {
-          border-start-start-radius: var(--ht-wrapper-border-radius);
+          border-start-start-radius: var(--ht-border-radius);
 
           thead {
             tr {
               &:first-child {
                 th {
                   &:first-child {
-                    border-start-start-radius: var(--ht-wrapper-border-radius);
+                    border-start-start-radius: var(--ht-border-radius);
                   }
                 }
               }
@@ -153,19 +153,19 @@
 
       .ht_clone_top {
         .htCore {
-          border-start-start-radius: var(--ht-wrapper-border-radius);
-          border-start-end-radius: var(--ht-wrapper-border-radius);
+          border-start-start-radius: var(--ht-border-radius);
+          border-start-end-radius: var(--ht-border-radius);
 
           thead {
             tr {
               &:first-child {
                 th {
                   &:first-child {
-                    border-start-start-radius: var(--ht-wrapper-border-radius);
+                    border-start-start-radius: var(--ht-border-radius);
                   }
 
                   &:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))) {
-                    border-start-end-radius: var(--ht-wrapper-border-radius);
+                    border-start-end-radius: var(--ht-border-radius);
                   }
                 }
               }
@@ -176,15 +176,15 @@
 
       .ht_clone_inline_start {
         .htCore {
-          border-start-start-radius: var(--ht-wrapper-border-radius);
-          border-end-start-radius: var(--ht-wrapper-border-radius);
+          border-start-start-radius: var(--ht-border-radius);
+          border-end-start-radius: var(--ht-border-radius);
 
           thead {
             tr {
               &:first-child {
                 th {
                   &:first-child {
-                    border-start-start-radius: var(--ht-wrapper-border-radius);
+                    border-start-start-radius: var(--ht-border-radius);
                   }
                 }
               }
@@ -197,7 +197,7 @@
                 th,
                 td {
                   &:first-child {
-                    border-end-start-radius: var(--ht-wrapper-border-radius);
+                    border-end-start-radius: var(--ht-border-radius);
                   }
                 }
               }
@@ -208,14 +208,14 @@
 
       .ht_clone_bottom_inline_start_corner {
         .htCore {
-          border-end-start-radius: var(--ht-wrapper-border-radius);
+          border-end-start-radius: var(--ht-border-radius);
 
           tr {
             &:last-child {
               th,
               td {
                 &:first-child {
-                  border-end-start-radius: var(--ht-wrapper-border-radius);
+                  border-end-start-radius: var(--ht-border-radius);
                 }
               }
             }
@@ -225,19 +225,19 @@
 
       .ht_clone_bottom {
         .htCore {
-          border-end-start-radius: var(--ht-wrapper-border-radius);
-          border-end-end-radius: var(--ht-wrapper-border-radius);
+          border-end-start-radius: var(--ht-border-radius);
+          border-end-end-radius: var(--ht-border-radius);
 
           tr {
             &:last-child {
               th,
               td {
                 &:first-child {
-                  border-end-start-radius: var(--ht-wrapper-border-radius);
+                  border-end-start-radius: var(--ht-border-radius);
                 }
 
                 &:last-child {
-                  border-end-end-radius: var(--ht-wrapper-border-radius);
+                  border-end-end-radius: var(--ht-border-radius);
                 }
               }
             }
@@ -286,7 +286,7 @@
   }
 
   .ht-root-wrapper {
-    border-radius: var(--ht-wrapper-border-radius);
+    border-radius: var(--ht-border-radius);
 
     &:has(> .ht-slot-bottom > .ht-slot-element) {
       .ht-wrapper,
@@ -341,7 +341,7 @@
     }
 
     .ht-slot-element {
-      border-radius: var(--ht-wrapper-border-radius);
+      border-radius: var(--ht-border-radius);
     }
 
     .ht-slot-bottom > .ht-slot-element {

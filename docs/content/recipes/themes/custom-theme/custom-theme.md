@@ -51,7 +51,7 @@ This recipe shows how to integrate Handsontable into a Next.js that uses [shadcn
 
 - A Handsontable grid with a custom theme (`registerTheme('shadcn-data-grid', { icons, colors, tokens })`) where **colors** map to shadcn's `--primary`, `--background`, `--foreground`, `--muted`, `--border`, etc. via `var(--…)`.
 - **Icons** using Lucide-style SVGs (data URIs with `currentColor`) so they match your theme.
-- **Tokens** from Handsontable's Horizon set, with overrides (e.g. `wrapperBorderRadius`) to match shadcn's `--radius`.
+- **Tokens** from Handsontable's Horizon set, with overrides (e.g. `borderRadius`) to match shadcn's `--radius`.
 
 ## Prerequisites
 
@@ -221,7 +221,7 @@ const shadcnDataGridTheme = registerTheme('shadcn-data-grid', {
   tokens: tokensHorizon,
 }).params({
   tokens: {
-    wrapperBorderRadius: "var(--radius)",
+    borderRadius: "var(--radius)",
   },
 })
 
@@ -353,7 +353,7 @@ const shadcnDataGridTheme = registerTheme('shadcn-data-grid', {
   icons: iconsShadcn,
   colors: colorsShadcn,
   tokens: tokensHorizon,
-}).params({ tokens: { wrapperBorderRadius: "var(--radius)" } });
+}).params({ tokens: { borderRadius: "var(--radius)" } });
 
 const DataGrid = forwardRef<HotTableRef, unknown>(function DataGrid(_, ref) {
   return (

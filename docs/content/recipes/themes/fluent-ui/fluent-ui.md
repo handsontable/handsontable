@@ -150,7 +150,7 @@ export const fluentDataGridTheme = registerTheme('fluent-data-grid', {
     barVerticalPadding: '8px',
     menuItemHorizontalPadding: '12px',
     menuItemVerticalPadding: '8px',
-    wrapperBorderRadius: '8px',
+    borderRadius: '8px',
     cellSelectionBorderColor: '#0f6cbd',
     cellSelectionBackgroundColor: '#deecf9',
   },

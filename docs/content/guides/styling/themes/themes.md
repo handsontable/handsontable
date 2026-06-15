@@ -504,7 +504,7 @@ The sizing scale provides consistent spacing values:
 myTheme.params({
   tokens: {
     iconSize: 'sizing.size_5',             // References e.g. 20px
-    wrapperBorderRadius: 'sizing.size_2',  // References e.g. 8px
+    borderRadius: 'sizing.size_2',  // References e.g. 8px
   },
 });
 ```

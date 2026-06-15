@@ -117,8 +117,7 @@ const antTableTheme = (() => {
     .params({
       colors: colorsAnt,
       tokens: {
-        wrapperBorderColor: ['colors.palette.200', 'colors.palette.700'],
-        wrapperBorderRadius: '8px',
+        borderRadius: '8px',
         headerBackgroundColor: ['colors.palette.100', 'colors.palette.800'],
         headerFontWeight: '600',
         cellHorizontalBorderColor: ['colors.palette.200', 'colors.palette.700'],
