@@ -34,22 +34,22 @@ describe('LayoutManager', () => {
     const { manager, bottom } = setup();
 
     manager.getSlot('bottom').add('pagination', make('pagination'), 100);
-    manager.getSlot('bottom').add('licenseNotification', make('licenseNotification'), 200);
+    manager.getSlot('bottom').add('summary', make('summary'), 200);
 
-    manager.applyConfig({ bottom: ['licenseNotification', 'pagination'] });
+    manager.applyConfig({ bottom: ['summary', 'pagination'] });
 
-    expect(ids(bottom)).toEqual(['licenseNotification', 'pagination']);
+    expect(ids(bottom)).toEqual(['summary', 'pagination']);
   });
 
   it('falls back to weight order when config omits the slot', () => {
     const { manager, bottom } = setup();
 
     manager.getSlot('bottom').add('pagination', make('pagination'), 100);
-    manager.getSlot('bottom').add('licenseNotification', make('licenseNotification'), 200);
+    manager.getSlot('bottom').add('summary', make('summary'), 200);
 
     manager.applyConfig({});
 
-    expect(ids(bottom)).toEqual(['pagination', 'licenseNotification']);
+    expect(ids(bottom)).toEqual(['pagination', 'summary']);
   });
 
   it('register places the element into the slot named by side and applies the weight', () => {

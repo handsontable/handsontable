@@ -144,7 +144,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   language: 'foo',
   layout: {
     top: ['toolbar'],
-    bottom: ['pagination', 'licenseNotification'],
+    bottom: ['pagination', 'summary'],
   },
   layoutDirection: oneOf('rtl', 'ltr', 'inherit'),
   licenseKey: '',
