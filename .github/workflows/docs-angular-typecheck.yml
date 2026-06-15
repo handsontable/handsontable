@@ -48,6 +48,11 @@ jobs:
         run: npm run build --prefix wrappers/angular-wrapper
 
       - name: Run type check
+        # Gate on the build that was just checked out and built (the current branch - feature,
+        # develop, etc.), not on the last published `handsontable@latest`. Examples ship with the
+        # code in the same repo state, so one that uses an API added on this branch must not be
+        # failed for it; real type errors on the current build still fail the run.
         run: npm run typecheck --prefix docs/angular-type-check
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SKIP_LATEST: '1'
