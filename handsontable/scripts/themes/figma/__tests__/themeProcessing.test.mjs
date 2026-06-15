@@ -34,6 +34,11 @@ test('processTokenValue does not throw when a mode variant holds a literal inste
   assert.equal(processTokenValue('backgroundColor', { value: '{mode.x.background}' }, themes), null);
 });
 
+test('processTokenValue returns null for a found node that has no value', () => {
+  assert.equal(processTokenValue('backgroundColor', { description: 'no value here' }, {}), null);
+  assert.equal(processTokenValue('backgroundColor', { value: undefined }, {}), null);
+});
+
 test('processTokenValue passes plain literals through formatValue', () => {
   assert.equal(processTokenValue('fontSize', { value: 14 }, {}), '14px');
   assert.equal(processTokenValue('fontFamily', { value: 'Inter' }, {}), 'Inter');

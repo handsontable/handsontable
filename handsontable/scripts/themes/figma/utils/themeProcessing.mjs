@@ -112,6 +112,12 @@ function processTokenValue(key, value, themes) {
 
   const valueStr = value.value;
 
+  // A found node with no `value` (null/undefined) yields nothing usable. Return null so the token is
+  // skipped, rather than letting `undefined` propagate into the output and break CSS generation later.
+  if (valueStr === undefined || valueStr === null) {
+    return null;
+  }
+
   // Handle non-string values directly
   if (typeof valueStr !== 'string') {
     return formatValue(key, valueStr);
@@ -241,7 +247,8 @@ function processThemeTokens(themeValues, themes) {
     const value = findValueRecursively(themeValues, key);
     const processed = processTokenValue(key, value, themes);
 
-    if (processed !== null) {
+    // Skip both null and undefined so no empty value is stored.
+    if (processed !== null && processed !== undefined) {
       result[key] = processed;
     }
   }
