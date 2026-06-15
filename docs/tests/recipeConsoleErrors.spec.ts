@@ -89,6 +89,7 @@ recipePages.forEach(({ path: pagePath, framework, hasExamples }) => {
     const fullUrl = `${baseURL}/${framework}/${pagePath}`;
 
     await page.goto(fullUrl);
+    await expect(page.getByText('We are verifying your connection')).toHaveCount(0, { timeout: 30000 });
     await expect(page.getByText('Page not found (404)')).toHaveCount(0);
     await expect(page.getByText('Password protected site')).toHaveCount(0);
     await page.waitForLoadState('domcontentloaded');
