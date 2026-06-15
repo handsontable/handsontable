@@ -10,7 +10,7 @@ export class NotificationUI {
   /**
    * @type {HTMLElement}
    */
-  #rootElement: HTMLElement;
+  #overlayElement: HTMLElement;
 
   /**
    * @type {function(string, string): string | undefined}
@@ -34,29 +34,29 @@ export class NotificationUI {
 
   /**
    * @param {object} params Constructor parameters.
-   * @param {HTMLElement} params.rootElement Handsontable root grid element.
+   * @param {HTMLElement} params.overlayElement Handsontable root overlays layer element.
    * @param {function(string, string): string | undefined} params.sanitizer Sanitizer for HTML strings.
    * @param {boolean} params.isRtl Whether the grid uses RTL layout.
    */
-  constructor({ rootElement, sanitizer, isRtl }: {
-    rootElement: HTMLElement;
+  constructor({ overlayElement, sanitizer, isRtl }: {
+    overlayElement: HTMLElement;
     sanitizer: ((html: string, context: string) => string | undefined) | null | undefined;
     isRtl: boolean;
   }) {
-    this.#rootElement = rootElement;
+    this.#overlayElement = overlayElement;
     this.#sanitizer = sanitizer;
     this.#isRtl = isRtl;
   }
 
   /**
-   * Creates the overlay host and four corner stack elements after `rootGridElement`.
+   * Creates the notification host and four corner stack elements inside the overlays layer (`ht-overlay`).
    */
   install(): void {
     if (this.#host) {
       return;
     }
 
-    const doc = this.#rootElement.ownerDocument;
+    const doc = this.#overlayElement.ownerDocument;
     const host = doc.createElement('div');
 
     host.className = `${NOTIFICATION_CLASS_NAME} handsontable`;
@@ -73,7 +73,7 @@ export class NotificationUI {
       this.#stacks.set(position, stack);
     });
 
-    this.#rootElement.after(host);
+    this.#overlayElement.appendChild(host);
     this.#host = host;
   }
 
@@ -124,7 +124,7 @@ export class NotificationUI {
    */
   createToastElement(options: NotificationNormalizedOptions, closeLabel: string, animation: boolean):
       { element: HTMLElement } {
-    const doc = this.#rootElement.ownerDocument;
+    const doc = this.#overlayElement.ownerDocument;
     const element = doc.createElement('div');
     const isError = options.variant === 'error';
 
@@ -172,7 +172,7 @@ export class NotificationUI {
 
     if (typeof options.message === 'string') {
       fastInnerHTML(messageEl, options.message, this.#sanitizer as boolean | ((html: string) => string),
-        'notification', this.#rootElement);
+        'notification', this.#overlayElement);
     } else {
       messageEl.appendChild(options.message);
     }
@@ -216,7 +216,7 @@ export class NotificationUI {
       btn.tabIndex = -1;
     });
 
-    const win = this.#rootElement.ownerDocument.defaultView;
+    const win = this.#overlayElement.ownerDocument.defaultView;
 
     if (animation) {
       /* Double rAF: first frame paints opacity/transform start; second adds --visible so transition runs. */

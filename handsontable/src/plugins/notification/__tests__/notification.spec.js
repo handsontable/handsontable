@@ -46,6 +46,20 @@ describe('Notification', () => {
     expect(plugin.isVisible()).toBe(false);
   });
 
+  it('should mount the notification host inside the overlays layer (ht-overlay)', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(3, 3),
+      notification: true,
+    });
+
+    const host = document.querySelector('.ht-notification');
+
+    expect(host).not.toBe(null);
+    expect(host.parentElement).toBe(hot.rootOverlaysElement);
+    expect(host.closest('.ht-overlay')).toBe(hot.rootOverlaysElement);
+    expect(hot.rootWrapperElement.contains(host)).toBe(true);
+  });
+
   it('should cancel show when beforeNotificationShow returns false', async() => {
     handsontable({
       data: createSpreadsheetData(3, 3),
@@ -936,6 +950,55 @@ describe('Notification', () => {
     await waitForNextAnimationFrames(2);
 
     expect(document.activeElement).toBe(focusedBefore);
+  });
+
+  it('should keep the notification region inert and unreachable by F6 while a modal dialog is open', async() => {
+    const instance = handsontable({
+      data: createSpreadsheetData(3, 3),
+      notification: true,
+      dialog: { animation: false },
+    });
+
+    await selectCell(1, 1);
+    await waitForNextAnimationFrames(1);
+
+    const notificationPlugin = getPlugin('notification');
+    const dialogPlugin = getPlugin('dialog');
+
+    notificationPlugin.showMessage({ message: 'Toast under dialog' });
+    await waitForNextAnimationFrames(1);
+
+    const host = document.querySelector('.ht-notification');
+
+    // The notification host and the dialog both render in the overlays layer (`ht-overlay`).
+    expect(host.parentElement).toBe(instance.rootOverlaysElement);
+
+    dialogPlugin.show({ content: '<button id="dialog-test-btn">OK</button>' });
+    await waitForNextAnimationFrames(2);
+
+    expect(dialogPlugin.isVisible()).toBe(true);
+    expect(instance.getFocusScopeManager().getActiveScopeId()).toBe('dialog');
+
+    // The modal dialog scope disables the inline notification scope via `inert`.
+    expect(host.hasAttribute('inert')).toBe(true);
+
+    // F6 must not pull focus into the inert notification region while the dialog is open.
+    await keyDownUp('f6');
+    await waitForNextAnimationFrames(2);
+
+    expect(host.contains(document.activeElement)).toBe(false);
+    expect(instance.getFocusScopeManager().getActiveScopeId()).toBe('dialog');
+
+    // Closing the dialog re-enables the notification region and F6 reaches it again.
+    dialogPlugin.hide();
+    await waitForNextAnimationFrames(2);
+
+    expect(host.hasAttribute('inert')).toBe(false);
+
+    await keyDownUp('f6');
+    await waitForNextAnimationFrames(2);
+
+    expect(host.contains(document.activeElement)).toBe(true);
   });
 
   it('should return focus to an external control after F6 and Escape when focus started outside the table', async() => {

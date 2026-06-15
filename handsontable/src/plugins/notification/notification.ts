@@ -216,7 +216,7 @@ export class Notification extends BasePlugin {
 
     if (!this.#ui) {
       this.#ui = new NotificationUI({
-        rootElement: this.hot.rootGridElement,
+        overlayElement: this.hot.rootOverlaysElement,
         sanitizer: this.hot.getSettings().sanitizer,
         isRtl: this.hot.isRtl(),
       });
