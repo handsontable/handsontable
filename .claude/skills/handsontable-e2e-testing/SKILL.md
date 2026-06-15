@@ -44,9 +44,12 @@ These are injected automatically. Do not import them manually.
 
 - **Instance:** `handsontable()`, `destroy()`, `updateSettings()`, `render()`
 - **Data:** `createSpreadsheetData()`, `getDataAtCell()`, `getData()`, `setDataAtCell()`
-- **Selection:** `selectCell()`, `selectCells()`, `getSelected()`
+- **Structure:** `countCols()`, `countRows()`, `alter()`
+- **Selection:** `selectCell()`, `selectCells()`, `getSelected()`, `getSelectedRange()`
 - **DOM:** `getCell()`, `spec()`, `hot()`
 - **Plugins:** `getPlugin()`
+
+**Prefer the bare global over the `hot().` form.** Most instance methods are exposed as bare globals that proxy the active instance, so write `countCols()` not `hot().countCols()`, and `await alter('remove_col', 2, 1)` not `hot().alter('remove_col', 2, 1)`. The mutating globals (`alter()`, `setDataAtCell()`, `selectCell()`, …) auto-render, so they MUST be `await`-ed. Only reach for `hot()` when you need a method that has no bare-global wrapper.
 - **Theme layout:** `getLoadedTheme()`, `getThemeLayout()` (see `handsontable/.ai/TESTING.md`)
 - **Iframe `doc.write` theme CSS:** `getE2eThemeStylesheetLinkTagsHtml()` (all themes), `getE2eThemeStylesheetLinkTagHtml(key)`, `getE2eNormalizeStylesheetLinkTagHtml()` - from `common.js`; theme list is `E2E_REGISTERED_THEME_KEYS` in `themeLayoutFromTokens.js`, auto-discovered from `src/themes/theme/index.ts` (add a theme there and the list updates automatically).
 - Full list in `test/helpers/common.js`.
@@ -174,6 +177,7 @@ See `src/plugins/pagination/__tests__/` for reference - separate dirs for option
 ## Common mistakes
 
 - Forgetting `async` on `it()` callbacks.
+- Using the `hot().` form (`hot().countCols()`, `hot().alter(...)`) instead of the bare global (`countCols()`, `await alter(...)`).
 - Importing helpers manually (they are globals).
 - Not testing the `updateSettings()` cycle.
 - Missing edge cases: large datasets, coordinate boundaries, enable/disable cycles.
