@@ -148,6 +148,21 @@ function generateThemeCss(themeName, themeVariables, withIcons = false) {
     return null;
   }
 
+  if (!themeColors) {
+    console.warn(`No colors found for theme: ${themeName}`);
+
+    return null;
+  }
+
+  const densityLevel = themeTokens[DENSITY_KEY] || DEFAULT_DENSITY_LEVEL;
+  const densityVars = density[densityLevel];
+
+  if (!densityVars) {
+    console.warn(`No density level "${densityLevel}" found for theme: ${themeName}`);
+
+    return null;
+  }
+
   // Generate class selectors for all variants
   const baseClass = `.ht-theme-${themeName}`;
   const darkClass = `.ht-theme-${themeName}-dark`;
@@ -164,7 +179,7 @@ function generateThemeCss(themeName, themeVariables, withIcons = false) {
   css += flattenCssVariables(sizing, 'sizing');
 
   // Add density variables
-  css += flattenCssVariables(density[themeTokens[DENSITY_KEY] || DEFAULT_DENSITY_LEVEL], 'density');
+  css += flattenCssVariables(densityVars, 'density');
 
   // Add colors variables
   css += flattenCssVariables(themeColors, 'colors');
