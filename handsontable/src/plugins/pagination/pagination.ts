@@ -8,7 +8,6 @@ import { isRootInstance } from '../../utils/rootInstance';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { registerConflict } from '../base/conflictRegistry';
-import type { Hook } from '../../core/settings';
 
 // Hard conflicts: Pagination stays off while any of these top-level settings is truthy.
 registerConflict('pagination', [

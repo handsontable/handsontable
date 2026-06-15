@@ -1,7 +1,6 @@
 import { BasePlugin } from '../base';
 import { throwWithCause } from '../../helpers/errors';
 import { DialogUI } from './ui';
-import { isRootInstance } from '../../utils/rootInstance';
 import { isObject, isPlainObject } from '../../helpers/object';
 import { isHTMLElement } from '../../helpers/dom/element';
 import * as C from '../../i18n/constants';
