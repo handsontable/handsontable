@@ -127,6 +127,30 @@ describe('licenseNotification', () => {
       );
     });
 
+    it('should append the notification as the last bottom-slot child with the slot-item class and not use the LayoutManager', () => {
+      const hotInstance = createMockHotInstance();
+      const sibling = document.createElement('div');
+      const notificationEl = document.createElement('div');
+
+      // A pre-existing sibling (for example pagination) is already in the slot.
+      hotInstance.rootSlotBottomElement.appendChild(sibling);
+      notificationEl.className = `handsontable ${LICENSE_INFO_CLASS}`;
+
+      _injectProductInfo.mockImplementation(({ element }) => {
+        element.appendChild(notificationEl);
+
+        return notificationEl;
+      });
+
+      initLicenseNotification(hotInstance);
+
+      // It must be the last child and carry the shared slot-item styling class.
+      expect(hotInstance.rootSlotBottomElement.lastElementChild).toBe(notificationEl);
+      expect(notificationEl.classList.contains('ht-slot-element')).toBe(true);
+      // It is not a layout-slot contributor, so the LayoutManager is never touched.
+      expect(hotInstance.getLayoutManager).not.toHaveBeenCalled();
+    });
+
     it('should register scope with runOnlyIf that returns false when notification element is removed', () => {
       const hotInstance = createMockHotInstance();
       const notificationEl = document.createElement('div');

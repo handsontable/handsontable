@@ -28,7 +28,7 @@ Handsontable wraps the grid in a root element that contains four areas:
 | `bottom` | `ht-slot-bottom` | Below the grid | Yes |
 | (overlays) | `ht-overlay` | On top of the grid (modal layer) | No |
 
-The grid and overlays areas are internal and cannot be reordered. The `top` and `bottom` slots are user-orderable through the `layout` setting; you reach them with [`getLayoutManager()`](@/api/core.md#getlayoutmanager). The overlays layer holds floating UI (such as the dialog) and renders like the grid -- a fixed internal element, not a slot. Built-in UI uses these areas: pagination and the license notification render in the `bottom` slot, and the dialog renders in the overlays layer.
+The grid and overlays areas are internal and cannot be reordered. The `top` and `bottom` slots are user-orderable through the `layout` setting; you reach them with [`getLayoutManager()`](@/api/core.md#getlayoutmanager). The overlays layer holds floating UI (such as the dialog) and renders like the grid -- a fixed internal element, not a slot. Built-in UI uses these areas: pagination renders in the `bottom` slot, and the dialog renders in the overlays layer. The license notification also renders at the bottom, but it is not a slot contributor -- it always stays last in the `bottom` slot and is not orderable through the `layout` setting.
 
 ## Prerequisites
 
@@ -81,10 +81,16 @@ const hot = new Handsontable(container, {
   ],
   pagination: true,
   layout: {
-    bottom: ['licenseNotification', 'pagination'],
+    bottom: ['summary', 'pagination'],
   },
   licenseKey: 'non-commercial-and-evaluation',
 });
+
+const summary = document.createElement('div');
+
+summary.textContent = '3 items in stock';
+
+hot.getLayoutManager().register('summary', summary, { side: 'bottom', weight: 100 });
 ```
 
 You can change the order later with [`updateSettings()`](@/api/core.md#updatesettings):
@@ -92,7 +98,7 @@ You can change the order later with [`updateSettings()`](@/api/core.md#updateset
 ```javascript
 hot.updateSettings({
   layout: {
-    bottom: ['pagination', 'licenseNotification'],
+    bottom: ['pagination', 'summary'],
   },
 });
 ```
@@ -118,9 +124,8 @@ Use these keys in the `layout` setting to order the built-in UI:
 | Key | Slot | Provided by |
 |---|---|---|
 | `pagination` | `bottom` | The [`Pagination`](@/api/pagination.md) plugin |
-| `licenseNotification` | `bottom` | The license notification |
 
-The [`Dialog`](@/api/dialog.md) plugin renders in the overlays layer, which is not user-orderable through the `layout` setting.
+The license notification renders at the bottom but is not a slot contributor: it always stays last in the `bottom` slot and ignores any `layout` entry. The [`Dialog`](@/api/dialog.md) plugin renders in the overlays layer, which is not user-orderable through the `layout` setting.
 
 ## Related
 

@@ -1,10 +1,10 @@
 import { _injectProductInfo } from '../helpers/mixed';
+import { SLOT_ITEM_CLASS } from '../core/layout/constants';
 import type { HotInstance } from '../core/types';
 
 const SCOPE_ID = 'licenseNotification';
 const SHORTCUTS_CONTEXT_NAME = `plugin:${SCOPE_ID}`;
 const LICENSE_INFO_CLASS = 'hot-display-license-info';
-const LAYOUT_WEIGHT = 200;
 
 /**
  * Returns the license notification DOM element when present.
@@ -33,10 +33,11 @@ function getFocusableElements(hotInstance: HotInstance): HTMLElement[] {
 }
 
 /**
- * Initializes the built-in license notification: injects the product info message into the
- * bottom slot element when the license is invalid, expired, or missing, and registers
+ * Initializes the built-in license notification: injects the product info message as the last
+ * element of the bottom slot when the license is invalid, expired, or missing, and registers
  * a focus scope so keyboard navigation (Tab/Shift+Tab) includes the notification links.
- * Only runs for the root Handsontable instance. Cannot be disabled by the user.
+ * Only runs for the root Handsontable instance. It is not a layout-slot contributor, so it cannot
+ * be reordered, removed, or disabled by the user.
  *
  * @param {HotInstance} hotInstance The root Handsontable instance.
  * @returns {void}
@@ -64,11 +65,15 @@ export function initLicenseNotification(hotInstance: HotInstance): void {
     return;
   }
 
-  // `_injectProductInfo` appended this element into the bottom slot element and returned it; register
-  // it under the layout slot so the `layout` setting and weights control its order relative to other
-  // content.
-  hotInstance.getLayoutManager()
-    .register('licenseNotification', notificationElement, { side: 'bottom', weight: LAYOUT_WEIGHT });
+  // `_injectProductInfo` appended this element into the bottom slot element and returned it. The
+  // notification is intentionally NOT registered with the LayoutManager: it must always sit last in
+  // the bottom slot and must not be removable or reorderable through the `layout` setting or
+  // `getLayoutManager().unregister`. Re-append it so it is the last child, and carry the shared
+  // slot-item class so it gets the same separator styling as registered slot items. Because it is a
+  // foreign (unregistered) node, `DomSlot` always inserts registered items before it, keeping it last
+  // as other contributors (for example pagination) register or reorder.
+  notificationElement.classList.add(SLOT_ITEM_CLASS);
+  container.appendChild(notificationElement);
 
   // The scope is intentionally never unregistered: the license notification is created once during
   // init, cannot be disabled, and lives for the whole instance lifetime. It is cleaned up when

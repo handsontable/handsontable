@@ -212,23 +212,29 @@ describe('Layout slots', () => {
     expect(hot.rootSlotBottomElement.offsetWidth).toBeLessThan(hot.rootWrapperElement.offsetWidth);
   });
 
-  it('registers the license notification under the bottom slot when present', async() => {
+  it('appends the license notification as the last element of the bottom slot when present', async() => {
     // Pass `true` so the test helper does not inject the default evaluation license key,
     // which leaves the key missing and renders the license notification.
     const hot = handsontable({ data: createSpreadsheetData(3, 3) }, true);
 
-    expect(hot.getLayoutManager().getSlot('bottom').has('licenseNotification')).toBe(true);
-    expect(hot.rootSlotBottomElement.querySelector('.hot-display-license-info')).toBeTruthy();
+    // The notification is not a layout-slot contributor - it is not in the registry.
+    expect(hot.getLayoutManager().getSlot('bottom').has('licenseNotification')).toBe(false);
+
+    const notification = hot.rootSlotBottomElement.querySelector('.hot-display-license-info');
+
+    expect(notification).toBeTruthy();
+    expect(notification).toBe(hot.rootSlotBottomElement.lastElementChild);
   });
 
-  it('orders pagination and license per the layout setting', async() => {
+  it('keeps the license notification last regardless of the layout setting', async() => {
     const hot = handsontable({
       data: createSpreadsheetData(3, 3),
       pagination: true,
+      // The license notification is intentionally not orderable; a `layout` entry for it must be ignored.
       layout: { bottom: ['licenseNotification', 'pagination'] },
     }, true);
 
-    const keys = Array.from(hot.getLayoutManager().getSlot('bottom').getElement().children).map((c) => {
+    const keys = Array.from(hot.rootSlotBottomElement.children).map((c) => {
       if (c.classList.contains('hot-display-license-info')) {
         return 'licenseNotification';
       }
@@ -240,7 +246,32 @@ describe('Layout slots', () => {
       return c.className;
     });
 
-    expect(keys).toEqual(['licenseNotification', 'pagination']);
+    expect(keys).toEqual(['pagination', 'licenseNotification']);
+  });
+
+  it('keeps the license notification last when pagination is enabled after init', async() => {
+    const hot = handsontable({ data: createSpreadsheetData(3, 3) }, true);
+
+    // Pagination is not set at init, so the license notice is the only bottom-slot element.
+    expect(hot.rootSlotBottomElement.querySelector('.hot-display-license-info'))
+      .toBe(hot.rootSlotBottomElement.lastElementChild);
+
+    // Enabling pagination after init registers it into the bottom slot - the license stays last.
+    await updateSettings({ pagination: true });
+
+    const keys = Array.from(hot.rootSlotBottomElement.children).map((c) => {
+      if (c.classList.contains('hot-display-license-info')) {
+        return 'licenseNotification';
+      }
+
+      if (c.classList.contains('ht-pagination')) {
+        return 'pagination';
+      }
+
+      return c.className;
+    });
+
+    expect(keys).toEqual(['pagination', 'licenseNotification']);
   });
 
   it('removes pagination from the slot when the plugin is disabled', async() => {

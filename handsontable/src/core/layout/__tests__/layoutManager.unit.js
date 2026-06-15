@@ -73,13 +73,13 @@ describe('LayoutManager', () => {
     const { manager, bottom } = setup();
 
     manager.register('pagination', make('pagination'), { side: 'bottom', weight: 100 });
-    manager.register('licenseNotification', make('licenseNotification'), { side: 'bottom', weight: 200 });
+    manager.register('comments', make('comments'), { side: 'bottom', weight: 200 });
 
-    expect(ids(bottom)).toEqual(['pagination', 'licenseNotification']);
+    expect(ids(bottom)).toEqual(['pagination', 'comments']);
 
-    manager.applyConfig({ bottom: ['licenseNotification', 'pagination'] });
+    manager.applyConfig({ bottom: ['comments', 'pagination'] });
 
-    expect(ids(bottom)).toEqual(['licenseNotification', 'pagination']);
+    expect(ids(bottom)).toEqual(['comments', 'pagination']);
   });
 
   it('register defaults the weight to 0 when omitted', () => {
@@ -120,6 +120,21 @@ describe('LayoutManager', () => {
 
     expect(() => manager.unregister('missing', 'bottom')).not.toThrow();
     expect(ids(bottom)).toEqual(['a']);
+  });
+
+  it('keeps an unregistered (foreign) trailing element last as registered items are added', () => {
+    const { manager, bottom } = setup();
+
+    // Mimic the license notification: a foreign element appended directly to the slot, never
+    // registered with the manager. Registered items must always be inserted before it.
+    const license = make('license');
+
+    bottom.appendChild(license);
+
+    manager.register('pagination', make('pagination'), { side: 'bottom', weight: 100 });
+    manager.register('toolbar', make('toolbar'), { side: 'bottom', weight: 50 });
+
+    expect(ids(bottom)).toEqual(['toolbar', 'pagination', 'license']);
   });
 
   it('clears all slots on destroy', () => {
