@@ -385,6 +385,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-gap-size` </div><div class="variables-table__item"><span>JS:</span> `gapSize` </div>         | Standard gap size used throughout the component |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-icon-size` </div><div class="variables-table__item"><span>JS:</span> `iconSize` </div>        | Size of icons throughout the interface          |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-table-transition` </div><div class="variables-table__item"><span>JS:</span> `tableTransition` </div> | Transition duration for table animations        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-border-radius` </div><div class="variables-table__item"><span>JS:</span> `borderRadius` </div>     | Border radius of the table                      |
 
 #### Color System Variables
 
@@ -425,12 +426,6 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | -------- | -------------------------------- |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-horizontal-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellHorizontalBorderColor` </div> | Color of horizontal cell borders |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-vertical-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellVerticalBorderColor` </div>   | Color of vertical cell borders   |
-
-#### Border Radius Variables
-
-| Variable | Description                |
-| -------- | -------------------------- |
-| <div class="variables-table__item"><span>CSS:</span> `--ht-border-radius` </div><div class="variables-table__item"><span>JS:</span> `borderRadius` </div> | Border radius of the table |
 
 #### Row Styling Variables
 
