@@ -52,6 +52,19 @@ describe('LayoutManager', () => {
     expect(ids(bottom)).toEqual(['pagination', 'summary']);
   });
 
+  it('falls back to weight order when config is null or undefined', () => {
+    const { manager, bottom } = setup();
+
+    manager.getSlot('bottom').add('pagination', make('pagination'), 100);
+    manager.getSlot('bottom').add('summary', make('summary'), 200);
+
+    expect(() => manager.applyConfig(null)).not.toThrow();
+    expect(ids(bottom)).toEqual(['pagination', 'summary']);
+
+    expect(() => manager.applyConfig(undefined)).not.toThrow();
+    expect(ids(bottom)).toEqual(['pagination', 'summary']);
+  });
+
   it('register places the element into the slot named by side and applies the weight', () => {
     const { manager, top, bottom } = setup();
 

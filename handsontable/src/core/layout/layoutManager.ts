@@ -93,7 +93,7 @@ export class LayoutManager {
    * @returns {void}
    */
   applyConfig(config: LayoutConfig = {}): void {
-    Object.values(LAYOUT_SLOTS).forEach(side => this.getSlot(side).setOrder(config[side] ?? []));
+    Object.values(LAYOUT_SLOTS).forEach(side => this.getSlot(side).setOrder(config?.[side] ?? []));
   }
 
   /**
