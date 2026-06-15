@@ -285,21 +285,50 @@ By default, collapsing a group leaves its first column visible. To choose which 
 - `'expanded'` - the column is visible only while its group is expanded (hidden while collapsed).
 - `'always'` - the column is visible in both states. This is the default when `visibleWhen` is omitted.
 
-In the example below, collapsing the **Q1 2025** group keeps only the **Total** column visible, and the per-month columns return when you expand it:
+In the example below, collapse the **Q1 2025** group: the per-month columns (`'expanded'`) hide and the **Total** column (`'collapsed'`) appears. Expanding the group reverses it.
 
-```js
-nestedHeaders: [
-  ['Region', { label: 'Q1 2025', colspan: 4 }],
-  [
-    'Region',
-    { label: 'Jan', visibleWhen: 'expanded' },
-    { label: 'Feb', visibleWhen: 'expanded' },
-    { label: 'Mar', visibleWhen: 'expanded' },
-    { label: 'Total', visibleWhen: 'collapsed' },
-  ],
-],
-collapsibleColumns: true,
-```
+::: only-for javascript
+
+::: example #example3 --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-groups/javascript/example3.js)
+@[code](@/content/guides/columns/column-groups/javascript/example3.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example3 :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-groups/react/example3.jsx)
+@[code](@/content/guides/columns/column-groups/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-groups/angular/example3.ts)
+@[code](@/content/guides/columns/column-groups/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/columns/column-groups/vue/example3.vue)
+
+:::
+
+:::
 
 A header without any `visibleWhen` markers keeps the default behavior - collapsing leaves its first column visible. The `visibleWhen` property applies only to headers within a [`collapsible`](@/api/options.md#collapsiblecolumns) group.
 
