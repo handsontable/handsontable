@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { generateThemeCss } from '../utils/cssGeneration.mjs';
+import { generateThemeCss, writeCssThemeFiles } from '../utils/cssGeneration.mjs';
 
 test('generateThemeCss returns null (no throw) when the theme is missing from colors', () => {
   const themeVariables = {
@@ -24,6 +24,19 @@ test('generateThemeCss returns null (no throw) when the density level is missing
 
   assert.doesNotThrow(() => generateThemeCss('main', themeVariables));
   assert.equal(generateThemeCss('main', themeVariables), null);
+});
+
+test('writeCssThemeFiles throws (does not exit 0) when a theme cannot generate CSS', () => {
+  // Single theme, missing from colors → generateThemeCss returns null → nothing is written, and the
+  // run must fail rather than leave partial output. (No good theme here, so no files are emitted.)
+  const themeVariables = {
+    sizing: { size_0: '0px' },
+    density: { default: {} },
+    colors: {},
+    tokens: { main: { density: 'default', backgroundColor: 'colors.white' } },
+  };
+
+  assert.throws(() => writeCssThemeFiles(themeVariables), /CSS generation failed for theme/);
 });
 
 test('generateThemeCss emits CSS for a well-formed theme', () => {

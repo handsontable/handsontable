@@ -240,23 +240,39 @@ function writeCssThemeFiles(themeVariables) {
   console.log('\n## CSS Generation ##');
   console.log('\n### CSS theme Generation ###');
 
+  const skippedThemes = [];
+
   for (const themeName of themeNames) {
     const cssContent = generateThemeCss(themeName, themeVariables);
     const cssContentWithIcons = generateThemeCss(themeName, themeVariables, true);
 
-    if (cssContent) {
-      const filePathNoIcons = `${baseThemePath}/${PREFIX}-theme-${themeName}-no-icons.css`;
+    if (!cssContent) {
+      skippedThemes.push(themeName);
 
-      writeFileSync(filePathNoIcons, cssContent);
-
-      console.log(`Generated: ${filePathNoIcons}`);
-
-      const filePath = `${baseThemePath}/${PREFIX}-theme-${themeName}.css`;
-
-      writeFileSync(filePath, cssContentWithIcons);
-
-      console.log(`Generated: ${filePath}`);
+      continue;
     }
+
+    const filePathNoIcons = `${baseThemePath}/${PREFIX}-theme-${themeName}-no-icons.css`;
+
+    writeFileSync(filePathNoIcons, cssContent);
+
+    console.log(`Generated: ${filePathNoIcons}`);
+
+    const filePath = `${baseThemePath}/${PREFIX}-theme-${themeName}.css`;
+
+    writeFileSync(filePath, cssContentWithIcons);
+
+    console.log(`Generated: ${filePath}`);
+  }
+
+  // Every theme in TOKENS_KEY must produce CSS. If one was skipped (missing colors or a valid
+  // density level) the output is incomplete — TS modules without matching theme CSS. Fail loudly
+  // so the partial regeneration is never mistaken for success and committed after the wipe.
+  if (skippedThemes.length > 0) {
+    throw new Error(
+      `CSS generation failed for theme(s): ${skippedThemes.join(', ')}. `
+      + 'They have tokens but are missing colors or a valid density level. Fix tokens.json and re-run.'
+    );
   }
 
   console.log('\n### CSS icons Generation ###');
