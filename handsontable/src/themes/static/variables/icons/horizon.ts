@@ -3,6 +3,7 @@
 /*
  * This file is auto-generated. Do not edit directly.
  */
+
 import type { ThemeIconsConfig } from '../../../types';
 
 const horizonIcons: ThemeIconsConfig = {

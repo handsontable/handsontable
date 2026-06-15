@@ -1,6 +1,7 @@
 /*
  * This file is auto-generated. Do not edit directly.
  */
+
 import type { ThemeColorsConfig } from '../../../types';
 
 const horizonColors: ThemeColorsConfig = {
