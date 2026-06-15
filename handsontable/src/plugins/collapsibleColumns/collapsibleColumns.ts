@@ -515,14 +515,17 @@ export class CollapsibleColumns extends BasePlugin {
     if (isActionPossible) {
       arrayEach(filteredCoords, ({ row, col: column }) => {
         const {
-          colspanCompensation,
           affectedColumns,
           rollbackModification,
         } = this.headerStateManager?.triggerNodeModification(action, row, column) ?? {
           colspanCompensation: 0, affectedColumns: [], rollbackModification: () => {}
         };
 
-        if (colspanCompensation > 0) {
+        // Gate on whether any columns were affected, not on the colspan delta. A collapse can own
+        // columns without changing the colspan - when the columns it claims are already hidden by
+        // another source (e.g. HiddenColumns) the colspan is unchanged, but the collapse must still
+        // record those columns so the group stays collapsed if that external hide is later removed.
+        if (affectedColumns.length > 0) {
           affectedColumnsIndexes.push(...affectedColumns);
           nodeModRollbacks.push(rollbackModification);
         }

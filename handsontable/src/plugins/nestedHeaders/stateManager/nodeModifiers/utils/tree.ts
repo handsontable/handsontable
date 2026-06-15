@@ -1,24 +1,53 @@
 import type TreeNode from '../../../../../utils/dataStructures/tree';
 
 /**
- * Traverses the tree nodes and calls a callback when no hidden node is found. The callback
- * is called with visual column index then.
+ * Collects the grid column indexes a node "exposes" to its parent - the columns that become newly
+ * hidden when an ancestor collapses, and are handed back when it expands.
+ *
+ * A column owned by an inner collapse (a descendant `isCollapsed` node's collapsed-away span) is
+ * skipped - it belongs to that inner collapse, so an outer collapse/expand must leave it untouched
+ * (otherwise expanding the outer group would blow open every nested collapse). A column hidden only
+ * by an external source (e.g. HiddenColumns) is still exposed, so a collapse can own it and the
+ * group stays collapsed even if that external hide is later removed.
  *
  * @param {TreeNode} node A tree node to traverse.
- * @param {Function} callback The callback function which will be called for each node.
+ * @param {Function} callback Called with each exposed visual column index.
  */
-export function traverseHiddenNodeColumnIndexes(node: TreeNode, callback: Function) {
-  node.walkDown(({ data, childs }: { data: Record<string, unknown>, childs: TreeNode[] }) => {
-    if (!data.isHidden) {
-      callback(data.columnIndex);
+export function traverseExposedColumnIndexes(node: TreeNode, callback: Function) {
+  const { data, childs } = node as unknown as
+    { data: Record<string, unknown>, childs: TreeNode[] };
 
-      if (childs.length === 0) {
-        for (let i = 1; i < (data.colspan as number); i++) {
-          callback((data.columnIndex as number) + i);
-        }
+  if (data.isCollapsed) {
+    if (childs.length > 0) {
+      // A collapsed group shows only its first visible child; the rest is owned by its own collapse.
+      const representative = childs.find(
+        ({ data: childData }) => !(childData as unknown as Record<string, unknown>).isHidden
+      );
+
+      if (representative) {
+        traverseExposedColumnIndexes(representative, callback);
+      }
+
+    } else {
+      // A collapsed wide header exposes only its current (representative) columns.
+      for (let i = 0; i < (data.colspan as number); i++) {
+        callback((data.columnIndex as number) + i);
       }
     }
-  });
+
+    return;
+  }
+
+  if (childs.length === 0) {
+    // A non-collapsed leaf exposes its whole span, including columns hidden by an external source.
+    for (let i = 0; i < (data.origColspan as number); i++) {
+      callback((data.columnIndex as number) + i);
+    }
+
+    return;
+  }
+
+  childs.forEach(child => traverseExposedColumnIndexes(child, callback));
 }
 
 /**

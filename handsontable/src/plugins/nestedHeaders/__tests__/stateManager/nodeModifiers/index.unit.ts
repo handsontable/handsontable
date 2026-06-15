@@ -52,7 +52,7 @@ describe('NodeModifiers', () => {
 
       // B1
       expect(triggerNodeModification('collapse', tree.getNode(0, 1))).toEqual(expect.objectContaining({
-        affectedColumns: [6, 8, 7],
+        affectedColumns: [6, 7, 8],
         colspanCompensation: 3,
       }));
 
@@ -70,7 +70,7 @@ describe('NodeModifiers', () => {
 
       // B1
       expect(triggerNodeModification('expand', tree.getNode(0, 1))).toEqual(expect.objectContaining({
-        affectedColumns: [6, 8, 7],
+        affectedColumns: [6, 7, 8],
         colspanCompensation: 3,
       }));
 

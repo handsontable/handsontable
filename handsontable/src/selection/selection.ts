@@ -853,17 +853,33 @@ class Selection {
       const minColumn = isSelectedByRowHeader ? -1 : 0;
       const coordsStartAmount = isSelectedByRowHeader ? 0 : amount;
 
+      // After shifting, a single-column selection can land on a column that is hidden (e.g. removing
+      // a column next to a hidden one), leaving the highlight on a non-rendered column. Snap it to
+      // the nearest visible column. This is scoped to single-column selections only - a wider range
+      // legitimately keeps hidden columns within its bounds (they stay part of copy/fill ranges), so
+      // its corners are never snapped.
+      const isSingleColumn = from.col === to.col;
+      const clampToVisibleColumn = (visualColumn: number): number => {
+        if (!isSingleColumn || visualColumn < 0) {
+          return visualColumn;
+        }
+
+        const nearestColumn = this.tableProps.columnIndexMapper.getNearestNotHiddenIndex(visualColumn, 1, true);
+
+        return nearestColumn === null ? visualColumn : nearestColumn;
+      };
+
       // Remove from the stack the last added selection as that selection below will be
       // replaced by new transformed selection.
       this.getSelectedRange().pop();
 
       const coordsStart = this.tableProps.createCellCoords(
         from.row ?? 0,
-        clamp((from.col ?? 0) + coordsStartAmount, minColumn, countCols - 1)
+        clampToVisibleColumn(clamp((from.col ?? 0) + coordsStartAmount, minColumn, countCols - 1))
       );
       const coordsEnd = this.tableProps.createCellCoords(
         to.row ?? 0,
-        clamp((to.col ?? 0) + amount, minColumn, countCols - 1)
+        clampToVisibleColumn(clamp((to.col ?? 0) + amount, minColumn, countCols - 1))
       );
 
       this.markSource('shift');
@@ -871,7 +887,7 @@ class Selection {
       if ((highlight.col ?? 0) >= visualColumnIndex) {
         this.setRangeStartOnly(coordsStart, true, this.tableProps.createCellCoords(
           highlight.row ?? 0,
-          clamp((highlight.col ?? 0) + amount, 0, countCols - 1)
+          clampToVisibleColumn(clamp((highlight.col ?? 0) + amount, 0, countCols - 1))
         ));
 
       } else {

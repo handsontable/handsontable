@@ -3,7 +3,7 @@ import { collapseNode } from './collapse';
 import {
   getFirstChildProperty,
   isNodeReflectsFirstChildColspan,
-  traverseHiddenNodeColumnIndexes,
+  traverseExposedColumnIndexes,
 } from './utils/tree';
 import type TreeNode from '../../../../utils/dataStructures/tree';
 import type { HeaderNodeData } from '../headersTree';
@@ -62,7 +62,11 @@ export function expandNode(
       // Calculate by how many colspan it needs to increase the headings.
       colspanCompensation += leafData.colspan;
 
-      traverseHiddenNodeColumnIndexes(treeNode, (gridColumnIndex: number) => {
+      // Release exactly the columns this child exposes, mirroring the claim in collapseNode. The
+      // restored subtree carries its inner `isCollapsed` flags, so columns owned by a nested
+      // collapse are left hidden while the ones this collapse owned (visible or externally hidden)
+      // are handed back.
+      traverseExposedColumnIndexes(treeNode, (gridColumnIndex: number) => {
         affectedColumns.add(gridColumnIndex);
       });
     });

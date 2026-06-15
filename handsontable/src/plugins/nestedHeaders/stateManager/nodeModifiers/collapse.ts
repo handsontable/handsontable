@@ -3,7 +3,7 @@ import { expandNode } from './expand';
 import {
   getFirstChildProperty,
   isNodeReflectsFirstChildColspan,
-  traverseHiddenNodeColumnIndexes,
+  traverseExposedColumnIndexes,
 } from './utils/tree';
 import type TreeNode from '../../../../utils/dataStructures/tree';
 import type { HeaderNodeData } from '../headersTree';
@@ -41,16 +41,14 @@ export function collapseNode(
   let colspanCompensation = 0;
 
   if (nodeChilds.length > 0) {
-    // Keep the first *visible* child as the representative and hide the visible children that
-    // follow it. Using the first visible child (instead of always the structurally-first child)
-    // means a group whose leading children are already hidden (by collapse or by HiddenColumns)
-    // never collapses into nothing - its last visible column and collapsible indicator survive.
+    // Keep the first *visible* child as the representative and collapse every child that follows
+    // it. Using the first visible child (instead of always the structurally-first child) means a
+    // group whose leading children are already hidden (by collapse or by HiddenColumns) never
+    // collapses into nothing - its last visible column and collapsible indicator survive.
     const firstVisibleChildIndex = nodeChilds.findIndex(({ data }) => !data.isHidden);
-    const childsToHide = nodeChilds.filter(
-      ({ data }, index) => index > firstVisibleChildIndex && data.isHidden === false
-    );
+    const childsToHide = nodeChilds.filter((_, index) => index > firstVisibleChildIndex);
 
-    // Nothing left to collapse - the group is already reduced to its first visible child.
+    // Nothing to collapse - there is no visible representative, or it is already the last child.
     if (firstVisibleChildIndex === -1 || childsToHide.length === 0) {
       return {
         rollbackModification: () => {},
@@ -62,7 +60,11 @@ export function collapseNode(
     arrayEach(childsToHide, (node) => {
       const treeNode = node as TreeNode;
 
-      traverseHiddenNodeColumnIndexes(treeNode, (gridColumnIndex: number) => {
+      // Claim the columns this child exposes - everything it shows plus any columns hidden only by
+      // an external source (e.g. HiddenColumns), but NOT columns owned by an inner collapse. This
+      // lets the collapse own an already-externally-hidden column (so the group stays collapsed if
+      // that hide is later removed) while leaving nested collapses untouched.
+      traverseExposedColumnIndexes(treeNode, (gridColumnIndex: number) => {
         affectedColumns.add(gridColumnIndex);
       });
 

@@ -582,5 +582,270 @@ describe('NestedHeaders', () => {
         }
       });
     });
+
+    describe('collapsed group structure with grouping and hiding (DEV-294)', () => {
+      // The header total width must always equal the body total width; any drift is the
+      // "group spilling over the next column" misalignment the client reported.
+      function expectHeaderBodyAligned() {
+        const cw = el => Math.round(el.getBoundingClientRect().width);
+        const bodyTotal = Array.from(getMaster().find('tbody tr:eq(0) td'))
+          .reduce((sum, td) => sum + cw(td), 0);
+        const headerTotal = Array.from(getMaster().find('thead tr')[0].querySelectorAll('th'))
+          .reduce((sum, th) => sum + cw(th), 0);
+
+        expect(headerTotal).toBe(bodyTotal);
+      }
+
+      function buildGrid(extra = {}) {
+        handsontable({
+          data: createSpreadsheetData(5, 6),
+          colHeaders: true,
+          width: 800,
+          height: 250,
+          nestedHeaders: [
+            ['A', { label: 'Group B', colspan: 4 }, 'C'],
+            ['A', { label: 'B-left', colspan: 2 }, { label: 'B-right', colspan: 2 }, 'C'],
+            ['A', 'B1', 'B2', 'B3', 'B4', 'C'],
+          ],
+          collapsibleColumns: true,
+          hiddenColumns: { columns: [], indicators: true },
+          ...extra,
+        });
+      }
+
+      it('should render a collapsed sub-group with the correct DOM structure', async() => {
+        buildGrid();
+
+        // Collapse B-left: its first child B1 stays, B2 becomes collapse-hidden.
+        getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 1 });
+        await render();
+
+        expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+          <thead>
+            <tr>
+              <th class="">A</th>
+              <th class="collapsibleIndicator expanded" colspan="3">Group B</th>
+              <th class="hiddenHeader"></th>
+              <th class="hiddenHeader"></th>
+              <th class="">C</th>
+            </tr>
+            <tr>
+              <th class="">A</th>
+              <th class="collapsibleIndicator collapsed">B-left</th>
+              <th class="collapsibleIndicator expanded" colspan="2">B-right</th>
+              <th class="hiddenHeader"></th>
+              <th class="">C</th>
+            </tr>
+            <tr>
+              <th class="">A</th>
+              <th class="">B1</th>
+              <th class="">B3</th>
+              <th class="">B4</th>
+              <th class="">C</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="ht__row_odd">
+              <td class="">A1</td>
+              <td class="">B1</td>
+              <td class="">D1</td>
+              <td class="">E1</td>
+              <td class="">F1</td>
+            </tr>
+          </tbody>
+        `);
+        expectHeaderBodyAligned();
+      });
+
+      it('should render a collapsed parent group with the correct DOM structure', async() => {
+        buildGrid();
+
+        // Collapse the parent Group B: its first child B-left (2 cols) stays, B-right is hidden.
+        getPlugin('collapsibleColumns').collapseSection({ row: -3, col: 1 });
+        await render();
+
+        expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+          <thead>
+            <tr>
+              <th class="">A</th>
+              <th class="collapsibleIndicator collapsed" colspan="2">Group B</th>
+              <th class="hiddenHeader"></th>
+              <th class="">C</th>
+            </tr>
+            <tr>
+              <th class="">A</th>
+              <th class="collapsibleIndicator expanded" colspan="2">B-left</th>
+              <th class="hiddenHeader"></th>
+              <th class="">C</th>
+            </tr>
+            <tr>
+              <th class="">A</th>
+              <th class="">B1</th>
+              <th class="">B2</th>
+              <th class="">C</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="ht__row_odd">
+              <td class="">A1</td>
+              <td class="">B1</td>
+              <td class="">C1</td>
+              <td class="">F1</td>
+            </tr>
+          </tbody>
+        `);
+        expectHeaderBodyAligned();
+      });
+
+      // When the only column a collapse would hide is already hidden by HiddenColumns, the collapse
+      // still records itself: `isCollapsed` is set (the indicator shows collapsed) and the collapse
+      // "owns" that column, so the group stays collapsed even if HiddenColumns later shows it.
+      // The colspan does not change (the column was already out of the colspan).
+      it('should mark the sub-group collapsed even when its extra child is already hidden', async() => {
+        buildGrid({ hiddenColumns: { columns: [2], indicators: true } });
+
+        getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 1 });
+        await render();
+
+        expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+          <thead>
+            <tr>
+              <th class="">A</th>
+              <th class="collapsibleIndicator expanded" colspan="3">Group B</th>
+              <th class="hiddenHeader"></th>
+              <th class="hiddenHeader"></th>
+              <th class="">C</th>
+            </tr>
+            <tr>
+              <th class="">A</th>
+              <th class="collapsibleIndicator collapsed">B-left</th>
+              <th class="collapsibleIndicator expanded" colspan="2">B-right</th>
+              <th class="hiddenHeader"></th>
+              <th class="">C</th>
+            </tr>
+            <tr>
+              <th class="">A</th>
+              <th class="beforeHiddenColumn">B1</th>
+              <th class="afterHiddenColumn">B3</th>
+              <th class="">B4</th>
+              <th class="">C</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="ht__row_odd">
+              <td class="">A1</td>
+              <td class="">B1</td>
+              <td class="afterHiddenColumn">D1</td>
+              <td class="">E1</td>
+              <td class="">F1</td>
+            </tr>
+          </tbody>
+        `);
+        expectHeaderBodyAligned();
+      });
+
+      // Round-trip ownership (the bug this fix addresses): once B-left is collapsed with B2 already
+      // hidden, the collapse must OWN B2 so that re-showing B2 via HiddenColumns keeps the group
+      // collapsed, and only expanding the group reveals it.
+      it('should keep the group collapsed when its already-hidden child is shown, and reveal it on expand', async() => {
+        buildGrid({ hiddenColumns: { columns: [2], indicators: true } });
+
+        getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 1 });
+        await render();
+
+        const collapsedTh = () => Array.from(getTopClone().find('thead th')).find((cell) => {
+          const header = cell.querySelector('.colHeader');
+
+          return header && header.innerText === 'B-left';
+        });
+
+        expect(!!collapsedTh().querySelector('.collapsibleIndicator.collapsed')).toBe(true);
+
+        // Show B2 via HiddenColumns: the collapse still owns it, so it stays hidden and B-left stays collapsed.
+        getPlugin('hiddenColumns').showColumn(2);
+        await render();
+
+        expect(!!collapsedTh().querySelector('.collapsibleIndicator.collapsed')).toBe(true);
+        expect(getMaster().find('tbody tr:eq(0) td').length).toBe(5); // A, B1, B3, B4, C - B2 still hidden by collapse
+        expectHeaderBodyAligned();
+
+        // Expanding the group releases B2; nothing hides it anymore, so it becomes visible.
+        getPlugin('collapsibleColumns').expandSection({ row: -2, col: 1 });
+        await render();
+
+        expect(!!collapsedTh().querySelector('.collapsibleIndicator.expanded')).toBe(true);
+        expect(getMaster().find('tbody tr:eq(0) td').length).toBe(6); // A, B1, B2, B3, B4, C all visible
+        expectHeaderBodyAligned();
+      });
+
+      // Image #6 class of bug: collapse B-left, then hide its only visible column (B1) via
+      // HiddenColumns. B-left then has no visible column, so its header disappears, but the grid
+      // must stay aligned and Group B must keep a collapsible indicator (the group is recoverable
+      // by re-showing B1).
+      it('should stay aligned and recoverable when a collapsed sub-group loses its only visible column', async() => {
+        buildGrid();
+
+        getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 1 });
+        await render();
+        getPlugin('hiddenColumns').hideColumn(1); // hide B1, the visible representative of B-left
+        await render();
+
+        expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+          <thead>
+            <tr>
+              <th class="">A</th>
+              <th class="collapsibleIndicator expanded" colspan="2">Group B</th>
+              <th class="hiddenHeader"></th>
+              <th class="">C</th>
+            </tr>
+            <tr>
+              <th class="">A</th>
+              <th class="collapsibleIndicator expanded" colspan="2">B-right</th>
+              <th class="hiddenHeader"></th>
+              <th class="">C</th>
+            </tr>
+            <tr>
+              <th class="beforeHiddenColumn">A</th>
+              <th class="">B3</th>
+              <th class="">B4</th>
+              <th class="">C</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="ht__row_odd">
+              <td class="">A1</td>
+              <td class="">D1</td>
+              <td class="">E1</td>
+              <td class="">F1</td>
+            </tr>
+          </tbody>
+        `);
+        expectHeaderBodyAligned();
+        // The group must remain recoverable - a collapsible indicator stays in the headers.
+        expect(getTopClone().find('thead .collapsibleIndicator').length).toBeGreaterThan(0);
+      });
+
+      it('should move the selection off a column that collapsing a sub-group hides', async() => {
+        buildGrid();
+        await selectCell(0, 2); // select B2 (the column the collapse will hide)
+
+        getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 1 });
+        await render();
+
+        // B2 is hidden by the collapse, so the selection moves to the next visible column (B3).
+        expect(getSelectedRange()).toEqualCellRange(['highlight: 0,3 from: 0,3 to: 0,3']);
+      });
+
+      it('should move the selection off the columns that collapsing the parent group hides', async() => {
+        buildGrid();
+        await selectCell(0, 3); // select B3 (inside the part the parent collapse will hide)
+
+        getPlugin('collapsibleColumns').collapseSection({ row: -3, col: 1 });
+        await render();
+
+        // B3 and B4 are hidden, so the selection moves to the next visible column (C).
+        expect(getSelectedRange()).toEqualCellRange(['highlight: 0,5 from: 0,5 to: 0,5']);
+      });
+    });
   });
 });
