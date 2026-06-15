@@ -8,6 +8,7 @@ import {
 } from './utils/tree';
 import type TreeNode from '../../../../utils/dataStructures/tree';
 import type { HeaderNodeData } from '../headersTree';
+import type { NodeModificationResult } from './index';
 
 /**
  * Expanding a node is a process where the processing node is expanded to
@@ -18,7 +19,7 @@ import type { HeaderNodeData } from '../headersTree';
  */
 export function expandNode(
   nodeToProcess: TreeNode<HeaderNodeData>
-): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } {
+): NodeModificationResult {
   const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
   if (!nodeData.isCollapsed || nodeData.isHidden || nodeData.origColspan <= 1) {
@@ -54,7 +55,7 @@ export function expandNode(
   // cloned tree. Mirrors the "first visible child" selection done in collapseNode, so children
   // hidden by an external source (or by their own collapse) are left untouched.
   const childsToRestore = nodeChilds.filter(({ data }) => data.clonedTree);
-  const affectedColumns = new Set();
+  const affectedColumns = new Set<number>();
   let colspanCompensation = 0;
 
   if (childsToRestore.length > 0) {

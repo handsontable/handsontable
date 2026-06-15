@@ -8,6 +8,7 @@ import {
 } from './utils/tree';
 import type TreeNode from '../../../../utils/dataStructures/tree';
 import type { HeaderNodeData } from '../headersTree';
+import type { NodeModificationResult } from './index';
 
 /**
  * Collapsing a node is a process where the processing node is collapsed
@@ -18,7 +19,7 @@ import type { HeaderNodeData } from '../headersTree';
  */
 export function collapseNode(
   nodeToProcess: TreeNode<HeaderNodeData>
-): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } {
+): NodeModificationResult {
   const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
   if (nodeData.isCollapsed || nodeData.isHidden || nodeData.origColspan <= 1) {
@@ -50,7 +51,7 @@ export function collapseNode(
     return collapseNode(nodeChilds[0]);
   }
 
-  const affectedColumns = new Set();
+  const affectedColumns = new Set<number>();
   let colspanCompensation = 0;
 
   if (nodeChilds.length > 0) {

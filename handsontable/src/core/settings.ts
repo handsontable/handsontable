@@ -150,7 +150,7 @@ export interface GridSettings {
   autoColumnSize?: boolean | object;
   autoRowSize?: boolean | object;
   bindRowsWithHeaders?: boolean | string;
-  collapsibleColumns?: boolean | object[];
+  collapsibleColumns?: boolean | { row: number; col: number; collapsible?: boolean; [key: string]: unknown }[];
   columnSummary?: object[] | (() => object[]);
   comments?: boolean | object | object[];
   contextMenu?: boolean | object | string[];

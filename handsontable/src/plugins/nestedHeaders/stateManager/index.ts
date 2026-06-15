@@ -3,6 +3,7 @@ import SourceSettings from './sourceSettings';
 import type { HeaderNodeData } from './headersTree';
 import HeadersTree from './headersTree';
 import { triggerNodeModification } from './nodeModifiers';
+import type { NodeModificationResult } from './nodeModifiers';
 import { generateMatrix } from './matrixGenerator';
 import { syncVisibilityOnTree } from './syncVisibility';
 import type { ColumnVisibility } from './columnVisibility';
@@ -239,7 +240,7 @@ export default class StateManager {
    */
   triggerNodeModification(
     action: string, headerLevel: number, columnIndex: number
-  ): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } | undefined {
+  ): NodeModificationResult | undefined {
     if (headerLevel < 0) {
       headerLevel = this.rowCoordsToLevel(headerLevel) ?? 0;
     }
@@ -265,7 +266,7 @@ export default class StateManager {
    */
   triggerColumnModification(
     action: string, columnIndex: number
-  ): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } | undefined {
+  ): NodeModificationResult | undefined {
     return this.triggerNodeModification(action, -1, columnIndex);
   }
 

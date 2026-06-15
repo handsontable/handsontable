@@ -19,35 +19,8 @@ import {
   A11Y_EXPANDED,
   A11Y_HIDDEN
 } from '../../helpers/a11y';
-
-/**
- * Interface for NestedHeaders plugin StateManager.
- */
-interface HeaderStateManager {
-  getHeaderTreeNodeData(row: number, col: number): {
-    collapsible: boolean; isCollapsed: boolean; columnIndex: number; headerLevel: number;
-  } | undefined;
-  getHeaderSettings(headerLevel: number, column: number): {
-    collapsible: boolean; origColspan: number; isCollapsed: boolean;
-  } | undefined;
-  mapState(callback: (headerSettings: Record<string, unknown>) => Record<string, unknown>): void;
-  mergeStateWith(settings: unknown[]): void;
-  mapNodes(callback: (headerSettings: Record<string, unknown>) => unknown): unknown[];
-  levelToRowCoords(headerLevel: unknown): number;
-  triggerNodeModification(action: string, row: number, column: number): {
-    colspanCompensation: number; affectedColumns: number[]; rollbackModification: Function;
-  };
-  getVisibleWhenHiddenColumns(): number[];
-}
-
-/**
- * Interface for the NestedHeaders plugin instance.
- */
-interface NestedHeadersPlugin {
-  getStateManager(): HeaderStateManager;
-  detectedOverlappedHeaders: boolean;
-  [key: string]: unknown;
-}
+import type { NestedHeaders } from '../nestedHeaders/nestedHeaders';
+import type StateManager from '../nestedHeaders/stateManager';
 
 export const PLUGIN_KEY = 'collapsibleColumns';
 export const PLUGIN_PRIORITY = 290;
@@ -212,27 +185,21 @@ export class CollapsibleColumns extends BasePlugin {
    * @private
    * @type {NestedHeaders}
    */
-  nestedHeadersPlugin: NestedHeadersPlugin | null = null;
+  nestedHeadersPlugin: NestedHeaders | null = null;
   /**
    * The NestedHeaders plugin StateManager instance.
    *
    * @private
    * @type {StateManager}
    */
-  headerStateManager: HeaderStateManager | null = null;
+  headerStateManager: StateManager | null = null;
   /**
    * Map of collapsed columns by the plugin.
-   *
-   * @private
-   * @type {HidingMap|null}
    */
   #collapsedColumnsMap: HidingMap | null = null;
   /**
    * Map of columns hidden by the per-child `visibleWhen` rules (issue #10243), kept separate from
    * `#collapsedColumnsMap`.
-   *
-   * @private
-   * @type {HidingMap|null}
    */
   #visibleWhenMap: HidingMap | null = null;
 
@@ -262,11 +229,11 @@ export class CollapsibleColumns extends BasePlugin {
 
     if (this.pluginName) {
       this.#collapsedColumnsMap = this.hot.columnIndexMapper
-        .createAndRegisterIndexMap(this.pluginName, 'hiding') as HidingMap;
+        .createAndRegisterIndexMap(this.pluginName, 'hiding');
     }
     this.#visibleWhenMap = this.hot.columnIndexMapper
-      .createAndRegisterIndexMap(VISIBLE_WHEN_MAP_NAME, 'hiding') as HidingMap;
-    this.nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders') as unknown as NestedHeadersPlugin;
+      .createAndRegisterIndexMap(VISIBLE_WHEN_MAP_NAME, 'hiding');
+    this.nestedHeadersPlugin = this.hot.getPlugin('nestedHeaders');
     this.headerStateManager = this.nestedHeadersPlugin.getStateManager();
 
     this.addHook('init', this.#onInit);
@@ -490,7 +457,7 @@ export class CollapsibleColumns extends BasePlugin {
       if (collapsible === true && Number(origColspan) > 1
           && (isCollapsed && action === 'expand' || !isCollapsed && action === 'collapse')) {
         return {
-          row: this.headerStateManager?.levelToRowCoords(headerLevel) ?? 0,
+          row: this.headerStateManager?.levelToRowCoords(Number(headerLevel)) ?? 0,
           col: columnIndex,
         };
       }
@@ -717,8 +684,6 @@ export class CollapsibleColumns extends BasePlugin {
    * current header tree (markers + each group's `isCollapsed` state) and writes it into the dedicated
    * `#visibleWhenMap`. Pure recompute - safe to call after any collapse/expand toggle, settings
    * update, or column insert/remove.
-   *
-   * @private
    */
   #refreshVisibleWhenColumns(): void {
     if (!this.#visibleWhenMap || !this.headerStateManager) {
@@ -746,8 +711,6 @@ export class CollapsibleColumns extends BasePlugin {
    * Re-derives the `visibleWhen` hidden set after NestedHeaders rebuilds the header tree on column
    * insertion or removal. The tree (with `isCollapsed` restored) is the source of truth, so a full
    * refresh keeps the hidden set correct without tracking shifted indexes manually.
-   *
-   * @private
    */
   #onAfterColumnStructureChange = () => {
     this.#refreshVisibleWhenColumns();
