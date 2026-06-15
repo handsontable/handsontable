@@ -114,7 +114,14 @@ const domMessages: Record<string, (params: { keyValidityDate?: string; hotVersio
   non_commercial: () => '',
 };
 
-export function _injectProductInfo(key: string, element: HTMLElement, releaseDateStr?: string) {
+export function _injectProductInfo(
+  { className, key, element, releaseDate }: {
+    className?: string;
+    key?: string;
+    element?: HTMLElement;
+    releaseDate?: string;
+  }
+): HTMLElement | null {
   const hasValidType = !isEmpty(key);
   const isNonCommercial = typeof key === 'string' &&
     (key.toLowerCase() === 'non-commercial-and-evaluation' || key.toLowerCase() === 'ht68e-1f2b7-47158-70b05-0842f');
@@ -133,8 +140,8 @@ export function _injectProductInfo(key: string, element: HTMLElement, releaseDat
 
   } else if (hasValidType || schemaValidity) {
     if (schemaValidity) {
-      const releaseDate = releaseDateStr ?? process.env.HOT_RELEASE_DATE ?? '';
-      const [dd, mm, yyyy] = releaseDate.split('/').map(Number);
+      const resolvedReleaseDate = releaseDate ?? process.env.HOT_RELEASE_DATE ?? '';
+      const [dd, mm, yyyy] = resolvedReleaseDate.split('/').map(Number);
       const releaseDays = Math.floor(Date.UTC(yyyy, mm - 1, dd) / 8.64e7);
       const keyValidityDays = _extractTime(key);
 
@@ -191,16 +198,23 @@ export function _injectProductInfo(key: string, element: HTMLElement, releaseDat
 
     if (message) {
       const messageNode = document.createElement('div');
+      const innerNode = document.createElement('div');
 
-      messageNode.className = 'handsontable hot-display-license-info';
-      messageNode.innerHTML = domMessages[domMessageState]({
+      messageNode.className = `handsontable ${className}`;
+      innerNode.className = `${className}_inner`;
+      innerNode.innerHTML = domMessages[domMessageState]({
         keyValidityDate,
         hotVersion,
       });
 
+      messageNode.appendChild(innerNode);
       element.appendChild(messageNode);
+
+      return messageNode;
     }
   }
+
+  return null;
 }
 
 function _checkKeySchema(v: string) {

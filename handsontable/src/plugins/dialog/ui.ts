@@ -58,11 +58,11 @@ const CONTAINER_TEMPLATE = `
  */
 export class DialogUI {
   /**
-   * The root element where the dialog UI will be installed.
+   * The overlay container where the dialog UI will be installed.
    *
    * @type {HTMLElement}
    */
-  #rootElement;
+  #overlayContainer: HTMLElement;
   /**
    * The references to the UI elements.
    *
@@ -99,12 +99,12 @@ export class DialogUI {
   #sanitizer?: (html: string) => string | undefined;
 
   /**
-   * Initializes the dialog UI with a root element, RTL layout flag, and an optional HTML sanitizer, then installs the DOM structure.
+   * Initializes the dialog UI with an overlay container, RTL layout flag, and an optional HTML sanitizer, then installs the DOM structure.
    */
-  constructor({ rootElement, isRtl, sanitizer }: {
-    rootElement: HTMLElement; isRtl: boolean; sanitizer?: (html: string) => string | undefined;
+  constructor({ overlayContainer, isRtl, sanitizer }: {
+    overlayContainer: HTMLElement; isRtl: boolean; sanitizer?: (html: string) => string | undefined;
   }) {
-    this.#rootElement = rootElement;
+    this.#overlayContainer = overlayContainer;
     this.#isRtl = isRtl;
     this.#sanitizer = sanitizer;
 
@@ -163,8 +163,9 @@ export class DialogUI {
     dialogElement.addEventListener('transitionstart', () => this.#onTransitionStart());
     dialogElement.addEventListener('transitionend', () => this.#onTransitionEnd());
 
-    // Append to Handsontable after table grid element
-    this.#rootElement.after(elements.fragment);
+    if (this.#overlayContainer) {
+      this.#overlayContainer.appendChild(elements.fragment);
+    }
   }
 
   /**
@@ -285,7 +286,7 @@ export class DialogUI {
       if (typeof content === 'string') {
         fastInnerHTML(contentElement, content,
           this.#sanitizer ? (html: string, ctx: string) => this.#sanitizer!(html) ?? html : undefined,
-          'dialog', this.#rootElement);
+          'dialog', this.#overlayContainer);
 
       } else if (isHTMLElement(content) || content instanceof DocumentFragment) {
         contentElement.appendChild(content);
@@ -363,18 +364,6 @@ export class DialogUI {
    */
   updateWidth(width: number) {
     this.#refs!.dialogElement.style.width = `${width}px`;
-
-    return this;
-  }
-
-  /**
-   * Updates the height of the dialog container.
-   *
-   * @param {number} licenseInfoHeight - The height of the license info.
-   * @returns {DialogUI} The instance of the DialogUI.
-   */
-  updateHeight(licenseInfoHeight: number) {
-    this.#refs!.dialogElement.style.height = `calc(100% - ${licenseInfoHeight}px)`;
 
     return this;
   }

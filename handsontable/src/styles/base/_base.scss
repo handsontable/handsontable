@@ -11,6 +11,22 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    box-shadow: 0 0 0 var(--ht-wrapper-border-width) var(--ht-wrapper-border-color);
+
+    &:has(> .ht-slot-bottom > .ht-slot-element),
+    &:has(> .ht-slot-top > .ht-slot-element) {
+      .ht-wrapper {
+        &:not(.htHorizontallyScrollableByWindow),
+        &:not(.htVerticallyScrollableByWindow) {
+          .ht_master {
+            .wtHolder {
+              background-color: var(--ht-background-color);
+              box-shadow: inset 0 0 0 1px var(--ht-border-color);
+            }
+          }
+        }
+      }
+    }
   }
 
   .htFocusCatcher {
@@ -27,8 +43,43 @@
   }
 
   .ht-grid {
+    position: relative;
     flex: 1 1 auto;
     min-height: 0;
+  }
+
+  .ht-grid-content {
+    height: 100%;
+  }
+
+  .ht-slot-top, .ht-slot-bottom {
+    flex: 0 0 auto;
+  }
+
+  .ht-slot-element {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--ht-border-color);
+  }
+
+  .ht-slot-top > .ht-slot-element {
+    &:not(:first-of-type) {
+      border-top-width: 0;
+    }
+
+    &:last-of-type {
+      border-bottom-width: 0;
+    }
+  }
+
+  .ht-slot-bottom > .ht-slot-element {
+    &:not(:last-of-type) {
+      border-bottom-width: 0;
+    }
+
+    &:first-of-type {
+      border-top-width: 0;
+    }
   }
 
   // Style for scrollbar width calculation
@@ -83,7 +134,6 @@
 
     // Wrapper
     &.ht-wrapper {
-      border-radius: var(--ht-wrapper-border-radius, 0);
       height: 100%;
       width: 100%;
 
@@ -93,18 +143,6 @@
             border-inline-start-width: 1px;
           }
         }
-      }
-
-      &::before {
-        @include mixins.pseudo();
-
-        position: absolute;
-        inset: 0;
-        border: var(--ht-wrapper-border-width) solid var(--ht-wrapper-border-color);
-        border-radius: var(--ht-wrapper-border-radius, 0);
-        z-index: 999;
-        pointer-events: none;
-        overflow: hidden;
       }
     }
 
@@ -143,23 +181,14 @@
       }
     }
 
-    &.htHasScrollX:not(.htHorizontallyScrollableByWindow):not(.htScrollbarHidden),
-    &.htHasScrollY:not(.htVerticallyScrollableByWindow):not(.htScrollbarHidden) {
-      .ht_master {
-        .wtHolder {
-          border-radius: var(--ht-wrapper-border-radius, 0);
-        }
-      }
-    }
-
     &:not(.htHorizontallyScrollableByWindow),
     &:not(.htVerticallyScrollableByWindow) {
-      &.htPagination,
       &.htHasScrollX,
       &.htHasScrollY {
         .ht_master {
           .wtHolder {
             background-color: var(--ht-background-color);
+            box-shadow: inset 0 0 0 1px var(--ht-border-color);
           }
         }
       }

@@ -36,7 +36,6 @@ describe('Pagination `uiContainer` option', () => {
     expect(paginationContainer.getAttribute('dir')).toBe('ltr');
     expect(paginationContainer).toHaveClass('ht-pagination');
     expect(paginationContainer).toHaveClass('handsontable');
-    expect(paginationContainer).toHaveClass('ht-pagination--bordered');
 
     expect(paginationContainer).toHaveClass(`ht-theme-${getLoadedTheme()}`);
 

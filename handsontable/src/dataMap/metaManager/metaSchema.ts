@@ -3495,6 +3495,30 @@ export default (): Record<string, unknown> => {
     layoutDirection: 'inherit',
 
     /**
+     * The `layout` option configures the order of plugin UI elements within the user-orderable
+     * wrapper slots rendered around the grid: `top` and `bottom`. Each slot takes an ordered array
+     * of element keys (for example `'pagination'`). Keys you list are placed first in that order;
+     * any remaining elements follow by their default weight. The grid and the overlays layer (the
+     * modal layer, such as the dialog) are not orderable through this option. The license
+     * notification is not orderable either; it always renders last in the `bottom` slot.
+     *
+     * @since 18.0.0
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // render pagination above a custom 'summary' element registered in the bottom slot
+     * layout: {
+     *   bottom: ['pagination', 'summary'],
+     * },
+     * ```
+     */
+    layout: undefined,
+
+    /**
      * The `licenseKey` option sets your Handsontable license key.
      *
      * You can set the `licenseKey` option to one of the following:

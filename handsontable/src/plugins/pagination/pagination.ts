@@ -4,10 +4,10 @@ import { getScrollbarWidth } from '../../helpers/dom/element';
 import { PaginationUI } from './ui';
 import { announce } from '../../utils/a11yAnnouncer';
 import { createPaginatorStrategy } from './strategies';
+import { isRootInstance } from '../../utils/rootInstance';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
 import { registerConflict } from '../base/conflictRegistry';
-import type { Hook } from '../../core/settings';
 
 // Hard conflicts: Pagination stays off while any of these top-level settings is truthy.
 registerConflict('pagination', [
@@ -20,6 +20,7 @@ registerConflict('pagination', [
 export const PLUGIN_KEY = 'pagination';
 export const PLUGIN_PRIORITY = 900;
 const SHORTCUTS_CONTEXT_NAME = `plugin:${PLUGIN_KEY}`;
+const LAYOUT_WEIGHT = 100;
 
 const AUTO_PAGE_SIZE_WARNING = toSingleLine`The \`auto\` page size setting requires the \`autoRowSize\`\x20
   plugin to be enabled. Set the \`autoRowSize: true\` in the configuration to ensure correct behavior.`;
@@ -236,7 +237,6 @@ export class Pagination extends BasePlugin {
         isRtl: this.hot.isRtl(),
         themeName: this.hot.getCurrentThemeName(),
         phraseTranslator: (key: string, extraArguments?: unknown) => this.hot.getTranslatedPhrase(key, extraArguments),
-        shouldHaveBorder: () => this.#computeNeedsBorder(),
         a11yAnnouncer: (message: unknown) => announce(String(message ?? '')),
       });
 
@@ -250,6 +250,14 @@ export class Pagination extends BasePlugin {
 
     }
 
+    // The layout manager owns the bottom-slot placement and ordering. With a custom `uiContainer`
+    // the UI installs itself there instead, so the slot registration is skipped. The manager only
+    // exists on the root instance, hence the guard.
+    if (isRootInstance(this.hot) && !this.getSetting('uiContainer')) {
+      this.hot.getLayoutManager()
+        .register(PLUGIN_KEY, this.#ui.getContainer(), { side: 'bottom', weight: LAYOUT_WEIGHT });
+    }
+
     // Place the onInit hook before others to make sure that the pagination state is computed
     // and applied to the index mapper before AutoColumnSize plugin begins calculate the column sizes.
     this.addHook('init', this.#onInit, -1);
@@ -259,8 +267,6 @@ export class Pagination extends BasePlugin {
     this.addHook('beforeSelectionHighlightSet', this.#onBeforeSelectionHighlightSet);
     this.addHook('beforePaste', this.#onBeforePaste);
     this.addHook('afterViewRender', this.#onAfterViewRender);
-    this.addHook('afterRender', this.#onAfterRender);
-    this.addHook('afterScrollVertically', this.#onAfterScrollVertically);
     this.addHook('afterLanguageChange', this.#onAfterLanguageChange);
     this.addHook('beforeHeightChange', this.#onBeforeHeightChange);
     this.addHook('afterSetTheme', this.#onAfterSetTheme);
@@ -394,6 +400,10 @@ export class Pagination extends BasePlugin {
       .unregisterMap(this.pluginName!);
 
     this.#unregisterFocusScope();
+
+    if (isRootInstance(this.hot)) {
+      this.hot.getLayoutManager().unregister(PLUGIN_KEY, 'bottom');
+    }
 
     this.#ui?.destroy();
     this.#ui = null;
@@ -828,34 +838,6 @@ export class Pagination extends BasePlugin {
   }
 
   /**
-   * Based on the external factors (like the scroll position of the table, size etc.) it computes
-   * the need for the top border of the pagination UI container.
-   *
-   * @returns {boolean} Returns `true` if the pagination UI should have a top border, `false` otherwise.
-   */
-  #computeNeedsBorder() {
-    if (!this.hot.view) {
-      return true;
-    }
-
-    const view = this.hot.view;
-
-    if (view.isVerticallyScrollableByWindow()) {
-      return false;
-    }
-
-    if (view.hasHorizontalScroll() || view.getTableHeight() < view.getWorkspaceHeight()) {
-      return true;
-    }
-
-    const {
-      lastVisibleRowIndex
-    } = this.getPaginationData();
-
-    return view.getLastFullyVisibleRow() !== lastVisibleRowIndex;
-  }
-
-  /**
    * Registers the focus scope for the pagination plugin.
    */
   #registerFocusScope() {
@@ -1000,20 +982,6 @@ export class Pagination extends BasePlugin {
   };
 
   /**
-   * Called after the rendering of the table is completed. It updates the width of
-   * the pagination container to the same size as the table.
-   */
-  #onAfterRender = () => {
-    const view = this.hot.view;
-    const width = view.isHorizontallyScrollableByWindow()
-      ? view.getTotalTableWidth() : view.getWorkspaceWidth();
-
-    this.#ui
-      ?.updateWidth(width)
-      ?.refreshBorderState();
-  };
-
-  /**
    * Called before the height of the table is changed. It adjusts the table height to fit the pagination container
    * in declared height.
    *
@@ -1050,14 +1018,6 @@ export class Pagination extends BasePlugin {
     }
 
     this.#computeAndApplyState();
-  };
-
-  /**
-   * Called after the vertical scrolling of the table is completed. It refreshes
-   * the border state of the pagination UI.
-   */
-  #onAfterScrollVertically = () => {
-    this.#ui?.refreshBorderState();
   };
 
   /**

@@ -19,7 +19,10 @@ describe('settings', () => {
 
       const info = spec().$container[0].querySelector('.hot-display-license-info');
 
-      expect(info.className).toBe('handsontable hot-display-license-info');
+      // `ht-slot-element` is added because the notification is registered on the bottom layout slot.
+      expect(info.classList.contains('handsontable')).toBe(true);
+      expect(info.classList.contains('hot-display-license-info')).toBe(true);
+      expect(info.classList.contains('ht-slot-element')).toBe(true);
       expect(info.innerText).toBe([
         'The license key for Handsontable is missing. Use your purchased key to activate the product. ',
         'Alternatively, you can activate Handsontable to use for non-commercial purposes ',

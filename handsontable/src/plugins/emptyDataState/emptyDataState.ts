@@ -275,13 +275,6 @@ export class EmptyDataState extends BasePlugin {
   #ui: EmptyDataStateUI | null = null;
 
   /**
-   * MutationObserver instance for monitoring DOM changes.
-   *
-   * @type {MutationObserver}
-   */
-  #observer: MutationObserver | null = null;
-
-  /**
    * Flag indicating if there are filter conditions.
    *
    * @type {boolean}
@@ -321,13 +314,12 @@ export class EmptyDataState extends BasePlugin {
 
     if (!this.#ui) {
       this.#ui = new EmptyDataStateUI({
-        rootElement: this.hot.rootGridElement,
+        gridContainer: this.hot.rootGridElement,
         rootDocument: this.hot.rootDocument,
       });
 
       this.#registerFocusScope();
       this.#registerEvents();
-      this.#registerObservers();
     }
 
     this.addHook('afterInit', this.#onAfterInit);
@@ -374,7 +366,6 @@ export class EmptyDataState extends BasePlugin {
     this.#loadingActive = false;
 
     this.#unregisterFocusScope();
-    this.#disconnectObservers();
 
     this.#ui?.destroy();
     this.#ui = null;
@@ -397,28 +388,6 @@ export class EmptyDataState extends BasePlugin {
   #registerEvents() {
     this.eventManager.addEventListener(this.#ui!.getElement()!, 'wheel', (event) => {
       this.#onMouseWheel(event as WheelEvent);
-    });
-  }
-
-  /**
-   * Registers the mutation observers for the emptyDataState plugin.
-   */
-  #registerObservers() {
-    // Observe the root element for changes and move the emptyDataState element to the correct position
-    this.#observer = new MutationObserver(() => {
-      if (!this.hot) {
-        return;
-      }
-
-      const element = this.#ui?.getElement();
-
-      if (element && this.hot.rootGridElement.nextElementSibling !== element) {
-        this.hot.rootGridElement.after(element);
-      }
-    });
-
-    this.#observer.observe(this.hot.rootWrapperElement, {
-      childList: true,
     });
   }
 
@@ -446,14 +415,6 @@ export class EmptyDataState extends BasePlugin {
     this.#hide();
     this.#toggleEmptyDataState();
     this.hot.render();
-  }
-
-  /**
-   * Disconnects the mutation observers for the emptyDataState plugin.
-   */
-  #disconnectObservers() {
-    this.#observer?.disconnect();
-    this.#observer = null;
   }
 
   /**
@@ -698,7 +659,6 @@ export class EmptyDataState extends BasePlugin {
     this.#isVisible = false;
     this.#ui?.destroy();
     this.#ui = null;
-    this.#observer = null;
     this.#hasFilterConditions = false;
     this.#selectionState = null;
 

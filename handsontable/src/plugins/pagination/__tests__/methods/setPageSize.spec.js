@@ -89,7 +89,7 @@ describe('Pagination `setPageSize` method', () => {
     expect(visualizePageSections()).toEqual([
       'Page size: [[auto], 5, 10, 20, 50, 100]',
       '1 - 7 of 15',
-      '|< < Page 1 of 2 [>] [>|]'
+      '|< < Page 1 of 3 [>] [>|]'
     ]);
 
     plugin.setPageSize(20);

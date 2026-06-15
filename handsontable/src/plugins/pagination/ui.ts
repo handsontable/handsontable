@@ -99,12 +99,6 @@ export class PaginationUI {
    */
   readonly #phraseTranslator: (...args: unknown[]) => string;
   /**
-   * A function that determines whether the pagination should have a border.
-   *
-   * @type {function(): void}
-   */
-  readonly #shouldHaveBorder: () => boolean;
-  /**
    * A function allowing to announce accessibility messages.
    *
    * @type {function(string): void}
@@ -120,7 +114,6 @@ export class PaginationUI {
     isRtl,
     themeName,
     phraseTranslator,
-    shouldHaveBorder,
     a11yAnnouncer,
   }: Record<string, unknown>) {
     this.#rootElement = rootElement as HTMLElement;
@@ -128,7 +121,6 @@ export class PaginationUI {
     this.#isRtl = isRtl as boolean;
     this.#themeName = themeName as string | undefined;
     this.#phraseTranslator = phraseTranslator as (...args: unknown[]) => string;
-    this.#shouldHaveBorder = shouldHaveBorder as () => boolean;
     this.#a11yAnnouncer = a11yAnnouncer as (message: unknown) => void;
 
     this.install();
@@ -185,9 +177,10 @@ export class PaginationUI {
       this.#uiContainer.appendChild(elements.fragment);
 
       addClass(container, [this.#themeName ?? '', 'handsontable']);
-    } else {
-      this.#rootElement.after(elements.fragment);
     }
+
+    // Without a custom `uiContainer`, the LayoutManager owns placement: it appends the container
+    // into the bottom slot when the plugin registers it. The element stays detached until then.
   }
 
   /**
@@ -223,18 +216,6 @@ export class PaginationUI {
   }
 
   /**
-   * Updates the width of the pagination container.
-   *
-   * @param {number} width The new width of the pagination container.
-   * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
-   */
-  updateWidth(width: number): PaginationUI {
-    this.#refs!.container.style.width = `${width}px`;
-
-    return this;
-  }
-
-  /**
    * Updates the theme of the pagination container.
    *
    * @param {string | false | undefined} themeName The name of the theme to use.
@@ -263,23 +244,6 @@ export class PaginationUI {
    */
   getHeight(): number {
     return this.#refs!.container.offsetHeight;
-  }
-
-  /**
-   * Refreshes the border state of the pagination container based on the external condition.
-   *
-   * @returns {PaginationUI} The instance of the PaginationUI for method chaining.
-   */
-  refreshBorderState(): PaginationUI {
-    const { container } = this.#refs!;
-
-    if (this.#uiContainer || this.#shouldHaveBorder()) {
-      addClass(container, 'ht-pagination--bordered');
-    } else {
-      removeClass(container, 'ht-pagination--bordered');
-    }
-
-    return this;
   }
 
   /**
@@ -349,7 +313,6 @@ export class PaginationUI {
     ]);
 
     this.#a11yAnnouncer(navLabelText);
-    this.refreshBorderState();
 
     (pageSizeList as unknown[]).forEach((pageSizeItem: unknown) => {
       const label = pageSizeItem === 'auto' ?

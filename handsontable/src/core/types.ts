@@ -15,6 +15,7 @@ import type { default as ViewInstance } from '../tableView';
 import type { ShortcutManager } from '../shortcuts/manager';
 import type { FocusGridManager as FocusManagerInstance } from '../focusManager/grid';
 import type { FocusScopeManager as FocusScopeManagerInstance } from '../focusManager/scopeManager';
+import type { LayoutManager } from './layout';
 import type { default as EditorManagerInstance } from '../editorManager';
 import type { BaseEditor as BaseEditorInstance } from '../editors/baseEditor/baseEditor';
 import type { StylesHandler } from '../utils/stylesHandler';
@@ -227,6 +228,7 @@ export interface HotInstance {
   getShortcutManager(): ShortcutManager;
   getFocusManager(): FocusManagerInstance;
   getFocusScopeManager(): FocusScopeManagerInstance;
+  getLayoutManager(): LayoutManager;
   _getEditorManager(): EditorManagerInstance;
 
   // DOM references
@@ -234,7 +236,11 @@ export interface HotInstance {
   rootDocument: Document;
   rootWindow: Window & typeof globalThis;
   rootPortalElement: HTMLElement;
+  rootSlotTopElement: HTMLElement;
   rootGridElement: HTMLElement;
+  rootGridContentElement: HTMLElement;
+  rootSlotBottomElement: HTMLElement;
+  rootOverlaysElement: HTMLElement;
   rootWrapperElement: HTMLElement;
   rootContainer: HTMLElement;
   table: HTMLTableElement;

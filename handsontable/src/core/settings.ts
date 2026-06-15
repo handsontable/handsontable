@@ -9,6 +9,7 @@ import type {
 } from '../3rdparty/walkontable/src';
 import type { CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings } from '../settings';
 import type { ColumnConditions } from '../plugins/filters';
+import type { LayoutConfig } from './layout';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
@@ -210,6 +211,7 @@ export interface GridSettings {
 
   // Layout
   ariaTags?: boolean;
+  layout?: LayoutConfig;
   layoutDirection?: 'inherit' | 'ltr' | 'rtl';
   licenseKey?: string;
   preventOverflow?: boolean | string;

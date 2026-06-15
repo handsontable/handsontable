@@ -741,34 +741,6 @@ class TableView {
   }
 
   /**
-   * Add a class name to the license information element.
-   *
-   * @param {string} className The class name to add.
-   */
-  addClassNameToLicenseElement(className: string) {
-    const licenseInfoElement = this.hot.rootElement.parentNode
-      ?.querySelector<HTMLElement>('.hot-display-license-info');
-
-    if (licenseInfoElement) {
-      addClass(licenseInfoElement, className);
-    }
-  }
-
-  /**
-   * Remove a class name from the license information element.
-   *
-   * @param {string} className The class name to remove.
-   */
-  removeClassNameFromLicenseElement(className: string) {
-    const licenseInfoElement = this.hot.rootElement.parentNode
-      ?.querySelector<HTMLElement>('.hot-display-license-info');
-
-    if (licenseInfoElement) {
-      removeClass(licenseInfoElement, className);
-    }
-  }
-
-  /**
    * Checks if at least one cell than belongs to the main table is not covered by the top, left or
    * bottom overlay.
    *

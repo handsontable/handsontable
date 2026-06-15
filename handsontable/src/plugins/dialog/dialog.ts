@@ -272,7 +272,7 @@ export class Dialog extends BasePlugin {
 
     if (!this.#ui) {
       this.#ui = new DialogUI({
-        rootElement: this.hot.rootGridElement,
+        overlayContainer: this.hot.rootOverlaysElement,
         sanitizer: this.hot.getSettings().sanitizer as ((html: string) => string | undefined) | undefined,
         isRtl: this.hot.isRtl(),
       });
@@ -280,6 +280,10 @@ export class Dialog extends BasePlugin {
 
     this.#registerShortcuts();
     this.#registerFocusScope();
+
+    // The dialog renders in the overlays layer (`ht-overlay`), a fixed internal element like the
+    // grid — not a layout slot. The UI's `install` already appended its container into that element,
+    // so there is nothing to register with the layout manager.
 
     this.addHook('afterViewRender', () => this.#onAfterViewRender());
 
@@ -303,6 +307,11 @@ export class Dialog extends BasePlugin {
     this.hide();
     this.#unregisterShortcuts();
     this.#unregisterFocusScope();
+
+    // The dialog owns its element in the overlays layer (no layout slot to remove from), so detach
+    // it here and drop the UI; `enablePlugin` rebuilds it when the plugin is re-enabled.
+    this.#ui?.destroyDialog();
+    this.#ui = null;
 
     super.disablePlugin();
   }
@@ -642,20 +651,11 @@ export class Dialog extends BasePlugin {
    * height of the dialog container to the same size as the table.
    */
   #onAfterViewRender() {
-    const { view, rootWrapperElement, rootWindow } = this.hot;
+    const { view } = this.hot;
     const width = view.isHorizontallyScrollableByWindow()
       ? view.getTotalTableWidth() : view.getWorkspaceWidth();
 
     this.#ui!.updateWidth(width);
-
-    const dialogInfo = rootWrapperElement.querySelector('.hot-display-license-info');
-
-    if (dialogInfo) {
-      const height = (dialogInfo as HTMLElement).offsetHeight;
-      const marginTop = Number.parseFloat(rootWindow.getComputedStyle(dialogInfo).marginTop);
-
-      this.#ui!.updateHeight(height + marginTop);
-    }
   }
 
   /**

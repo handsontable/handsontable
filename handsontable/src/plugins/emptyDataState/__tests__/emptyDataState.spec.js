@@ -118,13 +118,13 @@ describe('EmptyDataState', () => {
     expect(getEmptyDataStateContainerElement().style.display).toBe('none');
   });
 
-  it('should keep the emptyDateState DOM element after ht-grid element', async() => {
+  it('should keep the emptyDateState DOM element inside ht-grid', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       emptyDataState: true,
     });
 
-    expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
+    expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootGridElement);
 
     await updateSettings({
       pagination: true,
@@ -132,16 +132,16 @@ describe('EmptyDataState', () => {
 
     await waitForNextAnimationFrames(1);
 
-    expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
+    expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootGridElement);
   });
 
-  it('should keep the emptyDateState DOM element after ht-grid element after re-enabling the plugin', async() => {
+  it('should keep the emptyDateState DOM element inside ht-grid after re-enabling the plugin', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
       emptyDataState: true,
     });
 
-    expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
+    expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootGridElement);
 
     await updateSettings({
       emptyDataState: false,
@@ -153,7 +153,7 @@ describe('EmptyDataState', () => {
 
     await waitForNextAnimationFrames(1);
 
-    expect(getEmptyDataStateContainerElement().previousElementSibling).toBe(hot().rootGridElement);
+    expect(getEmptyDataStateContainerElement().parentNode).toBe(hot().rootGridElement);
   });
 
   it('should have correct top position after initialization', async() => {
@@ -250,21 +250,6 @@ describe('EmptyDataState', () => {
       ).toBe(false);
     });
 
-    it('should disable bottom border when there is pagination', async() => {
-      handsontable({
-        data: [],
-        pagination: true,
-        emptyDataState: true,
-        height: 'auto',
-      });
-
-      await waitForNextAnimationFrames(1);
-
-      const borderBottomWidth = getComputedStyle(getEmptyDataStateContainerElement()).borderBottomWidth;
-
-      expect(borderBottomWidth).toBe('0px');
-    });
-
     it('should not disable bottom border when there is no pagination', async() => {
       handsontable({
         data: [],
@@ -278,6 +263,21 @@ describe('EmptyDataState', () => {
       const borderBottomWidth = getComputedStyle(getEmptyDataStateContainerElement()).borderBottomWidth;
 
       expect(borderBottomWidth).toBe('1px');
+    });
+
+    it('should keep non-zero height when data is empty and height is auto', async() => {
+      handsontable({
+        data: [],
+        pagination: false,
+        emptyDataState: true,
+        height: 'auto',
+      });
+
+      await sleep(10);
+
+      const height = parseInt(getComputedStyle(getEmptyDataStateContainerElement()).height, 10);
+
+      expect(height).toBeGreaterThan(0);
     });
   });
 });

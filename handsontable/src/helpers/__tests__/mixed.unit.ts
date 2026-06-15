@@ -124,6 +124,7 @@ describe('Mixed helper', () => {
   });
 
   describe('_injectProductInfo', () => {
+    const LICENSE_INFO_CLASS = 'hot-display-license-info';
     const LICENSE_TEST_KEY = 'd0134-95841-770f2-c4f21-3751d'; // expired on 23/05/2011
     const TRIAL_TEST_KEY = 'ht68e-1f2b7-47158-70b05-0842f'; // works as "non-commercial-and-evaluation"
     let _injectProductInfo;
@@ -135,6 +136,33 @@ describe('Mixed helper', () => {
       _injectProductInfo = require('../mixed')._injectProductInfo;
     });
 
+    it('should return the injected notification element when a message is shown', () => {
+      spyOn(console, 'warn');
+
+      const element = document.createElement('div').appendChild(document.createElement('div'));
+
+      const result = _injectProductInfo({
+        className: LICENSE_INFO_CLASS, key: LICENSE_TEST_KEY, element, releaseDate: '24/05/2011'
+      });
+
+      // The returned node is the element appended to the container - no DOM re-query needed.
+      expect(result).toBe(element.querySelector('.hot-display-license-info'));
+      expect(result.classList.contains('hot-display-license-info')).toBe(true);
+    });
+
+    it('should return null when no notification is injected (valid license)', () => {
+      spyOn(console, 'info');
+
+      const element = document.createElement('div').appendChild(document.createElement('div'));
+
+      const result = _injectProductInfo({
+        className: LICENSE_INFO_CLASS, key: TRIAL_TEST_KEY, element, releaseDate: '24/05/2011'
+      });
+
+      expect(result).toBe(null);
+      expect(element.querySelector('.hot-display-license-info')).toBe(null);
+    });
+
     it('should not print any information if the license key is not expired (1 day to expire)', () => {
       spyOn(console, 'warn');
       spyOn(console, 'info');
@@ -143,7 +171,7 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo(LICENSE_TEST_KEY, element, '22/05/2011');
+      _injectProductInfo({ className: LICENSE_INFO_CLASS, key: LICENSE_TEST_KEY, element, releaseDate: '22/05/2011' });
 
       expect(element.parentNode.querySelector('.hot-display-license-info')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();
@@ -160,7 +188,7 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo(LICENSE_TEST_KEY, element, '21/05/2011');
+      _injectProductInfo({ className: LICENSE_INFO_CLASS, key: LICENSE_TEST_KEY, element, releaseDate: '21/05/2011' });
 
       expect(element.parentNode.querySelector('.hot-display-license-info')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();
@@ -177,7 +205,7 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo(LICENSE_TEST_KEY, element, '23/05/2010');
+      _injectProductInfo({ className: LICENSE_INFO_CLASS, key: LICENSE_TEST_KEY, element, releaseDate: '23/05/2010' });
 
       expect(element.parentNode.querySelector('.hot-display-license-info')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();
@@ -194,7 +222,7 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo(LICENSE_TEST_KEY, element, '23/05/2010');
+      _injectProductInfo({ className: LICENSE_INFO_CLASS, key: LICENSE_TEST_KEY, element, releaseDate: '23/05/2010' });
 
       expect(element.parentNode.querySelector('.hot-display-license-info')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();
@@ -211,9 +239,9 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo(LICENSE_TEST_KEY, element, '24/05/2011');
+      _injectProductInfo({ className: LICENSE_INFO_CLASS, key: LICENSE_TEST_KEY, element, releaseDate: '24/05/2011' });
 
-      expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
+      expect(element.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
         'The license key for Handsontable expired on May 24, 2011, and is not valid for the installed ',
         `version ${process.env.HOT_VERSION}. <a href="https://handsontable.com/pricing" target="_blank">Renew</a> `,
         'your license key or downgrade to a version released prior to May 24, 2011. If you need any ',
@@ -237,9 +265,9 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo(LICENSE_TEST_KEY, element, '25/05/2011');
+      _injectProductInfo({ className: LICENSE_INFO_CLASS, key: LICENSE_TEST_KEY, element, releaseDate: '25/05/2011' });
 
-      expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
+      expect(element.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
         'The license key for Handsontable expired on May 24, 2011, and is not valid for the installed ',
         `version ${process.env.HOT_VERSION}. <a href="https://handsontable.com/pricing" target="_blank">Renew</a> `,
         'your license key or downgrade to a version released prior to May 24, 2011. If you need any ',
@@ -263,9 +291,9 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo(LICENSE_TEST_KEY, element, '23/05/2012');
+      _injectProductInfo({ className: LICENSE_INFO_CLASS, key: LICENSE_TEST_KEY, element, releaseDate: '23/05/2012' });
 
-      expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
+      expect(element.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
         'The license key for Handsontable expired on May 24, 2011, and is not valid for the installed ',
         `version ${process.env.HOT_VERSION}. <a href="https://handsontable.com/pricing" target="_blank">Renew</a> `,
         'your license key or downgrade to a version released prior to May 24, 2011. If you need any ',
@@ -289,9 +317,9 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo('', element, '23/05/2010');
+      _injectProductInfo({ className: LICENSE_INFO_CLASS, key: '', element, releaseDate: '23/05/2010' });
 
-      expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
+      expect(element.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
         'The license key for Handsontable is missing. Use your purchased key to activate the product. ',
         'Alternatively, you can activate Handsontable to use for non-commercial purposes ',
         'by passing the key: \'non-commercial-and-evaluation\'. ',
@@ -318,9 +346,9 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo('invalidKey', element, '23/05/2010');
+      _injectProductInfo({ className: LICENSE_INFO_CLASS, key: 'invalidKey', element, releaseDate: '23/05/2010' });
 
-      expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
+      expect(element.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
         'The license key for Handsontable is invalid. ',
         '<a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> ',
         'on how to install it properly or contact us at <a href="mailto:support@handsontable.com">',
@@ -343,9 +371,9 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo('invalidKey', element, '23/05/2010');
+      _injectProductInfo({ className: LICENSE_INFO_CLASS, key: 'invalidKey', element, releaseDate: '23/05/2010' });
 
-      expect(element.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
+      expect(element.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
         'The license key for Handsontable is invalid. ',
         '<a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> ',
         'on how to install it properly or contact us at <a href="mailto:support@handsontable.com">',
@@ -362,9 +390,14 @@ describe('Mixed helper', () => {
 
       const element2 = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo('invalidKey', element2, '23/05/2010');
+      _injectProductInfo({
+        className: LICENSE_INFO_CLASS,
+        key: 'invalidKey',
+        element: element2,
+        releaseDate: '23/05/2010'
+      });
 
-      expect(element2.parentNode.querySelector('.hot-display-license-info').innerHTML).toBe([
+      expect(element2.parentNode.querySelector('.hot-display-license-info_inner').innerHTML).toBe([
         'The license key for Handsontable is invalid. ',
         '<a href="https://handsontable.com/docs/tutorial-license-key.html" target="_blank">Read more</a> ',
         'on how to install it properly or contact us at <a href="mailto:support@handsontable.com">',
@@ -384,7 +417,12 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo('non-commercial-and-evaluation', element, '23/05/2010');
+      _injectProductInfo({
+        className: LICENSE_INFO_CLASS,
+        key: 'non-commercial-and-evaluation',
+        element,
+        releaseDate: '23/05/2010'
+      });
 
       expect(element.parentNode.querySelector('.hot-display-license-info')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();
@@ -401,7 +439,7 @@ describe('Mixed helper', () => {
 
       const element = document.createElement('div').appendChild(document.createElement('div'));
 
-      _injectProductInfo(TRIAL_TEST_KEY, element, '23/05/2010');
+      _injectProductInfo({ className: LICENSE_INFO_CLASS, key: TRIAL_TEST_KEY, element, releaseDate: '23/05/2010' });
 
       expect(element.parentNode.querySelector('.hot-display-license-info')).toBe(null);
       expect(console.error).not.toHaveBeenCalled();
