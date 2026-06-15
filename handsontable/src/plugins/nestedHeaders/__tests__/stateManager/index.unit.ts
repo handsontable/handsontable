@@ -169,6 +169,33 @@ describe('StateManager', () => {
         test: 'test-a',
       }));
     });
+
+    it('should restore the collapsed flag only on the exact collapsed node, not on same-column nodes at other levels (DEV-294)', () => {
+      const state = new StateManager();
+
+      // A (level 0), B (level 1) and B1 (level 2) all start at visual column 0.
+      state.setState([
+        [{ label: 'A', colspan: 4 }, 'E'],
+        [{ label: 'B', colspan: 2 }, { label: 'C', colspan: 2 }, 'E'],
+        ['B1', 'B2', 'C1', 'C2', 'E'],
+      ]);
+
+      // Collapse only the inner group B (header level 1, column 0).
+      state.triggerNodeModification('collapse', 1, 0);
+
+      expect(state.getHeaderSettings(0, 0).isCollapsed).toBe(false);
+      expect(state.getHeaderSettings(1, 0).isCollapsed).toBe(true);
+
+      // A rebuild (mapState) snapshots and restores the collapsed flags.
+      state.mapState(() => undefined);
+
+      // Only B (level 1, column 0) must stay collapsed. The parent A (level 0) and the leaf B1
+      // (level 2) share column 0 but were never collapsed - restoring by column index alone would
+      // wrongly mark them collapsed.
+      expect(state.getHeaderSettings(1, 0).isCollapsed).toBe(true);
+      expect(state.getHeaderSettings(0, 0).isCollapsed).toBe(false);
+      expect(state.getHeaderSettings(2, 0).isCollapsed).toBe(false);
+    });
   });
 
   describe('mapNodes', () => {

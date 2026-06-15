@@ -789,16 +789,32 @@ class Selection {
       const minRow = isSelectedByColumnHeader ? -1 : 0;
       const coordsStartAmount = isSelectedByColumnHeader ? 0 : amount;
 
+      // After shifting, a single-row selection can land on a row that is hidden (e.g. removing a
+      // row next to a hidden one), leaving the highlight on a non-rendered row. Snap it to the
+      // nearest visible row. This is scoped to single-row selections only - a wider range
+      // legitimately keeps hidden rows within its bounds (they stay part of copy/fill ranges), so
+      // its corners are never snapped.
+      const isSingleRow = from.row === to.row;
+      const clampToVisibleRow = (visualRow: number): number => {
+        if (!isSingleRow || visualRow < 0) {
+          return visualRow;
+        }
+
+        const nearestRow = this.tableProps.rowIndexMapper.getNearestNotHiddenIndex(visualRow, 1, true);
+
+        return nearestRow === null ? visualRow : nearestRow;
+      };
+
       // Remove from the stack the last added selection as that selection below will be
       // replaced by new transformed selection.
       this.getSelectedRange().pop();
 
       const coordsStart = this.tableProps.createCellCoords(
-        clamp((from.row ?? 0) + coordsStartAmount, minRow, countRows - 1),
+        clampToVisibleRow(clamp((from.row ?? 0) + coordsStartAmount, minRow, countRows - 1)),
         from.col ?? 0
       );
       const coordsEnd = this.tableProps.createCellCoords(
-        clamp((to.row ?? 0) + amount, minRow, countRows - 1),
+        clampToVisibleRow(clamp((to.row ?? 0) + amount, minRow, countRows - 1)),
         to.col ?? 0
       );
 
@@ -806,7 +822,7 @@ class Selection {
 
       if ((highlight.row ?? 0) >= visualRowIndex) {
         this.setRangeStartOnly(coordsStart, true, this.tableProps.createCellCoords(
-          clamp((highlight.row ?? 0) + amount, 0, countRows - 1),
+          clampToVisibleRow(clamp((highlight.row ?? 0) + amount, 0, countRows - 1)),
           highlight.col ?? 0
         ));
 

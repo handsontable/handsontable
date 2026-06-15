@@ -13,6 +13,46 @@ describe('HiddenRows', () => {
   });
 
   describe('altering', () => {
+    it('should move the selection off a hidden row to the nearest visible one after removing a row', async() => {
+      handsontable({
+        data: createSpreadsheetData(6, 1),
+        rowHeaders: true,
+        hiddenRows: {
+          rows: [2], // hide row index 2
+        },
+      });
+
+      await selectCell(3, 0); // the visible row right after the hidden one
+      await alter('remove_row', 3, 1); // remove it; the shift would land the selection on hidden row 2
+
+      // The selection must not rest on the hidden row - it snaps to the nearest visible one.
+      const { row } = getSelectedRange()[0].highlight;
+
+      expect(rowIndexMapper().isHidden(row)).toBe(false);
+      expect(getSelectedRange()).toEqualCellRange(['highlight: 3,0 from: 3,0 to: 3,0']);
+    });
+
+    it('should keep a hidden row within the bounds of a multi-row selection after removing a row', async() => {
+      handsontable({
+        data: createSpreadsheetData(8, 1),
+        rowHeaders: true,
+        hiddenRows: {
+          rows: [3], // hide row index 3
+        },
+      });
+
+      await selectCell(4, 0, 6, 0); // range over rows 4..6 (the hidden row 3 sits just before it)
+      await alter('remove_row', 4, 1); // shifts the range up so a corner moves next to the hidden row
+
+      // A wide range legitimately keeps hidden rows inside its bounds (copy/fill include them);
+      // the shift must not snap the corners out, so the hidden row stays within [from, to].
+      const range = getSelectedRange()[0];
+
+      expect(rowIndexMapper().isHidden(3)).toBe(true);
+      expect(range.from.row).toBeLessThanOrEqual(3);
+      expect(range.to.row).toBeGreaterThanOrEqual(3);
+    });
+
     it('should update hidden row indexes after rows removal (removing not hidden rows)', async() => {
       handsontable({
         data: createSpreadsheetData(10, 1),

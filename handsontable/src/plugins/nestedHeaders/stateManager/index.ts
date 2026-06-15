@@ -264,20 +264,23 @@ export default class StateManager {
   }
 
   /**
-   * Saves the current isCollapsed state of every tree node, keyed by columnIndex.
-   * Used by mapState()/mergeStateWith() to survive the tree rebuild that resets it.
+   * Saves the current isCollapsed state of every tree node, keyed by header level AND column index.
+   * Used by mapState()/mergeStateWith() to survive the tree rebuild that resets it. Keying by both
+   * coordinates matters for nested headers, where a parent group, its first child and the leaf all
+   * share the same column index - keying by column index alone would restore the collapsed flag on
+   * the wrong levels.
    *
-   * @returns {Set<number>} Set of column indexes whose node had isCollapsed=true.
+   * @returns {Set<string>} Set of `headerLevel,columnIndex` keys whose node had isCollapsed=true.
    */
-  #snapshotIsCollapsed(): Set<number> {
-    const collapsed = new Set<number>();
+  #snapshotIsCollapsed(): Set<string> {
+    const collapsed = new Set<string>();
 
     this.#headersTree.getRoots().forEach((rootNode: TreeNode) => {
       rootNode.walkDown((node: TreeNode) => {
         const data = node.data as HeaderNodeData;
 
         if (data.isCollapsed) {
-          collapsed.add(data.columnIndex);
+          collapsed.add(`${data.headerLevel},${data.columnIndex}`);
         }
       });
     });
@@ -290,9 +293,9 @@ export default class StateManager {
    * mergeStateWith() calls from CollapsibleColumns do not discard visibility state set earlier.
    * Also restores isCollapsed flags that the tree rebuild resets to false.
    *
-   * @param {Set<number>} [savedIsCollapsed] Column indexes whose isCollapsed was true before rebuild.
+   * @param {Set<string>} [savedIsCollapsed] `headerLevel,columnIndex` keys whose isCollapsed was true.
    */
-  #applySyncVisibility(savedIsCollapsed?: Set<number>) {
+  #applySyncVisibility(savedIsCollapsed?: Set<string>) {
     if (this.#lastColumnVisibility) {
       syncVisibilityOnTree(this.#headersTree.getRoots(), this.#lastColumnVisibility);
     }
@@ -302,7 +305,7 @@ export default class StateManager {
         rootNode.walkDown((node: TreeNode) => {
           const data = node.data as HeaderNodeData;
 
-          if (savedIsCollapsed.has(data.columnIndex)) {
+          if (savedIsCollapsed.has(`${data.headerLevel},${data.columnIndex}`)) {
             data.isCollapsed = true;
           }
         });
