@@ -2,6 +2,7 @@ import { arrayEach } from '../../../../helpers/array';
 import { collapseNode } from './collapse';
 import {
   getFirstChildProperty,
+  isDeclarativeGroup,
   isNodeReflectsFirstChildColspan,
   traverseExposedColumnIndexes,
 } from './utils/tree';
@@ -23,6 +24,19 @@ export function expandNode(
   if (!nodeData.isCollapsed || nodeData.isHidden || nodeData.origColspan <= 1) {
     return {
       rollbackModification: () => {},
+      affectedColumns: [],
+      colspanCompensation: 0,
+    };
+  }
+
+  // Declarative groups (issue #10243) only flip `isCollapsed` back; the columns to show/hide are
+  // re-derived from the `visibleWhen` markers and applied through the CollapsibleColumns hiding map.
+  // Mirrors the declarative branch in collapseNode.
+  if (isDeclarativeGroup(nodeToProcess)) {
+    nodeData.isCollapsed = false;
+
+    return {
+      rollbackModification: () => collapseNode(nodeToProcess),
       affectedColumns: [],
       colspanCompensation: 0,
     };

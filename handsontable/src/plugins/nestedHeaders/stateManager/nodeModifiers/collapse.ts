@@ -2,6 +2,7 @@ import { arrayEach } from '../../../../helpers/array';
 import { expandNode } from './expand';
 import {
   getFirstChildProperty,
+  isDeclarativeGroup,
   isNodeReflectsFirstChildColspan,
   traverseExposedColumnIndexes,
 } from './utils/tree';
@@ -23,6 +24,21 @@ export function collapseNode(
   if (nodeData.isCollapsed || nodeData.isHidden || nodeData.origColspan <= 1) {
     return {
       rollbackModification: () => {},
+      affectedColumns: [],
+      colspanCompensation: 0,
+    };
+  }
+
+  // Declarative groups (issue #10243) only flip `isCollapsed` here. Which columns hide is derived
+  // from the children's `visibleWhen` markers + this flag by StateManager#getVisibleWhenHiddenColumns
+  // and applied through the CollapsibleColumns hiding map, so no first-child claiming or colspan
+  // compensation is done. Keeping `isCollapsed` as the only persisted state lets the collapse survive
+  // tree rebuilds via the snapshot/reapply path.
+  if (isDeclarativeGroup(nodeToProcess)) {
+    nodeData.isCollapsed = true;
+
+    return {
+      rollbackModification: () => expandNode(nodeToProcess),
       affectedColumns: [],
       colspanCompensation: 0,
     };

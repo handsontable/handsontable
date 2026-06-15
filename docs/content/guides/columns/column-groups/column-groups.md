@@ -277,6 +277,32 @@ collapsibleColumns: [
 
 :::
 
+### Choose which columns stay visible when collapsed
+
+By default, collapsing a group leaves its first column visible. To choose which columns stay visible in each state, add the `visibleWhen` property to a header in the `nestedHeaders` configuration. It accepts three values:
+
+- `'collapsed'` - the column is visible only while its group is collapsed (hidden while expanded).
+- `'expanded'` - the column is visible only while its group is expanded (hidden while collapsed).
+- `'always'` - the column is visible in both states. This is the default when `visibleWhen` is omitted.
+
+In the example below, collapsing the **Q1 2025** group keeps only the **Total** column visible, and the per-month columns return when you expand it:
+
+```js
+nestedHeaders: [
+  ['Region', { label: 'Q1 2025', colspan: 4 }],
+  [
+    'Region',
+    { label: 'Jan', visibleWhen: 'expanded' },
+    { label: 'Feb', visibleWhen: 'expanded' },
+    { label: 'Mar', visibleWhen: 'expanded' },
+    { label: 'Total', visibleWhen: 'collapsed' },
+  ],
+],
+collapsibleColumns: true,
+```
+
+A header without any `visibleWhen` markers keeps the default behavior - collapsing leaves its first column visible. The `visibleWhen` property applies only to headers within a [`collapsible`](@/api/options.md#collapsiblecolumns) group.
+
 ## Known limitations
 
 - A column header can span up to 1000 columns, as the [HTML table specification](https://html.spec.whatwg.org/multipage/tables.html#dom-tdth-colspan) sets the

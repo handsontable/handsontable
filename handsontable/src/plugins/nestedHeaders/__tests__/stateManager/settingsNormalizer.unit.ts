@@ -306,4 +306,36 @@ describe('normalizeSettings', () => {
       ],
     ]);
   });
+
+  describe('visibleWhen (issue #10243)', () => {
+    it('should default to "always" when not provided', () => {
+      const [[cell]] = normalizeSettings([['A1']]);
+
+      expect(cell.visibleWhen).toBe('always');
+    });
+
+    it('should carry a valid "collapsed" / "expanded" / "always" value', () => {
+      const [row] = normalizeSettings([[
+        { label: 'A', visibleWhen: 'collapsed' },
+        { label: 'B', visibleWhen: 'expanded' },
+        { label: 'C', visibleWhen: 'always' },
+      ]]);
+
+      expect(row[0].visibleWhen).toBe('collapsed');
+      expect(row[1].visibleWhen).toBe('expanded');
+      expect(row[2].visibleWhen).toBe('always');
+    });
+
+    it('should fall back to "always" for an invalid or non-string value', () => {
+      const [row] = normalizeSettings([[
+        { label: 'A', visibleWhen: 'nonsense' },
+        { label: 'B', visibleWhen: 123 },
+        { label: 'C', visibleWhen: null },
+      ]]);
+
+      expect(row[0].visibleWhen).toBe('always');
+      expect(row[1].visibleWhen).toBe('always');
+      expect(row[2].visibleWhen).toBe('always');
+    });
+  });
 });

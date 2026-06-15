@@ -1,6 +1,7 @@
 import { arrayEach } from '../../../helpers/array';
 import TreeNode from '../../../utils/dataStructures/tree';
 import { createDefaultHeaderSettings } from './utils';
+import type { HeaderVisibility } from './utils';
 import type SourceSettings from './sourceSettings';
 
 /**
@@ -20,6 +21,10 @@ export interface HeaderSettings {
   isPlaceholder: boolean;
   isRowspanPlaceholder?: boolean;
   headerClassNames: string[];
+  /**
+   * Declares in which collapse state this header (and its columns) stays visible.
+   */
+  visibleWhen: HeaderVisibility;
   [key: string]: unknown;
 }
 

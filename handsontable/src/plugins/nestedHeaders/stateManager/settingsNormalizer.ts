@@ -3,6 +3,8 @@ import { isObject } from '../../../helpers/object';
 import { stringify } from '../../../helpers/mixed';
 import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './utils';
 
+import type { HeaderVisibility } from './utils';
+
 interface NormalizedHeaderSettings {
   label: string;
   colspan: number;
@@ -14,7 +16,10 @@ interface NormalizedHeaderSettings {
   isRoot: boolean;
   isPlaceholder: boolean;
   headerClassNames: string[];
+  visibleWhen: HeaderVisibility;
 }
+
+const VISIBLE_WHEN_VALUES = ['collapsed', 'expanded', 'always'];
 
 /**
  * A function that normalizes user-defined settings into one predictable
@@ -107,6 +112,7 @@ export function normalizeSettings(sourceSettings: unknown[][], columnsLimit = In
         colspan,
         rowspan,
         headerClassName,
+        visibleWhen,
       } = sourceHeaderSettings as Record<string, unknown>;
 
       headerSettings.label = stringify(label);
@@ -123,6 +129,11 @@ export function normalizeSettings(sourceSettings: unknown[][], columnsLimit = In
 
       if (typeof headerClassName === 'string') {
         headerSettings.headerClassNames = [...headerClassName.split(' ')];
+      }
+
+      // Unknown/invalid values fall back to the default 'always' so a typo never hides a column.
+      if (typeof visibleWhen === 'string' && VISIBLE_WHEN_VALUES.includes(visibleWhen)) {
+        headerSettings.visibleWhen = visibleWhen as HeaderVisibility;
       }
 
     } else {

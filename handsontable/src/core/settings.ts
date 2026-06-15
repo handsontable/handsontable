@@ -12,6 +12,7 @@ import type { ColumnConditions } from '../plugins/filters';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
 import type { DropdownMenu } from '../plugins/dropdownMenu';
 import type { ColumnSortingConfig } from '../plugins/columnSorting';
+import type { NestedHeader } from '../plugins/nestedHeaders';
 import type { UndoRedoAction } from '../plugins/undoRedo';
 import type {
   DataProviderBeforeFetchParameters,
@@ -170,7 +171,7 @@ export interface GridSettings {
   manualRowMove?: boolean | number[];
   manualRowResize?: boolean | number[];
   mergeCells?: boolean | object | object[];
-  nestedHeaders?: unknown[][];
+  nestedHeaders?: NestedHeader[][];
   nestedRows?: boolean;
   pagination?: boolean | object;
   search?: boolean | object;

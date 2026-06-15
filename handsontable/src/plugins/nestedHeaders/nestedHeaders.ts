@@ -14,9 +14,48 @@ import { BasePlugin } from '../base';
 import StateManager from './stateManager';
 import { createColumnVisibilityAdapter } from './stateManager/columnVisibility';
 import type { HeaderNodeData } from './stateManager/headersTree';
+import type { HeaderVisibility } from './stateManager/utils';
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 import GhostTable from './utils/ghostTable';
 import { resolveRowspanNavigationContextRow } from './utils/navigation';
+
+/**
+ * A single configured nested header. Declares the header label and how it spans and behaves.
+ */
+export interface NestedHeaderSettings {
+  /**
+   * The header label.
+   */
+  label?: string;
+  /**
+   * The number of columns the header spans.
+   */
+  colspan?: number;
+  /**
+   * The number of header rows the header spans.
+   */
+  rowspan?: number;
+  /**
+   * CSS class name(s) added to the header element.
+   */
+  headerClassName?: string;
+  /**
+   * Whether the header can be collapsed/expanded by the `CollapsibleColumns` plugin.
+   */
+  collapsible?: boolean;
+  /**
+   * In which collapse state the header (and its columns) stays visible:
+   * `'collapsed'` (only while collapsed), `'expanded'` (only while expanded), or `'always'` (both,
+   * the default). See `CollapsibleColumns`.
+   */
+  visibleWhen?: HeaderVisibility;
+  [key: string]: unknown;
+}
+
+/**
+ * A single cell in the `nestedHeaders` configuration: a plain label or a configured header object.
+ */
+export type NestedHeader = string | number | NestedHeaderSettings;
 
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;

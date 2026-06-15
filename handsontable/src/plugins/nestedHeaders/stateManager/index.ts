@@ -551,6 +551,54 @@ export default class StateManager {
   }
 
   /**
+   * Computes the visual column indexes that should be hidden purely by the `visibleWhen` rules of
+   * declarative collapsible groups (issue #10243), given each group's current `isCollapsed` state.
+   *
+   * A group is "declarative" when at least one of its direct children declares an explicit
+   * `visibleWhen` ('collapsed' or 'expanded'); legacy groups (no markers) are left to the regular
+   * first-visible-child collapse path and are skipped here. Only `collapsible` groups are considered -
+   * a group that cannot be collapsed keeps all its columns. The result is a pure function of the tree
+   * shape, the markers, and the `isCollapsed` flags, so it stays correct across tree rebuilds.
+   *
+   * @returns {number[]} Visual column indexes to hide.
+   */
+  getVisibleWhenHiddenColumns(): number[] {
+    const columnsToHide: number[] = [];
+
+    this.#headersTree.getRoots().forEach((rootNode) => {
+      rootNode.walkDown((node) => {
+        const childNodes = node.childs;
+
+        if (node.data.collapsible !== true || childNodes.length === 0) {
+          return;
+        }
+
+        const isDeclarative = childNodes.some(({ data }) => data.visibleWhen !== 'always');
+
+        if (!isDeclarative) {
+          return;
+        }
+
+        const isGroupCollapsed = node.data.isCollapsed === true;
+
+        childNodes.forEach((childNode) => {
+          const { visibleWhen, columnIndex, origColspan } = childNode.data;
+          const hideChild = (visibleWhen === 'expanded' && isGroupCollapsed) ||
+            (visibleWhen === 'collapsed' && !isGroupCollapsed);
+
+          if (hideChild) {
+            for (let i = 0; i < origColspan; i++) {
+              columnsToHide.push(columnIndex + i);
+            }
+          }
+        });
+      });
+    });
+
+    return columnsToHide;
+  }
+
+  /**
    * Clears the column state manager to the initial state.
    */
   clear() {

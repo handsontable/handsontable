@@ -154,6 +154,25 @@ Under the hood it spawns the regular Rspack dump in `--watch` mode and reopens t
 
 A generic `test/E2ERunner.html` (no run ID) is always regenerated alongside the per-run variant for developer manual testing in a browser. Specs that inject iframes with relative CSS paths (e.g. `afterRefreshDimensions`, `Selection`) rely on the runner living in `test/`, which is why the per-run HTML stays there too.
 
+## Debugging (capturing values from the browser)
+
+E2E specs run inside a headless browser, so a plain `console.log` is NOT printed to your terminal. The Puppeteer runner (`test/scripts/run-puppeteer.mjs`) forwards **only** page console messages whose text starts with `DEBUG`, printing them as `[BROWSER] <text>`:
+
+```js
+it('should ...', async() => {
+  handsontable({ /* ... */ });
+
+  // Prefix with DEBUG so the runner forwards it to your terminal.
+  console.log(`DEBUG state ${JSON.stringify({ labels: getColHeaders(), count: countCols() })}`);
+});
+```
+
+Then filter the run output: `npm run test:e2e --prefix handsontable --testPathPattern=<regex> 2>&1 | grep DEBUG`.
+
+Notes:
+- `JSON.stringify` **omits keys whose value is `undefined`** - a missing key in the output usually means the value was `undefined`, not that the line is stale. Use `String(value)` when you need to distinguish `undefined`/`false`/`null`.
+- For a quick yes/no check you can also just `expect(actual).toEqual('SENTINEL')` and read the "Expected ... to equal" diff - assertion failures always reach the terminal.
+
 ## Test location
 
 All E2E tests live under `src/` alongside the code they test. **The spec filename must match the method, hook, or setting name exactly** (e.g., `getSourceData.spec.js`, `afterChange.spec.js`, `height.spec.js`).
