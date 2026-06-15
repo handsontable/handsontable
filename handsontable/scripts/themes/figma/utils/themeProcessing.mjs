@@ -125,6 +125,13 @@ function processTokenValue(key, value, themes) {
     }
   }
 
+  // An unresolved Figma reference (e.g. a `{mode.*}` ref that did not resolve to both a light
+  // and a dark variant) must be dropped, not passed to formatValue — otherwise the raw brace
+  // literal leaks into the generated TS/CSS. References always start with `{`; literals never do.
+  if (valueStr.startsWith('{')) {
+    return null;
+  }
+
   // Format as regular value if no reference found
   return formatValue(key, valueStr);
 }
@@ -259,4 +266,4 @@ function generateAllVariables(themes) {
   return { themeVariables };
 }
 
-export { generateAllVariables };
+export { generateAllVariables, processTokenValue };
