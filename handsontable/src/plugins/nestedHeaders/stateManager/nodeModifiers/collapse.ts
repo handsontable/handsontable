@@ -8,9 +8,6 @@ import {
 import type TreeNode from '../../../../utils/dataStructures/tree';
 import type { HeaderNodeData } from '../headersTree';
 
-type NodeWithData = { data: Record<string, unknown>, childs: { data: Record<string, unknown> }[] };
-type NodeWithChilds = { childs: { data: Record<string, unknown> }[] };
-
 /**
  * Collapsing a node is a process where the processing node is collapsed
  * to the colspan width of the first child.
@@ -19,7 +16,7 @@ type NodeWithChilds = { childs: { data: Record<string, unknown> }[] };
  * @returns {object} Returns an object with properties.
  */
 export function collapseNode(
-  nodeToProcess: { data: HeaderNodeData, childs: TreeNode[] }
+  nodeToProcess: TreeNode<HeaderNodeData>
 ): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } {
   const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
@@ -31,10 +28,10 @@ export function collapseNode(
     };
   }
 
-  const isNodeReflected = isNodeReflectsFirstChildColspan(nodeToProcess as NodeWithData);
+  const isNodeReflected = isNodeReflectsFirstChildColspan(nodeToProcess);
 
   if (isNodeReflected) {
-    return collapseNode(nodeChilds[0] as unknown as { data: HeaderNodeData, childs: TreeNode[] });
+    return collapseNode(nodeChilds[0]);
   }
 
   const affectedColumns = new Set();
@@ -57,9 +54,7 @@ export function collapseNode(
       };
     }
 
-    arrayEach(childsToHide, (node) => {
-      const treeNode = node as TreeNode;
-
+    arrayEach(childsToHide, (treeNode) => {
       // Claim the columns this child exposes - everything it shows plus any columns hidden only by
       // an external source (e.g. HiddenColumns), but NOT columns owned by an inner collapse. This
       // lets the collapse own an already-externally-hidden column (so the group stays collapsed if
@@ -73,15 +68,14 @@ export function collapseNode(
 
       // Hide all leaves of the children that follow the representative (on headers context
       // hide all headers on the right).
-      treeNode.walkDown(({ data }: { data: Record<string, unknown> }) => {
+      treeNode.walkDown(({ data }) => {
         data.isHidden = true;
       });
     });
 
     // Calculate by how many colspan it needs to reduce the headings to match them to
     // the representative (first visible) child colspan width.
-    colspanCompensation = nodeData.colspan -
-      ((nodeChilds[firstVisibleChildIndex].data.colspan as number | undefined) ?? 1);
+    colspanCompensation = nodeData.colspan - nodeChilds[firstVisibleChildIndex].data.colspan;
 
   } else {
     // Node without children (a header wider than one column). Keep the first *visible* column
@@ -114,8 +108,8 @@ export function collapseNode(
 
   nodeData.isCollapsed = true;
 
-  (nodeToProcess as unknown as TreeNode).walkUp((node: TreeNode) => {
-    const data = node.data as HeaderNodeData;
+  nodeToProcess.walkUp((node) => {
+    const { data } = node;
 
     data.colspan -= colspanCompensation;
 
@@ -123,8 +117,8 @@ export function collapseNode(
       data.colspan = 1;
       data.isCollapsed = true;
 
-    } else if (isNodeReflectsFirstChildColspan(node as NodeWithData)) {
-      data.isCollapsed = getFirstChildProperty(node as NodeWithChilds, 'isCollapsed') as boolean;
+    } else if (isNodeReflectsFirstChildColspan(node)) {
+      data.isCollapsed = getFirstChildProperty(node, 'isCollapsed') as boolean;
     }
   });
 

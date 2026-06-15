@@ -1,4 +1,5 @@
 import type TreeNode from '../../../../../utils/dataStructures/tree';
+import type { HeaderNodeData } from '../../headersTree';
 
 /**
  * Collects the grid column indexes a node "exposes" to its parent - the columns that become newly
@@ -13,16 +14,13 @@ import type TreeNode from '../../../../../utils/dataStructures/tree';
  * @param {TreeNode} node A tree node to traverse.
  * @param {Function} callback Called with each exposed visual column index.
  */
-export function traverseExposedColumnIndexes(node: TreeNode, callback: Function) {
-  const { data, childs } = node as unknown as
-    { data: Record<string, unknown>, childs: TreeNode[] };
+export function traverseExposedColumnIndexes(node: TreeNode<HeaderNodeData>, callback: Function) {
+  const { data, childs } = node;
 
   if (data.isCollapsed) {
     if (childs.length > 0) {
       // A collapsed group shows only its first visible child; the rest is owned by its own collapse.
-      const representative = childs.find(
-        ({ data: childData }) => !(childData as unknown as Record<string, unknown>).isHidden
-      );
+      const representative = childs.find(({ data: childData }) => !childData.isHidden);
 
       if (representative) {
         traverseExposedColumnIndexes(representative, callback);
@@ -30,8 +28,8 @@ export function traverseExposedColumnIndexes(node: TreeNode, callback: Function)
 
     } else {
       // A collapsed wide header exposes only its current (representative) columns.
-      for (let i = 0; i < (data.colspan as number); i++) {
-        callback((data.columnIndex as number) + i);
+      for (let i = 0; i < data.colspan; i++) {
+        callback(data.columnIndex + i);
       }
     }
 
@@ -40,8 +38,8 @@ export function traverseExposedColumnIndexes(node: TreeNode, callback: Function)
 
   if (childs.length === 0) {
     // A non-collapsed leaf exposes its whole span, including columns hidden by an external source.
-    for (let i = 0; i < (data.origColspan as number); i++) {
-      callback((data.columnIndex as number) + i);
+    for (let i = 0; i < data.origColspan; i++) {
+      callback(data.columnIndex + i);
     }
 
     return;

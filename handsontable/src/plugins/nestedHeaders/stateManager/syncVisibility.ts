@@ -13,10 +13,10 @@ import type { ColumnVisibility } from './columnVisibility';
  * This replaces the old hide-column / show-column node modifiers, which could not handle
  * external hides inside collapsible groups (DEV-294).
  */
-export function syncVisibilityOnTree(roots: TreeNode[], columnVisibility: ColumnVisibility) {
+export function syncVisibilityOnTree(roots: TreeNode<HeaderNodeData>[], columnVisibility: ColumnVisibility) {
   roots.forEach((rootNode) => {
-    rootNode.walkDown((node: TreeNode) => {
-      const data = node.data as HeaderNodeData;
+    rootNode.walkDown((node) => {
+      const data = node.data;
       const { columnIndex, origColspan } = data;
       const crossHiddenColumns: number[] = [];
 

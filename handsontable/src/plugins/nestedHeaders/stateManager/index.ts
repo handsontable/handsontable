@@ -159,9 +159,9 @@ export default class StateManager {
   #snapshotCollapsedNodes(): { headerLevel: number, columnIndex: number }[] {
     const collapsedNodes: { headerLevel: number, columnIndex: number }[] = [];
 
-    this.#headersTree.getRoots().forEach((rootNode: TreeNode) => {
-      rootNode.walkDown((node: TreeNode) => {
-        const data = node.data as HeaderNodeData;
+    this.#headersTree.getRoots().forEach((rootNode) => {
+      rootNode.walkDown((node) => {
+        const data = node.data;
 
         if (data.isCollapsed) {
           collapsedNodes.push({ headerLevel: data.headerLevel, columnIndex: data.columnIndex });
@@ -275,9 +275,9 @@ export default class StateManager {
   #snapshotIsCollapsed(): Set<string> {
     const collapsed = new Set<string>();
 
-    this.#headersTree.getRoots().forEach((rootNode: TreeNode) => {
-      rootNode.walkDown((node: TreeNode) => {
-        const data = node.data as HeaderNodeData;
+    this.#headersTree.getRoots().forEach((rootNode) => {
+      rootNode.walkDown((node) => {
+        const data = node.data;
 
         if (data.isCollapsed) {
           collapsed.add(`${data.headerLevel},${data.columnIndex}`);
@@ -301,9 +301,9 @@ export default class StateManager {
     }
 
     if (savedIsCollapsed && savedIsCollapsed.size > 0) {
-      this.#headersTree.getRoots().forEach((rootNode: TreeNode) => {
-        rootNode.walkDown((node: TreeNode) => {
-          const data = node.data as HeaderNodeData;
+      this.#headersTree.getRoots().forEach((rootNode) => {
+        rootNode.walkDown((node) => {
+          const data = node.data;
 
           if (savedIsCollapsed.has(`${data.headerLevel},${data.columnIndex}`)) {
             data.isCollapsed = true;

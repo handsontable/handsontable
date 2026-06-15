@@ -16,7 +16,7 @@ import type { HeaderNodeData } from '../headersTree';
  * @returns {object} Returns an object with properties.
  */
 export function expandNode(
-  nodeToProcess: { data: HeaderNodeData, childs: TreeNode[] }
+  nodeToProcess: TreeNode<HeaderNodeData>
 ): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } {
   const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
@@ -28,11 +28,10 @@ export function expandNode(
     };
   }
 
-  type NodeWithData = { data: Record<string, unknown>, childs: { data: Record<string, unknown> }[] };
-  const isNodeReflected = isNodeReflectsFirstChildColspan(nodeToProcess as NodeWithData);
+  const isNodeReflected = isNodeReflectsFirstChildColspan(nodeToProcess);
 
   if (isNodeReflected) {
-    return expandNode(nodeChilds[0] as unknown as { data: HeaderNodeData, childs: TreeNode[] });
+    return expandNode(nodeChilds[0]);
   }
 
   nodeData.isCollapsed = false;
@@ -45,17 +44,16 @@ export function expandNode(
   let colspanCompensation = 0;
 
   if (childsToRestore.length > 0) {
-    arrayEach(childsToRestore, (node) => {
-      const treeNode = node as TreeNode;
-
+    arrayEach(childsToRestore, (treeNode) => {
       // Restore original state of the collapsed headers. `replaceTreeWith` swaps in a fresh
       // `data` object, so read the restored colspan from `treeNode.data` *after* the replace -
       // the pre-replace reference still points at the (possibly hidden, colspan 0) old data.
-      const clonedTree = (treeNode.data as HeaderNodeData).clonedTree as TreeNode;
+      // `childsToRestore` is filtered to nodes that carry a cloned tree, so it is never null here.
+      const clonedTree = treeNode.data.clonedTree!;
 
       treeNode.replaceTreeWith(clonedTree);
 
-      const leafData = treeNode.data as HeaderNodeData;
+      const leafData = treeNode.data;
 
       leafData.clonedTree = null;
 
@@ -87,8 +85,8 @@ export function expandNode(
     }
   }
 
-  (nodeToProcess as unknown as TreeNode).walkUp((node: TreeNode) => {
-    const data = node.data as HeaderNodeData;
+  nodeToProcess.walkUp((node) => {
+    const { data } = node;
 
     data.colspan += colspanCompensation;
 
@@ -96,9 +94,8 @@ export function expandNode(
       data.colspan = data.origColspan;
       data.isCollapsed = false;
 
-    } else if (isNodeReflectsFirstChildColspan(node as NodeWithData)) {
-      type NodeWithChilds = { childs: { data: Record<string, unknown> }[] };
-      data.isCollapsed = getFirstChildProperty(node as NodeWithChilds, 'isCollapsed') as boolean;
+    } else if (isNodeReflectsFirstChildColspan(node)) {
+      data.isCollapsed = getFirstChildProperty(node, 'isCollapsed') as boolean;
     }
   });
 

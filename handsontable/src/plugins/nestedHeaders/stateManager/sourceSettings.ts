@@ -33,7 +33,7 @@ export default class SourceSettings {
    * @private
    * @type {Array[]}
    */
-  #data: unknown[][] = [];
+  #data: SourceHeaderCell[][] = [];
   /**
    * The total length of the nested header layers.
    *
@@ -63,7 +63,9 @@ export default class SourceSettings {
    * @param {Array[]} [nestedHeadersSettings=[]] The user-defined nested headers settings.
    */
   setData(nestedHeadersSettings: unknown[][] = []) {
-    this.#data = normalizeSettings(nestedHeadersSettings, this.#columnsLimit);
+    // normalizeSettings builds the per-column header cells from untyped user input; assert the
+    // normalized shape here, at the single boundary, so the rest of the class stays typed.
+    this.#data = normalizeSettings(nestedHeadersSettings, this.#columnsLimit) as SourceHeaderCell[][];
     this.#dataLength = this.#data.length;
   }
 
@@ -192,9 +194,7 @@ export default class SourceSettings {
    * @param {number} amount The number of columns to insert.
    */
   insertColumns(columnIndex: number, amount: number) {
-    arrayEach(this.#data, (row) => {
-      const cells = row as SourceHeaderCell[];
-
+    arrayEach(this.#data, (cells) => {
       if (columnIndex > 0 && columnIndex < cells.length && cells[columnIndex].isPlaceholder) {
         let headerIndex = columnIndex - 1;
 
@@ -240,9 +240,8 @@ export default class SourceSettings {
   removeColumns(columnIndex: number, amount: number) {
     const endIndex = columnIndex + amount;
 
-    this.#data = this.#data.map((row) => {
-      const cells = row as SourceHeaderCell[];
-      const newCells: unknown[] = [];
+    this.#data = this.#data.map((cells) => {
+      const newCells: SourceHeaderCell[] = [];
       let cellIndex = 0;
 
       while (cellIndex < cells.length) {

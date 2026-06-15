@@ -1,5 +1,6 @@
 import { arrayEach } from '../../../helpers/array';
 import TreeNode from '../../../utils/dataStructures/tree';
+import { createDefaultHeaderSettings } from './utils';
 import type SourceSettings from './sourceSettings';
 
 /**
@@ -32,7 +33,7 @@ export interface HeaderNodeData extends HeaderSettings {
   /**
    * A cloned subtree stored during collapse, restored on expand.
    */
-  clonedTree?: TreeNode | null;
+  clonedTree?: TreeNode<HeaderNodeData> | null;
 }
 
 /**
@@ -48,7 +49,7 @@ export default class HeadersTree {
    * @private
    * @type {Map<number, TreeNode>}
    */
-  readonly #rootNodes = new Map<number, TreeNode>();
+  readonly #rootNodes = new Map<number, TreeNode<HeaderNodeData>>();
   /**
    * A map that translates the visual column indexes.
    *
@@ -114,11 +115,11 @@ export default class HeadersTree {
     // by root node colspan width.
     const normColumnIndex = columnIndex - this.#rootsIndex.get(columnIndex)!;
     let columnCursor = 0;
-    let treeNode;
+    let treeNode: TreeNode<HeaderNodeData> | undefined;
 
     // Collect all parent nodes that depend on the collapsed node.
-    rootNode.walkDown((node: TreeNode) => {
-      const { origColspan, headerLevel: nodeHeaderLevel } = node.data as HeaderNodeData;
+    rootNode.walkDown((node) => {
+      const { origColspan, headerLevel: nodeHeaderLevel } = node.data;
 
       if (headerLevel === nodeHeaderLevel) {
         if (normColumnIndex >= columnCursor && normColumnIndex <= columnCursor + origColspan - 1) {
@@ -144,7 +145,7 @@ export default class HeadersTree {
     this.#rootsIndex.clear();
 
     arrayEach(this.#rootNodes, ([, node]) => {
-      const { colspan } = node.data as HeaderNodeData;
+      const { colspan } = node.data;
 
       // Map tree range (colspan range/width) into visual column index of the root node.
       for (let i = columnIndex; i < columnIndex + colspan; i++) {
@@ -166,7 +167,12 @@ export default class HeadersTree {
 
     while (columnIndex < columnsCount) {
       const columnSettings = this.#sourceSettings!.getHeaderSettings(0, columnIndex) as HeaderSettings;
-      const rootNode = new TreeNode({});
+      // Transient placeholder data - buildLeaves() overwrites it with the real header node data.
+      const rootNode = new TreeNode<HeaderNodeData>({
+        ...createDefaultHeaderSettings(),
+        headerLevel: 0,
+        columnIndex,
+      });
 
       this.#rootNodes.set(columnIndex, rootNode);
       this.buildLeaves(rootNode, columnIndex, 0, columnSettings.origColspan);
@@ -185,7 +191,7 @@ export default class HeadersTree {
    * @param {number} headerLevel Currently processed header level.
    * @param {number} [extractionLength=1] Determines column extraction length for node children.
    */
-  buildLeaves(parentNode: TreeNode, columnIndex: number, headerLevel: number, extractionLength = 1) {
+  buildLeaves(parentNode: TreeNode<HeaderNodeData>, columnIndex: number, headerLevel: number, extractionLength = 1) {
     const columnsSettings = this.#sourceSettings!.getHeadersSettings(headerLevel, columnIndex, extractionLength);
 
     headerLevel += 1;
