@@ -237,6 +237,12 @@ function writeCssThemeFiles(themeVariables) {
   const themeNames = Object.keys(themeVariables[TOKENS_KEY]);
   const iconsNames = Object.keys(ICONS_SET);
 
+  // Backstop: with no themes there would be nothing to emit after the wipe. Fail rather than
+  // silently produce an empty result (index.mjs also guards this before wiping).
+  if (themeNames.length === 0) {
+    throw new Error('No themes to generate CSS for — tokens.json produced an empty theme set.');
+  }
+
   console.log('\n## CSS Generation ##');
   console.log('\n### CSS theme Generation ###');
 

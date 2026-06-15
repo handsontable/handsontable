@@ -39,6 +39,17 @@ test('writeCssThemeFiles throws (does not exit 0) when a theme cannot generate C
   assert.throws(() => writeCssThemeFiles(themeVariables), /CSS generation failed for theme/);
 });
 
+test('writeCssThemeFiles throws when there are no themes (empty export guard)', () => {
+  const themeVariables = {
+    sizing: {},
+    density: { default: {} },
+    colors: {},
+    tokens: {}, // empty themes set
+  };
+
+  assert.throws(() => writeCssThemeFiles(themeVariables), /empty theme set/);
+});
+
 test('generateThemeCss emits CSS for a well-formed theme', () => {
   const themeVariables = {
     sizing: { size_0: '0px' },
