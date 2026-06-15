@@ -25,7 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
         name: Install pnpm
 
       - name: Use Node.js
@@ -48,24 +48,24 @@ jobs:
         run: |
           echo "${{ secrets.GITHUB_TOKEN }}" | docker login -u ${GITHUB_ACTOR} --password-stdin https://docker.pkg.github.com
 
+      - name: Install monorepo dependencies and build packages
+        working-directory: .
+        run: |
+          pnpm install --frozen-lockfile
+          npm run all build -- --e examples visual-tests
+
       - name: Update module size measurements
         working-directory: .
         run: |
-          pnpm install --frozen-lockfile --ignore-scripts
-          npm run build --prefix handsontable
           npm run measure:module-sizes --prefix handsontable
-
-      - name: Install workspace dependencies (lifecycle scripts for docs)
-        working-directory: .
-        run: pnpm install --frozen-lockfile
 
       - name: Docker build
         run: |
           npm run docs:docker:build:production
 
-      - name: Test examples
+      - name: Test plugins
         run: |
-          npm run docs:test:example-checker
+          npm run docs:test:plugins
 
       - name: Docker tags
         run: |
@@ -100,6 +100,32 @@ jobs:
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PROD_SITE_ID }}
+
+      - name: Add Cloudflare worker to production deploy
+        continue-on-error: true
+        run: cp cloudflare/_worker.js netlify/docs/_worker.js
+
+      - name: Ensure Cloudflare Pages production project exists
+        continue-on-error: true
+        run: node cloudflare/ensureProject.mjs
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_PROJECT_NAME: handsontable-docs
+
+      - name: Deploy production to Cloudflare Pages
+        continue-on-error: true
+        # Install wrangler in /tmp to avoid npm failures inside the pnpm workspace
+        working-directory: /tmp
+        run: |
+          npm install wrangler
+          ./node_modules/.bin/wrangler pages deploy \
+            "$GITHUB_WORKSPACE/docs/netlify/docs" \
+            --project-name handsontable-docs \
+            --branch main
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       - name: Algolia crawler start
         env:

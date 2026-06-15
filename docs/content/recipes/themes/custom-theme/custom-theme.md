@@ -23,15 +23,21 @@ react:
 angular:
   id: b582k93d
   metaTitle: Handsontable with shadcn/ui - Angular Data Grid | Handsontable
+vue:
+  id: jo0cv4kp
 searchCategory: Recipes
 category: Themes
 ---
 
 This tutorial shows you how to integrate Handsontable into a Next.js app that uses shadcn/ui, registering a custom theme that maps shadcn CSS variables and Lucide icons to the Handsontable Theme API.
 
-<iframe src="https://4y8dv9-3000.csb.app/" title="Handsontable with shadcn/ui demo" width="100%" height="500" frameborder="0" allowfullscreen style="border-radius: 8px; min-height: 500px;"></iframe>
+<iframe src="https://codesandbox.io/p/devbox/5kjc5d?embed=1&file=%2Fcomponents%2FDataGrid.tsx"
+     style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
+     title="Handsontable with shadcn"
+     sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
+   ></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/devbox/github/handsontable/examples/tree/master/examples/next-shadcn.js)
+[**Open in CodeSandbox**](https://codesandbox.io/p/devbox/5kjc5d)
 
 ## Overview
 
@@ -186,8 +192,8 @@ export const config: Partial<HotTableProps> = {
 };
 
 export const data = [
-  { name: "Alice", age: 28, country: "USA", city: "New York", isActive: true, interest: "Tech Gadgets", favoriteProduct: "Laptop", lastLoginDate: "Jan 15, 2025", lastLoginTime: "09:30" },
-  { name: "Bob", age: 34, country: "UK", city: "London", isActive: false, interest: "Books & Literature", favoriteProduct: "Headphones", lastLoginDate: "Feb 01, 2025", lastLoginTime: "14:00" },
+  { name: "Alice", age: 28, country: "USA", city: "New York", isActive: true, interest: "Tech Gadgets", favoriteProduct: "Laptop", lastLoginDate: "2025-01-15", lastLoginTime: "09:30" },
+  { name: "Bob", age: 34, country: "UK", city: "London", isActive: false, interest: "Books & Literature", favoriteProduct: "Headphones", lastLoginDate: "2025-02-01", lastLoginTime: "14:00" },
   // Add more rows; keys must match HotColumn data props
 ];
 ```
@@ -308,16 +314,14 @@ const DataGrid = forwardRef<HotTableRef, unknown>(function DataGrid(_, ref) {
       data="lastLoginDate"
       type="date"
       className="htRight"
-      correctFormat={true}
-      dateFormat="MMM DD, YYYY"
+      dateFormat={{ year: 'numeric', month: 'short', day: 'numeric' }}
       width={180}
     />
     <HotColumn
       data="lastLoginTime"
       type="time"
       className="htRight"
-      correctFormat={true}
-      timeFormat="HH:mm"
+      timeFormat={{ hour: '2-digit', minute: '2-digit', hour12: false }}
       width={180}
     />
   </HotTable>);

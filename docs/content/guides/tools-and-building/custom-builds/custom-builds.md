@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 7a5vawwl
 title: Custom builds
 metaTitle: Custom builds - JavaScript Data Grid | Handsontable
 description: Handsontable's building process transforms the source files located in the code repository into dedicated packages.
@@ -11,11 +10,11 @@ tags:
   - bundling
   - contributing
 react:
-  id: pcflnieu
   metaTitle: Custom builds - React Data Grid | Handsontable
 angular:
-  id: 098p9wiw
   metaTitle: Custom builds - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Custom builds - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
 ---
@@ -34,7 +33,7 @@ The Handsontable repository is a monorepo that contains the following projects:
 | `handsontable`          | `/handsontable`           | Main Handsontable project                                                                            |
 | `@handsontable/react-wrapper`  | `/wrappers/react-wrapper` | [React wrapper](@/react/guides/getting-started/introduction/introduction.md) |
 | `@handsontable/angular-wrapper` | `/wrappers/angular-wrapper`       | [Angular (v16+) wrapper](@/angular/guides/getting-started/introduction/introduction.md)              |
-| `@handsontable/vue3`    | `/wrappers/vue3`          | [Vue wrapper](@/javascript/guides/integrate-with-vue3/vue3-installation/vue3-installation.md)      |
+| `@handsontable/vue3`    | `/wrappers/vue3`          | [Vue wrapper](@/vue/guides/getting-started/installation/installation.md)      |
 
 Handsontable releases all projects together, under the same version number.
 But each project has its own [building](#build-processes) and [testing](@/guides/tools-and-building/testing/testing.md) processes.
@@ -247,8 +246,6 @@ From the `/wrappers/angular-wrapper` directory, You can also run individual Angu
 
 :::
 
-::: only-for javascript
-
 ### Build the Vue package
 
 To build the Vue package:
@@ -290,8 +287,6 @@ From the `/wrappers/vue3` directory, you can also run individual Vue `build` tas
   - Creates the minified bundles:
     - `/wrappers/vue3/dist/vue-handsontable.min.js`
     - `/wrappers/vue3/dist/vue-handsontable.min.js.map`
-
-:::
 
 :::
 

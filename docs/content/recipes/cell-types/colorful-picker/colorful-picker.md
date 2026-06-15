@@ -6,6 +6,7 @@ metaTitle: Color Picker Cell Type - React Data Grid | Handsontable
 description: Learn how to create a custom Handsontable cell type using a color picker for selecting hex colors directly in your data grid.
 permalink: /recipes/cell-types/colorful-picker
 canonicalUrl: /recipes/cell-types/colorful-picker
+framework: react
 tags:
   - guides
   - tutorial
@@ -16,6 +17,8 @@ react:
 angular:
   id: 4f6678f9
   metaTitle: Color Picker Cell Type - Angular Data Grid | Handsontable
+vue:
+  id: hvnfgr8y
 searchCategory: Recipes
 category: Cell Types
 ---

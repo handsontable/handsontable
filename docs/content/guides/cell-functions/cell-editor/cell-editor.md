@@ -1,17 +1,16 @@
 ---
 type: how-to
-id: u00oul7m
 title: Cell editor
 metaTitle: Cell editor - JavaScript Data Grid | Handsontable
 description: Create a custom cell editor function, to have full control over how editing works in the cells of your data grid.
 permalink: /cell-editor
 canonicalUrl: /cell-editor
 react:
-  id: 6i8ttta0
   metaTitle: Cell editor - React Data Grid | Handsontable
 angular:
-  id: 7qb4y4u4
   metaTitle: Cell editor - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Cell editor - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
 ---
@@ -153,7 +152,7 @@ Handsontable separates rendering (displaying cell values) from editing (changing
 
 :::
 
-**Overriding keyboard behavior:** Register a [`beforeKeyDown`](@/api/hooks.md#beforekeydown) hook listener and call `event.stopImmediatePropagation()` to prevent `EditorManager` from processing a specific key. Register the listener in `open()` and remove it in `close()` so it only intercepts events while your editor is active.
+**Overriding keyboard behavior:** Register a [`beforeKeyDown`](@/api/hooks.md#beforekeydown) hook listener and call `Handsontable.dom.stopImmediatePropagation(event)` to prevent `EditorManager` from processing a specific key. The native `event.stopImmediatePropagation()` does not stop Handsontable's internal key pipeline - you must use the `Handsontable.dom` helper (or import `stopImmediatePropagation` from `handsontable/helpers/dom/event`). Register the listener in `open()` and remove it in `close()` so it only intercepts events while your editor is active.
 
 **Editor singleton:** Each editor class has exactly one instance per table. The constructor and `init()` run once per table; `prepare()` runs every time you select a cell that uses that editor.
 
@@ -260,6 +259,16 @@ Override only the methods you need. The `PasswordEditor` below extends `TextEdit
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-functions/cell-editor/vue/example1.vue)
+
+:::
+
+:::
+
 ### Building an editor from scratch
 
 Extend `BaseEditor` directly for full control. The `SelectEditor` below renders a `<select>` dropdown. It also overrides keyboard behavior so <kbd>**Arrow Up**</kbd> / <kbd>**Arrow Down**</kbd> cycle through options rather than closing the editor.
@@ -291,6 +300,16 @@ To use a class-based editor from scratch in React, pass the editor class as the 
 ::: only-for angular
 
 To use a class-based editor from scratch in Angular, pass the editor class as the `editor` property in a column configuration object. See the [class-based editors](#class-based-editors) section for an example.
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-functions/cell-editor/vue/example2.vue)
+
+:::
 
 :::
 
@@ -351,6 +370,14 @@ settings = { columns: [{ editor: 'myEditor' }] };
 
 ```html
 <hot-table [settings]="settings" />
+```
+
+:::
+
+::: only-for vue
+
+```html
+<HotTable :settings="{ columns: [{ editor: 'myEditor' }] }" />
 ```
 
 :::
@@ -425,7 +452,7 @@ class ExtendedSelectEditor extends MySelectEditor {
 
 - [Custom editor in React](@/react/guides/cell-functions/cell-editor/cell-editor.md)
 - [Custom editor in Angular](@/angular/guides/cell-functions/cell-editor/cell-editor.md)
-- [Custom editor in Vue 3](@/guides/integrate-with-vue3/vue3-custom-editor-example/vue3-custom-editor-example.md)
+- [Custom editor in Vue 3](@/vue/guides/cell-functions/cell-editor/cell-editor.md)
 
 </div>
 

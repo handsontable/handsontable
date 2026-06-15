@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { jsPaths, reactPaths, angularPaths } from './paths';
+import { jsPaths, reactPaths, angularPaths, vuePaths } from './paths';
 
 const pathsNeedingMoreTolerance = [
   'events-and-hooks',
@@ -42,6 +42,7 @@ const testCases = [
   { paths: jsPaths, prefix: 'js', urlPath: 'javascript-data-grid' },
   { paths: reactPaths, prefix: 'react', urlPath: 'react-data-grid' },
   { paths: angularPaths, prefix: 'angular', urlPath: 'angular-data-grid' },
+  { paths: vuePaths, prefix: 'vue', urlPath: 'vue-data-grid' },
 ];
 
 testCases.forEach(({ paths, prefix, urlPath }) => {

@@ -214,6 +214,77 @@ describe('Filters UI', () => {
     expect(checkboxes.length).toBe(2);
   });
 
+  it('should refresh the "Filter by value" list to include newly added values after `updateData` ' +
+    'is called while a `by_value` filter is active #9259', async() => {
+    handsontable({
+      data: [['Adam']],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      width: 500,
+      height: 300
+    });
+
+    const plugin = getPlugin('filters');
+
+    plugin.addCondition(0, 'by_value', [['Adam']]);
+    plugin.filter();
+
+    await updateData([['Adam'], ['John'], ['Tim']]);
+
+    await dropdownMenu(0);
+    await sleep(112);
+
+    const items = byValueMultipleSelect().getItems();
+    const values = items.map(item => item.value);
+    const checked = items.map(item => item.checked);
+
+    expect(values).toEqual(['Adam', 'John', 'Tim']);
+    expect(checked).toEqual([true, false, false]);
+  });
+
+  it('should refresh the "Filter by value" list on every filtered column after `updateData` #9259', async() => {
+    handsontable({
+      data: [['Adam', 'NY']],
+      colHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      width: 500,
+      height: 300
+    });
+
+    const plugin = getPlugin('filters');
+
+    plugin.addCondition(0, 'by_value', [['Adam']]);
+    plugin.addCondition(1, 'by_value', [['NY']]);
+    plugin.filter();
+
+    await updateData([
+      ['Adam', 'NY'],
+      ['Adam', 'LA'],
+      ['John', 'SF'],
+    ]);
+
+    await dropdownMenu(0);
+    await sleep(112);
+
+    const col0Items = byValueMultipleSelect().getItems();
+
+    expect(col0Items.map(i => i.value)).toEqual(['Adam', 'John']);
+    expect(col0Items.map(i => i.checked)).toEqual([true, false]);
+
+    await dropdownMenu(1);
+    await sleep(112);
+
+    // The "Filter by value" picker for column 1 lists values from source rows that pass
+    // all preceding columns' conditions (standard pivot behavior). Column 0 keeps `by_value=[Adam]`,
+    // so only rows with `Adam` contribute: values `NY` and `LA`.
+    const col1Items = byValueMultipleSelect().getItems();
+
+    expect(col1Items.map(i => i.value)).toEqual(['LA', 'NY']);
+    expect(col1Items.map(i => i.checked)).toEqual([false, true]);
+  });
+
   it('should restore correct components\' state after altering columns', async() => {
     handsontable({
       data: [
@@ -480,14 +551,14 @@ describe('Filters UI', () => {
       expect(getData()[0][0]).toBe(26);
       expect(getData()[0][1]).toBe('Stanton Britt');
       expect(getData()[0][2]).toBe('Nipinnawasee');
-      expect(getData()[0][3]).toBe(moment().add(-1, 'days').format(FILTERS_DATE_FORMAT));
+      expect(getData()[0][3]).toBe(addDays(-1));
       expect(getData()[0][4]).toBe('green');
       expect(getData()[0][5]).toBe(3592.18);
       expect(getData()[0][6]).toBe(false);
       expect(getDataAtCol(3).join()).toBe([
-        moment().add(-1, 'days').format(FILTERS_DATE_FORMAT),
-        moment().add(-1, 'days').format(FILTERS_DATE_FORMAT),
-        moment().add(-1, 'days').format(FILTERS_DATE_FORMAT),
+        addDays(-1),
+        addDays(-1),
+        addDays(-1),
       ].join());
     });
 
@@ -722,7 +793,7 @@ describe('Filters UI', () => {
       expect(getData()[1][0]).toBe(24);
       expect(getData()[1][1]).toBe('Greta Patterson');
       expect(getData()[1][2]).toBe('Bartonsville');
-      expect(getData()[1][3]).toBe(moment().add(-2, 'days').format(FILTERS_DATE_FORMAT));
+      expect(getData()[1][3]).toBe(addDays(-2));
       expect(getData()[1][4]).toBe('green');
       expect(getData()[1][5]).toBe(2437.58);
       expect(getData()[1][6]).toBe(false);
@@ -778,7 +849,7 @@ describe('Filters UI', () => {
       expect(getData()[1][0]).toBe(24);
       expect(getData()[1][1]).toBe('Greta Patterson');
       expect(getData()[1][2]).toBe('Bartonsville');
-      expect(getData()[1][3]).toBe(moment().add(-2, 'days').format(FILTERS_DATE_FORMAT));
+      expect(getData()[1][3]).toBe(addDays(-2));
       expect(getData()[1][4]).toBe('green');
       expect(getData()[1][5]).toBe(2437.58);
       expect(getData()[1][6]).toBe(false);
@@ -2040,5 +2111,175 @@ describe('Filters UI', () => {
 
     expect(isListening()).toBe(true);
     expect(getShortcutManager().getActiveContextName()).toBe('grid');
+  });
+
+  describe('Date sorting in "Filter by value" list', () => {
+    it('should sort "date" cell type values chronologically in the filter dropdown (not alphabetically)', async() => {
+      handsontable({
+        data: [
+          ['2023-12-15'],
+          ['2022-03-01'],
+          ['2021-06-20'],
+        ],
+        columns: [{ type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } }],
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+        width: 400,
+        height: 300,
+      });
+
+      await dropdownMenu(0);
+      await sleep(112);
+
+      const items = byValueMultipleSelect().getItems();
+
+      expect(items.length).toBe(3);
+      // Chronological order: 2021-06-20 < 2022-03-01 < 2023-12-15
+      expect(items[0].value).toBe('2021-06-20');
+      expect(items[1].value).toBe('2022-03-01');
+      expect(items[2].value).toBe('2023-12-15');
+    });
+
+    it('should sort "intl-date" cell type values chronologically in the filter dropdown', async() => {
+      handsontable({
+        data: [
+          ['2023-12-15'],
+          ['2022-03-01'],
+          ['2021-06-20'],
+        ],
+        columns: [{ type: 'intl-date' }],
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+        width: 400,
+        height: 300,
+      });
+
+      await dropdownMenu(0);
+      await sleep(112);
+
+      const items = byValueMultipleSelect().getItems();
+
+      expect(items.length).toBe(3);
+      // Chronological order: 2021-06-20 < 2022-03-01 < 2023-12-15
+      expect(items[0].value).toBe('2021-06-20');
+      expect(items[1].value).toBe('2022-03-01');
+      expect(items[2].value).toBe('2023-12-15');
+    });
+
+    it('should place empty values at the top of the "date" column filter list', async() => {
+      handsontable({
+        data: [
+          ['2023-12-15'],
+          [null],
+          ['2021-06-20'],
+        ],
+        columns: [{
+          type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }, allowEmpty: true
+        }],
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+        width: 400,
+        height: 300,
+      });
+
+      await dropdownMenu(0);
+      await sleep(112);
+
+      const items = byValueMultipleSelect().getItems();
+
+      expect(items.length).toBe(3);
+      expect(items[0].value).toBe('');
+      expect(items[1].value).toBe('2021-06-20');
+      expect(items[2].value).toBe('2023-12-15');
+    });
+  });
+
+  describe('Editing a cell in an earlier filtered column (issue #8874)', () => {
+    it('should preserve dependent column "Filter by value" checkboxes when editing earlier filtered column',
+      async() => {
+        handsontable({
+          data: [
+            { id: 1, country: 'Germany', company: 'BMW' },
+            { id: 2, country: 'Germany', company: 'Mercedes' },
+            { id: 3, country: 'Italy', company: 'Fiat' },
+            { id: 4, country: 'France', company: 'Renault' },
+          ],
+          columns: [
+            { data: 'id', type: 'numeric' },
+            { data: 'country' },
+            { data: 'company' },
+          ],
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true,
+          width: 500,
+          height: 300,
+        });
+
+        const filters = getPlugin('filters');
+
+        filters.addCondition(1, 'by_value', [['Germany', 'France']]);
+        filters.filter();
+        filters.addCondition(2, 'by_value', [['Mercedes', 'Renault']]);
+        filters.filter();
+
+        await setDataAtCell(0, 1, 'France');
+
+        await dropdownMenu(2);
+        await sleep(112);
+
+        const items = byValueMultipleSelect().getItems();
+        const checkedValues = items.filter(item => item.checked).map(item => item.value);
+
+        expect(checkedValues).toEqual(['Mercedes', 'Renault']);
+      });
+
+    it('should preserve dependent column checkboxes when edit reintroduces a filtered-out value (issue repro)',
+      async() => {
+        handsontable({
+          data: [
+            { id: 1, country: 'Germany', company: 'BMW' },
+            { id: 2, country: 'Germany', company: 'Mercedes' },
+            { id: 3, country: 'Germany', company: 'Fiat' },
+            { id: 4, country: 'France', company: 'Renault' },
+            { id: 5, country: 'Italy', company: 'Ferrari' },
+            { id: 6, country: 'France', company: 'Peugeot' },
+            { id: 7, country: 'Italy', company: 'Lamborghini' },
+            { id: 8, country: 'Germany', company: 'Audi' },
+          ],
+          columns: [
+            { data: 'id', type: 'numeric' },
+            { data: 'country' },
+            { data: 'company' },
+          ],
+          colHeaders: true,
+          dropdownMenu: true,
+          filters: true,
+          width: 500,
+          height: 360,
+        });
+
+        const filters = getPlugin('filters');
+
+        filters.addCondition(1, 'by_value', [['Germany', 'France']]);
+        filters.filter();
+        filters.addCondition(2, 'by_value',
+          [['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi']]);
+        filters.filter();
+
+        await setDataAtCell(2, 1, 'Italy');
+
+        await dropdownMenu(2);
+        await sleep(112);
+
+        const items = byValueMultipleSelect().getItems();
+        const checkedValues = items.filter(item => item.checked).map(item => item.value);
+
+        expect(checkedValues).toEqual(
+          jasmine.arrayWithExactContents(['Mercedes', 'Fiat', 'Renault', 'Ferrari', 'Peugeot', 'Lamborghini', 'Audi']));
+      });
   });
 });

@@ -39,21 +39,16 @@ if (!container) {
   throw new Error('Missing #example3 element.');
 }
 
-const statusBar = document.createElement('div');
-const status = document.createElement('p');
+const controlsContainer = document.createElement('div');
+const statusOutput = document.createElement('output');
 const gridContainer = document.createElement('div');
 
-statusBar.style.display = 'flex';
-statusBar.style.alignItems = 'center';
-statusBar.style.marginBottom = '8px';
+controlsContainer.className = 'example-controls-container';
+statusOutput.id = 'example3-status';
+statusOutput.textContent = 'Loading...';
 
-status.style.margin = '0';
-status.style.fontFamily = 'Arial, sans-serif';
-status.style.fontSize = '14px';
-status.textContent = 'Loading...';
-
-container.appendChild(statusBar);
-statusBar.appendChild(status);
+container.appendChild(controlsContainer);
+controlsContainer.appendChild(statusOutput);
 container.appendChild(gridContainer);
 
 new Handsontable(gridContainer, {
@@ -127,16 +122,16 @@ new Handsontable(gridContainer, {
   // in those cases so the grid does not flash a spinner on every column header click.
   beforeDataProviderFetch: ({ skipLoading }) => {
     if (!skipLoading) {
-      status.textContent = 'Loading...';
-      status.style.color = 'var(--ht-foreground-color, #202124)';
+      statusOutput.textContent = 'Loading...';
+      statusOutput.classList.remove('is-error');
     }
   },
   afterDataProviderFetch: () => {
-    status.textContent = 'Loaded from REST API via dataProvider.';
-    status.style.color = 'var(--ht-foreground-color, #202124)';
+    statusOutput.textContent = 'Loaded from REST API via dataProvider.';
+    statusOutput.classList.remove('is-error');
   },
   afterDataProviderFetchError: (error) => {
-    status.textContent = `Error: ${error.message}`;
-    status.style.color = 'var(--ht-notification-error-accent, #c62828)';
+    statusOutput.textContent = `Error: ${error.message}`;
+    statusOutput.classList.add('is-error');
   },
 });

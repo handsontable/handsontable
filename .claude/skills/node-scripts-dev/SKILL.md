@@ -11,8 +11,59 @@ All Node.js-side code in the monorepo -- scripts, utilities, and library modules
 
 - **Extension:** Always `.mjs` (never `.js` or `.cjs` for Node.js-side code).
 - **Location:** `scripts/` for CLI-invoked scripts. `lib/` for shared utilities and library modules. Package-specific paths are fine (e.g., `performance-tests/lib/`, `wrappers/react-wrapper/scripts/`).
-- **Invocation:** `node scripts/your-script.mjs` from `package.json` scripts.
+- **Invocation:** `node scripts/your-script.mjs` from `package.json` scripts, or as a `cmd` value in `handsontable/scripts/tasks.json` (see below).
 - **Scope:** These conventions apply to all `.mjs` files -- standalone scripts, library modules, Playwright helpers, build tooling, etc.
+
+## Adding npm scripts to the handsontable core package
+
+The `handsontable/` package uses a unified dispatcher. **Do not add raw shell commands directly to `handsontable/package.json` scripts.** Instead:
+
+1. Add the task to `handsontable/scripts/tasks.json`:
+
+```json
+"my-task": {
+  "cmd": "node scripts/my-script.mjs",
+  "deps": ["build:styles"],
+  "mode": "inherit"
+}
+```
+
+2. Add a thin shim to `package.json` that delegates to the dispatcher:
+
+```json
+"my-task": "node scripts/run.mjs my-task"
+```
+
+### tasks.json schema
+
+| Field | Required | Values | Purpose |
+|-------|----------|--------|---------|
+| `cmd` | yes | shell string | Command run via `spawn(..., { shell: true })` |
+| `deps` | no | task name array | Tasks that must complete first (resolved by DAG scheduler in parallel mode; resolved sequentially in direct invocation mode) |
+| `mode` | no | `quiet` (default) \| `inherit` \| `interactive` | `quiet` = suppress output with spinner; `inherit` = stream output (linters); `interactive` = full TTY pass-through (Jest) |
+| `cwd` | no | path relative to `handsontable/` | Working directory override |
+| `passthrough` | no | boolean | Append extra CLI flags (after `--`) to the cmd |
+| `note` | no | string | Human annotation only, ignored at runtime |
+
+### Pipeline definitions
+
+To group tasks into an ordered pipeline (e.g., a build or test sequence), add to the `pipelines` block:
+
+```json
+"pipelines": {
+  "my-pipeline": {
+    "before": ["clean"],
+    "tasks": ["my-task", "other-task"],
+    "after":  ["prepare-package-for-publish"]
+  }
+}
+```
+
+`before` and `after` steps run sequentially. `tasks` run sequentially with `--sequential` or via DAG with `--parallel`.
+
+### Other packages
+
+For wrapper packages (`wrappers/react-wrapper/`, `wrappers/angular-wrapper/`, `wrappers/vue3/`) and other monorepo packages (`performance-tests/`, `visual-tests/`), add directly to that package's `package.json` scripts as usual — those packages do not use the `run.mjs` dispatcher.
 
 ## Native module imports
 

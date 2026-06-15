@@ -1,7 +1,6 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
 import Handsontable from 'handsontable/base';
 
 interface MasterRow {
@@ -95,8 +94,8 @@ export class AppComponent {
       { data: 'lastName', type: 'text', width: 120 },
       { data: 'plan', type: 'dropdown', source: ['Starter', 'Team', 'Business', 'Enterprise'], width: 130 },
       { data: 'seats', type: 'numeric', width: 70 },
-      { data: 'pricePerSeat', type: 'numeric', numericFormat: { pattern: '$0,0.00' }, width: 105 },
-      { data: 'lastActive', type: 'date', dateFormat: 'YYYY-MM-DD', correctFormat: true, width: 130 },
+      { data: 'pricePerSeat', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }, width: 105 },
+      { data: 'lastActive', type: 'date', width: 130 },
     ],
     rowHeaders: true,
     height: 260,

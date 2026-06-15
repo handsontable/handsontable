@@ -3,7 +3,7 @@ import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import { textRenderer } from 'handsontable/renderers/textRenderer';
 import Handsontable from 'handsontable/base';
-import { CellChange } from 'handsontable/common';
+import { CellChange } from 'handsontable';
 
 // register Handsontable's modules
 registerAllModules();

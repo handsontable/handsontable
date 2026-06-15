@@ -13,6 +13,8 @@ react:
 angular:
   id: 7kr2r20j-14.6-to-15.0-react
   metaTitle: Migrate from 14.6 to 15.0 - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Migrate from 14.6 to 15.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---

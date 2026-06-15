@@ -72,7 +72,6 @@ beforeEach(() => {
   }
 
   const matchers = {
-    /* eslint-disable jsdoc/require-description-complete-sentence */
     /**
      * The matcher checks if the provided column headers structure pattern matches
      * to the current tree passed to the matcher.
@@ -96,7 +95,6 @@ beforeEach(() => {
      *
      * @returns {object}
      */
-    /* eslint-enable jsdoc/require-description-complete-sentence */
     toBeMatchToHeadersStructure() {
       return {
         compare(tree, actualPattern) {

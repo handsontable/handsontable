@@ -379,4 +379,30 @@ describe('StretchColumns', () => {
 
     expect($('.handsontable .ht_master table').outerWidth()).toBe(680);
   });
+
+  it('should not throw when the ResizeObserver fires while hot.view is not yet available', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 3),
+      stretchH: 'all',
+    });
+
+    await waitForNextAnimationFrames(2);
+
+    const hot = spec();
+    const savedView = hot.view;
+
+    // Simulate the race condition where hot.view is undefined when the rAF callback fires
+    // (e.g. during initialization or after destruction)
+    hot.view = undefined;
+
+    // Trigger a resize to queue a ResizeObserver callback
+    document.body.style.overflowY = 'scroll';
+
+    // Wait for the ResizeObserver and requestAnimationFrame to execute
+    await waitForNextAnimationFrames(3);
+
+    // Restore for proper cleanup
+    hot.view = savedView;
+    document.body.style.overflowY = '';
+  });
 });

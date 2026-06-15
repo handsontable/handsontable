@@ -1,21 +1,16 @@
-import { useCallback, useMemo } from 'react';
-import { HotTable } from '@handsontable/react-wrapper';
+import { useRef, useCallback, useMemo } from 'react';
+import { HotTable, HotTableRef } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import type {
   DataProviderQueryParameters,
   DataProviderFetchOptions,
   DataProviderFetchResult,
+  RowMutationPayload,
+  RowMutationRemovePayload,
 } from 'handsontable/plugins/dataProvider';
 
 registerAllModules();
 
-/**
- * Builds a URL with query parameters, skipping undefined and null values.
- *
- * @param base - The base path (e.g. '/api/products').
- * @param params - Key/value pairs to append as query parameters.
- * @returns The assembled URL string.
- */
 function buildUrl(base: string, params: Record<string, string | number | undefined>): string {
   const url = new URL(base, window.location.origin);
 
@@ -28,17 +23,11 @@ function buildUrl(base: string, params: Record<string, string | number | undefin
   return url.toString();
 }
 
+// eslint-disable-next-line no-unused-vars
 const ExampleComponent = () => {
-  /**
-   * Fetches a page of products from the Spring Boot REST API.
-   *
-   * Handsontable passes the current page, pageSize, sort state, and active
-   * filters. The function maps them to Spring Boot query parameters and
-   * returns { rows, totalRows } so the grid can render pagination controls.
-   *
-   * The AbortSignal in the second argument lets the browser cancel
-   * in-flight requests when the user quickly changes pages or filters.
-   */
+  const hotRef = useRef<HotTableRef>(null);
+  const removeConfirmedRef = useRef(false);
+
   const fetchRows = useCallback(
     async (
       { page, pageSize, sort, filters }: DataProviderQueryParameters,
@@ -49,62 +38,59 @@ const ExampleComponent = () => {
         pageSize,
         sortProp: sort?.prop,
         sortOrder: sort?.order,
-        // Handsontable passes filters as an array of objects; serialize to JSON
-        // so it can travel as a single query parameter.
         filters: filters ? JSON.stringify(filters) : undefined,
       });
 
       const res = await fetch(url, { signal });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json() as { rows: unknown[]; totalRows: number };
 
-      // The Spring Boot controller returns { rows, totalRows }.
       return { rows: json.rows, totalRows: json.totalRows };
     },
     []
   );
 
-  /**
-   * Sends a request to create one or more empty rows on the server.
-   *
-   * The payload shape is { position, referenceRowId, rowsAmount }, which
-   * matches the CreateRowsPayload DTO in ProductController.
-   */
-  const onRowsCreate = useCallback(async (payload: unknown): Promise<void> => {
-    await fetch('/api/products/create-rows', {
+  const onRowsCreate = useCallback(async (payload: unknown): Promise<unknown[]> => {
+    const res = await fetch('/api/products/create-rows', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+    const data = await res.json() as Array<{ id: number }>;
+    const info = data.map(r => `(id: ${r.id})`).join(', ');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (hotRef.current?.hotInstance?.getPlugin('notification') as any)?.showMessage({
+      variant: 'success',
+      title: 'Row added',
+      message: `Created: ${info}`,
+      duration: 3000,
+    });
+    return data;
   }, []);
 
-  /**
-   * Sends changed cell values to the server.
-   *
-   * Each element in the array is { id, changes } where changes is a map
-   * of column name to new value -- matching UpdateRowPayload on the server.
-   */
   const onRowsUpdate = useCallback(async (rows: unknown): Promise<void> => {
-    await fetch('/api/products/update-rows', {
+    const res = await fetch('/api/products/update-rows', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(rows),
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
   }, []);
 
-  /**
-   * Sends an array of row IDs to delete on the server.
-   */
   const onRowsRemove = useCallback(async (rowIds: unknown[]): Promise<void> => {
-    await fetch('/api/products/remove-rows', {
+    const res = await fetch('/api/products/remove-rows', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(rowIds),
     });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
   }, []);
 
   const dataProvider = useMemo(
     () => ({
-      // 'id' is the primary key returned by the Spring Boot API.
       rowId: 'id',
       fetchRows,
       onRowsCreate,
@@ -114,11 +100,61 @@ const ExampleComponent = () => {
     [fetchRows, onRowsCreate, onRowsUpdate, onRowsRemove]
   );
 
+  // beforeRowsMutation is sync (checks for a strict `=== false` return), so
+  // we can't await an async prompt inline. Instead: cancel the original
+  // attempt, show a notification with Delete/Cancel actions, and on Delete
+  // re-issue the remove via the DataProvider API. The flag lets the second
+  // pass through without re-prompting.
+  const beforeRowsMutation = useCallback(
+    (operation: 'create' | 'update' | 'remove', payload: RowMutationPayload): false | void => {
+      if (operation === 'remove' && !removeConfirmedRef.current) {
+        const { rowsRemove } = payload as RowMutationRemovePayload;
+        const hot = hotRef.current?.hotInstance;
+        if (!hot) return false;
+
+        const count = rowsRemove.length;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const notification = (hot.getPlugin('notification') as any);
+        const id = notification.showMessage({
+          variant: 'warning',
+          title: 'Delete rows',
+          message: `Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`,
+          duration: 0,
+          actions: [
+            {
+              label: 'Delete',
+              type: 'primary',
+              callback: () => {
+                notification.hide(id);
+                removeConfirmedRef.current = true;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (hot.getPlugin('dataProvider') as any)
+                  .removeRows(rowsRemove)
+                  .finally(() => {
+                    removeConfirmedRef.current = false;
+                  });
+              },
+            },
+            {
+              label: 'Cancel',
+              type: 'secondary',
+              callback: () => notification.hide(id),
+            },
+          ],
+        });
+        return false;
+      }
+    },
+    []
+  );
+
   return (
     <div>
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       <HotTable
+        ref={hotRef}
         dataProvider={dataProvider}
-        // Column definitions map to the fields returned by the Spring Boot API.
+        beforeRowsMutation={beforeRowsMutation as any}
         columns={[
           { data: 'id', title: 'ID', readOnly: true, width: 60 },
           { data: 'name', title: 'Name', width: 200 },
@@ -128,7 +164,8 @@ const ExampleComponent = () => {
             data: 'price',
             title: 'Price',
             type: 'numeric',
-            numericFormat: { pattern: '0,0.00', culture: 'en-US' },
+            locale: 'en-US',
+            numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 },
             width: 100,
           },
           { data: 'stock', title: 'Stock', type: 'numeric', width: 80 },
@@ -137,16 +174,12 @@ const ExampleComponent = () => {
         rowHeaders={true}
         height={450}
         width="100%"
-        // Enable server-side column sorting.
         columnSorting={true}
-        // Enable column filter dropdowns.
         filters={true}
         dropdownMenu={true}
-        // Show 10 rows per page; the server returns the matching slice.
+        contextMenu={true}
         pagination={{ pageSize: 10 }}
-        // Show a placeholder message when no rows match the active filters.
         emptyDataState={true}
-        // Show an error toast when a fetch or mutation request fails.
         notification={true}
         licenseKey="non-commercial-and-evaluation"
       />

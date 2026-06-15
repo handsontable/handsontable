@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the `handsontable` cell type editor closing unexpectedly when using filters or dropdown menu on the inner Handsontable instance.",
+  "type": "fixed",
+  "issueOrPR": 12510,
+  "breaking": false,
+  "framework": "none"
+}

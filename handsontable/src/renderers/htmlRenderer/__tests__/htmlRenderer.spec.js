@@ -54,6 +54,19 @@ describe('HTMLRenderer', () => {
       .toBe('<a href="#" target="_blank">baz</a>');
   });
 
+  it('should NOT warn about a missing sanitizer (the html cell type renders raw HTML on purpose)', async() => {
+    const warnSpy = spyOnConsoleWarn();
+
+    handsontable({
+      data: [['<b>foo</b>', '<i>bar</i><img src onerror="">']],
+      renderer: 'html'
+    });
+
+    await waitForNextAnimationFrames(2);
+
+    expect(warnSpy).not.toHaveBeenCalledWith(jasmine.stringMatching(/without a sanitizer/));
+  });
+
   it('should render the cell without messing with "dir" attribute', async() => {
     handsontable({
       data: [['foo']],

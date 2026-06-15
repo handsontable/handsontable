@@ -2,17 +2,47 @@
 /**
  * SiteTitle component override.
  *
- * Renders the default Starlight site title (logo) with a "dev" badge
- * when BUILD_MODE is not 'production' (local development, staging, etc.).
- * The framework switcher has been moved to the header nav row
- * (FrameworkSwitcher.astro), next to the versions dropdown.
+ * Renders the logo as a link to handsontable.com (the marketing site)
+ * instead of the docs root, matching the pre-Astro behavior so the docs
+ * header still offers a direct path back to the main website.
+ *
+ * Adds a "dev" badge when BUILD_MODE is not 'production'. The framework
+ * switcher lives in the header nav row (FrameworkSwitcher.astro).
  */
-import Default from '@astrojs/starlight/components/SiteTitle.astro';
+import { logos } from 'virtual:starlight/user-images';
+import config from 'virtual:starlight/user-config';
 
+const { siteTitle } = Astro.locals.starlightRoute;
 const isProduction = import.meta.env.PUBLIC_BUILD_MODE === 'production';
 ---
 <div class="site-title-wrapper">
-  <Default {...Astro.props} />
+  <a href="https://handsontable.com" class="site-title sl-flex">
+    {
+      config.logo && logos.dark && (
+        <>
+          <img
+            class:list={{ 'light:sl-hidden print:hidden': !('src' in config.logo) }}
+            alt={config.logo.alt}
+            src={logos.dark.src}
+            width={logos.dark.width}
+            height={logos.dark.height}
+          />
+          {!('src' in config.logo) && (
+            <img
+              class="dark:sl-hidden print:block"
+              alt={config.logo.alt}
+              src={logos.light?.src}
+              width={logos.light?.width}
+              height={logos.light?.height}
+            />
+          )}
+        </>
+      )
+    }
+    <span class:list={{ 'sr-only': config.logo?.replacesTitle }} translate="no">
+      {siteTitle}
+    </span>
+  </a>
   {!isProduction && <span class="dev-badge" aria-label="Development build">dev</span>}
 </div>
 

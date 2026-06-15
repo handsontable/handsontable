@@ -1,27 +1,22 @@
 import { defineComponent } from 'vue';
 import { HotTable, HotColumn } from '@handsontable/vue3';
-import numbro from 'numbro';
-import jaJP from 'numbro/languages/ja-JP';
-import trTR from 'numbro/languages/tr-TR';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
 registerAllModules();
 
-// register the languages you need
-numbro.registerLanguage(jaJP);
-numbro.registerLanguage(trTR);
-
 const ExampleComponent = defineComponent({
   data() {
     return {
       formatJP: {
-        pattern: '0,0.00 $',
-        culture: 'ja-JP',
+        style: 'currency',
+        currency: 'JPY',
+        minimumFractionDigits: 2,
       },
       formatTR: {
-        pattern: '0,0.00 $',
-        culture: 'tr-TR',
+        style: 'currency',
+        currency: 'TRY',
+        minimumFractionDigits: 2,
       },
       hotData: [
         {
@@ -44,6 +39,7 @@ const ExampleComponent = defineComponent({
         height: 'auto',
         autoWrapRow: true,
         autoWrapCol: true,
+        locale: 'en-US',
         licenseKey: 'non-commercial-and-evaluation'
       }
     };

@@ -17,6 +17,9 @@ react:
 angular:
   id: c6f9e2a5
   metaTitle: Sync selected rows to a Chart.js chart - Angular Data Grid | Handsontable
+vue:
+  id: w5h61ok1
+  metaTitle: Sync selected rows to a Chart.js chart - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Real-time and Integrations
 type: how-to
@@ -203,10 +206,10 @@ const hot = new Handsontable(container, {
   colHeaders: ['Campaign', 'Q1 Budget ($)', 'Q1 Revenue ($)', 'Q2 Budget ($)', 'Q2 Revenue ($)'],
   columns: [
     { data: 'campaign', type: 'text', width: 200 },
-    { data: 'q1Budget', type: 'numeric', numericFormat: { pattern: '$0,0' }, width: 120 },
-    { data: 'q1Revenue', type: 'numeric', numericFormat: { pattern: '$0,0' }, width: 120 },
-    { data: 'q2Budget', type: 'numeric', numericFormat: { pattern: '$0,0' }, width: 120 },
-    { data: 'q2Revenue', type: 'numeric', numericFormat: { pattern: '$0,0' }, width: 120 },
+    { data: 'q1Budget', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }, width: 120 },
+    { data: 'q1Revenue', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }, width: 120 },
+    { data: 'q2Budget', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }, width: 120 },
+    { data: 'q2Revenue', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }, width: 120 },
   ],
   rowHeaders: true,
   selectionMode: 'range',

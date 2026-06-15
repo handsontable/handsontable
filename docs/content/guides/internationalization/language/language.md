@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 1g89qnhe
 title: Language
 metaTitle: Language - JavaScript Data Grid | Handsontable
 description: Set Handsontable's UI language to one of the built-in translations, or create your own language set using our templates.
@@ -13,11 +12,11 @@ tags:
   - L10n
   - i18n
 react:
-  id: qz0qgi9f
   metaTitle: Language - React Data Grid | Handsontable
 angular:
-  id: eujz2e6s
   metaTitle: Language - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Language - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Internationalization
 ---
@@ -179,6 +178,36 @@ export class Component {
 
 :::
 
+::: only-for vue
+
+<ol class="sl-steps">
+<li>
+
+**ES modules (ESM)**
+
+```js
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+import { registerLanguageDictionary, deDE } from 'handsontable/i18n';
+
+registerAllModules();
+registerLanguageDictionary(deDE);
+
+const hotSettings = ref({
+  language: deDE.languageCode,
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+</li>
+</ol>
+
+:::
+
 ### Demo
 
 To see the translated context menu, right-click on a cell.
@@ -213,6 +242,16 @@ Language files were loaded after loading Handsontable.
 
 @[code](@/content/guides/internationalization/language/angular/example1.ts)
 @[code](@/content/guides/internationalization/language/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3-languages
+
+@[code](@/content/guides/internationalization/language/vue/example1.vue)
 
 :::
 

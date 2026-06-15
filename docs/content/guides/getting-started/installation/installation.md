@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: rqtn1ajf
 title: Installation
 metaTitle: Installation - JavaScript Data Grid | Handsontable
 description: Install Handsontable through your preferred package manager, or import Handsontable's assets directly from a CDN.
@@ -9,11 +8,11 @@ canonicalUrl: /installation
 tags:
   - quick start
 react:
-  id: zqk2jjw3
   metaTitle: Installation - React Data Grid | Handsontable
 angular:
-  id: y52wtu7t
   metaTitle: Installation - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Installation - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---
@@ -30,6 +29,12 @@ Install Handsontable through your preferred package manager, or import Handsonta
 :::
 
 ::: only-for react
+
+Install Handsontable through your preferred package manager, and control your grid through the `HotTable` component's props.
+
+:::
+
+::: only-for vue
 
 Install Handsontable through your preferred package manager, and control your grid through the `HotTable` component's props.
 
@@ -418,6 +423,89 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 @[code](@/content/guides/getting-started/installation/react/example.tsx)
 
 :::
+
+:::
+
+::: only-for vue
+
+## Install Handsontable
+
+To install Handsontable locally using a package manager, run one of these commands:
+
+<code-group>
+  <code-block title="npm">
+
+  ```bash
+  npm install handsontable @handsontable/vue3
+  ```
+
+  </code-block>
+  <code-block title="Yarn">
+
+  ```bash
+  yarn add handsontable @handsontable/vue3
+  ```
+
+  </code-block>
+  <code-block title="pnpm">
+
+  ```bash
+  pnpm add handsontable @handsontable/vue3
+  ```
+
+  </code-block>
+</code-group>
+
+## Register Handsontable's modules
+
+Import and register all of Handsontable's modules with a single function call:
+
+```js
+import { registerAllModules } from 'handsontable/registry';
+
+registerAllModules();
+```
+
+Or, to reduce the size of your JavaScript bundle, [import only the modules that you need](@/guides/tools-and-building/modules/modules.md).
+
+## Use the `HotTable` component
+
+The main Handsontable component is called `HotTable`.
+
+```js
+import { HotTable } from '@handsontable/vue3';
+```
+
+To set Handsontable's [configuration options](@/guides/getting-started/configuration-options/configuration-options.md), use `HotTable`'s props. For example:
+
+```html
+<HotTable
+  :data="data"
+  :row-headers="true"
+  :col-headers="true"
+  height="auto"
+  :auto-wrap-row="true"
+  :auto-wrap-col="true"
+  license-key="non-commercial-and-evaluation"
+/>
+```
+
+### Preview the result
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/getting-started/installation/vue/example1.vue)
+
+:::
+
+## Supported versions of Vue
+
+`@handsontable/vue3` requires Vue 3. Vue 2 is not supported -- use [Handsontable 16.2.0](https://handsontable.com/docs/16.2/javascript-data-grid/vue-installation/) if you need Vue 2.
+
+| Handsontable version | Vue 3 version      |
+| -------------------- | ------------------ |
+| `11.0.0` and lower   | No Vue 3 support   |
+| `11.1.0` and higher  | `3.2.0` and higher |
 
 :::
 

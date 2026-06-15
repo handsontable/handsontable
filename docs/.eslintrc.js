@@ -23,6 +23,7 @@ module.exports = {
     '**/*.astro',
     '**/scripts/**/*.ts',
     '**/components/DocsAssistant/**/*.ts',
+    '**/components/VersionComparison/**/*.ts',
     '**/content/config.ts',
     '**/content.config.ts',
   ],

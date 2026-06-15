@@ -1,4 +1,9 @@
-import { getElementScaleFactor, normalizeVisualDelta } from 'handsontable/plugins/manualColumnResize/utils';
+import {
+  getElementScaleFactor,
+  normalizeVisualDelta,
+  shouldRefreshHandleAfterAutoResize,
+  shouldSkipResizeHandlePositioning,
+} from 'handsontable/plugins/manualColumnResize/utils';
 
 describe('manualColumnResize/utils', () => {
   describe('getElementScaleFactor', () => {
@@ -85,6 +90,35 @@ describe('manualColumnResize/utils', () => {
     it('should return unchanged delta for invalid scale factor', () => {
       expect(normalizeVisualDelta(25, 0)).toBe(25);
       expect(normalizeVisualDelta(25, NaN)).toBe(25);
+    });
+  });
+
+  describe('shouldSkipResizeHandlePositioning', () => {
+    it('should allow positioning for an attached header before double-click auto-size starts', () => {
+      expect(shouldSkipResizeHandlePositioning({ parentNode: {} }, 1)).toBe(false);
+    });
+
+    it('should skip positioning for a detached header', () => {
+      expect(shouldSkipResizeHandlePositioning({ parentNode: null }, 1)).toBe(true);
+    });
+
+    it('should skip positioning while double-click auto-size is pending', () => {
+      expect(shouldSkipResizeHandlePositioning({ parentNode: {} }, 2)).toBe(true);
+    });
+  });
+
+  describe('shouldRefreshHandleAfterAutoResize', () => {
+    it('should refresh positioning for an attached header after double-click auto-size', () => {
+      expect(shouldRefreshHandleAfterAutoResize({ parentNode: {} }, 2)).toBe(true);
+    });
+
+    it('should not refresh positioning after a single drag click', () => {
+      expect(shouldRefreshHandleAfterAutoResize({ parentNode: {} }, 1)).toBe(false);
+    });
+
+    it('should not refresh positioning for a detached or missing header', () => {
+      expect(shouldRefreshHandleAfterAutoResize({ parentNode: null }, 2)).toBe(false);
+      expect(shouldRefreshHandleAfterAutoResize(null, 2)).toBe(false);
     });
   });
 });

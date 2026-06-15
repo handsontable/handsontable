@@ -14,6 +14,37 @@ const {
 } = handsontable;
 
 /**
+ * Generate thin .d.mts wrapper files for every .d.ts so the `import` condition
+ * in the exports map can reference explicitly-ESM type declarations.
+ *
+ * Copying .d.ts verbatim as .d.mts does NOT work: the emitted declarations use
+ * extensionless imports (e.g. `from './base'`) that fail to resolve under ESM
+ * moduleResolution (node16/bundler), causing attw InternalResolutionError.
+ *
+ * The wrapper approach avoids this: each .d.mts re-exports from its .js sibling,
+ * which TypeScript maps to the .d.ts via its declaration-lookup rules. The .d.ts
+ * files handle all internal resolution under their own CJS context.
+ *
+ * This step runs here (not only in downlevel-dts.mjs) because CI may call
+ * `npm run postbuild` after partial build steps without running downlevel:types.
+ */
+glob.sync('./**/*.d.ts', { cwd: TARGET_PATH, nodir: true }).forEach((dtsFile) => {
+  const mtsPath = path.resolve(TARGET_PATH, dtsFile.replace(/\.d\.ts$/, '.d.mts'));
+  const dtsPath = path.resolve(TARGET_PATH, dtsFile);
+  const jsRef = `./${path.basename(dtsFile, '.d.ts')}.js`;
+  const dtsContent = fse.readFileSync(dtsPath, 'utf8');
+  const hasDefault = /\bexport\s+default\b/.test(dtsContent);
+
+  let mtsContent = `export * from '${jsRef}';\n`;
+
+  if (hasDefault) {
+    mtsContent += `export { default } from '${jsRef}';\n`;
+  }
+
+  fse.outputFileSync(mtsPath, mtsContent);
+});
+
+/**
  * Copy necessary files we don't need to process.
  */
 FILES_TO_COPY.forEach((fileToCopy) => {
@@ -48,11 +79,15 @@ FILES_TO_COPY.forEach((fileToCopy) => {
 /**
  * Prepare exports basing on wildcards in paths.
  */
-const regexpJSFiles = /\.(m?js|d\.ts)$/;
+const regexpJSFiles = /\.(m?js|d\.ts|d\.mts)$/;
+
+// Each entry maps a file extension to [condition, subKey] in the nested exports object:
+//   { import: { types: ".d.mts", default: ".mjs" }, require: { types: ".d.ts", default: ".js" } }
 const entrypointMap = {
-  '.mjs': 'import',
-  '.js': 'require',
-  '.ts': 'types',
+  '.mts': ['import', 'types'], // .d.mts → import.types
+  '.mjs': ['import', 'default'], // .mjs → import.default
+  '.ts': ['require', 'types'], // .d.ts → require.types
+  '.js': ['require', 'default'], // .js → require.default
 };
 const groupedExports = EXPORTS_RULES.flatMap((rule) => {
   if (typeof rule !== 'string') {
@@ -60,17 +95,28 @@ const groupedExports = EXPORTS_RULES.flatMap((rule) => {
   }
 
   const rules = {};
-  const foundFiles = glob.sync(`${rule}`, { cwd: TARGET_PATH });
+  const foundFiles = glob.sync(`${rule}`, { cwd: TARGET_PATH, nodir: true });
 
   foundFiles.forEach((filePath) => {
     if (!filePath.startsWith('./dist/') && regexpJSFiles.test(filePath)) {
       const cleanPath = filePath.replace(regexpJSFiles, '').replace('/index', '');
+      const mapping = entrypointMap[path.extname(filePath)];
+
+      if (!mapping) {
+        return;
+      }
+
+      const [condition, subKey] = mapping;
 
       if (!rules[cleanPath]) {
         rules[cleanPath] = {};
       }
 
-      rules[cleanPath][entrypointMap[path.extname(filePath)]] = filePath;
+      if (!rules[cleanPath][condition]) {
+        rules[cleanPath][condition] = {};
+      }
+
+      rules[cleanPath][condition][subKey] = filePath;
 
     } else {
       rules[filePath] = filePath;
@@ -91,19 +137,30 @@ Object.keys(targetExports).forEach((ruleName) => {
 
   if (typeof rule === 'string') {
     const pathToFile = `${TARGET_PATH}/${rule}`;
-    const fileExists = fse.existsSync(pathToFile);
 
-    if (!fileExists) {
+    if (!fse.statSync(pathToFile, { throwIfNoEntry: false })?.isFile()) {
       EXPORTS_ERRORS.push(`${ruleName}: ${pathToFile}`);
     }
 
   } else {
-    Object.keys(rule).forEach((key) => {
-      const pathToFile = `${TARGET_PATH}/${rule[key]}`;
-      const isFileExist = fse.existsSync(pathToFile);
+    // Walk one or two levels: supports both flat { condition: "path" } and
+    // nested { condition: { subKey: "path" } } formats.
+    Object.entries(rule).forEach(([conditionKey, conditionValue]) => {
+      if (typeof conditionValue === 'string') {
+        const pathToFile = `${TARGET_PATH}/${conditionValue}`;
 
-      if (!isFileExist) {
-        EXPORTS_ERRORS.push(`"${ruleName}": { "${key}": "${pathToFile.replace(`${TARGET_PATH}/`, '')}" }`);
+        if (!fse.statSync(pathToFile, { throwIfNoEntry: false })?.isFile()) {
+          EXPORTS_ERRORS.push(`"${ruleName}": { "${conditionKey}": "${conditionValue}" }`);
+        }
+
+      } else if (typeof conditionValue === 'object' && conditionValue !== null) {
+        Object.entries(conditionValue).forEach(([subKey, subPath]) => {
+          const pathToFile = `${TARGET_PATH}/${subPath}`;
+
+          if (!fse.statSync(pathToFile, { throwIfNoEntry: false })?.isFile()) {
+            EXPORTS_ERRORS.push(`"${ruleName}": { "${conditionKey}.${subKey}": "${subPath}" }`);
+          }
+        });
       }
     });
   }
@@ -127,6 +184,10 @@ PACKAGE_FIELDS_TO_COPY.forEach((field) => {
 
 fse.writeJSONSync(`${TARGET_PATH}/package.json`, {
   ...newPackageJson,
+  // Explicitly mark the published package as CJS so .d.ts files are treated as
+  // CJS type declarations under moduleResolution: "node16". Not added to the
+  // source package.json to avoid breaking ESM import syntax in test files.
+  type: 'commonjs',
   exports: {
     ...targetExports,
   },

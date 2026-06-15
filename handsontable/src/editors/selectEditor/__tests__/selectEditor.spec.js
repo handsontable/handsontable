@@ -296,6 +296,74 @@ describe('SelectEditor', () => {
     expect(editorWrapper.css('left')).toEqual('-20px');
   });
 
+  it('should keep repositioning the select editor on scroll after it was closed and reopened (#11365)', async() => {
+    handsontable({
+      width: 200,
+      height: 200,
+      data: createSpreadsheetData(100, 100),
+      columns: [
+        { editor: 'select' }, {}, {}, {}, {}, {}, {}, {}, {}, {},
+        {}, {}, {}, {}, {}, {}, {}, {}, {}, { editor: 'select' }
+      ]
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await keyDownUp('escape');
+
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
+    await scrollViewportVertically(10);
+    await scrollViewportHorizontally(20);
+
+    const editorWrapper = $('.htSelectEditor');
+
+    expect(editorWrapper.css('top')).toEqual('-10px');
+    expect(editorWrapper.css('left')).toEqual('-20px');
+  });
+
+  it('should not accumulate `beforeDialogShow` hook callbacks across open/close cycles', async() => {
+    const hot = handsontable({
+      columns: [{ editor: 'select' }],
+    });
+
+    await selectCell(0, 0);
+
+    const editor = getActiveEditor();
+    const cancelSpy = spyOn(editor, 'cancelChanges').and.callThrough();
+
+    await keyDownUp('enter');
+    await keyDownUp('escape');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+    await keyDownUp('escape');
+    await selectCell(0, 0);
+    await keyDownUp('enter');
+
+    cancelSpy.calls.reset();
+
+    hot.runHooks('beforeDialogShow');
+
+    expect(cancelSpy.calls.count()).toBe(1);
+  });
+
+  it('should clear all registered hooks when the Handsontable instance is destroyed', async() => {
+    handsontable({
+      columns: [{ editor: 'select' }],
+    });
+
+    await selectCell(0, 0);
+
+    const editor = getActiveEditor();
+
+    expect(editor._hooksStorage.afterScrollHorizontally.length).toBe(1);
+
+    destroy();
+
+    expect(editor._hooksStorage).toEqual({});
+  });
+
   it('should not highlight the input element by browsers native selection', async() => {
     handsontable({
       editor: 'select',
@@ -338,6 +406,33 @@ describe('SelectEditor', () => {
     expect($options.eq(1).html()).toMatch(options[1]);
     expect($options.eq(2).val()).toMatch(options[2]);
     expect($options.eq(2).html()).toMatch(options[2]);
+  });
+
+  it('should preserve the order of array selectOptions containing negative numbers', async() => {
+    const options = Array.from({ length: 18 }, (_, i) => -5 + i); // [-5, -4, ..., 12]
+
+    handsontable({
+      columns: [
+        {
+          editor: 'select',
+          selectOptions: options
+        }
+      ]
+    });
+
+    await selectCell(0, 0);
+
+    const editorWrapper = $('.htSelectEditor');
+
+    await keyDownUp('enter');
+
+    const $options = editorWrapper.find('option');
+
+    expect($options.length).toEqual(options.length);
+
+    for (let i = 0; i < options.length; i++) {
+      expect($options.eq(i).val()).toBe(String(options[i]));
+    }
   });
 
   it('should populate select with given options (object)', async() => {
@@ -552,5 +647,42 @@ describe('SelectEditor', () => {
     const editableElement = getActiveEditor().select;
 
     expect(editableElement.getAttribute('dir')).toBeNull();
+  });
+
+  describe('sanitizer', () => {
+    it('should warn once when an option contains HTML and no sanitizer is configured', async() => {
+      handsontable({
+        columns: [{ editor: 'select', selectOptions: ['<b>Bold</b>', '<i>Italic</i>'] }],
+      });
+
+      const warnSpy = spyOnConsoleWarn();
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      expect(warnSpy).toHaveBeenCalledWith(jasmine.stringMatching(/without a sanitizer/));
+
+      // Re-opening the editor on the same instance must not emit a second warning.
+      warnSpy.calls.reset();
+      await keyDownUp('escape');
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('should NOT warn when a sanitizer is configured', async() => {
+      handsontable({
+        sanitizer: content => content,
+        columns: [{ editor: 'select', selectOptions: ['<b>Bold</b>'] }],
+      });
+
+      const warnSpy = spyOnConsoleWarn();
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
   });
 });

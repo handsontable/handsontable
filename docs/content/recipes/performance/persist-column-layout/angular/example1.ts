@@ -1,12 +1,12 @@
 /* file: app.component.ts */
 import { Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import { RowObject } from 'handsontable/common';
+import type Handsontable from 'handsontable/base';
 
 const STORAGE_KEY = 'ht-column-layout-v1';
 
 /* start:skip-in-preview */
-const data: RowObject[] = [
+const data: Handsontable.RowObject[] = [
   { sku: 'SKU-001', name: 'Wireless Keyboard', category: 'Electronics', price: 49.99, stock: 142, status: 'Active' },
   { sku: 'SKU-002', name: 'USB-C Hub', category: 'Electronics', price: 34.99, stock: 87, status: 'Active' },
   { sku: 'SKU-003', name: 'Ergonomic Chair', category: 'Furniture', price: 399.00, stock: 23, status: 'Active' },
@@ -81,7 +81,7 @@ export class AppComponent {
       { data: 'sku', type: 'text' },
       { data: 'name', type: 'text' },
       { data: 'category', type: 'text' },
-      { data: 'price', type: 'numeric', numericFormat: { pattern: '0,0.00' } },
+      { data: 'price', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
       { data: 'stock', type: 'numeric' },
       { data: 'status', type: 'text' },
     ],

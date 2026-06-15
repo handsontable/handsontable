@@ -187,6 +187,65 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 0)).toEqual(100);
   });
 
+  it('should apply the return value of beforeRowResize hook when drag resizing', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      manualRowResize: true,
+      beforeRowResize: () => 150
+    });
+
+    await resizeRow(0, 100);
+
+    expect(rowHeight(spec().$container, 0)).toEqual(150);
+  });
+
+  it('should cancel row drag resize and revert to the original size when beforeRowResize returns false', async() => {
+    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      manualRowResize: true,
+      beforeRowResize: () => false,
+      afterRowResize: afterRowResizeCallback,
+    });
+
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
+
+    await resizeRow(0, 100);
+
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
+    expect(afterRowResizeCallback).not.toHaveBeenCalled();
+  });
+
+  it('should cancel row double-click resize when beforeRowResize returns false', async() => {
+    const afterRowResizeCallback = jasmine.createSpy('afterRowResizeCallback');
+
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      rowHeaders: true,
+      manualRowResize: true,
+      afterRowResize: afterRowResizeCallback,
+    });
+
+    addHook('beforeRowResize', () => false);
+
+    const $th = getInlineStartClone().find('tbody tr:eq(0) th:eq(0)');
+
+    $th.simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
+
+    await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
+
+    await waitForNextAnimationFrames(44);
+
+    expect(rowHeight(spec().$container, 0)).toEqual(defaultRowHeight + 1);
+    expect(afterRowResizeCallback).not.toHaveBeenCalled();
+  });
+
   it('should appropriate resize rowHeight after beforeRowResize call a few times', async() => {
     handsontable({
       data: createSpreadsheetData(3, 3),
@@ -403,6 +462,64 @@ describe('manualRowResize', () => {
     expect(rowHeight(spec().$container, 2)).toBeAroundValue(
       getThemeLayout().defaultDataRowHeight,
       3);
+  });
+
+  it('should reposition the resize handle after double click auto-size', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      rowHeaders: true,
+      manualRowResize: true,
+    });
+
+    await resizeRow(0, 120);
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const resizerPosition = $resizer.position();
+
+    await mouseDoubleClick($resizer, { clientY: resizerPosition.top });
+    await waitForNextAnimationFrames(63);
+
+    const $rowHeader = getInlineStartClone().find('tbody tr:eq(0) th:eq(0)');
+    const handleTop = $resizer.offset().top;
+    const headerBottom = $rowHeader.offset().top + $rowHeader.height();
+
+    expect(rowHeight(spec().$container, 0)).toBeLessThan(120);
+    expect(Math.abs(headerBottom - 5 - handleTop)).toBeLessThanOrEqual(1);
+  });
+
+  it('should keep the resize handle and guide position after the drag timer fires', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      rowHeaders: true,
+      manualRowResize: true,
+    });
+
+    const $rowHeader = getInlineStartClone().find('tbody tr:eq(1) th:eq(0)');
+
+    $rowHeader.simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualRowResizer');
+    const handleTop = $resizer[0].getBoundingClientRect().top;
+
+    $resizer.simulate('mousedown', { clientY: handleTop });
+    const guide = spec().$container.find('.manualRowResizerGuide')[0];
+
+    $resizer.simulate('mousemove', { clientY: handleTop + 40 });
+
+    const handleBoxAfterMove = $resizer[0].getBoundingClientRect();
+    const guideBoxAfterMove = guide.getBoundingClientRect();
+    const distanceBetweenHandleAndGuide = guideBoxAfterMove.top - handleBoxAfterMove.top;
+
+    await waitForNextAnimationFrames(63);
+
+    const handleBoxAfterTimeout = $resizer[0].getBoundingClientRect();
+    const guideBoxAfterTimeout = guide.getBoundingClientRect();
+
+    $resizer.simulate('mouseup');
+
+    expect(handleBoxAfterTimeout.top).toBeCloseTo(handleBoxAfterMove.top, 0);
+    expect(guideBoxAfterTimeout.top).toBeCloseTo(guideBoxAfterMove.top, 0);
+    expect(guideBoxAfterTimeout.top - handleBoxAfterTimeout.top).toBeCloseTo(distanceBetweenHandleAndGuide, 0);
   });
 
   it('should autosize row after double click (when initial height is defined by the `rowHeights` option)', async() => {
@@ -1271,6 +1388,61 @@ describe('manualRowResize', () => {
       });
 
       expect(getInlineStartClone().find('table').height()).toBe(getMaster().find('table').height());
+    });
+  });
+
+  describe('with `preventOverflow: \'vertical\'`', () => {
+    it('should position the resize handle at the visible row header bottom edge after vertical scroll (#10403)', async() => {
+      handsontable({
+        data: createSpreadsheetData(50, 5),
+        rowHeaders: true,
+        manualRowResize: true,
+        preventOverflow: 'vertical',
+        width: 200,
+        height: 300,
+      });
+
+      await scrollViewportVertically(150);
+      await waitForNextAnimationFrames(2);
+
+      const $headerTH = getInlineStartClone().find('tbody tr:eq(8) th:eq(0)');
+
+      $headerTH.simulate('mouseover');
+
+      const $handle = spec().$container.find('.manualRowResizer');
+
+      expect($headerTH.offset().top + $headerTH.height() - 5).toBeCloseTo($handle.offset().top, 0);
+      expect($headerTH.offset().left).toBeCloseTo($handle.offset().left, 0);
+    });
+
+    it('should resize a row by dragging the handle after vertical scroll (#10403)', async() => {
+      handsontable({
+        data: createSpreadsheetData(50, 5),
+        rowHeaders: true,
+        manualRowResize: true,
+        preventOverflow: 'vertical',
+        width: 200,
+        height: 300,
+      });
+
+      await scrollViewportVertically(150);
+      await waitForNextAnimationFrames(2);
+
+      const $headerTH = getInlineStartClone().find('tbody tr:eq(8) th:eq(0)');
+      const initialHeight = $headerTH.outerHeight();
+
+      $headerTH.simulate('mouseover');
+
+      const $handle = spec().$container.find('.manualRowResizer');
+      const handleOffset = $handle.offset();
+
+      $handle.simulate('mousedown', { clientY: handleOffset.top });
+      $handle.simulate('mousemove', { clientY: handleOffset.top + 20 });
+      $handle.simulate('mouseup');
+
+      const cellCoords = hot().view._wt.wtTable.getCoords($headerTH[0]);
+
+      expect(hot().getRowHeight(cellCoords.row)).toBe(initialHeight + 20);
     });
   });
 });

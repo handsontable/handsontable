@@ -454,6 +454,22 @@ describe('CopyPaste', () => {
       expect(getDataAtCell(0, 0)).toEqual('very\r\nlong\r\n\r\ntext');
     });
 
+    it('should keep a single quoted cell with bare mid-cell quote chars on one row (issue #11001)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 2),
+      });
+
+      await selectCell(0, 0);
+
+      // Apple Numbers wraps a multi-line cell with `"..."` and writes bare ASCII `"` chars
+      // (not `""`-escaped) inside the content. Internal `\n` characters must not split the
+      // cell into multiple rows, and bare `"` chars must be preserved.
+      triggerPaste('"Test: Some stage\nClick "check balance" on 42” tile.\nNote: text."');
+
+      expect(getDataAtCell(0, 0)).toBe('Test: Some stage\nClick "check balance" on 42” tile.\nNote: text.');
+      expect(getDataAtCell(1, 0)).toBe('A2');
+    });
+
     it('should properly paste data with excel-style multiline text', async() => {
       handsontable();
 
@@ -621,33 +637,28 @@ describe('CopyPaste', () => {
       expect(inlineStartOverlay().getScrollPosition()).toBe(0);
     });
 
-    // TODO: To be changed in 18.0
-    it('should sanitize pasted HTML by default', async() => {
+    it('should warn once when HTML is pasted without a sanitizer configured', async() => {
       handsontable();
 
-      window.__testFunction = () => {};
-
-      const onErrorSpy = spyOn(window, 'onerror');
+      const warnSpy = spyOnConsoleWarn();
       const clipboardEvent = getClipboardEvent();
       const plugin = getPlugin('CopyPaste');
 
-      spyOn(window, '__testFunction');
-
-      clipboardEvent.clipboardData.setData('text/html', [
-        '<table><tr></tr></table><img src onerror="__testFunction()">'
-      ].join('\r\n'));
+      clipboardEvent.clipboardData.setData('text/html', '<table><tr><td>A</td></tr></table>');
 
       await selectCell(0, 0);
 
       plugin.onPaste(clipboardEvent);
-
       await waitForNextAnimationFrames(2);
 
-      expect(onErrorSpy).not.toHaveBeenCalled();
-      expect(window.__testFunction).not.toHaveBeenCalled();
-      expect(getDataAtCell(0, 0)).toEqual(null);
+      expect(warnSpy).toHaveBeenCalledWith(jasmine.stringMatching(/without a sanitizer/));
 
-      delete window.__testFunction;
+      // Second paste must NOT emit a second warning (once per instance).
+      warnSpy.calls.reset();
+      plugin.onPaste(clipboardEvent);
+      await waitForNextAnimationFrames(2);
+
+      expect(warnSpy).not.toHaveBeenCalled();
     });
 
     it('should sanitize pasted HTML when custom sanitizer is set', async() => {

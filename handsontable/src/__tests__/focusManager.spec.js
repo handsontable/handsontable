@@ -165,4 +165,184 @@ describe('Focus Manager', () => {
       expect(document.activeElement).toEqual(getActiveEditor().TEXTAREA);
     });
   });
+
+  describe('`selectCells`/`selectCell` with `changeListener = false` (#10038)', () => {
+    let externalInput;
+
+    afterEach(() => {
+      if (externalInput && externalInput.parentNode) {
+        externalInput.parentNode.removeChild(externalInput);
+      }
+      externalInput = null;
+    });
+
+    it('should keep an externally focused `<input>` focused when `selectCells` is called with' +
+      ' `changeListener` set to `false`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      externalInput = document.createElement('input');
+      externalInput.id = 'external-input';
+      document.body.appendChild(externalInput);
+      externalInput.focus();
+
+      expect(document.activeElement).toBe(externalInput);
+
+      const wasSelected = await selectCells([[1, 1]], true, false);
+
+      expect(wasSelected).toBe(true);
+      expect(document.activeElement).toBe(externalInput);
+      expect(getSelected()).toEqual([[1, 1, 1, 1]]);
+      expect(isListening()).toBe(false);
+    });
+
+    it('should keep an externally focused `<textarea>` focused when `selectCells` is called with' +
+      ' `changeListener` set to `false`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      externalInput = document.createElement('textarea');
+      document.body.appendChild(externalInput);
+      externalInput.focus();
+
+      expect(document.activeElement).toBe(externalInput);
+
+      await selectCells([[2, 2]], true, false);
+
+      expect(document.activeElement).toBe(externalInput);
+    });
+
+    it('should keep an externally focused `<input>` focused when `selectCell` is called with' +
+      ' `changeListener` set to `false`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      externalInput = document.createElement('input');
+      document.body.appendChild(externalInput);
+      externalInput.focus();
+
+      expect(document.activeElement).toBe(externalInput);
+
+      await selectCell(3, 2, undefined, undefined, true, false);
+
+      expect(document.activeElement).toBe(externalInput);
+      expect(getSelected()).toEqual([[3, 2, 3, 2]]);
+    });
+
+    it('should not steal the external focus to the editor TEXTAREA when `imeFastEdit` is enabled and' +
+      ' `selectCells` is called with `changeListener` set to `false`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        imeFastEdit: true,
+      });
+
+      externalInput = document.createElement('input');
+      document.body.appendChild(externalInput);
+      externalInput.focus();
+
+      await selectCells([[1, 1]], true, false);
+      await waitForNextAnimationFrames(4);
+
+      expect(document.activeElement).toBe(externalInput);
+    });
+
+    it('should still move browser focus to the highlighted cell when `selectCells` is called with' +
+      ' the default `changeListener = true`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      externalInput = document.createElement('input');
+      document.body.appendChild(externalInput);
+      externalInput.focus();
+
+      expect(document.activeElement).toBe(externalInput);
+
+      await selectCells([[1, 1]]);
+
+      expect(document.activeElement).toBe(getCell(1, 1));
+      expect(isListening()).toBe(true);
+    });
+
+    it('should not affect a subsequent default `selectCells` call (suspend is released after the call)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      externalInput = document.createElement('input');
+      document.body.appendChild(externalInput);
+      externalInput.focus();
+
+      await selectCells([[1, 1]], true, false);
+
+      expect(document.activeElement).toBe(externalInput);
+
+      await selectCells([[2, 2]]);
+
+      expect(document.activeElement).toBe(getCell(2, 2));
+    });
+
+    it('should keep an externally focused `<select>` focused when `selectCells` is called with' +
+      ' `changeListener` set to `false`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      externalInput = document.createElement('select');
+      const option = document.createElement('option');
+
+      option.textContent = 'a';
+      externalInput.appendChild(option);
+      document.body.appendChild(externalInput);
+      externalInput.focus();
+
+      expect(document.activeElement).toBe(externalInput);
+
+      await selectCells([[1, 1]], true, false);
+
+      expect(document.activeElement).toBe(externalInput);
+    });
+
+    it('should keep an externally focused `contenteditable` element focused when `selectCells`' +
+      ' is called with `changeListener` set to `false`', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      externalInput = document.createElement('div');
+      externalInput.contentEditable = 'true';
+      externalInput.textContent = 'editable';
+      document.body.appendChild(externalInput);
+      externalInput.focus();
+
+      expect(document.activeElement).toBe(externalInput);
+
+      await selectCells([[1, 1]], true, false);
+
+      expect(document.activeElement).toBe(externalInput);
+    });
+
+    it('should release the suspended focus state after `selectCells` throws on malformed' +
+      ' coordinates', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+      });
+
+      externalInput = document.createElement('input');
+      document.body.appendChild(externalInput);
+      externalInput.focus();
+
+      // Malformed coordinates - selectCells throws synchronously inside selection.selectCells.
+      // The `try/finally` in core.selectCells must still release the focus manager suspend flag,
+      // otherwise a subsequent default `selectCells` call would silently preserve external focus.
+      expect(() => hot().selectCells([['not-a-number']], true, false)).toThrow();
+
+      await selectCells([[2, 2]]);
+
+      expect(document.activeElement).toBe(getCell(2, 2));
+    });
+  });
 });

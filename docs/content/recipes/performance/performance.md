@@ -15,6 +15,9 @@ react:
 angular:
   id: a9e5d3cb
   metaTitle: Performance Recipes - Angular Data Grid | Handsontable
+vue:
+  id: u4oumcn2
+  metaTitle: Performance Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 

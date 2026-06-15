@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed viewport scroll jump when Ctrl+clicking a selected cell to deselect it.",
+  "type": "fixed",
+  "issueOrPR": 12574,
+  "breaking": false,
+  "framework": "none"
+}

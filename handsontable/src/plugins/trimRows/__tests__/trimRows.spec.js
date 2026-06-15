@@ -180,7 +180,7 @@ describe('TrimRows', () => {
     handsontable({
       data: createSpreadsheetData(1000, 5),
       // leave first row and last 3 rows
-      trimRows: Array(...Array(996)).map((v, i) => i + 1),
+      trimRows: [...Array(996)].map((v, i) => i + 1),
       width: 500,
       height: 300
     });
@@ -205,6 +205,18 @@ describe('TrimRows', () => {
     expect(getDataAtCell(0, 0)).toBe('A4');
     expect(getDataAtCell(1, 0)).toBe('A5');
     expect(getDataAtCell(2, 0)).toBe(null);
+  });
+
+  it('should remove the last rows when `index` is `null` and rows are trimmed (regression #11643)', async() => {
+    handsontable({
+      data: createSpreadsheetData(8, 1),
+      trimRows: [1, 3],
+    });
+
+    await alter('remove_row', null, 2);
+
+    expect(countRows()).toBe(4);
+    expect(getDataAtCol(0)).toEqual(['A1', 'A3', 'A5', 'A6']);
   });
 
   it('should remove correct rows after inserting new ones', async() => {

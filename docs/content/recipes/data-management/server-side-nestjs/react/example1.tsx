@@ -5,6 +5,8 @@ import type {
   DataProviderQueryParameters,
   DataProviderFetchOptions,
   DataProviderFetchResult,
+  RowsCreatePayload,
+  RowUpdatePayload,
 } from 'handsontable/plugins/dataProvider';
 
 registerAllModules();
@@ -17,21 +19,10 @@ registerAllModules();
  * Converts Handsontable's DataProviderQueryParameters into a URL query string
  * that the NestJS backend can parse with @Query() and class-transformer.
  *
- * Handsontable passes `params` to fetchRows every time the page, sort, or
- * filters change. The shape is:
- *
- *   {
- *     page: 1,
- *     pageSize: 10,
- *     sort: { prop: 'status', order: 'asc' } | undefined,
- *     filters: [{ prop: 'status', condition: 'eq', value: ['open'] }] | undefined,
- *   }
- *
- * NestJS expects nested objects as bracket notation in the query string:
- *   sort[column]=status&sort[order]=asc
- *   filters[0][prop]=status&filters[0][condition]=eq&filters[0][value][]=open
+ * Each DataProviderFilterColumn can have multiple conditions (e.g. between),
+ * so we flatten them: one entry per condition, incrementing the index.
  */
-function buildUrl(base: string, params: DataProviderQueryParameters): string {
+function buildUrl(params: DataProviderQueryParameters): string {
   const query = new URLSearchParams();
 
   query.set('page', String(params.page));
@@ -43,17 +34,23 @@ function buildUrl(base: string, params: DataProviderQueryParameters): string {
   }
 
   if (params.filters && params.filters.length > 0) {
-    params.filters.forEach((filter, i) => {
-      query.set(`filters[${i}][prop]`, filter.prop);
-      query.set(`filters[${i}][condition]`, filter.condition);
+    let idx = 0;
 
-      filter.value.forEach((v: string | number, j: number) => {
-        query.set(`filters[${i}][value][${j}]`, String(v));
+    params.filters.forEach((filter) => {
+      filter.conditions.forEach((cond) => {
+        query.set(`filters[${idx}][prop]`, filter.prop);
+        query.set(`filters[${idx}][condition]`, cond.name);
+
+        cond.args.forEach((arg: unknown, j: number) => {
+          query.set(`filters[${idx}][value][${j}]`, String(arg));
+        });
+
+        idx++;
       });
     });
   }
 
-  return `${base}?${query.toString()}`;
+  return `/tickets?${query.toString()}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -65,8 +62,7 @@ const ExampleComponent = () => {
 
   const fetchRows = useCallback(
     async (params: DataProviderQueryParameters, { signal }: DataProviderFetchOptions): Promise<DataProviderFetchResult> => {
-      const url = buildUrl('http://localhost:3000/tickets', params);
-      const res = await fetch(url, { signal });
+      const res = await fetch(buildUrl(params), { signal });
 
       if (!res.ok) {
         throw new Error(`Server error ${res.status}`);
@@ -77,25 +73,34 @@ const ExampleComponent = () => {
     []
   );
 
-  const onRowsCreate = useCallback(async (payload: unknown): Promise<unknown> => {
-    const res = await fetch('http://localhost:3000/tickets', {
+  const onRowsCreate = useCallback(async ({ rowsAmount }: RowsCreatePayload): Promise<unknown[]> => {
+    const rows = Array.from({ length: rowsAmount }, () => ({
+      subject: '',
+      status: 'open',
+      priority: 'medium',
+      assignee: '',
+      createdAt: new Date().toISOString().slice(0, 10),
+    }));
+
+    const res = await fetch('/tickets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(rows),
     });
 
     if (!res.ok) {
       throw new Error(`Create failed: ${res.status}`);
     }
 
-    return res.json();
+    return res.json() as Promise<unknown[]>;
   }, []);
 
-  const onRowsUpdate = useCallback(async (rows: unknown): Promise<void> => {
-    const res = await fetch('http://localhost:3000/tickets', {
+  const onRowsUpdate = useCallback(async (rows: RowUpdatePayload[]): Promise<void> => {
+    const payload = rows.map(({ id, changes }) => ({ id, ...changes }));
+    const res = await fetch('/tickets', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(rows),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
@@ -104,7 +109,7 @@ const ExampleComponent = () => {
   }, []);
 
   const onRowsRemove = useCallback(async (rowIds: unknown[]): Promise<void> => {
-    const res = await fetch('http://localhost:3000/tickets', {
+    const res = await fetch('/tickets', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(rowIds),
@@ -154,7 +159,7 @@ const ExampleComponent = () => {
             width: 90,
           },
           { data: 'assignee', type: 'text', width: 140 },
-          { data: 'createdAt', type: 'date', dateFormat: 'YYYY-MM-DD', width: 110 },
+          { data: 'createdAt', type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }, width: 110 },
         ]}
         rowHeaders={true}
         height="auto"

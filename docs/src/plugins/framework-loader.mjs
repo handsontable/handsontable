@@ -7,13 +7,30 @@
  * e.g. react-data-grid/guides/getting-started/introduction
  */
 
-import { readdirSync, readFileSync, existsSync } from 'fs';
+import { readdirSync, readFileSync, existsSync, statSync } from 'fs';
 import { join, relative, dirname } from 'path';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
-import { CURRENT_DOCS_VERSION } from './docs-version.mjs';
+import { CURRENT_DOCS_VERSION, CURRENT_DOCS_MINOR_VERSION } from './docs-version.mjs';
 import { convertAsideBodyMarkdown } from './aside-inline-markdown.mjs';
+import { loadVersionHighlights } from './version-highlights-loader.mjs';
+
+const VC_SCRIPT_PATTERN = /<script type="application\/json" id="version-comparison-data">[\s\S]*?<\/script>/;
+let _vcDataJsonCache = null;
+
+function getVersionComparisonDataJson() {
+  if (_vcDataJsonCache === null) {
+    _vcDataJsonCache = JSON.stringify(loadVersionHighlights()).replace(/</g, '\\u003c');
+  }
+  return _vcDataJsonCache;
+}
+
+function injectVersionComparisonData(body) {
+  if (!VC_SCRIPT_PATTERN.test(body)) return body;
+  const json = getVersionComparisonDataJson();
+  return body.replace(VC_SCRIPT_PATTERN, `<script type="application/json" id="version-comparison-data">${json}</script>`);
+}
 
 // Read the current handsontable library version for StackBlitz package.json.
 const _require = createRequire(import.meta.url);
@@ -74,6 +91,21 @@ const EXT_TO_LANG = {
   html: 'html',
   css: 'css',
   vue: 'vue',
+  php: 'php',
+  py: 'python',
+  rb: 'ruby',
+  java: 'java',
+  properties: 'properties',
+};
+
+/** Language tags that may appear as the first token in @[code LANG ...](...) meta. */
+const META_LANG = {
+  php: 'php',
+  java: 'java',
+  typescript: 'typescript',
+  ts: 'typescript',
+  js: 'javascript',
+  properties: 'properties',
 };
 
 const EXT_TO_LABEL = {
@@ -84,6 +116,11 @@ const EXT_TO_LABEL = {
   html: 'HTML',
   css: 'CSS',
   vue: 'Vue',
+  php: 'PHP',
+  py: 'Python',
+  rb: 'Ruby',
+  java: 'Java',
+  properties: 'Properties',
 };
 
 /**
@@ -118,7 +155,7 @@ function escapeHtml(str) {
  * @param {string} [extraClasses] - Space-separated CSS classes to add to the container div
  * @returns {string} HTML + markdown fences string
  */
-function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, extraClasses = '') {
+function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, extraClasses = '', codeOnly = false) {
   const hideTabs = directive === 'example-without-tabs';
 
   // Detect framework from the directory path first. JS examples also ship a
@@ -129,10 +166,11 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   const isVueDir     = fileRefs.some(r => /\/vue(?:3)?\//i.test(r));
 
   // Find the primary executable file for live rendering.
-  const jsRef  = (!isAngularDir && !isReactDir && !isVueDir) ? fileRefs.find(r => r.endsWith('.js')) : null;
-  const jsxRef = isReactDir ? fileRefs.find(r => r.endsWith('.jsx') || r.endsWith('.tsx')) : null;
-  const tsRef  = isAngularDir ? fileRefs.find(r => r.endsWith('.ts')) : null;
-  const vueRef = isVueDir ? fileRefs.find(r => r.endsWith('.js')) : null;
+  // codeOnly suppresses live execution — files are rendered as static code blocks.
+  const jsRef  = (!codeOnly && !isAngularDir && !isReactDir && !isVueDir) ? fileRefs.find(r => r.endsWith('.js')) : null;
+  const jsxRef = (!codeOnly && isReactDir) ? fileRefs.find(r => r.endsWith('.jsx') || r.endsWith('.tsx')) : null;
+  const tsRef  = (!codeOnly && isAngularDir) ? fileRefs.find(r => r.endsWith('.ts')) : null;
+  const vueRef = (!codeOnly && isVueDir) ? (fileRefs.find(r => r.endsWith('.vue')) ?? fileRefs.find(r => r.endsWith('.js')) ?? null) : null;
 
   const files = fileRefs.map((ref) => {
     const absPath = join(contentDir, ref);
@@ -165,9 +203,9 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   } else if (jsxRef) {
     exampleAttr = ` data-example-jsx="/content/${escapeHtml(jsxRef)}" data-example-id="${escapeHtml(id)}"`;
   } else if (vueRef) {
+    exampleAttr = ` data-example-vue="/content/${escapeHtml(vueRef)}" data-example-id="${escapeHtml(id)}"`;
     const htmlRef = fileRefs.find((ref) => ref.endsWith('.html'));
 
-    exampleAttr = ` data-example-vue="/content/${escapeHtml(vueRef)}" data-example-id="${escapeHtml(id)}"`;
     if (htmlRef) {
       exampleAttr += ` data-example-html="/content/${escapeHtml(htmlRef)}"`;
     }
@@ -187,13 +225,26 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
     exampleAttr += ` data-example-css="/content/${escapeHtml(cssRef)}"`;
   }
 
+  // ── Server-side code display (no executable file) ─────────────────────────
+  // When there is no runnable entry point (PHP, Python, Ruby, etc.) render the
+  // code fences directly without the live preview container or toolbar.
+  if (!jsRef && !jsxRef && !tsRef && !vueRef) {
+    const serverFences = files.map((f) => {
+      const meta = fileMeta[f.ref] || '';
+
+      return `\`\`\`\`${f.lang} title="${f.label}"${meta ? ` ${meta}` : ''}\n${f.code}\n\`\`\`\``;
+    }).join('\n\n');
+
+    return serverFences;
+  }
+
   // ── HTML preview content for JS examples ───────────────────────────────────
   // Some JS examples ship an .html file with extra DOM elements the script
   // depends on (event log panels, checkbox lists, etc.).  When present, inject
   // its content into the preview area instead of a bare <div id="…"></div>.
   let htmlPreviewContent = '';
 
-  if (jsRef || vueRef) {
+  if (jsRef) {
     const htmlFile = files.find(f => f.ext === 'html');
 
     if (htmlFile) {
@@ -316,6 +367,57 @@ ${fences}
 }
 
 /**
+ * Converts standalone @[code](@/content/...) directives to markdown fenced code
+ * blocks (Expressive Code). Must run after processExampleBlocks so directives
+ * inside ::: example containers are not converted twice.
+ *
+ * @param {string} content - Markdown body (after example block processing)
+ * @param {string} contentDir - Absolute path to docs/content/
+ * @returns {string}
+ */
+function processCodeEmbedDirectives(content, contentDir) {
+  const lineRe = /^@\[code(?:\s+([^\]]*))?\]\(@\/content\/(.+)\)\s*$/;
+  const lines = content.split('\n');
+  const result = [];
+
+  for (const line of lines) {
+    const m = line.match(lineRe);
+
+    if (!m) {
+      result.push(line);
+      continue;
+    }
+
+    const meta = (m[1] || '').trim();
+    const relPath = m[2].trim();
+    const absPath = join(contentDir, relPath);
+    let code = '';
+
+    try {
+      code = readFileSync(absPath, 'utf-8').trimEnd();
+      code = code.replace(/\{\{\s*\$basePath\s*\}\}/g, '/docs');
+    } catch {
+      result.push('```text');
+      result.push(`// File not found: ${relPath}`);
+      result.push('```');
+      continue;
+    }
+
+    const ext = relPath.split('.').pop().toLowerCase();
+    const metaFirst = meta.split(/\s+/).filter(Boolean)[0];
+    let lang = (metaFirst && META_LANG[metaFirst]) || EXT_TO_LANG[ext] || 'text';
+    const collapsePart = meta.match(/collapse=\{[^}]+\}/);
+    const fenceLang = collapsePart ? `${lang} ${collapsePart[0]}` : lang;
+
+    result.push(`\`\`\`${fenceLang}`);
+    result.push(code);
+    result.push('```');
+  }
+
+  return result.join('\n');
+}
+
+/**
  * Processes ::: example and ::: example-without-tabs blocks in the markdown body.
  * Replaces them with HTML + markdown code fences (rendered by Expressive Code).
  * Must be called AFTER filterOnlyFor so only the current framework's blocks remain.
@@ -341,6 +443,9 @@ function processExampleBlocks(content, contentDir) {
       // Extract the example ID from the header (e.g. '#example1')
       const idMatch = header.match(/#(\S+)/);
       const id = idMatch ? idMatch[1] : 'unknown';
+
+      // --code-only flag: render files as static code blocks, no live demo
+      const codeOnly = /--code-only/.test(header);
 
       // Extract CSS classes from the header (e.g. '.disable-auto-theme')
       const classMatches = [...header.matchAll(/\.([a-zA-Z][a-zA-Z0-9_-]*)/g)];
@@ -386,7 +491,7 @@ function processExampleBlocks(content, contentDir) {
         }
       }
 
-      result.push(buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta, extraClasses));
+      result.push(buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta, extraClasses, codeOnly));
       // i is already incremented past the closing ::: by the inner loop
     } else {
       result.push(line);
@@ -397,17 +502,18 @@ function processExampleBlocks(content, contentDir) {
   return result.join('\n');
 }
 
-const FRAMEWORKS = ['javascript', 'react', 'angular'];
+const FRAMEWORKS = ['javascript', 'react', 'angular', 'vue'];
 
 const PREFIXES = {
   javascript: 'javascript-data-grid',
   react: 'react-data-grid',
   angular: 'angular-data-grid',
+  vue: 'vue-data-grid',
 };
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v34';
+const LOADER_VERSION = 'v40';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -963,6 +1069,7 @@ const FRAMEWORK_PREFIX_MAP = {
   javascript: 'javascript-data-grid',
   react: 'react-data-grid',
   angular: 'angular-data-grid',
+  vue: 'vue-data-grid',
 };
 
 /**
@@ -983,7 +1090,7 @@ function resolveAtLink(rawLink, prefix, contentDir) {
   let targetPrefix = prefix;
   let filePath = rawLink;
 
-  const frameworkMatch = rawLink.match(/^(javascript|react|angular)\/(.+)/);
+  const frameworkMatch = rawLink.match(/^(javascript|react|angular|vue)\/(.+)/);
 
   if (frameworkMatch) {
     targetPrefix = FRAMEWORK_PREFIX_MAP[frameworkMatch[1]];
@@ -1124,6 +1231,12 @@ function applyVuepressPreprocessing(content, prefix, contentDir) {
   // CodeSandbox links resolve to the correct in-progress build artifact.
   result = result.replace(/\{\{\s*\$currentVersion\s*\}\}/g, CURRENT_DOCS_VERSION);
 
+  // Fix {{$currentMinorVersion}} → GitHub branch path for source-code links.
+  // Production builds produce "prod-docs/X.Y" (e.g. "prod-docs/17.1").
+  // Staging/dev builds resolve to "develop" (no prod-docs/ prefix, since
+  // the prod-docs/develop branch does not exist).
+  result = result.replace(/\{\{\s*\$currentMinorVersion\s*\}\}/g, CURRENT_DOCS_MINOR_VERSION);
+
   // Transform @/framework/path.md links to absolute Starlight URLs using permalinks.
   // When prefix/contentDir are available (framework pages), do full permalink resolution.
   // The simple regex fallback handles any remaining @/framework/ patterns (e.g. images).
@@ -1164,11 +1277,280 @@ export function frameworkLoader({ contentDir }) {
   return {
     name: 'framework-loader',
 
-    async load({ store, parseData, generateDigest, renderMarkdown, logger }) {
+    async load({ store, parseData, generateDigest, renderMarkdown, logger, watcher }) {
       // Site root is the parent of contentDir (docs/content/ → docs/).
       // Used to compute filePaths relative to site root, as required by Astro.
       const siteRoot = dirname(contentDir.replace(/[/\\]$/, ''));
-      const allFiles = listMdFiles(contentDir);
+
+      // Reverse indexes kept across the dev session so the file watcher can
+      // reload the minimum set of entries on each change:
+      //   pathToIds    — md file → store entry ids it produced (cleanup on unlink)
+      //   pathToRefs   — md file → embed source refs it references
+      //   embedToPages — embed source ref → md files that embed it (reverse lookup)
+      const pathToIds = new Map();
+      const pathToRefs = new Map();
+      const embedToPages = new Map();
+
+      /**
+       * Extracts @/content/... embed references (example sources, CSS, HTML,
+       * etc.) from a markdown body. Returns paths relative to contentDir.
+       *
+       * @param {string} body
+       * @returns {string[]}
+       */
+      const extractEmbedRefs = (body) => {
+        const refs = [];
+
+        for (const m of body.matchAll(/@\/content\/([^\s)'"]+)/g)) {
+          refs.push(m[1]);
+        }
+
+        return refs;
+      };
+
+      /**
+       * Builds a signature from the mtimes of a page's embed sources. Folding it
+       * into the digest makes an embed-file edit change the digest of every page
+       * that references it, so the watcher can trigger a reload. Without it,
+       * `store.set` skips entries whose digest is unchanged.
+       *
+       * @param {string[]} refs
+       * @returns {string}
+       */
+      const embedSignature = (refs) => {
+        let sig = '';
+
+        for (const ref of refs) {
+          try {
+            sig += `${ref}:${statSync(join(contentDir, ref)).mtimeMs};`;
+          } catch {
+            // Referenced file is missing — ignore. buildExampleHtml emits a
+            // "File not found" placeholder for it.
+          }
+        }
+
+        return sig;
+      };
+
+      /**
+       * Refreshes the embed reverse index for a single md file.
+       *
+       * @param {string} absPath
+       * @param {string[]} refs
+       */
+      const indexEmbedRefs = (absPath, refs) => {
+        for (const ref of pathToRefs.get(absPath) ?? []) {
+          embedToPages.get(ref)?.delete(absPath);
+        }
+
+        const refSet = new Set(refs);
+
+        for (const ref of refSet) {
+          let pages = embedToPages.get(ref);
+
+          if (!pages) {
+            pages = new Set();
+            embedToPages.set(ref, pages);
+          }
+
+          pages.add(absPath);
+        }
+
+        pathToRefs.set(absPath, refSet);
+      };
+
+      /**
+       * Reads one md file, (re)creates its store entries, and refreshes the
+       * embed reverse index. Returns the entry ids it set.
+       *
+       * @param {string} absPath
+       * @returns {Promise<string[]>}
+       */
+      const syncContentFile = async (absPath) => {
+        const filename = absPath.split('/').pop();
+
+        // Skip sidebars.js (not a content file) and partials (start with _).
+        if (filename === 'sidebars.js' || filename.startsWith('_')) return [];
+
+        let raw;
+
+        try {
+          raw = readFileSync(absPath, 'utf-8');
+        } catch (err) {
+          logger.warn(`framework-loader: could not read ${absPath}: ${err.message}`);
+
+          return [];
+        }
+
+        const { data: frontmatter, content: body } = matter(raw);
+
+        const previousIds = pathToIds.get(absPath) ?? [];
+
+        /**
+         * Records the page's new entry ids and removes any it no longer
+         * produces — e.g. after a permalink change or a page losing its title,
+         * which would otherwise leave a stale entry at the old URL.
+         *
+         * @param {string[]} newIds
+         * @returns {string[]}
+         */
+        const commit = (newIds) => {
+          for (const id of previousIds) {
+            if (!newIds.includes(id)) store.delete(id);
+          }
+
+          pathToIds.set(absPath, newIds);
+
+          return newIds;
+        };
+
+        // Skip files without a title (they are not standalone pages).
+        if (!frontmatter.title) return commit([]);
+
+        const refs = extractEmbedRefs(body);
+        // Embed mtimes only matter to the dev watcher; keep production digests
+        // purely content-based.
+        const embedSig = watcher ? embedSignature(refs) : '';
+
+        indexEmbedRefs(absPath, refs);
+
+        const relPath = relative(contentDir, absPath);
+
+        // Root content/index.md: framework-agnostic splash — emit once as bare "index".
+        if (relPath === 'index.md') {
+          const exampleProcessedBody = await processExampleBlocks(body, contentDir);
+          const processedBody = applyVuepressPreprocessing(
+            processCodeEmbedDirectives(exampleProcessedBody, contentDir)
+          );
+          const digest = generateDigest(raw + LOADER_VERSION + embedSig);
+          let data;
+
+          try {
+            data = await parseData({ id: 'index', data: frontmatter });
+          } catch (err) {
+            // Astro 6 / Zod 4 schema validation may fail during migration;
+            // fall back to raw frontmatter with Starlight-required defaults.
+            data = {
+              ...frontmatter,
+              head: frontmatter.head || [],
+              sidebar: frontmatter.sidebar || { hidden: false, attrs: {} },
+              template: frontmatter.template || 'doc',
+              editUrl: frontmatter.editUrl ?? true,
+              pagefind: frontmatter.pagefind ?? true,
+              draft: frontmatter.draft ?? false,
+            };
+          }
+
+          const rendered = await renderMarkdown(processedBody);
+          postProcessRenderedHtml(rendered);
+
+          store.set({
+            id: 'index',
+            data,
+            body: processedBody,
+            rendered,
+            filePath: relative(siteRoot, absPath),
+            digest,
+          });
+
+          return commit(['index']);
+        }
+
+        // All other pages: URL is derived from the `permalink` frontmatter field,
+        // which VuePress used to define flat, canonical URLs (e.g. /installation).
+        // Pages without a permalink are not standalone routable pages — skip them.
+        const permalink = frontmatter.permalink;
+
+        if (!permalink) return commit([]);
+
+        // Convert permalink to slug: '/' → 'index', '/installation' → 'installation',
+        // '/api/' → 'api', '/api/hidden-columns' → 'api/hidden-columns'.
+        const permalinkSlug = permalink === '/'
+          ? 'index'
+          : permalink.replace(/^\//, '').replace(/\/$/, '') || 'index';
+
+        const ids = [];
+
+        for (const framework of FRAMEWORKS) {
+          const prefix = PREFIXES[framework];
+          const id = `${prefix}/${permalinkSlug}`;
+
+          // 1. Apply only-for filtering for this framework
+          const filteredBody = filterOnlyFor(body, framework);
+
+          // 2. Process ::: example blocks into Shiki-highlighted HTML tabs
+          const exampleProcessedBody = await processExampleBlocks(filteredBody, contentDir);
+
+          // 3. Convert remaining standalone @[code] embeds to fenced code blocks
+          const codeEmbeddedBody = processCodeEmbedDirectives(exampleProcessedBody, contentDir);
+
+          // 4. Apply remaining VuePress preprocessing
+          const vuepressBody = applyVuepressPreprocessing(codeEmbeddedBody, prefix, contentDir);
+
+          // 5. Inject version-comparison data into the empty JSON script tag
+          //    (only fires on the version-comparison page; cheap regex check).
+          const processedBody = injectVersionComparisonData(vuepressBody);
+
+          // Make each framework entry unique; include LOADER_VERSION to bust
+          // Astro's data store cache when the loader logic changes, and embedSig
+          // so editing an embedded example source busts every page using it.
+          const digest = generateDigest(raw + framework + LOADER_VERSION + embedSig);
+
+          let data;
+
+          try {
+            data = await parseData({ id, data: frontmatter });
+          } catch (err) {
+            // Astro 6 / Zod 4 schema validation may fail during migration;
+            // fall back to raw frontmatter with Starlight-required defaults.
+            data = {
+              ...frontmatter,
+              head: frontmatter.head || [],
+              sidebar: frontmatter.sidebar || { hidden: false, attrs: {} },
+              template: frontmatter.template || 'doc',
+              editUrl: frontmatter.editUrl ?? true,
+              pagefind: frontmatter.pagefind ?? true,
+              draft: frontmatter.draft ?? false,
+            };
+          }
+
+          // Astro 5 content layer reads from entry.rendered.html, not entry.body.
+          // Pre-render the processed markdown here so Starlight's page template
+          // gets actual HTML content.
+          const rendered = await renderMarkdown(processedBody);
+          postProcessRenderedHtml(rendered);
+
+          store.set({
+            id,
+            data,
+            body: processedBody,
+            rendered,
+            filePath: relative(siteRoot, absPath),
+            digest,
+          });
+
+          ids.push(id);
+        }
+
+        return commit(ids);
+      };
+
+      /**
+       * Removes a deleted md file's entries from the store and reverse index.
+       *
+       * @param {string} absPath
+       */
+      const removeContentFile = (absPath) => {
+        for (const id of pathToIds.get(absPath) ?? []) store.delete(id);
+
+        pathToIds.delete(absPath);
+
+        for (const ref of pathToRefs.get(absPath) ?? []) {
+          embedToPages.get(ref)?.delete(absPath);
+        }
+
+        pathToRefs.delete(absPath);
+      };
 
       // ── 404 page ────────────────────────────────────────────────────────
       // Starlight looks for getEntry('docs', '404'). Emit a custom entry so
@@ -1222,134 +1604,104 @@ export function frameworkLoader({ contentDir }) {
         });
       }
 
-      for (const absPath of allFiles) {
-        const filename = absPath.split('/').pop();
+      // Initial full load of every content file.
+      for (const absPath of listMdFiles(contentDir)) {
+        await syncContentFile(absPath);
+      }
 
-        // Skip sidebars.js (not a content file)
-        if (filename === 'sidebars.js') continue;
+      // ── Dev hot reload ──────────────────────────────────────────────────
+      // In `astro dev`, Astro provides a filesystem watcher. This loader reads
+      // every file once at startup with `fs`, so Astro has no idea the content
+      // files are inputs to this collection — they never hot reload on their
+      // own. Subscribe to the watcher and re-sync the affected entries on each
+      // change, matching how Astro's built-in `file` loader behaves.
+      //
+      // `store.set` skips entries whose digest is unchanged, so the digest of
+      // every entry folds in the source content (md raw + embed mtimes); see
+      // syncContentFile. Production builds get no watcher and skip this block.
+      if (watcher) {
+        // Only react to events under content/. The watcher is project-wide, so
+        // editing components, config, or scripts must not trigger a content
+        // reload. (Those changes already hot reload through Vite.)
+        const watchRoot = contentDir.replace(/[/\\]$/, '');
 
-        // Skip files starting with _
-        if (filename.startsWith('_')) continue;
+        watcher.add(contentDir);
 
-        let raw;
+        // Editors fire several events per save, so batch them: collect changed
+        // paths, then process the batch sequentially to avoid racing on the
+        // shared indexes.
+        const pending = new Map();
+        let flushTimer = null;
+        let flushing = false;
 
-        try {
-          raw = readFileSync(absPath, 'utf-8');
-        } catch (err) {
-          logger.warn(`framework-loader: could not read ${absPath}: ${err.message}`);
-          continue;
-        }
+        const handleChange = async (absPath, type) => {
+          // Markdown pages map 1:1 to a source file — re-sync (or drop) directly.
+          if (absPath.endsWith('.md')) {
+            if (type === 'unlink') {
+              removeContentFile(absPath);
+            } else {
+              await syncContentFile(absPath);
+            }
 
-        const { data: frontmatter, content: body } = matter(raw);
-
-        // Skip files without a title (they are not standalone pages)
-        if (!frontmatter.title) continue;
-
-        const relPath = relative(contentDir, absPath);
-
-        // Root content/index.md: framework-agnostic splash — emit once as bare "index".
-        if (relPath === 'index.md') {
-          const exampleProcessedBody = await processExampleBlocks(body, contentDir);
-          const processedBody = applyVuepressPreprocessing(exampleProcessedBody);
-          const digest = generateDigest(raw + LOADER_VERSION);
-          let data;
-
-          try {
-            data = await parseData({ id: 'index', data: frontmatter });
-          } catch (err) {
-            // Astro 6 / Zod 4 schema validation may fail during migration;
-            // fall back to raw frontmatter with Starlight-required defaults.
-            data = {
-              ...frontmatter,
-              head: frontmatter.head || [],
-              sidebar: frontmatter.sidebar || { hidden: false, attrs: {} },
-              template: frontmatter.template || 'doc',
-              editUrl: frontmatter.editUrl ?? true,
-              pagefind: frontmatter.pagefind ?? true,
-              draft: frontmatter.draft ?? false,
-            };
+            return;
           }
 
-          const rendered = await renderMarkdown(processedBody);
-          postProcessRenderedHtml(rendered);
+          // Otherwise it is an embedded example source (.js/.ts/.vue/.css/...).
+          // Re-sync only the pages that embed it. Snapshot the set first:
+          // syncContentFile re-indexes each page, mutating this same set.
+          const ref = relative(contentDir, absPath);
 
-          store.set({
-            id: 'index',
-            data,
-            body: processedBody,
-            rendered,
-            filePath: relative(siteRoot, absPath),
-            digest,
-          });
+          for (const mdPath of [...(embedToPages.get(ref) ?? [])]) {
+            await syncContentFile(mdPath);
+          }
+        };
 
-          continue;
-        }
+        const flush = async () => {
+          flushTimer = null;
 
-        // All other pages: URL is derived from the `permalink` frontmatter field,
-        // which VuePress used to define flat, canonical URLs (e.g. /installation).
-        // Pages without a permalink are not standalone routable pages — skip them.
-        const permalink = frontmatter.permalink;
+          // A previous batch is still running — retry shortly so we never run
+          // two passes concurrently.
+          if (flushing) {
+            flushTimer = setTimeout(flush, 50);
 
-        if (!permalink) continue;
-
-        // Convert permalink to slug: '/' → 'index', '/installation' → 'installation',
-        // '/api/' → 'api', '/api/hidden-columns' → 'api/hidden-columns'.
-        // Trailing slashes are stripped so Astro generates the correct /path/ URL
-        // rather than a malformed /path// double-slash route.
-        const permalinkSlug = permalink === '/'
-          ? 'index'
-          : permalink.replace(/^\//, '').replace(/\/$/, '') || 'index';
-
-        for (const framework of FRAMEWORKS) {
-          const prefix = PREFIXES[framework];
-          const id = `${prefix}/${permalinkSlug}`;
-
-          // 1. Apply only-for filtering for this framework
-          const filteredBody = filterOnlyFor(body, framework);
-
-          // 2. Process ::: example blocks into Shiki-highlighted HTML tabs
-          const exampleProcessedBody = await processExampleBlocks(filteredBody, contentDir);
-
-          // 3. Apply remaining VuePress preprocessing
-          const processedBody = applyVuepressPreprocessing(exampleProcessedBody, prefix, contentDir);
-
-          // Make each framework entry unique; include LOADER_VERSION to bust
-          // Astro's data store cache when the loader logic changes.
-          const digest = generateDigest(raw + framework + LOADER_VERSION);
-
-          let data;
-
-          try {
-            data = await parseData({ id, data: frontmatter });
-          } catch (err) {
-            // Astro 6 / Zod 4 schema validation may fail during migration;
-            // fall back to raw frontmatter with Starlight-required defaults.
-            data = {
-              ...frontmatter,
-              head: frontmatter.head || [],
-              sidebar: frontmatter.sidebar || { hidden: false, attrs: {} },
-              template: frontmatter.template || 'doc',
-              editUrl: frontmatter.editUrl ?? true,
-              pagefind: frontmatter.pagefind ?? true,
-              draft: frontmatter.draft ?? false,
-            };
+            return;
           }
 
-          // Astro 5 content layer reads from entry.rendered.html, not entry.body.
-          // Pre-render the processed markdown here so Starlight's page template
-          // gets actual HTML content.
-          const rendered = await renderMarkdown(processedBody);
-          postProcessRenderedHtml(rendered);
+          flushing = true;
 
-          store.set({
-            id,
-            data,
-            body: processedBody,
-            rendered,
-            filePath: relative(siteRoot, absPath),
-            digest,
-          });
-        }
+          const batch = [...pending.entries()];
+
+          pending.clear();
+
+          for (const [absPath, type] of batch) {
+            try {
+              await handleChange(absPath, type);
+            } catch (err) {
+              logger.warn(`framework-loader: failed to reload ${absPath}: ${err.message}`);
+            }
+          }
+
+          flushing = false;
+
+          if (pending.size > 0) {
+            flushTimer = setTimeout(flush, 50);
+          }
+        };
+
+        const queueChange = type => (changedPath) => {
+          if (!changedPath.startsWith(watchRoot)) return;
+
+          // Latest event for a path wins (e.g. change-then-unlink → unlink).
+          pending.set(changedPath, type);
+
+          if (!flushTimer) {
+            flushTimer = setTimeout(flush, 100);
+          }
+        };
+
+        watcher.on('add', queueChange('add'));
+        watcher.on('change', queueChange('change'));
+        watcher.on('unlink', queueChange('unlink'));
       }
     },
   };

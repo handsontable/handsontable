@@ -2,6 +2,8 @@ import Handsontable from 'handsontable/base';
 import {
   registerPlugin,
   DataProvider,
+  ContextMenu,
+  Dialog,
   DropdownMenu,
   Filters,
   ColumnSorting,
@@ -12,6 +14,8 @@ import {
 import { registerAllCellTypes } from 'handsontable/cellTypes';
 
 registerPlugin(DataProvider);
+registerPlugin(ContextMenu);
+registerPlugin(Dialog);
 registerPlugin(DropdownMenu);
 registerPlugin(Filters);
 registerPlugin(ColumnSorting);
@@ -41,14 +45,17 @@ function getCsrfToken() {
 // filters }. This helper converts those into query string parameters that
 // Django REST Framework understands.
 //
-// - `page` and `pageSize` map directly (DRF uses page_size_query_param =
-//   'pageSize', so the parameter name matches without any translation).
-// - `sort` becomes sort[prop] + sort[order] -- the Django view reads these
-//   and converts them to DRF's `ordering` param internally.
-// - Each filter condition in the `filters` array becomes a filters[N][...]
-//   triplet (prop, value, condition).
+// - `page` and `pageSize` map directly.
+// - `sort` becomes sort[prop] + sort[order].
+// - `filters` is a DataProviderFilterColumn[] array -- pass it as a JSON
+//   string so Django can parse the full nested structure (prop, operation,
+//   conditions: [{ name, args }]) with a single json.loads() call.
+//
+// Vite proxies /api/* → http://localhost:8000, so we use a relative URL.
 // ---------------------------------------------------------------------------
-function buildUrl(base, { page, pageSize, sort, filters }) {
+const API_BASE = '/api/employees/';
+
+function buildUrl({ page, pageSize, sort, filters }) {
   const params = new URLSearchParams();
 
   params.set('page', page);
@@ -59,79 +66,66 @@ function buildUrl(base, { page, pageSize, sort, filters }) {
     params.set('sort[order]', sort.order ?? 'asc');
   }
 
+  // Pass the full filter payload as a JSON string so Django can parse the
+  // nested conditions structure with json.loads().
   if (filters?.length) {
-    filters.forEach(({ prop, value, condition }, i) => {
-      params.set(`filters[${i}][prop]`, prop);
-      params.set(`filters[${i}][value]`, value);
-      params.set(`filters[${i}][condition]`, condition);
-    });
+    params.set('filters', JSON.stringify(filters));
   }
 
-  return `${base}?${params.toString()}`;
+  return `${API_BASE}?${params.toString()}`;
 }
 
 // ---------------------------------------------------------------------------
 // Step 3: Initialize Handsontable with the dataProvider plugin.
-//
-// `rowId: 'id'` tells dataProvider which field uniquely identifies each row.
-// Django's auto-increment primary key is used here.
-//
-// Each callback receives the signal from the AbortController so that
-// in-flight requests are cancelled when the user sorts or filters before
-// the previous request completes.
 // ---------------------------------------------------------------------------
 const container = document.querySelector('#example1');
+
+let removeConfirmed = false;
 
 const hot = new Handsontable(container, {
   dataProvider: {
     rowId: 'id',
 
-    // fetchRows is called on mount and whenever page, sort, or filters change.
     fetchRows: async ({ page, pageSize, sort, filters }, { signal }) => {
-      const url = buildUrl('http://localhost:8000/api/employees/', {
-        page,
-        pageSize,
-        sort,
-        filters,
-      });
-
+      const url = buildUrl({ page, pageSize, sort, filters });
       const res = await fetch(url, { signal });
 
       if (!res.ok) {
         throw new Error(`Fetch failed: ${res.status}`);
       }
 
-      // Django pagination.py already maps DRF's { count, results } to
+      // pagination.py already maps DRF's { count, results } to
       // { rows, totalRows }, so we can return the JSON directly.
       return res.json();
     },
 
-    // onRowsCreate is called when the user adds new rows via the context menu.
-    // It receives an array of row objects without ids.
-    onRowsCreate: async (rows) => {
-      const res = await fetch('http://localhost:8000/api/employees/create-rows/', {
+    onRowsCreate: async ({ rowsAmount }) => {
+      const res = await fetch(`${API_BASE}create-rows/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'X-CSRFToken': getCsrfToken(),
         },
-        body: JSON.stringify(rows),
+        body: JSON.stringify({ rowsAmount }),
       });
 
       if (!res.ok) {
         throw new Error(`Create failed: ${res.status}`);
       }
 
-      // Return the created rows so dataProvider can update its row map
-      // with the server-assigned ids.
-      return res.json();
+      const data = await res.json();
+      const info = data.map(r => `(id: ${r.id})`).join(', ');
+      hot.getPlugin('notification').showMessage({
+        variant: 'success',
+        title: 'Row added',
+        message: `Created: ${info}`,
+        duration: 3000,
+      });
+      return data;
     },
 
-    // onRowsUpdate is called when the user edits cells.
-    // It receives an array of partial row objects that each contain the row
-    // id plus only the changed fields.
     onRowsUpdate: async (rows) => {
-      const res = await fetch('http://localhost:8000/api/employees/update-rows/', {
+      const res = await fetch(`${API_BASE}update-rows/`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -145,10 +139,8 @@ const hot = new Handsontable(container, {
       }
     },
 
-    // onRowsRemove is called when the user deletes rows.
-    // It receives an array of row ids.
     onRowsRemove: async (rowIds) => {
-      const res = await fetch('http://localhost:8000/api/employees/remove-rows/', {
+      const res = await fetch(`${API_BASE}remove-rows/`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -163,33 +155,54 @@ const hot = new Handsontable(container, {
     },
   },
 
-  // Show 10 rows per page; users can change this via the pagination UI.
+  beforeRowsMutation(operation, payload) {
+    if (operation === 'remove' && !removeConfirmed) {
+      const count = payload.rowsRemove.length;
+      const notification = hot.getPlugin('notification');
+      const id = notification.showMessage({
+        variant: 'warning',
+        title: 'Delete rows',
+        message: `Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`,
+        duration: 0,
+        actions: [
+          {
+            label: 'Delete',
+            type: 'primary',
+            callback: () => {
+              notification.hide(id);
+              removeConfirmed = true;
+              hot.getPlugin('dataProvider').removeRows(payload.rowsRemove).finally(() => {
+                removeConfirmed = false;
+              });
+            },
+          },
+          {
+            label: 'Cancel',
+            type: 'secondary',
+            callback: () => notification.hide(id),
+          },
+        ],
+      });
+      return false;
+    }
+  },
+
   pagination: { pageSize: 10 },
-
-  // Enable server-side column sorting. dataProvider passes the sort state
-  // to fetchRows automatically.
   columnSorting: true,
-
-  // Enable the column filter UI. dataProvider passes active conditions
-  // to fetchRows automatically.
   filters: true,
   dropdownMenu: ['filter_by_condition', 'filter_action_bar'],
-
-  // Show a friendly illustration when the server returns zero rows
-  // (for example, when a filter matches nothing).
+  contextMenu: true,
   emptyDataState: true,
-
-  // Show automatic error toasts when fetchRows or a mutation callback throws.
-  // This uses the Notification plugin internally.
   notification: true,
+  dialog: true,
 
   colHeaders: ['First Name', 'Last Name', 'Department', 'Role', 'Salary'],
   columns: [
     { data: 'first_name', type: 'text' },
-    { data: 'last_name', type: 'text' },
+    { data: 'last_name',  type: 'text' },
     { data: 'department', type: 'text' },
-    { data: 'role', type: 'text' },
-    { data: 'salary', type: 'numeric', numericFormat: { pattern: '$0,0' } },
+    { data: 'role',       type: 'text' },
+    { data: 'salary',     type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 } },
   ],
 
   rowHeaders: true,

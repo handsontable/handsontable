@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed numeric cell type incorrectly parsing dot-thousands values in European locales (e.g. `7.000` stored as 7 instead of 7000 with `de-DE` locale).",
+  "type": "fixed",
+  "issueOrPR": 12482,
+  "breaking": false,
+  "framework": "none"
+}

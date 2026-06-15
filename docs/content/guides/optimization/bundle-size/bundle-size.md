@@ -1,23 +1,22 @@
 ---
 type: how-to
-id: vjcvrdeh
 title: Bundle size
 metaTitle: Bundle size - JavaScript Data Grid | Handsontable
-description: Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable modules and Moment.js locales.
+description: Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable modules.
 permalink: /bundle-size
 canonicalUrl: /bundle-size
 tags:
   - size
 react:
-  id: c8onyes4
   metaTitle: Bundle size - React Data Grid | Handsontable
 angular:
-  id: qdq3dmts
   metaTitle: Bundle size - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Bundle size - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
 ---
-Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable modules and Moment.js locales.
+Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable modules.
 
 [[toc]]
 
@@ -81,108 +80,6 @@ registerPlugin(ContextMenu);
 export class ExampleComponent {
   readonly gridSettings = <GridSettings>{
     contextMenu: true,
-  };
-}
-```
-
-:::
-
-## Optimize Moment.js
-
-By default, [Moment.js](https://momentjs.com/) (Handsontable's dependency) comes with all possible locales, which increases the bundle size.
-
-To optimize Moment.js locales, use your bundler's ignore plugin. The example below works with both [Rspack](https://rspack.dev/) and [webpack](https://webpack.js.org/):
-
-```js
-const { IgnorePlugin } = require('@rspack/core'); // or require('webpack')
-
-module.exports = {
-  //...
-  plugins: [
-    // ignore all Moment.js locale files
-    new IgnorePlugin(/^\.\/locale$/, /moment$/),
-  ],
-};
-```
-
-And then explicitly load Moment.js, importing just those locales that you need:
-
-::: only-for javascript
-
-```js
-import Handsontable from 'handsontable/base';
-import { registerCellType, DateCellType } from 'handsontable/cellTypes';
-
-// explicitly import Moment.js
-import moment from 'moment';
-// explicitly import a Moment.js locale of your choice
-import 'moment/locale/ja';
-
-// register the Moment.js locale of your choice
-moment.locale('ja');
-registerCellType(DateCellType);
-
-new Handsontable(container, {
-  type: 'date',
-});
-```
-
-:::
-
-::: only-for react
-
-```js
-import Handsontable from 'handsontable/base';
-import { HotTable } from '@handsontable/react-wrapper';
-import { registerCellType, DateCellType } from 'handsontable/cellTypes';
-
-// explicitly import Moment.js
-import moment from 'moment';
-// explicitly import a Moment.js locale of your choice
-import 'moment/locale/ja';
-
-// register the Moment.js locale of your choice
-moment.locale('ja');
-registerCellType(DateCellType);
-
-const App = () => {
-  return (
-    <HotTable
-      type="date"
-    />
-  );
-};
-```
-
-:::
-
-::: only-for angular
-
-```ts
-import { Component } from "@angular/core";
-import { GridSettings, HotTableModule } from "@handsontable/angular-wrapper";
-import { registerCellType, DateCellType } from "handsontable/cellTypes";
-
-// explicitly import Moment.js
-import moment from "moment";
-// explicitly import a Moment.js locale of your choice
-import "moment/locale/ja";
-
-// register the Moment.js locale of your choice
-moment.locale("ja");
-registerCellType(DateCellType);
-
-@Component({
-  selector: "app-example",
-  standalone: true,
-  imports: [HotTableModule],
-  template: ` <div>
-    <hot-table [settings]="gridSettings" />
-  </div>`,
-})
-export class ExampleComponent {
-  readonly gridSettings = <GridSettings>{
-    type: "date",
   };
 }
 ```

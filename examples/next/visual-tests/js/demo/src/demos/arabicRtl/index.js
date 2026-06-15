@@ -25,8 +25,7 @@ export function init() {
       {
         data: 4,
         type: 'date',
-        dateFormat: 'YYYY-MM-DD',
-        correctFormat: true,
+        dateFormat: { dateStyle: 'short' },
         title: 'تاريخ',
       },
       { data: 5, type: 'text', title: 'عبارة' },

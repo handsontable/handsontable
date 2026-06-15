@@ -59,6 +59,7 @@ function listenOnFreePort(server, startPort) {
 }
 
 const IS_CI = process.env.CI;
+const IS_TTY = process.stdout.isTTY;
 const CI_DOTS_PER_LINE = 120;
 
 // Separate positional args (runner HTML path) from flag args (--random,
@@ -86,18 +87,20 @@ if (!fs.existsSync(originalPath)) {
   /* eslint-disable no-console */
   console.log(
     `Runner HTML not found at ${originalPath}. Did \`test:e2e.dump\` run with the same `
-    + `\`--testPathPattern\` / \`--theme\` values?`
+    + '`--testPathPattern` / `--theme` values?'
   );
   process.exit(1);
 }
 
+verboseReporting = flags.includes('verbose');
+
 if (flags) {
   const seed = flags.match(/(--seed=)\d{1,}/g);
-  const random = flags.includes('random');
+  const random = flagArgs.includes('--random');
   const hotVersionMatch = flags.match(/--hotVersion=([^\s,]+)/);
   const params = [];
 
-  verboseReporting = flags.includes('verbose');
+  verboseReporting = flagArgs.includes('--verbose');
 
   if (seed) {
     params.push(`seed=${seed[0].replace('--seed=', '')}`);
@@ -109,7 +112,19 @@ if (flags) {
     params.push(`hotVersion=${hotVersionMatch[1]}`);
   }
 
-  htmlPath = `${htmlPath}?${params.join('&')}`;
+  // Support --spec=<pattern> to filter test files at runtime (e.g., --spec=i18n or --spec="i18n/index").
+  const specFlag = flagArgs.find(a => a.startsWith('--spec='));
+
+  if (specFlag) {
+    const specPattern = specFlag.replace('--spec=', '');
+
+    params.push(`spec=${encodeURIComponent(specPattern)}`);
+    console.log(`Filtering tests with pattern: ${specPattern}`);
+  }
+
+  if (params.length > 0) {
+    htmlPath = `${originalPath}?${params.join('&')}`;
+  }
 }
 
 const cleanupFactory = (browser, server) => async(exitCode) => {
@@ -159,7 +174,7 @@ const cleanup = cleanupFactory(browser, server);
 const reporter = new JasmineReporter({
   colors: 1,
   cleanStack: 1,
-  verbosity: 4,
+  verbosity: (IS_TTY && !verboseReporting) ? 1 : 4,
   listStyle: 'flat',
   activity: true,
   isVerbose: verboseReporting,
@@ -211,10 +226,35 @@ await page.exposeFunction('getEventListeners', async(selector) => {
   });
 });
 
+// Overrides the device scale factor (emulates a non-100% browser zoom / fractional DPR) for the
+// current page. Pass 1 (or a falsy value) to restore the default. Used by tests that must
+// reproduce sub-pixel rendering bugs which only manifest when devicePixelRatio is not an integer.
+//
+// This goes through `page.setViewport` rather than a raw `Emulation.setDeviceMetricsOverride` /
+// `clearDeviceMetricsOverride` pair on purpose: the CDP "clear" call would also drop Puppeteer's
+// own viewport override (the width/height set at launch), reverting the window to the browser
+// default size and breaking later specs that rely on the window as the scrollable element.
+// `page.setViewport` keeps the current dimensions and only changes the scale factor.
+await page.exposeFunction('setDeviceScaleFactor', async(scaleFactor) => {
+  const viewport = page.viewport() ?? { width: 1280, height: 720 };
+
+  await page.setViewport({
+    ...viewport,
+    deviceScaleFactor: scaleFactor || 1,
+  });
+});
+
 page.on('pageerror', async(msg) => {
   /* eslint-disable no-console */
   console.log(msg);
   await cleanup(1);
+});
+
+page.on('console', (msg) => {
+  if (msg.text().startsWith('DEBUG')) {
+    /* eslint-disable no-console */
+    console.log('[BROWSER]', msg.text());
+  }
 });
 
 const packagePath = path.relative(rootPath, process.cwd());
@@ -224,5 +264,5 @@ try {
 } catch (error) {
   /* eslint-disable no-console */
   console.log(error);
-  cleanup(1);
+  await cleanup(1);
 }

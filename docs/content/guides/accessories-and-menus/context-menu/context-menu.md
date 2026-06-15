@@ -1,6 +1,5 @@
 ---
 type: reference
-id: 3hrrxxln
 title: Context menu
 metaTitle: Context menu - JavaScript Data Grid | Handsontable
 description: Quickly access contextual actions such as removing rows, inserting columns or copying data, by opening the context menu.
@@ -12,11 +11,11 @@ tags:
   - pop-up menu
   - right-click menu
 react:
-  id: r2x6mh6h
   metaTitle: Context menu - React Data Grid | Handsontable
 angular:
-  id: 3xspgb3u
   metaTitle: Context menu - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Context menu - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
 menuTag: updated
@@ -63,6 +62,16 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 
 @[code](@/content/guides/accessories-and-menus/context-menu/angular/example1.ts)
 @[code](@/content/guides/accessories-and-menus/context-menu/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/accessories-and-menus/context-menu/vue/example1.vue)
 
 :::
 
@@ -147,6 +156,16 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/accessories-and-menus/context-menu/vue/example2.vue)
+
+:::
+
+:::
+
 ::: only-for react
 
 ## Context menu with custom options
@@ -159,6 +178,22 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 
 @[code](@/content/guides/accessories-and-menus/context-menu/react/example4.jsx)
 @[code](@/content/guides/accessories-and-menus/context-menu/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for vue
+
+## Context menu with custom options
+
+In addition to built-in options, you can equip your context menu with custom options.
+
+To see the context menu, right-click on a cell. On touch devices, long-press a cell to open the context menu.
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/accessories-and-menus/context-menu/vue/example4.vue)
 
 :::
 
@@ -257,6 +292,16 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/accessories-and-menus/context-menu/vue/example3.vue)
+
+:::
+
+:::
+
 ## Related keyboard shortcuts and gestures
 
 | Windows                                                                                               | macOS                                                                                                | Action                                                        |  Excel  | Sheets  |
@@ -281,8 +326,7 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 ::: only-for javascript
 - [Custom context menu in React](@/react/guides/accessories-and-menus/context-menu/context-menu.md)
 - [Custom context menu in Angular](@/angular/guides/accessories-and-menus/context-menu/context-menu.md)
-- [Custom context menu in Vue](@/guides/integrate-with-vue3/vue3-custom-context-menu-example/vue3-custom-context-menu-example.md)
-- [Custom context menu in Vue 3](@/guides/integrate-with-vue3/vue3-custom-context-menu-example/vue3-custom-context-menu-example.md)
+- [Custom context menu in Vue 3](@/vue/guides/accessories-and-menus/context-menu/context-menu.md)
 :::
 
 </div>

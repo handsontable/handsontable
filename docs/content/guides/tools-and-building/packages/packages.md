@@ -1,6 +1,5 @@
 ---
 type: reference
-id: xt5zuczu
 title: Packages
 metaTitle: Packages - JavaScript Data Grid | Handsontable
 description: Instantly add Handsontable to your web app, using pre-built UMD packages of JavaScript and CSS.
@@ -83,20 +82,15 @@ If you'd rather use a different theme, replace the theme script or CSS file and 
 
 ## Bare distribution
 
-If you are a "Bob the Builder" kind of hacker, you will need to load Handsontable JS, CSS and their dependencies:
-```html
-<!-- Required dependencies (as external scripts) -->
-<script src="https://cdn.jsdelivr.net/npm/moment@2.29.4/moment.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@handsontable/pikaday@1.0.0/pikaday.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/numbro@2.1.2/dist/numbro.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.5/dist/purify.js"></script>
+If you want the smallest possible initial load, use the bare build. It contains only Handsontable's own code -- no bundled dependencies. Load the files directly:
 
+```html
 <!-- Handsontable bare files -->
 <script src="dist/handsontable.js"></script>
 <link href="styles/ht-theme-horizon.css" rel="stylesheet">
 ```
 
-**handsontable.js** is compiled ___without___ the needed dependencies. You will have to include `pikaday.js`, `moment.js`, `numbro.js`, and `dompurify` on your own, ie. from JSDelivr CDN.
+**handsontable.js** has no external runtime dependencies in version 18.0 and later. If you use the `sanitizer` option with a third-party library such as DOMPurify, load that library separately.
 
 ## Internationalization
 It is possible to include files which will register languages dictionaries. They allow to translate parts of Handsontable UI. You can either use only particular languages files or include all of them at once as a single file.

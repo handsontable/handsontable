@@ -2,7 +2,6 @@
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
-import { RowObject } from 'handsontable/common';
 import type { CellMeta, CellProperties } from 'handsontable/settings';
 
 const STATUS_ROW_CLASSES: Record<string, string> = {

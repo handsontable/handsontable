@@ -1,17 +1,16 @@
 ---
 type: how-to
-id: qiasr3y1
 title: Column headers
 metaTitle: Column headers - JavaScript Data Grid | Handsontable
 description: Use default column headers (A, B, C), or set them to custom values provided by an array or a function.
 permalink: /column-header
 canonicalUrl: /column-header
 react:
-  id: 5e0tnexi
   metaTitle: Column headers - React Data Grid | Handsontable
 angular:
-  id: owl7h4t1
   metaTitle: Column headers - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column headers - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
@@ -46,6 +45,16 @@ Setting the [`colHeaders`](@/api/options.md#colheaders) option to `true` enables
 
 @[code](@/content/guides/columns/column-header/react/example1.jsx)
 @[code](@/content/guides/columns/column-header/react/example1.tsx)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example1.vue)
 
 :::
 
@@ -87,6 +96,16 @@ An array of labels can be used to set the [`colHeaders`](@/api/options.md#colhea
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example2.vue)
+
+:::
+
+:::
+
 ::: only-for angular
 
 ::: example #example2 :angular --ts 1 --html 2
@@ -118,6 +137,16 @@ The [`colHeaders`](@/api/options.md#colheaders) can also be populated using a fu
 
 @[code](@/content/guides/columns/column-header/react/example3.jsx)
 @[code](@/content/guides/columns/column-header/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example3.vue)
 
 :::
 
@@ -162,6 +191,16 @@ You can also set the alignment for a specific column by using the [`columns`](@/
 
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example4.vue)
+
+:::
+
+:::
+
 ::: only-for angular
 
 ::: example #example4 :angular --ts 1 --html 2
@@ -194,6 +233,16 @@ If you want to style the header labels, you can pass any number of class names, 
 @[code](@/content/guides/columns/column-header/react/example5.css)
 @[code](@/content/guides/columns/column-header/react/example5.jsx)
 @[code](@/content/guides/columns/column-header/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example5.vue)
 
 :::
 

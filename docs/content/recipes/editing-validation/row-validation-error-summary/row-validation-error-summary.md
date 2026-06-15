@@ -16,6 +16,9 @@ react:
 angular:
   id: h8s4n9q6
   metaTitle: Row Validation Error Summary Recipe - Angular Data Grid | Handsontable
+vue:
+  id: 94krzohb
+  metaTitle: Row Validation Error Summary Recipe - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Editing and Validation
 type: how-to
@@ -25,9 +28,8 @@ In this tutorial, you will validate every row when the user clicks Submit and li
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --html 1 --js 2 --ts 3 --css 4
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3
 
-@[code](@/content/recipes/editing-validation/row-validation-error-summary/javascript/example1.html)
 @[code](@/content/recipes/editing-validation/row-validation-error-summary/javascript/example1.js)
 @[code](@/content/recipes/editing-validation/row-validation-error-summary/javascript/example1.ts)
 @[code](@/content/recipes/editing-validation/row-validation-error-summary/javascript/example1.css)

@@ -21,6 +21,9 @@ react:
 angular:
   id: a3b8c2d1
   metaTitle: Load Data from a REST API - Angular Data Grid | Handsontable
+vue:
+  id: o4k4wnz7
+  metaTitle: Load Data from a REST API - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 type: how-to
@@ -162,9 +165,8 @@ const refreshButton = document.createElement('button');
 refreshButton.type = 'button';
 refreshButton.textContent = 'Refresh';
 refreshButton.hidden = true; // hidden until the initial load succeeds
-refreshButton.style.marginBottom = '0';
 
-statusBar.appendChild(refreshButton);
+controls.appendChild(refreshButton);
 ```
 
 **What's happening:**
@@ -196,10 +198,8 @@ The helper controls the "Refresh" button alongside the existing "Retry" button.
 
 ```javascript
 function setUiState({ loading = false, hasError = false, message = '' } = {}) {
-  status.textContent = message;
-  status.style.color = hasError
-    ? 'var(--ht-cell-error-foreground-color, #c62828)'
-    : 'var(--ht-foreground-color, #202124)';
+  statusOutput.textContent = message;
+  statusOutput.classList.toggle('is-error', hasError);
   retryButton.hidden = !hasError;            // visible only on error
   refreshButton.hidden = hasError || loading; // visible only when data is ready
   refreshButton.disabled = loading;
@@ -499,15 +499,17 @@ emptyDataState: true,
 ```javascript
 beforeDataProviderFetch: ({ skipLoading }) => {
   if (!skipLoading) {
-    status.textContent = 'Loading...';
+    statusOutput.textContent = 'Loading...';
+    statusOutput.classList.remove('is-error');
   }
 },
 afterDataProviderFetch: () => {
-  status.textContent = 'Loaded from REST API via dataProvider.';
+  statusOutput.textContent = 'Loaded from REST API via dataProvider.';
+  statusOutput.classList.remove('is-error');
 },
 afterDataProviderFetchError: (error) => {
-  status.textContent = `Error: ${error.message}`;
-  status.style.color = 'var(--ht-cell-error-foreground-color, #c62828)';
+  statusOutput.textContent = `Error: ${error.message}`;
+  statusOutput.classList.add('is-error');
 },
 ```
 

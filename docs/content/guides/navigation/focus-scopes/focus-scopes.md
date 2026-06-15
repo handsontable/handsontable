@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: cdahp04c
 title: Focus scopes
 metaTitle: Focus scopes - JavaScript Data Grid | Handsontable
 description: Manage focus boundaries and keyboard shortcuts contexts with focus scopes.
@@ -15,11 +14,11 @@ tags:
   - shortcuts context
   - tab navigation
 react:
-  id: lx9qi7uu
   metaTitle: Focus scopes - React Data Grid | Handsontable
 angular:
-  id: xat52y9g
   metaTitle: Focus scopes - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Focus scopes - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
 ---
@@ -45,6 +44,18 @@ To use the Handsontable API, you'll need access to the Handsontable instance. Yo
 For more information, see the [Instance access](@/guides/getting-started/angular-hot-instance/angular-hot-instance.md) page.
 
 :::
+:::
+
+::: only-for vue
+
+::: tip
+
+To use the Handsontable API, use a template ref on `HotTable` and read `hotRef.value.hotInstance`.
+
+For more information, see [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md).
+
+:::
+
 :::
 
 <ol class="sl-steps">
@@ -123,6 +134,17 @@ to the bottom text input and how the internal state changes.
 :::
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3 --css 1
+
+@[code](@/content/guides/navigation/focus-scopes/vue/example1.css)
+@[code collapse={17-118,145-147,220-222}](@/content/guides/navigation/focus-scopes/vue/example1.vue)
+
+:::
+
+:::
+
 ### Modal scopes
 
 Modal scopes have a priority over inline scopes. If a modal scope is active, the inline scopes will not be activated. This is useful for dialogs, popups, or any UI that may overlap other inline scopes and need to be activated first.
@@ -170,6 +192,17 @@ appears after the inline scope elements in the DOM.
 @[code](@/content/guides/navigation/focus-scopes/angular/example2.html)
 
 :::
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3 --css 1
+
+@[code](@/content/guides/navigation/focus-scopes/vue/example2.css)
+@[code collapse={17-118,145-147,228-236}](@/content/guides/navigation/focus-scopes/vue/example2.vue)
+
+:::
+
 :::
 
 ## Register a focus scope

@@ -1,17 +1,16 @@
 ---
 type: how-to
-id: q63yhvq5
 title: Time cell type
 metaTitle: Time cell type - JavaScript Data Grid | Handsontable
-description: Display, format, sort, and filter time values correctly by using the time cell type. Use Intl.DateTimeFormat (recommended) or the legacy moment.js-based configuration.
+description: Display, format, sort, and filter time values correctly by using the time cell type.
 permalink: /time-cell-type
 canonicalUrl: /time-cell-type
 react:
-  id: 34n5nwja
   metaTitle: Time cell type - React Data Grid | Handsontable
 angular:
-  id: fu9fqphw
   metaTitle: Time cell type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Time cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---
@@ -23,7 +22,7 @@ The time cell type formats time values using a configurable format string. Use i
 
 ## Overview
 
-The time cell type lets you treat cell values as times: format how they are displayed and validate input. Handsontable supports two configurations: the **object-style** configuration using the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API (recommended), and a **string-style** configuration using [Moment.js](https://github.com/moment/moment) (deprecated).
+The time cell type lets you treat cell values as times: format how they are displayed and validate input. Use the `intl-time` or `time` cell type with the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API and 24-hour time strings.
 
 ## Time cell type demo
 
@@ -57,14 +56,24 @@ In the following demo, the **Start**, **Break start**, and **End** columns use t
 :::
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-types/time-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ## Use the time cell type
 
-Use the **object-style** configuration by setting the [`type`](@/api/options.md#type) option to `'intl-time'` and [`timeFormat`](@/api/options.md#timeformat) to an object (recommended). The locale is controlled via the [`locale`](@/api/options.md#locale) option.
+Use the **object-style** configuration by setting the [`type`](@/api/options.md#type) option to `'intl-time'` or `'time'` and [`timeFormat`](@/api/options.md#timeformat) to an object. The locale is controlled via the [`locale`](@/api/options.md#locale) option.
 
 ::: only-for javascript
 
 ```js
-// set the time cell type for the entire grid (Intl, recommended)
+// set the time cell type for the entire grid
 type: 'intl-time',
 locale: 'en-US',
 timeFormat: {
@@ -102,7 +111,7 @@ cell: [
 ::: only-for react
 
 ```jsx
-// set the time cell type for the entire grid (Intl, recommended)
+// set the time cell type for the entire grid
 type="intl-time"
 locale="en-US"
 timeFormat={{
@@ -134,7 +143,7 @@ cell={[{
 ::: only-for angular
 
 ```ts
-// set the time cell type for the entire grid (Intl, recommended)
+// set the time cell type for the entire grid
 settings1 = {
   type: 'intl-time',
   locale: 'en-US',
@@ -173,17 +182,71 @@ settings3 = {
 
 :::
 
-For `intl-time` cells, source data **must** be in **24-hour time format** (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`) for times to work correctly. The `timeFormat` object only affects how times are displayed; sorting and filtering rely on the underlying value.
+::: only-for vue
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
+
+registerAllModules();
+
+// set the time cell type for the entire grid (Intl, recommended)
+const hotSettings = ref<GridSettings>({
+  type: 'intl-time',
+  locale: 'en-US',
+  timeFormat: {
+    hour: 'numeric',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+// set the time cell type for a single column
+const hotSettingsColumn = ref<GridSettings>({
+  columns: [
+    {
+      type: 'intl-time',
+      locale: 'en-US',
+      timeFormat: { timeStyle: 'medium' }
+    }
+  ],
+  licenseKey: 'non-commercial-and-evaluation',
+});
+
+// set the time cell type for a single cell
+const hotSettingsCell = ref<GridSettings>({
+  cell: [
+    {
+      row: 0,
+      col: 2,
+      type: 'intl-time',
+      locale: 'en-US',
+      timeFormat: { hour: '2-digit', minute: '2-digit', hour12: true }
+    }
+  ],
+  licenseKey: 'non-commercial-and-evaluation',
+});
+</script>
+```
+
+:::
+
+For `intl-time` and `time` cells, source data **must** be in **24-hour time format** (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`) for times to work correctly. The `timeFormat` object only affects how times are displayed; sorting and filtering rely on the underlying value.
 
 ## Format times
 
 To control how times are displayed in [cell renderers](@/guides/cell-functions/cell-renderer/cell-renderer.md), use the [`timeFormat`](@/api/options.md#timeformat) option.
 
-Since Handsontable 17.0, the recommended approach is the **object form** of `timeFormat` with the `intl-time` cell type, which uses the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
+Since Handsontable 18.0, the **object form** of `timeFormat` with the `intl-time` and `time` cell types is required. It uses the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
 
-### Using Intl.DateTimeFormat (recommended)
+### Using Intl.DateTimeFormat
 
-The `timeFormat` option accepts properties of [`Intl.DateTimeFormat` options](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat) relevant to time. Use it with `type: 'intl-time'`.
+The `timeFormat` option accepts properties of [`Intl.DateTimeFormat` options](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat) relevant to time. Use it with `type: 'intl-time'` or `type: 'time'`.
 
 ::: only-for javascript
 
@@ -260,6 +323,46 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+import type { GridSettings } from 'handsontable/settings';
+
+registerAllModules();
+
+const hotSettings = ref<GridSettings>({
+  columns: [
+    {
+      type: 'intl-time',
+      locale: 'en-US',
+      timeFormat: {
+        hour: 'numeric',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true
+      }
+    },
+    {
+      type: 'intl-time',
+      locale: 'de-DE',
+      timeFormat: { timeStyle: 'medium' }
+    }
+  ],
+  licenseKey: 'non-commercial-and-evaluation',
+});
+</script>
+
+<template>
+  <HotTable :settings="hotSettings" />
+</template>
+```
+
+:::
+
 **Time-specific options**
 
 **Style shortcuts:**
@@ -291,50 +394,13 @@ settings = {
 
 For a complete reference, see the [`timeFormat` API documentation](@/api/options.md#timeformat) or [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
 
-### Using string format with Moment.js (deprecated)
-
-::: warning Deprecated
-The **string form** of [`timeFormat`](@/api/options.md#timeformat) (e.g. `'h:mm:ss a'`) is deprecated and will be removed in the next major release. It is used only by the `time` cell type, which relies on [Moment.js](https://github.com/moment/moment). Migrate to the `intl-time` cell type with an `Intl.DateTimeFormat` options object.
-:::
-
-The `time` cell type with a string `timeFormat` is still supported but will be removed in next major release.
-
-**Deprecated options:**
-
-| Option               | Description | Replacement |
-| -------------------- | ----------- | ----------- |
-| `timeFormat` (string)| Moment.js format (e.g. `'h:mm:ss a'`) | Use `intl-time` with `timeFormat` object (see above) |
-| `correctFormat`      | Auto-correct entered time to match format | May be handled by [`valueParser`](@/api/options.md#valueparser) and/or [`valueSetter`](@/api/options.md#valuesetter) options |
-
-**Migration example:**
-
-```js
-// Before (deprecated)
-columns: [{
-  type: 'time',
-  timeFormat: 'h:mm:ss a',
-}]
-
-// After (recommended)
-columns: [{
-  type: 'intl-time',
-  locale: 'en-US',
-  timeFormat: {
-    hour: 'numeric',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: true,
-  }
-}]
-```
-
 ### Editor behavior
 
-The [`timeFormat`](@/api/options.md#timeformat) option controls how times are displayed in the cell. The editor may show the value in a normalized form; for `intl-time`, the underlying value remains in 24-hour format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`).
+The [`timeFormat`](@/api/options.md#timeformat) option controls how times are displayed in the cell. The editor may show the value in a normalized form; for `intl-time` and `time`, the underlying value remains in 24-hour format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`).
 
 ## Result
 
-After configuring the time cell type, cells display time values formatted according to your `timeFormat` configuration. Source data is stored in 24-hour format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`) regardless of the display format.
+After configuring the time cell type, cells display time values formatted according to your `timeFormat` configuration. Clicking an `intl-time` or `time` cell opens a native time picker. Source data is stored in 24-hour format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`) regardless of the display format.
 
 ## Related articles
 
@@ -353,7 +419,6 @@ After configuring the time cell type, cells display time values formatted accord
 - [timeFormat](@/api/options.md#timeformat)
 - [locale](@/api/options.md#locale)
 - [type](@/api/options.md#type)
-- [correctFormat](@/api/options.md#correctformat)
 - [valueFormatter](@/api/options.md#valueformatter)
 - [valueParser](@/api/options.md#valueparser)
 - [valueSetter](@/api/options.md#valuesetter)

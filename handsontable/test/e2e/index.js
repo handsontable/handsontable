@@ -15,6 +15,17 @@ if (typeof __ENV_ARGS__ === 'object' && __ENV_ARGS__.testPathPattern) {
   }
 }
 
+// Allow filtering test files at runtime via URL query parameter (e.g., ?spec=i18n).
+// This enables running a subset of tests without rebuilding the webpack bundle.
+if (!testPathRegExp && typeof window !== 'undefined' && window.location) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const specPattern = urlParams.get('spec');
+
+  if (specPattern) {
+    testPathRegExp = new RegExp(specPattern, 'i');
+  }
+}
+
 [
   require.context('.', true, /^(?:(?!\/mobile\/).)*\.spec\.js$/),
   require.context('./../../src/', true, /^(?:(?!\/(3rdparty|mobile)\/).)*\.spec\.js$/),

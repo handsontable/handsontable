@@ -1,0 +1,135 @@
+import Event from '../event';
+import Overlays from '../overlays';
+import { CLONE_TYPES } from '../overlay';
+import Settings from '../settings';
+import MasterTable from '../table/master';
+import Viewport from '../viewport';
+import CoreAbstract from './_base';
+import { SelectionManager } from '../selection/manager';
+import type { DataAccessObject, WalkontableInstance } from '../types';
+import type { Overlay } from '../overlay/_base';
+import { objectEach } from '../../../../helpers/object';
+import { addClass, removeClass } from '../../../../helpers/dom/element';
+
+/**
+ * @class Walkontable
+ */
+export default class Walkontable extends CoreAbstract {
+  /**
+   * @param {HTMLTableElement} table Main table.
+   * @param {SettingsPure} settings The Walkontable settings.
+   */
+  constructor(table: HTMLTableElement, settings: Record<string, unknown>) {
+    super(table, new Settings(settings));
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const facadeGetter = this.wtSettings.getSetting('facade', this); // todo rethink. I would like to have no access to facade from the internal scope.
+
+    this.wtTable = new MasterTable(
+      this.getTableDao() as DataAccessObject, facadeGetter, this.domBindings, this.wtSettings);
+    this.wtViewport = new Viewport(
+      this.getViewportDao() as DataAccessObject, this.domBindings,
+      this.wtSettings, this.eventManager, this.wtTable);
+    this.selectionManager = new SelectionManager(this.wtSettings.getSetting('selections'));
+    this.wtEvent = new Event(
+      facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable, this.selectionManager
+    );
+    this.wtOverlays = new Overlays(
+      // TODO create DAO and remove reference to the Walkontable instance.
+      this as WalkontableInstance, facadeGetter, this.domBindings,
+      this.wtSettings, this.eventManager, this.wtTable
+    );
+
+    this.exportSettingsAsClassNames();
+
+    this.findOriginalHeaders();
+  }
+
+  /**
+   * Export settings as class names added to the parent element of the table.
+   */
+  exportSettingsAsClassNames() {
+    const toExport = {
+      rowHeaders: 'htRowHeaders',
+      columnHeaders: 'htColumnHeaders'
+    };
+    const allClassNames: string[] = [];
+    const newClassNames: string[] = [];
+
+    objectEach(toExport, (className: string, key: string) => {
+      if (this.wtSettings.getSetting<unknown[]>(key).length) {
+        newClassNames.push(className);
+      }
+      allClassNames.push(className);
+    });
+    removeClass(this.wtTable.wtRootElement.parentNode as HTMLElement, allClassNames);
+    addClass(this.wtTable.wtRootElement.parentNode as HTMLElement, newClassNames);
+  }
+
+  /**
+   * Destroy instance.
+   */
+  destroy() {
+    this.wtTable.destroy();
+    super.destroy();
+  }
+
+  /**
+   * Gets the overlay instance by its name.
+   *
+   * @param {'inline_start'|'top'|'top_inline_start_corner'|'bottom'|'bottom_inline_start_corner'} overlayName The overlay name.
+   * @returns {Overlay | null}
+   */
+  override getOverlayByName(overlayName: string): Overlay | null {
+    if (!CLONE_TYPES.includes(overlayName)) {
+      return null;
+    }
+
+    const camelCaseOverlay = overlayName.replace(/_([a-z])/g, (_match: string, letter: string) => letter.toUpperCase());
+
+    type OverlayRecord = Pick<Overlays,
+      'topOverlay' | 'bottomOverlay' | 'inlineStartOverlay' |
+      'topInlineStartCornerOverlay' | 'bottomInlineStartCornerOverlay'
+    >;
+
+    return (this.wtOverlays as OverlayRecord as Record<string, Overlay>)[`${camelCaseOverlay}Overlay`] ?? null;
+  }
+
+  /**
+   * @returns {Record<string, unknown>}
+   */
+  getViewportDao(): Record<string, unknown> {
+    return ((instance: this) => ({
+      get wot() {
+        return instance;
+      },
+      get topOverlayTrimmingContainer() {
+        return instance.wtOverlays.topOverlay.trimmingContainer;
+      },
+      get inlineStartOverlayTrimmingContainer() {
+        return instance.wtOverlays.inlineStartOverlay.trimmingContainer;
+      },
+      get topScrollPosition() {
+        return instance.wtOverlays.topOverlay.getScrollPosition();
+      },
+      get topParentOffset() {
+        return instance.wtOverlays.topOverlay.getTableParentOffset();
+      },
+      get inlineStartScrollPosition() {
+        return instance.wtOverlays.inlineStartOverlay.getScrollPosition();
+      },
+      get inlineStartParentOffset() {
+        return instance.wtOverlays.inlineStartOverlay.getTableParentOffset();
+      },
+      get topOverlay() {
+        return instance.wtOverlays.topOverlay; // TODO refactoring: move outside dao, use IOC
+      },
+      get inlineStartOverlay() {
+        return instance.wtOverlays.inlineStartOverlay; // TODO refactoring: move outside dao, use IOC
+      },
+      get bottomOverlay() {
+        return instance.wtOverlays.bottomOverlay; // TODO refactoring: move outside dao, use IOC
+      }
+    }))(this);
+  }
+}

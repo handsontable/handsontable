@@ -1,17 +1,16 @@
 ---
 type: how-to
-id: aq1vywt4
 title: Column moving
 metaTitle: Column moving - JavaScript Data Grid | Handsontable
 description: Change the order of columns, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
 permalink: /column-moving
 canonicalUrl: /column-moving
 react:
-  id: zhlikwwh
   metaTitle: Column moving - React Data Grid | Handsontable
 angular:
-  id: fsfvsoi3
   metaTitle: Column moving - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column moving - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
@@ -58,6 +57,16 @@ A draggable move handle appears above the selected column header. You can click 
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-moving/vue/example1.vue)
+
+:::
+
+:::
+
 #### Move column headers
 
 When you move columns, the default column headers (A, B, C) stay in place.
@@ -95,6 +104,16 @@ When you move columns, the default column headers (A, B, C) stay in place.
 
 :::
 
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/columns/column-moving/vue/example2.vue)
+
+:::
+
+:::
+
 But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option with your own column labels (e.g., One, Two, Three), your headers move along with the columns.
 
 ::: only-for javascript
@@ -125,6 +144,16 @@ But, if you configure the [`colHeaders`](@/api/options.md#colheaders) option wit
 
 @[code](@/content/guides/columns/column-moving/angular/example3.ts)
 @[code](@/content/guides/columns/column-moving/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/columns/column-moving/vue/example3.vue)
 
 :::
 

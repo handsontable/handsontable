@@ -499,7 +499,11 @@ document.addEventListener('DOMContentLoaded', function () {
     var jsFile = findFile(userFiles, '.js') || 'index.js';
     var jsCode = userFiles[jsFile] || '';
 
-    var deps = Object.assign({ handsontable: hotVersion, vite: 'latest' }, extraDeps);
+    // Pin Vite to v5 to avoid Vite 8/rolldown aggressively tree-shaking filter condition
+    // registration side effects due to sideEffects:false in the handsontable package.json.
+    // Once handsontable's package.json sideEffects is updated to include condition files,
+    // this can be changed back to 'latest'.
+    var deps = Object.assign({ handsontable: hotVersion, vite: '^5.4.0' }, extraDeps);
 
     var pkg = JSON.stringify({
       name: 'handsontable-example',
@@ -563,6 +567,11 @@ document.addEventListener('DOMContentLoaded', function () {
   function buildReactProject(hotVersion, exampleId, userFiles, extraDeps) {
     var jsxFile = findFile(userFiles, '.jsx') || findFile(userFiles, '.tsx') || 'App.jsx';
     var jsxCode = userFiles[jsxFile] || '';
+    var cssFile = findFile(userFiles, '.css');
+    // When the JSX already imports the CSS by filename (e.g. `import './example1.css'`)
+    // we keep the original name so the import resolves. Otherwise we normalise to styles.css.
+    var cssImportedByName = cssFile && new RegExp('import\\s+[\'"]\\./?' + cssFile.replace('.', '\\.') + '[\'"]').test(jsxCode);
+    var cssDestName = cssImportedByName ? cssFile : 'styles.css';
 
     var deps = Object.assign(
       {
@@ -570,8 +579,12 @@ document.addEventListener('DOMContentLoaded', function () {
         '@handsontable/react-wrapper': hotVersion,
         react:                     '18.x',
         'react-dom':               '18.x',
-        vite:                      'latest',
-        '@vitejs/plugin-react':    'latest',
+        // Pin Vite to v5 to avoid Vite 8/rolldown aggressively tree-shaking filter condition
+        // registration side effects due to sideEffects:false in the handsontable package.json.
+        // Once handsontable's package.json sideEffects is updated to include condition files,
+        // this can be changed back to 'latest'.
+        vite:                      '^5.4.0',
+        '@vitejs/plugin-react':    '^4.0.0',
       },
       extraDeps,
     );
@@ -594,11 +607,12 @@ document.addEventListener('DOMContentLoaded', function () {
     var index = [
       'import React from "react";',
       'import { createRoot } from "react-dom/client";',
+      (cssFile && !cssImportedByName) ? 'import "./' + cssDestName + '";' : null,
       'import App from "./App";',
       '',
       'const root = createRoot(document.getElementById("' + exampleId + '"));',
       'root.render(React.createElement(App));',
-    ].join('\n');
+    ].filter(Boolean).join('\n');
 
     var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
 
@@ -610,6 +624,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <meta name="viewport" content="width=device-width, initial-scale=1.0" />',
       '  <title>Handsontable React Example</title>',
       '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
+      '  <style>body { padding: 1rem; font-family: system-ui, -apple-system, sans-serif; }</style>',
     ];
 
     var defaultMountDivR = '<div id="' + exampleId + '"></div>';
@@ -624,19 +639,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var html = indexPartsR.join('\n');
 
-    return {
+    var projectFiles = {
       'package.json':   pkg,
       'vite.config.js': viteConfig,
       'index.html':     html,
       'src/main.jsx':   index,
       'src/App.jsx':    jsxCode,
     };
+
+    if (cssFile) {
+      projectFiles['src/' + cssDestName] = userFiles[cssFile];
+    }
+
+    return projectFiles;
   }
 
   // ── Vue 3 project ─────────────────────────────────────────────────────────
 
   function buildVueProject(hotVersion, exampleId, userFiles, extraDeps) {
-    var jsFile = findFile(userFiles, '.js') || 'App.js';
+    var jsFile = findFile(userFiles, '.vue') || 'App.vue';
     var appCode = userFiles[jsFile] || '';
 
     var deps = Object.assign(
@@ -667,7 +688,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var main = [
       'import { createApp } from "vue";',
-      'import App from "./App.js";',
+      'import App from "./App.vue";',
       '',
       'createApp(App).mount("#' + exampleId + '");',
     ].join('\n');
@@ -701,7 +722,7 @@ document.addEventListener('DOMContentLoaded', function () {
       'vite.config.js': viteConfig,
       'index.html':  html,
       'src/main.js': main,
-      'src/App.js':  appCode,
+      'src/App.vue': appCode,
     };
   }
 
@@ -739,14 +760,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
   /** Extracts the @Component selector value, defaulting to 'app-root'. */
   function extractAngularSelector(tsCode) {
-    var m = tsCode.match(/selector\s*:\s*['"]([^'"]+)['"]/);
+    // Use the LAST selector in the file -- helper components (editors, renderers)
+    // are defined before the root AppComponent, so the last selector is correct.
+    var matches = tsCode.match(/selector\s*:\s*['"]([^'"]+)['"]/g);
 
-    return m ? m[1] : 'app-root';
+    if (!matches || !matches.length) return 'app-root';
+    var last = matches[matches.length - 1].match(/selector\s*:\s*['"]([^'"]+)['"]/);
+
+    return last ? last[1] : 'app-root';
   }
 
   function buildAngularProject(hotVersion, exampleId, userFiles, extraDeps) {
     var tsFile = findFile(userFiles, '.ts') || 'app.component.ts';
     var tsCode = userFiles[tsFile] || '';
+    var cssFile = findFile(userFiles, '.css');
 
     // Split the combined example file into component / module / config sections.
     var parsed        = parseAngularSourceFiles(tsCode);
@@ -797,6 +824,12 @@ document.addEventListener('DOMContentLoaded', function () {
       private: true,
       scripts: { ng: 'ng', start: 'ng serve', build: 'ng build' },
       dependencies: deps,
+      // Add @types/* for third-party packages that ship without bundled declarations.
+      devDependencies: Object.assign(
+        {},
+        extraDeps['papaparse']   ? { '@types/papaparse':   'latest' } : {},
+        extraDeps['moment']      ? { '@types/moment':      'latest' } : {}
+      ),
     }, null, 2);
 
     var angularJson = JSON.stringify({
@@ -819,7 +852,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 polyfills: ['zone.js'],
                 tsConfig: 'tsconfig.json',
                 assets: [],
-                styles: [],
+                styles: cssFile ? ['src/styles.css'] : [],
                 scripts: [],
               },
               configurations: {
@@ -876,6 +909,7 @@ document.addEventListener('DOMContentLoaded', function () {
       '  <title>Handsontable Angular Example</title>',
       '  <base href="/">',
       '  <link rel="stylesheet" href="' + cdnCssUrl + '" />',
+      '  <style>body { padding: 1rem; font-family: system-ui, -apple-system, sans-serif; }</style>',
     ];
 
     var defaultBodyMarkup = '  <' + selector + '></' + selector + '>';
@@ -902,7 +936,10 @@ document.addEventListener('DOMContentLoaded', function () {
         '  .catch(err => console.error(err));',
       ].join('\n');
     } else {
-      var classMatch = componentCode.match(/export\s+class\s+(\w+)/);
+      // Prefer AppComponent (the bootstrappable root) over any helper classes
+      // that appear earlier in the file (editors, renderers, etc.).
+      var classMatch = componentCode.match(/export\s+class\s+(AppComponent\b)/) ||
+                       componentCode.match(/export\s+class\s+(\w+)/);
       var className  = classMatch ? classMatch[1] : 'AppComponent';
 
       if (configCode) {
@@ -944,6 +981,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (configCode) {
       files['src/app/app.config.ts'] = configCode;
+    }
+
+    if (cssFile) {
+      files['src/styles.css'] = userFiles[cssFile];
     }
 
     return files;

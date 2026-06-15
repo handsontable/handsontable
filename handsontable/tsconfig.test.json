@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": ["jest"],
+    "typeRoots": [
+      "../node_modules/.pnpm/node_modules/@types",
+      "../node_modules/@types",
+      "node_modules/@types"
+    ]
+  },
+  "include": ["src/**/__tests__/**/*.ts"],
+  "exclude": []
+}

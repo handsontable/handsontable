@@ -156,7 +156,7 @@ export class AppComponent {
             type: 'secondary',
             callback: () => {
               dialogPlugin.hide();
-              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 100);
+              hotInstance.setDataAtCell(0, 1, (hotInstance.getDataAtCell(0, 1) as number) + 100);
               hotInstance.selectCell(0, 1);
             },
           },
@@ -165,7 +165,7 @@ export class AppComponent {
             type: 'secondary',
             callback: () => {
               dialogPlugin.hide();
-              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 200);
+              hotInstance.setDataAtCell(0, 1, (hotInstance.getDataAtCell(0, 1) as number) + 200);
               hotInstance.selectCell(0, 1);
             },
           },
@@ -174,7 +174,7 @@ export class AppComponent {
             type: 'secondary',
             callback: () => {
               dialogPlugin.hide();
-              hotInstance.setDataAtCell(0, 1, hotInstance.getDataAtCell(0, 1) + 500);
+              hotInstance.setDataAtCell(0, 1, (hotInstance.getDataAtCell(0, 1) as number) + 500);
               hotInstance.selectCell(0, 1);
             },
           },

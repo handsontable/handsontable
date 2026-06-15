@@ -18,6 +18,9 @@ react:
 angular:
   id: f6b25d0a
   metaTitle: Multi-column Filter Panel - Angular Data Grid | Handsontable
+vue:
+  id: ypksrbh0
+  metaTitle: Multi-column Filter Panel - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Filtering and Search
 type: how-to
@@ -86,7 +89,7 @@ const hot = new Handsontable(container, {
   columns: [
     { data: 'name' },
     { data: 'category' },
-    { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
+    { data: 'price', type: 'numeric', locale: 'en-US', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 } },
     { data: 'stock', type: 'numeric' },
   ],
   filters: true,

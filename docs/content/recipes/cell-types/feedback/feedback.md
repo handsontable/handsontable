@@ -16,6 +16,9 @@ react:
 angular:
   id: 8e13e6d5
   metaTitle: Feedback Cell Type - Angular Data Grid | Handsontable
+vue:
+  id: n99hdtp4
+  metaTitle: Feedback Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
 ---

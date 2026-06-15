@@ -44,7 +44,6 @@
     "@babel/plugin-syntax-import-assertions": "^7.16.7",
     "@babel/plugin-syntax-jsx": "^7.24.7",
     "@babel/plugin-transform-runtime": "^7.11.0",
-    "core-js": "^3.37.0",
     "@babel/preset-env": "^7.11.0",
     "@babel/register": "^7.8.3",
     "@babel/runtime": "^7.11.2",
@@ -53,19 +52,19 @@
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "babel-plugin-transform-require-ignore": "^0.1.1",
     "chalk": "^4.1.2",
+    "core-js": "^3.37.0",
     "cross-env": "^7.0.3",
-    "eslint": "^7.32.0",
-    "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-jsdoc": "^32.3.3",
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsdoc": "^46.0.0",
     "execa": "^5.0.0",
     "fs-extra": "^4.0.2",
     "glob": "^7.1.2",
-    "jsdom": "24.0.0",
     "global-jsdom": "^24.0.0",
     "inquirer": "^7.3.3",
+    "jsdom": "24.0.0",
     "lodash": "^4.17.21",
-    "moment": "2.29.4",
     "replace-in-file": "^6.1.0",
     "rimraf": "^3.0.2",
     "semver": "^5.7.1",
@@ -98,7 +97,13 @@
       "node-gyp>tar": "^7.5.11",
       "cacache>tar": "^7.5.11",
       "undici": "^6.24.0",
-      "react-star-rating-component>react": "18.3.1"
+      "@astrojs/mdx": "^6.0.1"
+    },
+    "auditConfig": {
+      "ignoreCves": [
+        "CVE-2023-30533",
+        "CVE-2024-22363"
+      ]
     }
   },
   "license": "SEE LICENSE IN LICENSE.txt",

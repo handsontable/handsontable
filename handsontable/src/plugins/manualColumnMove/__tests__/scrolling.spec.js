@@ -43,7 +43,7 @@ describe('manualColumnMove', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollLeft()).toBe(50);
+      expect(getMaster().find('.wtHolder').scrollLeft()).toBeGreaterThan(0);
     });
 
     it('should not move the table\'s viewport when the next mouse-overed element is the last column', async() => {

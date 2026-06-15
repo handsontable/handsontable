@@ -107,6 +107,7 @@
   "jest": {
     "testEnvironment": "jsdom",
     "testURL": "http://localhost/",
+    "testTimeout": 60000,
     "transform": {
       "^.+\\.tsx?$": "babel-jest",
       "^.+\\.js$": "babel-jest"

@@ -12,14 +12,10 @@ describe('Formulas integration with undo/redo', () => {
     }
   });
 
-  const fillHandleSelector = '.wtBorder.current.corner';
   const autofill = (endRow, endCol) => {
-    spec().$container.find(fillHandleSelector).simulate('mousedown');
+    const target = spec().$container.find(`tbody tr:eq(${endRow}) td:eq(${endCol})`);
 
-    spec().$container
-      .find(`tbody tr:eq(${endRow}) td:eq(${endCol})`)
-      .simulate('mouseover')
-      .simulate('mouseup');
+    simulateFillHandleDrag(target);
   };
 
   it('should restore previous edited formula expression and recalculate table after that', async() => {

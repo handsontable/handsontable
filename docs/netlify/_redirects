@@ -1,7 +1,24 @@
 / /docs
 
-/docs/:version/redirect pageId=:pageId /docs/:version
-/docs/redirect pageId=:pageId /docs 301
+/docs/:version/redirect pageId=:pageId /docs/javascript-data-grid/changelog 301
+/docs/redirect pageId=:pageId /docs/javascript-data-grid/changelog 301
+
+# Removed blog articles - specific redirects to equivalent new URLs
+/blog/articles/4-ways-to-handle-read-only-cells /blog/4-ways-to-handle-read-only-cells 301
+/blog/articles/2019/09/introducing-ckeditor-4-spreadsheets /blog/introducing-ckeditor-4-spreadsheets 301
+/blog/articles/2016/2/what-to-expect-when-switching-from-open-source-to-commercial /blog/what-to-expect-when-switching-from-open-source-to-commercial 301
+/blog/handsontable-14.4.0-enhanced-navigation-and-bug-fixes /blog 301
+# Removed blog articles - wildcard fallback to blog homepage
+/blog/articles/* /blog 301
+
+# Removed demo pages
+/demo/* /demo 301
+
+# Old version landing pages
+/0.8.0/* /docs/javascript-data-grid/changelog 301
+
+# Deprecated customer pages
+/customers/* /customers/ 301
 
 # Angular dedicated docs are available from 16.0+ only.
 # Versions 12.1-15.3 had the Angular package but no dedicated docs pages - redirect to latest Angular docs.
@@ -188,14 +205,93 @@
 /docs/react-language-change-example/ /docs/react-data-grid/language/
 /docs/react-redux-example/ /docs/react-data-grid/redux/
 /docs/react-hot-reference/ /docs/react-data-grid/instance-methods/
- 
+
+/docs/:major.:minor/vue3-installation/                        /docs/:major.:minor/vue-data-grid/installation/
+/docs/:major.:minor/vue3-basic-example/                       /docs/:major.:minor/vue-data-grid/installation/
+/docs/:major.:minor/vue3-modules/                             /docs/:major.:minor/vue-data-grid/modules/
+/docs/:major.:minor/vue3-hot-column/                          /docs/:major.:minor/vue-data-grid/vue-hot-column/
+/docs/:major.:minor/vue3-hot-reference/                       /docs/:major.:minor/vue-data-grid/vue-instance-reference/
+/docs/:major.:minor/vue3-custom-renderer-example/             /docs/:major.:minor/vue-data-grid/cell-renderer/
+/docs/:major.:minor/vue3-custom-editor-example/               /docs/:major.:minor/vue-data-grid/cell-editor/
+/docs/:major.:minor/vue3-custom-context-menu-example/         /docs/:major.:minor/vue-data-grid/context-menu/
+/docs/:major.:minor/vue3-custom-id-class-style/               /docs/:major.:minor/vue-data-grid/vue-custom-id-class-style/
+/docs/:major.:minor/vue3-formulas-example/                    /docs/:major.:minor/vue-data-grid/formula-calculation/
+/docs/:major.:minor/vue3-language-change-example/             /docs/:major.:minor/vue-data-grid/language/
+/docs/:major.:minor/vue3-setting-up-a-translation/            /docs/:major.:minor/vue-data-grid/language/
+/docs/:major.:minor/vue3-vuex-example/                        /docs/:major.:minor/vue-data-grid/vue-vuex/
+
+/docs/javascript-data-grid/vue3-installation/                 /docs/vue-data-grid/installation/
+/docs/react-data-grid/vue3-installation/                      /docs/vue-data-grid/installation/
+/docs/angular-data-grid/vue3-installation/                    /docs/vue-data-grid/installation/
+/docs/vue-data-grid/vue3-installation/                        /docs/vue-data-grid/installation/
+
+/docs/javascript-data-grid/vue3-basic-example/                /docs/vue-data-grid/installation/
+/docs/react-data-grid/vue3-basic-example/                     /docs/vue-data-grid/installation/
+/docs/angular-data-grid/vue3-basic-example/                   /docs/vue-data-grid/installation/
+/docs/vue-data-grid/vue3-basic-example/                       /docs/vue-data-grid/installation/
+
+/docs/javascript-data-grid/vue3-modules/                      /docs/vue-data-grid/modules/
+/docs/react-data-grid/vue3-modules/                           /docs/vue-data-grid/modules/
+/docs/angular-data-grid/vue3-modules/                         /docs/vue-data-grid/modules/
+/docs/vue-data-grid/vue3-modules/                             /docs/vue-data-grid/modules/
+
+/docs/javascript-data-grid/vue3-hot-column/                   /docs/vue-data-grid/vue-hot-column/
+/docs/react-data-grid/vue3-hot-column/                        /docs/vue-data-grid/vue-hot-column/
+/docs/angular-data-grid/vue3-hot-column/                      /docs/vue-data-grid/vue-hot-column/
+/docs/vue-data-grid/vue3-hot-column/                          /docs/vue-data-grid/vue-hot-column/
+
+/docs/javascript-data-grid/vue3-hot-reference/                /docs/vue-data-grid/vue-instance-reference/
+/docs/react-data-grid/vue3-hot-reference/                     /docs/vue-data-grid/vue-instance-reference/
+/docs/angular-data-grid/vue3-hot-reference/                   /docs/vue-data-grid/vue-instance-reference/
+/docs/vue-data-grid/vue3-hot-reference/                       /docs/vue-data-grid/vue-instance-reference/
+
+/docs/javascript-data-grid/vue3-custom-renderer-example/      /docs/vue-data-grid/cell-renderer/
+/docs/react-data-grid/vue3-custom-renderer-example/           /docs/vue-data-grid/cell-renderer/
+/docs/angular-data-grid/vue3-custom-renderer-example/         /docs/vue-data-grid/cell-renderer/
+/docs/vue-data-grid/vue3-custom-renderer-example/             /docs/vue-data-grid/cell-renderer/
+
+/docs/javascript-data-grid/vue3-custom-editor-example/        /docs/vue-data-grid/cell-editor/
+/docs/react-data-grid/vue3-custom-editor-example/             /docs/vue-data-grid/cell-editor/
+/docs/angular-data-grid/vue3-custom-editor-example/           /docs/vue-data-grid/cell-editor/
+/docs/vue-data-grid/vue3-custom-editor-example/               /docs/vue-data-grid/cell-editor/
+
+/docs/javascript-data-grid/vue3-custom-context-menu-example/  /docs/vue-data-grid/context-menu/
+/docs/react-data-grid/vue3-custom-context-menu-example/       /docs/vue-data-grid/context-menu/
+/docs/angular-data-grid/vue3-custom-context-menu-example/     /docs/vue-data-grid/context-menu/
+/docs/vue-data-grid/vue3-custom-context-menu-example/         /docs/vue-data-grid/context-menu/
+
+/docs/javascript-data-grid/vue3-custom-id-class-style/        /docs/vue-data-grid/vue-custom-id-class-style/
+/docs/react-data-grid/vue3-custom-id-class-style/             /docs/vue-data-grid/vue-custom-id-class-style/
+/docs/angular-data-grid/vue3-custom-id-class-style/           /docs/vue-data-grid/vue-custom-id-class-style/
+/docs/vue-data-grid/vue3-custom-id-class-style/               /docs/vue-data-grid/vue-custom-id-class-style/
+
+/docs/javascript-data-grid/vue3-formulas-example/             /docs/vue-data-grid/formula-calculation/
+/docs/react-data-grid/vue3-formulas-example/                  /docs/vue-data-grid/formula-calculation/
+/docs/angular-data-grid/vue3-formulas-example/                /docs/vue-data-grid/formula-calculation/
+/docs/vue-data-grid/vue3-formulas-example/                    /docs/vue-data-grid/formula-calculation/
+
+/docs/javascript-data-grid/vue3-language-change-example/      /docs/vue-data-grid/language/
+/docs/react-data-grid/vue3-language-change-example/           /docs/vue-data-grid/language/
+/docs/angular-data-grid/vue3-language-change-example/         /docs/vue-data-grid/language/
+/docs/vue-data-grid/vue3-language-change-example/             /docs/vue-data-grid/language/
+
+/docs/javascript-data-grid/vue3-setting-up-a-translation/     /docs/vue-data-grid/language/
+/docs/react-data-grid/vue3-setting-up-a-translation/          /docs/vue-data-grid/language/
+/docs/angular-data-grid/vue3-setting-up-a-translation/        /docs/vue-data-grid/language/
+/docs/vue-data-grid/vue3-setting-up-a-translation/            /docs/vue-data-grid/language/
+
+/docs/javascript-data-grid/vue3-vuex-example/                 /docs/vue-data-grid/vue-vuex/
+/docs/react-data-grid/vue3-vuex-example/                      /docs/vue-data-grid/vue-vuex/
+/docs/angular-data-grid/vue3-vuex-example/                    /docs/vue-data-grid/vue-vuex/
+/docs/vue-data-grid/vue3-vuex-example/                        /docs/vue-data-grid/vue-vuex/
+
 /docs/hyperformula https://hyperformula.handsontable.com/
 /docs/hyperformula/* https://hyperformula.handsontable.com/:splat
 
 /docs/react /docs/react-data-grid/installation/
 /docs/angular /docs/javascript-data-grid/angular-installation/
-/docs/vue /docs/javascript-data-grid/vue3-installation/
-/docs/vue3 /docs/javascript-data-grid/vue3-installation/
+/docs/vue /docs/vue-data-grid/installation/
+/docs/vue3 /docs/vue-data-grid/installation/
 
 /docs/react-data-grid/row-sorting /docs/react-data-grid/rows-sorting
 /docs/react-data-grid/column-sorting /docs/react-data-grid/rows-sorting

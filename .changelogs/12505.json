@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the text renderer showing a placeholder instead of the value 0.",
+  "type": "fixed",
+  "issueOrPR": 12505,
+  "breaking": false,
+  "framework": "none"
+}

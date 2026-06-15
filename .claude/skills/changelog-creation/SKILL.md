@@ -24,7 +24,7 @@ Correct order:
 1. Commit the source code change on the feature branch.
 2. Push the branch and run `gh pr create` (see the `pr-creation` skill).
 3. Read the PR number from the URL `gh pr create` prints (e.g. `https://github.com/handsontable/handsontable/pull/12395` → `12395`).
-4. Create `.changelogs/<PR-number>.json` using that number, set `"issueOrPR"` to the same number.
+4. Create `.changelogs/<PR-number>.json` at the **repo root** using that number, set `"issueOrPR"` to the same number. The correct path is always `<repo-root>/.changelogs/<PR-number>.json` — never inside a package subdirectory like `handsontable/.changelogs/`.
 5. Commit the new file with a message like `DEV-xxx: Add changelog entry for PR #<number>` and push — the PR picks it up.
 
 ## JSON Format
@@ -92,5 +92,5 @@ Create **one changelog entry per PR**, even if the PR fixes multiple issues. The
 3. Write a clear, user-facing `title` ending with a period.
 4. Set `breaking` to `true` only if the change breaks existing behavior.
 5. Set `framework` to match the affected package, or `"none"` for core.
-6. Name the file `<PR-number>.json` and set `"issueOrPR"` to the same number. Do not guess or infer the number — read it from the created PR.
+6. Name the file `<PR-number>.json` and set `"issueOrPR"` to the same number. Do not guess or infer the number — read it from the created PR. Write to `<repo-root>/.changelogs/<PR-number>.json` — **not** inside any package subdirectory (e.g. `handsontable/.changelogs/` is wrong).
 7. Commit and push the new changelog file to the same feature branch so the open PR picks it up.

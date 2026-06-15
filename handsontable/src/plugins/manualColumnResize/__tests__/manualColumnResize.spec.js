@@ -563,6 +563,67 @@ describe('manualColumnResize', () => {
     expect(colWidth(spec().$container, 0)).toEqual(100);
   });
 
+  it('should apply the return value of beforeColumnResize hook when drag resizing', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      beforeColumnResize: () => 150
+    });
+
+    expect(colWidth(spec().$container, 0)).toEqual(50);
+
+    await resizeColumn(0, 100);
+
+    expect(colWidth(spec().$container, 0)).toEqual(150);
+  });
+
+  it('should cancel column drag resize and revert to the original size when beforeColumnResize returns false', async() => {
+    const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
+
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      beforeColumnResize: () => false,
+      afterColumnResize: afterColumnResizeCallback,
+    });
+
+    expect(colWidth(spec().$container, 0)).toEqual(50);
+
+    await resizeColumn(0, 100);
+
+    expect(colWidth(spec().$container, 0)).toEqual(50);
+    expect(afterColumnResizeCallback).not.toHaveBeenCalled();
+  });
+
+  it('should cancel column double-click resize when beforeColumnResize returns false', async() => {
+    const afterColumnResizeCallback = jasmine.createSpy('afterColumnResizeCallback');
+
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+      afterColumnResize: afterColumnResizeCallback,
+    });
+
+    addHook('beforeColumnResize', () => false);
+
+    const $th = getTopClone().find('thead tr:eq(0) th:eq(0)');
+
+    $th.simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
+
+    await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
+
+    await waitForNextAnimationFrames(44);
+
+    expect(colWidth(spec().$container, 0)).toEqual(50);
+    expect(afterColumnResizeCallback).not.toHaveBeenCalled();
+  });
+
   it('should appropriate resize colWidth after beforeColumnResize call a few times', async() => {
     handsontable({
       data: createSpreadsheetData(3, 3),
@@ -713,6 +774,65 @@ describe('manualColumnResize', () => {
     // Auto-sized to content -- smaller than the default 50 and the manually set 300
     expect(widthAfter).toBeLessThan(50);
     expect(widthAfter).toBe(hot().getColWidth(2));
+  });
+
+  it('should reposition the resize handle after double click auto-size', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 3),
+      colHeaders: true,
+      manualColumnResize: true,
+    });
+
+    await resizeColumn(0, 150);
+
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const resizerPosition = $resizer.position();
+
+    await mouseDoubleClick($resizer, { clientX: resizerPosition.left });
+    await waitForNextAnimationFrames(63);
+
+    const $columnHeader = getTopClone().find('thead tr:eq(0) th:eq(0)');
+    const handleLeft = $resizer.offset().left;
+    const headerRight = $columnHeader.offset().left + $columnHeader.width();
+
+    expect(colWidth(spec().$container, 0)).toBeLessThan(150);
+    expect(Math.abs(headerRight - 5 - handleLeft)).toBeLessThanOrEqual(1);
+  });
+
+  it('should keep the resize handle and guide position after the drag timer fires', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 10),
+      colHeaders: true,
+      autoColumnSize: false,
+      manualColumnResize: true,
+    });
+
+    const $columnHeader = getTopClone().find('thead tr:eq(0) th:eq(1)');
+
+    $columnHeader.simulate('mouseover');
+
+    const $resizer = spec().$container.find('.manualColumnResizer');
+    const handleLeft = $resizer[0].getBoundingClientRect().left;
+
+    $resizer.simulate('mousedown', { clientX: handleLeft });
+    const guide = spec().$container.find('.manualColumnResizerGuide')[0];
+
+    $resizer.simulate('mousemove', { clientX: handleLeft + 40 });
+
+    const handleBoxAfterMove = $resizer[0].getBoundingClientRect();
+    const guideBoxAfterMove = guide.getBoundingClientRect();
+    const distanceBetweenHandleAndGuide = guideBoxAfterMove.left - handleBoxAfterMove.left;
+
+    await waitForNextAnimationFrames(63);
+
+    const handleBoxAfterTimeout = $resizer[0].getBoundingClientRect();
+    const guideBoxAfterTimeout = guide.getBoundingClientRect();
+
+    $resizer.simulate('mouseup');
+
+    expect(handleBoxAfterTimeout.left).toBeCloseTo(handleBoxAfterMove.left, 0);
+    expect(guideBoxAfterTimeout.left).toBeCloseTo(guideBoxAfterMove.left, 0);
+    expect(guideBoxAfterTimeout.left - handleBoxAfterTimeout.left).toBeCloseTo(distanceBetweenHandleAndGuide, 0);
   });
 
   it('should autosize column after double click (when initial width is defined by the `colWidths` option)', async() => {
@@ -1398,6 +1518,59 @@ describe('manualColumnResize', () => {
       });
 
       expect(getTopClone().find('table').width()).toBe(getMaster().find('table').width());
+    });
+  });
+
+  describe('with `preventOverflow: \'horizontal\'`', () => {
+    it('should position the resize handle at the visible column header right edge after horizontal scroll (#10403)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 20),
+        colHeaders: true,
+        manualColumnResize: true,
+        preventOverflow: 'horizontal',
+        width: 400,
+        height: 200,
+      });
+
+      await scrollViewportHorizontally(300);
+      await waitForNextAnimationFrames(2);
+
+      const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(8)');
+
+      $headerTH.simulate('mouseover');
+
+      const $handle = $('.manualColumnResizer');
+
+      expect($handle.offset().left)
+        .toEqual($headerTH.offset().left + $headerTH.outerWidth() - ($handle.outerWidth() / 2) - 1);
+    });
+
+    it('should resize a column by dragging the handle after horizontal scroll (#10403)', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 20),
+        colHeaders: true,
+        manualColumnResize: true,
+        preventOverflow: 'horizontal',
+        width: 400,
+        height: 200,
+      });
+
+      await scrollViewportHorizontally(300);
+      await waitForNextAnimationFrames(2);
+
+      const $headerTH = getTopClone().find('thead tr:eq(0) th:eq(8)');
+      const initialWidth = $headerTH.outerWidth();
+
+      $headerTH.simulate('mouseover');
+
+      const $handle = $('.manualColumnResizer');
+      const handleOffset = $handle.offset();
+
+      $handle.simulate('mousedown', { clientX: handleOffset.left });
+      $handle.simulate('mousemove', { clientX: handleOffset.left + 30 });
+      $handle.simulate('mouseup');
+
+      expect(colWidth(spec().$container, 8)).toBe(initialWidth + 30);
     });
   });
 });

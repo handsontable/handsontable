@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed a Vue 3 wrapper crash on cell edit when `contextMenu` or `dropdownMenu` had `uiContainer` set to a DOM element under the Vue mount root.",
+  "type": "fixed",
+  "issueOrPR": 12475,
+  "breaking": false,
+  "framework": "vue"
+}

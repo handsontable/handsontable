@@ -1948,5 +1948,153 @@ describe('NestedHeaders', () => {
         expect(getHeaderByLabel(0, 'V').classList.contains('afterHiddenColumn')).toBe(false);
       });
     });
+
+    describe('with cooperation with the ManualColumnMove plugin (#9565)', () => {
+      it('should render multi-column parent header correctly when a hidden column ' +
+        'maps to a different visual index due to manualColumnMove (initial settings)', async() => {
+        handsontable({
+          data: createSpreadsheetData(2, 7),
+          colHeaders: true,
+          nestedHeaders: [
+            ['A', 'B', 'C', { label: 'PARENT', colspan: 3 }, 'G'],
+            ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
+          ],
+          manualColumnMove: [3, 0, 1, 2, 4, 5, 6],
+          hiddenColumns: {
+            columns: [2],
+          },
+        });
+
+        expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+          <thead>
+            <tr>
+              <th class="">A</th>
+              <th class="">B</th>
+              <th class="">C</th>
+              <th class="" colspan="2">PARENT</th>
+              <th class="hiddenHeader"></th>
+              <th class="">G</th>
+            </tr>
+            <tr>
+              <th class="">A</th>
+              <th class="">B</th>
+              <th class="">C</th>
+              <th class="">E</th>
+              <th class="">F</th>
+              <th class="">G</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="ht__row_odd">
+              <td class="">D1</td>
+              <td class="">A1</td>
+              <td class="">B1</td>
+              <td class="afterHiddenColumn">E1</td>
+              <td class="">F1</td>
+              <td class="">G1</td>
+            </tr>
+          </tbody>
+          `);
+      });
+
+      it('should translate physical to visual when the hiding map changes while ' +
+        'manualColumnMove is active', async() => {
+        handsontable({
+          data: createSpreadsheetData(2, 7),
+          colHeaders: true,
+          nestedHeaders: [
+            ['A', 'B', 'C', { label: 'PARENT', colspan: 3 }, 'G'],
+            ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
+          ],
+          manualColumnMove: [3, 0, 1, 2, 4, 5, 6],
+        });
+
+        const hidingMap = columnIndexMapper().createAndRegisterIndexMap('my-hiding-map', 'hiding');
+
+        hidingMap.setValueAtIndex(2, true); // hide physical column "C" (visual 3 after move)
+        await render();
+
+        expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+          <thead>
+            <tr>
+              <th class="">A</th>
+              <th class="">B</th>
+              <th class="">C</th>
+              <th class="" colspan="2">PARENT</th>
+              <th class="hiddenHeader"></th>
+              <th class="">G</th>
+            </tr>
+            <tr>
+              <th class="">A</th>
+              <th class="">B</th>
+              <th class="">C</th>
+              <th class="">E</th>
+              <th class="">F</th>
+              <th class="">G</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="ht__row_odd">
+              <td class="">D1</td>
+              <td class="">A1</td>
+              <td class="">B1</td>
+              <td class="">E1</td>
+              <td class="">F1</td>
+              <td class="">G1</td>
+            </tr>
+          </tbody>
+          `);
+      });
+
+      it('should re-sync the nested header tree when columns are moved at runtime ' +
+        'while a hidden column already exists', async() => {
+        handsontable({
+          data: createSpreadsheetData(2, 7),
+          colHeaders: true,
+          nestedHeaders: [
+            ['A', 'B', 'C', { label: 'PARENT', colspan: 3 }, 'G'],
+            ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
+          ],
+          manualColumnMove: true,
+          hiddenColumns: {
+            columns: [2],
+          },
+        });
+
+        getPlugin('manualColumnMove').moveColumn(3, 0); // physical 3 to visual 0
+        await render();
+
+        expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
+          <thead>
+            <tr>
+              <th class="">A</th>
+              <th class="">B</th>
+              <th class="">C</th>
+              <th class="" colspan="2">PARENT</th>
+              <th class="hiddenHeader"></th>
+              <th class="">G</th>
+            </tr>
+            <tr>
+              <th class="">A</th>
+              <th class="">B</th>
+              <th class="">C</th>
+              <th class="">E</th>
+              <th class="">F</th>
+              <th class="">G</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="ht__row_odd">
+              <td class="">D1</td>
+              <td class="">A1</td>
+              <td class="">B1</td>
+              <td class="afterHiddenColumn">E1</td>
+              <td class="">F1</td>
+              <td class="">G1</td>
+            </tr>
+          </tbody>
+          `);
+      });
+    });
   });
 });

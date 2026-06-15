@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import { CellChange } from 'handsontable/common';
+import { CellChange } from 'handsontable';
 
 // register Handsontable's modules
 registerAllModules();

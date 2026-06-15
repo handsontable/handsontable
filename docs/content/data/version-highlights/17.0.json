@@ -1,0 +1,17 @@
+{
+  "version": "17.0",
+  "highlighted": [
+    {
+      "prNumber": 11899,
+      "tagline": "Simpler way to define custom editors",
+      "whyItMatters": "New API for easier creation and integration of custom cell types. It speeds up development, increases flexibility, and enables new ways to tailor the grid for specific needs."
+    },
+    {
+      "prNumber": 11981,
+      "tagline": "New multiselect cell type",
+      "whyItMatters": "A new cell type that allows users select multiple options, extending the dropdown functionality for more flexible data entry.",
+      "codeBefore": "{\n  type: 'dropdown',\n  source: ['Engineering', 'Marketing', 'Sales']\n}",
+      "codeAfter": "{\n  type: 'multiselect',\n  source: ['Engineering', 'Marketing', 'Sales']\n}"
+    }
+  ]
+}

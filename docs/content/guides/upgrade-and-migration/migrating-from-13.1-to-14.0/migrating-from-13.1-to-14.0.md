@@ -13,6 +13,8 @@ react:
 angular:
   id: rxlauyd8-13.1-to-14.0-react
   metaTitle: Migrate from 13.1 to 14.0 - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Migrate from 13.1 to 14.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
@@ -58,6 +60,24 @@ To make the table more accessible, this release changes the color of the invalid
 | Autocomplete-typed cells arrow: `#eeeeee`  | Autocomplete-typed cells arrow: `#bbbbbb`   |
 | Invalid autocomplete-typed cells arrow: `#eeeeee`  | Invalid autocomplete-typed cells arrow: `#555555`   |
 | Invalid autocomplete-typed cells arrow on hover: `#777777`   | Invalid autocomplete-typed cells arrow on hover: `#1a1a1a`    |
+
+### Update `ContextMenu.open()` and `DropdownMenu.open()` calls
+
+Handsontable 14.0 changes the accepted `position` argument for `ContextMenu.open()` and `DropdownMenu.open()`. When you open the menu programmatically with a literal position, use an object with `top` and `left` properties instead of `pageX` and `pageY`. Passing a native browser `Event` instance still works the same as before.
+
+```javascript
+const menu = hot.getPlugin('contextMenu');
+
+// Before (13.x): menu.open({ pageX: 200, pageY: 300 });
+// After (14.0+): use { top, left }:
+menu.open({ top: 300, left: 200 });
+
+// Native event -- works unchanged:
+element.addEventListener('contextmenu', (event) => {
+  menu.open(event);
+});
+```
+
 ## Result
 
 Your application now runs on Handsontable 14.0.

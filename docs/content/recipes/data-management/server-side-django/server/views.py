@@ -1,5 +1,8 @@
+import json
+
+from django.db import transaction
 from django.db.models import Q
-from rest_framework import status, viewsets
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
@@ -8,183 +11,193 @@ from .models import Employee
 from .pagination import EmployeePagination
 from .serializers import EmployeeSerializer
 
+# Whitelist for sorting -- also reused by the filter prop check.
+ALLOWED_ORDERING_FIELDS = {'first_name', 'last_name', 'department', 'role', 'salary'}
+
+# Numeric fields must use exact (not iexact) to avoid casting errors on DecimalField.
+NUMERIC_FIELDS = {'salary'}
+
+# Maps Handsontable Filters condition names to Django ORM lookup suffixes.
+# eq / not_eq are resolved dynamically below (numeric vs text distinction).
+_CONDITION_LOOKUP = {
+    'contains':     ('icontains', False),
+    'not_contains': ('icontains', True),
+    'begins_with':  ('istartswith', False),
+    'ends_with':    ('iendswith', False),
+    'gte':          ('gte', False),
+    'lte':          ('lte', False),
+    'gt':           ('gt', False),
+    'lt':           ('lt', False),
+}
+
 
 class EmployeeViewSet(viewsets.ModelViewSet):
     """
     ViewSet providing paginated, sortable, and filterable employee data,
     plus batch CRUD actions that match Handsontable's dataProvider payload shape.
-
-    Standard ModelViewSet gives us list(), retrieve(), create(), update(),
-    partial_update(), and destroy() for free. We add three custom @action
-    methods for batch create / update / remove, because Handsontable sends
-    all row mutations as arrays, not single-resource requests.
     """
 
     queryset = Employee.objects.all()
     serializer_class = EmployeeSerializer
     pagination_class = EmployeePagination
-
-    # --- Sorting ---
-    # DRF's built-in OrderingFilter reads ?ordering=field or ?ordering=-field.
-    # Handsontable sends ?sort[prop]=field&sort[order]=asc|desc.
-    # The translate_sort() helper below converts HOT's format to DRF's format
-    # before the queryset is filtered, so OrderingFilter can handle it normally.
     filter_backends = [OrderingFilter, SearchFilter]
-    ordering_fields = ["first_name", "last_name", "department", "role", "salary"]
-
-    # SearchFilter reads ?search=term and searches across these fields.
-    # For column-level filtering HOT sends filters[] params; see filter_queryset().
-    search_fields = ["first_name", "last_name", "department", "role"]
+    ordering_fields = list(ALLOWED_ORDERING_FIELDS)
+    search_fields = ['first_name', 'last_name', 'department', 'role']
 
     def get_queryset(self):
-        """
-        Apply column-level filters from Handsontable's filters[] query param.
+        queryset = Employee.objects.all()
 
-        Handsontable sends filters as:
-          ?filters[0][prop]=department&filters[0][value]=Engineering&filters[0][condition]=eq
-          ?filters[1][prop]=salary&filters[1][value]=80000&filters[1][condition]=gte
+        # --- Sort ---
+        # Handsontable sends sort[prop] + sort[order]; translate to a queryset
+        # .order_by() call so DRF's OrderingFilter doesn't need to be patched.
+        sort_prop  = self.request.query_params.get('sort[prop]')
+        sort_order = self.request.query_params.get('sort[order]', 'asc')
 
-        We parse these and build a Django Q object for each condition.
-        Only a practical subset of conditions is implemented here; extend as needed.
-        """
-        queryset = super().get_queryset()
+        if sort_prop and sort_prop in ALLOWED_ORDERING_FIELDS:
+            prefix = '' if sort_order == 'asc' else '-'
+            queryset = queryset.order_by(f'{prefix}{sort_prop}')
 
-        # -- Sort translation --
-        # Convert HOT's sort[prop] + sort[order] to DRF's ordering param so that
-        # OrderingFilter can take over without any further changes.
-        sort_prop = self.request.query_params.get("sort[prop]")
-        sort_order = self.request.query_params.get("sort[order]", "asc")
+        # --- Filters ---
+        # dataProvider serializes filters as a JSON array of DataProviderFilterColumn
+        # objects: [{ prop, operation, conditions: [{ name, args }] }, ...]
+        #
+        # Each column can carry multiple conditions (e.g. "between" has two).
+        # The operation field ('conjunction' | 'disjunction') tells us whether to
+        # combine them with AND or OR.
+        filters_json = self.request.query_params.get('filters')
+        if filters_json:
+            try:
+                filter_cols = json.loads(filters_json)
+                q = Q()
 
-        if sort_prop and sort_prop in self.ordering_fields:
-            ordering = sort_prop if sort_order == "asc" else f"-{sort_prop}"
-            # Inject into the mutable query params copy so OrderingFilter picks it up.
-            self.request._request.GET = self.request._request.GET.copy()
-            self.request._request.GET["ordering"] = ordering
+                for col in filter_cols:
+                    prop       = col.get('prop', '')
+                    operation  = col.get('operation', 'conjunction')
+                    conditions = col.get('conditions') or []
 
-        # -- Column-level filters --
-        # Parse up to 20 filter conditions from the query string.
-        q = Q()
-        index = 0
+                    if prop not in ALLOWED_ORDERING_FIELDS:
+                        continue
 
-        while index < 20:
-            prefix = f"filters[{index}]"
-            prop = self.request.query_params.get(f"{prefix}[prop]")
-            value = self.request.query_params.get(f"{prefix}[value]")
-            condition = self.request.query_params.get(f"{prefix}[condition]", "contains")
+                    col_q_parts = []
+                    is_numeric  = prop in NUMERIC_FIELDS
 
-            if prop is None:
-                break  # No more filter entries.
+                    for cond in conditions:
+                        name  = cond.get('name')
+                        args  = cond.get('args') or []
+                        value = args[0] if args else None
 
-            # Map HOT condition names to Django ORM lookups.
-            lookup_map = {
-                "contains": f"{prop}__icontains",
-                "not_contains": f"{prop}__icontains",  # negated below
-                "eq": f"{prop}__iexact",
-                "neq": f"{prop}__iexact",  # negated below
-                "begins_with": f"{prop}__istartswith",
-                "ends_with": f"{prop}__iendswith",
-                "gte": f"{prop}__gte",
-                "gt": f"{prop}__gt",
-                "lte": f"{prop}__lte",
-                "lt": f"{prop}__lt",
-            }
+                        if name == 'empty':
+                            # DecimalField rejects __exact='' -- use isnull for numeric.
+                            if is_numeric:
+                                col_q_parts.append(Q(**{f'{prop}__isnull': True}))
+                            else:
+                                col_q_parts.append(Q(**{f'{prop}__exact': ''}) | Q(**{f'{prop}__isnull': True}))
+                            continue
 
-            lookup = lookup_map.get(condition)
+                        if name == 'not_empty':
+                            if is_numeric:
+                                col_q_parts.append(Q(**{f'{prop}__isnull': False}))
+                            else:
+                                col_q_parts.append(~Q(**{f'{prop}__exact': ''}) & ~Q(**{f'{prop}__isnull': True}))
+                            continue
 
-            if lookup:
-                if condition in ("not_contains", "neq"):
-                    q &= ~Q(**{lookup: value})
-                else:
-                    q &= Q(**{lookup: value})
+                        # eq / neq: use exact for numeric, iexact for text.
+                        if name in ('eq', 'neq'):
+                            lookup  = f'{prop}__exact' if is_numeric else f'{prop}__iexact'
+                            cond_q  = Q(**{lookup: value})
+                            col_q_parts.append(~cond_q if name == 'neq' else cond_q)
+                            continue
 
-            index += 1
+                        if name not in _CONDITION_LOOKUP or value is None:
+                            continue
 
-        return queryset.filter(q)
+                        lookup_suffix, negate = _CONDITION_LOOKUP[name]
+                        lookup = f'{prop}__{lookup_suffix}'
+                        cond_q = Q(**{lookup: value})
+                        col_q_parts.append(~cond_q if negate else cond_q)
+
+                    if not col_q_parts:
+                        continue
+
+                    # Combine conditions within this column with AND or OR.
+                    col_q = col_q_parts[0]
+                    for part in col_q_parts[1:]:
+                        if operation == 'disjunction':
+                            col_q |= part
+                        else:
+                            col_q &= part
+
+                    q &= col_q
+
+                queryset = queryset.filter(q)
+            except (json.JSONDecodeError, TypeError, KeyError):
+                pass
+
+        return queryset
 
     # ------------------------------------------------------------------
     # Batch CRUD actions
     # ------------------------------------------------------------------
     # Standard REST endpoints (POST /employees/, PATCH /employees/{id}/, etc.)
     # operate on a single resource at a time. Handsontable's dataProvider
-    # sends all mutations in a single request as an array, so we need
+    # sends all mutations in a single request as arrays, so we need
     # custom @action endpoints that accept arrays.
 
-    @action(detail=False, methods=["post"], url_path="create-rows")
+    @action(detail=False, methods=['post'], url_path='create-rows')
+    @transaction.atomic
     def create_rows(self, request):
         """
         POST /api/employees/create-rows/
 
-        Accepts the onRowsCreate payload: an array of row objects without ids.
-        Returns the created rows with their new ids so Handsontable can update
-        the grid's internal row map.
+        Handsontable's onRowsCreate callback receives { rowsAmount } -- the
+        number of rows the user wants to add. The backend creates that many
+        empty rows via bulk_create and returns them with server-assigned ids
+        so Handsontable can update its internal row map.
 
         Payload shape:
-          [
-            { first_name: "Ana", last_name: "García", department: "Engineering",
-              role: "Senior Engineer", salary: 95000 },
-            ...
-          ]
+          { rowsAmount: 2 }
         """
-        serializer = EmployeeSerializer(data=request.data, many=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        rows_amount = max(1, int(request.data.get('rowsAmount') or 1))
+        employees = Employee.objects.bulk_create([
+            Employee(first_name='', last_name='', department='', role='', salary=0)
+            for _ in range(rows_amount)
+        ])
+        serializer = EmployeeSerializer(employees, many=True)
+        return Response(serializer.data, status=201)
 
-    @action(detail=False, methods=["patch"], url_path="update-rows")
+    @action(detail=False, methods=['patch'], url_path='update-rows')
+    @transaction.atomic
     def update_rows(self, request):
         """
         PATCH /api/employees/update-rows/
 
-        Accepts the onRowsUpdate payload: an array of partial row objects that
-        each contain the row id plus only the changed fields.
+        Handsontable's onRowsUpdate callback sends an array of objects with
+        the row id and a changes dict containing only the modified fields.
 
         Payload shape:
           [
-            { id: 7, salary: 102000 },
-            { id: 12, department: "Marketing", role: "Team Lead" },
-            ...
+            { id: 7, changes: { salary: 102000 } },
+            { id: 12, changes: { department: "Marketing", role: "Team Lead" } }
           ]
         """
         updated = []
 
         for row in request.data:
-            try:
-                employee = Employee.objects.get(pk=row["id"])
-            except Employee.DoesNotExist:
-                return Response(
-                    {"detail": f"Employee {row['id']} not found."},
-                    status=status.HTTP_404_NOT_FOUND,
-                )
-
-            # partial=True allows updating a subset of fields.
-            serializer = EmployeeSerializer(employee, data=row, partial=True)
+            employee = Employee.objects.get(pk=row['id'])
+            serializer = EmployeeSerializer(employee, data=row['changes'], partial=True)
             serializer.is_valid(raise_exception=True)
             serializer.save()
             updated.append(serializer.data)
 
         return Response(updated)
 
-    @action(detail=False, methods=["delete"], url_path="remove-rows")
+    @action(detail=False, methods=['delete'], url_path='remove-rows')
     def remove_rows(self, request):
         """
         DELETE /api/employees/remove-rows/
 
-        Accepts the onRowsRemove payload: an array of row ids to delete.
-
         Payload shape:
           [3, 7, 14]
-
-        Using DELETE with a request body is valid per HTTP spec but unusual.
-        An alternative is a POST to /remove-rows/ if your infrastructure
-        strips DELETE bodies.
         """
-        ids = request.data
-
-        if not isinstance(ids, list):
-            return Response(
-                {"detail": "Expected an array of row ids."},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        deleted_count, _ = Employee.objects.filter(pk__in=ids).delete()
-        return Response({"deleted": deleted_count}, status=status.HTTP_200_OK)
+        deleted_count, _ = Employee.objects.filter(pk__in=request.data).delete()
+        return Response({'deleted': deleted_count})

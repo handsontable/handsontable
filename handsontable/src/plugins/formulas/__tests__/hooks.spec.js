@@ -140,6 +140,84 @@ describe('Formulas general', () => {
         expect(afterFormulasValuesUpdate.calls.count()).toEqual(2);
         expect(afterFormulasValuesUpdate.calls.mostRecent().args[0][0].newValue).toEqual('test');
       });
+
+      it('should pass a formatted time string (not a raw HF time fraction) as `newValue` for cells with' +
+        ' `type: \'time\'`', async() => {
+        const afterFormulasValuesUpdate = jasmine.createSpy('afterFormulasValuesUpdate');
+
+        handsontable({
+          data: [
+            ['16:00', '=A1']
+          ],
+          columns: [
+            { type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false } },
+            { type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false } },
+          ],
+          formulas: {
+            engine: spec().hfInstance
+          },
+          afterFormulasValuesUpdate,
+        });
+
+        await setDataAtCell(0, 0, '18:00');
+
+        const lastChanges = afterFormulasValuesUpdate.calls.mostRecent().args[0];
+        const b1Change = lastChanges.find(change => change.address &&
+          change.address.row === 0 && change.address.col === 1);
+
+        expect(typeof b1Change.newValue).toBe('string');
+        expect(b1Change.newValue).toBe('18:00');
+      });
+
+      it('should pass a formatted date string (not a raw HF date number) as `newValue` for cells with' +
+        ' `type: \'date\'`', async() => {
+        const afterFormulasValuesUpdate = jasmine.createSpy('afterFormulasValuesUpdate');
+
+        handsontable({
+          data: [
+            ['2020-03-01', '=A1']
+          ],
+          columns: [
+            { type: 'date' },
+            { type: 'date' },
+          ],
+          formulas: {
+            engine: spec().hfInstance
+          },
+          afterFormulasValuesUpdate,
+        });
+
+        await setDataAtCell(0, 0, '2021-02-04');
+
+        const lastChanges = afterFormulasValuesUpdate.calls.mostRecent().args[0];
+        const b1Change = lastChanges.find(change => change.address &&
+          change.address.row === 0 && change.address.col === 1);
+
+        expect(typeof b1Change.newValue).toBe('string');
+        expect(b1Change.newValue).toBe('2021-02-04');
+      });
+
+      it('should return a formatted time string (not a raw HF time fraction) from `getDataAtCell` for a formula' +
+        ' cell of `type: \'time\'`', async() => {
+        handsontable({
+          data: [
+            ['16:00', '=A1']
+          ],
+          columns: [
+            { type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false } },
+            { type: 'time', timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false } },
+          ],
+          formulas: {
+            engine: spec().hfInstance
+          },
+        });
+
+        expect(getDataAtCell(0, 1)).toBe('16:00');
+
+        await setDataAtCell(0, 0, '18:00');
+
+        expect(getDataAtCell(0, 1)).toBe('18:00');
+      });
     });
   });
 });

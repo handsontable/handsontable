@@ -1,6 +1,5 @@
 ---
 type: explanation
-id: xfus5qpz
 title: Design System
 metaTitle: Design System / UI Kit - JavaScript Data Grid | Handsontable
 description: Design, prototype, and customize spreadsheet-like components with the Design System for Figma.
@@ -18,11 +17,11 @@ tags:
   - local variables
   - tokens
 react:
-  id: 0mz9id0l
   metaTitle: Design System / UI Kit - React Data Grid | Handsontable
 angular:
-  id: vru7jook
   metaTitle: Design System / UI Kit - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Design System / UI Kit - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
 ---

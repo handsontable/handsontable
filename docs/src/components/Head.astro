@@ -14,9 +14,38 @@ import Default from '@astrojs/starlight/components/Head.astro';
 <link rel="icon" media="(prefers-color-scheme: light)" href="/docs/img/favicon.png" />
 <link rel="icon" media="(prefers-color-scheme: dark)" href="/docs/img/favicon-dark.png" />
 
+{/* Prevent browser auto-translate (Edge, Chrome, Google Translate) from
+    mutating text nodes in the DOM. When translation wraps text in <font>
+    elements, Preact's virtual-DOM reconciliation can no longer find its
+    reference nodes, causing NotFoundError: Failed to execute 'insertBefore'.
+    Technical documentation with code samples should not be machine-translated
+    anyway — API names, configuration keys, and code snippets must stay as-is. */}
+<meta name="google" content="notranslate" />
+<script is:inline>document.documentElement.setAttribute('translate','no');</script>
+
 <script is:inline>
   // Remove Starlight's default favicon in favor of light/dark media-query versions above.
   document.querySelector('link[rel="shortcut icon"]')?.remove();
+</script>
+
+<script is:inline>
+  // Patch StarlightTOC to silently handle browsers that don't support :has() (Chrome < 105,
+  // e.g. Chrome Mobile 75 on Android 6.0). The TOC uses :has() inside querySelectorAll which
+  // throws a DOMException named "SyntaxError" in those browsers. Catching it degrades gracefully: the TOC renders
+  // but doesn't highlight the active section while scrolling.
+  customElements.whenDefined('starlight-toc').then(function () {
+    var StarlightTOC = customElements.get('starlight-toc');
+    if (!StarlightTOC || !StarlightTOC.prototype.init) return;
+    var _originalInit = StarlightTOC.prototype.init;
+    StarlightTOC.prototype.init = function () {
+      try {
+        _originalInit.call(this);
+      } catch (e) {
+        if (e instanceof DOMException && e.name === 'SyntaxError') return;
+        throw e;
+      }
+    };
+  });
 </script>
 
 <script>
@@ -32,6 +61,10 @@ import Default from '@astrojs/starlight/components/Head.astro';
 
 <script>
   import '../scripts/docs-assistant-bootstrap';
+</script>
+
+<script>
+  import '../scripts/version-comparison-bootstrap';
 </script>
 
 <script>

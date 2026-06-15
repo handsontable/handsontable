@@ -26,6 +26,7 @@ const FRAMEWORK_PREFIXES = {
   javascript: 'javascript-data-grid',
   react: 'react-data-grid',
   angular: 'angular-data-grid',
+  vue: 'vue-data-grid',
 };
 
 // ---------------------------------------------------------------------------
@@ -320,7 +321,7 @@ function buildChangelogSidebar(framework, prefix) {
 
     const slug = item.path.split('/').pop();
 
-    if (slug.startsWith('changelog')) {
+    if (slug.startsWith('changelog') || slug === 'changes-between-versions') {
       changelog.push(item);
     } else if (POLICY_SLUGS.includes(slug)) {
       policy.push(item);
@@ -371,8 +372,9 @@ export function buildSidebar(framework = 'javascript', prefix = 'javascript-data
 /**
  * Builds sidebar configs for all supported frameworks, including recipes.
  *
- * @returns {{ javascript: Array, react: Array, angular: Array,
- *             javascriptRecipes: Array, reactRecipes: Array, angularRecipes: Array }}
+ * @returns {{ javascript: Array, react: Array, angular: Array, vue: Array,
+ *             javascriptRecipes: Array, reactRecipes: Array, angularRecipes: Array, vueRecipes: Array,
+ *             javascriptChangelog: Array, reactChangelog: Array, angularChangelog: Array, vueChangelog: Array }}
  */
 export function buildAllSidebars() {
   const result = {};

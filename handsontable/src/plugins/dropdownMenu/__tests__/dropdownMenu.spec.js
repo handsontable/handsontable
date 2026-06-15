@@ -968,4 +968,65 @@ describe('DropdownMenu', () => {
 
     expect(inlineStartOverlay().getScrollPosition()).toBe(666);
   });
+
+  describe('updateSettings called from beforeDropdownMenuShow', () => {
+    it('should open the menu without throwing when the hook callback calls ' +
+      'updateSettings({ dropdownMenu })', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        dropdownMenu: true,
+        height: 200,
+        beforeDropdownMenuShow() {
+          this.updateSettings({
+            dropdownMenu: ['row_above'],
+          });
+        },
+      });
+
+      await expectAsync((async() => {
+        await dropdownMenu(0);
+      })()).toBeResolved();
+
+      expect($('.htDropdownMenu').is(':visible')).toBe(true);
+    });
+
+    it('should apply the updated dropdownMenu items on the same open', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        dropdownMenu: true,
+        height: 200,
+        beforeDropdownMenuShow() {
+          this.updateSettings({
+            dropdownMenu: ['row_above'],
+          });
+        },
+      });
+
+      await dropdownMenu(0);
+
+      const items = $('.htDropdownMenu tbody td').not('.htSeparator');
+
+      expect(items.length).toBe(1);
+      expect(items.text()).toContain('Insert row above');
+    });
+
+    it('should still apply unrelated settings changed inside the hook immediately', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        dropdownMenu: true,
+        height: 200,
+        beforeDropdownMenuShow() {
+          this.updateSettings({ rowHeaders: false });
+        },
+      });
+
+      await dropdownMenu(0);
+
+      expect(getSettings().rowHeaders).toBe(false);
+    });
+  });
 });

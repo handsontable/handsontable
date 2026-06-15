@@ -16,6 +16,9 @@ react:
 angular:
   id: e51f625c
   metaTitle: Star Rating Cell Type - Angular Data Grid | Handsontable"
+vue:
+  id: c6hrb6zp
+  metaTitle: Star Rating Cell Type - Vue Data Grid | Handsontable"
 searchCategory: Recipes
 category: Cell Types
 ---
@@ -605,6 +608,6 @@ You built an SVG star rating cell using `editorFactory` and `rendererFactory`. Y
 
 ## Next steps
 
-- [Star Rating (React)](@/react/recipes/cell-types/react-rating/react-rating.md) - The same concept using React's `EditorComponent` and `react-star-rating-component`.
+- [Star Rating (React)](@/react/recipes/cell-types/react-rating/react-rating.md) - The same concept using React's `EditorComponent` and a local star rating component.
 - [Star Rating Editor (Angular)](@/angular/recipes/cell-types/guide-rating-angular/guide-rating.md) - The Angular version using `HotCellEditorAdvancedComponent`.
 - [Feedback](@/recipes/cell-types/feedback/feedback.md) - Another no-library custom editor using `editorFactory` and CSS tokens.

@@ -380,8 +380,18 @@ describe('NumericEditor', () => {
       columns: [
         { data: 'id' },
         { data: 'price_eur', type: 'numeric' },
-        { data: 'price_pln', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
-        { data: 'price_aud', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } }
+        {
+          data: 'price_pln',
+          type: 'numeric',
+          locale: 'en-US',
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        },
+        {
+          data: 'price_aud',
+          type: 'numeric',
+          locale: 'de-DE',
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        }
       ]
     });
 
@@ -443,7 +453,8 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(1, 1)).toEqual('200,000.5');
     expect(getDataAtCell(0, 2)).toEqual('300,000.5');
     expect(getDataAtCell(1, 2)).toEqual('300.000,5');
-    expect(getDataAtCell(0, 3)).toEqual('400.000,5');
+    // '400.000,5' in a de-DE column is correctly parsed as 400000.5 (dot-thousands + comma-decimal).
+    expect(getDataAtCell(0, 3)).toBe(400000.5);
     expect(getDataAtCell(1, 3)).toEqual('400,000.5');
   });
 
@@ -536,7 +547,12 @@ describe('NumericEditor', () => {
       data: arrayOfObjects(),
       columns: [
         { data: 'id', type: 'numeric' },
-        { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } },
+        {
+          data: 'price',
+          type: 'numeric',
+          locale: 'de-DE',
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        },
         { data: 'lastName' }
       ]
     });
@@ -618,12 +634,12 @@ describe('NumericEditor', () => {
     expect(getDataAtCell(2, 1)).toEqual('12aaa');
   });
 
-  it('should display a string in a format \'$X,XXX.XX\' when using language=en, appropriate format in column settings and \'XXXX.XX\' as ' +
+  it('should display a string in a format \'$X,XXX.XX\' when using locale=en-US, appropriate format in column settings and \'XXXX.XX\' as ' +
      'an input string', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        { data: 'id', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
+        { data: 'id', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' }, locale: 'en-US' },
         { data: 'name' },
         { data: 'lastName' }
       ]
@@ -641,12 +657,12 @@ describe('NumericEditor', () => {
     expect(getCell(2, 0).innerHTML).toEqual('$2,456.22');
   });
 
-  it('should display a string in a format \'X.XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX,XX\' as an ' +
-     'input string (that comes from manual input)', async() => {
+  it('should display a string in a format \'X.XXX,XX €\' when using locale=de-DE, appropriate format in column settings and \'XXXX.XX\' as an ' +
+     'input string', async() => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00 $', culture: 'de-DE' } },
+        { data: 'id', type: 'numeric', numericFormat: { style: 'currency', currency: 'EUR' }, locale: 'de-DE' },
         { data: 'name' },
         { data: 'lastName' }
       ]
@@ -655,23 +671,23 @@ describe('NumericEditor', () => {
     await selectCell(2, 0);
     await keyDownUp('enter');
 
-    document.activeElement.value = '2456,22';
+    document.activeElement.value = '2456.22';
 
     destroyEditor();
 
     await waitForNextAnimationFrames(2);
 
-    expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
+    expect(getCell(2, 0).innerHTML).toEqual('2.456,22&nbsp;€');
   });
 
-  it('should display a string in a format \'X.XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX.XX\' as an ' +
+  it('should display a string in a format \'X.XXX,XX €\' when using locale=de-DE, appropriate format in column settings and \'XXXX.XX\' as an ' +
      'input string (that comes from paste)', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00 $', culture: 'de-DE' } },
+        { data: 'id', type: 'numeric', numericFormat: { style: 'currency', currency: 'EUR' }, locale: 'de-DE' },
         { data: 'name' },
         { data: 'lastName' }
       ],
@@ -687,10 +703,10 @@ describe('NumericEditor', () => {
 
     await waitForNextAnimationFrames(2);
 
-    expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
+    expect(getCell(2, 0).innerHTML).toEqual('2.456,22&nbsp;€');
   });
 
-  it('should display a string in a format \'X XXX,XX €\' when using language=de, appropriate format in column settings and \'XXXX,XX\' as an ' +
+  it('should display a string in a format \'X XXX,XX €\' when using locale=de-DE, appropriate format in column settings and \'XXXX.XX\' as an ' +
      'input string and ignore not needed zeros at the end', async() => {
     handsontable({
       data: [
@@ -706,23 +722,23 @@ describe('NumericEditor', () => {
         { id: 10, name: 'Eve', lastName: 'Branson', money: 0 }
       ],
       columns: [
-        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00 $', culture: 'de-DE' } },
+        { data: 'id', type: 'numeric', numericFormat: { style: 'currency', currency: 'EUR' }, locale: 'de-DE' },
         { data: 'name' },
         { data: 'lastName' },
-        { data: 'money', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } }
+        { data: 'money', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD' }, locale: 'en-US' }
       ]
     });
 
     await selectCell(2, 0);
     await keyDownUp('enter');
 
-    document.activeElement.value = '2456,220';
+    document.activeElement.value = '2456.220';
 
     destroyEditor();
 
     await waitForNextAnimationFrames(2);
 
-    expect(getCell(2, 0).innerHTML).toEqual('2.456,22 €');
+    expect(getCell(2, 0).innerHTML).toEqual('2.456,22&nbsp;€');
 
     await selectCell(2, 3);
     await keyDownUp('enter');
@@ -745,8 +761,18 @@ describe('NumericEditor', () => {
       columns: [
         { data: 'id', type: 'numeric' },
         { data: 'price_eur', type: 'numeric' },
-        { data: 'price_pln', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
-        { data: 'price_aud', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } }
+        {
+          data: 'price_pln',
+          type: 'numeric',
+          locale: 'en-US',
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        },
+        {
+          data: 'price_aud',
+          type: 'numeric',
+          locale: 'de-DE',
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        }
       ]
     });
 
@@ -797,8 +823,18 @@ describe('NumericEditor', () => {
       columns: [
         { data: 'id', type: 'numeric' },
         { data: 'price_eur', type: 'numeric' },
-        { data: 'price_pln', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } },
-        { data: 'price_aud', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'de-DE' } }
+        {
+          data: 'price_pln',
+          type: 'numeric',
+          locale: 'en-US',
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        },
+        {
+          data: 'price_aud',
+          type: 'numeric',
+          locale: 'de-DE',
+          numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        }
       ]
     });
 
@@ -896,7 +932,12 @@ describe('NumericEditor', () => {
     handsontable({
       data: arrayOfObjects(),
       columns: [
-        { data: 'id', type: 'numeric', numericFormat: { pattern: '0,0.00', culture: 'en-US' } },
+        {
+          data: 'id',
+          type: 'numeric',
+          locale: 'en-US',
+          numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        },
         { data: 'name' },
         { data: 'lastName' }
       ],
@@ -991,7 +1032,12 @@ describe('NumericEditor', () => {
           { data: 'id' },
           { data: 'name' },
           { data: 'lastName' },
-          { data: 'money', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } }
+          {
+            data: 'money',
+            type: 'numeric',
+            locale: 'en-US',
+            numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+          }
         ]
       });
 
@@ -1013,7 +1059,12 @@ describe('NumericEditor', () => {
           { data: 'id' },
           { data: 'name' },
           { data: 'lastName' },
-          { data: 'money', type: 'numeric', numericFormat: { pattern: '$0,0.00', culture: 'en-US' } }
+          {
+            data: 'money',
+            type: 'numeric',
+            locale: 'en-US',
+            numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }
+          }
         ]
       });
 
@@ -1040,13 +1091,86 @@ describe('NumericEditor', () => {
     expect(editableElement.getAttribute('dir')).toBeNull();
   });
 
+  describe('European locale (dot-thousands, comma-decimal)', () => {
+    it('should store 7000 when typing "7.000" in a de-DE numeric cell (issue #4396)', async() => {
+      handsontable({
+        data: [[7000]],
+        columns: [{ type: 'numeric', locale: 'de-DE' }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor();
+
+      editor.setValue('7.000');
+      await keyDownUp('enter');
+
+      expect(getDataAtCell(0, 0)).toBe(7000);
+    });
+
+    it('should store 1234567 when typing "1.234.567" in a de-DE numeric cell', async() => {
+      handsontable({
+        data: [[0]],
+        columns: [{ type: 'numeric', locale: 'de-DE' }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor();
+
+      editor.setValue('1.234.567');
+      await keyDownUp('enter');
+
+      expect(getDataAtCell(0, 0)).toBe(1234567);
+    });
+
+    it('should store 7000.25 when typing "7.000,25" in a de-DE numeric cell', async() => {
+      handsontable({
+        data: [[0]],
+        columns: [{ type: 'numeric', locale: 'de-DE' }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor();
+
+      editor.setValue('7.000,25');
+      await keyDownUp('enter');
+
+      expect(getDataAtCell(0, 0)).toBe(7000.25);
+    });
+
+    it('should keep comma as decimal when typing "100,25" in a de-DE numeric cell', async() => {
+      handsontable({
+        data: [[0]],
+        columns: [{ type: 'numeric', locale: 'de-DE' }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor();
+
+      editor.setValue('100,25');
+      await keyDownUp('enter');
+
+      expect(getDataAtCell(0, 0)).toBe(100.25);
+    });
+  });
+
   describe('IME support', () => {
     it('should focus editable element after a timeout when selecting the cell if `imeFastEdit` is enabled', async() => {
       handsontable({
         type: 'numeric',
+        locale: 'en-US',
         numericFormat: {
-          pattern: '$0,0.00',
-          culture: 'en-US'
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
         },
         imeFastEdit: true,
       });

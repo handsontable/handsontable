@@ -23,3 +23,4 @@ tmp/
 tmp_styles/
 /styles/
 src/styles/handsontableStyles.js
+src/styles/handsontableStyles.ts

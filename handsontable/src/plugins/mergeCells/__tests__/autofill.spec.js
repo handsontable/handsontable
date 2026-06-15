@@ -23,11 +23,8 @@ describe('MergeCells cooperation with autofill', () => {
     });
 
     await selectCell(1, 1);
-    spec().$container.find('.wtBorder.current.corner')
-      .simulate('mousedown');
-    spec().$container.find('tbody tr:eq(5) td:eq(1)')
-      .simulate('mouseover')
-      .simulate('mouseup');
+
+    simulateFillHandleDrag(getCell(5, 1));
 
     expect(getDataAtCell(1, 1)).toBe('B2');
     expect(getDataAtCell(3, 1)).toBe('B2');
@@ -45,11 +42,8 @@ describe('MergeCells cooperation with autofill', () => {
     });
 
     await selectCell(5, 1);
-    spec().$container.find('.wtBorder.current.corner')
-      .simulate('mousedown');
-    spec().$container.find('tbody tr:eq(1) td:eq(1)')
-      .simulate('mouseover')
-      .simulate('mouseup');
+
+    simulateFillHandleDrag(getCell(1, 1));
 
     expect(getDataAtCell(1, 1)).toBe('B6');
     expect(getDataAtCell(3, 1)).toBe('B6');
@@ -67,11 +61,8 @@ describe('MergeCells cooperation with autofill', () => {
     });
 
     await selectCell(1, 1);
-    spec().$container.find('.wtBorder.current.corner')
-      .simulate('mousedown');
-    spec().$container.find('tbody tr:eq(1) td:eq(5)')
-      .simulate('mouseover')
-      .simulate('mouseup');
+
+    simulateFillHandleDrag(getCell(1, 5));
 
     expect(getDataAtCell(1, 1)).toBe('B2');
     expect(getDataAtCell(1, 3)).toBe('B2');
@@ -89,11 +80,8 @@ describe('MergeCells cooperation with autofill', () => {
     });
 
     await selectCell(1, 5);
-    spec().$container.find('.wtBorder.current.corner')
-      .simulate('mousedown');
-    spec().$container.find('tbody tr:eq(1) td:eq(1)')
-      .simulate('mouseover')
-      .simulate('mouseup');
+
+    simulateFillHandleDrag(getCell(1, 1));
 
     expect(getDataAtCell(1, 1)).toBe('F2');
     expect(getDataAtCell(1, 3)).toBe('F2');
@@ -112,11 +100,8 @@ describe('MergeCells cooperation with autofill', () => {
     });
 
     await selectCell(1, 1);
-    spec().$container.find('.wtBorder.current.corner')
-      .simulate('mousedown');
-    spec().$container.find('tbody tr:eq(3) td:eq(1)')
-      .simulate('mouseover')
-      .simulate('mouseup');
+
+    simulateFillHandleDrag(getCell(3, 1));
 
     expect(getDataAtCell(1, 1)).toBe('B2');
     expect(getDataAtCell(3, 1)).toBe('B4');
@@ -136,11 +121,8 @@ describe('MergeCells cooperation with autofill', () => {
     });
 
     await selectCell(1, 1);
-    spec().$container.find('.wtBorder.current.corner')
-      .simulate('mousedown');
-    spec().$container.find('tbody tr:eq(9) td:eq(1)')
-      .simulate('mouseover')
-      .simulate('mouseup');
+
+    simulateFillHandleDrag(getCell(9, 1));
 
     expect(getDataAtCell(1, 1)).toBe('B2');
     expect(getDataAtCell(3, 1)).toBe('B4');
@@ -160,11 +142,8 @@ describe('MergeCells cooperation with autofill', () => {
     });
 
     await selectCell(9, 1);
-    spec().$container.find('.wtBorder.current.corner')
-      .simulate('mousedown');
-    spec().$container.find('tbody tr:eq(6) td:eq(1)')
-      .simulate('mouseover')
-      .simulate('mouseup');
+
+    simulateFillHandleDrag(getCell(6, 1));
 
     expect(getDataAtCell(1, 1)).toBe('B2');
     expect(getDataAtCell(3, 1)).toBe('B4');
@@ -184,11 +163,8 @@ describe('MergeCells cooperation with autofill', () => {
     });
 
     await selectCell(9, 1);
-    spec().$container.find('.wtBorder.current.corner')
-      .simulate('mousedown');
-    spec().$container.find('tbody tr:eq(1) td:eq(1)')
-      .simulate('mouseover')
-      .simulate('mouseup');
+
+    simulateFillHandleDrag(getCell(1, 1));
 
     expect(getDataAtCell(1, 1)).toBe('B2');
     expect(getDataAtCell(3, 1)).toBe('B4');
@@ -208,11 +184,8 @@ describe('MergeCells cooperation with autofill', () => {
     });
 
     await selectCell(1, 1);
-    spec().$container.find('.wtBorder.current.corner')
-      .simulate('mousedown');
-    spec().$container.find('tbody tr:eq(1) td:eq(3)')
-      .simulate('mouseover')
-      .simulate('mouseup');
+
+    simulateFillHandleDrag(getCell(1, 3));
 
     expect(getDataAtCell(1, 1)).toBe('B2');
     expect(getDataAtCell(1, 3)).toBe('D2');
@@ -232,11 +205,8 @@ describe('MergeCells cooperation with autofill', () => {
     });
 
     await selectCell(1, 1);
-    spec().$container.find('.wtBorder.current.corner')
-      .simulate('mousedown');
-    spec().$container.find('tbody tr:eq(1) td:eq(9)')
-      .simulate('mouseover')
-      .simulate('mouseup');
+
+    simulateFillHandleDrag(getCell(1, 9));
 
     expect(getDataAtCell(1, 1)).toBe('B2');
     expect(getDataAtCell(1, 3)).toBe('D2');
@@ -256,11 +226,8 @@ describe('MergeCells cooperation with autofill', () => {
     });
 
     await selectCell(1, 9);
-    spec().$container.find('.wtBorder.current.corner')
-      .simulate('mousedown');
-    spec().$container.find('tbody tr:eq(1) td:eq(6)')
-      .simulate('mouseover')
-      .simulate('mouseup');
+
+    simulateFillHandleDrag(getCell(1, 6));
 
     expect(getDataAtCell(1, 1)).toBe('B2');
     expect(getDataAtCell(1, 3)).toBe('D2');
@@ -280,11 +247,8 @@ describe('MergeCells cooperation with autofill', () => {
     });
 
     await selectCell(1, 9);
-    spec().$container.find('.wtBorder.current.corner')
-      .simulate('mousedown');
-    spec().$container.find('tbody tr:eq(1) td:eq(1)')
-      .simulate('mouseover')
-      .simulate('mouseup');
+
+    simulateFillHandleDrag(getCell(1, 1));
 
     expect(getDataAtCell(1, 1)).toBe('B2');
     expect(getDataAtCell(1, 3)).toBe('D2');
