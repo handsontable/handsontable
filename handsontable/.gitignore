@@ -24,3 +24,6 @@ tmp_styles/
 /styles/
 src/styles/handsontableStyles.js
 src/styles/handsontableStyles.ts
+
+# Figma "Design Tokens" plugin export consumed by scripts/themes/figma (user-provided)
+scripts/themes/figma/tokens.json

@@ -51,6 +51,11 @@
       "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-umd-production env-cmd -f ../hot.config.js rspack",
       "deps": []
     },
+    "generate:themes-static": {
+      "cmd": "node scripts/themes/figma/index.mjs",
+      "deps": [],
+      "note": "Codegen: regenerates src/themes/static/** from scripts/themes/figma/tokens.json (gitignored Figma export). Run on demand when design tokens change; commit the result. NOT part of the default build graph."
+    },
     "build:types": {
       "cmd": "tsc -p tsconfig.build-types.json",
       "deps": []

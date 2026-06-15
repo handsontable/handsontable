@@ -91,6 +91,7 @@ Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` us
 | TypeScript config (source) | `tsconfig.json` |
 | TypeScript config (emit declarations) | `tsconfig.build-types.json` |
 | Build/test task definitions | `scripts/tasks.json` |
+| Figma theme generator (codegen for `src/themes/static`) | `scripts/themes/figma/` — run `npm run generate:themes` |
 | Shortcut contexts | `src/shortcuts/contexts/` |
 
 ## Performance
