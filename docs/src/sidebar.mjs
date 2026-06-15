@@ -387,3 +387,42 @@ export function buildAllSidebars() {
 
   return result;
 }
+
+/**
+ * Recursively extracts all `link` values from a Starlight sidebar items array.
+ *
+ * @param {Array} items
+ * @param {Set<string>} acc
+ */
+function flattenLinks(items, acc = new Set()) {
+  for (const item of items) {
+    if (item.link) acc.add(item.link);
+    if (item.items) flattenLinks(item.items, acc);
+  }
+
+  return acc;
+}
+
+/**
+ * Returns a map of framework key → Set of valid URL paths (without the /docs
+ * base prefix) for all sidebar sections: guides, API, recipes, and changelog.
+ *
+ * Use this to decide whether a cross-framework link should navigate to the
+ * equivalent page or fall back to the framework's root page.
+ *
+ * @returns {{ javascript: Set<string>, react: Set<string>, angular: Set<string>, vue: Set<string> }}
+ */
+export function buildAllValidUrls() {
+  const result = {};
+
+  for (const [framework, prefix] of Object.entries(FRAMEWORK_PREFIXES)) {
+    const acc = new Set();
+
+    flattenLinks(buildSidebar(framework, prefix), acc);
+    flattenLinks(buildRecipesSidebar(framework, prefix), acc);
+    flattenLinks(buildChangelogSidebar(framework, prefix), acc);
+    result[framework] = acc;
+  }
+
+  return result;
+}

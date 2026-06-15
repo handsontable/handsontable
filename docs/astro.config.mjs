@@ -9,7 +9,7 @@ import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-s
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
-import { buildAllSidebars } from './src/sidebar.mjs';
+import { buildAllSidebars, buildAllValidUrls } from './src/sidebar.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, symlinkSync } from 'fs';
@@ -630,6 +630,24 @@ function markdownRoutesIntegration() {
 
 const allSidebars = buildAllSidebars();
 
+// Pre-compute valid URL sets at config-evaluation time (plain Node.js context,
+// where import.meta.url correctly points to the source file and require() works).
+// The result is serialized into a virtual Vite module so that Astro components
+// can import it as static data without pulling sidebar.mjs — which uses
+// createRequire(import.meta.url) — into the prerender bundle. When bundled by
+// Vite, import.meta.url in sidebar.mjs would point to the chunk output path,
+// making require('../content/sidebars.js') fail to resolve.
+const _validUrlArrays = (() => {
+  const urls = buildAllValidUrls();
+  const out = {};
+
+  for (const [fw, set] of Object.entries(urls)) {
+    out[fw] = [...set];
+  }
+
+  return JSON.stringify(out);
+})();
+
 export default defineConfig({
   site: 'https://handsontable.com',
   base: '/docs',
@@ -894,6 +912,21 @@ export default defineConfig({
     },
 
     plugins: [
+      // Exposes pre-computed valid sidebar URL sets as static data. Astro
+      // components import from 'virtual:valid-urls' so that sidebar.mjs
+      // (which uses createRequire) is never pulled into the prerender bundle.
+      {
+        name: 'virtual:valid-urls',
+        resolveId(id) {
+          if (id === 'virtual:valid-urls') return '\0virtual:valid-urls';
+        },
+        load(id) {
+          if (id === '\0virtual:valid-urls') {
+            return `export const validUrlArrays = ${_validUrlArrays};`;
+          }
+        },
+      },
+
       // Runs BEFORE Astro's markdown processor.
       // Converts VuePress-specific syntax to Astro/CommonMark-compatible syntax.
       // Note: the only-for filtering in this plugin is redundant for content
