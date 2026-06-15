@@ -14,6 +14,13 @@ on:
       - 'handsontable/**'
       - 'wrappers/**'
       - '.github/workflows/pkg-pr-new.yml'
+  push:
+    branches:
+      - develop
+    paths:
+      - 'handsontable/**'
+      - 'wrappers/**'
+      - '.github/workflows/pkg-pr-new.yml'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -58,11 +65,13 @@ jobs:
 
       - name: Compute short SHA
         id: vars
+        if: github.event_name == 'pull_request'
         run: echo "short_sha=${PR_HEAD_SHA::7}" >> $GITHUB_OUTPUT
         env:
           PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
 
       - name: Post PR preview comment
+        if: github.event_name == 'pull_request'
         uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
         with:
           header: pr-preview
