@@ -196,6 +196,35 @@ describe('StateManager', () => {
       expect(state.getHeaderSettings(0, 0).isCollapsed).toBe(false);
       expect(state.getHeaderSettings(2, 0).isCollapsed).toBe(false);
     });
+
+    it('should keep a group actually collapsed (and expandable) after a mapState rebuild (DEV-294)', () => {
+      const state = new StateManager();
+
+      state.setState([
+        ['A', { label: 'B', colspan: 3 }, 'E'],
+        ['A', 'B1', 'B2', 'B3', 'E'],
+      ]);
+
+      // Collapse group B (level 0, column 1): it reduces to its first child, colspan 3 -> 1.
+      state.triggerNodeModification('collapse', 0, 1);
+
+      expect(state.getHeaderSettings(0, 1).isCollapsed).toBe(true);
+      expect(state.getHeaderSettings(0, 1).colspan).toBe(1);
+
+      // A rebuild (mapState) must keep the group genuinely collapsed - colspan stays reduced, not
+      // just the indicator flag. Re-running the collapse also rebuilds the cloned subtree, so the
+      // group can still be expanded afterwards.
+      state.mapState(() => undefined);
+
+      expect(state.getHeaderSettings(0, 1).isCollapsed).toBe(true);
+      expect(state.getHeaderSettings(0, 1).colspan).toBe(1);
+
+      // Expanding restores the full group width - proves the clonedTree was rebuilt by mapState.
+      state.triggerNodeModification('expand', 0, 1);
+
+      expect(state.getHeaderSettings(0, 1).isCollapsed).toBe(false);
+      expect(state.getHeaderSettings(0, 1).colspan).toBe(3);
+    });
   });
 
   describe('mapNodes', () => {

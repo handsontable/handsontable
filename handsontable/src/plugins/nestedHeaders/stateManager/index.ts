@@ -80,19 +80,20 @@ export default class StateManager {
    *
    * @param {object[]} settings An array of objects to merge with the current source settings.
    */
-  mergeStateWith(settings: { row: number, [key: string]: unknown }[]) {
+  mergeStateWith(settings: { row: number, col: number, [key: string]: unknown }[]) {
     const transformedSettings = arrayMap(settings, ({ row, ...rest }) => {
+      // Negative rows are header-coordinate; map them to a header level. An out-of-range row keeps
+      // its (negative) value, which getHeaderSettings() resolves to no match - same as before.
       return {
-        row: row < 0 ? this.rowCoordsToLevel(row) : row,
+        row: row < 0 ? (this.rowCoordsToLevel(row) ?? row) : row,
         ...rest,
       };
     });
 
-    const savedIsCollapsed = this.#snapshotIsCollapsed();
-
-    this.#sourceSettings.mergeWith(transformedSettings as { row: number; col: number; [key: string]: unknown }[]);
-    this.#headersTree.buildTree();
-    this.#applySyncVisibility(savedIsCollapsed);
+    this.#rebuildPreservingCollapse(
+      () => this.#sourceSettings.mergeWith(transformedSettings),
+      columnIndex => columnIndex
+    );
   }
 
   /**
@@ -101,11 +102,7 @@ export default class StateManager {
    * @param {Function} callback A function that is called for every header source settings.
    */
   mapState(callback: (headerSettings: Record<string, unknown>) => unknown) {
-    const savedIsCollapsed = this.#snapshotIsCollapsed();
-
-    this.#sourceSettings.map(callback);
-    this.#headersTree.buildTree();
-    this.#applySyncVisibility(savedIsCollapsed);
+    this.#rebuildPreservingCollapse(() => this.#sourceSettings.map(callback), columnIndex => columnIndex);
   }
 
   /**
@@ -117,12 +114,10 @@ export default class StateManager {
    * @param {number} amount The number of columns to insert.
    */
   insertColumns(columnIndex: number, amount: number) {
-    const collapsedNodes = this.#snapshotCollapsedNodes();
-
-    this.#sourceSettings.insertColumns(columnIndex, amount);
-    this.#headersTree.buildTree();
-    this.#reapplyCollapsedNodes(collapsedNodes, c => (c >= columnIndex ? c + amount : c));
-    this.#applySyncVisibility();
+    this.#rebuildPreservingCollapse(
+      () => this.#sourceSettings.insertColumns(columnIndex, amount),
+      c => (c >= columnIndex ? c + amount : c)
+    );
   }
 
   /**
@@ -134,19 +129,40 @@ export default class StateManager {
    * @param {number} amount The number of columns to remove.
    */
   removeColumns(columnIndex: number, amount: number) {
-    const collapsedNodes = this.#snapshotCollapsedNodes();
     const endIndex = columnIndex + amount;
 
-    this.#sourceSettings.removeColumns(columnIndex, amount);
-    this.#headersTree.buildTree();
-    this.#reapplyCollapsedNodes(collapsedNodes, (c) => {
-      if (c < columnIndex) {
-        return c;
-      }
+    this.#rebuildPreservingCollapse(
+      () => this.#sourceSettings.removeColumns(columnIndex, amount),
+      (c) => {
+        if (c < columnIndex) {
+          return c;
+        }
 
-      // The anchor column was removed but the group may survive - re-anchor to the range start.
-      return c >= endIndex ? c - amount : columnIndex;
-    });
+        // The anchor column was removed but the group may survive - re-anchor to the range start.
+        return c >= endIndex ? c - amount : columnIndex;
+      }
+    );
+  }
+
+  /**
+   * Rebuilds the header tree after a structural mutation while preserving the collapsed state.
+   *
+   * Visibility is derived BEFORE re-collapsing, so collapseNode picks the correct first *visible*
+   * representative (and clones the right children) even when columns are hidden by an external
+   * source; then it is derived again to reflect the re-applied collapse. Re-running the collapse -
+   * rather than only restoring the `isCollapsed` flag - rebuilds the `clonedTree` needed to expand
+   * the group again.
+   *
+   * @param {Function} mutate Applies the structural change to the source settings.
+   * @param {Function} shiftColumnIndex Maps a pre-rebuild collapsed column index to its new position.
+   */
+  #rebuildPreservingCollapse(mutate: () => void, shiftColumnIndex: (columnIndex: number) => number) {
+    const collapsedNodes = this.#snapshotCollapsedNodes();
+
+    mutate();
+    this.#headersTree.buildTree();
+    this.#applySyncVisibility();
+    this.#reapplyCollapsedNodes(collapsedNodes, shiftColumnIndex);
     this.#applySyncVisibility();
   }
 
@@ -264,52 +280,13 @@ export default class StateManager {
   }
 
   /**
-   * Saves the current isCollapsed state of every tree node, keyed by header level AND column index.
-   * Used by mapState()/mergeStateWith() to survive the tree rebuild that resets it. Keying by both
-   * coordinates matters for nested headers, where a parent group, its first child and the leaf all
-   * share the same column index - keying by column index alone would restore the collapsed flag on
-   * the wrong levels.
-   *
-   * @returns {Set<string>} Set of `headerLevel,columnIndex` keys whose node had isCollapsed=true.
-   */
-  #snapshotIsCollapsed(): Set<string> {
-    const collapsed = new Set<string>();
-
-    this.#headersTree.getRoots().forEach((rootNode) => {
-      rootNode.walkDown((node) => {
-        const data = node.data;
-
-        if (data.isCollapsed) {
-          collapsed.add(`${data.headerLevel},${data.columnIndex}`);
-        }
-      });
-    });
-
-    return collapsed;
-  }
-
-  /**
    * Re-applies the last column visibility adapter after a tree rebuild, so that mapState() and
    * mergeStateWith() calls from CollapsibleColumns do not discard visibility state set earlier.
-   * Also restores isCollapsed flags that the tree rebuild resets to false.
-   *
-   * @param {Set<string>} [savedIsCollapsed] `headerLevel,columnIndex` keys whose isCollapsed was true.
+   * The collapsed state is restored separately by #rebuildPreservingCollapse re-running the collapse.
    */
-  #applySyncVisibility(savedIsCollapsed?: Set<string>) {
+  #applySyncVisibility() {
     if (this.#lastColumnVisibility) {
       syncVisibilityOnTree(this.#headersTree.getRoots(), this.#lastColumnVisibility);
-    }
-
-    if (savedIsCollapsed && savedIsCollapsed.size > 0) {
-      this.#headersTree.getRoots().forEach((rootNode) => {
-        rootNode.walkDown((node) => {
-          const data = node.data;
-
-          if (savedIsCollapsed.has(`${data.headerLevel},${data.columnIndex}`)) {
-            data.isCollapsed = true;
-          }
-        });
-      });
     }
 
     this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
