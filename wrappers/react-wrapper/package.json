@@ -5,6 +5,7 @@
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
   "license": "SEE LICENSE IN LICENSE.txt",
+  "sideEffects": false,
   "main": "./commonjs/react-handsontable.js",
   "module": "./es/react-handsontable.mjs",
   "jsdelivr": "./dist/react-handsontable.min.js",
