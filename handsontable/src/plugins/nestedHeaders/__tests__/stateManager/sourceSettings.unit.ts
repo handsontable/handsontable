@@ -685,6 +685,11 @@ describe('SourceSettings', () => {
   });
 
   describe('insertColumns', () => {
+    /**
+     * Builds a SourceSettings instance with a nested header structure for the insertion tests.
+     *
+     * @returns {SourceSettings}
+     */
     function nestedSettings() {
       const settings = new SourceSettings();
 
@@ -752,6 +757,11 @@ describe('SourceSettings', () => {
   });
 
   describe('removeColumns', () => {
+    /**
+     * Builds a SourceSettings instance with a nested header structure for the removal tests.
+     *
+     * @returns {SourceSettings}
+     */
     function nestedSettings() {
       const settings = new SourceSettings();
 
