@@ -304,6 +304,46 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
     expect(getCell(-2, 0).textContent).toBe('GA+');
   });
 
+  it('should preserve the column move and apply it to a new nestedHeaders config set via updateSettings (#4150)', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 4), // row 0: A1, B1, C1, D1
+      colHeaders: true,
+      rowHeaders: true,
+      nestedHeaders: [
+        [{ label: 'Address', colspan: 2 }, { label: 'Finance', colspan: 2 }],
+        ['Street', 'City', 'Revenue', 'Profit'],
+      ],
+      manualColumnMove: true,
+    });
+
+    getPlugin('manualColumnMove').moveColumn(0, 3); // visual data order: B1, C1, D1, A1
+    await render();
+
+    expect(getCell(-1, 3).textContent).toBe('Street');
+
+    // updateSettings with an UNRELATED setting (rowHeaders) AND a brand-new nestedHeaders config.
+    await updateSettings({
+      rowHeaders: false,
+      nestedHeaders: [
+        [{ label: 'Group1', colspan: 2 }, { label: 'Group2', colspan: 2 }],
+        ['Aaa', 'Bbb', 'Ccc', 'Ddd'],
+      ],
+    });
+
+    // The move is preserved: the data column order is unchanged after updateSettings.
+    expect(getDataAtCell(0, 0)).toBe('B1');
+    expect(getDataAtCell(0, 3)).toBe('A1');
+
+    // The new leaf labels follow the moved data (authored 'Aaa' is physical col 0, now at visual 3).
+    expect(getCell(-1, 0).textContent).toBe('Bbb');
+    expect(getCell(-1, 3).textContent).toBe('Aaa');
+
+    // The new "Group1" (authored cols 0-1) is split by the move; "Group2" (authored cols 2-3) stays intact.
+    expect(getCell(-2, 0).textContent).toBe('Group1');
+    expect(getCell(-2, 1).textContent).toBe('Group2');
+    expect(getCell(-2, 3).textContent).toBe('Group1');
+  });
+
   it('should show the grab cursor on a selected nested group header, not only the leaf (#4150)', async() => {
     handsontable({
       data: createSpreadsheetData(3, 4),

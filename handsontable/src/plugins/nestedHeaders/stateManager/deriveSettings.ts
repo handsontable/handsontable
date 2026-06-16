@@ -54,15 +54,15 @@ function cloneOwnerCell(ownerCell: SourceHeaderCell, runLength: number, authored
     authoredColumnIndex,
   };
 
-  // The cell fields come from the loosely-typed normalized settings (index signature `unknown`).
-  // `Array.isArray` narrows them to `any[]`; widening to `unknown[]` at this boundary lets the copy
-  // happen without surfacing `any`. Copying decouples split banners from each other and the source.
+  // Copy the array-valued fields so two banners derived from one authored group (after a split) never
+  // share a mutable array with each other or with the source. SourceHeaderCell types these fields, so
+  // `Array.isArray` narrows them precisely and the copy needs no cast.
   if (Array.isArray(cell.headerClassNames)) {
-    cell.headerClassNames = (cell.headerClassNames as unknown[]).slice();
+    cell.headerClassNames = cell.headerClassNames.slice();
   }
 
   if (Array.isArray(cell.crossHiddenColumns)) {
-    cell.crossHiddenColumns = (cell.crossHiddenColumns as unknown[]).slice();
+    cell.crossHiddenColumns = cell.crossHiddenColumns.slice();
   }
 
   return cell;

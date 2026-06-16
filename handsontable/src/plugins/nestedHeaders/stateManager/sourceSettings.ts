@@ -8,6 +8,8 @@ export interface SourceHeaderCell {
   colspan?: number;
   origColspan?: number;
   isPlaceholder?: boolean;
+  headerClassNames?: string[];
+  crossHiddenColumns?: number[];
   [key: string]: unknown;
 }
 

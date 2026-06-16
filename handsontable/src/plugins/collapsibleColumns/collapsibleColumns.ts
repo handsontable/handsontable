@@ -777,7 +777,9 @@ export class CollapsibleColumns extends BasePlugin {
       if (movedFromGroup > 0 && movedFromGroup < origColspan) {
         const row = stateManager.levelToRowCoords(headerLevel);
 
-        this.toggleCollapsibleSection([{ row: row as number, col: columnIndex }], 'expand');
+        if (row !== null) {
+          this.toggleCollapsibleSection([{ row, col: columnIndex }], 'expand');
+        }
       }
     });
   };

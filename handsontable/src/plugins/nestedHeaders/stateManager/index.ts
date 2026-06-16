@@ -1,4 +1,4 @@
-import { arrayMap, arrayReduce } from '../../../helpers/array';
+import { arrayMap } from '../../../helpers/array';
 import SourceSettings from './sourceSettings';
 import type { HeaderNodeData } from './headersTree';
 import HeadersTree from './headersTree';
@@ -345,17 +345,21 @@ export default class StateManager {
    * @returns {Array}
    */
   mapNodes(callback: Function) {
-    return arrayReduce(this.#headersTree.getRoots(), (acc, rootNode) => {
-      (rootNode as TreeNode).walkDown((node: TreeNode) => {
+    const results: unknown[] = [];
+
+    // getRoots() returns TreeNode<HeaderNodeData>, so node.data is already HeaderNodeData here - the
+    // previous `as TreeNode`/`as unknown[]` casts only threw that type away. Walk and collect directly.
+    this.#headersTree.getRoots().forEach((rootNode) => {
+      rootNode.walkDown((node) => {
         const result: unknown = callback(node.data);
 
         if (result !== undefined) {
-          (acc as unknown[]).push(result);
+          results.push(result);
         }
       });
+    });
 
-      return acc;
-    }, []);
+    return results;
   }
 
   /**
