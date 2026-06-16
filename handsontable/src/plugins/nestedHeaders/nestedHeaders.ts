@@ -1423,7 +1423,12 @@ export class NestedHeaders extends BasePlugin {
    * @param {number} amount The number of inserted columns.
    */
   #onAfterCreateCol = (visualColumnIndex: number, amount: number) => {
-    this.#stateManager.insertColumns(visualColumnIndex, amount);
+    // The authored header settings are keyed by physical column, but the hook reports a visual index.
+    // Translate it so the structure stays aligned after a column move, where visual != physical.
+    const physicalColumnIndex = this.hot.columnIndexMapper.getPhysicalFromVisualIndex(visualColumnIndex) ??
+      visualColumnIndex;
+
+    this.#stateManager.insertColumns(visualColumnIndex, physicalColumnIndex, amount);
     this.#updateWidthsMap = true;
   };
 
@@ -1434,9 +1439,10 @@ export class NestedHeaders extends BasePlugin {
    *
    * @param {number} visualColumnIndex A visual column index from which the columns were removed.
    * @param {number} amount The number of removed columns.
+   * @param {number[]} physicalColumns The physical indexes of the removed columns.
    */
-  #onAfterRemoveCol = (visualColumnIndex: number, amount: number) => {
-    this.#stateManager.removeColumns(visualColumnIndex, amount);
+  #onAfterRemoveCol = (visualColumnIndex: number, amount: number, physicalColumns: number[]) => {
+    this.#stateManager.removeColumns(visualColumnIndex, amount, physicalColumns);
     this.#updateWidthsMap = true;
   };
 

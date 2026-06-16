@@ -196,7 +196,9 @@ export default class SourceSettings {
   }
 
   /**
-   * Inserts `amount` columns into the normalized settings starting at the visual `columnIndex`.
+   * Inserts `amount` columns into the normalized settings starting at `columnIndex`. The index is a
+   * position within the authored, source-order settings (which the StateManager keys by physical
+   * column), not a visual index.
    *
    * The behavior mirrors the MergeCells plugin: a column inserted strictly inside a header's span
    * extends that header (and every ancestor that also spans the point), while a column inserted at a
@@ -204,7 +206,7 @@ export default class SourceSettings {
    * In the normalized representation "strictly inside a span" is exactly "the cell at the insert
    * index is a placeholder".
    *
-   * @param {number} columnIndex A visual column index at which the new columns are inserted.
+   * @param {number} columnIndex A source-order column index at which the new columns are inserted.
    * @param {number} amount The number of columns to insert.
    */
   insertColumns(columnIndex: number, amount: number) {
@@ -241,14 +243,16 @@ export default class SourceSettings {
   }
 
   /**
-   * Removes `amount` columns from the normalized settings starting at the visual `columnIndex`.
+   * Removes `amount` columns from the normalized settings starting at `columnIndex`. The index is a
+   * position within the authored, source-order settings (which the StateManager keys by physical
+   * column), not a visual index.
    *
    * Every header that overlaps the removed range is shrunk by the number of removed columns it
    * covered. A header that loses all its columns is dropped; a header whose leftmost (labeled)
    * column is removed but which still has surviving columns is re-anchored to the first surviving
    * column, keeping its label and configurable properties.
    *
-   * @param {number} columnIndex A visual column index from which the columns are removed.
+   * @param {number} columnIndex A source-order column index from which the columns are removed.
    * @param {number} amount The number of columns to remove.
    */
   removeColumns(columnIndex: number, amount: number) {

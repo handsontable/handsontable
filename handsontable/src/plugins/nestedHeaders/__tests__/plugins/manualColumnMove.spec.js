@@ -189,4 +189,143 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
     expect(hot().columnIndexMapper.getRenderableIndexesLength()).toBe(5);
     expect(getPlugin('collapsibleColumns').getCollapsedColumns()).toEqual([]);
   });
+
+  it('should keep nested header labels aligned with the data when a column is removed after a move (#4150)', async() => {
+    handsontable({
+      data: [['a1', 'a2', 'b1', 'b2'], ['a1', 'a2', 'b1', 'b2']],
+      colHeaders: true,
+      nestedHeaders: [
+        [{ label: 'A', colspan: 2 }, { label: 'B', colspan: 2 }],
+        ['a1', 'a2', 'b1', 'b2'],
+      ],
+      manualColumnMove: true,
+    });
+
+    getPlugin('manualColumnMove').moveColumn(0, 3); // visual order: a2, b1, b2, a1
+    await render();
+
+    await alter('remove_col', 0, 1); // remove visual column 0 (physically a2)
+
+    // The remaining data keeps its visual order.
+    expect(getDataAtCell(0, 0)).toBe('b1');
+    expect(getDataAtCell(0, 1)).toBe('b2');
+    expect(getDataAtCell(0, 2)).toBe('a1');
+
+    // The leaf labels stay over their data - the bug left 'a2' here instead of dropping it.
+    expect(getCell(-1, 0).textContent).toBe('b1');
+    expect(getCell(-1, 1).textContent).toBe('b2');
+    expect(getCell(-1, 2).textContent).toBe('a1');
+
+    // "B" spans the first two columns; "A" survives as a standalone header over the last column.
+    expect(getCell(-2, 0).textContent).toBe('B');
+    expect(getCell(-2, 2).textContent).toBe('A');
+  });
+
+  it('should keep nested header labels aligned with the data when a column is inserted after a move (#4150)', async() => {
+    handsontable({
+      data: [['a1', 'a2', 'b1', 'b2'], ['a1', 'a2', 'b1', 'b2']],
+      colHeaders: true,
+      nestedHeaders: [
+        [{ label: 'A', colspan: 2 }, { label: 'B', colspan: 2 }],
+        ['a1', 'a2', 'b1', 'b2'],
+      ],
+      manualColumnMove: true,
+    });
+
+    getPlugin('manualColumnMove').moveColumn(0, 3); // visual order: a2, b1, b2, a1
+    await render();
+
+    await alter('insert_col_start', 0, 1); // insert a blank column at visual 0
+
+    // The existing columns keep their data; the blank lands at visual 0.
+    expect(getDataAtCell(0, 0)).toBe(null);
+    expect(getDataAtCell(0, 1)).toBe('a2');
+    expect(getDataAtCell(0, 4)).toBe('a1');
+
+    // The existing leaf labels stay over their data - the bug stranded 'a1' and left visual 4 empty.
+    expect(getCell(-1, 1).textContent).toBe('a2');
+    expect(getCell(-1, 4).textContent).toBe('a1');
+  });
+
+  it('should keep labels aligned for an insert run inside a batch after a move (#4150)', async() => {
+    handsontable({
+      data: [['a1', 'a2', 'b1', 'b2'], ['a1', 'a2', 'b1', 'b2']],
+      colHeaders: true,
+      nestedHeaders: [
+        [{ label: 'A', colspan: 2 }, { label: 'B', colspan: 2 }],
+        ['a1', 'a2', 'b1', 'b2'],
+      ],
+      manualColumnMove: true,
+    });
+
+    getPlugin('manualColumnMove').moveColumn(0, 3); // visual order: a2, b1, b2, a1
+    await render();
+
+    // A batched insert emits its cache update on resume; the physical index read at afterCreateCol
+    // time must still translate correctly so the header stays over its data.
+    hot().batch(() => {
+      hot().alter('insert_col_start', 0, 1);
+    });
+    await render();
+
+    expect(getDataAtCell(0, 1)).toBe('a2');
+    expect(getDataAtCell(0, 4)).toBe('a1');
+    expect(getCell(-1, 4).textContent).toBe('a1');
+  });
+
+  it('should keep a moved collapsed group coherent when an unrelated column is removed (#4150)', async() => {
+    handsontable({
+      data: [['a1', 'a2', 'b1', 'b2', 'cc'], ['a1', 'a2', 'b1', 'b2', 'cc']],
+      colHeaders: true,
+      nestedHeaders: [
+        [{ label: 'GA', colspan: 2 }, { label: 'GB', colspan: 2 }, 'C'],
+        ['a1', 'a2', 'b1', 'b2', 'cc'],
+      ],
+      collapsibleColumns: true,
+      manualColumnMove: true,
+    });
+
+    getPlugin('collapsibleColumns').toggleCollapsibleSection([{ row: -2, col: 0 }], 'collapse');
+    await render();
+
+    expect(getPlugin('collapsibleColumns').getCollapsedColumns()).toEqual([1]); // GA collapsed, physical a2 hidden
+
+    getPlugin('manualColumnMove').moveColumn(4, 0); // move "C" to the front; GA stays intact + collapsed
+    await render();
+
+    expect(getDataAtCell(0, 0)).toBe('cc');
+    expect(getPlugin('collapsibleColumns').getCollapsedColumns()).toEqual([1]);
+
+    await alter('remove_col', 0, 1); // remove the (front) unrelated "C" column
+
+    // GA stays collapsed (physical a2 still hidden) and its label sits over its data at the new front.
+    expect(getDataAtCell(0, 0)).toBe('a1');
+    expect(getPlugin('collapsibleColumns').getCollapsedColumns()).toEqual([1]);
+    expect(getCell(-2, 0).textContent).toBe('GA+');
+  });
+
+  it('should show the grab cursor on a selected nested group header, not only the leaf (#4150)', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 4),
+      colHeaders: true,
+      nestedHeaders: [
+        [{ label: 'Address', colspan: 2 }, { label: 'Finance', colspan: 2 }],
+        ['Street', 'City', 'Revenue', 'Profit'],
+      ],
+      manualColumnMove: true,
+    });
+
+    const groupHeader = getCell(-2, 0); // "Address" group, spanning columns 0-1
+
+    $(groupHeader).simulate('mousedown');
+    $(groupHeader).simulate('mouseup');
+    $(groupHeader).simulate('mouseover');
+
+    // The group moves as a unit, so its whole header band shows the grab cursor - not just the leaf row.
+    expect($(groupHeader).css('cursor')).toEqual('grab');
+    expect($(getCell(-1, 0)).css('cursor')).toEqual('grab'); // leaf under the selected group
+
+    // A header outside the selection keeps the default cursor.
+    expect($(getCell(-2, 2)).css('cursor')).toEqual('default'); // "Finance" group
+  });
 });

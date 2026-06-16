@@ -220,40 +220,55 @@ export default class StateManager {
   }
 
   /**
-   * Inserts `amount` columns into the source settings at the visual `columnIndex`, then rebuilds
-   * the tree and re-derives visibility. Headers spanning the insertion point are extended; columns
-   * inserted at a header boundary become standalone headers.
+   * Inserts `amount` columns into the source settings, then rebuilds the tree and re-derives
+   * visibility. Headers spanning the insertion point are extended; columns inserted at a header
+   * boundary become standalone headers.
    *
-   * @param {number} columnIndex A visual column index at which the new columns are inserted.
+   * The authored source settings are keyed by physical column, while the collapsed state is keyed by
+   * visual column - so the insertion takes both indexes. They are equal when no column move is active;
+   * after a move they differ, and using each in its own space keeps headers and collapse aligned.
+   *
+   * @param {number} visualColumnIndex The visual index the columns were inserted at (collapse space).
+   * @param {number} physicalColumnIndex The physical index the columns were inserted at (source space).
    * @param {number} amount The number of columns to insert.
    */
-  insertColumns(columnIndex: number, amount: number) {
+  insertColumns(visualColumnIndex: number, physicalColumnIndex: number, amount: number) {
     this.#rebuildPreservingCollapse(
-      () => this.#sourceSettings.insertColumns(columnIndex, amount),
-      c => (c >= columnIndex ? c + amount : c)
+      () => this.#sourceSettings.insertColumns(physicalColumnIndex, amount),
+      c => (c >= visualColumnIndex ? c + amount : c)
     );
   }
 
   /**
-   * Removes `amount` columns from the source settings starting at the visual `columnIndex`, then
-   * rebuilds the tree and re-derives visibility. Headers overlapping the removed range are shrunk,
-   * re-anchored, or dropped when they lose all their columns.
+   * Removes the given columns from the source settings, then rebuilds the tree and re-derives
+   * visibility. Headers overlapping the removed columns are shrunk, re-anchored, or dropped when they
+   * lose all their columns.
    *
-   * @param {number} columnIndex A visual column index from which the columns are removed.
-   * @param {number} amount The number of columns to remove.
+   * The removed columns are identified by physical index (authored source settings are physical-keyed)
+   * and may be non-contiguous after a column move; they are removed highest-index-first so the lower
+   * indexes stay valid. The collapsed state is shifted in visual space, which an insert/remove always
+   * changes the same way regardless of any active move.
+   *
+   * @param {number} visualColumnIndex The visual index the columns were removed from (collapse space).
+   * @param {number} amount The number of columns removed (length of `physicalColumns`).
+   * @param {number[]} physicalColumns The physical indexes of the removed columns (source space).
    */
-  removeColumns(columnIndex: number, amount: number) {
-    const endIndex = columnIndex + amount;
+  removeColumns(visualColumnIndex: number, amount: number, physicalColumns: number[]) {
+    const endIndex = visualColumnIndex + amount;
 
     this.#rebuildPreservingCollapse(
-      () => this.#sourceSettings.removeColumns(columnIndex, amount),
+      () => {
+        [...physicalColumns]
+          .sort((a, b) => b - a)
+          .forEach(physicalColumn => this.#sourceSettings.removeColumns(physicalColumn, 1));
+      },
       (c) => {
-        if (c < columnIndex) {
+        if (c < visualColumnIndex) {
           return c;
         }
 
         // The anchor column was removed but the group may survive - re-anchor to the range start.
-        return c >= endIndex ? c - amount : columnIndex;
+        return c >= endIndex ? c - amount : visualColumnIndex;
       }
     );
   }
