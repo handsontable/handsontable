@@ -13,6 +13,7 @@ import {
 import { BasePlugin } from '../base';
 import StateManager from './stateManager';
 import { createColumnVisibilityAdapter } from './stateManager/columnVisibility';
+import { createColumnArrangementAdapter } from './stateManager/columnArrangement';
 import type { HeaderNodeData } from './stateManager/headersTree';
 import type { HeaderVisibility } from './stateManager/utils';
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
@@ -151,13 +152,37 @@ export class NestedHeaders extends BasePlugin {
    */
   #stateManager = new StateManager();
   /**
+   * Set by afterColumnMove when a move runs inside a batched (suspended) index operation. The
+   * structure cannot be re-derived there (the mapper's caches are stale until resume), so the rebuild
+   * is deferred to the cacheUpdated that fires on resume, where the visual<->physical mapping is fresh.
+   */
+  #structureRebuildPending = false;
+  /**
    * Handler bound to columnIndexMapper's cacheUpdated local hook. Keeps header colspan state
    * in sync with the current hiding map whenever visibility or column order changes.
    */
-  #onColumnIndexMapperCacheUpdated = ({ hiddenIndexesChanged }: { hiddenIndexesChanged: boolean }) => {
+  #onColumnIndexMapperCacheUpdated = ({ indexesSequenceChanged, hiddenIndexesChanged }: {
+    indexesSequenceChanged: boolean, hiddenIndexesChanged: boolean
+  }) => {
     if (!this.enabled) {
       return;
     }
+
+    // A column move changes the visual<->physical mapping without mutating the authored settings, so
+    // re-derive the header tree to make the structure (labels and group spans) follow the data; a
+    // group whose columns are no longer adjacent renders as multiple same-label banners. A non-batched
+    // move carries the 'move' change source on this cache update. A batched / suspended move's cache
+    // update fires on resume with the source already cleared, so afterColumnMove flags a pending
+    // rebuild for that case. Both re-derive here, where the mapping is fresh. The 'move' gate excludes
+    // init / insert / remove, which rebuild through their own paths (setState, afterCreateCol,
+    // afterRemoveCol) and would otherwise be double-processed (e.g. re-applying a collapse twice).
+    const isColumnMove = indexesSequenceChanged && this.hot.columnIndexMapper.indexesChangeSource === 'move';
+
+    if (isColumnMove || this.#structureRebuildPending) {
+      this.#stateManager.rebuildState();
+    }
+
+    this.#structureRebuildPending = false;
 
     // syncVisibility must run on every cache update (including a pure column move) so the tree's
     // colspan / isHidden stay aligned with the current visual<->physical mapping (DEV-1717).
@@ -169,6 +194,17 @@ export class NestedHeaders extends BasePlugin {
     // physical column and a move does not change them.
     if (hiddenIndexesChanged) {
       this.ghostTable.buildWidthsMap();
+    }
+  };
+  /**
+   * Handler bound to the afterColumnMove hook. A non-batched move is re-derived directly by
+   * #onColumnIndexMapperCacheUpdated (the cache update carries the 'move' source). A batched move's
+   * cache update fires on resume with the source already cleared, so flag a pending rebuild here -
+   * the resume cache update consumes it once the mapping is fresh.
+   */
+  #onAfterColumnMove = () => {
+    if (this.enabled && this.hot.columnIndexMapper.isBatched) {
+      this.#structureRebuildPending = true;
     }
   };
   /**
@@ -244,6 +280,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterCreateCol', this.#onAfterCreateCol);
     this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
+    this.addHook('afterColumnMove', this.#onAfterColumnMove);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
     this.addHook('afterOnCellMouseDown', this.#onAfterOnCellMouseDown);
     this.addHook('beforeOnCellMouseOver', this.#onBeforeOnCellMouseOver);
@@ -286,6 +323,8 @@ export class NestedHeaders extends BasePlugin {
     this.#rowspanHeaderNavigationContextRow = null;
     this.#expectedNextKeyboardHighlightCoords = null;
     this.#stateManager.setColumnsLimit(this.hot.countCols());
+    // Derive the header structure against the live column arrangement so it follows column moves.
+    this.#stateManager.setColumnArrangement(createColumnArrangementAdapter(this.hot));
 
     if (Array.isArray(nestedHeaders)) {
       this.detectedOverlappedHeaders = this.#stateManager.setState(nestedHeaders);

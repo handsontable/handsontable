@@ -4,7 +4,7 @@ import { arrayEach } from '../../../helpers/array';
 import { normalizeSettings } from './settingsNormalizer';
 import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './utils';
 
-interface SourceHeaderCell {
+export interface SourceHeaderCell {
   colspan?: number;
   origColspan?: number;
   isPlaceholder?: boolean;
@@ -67,6 +67,20 @@ export default class SourceSettings {
     // normalized shape here, at the single boundary, so the rest of the class stays typed.
     this.#data = normalizeSettings(nestedHeadersSettings, this.#columnsLimit) as SourceHeaderCell[][];
     this.#dataLength = this.#data.length;
+  }
+
+  /**
+   * Sets already-normalized source settings directly, bypassing normalization.
+   *
+   * Used to feed a derived (e.g. visual-order) settings matrix that is already in the normalized
+   * shape, so it must not be re-normalized. Callers are responsible for passing a well-formed matrix
+   * with equal-length layers.
+   *
+   * @param {Array[]} normalizedSettings The already-normalized nested headers settings.
+   */
+  setNormalizedData(normalizedSettings: SourceHeaderCell[][]) {
+    this.#data = normalizedSettings;
+    this.#dataLength = normalizedSettings.length;
   }
 
   /**

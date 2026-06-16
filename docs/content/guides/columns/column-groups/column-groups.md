@@ -334,6 +334,19 @@ In the example below, collapse the **Q1 2025** group: the per-month columns (mar
 
 A group whose headers use no `visibleWhen` markers keeps the default behavior - collapsing leaves its first column visible. The `visibleWhen` property applies only to headers within a [`collapsible`](@/api/options.md#collapsiblecolumns) group.
 
+## Moving grouped columns
+
+When you enable the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin, nested column headers follow their columns. Moving a column moves both its data and its header label, so the labels always describe the columns beneath them.
+
+When a move separates the columns of a group, that group renders as more than one header. Each header covers a contiguous run of the group's columns and repeats the group's label. No move is blocked.
+
+Moving an entire group relocates the group and its label as a single unit. The group can land between other groups.
+
+When a group is both [collapsible](#collapsible-headers) and collapsed:
+
+- A move that keeps the group's columns together keeps the group collapsed and moves it to its new position.
+- A move that would separate the group's columns expands the group first, so none of its columns stay hidden without a way to expand them.
+
 ## Known limitations
 
 - A column header can span up to 1000 columns, as the [HTML table specification](https://html.spec.whatwg.org/multipage/tables.html#dom-tdth-colspan) sets the
@@ -355,6 +368,7 @@ A group whose headers use no `visibleWhen` markers keeps the default behavior - 
 
 - [collapsibleColumns](@/api/options.md#collapsiblecolumns)
 - [nestedHeaders](@/api/options.md#nestedheaders)
+- [manualColumnMove](@/api/options.md#manualcolumnmove)
 
 </div>
 

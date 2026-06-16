@@ -37,6 +37,13 @@ export interface HeaderNodeData extends HeaderSettings {
   headerLevel: number;
   columnIndex: number;
   /**
+   * The authored owner column index this node was derived from - a stable identity for the group that
+   * survives column moves (the authored settings do not change on a move). Used to re-attach collapse
+   * state to the correct group after the tree is re-derived for a move. Negative for columns that have
+   * no authored header (e.g. a column outside the nested-headers definition moved into range).
+   */
+  authoredColumnIndex?: number;
+  /**
    * A cloned subtree stored during collapse, restored on expand.
    */
   clonedTree?: TreeNode<HeaderNodeData> | null;

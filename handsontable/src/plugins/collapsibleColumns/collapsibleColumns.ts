@@ -240,16 +240,15 @@ export class CollapsibleColumns extends BasePlugin {
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterGetColHeader', this.#onAfterGetColHeader);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
-    // NestedHeaders (priority 280) rebuilds the header tree on column insert/remove before this
+    // NestedHeaders (priority 280) rebuilds the header tree on column insert/remove/move before this
     // plugin (priority 290) runs, so refreshing here re-derives the `visibleWhen` hidden set against
-    // the freshly rebuilt tree (with `isCollapsed` already restored). There is intentionally no
-    // `afterColumnMove` refresh: a `manualColumnMove` does not rebuild the tree (its `columnIndex`
-    // values are structural), and the collapsed-columns map already strands its entries on a move the
-    // same way - so collapsed groups (legacy and `visibleWhen` alike) do not survive `manualColumnMove`.
-    // That is a pre-existing collapsible-columns limitation; refreshing only `visibleWhen` here would
-    // diverge from legacy collapse without fixing it.
+    // the freshly rebuilt tree (with `isCollapsed` re-attached by group identity). On a move a group
+    // that stayed contiguous keeps its collapse; a split group has its `isCollapsed` dropped, so the
+    // re-derived `visibleWhen` set excludes it and these columns are released.
     this.addHook('afterCreateCol', this.#onAfterColumnStructureChange);
     this.addHook('afterRemoveCol', this.#onAfterColumnStructureChange);
+    this.addHook('beforeColumnMove', this.#onBeforeColumnMove);
+    this.addHook('afterColumnMove', this.#onAfterColumnStructureChange);
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -742,6 +741,45 @@ export class CollapsibleColumns extends BasePlugin {
    */
   #onAfterColumnStructureChange = () => {
     this.#refreshVisibleWhenColumns();
+  };
+
+  /**
+   * Expands, before a column move runs, any collapsed group the move would split (it takes some but
+   * not all of the group's columns). Expanding while the group is still contiguous releases its
+   * columns through the normal expand path; otherwise they would stay hidden with no collapse
+   * indicator left to expand them. Hiding does not change visual indexes, so the pending move's
+   * coordinates stay valid. A move that keeps a group's columns together leaves it collapsed.
+   *
+   * @param {number[]} movedColumns Visual indexes of the columns being moved.
+   * @param {number} finalIndex The target visual index (unused).
+   * @param {number|undefined} dropIndex The drop visual index (unused).
+   * @param {boolean} movePossible Whether the move can be performed.
+   */
+  #onBeforeColumnMove = (movedColumns: number[], finalIndex: number, dropIndex: number | undefined,
+                         movePossible: boolean) => {
+    const stateManager = this.headerStateManager;
+
+    if (movePossible === false || !stateManager) {
+      return;
+    }
+
+    const movedColumnsSet = new Set(movedColumns);
+
+    stateManager.getCollapsedGroups().forEach(({ headerLevel, columnIndex, origColspan }) => {
+      let movedFromGroup = 0;
+
+      for (let column = columnIndex; column < columnIndex + origColspan; column++) {
+        if (movedColumnsSet.has(column)) {
+          movedFromGroup += 1;
+        }
+      }
+
+      if (movedFromGroup > 0 && movedFromGroup < origColspan) {
+        const row = stateManager.levelToRowCoords(headerLevel);
+
+        this.toggleCollapsibleSection([{ row: row as number, col: columnIndex }], 'expand');
+      }
+    });
   };
 
   /**

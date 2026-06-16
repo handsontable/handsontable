@@ -1968,17 +1968,17 @@ describe('NestedHeaders', () => {
         expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
           <thead>
             <tr>
+              <th class="">PARENT</th>
               <th class="">A</th>
               <th class="">B</th>
-              <th class="">C</th>
               <th class="" colspan="2">PARENT</th>
               <th class="hiddenHeader"></th>
               <th class="">G</th>
             </tr>
             <tr>
+              <th class="">D</th>
               <th class="">A</th>
               <th class="">B</th>
-              <th class="">C</th>
               <th class="">E</th>
               <th class="">F</th>
               <th class="">G</th>
@@ -2017,17 +2017,17 @@ describe('NestedHeaders', () => {
         expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
           <thead>
             <tr>
+              <th class="">PARENT</th>
               <th class="">A</th>
               <th class="">B</th>
-              <th class="">C</th>
               <th class="" colspan="2">PARENT</th>
               <th class="hiddenHeader"></th>
               <th class="">G</th>
             </tr>
             <tr>
+              <th class="">D</th>
               <th class="">A</th>
               <th class="">B</th>
-              <th class="">C</th>
               <th class="">E</th>
               <th class="">F</th>
               <th class="">G</th>
@@ -2067,17 +2067,17 @@ describe('NestedHeaders', () => {
         expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
           <thead>
             <tr>
+              <th class="">PARENT</th>
               <th class="">A</th>
               <th class="">B</th>
-              <th class="">C</th>
               <th class="" colspan="2">PARENT</th>
               <th class="hiddenHeader"></th>
               <th class="">G</th>
             </tr>
             <tr>
+              <th class="">D</th>
               <th class="">A</th>
               <th class="">B</th>
-              <th class="">C</th>
               <th class="">E</th>
               <th class="">F</th>
               <th class="">G</th>
