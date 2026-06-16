@@ -25,8 +25,17 @@ export const command = {
     selection.transformStart(rowsStep, 0);
     selection.markEndSource();
 
-    if ((hot.getSelectedRangeActive()?.highlight.row ?? 0) < 0) {
+    // When selection lands in the bottom frozen rows area, the normal scroll strategy
+    // is blocked by the Walkontable frozen-row guard. Explicitly scroll the master
+    // viewport to the bottom so the frozen rows overlay stays aligned.
+    const fixedRowsBottom = hot.getSettings().fixedRowsBottom ?? 0;
+    const totalRows = hot.countRows();
+    const currentRow = hot.getSelectedRangeActive()?.highlight.row ?? 0;
+
+    if (currentRow < 0) {
       hot.scrollViewportTo({ row: 0 });
+    } else if (fixedRowsBottom > 0 && currentRow >= totalRows - fixedRowsBottom) {
+      hot.scrollViewportTo({ row: totalRows - fixedRowsBottom - 1, verticalSnap: 'bottom' });
     }
   },
 };
