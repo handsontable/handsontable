@@ -21,7 +21,7 @@ import {
   getParentWindow,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
-import { isImmediatePropagationStopped, isRightClick, isLeftClick } from './helpers/dom/event';
+import { isImmediatePropagationStopped, isRightClick, isLeftClick, isMiddleClick } from './helpers/dom/event';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
@@ -336,6 +336,13 @@ class TableView {
     this.eventManager.addEventListener(rootElement, 'mousedown', (event) => {
       // Ignore synthetic mousedown events from Android touch interactions.
       if (this.#isSyntheticMouseEvent(event)) {
+        return;
+      }
+
+      // Leave the middle mouse button (the scroll wheel) untouched so the browser can start its
+      // native autoscroll. Calling `preventDefault()` on a middle-button mousedown cancels that
+      // panning behavior, which is available on Windows and Linux (https://github.com/handsontable/handsontable/issues/2722).
+      if (isMiddleClick(event)) {
         return;
       }
 

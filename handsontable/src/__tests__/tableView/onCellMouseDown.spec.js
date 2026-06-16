@@ -33,5 +33,42 @@ describe('tableView', () => {
         expect(afterOnCellMouseDown.calls.argsFor(0)[2]).toBe(corner);
       });
     });
+
+    describe('native middle-button autoscroll (#2722)', () => {
+      const dispatchMouseDown = (target, button) => {
+        const event = new MouseEvent('mousedown', {
+          button,
+          buttons: button === 1 ? 4 : 1,
+          bubbles: true,
+          cancelable: true,
+        });
+
+        target.dispatchEvent(event);
+
+        return event.defaultPrevented;
+      };
+
+      it('should not prevent the default action of a middle-button mousedown so the browser can start autoscroll', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+        });
+
+        const cell = getCell(1, 1);
+
+        // button 1 = middle (scroll wheel) — the default action must survive
+        expect(dispatchMouseDown(cell, 1)).toBe(false);
+      });
+
+      it('should still prevent the default action of a left-button mousedown (text selection guard)', async() => {
+        handsontable({
+          data: createSpreadsheetData(5, 5),
+        });
+
+        const cell = getCell(1, 1);
+
+        // button 0 = left — default is prevented to suppress native text selection while dragging
+        expect(dispatchMouseDown(cell, 0)).toBe(true);
+      });
+    });
   });
 });
