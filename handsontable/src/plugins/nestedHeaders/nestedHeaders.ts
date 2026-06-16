@@ -180,6 +180,13 @@ export class NestedHeaders extends BasePlugin {
    */
   #isColumnsSelectionInProgress = false;
   /**
+   * Holds the columns to be selected when the pointer moves over a nested header during a drag. The selection
+   * is applied in the `afterOnCellMouseOver` hook so that it stays gated by `stopImmediatePropagation` called
+   * in a `beforeOnCellMouseOver` listener - mirroring how the mouse-down path applies its selection in
+   * `afterOnCellMouseDown`. Reset on every `beforeOnCellMouseOver` to avoid applying a stale range.
+   */
+  #columnsToSelectOnMouseOver: [number, number, number] | null = null;
+  /**
    * Keeps the last highlight position made by column selection. The coords are necessary to scroll
    * the viewport to the correct position when the nested header is clicked when the `navigableHeaders`
    * option is disabled.
@@ -247,6 +254,7 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
     this.addHook('afterOnCellMouseDown', this.#onAfterOnCellMouseDown);
     this.addHook('beforeOnCellMouseOver', this.#onBeforeOnCellMouseOver);
+    this.addHook('afterOnCellMouseOver', this.#onAfterOnCellMouseOver);
     this.addHook('beforeOnCellMouseUp', this.#onBeforeOnCellMouseUp);
     this.addHook('beforeSelectionHighlightSet', this.#onBeforeSelectionHighlightSet);
     this.addHook('modifyTransformStart', this.#onModifyTransformStart);
@@ -918,12 +926,17 @@ export class NestedHeaders extends BasePlugin {
   };
 
   /**
-   * Extends the column selection range when the pointer moves over a nested header cell during a drag selection.
+   * Computes the column selection range when the pointer moves over a nested header cell during a drag
+   * selection and stores it for the `afterOnCellMouseOver` hook to apply. Blocks the core's default
+   * selection handling through the `controller` so the range is driven solely by this plugin. The actual
+   * selection is deferred to `afterOnCellMouseOver` so it stays cancellable through `stopImmediatePropagation`.
    */
   #onBeforeOnCellMouseOver = (
     event: MouseEvent, coords: { row: number, col: number }, TD: HTMLElement,
     controller: { column: boolean, cell: boolean }
   ) => {
+    this.#columnsToSelectOnMouseOver = null;
+
     if (!this.hot.view.isMouseDown() || controller.column) {
       return;
     }
@@ -965,6 +978,23 @@ export class NestedHeaders extends BasePlugin {
       columnsToSelect = [columnIndex, columnIndex + origColspan - 1, headerLevel];
     }
 
+    this.#columnsToSelectOnMouseOver = columnsToSelect;
+  };
+
+  /**
+   * Applies the column selection computed in `beforeOnCellMouseOver`. Running in the `afterOnCellMouseOver`
+   * hook keeps the selection cancellable - the core skips this hook when `stopImmediatePropagation` is called
+   * in a `beforeOnCellMouseOver` listener, so a drag over nested headers can be blocked the same way it is for
+   * regular column headers.
+   */
+  #onAfterOnCellMouseOver = () => {
+    if (this.#columnsToSelectOnMouseOver === null) {
+      return;
+    }
+
+    const columnsToSelect = this.#columnsToSelectOnMouseOver;
+
+    this.#columnsToSelectOnMouseOver = null;
     this.hot.selection.selectColumns(...columnsToSelect);
   };
 
