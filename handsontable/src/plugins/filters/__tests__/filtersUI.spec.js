@@ -2025,6 +2025,32 @@ describe('Filters UI', () => {
     expect(getFilterDropdownMenuOKButton().offsetParent).not.toBe(null);
   });
 
+  it('should render all filter components when the dropdownMenu starts with multiple separators', async() => {
+    // `filterSeparators()` collapses several leading separators at once, so the rendered list can be
+    // shifted by more than one row - a naive "+1" offset would not be enough. The position must be
+    // resolved against the rendered rows regardless of how many separators were stripped.
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      dropdownMenu: [
+        '---------',
+        '---------',
+        'filter_by_condition',
+        'filter_by_value',
+        'filter_action_bar',
+      ],
+      filters: true,
+      width: 500,
+      height: 300,
+    });
+
+    await dropdownMenu(0);
+
+    expect(conditionSelectRootElements().first.offsetParent).not.toBe(null);
+    expect(byValueBoxRootElement().offsetParent).not.toBe(null);
+    expect(getFilterDropdownMenuOKButton().offsetParent).not.toBe(null);
+  });
+
   it('should adjust the dropdown height to the currently displayed content', async() => {
     handsontable({
       data: getDataForFilters(),
