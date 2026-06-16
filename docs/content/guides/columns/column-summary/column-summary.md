@@ -1091,7 +1091,9 @@ To enable this feature, set the [`forceNumeric`](@/api/columnSummary.md) option 
 
 You can throw a data type error whenever a non-numeric value is passed to your column summary.
 
-To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummary.md) option to `false` (by default, [`suppressDataTypeErrors`](@/api/columnSummary.md) is set to `true`). For example:
+To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummary.md) option to `false` (by default, [`suppressDataTypeErrors`](@/api/columnSummary.md) is set to `true`).
+
+In the example below, both column summaries set `suppressDataTypeErrors` to `false`. The grid starts with numeric data, so it loads without errors. Enter a non-numeric value (such as `3c`) into one of the summarized columns: the column summary then throws a data type error, which you can see in the browser console.
 
 ::: only-for javascript
 

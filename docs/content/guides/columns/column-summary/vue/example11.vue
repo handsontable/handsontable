@@ -13,7 +13,7 @@ const hotSettings = ref<GridSettings>({
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
-  data: [[0, 1, 2], ['3c', '4b', 5], [], []],
+  data: [[0, 1, 2], [3, 4, 5], [], []],
   colHeaders: true,
   rowHeaders: true,
   columnSummary: [
