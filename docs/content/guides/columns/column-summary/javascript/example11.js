@@ -9,7 +9,7 @@ const throwErrorsButton = document.querySelector('#throwErrorsButton');
 
 const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
-  data: [[0, 1, 2], [3, 4, 5], [], []],
+  data: [[0, 1, 2], ['3c', '4b', 5], [], []],
   colHeaders: true,
   rowHeaders: true,
   columnSummary: [
