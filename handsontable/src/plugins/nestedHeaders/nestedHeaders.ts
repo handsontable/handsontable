@@ -1326,8 +1326,11 @@ export class NestedHeaders extends BasePlugin {
       const renderedEndColumn = nearestColumn === null ?
         null : columnIndexMapper.getRenderableFromVisualIndex(nearestColumn);
 
-      if (isNumeric(renderedEndColumn) && renderedEndColumn !== null && renderedEndColumn > calc.endColumn) {
+      // The top header layer holds the widest spans, so the first layer that expands the
+      // boundary already yields the largest extent - no deeper layer can exceed it.
+      if (renderedEndColumn !== null && renderedEndColumn > calc.endColumn) {
         calc.endColumn = renderedEndColumn;
+        break;
       }
     }
   }
