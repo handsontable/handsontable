@@ -34,7 +34,7 @@
             "assets": [
               {
                 "glob": "*.css",
-                "input": "../node_modules/handsontable/styles/",
+                "input": "node_modules/handsontable/styles/",
                 "output": "/assets/handsontable/styles/"
               }
             ],
