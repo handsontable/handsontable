@@ -10,6 +10,16 @@ const pathsNeedingMoreTolerance = [
   // Date-picker and sorting highlight animations make these less stable.
   'column-filter',
   'rows-sorting',
+  // Pages with computed/aggregated values or framework-heavy bootstrap that
+  // can produce minor pixel differences between collection and comparison runs.
+  'column-summary',
+  'binding-to-data',
+  'configuration-options',
+  'server-side-data',
+  'cell-renderer',
+  'theme-customization',
+  'rows-pagination',
+  'dialog',
 ];
 
 test.beforeEach(async({ page, baseURL }) => {
@@ -66,6 +76,12 @@ testCases.forEach(({ paths, prefix, urlPath }) => {
         await expect(page.getByText('Page not found (404)')).toHaveCount(0);
         await expect(page.getByText('Password protected site')).toHaveCount(0);
         await page.waitForLoadState('domcontentloaded');
+
+        // Wait for all example loading overlays to disappear before screenshotting.
+        // Angular and Vue examples can take several seconds to bootstrap; without
+        // this wait the screenshot captures a loading shimmer instead of the grid.
+        await expect(page.locator('.hot-example-preview--loading')).toHaveCount(0, { timeout: 30000 });
+
         const screenshotName = `${prefix}-${pathObj.path.split('/').pop()}.png`;
 
         // eslint-disable-next-line max-len

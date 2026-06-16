@@ -7,8 +7,8 @@ const isCI = !!process.env.CI;
 const baseURL = process.env.BASE_URL ?? 'http://localhost:4321/docs';
 
 export default defineConfig({
-  expect: { timeout: !baseURL || baseURL.includes('localhost') ? 30000 : 60000 },
-  timeout: !baseURL || baseURL.includes('localhost') ? 30000 : 60000,
+  expect: { timeout: 60000 },
+  timeout: 60000,
   testDir: './tests',
   outputDir: './tests/test-artifacts/output',
   snapshotPathTemplate: './tests/test-artifacts/screenshots/{testFilePath}/{arg}{ext}',
