@@ -1541,10 +1541,18 @@ export class Filters extends BasePlugin {
       return indexes;
     }
 
+    // The visibility of components is toggled through the `hiddenRows` plugin of the rendered
+    // menu (`hotMenu`), so the indexes have to match the rows that are actually rendered. The
+    // `menuItems` collection still holds the raw, unfiltered items (e.g. leading/trailing/duplicated
+    // separators that `filterSeparators()` strips before rendering), so reading indexes from it
+    // would be off whenever such a separator precedes a component. Prefer the rendered source data,
+    // and fall back to `menuItems` only when the menu has not been rendered yet.
+    const renderedItems = (menu.hotMenu?.getSourceData() as unknown as { key: string }[] | null) ?? menu.menuItems;
+
     arrayEach(components, (component) => {
       const comp = (component as unknown) as { getMenuItemDescriptor(): { key: string } };
 
-      arrayEach(menu.menuItems ?? [], (item, index) => {
+      arrayEach(renderedItems ?? [], (item, index) => {
         if ((item as { key: string }).key === comp.getMenuItemDescriptor().key) {
 
           indexes.push(index);
