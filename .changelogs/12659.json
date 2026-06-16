@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Improved scroll performance by caching overlay alignment calculations and using native visibility checks.",
-  "type": "changed",
-  "issueOrPR": 12659,
-  "breaking": false,
-  "framework": "none"
-}

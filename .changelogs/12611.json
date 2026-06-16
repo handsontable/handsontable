@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed the Comments plugin not showing the popup when the first row of object data has fewer keys than the columns declared via `dataSchema` or `columns`.",
-  "type": "fixed",
-  "issueOrPR": 12611,
-  "breaking": false,
-  "framework": "none"
-}

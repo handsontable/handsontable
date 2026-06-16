@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed the \"Filter by value\" list not showing newly added values after `updateData` is called while a filter is active.",
-  "type": "fixed",
-  "issueOrPR": 12613,
-  "breaking": false,
-  "framework": "none"
-}

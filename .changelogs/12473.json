@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed the date filter \"before\" and \"after\" conditions including the boundary date in results.",
-  "type": "fixed",
-  "issueOrPR": 12473,
-  "breaking": false,
-  "framework": "none"
-}

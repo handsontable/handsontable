@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed broken and ambiguous type declarations in the published npm package for ESM and CJS consumers.",
-  "type": "fixed",
-  "issueOrPR": 12696,
-  "breaking": false,
-  "framework": "none"
-}

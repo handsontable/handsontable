@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed an issue where `HotColumn` children removed from a `HotTable` left phantom columns behind in the React wrapper.",
-  "type": "fixed",
-  "issueOrPR": 12596,
-  "breaking": false,
-  "framework": "react"
-}
