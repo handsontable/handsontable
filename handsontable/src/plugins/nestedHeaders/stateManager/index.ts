@@ -4,6 +4,7 @@ import type { HeaderNodeData } from './headersTree';
 import HeadersTree from './headersTree';
 import { triggerNodeModification } from './nodeModifiers';
 import type { NodeModificationResult } from './nodeModifiers';
+import { isDeclarativeGroup } from './nodeModifiers/utils/tree';
 import { generateMatrix } from './matrixGenerator';
 import { syncVisibilityOnTree } from './syncVisibility';
 import type { ColumnVisibility } from './columnVisibility';
@@ -577,9 +578,10 @@ export default class StateManager {
           return;
         }
 
-        const isDeclarative = childNodes.some(({ data }) => data.visibleWhen !== undefined);
-
-        if (!isDeclarative) {
+        // Only declarative groups (at least one explicit `visibleWhen` marker) are handled here;
+        // legacy groups keep the first-visible-child collapse path. The predicate lives in one place
+        // so this computation and the collapse/expand modifiers agree on what "declarative" means.
+        if (!isDeclarativeGroup(node)) {
           return;
         }
 
@@ -592,9 +594,13 @@ export default class StateManager {
             (visibility === 'collapsed' && !isGroupCollapsed);
         });
 
-        // Never hide every column of the group - the group header carries the collapse indicator, so
-        // keep the first child visible when a (mis)configuration would otherwise blank the whole group
-        // and leave no way to expand it back.
+        // Never hide every column of the group through `visibleWhen` - the collapse indicator renders
+        // on the group's first visible column, so keep the first child visible when a (mis)configuration
+        // would otherwise blank the whole group and leave no way to expand it back. Known limitation:
+        // if that kept column is independently hidden by another source (HiddenColumns or trimming) the
+        // indicator can still be lost. Reading the external hidden state here is avoided on purpose -
+        // this set feeds the hiding map that syncVisibility consumes, so a node's `isHidden` flag
+        // already carries this set's own previous effect and cannot be trusted as an external-only signal.
         if (childrenToHide.length === childNodes.length) {
           childrenToHide.shift();
         }

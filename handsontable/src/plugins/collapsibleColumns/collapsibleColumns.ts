@@ -1,6 +1,6 @@
 import { BasePlugin } from '../base';
 import type { HidingMap } from '../../translations';
-import { arrayEach, arrayFilter, arrayMap, arrayUnique } from '../../helpers/array';
+import { arrayEach, arrayFilter, arrayMap, arrayUnique, getDifferenceOfArrays } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { warn } from '../../helpers/console';
 import {
@@ -242,7 +242,12 @@ export class CollapsibleColumns extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
     // NestedHeaders (priority 280) rebuilds the header tree on column insert/remove before this
     // plugin (priority 290) runs, so refreshing here re-derives the `visibleWhen` hidden set against
-    // the freshly rebuilt tree (with `isCollapsed` already restored).
+    // the freshly rebuilt tree (with `isCollapsed` already restored). There is intentionally no
+    // `afterColumnMove` refresh: a `manualColumnMove` does not rebuild the tree (its `columnIndex`
+    // values are structural), and the collapsed-columns map already strands its entries on a move the
+    // same way - so collapsed groups (legacy and `visibleWhen` alike) do not survive `manualColumnMove`.
+    // That is a pre-existing collapsible-columns limitation; refreshing only `visibleWhen` here would
+    // diverge from legacy collapse without fixing it.
     this.addHook('afterCreateCol', this.#onAfterColumnStructureChange);
     this.addHook('afterRemoveCol', this.#onAfterColumnStructureChange);
 
@@ -422,7 +427,8 @@ export class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Expands section at the provided coords.
+   * Expands section at the provided coords. `coords.col` may be any column the group's header spans,
+   * not only its first (anchor) column - it resolves to the owning collapsible group.
    *
    * @param {object} coords Contains coordinates information. (`coords.row`, `coords.col`).
    */
@@ -431,7 +437,8 @@ export class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Collapses section at the provided coords.
+   * Collapses section at the provided coords. `coords.col` may be any column the group's header spans,
+   * not only its first (anchor) column - it resolves to the owning collapsible group.
    *
    * @param {object} coords Contains coordinates information. (`coords.row`, `coords.col`).
    */
@@ -537,6 +544,11 @@ export class CollapsibleColumns extends BasePlugin {
     const currentCollapsedColumns = this.getCollapsedColumns();
     let destinationCollapsedColumns: number[] = [];
 
+    // The collapse hooks report the collapsed-columns map only. A declarative `visibleWhen` group
+    // hides its columns through the separate `#visibleWhenMap` (so `getCollapsedColumns()` stays a
+    // faithful record of legacy collapses), so for such a group `destinationCollapsedColumns` equals
+    // `currentCollapsedColumns` even though columns were hidden - the `successfullyCollapsed` flag,
+    // not the array delta, tells a consumer whether the toggle did anything.
     if (action === 'collapse') {
       destinationCollapsedColumns = arrayUnique([...currentCollapsedColumns, ...affectedColumnsIndexes]);
 
@@ -569,27 +581,34 @@ export class CollapsibleColumns extends BasePlugin {
       });
     }, true);
 
-    // Determine whether the declarative `visibleWhen` hidden set changed (its inputs - the
-    // `isCollapsed` flags - were just toggled). Only refresh the map when it actually changed, so a
-    // plain legacy collapse does not trigger an extra cache update that would disturb the selection
-    // adjustment below.
+    // The declarative `visibleWhen` hidden set is a pure function of the `isCollapsed` flags that the
+    // node modification just toggled, so re-derive it and diff against the snapshot taken before the
+    // toggle. `newlyHiddenByVisibleWhen` are the columns this toggle hid through `visibleWhen` - on a
+    // collapse the group's own columns, on an expand the `visibleWhen: 'collapsed'` summary columns
+    // that are only visible while collapsed. Only refresh when it changed, so a plain legacy collapse
+    // does not trigger an extra cache update that would disturb the selection adjustment below.
     const visibleWhenHiddenAfter = this.headerStateManager?.getVisibleWhenHiddenColumns() ?? [];
-    const visibleWhenHiddenBeforeSet = new Set(visibleWhenHiddenBefore);
-    const newlyHiddenByVisibleWhen = arrayFilter(
-      visibleWhenHiddenAfter, column => !visibleWhenHiddenBeforeSet.has(column)
-    );
+    const newlyHiddenByVisibleWhen = getDifferenceOfArrays(visibleWhenHiddenAfter, visibleWhenHiddenBefore);
     const isVisibleWhenChanged = newlyHiddenByVisibleWhen.length > 0 ||
       visibleWhenHiddenAfter.length !== visibleWhenHiddenBefore.length;
 
     if (isVisibleWhenChanged) {
-      this.#refreshVisibleWhenColumns();
+      // Pass the already-computed set so the refresh does not walk the header tree a third time.
+      this.#refreshVisibleWhenColumns(visibleWhenHiddenAfter);
     }
 
     const isActionPerformed = this.getCollapsedColumns().length !== currentCollapsedColumns.length ||
       isVisibleWhenChanged;
 
-    if (action === 'collapse' && isActionPerformed) {
-      this.#adjustSelectionAfterCollapse([...affectedColumnsIndexes, ...newlyHiddenByVisibleWhen]);
+    // Move the selection off any column this toggle hid - a collapse hides the group's columns plus
+    // any `visibleWhen` columns, while an expand hides the `visibleWhen: 'collapsed'` columns that are
+    // only visible while collapsed.
+    const newlyHiddenColumns = action === 'collapse'
+      ? arrayUnique([...affectedColumnsIndexes, ...newlyHiddenByVisibleWhen])
+      : newlyHiddenByVisibleWhen;
+
+    if (isActionPerformed && newlyHiddenColumns.length > 0) {
+      this.#adjustSelectionAfterHide(newlyHiddenColumns);
     }
 
     this.hot.runHooks(
@@ -640,11 +659,13 @@ export class CollapsibleColumns extends BasePlugin {
   }
 
   /**
-   * Adjusts the active cell selection after a collapse action moves selected cells out of view.
+   * Moves the active cell selection off any column a collapse or expand action just hid, so the
+   * highlight never lingers on a now-hidden column (for example a `visibleWhen: 'collapsed'` summary
+   * column that is hidden again when its group expands).
    *
-   * @param {number[]} affectedColumnsIndexes Visual indexes of columns hidden by the collapse.
+   * @param {number[]} hiddenColumnsIndexes Visual indexes of columns this action hid.
    */
-  #adjustSelectionAfterCollapse(affectedColumnsIndexes: number[]): void {
+  #adjustSelectionAfterHide(hiddenColumnsIndexes: number[]): void {
     const selectionRange = this.hot.getSelectedRangeActive();
 
     if (!selectionRange) {
@@ -659,7 +680,7 @@ export class CollapsibleColumns extends BasePlugin {
 
     const isHidden = this.hot.rowIndexMapper.isHidden(row) || this.hot.columnIndexMapper.isHidden(col);
 
-    if (isHidden && affectedColumnsIndexes.includes(col)) {
+    if (isHidden && hiddenColumnsIndexes.includes(col)) {
       const nextRow = row >= 0 ? this.hot.rowIndexMapper.getNearestNotHiddenIndex(row, 1, true) : row;
       const nextColumn = col >= 0 ? this.hot.columnIndexMapper.getNearestNotHiddenIndex(col, 1, true) : col;
 
@@ -683,25 +704,32 @@ export class CollapsibleColumns extends BasePlugin {
    * Re-derives the set of columns hidden by the per-child `visibleWhen` rules (issue #10243) from the
    * current header tree (markers + each group's `isCollapsed` state) and writes it into the dedicated
    * `#visibleWhenMap`. Pure recompute - safe to call after any collapse/expand toggle, settings
-   * update, or column insert/remove.
+   * update, or column insert/remove. The hidden set is passed in by the toggle path (which has just
+   * computed it) and re-derived for the settings/structure-change paths. The map is rewritten only
+   * when the hidden set actually changed, so a legacy collapsible setup - which never produces a
+   * `visibleWhen` hidden set - does not pay an index-cache rebuild on every update.
    */
-  #refreshVisibleWhenColumns(): void {
-    if (!this.#visibleWhenMap || !this.headerStateManager) {
+  #refreshVisibleWhenColumns(
+    visualColumnsToHide = this.headerStateManager?.getVisibleWhenHiddenColumns() ?? []
+  ): void {
+    if (!this.#visibleWhenMap) {
       return;
     }
 
     const visibleWhenMap = this.#visibleWhenMap;
-    const physicalColumnsToHide = new Set(
-      arrayMap(
-        this.headerStateManager.getVisibleWhenHiddenColumns(),
-        visualColumn => this.hot.toPhysicalColumn(visualColumn)
-      )
-    );
+    const nextHiddenColumns = arrayMap(visualColumnsToHide, visualColumn => this.hot.toPhysicalColumn(visualColumn));
+    const currentHiddenColumns = visibleWhenMap.getHiddenIndexes();
+    const isUnchanged = nextHiddenColumns.length === currentHiddenColumns.length &&
+      getDifferenceOfArrays(nextHiddenColumns, currentHiddenColumns).length === 0;
+
+    if (isUnchanged) {
+      return;
+    }
 
     this.hot.batchExecution(() => {
       visibleWhenMap.clear();
 
-      physicalColumnsToHide.forEach((physicalColumn) => {
+      arrayEach(nextHiddenColumns, (physicalColumn) => {
         visibleWhenMap.setValueAtIndex(physicalColumn, true);
       });
     }, true);

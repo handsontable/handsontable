@@ -89,12 +89,14 @@ export function normalizeSettings(sourceSettings: unknown[][], columnsLimit = In
       colspan,
       rowspan,
       headerClassName,
+      visibleWhen,
     } = sourceHeaderSettings as Record<string, unknown>;
 
     return stringify(label) === '' &&
       (colspan === undefined || colspan === 1) &&
       (rowspan === undefined || rowspan === 1) &&
-      headerClassName === undefined;
+      headerClassName === undefined &&
+      visibleWhen === undefined;
   };
 
   /**
@@ -131,7 +133,9 @@ export function normalizeSettings(sourceSettings: unknown[][], columnsLimit = In
         headerSettings.headerClassNames = [...headerClassName.split(' ')];
       }
 
-      // Unknown/invalid values fall back to the default 'always' so a typo never hides a column.
+      // Only a recognized value is carried through. An unset or invalid value (e.g. a typo) is left
+      // undefined, which the collapse computation treats as the default 'expanded' - the column is
+      // visible while the group is expanded and hidden when it collapses.
       if (typeof visibleWhen === 'string' && VISIBLE_WHEN_VALUES.includes(visibleWhen)) {
         headerSettings.visibleWhen = visibleWhen as HeaderVisibility;
       }

@@ -439,4 +439,69 @@ describe('CollapsibleColumns visibleWhen option', () => {
     // Now the collapse keeps B2 (the new `always` column) instead of B3.
     expect(bottomHeaderLabels()).toEqual(['A', 'B2', 'C']);
   });
+
+  it('should move the selection off a `visibleWhen: "collapsed"` column when the group expands', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 6),
+      colHeaders: true,
+      rowHeaders: true,
+      nestedHeaders: [
+        ['A', { label: 'Group B', colspan: 4 }, 'C'],
+        ['A',
+          { label: 'B1', visibleWhen: 'expanded' },
+          { label: 'B2', visibleWhen: 'expanded' },
+          { label: 'B3', visibleWhen: 'expanded' },
+          { label: 'Total', visibleWhen: 'collapsed' },
+          'C'],
+      ],
+      collapsibleColumns: true,
+    });
+
+    collapseGroupB();
+    await render();
+    expect(bottomHeaderLabels()).toEqual(['A', 'Total', 'C']);
+
+    // Select a cell under the summary "Total" column (visual column 4) - visible only while collapsed.
+    await selectCell(0, 4);
+    expect(getSelectedLast()).toEqual([0, 4, 0, 4]);
+
+    expandGroupB();
+    await render();
+
+    // Expanding hides "Total" again; the selection must not linger on the now-hidden column - it
+    // moves to the nearest visible column to the right (C, visual column 5).
+    expect(columnIndexMapper().isHidden(hot().toPhysicalColumn(4))).toBe(true);
+    expect(getSelectedLast()).toEqual([0, 5, 0, 5]);
+  });
+
+  it('should resolve a non-anchor in-span column to its owning group (collapse and expand)', async() => {
+    handsontable({
+      data: createSpreadsheetData(3, 6),
+      colHeaders: true,
+      rowHeaders: true,
+      nestedHeaders: [
+        ['A', { label: 'Group B', colspan: 4 }, 'C'],
+        ['A',
+          { label: 'B1', visibleWhen: 'expanded' },
+          { label: 'B2', visibleWhen: 'expanded' },
+          { label: 'B3', visibleWhen: 'expanded' },
+          { label: 'Total', visibleWhen: 'collapsed' },
+          'C'],
+      ],
+      collapsibleColumns: true,
+    });
+
+    // Collapsing through a non-anchor in-span column (B3, visual column 3) collapses the whole group.
+    getPlugin('collapsibleColumns').collapseSection({ row: -2, col: 3 });
+    await render();
+    expect(bottomHeaderLabels()).toEqual(['A', 'Total', 'C']);
+    expect(hasCollapsedIndicator()).toBe(true);
+
+    // While collapsed the group's anchor (B1, column 1) is hidden, so the indicator renders on the
+    // visible representative ("Total", column 4). Expanding through that non-anchor column restores
+    // the group - this mirrors clicking the relocated indicator.
+    getPlugin('collapsibleColumns').expandSection({ row: -2, col: 4 });
+    await render();
+    expect(bottomHeaderLabels()).toEqual(['A', 'B1', 'B2', 'B3', 'C']);
+  });
 });

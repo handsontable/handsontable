@@ -337,5 +337,20 @@ describe('normalizeSettings', () => {
       expect(row[1].visibleWhen).toBeUndefined();
       expect(row[2].visibleWhen).toBeUndefined();
     });
+
+    it('should keep the marker on an empty-label header even when a rowspan covers its slot', () => {
+      // The empty-label header carries a `visibleWhen` marker, so it is a real header rather than a
+      // rowspan empty-slot placeholder - the marker must survive normalization and reach the tree.
+      const normalized = normalizeSettings([
+        [{ label: 'A1', rowspan: 2 }, 'B1'],
+        [{ label: '', visibleWhen: 'collapsed' }, 'B2'],
+      ]);
+      const markers = normalized
+        .flat()
+        .filter(cell => cell.visibleWhen !== undefined);
+
+      expect(markers.length).toBe(1);
+      expect(markers[0].visibleWhen).toBe('collapsed');
+    });
   });
 });
