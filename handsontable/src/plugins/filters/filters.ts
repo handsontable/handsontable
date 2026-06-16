@@ -1529,30 +1529,15 @@ export class Filters extends BasePlugin {
    * @returns {Array}
    */
   getIndexesOfComponents(...components: BaseComponent[]) {
-    const indexes: number[] = [];
-
-    if (!this.dropdownMenuPlugin) {
-      return indexes;
-    }
-
-    const menu = this.dropdownMenuPlugin.menu;
+    const menu = this.dropdownMenuPlugin?.menu;
 
     if (!menu) {
-      return indexes;
+      return [];
     }
 
-    arrayEach(components, (component) => {
-      const comp = (component as unknown) as { getMenuItemDescriptor(): { key: string } };
-
-      arrayEach(menu.menuItems ?? [], (item, index) => {
-        if ((item as { key: string }).key === comp.getMenuItemDescriptor().key) {
-
-          indexes.push(index);
-        }
-      });
-    });
-
-    return indexes;
+    return components
+      .map(component => menu.getItemPositionByKey(String(component.getMenuItemDescriptor().key)))
+      .filter(index => index !== -1);
   }
 
   /**

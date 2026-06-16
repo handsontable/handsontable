@@ -1997,6 +1997,60 @@ describe('Filters UI', () => {
     expect(onErrorSpy).not.toHaveBeenCalled();
   });
 
+  it('should render all filter components when the dropdownMenu starts with a separator', async() => {
+    // A leading separator is stripped from the rendered menu by `filterSeparators()`, but it stays
+    // in `menu.menuItems`. Previously the component row indexes were read from that unfiltered
+    // collection, so they were off by one and the `hiddenRows` plugin hid the wrong rows - the
+    // "filter by value" list (and others) disappeared, leaving only the operators visible.
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      dropdownMenu: [
+        '---------',
+        'filter_by_condition',
+        '---------',
+        'filter_operators',
+        'filter_by_value',
+        'filter_action_bar',
+      ],
+      filters: true,
+      width: 500,
+      height: 300,
+    });
+
+    await dropdownMenu(0);
+
+    expect(conditionSelectRootElements().first.offsetParent).not.toBe(null);
+    expect(byValueBoxRootElement().offsetParent).not.toBe(null);
+    expect(getFilterDropdownMenuOKButton().offsetParent).not.toBe(null);
+  });
+
+  it('should render all filter components when the dropdownMenu starts with multiple separators', async() => {
+    // `filterSeparators()` collapses several leading separators at once, so the rendered list can be
+    // shifted by more than one row - a naive "+1" offset would not be enough. The position must be
+    // resolved against the rendered rows regardless of how many separators were stripped.
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      dropdownMenu: [
+        '---------',
+        '---------',
+        'filter_by_condition',
+        'filter_by_value',
+        'filter_action_bar',
+      ],
+      filters: true,
+      width: 500,
+      height: 300,
+    });
+
+    await dropdownMenu(0);
+
+    expect(conditionSelectRootElements().first.offsetParent).not.toBe(null);
+    expect(byValueBoxRootElement().offsetParent).not.toBe(null);
+    expect(getFilterDropdownMenuOKButton().offsetParent).not.toBe(null);
+  });
+
   it('should adjust the dropdown height to the currently displayed content', async() => {
     handsontable({
       data: getDataForFilters(),

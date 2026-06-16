@@ -281,6 +281,22 @@ export class Menu {
   }
 
   /**
+   * Returns the position (row index) of the menu item identified by the provided `key` within the
+   * currently rendered menu. Before rendering, `filterSeparators()` and the hidden-item filter run
+   * over `menuItems`, so the rendered list can differ from the raw `menuItems` collection - callers
+   * that need an index matching the rendered rows must use this method instead of reading
+   * `menuItems` directly. Falls back to `menuItems` when the menu has not been rendered yet.
+   *
+   * @param {string} key The menu item key to look up.
+   * @returns {number} The item row index, or `-1` when the item is not found.
+   */
+  getItemPositionByKey(key: string): number {
+    const items = (this.hotMenu?.getSourceData() ?? this.menuItems ?? []) as unknown as { key?: string }[];
+
+    return items.findIndex(item => item.key === key);
+  }
+
+  /**
    * Returns the source data at the provided row index typed as `T`.
    *
    * @param {number} row Row index.
