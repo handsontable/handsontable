@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1025 — BUG (width ignored when height is not set)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .bad { color: #f48771; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    .section { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 14px 16px; margin-bottom: 16px; }
+    .section-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .section-sub { font-size: 12px; color: #666; margin-bottom: 12px; }
+    .expected { font-size: 12px; color: #b71c1c; font-weight: 600; margin-bottom: 8px; }
+    .ruler { position: relative; height: 24px; margin-bottom: 4px; }
+    .ruler-line { position: absolute; top: 10px; left: 0; height: 2px; background: #ff5722; }
+    .ruler-label { position: absolute; top: 0; font-size: 11px; color: #ff5722; font-weight: 700; white-space: nowrap; }
+    .tag-bad { display: inline-block; background: #fdecea; color: #b71c1c; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; }
+    .tag-ok  { display: inline-block; background: #e8f5e9; color: #2e7d32; font-size: 11px; font-weight: 700; padding: 1px 7px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1025 — <code>width</code> option ignored when <code>height</code> is not set</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-dev1025-fix.html">DEV-1025 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    Two broken cases when <code>width</code> is set without specifying <code>height</code>:
+    <ul style="margin: 6px 0 0 20px; line-height: 1.8;">
+      <li><strong>Case 1:</strong> <code>{ width: 300 }</code> (no <code>height</code>) — width is <strong>ignored</strong>, grid expands to full container width. ✗</li>
+      <li><strong>Case 2:</strong> <code>{ width: 300, height: undefined }</code> — layout <strong>breaks</strong>: right part of the table is pushed out of view, horizontal scroll doesn't appear. ✗</li>
+      <li><strong>Working control:</strong> <code>{ width: 300, height: 200 }</code> — correctly constrained. ✓</li>
+    </ul>
+  </div>
+
+  <pre><span class="comment">// BUG — width ignored when height is omitted:</span>
+new Handsontable(el, {
+  <span class="bad">width: 300,</span>
+  <span class="comment">// height: omitted → width constraint is not applied, grid fills container</span>
+});
+
+<span class="comment">// BUG — height: undefined breaks layout:</span>
+new Handsontable(el, {
+  <span class="bad">width: 300,</span>
+  <span class="bad">height: undefined,</span>
+  <span class="comment">// right part pushed out of view, no horizontal scrollbar</span>
+});</pre>
+
+  <div class="hint">
+    <strong>How to observe the bugs:</strong>
+    <ol>
+      <li>The red line marks <strong>300 px</strong> — the configured <code>width</code>.</li>
+      <li><strong>Case 1</strong>: grid expands past the red line — <code>width: 300</code> has no effect. ✗</li>
+      <li><strong>Case 2</strong>: columns on the right are clipped with no horizontal scrollbar. ✗</li>
+      <li><strong>Case 3</strong>: correctly stops at the red line. ✓</li>
+      <li>Compare with the <a href="demo-dev1025-fix.html">Fix page</a> where all cases work. ✓</li>
+    </ol>
+  </div>
+
+  <!-- Case 1 -->
+  <div class="section">
+    <div class="section-title">
+      Case 1 — <code>{ width: 300 }</code> (no height)
+      <span class="tag-bad">BUG ✗</span>
+    </div>
+    <div class="section-sub">Expected: grid stops at 300 px. Actual: grid fills the full container.</div>
+    <div class="ruler">
+      <div class="ruler-line" style="width:300px"></div>
+      <div class="ruler-label" style="left:304px">← 300 px limit</div>
+    </div>
+    <div id="hot1"></div>
+  </div>
+
+  <!-- Case 2 -->
+  <div class="section">
+    <div class="section-title">
+      Case 2 — <code>{ width: 300, height: undefined }</code>
+      <span class="tag-bad">BUG ✗</span>
+    </div>
+    <div class="section-sub">Expected: same as Case 1. Actual: right columns clipped, no horizontal scroll.</div>
+    <div class="ruler">
+      <div class="ruler-line" style="width:300px"></div>
+      <div class="ruler-label" style="left:304px">← 300 px limit</div>
+    </div>
+    <div id="hot2"></div>
+  </div>
+
+  <!-- Case 3 (control) -->
+  <div class="section">
+    <div class="section-title">
+      Case 3 — <code>{ width: 300, height: 180 }</code> (control)
+      <span class="tag-ok">WORKS ✓</span>
+    </div>
+    <div class="section-sub">Both width and height provided — grid correctly constrained to 300 px.</div>
+    <div class="ruler">
+      <div class="ruler-line" style="width:300px"></div>
+      <div class="ruler-label" style="left:304px">← 300 px limit</div>
+    </div>
+    <div id="hot3"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const DATA = Handsontable.helper.createSpreadsheetData(8, 8);
+    const COMMON = {
+      data: DATA,
+      colHeaders: true,
+      rowHeaders: true,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    };
+
+    // Case 1: width only, no height
+    new Handsontable(document.getElementById('hot1'), Object.assign({}, COMMON, {
+      width: 300,
+    }));
+
+    // Case 2: width + height: undefined (edge case)
+    new Handsontable(document.getElementById('hot2'), Object.assign({}, COMMON, {
+      width: 300,
+      height: undefined,
+    }));
+
+    // Case 3: both width and height (control — works)
+    new Handsontable(document.getElementById('hot3'), Object.assign({}, COMMON, {
+      width: 300,
+      height: 180,
+    }));
+  </script>
+</body>
+</html>
