@@ -14,6 +14,12 @@ export interface HeaderSettings {
   rowspan?: number;
   origRowspan?: number;
   collapsible: boolean;
+  /**
+   * Whether the group may split into several same-label banners when a column move makes its children
+   * non-adjacent (`true`), or stays one banner and adopts columns moved into its span as children
+   * (`false`, the default).
+   */
+  splittable: boolean;
   isCollapsed: boolean;
   crossHiddenColumns: number[];
   isHidden: boolean;

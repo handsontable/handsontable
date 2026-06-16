@@ -10,6 +10,7 @@ interface NormalizedHeaderSettings {
   colspan: number;
   origColspan: number;
   collapsible: boolean;
+  splittable: boolean;
   crossHiddenColumns: number[];
   isCollapsed: boolean;
   isHidden: boolean;
@@ -115,6 +116,7 @@ export function normalizeSettings(sourceSettings: unknown[][], columnsLimit = In
         rowspan,
         headerClassName,
         visibleWhen,
+        splittable,
       } = sourceHeaderSettings as Record<string, unknown>;
 
       headerSettings.label = stringify(label);
@@ -138,6 +140,11 @@ export function normalizeSettings(sourceSettings: unknown[][], columnsLimit = In
       // visible while the group is expanded and hidden when it collapses.
       if (typeof visibleWhen === 'string' && VISIBLE_WHEN_VALUES.includes(visibleWhen)) {
         headerSettings.visibleWhen = visibleWhen as HeaderVisibility;
+      }
+
+      // Only `true` enables splitting; any other (or unset) value keeps the cohesive default (`false`).
+      if (splittable === true) {
+        headerSettings.splittable = true;
       }
 
     } else {

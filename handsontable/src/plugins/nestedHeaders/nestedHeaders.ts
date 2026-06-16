@@ -47,6 +47,13 @@ export interface NestedHeaderSettings {
    * See the `CollapsibleColumns` plugin.
    */
   visibleWhen?: HeaderVisibility;
+  /**
+   * Controls what a group does when a column move (with the `ManualColumnMove` plugin) makes its
+   * columns non-adjacent. When `false` (default), the group stays a single banner and adopts a column
+   * moved into its span as a child. When `true`, the group keeps its identity and renders as several
+   * same-label banners (it splits). Set per group; meaningful only on a header that spans columns.
+   */
+  splittable?: boolean;
   [key: string]: unknown;
 }
 

@@ -6,6 +6,10 @@
  * @property {number} rowspan Current calculated rowspan value of the rendered column header element.
  * @property {number} origRowspan Original rowspan value, set once while parsing user-defined nested header settings.
  * @property {boolean} collapsible The flag determines whether the node is collapsible (can be collapsed/expanded).
+ * @property {boolean} splittable The flag determines what the group does when a column move makes its children
+ *                                non-adjacent. When `true` the group keeps its identity and renders as several
+ *                                same-label banners (it splits). When `false` (default) the group stays one banner
+ *                                and adopts any column moved into its span as a child.
  * @property {number[]} crossHiddenColumns The list of visual column indexes which indicates that the specified columns within
  *                                         the header settings are hidden.
  * @property {boolean} isCollapsed The flag determines whether the node is collapsed.
@@ -46,6 +50,7 @@ export function createDefaultHeaderSettings({
   rowspan = 1,
   origRowspan = 1,
   collapsible = false,
+  splittable = false,
   crossHiddenColumns = [] as number[],
   isCollapsed = false,
   isHidden = false,
@@ -61,6 +66,7 @@ export function createDefaultHeaderSettings({
   rowspan?: number;
   origRowspan?: number;
   collapsible?: boolean;
+  splittable?: boolean;
   crossHiddenColumns?: number[];
   isCollapsed?: boolean;
   isHidden?: boolean;
@@ -77,6 +83,7 @@ export function createDefaultHeaderSettings({
     rowspan,
     origRowspan,
     collapsible,
+    splittable,
     isCollapsed,
     crossHiddenColumns,
     isHidden,
