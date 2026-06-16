@@ -275,6 +275,7 @@ Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`)
 ::: example #angular-laravel --code-only
 
 @[code](@/content/recipes/data-management/server-side-laravel/angular/example1.ts)
+@[code](@/content/recipes/data-management/server-side-laravel/angular/example1.html)
 
 :::
 
