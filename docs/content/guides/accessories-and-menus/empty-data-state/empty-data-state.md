@@ -25,20 +25,6 @@ Use the `EmptyDataState` plugin to display a contextual overlay when the grid ha
 
 [[toc]]
 
-## Prerequisites
-
-To use the Empty Data State plugin, import it from Handsontable:
-
-::: only-for javascript
-
-```js
-import Handsontable from 'handsontable';
-import 'handsontable/dist/handsontable.full.min.css';
-```
-
-:::
-
-To use the filter-aware empty state (which automatically detects when all rows are hidden by filters), also enable the [`Filters`](@/api/filters.md) plugin alongside `emptyDataState`.
 
 ## Overview
 
