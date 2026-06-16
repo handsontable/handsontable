@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1062: Border radius tokens — Released v17.1.0</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-cdn { background: #e3f2fd; color: #1565c0; }
+    .badge-local { background: #e8f5e9; color: #2e7d32; }
+    .info { background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
+    .info strong { color: #856404; }
+    .section { margin-bottom: 24px; }
+    .section h2 { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: #444; text-transform: uppercase; letter-spacing: 0.04em; }
+    .theme-row { display: flex; gap: 16px; flex-wrap: wrap; }
+    .theme-col { flex: 1; min-width: 300px; }
+    .theme-col h3 { font-size: 13px; color: #555; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1062: Wrapper border / border-radius theme tokens</h1>
+
+  <nav>
+    <span class="nav-label">Version:</span>
+    <span class="nav-btn active">Released <span class="badge badge-cdn">v17.1.0</span></span>
+    <a class="nav-btn" href="demo-dev1062-pr.html">PR Build <span class="badge badge-local">local</span></a>
+  </nav>
+
+  <div class="info">
+    <strong>What to check (released v17.1.0 — OLD tokens):</strong><br>
+    1. Each grid below uses the <em>old</em> token names: <code>--ht-wrapper-border-radius</code>, <code>--ht-wrapper-border-width</code>, <code>--ht-wrapper-border-color</code>.<br>
+    2. The "Border radius override" grid should show rounded corners (old token works).<br>
+    3. The "Wrapper border" grid should show a visible outer border (old token works).<br>
+    4. Compare with the <a href="demo-dev1062-pr.html">PR Build</a> — PR uses new tokens; old tokens no longer apply there.
+  </div>
+
+  <div class="section">
+    <h2>ht-theme-main — border-radius override (old: <code>--ht-wrapper-border-radius: 12px</code>)</h2>
+    <div id="hot-radius"></div>
+  </div>
+
+  <div class="section">
+    <h2>ht-theme-horizon — wrapper border override (old: <code>--ht-wrapper-border-width: 2px; --ht-wrapper-border-color: #e53e3e</code>)</h2>
+    <div id="hot-border"></div>
+  </div>
+
+  <div class="section">
+    <h2>ht-theme-main — no override (default appearance)</h2>
+    <div id="hot-default"></div>
+  </div>
+
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-horizon.min.css">
+
+  <style>
+    #hot-radius-wrap { --ht-wrapper-border-radius: 12px; }
+    #hot-border-wrap { --ht-wrapper-border-width: 2px; --ht-wrapper-border-color: #e53e3e; }
+  </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script>
+    const data = Handsontable.helper.createSpreadsheetData(8, 6);
+
+    // Grid 1: border-radius override using OLD token
+    const wrapRadius = document.createElement('div');
+    wrapRadius.id = 'hot-radius-wrap';
+    document.getElementById('hot-radius').appendChild(wrapRadius);
+    const containerRadius = document.createElement('div');
+    wrapRadius.appendChild(containerRadius);
+    window.hotRadius = new Handsontable(containerRadius, {
+      data,
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 280,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Grid 2: wrapper border using OLD tokens
+    const wrapBorder = document.createElement('div');
+    wrapBorder.id = 'hot-border-wrap';
+    document.getElementById('hot-border').appendChild(wrapBorder);
+    const containerBorder = document.createElement('div');
+    wrapBorder.appendChild(containerBorder);
+    window.hotBorder = new Handsontable(containerBorder, {
+      data,
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 280,
+      themeName: 'ht-theme-horizon',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Grid 3: default, no override
+    window.hotDefault = new Handsontable(document.getElementById('hot-default'), {
+      data,
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 280,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>
