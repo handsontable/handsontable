@@ -744,14 +744,16 @@ export class CollapsibleColumns extends BasePlugin {
   };
 
   /**
-   * Expands, before a column move runs, any collapsed group the move would split (it takes some but
-   * not all of the group's columns). Expanding while the group is still contiguous releases its
-   * columns through the normal expand path; otherwise they would stay hidden with no collapse
-   * indicator left to expand them. Hiding does not change visual indexes, so the pending move's
-   * coordinates stay valid. A move that keeps a group's columns together leaves it collapsed.
+   * Expands, before a column move runs, any collapsed group the move would split - whether by taking
+   * some (but not all) of the group's columns out, or by dropping an unrelated column into the middle
+   * of its span. Both leave the group's columns non-adjacent, which drops its collapse indicator while
+   * the columns stay hidden, with no control left to expand them. Expanding while the group is still
+   * contiguous releases its columns through the normal expand path; hiding does not change visual
+   * indexes, so the pending move's coordinates stay valid. A move that keeps a group's columns
+   * together (including moving the whole group) leaves it collapsed.
    *
    * @param {number[]} movedColumns Visual indexes of the columns being moved.
-   * @param {number} finalIndex The target visual index (unused).
+   * @param {number} finalIndex The visual index the moved columns will start at after the move.
    * @param {number|undefined} dropIndex The drop visual index (unused).
    * @param {boolean} movePossible Whether the move can be performed.
    */
@@ -763,18 +765,11 @@ export class CollapsibleColumns extends BasePlugin {
       return;
     }
 
-    const movedColumnsSet = new Set(movedColumns);
+    const projectedOrder = this.#projectColumnOrderAfterMove(movedColumns, finalIndex);
+    const positionByColumn = new Map(projectedOrder.map((visualColumn, position) => [visualColumn, position]));
 
     stateManager.getCollapsedGroups().forEach(({ headerLevel, columnIndex, origColspan }) => {
-      let movedFromGroup = 0;
-
-      for (let column = columnIndex; column < columnIndex + origColspan; column++) {
-        if (movedColumnsSet.has(column)) {
-          movedFromGroup += 1;
-        }
-      }
-
-      if (movedFromGroup > 0 && movedFromGroup < origColspan) {
+      if (this.#isGroupSplitByOrder(columnIndex, origColspan, positionByColumn)) {
         const row = stateManager.levelToRowCoords(headerLevel);
 
         if (row !== null) {
@@ -783,6 +778,54 @@ export class CollapsibleColumns extends BasePlugin {
       }
     });
   };
+
+  /**
+   * Projects the visual column order a pending move will produce, expressed in the current visual
+   * indexes. Mirrors the move itself: remove the moved columns, then re-insert them at `finalIndex`.
+   *
+   * @param {number[]} movedColumns Visual indexes of the columns being moved.
+   * @param {number} finalIndex The visual index the moved columns will start at after the move.
+   * @returns {number[]} The current visual indexes in their post-move order.
+   */
+  #projectColumnOrderAfterMove(movedColumns: number[], finalIndex: number): number[] {
+    const movedColumnsSet = new Set(movedColumns);
+    const remaining: number[] = [];
+
+    for (let column = 0, columnsCount = this.hot.countCols(); column < columnsCount; column++) {
+      if (!movedColumnsSet.has(column)) {
+        remaining.push(column);
+      }
+    }
+
+    return [...remaining.slice(0, finalIndex), ...movedColumns, ...remaining.slice(finalIndex)];
+  }
+
+  /**
+   * Reports whether a group's columns stop being adjacent in the projected post-move order. The group
+   * is split when its members no longer occupy one contiguous run of positions.
+   *
+   * @param {number} columnIndex The group's leftmost visual column index.
+   * @param {number} origColspan The group's column span.
+   * @param {Map<number, number>} positionByColumn Maps a current visual index to its post-move position.
+   * @returns {boolean} `true` when the move would split the group.
+   */
+  #isGroupSplitByOrder(columnIndex: number, origColspan: number, positionByColumn: Map<number, number>): boolean {
+    let minPosition = Infinity;
+    let maxPosition = -Infinity;
+    let memberCount = 0;
+
+    for (let column = columnIndex; column < columnIndex + origColspan; column++) {
+      const position = positionByColumn.get(column);
+
+      if (position !== undefined) {
+        minPosition = Math.min(minPosition, position);
+        maxPosition = Math.max(maxPosition, position);
+        memberCount += 1;
+      }
+    }
+
+    return memberCount > 0 && (maxPosition - minPosition) !== (memberCount - 1);
+  }
 
   /**
    * Adds the indicator to the headers.

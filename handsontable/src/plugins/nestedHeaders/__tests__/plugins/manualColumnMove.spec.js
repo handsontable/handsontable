@@ -304,6 +304,32 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
     expect(getCell(-2, 0).textContent).toBe('GA+');
   });
 
+  it('should release a collapsed group when an unrelated column is moved into the middle of its span (#4150)', async() => {
+    handsontable({
+      data: [['a1', 'a2', 'b1', 'b2', 'cc'], ['a1', 'a2', 'b1', 'b2', 'cc']],
+      colHeaders: true,
+      nestedHeaders: [
+        [{ label: 'GA', colspan: 2 }, { label: 'GB', colspan: 2 }, 'C'],
+        ['a1', 'a2', 'b1', 'b2', 'cc'],
+      ],
+      collapsibleColumns: true,
+      manualColumnMove: true,
+    });
+
+    getPlugin('collapsibleColumns').toggleCollapsibleSection([{ row: -2, col: 0 }], 'collapse');
+    await render();
+
+    expect(hot().columnIndexMapper.getRenderableIndexesLength()).toBe(4); // GA collapsed: a2 hidden
+
+    // Move "C" into the middle of collapsed GA (between a1 and a2). The move splits GA by insertion;
+    // without the pre-expand, a2 would stay hidden with no indicator left to restore it (unrecoverable).
+    getPlugin('manualColumnMove').moveColumn(4, 1);
+    await render();
+
+    expect(hot().columnIndexMapper.getRenderableIndexesLength()).toBe(5);
+    expect(getPlugin('collapsibleColumns').getCollapsedColumns()).toEqual([]);
+  });
+
   it('should preserve the column move and apply it to a new nestedHeaders config set via updateSettings (#4150)', async() => {
     handsontable({
       data: createSpreadsheetData(2, 4), // row 0: A1, B1, C1, D1
