@@ -39,6 +39,7 @@ Pass `--no-strict` (or set `STRICT=0`) to fall back to the **lenient** dual-vers
 
 ### Useful flags / env
 
+- `--skip-latest` / `SKIP_LATEST=1` — gate on the **current branch build only** (`../../handsontable/tmp`) and skip the `handsontable@latest` comparison entirely. This is what CI uses (`.github/workflows/docs-angular-typecheck.yml`): the workflow checks out and builds the branch under test (a feature branch, `develop`, etc.), so the examples are validated against that build — not the last published release. An example that uses an API added on this branch is therefore not failed for it, while real type errors on the current build still fail. The `handsontable@latest` dual-version classification stays available for local/manual runs (omit the flag) and for `--report`.
 - `--no-strict` / `STRICT=0` — disable strict mode and use the lenient dual-version rule above (version-specific errors become warnings + a neutral PR check instead of failing).
 - `node check.mjs --report` — skips the pass/fail gate and instead classifies every example as **PUBLIC** (type-checks against `handsontable@latest`), **DEV-ONLY** (passes on the local build, fails on latest), or **BROKEN** (fails on both). Always exits `0`.
 - `REFRESH_LATEST=1` — forces a fresh `handsontable@latest` install instead of reusing the cached one in `.latest/` (see "Dual-version checking" below).

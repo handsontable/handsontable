@@ -277,6 +277,63 @@ collapsibleColumns: [
 
 :::
 
+### Choose which columns stay visible when collapsed
+
+By default, collapsing a group leaves its first column visible. To choose which columns stay visible in each state, add the `visibleWhen` property to a header in the `nestedHeaders` configuration. It accepts three values:
+
+- `'collapsed'` - the column is visible only while its group is collapsed (hidden while expanded).
+- `'expanded'` - the column is visible only while its group is expanded (hidden while collapsed).
+- `'always'` - the column is visible in both states.
+
+Once a group uses `visibleWhen` on any of its headers, the headers you leave unmarked default to `'expanded'` - they are hidden when the group collapses. So you only mark the column(s) you want to keep: tag one with `'always'` (stays in both states) or `'collapsed'` (a summary column that appears only on collapse). At least one column of a group always stays visible, so its collapse button is never lost.
+
+In the example below, collapse the **Q1 2025** group: the per-month columns (marked `'expanded'`) hide and the **Total** column (`'collapsed'`) appears. Expanding the group reverses it.
+
+::: only-for javascript
+
+::: example #example3 --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-groups/javascript/example3.js)
+@[code](@/content/guides/columns/column-groups/javascript/example3.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example3 :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-groups/react/example3.jsx)
+@[code](@/content/guides/columns/column-groups/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-groups/angular/example3.ts)
+@[code](@/content/guides/columns/column-groups/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/columns/column-groups/vue/example3.vue)
+
+:::
+
+:::
+
+A group whose headers use no `visibleWhen` markers keeps the default behavior - collapsing leaves its first column visible. The `visibleWhen` property applies only to headers within a [`collapsible`](@/api/options.md#collapsiblecolumns) group.
+
 ## Known limitations
 
 - A column header can span up to 1000 columns, as the [HTML table specification](https://html.spec.whatwg.org/multipage/tables.html#dom-tdth-colspan) sets the

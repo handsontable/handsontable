@@ -3,6 +3,8 @@ import SourceSettings from './sourceSettings';
 import type { HeaderNodeData } from './headersTree';
 import HeadersTree from './headersTree';
 import { triggerNodeModification } from './nodeModifiers';
+import type { NodeModificationResult } from './nodeModifiers';
+import { isDeclarativeGroup } from './nodeModifiers/utils/tree';
 import { generateMatrix } from './matrixGenerator';
 import { syncVisibilityOnTree } from './syncVisibility';
 import type { ColumnVisibility } from './columnVisibility';
@@ -239,7 +241,7 @@ export default class StateManager {
    */
   triggerNodeModification(
     action: string, headerLevel: number, columnIndex: number
-  ): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } | undefined {
+  ): NodeModificationResult | undefined {
     if (headerLevel < 0) {
       headerLevel = this.rowCoordsToLevel(headerLevel) ?? 0;
     }
@@ -265,7 +267,7 @@ export default class StateManager {
    */
   triggerColumnModification(
     action: string, columnIndex: number
-  ): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } | undefined {
+  ): NodeModificationResult | undefined {
     return this.triggerNodeModification(action, -1, columnIndex);
   }
 
@@ -548,6 +550,70 @@ export default class StateManager {
    */
   getColumnsCount() {
     return this.#sourceSettings.getColumnsCount();
+  }
+
+  /**
+   * Computes the visual column indexes that should be hidden purely by the `visibleWhen` rules of
+   * declarative collapsible groups (issue #10243), given each group's current `isCollapsed` state.
+   *
+   * A group is "declarative" when at least one of its direct children declares an explicit
+   * `visibleWhen` ('collapsed', 'expanded', or 'always'); legacy groups (no markers) are left to the
+   * regular first-visible-child collapse path and are skipped here. Within a declarative group a child
+   * with no marker defaults to `'expanded'` - it is hidden when the group collapses, matching the
+   * default collapse behavior; `'always'` is the explicit opt-in for staying visible in both states.
+   * Only `collapsible` groups are considered. At least one column per group always stays visible so the
+   * group's collapse indicator survives. The result is a pure function of the tree shape, the markers,
+   * and the `isCollapsed` flags, so it stays correct across tree rebuilds.
+   *
+   * @returns {number[]} Visual column indexes to hide.
+   */
+  getVisibleWhenHiddenColumns(): number[] {
+    const columnsToHide: number[] = [];
+
+    this.#headersTree.getRoots().forEach((rootNode) => {
+      rootNode.walkDown((node) => {
+        const childNodes = node.childs;
+
+        if (node.data.collapsible !== true || childNodes.length === 0) {
+          return;
+        }
+
+        // Only declarative groups (at least one explicit `visibleWhen` marker) are handled here;
+        // legacy groups keep the first-visible-child collapse path. The predicate lives in one place
+        // so this computation and the collapse/expand modifiers agree on what "declarative" means.
+        if (!isDeclarativeGroup(node)) {
+          return;
+        }
+
+        const isGroupCollapsed = node.data.isCollapsed === true;
+        const childrenToHide = childNodes.filter((childNode) => {
+          // An unset child defaults to 'expanded' (hidden on collapse).
+          const visibility = childNode.data.visibleWhen ?? 'expanded';
+
+          return (visibility === 'expanded' && isGroupCollapsed) ||
+            (visibility === 'collapsed' && !isGroupCollapsed);
+        });
+
+        // Never hide every column of the group through `visibleWhen` - the collapse indicator renders
+        // on the group's first visible column, so keep the first child visible when a (mis)configuration
+        // would otherwise blank the whole group and leave no way to expand it back. Known limitation:
+        // if that kept column is independently hidden by another source (HiddenColumns or trimming) the
+        // indicator can still be lost. Reading the external hidden state here is avoided on purpose -
+        // this set feeds the hiding map that syncVisibility consumes, so a node's `isHidden` flag
+        // already carries this set's own previous effect and cannot be trusted as an external-only signal.
+        if (childrenToHide.length === childNodes.length) {
+          childrenToHide.shift();
+        }
+
+        childrenToHide.forEach(({ data: { columnIndex, origColspan } }) => {
+          for (let i = 0; i < origColspan; i++) {
+            columnsToHide.push(columnIndex + i);
+          }
+        });
+      });
+    });
+
+    return columnsToHide;
   }
 
   /**

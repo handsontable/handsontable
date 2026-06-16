@@ -900,4 +900,99 @@ describe('StateManager', () => {
       expect(state.getColumnsCount()).toBe(0);
     });
   });
+
+  describe('getVisibleWhenHiddenColumns (issue #10243)', () => {
+    /**
+     * Builds a StateManager with the given nested headers and marks every multi-column header as
+     * collapsible (mirrors what the CollapsibleColumns plugin does on update).
+     *
+     * @param {Array[]} nestedHeaders The nested headers settings.
+     * @returns {StateManager}
+     */
+    function buildCollapsibleState(nestedHeaders) {
+      const state = new StateManager();
+
+      state.setState(nestedHeaders);
+      state.mapState(headerSettings => ({ collapsible: Number(headerSettings.origColspan) > 1 }));
+
+      return state;
+    }
+
+    it('should hide a "collapsed"-only column while the group is expanded', () => {
+      const state = buildCollapsibleState([
+        ['A', { label: 'Group B', colspan: 4 }, 'C'],
+        ['A',
+          { label: 'B1', visibleWhen: 'expanded' },
+          { label: 'B2', visibleWhen: 'expanded' },
+          { label: 'B3', visibleWhen: 'expanded' },
+          { label: 'Total', visibleWhen: 'collapsed' },
+          'C'],
+      ]);
+
+      // Group expanded by default: only the collapsed-only "Total" column (index 4) is hidden.
+      expect(state.getVisibleWhenHiddenColumns()).toEqual([4]);
+    });
+
+    it('should hide the "expanded" children and keep the chosen column once collapsed', () => {
+      const state = buildCollapsibleState([
+        ['A', { label: 'Group B', colspan: 4 }, 'C'],
+        ['A',
+          { label: 'B1', visibleWhen: 'expanded' },
+          { label: 'B2', visibleWhen: 'expanded' },
+          { label: 'B3', visibleWhen: 'always' },
+          { label: 'B4', visibleWhen: 'expanded' },
+          'C'],
+      ]);
+
+      expect(state.getVisibleWhenHiddenColumns()).toEqual([]);
+
+      state.triggerNodeModification('collapse', 0, 1);
+
+      // Once collapsed, the "expanded" children (B1, B2, B4 -> columns 1, 2, 4) hide; B3 stays.
+      expect(state.getVisibleWhenHiddenColumns().slice().sort((a, b) => a - b)).toEqual([1, 2, 4]);
+    });
+
+    it('should return an empty list for a legacy group without any markers', () => {
+      const state = buildCollapsibleState([
+        ['A', { label: 'Group B', colspan: 4 }, 'C'],
+        ['A', 'B1', 'B2', 'B3', 'B4', 'C'],
+      ]);
+
+      state.triggerNodeModification('collapse', 0, 1);
+
+      // No `visibleWhen` markers -> the legacy first-child collapse path owns visibility, not this one.
+      expect(state.getVisibleWhenHiddenColumns()).toEqual([]);
+    });
+
+    it('should hide unset siblings (default "expanded") and keep an explicit "always" column on collapse', () => {
+      const state = buildCollapsibleState([
+        ['A', { label: 'Group B', colspan: 4 }, 'C'],
+        ['A', 'B1', 'B2', { label: 'B3', visibleWhen: 'always' }, 'B4', 'C'],
+      ]);
+
+      // A single explicit marker makes the group declarative; unmarked siblings default to 'expanded'.
+      state.triggerNodeModification('collapse', 0, 1);
+
+      // B1, B2, B4 (unset -> 'expanded' -> columns 1, 2, 4) hide; B3 ('always') stays.
+      expect(state.getVisibleWhenHiddenColumns().slice().sort((a, b) => a - b)).toEqual([1, 2, 4]);
+    });
+
+    it('should keep the first column visible when every column would be hidden on collapse', () => {
+      const state = buildCollapsibleState([
+        ['A', { label: 'Group B', colspan: 4 }, 'C'],
+        ['A',
+          { label: 'B1', visibleWhen: 'expanded' },
+          { label: 'B2', visibleWhen: 'expanded' },
+          { label: 'B3', visibleWhen: 'expanded' },
+          { label: 'B4', visibleWhen: 'expanded' },
+          'C'],
+      ]);
+
+      state.triggerNodeModification('collapse', 0, 1);
+
+      // All four are 'expanded' (hidden on collapse); the guard keeps the first (B1), hiding only 2, 3, 4
+      // so the group's collapse indicator is never lost.
+      expect(state.getVisibleWhenHiddenColumns().slice().sort((a, b) => a - b)).toEqual([2, 3, 4]);
+    });
+  });
 });

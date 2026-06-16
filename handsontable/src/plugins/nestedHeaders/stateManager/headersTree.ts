@@ -1,6 +1,7 @@
 import { arrayEach } from '../../../helpers/array';
 import TreeNode from '../../../utils/dataStructures/tree';
 import { createDefaultHeaderSettings } from './utils';
+import type { HeaderVisibility } from './utils';
 import type SourceSettings from './sourceSettings';
 
 /**
@@ -20,6 +21,11 @@ export interface HeaderSettings {
   isPlaceholder: boolean;
   isRowspanPlaceholder?: boolean;
   headerClassNames: string[];
+  /**
+   * Explicit per-header collapse-visibility marker. Unset means the header follows the default
+   * ('expanded' - hidden when its group collapses) within a group that uses `visibleWhen`.
+   */
+  visibleWhen?: HeaderVisibility;
   [key: string]: unknown;
 }
 

@@ -2,11 +2,13 @@ import { arrayEach } from '../../../../helpers/array';
 import { collapseNode } from './collapse';
 import {
   getFirstChildProperty,
+  isDeclarativeGroup,
   isNodeReflectsFirstChildColspan,
   traverseExposedColumnIndexes,
 } from './utils/tree';
 import type TreeNode from '../../../../utils/dataStructures/tree';
 import type { HeaderNodeData } from '../headersTree';
+import type { NodeModificationResult } from './index';
 
 /**
  * Expanding a node is a process where the processing node is expanded to
@@ -17,12 +19,25 @@ import type { HeaderNodeData } from '../headersTree';
  */
 export function expandNode(
   nodeToProcess: TreeNode<HeaderNodeData>
-): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } {
+): NodeModificationResult {
   const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
   if (!nodeData.isCollapsed || nodeData.isHidden || nodeData.origColspan <= 1) {
     return {
       rollbackModification: () => {},
+      affectedColumns: [],
+      colspanCompensation: 0,
+    };
+  }
+
+  // Declarative groups (issue #10243) only flip `isCollapsed` back; the columns to show/hide are
+  // re-derived from the `visibleWhen` markers and applied through the CollapsibleColumns hiding map.
+  // Mirrors the declarative branch in collapseNode.
+  if (isDeclarativeGroup(nodeToProcess)) {
+    nodeData.isCollapsed = false;
+
+    return {
+      rollbackModification: () => collapseNode(nodeToProcess),
       affectedColumns: [],
       colspanCompensation: 0,
     };
@@ -40,7 +55,7 @@ export function expandNode(
   // cloned tree. Mirrors the "first visible child" selection done in collapseNode, so children
   // hidden by an external source (or by their own collapse) are left untouched.
   const childsToRestore = nodeChilds.filter(({ data }) => data.clonedTree);
-  const affectedColumns = new Set();
+  const affectedColumns = new Set<number>();
   let colspanCompensation = 0;
 
   if (childsToRestore.length > 0) {
