@@ -707,19 +707,29 @@ export default defineConfig({
         },
         // ── All-environment 3rd-party scripts ──────────────────────────────
         // Sentry: filter out expected demo errors before the Loader Script auto-inits.
-        // The server-side data recipes (/recipes/data-management/server-side-*) run their
-        // examples live, but the docs site has no `/api/products` backend, so the example
-        // `fetchRows()` correctly throws `HTTP <status>` (e.g. 404). That is expected here
-        // (not a product bug), so drop those events instead of reporting them.
         // `window.sentryOnLoad` is the Loader Script's documented custom-config hook — the
         // DSN and any dashboard-enabled integrations (Performance/Replay) are applied
         // automatically, so adding `beforeSend` does not disturb the rest of the setup.
+        //
+        // Two classes of expected errors are dropped:
+        //
+        //   1. HTTP <status> errors from server-side data recipe examples.
+        //      The docs site has no `/api/products` backend, so fetchRows() correctly
+        //      throws `HTTP <status>` (e.g. 404) on those pages. That is expected here,
+        //      not a product bug.
+        //
+        //   2. Errors thrown by Handsontable's throwWithCause() helper.
+        //      All such errors carry `error.cause.handsontable` (set to `true` today,
+        //      but the check only tests for presence so any truthy value works). These
+        //      are intentional developer-feedback errors (e.g. ColumnSummary data-type
+        //      errors in demo examples) and should not be forwarded to Sentry.
         {
           tag: 'script',
           content: `window.sentryOnLoad = function () {
   Sentry.init({
-    beforeSend: function (event) {
+    beforeSend: function (event, hint) {
       try {
+        // Drop HTTP <status> errors from server-side data recipe pages.
         var values = (event.exception && event.exception.values) || [];
         var isDemoHttpError = values.some(function (value) {
           return value && typeof value.value === 'string' && /^HTTP \\d{3}$/.test(value.value);
@@ -727,6 +737,15 @@ export default defineConfig({
         var url = (event.request && event.request.url) || '';
 
         if (isDemoHttpError && url.indexOf('/recipes/data-management/server-side') !== -1) {
+          return null;
+        }
+
+        // Drop errors thrown by Handsontable's throwWithCause() helper.
+        // error.cause.handsontable is currently true but may become an object,
+        // so only check that the property is present.
+        var error = hint && hint.originalException;
+
+        if (error && error.cause && 'handsontable' in error.cause) {
           return null;
         }
       } catch (e) {

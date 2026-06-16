@@ -22,7 +22,7 @@ import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/a
 export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
-  readonly hotData = [[0, 1, 2], [3, 4, 5], [], []];
+  readonly hotData = [[0, 1, 2], ['3c', '4b', 5], [], []];
 
   readonly hotSettings: GridSettings = {
     colHeaders: true,
