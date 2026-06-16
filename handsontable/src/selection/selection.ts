@@ -1,6 +1,7 @@
 import type { default as CellCoords } from '../3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from '../3rdparty/walkontable/src/cell/range';
 import type { SelectionFocusPosition, SelectionSettings, SelectionTableProps } from './types';
+import type { IndexMapper } from '../translations';
 import Highlight, {
   AREA_TYPE,
   HEADER_TYPE,
@@ -32,6 +33,28 @@ function isFocusPositionObject(value: unknown): value is { row: number; col: num
   return typeof value === 'object' && value !== null
     && Number.isInteger((value as { row?: unknown }).row)
     && Number.isInteger((value as { col?: unknown }).col);
+}
+
+/**
+ * Snaps a shifted index to the nearest non-hidden index. Used after a selection shift so a
+ * single-line selection does not land on a hidden (non-rendered) row or column. Snapping is
+ * limited to single-line selections - a wider range legitimately keeps hidden indexes within its
+ * bounds (they stay part of copy/fill ranges), so its corners are returned unchanged. Headers
+ * (negative indexes) are returned unchanged as well.
+ *
+ * @param {IndexMapper} indexMapper The row or column index mapper to query for visibility.
+ * @param {number} index The shifted visual index to snap.
+ * @param {boolean} isSingleLine Whether the selection spans a single row/column on this axis.
+ * @returns {number}
+ */
+function snapToNearestVisible(indexMapper: IndexMapper, index: number, isSingleLine: boolean): number {
+  if (!isSingleLine || index < 0) {
+    return index;
+  }
+
+  const nearestIndex = indexMapper.getNearestNotHiddenIndex(index, 1, true);
+
+  return nearestIndex === null ? index : nearestIndex;
 }
 
 /**
@@ -789,16 +812,23 @@ class Selection {
       const minRow = isSelectedByColumnHeader ? -1 : 0;
       const coordsStartAmount = isSelectedByColumnHeader ? 0 : amount;
 
+      // After shifting, a single-row selection can land on a row that is hidden (e.g. removing a
+      // row next to a hidden one), leaving the highlight on a non-rendered row. Snap it to the
+      // nearest visible row (see snapToNearestVisible for the single-line scoping rationale).
+      const isSingleRow = from.row === to.row;
+      const clampToVisibleRow = (visualRow: number): number =>
+        snapToNearestVisible(this.tableProps.rowIndexMapper, visualRow, isSingleRow);
+
       // Remove from the stack the last added selection as that selection below will be
       // replaced by new transformed selection.
       this.getSelectedRange().pop();
 
       const coordsStart = this.tableProps.createCellCoords(
-        clamp((from.row ?? 0) + coordsStartAmount, minRow, countRows - 1),
+        clampToVisibleRow(clamp((from.row ?? 0) + coordsStartAmount, minRow, countRows - 1)),
         from.col ?? 0
       );
       const coordsEnd = this.tableProps.createCellCoords(
-        clamp((to.row ?? 0) + amount, minRow, countRows - 1),
+        clampToVisibleRow(clamp((to.row ?? 0) + amount, minRow, countRows - 1)),
         to.col ?? 0
       );
 
@@ -806,7 +836,7 @@ class Selection {
 
       if ((highlight.row ?? 0) >= visualRowIndex) {
         this.setRangeStartOnly(coordsStart, true, this.tableProps.createCellCoords(
-          clamp((highlight.row ?? 0) + amount, 0, countRows - 1),
+          clampToVisibleRow(clamp((highlight.row ?? 0) + amount, 0, countRows - 1)),
           highlight.col ?? 0
         ));
 
@@ -853,17 +883,24 @@ class Selection {
       const minColumn = isSelectedByRowHeader ? -1 : 0;
       const coordsStartAmount = isSelectedByRowHeader ? 0 : amount;
 
+      // After shifting, a single-column selection can land on a column that is hidden (e.g. removing
+      // a column next to a hidden one), leaving the highlight on a non-rendered column. Snap it to
+      // the nearest visible column (see snapToNearestVisible for the single-line scoping rationale).
+      const isSingleColumn = from.col === to.col;
+      const clampToVisibleColumn = (visualColumn: number): number =>
+        snapToNearestVisible(this.tableProps.columnIndexMapper, visualColumn, isSingleColumn);
+
       // Remove from the stack the last added selection as that selection below will be
       // replaced by new transformed selection.
       this.getSelectedRange().pop();
 
       const coordsStart = this.tableProps.createCellCoords(
         from.row ?? 0,
-        clamp((from.col ?? 0) + coordsStartAmount, minColumn, countCols - 1)
+        clampToVisibleColumn(clamp((from.col ?? 0) + coordsStartAmount, minColumn, countCols - 1))
       );
       const coordsEnd = this.tableProps.createCellCoords(
         to.row ?? 0,
-        clamp((to.col ?? 0) + amount, minColumn, countCols - 1)
+        clampToVisibleColumn(clamp((to.col ?? 0) + amount, minColumn, countCols - 1))
       );
 
       this.markSource('shift');
@@ -871,7 +908,7 @@ class Selection {
       if ((highlight.col ?? 0) >= visualColumnIndex) {
         this.setRangeStartOnly(coordsStart, true, this.tableProps.createCellCoords(
           highlight.row ?? 0,
-          clamp((highlight.col ?? 0) + amount, 0, countCols - 1)
+          clampToVisibleColumn(clamp((highlight.col ?? 0) + amount, 0, countCols - 1))
         ));
 
       } else {

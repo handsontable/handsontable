@@ -446,7 +446,7 @@ describe('NodeModifiers', () => {
 
         // B2
         expect(triggerNodeModification('collapse', tree.getNode(1, 1))).toEqual(expect.objectContaining({
-          affectedColumns: [5, 7, 6, 8],
+          affectedColumns: [5, 6, 7, 8],
           colspanCompensation: 4,
         }));
         expect(tree).toBeMatchToHeadersStructure(`
@@ -500,6 +500,31 @@ describe('NodeModifiers', () => {
           | A5 | B5 | J5 | K5 |
           +----+----+----+----+
           `);
+      });
+    });
+
+    describe('a group whose extra child is already hidden by an external source (DEV-294)', () => {
+      it('should record the collapse and claim the already-hidden column', () => {
+        const tree = createTree([
+          [{ label: 'B', colspan: 2 }, 'D'],
+          ['B', 'C', 'D'],
+        ]);
+
+        tree.buildTree();
+
+        // Simulate column C (visual index 1) hidden by an external source (e.g. HiddenColumns):
+        // its leaf is hidden and the parent group's colspan is reduced accordingly.
+        tree.getNode(1, 1).data.isHidden = true;
+        tree.getNode(0, 0).data.colspan = 1;
+
+        // The group has nothing visible left to hide, but the collapse must still be recorded: it
+        // claims C (so the collapse "owns" it) and sets `isCollapsed`. The colspan does not change
+        // because C was already out of it.
+        expect(triggerNodeModification('collapse', tree.getNode(0, 0))).toEqual(expect.objectContaining({
+          affectedColumns: [1],
+          colspanCompensation: 0,
+        }));
+        expect(tree.getNode(0, 0).data.isCollapsed).toBe(true);
       });
     });
   });

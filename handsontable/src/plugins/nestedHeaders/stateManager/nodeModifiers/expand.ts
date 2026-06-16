@@ -2,11 +2,13 @@ import { arrayEach } from '../../../../helpers/array';
 import { collapseNode } from './collapse';
 import {
   getFirstChildProperty,
+  isDeclarativeGroup,
   isNodeReflectsFirstChildColspan,
-  traverseHiddenNodeColumnIndexes,
+  traverseExposedColumnIndexes,
 } from './utils/tree';
 import type TreeNode from '../../../../utils/dataStructures/tree';
 import type { HeaderNodeData } from '../headersTree';
+import type { NodeModificationResult } from './index';
 
 /**
  * Expanding a node is a process where the processing node is expanded to
@@ -16,8 +18,8 @@ import type { HeaderNodeData } from '../headersTree';
  * @returns {object} Returns an object with properties.
  */
 export function expandNode(
-  nodeToProcess: { data: HeaderNodeData, childs: TreeNode[] }
-): { rollbackModification: Function, affectedColumns: unknown[], colspanCompensation: number } {
+  nodeToProcess: TreeNode<HeaderNodeData>
+): NodeModificationResult {
   const { data: nodeData, childs: nodeChilds } = nodeToProcess;
 
   if (!nodeData.isCollapsed || nodeData.isHidden || nodeData.origColspan <= 1) {
@@ -28,40 +30,61 @@ export function expandNode(
     };
   }
 
-  type NodeWithData = { data: Record<string, unknown>, childs: { data: Record<string, unknown> }[] };
-  const isNodeReflected = isNodeReflectsFirstChildColspan(nodeToProcess as NodeWithData);
+  // Declarative groups (issue #10243) only flip `isCollapsed` back; the columns to show/hide are
+  // re-derived from the `visibleWhen` markers and applied through the CollapsibleColumns hiding map.
+  // Mirrors the declarative branch in collapseNode.
+  if (isDeclarativeGroup(nodeToProcess)) {
+    nodeData.isCollapsed = false;
+
+    return {
+      rollbackModification: () => collapseNode(nodeToProcess),
+      affectedColumns: [],
+      colspanCompensation: 0,
+    };
+  }
+
+  const isNodeReflected = isNodeReflectsFirstChildColspan(nodeToProcess);
 
   if (isNodeReflected) {
-    return expandNode(nodeChilds[0] as unknown as { data: HeaderNodeData, childs: TreeNode[] });
+    return expandNode(nodeChilds[0]);
   }
 
   nodeData.isCollapsed = false;
 
-  const allLeavesExceptMostLeft = nodeChilds.slice(1);
-  const affectedColumns = new Set();
+  // Restore exactly the children that this node's collapse hid - they are the ones carrying a
+  // cloned tree. Mirrors the "first visible child" selection done in collapseNode, so children
+  // hidden by an external source (or by their own collapse) are left untouched.
+  const childsToRestore = nodeChilds.filter(({ data }) => data.clonedTree);
+  const affectedColumns = new Set<number>();
   let colspanCompensation = 0;
 
-  if (allLeavesExceptMostLeft.length > 0) {
-    arrayEach(allLeavesExceptMostLeft, (node) => {
-      const treeNode = node as TreeNode;
+  if (childsToRestore.length > 0) {
+    arrayEach(childsToRestore, (treeNode) => {
+      // Restore original state of the collapsed headers. `replaceTreeWith` swaps in a fresh
+      // `data` object, so read the restored colspan from `treeNode.data` *after* the replace -
+      // the pre-replace reference still points at the (possibly hidden, colspan 0) old data.
+      // `childsToRestore` is filtered to nodes that carry a cloned tree, so it is never null here.
+      const clonedTree = treeNode.data.clonedTree!;
 
-      // Restore original state of the collapsed headers.
-      const treeNodeData = treeNode.data as HeaderNodeData;
+      treeNode.replaceTreeWith(clonedTree);
 
-      treeNode.replaceTreeWith(treeNodeData.clonedTree as TreeNode);
-      treeNodeData.clonedTree = null;
+      const leafData = treeNode.data;
 
-      const leafData = treeNodeData;
+      leafData.clonedTree = null;
 
       // Calculate by how many colspan it needs to increase the headings.
       colspanCompensation += leafData.colspan;
 
-      traverseHiddenNodeColumnIndexes(treeNode, (gridColumnIndex: number) => {
+      // Release exactly the columns this child exposes, mirroring the claim in collapseNode. The
+      // restored subtree carries its inner `isCollapsed` flags, so columns owned by a nested
+      // collapse are left hidden while the ones this collapse owned (visible or externally hidden)
+      // are handed back.
+      traverseExposedColumnIndexes(treeNode, (gridColumnIndex: number) => {
         affectedColumns.add(gridColumnIndex);
       });
     });
 
-  } else {
+  } else if (nodeChilds.length === 0) {
     const {
       colspan,
       origColspan,
@@ -77,8 +100,8 @@ export function expandNode(
     }
   }
 
-  (nodeToProcess as unknown as TreeNode).walkUp((node: TreeNode) => {
-    const data = node.data as HeaderNodeData;
+  nodeToProcess.walkUp((node) => {
+    const { data } = node;
 
     data.colspan += colspanCompensation;
 
@@ -86,9 +109,8 @@ export function expandNode(
       data.colspan = data.origColspan;
       data.isCollapsed = false;
 
-    } else if (isNodeReflectsFirstChildColspan(node as NodeWithData)) {
-      type NodeWithChilds = { childs: { data: Record<string, unknown> }[] };
-      data.isCollapsed = getFirstChildProperty(node as NodeWithChilds, 'isCollapsed') as boolean;
+    } else if (isNodeReflectsFirstChildColspan(node)) {
+      data.isCollapsed = getFirstChildProperty(node, 'isCollapsed') as boolean;
     }
   });
 

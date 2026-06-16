@@ -12,10 +12,47 @@ import {
 } from '../../selection';
 import { BasePlugin } from '../base';
 import StateManager from './stateManager';
+import { createColumnVisibilityAdapter } from './stateManager/columnVisibility';
 import type { HeaderNodeData } from './stateManager/headersTree';
+import type { HeaderVisibility } from './stateManager/utils';
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 import GhostTable from './utils/ghostTable';
 import { resolveRowspanNavigationContextRow } from './utils/navigation';
+
+/**
+ * A single configured nested header. Declares the header label and how it spans and behaves.
+ */
+export interface NestedHeaderSettings {
+  /**
+   * The header label.
+   */
+  label?: string;
+  /**
+   * The number of columns the header spans.
+   */
+  colspan?: number;
+  /**
+   * The number of header rows the header spans.
+   */
+  rowspan?: number;
+  /**
+   * CSS class name(s) added to the header element.
+   */
+  headerClassName?: string;
+  /**
+   * For a header inside a collapsible group, sets in which collapse state it (and its columns) stays
+   * visible: `'collapsed'` (only while collapsed), `'expanded'` (only while expanded), or `'always'`
+   * (both states). When omitted, the header defaults to `'expanded'` - hidden when the group collapses.
+   * See the `CollapsibleColumns` plugin.
+   */
+  visibleWhen?: HeaderVisibility;
+  [key: string]: unknown;
+}
+
+/**
+ * A single cell in the `nestedHeaders` configuration: a plain label or a configured header object.
+ */
+export type NestedHeader = string | number | NestedHeaderSettings;
 
 export const PLUGIN_KEY = 'nestedHeaders';
 export const PLUGIN_PRIORITY = 280;
@@ -114,9 +151,26 @@ export class NestedHeaders extends BasePlugin {
    */
   #stateManager = new StateManager();
   /**
-   * Observer that synchronizes column hiding state with the nested headers visibility.
+   * Handler bound to columnIndexMapper's cacheUpdated local hook. Keeps header colspan state
+   * in sync with the current hiding map whenever visibility or column order changes.
    */
-  #hidingIndexMapObserver: { unsubscribe: () => void } | null = null;
+  #onColumnIndexMapperCacheUpdated = ({ hiddenIndexesChanged }: { hiddenIndexesChanged: boolean }) => {
+    if (!this.enabled) {
+      return;
+    }
+
+    // syncVisibility must run on every cache update (including a pure column move) so the tree's
+    // colspan / isHidden stay aligned with the current visual<->physical mapping (DEV-1717).
+    this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
+
+    // Rebuilding the ghost table to re-measure widths is expensive (it builds and measures a
+    // detached DOM table). Only column visibility changes can alter the measured widths, so skip
+    // the rebuild on pure sequence changes (e.g. manualColumnMove) - the widths map is keyed by
+    // physical column and a move does not change them.
+    if (hiddenIndexesChanged) {
+      this.ghostTable.buildWidthsMap();
+    }
+  };
   /**
    * Stores the initial focus coordinates before a column header click initiates a range selection.
    */
@@ -188,6 +242,8 @@ export class NestedHeaders extends BasePlugin {
 
     this.addHook('init', this.#onInit);
     this.addHook('afterLoadData', this.#onAfterLoadData);
+    this.addHook('afterCreateCol', this.#onAfterCreateCol);
+    this.addHook('afterRemoveCol', this.#onAfterRemoveCol);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
     this.addHook('afterOnCellMouseDown', this.#onAfterOnCellMouseDown);
     this.addHook('beforeOnCellMouseOver', this.#onBeforeOnCellMouseOver);
@@ -207,9 +263,11 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
     this.addHook('afterViewportColumnCalculatorOverride', this.#onAfterViewportColumnCalculatorOverride);
     this.addHook('modifyFocusedElement', this.#onModifyFocusedElement);
+    // Sync the header tree's hidden state from the hiding map *before* the focus highlight is
+    // repositioned, so #updateFocusHighlightPosition reads up-to-date colspan / isHidden values.
+    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onColumnIndexMapperCacheUpdated);
     this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
     this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#updateFocusHighlightPosition);
-    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onColumnIndexMapperCacheUpdated);
 
     super.enablePlugin();
     this.updatePlugin();
@@ -249,35 +307,10 @@ export class NestedHeaders extends BasePlugin {
     }
 
     if (this.enabled) {
-      // This line covers the case when a developer uses the external hiding maps to manipulate
-      // the columns' visibility. The tree state built from the settings - which is always built
-      // as if all the columns are visible, needs to be modified to be in sync with a dataset.
-      this.#syncHiddenColumnsFromMapper();
-    }
-
-    if (!this.#hidingIndexMapObserver && this.enabled) {
-      this.#hidingIndexMapObserver = this.hot.columnIndexMapper
-        .createChangesObserver('hiding')
-        .subscribe((changes: { op: string, index: number, newValue: boolean }[]) => {
-          changes.forEach(({ op, index: physicalColumnIndex, newValue }) => {
-            if (op !== 'replace') {
-              return;
-            }
-
-            const visualColumnIndex = this.hot.columnIndexMapper
-              .getVisualFromPhysicalIndex(physicalColumnIndex);
-
-            if (visualColumnIndex === null) {
-              return;
-            }
-
-            const actionName = newValue === true ? 'hide-column' : 'show-column';
-
-            this.#stateManager.triggerColumnModification(actionName, visualColumnIndex);
-          });
-
-          this.ghostTable.buildWidthsMap();
-        });
+      // Derive tree colspan / isHidden state from the current hiding map. This covers columns
+      // that were already hidden before the plugin initialised (e.g. HiddenColumns configured
+      // together with nestedHeaders). Future changes are handled by #onColumnIndexMapperCacheUpdated.
+      this.#stateManager.syncVisibility(createColumnVisibilityAdapter(this.hot));
     }
 
     this.#updateWidthsMap = true;
@@ -301,8 +334,6 @@ export class NestedHeaders extends BasePlugin {
     this.#rowspanHeaderNavigationContextRow = null;
     this.#expectedNextKeyboardHighlightCoords = null;
     removeClass(this.hot.rootElement, 'htHasRowspanHeaders');
-    this.#hidingIndexMapObserver?.unsubscribe();
-    this.#hidingIndexMapObserver = null;
     this.ghostTable.clear();
 
     super.disablePlugin();
@@ -438,6 +469,16 @@ export class NestedHeaders extends BasePlugin {
         (colIndex: number, level: number) => this.getColumnHeaderValue(colIndex, level),
         headerLevel,
       );
+
+      // The hidden-column indicator added by HiddenColumns must appear only on the header closest
+      // to the cells (the one whose bottom edge reaches the last header row). Upper-level headers -
+      // group parents, or single-column headers stacked above - would point at an internal or
+      // duplicated boundary, so strip the indicator from every header that does not touch the cells.
+      const reachesCells = headerLevel + (rowspan ?? 1) === this.getLayersCount();
+
+      if (!reachesCells) {
+        removeClass(TH, ['beforeHiddenColumn', 'afterHiddenColumn']);
+      }
 
       if (!isPlaceholder && !isHidden && !isRowspanPlaceholder) {
         const innerHeaderDiv = TH.querySelector('div.relative') as HTMLElement;
@@ -1318,48 +1359,6 @@ export class NestedHeaders extends BasePlugin {
   };
 
   /**
-   * Synchronizes the nested-headers tree hide state with the column index mapper.
-   * The hiding map is indexed by physical column; the state manager operates on
-   * visual column indexes. The mapping between the two can change at runtime when
-   * columns are moved, so this method walks all currently-known physical indexes,
-   * translates each to its visual position, and applies the matching hide/show
-   * action on the tree.
-   */
-  #syncHiddenColumnsFromMapper() {
-    const { columnIndexMapper } = this.hot;
-
-    columnIndexMapper
-      .hidingMapsCollection
-      .getMergedValues()
-      .forEach((isColumnHidden: unknown, physicalColumnIndex: number) => {
-        const visualColumnIndex = columnIndexMapper.getVisualFromPhysicalIndex(physicalColumnIndex);
-
-        if (visualColumnIndex === null) {
-          return;
-        }
-
-        const actionName = isColumnHidden === true ? 'hide-column' : 'show-column';
-
-        this.#stateManager.triggerColumnModification(actionName, visualColumnIndex);
-      });
-  }
-
-  /**
-   * Re-syncs the nested-headers hide state when the column index mapper reports
-   * a sequence change (for example, after `manualColumnMove`). The "hiding" change
-   * observer only fires on hidden/visible value changes, so a move that does not
-   * change which physical columns are hidden would otherwise leave the tree state
-   * pointing at stale visual indexes.
-   */
-  #onColumnIndexMapperCacheUpdated = ({ indexesSequenceChanged }: { indexesSequenceChanged: boolean }) => {
-    if (!indexesSequenceChanged) {
-      return;
-    }
-
-    this.#syncHiddenColumnsFromMapper();
-  };
-
-  /**
    * Updates the plugin state after HoT initialization.
    */
   // @TODO: Workaround for broken plugin initialization abstraction.
@@ -1374,6 +1373,32 @@ export class NestedHeaders extends BasePlugin {
     if (!initialLoad) {
       this.updatePlugin();
     }
+  };
+
+  /**
+   * Extends the nested headers structure when columns are inserted into the dataset, keeping the
+   * header tree aligned with the grid body. Headers spanning the insertion point are widened; a
+   * column inserted at a header boundary becomes a standalone header.
+   *
+   * @param {number} visualColumnIndex A visual column index at which the columns were inserted.
+   * @param {number} amount The number of inserted columns.
+   */
+  #onAfterCreateCol = (visualColumnIndex: number, amount: number) => {
+    this.#stateManager.insertColumns(visualColumnIndex, amount);
+    this.#updateWidthsMap = true;
+  };
+
+  /**
+   * Shrinks the nested headers structure when columns are removed from the dataset, keeping the
+   * header tree aligned with the grid body. Headers overlapping the removed range are shortened,
+   * re-anchored, or dropped when they lose all of their columns.
+   *
+   * @param {number} visualColumnIndex A visual column index from which the columns were removed.
+   * @param {number} amount The number of removed columns.
+   */
+  #onAfterRemoveCol = (visualColumnIndex: number, amount: number) => {
+    this.#stateManager.removeColumns(visualColumnIndex, amount);
+    this.#updateWidthsMap = true;
   };
 
   /**
@@ -1394,11 +1419,6 @@ export class NestedHeaders extends BasePlugin {
   destroy() {
     this.#stateManager.clear();
     removeClass(this.hot.rootElement, 'htHasRowspanHeaders');
-
-    if (this.#hidingIndexMapObserver !== null) {
-      this.#hidingIndexMapObserver.unsubscribe();
-      this.#hidingIndexMapObserver = null;
-    }
 
     super.destroy();
   }

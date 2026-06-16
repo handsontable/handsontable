@@ -2,6 +2,14 @@ import { extend, isObject } from '../../../helpers/object';
 import { throwWithCause } from '../../../helpers/errors';
 import { arrayEach } from '../../../helpers/array';
 import { normalizeSettings } from './settingsNormalizer';
+import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './utils';
+
+interface SourceHeaderCell {
+  colspan?: number;
+  origColspan?: number;
+  isPlaceholder?: boolean;
+  [key: string]: unknown;
+}
 
 /**
  * List of properties which are configurable. That properties can be changed using public API.
@@ -25,7 +33,7 @@ export default class SourceSettings {
    * @private
    * @type {Array[]}
    */
-  #data: unknown[][] = [];
+  #data: SourceHeaderCell[][] = [];
   /**
    * The total length of the nested header layers.
    *
@@ -55,7 +63,9 @@ export default class SourceSettings {
    * @param {Array[]} [nestedHeadersSettings=[]] The user-defined nested headers settings.
    */
   setData(nestedHeadersSettings: unknown[][] = []) {
-    this.#data = normalizeSettings(nestedHeadersSettings, this.#columnsLimit);
+    // normalizeSettings builds the per-column header cells from untyped user input; assert the
+    // normalized shape here, at the single boundary, so the rest of the class stays typed.
+    this.#data = normalizeSettings(nestedHeadersSettings, this.#columnsLimit) as SourceHeaderCell[][];
     this.#dataLength = this.#data.length;
   }
 
@@ -169,6 +179,101 @@ export default class SourceSettings {
     }
 
     return headersSettingsChunks;
+  }
+
+  /**
+   * Inserts `amount` columns into the normalized settings starting at the visual `columnIndex`.
+   *
+   * The behavior mirrors the MergeCells plugin: a column inserted strictly inside a header's span
+   * extends that header (and every ancestor that also spans the point), while a column inserted at a
+   * header's left boundary (or before/after the whole structure) is added as a standalone header.
+   * In the normalized representation "strictly inside a span" is exactly "the cell at the insert
+   * index is a placeholder".
+   *
+   * @param {number} columnIndex A visual column index at which the new columns are inserted.
+   * @param {number} amount The number of columns to insert.
+   */
+  insertColumns(columnIndex: number, amount: number) {
+    arrayEach(this.#data, (cells) => {
+      if (columnIndex > 0 && columnIndex < cells.length && cells[columnIndex].isPlaceholder) {
+        let headerIndex = columnIndex - 1;
+
+        // Walk left to the header that owns the placeholder at the insert index.
+        while (headerIndex > 0 && cells[headerIndex].isPlaceholder) {
+          headerIndex -= 1;
+        }
+
+        cells[headerIndex].colspan = (cells[headerIndex].colspan ?? 1) + amount;
+        cells[headerIndex].origColspan = (cells[headerIndex].origColspan ?? 1) + amount;
+
+        const placeholders = [];
+
+        for (let i = 0; i < amount; i++) {
+          placeholders.push(createPlaceholderHeaderSettings());
+        }
+
+        cells.splice(columnIndex, 0, ...placeholders);
+
+      } else {
+        const defaults = [];
+
+        for (let i = 0; i < amount; i++) {
+          defaults.push(createDefaultHeaderSettings());
+        }
+
+        cells.splice(Math.min(columnIndex, cells.length), 0, ...defaults);
+      }
+    });
+  }
+
+  /**
+   * Removes `amount` columns from the normalized settings starting at the visual `columnIndex`.
+   *
+   * Every header that overlaps the removed range is shrunk by the number of removed columns it
+   * covered. A header that loses all its columns is dropped; a header whose leftmost (labeled)
+   * column is removed but which still has surviving columns is re-anchored to the first surviving
+   * column, keeping its label and configurable properties.
+   *
+   * @param {number} columnIndex A visual column index from which the columns are removed.
+   * @param {number} amount The number of columns to remove.
+   */
+  removeColumns(columnIndex: number, amount: number) {
+    const endIndex = columnIndex + amount;
+
+    this.#data = this.#data.map((cells) => {
+      const newCells: SourceHeaderCell[] = [];
+      let cellIndex = 0;
+
+      while (cellIndex < cells.length) {
+        const cell = cells[cellIndex];
+        const span = cell.isPlaceholder ? 1 : (cell.origColspan ?? 1);
+        const segmentEnd = cellIndex + span - 1;
+        let survivingColumns = 0;
+
+        for (let column = cellIndex; column <= segmentEnd; column++) {
+          if (column < columnIndex || column >= endIndex) {
+            survivingColumns += 1;
+          }
+        }
+
+        if (survivingColumns > 0) {
+          newCells.push(createDefaultHeaderSettings({
+            ...cell,
+            colspan: survivingColumns,
+            origColspan: survivingColumns,
+            isPlaceholder: false,
+          }));
+
+          for (let i = 1; i < survivingColumns; i++) {
+            newCells.push(createPlaceholderHeaderSettings());
+          }
+        }
+
+        cellIndex = segmentEnd + 1;
+      }
+
+      return newCells;
+    });
   }
 
   /**

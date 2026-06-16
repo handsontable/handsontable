@@ -4217,14 +4217,31 @@ export default (): Record<string, unknown> => {
      * | `true`            | - Enable the [`NestedHeaders`](@/api/nestedHeaders.md) plugin<br>- Don't configure any nested headers                                 |
      * | Array of arrays   | - Enable the [`NestedHeaders`](@/api/nestedHeaders.md) plugin<br>- Configure headers that are nested on Handsontable's initialization |
      *
-     * If you set the `nestedHeaders` option to an array of arrays, each array configures one set of nested headers.
+     * If you set the `nestedHeaders` option to an array of arrays, each array configures one row of
+     * nested headers (top row first). Within a row, headers are listed left to right.
      *
      * Each array element configures one header, and can be one of the following:
      *
-     * | Array element | Description                                                                                  |
-     * | ------------- | -------------------------------------------------------------------------------------------- |
-     * | A string      | The header's label                                                                           |
-     * | An object     | Properties:<br>`label` (string): the header's label<br>`colspan` (integer): number of data columns the header spans<br>`rowspan` (integer): number of header rows the header spans<br>`headerClassName` (string): optional space-separated CSS class names |
+     * | Array element | Description                                               |
+     * | ------------- | --------------------------------------------------------- |
+     * | A string      | The header's label                                        |
+     * | An object     | A header configuration object (see the properties below) |
+     *
+     * A header configuration object accepts the following properties:
+     *
+     * | Property          | Type      | Description                                                                                                                                                                                                                                                                                          |
+     * | ----------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+     * | `label`           | `string`  | The header's label.                                                                                                                                                                                                                                                                                  |
+     * | `colspan`         | `number`  | The number of data columns the header spans (an integer greater than `1`). Groups the columns it covers.                                                                                                                                                                                             |
+     * | `rowspan`         | `number`  | The number of header rows the header spans (an integer greater than `1`).                                                                                                                                                                                                                            |
+     * | `headerClassName` | `string`  | One or more space-separated CSS class names added to the header element (for example, `'htRight'`).                                                                                                                                                                                                  |
+     * | `visibleWhen`     | `string`  | For a header inside a collapsible group, sets in which collapse state the header (and its columns) stays visible: `'collapsed'` (visible only while the group is collapsed), `'expanded'` (visible only while the group is expanded), or `'always'` (visible in both states). When omitted, a header in such a group defaults to `'expanded'` - it is hidden when the group collapses. At least one column of a group always stays visible. |
+     *
+     * ::: tip
+     * A header group is made collapsible through the [`collapsibleColumns`](#collapsibleColumns) option, not through
+     * `nestedHeaders`. Once a group is collapsible, mark the column(s) you want to keep visible when it collapses
+     * with `visibleWhen: 'always'` (or `'collapsed'`); the remaining columns are hidden on collapse by default.
+     * :::
      *
      * ::: tip
      * When `nestedHeaders` is configured, the `label` defined in the [`columns`](#columns) option for the same
@@ -4234,6 +4251,7 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Plugins: `NestedHeaders`](@/api/nestedHeaders.md)
      * - [Column groups: Nested headers](@/guides/columns/column-groups/column-groups.md#nested-headers)
+     * - [Column groups: Choose which columns stay visible when collapsed](@/guides/columns/column-groups/column-groups.md#choose-which-columns-stay-visible-when-collapsed)
      *
      * @memberof Options#
      * @type {boolean|Array[]}
@@ -4242,11 +4260,20 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
+     * // group headers with `label` and `colspan`
      * nestedHeaders: [
      *   ['A', {label: 'B', colspan: 8}, 'C'],
      *   ['D', {label: 'E', colspan: 4}, {label: 'F', colspan: 4}, 'G'],
      *   ['H', 'I', 'J', 'K', 'L', 'M', 'N', 'R', 'S', 'T']
      * ],
+     *
+     * // choose which columns stay visible when a collapsible group is collapsed:
+     * // unmarked headers (Jan, Feb, Mar) are hidden on collapse; `Total` appears only when collapsed
+     * nestedHeaders: [
+     *   ['Region', {label: 'Q1 2025', colspan: 4}],
+     *   ['Region', 'Jan', 'Feb', 'Mar', {label: 'Total', visibleWhen: 'collapsed'}]
+     * ],
+     * collapsibleColumns: true,
      * ```
      */
     nestedHeaders: undefined,

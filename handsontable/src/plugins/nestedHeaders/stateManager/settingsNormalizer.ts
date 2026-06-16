@@ -3,6 +3,8 @@ import { isObject } from '../../../helpers/object';
 import { stringify } from '../../../helpers/mixed';
 import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './utils';
 
+import type { HeaderVisibility } from './utils';
+
 interface NormalizedHeaderSettings {
   label: string;
   colspan: number;
@@ -14,7 +16,10 @@ interface NormalizedHeaderSettings {
   isRoot: boolean;
   isPlaceholder: boolean;
   headerClassNames: string[];
+  visibleWhen?: HeaderVisibility;
 }
+
+const VISIBLE_WHEN_VALUES = ['collapsed', 'expanded', 'always'];
 
 /**
  * A function that normalizes user-defined settings into one predictable
@@ -84,12 +89,14 @@ export function normalizeSettings(sourceSettings: unknown[][], columnsLimit = In
       colspan,
       rowspan,
       headerClassName,
+      visibleWhen,
     } = sourceHeaderSettings as Record<string, unknown>;
 
     return stringify(label) === '' &&
       (colspan === undefined || colspan === 1) &&
       (rowspan === undefined || rowspan === 1) &&
-      headerClassName === undefined;
+      headerClassName === undefined &&
+      visibleWhen === undefined;
   };
 
   /**
@@ -107,6 +114,7 @@ export function normalizeSettings(sourceSettings: unknown[][], columnsLimit = In
         colspan,
         rowspan,
         headerClassName,
+        visibleWhen,
       } = sourceHeaderSettings as Record<string, unknown>;
 
       headerSettings.label = stringify(label);
@@ -123,6 +131,13 @@ export function normalizeSettings(sourceSettings: unknown[][], columnsLimit = In
 
       if (typeof headerClassName === 'string') {
         headerSettings.headerClassNames = [...headerClassName.split(' ')];
+      }
+
+      // Only a recognized value is carried through. An unset or invalid value (e.g. a typo) is left
+      // undefined, which the collapse computation treats as the default 'expanded' - the column is
+      // visible while the group is expanded and hidden when it collapses.
+      if (typeof visibleWhen === 'string' && VISIBLE_WHEN_VALUES.includes(visibleWhen)) {
+        headerSettings.visibleWhen = visibleWhen as HeaderVisibility;
       }
 
     } else {

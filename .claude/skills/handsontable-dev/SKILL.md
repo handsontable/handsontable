@@ -95,6 +95,25 @@ const row = getFirst(rows); // typed as UserRow
 
 The same applies to `any`. If you need `any` to make something compile, the function should usually take a type parameter instead. Reach for `unknown` at boundaries, then narrow with a type guard.
 
+**`as` is a last resort, not a convenience.** Before writing one, exhaust these in order: (1) make the function/method signature generic; (2) make the shared **entity** generic; (3) narrow with a type guard; (4) use `unknown` only at a true I/O boundary. A cast is only acceptable when none of those apply — e.g. a genuine external/normalization boundary or a known TS generic-inference gap — and it must be commented with *why*. Never reach for `as unknown as T` (double cast); it defeats the checker entirely. When you remove casts, rerun `npm run test:types` — some are load-bearing.
+
+**Fix the type at its source, not at each call site.** When the *same* cast repeats across many consumers, the type is wrong one level down — fix it there. If a shared data structure (a tree, collection, map, or state container) stores `Record<string, unknown>`/`any` and every consumer casts `node.data as ConcreteType`, make the **structure itself generic** with a permissive default so existing callers are unaffected and informed callers parameterize it:
+
+```ts
+// ✗ Bad — every consumer re-asserts the element shape
+class TreeNode { data: Record<string, unknown> = {}; walkDown(cb: Function) { /* ... */ } }
+node.walkDown((n: TreeNode) => { const d = n.data as HeaderNodeData; /* ... */ });
+
+// ✓ Good — the entity is generic; the default keeps every other consumer compiling
+class TreeNode<T extends object = Record<string, unknown>> {
+  data: T;
+  walkDown(cb: (node: TreeNode<T>) => unknown) { /* ... */ }
+}
+node.walkDown((n) => { const d = n.data; /* already HeaderNodeData, no cast */ });
+```
+
+This relocates at most one or two unavoidable casts into the entity (e.g. a generic-spread re-assertion) and removes them from every call site. Prefer it over a sweep of per-site casts. (Real example in this repo: `src/utils/dataStructures/tree.ts` `TreeNode<T>`, consumed by `nestedHeaders` as `TreeNode<HeaderNodeData>`.)
+
 ### 1a. DOM narrowing — prefer `isHTMLElement` over `as HTMLElement`
 
 A common DOM pattern is casting a `Node | Element | null` to `HTMLElement`. Use the existing type guard from `src/helpers/dom/element.ts` instead:

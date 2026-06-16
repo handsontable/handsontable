@@ -172,7 +172,16 @@ const allSettings: Required<Handsontable.GridSettings> = {
   minSpareRows: 123,
   navigableHeaders: true,
   multiColumnSorting: true,
-  nestedHeaders: [],
+  nestedHeaders: [
+    ['Region', { label: 'Q1 2025', colspan: 4 }],
+    [
+      'Region',
+      { label: 'Jan', visibleWhen: 'expanded' },
+      { label: 'Feb', visibleWhen: 'expanded' },
+      { label: 'Total', visibleWhen: 'collapsed' },
+      { label: 'Note', visibleWhen: 'always', headerClassName: 'htRight', rowspan: 1 },
+    ],
+  ],
   nestedRows: true,
   noWordWrapClassName: 'foo',
   numericFormat: numericIntlFormatOptions,

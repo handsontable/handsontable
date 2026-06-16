@@ -8,6 +8,8 @@ import {
   TrimmingMap,
 } from './maps';
 import type { IndexMap } from './maps/indexMap';
+import type { LinkedPhysicalIndexToValueMap } from './maps/linkedPhysicalIndexToValueMap';
+import type { PhysicalIndexToValueMap } from './maps/physicalIndexToValueMap';
 import {
   AggregatedCollection,
   MapCollection,
@@ -270,16 +272,29 @@ export class IndexMapper {
   }
 
   /**
-   * Creates and registers a new `IndexMap` for a specified `IndexMapper` instance.
+   * Creates and registers a new `IndexMap` for a specified `IndexMapper` instance. For a known
+   * `mapType` literal the return type narrows to the concrete map class ('hiding' -> `HidingMap`,
+   * 'trimming' -> `TrimmingMap`, etc.); any other string falls back to the base `IndexMap`.
    *
    * @param {string} indexName A unique index name.
    * @param {string} mapType The index map type (e.g., "hiding", "trimming", "physicalIndexToValue").
    * @param {*} [initValueOrFn] The initial value for the index map.
    * @returns {IndexMap}
    */
-  createAndRegisterIndexMap(indexName: string, mapType: string, initValueOrFn?: unknown) {
+  createAndRegisterIndexMap(indexName: string, mapType: 'hiding', initValueOrFn?: unknown): HidingMap;
+  /* eslint-disable jsdoc/require-jsdoc -- these overloads + the implementation share the JSDoc above */
+  createAndRegisterIndexMap(indexName: string, mapType: 'trimming', initValueOrFn?: unknown): TrimmingMap;
+  createAndRegisterIndexMap(
+    indexName: string, mapType: 'physicalIndexToValue', initValueOrFn?: unknown
+  ): PhysicalIndexToValueMap;
+  createAndRegisterIndexMap(
+    indexName: string, mapType: 'linkedPhysicalIndexToValue', initValueOrFn?: unknown
+  ): LinkedPhysicalIndexToValueMap;
+  createAndRegisterIndexMap(indexName: string, mapType: string, initValueOrFn?: unknown): IndexMap;
+  createAndRegisterIndexMap(indexName: string, mapType: string, initValueOrFn?: unknown): IndexMap {
     return this.registerMap(indexName, createIndexMap(mapType, initValueOrFn));
   }
+  /* eslint-enable jsdoc/require-jsdoc */
 
   /**
    * Register map which provide some index mappings. Type of map determining to which collection it will be added.

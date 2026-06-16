@@ -2,11 +2,10 @@ import {
   createColspanSettings,
   createPlaceholder,
 } from 'handsontable/plugins/nestedHeaders/__tests__/helpers';
-import { TRAVERSAL_DF_POST } from 'handsontable/utils/dataStructures/tree';
 import HeadersTree from 'handsontable/plugins/nestedHeaders/stateManager/headersTree';
 import SourceSettings from 'handsontable/plugins/nestedHeaders/stateManager/sourceSettings';
 import { generateMatrix } from 'handsontable/plugins/nestedHeaders/stateManager/matrixGenerator';
-import { triggerNodeModification } from 'handsontable/plugins/nestedHeaders/stateManager/nodeModifiers';
+import { syncVisibilityOnTree } from 'handsontable/plugins/nestedHeaders/stateManager/syncVisibility';
 
 /**
  *
@@ -44,22 +43,12 @@ describe('generateMatrix', () => {
 
       tree.buildTree();
 
-      // Hide all columns.
-      tree.getRoots().forEach((rootNode) => {
-        rootNode.walkDown((node) => {
-          if (node.childs.length === 0) {
-            const { columnIndex, origColspan } = node.data;
-
-            for (let i = columnIndex; i < columnIndex + origColspan; i++) {
-              triggerNodeModification('hide-column', node, i);
-            }
-          }
-        }, TRAVERSAL_DF_POST);
-      });
+      const hidden = new Set([0, 1, 2]);
 
       {
         // show B2 at visual column 1
-        triggerNodeModification('show-column', tree.getNode(1, 1), 1);
+        hidden.delete(1);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -87,7 +76,8 @@ describe('generateMatrix', () => {
       }
       {
         // show A2 at visual column 0
-        triggerNodeModification('show-column', tree.getNode(1, 0), 0);
+        hidden.delete(0);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -115,7 +105,8 @@ describe('generateMatrix', () => {
       }
       {
         // show C2 at visual column 2
-        triggerNodeModification('show-column', tree.getNode(1, 2), 2);
+        hidden.delete(2);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -160,22 +151,12 @@ describe('generateMatrix', () => {
 
       tree.buildTree();
 
-      // Hide all columns.
-      tree.getRoots().forEach((rootNode) => {
-        rootNode.walkDown((node) => {
-          if (node.childs.length === 0) {
-            const { columnIndex, origColspan } = node.data;
-
-            for (let i = columnIndex; i < columnIndex + origColspan; i++) {
-              triggerNodeModification('hide-column', node, i);
-            }
-          }
-        }, TRAVERSAL_DF_POST);
-      });
+      const hidden = new Set([0, 1, 2, 3]);
 
       {
         // show C1 at visual column index 1
-        triggerNodeModification('show-column', tree.getNode(2, 0), 1);
+        hidden.delete(1);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -213,7 +194,8 @@ describe('generateMatrix', () => {
       }
       {
         // show C2 at visual column index 2
-        triggerNodeModification('show-column', tree.getNode(2, 2), 2);
+        hidden.delete(2);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -251,7 +233,8 @@ describe('generateMatrix', () => {
       }
       {
         // show C1 at visual column index 0
-        triggerNodeModification('show-column', tree.getNode(2, 0), 0);
+        hidden.delete(0);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -289,7 +272,8 @@ describe('generateMatrix', () => {
       }
       {
         // show C3 at visual column index 3
-        triggerNodeModification('show-column', tree.getNode(2, 3), 3);
+        hidden.delete(3);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -347,22 +331,12 @@ describe('generateMatrix', () => {
 
       tree.buildTree();
 
-      // Hide all columns.
-      tree.getRoots().forEach((rootNode) => {
-        rootNode.walkDown((node) => {
-          if (node.childs.length === 0) {
-            const { columnIndex, origColspan } = node.data;
-
-            for (let i = columnIndex; i < columnIndex + origColspan; i++) {
-              triggerNodeModification('hide-column', node, i);
-            }
-          }
-        }, TRAVERSAL_DF_POST);
-      });
+      const hidden = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
 
       {
         // show D4 at visual column index 3
-        triggerNodeModification('show-column', tree.getNode(3, 3), 3);
+        hidden.delete(3);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -432,9 +406,10 @@ describe('generateMatrix', () => {
       }
       {
         // show D7 at visual column index 6
-        triggerNodeModification('show-column', tree.getNode(3, 6), 6);
+        hidden.delete(6);
         // show D8 at visual column index 7
-        triggerNodeModification('show-column', tree.getNode(3, 7), 7);
+        hidden.delete(7);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -504,9 +479,10 @@ describe('generateMatrix', () => {
       }
       {
         // show D2 at visual column index 1
-        triggerNodeModification('show-column', tree.getNode(3, 1), 1);
+        hidden.delete(1);
         // show D1 at visual column index 0
-        triggerNodeModification('show-column', tree.getNode(3, 0), 0);
+        hidden.delete(0);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -576,9 +552,10 @@ describe('generateMatrix', () => {
       }
       {
         // show D9 at visual column index 8
-        triggerNodeModification('show-column', tree.getNode(3, 8), 8);
+        hidden.delete(8);
         // show last node at visual column index 9
-        triggerNodeModification('show-column', tree.getNode(3, 9), 9);
+        hidden.delete(9);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -648,9 +625,10 @@ describe('generateMatrix', () => {
       }
       {
         // show D6 at visual column index 5
-        triggerNodeModification('show-column', tree.getNode(3, 5), 5);
+        hidden.delete(5);
         // show D5 at visual column index 4
-        triggerNodeModification('show-column', tree.getNode(3, 4), 4);
+        hidden.delete(4);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -720,7 +698,8 @@ describe('generateMatrix', () => {
       }
       {
         // show D3 at visual column index 2
-        triggerNodeModification('show-column', tree.getNode(3, 2), 2);
+        hidden.delete(2);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -811,22 +790,12 @@ describe('generateMatrix', () => {
 
       tree.buildTree();
 
-      // Hide all columns.
-      tree.getRoots().forEach((rootNode) => {
-        rootNode.walkDown((node) => {
-          if (node.childs.length === 0) {
-            const { columnIndex, origColspan } = node.data;
-
-            for (let i = columnIndex; i < columnIndex + origColspan; i++) {
-              triggerNodeModification('hide-column', node, i);
-            }
-          }
-        }, TRAVERSAL_DF_POST);
-      });
+      const hidden = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
 
       {
         // show H4 at visual column index 8
-        triggerNodeModification('show-column', tree.getNode(3, 7), 8);
+        hidden.delete(8);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -908,9 +877,10 @@ describe('generateMatrix', () => {
       }
       {
         // show D4 at visual column index 3
-        triggerNodeModification('show-column', tree.getNode(3, 3), 3);
+        hidden.delete(3);
         // show J4 at visual column index 9
-        triggerNodeModification('show-column', tree.getNode(3, 9), 9);
+        hidden.delete(9);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -992,9 +962,10 @@ describe('generateMatrix', () => {
       }
       {
         // show L4 at visual column index 11
-        triggerNodeModification('show-column', tree.getNode(3, 11), 11);
+        hidden.delete(11);
         // show H4 at visual column index 7
-        triggerNodeModification('show-column', tree.getNode(3, 7), 7);
+        hidden.delete(7);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -1076,9 +1047,10 @@ describe('generateMatrix', () => {
       }
       {
         // show A1 at visual column index 0
-        triggerNodeModification('show-column', tree.getNode(3, 0), 0);
+        hidden.delete(0);
         // show K4 at visual column index 10
-        triggerNodeModification('show-column', tree.getNode(3, 10), 10);
+        hidden.delete(10);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -1160,9 +1132,10 @@ describe('generateMatrix', () => {
       }
       {
         // show B4 at visual column index 1
-        triggerNodeModification('show-column', tree.getNode(3, 1), 1);
+        hidden.delete(1);
         // show D4 at visual column index 4
-        triggerNodeModification('show-column', tree.getNode(3, 3), 4);
+        hidden.delete(4);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -1244,9 +1217,10 @@ describe('generateMatrix', () => {
       }
       {
         // show L4 at visual column index 12
-        triggerNodeModification('show-column', tree.getNode(3, 11), 12);
+        hidden.delete(12);
         // show F4 at visual column index 6
-        triggerNodeModification('show-column', tree.getNode(3, 5), 6);
+        hidden.delete(6);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -1328,7 +1302,8 @@ describe('generateMatrix', () => {
       }
       {
         // show B4 at visual column index 2
-        triggerNodeModification('show-column', tree.getNode(3, 1), 2);
+        hidden.delete(2);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 
@@ -1410,7 +1385,8 @@ describe('generateMatrix', () => {
       }
       {
         // show F4 at visual column index 5
-        triggerNodeModification('show-column', tree.getNode(3, 5), 5);
+        hidden.delete(5);
+        syncVisibilityOnTree(tree.getRoots(), { isVisible: i => !hidden.has(i) });
 
         const matrix = generateMatrixFromTree(tree);
 

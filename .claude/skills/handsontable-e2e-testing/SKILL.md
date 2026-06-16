@@ -44,9 +44,12 @@ These are injected automatically. Do not import them manually.
 
 - **Instance:** `handsontable()`, `destroy()`, `updateSettings()`, `render()`
 - **Data:** `createSpreadsheetData()`, `getDataAtCell()`, `getData()`, `setDataAtCell()`
-- **Selection:** `selectCell()`, `selectCells()`, `getSelected()`
+- **Structure:** `countCols()`, `countRows()`, `alter()`
+- **Selection:** `selectCell()`, `selectCells()`, `getSelected()`, `getSelectedRange()`
 - **DOM:** `getCell()`, `spec()`, `hot()`
 - **Plugins:** `getPlugin()`
+
+**Prefer the bare global over the `hot().` form.** Most instance methods are exposed as bare globals that proxy the active instance, so write `countCols()` not `hot().countCols()`, and `await alter('remove_col', 2, 1)` not `hot().alter('remove_col', 2, 1)`. The mutating globals (`alter()`, `setDataAtCell()`, `selectCell()`, …) auto-render, so they MUST be `await`-ed. Only reach for `hot()` when you need a method that has no bare-global wrapper.
 - **Theme layout:** `getLoadedTheme()`, `getThemeLayout()` (see `handsontable/.ai/TESTING.md`)
 - **Iframe `doc.write` theme CSS:** `getE2eThemeStylesheetLinkTagsHtml()` (all themes), `getE2eThemeStylesheetLinkTagHtml(key)`, `getE2eNormalizeStylesheetLinkTagHtml()` - from `common.js`; theme list is `E2E_REGISTERED_THEME_KEYS` in `themeLayoutFromTokens.js`, auto-discovered from `src/themes/theme/index.ts` (add a theme there and the list updates automatically).
 - Full list in `test/helpers/common.js`.
@@ -151,6 +154,25 @@ Under the hood it spawns the regular Rspack dump in `--watch` mode and reopens t
 
 A generic `test/E2ERunner.html` (no run ID) is always regenerated alongside the per-run variant for developer manual testing in a browser. Specs that inject iframes with relative CSS paths (e.g. `afterRefreshDimensions`, `Selection`) rely on the runner living in `test/`, which is why the per-run HTML stays there too.
 
+## Debugging (capturing values from the browser)
+
+E2E specs run inside a headless browser, so a plain `console.log` is NOT printed to your terminal. The Puppeteer runner (`test/scripts/run-puppeteer.mjs`) forwards **only** page console messages whose text starts with `DEBUG`, printing them as `[BROWSER] <text>`:
+
+```js
+it('should ...', async() => {
+  handsontable({ /* ... */ });
+
+  // Prefix with DEBUG so the runner forwards it to your terminal.
+  console.log(`DEBUG state ${JSON.stringify({ labels: getColHeaders(), count: countCols() })}`);
+});
+```
+
+Then filter the run output: `npm run test:e2e --prefix handsontable --testPathPattern=<regex> 2>&1 | grep DEBUG`.
+
+Notes:
+- `JSON.stringify` **omits keys whose value is `undefined`** - a missing key in the output usually means the value was `undefined`, not that the line is stale. Use `String(value)` when you need to distinguish `undefined`/`false`/`null`.
+- For a quick yes/no check you can also just `expect(actual).toEqual('SENTINEL')` and read the "Expected ... to equal" diff - assertion failures always reach the terminal.
+
 ## Test location
 
 All E2E tests live under `src/` alongside the code they test. **The spec filename must match the method, hook, or setting name exactly** (e.g., `getSourceData.spec.js`, `afterChange.spec.js`, `height.spec.js`).
@@ -174,6 +196,7 @@ See `src/plugins/pagination/__tests__/` for reference - separate dirs for option
 ## Common mistakes
 
 - Forgetting `async` on `it()` callbacks.
+- Using the `hot().` form (`hot().countCols()`, `hot().alter(...)`) instead of the bare global (`countCols()`, `await alter(...)`).
 - Importing helpers manually (they are globals).
 - Not testing the `updateSettings()` cycle.
 - Missing edge cases: large datasets, coordinate boundaries, enable/disable cycles.

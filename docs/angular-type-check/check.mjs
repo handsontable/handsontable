@@ -38,6 +38,14 @@ const latestDir = path.resolve(__dirname, '.latest');
 // warnings.
 const strict = !process.argv.includes('--no-strict') && process.env.STRICT !== '0';
 
+// Current-build-only mode: type-check the examples against the local build only (the branch under
+// test - whatever the CI checked out and built: a feature branch, develop, etc.), and skip the
+// `handsontable@latest` comparison entirely. This is the right gate for CI: examples ship with the
+// code in the same repo state, so an example that uses an API added on this branch (not yet in the
+// published release) must NOT be failed for it. Real type errors on the current build still fail.
+// Enable with `--skip-latest` or `SKIP_LATEST=1` (the CI workflow sets it).
+const skipLatest = process.argv.includes('--skip-latest') || process.env.SKIP_LATEST === '1';
+
 fs.rmSync(tmpDir, { recursive: true, force: true });
 fs.mkdirSync(tmpDir, { recursive: true });
 
@@ -285,21 +293,34 @@ if (process.argv.includes('--report')) {
 console.log('\n[1/2] Type-checking against local build (../../handsontable/tmp) ...');
 const local = runCheck({ label: 'local', htDir: '../../handsontable/tmp' });
 
-console.log(local.ok
-  ? 'Local build type-checks cleanly; verifying against handsontable@latest to catch latest-only breakages ...'
-  : 'Local build reported errors; verifying against handsontable@latest to classify them ...');
-
-// 2) Always run latest too — even when local is clean — so issues can be
+// 2) Optionally run latest too — even when local is clean — so issues can be
 //    classified as LOCAL-ONLY, LATEST-ONLY, or BOTH. Skipping latest on a clean
 //    local run would hide a "DEV-ONLY" example (type-checks on the dev build but
 //    is broken on the published version): it should surface as a neutral check,
-//    not a silent green.
-const { htPath, version } = ensureLatestHandsontable();
-console.log(`\n[2/2] Type-checking against handsontable@latest (${version}) ...`);
-const latest = runCheck({ label: 'latest', htDir: path.relative(__dirname, htPath).split(path.sep).join('/') });
+//    not a silent green. In `--skip-latest` mode the run gates on the current
+//    branch build only and the published-release comparison is not performed.
+let version = 'skipped';
+let latest = { ok: true, output: '' };
+
+if (skipLatest) {
+  console.log('\n[2/2] Skipping the handsontable@latest comparison (--skip-latest) — '
+    + 'gating on the current branch build only.');
+} else {
+  console.log(local.ok
+    ? 'Local build type-checks cleanly; verifying against handsontable@latest to catch latest-only breakages ...'
+    : 'Local build reported errors; verifying against handsontable@latest to classify them ...');
+
+  const { htPath, version: latestVersion } = ensureLatestHandsontable();
+
+  version = latestVersion;
+  console.log(`\n[2/2] Type-checking against handsontable@latest (${version}) ...`);
+  latest = runCheck({ label: 'latest', htDir: path.relative(__dirname, htPath).split(path.sep).join('/') });
+}
 
 const localErrors = parseErrors(local.output);
-const latestErrors = parseErrors(latest.output);
+// With latest skipped there is no second version, so every local error is treated as a
+// current-build error (it lands in `localOnly` below and fails the run in strict mode).
+const latestErrors = skipLatest ? new Map() : parseErrors(latest.output);
 
 // Guard: if ngc exited non-zero but we couldn't extract a single `error TS…`
 // line from its output, the failure is in a form the parser doesn't understand
