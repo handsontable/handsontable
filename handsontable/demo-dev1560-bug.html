@@ -28,21 +28,24 @@
     pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
     pre .bad { color: #f48771; font-weight: 700; }
     pre .comment { color: #6a9955; }
-    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .controls { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
     .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
-    .btn-scroll { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
-    .btn-scroll:hover { background: #c62828; }
+    .btn-action { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
+    .btn-action:hover { background: #c62828; }
     .btn-reset { background: #fff9c4; border-color: #f9a825; }
-    .status-box { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-family: monospace; min-height: 36px; white-space: pre-wrap; color: #b71c1c; font-weight: 600; }
-    .step-indicator { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
-    .step { padding: 4px 12px; border-radius: 20px; font-size: 12px; border: 1px solid #ddd; background: #fff; color: #999; }
+    .status-box { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 12px; font-family: monospace; min-height: 60px; white-space: pre-wrap; line-height: 1.6; }
+    .status-box .label { color: #9cdcfe; }
+    .status-box .bad  { color: #f48771; font-weight: 700; }
+    .status-box .ok   { color: #b5cea8; }
+    .step-row { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+    .step { padding: 3px 10px; border-radius: 20px; font-size: 12px; border: 1px solid #ddd; background: #fff; color: #999; white-space: nowrap; }
     .step.active { background: #1565c0; color: #fff; border-color: #1565c0; font-weight: 600; }
-    .step.done { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
-    .step.fail { background: #fdecea; color: #b71c1c; border-color: #ef9a9a; font-weight: 600; }
+    .step.done   { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+    .step.fail   { background: #fdecea; color: #b71c1c; border-color: #ef9a9a; font-weight: 700; }
   </style>
 </head>
 <body>
-  <h1>DEV-1560 / #11365 — Select editor drifts after close &amp; reopen</h1>
+  <h1>DEV-1560 / #11365 — <code>select</code> editor drifts on scroll after close &amp; reopen</h1>
 
   <nav>
     <span class="nav-label">Build:</span>
@@ -52,50 +55,50 @@
 
   <div class="info info-bug">
     <strong>BUG present (v17.0.1).</strong>
-    The <code>select</code> cell editor loses its scroll-tracking behavior after the first open/close cycle.
+    When a <code>type: 'select'</code> cell editor is opened, closed, then reopened — scrolling the grid
+    causes the editor to drift out of alignment with its cell.
     <ul style="margin: 6px 0 0 20px; line-height: 1.8;">
-      <li><strong>First open → scroll:</strong> editor follows the cell correctly. ✓</li>
-      <li><strong>Close (Esc), reopen → scroll:</strong> editor stays frozen at its old screen position while the cell scrolls away. ✗</li>
+      <li><strong>1st open → scroll:</strong> editor follows the cell correctly. ✓</li>
+      <li><strong>Close (Esc), reopen → scroll:</strong> editor stays frozen at the old screen position. ✗</li>
     </ul>
-    Root cause: <code>SelectEditor.close()</code> called <code>clearHooks()</code>, permanently removing the
-    <code>afterScrollVertically</code> / <code>afterScrollHorizontally</code> listeners.
-    Since <code>registerHooks()</code> runs only once in <code>init()</code>, the editor has no scroll hooks
-    from the second open onward.
+    Root cause: <code>SelectEditor.close()</code> called <code>clearHooks()</code>, permanently
+    stripping the <code>afterScrollVertically</code> / <code>afterScrollHorizontally</code> listeners.
+    Since <code>registerHooks()</code> runs only once in <code>init()</code>, subsequent opens have no
+    scroll tracking at all.
   </div>
 
-  <pre><span class="comment">// BUG — selectEditor.js close() (v17.0.1):</span>
+  <pre><span class="comment">// BUG — selectEditor.js close() in v17.0.1:</span>
 close() {
-  this.#select.style.display = 'none';
-  <span class="bad">this.clearHooks();</span>  <span class="comment">// ← strips afterScrollVertically + afterScrollHorizontally permanently!</span>
+  this.selectWrapper.style.display = 'none';
+  <span class="bad">this.clearHooks();</span>  <span class="comment">// ← strips scroll listeners permanently on every close!</span>
   super.close();
 }
-<span class="comment">// registerHooks() only runs in init() — never called again → no scroll repositioning on reopen</span></pre>
+<span class="comment">// registerHooks() is never called again → no repositioning after 1st close</span></pre>
 
   <div class="hint">
-    <strong>How to trigger the bug — follow these steps in order:</strong>
+    <strong>Steps to reproduce:</strong>
     <ol>
-      <li><strong>Double-click</strong> any cell in the <strong>"Status"</strong> column to open the select editor.</li>
-      <li>Click <strong>"Scroll down (with editor open)"</strong> — editor should follow the cell. ✓</li>
-      <li>Press <strong>Esc</strong> to close the editor (or click outside).</li>
+      <li><strong>Double-click</strong> a cell in the <strong>"Status"</strong> column — a native <code>&lt;select&gt;</code> dropdown opens.</li>
+      <li>Press <strong>Esc</strong> to close the editor without changing the value.</li>
       <li><strong>Double-click</strong> the same cell again to reopen the editor.</li>
-      <li>Click <strong>"Scroll down (with editor open)"</strong> again.</li>
-      <li>BUG: <strong>editor stays frozen</strong> at its old position while the cell scrolls away. ✗</li>
+      <li>Click <strong>"Scroll down 10 rows"</strong> — the editor should follow the cell, but it won't. ✗</li>
+      <li>The <strong>Editor position</strong> readout shows <code>top</code> is not updating. ✗</li>
     </ol>
   </div>
 
-  <div class="step-indicator">
-    <span class="step active" id="step1">1. Open editor</span>
-    <span class="step" id="step2">2. Close (Esc)</span>
-    <span class="step" id="step3">3. Reopen editor</span>
-    <span class="step" id="step4">4. Scroll → see drift ✗</span>
+  <div class="step-row">
+    <span class="step active" id="s1">① Open editor</span>
+    <span class="step" id="s2">② Close (Esc)</span>
+    <span class="step" id="s3">③ Reopen</span>
+    <span class="step" id="s4">④ Scroll → drift ✗</span>
   </div>
 
   <div class="controls">
-    <button class="btn btn-scroll" id="btn-scroll">Scroll down (with editor open)</button>
-    <button class="btn btn-reset" id="btn-reset">Reset grid</button>
+    <button class="btn btn-action" id="btn-scroll" disabled>Scroll down 10 rows</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
   </div>
 
-  <div class="status-box" id="status">Open the select editor, then use the scroll button.</div>
+  <div class="status-box" id="status"><span class="label">Waiting…</span> Double-click a cell in the "Status" column to begin.</div>
 
   <div id="hot-container"></div>
 
@@ -103,80 +106,103 @@ close() {
   <script>
     const STATUSES = ['Active', 'Pending', 'Inactive', 'On hold', 'Cancelled'];
     let openCount = 0;
+    let scrollTarget = 0;
+    let editorTopBefore = null;
+    let trackInterval = null;
 
     function makeData(rows) {
       return Array.from({ length: rows }, (_, i) => ({
         id: i + 1,
-        name: 'Item ' + (i + 1),
+        name: 'Task ' + (i + 1),
         status: STATUSES[i % STATUSES.length],
-        value: Math.round(Math.random() * 1000),
+        priority: (i % 3 === 0) ? 'High' : (i % 3 === 1) ? 'Medium' : 'Low',
       }));
     }
 
+    function getEditorTop() {
+      const wrapper = document.querySelector('.handsontableInputHolder') ||
+                      document.querySelector('.htSelectEditor') ||
+                      document.querySelector('[class*="editor"]');
+      if (!wrapper) return null;
+      return Math.round(wrapper.getBoundingClientRect().top);
+    }
+
+    function setStatus(html) {
+      document.getElementById('status').innerHTML = html;
+    }
+
     function initHot() {
+      if (trackInterval) { clearInterval(trackInterval); trackInterval = null; }
       if (window.hot) { window.hot.destroy(); window.hot = null; }
-      openCount = 0;
-      document.getElementById('status').textContent = 'Open the select editor, then use the scroll button.';
-      document.querySelectorAll('.step').forEach(s => s.className = 'step');
-      document.getElementById('step1').classList.add('active');
+      openCount = 0; scrollTarget = 0; editorTopBefore = null;
+      document.getElementById('btn-scroll').disabled = true;
+      document.querySelectorAll('.step').forEach(s => { s.className = 'step'; });
+      document.getElementById('s1').className = 'step active';
+      setStatus('<span class="label">Waiting…</span> Double-click a cell in the "Status" column to begin.');
 
       window.hot = new Handsontable(document.getElementById('hot-container'), {
-        data: makeData(40),
+        data: makeData(50),
         columns: [
-          { data: 'id',     type: 'numeric', title: 'ID'     },
-          { data: 'name',   type: 'text',    title: 'Name'   },
-          {
-            data: 'status',
-            type: 'dropdown',
-            source: STATUSES,
-            title: 'Status (select editor)',
-          },
-          { data: 'value',  type: 'numeric', title: 'Value'  },
+          { data: 'id',       type: 'numeric', title: 'ID'       },
+          { data: 'name',     type: 'text',    title: 'Task'     },
+          { data: 'status',   type: 'select',  title: 'Status',  selectOptions: STATUSES },
+          { data: 'priority', type: 'text',    title: 'Priority' },
         ],
         colHeaders: true,
         rowHeaders: true,
         width: '100%',
-        height: 320,
+        height: 340,
         themeName: 'ht-theme-main',
         licenseKey: 'non-commercial-and-evaluation',
-        afterBeginEditing() {
+        afterBeginEditing(row) {
           openCount++;
+          scrollTarget = Math.min(row + 10, window.hot.countRows() - 1);
+          document.getElementById('btn-scroll').disabled = false;
+
           if (openCount === 1) {
-            document.getElementById('step1').className = 'step done';
-            document.getElementById('step2').className = 'step active';
-            document.getElementById('status').textContent =
-              'Editor opened (1st time). Scroll to see it track the cell. Then press Esc.';
+            document.getElementById('s1').className = 'step done';
+            document.getElementById('s2').className = 'step active';
+            setStatus('<span class="label">Editor open (1st time).</span> Press Esc to close it, then reopen.');
           } else {
-            document.getElementById('step3').className = 'step done';
-            document.getElementById('step4').className = 'step active';
-            document.getElementById('status').textContent =
-              'Editor reopened (' + openCount + 'th time). Now scroll — watch the editor drift. ✗';
+            document.getElementById('s3').className = 'step done';
+            document.getElementById('s4').className = 'step active';
+            editorTopBefore = getEditorTop();
+            setStatus('<span class="label">Editor open (2nd+ time).</span> Click "Scroll down 10 rows" to see the drift.\n<span class="label">Editor top before scroll:</span> ' + editorTopBefore + 'px');
           }
         },
         afterEditorClosed() {
+          document.getElementById('btn-scroll').disabled = true;
           if (openCount === 1) {
-            document.getElementById('step2').className = 'step done';
-            document.getElementById('step3').className = 'step active';
-            document.getElementById('status').textContent =
-              'Editor closed. Now double-click the Status cell again to reopen it.';
+            document.getElementById('s2').className = 'step done';
+            document.getElementById('s3').className = 'step active';
+            setStatus('<span class="label">Editor closed.</span> Double-click the Status cell again to reopen it.');
           }
         },
       });
     }
 
     document.getElementById('btn-scroll').addEventListener('click', () => {
-      const vp = window.hot.view.getFirstFullyVisibleRow();
-      const target = vp + 8;
-      window.hot.scrollViewportTo({ row: Math.min(target, window.hot.countRows() - 1) });
-      if (openCount >= 2) {
-        document.getElementById('step4').className = 'step fail';
-        document.getElementById('status').textContent =
-          'BUG: editor did not follow the cell during scroll (2nd open). It drifted to the wrong position. ✗';
-      }
+      const topBefore = editorTopBefore !== null ? editorTopBefore : getEditorTop();
+      window.hot.scrollViewportTo({ row: scrollTarget, col: 2 });
+      scrollTarget = Math.min(scrollTarget + 10, window.hot.countRows() - 1);
+
+      setTimeout(() => {
+        const topAfter = getEditorTop();
+        if (openCount >= 2) {
+          const drifted = topAfter === topBefore || topAfter === null;
+          document.getElementById('s4').className = drifted ? 'step fail' : 'step done';
+          setStatus(
+            '<span class="label">Editor top before scroll:</span> ' + topBefore + 'px\n' +
+            '<span class="label">Editor top after  scroll:</span> ' + (topAfter !== null ? topAfter + 'px' : 'N/A') + '\n\n' +
+            (drifted
+              ? '<span class="bad">BUG: editor top did not update — editor drifted away from its cell. ✗</span>'
+              : '<span class="ok">OK: editor top changed. (unexpected — check build)</span>')
+          );
+        }
+      }, 100);
     });
 
     document.getElementById('btn-reset').addEventListener('click', initHot);
-
     initHot();
   </script>
 </body>
