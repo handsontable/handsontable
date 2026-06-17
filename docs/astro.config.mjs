@@ -706,6 +706,38 @@ export default defineConfig({
           content: '/* HOT base styles loaded via handsontable-import.css */',
         },
         // ── All-environment 3rd-party scripts ──────────────────────────────
+        // Sentry: filter out expected demo errors before the Loader Script auto-inits.
+        // The server-side data recipes (/recipes/data-management/server-side-*) run their
+        // examples live, but the docs site has no `/api/products` backend, so the example
+        // `fetchRows()` correctly throws `HTTP <status>` (e.g. 404). That is expected here
+        // (not a product bug), so drop those events instead of reporting them.
+        // `window.sentryOnLoad` is the Loader Script's documented custom-config hook — the
+        // DSN and any dashboard-enabled integrations (Performance/Replay) are applied
+        // automatically, so adding `beforeSend` does not disturb the rest of the setup.
+        {
+          tag: 'script',
+          content: `window.sentryOnLoad = function () {
+  Sentry.init({
+    beforeSend: function (event) {
+      try {
+        var values = (event.exception && event.exception.values) || [];
+        var isDemoHttpError = values.some(function (value) {
+          return value && typeof value.value === 'string' && /^HTTP \\d{3}$/.test(value.value);
+        });
+        var url = (event.request && event.request.url) || '';
+
+        if (isDemoHttpError && url.indexOf('/recipes/data-management/server-side') !== -1) {
+          return null;
+        }
+      } catch (e) {
+        // never let the filter break error reporting
+      }
+
+      return event;
+    },
+  });
+};`,
+        },
         // Sentry error monitoring
         {
           tag: 'script',
