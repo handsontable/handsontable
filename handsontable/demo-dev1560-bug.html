@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1560 — BUG (select editor drifts after close + reopen)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 5px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .bad { color: #f48771; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    .controls { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-scroll { background: #e57373; color: #fff; border-color: #c62828; font-weight: 600; }
+    .btn-scroll:hover { background: #c62828; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .status-box { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-family: monospace; min-height: 36px; white-space: pre-wrap; color: #b71c1c; font-weight: 600; }
+    .step-indicator { display: flex; gap: 8px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
+    .step { padding: 4px 12px; border-radius: 20px; font-size: 12px; border: 1px solid #ddd; background: #fff; color: #999; }
+    .step.active { background: #1565c0; color: #fff; border-color: #1565c0; font-weight: 600; }
+    .step.done { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+    .step.fail { background: #fdecea; color: #b71c1c; border-color: #ef9a9a; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1560 / #11365 — Select editor drifts after close &amp; reopen</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-dev1560-fix.html">DEV-1560 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    The <code>select</code> cell editor loses its scroll-tracking behavior after the first open/close cycle.
+    <ul style="margin: 6px 0 0 20px; line-height: 1.8;">
+      <li><strong>First open → scroll:</strong> editor follows the cell correctly. ✓</li>
+      <li><strong>Close (Esc), reopen → scroll:</strong> editor stays frozen at its old screen position while the cell scrolls away. ✗</li>
+    </ul>
+    Root cause: <code>SelectEditor.close()</code> called <code>clearHooks()</code>, permanently removing the
+    <code>afterScrollVertically</code> / <code>afterScrollHorizontally</code> listeners.
+    Since <code>registerHooks()</code> runs only once in <code>init()</code>, the editor has no scroll hooks
+    from the second open onward.
+  </div>
+
+  <pre><span class="comment">// BUG — selectEditor.js close() (v17.0.1):</span>
+close() {
+  this.#select.style.display = 'none';
+  <span class="bad">this.clearHooks();</span>  <span class="comment">// ← strips afterScrollVertically + afterScrollHorizontally permanently!</span>
+  super.close();
+}
+<span class="comment">// registerHooks() only runs in init() — never called again → no scroll repositioning on reopen</span></pre>
+
+  <div class="hint">
+    <strong>How to trigger the bug — follow these steps in order:</strong>
+    <ol>
+      <li><strong>Double-click</strong> any cell in the <strong>"Status"</strong> column to open the select editor.</li>
+      <li>Click <strong>"Scroll down (with editor open)"</strong> — editor should follow the cell. ✓</li>
+      <li>Press <strong>Esc</strong> to close the editor (or click outside).</li>
+      <li><strong>Double-click</strong> the same cell again to reopen the editor.</li>
+      <li>Click <strong>"Scroll down (with editor open)"</strong> again.</li>
+      <li>BUG: <strong>editor stays frozen</strong> at its old position while the cell scrolls away. ✗</li>
+    </ol>
+  </div>
+
+  <div class="step-indicator">
+    <span class="step active" id="step1">1. Open editor</span>
+    <span class="step" id="step2">2. Close (Esc)</span>
+    <span class="step" id="step3">3. Reopen editor</span>
+    <span class="step" id="step4">4. Scroll → see drift ✗</span>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-scroll" id="btn-scroll">Scroll down (with editor open)</button>
+    <button class="btn btn-reset" id="btn-reset">Reset grid</button>
+  </div>
+
+  <div class="status-box" id="status">Open the select editor, then use the scroll button.</div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const STATUSES = ['Active', 'Pending', 'Inactive', 'On hold', 'Cancelled'];
+    let openCount = 0;
+
+    function makeData(rows) {
+      return Array.from({ length: rows }, (_, i) => ({
+        id: i + 1,
+        name: 'Item ' + (i + 1),
+        status: STATUSES[i % STATUSES.length],
+        value: Math.round(Math.random() * 1000),
+      }));
+    }
+
+    function initHot() {
+      if (window.hot) { window.hot.destroy(); window.hot = null; }
+      openCount = 0;
+      document.getElementById('status').textContent = 'Open the select editor, then use the scroll button.';
+      document.querySelectorAll('.step').forEach(s => s.className = 'step');
+      document.getElementById('step1').classList.add('active');
+
+      window.hot = new Handsontable(document.getElementById('hot-container'), {
+        data: makeData(40),
+        columns: [
+          { data: 'id',     type: 'numeric', title: 'ID'     },
+          { data: 'name',   type: 'text',    title: 'Name'   },
+          {
+            data: 'status',
+            type: 'dropdown',
+            source: STATUSES,
+            title: 'Status (select editor)',
+          },
+          { data: 'value',  type: 'numeric', title: 'Value'  },
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        width: '100%',
+        height: 320,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+        afterBeginEditing() {
+          openCount++;
+          if (openCount === 1) {
+            document.getElementById('step1').className = 'step done';
+            document.getElementById('step2').className = 'step active';
+            document.getElementById('status').textContent =
+              'Editor opened (1st time). Scroll to see it track the cell. Then press Esc.';
+          } else {
+            document.getElementById('step3').className = 'step done';
+            document.getElementById('step4').className = 'step active';
+            document.getElementById('status').textContent =
+              'Editor reopened (' + openCount + 'th time). Now scroll — watch the editor drift. ✗';
+          }
+        },
+        afterEditorClosed() {
+          if (openCount === 1) {
+            document.getElementById('step2').className = 'step done';
+            document.getElementById('step3').className = 'step active';
+            document.getElementById('status').textContent =
+              'Editor closed. Now double-click the Status cell again to reopen it.';
+          }
+        },
+      });
+    }
+
+    document.getElementById('btn-scroll').addEventListener('click', () => {
+      const vp = window.hot.view.getFirstFullyVisibleRow();
+      const target = vp + 8;
+      window.hot.scrollViewportTo({ row: Math.min(target, window.hot.countRows() - 1) });
+      if (openCount >= 2) {
+        document.getElementById('step4').className = 'step fail';
+        document.getElementById('status').textContent =
+          'BUG: editor did not follow the cell during scroll (2nd open). It drifted to the wrong position. ✗';
+      }
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', initHot);
+
+    initHot();
+  </script>
+</body>
+</html>
