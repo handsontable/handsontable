@@ -1,0 +1,31 @@
+/* Scoped to .htRadioCell so theme's .htUIRadio styles in context menus and
+   filter panels are not affected. The radio indicator appearance (dot, border,
+   checked state) is intentionally left to the Handsontable theme. */
+.htRadioCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+  line-height: 1.4;
+}
+
+.htRadioCell .htUIRadio {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ht-foreground-color, #1f2937);
+  padding: 2px 6px !important;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.htRadioCell .htUIRadioLabel {
+  flex: 1;
+}
+
+/* Ensure pointer cursor and prevent default outline; theme handles appearance. */
+.htRadioCell .htUIRadio > input[type='radio'] {
+  cursor: pointer;
+}
