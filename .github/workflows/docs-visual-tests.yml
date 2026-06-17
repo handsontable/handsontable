@@ -71,8 +71,10 @@ jobs:
         id: cache
         uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
         with:
-          key: plawyright-cache/${{github.repository}}/${{github.ref}}
-          restore-keys: plawyright-cache/${{github.repository}}/refs/heads/develop
+          key: plawyright-cache/${{github.repository}}/${{github.ref}}-${{ github.run_id }}
+          restore-keys: |
+            plawyright-cache/${{github.repository}}/${{github.ref}}
+            plawyright-cache/${{github.repository}}/refs/heads/develop
           path: docs/tests/test-artifacts
 
       - name: Check if cache was restored
@@ -96,7 +98,7 @@ jobs:
         if: ${{!cancelled() && (env.cache-restored != 'true' || github.event.inputs.update-snapshots == 'true')}}
         uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
         with:
-          key: plawyright-cache/${{github.repository}}/${{github.ref}}
+          key: plawyright-cache/${{github.repository}}/${{github.ref}}-${{ github.run_id }}
           path: docs/tests/test-artifacts
 
       - name: Upload test report
