@@ -6,7 +6,6 @@ import {
   getParsedNumber,
 } from '../../../helpers/number';
 import { isNullish } from '../../../dataMap/metaManager/utils';
-import { emptyStringToNull } from '../../../helpers/mixed';
 import type { CellProperties } from '../../../settings';
 
 /**
