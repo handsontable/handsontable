@@ -95,8 +95,14 @@ testCases.forEach(({ paths, prefix, urlPath }) => {
 
         const screenshotName = `${prefix}-${pathObj.path.split('/').pop()}.png`;
 
+        // Third-party Figma embeds (e.g. the design-system "Live preview") load
+        // asynchronously and are sometimes blank when the screenshot is taken.
+        // Mask them so their load state can't make the comparison flaky. The
+        // locator is a no-op on pages without a Figma iframe.
+        const figmaEmbeds = page.locator('iframe[src*="figma.com"]');
+
         // eslint-disable-next-line max-len
-        await expect(page).toHaveScreenshot(screenshotName, { maxDiffPixelRatio: maxDiffPixelRatioValue, fullPage: true, animations: 'disabled' });
+        await expect(page).toHaveScreenshot(screenshotName, { maxDiffPixelRatio: maxDiffPixelRatioValue, fullPage: true, animations: 'disabled', mask: [figmaEmbeds] });
       });
     });
   });
