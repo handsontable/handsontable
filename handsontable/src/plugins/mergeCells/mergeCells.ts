@@ -1200,6 +1200,15 @@ export class MergeCells extends BasePlugin {
         cellProperties.colspan = mergeParent.colspan;
         cellProperties.spanned = true;
       }
+    } else {
+      // The cell is no longer part of a merge (e.g. after `unmerge`). The cell meta object is
+      // cached, so the span/hidden flags set by a previous merge would linger and leak into
+      // consumers that read meta directly (e.g. `toHTML`). Reset them here, where we already
+      // know there is no merge parent.
+      delete cellProperties.rowspan;
+      delete cellProperties.colspan;
+      delete cellProperties.spanned;
+      delete cellProperties.hidden;
     }
   };
 

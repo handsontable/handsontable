@@ -1715,6 +1715,48 @@ describe('MergeCells', () => {
     expect(getCellMeta(4, 4).copyable).toBe(false);
   });
 
+  it('should clear the "spanned"/"colspan"/"rowspan"/"hidden" cell meta after performing unmerge', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      mergeCells: [
+        { row: 1, col: 1, rowspan: 1, colspan: 3 },
+      ],
+    });
+
+    const plugin = getPlugin('mergeCells');
+
+    // the merge parent carries the span flags, the covered cells are hidden
+    expect(getCellMeta(1, 1).spanned).toBe(true);
+    expect(getCellMeta(1, 1).colspan).toBe(3);
+    expect(getCellMeta(1, 2).hidden).toBe(true);
+    expect(getCellMeta(1, 3).hidden).toBe(true);
+
+    plugin.unmerge(1, 1, 1, 3);
+
+    // after unmerge the cached meta must not linger (it would leak into `toHTML`, copy, etc.)
+    expect(getCellMeta(1, 1).spanned).toBeUndefined();
+    expect(getCellMeta(1, 1).colspan).toBeUndefined();
+    expect(getCellMeta(1, 1).rowspan).toBeUndefined();
+    expect(getCellMeta(1, 2).hidden).toBeUndefined();
+    expect(getCellMeta(1, 3).hidden).toBeUndefined();
+  });
+
+  it('should not emit stale colspan/rowspan in `toHTML` output after performing unmerge', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      mergeCells: [
+        { row: 1, col: 1, rowspan: 1, colspan: 3 },
+      ],
+    });
+
+    getPlugin('mergeCells').unmerge(1, 1, 1, 3);
+
+    const html = hot().toHTML();
+
+    expect(html).not.toContain('colspan');
+    expect(html).not.toContain('rowspan');
+  });
+
   it('should not collapse the main table\'s row height when the merge cell covers all cells width', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
