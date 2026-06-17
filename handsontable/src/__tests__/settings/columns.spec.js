@@ -225,7 +225,8 @@ describe('settings', () => {
           await setDataAtCell(0, 0, '');
           await waitForNextAnimationFrames(2);
 
-          expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date');
+          // A `date` cell has no valid empty-string representation, so `''` becomes `null` (issue #3927).
+          expect(onAfterValidate).toHaveBeenCalledWith(true, null, 0, 'date');
         });
       });
     });

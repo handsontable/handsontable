@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed `numeric`, `date`, and `time` cells being overwritten with an empty string instead of keeping `null` when the editor is opened without input, the cell is cleared, or an empty value is pasted.",
+  "type": "fixed",
+  "issueOrPR": 12797,
+  "breaking": false,
+  "framework": "none"
+}
