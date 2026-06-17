@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12489 — BUG (columnSummary ignores formula cells)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .bad { color: #f48771; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 160px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 14px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 20px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.ok  { color: #2e7d32; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+  </style>
+</head>
+<body>
+  <h1>PR #12489 / #10980 — <code>columnSummary</code> ignores HyperFormula calculated cells</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-pr12489-fix.html">PR #12489 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    When both the <code>formulas</code> plugin (HyperFormula) and <code>columnSummary</code> are active,
+    cells containing formulas (e.g. <code>=A2+B2</code>) are silently skipped from all summary
+    calculations — sum, min, max, average, and count.
+    <ul style="margin: 6px 0 0 20px; line-height: 1.8;">
+      <li>Rows with plain numbers contribute to the summary. ✓</li>
+      <li>Rows with <code>=formula</code> values are excluded from the sum. ✗</li>
+      <li>The summary cell shows a <strong>lower total</strong> than it should. ✗</li>
+    </ul>
+    Root cause: <code>columnSummary</code> used <code>getSourceDataAtCell</code> which returns
+    the raw string <code>"=A2+B2"</code>. <code>parseFloat("=A2+B2")</code> → <code>NaN</code>
+    → cell skipped.
+  </div>
+
+  <pre><span class="comment">// BUG — columnSummary plugin (v17.0.1):</span>
+getCellValue(visualRow, visualCol) {
+  <span class="bad">return this.hot.getSourceDataAtCell(...);</span>
+  <span class="comment">// returns "=A2+B2" for formula cells</span>
+  <span class="comment">// parseFloat("=A2+B2") → NaN → cell skipped in sum/min/max/average/count</span>
+}</pre>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>The <strong>"Total"</strong> column contains formulas <code>=A+B</code> for each row.</li>
+      <li>The <strong>columnSummary row</strong> at the bottom should show the sum of all Total values.</li>
+      <li>BUG: it shows only the sum of the <strong>plain-number rows</strong> — formula rows are excluded. ✗</li>
+      <li>Compare <strong>"Summary (grid)"</strong> with <strong>"Correct sum"</strong> below.</li>
+      <li>Edit cell A2 or B2 to change a value — the summary does not update. ✗</li>
+    </ol>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Summary shown in grid</div>
+      <div class="metric-value bad" id="m-grid">—</div>
+      <div class="metric-sub">What columnSummary reports (wrong)</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Correct sum (all rows)</div>
+      <div class="metric-value ok" id="m-correct">—</div>
+      <div class="metric-sub">A+B for every row (incl. formula cells)</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Difference (missing)</div>
+      <div class="metric-value bad" id="m-diff">—</div>
+      <div class="metric-sub">Should be 0</div>
+    </div>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    // 8 data rows: rows 0-2 have plain numbers, rows 3-7 have formulas in the Total column
+    const DATA = [
+      [10, 5,  15],          // plain
+      [20, 8,  28],          // plain
+      [15, 12, 27],          // plain
+      [30, 6,  '=A5+B5'],    // formula
+      [25, 9,  '=A6+B6'],    // formula
+      [18, 14, '=A7+B7'],    // formula
+      [40, 3,  '=A8+B8'],    // formula
+      [12, 7,  '=A9+B9'],    // formula
+    ];
+
+    // Correct sum of all Total (C) values: 15+28+27+36+34+32+43+19 = 234
+    const CORRECT_SUM = DATA.reduce((acc, row) => {
+      const a = row[0], b = row[1];
+      return acc + (typeof row[2] === 'number' ? row[2] : a + b);
+    }, 0);
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: DATA.map(r => [...r]),
+      colHeaders: ['A (Sales)', 'B (Returns)', 'Total (=A+B)'],
+      rowHeaders: true,
+      width: '100%',
+      height: 'auto',
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      formulas: {
+        engine: HyperFormula,
+      },
+      columnSummary: [
+        {
+          sourceColumn: 2,
+          type: 'sum',
+          destinationRow: 0,
+          destinationColumn: 2,
+          reversedRowCoords: true,
+          suppressDataTypeErrors: false,
+          readOnly: true,
+        },
+      ],
+      afterRender() {
+        setTimeout(() => {
+          const gridSum = window.hot.getDataAtCell(
+            window.hot.countRows() - 1, 2
+          );
+          const numGrid = typeof gridSum === 'number' ? gridSum : parseFloat(gridSum) || 0;
+          document.getElementById('m-grid').textContent = numGrid;
+          document.getElementById('m-correct').textContent = CORRECT_SUM;
+          const diff = CORRECT_SUM - numGrid;
+          document.getElementById('m-diff').textContent = diff === 0 ? '0 ✓' : diff + ' ✗';
+        }, 50);
+      },
+    });
+  </script>
+</body>
+</html>

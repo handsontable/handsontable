@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12489 — FIX (columnSummary includes formula cells)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .new { color: #b5cea8; font-weight: 700; }
+    pre .del { color: #f48771; text-decoration: line-through; opacity: 0.6; }
+    pre .comment { color: #6a9955; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; line-height: 1.5; }
+    .metrics { display: flex; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+    .metric { flex: 1; min-width: 160px; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 14px; }
+    .metric-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: #888; margin-bottom: 4px; }
+    .metric-value { font-size: 20px; font-weight: 700; font-family: monospace; }
+    .metric-value.bad { color: #b71c1c; }
+    .metric-value.ok  { color: #2e7d32; }
+    .metric-sub { font-size: 11px; color: #666; margin-top: 3px; }
+  </style>
+</head>
+<body>
+  <h1>PR #12489 / #10980 — <code>columnSummary</code> correctly includes HyperFormula cells</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12489-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR #12489 Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12489).</strong>
+    <code>columnSummary</code> now reads cell values via <code>getDataAtCell</code> so HyperFormula's
+    <code>modifyData</code> hook returns the calculated result instead of the raw formula string.
+    An <code>afterFormulasValuesUpdate</code> listener also refreshes affected summary endpoints
+    when HyperFormula recomputes dependent cells, so summaries stay live after edits.
+    <ul style="margin: 6px 0 0 20px; line-height: 1.8;">
+      <li>Formula cells (<code>=A2+B2</code>) contribute their calculated values to the summary. ✓</li>
+      <li>All summary types work: sum, min, max, average, count. ✓</li>
+      <li>Editing a referenced cell updates the summary automatically. ✓</li>
+    </ul>
+  </div>
+
+  <pre><span class="comment">// FIX — columnSummary plugin (PR #12489):</span>
+getCellValue(visualRow, visualCol) {
+  <span class="del">return this.hot.getSourceDataAtCell(...);</span>
+  <span class="new">return this.hot.getDataAtCell(visualRow, visualCol);</span>
+  <span class="comment">// getDataAtCell triggers modifyData hook → HyperFormula returns calculated value</span>
+  <span class="comment">// parseFloat(36) → 36 → included in sum ✓</span>
+}</pre>
+
+  <div id="patch-info">
+    This page loads <code>dist/handsontable.full.min.js</code> built from the <code>develop</code>
+    branch which includes PR #12489.
+  </div>
+
+  <div class="hint">
+    <strong>How to verify the fix:</strong>
+    <ol>
+      <li>The <strong>columnSummary row</strong> at the bottom now shows the <strong>correct sum</strong> of all rows (including formula cells). ✓</li>
+      <li><strong>"Summary (grid)"</strong> matches <strong>"Correct sum"</strong> — difference is 0. ✓</li>
+      <li><strong>Edit cell A or B</strong> in any row — the Total updates via HyperFormula, and the summary row updates too. ✓</li>
+      <li>Compare with the <a href="demo-pr12489-bug.html">Bug page</a> where formula rows are excluded. ✗</li>
+    </ol>
+  </div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Summary shown in grid</div>
+      <div class="metric-value ok" id="m-grid">—</div>
+      <div class="metric-sub">What columnSummary reports (correct)</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Correct sum (all rows)</div>
+      <div class="metric-value ok" id="m-correct">—</div>
+      <div class="metric-sub">A+B for every row (incl. formula cells)</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Difference</div>
+      <div class="metric-value ok" id="m-diff">—</div>
+      <div class="metric-sub">Should be 0 ✓</div>
+    </div>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    const DATA = [
+      [10, 5,  15],
+      [20, 8,  28],
+      [15, 12, 27],
+      [30, 6,  '=A5+B5'],
+      [25, 9,  '=A6+B6'],
+      [18, 14, '=A7+B7'],
+      [40, 3,  '=A8+B8'],
+      [12, 7,  '=A9+B9'],
+    ];
+
+    function computeCorrectSum() {
+      let s = 0;
+      for (let r = 0; r < window.hot.countRows() - 1; r++) {
+        const v = window.hot.getDataAtCell(r, 2);
+        s += typeof v === 'number' ? v : parseFloat(v) || 0;
+      }
+      return s;
+    }
+
+    function updateMetrics() {
+      const gridSum = window.hot.getDataAtCell(window.hot.countRows() - 1, 2);
+      const numGrid = typeof gridSum === 'number' ? gridSum : parseFloat(gridSum) || 0;
+      const correct = computeCorrectSum();
+      const diff = Math.abs(correct - numGrid);
+
+      document.getElementById('m-grid').textContent = numGrid;
+      document.getElementById('m-grid').className = 'metric-value ' + (diff === 0 ? 'ok' : 'bad');
+      document.getElementById('m-correct').textContent = correct;
+      const diffEl = document.getElementById('m-diff');
+      diffEl.textContent = diff === 0 ? '0 ✓' : diff + ' ✗';
+      diffEl.className = 'metric-value ' + (diff === 0 ? 'ok' : 'bad');
+    }
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: DATA.map(r => [...r]),
+      colHeaders: ['A (Sales)', 'B (Returns)', 'Total (=A+B)'],
+      rowHeaders: true,
+      width: '100%',
+      height: 'auto',
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      formulas: {
+        engine: HyperFormula,
+      },
+      columnSummary: [
+        {
+          sourceColumn: 2,
+          type: 'sum',
+          destinationRow: 0,
+          destinationColumn: 2,
+          reversedRowCoords: true,
+          suppressDataTypeErrors: false,
+          readOnly: true,
+        },
+      ],
+      afterRender() {
+        setTimeout(updateMetrics, 50);
+      },
+      afterChange() {
+        setTimeout(updateMetrics, 100);
+      },
+    });
+  </script>
+</body>
+</html>
