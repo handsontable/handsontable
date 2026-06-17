@@ -5,6 +5,7 @@ import {
   isUndefined,
   isEmpty,
   isRegExp,
+  emptyStringToNull,
 } from '../mixed';
 
 describe('Mixed helper', () => {
@@ -105,6 +106,29 @@ describe('Mixed helper', () => {
       expect(isEmpty('a')).toBeFalsy();
       expect(isEmpty([])).toBeFalsy();
       expect(isEmpty({})).toBeFalsy();
+    });
+  });
+
+  describe('emptyStringToNull', () => {
+    it('should convert an empty string to `null`', () => {
+      expect(emptyStringToNull('')).toBe(null);
+    });
+
+    it('should leave every other value untouched', () => {
+      expect(emptyStringToNull(null)).toBe(null);
+      expect(emptyStringToNull(undefined)).toBe(undefined);
+      expect(emptyStringToNull(0)).toBe(0);
+      expect(emptyStringToNull(NaN)).toBe(NaN);
+      expect(emptyStringToNull(false)).toBe(false);
+      expect(emptyStringToNull('a')).toBe('a');
+      expect(emptyStringToNull(' ')).toBe(' ');
+      expect(emptyStringToNull('2019-01-01')).toBe('2019-01-01');
+
+      const arr: unknown[] = [];
+      const obj = {};
+
+      expect(emptyStringToNull(arr)).toBe(arr);
+      expect(emptyStringToNull(obj)).toBe(obj);
     });
   });
 

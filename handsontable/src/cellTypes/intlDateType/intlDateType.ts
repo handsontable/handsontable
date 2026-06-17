@@ -5,6 +5,7 @@ import {
   intlDateValidator,
   sourceDataValidator,
 } from '../../validators/intlDateValidator';
+import { emptyStringToNull } from '../../helpers/mixed';
 
 export const CELL_TYPE = 'intl-date';
 export const IntlDateCellType = {
@@ -15,4 +16,5 @@ export const IntlDateCellType = {
   sourceDataValidator,
   sourceDataWarningMessage: SOURCE_DATA_WARNING_MESSAGE,
   valueFormatter,
+  valueSetter: emptyStringToNull,
 };

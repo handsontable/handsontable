@@ -5,6 +5,7 @@ import {
   timeValidator,
   sourceDataValidator,
 } from '../../validators/timeValidator';
+import { emptyStringToNull } from '../../helpers/mixed';
 
 export const CELL_TYPE: 'time' = 'time';
 export const TimeCellType = {
@@ -15,4 +16,5 @@ export const TimeCellType = {
   sourceDataValidator,
   sourceDataWarningMessage: SOURCE_DATA_WARNING_MESSAGE,
   valueFormatter,
+  valueSetter: emptyStringToNull,
 };

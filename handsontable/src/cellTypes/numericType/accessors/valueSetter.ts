@@ -6,6 +6,7 @@ import {
   getParsedNumber,
 } from '../../../helpers/number';
 import { isNullish } from '../../../dataMap/metaManager/utils';
+import { emptyStringToNull } from '../../../helpers/mixed';
 import type { CellProperties } from '../../../settings';
 
 /**
@@ -64,6 +65,12 @@ function getCellDecimalSeparator(cellMeta: CellProperties) {
 export function valueSetter(newValue: unknown, _row: number, _column: number, cellMeta: CellProperties): unknown {
   if (typeof newValue !== 'string') {
     return newValue;
+  }
+
+  // A numeric cell has no valid empty-string representation, so keep it as `null`
+  // instead of storing `''` (which breaks formulas, sorting, and server-side parsing).
+  if (newValue === '') {
+    return null;
   }
 
   const decimalSeparator = getCellDecimalSeparator(cellMeta);

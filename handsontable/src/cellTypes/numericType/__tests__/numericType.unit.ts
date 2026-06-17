@@ -69,6 +69,15 @@ describe('NumericCellType', () => {
   });
 
   describe('valueSetter', () => {
+    it('should convert an empty string to `null` so the cell is not overwritten with `""`', () => {
+      expect(valueSetter('', 0, 0, {})).toBe(null);
+    });
+
+    it('should keep non-string empty values untouched', () => {
+      expect(valueSetter(null, 0, 0, {})).toBe(null);
+      expect(valueSetter(undefined, 0, 0, {})).toBe(undefined);
+    });
+
     it('should parse grouped values for dot-decimal numeric formats', () => {
       expect(valueSetter('100,000', 0, 0, {
         locale: 'en-US',

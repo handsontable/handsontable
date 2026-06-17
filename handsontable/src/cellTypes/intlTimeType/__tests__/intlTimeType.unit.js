@@ -64,6 +64,7 @@ describe('IntlTimeCellType', () => {
         sourceDataValidator: IntlTimeCellType.sourceDataValidator,
         valueFormatter: IntlTimeCellType.valueFormatter,
         sourceDataWarningMessage: IntlTimeCellType.sourceDataWarningMessage,
+        valueSetter: IntlTimeCellType.valueSetter,
       });
     });
   });

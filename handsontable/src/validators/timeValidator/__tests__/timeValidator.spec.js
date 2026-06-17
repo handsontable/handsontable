@@ -38,7 +38,7 @@ describe('timeValidator', () => {
 
     await waitForNextAnimationFrames(2);
 
-    expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'time');
+    expect(onAfterValidate).toHaveBeenCalledWith(true, null, 0, 'time');
   });
 
   it('should not positively validate a non-date format', async() => {
@@ -139,7 +139,7 @@ describe('timeValidator', () => {
 
       await waitForNextAnimationFrames(2);
 
-      expect(onAfterValidate).toHaveBeenCalledWith(false, '', 1, 'time');
+      expect(onAfterValidate).toHaveBeenCalledWith(false, null, 1, 'time');
     });
 
     it('should not validate `null` when allowEmpty is set as `false`', async() => {

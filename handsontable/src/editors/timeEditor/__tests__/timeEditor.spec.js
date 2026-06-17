@@ -66,4 +66,45 @@ describe('TimeEditor', () => {
 
     expect(editableElement.getAttribute('dir')).toBe('ltr');
   });
+
+  describe('empty values (issue #3927)', () => {
+    it('should keep `null` when opening and closing the editor without typing', async() => {
+      handsontable({
+        data: [['10:30:00'], [null]],
+        columns: [{ type: 'time', timeFormat: 'h:mm:ss a', correctFormat: true }],
+      });
+
+      await selectCell(1, 0);
+      await keyDownUp('enter'); // open
+
+      const editor = getActiveEditor();
+
+      editor.finishEditing(); // confirm without typing
+      await sleep(30);
+
+      expect(getSourceDataAtCell(1, 0)).toBe(null);
+    });
+
+    it('should store `null` (not "") when setting an empty string via `setDataAtCell`', async() => {
+      handsontable({
+        data: [['10:30:00']],
+        columns: [{ type: 'time', timeFormat: 'h:mm:ss a', correctFormat: true }],
+      });
+
+      await setDataAtCell(0, 0, '');
+
+      expect(getSourceDataAtCell(0, 0)).toBe(null);
+    });
+
+    it('should store `null` (not "") when populating an empty value', async() => {
+      handsontable({
+        data: [['10:30:00']],
+        columns: [{ type: 'time', timeFormat: 'h:mm:ss a', correctFormat: true }],
+      });
+
+      await populateFromArray(0, 0, [['']]);
+
+      expect(getSourceDataAtCell(0, 0)).toBe(null);
+    });
+  });
 });

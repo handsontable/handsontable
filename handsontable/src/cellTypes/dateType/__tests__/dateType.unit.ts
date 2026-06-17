@@ -62,6 +62,7 @@ describe('DateCellType', () => {
         sourceDataValidator: expect.any(Function),
         sourceDataWarningMessage: expect.any(String),
         valueFormatter: expect.any(Function),
+        valueSetter: expect.any(Function),
       });
     });
   });

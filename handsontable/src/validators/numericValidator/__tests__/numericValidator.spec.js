@@ -27,7 +27,7 @@ describe('numericValidator', () => {
     ];
   };
 
-  it('should validate an empty string (default behavior)', async() => {
+  it('should normalize an empty string to `null` and validate it (default behavior)', async() => {
     const onAfterValidate = jasmine.createSpy('onAfterValidate');
 
     handsontable({
@@ -43,7 +43,8 @@ describe('numericValidator', () => {
     await setDataAtCell(2, 0, '');
     await waitForNextAnimationFrames(2);
 
-    expect(onAfterValidate).toHaveBeenCalledWith(true, '', 2, 'id');
+    // A numeric cell has no valid empty-string representation, so `''` becomes `null` (issue #3927).
+    expect(onAfterValidate).toHaveBeenCalledWith(true, null, 2, 'id');
   });
 
   it('should not validate non numeric string', async() => {
@@ -158,7 +159,8 @@ describe('numericValidator', () => {
       await setDataAtCell(2, 0, '');
       await waitForNextAnimationFrames(2);
 
-      expect(onAfterValidate).toHaveBeenCalledWith(false, '', 2, 'id');
+      // A numeric cell has no valid empty-string representation, so `''` becomes `null` (issue #3927).
+      expect(onAfterValidate).toHaveBeenCalledWith(false, null, 2, 'id');
     });
 
     it('should not validate `null` when allowEmpty is set as `false`', async() => {

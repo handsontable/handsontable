@@ -1161,6 +1161,61 @@ describe('NumericEditor', () => {
     });
   });
 
+  describe('empty values (issue #3927)', () => {
+    it('should keep `null` when opening and closing the editor without typing', async() => {
+      handsontable({
+        data: [[10], [20], [null]],
+        columns: [{ type: 'numeric' }],
+      });
+
+      await selectCell(2, 0);
+      await keyDownUp('enter'); // open
+      await keyDownUp('enter'); // confirm without typing
+
+      expect(getSourceDataAtCell(2, 0)).toBe(null);
+      expect(getDataAtCell(2, 0)).toBe(null);
+    });
+
+    it('should store `null` (not "") when clearing a numeric cell through the editor', async() => {
+      handsontable({
+        data: [[10]],
+        columns: [{ type: 'numeric' }],
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+
+      const editor = getActiveEditor();
+
+      editor.setValue('');
+      await keyDownUp('enter');
+
+      expect(getSourceDataAtCell(0, 0)).toBe(null);
+    });
+
+    it('should store `null` (not "") when pasting/populating an empty value', async() => {
+      handsontable({
+        data: [[10]],
+        columns: [{ type: 'numeric' }],
+      });
+
+      await populateFromArray(0, 0, [['']]);
+
+      expect(getSourceDataAtCell(0, 0)).toBe(null);
+    });
+
+    it('should store `null` (not "") when setting an empty string via `setDataAtCell`', async() => {
+      handsontable({
+        data: [[10]],
+        columns: [{ type: 'numeric' }],
+      });
+
+      await setDataAtCell(0, 0, '');
+
+      expect(getSourceDataAtCell(0, 0)).toBe(null);
+    });
+  });
+
   describe('IME support', () => {
     it('should focus editable element after a timeout when selecting the cell if `imeFastEdit` is enabled', async() => {
       handsontable({

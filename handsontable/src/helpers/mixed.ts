@@ -60,6 +60,21 @@ export function isEmpty(variable: unknown): boolean {
 }
 
 /**
+ * Normalizes an empty string to `null`, leaving every other value untouched.
+ *
+ * Used by cell types where an empty string has no valid representation (for example
+ * `numeric`, `date`, and `time`). It keeps an originally empty cell as `null` instead
+ * of overwriting it with `''` when the editor is opened without input, the value is
+ * cleared, or an empty value is pasted.
+ *
+ * @param {*} value The value to normalize.
+ * @returns {*} `null` when the value is an empty string, otherwise the original value.
+ */
+export function emptyStringToNull(value: unknown): unknown {
+  return value === '' ? null : value;
+}
+
+/**
  * Check if given variable is a regular expression.
  *
  * @param {*} variable Variable to check.

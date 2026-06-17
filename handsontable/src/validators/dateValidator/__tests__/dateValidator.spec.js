@@ -38,7 +38,7 @@ describe('dateValidator', () => {
 
     await waitForNextAnimationFrames(2);
 
-    expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date');
+    expect(onAfterValidate).toHaveBeenCalledWith(true, null, 0, 'date');
   });
 
   it('should not positively validate a non-date string', async() => {
@@ -250,7 +250,7 @@ describe('dateValidator', () => {
 
       await waitForNextAnimationFrames(2);
 
-      expect(onAfterValidate).toHaveBeenCalledWith(false, '', 1, 'date');
+      expect(onAfterValidate).toHaveBeenCalledWith(false, null, 1, 'date');
     });
 
     it('should not validate `null` when allowEmpty is set as `false`', async() => {
@@ -312,7 +312,7 @@ describe('dateValidator', () => {
 
       await waitForNextAnimationFrames(2);
 
-      expect(onAfterValidate).toHaveBeenCalledWith(true, '', 0, 'date');
+      expect(onAfterValidate).toHaveBeenCalledWith(true, null, 0, 'date');
     });
 
     it('should not positively validate a non-ISO date string', async() => {
@@ -373,7 +373,7 @@ describe('dateValidator', () => {
 
         await waitForNextAnimationFrames(2);
 
-        expect(onAfterValidate).toHaveBeenCalledWith(false, '', 1, 'date');
+        expect(onAfterValidate).toHaveBeenCalledWith(false, null, 1, 'date');
       });
     });
   });
