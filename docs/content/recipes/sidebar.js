@@ -33,6 +33,7 @@ const cellTypesItems = [
   { path: 'cell-types/color-picker/color-picker', title: 'Color picker', onlyFor: ['javascript', 'angular', 'vue'] },
   { path: 'cell-types/feedback/feedback', title: 'Feedback', onlyFor: ['javascript', 'angular', 'vue'] },
   { path: 'cell-types/rating/rating', title: 'Star Rating', onlyFor: ['javascript', 'angular', 'vue'] },
+  { path: 'cell-types/radio/radio', title: 'Radio buttons', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   // JavaScript + Vue only
   { path: 'cell-types/flatpickr/flatpickr', title: 'Flatpickr', onlyFor: ['javascript', 'vue'] },
   { path: 'cell-types/moment-date/moment-date', title: 'Moment.js-based date', onlyFor: ['javascript', 'vue'] },
