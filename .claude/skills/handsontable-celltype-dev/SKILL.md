@@ -55,6 +55,10 @@ New cell types must be added to `src/dataMap/metaManager/metaSchema.ts` so Hands
 - **All components are optional.** A cell type can omit `validator` if no validation is needed, or omit `editor` for read-only display types.
 - **Individual overrides win.** If a user sets both `type: 'myType'` and `renderer: customRenderer`, the explicit `renderer` takes precedence over the one from the cell type.
 
+## Empty values
+
+A cell type whose values have no valid empty-string representation (numeric, date, time, intl-date, intl-time) must normalize `''` to `null` so opening an editor without input, clearing a cell, pasting, or `setDataAtCell('')` keeps the value as `null` instead of `''`. Do this through `valueSetter` (runs in the shared `processChanges` path, so it covers every write). Use the `emptyStringToNull` helper from `src/helpers/mixed.ts` (date/time types assign it directly; numeric returns `null` for `''` before its own parsing). Leave the `text` type unchanged — `''` is a valid text value.
+
 ## Reference implementations
 
 - `src/cellTypes/numericType/numericType.ts` - Composes numeric editor, renderer, and validator.

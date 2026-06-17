@@ -379,6 +379,8 @@ The [`dateFormat`](@/api/options.md#dateformat) option controls how dates are di
 
 After configuring the date cell type, cells display dates formatted according to your `dateFormat` configuration. Clicking an `intl-date` or `date` cell opens a native date picker. Source data is stored in ISO 8601 format (`YYYY-MM-DD`) regardless of the display format.
 
+When you clear a date cell or paste an empty value into it, Handsontable stores `null` instead of an empty string. This keeps the cell's value usable in formulas, sorting, and server-side processing.
+
 ## Related articles
 
 **Related guides**

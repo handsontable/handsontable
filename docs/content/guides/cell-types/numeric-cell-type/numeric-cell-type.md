@@ -390,6 +390,8 @@ you edit a numeric cell:
 
 After configuring the numeric cell type, cells right-align their values and display them using the format you defined in `numericFormat`. Invalid (non-numeric) input is rejected. The underlying data source stores the raw number.
 
+When you clear a numeric cell, open its editor without typing, or paste an empty value into it, Handsontable stores `null` instead of an empty string. This keeps the cell's value usable in formulas, sorting, and server-side processing.
+
 ## Related articles
 
 **Related guides**

@@ -402,6 +402,8 @@ The [`timeFormat`](@/api/options.md#timeformat) option controls how times are di
 
 After configuring the time cell type, cells display time values formatted according to your `timeFormat` configuration. Clicking an `intl-time` or `time` cell opens a native time picker. Source data is stored in 24-hour format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`) regardless of the display format.
 
+When you clear a time cell or paste an empty value into it, Handsontable stores `null` instead of an empty string. This keeps the cell's value usable in formulas, sorting, and server-side processing.
+
 ## Related articles
 
 **Related guides**
