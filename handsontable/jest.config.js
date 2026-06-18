@@ -19,5 +19,6 @@ module.exports = {
     '^handsontable(.*)$': '<rootDir>/src$1',
     '^walkontable(.*)$': '<rootDir>/src/3rdparty/walkontable/src$1',
     '\\.(css|scss)$': '<rootDir>/test/__mocks__/styleMock.js',
+    'handsontableStyles$': '<rootDir>/test/__mocks__/styleMock.js',
   }
 };
