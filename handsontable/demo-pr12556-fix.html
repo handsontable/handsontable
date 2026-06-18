@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PR #12556 — FIX (autofill works with undefined properties)</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .info-fix strong { color: #1b5e20; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .new { color: #b5cea8; font-weight: 700; }
+    pre .del { color: #f48771; text-decoration: line-through; opacity: 0.6; }
+    pre .comment { color: #6a9955; }
+    #patch-info { background: #e3f2fd; border: 1px solid #90caf9; border-radius: 6px; padding: 8px 14px; margin-bottom: 12px; font-size: 12px; color: #1565c0; line-height: 1.5; }
+    .controls { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 14px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn-fill { background: #388e3c; color: #fff; border-color: #2e7d32; font-weight: 600; }
+    .btn-fill:hover { background: #2e7d32; }
+    .btn-fill:disabled { background: #ccc; border-color: #bbb; cursor: not-allowed; }
+    .btn-reset { background: #fff9c4; border-color: #f9a825; }
+    .results { background: #1e1e1e; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 12px; font-family: monospace; min-height: 80px; white-space: pre-wrap; line-height: 1.7; }
+    .results .label { color: #9cdcfe; }
+    .results .ok    { color: #b5cea8; }
+    .results .dim   { color: #555; }
+    .step-row { display: flex; gap: 6px; margin-bottom: 10px; flex-wrap: wrap; }
+    .step { padding: 3px 10px; border-radius: 20px; font-size: 12px; border: 1px solid #ddd; background: #fff; color: #999; }
+    .step.active { background: #1565c0; color: #fff; border-color: #1565c0; font-weight: 600; }
+    .step.done   { background: #e8f5e9; color: #2e7d32; border-color: #a5d6a7; }
+    .step.pass   { background: #2e7d32; color: #fff; border-color: #1b5e20; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <h1>PR #12556 — Autofill works correctly with <code>undefined</code> properties</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <a class="nav-btn" href="demo-pr12556-bug.html">Released v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">PR #12556 Fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info info-fix">
+    <strong>FIX applied (PR #12556).</strong>
+    Both <code>deepClone</code> and <code>isObjectEqual</code> now handle <code>undefined</code>-valued
+    keys correctly.
+    <ul style="margin: 6px 0 0 20px; line-height: 1.8;">
+      <li><code>deepClone</code> uses a recursive property copy instead of <code>JSON.parse(JSON.stringify(…))</code> — <code>undefined</code> keys are preserved. ✓</li>
+      <li><code>isObjectEqual</code> compares key sets structurally instead of relying on <code>JSON.stringify</code> key order. ✓</li>
+      <li><strong>1st autofill</strong> (row 0 → row 1): succeeds. ✓</li>
+      <li><strong>2nd autofill</strong> (row 1 → row 2): succeeds. ✓</li>
+    </ul>
+  </div>
+
+  <pre><span class="comment">// FIX — deepClone in helpers/object.js (PR #12556):</span>
+export function deepClone(obj) {
+  <span class="del">return JSON.parse(JSON.stringify(obj));</span>
+  <span class="new">// Recursive copy — preserves undefined-valued keys and non-JSON-safe values
+  if (obj === null || typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) return obj.map(deepClone);
+  const result = {};
+  for (const key of Object.keys(obj)) {
+    result[key] = deepClone(obj[key]);
+  }
+  return result;</span>
+}</pre>
+
+  <div id="patch-info">
+    This page loads <code>dist/handsontable.full.min.js</code> built from the <code>develop</code>
+    branch which includes PR #12556.
+  </div>
+
+  <div class="hint">
+    <strong>How to verify the fix:</strong>
+    <ol>
+      <li>Click <strong>"Fill row 0 → row 1"</strong> — row 1 gets a copy of row 0. ✓</li>
+      <li>Click <strong>"Fill row 1 → row 2"</strong> — row 2 gets a copy of row 1. ✓</li>
+      <li>The <strong>source data readout</strong> shows <code>label: undefined</code> in all filled rows — the key is <strong>preserved</strong>. ✓</li>
+      <li>Compare with the <a href="demo-pr12556-bug.html">Bug page</a> where the second fill is silently blocked. ✗</li>
+    </ol>
+  </div>
+
+  <div class="step-row">
+    <span class="step active" id="s1">① Fill row 0 → 1</span>
+    <span class="step" id="s2">② Fill row 1 → 2</span>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-fill" id="btn-fill1">Fill row 0 → row 1</button>
+    <button class="btn btn-fill" id="btn-fill2" disabled>Fill row 1 → row 2</button>
+    <button class="btn btn-reset" id="btn-reset">Reset</button>
+  </div>
+
+  <div class="results" id="results">Waiting — click "Fill row 0 → row 1" to start.</div>
+
+  <div id="hot-container"></div>
+
+  <script src="dist/handsontable.full.min.js"></script>
+  <script>
+    function makeData() {
+      return [
+        { id: 1, label: undefined, value: 100 },
+        { id: null, label: undefined, value: null },
+        { id: null, label: undefined, value: null },
+        { id: null, label: undefined, value: null },
+      ];
+    }
+
+    function rowStr(row) {
+      const d = window.hot.getSourceDataAtRow(row);
+      if (!d) return 'null';
+      const hasLabel = 'label' in d;
+      return '{ id: ' + JSON.stringify(d.id) +
+             ', label: ' + (hasLabel ? String(d.label) : '<MISSING>') +
+             ', value: ' + JSON.stringify(d.value) + ' }';
+    }
+
+    function updateResults(msg, extra) {
+      const lines = [msg, ''];
+      for (let r = 0; r < 3; r++) {
+        lines.push('row ' + r + ': ' + rowStr(r));
+      }
+      if (extra) lines.push('', extra);
+      document.getElementById('results').innerHTML =
+        lines.join('\n')
+          .replace(/(row \d+):/g, '<span class="label">$1:</span>');
+    }
+
+    function initHot() {
+      if (window.hot) { window.hot.destroy(); window.hot = null; }
+      document.getElementById('btn-fill2').disabled = true;
+      document.querySelectorAll('.step').forEach(s => s.className = 'step');
+      document.getElementById('s1').className = 'step active';
+
+      window.hot = new Handsontable(document.getElementById('hot-container'), {
+        data: makeData(),
+        columns: [
+          { data: 'id',    type: 'numeric', title: 'ID'    },
+          { data: 'label', type: 'text',    title: 'Label (undefined)' },
+          { data: 'value', type: 'numeric', title: 'Value' },
+        ],
+        colHeaders: true,
+        rowHeaders: true,
+        width: '100%',
+        height: 220,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+        fillHandle: true,
+      });
+
+      updateResults('Initial state — row 0 has { label: undefined }.');
+    }
+
+    document.getElementById('btn-fill1').addEventListener('click', () => {
+      const src = [[ window.hot.getSourceDataAtRow(0) ]];
+      window.hot.populateFromArray(1, 0, src, 1, 2, 'autofill');
+
+      document.getElementById('s1').className = 'step done';
+      document.getElementById('s2').className = 'step active';
+      document.getElementById('btn-fill2').disabled = false;
+
+      setTimeout(() => {
+        updateResults(
+          '✓ Step 1: row 0 → row 1 filled. "label" key preserved.',
+          'deepClone now keeps undefined-valued keys intact.'
+        );
+      }, 50);
+    });
+
+    document.getElementById('btn-fill2').addEventListener('click', () => {
+      const before = JSON.stringify(window.hot.getSourceDataAtRow(2));
+      const src = [[ window.hot.getSourceDataAtRow(1) ]];
+      window.hot.populateFromArray(2, 0, src, 2, 2, 'autofill');
+
+      setTimeout(() => {
+        const after = JSON.stringify(window.hot.getSourceDataAtRow(2));
+        const filled = before !== after;
+
+        document.getElementById('s2').className = filled ? 'step pass' : 'step done';
+
+        updateResults(
+          filled
+            ? '✓ Step 2: row 1 → row 2 filled. Both autofills succeeded!'
+            : 'Step 2: row 2 unchanged (unexpected — check build).',
+          filled ? 'duckSchema matches: "label" key present in clone → fill allowed. ✓' : ''
+        );
+      }, 50);
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', initHot);
+    initHot();
+  </script>
+</body>
+</html>
