@@ -523,16 +523,21 @@ class Border {
   }
 
   /**
-   * Draws the single selection-border edge that lies exactly on a frozen-pane boundary.
+   * Draws the selection-border edge(s) that lie exactly on a frozen-pane boundary.
    *
-   * When `fixedRowsTop`/`fixedColumnsStart` are used, a selection located in the master pane but
-   * flush against the freeze line has its top/inline-start edge drawn by the master overlay right
-   * on that line, where the frozen overlay (stacked above the master) occludes it. This method
-   * re-draws that one edge inside the frozen overlay (`top` / `inline_start`), just within its
-   * clipped area, so the edge becomes visible. It is a no-op unless the relevant fixed-pane option
-   * is active and the selection's edge is flush with the boundary (`fromRow === fixedRowsTop` /
-   * `fromColumn === fixedColumnsStart`). `appear` hides the matching master edge under the same
-   * condition, so exactly one line is drawn.
+   * When `fixedRowsTop`/`fixedColumnsStart` are used, a selection edge flush against the freeze line
+   * is rendered by the master right on that line, where the frozen overlays (stacked above the
+   * master) occlude it. This re-draws that edge inside the frozen overlay(s) that own it — each
+   * clamped to its own rendered range — so the edge stays visible. `appear` hides the matching
+   * master edge under the same `isFrozenBoundaryEdge` condition, so exactly one line is drawn per
+   * segment.
+   *
+   * A single edge can span more than one frozen overlay when the selection also crosses the
+   * perpendicular freeze line. For example the inline-start edge of a selection that reaches up into
+   * the frozen rows is drawn partly by the `inline_start` overlay (across its non-frozen rows) and
+   * partly by the `top_inline_start_corner` overlay (across its frozen rows); each overlay draws
+   * only the slice it renders. The row-freeze edge behaves symmetrically across the `top` and corner
+   * overlays.
    *
    * @param {number[]} corners The selection corners `[fromRow, fromColumn, toRow, toColumn]`.
    * @returns {boolean} `true` when a boundary edge was drawn (regular drawing should be skipped).
@@ -542,8 +547,9 @@ class Border {
     const overlayName = wtTable.name;
     const isTopOverlay = overlayName === 'top';
     const isInlineStartOverlay = overlayName === 'inline_start';
+    const isCornerOverlay = overlayName === 'top_inline_start_corner';
 
-    if (!isTopOverlay && !isInlineStartOverlay) {
+    if (!isTopOverlay && !isInlineStartOverlay && !isCornerOverlay) {
       return false;
     }
 
@@ -552,11 +558,6 @@ class Border {
     // is direction-agnostic.
     const isRtl = this.wot.wtSettings.getSetting('rtlMode');
     const [fromRow, fromColumn, toRow, toColumn] = corners;
-    // Cross-axis offset for the thin dimension of the boundary line. The frozen overlay clips its
-    // content at the freeze line, so the line is anchored by its FAR edge (bottom for `top`,
-    // inline-end for `inline_start`) flush to that line — i.e. shifted by its own thickness — to keep
-    // it fully inside the clipped pane for borders thicker than 1px. This intentionally differs from
-    // the `-1` table-border compensation used on the along-axis (which mirrors the regular `appear`).
     const borderWidth = this.settings.border?.width ?? 0;
     // Along-axis extension applied to the line's length, mirroring `appear` (which adds
     // `ceil(borderWidth / 2)` to every edge's width/height so the corners meet). Without it the
@@ -564,76 +565,113 @@ class Border {
     // for borders thicker than 1px.
     const delta = Math.ceil(borderWidth / 2);
 
-    // The cheap integer/DOM-lookup guards below run first; `offset()` (which forces a layout
-    // reflow) is deferred to the success path so the common bail-outs stay reflow-free.
-    if (isTopOverlay) {
-      const fixedRowsTop = this.wot.getSetting('fixedRowsTop') as number;
-
-      // Decision shared with the master's suppression via `isFrozenBoundaryEdge`, so both panes
-      // agree on which one owns the edge. The rendered-range and cell-lookup guards below are
-      // defensive: if any fails, the edge is off-screen or not renderable in this overlay, in which
-      // case it simply stays hidden on both panes (a visual no-op).
-      if (!this.isFrozenBoundaryEdge('row', fromRow)) {
-        return false;
-      }
-
+    // The row-freeze edge (selection top edge on the row freeze line) is owned by the `top` overlay
+    // across the non-frozen columns and by the corner overlay across the frozen columns the
+    // selection reaches. Each overlay clamps the span to its own rendered columns, so together they
+    // cover the whole edge with no overlap. `getFirstRenderedColumn`/`getLastRenderedColumn` return
+    // the frozen block for the corner overlay and the scrolled viewport for the `top` overlay.
+    if (this.isFrozenBoundaryEdge('row', fromRow) && (isTopOverlay || isCornerOverlay)) {
       const firstColumn = Math.max(fromColumn, wtTable.getFirstRenderedColumn());
       const lastColumn = Math.min(toColumn, wtTable.getLastRenderedColumn());
 
-      if (lastColumn < firstColumn) {
-        return false;
+      if (this.drawRowFreezeEdge(firstColumn, lastColumn, isRtl, borderWidth, delta)) {
+        return true;
       }
-
-      const boundaryRow = fixedRowsTop - 1;
-      const boundaryTD = wtTable.getCell(this.wot.createCellCoords(boundaryRow, firstColumn));
-      const boundaryEndTD = wtTable.getCell(this.wot.createCellCoords(boundaryRow, lastColumn));
-
-      if (!isHTMLElement(boundaryTD) || !isHTMLElement(boundaryEndTD)) {
-        return false;
-      }
-
-      const containerOffset = offset(wtTable.TABLE);
-      const boundaryOffset = offset(boundaryTD);
-      const freezeLineY = boundaryOffset.top + outerHeight(boundaryTD);
-      const endOffset = offset(boundaryEndTD);
-
-      this.disappear();
-      this.topStyle!.top = `${freezeLineY - containerOffset.top - borderWidth}px`;
-
-      if (isRtl) {
-        // `firstColumn` (lowest index) is the visual-right cell, `lastColumn` the visual-left one.
-        const spanRightX = boundaryOffset.left + outerWidth(boundaryTD);
-        const tableRightX = containerOffset.left + outerWidth(wtTable.TABLE);
-
-        this.topStyle!.right = `${tableRightX - spanRightX - 1}px`;
-        this.topStyle!.width = `${spanRightX - endOffset.left + delta}px`;
-      } else {
-        this.topStyle!.left = `${boundaryOffset.left - containerOffset.left - 1}px`;
-        this.topStyle!.width = `${endOffset.left + outerWidth(boundaryEndTD) - boundaryOffset.left + delta}px`;
-      }
-
-      this.topStyle!.display = 'block';
-
-      return true;
     }
 
-    // inline_start overlay → draw the inline-start (left, in LTR) edge on the column freeze line.
-    const fixedColumnsStart = this.wot.getSetting('fixedColumnsStart') as number;
+    // The column-freeze edge (selection inline-start edge on the column freeze line) is owned by the
+    // `inline_start` overlay across the non-frozen rows and by the corner overlay across the frozen
+    // rows the selection reaches. Mirror of the branch above on the column axis.
+    if (this.isFrozenBoundaryEdge('column', fromColumn) && (isInlineStartOverlay || isCornerOverlay)) {
+      const firstRow = Math.max(fromRow, wtTable.getFirstRenderedRow());
+      const lastRow = Math.min(toRow, wtTable.getLastRenderedRow());
 
-    // Mirror of the top branch on the column axis. Decision shared with the master via
-    // `isFrozenBoundaryEdge`; the later guards are defensive (see the top branch).
-    if (!this.isFrozenBoundaryEdge('column', fromColumn)) {
+      if (this.drawColumnFreezeEdge(firstRow, lastRow, isRtl, borderWidth, delta)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Draws the selection's top edge on the row freeze line across the given (already clamped) column
+   * span within the current overlay. The line is anchored by its bottom edge flush to the freeze
+   * line — shifted up by its own thickness — to keep it inside the clipped pane for borders thicker
+   * than 1px. The cheap range/cell-lookup guards run before any `offset()` (which forces a layout
+   * reflow), so non-drawing calls stay reflow-free and leave the styles untouched for the caller to
+   * try the other axis.
+   *
+   * @private
+   * @param {number} firstColumn The first column index to span (clamped to the overlay).
+   * @param {number} lastColumn The last column index to span (clamped to the overlay).
+   * @param {boolean} isRtl Whether the grid is rendered right-to-left.
+   * @param {number} borderWidth The configured border width in pixels.
+   * @param {number} delta The along-axis length extension (`ceil(borderWidth / 2)`).
+   * @returns {boolean} `true` when the edge was drawn.
+   */
+  drawRowFreezeEdge(
+    firstColumn: number, lastColumn: number, isRtl: boolean, borderWidth: number, delta: number): boolean {
+    if (lastColumn < firstColumn) {
       return false;
     }
 
-    const firstRow = Math.max(fromRow, wtTable.getFirstRenderedRow());
-    const lastRow = Math.min(toRow, wtTable.getLastRenderedRow());
+    const { wtTable } = this.wot;
+    const boundaryRow = (this.wot.getSetting('fixedRowsTop') as number) - 1;
+    const boundaryTD = wtTable.getCell(this.wot.createCellCoords(boundaryRow, firstColumn));
+    const boundaryEndTD = wtTable.getCell(this.wot.createCellCoords(boundaryRow, lastColumn));
 
+    if (!isHTMLElement(boundaryTD) || !isHTMLElement(boundaryEndTD)) {
+      return false;
+    }
+
+    const containerOffset = offset(wtTable.TABLE);
+    const boundaryOffset = offset(boundaryTD);
+    const freezeLineY = boundaryOffset.top + outerHeight(boundaryTD);
+    const endOffset = offset(boundaryEndTD);
+
+    this.disappear();
+    this.topStyle!.top = `${freezeLineY - containerOffset.top - borderWidth}px`;
+
+    if (isRtl) {
+      // `firstColumn` (lowest index) is the visual-right cell, `lastColumn` the visual-left one.
+      const spanRightX = boundaryOffset.left + outerWidth(boundaryTD);
+      const tableRightX = containerOffset.left + outerWidth(wtTable.TABLE);
+
+      this.topStyle!.right = `${tableRightX - spanRightX - 1}px`;
+      this.topStyle!.width = `${spanRightX - endOffset.left + delta}px`;
+    } else {
+      this.topStyle!.left = `${boundaryOffset.left - containerOffset.left - 1}px`;
+      this.topStyle!.width = `${endOffset.left + outerWidth(boundaryEndTD) - boundaryOffset.left + delta}px`;
+    }
+
+    this.topStyle!.display = 'block';
+
+    return true;
+  }
+
+  /**
+   * Draws the selection's inline-start edge on the column freeze line across the given (already
+   * clamped) row span within the current overlay. The line is anchored by its inline-end edge flush
+   * to the freeze line — shifted by its own thickness — to keep it inside the clipped pane for
+   * borders thicker than 1px. Guard/reflow behavior mirrors `drawRowFreezeEdge`.
+   *
+   * @private
+   * @param {number} firstRow The first row index to span (clamped to the overlay).
+   * @param {number} lastRow The last row index to span (clamped to the overlay).
+   * @param {boolean} isRtl Whether the grid is rendered right-to-left.
+   * @param {number} borderWidth The configured border width in pixels.
+   * @param {number} delta The along-axis length extension (`ceil(borderWidth / 2)`).
+   * @returns {boolean} `true` when the edge was drawn.
+   */
+  drawColumnFreezeEdge(
+    firstRow: number, lastRow: number, isRtl: boolean, borderWidth: number, delta: number): boolean {
     if (lastRow < firstRow) {
       return false;
     }
 
-    const boundaryColumn = fixedColumnsStart - 1;
+    const { wtTable } = this.wot;
+    const boundaryColumn = (this.wot.getSetting('fixedColumnsStart') as number) - 1;
     const boundaryTD = wtTable.getCell(this.wot.createCellCoords(firstRow, boundaryColumn));
     const boundaryEndTD = wtTable.getCell(this.wot.createCellCoords(lastRow, boundaryColumn));
 

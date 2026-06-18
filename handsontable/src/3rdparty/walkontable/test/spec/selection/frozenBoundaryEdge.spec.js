@@ -33,6 +33,7 @@ describe('Frozen boundary edge', () => {
       master: borders.find(b => b.wot.wtTable.isMaster),
       top: borders.find(b => b.wot.wtTable.name === 'top'),
       inlineStart: borders.find(b => b.wot.wtTable.name === 'inline_start'),
+      corner: borders.find(b => b.wot.wtTable.name === 'top_inline_start_corner'),
     };
   }
 
@@ -178,5 +179,47 @@ describe('Frozen boundary edge', () => {
     expect([master, inlineStart].filter(startShown).length).toBe(1);
     expect(startShown(inlineStart)).toBe(true);
     expect(startShown(master)).toBe(false);
+  });
+
+  // Cross-seam: a boundary edge that also crosses the PERPENDICULAR freeze line is split between two
+  // frozen overlays. The `inline_start` overlay renders only the non-frozen (scrolled) rows, so the
+  // slice of the column-freeze edge that reaches up into the frozen rows must come from the corner
+  // overlay — otherwise the master hides the whole edge and the frozen-row part disappears.
+  it('column edge crossing the row freeze line is drawn by inline_start + corner and hidden on master', async() => {
+    spec().$wrapper.width(300);
+    const { wt, selections } = build({ fixedRowsTop: 2, fixedColumnsStart: 2 });
+
+    // Selection flush against the column freeze line (column === fixedColumnsStart) reaching from the
+    // first non-frozen row (row 2) up into a frozen row (row 1).
+    selections.getFocus()
+      .clear()
+      .add(new Walkontable.CellCoords(2, 2))
+      .add(new Walkontable.CellCoords(1, 2));
+    wt.draw();
+
+    const { master, inlineStart, corner } = overlayBorders(wt, selections.getFocus());
+
+    expect(startShown(master)).toBe(false);
+    expect(startShown(inlineStart)).toBe(true); // non-frozen row slice (C3)
+    expect(startShown(corner)).toBe(true); // frozen row slice (C2)
+  });
+
+  it('row edge crossing the column freeze line is drawn by top + corner and hidden on master', async() => {
+    spec().$wrapper.width(300);
+    const { wt, selections } = build({ fixedRowsTop: 2, fixedColumnsStart: 2 });
+
+    // Selection flush against the row freeze line (row === fixedRowsTop) reaching from the first
+    // non-frozen column (column 2) left into a frozen column (column 1).
+    selections.getFocus()
+      .clear()
+      .add(new Walkontable.CellCoords(2, 2))
+      .add(new Walkontable.CellCoords(2, 1));
+    wt.draw();
+
+    const { master, top, corner } = overlayBorders(wt, selections.getFocus());
+
+    expect(topShown(master)).toBe(false);
+    expect(topShown(top)).toBe(true); // non-frozen column slice
+    expect(topShown(corner)).toBe(true); // frozen column slice
   });
 });
