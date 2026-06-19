@@ -3,6 +3,7 @@
 .idea
 .vscode
 .cache
+package-lock.json
 .cursor/*
 !.cursor/settings.json
 .claude/*
