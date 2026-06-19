@@ -553,7 +553,7 @@ export class Comments extends BasePlugin {
 
     const { row, col } = this.#getRangeCoords();
 
-    if (row < 0 || row > this.hot.countSourceRows() - 1 || col < 0 || col > this.hot.countSourceCols() - 1) {
+    if (row < 0 || row > this.hot.countRows() - 1 || col < 0 || col > this.hot.countCols() - 1) {
       return false;
     }
 
