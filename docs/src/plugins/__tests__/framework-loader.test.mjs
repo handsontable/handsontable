@@ -252,3 +252,66 @@ test('changes outside the content directory are ignored', async () => {
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+/**
+ * Builds a temp content tree with a React example that embeds both a .jsx and a
+ * .tsx source file, so the fenced-code language mapping can be asserted.
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createReactFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-'));
+  const contentDir = join(root, 'content');
+  const reactDir = join(contentDir, 'guides', 'intro', 'react');
+
+  mkdirSync(reactDir, { recursive: true });
+
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+
+  writeFileSync(
+    join(contentDir, 'guides', 'intro', 'intro.md'),
+    [
+      '---',
+      'title: Introduction',
+      'permalink: /intro',
+      '---',
+      '',
+      'Intro body.',
+      '',
+      '::: example #ex1',
+      '@[code](@/content/guides/intro/react/example1.jsx)',
+      '@[code](@/content/guides/intro/react/example1.tsx)',
+      ':::',
+      '',
+    ].join('\n')
+  );
+
+  writeFileSync(join(reactDir, 'example1.jsx'), 'export const Grid = () => <HotTable data={[]} />;\n');
+  writeFileSync(join(reactDir, 'example1.tsx'), 'export const Grid = (): JSX.Element => <HotTable data={[]} />;\n');
+
+  return { contentDir, root };
+}
+
+test('.jsx/.tsx examples render with jsx/tsx code fences, not js/ts', async () => {
+  const { contentDir, root } = createReactFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = store.get('react-data-grid/intro').rendered.html;
+
+    // The fix: .jsx/.tsx extensions map to the jsx/tsx Shiki grammars, so the
+    // angle-bracket markup highlights correctly.
+    assert.ok(html.includes('````jsx title="JavaScript"'), 'expected a jsx code fence');
+    assert.ok(html.includes('````tsx title="TypeScript"'), 'expected a tsx code fence');
+
+    // Regression guard: before the fix these fell back to the plain js/ts
+    // grammars, which mis-colored JSX. The tab labels stay JavaScript/TypeScript.
+    assert.ok(!html.includes('````javascript title='), '.jsx must not fall back to a javascript fence');
+    assert.ok(!html.includes('````typescript title='), '.tsx must not fall back to a typescript fence');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
