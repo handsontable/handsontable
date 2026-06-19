@@ -8,6 +8,7 @@ type QueryBuilder = ReturnType<ReturnType<SupabaseClient['from']>['select']>;
 type FilterColumn = NonNullable<DataProviderQueryParameters['filters']>[number];
 type FilterCondition = FilterColumn['conditions'][number];
 
+// Conjunction: chain each condition onto the builder. PostgREST ANDs chained calls.
 function applyCondition(query: QueryBuilder, column: string, condition: FilterCondition): QueryBuilder {
   const { name, args } = condition;
   const value = args[0];
@@ -43,6 +44,44 @@ function applyCondition(query: QueryBuilder, column: string, condition: FilterCo
   }
 }
 
+// Disjunction: each condition becomes a PostgREST `.or()` term. Inside `.or()`,
+// wildcards use `*` (not `%`) and negation uses the `not.` prefix. Values that
+// contain commas or parentheses would need quoting; the inventory data has none.
+function conditionToOrTerm(column: string, condition: FilterCondition): string | null {
+  const { name, args } = condition;
+  const value = args[0];
+
+  switch (name) {
+    case 'eq':
+      return `${column}.eq.${value}`;
+    case 'neq':
+      return `${column}.neq.${value}`;
+    case 'contains':
+      return `${column}.ilike.*${value}*`;
+    case 'not_contains':
+      return `${column}.not.ilike.*${value}*`;
+    case 'begins_with':
+      return `${column}.ilike.${value}*`;
+    case 'ends_with':
+      return `${column}.ilike.*${value}`;
+    case 'gt':
+      return `${column}.gt.${value}`;
+    case 'gte':
+      return `${column}.gte.${value}`;
+    case 'lt':
+      return `${column}.lt.${value}`;
+    case 'lte':
+      return `${column}.lte.${value}`;
+    case 'empty':
+      return `${column}.is.null,${column}.eq.`;
+    case 'not_empty':
+      return `and(${column}.not.is.null,${column}.neq.)`;
+    default:
+      console.warn(`[dataProvider] Unsupported filter condition: "${name}" - skipping`);
+      return null;
+  }
+}
+
 export function applyFilters(
   query: QueryBuilder,
   filters: DataProviderQueryParameters['filters'],
@@ -52,8 +91,20 @@ export function applyFilters(
   }
 
   for (const column of filters) {
-    for (const condition of column.conditions) {
-      query = applyCondition(query, column.prop, condition);
+    if (column.operation === 'disjunction') {
+      // OR within the column: combine the conditions into a single .or() call.
+      const terms = column.conditions
+        .map(condition => conditionToOrTerm(column.prop, condition))
+        .filter((term): term is string => term !== null);
+
+      if (terms.length > 0) {
+        query = query.or(terms.join(','));
+      }
+    } else {
+      // Conjunction (the default): chain the conditions so PostgREST ANDs them.
+      for (const condition of column.conditions) {
+        query = applyCondition(query, column.prop, condition);
+      }
     }
   }
 

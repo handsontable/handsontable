@@ -178,7 +178,7 @@ Put the mapping in `src/filterAdapter.ts`:
 
 **What's happening:**
 
-`applyCondition` translates each condition name to its PostgREST equivalent and chains it onto the same query builder. PostgREST ANDs all chained filter calls together, which matches Handsontable's default conjunction behavior, so multiple conditions on one column are ANDed automatically. Disjunction (OR within a column) is not expressible as a chain; for that, build a single `.or()` string instead. An unrecognized condition is logged and skipped rather than throwing, so an unmapped filter never breaks a fetch.
+`applyFilters` reads each column's `operation`. For the default `conjunction`, it chains the conditions with `applyCondition` -- PostgREST ANDs chained calls, so the conditions are ANDed. For `disjunction` (the "Or" toggle in the column's filter menu), it maps the conditions to PostgREST `.or()` terms and applies them in a single `.or()` call, so they are ORed. Inside `.or()` terms, wildcards use `*` instead of `%` and negation uses the `not.` prefix; values containing commas or parentheses would need quoting. An unrecognized condition is logged and skipped rather than throwing, so an unmapped filter never breaks a fetch.
 
 ## Step 5: Build the grid component
 
