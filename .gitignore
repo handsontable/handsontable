@@ -9,6 +9,7 @@
 !.claude/skills/
 !.claude/agents/
 !.claude/settings.json
+!.claude/hooks/
 .playwright-mcp
 dev*.html
 dev*.js
