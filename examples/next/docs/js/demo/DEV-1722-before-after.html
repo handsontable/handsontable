@@ -4,117 +4,119 @@
   <meta charset="UTF-8" />
   <title>DEV-1722 – afterFormulasValuesUpdate with time cells (before/after fix)</title>
   <style>
-    body { font-family: sans-serif; margin: 20px; background: #f5f5f5; }
-    h1 { font-size: 1.3em; }
-    .panels { display: flex; gap: 24px; flex-wrap: wrap; }
-    .panel { flex: 1; min-width: 380px; background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
-    .panel h2 { font-size: 1.1em; margin-top: 0; }
-    .before h2 { color: #c0392b; }
-    .after h2 { color: #27ae60; }
-    .log { margin-top: 12px; background: #f8f8f8; border: 1px solid #ddd; border-radius: 4px; padding: 10px; font-family: monospace; font-size: 0.85em; min-height: 80px; white-space: pre-wrap; }
-    .label { font-size: 0.8em; color: #666; margin-bottom: 4px; }
-    .version-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75em; font-weight: bold; margin-left: 8px; }
-    .before .version-badge { background: #fde8e6; color: #c0392b; }
-    .after .version-badge { background: #e6f9ef; color: #27ae60; }
-    .instructions { background: #fffde7; border: 1px solid #f9a825; border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.9em; }
+    * { box-sizing: border-box; }
+    body { font-family: sans-serif; margin: 20px; background: #f5f5f5; color: #222; }
+    h1 { font-size: 1.3em; margin-bottom: 12px; }
+    .instructions {
+      background: #fffde7; border: 1px solid #f9a825; border-radius: 6px;
+      padding: 12px 16px; margin-bottom: 20px; font-size: 0.88em; line-height: 1.6;
+    }
     .instructions b { color: #e65100; }
+    .panels { display: flex; gap: 24px; flex-wrap: wrap; }
+    .panel { flex: 1; min-width: 420px; background: #fff; border-radius: 8px;
+             padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,.1); overflow: hidden; }
+    .panel-header { padding: 14px 18px 10px; font-weight: bold; font-size: 1em; }
+    .before .panel-header { background: #fde8e6; color: #c0392b; }
+    .after  .panel-header { background: #e6f9ef; color: #27ae60; }
+    .version-badge { font-size: 0.75em; font-weight: normal; margin-left: 8px;
+                     padding: 2px 8px; border-radius: 12px; }
+    .before .version-badge { background: #c0392b; color: #fff; }
+    .after  .version-badge { background: #27ae60; color: #fff; }
+    iframe { border: none; width: 100%; height: 360px; display: block; }
   </style>
 </head>
 <body>
   <h1>DEV-1722: <code>afterFormulasValuesUpdate</code> hook – time cell values</h1>
 
   <div class="instructions">
-    <b>What to verify:</b> Change any value in Column A (the trigger column) by double-clicking a cell and editing it.
-    Watch the <em>Hook log</em> below each table.<br>
-    <b>Before fix (v17.0.1):</b> <code>newValue</code> is a raw HyperFormula day-fraction (e.g. <code>0.54166...</code>).<br>
-    <b>After fix (v17.1.0):</b> <code>newValue</code> is a formatted time string (e.g. <code>13:00</code>).
+    <b>What to verify:</b> In each panel, edit any cell in <strong>column A</strong> (type a new time like <code>15:30</code> and press Enter).<br>
+    Watch the <em>Hook log</em> that appears below the grid.<br><br>
+    <b>Before fix (v17.0.1):</b> <code>newValue</code> for column B (formula cell) is a raw HyperFormula
+    day-fraction number (e.g. <code>0.6458...</code>).<br>
+    <b>After fix (v17.1.0):</b> <code>newValue</code> is a human-readable time string (e.g. <code>"15:30"</code>).
   </div>
 
   <div class="panels">
-    <!-- BEFORE -->
     <div class="panel before">
-      <h2>Before fix <span class="version-badge">v17.0.1</span></h2>
-      <div id="before-container"></div>
-      <div class="label">Hook log – <code>afterFormulasValuesUpdate</code> newValue:</div>
-      <div id="before-log" class="log">(edit a cell in column A to trigger)</div>
+      <div class="panel-header">
+        Before fix <span class="version-badge">v17.0.1</span>
+      </div>
+      <iframe id="frame-before"></iframe>
     </div>
-
-    <!-- AFTER -->
     <div class="panel after">
-      <h2>After fix <span class="version-badge">v17.1.0</span></h2>
-      <div id="after-container"></div>
-      <div class="label">Hook log – <code>afterFormulasValuesUpdate</code> newValue:</div>
-      <div id="after-log" class="log">(edit a cell in column A to trigger)</div>
+      <div class="panel-header">
+        After fix <span class="version-badge">v17.1.0</span>
+      </div>
+      <iframe id="frame-after"></iframe>
     </div>
   </div>
 
-  <!-- Load BEFORE version -->
-  <link id="css-before" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/hyperformula@2.6.0/dist/hyperformula.full.min.js"></script>
   <script>
-    (function initBefore() {
-      var log = document.getElementById('before-log');
-      var hf = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
-      var hot = new Handsontable(document.getElementById('before-container'), {
-        licenseKey: 'non-commercial-and-evaluation',
-        data: [
-          ['13:00', '=A1'],
-          ['07:30', '=A2'],
-        ],
-        colHeaders: ['A (time input)', 'B (formula)'],
-        columns: [
-          {},
-          { type: 'time', timeFormat: 'h:mm a', correctFormat: true }
-        ],
-        formulas: { engine: hf },
-        afterFormulasValuesUpdate: function(changes) {
-          changes.forEach(function(change) {
-            var line = 'row=' + change.row + ' col=' + change.col + ' newValue=' + JSON.stringify(change.newValue);
-            log.textContent += '\n' + line;
-          });
-          log.scrollTop = log.scrollHeight;
-        }
-      });
-    })();
-  </script>
+    function makeFrameContent(version) {
+      return `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@${version}/dist/handsontable.full.min.css"/>
+  <style>
+    body { font-family: sans-serif; margin: 12px; font-size: 13px; }
+    #grid { margin-bottom: 10px; }
+    .log-label { color: #555; margin-bottom: 4px; font-size: 0.85em; }
+    #log { background: #f8f8f8; border: 1px solid #ccc; border-radius: 4px;
+           padding: 8px; font-family: monospace; font-size: 0.82em;
+           white-space: pre-wrap; min-height: 60px; max-height: 160px; overflow-y: auto; }
+    .hint { color: #888; font-size: 0.8em; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <div class="hint">Edit a cell in column A, press Enter to confirm.</div>
+  <div id="grid"></div>
+  <div class="log-label"><code>afterFormulasValuesUpdate</code> log (newValue for formula cells):</div>
+  <div id="log">(waiting for edit…)</div>
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@${version}/dist/handsontable.full.min.js"><\/script>
+  <script src="https://cdn.jsdelivr.net/npm/hyperformula@2.6.0/dist/hyperformula.full.min.js"><\/script>
+  <script>
+    var logEl = document.getElementById('log');
+    var hf = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
-  <!-- Unload BEFORE Handsontable global so AFTER can define its own -->
-  <script>
-    // Save reference so both grids coexist
-    window.HansonBefore = window.Handsontable;
-    window.HFBefore = window.HyperFormula;
-  </script>
+    var hot = new Handsontable(document.getElementById('grid'), {
+      licenseKey: 'non-commercial-and-evaluation',
+      data: [
+        ['16:00', '=A1'],
+        ['07:30', '=A2'],
+        ['12:45', '=A3'],
+      ],
+      colHeaders: ['A (time, editable)', 'B (=A formula, type:time)'],
+      rowHeaders: true,
+      columns: [
+        { type: 'time', timeFormat: 'HH:mm', correctFormat: true },
+        { type: 'time', timeFormat: 'HH:mm', correctFormat: true }
+      ],
+      formulas: { engine: hf },
+      afterFormulasValuesUpdate: function(changes) {
+        logEl.textContent = '';
+        changes.forEach(function(change) {
+          var addr = change.address ? ('R' + change.address.row + 'C' + change.address.col) : ('r' + change.row + 'c' + change.col);
+          var line = addr + '  newValue = ' + JSON.stringify(change.newValue)
+            + '  (type: ' + typeof change.newValue + ')';
+          logEl.textContent += line + '\\n';
+        });
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+    });
+  <\/script>
+</body>
+</html>`;
+    }
 
-  <!-- Load AFTER version -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.css" />
-  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/hyperformula@2.6.0/dist/hyperformula.full.min.js"></script>
-  <script>
-    (function initAfter() {
-      var log = document.getElementById('after-log');
-      var hf = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
-      var hot = new Handsontable(document.getElementById('after-container'), {
-        licenseKey: 'non-commercial-and-evaluation',
-        data: [
-          ['13:00', '=A1'],
-          ['07:30', '=A2'],
-        ],
-        colHeaders: ['A (time input)', 'B (formula)'],
-        columns: [
-          {},
-          { type: 'time', timeFormat: 'h:mm a', correctFormat: true }
-        ],
-        formulas: { engine: hf },
-        afterFormulasValuesUpdate: function(changes) {
-          changes.forEach(function(change) {
-            var line = 'row=' + change.row + ' col=' + change.col + ' newValue=' + JSON.stringify(change.newValue);
-            log.textContent += '\n' + line;
-          });
-          log.scrollTop = log.scrollHeight;
-        }
-      });
-    })();
+    function loadFrame(id, version) {
+      var frame = document.getElementById(id);
+      var blob = new Blob([makeFrameContent(version)], { type: 'text/html' });
+      frame.src = URL.createObjectURL(blob);
+    }
+
+    loadFrame('frame-before', '17.0.1');
+    loadFrame('frame-after',  '17.1.0');
   </script>
 </body>
 </html>
