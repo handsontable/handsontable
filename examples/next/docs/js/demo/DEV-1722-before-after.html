@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>DEV-1722 – afterFormulasValuesUpdate with time cells (before/after fix)</title>
+  <style>
+    body { font-family: sans-serif; margin: 20px; background: #f5f5f5; }
+    h1 { font-size: 1.3em; }
+    .panels { display: flex; gap: 24px; flex-wrap: wrap; }
+    .panel { flex: 1; min-width: 380px; background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+    .panel h2 { font-size: 1.1em; margin-top: 0; }
+    .before h2 { color: #c0392b; }
+    .after h2 { color: #27ae60; }
+    .log { margin-top: 12px; background: #f8f8f8; border: 1px solid #ddd; border-radius: 4px; padding: 10px; font-family: monospace; font-size: 0.85em; min-height: 80px; white-space: pre-wrap; }
+    .label { font-size: 0.8em; color: #666; margin-bottom: 4px; }
+    .version-badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 0.75em; font-weight: bold; margin-left: 8px; }
+    .before .version-badge { background: #fde8e6; color: #c0392b; }
+    .after .version-badge { background: #e6f9ef; color: #27ae60; }
+    .instructions { background: #fffde7; border: 1px solid #f9a825; border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.9em; }
+    .instructions b { color: #e65100; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1722: <code>afterFormulasValuesUpdate</code> hook – time cell values</h1>
+
+  <div class="instructions">
+    <b>What to verify:</b> Change any value in Column A (the trigger column) by double-clicking a cell and editing it.
+    Watch the <em>Hook log</em> below each table.<br>
+    <b>Before fix (v17.0.1):</b> <code>newValue</code> is a raw HyperFormula day-fraction (e.g. <code>0.54166...</code>).<br>
+    <b>After fix (v17.1.0):</b> <code>newValue</code> is a formatted time string (e.g. <code>13:00</code>).
+  </div>
+
+  <div class="panels">
+    <!-- BEFORE -->
+    <div class="panel before">
+      <h2>Before fix <span class="version-badge">v17.0.1</span></h2>
+      <div id="before-container"></div>
+      <div class="label">Hook log – <code>afterFormulasValuesUpdate</code> newValue:</div>
+      <div id="before-log" class="log">(edit a cell in column A to trigger)</div>
+    </div>
+
+    <!-- AFTER -->
+    <div class="panel after">
+      <h2>After fix <span class="version-badge">v17.1.0</span></h2>
+      <div id="after-container"></div>
+      <div class="label">Hook log – <code>afterFormulasValuesUpdate</code> newValue:</div>
+      <div id="after-log" class="log">(edit a cell in column A to trigger)</div>
+    </div>
+  </div>
+
+  <!-- Load BEFORE version -->
+  <link id="css-before" rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hyperformula@2.6.0/dist/hyperformula.full.min.js"></script>
+  <script>
+    (function initBefore() {
+      var log = document.getElementById('before-log');
+      var hf = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      var hot = new Handsontable(document.getElementById('before-container'), {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [
+          ['13:00', '=A1'],
+          ['07:30', '=A2'],
+        ],
+        colHeaders: ['A (time input)', 'B (formula)'],
+        columns: [
+          {},
+          { type: 'time', timeFormat: 'h:mm a', correctFormat: true }
+        ],
+        formulas: { engine: hf },
+        afterFormulasValuesUpdate: function(changes) {
+          changes.forEach(function(change) {
+            var line = 'row=' + change.row + ' col=' + change.col + ' newValue=' + JSON.stringify(change.newValue);
+            log.textContent += '\n' + line;
+          });
+          log.scrollTop = log.scrollHeight;
+        }
+      });
+    })();
+  </script>
+
+  <!-- Unload BEFORE Handsontable global so AFTER can define its own -->
+  <script>
+    // Save reference so both grids coexist
+    window.HansonBefore = window.Handsontable;
+    window.HFBefore = window.HyperFormula;
+  </script>
+
+  <!-- Load AFTER version -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hyperformula@2.6.0/dist/hyperformula.full.min.js"></script>
+  <script>
+    (function initAfter() {
+      var log = document.getElementById('after-log');
+      var hf = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
+      var hot = new Handsontable(document.getElementById('after-container'), {
+        licenseKey: 'non-commercial-and-evaluation',
+        data: [
+          ['13:00', '=A1'],
+          ['07:30', '=A2'],
+        ],
+        colHeaders: ['A (time input)', 'B (formula)'],
+        columns: [
+          {},
+          { type: 'time', timeFormat: 'h:mm a', correctFormat: true }
+        ],
+        formulas: { engine: hf },
+        afterFormulasValuesUpdate: function(changes) {
+          changes.forEach(function(change) {
+            var line = 'row=' + change.row + ' col=' + change.col + ' newValue=' + JSON.stringify(change.newValue);
+            log.textContent += '\n' + line;
+          });
+          log.scrollTop = log.scrollHeight;
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
