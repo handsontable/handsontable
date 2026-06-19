@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1718 — BUG (Comments blocked for sparse object data)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #ddd; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { border-radius: 6px; padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.6; }
+    .info-bug { background: #fdecea; border: 1px solid #ef9a9a; }
+    .info-bug strong { color: #b71c1c; }
+    .hint { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; line-height: 1.6; }
+    .hint ol { margin: 6px 0 0 20px; }
+    .hint li { margin-bottom: 4px; }
+    code { background: #eee; padding: 1px 5px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-size: 11px; margin-bottom: 14px; overflow-x: auto; line-height: 1.5; }
+    pre .bad { color: #f48771; font-weight: 700; }
+    pre .comment { color: #6a9955; }
+    .controls { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; align-items: center; }
+    .btn { padding: 7px 18px; font-size: 13px; cursor: pointer; border-radius: 5px; border: 1px solid #ccc; background: #f0f0f0; }
+    .btn:hover { background: #e0e0e0; }
+    .result { border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 13px; font-family: monospace; min-height: 36px; }
+    .result.ok  { background: #e8f5e9; border: 1px solid #a5d6a7; color: #1b5e20; }
+    .result.bad { background: #fdecea; border: 1px solid #ef9a9a; color: #b71c1c; font-weight: 700; }
+    .schema { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; margin-bottom: 14px; font-size: 11px; font-family: monospace; line-height: 1.7; }
+    .schema .sparse { color: #f48771; }
+    .schema .full { color: #b5cea8; }
+    .schema .key { color: #9cdcfe; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1718 / #9513 — <code>comments</code> popup blocked when first row is sparse</h1>
+
+  <nav>
+    <span class="nav-label">Build:</span>
+    <span class="nav-btn active">Released v17.0.1 <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-dev1718-fix.html">DEV-1718 Fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="info info-bug">
+    <strong>BUG present (v17.0.1).</strong>
+    When object data has a sparse first row (fewer keys than declared columns),
+    <code>comments</code> renders corner markers on all cells but silently blocks the popup
+    for any column index beyond the sparse row's key count.
+    <ul style="margin: 6px 0 0 20px; line-height: 1.8;">
+      <li>Row 0 has only <code>C0</code> and <code>C1</code> — columns <code>C2..C5</code> are absent.</li>
+      <li>Comment on <code>(0, 0)</code> and <code>(0, 1)</code>: popup shows. ✓</li>
+      <li>Comment on <code>(0, 3)</code> (C3, not in first row): popup silently blocked. ✗</li>
+    </ul>
+    Root cause: <code>Comments.show()</code> checks <code>countSourceCols()</code> which returns
+    <code>deepObjectSize(data[0])</code> = 2. Column index 3 &ge; 2 → early return <code>false</code>.
+  </div>
+
+  <pre><span class="comment">// BUG — Comments.show() in v17.0.1 (src/plugins/comments/comments.js):</span>
+show() {
+  const { row, col } = this.#getRangeCoords();
+  <span class="bad">if (row &lt; 0 || row &gt; this.hot.countSourceRows() - 1</span>
+  <span class="bad">    || col &lt; 0 || col &gt; this.hot.countSourceCols() - 1) {</span>
+    return false;  <span class="comment">// countSourceCols() = data[0] key count = 2</span>
+  }              <span class="comment">// col 3 &ge; 2 → early return → popup never shown</span>
+}</pre>
+
+  <div class="schema">
+<span class="key">data[0]</span> = { <span class="full">C0: 'Alice'</span>, <span class="full">C1: 10</span> }
+           <span class="comment">↑ only 2 keys — countSourceCols() returns 2</span>
+<span class="key">data[1]</span> = { <span class="full">C0: 'Bob'</span>, <span class="full">C1: 20</span>, <span class="full">C2: 30</span>, <span class="full">C3: 40</span>, <span class="full">C4: 50</span>, <span class="full">C5: 60</span> }
+<span class="key">data[2]</span> = { <span class="full">C0: 'Carol'</span>, <span class="full">C1: 15</span>, <span class="full">C2: 25</span>, <span class="full">C3: 35</span>, <span class="full">C4: 45</span>, <span class="full">C5: 55</span> }
+<span class="key">data[3]</span> = { <span class="full">C0: 'Dave'</span>, <span class="full">C1: 11</span>, <span class="full">C2: 22</span>, <span class="full">C3: 33</span>, <span class="full">C4: 44</span>, <span class="full">C5: 55</span> }
+</div>
+
+  <div class="hint">
+    <strong>How to observe the bug:</strong>
+    <ol>
+      <li>Click <strong>"showAtCell(0, 3)"</strong> — returns <code>false</code>, no popup appears. ✗</li>
+      <li>Click <strong>"showAtCell(0, 0)"</strong> — returns <code>true</code>, popup appears. ✓</li>
+      <li>Hover over the red corner markers in row 0 — only C0 and C1 show a popup. ✗</li>
+      <li>Hover over red corner markers in rows 1–3 — all columns work fine (those rows are not sparse). ✓</li>
+      <li>Compare with the <a href="demo-dev1718-fix.html">Fix page</a> where all cells work. ✓</li>
+    </ol>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="btn-show03">showAtCell(0, 3) — C3, sparse row (bug ✗)</button>
+    <button class="btn" id="btn-show00">showAtCell(0, 0) — C0, works ✓</button>
+    <button class="btn" id="btn-show15">showAtCell(1, 5) — row 1 C5, works ✓</button>
+    <button class="btn" id="btn-hide">Hide</button>
+  </div>
+
+  <div class="result bad" id="result">Click a button or hover a red-corner cell to test.</div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const DATA = [
+      { C0: 'Alice', C1: 10 },
+      { C0: 'Bob',   C1: 20, C2: 30, C3: 40, C4: 50, C5: 60 },
+      { C0: 'Carol', C1: 15, C2: 25, C3: 35, C4: 45, C5: 55 },
+      { C0: 'Dave',  C1: 11, C2: 22, C3: 33, C4: 44, C5: 55 },
+    ];
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: DATA,
+      dataSchema: { C0: null, C1: null, C2: null, C3: null, C4: null, C5: null },
+      columns: [
+        { data: 'C0', title: 'C0 (Name)' },
+        { data: 'C1', title: 'C1' },
+        { data: 'C2', title: 'C2' },
+        { data: 'C3', title: 'C3' },
+        { data: 'C4', title: 'C4' },
+        { data: 'C5', title: 'C5' },
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 220,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      comments: true,
+      cell: [
+        { row: 0, col: 0, comment: { value: 'Row 0, C0 — in sparse row ✓' } },
+        { row: 0, col: 1, comment: { value: 'Row 0, C1 — in sparse row ✓' } },
+        { row: 0, col: 3, comment: { value: 'Row 0, C3 — NOT in sparse row → BUG: blocked ✗' } },
+        { row: 1, col: 5, comment: { value: 'Row 1, C5 — full row, works ✓' } },
+        { row: 2, col: 2, comment: { value: 'Row 2, C2 — full row, works ✓' } },
+        { row: 3, col: 3, comment: { value: 'Row 3, C3 — full row, works ✓' } },
+        { row: 3, col: 5, comment: { value: 'Row 3, C5 — full row, works ✓' } },
+      ],
+    });
+
+    const cp = window.hot.getPlugin('comments');
+
+    document.getElementById('btn-show03').addEventListener('click', () => {
+      const r = cp.showAtCell(0, 3);
+      document.getElementById('result').textContent =
+        'showAtCell(0, 3) → ' + r + (r ? ' ✓ (unexpected on v17.0.1)' : ' ✗ BUG: popup blocked by countSourceCols() check');
+      document.getElementById('result').className = 'result ' + (r ? 'ok' : 'bad');
+    });
+
+    document.getElementById('btn-show00').addEventListener('click', () => {
+      const r = cp.showAtCell(0, 0);
+      document.getElementById('result').textContent = 'showAtCell(0, 0) → ' + r + (r ? ' ✓' : ' ✗');
+      document.getElementById('result').className = 'result ' + (r ? 'ok' : 'bad');
+    });
+
+    document.getElementById('btn-show15').addEventListener('click', () => {
+      const r = cp.showAtCell(1, 5);
+      document.getElementById('result').textContent = 'showAtCell(1, 5) → ' + r + (r ? ' ✓' : ' ✗');
+      document.getElementById('result').className = 'result ' + (r ? 'ok' : 'bad');
+    });
+
+    document.getElementById('btn-hide').addEventListener('click', () => {
+      cp.hide();
+      document.getElementById('result').textContent = 'Hidden.';
+      document.getElementById('result').className = 'result ok';
+    });
+  </script>
+</body>
+</html>
