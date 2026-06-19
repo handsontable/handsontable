@@ -165,6 +165,8 @@ Map each condition name to its PostgREST equivalent:
 | `gte` | `[value]` | `.gte(col, value)` |
 | `lt` | `[value]` | `.lt(col, value)` |
 | `lte` | `[value]` | `.lte(col, value)` |
+| `between` | `[from, to]` | `.gte(col, low).lte(col, high)` |
+| `not_between` | `[from, to]` | `.or('col.lt.low,col.gt.high')` |
 | `empty` | `[]` | `.or('col.is.null,col.eq.')` |
 | `not_empty` | `[]` | `.not(col, 'is', null).neq(col, '')` |
 

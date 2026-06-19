@@ -8,6 +8,16 @@ type QueryBuilder = ReturnType<ReturnType<SupabaseClient['from']>['select']>;
 type FilterColumn = NonNullable<DataProviderQueryParameters['filters']>[number];
 type FilterCondition = FilterColumn['conditions'][number];
 
+// `between` / `not_between` inputs can arrive in either order; Handsontable sorts
+// them before comparing. Both are offered only on numeric columns (here: quantity,
+// unit_price), so normalize to a numeric [low, high] range.
+function numericRange(args: unknown[]): [number, number] {
+  const a = Number(args[0]);
+  const b = Number(args[1]);
+
+  return [Math.min(a, b), Math.max(a, b)];
+}
+
 // Conjunction: chain each condition onto the builder. PostgREST ANDs chained calls.
 function applyCondition(query: QueryBuilder, column: string, condition: FilterCondition): QueryBuilder {
   const { name, args } = condition;
@@ -34,6 +44,16 @@ function applyCondition(query: QueryBuilder, column: string, condition: FilterCo
       return query.lt(column, value as number);
     case 'lte':
       return query.lte(column, value as number);
+    case 'between': {
+      const [low, high] = numericRange(args);
+
+      return query.gte(column, low).lte(column, high);
+    }
+    case 'not_between': {
+      const [low, high] = numericRange(args);
+
+      return query.or(`${column}.lt.${low},${column}.gt.${high}`);
+    }
     case 'empty':
       return query.or(`${column}.is.null,${column}.eq.`);
     case 'not_empty':
@@ -72,6 +92,16 @@ function conditionToOrTerm(column: string, condition: FilterCondition): string |
       return `${column}.lt.${value}`;
     case 'lte':
       return `${column}.lte.${value}`;
+    case 'between': {
+      const [low, high] = numericRange(args);
+
+      return `and(${column}.gte.${low},${column}.lte.${high})`;
+    }
+    case 'not_between': {
+      const [low, high] = numericRange(args);
+
+      return `${column}.lt.${low},${column}.gt.${high}`;
+    }
     case 'empty':
       return `${column}.is.null,${column}.eq.`;
     case 'not_empty':
