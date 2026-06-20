@@ -9,97 +9,109 @@
     h1 { font-size: 1.3em; margin-bottom: 12px; }
     .instructions {
       background: #fffde7; border: 1px solid #f9a825; border-radius: 6px;
-      padding: 12px 16px; margin-bottom: 20px; font-size: 0.88em; line-height: 1.6;
+      padding: 12px 16px; margin-bottom: 20px; font-size: 0.88em; line-height: 1.7;
     }
     .instructions b { color: #e65100; }
     .panels { display: flex; gap: 24px; flex-wrap: wrap; }
     .panel { flex: 1; min-width: 420px; background: #fff; border-radius: 8px;
-             padding: 0; box-shadow: 0 2px 8px rgba(0,0,0,.1); overflow: hidden; }
-    .panel-header { padding: 14px 18px 10px; font-weight: bold; font-size: 1em; }
+             overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,.12); }
+    .panel-header { padding: 12px 18px; font-weight: bold; font-size: 1em; }
     .before .panel-header { background: #fde8e6; color: #c0392b; }
     .after  .panel-header { background: #e6f9ef; color: #27ae60; }
-    .version-badge { font-size: 0.75em; font-weight: normal; margin-left: 8px;
+    .version-badge { font-size: 0.72em; font-weight: normal; margin-left: 8px;
                      padding: 2px 8px; border-radius: 12px; }
     .before .version-badge { background: #c0392b; color: #fff; }
     .after  .version-badge { background: #27ae60; color: #fff; }
-    iframe { border: none; width: 100%; height: 360px; display: block; }
+    iframe { border: none; width: 100%; height: 380px; display: block; }
   </style>
 </head>
 <body>
   <h1>DEV-1722: <code>afterFormulasValuesUpdate</code> hook – time cell values</h1>
 
   <div class="instructions">
-    <b>What to verify:</b> In each panel, edit any cell in <strong>column A</strong> (type a new time like <code>15:30</code> and press Enter).<br>
-    Watch the <em>Hook log</em> that appears below the grid.<br><br>
-    <b>Before fix (v17.0.1):</b> <code>newValue</code> for column B (formula cell) is a raw HyperFormula
-    day-fraction number (e.g. <code>0.6458...</code>).<br>
-    <b>After fix (v17.1.0):</b> <code>newValue</code> is a human-readable time string (e.g. <code>"15:30"</code>).
+    <b>Setup:</b> Column A holds a plain <em>number</em> (hours, 0–23).
+    Column B has the formula <code>=A1/24</code> with <code>type:'time'</code>,
+    so HyperFormula returns a day-fraction and HOT should display a formatted time string.<br><br>
+    <b>How to test:</b> Click a cell in <strong>column A</strong>, type a number (e.g. <code>15</code>), press <kbd>Enter</kbd>.<br><br>
+    <b>Before fix (v17.0.1):</b> <code>newValue</code> in the hook is a raw HF day-fraction (e.g. <code>0.625</code>).<br>
+    <b>After fix (v17.1.0):</b> <code>newValue</code> is a formatted time string (e.g. <code>"15:00"</code>).
   </div>
 
   <div class="panels">
     <div class="panel before">
-      <div class="panel-header">
-        Before fix <span class="version-badge">v17.0.1</span>
-      </div>
+      <div class="panel-header">Before fix <span class="version-badge">v17.0.1</span></div>
       <iframe id="frame-before"></iframe>
     </div>
     <div class="panel after">
-      <div class="panel-header">
-        After fix <span class="version-badge">v17.1.0</span>
-      </div>
+      <div class="panel-header">After fix <span class="version-badge">v17.1.0</span></div>
       <iframe id="frame-after"></iframe>
     </div>
   </div>
 
   <script>
-    function makeFrameContent(version) {
+    function makeContent(version) {
       return `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="UTF-8"/>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@${version}/dist/handsontable.full.min.css"/>
   <style>
-    body { font-family: sans-serif; margin: 12px; font-size: 13px; }
-    #grid { margin-bottom: 10px; }
-    .log-label { color: #555; margin-bottom: 4px; font-size: 0.85em; }
-    #log { background: #f8f8f8; border: 1px solid #ccc; border-radius: 4px;
-           padding: 8px; font-family: monospace; font-size: 0.82em;
-           white-space: pre-wrap; min-height: 60px; max-height: 160px; overflow-y: auto; }
-    .hint { color: #888; font-size: 0.8em; margin-bottom: 6px; }
+    body { font-family: sans-serif; margin: 10px; font-size: 13px; }
+    .hint { color: #666; margin-bottom: 6px; font-size: 0.82em; }
+    .log-label { color: #555; margin: 8px 0 3px; font-size: 0.82em; }
+    #log { background:#f8f8f8; border:1px solid #ccc; border-radius:4px; padding:8px;
+           font-family:monospace; font-size:0.82em; white-space:pre-wrap;
+           min-height:80px; max-height:160px; overflow-y:auto; }
+    .ok  { color: #27ae60; }
+    .bad { color: #c0392b; }
   </style>
 </head>
 <body>
-  <div class="hint">Edit a cell in column A, press Enter to confirm.</div>
+  <div class="hint">
+    Column A = plain number (hours). Column B = <code>=A1/24</code> with <code>type:'time'</code>.<br>
+    Edit a number in column A and press Enter.
+  </div>
   <div id="grid"></div>
-  <div class="log-label"><code>afterFormulasValuesUpdate</code> log (newValue for formula cells):</div>
+  <div class="log-label"><strong>afterFormulasValuesUpdate</strong> – newValue for formula column:</div>
   <div id="log">(waiting for edit…)</div>
+
   <script src="https://cdn.jsdelivr.net/npm/handsontable@${version}/dist/handsontable.full.min.js"><\/script>
   <script src="https://cdn.jsdelivr.net/npm/hyperformula@2.6.0/dist/hyperformula.full.min.js"><\/script>
   <script>
     var logEl = document.getElementById('log');
     var hf = HyperFormula.buildEmpty({ licenseKey: 'internal-use-in-handsontable' });
 
-    var hot = new Handsontable(document.getElementById('grid'), {
+    new Handsontable(document.getElementById('grid'), {
       licenseKey: 'non-commercial-and-evaluation',
       data: [
-        ['16:00', '=A1'],
-        ['07:30', '=A2'],
-        ['12:45', '=A3'],
+        [16, '=A1/24'],
+        [7,  '=A2/24'],
+        [12, '=A3/24'],
       ],
-      colHeaders: ['A (time, editable)', 'B (=A formula, type:time)'],
+      colHeaders: ['A  (hours – edit me)', 'B  (=A/24, type:time)'],
       rowHeaders: true,
       columns: [
-        { type: 'time', timeFormat: 'HH:mm', correctFormat: true },
+        { type: 'numeric' },
         { type: 'time', timeFormat: 'HH:mm', correctFormat: true }
       ],
       formulas: { engine: hf },
       afterFormulasValuesUpdate: function(changes) {
+        // Only show changes for column 1 (the formula / time column)
+        var relevant = changes.filter(function(c) {
+          return (c.address ? c.address.col : c.col) === 1;
+        });
+        if (!relevant.length) return;
+
         logEl.textContent = '';
-        changes.forEach(function(change) {
-          var addr = change.address ? ('R' + change.address.row + 'C' + change.address.col) : ('r' + change.row + 'c' + change.col);
-          var line = addr + '  newValue = ' + JSON.stringify(change.newValue)
-            + '  (type: ' + typeof change.newValue + ')';
-          logEl.textContent += line + '\\n';
+        relevant.forEach(function(c) {
+          var val = c.newValue;
+          var isString = typeof val === 'string';
+          var line = 'newValue = ' + JSON.stringify(val) + '   (type: ' + typeof val + ')';
+          var span = document.createElement('span');
+          span.className = isString ? 'ok' : 'bad';
+          span.textContent = line;
+          logEl.appendChild(span);
+          logEl.appendChild(document.createTextNode('\\n'));
         });
         logEl.scrollTop = logEl.scrollHeight;
       }
@@ -109,14 +121,11 @@
 </html>`;
     }
 
-    function loadFrame(id, version) {
-      var frame = document.getElementById(id);
-      var blob = new Blob([makeFrameContent(version)], { type: 'text/html' });
-      frame.src = URL.createObjectURL(blob);
-    }
-
-    loadFrame('frame-before', '17.0.1');
-    loadFrame('frame-after',  '17.1.0');
+    ['before', 'after'].forEach(function(id) {
+      var version = id === 'before' ? '17.0.1' : '17.1.0';
+      var blob = new Blob([makeContent(version)], { type: 'text/html' });
+      document.getElementById('frame-' + id).src = URL.createObjectURL(blob);
+    });
   </script>
 </body>
 </html>
