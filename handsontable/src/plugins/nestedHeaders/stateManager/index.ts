@@ -1,5 +1,6 @@
 import { arrayMap } from '../../../helpers/array';
 import SourceSettings from './sourceSettings';
+import type { SourceHeaderCell } from './sourceSettings';
 import type { HeaderNodeData } from './headersTree';
 import HeadersTree from './headersTree';
 import { triggerNodeModification } from './nodeModifiers';
@@ -7,7 +8,8 @@ import type { NodeModificationResult } from './nodeModifiers';
 import { isDeclarativeGroup } from './nodeModifiers/utils/tree';
 import { generateMatrix } from './matrixGenerator';
 import { syncVisibilityOnTree } from './syncVisibility';
-import { deriveVisualSettings } from './deriveSettings';
+import { deriveVisualSettings, computeOwnerIndex } from './deriveSettings';
+import type { MembershipOverrides } from './deriveSettings';
 import { createIdentityColumnArrangement } from './columnArrangement';
 import type { ColumnArrangement } from './columnArrangement';
 import type { ColumnVisibility } from './columnVisibility';
@@ -62,6 +64,13 @@ export default class StateManager {
    * live adapter so the structure follows column moves.
    */
   #columnArrangement: ColumnArrangement | null = null;
+  /**
+   * Per-column membership overrides set by column moves (`physical -> level -> owner identity`). They
+   * re-parent a moved column into the cohesive (`splittable: false`) group it was dropped inside, or
+   * mark it standalone when it left its group - the piece a pure derive cannot infer from the final
+   * arrangement alone. Consumed by `#deriveTree`. Empty means "use the authored structure".
+   */
+  #membershipOverrides: MembershipOverrides = new Map();
 
   /**
    * Sets a new state for the nested headers plugin based on settings passed
@@ -72,6 +81,9 @@ export default class StateManager {
    */
   setState(nestedHeadersSettings: unknown[][]) {
     this.#sourceSettings.setData(nestedHeadersSettings);
+    // A fresh authored configuration invalidates move-driven membership overrides (their owner
+    // identities index the previous structure), so reset them.
+    this.#membershipOverrides = new Map();
     let hasError = false;
 
     try {
@@ -446,8 +458,139 @@ export default class StateManager {
   #deriveTree() {
     const arrangement = this.#columnArrangement ?? createIdentityColumnArrangement();
 
-    this.#derivedSettings.setNormalizedData(deriveVisualSettings(this.#sourceSettings.getData(), arrangement));
+    this.#derivedSettings.setNormalizedData(
+      deriveVisualSettings(this.#sourceSettings.getData(), arrangement, this.#membershipOverrides)
+    );
     this.#headersTree.buildTree();
+  }
+
+  /**
+   * Re-parents the moved columns after a column move, recording membership overrides the derive uses
+   * to keep `splittable: false` groups cohesive. For each moved column, at each group level: if it
+   * stays adjacent to a sibling of its current group it keeps that group; otherwise, if it was dropped
+   * strictly between two members of one cohesive group it joins that group; otherwise it goes
+   * standalone. The decisions are taken from the pre-update layout, then applied, so a whole group
+   * moved together (each member adjacent to a sibling) stays intact. Call before `rebuildState()`.
+   *
+   * @param {number[]} movedVisualColumns - The post-move visual indexes of the columns that moved.
+   */
+  reparentColumns(movedVisualColumns: number[]) {
+    const arrangement = this.#columnArrangement ?? createIdentityColumnArrangement();
+    const authoredLayers = this.#sourceSettings.getData();
+    const layersCount = authoredLayers.length;
+    const columnsCount = layersCount > 0 ? authoredLayers[0].length : 0;
+
+    if (layersCount <= 1 || columnsCount === 0) {
+      return; // a single header level is all leaves - nothing to re-parent
+    }
+
+    const ownerIndexByLevel = authoredLayers.map(layer => computeOwnerIndex(layer));
+    const effectiveOwnerAt = (visualColumn: number, level: number): number => {
+      const physical = arrangement.getPhysicalFromVisual(visualColumn);
+      const override = this.#membershipOverrides.get(physical)?.get(level);
+
+      if (override !== undefined) {
+        return override >= 0 ? override : -1 - physical;
+      }
+
+      const owner = ownerIndexByLevel[level][physical];
+
+      return owner === undefined ? -1 - physical : owner;
+    };
+
+    // Decide from the current layout first, then apply, so moved siblings see each other's old owner.
+    const decisions: { physical: number, level: number, identity: number | null }[] = [];
+
+    movedVisualColumns.forEach((visualColumn) => {
+      const physical = arrangement.getPhysicalFromVisual(visualColumn);
+
+      for (let level = 0; level < layersCount - 1; level++) {
+        decisions.push({
+          physical,
+          level,
+          identity: this.#resolveMovedMembership(
+            visualColumn, physical, level, columnsCount, authoredLayers, ownerIndexByLevel, effectiveOwnerAt
+          ),
+        });
+      }
+    });
+
+    decisions.forEach(({ physical, level, identity }) => {
+      this.#setMembershipOverride(physical, level, identity);
+    });
+  }
+
+  /**
+   * Records or clears one membership override.
+   *
+   * @param {number} physical - The physical column index.
+   * @param {number} level - The header level.
+   * @param {number|null} identity - The owner identity to record (`>= 0` group, `< 0` standalone), or
+   *   `null` to clear it (fall back to the authored structure).
+   */
+  #setMembershipOverride(physical: number, level: number, identity: number | null) {
+    if (identity === null) {
+      const levels = this.#membershipOverrides.get(physical);
+
+      levels?.delete(level);
+
+      if (levels?.size === 0) {
+        this.#membershipOverrides.delete(physical);
+      }
+
+      return;
+    }
+
+    if (!this.#membershipOverrides.has(physical)) {
+      this.#membershipOverrides.set(physical, new Map());
+    }
+
+    this.#membershipOverrides.get(physical)!.set(level, identity);
+  }
+
+  /**
+   * Resolves the owner identity a moved column takes at one group level (see `reparentColumns`).
+   * Returns `null` (clear) for anything that matches the authored structure, so a `splittable: true`
+   * group still splits and an intact group is left untouched - only genuine re-parents are recorded.
+   *
+   * @param {number} visualColumn - The column's post-move visual index.
+   * @param {number} physical - The column's physical index.
+   * @param {number} level - The header level being resolved.
+   * @param {number} columnsCount - The number of columns the structure spans.
+   * @param {SourceHeaderCell[][]} authoredLayers - The authored header layers.
+   * @param {number[][]} ownerIndexByLevel - The authored owner index per level.
+   * @param {Function} effectiveOwnerAt - Resolves the current effective owner of a (visual, level).
+   * @returns {number|null} The owner identity to record, or `null` to clear.
+   */
+  #resolveMovedMembership(
+    visualColumn: number,
+    physical: number,
+    level: number,
+    columnsCount: number,
+    authoredLayers: SourceHeaderCell[][],
+    ownerIndexByLevel: number[][],
+    effectiveOwnerAt: (visualColumn: number, level: number) => number
+  ): number | null {
+    const isCohesive = (owner: number): boolean =>
+      owner >= 0 && authoredLayers[level][owner]?.splittable !== true;
+    const authoredOwnerRaw = ownerIndexByLevel[level][physical];
+    const authoredOwner = authoredOwnerRaw === undefined ? -1 - physical : authoredOwnerRaw;
+    const ownEffective = effectiveOwnerAt(visualColumn, level);
+    const leftOwner = visualColumn > 0 ? effectiveOwnerAt(visualColumn - 1, level) : -Infinity;
+    const rightOwner = visualColumn < columnsCount - 1 ? effectiveOwnerAt(visualColumn + 1, level) : -Infinity;
+    let target: number;
+
+    if (leftOwner === rightOwner && isCohesive(leftOwner)) {
+      target = leftOwner; // dropped strictly inside a cohesive group -> adopt into it
+    } else if (ownEffective >= 0 && (leftOwner === ownEffective || rightOwner === ownEffective)) {
+      target = ownEffective; // still beside a sibling of its own group -> keep it (group is intact)
+    } else if (isCohesive(ownEffective)) {
+      target = -1; // left a cohesive group with nowhere cohesive to land -> standalone
+    } else {
+      target = authoredOwner; // splittable:true / standalone -> authored derive (splits / unchanged)
+    }
+
+    return target === authoredOwner ? null : target;
   }
 
   /**
@@ -795,5 +938,6 @@ export default class StateManager {
     this.#derivedSettings.clear();
     this.#headersTree.clear();
     this.#lastColumnVisibility = null;
+    this.#membershipOverrides = new Map();
   }
 }

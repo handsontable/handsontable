@@ -35,8 +35,10 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
     handsontable({
       data: createSpreadsheetData(2, 4),
       colHeaders: true,
+      // splittable: true opts into the split model - a torn group renders as same-label banners
+      // (the default is now cohesive: a moved-out column is released, see the 'splittable option' tests).
       nestedHeaders: [
-        [{ label: 'Address', colspan: 2 }, { label: 'Finance', colspan: 2 }],
+        [{ label: 'Address', colspan: 2, splittable: true }, { label: 'Finance', colspan: 2, splittable: true }],
         ['Street', 'City', 'Revenue', 'Profit'],
       ],
       manualColumnMove: true,
@@ -85,8 +87,8 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
     handsontable({
       data: createSpreadsheetData(2, 4),
       colHeaders: true,
-      nestedHeaders: [
-        [{ label: 'Address', colspan: 2 }, { label: 'Finance', colspan: 2 }],
+      nestedHeaders: [ // splittable: true opts into the split model (default is now cohesive)
+        [{ label: 'Address', colspan: 2, splittable: true }, { label: 'Finance', colspan: 2, splittable: true }],
         ['Street', 'City', 'Revenue', 'Profit'],
       ],
       manualColumnMove: true,
@@ -194,8 +196,8 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
     handsontable({
       data: [['a1', 'a2', 'b1', 'b2'], ['a1', 'a2', 'b1', 'b2']],
       colHeaders: true,
-      nestedHeaders: [
-        [{ label: 'A', colspan: 2 }, { label: 'B', colspan: 2 }],
+      nestedHeaders: [ // splittable: true opts into the split model (default is now cohesive)
+        [{ label: 'A', colspan: 2, splittable: true }, { label: 'B', colspan: 2, splittable: true }],
         ['a1', 'a2', 'b1', 'b2'],
       ],
       manualColumnMove: true,
@@ -393,5 +395,117 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
 
     // A header outside the selection keeps the default cursor.
     expect($(getCell(-2, 2)).css('cursor')).toEqual('default'); // "Finance" group
+  });
+
+  describe('splittable option', () => {
+    it('should adopt a column moved into a cohesive (default) group as a child (#4150)', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 4),
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: 'Address', colspan: 2 }, { label: 'Finance', colspan: 2 }], // default splittable: false
+          ['Street', 'City', 'Revenue', 'Profit'],
+        ],
+        manualColumnMove: true,
+      });
+
+      getPlugin('manualColumnMove').moveColumn(2, 1); // "Revenue" into Address, between Street and City
+      await render();
+
+      // Address stays one banner, now spanning 3 columns (it adopted Revenue); Finance covers the last.
+      expect(getCell(-2, 0).textContent).toBe('Address');
+      expect(getCell(-2, 0).colSpan).toBe(3);
+      expect(getCell(-2, 3).textContent).toBe('Finance');
+      // The leaf labels follow the data.
+      expect(getCell(-1, 0).textContent).toBe('Street');
+      expect(getCell(-1, 1).textContent).toBe('Revenue');
+      expect(getCell(-1, 2).textContent).toBe('City');
+      expect(getCell(-1, 3).textContent).toBe('Profit');
+    });
+
+    it('should release a column moved out of a cohesive (default) group to standalone (#4150)', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 4),
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: 'Address', colspan: 2 }, { label: 'Finance', colspan: 2 }],
+          ['Street', 'City', 'Revenue', 'Profit'],
+        ],
+        manualColumnMove: true,
+      });
+
+      getPlugin('manualColumnMove').moveColumn(0, 3); // "Street" out to the end, past Finance
+      await render();
+
+      // Address shrinks to one banner over City; Street is standalone (no Address banner over it).
+      expect(getCell(-1, 3).textContent).toBe('Street'); // leaf follows the data
+      expect(getCell(-2, 3).textContent).toBe(''); // standalone -> blank group cell, NOT "Address"
+      expect(getCell(-2, 0).textContent).toBe('Address');
+      expect(getCell(-2, 0).colSpan).toBe(1); // Address shrank to a single column
+      expect(getCell(-1, 0).textContent).toBe('City');
+    });
+
+    it('should re-parent a column dropped strictly inside another cohesive group (#4150)', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 4),
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: 'Address', colspan: 2 }, { label: 'Finance', colspan: 2 }],
+          ['Street', 'City', 'Revenue', 'Profit'],
+        ],
+        manualColumnMove: true,
+      });
+
+      getPlugin('manualColumnMove').moveColumn(0, 2); // "Street" into Finance, between Revenue and Profit
+      await render();
+
+      // Street joined Finance (now spans 3); Address shrank to City.
+      expect(getCell(-2, 0).textContent).toBe('Address');
+      expect(getCell(-2, 0).colSpan).toBe(1);
+      expect(getCell(-2, 1).textContent).toBe('Finance');
+      expect(getCell(-2, 1).colSpan).toBe(3);
+      expect(getCell(-1, 2).textContent).toBe('Street');
+    });
+
+    it('should split a `splittable: true` group when a column is moved out (#4150)', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 4),
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: 'Address', colspan: 2, splittable: true }, { label: 'Finance', colspan: 2 }],
+          ['Street', 'City', 'Revenue', 'Profit'],
+        ],
+        manualColumnMove: true,
+      });
+
+      getPlugin('manualColumnMove').moveColumn(0, 3); // "Street" out to the end
+      await render();
+
+      // Address keeps its identity and renders as two same-label banners (the opt-in split behavior).
+      expect(getCell(-2, 0).textContent).toBe('Address'); // over City
+      expect(getCell(-2, 3).textContent).toBe('Address'); // over Street (the split banner)
+      expect(getCell(-1, 3).textContent).toBe('Street');
+    });
+
+    it('should keep a whole cohesive group intact when all its columns move together (#4150)', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 4),
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: 'Address', colspan: 2 }, { label: 'Finance', colspan: 2 }],
+          ['Street', 'City', 'Revenue', 'Profit'],
+        ],
+        manualColumnMove: true,
+      });
+
+      getPlugin('manualColumnMove').moveColumns([0, 1], 2); // move the whole Address group to the end
+      await render();
+
+      expect(getCell(-2, 0).textContent).toBe('Finance');
+      expect(getCell(-2, 2).textContent).toBe('Address');
+      expect(getCell(-2, 2).colSpan).toBe(2); // stays one intact banner
+      expect(getCell(-1, 2).textContent).toBe('Street');
+      expect(getCell(-1, 3).textContent).toBe('City');
+    });
   });
 });

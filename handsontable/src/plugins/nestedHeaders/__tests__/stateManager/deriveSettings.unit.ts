@@ -173,4 +173,38 @@ describe('nestedHeaders deriveVisualSettings', () => {
       expect(matrix[2].map(cell => cell.label)).toEqual(['a', 'c', 'b', 'd']);
     });
   });
+
+  describe('membership overrides (column move re-parenting)', () => {
+    it('should re-parent a column into a group when its override points to that group owner', () => {
+      const authored = authoredFrom([
+        [{ label: 'Address', colspan: 2 }, { label: 'Finance', colspan: 2 }],
+        ['Street', 'City', 'Revenue', 'Profit'],
+      ]);
+      // Physical 2 (Revenue) adopted into Address (owner index 0) at the top level.
+      const overrides = new Map([[2, new Map([[0, 0]])]]);
+      const derived = deriveVisualSettings(authored, createIdentityColumnArrangement(), overrides);
+
+      expect(derived[0][0].label).toBe('Address');
+      expect(derived[0][0].origColspan).toBe(3); // Address absorbed Revenue -> spans 3
+      expect(derived[0][3].label).toBe('Finance');
+      expect(derived[0][3].origColspan).toBe(1); // Finance lost Revenue -> spans 1
+      // The leaf level is never overridden - each column keeps its own label.
+      expect(derived[1].map(cell => cell.label)).toEqual(['Street', 'City', 'Revenue', 'Profit']);
+    });
+
+    it('should render a column standalone when its override is negative', () => {
+      const authored = authoredFrom([
+        [{ label: 'Address', colspan: 2 }, { label: 'Finance', colspan: 2 }],
+        ['Street', 'City', 'Revenue', 'Profit'],
+      ]);
+      // Physical 0 (Street) released from Address to standalone at the top level.
+      const overrides = new Map([[0, new Map([[0, -1]])]]);
+      const derived = deriveVisualSettings(authored, createIdentityColumnArrangement(), overrides);
+
+      expect(derived[0][0].label).toBe(''); // standalone -> blank group cell
+      expect(derived[0][0].origColspan).toBe(1);
+      expect(derived[0][1].label).toBe('Address'); // Address now covers City only
+      expect(derived[0][1].origColspan).toBe(1);
+    });
+  });
 });

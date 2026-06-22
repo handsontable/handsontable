@@ -3,6 +3,15 @@ import type { ColumnArrangement } from './columnArrangement';
 import type { SourceHeaderCell } from './sourceSettings';
 
 /**
+ * Membership overrides re-parent specific columns after a move: `physical column -> header level ->
+ * owner identity`. The owner identity is the destination group's authored owner index (`>= 0`), or a
+ * negative value meaning "standalone" (rendered as its own header). An entry overrides the authored
+ * owner for that column at that level; absence falls back to the authored structure. Only group levels
+ * carry overrides - a leaf always keeps its own label.
+ */
+export type MembershipOverrides = Map<number, Map<number, number>>;
+
+/**
  * Computes, for one normalized header layer, the index of the header cell that owns each column.
  *
  * In the normalized representation a header that spans N columns is one cell at its left edge with
@@ -14,7 +23,7 @@ import type { SourceHeaderCell } from './sourceSettings';
  * @param {SourceHeaderCell[]} layer - A single normalized header layer (one row of the matrix).
  * @returns {number[]} For each column index, the owning header cell's index within the layer.
  */
-function computeOwnerIndex(layer: SourceHeaderCell[]): number[] {
+export function computeOwnerIndex(layer: SourceHeaderCell[]): number[] {
   const owners: number[] = [];
   let index = 0;
 
@@ -79,20 +88,31 @@ function cloneOwnerCell(ownerCell: SourceHeaderCell, runLength: number, authored
  * @param {SourceHeaderCell[]} authoredLayer - One normalized header layer in authored order.
  * @param {ColumnArrangement} arrangement - The current visual-to-physical column arrangement.
  * @param {number} columnsCount - The number of visual columns the structure spans (authored width).
+ * @param {number} headerLevel - The level (row) of this layer, used to look up membership overrides.
+ * @param {MembershipOverrides} [membershipOverrides] - Per-column re-parenting from column moves.
  * @returns {SourceHeaderCell[]} The header layer in visual order.
  */
 function deriveVisualLayer(
   authoredLayer: SourceHeaderCell[],
   arrangement: ColumnArrangement,
-  columnsCount: number
+  columnsCount: number,
+  headerLevel: number,
+  membershipOverrides?: MembershipOverrides
 ): SourceHeaderCell[] {
   const ownerIndex = computeOwnerIndex(authoredLayer);
 
-  // Resolves the group key for a visual column. A physical column with no authored header at this
-  // level (e.g. a column from outside the nested-headers definition moved into range) gets a unique
-  // negative key so it never coalesces with a real group - it renders as a standalone header.
+  // Resolves the group key for a visual column. A membership override (from a column move) re-parents
+  // the column: a non-negative value is the destination group's owner index, a negative value means
+  // standalone. With no override, the authored owner applies; a physical column with no authored header
+  // at this level gets a unique negative key so it never coalesces with a real group (standalone).
   const ownerKeyAt = (visualColumn: number): number => {
     const physical = arrangement.getPhysicalFromVisual(visualColumn);
+    const override = membershipOverrides?.get(physical)?.get(headerLevel);
+
+    if (override !== undefined) {
+      return override >= 0 ? override : -1 - physical;
+    }
+
     const owner = ownerIndex[physical];
 
     return owner === undefined ? -1 - physical : owner;
@@ -138,13 +158,16 @@ function deriveVisualLayer(
  *
  * @param {SourceHeaderCell[][]} authoredSettings - The normalized header settings in authored order.
  * @param {ColumnArrangement} arrangement - The current visual-to-physical column arrangement.
+ * @param {MembershipOverrides} [membershipOverrides] - Per-column re-parenting from column moves.
  * @returns {SourceHeaderCell[][]} The normalized header settings in visual order.
  */
 export function deriveVisualSettings(
   authoredSettings: SourceHeaderCell[][],
-  arrangement: ColumnArrangement
+  arrangement: ColumnArrangement,
+  membershipOverrides?: MembershipOverrides
 ): SourceHeaderCell[][] {
   const columnsCount = authoredSettings.length > 0 ? authoredSettings[0].length : 0;
 
-  return authoredSettings.map(authoredLayer => deriveVisualLayer(authoredLayer, arrangement, columnsCount));
+  return authoredSettings.map((authoredLayer, headerLevel) =>
+    deriveVisualLayer(authoredLayer, arrangement, columnsCount, headerLevel, membershipOverrides));
 }

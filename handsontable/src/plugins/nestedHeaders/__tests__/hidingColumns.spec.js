@@ -2052,7 +2052,9 @@ describe('NestedHeaders', () => {
           data: createSpreadsheetData(2, 7),
           colHeaders: true,
           nestedHeaders: [
-            ['A', 'B', 'C', { label: 'PARENT', colspan: 3 }, 'G'],
+            // splittable: true opts into the split model (default is now cohesive: a moved-out column
+            // is released to standalone rather than tearing the group into banners).
+            ['A', 'B', 'C', { label: 'PARENT', colspan: 3, splittable: true }, 'G'],
             ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
           ],
           manualColumnMove: true,
