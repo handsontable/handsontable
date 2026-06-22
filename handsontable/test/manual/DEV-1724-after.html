@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1724 — AFTER fix (patched — bug resolved)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 6px; }
+    p.subtitle { font-size: 13px; color: #555; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fce4ec; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
+    .info strong { color: #1b5e20; }
+    .widths-display { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-size: 13px; font-family: monospace; }
+    .widths-display .label { font-family: sans-serif; font-size: 12px; color: #666; margin-bottom: 4px; }
+    .ok { color: #2e7d32; font-weight: bold; }
+    button { margin-top: 12px; padding: 8px 20px; font-size: 14px; border: none; border-radius: 6px; background: #388e3c; color: #fff; cursor: pointer; }
+    button:hover { background: #2e7d32; }
+    #hot-container { margin-top: 12px; }
+    .fix-note { background: #fff; border: 1px solid #c8e6c9; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: #555; line-height: 1.5; }
+    .fix-note code { background: #f5f5f5; padding: 1px 4px; border-radius: 3px; font-size: 11px; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1724: loadData with merged cells + autoColumnSize</h1>
+  <p class="subtitle">Issue <a href="https://github.com/handsontable/handsontable/issues/8864">#8864</a> — columns incorrectly widen after <code>loadData()</code></p>
+
+  <nav>
+    <span class="nav-label">Version:</span>
+    <a class="nav-btn" href="DEV-1724-before.html">BEFORE fix <span class="badge badge-bug">v17.1.0 — bug</span></a>
+    <span class="nav-btn active">AFTER fix <span class="badge badge-fix">patched</span></span>
+  </nav>
+
+  <div class="info">
+    <strong>Fix applied (PR #12622):</strong> Two changes:<br>
+    1. <code>mergeCells</code>: <code>afterGetCellMeta</code> hook now re-derives <code>spanned</code>/<code>hidden</code> flags
+       from the merge collection on every meta read — so <code>loadData()</code> clearing the meta cache no longer loses them.<br>
+    2. <code>autoColumnSize</code> sampler: skips cells where <code>cellMeta.hidden</code> (merge-interior cells),
+       matching the existing <code>autoRowSize</code> behavior.
+  </div>
+
+  <div class="info">
+    <strong>How to test:</strong><br>
+    1. Observe the column widths below (snapshot taken on init).<br>
+    2. Click <strong>Reload data</strong>.<br>
+    3. <span style="color:#2e7d32">FIX: column widths stay the same — no changes shown.</span>
+  </div>
+
+  <div class="widths-display">
+    <div class="label">Column widths (px) — col 0 … col 3:</div>
+    <div id="widths-before">—</div>
+    <div id="widths-after" style="margin-top:4px">—</div>
+  </div>
+
+  <button id="btn-reload">Reload data</button>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script>
+    const data = [
+      ['', 'Group 2', 'Group 2', 'Group 2'],
+      ['', 'Col1', 'Group 1', 'Group 1'],
+      ['', 'Col1', 'Col2', 'Col3'],
+      ['Row1', '', '', ''],
+    ];
+
+    const container = document.getElementById('hot-container');
+    window.hot = new Handsontable(container, {
+      data: data.map(r => r.slice()),
+      mergeCells: [
+        { row: 0, col: 1, rowspan: 1, colspan: 3 },
+        { row: 1, col: 1, rowspan: 2, colspan: 1 },
+        { row: 1, col: 2, rowspan: 1, colspan: 2 },
+      ],
+      autoColumnSize: true,
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 200,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+
+      // --- FIX: re-derive spanned/hidden from mergeCells collection on every meta read ---
+      // This replicates mergeCells.#onAfterGetCellMeta from PR #12622.
+      // Without this, loadData() calls metaManager.clearCellsCache() which wipes the metas
+      // set by setCellMeta() inside mergeRange(), causing autoColumnSize to sample anchor cells
+      // with their full text value and incorrectly widen the columns.
+      afterGetCellMeta(row, col, cellProperties) {
+        const mergePlugin = this.getPlugin('mergeCells');
+        if (!mergePlugin || !mergePlugin.enabled) return;
+        const collection = mergePlugin.mergedCellsCollection;
+        if (!collection) return;
+        const mergeParent = collection.get(row, col);
+        if (mergeParent) {
+          if (mergeParent.row !== row || mergeParent.col !== col) {
+            cellProperties.hidden = true;
+            cellProperties.copyable = false;
+          } else {
+            cellProperties.spanned = true;
+            cellProperties.rowspan = mergeParent.rowspan;
+            cellProperties.colspan = mergeParent.colspan;
+          }
+        }
+      },
+    });
+
+    function getWidths() {
+      return [0, 1, 2, 3].map(c => hot.getColWidth(c));
+    }
+
+    const widthsBefore = getWidths();
+    document.getElementById('widths-before').textContent = 'Before reload: ' + widthsBefore.join(', ');
+
+    document.getElementById('btn-reload').addEventListener('click', async () => {
+      await hot.loadData(data.map(r => r.slice()));
+      const widthsAfter = getWidths();
+      const el = document.getElementById('widths-after');
+      const changed = widthsAfter.some((w, i) => w !== widthsBefore[i]);
+      el.innerHTML = 'After reload:  ' + widthsAfter.map((w, i) => {
+        const diff = w - widthsBefore[i];
+        const cls = diff !== 0 ? ' class="changed"' : '';
+        return `<span${cls}>${w}${diff !== 0 ? ' (+' + diff + ')' : ''}</span>`;
+      }).join(', ');
+      if (!changed) {
+        el.innerHTML += ' ← <span class="ok">FIX: widths unchanged ✓</span>';
+      } else {
+        el.innerHTML += ' ← <span style="color:#c62828">Unexpected: widths still changed</span>';
+      }
+    });
+  </script>
+</body>
+</html>
