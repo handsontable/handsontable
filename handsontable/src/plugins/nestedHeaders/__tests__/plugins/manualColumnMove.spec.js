@@ -598,6 +598,29 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
       expect(getCell(-1, 3).textContent).toBe('a');
     });
 
+    it('should not crash or straddle when a cohesive inner group sits under a splittable outer group (3-level, #4150)', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 6),
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: 'P', colspan: 3, splittable: true }, { label: 'Q', colspan: 3, splittable: true }],
+          [{ label: 'Pg', colspan: 2 }, 'Ps', 'Qs', { label: 'Qg', colspan: 2 }],
+          ['a', 'b', 'c', 'd', 'e', 'f'],
+        ],
+        manualColumnMove: true,
+      });
+
+      // "f" (authored under Qg/Q) dropped strictly inside the cohesive inner group Pg. Its outer parent
+      // P is splittable and does NOT adopt - so f must NOT be adopted into Pg either (that would make
+      // Pg straddle the P|Q boundary and crash buildTree). It stays standalone under Q.
+      getPlugin('manualColumnMove').moveColumn(5, 1);
+      await render();
+
+      expect(getCell(-1, 1).textContent).toBe('f'); // leaf follows the data
+      expect(getCell(-2, 1).textContent).toBe(''); // standalone at the inner level, NOT adopted into Pg
+      expect(getCell(-3, 1).textContent).toBe('Q'); // stays under its authored outer parent, not P
+    });
+
     it('should hide a column adopted into a cohesive group when that group is collapsed (#4150)', async() => {
       handsontable({
         data: createSpreadsheetData(2, 5),

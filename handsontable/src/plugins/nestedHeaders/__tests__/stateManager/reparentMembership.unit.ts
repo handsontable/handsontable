@@ -362,6 +362,30 @@ describe('StateManager re-parenting across multi-level nesting', () => {
     // L splits into same-label banners (the opt-in behavior) - and each banner nests under Top.
     expect(levelLabels(state, 1, 4)).toEqual(['L', 'R', '', 'L']);
   });
+
+  it('should keep nesting contained when a cohesive inner group sits under a splittable outer group', () => {
+    const state = new StateManager();
+
+    // The dangerous direction: outer groups split (splittable:true), inner groups are cohesive
+    // (default). A column dropped strictly inside a cohesive inner group would adopt it at the inner
+    // level, but the outer adopt is suppressed (the outer group is splittable) - the inner owner's
+    // parent must still constrain the outer owner, or the inner run straddles an outer boundary.
+    state.setState([
+      [{ label: 'P', colspan: 3, splittable: true }, { label: 'Q', colspan: 3, splittable: true }],
+      [{ label: 'Pg', colspan: 2 }, 'Ps', 'Qs', { label: 'Qg', colspan: 2 }],
+      ['a', 'b', 'c', 'd', 'e', 'f'],
+    ]);
+
+    const arrangement = mutableArrangement(6);
+
+    state.setColumnArrangement(arrangement);
+    state.rebuildState();
+
+    // 'f' (physical 5, authored Qg/Q) dropped strictly inside Pg, between physical 0 and 1.
+    move(state, arrangement, 5, 1);
+
+    expectNestingContained(state, 3, 6);
+  });
 });
 
 describe('nestingViolations checker (self-discrimination)', () => {

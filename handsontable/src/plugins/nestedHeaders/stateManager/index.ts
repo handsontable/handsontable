@@ -510,15 +510,20 @@ export default class StateManager {
 
     movedVisualColumns.forEach((visualColumn) => {
       const physical = arrangement.getPhysicalFromVisual(visualColumn);
+      // The effective owner this column resolved to at the enclosing (outer) level. Threaded inward so
+      // an inner adoption is constrained to refine the outer owner - an inner group may only be joined
+      // when its authored parent matches where the column landed outside, never crossing a boundary.
+      let resolvedOuterOwner: number | null = null;
 
       for (let level = 0; level < layersCount - 1; level++) {
-        decisions.push({
-          physical,
-          level,
-          identity: this.#resolveMovedMembership(
-            visualColumn, level, columnsCount, authoredLayers, effectiveOwnerAt, authoredOwnerAt
-          ),
-        });
+        const identity = this.#resolveMovedMembership(
+          visualColumn, level, columnsCount, authoredLayers,
+          effectiveOwnerAt, authoredOwnerAt, ownerIndexByLevel, resolvedOuterOwner
+        );
+
+        decisions.push({ physical, level, identity });
+        // The effective owner at this level becomes the outer constraint for the next inner level.
+        resolvedOuterOwner = identity ?? authoredOwnerAt(visualColumn, level);
       }
     });
 
@@ -566,6 +571,10 @@ export default class StateManager {
    * @param {SourceHeaderCell[][]} authoredLayers - The authored header layers.
    * @param {Function} effectiveOwnerAt - Resolves the current effective owner of a (visual, level).
    * @param {Function} authoredOwnerAt - Resolves the authored owner of a (visual, level).
+   * @param {number[][]} ownerIndexByLevel - The authored owner column index per (level, column).
+   * @param {number|null} resolvedOuterOwner - The effective owner this column took at the enclosing
+   *   (outer) level, or `null` at the outermost level. Constrains the adoption so an inner run never
+   *   crosses an outer group boundary.
    * @returns {number|null} The owner identity to record, or `null` to clear.
    */
   #resolveMovedMembership(
@@ -574,7 +583,9 @@ export default class StateManager {
     columnsCount: number,
     authoredLayers: SourceHeaderCell[][],
     effectiveOwnerAt: (visualColumn: number, level: number) => number,
-    authoredOwnerAt: (visualColumn: number, level: number) => number
+    authoredOwnerAt: (visualColumn: number, level: number) => number,
+    ownerIndexByLevel: number[][],
+    resolvedOuterOwner: number | null
   ): number | null {
     const isCohesive = (owner: number): boolean =>
       owner >= 0 && authoredLayers[level][owner]?.splittable !== true;
@@ -589,7 +600,12 @@ export default class StateManager {
     let target: number;
 
     if (leftEffective === rightEffective && isCohesive(leftEffective)) {
-      target = leftEffective; // dropped strictly inside a cohesive group -> adopt into it
+      // Dropped strictly inside a cohesive group - adopt it, but only when that group nests under the
+      // outer owner this column already took; otherwise the inner run would straddle an outer boundary
+      // (e.g. a cohesive inner group whose outer parent is splittable and did not adopt), so stand alone.
+      const nestsUnderOuter = level === 0 || ownerIndexByLevel[level - 1][leftEffective] === resolvedOuterOwner;
+
+      target = nestsUnderOuter ? leftEffective : -1;
     } else if (isCohesive(authoredOwner) && (leftAuthored === authoredOwner || rightAuthored === authoredOwner)) {
       // Back beside its authored cohesive group (e.g. an undone move, or a whole group moved together)
       // - revert to the authored structure.
