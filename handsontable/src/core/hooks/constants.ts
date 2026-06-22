@@ -1249,7 +1249,9 @@ export const REGISTERED_HOOKS = [
   'afterRemoveCellMeta',
 
   /**
-   * Fired after cell data was changed.
+   * Fired after [`setDataAtCell`](@/api/core.md#setdataatcell) is called and changes are processed,
+   * before they are validated and applied to the data source.
+   * Use [`afterChange`](@/api/hooks.md#afterchange) if you need to react after the data has been written.
    *
    * @event Hooks#afterSetDataAtCell
    * @param {Array} changes An array of changes in format `[[row, column, oldValue, value], ...]`.
@@ -1259,8 +1261,9 @@ export const REGISTERED_HOOKS = [
   'afterSetDataAtCell',
 
   /**
-   * Fired after cell data was changed.
-   * Called only when [`setDataAtRowProp`](@/api/core.md#setdataatrowprop) was executed.
+   * Fired after [`setDataAtRowProp`](@/api/core.md#setdataatrowprop) is called and changes are processed,
+   * before they are validated and applied to the data source.
+   * Use [`afterChange`](@/api/hooks.md#afterchange) if you need to react after the data has been written.
    *
    * @event Hooks#afterSetDataAtRowProp
    * @param {Array} changes An array of changes in format `[[row, prop, oldValue, value], ...]`.

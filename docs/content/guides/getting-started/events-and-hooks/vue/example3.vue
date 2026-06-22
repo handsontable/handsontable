@@ -53,7 +53,7 @@ function onColHeadersChange(event: Event) {
 </script>
 
 <template>
-  <div id="example3">
+  <div id="example3" class="example-3-max-width">
     <div class="example-controls-container">
       <div class="controls">
         <label>
@@ -82,7 +82,7 @@ function onColHeadersChange(event: Event) {
 </template>
 
 <style>
-#example3 {
+.example-3-max-width {
   max-width: 440px;
 }
 </style>
