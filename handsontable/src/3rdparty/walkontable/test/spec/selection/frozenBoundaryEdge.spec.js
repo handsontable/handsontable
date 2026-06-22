@@ -222,4 +222,148 @@ describe('Frozen boundary edge', () => {
     expect(topShown(top)).toBe(true); // non-frozen column slice
     expect(topShown(corner)).toBe(true); // frozen column slice
   });
+
+  // No-doubling: a cell inside the frozen ROWS but flush with the COLUMN freeze line is rendered by
+  // the `top` overlay, which would draw its own start edge in the regular flow — doubling the freeze
+  // edge the corner overlay owns. The `top` overlay (and the master) must hide that start edge.
+  it('frozen-row cell on the column freeze line: start edge only on corner, hidden on top + master', async() => {
+    spec().$wrapper.width(300);
+    const { wt, selections } = build({ fixedRowsTop: 2, fixedColumnsStart: 2 });
+
+    // row 0 = frozen row, column 2 = column freeze line.
+    selections.getFocus().clear().add(new Walkontable.CellCoords(0, 2));
+    wt.draw();
+
+    const { master, top, corner } = overlayBorders(wt, selections.getFocus());
+
+    expect([master, top, corner].filter(startShown).length).toBe(1);
+    expect(startShown(corner)).toBe(true);
+    expect(startShown(top)).toBe(false);
+    expect(startShown(master)).toBe(false);
+  });
+
+  // Symmetric no-doubling: a cell inside the frozen COLUMNS but flush with the ROW freeze line is
+  // rendered in the visible frozen-column area by the `inline_start` overlay, which must hide its top
+  // edge (owned by the corner). The `top` overlay also renders that frozen column, but it sits behind
+  // the corner overlay, so its (occluded) duplicate edge is harmless — the same way the cross-seam
+  // cases let `top` and `corner` overlap. The count therefore covers the visible-area overlays only.
+  it('frozen-column cell on the row freeze line: visible top edge only on corner, hidden on inline_start + master', async() => {
+    spec().$wrapper.width(300);
+    const { wt, selections } = build({ fixedRowsTop: 2, fixedColumnsStart: 2 });
+
+    // row 2 = row freeze line, column 0 = frozen column.
+    selections.getFocus().clear().add(new Walkontable.CellCoords(2, 0));
+    wt.draw();
+
+    const { master, inlineStart, corner } = overlayBorders(wt, selections.getFocus());
+
+    expect([master, inlineStart, corner].filter(topShown).length).toBe(1);
+    expect(topShown(corner)).toBe(true);
+    expect(topShown(inlineStart)).toBe(false);
+    expect(topShown(master)).toBe(false);
+  });
+
+  // The single cell flush with BOTH freeze lines: the top edge (top overlay) and the start edge
+  // (inline_start overlay) meet inside the frozen×frozen region owned by the corner overlay, which
+  // draws a connecting square there so the two lines join instead of leaving a gap.
+  it('single cell on both freeze lines: corner overlay draws the connecting square', async() => {
+    spec().$wrapper.width(300);
+    const { wt, selections } = build({ fixedRowsTop: 2, fixedColumnsStart: 2 });
+
+    selections.getFocus().clear().add(new Walkontable.CellCoords(2, 2));
+    wt.draw();
+
+    const { top, inlineStart, corner } = overlayBorders(wt, selections.getFocus());
+
+    expect(topShown(top)).toBe(true); // row-freeze edge
+    expect(startShown(inlineStart)).toBe(true); // column-freeze edge
+    expect(topShown(corner)).toBe(true); // connecting square (reuses the top border element)
+  });
+
+  // The freeze edge must not protrude above the grid: at row 0 there is no row above to overlap, so
+  // the line's top must stay within the pane (the `-1` overlap is dropped). Catches the regression
+  // where the column-freeze edge poked one pixel above the top-left corner.
+  it('column freeze edge at row 0 does not protrude above the pane', async() => {
+    spec().$wrapper.width(300);
+    const { wt, selections } = build({ fixedRowsTop: 2, fixedColumnsStart: 2 });
+
+    selections.getFocus().clear().add(new Walkontable.CellCoords(0, 2));
+    wt.draw();
+
+    const { corner } = overlayBorders(wt, selections.getFocus());
+
+    expect(startShown(corner)).toBe(true);
+    expect(parseInt(corner.startStyle.top, 10)).toBeGreaterThanOrEqual(0);
+  });
+
+  // The freeze edge is anchored a fixed pixel inside the freeze line, independent of the border
+  // width, so borders of different widths (e.g. focus 2px vs area/fill 1px) share the same edge
+  // instead of the thicker one bleeding further out. A 4px border must still sit ~1px inside the
+  // line — not 4px — keeping its inline-start edge aligned with a 1px border's.
+  it('column freeze edge anchors a constant pixel inside the line regardless of border width', async() => {
+    spec().$wrapper.width(300);
+    const { wt, selections } = build({ fixedColumnsStart: 2, borderWidth: 4 });
+
+    selections.getFocus().clear().add(new Walkontable.CellCoords(1, 2));
+    wt.draw();
+
+    const { inlineStart } = overlayBorders(wt, selections.getFocus());
+    // Freeze line = right edge of the last frozen column (column 1) in the inline_start overlay.
+    const boundaryCell = inlineStart.wot.wtTable.getCell(new Walkontable.CellCoords(1, 1));
+    const freezeLineRight = boundaryCell.getBoundingClientRect().right;
+    const edgeLeft = inlineStart.start.getBoundingClientRect().left;
+
+    // The drawn edge's inline-start sits one pixel inside the freeze line (constant), not 4px.
+    expect(Math.round(freezeLineRight - edgeLeft)).toBe(1);
+  });
+
+  // Scroll-out: the frozen overlay renders the frozen block whatever the scroll, so without consulting
+  // the master it would keep the column-freeze edge pinned to the seam even after the selected
+  // boundary column scrolls behind the pane — a line stuck at the freeze line. Once the boundary
+  // column is no longer visible in the master viewport, the edge must disappear. Built standalone with
+  // many narrow-viewport columns so the horizontal scroll genuinely pushes the boundary column out.
+  it('column freeze edge disappears once the boundary column scrolls behind the pane', async() => {
+    createDataArray(100, 30);
+    spec().$wrapper.width(200).height(200);
+    const selections = createSelectionController({ border: { width: 1, color: 'red' } });
+    const wt = walkontable({
+      data: getData,
+      totalRows: 100,
+      totalColumns: 30,
+      fixedColumnsStart: 2,
+      selections,
+    });
+
+    wt.draw();
+
+    // Cell flush with the column freeze line (column === fixedColumnsStart).
+    selections.getFocus().clear().add(new Walkontable.CellCoords(1, 2));
+    wt.draw();
+
+    expect(startShown(overlayBorders(wt, selections.getFocus()).inlineStart)).toBe(true);
+
+    // Scroll far right so column 2 slides behind the frozen pane and leaves the master viewport.
+    wt.scrollViewport(new Walkontable.CellCoords(1, 25));
+    wt.draw();
+
+    expect(wt.wtTable.getFirstVisibleColumn()).toBeGreaterThan(2); // precondition: boundary column is out
+    expect(startShown(overlayBorders(wt, selections.getFocus()).inlineStart)).toBe(false);
+  });
+
+  // Symmetric to the row-0 protrusion guard: at column 0 there is no column before the boundary cell,
+  // so the row-freeze edge's `-1` inline-start overlap must be dropped to avoid poking one pixel past
+  // the pane's inline-start edge.
+  it('row freeze edge at column 0 does not protrude past the inline-start of the pane', async() => {
+    spec().$wrapper.width(300);
+    const { wt, selections } = build({ fixedRowsTop: 2, fixedColumnsStart: 2 });
+
+    // row 2 = row freeze line, column 0 = first (frozen) column.
+    selections.getFocus().clear().add(new Walkontable.CellCoords(2, 0));
+    wt.draw();
+
+    const { corner } = overlayBorders(wt, selections.getFocus());
+
+    expect(topShown(corner)).toBe(true);
+    expect(parseInt(corner.topStyle.left, 10)).toBeGreaterThanOrEqual(0);
+  });
 });
