@@ -3,9 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DEV-1761 — After fix (patched)</title>
-  <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <title>DEV-1761 — After fix (PR #12624)</title>
+  <link rel="stylesheet" href="ht-theme-main.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
@@ -13,151 +12,50 @@
     h2 { font-size: 13px; color: #666; font-weight: normal; margin-bottom: 12px; }
     nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
     .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
-    .nav-btn {
-      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
-      border: 1px solid #ccc;
-    }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
     .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
     .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
     .nav-btn:not(.active):hover { background: #d9d9d9; }
     .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
-    .badge-bug  { background: #fdecea; color: #c62828; }
-    .badge-fix  { background: #e8f5e9; color: #2e7d32; }
+    .badge-bug { background: #fdecea; color: #c62828; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
     .info { background: #e8f5e9; border: 1px solid #4caf50; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
     .info strong { color: #2e7d32; }
     .controls { margin-bottom: 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
     .controls button { padding: 8px 18px; border-radius: 6px; border: 1px solid #bbb; background: #fff; cursor: pointer; font-size: 14px; }
     .controls button:hover { background: #e9e9e9; }
-    #result { font-size: 14px; padding: 8px 12px; border-radius: 6px; background: #fff; border: 1px solid #ddd; min-width: 300px; }
+    #result { font-size: 14px; padding: 8px 12px; border-radius: 6px; background: #fff; border: 1px solid #ddd; min-width: 350px; }
   </style>
 </head>
 <body>
   <h1>DEV-1761 — <code>scrollViewportTo</code> with <code>height</code> + <code>preventOverflow: "horizontal"</code></h1>
-  <h2>Issue #8233 — <strong>After fix</strong>: v17.1.0 + overlay patch (PR #12624)</h2>
+  <h2>Issue #8233 — <strong>After fix</strong> (PR #12624)</h2>
 
   <nav>
     <span class="nav-label">Version:</span>
-    <a class="nav-btn" href="before.html">Before fix <span class="badge badge-bug">v17.1.0 — bug</span></a>
-    <span class="nav-btn active">After fix <span class="badge badge-fix">patched</span></span>
+    <a class="nav-btn" href="before.html">Before fix <span class="badge badge-bug">bug</span></a>
+    <span class="nav-btn active">After fix <span class="badge badge-fix">PR #12624</span></span>
   </nav>
 
   <div class="info">
-    <strong>Expected behavior (fix):</strong><br>
-    1. Click <strong>"Scroll to row 150 (vertical)"</strong> — the table scrolls to row 150 (green result, scroll > 0px).<br>
-    2. Click <strong>"Scroll to col 7 (horizontal)"</strong> — also works correctly.<br>
-    <em>The patch reorders branch logic in <code>Overlay#makeClone()</code> and <code>updateMainScrollableElement()</code>
-    so that <code>overflow: clip/hidden</code> from a constrained dimension wins over the axis-specific
-    <code>preventOverflow</code> shortcut.</em>
+    <strong>Fix — vertical scroll works correctly:</strong><br>
+    1. Click <strong>"Scroll to row 150"</strong> — the table scrolls to row 150 (first visible row ≥ 144, result turns green).<br>
+    2. Click <strong>"Scroll to col 7"</strong> — horizontal scroll also works.<br>
+    <em>Fix: branch order in <code>Overlay#makeClone()</code> and <code>updateMainScrollableElement()</code> was corrected so
+    <code>overflow: clip</code> (from a set <code>height</code>) takes priority over axis-specific <code>preventOverflow</code>.
+    The top overlay now scrolls the holder, not the window.</em>
   </div>
 
   <div class="controls">
-    <button id="btn-row">Scroll to row 150 (vertical)</button>
-    <button id="btn-col">Scroll to col 7 (horizontal)</button>
+    <button id="btn-row">Scroll to row 150</button>
+    <button id="btn-col">Scroll to col 7</button>
     <button id="btn-reset">Reset</button>
     <span id="result">Click a button to test</span>
   </div>
 
   <div id="hot-container"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
-  <script>
-    /**
-     * Patch for DEV-1761 / #8233:
-     *
-     * Root cause: in Overlay#makeClone() and updateMainScrollableElement() the axis-specific
-     * `preventOverflow` branch was evaluated before the `overflow: clip|hidden` check.
-     * When `height` is set the holder gets `overflow: clip`, but the CLONE_TOP overlay was
-     * already sent to window — so scrollViewportTo lost the scroll request.
-     *
-     * Fix: evaluate `computedOverflow === 'clip' | 'hidden'` first; only fall through to
-     * the axis-specific `preventOverflow` shortcut when the holder is NOT clipped.
-     */
-    (function patchOverlay() {
-      // Find the BaseOverlay prototype via the internal registry exposed on window.Handsontable
-      const overlays = Handsontable.core ? null : null; // CDN exposes Handsontable globally
-      // We patch via prototype chain: intercept the first Handsontable instance creation
-      // and repair makeClone / updateMainScrollableElement on the overlay instances.
-
-      const OrigHT = Handsontable;
-
-      function getComputedOverflow(element) {
-        return window.getComputedStyle(element).getPropertyValue('overflow');
-      }
-
-      function fixScrollableElement(overlay) {
-        const wot = overlay.wot;
-        if (!wot) return;
-        const holder = wot.wtTable && wot.wtTable.holder;
-        if (!holder) return;
-        const tableParent = wot.wtTable.wtRootElement && wot.wtTable.wtRootElement.parentNode;
-        if (!tableParent) return;
-
-        const computedOverflow = getComputedOverflow(tableParent);
-        const preventOverflow = overlay.wtSettings && overlay.wtSettings.getSetting('preventOverflow');
-        const type = overlay.type;
-
-        // Fixed branch order: clip/hidden wins over axis-specific preventOverflow
-        if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
-          overlay.mainTableScrollableElement = holder;
-        } else if (
-          (preventOverflow === 'horizontal' && type === 'top') ||
-          (preventOverflow === 'vertical' && type === 'inline_start')
-        ) {
-          overlay.mainTableScrollableElement = window;
-        }
-        // else: leave as-is (already set correctly by the existing logic)
-      }
-
-      // Patch: after each Handsontable init, fix the overlay scroll elements
-      const origInit = OrigHT.prototype.init;
-      OrigHT.prototype.init = function() {
-        const result = origInit.apply(this, arguments);
-        const wtOverlays = this.view && this.view._wt && this.view._wt.wtOverlays;
-        if (wtOverlays) {
-          [
-            wtOverlays.topOverlay,
-            wtOverlays.inlineStartOverlay,
-            wtOverlays.bottomOverlay,
-            wtOverlays.topInlineStartCornerOverlay,
-            wtOverlays.bottomInlineStartCornerOverlay,
-          ].forEach(ov => ov && fixScrollableElement(ov));
-        }
-        return result;
-      };
-
-      // Also patch updateMainScrollableElement so updateSettings keeps it correct
-      function patchUpdateMainScrollableElement(htInstance) {
-        const wtOverlays = htInstance.view && htInstance.view._wt && htInstance.view._wt.wtOverlays;
-        if (!wtOverlays) return;
-        [
-          wtOverlays.topOverlay,
-          wtOverlays.inlineStartOverlay,
-          wtOverlays.bottomOverlay,
-          wtOverlays.topInlineStartCornerOverlay,
-          wtOverlays.bottomInlineStartCornerOverlay,
-        ].forEach(ov => {
-          if (!ov || ov.__patched) return;
-          ov.__patched = true;
-          const orig = ov.updateMainScrollableElement.bind(ov);
-          ov.updateMainScrollableElement = function() {
-            orig();
-            fixScrollableElement(this);
-          };
-        });
-      }
-
-      const origAfterInit = OrigHT.prototype.init;
-      // hook into afterInit via hot.addHook after construction
-      const origConstructor = OrigHT;
-      // We already patched init above; additionally listen to afterUpdateSettings
-      const origUpdateSettings = OrigHT.prototype.updateSettings;
-      OrigHT.prototype.updateSettings = function() {
-        const result = origUpdateSettings.apply(this, arguments);
-        patchUpdateMainScrollableElement(this);
-        return result;
-      };
-    })();
-  </script>
+  <script src="handsontable-fixed.js"></script>
   <script>
     window.hot = new Handsontable(document.getElementById('hot-container'), {
       data: Handsontable.helper.createSpreadsheetData(200, 10),
@@ -172,22 +70,22 @@
 
     const result = document.getElementById('result');
 
-    document.getElementById('btn-row').addEventListener('click', async () => {
-      const ok = await hot.scrollViewportTo({ row: 150, col: 0 });
-      const topOverlay = hot.view._wt.wtOverlays.topOverlay;
-      const pos = topOverlay ? topOverlay.getScrollPosition() : '(n/a)';
-      result.textContent = `scrollViewportTo → ${ok} | topOverlay scroll: ${pos}px`;
-      result.style.background = (ok && pos > 0) ? '#d4edda' : '#f8d7da';
+    document.getElementById('btn-row').addEventListener('click', () => {
+      const ok = hot.scrollViewportTo({ row: 150, col: 0 });
+      const firstRow = hot.getFirstFullyVisibleRow();
+      result.textContent = `scrollViewportTo({row:150, col:0}) → ${ok} | first visible row: ${firstRow}`;
+      result.style.background = (ok && firstRow > 0) ? '#d4edda' : '#f8d7da';
     });
 
-    document.getElementById('btn-col').addEventListener('click', async () => {
-      const ok = await hot.scrollViewportTo({ row: 0, col: 7 });
-      result.textContent = `scrollViewportTo (col 7) → ${ok}`;
-      result.style.background = ok ? '#d4edda' : '#f8d7da';
+    document.getElementById('btn-col').addEventListener('click', () => {
+      const ok = hot.scrollViewportTo({ row: 0, col: 7 });
+      const firstCol = hot.getFirstFullyVisibleColumn();
+      result.textContent = `scrollViewportTo({row:0, col:7}) → ${ok} | first visible col: ${firstCol}`;
+      result.style.background = (ok && firstCol > 0) ? '#d4edda' : '#f8d7da';
     });
 
-    document.getElementById('btn-reset').addEventListener('click', async () => {
-      await hot.scrollViewportTo({ row: 0, col: 0 });
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      hot.scrollViewportTo({ row: 0, col: 0 });
       result.textContent = 'Reset';
       result.style.background = '#fff';
     });
