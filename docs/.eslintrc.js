@@ -26,6 +26,7 @@ module.exports = {
     '**/components/VersionComparison/**/*.ts',
     '**/content/config.ts',
     '**/content.config.ts',
+    '**/src/config/docsearch.ts',
   ],
   rules: {
     'no-restricted-globals': 'off',
