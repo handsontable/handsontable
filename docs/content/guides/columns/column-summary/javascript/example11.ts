@@ -5,8 +5,9 @@ import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 
 const container = document.querySelector('#example11')!;
+const throwErrorsButton = document.querySelector('#throwErrorsButton')!;
 
-new Handsontable(container, {
+const hot = new Handsontable(container, {
   licenseKey: 'non-commercial-and-evaluation',
   data: [[0, 1, 2], ['3c', '4b', 5], [], []],
   colHeaders: true,
@@ -17,19 +18,36 @@ new Handsontable(container, {
       destinationRow: 0,
       destinationColumn: 0,
       reversedRowCoords: true,
-      // enable throwing data type errors for this column summary
-      suppressDataTypeErrors: false,
     },
     {
       type: 'sum',
       destinationRow: 0,
       destinationColumn: 1,
       reversedRowCoords: true,
-      // enable throwing data type errors for this column summary
-      suppressDataTypeErrors: false,
     },
   ],
   autoWrapRow: true,
   autoWrapCol: true,
   height: 'auto',
+});
+
+throwErrorsButton.addEventListener('click', () => {
+  hot.updateSettings({
+    columnSummary: [
+      {
+        type: 'sum',
+        destinationRow: 0,
+        destinationColumn: 0,
+        reversedRowCoords: true,
+        suppressDataTypeErrors: false,
+      },
+      {
+        type: 'sum',
+        destinationRow: 0,
+        destinationColumn: 1,
+        reversedRowCoords: true,
+        suppressDataTypeErrors: false,
+      },
+    ],
+  });
 });
