@@ -1,6 +1,6 @@
 import { extendByMetaType, assert } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
-import { extend } from '../../../helpers/object';
+import { extend, hasOwnProperty } from '../../../helpers/object';
 import { isDefined } from '../../../helpers/mixed';
 import { isUnsignedNumber } from '../../../helpers/number';
 import type ColumnMeta from './columnMeta';
@@ -49,12 +49,43 @@ export default class CellMeta {
    * @type {LazyFactoryMap<number, LazyFactoryMap<number, object>>}
    */
   metas = new LazyFactoryMap(() => this._createRow());
+  /**
+   * Counts how many times user-defined meta recording has been suspended without a matching
+   * resume. Recording is active only when the count is `0`. A counter (rather than a boolean) keeps
+   * nested suspend/resume scopes correct - for example, when a re-entrant `updateSettings` runs from
+   * a `setCellMeta` hook while the outer `cell` option loop is still applying declarative writes.
+   *
+   * @type {number}
+   */
+  #userDefinedMetaRecordingSuspendCount = 0;
 
   /**
    * Initializes the cell meta layer with a reference to the ColumnMeta layer used as the prototype source for new cell meta objects.
    */
   constructor(columnMeta: ColumnMeta) {
     this.columnMeta = columnMeta;
+  }
+
+  /**
+   * Resumes tracking of user-defined cell meta properties by closing one suspension scope opened by
+   * `disableUserDefinedMetaRecording`. Recording becomes active again only once every suspension has
+   * been closed. Subsequent `setMeta` calls then mark their keys as user-defined, so they are
+   * preserved across `updateSettings`.
+   */
+  enableUserDefinedMetaRecording() {
+    if (this.#userDefinedMetaRecordingSuspendCount > 0) {
+      this.#userDefinedMetaRecordingSuspendCount -= 1;
+    }
+  }
+
+  /**
+   * Suspends tracking of user-defined cell meta properties. While suspended, `setMeta` calls are
+   * treated as declarative writes and de-mark their keys, so they are not preserved across
+   * `updateSettings`. Suspensions nest - each call must be matched by an `enableUserDefinedMetaRecording`
+   * call before recording resumes.
+   */
+  disableUserDefinedMetaRecording() {
+    this.#userDefinedMetaRecordingSuspendCount += 1;
   }
 
   /**
@@ -154,6 +185,16 @@ export default class CellMeta {
 
     (cellMeta._automaticallyAssignedMetaProps as Set<string> | undefined)?.delete(key);
     cellMeta[key] = value;
+
+    if (this.#userDefinedMetaRecordingSuspendCount === 0) {
+      if (cellMeta._userDefinedMetaProps === undefined) {
+        cellMeta._userDefinedMetaProps = new Set();
+      }
+
+      (cellMeta._userDefinedMetaProps as Set<string>).add(key);
+    } else {
+      (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
+    }
   }
 
   /**
@@ -167,6 +208,7 @@ export default class CellMeta {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
     delete cellMeta[key];
+    (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
   }
 
   /**
@@ -212,6 +254,37 @@ export default class CellMeta {
     return Array.from((rowsMeta.get(physicalRow) as LazyFactoryMap))
       .sort(([a], [b]) => a - b)
       .map(([, meta]) => meta);
+  }
+
+  /**
+   * Returns a flat snapshot of all cell meta properties that were set imperatively through
+   * `setMeta` (tracked in each cell's `_userDefinedMetaProps`). The coordinates are read from the
+   * map keys (physical indexes), not from the meta object's `row`/`col` properties, which are only
+   * populated on `getCellMeta` and become stale after row or column shifts. Used to preserve
+   * user-defined meta across a cache clear during `updateSettings`.
+   *
+   * @returns {{physicalRow: number, physicalColumn: number, key: string, value: *}[]}
+   */
+  getUserDefinedMetas(): { physicalRow: number, physicalColumn: number, key: string, value: unknown }[] {
+    const result: { physicalRow: number, physicalColumn: number, key: string, value: unknown }[] = [];
+
+    for (const [physicalRow, rowMap] of this.metas) {
+      for (const [physicalColumn, meta] of rowMap) {
+        const userDefinedProps = meta._userDefinedMetaProps as Set<string> | undefined;
+
+        if (userDefinedProps === undefined) {
+          continue; // eslint-disable-line no-continue
+        }
+
+        userDefinedProps.forEach((key) => {
+          if (hasOwnProperty(meta, key)) {
+            result.push({ physicalRow, physicalColumn, key, value: meta[key] });
+          }
+        });
+      }
+    }
+
+    return result;
   }
 
   /**

@@ -221,6 +221,41 @@ describe('MetaManager', () => {
     });
   });
 
+  describe('getUserDefinedCellMetas()', () => {
+    it('should pass a method call to CellMeta layer', () => {
+      const metaManager = new MetaManager();
+
+      spyOn(metaManager.cellMeta, 'getUserDefinedMetas').and.returnValue(['foo']);
+
+      expect(metaManager.getUserDefinedCellMetas()).toEqual(['foo']);
+      expect(metaManager.cellMeta.getUserDefinedMetas).toHaveBeenCalledWith();
+    });
+  });
+
+  describe('enableUserDefinedMetaRecording()', () => {
+    it('should pass a method call to CellMeta layer', () => {
+      const metaManager = new MetaManager();
+
+      spyOn(metaManager.cellMeta, 'enableUserDefinedMetaRecording');
+
+      metaManager.enableUserDefinedMetaRecording();
+
+      expect(metaManager.cellMeta.enableUserDefinedMetaRecording).toHaveBeenCalledWith();
+    });
+  });
+
+  describe('disableUserDefinedMetaRecording()', () => {
+    it('should pass a method call to CellMeta layer', () => {
+      const metaManager = new MetaManager();
+
+      spyOn(metaManager.cellMeta, 'disableUserDefinedMetaRecording');
+
+      metaManager.disableUserDefinedMetaRecording();
+
+      expect(metaManager.cellMeta.disableUserDefinedMetaRecording).toHaveBeenCalledWith();
+    });
+  });
+
   describe('createRow()', () => {
     it('should pass a method call to CellMeta layer', () => {
       const metaManager = new MetaManager();

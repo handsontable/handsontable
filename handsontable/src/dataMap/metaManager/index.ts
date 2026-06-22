@@ -262,6 +262,32 @@ export default class MetaManager {
   }
 
   /**
+   * Returns a flat snapshot of all cell meta properties that were set imperatively through
+   * `setCellMeta` (for example, by the user or by the context menu), keyed by physical coordinates.
+   * Used to preserve user-defined meta across a `clearCache` call during `updateSettings`.
+   *
+   * @returns {{physicalRow: number, physicalColumn: number, key: string, value: *}[]}
+   */
+  getUserDefinedCellMetas() {
+    return this.cellMeta.getUserDefinedMetas();
+  }
+
+  /**
+   * Enables tracking of user-defined cell meta properties set through `setCellMeta`.
+   */
+  enableUserDefinedMetaRecording() {
+    this.cellMeta.enableUserDefinedMetaRecording();
+  }
+
+  /**
+   * Disables tracking of user-defined cell meta properties. Writes made while disabled are treated
+   * as declarative (for example, the `cell` option applied during `updateSettings`).
+   */
+  disableUserDefinedMetaRecording() {
+    this.cellMeta.disableUserDefinedMetaRecording();
+  }
+
+  /**
    * Creates one or more rows at specific position.
    *
    * @param {number} physicalRow The physical row index which points from what position the row is added.

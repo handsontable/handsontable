@@ -691,4 +691,99 @@ describe('ColumnMeta', () => {
       expect(meta.getMeta(4, 10)._test).toBe(undefined);
     });
   });
+
+  describe('getUserDefinedMetas()', () => {
+    it('should return properties set through `setMeta` keyed by physical coordinates', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.setMeta(0, 0, 'readOnly', true);
+      meta.setMeta(2, 3, 'className', 'htRight');
+
+      expect(meta.getUserDefinedMetas()).toEqual([
+        { physicalRow: 0, physicalColumn: 0, key: 'readOnly', value: true },
+        { physicalRow: 2, physicalColumn: 3, key: 'className', value: 'htRight' },
+      ]);
+    });
+
+    it('should not return properties set through `updateMeta` (for example, the `cells` option)', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.updateMeta(0, 0, { readOnly: true });
+
+      expect(meta.getUserDefinedMetas()).toEqual([]);
+    });
+
+    it('should not return a property removed through `removeMeta`', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.setMeta(0, 0, 'readOnly', true);
+      meta.removeMeta(0, 0, 'readOnly');
+
+      expect(meta.getUserDefinedMetas()).toEqual([]);
+    });
+
+    it('should return the shifted physical coordinates after inserting a row', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.setMeta(2, 0, 'readOnly', true);
+      meta.createRow(0, 1);
+
+      expect(meta.getUserDefinedMetas()).toEqual([
+        { physicalRow: 3, physicalColumn: 0, key: 'readOnly', value: true },
+      ]);
+    });
+  });
+
+  describe('user-defined meta recording', () => {
+    it('should not track a property set through `setMeta` while recording is disabled', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.disableUserDefinedMetaRecording();
+      meta.setMeta(0, 0, 'readOnly', true);
+
+      expect(meta.getMeta(0, 0).readOnly).toBe(true);
+      expect(meta.getUserDefinedMetas()).toEqual([]);
+    });
+
+    it('should de-mark a previously tracked property when it is overwritten while recording is disabled', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.setMeta(0, 0, 'className', 'from-set-cell-meta');
+      meta.disableUserDefinedMetaRecording();
+      meta.setMeta(0, 0, 'className', 'from-cell-option');
+      meta.enableUserDefinedMetaRecording();
+
+      expect(meta.getMeta(0, 0).className).toBe('from-cell-option');
+      expect(meta.getUserDefinedMetas()).toEqual([]);
+    });
+
+    it('should keep recording suspended until every disable call is balanced by an enable call', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.disableUserDefinedMetaRecording(); // outer scope (for example, the `cell` option loop)
+      meta.disableUserDefinedMetaRecording(); // nested scope (for example, a re-entrant updateSettings)
+      meta.enableUserDefinedMetaRecording(); // closing the nested scope must not re-enable recording yet
+      meta.setMeta(0, 0, 'readOnly', true); // still within the outer scope - declarative, not tracked
+      meta.enableUserDefinedMetaRecording(); // closing the outer scope re-enables recording
+      meta.setMeta(1, 1, 'className', 'htRight'); // tracked
+
+      expect(meta.getUserDefinedMetas()).toEqual([
+        { physicalRow: 1, physicalColumn: 1, key: 'className', value: 'htRight' },
+      ]);
+    });
+  });
 });
