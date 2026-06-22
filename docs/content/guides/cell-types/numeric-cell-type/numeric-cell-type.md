@@ -13,6 +13,7 @@ vue:
   metaTitle: Numeric cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Display, format, sort, and filter numbers correctly by using the numeric cell type.
 

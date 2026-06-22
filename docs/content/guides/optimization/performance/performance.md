@@ -15,7 +15,6 @@ vue:
   metaTitle: Performance - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
-menuTag: updated
 ---
 Boost your grid's performance by setting a constant column size, suspending rendering, deciding how many rows and columns are pre-rendered, and more.
 
