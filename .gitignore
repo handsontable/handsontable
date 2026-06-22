@@ -31,3 +31,5 @@ docs/.env
 /docs/*.png
 # Added by code-review-graph
 .code-review-graph/
+# npm lock file (project uses pnpm)
+/package-lock.json
