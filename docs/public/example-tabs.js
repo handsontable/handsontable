@@ -660,13 +660,21 @@ document.addEventListener('DOMContentLoaded', function () {
     var jsFile = findFile(userFiles, '.vue') || 'App.vue';
     var appCode = userFiles[jsFile] || '';
 
+    var cssFile = findFile(userFiles, '.css');
+    var cssImportedByName = cssFile && new RegExp('import\\s+[\'"]\\./?' + cssFile.replace('.', '\\.') + '[\'"]').test(appCode);
+    var cssDestName = cssImportedByName ? cssFile : 'styles.css';
+
     var deps = Object.assign(
       {
         handsontable:         hotVersion,
         '@handsontable/vue3': hotVersion,
         vue:                  '3.x',
-        vite:                 'latest',
-        '@vitejs/plugin-vue': 'latest',
+        // Pin Vite to v5 to avoid Vite 8/rolldown aggressively tree-shaking filter condition
+        // registration side effects due to sideEffects:false in the handsontable package.json.
+        // Once handsontable's package.json sideEffects is updated to include condition files,
+        // this can be changed back to 'latest'.
+        vite:                 '^5.4.0',
+        '@vitejs/plugin-vue': '^5.0.0',
       },
       extraDeps,
     );
@@ -688,10 +696,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var main = [
       'import { createApp } from "vue";',
+      (cssFile && !cssImportedByName) ? 'import "./' + cssDestName + '";' : null,
       'import App from "./App.vue";',
       '',
       'createApp(App).mount("#' + exampleId + '");',
-    ].join('\n');
+    ].filter(Boolean).join('\n');
 
     var cdnCssUrl = 'https://unpkg.com/handsontable@' + hotVersion + '/dist/handsontable.full.min.css';
 
@@ -717,13 +726,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var html = indexPartsV.join('\n');
 
-    return {
-      'package.json': pkg,
+    var projectFiles = {
+      'package.json':  pkg,
       'vite.config.js': viteConfig,
-      'index.html':  html,
-      'src/main.js': main,
-      'src/App.vue': appCode,
+      'index.html':    html,
+      'src/main.js':   main,
+      'src/App.vue':   appCode,
     };
+
+    if (cssFile) {
+      projectFiles['src/' + cssDestName] = userFiles[cssFile];
+    }
+
+    return projectFiles;
   }
 
   // ── Angular project ───────────────────────────────────────────────────────
