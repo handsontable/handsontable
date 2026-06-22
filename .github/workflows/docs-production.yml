@@ -113,6 +113,7 @@ jobs:
       # itself. If the version cannot be resolved, fall back to a verbatim copy;
       # the worker's `\d+\.\d+` guard makes the latest-version redirect a no-op.
       - name: Add Cloudflare worker to production deploy
+        if: ${{ !cancelled() }}
         continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -130,6 +131,7 @@ jobs:
           fi
 
       - name: Ensure Cloudflare Pages production project exists
+        if: ${{ !cancelled() }}
         continue-on-error: true
         run: node cloudflare/ensureProject.mjs
         env:
@@ -144,6 +146,7 @@ jobs:
           CF_PAGES_APEX_BRANCH: production
 
       - name: Deploy production to Cloudflare Pages
+        if: ${{ !cancelled() }}
         continue-on-error: true
         # Install wrangler in /tmp to avoid npm failures inside the pnpm workspace
         working-directory: /tmp
