@@ -13,6 +13,7 @@ vue:
   metaTitle: Time cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Display, format, sort, and filter time values correctly by using the time cell type. Edit times via the cell editor.
 

@@ -23,6 +23,7 @@ vue:
   metaTitle: Server-side data with Symfony - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
+menuTag: new
 ---
 
 This tutorial shows how to connect Handsontable's `dataProvider` plugin to a Symfony backend. You will build a product inventory grid that loads data with server-side pagination, sorting, and filtering, and that persists row create, update, and delete operations to a Symfony/Doctrine database. The recipe covers two API styles: a **REST API** (Steps 1–8) and an optional **GraphQL** variant using `webonyx/graphql-php` (Step 9).

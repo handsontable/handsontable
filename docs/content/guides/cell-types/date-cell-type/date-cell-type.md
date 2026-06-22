@@ -13,6 +13,7 @@ vue:
   metaTitle: Date cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Display, format, sort, and filter dates correctly by using the date cell type.
 
