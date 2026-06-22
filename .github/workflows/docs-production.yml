@@ -112,6 +112,10 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CF_PROJECT_NAME: handsontable-docs
+          # Production deployments target --branch main below, so the project's
+          # production branch must be "main" for the deploy to be served at the
+          # apex handsontable-docs.pages.dev (otherwise it is a preview).
+          CF_PRODUCTION_BRANCH: main
 
       - name: Deploy production to Cloudflare Pages
         continue-on-error: true
