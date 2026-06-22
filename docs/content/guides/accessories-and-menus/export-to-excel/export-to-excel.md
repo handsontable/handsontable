@@ -18,7 +18,6 @@ vue:
   metaTitle: Export to Excel - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
-menuTag: new
 ---
 Export your grid data to an Excel (`.xlsx`) file, preserving cell types, styling, formulas, merged cells, and more.
 
