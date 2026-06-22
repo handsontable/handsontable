@@ -38,7 +38,10 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
       // columnDropMode: 'split' opts into the split model - a torn group renders as same-label banners
       // (the default is now cohesive: a moved-out column is released, see the 'columnDropMode option' tests).
       nestedHeaders: [
-        [{ label: 'Address', colspan: 2, columnDropMode: 'split' }, { label: 'Finance', colspan: 2, columnDropMode: 'split' }],
+        [
+          { label: 'Address', colspan: 2, columnDropMode: 'split' },
+          { label: 'Finance', colspan: 2, columnDropMode: 'split' },
+        ],
         ['Street', 'City', 'Revenue', 'Profit'],
       ],
       manualColumnMove: true,
@@ -88,7 +91,10 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
       data: createSpreadsheetData(2, 4),
       colHeaders: true,
       nestedHeaders: [ // columnDropMode: 'split' opts into the split model (default is now cohesive)
-        [{ label: 'Address', colspan: 2, columnDropMode: 'split' }, { label: 'Finance', colspan: 2, columnDropMode: 'split' }],
+        [
+          { label: 'Address', colspan: 2, columnDropMode: 'split' },
+          { label: 'Finance', colspan: 2, columnDropMode: 'split' },
+        ],
         ['Street', 'City', 'Revenue', 'Profit'],
       ],
       manualColumnMove: true,
