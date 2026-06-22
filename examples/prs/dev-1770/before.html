@@ -42,15 +42,15 @@
   <div class="info">
     <strong>Scenario:</strong> A custom <code>sanitizer</code> strips HTML to plain text (as shown in the
     v17 migration guide). When a single cell is copied from Excel, Excel puts
-    <code>text/plain = "value\r\n"</code> (trailing CRLF). The sanitizer removes the
-    <code>&lt;table&gt;</code> HTML, so the paste falls back to <code>text/plain</code>. SheetClip
+    <code>text/plain = "test\r\n"</code> (trailing CRLF). Because there is no <code>&lt;table&gt;</code>
+    in the HTML after sanitization, the paste falls back to <code>text/plain</code>. SheetClip
     reads the trailing <code>\r\n</code> as a row separator and emits an extra empty row, which
     overwrites the cell below the target.<br><br>
     <strong>Steps:</strong><br>
     1. Click <strong>"Select B4"</strong>.<br>
     2. Click <strong>"Simulate Excel paste"</strong>.<br>
-    3. <strong>Expected:</strong> B4 = "PASTED", B5 = "B5" (unchanged).<br>
-    4. <strong>Actual (bug):</strong> B4 = "PASTED", B5 = "" (erased).
+    3. <strong>Expected:</strong> B4 = "test", B5 = "B5" (unchanged).<br>
+    4. <strong>Actual (bug):</strong> B4 = "test", B5 = "" (erased).
   </div>
 
   <div class="controls">
@@ -99,13 +99,14 @@
         clipboardData: {
           getData: (t) => data[t] || '',
           setData: (t, v) => { data[t] = v; },
-          types: ['text/html', 'text/plain'],
+          types: ['text/plain'],
         },
         preventDefault: () => {},
       };
-      // Excel single-cell copy: HTML table + text/plain with trailing CRLF
-      mockEvent.clipboardData.setData('text/html', '<table><tbody><tr><td>PASTED</td></tr></tbody></table>');
-      mockEvent.clipboardData.setData('text/plain', 'PASTED\r\n');
+      // The sanitizer strips the <table> HTML → no table in textHTML → paste falls back to text/plain.
+      // Excel always appends a trailing CRLF to text/plain. Simulate that here.
+      mockEvent.clipboardData.setData('text/html', '');
+      mockEvent.clipboardData.setData('text/plain', 'test\r\n');
       plugin.onPaste(mockEvent);
 
       const afterB4 = hot.getDataAtCell(3, 1);
@@ -114,7 +115,7 @@
       if (erased) {
         setStatus(`BUG CONFIRMED — B4: "${afterB4}" ✓  |  B5: "${afterB5}" ✗ ERASED (was "${beforeB5}")`, 'fail');
       } else {
-        setStatus(`B4: "${afterB4}"  |  B5: "${afterB5}" — bug not triggered on this version`, 'ok');
+        setStatus(`B4: "${afterB4}"  |  B5: "${afterB5}" — expected bug not triggered`, 'ok');
       }
     }
 

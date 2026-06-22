@@ -47,7 +47,7 @@
     <strong>Steps:</strong><br>
     1. Click <strong>"Select B4"</strong>.<br>
     2. Click <strong>"Simulate Excel paste"</strong>.<br>
-    3. <strong>Expected:</strong> B4 = "PASTED", B5 = "B5" (unchanged) ✓<br>
+    3. <strong>Expected:</strong> B4 = "test", B5 = "B5" (unchanged) ✓<br>
     4. <strong>Actual (fixed):</strong> same as expected.
   </div>
 
@@ -97,13 +97,14 @@
         clipboardData: {
           getData: (t) => data[t] || '',
           setData: (t, v) => { data[t] = v; },
-          types: ['text/html', 'text/plain'],
+          types: ['text/plain'],
         },
         preventDefault: () => {},
       };
-      // Excel single-cell copy: HTML table + text/plain with trailing CRLF
-      mockEvent.clipboardData.setData('text/html', '<table><tbody><tr><td>PASTED</td></tr></tbody></table>');
-      mockEvent.clipboardData.setData('text/plain', 'PASTED\r\n');
+      // The sanitizer strips the <table> HTML → no table in textHTML → paste falls back to text/plain.
+      // Excel always appends a trailing CRLF to text/plain. Simulate that here.
+      mockEvent.clipboardData.setData('text/html', '');
+      mockEvent.clipboardData.setData('text/plain', 'test\r\n');
       plugin.onPaste(mockEvent);
 
       const afterB4 = hot.getDataAtCell(3, 1);
