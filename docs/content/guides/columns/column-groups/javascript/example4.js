@@ -13,13 +13,14 @@ new Handsontable(container, {
     ],
     colHeaders: true,
     rowHeaders: ['North America', 'Europe', 'Asia Pacific', 'Latin America', 'Middle East'],
+    rowHeaderWidth: 120,
     height: 'auto',
     manualColumnMove: true,
     nestedHeaders: [
         // Q1 2025 is cohesive (the default); Q2 2025 opts into splitting.
         [
-            { label: 'Q1 2025', colspan: 3 },
-            { label: 'Q2 2025', colspan: 3, splittable: true },
+            { label: 'Q1 2025 (cohesive)', colspan: 3 },
+            { label: 'Q2 2025 (splittable)', colspan: 3, splittable: true },
         ],
         ['January', 'February', 'March', 'April', 'May', 'June'],
     ],

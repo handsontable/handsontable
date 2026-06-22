@@ -360,7 +360,7 @@ Set `splittable: true` on the group's header object to change this. A splittable
 ```js
 nestedHeaders: [
   // "Q1 2025" is cohesive (the default); "Q2 2025" splits when a column moves into it.
-  [{ label: 'Q1 2025', colspan: 3 }, { label: 'Q2 2025', colspan: 3, splittable: true }],
+  [{ label: 'Q1 2025 (cohesive)', colspan: 3 }, { label: 'Q2 2025 (splittable)', colspan: 3, splittable: true }],
   ['January', 'February', 'March', 'April', 'May', 'June'],
 ];
 ```
@@ -372,7 +372,7 @@ nestedHeaders: [
 ```jsx
 nestedHeaders={[
   // "Q1 2025" is cohesive (the default); "Q2 2025" splits when a column moves into it.
-  [{ label: 'Q1 2025', colspan: 3 }, { label: 'Q2 2025', colspan: 3, splittable: true }],
+  [{ label: 'Q1 2025 (cohesive)', colspan: 3 }, { label: 'Q2 2025 (splittable)', colspan: 3, splittable: true }],
   ['January', 'February', 'March', 'April', 'May', 'June']
 ]}
 ```
@@ -384,7 +384,7 @@ nestedHeaders={[
 ```ts
 nestedHeaders: [
   // "Q1 2025" is cohesive (the default); "Q2 2025" splits when a column moves into it.
-  [{ label: 'Q1 2025', colspan: 3 }, { label: 'Q2 2025', colspan: 3, splittable: true }],
+  [{ label: 'Q1 2025 (cohesive)', colspan: 3 }, { label: 'Q2 2025 (splittable)', colspan: 3, splittable: true }],
   ['January', 'February', 'March', 'April', 'May', 'June'],
 ];
 ```
@@ -396,7 +396,7 @@ nestedHeaders: [
 ```js
 nestedHeaders: [
   // "Q1 2025" is cohesive (the default); "Q2 2025" splits when a column moves into it.
-  [{ label: 'Q1 2025', colspan: 3 }, { label: 'Q2 2025', colspan: 3, splittable: true }],
+  [{ label: 'Q1 2025 (cohesive)', colspan: 3 }, { label: 'Q2 2025 (splittable)', colspan: 3, splittable: true }],
   ['January', 'February', 'March', 'April', 'May', 'June'],
 ],
 ```
