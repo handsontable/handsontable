@@ -7,6 +7,7 @@
  *
  * Redirect priority order (first match wins):
  *   1. /docs/next/:splat                   → /docs/:splat
+ *  1a. /docs/sitemap.xml                   → /docs/sitemap-index.xml
  *   2. / → /docs
  *  2a. /0.8.0/*                            → /docs/javascript-data-grid/changelog
  *  2b. /docs/redirect?pageId=*             → /docs/javascript-data-grid/changelog
@@ -704,6 +705,12 @@ export default {
       const dest = `/docs${splat}${url.search}`;
 
       return redirect301(abs(dest, url));
+    }
+
+    // -- 1a. /docs/sitemap.xml → /docs/sitemap-index.xml ---------------------
+    // Redirect the legacy single-file sitemap URL to Astro's sitemap index.
+    if (path === '/docs/sitemap.xml') {
+      return redirect301(abs('/docs/sitemap-index.xml', url));
     }
 
     // -- 2. Root / → /docs ---------------------------------------------------
