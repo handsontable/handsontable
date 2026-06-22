@@ -57,7 +57,14 @@ The following dependencies were deprecated in version 17.0 and removed in versio
 
 ## List of current deprecations
 
-There are no active deprecations scheduled for removal in the next major version.
+The following methods were deprecated in version 18.0 and are scheduled for removal in a future major release. They are no-ops kept for backward compatibility, as the `PersistentState` plugin has been removed.
+
+| Deprecated | Plugin | Migration guide |
+| ---------- | ------ | --------------- |
+| `saveManualColumnWidths()` | `ManualColumnResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#5-stop-calling-deprecated-resize-state-methods) |
+| `loadManualColumnWidths()` | `ManualColumnResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#5-stop-calling-deprecated-resize-state-methods) |
+| `saveManualRowHeights()` | `ManualRowResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#5-stop-calling-deprecated-resize-state-methods) |
+| `loadManualRowHeights()` | `ManualRowResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#5-stop-calling-deprecated-resize-state-methods) |
 
 
 
