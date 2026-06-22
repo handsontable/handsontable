@@ -351,9 +351,11 @@ When a group is both [collapsible](#collapsible-headers) and collapsed:
 
 By default, a group is _cohesive_. When you move a column into the group's span, the group adopts that column as a member and stays a single header that grows to cover it.
 
-Set `splittable: true` on the group's header object to change this. A splittable group never adopts a moved-in column. It keeps its identity and renders as several same-label banners around the inserted column.
+Set `splittable: true` on the group's header object to change this. A splittable group does not adopt a _foreign_ column - one that belongs to a different group - moved into its span. It keeps its identity and renders as several same-label banners around that column.
 
-`splittable` affects only a move _into_ a group. Moving a column _out of_ a group separates both cohesive and splittable groups the same way: the group renders as more than one header, each repeating its label.
+`splittable` controls only whether a group absorbs columns from outside it. A group always reclaims its own columns: moving one of a group's columns out and then back into the group's span merges it into a single banner again, whether the group is cohesive or splittable.
+
+Moving a column _out of_ a group separates both cohesive and splittable groups the same way: the group renders as more than one header, each repeating its label.
 
 ::: only-for javascript
 
@@ -403,7 +405,7 @@ nestedHeaders: [
 
 :::
 
-In the example below, both quarters group three months. **Q1 2025** is cohesive and **Q2 2025** is splittable. Drag a month from **Q2 2025** into the middle of **Q1 2025**: the **Q1 2025** group adopts it and spans four columns. Drag a month from **Q1 2025** into the middle of **Q2 2025**: the **Q2 2025** group splits into two **Q2 2025** banners around the inserted column.
+In the example below, both quarters group three months. **Q1 2025** is cohesive and **Q2 2025** is splittable. Drag a month from **Q2 2025** into the middle of **Q1 2025**: the **Q1 2025** group adopts it and spans four columns. Drag a month from **Q1 2025** into the middle of **Q2 2025**: the **Q2 2025** group splits into two **Q2 2025** banners around the inserted column. Drag a **Q2 2025** month out and then back into **Q2 2025**: it rejoins the single banner, because it belongs to that group.
 
 ::: only-for javascript
 
