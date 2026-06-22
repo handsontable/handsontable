@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1761 — Before fix (v17.1.0)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 4px; }
+    h2 { font-size: 13px; color: #666; font-weight: normal; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn {
+      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
+      border: 1px solid #ccc;
+    }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #d9d9d9; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug  { background: #fdecea; color: #c62828; }
+    .badge-fix  { background: #e8f5e9; color: #2e7d32; }
+    .info { background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
+    .info strong { color: #856404; }
+    .controls { margin-bottom: 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .controls button { padding: 8px 18px; border-radius: 6px; border: 1px solid #bbb; background: #fff; cursor: pointer; font-size: 14px; }
+    .controls button:hover { background: #e9e9e9; }
+    #result { font-size: 14px; padding: 8px 12px; border-radius: 6px; background: #fff; border: 1px solid #ddd; min-width: 300px; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1761 — <code>scrollViewportTo</code> with <code>height</code> + <code>preventOverflow: "horizontal"</code></h1>
+  <h2>Issue #8233 — <strong>Before fix</strong>: v17.1.0 (CDN)</h2>
+
+  <nav>
+    <span class="nav-label">Version:</span>
+    <span class="nav-btn active">Before fix <span class="badge badge-bug">v17.1.0 — bug</span></span>
+    <a class="nav-btn" href="after.html">After fix <span class="badge badge-fix">patched</span></a>
+  </nav>
+
+  <div class="info">
+    <strong>Expected behavior (bug):</strong><br>
+    1. Click <strong>"Scroll to row 150 (vertical)"</strong> — the table should scroll down to row 150.<br>
+    2. In this buggy version the table does <em>not</em> scroll vertically — the result stays at <code>scroll: 0px</code>.<br>
+    3. Click <strong>"Scroll to col 7 (horizontal)"</strong> — horizontal scroll is unaffected and still works.
+  </div>
+
+  <div class="controls">
+    <button id="btn-row">Scroll to row 150 (vertical)</button>
+    <button id="btn-col">Scroll to col 7 (horizontal)</button>
+    <button id="btn-reset">Reset</button>
+    <span id="result">Click a button to test</span>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script>
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: Handsontable.helper.createSpreadsheetData(200, 10),
+      colHeaders: true,
+      rowHeaders: true,
+      width: 500,
+      height: 300,
+      preventOverflow: 'horizontal',
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    const result = document.getElementById('result');
+
+    document.getElementById('btn-row').addEventListener('click', async () => {
+      const ok = await hot.scrollViewportTo({ row: 150, col: 0 });
+      // Access overlay scroll position
+      const topOverlay = hot.view._wt.wtOverlays.topOverlay;
+      const pos = topOverlay ? topOverlay.getScrollPosition() : '(n/a)';
+      result.textContent = `scrollViewportTo → ${ok} | topOverlay scroll: ${pos}px`;
+      // Bug: ok=false and pos=0 expected here
+      result.style.background = (ok && pos > 0) ? '#d4edda' : '#f8d7da';
+    });
+
+    document.getElementById('btn-col').addEventListener('click', async () => {
+      const ok = await hot.scrollViewportTo({ row: 0, col: 7 });
+      result.textContent = `scrollViewportTo (col 7) → ${ok}`;
+      result.style.background = ok ? '#d4edda' : '#f8d7da';
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', async () => {
+      await hot.scrollViewportTo({ row: 0, col: 0 });
+      result.textContent = 'Reset';
+      result.style.background = '#fff';
+    });
+  </script>
+</body>
+</html>
