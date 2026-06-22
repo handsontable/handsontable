@@ -429,7 +429,7 @@ jobs:
           fi
           if [ "$NUGET_RESULT" = "success" ]; then NUGET_STATUS=":white_check_mark: :nuget: *NuGet*"; else NUGET_STATUS=":x: :nuget: *NuGet*"; fi
           BASE_VERSION_DASHES=$(echo "$RC_VERSION" | sed 's/-rc[0-9]*//' | tr '.' '-')
-          DOCS_URL="https://rc-handsontable-${BASE_VERSION_DASHES}.netlify.app/docs/javascript-data-grid/"
+          DOCS_URL="https://handsontable-docs-staging.pages.dev/docs/javascript-data-grid/"
           CHANGELOG_URL="${REPO_URL}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
 
           jq -n \
@@ -893,7 +893,7 @@ jobs:
           RC_NUMBER=$(echo "$RC_VERSION" | sed -n 's/.*-rc\([0-9]*\)/\1/p')
           PREV_TAG="${BASE_VERSION}-rc$((RC_NUMBER - 1))"
           BASE_VERSION_DASHES=$(echo "$BASE_VERSION" | tr '.' '-')
-          DOCS_URL="https://rc-handsontable-${BASE_VERSION_DASHES}.netlify.app/docs/javascript-data-grid/"
+          DOCS_URL="https://handsontable-docs-staging.pages.dev/docs/javascript-data-grid/"
           RELEASE_BRANCH="${{ github.ref_name }}"
           CHANGELOG_URL="${REPO_URL}/blob/${RELEASE_BRANCH}/CHANGELOG.md"
 
