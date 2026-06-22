@@ -1,6 +1,5 @@
 import { arrayMap } from '../../../helpers/array';
 import SourceSettings from './sourceSettings';
-import type { SourceHeaderCell } from './sourceSettings';
 import type { HeaderNodeData } from './headersTree';
 import HeadersTree from './headersTree';
 import { triggerNodeModification } from './nodeModifiers';
@@ -466,11 +465,15 @@ export default class StateManager {
 
   /**
    * Re-parents the moved columns after a column move, recording membership overrides the derive uses
-   * to keep `splittable: false` groups cohesive. For each moved column, at each group level: if it
-   * stays adjacent to a sibling of its current group it keeps that group; otherwise, if it was dropped
-   * strictly between two members of one cohesive group it joins that group; otherwise it goes
-   * standalone. The decisions are taken from the pre-update layout, then applied, so a whole group
-   * moved together (each member adjacent to a sibling) stays intact. Call before `rebuildState()`.
+   * to keep `splittable: false` groups cohesive. Call before `rebuildState()`.
+   *
+   * For each moved column the deepest group level at which it was dropped strictly inside a cohesive
+   * group is found first. From that level outward the column joins that group's ancestor chain (the
+   * group the column visually sits inside at each enclosing level), so a `splittable` ancestor grows
+   * to contain the adopted column instead of the inner run straddling its boundary. At every other
+   * level (deeper than the adoption, or none found) the column keeps its group when still beside a
+   * sibling, else goes standalone. The decisions are taken from the pre-update layout, then applied,
+   * so a whole group moved together (each member adjacent to a sibling) stays intact.
    *
    * @param {number[]} movedVisualColumns - The post-move visual indexes of the columns that moved.
    */
@@ -505,31 +508,101 @@ export default class StateManager {
       return owner === undefined ? -1 - physical : owner;
     };
 
+    // The columns moved together in this operation. Their mutual adjacency must be skipped when
+    // looking for the group a moved column sits inside, so a whole group dropped into another cohesive
+    // group is adopted as a block (each member's neighbor toward the block is a fellow moved column,
+    // not the surrounding group).
+    const movedSet = new Set(movedVisualColumns);
+    // The effective owner shared by the columns flanking the moved block at a level (the group the
+    // block sits strictly inside), or -1 when they differ or the block sits at an edge. Fellow moved
+    // columns are stepped over so the whole block is judged against the columns surrounding it.
+    const enclosingOwnerAt = (visualColumn: number, level: number): number => {
+      let left = visualColumn - 1;
+      let right = visualColumn + 1;
+
+      while (left >= 0 && movedSet.has(left)) {
+        left -= 1;
+      }
+
+      while (right < columnsCount && movedSet.has(right)) {
+        right += 1;
+      }
+
+      if (left < 0 || right >= columnsCount) {
+        return -1;
+      }
+
+      const leftOwner = effectiveOwnerAt(left, level);
+
+      return leftOwner === effectiveOwnerAt(right, level) && leftOwner >= 0 ? leftOwner : -1;
+    };
+
     // Decide from the current layout first, then apply, so moved siblings see each other's old owner.
     const decisions: { physical: number, level: number, identity: number | null }[] = [];
 
     movedVisualColumns.forEach((visualColumn) => {
       const physical = arrangement.getPhysicalFromVisual(visualColumn);
-      // The effective owner this column resolved to at the enclosing (outer) level. Threaded inward so
-      // an inner adoption is constrained to refine the outer owner - an inner group may only be joined
-      // when its authored parent matches where the column landed outside, never crossing a boundary.
-      let resolvedOuterOwner: number | null = null;
+      // Deepest level at which the column was dropped strictly inside a cohesive group. The adoption
+      // there propagates outward through the group's ancestors (see #adoptedAncestorOwner).
+      let adoptionLevel = -1;
 
       for (let level = 0; level < layersCount - 1; level++) {
-        const identity = this.#resolveMovedMembership(
-          visualColumn, level, columnsCount, authoredLayers,
-          effectiveOwnerAt, authoredOwnerAt, ownerIndexByLevel, resolvedOuterOwner
-        );
+        const enclosing = enclosingOwnerAt(visualColumn, level);
 
-        decisions.push({ physical, level, identity });
-        // The effective owner at this level becomes the outer constraint for the next inner level.
-        resolvedOuterOwner = identity ?? authoredOwnerAt(visualColumn, level);
+        if (enclosing >= 0 && authoredLayers[level][enclosing]?.splittable !== true) {
+          adoptionLevel = level;
+        }
+      }
+
+      for (let level = 0; level < layersCount - 1; level++) {
+        const authoredOwner = authoredOwnerAt(visualColumn, level);
+        // At or inside the adoption level the column joins the cohesive group's ancestor chain;
+        // anywhere else it reverts to its authored owner, so a column moved out of a group keeps its
+        // own ancestor labels and the group renders a same-label banner over each contiguous run.
+        const target = level <= adoptionLevel
+          ? this.#adoptedAncestorOwner(visualColumn, level, enclosingOwnerAt, authoredOwnerAt, ownerIndexByLevel)
+          : authoredOwner;
+
+        decisions.push({ physical, level, identity: target === authoredOwner ? null : target });
       }
     });
 
     decisions.forEach(({ physical, level, identity }) => {
       this.#setMembershipOverride(physical, level, identity);
     });
+  }
+
+  /**
+   * Resolves the owner a moved column takes at an enclosing level (at or outside its cohesive adoption
+   * level), so the adopted column is contained by the same group its visual neighbors belong to. Uses
+   * the neighbors' shared effective owner when they agree (which keeps the run contiguous, never
+   * straddling), and otherwise falls back to the authored ancestor of the adopted group's anchor.
+   *
+   * @param {number} visualColumn - The column's post-move visual index.
+   * @param {number} level - The enclosing header level.
+   * @param {Function} enclosingOwnerAt - Resolves the owner shared by both neighbors, or -1.
+   * @param {Function} authoredOwnerAt - Resolves the authored owner of a (visual, level).
+   * @param {number[][]} ownerIndexByLevel - The authored owner column index per (level, column).
+   * @returns {number} The owner identity the column takes at this level.
+   */
+  #adoptedAncestorOwner(
+    visualColumn: number,
+    level: number,
+    enclosingOwnerAt: (visualColumn: number, level: number) => number,
+    authoredOwnerAt: (visualColumn: number, level: number) => number,
+    ownerIndexByLevel: number[][]
+  ): number {
+    const enclosing = enclosingOwnerAt(visualColumn, level);
+
+    if (enclosing >= 0) {
+      return enclosing;
+    }
+
+    // The neighbors disagree at this enclosing level; fall back to the authored ancestor of the group
+    // the column sits inside one level deeper, which is a valid (properly nested) parent.
+    const innerOwner = enclosingOwnerAt(visualColumn, level + 1);
+
+    return innerOwner >= 0 ? ownerIndexByLevel[level][innerOwner] : authoredOwnerAt(visualColumn, level);
   }
 
   /**
@@ -558,65 +631,6 @@ export default class StateManager {
     }
 
     this.#membershipOverrides.get(physical)!.set(level, identity);
-  }
-
-  /**
-   * Resolves the owner identity a moved column takes at one group level (see `reparentColumns`).
-   * Returns `null` (clear) for anything that matches the authored structure, so a `splittable: true`
-   * group still splits and an intact group is left untouched - only genuine re-parents are recorded.
-   *
-   * @param {number} visualColumn - The column's post-move visual index.
-   * @param {number} level - The header level being resolved.
-   * @param {number} columnsCount - The number of columns the structure spans.
-   * @param {SourceHeaderCell[][]} authoredLayers - The authored header layers.
-   * @param {Function} effectiveOwnerAt - Resolves the current effective owner of a (visual, level).
-   * @param {Function} authoredOwnerAt - Resolves the authored owner of a (visual, level).
-   * @param {number[][]} ownerIndexByLevel - The authored owner column index per (level, column).
-   * @param {number|null} resolvedOuterOwner - The effective owner this column took at the enclosing
-   *   (outer) level, or `null` at the outermost level. Constrains the adoption so an inner run never
-   *   crosses an outer group boundary.
-   * @returns {number|null} The owner identity to record, or `null` to clear.
-   */
-  #resolveMovedMembership(
-    visualColumn: number,
-    level: number,
-    columnsCount: number,
-    authoredLayers: SourceHeaderCell[][],
-    effectiveOwnerAt: (visualColumn: number, level: number) => number,
-    authoredOwnerAt: (visualColumn: number, level: number) => number,
-    ownerIndexByLevel: number[][],
-    resolvedOuterOwner: number | null
-  ): number | null {
-    const isCohesive = (owner: number): boolean =>
-      owner >= 0 && authoredLayers[level][owner]?.splittable !== true;
-    const hasLeft = visualColumn > 0;
-    const hasRight = visualColumn < columnsCount - 1;
-    const authoredOwner = authoredOwnerAt(visualColumn, level);
-    const ownEffective = effectiveOwnerAt(visualColumn, level);
-    const leftEffective = hasLeft ? effectiveOwnerAt(visualColumn - 1, level) : -Infinity;
-    const rightEffective = hasRight ? effectiveOwnerAt(visualColumn + 1, level) : -Infinity;
-    const leftAuthored = hasLeft ? authoredOwnerAt(visualColumn - 1, level) : -Infinity;
-    const rightAuthored = hasRight ? authoredOwnerAt(visualColumn + 1, level) : -Infinity;
-    let target: number;
-
-    if (leftEffective === rightEffective && isCohesive(leftEffective)) {
-      // Dropped strictly inside a cohesive group - adopt it, but only when that group nests under the
-      // outer owner this column already took; otherwise the inner run would straddle an outer boundary
-      // (e.g. a cohesive inner group whose outer parent is splittable and did not adopt), so stand alone.
-      const nestsUnderOuter = level === 0 || ownerIndexByLevel[level - 1][leftEffective] === resolvedOuterOwner;
-
-      target = nestsUnderOuter ? leftEffective : -1;
-    } else if (isCohesive(authoredOwner) && (leftAuthored === authoredOwner || rightAuthored === authoredOwner)) {
-      // Back beside its authored cohesive group (e.g. an undone move, or a whole group moved together)
-      // - revert to the authored structure.
-      target = authoredOwner;
-    } else if (isCohesive(ownEffective)) {
-      target = -1; // left a cohesive group with nowhere cohesive to land -> standalone
-    } else {
-      target = authoredOwner; // splittable:true / standalone -> authored derive (splits / unchanged)
-    }
-
-    return target === authoredOwner ? null : target;
   }
 
   /**

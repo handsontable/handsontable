@@ -172,6 +172,13 @@ export class NestedHeaders extends BasePlugin {
    */
   #movedPhysicalColumns: number[] | null = null;
   /**
+   * The column index sequence captured in `beforeColumnMove`, before the move is applied. Compared
+   * against the post-move sequence so a no-op move (e.g. clicking a selected group header, which
+   * "moves" the columns to their own position) skips re-parenting - recomputing membership there
+   * would needlessly drop a column's existing adoption. Null when no move is in flight.
+   */
+  #preMoveColumnSequence: number[] | null = null;
+  /**
    * Handler bound to columnIndexMapper's cacheUpdated local hook. Keeps header colspan state
    * in sync with the current hiding map whenever visibility or column order changes.
    */
@@ -201,6 +208,7 @@ export class NestedHeaders extends BasePlugin {
 
     this.#structureRebuildPending = false;
     this.#movedPhysicalColumns = null;
+    this.#preMoveColumnSequence = null;
 
     // syncVisibility must run on every cache update (including a pure column move) so the tree's
     // colspan / isHidden stay aligned with the current visual<->physical mapping (DEV-1717).
@@ -239,6 +247,7 @@ export class NestedHeaders extends BasePlugin {
                          movePossible: boolean) => {
     if (this.enabled && movePossible !== false) {
       this.#movedPhysicalColumns = movedColumns.map(visualColumn => this.hot.toPhysicalColumn(visualColumn));
+      this.#preMoveColumnSequence = this.hot.columnIndexMapper.getIndexesSequence();
     }
   };
   /**
@@ -249,6 +258,17 @@ export class NestedHeaders extends BasePlugin {
    */
   #reparentMovedColumns() {
     if (this.#movedPhysicalColumns === null) {
+      return;
+    }
+
+    // A no-op move (the column order is unchanged - e.g. clicking a selected group header) must not
+    // re-parent: recomputing membership for the "moved" columns would drop a prior adoption and split
+    // the group. Only re-parent when the move actually reordered the columns.
+    const sequence = this.hot.columnIndexMapper.getIndexesSequence();
+    const previous = this.#preMoveColumnSequence;
+
+    if (previous !== null && previous.length === sequence.length &&
+        previous.every((physicalColumn, index) => physicalColumn === sequence[index])) {
       return;
     }
 

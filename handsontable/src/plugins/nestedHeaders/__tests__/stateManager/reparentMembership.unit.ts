@@ -288,6 +288,35 @@ describe('StateManager re-parenting across multi-level nesting', () => {
     expectNestingContained(state, 3, 6);
   });
 
+  it('should adopt a whole group moved as a block into another cohesive group', () => {
+    const state = new StateManager();
+
+    state.setState([
+      [{ label: 'Personal', colspan: 3 }, { label: 'Work', colspan: 3 }],
+      [{ label: 'Name', colspan: 2 }, 'Age', { label: 'Company', colspan: 2 }, 'Role'],
+      ['First', 'Last', 'Age', 'Org', 'Dept', 'Title'],
+    ]);
+
+    const arrangement = mutableArrangement(6);
+
+    state.setColumnArrangement(arrangement);
+    state.rebuildState();
+
+    // Move the Company group (physical 3, 4) as a block to between Name and Age (visual 2, 3). Both
+    // moved columns are adjacent to each other, so the block is judged against its flanking columns.
+    arrangement.order = [0, 1, 3, 4, 2, 5];
+    state.reparentColumns([2, 3]);
+    state.rebuildState();
+
+    expectNestingContained(state, 3, 6);
+    // Personal adopts the whole block (spans First, Last, Org, Dept, Age) rather than splitting.
+    expect(state.getHeaderSettings(0, 0).label).toBe('Personal');
+    expect(state.getHeaderSettings(0, 0).origColspan).toBe(5);
+    // Company stays one intact banner (a sub-group) inside Personal.
+    expect(state.getHeaderSettings(1, 2).label).toBe('Company');
+    expect(state.getHeaderSettings(1, 2).origColspan).toBe(2);
+  });
+
   it('should keep nesting contained across a long chain of compounding moves', () => {
     const state = new StateManager();
 
@@ -385,6 +414,12 @@ describe('StateManager re-parenting across multi-level nesting', () => {
     move(state, arrangement, 5, 1);
 
     expectNestingContained(state, 3, 6);
+    // 'f' is adopted into the cohesive inner group Pg (now spans 3); the splittable outer group P
+    // grows to contain it rather than the inner run straddling the P|Q boundary.
+    expect(state.getHeaderSettings(1, 0).label).toBe('Pg');
+    expect(state.getHeaderSettings(1, 0).origColspan).toBe(3);
+    expect(state.getHeaderSettings(0, 0).label).toBe('P');
+    expect(state.getHeaderSettings(0, 0).origColspan).toBe(4);
   });
 });
 
