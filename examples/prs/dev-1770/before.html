@@ -94,8 +94,14 @@
     function simulatePaste() {
       const beforeB5 = hot.getDataAtCell(4, 1);
       const plugin = hot.getPlugin('CopyPaste');
+
+      // onPaste guards: needs isListening() = true, composedPath(), and getSelected() set.
+      hot.listen();
+
       const data = {};
       const mockEvent = {
+        // composedPath()[0] must be document.body so the "not internal element" guard passes.
+        composedPath: () => [hot.rootDocument.body],
         clipboardData: {
           getData: (t) => data[t] || '',
           setData: (t, v) => { data[t] = v; },
