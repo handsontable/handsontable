@@ -542,6 +542,62 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
       expect(getCell(-1, 1).textContent).toBe('Revenue');
     });
 
+    it('should adopt a column into an inner cohesive group while the outer group stays whole (3-level, #4150)', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 4),
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: 'Top', colspan: 4 }],
+          [{ label: 'L', colspan: 2 }, { label: 'R', colspan: 2 }],
+          ['a', 'b', 'c', 'd'],
+        ],
+        manualColumnMove: true,
+      });
+
+      getPlugin('manualColumnMove').moveColumn(2, 1); // "c" (under R) into L, between a and b
+      await render();
+
+      // The outer group stays one cohesive banner over all four columns.
+      expect(getCell(-3, 0).textContent).toBe('Top');
+      expect(getCell(-3, 0).colSpan).toBe(4);
+      // The inner group L adopted c (spans 3); R shrank to its remaining column.
+      expect(getCell(-2, 0).textContent).toBe('L');
+      expect(getCell(-2, 0).colSpan).toBe(3);
+      expect(getCell(-2, 3).textContent).toBe('R');
+      expect(getCell(-2, 3).colSpan).toBe(1);
+      // Leaves follow the data.
+      expect(getCell(-1, 0).textContent).toBe('a');
+      expect(getCell(-1, 1).textContent).toBe('c');
+      expect(getCell(-1, 2).textContent).toBe('b');
+      expect(getCell(-1, 3).textContent).toBe('d');
+    });
+
+    it('should release a column from an inner group to standalone while the outer group stays whole (3-level, #4150)', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 4),
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: 'Top', colspan: 4 }],
+          [{ label: 'L', colspan: 2 }, { label: 'R', colspan: 2 }],
+          ['a', 'b', 'c', 'd'],
+        ],
+        manualColumnMove: true,
+      });
+
+      getPlugin('manualColumnMove').moveColumn(0, 3); // "a" (under L) out to the end, still inside Top
+      await render();
+
+      // Top still covers all four columns - the outer cohesive group is never torn by an inner release.
+      expect(getCell(-3, 0).textContent).toBe('Top');
+      expect(getCell(-3, 0).colSpan).toBe(4);
+      // L shrank to its remaining column; the released "a" renders standalone (blank), not under L.
+      expect(getCell(-2, 0).textContent).toBe('L');
+      expect(getCell(-2, 0).colSpan).toBe(1);
+      expect(getCell(-2, 3).textContent).toBe(''); // standalone group cell over "a"
+      expect(getCell(-1, 0).textContent).toBe('b');
+      expect(getCell(-1, 3).textContent).toBe('a');
+    });
+
     it('should hide a column adopted into a cohesive group when that group is collapsed (#4150)', async() => {
       handsontable({
         data: createSpreadsheetData(2, 5),
