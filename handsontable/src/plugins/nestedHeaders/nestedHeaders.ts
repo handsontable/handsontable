@@ -1266,9 +1266,23 @@ export class NestedHeaders extends BasePlugin {
   };
 
   /**
-   * Extends the viewport start column to include any header spans that begin outside the calculated viewport boundary.
+   * Extends the viewport's rendered column range so that every nested header group intersecting
+   * the viewport is rendered in full. A wide colspan straddling a viewport edge would otherwise
+   * render only partially, so its `<th>` width changes as columns enter or leave the render range
+   * while scrolling - which makes the center-aligned header label jump. Expanding both the start
+   * and the end boundary to the group's edges keeps each colspan `<th>` at a constant width while
+   * the group is visible (issue #4628).
    */
-  #onAfterViewportColumnCalculatorOverride = (calc: { startColumn: number }) => {
+  #onAfterViewportColumnCalculatorOverride = (calc: { startColumn: number, endColumn: number }) => {
+    this.#extendViewportStartColumn(calc);
+    this.#extendViewportEndColumn(calc);
+  };
+
+  /**
+   * Extends the viewport start column to include any header spans that begin before the calculated
+   * viewport start boundary.
+   */
+  #extendViewportStartColumn(calc: { startColumn: number }) {
     const headerLayersCount = this.#stateManager.getLayersCount();
     let newStartColumn = calc.startColumn;
     let nonRenderable = !!headerLayersCount;
@@ -1291,7 +1305,35 @@ export class NestedHeaders extends BasePlugin {
       nonRenderable ?
         (this.#stateManager.getHeaderTreeNodeData(0, newStartColumn)?.columnIndex ?? newStartColumn) :
         newStartColumn;
-  };
+  }
+
+  /**
+   * Extends the viewport end column to include any header spans that end after the calculated
+   * viewport end boundary, keeping a colspan header that straddles the right edge fully rendered.
+   */
+  #extendViewportEndColumn(calc: { endColumn: number }) {
+    const columnIndexMapper = this.hot.columnIndexMapper;
+    const headerLayersCount = this.#stateManager.getLayersCount();
+    const visualEndColumn = columnIndexMapper.getVisualFromRenderableIndex(calc.endColumn);
+
+    if (visualEndColumn === null) {
+      return;
+    }
+
+    for (let headerLayer = 0; headerLayer < headerLayersCount; headerLayer++) {
+      const endColumn = this.#stateManager.findRightMostColumnIndex(headerLayer, visualEndColumn);
+      const nearestColumn = columnIndexMapper.getNearestNotHiddenIndex(endColumn, -1);
+      const renderedEndColumn = nearestColumn === null ?
+        null : columnIndexMapper.getRenderableFromVisualIndex(nearestColumn);
+
+      // The top header layer holds the widest spans, so the first layer that expands the
+      // boundary already yields the largest extent - no deeper layer can exceed it.
+      if (renderedEndColumn !== null && renderedEndColumn > calc.endColumn) {
+        calc.endColumn = renderedEndColumn;
+        break;
+      }
+    }
+  }
 
   /**
    * `modifyColWidth` hook callback - returns width from cache, when is greater than incoming from hook.
