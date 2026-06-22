@@ -1,6 +1,6 @@
 import { extendByMetaType, assert } from '../utils';
 import LazyFactoryMap from '../lazyFactoryMap';
-import { extend } from '../../../helpers/object';
+import { extend, hasOwnProperty } from '../../../helpers/object';
 import { isDefined } from '../../../helpers/mixed';
 import { isUnsignedNumber } from '../../../helpers/number';
 import type ColumnMeta from './columnMeta';
@@ -49,12 +49,36 @@ export default class CellMeta {
    * @type {LazyFactoryMap<number, LazyFactoryMap<number, object>>}
    */
   metas = new LazyFactoryMap(() => this._createRow());
+  /**
+   * Flag that determines whether properties set through `setMeta` are tracked as user-defined.
+   * When recording is disabled, `setMeta` treats writes as declarative (for example, the `cell`
+   * option applied during `updateSettings`) and de-marks the affected key.
+   *
+   * @type {boolean}
+   */
+  #isRecordingUserDefinedMeta = true;
 
   /**
    * Initializes the cell meta layer with a reference to the ColumnMeta layer used as the prototype source for new cell meta objects.
    */
   constructor(columnMeta: ColumnMeta) {
     this.columnMeta = columnMeta;
+  }
+
+  /**
+   * Enables tracking of user-defined cell meta properties. Subsequent `setMeta` calls mark their
+   * keys as user-defined, so they are preserved across `updateSettings`.
+   */
+  enableUserDefinedMetaRecording() {
+    this.#isRecordingUserDefinedMeta = true;
+  }
+
+  /**
+   * Disables tracking of user-defined cell meta properties. Subsequent `setMeta` calls are treated
+   * as declarative writes and de-mark their keys, so they are not preserved across `updateSettings`.
+   */
+  disableUserDefinedMetaRecording() {
+    this.#isRecordingUserDefinedMeta = false;
   }
 
   /**
@@ -154,6 +178,16 @@ export default class CellMeta {
 
     (cellMeta._automaticallyAssignedMetaProps as Set<string> | undefined)?.delete(key);
     cellMeta[key] = value;
+
+    if (this.#isRecordingUserDefinedMeta) {
+      if (cellMeta._userDefinedMetaProps === undefined) {
+        cellMeta._userDefinedMetaProps = new Set();
+      }
+
+      (cellMeta._userDefinedMetaProps as Set<string>).add(key);
+    } else {
+      (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
+    }
   }
 
   /**
@@ -167,6 +201,7 @@ export default class CellMeta {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
     delete cellMeta[key];
+    (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
   }
 
   /**
@@ -212,6 +247,37 @@ export default class CellMeta {
     return Array.from((rowsMeta.get(physicalRow) as LazyFactoryMap))
       .sort(([a], [b]) => a - b)
       .map(([, meta]) => meta);
+  }
+
+  /**
+   * Returns a flat snapshot of all cell meta properties that were set imperatively through
+   * `setMeta` (tracked in each cell's `_userDefinedMetaProps`). The coordinates are read from the
+   * map keys (physical indexes), not from the meta object's `row`/`col` properties, which are only
+   * populated on `getCellMeta` and become stale after row or column shifts. Used to preserve
+   * user-defined meta across a cache clear during `updateSettings`.
+   *
+   * @returns {{physicalRow: number, physicalColumn: number, key: string, value: *}[]}
+   */
+  getUserDefinedMetas(): { physicalRow: number, physicalColumn: number, key: string, value: unknown }[] {
+    const result: { physicalRow: number, physicalColumn: number, key: string, value: unknown }[] = [];
+
+    for (const [physicalRow, rowMap] of this.metas) {
+      for (const [physicalColumn, meta] of rowMap) {
+        const userDefinedProps = meta._userDefinedMetaProps as Set<string> | undefined;
+
+        if (userDefinedProps === undefined) {
+          continue; // eslint-disable-line no-continue
+        }
+
+        userDefinedProps.forEach((key) => {
+          if (hasOwnProperty(meta, key)) {
+            result.push({ physicalRow, physicalColumn, key, value: meta[key] });
+          }
+        });
+      }
+    }
+
+    return result;
   }
 
   /**

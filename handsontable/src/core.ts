@@ -3139,6 +3139,10 @@ export default function Core(
    * Since 12.0.0 passing `data` inside `settings` objects no longer results in resetting states corresponding to rows and columns
    * (for example, row/column sequence, column width, row height, frozen columns etc.).
    *
+   * Cell meta set imperatively through [[setCellMeta]] (for example, by the user or the context menu) is preserved across
+   * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
+   * through the declarative `cell` option takes precedence over the preserved imperative value.
+   *
    * When [[Hooks#hasExternalDataSource]] is true, Handsontable clears and rebinds the placeholder dataset only during
    * initialization or when `settings` includes `data` or `dataProvider`. Other keys alone (for example `height`) do not clear loaded rows.
    * If only `columns` changes, the column map is rebuilt without clearing rows.
@@ -3331,9 +3335,19 @@ export default function Core(
 
     const columnSetting = tableMeta.columns;
 
-    // Clear cell meta cache
+    // Clear cell meta cache. Cell meta set imperatively through `setCellMeta` (for example, by the
+    // user or the context menu) is snapshotted beforehand and replayed afterward, so that it
+    // survives the clear instead of being discarded (see GitHub issue #4446).
     if (settings.cell !== undefined || settings.cells !== undefined || settings.columns !== undefined) {
+      const userDefinedCellMetas = metaManager.getUserDefinedCellMetas();
+
       metaManager.clearCache();
+
+      // Replay before the column and `cell` option re-application, so that a value re-stated through
+      // the declarative `cell` option still wins on a direct conflict (preserving legacy behavior).
+      userDefinedCellMetas.forEach(({ physicalRow, physicalColumn, key, value }) => {
+        metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+      });
     }
 
     if (clen > 0) {
@@ -3354,9 +3368,19 @@ export default function Core(
     }
 
     if (isDefined(settings.cell)) {
-      (settings.cell as Record<string, unknown>[]).forEach((cell: Record<string, unknown>) => {
-        instance.setCellMetaObject(cell.row as number, cell.col as number, cell);
-      });
+      // The `cell` option is declarative - it is re-applied from settings on every `updateSettings`
+      // call. Recording is disabled so these writes are not tracked as user-defined (and a key
+      // re-stated here de-marks any imperative value), keeping `updateSettings({ cell: [] })` able
+      // to remove previously declared entries.
+      metaManager.disableUserDefinedMetaRecording();
+
+      try {
+        (settings.cell as Record<string, unknown>[]).forEach((cell: Record<string, unknown>) => {
+          instance.setCellMetaObject(cell.row as number, cell.col as number, cell);
+        });
+      } finally {
+        metaManager.enableUserDefinedMetaRecording();
+      }
     }
 
     instance.runHooks('afterCellMetaReset');
