@@ -215,8 +215,12 @@ jobs:
       #     preview at pr-<N>.handsontable-docs-staging.pages.dev.
       # Any deploy whose branch differs from the project's production_branch
       # is a preview, so the branch passed here determines apex vs preview.
+      # Cloudflare Pages deploy is independent of Netlify: !cancelled() lets
+      # these steps run even when the Netlify publish above fails, so the apex
+      # handsontable-docs-staging.pages.dev still updates.
       - name: Determine Cloudflare Pages target
         id: cf-target
+        if: ${{ !cancelled() }}
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
         with:
           script: |
@@ -236,12 +240,12 @@ jobs:
             }
 
       - name: Add Cloudflare worker to deploy
-        if: ${{ steps.cf-target.outputs.deploy == 'true' }}
+        if: ${{ !cancelled() && steps.cf-target.outputs.deploy == 'true' }}
         continue-on-error: true
         run: cp cloudflare/_worker.js netlify/deploy/_worker.js
 
       - name: Ensure Cloudflare Pages project exists
-        if: ${{ steps.cf-target.outputs.deploy == 'true' }}
+        if: ${{ !cancelled() && steps.cf-target.outputs.deploy == 'true' }}
         continue-on-error: true
         run: node cloudflare/ensureProject.mjs
         env:
@@ -255,7 +259,7 @@ jobs:
 
       - name: Deploy to Cloudflare Pages
         id: cf-pages-deploy
-        if: ${{ steps.cf-target.outputs.deploy == 'true' }}
+        if: ${{ !cancelled() && steps.cf-target.outputs.deploy == 'true' }}
         continue-on-error: true
         # Install wrangler in /tmp to avoid npm failures inside the pnpm workspace
         working-directory: /tmp
@@ -271,7 +275,7 @@ jobs:
 
       - name: Update sticky PR comment with Cloudflare Pages URL
         uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
-        if: ${{ steps.resolve-pr.outputs.number && steps.cf-pages-deploy.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.resolve-pr.outputs.number && steps.cf-pages-deploy.outcome == 'success' }}
         with:
           number: ${{ steps.resolve-pr.outputs.number }}
           message: |
@@ -283,7 +287,7 @@ jobs:
             | Cloudflare Pages | [https://pr-${{ steps.resolve-pr.outputs.number }}.handsontable-docs-staging.pages.dev/docs](https://pr-${{ steps.resolve-pr.outputs.number }}.handsontable-docs-staging.pages.dev/docs) |
 
       - name: Post Cloudflare Pages apex summary
-        if: ${{ steps.cf-target.outputs.is_production == 'true' && steps.cf-pages-deploy.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.cf-target.outputs.is_production == 'true' && steps.cf-pages-deploy.outcome == 'success' }}
         run: |
           echo "## ☁️ Staging docs deployed to Cloudflare Pages apex" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
