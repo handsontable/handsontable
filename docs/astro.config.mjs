@@ -766,9 +766,7 @@ export default defineConfig({
         ...(isProduction
           ? [
               starlightDocSearch({
-                appId: 'MMN6OTJMGX',
-                apiKey: 'c2430302c91e0162df988d4b383c9d8b',
-                indexName: 'handsontable',
+                clientOptionsModule: './src/config/docsearch.ts',
               }),
             ]
           : []),
