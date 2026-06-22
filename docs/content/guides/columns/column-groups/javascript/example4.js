@@ -19,8 +19,8 @@ new Handsontable(container, {
     nestedHeaders: [
         // Q1 2025 is cohesive (the default); Q2 2025 opts into splitting.
         [
-            { label: 'Q1 2025 (cohesive)', colspan: 3 },
-            { label: 'Q2 2025 (splittable)', colspan: 3, splittable: true },
+            { label: 'Q1 2025 (adopt mode)', colspan: 3 },
+            { label: 'Q2 2025 (split mode)', colspan: 3, columnDropMode: 'split' },
         ],
         ['January', 'February', 'March', 'April', 'May', 'June'],
     ],

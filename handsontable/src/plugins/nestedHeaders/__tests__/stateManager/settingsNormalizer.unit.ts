@@ -12,7 +12,7 @@ function createColspanSourceSettings(overwriteProps) {
   return {
     ...createColspanSettings(overwriteProps),
     crossHiddenColumns: [],
-    splittable: false,
+    columnDropMode: 'adopt',
     isRoot: false,
   };
 }
@@ -47,13 +47,13 @@ describe('normalizeSettings', () => {
     ]);
   });
 
-  it('should carry the `splittable` flag through normalization (true when set, false by default) (#4150)', () => {
+  it('should carry the `columnDropMode` flag through normalization (split when set, adopt by default) (#4150)', () => {
     const [row] = normalizeSettings([
-      [{ label: 'A', colspan: 2, splittable: true }, { label: 'B', colspan: 2 }],
+      [{ label: 'A', colspan: 2, columnDropMode: 'split' }, { label: 'B', colspan: 2 }],
     ]);
 
-    expect(row[0].splittable).toBe(true); // 'A' group, splittable explicitly set
-    expect(row[2].splittable).toBe(false); // 'B' group, default
+    expect(row[0].columnDropMode).toBe('split'); // 'A' group, columnDropMode explicitly set
+    expect(row[2].columnDropMode).toBe('adopt'); // 'B' group, default
   });
 
   it('should normalize user-defined settings into known uniform structure data (advanced settings, inconsistent columns length)', () => {

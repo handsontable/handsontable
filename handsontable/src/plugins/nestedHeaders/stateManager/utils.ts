@@ -6,10 +6,10 @@
  * @property {number} rowspan Current calculated rowspan value of the rendered column header element.
  * @property {number} origRowspan Original rowspan value, set once while parsing user-defined nested header settings.
  * @property {boolean} collapsible The flag determines whether the node is collapsible (can be collapsed/expanded).
- * @property {boolean} splittable The flag determines what the group does when a column move makes its children
- *                                non-adjacent. When `true` the group keeps its identity and renders as several
- *                                same-label banners (it splits). When `false` (default) the group stays one banner
- *                                and adopts any column moved into its span as a child.
+ * @property {('adopt'|'split')} columnDropMode Determines what the group does when a column move drops a foreign
+ *                                column (one belonging to another group) into its span. When `'adopt'` (default)
+ *                                the group stays one banner and adopts that column as a child. When `'split'` the
+ *                                group keeps its identity and renders as several same-label banners (it splits).
  * @property {number[]} crossHiddenColumns The list of visual column indexes which indicates that the specified columns within
  *                                         the header settings are hidden.
  * @property {boolean} isCollapsed The flag determines whether the node is collapsed.
@@ -38,6 +38,17 @@
 export type HeaderVisibility = 'collapsed' | 'expanded' | 'always';
 
 /**
+ * Determines what a group does when a column move drops a foreign column (one belonging to another
+ * group) into its span:
+ * - `'adopt'` (default) - the group stays a single banner and adopts that column as a child;
+ * - `'split'` - the group keeps its identity and renders as several same-label banners around the
+ *   foreign column (it splits).
+ *
+ * A group always reclaims its own columns moved back into its span, regardless of this setting.
+ */
+export type ColumnDropMode = 'adopt' | 'split';
+
+/**
  * Creates the header settings object with default values.
  *
  * @param {DefaultHeaderSettings} initialValues The initial values for the header settings object.
@@ -50,7 +61,7 @@ export function createDefaultHeaderSettings({
   rowspan = 1,
   origRowspan = 1,
   collapsible = false,
-  splittable = false,
+  columnDropMode = 'adopt',
   crossHiddenColumns = [] as number[],
   isCollapsed = false,
   isHidden = false,
@@ -66,7 +77,7 @@ export function createDefaultHeaderSettings({
   rowspan?: number;
   origRowspan?: number;
   collapsible?: boolean;
-  splittable?: boolean;
+  columnDropMode?: ColumnDropMode;
   crossHiddenColumns?: number[];
   isCollapsed?: boolean;
   isHidden?: boolean;
@@ -83,7 +94,7 @@ export function createDefaultHeaderSettings({
     rowspan,
     origRowspan,
     collapsible,
-    splittable,
+    columnDropMode,
     isCollapsed,
     crossHiddenColumns,
     isHidden,

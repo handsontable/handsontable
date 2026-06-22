@@ -35,10 +35,10 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
     handsontable({
       data: createSpreadsheetData(2, 4),
       colHeaders: true,
-      // splittable: true opts into the split model - a torn group renders as same-label banners
-      // (the default is now cohesive: a moved-out column is released, see the 'splittable option' tests).
+      // columnDropMode: 'split' opts into the split model - a torn group renders as same-label banners
+      // (the default is now cohesive: a moved-out column is released, see the 'columnDropMode option' tests).
       nestedHeaders: [
-        [{ label: 'Address', colspan: 2, splittable: true }, { label: 'Finance', colspan: 2, splittable: true }],
+        [{ label: 'Address', colspan: 2, columnDropMode: 'split' }, { label: 'Finance', colspan: 2, columnDropMode: 'split' }],
         ['Street', 'City', 'Revenue', 'Profit'],
       ],
       manualColumnMove: true,
@@ -87,8 +87,8 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
     handsontable({
       data: createSpreadsheetData(2, 4),
       colHeaders: true,
-      nestedHeaders: [ // splittable: true opts into the split model (default is now cohesive)
-        [{ label: 'Address', colspan: 2, splittable: true }, { label: 'Finance', colspan: 2, splittable: true }],
+      nestedHeaders: [ // columnDropMode: 'split' opts into the split model (default is now cohesive)
+        [{ label: 'Address', colspan: 2, columnDropMode: 'split' }, { label: 'Finance', colspan: 2, columnDropMode: 'split' }],
         ['Street', 'City', 'Revenue', 'Profit'],
       ],
       manualColumnMove: true,
@@ -196,8 +196,8 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
     handsontable({
       data: [['a1', 'a2', 'b1', 'b2'], ['a1', 'a2', 'b1', 'b2']],
       colHeaders: true,
-      nestedHeaders: [ // splittable: true opts into the split model (default is now cohesive)
-        [{ label: 'A', colspan: 2, splittable: true }, { label: 'B', colspan: 2, splittable: true }],
+      nestedHeaders: [ // columnDropMode: 'split' opts into the split model (default is now cohesive)
+        [{ label: 'A', colspan: 2, columnDropMode: 'split' }, { label: 'B', colspan: 2, columnDropMode: 'split' }],
         ['a1', 'a2', 'b1', 'b2'],
       ],
       manualColumnMove: true,
@@ -505,13 +505,13 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
     expect($(getCell(-2, 2)).css('cursor')).toEqual('default'); // "Finance" group
   });
 
-  describe('splittable option', () => {
+  describe('columnDropMode option', () => {
     it('should adopt a column moved into a cohesive (default) group as a child (#4150)', async() => {
       handsontable({
         data: createSpreadsheetData(2, 4),
         colHeaders: true,
         nestedHeaders: [
-          [{ label: 'Address', colspan: 2 }, { label: 'Finance', colspan: 2 }], // default splittable: false
+          [{ label: 'Address', colspan: 2 }, { label: 'Finance', colspan: 2 }], // default columnDropMode: 'adopt'
           ['Street', 'City', 'Revenue', 'Profit'],
         ],
         manualColumnMove: true,
@@ -576,12 +576,12 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
       expect(getCell(-1, 2).textContent).toBe('Street');
     });
 
-    it('should split a `splittable: true` group when a column is moved out (#4150)', async() => {
+    it('should split a group in split mode when a column is moved out (#4150)', async() => {
       handsontable({
         data: createSpreadsheetData(2, 4),
         colHeaders: true,
         nestedHeaders: [
-          [{ label: 'Address', colspan: 2, splittable: true }, { label: 'Finance', colspan: 2 }],
+          [{ label: 'Address', colspan: 2, columnDropMode: 'split' }, { label: 'Finance', colspan: 2 }],
           ['Street', 'City', 'Revenue', 'Profit'],
         ],
         manualColumnMove: true,
@@ -707,12 +707,12 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
       expect(getCell(-1, 3).textContent).toBe('a');
     });
 
-    it('should adopt into a cohesive inner group and grow its splittable outer group, not crash (3-level, #4150)', async() => {
+    it('should adopt into a cohesive inner group and grow its splitting outer group, not crash (3-level, #4150)', async() => {
       handsontable({
         data: createSpreadsheetData(2, 6),
         colHeaders: true,
         nestedHeaders: [
-          [{ label: 'P', colspan: 3, splittable: true }, { label: 'Q', colspan: 3, splittable: true }],
+          [{ label: 'P', colspan: 3, columnDropMode: 'split' }, { label: 'Q', colspan: 3, columnDropMode: 'split' }],
           [{ label: 'Pg', colspan: 2 }, 'Ps', 'Qs', { label: 'Qg', colspan: 2 }],
           ['a', 'b', 'c', 'd', 'e', 'f'],
         ],
@@ -720,7 +720,7 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
       });
 
       // "f" (authored under Qg/Q) dropped strictly inside the cohesive inner group Pg. Pg adopts it,
-      // and the splittable outer group P grows to contain it - the inner run never straddles the P|Q
+      // and the splitting outer group P grows to contain it - the inner run never straddles the P|Q
       // boundary (which previously crashed buildTree).
       getPlugin('manualColumnMove').moveColumn(5, 1);
       await render();
@@ -728,7 +728,7 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
       expect(getCell(-1, 1).textContent).toBe('f'); // leaf follows the data
       expect(getCell(-2, 0).textContent).toBe('Pg'); // adopted into the cohesive inner group
       expect(getCell(-2, 0).colSpan).toBe(3); // Pg grew to span a, f, b
-      expect(getCell(-3, 0).textContent).toBe('P'); // the splittable outer group contains it
+      expect(getCell(-3, 0).textContent).toBe('P'); // the splitting outer group contains it
       expect(getCell(-3, 0).colSpan).toBe(4); // P grew to span a, f, b, c
     });
 
@@ -737,7 +737,7 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
         data: createSpreadsheetData(2, 6),
         colHeaders: true,
         nestedHeaders: [
-          [{ label: 'Personal', colspan: 3 }, { label: 'Work', colspan: 3, splittable: true }],
+          [{ label: 'Personal', colspan: 3 }, { label: 'Work', colspan: 3, columnDropMode: 'split' }],
           [{ label: 'Name', colspan: 2 }, 'Age', { label: 'Company', colspan: 2 }, 'Role'],
           ['First', 'Last', 'Age', 'Org', 'Dept', 'Title'],
         ],
@@ -775,7 +775,7 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
         data: createSpreadsheetData(2, 6),
         colHeaders: true,
         nestedHeaders: [
-          [{ label: 'Personal', colspan: 3 }, { label: 'Work', colspan: 3, splittable: true }],
+          [{ label: 'Personal', colspan: 3 }, { label: 'Work', colspan: 3, columnDropMode: 'split' }],
           [{ label: 'Name', colspan: 2 }, 'Age', { label: 'Company', colspan: 2 }, 'Role'],
           ['First', 'Last', 'Age', 'Org', 'Dept', 'Title'],
         ],

@@ -4,11 +4,13 @@ import { arrayEach } from '../../../helpers/array';
 import { normalizeSettings } from './settingsNormalizer';
 import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './utils';
 
+import type { ColumnDropMode } from './utils';
+
 export interface SourceHeaderCell {
   colspan?: number;
   origColspan?: number;
   isPlaceholder?: boolean;
-  splittable?: boolean;
+  columnDropMode?: ColumnDropMode;
   headerClassNames?: string[];
   crossHiddenColumns?: number[];
   [key: string]: unknown;

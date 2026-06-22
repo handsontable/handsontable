@@ -116,9 +116,9 @@ function applyRowspanToMatrix(matrix: Array<Array<Record<string, unknown>>>) {
  * @returns {object}
  */
 function createHeaderSettings(nodeData: Record<string, unknown>) {
-  // The matrix module does not need the "crossHiddenColumns" or "splittable" keys - the former is a
-  // visibility detail, the latter a structural input that only affects how the tree is derived.
-  const { crossHiddenColumns, splittable, ...headerRootSettings } = createDefaultHeaderSettings(nodeData);
+  // The matrix module does not need the "crossHiddenColumns" or "columnDropMode" keys - the former is
+  // a visibility detail, the latter a structural input that only affects how the tree is derived.
+  const { crossHiddenColumns, columnDropMode, ...headerRootSettings } = createDefaultHeaderSettings(nodeData);
 
   return headerRootSettings;
 }

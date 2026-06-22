@@ -366,14 +366,14 @@ describe('StateManager re-parenting across multi-level nesting', () => {
     expectNestingContained(state, 3, 8);
   });
 
-  it('should keep nesting contained when splittable differs across levels (cohesive outer, splittable inner)', () => {
+  it('should keep nesting contained when columnDropMode differs across levels (adopt outer, split inner)', () => {
     const state = new StateManager();
 
     // Outer 'Top' is cohesive; inner 'L' opts into splitting. A leaf moved out of L splits L into
     // banners while Top stays one banner - the inner split must still nest inside Top.
     state.setState([
       [{ label: 'Top', colspan: 4 }],
-      [{ label: 'L', colspan: 2, splittable: true }, { label: 'R', colspan: 2 }],
+      [{ label: 'L', colspan: 2, columnDropMode: 'split' }, { label: 'R', colspan: 2 }],
       ['a', 'b', 'c', 'd'],
     ]);
 
@@ -392,15 +392,15 @@ describe('StateManager re-parenting across multi-level nesting', () => {
     expect(levelLabels(state, 1, 4)).toEqual(['L', 'R', '', 'L']);
   });
 
-  it('should keep nesting contained when a cohesive inner group sits under a splittable outer group', () => {
+  it('should keep nesting contained when a cohesive inner group sits under a splitting outer group', () => {
     const state = new StateManager();
 
-    // The dangerous direction: outer groups split (splittable:true), inner groups are cohesive
+    // The dangerous direction: outer groups split (columnDropMode: 'split'), inner groups are cohesive
     // (default). A column dropped strictly inside a cohesive inner group would adopt it at the inner
-    // level, but the outer adopt is suppressed (the outer group is splittable) - the inner owner's
+    // level, but the outer adopt is suppressed (the outer group splits) - the inner owner's
     // parent must still constrain the outer owner, or the inner run straddles an outer boundary.
     state.setState([
-      [{ label: 'P', colspan: 3, splittable: true }, { label: 'Q', colspan: 3, splittable: true }],
+      [{ label: 'P', colspan: 3, columnDropMode: 'split' }, { label: 'Q', colspan: 3, columnDropMode: 'split' }],
       [{ label: 'Pg', colspan: 2 }, 'Ps', 'Qs', { label: 'Qg', colspan: 2 }],
       ['a', 'b', 'c', 'd', 'e', 'f'],
     ]);
@@ -414,7 +414,7 @@ describe('StateManager re-parenting across multi-level nesting', () => {
     move(state, arrangement, 5, 1);
 
     expectNestingContained(state, 3, 6);
-    // 'f' is adopted into the cohesive inner group Pg (now spans 3); the splittable outer group P
+    // 'f' is adopted into the cohesive inner group Pg (now spans 3); the splitting outer group P
     // grows to contain it rather than the inner run straddling the P|Q boundary.
     expect(state.getHeaderSettings(1, 0).label).toBe('Pg');
     expect(state.getHeaderSettings(1, 0).origColspan).toBe(3);

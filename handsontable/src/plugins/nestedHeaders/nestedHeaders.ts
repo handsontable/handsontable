@@ -15,7 +15,7 @@ import StateManager from './stateManager';
 import { createColumnVisibilityAdapter } from './stateManager/columnVisibility';
 import { createColumnArrangementAdapter } from './stateManager/columnArrangement';
 import type { HeaderNodeData } from './stateManager/headersTree';
-import type { HeaderVisibility } from './stateManager/utils';
+import type { ColumnDropMode, HeaderVisibility } from './stateManager/utils';
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 import GhostTable from './utils/ghostTable';
 import { resolveRowspanNavigationContextRow } from './utils/navigation';
@@ -48,12 +48,14 @@ export interface NestedHeaderSettings {
    */
   visibleWhen?: HeaderVisibility;
   /**
-   * Controls what a group does when a column move (with the `ManualColumnMove` plugin) makes its
-   * columns non-adjacent. When `false` (default), the group stays a single banner and adopts a column
-   * moved into its span as a child. When `true`, the group keeps its identity and renders as several
-   * same-label banners (it splits). Set per group; meaningful only on a header that spans columns.
+   * Controls what a group does when a column move (with the `ManualColumnMove` plugin) drops a foreign
+   * column - one belonging to another group - into its span. When `'adopt'` (default), the group stays
+   * a single banner and adopts that column as a child. When `'split'`, the group keeps its identity and
+   * renders as several same-label banners around the foreign column (it splits). A group always reclaims
+   * its own columns moved back into its span, regardless of this setting. Set per group; meaningful only
+   * on a header that spans columns.
    */
-  splittable?: boolean;
+  columnDropMode?: ColumnDropMode;
   [key: string]: unknown;
 }
 
@@ -259,7 +261,7 @@ export class NestedHeaders extends BasePlugin {
    * Re-parents the columns captured by `#onBeforeColumnMove` after the move completes. Translates the
    * stored physical indexes to their new visual positions (the mapping is fresh by the time this runs)
    * and hands them to the state manager, which records the membership overrides the derive needs to
-   * keep `splittable: false` groups cohesive.
+   * keep `columnDropMode: 'adopt'` groups cohesive.
    */
   #reparentMovedColumns() {
     const movedPhysicalColumns = this.#movedPhysicalColumns;

@@ -170,3 +170,7 @@ Use these skills for detailed workflow instructions:
 - Coordinate systems: `coordinate-systems`
 - Linting: this file's Lint section + `handsontable/.ai/CONVENTIONS.md`
 - i18n: `i18n-translations`
+
+Subsystem architecture notes (read before changing the subsystem's internals):
+- NestedHeaders + CollapsibleColumns (header tree, derive/move/reparent, collapse): `src/plugins/nestedHeaders/AGENTS.md`
+- Walkontable rendering engine: `src/3rdparty/walkontable/AGENTS.md`

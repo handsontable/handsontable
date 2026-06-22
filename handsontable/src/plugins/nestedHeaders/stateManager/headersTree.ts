@@ -1,7 +1,7 @@
 import { arrayEach } from '../../../helpers/array';
 import TreeNode from '../../../utils/dataStructures/tree';
 import { createDefaultHeaderSettings } from './utils';
-import type { HeaderVisibility } from './utils';
+import type { ColumnDropMode, HeaderVisibility } from './utils';
 import type SourceSettings from './sourceSettings';
 
 /**
@@ -15,11 +15,11 @@ export interface HeaderSettings {
   origRowspan?: number;
   collapsible: boolean;
   /**
-   * Whether the group may split into several same-label banners when a column move makes its children
-   * non-adjacent (`true`), or stays one banner and adopts columns moved into its span as children
-   * (`false`, the default).
+   * Determines what the group does when a column move drops a foreign column (one belonging to another
+   * group) into its span: `'adopt'` (default) stays one banner and adopts that column as a child,
+   * `'split'` keeps the group's identity and renders as several same-label banners (it splits).
    */
-  splittable: boolean;
+  columnDropMode: ColumnDropMode;
   isCollapsed: boolean;
   crossHiddenColumns: number[];
   isHidden: boolean;

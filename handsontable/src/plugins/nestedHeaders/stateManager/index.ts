@@ -65,7 +65,7 @@ export default class StateManager {
   #columnArrangement: ColumnArrangement | null = null;
   /**
    * Per-column membership overrides set by column moves (`physical -> level -> owner identity`). They
-   * re-parent a moved column into the cohesive (`splittable: false`) group it was dropped inside, or
+   * re-parent a moved column into the cohesive (`columnDropMode: 'adopt'`) group it was dropped inside, or
    * mark it standalone when it left its group - the piece a pure derive cannot infer from the final
    * arrangement alone. Consumed by `#deriveTree`. Empty means "use the authored structure".
    */
@@ -496,11 +496,11 @@ export default class StateManager {
 
   /**
    * Re-parents the moved columns after a column move, recording membership overrides the derive uses
-   * to keep `splittable: false` groups cohesive. Call before `rebuildState()`.
+   * to keep `columnDropMode: 'adopt'` groups cohesive. Call before `rebuildState()`.
    *
    * For each moved column the deepest group level at which it was dropped strictly inside a cohesive
    * group is found first. From that level outward the column joins that group's ancestor chain (the
-   * group the column visually sits inside at each enclosing level), so a `splittable` ancestor grows
+   * group the column visually sits inside at each enclosing level), so a splitting ancestor grows
    * to contain the adopted column instead of the inner run straddling its boundary. At every other
    * level (deeper than the adoption, or none found) the column keeps its group when still beside a
    * sibling, else goes standalone. The decisions are taken from the pre-update layout, then applied,
@@ -574,7 +574,7 @@ export default class StateManager {
       for (let level = 0; level < layersCount - 1; level++) {
         const enclosing = enclosingOwnerAt(visualColumn, level);
 
-        if (enclosing >= 0 && authoredLayers[level][enclosing]?.splittable !== true) {
+        if (enclosing >= 0 && authoredLayers[level][enclosing]?.columnDropMode !== 'split') {
           adoptionLevel = level;
         }
       }
