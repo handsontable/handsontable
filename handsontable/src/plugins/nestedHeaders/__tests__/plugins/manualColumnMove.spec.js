@@ -332,6 +332,46 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
     expect(getPlugin('collapsibleColumns').getCollapsedColumns()).toEqual([]);
   });
 
+  it('should still adopt a column dropped into a collapsed cohesive group after the auto-expand (#4150)', async() => {
+    handsontable({
+      data: [['a1', 'a2', 'b1', 'b2', 'cc'], ['a1', 'a2', 'b1', 'b2', 'cc']],
+      colHeaders: true,
+      nestedHeaders: [
+        [{ label: 'GA', colspan: 2 }, { label: 'GB', colspan: 2 }, 'C'], // GA/GB default to cohesive
+        ['a1', 'a2', 'b1', 'b2', 'cc'],
+      ],
+      collapsibleColumns: true,
+      manualColumnMove: true,
+    });
+
+    getPlugin('collapsibleColumns').toggleCollapsibleSection([{ row: -2, col: 0 }], 'collapse');
+    await render();
+
+    expect(getPlugin('collapsibleColumns').getCollapsedColumns()).toEqual([1]); // GA collapsed: a2 hidden
+
+    // Move "C" into the middle of the collapsed cohesive GA (between a1 and a2). The insertion splits GA,
+    // so CollapsibleColumns auto-expands it from its own beforeColumnMove handler - that expansion fires a
+    // synchronous (hidden-only) cacheUpdated before the move runs. NestedHeaders must not drop the captured
+    // move on that intermediate update, or the adoption is silently lost and GA splits instead.
+    getPlugin('manualColumnMove').moveColumn(4, 1);
+    await render();
+
+    // Precondition: the auto-expand fired (otherwise this test would not exercise the collision at all).
+    expect(getPlugin('collapsibleColumns').getCollapsedColumns()).toEqual([]);
+
+    // Outcome: GA adopted "C" and stays a single banner spanning three columns; GB is untouched.
+    // (Collapsible group headers append an expand/collapse indicator, so match the label with `toContain`;
+    // the colspan is the discriminating membership check - the lost-adoption bug splits GA to colspan 1.)
+    expect(getCell(-2, 0).textContent).toContain('GA');
+    expect(getCell(-2, 0).colSpan).toBe(3);
+    expect(getCell(-2, 3).textContent).toContain('GB');
+    expect(getCell(-2, 3).colSpan).toBe(2);
+    // The leaf labels follow the data: a1, cc (C's leaf), a2, then GB's members.
+    expect(getCell(-1, 0).textContent).toBe('a1');
+    expect(getCell(-1, 1).textContent).toBe('cc');
+    expect(getCell(-1, 2).textContent).toBe('a2');
+  });
+
   it('should preserve the column move and apply it to a new nestedHeaders config set via updateSettings (#4150)', async() => {
     handsontable({
       data: createSpreadsheetData(2, 4), // row 0: A1, B1, C1, D1

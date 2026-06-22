@@ -204,11 +204,16 @@ export class NestedHeaders extends BasePlugin {
       // the tree reflects both the new arrangement and the membership changes.
       this.#reparentMovedColumns();
       this.#stateManager.rebuildState();
-    }
 
-    this.#structureRebuildPending = false;
-    this.#movedPhysicalColumns = null;
-    this.#preMoveColumnSequence = null;
+      // Only release the captured move state once it has been consumed here. A move that splits a
+      // collapsed group makes CollapsibleColumns expand it from its own beforeColumnMove handler; that
+      // expansion mutates the hiding map and fires a synchronous cacheUpdated (hiddenIndexesChanged
+      // only) before moveIndexes runs. Clearing the capture unconditionally on that intermediate update
+      // dropped #movedPhysicalColumns, so the real move's cacheUpdated found nothing to re-parent.
+      this.#structureRebuildPending = false;
+      this.#movedPhysicalColumns = null;
+      this.#preMoveColumnSequence = null;
+    }
 
     // syncVisibility must run on every cache update (including a pure column move) so the tree's
     // colspan / isHidden stay aligned with the current visual<->physical mapping (DEV-1717).
