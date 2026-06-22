@@ -372,6 +372,39 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
     expect(getCell(-1, 2).textContent).toBe('a2');
   });
 
+  it('should not re-parent a stale move capture when a freeze reorders columns after a vetoed move (#4150)', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 3),
+      colHeaders: true,
+      nestedHeaders: [
+        ['X', { label: 'G', colspan: 2 }], // G is cohesive (default)
+        ['x', 'g1', 'g2'],
+      ],
+      manualColumnMove: true,
+      manualColumnFreeze: true,
+      // A handler that vetoes every move - this captures the moved columns in NestedHeaders but never
+      // performs the move, leaving the capture stale.
+      beforeColumnMove: () => false,
+    });
+
+    // Attempt to move "x" (physical 0) into G. The veto aborts the move, but the capture is set.
+    getPlugin('manualColumnMove').moveColumn(0, 2);
+    await render();
+
+    // A freeze calls moveIndexes directly (it skips beforeColumnMove). Freezing "g2" moves it to the
+    // front, so "x" lands between the two G columns. A stale-capture re-parent would wrongly adopt "x"
+    // into G; the capture must be rejected because it does not explain this reordering.
+    getPlugin('manualColumnFreeze').freezeColumn(2);
+    await render();
+
+    // Visual order is now g2, x, g1. "x" stays standalone - G renders as two separate "G" banners.
+    expect(getCell(-1, 1).textContent).toBe('x');
+    expect(getCell(-2, 1).textContent).toBe('X');
+    expect(getCell(-2, 1).colSpan).toBe(1);
+    expect(getCell(-2, 0).textContent).toBe('G');
+    expect(getCell(-2, 0).colSpan).toBe(1);
+  });
+
   it('should preserve the column move and apply it to a new nestedHeaders config set via updateSettings (#4150)', async() => {
     handsontable({
       data: createSpreadsheetData(2, 4), // row 0: A1, B1, C1, D1

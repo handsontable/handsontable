@@ -262,7 +262,10 @@ export class NestedHeaders extends BasePlugin {
    * keep `splittable: false` groups cohesive.
    */
   #reparentMovedColumns() {
-    if (this.#movedPhysicalColumns === null) {
+    const movedPhysicalColumns = this.#movedPhysicalColumns;
+    const previous = this.#preMoveColumnSequence;
+
+    if (movedPhysicalColumns === null || previous === null) {
       return;
     }
 
@@ -270,16 +273,26 @@ export class NestedHeaders extends BasePlugin {
     // re-parent: recomputing membership for the "moved" columns would drop a prior adoption and split
     // the group. Only re-parent when the move actually reordered the columns.
     const sequence = this.hot.columnIndexMapper.getIndexesSequence();
-    const previous = this.#preMoveColumnSequence;
 
-    if (previous !== null && previous.length === sequence.length &&
+    if (previous.length === sequence.length &&
         previous.every((physicalColumn, index) => physicalColumn === sequence[index])) {
+      return;
+    }
+
+    // The capture is only valid for the move that produced this cache update. A hard-vetoed move
+    // (a beforeColumnMove handler returning false) leaves the capture set with no move performed, and
+    // a later 'move' cache update from another path (e.g. manualColumnFreeze calling moveIndexes
+    // directly, which skips beforeColumnMove) would then re-parent the stale columns. moveIndexes
+    // rebuilds the sequence as the non-moved columns in their original order with the moved columns
+    // reinserted, so removing the captured columns from both sequences must leave identical residuals.
+    // When they differ, this update came from a different reordering - skip rather than misapply it.
+    if (!this.#capturedMoveExplainsReorder(movedPhysicalColumns, previous, sequence)) {
       return;
     }
 
     const movedVisualColumns: number[] = [];
 
-    this.#movedPhysicalColumns.forEach((physicalColumn) => {
+    movedPhysicalColumns.forEach((physicalColumn) => {
       const visualColumn = this.hot.columnIndexMapper.getVisualFromPhysicalIndex(physicalColumn);
 
       if (visualColumn !== null) {
@@ -288,6 +301,26 @@ export class NestedHeaders extends BasePlugin {
     });
 
     this.#stateManager.reparentColumns(movedVisualColumns);
+  }
+  /**
+   * Reports whether the captured moved columns account for the whole reordering between the pre-move
+   * and current physical index sequences. Removing those columns from both sequences must leave
+   * identical residuals, which holds by construction for any single `moveIndexes` call and fails when
+   * the cache update came from an unrelated reordering consuming a stale capture.
+   *
+   * @param {number[]} movedPhysicalColumns The physical indexes captured before the move.
+   * @param {number[]} previousSequence The physical index sequence captured before the move.
+   * @param {number[]} currentSequence The physical index sequence after the move.
+   * @returns {boolean} `true` when the captured columns explain the observed reordering.
+   */
+  #capturedMoveExplainsReorder(movedPhysicalColumns: number[], previousSequence: number[],
+                               currentSequence: number[]): boolean {
+    const movedSet = new Set(movedPhysicalColumns);
+    const residualBefore = previousSequence.filter(physicalColumn => !movedSet.has(physicalColumn));
+    const residualAfter = currentSequence.filter(physicalColumn => !movedSet.has(physicalColumn));
+
+    return residualBefore.length === residualAfter.length &&
+      residualBefore.every((physicalColumn, index) => physicalColumn === residualAfter[index]);
   }
   /**
    * Stores the initial focus coordinates before a column header click initiates a range selection.
