@@ -21,15 +21,17 @@
     .badge-fix { background: #e8f5e9; color: #2e7d32; }
     .info { background: #fdecea; border: 1px solid #ef9a9a; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
     .info strong { color: #c62828; }
-    .controls { margin-bottom: 16px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .controls button { padding: 8px 18px; border-radius: 6px; border: 1px solid #bbb; background: #fff; cursor: pointer; font-size: 14px; }
+    .section { margin-bottom: 32px; }
+    .section h3 { font-size: 15px; margin-bottom: 8px; color: #333; }
+    .controls { margin-bottom: 12px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .controls button { padding: 7px 16px; border-radius: 6px; border: 1px solid #bbb; background: #fff; cursor: pointer; font-size: 14px; }
     .controls button:hover { background: #e9e9e9; }
-    #result { font-size: 14px; padding: 8px 12px; border-radius: 6px; background: #fff; border: 1px solid #ddd; min-width: 350px; }
+    .result { font-size: 14px; padding: 7px 12px; border-radius: 6px; background: #fff; border: 1px solid #ddd; min-width: 320px; }
   </style>
 </head>
 <body>
-  <h1>DEV-1761 — <code>scrollViewportTo</code> with <code>height</code> + <code>preventOverflow: "horizontal"</code></h1>
-  <h2>Issue #8233 — <strong>Before fix</strong> (bug reproduced via overlay patch)</h2>
+  <h1>DEV-1761 — <code>scrollViewportTo</code> bug with constrained dimension + <code>preventOverflow</code></h1>
+  <h2>Issue #8233 — <strong>Before fix</strong> (bug reproduced)</h2>
 
   <nav>
     <span class="nav-label">Version:</span>
@@ -38,83 +40,102 @@
   </nav>
 
   <div class="info">
-    <strong>Bug — vertical scroll does not work:</strong><br>
-    1. Click <strong>"Scroll to row 150"</strong> — the table should jump to row 150, but it does NOT scroll.<br>
-    2. First visible row stays at 0. <code>scrollViewportTo</code> returns <code>false</code>.<br>
-    3. Root cause: the top overlay uses <code>window</code> as its scroll container (instead of the holder)
-       because <code>preventOverflow: 'horizontal'</code> takes priority over <code>overflow: clip</code> from the set <code>height</code>.
+    <strong>Bug:</strong> <code>scrollViewportTo()</code> is a no-op on the constrained axis.<br>
+    • <strong>Case 1</strong> — <code>height</code> + <code>preventOverflow: 'horizontal'</code> → vertical scroll does nothing.<br>
+    • <strong>Case 2</strong> — <code>width</code> + <code>preventOverflow: 'vertical'</code> → horizontal scroll does nothing.<br>
+    Both should show <code>scrollTop/scrollLeft = 0</code> after clicking scroll buttons.
   </div>
 
-  <div class="controls">
-    <button id="btn-row">Scroll to row 150</button>
-    <button id="btn-col">Scroll to col 7</button>
-    <button id="btn-reset">Reset</button>
-    <span id="result">Click a button to test</span>
+  <!-- Case 1: height + preventOverflow: horizontal -->
+  <div class="section">
+    <h3>Case 1 — <code>height: 300</code> + <code>preventOverflow: 'horizontal'</code> → vertical scroll broken</h3>
+    <div class="controls">
+      <button onclick="testVertical()">Scroll to row 150</button>
+      <button onclick="resetV()">Reset</button>
+      <span class="result" id="result-v">Click to test</span>
+    </div>
+    <div id="hot-v"></div>
   </div>
 
-  <div id="hot-container"></div>
+  <!-- Case 2: width + preventOverflow: vertical -->
+  <div class="section">
+    <h3>Case 2 — <code>width: 300</code> + <code>preventOverflow: 'vertical'</code> → horizontal scroll broken</h3>
+    <div class="controls">
+      <button onclick="testHorizontal()">Scroll to col 150</button>
+      <button onclick="resetH()">Reset</button>
+      <span class="result" id="result-h">Click to test</span>
+    </div>
+    <div id="hot-h"></div>
+  </div>
 
   <script src="handsontable-fixed.js"></script>
   <script>
-    window.hot = new Handsontable(document.getElementById('hot-container'), {
+    function getHolder(hot) {
+      return hot.rootElement.querySelector('.ht_master .wtHolder');
+    }
+
+    function simulateBug(hot) {
+      try {
+        const wtOverlays = hot.view._wt.wtOverlays;
+        [wtOverlays.topOverlay, wtOverlays.inlineStartOverlay].forEach(ov => {
+          if (!ov) return;
+          ov.mainTableScrollableElement = window;
+          const orig = ov.updateMainScrollableElement.bind(ov);
+          ov.updateMainScrollableElement = function() {
+            orig();
+            ov.mainTableScrollableElement = window;
+          };
+        });
+      } catch (e) { console.warn('simulateBug:', e); }
+    }
+
+    // Case 1: vertical
+    const hotV = new Handsontable(document.getElementById('hot-v'), {
       data: Handsontable.helper.createSpreadsheetData(200, 10),
-      colHeaders: true,
-      rowHeaders: true,
-      width: 500,
-      height: 300,
+      colHeaders: true, rowHeaders: true,
+      width: 500, height: 300,
       preventOverflow: 'horizontal',
       themeName: 'ht-theme-main',
       licenseKey: 'non-commercial-and-evaluation',
     });
+    simulateBug(hotV);
 
-    // ── SIMULATE THE BUG ──────────────────────────────────────────────────────
-    // Before PR #12624, the top overlay used `window` as its scrollable element
-    // when preventOverflow: 'horizontal' was set, even when height forced overflow: clip.
-    // We reproduce this by overriding the scroll element after init.
-    (function simulateBug() {
-      try {
-        const wtOverlays = hot.view._wt.wtOverlays;
-        const topOverlay = wtOverlays.topOverlay;
-        if (topOverlay) {
-          topOverlay.mainTableScrollableElement = window;
-          // Keep it on window across any updateSettings calls
-          const orig = topOverlay.updateMainScrollableElement.bind(topOverlay);
-          topOverlay.updateMainScrollableElement = function() {
-            orig();
-            topOverlay.mainTableScrollableElement = window;
-          };
-        }
-      } catch (e) {
-        console.warn('Could not simulate bug:', e);
-      }
-    })();
-    // ─────────────────────────────────────────────────────────────────────────
-
-    const result = document.getElementById('result');
-
-    function showResult(label, scrolled) {
-      const firstRow = hot.getFirstFullyVisibleRow();
-      result.textContent = `${label} → returned: ${scrolled} | first visible row: ${firstRow}`;
-      result.style.background = (scrolled && firstRow > 0) ? '#d4edda' : '#f8d7da';
+    function testVertical() {
+      const ok = hotV.scrollViewportTo({ row: 150, col: 0 });
+      const scrollTop = getHolder(hotV).scrollTop;
+      const el = document.getElementById('result-v');
+      el.textContent = `returned: ${ok} | holder scrollTop: ${scrollTop}px (expected > 0)`;
+      el.style.background = (ok && scrollTop > 0) ? '#d4edda' : '#f8d7da';
+    }
+    function resetV() {
+      hotV.scrollViewportTo({ row: 0, col: 0 });
+      const el = document.getElementById('result-v');
+      el.textContent = 'Reset'; el.style.background = '#fff';
     }
 
-    document.getElementById('btn-row').addEventListener('click', () => {
-      const ok = hot.scrollViewportTo({ row: 150, col: 0 });
-      showResult('scrollViewportTo({row:150, col:0})', ok);
+    // Case 2: horizontal
+    const hotH = new Handsontable(document.getElementById('hot-h'), {
+      data: Handsontable.helper.createSpreadsheetData(10, 200),
+      colHeaders: true, rowHeaders: true,
+      width: 300, height: 200, colWidths: 60,
+      preventOverflow: 'vertical',
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
     });
+    simulateBug(hotH);
 
-    document.getElementById('btn-col').addEventListener('click', () => {
-      const ok = hot.scrollViewportTo({ row: 0, col: 7 });
-      const firstCol = hot.getFirstFullyVisibleColumn();
-      result.textContent = `scrollViewportTo({row:0, col:7}) → ${ok} | first visible col: ${firstCol}`;
-      result.style.background = (ok && firstCol > 0) ? '#d4edda' : '#f8d7da';
-    });
-
-    document.getElementById('btn-reset').addEventListener('click', () => {
-      hot.scrollViewportTo({ row: 0, col: 0 });
-      result.textContent = 'Reset';
-      result.style.background = '#fff';
-    });
+    function testHorizontal() {
+      const ok = hotH.scrollViewportTo({ row: 0, col: 150 });
+      const scrollLeft = getHolder(hotH).scrollLeft;
+      const el = document.getElementById('result-h');
+      el.textContent = `returned: ${ok} | holder scrollLeft: ${scrollLeft}px (expected > 0)`;
+      el.style.background = (ok && scrollLeft > 0) ? '#d4edda' : '#f8d7da';
+    }
+    function resetH() {
+      hotH.scrollViewportTo({ row: 0, col: 0 });
+      const el = document.getElementById('result-h');
+      el.textContent = 'Reset'; el.style.background = '#fff';
+    }
   </script>
 </body>
 </html>
