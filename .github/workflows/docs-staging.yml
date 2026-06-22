@@ -25,7 +25,7 @@ defaults:
 jobs:
   preview:
     if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'ci:docs-deploy') }}
-    name: Build and push Preview to Netlify (on pull request label)
+    name: Build and push Preview to Cloudflare Pages (on pull request label)
     runs-on: ubuntu-latest
 
     steps:
@@ -132,17 +132,17 @@ jobs:
       # Stage the built docs into the directory deployed to Cloudflare Pages.
       - name: Prepare Cloudflare Pages deploy directory
         run: |
-          cd netlify
-          mkdir -p deploy/docs
+          cd deploy
+          mkdir -p preview/docs
 
-          cp -r ../dist/. deploy/docs/
+          cp -r ../dist/. preview/docs/
 
           # Place 404.html at the publish root so the host serves it
           # automatically for all unmatched routes (no redirect rule needed).
-          cp ../dist/404.html deploy/404.html
+          cp ../dist/404.html preview/404.html
 
-          cp _dev_headers deploy/_headers
-          cp _redirects deploy/_redirects
+          cp _dev_headers preview/_headers
+          cp _redirects preview/_redirects
 
       # Decide how this build maps to a Cloudflare Pages deployment:
       #   - push/dispatch on develop -> deploy to the production branch
@@ -175,7 +175,7 @@ jobs:
       - name: Add Cloudflare worker to deploy
         if: ${{ steps.cf-target.outputs.deploy == 'true' }}
         continue-on-error: true
-        run: cp cloudflare/_worker.js netlify/deploy/_worker.js
+        run: cp cloudflare/_worker.js deploy/preview/_worker.js
 
       - name: Ensure Cloudflare Pages project exists
         if: ${{ steps.cf-target.outputs.deploy == 'true' }}
@@ -199,7 +199,7 @@ jobs:
         run: |
           npm install wrangler
           ./node_modules/.bin/wrangler pages deploy \
-            "$GITHUB_WORKSPACE/docs/netlify/deploy" \
+            "$GITHUB_WORKSPACE/docs/deploy/preview" \
             --project-name handsontable-docs-staging \
             --branch "${{ steps.cf-target.outputs.branch }}"
         env:

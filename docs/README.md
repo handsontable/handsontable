@@ -61,7 +61,8 @@ docs                            # All documentation files
 │   ├── recipes                 # Recipe pages
 │   └── sidebars.js             # Legacy sidebars configuration
 ├── public                      # Static assets served as-is (images, fonts, etc.)
-├── netlify                     # Netlify deployment configuration and build scripts
+├── deploy                      # Cloudflare Pages build scripts (multi-version site assembly)
+├── cloudflare                  # Cloudflare Pages worker (redirects/rewrites) and project scripts
 ├── tests                       # Playwright visual test specs
 ├── astro.config.mjs            # Astro configuration
 ├── tsconfig.json               # TypeScript configuration
@@ -73,7 +74,7 @@ docs                            # All documentation files
 
 ## Handsontable documentation branches structure
 
-Each documentation version has its own production branch from which the deployment is happening. The documentation branches are created using the following pattern `prod-docs/<MAJOR.MINOR>`. The `prod-docs/latest` branch contains all files necessary for Netlify deployment.
+Each documentation version has its own production branch from which the deployment is happening. The documentation branches are created using the following pattern `prod-docs/<MAJOR.MINOR>`. The `prod-docs/latest` branch contains all files necessary for the Cloudflare Pages deployment.
 
 The documentation branches are created and updated automatically by the `stable-publish` job in `.github/workflows/publish.yml`. Depending on the Handsontable release version, two scenarios may happen:
 1. Patch release:
@@ -85,24 +86,24 @@ The documentation branches are created and updated automatically by the `stable-
     * Update the docs changelog and generate API content via `npm run docs:api`;
     * Commit and push the changes to the origin;
 
-The prod-docs/latest branch is automatically recreated by the CI/CD pipeline whenever a patch or release update is applied to the latest documentation version. This branch triggers a GitHub workflow that initiates a rebuild and deploys to Netlify on each push or when a new branch `prod-docs/<MAJOR.MINOR>` is created.
+The prod-docs/latest branch is automatically recreated by the CI/CD pipeline whenever a patch or release update is applied to the latest documentation version. This branch triggers a GitHub workflow that initiates a rebuild and deploys to Cloudflare Pages on each push or when a new branch `prod-docs/<MAJOR.MINOR>` is created.
 
-Committing directly to the Documentation production branch triggers GitHub workflow that deploys the changes to Netlify. The exception is the `develop` branch that holds the changes for the "next" version. The staging version can be deployed only [manually](./README-DEPLOYMENT.md#manually-deploying-the-documentation-to-the-staging-environment).
+Committing directly to the Documentation production branch triggers GitHub workflow that deploys the changes to Cloudflare Pages. The exception is the `develop` branch that holds the changes for the "next" version. The staging version can be deployed only [manually](./README-DEPLOYMENT.md#manually-deploying-the-documentation-to-the-staging-environment).
 
 ```bash
 [branch] `prod-docs/12.0`       # All documentation files related to documentation 12.0
   docs
   ├── src                       # Astro/Starlight source files
   ├── content                   # The documentation content files
-  └── netlify                   # Netlify deployment configuration
+  └── deploy                    # Cloudflare Pages build scripts
 [branch] `prod-docs/12.1`       # All documentation files related to documentation 12.1
   docs
   ├── src                       # Astro/Starlight source files
   ├── content                   # The documentation content files
-  └── netlify                   # Netlify deployment configuration
+  └── deploy                    # Cloudflare Pages build scripts
 [branch] `develop`              # All documentation files related to the "next" documentation version
   docs
   ├── src                       # Astro/Starlight source files
   ├── content                   # The documentation content files
-  └── netlify                   # Netlify deployment configuration
+  └── deploy                    # Cloudflare Pages build scripts
 ```
