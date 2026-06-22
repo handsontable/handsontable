@@ -507,5 +507,39 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
       expect(getCell(-1, 2).textContent).toBe('Street');
       expect(getCell(-1, 3).textContent).toBe('City');
     });
+
+    it('should restore group membership when a cohesive move is undone and redone (#4150)', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 4),
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: 'Address', colspan: 2 }, { label: 'Finance', colspan: 2 }],
+          ['Street', 'City', 'Revenue', 'Profit'],
+        ],
+        manualColumnMove: true,
+      });
+
+      getPlugin('manualColumnMove').moveColumn(2, 1); // Revenue adopted into Address -> Address spans 3
+      await render();
+
+      expect(getCell(-2, 0).colSpan).toBe(3);
+
+      getPlugin('undoRedo').undo();
+      await render();
+
+      // Undo restores the original membership: Address and Finance each span two columns again.
+      expect(getCell(-2, 0).textContent).toBe('Address');
+      expect(getCell(-2, 0).colSpan).toBe(2);
+      expect(getCell(-2, 2).textContent).toBe('Finance');
+      expect(getCell(-2, 2).colSpan).toBe(2);
+      expect(getCell(-1, 0).textContent).toBe('Street');
+
+      getPlugin('undoRedo').redo();
+      await render();
+
+      // Redo re-applies the adoption.
+      expect(getCell(-2, 0).colSpan).toBe(3);
+      expect(getCell(-1, 1).textContent).toBe('Revenue');
+    });
   });
 });

@@ -498,6 +498,13 @@ export default class StateManager {
       return owner === undefined ? -1 - physical : owner;
     };
 
+    const authoredOwnerAt = (visualColumn: number, level: number): number => {
+      const physical = arrangement.getPhysicalFromVisual(visualColumn);
+      const owner = ownerIndexByLevel[level][physical];
+
+      return owner === undefined ? -1 - physical : owner;
+    };
+
     // Decide from the current layout first, then apply, so moved siblings see each other's old owner.
     const decisions: { physical: number, level: number, identity: number | null }[] = [];
 
@@ -509,7 +516,7 @@ export default class StateManager {
           physical,
           level,
           identity: this.#resolveMovedMembership(
-            visualColumn, physical, level, columnsCount, authoredLayers, ownerIndexByLevel, effectiveOwnerAt
+            visualColumn, level, columnsCount, authoredLayers, effectiveOwnerAt, authoredOwnerAt
           ),
         });
       }
@@ -554,36 +561,39 @@ export default class StateManager {
    * group still splits and an intact group is left untouched - only genuine re-parents are recorded.
    *
    * @param {number} visualColumn - The column's post-move visual index.
-   * @param {number} physical - The column's physical index.
    * @param {number} level - The header level being resolved.
    * @param {number} columnsCount - The number of columns the structure spans.
    * @param {SourceHeaderCell[][]} authoredLayers - The authored header layers.
-   * @param {number[][]} ownerIndexByLevel - The authored owner index per level.
    * @param {Function} effectiveOwnerAt - Resolves the current effective owner of a (visual, level).
+   * @param {Function} authoredOwnerAt - Resolves the authored owner of a (visual, level).
    * @returns {number|null} The owner identity to record, or `null` to clear.
    */
   #resolveMovedMembership(
     visualColumn: number,
-    physical: number,
     level: number,
     columnsCount: number,
     authoredLayers: SourceHeaderCell[][],
-    ownerIndexByLevel: number[][],
-    effectiveOwnerAt: (visualColumn: number, level: number) => number
+    effectiveOwnerAt: (visualColumn: number, level: number) => number,
+    authoredOwnerAt: (visualColumn: number, level: number) => number
   ): number | null {
     const isCohesive = (owner: number): boolean =>
       owner >= 0 && authoredLayers[level][owner]?.splittable !== true;
-    const authoredOwnerRaw = ownerIndexByLevel[level][physical];
-    const authoredOwner = authoredOwnerRaw === undefined ? -1 - physical : authoredOwnerRaw;
+    const hasLeft = visualColumn > 0;
+    const hasRight = visualColumn < columnsCount - 1;
+    const authoredOwner = authoredOwnerAt(visualColumn, level);
     const ownEffective = effectiveOwnerAt(visualColumn, level);
-    const leftOwner = visualColumn > 0 ? effectiveOwnerAt(visualColumn - 1, level) : -Infinity;
-    const rightOwner = visualColumn < columnsCount - 1 ? effectiveOwnerAt(visualColumn + 1, level) : -Infinity;
+    const leftEffective = hasLeft ? effectiveOwnerAt(visualColumn - 1, level) : -Infinity;
+    const rightEffective = hasRight ? effectiveOwnerAt(visualColumn + 1, level) : -Infinity;
+    const leftAuthored = hasLeft ? authoredOwnerAt(visualColumn - 1, level) : -Infinity;
+    const rightAuthored = hasRight ? authoredOwnerAt(visualColumn + 1, level) : -Infinity;
     let target: number;
 
-    if (leftOwner === rightOwner && isCohesive(leftOwner)) {
-      target = leftOwner; // dropped strictly inside a cohesive group -> adopt into it
-    } else if (ownEffective >= 0 && (leftOwner === ownEffective || rightOwner === ownEffective)) {
-      target = ownEffective; // still beside a sibling of its own group -> keep it (group is intact)
+    if (leftEffective === rightEffective && isCohesive(leftEffective)) {
+      target = leftEffective; // dropped strictly inside a cohesive group -> adopt into it
+    } else if (isCohesive(authoredOwner) && (leftAuthored === authoredOwner || rightAuthored === authoredOwner)) {
+      // Back beside its authored cohesive group (e.g. an undone move, or a whole group moved together)
+      // - revert to the authored structure.
+      target = authoredOwner;
     } else if (isCohesive(ownEffective)) {
       target = -1; // left a cohesive group with nowhere cohesive to land -> standalone
     } else {
