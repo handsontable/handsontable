@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Undo row removal restores hidden data — Released v17.1.0</title>
+  <title>DEV-1765 — Released v17.1.0 (BUG)</title>
   <link rel="stylesheet"
     href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
   <style>
@@ -12,27 +12,26 @@
     h1 { font-size: 18px; margin-bottom: 12px; }
     nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
     .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
-    .nav-btn {
-      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
-      border: 1px solid #ccc;
-    }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
     .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
     .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
-    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .nav-btn:not(.active):hover { background: #ddd; }
     .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
     .badge-cdn { background: #e3f2fd; color: #1565c0; }
     .badge-local { background: #e8f5e9; color: #2e7d32; }
-    .info { background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
+    .info { background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
     .info strong { color: #856404; }
-    .source-output { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px 16px; margin-top: 16px; font-size: 13px; }
-    .source-output h2 { font-size: 14px; margin-bottom: 8px; }
-    pre { white-space: pre-wrap; word-break: break-all; }
-    button { margin-top: 12px; padding: 6px 14px; font-size: 13px; cursor: pointer; border: 1px solid #aaa; border-radius: 4px; background: #eee; }
-    button:hover { background: #ddd; }
+    .result { border-radius: 6px; padding: 14px 16px; margin-top: 16px; font-size: 14px; display: none; }
+    .result.fail { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+    .result.pass { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+    .result h3 { font-size: 15px; margin-bottom: 8px; }
+    pre { background: rgba(0,0,0,0.06); border-radius: 4px; padding: 8px 10px; margin-top: 8px; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
+    button { margin-top: 12px; padding: 8px 18px; font-size: 14px; cursor: pointer; border: 1px solid #555; border-radius: 5px; background: #333; color: #fff; }
+    button:hover { background: #555; }
   </style>
 </head>
 <body>
-  <h1>DEV-1765: Undo row removal restores hidden source-data fields</h1>
+  <h1>DEV-1765: Undo row removal — hidden source-data field test</h1>
 
   <nav>
     <span class="nav-label">Version:</span>
@@ -41,36 +40,36 @@
   </nav>
 
   <div class="info">
-    <strong>Bug — expected behavior NOT present here.</strong><br>
-    How to test:<br>
-    1. Note that each row has an <code>artist</code> field, but only <code>category</code> and <code>label</code> are shown in the grid (hidden field).<br>
-    2. Right-click row 2 (Alabama Shakes) → <strong>Remove row</strong>.<br>
-    3. Press <strong>Ctrl+Z</strong> (or Cmd+Z) to undo.<br>
-    4. Click <strong>"Show source data"</strong> below.<br>
-    <strong>BUG:</strong> The restored row's <code>artist</code> field is <code>null</code> instead of <code>"Alabama Shakes"</code>.<br>
-    Compare with the PR Build tab where the field is correctly restored.
+    <strong>Setup:</strong> Object-data rows with <code>artist</code>, <code>category</code>, <code>label</code>. Only <code>category</code> and <code>label</code> are in <code>columns</code> — <code>artist</code> is a hidden field.<br><br>
+    <strong>Test:</strong> Remove row 1 (Alabama Shakes) → undo → check whether <code>artist</code> is restored.<br><br>
+    Click <strong>Run automated test</strong> to execute all steps programmatically.
   </div>
 
   <div id="hot-container"></div>
+  <button onclick="runTest()">Run automated test</button>
 
-  <button onclick="showSource()">Show source data</button>
-  <div class="source-output" id="output" style="display:none">
-    <h2>Source data (hot.getSourceData())</h2>
-    <pre id="source-pre"></pre>
+  <div class="result" id="result">
+    <h3 id="result-title"></h3>
+    <div id="result-body"></div>
+    <pre id="result-data"></pre>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
   <script>
-    const data = [
-      { artist: 'Foo Fighters',   category: 'rock',  label: 'Roswell Records' },
-      { artist: 'Alabama Shakes', category: 'blues', label: 'ATO Records'     },
-      { artist: 'Radiohead',      category: 'rock',  label: 'XL Recordings'   },
-      { artist: 'Kendrick Lamar', category: 'hip-hop', label: 'Top Dawg Ent.' },
-      { artist: 'Adele',          category: 'pop',   label: 'Columbia Records' },
+    const ORIGINAL_DATA = [
+      { artist: 'Foo Fighters',   category: 'rock',    label: 'Roswell Records'  },
+      { artist: 'Alabama Shakes', category: 'blues',   label: 'ATO Records'      },
+      { artist: 'Radiohead',      category: 'rock',    label: 'XL Recordings'    },
+      { artist: 'Kendrick Lamar', category: 'hip-hop', label: 'Top Dawg Ent.'    },
+      { artist: 'Adele',          category: 'pop',     label: 'Columbia Records' },
     ];
 
+    function freshData() {
+      return ORIGINAL_DATA.map(r => Object.assign({}, r));
+    }
+
     window.hot = new Handsontable(document.getElementById('hot-container'), {
-      data,
+      data: freshData(),
       columns: [
         { data: 'category', title: 'Category' },
         { data: 'label',    title: 'Label'    },
@@ -80,16 +79,48 @@
       contextMenu: true,
       undo: true,
       width: '100%',
-      height: 280,
+      height: 240,
       themeName: 'ht-theme-main',
       licenseKey: 'non-commercial-and-evaluation',
     });
 
-    function showSource() {
-      const out = document.getElementById('output');
-      document.getElementById('source-pre').textContent =
-        JSON.stringify(hot.getSourceData(), null, 2);
-      out.style.display = 'block';
+    function runTest() {
+      // Reset to clean state
+      hot.loadData(freshData());
+
+      const rowBefore = JSON.parse(JSON.stringify(hot.getSourceDataAtRow(1)));
+      const artistBefore = rowBefore.artist;
+
+      // Remove row 1 (Alabama Shakes)
+      hot.alter('remove_row', 1, 1);
+
+      // Undo
+      hot.getPlugin('undoRedo').undo();
+
+      // Check
+      const rowAfter = hot.getSourceDataAtRow(1);
+      const artistAfter = rowAfter ? rowAfter.artist : undefined;
+
+      const resultEl = document.getElementById('result');
+      const titleEl  = document.getElementById('result-title');
+      const bodyEl   = document.getElementById('result-body');
+      const dataEl   = document.getElementById('result-data');
+
+      resultEl.style.display = 'block';
+
+      if (artistAfter === artistBefore) {
+        resultEl.className = 'result pass';
+        titleEl.textContent = '✓ PASS — artist field correctly restored';
+        bodyEl.innerHTML = `<code>artist</code> after undo: <strong>"${artistAfter}"</strong> (matches original)`;
+      } else {
+        resultEl.className = 'result fail';
+        titleEl.textContent = '✗ FAIL (BUG PRESENT) — artist field not restored';
+        bodyEl.innerHTML =
+          `Expected: <code>"${artistBefore}"</code><br>` +
+          `Got: <code>${JSON.stringify(artistAfter)}</code> — hidden field was lost during undo snapshot`;
+      }
+
+      dataEl.textContent = 'Full source row 1 after undo:\n' + JSON.stringify(rowAfter, null, 2);
     }
   </script>
 </body>
