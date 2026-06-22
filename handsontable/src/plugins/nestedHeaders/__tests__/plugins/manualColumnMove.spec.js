@@ -249,6 +249,41 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
     expect(getCell(-1, 4).textContent).toBe('a1');
   });
 
+  it('should not misapply a stale adoption override after a column is inserted (#4150)', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 4),
+      colHeaders: true,
+      nestedHeaders: [
+        [{ label: 'Address', colspan: 2 }, { label: 'Finance', colspan: 2 }], // cohesive (default)
+        ['Street', 'City', 'Revenue', 'Profit'],
+      ],
+      manualColumnMove: true,
+    });
+
+    // Move "Revenue" into Address - cohesive Address adopts it, recording a membership override keyed
+    // by Revenue's physical column and Address's authored owner index.
+    getPlugin('manualColumnMove').moveColumn(2, 1);
+    await render();
+    expect(getCell(-2, 0).colSpan).toBe(3); // adoption recorded: Address spans Street, Revenue, City
+
+    // Insert a column at the front. This shifts every physical column index and the authored owner
+    // indices, so the override (still keyed by the old physical column) would misapply to the wrong
+    // column. The override must be reset on this structural change.
+    await alter('insert_col_start', 0, 1);
+
+    // Visual order is now: <blank>, Street, Revenue, City, Profit. With the override reset, the
+    // adoption is gone - Revenue reverts to its authored Finance group, so no header spans more than
+    // one column (Address's two members are no longer adjacent) and labels follow the data.
+    expect(getCell(-1, 1).textContent).toBe('Street');
+    expect(getCell(-1, 2).textContent).toBe('Revenue');
+    expect(getCell(-1, 3).textContent).toBe('City');
+    expect(getCell(-2, 1).textContent).toBe('Address'); // over Street
+    expect(getCell(-2, 1).colSpan).toBe(1);
+    expect(getCell(-2, 2).textContent).toBe('Finance'); // over Revenue - NOT adopted into Address
+    expect(getCell(-2, 2).colSpan).toBe(1);
+    expect(getCell(-2, 3).textContent).toBe('Address'); // over City
+  });
+
   it('should keep labels aligned for an insert run inside a batch after a move (#4150)', async() => {
     handsontable({
       data: [['a1', 'a2', 'b1', 'b2'], ['a1', 'a2', 'b1', 'b2']],

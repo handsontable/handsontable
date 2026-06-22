@@ -42,6 +42,30 @@ export function computeOwnerIndex(layer: SourceHeaderCell[]): number[] {
 }
 
 /**
+ * Resolves the group owner key for one physical column at one header level, applying the
+ * standalone-sentinel and override-precedence contract shared by the derive and re-parent logic.
+ *
+ * A membership override (from a column move) wins: a non-negative value is the destination group's
+ * authored owner index, a negative value means standalone. With no override the authored owner index
+ * applies; a physical column with no authored header at this level gets a unique negative key
+ * (`-1 - physical`) so it never coalesces with a real group.
+ *
+ * @param {number} physical - The physical column index.
+ * @param {number[]} ownerIndex - The authored owner index per physical column for this level.
+ * @param {number} [override] - The membership override for this column at this level, if any.
+ * @returns {number} The group owner key (`>= 0` group, `< 0` standalone).
+ */
+export function resolveOwnerKey(physical: number, ownerIndex: number[], override?: number): number {
+  if (override !== undefined) {
+    return override >= 0 ? override : -1 - physical;
+  }
+
+  const owner = ownerIndex[physical];
+
+  return owner === undefined ? -1 - physical : owner;
+}
+
+/**
  * Clones an authored owner cell into a visual-order header cell of the given run width.
  *
  * Array-valued fields are copied so that two banners derived from one authored group (after a split)
@@ -101,21 +125,11 @@ function deriveVisualLayer(
 ): SourceHeaderCell[] {
   const ownerIndex = computeOwnerIndex(authoredLayer);
 
-  // Resolves the group key for a visual column. A membership override (from a column move) re-parents
-  // the column: a non-negative value is the destination group's owner index, a negative value means
-  // standalone. With no override, the authored owner applies; a physical column with no authored header
-  // at this level gets a unique negative key so it never coalesces with a real group (standalone).
+  // Resolves the group key for a visual column. See resolveOwnerKey for the override/standalone rules.
   const ownerKeyAt = (visualColumn: number): number => {
     const physical = arrangement.getPhysicalFromVisual(visualColumn);
-    const override = membershipOverrides?.get(physical)?.get(headerLevel);
 
-    if (override !== undefined) {
-      return override >= 0 ? override : -1 - physical;
-    }
-
-    const owner = ownerIndex[physical];
-
-    return owner === undefined ? -1 - physical : owner;
+    return resolveOwnerKey(physical, ownerIndex, membershipOverrides?.get(physical)?.get(headerLevel));
   };
 
   const visualLayer: SourceHeaderCell[] = [];

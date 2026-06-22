@@ -7,7 +7,7 @@ import type { NodeModificationResult } from './nodeModifiers';
 import { isDeclarativeGroup } from './nodeModifiers/utils/tree';
 import { generateMatrix } from './matrixGenerator';
 import { syncVisibilityOnTree } from './syncVisibility';
-import { deriveVisualSettings, computeOwnerIndex } from './deriveSettings';
+import { deriveVisualSettings, computeOwnerIndex, resolveOwnerKey } from './deriveSettings';
 import type { MembershipOverrides } from './deriveSettings';
 import { createIdentityColumnArrangement } from './columnArrangement';
 import type { ColumnArrangement } from './columnArrangement';
@@ -82,7 +82,7 @@ export default class StateManager {
     this.#sourceSettings.setData(nestedHeadersSettings);
     // A fresh authored configuration invalidates move-driven membership overrides (their owner
     // identities index the previous structure), so reset them.
-    this.#membershipOverrides = new Map();
+    this.#resetMembershipOverrides();
     let hasError = false;
 
     try {
@@ -173,7 +173,8 @@ export default class StateManager {
       const matches = this.#findNodesByAuthoredIdentity(headerLevel, authoredColumnIndex);
 
       if (matches.length === 1) {
-        this.triggerNodeModification('collapse', headerLevel, matches[0].data.columnIndex);
+        // Matrix-free: the trailing #applySyncVisibility regenerates the matrix once for all groups.
+        this.#applyNodeModification('collapse', headerLevel, matches[0].data.columnIndex);
       }
     });
   }
@@ -244,6 +245,9 @@ export default class StateManager {
    * @param {number} amount The number of columns to insert.
    */
   insertColumns(visualColumnIndex: number, physicalColumnIndex: number, amount: number) {
+    // An index-shifting structural change invalidates move-driven membership overrides (keyed by
+    // physical column, with owner identities indexing the authored structure - both shifted here).
+    this.#resetMembershipOverrides();
     this.#rebuildPreservingCollapse(
       () => this.#sourceSettings.insertColumns(physicalColumnIndex, amount),
       c => (c >= visualColumnIndex ? c + amount : c)
@@ -267,6 +271,9 @@ export default class StateManager {
   removeColumns(visualColumnIndex: number, amount: number, physicalColumns: number[]) {
     const endIndex = visualColumnIndex + amount;
 
+    // An index-shifting structural change invalidates move-driven membership overrides (keyed by
+    // physical column, with owner identities indexing the authored structure - both shifted here).
+    this.#resetMembershipOverrides();
     this.#rebuildPreservingCollapse(
       () => {
         [...physicalColumns]
@@ -345,7 +352,8 @@ export default class StateManager {
     shiftColumnIndex: (columnIndex: number) => number
   ) {
     collapsedNodes.forEach(({ headerLevel, columnIndex }) => {
-      this.triggerNodeModification('collapse', headerLevel, shiftColumnIndex(columnIndex));
+      // Matrix-free: the trailing #applySyncVisibility regenerates the matrix once for all nodes.
+      this.#applyNodeModification('collapse', headerLevel, shiftColumnIndex(columnIndex));
     });
   }
 
@@ -384,20 +392,43 @@ export default class StateManager {
   triggerNodeModification(
     action: string, headerLevel: number, columnIndex: number
   ): NodeModificationResult | undefined {
+    const { actionResult, modified } = this.#applyNodeModification(action, headerLevel, columnIndex);
+
+    if (modified) {
+      this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
+    }
+
+    return actionResult;
+  }
+
+  /**
+   * Applies a NodeModifiers action to the tree WITHOUT regenerating the state matrix, and reports
+   * whether a node was actually modified. Callers that batch several modifications (re-applying
+   * collapse after a re-derive) use this and regenerate the matrix once at the end, instead of paying
+   * a full whole-matrix regeneration per modified node.
+   *
+   * @param {string} action An action name to trigger.
+   * @param {number} headerLevel Header level index.
+   * @param {number} columnIndex A visual column index.
+   * @returns {{ actionResult: NodeModificationResult|undefined, modified: boolean }}
+   */
+  #applyNodeModification(
+    action: string, headerLevel: number, columnIndex: number
+  ): { actionResult: NodeModificationResult | undefined, modified: boolean } {
     if (headerLevel < 0) {
       headerLevel = this.rowCoordsToLevel(headerLevel) ?? 0;
     }
 
     const nodeToProcess = this.#headersTree.getNode(headerLevel, columnIndex);
-    let actionResult;
 
-    if (nodeToProcess) {
-      actionResult = triggerNodeModification(action, nodeToProcess, columnIndex);
-
-      this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
+    if (!nodeToProcess) {
+      return { actionResult: undefined, modified: false };
     }
 
-    return actionResult ?? undefined;
+    return {
+      actionResult: triggerNodeModification(action, nodeToProcess, columnIndex) ?? undefined,
+      modified: true,
+    };
   }
 
   /**
@@ -488,24 +519,18 @@ export default class StateManager {
     }
 
     const ownerIndexByLevel = authoredLayers.map(layer => computeOwnerIndex(layer));
+    // Effective owner = the move override if any, else the authored owner (see resolveOwnerKey).
     const effectiveOwnerAt = (visualColumn: number, level: number): number => {
       const physical = arrangement.getPhysicalFromVisual(visualColumn);
-      const override = this.#membershipOverrides.get(physical)?.get(level);
 
-      if (override !== undefined) {
-        return override >= 0 ? override : -1 - physical;
-      }
-
-      const owner = ownerIndexByLevel[level][physical];
-
-      return owner === undefined ? -1 - physical : owner;
+      return resolveOwnerKey(physical, ownerIndexByLevel[level], this.#membershipOverrides.get(physical)?.get(level));
     };
 
+    // Authored owner ignores any override - the group the column belongs to in the authored config.
     const authoredOwnerAt = (visualColumn: number, level: number): number => {
       const physical = arrangement.getPhysicalFromVisual(visualColumn);
-      const owner = ownerIndexByLevel[level][physical];
 
-      return owner === undefined ? -1 - physical : owner;
+      return resolveOwnerKey(physical, ownerIndexByLevel[level]);
     };
 
     // The columns moved together in this operation. Their mutual adjacency must be skipped when
@@ -603,6 +628,15 @@ export default class StateManager {
     const innerOwner = enclosingOwnerAt(visualColumn, level + 1);
 
     return innerOwner >= 0 ? ownerIndexByLevel[level][innerOwner] : authoredOwnerAt(visualColumn, level);
+  }
+
+  /**
+   * Clears all move-driven membership overrides. Call when the authored structure changes - a fresh
+   * config (setState) or an index-shifting insert/remove - because the overrides are keyed by physical
+   * column and their owner identities index the authored structure, both invalidated by such a change.
+   */
+  #resetMembershipOverrides() {
+    this.#membershipOverrides = new Map();
   }
 
   /**

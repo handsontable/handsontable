@@ -542,13 +542,11 @@ export class ManualColumnMove extends BasePlugin {
       // Stop on the column under the cursor, or on the last column the header covers (its right edge
       // reaches the header's end). A hidden column has zero width, so it is stepped over.
       if ((width > 0 && mouseOffsetStart < edge + width) || edge + width >= headerEnd) {
-        const clampedColumn = column >= this.#countCols ? this.#countCols - 1 : column;
-
         if ((width / 2) + edge <= mouseOffsetStart) {
           // A drop at a column's right edge should land past any hidden (zero-width) columns that
           // follow it, so releasing at the visible end of a collapsed group drops after the whole
           // group rather than between its visible column and an adjacent hidden one.
-          let targetColumn = clampedColumn + 1;
+          let targetColumn = column + 1;
 
           while (targetColumn < this.#countCols && this.getColumnsWidth(targetColumn, targetColumn) === 0) {
             targetColumn += 1;
@@ -559,7 +557,7 @@ export class ManualColumnMove extends BasePlugin {
           return edge + width;
         }
 
-        this.#target.col = clampedColumn;
+        this.#target.col = column;
 
         return edge;
       }
