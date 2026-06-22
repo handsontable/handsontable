@@ -228,6 +228,8 @@ export default class CoreAbstract {
    * @returns {Walkontable}
    */
   draw(fastDraw = false) {
+    const wasDrawInterrupted = this.drawInterrupted;
+
     this.drawInterrupted = false;
 
     if (!this.wtTable.isVisible() ||
@@ -235,6 +237,17 @@ export default class CoreAbstract {
       // draw interrupted because TABLE is not visible or has the height set to 0
       this.drawInterrupted = true;
     } else {
+      // When the previous draw was interrupted (the table was not visible — e.g. initialized
+      // while detached from the DOM and attached later in `afterInit`, or toggled from
+      // `display: none`), the scrollable element and the container ResizeObserver were resolved
+      // against the detached/hidden tree: the scrollable element fell back to `window` and the
+      // observer was never attached (its `registerListeners` branch is skipped when the
+      // scrollable element is the window). Re-resolve them now that the table is visible, so
+      // scrolling and resize detection work. The call is a no-op when nothing changed.
+      if (wasDrawInterrupted) {
+        this.wtOverlays.updateMainScrollableElements();
+      }
+
       this.wtTable.draw(fastDraw);
     }
 

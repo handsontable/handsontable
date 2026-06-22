@@ -216,6 +216,50 @@ describe('Core_init', () => {
     $style.remove();
   });
 
+  it('should keep the viewport scrollable when the table is initialized on a detached element ' +
+    'and attached to the DOM in `afterInit`', async() => {
+    // Regression: with the documented "build on a detached container, attach it in `afterInit`"
+    // pattern, the scrollable element was resolved at construction time against a detached parent
+    // (which reports an empty computed `overflow`) and fell back to the window. The scroll listener
+    // and the container ResizeObserver were therefore never bound to the holder, so scrolling
+    // rendered nothing below the initially visible rows.
+    spec().$container.remove();
+
+    const example = $(`<div id="${id}"></div>`).appendTo('body')[0];
+    const container = document.createElement('div');
+
+    const hot = new Handsontable(container, {
+      data: createSpreadsheetData(100, 100),
+      width: 200,
+      height: 100,
+      afterInit() {
+        example.appendChild(container);
+        this.render();
+      }
+    });
+
+    setCurrentHotInstance(hot);
+    spec().$container = $(example);
+
+    await waitForNextAnimationFrames(2);
+
+    const holder = hot.view._wt.wtTable.holder;
+
+    // The scrollable element must be re-resolved to the holder once the table is attached,
+    // instead of remaining the window it fell back to while detached.
+    expect(hot.view._wt.wtOverlays.scrollableElement).not.toBe(hot.rootWindow);
+    expect(hot.view._wt.wtOverlays.scrollableElement).toBe(holder);
+
+    // Scrolling the holder must render rows below the initial viewport.
+    const lastRenderedRowBeforeScroll = hot.view._wt.wtTable.getLastRenderedRow();
+
+    holder.scrollTop = 1500;
+
+    await sleep(100);
+
+    expect(hot.view._wt.wtTable.getLastRenderedRow()).toBeGreaterThan(lastRenderedRowBeforeScroll);
+  });
+
   describe('theme initialization', () => {
     it('should enable a theme when a theme class name was added to the root element', async() => {
       simulateModernThemeStylesheet(spec().$container);

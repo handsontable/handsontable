@@ -887,14 +887,6 @@ class Overlays {
    * Update the main scrollable elements for all the overlays.
    */
   updateMainScrollableElements() {
-    this.eventManager.clearEvents(true);
-
-    this.inlineStartOverlay.updateMainScrollableElement();
-    this.topOverlay.updateMainScrollableElement();
-
-    if (this.bottomOverlay.needFullRender) {
-      this.bottomOverlay.updateMainScrollableElement();
-    }
     const { wtTable } = this;
     const { rootWindow } = this.domBindings;
     const tableParentNode = wtTable.wtRootElement.parentNode;
@@ -904,11 +896,28 @@ class Overlays {
       ? rootWindow.getComputedStyle(tableParentNode as Element).getPropertyValue('overflow')
       : '';
 
-    if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
-      this.scrollableElement = wtTable.holder;
-    } else {
-      this.scrollableElement = getScrollableElement(wtTable.TABLE);
+    const nextScrollableElement = (computedOverflow === 'hidden' || computedOverflow === 'clip')
+      ? wtTable.holder
+      : getScrollableElement(wtTable.TABLE);
+
+    // Nothing changed — keep the currently bound listeners instead of tearing them down and
+    // re-registering. This method is now also invoked from `draw` (on the visibility-recovery
+    // transition), which can be driven repeatedly by `refreshDimensions` on resize, so it must
+    // be a no-op when the scrollable element did not actually change.
+    if (nextScrollableElement === this.scrollableElement) {
+      return;
     }
+
+    this.eventManager.clearEvents(true);
+
+    this.inlineStartOverlay.updateMainScrollableElement();
+    this.topOverlay.updateMainScrollableElement();
+
+    if (this.bottomOverlay.needFullRender) {
+      this.bottomOverlay.updateMainScrollableElement();
+    }
+
+    this.scrollableElement = nextScrollableElement;
 
     this.registerListeners();
   }
