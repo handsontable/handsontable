@@ -61,10 +61,10 @@ The following methods were deprecated in version 18.0 and are scheduled for remo
 
 | Deprecated | Plugin | Migration guide |
 | ---------- | ------ | --------------- |
-| `saveManualColumnWidths()` | `ManualColumnResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#5-stop-calling-deprecated-resize-state-methods) |
-| `loadManualColumnWidths()` | `ManualColumnResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#5-stop-calling-deprecated-resize-state-methods) |
-| `saveManualRowHeights()` | `ManualRowResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#5-stop-calling-deprecated-resize-state-methods) |
-| `loadManualRowHeights()` | `ManualRowResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#5-stop-calling-deprecated-resize-state-methods) |
+| `saveManualColumnWidths()` | `ManualColumnResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
+| `loadManualColumnWidths()` | `ManualColumnResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
+| `saveManualRowHeights()` | `ManualRowResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
+| `loadManualRowHeights()` | `ManualRowResize` | [Migrate from 17.1 to 18.0 → Resize-state methods](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md#stop-calling-deprecated-resize-state-methods) |
 
 
 
