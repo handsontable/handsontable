@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1723: Filter by value lost after editing — v17.1.0 (FIXED)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn {
+      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
+      border: 1px solid #ccc;
+    }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug  { background: #fde8e8; color: #c0392b; }
+    .badge-fix  { background: #e8f5e9; color: #2e7d32; }
+    .info { background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px 16px; margin-bottom: 12px; font-size: 14px; line-height: 1.8; }
+    .info strong { color: #856404; }
+    .result-box { border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-size: 13px; }
+    .result-fix  { background: #e8f5e9; border: 1px solid #27ae60; color: #1e5631; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1723 — Filter by value of column Y is lost after editing column X</h1>
+
+  <nav>
+    <span class="nav-label">Version:</span>
+    <a class="nav-btn" href="test-DEV-1723-before.html">v17.0.1 <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">v17.1.0 <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="info">
+    <strong>Steps to verify the fix:</strong><br>
+    1. Click the <strong>▾</strong> dropdown on the <strong>Country</strong> header.<br>
+    2. Go to <em>Filter by value</em> → uncheck <strong>France</strong> → click OK.<br>
+    3. Click the <strong>▾</strong> dropdown on the <strong>Car</strong> header.<br>
+    4. Go to <em>Filter by value</em> → uncheck <strong>BMW</strong> → click OK.<br>
+    5. Double-click any cell in the <strong>Country</strong> column, press <kbd>Enter</kbd> (no change needed).<br>
+    6. Click the <strong>▾</strong> dropdown on the <strong>Car</strong> header → open <em>Filter by value</em> again.
+  </div>
+
+  <div class="result-box result-fix">
+    ✅ <strong>Fixed:</strong> BMW remains unchecked; all other car values remain checked.
+    Editing a cell in Country no longer wipes the Car column's filter state.
+  </div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script>
+    const data = [
+      { country: 'Germany',  car: 'Mercedes',  year: 2020, price: 45000 },
+      { country: 'Germany',  car: 'Audi',      year: 2019, price: 38000 },
+      { country: 'France',   car: 'Renault',   year: 2021, price: 22000 },
+      { country: 'France',   car: 'Peugeot',   year: 2018, price: 19000 },
+      { country: 'Italy',    car: 'Ferrari',   year: 2022, price: 95000 },
+      { country: 'Italy',    car: 'Fiat',      year: 2020, price: 14000 },
+      { country: 'Germany',  car: 'BMW',       year: 2021, price: 52000 },
+      { country: 'Spain',    car: 'Seat',      year: 2019, price: 17000 },
+      { country: 'Spain',    car: 'Seat',      year: 2022, price: 19500 },
+      { country: 'Italy',    car: 'Alfa Romeo',year: 2020, price: 37000 },
+    ];
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data,
+      colHeaders: ['Country', 'Car', 'Year', 'Price'],
+      columns: [
+        { data: 'country' },
+        { data: 'car' },
+        { data: 'year',  type: 'numeric' },
+        { data: 'price', type: 'numeric' },
+      ],
+      rowHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      width: '100%',
+      height: 420,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>
