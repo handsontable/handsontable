@@ -541,5 +541,31 @@ describe('NestedHeaders cooperation with ManualColumnMove', () => {
       expect(getCell(-2, 0).colSpan).toBe(3);
       expect(getCell(-1, 1).textContent).toBe('Revenue');
     });
+
+    it('should hide a column adopted into a cohesive group when that group is collapsed (#4150)', async() => {
+      handsontable({
+        data: createSpreadsheetData(2, 5),
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: 'Address', colspan: 2, collapsible: true }, { label: 'Finance', colspan: 2 }, 'Extra'],
+          ['Street', 'City', 'Revenue', 'Profit', 'Extra'],
+        ],
+        collapsibleColumns: true,
+        manualColumnMove: true,
+      });
+
+      getPlugin('manualColumnMove').moveColumn(4, 1); // "Extra" adopted into Address (between Street, City)
+      await render();
+
+      expect(getCell(-2, 0).colSpan).toBe(3); // Address adopted Extra
+
+      getPlugin('collapsibleColumns').toggleCollapsibleSection([{ row: -2, col: 0 }], 'collapse');
+      await render();
+
+      // Collapsing Address hides its non-first columns - City (physical 1) AND the adopted Extra
+      // (physical 4). That the adopted column collapses with the group proves it is a real member.
+      expect(getPlugin('collapsibleColumns').getCollapsedColumns().slice().sort((a, b) => a - b)).toEqual([1, 4]);
+      expect(hot().columnIndexMapper.getRenderableIndexesLength()).toBe(3);
+    });
   });
 });
