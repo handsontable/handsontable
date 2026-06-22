@@ -112,6 +112,12 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CF_PROJECT_NAME: handsontable-docs
+          # "production" is a stable Cloudflare Pages branch label, NOT a git
+          # branch (the real prod git branch is e.g. prod-docs/17.1). The deploy
+          # below passes the same label to --branch, so the deployment is served
+          # at the apex handsontable-docs.pages.dev. Using the per-version git
+          # branch here would move the apex on every release.
+          CF_PAGES_APEX_BRANCH: production
 
       - name: Deploy production to Cloudflare Pages
         continue-on-error: true
@@ -122,7 +128,7 @@ jobs:
           ./node_modules/.bin/wrangler pages deploy \
             "$GITHUB_WORKSPACE/docs/netlify/docs" \
             --project-name handsontable-docs \
-            --branch main
+            --branch production
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
