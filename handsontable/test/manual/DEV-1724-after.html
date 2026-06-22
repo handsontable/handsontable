@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>DEV-1724 — AFTER fix (patched — bug resolved)</title>
+  <title>DEV-1724 — AFTER fix (fixed build)</title>
   <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+    href="../../../styles/ht-theme-main.min.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
@@ -25,11 +25,10 @@
     .widths-display { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-size: 13px; font-family: monospace; }
     .widths-display .label { font-family: sans-serif; font-size: 12px; color: #666; margin-bottom: 4px; }
     .ok { color: #2e7d32; font-weight: bold; }
+    .changed { color: #c62828; font-weight: bold; }
     button { margin-top: 12px; padding: 8px 20px; font-size: 14px; border: none; border-radius: 6px; background: #388e3c; color: #fff; cursor: pointer; }
     button:hover { background: #2e7d32; }
     #hot-container { margin-top: 12px; }
-    .fix-note { background: #fff; border: 1px solid #c8e6c9; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: #555; line-height: 1.5; }
-    .fix-note code { background: #f5f5f5; padding: 1px 4px; border-radius: 3px; font-size: 11px; }
   </style>
 </head>
 <body>
@@ -39,13 +38,13 @@
   <nav>
     <span class="nav-label">Version:</span>
     <a class="nav-btn" href="DEV-1724-before.html">BEFORE fix <span class="badge badge-bug">v17.1.0 — bug</span></a>
-    <span class="nav-btn active">AFTER fix <span class="badge badge-fix">patched</span></span>
+    <span class="nav-btn active">AFTER fix <span class="badge badge-fix">PR #12622</span></span>
   </nav>
 
   <div class="info">
-    <strong>Fix applied (PR #12622):</strong> Two changes:<br>
-    1. <code>mergeCells</code>: <code>afterGetCellMeta</code> hook now re-derives <code>spanned</code>/<code>hidden</code> flags
-       from the merge collection on every meta read — so <code>loadData()</code> clearing the meta cache no longer loses them.<br>
+    <strong>Fix applied (PR #12622):</strong> Two changes in the fixed build:<br>
+    1. <code>mergeCells</code>: <code>afterGetCellMeta</code> hook re-derives <code>spanned</code>/<code>hidden</code> flags
+       from the merge collection on every meta read — <code>loadData()</code> clearing the meta cache no longer loses them.<br>
     2. <code>autoColumnSize</code> sampler: skips cells where <code>cellMeta.hidden</code> (merge-interior cells),
        matching the existing <code>autoRowSize</code> behavior.
   </div>
@@ -67,7 +66,7 @@
 
   <div id="hot-container"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script src="../../../dist/handsontable.full.min.js"></script>
   <script>
     const data = [
       ['', 'Group 2', 'Group 2', 'Group 2'],
@@ -91,29 +90,6 @@
       height: 200,
       themeName: 'ht-theme-main',
       licenseKey: 'non-commercial-and-evaluation',
-
-      // --- FIX: re-derive spanned/hidden from mergeCells collection on every meta read ---
-      // This replicates mergeCells.#onAfterGetCellMeta from PR #12622.
-      // Without this, loadData() calls metaManager.clearCellsCache() which wipes the metas
-      // set by setCellMeta() inside mergeRange(), causing autoColumnSize to sample anchor cells
-      // with their full text value and incorrectly widen the columns.
-      afterGetCellMeta(row, col, cellProperties) {
-        const mergePlugin = this.getPlugin('mergeCells');
-        if (!mergePlugin || !mergePlugin.enabled) return;
-        const collection = mergePlugin.mergedCellsCollection;
-        if (!collection) return;
-        const mergeParent = collection.get(row, col);
-        if (mergeParent) {
-          if (mergeParent.row !== row || mergeParent.col !== col) {
-            cellProperties.hidden = true;
-            cellProperties.copyable = false;
-          } else {
-            cellProperties.spanned = true;
-            cellProperties.rowspan = mergeParent.rowspan;
-            cellProperties.colspan = mergeParent.colspan;
-          }
-        }
-      },
     });
 
     function getWidths() {
@@ -136,7 +112,7 @@
       if (!changed) {
         el.innerHTML += ' ← <span class="ok">FIX: widths unchanged ✓</span>';
       } else {
-        el.innerHTML += ' ← <span style="color:#c62828">Unexpected: widths still changed</span>';
+        el.innerHTML += ' ← <span class="changed">Unexpected: widths still changed</span>';
       }
     });
   </script>
