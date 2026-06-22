@@ -250,7 +250,8 @@ jobs:
           CF_PROJECT_NAME: handsontable-docs-staging
           # Develop builds deploy to --branch develop below, so the apex
           # handsontable-docs-staging.pages.dev tracks the develop branch.
-          CF_PRODUCTION_BRANCH: develop
+          # (Here the label happens to match a real, long-lived git branch.)
+          CF_PAGES_APEX_BRANCH: develop
 
       - name: Deploy to Cloudflare Pages
         id: cf-pages-deploy

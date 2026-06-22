@@ -1,12 +1,15 @@
 /**
  * Ensures a Cloudflare Pages project exists, creating it if it does not.
  *
- * Also reconciles the project's production branch: a Cloudflare Pages
- * deployment is only served at the apex `<project>.pages.dev` when it is
- * deployed to the branch that matches the project's `production_branch`.
- * Any other branch becomes a preview deployment. When the project already
- * exists with a different production branch, this script patches it so the
- * apex URL tracks the branch the workflow actually deploys to.
+ * Also reconciles the project's apex branch: a Cloudflare Pages deployment is
+ * only served at the apex `<project>.pages.dev` when it is deployed to the
+ * branch that matches the project's `production_branch` (Cloudflare's term).
+ * Any other branch becomes a preview deployment. This value is a Cloudflare
+ * label, NOT a git branch -- the workflow passes the same value to
+ * `wrangler pages deploy --branch`. It must stay stable (e.g. 'production',
+ * 'develop'); using a per-version git branch such as `prod-docs/18.0` would
+ * move the apex on every release. When the project already exists with a
+ * different value, this script patches it so the apex tracks the right branch.
  *
  * Required environment variables:
  *   CLOUDFLARE_API_TOKEN - API token with Pages:Edit permission
@@ -14,11 +17,12 @@
  *   CF_PROJECT_NAME - Name of the Pages project to ensure
  *
  * Optional environment variables:
- *   CF_PRODUCTION_BRANCH - Production branch for the project (default: 'develop')
+ *   CF_PAGES_APEX_BRANCH - Cloudflare Pages branch label served at the apex
+ *                          (must match the `wrangler --branch` value; default: 'develop')
  */
 import { CF_API, accountId, cfFetch } from './cfFetch.mjs';
 
-const { CF_PROJECT_NAME: projectName, CF_PRODUCTION_BRANCH: productionBranch = 'develop' } = process.env;
+const { CF_PROJECT_NAME: projectName, CF_PAGES_APEX_BRANCH: apexBranch = 'develop' } = process.env;
 
 if (!projectName) {
   throw new Error('Missing required environment variable: CF_PROJECT_NAME');
@@ -30,28 +34,28 @@ if (getResponse.ok) {
   const { result } = await getResponse.json();
   const currentBranch = result?.production_branch;
 
-  if (currentBranch === productionBranch) {
+  if (currentBranch === apexBranch) {
     // eslint-disable-next-line no-console
-    console.log(`Project "${projectName}" already exists with production branch "${productionBranch}".`);
+    console.log(`Project "${projectName}" already exists with apex branch "${apexBranch}".`);
     process.exit(0);
   }
 
   // eslint-disable-next-line no-console
-  console.log(`Project "${projectName}" production branch is "${currentBranch}", updating to "${productionBranch}"...`);
+  console.log(`Project "${projectName}" apex branch is "${currentBranch}", updating to "${apexBranch}"...`);
 
   const patchResponse = await cfFetch(`/accounts/${accountId}/pages/projects/${projectName}`, {
     method: 'PATCH',
-    body: JSON.stringify({ production_branch: productionBranch }),
+    body: JSON.stringify({ production_branch: apexBranch }),
   });
 
   if (!patchResponse.ok) {
     const body = await patchResponse.text();
 
-    throw new Error(`Failed to update production branch for "${projectName}" (HTTP ${patchResponse.status}): ${body}`);
+    throw new Error(`Failed to update apex branch for "${projectName}" (HTTP ${patchResponse.status}): ${body}`);
   }
 
   // eslint-disable-next-line no-console
-  console.log(`Project "${projectName}" production branch updated to "${productionBranch}".`);
+  console.log(`Project "${projectName}" apex branch updated to "${apexBranch}".`);
   process.exit(0);
 }
 
@@ -74,7 +78,7 @@ const createResponse = await cfFetch(`/accounts/${accountId}/pages/projects`, {
   method: 'POST',
   body: JSON.stringify({
     name: projectName,
-    production_branch: productionBranch,
+    production_branch: apexBranch,
   }),
 });
 
