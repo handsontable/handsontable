@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DEV-1766 – AFTER fix: nestedHeaders + colWidths reset to undefined</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.css">
+  <title>DEV-1766 – AFTER fix: nestedHeaders + colWidths reset to undefined (patched build)</title>
+  <link rel="stylesheet" href="assets/handsontable.min.css">
   <style>
     body { font-family: sans-serif; padding: 20px; }
     h1 { font-size: 18px; }
@@ -16,7 +16,7 @@
   </style>
 </head>
 <body>
-  <h1>DEV-1766 — AFTER fix (v17.1.0)</h1>
+  <h1>DEV-1766 — AFTER fix (patched build from PR #12630)</h1>
   <div class="note">
     <strong>Fixed:</strong> Calling <code>updateSettings({ colWidths: undefined })</code> on a table with
     <code>nestedHeaders</code> enabled now correctly re-expands columns to fit cell content.
@@ -39,7 +39,7 @@
   <div id="result"></div>
   <div id="container"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script src="assets/handsontable.full.min.js"></script>
   <script>
     const longContent = 'this is a very long cell content that should expand the column width';
 
