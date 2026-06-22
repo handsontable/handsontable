@@ -101,11 +101,16 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PROD_SITE_ID }}
 
+      # Cloudflare Pages deploy is independent of Netlify: !cancelled() lets
+      # these steps run even when the Netlify publish above fails, so the apex
+      # handsontable-docs.pages.dev still updates.
       - name: Add Cloudflare worker to production deploy
+        if: ${{ !cancelled() }}
         continue-on-error: true
         run: cp cloudflare/_worker.js netlify/docs/_worker.js
 
       - name: Ensure Cloudflare Pages production project exists
+        if: ${{ !cancelled() }}
         continue-on-error: true
         run: node cloudflare/ensureProject.mjs
         env:
@@ -120,6 +125,7 @@ jobs:
           CF_PAGES_APEX_BRANCH: production
 
       - name: Deploy production to Cloudflare Pages
+        if: ${{ !cancelled() }}
         continue-on-error: true
         # Install wrangler in /tmp to avoid npm failures inside the pnpm workspace
         working-directory: /tmp
