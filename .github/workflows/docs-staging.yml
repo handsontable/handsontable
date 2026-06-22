@@ -186,6 +186,7 @@ jobs:
           cp _redirects deploy/_redirects
 
       - name: Publish preview to Netlify
+        id: netlify-publish
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # https://github.com/nick-fields/retry/releases/tag/v3.0.2
         with:
           timeout_seconds: 1600
@@ -278,13 +279,18 @@ jobs:
         if: ${{ !cancelled() && steps.resolve-pr.outputs.number && steps.cf-pages-deploy.outcome == 'success' }}
         with:
           number: ${{ steps.resolve-pr.outputs.number }}
+          # The Netlify row is only included when the Netlify publish actually
+          # succeeded -- this comment can now run after a failed Netlify publish
+          # (Cloudflare deploy is decoupled), so it must not claim a Netlify URL
+          # that was never published. When Netlify failed, the expression yields
+          # an empty trailing line and only the Cloudflare row is listed.
           message: |
             ✅ Preview documentation is available now
 
             | Platform | URL |
             |---|---|
-            | Netlify | [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs) |
             | Cloudflare Pages | [https://pr-${{ steps.resolve-pr.outputs.number }}.handsontable-docs-staging.pages.dev/docs](https://pr-${{ steps.resolve-pr.outputs.number }}.handsontable-docs-staging.pages.dev/docs) |
+            ${{ steps.netlify-publish.outcome == 'success' && format('| Netlify | [{0}/docs]({0}/docs) |', env.NETLIFY_SITE_URL) || '' }}
 
       - name: Post Cloudflare Pages apex summary
         if: ${{ !cancelled() && steps.cf-target.outputs.is_production == 'true' && steps.cf-pages-deploy.outcome == 'success' }}
