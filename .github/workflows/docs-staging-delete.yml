@@ -10,7 +10,7 @@ defaults:
 
 jobs:
   delete-preview-on-pull-request:
-    name: Delete Netlify and Cloudflare Pages previews
+    name: Delete Cloudflare Pages previews
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
@@ -24,44 +24,6 @@ jobs:
           node-version-file: ".nvmrc"
           cache: "pnpm"
           cache-dependency-path: pnpm-lock.yaml
-
-      - name: Get PR details
-        id: get-pr
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
-        with:
-          script: |
-            const { data: pullRequest } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: context.issue.number ||  ${{ github.event.pull_request.number }}
-            });
-
-            console.log(`PR #${context.issue.number} details fetched`);
-            console.log(`Source branch: ${pullRequest.head.ref}`);
-            console.log(`Target branch: ${pullRequest.base.ref}`);
-
-            // Set outputs to use in subsequent steps
-            core.setOutput('source_branch', pullRequest.head.ref);
-            core.setOutput('target_branch', pullRequest.base.ref);
-            core.setOutput('pr_owner', pullRequest.head.repo.owner.login);
-            core.setOutput('pr_repo', pullRequest.head.repo.name);
-
-            return pullRequest;
-          result-encoding: string
-
-      - name: Install Netlify dependencies
-        run: |
-          cd netlify
-          npm i
-
-      - name: Run the delete process
-        run: |
-          cd netlify
-          node deleteIfExist.mjs
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
-          BRANCH_NAME_PREFIX: dev-handsontable-
-          BRANCH_NAME: ${{ steps.get-pr.outputs.source_branch }}
 
       - name: Delete Cloudflare Pages deployments for branch
         if: always()
