@@ -55,13 +55,17 @@ function getVisibleHeaders() {
   return allColumns.filter((_, i) => visibleIndices.has(i)).map(col => col.title);
 }
 
-const container = document.querySelector('#example1')!;
+const rootContainer = document.querySelector<HTMLElement>('#example1')!;
 
-const toolbar = document.createElement('div');
+// Inject the toolbar and the grid mount point inside #example1.
+// Avoids container.before() which requires #example1 to have a parent node.
+rootContainer.innerHTML = `
+  <div class="example-controls-container"><div class="controls"></div></div>
+  <div class="column-visibility-grid"></div>
+`;
 
-toolbar.classList.add('example-controls-container');
-toolbar.innerHTML = '<div class="controls"></div>';
-container.before(toolbar);
+const container = rootContainer.querySelector<HTMLElement>('.column-visibility-grid')!;
+const togglesContainer = rootContainer.querySelector<HTMLElement>('.controls')!;
 
 const hot = new Handsontable(container, {
   data,
@@ -75,7 +79,6 @@ const hot = new Handsontable(container, {
 });
 
 // Build a checkbox for each column and attach toggle logic.
-const togglesContainer = toolbar.querySelector('.controls')!;
 
 allColumns.forEach((col, index) => {
   const label = document.createElement('label');
