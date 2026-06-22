@@ -406,6 +406,96 @@ createTheme('my-theme', {
 });
 ```
 
+## 7. Update CSS selectors and DOM queries for the new wrapper structure
+
+Handsontable 18.0 adds wrapper layout slots and a `layout` option that controls the order of UI elements rendered around the grid, such as pagination and dialogs. To support this, the built-in UI now mounts into dedicated wrapper containers, which changes the DOM structure that Handsontable renders around the grid.
+
+The grid table itself is unchanged. Only the container elements between your root element and the grid table are different.
+
+### Who is affected
+
+You are affected if any of the following apply:
+
+- Your CSS targets Handsontable's wrapper elements with direct-child (`>`), `:first-child`, `:only-child`, or `:nth-child()` selectors.
+- Your JavaScript queries the DOM relative to `.ht-root-wrapper` or `.ht-grid` (for example, with `querySelector` or `children`).
+- You traverse the DOM from the grid root element with a fixed number of `parentNode` or `firstElementChild` steps.
+
+### What changed
+
+**Before (17.1):**
+
+```html
+<div class="ht-root-wrapper">
+  <div class="ht-grid">
+    <div class="ht-wrapper handsontable"></div>
+  </div>
+</div>
+```
+
+**After (18.0):**
+
+```html
+<div class="ht-root-wrapper">
+  <div class="ht-slot-top"></div>
+  <div class="ht-grid">
+    <div class="ht-grid-content">
+      <div class="ht-wrapper handsontable"></div>
+    </div>
+  </div>
+  <div class="ht-slot-bottom"></div>
+  <div class="ht-overlay"></div>
+</div>
+```
+
+Two changes can break existing selectors:
+
+- A new `.ht-grid-content` element wraps the grid root element inside `.ht-grid`.
+- New sibling containers (`.ht-slot-top`, `.ht-slot-bottom`, and `.ht-overlay`) are added inside `.ht-root-wrapper`, so `.ht-grid` is no longer the only child.
+
+### How to migrate
+
+Update selectors that assumed the old structure. Account for the new `.ht-grid-content` wrapper and the new sibling containers.
+
+**Before:**
+
+```css
+.ht-root-wrapper > .ht-grid > .handsontable {
+  border: 1px solid #a0aec0;
+}
+
+.ht-root-wrapper > :first-child {
+  margin-top: 0;
+}
+```
+
+**After:**
+
+```css
+.ht-grid-content > .handsontable {
+  border: 1px solid #a0aec0;
+}
+
+.ht-grid {
+  margin-top: 0;
+}
+```
+
+For DOM queries, target the grid root element by its class instead of by position:
+
+**Before:**
+
+```javascript
+const grid = wrapper.querySelector('.ht-grid').firstElementChild;
+```
+
+**After:**
+
+```javascript
+const grid = wrapper.querySelector('.ht-wrapper.handsontable');
+```
+
+Use class-based selectors instead of positional ones, so future layout slot additions do not break your code.
+
 ## Summary of breaking changes
 
 | Change | Who is affected | Action required |
@@ -417,6 +507,7 @@ createTheme('my-theme', {
 | DOMPurify removed; no built-in HTML sanitization | Projects rendering untrusted user HTML | Add a `sanitizer` function (for example, using DOMPurify) to the Handsontable configuration |
 | `saveManualColumnWidths()`, `loadManualColumnWidths()`, `saveManualRowHeights()`, `loadManualRowHeights()` now no-op | Any project calling these methods | Remove calls; implement custom persistence if needed |
 | `--ht-wrapper-border-radius` renamed to `--ht-border-radius`; `--ht-wrapper-border-width` and `--ht-wrapper-border-color` removed | Projects overriding these theme variables or passing the matching JS tokens | Rename to `--ht-border-radius` / `borderRadius`; recreate a wrapper border with `box-shadow` if needed |
+| Wrapper DOM structure changed -- new `.ht-grid-content`, `.ht-slot-top`, `.ht-slot-bottom`, and `.ht-overlay` elements | Projects with CSS selectors or DOM queries targeting Handsontable's wrapper elements by position | Update selectors to be class-based; account for the new `.ht-grid-content` wrapper and sibling slot containers |
 
 ## Related resources
 
