@@ -768,5 +768,22 @@ describe('ColumnMeta', () => {
       expect(meta.getMeta(0, 0).className).toBe('from-cell-option');
       expect(meta.getUserDefinedMetas()).toEqual([]);
     });
+
+    it('should keep recording suspended until every disable call is balanced by an enable call', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.disableUserDefinedMetaRecording(); // outer scope (for example, the `cell` option loop)
+      meta.disableUserDefinedMetaRecording(); // nested scope (for example, a re-entrant updateSettings)
+      meta.enableUserDefinedMetaRecording(); // closing the nested scope must not re-enable recording yet
+      meta.setMeta(0, 0, 'readOnly', true); // still within the outer scope - declarative, not tracked
+      meta.enableUserDefinedMetaRecording(); // closing the outer scope re-enables recording
+      meta.setMeta(1, 1, 'className', 'htRight'); // tracked
+
+      expect(meta.getUserDefinedMetas()).toEqual([
+        { physicalRow: 1, physicalColumn: 1, key: 'className', value: 'htRight' },
+      ]);
+    });
   });
 });

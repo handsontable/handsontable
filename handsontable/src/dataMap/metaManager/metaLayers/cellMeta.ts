@@ -50,13 +50,14 @@ export default class CellMeta {
    */
   metas = new LazyFactoryMap(() => this._createRow());
   /**
-   * Flag that determines whether properties set through `setMeta` are tracked as user-defined.
-   * When recording is disabled, `setMeta` treats writes as declarative (for example, the `cell`
-   * option applied during `updateSettings`) and de-marks the affected key.
+   * Counts how many times user-defined meta recording has been suspended without a matching
+   * resume. Recording is active only when the count is `0`. A counter (rather than a boolean) keeps
+   * nested suspend/resume scopes correct - for example, when a re-entrant `updateSettings` runs from
+   * a `setCellMeta` hook while the outer `cell` option loop is still applying declarative writes.
    *
-   * @type {boolean}
+   * @type {number}
    */
-  #isRecordingUserDefinedMeta = true;
+  #userDefinedMetaRecordingSuspendCount = 0;
 
   /**
    * Initializes the cell meta layer with a reference to the ColumnMeta layer used as the prototype source for new cell meta objects.
@@ -66,19 +67,25 @@ export default class CellMeta {
   }
 
   /**
-   * Enables tracking of user-defined cell meta properties. Subsequent `setMeta` calls mark their
-   * keys as user-defined, so they are preserved across `updateSettings`.
+   * Resumes tracking of user-defined cell meta properties by closing one suspension scope opened by
+   * `disableUserDefinedMetaRecording`. Recording becomes active again only once every suspension has
+   * been closed. Subsequent `setMeta` calls then mark their keys as user-defined, so they are
+   * preserved across `updateSettings`.
    */
   enableUserDefinedMetaRecording() {
-    this.#isRecordingUserDefinedMeta = true;
+    if (this.#userDefinedMetaRecordingSuspendCount > 0) {
+      this.#userDefinedMetaRecordingSuspendCount -= 1;
+    }
   }
 
   /**
-   * Disables tracking of user-defined cell meta properties. Subsequent `setMeta` calls are treated
-   * as declarative writes and de-mark their keys, so they are not preserved across `updateSettings`.
+   * Suspends tracking of user-defined cell meta properties. While suspended, `setMeta` calls are
+   * treated as declarative writes and de-mark their keys, so they are not preserved across
+   * `updateSettings`. Suspensions nest - each call must be matched by an `enableUserDefinedMetaRecording`
+   * call before recording resumes.
    */
   disableUserDefinedMetaRecording() {
-    this.#isRecordingUserDefinedMeta = false;
+    this.#userDefinedMetaRecordingSuspendCount += 1;
   }
 
   /**
@@ -179,7 +186,7 @@ export default class CellMeta {
     (cellMeta._automaticallyAssignedMetaProps as Set<string> | undefined)?.delete(key);
     cellMeta[key] = value;
 
-    if (this.#isRecordingUserDefinedMeta) {
+    if (this.#userDefinedMetaRecordingSuspendCount === 0) {
       if (cellMeta._userDefinedMetaProps === undefined) {
         cellMeta._userDefinedMetaProps = new Set();
       }
