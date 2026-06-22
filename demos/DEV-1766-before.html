@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEV-1766 – BEFORE fix: nestedHeaders + colWidths reset to undefined</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.0/dist/handsontable.full.min.css">
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    h1 { font-size: 18px; }
+    .note { background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 10px; margin: 10px 0; max-width: 700px; }
+    .bug { background: #f8d7da; border: 1px solid #dc3545; border-radius: 4px; padding: 10px; margin: 10px 0; max-width: 700px; }
+    button { margin: 10px 0; padding: 8px 16px; cursor: pointer; }
+    #result { margin-top: 10px; font-weight: bold; }
+    #container { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1766 — BEFORE fix (v17.0.0)</h1>
+  <div class="bug">
+    <strong>Bug:</strong> Calling <code>updateSettings({ colWidths: undefined })</code> on a table with
+    <code>nestedHeaders</code> enabled does NOT re-expand columns to fit cell content.
+    Column 0 stays at the ghost-table floor (~28px) instead of expanding to content width (500+px).
+  </div>
+  <div class="note">
+    Steps to reproduce:
+    <ol>
+      <li>Table initialises with <code>colWidths: 100</code> and <code>nestedHeaders</code>.</li>
+      <li>Click <strong>Reset colWidths</strong> to call <code>updateSettings({ colWidths: undefined })</code>.</li>
+      <li>Observe column 0 — it should expand to fit the long content, but it stays narrow (BUG).</li>
+    </ol>
+  </div>
+
+  <button id="btn">Reset colWidths → updateSettings({ colWidths: undefined })</button>
+  <div id="result"></div>
+  <div id="container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.0/dist/handsontable.full.min.js"></script>
+  <script>
+    const longContent = 'this is a very long cell content that should expand the column width';
+
+    const hot = new Handsontable(document.getElementById('container'), {
+      data: [
+        [longContent, 'b', 'c', 'd', 'e'],
+        ['short', 'b', 'c', 'd', 'e'],
+      ],
+      colHeaders: true,
+      colWidths: 100,
+      nestedHeaders: [
+        [{ label: 'Grouped header', colspan: 2 }, 'C', 'D', 'E'],
+        ['A', 'B', 'C', 'D', 'E'],
+      ],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    document.getElementById('btn').addEventListener('click', () => {
+      hot.updateSettings({ colWidths: undefined });
+      const w = hot.getColWidth(0);
+      const el = document.getElementById('result');
+      if (w > 200) {
+        el.style.color = 'green';
+        el.textContent = `✅ Column 0 width after reset: ${w}px (expanded correctly)`;
+      } else {
+        el.style.color = 'red';
+        el.textContent = `❌ Column 0 width after reset: ${w}px (BUG — stuck at ghost-table floor, should be > 200px)`;
+      }
+    });
+  </script>
+</body>
+</html>
