@@ -35,10 +35,10 @@ flowchart TD
     PullRequest[Pull Request event]
     PullRequestClose[Pull Request close]
     Apex[Deploy develop to apex <pre>handsontable-docs-staging.pages.dev</pre>]
-    Preview[Generate a preview at <pre>pr-N.handsontable-docs-staging.pages.dev</pre>]
+    Preview[Generate a preview at <pre>BRANCH.handsontable-docs-staging.pages.dev</pre>]
     Destroy[Destroy, if exists, the preview at <pre>pr-N.handsontable-docs-staging.pages.dev</pre>]
     Push -->|Automatic on develop| Apex
-    Manual -->|Manual trigger on selected branch| Preview
+    Manual -->|Manual trigger on a non-develop branch| Preview
     PullRequest --> |Manual approve on PR page| Comment[Bot comments on PR page with URL]  --> Preview
     PullRequestClose --> |Automatic| Destroy
     Docs --> Push
@@ -57,7 +57,11 @@ To deploy the documentation to the staging environment, from GitHub Actions:
 4. Select the branch that you want to deploy.
 5. Select **Run workflow**.
 
-A push to `develop` (touching `docs/**`) deploys to the staging apex `handsontable-docs-staging.pages.dev`.
+The deploy target depends on the branch:
+
+- `develop` deploys to the staging apex `handsontable-docs-staging.pages.dev`.
+- A `release/x.y.z` branch (RC build) deploys to `rc-<version>.handsontable-docs-staging.pages.dev` (a stable per-version URL the release pipeline links to).
+- Any other branch deploys to a sanitized branch-name preview at `<branch>.handsontable-docs-staging.pages.dev`.
 
 #### Manual trigger on pull request page
 
