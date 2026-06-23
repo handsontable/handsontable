@@ -5246,8 +5246,8 @@ export default function Core(
    * @memberof Core#
    * @since 0.38.0
    * @function selectColumns
-   * @param {number} startColumn The visual column index from which the selection starts.
-   * @param {number} [endColumn=startColumn] The visual column index to which the selection finishes. If `endColumn`
+   * @param {number | string} startColumn The visual column index or column property from which the selection starts.
+   * @param {number | string} [endColumn=startColumn] The visual column index or column property to which the selection finishes. If `endColumn`
    * is not defined the column defined by `startColumn` will be selected.
    * @param {number | { row: number, col: number } | CellCoords} [focusPosition=0] The argument allows changing the cell/header focus
    * position. The value can take visual row index from -N to N, where negative values point to the headers and positive
