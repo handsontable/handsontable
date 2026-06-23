@@ -2275,7 +2275,7 @@ export default function Core(
    * @memberof Core#
    * @function destroyEditor
    * @param {boolean} [revertOriginal=false] If `true`, the previous value will be restored. Otherwise, the edited value will be saved.
-   * @param {boolean} [prepareEditorIfNeeded=true] If `true` the editor under the selected cell will be prepared to open.
+   * @param {boolean} [prepareEditorIfNeeded=true] If `true`, the editor under the selected cell will be prepared to open.
    */
   this.destroyEditor = function(revertOriginal = false, prepareEditorIfNeeded = true) {
     editorManager.closeEditor(revertOriginal);
@@ -2892,8 +2892,8 @@ export default function Core(
    * @memberof Core#
    * @function updateData
    * @since 11.1.0
-   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data
-   * @param {string} [source] The source of the `updateData()` call
+   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data.
+   * @param {string} [source] The source of the `updateData()` call.
    * @fires Hooks#beforeUpdateData
    * @fires Hooks#afterUpdateData
    * @fires Hooks#afterChange
@@ -2942,8 +2942,8 @@ export default function Core(
    *
    * @memberof Core#
    * @function loadData
-   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data
-   * @param {string} [source] The source of the `loadData()` call
+   * @param {Array} data An [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), or an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), that contains Handsontable's data.
+   * @param {string} [source] The source of the `loadData()` call.
    * @fires Hooks#beforeLoadData
    * @fires Hooks#afterLoadData
    * @fires Hooks#afterChange
@@ -3593,7 +3593,7 @@ export default function Core(
    *                                inserted or removed. Can also be an array of arrays, in format `[[index, amount],...]`.
    * @param {number} [amount] The amount of rows or columns to be inserted or removed (default: `1`).
    * @param {string} [source] Source indicator.
-   * @param {boolean} [keepEmptyRows] If set to `true`: prevents removing empty rows.
+   * @param {boolean} [keepEmptyRows] If set to `true`, prevents removing empty rows.
    * @example
    * ```js
    * // above row 10 (by visual index), insert 1 new row
@@ -5106,8 +5106,8 @@ export default function Core(
    * @param {number|string} column A visual column index (`number`), or a column property's value (`string`).
    * @param {number} [endRow] If selecting a range: the visual row index of the last cell in the range.
    * @param {number|string} [endColumn] If selecting a range: the visual column index (or a column property's value) of the last cell in the range.
-   * @param {boolean} [scrollToCell=true] `true`: scroll the viewport to the newly-selected cells. `false`: keep the previous viewport.
-   * @param {boolean} [changeListener=true] `true`: switch the keyboard focus to Handsontable. `false`: keep the
+   * @param {boolean} [scrollToCell=true] If `true`, scrolls the viewport to the newly-selected cells. If `false`, keeps the previous viewport.
+   * @param {boolean} [changeListener=true] If `true`, switches the keyboard focus to Handsontable. If `false`, keeps the
    * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
    * focus, it remains focused after the call.
    * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
@@ -5188,8 +5188,8 @@ export default function Core(
    * @param {Array[]|CellRange[]} coords Visual coordinates,
    * passed either as an array of arrays (`[[rowStart, columnStart, rowEnd, columnEnd], ...]`)
    * or as an array of [`CellRange`](@/api/cellRange.md) objects.
-   * @param {boolean} [scrollToCell=true] `true`: scroll the viewport to the newly-selected cells. `false`: keep the previous viewport.
-   * @param {boolean} [changeListener=true] `true`: switch the keyboard focus to Handsontable. `false`: keep the
+   * @param {boolean} [scrollToCell=true] If `true`, scrolls the viewport to the newly-selected cells. If `false`, keeps the previous viewport.
+   * @param {boolean} [changeListener=true] If `true`, switches the keyboard focus to Handsontable. If `false`, keeps the
    * previous keyboard focus. If an element outside Handsontable (such as a custom input) currently owns the browser
    * focus, it remains focused after the call.
    * @returns {boolean} `true`: the selection was successful, `false`: the selection failed.
@@ -5332,12 +5332,10 @@ export default function Core(
    * @since 0.38.2
    * @memberof Core#
    * @function selectAll
-   * @param {boolean} [includeRowHeaders=false] `true` If the selection should include the row headers,
-   * `false` otherwise.
-   * @param {boolean} [includeColumnHeaders=false] `true` If the selection should include the column
-   * headers, `false` otherwise.
+   * @param {boolean} [includeRowHeaders=false] If `true`, includes the row headers in the selection.
+   * @param {boolean} [includeColumnHeaders=false] If `true`, includes the column headers in the selection.
    *
-   * @param {object} [options] Additional object with options. Since 14.0.0
+   * @param {object} [options] Additional object with options. Since 14.0.0.
    * @param {{row: number, col: number} | boolean} [options.focusPosition] The argument allows changing the cell/header
    * focus position. The value takes an object with a `row` and `col` properties from -N to N, where
    * negative values point to the headers and positive values point to the cell range. If `false`, the focus
