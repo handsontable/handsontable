@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEV-1766 DEBUG</title>
+  <link rel="stylesheet" href="assets/handsontable.min.css">
+  <style>
+    body { font-family: monospace; padding: 20px; }
+    button { margin: 10px 0; padding: 8px 16px; cursor: pointer; }
+    pre { background: #f4f4f4; padding: 10px; border-radius: 4px; max-width: 900px; overflow-x: auto; }
+    #container { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1766 Debug</h1>
+  <button id="btn">Run debug test</button>
+  <pre id="log"></pre>
+  <div id="container"></div>
+
+  <script src="assets/handsontable.full.min.js"></script>
+  <script>
+    const log = [];
+    function out(msg) { log.push(msg); document.getElementById('log').textContent = log.join('\n'); }
+
+    const longContent = 'this is a very long cell content that should expand the column width';
+
+    const hot = new Handsontable(document.getElementById('container'), {
+      data: [
+        [longContent, 'b', 'c', 'd', 'e'],
+        ['short', 'b', 'c', 'd', 'e'],
+      ],
+      colHeaders: true,
+      colWidths: 100,
+      nestedHeaders: [
+        [{ label: 'Grouped header', colspan: 2 }, 'C', 'D', 'E'],
+        ['A', 'B', 'C', 'D', 'E'],
+      ],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    document.getElementById('btn').addEventListener('click', () => {
+      log.length = 0;
+
+      out('=== BEFORE updateSettings ===');
+      out('colWidths setting: ' + JSON.stringify(hot.getSettings().colWidths));
+      out('getColWidth(0): ' + hot.getColWidth(0));
+
+      // Check ACS plugin state
+      const acs = hot.getPlugin('autoColumnSize');
+      out('ACS enabled: ' + (acs ? acs.enabled : 'plugin not found'));
+      if (acs) {
+        out('ACS isEnabled(): ' + acs.isEnabled());
+        out('ACS columnWidthsMap col0: ' + acs.columnWidthsMap.getValueAtIndex(hot.toPhysicalColumn(0)));
+        out('ACS getColumnWidth(0): ' + acs.getColumnWidth(0));
+      }
+
+      // Check NestedHeaders plugin state
+      const nh = hot.getPlugin('nestedHeaders');
+      out('NestedHeaders enabled: ' + (nh ? nh.enabled : 'plugin not found'));
+      if (nh) {
+        out('NestedHeaders ghostTable.getWidth(0): ' + nh.ghostTable.getWidth(0));
+      }
+
+      // Hook into modifyColWidth to trace execution
+      const traceLog = [];
+      const traceHook = (width, col) => {
+        if (col === 0) traceLog.push('  modifyColWidth(incoming=' + width + ', col=' + col + ') → will return...');
+        return undefined; // don't override
+      };
+      hot.addHook('modifyColWidth', traceHook, -100); // very low priority, runs first
+
+      out('\n=== CALLING updateSettings({ colWidths: undefined }) ===');
+      hot.updateSettings({ colWidths: undefined });
+      out('updateSettings() returned.');
+
+      out('\n=== AFTER updateSettings ===');
+      out('colWidths setting: ' + JSON.stringify(hot.getSettings().colWidths));
+      if (acs) {
+        out('ACS enabled: ' + acs.enabled);
+        out('ACS isEnabled(): ' + acs.isEnabled());
+        out('ACS columnWidthsMap col0: ' + acs.columnWidthsMap.getValueAtIndex(hot.toPhysicalColumn(0)));
+        out('ACS getColumnWidth(0): ' + acs.getColumnWidth(0));
+      }
+      if (nh) {
+        out('NestedHeaders ghostTable.getWidth(0): ' + nh.ghostTable.getWidth(0));
+      }
+
+      out('\n=== getColWidth(0) call trace ===');
+      out('_getColWidthFromSettings(0): ' + hot._getColWidthFromSettings(0));
+      const w = hot.getColWidth(0);
+      out('Final getColWidth(0): ' + w);
+
+      hot.removeHook('modifyColWidth', traceHook);
+
+      out('\n=== VERDICT ===');
+      out(w > 200 ? '✅ FIXED! Width = ' + w + 'px' : '❌ BROKEN. Width = ' + w + 'px (expected > 200)');
+    });
+  </script>
+</body>
+</html>
