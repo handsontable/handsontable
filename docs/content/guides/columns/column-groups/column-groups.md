@@ -34,6 +34,22 @@ properties. The `label` property defines the header's label, while the `colspan`
 
 To create a header that spans multiple header rows, add a `rowspan` property to that object. See [Rowspan](#rowspan) below.
 
+### Header configuration object
+
+Each `nestedHeaders` entry is either a string label or an object with these properties:
+
+| Property          | Type     | Description |
+| ----------------- | -------- | ----------- |
+| `label`           | `string` | The header's text. |
+| `colspan`         | `number` | Columns the header spans (an integer greater than `1`); groups the columns it covers. |
+| `rowspan`         | `number` | Header rows the header spans (an integer greater than `1`). See [Rowspan](#rowspan). |
+| `headerClassName` | `string` | One or more space-separated CSS class names added to the header element (for example, `'htRight'`). |
+| `visibleWhen`     | `string` | For a header in a collapsible group, which collapse state keeps it visible: `'collapsed'`, `'expanded'`, or `'always'`. See [Choose which columns stay visible when collapsed](#choose-which-columns-stay-visible-when-collapsed). |
+| `columnDropMode`  | `string` | What the group does when a foreign column is moved into its span: `'adopt'` (default) or `'split'`. See [Keep a group cohesive or let it split](#keep-a-group-cohesive-or-let-it-split). |
+| `collapsible`     | `boolean` | Whether the group can be collapsed and expanded. You enable it through the [`collapsibleColumns`](@/api/options.md#collapsiblecolumns) option, not in the `nestedHeaders` object. See [Collapsible headers](#collapsible-headers). |
+
+For defaults and full details, see the [`nestedHeaders` API reference](@/api/options.md#nestedheaders).
+
 ### Configuration
 
 ::: only-for javascript
