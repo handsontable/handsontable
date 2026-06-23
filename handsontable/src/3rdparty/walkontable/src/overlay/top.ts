@@ -11,6 +11,7 @@ import {
   setOverlayPosition,
   resetCssTransform,
 } from '../../../../helpers/dom/element';
+import { isMobileBrowser } from '../../../../helpers/browser';
 import TopOverlayTable from './../table/top';
 import { Overlay } from './_base';
 import { getCornerStyle } from '../selection';
@@ -226,6 +227,60 @@ export class TopOverlay extends Overlay {
   }
 
   /**
+   * Tells whether the holder must reserve the selection corner's protruding half-height (#6937) for
+   * the given focus selection.
+   *
+   * The corner (the autofill fill handle on desktop, the selection handles on mobile) is drawn at the
+   * selection's bottom-end. The top overlay renders ONLY the frozen top rows, so it must reserve that
+   * protruding space only when the bottom-end corner actually falls within those frozen rows.
+   * Otherwise the corner is drawn by another overlay and reserving here just makes the top clone's
+   * holder taller than its own table — the extra strip stays painted at the frozen-row seam and shows
+   * as a leftover top border after horizontal scroll (e.g. a single cell flush against the freeze
+   * line, whose corner sits one row below the frozen block).
+   *
+   * Beyond that range check: on mobile the selection handles always protrude, so we only need the
+   * range condition; on desktop we additionally require the fill handle to be actually enabled (its
+   * `cornerVisible` border setting resolves truthy), mirroring the visibility gate in `Border#appear`.
+   *
+   * @private
+   * @param {object|null} focusSelection The focus Selection instance (or `null` when none).
+   * @returns {boolean}
+   */
+  shouldReserveSelectionCornerOffset(
+    focusSelection: {
+      settings: Record<string, unknown>;
+      cellRange?: { getBottomEndCorner: () => { row: number | null } } | null;
+    } | null
+  ): boolean {
+    if (!focusSelection || !focusSelection.cellRange) {
+      return false;
+    }
+
+    const fixedRowsTop = (this.wtSettings.getSetting('fixedRowsTop') as number) ?? 0;
+    const bottomEndRow = focusSelection.cellRange.getBottomEndCorner().row;
+
+    // The corner is at the selection's bottom-end; reserve only when it lands inside the frozen rows
+    // this overlay renders.
+    if (bottomEndRow === null || bottomEndRow >= fixedRowsTop) {
+      return false;
+    }
+
+    if (isMobileBrowser()) {
+      return true;
+    }
+
+    const border = focusSelection.settings.border as
+      { cornerVisible?: boolean | ((...args: unknown[]) => boolean) } | undefined;
+    const cornerVisible = border?.cornerVisible;
+
+    if (typeof cornerVisible === 'function') {
+      return !!cornerVisible(focusSelection.settings.layerLevel);
+    }
+
+    return !!cornerVisible;
+  }
+
+  /**
    * Adjust overlay root childs size.
    */
   adjustRootChildrenSize() {
@@ -235,8 +290,13 @@ export class TopOverlay extends Overlay {
 
     const { holder } = this.clone.wtTable;
     const cornerStyle = getCornerStyle(this.wot);
-    const selectionCornerOffset = this.wot.selectionManager
-      .getFocusSelection() ? parseInt(cornerStyle.height as string, 10) / 2 : 0;
+    const focusSelection = this.wot.selectionManager.getFocusSelection();
+    // Reserve the selection corner's protruding half-height only when the corner actually lands in
+    // this overlay's frozen rows (and is actually drawn there). Otherwise the holder ends up taller
+    // than its table and the extra strip leaves a leftover top border at the freeze seam. See the
+    // helper for the full condition.
+    const selectionCornerOffset = this.shouldReserveSelectionCornerOffset(focusSelection)
+      ? parseInt(cornerStyle.height as string, 10) / 2 : 0;
 
     this.clone.wtTable.hider.style.width = this.hider.style.width;
     const holderParent = holder.parentNode as HTMLElement;
