@@ -262,7 +262,9 @@ export class NestedHeaders extends BasePlugin {
     this.addHook('afterSelectionFocusSet', this.#updateFocusHighlightPosition);
     this.addHook('beforeViewportScrollHorizontally', this.#onBeforeViewportScrollHorizontally);
     this.addHook('afterGetColumnHeaderRenderers', this.#onAfterGetColumnHeaderRenderers);
-    this.addHook('modifyColWidth', this.#onModifyColWidth);
+    // Priority -20: run after AutoColumnSize (priority -10) so the max(autoSize, headerWidth)
+    // correction is applied last and columns always respect the nested header label width.
+    this.addHook('modifyColWidth', this.#onModifyColWidth, -20);
     this.addHook('modifyColumnHeaderHeight', this.#onModifyColumnHeaderHeight);
     this.addHook('modifyColumnHeaderValue', this.#onModifyColumnHeaderValue);
     this.addHook('beforeHighlightingColumnHeader', this.#onBeforeHighlightingColumnHeader);
