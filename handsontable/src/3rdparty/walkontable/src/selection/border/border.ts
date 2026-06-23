@@ -609,11 +609,19 @@ class Border {
 
     // The row-freeze edge (selection top edge on the row freeze line) is owned by the `top` overlay
     // across the non-frozen columns and by the corner overlay across the frozen columns the
-    // selection reaches. Each overlay clamps the span to its own rendered columns, so together they
-    // cover the whole edge with no overlap. `getFirstRenderedColumn`/`getLastRenderedColumn` return
-    // the frozen block for the corner overlay and the scrolled viewport for the `top` overlay.
+    // selection reaches. Each overlay clamps the span to its own columns, so together they cover the
+    // whole edge with no overlap. The inline-start bound uses `getFirstVisibleColumn` (not
+    // `...Rendered`): in the `top` overlay the rendered range includes the off-screen buffer columns
+    // that have scrolled behind the inline-start frozen pane, so clamping to rendered would keep
+    // drawing the edge for a boundary cell already occluded by the pane — the line would slide over
+    // the frozen columns as you scroll horizontally. The visible range excludes those, mirroring the
+    // scroll-aware occlusion check `isBoundaryCornerScrolledOut` does on the perpendicular axis. The
+    // inline-end bound stays `getLastRenderedColumn`: there is no pane on that side, so a line
+    // running a buffer column past the viewport is harmlessly clipped by the container, and using the
+    // visible bound there would instead leave a gap at a partially visible last column. For the
+    // corner overlay both visible and rendered resolve to the same sticky frozen block.
     if (rowEdgeOwned && (isTopOverlay || isCornerOverlay)) {
-      const firstColumn = Math.max(fromColumn, wtTable.getFirstRenderedColumn());
+      const firstColumn = Math.max(fromColumn, wtTable.getFirstVisibleColumn());
       const lastColumn = Math.min(toColumn, wtTable.getLastRenderedColumn());
 
       if (this.drawRowFreezeEdge(firstColumn, lastColumn, isRtl, delta)) {
