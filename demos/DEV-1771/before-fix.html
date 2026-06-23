@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DEV-1771 — BEFORE fix (v16.1.0)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@16.1.0/dist/handsontable.full.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@16.1.0/dist/handsontable.full.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 24px; }
+    h2 { color: #c00; }
+    .instructions { background: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 12px 16px; margin-bottom: 16px; }
+    .instructions ol { margin: 8px 0; padding-left: 20px; }
+    .instructions li { margin: 4px 0; }
+    .expected { background: #d4edda; border: 1px solid #28a745; border-radius: 4px; padding: 8px 16px; margin-bottom: 8px; }
+    .bug { background: #f8d7da; border: 1px solid #dc3545; border-radius: 4px; padding: 8px 16px; margin-bottom: 16px; }
+    #log { font-family: monospace; font-size: 13px; background: #f4f4f4; border: 1px solid #ccc; border-radius: 4px; padding: 8px; margin-top: 12px; min-height: 60px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h2>⚠️ BEFORE fix — Handsontable 16.1.0 (bug present)</h2>
+
+  <div class="instructions">
+    <strong>Steps to reproduce DEV-1771:</strong>
+    <ol>
+      <li>Ctrl/Cmd+click cell <b>(row 0, col 0)</b> — single select</li>
+      <li>Ctrl/Cmd+click cell <b>(row 1, col 0)</b> — adds 2nd range</li>
+      <li>Ctrl/Cmd+click cell <b>(row 1, col 1)</b> — adds 3rd range</li>
+      <li>Ctrl/Cmd+click cell <b>(row 1, col 0)</b> again — the highlight should stay on (1,0), but it JUMPS BACK to (1,1)</li>
+    </ol>
+  </div>
+
+  <div class="bug">🐛 <strong>Bug:</strong> After step 4, the active cell jumps to <b>(row 1, col 1)</b> instead of staying at <b>(row 1, col 0)</b>.</div>
+
+  <div id="hot"></div>
+
+  <div id="log">Selection ranges will appear here after each click…</div>
+
+  <script>
+    const container = document.getElementById('hot');
+    const log = document.getElementById('log');
+
+    const hot = new Handsontable(container, {
+      data: [
+        [0, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'],
+        [1, 'Sed do eiusmod tempor incididunt ut labore et dolore magna.'],
+        [2, 'Ut enim ad minim veniam, quis nostrud exercitation ullamco.'],
+        [3, 'Duis aute irure dolor in reprehenderit in voluptate velit.'],
+      ],
+      colHeaders: ['ID', 'Description'],
+      rowHeaders: true,
+      width: 600,
+      height: 200,
+      licenseKey: 'non-commercial-and-evaluation',
+      disableVisualSelection: 'area',
+      afterSelectionEnd: function() {
+        const ranges = hot.getSelectedRange();
+        if (!ranges) {
+          log.textContent = 'No selection';
+          return;
+        }
+        log.textContent = ranges.map((r, i) =>
+          `Range ${i}: highlight(${r.highlight.row},${r.highlight.col}) from(${r.from.row},${r.from.col}) to(${r.to.row},${r.to.col})`
+        ).join('\n');
+      },
+    });
+  </script>
+</body>
+</html>
