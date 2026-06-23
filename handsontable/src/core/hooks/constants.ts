@@ -1311,7 +1311,8 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} isValid `true` if valid, `false` if not.
    * @param {*} value The value in question.
    * @param {number} row Visual row index.
-   * @param {string|number} prop Property name / visual column index.
+   * @param {string|number} prop Property name or column index. For array-based data, this is the physical column
+   *                            index. When `columns[i].data` is a function, this is the visual column index.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    * @returns {undefined | boolean} If `false` the cell will be marked as invalid, `true` otherwise.
@@ -1876,7 +1877,8 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeValidate
    * @param {*} value Value of the cell.
    * @param {number} row Visual row index.
-   * @param {string|number} prop Property name / column index.
+   * @param {string|number} prop Property name or column index. For array-based data, this is the physical column
+   *                            index. When `columns[i].data` is a function, this is the visual column index.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
