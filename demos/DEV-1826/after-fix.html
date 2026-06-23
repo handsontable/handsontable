@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEV-1826: After Fix — Correct ESM/CJS Type Declarations</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace; background: #0f0f0f; color: #e0e0e0; padding: 24px; }
+    h1 { font-size: 22px; color: #57ff7a; margin-bottom: 6px; }
+    .badge { display: inline-block; background: #57ff7a; color: #000; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-bottom: 20px; letter-spacing: 0.5px; }
+    .section { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    .section h2 { font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+    .fix { display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: #0f2a15; border: 1px solid #1a5c28; border-radius: 6px; margin-bottom: 10px; }
+    .fix .icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .fix .text { font-size: 13px; line-height: 1.6; }
+    .fix .label { font-weight: 700; color: #57ff7a; font-size: 12px; display: block; margin-bottom: 3px; }
+    pre { background: #111; border: 1px solid #2a2a2a; border-radius: 6px; padding: 16px; font-size: 12px; line-height: 1.6; overflow-x: auto; }
+    .key { color: #9cdcfe; }
+    .str { color: #ce9178; }
+    .comment { color: #6a9955; font-style: italic; }
+    .highlight-good { background: #0a2a10; border-left: 3px solid #57ff7a; padding-left: 8px; margin-left: -8px; }
+    .tool-output { background: #111; border: 1px solid #333; border-radius: 6px; padding: 14px; font-family: monospace; font-size: 12px; line-height: 1.8; }
+    .ok { color: #57ff7a; }
+    .info { color: #58a6ff; }
+    .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .label-row span { font-size: 12px; color: #666; }
+    a { color: #58a6ff; }
+    .link-bar { display: flex; gap: 12px; margin-bottom: 24px; }
+    .btn { display: inline-block; padding: 8px 16px; border-radius: 6px; font-size: 13px; text-decoration: none; font-weight: 600; }
+    .btn-red { background: #3a1515; color: #ff5f57; border: 1px solid #5c2020; }
+    .btn-green { background: #1a3a1a; color: #57ff7a; border: 1px solid #205c20; }
+    .file-tree { font-family: monospace; font-size: 12px; color: #aaa; line-height: 1.8; }
+    .new-file { color: #57ff7a; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1826 — After Fix</h1>
+  <span class="badge">✅ FIXED</span>
+  <p style="font-size:13px;color:#888;margin-bottom:20px;">Correct ESM/CJS dual-mode type declarations: nested exports, <code>.d.mts</code> wrappers, <code>"type":"commonjs"</code></p>
+
+  <div class="link-bar">
+    <a class="btn btn-red" href="before-fix.html">← Before Fix</a>
+    <a class="btn btn-green" href="after-fix.html">After Fix (current) →</a>
+  </div>
+
+  <div class="section">
+    <h2>Changes Applied</h2>
+
+    <div class="fix">
+      <span class="icon">📄</span>
+      <div class="text">
+        <span class="label">Fix 1 — "type": "commonjs" in published package</span>
+        Added <code>"type": "commonjs"</code> to the generated <code>tmp/package.json</code> (not the source).
+        This makes TypeScript unambiguously resolve <code>.d.ts</code> files as CJS declarations under
+        <code>moduleResolution: "node16"</code>. The source <code>package.json</code> was left unchanged
+        to avoid breaking ESM import syntax in test files.
+      </div>
+    </div>
+
+    <div class="fix">
+      <span class="icon">🔄</span>
+      <div class="text">
+        <span class="label">Fix 2 — Thin .d.mts wrapper files</span>
+        <code>prepare-package-for-publish.mjs</code> now generates a <code>.d.mts</code> wrapper for every
+        <code>.d.ts</code> file. Each wrapper re-exports from its <code>.js</code> sibling, which TypeScript
+        maps to the <code>.d.ts</code> at lookup time. This avoids InternalResolutionError that would occur
+        if <code>.d.ts</code> were copied verbatim (extensionless imports fail under ESM moduleResolution).
+      </div>
+    </div>
+
+    <div class="fix">
+      <span class="icon">🗺️</span>
+      <div class="text">
+        <span class="label">Fix 3 — Nested exports conditions</span>
+        All typed exports condition objects split from flat <code>{ types, import, require }</code> to
+        nested <code>{ import: { types: ".d.mts", default: ".mjs" }, require: { types: ".d.ts", default: ".js" } }</code>.
+        ESM consumers now get <code>.d.mts</code>, CJS consumers get <code>.d.ts</code>.
+      </div>
+    </div>
+
+    <div class="fix">
+      <span class="icon">📁</span>
+      <div class="text">
+        <span class="label">Fix 4 — nodir: true in glob</span>
+        Added <code>nodir: true</code> to <code>glob.sync()</code> so wildcard rules no longer emit
+        directory paths into the <code>exports</code> map. Eliminated 5 publint errors.
+      </div>
+    </div>
+
+    <div class="fix">
+      <span class="icon">🔒</span>
+      <div class="text">
+        <span class="label">Fix 5 — Stricter export validation</span>
+        Upgraded from <code>existsSync()</code> to <code>statSync(...).isFile()</code> so directory
+        targets are correctly rejected at publish-prep time, not silently allowed through.
+      </div>
+    </div>
+
+    <div class="fix">
+      <span class="icon">🛡️</span>
+      <div class="text">
+        <span class="label">Fix 6 — CI gates added</span>
+        <code>verify-emitted-types.yml</code> now runs <code>publint@0.3.21</code> and
+        <code>@arethetypeswrong/cli@0.18.3</code> on every PR against the built <code>tmp/</code>
+        directory. FalseExportDefault is explicitly ignored (Babel CJS interop artefact).
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>After: package.json exports (nested format — correct)</h2>
+    <div class="label-row">
+      <span>Source: <code>handsontable/package.json</code> → generates <code>tmp/package.json</code></span>
+      <span style="color:#57ff7a">Has "type":"commonjs" · Nested conditions · .d.mts for import</span>
+    </div>
+    <pre><code><span class="comment">// ✅ AFTER: "type":"commonjs" injected by prepare-package-for-publish.mjs</span>
+<span class="highlight-good"><span class="key">"type"</span>: <span class="str">"commonjs"</span>,</span>
+
+<span class="comment">// ✅ AFTER: nested condition objects — explicit types per module system</span>
+{
+  <span class="key">"."</span>: {
+    <span class="highlight-good"><span class="key">"import"</span>: { <span class="key">"types"</span>: <span class="str">"./index.d.mts"</span>, <span class="key">"default"</span>: <span class="str">"./index.mjs"</span> },</span>
+    <span class="highlight-good"><span class="key">"require"</span>: { <span class="key">"types"</span>: <span class="str">"./index.d.ts"</span>, <span class="key">"default"</span>: <span class="str">"./index.js"</span> }</span>
+  },
+  <span class="key">"./base"</span>: {
+    <span class="highlight-good"><span class="key">"import"</span>: { <span class="key">"types"</span>: <span class="str">"./base.d.mts"</span>, <span class="key">"default"</span>: <span class="str">"./base.mjs"</span> },</span>
+    <span class="highlight-good"><span class="key">"require"</span>: { <span class="key">"types"</span>: <span class="str">"./base.d.ts"</span>, <span class="key">"default"</span>: <span class="str">"./base.js"</span> }</span>
+  },
+  <span class="key">"./registry"</span>: {
+    <span class="highlight-good"><span class="key">"import"</span>: { <span class="key">"types"</span>: <span class="str">"./registry.d.mts"</span>, <span class="key">"default"</span>: <span class="str">"./registry.mjs"</span> },</span>
+    <span class="highlight-good"><span class="key">"require"</span>: { <span class="key">"types"</span>: <span class="str">"./registry.d.ts"</span>, <span class="key">"default"</span>: <span class="str">"./registry.js"</span> }</span>
+  },
+  <span class="key">"./settings"</span>: {
+    <span class="highlight-good"><span class="key">"import"</span>: { <span class="key">"types"</span>: <span class="str">"./settings.d.mts"</span>, <span class="key">"default"</span>: <span class="str">"./settings.mjs"</span> },</span>
+    <span class="highlight-good"><span class="key">"require"</span>: { <span class="key">"types"</span>: <span class="str">"./settings.d.ts"</span>, <span class="key">"default"</span>: <span class="str">"./settings.js"</span> }</span>
+  },
+  <span class="key">"./themes"</span>: {
+    <span class="highlight-good"><span class="key">"import"</span>: { <span class="key">"types"</span>: <span class="str">"./themes/index.d.mts"</span>, <span class="key">"default"</span>: <span class="str">"./themes/index.mjs"</span> },</span>
+    <span class="highlight-good"><span class="key">"require"</span>: { <span class="key">"types"</span>: <span class="str">"./themes/index.d.ts"</span>, <span class="key">"default"</span>: <span class="str">"./themes/index.js"</span> }</span>
+  }
+}
+</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>After: .d.mts wrapper files generated</h2>
+    <div class="file-tree">
+      tmp/<br>
+      ├── index.d.ts &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span style="color:#888"># existing CJS declarations</span><br>
+      ├── <span class="new-file">index.d.mts</span> &nbsp;&nbsp;&nbsp;<span style="color:#888"># new ESM wrapper → re-exports from index.js</span><br>
+      ├── base.d.ts<br>
+      ├── <span class="new-file">base.d.mts</span><br>
+      ├── registry.d.ts<br>
+      ├── <span class="new-file">registry.d.mts</span><br>
+      ├── settings.d.ts<br>
+      ├── <span class="new-file">settings.d.mts</span><br>
+      └── themes/<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;├── index.d.ts<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;└── <span class="new-file">index.d.mts</span>
+    </div>
+    <br>
+    <pre><code><span class="comment">// Content of index.d.mts (thin wrapper — avoids extensionless import issues)</span>
+<span class="highlight-good">export * from './index.js';</span>
+<span class="highlight-good">export { default } from './index.js';</span>
+
+<span class="comment">// TypeScript maps the .js reference back to index.d.ts at lookup time.</span>
+<span class="comment">// All internal resolution stays within the CJS declaration chain.</span>
+</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>After: prepare-package-for-publish.mjs — fixed validation</h2>
+    <pre><code><span class="comment">// ✅ AFTER: nodir:true prevents directory paths in exports map</span>
+const foundFiles = glob.sync(`${rule}`, { cwd: TARGET_PATH, <span class="highlight-good">nodir: true</span> });
+
+<span class="comment">// ✅ AFTER: statSync.isFile() correctly rejects directories</span>
+<span class="highlight-good">if (!fse.statSync(pathToFile, { throwIfNoEntry: false })?.isFile()) {</span>
+  EXPORTS_ERRORS.push(...);
+}
+
+<span class="comment">// ✅ AFTER: two-level entrypointMap for nested conditions</span>
+const entrypointMap = {
+  '.mts': [<span class="str">'import'</span>, <span class="str">'types'</span>],    <span class="comment">// .d.mts → import.types</span>
+  '.mjs': [<span class="str">'import'</span>, <span class="str">'default'</span>],  <span class="comment">// .mjs  → import.default</span>
+  '.ts':  [<span class="str">'require'</span>, <span class="str">'types'</span>],   <span class="comment">// .d.ts → require.types</span>
+  '.js':  [<span class="str">'require'</span>, <span class="str">'default'</span>],  <span class="comment">// .js   → require.default</span>
+};
+
+<span class="comment">// ✅ AFTER: "type":"commonjs" injected at write time only</span>
+fse.writeJSONSync(`${TARGET_PATH}/package.json`, {
+  ...newPackageJson,
+  <span class="highlight-good">type: 'commonjs',</span>
+  exports: { ...targetExports },
+});
+</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>attw output (after fix)</h2>
+    <div class="tool-output">
+      <span class="ok">✓ No issues found</span><br><br>
+      <span class="info">Ignored rules:</span><br>
+      &nbsp;&nbsp;<code>false-export-default</code> — Babel CJS interop artefact: <code>exports.__esModule=true</code><br>
+      &nbsp;&nbsp;&nbsp;&nbsp;makes <code>.default</code> reachable at runtime for all <code>esModuleInterop:true</code> consumers.<br>
+      &nbsp;&nbsp;<code>untyped-resolution</code> — dist/ UMD bundles and languages/ intentionally ship no types.<br>
+      &nbsp;&nbsp;<code>no-resolution</code> — CSS and theme-asset exports have no JS/TS to resolve.<br><br>
+      <span class="ok">Exit code: 0</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>publint output (after fix)</h2>
+    <div class="tool-output">
+      <span class="ok">✓ 0 errors, 0 warnings</span> (was: 5 errors + 1 warning)<br><br>
+      <span class="info">All export subpaths resolve to files (nodir:true fixed wildcard matching)</span><br>
+      <span class="info">Each condition has its own types entry (.d.mts for import, .d.ts for require)</span><br>
+      <span class="info">"type":"commonjs" present — unambiguous .d.ts interpretation</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>CI gate added to verify-emitted-types.yml</h2>
+    <pre><code><span class="highlight-good">- name: Check package exports and well-formedness (publint)</span>
+  run: |
+    cd handsontable/tmp
+    npx -y publint@0.3.21
+
+<span class="highlight-good">- name: Check type-declaration resolution (attw)</span>
+  run: |
+    cd handsontable/tmp
+    npx -y @arethetypeswrong/cli@0.18.3 --pack . --format table \
+      --ignore-rules false-export-default untyped-resolution no-resolution
+</code></pre>
+  </div>
+
+  <div style="margin-top:24px;padding:14px;background:#1a1a1a;border-radius:8px;font-size:13px;color:#666;">
+    PR: <a href="https://github.com/handsontable/handsontable/pull/12696">#12696</a> ·
+    ClickUp: <a href="https://app.clickup.com/t/9015210959/DEV-1826">DEV-1826</a> ·
+    Commit: <a href="https://github.com/handsontable/handsontable/commit/dd02110eb9a1007bc85e1ba331a1be69921c671d"><code>dd02110</code></a>
+  </div>
+</body>
+</html>

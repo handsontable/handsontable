@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEV-1826: Before Fix — FalseCJS Type Declarations</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace; background: #0f0f0f; color: #e0e0e0; padding: 24px; }
+    h1 { font-size: 22px; color: #ff5f57; margin-bottom: 6px; }
+    .badge { display: inline-block; background: #ff5f57; color: #fff; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 10px; margin-bottom: 20px; letter-spacing: 0.5px; }
+    .section { background: #1a1a1a; border: 1px solid #333; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+    .section h2 { font-size: 14px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 14px; }
+    .issue { display: flex; align-items: flex-start; gap: 12px; padding: 12px; background: #2a1515; border: 1px solid #5c2020; border-radius: 6px; margin-bottom: 10px; }
+    .issue .icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+    .issue .text { font-size: 13px; line-height: 1.6; }
+    .issue .label { font-weight: 700; color: #ff7070; font-size: 12px; display: block; margin-bottom: 3px; }
+    pre { background: #111; border: 1px solid #2a2a2a; border-radius: 6px; padding: 16px; font-size: 12px; line-height: 1.6; overflow-x: auto; }
+    .key { color: #9cdcfe; }
+    .str { color: #ce9178; }
+    .comment { color: #6a9955; font-style: italic; }
+    .highlight-bad { background: #3a1515; border-left: 3px solid #ff5f57; padding-left: 8px; margin-left: -8px; }
+    .tool-output { background: #111; border: 1px solid #333; border-radius: 6px; padding: 14px; font-family: monospace; font-size: 12px; line-height: 1.8; }
+    .err { color: #ff5f57; }
+    .warn { color: #ffbd2e; }
+    .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .label-row span { font-size: 12px; color: #666; }
+    a { color: #58a6ff; }
+    .link-bar { display: flex; gap: 12px; margin-bottom: 24px; }
+    .btn { display: inline-block; padding: 8px 16px; border-radius: 6px; font-size: 13px; text-decoration: none; font-weight: 600; }
+    .btn-red { background: #3a1515; color: #ff5f57; border: 1px solid #5c2020; }
+    .btn-green { background: #1a3a1a; color: #57ff7a; border: 1px solid #205c20; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1826 — Before Fix</h1>
+  <span class="badge">❌ BROKEN</span>
+  <p style="font-size:13px;color:#888;margin-bottom:20px;">FalseCJS: single ESM-syntax <code>index.d.ts</code> typed both ESM and CJS entry points with no <code>"type"</code> field</p>
+
+  <div class="link-bar">
+    <a class="btn btn-red" href="before-fix.html">← Before Fix (current)</a>
+    <a class="btn btn-green" href="after-fix.html">After Fix →</a>
+  </div>
+
+  <div class="section">
+    <h2>Problems Identified</h2>
+
+    <div class="issue">
+      <span class="icon">🎭</span>
+      <div class="text">
+        <span class="label">H1 — FalseCJS</span>
+        A single <code>index.d.ts</code> typed both the ESM (<code>.mjs</code>) and CJS (<code>.js</code>) entry points.
+        No <code>"type"</code> field in <code>package.json</code>. Under <code>moduleResolution: "node16"</code>,
+        TypeScript treated the ESM-syntax declarations as CJS — giving wrong type resolution to ESM consumers.
+      </div>
+    </div>
+
+    <div class="issue">
+      <span class="icon">❗</span>
+      <div class="text">
+        <span class="label">H1 — FalseExportDefault</span>
+        Same root cause: ESM declaration used for both conditions; CJS consumers using
+        <code>import Handsontable from 'handsontable'</code> got incorrect default export resolution.
+      </div>
+    </div>
+
+    <div class="issue">
+      <span class="icon">📦</span>
+      <div class="text">
+        <span class="label">H1 — 5 Broken Exports (publint)</span>
+        Wildcard glob rules in <code>prepare-package-for-publish.mjs</code> had no <code>nodir: true</code>,
+        so directory paths were emitted into the <code>exports</code> map (e.g., <code>./cellTypes/checkboxType/</code>
+        instead of a file). <code>publint</code> flagged 5 errors + 1 warning.
+      </div>
+    </div>
+
+    <div class="issue">
+      <span class="icon">🔍</span>
+      <div class="text">
+        <span class="label">H1 — Weak Export Validation</span>
+        Export validation used <code>existsSync()</code> which returns <code>true</code> for directories,
+        allowing dangling directory-path exports to pass silently.
+      </div>
+    </div>
+
+    <div class="issue">
+      <span class="icon">🚫</span>
+      <div class="text">
+        <span class="label">H2 — No CI Gate</span>
+        <code>verify-emitted-types.yml</code> ran <code>tsc@5.1.6</code> to test the type floor
+        but never ran <code>publint</code> or <code>attw</code> to check package resolution.
+        Package export breakage could ship undetected.
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Before: package.json exports (flat format — broken)</h2>
+    <div class="label-row">
+      <span>Source: <code>handsontable/package.json</code> → generates <code>tmp/package.json</code></span>
+      <span style="color:#ff5f57">No "type" field · Flat condition format</span>
+    </div>
+    <pre><code><span class="comment">// ❌ BEFORE: flat condition objects — "types" resolves for BOTH import and require</span>
+<span class="comment">// Under node16 moduleResolution, TypeScript picks the condition based on the</span>
+<span class="comment">// containing file's module type. A .d.ts file without package "type":"commonjs"</span>
+<span class="comment">// will be treated as CJS even when resolved via the "import" condition.</span>
+
+{
+  <span class="key">"."</span>: {
+    <span class="highlight-bad"><span class="key">"types"</span>: <span class="str">"./index.d.ts"</span>,    <span class="comment">// ← single .d.ts for BOTH ESM and CJS</span></span>
+    <span class="key">"import"</span>: <span class="str">"./index.mjs"</span>,
+    <span class="key">"require"</span>: <span class="str">"./index.js"</span>
+  },
+  <span class="key">"./base"</span>: {
+    <span class="highlight-bad"><span class="key">"types"</span>: <span class="str">"./base.d.ts"</span>,    <span class="comment">// ← same issue</span></span>
+    <span class="key">"import"</span>: <span class="str">"./base.mjs"</span>,
+    <span class="key">"require"</span>: <span class="str">"./base.js"</span>
+  },
+  <span class="key">"./registry"</span>: {
+    <span class="highlight-bad"><span class="key">"types"</span>: <span class="str">"./registry.d.ts"</span>,
+    </span><span class="key">"import"</span>: <span class="str">"./registry.mjs"</span>,
+    <span class="key">"require"</span>: <span class="str">"./registry.js"</span>
+  },
+  <span class="key">"./settings"</span>: {
+    <span class="highlight-bad"><span class="key">"types"</span>: <span class="str">"./settings.d.ts"</span>,
+    </span><span class="key">"import"</span>: <span class="str">"./settings.mjs"</span>,
+    <span class="key">"require"</span>: <span class="str">"./settings.js"</span>
+  },
+  <span class="key">"./themes"</span>: {
+    <span class="highlight-bad"><span class="key">"types"</span>: <span class="str">"./themes/index.d.ts"</span>,
+    </span><span class="key">"import"</span>: <span class="str">"./themes/index.mjs"</span>,
+    <span class="key">"require"</span>: <span class="str">"./themes/index.js"</span>
+  }
+}
+
+<span class="comment">// ❌ No "type": "commonjs" in published package.json</span>
+<span class="comment">// ❌ No .d.mts files generated — "import" condition has no ESM-specific types</span>
+</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>Before: prepare-package-for-publish.mjs — broken validation</h2>
+    <pre><code><span class="comment">// ❌ BEFORE: glob without nodir:true — directories match wildcard exports</span>
+const foundFiles = glob.sync(`${rule}`, { cwd: TARGET_PATH });
+<span class="comment">//                                        ^ no nodir:true → directories emitted as export paths</span>
+
+<span class="comment">// ❌ BEFORE: existsSync doesn't distinguish files from directories</span>
+const fileExists = fse.existsSync(pathToFile);  <span class="comment">// returns true for dirs!</span>
+if (!fileExists) {
+  EXPORTS_ERRORS.push(...);
+}
+
+<span class="comment">// ❌ BEFORE: flat entrypointMap — single "types" for both import and require</span>
+const entrypointMap = {
+  '.mjs': <span class="str">'import'</span>,
+  '.js': <span class="str">'require'</span>,
+  '.ts': <span class="str">'types'</span>,   <span class="comment">// ← shared between both conditions</span>
+};
+</code></pre>
+  </div>
+
+  <div class="section">
+    <h2>attw output (before fix)</h2>
+    <div class="tool-output">
+      <span class="err">🎭 FalseCJS</span> — <code>.</code> (entrypoint)<br>
+      &nbsp;&nbsp;&nbsp;ESM consumers using <code>import Handsontable from 'handsontable'</code> resolved<br>
+      &nbsp;&nbsp;&nbsp;a CJS-typed declaration file. TypeScript inferred wrong module shape.<br><br>
+      <span class="err">❗ FalseExportDefault</span> — <code>.</code> (entrypoint)<br>
+      &nbsp;&nbsp;&nbsp;The <code>.default</code> property appeared missing or incorrectly typed for CJS consumers.<br><br>
+      <span class="err">❌ 5 broken subpaths</span> — wildcard exports matched directories<br>
+      &nbsp;&nbsp;&nbsp;e.g., <code>./cellTypes/checkboxType</code> pointed to a directory, not a file<br><br>
+      <span class="warn">Exit code: 1</span> (would block publish if CI had gated on it)
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>publint output (before fix)</h2>
+    <div class="tool-output">
+      <span class="err">Error 1:</span> pkg.exports["."]["types"] is <code>./index.d.ts</code> but is used for both<br>
+      &nbsp;&nbsp;&nbsp;<code>import</code> and <code>require</code> conditions — ambiguous type resolution<br><br>
+      <span class="err">Error 2–6:</span> 5 export subpaths resolve to directories, not files<br>
+      &nbsp;&nbsp;&nbsp;(glob wildcard without <code>nodir:true</code> matched directory entries)<br><br>
+      <span class="warn">Warning:</span> package has no <code>"type"</code> field — .d.ts resolution is ambiguous<br><br>
+      <span class="err">Total: 5 errors + 1 warning</span>
+    </div>
+  </div>
+
+  <div style="margin-top:24px;padding:14px;background:#1a1a1a;border-radius:8px;font-size:13px;color:#666;">
+    PR: <a href="https://github.com/handsontable/handsontable/pull/12696">#12696</a> ·
+    ClickUp: <a href="https://app.clickup.com/t/9015210959/DEV-1826">DEV-1826</a> ·
+    Branch: <code>feature/DEV-1826_fix-published-type-declarations</code>
+  </div>
+</body>
+</html>
