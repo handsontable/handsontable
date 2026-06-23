@@ -164,7 +164,5 @@ These tools were run locally by the PR author and confirmed:
 
 Githack URLs (served from `claude/bold-goldberg-got6rd` branch):
 
-- Before: `https://rawcdn.githack.com/handsontable/handsontable/<SHA>/demos/DEV-1826/before-fix.html`
-- After: `https://rawcdn.githack.com/handsontable/handsontable/<SHA>/demos/DEV-1826/after-fix.html`
-
-_(SHA will be updated after push)_
+- Before: https://rawcdn.githack.com/handsontable/handsontable/c4192db62308c078536e68d46c02a022cebce056/demos/DEV-1826/before-fix.html
+- After: https://rawcdn.githack.com/handsontable/handsontable/c4192db62308c078536e68d46c02a022cebce056/demos/DEV-1826/after-fix.html
