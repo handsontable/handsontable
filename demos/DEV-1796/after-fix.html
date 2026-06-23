@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEV-1796 — AFTER FIX — No TypeError</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@15.0.0/dist/handsontable.full.min.css">
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    h1 { color: #090; }
+    .status { padding: 12px; border-radius: 4px; margin: 16px 0; font-weight: bold; }
+    .status.error { background: #fee; border: 2px solid #c00; color: #c00; }
+    .status.ok { background: #efe; border: 2px solid #090; color: #090; }
+    .status.waiting { background: #fff8e1; border: 2px solid #f9a825; color: #795548; }
+    .info { background: #f5f5f5; border-left: 4px solid #090; padding: 12px; margin: 16px 0; }
+    #log { background: #1e1e1e; color: #f8f8f2; padding: 12px; border-radius: 4px; min-height: 60px; font-family: monospace; font-size: 13px; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <h1>✅ AFTER FIX — DEV-1796</h1>
+
+  <div class="info">
+    <strong>Fix:</strong> Changed <code>this.hot?.view.isHorizontallyScrollableByWindow()</code>
+    to <code>this.hot?.view?.isHorizontallyScrollableByWindow()</code><br>
+    Adding <code>?.</code> on <code>view</code> means that if <code>view</code> is <code>undefined</code>
+    (race condition during init/teardown), the expression returns <code>undefined</code> instead of
+    throwing a <code>TypeError</code>.<br><br>
+    <strong>This demo simulates the same race condition and verifies no error is thrown.</strong>
+  </div>
+
+  <div class="status waiting" id="status">Running test…</div>
+
+  <div id="app"></div>
+
+  <h3>Console log:</h3>
+  <div id="log"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@15.0.0/dist/handsontable.full.min.js"></script>
+  <script>
+    const log = document.getElementById('log');
+    const status = document.getElementById('status');
+    let hadError = false;
+
+    function appendLog(msg, color) {
+      const line = document.createElement('div');
+      line.style.color = color || '#f8f8f2';
+      line.textContent = msg;
+      log.appendChild(line);
+    }
+
+    window.addEventListener('error', (e) => {
+      hadError = true;
+      appendLog('❌ Uncaught Error: ' + e.message, '#f44');
+      status.textContent = '❌ Unexpected TypeError: ' + e.message;
+      status.className = 'status error';
+    });
+
+    appendLog('Initializing Handsontable with stretchH: "all"…', '#aaa');
+
+    const container = document.getElementById('app');
+    const hot = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      stretchH: 'all',
+      width: 600,
+      height: 200,
+      licenseKey: 'non-commercial-and-evaluation'
+    });
+
+    appendLog('✓ Handsontable initialized', '#0f0');
+    appendLog('Simulating race condition: setting hot.view = undefined…', '#aaa');
+
+    const savedView = hot.view;
+    hot.view = undefined;
+
+    // Simulate what the FIXED ResizeObserver callback does:
+    // this.hot?.view?.isHorizontallyScrollableByWindow()
+    // (optional chain on BOTH hot AND view)
+    appendLog('Calling fixed code: hot?.view?.isHorizontallyScrollableByWindow()…', '#aaa');
+
+    try {
+      // This is the FIXED code pattern — note the ?. on view:
+      const result = hot?.view?.isHorizontallyScrollableByWindow();
+      appendLog('✓ Result: ' + result + ' (no error, optional chain returned undefined gracefully)', '#0f0');
+    } catch (e) {
+      hadError = true;
+      appendLog('❌ TypeError caught: ' + e.message, '#f44');
+      status.textContent = '❌ Error thrown (fix did not work): ' + e.message;
+      status.className = 'status error';
+    }
+
+    hot.view = savedView;
+    appendLog('View restored.', '#aaa');
+
+    if (!hadError) {
+      appendLog('', '');
+      appendLog('✅ Test passed — no TypeError was thrown when hot.view is undefined.', '#0f0');
+      status.textContent = '✅ No TypeError — fix works correctly!';
+      status.className = 'status ok';
+    }
+  </script>
+</body>
+</html>

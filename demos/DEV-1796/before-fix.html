@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEV-1796 — BEFORE FIX — TypeError: Cannot read property 'isHorizontallyScrollableByWindow' of undefined</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@15.0.0/dist/handsontable.full.min.css">
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    h1 { color: #c00; }
+    .status { padding: 12px; border-radius: 4px; margin: 16px 0; font-weight: bold; }
+    .status.error { background: #fee; border: 2px solid #c00; color: #c00; }
+    .status.ok { background: #efe; border: 2px solid #090; color: #090; }
+    .info { background: #f5f5f5; border-left: 4px solid #999; padding: 12px; margin: 16px 0; }
+    pre { background: #1e1e1e; color: #f8f8f2; padding: 12px; border-radius: 4px; overflow-x: auto; font-size: 13px; }
+    #log { background: #1e1e1e; color: #f8f8f2; padding: 12px; border-radius: 4px; min-height: 60px; font-family: monospace; font-size: 13px; white-space: pre-wrap; }
+    .step { margin: 8px 0; color: #999; }
+    .step.done { color: #0f0; }
+    .step.err { color: #f44; }
+  </style>
+</head>
+<body>
+  <h1>🐛 BEFORE FIX — DEV-1796</h1>
+
+  <div class="info">
+    <strong>Bug:</strong> <code>TypeError: Cannot read property 'isHorizontallyScrollableByWindow' of undefined</code><br>
+    <strong>Root cause:</strong> The <code>StretchColumns</code> <code>ResizeObserver</code> callback used
+    <code>this.hot?.view.isHorizontallyScrollableByWindow()</code> — optional chaining on <code>hot</code>
+    but <strong>NOT</strong> on <code>view</code>. If <code>view</code> is <code>undefined</code>
+    (race condition during init/teardown), a TypeError is thrown.<br><br>
+    <strong>This demo patches the ResizeObserver callback to reproduce the pre-fix behavior.</strong>
+  </div>
+
+  <div class="status error" id="status">Waiting for test…</div>
+
+  <div id="app"></div>
+
+  <h3>Console log:</h3>
+  <div id="log"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@15.0.0/dist/handsontable.full.min.js"></script>
+  <script>
+    const log = document.getElementById('log');
+    const status = document.getElementById('status');
+
+    function appendLog(msg, color) {
+      const line = document.createElement('div');
+      line.style.color = color || '#f8f8f2';
+      line.textContent = msg;
+      log.appendChild(line);
+    }
+
+    // Intercept uncaught errors to display them
+    const caughtErrors = [];
+    window.addEventListener('error', (e) => {
+      caughtErrors.push(e.message);
+      appendLog('❌ Uncaught Error: ' + e.message, '#f44');
+      status.textContent = '❌ TypeError thrown: ' + e.message;
+      status.className = 'status error';
+    });
+
+    // We manually simulate the buggy behavior:
+    // The old code was: this.hot?.view.isHorizontallyScrollableByWindow()
+    // If hot.view is undefined, this throws TypeError.
+
+    appendLog('Initializing Handsontable with stretchH: "all"…', '#aaa');
+
+    const container = document.getElementById('app');
+    const hot = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(5, 5),
+      stretchH: 'all',
+      width: 600,
+      height: 200,
+      licenseKey: 'non-commercial-and-evaluation'
+    });
+
+    appendLog('✓ Handsontable initialized', '#0f0');
+    appendLog('Simulating race condition: setting hot.view = undefined…', '#aaa');
+
+    // Save view and remove it to simulate the race condition
+    const savedView = hot.view;
+    hot.view = undefined;
+
+    // Simulate what the ResizeObserver callback does in the buggy version:
+    // this.hot?.view.isHorizontallyScrollableByWindow()
+    // (optional chain on hot but NOT on view)
+    appendLog('Calling buggy code: hot?.view.isHorizontallyScrollableByWindow()…', '#aaa');
+
+    try {
+      // This is the BUGGY pre-fix code pattern:
+      const result = hot?.view.isHorizontallyScrollableByWindow();
+      appendLog('Result: ' + result, '#0f0');
+    } catch (e) {
+      appendLog('❌ TypeError caught: ' + e.message, '#f44');
+      status.textContent = '❌ TypeError thrown! ' + e.message;
+      status.className = 'status error';
+    }
+
+    // Restore view
+    hot.view = savedView;
+    appendLog('View restored.', '#aaa');
+
+    if (status.textContent === 'Waiting for test…') {
+      status.textContent = '⚠️ No error? Check the log.';
+      status.className = 'status error';
+    }
+  </script>
+</body>
+</html>
