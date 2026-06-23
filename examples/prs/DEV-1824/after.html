@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1824 setDataAtCell TypeScript signature — AFTER fix</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn {
+      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
+      border: 1px solid #ccc;
+    }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #d0d0d0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-cdn { background: #fde8e8; color: #c62828; }
+    .badge-fixed { background: #e8f5e9; color: #2e7d32; }
+    .panel { border-radius: 6px; padding: 14px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
+    .panel-fix { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .panel-fix strong { color: #1b5e20; }
+    .panel-info { background: #fff3cd; border: 1px solid #ffc107; }
+    .panel-info strong { color: #856404; }
+    .code { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 14px 16px; margin-bottom: 16px; font-family: 'Courier New', monospace; font-size: 13px; line-height: 1.7; white-space: pre; overflow-x: auto; }
+    .code .ok { color: #4ec9b0; }
+    .code .comment { color: #6a9955; }
+    .code .highlight { color: #dcdcaa; }
+    .log-box { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 10px 14px; font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6; min-height: 60px; max-height: 180px; overflow-y: auto; margin-top: 12px; }
+    .log-entry { margin: 2px 0; }
+    .log-entry.change { color: #4ec9b0; }
+    .log-entry.source { color: #dcdcaa; }
+    .row { display: flex; gap: 16px; }
+    .col { flex: 1; }
+    h3 { font-size: 15px; margin-bottom: 10px; }
+    button { padding: 7px 16px; border-radius: 5px; border: 1px solid #999; background: #fff; font-size: 13px; cursor: pointer; margin-right: 8px; margin-bottom: 8px; }
+    button:hover { background: #f0f0f0; }
+    .tag-good { display: inline-block; background: #e8f5e9; color: #2e7d32; border-radius: 4px; font-size: 11px; padding: 1px 6px; border: 1px solid #a5d6a7; font-weight: bold; }
+    .diff-old { background: #3a1c1c; color: #f48771; text-decoration: line-through; opacity: 0.7; }
+    .diff-new { background: #1c3a1c; color: #89d185; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1824 — <code>setDataAtCell</code> TypeScript signature fix</h1>
+
+  <nav>
+    <span class="nav-label">State:</span>
+    <a class="nav-btn" href="before.html">BEFORE fix <span class="badge badge-cdn">v17.1.0 CDN</span></a>
+    <span class="nav-btn active">AFTER fix <span class="badge badge-fixed">fixed</span></span>
+  </nav>
+
+  <div class="panel panel-fix">
+    <strong>Fix applied:</strong> The <code>column</code> parameter of <code>setDataAtCell</code>
+    and <code>setDataAtRowProp</code> now accepts <code>string</code> in addition to <code>number | null</code>.
+    Calling <code>setDataAtCell(changes, source)</code> in the array form now type-checks correctly —
+    no more <code>as any</code> workaround needed.<br><br>
+    <strong>Changed in</strong> <code>handsontable/src/core/types.ts</code>:<br>
+    <code>setDataAtCell(row: number | unknown[][], column?: number | null, ...)</code> →<br>
+    <code>setDataAtCell(row: number | unknown[][], column?: <strong>number | string | null</strong>, ...)</code>
+  </div>
+
+  <div class="row">
+    <div class="col">
+      <h3>TypeScript code — AFTER fix <span class="tag-good">TYPE-SAFE ✓</span></h3>
+      <div class="code"><span class="comment">// ✅ Clean code — compiles without workaround after fix:</span>
+<span class="ok">hot.setDataAtCell([[0, 0, 'new value']], 'mySource');</span>
+
+<span class="ok">hot.setDataAtRowProp([[0, 'prop', 'value']], 'mySource');</span>
+
+<span class="comment">// The fixed type signature:</span>
+<span class="comment">// setDataAtCell(</span>
+<span class="comment">//   row: number | unknown[][],</span>
+<span class="highlight">//   column?: number | string | null,  // ← string added</span>
+<span class="comment">//   value?: unknown,</span>
+<span class="comment">//   source?: string</span>
+<span class="comment">// ): void;</span>
+
+<span class="comment">// Test file change (PR #12685):</span>
+<span class="diff-old">// (hot as any).setDataAtCell([[...]], 'foo');</span>
+<span class="diff-new">// hot.setDataAtCell([[...]], 'foo');  ← no cast needed</span></div>
+
+      <div class="panel panel-info">
+        <strong>How to test:</strong> Click buttons below to call <code>setDataAtCell</code> in
+        array form with a source string. Verify the <code>afterChange</code> log shows the correct
+        source string. Both forms work — the fix ensures TypeScript accepts the code without casts.
+      </div>
+
+      <button onclick="setDataArrayForm()">Set data — array form with source (fixed TS signature)</button>
+      <button onclick="setDataRowProp()">Set data — setDataAtRowProp array form</button>
+      <button onclick="setDataSingleForm()">Set data — single cell form</button>
+      <button onclick="clearLog()">Clear log</button>
+
+      <div id="log" class="log-box">
+        <div class="log-entry comment">// afterChange log will appear here...</div>
+      </div>
+    </div>
+
+    <div class="col">
+      <h3>Live grid — source tracking demo</h3>
+      <div id="hot-container"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script>
+    const logEl = document.getElementById('log');
+
+    function addLog(msg, cls) {
+      const el = document.createElement('div');
+      el.className = 'log-entry ' + (cls || '');
+      el.textContent = msg;
+      logEl.appendChild(el);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    function clearLog() {
+      logEl.innerHTML = '<div class="log-entry comment">// afterChange log...</div>';
+    }
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: [
+        ['Alice', 25, 'Engineer'],
+        ['Bob', 30, 'Designer'],
+        ['Carol', 28, 'Manager'],
+        ['David', 35, 'Developer'],
+        ['Eve', 22, 'Intern'],
+      ],
+      colHeaders: ['Name', 'Age', 'Role'],
+      rowHeaders: true,
+      width: '100%',
+      height: 250,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      afterChange(changes, source) {
+        if (!changes) return;
+        changes.forEach(([row, col, oldVal, newVal]) => {
+          addLog(`change: [${row}, ${col}] "${oldVal}" → "${newVal}"`, 'change');
+          addLog(`source: "${source}"`, 'source');
+        });
+      }
+    });
+
+    // After the fix, this compiles without "as any" in TypeScript
+    function setDataArrayForm() {
+      window.hot.setDataAtCell(
+        [[0, 0, 'Alice-updated'], [1, 1, 99], [2, 2, 'Manager-updated']],
+        'myCustomSource'
+      );
+    }
+
+    function setDataRowProp() {
+      window.hot.setDataAtRowProp(
+        [[3, 0, 'David-updated'], [4, 2, 'Senior-Intern']],
+        'rowPropSource'
+      );
+    }
+
+    function setDataSingleForm() {
+      window.hot.setDataAtCell(4, 0, 'Eve-updated', 'singleCellSource');
+    }
+  </script>
+</body>
+</html>
