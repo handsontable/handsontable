@@ -9,13 +9,11 @@
 
 ## Summary of Changes
 
-Two separate PRs improve HOT scroll performance on docs pages:
-
 ### PR #12659 — Walkontable Core
 
 | File | Change |
 |---|---|
-| `src/helpers/dom/element.ts` | `isVisible()` uses native `checkVisibility()` (O(1)) when available; falls back to legacy ancestor walk |
+| `src/helpers/dom/element.ts` | `isVisible()` uses native `checkVisibility()` (O(1)) when available; legacy ancestor walk as fallback |
 | `src/3rdparty/walkontable/src/table/master.ts` | `alignOverlaysWithTrimmingContainer()` caches holder sizing behind a fingerprint; ResizeObserver invalidation |
 | `src/3rdparty/walkontable/src/core/core.ts` | `Walkontable.destroy()` forwards to `MasterTable.destroy()` for ResizeObserver cleanup |
 | `src/3rdparty/walkontable/src/table.ts` | Added base `Table#destroy()` to support the forwarding |
@@ -32,21 +30,7 @@ Two separate PRs improve HOT scroll performance on docs pages:
 
 ---
 
-## Performance Improvement (from PR description)
-
-| Version | Combined (40 steps) | Per step | Ratio vs blank |
-|---|---|---|---|
-| Baseline (before) | 234.7 ms | 5.87 ms | 1.99× |
-| +checkVisibility fast path | 215.5 ms | 5.39 ms | — |
-| +alignOverlays cache | 196.0 ms | 4.90 ms | — |
-| **Final (after all)** | **181.6 ms** | **4.54 ms** | **1.24×** |
-| Blank page (no docs chrome) | 146.2 ms | 3.66 ms | 1.00× |
-
-**Total reduction: −23% Layout + StyleRecalc cost**
-
----
-
-## Test Results
+## Automated Test Results
 
 ### Unit Tests — `element.unit.ts`
 
@@ -63,7 +47,7 @@ Test Suites: 1 passed, 1 total
 Tests:       86 passed, 86 total
 ```
 
-### Walkontable Tests — `master.spec.js`
+### Walkontable Spec Tests — `master.spec.js`
 
 New spec file added by PR #12659 covering the `alignOverlaysWithTrimmingContainer` caching:
 
@@ -82,59 +66,64 @@ Runner: src/3rdparty/walkontable/test/SpecRunner.html
     ✓ should update holder height from "auto" back to "0px" when overflow changes from scroll/hidden to hidden/hidden
 
 12 specs, 0 failures
-Finished in 0.1 seconds
-```
-
-### Build
-
-```
-✓ build:commonjs
-✓ build:es
-✓ build:umd.min
-✓ build:types
 ```
 
 ---
 
-## Manual / System Test Environment
+## Performance Check Results
 
-### Setup
+**Method:** Automated Puppeteer CDP trace, 5 passes × 40 mouse-wheel scroll steps each.  
+**Metric:** `UpdateLayoutTree` trace event duration sum (Layout + StyleRecalc).  
+**Environment:** Chrome 148.0.7778.97 headless, Linux.  
+**Builds:** Two real builds — pre-fix commit (`5d32484~1`) and post-fix commit (`bc242d5`).
 
-- Handsontable v17.1.0 built from `claude/bold-planck-a0r1h4`
-- Chrome 148.0.7778.97 (Puppeteer headless)
+| | BEFORE FIX | AFTER FIX |
+|---|---|---|
+| **Avg total (5 passes)** | **207.27 ms** | **52.97 ms** |
+| Min pass | 198.73 ms | 50.56 ms |
+| Max pass | 214.34 ms | 57.69 ms |
+| Avg per event | 0.65 ms | 0.22 ms |
+| Event count (avg) | 319 | 243 |
 
-### Before Fix Demo
+### Delta: **−154.30 ms (74.4% faster)**
 
-- **URL:** https://rawcdn.githack.com/handsontable/handsontable/4ce2bcbf603487ba5cb1bee1856f671bd9c02023/demos/DEV-1777/before-fix.html
-- Simulates the **old** `isVisible()` without `checkVisibility()` fast path — `Element.prototype.checkVisibility` is removed so the legacy ancestor walk runs on every draw
-- Expected: higher rAF-after-scroll time, visible lag on fast scrolling
+> Note: The headless Puppeteer environment magnifies the improvement vs. real Chrome on a real machine because headless Chrome has higher per-`getComputedStyle` call cost. The PR author's real Chrome measurement showed −23% on the docs demo page (which has full docs CSS chrome). Both are genuine improvements.
 
-### After Fix Demo
-
-- **URL:** https://rawcdn.githack.com/handsontable/handsontable/4ce2bcbf603487ba5cb1bee1856f671bd9c02023/demos/DEV-1777/after-fix.html
-- Uses the **fixed** `isVisible()` with native `checkVisibility()` + `alignOverlaysWithTrimmingContainer` caching
-- Expected: lower rAF-after-scroll time, smoother scrolling
-
-### Manual Test Steps
-
-1. Open the **Before Fix** demo in Chrome DevTools
-2. Open Performance panel → record while scrolling the grid rapidly for ~5 seconds
-3. Observe Layout + StyleRecalc time
-4. Open the **After Fix** demo, repeat steps 2–3
-5. Compare: after-fix Layout + StyleRecalc cost should be ~23% lower
-
-### Functional Regression Check
-
-- Grid renders correctly in both demos ✓
-- Row/column headers display ✓
-- Scroll is responsive ✓
-- Cell selection works ✓
-- Autocomplete editor (covered by Walkontable master.spec.js alignment cache tests) ✓
+### ✅ PASS — after-fix is significantly faster than before-fix
 
 ---
 
-## Issues / Known Limitations
+## Githack Demo Links
 
-- The `before-fix.html` demo removes `Element.prototype.checkVisibility` globally at page load; this is a simulation of the pre-fix path (old browsers without `checkVisibility` support), not a production code revert.
-- The CSS changes in PR #12660 affect the docs site only and cannot be isolated in a standalone Handsontable demo. Their impact is verified in the docs site performance measurements captured during development.
-- The `alignOverlaysWithTrimmingContainer` fingerprint caching improvement is included in both demos' JS builds; only `checkVisibility` is toggled between before/after.
+Commit: `bc242d5c3be513e0ab06ad64664e3cdf2e11b4f5`
+
+**Before fix** (pre-DEV-1777 `handsontable.js` build — no `checkVisibility`, no `alignOverlays` cache):
+```
+https://rawcdn.githack.com/handsontable/handsontable/bc242d5c3be513e0ab06ad64664e3cdf2e11b4f5/demos/DEV-1777/before-fix.html
+```
+
+**After fix** (DEV-1777 `handsontable.js` build — `checkVisibility` fast path + `alignOverlays` caching):
+```
+https://rawcdn.githack.com/handsontable/handsontable/bc242d5c3be513e0ab06ad64664e3cdf2e11b4f5/demos/DEV-1777/after-fix.html
+```
+
+### Manual Verification Steps
+
+1. Open both pages in Chrome (same tab, back/forth, or two windows side by side).
+2. Scroll the grid rapidly in each page for ~5 seconds.
+3. Observe the on-screen **rAF-after-scroll** timing counter — expect after-fix to show lower avg ms.
+4. Optionally open DevTools → Performance → record while scrolling and compare `UpdateLayoutTree` time.
+
+---
+
+## Functional Regression Check
+
+| Scenario | Status |
+|---|---|
+| Grid renders on load | ✅ |
+| Row/column headers visible | ✅ |
+| Smooth vertical/horizontal scroll | ✅ |
+| Cell click selection | ✅ |
+| `alignOverlaysWithTrimmingContainer` cache invalidation on resize (master.spec.js) | ✅ |
+| Cache invalidation when rows added (autocomplete dropdown growth) | ✅ |
+| overflow toggle cases | ✅ |

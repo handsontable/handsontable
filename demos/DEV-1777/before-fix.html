@@ -3,14 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DEV-1777: Before Fix — Scroll Performance (Legacy isVisible)</title>
+  <title>DEV-1777: Before Fix — Scroll Performance</title>
   <link rel="stylesheet" href="../../handsontable/styles/handsontable.css">
   <link rel="stylesheet" href="../../handsontable/styles/ht-theme-main.css">
   <style>
     body { font-family: sans-serif; margin: 20px; }
     h1 { font-size: 1.2em; color: #c0392b; }
     .badge { display: inline-block; background: #c0392b; color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 0.85em; margin-bottom: 8px; }
-    #info { margin-bottom: 12px; font-size: 0.9em; color: #555; }
     #fps-display { font-size: 1.1em; font-weight: bold; margin-bottom: 8px; }
     #scroll-timing { font-size: 0.9em; color: #333; margin-bottom: 12px; }
     #container { width: 800px; height: 400px; overflow: hidden; }
@@ -21,26 +20,17 @@
   <h1>DEV-1777: Before Fix</h1>
   <span class="badge">BEFORE FIX</span>
   <div class="note">
-    <strong>What this simulates:</strong> The old <code>isVisible()</code> function uses a manual ancestor DOM walk with
-    <code>getComputedStyle()</code> on every node up to <code>&lt;html&gt;</code>. This forces a full-document style
-    recalculation on every scroll step (O(DOM depth) cost).
-    <br><br>
-    The <code>checkVisibility()</code> fast path has been <strong>disabled</strong> in this build so you see
-    the legacy behavior.
+    <strong>Build:</strong> Handsontable compiled from the commit <em>before</em> DEV-1777 was merged.<br>
+    <strong>isVisible():</strong> Manual ancestor DOM walk with <code>getComputedStyle()</code> on every node — O(DOM depth) per call.<br>
+    <strong>alignOverlaysWithTrimmingContainer():</strong> No caching — <code>cloneNode</code> + <code>getComputedStyle</code> measurement on every scroll step.
   </div>
   <div id="fps-display">FPS: —</div>
-  <div id="scroll-timing">Avg scroll handler time: —</div>
+  <div id="scroll-timing">Avg rAF-after-scroll time: —</div>
   <div id="container"></div>
 
-  <script src="../../handsontable/dist/handsontable.js"></script>
+  <!-- Pre-fix build of handsontable.js -->
+  <script src="handsontable-before.js"></script>
   <script>
-    // Patch isVisible on the Handsontable object to remove the checkVisibility fast-path,
-    // simulating the pre-fix legacy behavior where every call does a full ancestor DOM walk.
-    // We do this by monkey-patching the internal helper after HOT is initialized.
-    //
-    // The patch works by temporarily hiding checkVisibility from element during the call,
-    // forcing the legacy code path for all isVisible() invocations.
-
     const data = [];
     for (let r = 0; r < 500; r++) {
       const row = [];
@@ -58,18 +48,8 @@
       rowHeaders: true,
       colHeaders: true,
       licenseKey: 'non-commercial-and-evaluation',
-      ht_master_table_use_check_visibility: false, // custom flag (no-op, for labeling)
     });
 
-    // Patch: after HOT is initialized, find the internal isVisible helper and wrap it
-    // to remove the checkVisibility() fast path.
-    // We patch the Walkontable's vtable method indirectly by overriding checkVisibility
-    // on the HOT root element during all HOT-internal calls.
-    const origCheckVisibility = Element.prototype.checkVisibility;
-    // Remove the fast path — simulate old browser that doesn't support checkVisibility
-    Element.prototype.checkVisibility = undefined;
-
-    // FPS meter
     let lastTime = performance.now();
     let frameCount = 0;
     const fpsDisplay = document.getElementById('fps-display');
@@ -88,19 +68,16 @@
     }
     requestAnimationFrame(measureFPS);
 
-    // Measure scroll cost
     const wtHolder = container.querySelector('.wtHolder');
     if (wtHolder) {
       wtHolder.addEventListener('scroll', () => {
         const t0 = performance.now();
-        // isVisible() is called internally by HOT on next render frame;
-        // we measure time from scroll event to rAF completion as a proxy.
         requestAnimationFrame(() => {
           const dt = performance.now() - t0;
           scrollTimes.push(dt);
           if (scrollTimes.length > 30) scrollTimes.shift();
           const avg = (scrollTimes.reduce((a, b) => a + b, 0) / scrollTimes.length).toFixed(2);
-          timingDisplay.textContent = `Avg rAF-after-scroll time: ${avg}ms (last ${scrollTimes.length} steps) [BEFORE FIX]`;
+          timingDisplay.textContent = `Avg rAF-after-scroll: ${avg}ms (last ${scrollTimes.length} steps) [BEFORE FIX]`;
         });
       }, { passive: true });
     }
