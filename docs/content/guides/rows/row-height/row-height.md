@@ -36,7 +36,7 @@ The default (and minimum) row height is calculated based on the used theme's lin
 If your cell contents require heights greater than default (because you use multiline text, or [custom renderers](@/guides/cell-functions/cell-renderer/cell-renderer.md), or custom styles), use one of the following configurations to avoid potential layout problems:
   - Configure your row heights in advance: set the [`minRowHeights`](@/api/options.md#minrowheights) option to a [number](#set-row-heights-to-a-number), or an [array](#set-row-heights-with-an-array), or a [function](#set-row-heights-with-a-function). This requires you to know the heights beforehand, but results in the best runtime performance.
   - Set the [`manualRowResize`](@/api/options.md#manualrowresize) option to an array, to configure initial row heights and let your users [adjust the row heights manually](#adjust-row-heights-manually).
-  - Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin, by setting `autoRowSize: true`. This tells Handsontable to measure the actual row heights in the DOM. It impacts runtime performance but is accurate.
+  - Enable the [`AutoRowSize`](@/api/autoRowSize.md) plugin, by setting `autoRowSize: true`. This tells Handsontable to measure the actual row heights in the DOM. It impacts runtime performance but is accurate. Also enable `AutoRowSize` if you call [`scrollViewportTo()`](@/api/core.md#scrollviewportto) -- the method relies on accurate row height measurements to scroll to the correct position.
 
 ## Set row heights to a number
 
@@ -245,6 +245,7 @@ You can adjust the size of one or multiple rows simultaneously, even if the sele
 <div class="boxes-list">
 
 - [getRowHeight()](@/api/core.md#getrowheight)
+- [scrollViewportTo()](@/api/core.md#scrollviewportto)
 
 </div>
 

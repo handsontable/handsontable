@@ -53,6 +53,12 @@ const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
  * In those cases, to ensure that the row heights are properly recalculated, you need to call the {@link AutoRowSize#recalculateAllRowsHeight} method after calling {@link Core#updateSettings}.
  * :::
  *
+ * ::: tip
+ * If you use custom renderers, multiline text, or custom styles that produce non-standard row heights, and you call
+ * {@link Core#scrollViewportTo}, you must enable `AutoRowSize`. Without it, `scrollViewportTo()` calculates scroll
+ * positions based on the default row height and may scroll to an incorrect position.
+ * :::
+ *
  * To configure this plugin see {@link Options#autoRowSize}.
  *
  * @example

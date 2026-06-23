@@ -337,6 +337,12 @@ This feature is made possible thanks to the [`AutoColumnSize`](@/api/autoColumnS
 
 To increase the performance, you can turn off this feature by defining the fixed size for the specified column or all columns.
 
+::: tip
+
+If you call [`scrollViewportTo()`](@/api/core.md#scrollviewportto) and your columns have non-standard widths (for example, set by a custom renderer or CSS), make sure `AutoColumnSize` is enabled. Without it, the method may scroll to an incorrect position.
+
+:::
+
 ## Size of the container
 
 Setting the dimensions of the container that holds Handsontable is described in detail on the [Grid size](@/guides/getting-started/grid-size/grid-size.md) page.
@@ -359,6 +365,7 @@ Setting the dimensions of the container that holds Handsontable is described in 
 <div class="boxes-list">
 
 - [getColWidth()](@/api/core.md#getcolwidth)
+- [scrollViewportTo()](@/api/core.md#scrollviewportto)
 
 </div>
 

@@ -63,6 +63,12 @@ const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
  *   }
  * ```
  *
+ * ::: tip
+ * If you use custom renderers or custom styles that produce non-standard column widths, and you call
+ * {@link Core#scrollViewportTo}, make sure `AutoColumnSize` is enabled. Without it, `scrollViewportTo()` calculates
+ * scroll positions based on incorrect column widths and may scroll to an incorrect position.
+ * :::
+ *
  * To configure this plugin see {@link Options#autoColumnSize}.
  *
  * @example
