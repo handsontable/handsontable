@@ -1095,8 +1095,9 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 
 ::: only-for javascript
 
-::: example #example11 --js 1 --ts 2
+::: example #example11 --html 1 --js 2 --ts 3
 
+@[code](@/content/guides/columns/column-summary/javascript/example11.html)
 @[code](@/content/guides/columns/column-summary/javascript/example11.js)
 @[code](@/content/guides/columns/column-summary/javascript/example11.ts)
 
