@@ -44,8 +44,7 @@ export function multiSelectRenderer(
   const { rootDocument } = hotInstance;
   const isAriaEnabled = hotInstance.getSettings().ariaTags;
   const physicalRow = hotInstance.toPhysicalRow(row);
-  const physicalColumn = typeof col === 'string' ? col : hotInstance.toPhysicalColumn(col);
-  const sourceData = hotInstance.getSourceDataAtCell(physicalRow, physicalColumn);
+  const sourceData = hotInstance.getSourceDataAtCell(physicalRow, col);
   const values = parseValue(sourceData);
 
   empty(TD);
