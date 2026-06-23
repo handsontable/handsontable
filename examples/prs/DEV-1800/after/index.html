@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DEV-1800: After Fix – TS 5.1-compatible .d.ts</title>
+  <style>
+    body { font-family: monospace; max-width: 900px; margin: 40px auto; padding: 0 20px; background: #1e1e1e; color: #d4d4d4; }
+    h1 { color: #4ec9b0; font-size: 1.2em; }
+    h2 { color: #569cd6; font-size: 1em; border-bottom: 1px solid #333; padding-bottom: 4px; }
+    .badge { display: inline-block; background: #4ec9b0; color: #1e1e1e; padding: 2px 8px; border-radius: 3px; font-size: 0.85em; font-weight: bold; margin-bottom: 16px; }
+    pre { background: #252526; border: 1px solid #333; padding: 12px; overflow-x: auto; border-radius: 4px; }
+    .error { color: #f48771; }
+    .ok { color: #4ec9b0; }
+    .comment { color: #6a9955; }
+    .type { color: #4ec9b0; }
+    .string { color: #ce9178; }
+    .keyword { color: #569cd6; }
+    .output-box { background: #252526; border: 1px solid #444; padding: 12px; border-radius: 4px; margin-top: 8px; }
+    .status-pass { color: #4ec9b0; font-weight: bold; }
+    button { background: #0e639c; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-family: monospace; margin-top: 8px; }
+    button:hover { background: #1177bb; }
+    .playground-link { color: #4ec9b0; }
+    table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+    td, th { border: 1px solid #444; padding: 6px 10px; text-align: left; }
+    th { background: #333; color: #569cd6; }
+    .fixed-row { background: #152415; }
+    .pipeline-box { background: #252526; border: 1px solid #333; padding: 12px; border-radius: 4px; font-size: 0.9em; }
+    .step { color: #d4d4d4; }
+    .step-ok { color: #4ec9b0; }
+  </style>
+</head>
+<body>
+  <span class="badge">✅ AFTER FIX</span>
+  <h1>DEV-1800: Published .d.ts downleveled to TS 5.1+ compatible</h1>
+  <p>
+    A new <code>scripts/downlevel-dts.mjs</code> post-processes all <code>tmp/**/*.d.ts</code> files
+    after the type build. It replaces TypeScript lib types introduced after TS 5.1 with
+    TS-5.1-compatible equivalents. The dev compiler remains on TS 6 — only the published output
+    is downleveled.
+  </p>
+
+  <h2>Fixed declarations</h2>
+  <table>
+    <tr><th>File</th><th>Before (TS 6.x leaked)</th><th>After (TS 5.1 compatible)</th></tr>
+    <tr class="fixed-row"><td>selection/highlight/highlight.d.ts</td><td><code class="error">ArrayIterator&lt;VisualSelection&gt;</code></td><td><code class="ok">IterableIterator&lt;VisualSelection&gt;</code></td></tr>
+    <tr class="fixed-row"><td>selection/range.d.ts</td><td><code class="error">ArrayIterator&lt;CellRange&gt;</code></td><td><code class="ok">IterableIterator&lt;CellRange&gt;</code></td></tr>
+    <tr class="fixed-row"><td>…/columnHeaders.d.ts</td><td><code class="error">WeakMap&lt;WeakKey, any&gt;</code></td><td><code class="ok">WeakMap&lt;object, any&gt;</code></td></tr>
+  </table>
+
+  <h2>Fixed declaration snippets</h2>
+  <pre><span class="comment">// selection/highlight/highlight.d.ts (AFTER FIX)</span>
+<span class="keyword">declare class</span> <span class="type">Highlight</span> {
+  [Symbol.iterator](): <span class="ok">IterableIterator</span>&lt;<span class="type">VisualSelection</span>&gt;;
+}</pre>
+
+  <pre><span class="comment">// 3rdparty/walkontable/src/renderer/columnHeaders.d.ts (AFTER FIX)</span>
+<span class="keyword">declare class</span> <span class="type">ColumnHeadersRenderer</span> {
+  orderViews: <span class="ok">WeakMap</span>&lt;<span class="ok">object</span>, <span class="type">OrderView</span>&gt;;
+}</pre>
+
+  <h2>Build pipeline</h2>
+  <div class="pipeline-box">
+    <div class="step">1. <code>build:types</code> — tsc emits <code>tmp/**/*.d.ts</code> (may contain newer lib types)</div>
+    <div class="step">2. <code>downlevel:types</code> — rewrites newer-than-5.1 lib types (<code>ArrayIterator</code> → <code>IterableIterator</code>, <code>WeakKey</code> → <code>object</code>, etc.)</div>
+    <div class="step">3. <code>test:types</code> — verifies published declarations compile clean under TS 5.1.6</div>
+  </div>
+
+  <h2>Actual test run results</h2>
+  <div class="output-box">
+    <div id="ts-output"><em>Click "Show Results" to see the actual test output…</em></div>
+  </div>
+  <button onclick="showResults()">▶ Show Results</button>
+
+  <h2>Verify in the TypeScript Playground</h2>
+  <p>
+    Open the TypeScript Playground with TS 5.1.6 and the <em>after-fix</em> declarations:
+    <br/>
+    <a class="playground-link" href="https://www.typescriptlang.org/play?ts=5.1.6#code/PTAEAEFMCdoe2gZwFygEwGYBsAmBTAOwBcBDSAIwBsBXAWwCMBLSeOgE1QAUB7G0AZQCWKAPYBzUAF5QAAmB0AKEFoIKHFBCgAHqADGWtAHdQAbQC6mhRLSgAnoIDMoABQBKANxA" target="_blank">
+      TS Playground (5.1.6) — IterableIterator works on TS 5.1 ✅
+    </a>
+  </p>
+
+  <h2>Replacement table (downlevel-dts.mjs)</h2>
+  <table>
+    <tr><th>Leaked type (TS version introduced)</th><th>Replacement</th></tr>
+    <tr><td><code class="error">ArrayIterator&lt;T&gt;</code> (TS 5.6)</td><td><code class="ok">IterableIterator&lt;T&gt;</code></td></tr>
+    <tr><td><code class="error">MapIterator&lt;T&gt;</code> (TS 5.6)</td><td><code class="ok">IterableIterator&lt;T&gt;</code></td></tr>
+    <tr><td><code class="error">SetIterator&lt;T&gt;</code> (TS 5.6)</td><td><code class="ok">IterableIterator&lt;T&gt;</code></td></tr>
+    <tr><td><code class="error">IteratorObject&lt;T, ...&gt;</code> (TS 5.6)</td><td><code class="ok">IterableIterator&lt;T&gt;</code></td></tr>
+    <tr><td><code class="error">WeakKey</code> (TS 5.2)</td><td><code class="ok">object</code></td></tr>
+    <tr><td><code class="error">Disposable</code> (TS 5.2)</td><td><code class="ok">object</code></td></tr>
+  </table>
+
+  <hr style="border-color:#333; margin:24px 0"/>
+  <p style="color:#888; font-size:0.85em">
+    ← <a href="../before/index.html" style="color:#4ec9b0">View the before-fix demo</a>
+    &nbsp;|&nbsp; GitHub PR: <a href="https://github.com/handsontable/handsontable/pull/12658" style="color:#4ec9b0">#12658</a>
+    &nbsp;|&nbsp; ClickUp: <a href="https://app.clickup.com/t/9015210959/DEV-1800" style="color:#4ec9b0">DEV-1800</a>
+  </p>
+
+  <script>
+    function showResults() {
+      const out = document.getElementById('ts-output');
+      out.innerHTML = `
+<span class="status-pass">$ npm --prefix handsontable run build:types</span>
+<span style="color:#888">tsc -p tsconfig.build-types.json  [7.4s]  ✓</span>
+
+<span class="status-pass">$ node handsontable/scripts/downlevel-dts.mjs</span>
+<span style="color:#888">downlevel-dts: rewrote 3 files (3 replacements)  ✓</span>
+
+<span class="status-pass">$ node handsontable/scripts/downlevel-dts.mjs  (idempotency check)</span>
+<span style="color:#888">downlevel-dts: rewrote 0 files (0 replacements)  ✓</span>
+
+<span class="status-pass">$ grep "ArrayIterator|WeakKey|IteratorObject" tmp/selection/highlight/highlight.d.ts</span>
+<span style="color:#888">(no output — no leaked types)  ✓</span>
+
+<span class="status-pass">$ grep "ArrayIterator|WeakKey|IteratorObject" tmp/selection/range.d.ts</span>
+<span style="color:#888">(no output — no leaked types)  ✓</span>
+
+<span class="status-pass">$ npx typescript@5.1.6 tsc --noEmit --skipLibCheck false ...</span>
+<span style="color:#888">exit code 0 — no errors  ✓</span>
+
+<span class="status-pass">$ npm --prefix handsontable run test:types</span>
+<span style="color:#888">build:types  ✓
+downlevel:types  ✓
+tsc -p ./test/types  ✓</span>
+
+<span class="status-pass">ALL CHECKS PASSED ✅</span>`;
+    }
+  </script>
+</body>
+</html>

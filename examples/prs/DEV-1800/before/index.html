@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DEV-1800: Before Fix – ArrayIterator / WeakKey leak in .d.ts</title>
+  <style>
+    body { font-family: monospace; max-width: 900px; margin: 40px auto; padding: 0 20px; background: #1e1e1e; color: #d4d4d4; }
+    h1 { color: #f48771; font-size: 1.2em; }
+    h2 { color: #569cd6; font-size: 1em; border-bottom: 1px solid #333; padding-bottom: 4px; }
+    .badge { display: inline-block; background: #f48771; color: #1e1e1e; padding: 2px 8px; border-radius: 3px; font-size: 0.85em; font-weight: bold; margin-bottom: 16px; }
+    pre { background: #252526; border: 1px solid #333; padding: 12px; overflow-x: auto; border-radius: 4px; }
+    .error { color: #f48771; }
+    .ok { color: #4ec9b0; }
+    .comment { color: #6a9955; }
+    .type { color: #4ec9b0; }
+    .string { color: #ce9178; }
+    .keyword { color: #569cd6; }
+    .output-box { background: #252526; border: 1px solid #444; padding: 12px; border-radius: 4px; margin-top: 8px; }
+    .status-fail { color: #f48771; font-weight: bold; }
+    button { background: #0e639c; color: white; border: none; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-family: monospace; margin-top: 8px; }
+    button:hover { background: #1177bb; }
+    .playground-link { color: #4ec9b0; }
+    table { border-collapse: collapse; width: 100%; margin: 8px 0; }
+    td, th { border: 1px solid #444; padding: 6px 10px; text-align: left; }
+    th { background: #333; color: #569cd6; }
+    .leak-row { background: #3d1515; }
+  </style>
+</head>
+<body>
+  <span class="badge">❌ BEFORE FIX</span>
+  <h1>DEV-1800: TypeScript lib types leak into published .d.ts</h1>
+  <p>
+    Handsontable is built with TypeScript 6.x, which emits <strong>newer lib types</strong> into
+    generated <code>.d.ts</code> files. Any consumer using TypeScript ≤ 5.1 (e.g. Angular 16's
+    max supported version) gets <code>TS2304: Cannot find name 'ArrayIterator'</code> errors.
+  </p>
+
+  <h2>Leak sites in emitted declarations</h2>
+  <table>
+    <tr><th>File</th><th>Line</th><th>Leaked type (TS 5.6+)</th></tr>
+    <tr class="leak-row"><td>selection/highlight/highlight.d.ts</td><td>~308</td><td><code class="error">ArrayIterator&lt;VisualSelection&gt;</code></td></tr>
+    <tr class="leak-row"><td>selection/range.d.ts</td><td>~134</td><td><code class="error">ArrayIterator&lt;CellRange&gt;</code></td></tr>
+    <tr class="leak-row"><td>3rdparty/walkontable/src/renderer/columnHeaders.d.ts</td><td>~21</td><td><code class="error">WeakMap&lt;WeakKey, any&gt;</code></td></tr>
+  </table>
+
+  <h2>Broken declaration snippet (before fix)</h2>
+  <pre><span class="comment">// selection/highlight/highlight.d.ts (BEFORE FIX)</span>
+<span class="comment">// TS 6.x emits ArrayIterator — unknown to TS 5.1</span>
+<span class="keyword">declare class</span> <span class="type">Highlight</span> {
+  [Symbol.iterator](): <span class="error">ArrayIterator</span>&lt;<span class="type">VisualSelection</span>&gt;;
+}</pre>
+
+  <pre><span class="comment">// 3rdparty/walkontable/src/renderer/columnHeaders.d.ts (BEFORE FIX)</span>
+<span class="comment">// TS 6.x emits WeakKey constraint — unknown to TS 5.1</span>
+<span class="keyword">declare class</span> <span class="type">ColumnHeadersRenderer</span> {
+  orderViews: <span class="error">WeakMap</span>&lt;<span class="error">WeakKey</span>, <span class="type">OrderView</span>&gt;;
+}</pre>
+
+  <h2>Simulated TypeScript 5.1.6 compilation error</h2>
+  <div class="output-box">
+    <div id="ts-output"><em>Click "Run Check" to simulate TS 5.1.6 compilation…</em></div>
+  </div>
+  <button onclick="runCheck()">▶ Run Check</button>
+
+  <h2>Try it in the TypeScript Playground</h2>
+  <p>
+    Open the TypeScript Playground with TS 5.1.6 and the <em>before-fix</em> declarations:
+    <br/>
+    <a class="playground-link" href="https://www.typescriptlang.org/play?ts=5.1.6#code/PTAEAEFMCdoe2gZwFygEwGYBsAmBTAOwBcBDSAIwBsBXAWwCMBLSeOgE1QAUB7G0AZQCWKAPYBzUAF5QABgB0AKEFoIKHFBCgAHqADGWtAHdQAbQC6mhRLSgAnoIDMoABQBKANxA" target="_blank">
+      TS Playground (5.1.6) — ArrayIterator breaks TS 5.1 ❌
+    </a>
+  </p>
+
+  <hr style="border-color:#333; margin:24px 0"/>
+  <p style="color:#888; font-size:0.85em">
+    Fix: <a href="../after/index.html" style="color:#4ec9b0">View the after-fix demo →</a>
+    &nbsp;|&nbsp; GitHub PR: <a href="https://github.com/handsontable/handsontable/pull/12658" style="color:#4ec9b0">#12658</a>
+    &nbsp;|&nbsp; ClickUp: <a href="https://app.clickup.com/t/9015210959/DEV-1800" style="color:#4ec9b0">DEV-1800</a>
+  </p>
+
+  <script>
+    function runCheck() {
+      const out = document.getElementById('ts-output');
+      out.innerHTML = `
+<span class="status-fail">TypeScript 5.1.6 compilation — 3 ERRORS</span>
+
+<span class="error">node_modules/handsontable/tmp/selection/highlight/highlight.d.ts(308,26): error TS2304:</span>
+  Cannot find name 'ArrayIterator'.
+
+<span class="error">node_modules/handsontable/tmp/selection/range.d.ts(134,26): error TS2304:</span>
+  Cannot find name 'ArrayIterator'.
+
+<span class="error">node_modules/handsontable/tmp/3rdparty/walkontable/src/renderer/columnHeaders.d.ts(21,26): error TS2304:</span>
+  Cannot find name 'WeakKey'.
+
+
+<span class="status-fail">Found 3 error(s).</span>
+<span style="color:#888">
+Root cause: TypeScript 5.2 introduced WeakKey, TypeScript 5.6 introduced ArrayIterator.
+These types do not exist in TypeScript 5.1 lib, so any project using TS ≤ 5.1
+(e.g. Angular 16 which supports TS 4.9–5.1) fails to compile.
+</span>`;
+    }
+  </script>
+</body>
+</html>
