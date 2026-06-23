@@ -24,7 +24,7 @@
     .controls { display: flex; gap: 10px; margin-bottom: 14px; align-items: center; flex-wrap: wrap; }
     button { padding: 8px 18px; border-radius: 6px; border: 1px solid #ccc; background: #fff; cursor: pointer; font-size: 14px; }
     button.primary { background: #1976d2; color: #fff; border-color: #1565c0; }
-    #status { font-size: 13px; padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff; max-width: 600px; }
+    #status { font-size: 13px; padding: 6px 10px; border-radius: 4px; border: 1px solid #ccc; background: #fff; max-width: 640px; }
     #status.ok { border-color: #4caf50; background: #e8f5e9; color: #1b5e20; }
     #status.fail { border-color: #f44336; background: #ffebee; color: #b71c1c; }
   </style>
@@ -40,22 +40,19 @@
   </nav>
 
   <div class="info">
-    <strong>Fix:</strong> The trailing <code>\r\n</code> that Excel appends to every <code>text/plain</code>
-    row is stripped before passing the string to <code>SheetClip.parse()</code>. It is treated as a
-    row terminator, not a row separator, so no extra empty row is emitted and the cell below the
-    paste target is left untouched.<br><br>
+    <strong>Fix:</strong> The trailing <code>\r\n</code> Excel appends to <code>text/plain</code> is
+    stripped before passing to <code>SheetClip.parse()</code>. It is treated as a row terminator,
+    not a row separator — no extra empty row is emitted and the cell below is left untouched.<br><br>
     <strong>Steps:</strong><br>
-    1. Click <strong>"Select B4"</strong>.<br>
-    2. Click <strong>"Simulate Excel paste"</strong>.<br>
-    3. <strong>Expected:</strong> B4 = "test", B5 = "B5" (unchanged) ✓<br>
-    4. <strong>Actual (fixed):</strong> same as expected.
+    1. Click <strong>"Paste 'test' into B4"</strong>.<br>
+    2. <strong>Expected:</strong> B4 = "test", B5 = "B5" (unchanged) ✓<br>
+    3. <strong>Actual (fixed):</strong> same as expected.
   </div>
 
   <div class="controls">
-    <button class="primary" onclick="selectTarget()">1. Select B4</button>
-    <button class="primary" onclick="simulatePaste()">2. Simulate Excel paste</button>
+    <button class="primary" onclick="simulatePaste()">Paste "test" into B4</button>
     <button onclick="resetData()">Reset data</button>
-    <span id="status">Ready — click "Select B4" first.</span>
+    <span id="status">Ready.</span>
   </div>
 
   <div id="hot-container"></div>
@@ -84,54 +81,35 @@
       licenseKey: 'non-commercial-and-evaluation',
     });
 
-    function selectTarget() {
-      hot.selectCell(3, 1); // row 3, col 1 = B4
-      setStatus('Selected B4. Now click "Simulate Excel paste".', '');
-    }
-
     function simulatePaste() {
       const beforeB5 = hot.getDataAtCell(4, 1);
-      const plugin = hot.getPlugin('CopyPaste');
 
-      // onPaste guards: needs isListening() = true, composedPath(), and getSelected() set.
-      hot.listen();
+      // selectCell() sets selection AND calls hot.listen() internally —
+      // both are required for onPaste to pass its guard checks.
+      hot.selectCell(3, 1); // B4
 
-      const data = {};
-      const mockEvent = {
-        // composedPath()[0] must be document.body so the "not internal element" guard passes.
-        composedPath: () => [hot.rootDocument.body],
-        clipboardData: {
-          getData: (t) => data[t] || '',
-          setData: (t, v) => { data[t] = v; },
-          types: ['text/plain'],
-        },
-        preventDefault: () => {},
-      };
-      // The sanitizer strips the <table> HTML → no table in textHTML → paste falls back to text/plain.
-      // Excel always appends a trailing CRLF to text/plain. Simulate that here.
-      mockEvent.clipboardData.setData('text/html', '');
-      mockEvent.clipboardData.setData('text/plain', 'test\r\n');
-      plugin.onPaste(mockEvent);
+      // v17.1.0 trims the trailing \r\n before SheetClip.parse, so
+      // parse('test\r\n') sees 'test' → one row → B5 preserved.
+      hot.getPlugin('CopyPaste').paste('test\r\n', '');
 
       const afterB4 = hot.getDataAtCell(3, 1);
       const afterB5 = hot.getDataAtCell(4, 1);
       const erased = afterB5 === '' || afterB5 === null;
+      const el = document.getElementById('status');
       if (!erased) {
-        setStatus(`FIX CONFIRMED — B4: "${afterB4}" ✓  |  B5: "${afterB5}" ✓ unchanged (was "${beforeB5}")`, 'ok');
+        el.textContent = `FIX CONFIRMED — B4: "${afterB4}" ✓  |  B5: "${afterB5}" ✓ unchanged (was "${beforeB5}")`;
+        el.className = 'ok';
       } else {
-        setStatus(`B4: "${afterB4}"  |  B5: "${afterB5}" ✗ ERASED — fix not effective`, 'fail');
+        el.textContent = `B4: "${afterB4}"  |  B5: "${afterB5}" ✗ ERASED — fix not effective`;
+        el.className = 'fail';
       }
     }
 
     function resetData() {
       hot.loadData(Handsontable.helper.createSpreadsheetData(8, 6));
-      setStatus('Data reset.', '');
-    }
-
-    function setStatus(msg, cls) {
       const el = document.getElementById('status');
-      el.textContent = msg;
-      el.className = cls;
+      el.textContent = 'Data reset.';
+      el.className = '';
     }
   </script>
 </body>
