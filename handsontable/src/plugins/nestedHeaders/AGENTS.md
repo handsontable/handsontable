@@ -157,7 +157,10 @@ outside, do not assume each call rebuilds the matrix.
 
 - E2E: `npm run test:e2e --prefix handsontable -- --testPathPattern='nestedHeaders'`
 - Unit: `npm run test:unit --prefix handsontable -- --testPathPattern='nestedHeaders'`
-- Move/reparent behavior: `__tests__/plugins/manualColumnMove.spec.js`. Collapse + hidden interplay:
-  `__tests__/hidingColumns.spec.js`. Derive/override logic: `__tests__/stateManager/*.unit.ts`.
+- Move/reparent behavior: `__tests__/plugins/manualColumnMove/` — `general.spec.js` (cooperation:
+  follow-data, collapse coordination, insert/remove, freeze) plus one file per `columnDropMode`
+  strategy (`adopt.spec.js`, `split.spec.js`). **Add a new drop strategy's tests in its own
+  `<strategy>.spec.js` here.** Collapse + hidden interplay: `__tests__/hidingColumns.spec.js`.
+  Derive/override logic: `__tests__/stateManager/*.unit.ts`.
 - Discipline for move/derive fixes: write the test, confirm green, toggle the fix off to confirm red,
   restore. The derive bugs in this area pass shallow tests easily.
