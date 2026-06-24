@@ -52,7 +52,7 @@ For more information about this release, see:
 #### Fixed
 - Fixed an issue where the Nested Rows plugin was disabled after calling updateSettings with an empty data array. [#10556](https://github.com/handsontable/handsontable/issues/10556)
 - Fixed `setSourceDataAtCell()` updating parent rows instead of nested child rows when `nestedRows` is enabled. [#10657](https://github.com/handsontable/handsontable/issues/10657)
-- Fixed an issue where the stretchH: 'last' option would ignore the defined column width when the viewport was too narrow, causing the last column to shrink to 0px. [#11761](https://github.com/handsontable/handsontable/issues/11761)
+- Fixed an issue where the `stretchH: 'last'` option ignored the column's defined `width` value when the viewport was too narrow, causing the last column to shrink to `0px`. As of 17.1.0, the defined `width` is always respected — the last column will never be rendered below its configured width, regardless of viewport size. Prior to this fix, a sufficiently narrow container could collapse the last column to `0px` even when an explicit width was set. [#11761](https://github.com/handsontable/handsontable/issues/11761)
 - Fixed a stack overflow error when pasting large datasets (50,000+ rows) by optimizing array operations in the HTML table parser. [#11784](https://github.com/handsontable/handsontable/issues/11784)
 - Fixed incorrect JSDoc type annotations for the `modifyAutofillRange` hook parameters. The parameters `entireArea` and `startArea` are now correctly documented as `number[]` (a flat 4-element array) instead of the generic `Array` type, and the `@returns` type annotation has been added. [#11862](https://github.com/handsontable/handsontable/issues/11862)
 - Fixed filter by value input performance degradation when searchMode: apply option is enabled. [#12104](https://github.com/handsontable/handsontable/issues/12104)
@@ -62,7 +62,6 @@ For more information about this release, see:
 - Fixed comment editor positioning for merged cells [#12115](https://github.com/handsontable/handsontable/pull/12115)
 - Fixed the Filters plugin incorrectly applying filter conditions after columns were moved with the ManualColumnMove plugin. [#11832](https://github.com/handsontable/handsontable/issues/11832)
 - Fixed column resizing being misaligned and calculating incorrect widths when the grid container has a CSS `transform: scale()` applied. [#11838](https://github.com/handsontable/handsontable/issues/11838)
-- Fixed the `stretchH: 'last'` option ignoring the defined column width and shrinking the last column to 0px when the viewport was too narrow. [#11761](https://github.com/handsontable/handsontable/issues/11761)
 - Fixed HyperFormula errors when MultiSelect cells store array values. [#12135](https://github.com/handsontable/handsontable/pull/12135)
 - Fixed `setSourceDataAtCell()` updating a parent row instead of the intended nested child row when the `nestedRows` option was enabled. [#10657](https://github.com/handsontable/handsontable/issues/10657)
 - Fixed `setDataAtRowProp()` incorrectly canceling an active editor session when the programmatic update targeted a different cell in the same row. [#4305](https://github.com/handsontable/handsontable/issues/4305)
