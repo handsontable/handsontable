@@ -196,5 +196,24 @@ describe('settings', () => {
         ['08:00'],
       ]);
     });
+
+    it('should not validate or nullify source values of trimmed rows in the batched path (allowInvalid: false)', async() => {
+      handsontable({
+        data: [['2024-01-01'], ['not-a-date'], ['also-bad'], ['2024-03-15']],
+        columns: [{ type: 'date', dateFormat: 'YYYY-MM-DD' }],
+        // Physical row 1 is trimmed; row 0 stays visible so the batched (column-reuse) path is used.
+        trimRows: [1],
+        allowInvalid: false,
+      });
+
+      // The invalid value in the trimmed row 1 must survive untouched, while the invalid value in the
+      // visible row 2 is still blanked.
+      expect(getSourceData()).toEqual([
+        ['2024-01-01'],
+        ['not-a-date'],
+        [null],
+        ['2024-03-15'],
+      ]);
+    });
   });
 });

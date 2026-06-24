@@ -214,6 +214,7 @@ function validatePerCell(
  * @param {Array} columns The columns whose (row-independent) validator should run.
  * @param {object} dataSource The data source.
  * @param {number} rowSourceCount The number of physical source rows.
+ * @param {Function} toVisualRow Translates a physical row index to its visual index (or `null`).
  * @param {Map} invalidByMessageType The accumulator of invalid entries keyed by warning message.
  * @param {string} [source] The source identifier of the operation.
  * @returns {void}
@@ -222,6 +223,7 @@ function validateByColumn(
   columns: ColumnValidator[],
   dataSource: DataSource,
   rowSourceCount: number,
+  toVisualRow: (row: number) => number | null,
   invalidByMessageType: InvalidItems,
   source?: string
 ): void {
@@ -229,6 +231,12 @@ function validateByColumn(
     const { physicalColumn, cellMeta } = columns[i];
 
     for (let row = 0; row < rowSourceCount; row += 1) {
+      // Skip rows that have no visual index (trimmed rows) to match the per-cell scan, which never
+      // validates or blanks source values for rows that map to `null`.
+      if (toVisualRow(row) === null) {
+        continue;
+      }
+
       const value = dataSource.getAtCell(row, physicalColumn, null);
 
       validateSourceCell(cellMeta, value, row, physicalColumn, dataSource, invalidByMessageType, source);
@@ -273,7 +281,9 @@ export function runSourceDataValidators(hotInstance: Record<string, unknown>, so
     if (fullScan) {
       validatePerCell(hotInstance, dataSource, rowSourceCount, colSourceCount, invalidByMessageType, source);
     } else {
-      validateByColumn(columns, dataSource, rowSourceCount, invalidByMessageType, source);
+      const toVisualRow = hotInstance.toVisualRow as (row: number) => number | null;
+
+      validateByColumn(columns, dataSource, rowSourceCount, toVisualRow, invalidByMessageType, source);
     }
   }
 

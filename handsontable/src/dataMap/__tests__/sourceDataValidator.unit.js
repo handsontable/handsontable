@@ -10,9 +10,12 @@ import { runSourceDataValidators } from '../sourceDataValidator';
  * @param {boolean} [options.allowInvalid] The `allowInvalid` meta value.
  * @param {object} [options.settings] The settings returned by `getSettings`.
  * @param {Function} [options.getValue] Maps `(row, col)` to a source value.
+ * @param {Function} [options.toVisualRow] Maps a physical row to its visual index (or `null`).
  * @returns {object} The mock and its spies.
  */
-function createMockHot({ rows, cols, validator, allowInvalid, settings = {}, getValue } = {}) {
+function createMockHot({
+  rows, cols, validator, allowInvalid, settings = {}, getValue, toVisualRow = row => row,
+} = {}) {
   const getCellMeta = jest.fn((visualRow, visualColumn) => {
     const meta = {
       row: visualRow,
@@ -37,7 +40,7 @@ function createMockHot({ rows, cols, validator, allowInvalid, settings = {}, get
     countSourceCols: () => cols,
     getSettings: () => settings,
     _getDataSource: () => ({ getAtCell, setAtCell }),
-    toVisualRow: row => row,
+    toVisualRow,
     toVisualColumn: col => col,
     getCellMeta,
   };
@@ -168,6 +171,51 @@ describe('runSourceDataValidators', () => {
     runSourceDataValidators(hot, 'init');
 
     expect(setAtCell).not.toHaveBeenCalled();
+  });
+
+  it('should skip rows with no visual index (trimmed rows) in the batched path', () => {
+    const seen = [];
+    const validator = makeValidator(true, (value) => {
+      seen.push(value);
+
+      return true;
+    });
+    // Physical rows 1 and 3 are trimmed (no visual index); row 0 stays visible so the column probe
+    // still picks the batched path.
+    const { hot, getAtCell } = createMockHot({
+      rows: 4,
+      cols: 2,
+      validator,
+      getValue: (r, c) => `${r}:${c}`,
+      toVisualRow: row => (row === 1 || row === 3 ? null : row),
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    // Only the visible rows (0 and 2) are read and validated.
+    expect(getAtCell).toHaveBeenCalledTimes(2 * 2);
+    expect(seen.sort()).toEqual(['0:0', '0:1', '2:0', '2:1']);
+  });
+
+  it('should not blank source values of trimmed rows when allowInvalid is false (batched path)', () => {
+    const validator = makeValidator(true, value => value !== 'bad');
+    // Physical row 1 is trimmed and its value is invalid — it must NOT be blanked.
+    const { hot, setAtCell } = createMockHot({
+      rows: 3,
+      cols: 1,
+      validator,
+      allowInvalid: false,
+      getValue: () => 'bad',
+      toVisualRow: row => (row === 1 ? null : row),
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    // Rows 0 and 2 are blanked; the trimmed row 1 is left untouched.
+    expect(setAtCell).toHaveBeenCalledTimes(2);
+    expect(setAtCell).toHaveBeenCalledWith(0, 0, null);
+    expect(setAtCell).toHaveBeenCalledWith(2, 0, null);
+    expect(setAtCell).not.toHaveBeenCalledWith(1, 0, null);
   });
 
   it('should do nothing when the dataset is empty', () => {
