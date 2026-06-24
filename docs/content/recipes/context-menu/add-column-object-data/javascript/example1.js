@@ -60,7 +60,7 @@ const hot = new Handsontable(container, {
           hot.updateSettings({ columns, colHeaders });
         },
       },
-      sep1: '-',
+      sep1: '---------',
       row_above: { name: 'Insert row above' },
       row_below: { name: 'Insert row below' },
       remove_row: { name: 'Remove row' },

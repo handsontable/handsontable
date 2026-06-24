@@ -118,7 +118,7 @@ const colHeaders = ['SKU', 'Supplier', 'Stock', 'Category'];
 contextMenu: {
   items: {
     add_column: { /* defined in Step 3 */ },
-    sep1: '-',
+    sep1: '---------',
     row_above: { name: 'Insert row above' },
     row_below: { name: 'Insert row below' },
     remove_row: { name: 'Remove row' },
@@ -130,7 +130,7 @@ contextMenu: {
 
 - Passing an object to `contextMenu.items` lists the exact items that appear. The built-in `col_left` and `col_right` keys are omitted because they throw on object data.
 - `add_column` is a custom key that replaces them with logic that works for object data.
-- `'-'` renders a separator between the custom action and the built-in row operations.
+- `'---------'` is the predefined separator token. It renders a visual divider between the custom action and the built-in row operations.
 
 ## Step 3: Implement "Add column"
 
