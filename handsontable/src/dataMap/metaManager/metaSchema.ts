@@ -2927,6 +2927,11 @@ export default (): Record<string, unknown> => {
      * | `true`            | Enable text selection in multiple cells at a time |
      * | `'cell'`          | Enable text selection in one cell at a time       |
      *
+     * With `fragmentSelection: true`, copying text across multiple cells requires a
+     * [`selectionMode`](@/api/options.md#selectionmode) that allows selecting more than one cell.
+     * When [`selectionMode`](@/api/options.md#selectionmode) is set to `'single'`, copying is
+     * limited to a single cell.
+     *
      * @memberof Options#
      * @type {boolean|string}
      * @default false
@@ -5246,6 +5251,9 @@ export default (): Record<string, unknown> => {
      * | `'single'`   | Allow the user to select only one cell at a time.            |
      * | `'range'`    | Allow the user to select one range of cells at a time.       |
      * | `'multiple'` | Allow the user to select multiple ranges of cells at a time. |
+     *
+     * When `selectionMode` is set to `'single'`, copying with
+     * [`fragmentSelection`](@/api/options.md#fragmentselection) enabled is limited to a single cell.
      *
      * Read more:
      * - [Selection: Selecting ranges](@/guides/cell-features/selection/selection.md#select-ranges)
