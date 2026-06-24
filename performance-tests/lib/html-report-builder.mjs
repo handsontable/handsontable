@@ -83,6 +83,7 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta) {
       detailedMetrics: buildDetailedMetrics(current, golden),
       memory: buildMemoryMetrics(current, golden),
       hookTiming: buildHookTiming(current, golden),
+      heap: buildHeapChartData(current, golden),
       cv: {
         scripting: calcCv(current._iterationValues?.categories?.scripting),
         rendering: calcCv(current._iterationValues?.categories?.rendering),
@@ -211,6 +212,22 @@ function buildHookTiming(current, golden) {
     current: current.hookTiming,
     baseline: golden?.hookTiming ?? null,
     change: golden?.hookTiming != null ? pctChange(golden.hookTiming, current.hookTiming) : null,
+  };
+}
+
+function buildHeapChartData(current, golden) {
+  const cur = current.updateCounters?.jsHeapMaxBytes;
+
+  if (cur == null) {
+    return null;
+  }
+
+  const baseline = golden?.updateCounters?.jsHeapMaxBytes ?? null;
+
+  return {
+    current: cur,
+    baseline,
+    change: baseline != null ? pctChange(baseline, cur) : null,
   };
 }
 
@@ -725,6 +742,10 @@ function buildScript() {
     // Chart
     if (data.hasBaseline) {
       body.appendChild(buildChart(scenario));
+
+      if (scenario.heap) {
+        body.appendChild(buildHeapChart(scenario));
+      }
     }
 
     // Hook timing
@@ -822,6 +843,57 @@ function buildScript() {
     }
 
     container.appendChild(svg);
+    return container;
+  }
+
+  function buildHeapChart(scenario) {
+    const heap = scenario.heap;
+    const container = el('div', 'chart-container');
+    const cur = heap.current;
+    const base = heap.baseline != null ? heap.baseline : 0;
+    const maxVal = Math.max(cur, base, 1);
+    const LABEL_W = 90;
+    const BAR_AREA = 460;
+    const BAR_H = 16;
+    const BAR_GAP = 3;
+    const totalH = (BAR_H * 2) + BAR_GAP + 36;
+    const W = LABEL_W + BAR_AREA + 100;
+    const mb = bytes => (bytes / 1e6).toFixed(1) + ' MB';
+
+    const ns = 'http://www.w3.org/2000/svg';
+    const svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('width', W);
+    svg.setAttribute('height', totalH);
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + totalH);
+
+    // Legend (JS heap is in MB on its own scale -- not comparable to the ms chart above).
+    const legendY = 12;
+    svg.appendChild(svgRect(LABEL_W, legendY - 9, 10, 10, '#6c8ebf', 1));
+    svg.appendChild(svgText(LABEL_W + 14, legendY, 'Baseline (' + data.meta.baseBranch + ')', '#656d76', 11));
+    svg.appendChild(svgRect(LABEL_W + 140, legendY - 9, 10, 10, '#d4a03c', 1));
+    svg.appendChild(svgText(LABEL_W + 154, legendY, 'Current (PR)', '#656d76', 11));
+
+    const y = 30;
+
+    svg.appendChild(svgText(LABEL_W - 8, y + BAR_H - 2, 'JS Heap', '#1f2328', 12, 'end'));
+
+    const bw = Math.max(1, (base / maxVal) * BAR_AREA);
+    const bBar = svgRect(LABEL_W, y, bw, BAR_H, '#6c8ebf', 2);
+
+    bBar.dataset.tooltip = 'JS heap baseline: ' + mb(base);
+    svg.appendChild(bBar);
+    svg.appendChild(svgText(LABEL_W + bw + 6, y + BAR_H - 4, mb(base), '#656d76', 11));
+
+    const cy = y + BAR_H + BAR_GAP;
+    const cw = Math.max(1, (cur / maxVal) * BAR_AREA);
+    const cBar = svgRect(LABEL_W, cy, cw, BAR_H, '#d4a03c', 2);
+
+    cBar.dataset.tooltip = 'JS heap current: ' + mb(cur);
+    svg.appendChild(cBar);
+    svg.appendChild(svgText(LABEL_W + cw + 6, cy + BAR_H - 4, mb(cur), '#656d76', 11));
+
+    container.appendChild(svg);
+
     return container;
   }
 

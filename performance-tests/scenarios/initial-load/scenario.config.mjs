@@ -2,7 +2,7 @@
 // initial grid build. The data is generated once outside the traced action so only the grid
 // construction is measured.
 export default {
-  name: 'heap-initial-load',
+  name: 'initial-load',
   warmupRuns: 1,
   iterations: 3,
 };
