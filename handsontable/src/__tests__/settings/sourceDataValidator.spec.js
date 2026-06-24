@@ -166,5 +166,35 @@ describe('settings', () => {
         ['A3', 'B3', 'C3']
       ]);
     });
+
+    it('should validate and nullify invalid source values for a fully `date`-typed table (allowInvalid: false)', async() => {
+      handsontable({
+        data: [['2024-01-01'], ['not-a-date'], ['2024-03-15']],
+        columns: [{ type: 'date', dateFormat: 'YYYY-MM-DD' }],
+        allowInvalid: false,
+      });
+
+      // The built-in date source validator runs for every row even though only one column meta is
+      // materialized (batched validation), so invalid source values are still blanked.
+      expect(getSourceData()).toEqual([
+        ['2024-01-01'],
+        [null],
+        ['2024-03-15'],
+      ]);
+    });
+
+    it('should validate and nullify invalid source values for a fully `time`-typed table (allowInvalid: false)', async() => {
+      handsontable({
+        data: [['12:30'], ['25:99'], ['08:00']],
+        columns: [{ type: 'time', timeFormat: 'HH:mm' }],
+        allowInvalid: false,
+      });
+
+      expect(getSourceData()).toEqual([
+        ['12:30'],
+        [null],
+        ['08:00'],
+      ]);
+    });
   });
 });
