@@ -4,134 +4,107 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DEV-1877 — Before Fix: Notification host outside overlays layer</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.css">
   <style>
-    body { font-family: sans-serif; padding: 24px; }
+    body { font-family: sans-serif; padding: 24px; max-width: 960px; }
     h1 { font-size: 1.2rem; color: #9d0208; }
-    .status { background: #ffe0e0; border: 1px solid #e63946; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; }
-    .status strong { color: #6a040f; }
-    .dom-check { background: #f1f1f1; border: 1px solid #ccc; padding: 12px 16px; border-radius: 6px; margin-top: 16px; font-size: 0.85rem; font-family: monospace; white-space: pre; }
-    .dom-check.pass { background: #d8f3dc; border-color: #52b788; }
-    .dom-check.fail { background: #ffe0e0; border-color: #e63946; }
+    .banner { background: #ffe0e0; border: 1px solid #e63946; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; }
+    .banner strong { color: #6a040f; }
+    .result { border: 1px solid #ccc; padding: 12px 16px; border-radius: 6px; margin-top: 16px; font-size: 0.85rem; font-family: monospace; white-space: pre-wrap; display: none; }
+    .result.pass { background: #d8f3dc; border-color: #52b788; }
+    .result.fail { background: #ffe0e0; border-color: #e63946; }
     .controls { margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
-    button { padding: 8px 14px; border-radius: 4px; border: 1px solid #999; cursor: pointer; background: #fff; }
+    button { padding: 8px 14px; border-radius: 4px; border: 1px solid #999; cursor: pointer; background: #fff; font-size: 0.9rem; }
     button:hover { background: #f0f0f0; }
+    button.primary { background: #6a040f; color: #fff; border-color: #6a040f; }
+    button.primary:hover { background: #9d0208; }
   </style>
 </head>
 <body>
-  <h1>DEV-1877 — BEFORE FIX: Notification host rendered after <code>.ht-grid</code> (outside overlay)</h1>
-  <div class="status">
+  <h1>DEV-1877 — BEFORE FIX: <code>.ht-notification</code> mounted after <code>.ht-grid</code> (outside overlay)</h1>
+  <div class="banner">
     <strong>Old behaviour (bug):</strong> The <code>.ht-notification</code> host was inserted as a sibling
-    <em>after</em> <code>.ht-grid</code> using <code>rootGridElement.after(host)</code>,
-    placing it outside the grid's overlay layer (<code>.ht-overlay</code>).
-    This was inconsistent with the Dialog plugin which already used <code>rootOverlaysElement</code>.
+    <em>after</em> <code>.ht-grid</code> using <code>rootGridElement.after(host)</code>, placing it
+    outside <code>.ht-overlay</code>. This page simulates that by moving the host after every
+    <code>showMessage()</code> call.
   </div>
 
   <div class="controls">
-    <button onclick="showInfo()">Show info toast</button>
-    <button onclick="showSuccess()">Show success toast</button>
-    <button onclick="showWarning()">Show warning toast</button>
-    <button onclick="showError()">Show error toast</button>
-    <button onclick="checkDom()">Check DOM placement</button>
+    <button onclick="show('info')">Show info toast</button>
+    <button onclick="show('success')">Show success toast</button>
+    <button onclick="show('warning')">Show warning toast</button>
+    <button onclick="show('error')">Show error toast</button>
+    <button class="primary" onclick="checkDom()">Check DOM placement</button>
   </div>
 
   <div id="hot"></div>
-  <div id="domResult" class="dom-check" style="display:none"></div>
+  <div id="result" class="result"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
   <script>
-    /*
-     * Monkey-patch to simulate the OLD (pre-fix) behaviour:
-     * Install the notification host after rootGridElement instead of inside rootOverlaysElement.
-     *
-     * This restores the exact pre-DEV-1877 code path:
-     *   this.#rootElement.after(host)   →  host inserted as sibling after .ht-grid
-     */
-    const OriginalNotification = Handsontable.plugins.Notification;
-
-    if (OriginalNotification) {
-      const origEnablePlugin = OriginalNotification.prototype.enablePlugin;
-      OriginalNotification.prototype.enablePlugin = function() {
-        origEnablePlugin.call(this);
-        // After enablePlugin, move the host to the pre-fix location
-        const host = this.hot.rootElement.querySelector('.ht-notification');
-        if (host && host.parentElement) {
-          const gridEl = this.hot.rootGridElement;
-          if (gridEl && host.parentElement !== gridEl.parentElement) {
-            host.parentElement.removeChild(host);
-            gridEl.after(host);
-          }
-        }
-      };
-    }
-
-    const data = Handsontable.helper.createSpreadsheetData(10, 5);
     const hot = new Handsontable(document.getElementById('hot'), {
-      data,
+      data: Handsontable.helper.createSpreadsheetData(8, 5),
       rowHeaders: true,
       colHeaders: true,
-      height: 300,
+      height: 260,
       licenseKey: 'non-commercial-and-evaluation',
       notification: true,
     });
 
     const notif = hot.getPlugin('notification');
 
-    function showInfo() {
-      notif.show({ variant: 'info', title: 'Info', message: 'Notification host is outside .ht-overlay (old behaviour)' });
-      moveHostToOldPosition();
-    }
-    function showSuccess() {
-      notif.show({ variant: 'success', title: 'Success', message: 'But DOM placement is WRONG in this before-fix demo.' });
-      moveHostToOldPosition();
-    }
-    function showWarning() {
-      notif.show({ variant: 'warning', title: 'Warning', message: 'Host is a sibling of .ht-grid, not inside .ht-overlay.' });
-      moveHostToOldPosition();
-    }
-    function showError() {
-      notif.show({ variant: 'error', title: 'Error', message: 'Old behaviour: rootGridElement.after(host).' });
-      moveHostToOldPosition();
-    }
+    const messages = {
+      info:    { variant: 'info',    title: 'Info',    message: 'Host is outside .ht-overlay (before fix).' },
+      success: { variant: 'success', title: 'Success', message: 'DOM placement is WRONG in this before-fix demo.' },
+      warning: { variant: 'warning', title: 'Warning', message: 'Host is a sibling of .ht-grid, not inside .ht-overlay.' },
+      error:   { variant: 'error',   title: 'Error',   message: 'Old behaviour: rootGridElement.after(host).' },
+    };
 
-    function moveHostToOldPosition() {
-      // Re-apply old position in case the plugin re-installed the host in the new location
+    // Simulate old behaviour: move host outside overlay after every showMessage
+    function applyOldPosition() {
       const host = hot.rootElement.querySelector('.ht-notification');
       const gridEl = hot.rootGridElement;
-      if (host && gridEl) {
-        const overlaysEl = hot.rootOverlaysElement;
-        if (overlaysEl && overlaysEl.contains(host)) {
-          overlaysEl.removeChild(host);
-          gridEl.after(host);
-        }
+      const overlaysEl = hot.rootOverlaysElement;
+      if (host && gridEl && overlaysEl && overlaysEl.contains(host)) {
+        overlaysEl.removeChild(host);
+        gridEl.after(host);
       }
+    }
+
+    function show(variant) {
+      notif.showMessage(messages[variant]);
+      applyOldPosition();
     }
 
     function checkDom() {
-      const host = hot.rootElement.querySelector('.ht-notification');
-      const overlaysLayer = hot.rootOverlaysElement;
-      const result = document.getElementById('domResult');
+      const result = document.getElementById('result');
       result.style.display = 'block';
 
+      notif.showMessage({ variant: 'info', message: 'DOM check triggered.' });
+      applyOldPosition();
+
+      const host = hot.rootElement.querySelector('.ht-notification');
+      const overlaysEl = hot.rootOverlaysElement;
+
       if (!host) {
-        result.textContent = '⚠ .ht-notification not found — show a toast first.';
-        result.className = 'dom-check';
+        result.className = 'result';
+        result.textContent = '⚠ .ht-notification host not found in DOM.';
         return;
       }
 
-      const isInsideOverlay = overlaysLayer && overlaysLayer.contains(host);
-      const parentClass = host.parentElement ? host.parentElement.className : '(none)';
+      const isInOverlay = overlaysEl && overlaysEl.contains(host);
+      const parentClasses = host.parentElement ? host.parentElement.className : '(none)';
 
-      if (!isInsideOverlay) {
-        result.className = 'dom-check fail';
+      if (!isInOverlay) {
+        result.className = 'result fail';
         result.textContent =
           '❌ BEFORE FIX — .ht-notification is NOT inside rootOverlaysElement (.ht-overlay)\n' +
-          'Parent element classes: ' + parentClass + '\n\n' +
-          'This demonstrates the old behaviour (host inserted after .ht-grid as a sibling).';
+          'Parent element class: "' + parentClasses + '"\n\n' +
+          'The host was inserted as a sibling after .ht-grid using rootGridElement.after(host).';
       } else {
-        result.className = 'dom-check pass';
+        result.className = 'result pass';
         result.textContent =
-          '✅ .ht-notification IS inside rootOverlaysElement — try showing a toast first to apply the old position.';
+          '✅ Host is inside overlay — old position not applied yet. Click "Show _ toast" first.';
       }
     }
   </script>

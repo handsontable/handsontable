@@ -4,90 +4,94 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DEV-1877 — After Fix: Notification host inside overlays layer</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.css">
   <style>
-    body { font-family: sans-serif; padding: 24px; }
+    body { font-family: sans-serif; padding: 24px; max-width: 960px; }
     h1 { font-size: 1.2rem; color: #2d6a4f; }
-    .status { background: #d8f3dc; border: 1px solid #52b788; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; }
-    .status strong { color: #1b4332; }
-    .dom-check { background: #f1f1f1; border: 1px solid #ccc; padding: 12px 16px; border-radius: 6px; margin-top: 16px; font-size: 0.85rem; font-family: monospace; white-space: pre; }
-    .dom-check.pass { background: #d8f3dc; border-color: #52b788; }
-    .dom-check.fail { background: #ffe0e0; border-color: #e63946; }
+    .banner { background: #d8f3dc; border: 1px solid #52b788; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; }
+    .banner strong { color: #1b4332; }
+    .result { border: 1px solid #ccc; padding: 12px 16px; border-radius: 6px; margin-top: 16px; font-size: 0.85rem; font-family: monospace; white-space: pre-wrap; display: none; }
+    .result.pass { background: #d8f3dc; border-color: #52b788; }
+    .result.fail { background: #ffe0e0; border-color: #e63946; }
     .controls { margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
-    button { padding: 8px 14px; border-radius: 4px; border: 1px solid #999; cursor: pointer; background: #fff; }
+    button { padding: 8px 14px; border-radius: 4px; border: 1px solid #999; cursor: pointer; background: #fff; font-size: 0.9rem; }
     button:hover { background: #f0f0f0; }
+    button.primary { background: #1b4332; color: #fff; border-color: #1b4332; }
+    button.primary:hover { background: #2d6a4f; }
   </style>
 </head>
 <body>
-  <h1>DEV-1877 — AFTER FIX: Notification host rendered inside <code>.ht-overlay</code></h1>
-  <div class="status">
-    <strong>Expected behaviour:</strong> The <code>.ht-notification</code> host is a child of
-    <code>.ht-overlay</code> (rootOverlaysElement), co-located with the Dialog overlay layer.
+  <h1>DEV-1877 — AFTER FIX: <code>.ht-notification</code> mounted inside <code>.ht-overlay</code></h1>
+  <div class="banner">
+    <strong>Expected behaviour:</strong> The <code>.ht-notification</code> host is appended
+    inside <code>rootOverlaysElement</code> (<code>.ht-overlay</code>) via <code>appendChild()</code>,
+    co-located with the Dialog overlay layer. This matches the Dialog plugin's approach.
   </div>
 
   <div class="controls">
-    <button onclick="showInfo()">Show info toast</button>
-    <button onclick="showSuccess()">Show success toast</button>
-    <button onclick="showWarning()">Show warning toast</button>
-    <button onclick="showError()">Show error toast</button>
-    <button onclick="checkDom()">Check DOM placement</button>
+    <button onclick="show('info')">Show info toast</button>
+    <button onclick="show('success')">Show success toast</button>
+    <button onclick="show('warning')">Show warning toast</button>
+    <button onclick="show('error')">Show error toast</button>
+    <button class="primary" onclick="checkDom()">Check DOM placement</button>
   </div>
 
   <div id="hot"></div>
-  <div id="domResult" class="dom-check" style="display:none"></div>
+  <div id="result" class="result"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/handsontable@latest/dist/handsontable.full.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
   <script>
-    const data = Handsontable.helper.createSpreadsheetData(10, 5);
     const hot = new Handsontable(document.getElementById('hot'), {
-      data,
+      data: Handsontable.helper.createSpreadsheetData(8, 5),
       rowHeaders: true,
       colHeaders: true,
-      height: 300,
+      height: 260,
       licenseKey: 'non-commercial-and-evaluation',
       notification: true,
     });
 
     const notif = hot.getPlugin('notification');
 
-    function showInfo() {
-      notif.show({ variant: 'info', title: 'Info', message: 'Notification host is inside .ht-overlay' });
-    }
-    function showSuccess() {
-      notif.show({ variant: 'success', title: 'Success', message: 'DOM placement is correct!' });
-    }
-    function showWarning() {
-      notif.show({ variant: 'warning', title: 'Warning', message: 'Check the DOM placement below.' });
-    }
-    function showError() {
-      notif.show({ variant: 'error', title: 'Error', message: 'Something went wrong (demo only).' });
+    const messages = {
+      info:    { variant: 'info',    title: 'Info',    message: 'Host is inside .ht-overlay (after fix).' },
+      success: { variant: 'success', title: 'Success', message: 'DOM placement is correct!' },
+      warning: { variant: 'warning', title: 'Warning', message: 'Check DOM placement with the button below.' },
+      error:   { variant: 'error',   title: 'Error',   message: 'Demo error toast (after fix).' },
+    };
+
+    function show(variant) {
+      notif.showMessage(messages[variant]);
     }
 
     function checkDom() {
-      const host = hot.rootElement.querySelector('.ht-notification');
-      const overlaysLayer = hot.rootOverlaysElement;
-      const result = document.getElementById('domResult');
+      const result = document.getElementById('result');
       result.style.display = 'block';
 
+      // Trigger a toast so the host is installed
+      const id = notif.showMessage({ variant: 'info', message: 'DOM check triggered.' });
+
+      const host = hot.rootElement.querySelector('.ht-notification');
+      const overlaysEl = hot.rootOverlaysElement;
+
       if (!host) {
-        result.textContent = '⚠ .ht-notification not found — show a toast first.';
-        result.className = 'dom-check';
+        result.className = 'result';
+        result.textContent = '⚠ .ht-notification host not found in DOM.';
         return;
       }
 
-      const isInsideOverlay = overlaysLayer && overlaysLayer.contains(host);
-      const parentClass = host.parentElement ? host.parentElement.className : '(none)';
+      const isInOverlay = overlaysEl && overlaysEl.contains(host);
+      const parentClasses = host.parentElement ? host.parentElement.className : '(none)';
 
-      if (isInsideOverlay) {
-        result.className = 'dom-check pass';
+      if (isInOverlay) {
+        result.className = 'result pass';
         result.textContent =
           '✅ PASS — .ht-notification IS a child of rootOverlaysElement (.ht-overlay)\n' +
-          'Parent element classes: ' + parentClass;
+          'Parent element class: "' + parentClasses + '"';
       } else {
-        result.className = 'dom-check fail';
+        result.className = 'result fail';
         result.textContent =
           '❌ FAIL — .ht-notification is NOT inside rootOverlaysElement\n' +
-          'Parent element classes: ' + parentClass;
+          'Parent element class: "' + parentClasses + '"';
       }
     }
   </script>
