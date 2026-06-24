@@ -744,14 +744,14 @@ The table below lists all of Handsontable's modules:
 The tables below show the minified and gzip sizes of each module when bundled on top of the base module. The **gzip** column represents the size after gzip compression - the most relevant metric for network transfer.
 
 <!-- module-sizes:start -->
-Measurements were made with esbuild using minification, against **Handsontable 17.0.1** (2026-04-08).
+Measurements were made with esbuild using minification, against **Handsontable 17.1.0** (2026-06-24).
 
 **Base module sizes:**
 
 | Package | Minified | Gzip |
 | ------- | -------- | ---- |
-| `handsontable` (full, no tree shaking) | 1420.3 kB | 316.6 kB |
-| `handsontable/base` | 631.1 kB | 141.2 kB |
+| `handsontable` (full, no tree shaking) | 1160.6 kB | 278.8 kB |
+| `handsontable/base` | 629.1 kB | 138.8 kB |
 
 **Size added by each optional module (on top of `handsontable/base`):**
 
@@ -759,19 +759,19 @@ Measurements were made with esbuild using minification, against **Handsontable 1
 
 | Module | Minified | Gzip |
 | ------ | -------- | ---- |
-| `AutocompleteCellType` | +15.1 kB | +4.2 kB |
-| `CheckboxCellType` | +6.0 kB | +2.0 kB |
-| `DateCellType` | +87.2 kB | +28.2 kB |
-| `DropdownCellType` | +15.5 kB | +4.3 kB |
-| `HandsontableCellType` | +6.5 kB | +1.5 kB |
-| `IntlDateCellType` | +1.7 kB | +0.7 kB |
-| `IntlTimeCellType` | +1.8 kB | +0.7 kB |
-| `MultiSelectCellType` | +24.0 kB | +6.2 kB |
-| `NumericCellType` | +44.1 kB | +17.1 kB |
-| `PasswordCellType` | +1.4 kB | +0.3 kB |
-| `SelectCellType` | +3.1 kB | +0.7 kB |
+| `AutocompleteCellType` | +15.5 kB | +4.4 kB |
+| `CheckboxCellType` | +6.2 kB | +2.0 kB |
+| `DateCellType` | +2.3 kB | +0.9 kB |
+| `DropdownCellType` | +16.1 kB | +4.6 kB |
+| `HandsontableCellType` | +6.4 kB | +1.6 kB |
+| `IntlDateCellType` | +2.6 kB | +1.0 kB |
+| `IntlTimeCellType` | +2.3 kB | +1.0 kB |
+| `MultiSelectCellType` | +24.5 kB | +6.4 kB |
+| `NumericCellType` | +2.6 kB | +0.9 kB |
+| `PasswordCellType` | +4.7 kB | +1.1 kB |
+| `SelectCellType` | +3.4 kB | +0.7 kB |
 | `TextCellType` | included in base | included in base |
-| `TimeCellType` | +64.2 kB | +21.0 kB |
+| `TimeCellType` | +2.0 kB | +0.9 kB |
 
 :::
 
@@ -779,43 +779,44 @@ Measurements were made with esbuild using minification, against **Handsontable 1
 
 | Module | Minified | Gzip |
 | ------ | -------- | ---- |
-| `AutoColumnSize` | +22.1 kB | +5.8 kB |
-| `AutoRowSize` | +22.7 kB | +5.9 kB |
-| `Autofill` | +15.5 kB | +4.5 kB |
-| `BindRowsWithHeaders` | +9.3 kB | +2.7 kB |
-| `CollapsibleColumns` | +14.3 kB | +4.2 kB |
-| `ColumnSorting` | +85.4 kB | +26.6 kB |
-| `ColumnSummary` | +20.2 kB | +5.2 kB |
-| `Comments` | +32.5 kB | +8.0 kB |
-| `ContextMenu` | +42.7 kB | +10.9 kB |
-| `CopyPaste` | +27.4 kB | +7.9 kB |
-| `CustomBorders` | +16.8 kB | +4.8 kB |
-| `Dialog` | +19.4 kB | +5.7 kB |
-| `DragToScroll` | +9.5 kB | +2.8 kB |
-| `DropdownMenu` | +45.9 kB | +11.7 kB |
+| `AutoColumnSize` | +20.6 kB | +5.7 kB |
+| `AutoRowSize` | +20.9 kB | +5.7 kB |
+| `Autofill` | +19.5 kB | +5.7 kB |
+| `BindRowsWithHeaders` | +8.5 kB | +2.5 kB |
+| `CollapsibleColumns` | +15.3 kB | +4.4 kB |
+| `ColumnSorting` | +21.4 kB | +6.3 kB |
+| `ColumnSummary` | +19.4 kB | +5.3 kB |
+| `Comments` | +34.3 kB | +8.4 kB |
+| `ContextMenu` | +40.5 kB | +10.7 kB |
+| `CopyPaste` | +27.8 kB | +7.8 kB |
+| `CustomBorders` | +16.3 kB | +4.8 kB |
+| `Dialog` | +19.9 kB | +5.6 kB |
+| `DragToScroll` | +17.5 kB | +4.7 kB |
+| `DropdownMenu` | +43.7 kB | +11.7 kB |
 | `EmptyDataState` | +18.4 kB | +5.2 kB |
-| `ExportFile` | +39.9 kB | +12.5 kB |
-| `Filters` | +155.4 kB | +42.7 kB |
-| `Formulas` | +96.1 kB | +28.6 kB |
-| `HiddenColumns` | +22.9 kB | +5.8 kB |
-| `HiddenRows` | +22.6 kB | +5.7 kB |
-| `Loading` | +9.9 kB | +3.1 kB |
-| `ManualColumnFreeze` | +9.5 kB | +2.8 kB |
-| `ManualColumnMove` | +16.6 kB | +4.7 kB |
-| `ManualColumnResize` | +14.9 kB | +4.2 kB |
+| `ExportFile` | +38.8 kB | +12.5 kB |
+| `Filters` | +90.9 kB | +23.0 kB |
+| `Formulas` | +34.5 kB | +9.1 kB |
+| `HiddenColumns` | +23.6 kB | +5.9 kB |
+| `HiddenRows` | +23.2 kB | +5.8 kB |
+| `Loading` | +9.8 kB | +3.0 kB |
+| `ManualColumnFreeze` | +9.7 kB | +2.8 kB |
+| `ManualColumnMove` | +16.7 kB | +4.8 kB |
+| `ManualColumnResize` | +16.4 kB | +4.5 kB |
 | `ManualRowMove` | +15.6 kB | +4.4 kB |
-| `ManualRowResize` | +14.6 kB | +4.2 kB |
-| `MergeCells` | +52.2 kB | +12.3 kB |
-| `MultiColumnSorting` | +88.2 kB | +27.1 kB |
-| `MultipleSelectionHandles` | +10.9 kB | +3.0 kB |
-| `NestedHeaders` | +42.8 kB | +11.6 kB |
-| `NestedRows` | +35.1 kB | +8.1 kB |
-| `Pagination` | +28.9 kB | +7.5 kB |
-| `Search` | +10.0 kB | +2.8 kB |
-| `StretchColumns` | +13.4 kB | +3.8 kB |
-| `TouchScroll` | +9.3 kB | +2.7 kB |
-| `TrimRows` | +9.6 kB | +2.7 kB |
-| `UndoRedo` | +29.3 kB | +6.1 kB |
+| `ManualRowResize` | +16.3 kB | +4.4 kB |
+| `MergeCells` | +51.9 kB | +13.2 kB |
+| `MultiColumnSorting` | +23.7 kB | +6.7 kB |
+| `MultipleSelectionHandles` | +10.4 kB | +2.9 kB |
+| `NestedHeaders` | +42.7 kB | +12.1 kB |
+| `NestedRows` | +31.0 kB | +7.9 kB |
+| `Notification` | +25.0 kB | +6.8 kB |
+| `Pagination` | +27.4 kB | +7.3 kB |
+| `Search` | +9.5 kB | +2.8 kB |
+| `StretchColumns` | +13.4 kB | +3.7 kB |
+| `TouchScroll` | +9.0 kB | +2.6 kB |
+| `TrimRows` | +9.1 kB | +2.6 kB |
+| `UndoRedo` | +22.5 kB | +5.8 kB |
 
 :::
 
