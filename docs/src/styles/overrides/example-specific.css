@@ -97,17 +97,6 @@
   border-right: 1px solid var(--sl-color-gray-5);
 }
 
-/* First column — extra left padding to align with content */
-#hooksList li:nth-child(3n+2) {
-  padding-left: 1rem;
-}
-
-/* Last column — no right border, extra right padding */
-#hooksList li:nth-child(3n+1):not(:first-child) {
-  border-right: 0;
-  padding-right: 1rem;
-}
-
 #hooksList li:hover {
   background-color: var(--sl-color-gray-6, rgba(255, 255, 255, 0.03));
 }
@@ -139,6 +128,61 @@
   padding: 0.5rem 1rem;
   border-radius: 0;
   background: transparent;
+}
+
+/* ── Hooks list: responsive column count ──────────────────────────────
+   Long hook names become unreadable when squeezed into 3 columns on small
+   screens, so the column count adapts to the viewport. The breakpoints match
+   the rest of the docs layout (see src/styles/layout/responsive.css).
+   The "Select all" row spans 1 / -1, so it follows any column count. */
+
+/* Desktop (≥72rem): three columns — the original layout. */
+@media (min-width: 72rem) {
+  #hooksList {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* First column — extra left padding to align with content */
+  #hooksList li:nth-child(3n+2) {
+    padding-left: 1rem;
+  }
+
+  /* Last column — no right border, extra right padding */
+  #hooksList li:nth-child(3n+1):not(:first-child) {
+    border-right: 0;
+    padding-right: 1rem;
+  }
+}
+
+/* Tablet (50–72rem): two columns. */
+@media (min-width: 50rem) and (max-width: 71.99rem) {
+  #hooksList {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* First column — extra left padding to align with content */
+  #hooksList li:nth-child(2n) {
+    padding-left: 1rem;
+  }
+
+  /* Last column — no right border, extra right padding */
+  #hooksList li:nth-child(2n+1):not(:first-child) {
+    border-right: 0;
+    padding-right: 1rem;
+  }
+}
+
+/* Mobile (<50rem): single column — every item spans the full width. */
+@media (max-width: 49.99rem) {
+  #hooksList {
+    grid-template-columns: 1fr;
+  }
+
+  #hooksList li {
+    border-right: 0;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }
 
 /* Aside inside hooks example */
