@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [18.0.0-rc3] - 2026-06-23
+## [18.0.0-rc4] - 2026-06-24
 
 ### Added
 - **Breaking change**: Added wrapper layout slots and a `layout` option to control the order of UI elements rendered around the grid (pagination, dialog). The license notification always renders last in the bottom area and is not orderable. Built-in UI now mounts into dedicated wrapper containers, which changes the root DOM structure. [#12094](https://github.com/handsontable/handsontable/issues/12094)
