@@ -1,26 +1,32 @@
 # Test Report — DEV-1771
 
 **Task**: Selection when used with CMD key jumps between cells  
-**PR**: #12638  
-**Fix**: Gate second-click dedup in `mouseUp()` behind `disableVisualSelection === false`  
+**PR**: #12639  
+**Fix**: Remove dedup (layer-removal) logic from `mouseUp()` — keep `refresh()` but never remove selection layers  
 **Tester**: Claude (claude-sonnet-4-6)  
-**Date**: 2026-06-23
+**Date**: 2026-06-24
 
 ---
 
 ## Bug Summary
 
-When `disableVisualSelection` is set to any non-`false` value (`true`, `'current'`, `'area'`, `'header'`, or a non-empty array), Ctrl/Cmd+clicking an already-selected cell in a multi-cell selection caused the active highlight to "jump back" to the previous range on the next render.
+When Ctrl/Cmd+clicking an already-selected cell in a multi-cell selection, the active highlight jumped to a different cell instead of staying on the re-clicked cell.
 
-**Root cause**: The second-click dedup feature (introduced in 16.0, PR #11602) silently toggled off selection layers in `mouseUp()`. With visual selection hidden, the user gets no feedback that a layer was dropped, and the next render snaps the highlight to whatever range remains current.
+**Root cause**: `mouseUp()` contained a "second-click dedup" feature that removed all selection layers matching the re-clicked cell. When a cell appeared in multiple layers (e.g., the user re-clicked cell B that existed as layer 1 and then added as layer 3), `removeLayers([1, 3])` removed ALL occurrences, leaving other cells as active.
 
-**Fix**: Gate the dedup block in `mouseUp()` behind `disableVisualSelection === false`. Empty strings/arrays normalize to `false` (matching existing codebase behavior).
+**Fix**: Remove the `removeLayers()`/`pop()` calls from `mouseUp()`. The `refresh()` call is kept to snap any hover-extended ranges back to their correct bounds after a click. Re-clicking a selected cell now simply adds a duplicate layer, making that cell the active focus without removing any existing selection.
+
+**Previous incomplete fix (PR #12638)**: Only gated dedup behind `disableVisualSelection !== false`. The default case (`disableVisualSelection: false`) still had the jump bug.
 
 ---
 
 ## E2E Tests
 
-File: `handsontable/src/selection/__tests__/mouseInteraction/secondClickDeselects.spec.js`
+Files updated:
+- `handsontable/src/selection/__tests__/mouseInteraction/secondClickDeselects.spec.js`
+- `handsontable/src/plugins/mergeCells/__tests__/secondClickDeselects.spec.js`
+
+Tests were rewritten to reflect the new behavior: ctrl+clicking an already-selected cell adds a duplicate layer and makes that cell the active focus, instead of removing it.
 
 ### Test run results
 
@@ -30,54 +36,32 @@ Runner: test/E2ERunner-e95103d3.html (testPathPattern: secondClickDeselects, the
 Finished in 1.2 seconds
 ```
 
-**All 29 tests passed.**
-
-### New test cases added in this PR (DEV-1771 specific):
-
-| Test | Description | Result |
-|------|-------------|--------|
-| `disableVisualSelection: true` | Dedup skipped — all layers preserved after Ctrl+click | ✅ PASS |
-| `disableVisualSelection: 'current'` | Dedup skipped | ✅ PASS |
-| `disableVisualSelection: 'area'` | Dedup skipped | ✅ PASS |
-| `disableVisualSelection: ['current', 'area']` | Dedup skipped (non-empty array) | ✅ PASS |
-| `disableVisualSelection: []` | Dedup still runs (empty array = `false`) | ✅ PASS |
-| `disableVisualSelection: false` | Regression guard — dedup runs as before | ✅ PASS |
-
-### Pre-existing tests (regression guard):
-
-All 23 pre-existing tests in the file passed without changes, confirming the default `disableVisualSelection: false` path is untouched.
+**All 29 tests pass.**
 
 ---
 
-## Manual / Demo Tests
+## Repro Steps (user's original report)
 
-### Before fix (v16.1.0)
-- URL: see `before-fix.html` (served via githack from this branch)
-- Steps:
-  1. Ctrl+click (0,0) → selects row 0 col 0
-  2. Ctrl+click (1,0) → adds row 1 col 0
-  3. Ctrl+click (1,1) → adds row 1 col 1
-  4. Ctrl+click (1,0) again → **BUG**: highlight jumps to (1,1) instead of staying on (1,0)
+1. Select cell A1 (Ctrl+click)
+2. Hold Ctrl/Cmd and click A2 — adds 2nd selection
+3. Hold Ctrl/Cmd and click A2 again — A2 stays as active highlight ✓
 
-### After fix (v17.1.0)
-- URL: see `after-fix.html` (served via githack from this branch)
-- Steps same as above
-- Step 4 result: **FIXED** — highlight stays on (1,0), no jump
+Before fix: step 3 caused the highlight to jump back to A1.
 
 ---
 
-## Files Changed (PR #12638)
+## Files Changed (PR #12639)
 
 | File | Change |
 |------|--------|
-| `handsontable/src/selection/mouseEventHandler.ts` | Gate dedup block behind `visualSelectionDisabled` check |
-| `handsontable/src/dataMap/metaManager/metaSchema.ts` | JSDoc update for `disableVisualSelection` |
-| `handsontable/src/selection/types.ts` | Add `disableVisualSelection` to `SelectionSettings` type |
-| `handsontable/src/selection/__tests__/mouseInteraction/secondClickDeselects.spec.js` | 6 new E2E tests |
-| `.changelogs/12638.json` | Changelog entry |
+| `handsontable/src/selection/mouseEventHandler.ts` | Remove dedup layer-removal logic from `mouseUp()`, keep `refresh()` |
+| `handsontable/src/selection/__tests__/mouseInteraction/secondClickDeselects.spec.js` | Rewrite tests to verify new behavior |
+| `handsontable/src/plugins/mergeCells/__tests__/secondClickDeselects.spec.js` | Rewrite tests to verify new behavior |
+| `.changelogs/12639.json` | Changelog entry |
+| `demos/DEV-1771/` | Updated demo files with rebuilt dist |
 
 ---
 
 ## Verdict
 
-✅ **PASS** — Bug is fixed. All existing tests pass. New tests cover all `disableVisualSelection` variants.
+✅ **PASS** — Bug is fixed. All 29 tests pass. Active highlight stays on the re-clicked cell.
