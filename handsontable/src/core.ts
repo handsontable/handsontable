@@ -3139,11 +3139,8 @@ export default function Core(
    * __Note__, that although the `updateSettings` method doesn't overwrite the previously declared settings, it might reset
    * the settings made post-initialization. (for example - ignore changes made using the columnResize feature).
    *
-   * Since 8.0.0 passing `columns` or `data` inside `settings` objects will result in resetting states corresponding to rows and columns
-   * (for example, row/column sequence, column width, row height, frozen columns etc.).
-   *
-   * Since 12.0.0 passing `data` inside `settings` objects no longer results in resetting states corresponding to rows and columns
-   * (for example, row/column sequence, column width, row height, frozen columns etc.).
+   * Passing `columns` inside the `settings` object resets the states corresponding to rows and columns
+   * (for example, row/column sequence, column width, row height, frozen columns etc.). Passing `data` does not reset these states.
    *
    * Cell meta set imperatively through [[setCellMeta]] (for example, by the user or the context menu) is preserved across
    * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
