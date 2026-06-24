@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEV-1712 – Before Fix (v17.0.1) – Comment off-screen on mobile</title>
+
+  <!-- Handsontable 17.0.1 – BEFORE the viewport clamping fix -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f0f0;
+    }
+
+    .banner {
+      background: #c0392b;
+      color: white;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .banner .badge {
+      background: rgba(255,255,255,0.25);
+      border-radius: 4px;
+      padding: 2px 8px;
+      font-size: 12px;
+    }
+
+    .info {
+      background: #fff3cd;
+      border-left: 4px solid #f0ad4e;
+      padding: 12px 16px;
+      font-size: 13px;
+      color: #856404;
+      line-height: 1.5;
+    }
+
+    .info strong { color: #533f03; }
+
+    #container {
+      padding: 12px;
+    }
+
+    #hot {
+      background: white;
+    }
+
+    .instructions {
+      margin-top: 10px;
+      padding: 10px 14px;
+      background: white;
+      border-radius: 6px;
+      font-size: 13px;
+      color: #444;
+      line-height: 1.6;
+    }
+
+    .instructions ol { padding-left: 18px; }
+
+    .bug-note {
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: #fde8e8;
+      border-radius: 4px;
+      font-size: 12px;
+      color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+
+<div class="banner">
+  <span>🐛 BUG DEMO</span>
+  <span class="badge">v17.0.1 — BEFORE FIX</span>
+  <span>DEV-1712</span>
+</div>
+
+<div class="info">
+  <strong>Bug:</strong> On narrow (portrait) mobile viewports, the comment editor appears to the <strong>left of the commented cell</strong> — flying off-screen and becoming invisible. The flip logic moved the editor left to avoid right-edge overflow, but never checked that the flipped position itself stayed inside the viewport.
+</div>
+
+<div id="container">
+  <div id="hot"></div>
+
+  <div class="instructions">
+    <strong>How to reproduce:</strong>
+    <ol>
+      <li>Open this page in <strong>Chrome DevTools → mobile emulation</strong> (iPhone 12 Pro / Pixel 5, portrait — ~390 px wide).</li>
+      <li>Click on cell <strong>B2</strong> (the cell with a red triangle in the corner).</li>
+      <li>Observe: the comment popup appears <strong>off-screen to the left</strong> — invisible.</li>
+    </ol>
+    <div class="bug-note">
+      💡 Tip: You can also resize your browser window to be very narrow (~400 px) to see the effect on desktop.
+    </div>
+  </div>
+</div>
+
+<script>
+  const data = [
+    ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
+    ['North', 1200, 980, 1100, 1340, 1500],
+    ['South', 870, 1020, 930, 1150, 1280],
+    ['East',  1400, 1260, 1380, 1600, 1720],
+    ['West',  750, 820, 795, 910, 980],
+  ];
+
+  const hot = new Handsontable(document.getElementById('hot'), {
+    data,
+    rowHeaders: true,
+    colHeaders: true,
+    comments: true,
+    licenseKey: 'non-commercial-and-evaluation',
+    width: '100%',
+    height: 200,
+    cell: [
+      // Comment on B2 (row 1, col 1) — near center of a narrow viewport.
+      // When the screen is ~390px wide the flip logic moves it to
+      //   x = left - editorWidth - 1 ≈ negative → off-screen left.
+      {
+        row: 1, col: 1,
+        comment: { value: '⚠️ This comment is placed on the "Jan / North" cell.\n\nOn a narrow viewport it should appear, but instead flies off-screen to the LEFT because the flip logic never clamps the result.', readOnly: false }
+      },
+      // Second comment near the right edge — also goes off-screen left
+      {
+        row: 2, col: 4,
+        comment: { value: 'Another comment near the right edge — same off-screen-left bug on portrait.', readOnly: false }
+      },
+    ],
+  });
+</script>
+</body>
+</html>
