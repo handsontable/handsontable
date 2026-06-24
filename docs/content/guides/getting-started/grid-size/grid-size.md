@@ -475,6 +475,26 @@ You can listen for two hooks, [`beforeRefreshDimensions`](@/api/hooks.md#beforer
 
 :::
 
+## Known limitations
+
+Handsontable relies on the browser's native scrollbars. Browsers cap how tall (or wide) a scrollable area can be, measured in CSS pixels. The taller the scroll area grows past that cap, the more rendering glitches appear - rows become misaligned, the autofill handle turns blurry, and eventually cell borders disappear.
+
+The point where these glitches start depends on the browser, the operating system, and the device. The following approximate values were measured on macOS, and mark where problems begin rather than a hard cutoff:
+
+| Browser | Glitches start around |
+| ------- | --------------------- |
+| Chrome  | ~8,000,000 px         |
+| Firefox | ~3,500,000 px         |
+| Safari  | ~16,000,000 px        |
+
+These values are approximate, were measured on specific browser versions, and can change as browsers update.
+
+To estimate the maximum number of rows, divide the browser's pixel limit by your row height. With the default row height of 23 px, Chrome stays reliable up to about 350,000 rows (8,000,000 / 23). To estimate the maximum number of columns, divide the pixel limit by your column width. With a column width of 50 px, that's about 160,000 columns (8,000,000 / 50).
+
+Taller rows or wider columns lower these limits proportionally. For example, with a row height of 100 px, Chrome's limit drops to about 80,000 rows (8,000,000 / 100).
+
+If your dataset can grow past these limits, load it in smaller chunks, for example with server-side or lazy data loading.
+
 ## Related articles
 
 **Related guides**
