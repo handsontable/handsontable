@@ -9,24 +9,22 @@
     body { font-family: sans-serif; padding: 24px; max-width: 960px; }
     h1 { font-size: 1.2rem; color: #9d0208; }
     .banner { background: #ffe0e0; border: 1px solid #e63946; padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 0.9rem; }
-    .banner strong { color: #6a040f; }
-    .result { border: 1px solid #ccc; padding: 12px 16px; border-radius: 6px; margin-top: 16px; font-size: 0.85rem; font-family: monospace; white-space: pre-wrap; display: none; }
+    .result { border: 1px solid #ccc; padding: 12px 16px; border-radius: 6px; margin-top: 16px; font-size: 0.85rem; font-family: monospace; white-space: pre-wrap; }
     .result.pass { background: #d8f3dc; border-color: #52b788; }
     .result.fail { background: #ffe0e0; border-color: #e63946; }
     .controls { margin-bottom: 16px; display: flex; gap: 8px; flex-wrap: wrap; }
     button { padding: 8px 14px; border-radius: 4px; border: 1px solid #999; cursor: pointer; background: #fff; font-size: 0.9rem; }
     button:hover { background: #f0f0f0; }
-    button.primary { background: #6a040f; color: #fff; border-color: #6a040f; }
-    button.primary:hover { background: #9d0208; }
+    button.check { background: #6a040f; color: #fff; border-color: #6a040f; }
+    button.check:hover { background: #9d0208; }
   </style>
 </head>
 <body>
   <h1>DEV-1877 — BEFORE FIX: <code>.ht-notification</code> mounted after <code>.ht-grid</code> (outside overlay)</h1>
   <div class="banner">
     <strong>Old behaviour (bug):</strong> The <code>.ht-notification</code> host was inserted as a sibling
-    <em>after</em> <code>.ht-grid</code> using <code>rootGridElement.after(host)</code>, placing it
-    outside <code>.ht-overlay</code>. This page simulates that by moving the host after every
-    <code>showMessage()</code> call.
+    after <code>.ht-grid</code> using <code>rootGridElement.after(host)</code>, placing it
+    outside <code>.ht-overlay</code>. This page simulates that by moving the host after init.
   </div>
 
   <div class="controls">
@@ -34,11 +32,11 @@
     <button onclick="show('success')">Show success toast</button>
     <button onclick="show('warning')">Show warning toast</button>
     <button onclick="show('error')">Show error toast</button>
-    <button class="primary" onclick="checkDom()">Check DOM placement</button>
+    <button class="check" onclick="checkDom()">Check DOM placement</button>
   </div>
 
   <div id="hot"></div>
-  <div id="result" class="result"></div>
+  <div id="result" class="result">Click "Check DOM placement" to verify where .ht-notification lives in the DOM.</div>
 
   <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
   <script>
@@ -53,58 +51,62 @@
 
     const notif = hot.getPlugin('notification');
 
-    const messages = {
-      info:    { variant: 'info',    title: 'Info',    message: 'Host is outside .ht-overlay (before fix).' },
-      success: { variant: 'success', title: 'Success', message: 'DOM placement is WRONG in this before-fix demo.' },
-      warning: { variant: 'warning', title: 'Warning', message: 'Host is a sibling of .ht-grid, not inside .ht-overlay.' },
-      error:   { variant: 'error',   title: 'Error',   message: 'Old behaviour: rootGridElement.after(host).' },
-    };
-
-    // Simulate old behaviour: move host outside overlay after every showMessage
+    // Simulate old behaviour: move the host out of .ht-overlay to be a sibling after .ht-grid
     function applyOldPosition() {
-      const host = hot.rootElement.querySelector('.ht-notification');
-      const gridEl = hot.rootGridElement;
-      const overlaysEl = hot.rootOverlaysElement;
+      const host = document.querySelector('.ht-notification');
+      const overlaysEl = document.querySelector('.ht-overlay');
+      const gridEl = document.querySelector('.ht-grid');
       if (host && gridEl && overlaysEl && overlaysEl.contains(host)) {
         overlaysEl.removeChild(host);
         gridEl.after(host);
       }
     }
 
+    // Apply old position immediately after init
+    applyOldPosition();
+
+    const messages = {
+      info:    { variant: 'info',    title: 'Info',    message: 'Host is outside .ht-overlay (before fix).' },
+      success: { variant: 'success', title: 'Success', message: 'DOM placement is wrong — host is a sibling of .ht-grid.' },
+      warning: { variant: 'warning', title: 'Warning', message: 'Host was inserted via rootGridElement.after(host).' },
+      error:   { variant: 'error',   title: 'Error',   message: 'Old behaviour: host outside .ht-overlay.' },
+    };
+
     function show(variant) {
       notif.showMessage(messages[variant]);
-      applyOldPosition();
     }
 
     function checkDom() {
       const result = document.getElementById('result');
-      result.style.display = 'block';
 
-      notif.showMessage({ variant: 'info', message: 'DOM check triggered.' });
-      applyOldPosition();
-
-      const host = hot.rootElement.querySelector('.ht-notification');
-      const overlaysEl = hot.rootOverlaysElement;
+      const host = document.querySelector('.ht-notification');
+      const overlaysEl = document.querySelector('.ht-overlay');
 
       if (!host) {
-        result.className = 'result';
-        result.textContent = '⚠ .ht-notification host not found in DOM.';
+        result.className = 'result fail';
+        result.textContent = '❌ .ht-notification host not found in document.';
         return;
       }
 
-      const isInOverlay = overlaysEl && overlaysEl.contains(host);
-      const parentClasses = host.parentElement ? host.parentElement.className : '(none)';
+      if (!overlaysEl) {
+        result.className = 'result fail';
+        result.textContent = '❌ .ht-overlay element not found in document.';
+        return;
+      }
+
+      const isInOverlay = overlaysEl.contains(host);
+      const parentClass = host.parentElement ? host.parentElement.className : '(none)';
 
       if (!isInOverlay) {
         result.className = 'result fail';
         result.textContent =
-          '❌ BEFORE FIX — .ht-notification is NOT inside rootOverlaysElement (.ht-overlay)\n' +
-          'Parent element class: "' + parentClasses + '"\n\n' +
-          'The host was inserted as a sibling after .ht-grid using rootGridElement.after(host).';
+          '❌ BEFORE FIX — .ht-notification is NOT inside .ht-overlay\n' +
+          'Direct parent class: "' + parentClass + '"\n\n' +
+          'The host was placed as a sibling after .ht-grid (rootGridElement.after(host)).';
       } else {
         result.className = 'result pass';
         result.textContent =
-          '✅ Host is inside overlay — old position not applied yet. Click "Show _ toast" first.';
+          '✅ Host is currently inside .ht-overlay — old position simulation not applied yet.';
       }
     }
   </script>
