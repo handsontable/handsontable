@@ -1,3 +1,6 @@
+import type { HotInstance } from '../core/types';
+import type { GridSettings } from '../core/settings';
+import type { default as DataSource } from './dataSource';
 import { logAggregatedItems, warn } from '../helpers/console';
 import { isFunction } from '../helpers/function';
 import { stringify } from '../helpers/mixed';
@@ -18,11 +21,6 @@ type CellMeta = Record<string, unknown> & {
   allowInvalid?: boolean;
   row?: number;
   col?: number;
-};
-
-type DataSource = {
-  getAtCell: (r: number, c: number, v: null) => unknown;
-  setAtCell: (r: number, c: number, v: null) => void;
 };
 
 type InvalidItems = Map<string, Array<{ row: number; col: number; value: unknown; message?: string }>>;
@@ -116,18 +114,15 @@ function validateSourceCell(
  * reusing one column meta), or signals a full per-cell scan when any column carries a validator that
  * may depend on per-row meta.
  *
- * @param {object} hotInstance The Handsontable instance.
+ * @param {HotInstance} hotInstance The Handsontable instance.
  * @param {number} colSourceCount The number of physical source columns.
  * @returns {object} `{ fullScan, columns }` — when `fullScan` is `true`, `columns` is empty.
  */
 function collectColumnValidators(
-  hotInstance: Record<string, unknown>,
+  hotInstance: HotInstance,
   colSourceCount: number
 ): { fullScan: boolean; columns: ColumnValidator[] } {
-  const toVisualRow = hotInstance.toVisualRow as (row: number) => number | null;
-  const toVisualColumn = hotInstance.toVisualColumn as (col: number) => number | null;
-  const getCellMeta = hotInstance.getCellMeta as (row: number, col: number) => CellMeta;
-  const sampleVisualRow = toVisualRow(0);
+  const sampleVisualRow = hotInstance.rowIndexMapper.getVisualFromPhysicalIndex(0);
 
   if (sampleVisualRow === null) {
     return { fullScan: true, columns: [] };
@@ -136,13 +131,13 @@ function collectColumnValidators(
   const columns: ColumnValidator[] = [];
 
   for (let physicalColumn = 0; physicalColumn < colSourceCount; physicalColumn += 1) {
-    const visualColumn = toVisualColumn(physicalColumn);
+    const visualColumn = hotInstance.columnIndexMapper.getVisualFromPhysicalIndex(physicalColumn);
 
     if (visualColumn === null) {
       continue;
     }
 
-    const cellMeta = getCellMeta(sampleVisualRow, visualColumn);
+    const cellMeta = hotInstance.getCellMeta<CellMeta>(sampleVisualRow, visualColumn);
     const validator = cellMeta.sourceDataValidator;
 
     if (!isFunction(validator)) {
@@ -165,8 +160,8 @@ function collectColumnValidators(
  * Validates every source cell by resolving meta per cell (O(rows*cols) meta). Used when per-cell meta
  * can vary by row (a `cells` function, a `cell` array, or a row-dependent custom validator).
  *
- * @param {object} hotInstance The Handsontable instance.
- * @param {object} dataSource The data source.
+ * @param {HotInstance} hotInstance The Handsontable instance.
+ * @param {DataSource} dataSource The data source.
  * @param {number} rowSourceCount The number of physical source rows.
  * @param {number} colSourceCount The number of physical source columns.
  * @param {Map} invalidByMessageType The accumulator of invalid entries keyed by warning message.
@@ -174,33 +169,31 @@ function collectColumnValidators(
  * @returns {void}
  */
 function validatePerCell(
-  hotInstance: Record<string, unknown>,
+  hotInstance: HotInstance,
   dataSource: DataSource,
   rowSourceCount: number,
   colSourceCount: number,
   invalidByMessageType: InvalidItems,
   source?: string
 ): void {
-  const toVisualRow = hotInstance.toVisualRow as (row: number) => number | null;
-  const toVisualColumn = hotInstance.toVisualColumn as (col: number) => number | null;
-  const getCellMeta = hotInstance.getCellMeta as (row: number, col: number) => CellMeta;
+  const { rowIndexMapper, columnIndexMapper } = hotInstance;
 
   for (let row = 0; row < rowSourceCount; row += 1) {
     for (let col = 0; col < colSourceCount; col += 1) {
-      const visualRow = toVisualRow(row);
-      const visualColumn = toVisualColumn(col);
+      const visualRow = rowIndexMapper.getVisualFromPhysicalIndex(row);
+      const visualColumn = columnIndexMapper.getVisualFromPhysicalIndex(col);
 
       if (visualRow === null || visualColumn === null) {
         continue;
       }
 
-      const cellMeta = getCellMeta(visualRow, visualColumn);
+      const cellMeta = hotInstance.getCellMeta<CellMeta>(visualRow, visualColumn);
 
       if (!isFunction(cellMeta.sourceDataValidator)) {
         continue;
       }
 
-      const value = dataSource.getAtCell(row, col, null);
+      const value = dataSource.getAtCell(row, col);
 
       validateSourceCell(cellMeta, value, row, col, dataSource, invalidByMessageType, source);
     }
@@ -215,7 +208,7 @@ function validatePerCell(
  * the aggregated-warning order stays row-major (matching the per-cell scan).
  *
  * @param {Array} columns The columns whose (row-independent) validator should run.
- * @param {object} dataSource The data source.
+ * @param {DataSource} dataSource The data source.
  * @param {number} rowSourceCount The number of physical source rows.
  * @param {Function} toVisualRow Translates a physical row index to its visual index (or `null`).
  * @param {Map} invalidByMessageType The accumulator of invalid entries keyed by warning message.
@@ -239,7 +232,7 @@ function validateBatched(
 
     for (let i = 0; i < columns.length; i += 1) {
       const { physicalColumn, cellMeta } = columns[i];
-      const value = dataSource.getAtCell(row, physicalColumn, null);
+      const value = dataSource.getAtCell(row, physicalColumn);
 
       validateSourceCell(cellMeta, value, row, physicalColumn, dataSource, invalidByMessageType, source);
     }
@@ -252,19 +245,16 @@ function validateBatched(
  * `beforeGetCellMeta`/`afterGetCellMeta` hooks (a row-dependent `type`/validator/`allowInvalid` can be
  * applied there), or any imperatively-set cell meta (`setCellMeta`) that survives `updateData`.
  *
- * @param {object} hotInstance The Handsontable instance.
- * @param {object} settings The resolved grid settings.
+ * @param {HotInstance} hotInstance The Handsontable instance.
+ * @param {GridSettings} settings The resolved grid settings.
  * @returns {boolean} `true` when meta must be resolved per cell.
  */
-function hasRowVaryingMeta(hotInstance: Record<string, unknown>, settings: Record<string, unknown>): boolean {
-  const hasHook = hotInstance.hasHook as (key: string) => boolean;
-  const getMetaManager = hotInstance._getMetaManager as () => { getUserDefinedCellMetas: () => unknown[] };
-
+function hasRowVaryingMeta(hotInstance: HotInstance, settings: GridSettings): boolean {
   return isFunction(settings.cells) ||
     (Array.isArray(settings.cell) && settings.cell.length > 0) ||
-    hasHook('beforeGetCellMeta') ||
-    hasHook('afterGetCellMeta') ||
-    getMetaManager().getUserDefinedCellMetas().length > 0;
+    hotInstance.hasHook('beforeGetCellMeta') ||
+    hotInstance.hasHook('afterGetCellMeta') ||
+    hotInstance._getMetaManager().getUserDefinedCellMetas().length > 0;
 }
 
 /**
@@ -275,20 +265,20 @@ function hasRowVaryingMeta(hotInstance: Record<string, unknown>, settings: Recor
  * validation reuses one column-level meta per column — avoiding the O(rows*cols) cell-meta
  * materialization that otherwise retains a meta object for every cell at load.
  *
- * @param {object} hotInstance The Handsontable instance.
+ * @param {HotInstance} hotInstance The Handsontable instance.
  * @param {string} [source] The source identifier of the operation.
  * @returns {void}
  */
-export function runSourceDataValidators(hotInstance: Record<string, unknown>, source?: string): void {
-  const rowSourceCount = (hotInstance.countSourceRows as () => number)();
-  const colSourceCount = (hotInstance.countSourceCols as () => number)();
+export function runSourceDataValidators(hotInstance: HotInstance, source?: string): void {
+  const rowSourceCount = hotInstance.countSourceRows();
+  const colSourceCount = hotInstance.countSourceCols();
 
   if (rowSourceCount === 0 || colSourceCount === 0) {
     return;
   }
 
-  const settings = (hotInstance.getSettings as () => Record<string, unknown>)();
-  const dataSource = (hotInstance._getDataSource as () => DataSource)();
+  const settings = hotInstance.getSettings();
+  const dataSource = hotInstance._getDataSource();
   const invalidByMessageType: InvalidItems = new Map();
 
   if (hasRowVaryingMeta(hotInstance, settings)) {
@@ -299,7 +289,7 @@ export function runSourceDataValidators(hotInstance: Record<string, unknown>, so
     if (fullScan) {
       validatePerCell(hotInstance, dataSource, rowSourceCount, colSourceCount, invalidByMessageType, source);
     } else {
-      const toVisualRow = hotInstance.toVisualRow as (row: number) => number | null;
+      const toVisualRow = (row: number) => hotInstance.rowIndexMapper.getVisualFromPhysicalIndex(row);
 
       validateBatched(columns, dataSource, rowSourceCount, toVisualRow, invalidByMessageType, source);
     }
