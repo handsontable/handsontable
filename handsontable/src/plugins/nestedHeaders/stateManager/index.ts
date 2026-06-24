@@ -1,4 +1,4 @@
-import { arrayMap, arrayReduce } from '../../../helpers/array';
+import { arrayMap } from '../../../helpers/array';
 import SourceSettings from './sourceSettings';
 import type { HeaderNodeData } from './headersTree';
 import HeadersTree from './headersTree';
@@ -7,6 +7,10 @@ import type { NodeModificationResult } from './nodeModifiers';
 import { isDeclarativeGroup } from './nodeModifiers/utils/tree';
 import { generateMatrix } from './matrixGenerator';
 import { syncVisibilityOnTree } from './syncVisibility';
+import { deriveVisualSettings, computeOwnerIndex, resolveOwnerKey } from './deriveSettings';
+import type { MembershipOverrides } from './deriveSettings';
+import { createIdentityColumnArrangement } from './columnArrangement';
+import type { ColumnArrangement } from './columnArrangement';
 import type { ColumnVisibility } from './columnVisibility';
 import type TreeNode from '../../../utils/dataStructures/tree';
 import { TRAVERSAL_DF_PRE } from '../../../utils/dataStructures/tree';
@@ -18,19 +22,29 @@ import { TRAVERSAL_DF_PRE } from '../../../utils/dataStructures/tree';
  */
 export default class StateManager {
   /**
-   * The instance of the source settings class.
+   * The authored (physical-order) source settings - the normalized user configuration. All
+   * structural mutations (setData, mergeWith, map, insertColumns, removeColumns) operate on this.
    *
    * @private
    * @type {SourceSettings}
    */
   readonly #sourceSettings = new SourceSettings();
   /**
+   * Visual-order settings derived from #sourceSettings through deriveVisualSettings(). The headers
+   * tree is built from these, so the rendered structure follows the current column arrangement. With
+   * an identity arrangement they equal the authored settings, so the built tree is unchanged.
+   *
+   * @private
+   * @type {SourceSettings}
+   */
+  readonly #derivedSettings = new SourceSettings();
+  /**
    * The instance of the headers tree.
    *
    * @private
    * @type {HeadersTree}
    */
-  readonly #headersTree = new HeadersTree(this.#sourceSettings);
+  readonly #headersTree = new HeadersTree(this.#derivedSettings);
   /**
    * Cached matrix which is generated from the tree structure.
    *
@@ -43,6 +57,19 @@ export default class StateManager {
    * mapState()/mergeStateWith() can re-apply it after rebuilding the tree.
    */
   #lastColumnVisibility: ColumnVisibility | null = null;
+  /**
+   * The column arrangement the headers tree is derived against. When null, an identity arrangement
+   * (visual equals physical) is used, which reproduces the authored structure. The plugin sets a
+   * live adapter so the structure follows column moves.
+   */
+  #columnArrangement: ColumnArrangement | null = null;
+  /**
+   * Per-column membership overrides set by column moves (`physical -> level -> owner identity`). They
+   * re-parent a moved column into the cohesive (`columnDropMode: 'adopt'`) group it was dropped inside, or
+   * mark it standalone when it left its group - the piece a pure derive cannot infer from the final
+   * arrangement alone. Consumed by `#deriveTree`. Empty means "use the authored structure".
+   */
+  #membershipOverrides: MembershipOverrides = new Map();
 
   /**
    * Sets a new state for the nested headers plugin based on settings passed
@@ -53,12 +80,16 @@ export default class StateManager {
    */
   setState(nestedHeadersSettings: unknown[][]) {
     this.#sourceSettings.setData(nestedHeadersSettings);
+    // A fresh authored configuration invalidates move-driven membership overrides (their owner
+    // identities index the previous structure), so reset them.
+    this.#resetMembershipOverrides();
     let hasError = false;
 
     try {
-      this.#headersTree.buildTree();
+      this.#deriveTree();
     } catch (ex) {
       this.#headersTree.clear();
+      this.#derivedSettings.clear();
       this.#sourceSettings.clear();
       hasError = true;
     }
@@ -75,6 +106,99 @@ export default class StateManager {
    */
   setColumnsLimit(columnsCount: number) {
     this.#sourceSettings.setColumnsLimit(columnsCount);
+  }
+
+  /**
+   * Sets the column arrangement the headers tree is derived against. Pass a live adapter (backed by
+   * the column index mapper) so the rendered structure follows column moves, or `null` to fall back
+   * to the identity arrangement (authored structure). Does not rebuild on its own - call
+   * `rebuildState()` (or any structural mutation) to re-derive the tree.
+   *
+   * @param {ColumnArrangement|null} columnArrangement The arrangement to derive against, or null.
+   */
+  setColumnArrangement(columnArrangement: ColumnArrangement | null) {
+    this.#columnArrangement = columnArrangement;
+  }
+
+  /**
+   * Re-derives the headers tree from the current authored settings and column arrangement, preserving
+   * the collapsed state and re-applying visibility. Call this when only the arrangement changed (a
+   * column move) and no structural mutation of the authored settings is needed.
+   *
+   * Collapse is re-attached by authored group identity (not visual column index, which the move just
+   * changed): a group that stayed contiguous is re-collapsed at its new position; a group split apart
+   * by the move auto-expands (its collapse is dropped), since a non-contiguous group cannot stay
+   * collapsed coherently.
+   */
+  rebuildState() {
+    const collapsedGroups = this.#snapshotCollapsedGroups();
+
+    this.#deriveTree();
+    this.#deriveVisibility();
+    this.#reapplyCollapsedGroupsByIdentity(collapsedGroups);
+    this.#applySyncVisibility();
+  }
+
+  /**
+   * Captures the header level and authored group identity of every currently collapsed group, so the
+   * collapsed state can be re-attached after a move re-derives the tree.
+   *
+   * @returns {Array<{headerLevel: number, authoredColumnIndex: number}>}
+   */
+  #snapshotCollapsedGroups(): { headerLevel: number, authoredColumnIndex: number }[] {
+    const groups: { headerLevel: number, authoredColumnIndex: number }[] = [];
+
+    this.#headersTree.getRoots().forEach((rootNode) => {
+      rootNode.walkDown((node) => {
+        const { isCollapsed, headerLevel, authoredColumnIndex } = node.data;
+
+        if (isCollapsed && typeof authoredColumnIndex === 'number' && authoredColumnIndex >= 0) {
+          groups.push({ headerLevel, authoredColumnIndex });
+        }
+      });
+    });
+
+    return groups;
+  }
+
+  /**
+   * Re-collapses the groups captured by #snapshotCollapsedGroups() on the freshly re-derived tree,
+   * matching by authored identity. A group that maps to exactly one node stayed contiguous and is
+   * re-collapsed; a group that maps to more than one node was split by the move and is left expanded.
+   *
+   * @param {Array<{headerLevel: number, authoredColumnIndex: number}>} collapsedGroups The captured groups.
+   */
+  #reapplyCollapsedGroupsByIdentity(collapsedGroups: { headerLevel: number, authoredColumnIndex: number }[]) {
+    collapsedGroups.forEach(({ headerLevel, authoredColumnIndex }) => {
+      const matches = this.#findNodesByAuthoredIdentity(headerLevel, authoredColumnIndex);
+
+      if (matches.length === 1) {
+        // Matrix-free: the trailing #applySyncVisibility regenerates the matrix once for all groups.
+        this.#applyNodeModification('collapse', headerLevel, matches[0].data.columnIndex);
+      }
+    });
+  }
+
+  /**
+   * Finds every tree node at the given header level that was derived from the given authored owner
+   * column. More than one match means the authored group is split across non-adjacent visual columns.
+   *
+   * @param {number} headerLevel Header level index.
+   * @param {number} authoredColumnIndex The authored owner column index identifying the group.
+   * @returns {TreeNode[]} The matching nodes.
+   */
+  #findNodesByAuthoredIdentity(headerLevel: number, authoredColumnIndex: number): TreeNode<HeaderNodeData>[] {
+    const matches: TreeNode<HeaderNodeData>[] = [];
+
+    this.#headersTree.getRoots().forEach((rootNode) => {
+      rootNode.walkDown((node) => {
+        if (node.data.headerLevel === headerLevel && node.data.authoredColumnIndex === authoredColumnIndex) {
+          matches.push(node);
+        }
+      });
+    });
+
+    return matches;
   }
 
   /**
@@ -108,40 +232,61 @@ export default class StateManager {
   }
 
   /**
-   * Inserts `amount` columns into the source settings at the visual `columnIndex`, then rebuilds
-   * the tree and re-derives visibility. Headers spanning the insertion point are extended; columns
-   * inserted at a header boundary become standalone headers.
+   * Inserts `amount` columns into the source settings, then rebuilds the tree and re-derives
+   * visibility. Headers spanning the insertion point are extended; columns inserted at a header
+   * boundary become standalone headers.
    *
-   * @param {number} columnIndex A visual column index at which the new columns are inserted.
+   * The authored source settings are keyed by physical column, while the collapsed state is keyed by
+   * visual column - so the insertion takes both indexes. They are equal when no column move is active;
+   * after a move they differ, and using each in its own space keeps headers and collapse aligned.
+   *
+   * @param {number} visualColumnIndex The visual index the columns were inserted at (collapse space).
+   * @param {number} physicalColumnIndex The physical index the columns were inserted at (source space).
    * @param {number} amount The number of columns to insert.
    */
-  insertColumns(columnIndex: number, amount: number) {
+  insertColumns(visualColumnIndex: number, physicalColumnIndex: number, amount: number) {
+    // An index-shifting structural change invalidates move-driven membership overrides (keyed by
+    // physical column, with owner identities indexing the authored structure - both shifted here).
+    this.#resetMembershipOverrides();
     this.#rebuildPreservingCollapse(
-      () => this.#sourceSettings.insertColumns(columnIndex, amount),
-      c => (c >= columnIndex ? c + amount : c)
+      () => this.#sourceSettings.insertColumns(physicalColumnIndex, amount),
+      c => (c >= visualColumnIndex ? c + amount : c)
     );
   }
 
   /**
-   * Removes `amount` columns from the source settings starting at the visual `columnIndex`, then
-   * rebuilds the tree and re-derives visibility. Headers overlapping the removed range are shrunk,
-   * re-anchored, or dropped when they lose all their columns.
+   * Removes the given columns from the source settings, then rebuilds the tree and re-derives
+   * visibility. Headers overlapping the removed columns are shrunk, re-anchored, or dropped when they
+   * lose all their columns.
    *
-   * @param {number} columnIndex A visual column index from which the columns are removed.
-   * @param {number} amount The number of columns to remove.
+   * The removed columns are identified by physical index (authored source settings are physical-keyed)
+   * and may be non-contiguous after a column move; they are removed highest-index-first so the lower
+   * indexes stay valid. The collapsed state is shifted in visual space, which an insert/remove always
+   * changes the same way regardless of any active move.
+   *
+   * @param {number} visualColumnIndex The visual index the columns were removed from (collapse space).
+   * @param {number} amount The number of columns removed (length of `physicalColumns`).
+   * @param {number[]} physicalColumns The physical indexes of the removed columns (source space).
    */
-  removeColumns(columnIndex: number, amount: number) {
-    const endIndex = columnIndex + amount;
+  removeColumns(visualColumnIndex: number, amount: number, physicalColumns: number[]) {
+    const endIndex = visualColumnIndex + amount;
 
+    // An index-shifting structural change invalidates move-driven membership overrides (keyed by
+    // physical column, with owner identities indexing the authored structure - both shifted here).
+    this.#resetMembershipOverrides();
     this.#rebuildPreservingCollapse(
-      () => this.#sourceSettings.removeColumns(columnIndex, amount),
+      () => {
+        [...physicalColumns]
+          .sort((a, b) => b - a)
+          .forEach(physicalColumn => this.#sourceSettings.removeColumns(physicalColumn, 1));
+      },
       (c) => {
-        if (c < columnIndex) {
+        if (c < visualColumnIndex) {
           return c;
         }
 
         // The anchor column was removed but the group may survive - re-anchor to the range start.
-        return c >= endIndex ? c - amount : columnIndex;
+        return c >= endIndex ? c - amount : visualColumnIndex;
       }
     );
   }
@@ -162,7 +307,7 @@ export default class StateManager {
     const collapsedNodes = this.#snapshotCollapsedNodes();
 
     mutate();
-    this.#headersTree.buildTree();
+    this.#deriveTree();
     // Derive visibility before re-collapsing, but skip the matrix here - #reapplyCollapsedNodes
     // reads the tree (not the matrix) and the trailing #applySyncVisibility regenerates it once,
     // so building the matrix at this point would only be discarded work.
@@ -207,7 +352,8 @@ export default class StateManager {
     shiftColumnIndex: (columnIndex: number) => number
   ) {
     collapsedNodes.forEach(({ headerLevel, columnIndex }) => {
-      this.triggerNodeModification('collapse', headerLevel, shiftColumnIndex(columnIndex));
+      // Matrix-free: the trailing #applySyncVisibility regenerates the matrix once for all nodes.
+      this.#applyNodeModification('collapse', headerLevel, shiftColumnIndex(columnIndex));
     });
   }
 
@@ -218,17 +364,21 @@ export default class StateManager {
    * @returns {Array}
    */
   mapNodes(callback: Function) {
-    return arrayReduce(this.#headersTree.getRoots(), (acc, rootNode) => {
-      (rootNode as TreeNode).walkDown((node: TreeNode) => {
+    const results: unknown[] = [];
+
+    // getRoots() returns TreeNode<HeaderNodeData>, so node.data is already HeaderNodeData here - the
+    // previous `as TreeNode`/`as unknown[]` casts only threw that type away. Walk and collect directly.
+    this.#headersTree.getRoots().forEach((rootNode) => {
+      rootNode.walkDown((node) => {
         const result: unknown = callback(node.data);
 
         if (result !== undefined) {
-          (acc as unknown[]).push(result);
+          results.push(result);
         }
       });
+    });
 
-      return acc;
-    }, []);
+    return results;
   }
 
   /**
@@ -242,20 +392,43 @@ export default class StateManager {
   triggerNodeModification(
     action: string, headerLevel: number, columnIndex: number
   ): NodeModificationResult | undefined {
+    const { actionResult, modified } = this.#applyNodeModification(action, headerLevel, columnIndex);
+
+    if (modified) {
+      this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
+    }
+
+    return actionResult;
+  }
+
+  /**
+   * Applies a NodeModifiers action to the tree WITHOUT regenerating the state matrix, and reports
+   * whether a node was actually modified. Callers that batch several modifications (re-applying
+   * collapse after a re-derive) use this and regenerate the matrix once at the end, instead of paying
+   * a full whole-matrix regeneration per modified node.
+   *
+   * @param {string} action An action name to trigger.
+   * @param {number} headerLevel Header level index.
+   * @param {number} columnIndex A visual column index.
+   * @returns {{ actionResult: NodeModificationResult|undefined, modified: boolean }}
+   */
+  #applyNodeModification(
+    action: string, headerLevel: number, columnIndex: number
+  ): { actionResult: NodeModificationResult | undefined, modified: boolean } {
     if (headerLevel < 0) {
       headerLevel = this.rowCoordsToLevel(headerLevel) ?? 0;
     }
 
     const nodeToProcess = this.#headersTree.getNode(headerLevel, columnIndex);
-    let actionResult;
 
-    if (nodeToProcess) {
-      actionResult = triggerNodeModification(action, nodeToProcess, columnIndex);
-
-      this.#stateMatrix = generateMatrix(this.#headersTree.getRoots());
+    if (!nodeToProcess) {
+      return { actionResult: undefined, modified: false };
     }
 
-    return actionResult ?? undefined;
+    return {
+      actionResult: triggerNodeModification(action, nodeToProcess, columnIndex) ?? undefined,
+      modified: true,
+    };
   }
 
   /**
@@ -303,6 +476,195 @@ export default class StateManager {
     if (this.#lastColumnVisibility) {
       syncVisibilityOnTree(this.#headersTree.getRoots(), this.#lastColumnVisibility);
     }
+  }
+
+  /**
+   * Derives the visual-order settings from the authored source settings, then builds the headers
+   * tree from them. The headers tree is therefore always a function of the authored configuration
+   * and the current column arrangement. With the identity arrangement the derived settings equal the
+   * authored ones, so the built tree is identical to building directly from the authored settings; a
+   * non-identity arrangement (a column move) makes the structure follow the data.
+   */
+  #deriveTree() {
+    const arrangement = this.#columnArrangement ?? createIdentityColumnArrangement();
+
+    this.#derivedSettings.setNormalizedData(
+      deriveVisualSettings(this.#sourceSettings.getData(), arrangement, this.#membershipOverrides)
+    );
+    this.#headersTree.buildTree();
+  }
+
+  /**
+   * Re-parents the moved columns after a column move, recording membership overrides the derive uses
+   * to keep `columnDropMode: 'adopt'` groups cohesive. Call before `rebuildState()`.
+   *
+   * For each moved column the deepest group level at which it was dropped strictly inside a cohesive
+   * group is found first. From that level outward the column joins that group's ancestor chain (the
+   * group the column visually sits inside at each enclosing level), so a splitting ancestor grows
+   * to contain the adopted column instead of the inner run straddling its boundary. At every other
+   * level (deeper than the adoption, or none found) the column keeps its group when still beside a
+   * sibling, else goes standalone. The decisions are taken from the pre-update layout, then applied,
+   * so a whole group moved together (each member adjacent to a sibling) stays intact.
+   *
+   * @param {number[]} movedVisualColumns - The post-move visual indexes of the columns that moved.
+   */
+  reparentColumns(movedVisualColumns: number[]) {
+    const arrangement = this.#columnArrangement ?? createIdentityColumnArrangement();
+    const authoredLayers = this.#sourceSettings.getData();
+    const layersCount = authoredLayers.length;
+    const columnsCount = layersCount > 0 ? authoredLayers[0].length : 0;
+
+    if (layersCount <= 1 || columnsCount === 0) {
+      return; // a single header level is all leaves - nothing to re-parent
+    }
+
+    const ownerIndexByLevel = authoredLayers.map(layer => computeOwnerIndex(layer));
+    // Effective owner = the move override if any, else the authored owner (see resolveOwnerKey).
+    const effectiveOwnerAt = (visualColumn: number, level: number): number => {
+      const physical = arrangement.getPhysicalFromVisual(visualColumn);
+
+      return resolveOwnerKey(physical, ownerIndexByLevel[level], this.#membershipOverrides.get(physical)?.get(level));
+    };
+
+    // Authored owner ignores any override - the group the column belongs to in the authored config.
+    const authoredOwnerAt = (visualColumn: number, level: number): number => {
+      const physical = arrangement.getPhysicalFromVisual(visualColumn);
+
+      return resolveOwnerKey(physical, ownerIndexByLevel[level]);
+    };
+
+    // The columns moved together in this operation. Their mutual adjacency must be skipped when
+    // looking for the group a moved column sits inside, so a whole group dropped into another cohesive
+    // group is adopted as a block (each member's neighbor toward the block is a fellow moved column,
+    // not the surrounding group).
+    const movedSet = new Set(movedVisualColumns);
+    // The effective owner shared by the columns flanking the moved block at a level (the group the
+    // block sits strictly inside), or -1 when they differ or the block sits at an edge. Fellow moved
+    // columns are stepped over so the whole block is judged against the columns surrounding it.
+    const enclosingOwnerAt = (visualColumn: number, level: number): number => {
+      let left = visualColumn - 1;
+      let right = visualColumn + 1;
+
+      while (left >= 0 && movedSet.has(left)) {
+        left -= 1;
+      }
+
+      while (right < columnsCount && movedSet.has(right)) {
+        right += 1;
+      }
+
+      if (left < 0 || right >= columnsCount) {
+        return -1;
+      }
+
+      const leftOwner = effectiveOwnerAt(left, level);
+
+      return leftOwner === effectiveOwnerAt(right, level) && leftOwner >= 0 ? leftOwner : -1;
+    };
+
+    // Decide from the current layout first, then apply, so moved siblings see each other's old owner.
+    const decisions: { physical: number, level: number, identity: number | null }[] = [];
+
+    movedVisualColumns.forEach((visualColumn) => {
+      const physical = arrangement.getPhysicalFromVisual(visualColumn);
+      // Deepest level at which the column was dropped strictly inside a cohesive group. The adoption
+      // there propagates outward through the group's ancestors (see #adoptedAncestorOwner).
+      let adoptionLevel = -1;
+
+      for (let level = 0; level < layersCount - 1; level++) {
+        const enclosing = enclosingOwnerAt(visualColumn, level);
+
+        if (enclosing >= 0 && authoredLayers[level][enclosing]?.columnDropMode !== 'split') {
+          adoptionLevel = level;
+        }
+      }
+
+      for (let level = 0; level < layersCount - 1; level++) {
+        const authoredOwner = authoredOwnerAt(visualColumn, level);
+        // At or inside the adoption level the column joins the cohesive group's ancestor chain;
+        // anywhere else it reverts to its authored owner, so a column moved out of a group keeps its
+        // own ancestor labels and the group renders a same-label banner over each contiguous run.
+        const target = level <= adoptionLevel
+          ? this.#adoptedAncestorOwner(visualColumn, level, enclosingOwnerAt, authoredOwnerAt, ownerIndexByLevel)
+          : authoredOwner;
+
+        decisions.push({ physical, level, identity: target === authoredOwner ? null : target });
+      }
+    });
+
+    decisions.forEach(({ physical, level, identity }) => {
+      this.#setMembershipOverride(physical, level, identity);
+    });
+  }
+
+  /**
+   * Resolves the owner a moved column takes at an enclosing level (at or outside its cohesive adoption
+   * level), so the adopted column is contained by the same group its visual neighbors belong to. Uses
+   * the neighbors' shared effective owner when they agree (which keeps the run contiguous, never
+   * straddling), and otherwise falls back to the authored ancestor of the adopted group's anchor.
+   *
+   * @param {number} visualColumn - The column's post-move visual index.
+   * @param {number} level - The enclosing header level.
+   * @param {Function} enclosingOwnerAt - Resolves the owner shared by both neighbors, or -1.
+   * @param {Function} authoredOwnerAt - Resolves the authored owner of a (visual, level).
+   * @param {number[][]} ownerIndexByLevel - The authored owner column index per (level, column).
+   * @returns {number} The owner identity the column takes at this level.
+   */
+  #adoptedAncestorOwner(
+    visualColumn: number,
+    level: number,
+    enclosingOwnerAt: (visualColumn: number, level: number) => number,
+    authoredOwnerAt: (visualColumn: number, level: number) => number,
+    ownerIndexByLevel: number[][]
+  ): number {
+    const enclosing = enclosingOwnerAt(visualColumn, level);
+
+    if (enclosing >= 0) {
+      return enclosing;
+    }
+
+    // The neighbors disagree at this enclosing level; fall back to the authored ancestor of the group
+    // the column sits inside one level deeper, which is a valid (properly nested) parent.
+    const innerOwner = enclosingOwnerAt(visualColumn, level + 1);
+
+    return innerOwner >= 0 ? ownerIndexByLevel[level][innerOwner] : authoredOwnerAt(visualColumn, level);
+  }
+
+  /**
+   * Clears all move-driven membership overrides. Call when the authored structure changes - a fresh
+   * config (setState) or an index-shifting insert/remove - because the overrides are keyed by physical
+   * column and their owner identities index the authored structure, both invalidated by such a change.
+   */
+  #resetMembershipOverrides() {
+    this.#membershipOverrides = new Map();
+  }
+
+  /**
+   * Records or clears one membership override.
+   *
+   * @param {number} physical - The physical column index.
+   * @param {number} level - The header level.
+   * @param {number|null} identity - The owner identity to record (`>= 0` group, `< 0` standalone), or
+   *   `null` to clear it (fall back to the authored structure).
+   */
+  #setMembershipOverride(physical: number, level: number, identity: number | null) {
+    if (identity === null) {
+      const levels = this.#membershipOverrides.get(physical);
+
+      levels?.delete(level);
+
+      if (levels?.size === 0) {
+        this.#membershipOverrides.delete(physical);
+      }
+
+      return;
+    }
+
+    if (!this.#membershipOverrides.has(physical)) {
+      this.#membershipOverrides.set(physical, new Map());
+    }
+
+    this.#membershipOverrides.get(physical)!.set(level, identity);
   }
 
   /**
@@ -544,12 +906,14 @@ export default class StateManager {
   }
 
   /**
-   * Gets a total number of columns count.
+   * Gets the number of columns the rendered header structure spans (the visual width). This reads
+   * the derived settings, so it matches the generated matrix and the current column arrangement.
+   * With an identity arrangement it equals the authored column count.
    *
    * @returns {number}
    */
   getColumnsCount() {
-    return this.#sourceSettings.getColumnsCount();
+    return this.#derivedSettings.getColumnsCount();
   }
 
   /**
@@ -617,12 +981,37 @@ export default class StateManager {
   }
 
   /**
+   * Gets every currently collapsed group as its header level and the visual column span it covers
+   * (its left-edge visual column index and original colspan). Used to detect, before a column move,
+   * whether the move would split a collapsed group.
+   *
+   * @returns {Array<{headerLevel: number, columnIndex: number, origColspan: number}>}
+   */
+  getCollapsedGroups(): { headerLevel: number, columnIndex: number, origColspan: number }[] {
+    const groups: { headerLevel: number, columnIndex: number, origColspan: number }[] = [];
+
+    this.#headersTree.getRoots().forEach((rootNode) => {
+      rootNode.walkDown((node) => {
+        const { isCollapsed, headerLevel, columnIndex, origColspan } = node.data;
+
+        if (isCollapsed) {
+          groups.push({ headerLevel, columnIndex, origColspan });
+        }
+      });
+    });
+
+    return groups;
+  }
+
+  /**
    * Clears the column state manager to the initial state.
    */
   clear() {
     this.#stateMatrix = [];
     this.#sourceSettings.clear();
+    this.#derivedSettings.clear();
     this.#headersTree.clear();
     this.#lastColumnVisibility = null;
+    this.#membershipOverrides = new Map();
   }
 }

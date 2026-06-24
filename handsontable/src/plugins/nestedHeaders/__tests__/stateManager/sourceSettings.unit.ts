@@ -12,6 +12,7 @@ function createColspanSourceSettings(overwriteProps) {
   return {
     ...createColspanSettings(overwriteProps),
     crossHiddenColumns: [],
+    columnDropMode: 'adopt',
     isRoot: false,
   };
 }

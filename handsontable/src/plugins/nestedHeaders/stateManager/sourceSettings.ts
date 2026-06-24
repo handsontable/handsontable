@@ -4,10 +4,15 @@ import { arrayEach } from '../../../helpers/array';
 import { normalizeSettings } from './settingsNormalizer';
 import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './utils';
 
-interface SourceHeaderCell {
+import type { ColumnDropMode } from './utils';
+
+export interface SourceHeaderCell {
   colspan?: number;
   origColspan?: number;
   isPlaceholder?: boolean;
+  columnDropMode?: ColumnDropMode;
+  headerClassNames?: string[];
+  crossHiddenColumns?: number[];
   [key: string]: unknown;
 }
 
@@ -67,6 +72,20 @@ export default class SourceSettings {
     // normalized shape here, at the single boundary, so the rest of the class stays typed.
     this.#data = normalizeSettings(nestedHeadersSettings, this.#columnsLimit) as SourceHeaderCell[][];
     this.#dataLength = this.#data.length;
+  }
+
+  /**
+   * Sets already-normalized source settings directly, bypassing normalization.
+   *
+   * Used to feed a derived (e.g. visual-order) settings matrix that is already in the normalized
+   * shape, so it must not be re-normalized. Callers are responsible for passing a well-formed matrix
+   * with equal-length layers.
+   *
+   * @param {Array[]} normalizedSettings The already-normalized nested headers settings.
+   */
+  setNormalizedData(normalizedSettings: SourceHeaderCell[][]) {
+    this.#data = normalizedSettings;
+    this.#dataLength = normalizedSettings.length;
   }
 
   /**
@@ -182,7 +201,9 @@ export default class SourceSettings {
   }
 
   /**
-   * Inserts `amount` columns into the normalized settings starting at the visual `columnIndex`.
+   * Inserts `amount` columns into the normalized settings starting at `columnIndex`. The index is a
+   * position within the authored, source-order settings (which the StateManager keys by physical
+   * column), not a visual index.
    *
    * The behavior mirrors the MergeCells plugin: a column inserted strictly inside a header's span
    * extends that header (and every ancestor that also spans the point), while a column inserted at a
@@ -190,7 +211,7 @@ export default class SourceSettings {
    * In the normalized representation "strictly inside a span" is exactly "the cell at the insert
    * index is a placeholder".
    *
-   * @param {number} columnIndex A visual column index at which the new columns are inserted.
+   * @param {number} columnIndex A source-order column index at which the new columns are inserted.
    * @param {number} amount The number of columns to insert.
    */
   insertColumns(columnIndex: number, amount: number) {
@@ -227,14 +248,16 @@ export default class SourceSettings {
   }
 
   /**
-   * Removes `amount` columns from the normalized settings starting at the visual `columnIndex`.
+   * Removes `amount` columns from the normalized settings starting at `columnIndex`. The index is a
+   * position within the authored, source-order settings (which the StateManager keys by physical
+   * column), not a visual index.
    *
    * Every header that overlaps the removed range is shrunk by the number of removed columns it
    * covered. A header that loses all its columns is dropped; a header whose leftmost (labeled)
    * column is removed but which still has surviving columns is re-anchored to the first surviving
    * column, keeping its label and configurable properties.
    *
-   * @param {number} columnIndex A visual column index from which the columns are removed.
+   * @param {number} columnIndex A source-order column index from which the columns are removed.
    * @param {number} amount The number of columns to remove.
    */
   removeColumns(columnIndex: number, amount: number) {
