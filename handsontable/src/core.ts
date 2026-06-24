@@ -5667,6 +5667,11 @@ export default function Core(
   /**
    * Returns the first rendered row in the DOM (usually, it is not visible in the table's viewport).
    *
+   * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
+   * cell that crosses the viewport edge extends the rendered row range, so this method can return a row
+   * index further from the viewport than usual. For the actual visible viewport, use
+   * {@link Core#getFirstFullyVisibleRow} or {@link Core#getFirstPartiallyVisibleRow}.
+   *
    * @since 14.6.0
    * @memberof Core#
    * @function getFirstRenderedVisibleRow
@@ -5678,6 +5683,11 @@ export default function Core(
 
   /**
    * Returns the last rendered row in the DOM (usually, it is not visible in the table's viewport).
+   *
+   * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
+   * cell that crosses the viewport edge extends the rendered row range, so this method can return a row
+   * index further from the viewport than usual. For the actual visible viewport, use
+   * {@link Core#getLastFullyVisibleRow} or {@link Core#getLastPartiallyVisibleRow}.
    *
    * @since 14.6.0
    * @memberof Core#
@@ -5691,6 +5701,11 @@ export default function Core(
   /**
    * Returns the first rendered column in the DOM (usually, it is not visible in the table's viewport).
    *
+   * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
+   * cell that crosses the viewport edge extends the rendered column range, so this method can return a
+   * column index further from the viewport than usual. For the actual visible viewport, use
+   * {@link Core#getFirstFullyVisibleColumn} or {@link Core#getFirstPartiallyVisibleColumn}.
+   *
    * @since 14.6.0
    * @memberof Core#
    * @function getFirstRenderedVisibleColumn
@@ -5702,6 +5717,11 @@ export default function Core(
 
   /**
    * Returns the last rendered column in the DOM (usually, it is not visible in the table's viewport).
+   *
+   * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
+   * cell that crosses the viewport edge extends the rendered column range, so this method can return a
+   * column index further from the viewport than usual. For the actual visible viewport, use
+   * {@link Core#getLastFullyVisibleColumn} or {@link Core#getLastPartiallyVisibleColumn}.
    *
    * @since 14.6.0
    * @memberof Core#

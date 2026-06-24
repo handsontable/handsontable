@@ -617,6 +617,11 @@ export class AutoColumnSize extends BasePlugin {
   /**
    * Gets the first visible column.
    *
+   * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
+   * cell that crosses the viewport edge extends the rendered column range. In that case this method can
+   * return a column index outside the strictly visible viewport. To read the actual visible viewport, use
+   * {@link Core#getFirstFullyVisibleColumn} or {@link Core#getFirstPartiallyVisibleColumn}.
+   *
    * @returns {number} Returns visual column index, -1 if table is not rendered or if there are no columns to base the the calculations on.
    */
   getFirstVisibleColumn(): number {
@@ -625,6 +630,11 @@ export class AutoColumnSize extends BasePlugin {
 
   /**
    * Gets the last visible column.
+   *
+   * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
+   * cell that crosses the viewport edge extends the rendered column range. In that case this method can
+   * return a column index outside the strictly visible viewport. To read the actual visible viewport, use
+   * {@link Core#getLastFullyVisibleColumn} or {@link Core#getLastPartiallyVisibleColumn}.
    *
    * @returns {number} Returns visual column index or -1 if table is not rendered.
    */
