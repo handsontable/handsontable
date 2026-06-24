@@ -529,8 +529,8 @@ const configurationOptions = {
   columnSorting: {
     compareFunctionFactory: function(sortOrder, columnMeta) {
       return function(value, nextValue) {
-        if (value < nextValue) return -1;
-        if (value > nextValue) return 1;
+        if (value < nextValue) return sortOrder === 'asc' ? -1 : 1;
+        if (value > nextValue) return sortOrder === 'asc' ? 1 : -1;
         return 0;
       };
     },
@@ -547,8 +547,8 @@ const configurationOptions = {
   columnSorting={{
     compareFunctionFactory: function(sortOrder, columnMeta) {
       return function(value, nextValue) {
-        if (value < nextValue) return -1;
-        if (value > nextValue) return 1;
+        if (value < nextValue) return sortOrder === 'asc' ? -1 : 1;
+        if (value > nextValue) return sortOrder === 'asc' ? 1 : -1;
         return 0;
       };
     },
@@ -567,8 +567,8 @@ const configurationOptions: GridSettings = {
   columnSorting: {
     compareFunctionFactory: function(sortOrder, columnMeta) {
       return function(value, nextValue) {
-        if (value < nextValue) return -1;
-        if (value > nextValue) return 1;
+        if (value < nextValue) return sortOrder === 'asc' ? -1 : 1;
+        if (value > nextValue) return sortOrder === 'asc' ? 1 : -1;
         return 0;
       };
     },
@@ -589,8 +589,8 @@ const hotSettings = {
   columnSorting: {
     compareFunctionFactory: function(sortOrder, columnMeta) {
       return function(value, nextValue) {
-        if (value < nextValue) return -1;
-        if (value > nextValue) return 1;
+        if (value < nextValue) return sortOrder === 'asc' ? -1 : 1;
+        if (value > nextValue) return sortOrder === 'asc' ? 1 : -1;
         return 0;
       };
     },
