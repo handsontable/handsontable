@@ -27,25 +27,23 @@ describe('Selection using mouse interaction (cell deselect)', () => {
     await keyDown('control/meta');
     await simulateClick(getCell(1, 1));
 
-    // Ctrl+clicking an already-selected cell adds a new layer making it the active focus.
+    // Ctrl+clicking an already-selected cell removes it (toggle off), leaving the other layers.
     expect(getSelectedRange()).toEqualCellRange([
-      'highlight: 1,1 from: 1,1 to: 1,1',
       'highlight: 3,1 from: 3,1 to: 3,1',
       'highlight: 5,1 from: 5,1 to: 5,1',
       'highlight: 7,1 from: 7,1 to: 7,1',
-      'highlight: 1,1 from: 1,1 to: 1,1',
     ]);
     expect(`
       |   ║   : - :   |
       |===:===:===:===|
       |   ║   :   :   |
-      | - ║   : B :   |
+      |   ║   :   :   |
       |   ║   :   :   |
       | - ║   : 0 :   |
       |   ║   :   :   |
       | - ║   : 0 :   |
       |   ║   :   :   |
-      | - ║   : 0 :   |
+      | - ║   : A :   |
       |   ║   :   :   |
       `).toBeMatchToSelectionPattern();
   });
@@ -67,12 +65,11 @@ describe('Selection using mouse interaction (cell deselect)', () => {
     await keyDown('control/meta');
     await simulateClick(getCell(7, 1));
 
+    // Ctrl+clicking an already-selected cell removes it (toggle off), leaving the other layers.
     expect(getSelectedRange()).toEqualCellRange([
       'highlight: 1,1 from: 1,1 to: 1,1',
       'highlight: 3,1 from: 3,1 to: 3,1',
       'highlight: 5,1 from: 5,1 to: 5,1',
-      'highlight: 7,1 from: 7,1 to: 7,1',
-      'highlight: 7,1 from: 7,1 to: 7,1',
     ]);
     expect(`
       |   ║   : - :   |
@@ -82,9 +79,9 @@ describe('Selection using mouse interaction (cell deselect)', () => {
       |   ║   :   :   |
       | - ║   : 0 :   |
       |   ║   :   :   |
-      | - ║   : 0 :   |
+      | - ║   : A :   |
       |   ║   :   :   |
-      | - ║   : B :   |
+      |   ║   :   :   |
       |   ║   :   :   |
       `).toBeMatchToSelectionPattern();
   });
@@ -197,13 +194,22 @@ describe('Selection using mouse interaction (cell deselect)', () => {
 
     await simulateClick(getCell(5, 5));
 
-    // Ctrl+clicking (5,5) again keeps it as the active focus; the first range's focus
-    // position (2,2) is preserved because we never remove the first range.
+    // Ctrl+clicking (5,5) again removes it (toggle off). The first range's focus
+    // position (2,2) is preserved because that layer is untouched.
     expect(getSelectedRange()).toEqualCellRange([
       'highlight: 2,2 from: 1,1 to: 3,3',
-      'highlight: 5,5 from: 5,5 to: 5,5',
-      'highlight: 5,5 from: 5,5 to: 5,5',
     ]);
+    expect(`
+      |   ║   : - : - : - :   :   :   |
+      |===:===:===:===:===:===:===:===|
+      |   ║   :   :   :   :   :   :   |
+      | - ║   : 0 : 0 : 0 :   :   :   |
+      | - ║   : 0 : A : 0 :   :   :   |
+      | - ║   : 0 : 0 : 0 :   :   :   |
+      |   ║   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   |
+      |   ║   :   :   :   :   :   :   |
+      `).toBeMatchToSelectionPattern();
   });
 
   it('should deselect a single-cell selection when ctrl+clicking the same cell again', async() => {
@@ -251,18 +257,17 @@ describe('Selection using mouse interaction (cell deselect)', () => {
     await simulateClick(getCell(1, 3));
     await simulateClick(getCell(1, 3));
 
-    // Each ctrl+click adds a duplicate; the cell stays selected and active.
+    // Each pair of ctrl+clicks toggles the single-cell layer on/off. After 3 clicks:
+    // click 1 adds (1,3), click 2 removes it, click 3 adds it again → 2 layers.
     expect(getSelectedRange()).toEqualCellRange([
       'highlight: 1,3 from: 1,1 to: 1,3',
-      'highlight: 1,3 from: 1,3 to: 1,3',
-      'highlight: 1,3 from: 1,3 to: 1,3',
       'highlight: 1,3 from: 1,3 to: 1,3',
     ]);
     expect(`
       |   ║ - :   |
       |===:===:===|
       |   ║   :   |
-      | - ║ D :   |
+      | - ║ B :   |
       |   ║   :   |
       |   ║   :   |
       |   ║   :   |
@@ -291,16 +296,16 @@ describe('Selection using mouse interaction (cell deselect)', () => {
     await simulateClick(getCell(3, 1));
     await simulateClick(getCell(3, 1));
 
+    // Each pair of ctrl+clicks toggles the single-cell layer on/off. After 3 clicks:
+    // click 1 adds (3,1), click 2 removes it, click 3 adds it again → 2 layers.
     expect(getSelectedRange()).toEqualCellRange([
       'highlight: 3,1 from: 1,1 to: 3,1',
-      'highlight: 3,1 from: 3,1 to: 3,1',
-      'highlight: 3,1 from: 3,1 to: 3,1',
       'highlight: 3,1 from: 3,1 to: 3,1',
     ]);
     expect(`
       |   ║   : - :   :   :   |
       |===:===:===:===:===:===|
-      | - ║   : D :   :   :   |
+      | - ║   : B :   :   :   |
       |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
   });
@@ -365,11 +370,10 @@ describe('Selection using mouse interaction (cell deselect)', () => {
     await simulateClick(getCell(2, 2));
     await simulateClick(getCell(2, 2));
 
-    // Each ctrl+click on (2,2) adds it as a layer. After 3 clicks we have 4 ranges total.
+    // Each pair of ctrl+clicks on (2,2) toggles it on/off. After 3 clicks:
+    // click 1 adds (2,2), click 2 removes it, click 3 adds it again → 2 layers.
     expect(getSelectedRange()).toEqualCellRange([
       'highlight: 1,1 from: 1,1 to: 3,3',
-      'highlight: 2,2 from: 2,2 to: 2,2',
-      'highlight: 2,2 from: 2,2 to: 2,2',
       'highlight: 2,2 from: 2,2 to: 2,2',
     ]);
     expect(`
@@ -377,7 +381,7 @@ describe('Selection using mouse interaction (cell deselect)', () => {
       |===:===:===:===:===:===|
       |   ║   :   :   :   :   |
       | - ║   : 0 : 0 : 0 :   |
-      | - ║   : 0 : D : 0 :   |
+      | - ║   : 0 : B : 0 :   |
       | - ║   : 0 : 0 : 0 :   |
       |   ║   :   :   :   :   |
       `).toBeMatchToSelectionPattern();
@@ -459,7 +463,7 @@ describe('Selection using mouse interaction (cell deselect)', () => {
   });
 
   describe('with `disableVisualSelection` enabled', () => {
-    it('should skip the dedup behavior when `disableVisualSelection: true`', async() => {
+    it('should toggle the duplicate layer when `disableVisualSelection: true`', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -477,17 +481,14 @@ describe('Selection using mouse interaction (cell deselect)', () => {
       await simulateClick(getCell(1, 0));
       await keyUp('control/meta');
 
-      // Ctrl+click on an already-selected cell adds a new layer; no dedup runs,
-      // so the just-clicked cell stays as the active selection.
+      // Ctrl+clicking an already-selected cell removes it regardless of disableVisualSelection.
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 0,0 from: 0,0 to: 0,0',
-        'highlight: 1,0 from: 1,0 to: 1,0',
         'highlight: 1,1 from: 1,1 to: 1,1',
-        'highlight: 1,0 from: 1,0 to: 1,0',
       ]);
     });
 
-    it('should skip the dedup behavior when `disableVisualSelection: \'current\'`', async() => {
+    it('should toggle the duplicate layer when `disableVisualSelection: \'current\'`', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -507,13 +508,11 @@ describe('Selection using mouse interaction (cell deselect)', () => {
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 0,0 from: 0,0 to: 0,0',
-        'highlight: 1,0 from: 1,0 to: 1,0',
         'highlight: 1,1 from: 1,1 to: 1,1',
-        'highlight: 1,0 from: 1,0 to: 1,0',
       ]);
     });
 
-    it('should skip the dedup behavior when `disableVisualSelection` is passed as an array', async() => {
+    it('should toggle the duplicate layer when `disableVisualSelection` is passed as an array', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -533,13 +532,11 @@ describe('Selection using mouse interaction (cell deselect)', () => {
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 0,0 from: 0,0 to: 0,0',
-        'highlight: 1,0 from: 1,0 to: 1,0',
         'highlight: 1,1 from: 1,1 to: 1,1',
-        'highlight: 1,0 from: 1,0 to: 1,0',
       ]);
     });
 
-    it('should skip the dedup behavior when `disableVisualSelection: \'area\'`', async() => {
+    it('should toggle the duplicate layer when `disableVisualSelection: \'area\'`', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -559,13 +556,11 @@ describe('Selection using mouse interaction (cell deselect)', () => {
 
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 0,0 from: 0,0 to: 0,0',
-        'highlight: 1,0 from: 1,0 to: 1,0',
         'highlight: 1,1 from: 1,1 to: 1,1',
-        'highlight: 1,0 from: 1,0 to: 1,0',
       ]);
     });
 
-    it('should not run dedup when `disableVisualSelection` is an empty array', async() => {
+    it('should toggle the duplicate layer when `disableVisualSelection` is an empty array', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -583,16 +578,13 @@ describe('Selection using mouse interaction (cell deselect)', () => {
       await simulateClick(getCell(1, 0));
       await keyUp('control/meta');
 
-      // No dedup runs for any value of disableVisualSelection — the duplicate layer is kept.
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 0,0 from: 0,0 to: 0,0',
-        'highlight: 1,0 from: 1,0 to: 1,0',
         'highlight: 1,1 from: 1,1 to: 1,1',
-        'highlight: 1,0 from: 1,0 to: 1,0',
       ]);
     });
 
-    it('should not run dedup when `disableVisualSelection` is `false`', async() => {
+    it('should toggle the duplicate layer when `disableVisualSelection` is `false`', async() => {
       handsontable({
         data: createSpreadsheetData(5, 5),
         colHeaders: true,
@@ -610,12 +602,9 @@ describe('Selection using mouse interaction (cell deselect)', () => {
       await simulateClick(getCell(1, 0));
       await keyUp('control/meta');
 
-      // The duplicate layer is kept regardless of disableVisualSelection value.
       expect(getSelectedRange()).toEqualCellRange([
         'highlight: 0,0 from: 0,0 to: 0,0',
-        'highlight: 1,0 from: 1,0 to: 1,0',
         'highlight: 1,1 from: 1,1 to: 1,1',
-        'highlight: 1,0 from: 1,0 to: 1,0',
       ]);
     });
   });
@@ -647,11 +636,9 @@ describe('Selection using mouse interaction (cell deselect)', () => {
 
     expect(topOverlay().getScrollPosition()).toBe(scrollTopBefore);
     expect(inlineStartOverlay().getScrollPosition()).toBe(scrollLeftBefore);
-    // The duplicate layer is kept; both layers for (40,0) remain.
+    // Ctrl+clicking (40,0) which is already selected removes it (toggle off), leaving only (0,0).
     expect(getSelectedRange()).toEqualCellRange([
       'highlight: 0,0 from: 0,0 to: 0,0',
-      'highlight: 40,0 from: 40,0 to: 40,0',
-      'highlight: 40,0 from: 40,0 to: 40,0',
     ]);
   });
 });

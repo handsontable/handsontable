@@ -162,27 +162,40 @@ export function mouseUp({ isLeftClick, selection, cellRangeMapper }: MouseUpOpti
     .map(range => cellRangeMapper.toRenderable(range));
   const lastRenderableRange = renderableRange.current();
 
-  // DEV-1771: when the last added range is a single cell that duplicates an existing layer,
-  // decide whether to deselect or just snap the range back to its bounds.
+  // DEV-1771: ctrl+click toggle behavior.
   //
-  // Deselect only when the user had exactly ONE single-cell selection and ctrl+clicked it
-  // again (size becomes 2, both layers identical). For multi-layer selections the re-clicked
-  // cell becomes the active focus without removing any layers — this avoids the jump bug
-  // caused by the old removeLayers() call that removed ALL occurrences of the cell.
+  // When the newly added layer is a single cell, check whether that same cell already
+  // existed as a standalone single-cell layer (in visual coords). If it did, the user is
+  // toggling it off — remove all copies of that single-cell layer. Otherwise the click
+  // just moves the active focus; snap hover-extended ranges back to their bounds.
+  //
+  // The guard `isSingleCell()` (on the *visual* range, not the renderable one) prevents
+  // a false-positive toggle when a range collapses to a single renderable cell because
+  // hidden columns/rows make its `from` and `to` renderable coords identical.
   if (
     lastRenderableRange &&
     renderableRange.size() > 1 &&
     !lastRenderableRange.isHeader() &&
     !sel.isMultiple(lastRenderableRange)
   ) {
-    const firstVisualRange = selectionRange.peekByIndex(0);
+    const duplicateLayerIndexes = renderableRange
+      .findAll(lastRenderableRange)
+      .filter(({ layer }) => selectionRange.peekByIndex(layer)?.isSingleCell())
+      .map(({ layer }) => layer);
 
-    if (
-      renderableRange.size() === 2 &&
-      renderableRange.findAll(lastRenderableRange).length === 2 &&
-      firstVisualRange?.isSingleCell()
-    ) {
-      selection.deselect();
+    if (duplicateLayerIndexes.length >= 2) {
+      if (duplicateLayerIndexes.length >= selectionRange.size()) {
+        // All layers are being removed. Call deselect() before removing so that
+        // the selection is still non-empty; deselect() would return early otherwise
+        // and leave inProgress=true, causing the document-level mouseup handler to
+        // call finish() with an empty selectedRange and crash.
+        selection.deselect();
+      } else {
+        selectionRange.removeLayers(duplicateLayerIndexes);
+        selection.markSource('deselect');
+        selection.refresh();
+        selection.markEndSource();
+      }
 
       return;
     }
