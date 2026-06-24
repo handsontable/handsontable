@@ -1757,6 +1757,79 @@ describe('MergeCells', () => {
     expect(html).not.toContain('rowspan');
   });
 
+  it('should not emit stale colspan/rowspan in `toHTML` output after a batched unmerge', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      mergeCells: [
+        { row: 1, col: 1, rowspan: 1, colspan: 3 },
+      ],
+    });
+
+    // Prime the per-render meta memo while the merge is still active, so the in-batch read below
+    // hits the memoized path - the one on which the old lazy `afterGetCellMeta` cleanup is skipped.
+    expect(getCellMeta(1, 1).colspan).toBe(3);
+
+    let parentMeta;
+    let coveredMeta;
+    let html;
+
+    // The unmerge runs without a real render (suspended inside `batch`), so the meta must be
+    // cleared eagerly in `unmergeRange` and cannot rely on `afterGetCellMeta` recomputing. The
+    // read happens inside the batch on purpose: `batch` ends with a render that clears the memo,
+    // so reading after it would mask the stale-meta path (the trap the original tests fell into).
+    hot().batch(() => {
+      getPlugin('mergeCells').unmerge(1, 1, 1, 3);
+
+      // snapshot primitives - the meta object is a live reference mutated by the closing render
+      parentMeta = { ...getCellMeta(1, 1) };
+      coveredMeta = { ...getCellMeta(1, 2) };
+      html = hot().toHTML();
+    });
+
+    expect(parentMeta.spanned).toBeUndefined();
+    expect(parentMeta.colspan).toBeUndefined();
+    expect(parentMeta.rowspan).toBeUndefined();
+    expect(coveredMeta.hidden).toBeUndefined();
+    expect(html).not.toContain('colspan');
+    expect(html).not.toContain('rowspan');
+  });
+
+  it('should not emit stale colspan/rowspan in `toHTML` output after the plugin is disabled within a batch', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      mergeCells: [
+        { row: 1, col: 1, rowspan: 1, colspan: 3 },
+      ],
+    });
+
+    // Prime the per-render meta memo while the merge is still active, so the in-batch read below
+    // hits the memoized path - the one on which the old lazy `afterGetCellMeta` cleanup is skipped.
+    expect(getCellMeta(1, 1).colspan).toBe(3);
+
+    let parentMeta;
+    let coveredMeta;
+    let html;
+
+    // Disabling the plugin drops the whole collection via `clearCollections`. The internal render
+    // is suspended by `batch`, so - just like the unmerge case - the span meta must be cleared
+    // eagerly. The read happens inside the batch, before the closing render clears the memo.
+    hot().batch(() => {
+      getPlugin('mergeCells').disablePlugin();
+
+      // snapshot primitives - the meta object is a live reference mutated by the closing render
+      parentMeta = { ...getCellMeta(1, 1) };
+      coveredMeta = { ...getCellMeta(1, 2) };
+      html = hot().toHTML();
+    });
+
+    expect(parentMeta.spanned).toBeUndefined();
+    expect(parentMeta.colspan).toBeUndefined();
+    expect(parentMeta.rowspan).toBeUndefined();
+    expect(coveredMeta.hidden).toBeUndefined();
+    expect(html).not.toContain('colspan');
+    expect(html).not.toContain('rowspan');
+  });
+
   it('should not collapse the main table\'s row height when the merge cell covers all cells width', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),
