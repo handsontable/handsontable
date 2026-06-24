@@ -124,6 +124,20 @@ If you want to use values other than `true` and `false`, you have to provide thi
 
 :::
 
+## Cells with no value
+
+When a checkbox cell's value is empty (`null`, `undefined`, or an empty string) and matches neither [`checkedTemplate`](@/api/options.md#checkedtemplate) nor [`uncheckedTemplate`](@/api/options.md#uncheckedtemplate), Handsontable renders an unchecked checkbox and adds a `noValue` CSS class to it.
+
+By default, the `noValue` class reduces the checkbox's opacity, so cells with no value look faded and stay visually distinct from cells set to the unchecked value.
+
+To change how these cells look, target the `noValue` class in your CSS:
+
+```css
+.handsontable .htCheckboxRendererInput.noValue {
+  opacity: 1;
+}
+```
+
 ## Checkbox labels
 
 To add a label to the checkbox, use the [`label`](@/api/options.md#label) option. You can declare where the label will be injected with this option - either before or after the checkbox element. You can also declare from which data source the label text will be updated.
