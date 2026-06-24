@@ -58,10 +58,10 @@ export class OrderView {
    * Creates a new OrderView instance.
    *
    * @param {HTMLElement} rootNode The root node to manage.
-   * @param {function(number?): HTMLElement} nodesPool Factory for creating new DOM elements.
+   * @param {function(): HTMLElement} nodesPool Factory for creating new DOM elements.
    * @param {string} childNodeType The type of child nodes to manage.
    */
-  constructor(rootNode: HTMLElement, nodesPool: (index?: number) => HTMLElement, childNodeType: string) {
+  constructor(rootNode: HTMLElement, nodesPool: () => HTMLElement, childNodeType: string) {
     this.rootNode = rootNode;
     this.nodesPool = nodesPool;
     this.childNodeType = typeof childNodeType === 'string' ? childNodeType.toUpperCase() : childNodeType;
@@ -205,9 +205,17 @@ export class OrderView {
       visualIndex += sizeSet.sharedSize.nextSize;
     }
 
-    let node = rootNode.childNodes[visualIndex] as HTMLElement;
+    // Index by element children only (`children`, not `childNodes`) to stay consistent with the
+    // element-based counting in `start()` and `getRenderedChildCount()`; a stray text/comment node
+    // in the root would otherwise shift the slot.
+    let node = rootNode.children[visualIndex] as HTMLElement;
 
-    if (node.tagName !== this.childNodeType) {
+    if (!node) {
+      // Defensive guard: `start()` always provisions enough children for this render cycle, so the
+      // slot should exist. Recreate it rather than dereferencing `undefined` if that ever breaks.
+      node = this.nodesPool();
+      rootNode.appendChild(node);
+    } else if (node.tagName !== this.childNodeType) {
       const newNode = this.nodesPool();
 
       node.replaceWith(newNode);

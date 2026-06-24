@@ -28,12 +28,6 @@ export class RowHeadersRenderer extends BaseRenderer {
    * @type {WeakMap}
    */
   orderViews: WeakMap<object, SharedOrderView> = new WeakMap();
-  /**
-   * Row index which specifies the row position of the processed row header.
-   *
-   * @type {number}
-   */
-  sourceRowIndex = 0;
 
   /**
    * Creates a new RowHeadersRenderer instance.
@@ -52,7 +46,7 @@ export class RowHeadersRenderer extends BaseRenderer {
     if (!this.orderViews.has(rootNode)) {
       this.orderViews.set(rootNode, new SharedOrderView(
         rootNode,
-        (sourceColumnIndex?: number) => this.nodesPool!.obtain(this.sourceRowIndex, sourceColumnIndex) as HTMLElement,
+        () => this.nodesPool!.obtain() as HTMLElement,
         this.nodeType!,
       ));
     }
@@ -73,8 +67,6 @@ export class RowHeadersRenderer extends BaseRenderer {
       if (!TR) {
         continue; // eslint-disable-line no-continue
       }
-
-      this.sourceRowIndex = sourceRowIndex;
 
       const orderView = this.obtainOrderView(TR);
       const cellsView = cells!.obtainOrderView(TR);
