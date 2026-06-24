@@ -4,7 +4,7 @@ describe('Walkontable.SharedOrderView', () => {
 
     nodesPool.setRootDocument(document);
 
-    const orderView = new Walkontable.SharedOrderView(rootNode, sourceIndex => nodesPool.obtain(sourceIndex));
+    const orderView = new Walkontable.SharedOrderView(rootNode, sourceIndex => nodesPool.obtain(sourceIndex), childNodeType);
 
     return { orderView };
   }

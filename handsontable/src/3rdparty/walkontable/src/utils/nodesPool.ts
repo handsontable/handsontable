@@ -1,16 +1,10 @@
-import { isFirefox } from '../../../../helpers/browser';
-
-/**
- * Multiplier used to pack (row, column) into a single numeric Map key.
- * 2^20 (1 048 576) supports up to ~1M columns while keeping the combined
- * value well within the 2^53 safe-integer range for any realistic row count.
- *
- * @type {number}
- */
-const COLUMN_OFFSET = 1048576;
-
 /**
  * Factory for newly created DOM elements.
+ *
+ * Historically this class cached nodes keyed by source coordinate so the diffing renderer could
+ * reuse them. The engine now renders directly to a fixed, viewport-sized set of DOM nodes
+ * (see OrderView), so no cache is needed — `obtain()` simply creates a fresh element. The class is
+ * kept as a thin factory for backward compatibility with the Walkontable export surface.
  *
  * @class {NodesPool}
  */
@@ -27,12 +21,6 @@ export class NodesPool {
    * @type {Document}
    */
   declare rootDocument: Document;
-  /**
-   * The holder for all created DOM nodes (THs, TDs).
-   *
-   * @type {Map<number, HTMLElement>}
-   */
-  pool: Map<number, HTMLElement> = new Map();
 
   /**
    * Creates a new NodesPool instance.
@@ -53,34 +41,14 @@ export class NodesPool {
   }
 
   /**
-   * Obtains an element.
+   * Creates and returns a new DOM element of the configured node type. The row/column arguments are
+   * accepted for backward compatibility with the renderer factories and are ignored.
    *
-   * @param {number} rowIndex The row index.
-   * @param {number} [columnIndex] The column index.
+   * @param {number} [_rowIndex] Ignored. Kept for call-site compatibility.
+   * @param {number} [_columnIndex] Ignored. Kept for call-site compatibility.
    * @returns {HTMLElement}
    */
-  obtain(rowIndex: number, columnIndex?: number) {
-    // Firefox requires creating new DOM elements instead of reusing pooled nodes to avoid
-    // rendering issues. This bypasses the pooling mechanism and is consistent with the
-    // Direct DOM renderer adapter used in OrderView.
-    if (isFirefox()) {
-      return this.rootDocument.createElement(this.nodeType);
-    }
-
-    const key = typeof columnIndex === 'number'
-      ? (rowIndex * COLUMN_OFFSET) + columnIndex
-      : rowIndex;
-
-    let node = this.pool.get(key);
-
-    if (node !== undefined) {
-      return node;
-    }
-
-    node = this.rootDocument.createElement(this.nodeType);
-
-    this.pool.set(key, node);
-
-    return node;
+  obtain(_rowIndex?: number, _columnIndex?: number) {
+    return this.rootDocument.createElement(this.nodeType);
   }
 }

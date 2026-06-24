@@ -1,7 +1,5 @@
 import { OrderView } from 'walkontable/utils/orderView/view';
 import { ViewSizeSet } from 'walkontable/utils/orderView/viewSizeSet';
-import { ViewDiffer } from 'walkontable/utils/orderView/viewDiffer';
-import { DifferBasedRendererAdapter } from 'walkontable/utils/orderView/rendererAdapter/differBasedRendererAdapter';
 
 /**
  *
@@ -22,9 +20,8 @@ describe('OrderView', () => {
     expect(orderView.nodesPool).toBe(nodeFactoryFunction);
     expect(orderView.sizeSet).toBeInstanceOf(ViewSizeSet);
     expect(orderView.collectedNodes).toEqual([]);
-    expect(orderView.viewDiffer).toBeInstanceOf(ViewDiffer);
-    expect(orderView.rendererAdapter).toBeInstanceOf(DifferBasedRendererAdapter);
-    expect(orderView.rendererAdapter.leads).toEqual([]);
+    expect(orderView.childNodeType).toBe('TD');
+    expect(orderView.visualIndex).toBe(0);
   });
 
   describe('setSize()', () => {
