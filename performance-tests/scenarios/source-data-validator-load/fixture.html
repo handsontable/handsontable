@@ -11,7 +11,7 @@
   <script>
     const el = document.getElementById('hot');
     // Data generated once, outside the traced build, so only grid construction is measured.
-    const data = Handsontable.helper.createSpreadsheetData(10000, 50);
+    const data = Handsontable.helper.createSpreadsheetData(100000, 100);
 
     // A custom `sourceDataValidator` (the public option) exercises source-data validation directly,
     // without depending on a built-in cell type's internals. A simple presence check runs per cell.

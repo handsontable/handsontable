@@ -1,4 +1,4 @@
-// Grid: 1000 rows x 1000 cols -- large cell count (1M) to stress filter evaluation
+// Grid: 100000 rows x 100 cols -- real-world tall dataset to stress filter evaluation at scale
 export default {
   name: 'filtering',
   warmupRuns: 1,

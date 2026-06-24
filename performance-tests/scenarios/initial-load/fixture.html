@@ -11,7 +11,7 @@
   <script>
     const el = document.getElementById('hot');
     // Generate the dataset once, outside the traced build, so only grid construction is measured.
-    const data = Handsontable.helper.createSpreadsheetData(10000, 50);
+    const data = Handsontable.helper.createSpreadsheetData(100000, 100);
 
     // Build (or rebuild) the grid. Exposed so the spec can trace the construction itself.
     window.__build = function () {

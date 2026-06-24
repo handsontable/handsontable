@@ -28,7 +28,7 @@ test(config.name, async({ page }) => {
       }
     },
     resetFn: async() => {
-      await scrollToRow(page, 4999);
+      await scrollToRow(page, 9999);
     },
   });
 });

@@ -47,7 +47,6 @@ export function buildReport(allScenarioResults, goldenSnapshots, meta = {}) {
 // the bottom of the summary table so the timing scenarios read together at the top.
 const MEMORY_SCENARIOS = new Set([
   'initial-load',
-  'load-after-scroll',
   'source-data-validator-load',
 ]);
 
