@@ -345,11 +345,13 @@ export const REGISTERED_HOOKS = [
   'afterCreateCol',
 
   /**
-   * Fired before created a new row.
+   * Fired before a new row is created.
    *
    * @event Hooks#beforeCreateRow
-   * @param {number} index Represents the visual index of first newly created row in the data source array.
-   * @param {number} amount Number of newly created rows in the data source array.
+   * @param {number} index Represents the visual index at which new row(s) are about to be inserted.
+   *                       Note that the actual visual index of the inserted row(s) may differ - use the
+   *                       `afterCreateRow` hook to get the final position.
+   * @param {number} amount Number of rows to be created.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    * @returns {*|boolean} If false is returned the action is canceled.
