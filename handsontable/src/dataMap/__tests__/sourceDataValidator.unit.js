@@ -11,10 +11,13 @@ import { runSourceDataValidators } from '../sourceDataValidator';
  * @param {object} [options.settings] The settings returned by `getSettings`.
  * @param {Function} [options.getValue] Maps `(row, col)` to a source value.
  * @param {Function} [options.toVisualRow] Maps a physical row to its visual index (or `null`).
+ * @param {Array} [options.registeredHooks] Hook names that `hasHook` should report as registered.
+ * @param {Array} [options.userDefinedCellMetas] Imperatively-set cell metas (`setCellMeta`) to report.
  * @returns {object} The mock and its spies.
  */
 function createMockHot({
   rows, cols, validator, allowInvalid, settings = {}, getValue, toVisualRow = row => row,
+  registeredHooks = [], userDefinedCellMetas = [],
 } = {}) {
   const getCellMeta = jest.fn((visualRow, visualColumn) => {
     const meta = {
@@ -43,6 +46,8 @@ function createMockHot({
     toVisualRow,
     toVisualColumn: col => col,
     getCellMeta,
+    hasHook: key => registeredHooks.includes(key),
+    _getMetaManager: () => ({ getUserDefinedCellMetas: () => userDefinedCellMetas }),
   };
 
   return { hot, getCellMeta, getAtCell, setAtCell };
@@ -140,6 +145,58 @@ describe('runSourceDataValidators', () => {
     runSourceDataValidators(hot, 'init');
 
     expect(getCellMeta).toHaveBeenCalledTimes(20 * 3);
+  });
+
+  it('should use per-cell meta when a `beforeGetCellMeta` hook is registered', () => {
+    const validator = makeValidator(true);
+    const { hot, getCellMeta } = createMockHot({
+      rows: 20,
+      cols: 3,
+      validator,
+      registeredHooks: ['beforeGetCellMeta'],
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(getCellMeta).toHaveBeenCalledTimes(20 * 3);
+  });
+
+  it('should use per-cell meta when an `afterGetCellMeta` hook is registered', () => {
+    const validator = makeValidator(true);
+    const { hot, getCellMeta } = createMockHot({
+      rows: 20,
+      cols: 3,
+      validator,
+      registeredHooks: ['afterGetCellMeta'],
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(getCellMeta).toHaveBeenCalledTimes(20 * 3);
+  });
+
+  it('should use per-cell meta when imperatively-set cell meta exists (`setCellMeta`)', () => {
+    const validator = makeValidator(true);
+    const { hot, getCellMeta } = createMockHot({
+      rows: 20,
+      cols: 3,
+      validator,
+      userDefinedCellMetas: [{ physicalRow: 2, physicalColumn: 0, key: 'allowInvalid', value: false }],
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(getCellMeta).toHaveBeenCalledTimes(20 * 3);
+  });
+
+  it('should keep the batched path when no hooks or imperative meta are present', () => {
+    const validator = makeValidator(true);
+    const { hot, getCellMeta } = createMockHot({ rows: 20, cols: 3, validator });
+
+    runSourceDataValidators(hot, 'init');
+
+    // One sample meta per column — the batched path is preserved.
+    expect(getCellMeta).toHaveBeenCalledTimes(3);
   });
 
   it('should blank invalid values when allowInvalid is false (batched path)', () => {

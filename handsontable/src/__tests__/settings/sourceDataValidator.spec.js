@@ -215,5 +215,45 @@ describe('settings', () => {
         ['2024-03-15'],
       ]);
     });
+
+    it('should respect per-row `allowInvalid` set via `beforeGetCellMeta` (otherwise allowInvalid: false)', async() => {
+      handsontable({
+        data: [['2024-01-01'], ['bad'], ['also-bad']],
+        columns: [{ type: 'date', dateFormat: 'YYYY-MM-DD' }],
+        allowInvalid: false,
+        beforeGetCellMeta(row, col, cellMeta) {
+          if (row === 1) {
+            cellMeta.allowInvalid = true;
+          }
+        },
+      });
+
+      // Row 1 gets allowInvalid:true from the hook, so its invalid value survives; row 2 keeps the
+      // global allowInvalid:false and is blanked. Row 0's meta must not be reused for the whole column.
+      expect(getSourceData()).toEqual([
+        ['2024-01-01'],
+        ['bad'],
+        [null],
+      ]);
+    });
+
+    it('should respect per-row `allowInvalid` set imperatively via `setCellMeta` after `updateData`', async() => {
+      handsontable({
+        data: [['2024-01-01'], ['2024-02-02'], ['2024-03-03']],
+        columns: [{ type: 'date', dateFormat: 'YYYY-MM-DD' }],
+        allowInvalid: true,
+      });
+
+      // `setCellMeta` survives `updateData` (it keeps cell states), so row 2 keeps allowInvalid:false.
+      await setCellMeta(2, 0, 'allowInvalid', false);
+      await updateData([['2024-01-01'], ['bad'], ['also-bad']]);
+
+      // Row 2 (allowInvalid:false) is blanked; row 1 keeps the global allowInvalid:true and survives.
+      expect(getSourceData()).toEqual([
+        ['2024-01-01'],
+        ['bad'],
+        [null],
+      ]);
+    });
   });
 });

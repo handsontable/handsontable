@@ -208,8 +208,11 @@ function validatePerCell(
 }
 
 /**
- * Validates source cells column by column, reusing one column-level meta object per column instead of
+ * Validates source cells while reusing one column-level meta object per column instead of
  * materializing a meta object per cell (O(cols) meta instead of O(rows*cols)).
+ *
+ * Iterates row by row (column inner) so each physical row is translated to its visual index once and
+ * the aggregated-warning order stays row-major (matching the per-cell scan).
  *
  * @param {Array} columns The columns whose (row-independent) validator should run.
  * @param {object} dataSource The data source.
@@ -219,7 +222,7 @@ function validatePerCell(
  * @param {string} [source] The source identifier of the operation.
  * @returns {void}
  */
-function validateByColumn(
+function validateBatched(
   columns: ColumnValidator[],
   dataSource: DataSource,
   rowSourceCount: number,
@@ -227,16 +230,15 @@ function validateByColumn(
   invalidByMessageType: InvalidItems,
   source?: string
 ): void {
-  for (let i = 0; i < columns.length; i += 1) {
-    const { physicalColumn, cellMeta } = columns[i];
+  for (let row = 0; row < rowSourceCount; row += 1) {
+    // Skip rows that have no visual index (trimmed rows) to match the per-cell scan, which never
+    // validates or blanks source values for rows that map to `null`.
+    if (toVisualRow(row) === null) {
+      continue;
+    }
 
-    for (let row = 0; row < rowSourceCount; row += 1) {
-      // Skip rows that have no visual index (trimmed rows) to match the per-cell scan, which never
-      // validates or blanks source values for rows that map to `null`.
-      if (toVisualRow(row) === null) {
-        continue;
-      }
-
+    for (let i = 0; i < columns.length; i += 1) {
+      const { physicalColumn, cellMeta } = columns[i];
       const value = dataSource.getAtCell(row, physicalColumn, null);
 
       validateSourceCell(cellMeta, value, row, physicalColumn, dataSource, invalidByMessageType, source);
@@ -245,11 +247,33 @@ function validateByColumn(
 }
 
 /**
+ * Detects whether per-cell meta can vary by row, which makes the row-0 sample unsafe to reuse for the
+ * whole column. Meta varies through a `cells` function, an explicit `cell` array, the
+ * `beforeGetCellMeta`/`afterGetCellMeta` hooks (a row-dependent `type`/validator/`allowInvalid` can be
+ * applied there), or any imperatively-set cell meta (`setCellMeta`) that survives `updateData`.
+ *
+ * @param {object} hotInstance The Handsontable instance.
+ * @param {object} settings The resolved grid settings.
+ * @returns {boolean} `true` when meta must be resolved per cell.
+ */
+function hasRowVaryingMeta(hotInstance: Record<string, unknown>, settings: Record<string, unknown>): boolean {
+  const hasHook = hotInstance.hasHook as (key: string) => boolean;
+  const getMetaManager = hotInstance._getMetaManager as () => { getUserDefinedCellMetas: () => unknown[] };
+
+  return isFunction(settings.cells) ||
+    (Array.isArray(settings.cell) && settings.cell.length > 0) ||
+    hasHook('beforeGetCellMeta') ||
+    hasHook('afterGetCellMeta') ||
+    getMetaManager().getUserDefinedCellMetas().length > 0;
+}
+
+/**
  * Runs source-data validators for all cells and emits one aggregated warning per cell type.
  *
- * For the common case (no `cells` function, no `cell` array, and only row-independent built-in source
- * validators such as `date`/`time`), validation reuses one column-level meta per column — avoiding the
- * O(rows*cols) cell-meta materialization that otherwise retains a meta object for every cell at load.
+ * For the common case (no `cells` function, no `cell` array, no `before`/`afterGetCellMeta` hooks, no
+ * imperatively-set cell meta, and only row-independent built-in source validators such as `date`/`time`),
+ * validation reuses one column-level meta per column — avoiding the O(rows*cols) cell-meta
+ * materialization that otherwise retains a meta object for every cell at load.
  *
  * @param {object} hotInstance The Handsontable instance.
  * @param {string} [source] The source identifier of the operation.
@@ -267,13 +291,7 @@ export function runSourceDataValidators(hotInstance: Record<string, unknown>, so
   const dataSource = (hotInstance._getDataSource as () => DataSource)();
   const invalidByMessageType: InvalidItems = new Map();
 
-  // Per-cell meta can vary by row only through a `cells` function or an explicit `cell` array; in those
-  // cases meta must be resolved per cell. Otherwise the per-column capture decides between the batched
-  // path (row-independent validators) and a full scan (a row-dependent custom validator is present).
-  const perCellMetaVaries = isFunction(settings.cells) ||
-    (Array.isArray(settings.cell) && settings.cell.length > 0);
-
-  if (perCellMetaVaries) {
+  if (hasRowVaryingMeta(hotInstance, settings)) {
     validatePerCell(hotInstance, dataSource, rowSourceCount, colSourceCount, invalidByMessageType, source);
   } else {
     const { fullScan, columns } = collectColumnValidators(hotInstance, colSourceCount);
@@ -283,7 +301,7 @@ export function runSourceDataValidators(hotInstance: Record<string, unknown>, so
     } else {
       const toVisualRow = hotInstance.toVisualRow as (row: number) => number | null;
 
-      validateByColumn(columns, dataSource, rowSourceCount, toVisualRow, invalidByMessageType, source);
+      validateBatched(columns, dataSource, rowSourceCount, toVisualRow, invalidByMessageType, source);
     }
   }
 
