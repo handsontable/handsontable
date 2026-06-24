@@ -3033,11 +3033,17 @@ export default function Core(
   };
 
   /**
-   * Returns the current data object (the same one that was passed by `data` configuration option or `loadData` method,
-   * unless some modifications have been applied (i.e. Sequence of rows/columns was changed, some row/column was skipped).
-   * If that's the case - use the {@link Core#getSourceData} method.).
+   * Returns the current visual data as a 2D array.
    *
-   * Optionally you can provide cell range by defining `row`, `column`, `row2`, `column2` to get only a fragment of table data.
+   * Unlike the source data (which may be an array of objects), `getData()` always
+   * returns an array of arrays regardless of the original data format. The returned
+   * data reflects the current visual state of the grid: rows and columns are in their
+   * current visual order, after any sorting, filtering, or reordering.
+   *
+   * To retrieve the data in its original source format, use the {@link Core#getSourceData} method instead.
+   *
+   * Optionally you can provide a cell range by defining `row`, `column`, `row2`, `column2`
+   * to get only a fragment of the data.
    *
    * @memberof Core#
    * @function getData
@@ -3045,7 +3051,7 @@ export default function Core(
    * @param {number} [column] From visual column index.
    * @param {number} [row2] To visual row index.
    * @param {number} [column2] To visual column index.
-   * @returns {Array[]} Array with the data.
+   * @returns {Array[]} A 2D array of cell values in the current visual order.
    * @example
    * ```js
    * // Get all data (in order how it is rendered in the table).
