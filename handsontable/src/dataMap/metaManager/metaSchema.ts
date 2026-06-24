@@ -697,14 +697,14 @@ export default (): Record<string, unknown> => {
     checkedTemplate: undefined,
 
     /**
-     * The `className` option lets you add CSS class names to every currently-selected element.
+     * The `className` option lets you add CSS class names to every cell that has this option set.
      *
      * You can set the `className` option to one of the following:
      *
-     * | Setting             | Description                                                      |
-     * | ------------------- | ---------------------------------------------------------------- |
-     * | A string            | Add a single CSS class name to every currently-selected element  |
-     * | An array of strings | Add multiple CSS class names to every currently-selected element |
+     * | Setting             | Description                                         |
+     * | ------------------- | --------------------------------------------------- |
+     * | A string            | Add a single CSS class name to every matching cell  |
+     * | An array of strings | Add multiple CSS class names to every matching cell |
      *
      * ::: tip
      * Don't change the `className` metadata of the [column summary](@/guides/columns/column-summary/column-summary.md) row.
@@ -733,12 +733,10 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // add a `your-class-name` CSS class name
-     * // to every currently-selected element
+     * // add a `your-class-name` CSS class name to every cell
      * className: 'your-class-name',
      *
-     * // add `first-class-name` and `second-class-name` CSS class names
-     * // to every currently-selected element
+     * // add `first-class-name` and `second-class-name` CSS class names to every cell
      * className: ['first-class-name', 'second-class-name'],
      * ```
      */
