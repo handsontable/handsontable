@@ -10,22 +10,14 @@
   <div id="hot"></div>
   <script>
     const el = document.getElementById('hot');
-    const ROWS = 10000;
-    const COLS = 50;
+    // Data generated once, outside the traced build, so only grid construction is measured.
+    const data = Handsontable.helper.createSpreadsheetData(10000, 50);
 
-    // Valid ISO date strings, generated once outside the traced build.
-    const data = new Array(ROWS);
-    for (let r = 0; r < ROWS; r++) {
-      const row = new Array(COLS);
-      const day = String((r % 28) + 1).padStart(2, '0');
-      for (let c = 0; c < COLS; c++) {
-        row[c] = `2024-06-${day}`;
-      }
-      data[r] = row;
+    // A custom `sourceDataValidator` (the public option) exercises source-data validation directly,
+    // without depending on a built-in cell type's internals. A simple presence check runs per cell.
+    function sourceDataValidator(value) {
+      return value !== null && value !== undefined && value !== '';
     }
-
-    // Every column is a date cell type, which injects a `sourceDataValidator` into the cell meta.
-    const columns = new Array(COLS).fill(0).map(() => ({ type: 'date', dateFormat: 'YYYY-MM-DD' }));
 
     window.__build = function () {
       if (window.__hot) {
@@ -35,7 +27,7 @@
 
       window.__hot = new Handsontable(el, {
         data,
-        columns,
+        sourceDataValidator,
         rowHeaders: true,
         colHeaders: true,
         width: 1280,

@@ -15,7 +15,7 @@ test(config.name, async({ page }) => {
     iterations: config.iterations,
     outputDir: path.resolve('output', config.name),
     // Trace the grid construction so the scripting (load) time captures source-data validation across
-    // all date-typed cells, and UpdateCounters captures the JS heap it retains.
+    // all cells, and UpdateCounters captures the JS heap it retains.
     actionFn: async() => {
       await page.evaluate(() => (window as any).__build());
     },
