@@ -64,12 +64,19 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta) {
       status = 'regression';
     }
 
+    // The header badge shows whichever metric drives the status. For a heap-only regression the
+    // timing percentage would contradict the regression styling, so show the heap change instead.
+    const badgeIsHeap = heapRegressed && !timingRegressed;
+    const badgeChange = badgeIsHeap ? heap.change : totalChange;
+
     scenarios.push({
       name,
       title: formatTitle(name),
       status,
       hasBaseline: !!golden,
       totalChange,
+      badgeChange,
+      badgeIsHeap,
       isRegression,
       metrics: {
         scripting: {
@@ -731,7 +738,8 @@ function buildScript() {
     titleRow.appendChild(document.createTextNode(scenario.title));
     header.appendChild(titleRow);
 
-    const badge = elText('span', fmtPct(scenario.totalChange), 'badge ' + scenario.status);
+    const badgeText = fmtPct(scenario.badgeChange) + (scenario.badgeIsHeap ? ' heap' : '');
+    const badge = elText('span', badgeText, 'badge ' + scenario.status);
     header.appendChild(badge);
 
     header.addEventListener('click', () => {
