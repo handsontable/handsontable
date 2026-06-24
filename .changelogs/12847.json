@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Reduced memory usage and improved initialization time for large datasets by no longer materializing cell metadata for every cell during source data validation.",
+  "type": "changed",
+  "issueOrPR": 12847,
+  "breaking": false,
+  "framework": "none"
+}
