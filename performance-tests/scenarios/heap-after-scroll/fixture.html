@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Heap — after scroll</title>
+  <link rel="stylesheet" href="../../fixtures/handsontable.css">
+  <script src="../../fixtures/handsontable.full.js"></script>
+</head>
+<body>
+  <div id="hot"></div>
+  <script>
+    const hot = new Handsontable(document.getElementById('hot'), {
+      data: Handsontable.helper.createSpreadsheetData(10000, 50),
+      rowHeaders: true,
+      colHeaders: true,
+      width: 1280,
+      height: 600,
+      autoRowSize: false,
+      autoColumnSize: false,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    window.__hot = hot;
+  </script>
+</body>
+</html>

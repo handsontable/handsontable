@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Source data validator — load</title>
+  <link rel="stylesheet" href="../../fixtures/handsontable.css">
+  <script src="../../fixtures/handsontable.full.js"></script>
+</head>
+<body>
+  <div id="hot"></div>
+  <script>
+    const el = document.getElementById('hot');
+    const ROWS = 10000;
+    const COLS = 50;
+
+    // Valid ISO date strings, generated once outside the traced build.
+    const data = new Array(ROWS);
+    for (let r = 0; r < ROWS; r++) {
+      const row = new Array(COLS);
+      const day = String((r % 28) + 1).padStart(2, '0');
+      for (let c = 0; c < COLS; c++) {
+        row[c] = `2024-06-${day}`;
+      }
+      data[r] = row;
+    }
+
+    // Every column is a date cell type, which injects a `sourceDataValidator` into the cell meta.
+    const columns = new Array(COLS).fill(0).map(() => ({ type: 'date', dateFormat: 'YYYY-MM-DD' }));
+
+    window.__build = function () {
+      if (window.__hot) {
+        window.__hot.destroy();
+        window.__hot = null;
+      }
+
+      window.__hot = new Handsontable(el, {
+        data,
+        columns,
+        rowHeaders: true,
+        colHeaders: true,
+        width: 1280,
+        height: 600,
+        autoRowSize: false,
+        autoColumnSize: false,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    };
+  </script>
+</body>
+</html>

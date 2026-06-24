@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Heap — initial load</title>
+  <link rel="stylesheet" href="../../fixtures/handsontable.css">
+  <script src="../../fixtures/handsontable.full.js"></script>
+</head>
+<body>
+  <div id="hot"></div>
+  <script>
+    const el = document.getElementById('hot');
+    // Generate the dataset once, outside the traced build, so only grid construction is measured.
+    const data = Handsontable.helper.createSpreadsheetData(10000, 50);
+
+    // Build (or rebuild) the grid. Exposed so the spec can trace the construction itself.
+    window.__build = function () {
+      if (window.__hot) {
+        window.__hot.destroy();
+        window.__hot = null;
+      }
+
+      window.__hot = new Handsontable(el, {
+        data,
+        rowHeaders: true,
+        colHeaders: true,
+        width: 1280,
+        height: 600,
+        autoRowSize: false,
+        autoColumnSize: false,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+    };
+  </script>
+</body>
+</html>
