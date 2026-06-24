@@ -43,30 +43,57 @@ export function buildReport(allScenarioResults, goldenSnapshots, meta = {}) {
 
 // --- summary table ---
 
+// Memory-focused scenarios: their primary metric is JS heap, not trace timing. They are grouped at
+// the bottom of the summary table so the timing scenarios read together at the top.
+const MEMORY_SCENARIOS = new Set([
+  'heap-initial-load',
+  'heap-after-scroll',
+  'source-data-validator-load',
+]);
+
+/**
+ * Orders scenarios alphabetically, with the memory-focused ones grouped last.
+ *
+ * @param {Record<string, object>} results -- keyed by scenario name
+ * @returns {Array<[string, object]>} ordered [name, data] entries
+ */
+function orderedScenarioEntries(results) {
+  return Object.entries(results).sort(([a], [b]) => {
+    const am = MEMORY_SCENARIOS.has(a) ? 1 : 0;
+    const bm = MEMORY_SCENARIOS.has(b) ? 1 : 0;
+
+    return am - bm || a.localeCompare(b);
+  });
+}
+
 function buildSummaryTable(results, goldenScenarios, hasGolden) {
   const headers = hasGolden
-    ? ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', '\u0394']
-    : ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total'];
+    ? ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', '\u0394 Total', 'JS Heap', '\u0394 Heap']
+    : ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', 'JS Heap'];
 
   const rows = [];
 
-  for (const [name, current] of Object.entries(results)) {
+  for (const [name, current] of orderedScenarioEntries(results)) {
     const cats = current.categories || {};
     const total = sumActive(cats);
+    const heap = current.updateCounters?.jsHeapMaxLabel ?? '--';
 
     if (hasGolden) {
       const golden = goldenScenarios[name];
       const goldenTotal = golden ? sumActive(golden.categories || {}) : null;
-      const change = fmtPctWithEmoji(pctChange(goldenTotal, total));
+      const totalChange = fmtPctWithEmoji(pctChange(goldenTotal, total));
+      const heapChange = fmtPctWithEmoji(
+        pctChange(golden?.updateCounters?.jsHeapMaxBytes, current.updateCounters?.jsHeapMaxBytes)
+      );
 
       rows.push([
         formatTitle(name), fmtMs(cats.scripting), fmtMs(cats.rendering),
-        fmtMs(cats.painting), fmtMs(total), change,
+        fmtMs(cats.painting), fmtMs(total), totalChange, heap, heapChange,
       ]);
     } else {
       rows.push([
         formatTitle(name), fmtMs(cats.scripting), fmtMs(cats.rendering),
-        fmtMs(cats.painting), fmtMs(total),
+        fmtMs(cats.painting), fmtMs(total), heap,
       ]);
     }
   }
