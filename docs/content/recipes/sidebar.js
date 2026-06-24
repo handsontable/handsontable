@@ -10,6 +10,7 @@ const columnManagementItems = [
 
 const contextMenuItems = [
   { path: 'context-menu/custom-context-menu/custom-context-menu', title: 'Custom context menu actions', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
+  { path: 'context-menu/add-column-object-data/add-column-object-data', title: 'Add a column to an object-based dataset', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   { path: 'context-menu/row-operations/row-operations', title: 'Programmatic row operations', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
 ];
 
