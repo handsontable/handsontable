@@ -199,6 +199,51 @@ describe('multiSelectRenderer', () => {
       });
     });
 
+    describe('moving columns', () => {
+      it('should render chips reflecting the underlying cell data after a column move (#12812)', async() => {
+        handsontable({
+          data: [
+            ['Airport A', choices.slice(0, 2)],
+            ['Airport B', choices.slice(2, 4)],
+          ],
+          columns: [
+            {},
+            {
+              type: 'multiselect',
+              source: choices,
+              width: 500,
+            },
+          ],
+          manualColumnMove: true,
+        });
+
+        getPlugin('manualColumnMove').moveColumn(1, 0);
+        await render();
+
+        // The multiselect column is now at visual index 0 and must keep its own data.
+        const expectedPerRow = [choices.slice(0, 2), choices.slice(2, 4)];
+
+        for (let visualRow = 0; visualRow < expectedPerRow.length; visualRow++) {
+          const expected = expectedPerRow[visualRow];
+          const chipsContainer =
+            $(`table.htCore tr:eq(${visualRow}) td:eq(0) .ht-multi-select-chips-container`);
+          const renderedChips = chipsContainer.find('.ht-multi-select-chip');
+
+          expect(renderedChips.length).toEqual(expected.length);
+
+          for (let i = 0; i < expected.length; i++) {
+            const expectedText = expected[i].value || expected[i];
+
+            expect(renderedChips.eq(i).text()).toEqual(expectedText);
+          }
+        }
+
+        // The text column moved to visual index 1 and renders plain text, not chips.
+        expect($('table.htCore tr:eq(0) td:eq(1)').text()).toEqual('Airport A');
+        expect($('table.htCore tr:eq(0) td:eq(1) .ht-multi-select-chips-container').length).toEqual(0);
+      });
+    });
+
     describe('removing a chip', () => {
       it('should remove the chip from the cell data when clicking the remove button', async() => {
         const choicesLongOptions = choices.map(choice => (choice.value ?
