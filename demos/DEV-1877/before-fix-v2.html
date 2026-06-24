@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DEV-1877 — Before Fix: Notification host outside overlays layer</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.css">
+  <link rel="stylesheet" href="handsontable.min.css">
   <style>
     body { font-family: sans-serif; padding: 24px; max-width: 960px; }
     h1 { font-size: 1.2rem; color: #9d0208; }
@@ -38,7 +38,7 @@
   <div id="hot"></div>
   <div id="result" class="result">Click "Check DOM placement" to verify where .ht-notification lives in the DOM.</div>
 
-  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script src="handsontable.full.min.js"></script>
   <script>
     const hot = new Handsontable(document.getElementById('hot'), {
       data: Handsontable.helper.createSpreadsheetData(8, 5),
