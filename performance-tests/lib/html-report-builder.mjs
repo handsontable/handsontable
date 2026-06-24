@@ -53,7 +53,16 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta) {
     const currentTotal = sumActive(cCats);
     const goldenTotal = golden ? sumActive(gCats) : null;
     const totalChange = pctChange(goldenTotal, currentTotal);
-    const { status } = classifyChange(totalChange);
+    const heap = buildHeapChartData(current, golden);
+    const timingRegressed = totalChange != null && totalChange > REGRESSION_CALLOUT_THRESHOLD;
+    const heapRegressed = heap?.change != null && heap.change > REGRESSION_CALLOUT_THRESHOLD;
+    const isRegression = timingRegressed || heapRegressed;
+    let { status } = classifyChange(totalChange);
+
+    // A JS-heap regression counts even when trace timing is flat, matching the markdown callouts.
+    if (heapRegressed) {
+      status = 'regression';
+    }
 
     scenarios.push({
       name,
@@ -61,7 +70,7 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta) {
       status,
       hasBaseline: !!golden,
       totalChange,
-      isRegression: totalChange != null && totalChange > REGRESSION_CALLOUT_THRESHOLD,
+      isRegression,
       metrics: {
         scripting: {
           current: cCats.scripting || 0,
@@ -83,7 +92,7 @@ function buildPayload(scenarioResults, goldenScenarios, hasGolden, meta) {
       detailedMetrics: buildDetailedMetrics(current, golden),
       memory: buildMemoryMetrics(current, golden),
       hookTiming: buildHookTiming(current, golden),
-      heap: buildHeapChartData(current, golden),
+      heap,
       cv: {
         scripting: calcCv(current._iterationValues?.categories?.scripting),
         rendering: calcCv(current._iterationValues?.categories?.rendering),
@@ -850,7 +859,8 @@ function buildScript() {
     const heap = scenario.heap;
     const container = el('div', 'chart-container');
     const cur = heap.current;
-    const base = heap.baseline != null ? heap.baseline : 0;
+    const hasBaseline = heap.baseline != null;
+    const base = hasBaseline ? heap.baseline : 0;
     const maxVal = Math.max(cur, base, 1);
     const LABEL_W = 90;
     const BAR_AREA = 460;
@@ -877,12 +887,18 @@ function buildScript() {
 
     svg.appendChild(svgText(LABEL_W - 8, y + BAR_H - 2, 'JS Heap', '#1f2328', 12, 'end'));
 
-    const bw = Math.max(1, (base / maxVal) * BAR_AREA);
-    const bBar = svgRect(LABEL_W, y, bw, BAR_H, '#6c8ebf', 2);
+    // Draw the baseline bar only when the golden snapshot has heap data; otherwise show "no baseline"
+    // rather than a misleading 0 MB bar.
+    if (hasBaseline) {
+      const bw = Math.max(1, (base / maxVal) * BAR_AREA);
+      const bBar = svgRect(LABEL_W, y, bw, BAR_H, '#6c8ebf', 2);
 
-    bBar.dataset.tooltip = 'JS heap baseline: ' + mb(base);
-    svg.appendChild(bBar);
-    svg.appendChild(svgText(LABEL_W + bw + 6, y + BAR_H - 4, mb(base), '#656d76', 11));
+      bBar.dataset.tooltip = 'JS heap baseline: ' + mb(base);
+      svg.appendChild(bBar);
+      svg.appendChild(svgText(LABEL_W + bw + 6, y + BAR_H - 4, mb(base), '#656d76', 11));
+    } else {
+      svg.appendChild(svgText(LABEL_W, y + BAR_H - 4, 'no baseline', '#8c959f', 11));
+    }
 
     const cy = y + BAR_H + BAR_GAP;
     const cw = Math.max(1, (cur / maxVal) * BAR_AREA);

@@ -11,7 +11,7 @@ test(config.name, async({ page }) => {
   await page.waitForFunction(() => (window as any).__hot);
 
   // Scroll to bottom first (pre-trace setup)
-  await scrollToRow(page, 4999);
+  await scrollToRow(page, 9999);
 
   const holder = page.locator('.ht_master .wtHolder');
 
