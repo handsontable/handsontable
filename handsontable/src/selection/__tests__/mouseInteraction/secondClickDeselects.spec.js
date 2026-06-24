@@ -206,7 +206,7 @@ describe('Selection using mouse interaction (cell deselect)', () => {
     ]);
   });
 
-  it('should not be possible to deselect single cell when there is only one selection layer', async() => {
+  it('should deselect a single-cell selection when ctrl+clicking the same cell again', async() => {
     handsontable({
       data: createSpreadsheetData(3, 3),
       colHeaders: true,
@@ -218,16 +218,13 @@ describe('Selection using mouse interaction (cell deselect)', () => {
     await keyDown('control/meta');
     await simulateClick(getCell(1, 1));
 
-    // With a single layer, ctrl+click adds a duplicate layer. The cell stays selected.
-    expect(getSelectedRange()).toEqualCellRange([
-      'highlight: 1,1 from: 1,1 to: 1,1',
-      'highlight: 1,1 from: 1,1 to: 1,1',
-    ]);
+    // Ctrl+clicking the only selected cell deselects it entirely.
+    expect(getSelectedRange()).toBeUndefined();
     expect(`
-      |   ║   : - :   |
+      |   ║   :   :   |
       |===:===:===:===|
       |   ║   :   :   |
-      | - ║   : B :   |
+      |   ║   :   :   |
       |   ║   :   :   |
       `).toBeMatchToSelectionPattern();
   });

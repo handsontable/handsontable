@@ -162,17 +162,31 @@ export function mouseUp({ isLeftClick, selection, cellRangeMapper }: MouseUpOpti
     .map(range => cellRangeMapper.toRenderable(range));
   const lastRenderableRange = renderableRange.current();
 
-  // When the last added range is a single cell that duplicates an existing layer, the
-  // old code removed all matching layers, causing the active highlight to jump to a
-  // different cell (DEV-1771). The fix: always call refresh() to snap any hover-extended
-  // range back to its correct bounds, but never remove selection layers. Re-clicking a
-  // selected cell simply keeps it selected and makes it the active focus.
+  // DEV-1771: when the last added range is a single cell that duplicates an existing layer,
+  // decide whether to deselect or just snap the range back to its bounds.
+  //
+  // Deselect only when the user had exactly ONE single-cell selection and ctrl+clicked it
+  // again (size becomes 2, both layers identical). For multi-layer selections the re-clicked
+  // cell becomes the active focus without removing any layers — this avoids the jump bug
+  // caused by the old removeLayers() call that removed ALL occurrences of the cell.
   if (
     lastRenderableRange &&
     renderableRange.size() > 1 &&
     !lastRenderableRange.isHeader() &&
     !sel.isMultiple(lastRenderableRange)
   ) {
+    const firstVisualRange = selectionRange.peekByIndex(0);
+
+    if (
+      renderableRange.size() === 2 &&
+      renderableRange.findAll(lastRenderableRange).length === 2 &&
+      firstVisualRange?.isSingleCell()
+    ) {
+      selection.deselect();
+
+      return;
+    }
+
     selection.markSource('deselect');
     selection.refresh();
     selection.markEndSource();
