@@ -235,4 +235,35 @@ describe('Cell meta eviction on viewport exit', () => {
 
     expect(console.error).not.toHaveBeenCalled(); // eslint-disable-line no-console
   });
+
+  it('should keep a failed validation result (`valid === false`) after the cell scrolls out and back', async() => {
+    const targetRow = 2600;
+    const targetCol = 3;
+
+    handsontable({
+      data: createSpreadsheetData(ROWS, COLS),
+      height: HEIGHT,
+      colWidths: 50,
+      rowHeights: 23,
+      allowInvalid: true,
+      // Fails for the sentinel value only, so a single targeted invalid cell can be created.
+      validator(value, callback) {
+        callback(value !== 'BAD');
+      },
+    });
+
+    await scrollViewportTo({ row: targetRow, verticalSnap: 'top' });
+    await render();
+
+    // Writing an invalid value runs the validator, which sets `valid = false` directly on the meta
+    // object (not through `setMeta`) - exactly the case eviction must not drop.
+    await setDataAtCell(targetRow, targetCol, 'BAD');
+
+    expect(getCellMeta(targetRow, targetCol).valid).toBe(false);
+
+    await scrollAwayAndBack(targetRow);
+
+    // The invalid flag (and therefore the `htInvalid` highlight) must survive the round trip.
+    expect(getCellMeta(targetRow, targetCol).valid).toBe(false);
+  });
 });

@@ -869,5 +869,47 @@ describe('ColumnMeta', () => {
       expect(meta.getMeta(5, 1)).toBe(declaredMetaBefore);
       expect(meta.getMeta(5, 1)).toHaveProperty('className', 'declared-class');
     });
+
+    it('should keep a cell flagged invalid (`valid === false`) and evict its valid siblings', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.getMeta(5, 0); // render-derived
+      const invalidMeta = meta.getMeta(5, 1);
+
+      invalidMeta.valid = false; // mirrors the validation flow writing directly onto the meta
+
+      // The row is not whole-dropped because one cell is invalid.
+      expect(meta.evictRow(5)).toBe(true);
+
+      // The invalid cell keeps its identity and flag; the valid sibling is re-created fresh.
+      expect(meta.getMeta(5, 1)).toBe(invalidMeta);
+      expect(meta.getMeta(5, 1).valid).toBe(false);
+    });
+  });
+
+  describe('createColumn() after eviction', () => {
+    it('should not re-create rows that were evicted (no re-materialization)', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.getMeta(0, 0);
+      meta.getMeta(1, 0);
+      meta.getMeta(2, 0);
+
+      meta.evictRow(1); // row 1 becomes unmaterialized
+
+      const materializedBefore = Array.from(meta.metas).length;
+
+      meta.createColumn(0, 1);
+
+      // createColumn must not resurrect the evicted row.
+      const materializedAfter = Array.from(meta.metas).length;
+
+      expect(materializedAfter).toBe(materializedBefore);
+      expect(Array.from(meta.metas).map(([key]) => key).sort((a, b) => a - b)).toEqual([0, 2]);
+    });
   });
 });

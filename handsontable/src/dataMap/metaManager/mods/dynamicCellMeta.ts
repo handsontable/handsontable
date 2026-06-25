@@ -43,17 +43,25 @@ export class DynamicCellMetaMod {
    * The lowest visual row index of the meta "keep band" tracked by the previous eviction pass - the
    * viewport plus a one-viewport hysteresis margin. The next pass evicts the visual rows that fall
    * between this band and the new one (the rows that just scrolled out), so the work is proportional
-   * to the scroll distance, not the number of materialized rows. `-1` means no band yet.
+   * to the scroll distance, not the number of materialized rows.
    *
    * @type {number}
    */
-  #keepBandStart = -1;
+  #keepBandStart = 0;
   /**
    * The highest visual row index of the meta "keep band". See `#keepBandStart`.
    *
    * @type {number}
    */
-  #keepBandEnd = -1;
+  #keepBandEnd = 0;
+  /**
+   * Whether a keep band has been recorded yet. A separate flag (rather than a sentinel value) is
+   * required because a valid `#keepBandStart` is often negative near the top of the grid (the
+   * viewport start minus the hysteresis margin), so no numeric sentinel is safe.
+   *
+   * @type {boolean}
+   */
+  #keepBandInitialized = false;
 
   /**
    * Initializes the modifier, registers the `afterGetCellMeta` local hook, subscribes to `beforeRender`
@@ -167,7 +175,7 @@ export class DynamicCellMetaMod {
     const previousStart = this.#keepBandStart;
     const previousEnd = this.#keepBandEnd;
 
-    if (previousStart !== -1) {
+    if (this.#keepBandInitialized) {
       // Visual rows that dropped below the new keep band.
       this.#evictVisualRowRange(previousStart, Math.min(previousEnd, keepStart - 1));
       // Visual rows that rose above the new keep band.
@@ -176,6 +184,7 @@ export class DynamicCellMetaMod {
 
     this.#keepBandStart = keepStart;
     this.#keepBandEnd = keepEnd;
+    this.#keepBandInitialized = true;
   }
 
   /**
@@ -213,8 +222,10 @@ export class DynamicCellMetaMod {
 
         // `toPhysicalRow` is typed `number` but returns `null` for an out-of-range visual row (for
         // example after trimming); `Number.isInteger` filters that without a type-level null compare.
-        if (Number.isInteger(physicalRow)) {
-          this.metaManager.cellMeta.evictRow(physicalRow);
+        // Drop the memo entry only when something was actually evicted - a fully-kept row (all cells
+        // persisted/invalid) must retain its memo so its cell meta is not needlessly re-extended
+        // (which could let a `cells()` result overwrite a user-set value) on the next render.
+        if (Number.isInteger(physicalRow) && this.metaManager.cellMeta.evictRow(physicalRow)) {
           this.metaSyncMemo.delete(physicalRow);
         }
       }
