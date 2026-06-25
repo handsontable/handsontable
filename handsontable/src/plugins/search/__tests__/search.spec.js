@@ -653,4 +653,31 @@ describe('Search plugin', () => {
     expect($(getCell(3, 0)).hasClass('htSearchResult')).toBe(true);
     expect($(getCell(2, 0)).hasClass('htSearchResult')).toBe(false);
   });
+
+  it('should keep the search highlight after a row insert and viewport eviction (no re-query)', async() => {
+    handsontable({
+      data: createSpreadsheetData(1000, 5),
+      height: 200,
+      colWidths: 50,
+      rowHeights: 23,
+      search: true,
+    });
+
+    const search = getPlugin('search');
+
+    search.query('A500'); // unique match at row 499, column 0
+
+    // Insert a row above the match: it shifts to row 500, carrying its `isSearchResult` meta.
+    await alter('insert_row_above', 0, 1);
+
+    // Scroll the match far out of the viewport (evicting its meta) and back, without re-querying.
+    await scrollViewportTo({ row: 0, verticalSnap: 'top' });
+    await render();
+    await scrollViewportTo({ row: 500, verticalSnap: 'top' });
+    await render();
+
+    // The highlight survives eviction (persisted meta) and the structural shift; no stray highlight.
+    expect($(getCell(500, 0)).hasClass('htSearchResult')).toBe(true);
+    expect($(getCell(499, 0)).hasClass('htSearchResult')).toBe(false);
+  });
 });

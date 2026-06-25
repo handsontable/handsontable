@@ -21,7 +21,28 @@ export const PLUGIN_PRIORITY = 190;
 const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
 
 const DEFAULT_CALLBACK = function(instance: HotInstance, row: number, col: number, data: unknown, testResult: boolean) {
-  instance.getCellMeta(row, col).isSearchResult = testResult;
+  const cellMeta = instance.getCellMeta(row, col);
+
+  cellMeta.isSearchResult = testResult;
+
+  // `isSearchResult` is written directly here, not through `setMeta`, so on its own it would be dropped
+  // when the cell is evicted from the viewport (and the highlight lost after scrolling away and back).
+  // Record it in `_persistedMetaProps` for matches so the viewport meta eviction keeps the cell; it
+  // then also shifts with the data on row/column insert/remove, exactly like the meta object itself.
+  // Non-matches are removed from the set so they stay evictable. It is intentionally NOT recorded as
+  // user-defined, so an `updateSettings` cache reset clears it - the next `query()` re-applies it.
+  let persistedMetaProps = cellMeta._persistedMetaProps as Set<string> | undefined;
+
+  if (testResult) {
+    if (persistedMetaProps === undefined) {
+      persistedMetaProps = new Set();
+      cellMeta._persistedMetaProps = persistedMetaProps;
+    }
+
+    persistedMetaProps.add('isSearchResult');
+  } else {
+    persistedMetaProps?.delete('isSearchResult');
+  }
 };
 
 const DEFAULT_QUERY_METHOD = function(query: string, value: unknown, cellProperties: Record<string, unknown>) {
@@ -112,16 +133,6 @@ export class Search extends BasePlugin {
    * @type {string}
    */
   searchResultClass = DEFAULT_SEARCH_RESULT_CLASS;
-  /**
-   * Physical coordinates (as `"row,col"` strings) of the cells matched by the most recent `query()`
-   * run under the default callback. The renderer also consults this set so a matched cell keeps its
-   * highlight after scrolling out of the viewport and back - the render-derived `isSearchResult` meta
-   * flag is evicted with the cell and would otherwise be lost. Empty when no default-callback search
-   * is active, so it adds no per-cell work outside an active search.
-   *
-   * @type {Set<string>}
-   */
-  #queryResultCells = new Set();
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -146,15 +157,6 @@ export class Search extends BasePlugin {
     this.updatePluginSettings(searchSettings as Record<string, unknown>);
 
     this.addHook('beforeRenderer', this.#onBeforeRenderer);
-    // The tracked match set is keyed by physical coordinates captured at `query()` time. Inserting or
-    // removing rows/columns shifts those physical indexes, so the set would otherwise highlight the
-    // wrong cells (and miss the real, now-shifted matches). Drop it on any structure change; visible
-    // matches keep their highlight through the `isSearchResult` meta flag (which shifts with the cell),
-    // and the set is rebuilt on the next `query()`.
-    this.addHook('afterCreateRow', this.#onStructuralChange);
-    this.addHook('afterRemoveRow', this.#onStructuralChange);
-    this.addHook('afterCreateCol', this.#onStructuralChange);
-    this.addHook('afterRemoveCol', this.#onStructuralChange);
 
     super.enablePlugin();
   }
@@ -163,8 +165,6 @@ export class Search extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
-    this.#queryResultCells.clear();
-
     const beforeRendererCallback = (
       td: HTMLTableCellElement, row: number, col: number, prop: string | number,
       value: string, cellProperties: Record<string, unknown>
@@ -205,10 +205,6 @@ export class Search extends BasePlugin {
     const queryResult: unknown[] = [];
     const instance = this.hot;
 
-    // Rebuilt every query so the renderer can re-highlight matched cells whose `isSearchResult` meta
-    // was evicted from the viewport (see `#queryResultCells`).
-    this.#queryResultCells.clear();
-
     rangeEach(0, rowCount - 1, (rowIndex) => {
       rangeEach(0, colCount - 1, (colIndex) => {
         const cellData = this.hot.getDataAtCell(rowIndex, colIndex);
@@ -227,13 +223,6 @@ export class Search extends BasePlugin {
           };
 
           queryResult.push(singleResult);
-
-          // Track the match by physical coordinates only when the default callback is in effect (the
-          // one that sets `isSearchResult`). A custom callback owns its own highlighting, so its
-          // behavior is left untouched.
-          if (cellCallback === DEFAULT_CALLBACK) {
-            this.#queryResultCells.add(`${this.hot.toPhysicalRow(rowIndex)},${this.hot.toPhysicalColumn(colIndex)}`);
-          }
         }
 
         if (cellCallback) {
@@ -346,12 +335,10 @@ export class Search extends BasePlugin {
       classArray.push(...className);
     }
 
-    // `isSearchResult` is the live flag; fall back to the tracked match set for cells whose meta was
-    // evicted from the viewport (the set is empty outside an active default-callback search, so this
-    // adds no per-cell key building in that case).
-    const isSearchResult = cellProperties.isSearchResult ||
-      (this.#queryResultCells.size > 0 &&
-        this.#queryResultCells.has(`${cellProperties.row},${cellProperties.col}`));
+    // `isSearchResult` is recorded in `_persistedMetaProps` for matches (see the default callback), so
+    // it survives viewport meta eviction and shifts with the cell on row/column changes - reading it
+    // here is enough; no separate match-coordinate set is needed.
+    const isSearchResult = cellProperties.isSearchResult;
 
     if (this.isEnabled() && isSearchResult) {
       if (!classArray.includes(this.searchResultClass)) {
@@ -363,16 +350,6 @@ export class Search extends BasePlugin {
     }
 
     cellProperties.className = classArray.join(' ');
-  };
-
-  /**
-   * Clears the tracked query-result set on a row/column structure change. The set is keyed by physical
-   * coordinates captured at `query()` time; inserting or removing rows/columns shifts those indexes, so
-   * keeping the stale keys would highlight the wrong cells. The highlight is restored on the next
-   * `query()`.
-   */
-  #onStructuralChange = () => {
-    this.#queryResultCells.clear();
   };
 
   /**
