@@ -23,6 +23,7 @@ vue:
   metaTitle: Formula calculation - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Formulas
+menuTag: updated
 ---
 The `Formulas` plugin adds spreadsheet-style calculation to Handsontable, powered by [HyperFormula](https://hyperformula.handsontable.com/). It supports ~400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
 

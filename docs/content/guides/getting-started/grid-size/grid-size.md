@@ -18,6 +18,7 @@ vue:
   metaTitle: Grid size - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 Set the width and height of the grid, using either absolute values or values relative to the parent container.
 
