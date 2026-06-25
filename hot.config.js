@@ -1,6 +1,6 @@
 module.exports = {
   HOT_FILENAME: 'handsontable',
-  HOT_VERSION: '18.0.0-rc4',
+  HOT_VERSION: '18.0.0-rc5',
   HOT_PACKAGE_NAME: 'handsontable',
   HOT_BUILD_DATE: (() => {
     const d = new Date();
@@ -8,5 +8,5 @@ module.exports = {
 
     return `${p(d.getDate())}/${p(d.getMonth() + 1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
   })(),
-  HOT_RELEASE_DATE: '24/06/2026',
+  HOT_RELEASE_DATE: '25/06/2026',
 };

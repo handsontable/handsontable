@@ -9,7 +9,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 <!-- UNVERSIONED -->
 
-## [18.0.0-rc4] - 2026-06-24
+## [18.0.0-rc5] - 2026-06-25
 
 ### Added
 - **Breaking change**: Added wrapper layout slots and a `layout` option to control the order of UI elements rendered around the grid (pagination, dialog). The license notification always renders last in the bottom area and is not orderable. Built-in UI now mounts into dedicated wrapper containers, which changes the root DOM structure. [#12094](https://github.com/handsontable/handsontable/issues/12094)
@@ -32,6 +32,7 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Changed the Notification plugin to render its toasts in the grid's overlay layer. [#12777](https://github.com/handsontable/handsontable/issues/12777)
 - Angular: Modernized the Angular wrapper to align with Angular 17–19, simplify setup, reduce dependencies, and clean up tooling. [#12451](https://github.com/handsontable/handsontable/issues/12451)
 - Angular: Added support for installing Angular 16 through 22, without the --force flag [#12752](https://github.com/handsontable/handsontable/issues/12752)
+- Reduced memory usage and improved initialization time for large datasets by no longer materializing cell metadata for every cell during source data validation. [#12847](https://github.com/handsontable/handsontable/pull/12847)
 
 ### Removed
 - **Breaking change**: Removed the numbro, moment.js, DOMPurify, and @handsontable/pikaday dependencies. [#12689](https://github.com/handsontable/handsontable/issues/12689)
@@ -120,6 +121,8 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - React: Fixed React component renderers being unmounted and visibly cleared on every grid render after a cell edit. [#12494](https://github.com/handsontable/handsontable/issues/12494)
 - React: Fixed an issue where `HotColumn` children removed from a `HotTable` left phantom columns behind in the React wrapper. [#12596](https://github.com/handsontable/handsontable/issues/12596)
 - Angular: Fixed subscription leak, missing EmbeddedViewRef cleanup, repeated registerRenderer calls, wrong constructor.name, incorrect prop type, missing null guard in ngOnDestroy, premature editor destruction, redundant double-destroy of already-swept renderer refs, and stale editor reuse when a different column takes an index. [#12657](https://github.com/handsontable/handsontable/issues/12657)
+- Fixed cell meta set with `setCellMeta` (for example, `readOnly`) being reset by `updateSettings`. [#12811](https://github.com/handsontable/handsontable/issues/12811)
+- Reduced memory usage during scrolling and fixed potential out-of-memory errors on very large datasets. [#12844](https://github.com/handsontable/handsontable/pull/12844)
 
 ## [17.1.0] - 2026-05-19
 
