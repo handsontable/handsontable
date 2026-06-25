@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed a missing selection border edge when a selection sat flush against a frozen-pane boundary (`fixedRowsTop` / `fixedRowsBottom` / `fixedColumnsStart`)",
+  "title": "Fixed missing selection border edges and active header highlight accents along frozen-pane boundaries (`fixedRowsTop` / `fixedRowsBottom` / `fixedColumnsStart`).",
   "type": "fixed",
   "issueOrPR": 12802,
   "breaking": false,

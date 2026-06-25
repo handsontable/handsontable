@@ -16,6 +16,7 @@ import TopOverlayTable from './../table/top';
 import { Overlay } from './_base';
 import { getCornerStyle } from '../selection';
 import type { Selection } from '../selection';
+import type { BorderInstanceSettings } from '../selection/border/types';
 import {
   CLONE_TOP,
 } from './constants';
@@ -256,8 +257,7 @@ export class TopOverlay extends Overlay {
       return true;
     }
 
-    const border = focusSelection.settings.border as
-      { cornerVisible?: boolean | ((...args: unknown[]) => boolean) } | undefined;
+    const border = focusSelection.settings.border as BorderInstanceSettings['border'];
     const cornerVisible = border?.cornerVisible;
 
     if (typeof cornerVisible === 'function') {

@@ -18,10 +18,12 @@ import {
   removeClass,
   addClass,
   setAttribute,
-  removeAttribute
+  removeAttribute,
+  isHTMLElement
 } from '../../../../helpers/dom/element';
 import { SelectionScanner } from './scanner';
 import Border from './border/border';
+import { ACTIVE_HEADER_TYPE } from './constants';
 
 /**
  * Module responsible for rendering selections (CSS classes) and borders based on the
@@ -259,6 +261,12 @@ export class SelectionManager {
 
       const corners = selection.getCorners();
 
+      if (selectionType === ACTIVE_HEADER_TYPE && className) {
+        this.#markFrozenColumnSeamHeader(corners, className as string, classNamesMap);
+        this.#markFrozenTopRowSeamHeader(corners, className as string, classNamesMap);
+        this.#markFrozenBottomRowSeamHeader(corners, className as string, classNamesMap);
+      }
+
       this.#activeOverlaysWot!.getSetting('onBeforeDrawBorders', corners, selectionType);
       borderInstance?.appear(corners);
     }
@@ -290,6 +298,170 @@ export class SelectionManager {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       setAttribute(element, [...headerAttributesMap.get(element)]);
     });
+  }
+
+  /**
+   * Tags the last frozen column header with a seam class when the first non-frozen column is the
+   * active header. That header's inline-start edge lands on the frozen-pane seam, which is drawn by
+   * the frozen overlay (a separate table) and is therefore out of reach of the neighbour `:has()`
+   * rule that gives every other active header its inline-start accent. The class lets the theme color
+   * that seam to match. No-op unless `fixedColumnsStart` is used and this is the frozen overlay.
+   *
+   * @param {number[]} corners The active-header selection corners `[fromRow, fromColumn, toRow, toColumn]`.
+   * @param {string} activeHeaderClassName The active header class name (the seam class derives from it).
+   * @param {Map} classNamesMap The render cycle's element→classNames map (applied and cleaned up later).
+   */
+  #markFrozenColumnSeamHeader(
+    corners: number[],
+    activeHeaderClassName: string,
+    classNamesMap: Map<HTMLElement, Map<string, number>>
+  ) {
+    const wot = this.#activeOverlaysWot!;
+    const fixedColumnsStart = wot.getSetting('fixedColumnsStart') as number;
+
+    if (fixedColumnsStart <= 0) {
+      return;
+    }
+
+    const { wtTable } = wot;
+
+    // Only the overlay that renders the frozen columns (and nothing past them) owns the seam line.
+    if (wtTable.getLastRenderedColumn() !== fixedColumnsStart - 1) {
+      return;
+    }
+
+    // The selection's inline-start column must sit exactly on the freeze line.
+    if (Math.min(corners[1], corners[3]) !== fixedColumnsStart) {
+      return;
+    }
+
+    const seamClassName = `${activeHeaderClassName}-seam`;
+    const headerLevels = wtTable.getColumnHeadersCount();
+
+    for (let level = 0; level < headerLevels; level++) {
+      const th = wtTable.getColumnHeader(fixedColumnsStart - 1, level) as HTMLElement | undefined;
+
+      if (isHTMLElement(th)) {
+        if (classNamesMap.has(th)) {
+          classNamesMap.get(th)!.set(seamClassName, 1);
+        } else {
+          classNamesMap.set(th, new Map<string, number>([[seamClassName, 1]]));
+        }
+      }
+    }
+  }
+
+  /**
+   * Row-axis mirror of {@link SelectionManager#markFrozenColumnSeamHeader} for the top freeze:
+   * tags the last top-frozen row header with a seam class when the first non-frozen row is the
+   * active header. That row's top edge lands on the top freeze line, which is drawn by the top
+   * overlay (a separate table) and is therefore out of reach of the `:has(+ tr ...)` rule that gives
+   * every other active row header its top accent. The class lets the theme color the seam's bottom
+   * border to match. No-op unless `fixedRowsTop` is used and this is the top overlay.
+   *
+   * @param {number[]} corners The active-header selection corners `[fromRow, fromColumn, toRow, toColumn]`.
+   * @param {string} activeHeaderClassName The active header class name (the seam class derives from it).
+   * @param {Map} classNamesMap The render cycle's element→classNames map (applied and cleaned up later).
+   */
+  #markFrozenTopRowSeamHeader(
+    corners: number[],
+    activeHeaderClassName: string,
+    classNamesMap: Map<HTMLElement, Map<string, number>>
+  ) {
+    const wot = this.#activeOverlaysWot!;
+    const fixedRowsTop = wot.getSetting('fixedRowsTop') as number;
+
+    if (fixedRowsTop <= 0) {
+      return;
+    }
+
+    const { wtTable } = wot;
+    const lastFrozenRow = fixedRowsTop - 1;
+
+    // Only the overlay that renders the top-frozen rows (ending exactly on the freeze line) owns the
+    // seam line.
+    if (wtTable.getLastRenderedRow() !== lastFrozenRow) {
+      return;
+    }
+
+    // The selection's top row must sit exactly on the first non-frozen row.
+    if (Math.min(corners[0], corners[2]) !== fixedRowsTop) {
+      return;
+    }
+
+    const seamClassName = `${activeHeaderClassName}-row-seam-top`;
+    const headerLevels = (wot.getSetting('rowHeaders') as Function[]).length;
+
+    for (let level = 0; level < headerLevels; level++) {
+      const th = wtTable.getRowHeader(lastFrozenRow, level) as HTMLElement | undefined;
+
+      // Overlays without row headers (e.g. the plain `top` overlay) return a TD here; only tag actual
+      // row-header cells.
+      if (isHTMLElement(th) && th.nodeName === 'TH') {
+        if (classNamesMap.has(th)) {
+          classNamesMap.get(th)!.set(seamClassName, 1);
+        } else {
+          classNamesMap.set(th, new Map<string, number>([[seamClassName, 1]]));
+        }
+      }
+    }
+  }
+
+  /**
+   * Row-axis mirror of {@link SelectionManager#markFrozenColumnSeamHeader} for the bottom freeze:
+   * tags the first bottom-frozen row header with a seam class when the last non-frozen row is the
+   * active header. That row's bottom edge lands on the bottom freeze line, which is drawn by the
+   * bottom overlay (a separate table) and is therefore out of reach of the `:has(+ tr ...)` rule that
+   * gives every other active row header its top accent. The class lets the theme color the seam's top
+   * border to match. No-op unless `fixedRowsBottom` is used and this is the bottom overlay.
+   *
+   * @param {number[]} corners The active-header selection corners `[fromRow, fromColumn, toRow, toColumn]`.
+   * @param {string} activeHeaderClassName The active header class name (the seam class derives from it).
+   * @param {Map} classNamesMap The render cycle's element→classNames map (applied and cleaned up later).
+   */
+  #markFrozenBottomRowSeamHeader(
+    corners: number[],
+    activeHeaderClassName: string,
+    classNamesMap: Map<HTMLElement, Map<string, number>>
+  ) {
+    const wot = this.#activeOverlaysWot!;
+    const fixedRowsBottom = wot.getSetting('fixedRowsBottom') as number;
+
+    if (fixedRowsBottom <= 0) {
+      return;
+    }
+
+    const { wtTable } = wot;
+    const totalRows = wot.getSetting('totalRows') as number;
+    const firstFrozenRow = totalRows - fixedRowsBottom;
+
+    // Only the overlay that renders the bottom-frozen rows (starting exactly on the freeze line) owns
+    // the seam line.
+    if (wtTable.getFirstRenderedRow() !== firstFrozenRow) {
+      return;
+    }
+
+    // The selection's bottom row must sit exactly on the last non-frozen row.
+    if (Math.max(corners[0], corners[2]) !== firstFrozenRow - 1) {
+      return;
+    }
+
+    const seamClassName = `${activeHeaderClassName}-row-seam-bottom`;
+    const headerLevels = (wot.getSetting('rowHeaders') as Function[]).length;
+
+    for (let level = 0; level < headerLevels; level++) {
+      const th = wtTable.getRowHeader(firstFrozenRow, level) as HTMLElement | undefined;
+
+      // Overlays without row headers (e.g. the plain `bottom` overlay) return a TD here; only tag
+      // actual row-header cells.
+      if (isHTMLElement(th) && th.nodeName === 'TH') {
+        if (classNamesMap.has(th)) {
+          classNamesMap.get(th)!.set(seamClassName, 1);
+        } else {
+          classNamesMap.set(th, new Map<string, number>([[seamClassName, 1]]));
+        }
+      }
+    }
   }
 
   /**
