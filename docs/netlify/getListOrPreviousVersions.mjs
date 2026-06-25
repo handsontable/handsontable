@@ -11,33 +11,45 @@ import semver from 'semver';
 const MIN_DOCS_VERSION = '9.0';
 
 /**
- * Reads the list of Docs version from the GitHub using the releases list.
+ * Reads the list of Docs versions from GitHub using the releases list.
  *
- * Authenticates with GITHUB_TOKEN when available. The unauthenticated GitHub
- * API shares a 60-requests-per-hour-per-IP limit, and a throttled response here
- * used to crash the script silently and ship an empty version list to
- * production (see build_current_version.sh, which now fails closed).
+ * Uses the GraphQL API (authenticated with GITHUB_TOKEN) rather than REST
+ * listReleases. REST returns full release bodies (~280 KB) and was consistently
+ * failing on GitHub Actions runners with an undici "Premature close", which
+ * blocked production docs deploys. GraphQL returns only the tag names in a
+ * single small response over a different endpoint.
  *
  * @returns {object}
  */
 async function readFromGitHub() {
   const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN || undefined });
 
-  const releases = await octokit.rest.repos.listReleases({
+  const result = await octokit.graphql(`
+    query ($owner: String!, $repo: String!) {
+      repository(owner: $owner, name: $repo) {
+        releases(first: 100, orderBy: { field: CREATED_AT, direction: DESC }) {
+          nodes {
+            tagName
+          }
+        }
+      }
+    }
+  `, {
     owner: 'handsontable',
     repo: 'handsontable',
-    per_page: 50,
   });
 
-  if (releases.status !== 200) {
-    throw new Error('Incorrect response from the GitHub API.');
+  const nodes = result?.repository?.releases?.nodes;
+
+  if (!Array.isArray(nodes) || nodes.length === 0) {
+    throw new Error('GitHub returned no releases.');
   }
 
   const tags = [];
 
-  releases.data
-    .map(item => item.tag_name)
-    .filter(tag => !semver.prerelease(tag))
+  nodes
+    .map(item => item.tagName)
+    .filter(tag => semver.valid(tag) && !semver.prerelease(tag))
     .sort((a, b) => semver.rcompare(a, b))
     .forEach((tag) => {
       const minorVersion = `${semver.parse(tag).major}.${
