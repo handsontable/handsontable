@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1839: Filters null-safety — After fix (v17.1.0)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn {
+      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
+      border: 1px solid #ccc;
+    }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-old { background: #fce4ec; color: #b71c1c; }
+    .badge-new { background: #e8f5e9; color: #2e7d32; }
+    .info { background: #e8f5e9; border: 1px solid #4caf50; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
+    .info strong { color: #1b5e20; }
+    .controls { display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap; }
+    button {
+      padding: 8px 16px; border-radius: 6px; border: 1px solid #999;
+      background: #fff; cursor: pointer; font-size: 14px;
+    }
+    button:hover { background: #f0f0f0; }
+    button.danger { border-color: #d32f2f; color: #d32f2f; }
+    button.success { border-color: #388e3c; color: #388e3c; }
+    button.primary { border-color: #1565c0; color: #1565c0; }
+    #log { background: #1e1e1e; color: #ccc; font-family: monospace; font-size: 13px;
+      border-radius: 6px; padding: 12px; margin-bottom: 16px; min-height: 80px;
+      max-height: 200px; overflow-y: auto; }
+    #log .err { color: #f48771; }
+    #log .ok { color: #89d185; }
+    #log .info { color: #9cdcfe; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1839: Filters null-safety — Remove stale type-cast interfaces</h1>
+
+  <nav>
+    <span class="nav-label">Version:</span>
+    <a class="nav-btn" href="demo-DEV-1839-before.html">Before fix <span class="badge badge-old">v17.0.1</span></a>
+    <span class="nav-btn active">After fix <span class="badge badge-new">v17.1.0</span></span>
+  </nav>
+
+  <div class="info">
+    <strong>Fix applied:</strong> Null guards added to <code>disablePlugin()</code>, <code>getIndexesOfComponents()</code>, and <code>changeComponentsVisibility()</code>.
+    The stale hand-written interfaces (<code>DropdownMenuPluginInterface</code>, <code>DropdownMenuInterface</code>, <code>MenuFocusNavigatorInterface</code>) have been replaced with canonical types.<br><br>
+    <strong>How to test:</strong><br>
+    1. Do NOT click any column header dropdown — keep the menu closed.<br>
+    2. Click <strong>"Disable filters (updateSettings)"</strong> — it should succeed without any crash.<br>
+    3. Re-enable filters and verify filtering still works normally.<br>
+    4. Also test: open dropdown first, apply a filter, then disable/re-enable — all should work.
+  </div>
+
+  <div class="controls">
+    <button onclick="disableFilters()" class="danger">Disable filters (updateSettings)</button>
+    <button onclick="enableFilters()" class="success">Re-enable filters</button>
+    <button onclick="applyFilter()" class="primary">Apply: filter column A = 'A1'</button>
+    <button onclick="clearFilters()">Clear all filters</button>
+    <button onclick="clearLog()">Clear log</button>
+  </div>
+
+  <div id="log"><span class="info">// Ready. Try the buttons above without opening any dropdown first.</span></div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script>
+    const log = document.getElementById('log');
+    function logLine(msg, cls = '') {
+      const el = document.createElement('div');
+      el.className = cls;
+      el.textContent = msg;
+      log.appendChild(el);
+      log.scrollTop = log.scrollHeight;
+    }
+    function clearLog() { log.innerHTML = ''; }
+
+    window.addEventListener('error', (e) => {
+      logLine('❌ Uncaught: ' + e.message, 'err');
+    });
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: Handsontable.helper.createSpreadsheetData(12, 6),
+      colHeaders: ['Name', 'City', 'Country', 'Score', 'Active', 'Date'],
+      rowHeaders: true,
+      dropdownMenu: true,
+      filters: true,
+      width: '100%',
+      height: 350,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    logLine('// HOT initialized with dropdownMenu:true + filters:true (v17.1.0)', 'info');
+    logLine('// dropdownMenuPlugin.menu is: ' + (hot.getPlugin('dropdownMenu').menu), 'info');
+
+    function disableFilters() {
+      logLine('→ Calling hot.updateSettings({ filters: false })...', 'info');
+      try {
+        hot.updateSettings({ filters: false });
+        logLine('✓ Succeeded — null guard in disablePlugin() prevents crash when menu is null', 'ok');
+        logLine('  (changeComponentsVisibility and getIndexesOfComponents also handle null menu gracefully)', 'ok');
+      } catch (e) {
+        logLine('❌ CRASH: ' + e.message, 'err');
+      }
+    }
+
+    function enableFilters() {
+      logLine('→ Calling hot.updateSettings({ filters: true, dropdownMenu: true })...', 'info');
+      try {
+        hot.updateSettings({ filters: true, dropdownMenu: true });
+        logLine('✓ Filters re-enabled', 'ok');
+        logLine('// dropdownMenuPlugin.menu is: ' + (hot.getPlugin('dropdownMenu').menu), 'info');
+      } catch (e) {
+        logLine('❌ CRASH: ' + e.message, 'err');
+      }
+    }
+
+    function applyFilter() {
+      const filtersPlugin = hot.getPlugin('filters');
+      if (!filtersPlugin.enabled) {
+        logLine('// Filters are disabled — re-enable first', 'info');
+        return;
+      }
+      logLine('→ Applying filter: column 0 contains "A1"...', 'info');
+      try {
+        filtersPlugin.clearConditions();
+        filtersPlugin.addCondition(0, 'contains', ['A1']);
+        filtersPlugin.filter();
+        logLine('✓ Filter applied — visible rows: ' + hot.countRows(), 'ok');
+      } catch (e) {
+        logLine('❌ CRASH: ' + e.message, 'err');
+      }
+    }
+
+    function clearFilters() {
+      const filtersPlugin = hot.getPlugin('filters');
+      if (!filtersPlugin.enabled) {
+        logLine('// Filters are disabled — re-enable first', 'info');
+        return;
+      }
+      logLine('→ Clearing all filters...', 'info');
+      try {
+        filtersPlugin.clearConditions();
+        filtersPlugin.filter();
+        logLine('✓ Filters cleared — visible rows: ' + hot.countRows(), 'ok');
+      } catch (e) {
+        logLine('❌ CRASH: ' + e.message, 'err');
+      }
+    }
+  </script>
+</body>
+</html>
