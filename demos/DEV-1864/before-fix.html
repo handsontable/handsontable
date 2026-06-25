@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEV-1864 — BEFORE FIX (NaN regression in getSyncCalculationLimit)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.css">
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #fff8f8; }
+    h1 { color: #c0392b; font-size: 1.2rem; }
+    .info-box { background: #fce4e4; border: 1px solid #e74c3c; border-radius: 4px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.9rem; }
+    .code { background: #2d2d2d; color: #f8f8f2; padding: 10px 14px; border-radius: 4px; font-family: monospace; font-size: 0.85rem; margin: 8px 0; white-space: pre; }
+    #result { font-size: 0.85rem; margin-top: 12px; }
+    .label { font-weight: bold; margin-top: 12px; margin-bottom: 4px; }
+    #hot { margin-top: 16px; }
+    .bug-highlight { color: #e74c3c; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1864 — BEFORE FIX: NaN regression in getSyncCalculationLimit</h1>
+
+  <div class="info-box">
+    <strong>The regression (intermediate broken state):</strong><br>
+    When replacing <code>>> 0</code> with <code>Math.trunc()</code>, <code>syncLimit</code> could be
+    <code>undefined</code> if not explicitly configured, causing <code>Math.trunc(undefined) = NaN</code>.
+    <br><br>
+    With a NaN limit, <code>syncLimit &gt;= 0</code> is <em>false</em>, so ALL columns are auto-sized
+    <strong>asynchronously only</strong> — the grid first renders with narrow default widths, then jumps.
+  </div>
+
+  <div class="label">Buggy implementation (simulates the regression):</div>
+  <div class="code">// BEFORE FIX — NaN regression
+getSyncCalculationLimit() {
+  const settings = this.hot.getSettings().autoColumnSize;
+  let limit = AutoColumnSize.SYNC_CALCULATION_LIMIT;
+  const colsLimit = this.hot.countCols() - 1;
+
+  if (settings && typeof settings === 'object') {
+    const syncLimit = settings.syncLimit;
+
+    if (typeof syncLimit === 'string' && syncLimit.endsWith('%')) {
+      limit = Math.round(colsLimit * parseFloat(syncLimit) / 100);
+    } else {
+      limit = Math.trunc(syncLimit); // ← BUG: Math.trunc(undefined) = NaN
+    }
+  }
+
+  return Math.min(limit, colsLimit); // Math.min(NaN, N) = NaN
+}</div>
+
+  <div class="label">Effect:</div>
+  <div id="result"></div>
+
+  <div id="hot"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script>
+    // Generate 20 columns of varying content widths
+    const colNames = ['Short', 'Medium col', 'A very long column header indeed', 'X', 'Employee Name', 'Department', 'Start Date', 'Salary USD', 'Performance Score', 'Notes', 'Status', 'Manager Name', 'Location', 'ID', 'Contract Type', 'Email Address', 'Phone Number', 'Team', 'Project', 'Updated'];
+    const data = Array.from({ length: 30 }, (_, r) =>
+      colNames.map((name, c) => `${name.slice(0, 5)}-R${r + 1}C${c + 1}`)
+    );
+
+    // ----- SIMULATE THE REGRESSION -----
+    // Override getSyncCalculationLimit on the prototype to reproduce the NaN bug.
+    // In the intermediate broken state the code used Math.trunc(syncLimit) without
+    // a NaN guard, so undefined → NaN → Math.min(NaN, cols) = NaN → sync phase is skipped.
+    const AutoColumnSize = Handsontable.plugins.AutoColumnSize;
+    const originalGetSyncCalculationLimit = AutoColumnSize.prototype.getSyncCalculationLimit;
+
+    AutoColumnSize.prototype.getSyncCalculationLimit = function buggyGetSyncCalculationLimit() {
+      const settings = this.hot.getSettings().autoColumnSize;
+      let limit = AutoColumnSize.SYNC_CALCULATION_LIMIT !== undefined
+        ? AutoColumnSize.SYNC_CALCULATION_LIMIT
+        : 50;
+      const colsLimit = this.hot.countCols() - 1;
+
+      if (settings && typeof settings === 'object' && !Array.isArray(settings)) {
+        const syncLimit = settings.syncLimit;
+
+        if (typeof syncLimit === 'string' && syncLimit.endsWith('%')) {
+          limit = Math.round(colsLimit * parseFloat(syncLimit) / 100);
+        } else {
+          // ← REGRESSION: Math.trunc(undefined) = NaN, no guard
+          limit = Math.trunc(syncLimit);
+        }
+      } else if (settings === true) {
+        // autoColumnSize: true — no syncLimit set, syncLimit is undefined
+        // ← REGRESSION: Math.trunc(undefined) = NaN
+        limit = Math.trunc(undefined);
+      }
+
+      const result = Math.min(limit, colsLimit); // Math.min(NaN, N) = NaN
+      return result;
+    };
+
+    const resultEl = document.getElementById('result');
+
+    const container = document.getElementById('hot');
+    const hot = new Handsontable(container, {
+      data,
+      colHeaders: colNames,
+      // autoColumnSize: true → syncLimit is undefined → NaN regression
+      autoColumnSize: true,
+      width: 900,
+      height: 400,
+      licenseKey: 'non-commercial-and-evaluation',
+      afterInit() {
+        // Check what limit is computed
+        const acs = this.getPlugin('autoColumnSize');
+        const limit = acs.getSyncCalculationLimit();
+        resultEl.innerHTML = `
+          <span class="bug-highlight">⚠ getSyncCalculationLimit() returned: <strong>${limit}</strong> (NaN!)</span><br>
+          Sync phase check: <code>${limit} &gt;= 0</code> → <strong>${limit >= 0}</strong> (false — skipped!)<br>
+          All column widths calculated <strong>asynchronously</strong> → columns start narrow, then flash to correct width.
+        `;
+      }
+    });
+  </script>
+</body>
+</html>

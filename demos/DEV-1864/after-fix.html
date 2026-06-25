@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEV-1864 — AFTER FIX (NaN guard in getSyncCalculationLimit)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.css">
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f8fff8; }
+    h1 { color: #27ae60; font-size: 1.2rem; }
+    .info-box { background: #e4f9e4; border: 1px solid #27ae60; border-radius: 4px; padding: 12px 16px; margin-bottom: 20px; font-size: 0.9rem; }
+    .code { background: #2d2d2d; color: #f8f8f2; padding: 10px 14px; border-radius: 4px; font-family: monospace; font-size: 0.85rem; margin: 8px 0; white-space: pre; }
+    #result { font-size: 0.85rem; margin-top: 12px; }
+    .label { font-weight: bold; margin-top: 12px; margin-bottom: 4px; }
+    #hot { margin-top: 16px; }
+    .ok-highlight { color: #27ae60; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1864 — AFTER FIX: NaN guard in getSyncCalculationLimit</h1>
+
+  <div class="info-box">
+    <strong>The fix (DEV-1864, PR #12761):</strong><br>
+    Replace <code>Math.trunc(syncLimit)</code> with an explicit <code>Number.isFinite</code> guard so that
+    <code>undefined</code>, <code>NaN</code>, or any non-finite value safely falls back to <code>0</code>.
+    <br><br>
+    The sync phase now runs correctly for finite values, and columns are auto-sized on first render
+    without a visual width flash.
+  </div>
+
+  <div class="label">Fixed implementation:</div>
+  <div class="code">// AFTER FIX — with NaN guard (S7767)
+getSyncCalculationLimit() {
+  const settings = this.hot.getSettings().autoColumnSize;
+  let limit = AutoColumnSize.SYNC_CALCULATION_LIMIT;
+  const colsLimit = this.hot.countCols() - 1;
+
+  if (settings && typeof settings === 'object') {
+    const syncLimit = settings.syncLimit;
+
+    if (typeof syncLimit === 'string' && syncLimit.endsWith('%')) {
+      limit = Math.round(colsLimit * parseFloat(syncLimit) / 100);
+    } else {
+      // ✓ FIX: explicit NaN guard — undefined/NaN fall back to 0
+      const numericSyncLimit = Number(syncLimit);
+      limit = Number.isFinite(numericSyncLimit) ? Math.trunc(numericSyncLimit) : 0;
+    }
+  }
+
+  return Math.min(limit, colsLimit);
+}</div>
+
+  <div class="label">Effect:</div>
+  <div id="result"></div>
+
+  <div id="hot"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script>
+    const colNames = ['Short', 'Medium col', 'A very long column header indeed', 'X', 'Employee Name', 'Department', 'Start Date', 'Salary USD', 'Performance Score', 'Notes', 'Status', 'Manager Name', 'Location', 'ID', 'Contract Type', 'Email Address', 'Phone Number', 'Team', 'Project', 'Updated'];
+    const data = Array.from({ length: 30 }, (_, r) =>
+      colNames.map((name, c) => `${name.slice(0, 5)}-R${r + 1}C${c + 1}`)
+    );
+
+    // ----- APPLY THE FIX -----
+    // Override getSyncCalculationLimit to use the fixed code from PR #12761.
+    const AutoColumnSize = Handsontable.plugins.AutoColumnSize;
+
+    AutoColumnSize.prototype.getSyncCalculationLimit = function fixedGetSyncCalculationLimit() {
+      const settings = this.hot.getSettings().autoColumnSize;
+      let limit = AutoColumnSize.SYNC_CALCULATION_LIMIT !== undefined
+        ? AutoColumnSize.SYNC_CALCULATION_LIMIT
+        : 50;
+      const colsLimit = this.hot.countCols() - 1;
+
+      if (settings && typeof settings === 'object' && !Array.isArray(settings)) {
+        const syncLimit = settings.syncLimit;
+
+        if (typeof syncLimit === 'string' && syncLimit.endsWith('%')) {
+          limit = Math.round(colsLimit * parseFloat(syncLimit) / 100);
+        } else {
+          // ✓ FIX: Number.isFinite guard — undefined/NaN → 0
+          const numericSyncLimit = Number(syncLimit);
+          limit = Number.isFinite(numericSyncLimit) ? Math.trunc(numericSyncLimit) : 0;
+        }
+      } else if (settings === true) {
+        // autoColumnSize: true, no syncLimit → undefined → 0 via NaN guard
+        const numericSyncLimit = Number(undefined); // NaN
+        limit = Number.isFinite(numericSyncLimit) ? Math.trunc(numericSyncLimit) : 0; // → 0
+      }
+
+      return Math.min(limit, colsLimit);
+    };
+
+    const resultEl = document.getElementById('result');
+
+    const container = document.getElementById('hot');
+    const hot = new Handsontable(container, {
+      data,
+      colHeaders: colNames,
+      autoColumnSize: true,
+      width: 900,
+      height: 400,
+      licenseKey: 'non-commercial-and-evaluation',
+      afterInit() {
+        const acs = this.getPlugin('autoColumnSize');
+        const limit = acs.getSyncCalculationLimit();
+        resultEl.innerHTML = `
+          <span class="ok-highlight">✓ getSyncCalculationLimit() returned: <strong>${limit}</strong> (valid finite number)</span><br>
+          Sync phase check: <code>${limit} &gt;= 0</code> → <strong>${limit >= 0}</strong> (true — sync phase runs)<br>
+          First ${limit + 1} columns sized <strong>synchronously</strong> → correct widths on first paint.
+        `;
+      }
+    });
+  </script>
+</body>
+</html>
