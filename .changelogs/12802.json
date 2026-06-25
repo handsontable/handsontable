@@ -1,8 +1,8 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed a missing selection border edge when a selection sat flush against a frozen-pane boundary (`fixedRowsTop` / `fixedColumnsStart`)",
+  "title": "Fixed a missing selection border edge when a selection sat flush against a frozen-pane boundary (`fixedRowsTop` / `fixedRowsBottom` / `fixedColumnsStart`)",
   "type": "fixed",
-  "issueOrPR": 12781,
+  "issueOrPR": 12802,
   "breaking": false,
   "framework": "none"
 }

@@ -70,7 +70,7 @@ describe('Frozen boundary edge', () => {
     return { wt, selections };
   }
 
-  it('LTR / fixedRowsTop: top edge is drawn on the top overlay and hidden on the master', async() => {
+  it('LTR / fixedRowsTop: seam top edge is drawn by BOTH the master (lower half) and the top overlay (upper half)', async() => {
     const { wt, selections } = build({ fixedRowsTop: 2 });
 
     // cell flush with the row freeze line: row === fixedRowsTop
@@ -78,21 +78,22 @@ describe('Frozen boundary edge', () => {
 
     const { master, top } = overlayBorders(wt, selections.getFocus());
 
-    expect([master, top].filter(topShown).length).toBe(1);
+    // The edge straddles the freeze line: the master shows the half below the seam, the top overlay
+    // the half above it (on top of the opaque frozen pane). Together they form the full thickness in
+    // both selection and edit modes.
+    expect(topShown(master)).toBe(true);
     expect(topShown(top)).toBe(true);
-    expect(topShown(master)).toBe(false);
   });
 
-  it('RTL / fixedRowsTop: top edge is drawn on the top overlay and hidden on the master', async() => {
+  it('RTL / fixedRowsTop: seam top edge is drawn by BOTH the master and the top overlay', async() => {
     const { wt, selections } = build({ rtl: true, fixedRowsTop: 2 });
 
     spec().$table.find('tbody tr:eq(2) td:eq(1)').simulate('mousedown');
 
     const { master, top } = overlayBorders(wt, selections.getFocus());
 
-    expect([master, top].filter(topShown).length).toBe(1);
+    expect(topShown(master)).toBe(true);
     expect(topShown(top)).toBe(true);
-    expect(topShown(master)).toBe(false);
   });
 
   it('LTR / fixedColumnsStart: start edge is drawn on the inline_start overlay and hidden on the master', async() => {
@@ -127,17 +128,41 @@ describe('Frozen boundary edge', () => {
   // Without that delta a gap opens at the corner for borders thicker than 1px. The thin dimension
   // stays equal to the configured border width. `outerWidth`/`outerHeight` map to `offsetWidth`/
   // `offsetHeight`, so the assertions read the boundary cell's offset size directly.
+  // Regression for the reported "top border ~1px thinner" bug (cell D4 with fixedRowsTop +
+  // fixedColumnsLeft). The seam top edge must keep its FULL thickness by STRADDLING the freeze line
+  // (like a normal cell border), with the master and the top overlay drawing the same straddling
+  // position so their visible halves combine on the line in both selection and edit modes.
+  it('LTR / fixedRowsTop: seam top edge straddles the freeze line at full thickness on master + overlay', async() => {
+    const { wt, selections } = build({ fixedRowsTop: 2, borderWidth: 2 });
+
+    spec().$table.find('tbody tr:eq(2) td:eq(1)').simulate('mousedown');
+
+    const { master, top } = overlayBorders(wt, selections.getFocus());
+    // freeze line = top of the selected cell (its top edge lands on the row freeze line)
+    const cell = wt.wtTable.getCell(new Walkontable.CellCoords(2, 1));
+    const freezeLineY = cell.getBoundingClientRect().top;
+    const masterEdge = master.top.getBoundingClientRect();
+    const topEdge = top.top.getBoundingClientRect();
+
+    // both layers draw the full thickness at the same straddling position
+    expect(Math.round(masterEdge.height)).toBe(2);
+    expect(Math.round(topEdge.height)).toBe(2);
+    expect(Math.round(masterEdge.top)).toBe(Math.round(topEdge.top));
+    // straddling: the edge spans the freeze line (part above for the overlay, part below for the master)
+    expect(Math.round(masterEdge.top)).toBeLessThan(Math.round(freezeLineY));
+    expect(Math.round(masterEdge.bottom)).toBeGreaterThan(Math.round(freezeLineY));
+  });
+
   it('LTR / fixedRowsTop: top edge length = spanned cell width + ceil(borderWidth / 2)', async() => {
     const { wt, selections } = build({ fixedRowsTop: 2, borderWidth: 4 });
 
     spec().$table.find('tbody tr:eq(2) td:eq(1)').simulate('mousedown');
 
-    const { top } = overlayBorders(wt, selections.getFocus());
-    // boundary cell = last frozen row (fixedRowsTop - 1) in the selected (single) column
-    const boundaryCellWidth = spec().$table.find('tbody tr:eq(1) td:eq(1)')[0].offsetWidth;
+    const { master } = overlayBorders(wt, selections.getFocus());
+    const boundaryCellWidth = spec().$table.find('tbody tr:eq(2) td:eq(1)')[0].offsetWidth;
 
-    expect(parseInt(top.topStyle.width, 10)).toBe(boundaryCellWidth + Math.ceil(4 / 2));
-    expect(parseInt(top.topStyle.height, 10)).toBe(4);
+    expect(parseInt(master.topStyle.width, 10)).toBe(boundaryCellWidth + Math.ceil(4 / 2));
+    expect(parseInt(master.topStyle.height, 10)).toBe(4);
   });
 
   it('RTL / fixedRowsTop: top edge length = spanned cell width + ceil(borderWidth / 2)', async() => {
@@ -146,11 +171,11 @@ describe('Frozen boundary edge', () => {
 
     spec().$table.find('tbody tr:eq(2) td:eq(1)').simulate('mousedown');
 
-    const { top } = overlayBorders(wt, selections.getFocus());
-    const boundaryCellWidth = spec().$table.find('tbody tr:eq(1) td:eq(1)')[0].offsetWidth;
+    const { master } = overlayBorders(wt, selections.getFocus());
+    const boundaryCellWidth = spec().$table.find('tbody tr:eq(2) td:eq(1)')[0].offsetWidth;
 
-    expect(parseInt(top.topStyle.width, 10)).toBe(boundaryCellWidth + Math.ceil(4 / 2));
-    expect(parseInt(top.topStyle.height, 10)).toBe(4);
+    expect(parseInt(master.topStyle.width, 10)).toBe(boundaryCellWidth + Math.ceil(4 / 2));
+    expect(parseInt(master.topStyle.height, 10)).toBe(4);
   });
 
   it('LTR / fixedColumnsStart: start edge length = spanned cell height + ceil(borderWidth / 2)', async() => {
@@ -167,7 +192,7 @@ describe('Frozen boundary edge', () => {
     expect(parseInt(inlineStart.startStyle.width, 10)).toBe(4);
   });
 
-  it('combined fixedRowsTop + fixedColumnsStart: each boundary edge is drawn on its own overlay only', async() => {
+  it('combined fixedRowsTop + fixedColumnsStart: row edge straddles (master + top), column edge on inline_start', async() => {
     spec().$wrapper.width(300);
     const { wt, selections } = build({ fixedRowsTop: 2, fixedColumnsStart: 2 });
 
@@ -176,10 +201,9 @@ describe('Frozen boundary edge', () => {
 
     const { master, top, inlineStart } = overlayBorders(wt, selections.getFocus());
 
-    // row edge owned by the top overlay
-    expect([master, top].filter(topShown).length).toBe(1);
+    // row edge straddles the seam: master (lower half) + top overlay (upper half)
+    expect(topShown(master)).toBe(true);
     expect(topShown(top)).toBe(true);
-    expect(topShown(master)).toBe(false);
 
     // column edge owned by the inline_start overlay
     expect([master, inlineStart].filter(startShown).length).toBe(1);
@@ -210,7 +234,7 @@ describe('Frozen boundary edge', () => {
     expect(startShown(corner)).toBe(true); // frozen row slice (C2)
   });
 
-  it('row edge crossing the column freeze line is drawn by top + corner and hidden on master', async() => {
+  it('row edge crossing the column freeze line is drawn by master + top (non-frozen) and corner (frozen slice)', async() => {
     spec().$wrapper.width(300);
     const { wt, selections } = build({ fixedRowsTop: 2, fixedColumnsStart: 2 });
 
@@ -224,8 +248,8 @@ describe('Frozen boundary edge', () => {
 
     const { master, top, corner } = overlayBorders(wt, selections.getFocus());
 
-    expect(topShown(master)).toBe(false);
-    expect(topShown(top)).toBe(true); // non-frozen column slice
+    expect(topShown(master)).toBe(true); // straddle: lower half on the master
+    expect(topShown(top)).toBe(true); // straddle: upper half on the top overlay (non-frozen columns)
     expect(topShown(corner)).toBe(true); // frozen column slice
   });
 
@@ -269,9 +293,9 @@ describe('Frozen boundary edge', () => {
     expect(topShown(master)).toBe(false);
   });
 
-  // The single cell flush with BOTH freeze lines: the top edge (top overlay) and the start edge
-  // (inline_start overlay) meet inside the frozen×frozen region owned by the corner overlay, which
-  // draws a connecting square there so the two lines join instead of leaving a gap.
+  // The single cell flush with BOTH freeze lines: the top edge (straddling: master + top overlay) and
+  // the start edge (inline_start overlay) meet inside the frozen×frozen region owned by the corner
+  // overlay, which draws a connecting square there so the two lines join instead of leaving a gap.
   it('single cell on both freeze lines: corner overlay draws the connecting square', async() => {
     spec().$wrapper.width(300);
     const { wt, selections } = build({ fixedRowsTop: 2, fixedColumnsStart: 2 });
@@ -279,9 +303,9 @@ describe('Frozen boundary edge', () => {
     selections.getFocus().clear().add(new Walkontable.CellCoords(2, 2));
     wt.draw();
 
-    const { top, inlineStart, corner } = overlayBorders(wt, selections.getFocus());
+    const { master, inlineStart, corner } = overlayBorders(wt, selections.getFocus());
 
-    expect(topShown(top)).toBe(true); // row-freeze edge
+    expect(topShown(master)).toBe(true); // row-freeze edge (master draws the straddle's lower half)
     expect(startShown(inlineStart)).toBe(true); // column-freeze edge
     expect(topShown(corner)).toBe(true); // connecting square (reuses the top border element)
   });
@@ -373,10 +397,10 @@ describe('Frozen boundary edge', () => {
     expect(parseInt(corner.topStyle.left, 10)).toBeGreaterThanOrEqual(0);
   });
 
-  // Bottom-freeze mirror of the `fixedRowsTop` case: a selection whose bottom edge lands on the
-  // `fixedRowsBottom` line is rendered by the master under the bottom overlay, so the bottom overlay
-  // re-draws it and the master hides it — exactly one bottom edge, never zero, never doubled.
-  it('LTR / fixedRowsBottom: bottom edge is drawn on the bottom overlay and hidden on the master', async() => {
+  // Bottom-freeze mirror of the `fixedRowsTop` straddle: the bottom edge on the `fixedRowsBottom` line
+  // straddles the seam, drawn by BOTH the master (half above the line) and the bottom overlay (half
+  // below it, on top of the opaque bottom pane), so the full thickness shows in selection and edit.
+  it('LTR / fixedRowsBottom: seam bottom edge is drawn by BOTH the master and the bottom overlay', async() => {
     const { wt, selections } = build({ fixedRowsBottom: 2 });
 
     // cell flush with the bottom freeze line: row === totalRows - fixedRowsBottom - 1 (8 - 2 - 1 = 5)
@@ -384,21 +408,54 @@ describe('Frozen boundary edge', () => {
 
     const { master, bottom } = overlayBorders(wt, selections.getFocus());
 
-    expect([master, bottom].filter(bottomShown).length).toBe(1);
+    expect(bottomShown(master)).toBe(true);
     expect(bottomShown(bottom)).toBe(true);
-    expect(bottomShown(master)).toBe(false);
   });
 
-  it('RTL / fixedRowsBottom: bottom edge is drawn on the bottom overlay and hidden on the master', async() => {
+  it('RTL / fixedRowsBottom: seam bottom edge is drawn by BOTH the master and the bottom overlay', async() => {
     const { wt, selections } = build({ rtl: true, fixedRowsBottom: 2 });
 
     spec().$table.find('tbody tr:eq(5) td:eq(1)').simulate('mousedown');
 
     const { master, bottom } = overlayBorders(wt, selections.getFocus());
 
-    expect([master, bottom].filter(bottomShown).length).toBe(1);
+    expect(bottomShown(master)).toBe(true);
     expect(bottomShown(bottom)).toBe(true);
-    expect(bottomShown(master)).toBe(false);
+  });
+
+  // Regression for the reported "bottom line thin" bug (cell D47 with fixedRowsBottom). Built like the
+  // real case — a tall table scrolled to the bottom so the bottom pane sits flush against the last
+  // non-frozen row. The master draws the seam bottom edge at full thickness inside the cell (above the
+  // freeze line), where it is NOT occluded by the bottom pane below — so it must no longer be hidden.
+  it('LTR / fixedRowsBottom: seam bottom edge keeps full thickness on the master (not hidden, not clipped)', async() => {
+    createDataArray(100, 8);
+    spec().$wrapper.width(300).height(200);
+    const selections = createSelectionController({ border: { width: 2, color: 'red' } });
+    const wt = walkontable({
+      data: getData,
+      totalRows: 100,
+      totalColumns: 8,
+      fixedRowsBottom: 2,
+      selections,
+    });
+
+    wt.draw();
+    // bottom boundary row = totalRows - fixedRowsBottom - 1 = 97
+    selections.getFocus().clear().add(new Walkontable.CellCoords(97, 1));
+    wt.draw();
+    // scroll to the bottom so row 97 is visible and flush against the sticky bottom pane
+    wt.scrollViewport(new Walkontable.CellCoords(97, 1));
+    wt.draw();
+
+    const { master } = overlayBorders(wt, selections.getFocus());
+    const cell = wt.wtTable.getCell(new Walkontable.CellCoords(97, 1));
+    const freezeLineY = cell.getBoundingClientRect().bottom;
+    const masterEdge = master.bottom.getBoundingClientRect();
+
+    expect(bottomShown(master)).toBe(true);
+    expect(Math.round(masterEdge.height)).toBe(2); // full focus thickness
+    // the edge sits at the cell bottom, above the freeze line — not clipped by the bottom pane below it
+    expect(Math.round(masterEdge.bottom)).toBeLessThanOrEqual(Math.round(freezeLineY) + 1);
   });
 
   // Regression for the reported bug: a selection flush with the COLUMN freeze line whose span reaches
@@ -465,11 +522,11 @@ describe('Frozen boundary edge', () => {
     expect(startShown(bottomCorner)).toBe(true); // bottom-frozen row slice (rows 6, 7)
   });
 
-  // Bottom mirror of "row edge crossing the column freeze line is drawn by top + corner": a bottom
-  // edge that also reaches left into the frozen columns is split between the `bottom` overlay (non-
-  // frozen columns) and the bottom corner overlay (frozen columns). The `inline_start` overlay renders
-  // the boundary cell too, so it must hide its duplicate bottom edge.
-  it('bottom edge crossing the column freeze line is drawn by bottom + bottom corner, hidden on master + inline_start', async() => {
+  // Bottom mirror of "row edge crossing the column freeze line": a bottom edge that also reaches left
+  // into the frozen columns. Its straddle's upper half is on the master (non-frozen columns); the lower
+  // half is split between the `bottom` overlay (non-frozen columns) and the bottom corner overlay
+  // (frozen columns). The `inline_start` overlay must hide its duplicate bottom edge.
+  it('bottom edge crossing the column freeze line is drawn by master + bottom (non-frozen) and bottom corner (frozen)', async() => {
     spec().$wrapper.width(300);
     const { wt, selections } = build({ fixedRowsBottom: 2, fixedColumnsStart: 2 });
 
@@ -483,10 +540,10 @@ describe('Frozen boundary edge', () => {
 
     const { master, inlineStart, bottom, bottomCorner } = overlayBorders(wt, selections.getFocus());
 
-    expect(bottomShown(master)).toBe(false);
+    expect(bottomShown(master)).toBe(true); // straddle: upper half on the master
     expect(bottomShown(inlineStart)).toBe(false); // occluded duplicate hidden
-    expect(bottomShown(bottom)).toBe(true); // non-frozen column slice (column 2)
-    expect(bottomShown(bottomCorner)).toBe(true); // frozen column slice (column 1)
+    expect(bottomShown(bottom)).toBe(true); // lower half, non-frozen column slice (column 2)
+    expect(bottomShown(bottomCorner)).toBe(true); // lower half, frozen column slice (column 1)
   });
 
   // Scroll-out mirror: the bottom overlay renders the bottom-frozen block whatever the scroll, so
@@ -553,4 +610,5 @@ describe('Frozen boundary edge', () => {
     expect(parseInt(bottom.bottomStyle.width, 10)).toBe(boundaryCellWidth + Math.ceil(4 / 2));
     expect(parseInt(bottom.bottomStyle.height, 10)).toBe(4);
   });
+
 });

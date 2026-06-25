@@ -628,10 +628,10 @@ class Border {
     const bottomRowEdgeOwned = this.isFrozenBottomBoundaryEdge(toRow) &&
       !this.isBottomBoundaryCornerScrolledOut(toRow);
 
-    // The row-freeze edge is split between the `top` overlay (non-frozen columns) and the corner
-    // overlay (frozen columns), each clamped to its own rendered column range so together they cover
-    // the edge without overlap. The rendered (not visible) range keeps a partially scrolled boundary
-    // column pinned to the freeze line; scroll occlusion is handled by `rowEdgeOwned`.
+    // The row-freeze edge straddles the freeze line: the master draws its lower half (below the seam)
+    // and the frozen overlay its upper half (above the seam, on top of the opaque pane), so together
+    // they show the full thickness in both selection and edit modes. Split between the `top` overlay
+    // (non-frozen columns) and the corner overlay (frozen columns), each clamped to its rendered range.
     if (rowEdgeOwned && (isTopOverlay || isCornerOverlay)) {
       const firstColumn = Math.max(fromColumn, wtTable.getFirstRenderedColumn());
       const lastColumn = Math.min(toColumn, wtTable.getLastRenderedColumn());
@@ -790,11 +790,8 @@ class Border {
 
     this.disappear();
     // Position the edge the same way `appear` does its bottom border — `cellBottom - thickness +
-    // delta` — so borders of different widths (e.g. the thick focus cell vs. the thinner area cells)
-    // stay aligned on the gridline instead of the thicker one hanging 1px lower. `cellBottom` here is
-    // the freeze line. The result is at most `-ceil(thickness / 2)`, so the `bottom` overlay's top clip
-    // only trims the half that lies above the seam (which the master would draw) — the edge stays
-    // visible and on the line.
+    // delta` — so borders of different widths stay aligned on the gridline. `cellBottom` here is the
+    // freeze line.
     const bottomThickness = parseInt(this.bottomStyle!.height, 10);
 
     this.bottomStyle!.top = `${freezeLineY - containerOffset.top - bottomThickness + delta}px`;
@@ -994,6 +991,10 @@ class Border {
     // A selection flush against a frozen-pane boundary has its top/inline-start edge rendered by the
     // master on the freeze line, where the frozen overlay occludes it. Re-draw it inside the frozen
     // overlay so it stays visible; no-op unless `fixedRowsTop`/`fixedColumnsStart` is used.
+    //
+    // When it draws, we return early and intentionally skip the rest of `appear` (corner/fill handle,
+    // the other edges): in these overlays the selection's cell isn't rendered here — only the seam
+    // edge slice is — so there is nothing else to draw.
     if (this.drawFrozenBoundaryEdge(corners)) {
       return;
     }
@@ -1005,6 +1006,7 @@ class Border {
     const originalFromRow = fromRow;
     const originalFromColumn = fromColumn;
     const originalToRow = toRow;
+    const originalToColumn = toColumn;
 
     // borders can not be rendered on headers so hide them
     if (fromRow < 0 && toRow < 0 || fromColumn < 0 && toColumn < 0) {
@@ -1158,18 +1160,28 @@ class Border {
     // edge is hidden on the master and `inline_start`; the column-freeze edge on the master and `top`.
     const overlayName = wtTable.name;
 
+    // The master keeps drawing the seam top edge (its straddling lower half stays visible below the
+    // frozen pane / editor); the frozen overlay adds the upper half on top of the pane. Only hide the
+    // master when the whole selection is in frozen columns (then the inline-start pane occludes it and
+    // the corner overlay owns the edge). `inline_start` always hides its row-edge duplicate.
+    const seamAllFrozenCols =
+      originalToColumn < ((this.wot.getSetting('fixedColumnsStart') as number) ?? 0);
+
     if (this.isFrozenBoundaryEdge('row', originalFromRow) &&
-        (wtTable.isMaster || overlayName === 'inline_start')) {
+        (overlayName === 'inline_start' || (wtTable.isMaster && seamAllFrozenCols))) {
       this.topStyle!.display = 'none';
     }
     if (this.isFrozenBoundaryEdge('column', originalFromColumn) &&
         (wtTable.isMaster || overlayName === 'top' || overlayName === 'bottom')) {
       this.startStyle!.display = 'none';
     }
-    // The bottom-freeze edge is owned by the `bottom`/`bottom_inline_start_corner` overlays; hide the
-    // master's and `inline_start`'s redraw of it so the lines don't stack into a doubled border.
+    // The bottom-freeze edge straddles its seam: the master draws the half above the freeze line and
+    // the `bottom` overlay the half below it (on top of the opaque bottom pane), so together they show
+    // the full thickness in both selection and edit modes. Hide the master only when the whole
+    // selection is in frozen columns (then the inline-start pane occludes it and the bottom corner owns
+    // the edge); `inline_start` always hides its duplicate.
     if (this.isFrozenBottomBoundaryEdge(originalToRow) &&
-        (wtTable.isMaster || overlayName === 'inline_start')) {
+        (overlayName === 'inline_start' || (wtTable.isMaster && seamAllFrozenCols))) {
       this.bottomStyle!.display = 'none';
     }
 

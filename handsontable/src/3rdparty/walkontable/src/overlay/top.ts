@@ -15,6 +15,7 @@ import { isMobileBrowser } from '../../../../helpers/browser';
 import TopOverlayTable from './../table/top';
 import { Overlay } from './_base';
 import { getCornerStyle } from '../selection';
+import type { Selection } from '../selection';
 import {
   CLONE_TOP,
 } from './constants';
@@ -234,15 +235,10 @@ export class TopOverlay extends Overlay {
    * enabled (`cornerVisible` truthy), mirroring `Border#appear`.
    *
    * @private
-   * @param {object|null} focusSelection The focus Selection instance (or `null` when none).
+   * @param {Selection|null} focusSelection The focus Selection instance (or `null` when none).
    * @returns {boolean}
    */
-  shouldReserveSelectionCornerOffset(
-    focusSelection: {
-      settings: Record<string, unknown>;
-      cellRange?: { getBottomEndCorner: () => { row: number | null } } | null;
-    } | null
-  ): boolean {
+  shouldReserveSelectionCornerOffset(focusSelection: Selection | null): boolean {
     if (!focusSelection || !focusSelection.cellRange) {
       return false;
     }
