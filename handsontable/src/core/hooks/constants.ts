@@ -909,8 +909,8 @@ export const REGISTERED_HOOKS = [
    *                                  Handsontable uses to control scroll behavior after selection.
    * @param {number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    * @example
-   * ```js
    * ::: only-for javascript
+   * ```js
    * new Handsontable(element, {
    *   afterSelectionByProp: (row, column, row2, column2, preventScrolling, selectionLayerLevel) => {
    *     // setting if prevent scrolling after selection
@@ -992,8 +992,8 @@ export const REGISTERED_HOOKS = [
    *                                  Property `preventScrolling.value` expects a boolean value that
    *                                  Handsontable uses to control scroll behavior after selection.
    * @example
-   * ```js
    * ::: only-for javascript
+   * ```js
    * new Handsontable(element, {
    *   afterSelectionFocusSet: (row, column, preventScrolling) => {
    *     // If set to `false` (default): when focused cell selection is outside the viewport,
@@ -2325,8 +2325,8 @@ export const REGISTERED_HOOKS = [
    *                       that correspond to the previously selected area.
    * @returns {*} If returns `false` then pasting is canceled.
    * @example
-   * ```js
    * ::: only-for javascript
+   * ```js
    * // To disregard a single row, remove it from array using data.splice(i, 1).
    * new Handsontable(example, {
    *   beforePaste: (data, coords) => {
