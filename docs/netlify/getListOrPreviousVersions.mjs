@@ -13,10 +13,15 @@ const MIN_DOCS_VERSION = '9.0';
 /**
  * Reads the list of Docs version from the GitHub using the releases list.
  *
+ * Authenticates with GITHUB_TOKEN when available. The unauthenticated GitHub
+ * API shares a 60-requests-per-hour-per-IP limit, and a throttled response here
+ * used to crash the script silently and ship an empty version list to
+ * production (see build_current_version.sh, which now fails closed).
+ *
  * @returns {object}
  */
 async function readFromGitHub() {
-  const octokit = new Octokit();
+  const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN || undefined });
 
   const releases = await octokit.rest.repos.listReleases({
     owner: 'handsontable',
@@ -53,9 +58,22 @@ async function readFromGitHub() {
     latestVersion
   };
 }
-const versions = await readFromGitHub();
 
-// eslint-disable-next-line no-console
-console.log(`PREVIOUS_VERSIONS="${versions.previousVersions.join(' ')}"
+try {
+  const versions = await readFromGitHub();
+
+  if (!versions.latestVersion) {
+    throw new Error('Resolved an empty latest Docs version from the GitHub releases list.');
+  }
+
+  // eslint-disable-next-line no-console
+  console.log(`PREVIOUS_VERSIONS="${versions.previousVersions.join(' ')}"
 LATEST_VERSION="${versions.latestVersion}"`);
-
+} catch (error) {
+  // Exit non-zero so the caller (build_current_version.sh, run under `set -e`)
+  // aborts instead of producing an empty VERSIONS_VARS file and deploying a
+  // partial docs site. The error goes to stderr, not into VERSIONS_VARS.
+  // eslint-disable-next-line no-console
+  console.error(`Failed to read the Docs versions list from GitHub: ${error.message}`);
+  process.exit(1);
+}
