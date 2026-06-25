@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1854 — BEFORE fix — Row misalignment with wrapped headers + fixed columns</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #666; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn {
+      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
+      border: 1px solid #ccc;
+    }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fdecea; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .info { background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
+    .status-note { background: #fdecea; border: 1px solid #f44336; border-radius: 6px; padding: 10px 16px; margin-bottom: 16px; font-size: 14px; color: #b71c1c; }
+    .wrapHeader th { white-space: normal !important; }
+    #debug { margin-top: 16px; font-size: 12px; font-family: monospace; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 10px 14px; }
+    #debug button { margin-top: 8px; padding: 4px 12px; font-size: 12px; cursor: pointer; border: 1px solid #ccc; border-radius: 4px; background: #f5f5f5; }
+  </style>
+</head>
+<body>
+  <h1>Row misalignment: wrapped headers + fixed columns</h1>
+  <div class="subtitle">GitHub issue <a href="https://github.com/handsontable/handsontable/issues/12632" target="_blank">#12632</a> · DEV-1854</div>
+
+  <nav>
+    <span class="nav-label">Version:</span>
+    <span class="nav-btn active">v17.0.1 CDN <span class="badge badge-bug">BEFORE — bug</span></span>
+    <a class="nav-btn" href="after.html">Local build <span class="badge badge-fix">AFTER — fixed</span></a>
+  </nav>
+
+  <div class="status-note">
+    ⚠️ <strong>BEFORE fix:</strong> frozen body rows drift out of alignment with the master grid when a wrapped column header lives in the frozen region. The gap grows at non-100% browser zoom.
+  </div>
+
+  <div class="info">
+    <strong>How to see the bug:</strong>
+    <ol style="margin-top:6px; padding-left:18px; line-height:1.9">
+      <li>Look at the boundary between the 2nd frozen column ("This is a very long header…") and the scrollable columns — notice the first body row is vertically offset by ~1px in the frozen area.</li>
+      <li>Scroll horizontally all the way right (frozen columns stay pinned) — the misalignment persists.</li>
+      <li>Zoom the browser to 75% or 90% — the gap becomes more pronounced (~1–2px).</li>
+      <li>Click <strong>Measure THEAD heights</strong> below — the Delta will be non-zero.</li>
+    </ol>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <div id="debug">
+    <strong>THEAD height diagnostics (measures all overlay &lt;thead&gt; heights):</strong>
+    <pre id="debug-out" style="margin-top:6px">— click the button to measure —</pre>
+    <button onclick="measureHeights()">Measure THEAD heights</button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.1/dist/handsontable.full.min.js"></script>
+  <script>
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: Handsontable.helper.createSpreadsheetData(100, 50),
+      colWidths: 100,
+      fixedColumnsStart: 2,
+      rowHeaders: true,
+      colHeaders: [
+        'Column A',
+        'This is a very long column header that wraps onto multiple lines',
+        'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P',
+        'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+        'AA', 'AB', 'AC', 'AD', 'AE', 'AF', 'AG', 'AH', 'AI', 'AJ',
+        'AK', 'AL', 'AM', 'AN', 'AO', 'AP', 'AQ', 'AR', 'AS', 'AT', 'AU', 'AV', 'AW', 'AX',
+      ],
+      columnHeaderHeight: 23,
+      height: 400,
+      width: '100%',
+      className: 'wrapHeader',
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    function measureHeights() {
+      const c = document.getElementById('hot-container');
+      const h = cls => {
+        const el = c.querySelector(`.${cls} thead`);
+        return el ? el.getBoundingClientRect().height : null;
+      };
+      const master  = h('ht_master');
+      const corner  = h('ht_clone_top_inline_start_corner');
+      const inlSt   = h('ht_clone_inline_start');
+      const top     = h('ht_clone_top');
+      const delta   = corner != null && master != null ? (corner - master).toFixed(3) : 'N/A';
+      const status  = Math.abs(corner - master) < 0.5 ? '✅ aligned' : '❌ MISALIGNED ← bug!';
+      document.getElementById('debug-out').textContent = [
+        `Master THEAD:                 ${master !== null ? master.toFixed(3)+'px' : 'N/A'}`,
+        `Corner THEAD:                 ${corner !== null ? corner.toFixed(3)+'px' : 'N/A'}`,
+        `InlineStart THEAD:            ${inlSt  !== null ? inlSt.toFixed(3)+'px'  : 'N/A'}`,
+        `Top THEAD:                    ${top    !== null ? top.toFixed(3)+'px'    : 'N/A'}`,
+        '',
+        `Delta (corner − master):      ${delta}px   ${status}`,
+      ].join('\n');
+    }
+  </script>
+</body>
+</html>
