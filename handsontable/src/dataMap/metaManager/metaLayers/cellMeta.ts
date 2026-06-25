@@ -330,6 +330,11 @@ export default class CellMeta {
       // A failed validation result (`valid === false`) is written directly onto the meta object by
       // the core validation flow (not through `setMeta`) and is not rebuilt on render, so the cell
       // must survive eviction or the invalid-cell highlight would disappear after scrolling away.
+      // Only `false` is preserved, not `valid === true`: a passing result has no rendered state and
+      // preserving every validated-valid cell would defeat the memory bound on a fully validated grid.
+      // The trade-off is that `getCellMeta().valid` reads back as `undefined` (not `true`) for an
+      // evicted-and-re-minted valid cell until it is validated again; no core reader distinguishes the
+      // two (all branch on `!== false`).
       const isInvalid = meta.valid === false;
 
       if (hasPersistedProps || isInvalid) {

@@ -146,6 +146,15 @@ export class Search extends BasePlugin {
     this.updatePluginSettings(searchSettings as Record<string, unknown>);
 
     this.addHook('beforeRenderer', this.#onBeforeRenderer);
+    // The tracked match set is keyed by physical coordinates captured at `query()` time. Inserting or
+    // removing rows/columns shifts those physical indexes, so the set would otherwise highlight the
+    // wrong cells (and miss the real, now-shifted matches). Drop it on any structure change; visible
+    // matches keep their highlight through the `isSearchResult` meta flag (which shifts with the cell),
+    // and the set is rebuilt on the next `query()`.
+    this.addHook('afterCreateRow', this.#onStructuralChange);
+    this.addHook('afterRemoveRow', this.#onStructuralChange);
+    this.addHook('afterCreateCol', this.#onStructuralChange);
+    this.addHook('afterRemoveCol', this.#onStructuralChange);
 
     super.enablePlugin();
   }
@@ -354,6 +363,16 @@ export class Search extends BasePlugin {
     }
 
     cellProperties.className = classArray.join(' ');
+  };
+
+  /**
+   * Clears the tracked query-result set on a row/column structure change. The set is keyed by physical
+   * coordinates captured at `query()` time; inserting or removing rows/columns shifts those indexes, so
+   * keeping the stale keys would highlight the wrong cells. The highlight is restored on the next
+   * `query()`.
+   */
+  #onStructuralChange = () => {
+    this.#queryResultCells.clear();
   };
 
   /**

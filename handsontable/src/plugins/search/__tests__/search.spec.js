@@ -629,4 +629,28 @@ describe('Search plugin', () => {
 
     expect(matches).toEqual([1, 2]);
   });
+
+  it('should not leave a stale search highlight on the wrong cell after inserting a row', async() => {
+    handsontable({
+      data: [['x'], ['y'], ['match'], ['w'], ['v']],
+      search: true,
+    });
+
+    const search = getPlugin('search');
+
+    search.query('match');
+
+    await render();
+
+    expect($(getCell(2, 0)).hasClass('htSearchResult')).toBe(true);
+
+    // Inserting a row shifts physical indexes. The matched-cell set is keyed by the coordinates
+    // captured at query() time, so without clearing it the cell now sitting at the match's old index
+    // would get a stray highlight.
+    await alter('insert_row_above', 0, 1);
+
+    // The match moved down with its data and keeps its highlight; the old position must not be lit.
+    expect($(getCell(3, 0)).hasClass('htSearchResult')).toBe(true);
+    expect($(getCell(2, 0)).hasClass('htSearchResult')).toBe(false);
+  });
 });
