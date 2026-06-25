@@ -4,9 +4,21 @@ This page covers guidelines for deploying the [Handsontable documentation](https
 
 ## About documentation deployment
 
-The documentation is deployed via Netlify. A [`prod-docs/<MAJOR.MINOR>` branch](./README.md#handsontable-documentation-branches-structure) with the largest version number gets automatically tagged as the documentation's latest version.
+The documentation is deployed via **Cloudflare Pages**. A [`prod-docs/<MAJOR.MINOR>` branch](./README.md#handsontable-documentation-branches-structure) with the largest version number gets automatically tagged as the documentation's latest version.
 
-The `prod-docs/latest` branch triggers a GitHub workflow that initiates a rebuild and deploys to Netlify on each push or when a new `prod-docs/<MAJOR.MINOR>` branch is created.
+The `prod-docs/latest` branch triggers a GitHub workflow that initiates a rebuild and deploys to Cloudflare on each push or when a new `prod-docs/<MAJOR.MINOR>` branch is created.
+
+### Deployment platforms (current state)
+
+| Environment | Platform |
+|---|---|
+| **Production** (`handsontable.com/docs`) | Cloudflare Pages |
+| **Staging** (`dev.handsontable.com/docs`) | Cloudflare Pages |
+| **Pull request previews** | Cloudflare Pages **and** Netlify (both generated, transitional) |
+
+Netlify no longer serves production - it remains active only for PR previews during the migration to Cloudflare. The `netlify/` and `cloudflare/` directories under `docs/` hold each platform's configuration and build scripts.
+
+> **Redirects must be kept in sync across both platforms.** See the [Redirects](#redirects) section below before editing any redirect rule.
 
 ## Deploying the documentation
 
@@ -63,7 +75,7 @@ To deploy the documentation to the [production environment](https://handsontable
 4. Select the Docs production branch that you want to deploy (e.g `prod-docs/12.1`).
 5. Select **Run workflow**.
 
-The deployment is handled entirely through Netlify. The `netlify/` directory in the `docs/` folder contains the Netlify configuration and build scripts used by the CI/CD pipeline.
+Production is served by Cloudflare Pages. The `cloudflare/` directory in the `docs/` folder contains the Cloudflare Pages worker and deployment scripts used by the CI/CD pipeline.
 
 ### Reverting a production deployment
 
