@@ -13,6 +13,7 @@ vue:
   metaTitle: Checkbox cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Create interactive elements that can be checked or unchecked, by using the checkbox cell type.
 

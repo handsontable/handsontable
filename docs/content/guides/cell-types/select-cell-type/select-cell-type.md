@@ -13,6 +13,7 @@ vue:
   metaTitle: Select cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Use the select cell type to collect user input with an HTML `<select>` element that creates a multi-item dropdown list.
 

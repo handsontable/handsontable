@@ -18,6 +18,7 @@ vue:
   metaTitle: Custom ID, class, and style - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: new
 ---
 
 Apply a custom `id`, `class`, and inline `style` to the Handsontable container, to target the grid with your own CSS or JavaScript selectors.

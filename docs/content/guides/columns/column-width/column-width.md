@@ -22,6 +22,7 @@ vue:
   metaTitle: Column widths - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
+menuTag: updated
 ---
 Configure column widths, using an array or a function. Let your users manually change column widths using Handsontable's interface.
 

@@ -28,8 +28,11 @@ react:
   metaTitle: Feature Name - React Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features    # Must match a sidebar category exactly
+menuTag: new | updated     # Optional; sidebar badge
 ---
 ```
+
+Set `menuTag: new` when you create a new page and `menuTag: updated` when you make a substantive content change to an existing page. Omit it for trivial fixes (typos, snippet/link corrections) and for changelog and migration-guide pages; leave any existing tag in place.
 
 ## 2. Page Structure
 
