@@ -59,8 +59,38 @@ async function readFromGitHub() {
   };
 }
 
+/**
+ * Calls readFromGitHub with retries so a transient GitHub API hiccup (rate
+ * limit, "Premature close", 5xx) does not abort the whole production deploy.
+ * After the final attempt the error propagates and the caller fails closed.
+ *
+ * @returns {object}
+ */
+async function readWithRetry() {
+  const maxAttempts = 5;
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await readFromGitHub();
+    } catch (error) {
+      lastError = error;
+
+      if (attempt < maxAttempts) {
+        const delayMs = 2000 * (2 ** (attempt - 1)); // 2s, 4s, 8s, 16s
+
+        // eslint-disable-next-line no-console
+        console.error(`Attempt ${attempt}/${maxAttempts} to read Docs versions failed (${error.message}); retrying in ${delayMs}ms.`);
+        await new Promise((resolve) => { setTimeout(resolve, delayMs); });
+      }
+    }
+  }
+
+  throw lastError;
+}
+
 try {
-  const versions = await readFromGitHub();
+  const versions = await readWithRetry();
 
   if (!versions.latestVersion) {
     throw new Error('Resolved an empty latest Docs version from the GitHub releases list.');
