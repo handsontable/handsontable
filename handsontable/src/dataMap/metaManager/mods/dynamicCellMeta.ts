@@ -22,6 +22,10 @@ type MetaManagerWithHot = MetaManagerInstance & {
   hot: {
     colToProp: (column: number) => string | number;
     runHooks: (...args: unknown[]) => unknown;
+    getFirstRenderedVisibleRow: () => number | null;
+    getLastRenderedVisibleRow: () => number | null;
+    toPhysicalRow: (visualRow: number) => number | null;
+    getSelectedRangeLast: () => { from: { row: number }, to: { row: number } } | undefined;
     [key: string]: unknown;
   };
   addLocalHook: (hookName: string, callback: (...args: unknown[]) => void) => void;
@@ -42,9 +46,26 @@ export class DynamicCellMetaMod {
    * @type {Map}
    */
   metaSyncMemo = new Map();
+  /**
+   * The lowest visual row index of the meta "keep band" tracked by the previous eviction pass - the
+   * viewport plus a one-viewport hysteresis margin. The next pass evicts the visual rows that fall
+   * between this band and the new one (the rows that just scrolled out), so the work is proportional
+   * to the scroll distance, not the number of materialized rows. `-1` means no band yet.
+   *
+   * @type {number}
+   */
+  #keepBandStart = -1;
+  /**
+   * The highest visual row index of the meta "keep band". See `#keepBandStart`.
+   *
+   * @type {number}
+   */
+  #keepBandEnd = -1;
 
   /**
-   * Initializes the modifier, registers the `afterGetCellMeta` local hook, and subscribes to `beforeRender` to clear the memo on full renders.
+   * Initializes the modifier, registers the `afterGetCellMeta` local hook, subscribes to `beforeRender`
+   * to clear the memo on full renders, and subscribes to `afterScrollVertically` and `afterViewRender`
+   * to evict render-derived cell meta for rows that left the viewport.
    */
   constructor(metaManager: MetaManagerWithHot) {
     this.metaManager = metaManager;
@@ -58,6 +79,14 @@ export class DynamicCellMetaMod {
         this.metaSyncMemo.clear();
       }
     }, this.metaManager.hot);
+
+    const evict = () => this.#evictMetaOutsideViewport();
+
+    // Scrolling materializes cell meta for newly visible rows; evict the rows that left the viewport.
+    Hooks.getSingleton().add('afterScrollVertically', evict, this.metaManager.hot);
+    // A full render (for example after a sort or filter) can leave behind meta for rows that are no
+    // longer in view; run the same pass so retention stays bounded regardless of what triggered it.
+    Hooks.getSingleton().add('afterViewRender', evict, this.metaManager.hot);
   }
 
   /**
@@ -115,5 +144,81 @@ export class DynamicCellMetaMod {
     }
 
     this.metaSyncMemo.get(physicalRow).add(physicalColumn);
+  }
+
+  /**
+   * Evicts render-derived cell meta for rows that scrolled out of the viewport, bounding meta
+   * retention to roughly the visible rows plus a one-viewport hysteresis margin on each side ("keep
+   * band"). Only the visual rows that fall between the previous keep band and the new one are visited
+   * (the rows that just left), so the cost is proportional to the scroll distance, NOT to the number
+   * of materialized rows - a grid with many `setCellMeta`/`cell`-option rows pays nothing extra here.
+   * The band is tracked in visual space and never reset, so a full render that does not move the
+   * viewport produces an empty diff (no work). Row-axis only - the vertical axis is the large one;
+   * horizontal scrolling does not evict.
+   */
+  #evictMetaOutsideViewport() {
+    const hot = this.metaManager.hot;
+    const firstVisibleRow = hot.getFirstRenderedVisibleRow();
+    const lastVisibleRow = hot.getLastRenderedVisibleRow();
+
+    if (firstVisibleRow === null || lastVisibleRow === null || lastVisibleRow < firstVisibleRow) {
+      return;
+    }
+
+    const viewportSize = (lastVisibleRow - firstVisibleRow) + 1;
+    const keepStart = firstVisibleRow - viewportSize;
+    const keepEnd = lastVisibleRow + viewportSize;
+    const previousStart = this.#keepBandStart;
+    const previousEnd = this.#keepBandEnd;
+
+    if (previousStart !== -1) {
+      // Visual rows that dropped below the new keep band.
+      this.#evictVisualRowRange(previousStart, Math.min(previousEnd, keepStart - 1));
+      // Visual rows that rose above the new keep band.
+      this.#evictVisualRowRange(Math.max(previousStart, keepEnd + 1), previousEnd);
+    }
+
+    this.#keepBandStart = keepStart;
+    this.#keepBandEnd = keepEnd;
+  }
+
+  /**
+   * Evicts render-derived cell meta for an inclusive range of visual rows. Each visual row is
+   * translated to its physical index (cell meta is keyed physically) reading the mapping fresh, so a
+   * sort or move that happened since the band was recorded resolves correctly. The currently selected
+   * rows are skipped: the prepared or active editor holds the selected cell's meta object by reference
+   * (see `BaseEditor#cellProperties`), so evicting it could strand the editor. The matching
+   * `metaSyncMemo` entry is cleared so the dynamic extension re-runs when the row is rendered again.
+   *
+   * @param {number} fromVisualRow The first visual row index in the range (inclusive).
+   * @param {number} toVisualRow The last visual row index in the range (inclusive).
+   */
+  #evictVisualRowRange(fromVisualRow: number, toVisualRow: number) {
+    if (fromVisualRow > toVisualRow) {
+      return;
+    }
+
+    const hot = this.metaManager.hot;
+    const selectedRange = hot.getSelectedRangeLast();
+    let selectionRowStart = -1;
+    let selectionRowEnd = -1;
+
+    if (selectedRange) {
+      selectionRowStart = Math.min(selectedRange.from.row, selectedRange.to.row);
+      selectionRowEnd = Math.max(selectedRange.from.row, selectedRange.to.row);
+    }
+
+    for (let visualRow = fromVisualRow; visualRow <= toVisualRow; visualRow++) {
+      const isSelected = visualRow >= selectionRowStart && visualRow <= selectionRowEnd;
+
+      if (!isSelected) {
+        const physicalRow = hot.toPhysicalRow(visualRow);
+
+        if (physicalRow !== null) {
+          this.metaManager.cellMeta.evictRow(physicalRow);
+          this.metaSyncMemo.delete(physicalRow);
+        }
+      }
+    }
   }
 }

@@ -186,6 +186,14 @@ export default class CellMeta {
     (cellMeta._automaticallyAssignedMetaProps as Set<string> | undefined)?.delete(key);
     cellMeta[key] = value;
 
+    // Every `setMeta` write - imperative or declarative (`cell` option) - is non-reconstructable by
+    // `getCellMeta`, so record it; the viewport-eviction pass keeps cells whose set is non-empty.
+    if (cellMeta._persistedMetaProps === undefined) {
+      cellMeta._persistedMetaProps = new Set();
+    }
+
+    (cellMeta._persistedMetaProps as Set<string>).add(key);
+
     if (this.#userDefinedMetaRecordingSuspendCount === 0) {
       if (cellMeta._userDefinedMetaProps === undefined) {
         cellMeta._userDefinedMetaProps = new Set();
@@ -209,6 +217,7 @@ export default class CellMeta {
 
     delete cellMeta[key];
     (cellMeta._userDefinedMetaProps as Set<string> | undefined)?.delete(key);
+    (cellMeta._persistedMetaProps as Set<string> | undefined)?.delete(key);
   }
 
   /**
@@ -285,6 +294,51 @@ export default class CellMeta {
     }
 
     return result;
+  }
+
+  /**
+   * Releases render-derived cell meta objects for a single physical row, freeing memory for rows
+   * scrolled out of the viewport. Only cells that carry no persisted meta props (nothing set through
+   * `setMeta`/`setCellMeta`, whether imperatively or via the declarative `cell` option) are evicted -
+   * those objects are pure cascade/`cells`/`type` derivations and are re-created lazily on the next
+   * `getMeta` call. Cells with persisted props are kept so those values survive scrolling. When the
+   * whole row is purely render-derived, its inner map is dropped as well.
+   *
+   * @param {number} physicalRow The physical row index to evict.
+   * @returns {boolean} `true` when at least one cell meta object was evicted.
+   */
+  evictRow(physicalRow: number) {
+    const rowStorageIndex = this.metas._getStorageIndexByKey(physicalRow);
+
+    if (rowStorageIndex < 0) {
+      return false;
+    }
+
+    const rowMap = this.metas.data[rowStorageIndex];
+
+    if (rowMap === undefined) {
+      return false;
+    }
+
+    let hasPersistedCell = false;
+    let evicted = false;
+
+    for (const [physicalColumn, meta] of rowMap) {
+      const persistedProps = meta._persistedMetaProps as Set<string> | undefined;
+
+      if (persistedProps !== undefined && persistedProps.size > 0) {
+        hasPersistedCell = true;
+      } else {
+        rowMap.evict(physicalColumn);
+        evicted = true;
+      }
+    }
+
+    if (!hasPersistedCell) {
+      this.metas.evict(physicalRow);
+    }
+
+    return evicted;
   }
 
   /**

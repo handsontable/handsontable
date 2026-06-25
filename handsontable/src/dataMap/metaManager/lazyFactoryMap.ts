@@ -189,6 +189,23 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
   }
 
   /**
+   * Releases the value stored under the given key while keeping its index slot intact. The next
+   * `obtain` call for that key re-creates the value through the factory. Unlike `remove`, the key
+   * mapping is preserved (no "hole" is created and surrounding keys do not shift), so this is safe
+   * for values that can be reconstructed deterministically - for example render-derived cell meta
+   * for rows scrolled out of the viewport. Does nothing when the key has no materialized value.
+   *
+   * @param {number} key The item key as zero-based index.
+   */
+  evict(key: number) {
+    const dataIndex = this._getStorageIndexByKey(key);
+
+    if (dataIndex >= 0) {
+      this.data[dataIndex] = undefined;
+    }
+  }
+
+  /**
    * Clears the map.
    */
   clear() {

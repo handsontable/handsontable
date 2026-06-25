@@ -786,4 +786,88 @@ describe('ColumnMeta', () => {
       ]);
     });
   });
+
+  describe('evictRow()', () => {
+    it('should evict render-derived cell meta for a row and re-create it lazily on next access', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      const firstMeta = meta.getMeta(5, 0);
+
+      expect(meta.evictRow(5)).toBe(true);
+
+      // A fresh object is created on the next access (the original was released).
+      const secondMeta = meta.getMeta(5, 0);
+
+      expect(secondMeta).not.toBe(firstMeta);
+    });
+
+    it('should keep cells that carry user-defined meta props and evict the rest of the row', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.getMeta(5, 0); // render-derived (no user props)
+      meta.setMeta(5, 1, 'className', 'htRight'); // user-defined - must survive
+
+      const userMetaBefore = meta.getMeta(5, 1);
+
+      meta.evictRow(5);
+
+      // The user-defined cell keeps its identity and value; the prop-less cell is gone.
+      expect(meta.getMeta(5, 1)).toBe(userMetaBefore);
+      expect(meta.getMeta(5, 1)).toHaveProperty('className', 'htRight');
+      expect(meta.getUserDefinedMetas()).toEqual([
+        { physicalRow: 5, physicalColumn: 1, key: 'className', value: 'htRight' },
+      ]);
+    });
+
+    it('should return false for a row that was never materialized', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      expect(meta.evictRow(42)).toBe(false);
+    });
+
+    it('should preserve user-defined meta after eviction and re-materialization of sibling cells', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.setMeta(5, 1, 'className', 'htRight');
+      meta.getMeta(5, 0);
+      meta.getMeta(5, 2);
+
+      meta.evictRow(5);
+
+      // Re-access prop-less siblings; the user-defined cell is still intact.
+      meta.getMeta(5, 0);
+
+      expect(meta.getMeta(5, 1)).toHaveProperty('className', 'htRight');
+    });
+
+    it('should keep cells set declaratively while user-defined recording is disabled (the `cell` option path)', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      // Mirrors how Core applies the `cell` option: recording is disabled, so the write is NOT a
+      // user-defined prop, yet it is still non-reconstructable and must survive eviction.
+      meta.disableUserDefinedMetaRecording();
+      meta.setMeta(5, 1, 'className', 'declared-class');
+      meta.enableUserDefinedMetaRecording();
+
+      const declaredMetaBefore = meta.getMeta(5, 1);
+
+      meta.evictRow(5);
+
+      // It is not tracked as user-defined...
+      expect(meta.getUserDefinedMetas()).toEqual([]);
+      // ...but it is still kept and unchanged after eviction.
+      expect(meta.getMeta(5, 1)).toBe(declaredMetaBefore);
+      expect(meta.getMeta(5, 1)).toHaveProperty('className', 'declared-class');
+    });
+  });
 });
