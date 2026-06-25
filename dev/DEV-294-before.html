@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DEV-294 BEFORE FIX — NestedHeaders + HiddenColumns + CollapsibleColumns</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 24px; background: #fafafa; }
+    h1 { color: #b00; margin-bottom: 4px; }
+    .version { color: #888; font-size: 14px; margin-bottom: 16px; }
+    .panel { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; }
+    .bug { background: #f8d7da; border-left: 4px solid #dc3545; }
+    .info { background: #fff3cd; border-left: 4px solid #ffc107; }
+    .steps { background: #e8f4fd; border-left: 4px solid #0d6efd; }
+    .steps ol { margin: 6px 0 0 16px; padding: 0; }
+    .steps li { margin-bottom: 4px; }
+    #hot { margin-top: 24px; }
+    a.after-link { display: inline-block; margin-top: 16px; background: #198754; color: #fff;
+      padding: 8px 16px; border-radius: 4px; text-decoration: none; font-weight: bold; }
+    a.after-link:hover { background: #146c43; }
+  </style>
+</head>
+<body>
+  <h1>DEV-294 — BEFORE FIX</h1>
+  <div class="version">Handsontable v17.1.0 (latest stable, bug present)</div>
+
+  <div class="bug panel">
+    <strong>Bug:</strong> When using <em>NestedHeaders</em> + <em>HiddenColumns</em> + <em>CollapsibleColumns</em>
+    together, the header colspan is not correctly reduced for hidden columns inside a collapsible group.
+    This causes the header row to be wider than the data body — every header to the right of a
+    collapsible group that contains a hidden column is shifted one (or more) positions off its data column.
+  </div>
+
+  <div class="info panel">
+    <strong>Setup:</strong> 7 columns of data. The "Group A" header spans columns 0–2 (colspan 3).
+    Column 2 is hidden via HiddenColumns. CollapsibleColumns and ManualColumnMove are enabled.
+    <br><br>
+    <strong>Expected:</strong> "Group A" should show colspan 2 (one hidden column subtracted).
+    Headers B1, C1, D1, E1 should align with their data columns.
+    <br>
+    <strong>Actual (buggy):</strong> "Group A" keeps colspan 3. Headers B1–E1 are shifted one column
+    to the right — B1 sits over C's data, C1 over D's data, etc.
+  </div>
+
+  <div class="steps panel">
+    <strong>Also try:</strong>
+    <ol>
+      <li>Click the collapse triangle on "Group A" — the collapsed state is wrong.</li>
+      <li>Use right-click → Show columns to unhide column 2 — alignment gets worse.</li>
+    </ol>
+  </div>
+
+  <div id="hot"></div>
+
+  <script>
+    const container = document.getElementById('hot');
+
+    const hot = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(8, 7),
+      colHeaders: true,
+      rowHeaders: true,
+      nestedHeaders: [
+        [{ label: 'Group A', colspan: 3 }, { label: 'Group B', colspan: 2 }, 'F', 'G'],
+        ['A1', 'A2', 'A3', 'B1', 'B2', 'F1', 'G1'],
+      ],
+      hiddenColumns: {
+        columns: [2],
+        indicators: true,
+      },
+      collapsibleColumns: [
+        { row: -2, col: 0, collapsible: true },
+        { row: -2, col: 3, collapsible: true },
+      ],
+      manualColumnMove: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

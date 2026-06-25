@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DEV-294 AFTER FIX — NestedHeaders + HiddenColumns + CollapsibleColumns</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@0.0.0-next-b66db2e-20260625/dist/handsontable.full.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@0.0.0-next-b66db2e-20260625/dist/handsontable.full.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 24px; background: #fafafa; }
+    h1 { color: #155724; margin-bottom: 4px; }
+    .version { color: #888; font-size: 14px; margin-bottom: 16px; }
+    .panel { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; }
+    .fixed { background: #d4edda; border-left: 4px solid #28a745; }
+    .info { background: #fff3cd; border-left: 4px solid #ffc107; }
+    .steps { background: #e8f4fd; border-left: 4px solid #0d6efd; }
+    .steps ol { margin: 6px 0 0 16px; padding: 0; }
+    .steps li { margin-bottom: 4px; }
+    #hot { margin-top: 24px; }
+    a.before-link { display: inline-block; margin-top: 16px; background: #dc3545; color: #fff;
+      padding: 8px 16px; border-radius: 4px; text-decoration: none; font-weight: bold; }
+    a.before-link:hover { background: #b02a37; }
+  </style>
+</head>
+<body>
+  <h1>DEV-294 — AFTER FIX</h1>
+  <div class="version">Handsontable nightly build based on develop (fix included — syncVisibilityOnTree)</div>
+
+  <div class="fixed panel">
+    <strong>Fixed:</strong> Header colspan and visibility are now derived from a single visibility source
+    (<code>syncVisibilityOnTree</code> backed by the column index mapper) instead of incremental
+    per-operation node modifiers. The fix correctly reduces "Group A"'s colspan from 3 to 2
+    when column 2 is hidden — regardless of whether the hide came from HiddenColumns,
+    CollapsibleColumns, or any other source.
+  </div>
+
+  <div class="info panel">
+    <strong>Setup:</strong> Same configuration as the "before" page — 7 columns, "Group A" spans columns 0–2,
+    column 2 is hidden, CollapsibleColumns and ManualColumnMove are enabled.
+    <br><br>
+    <strong>Result:</strong> "Group A" correctly shows colspan 2. Headers B1, C1, D1, E1 align
+    with their data columns.
+  </div>
+
+  <div class="steps panel">
+    <strong>Also verify:</strong>
+    <ol>
+      <li>Click the collapse triangle on "Group A" — it collapses cleanly, hiding A2 and A3 (column 1 stays).</li>
+      <li>Right-click → Show columns to unhide column 2 — headers stay aligned.</li>
+      <li>Drag and drop to reorder columns while column 2 is hidden — headers remain correct.</li>
+    </ol>
+  </div>
+
+  <div id="hot"></div>
+
+  <script>
+    const container = document.getElementById('hot');
+
+    const hot = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(8, 7),
+      colHeaders: true,
+      rowHeaders: true,
+      nestedHeaders: [
+        [{ label: 'Group A', colspan: 3 }, { label: 'Group B', colspan: 2 }, 'F', 'G'],
+        ['A1', 'A2', 'A3', 'B1', 'B2', 'F1', 'G1'],
+      ],
+      hiddenColumns: {
+        columns: [2],
+        indicators: true,
+      },
+      collapsibleColumns: [
+        { row: -2, col: 0, collapsible: true },
+        { row: -2, col: 3, collapsible: true },
+      ],
+      manualColumnMove: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>
