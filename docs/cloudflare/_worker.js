@@ -826,6 +826,16 @@ export default {
         '/docs/javascript-data-grid/angular-custom-renderer-example/': '/docs/angular-data-grid/cell-renderer/',
         '/docs/javascript-data-grid/angular-language-change-example/': '/docs/angular-data-grid/language/',
         '/docs/javascript-data-grid/angular-hot-reference/': '/docs/angular-data-grid/api/core/',
+        // Custom ID, class, and style: Vue-only page unified into an all-framework
+        // page (permalink renamed vue-custom-id-class-style → custom-id-class-style).
+        '/docs/javascript-data-grid/vue-custom-id-class-style/': '/docs/javascript-data-grid/custom-id-class-style/',
+        '/docs/react-data-grid/vue-custom-id-class-style/': '/docs/react-data-grid/custom-id-class-style/',
+        '/docs/angular-data-grid/vue-custom-id-class-style/': '/docs/angular-data-grid/custom-id-class-style/',
+        '/docs/vue-data-grid/vue-custom-id-class-style/': '/docs/vue-data-grid/custom-id-class-style/',
+        '/docs/javascript-data-grid/vue3-custom-id-class-style/': '/docs/javascript-data-grid/custom-id-class-style/',
+        '/docs/react-data-grid/vue3-custom-id-class-style/': '/docs/react-data-grid/custom-id-class-style/',
+        '/docs/angular-data-grid/vue3-custom-id-class-style/': '/docs/angular-data-grid/custom-id-class-style/',
+        '/docs/vue-data-grid/vue3-custom-id-class-style/': '/docs/vue-data-grid/custom-id-class-style/',
       };
       // Also normalise without trailing slash.
       const normalised = path.endsWith('/') ? path : `${path}/`;
