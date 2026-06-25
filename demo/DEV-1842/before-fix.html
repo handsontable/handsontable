@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEV-1842: Before Fix — hot.undo() / hot.redo() broken (undefined)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.0/dist/handsontable.full.min.css">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: 0 auto; }
+    h1 { color: #c0392b; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+    .badge-before { background: #c0392b; color: white; }
+    .panel { background: #fff3f3; border: 1px solid #e74c3c; border-radius: 6px; padding: 16px; margin: 16px 0; }
+    .log { font-family: monospace; font-size: 13px; background: #1a1a2e; color: #eee; padding: 12px; border-radius: 4px; min-height: 80px; max-height: 200px; overflow-y: auto; }
+    .log .error { color: #ff6b6b; }
+    .log .warn  { color: #ffd93d; }
+    .log .ok    { color: #6bcb77; }
+    .log .info  { color: #74b9ff; }
+    button { margin: 4px; padding: 8px 14px; cursor: pointer; border-radius: 4px; border: 1px solid #ccc; font-size: 14px; }
+    button:hover { background: #f0f0f0; }
+    #hot-container { margin: 16px 0; }
+    .issue-box { background: #ffeeba; border: 1px solid #e0a800; border-radius: 6px; padding: 12px; margin: 10px 0; }
+    code { background: #f4f4f4; padding: 1px 5px; border-radius: 3px; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1842 <span class="badge badge-before">BEFORE FIX</span></h1>
+  <p>
+    This demo uses <strong>Handsontable 17.0.0</strong> — the last release before the fix was merged.<br>
+    The <code>#exposeAPIToCore()</code> private method existed in <code>UndoRedo</code> but was <strong>never called</strong>,
+    so <code>hot.undo()</code>, <code>hot.redo()</code>, <code>hot.clearUndo()</code>,
+    <code>hot.isUndoAvailable()</code>, <code>hot.isRedoAvailable()</code>, and <code>hot.undoRedo</code>
+    are all <strong><code>undefined</code></strong> at runtime.
+  </p>
+
+  <div class="issue-box">
+    <strong>Bug:</strong> These core-level methods were never wired up. Clicking the buttons below demonstrates
+    that calling them throws a <code>TypeError: hot.undo is not a function</code>.
+  </div>
+
+  <div id="hot-container"></div>
+
+  <div>
+    <button onclick="doUndo()">hot.undo() — should undo</button>
+    <button onclick="doRedo()">hot.redo() — should redo</button>
+    <button onclick="doClearUndo()">hot.clearUndo() — should clear</button>
+    <button onclick="doCheckAvailable()">hot.isUndoAvailable() / hot.isRedoAvailable()</button>
+    <button onclick="doCheckUndoRedoProp()">Inspect hot.undoRedo</button>
+    <button onclick="editCell()">Edit a cell (then try Undo)</button>
+  </div>
+
+  <div class="panel">
+    <strong>Console log:</strong>
+    <div class="log" id="log"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.0/dist/handsontable.full.min.js"></script>
+  <script>
+    const container = document.getElementById('hot-container');
+    const logEl = document.getElementById('log');
+
+    function log(msg, type = 'info') {
+      const line = document.createElement('div');
+      line.className = type;
+      line.textContent = msg;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    const hot = new Handsontable(container, {
+      data: [
+        ['Alice', 28, 'Engineer'],
+        ['Bob',   34, 'Designer'],
+        ['Carol', 25, 'PM'],
+        ['Dave',  41, 'QA'],
+      ],
+      colHeaders: ['Name', 'Age', 'Role'],
+      rowHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+      undo: true,
+    });
+
+    log('Handsontable 17.0.0 initialized (undo: true)', 'ok');
+    log(`typeof hot.undo          → ${typeof hot.undo}`, hot.undo === undefined ? 'error' : 'ok');
+    log(`typeof hot.redo          → ${typeof hot.redo}`, hot.redo === undefined ? 'error' : 'ok');
+    log(`typeof hot.clearUndo     → ${typeof hot.clearUndo}`, hot.clearUndo === undefined ? 'error' : 'ok');
+    log(`typeof hot.isUndoAvailable → ${typeof hot.isUndoAvailable}`, hot.isUndoAvailable === undefined ? 'error' : 'ok');
+    log(`typeof hot.isRedoAvailable → ${typeof hot.isRedoAvailable}`, hot.isRedoAvailable === undefined ? 'error' : 'ok');
+    log(`hot.undoRedo             → ${hot.undoRedo}`, hot.undoRedo === undefined ? 'error' : 'ok');
+
+    function doUndo() {
+      log('--- Calling hot.undo() ---', 'info');
+      if (typeof hot.undo !== 'function') {
+        log(`FAIL: hot.undo is ${typeof hot.undo} (expected function)`, 'error');
+      } else {
+        hot.undo();
+        log('hot.undo() called successfully', 'ok');
+      }
+    }
+
+    function doRedo() {
+      log('--- Calling hot.redo() ---', 'info');
+      if (typeof hot.redo !== 'function') {
+        log(`FAIL: hot.redo is ${typeof hot.redo} (expected function)`, 'error');
+      } else {
+        hot.redo();
+        log('hot.redo() called successfully', 'ok');
+      }
+    }
+
+    function doClearUndo() {
+      log('--- Calling hot.clearUndo() ---', 'info');
+      if (typeof hot.clearUndo !== 'function') {
+        log(`FAIL: hot.clearUndo is ${typeof hot.clearUndo} (expected function)`, 'error');
+      } else {
+        hot.clearUndo();
+        log('hot.clearUndo() called successfully', 'ok');
+      }
+    }
+
+    function doCheckAvailable() {
+      log('--- Calling hot.isUndoAvailable() / hot.isRedoAvailable() ---', 'info');
+      if (typeof hot.isUndoAvailable !== 'function') {
+        log(`FAIL: hot.isUndoAvailable is ${typeof hot.isUndoAvailable}`, 'error');
+      } else {
+        log(`hot.isUndoAvailable() = ${hot.isUndoAvailable()}`, 'ok');
+      }
+      if (typeof hot.isRedoAvailable !== 'function') {
+        log(`FAIL: hot.isRedoAvailable is ${typeof hot.isRedoAvailable}`, 'error');
+      } else {
+        log(`hot.isRedoAvailable() = ${hot.isRedoAvailable()}`, 'ok');
+      }
+    }
+
+    function doCheckUndoRedoProp() {
+      log('--- Inspecting hot.undoRedo ---', 'info');
+      log(`hot.undoRedo = ${hot.undoRedo}`, hot.undoRedo === undefined ? 'error' : 'ok');
+    }
+
+    function editCell() {
+      hot.setDataAtCell(0, 1, 99);
+      log('Set row 0, col 1 to 99 — now try the undo buttons above', 'info');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEV-1842: After Fix — hot.getPlugin('undoRedo') works correctly</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.css">
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; max-width: 900px; margin: 0 auto; }
+    h1 { color: #27ae60; }
+    .badge { display: inline-block; padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+    .badge-after { background: #27ae60; color: white; }
+    .panel { background: #f3fff3; border: 1px solid #2ecc71; border-radius: 6px; padding: 16px; margin: 16px 0; }
+    .log { font-family: monospace; font-size: 13px; background: #1a1a2e; color: #eee; padding: 12px; border-radius: 4px; min-height: 80px; max-height: 200px; overflow-y: auto; }
+    .log .error { color: #ff6b6b; }
+    .log .warn  { color: #ffd93d; }
+    .log .ok    { color: #6bcb77; }
+    .log .info  { color: #74b9ff; }
+    button { margin: 4px; padding: 8px 14px; cursor: pointer; border-radius: 4px; border: 1px solid #ccc; font-size: 14px; }
+    button:hover { background: #f0f0f0; }
+    #hot-container { margin: 16px 0; }
+    .fix-box { background: #d4efdf; border: 1px solid #27ae60; border-radius: 6px; padding: 12px; margin: 10px 0; }
+    code { background: #f4f4f4; padding: 1px 5px; border-radius: 3px; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1842 <span class="badge badge-after">AFTER FIX</span></h1>
+  <p>
+    This demo uses <strong>Handsontable 17.1.0</strong> — the release after the fix was merged.<br>
+    The deprecated <code>#exposeAPIToCore()</code> dead code has been removed. The correct API is
+    <code>hot.getPlugin('undoRedo').undo()</code>, <code>.redo()</code>, <code>.clear()</code>,
+    <code>.isUndoAvailable()</code>, and <code>.isRedoAvailable()</code>.
+  </p>
+
+  <div class="fix-box">
+    <strong>Fix:</strong> Dead code (<code>#exposeAPIToCore</code> / <code>#removeAPIFromCore</code>) removed from
+    <code>undoRedo.ts</code>. TypeScript types cleaned up. Use <code>hot.getPlugin('undoRedo')</code> going forward.
+  </div>
+
+  <div id="hot-container"></div>
+
+  <div>
+    <button onclick="editCell()">1. Edit a cell</button>
+    <button onclick="doUndo()">2. plugin.undo()</button>
+    <button onclick="doRedo()">3. plugin.redo()</button>
+    <button onclick="doClearUndo()">plugin.clear()</button>
+    <button onclick="doCheckAvailable()">plugin.isUndoAvailable() / isRedoAvailable()</button>
+    <button onclick="doInspectPlugin()">Inspect plugin object</button>
+    <button onclick="doVerifyNoDirectMethods()">Verify hot.undo is undefined</button>
+  </div>
+
+  <div class="panel">
+    <strong>Console log:</strong>
+    <div class="log" id="log"></div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script>
+    const container = document.getElementById('hot-container');
+    const logEl = document.getElementById('log');
+
+    function log(msg, type = 'info') {
+      const line = document.createElement('div');
+      line.className = type;
+      line.textContent = msg;
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    const hot = new Handsontable(container, {
+      data: [
+        ['Alice', 28, 'Engineer'],
+        ['Bob',   34, 'Designer'],
+        ['Carol', 25, 'PM'],
+        ['Dave',  41, 'QA'],
+      ],
+      colHeaders: ['Name', 'Age', 'Role'],
+      rowHeaders: true,
+      licenseKey: 'non-commercial-and-evaluation',
+      undo: true,
+    });
+
+    const plugin = hot.getPlugin('undoRedo');
+    log('Handsontable 17.1.0 initialized (undo: true)', 'ok');
+    log(`plugin = hot.getPlugin('undoRedo') → ${plugin ? plugin.constructor.name : 'null'}`, plugin ? 'ok' : 'error');
+    log(`typeof plugin.undo          → ${typeof plugin.undo}`, typeof plugin.undo === 'function' ? 'ok' : 'error');
+    log(`typeof plugin.redo          → ${typeof plugin.redo}`, typeof plugin.redo === 'function' ? 'ok' : 'error');
+    log(`typeof plugin.clear         → ${typeof plugin.clear}`, typeof plugin.clear === 'function' ? 'ok' : 'error');
+    log(`typeof plugin.isUndoAvailable → ${typeof plugin.isUndoAvailable}`, typeof plugin.isUndoAvailable === 'function' ? 'ok' : 'error');
+    log(`typeof plugin.isRedoAvailable → ${typeof plugin.isRedoAvailable}`, typeof plugin.isRedoAvailable === 'function' ? 'ok' : 'error');
+
+    function editCell() {
+      hot.setDataAtCell(0, 1, 99);
+      log('Set [0,1] to 99. isUndoAvailable=' + plugin.isUndoAvailable(), 'info');
+    }
+
+    function doUndo() {
+      log('--- Calling plugin.undo() ---', 'info');
+      if (plugin.isUndoAvailable()) {
+        plugin.undo();
+        log('plugin.undo() called successfully. isUndoAvailable=' + plugin.isUndoAvailable(), 'ok');
+      } else {
+        log('Nothing to undo (isUndoAvailable=false). Edit a cell first.', 'warn');
+      }
+    }
+
+    function doRedo() {
+      log('--- Calling plugin.redo() ---', 'info');
+      if (plugin.isRedoAvailable()) {
+        plugin.redo();
+        log('plugin.redo() called successfully. isRedoAvailable=' + plugin.isRedoAvailable(), 'ok');
+      } else {
+        log('Nothing to redo (isRedoAvailable=false). Undo first.', 'warn');
+      }
+    }
+
+    function doClearUndo() {
+      log('--- Calling plugin.clear() ---', 'info');
+      plugin.clear();
+      log('plugin.clear() done. isUndoAvailable=' + plugin.isUndoAvailable(), 'ok');
+    }
+
+    function doCheckAvailable() {
+      log('--- Checking availability ---', 'info');
+      log(`plugin.isUndoAvailable() = ${plugin.isUndoAvailable()}`, 'ok');
+      log(`plugin.isRedoAvailable() = ${plugin.isRedoAvailable()}`, 'ok');
+    }
+
+    function doInspectPlugin() {
+      log('--- Inspecting plugin ---', 'info');
+      log(`plugin.constructor.PLUGIN_KEY = ${plugin.constructor.PLUGIN_KEY}`, 'ok');
+      log(`plugin.enabled = ${plugin.enabled}`, 'ok');
+      log(`plugin.doneActions.length = ${plugin.doneActions.length}`, 'ok');
+      log(`plugin.undoneActions.length = ${plugin.undoneActions.length}`, 'ok');
+    }
+
+    function doVerifyNoDirectMethods() {
+      log('--- Verify hot.undo / hot.redo / etc. are undefined (by design) ---', 'info');
+      log(`typeof hot.undo          → ${typeof hot.undo}`, hot.undo === undefined ? 'ok' : 'error');
+      log(`typeof hot.redo          → ${typeof hot.redo}`, hot.redo === undefined ? 'ok' : 'error');
+      log(`typeof hot.clearUndo     → ${typeof hot.clearUndo}`, hot.clearUndo === undefined ? 'ok' : 'error');
+      log(`typeof hot.isUndoAvailable → ${typeof hot.isUndoAvailable}`, hot.isUndoAvailable === undefined ? 'ok' : 'error');
+      log(`typeof hot.isRedoAvailable → ${typeof hot.isRedoAvailable}`, hot.isRedoAvailable === undefined ? 'ok' : 'error');
+      log(`typeof hot.undoRedo      → ${typeof hot.undoRedo}`, hot.undoRedo === undefined ? 'ok' : 'error');
+      log('All core-level aliases correctly absent — use hot.getPlugin("undoRedo") instead', 'ok');
+    }
+  </script>
+</body>
+</html>
