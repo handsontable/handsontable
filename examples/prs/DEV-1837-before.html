@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DEV-1837 – Before Fix (noImplicitThis: false)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.6.1/dist/handsontable.full.min.css" />
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    h1 { font-size: 1.2em; color: #c0392b; }
+    .label { display: inline-block; background: #c0392b; color: #fff; padding: 3px 8px; border-radius: 3px; font-size: 0.8em; margin-bottom: 10px; }
+    .desc { background: #fff3cd; border: 1px solid #ffc107; padding: 10px 14px; border-radius: 4px; margin-bottom: 14px; font-size: 0.9em; }
+    .controls { margin: 10px 0; display: flex; gap: 8px; flex-wrap: wrap; }
+    button { padding: 6px 12px; border: 1px solid #aaa; border-radius: 3px; cursor: pointer; }
+    button:hover { background: #eee; }
+    #log { margin-top: 14px; padding: 8px 12px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; font-family: monospace; font-size: 0.82em; min-height: 40px; white-space: pre-wrap; }
+    #grid { margin-top: 14px; }
+  </style>
+</head>
+<body>
+  <span class="label">BEFORE FIX</span>
+  <h1>DEV-1837: Before fix – noImplicitThis: false (Handsontable 14.6.1)</h1>
+
+  <div class="desc">
+    <strong>State before the fix:</strong> <code>tsconfig.json</code> had <code>"noImplicitThis": false</code>, which meant TypeScript did not enforce explicit
+    <code>this</code> typing in function expressions. The source used <code>this: any</code> annotations (or none at all) in <code>core.ts</code> methods
+    like <code>suspendRender</code>, <code>validateCells</code>, and in all built-in renderers. This demo uses Handsontable 14.6.1 — a version before the fix —
+    to show the same runtime behavior. No functional difference is visible at runtime; the fix is purely a TypeScript strictness improvement.
+  </div>
+
+  <div class="controls">
+    <button id="btn-suspend">Suspend + batch render</button>
+    <button id="btn-validate">Validate cells</button>
+    <button id="btn-validate-rows">Validate rows [0,1]</button>
+    <button id="btn-validate-cols">Validate columns [0]</button>
+    <button id="btn-clear">Clear selection</button>
+    <button id="btn-select-all">Select all</button>
+  </div>
+
+  <div id="grid"></div>
+  <div id="log">— log output —</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@14.6.1/dist/handsontable.full.min.js"></script>
+  <script>
+    const log = (...args) => {
+      document.getElementById('log').textContent = args.join(' ');
+    };
+
+    const container = document.getElementById('grid');
+    const hot = new Handsontable(container, {
+      data: [
+        ['Alice', 25, 'alice@example.com', 1200],
+        ['Bob', 17, 'not-an-email', -50],
+        ['Carol', 30, 'carol@example.com', 800],
+        ['Dave', 22, 'dave@example.com', 600],
+        ['Eve', 'old', 'eve@example.com', 300],
+      ],
+      colHeaders: ['Name', 'Age', 'Email', 'Score'],
+      columns: [
+        { type: 'text' },
+        { type: 'numeric', validator: (val, cb) => cb(typeof val === 'number' && val >= 18 && val <= 100) },
+        { type: 'text', validator: (val, cb) => cb(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(val))) },
+        { type: 'numeric', validator: (val, cb) => cb(typeof val === 'number' && val >= 0) },
+      ],
+      licenseKey: 'non-commercial-and-evaluation',
+      height: 180,
+      width: 600,
+    });
+
+    document.getElementById('btn-suspend').addEventListener('click', () => {
+      // suspendRender / resumeRender — this.renderSuspendedCounter access
+      hot.suspendRender();
+      hot.setDataAtCell(0, 0, 'Alice (updated)');
+      hot.setDataAtCell(1, 0, 'Bob (updated)');
+      hot.resumeRender();
+      log('suspendRender / resumeRender: OK — isRenderSuspended:', hot.isRenderSuspended());
+    });
+
+    document.getElementById('btn-validate').addEventListener('click', () => {
+      // validateCells — this._validateCells access
+      hot.validateCells((valid) => log('validateCells result:', valid));
+    });
+
+    document.getElementById('btn-validate-rows').addEventListener('click', () => {
+      // validateRows — this._validateCells access
+      hot.validateRows([0, 1], (valid) => log('validateRows [0,1] result:', valid));
+    });
+
+    document.getElementById('btn-validate-cols').addEventListener('click', () => {
+      // validateColumns — this._validateCells access
+      hot.validateColumns([0], (valid) => log('validateColumns [0] result:', valid));
+    });
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      // clear — this.selectAll access
+      hot.selectAll();
+      hot.deselectCell();
+      log('clear: OK (selectAll + deselectCell)');
+    });
+
+    document.getElementById('btn-select-all').addEventListener('click', () => {
+      hot.selectAll();
+      log('selectAll: OK');
+    });
+  </script>
+</body>
+</html>
