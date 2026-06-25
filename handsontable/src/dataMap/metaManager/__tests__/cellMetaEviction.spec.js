@@ -325,4 +325,32 @@ describe('Cell meta eviction on viewport exit', () => {
 
     expect(getCellMeta(summaryRow, summaryCol).className).toBe('columnSummaryResult');
   });
+
+  it('should keep evicting rows outside the highlight when a wide selection spans many rows', async() => {
+    handsontable({
+      data: createSpreadsheetData(ROWS, COLS),
+      height: HEIGHT,
+      colWidths: 50,
+      rowHeights: 23,
+    });
+
+    await render();
+
+    // Whole-column selection: the focus/highlight is at (0, 0) but the range spans every row. Only
+    // the highlight row is protected from eviction; if the entire selection span were protected, no
+    // row would ever evict and retention would grow with the scrolled distance again.
+    await selectCell(0, 0, ROWS - 1, 0);
+
+    const stops = 12;
+
+    for (let i = 1; i <= stops; i++) {
+      await scrollToRow(Math.round((ROWS - 1) * i / stops));
+    }
+
+    const visibleRows = expectedVisibleRows(HEIGHT, 0);
+
+    // Bounded to a few viewport bands (plus the single protected highlight row), not the ~12 bands a
+    // whole-selection-protecting guard would accumulate across these stops.
+    expect(getCellsMeta().length).toBeLessThan(visibleRows * COLS * 8);
+  });
 });

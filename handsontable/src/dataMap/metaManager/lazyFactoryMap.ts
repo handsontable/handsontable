@@ -206,6 +206,20 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
   }
 
   /**
+   * Returns the value stored under the given key, or `undefined` when the key has no materialized
+   * value. Unlike `obtain`, it never creates a value through the factory, so it is safe for
+   * read-only existence checks against the current contents.
+   *
+   * @param {number} key The item key as zero-based index.
+   * @returns {*}
+   */
+  getIfExists(key: number): V | undefined {
+    const dataIndex = this._getStorageIndexByKey(key);
+
+    return dataIndex >= 0 ? this.data[dataIndex] : undefined;
+  }
+
+  /**
    * Clears the map.
    */
   clear() {

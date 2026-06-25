@@ -795,7 +795,8 @@ describe('ColumnMeta', () => {
 
       const firstMeta = meta.getMeta(5, 0);
 
-      expect(meta.evictRow(5)).toBe(true);
+      // Returns the physical columns whose meta was evicted (only column 0 was materialized).
+      expect(meta.evictRow(5)).toEqual([0]);
 
       // A fresh object is created on the next access (the original was released).
       const secondMeta = meta.getMeta(5, 0);
@@ -823,12 +824,12 @@ describe('ColumnMeta', () => {
       ]);
     });
 
-    it('should return false for a row that was never materialized', () => {
+    it('should return an empty array for a row that was never materialized', () => {
       const globalMeta = new GlobalMeta();
       const columnMeta = new ColumnMeta(globalMeta);
       const meta = new CellMeta(columnMeta);
 
-      expect(meta.evictRow(42)).toBe(false);
+      expect(meta.evictRow(42)).toEqual([]);
     });
 
     it('should preserve user-defined meta after eviction and re-materialization of sibling cells', () => {
@@ -880,8 +881,8 @@ describe('ColumnMeta', () => {
 
       invalidMeta.valid = false; // mirrors the validation flow writing directly onto the meta
 
-      // The row is not whole-dropped because one cell is invalid.
-      expect(meta.evictRow(5)).toBe(true);
+      // Only the valid sibling (column 0) is evicted; the row is not whole-dropped (column 1 is kept).
+      expect(meta.evictRow(5)).toEqual([0]);
 
       // The invalid cell keeps its identity and flag; the valid sibling is re-created fresh.
       expect(meta.getMeta(5, 1)).toBe(invalidMeta);

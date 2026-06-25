@@ -36,9 +36,12 @@ export class DynamicCellMetaMod {
    */
   declare metaManager: MetaManagerWithHot;
   /**
-   * @type {Map}
+   * Per-render-cycle memo of cells already extended by `extendCellMeta`, keyed by physical row to a
+   * set of physical columns.
+   *
+   * @type {Map<number, Set<number>>}
    */
-  metaSyncMemo = new Map();
+  metaSyncMemo = new Map<number, Set<number>>();
   /**
    * The lowest visual row index of the meta "keep band" tracked by the previous eviction pass - the
    * viewport plus a one-viewport hysteresis margin. The next pass evicts the visual rows that fall
@@ -140,11 +143,14 @@ export class DynamicCellMetaMod {
 
     hot.runHooks('afterGetCellMeta', visualRow, visualCol, cellMeta);
 
-    if (!this.metaSyncMemo.has(physicalRow)) {
-      this.metaSyncMemo.set(physicalRow, new Set());
+    let memoRow = this.metaSyncMemo.get(physicalRow);
+
+    if (memoRow === undefined) {
+      memoRow = new Set();
+      this.metaSyncMemo.set(physicalRow, memoRow);
     }
 
-    this.metaSyncMemo.get(physicalRow).add(physicalColumn);
+    memoRow.add(physicalColumn);
   }
 
   /**
@@ -176,9 +182,9 @@ export class DynamicCellMetaMod {
     const previousEnd = this.#keepBandEnd;
 
     if (this.#keepBandInitialized) {
-      // Visual rows that dropped below the new keep band.
+      // Previously-kept rows now above the band (visual index below the new keep-band start).
       this.#evictVisualRowRange(previousStart, Math.min(previousEnd, keepStart - 1));
-      // Visual rows that rose above the new keep band.
+      // Previously-kept rows now below the band (visual index above the new keep-band end).
       this.#evictVisualRowRange(Math.max(previousStart, keepEnd + 1), previousEnd);
     }
 
@@ -190,10 +196,11 @@ export class DynamicCellMetaMod {
   /**
    * Evicts render-derived cell meta for an inclusive range of visual rows. Each visual row is
    * translated to its physical index (cell meta is keyed physically) reading the mapping fresh, so a
-   * sort or move that happened since the band was recorded resolves correctly. The currently selected
-   * rows are skipped: the prepared or active editor holds the selected cell's meta object by reference
-   * (see `BaseEditor#cellProperties`), so evicting it could strand the editor. The matching
-   * `metaSyncMemo` entry is cleared so the dynamic extension re-runs when the row is rendered again.
+   * sort or move that happened since the band was recorded resolves correctly. Only the active
+   * editor's row is skipped - the selection highlight (focus) cell, where the prepared or active
+   * editor holds the cell meta object by reference (see `BaseEditor#cellProperties`). The remaining
+   * rows of a wide selection (whole column, multi-row) must stay evictable, or they would pin their
+   * cell meta and defeat the viewport bound.
    *
    * @param {number} fromVisualRow The first visual row index in the range (inclusive).
    * @param {number} toVisualRow The last visual row index in the range (inclusive).
@@ -205,30 +212,47 @@ export class DynamicCellMetaMod {
 
     const hot = this.metaManager.hot;
     const selectedRange = hot.getSelectedRangeLast();
-    let selectionRowStart = -1;
-    let selectionRowEnd = -1;
-
-    // `CellCoords.row` is `null` for header-only selections; skip the row guard in that case.
-    if (selectedRange && selectedRange.from.row !== null && selectedRange.to.row !== null) {
-      selectionRowStart = Math.min(selectedRange.from.row, selectedRange.to.row);
-      selectionRowEnd = Math.max(selectedRange.from.row, selectedRange.to.row);
-    }
+    const activeEditorRow = selectedRange ? selectedRange.highlight.row : null;
 
     for (let visualRow = fromVisualRow; visualRow <= toVisualRow; visualRow++) {
-      const isSelected = visualRow >= selectionRowStart && visualRow <= selectionRowEnd;
+      const physicalRow = hot.toPhysicalRow(visualRow);
 
-      if (!isSelected) {
-        const physicalRow = hot.toPhysicalRow(visualRow);
-
-        // `toPhysicalRow` is typed `number` but returns `null` for an out-of-range visual row (for
-        // example after trimming); `Number.isInteger` filters that without a type-level null compare.
-        // Drop the memo entry only when something was actually evicted - a fully-kept row (all cells
-        // persisted/invalid) must retain its memo so its cell meta is not needlessly re-extended
-        // (which could let a `cells()` result overwrite a user-set value) on the next render.
-        if (Number.isInteger(physicalRow) && this.metaManager.cellMeta.evictRow(physicalRow)) {
-          this.metaSyncMemo.delete(physicalRow);
-        }
+      // `toPhysicalRow` is typed `number` but returns `null` for an out-of-range visual row (for
+      // example after trimming); `Number.isInteger` filters that without a type-level null compare.
+      if (visualRow !== activeEditorRow && Number.isInteger(physicalRow)) {
+        this.#evictRowAndPruneMemo(physicalRow);
       }
+    }
+  }
+
+  /**
+   * Evicts the render-derived cell meta of a single physical row and prunes the matching
+   * `metaSyncMemo` entries for ONLY the columns that were actually evicted. A re-minted cell then
+   * re-runs its dynamic extension, while persisted/invalid cells kept on the same row retain their
+   * memo - so they are not needlessly re-extended (which could let a `cells()` result overwrite a
+   * `setCellMeta` value). The whole memo row is dropped once empty, keeping the memo bounded.
+   *
+   * @param {number} physicalRow The physical row index to evict.
+   */
+  #evictRowAndPruneMemo(physicalRow: number) {
+    const evictedColumns = this.metaManager.cellMeta.evictRow(physicalRow);
+
+    if (evictedColumns.length === 0) {
+      return;
+    }
+
+    const memoRow = this.metaSyncMemo.get(physicalRow);
+
+    if (memoRow === undefined) {
+      return;
+    }
+
+    for (let i = 0; i < evictedColumns.length; i++) {
+      memoRow.delete(evictedColumns[i]);
+    }
+
+    if (memoRow.size === 0) {
+      this.metaSyncMemo.delete(physicalRow);
     }
   }
 }

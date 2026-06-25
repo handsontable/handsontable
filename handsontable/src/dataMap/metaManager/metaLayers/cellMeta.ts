@@ -312,23 +312,17 @@ export default class CellMeta {
    * render-derived, its inner map is dropped as well.
    *
    * @param {number} physicalRow The physical row index to evict.
-   * @returns {boolean} `true` when at least one cell meta object was evicted.
+   * @returns {number[]} The physical column indexes whose meta was evicted (empty when nothing was).
    */
   evictRow(physicalRow: number) {
-    const rowStorageIndex = this.metas._getStorageIndexByKey(physicalRow);
-
-    if (rowStorageIndex < 0) {
-      return false;
-    }
-
-    const rowMap = this.metas.data[rowStorageIndex];
+    const rowMap = this.metas.getIfExists(physicalRow);
 
     if (rowMap === undefined) {
-      return false;
+      return [];
     }
 
     let hasKeptCell = false;
-    let evicted = false;
+    const evictedColumns: number[] = [];
 
     for (const [physicalColumn, meta] of rowMap) {
       const persistedProps = meta._persistedMetaProps as Set<string> | undefined;
@@ -342,7 +336,7 @@ export default class CellMeta {
         hasKeptCell = true;
       } else {
         rowMap.evict(physicalColumn);
-        evicted = true;
+        evictedColumns.push(physicalColumn);
       }
     }
 
@@ -350,7 +344,7 @@ export default class CellMeta {
       this.metas.evict(physicalRow);
     }
 
-    return evicted;
+    return evictedColumns;
   }
 
   /**
