@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DEV-1863 — BEFORE fix</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <style>
+    body { font-family: sans-serif; margin: 24px; }
+    h1 { color: #c00; }
+    .status { padding: 10px 16px; border-radius: 6px; margin: 12px 0; font-size: 14px; }
+    .fail { background: #fee; border: 1px solid #c00; color: #900; }
+    .pass { background: #efe; border: 1px solid #060; color: #060; }
+    #log { font-family: monospace; font-size: 13px; background: #111; color: #f88; padding: 12px; border-radius: 6px; white-space: pre-wrap; min-height: 60px; margin: 12px 0; }
+    #container { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1863 — BEFORE fix (v17.1.0)</h1>
+  <p>This page uses Handsontable <strong>17.1.0</strong> (before the <code>localeLowerCase</code> helper was introduced).
+     Columns are configured with <code>locale: 'en_US'</code> — an invalid BCP 47 tag (underscore instead of hyphen).
+     Native <code>String.prototype.toLocaleLowerCase('en_US')</code> throws a <code>RangeError</code>.</p>
+
+  <div id="log">Initializing…</div>
+
+  <h2>Bug 1 — Search crashes with invalid locale</h2>
+  <div class="status fail">❌ Expected: search.query('a') throws RangeError with locale 'en_US'</div>
+  <div id="container1"></div>
+
+  <h2>Bug 2 — Checkbox renderer crashes with invalid locale</h2>
+  <div class="status fail">❌ Expected: rendering checkbox cell throws RangeError with locale 'en_US'</div>
+  <div id="container2"></div>
+
+  <h2>Bug 3 — Autocomplete filter crashes with invalid locale</h2>
+  <div class="status fail">❌ Expected: filtering autocomplete choices throws RangeError with locale 'en_US'</div>
+  <div id="container3"></div>
+
+  <script>
+    const log = document.getElementById('log');
+    function emit(msg) { log.textContent += msg + '\n'; console.log(msg); }
+
+    // Bug 1 — Search
+    try {
+      const ht1 = new Handsontable(document.getElementById('container1'), {
+        data: [['Apple', 'Banana'], ['apricot', 'cherry'], ['AVOCADO', 'BLUEBERRY']],
+        columns: [{ locale: 'en_US' }, { locale: 'en_US' }],
+        search: true,
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      const search = ht1.getPlugin('search');
+      const result = search.query('a');
+      emit('[Search] UNEXPECTED PASS — query returned ' + result.length + ' results (should have thrown)');
+    } catch (e) {
+      emit('[Search] CONFIRMED BUG — ' + e.name + ': ' + e.message);
+    }
+
+    // Bug 2 — Checkbox renderer
+    try {
+      const ht2 = new Handsontable(document.getElementById('container2'), {
+        data: [['yes'], ['no'], ['YES']],
+        columns: [{
+          type: 'checkbox',
+          checkedTemplate: 'Yes',
+          uncheckedTemplate: 'No',
+          locale: 'en_US',
+        }],
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      emit('[Checkbox] UNEXPECTED PASS — table rendered without error (should have thrown)');
+    } catch (e) {
+      emit('[Checkbox] CONFIRMED BUG — ' + e.name + ': ' + e.message);
+    }
+
+    // Bug 3 — Autocomplete filter
+    try {
+      const ht3 = new Handsontable(document.getElementById('container3'), {
+        data: [[''], [''], ['']],
+        columns: [{
+          editor: 'autocomplete',
+          source: ['Apple', 'Apricot', 'Banana'],
+          locale: 'en_US',
+          filter: true,
+        }],
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+      // Simulate what filtering does: call toLocaleLowerCase with the invalid locale
+      const result = 'Apple'.toLocaleLowerCase('en_US');
+      emit('[Autocomplete] UNEXPECTED PASS — toLocaleLowerCase returned: ' + result);
+    } catch (e) {
+      emit('[Autocomplete] CONFIRMED BUG — ' + e.name + ': ' + e.message);
+    }
+  </script>
+</body>
+</html>
