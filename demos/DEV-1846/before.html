@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DEV-1846 — BEFORE FIX: isCtrlPressed() broken for non-first instances</title>
+  <!-- Handsontable 17.1.0 (buggy: instanceCounter=1 guard blocks 2nd+ instances) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/handsontable.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 16px; background: #fef2f2; }
+    h1 { color: #b91c1c; font-size: 1.1rem; margin: 0 0 4px; }
+    .subtitle { color: #666; font-size: 0.85rem; margin: 0 0 16px; }
+    .layout { display: flex; gap: 16px; flex-wrap: wrap; }
+    .panel { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px; flex: 1; min-width: 300px; }
+    .panel h2 { font-size: 0.9rem; margin: 0 0 8px; }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 0.75rem; font-weight: 600; }
+    .badge-bug { background: #fee2e2; color: #b91c1c; }
+    .badge-ok  { background: #d1fae5; color: #065f46; }
+    .status { margin: 8px 0; font-size: 0.82rem; border: 1px solid #e5e7eb; border-radius: 4px; padding: 6px 10px; background: #f9fafb; }
+    .status b { font-family: monospace; }
+    iframe { border: 1px solid #ccc; border-radius: 4px; }
+    .instructions { background: #fff8e1; border: 1px solid #f59e0b; border-radius: 4px; padding: 8px 12px; font-size: 0.82rem; margin-bottom: 12px; }
+    .instructions ol { margin: 4px 0 0; padding-left: 18px; }
+  </style>
+</head>
+<body>
+
+<h1>🐛 BEFORE FIX — DEV-1846 / #12707</h1>
+<p class="subtitle">Handsontable 17.1.0 &nbsp;·&nbsp; <code>isCtrlPressed()</code> returns <strong>false</strong> for instances that are not the first one created</p>
+
+<div class="instructions">
+  <strong>How to reproduce:</strong>
+  <ol>
+    <li>Click a cell in <em>Instance 1</em> (main document). Hold <kbd>Ctrl/Cmd</kbd> and click another — additive selection works ✅</li>
+    <li>Click a cell in <em>Instance 2</em> (iframe). Hold <kbd>Ctrl/Cmd</kbd> and click another — additive selection does <strong>not</strong> work ❌</li>
+    <li>Watch the <code>isCtrlPressed()</code> status boxes update in real time.</li>
+  </ol>
+</div>
+
+<div class="layout">
+  <!-- Instance 1 — main document -->
+  <div class="panel">
+    <h2>Instance 1 (main document) <span class="badge badge-ok">works</span></h2>
+    <div class="status">isCtrlPressed(): <b id="status1">false</b></div>
+    <div id="hot1"></div>
+  </div>
+
+  <!-- Instance 2 — iframe -->
+  <div class="panel">
+    <h2>Instance 2 (iframe) <span class="badge badge-bug">broken</span></h2>
+    <div class="status">isCtrlPressed(): <b id="status2">—</b></div>
+    <iframe id="frame2" width="100%" height="190" style="display:block"></iframe>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.min.js"></script>
+<script>
+  // Instance 1 — lives in the main document
+  const hot1 = new Handsontable(document.getElementById('hot1'), {
+    data: Handsontable.helper.createSpreadsheetData(5, 5),
+    rowHeaders: true, colHeaders: true,
+    licenseKey: 'non-commercial-and-evaluation',
+    selectionMode: 'multiple',
+    height: 190,
+  });
+
+  document.addEventListener('keydown', updateStatus1);
+  document.addEventListener('keyup',  updateStatus1);
+  function updateStatus1() {
+    requestAnimationFrame(() => {
+      document.getElementById('status1').textContent =
+        String(hot1.getShortcutManager().isCtrlPressed());
+    });
+  }
+
+  // Instance 2 — lives inside an iframe
+  const frame2 = document.getElementById('frame2');
+  frame2.addEventListener('load', () => {
+    const doc = frame2.contentDocument;
+    const win = frame2.contentWindow;
+
+    // Write a minimal page into the iframe
+    doc.open();
+    doc.write(`<!doctype html>
+<html><head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/handsontable.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <style>body{margin:4px}</style>
+</head><body><div id="hot2"></div></body></html>`);
+    doc.close();
+
+    // Wait for fonts/styles then init
+    win.setTimeout(() => {
+      const hot2 = new win.parent.Handsontable(doc.getElementById('hot2'), {
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        rowHeaders: true, colHeaders: true,
+        licenseKey: 'non-commercial-and-evaluation',
+        selectionMode: 'multiple',
+        height: 180,
+      });
+
+      // Poll isCtrlPressed() on both keydown and keyup inside the iframe
+      doc.documentElement.addEventListener('keydown', () => {
+        requestAnimationFrame(() => {
+          document.getElementById('status2').textContent =
+            String(hot2.getShortcutManager().isCtrlPressed());
+        });
+      });
+      doc.documentElement.addEventListener('keyup', () => {
+        requestAnimationFrame(() => {
+          document.getElementById('status2').textContent =
+            String(hot2.getShortcutManager().isCtrlPressed());
+        });
+      });
+    }, 200);
+  });
+
+  // Trigger the iframe load by setting src to blank, then the load handler runs
+  frame2.src = 'about:blank';
+</script>
+</body>
+</html>
