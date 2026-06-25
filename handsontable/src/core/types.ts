@@ -137,7 +137,6 @@ export interface HotInstance {
   getCellMetaAtRow(row: number): Record<string, unknown>[];
   setCellMeta(row: number, column: number, key: string, value: unknown): void;
   setCellMetaObject(row: number, column: number, prop: Record<string, unknown>): void;
-  _runWithDeclarativeCellMeta<T>(wrappedOperations: () => T): T;
   removeCellMeta(row: number, column: number, key: string): void;
   spliceCellsMeta(visualIndex: number, deleteAmount?: number, ...cellMetaRows: unknown[]): void;
   getCellsMeta(): Record<string, unknown>[];

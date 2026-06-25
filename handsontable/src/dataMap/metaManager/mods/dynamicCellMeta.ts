@@ -78,6 +78,11 @@ export class DynamicCellMetaMod {
       this.extendCellMeta(args[0] as Record<string, unknown>);
     });
 
+    // These hooks are registered through `Hooks.getSingleton().add(..., hot)` rather than
+    // `hot.addHook(...)` on purpose: this modifier is constructed from the `MetaManager`
+    // constructor, which runs early in `Core` setup - before `hot.addHook` is defined. The
+    // singleton form binds the callback to the `hot` instance and is cleaned up on `hot.destroy()`
+    // exactly like `hot.addHook` would be, so this is equivalent once the instance is ready.
     Hooks.getSingleton().add('beforeRender', (forceFullRender: unknown) => {
       if (forceFullRender) {
         this.metaSyncMemo.clear();

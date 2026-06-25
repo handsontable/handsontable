@@ -4,6 +4,17 @@ import { warn } from '../../helpers/console';
 import { roundFloat } from './utils';
 import type { ColumnSummary } from './columnSummary';
 
+/**
+ * `HotInstance` augmented with the internal `_runWithDeclarativeCellMeta` method. The method exists on
+ * the Core runtime object but is intentionally NOT part of the public `HotInstance` type, so it is not
+ * exposed to third-party code (it is an implementation detail of how built-in plugins apply
+ * configuration-derived cell meta that must survive the viewport meta eviction but reset on
+ * `updateSettings`). ColumnSummary is an internal consumer and reaches it through this local type.
+ */
+type HotInstanceInternal = HotInstance & {
+  _runWithDeclarativeCellMeta<T>(wrappedOperations: () => T): T;
+};
+
 export interface EndpointConfig {
   ranges?: number[][];
   reversedRowCoords?: boolean;
@@ -34,11 +45,12 @@ class Endpoints {
    */
   declare plugin: ColumnSummary;
   /**
-   * Handsontable instance.
+   * Handsontable instance. Typed as `HotInstanceInternal` so this internal consumer can call the
+   * non-public `_runWithDeclarativeCellMeta` method (see the type's note).
    *
    * @type {object}
    */
-  declare hot: HotInstance;
+  declare hot: HotInstanceInternal;
   /**
    * Array of declared plugin endpoints (calculation destination points).
    *
@@ -81,7 +93,9 @@ class Endpoints {
    */
   constructor(plugin: ColumnSummary, settings: EndpointConfig[] | ((...args: unknown[]) => EndpointConfig[])) {
     this.plugin = plugin;
-    this.hot = this.plugin.hot;
+    // `_runWithDeclarativeCellMeta` is defined on the Core runtime object but kept off the public
+    // `HotInstance` type; this internal plugin reaches it through the `HotInstanceInternal` view.
+    this.hot = this.plugin.hot as HotInstanceInternal;
     this.settings = settings;
   }
 

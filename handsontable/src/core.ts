@@ -4219,8 +4219,13 @@ export default function Core(
    * Runs `wrappedOperations` with user-defined cell-meta recording suspended, so any `setCellMeta` /
    * `setCellMetaObject` calls inside are treated as declarative writes - applied to the cell meta
    * (and therefore retained while the cell is released from the viewport), but NOT carried across an
-   * `updateSettings` cache reset, exactly like the `cell` option. Used by plugins that derive cell
-   * meta from their own configuration (for example ColumnSummary) and re-apply it on each update.
+   * `updateSettings` cache reset, exactly like the `cell` option. Used by built-in plugins that derive
+   * cell meta from their own configuration (for example ColumnSummary) and re-apply it on each update.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it
+   * is not exposed to third-party code or the published `.d.ts`. Built-in consumers reach it through a
+   * local internal type (see `HotInstanceInternal` in the ColumnSummary plugin). Do not add it to
+   * `HotInstance` - that would turn an implementation detail into a supported public API.
    *
    * @private
    * @memberof Core#
