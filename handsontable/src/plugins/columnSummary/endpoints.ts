@@ -561,18 +561,18 @@ class Endpoints {
    * cases (call with `columns` option) can reset the cell metas to the initial state.
    */
   refreshCellMetas() {
-    this.endpoints.forEach((endpoint: EndpointConfig) => {
-      const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow!);
+    // Declarative writes: kept on the cell meta (so they survive the viewport meta eviction) but not
+    // recorded as user-defined, so an `updateSettings` cache reset clears them and they are re-applied
+    // for the current endpoints - matching the previous direct-write behavior.
+    this.hot._runWithDeclarativeCellMeta(() => {
+      this.endpoints.forEach((endpoint: EndpointConfig) => {
+        const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow!);
 
-      if (destinationVisualRow !== null) {
-        const cellMeta = this.hot.getCellMeta(
-          destinationVisualRow,
-          endpoint.destinationColumn!
-        );
-
-        cellMeta.readOnly = endpoint.readOnly;
-        cellMeta.className = 'columnSummaryResult';
-      }
+        if (destinationVisualRow !== null) {
+          this.hot.setCellMeta(destinationVisualRow, endpoint.destinationColumn!, 'readOnly', endpoint.readOnly);
+          this.hot.setCellMeta(destinationVisualRow, endpoint.destinationColumn!, 'className', 'columnSummaryResult');
+        }
+      });
     });
   }
 
@@ -630,8 +630,11 @@ class Endpoints {
       );
 
       if (source === 'init' || cellMeta.readOnly !== endpoint.readOnly) {
-        cellMeta.readOnly = endpoint.readOnly;
-        cellMeta.className = 'columnSummaryResult';
+        // Declarative writes (see `refreshCellMetas`) so the styling survives viewport meta eviction.
+        this.hot._runWithDeclarativeCellMeta(() => {
+          this.hot.setCellMeta(destinationVisualRow, endpoint.destinationColumn!, 'readOnly', endpoint.readOnly);
+          this.hot.setCellMeta(destinationVisualRow, endpoint.destinationColumn!, 'className', 'columnSummaryResult');
+        });
       }
     }
 

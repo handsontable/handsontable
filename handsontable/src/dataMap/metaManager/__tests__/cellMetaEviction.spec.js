@@ -296,4 +296,33 @@ describe('Cell meta eviction on viewport exit', () => {
 
     expect(getCell(targetRow, targetCol).className).toContain('htSearchResult');
   });
+
+  it('should keep the columnSummary result styling after the cell scrolls out of the band and back', async() => {
+    const summaryRow = 2500;
+    const summaryCol = 1;
+
+    handsontable({
+      data: createSpreadsheetData(ROWS, COLS),
+      height: HEIGHT,
+      colWidths: 50,
+      rowHeights: 23,
+      columnSummary: [{
+        destinationRow: summaryRow,
+        destinationColumn: summaryCol,
+        ranges: [[0, 10]],
+        type: 'count',
+      }],
+    });
+
+    await scrollViewportTo({ row: summaryRow, verticalSnap: 'top' });
+    await render();
+
+    // columnSummary applies the result styling declaratively (recording-off `setCellMeta`), so it is
+    // retained on the cell meta and survives the cell being released from the viewport.
+    expect(getCellMeta(summaryRow, summaryCol).className).toBe('columnSummaryResult');
+
+    await scrollAwayAndBack(summaryRow);
+
+    expect(getCellMeta(summaryRow, summaryCol).className).toBe('columnSummaryResult');
+  });
 });

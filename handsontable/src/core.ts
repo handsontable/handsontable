@@ -4216,6 +4216,29 @@ export default function Core(
   };
 
   /**
+   * Runs `wrappedOperations` with user-defined cell-meta recording suspended, so any `setCellMeta` /
+   * `setCellMetaObject` calls inside are treated as declarative writes - applied to the cell meta
+   * (and therefore retained while the cell is released from the viewport), but NOT carried across an
+   * `updateSettings` cache reset, exactly like the `cell` option. Used by plugins that derive cell
+   * meta from their own configuration (for example ColumnSummary) and re-apply it on each update.
+   *
+   * @private
+   * @memberof Core#
+   * @function _runWithDeclarativeCellMeta
+   * @param {Function} wrappedOperations The operations to run with recording suspended.
+   * @returns {*} The value returned by `wrappedOperations`.
+   */
+  this._runWithDeclarativeCellMeta = function<T>(wrappedOperations: () => T): T {
+    metaManager.disableUserDefinedMetaRecording();
+
+    try {
+      return wrappedOperations();
+    } finally {
+      metaManager.enableUserDefinedMetaRecording();
+    }
+  };
+
+  /**
    * Sets a property defined by the `key` property to the meta object of a cell corresponding to params `row` and `column`.
    *
    * @memberof Core#
