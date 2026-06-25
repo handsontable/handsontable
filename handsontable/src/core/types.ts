@@ -17,6 +17,8 @@ import type { FocusGridManager as FocusManagerInstance } from '../focusManager/g
 import type { FocusScopeManager as FocusScopeManagerInstance } from '../focusManager/scopeManager';
 import type { LayoutManager } from './layout';
 import type { default as EditorManagerInstance } from '../editorManager';
+import type { default as DataSourceInstance } from '../dataMap/dataSource';
+import type { default as MetaManagerInstance } from '../dataMap/metaManager';
 import type { BaseEditor as BaseEditorInstance } from '../editors/baseEditor/baseEditor';
 import type { StylesHandler } from '../utils/stylesHandler';
 import type { ThemeManager } from '../themes/engine/manager';
@@ -230,6 +232,8 @@ export interface HotInstance {
   getFocusScopeManager(): FocusScopeManagerInstance;
   getLayoutManager(): LayoutManager;
   _getEditorManager(): EditorManagerInstance;
+  _getDataSource(): DataSourceInstance;
+  _getMetaManager(): MetaManagerInstance;
 
   // DOM references
   rootElement: HTMLElement;
