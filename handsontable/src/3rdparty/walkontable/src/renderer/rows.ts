@@ -50,7 +50,7 @@ export class RowsRenderer extends BaseRenderer {
 
     this.orderView = new OrderView(
       rootNode,
-      (sourceRowIndex?: number) => this.nodesPool!.obtain(sourceRowIndex ?? 0) as HTMLElement,
+      () => this.nodesPool!.obtain() as HTMLElement,
       this.nodeType!,
     );
   }

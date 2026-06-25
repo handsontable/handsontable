@@ -14,6 +14,5 @@ describe('CellsRenderer', () => {
     const { renderer } = createRenderer();
 
     expect(renderer.nodeType).toBe('TD');
-    expect(renderer.sourceRowIndex).toBe(0);
   });
 });

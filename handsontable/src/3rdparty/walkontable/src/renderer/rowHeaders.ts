@@ -28,12 +28,6 @@ export class RowHeadersRenderer extends BaseRenderer {
    * @type {WeakMap}
    */
   orderViews: WeakMap<object, SharedOrderView> = new WeakMap();
-  /**
-   * Row index which specifies the row position of the processed row header.
-   *
-   * @type {number}
-   */
-  sourceRowIndex = 0;
 
   /**
    * Creates a new RowHeadersRenderer instance.
@@ -52,7 +46,7 @@ export class RowHeadersRenderer extends BaseRenderer {
     if (!this.orderViews.has(rootNode)) {
       this.orderViews.set(rootNode, new SharedOrderView(
         rootNode,
-        (sourceColumnIndex?: number) => this.nodesPool!.obtain(this.sourceRowIndex, sourceColumnIndex) as HTMLElement,
+        () => this.nodesPool!.obtain() as HTMLElement,
         this.nodeType!,
       ));
     }
@@ -74,8 +68,6 @@ export class RowHeadersRenderer extends BaseRenderer {
         continue; // eslint-disable-line no-continue
       }
 
-      this.sourceRowIndex = sourceRowIndex;
-
       const orderView = this.obtainOrderView(TR);
       const cellsView = cells!.obtainOrderView(TR);
 
@@ -85,9 +77,9 @@ export class RowHeadersRenderer extends BaseRenderer {
         .setOffset(0)
         .start();
 
-      // Reading the row header renderers in reverse because of how the Eco Renderers handle rendering
-      // (prepending the nodes when rendering row headers).
-      for (let visibleColumnIndex = rowHeadersCount - 1; visibleColumnIndex >= 0; visibleColumnIndex--) {
+      // Render the row header levels in order: the renderer fills the row header nodes positionally
+      // (childNodes[0], [1], …), so level 0 must be written first to land in the leftmost position.
+      for (let visibleColumnIndex = 0; visibleColumnIndex < rowHeadersCount; visibleColumnIndex++) {
         orderView.render();
 
         const TH = orderView.getCurrentNode();
