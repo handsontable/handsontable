@@ -1,4 +1,5 @@
 import type { default as MetaManagerInstance } from '..';
+import type { HotInstance } from '../../../core/types';
 import { Hooks } from '../../../core/hooks';
 import { hasOwnProperty } from '../../../helpers/object';
 import { isFunction } from '../../../helpers/function';
@@ -19,15 +20,7 @@ import { isFunction } from '../../../helpers/function';
  * the logic is triggered only once per one Handsontable slow render cycle.
  */
 type MetaManagerWithHot = MetaManagerInstance & {
-  hot: {
-    colToProp: (column: number) => string | number;
-    runHooks: (...args: unknown[]) => unknown;
-    getFirstRenderedVisibleRow: () => number | null;
-    getLastRenderedVisibleRow: () => number | null;
-    toPhysicalRow: (visualRow: number) => number | null;
-    getSelectedRangeLast: () => { from: { row: number }, to: { row: number } } | undefined;
-    [key: string]: unknown;
-  };
+  hot: HotInstance;
   addLocalHook: (hookName: string, callback: (...args: unknown[]) => void) => void;
   updateCellMeta: (...args: unknown[]) => void;
   [key: string]: unknown;
@@ -161,7 +154,10 @@ export class DynamicCellMetaMod {
     const firstVisibleRow = hot.getFirstRenderedVisibleRow();
     const lastVisibleRow = hot.getLastRenderedVisibleRow();
 
-    if (firstVisibleRow === null || lastVisibleRow === null || lastVisibleRow < firstVisibleRow) {
+    // The render-range getters are typed `number` but return `null` when the viewport is not yet
+    // calculated; `Number.isInteger` rejects that case without a type-level null comparison.
+    if (!Number.isInteger(firstVisibleRow) || !Number.isInteger(lastVisibleRow) ||
+        lastVisibleRow < firstVisibleRow) {
       return;
     }
 
@@ -203,7 +199,8 @@ export class DynamicCellMetaMod {
     let selectionRowStart = -1;
     let selectionRowEnd = -1;
 
-    if (selectedRange) {
+    // `CellCoords.row` is `null` for header-only selections; skip the row guard in that case.
+    if (selectedRange && selectedRange.from.row !== null && selectedRange.to.row !== null) {
       selectionRowStart = Math.min(selectedRange.from.row, selectedRange.to.row);
       selectionRowEnd = Math.max(selectedRange.from.row, selectedRange.to.row);
     }
@@ -214,7 +211,9 @@ export class DynamicCellMetaMod {
       if (!isSelected) {
         const physicalRow = hot.toPhysicalRow(visualRow);
 
-        if (physicalRow !== null) {
+        // `toPhysicalRow` is typed `number` but returns `null` for an out-of-range visual row (for
+        // example after trimming); `Number.isInteger` filters that without a type-level null compare.
+        if (Number.isInteger(physicalRow)) {
           this.metaManager.cellMeta.evictRow(physicalRow);
           this.metaSyncMemo.delete(physicalRow);
         }
