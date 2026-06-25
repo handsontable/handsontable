@@ -407,6 +407,7 @@ react:
   metaTitle: Feature Name - React Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
+menuTag: new | updated    # Optional; sidebar badge -- see rule below
 ---
 ```
 
@@ -415,6 +416,7 @@ category: Cell features
 - `title` is the only H1. Do not add `# Title` in the Markdown body.
 - `description` is used in SEO meta and link previews -- make it specific and accurate.
 - `tags` must be lowercase kebab-case.
+- `menuTag` controls the sidebar badge. Set `menuTag: new` when you add a new page, and `menuTag: updated` when you make a substantive content change to an existing page. Omit it for trivial fixes -- typos, snippet/link corrections -- and for changelog and migration-guide pages. Existing tags are refreshed by hand for releases (for example, the RELEASE-631 batch), so leave any existing tag in place.
 
 ---
 
@@ -441,6 +443,8 @@ Do not use relative paths (`../`) for internal links.
 ## 2.9 Sidebar Registration
 
 Register new pages in `content/guides/sidebar.js`. A page not registered there will not appear in navigation.
+
+A page's sidebar badge (**New** / **Updated**) is driven by the `menuTag` frontmatter field (see Section 2.6), not by `sidebar.js`.
 
 ---
 
@@ -471,6 +475,7 @@ Copy and complete this checklist in your PR description:
 - [ ] Tutorials have "What you learned" and "Next steps" sections
 - [ ] How-tos have a "Result" section
 - [ ] New page registered in `content/guides/sidebar.js`
+- [ ] `menuTag: new` set on new pages / `menuTag: updated` set on substantively changed pages (omit for trivial fixes, changelogs, and migration guides)
 - [ ] `id` field uses 8 random alphanumeric chars (existing IDs are unchanged)
 - [ ] Microsoft trademark disclaimer added where "Excel" is mentioned
 - [ ] TypeScript example exists; JS generated via `npm run docs:code-examples:generate-js`

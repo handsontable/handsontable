@@ -23,6 +23,7 @@ vue:
   metaTitle: Keyboard shortcuts - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
+menuTag: updated
 ---
 Access all Handsontable features using just your keyboard. Use shortcuts you know from Google Sheets or Microsoft Excel.
 

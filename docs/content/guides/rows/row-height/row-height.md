@@ -24,6 +24,7 @@ vue:
   metaTitle: Row heights - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
+menuTag: updated
 ---
 Configure row heights, using a number, an array or a function. Let your users manually change row heights using Handsontable's interface.
 
