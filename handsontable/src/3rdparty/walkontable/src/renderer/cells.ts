@@ -31,12 +31,6 @@ export class CellsRenderer extends BaseRenderer {
    * @type {WeakMap}
    */
   orderViews: WeakMap<object, SharedOrderView> = new WeakMap();
-  /**
-   * Row index which specifies the row position of the processed cell.
-   *
-   * @type {number}
-   */
-  sourceRowIndex = 0;
 
   /**
    * Creates a new CellsRenderer instance.
@@ -55,7 +49,7 @@ export class CellsRenderer extends BaseRenderer {
     if (!this.orderViews.has(rootNode)) {
       this.orderViews.set(rootNode, new SharedOrderView(
         rootNode,
-        (sourceColumnIndex?: number) => this.nodesPool!.obtain(this.sourceRowIndex, sourceColumnIndex) as HTMLElement,
+        () => this.nodesPool!.obtain() as HTMLElement,
         this.nodeType!,
       ));
     }
@@ -72,8 +66,6 @@ export class CellsRenderer extends BaseRenderer {
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
       const TR = rows!.getRenderedNode(visibleRowIndex);
-
-      this.sourceRowIndex = sourceRowIndex;
 
       if (!TR) {
         continue; // eslint-disable-line no-continue

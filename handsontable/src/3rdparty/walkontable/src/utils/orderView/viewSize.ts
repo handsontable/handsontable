@@ -5,25 +5,13 @@
  */
 export class ViewSize {
   /**
-   * Current size of the rendered DOM elements.
-   *
-   * @type {number}
-   */
-  currentSize = 0;
-  /**
-   * Next size of the rendered DOM elements which should be fulfilled.
+   * Size of the rendered DOM elements which should be fulfilled.
    *
    * @type {number}
    */
   nextSize = 0;
   /**
-   * Current offset.
-   *
-   * @type {number}
-   */
-  currentOffset = 0;
-  /**
-   * Next offset.
+   * Offset of the first rendered element according to the scroll position.
    *
    * @type {number}
    */
@@ -35,7 +23,6 @@ export class ViewSize {
    * @param {number} size The size.
    */
   setSize(size: number) {
-    this.currentSize = this.nextSize;
     this.nextSize = size;
   }
 
@@ -45,7 +32,6 @@ export class ViewSize {
    * @param {number} offset The offset.
    */
   setOffset(offset: number) {
-    this.currentOffset = this.nextOffset;
     this.nextOffset = offset;
   }
 }
