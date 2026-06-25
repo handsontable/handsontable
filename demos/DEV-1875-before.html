@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEV-1875 — BEFORE fix: Nested headers collapse (legacy behavior)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.0/dist/handsontable.full.min.css">
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    h1 { color: #c0392b; }
+    .info { background: #fdf2f2; border-left: 4px solid #c0392b; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px; }
+    .info code { background: #f5c6c6; padding: 2px 5px; border-radius: 3px; }
+    .label { font-weight: bold; margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+  <h1>BEFORE fix — DEV-1875</h1>
+  <div class="info">
+    <div class="label">Problem (before <code>visibleWhen</code>):</div>
+    Collapsing the "Q1 2025" group <strong>always shows the first column (Jan)</strong> with no way to choose a different one.
+    There is no way to show a "Total" summary column when collapsed and hide it when expanded.
+    <br><br>
+    <strong>Try it:</strong> Click the collapse button (▲) on the "Q1 2025" header. Jan stays visible — you cannot control which column appears.
+  </div>
+  <div id="example"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.0/dist/handsontable.full.min.js"></script>
+  <script>
+    const container = document.getElementById('example');
+    new Handsontable(container, {
+      data: [
+        ['North America', 4200, 3800, 4500, 12500],
+        ['Europe',        3100, 2900, 3300,  9300],
+        ['Asia Pacific',  2600, 2400, 2800,  7800],
+        ['Latin America', 1500, 1700, 1600,  4800],
+        ['Middle East',   1200, 1300, 1450,  3950],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      colWidths: 90,
+      height: 'auto',
+      nestedHeaders: [
+        ['Region', { label: 'Q1 2025', colspan: 4 }],
+        ['Region', 'Jan', 'Feb', 'Mar', 'Total'],
+      ],
+      collapsibleColumns: true,
+      autoWrapRow: true,
+      autoWrapCol: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

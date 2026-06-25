@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DEV-1875 — AFTER fix: visibleWhen option for collapsible nested headers</title>
+  <link rel="stylesheet" href="./assets/handsontable.min.css">
+  <style>
+    body { font-family: sans-serif; margin: 20px; }
+    h1 { color: #27ae60; }
+    .info { background: #f2fdf5; border-left: 4px solid #27ae60; padding: 12px 16px; margin-bottom: 20px; border-radius: 4px; }
+    .info code { background: #c6f5d5; padding: 2px 5px; border-radius: 3px; }
+    .label { font-weight: bold; margin-bottom: 6px; }
+    table { margin-top: 20px; border-collapse: collapse; font-size: 13px; }
+    td, th { border: 1px solid #ccc; padding: 6px 12px; }
+    th { background: #f5f5f5; }
+  </style>
+</head>
+<body>
+  <h1>AFTER fix — DEV-1875</h1>
+  <div class="info">
+    <div class="label">New <code>visibleWhen</code> option:</div>
+    Each header in <code>nestedHeaders</code> can declare <code>visibleWhen: 'collapsed' | 'expanded' | 'always'</code>:
+    <ul>
+      <li><code>'expanded'</code> — visible only while the group is expanded (Jan, Feb, Mar)</li>
+      <li><code>'collapsed'</code> — visible only while the group is collapsed (Total summary)</li>
+      <li><code>'always'</code> — visible in both states</li>
+    </ul>
+    <strong>Try it:</strong> Click the collapse button (▲) on the "Q1 2025" header.
+    Jan, Feb, Mar hide and <strong>Total appears</strong>. Expand again to restore the detail columns.
+  </div>
+
+  <h2>Example 1: Summary column on collapse</h2>
+  <div id="example1"></div>
+
+  <h2>Example 2: Multiple groups with visibleWhen</h2>
+  <div id="example2"></div>
+
+  <h2>Example 3: Mixed — one group with visibleWhen, one legacy</h2>
+  <div id="example3"></div>
+
+  <script src="./assets/handsontable.full.min.js"></script>
+  <script>
+    // Example 1: Basic visibleWhen — summary column appears on collapse
+    new Handsontable(document.getElementById('example1'), {
+      data: [
+        ['North America', 4200, 3800, 4500, 12500],
+        ['Europe',        3100, 2900, 3300,  9300],
+        ['Asia Pacific',  2600, 2400, 2800,  7800],
+        ['Latin America', 1500, 1700, 1600,  4800],
+        ['Middle East',   1200, 1300, 1450,  3950],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      colWidths: 90,
+      height: 'auto',
+      nestedHeaders: [
+        ['Region', { label: 'Q1 2025', colspan: 4 }],
+        [
+          'Region',
+          { label: 'Jan', visibleWhen: 'expanded' },
+          { label: 'Feb', visibleWhen: 'expanded' },
+          { label: 'Mar', visibleWhen: 'expanded' },
+          { label: 'Total', visibleWhen: 'collapsed' },
+        ],
+      ],
+      collapsibleColumns: true,
+      autoWrapRow: true,
+      autoWrapCol: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Example 2: Two collapsible groups each with a summary column
+    new Handsontable(document.getElementById('example2'), {
+      data: [
+        ['North America', 4200, 3800, 4500, 12500, 3900, 4100, 4300, 12300],
+        ['Europe',        3100, 2900, 3300,  9300, 2800, 3000, 3200,  9000],
+        ['Asia Pacific',  2600, 2400, 2800,  7800, 2300, 2500, 2700,  7500],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      colWidths: 80,
+      height: 'auto',
+      nestedHeaders: [
+        ['Region', { label: 'Q1 2025', colspan: 4 }, { label: 'Q2 2025', colspan: 4 }],
+        [
+          'Region',
+          { label: 'Jan', visibleWhen: 'expanded' },
+          { label: 'Feb', visibleWhen: 'expanded' },
+          { label: 'Mar', visibleWhen: 'expanded' },
+          { label: 'Q1 Total', visibleWhen: 'collapsed' },
+          { label: 'Apr', visibleWhen: 'expanded' },
+          { label: 'May', visibleWhen: 'expanded' },
+          { label: 'Jun', visibleWhen: 'expanded' },
+          { label: 'Q2 Total', visibleWhen: 'collapsed' },
+        ],
+      ],
+      collapsibleColumns: true,
+      autoWrapRow: true,
+      autoWrapCol: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Example 3: Mixed — first group uses visibleWhen, second is legacy
+    new Handsontable(document.getElementById('example3'), {
+      data: [
+        ['North America', 4200, 3800, 4500, 12500, 'A', 'B'],
+        ['Europe',        3100, 2900, 3300,  9300, 'C', 'D'],
+        ['Asia Pacific',  2600, 2400, 2800,  7800, 'E', 'F'],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      colWidths: 90,
+      height: 'auto',
+      nestedHeaders: [
+        ['Region', { label: 'Q1 2025 (visibleWhen)', colspan: 4 }, { label: 'Notes (legacy)', colspan: 2 }],
+        [
+          'Region',
+          { label: 'Jan', visibleWhen: 'expanded' },
+          { label: 'Feb', visibleWhen: 'expanded' },
+          { label: 'Mar', visibleWhen: 'expanded' },
+          { label: 'Total', visibleWhen: 'collapsed' },
+          'Note A',
+          'Note B',
+        ],
+      ],
+      collapsibleColumns: true,
+      autoWrapRow: true,
+      autoWrapCol: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>
