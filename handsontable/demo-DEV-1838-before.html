@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1838: indexSyncer export leak — BEFORE FIX (v17.1.0)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; background: #f5f5f5; color: #222; }
+    h1 { font-size: 20px; margin-bottom: 8px; }
+    .subtitle { font-size: 14px; color: #666; margin-bottom: 16px; }
+    nav { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #d9d9d9; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fce4ec; color: #c62828; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .alert { border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+    .alert-danger { background: #fce4ec; border: 1px solid #f44336; }
+    .alert-danger strong { color: #b71c1c; }
+    .section { background: #fff; border-radius: 8px; padding: 18px; margin-bottom: 18px; border: 1px solid #e0e0e0; }
+    .section h2 { font-size: 15px; margin-bottom: 12px; color: #333; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 14px; font-size: 13px; overflow-x: auto; line-height: 1.6; }
+    .highlight-bad { color: #f48771; font-weight: bold; }
+    .highlight-path { color: #9cdcfe; }
+    .highlight-match { color: #4ec9b0; }
+    .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+    .result-card { border-radius: 6px; padding: 12px 14px; font-size: 13px; }
+    .result-card.leaked { background: #fce4ec; border: 1px solid #ef9a9a; }
+    .result-card.private { background: #e8f5e9; border: 1px solid #a5d6a7; }
+    .result-card .label { font-weight: 600; margin-bottom: 6px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .result-card.leaked .label { color: #b71c1c; }
+    .result-card.private .label { color: #1b5e20; }
+    .path-list { list-style: none; font-family: monospace; font-size: 12px; line-height: 1.8; }
+    .path-list li::before { content: '• '; }
+    .path-list li.matched { color: #c62828; }
+    .path-list li.not-matched { color: #2e7d32; }
+    .match-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .match-table th { text-align: left; padding: 8px 12px; background: #f5f5f5; border-bottom: 2px solid #ddd; }
+    .match-table td { padding: 8px 12px; border-bottom: 1px solid #eee; font-family: monospace; font-size: 12px; }
+    .match-table tr:last-child td { border-bottom: none; }
+    .icon-leak { color: #f44336; }
+    .icon-ok { color: #4caf50; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .tag-leaked { background: #fce4ec; color: #c62828; }
+    .tag-ok { background: #e8f5e9; color: #2e7d32; }
+    .code-inline { font-family: monospace; background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1838: <code>indexSyncer</code> private module leaked via package exports</h1>
+  <p class="subtitle">This page demonstrates the <strong>bug</strong> — the extglob pattern <code>+(index)*</code> exposes private internal modules.</p>
+
+  <nav>
+    <span class="nav-label">Version:</span>
+    <span class="nav-btn active">BEFORE fix <span class="badge badge-bug">BUG</span></span>
+    <a class="nav-btn" href="demo-DEV-1838-after.html">AFTER fix <span class="badge badge-fix">FIXED</span></a>
+  </nav>
+
+  <div class="alert alert-danger">
+    <strong>🐛 Bug present:</strong> The <code>./plugins/*/+(index)*</code> extglob pattern in <code>package.json</code> exports
+    matches any filename <em>starting with</em> <code>index</code>, including the private
+    <code>indexSyncer/</code> helper directory inside <code>plugins/formulas/</code>.
+    External consumers can import <code>handsontable/plugins/formulas/indexSyncer</code> — a private implementation detail.
+  </div>
+
+  <div class="section">
+    <h2>Buggy pattern in <code>package.json</code> exports</h2>
+    <pre><span class="highlight-path">"./plugins/*"</span>: {
+  <span class="highlight-path">"allowedExports"</span>: [
+    <span class="highlight-path">"./plugins/filters/condition/**"</span>,
+    <span class="highlight-path">"./plugins/filters/logicalOperations/**"</span>
+  ],
+  <span class="highlight-path">"export"</span>: <span class="highlight-bad">"./plugins/*/+(index)*"</span>   <span style="color:#608b4e;">// ← extglob: matches anything STARTING with "index"</span>
+}</pre>
+    <p style="margin-top:10px; font-size:13px; color:#555;">
+      The extglob <code class="code-inline">+(index)*</code> means: <em>one or more occurrences of "index"</em> followed by anything.
+      So it matches <code class="code-inline">index.js</code>, <code class="code-inline">index.mjs</code> — but also
+      <code class="code-inline">indexSyncer/</code>, <code class="code-inline">indexSyncer/index.js</code>, etc.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>Pattern matching simulation — which paths are exposed?</h2>
+    <p style="font-size:13px; color:#555; margin-bottom:12px;">
+      Paths inside <code class="code-inline">plugins/formulas/</code> matched by the buggy <code class="code-inline">+(index)*</code> pattern:
+    </p>
+    <table class="match-table">
+      <thead>
+        <tr>
+          <th>File path (relative to plugins/)</th>
+          <th>Pattern: <code>+(index)*</code></th>
+          <th>Exposed?</th>
+        </tr>
+      </thead>
+      <tbody id="match-results">
+        <!-- populated by JS -->
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Proof of concept — import that should fail but does NOT</h2>
+    <pre><span style="color:#608b4e;">// ❌ BEFORE FIX: this import succeeds — private API is exposed!</span>
+<span style="color:#c586c0;">import</span> { IndexSyncer } <span style="color:#c586c0;">from</span> <span style="color:#ce9178;">'handsontable/plugins/formulas/indexSyncer'</span>;
+<span style="color:#608b4e;">// IndexSyncer is an internal implementation detail, not part of the public API.</span>
+<span style="color:#608b4e;">// External consumers should NEVER be able to import it directly.</span></pre>
+  </div>
+
+  <div class="section">
+    <h2>Actual package.json exports (develop branch — before fix)</h2>
+    <pre id="exports-display">Loading...</pre>
+  </div>
+
+  <script>
+    // Simulate extglob pattern matching for +(index)*
+    // +(pattern) = one or more occurrences of pattern
+    // So +(index)* means: starts with "index" (one or more times) followed by anything
+    function matchesBuggyPattern(filename) {
+      // +(index)* in extglob = one or more "index" at the start, followed by anything
+      // This effectively means: starts with "index"
+      return /^(index)+/.test(filename);
+    }
+
+    function matchesFixedPattern(filename) {
+      // index.* means exactly "index" followed by a dot and extension
+      return /^index\.[a-zA-Z]+$/.test(filename);
+    }
+
+    // Files that exist in plugins/formulas/
+    const files = [
+      { path: 'formulas/index.js', filename: 'index.js', isPrivate: false },
+      { path: 'formulas/index.mjs', filename: 'index.mjs', isPrivate: false },
+      { path: 'formulas/index.d.ts', filename: 'index.d.ts', isPrivate: false },
+      { path: 'formulas/indexSyncer/index.js', filename: 'indexSyncer/index.js', isPrivate: true },
+      { path: 'formulas/indexSyncer/index.mjs', filename: 'indexSyncer/index.mjs', isPrivate: true },
+      { path: 'formulas/indexSyncer/axisSyncer.js', filename: 'indexSyncer/axisSyncer.js', isPrivate: true },
+      { path: 'autoColumnSize/index.js', filename: 'index.js', isPrivate: false },
+      { path: 'filters/condition/index.js', filename: 'condition/index.js', isPrivate: false },
+    ];
+
+    const tbody = document.getElementById('match-results');
+    files.forEach(f => {
+      // For sub-paths, we test the last segment
+      const testTarget = f.filename;
+      const matched = matchesBuggyPattern(testTarget.split('/')[0] || testTarget);
+      const leaked = matched && f.isPrivate;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="color: ${f.isPrivate ? '#c62828' : '#1b5e20'}">
+          ${f.isPrivate ? '🔒 ' : '📦 '}plugins/${f.path}
+          ${f.isPrivate ? '<span class="tag tag-leaked">private</span>' : '<span class="tag tag-ok">public</span>'}
+        </td>
+        <td>${matched ? '<strong style="color:#c62828">✓ MATCHES</strong>' : '<span style="color:#999">no match</span>'}</td>
+        <td>${leaked ? '<strong class="icon-leak">❌ LEAKED!</strong>' : matched ? '<span class="icon-ok">✓ expected</span>' : '<span style="color:#999">—</span>'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Show the actual buggy exports snippet
+    const exportsSnippet = {
+      "./plugins/*": {
+        "allowedExports": [
+          "./plugins/filters/condition/**",
+          "./plugins/filters/logicalOperations/**"
+        ]
+      },
+      "exports (source)": {
+        "files": [
+          "./cellTypes/*/+(index)*",
+          "./cellTypes/+(index|registry)*",
+          "./editors/*/+(index)*",
+          "./editors/+(index|registry|factory)*",
+          "./plugins/*/+(index)*",    // <-- BUG: extglob matches indexSyncer
+          "./plugins/+(index|registry)*",
+          "./renderers/*/+(index)*",
+          "./renderers/+(index|registry|factory)*",
+          "./validators/*/+(index)*",
+          "./validators/+(index|registry)*"
+        ]
+      }
+    };
+    document.getElementById('exports-display').textContent = JSON.stringify(exportsSnippet, null, 2);
+  </script>
+</body>
+</html>

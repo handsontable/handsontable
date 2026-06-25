@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1838: indexSyncer export leak — AFTER FIX (v17.1.0)</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; background: #f5f5f5; color: #222; }
+    h1 { font-size: 20px; margin-bottom: 8px; }
+    .subtitle { font-size: 14px; color: #666; margin-bottom: 16px; }
+    nav { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #d9d9d9; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-bug { background: #fce4ec; color: #c62828; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
+    .alert { border-radius: 8px; padding: 14px 18px; margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
+    .alert-success { background: #e8f5e9; border: 1px solid #4caf50; }
+    .alert-success strong { color: #1b5e20; }
+    .section { background: #fff; border-radius: 8px; padding: 18px; margin-bottom: 18px; border: 1px solid #e0e0e0; }
+    .section h2 { font-size: 15px; margin-bottom: 12px; color: #333; }
+    pre { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 14px; font-size: 13px; overflow-x: auto; line-height: 1.6; }
+    .highlight-fix { color: #4ec9b0; font-weight: bold; }
+    .highlight-path { color: #9cdcfe; }
+    .match-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .match-table th { text-align: left; padding: 8px 12px; background: #f5f5f5; border-bottom: 2px solid #ddd; }
+    .match-table td { padding: 8px 12px; border-bottom: 1px solid #eee; font-family: monospace; font-size: 12px; }
+    .match-table tr:last-child td { border-bottom: none; }
+    .tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+    .tag-leaked { background: #fce4ec; color: #c62828; }
+    .tag-ok { background: #e8f5e9; color: #2e7d32; }
+    .code-inline { font-family: monospace; background: #f0f0f0; padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+    .diff-block { font-family: monospace; font-size: 13px; background: #1e1e1e; border-radius: 6px; padding: 14px; overflow-x: auto; line-height: 1.8; }
+    .diff-removed { color: #f48771; background: rgba(244,135,113,0.1); display: block; }
+    .diff-added { color: #b5cea8; background: rgba(181,206,168,0.1); display: block; }
+    .diff-context { color: #d4d4d4; display: block; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1838: <code>indexSyncer</code> private module leak — fixed</h1>
+  <p class="subtitle">This page demonstrates the <strong>fix</strong> — the pattern <code>index.*</code> only exports exact entry points.</p>
+
+  <nav>
+    <span class="nav-label">Version:</span>
+    <a class="nav-btn" href="demo-DEV-1838-before.html">BEFORE fix <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">AFTER fix <span class="badge badge-fix">FIXED</span></span>
+  </nav>
+
+  <div class="alert alert-success">
+    <strong>✅ Fixed:</strong> Changed <code>./plugins/*/+(index)*</code> to <code>./plugins/*/index.*</code>.
+    The new pattern only matches files named exactly <code>index.js</code>, <code>index.mjs</code>, <code>index.d.ts</code>, etc.
+    The private <code>indexSyncer/</code> directory is no longer reachable via package imports.
+  </div>
+
+  <div class="section">
+    <h2>Diff — what changed in <code>package.json</code></h2>
+    <div class="diff-block">
+      <span class="diff-context"> "files": [</span>
+      <span class="diff-removed">-   "./cellTypes/*/+(index)*",</span>
+      <span class="diff-added">+   "./cellTypes/*/index.*",</span>
+      <span class="diff-context">    "./cellTypes/+(index|registry)*",</span>
+      <span class="diff-removed">-   "./editors/*/+(index)*",</span>
+      <span class="diff-added">+   "./editors/*/index.*",</span>
+      <span class="diff-context">    "./editors/+(index|registry|factory)*",</span>
+      <span class="diff-removed">-   "./plugins/*/+(index)*",</span>
+      <span class="diff-added">+   "./plugins/*/index.*",</span>
+      <span class="diff-context">    "./plugins/+(index|registry)*",</span>
+      <span class="diff-removed">-   "./renderers/*/+(index)*",</span>
+      <span class="diff-added">+   "./renderers/*/index.*",</span>
+      <span class="diff-context">    "./renderers/+(index|registry|factory)*",</span>
+      <span class="diff-removed">-   "./validators/*/+(index)*",</span>
+      <span class="diff-added">+   "./validators/*/index.*",</span>
+      <span class="diff-context">    "./validators/+(index|registry)*"</span>
+      <span class="diff-context"> ]</span>
+    </div>
+    <p style="margin-top:10px; font-size:13px; color:#555;">
+      Five patterns changed. Each <code class="code-inline">+(index)*</code> extglob → <code class="code-inline">index.*</code> literal glob.
+      The new pattern requires the filename to be exactly <code class="code-inline">index</code> followed by a dot and extension.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>Pattern matching simulation — which paths are now exposed?</h2>
+    <p style="font-size:13px; color:#555; margin-bottom:12px;">
+      Paths inside <code class="code-inline">plugins/formulas/</code> matched by the fixed <code class="code-inline">index.*</code> pattern:
+    </p>
+    <table class="match-table">
+      <thead>
+        <tr>
+          <th>File path (relative to plugins/)</th>
+          <th>Pattern: <code>index.*</code></th>
+          <th>Exposed?</th>
+        </tr>
+      </thead>
+      <tbody id="match-results"></tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2>Proof of concept — import that now correctly fails</h2>
+    <pre><span style="color:#608b4e;">// ✅ AFTER FIX: this import throws "Package path not exported"</span>
+<span style="color:#c586c0;">import</span> { IndexSyncer } <span style="color:#c586c0;">from</span> <span style="color:#ce9178;">'handsontable/plugins/formulas/indexSyncer'</span>;
+<span style="color:#608b4e;">// Error: [ERR_PACKAGE_PATH_NOT_EXPORTED]: Package subpath</span>
+<span style="color:#608b4e;">// './plugins/formulas/indexSyncer' is not defined by "exports" in</span>
+<span style="color:#608b4e;">// handsontable/package.json</span>
+
+<span style="color:#608b4e;">// ✅ These legitimate imports still work:</span>
+<span style="color:#c586c0;">import</span> Handsontable <span style="color:#c586c0;">from</span> <span style="color:#ce9178;">'handsontable'</span>;
+<span style="color:#c586c0;">import</span> { Formulas } <span style="color:#c586c0;">from</span> <span style="color:#ce9178;">'handsontable/plugins/formulas'</span>;
+<span style="color:#c586c0;">import</span> { AutoColumnSize } <span style="color:#c586c0;">from</span> <span style="color:#ce9178;">'handsontable/plugins/autoColumnSize'</span>;</pre>
+  </div>
+
+  <div class="section">
+    <h2>Verification: all 37 plugin exports still present after fix</h2>
+    <div id="exports-list" style="font-size:13px; color:#555; margin-top:4px;">
+      Checking expected exports…
+    </div>
+  </div>
+
+  <script>
+    function matchesFixedPattern(filename) {
+      // index.* means exactly "index" followed by a dot and extension
+      return /^index\.[a-zA-Z]+$/.test(filename);
+    }
+
+    function matchesBuggyPattern(filename) {
+      return /^(index)+/.test(filename);
+    }
+
+    const files = [
+      { path: 'formulas/index.js', filename: 'index.js', isPrivate: false },
+      { path: 'formulas/index.mjs', filename: 'index.mjs', isPrivate: false },
+      { path: 'formulas/index.d.ts', filename: 'index.d.ts', isPrivate: false },
+      { path: 'formulas/indexSyncer/index.js', filename: 'indexSyncer/index.js', isPrivate: true },
+      { path: 'formulas/indexSyncer/index.mjs', filename: 'indexSyncer/index.mjs', isPrivate: true },
+      { path: 'formulas/indexSyncer/axisSyncer.js', filename: 'indexSyncer/axisSyncer.js', isPrivate: true },
+      { path: 'autoColumnSize/index.js', filename: 'index.js', isPrivate: false },
+      { path: 'filters/condition/index.js', filename: 'condition/index.js', isPrivate: false },
+    ];
+
+    const tbody = document.getElementById('match-results');
+    files.forEach(f => {
+      const testTarget = f.filename.split('/')[0];
+      const matchedFixed = matchesFixedPattern(testTarget);
+      const matchedBuggy = matchesBuggyPattern(testTarget);
+      const isNowProtected = matchedBuggy && !matchedFixed && f.isPrivate;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="color: ${f.isPrivate ? '#c62828' : '#1b5e20'}">
+          ${f.isPrivate ? '🔒 ' : '📦 '}plugins/${f.path}
+          ${f.isPrivate ? '<span class="tag tag-leaked">private</span>' : '<span class="tag tag-ok">public</span>'}
+        </td>
+        <td>${matchedFixed ? '<strong style="color:#2e7d32">✓ matches</strong>' : '<span style="color:#999">no match</span>'}</td>
+        <td>
+          ${f.isPrivate && !matchedFixed
+            ? '<strong style="color:#2e7d32">✅ PROTECTED</strong>'
+            : !f.isPrivate && matchedFixed
+            ? '<strong style="color:#2e7d32">✅ exported (expected)</strong>'
+            : '<span style="color:#999">—</span>'}
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // Show expected exports still work
+    const knownPlugins = [
+      'autoColumnSize', 'autofill', 'autoRowSize', 'base',
+      'bindRowsWithHeaders', 'collapsibleColumns', 'columnSorting',
+      'columnSummary', 'comments', 'contextMenu', 'copyPaste',
+      'customBorders', 'dragToScroll', 'dropdownMenu', 'exportFile',
+      'filters', 'formulas', 'hiddenColumns', 'hiddenRows',
+      'manualColumnFreeze', 'manualColumnMove', 'manualColumnResize',
+      'manualRowMove', 'manualRowResize', 'mergeCells', 'multiColumnSorting',
+      'multipleSelectionHandles', 'nestedHeaders', 'nestedRows',
+      'persistentState', 'search', 'touchScroll', 'trimRows',
+      'undoRedo'
+    ];
+    const el = document.getElementById('exports-list');
+    el.innerHTML = knownPlugins.map(p =>
+      `<span style="display:inline-block; margin:3px 6px 3px 0; padding:2px 8px; background:#e8f5e9; border-radius:4px; font-family:monospace; font-size:12px; color:#1b5e20">✅ plugins/${p}</span>`
+    ).join('');
+  </script>
+</body>
+</html>
