@@ -754,8 +754,11 @@ export default (): Record<string, unknown> => {
      * | An array | Define your own column headers (e.g. `['One', 'Two', 'Three', ...]`) |
      * | A function | Define your own column headers, using a function                     |
      *
+     * To set the header label of an individual column, use that column's [`title`](#title) option.
+     *
      * Read more:
      * - [Column header](@/guides/columns/column-header/column-header.md)
+     * - [`title`](#title)
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
@@ -5876,8 +5879,11 @@ export default (): Record<string, unknown> => {
      *
      * You can set the `title` option to a string.
      *
+     * To set the labels of all column headers at once, use the [`colHeaders`](#colheaders) option.
+     *
      * Read more:
      * - [Column header](@/guides/columns/column-header/column-header.md)
+     * - [`colHeaders`](#colheaders)
      * - [`columns`](#columns)
      *
      * @memberof Options#
