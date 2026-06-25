@@ -5,9 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>DEV-1712 – After Fix (v17.1.0) – Comment clamped inside viewport</title>
 
-  <!-- Handsontable 17.1.0 – AFTER the viewport clamping fix (PR #12594) -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.css">
-  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <!-- Handsontable develop branch build – AFTER the viewport clamping fix (PR #12594) -->
+  <!-- NOTE: The fix is in develop (post 17.1.0). This demo uses the local develop build. -->
+  <link rel="stylesheet" href="./lib/handsontable.min.css">
+  <script src="./lib/handsontable.full.min.js"></script>
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -98,12 +99,12 @@
 
 <div class="banner">
   <span>✅ FIX DEMO</span>
-  <span class="badge">v17.1.0 — AFTER FIX</span>
+  <span class="badge">develop build — AFTER FIX</span>
   <span>DEV-1712 (PR #12594)</span>
 </div>
 
 <div class="info">
-  <strong>Fixed:</strong> The comment editor is now always clamped inside the browser viewport. Even on narrow portrait screens the comment stays fully visible — it no longer flies off to the left.
+  <strong>Fixed:</strong> The comment editor is now always clamped inside the browser viewport. Even on narrow portrait screens the comment stays fully visible — it no longer flies off to the left.<br><small>Note: This fix is in the <code>develop</code> branch (post-17.1.0). The CDN 17.1.0 release does <em>not</em> yet include it.</small>
 </div>
 
 <div id="container">
