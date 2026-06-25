@@ -547,6 +547,43 @@ class Border {
   }
 
   /**
+   * Mirror of {@link Border#isFrozenBoundaryEdge} for the bottom freeze line: tells whether the
+   * selection's bottom edge lands exactly on the `fixedRowsBottom` boundary (the line between the last
+   * non-frozen row and the first bottom-frozen row), and is therefore owned by the bottom overlay.
+   *
+   * @private
+   * @param {number} toIndex The selection's bottom corner row index.
+   * @returns {boolean}
+   */
+  isFrozenBottomBoundaryEdge(toIndex: number): boolean {
+    const fixedRowsBottom = this.wot.getSetting('fixedRowsBottom') as number;
+    const totalRows = this.wot.getSetting('totalRows') as number;
+
+    return fixedRowsBottom > 0 && toIndex === totalRows - fixedRowsBottom - 1;
+  }
+
+  /**
+   * Mirror of {@link Border#isBoundaryCornerScrolledOut} for the bottom freeze line: tells whether the
+   * selection's bottom boundary cell has scrolled behind the bottom frozen pane in the master viewport
+   * (it then drops below the last visible master row), so the edge must not be drawn.
+   *
+   * @private
+   * @param {number} toIndex The selection's bottom boundary corner row index.
+   * @returns {boolean} `true` when the boundary corner is scrolled out (edge must not be drawn).
+   */
+  isBottomBoundaryCornerScrolledOut(toIndex: number): boolean {
+    const masterTable = this.wot.cloneSource?.wtTable;
+
+    if (!masterTable) {
+      return false;
+    }
+
+    const lastVisible = masterTable.getLastVisibleRow();
+
+    return lastVisible >= 0 && toIndex > lastVisible;
+  }
+
+  /**
    * Draws the selection-border edge(s) that lie exactly on a frozen-pane boundary, where the master
    * renders them on the freeze line under the occluding frozen overlay. Re-draws each such edge
    * inside the frozen overlay(s) that own it (clamped to each overlay's rendered range), while
@@ -561,8 +598,11 @@ class Border {
     const isTopOverlay = overlayName === 'top';
     const isInlineStartOverlay = overlayName === 'inline_start';
     const isCornerOverlay = overlayName === 'top_inline_start_corner';
+    const isBottomOverlay = overlayName === 'bottom';
+    const isBottomCornerOverlay = overlayName === 'bottom_inline_start_corner';
 
-    if (!isTopOverlay && !isInlineStartOverlay && !isCornerOverlay) {
+    if (!isTopOverlay && !isInlineStartOverlay && !isCornerOverlay &&
+        !isBottomOverlay && !isBottomCornerOverlay) {
       return false;
     }
 
@@ -583,6 +623,11 @@ class Border {
     const columnEdgeOwned = this.isFrozenBoundaryEdge('column', fromColumn) &&
       !this.isBoundaryCornerScrolledOut('column', fromColumn);
 
+    // The bottom-freeze counterpart of `rowEdgeOwned`: the selection's bottom edge lands on the
+    // `fixedRowsBottom` line and its boundary cell is still visible in the master.
+    const bottomRowEdgeOwned = this.isFrozenBottomBoundaryEdge(toRow) &&
+      !this.isBottomBoundaryCornerScrolledOut(toRow);
+
     // The row-freeze edge is split between the `top` overlay (non-frozen columns) and the corner
     // overlay (frozen columns), each clamped to its own rendered column range so together they cover
     // the edge without overlap. The rendered (not visible) range keeps a partially scrolled boundary
@@ -597,12 +642,27 @@ class Border {
     }
 
     // The column-freeze edge is split between the `inline_start` overlay (non-frozen rows) and the
-    // corner overlay (frozen rows). Mirror of the branch above on the column axis.
-    if (columnEdgeOwned && (isInlineStartOverlay || isCornerOverlay)) {
+    // top/bottom corner overlays (top-frozen / bottom-frozen rows), each clamped to its own rendered
+    // row range so together they cover the edge without overlap. Mirror of the row-freeze branch on
+    // the column axis. Without the bottom corner the slice that reaches down into the bottom-frozen
+    // rows would be occluded by that overlay and left undrawn.
+    if (columnEdgeOwned && (isInlineStartOverlay || isCornerOverlay || isBottomCornerOverlay)) {
       const firstRow = Math.max(fromRow, wtTable.getFirstRenderedRow());
       const lastRow = Math.min(toRow, wtTable.getLastRenderedRow());
 
       if (this.drawColumnFreezeEdge(firstRow, lastRow, isRtl, delta)) {
+        return true;
+      }
+    }
+
+    // The bottom-freeze edge is split between the `bottom` overlay (non-frozen columns) and the bottom
+    // corner overlay (frozen columns), mirroring the row-freeze branch on the bottom axis. The bottom
+    // overlay occludes the master's edge on the freeze line, so re-draw it here.
+    if (bottomRowEdgeOwned && (isBottomOverlay || isBottomCornerOverlay)) {
+      const firstColumn = Math.max(fromColumn, wtTable.getFirstRenderedColumn());
+      const lastColumn = Math.min(toColumn, wtTable.getLastRenderedColumn());
+
+      if (this.drawRowFreezeBottomEdge(firstColumn, lastColumn, isRtl, delta)) {
         return true;
       }
     }
@@ -612,6 +672,15 @@ class Border {
     // connecting square here to close it.
     if (isCornerOverlay && rowEdgeOwned && columnEdgeOwned) {
       if (this.drawFrozenBoundaryCorner(isRtl, borderWidth)) {
+        return true;
+      }
+    }
+
+    // Bottom mirror of the branch above: when the corner lands on BOTH the bottom and column freeze
+    // lines, the bottom and start edges meet in the bottom corner overlay's frozen×frozen square,
+    // which occludes their tips. Draw that connecting square here to close the gap.
+    if (isBottomCornerOverlay && bottomRowEdgeOwned && columnEdgeOwned) {
+      if (this.drawFrozenBottomBoundaryCorner(isRtl, borderWidth)) {
         return true;
       }
     }
@@ -675,6 +744,74 @@ class Border {
     }
 
     this.topStyle!.display = 'block';
+
+    return true;
+  }
+
+  /**
+   * Mirror of {@link Border#drawRowFreezeEdge} for the bottom freeze line: draws the selection's
+   * bottom edge on the `fixedRowsBottom` line across the given (clamped) column span. The boundary
+   * cell is the FIRST bottom-frozen row, and the freeze line is its TOP edge (= bottom of the last
+   * non-frozen row). Uses the `bottom` border element; guard/reflow behavior matches the top variant.
+   *
+   * @private
+   * @param {number} firstColumn The first column index to span (clamped to the overlay).
+   * @param {number} lastColumn The last column index to span (clamped to the overlay).
+   * @param {boolean} isRtl Whether the grid is rendered right-to-left.
+   * @param {number} delta The along-axis length extension (`ceil(borderWidth / 2)`).
+   * @returns {boolean} `true` when the edge was drawn.
+   */
+  drawRowFreezeBottomEdge(
+    firstColumn: number, lastColumn: number, isRtl: boolean, delta: number): boolean {
+    if (lastColumn < firstColumn) {
+      return false;
+    }
+
+    const { wtTable } = this.wot;
+    const fixedRowsBottom = this.wot.getSetting('fixedRowsBottom') as number;
+    const totalRows = this.wot.getSetting('totalRows') as number;
+    const boundaryRow = totalRows - fixedRowsBottom;
+    const boundaryTD = wtTable.getCell(this.wot.createCellCoords(boundaryRow, firstColumn));
+    const boundaryEndTD = wtTable.getCell(this.wot.createCellCoords(boundaryRow, lastColumn));
+
+    if (!isHTMLElement(boundaryTD) || !isHTMLElement(boundaryEndTD)) {
+      return false;
+    }
+
+    const containerOffset = offset(wtTable.TABLE);
+    const boundaryOffset = offset(boundaryTD);
+    // The freeze line is the TOP edge of the first bottom-frozen row.
+    const freezeLineY = boundaryOffset.top;
+    const endOffset = offset(boundaryEndTD);
+
+    // The `-1` overlaps the border shared with the previous column, mirroring `drawRowFreezeEdge`.
+    const atFirstColumn = firstColumn === 0;
+    const startShift = atFirstColumn ? 0 : 1;
+
+    this.disappear();
+    // Position the edge the same way `appear` does its bottom border — `cellBottom - thickness +
+    // delta` — so borders of different widths (e.g. the thick focus cell vs. the thinner area cells)
+    // stay aligned on the gridline instead of the thicker one hanging 1px lower. `cellBottom` here is
+    // the freeze line. The result is at most `-ceil(thickness / 2)`, so the `bottom` overlay's top clip
+    // only trims the half that lies above the seam (which the master would draw) — the edge stays
+    // visible and on the line.
+    const bottomThickness = parseInt(this.bottomStyle!.height, 10);
+
+    this.bottomStyle!.top = `${freezeLineY - containerOffset.top - bottomThickness + delta}px`;
+
+    if (isRtl) {
+      const spanRightX = boundaryOffset.left + outerWidth(boundaryTD);
+      const tableRightX = containerOffset.left + outerWidth(wtTable.TABLE);
+
+      this.bottomStyle!.right = `${tableRightX - spanRightX - startShift}px`;
+      this.bottomStyle!.width = `${spanRightX - endOffset.left + delta - (1 - startShift)}px`;
+    } else {
+      this.bottomStyle!.left = `${boundaryOffset.left - containerOffset.left - startShift}px`;
+      this.bottomStyle!.width =
+        `${endOffset.left + outerWidth(boundaryEndTD) - boundaryOffset.left + delta - (1 - startShift)}px`;
+    }
+
+    this.bottomStyle!.display = 'block';
 
     return true;
   }
@@ -790,6 +927,61 @@ class Border {
   }
 
   /**
+   * Bottom mirror of {@link Border#drawFrozenBoundaryCorner}: draws the `borderWidth`-sized square
+   * bridging the bottom and inline-start edges where a selection corner lands on both the
+   * `fixedRowsBottom` and `fixedColumnsStart` freeze lines, since that square sits in the bottom corner
+   * overlay's frozen×frozen region that occludes both edges' tips. The boundary cell is the FIRST
+   * bottom-frozen row, and the bottom freeze line is its TOP edge. Reuses the `bottom` border element;
+   * reflow/guard behavior mirrors the top variant.
+   *
+   * @private
+   * @param {boolean} isRtl Whether the grid is rendered right-to-left.
+   * @param {number} borderWidth The configured border width in pixels.
+   * @returns {boolean} `true` when the corner square was drawn.
+   */
+  drawFrozenBottomBoundaryCorner(isRtl: boolean, borderWidth: number): boolean {
+    const { wtTable } = this.wot;
+    const fixedRowsBottom = this.wot.getSetting('fixedRowsBottom') as number;
+    const totalRows = this.wot.getSetting('totalRows') as number;
+    const boundaryRow = totalRows - fixedRowsBottom;
+    const boundaryColumn = (this.wot.getSetting('fixedColumnsStart') as number) - 1;
+    const boundaryTD = wtTable.getCell(this.wot.createCellCoords(boundaryRow, boundaryColumn));
+
+    if (!isHTMLElement(boundaryTD)) {
+      return false;
+    }
+
+    const containerOffset = offset(wtTable.TABLE);
+    const boundaryOffset = offset(boundaryTD);
+    // The bottom freeze line is the TOP edge of the first bottom-frozen row.
+    const freezeLineY = boundaryOffset.top;
+    const delta = Math.ceil(borderWidth / 2);
+
+    this.disappear();
+    // Align the square with the bottom edge's vertical position (`cellBottom - thickness + delta`,
+    // where `cellBottom` is the freeze line) so it joins seamlessly.
+    this.bottomStyle!.top = `${freezeLineY - containerOffset.top - borderWidth + delta}px`;
+    this.bottomStyle!.height = `${borderWidth}px`;
+    this.bottomStyle!.width = `${borderWidth}px`;
+
+    if (isRtl) {
+      // RTL: the frozen pane is on the right, so the freeze line is the boundary cell's LEFT edge;
+      // the square sits one pixel inside it (to the right) via the `right` anchor.
+      const tableRightX = containerOffset.left + outerWidth(wtTable.TABLE);
+
+      this.bottomStyle!.right = `${tableRightX - boundaryOffset.left - 1}px`;
+    } else {
+      const freezeLineX = boundaryOffset.left + outerWidth(boundaryTD);
+
+      this.bottomStyle!.left = `${freezeLineX - containerOffset.left - 1}px`;
+    }
+
+    this.bottomStyle!.display = 'block';
+
+    return true;
+  }
+
+  /**
    * Show border around one or many cells.
    *
    * @param {Array} corners The corner coordinates.
@@ -812,6 +1004,7 @@ class Border {
     // master's boundary edge (so it isn't doubled by the frozen overlay's edge).
     const originalFromRow = fromRow;
     const originalFromColumn = fromColumn;
+    const originalToRow = toRow;
 
     // borders can not be rendered on headers so hide them
     if (fromRow < 0 && toRow < 0 || fromColumn < 0 && toColumn < 0) {
@@ -970,8 +1163,14 @@ class Border {
       this.topStyle!.display = 'none';
     }
     if (this.isFrozenBoundaryEdge('column', originalFromColumn) &&
-        (wtTable.isMaster || overlayName === 'top')) {
+        (wtTable.isMaster || overlayName === 'top' || overlayName === 'bottom')) {
       this.startStyle!.display = 'none';
+    }
+    // The bottom-freeze edge is owned by the `bottom`/`bottom_inline_start_corner` overlays; hide the
+    // master's and `inline_start`'s redraw of it so the lines don't stack into a doubled border.
+    if (this.isFrozenBottomBoundaryEdge(originalToRow) &&
+        (wtTable.isMaster || overlayName === 'inline_start')) {
+      this.bottomStyle!.display = 'none';
     }
 
     let cornerVisibleSetting = this.settings.border?.cornerVisible;
