@@ -4982,7 +4982,9 @@ export default function Core(
    * @returns {number} Number of row headers.
    */
   this.countRowHeaders = function(): number {
-    return (instance.view as TableView).getRowHeadersCount();
+    const view = instance.view as TableView | undefined;
+
+    return view ? view.getRowHeadersCount() : 0;
   };
 
   /**
@@ -4994,7 +4996,9 @@ export default function Core(
    * @returns {number} Number of column headers.
    */
   this.countColHeaders = function(): number {
-    return (instance.view as TableView).getColumnHeadersCount();
+    const view = instance.view as TableView | undefined;
+
+    return view ? view.getColumnHeadersCount() : 0;
   };
 
   /**

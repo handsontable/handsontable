@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an error thrown by `countRowHeaders()` and `countColHeaders()` when they were called while the table view was unavailable (during initialization or after the instance was destroyed).",
+  "type": "fixed",
+  "issueOrPR": 12790,
+  "breaking": false,
+  "framework": "none"
+}
