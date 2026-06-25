@@ -266,4 +266,34 @@ describe('Cell meta eviction on viewport exit', () => {
     // The invalid flag (and therefore the `htInvalid` highlight) must survive the round trip.
     expect(getCellMeta(targetRow, targetCol).valid).toBe(false);
   });
+
+  it('should keep a search match highlighted after the cell scrolls out of the band and back', async() => {
+    const targetRow = 2400;
+    const targetCol = 2;
+    const data = createSpreadsheetData(ROWS, COLS);
+
+    data[targetRow][targetCol] = 'UNIQUEMATCH';
+
+    handsontable({
+      data,
+      height: HEIGHT,
+      colWidths: 50,
+      rowHeights: 23,
+      search: true,
+    });
+
+    // `search.query` flags matches via `isSearchResult` on cell meta (evicted with the cell); the
+    // plugin also tracks matches in its own set so the highlight survives scrolling out of view.
+    getPlugin('search').query('UNIQUEMATCH');
+    await render();
+
+    await scrollViewportTo({ row: targetRow, verticalSnap: 'top' });
+    await render();
+
+    expect(getCell(targetRow, targetCol).className).toContain('htSearchResult');
+
+    await scrollAwayAndBack(targetRow);
+
+    expect(getCell(targetRow, targetCol).className).toContain('htSearchResult');
+  });
 });

@@ -112,6 +112,16 @@ export class Search extends BasePlugin {
    * @type {string}
    */
   searchResultClass = DEFAULT_SEARCH_RESULT_CLASS;
+  /**
+   * Physical coordinates (as `"row,col"` strings) of the cells matched by the most recent `query()`
+   * run under the default callback. The renderer also consults this set so a matched cell keeps its
+   * highlight after scrolling out of the viewport and back - the render-derived `isSearchResult` meta
+   * flag is evicted with the cell and would otherwise be lost. Empty when no default-callback search
+   * is active, so it adds no per-cell work outside an active search.
+   *
+   * @type {Set<string>}
+   */
+  #queryResultCells = new Set();
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -144,6 +154,8 @@ export class Search extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#queryResultCells.clear();
+
     const beforeRendererCallback = (
       td: HTMLTableCellElement, row: number, col: number, prop: string | number,
       value: string, cellProperties: Record<string, unknown>
@@ -184,6 +196,10 @@ export class Search extends BasePlugin {
     const queryResult: unknown[] = [];
     const instance = this.hot;
 
+    // Rebuilt every query so the renderer can re-highlight matched cells whose `isSearchResult` meta
+    // was evicted from the viewport (see `#queryResultCells`).
+    this.#queryResultCells.clear();
+
     rangeEach(0, rowCount - 1, (rowIndex) => {
       rangeEach(0, colCount - 1, (colIndex) => {
         const cellData = this.hot.getDataAtCell(rowIndex, colIndex);
@@ -202,6 +218,13 @@ export class Search extends BasePlugin {
           };
 
           queryResult.push(singleResult);
+
+          // Track the match by physical coordinates only when the default callback is in effect (the
+          // one that sets `isSearchResult`). A custom callback owns its own highlighting, so its
+          // behavior is left untouched.
+          if (cellCallback === DEFAULT_CALLBACK) {
+            this.#queryResultCells.add(`${this.hot.toPhysicalRow(rowIndex)},${this.hot.toPhysicalColumn(colIndex)}`);
+          }
         }
 
         if (cellCallback) {
@@ -314,7 +337,14 @@ export class Search extends BasePlugin {
       classArray.push(...className);
     }
 
-    if (this.isEnabled() && cellProperties.isSearchResult) {
+    // `isSearchResult` is the live flag; fall back to the tracked match set for cells whose meta was
+    // evicted from the viewport (the set is empty outside an active default-callback search, so this
+    // adds no per-cell key building in that case).
+    const isSearchResult = cellProperties.isSearchResult ||
+      (this.#queryResultCells.size > 0 &&
+        this.#queryResultCells.has(`${cellProperties.row},${cellProperties.col}`));
+
+    if (this.isEnabled() && isSearchResult) {
       if (!classArray.includes(this.searchResultClass)) {
         classArray.push(`${this.searchResultClass}`);
       }
