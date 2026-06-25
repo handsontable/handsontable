@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1857: Middle-click autoscroll — AFTER FIX</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #666; margin-bottom: 16px; }
+    nav { display: flex; gap: 8px; margin-bottom: 20px; align-items: center; flex-wrap: wrap; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 8px 20px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; cursor: pointer; }
+    .nav-btn.active { background: #28a745; color: #fff; font-weight: 700; border-color: #28a745; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #dc3545; color: #fff; border-color: #dc3545; }
+    .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-before { background: #fde8e8; color: #c62828; }
+    .badge-after { background: rgba(255,255,255,0.3); color: #fff; }
+    .info { background: #d4edda; border: 1px solid #28a745; border-radius: 6px; padding: 14px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.7; }
+    .info strong { color: #155724; }
+    .fix-note { background: #e8f4fd; border: 1px solid #2196f3; border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; color: #1565c0; }
+    .fix-note code { background: rgba(0,0,0,0.08); padding: 1px 5px; border-radius: 3px; }
+    .status-panel { background: #fff; border: 2px solid #ddd; border-radius: 6px; padding: 14px 16px; margin-bottom: 16px; }
+    .status-panel h3 { font-size: 14px; margin-bottom: 10px; color: #333; }
+    .status-row { display: flex; gap: 24px; font-family: monospace; font-size: 13px; flex-wrap: wrap; }
+    .status-item { display: flex; flex-direction: column; gap: 4px; }
+    .status-key { color: #888; font-size: 11px; text-transform: uppercase; }
+    .status-val { font-weight: bold; color: #333; }
+    .val-true { color: #dc3545; }
+    .val-false { color: #28a745; }
+    #hot-container { background: white; border-radius: 6px; overflow: hidden; }
+    .scroll-ref { margin-top: 24px; padding: 14px; background: #fff; border: 1px solid #ddd; border-radius: 6px; }
+    .scroll-ref p { font-size: 13px; color: #555; margin-bottom: 8px; }
+    .scroll-inner { height: 100px; overflow: auto; border: 1px solid #ccc; border-radius: 4px; }
+    .scroll-content { height: 800px; width: 2000px; background: repeating-linear-gradient(45deg, #f9f9f9, #f9f9f9 10px, #efefef 10px, #efefef 20px); display: flex; align-items: flex-start; padding: 8px; font-size: 13px; color: #888; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1857: Middle mouse button autoscroll</h1>
+  <p class="subtitle">Issue: <a href="https://github.com/handsontable/handsontable/issues/2722" target="_blank">#2722</a> — fix: middle-click mousedown no longer calls <code>preventDefault()</code></p>
+
+  <nav>
+    <span class="nav-label">Switch to:</span>
+    <a class="nav-btn" href="before.html">BEFORE FIX <span class="badge badge-before">v17.1.0</span></a>
+    <span class="nav-btn active">AFTER FIX <span class="badge badge-after">patched</span></span>
+  </nav>
+
+  <div class="info">
+    <strong>Fix:</strong> The <code>rootElement</code> <code>mousedown</code> handler now returns early for middle-button clicks (button&nbsp;1) via a new <code>isMiddleClick()</code> helper. The default action is preserved, allowing the browser to start its native autoscroll panning.<br><br>
+    <strong>How to test (Windows / Linux):</strong>
+    <ol style="margin-top:6px; padding-left:20px;">
+      <li>Middle-click (press the scroll wheel) on any grid cell below.</li>
+      <li>The panning cursor (⊕) appears. Move the mouse to scroll the grid.</li>
+      <li>The status panel shows <code style="color:#28a745">defaultPrevented: false</code>.</li>
+      <li>Left-click still shows <code style="color:#dc3545">defaultPrevented: true</code> — text selection guard is unaffected.</li>
+    </ol>
+  </div>
+
+  <div class="fix-note">
+    <strong>Note:</strong> This demo loads Handsontable v17.1.0 from CDN and applies the equivalent of PR&nbsp;#12754 as a JavaScript patch:
+    a capture-phase <code>mousedown</code> listener intercepts middle-clicks before HOT's handler and replaces
+    <code>event.preventDefault</code> with a no-op, matching the merged fix behavior exactly.
+  </div>
+
+  <div class="status-panel">
+    <h3>Mousedown status (updated on each click over the grid):</h3>
+    <div class="status-row">
+      <div class="status-item"><span class="status-key">Event button</span><span class="status-val" id="s-button">—</span></div>
+      <div class="status-item"><span class="status-key">Target</span><span class="status-val" id="s-target">—</span></div>
+      <div class="status-item"><span class="status-key">defaultPrevented</span><span class="status-val" id="s-prevented">—</span></div>
+      <div class="status-item"><span class="status-key">Result</span><span class="status-val" id="s-result">—</span></div>
+    </div>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <div class="scroll-ref">
+    <p>Reference — plain <code>overflow:auto</code> container (autoscroll works here on Windows/Linux):</p>
+    <div class="scroll-inner">
+      <div class="scroll-content">Middle-click and drag mouse to scroll →</div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script>
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: Handsontable.helper.createSpreadsheetData(25, 12),
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 350,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Patch equivalent to PR #12754: isMiddleClick early-return in the rootElement mousedown handler.
+    // A capture-phase listener fires before HOT's bubble-phase handler.
+    // Replacing preventDefault with a no-op prevents HOT from canceling the browser's native autoscroll.
+    hot.rootElement.addEventListener('mousedown', (event) => {
+      if (event.button === 1) {
+        event.preventDefault = () => {};
+      }
+    }, { capture: true });
+
+    const buttonLabels = { 0: 'left', 1: 'middle', 2: 'right' };
+
+    document.addEventListener('mousedown', (event) => {
+      if (![0, 1, 2].includes(event.button)) return;
+      setTimeout(() => {
+        const prevented = event.defaultPrevented;
+        const label = buttonLabels[event.button] || event.button;
+        document.getElementById('s-button').textContent = `${event.button} (${label})`;
+        document.getElementById('s-target').textContent = event.target.className
+          ? `${event.target.tagName.toLowerCase()}.${event.target.className.split(' ')[0]}`
+          : event.target.tagName.toLowerCase();
+        const el = document.getElementById('s-prevented');
+        el.textContent = String(prevented);
+        el.className = `status-val val-${prevented}`;
+        if (event.button === 1) {
+          document.getElementById('s-result').textContent = prevented
+            ? '❌  Autoscroll suppressed (bug)'
+            : '✅  Autoscroll allowed (fixed)';
+        } else {
+          document.getElementById('s-result').textContent = prevented
+            ? '✅  Text selection prevented (correct)'
+            : '— other button';
+        }
+      }, 0);
+    });
+  </script>
+</body>
+</html>
