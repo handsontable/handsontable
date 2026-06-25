@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DEV-1844 — BEFORE FIX: Walkontable excluded from tsconfig type-check</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.6.0/dist/handsontable.full.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@14.6.0/dist/handsontable.full.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; color: #333; }
+    .header { background: #c0392b; color: white; padding: 20px 32px; }
+    .header h1 { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+    .header p { font-size: 14px; opacity: 0.85; }
+    .badge { display: inline-block; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4); border-radius: 4px; padding: 2px 8px; font-size: 12px; font-weight: 600; margin-top: 8px; }
+    .container { max-width: 960px; margin: 32px auto; padding: 0 24px; }
+    .card { background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 20px; }
+    .card h2 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: #c0392b; border-bottom: 2px solid #fde8e6; padding-bottom: 8px; }
+    .problem-list { list-style: none; }
+    .problem-list li { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+    .problem-list li:last-child { border-bottom: none; }
+    .icon { font-size: 20px; flex-shrink: 0; }
+    .text strong { display: block; margin-bottom: 2px; font-size: 14px; }
+    .text span { font-size: 13px; color: #666; }
+    pre { background: #f8f8f8; border: 1px solid #e0e0e0; border-radius: 4px; padding: 14px 16px; font-size: 13px; overflow-x: auto; line-height: 1.6; }
+    .highlight-bad { background: #ffeaea; border-color: #f5c6c6; }
+    code { font-family: 'SF Mono', 'Fira Code', monospace; }
+    .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .metric { text-align: center; padding: 16px; border-radius: 6px; }
+    .metric.bad { background: #fdecea; border: 1px solid #f5c6c6; }
+    .metric .value { font-size: 36px; font-weight: 800; color: #c0392b; }
+    .metric .label { font-size: 12px; color: #666; margin-top: 4px; }
+    .demo-note { background: #fff8e1; border: 1px solid #ffe082; border-radius: 6px; padding: 12px 16px; font-size: 13px; color: #7d5a00; margin-bottom: 16px; }
+    #hot-table { margin-top: 8px; }
+    .nav-link { display: inline-block; margin-top: 16px; background: #27ae60; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; font-size: 13px; font-weight: 600; }
+    .nav-link:hover { background: #219150; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>DEV-1844 — BEFORE FIX</h1>
+    <p>Walkontable was excluded from the main tsconfig type-check, and contained 68 <code>as unknown</code> escape-hatch casts</p>
+    <span class="badge">⚠ Broken State</span>
+  </div>
+
+  <div class="container">
+
+    <div class="card">
+      <h2>Problems in the "before" state</h2>
+      <ul class="problem-list">
+        <li>
+          <span class="icon">🚫</span>
+          <div class="text">
+            <strong>Walkontable excluded from main TypeScript type-check</strong>
+            <span><code>handsontable/tsconfig.json</code> had <code>"src/3rdparty/**"</code> in the <code>exclude</code> array.
+              The <code>tsc --noEmit</code> / CI <code>typecheck</code> task never checked Walkontable's 83 <code>.ts</code> files (~17.6k lines).
+              Any type regression in Walkontable would silently pass CI.</span>
+          </div>
+        </li>
+        <li>
+          <span class="icon">🚧</span>
+          <div class="text">
+            <strong>68 <code>as unknown</code> / <code>as unknown as X</code> escape-hatch casts</strong>
+            <span>TypeScript's equivalent of a <code>(void*)</code> cast — bypasses type compatibility entirely and hides real structural mismatches. These were spread across <code>settings.ts</code>, <code>viewportColumns.ts</code>, <code>viewportRows.ts</code>, <code>border.ts</code>, and many more files.</span>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Problematic tsconfig.json (before fix)</h2>
+      <pre class="highlight-bad"><code>{
+  "compilerOptions": { ... },
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "src/**/__tests__/**",
+    "src/**/*.types.ts",
+    "src/**/test/**",
+<span style="background:#f5c6c6; display:block; margin: -2px -16px; padding: 2px 16px;">    "src/3rdparty/**"   ← Walkontable EXCLUDED — type errors silently ignored by CI</span>
+  ]
+}</code></pre>
+    </div>
+
+    <div class="card">
+      <h2>Example of escape-hatch casts (before fix)</h2>
+      <pre class="highlight-bad"><code><span style="color:#999">// settings.ts — cast-on-init defaults (42 occurrences)</span>
+this.settings.data = <span style="background:#f5c6c6">null as unknown as GridSettings['data']</span>;
+this.settings.width = <span style="background:#f5c6c6">undefined as unknown as GridSettings['width']</span>;
+
+<span style="color:#999">// viewportColumns.ts</span>
+return calculateAxis.call(this <span style="background:#f5c6c6">as unknown as AxisCalculatorContext</span>, ...);
+
+<span style="color:#999">// border.ts</span>
+if ((<span style="background:#f5c6c6">borderStyle as unknown</span>) === 0) { ... }
+objectEach(style, (value, key) =&gt; {
+  element.style[key] = <span style="background:#f5c6c6">value as unknown as string</span>;
+});</code></pre>
+    </div>
+
+    <div class="card">
+      <h2>Escape-hatch metrics (BEFORE)</h2>
+      <div class="metrics">
+        <div class="metric bad">
+          <div class="value">68</div>
+          <div class="label"><code>as unknown</code> casts in Walkontable</div>
+        </div>
+        <div class="metric bad">
+          <div class="value">0%</div>
+          <div class="label">Walkontable type-check CI coverage</div>
+        </div>
+        <div class="metric bad">
+          <div class="value">83</div>
+          <div class="label">Walkontable .ts files unchecked by CI</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Runtime behavior (unchanged — grid still works)</h2>
+      <div class="demo-note">
+        ℹ️ This is a TypeScript type-checking issue only. The grid renders and functions normally in both before and after states.
+        The fix improves type safety and CI coverage — it does not change any runtime behavior.
+      </div>
+      <div id="hot-table"></div>
+    </div>
+
+    <a href="./DEV-1844-after.html" class="nav-link">→ View AFTER FIX demo</a>
+  </div>
+
+  <script>
+    const container = document.getElementById('hot-table');
+    const data = [
+      ['ID', 'Product', 'Category', 'Price', 'Stock', 'Rating'],
+      [1, 'Laptop Pro 15"', 'Electronics', 1299.99, 42, '★★★★★'],
+      [2, 'Wireless Mouse', 'Accessories', 29.99, 215, '★★★★☆'],
+      [3, 'Mechanical Keyboard', 'Accessories', 89.99, 88, '★★★★★'],
+      [4, 'USB-C Hub', 'Accessories', 49.99, 174, '★★★☆☆'],
+      [5, 'Monitor 27"', 'Electronics', 449.99, 31, '★★★★☆'],
+      [6, 'Webcam HD', 'Electronics', 79.99, 62, '★★★★☆'],
+      [7, 'Desk Lamp LED', 'Office', 39.99, 93, '★★★★★'],
+      [8, 'Ergonomic Chair', 'Furniture', 699.99, 12, '★★★★★'],
+    ];
+
+    new Handsontable(container, {
+      data: data,
+      rowHeaders: true,
+      colHeaders: false,
+      height: 280,
+      width: '100%',
+      licenseKey: 'non-commercial-and-evaluation',
+      stretchH: 'all',
+      className: 'htCenter',
+      readOnly: true,
+      cells(row) {
+        if (row === 0) return { className: 'htBold' };
+      }
+    });
+  </script>
+</body>
+</html>
