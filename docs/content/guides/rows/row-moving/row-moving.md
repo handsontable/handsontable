@@ -13,6 +13,7 @@ vue:
   metaTitle: Row moving - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
+menuTag: updated
 ---
 Change the order of rows, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
 
@@ -110,6 +111,8 @@ The [`moveRows`](@/api/manualRowMove.md#moverows) method has a `finalIndex` para
 </span>
 
 The [`moveRows`](@/api/manualRowMove.md#moverows) function cannot perform some actions, e.g., more than one element can't be moved to the last position. In this scenario, the move will be cancelled. The Plugin's [`isMovePossible`](@/api/manualRowMove.md#ismovepossible) API method and the `movePossible` parameters `beforeRowMove` and `afterRowMove` hooks help in determine such situations.
+
+The [`moveRows`](@/api/manualRowMove.md#moverows) method is also inactive when the [`NestedRows`](@/api/nestedRows.md) plugin is enabled - see [Row parent-child known limitations](@/guides/rows/row-parent-child/row-parent-child.md#known-limitations).
 
 ### Related API reference
 
