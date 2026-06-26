@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1842: UndoRedo Core API — Before Fix (broken)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #666; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-before { background: #fce4e4; color: #b71c1c; }
+    .badge-after { background: #e8f5e9; color: #2e7d32; }
+    .info { background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
+    .info strong { color: #856404; }
+    .controls { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+    button {
+      padding: 7px 14px; font-size: 13px; border-radius: 5px; cursor: pointer;
+      border: 1px solid #ccc; background: #fff;
+    }
+    button:hover { background: #f0f0f0; }
+    button.danger { border-color: #e53935; color: #e53935; }
+    button.safe { border-color: #388e3c; color: #388e3c; }
+    .log { margin-top: 12px; background: #1e1e1e; color: #d4d4d4; padding: 12px 14px; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.6; min-height: 80px; max-height: 220px; overflow-y: auto; }
+    .log .err { color: #f48771; }
+    .log .ok { color: #6a9955; }
+    .log .info-line { color: #9cdcfe; }
+    .section-label { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; margin-top: 14px; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1842 — Remove deprecated Core-level UndoRedo API</h1>
+  <div class="subtitle">Demonstrates that <code>hot.undo()</code>, <code>hot.redo()</code>, <code>hot.clearUndo()</code>, etc. are <strong>undefined</strong> at runtime</div>
+
+  <nav>
+    <span class="nav-label">State:</span>
+    <span class="nav-btn active">Before Fix <span class="badge badge-before">broken API</span></span>
+    <a class="nav-btn" href="1842-after.html">After Fix <span class="badge badge-after">correct API</span></a>
+  </nav>
+
+  <div class="info">
+    <strong>What this shows:</strong> The Core-level undo/redo methods (<code>hot.undo()</code>, <code>hot.redo()</code>,
+    <code>hot.clearUndo()</code>, <code>hot.isUndoAvailable()</code>, <code>hot.isRedoAvailable()</code>, <code>hot.undoRedo</code>)
+    were <em>never wired up</em> after the TypeScript migration — <code>#exposeAPIToCore()</code> was defined but never called.
+    Clicking the "broken" buttons below demonstrates the runtime <code>TypeError</code>.<br><br>
+    <strong>Steps:</strong> 1. Edit any cell. 2. Click a broken button → see the TypeError in the log. 3. Click a working button → undo/redo succeeds via the plugin API.
+  </div>
+
+  <div class="section-label">Edit cells, then try undo/redo:</div>
+  <div class="controls">
+    <button class="danger" id="btn-undo-broken">hot.undo() ❌ broken</button>
+    <button class="danger" id="btn-redo-broken">hot.redo() ❌ broken</button>
+    <button class="danger" id="btn-clear-broken">hot.clearUndo() ❌ broken</button>
+    <button class="danger" id="btn-isundo-broken">hot.isUndoAvailable() ❌ broken</button>
+    <button class="danger" id="btn-undoredo-broken">hot.undoRedo ❌ broken</button>
+  </div>
+  <div class="controls">
+    <button class="safe" id="btn-undo-ok">getPlugin('undoRedo').undo() ✓ works</button>
+    <button class="safe" id="btn-redo-ok">getPlugin('undoRedo').redo() ✓ works</button>
+    <button class="safe" id="btn-isundo-ok">getPlugin('undoRedo').isUndoAvailable() ✓ works</button>
+  </div>
+
+  <div class="log" id="log"></div>
+
+  <div class="section-label">Grid (edit cells, then use undo/redo buttons above):</div>
+  <div id="hot-container" style="margin-top:8px"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script>
+    const log = document.getElementById('log');
+    function append(msg, cls) {
+      const line = document.createElement('div');
+      line.className = cls || '';
+      line.textContent = msg;
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: Handsontable.helper.createSpreadsheetData(8, 6),
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 260,
+      themeName: 'ht-theme-main',
+      undo: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Inspect Core API surface on load
+    append('--- Inspecting Core API surface (v17.1.0) ---', 'info-line');
+    append('typeof hot.undo       = ' + typeof hot.undo + (hot.undo === undefined ? '  ← BROKEN (undefined)' : ''), hot.undo === undefined ? 'err' : 'ok');
+    append('typeof hot.redo       = ' + typeof hot.redo + (hot.redo === undefined ? '  ← BROKEN (undefined)' : ''), hot.redo === undefined ? 'err' : 'ok');
+    append('typeof hot.clearUndo  = ' + typeof hot.clearUndo + (hot.clearUndo === undefined ? '  ← BROKEN (undefined)' : ''), hot.clearUndo === undefined ? 'err' : 'ok');
+    append('typeof hot.isUndoAvailable = ' + typeof hot.isUndoAvailable + (hot.isUndoAvailable === undefined ? '  ← BROKEN (undefined)' : ''), hot.isUndoAvailable === undefined ? 'err' : 'ok');
+    append('typeof hot.undoRedo   = ' + typeof hot.undoRedo + (hot.undoRedo === undefined ? '  ← BROKEN (undefined)' : ''), hot.undoRedo === undefined ? 'err' : 'ok');
+    append('--- Plugin API (correct) ---', 'info-line');
+    append('typeof hot.getPlugin("undoRedo").undo = ' + typeof hot.getPlugin('undoRedo').undo, 'ok');
+
+    // Broken buttons
+    document.getElementById('btn-undo-broken').addEventListener('click', () => {
+      try { hot.undo(); append('hot.undo() succeeded (unexpected)', 'ok'); }
+      catch(e) { append('hot.undo() → TypeError: ' + e.message, 'err'); }
+    });
+    document.getElementById('btn-redo-broken').addEventListener('click', () => {
+      try { hot.redo(); append('hot.redo() succeeded (unexpected)', 'ok'); }
+      catch(e) { append('hot.redo() → TypeError: ' + e.message, 'err'); }
+    });
+    document.getElementById('btn-clear-broken').addEventListener('click', () => {
+      try { hot.clearUndo(); append('hot.clearUndo() succeeded (unexpected)', 'ok'); }
+      catch(e) { append('hot.clearUndo() → TypeError: ' + e.message, 'err'); }
+    });
+    document.getElementById('btn-isundo-broken').addEventListener('click', () => {
+      try { const r = hot.isUndoAvailable(); append('hot.isUndoAvailable() → ' + r, 'ok'); }
+      catch(e) { append('hot.isUndoAvailable() → TypeError: ' + e.message, 'err'); }
+    });
+    document.getElementById('btn-undoredo-broken').addEventListener('click', () => {
+      append('hot.undoRedo = ' + hot.undoRedo + (hot.undoRedo === undefined ? '  ← BROKEN' : ''), hot.undoRedo === undefined ? 'err' : 'ok');
+    });
+
+    // Working buttons (plugin API)
+    document.getElementById('btn-undo-ok').addEventListener('click', () => {
+      try {
+        const plugin = hot.getPlugin('undoRedo');
+        plugin.undo();
+        append('getPlugin("undoRedo").undo() → OK', 'ok');
+      } catch(e) { append('ERROR: ' + e.message, 'err'); }
+    });
+    document.getElementById('btn-redo-ok').addEventListener('click', () => {
+      try {
+        const plugin = hot.getPlugin('undoRedo');
+        plugin.redo();
+        append('getPlugin("undoRedo").redo() → OK', 'ok');
+      } catch(e) { append('ERROR: ' + e.message, 'err'); }
+    });
+    document.getElementById('btn-isundo-ok').addEventListener('click', () => {
+      try {
+        const plugin = hot.getPlugin('undoRedo');
+        const r = plugin.isUndoAvailable();
+        append('getPlugin("undoRedo").isUndoAvailable() → ' + r, 'ok');
+      } catch(e) { append('ERROR: ' + e.message, 'err'); }
+    });
+  </script>
+</body>
+</html>

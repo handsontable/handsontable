@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1842: UndoRedo Core API — After Fix (correct)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #666; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-before { background: #fce4e4; color: #b71c1c; }
+    .badge-after { background: #e8f5e9; color: #2e7d32; }
+    .info { background: #e8f5e9; border: 1px solid #66bb6a; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
+    .info strong { color: #1b5e20; }
+    .controls { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+    button {
+      padding: 7px 14px; font-size: 13px; border-radius: 5px; cursor: pointer;
+      border: 1px solid #ccc; background: #fff;
+    }
+    button:hover { background: #f0f0f0; }
+    button.safe { border-color: #388e3c; color: #388e3c; }
+    button.info-btn { border-color: #0277bd; color: #0277bd; }
+    .log { margin-top: 12px; background: #1e1e1e; color: #d4d4d4; padding: 12px 14px; border-radius: 6px; font-family: monospace; font-size: 13px; line-height: 1.6; min-height: 80px; max-height: 220px; overflow-y: auto; }
+    .log .err { color: #f48771; }
+    .log .ok { color: #6a9955; }
+    .log .info-line { color: #9cdcfe; }
+    .section-label { font-size: 12px; font-weight: 600; color: #666; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; margin-top: 14px; }
+    .api-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 13px; background: #fff; border-radius: 6px; overflow: hidden; border: 1px solid #ddd; }
+    .api-table th { background: #f0f0f0; padding: 8px 12px; text-align: left; font-weight: 600; border-bottom: 1px solid #ddd; }
+    .api-table td { padding: 7px 12px; border-bottom: 1px solid #f0f0f0; font-family: monospace; vertical-align: top; }
+    .api-table td:last-child { font-family: inherit; }
+    .removed { color: #b71c1c; text-decoration: line-through; }
+    .correct { color: #2e7d32; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1842 — Remove deprecated Core-level UndoRedo API</h1>
+  <div class="subtitle">Demonstrates the correct API: <code>hot.getPlugin('undoRedo').undo()</code></div>
+
+  <nav>
+    <span class="nav-label">State:</span>
+    <a class="nav-btn" href="1842-before.html">Before Fix <span class="badge badge-before">broken API</span></a>
+    <span class="nav-btn active">After Fix <span class="badge badge-after">correct API</span></span>
+  </nav>
+
+  <div class="info">
+    <strong>What the fix does:</strong> Removes <code>#exposeAPIToCore()</code> / <code>#removeAPIFromCore()</code> dead code from the
+    UndoRedo plugin, removes the deprecated <code>undo?</code>, <code>redo?</code>, <code>clearUndo?</code>,
+    <code>isUndoAvailable?</code>, <code>isRedoAvailable?</code>, <code>undoRedo?</code> members from the <code>HotInstance</code>
+    TypeScript interface, and removes the dead <code>instance.undoRedo</code> branch in <code>getPluginName()</code>.<br><br>
+    <strong>Steps:</strong> 1. Edit any cell. 2. Click the green buttons below — all succeed. 3. Open the before-fix page and try the red buttons — they all throw TypeError.
+  </div>
+
+  <table class="api-table">
+    <thead><tr><th>Removed (deprecated, never worked)</th><th>Correct API (use this)</th></tr></thead>
+    <tbody>
+      <tr><td class="removed">hot.undo()</td><td class="correct">hot.getPlugin('undoRedo').undo()</td></tr>
+      <tr><td class="removed">hot.redo()</td><td class="correct">hot.getPlugin('undoRedo').redo()</td></tr>
+      <tr><td class="removed">hot.clearUndo()</td><td class="correct">hot.getPlugin('undoRedo').clear()</td></tr>
+      <tr><td class="removed">hot.isUndoAvailable()</td><td class="correct">hot.getPlugin('undoRedo').isUndoAvailable()</td></tr>
+      <tr><td class="removed">hot.isRedoAvailable()</td><td class="correct">hot.getPlugin('undoRedo').isRedoAvailable()</td></tr>
+      <tr><td class="removed">hot.undoRedo</td><td class="correct">hot.getPlugin('undoRedo')</td></tr>
+    </tbody>
+  </table>
+
+  <div class="section-label">Edit cells, then use the correct plugin API:</div>
+  <div class="controls">
+    <button class="safe" id="btn-undo">getPlugin('undoRedo').undo()</button>
+    <button class="safe" id="btn-redo">getPlugin('undoRedo').redo()</button>
+    <button class="safe" id="btn-clear">getPlugin('undoRedo').clear()</button>
+    <button class="info-btn" id="btn-isundo">getPlugin('undoRedo').isUndoAvailable()</button>
+    <button class="info-btn" id="btn-isredo">getPlugin('undoRedo').isRedoAvailable()</button>
+    <button class="info-btn" id="btn-getplugin">getPlugin('undoRedo') reference</button>
+  </div>
+
+  <div class="log" id="log"></div>
+
+  <div class="section-label">Grid (edit cells, then use undo/redo buttons above):</div>
+  <div id="hot-container" style="margin-top:8px"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script>
+    const log = document.getElementById('log');
+    function append(msg, cls) {
+      const line = document.createElement('div');
+      line.className = cls || '';
+      line.textContent = msg;
+      log.appendChild(line);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: Handsontable.helper.createSpreadsheetData(8, 6),
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 260,
+      themeName: 'ht-theme-main',
+      undo: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Verify the correct API is available
+    append('--- Plugin API surface (correct) ---', 'info-line');
+    const plugin = hot.getPlugin('undoRedo');
+    append('typeof getPlugin("undoRedo")             = ' + typeof plugin, 'ok');
+    append('typeof getPlugin("undoRedo").undo        = ' + typeof plugin.undo, 'ok');
+    append('typeof getPlugin("undoRedo").redo        = ' + typeof plugin.redo, 'ok');
+    append('typeof getPlugin("undoRedo").clear       = ' + typeof plugin.clear, 'ok');
+    append('typeof getPlugin("undoRedo").isUndoAvailable = ' + typeof plugin.isUndoAvailable, 'ok');
+    append('typeof getPlugin("undoRedo").isRedoAvailable = ' + typeof plugin.isRedoAvailable, 'ok');
+    append('--- Core members (now correctly absent from TS types) ---', 'info-line');
+    append('typeof hot.undo      = ' + typeof hot.undo + ' (removed from TypeScript HotInstance)', 'ok');
+    append('typeof hot.undoRedo  = ' + typeof hot.undoRedo + ' (removed from TypeScript HotInstance)', 'ok');
+
+    document.getElementById('btn-undo').addEventListener('click', () => {
+      try { hot.getPlugin('undoRedo').undo(); append('getPlugin("undoRedo").undo() → OK', 'ok'); }
+      catch(e) { append('ERROR: ' + e.message, 'err'); }
+    });
+    document.getElementById('btn-redo').addEventListener('click', () => {
+      try { hot.getPlugin('undoRedo').redo(); append('getPlugin("undoRedo").redo() → OK', 'ok'); }
+      catch(e) { append('ERROR: ' + e.message, 'err'); }
+    });
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      try { hot.getPlugin('undoRedo').clear(); append('getPlugin("undoRedo").clear() → OK (undo history cleared)', 'ok'); }
+      catch(e) { append('ERROR: ' + e.message, 'err'); }
+    });
+    document.getElementById('btn-isundo').addEventListener('click', () => {
+      try {
+        const r = hot.getPlugin('undoRedo').isUndoAvailable();
+        append('getPlugin("undoRedo").isUndoAvailable() → ' + r, 'ok');
+      } catch(e) { append('ERROR: ' + e.message, 'err'); }
+    });
+    document.getElementById('btn-isredo').addEventListener('click', () => {
+      try {
+        const r = hot.getPlugin('undoRedo').isRedoAvailable();
+        append('getPlugin("undoRedo").isRedoAvailable() → ' + r, 'ok');
+      } catch(e) { append('ERROR: ' + e.message, 'err'); }
+    });
+    document.getElementById('btn-getplugin').addEventListener('click', () => {
+      try {
+        const p = hot.getPlugin('undoRedo');
+        append('getPlugin("undoRedo") → ' + p.constructor.name + ' (plugin instance)', 'ok');
+      } catch(e) { append('ERROR: ' + e.message, 'err'); }
+    });
+  </script>
+</body>
+</html>
