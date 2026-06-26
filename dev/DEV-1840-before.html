@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DEV-1840 BEFORE – Weak cell-meta typing in renderers/editors/validators</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.0.0/dist/handsontable.full.min.css">
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    header { background: #c0392b; color: white; padding: 16px 24px; border-radius: 8px; margin-bottom: 20px; }
+    header h1 { margin: 0; font-size: 20px; }
+    header p { margin: 6px 0 0; opacity: .85; font-size: 14px; }
+    .badge { display:inline-block; background:#e74c3c; color:#fff; border-radius:4px; padding:2px 8px; font-size:12px; font-weight:700; margin-right:6px; }
+    section { background: white; border-radius: 8px; padding: 20px 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+    section h2 { margin-top: 0; font-size: 16px; color: #333; }
+    pre { background: #2b2b2b; color: #f8f8f2; padding: 16px; border-radius: 6px; overflow-x: auto; font-size: 13px; line-height: 1.5; }
+    .comment { color: #75715e; }
+    .keyword { color: #66d9ef; }
+    .type-bad { color: #f92672; font-weight: bold; }
+    .type-good { color: #a6e22e; }
+    .string { color: #e6db74; }
+    #hot { margin-top: 10px; }
+    .issue-list { padding-left: 20px; }
+    .issue-list li { margin-bottom: 8px; color: #555; font-size: 14px; }
+    .link-bar { display:flex; gap:12px; margin-bottom:20px; }
+    .link-bar a { padding:8px 16px; border-radius:6px; text-decoration:none; font-size:14px; font-weight:600; }
+    .btn-before { background:#c0392b; color:#fff; }
+    .btn-after { background:#27ae60; color:#fff; }
+  </style>
+</head>
+<body>
+
+<div class="link-bar">
+  <a class="btn-before" href="DEV-1840-before.html">⬅ BEFORE (this page)</a>
+  <a class="btn-after" href="DEV-1840-after.html">AFTER (fixed) ➡</a>
+</div>
+
+<header>
+  <h1><span class="badge">BEFORE</span> DEV-1840 – Weak cell-meta typing</h1>
+  <p>
+    Renderers, editors and validators typed their <code>cellProperties</code> parameter as
+    <code>Record&lt;string, unknown&gt;</code> or a locally-declared shadow type instead of the canonical
+    <code>CellProperties</code> interface from <code>src/settings.ts</code>.
+    This page shows the <strong>pre-fix state</strong> (Handsontable 17.0 release).
+  </p>
+</header>
+
+<section>
+  <h2>Problems in the pre-fix code</h2>
+  <ul class="issue-list">
+    <li>
+      <strong>16 renderers</strong> (e.g. <code>htmlRenderer</code>, <code>intlTimeRenderer</code>,
+      <code>intlDateRenderer</code>, <code>checkboxRenderer</code>, …) accepted
+      <code>Record&lt;string, unknown&gt;</code> — so IDE completion showed no known properties.
+    </li>
+    <li>
+      <strong>9 editors + editorManager.ts</strong> used <code>Record&lt;string, unknown&gt;</code> or local
+      shadow interfaces, breaking the link to the canonical API.
+    </li>
+    <li>
+      <strong>7 validators</strong> typed <code>this</code> as a local <code>CellMeta = Record&lt;string,
+      unknown&gt; &amp; { allowEmpty?: boolean }</code> instead of canonical <code>CellProperties</code>.
+    </li>
+    <li>
+      <strong>numericType/valueSetter.ts</strong> used a bespoke <code>NumericCellMeta</code> type.
+    </li>
+    <li>
+      intl-* renderers/validators re-declared their own <code>type CellProperties = Record&lt;string,
+      unknown&gt; &amp; { … }</code> local shadow types that drifted from the real interface.
+    </li>
+  </ul>
+</section>
+
+<section>
+  <h2>Example: <code>timeRenderer.ts</code> — BEFORE</h2>
+  <pre><span class="comment">// ❌ BEFORE: local shadow type — unknown at the IDE level</span>
+<span class="keyword">type</span> <span class="type-bad">CellProperties</span> = <span class="type-bad">Record&lt;string, unknown&gt;</span> &amp; {
+  timeFormat?: Intl.DateTimeFormatOptions;
+  locale?: string;
+  allowEmpty?: boolean;
+  instance?: object;
+};
+
+<span class="keyword">export function</span> timeRenderer(
+  hotInstance: <span class="type-bad">Record&lt;string, unknown&gt;</span>,
+  TD: HTMLTableCellElement,
+  …
+  cellProperties: <span class="type-bad">CellProperties</span>  <span class="comment">// ← shadow, not canonical</span>
+): <span class="keyword">void</span> { … }</pre>
+</section>
+
+<section>
+  <h2>Example: <code>timeValidator.ts</code> — BEFORE</h2>
+  <pre><span class="comment">// ❌ BEFORE: local CellMeta shadow type</span>
+<span class="keyword">type</span> <span class="type-bad">CellMeta</span> = <span class="type-bad">Record&lt;string, unknown&gt;</span> &amp; { allowEmpty?: boolean };
+
+<span class="keyword">export function</span> timeValidator(
+  <span class="keyword">this</span>: <span class="type-bad">CellMeta</span>,   <span class="comment">// ← weak: IDE sees only allowEmpty, not the full CellProperties</span>
+  value: unknown,
+  callback: (valid: boolean) =&gt; <span class="keyword">void</span>
+): <span class="keyword">void</span> { … }</pre>
+</section>
+
+<section>
+  <h2>Live grid (Handsontable 17.0 — pre-fix release)</h2>
+  <p style="color:#888;font-size:13px;">
+    The grid functions correctly at <em>runtime</em>. The bug is purely in TypeScript type declarations —
+    no visual or behavioral difference is visible here. Interact with the numeric, date, and time columns.
+  </p>
+  <div id="hot"></div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/handsontable@17.0.0/dist/handsontable.full.min.js"></script>
+<script>
+  const container = document.getElementById('hot');
+
+  const hot = new Handsontable(container, {
+    licenseKey: 'non-commercial-and-evaluation',
+    data: [
+      ['Alice',   42,    '2024-06-15', '14:30', true,  'autocomplete1'],
+      ['Bob',     3.14,  '2024-01-01', '09:00', false, 'autocomplete2'],
+      ['Charlie', 1000,  '2025-12-31', '23:59', true,  'autocomplete1'],
+      ['Diana',   0.001, '2023-07-04', '00:00', false, 'autocomplete3'],
+    ],
+    colHeaders: ['Name', 'Numeric', 'Date', 'Time', 'Checkbox', 'Autocomplete'],
+    columns: [
+      { type: 'text' },
+      { type: 'numeric', numericFormat: { style: 'decimal', maximumFractionDigits: 4 } },
+      { type: 'date', dateFormat: 'YYYY-MM-DD' },
+      { type: 'time', timeFormat: 'HH:mm', correctFormat: true },
+      { type: 'checkbox' },
+      { type: 'autocomplete', source: ['autocomplete1', 'autocomplete2', 'autocomplete3'], strict: true },
+    ],
+    rowHeaders: true,
+    height: 'auto',
+    stretchH: 'all',
+    // DEV-1840 note: in 17.0, the renderer / validator signatures were typed as
+    // Record<string,unknown> or local shadow types. Here is a custom renderer
+    // that mimics the pre-fix signature style:
+    afterRenderer(TD, row, col) {
+      if (col === 1 && row === 0) {
+        TD.title = 'Pre-fix: cellProperties was typed as Record<string,unknown>';
+      }
+    }
+  });
+</script>
+</body>
+</html>

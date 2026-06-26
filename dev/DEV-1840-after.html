@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DEV-1840 AFTER – Canonical CellProperties in renderers/editors/validators</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.css">
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 0; padding: 20px; background: #f5f5f5; }
+    header { background: #27ae60; color: white; padding: 16px 24px; border-radius: 8px; margin-bottom: 20px; }
+    header h1 { margin: 0; font-size: 20px; }
+    header p { margin: 6px 0 0; opacity: .85; font-size: 14px; }
+    .badge { display:inline-block; background:#2ecc71; color:#fff; border-radius:4px; padding:2px 8px; font-size:12px; font-weight:700; margin-right:6px; border:1px solid rgba(255,255,255,.4); }
+    section { background: white; border-radius: 8px; padding: 20px 24px; margin-bottom: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.1); }
+    section h2 { margin-top: 0; font-size: 16px; color: #333; }
+    pre { background: #2b2b2b; color: #f8f8f2; padding: 16px; border-radius: 6px; overflow-x: auto; font-size: 13px; line-height: 1.5; }
+    .comment { color: #75715e; }
+    .keyword { color: #66d9ef; }
+    .type-good { color: #a6e22e; font-weight: bold; }
+    .string { color: #e6db74; }
+    #hot { margin-top: 10px; }
+    .fix-list { padding-left: 20px; }
+    .fix-list li { margin-bottom: 8px; color: #555; font-size: 14px; }
+    .fix-list li::marker { color: #27ae60; }
+    .link-bar { display:flex; gap:12px; margin-bottom:20px; }
+    .link-bar a { padding:8px 16px; border-radius:6px; text-decoration:none; font-size:14px; font-weight:600; }
+    .btn-before { background:#c0392b; color:#fff; }
+    .btn-after { background:#27ae60; color:#fff; }
+    table.change-table { border-collapse:collapse; width:100%; font-size:13px; }
+    table.change-table th { background:#f0f0f0; padding:8px 12px; text-align:left; border:1px solid #ddd; }
+    table.change-table td { padding:8px 12px; border:1px solid #ddd; vertical-align:top; }
+    table.change-table td:first-child { color:#c0392b; font-family:monospace; }
+    table.change-table td:last-child { color:#27ae60; font-family:monospace; }
+  </style>
+</head>
+<body>
+
+<div class="link-bar">
+  <a class="btn-before" href="DEV-1840-before.html">⬅ BEFORE (broken typing)</a>
+  <a class="btn-after" href="DEV-1840-after.html">AFTER (this page) ✓</a>
+</div>
+
+<header>
+  <h1><span class="badge">AFTER ✓</span> DEV-1840 – Canonical CellProperties everywhere</h1>
+  <p>
+    All 33 source files now route their <code>cellProperties</code> parameter to the canonical
+    <code>CellProperties</code> interface from <code>src/settings.ts</code>.
+    Local shadow types are deleted; IDE completion and type safety are fully restored.
+    <strong>Zero runtime change</strong> — pure TypeScript refactor.
+  </p>
+</header>
+
+<section>
+  <h2>What was fixed (33 files across 4 areas)</h2>
+  <table class="change-table">
+    <thead>
+      <tr><th>Area</th><th>BEFORE (weak)</th><th>AFTER (canonical)</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>16 renderers<br><small>(checkboxRenderer, htmlRenderer, intlTimeRenderer, intlDateRenderer, …)</small></td>
+        <td>Record&lt;string, unknown&gt;<br>or local shadow type</td>
+        <td>CellProperties</td>
+      </tr>
+      <tr>
+        <td>9 editors + editorManager</td>
+        <td>Record&lt;string, unknown&gt;</td>
+        <td>CellProperties</td>
+      </tr>
+      <tr>
+        <td>7 validators<br><small>(this context: timeValidator, dateValidator, autocompleteValidator, …)</small></td>
+        <td>type CellMeta = Record&lt;string, unknown&gt; &amp; { allowEmpty?: boolean }</td>
+        <td>this: CellProperties</td>
+      </tr>
+      <tr>
+        <td>numericType/valueSetter.ts</td>
+        <td>NumericCellMeta (bespoke local)</td>
+        <td>CellProperties</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section>
+  <h2>Example: <code>timeRenderer.ts</code> — AFTER</h2>
+  <pre><span class="comment">// ✅ AFTER: canonical import — single source of truth</span>
+<span class="keyword">import type</span> { <span class="type-good">CellProperties</span> } <span class="keyword">from</span> <span class="string">'../../settings'</span>;
+
+<span class="keyword">export function</span> timeRenderer(
+  hotInstance: HotInstance,
+  TD: HTMLTableCellElement,
+  …
+  cellProperties: <span class="type-good">CellProperties</span>  <span class="comment">// ← full IDE completion + type safety</span>
+): <span class="keyword">void</span> {
+  <span class="comment">// cellProperties.readOnly, .locale, .dateFormat, etc. all properly typed</span>
+  textRenderer.apply(<span class="keyword">this</span>, [hotInstance, TD, row, col, prop, value, cellProperties]);
+  TD.dir = <span class="string">'ltr'</span>;
+}</pre>
+</section>
+
+<section>
+  <h2>Example: <code>timeValidator.ts</code> — AFTER</h2>
+  <pre><span class="comment">// ✅ AFTER: canonical CellProperties used as `this` context</span>
+<span class="keyword">import type</span> { <span class="type-good">CellProperties</span> } <span class="keyword">from</span> <span class="string">'../../settings'</span>;
+
+<span class="keyword">export function</span> timeValidator(
+  <span class="keyword">this</span>: <span class="type-good">CellProperties</span>,  <span class="comment">// ← full interface, IDE completion works</span>
+  value: unknown,
+  callback: (valid: boolean) =&gt; <span class="keyword">void</span>
+): <span class="keyword">void</span> {
+  <span class="keyword">if</span> (<span class="keyword">this</span>.allowEmpty &amp;&amp; isEmpty(value)) {  <span class="comment">// ← properly typed allowEmpty: boolean|undefined</span>
+    callback(<span class="keyword">true</span>);
+    <span class="keyword">return</span>;
+  }
+  callback(isValidTime(value));
+}</pre>
+</section>
+
+<section>
+  <h2>Type regression assertions added to <code>settings.types.ts</code></h2>
+  <pre><span class="comment">// Asserts that CellProperties has well-known members typed precisely
+// (not widened to `any` via the index signature)</span>
+<span class="keyword">declare const</span> cellProperties: <span class="type-good">CellProperties</span>;
+<span class="keyword">const</span> _readOnly: boolean | undefined = cellProperties.readOnly;  <span class="comment">// must NOT widen to any</span>
+
+<span class="comment">// Asserts CellProperties is assignable as a renderer's last argument</span>
+<span class="keyword">const</span> _rendererCellProps: Handsontable.CellProperties = cellProperties;
+
+<span class="comment">// Asserts CellProperties is assignable as a validator `this` context</span>
+<span class="keyword">const</span> _validatorCellProps: CellProperties = cellProperties;</pre>
+</section>
+
+<section>
+  <h2>Live grid (Handsontable 17.1 — post-fix release)</h2>
+  <p style="color:#27ae60;font-size:13px;font-weight:600;">
+    ✓ Runtime behavior is identical to the pre-fix version. All cell types work as expected.
+    The improvement is in TypeScript IDE completion and type safety for custom renderers/validators.
+  </p>
+  <p style="color:#888;font-size:13px;">
+    Try creating a custom renderer in TypeScript — <code>cellProperties.readOnly</code>,
+    <code>cellProperties.locale</code>, <code>cellProperties.allowEmpty</code> and 60+ other
+    properties now have full IDE autocomplete.
+  </p>
+  <div id="hot"></div>
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+<script>
+  const container = document.getElementById('hot');
+
+  const hot = new Handsontable(container, {
+    licenseKey: 'non-commercial-and-evaluation',
+    data: [
+      ['Alice',   42,    '2024-06-15', '14:30', true,  'autocomplete1'],
+      ['Bob',     3.14,  '2024-01-01', '09:00', false, 'autocomplete2'],
+      ['Charlie', 1000,  '2025-12-31', '23:59', true,  'autocomplete1'],
+      ['Diana',   0.001, '2023-07-04', '00:00', false, 'autocomplete3'],
+    ],
+    colHeaders: ['Name', 'Numeric', 'Date', 'Time', 'Checkbox', 'Autocomplete'],
+    columns: [
+      { type: 'text' },
+      { type: 'numeric', numericFormat: { style: 'decimal', maximumFractionDigits: 4 } },
+      { type: 'date', dateFormat: 'YYYY-MM-DD' },
+      { type: 'time', timeFormat: 'HH:mm', correctFormat: true },
+      { type: 'checkbox' },
+      { type: 'autocomplete', source: ['autocomplete1', 'autocomplete2', 'autocomplete3'], strict: true },
+    ],
+    rowHeaders: true,
+    height: 'auto',
+    stretchH: 'all',
+    // DEV-1840 AFTER: custom renderers can now properly reference typed CellProperties
+    renderer(hotInstance, TD, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
+      // cellProperties.readOnly, .locale, .type etc. are all fully typed in TypeScript source
+      if (cellProperties.readOnly) {
+        TD.style.color = '#999';
+      }
+    }
+  });
+</script>
+</body>
+</html>
