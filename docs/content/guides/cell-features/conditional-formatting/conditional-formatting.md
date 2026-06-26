@@ -78,6 +78,10 @@ This demo shows how to use the cell type renderer feature to make some condition
 
 :::
 
+## Result
+
+Cells that match the defined conditions display the configured styles -- colors, fonts, or borders -- automatically updating as data changes.
+
 ## Related articles
 
 **Related guides**
@@ -115,7 +119,3 @@ This demo shows how to use the cell type renderer feature to make some condition
 - [CustomBorders](@/api/customBorders.md)
 
 </div>
-
-## Result
-
-Cells that match the defined conditions display the configured styles -- colors, fonts, or borders -- automatically updating as data changes.

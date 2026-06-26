@@ -290,6 +290,10 @@ From the `/wrappers/vue3` directory, you can also run individual Vue `build` tas
 
 :::
 
+## Result
+
+You now have a local build of Handsontable. The output files in `handsontable/dist/` and `handsontable/tmp/` reflect your source changes.
+
 ## Related guides
 
 <div class="boxes-list">
@@ -303,7 +307,3 @@ From the `/wrappers/vue3` directory, you can also run individual Vue `build` tas
 - [Testing](@/guides/tools-and-building/testing/testing.md)
 
 </div>
-
-## Result
-
-You now have a local build of Handsontable. The output files in `handsontable/dist/` and `handsontable/tmp/` reflect your source changes.

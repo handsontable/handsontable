@@ -278,6 +278,10 @@ Edit the above grid to see the `changes` argument from the callback.
 
 Mind that changes in table are applied after running all validators (both synchronous and and asynchronous) from every changed cell.
 
+## Result
+
+You now have a cell validator that enforces data rules when a user finishes editing. Register it under an alias to reference it by name across your column configuration, and use `allowInvalid: false` to keep the editor open until the user enters a valid value.
+
 ## Related API reference
 
 **APIs**
@@ -327,7 +331,3 @@ Mind that changes in table are applied after running all validators (both synchr
 - [beforeValidate](@/api/hooks.md#beforevalidate)
 
 </div>
-
-## Result
-
-You now have a cell validator that enforces data rules when a user finishes editing. Register it under an alias to reference it by name across your column configuration, and use `allowInvalid: false` to keep the editor open until the user enters a valid value.

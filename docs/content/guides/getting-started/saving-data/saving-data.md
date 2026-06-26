@@ -78,6 +78,10 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 To persist table state (e.g. column order, column widths, row order) across page reloads, use the browser's [`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) API or [`sessionStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage) in your application. Listen to the appropriate hooks (e.g. `afterColumnMove`, `afterColumnResize`) and save or restore state as needed.
 
+## Result
+
+Changes made in the grid are now persisted to your backend or local state on every edit.
+
 ## Related API reference
 
 **Core methods**
@@ -96,7 +100,3 @@ To persist table state (e.g. column order, column widths, row order) across page
 - [afterChange](@/api/hooks.md#afterchange)
 
 </div>
-
-## Result
-
-Changes made in the grid are now persisted to your backend or local state on every edit.

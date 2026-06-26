@@ -1303,6 +1303,10 @@ Use [`initialState`](@/api/options.md#initialstate) to apply these options only 
 
 :::
 
+## Result
+
+Your grid now applies configuration options at the scope you specified -- grid-wide, per column, per row, or per individual cell -- using Handsontable's cascading configuration system.
+
 ## Related API reference
 
 **Configuration options**
@@ -1341,7 +1345,3 @@ Use [`initialState`](@/api/options.md#initialstate) to apply these options only 
 - [afterUpdateSettings](@/api/hooks.md#afterupdatesettings)
 
 </div>
-
-## Result
-
-Your grid now applies configuration options at the scope you specified -- grid-wide, per column, per row, or per individual cell -- using Handsontable's cascading configuration system.

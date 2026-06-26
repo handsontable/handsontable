@@ -418,6 +418,10 @@ class ExtendedSelectEditor extends MySelectEditor {
 
 :::
 
+## Result
+
+You now have a custom cell editor that controls how values are entered in your data grid. You can extend a built-in editor for small changes, or build from `BaseEditor` for a completely custom editing experience.
+
 ## Related keyboard shortcuts
 
 | Windows | macOS | Action | Excel | Sheets |
@@ -514,7 +518,3 @@ class ExtendedSelectEditor extends MySelectEditor {
 - [beforeGetCellMeta](@/api/hooks.md#beforegetcellmeta)
 
 </div>
-
-## Result
-
-You now have a custom cell editor that controls how values are entered in your data grid. You can extend a built-in editor for small changes, or build from `BaseEditor` for a completely custom editing experience.

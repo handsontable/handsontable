@@ -1416,6 +1416,10 @@ import { registerPlugin, ColumnSorting } from 'handsontable/plugins';
 registerPlugin(ColumnSorting);
 ```
 
+## Result
+
+After completing this guide, users can sort rows by clicking column headers, and you can control sort order programmatically. You can use `ColumnSorting` for single-column sorting or `MultiColumnSorting` for multi-column sorting with custom priority.
+
 ## Related keyboard shortcuts
 
 | Windows | macOS | Action | Excel | Sheets |
@@ -1444,10 +1448,6 @@ registerPlugin(ColumnSorting);
 | `indicator` | `boolean` | `true` | When `true`, a sort-order arrow icon is shown in the column header. |
 | `compareFunctionFactory` | `function` | -- | A factory that returns a custom comparator function. See [Add a custom comparator](#add-a-custom-comparator). |
 | `initialConfig` | `object` | -- | Sort config applied at initialization. Contains `column` (visual index) and `sortOrder` (`'asc'` or `'desc'`). |
-
-## Result
-
-After completing this guide, users can sort rows by clicking column headers, and you can control sort order programmatically. You can use `ColumnSorting` for single-column sorting or `MultiColumnSorting` for multi-column sorting with custom priority.
 
 ## API reference
 
