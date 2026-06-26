@@ -21,6 +21,7 @@ vue:
   metaTitle: Undo and redo - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
+menuTag: updated
 ---
 Revert and restore your changes, using the undo and redo features.
 
@@ -85,11 +86,11 @@ Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>⌘
 ## Known limitations
 
 Not all user-triggered actions are recorded in the undo-and-redo history.
-Here's the list of all unsupported features:
+The following actions are not supported:
 
-- [Rows sorting](@/guides/rows/rows-sorting/rows-sorting.md)
-- [Column filter](@/guides/columns/column-filter/column-filter.md)
-- [Row moving](@/guides/rows/row-moving/row-moving.md)
+- [Column resizing](@/guides/columns/column-width/column-width.md) and [row resizing](@/guides/rows/row-height/row-height.md)
+- [Hiding columns](@/guides/columns/column-hiding/column-hiding.md) and [hiding rows](@/guides/rows/row-hiding/row-hiding.md)
+- [Trimming rows](@/guides/rows/row-trimming/row-trimming.md)
 
 ## Related keyboard shortcuts
 
