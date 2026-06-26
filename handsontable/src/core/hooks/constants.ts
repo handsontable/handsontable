@@ -140,7 +140,14 @@ export const REGISTERED_HOOKS = [
    * __Note:__ For performance reasons, the `changes` array is null for `"loadData"` source.
    *
    * @event Hooks#afterChange
-   * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. `row` is a visual row index.
+   * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`.
+   *                          `row` is a visual row index. `prop` is a property name, a column index, or – when
+   *                          [`columns[].data`](@/api/options.md#columns) is a function – the column accessor function.
+   *                          To resolve a visual column index from `prop`, call [`propToCol()`](@/api/core.md#proptocol).
+   *                          Unlike [`beforeValidate`](@/api/hooks.md#beforevalidate) and
+   *                          [`afterValidate`](@/api/hooks.md#aftervalidate), this hook passes the accessor function
+   *                          as `prop` so the grid can write data back. Read more:
+   *                          [Binding to data: Identify changed columns in hooks](@/guides/getting-started/binding-to-data/binding-to-data.md#identify-changed-columns-in-hooks).
    * @param {string} [source] String that identifies source of hook call ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    * @example
    * ::: only-for javascript
@@ -1389,7 +1396,14 @@ export const REGISTERED_HOOKS = [
    * To ignore the user's changes, use a nullified array or return `false`.
    *
    * @event Hooks#beforeChange
-   * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`. `row` is a visual row index.
+   * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`.
+   *                          `row` is a visual row index. `prop` is a property name, a column index, or – when
+   *                          [`columns[].data`](@/api/options.md#columns) is a function – the column accessor function.
+   *                          To resolve a visual column index from `prop`, call [`propToCol()`](@/api/core.md#proptocol).
+   *                          Unlike [`beforeValidate`](@/api/hooks.md#beforevalidate) and
+   *                          [`afterValidate`](@/api/hooks.md#aftervalidate), this hook passes the accessor function
+   *                          as `prop` so the grid can write data back. Read more:
+   *                          [Binding to data: Identify changed columns in hooks](@/guides/getting-started/binding-to-data/binding-to-data.md#identify-changed-columns-in-hooks).
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    * @returns {undefined | boolean} If `false` all changes were cancelled, `true` otherwise.

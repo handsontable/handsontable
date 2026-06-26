@@ -17,6 +17,7 @@ vue:
   metaTitle: Binding to data - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 Fill your data grid with various data structures, including an array of arrays or an array of objects.
 
@@ -360,6 +361,32 @@ The example below shows how to use such objects:
 :::
 
 :::
+
+### Identify changed columns in hooks
+
+When you use a [function data source](#function-data-source-and-schema), each column's [`data`](@/api/options.md#data) option is a getter/setter function. In [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange), the second element of each change tuple is `prop`. With function-based columns, `prop` is that accessor function -- not a property name or a column index.
+
+To find which column changed, call [`propToCol()`](@/api/core.md#proptocol) on the `prop` value:
+
+```javascript
+afterChange(changes, source) {
+  if (source === 'loadData' || !changes) {
+    return;
+  }
+
+  changes.forEach(([row, prop, oldValue, newValue]) => {
+    const column = this.propToCol(prop);
+
+    // column is the visual column index
+  });
+}
+```
+
+You can also compare `prop` to the accessor function you defined in `columns`, if you keep a reference to it.
+
+Unlike [`beforeValidate`](@/api/hooks.md#beforevalidate) and [`afterValidate`](@/api/hooks.md#aftervalidate), change hooks pass the accessor function as `prop`. The grid needs that reference to write values back to your data model.
+
+For more on change hooks, see [Events and hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md).
 
 ### No data
 
