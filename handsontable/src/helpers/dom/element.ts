@@ -464,13 +464,22 @@ export function removeAttribute(
     }
   });
 
-  regexAttributes.forEach((attributeRegex: RegExp) => {
-    domElement.getAttributeNames().forEach((attributeName: string) => {
-      if (attributeRegex.test(attributeName)) {
-        domElement.removeAttribute(attributeName);
+  if (regexAttributes.length > 0) {
+    // Read the attribute names once and test each against all regexes, instead of re-reading the
+    // (allocating) attribute-name list per regex. This path runs per cell on every render.
+    const attributeNames = domElement.getAttributeNames();
+
+    for (let i = 0; i < attributeNames.length; i++) {
+      const attributeName = attributeNames[i];
+
+      for (let r = 0; r < regexAttributes.length; r++) {
+        if (regexAttributes[r].test(attributeName)) {
+          domElement.removeAttribute(attributeName);
+          break;
+        }
       }
-    });
-  });
+    }
+  }
 }
 
 /**

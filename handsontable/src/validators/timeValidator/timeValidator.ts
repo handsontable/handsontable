@@ -29,6 +29,11 @@ export function sourceDataValidator(value: unknown, cellMeta: CellMeta): boolean
   return isValidTime(value);
 }
 
+// Marks the validator as row-independent: its result depends only on the value and column/global-level
+// meta (`allowEmpty`), never on per-row meta. This lets the source-data validation runner reuse one
+// column-level meta object across all rows instead of materializing a meta object per cell.
+sourceDataValidator.rowIndependent = true;
+
 /**
  * The Time cell validator.
  *

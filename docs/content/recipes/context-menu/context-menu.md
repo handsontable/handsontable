@@ -32,6 +32,7 @@ Current recipes:
 <div class="boxes-list">
 
 - [Custom context menu actions](@/recipes/context-menu/custom-context-menu/custom-context-menu.md)
+- [Add a column to an object-based dataset](@/recipes/context-menu/add-column-object-data/add-column-object-data.md)
 - [Programmatic row operations](@/recipes/context-menu/row-operations/row-operations.md)
 
 </div>

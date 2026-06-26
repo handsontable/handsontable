@@ -13,6 +13,7 @@ vue:
   metaTitle: Select cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Use the select cell type to collect user input with an HTML `<select>` element that creates a multi-item dropdown list.
 
@@ -74,6 +75,15 @@ The select cell type is a simpler form of the [dropdown](@/guides/cell-types/dro
 ## Result
 
 After configuring the select cell type, cells render a native HTML `<select>` element when the user activates them. The user picks a value from the list and the selected value is written to the data source.
+
+## Keyboard navigation
+
+Open the editor by pressing <kbd>**Enter**</kbd> or <kbd>**F2**</kbd>, or by double-clicking the cell. While the editor is open, use these keys to navigate the options:
+
+- <kbd>**↑**</kbd> selects the previous option, and <kbd>**↓**</kbd> selects the next option. See the [select editor keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#select-editor-keyboard-shortcuts).
+- <kbd>**Enter**</kbd> confirms the selected option and closes the editor. <kbd>**Escape**</kbd> cancels the change and closes the editor.
+
+The cell uses a native HTML `<select>` element, so you can also type a character to jump to the next option that starts with that character. This typeahead comes from the browser, and its exact behavior varies between browsers.
 
 ## Related articles
 

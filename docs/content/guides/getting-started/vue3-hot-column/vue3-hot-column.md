@@ -57,6 +57,20 @@ You can declare a custom renderer by creating a function that matches the [`Base
 
 :::
 
+## Render columns dynamically
+
+You can render `<HotColumn/>` components with `v-for` and drive them from a reactive array. When you add, remove, or reorder entries in that array, the grid updates its columns to match. Use a stable `key` (for example, the column's `data` property) so reordering preserves each column's settings.
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/getting-started/vue3-hot-column/vue/example5.vue)
+
+:::
+
+Dynamic rendering also works when a `<HotColumn/>` is nested inside your own wrapper component.
+
+Custom renderers and editors are passed as functions through the `renderer` and `editor` props, as shown above. The Vue 3 wrapper does not render cells from Vue components.
+
 ## Result
 
 Using `HotColumn` child components, each column reads its settings declaratively from Vue props rather than from a flat `columns` array, keeping your template in sync with your column configuration.

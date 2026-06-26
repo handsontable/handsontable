@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed context menu inserting two rows instead of one when tapping \"Insert row above\" or \"Insert row below\" on iPad (Safari).",
+  "type": "fixed",
+  "issueOrPR": 12804,
+  "breaking": false,
+  "framework": "none"
+}

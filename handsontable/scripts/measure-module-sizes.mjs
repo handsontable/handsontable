@@ -36,10 +36,10 @@ mkdirSync(TMP_DIR, { recursive: true });
 const SRC_DIR = resolve(__dirname, '..', 'src');
 
 /**
- * Reads an index.js barrel file and returns all imported class names that pass
+ * Reads an index.ts barrel file and returns all imported class names that pass
  * the given filter. Handles both single-line and multi-line import blocks.
  *
- * @param {string} indexPath Absolute path to the index.js barrel file.
+ * @param {string} indexPath Absolute path to the index.ts barrel file.
  * @param {Function} filter Predicate to include a name.
  * @returns {string[]} Sorted list of matching names.
  */
@@ -61,13 +61,13 @@ function parseImportNames(indexPath, filter) {
 }
 
 /**
- * Auto-detects cell type class names from src/cellTypes/index.js.
+ * Auto-detects cell type class names from src/cellTypes/index.ts.
  *
  * @returns {string[]} Sorted list of cell type class names.
  */
 function detectCellTypes() {
   return parseImportNames(
-    resolve(SRC_DIR, 'cellTypes', 'index.js'),
+    resolve(SRC_DIR, 'cellTypes', 'index.ts'),
     name => /^[A-Z]\w+CellType$/.test(name)
   );
 }
@@ -82,7 +82,7 @@ function detectPlugins() {
   const EXCLUDE = new Set(['BasePlugin', 'DataProvider']);
 
   return parseImportNames(
-    resolve(SRC_DIR, 'plugins', 'index.js'),
+    resolve(SRC_DIR, 'plugins', 'index.ts'),
     name => /^[A-Z]/.test(name) && !EXCLUDE.has(name)
   );
 }

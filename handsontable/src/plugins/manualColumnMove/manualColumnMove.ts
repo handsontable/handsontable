@@ -104,6 +104,15 @@ export class ManualColumnMove extends BasePlugin {
    * @type {number}
    */
   #fixedColumnsStart: number | undefined;
+  /**
+   * The combined height of the column header levels above the grabbed header cell, captured when a
+   * drag starts. The backlight starts at the top of the grabbed cell (so grabbing a top group covers
+   * the full header height, while grabbing a leaf header covers only its own row downward). Reused
+   * when the table is scrolled mid-drag.
+   *
+   * @type {number}
+   */
+  #grabbedHeaderOffsetTop = 0;
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -503,20 +512,63 @@ export class ManualColumnMove extends BasePlugin {
         this.#target.col = firstVisible > 0 ? firstVisible - 1 : firstVisible;
       }
 
-    } else if (((this.#target.TD.offsetWidth / 2) + tdOffsetStart) <= mouseOffsetStart) {
-      const newCoordsCol = hoveredColumn >= this.#countCols ? this.#countCols - 1 : hoveredColumn;
-
-      // if hover on right part of TD
-      this.#target.col = newCoordsCol + 1;
-      // unfortunately first column is bigger than rest
-      tdOffsetStart += this.#target.TD.offsetWidth;
-
-    } else {
-      // elsewhere on table
-      this.#target.col = hoveredColumn;
+      return tdOffsetStart;
     }
 
-    return tdOffsetStart;
+    return this.#resolveTargetWithinHeader(hoveredColumn, tdOffsetStart, mouseOffsetStart);
+  }
+
+  /**
+   * Resolves the drop target when hovering a header cell, snapping to a child-column boundary even
+   * when the hovered header spans several columns (a nested group header). Walks the visible leaf
+   * columns the header covers to find the one under the cursor, then picks the nearer edge - so the
+   * guideline jumps per child column, and the column drops inside the group when released between two
+   * children and aside when released at the group's left or right edge. Updates `#target.col` and
+   * returns the guideline start offset (a real column boundary).
+   *
+   * @param {number} hoveredColumn The hovered header's leftmost (anchor) column index.
+   * @param {number} tdOffsetStart The start offset of the hovered header's left edge.
+   * @param {number} mouseOffsetStart The cursor offset from the start.
+   * @returns {number}
+   */
+  #resolveTargetWithinHeader(hoveredColumn: number, tdOffsetStart: number, mouseOffsetStart: number): number {
+    const headerEnd = tdOffsetStart + this.#target.TD.offsetWidth;
+    let edge = tdOffsetStart;
+    let column = hoveredColumn;
+
+    while (column < this.#countCols) {
+      const width = this.getColumnsWidth(column, column);
+
+      // Stop on the column under the cursor, or on the last column the header covers (its right edge
+      // reaches the header's end). A hidden column has zero width, so it is stepped over.
+      if ((width > 0 && mouseOffsetStart < edge + width) || edge + width >= headerEnd) {
+        if ((width / 2) + edge <= mouseOffsetStart) {
+          // A drop at a column's right edge should land past any hidden (zero-width) columns that
+          // follow it, so releasing at the visible end of a collapsed group drops after the whole
+          // group rather than between its visible column and an adjacent hidden one.
+          let targetColumn = column + 1;
+
+          while (targetColumn < this.#countCols && this.getColumnsWidth(targetColumn, targetColumn) === 0) {
+            targetColumn += 1;
+          }
+
+          this.#target.col = targetColumn;
+
+          return edge + width;
+        }
+
+        this.#target.col = column;
+
+        return edge;
+      }
+
+      edge += width;
+      column += 1;
+    }
+
+    this.#target.col = column;
+
+    return edge;
   }
 
   /**
@@ -597,7 +649,12 @@ export class ManualColumnMove extends BasePlugin {
       this.#rootElementOffset = offset(this.hot.rootElement).left;
 
       const countColumnsFrom = this.#hasRowHeaders ? -1 : 0;
-      const topPos = wtTable.holder.scrollTop + wtTable.getColumnHeaderHeight(0) + 1;
+
+      // Start the backlight at the top of the grabbed header cell: the grabbed level is the row's
+      // distance from the topmost header, and the offset is the height of every level above it.
+      this.#grabbedHeaderOffsetTop = this.#columnHeadersHeightAbove(coords.row + wtTable.getColumnHeadersCount());
+
+      const topPos = wtTable.holder.scrollTop + this.#grabbedHeaderOffsetTop + 1;
       const fixedColumnsStart = coords.col < (this.#fixedColumnsStart ?? 0);
       const horizontalScrollPosition = this.hot.view._wt.wtOverlays.inlineStartOverlay.getOverlayOffset();
       const offsetX = Math.abs(eventOffsetX - (this.hot.isRtl() ? TD.offsetWidth : 0));
@@ -723,13 +780,30 @@ export class ManualColumnMove extends BasePlugin {
    */
   #onAfterScrollVertically = () => {
     const wtTable = this.hot.view._wt.wtTable;
-    const headerHeight = wtTable.getColumnHeaderHeight(0) + 1;
-    const scrollTop = wtTable.holder.scrollTop;
-    const posTop = headerHeight + scrollTop;
+    const posTop = this.#grabbedHeaderOffsetTop + 1 + wtTable.holder.scrollTop;
 
     this.#backlight.setPosition(posTop);
     this.#backlight.setSize(undefined, wtTable.hider.offsetHeight - posTop);
   };
+
+  /**
+   * Sums the heights of the column header levels above the given level - the vertical offset from the
+   * top of the column headers down to the top of a cell at that level. Used to anchor the drag
+   * backlight at the top of the grabbed header cell.
+   *
+   * @param {number} level The grabbed header level (0 = topmost header row).
+   * @returns {number}
+   */
+  #columnHeadersHeightAbove(level: number): number {
+    const wtTable = this.hot.view._wt.wtTable;
+    let height = 0;
+
+    for (let aboveLevel = 0; aboveLevel < level; aboveLevel++) {
+      height += wtTable.getColumnHeaderHeight(aboveLevel);
+    }
+
+    return height;
+  }
 
   /**
    * Builds the plugin's UI.

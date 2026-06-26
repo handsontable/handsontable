@@ -3,13 +3,14 @@ import { isObject } from '../../../helpers/object';
 import { stringify } from '../../../helpers/mixed';
 import { createDefaultHeaderSettings, createPlaceholderHeaderSettings } from './utils';
 
-import type { HeaderVisibility } from './utils';
+import type { ColumnDropMode, HeaderVisibility } from './utils';
 
 interface NormalizedHeaderSettings {
   label: string;
   colspan: number;
   origColspan: number;
   collapsible: boolean;
+  columnDropMode: ColumnDropMode;
   crossHiddenColumns: number[];
   isCollapsed: boolean;
   isHidden: boolean;
@@ -115,6 +116,7 @@ export function normalizeSettings(sourceSettings: unknown[][], columnsLimit = In
         rowspan,
         headerClassName,
         visibleWhen,
+        columnDropMode,
       } = sourceHeaderSettings as Record<string, unknown>;
 
       headerSettings.label = stringify(label);
@@ -138,6 +140,11 @@ export function normalizeSettings(sourceSettings: unknown[][], columnsLimit = In
       // visible while the group is expanded and hidden when it collapses.
       if (typeof visibleWhen === 'string' && VISIBLE_WHEN_VALUES.includes(visibleWhen)) {
         headerSettings.visibleWhen = visibleWhen as HeaderVisibility;
+      }
+
+      // Only `'split'` enables splitting; any other (or unset) value keeps the adopt default.
+      if (columnDropMode === 'split') {
+        headerSettings.columnDropMode = 'split';
       }
 
     } else {

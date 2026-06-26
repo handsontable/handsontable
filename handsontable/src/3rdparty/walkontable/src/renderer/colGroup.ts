@@ -36,7 +36,7 @@ export class ColGroupRenderer extends BaseRenderer {
 
     this.orderView = new OrderView(
       rootNode,
-      (sourceColumnIndex?: number) => this.nodesPool!.obtain(sourceColumnIndex ?? 0) as HTMLElement,
+      () => this.nodesPool!.obtain() as HTMLElement,
       this.nodeType!,
     );
   }

@@ -240,16 +240,15 @@ export class CollapsibleColumns extends BasePlugin {
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterGetColHeader', this.#onAfterGetColHeader);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
-    // NestedHeaders (priority 280) rebuilds the header tree on column insert/remove before this
+    // NestedHeaders (priority 280) rebuilds the header tree on column insert/remove/move before this
     // plugin (priority 290) runs, so refreshing here re-derives the `visibleWhen` hidden set against
-    // the freshly rebuilt tree (with `isCollapsed` already restored). There is intentionally no
-    // `afterColumnMove` refresh: a `manualColumnMove` does not rebuild the tree (its `columnIndex`
-    // values are structural), and the collapsed-columns map already strands its entries on a move the
-    // same way - so collapsed groups (legacy and `visibleWhen` alike) do not survive `manualColumnMove`.
-    // That is a pre-existing collapsible-columns limitation; refreshing only `visibleWhen` here would
-    // diverge from legacy collapse without fixing it.
+    // the freshly rebuilt tree (with `isCollapsed` re-attached by group identity). On a move a group
+    // that stayed contiguous keeps its collapse; a split group has its `isCollapsed` dropped, so the
+    // re-derived `visibleWhen` set excludes it and these columns are released.
     this.addHook('afterCreateCol', this.#onAfterColumnStructureChange);
     this.addHook('afterRemoveCol', this.#onAfterColumnStructureChange);
+    this.addHook('beforeColumnMove', this.#onBeforeColumnMove);
+    this.addHook('afterColumnMove', this.#onAfterColumnStructureChange);
 
     this.registerShortcuts();
     super.enablePlugin();
@@ -743,6 +742,90 @@ export class CollapsibleColumns extends BasePlugin {
   #onAfterColumnStructureChange = () => {
     this.#refreshVisibleWhenColumns();
   };
+
+  /**
+   * Expands, before a column move runs, any collapsed group the move would split - whether by taking
+   * some (but not all) of the group's columns out, or by dropping an unrelated column into the middle
+   * of its span. Both leave the group's columns non-adjacent, which drops its collapse indicator while
+   * the columns stay hidden, with no control left to expand them. Expanding while the group is still
+   * contiguous releases its columns through the normal expand path; hiding does not change visual
+   * indexes, so the pending move's coordinates stay valid. A move that keeps a group's columns
+   * together (including moving the whole group) leaves it collapsed.
+   *
+   * @param {number[]} movedColumns Visual indexes of the columns being moved.
+   * @param {number} finalIndex The visual index the moved columns will start at after the move.
+   * @param {number|undefined} dropIndex The drop visual index (unused).
+   * @param {boolean} movePossible Whether the move can be performed.
+   */
+  #onBeforeColumnMove = (movedColumns: number[], finalIndex: number, dropIndex: number | undefined,
+                         movePossible: boolean) => {
+    const stateManager = this.headerStateManager;
+
+    if (movePossible === false || !stateManager) {
+      return;
+    }
+
+    const projectedOrder = this.#projectColumnOrderAfterMove(movedColumns, finalIndex);
+    const positionByColumn = new Map(projectedOrder.map((visualColumn, position) => [visualColumn, position]));
+
+    stateManager.getCollapsedGroups().forEach(({ headerLevel, columnIndex, origColspan }) => {
+      if (this.#isGroupSplitByOrder(columnIndex, origColspan, positionByColumn)) {
+        const row = stateManager.levelToRowCoords(headerLevel);
+
+        if (row !== null) {
+          this.toggleCollapsibleSection([{ row, col: columnIndex }], 'expand');
+        }
+      }
+    });
+  };
+
+  /**
+   * Projects the visual column order a pending move will produce, expressed in the current visual
+   * indexes. Mirrors the move itself: remove the moved columns, then re-insert them at `finalIndex`.
+   *
+   * @param {number[]} movedColumns Visual indexes of the columns being moved.
+   * @param {number} finalIndex The visual index the moved columns will start at after the move.
+   * @returns {number[]} The current visual indexes in their post-move order.
+   */
+  #projectColumnOrderAfterMove(movedColumns: number[], finalIndex: number): number[] {
+    const movedColumnsSet = new Set(movedColumns);
+    const remaining: number[] = [];
+
+    for (let column = 0, columnsCount = this.hot.countCols(); column < columnsCount; column++) {
+      if (!movedColumnsSet.has(column)) {
+        remaining.push(column);
+      }
+    }
+
+    return [...remaining.slice(0, finalIndex), ...movedColumns, ...remaining.slice(finalIndex)];
+  }
+
+  /**
+   * Reports whether a group's columns stop being adjacent in the projected post-move order. The group
+   * is split when its members no longer occupy one contiguous run of positions.
+   *
+   * @param {number} columnIndex The group's leftmost visual column index.
+   * @param {number} origColspan The group's column span.
+   * @param {Map<number, number>} positionByColumn Maps a current visual index to its post-move position.
+   * @returns {boolean} `true` when the move would split the group.
+   */
+  #isGroupSplitByOrder(columnIndex: number, origColspan: number, positionByColumn: Map<number, number>): boolean {
+    let minPosition = Infinity;
+    let maxPosition = -Infinity;
+    let memberCount = 0;
+
+    for (let column = columnIndex; column < columnIndex + origColspan; column++) {
+      const position = positionByColumn.get(column);
+
+      if (position !== undefined) {
+        minPosition = Math.min(minPosition, position);
+        maxPosition = Math.max(maxPosition, position);
+        memberCount += 1;
+      }
+    }
+
+    return memberCount > 0 && (maxPosition - minPosition) !== (memberCount - 1);
+  }
 
   /**
    * Adds the indicator to the headers.

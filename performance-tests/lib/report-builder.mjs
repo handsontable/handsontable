@@ -43,30 +43,56 @@ export function buildReport(allScenarioResults, goldenSnapshots, meta = {}) {
 
 // --- summary table ---
 
+// Memory-focused scenarios: their primary metric is JS heap, not trace timing. They are grouped at
+// the bottom of the summary table so the timing scenarios read together at the top.
+const MEMORY_SCENARIOS = new Set([
+  'initial-load',
+  'source-data-validator-load',
+]);
+
+/**
+ * Orders scenarios alphabetically, with the memory-focused ones grouped last.
+ *
+ * @param {Record<string, object>} results -- keyed by scenario name
+ * @returns {Array<[string, object]>} ordered [name, data] entries
+ */
+function orderedScenarioEntries(results) {
+  return Object.entries(results).sort(([a], [b]) => {
+    const am = MEMORY_SCENARIOS.has(a) ? 1 : 0;
+    const bm = MEMORY_SCENARIOS.has(b) ? 1 : 0;
+
+    return am - bm || a.localeCompare(b);
+  });
+}
+
 function buildSummaryTable(results, goldenScenarios, hasGolden) {
   const headers = hasGolden
-    ? ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', '\u0394']
-    : ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total'];
+    ? ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', '\u0394 Total', 'JS Heap', '\u0394 Heap']
+    : ['Scenario', 'Scripting', 'Rendering', 'Painting', 'Total', 'JS Heap'];
 
   const rows = [];
 
-  for (const [name, current] of Object.entries(results)) {
+  for (const [name, current] of orderedScenarioEntries(results)) {
     const cats = current.categories || {};
     const total = sumActive(cats);
+    const heap = current.updateCounters?.jsHeapMaxLabel ?? '--';
 
     if (hasGolden) {
       const golden = goldenScenarios[name];
       const goldenTotal = golden ? sumActive(golden.categories || {}) : null;
-      const change = fmtPctWithEmoji(pctChange(goldenTotal, total));
+      const totalChange = fmtPctWithEmoji(pctChange(goldenTotal, total));
+      const heapChange = fmtPctWithEmoji(
+        pctChange(golden?.updateCounters?.jsHeapMaxBytes, current.updateCounters?.jsHeapMaxBytes)
+      );
 
       rows.push([
         formatTitle(name), fmtMs(cats.scripting), fmtMs(cats.rendering),
-        fmtMs(cats.painting), fmtMs(total), change,
+        fmtMs(cats.painting), fmtMs(total), totalChange, heap, heapChange,
       ]);
     } else {
       rows.push([
         formatTitle(name), fmtMs(cats.scripting), fmtMs(cats.rendering),
-        fmtMs(cats.painting), fmtMs(total),
+        fmtMs(cats.painting), fmtMs(total), heap,
       ]);
     }
   }
@@ -76,40 +102,56 @@ function buildSummaryTable(results, goldenScenarios, hasGolden) {
 
 // --- regression callouts ---
 
+function buildTimingBreakdown(current, golden) {
+  const parts = [];
+
+  for (const key of ['scripting', 'rendering', 'painting']) {
+    const p = pctChange(golden.categories?.[key], current.categories?.[key]);
+
+    if (p != null) {
+      parts.push(`${categoryLabel(key)} ${fmtPct(p)} ${p >= 0 ? 'slower' : 'faster'}`);
+    }
+  }
+
+  return parts.join(', ');
+}
+
 function buildRegressionCallouts(results, goldenScenarios) {
   const callouts = [];
 
-  for (const [name, current] of Object.entries(results)) {
+  for (const [name, current] of orderedScenarioEntries(results)) {
     const golden = goldenScenarios[name];
 
     if (!golden) {
       continue;
     }
 
-    const currentTotal = sumActive(current.categories || {});
-    const goldenTotal = sumActive(golden.categories || {});
-    const totalPct = pctChange(goldenTotal, currentTotal);
+    const totalPct = pctChange(sumActive(golden.categories || {}), sumActive(current.categories || {}));
+    const heapPct = pctChange(
+      golden.updateCounters?.jsHeapMaxBytes, current.updateCounters?.jsHeapMaxBytes
+    );
+    const timingRegressed = totalPct != null && totalPct > REGRESSION_CALLOUT_THRESHOLD;
+    const heapRegressed = heapPct != null && heapPct > REGRESSION_CALLOUT_THRESHOLD;
 
-    if (totalPct == null || totalPct <= REGRESSION_CALLOUT_THRESHOLD) {
+    if (!timingRegressed && !heapRegressed) {
       continue;
     }
 
     const title = formatTitle(name);
-    const parts = [];
+    const header = timingRegressed
+      ? `> \u26A0\uFE0F **${title}** regressed ${fmtPct(totalPct)}`
+      : `> \u26A0\uFE0F **${title}** regressed`;
+    const lines = [header];
 
-    for (const key of ['scripting', 'rendering', 'painting']) {
-      const g = golden.categories?.[key];
-      const c = current.categories?.[key];
-      const p = pctChange(g, c);
-
-      if (p != null) {
-        const direction = p >= 0 ? 'slower' : 'faster';
-
-        parts.push(`${categoryLabel(key)} ${fmtPct(p)} ${direction}`);
-      }
+    if (timingRegressed) {
+      lines.push(`> ${buildTimingBreakdown(current, golden)}`);
     }
 
-    callouts.push(`> \u26A0\uFE0F **${title}** regressed ${fmtPct(totalPct)}\n> ${parts.join(', ')}`);
+    if (heapRegressed) {
+      lines.push(`> JS heap ${fmtPct(heapPct)} larger`);
+    }
+
+    callouts.push(lines.join('\n'));
   }
 
   if (callouts.length === 0) {

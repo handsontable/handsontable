@@ -175,7 +175,7 @@ importers:
         specifier: ^1.9.1
         version: 1.9.1
       astro:
-        specifier: ^6.1.1
+        specifier: ^6.4.5
         version: 6.4.5(@types/node@20.19.42)(jiti@1.21.7)(less@4.6.4)(rollup@4.61.1)(sass@1.100.0)(terser@5.48.0)
       chart.js:
         specifier: ^4.5.1

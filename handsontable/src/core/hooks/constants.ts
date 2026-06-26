@@ -345,11 +345,13 @@ export const REGISTERED_HOOKS = [
   'afterCreateCol',
 
   /**
-   * Fired before created a new row.
+   * Fired before a new row is created.
    *
    * @event Hooks#beforeCreateRow
-   * @param {number} index Represents the visual index of first newly created row in the data source array.
-   * @param {number} amount Number of newly created rows in the data source array.
+   * @param {number} index Represents the visual index at which new row(s) are about to be inserted.
+   *                       Note that the actual visual index of the inserted row(s) may differ - use the
+   *                       `afterCreateRow` hook to get the final position.
+   * @param {number} amount Number of rows to be created.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    * @returns {*|boolean} If false is returned the action is canceled.
@@ -907,8 +909,8 @@ export const REGISTERED_HOOKS = [
    *                                  Handsontable uses to control scroll behavior after selection.
    * @param {number} selectionLayerLevel The number which indicates what selection layer is currently modified.
    * @example
-   * ```js
    * ::: only-for javascript
+   * ```js
    * new Handsontable(element, {
    *   afterSelectionByProp: (row, column, row2, column2, preventScrolling, selectionLayerLevel) => {
    *     // setting if prevent scrolling after selection
@@ -990,8 +992,8 @@ export const REGISTERED_HOOKS = [
    *                                  Property `preventScrolling.value` expects a boolean value that
    *                                  Handsontable uses to control scroll behavior after selection.
    * @example
-   * ```js
    * ::: only-for javascript
+   * ```js
    * new Handsontable(element, {
    *   afterSelectionFocusSet: (row, column, preventScrolling) => {
    *     // If set to `false` (default): when focused cell selection is outside the viewport,
@@ -1311,7 +1313,8 @@ export const REGISTERED_HOOKS = [
    * @param {boolean} isValid `true` if valid, `false` if not.
    * @param {*} value The value in question.
    * @param {number} row Visual row index.
-   * @param {string|number} prop Property name / visual column index.
+   * @param {string|number} prop Property name or column index. For array-based data, this is the physical column
+   *                            index. When `columns[i].data` is a function, this is the visual column index.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    * @returns {undefined | boolean} If `false` the cell will be marked as invalid, `true` otherwise.
@@ -1876,7 +1879,8 @@ export const REGISTERED_HOOKS = [
    * @event Hooks#beforeValidate
    * @param {*} value Value of the cell.
    * @param {number} row Visual row index.
-   * @param {string|number} prop Property name / column index.
+   * @param {string|number} prop Property name or column index. For array-based data, this is the physical column
+   *                            index. When `columns[i].data` is a function, this is the visual column index.
    * @param {string} [source] String that identifies source of hook call
    *                          ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    */
@@ -2321,8 +2325,8 @@ export const REGISTERED_HOOKS = [
    *                       that correspond to the previously selected area.
    * @returns {*} If returns `false` then pasting is canceled.
    * @example
-   * ```js
    * ::: only-for javascript
+   * ```js
    * // To disregard a single row, remove it from array using data.splice(i, 1).
    * new Handsontable(example, {
    *   beforePaste: (data, coords) => {

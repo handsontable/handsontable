@@ -133,6 +133,17 @@ export default (): Record<string, unknown> => {
     _automaticallyAssignedMetaProps: undefined,
 
     /**
+     * Information on which of the cell meta properties were set imperatively through `setCellMeta`
+     * (for example, by the user or by the context menu). These properties are preserved across
+     * `updateSettings` calls, unlike the properties applied from the declarative `cell` option.
+     *
+     * @private
+     * @type {Set}
+     * @default undefined
+     */
+    _userDefinedMetaProps: undefined,
+
+    /**
      * The `activeHeaderClassName` option lets you add a CSS class name
      * to every currently-active, currently-selected header (when a whole column or row is selected).
      *
@@ -686,14 +697,14 @@ export default (): Record<string, unknown> => {
     checkedTemplate: undefined,
 
     /**
-     * The `className` option lets you add CSS class names to every currently-selected element.
+     * The `className` option lets you add CSS class names to every cell that has this option set.
      *
      * You can set the `className` option to one of the following:
      *
-     * | Setting             | Description                                                      |
-     * | ------------------- | ---------------------------------------------------------------- |
-     * | A string            | Add a single CSS class name to every currently-selected element  |
-     * | An array of strings | Add multiple CSS class names to every currently-selected element |
+     * | Setting             | Description                                         |
+     * | ------------------- | --------------------------------------------------- |
+     * | A string            | Add a single CSS class name to every matching cell  |
+     * | An array of strings | Add multiple CSS class names to every matching cell |
      *
      * ::: tip
      * Don't change the `className` metadata of the [column summary](@/guides/columns/column-summary/column-summary.md) row.
@@ -722,12 +733,10 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // add a `your-class-name` CSS class name
-     * // to every currently-selected element
+     * // add a `your-class-name` CSS class name to every cell
      * className: 'your-class-name',
      *
-     * // add `first-class-name` and `second-class-name` CSS class names
-     * // to every currently-selected element
+     * // add `first-class-name` and `second-class-name` CSS class names to every cell
      * className: ['first-class-name', 'second-class-name'],
      * ```
      */
@@ -2918,6 +2927,11 @@ export default (): Record<string, unknown> => {
      * | `true`            | Enable text selection in multiple cells at a time |
      * | `'cell'`          | Enable text selection in one cell at a time       |
      *
+     * With `fragmentSelection: true`, copying text across multiple cells requires a
+     * [`selectionMode`](@/api/options.md#selectionmode) that allows selecting more than one cell.
+     * When [`selectionMode`](@/api/options.md#selectionmode) is set to `'single'`, copying is
+     * limited to a single cell.
+     *
      * @memberof Options#
      * @type {boolean|string}
      * @default false
@@ -4236,6 +4250,7 @@ export default (): Record<string, unknown> => {
      * | `rowspan`         | `number`  | The number of header rows the header spans (an integer greater than `1`).                                                                                                                                                                                                                            |
      * | `headerClassName` | `string`  | One or more space-separated CSS class names added to the header element (for example, `'htRight'`).                                                                                                                                                                                                  |
      * | `visibleWhen`     | `string`  | For a header inside a collapsible group, sets in which collapse state the header (and its columns) stays visible: `'collapsed'` (visible only while the group is collapsed), `'expanded'` (visible only while the group is expanded), or `'always'` (visible in both states). When omitted, a header in such a group defaults to `'expanded'` - it is hidden when the group collapses. At least one column of a group always stays visible. |
+     * | `columnDropMode`  | `string`  | Controls what a group does when a column move (with the [`ManualColumnMove`](#manualcolumnmove) plugin) drops a foreign column (one belonging to another group) into its span. With `'adopt'` (default), the group adopts that column as a child and stays one banner. With `'split'`, the group keeps its identity and renders as several same-label banners around the foreign column (it splits). A group always reclaims its own columns when they move back into its span, regardless of this setting. Meaningful only on a header that spans columns. |
      *
      * ::: tip
      * A header group is made collapsible through the [`collapsibleColumns`](#collapsibleColumns) option, not through
@@ -5236,6 +5251,9 @@ export default (): Record<string, unknown> => {
      * | `'single'`   | Allow the user to select only one cell at a time.            |
      * | `'range'`    | Allow the user to select one range of cells at a time.       |
      * | `'multiple'` | Allow the user to select multiple ranges of cells at a time. |
+     *
+     * When `selectionMode` is set to `'single'`, copying with
+     * [`fragmentSelection`](@/api/options.md#fragmentselection) enabled is limited to a single cell.
      *
      * Read more:
      * - [Selection: Selecting ranges](@/guides/cell-features/selection/selection.md#select-ranges)

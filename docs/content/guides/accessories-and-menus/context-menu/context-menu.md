@@ -18,7 +18,6 @@ vue:
   metaTitle: Context menu - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
-menuTag: updated
 ---
 The context menu provides cell-level actions accessible by right-clicking. This page lists all available menu items and their configuration keys.
 

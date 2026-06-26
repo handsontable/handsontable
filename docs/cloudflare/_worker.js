@@ -7,6 +7,7 @@
  *
  * Redirect priority order (first match wins):
  *   1. /docs/next/:splat                   → /docs/:splat
+ *  1a. /docs/sitemap.xml                   → /docs/sitemap-index.xml
  *   2. / → /docs
  *  2a. /0.8.0/*                            → /docs/javascript-data-grid/changelog
  *  2b. /docs/redirect?pageId=*             → /docs/javascript-data-grid/changelog
@@ -692,8 +693,50 @@ const FLAT_REACT_PAGES = {
 // Main worker
 // ---------------------------------------------------------------------------
 
-export default {
-  async fetch(request, env) {
+// ---------------------------------------------------------------------------
+//  Security headers
+// ---------------------------------------------------------------------------
+// This docs site owns its own Content-Security-Policy so the policy reaches the
+// browser directly from Cloudflare Pages. The handsontable.com marketing Worker
+// reverse-proxies /docs and must NOT overwrite this CSP.
+//
+// It is the proven handsontable.com baseline policy plus the docs-only hosts
+// the marketing policy lacks: Algolia DocSearch (https://*.algolia.net and
+// https://*.algolianet.com). The baseline already covers the docs AI assistant
+// (hot-docs-assistant.netlify.app), CodeSandbox embeds, GTM/GA/Hotjar/Sentry/
+// Cookiebot, api.github.com, and *.handsontable.com (which covers
+// status.handsontable.com and the version-switcher data on handsontable.com).
+//
+// Set here rather than in a Pages `_headers` file because the policy exceeds the
+// 2000-character-per-line `_headers` limit and a CSP cannot be split across
+// multiple Content-Security-Policy lines.
+const CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://google.com https://js-eu1.hsforms.net https://static.reo.dev/ https://static.hsappstatic.net https://js-eu1.hs-analytics.net https://js-eu1.hsadspixel.net https://js-eu1.hscollectedforms.net https://js-eu1.hs-banner.com https://js-eu1.hs-scripts.com https://www.redditstatic.com https://bat.bing.com https://bat.bing.net https://dev.visualwebsiteoptimizer.com https://analytics.ahrefs.com https://*.cloudflareinsights.com https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://snap.licdn.com https://static.ads-twitter.com https://analytics.twitter.com https://consentcdn.cookiebot.com https://consent.cookiebot.com https://handsontable.piwik.pro https://handsontable.containers.piwik.pro https://*.list-manage.com https://docs.handsontable.com https://s3.amazonaws.com https://unpkg.com https://cdn.jsdelivr.net https://buttons.github.io https://code.jquery.com https://cdn.headwayapp.co https://www.google.com https://www.gstatic.com https://www.googleadservices.com https://www.googletagmanager.com https://*.google-analytics.com https://tagmanager.google.com https://script.crazyegg.com https://*.cloudfront.net https://*.cloudflare.com https://*.s3.amazonaws.com https://*.doubleclick.net https://connect.facebook.net https://*.sentry-cdn.com; img-src * 'self' data: https:; style-src 'self' 'unsafe-inline' https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://www.googletagmanager.com https://*.hotjar.com https://*.cloudflare.com https://fonts.googleapis.com https://tagmanager.google.com https://cdn.jsdelivr.net; font-src 'self' data: https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://fonts.gstatic.com; frame-src 'self' 'unsafe-inline' https://google.com https://js-eu1.hsforms.net https://app.netlify.com https://handsontablestore.onfastspring.com https://handsontablestore.test.onfastspring.com https://*.doubleclick.net https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://examples.handsontable.com https://handsontable.github.io https://*.hotjar.com https://consentcdn.cookiebot.com https://www.google.com https://headway-widget.net https://www.youtube.com https://player.vimeo.com https://codesandbox.io https://www.youtube-nocookie.com https://www.facebook.com https://www.googletagmanager.com/; object-src 'self'; connect-src 'self' https://hot-docs-assistant.netlify.app https://*.algolia.net https://*.algolianet.com https://browser.sentry-cdn.com https://api.reo.dev https://api-eu1.hubapi.com https://static.hsappstatic.net https://forms-eu1.hscollectedforms.net https://ads.reddit.com https://www.redditstatic.com https://pixel-config.reddit.com https://www.googleadservices.com https://bat.bing.net https://bat.bing.com https://dev.visualwebsiteoptimizer.com https://api.github.com https://analytics.ahrefs.com https://ingesteer.services-prod.nsvcs.net https://plausible.io https://*.linkedin.com https://*.zendesk.com https://adservice.google.com https://*.zdassets.com https://*.hotjar.com https://*.hotjar.io wss://*.hotjar.com https://consentcdn.cookiebot.com https://cdn.linkedin.oribi.io https://www.google.com https://google.com https://stats.g.doubleclick.net https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.google.pl https://*.google-analytics.com https://*.analytics.google.com https://*.googlesyndication.com https://*.handsontable.com https://www.googletagmanager.com https://handsontable.com https://handsontablestore.test.onfastspring.com https://handsontablestore.onfastspring.com https://snap.licdn.com https://www.facebook.com https://*.sentry.io; worker-src 'self' blob:; frame-ancestors 'self';";
+
+const SECURITY_HEADERS = {
+  'Content-Security-Policy': CONTENT_SECURITY_POLICY,
+  'X-Frame-Options': 'SAMEORIGIN',
+  'X-Content-Type-Options': 'nosniff',
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+};
+
+// Apply the security headers to served documents/assets. Redirects (3xx) are
+// passed through untouched.
+function withSecurityHeaders(response) {
+  if (response.status >= 300 && response.status < 400) {
+    return response;
+  }
+
+  const decorated = new Response(response.body, response);
+
+  for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+    decorated.headers.set(name, value);
+  }
+
+  return decorated;
+}
+
+async function route(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
 
@@ -703,6 +746,12 @@ export default {
       const dest = `/docs${splat}${url.search}`;
 
       return redirect301(abs(dest, url));
+    }
+
+    // -- 1a. /docs/sitemap.xml → /docs/sitemap-index.xml ---------------------
+    // Redirect the legacy single-file sitemap URL to Astro's sitemap index.
+    if (path === '/docs/sitemap.xml') {
+      return redirect301(abs('/docs/sitemap-index.xml', url));
     }
 
     // -- 2. Root / → /docs ---------------------------------------------------
@@ -819,6 +868,16 @@ export default {
         '/docs/javascript-data-grid/angular-custom-renderer-example/': '/docs/angular-data-grid/cell-renderer/',
         '/docs/javascript-data-grid/angular-language-change-example/': '/docs/angular-data-grid/language/',
         '/docs/javascript-data-grid/angular-hot-reference/': '/docs/angular-data-grid/api/core/',
+        // Custom ID, class, and style: Vue-only page unified into an all-framework
+        // page (permalink renamed vue-custom-id-class-style → custom-id-class-style).
+        '/docs/javascript-data-grid/vue-custom-id-class-style/': '/docs/javascript-data-grid/custom-id-class-style/',
+        '/docs/react-data-grid/vue-custom-id-class-style/': '/docs/react-data-grid/custom-id-class-style/',
+        '/docs/angular-data-grid/vue-custom-id-class-style/': '/docs/angular-data-grid/custom-id-class-style/',
+        '/docs/vue-data-grid/vue-custom-id-class-style/': '/docs/vue-data-grid/custom-id-class-style/',
+        '/docs/javascript-data-grid/vue3-custom-id-class-style/': '/docs/javascript-data-grid/custom-id-class-style/',
+        '/docs/react-data-grid/vue3-custom-id-class-style/': '/docs/react-data-grid/custom-id-class-style/',
+        '/docs/angular-data-grid/vue3-custom-id-class-style/': '/docs/angular-data-grid/custom-id-class-style/',
+        '/docs/vue-data-grid/vue3-custom-id-class-style/': '/docs/vue-data-grid/custom-id-class-style/',
       };
       // Also normalise without trailing slash.
       const normalised = path.endsWith('/') ? path : `${path}/`;
@@ -1117,5 +1176,10 @@ export default {
 
     // -- 19. Fallback: serve static assets via env.ASSETS --------------------
     return env.ASSETS.fetch(request);
+}
+
+export default {
+  async fetch(request, env) {
+    return withSecurityHeaders(await route(request, env));
   },
 };

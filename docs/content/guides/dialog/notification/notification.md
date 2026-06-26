@@ -18,7 +18,7 @@ vue:
   metaTitle: Notification - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Dialog
-menuTag: new
+menuTag: updated
 ---
 
 Show non-blocking toast notifications for save confirmations, errors, and other transient feedback. Toasts are anchored to the Handsontable root, support stacking per corner, and work with the design system themes.

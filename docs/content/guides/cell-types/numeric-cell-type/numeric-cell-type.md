@@ -13,10 +13,11 @@ vue:
   metaTitle: Numeric cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Display, format, sort, and filter numbers correctly by using the numeric cell type.
 
-The numeric cell type formats numbers using Intl.NumberFormat, right-aligns values, and restricts input to valid numbers.
+The numeric cell type formats numbers using Intl.NumberFormat, right-aligns values, and validates input, marking non-numeric values as invalid.
 
 [[toc]]
 
@@ -314,6 +315,18 @@ settings = {
 - **Percent**: Use `style: 'percent'` for percentage formatting
 - **Unit**: Use `style: 'unit'` with a `unit` property (e.g., `'kilometer'`, `'liter'`)
 
+To add thousands separators and a fixed number of decimal places, use `useGrouping` together with
+`minimumFractionDigits` and `maximumFractionDigits`:
+
+```js
+numericFormat: {
+  style: 'decimal',
+  useGrouping: true, // adds thousands separators, for example 1,000,000
+  minimumFractionDigits: 2, // always shows two decimal places
+  maximumFractionDigits: 2,
+}
+```
+
 **Available options:**
 
 **Style options:**
@@ -386,9 +399,28 @@ you edit a numeric cell:
   automatically after editing, based on your [`numericFormat`](@/api/options.md#numericformat)
   configuration.
 
+## Validate numbers
+
+The numeric cell type includes a built-in validator. When a cell is validated, any value that is not a
+valid number is marked with the `htInvalid` CSS class, which renders as a red cell background in the
+default theme. Themes control the actual color.
+
+Validation runs after you edit a cell. To validate and mark values that are already in the data source
+(for example, after [`loadData()`](@/api/core.md#loaddata)), call
+[`validateCells()`](@/api/core.md#validatecells).
+
+Two options control how the validator treats values:
+
+- [`allowInvalid`](@/api/options.md#allowinvalid) (default `true`): invalid values are kept, saved to
+  the data source, and marked as invalid. Set `allowInvalid` to `false` to reject invalid input and
+  keep the [cell editor](@/guides/cell-functions/cell-editor/cell-editor.md) open until you enter a
+  valid number.
+- [`allowEmpty`](@/api/options.md#allowempty) (default `true`): empty cells pass validation. Set
+  `allowEmpty` to `false` to mark empty cells as invalid.
+
 ## Result
 
-After configuring the numeric cell type, cells right-align their values and display them using the format you defined in `numericFormat`. Invalid (non-numeric) input is rejected. The underlying data source stores the raw number.
+After configuring the numeric cell type, cells right-align their values and display them using the format you defined in `numericFormat`. Invalid (non-numeric) values are marked as invalid -- see [Validate numbers](#validate-numbers). The underlying data source stores the raw number.
 
 ## Related articles
 
@@ -408,6 +440,9 @@ After configuring the numeric cell type, cells right-align their values and disp
 - [locale](@/api/options.md#locale)
 - [type](@/api/options.md#type)
 - [valueFormatter](@/api/options.md#valueformatter)
+- [validator](@/api/options.md#validator)
+- [allowInvalid](@/api/options.md#allowinvalid)
+- [allowEmpty](@/api/options.md#allowempty)
 
 </div>
 
@@ -419,6 +454,7 @@ After configuring the numeric cell type, cells right-align their values and disp
 - [getCellMetaAtRow()](@/api/core.md#getcellmetaatrow)
 - [getCellsMeta()](@/api/core.md#getcellsmeta)
 - [getDataType()](@/api/core.md#getdatatype)
+- [validateCells()](@/api/core.md#validatecells)
 - [setCellMeta()](@/api/core.md#setcellmeta)
 - [setCellMetaObject()](@/api/core.md#setcellmetaobject)
 - [removeCellMeta()](@/api/core.md#removecellmeta)

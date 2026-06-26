@@ -87,7 +87,12 @@ import Default from '@astrojs/starlight/components/Head.astro';
   // The preprocessor emits them as standalone elements (wrapped in <p> by Astro),
   // so we scan each heading for consecutive action-element paragraphs and
   // move them into a flex container for side-by-side layout.
-  document.querySelectorAll<HTMLElement>('.sl-markdown-content :is(h2, h3, h4)').forEach((heading) => {
+  // Use an expanded selector list instead of `:is(h2, h3, h4)`. The `:is()` pseudo-class
+  // throws a SyntaxError DOMException inside querySelectorAll on browsers that don't support
+  // it (e.g. older Chrome/Edge and some headless crawlers), which crashes the rest of this
+  // script. The expanded form is behavior-identical and parses in every browser.
+  const headingSelector = '.sl-markdown-content h2, .sl-markdown-content h3, .sl-markdown-content h4';
+  document.querySelectorAll<HTMLElement>(headingSelector).forEach((heading) => {
     const actions: HTMLElement[] = [];
     const parasToRemove: HTMLElement[] = [];
 

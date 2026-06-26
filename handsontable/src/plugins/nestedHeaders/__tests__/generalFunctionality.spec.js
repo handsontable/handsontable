@@ -612,6 +612,57 @@ describe('NestedHeaders', () => {
       });
     });
 
+    it('should keep a wide colspan header fully rendered (constant width) while scrolling through it (#4628)', async() => {
+      // A colspan group much wider than the viewport. While scrolling through it, the viewport
+      // calculator override must expand the rendered range to both group edges so the colspan
+      // `<th>` keeps a constant width - otherwise its width changes in column-sized steps and the
+      // center-aligned label visibly jumps.
+      handsontable({
+        data: createSpreadsheetData(5, 100),
+        colHeaders: true,
+        nestedHeaders: [
+          [{ label: 'A', colspan: 4 }, { label: 'WIDE', colspan: 80 }, { label: 'B', colspan: 16 }],
+          Array.from({ length: 100 }, (_, i) => `col${i}`),
+        ],
+        colWidths: 50,
+        autoColumnSize: false,
+        width: 300,
+        height: 200,
+      });
+
+      // The 'WIDE' group spans visual columns 4..83.
+      const groupStart = 4;
+      const groupEnd = 83;
+      const getWideHeader = () => getTopClone().find('thead tr:first th').toArray()
+        .find(th => (th.querySelector('.colHeader')?.innerText ?? '') === 'WIDE') ?? null;
+      const firstRenderedVisual = () => columnIndexMapper()
+        .getVisualFromRenderableIndex(hot().view._wt.wtTable.getFirstRenderedColumn());
+      const lastRenderedVisual = () => columnIndexMapper()
+        .getVisualFromRenderableIndex(hot().view._wt.wtTable.getLastRenderedColumn());
+
+      // Scroll so the group straddles the right edge of the viewport.
+      await scrollViewportTo({ col: 10, horizontalSnap: 'start' });
+
+      // The render range must cover the whole group (both edges), not stop at the viewport.
+      expect(firstRenderedVisual()).toBeLessThanOrEqual(groupStart);
+      expect(lastRenderedVisual()).toBeGreaterThanOrEqual(groupEnd);
+
+      const wideWidth = getWideHeader().offsetWidth;
+
+      // Scrolling further into the group must not change the header's width (no "jump").
+      await scrollViewportTo({ col: 14, horizontalSnap: 'start' });
+
+      expect(firstRenderedVisual()).toBeLessThanOrEqual(groupStart);
+      expect(lastRenderedVisual()).toBeGreaterThanOrEqual(groupEnd);
+      expect(getWideHeader().offsetWidth).toBe(wideWidth);
+
+      await scrollViewportTo({ col: 30, horizontalSnap: 'start' });
+
+      expect(firstRenderedVisual()).toBeLessThanOrEqual(groupStart);
+      expect(lastRenderedVisual()).toBeGreaterThanOrEqual(groupEnd);
+      expect(getWideHeader().offsetWidth).toBe(wideWidth);
+    });
+
     it('should correctly point cell coords for nested corners', async() => {
       const afterOnCellMouseDown = jasmine.createSpy('onAfterOnCellMouseDown');
 

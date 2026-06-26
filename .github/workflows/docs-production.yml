@@ -101,19 +101,31 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PROD_SITE_ID }}
 
+      # Cloudflare Pages deploy is independent of Netlify: !cancelled() lets
+      # these steps run even when the Netlify publish above fails, so the apex
+      # handsontable-docs.pages.dev still updates.
       - name: Add Cloudflare worker to production deploy
+        if: ${{ !cancelled() }}
         continue-on-error: true
         run: cp cloudflare/_worker.js netlify/docs/_worker.js
 
       - name: Ensure Cloudflare Pages production project exists
+        if: ${{ !cancelled() }}
         continue-on-error: true
         run: node cloudflare/ensureProject.mjs
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CF_PROJECT_NAME: handsontable-docs
+          # "production" is a stable Cloudflare Pages branch label, NOT a git
+          # branch (the real prod git branch is e.g. prod-docs/18.0). The deploy
+          # below passes the same label to --branch, so the deployment is served
+          # at the apex handsontable-docs.pages.dev. Using the per-version git
+          # branch here would move the apex on every release.
+          CF_PAGES_APEX_BRANCH: production
 
       - name: Deploy production to Cloudflare Pages
+        if: ${{ !cancelled() }}
         continue-on-error: true
         # Install wrangler in /tmp to avoid npm failures inside the pnpm workspace
         working-directory: /tmp
@@ -122,7 +134,7 @@ jobs:
           ./node_modules/.bin/wrangler pages deploy \
             "$GITHUB_WORKSPACE/docs/netlify/docs" \
             --project-name handsontable-docs \
-            --branch main
+            --branch production
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

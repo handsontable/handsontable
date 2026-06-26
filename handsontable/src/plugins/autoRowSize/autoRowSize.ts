@@ -53,6 +53,12 @@ const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
  * In those cases, to ensure that the row heights are properly recalculated, you need to call the {@link AutoRowSize#recalculateAllRowsHeight} method after calling {@link Core#updateSettings}.
  * :::
  *
+ * ::: tip
+ * If you use custom renderers, multiline text, or custom styles that produce non-standard row heights, and you call
+ * {@link Core#scrollViewportTo}, you must enable `AutoRowSize`. Without it, `scrollViewportTo()` calculates scroll
+ * positions based on the default row height and may scroll to an incorrect position.
+ * :::
+ *
  * To configure this plugin see {@link Options#autoRowSize}.
  *
  * @example
@@ -620,6 +626,11 @@ export class AutoRowSize extends BasePlugin {
   /**
    * Get the first visible row.
    *
+   * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
+   * cell that crosses the viewport edge extends the rendered row range. In that case this method can
+   * return a row index outside the strictly visible viewport. To read the actual visible viewport, use
+   * {@link Core#getFirstFullyVisibleRow} or {@link Core#getFirstPartiallyVisibleRow}.
+   *
    * @returns {number} Returns row index, -1 if table is not rendered or if there are no rows to base the the calculations on.
    */
   getFirstVisibleRow(): number {
@@ -628,6 +639,11 @@ export class AutoRowSize extends BasePlugin {
 
   /**
    * Gets the last visible row.
+   *
+   * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
+   * cell that crosses the viewport edge extends the rendered row range. In that case this method can
+   * return a row index outside the strictly visible viewport. To read the actual visible viewport, use
+   * {@link Core#getLastFullyVisibleRow} or {@link Core#getLastPartiallyVisibleRow}.
    *
    * @returns {number} Returns row index or -1 if table is not rendered.
    */

@@ -1,7 +1,7 @@
 import { arrayEach } from '../../../helpers/array';
 import TreeNode from '../../../utils/dataStructures/tree';
 import { createDefaultHeaderSettings } from './utils';
-import type { HeaderVisibility } from './utils';
+import type { ColumnDropMode, HeaderVisibility } from './utils';
 import type SourceSettings from './sourceSettings';
 
 /**
@@ -14,6 +14,12 @@ export interface HeaderSettings {
   rowspan?: number;
   origRowspan?: number;
   collapsible: boolean;
+  /**
+   * Determines what the group does when a column move drops a foreign column (one belonging to another
+   * group) into its span: `'adopt'` (default) stays one banner and adopts that column as a child,
+   * `'split'` keeps the group's identity and renders as several same-label banners (it splits).
+   */
+  columnDropMode: ColumnDropMode;
   isCollapsed: boolean;
   crossHiddenColumns: number[];
   isHidden: boolean;
@@ -36,6 +42,13 @@ export interface HeaderSettings {
 export interface HeaderNodeData extends HeaderSettings {
   headerLevel: number;
   columnIndex: number;
+  /**
+   * The authored owner column index this node was derived from - a stable identity for the group that
+   * survives column moves (the authored settings do not change on a move). Used to re-attach collapse
+   * state to the correct group after the tree is re-derived for a move. Negative for columns that have
+   * no authored header (e.g. a column outside the nested-headers definition moved into range).
+   */
+  authoredColumnIndex?: number;
   /**
    * A cloned subtree stored during collapse, restored on expand.
    */

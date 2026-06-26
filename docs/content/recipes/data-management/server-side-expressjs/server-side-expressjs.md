@@ -23,6 +23,7 @@ vue:
   metaTitle: Server-side Data with Express.js - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
+menuTag: new
 ---
 
 This tutorial shows how to wire Handsontable's `dataProvider` plugin to an Express.js 4 backend. The backend provides paginated, sorted, and filtered server-side data with full CRUD operations using PostgreSQL via TypeORM and Zod for request validation.

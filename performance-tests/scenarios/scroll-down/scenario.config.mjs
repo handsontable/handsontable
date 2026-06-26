@@ -1,4 +1,4 @@
-// Grid: 5000 rows x 10 cols -- tall grid to stress vertical scroll rendering
+// Grid: 10000 rows x 50 cols -- tall grid to stress vertical scroll rendering
 export default {
   name: 'scroll-down',
   warmupRuns: 1,

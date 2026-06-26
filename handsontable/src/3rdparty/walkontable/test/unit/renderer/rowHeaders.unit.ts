@@ -14,6 +14,5 @@ describe('RowHeadersRenderer', () => {
     const { renderer } = createRenderer();
 
     expect(renderer.nodeType).toBe('TH');
-    expect(renderer.sourceRowIndex).toBe(0);
   });
 });

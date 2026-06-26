@@ -124,6 +124,13 @@ These standards apply to **all** documentation across the monorepo — guides, t
 - **When docs are required:** any public-API change updates JSDoc/Typedoc + guides; any user-facing behavior change is documented; any breaking change adds a migration guide step; a PR that adds a new docs page goes in the changelog (no `[skip changelog]`).
 - **Writing style (most-violated):** short sentences, active voice, American English (`behavior` not `behaviour`), "you" not "we", Oxford comma, no evaluative adjectives ("easy"/"simple"/"obvious"), en dashes (–) in non-site text. Full list in `.ai/DOC-STANDARDS.md`.
 - **Trademarks:** pages mentioning "Excel" (and "Google Sheets") need the trademark disclaimer — see `.ai/DOC-STANDARDS.md`.
+- **JSDoc format:** always use the multiline block style — never the single-line form. Every JSDoc comment must be written as:
+  ```js
+  /**
+   * Description here.
+   */
+  ```
+  Never: `/** Description here. */`. Applies to all `.ts`, `.mjs`, and `.js` source files.
 
 ---
 

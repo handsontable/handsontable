@@ -23,6 +23,7 @@ vue:
   metaTitle: Keyboard shortcuts - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
+menuTag: updated
 ---
 Access all Handsontable features using just your keyboard. Use shortcuts you know from Google Sheets or Microsoft Excel.
 
@@ -132,6 +133,15 @@ These keyboard shortcuts work in the [`handsontable`](@/guides/cell-types/handso
 | ---------------- | ---------------- | -------------------------------------- | :-----: | :-----: |
 | <kbd>**↑**</kbd> | <kbd>**↑**</kbd> | Move to the cell above the active cell | &cross; | &cross; |
 | <kbd>**↓**</kbd> | <kbd>**↓**</kbd> | Move to the cell below the active cell | &cross; | &cross; |
+
+### Select editor keyboard shortcuts
+
+These keyboard shortcuts work in the [`select`](@/guides/cell-types/select-cell-type/select-cell-type.md) cell editor.
+
+| Windows          | macOS            | Action                          |  Excel  | Sheets  |
+| ---------------- | ---------------- | ------------------------------- | :-----: | :-----: |
+| <kbd>**↑**</kbd> | <kbd>**↑**</kbd> | Select the previous option      | &cross; | &cross; |
+| <kbd>**↓**</kbd> | <kbd>**↓**</kbd> | Select the next option          | &cross; | &cross; |
 
 ## Plugin keyboard shortcuts
 

@@ -138,6 +138,15 @@ class Event {
    */
   #deferredTouchStartEvent: TouchEvent | null = null;
   /**
+   * Timestamp (ms) of the most recent `onMouseUp` call that originated from a touch gesture.
+   * Used to suppress the browser-synthesized `mouseup` event that fires after `touchend` on
+   * devices that register both touch and mouse listeners (e.g. iPad Safari), which would
+   * otherwise trigger `onCellMouseUp` — and context-menu commands — a second time.
+   *
+   * @type {number}
+   */
+  #lastTouchMouseUpAt: number = 0;
+  /**
    * @type {boolean}
    */
   #mouseDown: boolean = false;
@@ -215,7 +224,16 @@ class Event {
 
     const initMouseEvents = () => {
       this.#eventManager.addEventListener(this.#wtTable.holder, 'mouseup',
-        (event: MouseEvent) => this.onMouseUp(event));
+        (event: MouseEvent) => {
+          // On devices that register both touch and mouse listeners (e.g. iPad Safari),
+          // `touchend` fires first and calls `onMouseUp` directly. The browser then
+          // synthesizes a `mouseup` event ~0-50 ms later; suppress it to prevent
+          // context-menu commands from executing twice.
+          if (Date.now() - this.#lastTouchMouseUpAt < 500) {
+            return;
+          }
+          this.onMouseUp(event);
+        });
       this.#eventManager.addEventListener(this.#wtTable.holder, 'mousedown',
         (event: MouseEvent) => this.onMouseDown(event));
     };
@@ -737,6 +755,7 @@ class Event {
     // before/after hooks (e.g. nestedHeaders, ContextMenu close logic).
     // Suppress only for pure scroll gestures, where onMouseDown was never fired.
     if (!wasScrolled || this.#longPressFired) {
+      this.#lastTouchMouseUpAt = Date.now();
       this.onMouseUp(event);
     }
 

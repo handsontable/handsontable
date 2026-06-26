@@ -10,6 +10,7 @@ const columnManagementItems = [
 
 const contextMenuItems = [
   { path: 'context-menu/custom-context-menu/custom-context-menu', title: 'Custom context menu actions', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
+  { path: 'context-menu/add-column-object-data/add-column-object-data', title: 'Add a column to an object-based dataset', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   { path: 'context-menu/row-operations/row-operations', title: 'Programmatic row operations', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
 ];
 
@@ -25,6 +26,7 @@ const dataManagementItems = [
   { path: 'data-management/server-side-nestjs/server-side-nestjs', title: 'Server-side data with NestJS', onlyFor: ['javascript', 'angular', 'react'] },
   { path: 'data-management/server-side-rails/server-side-rails', title: 'Server-side data with Ruby on Rails', onlyFor: ['javascript', 'angular', 'react'] },
   { path: 'data-management/server-side-spring/server-side-spring', title: 'Server-side data with Spring Boot', onlyFor: ['javascript', 'angular', 'react'] },
+  { path: 'data-management/server-side-supabase/server-side-supabase', title: 'Server-side data with Supabase', onlyFor: ['react'] },
   { path: 'data-management/server-side-symfony/server-side-symfony', title: 'Server-side data with Symfony', onlyFor: ['javascript', 'angular', 'react'] },
 ];
 

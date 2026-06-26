@@ -12,6 +12,7 @@ function createColspanSourceSettings(overwriteProps) {
   return {
     ...createColspanSettings(overwriteProps),
     crossHiddenColumns: [],
+    columnDropMode: 'adopt',
     isRoot: false,
   };
 }
@@ -44,6 +45,15 @@ describe('normalizeSettings', () => {
         createColspanSourceSettings({ l: '' }),
       ],
     ]);
+  });
+
+  it('should carry the `columnDropMode` flag through normalization (split when set, adopt by default) (#4150)', () => {
+    const [row] = normalizeSettings([
+      [{ label: 'A', colspan: 2, columnDropMode: 'split' }, { label: 'B', colspan: 2 }],
+    ]);
+
+    expect(row[0].columnDropMode).toBe('split'); // 'A' group, columnDropMode explicitly set
+    expect(row[2].columnDropMode).toBe('adopt'); // 'B' group, default
   });
 
   it('should normalize user-defined settings into known uniform structure data (advanced settings, inconsistent columns length)', () => {

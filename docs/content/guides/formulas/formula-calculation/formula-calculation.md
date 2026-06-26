@@ -23,6 +23,7 @@ vue:
   metaTitle: Formula calculation - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Formulas
+menuTag: updated
 ---
 The `Formulas` plugin adds spreadsheet-style calculation to Handsontable, powered by [HyperFormula](https://hyperformula.handsontable.com/). It supports ~400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
 
@@ -905,6 +906,103 @@ HyperFormula instance. The "Totals" row references those names directly as `=Q1_
 
 For more information about named expressions, refer to the
 [HyperFormula named expressions docs](https://hyperformula.handsontable.com/guide/named-expressions.html).
+
+## Custom functions
+
+Use custom functions when the built-in HyperFormula functions do not cover your business logic. HyperFormula lets you extend the formula engine with your own functions. A custom function
+is a class that extends `FunctionPlugin` and declares its supported functions in a static
+`implementedFunctions` property. Register it with `HyperFormula.registerFunctionPlugin()`
+**before** passing the `HyperFormula` class to the `formulas.engine` option -- if you register
+after Handsontable has already built the engine, the custom function is not available.
+
+The `parameters` array in `implementedFunctions` specifies argument types. Common values:
+
+- `FunctionArgumentType.NUMBER` -- a numeric argument.
+- `FunctionArgumentType.STRING` -- a string argument.
+- `FunctionArgumentType.ANY` -- accepts any type.
+
+The second argument to `registerFunctionPlugin` maps your function name to each registered language pack. Without it, HyperFormula does not recognize the function name in formulas and returns `#NAME?`.
+
+```javascript
+import { FunctionPlugin, FunctionArgumentType, HyperFormula } from 'hyperformula';
+
+class CommissionPlugin extends FunctionPlugin {
+  commission(ast, state) {
+    return this.runFunction(ast.args, state, this.metadata('COMMISSION'), (revenue, rate) => {
+      return revenue * (rate / 100);
+    });
+  }
+}
+
+CommissionPlugin.implementedFunctions = {
+  COMMISSION: {
+    method: 'commission',
+    parameters: [
+      { argumentType: FunctionArgumentType.NUMBER },
+      { argumentType: FunctionArgumentType.NUMBER },
+    ],
+  },
+};
+
+// Call this before new Handsontable(...) or HyperFormula.buildEmpty().
+HyperFormula.registerFunctionPlugin(CommissionPlugin, {
+  enGB: { COMMISSION: 'COMMISSION' },
+});
+```
+
+### Demo: custom COMMISSION function
+
+The example below defines a `COMMISSION(revenue, rate)` function that computes
+`revenue * rate / 100`. Column D in the grid uses `=COMMISSION(B2,C2)` to calculate
+each sales representative's commission amount.
+
+::: only-for javascript
+
+::: example #example-custom-functions --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-custom-functions.html)
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-custom-functions.js)
+@[code](@/content/guides/formulas/formula-calculation/javascript/example-custom-functions.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example-custom-functions :react --js 1 --ts 2
+
+@[code](@/content/guides/formulas/formula-calculation/react/example-custom-functions.jsx)
+@[code](@/content/guides/formulas/formula-calculation/react/example-custom-functions.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/formulas/formula-calculation/angular/example5.ts)
+@[code](@/content/guides/formulas/formula-calculation/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example-custom-functions :vue3
+
+@[code](@/content/guides/formulas/formula-calculation/vue/example-custom-functions.vue)
+
+:::
+
+:::
+
+For the full argument type reference, error handling patterns, and advanced options such as
+function aliases and async functions, see the
+[HyperFormula custom functions guide](https://hyperformula.handsontable.com/guide/custom-functions.html).
 
 ## View the explainer video
 

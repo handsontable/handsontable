@@ -79,6 +79,24 @@ Here's a side-by-side comparison of the old and new DOM structures:
 - Portal Element: New div.ht-portal with ht-theme class for absolutely positioned elements
 - Root Element: rootElement is now created internally by Handsontable instead of using the user-provided container directly
 
+### Positioning Handsontable in flex layouts
+
+Handsontable now creates its own root element (`.ht-root-wrapper`) inside your container and styles it with `height: 100%`. For that to work, the container must have a height the browser can resolve. When you place the container in a flex layout without a resolved height, `height: 100%` resolves to `0`, the root element collapses, and the grid is no longer visible.
+
+To position the grid inside a flex layout, give the flex parent a defined height and let the container fill the available space:
+
+```html
+<div style="display: flex; height: 500px">
+  <div id="example" style="flex: 1; min-width: 0">
+    <!-- Handsontable mounts here and fills the flex item -->
+  </div>
+</div>
+```
+
+With the React and Vue wrappers, the mounting element already receives `height: 100%`, so this mainly affects vanilla JavaScript and any container you size yourself.
+
+For more ways to set the grid's height, including fixed and percentage-based containers, see [Grid size](@/guides/getting-started/grid-size/grid-size.md#troubleshooting-with-100-height).
+
 ## 2. Updated the CSS variables
 
 In Handsontable 16.0, Handsontable improves the CSS variables system to adjust theme colors, variable order, and customization options. Here are the key changes:
