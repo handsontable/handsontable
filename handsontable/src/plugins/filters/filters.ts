@@ -539,7 +539,7 @@ export class Filters extends BasePlugin {
    * | `intl_time_between` | Between times (locale-aware) | `[fromTimeString: string, toTimeString: string]`, e.g. `['08:00', '12:00']` |
    * | `lt` | Less than | `[value: number]`, e.g. `[10]` |
    * | `lte` | Less than or equal | `[value: number]`, e.g. `[10]` |
-   * | `none` | None (no filter) | `[]` |
+   * | `none` | None (no filter) | `[]`. Matches every row, so it has no filtering effect. To clear a column's filter, use [`removeConditions()`](@/api/filters.md#removeconditions) instead. |
    * | `not_between` | Not between | `[from: number\|string, to: number\|string]`, e.g. `[10, 50]` |
    * | `not_contains` | Not contains | `[value: string]`, e.g. `['ing']` |
    * | `not_empty` | Not empty | `[]` |
@@ -901,6 +901,9 @@ export class Filters extends BasePlugin {
 
   /**
    * Removes conditions at specified column index.
+   *
+   * This is the programmatic equivalent of selecting the `None` operator in the column menu – both
+   * clear the column's filter.
    *
    * @param {number} column Visual column index.
    */
