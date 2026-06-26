@@ -36,7 +36,9 @@ export interface ColumnDataGetterSetterFunction {
 }
 
 /**
- * A cell change represented by `[row, column, prevValue, nextValue]`.
+ * A cell change represented by `[row, prop, oldValue, newValue]`.
+ * `prop` is a property name, a column index, or a {@link ColumnDataGetterSetterFunction} when
+ * `columns[].data` is a function.
  */
 export type CellChange = [number, string | number | ColumnDataGetterSetterFunction, CellValue, CellValue];
 

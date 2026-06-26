@@ -237,6 +237,8 @@ Handsontable exposes hundreds of hooks. The ones below are the hooks you reach f
 
 </div>
 
+When [`columns[].data`](@/api/options.md#columns) is a function, the `prop` field in each change tuple is that accessor function. Use [`propToCol()`](@/api/core.md#proptocol) to resolve the visual column index. See [Binding to data: Identify changed columns in hooks](@/guides/getting-started/binding-to-data/binding-to-data.md#identify-changed-columns-in-hooks).
+
 **Row and column structure (CRUD)** -- track rows and columns being added or removed. Each `before` variant can return `false` to block the operation.
 
 <div class="boxes-list">
