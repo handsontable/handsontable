@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DEV-1215 — BEFORE: Legacy Angular Patterns</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable@14.6.1/dist/handsontable.full.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@14.6.1/dist/handsontable.full.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; color: #333; }
+    .banner { background: #c0392b; color: white; padding: 12px 20px; font-size: 14px; font-weight: 600; letter-spacing: 0.5px; }
+    .banner span { background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 3px; margin-right: 8px; }
+    .container { max-width: 1100px; margin: 0 auto; padding: 24px 20px; }
+    h1 { font-size: 22px; margin-bottom: 6px; }
+    .subtitle { color: #666; font-size: 14px; margin-bottom: 24px; }
+    .task-link { color: #c0392b; }
+    .grid-section { background: white; border-radius: 8px; padding: 20px; margin-bottom: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+    .grid-section h2 { font-size: 15px; color: #555; margin-bottom: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    #hot-root { width: 100%; }
+    .code-section { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+    @media (max-width: 768px) { .code-section { grid-template-columns: 1fr; } }
+    .code-card { background: white; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); overflow: hidden; }
+    .code-card-header { background: #c0392b; color: white; padding: 10px 16px; font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .code-card-header .filename { background: rgba(255,255,255,0.2); padding: 2px 8px; border-radius: 3px; font-family: monospace; }
+    .code-card pre { margin: 0; padding: 16px; overflow-x: auto; font-size: 12.5px; line-height: 1.6; background: #1e1e1e; color: #d4d4d4; }
+    .kw { color: #569cd6; } .cn { color: #4ec9b0; } .dc { color: #9cdcfe; }
+    .st { color: #ce9178; } .cm { color: #6a9955; } .de { color: #dcdcaa; }
+    .issues-list { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+    .issues-list h2 { font-size: 15px; color: #c0392b; margin-bottom: 14px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .issue { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
+    .issue:last-child { border-bottom: none; }
+    .badge { background: #c0392b; color: white; font-size: 11px; padding: 2px 7px; border-radius: 3px; white-space: nowrap; flex-shrink: 0; }
+    .after-link { display: inline-block; margin-top: 16px; background: #27ae60; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px; }
+    .after-link:hover { background: #219a52; }
+  </style>
+</head>
+<body>
+  <div class="banner">
+    <span>BEFORE FIX</span> DEV-1215 — Legacy Angular patterns (NgModule, standalone: false, BrowserModule)
+  </div>
+  <div class="container">
+    <h1>Handsontable Angular Integration — Legacy Pattern</h1>
+    <p class="subtitle">
+      This demo represents the <strong>before</strong> state of
+      <a class="task-link" href="https://app.clickup.com/t/9015210959/DEV-1215" target="_blank">DEV-1215</a>.
+      The grid works, but the Angular code behind it uses outdated patterns that Angular 17+ deprecates.
+    </p>
+
+    <div class="grid-section">
+      <h2>Live Grid Demo (same grid, legacy Angular code behind it)</h2>
+      <div id="hot-root"></div>
+    </div>
+
+    <div class="code-section">
+      <div class="code-card">
+        <div class="code-card-header">
+          <span class="filename">app.component.ts</span>
+          — Legacy: standalone: false
+        </div>
+        <pre><span class="cm">/* file: app.component.ts */</span>
+<span class="kw">import</span> { <span class="cn">Component</span> } <span class="kw">from</span> <span class="st">'@angular/core'</span>;
+<span class="kw">import</span> { <span class="cn">GridSettings</span> } <span class="kw">from</span> <span class="st">'@handsontable/angular-wrapper'</span>;
+
+<span class="de">@Component</span>({
+  selector: <span class="st">'example-installation'</span>,
+  <span class="dc">standalone</span>: <span class="kw">false</span>,  <span class="cm">// ❌ Forced legacy mode</span>
+  template: <span class="st">`&lt;div&gt;
+    &lt;hot-table [data]="data"
+      [settings]="gridSettings"&gt;
+    &lt;/hot-table&gt;
+  &lt;/div&gt;`</span>,
+})
+<span class="kw">export class</span> <span class="cn">ExampleInstallationComponent</span> {
+  <span class="kw">readonly</span> <span class="dc">data</span> = [
+    [<span class="st">''</span>, <span class="st">'Tesla'</span>, <span class="st">'Volvo'</span>, <span class="st">'Toyota'</span>, <span class="st">'Ford'</span>],
+    [<span class="st">'2019'</span>, 10, 11, 12, 13],
+    [<span class="st">'2020'</span>, 20, 11, 14, 13],
+    [<span class="st">'2021'</span>, 30, 15, 12, 13],
+  ];
+  <span class="kw">readonly</span> <span class="dc">gridSettings</span>: <span class="cn">GridSettings</span> = {
+    rowHeaders: <span class="kw">true</span>,
+    colHeaders: <span class="kw">true</span>,
+    height: <span class="st">'auto'</span>,
+    autoWrapRow: <span class="kw">true</span>,
+    autoWrapCol: <span class="kw">true</span>
+  };
+}</pre>
+      </div>
+
+      <div class="code-card">
+        <div class="code-card-header">
+          <span class="filename">app.module.ts</span>
+          — Legacy: NgModule bootstrap
+        </div>
+        <pre><span class="cm">/* file: app.module.ts */</span>
+<span class="kw">import</span> { <span class="cn">NgModule</span>, <span class="cn">ApplicationConfig</span> }
+  <span class="kw">from</span> <span class="st">'@angular/core'</span>;
+<span class="kw">import</span> { <span class="cn">BrowserModule</span> }  <span class="cm">// ❌ Unnecessary</span>
+  <span class="kw">from</span> <span class="st">'@angular/platform-browser'</span>;
+<span class="kw">import</span> { <span class="cn">CommonModule</span> }   <span class="cm">// ❌ Unnecessary</span>
+  <span class="kw">from</span> <span class="st">'@angular/common'</span>;
+<span class="kw">import</span> { registerAllModules }
+  <span class="kw">from</span> <span class="st">'handsontable/registry'</span>;
+<span class="kw">import</span> {
+  <span class="cn">HOT_GLOBAL_CONFIG</span>, <span class="cn">HotGlobalConfig</span>,
+  <span class="cn">HotTableModule</span>, <span class="cn">NON_COMMERCIAL_LICENSE</span>
+} <span class="kw">from</span> <span class="st">'@handsontable/angular-wrapper'</span>;
+<span class="kw">import</span> { <span class="cn">ExampleInstallationComponent</span> }
+  <span class="kw">from</span> <span class="st">'./app.component'</span>;
+
+registerAllModules();
+
+<span class="kw">export const</span> <span class="dc">appConfig</span>: <span class="cn">ApplicationConfig</span> = {
+  providers: [{
+    provide: <span class="cn">HOT_GLOBAL_CONFIG</span>,
+    useValue: {
+      license: <span class="cn">NON_COMMERCIAL_LICENSE</span>,
+    } <span class="kw">as</span> <span class="cn">HotGlobalConfig</span>
+  }],
+};
+
+<span class="cm">// ❌ Old NgModule pattern</span>
+<span class="de">@NgModule</span>({
+  imports: [
+    <span class="cn">BrowserModule</span>, <span class="cm">// ❌</span>
+    <span class="cn">HotTableModule</span>,
+    <span class="cn">CommonModule</span>  <span class="cm">// ❌</span>
+  ],
+  declarations: [<span class="cn">ExampleInstallationComponent</span>],
+  providers: [...appConfig.providers],
+  bootstrap:  [<span class="cn">ExampleInstallationComponent</span>]
+})
+<span class="kw">export class</span> <span class="cn">AppModule</span> { }
+<span class="cm">/* end-file */</span></pre>
+      </div>
+    </div>
+
+    <div class="issues-list">
+      <h2>Anti-Patterns Present in This Code</h2>
+      <div class="issue"><span class="badge">Issue 1</span> <div><strong>NgModule bootstrap</strong> — Angular 17+ encourages standalone bootstrap; <code>NgModule</code> is legacy and verbose.</div></div>
+      <div class="issue"><span class="badge">Issue 2</span> <div><strong>standalone: false</strong> — Explicitly opts the component into the legacy module system instead of defaulting to standalone.</div></div>
+      <div class="issue"><span class="badge">Issue 3</span> <div><strong>BrowserModule + CommonModule</strong> — These are not needed in standalone-ready Angular 17+ apps.</div></div>
+      <div class="issue"><span class="badge">Issue 4</span> <div><strong>No provideZoneChangeDetection</strong> — Missing the modern zone coalescing configuration.</div></div>
+      <div class="issue"><span class="badge">Issue 5</span> <div><strong>No language registration</strong> — <code>registerLanguageDictionary(enUS)</code> missing; locale defaults not set globally.</div></div>
+      <div class="issue"><span class="badge">Issue 6</span> <div><strong>No imports in component</strong> — Component relies on module to provide <code>HotTableModule</code> instead of declaring it directly.</div></div>
+      <a class="after-link" href="DEV-1215-after.html">View AFTER fix →</a>
+    </div>
+  </div>
+
+  <script>
+    var container = document.getElementById('hot-root');
+    var hot = new Handsontable(container, {
+      data: [
+        ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
+        ['2019', 10, 11, 12, 13],
+        ['2020', 20, 11, 14, 13],
+        ['2021', 30, 15, 12, 13],
+      ],
+      rowHeaders: true,
+      colHeaders: true,
+      height: 'auto',
+      autoWrapRow: true,
+      autoWrapCol: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>
