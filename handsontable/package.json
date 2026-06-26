@@ -88,7 +88,6 @@
     "editable-table",
     "data-spreadsheet"
   ],
-  "dependencies": {},
   "devDependencies": {
     "@babel/core": "^7.11.4",
     "@babel/eslint-parser": "^7.13.14",
@@ -106,7 +105,7 @@
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "babel-jest": "^27.5.1",
-    "babel-plugin-transform-inline-environment-variables": "^0.4.3",
+    "babel-plugin-transform-inline-environment-variables": "^0.4.4",
     "chalk": "^4.1.2",
     "concurrently": "^6.4.0",
     "cross-env": "^7.0.3",
@@ -190,38 +189,72 @@
       "./themes/static/variables/**/*",
       {
         ".": {
-          "import": { "types": "./index.d.mts", "default": "./index.mjs" },
-          "require": { "types": "./index.d.ts", "default": "./index.js" }
+          "import": {
+            "types": "./index.d.mts",
+            "default": "./index.mjs"
+          },
+          "require": {
+            "types": "./index.d.ts",
+            "default": "./index.js"
+          }
         }
       },
       {
         "./base": {
-          "import": { "types": "./base.d.mts", "default": "./base.mjs" },
-          "require": { "types": "./base.d.ts", "default": "./base.js" }
+          "import": {
+            "types": "./base.d.mts",
+            "default": "./base.mjs"
+          },
+          "require": {
+            "types": "./base.d.ts",
+            "default": "./base.js"
+          }
         }
       },
       {
         "./languages/all": {
-          "import": { "default": "./languages/index.mjs" },
-          "require": { "default": "./languages/all.js" }
+          "import": {
+            "default": "./languages/index.mjs"
+          },
+          "require": {
+            "default": "./languages/all.js"
+          }
         }
       },
       {
         "./registry": {
-          "import": { "types": "./registry.d.mts", "default": "./registry.mjs" },
-          "require": { "types": "./registry.d.ts", "default": "./registry.js" }
+          "import": {
+            "types": "./registry.d.mts",
+            "default": "./registry.mjs"
+          },
+          "require": {
+            "types": "./registry.d.ts",
+            "default": "./registry.js"
+          }
         }
       },
       {
         "./settings": {
-          "import": { "types": "./settings.d.mts", "default": "./settings.mjs" },
-          "require": { "types": "./settings.d.ts", "default": "./settings.js" }
+          "import": {
+            "types": "./settings.d.mts",
+            "default": "./settings.mjs"
+          },
+          "require": {
+            "types": "./settings.d.ts",
+            "default": "./settings.js"
+          }
         }
       },
       {
         "./themes": {
-          "import": { "types": "./themes/index.d.mts", "default": "./themes/index.mjs" },
-          "require": { "types": "./themes/index.d.ts", "default": "./themes/index.js" }
+          "import": {
+            "types": "./themes/index.d.mts",
+            "default": "./themes/index.mjs"
+          },
+          "require": {
+            "types": "./themes/index.d.ts",
+            "default": "./themes/index.js"
+          }
         }
       }
     ],
