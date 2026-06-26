@@ -54,9 +54,4 @@ The dependencies below apply only if you use the [`Formulas`](@/api/formulas.md)
     <p class="meta">Author: Scott Corgan<br>License: Open source (MIT)</p>
     <p class="url"><a href="https://github.com/scottcorgan/tiny-emitter" target="_blank" rel="noopener noreferrer">https://github.com/scottcorgan/tiny-emitter</a></p>
   </div>
-  <div class="ht-info-card">
-    <p class="name"><strong>unorm</strong></p>
-    <p class="meta">Author: Matsuza, Bjarke Walling<br>License: Open source (MIT)</p>
-    <p class="url"><a href="https://github.com/walling/unorm" target="_blank" rel="noopener noreferrer">https://github.com/walling/unorm</a></p>
-  </div>
 </div>
