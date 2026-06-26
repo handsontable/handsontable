@@ -28,7 +28,6 @@ export class AppComponent {
     height: 'auto',
     width: 'auto',
     autoWrapRow: true,
-    minSpareRows: 1,
     autoWrapCol: true
   };
 }
