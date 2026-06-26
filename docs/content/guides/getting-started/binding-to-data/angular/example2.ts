@@ -23,7 +23,6 @@ export class AppComponent {
 
   readonly gridSettings: GridSettings = {
     colHeaders: true,
-    minSpareRows: 1,
     height: 'auto',
     width: 'auto',
     columns: [

@@ -20,7 +20,6 @@ const hotSettings = ref<GridSettings>({
   height: 'auto',
   width: 'auto',
   colHeaders: true,
-  minSpareRows: 1,
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',

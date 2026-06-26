@@ -90,7 +90,6 @@ export class AppComponent {
       { data: property('name') },
       { data: property('address') },
     ],
-    minSpareRows: 1,
     autoWrapRow: true,
     autoWrapCol: true
   };
