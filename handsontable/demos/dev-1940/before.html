@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1940: Before fix — v17.1.0 (diffing renderer, unbounded NodesPool)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #666; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-cdn { background: #e3f2fd; color: #1565c0; }
+    .badge-local { background: #e8f5e9; color: #2e7d32; }
+    .info { background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
+    .info strong { color: #856404; }
+    .stats { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .stat-box { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 12px 18px; min-width: 170px; }
+    .stat-box .label { font-size: 12px; color: #666; margin-bottom: 4px; }
+    .stat-box .value { font-size: 22px; font-weight: 700; color: #333; font-variant-numeric: tabular-nums; }
+    .stat-box.bad .value { color: #c62828; }
+    .controls { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center; }
+    button { padding: 7px 16px; border-radius: 6px; border: 1px solid #bbb; background: #fff; font-size: 14px; cursor: pointer; }
+    button:hover { background: #f0f0f0; }
+    button.primary { background: #1976d2; color: #fff; border-color: #1976d2; }
+    button.primary:hover { background: #1565c0; }
+    #hot-container { margin-bottom: 16px; }
+    #log { background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 12px; font-family: monospace; font-size: 12px; max-height: 160px; overflow-y: auto; }
+    .log-entry { margin-bottom: 3px; }
+    .log-entry.warn { color: #c62828; font-weight: 600; }
+    .bug-badge { display: inline-block; background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; border-radius: 12px; font-size: 12px; padding: 2px 10px; margin-left: 10px; vertical-align: middle; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1940: Walkontable DOM renderer <span class="bug-badge">BEFORE fix</span></h1>
+  <div class="subtitle">v17.1.0 — diffing renderer with coordinate-keyed NodesPool (unbounded memory growth)</div>
+
+  <nav>
+    <span class="nav-label">View:</span>
+    <span class="nav-btn active">Before fix <span class="badge badge-cdn">v17.1.0 CDN</span></span>
+    <a class="nav-btn" href="after.html">After fix <span class="badge badge-local">PR build</span></a>
+  </nav>
+
+  <div class="info">
+    <strong>Bug:</strong> The old <code>NodesPool</code> maintained a <code>Map&lt;number, HTMLElement&gt;</code>
+    keyed by <em>source coordinate</em> (row × 1 048 576 + col). Every unique (row, col) cell ever scrolled into view
+    added a new entry — the map never shrinks. Scrolling through 1 000 rows × 20 cols creates up to
+    <strong>20 000 cached TD/TH nodes</strong> retained in memory indefinitely.<br><br>
+    <strong>How to test:</strong> Click <em>Scroll through all rows</em>, then watch the <em>Cached nodes (NodesPool)</em>
+    counter climb. After the full scroll, compare to the <em>Live viewport nodes</em>. The cached count
+    far exceeds what is actually rendered — those are leaked DOM nodes. Switch to the <em>After fix</em> page:
+    the cached count stays bounded at viewport size.
+  </div>
+
+  <div class="stats">
+    <div class="stat-box">
+      <div class="label">Dataset</div>
+      <div class="value" id="stat-dataset">1 000 × 20</div>
+    </div>
+    <div class="stat-box bad">
+      <div class="label">Cached nodes (NodesPool map)</div>
+      <div class="value" id="stat-pool">—</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">Live viewport nodes</div>
+      <div class="value" id="stat-live">—</div>
+    </div>
+    <div class="stat-box">
+      <div class="label">Current top row</div>
+      <div class="value" id="stat-row">0</div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="primary" id="btn-scroll-all">Scroll through all rows</button>
+    <button id="btn-reset">Reset to top</button>
+    <button id="btn-snap">Snapshot</button>
+  </div>
+
+  <div id="hot-container"></div>
+  <div id="log"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script>
+    const ROWS = 1000, COLS = 20;
+    const data = Array.from({ length: ROWS }, (_, r) =>
+      Array.from({ length: COLS }, (_, c) => `R${r + 1}C${c + 1}`)
+    );
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data,
+      colHeaders: Array.from({ length: COLS }, (_, i) => `Col ${i + 1}`),
+      rowHeaders: true,
+      width: '100%',
+      height: 400,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    function collectPoolSize() {
+      const wt = hot.view?._wt;
+      if (!wt) return null;
+      let total = 0;
+      const visit = (obj) => {
+        if (!obj || typeof obj !== 'object') return;
+        if (obj.pool instanceof Map) total += obj.pool.size;
+        if (obj.nodesPool) visit(obj.nodesPool);
+        if (Array.isArray(obj.renderers)) obj.renderers.forEach(visit);
+        if (obj.cellRenderer) visit(obj.cellRenderer);
+        if (obj.rowRenderer) visit(obj.rowRenderer);
+        if (obj.columnHeaderRenderer) visit(obj.columnHeaderRenderer);
+        if (obj.rowHeaderRenderer) visit(obj.rowHeaderRenderer);
+      };
+      const overlays = [wt, ...(wt.wtOverlays ? Object.values(wt.wtOverlays).filter(Boolean) : [])];
+      overlays.forEach(o => visit(o.wtTable));
+      return total;
+    }
+
+    function getLiveNodes() {
+      return document.getElementById('hot-container').querySelectorAll('td, th').length;
+    }
+
+    function updateStats() {
+      const pool = collectPoolSize();
+      const live = getLiveNodes();
+      const row = hot.view?._wt?.wtTable?.getFirstRenderedRow?.() ?? '?';
+      document.getElementById('stat-pool').textContent = pool != null ? pool.toLocaleString() : '(n/a — check console)';
+      document.getElementById('stat-live').textContent = live.toLocaleString();
+      document.getElementById('stat-row').textContent = row;
+    }
+
+    function appendLog(msg, cls = '') {
+      const el = document.getElementById('log');
+      const d = document.createElement('div');
+      d.className = 'log-entry ' + cls;
+      d.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+      el.appendChild(d);
+      el.scrollTop = el.scrollHeight;
+    }
+
+    hot.addHook('afterScrollVertically', updateStats);
+    updateStats();
+
+    document.getElementById('btn-snap').onclick = () => {
+      const pool = collectPoolSize();
+      const live = getLiveNodes();
+      const leak = pool != null && pool > live * 2;
+      appendLog(`Pool: ${pool?.toLocaleString() ?? 'n/a'}  Live: ${live.toLocaleString()}  ${leak ? '⚠ Pool >> Live (memory leak!)' : ''}`, leak ? 'warn' : '');
+    };
+
+    document.getElementById('btn-reset').onclick = () => {
+      hot.scrollViewportTo({ row: 0, col: 0 });
+      updateStats();
+      appendLog('Reset to row 0.');
+    };
+
+    document.getElementById('btn-scroll-all').onclick = () => {
+      appendLog('Scrolling through all 1 000 rows…');
+      let row = 0;
+      const step = () => {
+        if (row >= ROWS) {
+          const pool = collectPoolSize();
+          const live = getLiveNodes();
+          appendLog(`Done! Pool cached: ${pool?.toLocaleString() ?? 'n/a'}  Live: ${live.toLocaleString()}  ← Pool should be much larger`, 'warn');
+          updateStats();
+          return;
+        }
+        hot.scrollViewportTo({ row, col: 0 });
+        row += 20;
+        setTimeout(step, 16);
+      };
+      step();
+    };
+  </script>
+</body>
+</html>
