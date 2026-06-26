@@ -29,6 +29,8 @@ The select cell type is a simpler form of the [dropdown](@/guides/cell-types/dro
 
 > **Note:** The select editor is intended as a reference implementation for writing custom editors rather than as a fully-featured editor. It is a much simpler form of the [Dropdown editor](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md). Use the dropdown cell type in your projects for a better user experience.
 
+In the demo below, the **Make** column uses the select cell type. The cell looks like plain text -- there is no dropdown arrow to indicate it. A single click only selects the cell. To open the list of options, double-click the cell or press <kbd>**Enter**</kbd>.
+
 ::: only-for javascript
 
 ::: example #example1 --js 1 --ts 2
@@ -74,7 +76,7 @@ The select cell type is a simpler form of the [dropdown](@/guides/cell-types/dro
 
 ## Result
 
-After configuring the select cell type, cells render a native HTML `<select>` element when the user activates them. The user picks a value from the list and the selected value is written to the data source.
+After configuring the select cell type, cells in the **Make** column render a native HTML `<select>` element when the user activates them. The user picks a value from the list and the selected value is written to the data source.
 
 ## Keyboard navigation
 
