@@ -181,6 +181,16 @@ export class MergeCells extends BasePlugin {
    * @type {boolean}
    */
   #initialized = false;
+  /**
+   * Physical top-left (row/column) of every merged cell, captured while its visual coordinates are
+   * authoritative (creation, structural edits). Read on a pure row-trimming change to re-anchor the
+   * merge's visual `row`/`col` onto the rows that stay visible — keeping the merge whole (span
+   * unchanged) instead of clipping it. Physical indexes are stable across trimming, so one capture
+   * survives any number of filter/trim toggles.
+   *
+   * @type {WeakMap<MergedCellCoords, { physicalRow: number, physicalColumn: number }>}
+   */
+  #mergeAnchors: WeakMap<MergedCellCoords, { physicalRow: number, physicalColumn: number }> = new WeakMap();
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -249,7 +259,13 @@ export class MergeCells extends BasePlugin {
       }
     });
 
+    this.addHook('afterMergeCells', this.#onAfterMergeCellsCapture);
+
     this.registerShortcuts();
+
+    // React to the row trimming map changing (Filters / `trimRows` / `nestedRows` collapse), so a
+    // merge whose anchor row gets hidden is re-anchored onto the still-visible rows.
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
 
     super.enablePlugin();
   }
@@ -258,6 +274,7 @@ export class MergeCells extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
     this.clearCollections();
     this.unregisterShortcuts();
     this.hot.render();
@@ -278,6 +295,7 @@ export class MergeCells extends BasePlugin {
 
     this.generateFromSettings();
     this.#initialized = true;
+    this.#captureMergeAnchors();
 
     super.updatePlugin();
   }
@@ -667,7 +685,107 @@ export class MergeCells extends BasePlugin {
     this.generateFromSettings();
     this.hot.render();
     this.#initialized = true;
+    this.#captureMergeAnchors();
   };
+
+  /**
+   * `afterMergeCells` hook callback. Captures the physical anchor of the just-created merge so it can
+   * be re-anchored on later trimming changes (covers user/API merges; config merges are also captured
+   * in `afterInit`/`updatePlugin`).
+   *
+   * @param {CellRange} _cellRange The merged range (unused).
+   * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergeParent The merged cell.
+   */
+  #onAfterMergeCellsCapture = (
+    _cellRange: CellRange,
+    mergeParent: { row: number, col: number, rowspan: number, colspan: number }
+  ) => {
+    const merge = this.mergedCellsCollection.get(mergeParent.row, mergeParent.col);
+
+    if (merge) {
+      this.#captureAnchorOf(merge);
+    }
+  };
+
+  /**
+   * Row index mapper `cacheUpdated` callback. On a pure row-trimming change (Filters / `trimRows` /
+   * `nestedRows` collapse, i.e. no index-sequence change), re-anchors each merge onto the rows that
+   * remain visible, so trimming rows above a merge no longer leaves its anchor behind. Moves, sorts,
+   * inserts and removals carry an index-sequence change and are handled by their dedicated hooks, so
+   * they are skipped here.
+   *
+   * @param {{ trimmedIndexesChanged: boolean, indexesSequenceChanged: boolean }} changes Cache flags.
+   */
+  #onRowIndexCacheUpdated = (
+    { trimmedIndexesChanged, indexesSequenceChanged }:
+    { trimmedIndexesChanged: boolean, indexesSequenceChanged: boolean }
+  ) => {
+    // `this.hot` is dropped on destroy, but this local hook outlives the plugin (it is not managed
+    // by `addHook`), so the row index map's final `updateCache` can still reach us.
+    if (!this.hot || !this.#initialized) {
+      return;
+    }
+
+    if (trimmedIndexesChanged && !indexesSequenceChanged) {
+      this.#reanchorMergesToVisibleRows();
+    }
+  };
+
+  /**
+   * Captures the physical top-left of a single merge from its current (authoritative) visual coords.
+   *
+   * @param {MergedCellCoords} merge The merge to capture.
+   */
+  #captureAnchorOf(merge: MergedCellCoords) {
+    const physicalRow = this.hot.toPhysicalRow(merge.row);
+    const physicalColumn = this.hot.toPhysicalColumn(merge.col);
+
+    if (physicalRow !== null && physicalColumn !== null) {
+      this.#mergeAnchors.set(merge, { physicalRow, physicalColumn });
+    }
+  }
+
+  /**
+   * Captures the physical top-left of every merge (after a bulk (re)generation).
+   */
+  #captureMergeAnchors() {
+    this.mergedCellsCollection.mergedCells.forEach(merge => this.#captureAnchorOf(merge));
+  }
+
+  /**
+   * Re-anchors every merge's visual `row`/`col` to the visual position of its captured physical
+   * top-left, keeping `rowspan`/`colspan`. The render translation then spans the merge over the
+   * visible rows from there. Merges with no captured anchor, or whose anchor row/column is itself
+   * hidden, are left untouched.
+   */
+  #reanchorMergesToVisibleRows() {
+    let changed = false;
+
+    this.mergedCellsCollection.mergedCells.forEach((merge) => {
+      const anchor = this.#mergeAnchors.get(merge);
+
+      if (!anchor) {
+        return;
+      }
+
+      const visualRow = this.hot.toVisualRow(anchor.physicalRow);
+      const visualColumn = this.hot.toVisualColumn(anchor.physicalColumn);
+
+      if (visualRow === null || visualColumn === null) {
+        return;
+      }
+
+      if (merge.row !== visualRow || merge.col !== visualColumn) {
+        merge.row = visualRow;
+        merge.col = visualColumn;
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      this.mergedCellsCollection.rebuildMatrix();
+    }
+  }
 
   /**
    * Register shortcuts responsible for toggling a merge.
@@ -1432,6 +1550,7 @@ export class MergeCells extends BasePlugin {
    */
   #onAfterCreateCol = (column: number, count: number) => {
     this.mergedCellsCollection.shiftCollections('right', column, count);
+    this.#captureMergeAnchors();
   };
 
   /**
@@ -1442,6 +1561,7 @@ export class MergeCells extends BasePlugin {
    */
   #onAfterRemoveCol = (column: number, count: number) => {
     this.mergedCellsCollection.shiftCollections('left', column, count);
+    this.#captureMergeAnchors();
   };
 
   /**
@@ -1457,6 +1577,7 @@ export class MergeCells extends BasePlugin {
     }
 
     this.mergedCellsCollection.shiftCollections('down', row, count);
+    this.#captureMergeAnchors();
   };
 
   /**
@@ -1467,6 +1588,7 @@ export class MergeCells extends BasePlugin {
    */
   #onAfterRemoveRow = (row: number, count: number) => {
     this.mergedCellsCollection.shiftCollections('up', row, count);
+    this.#captureMergeAnchors();
   };
 
   /**
@@ -1511,6 +1633,7 @@ export class MergeCells extends BasePlugin {
     }
 
     this.mergedCellsCollection.translateAfterAxisMove('column', snapshot);
+    this.#captureMergeAnchors();
     this.hot.render();
   };
 
@@ -1556,6 +1679,7 @@ export class MergeCells extends BasePlugin {
     }
 
     this.mergedCellsCollection.translateAfterAxisMove('row', snapshot);
+    this.#captureMergeAnchors();
     this.hot.render();
   };
 
@@ -1593,6 +1717,7 @@ export class MergeCells extends BasePlugin {
     }
 
     this.mergedCellsCollection.translateAfterAxisMove('column', snapshot);
+    this.#captureMergeAnchors();
     this.hot.render();
   };
 

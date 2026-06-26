@@ -2147,4 +2147,109 @@ describe('MergeCells', () => {
       |   :   :   :   :   |
     `).toBeMatchToSelectionPattern();
   });
+
+  describe('row trimming (Filters / trimRows) — merge re-anchoring', () => {
+    const merges = () => getPlugin('mergeCells').mergedCellsCollection.mergedCells
+      .map(({ row, col, rowspan, colspan }) => ({ row, col, rowspan, colspan }));
+
+    it('should re-anchor a merge (kept whole) when a filter hides the rows above it', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }], // C3:E5, physical rows 2,3,4
+      });
+      const filters = getPlugin('filters');
+
+      // keep only the merge's own rows (A3,A4,A5 -> physical 2,3,4); hides A1,A2 above it
+      filters.addCondition(0, 'by_value', [['A3', 'A4', 'A5']]);
+      filters.filter();
+
+      await render();
+
+      // the merge stays whole and its anchor follows its physical top-left up to visual row 0
+      expect(merges()).toEqual([{ row: 0, col: 2, rowspan: 3, colspan: 3 }]);
+
+      const TD = getCell(0, 2);
+
+      expect(TD.getAttribute('rowspan')).toBe('3');
+      expect(TD.getAttribute('colspan')).toBe('3');
+    });
+
+    it('should keep a merge whole when a filter hides a row inside its span', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }],
+      });
+      const filters = getPlugin('filters');
+
+      // hide A4 (physical row 3) — inside the merge; the anchor (A3) stays visible
+      filters.addCondition(0, 'by_value', [['A1', 'A2', 'A3', 'A5', 'A6', 'A7', 'A8', 'A9', 'A10']]);
+      filters.filter();
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 3, colspan: 3 }]);
+    });
+
+    it('should restore the merge anchor after the filter is cleared', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }],
+      });
+      const filters = getPlugin('filters');
+
+      filters.addCondition(0, 'by_value', [['A3', 'A4', 'A5']]);
+      filters.filter();
+
+      await render();
+
+      filters.clearConditions();
+      filters.filter();
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 3, colspan: 3 }]);
+    });
+
+    it('should keep a merge whole (not clipped) when trimRows hides an interior row from the config', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        trimRows: [3], // physical row 3 trimmed from the start — inside the merge span
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }],
+      });
+
+      // the merge keeps its full rowspan and renders over the visible rows
+      expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 3, colspan: 3 }]);
+
+      getPlugin('trimRows').untrimAll();
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 3, colspan: 3 }]);
+    });
+
+    it('should re-anchor a merge created at runtime after a filter hides rows above it', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        mergeCells: true,
+      });
+
+      getPlugin('mergeCells').merge(4, 0, 6, 1); // A5:B7 -> physical rows 4,5,6
+
+      await render();
+
+      const filters = getPlugin('filters');
+
+      // keep only the merge's rows (A5,A6,A7 -> physical 4,5,6), hiding everything above
+      filters.addCondition(0, 'by_value', [['A5', 'A6', 'A7']]);
+      filters.filter();
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 0, col: 0, rowspan: 3, colspan: 2 }]);
+    });
+  });
 });

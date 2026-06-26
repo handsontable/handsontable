@@ -696,6 +696,19 @@ class MergedCellsCollection {
   }
 
   /**
+   * Rebuilds the whole coords->merge lookup matrix from the current merged cells. Used after the
+   * visual coordinates of merges are mutated in place (e.g. re-anchoring to the visible rows on a
+   * trimming change), so `get()` keeps resolving to the right merge.
+   */
+  rebuildMatrix() {
+    this.mergedCellsMatrix.clear();
+
+    this.mergedCells.forEach((mergedCell) => {
+      this.#addMergedCellToMatrix(mergedCell);
+    });
+  }
+
+  /**
    * Removes a merged cell from the matrix.
    *
    * @param {MergedCellCoords} mergedCell The merged cell to remove.
