@@ -301,6 +301,26 @@ export class SelectionManager {
   }
 
   /**
+   * Adds a seam class to a header element in the render cycle's class map, creating the per-element
+   * entry on first use. Shared by the frozen column/row seam taggers.
+   *
+   * @param {Map} classNamesMap The render cycle's element→classNames map (applied and cleaned up later).
+   * @param {HTMLElement} th The header element to tag.
+   * @param {string} seamClassName The seam class to add.
+   */
+  #tagSeamClass(
+    classNamesMap: Map<HTMLElement, Map<string, number>>,
+    th: HTMLElement,
+    seamClassName: string
+  ) {
+    if (classNamesMap.has(th)) {
+      classNamesMap.get(th)!.set(seamClassName, 1);
+    } else {
+      classNamesMap.set(th, new Map<string, number>([[seamClassName, 1]]));
+    }
+  }
+
+  /**
    * Tags the last frozen column header with a seam class when the first non-frozen column is the
    * active header. That header's inline-start edge lands on the frozen-pane seam, which is drawn by
    * the frozen overlay (a separate table) and is therefore out of reach of the neighbour `:has()`
@@ -342,11 +362,7 @@ export class SelectionManager {
       const th = wtTable.getColumnHeader(fixedColumnsStart - 1, level) as HTMLElement | undefined;
 
       if (isHTMLElement(th)) {
-        if (classNamesMap.has(th)) {
-          classNamesMap.get(th)!.set(seamClassName, 1);
-        } else {
-          classNamesMap.set(th, new Map<string, number>([[seamClassName, 1]]));
-        }
+        this.#tagSeamClass(classNamesMap, th, seamClassName);
       }
     }
   }
@@ -390,7 +406,7 @@ export class SelectionManager {
     }
 
     const seamClassName = `${activeHeaderClassName}-row-seam-top`;
-    const headerLevels = (wot.getSetting('rowHeaders') as Function[]).length;
+    const headerLevels = wtTable.getRowHeadersCount();
 
     for (let level = 0; level < headerLevels; level++) {
       const th = wtTable.getRowHeader(lastFrozenRow, level) as HTMLElement | undefined;
@@ -398,11 +414,7 @@ export class SelectionManager {
       // Overlays without row headers (e.g. the plain `top` overlay) return a TD here; only tag actual
       // row-header cells.
       if (isHTMLElement(th) && th.nodeName === 'TH') {
-        if (classNamesMap.has(th)) {
-          classNamesMap.get(th)!.set(seamClassName, 1);
-        } else {
-          classNamesMap.set(th, new Map<string, number>([[seamClassName, 1]]));
-        }
+        this.#tagSeamClass(classNamesMap, th, seamClassName);
       }
     }
   }
@@ -447,7 +459,7 @@ export class SelectionManager {
     }
 
     const seamClassName = `${activeHeaderClassName}-row-seam-bottom`;
-    const headerLevels = (wot.getSetting('rowHeaders') as Function[]).length;
+    const headerLevels = wtTable.getRowHeadersCount();
 
     for (let level = 0; level < headerLevels; level++) {
       const th = wtTable.getRowHeader(firstFrozenRow, level) as HTMLElement | undefined;
@@ -455,11 +467,7 @@ export class SelectionManager {
       // Overlays without row headers (e.g. the plain `bottom` overlay) return a TD here; only tag
       // actual row-header cells.
       if (isHTMLElement(th) && th.nodeName === 'TH') {
-        if (classNamesMap.has(th)) {
-          classNamesMap.get(th)!.set(seamClassName, 1);
-        } else {
-          classNamesMap.set(th, new Map<string, number>([[seamClassName, 1]]));
-        }
+        this.#tagSeamClass(classNamesMap, th, seamClassName);
       }
     }
   }

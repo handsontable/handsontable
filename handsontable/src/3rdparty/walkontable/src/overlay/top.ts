@@ -244,7 +244,7 @@ export class TopOverlay extends Overlay {
       return false;
     }
 
-    const fixedRowsTop = (this.wtSettings.getSetting('fixedRowsTop') as number) ?? 0;
+    const fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop') as number;
     const bottomEndRow = focusSelection.cellRange.getBottomEndCorner().row;
 
     // The corner is at the selection's bottom-end; reserve only when it lands inside the frozen rows
