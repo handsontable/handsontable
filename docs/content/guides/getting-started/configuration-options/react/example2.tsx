@@ -27,7 +27,6 @@ const ExampleComponent: FC = () => {
       colHeaders={true}
       readOnly={false}
       columns={(index: number) => ({
-        type: index > 0 ? 'numeric' : 'text',
         readOnly: index === 2 || index === 8,
       })}
     />
