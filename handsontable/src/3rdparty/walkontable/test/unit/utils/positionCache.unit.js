@@ -6,6 +6,7 @@ import { PositionCache } from '../../../src/utils/positionCache';
  * @param {number} totalItems The total number of items.
  * @param {Function} sizeFn A function that returns the size for a given index.
  * @param {number} defaultSize The default size.
+ * @param {boolean|Function} [isUniformFn] Whether (or a predicate returning whether) all items share one size.
  * @returns {object} An object with `cache` and setters to swap config at runtime.
  */
 function createCache(totalItems, sizeFn, defaultSize, isUniformFn) {
@@ -290,7 +291,7 @@ describe('PositionCache', () => {
         expect(uniform.getOffset(i)).toBe(full.getOffset(i));
         expect(uniform.getSizeAt(i)).toBe(full.getSizeAt(i));
       }
-      for (const off of [-5, 0, 1, 22, 23, 24, 100000, SIZE * COUNT, SIZE * COUNT + 50]) {
+      for (const off of [-5, 0, 1, 22, 23, 24, 100000, SIZE * COUNT, (SIZE * COUNT) + 50]) {
         expect(uniform.findIndexAtOffset(off)).toBe(full.findIndexAtOffset(off));
       }
       expect(uniform.getTotalSize()).toBe(full.getTotalSize());
@@ -345,7 +346,7 @@ describe('PositionCache', () => {
 
       expect(cache.prefixSum).not.toBe(null);
       expect(cache.getSizeAt(3)).toBe(50); // heterogeneous: honors the override
-      expect(cache.getOffset(4)).toBe(20 * 3 + 50);
+      expect(cache.getOffset(4)).toBe((20 * 3) + 50);
     });
 
     it('should clear uniform mode on invalidate', () => {
