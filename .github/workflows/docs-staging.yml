@@ -1,14 +1,24 @@
 name: Docs Staging Deployment
 
 on:
+  # Build PR previews on the pull_request event. The PR number comes from the
+  # event payload, so the preview always knows which PR to comment on - unlike
+  # the old push-driven build, which raced PR creation and often resolved no PR
+  # (no preview comment, no Cloudflare deploy). The paths filter limits PR
+  # builds to pull requests that change documentation files.
   pull_request:
-    types: [ labeled, synchronize ]
+    types: [ opened, reopened, synchronize ]
+    paths:
+      - 'docs/**'
+      - 'handsontable/package.json'
+  # Push builds cover the non-PR contexts only: develop (apex staging) and
+  # release/* (RC staging, triggered by the handsontable/package.json version
+  # bump). Other branches get their preview from the pull_request event above,
+  # so they are intentionally not built on push (avoids a duplicate build).
   push:
-    branches-ignore:
-      - 'prod-docs/**'
-      - 'master'
-    # Trigger on docs changes (all branches) and on handsontable/package.json
-    # changes (so RC version bumps on release/* branches trigger a rebuild).
+    branches:
+      - develop
+      - 'release/**'
     paths:
       - 'docs/**'
       - 'handsontable/package.json'
@@ -24,8 +34,15 @@ defaults:
 
 jobs:
   preview:
-    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'ci:docs-deploy') }}
-    name: Build and push Preview to Netlify (on pull request label)
+    name: Build and push Preview to Netlify
+    # Release branches build their production-mode RC staging from the push
+    # trigger above, and that push build also resolves and comments on the open
+    # release PR (its head is the release branch). Skip the pull_request build
+    # for release-head PRs so they are not also built in dev mode on a separate
+    # concurrency key, which would deploy twice and post a duplicate comment.
+    # The prefix match is intentionally broader than the release/x.y.z version
+    # pattern; any release/* head PR defers to its push build.
+    if: ${{ !(github.event_name == 'pull_request' && startsWith(github.head_ref, 'release/')) }}
     runs-on: ubuntu-latest
 
     steps:
