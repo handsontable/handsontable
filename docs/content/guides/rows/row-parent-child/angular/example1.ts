@@ -1,5 +1,6 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
+import Handsontable from 'handsontable';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
@@ -22,29 +23,45 @@ export class AppComponent {
       label: null,
       __children: [
         {
-          title: "Don't Wanna Fight",
-          artist: 'Alabama Shakes',
-          label: 'ATO Records',
+          category: 'Major label releases',
+          artist: null,
+          title: null,
+          label: null,
+          __children: [
+            {
+              title: "Don't Wanna Fight",
+              artist: 'Alabama Shakes',
+              label: 'ATO Records',
+            },
+            {
+              title: 'What Kind Of Man',
+              artist: 'Florence & The Machine',
+              label: 'Republic',
+            },
+            {
+              title: 'Something From Nothing',
+              artist: 'Foo Fighters',
+              label: 'RCA Records',
+            },
+          ],
         },
         {
-          title: 'What Kind Of Man',
-          artist: 'Florence & The Machine',
-          label: 'Republic',
-        },
-        {
-          title: 'Something From Nothing',
-          artist: 'Foo Fighters',
-          label: 'RCA Records',
-        },
-        {
-          title: "Ex's & Oh's",
-          artist: 'Elle King',
-          label: 'RCA Records',
-        },
-        {
-          title: 'Moaning Lisa Smile',
-          artist: 'Wolf Alice',
-          label: 'RCA Records/Dirty Hit',
+          category: 'Independent releases',
+          artist: null,
+          title: null,
+          label: null,
+          __children: [
+            {
+              title: 'Moaning Lisa Smile',
+              artist: 'Wolf Alice',
+              label: 'RCA Records/Dirty Hit',
+            },
+            {
+              title: "Ex's & Oh's",
+              artist: 'Elle King',
+              label: 'RCA Records',
+            },
+          ],
         },
       ],
     },
@@ -150,6 +167,9 @@ export class AppComponent {
     autoWrapRow: true,
     autoWrapCol: true,
     height: 'auto',
+    afterInit(this: Handsontable) {
+      this.getPlugin('nestedRows').collapsingUI.collapseChildren(8);
+    },
   };
 }
 /* end-file */
