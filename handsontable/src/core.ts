@@ -4216,11 +4216,16 @@ export default function Core(
   };
 
   /**
-   * Runs `wrappedOperations` with user-defined cell-meta recording suspended, so any `setCellMeta` /
-   * `setCellMetaObject` calls inside are treated as declarative writes - applied to the cell meta
-   * (and therefore retained while the cell is released from the viewport), but NOT carried across an
-   * `updateSettings` cache reset, exactly like the `cell` option. Used by built-in plugins that derive
-   * cell meta from their own configuration (for example ColumnSummary) and re-apply it on each update.
+   * Writes a configuration-derived cell meta value declaratively. The value is applied to the cell meta
+   * (so it is retained while the cell is released from the viewport by the meta eviction), but is NOT
+   * recorded as user-defined, so an `updateSettings` cache reset clears it and it is re-applied from the
+   * current configuration - exactly like the `cell` option. Used by built-in plugins that derive cell
+   * meta from their own configuration (for example ColumnSummary) and re-apply it on each update.
+   *
+   * Unlike the public `setCellMeta`, this does NOT fire `beforeSetCellMeta`/`afterSetCellMeta` and is
+   * not vetoable: the write is plugin-internal render state the user never requested, so it must not
+   * surface through public hooks or be blocked by a `beforeSetCellMeta` veto. This matches the direct
+   * meta-object write these plugins used before the viewport meta eviction was introduced.
    *
    * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it
    * is not exposed to third-party code or the published `.d.ts`. Built-in consumers reach it through a
@@ -4229,15 +4234,28 @@ export default function Core(
    *
    * @private
    * @memberof Core#
-   * @function _runWithDeclarativeCellMeta
-   * @param {Function} wrappedOperations The operations to run with recording suspended.
-   * @returns {*} The value returned by `wrappedOperations`.
+   * @function _setCellMetaDeclarative
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} key The property name to set.
+   * @param {*} value The value to write.
    */
-  this._runWithDeclarativeCellMeta = function<T>(wrappedOperations: () => T): T {
+  this._setCellMetaDeclarative = function(row: number, column: number, key: string, value: unknown) {
+    let physicalRow = row;
+    let physicalColumn = column;
+
+    if (row < instance.countRows()) {
+      physicalRow = instance.toPhysicalRow(row);
+    }
+
+    if (column < instance.countCols()) {
+      physicalColumn = instance.toPhysicalColumn(column);
+    }
+
     metaManager.disableUserDefinedMetaRecording();
 
     try {
-      return wrappedOperations();
+      metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
     } finally {
       metaManager.enableUserDefinedMetaRecording();
     }

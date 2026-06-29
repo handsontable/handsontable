@@ -5,14 +5,15 @@ import { roundFloat } from './utils';
 import type { ColumnSummary } from './columnSummary';
 
 /**
- * `HotInstance` augmented with the internal `_runWithDeclarativeCellMeta` method. The method exists on
- * the Core runtime object but is intentionally NOT part of the public `HotInstance` type, so it is not
+ * `HotInstance` augmented with the internal `_setCellMetaDeclarative` method. The method exists on the
+ * Core runtime object but is intentionally NOT part of the public `HotInstance` type, so it is not
  * exposed to third-party code (it is an implementation detail of how built-in plugins apply
  * configuration-derived cell meta that must survive the viewport meta eviction but reset on
- * `updateSettings`). ColumnSummary is an internal consumer and reaches it through this local type.
+ * `updateSettings`, without firing the public `setCellMeta` hooks). ColumnSummary is an internal
+ * consumer and reaches it through this local type.
  */
 type HotInstanceInternal = HotInstance & {
-  _runWithDeclarativeCellMeta<T>(wrappedOperations: () => T): T;
+  _setCellMetaDeclarative(row: number, column: number, key: string, value: unknown): void;
 };
 
 export interface EndpointConfig {
@@ -46,7 +47,7 @@ class Endpoints {
   declare plugin: ColumnSummary;
   /**
    * Handsontable instance. Typed as `HotInstanceInternal` so this internal consumer can call the
-   * non-public `_runWithDeclarativeCellMeta` method (see the type's note).
+   * non-public `_setCellMetaDeclarative` method (see the type's note).
    *
    * @type {object}
    */
@@ -93,7 +94,7 @@ class Endpoints {
    */
   constructor(plugin: ColumnSummary, settings: EndpointConfig[] | ((...args: unknown[]) => EndpointConfig[])) {
     this.plugin = plugin;
-    // `_runWithDeclarativeCellMeta` is defined on the Core runtime object but kept off the public
+    // `_setCellMetaDeclarative` is defined on the Core runtime object but kept off the public
     // `HotInstance` type; this internal plugin reaches it through the `HotInstanceInternal` view.
     this.hot = this.plugin.hot as HotInstanceInternal;
     this.settings = settings;
@@ -577,16 +578,16 @@ class Endpoints {
   refreshCellMetas() {
     // Declarative writes: kept on the cell meta (so they survive the viewport meta eviction) but not
     // recorded as user-defined, so an `updateSettings` cache reset clears them and they are re-applied
-    // for the current endpoints - matching the previous direct-write behavior.
-    this.hot._runWithDeclarativeCellMeta(() => {
-      this.endpoints.forEach((endpoint: EndpointConfig) => {
-        const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow!);
+    // for the current endpoints. `_setCellMetaDeclarative` does not fire `beforeSetCellMeta`/
+    // `afterSetCellMeta` and cannot be vetoed - matching the previous direct-write behavior.
+    this.endpoints.forEach((endpoint: EndpointConfig) => {
+      const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow!);
+      const destinationColumn = endpoint.destinationColumn!;
 
-        if (destinationVisualRow !== null) {
-          this.hot.setCellMeta(destinationVisualRow, endpoint.destinationColumn!, 'readOnly', endpoint.readOnly);
-          this.hot.setCellMeta(destinationVisualRow, endpoint.destinationColumn!, 'className', 'columnSummaryResult');
-        }
-      });
+      if (destinationVisualRow !== null) {
+        this.hot._setCellMetaDeclarative(destinationVisualRow, destinationColumn, 'readOnly', endpoint.readOnly);
+        this.hot._setCellMetaDeclarative(destinationVisualRow, destinationColumn, 'className', 'columnSummaryResult');
+      }
     });
   }
 
@@ -638,17 +639,14 @@ class Endpoints {
     const destinationVisualRow = this.hot.toVisualRow(endpoint.destinationRow!);
 
     if (destinationVisualRow !== null) {
-      const cellMeta = this.hot.getCellMeta(
-        destinationVisualRow,
-        endpoint.destinationColumn!
-      );
+      const destinationColumn = endpoint.destinationColumn!;
+      const cellMeta = this.hot.getCellMeta(destinationVisualRow, destinationColumn);
 
       if (source === 'init' || cellMeta.readOnly !== endpoint.readOnly) {
-        // Declarative writes (see `refreshCellMetas`) so the styling survives viewport meta eviction.
-        this.hot._runWithDeclarativeCellMeta(() => {
-          this.hot.setCellMeta(destinationVisualRow, endpoint.destinationColumn!, 'readOnly', endpoint.readOnly);
-          this.hot.setCellMeta(destinationVisualRow, endpoint.destinationColumn!, 'className', 'columnSummaryResult');
-        });
+        // Declarative writes (see `refreshCellMetas`) so the styling survives viewport meta eviction
+        // without firing the public `setCellMeta` hooks or being vetoable.
+        this.hot._setCellMetaDeclarative(destinationVisualRow, destinationColumn, 'readOnly', endpoint.readOnly);
+        this.hot._setCellMetaDeclarative(destinationVisualRow, destinationColumn, 'className', 'columnSummaryResult');
       }
     }
 
