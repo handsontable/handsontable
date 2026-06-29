@@ -1785,9 +1785,6 @@ export class MergeCells extends BasePlugin {
 
     this.mergedCellsCollection.translateAfterAxisMove('column', snapshot);
     this.#captureMergeAnchors();
-    // `translateAfterAxisMove` rebuilt the matrix from every merge; re-anchor to drop the stale
-    // footprint of any merge that is still fully hidden by trimming.
-    this.#reanchorMergesToVisibleRows();
     this.hot.render();
   };
 
@@ -1834,9 +1831,6 @@ export class MergeCells extends BasePlugin {
 
     this.mergedCellsCollection.translateAfterAxisMove('row', snapshot);
     this.#captureMergeAnchors();
-    // `translateAfterAxisMove` rebuilt the matrix from every merge; re-anchor to drop the stale
-    // footprint of any merge that is still fully hidden by trimming.
-    this.#reanchorMergesToVisibleRows();
     this.hot.render();
   };
 
@@ -1875,9 +1869,6 @@ export class MergeCells extends BasePlugin {
 
     this.mergedCellsCollection.translateAfterAxisMove('column', snapshot);
     this.#captureMergeAnchors();
-    // `translateAfterAxisMove` rebuilt the matrix from every merge; re-anchor to drop the stale
-    // footprint of any merge that is still fully hidden by trimming.
-    this.#reanchorMergesToVisibleRows();
     this.hot.render();
   };
 
