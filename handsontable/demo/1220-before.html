@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1220 — Before: Static data (no server-side integration)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn {
+      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
+      border: 1px solid #ccc;
+    }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-before { background: #fce4ec; color: #b71c1c; }
+    .badge-after { background: #e8f5e9; color: #2e7d32; }
+    .info { background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
+    .info strong { color: #856404; }
+    .problems { background: #ffebee; border: 1px solid #ef9a9a; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
+    .problems strong { color: #c62828; }
+    .problems ul { margin-left: 16px; margin-top: 6px; }
+    .problems li { margin-bottom: 4px; }
+    .stat { display: inline-block; background: #e3f2fd; border: 1px solid #90caf9; border-radius: 4px; padding: 4px 10px; font-size: 13px; margin-bottom: 12px; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1220: DataProvider Plugin — Before (Static Data)</h1>
+
+  <nav>
+    <span class="nav-label">View:</span>
+    <span class="nav-btn active">Before <span class="badge badge-before">static data</span></span>
+    <a class="nav-btn" href="1220-after.html">After <span class="badge badge-after">dataProvider</span></a>
+  </nav>
+
+  <div class="info">
+    <strong>Scenario:</strong> Product inventory grid with 500 rows — all data loaded at once in the browser.<br>
+    Pagination, sorting, and filtering are handled entirely in the frontend.<br>
+    All 500 rows are in memory and in the DOM regardless of how many are visible.
+  </div>
+
+  <div class="problems">
+    <strong>Problems with this approach:</strong>
+    <ul>
+      <li>All 500 rows transferred over the network on every page load</li>
+      <li>Sorting triggers a full client-side re-sort of all data</li>
+      <li>No server validation — invalid data can be saved locally then fail on backend</li>
+      <li>Create/Update/Delete require custom fetch logic wired up manually per-project</li>
+      <li>No loading state or error recovery — if the network fails, the grid silently shows stale data</li>
+    </ul>
+  </div>
+
+  <div class="stat" id="stats">Loading 500 rows...</div>
+
+  <div id="hot-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script>
+    // Generate 500 static product rows — all data in memory
+    const STATUSES = ['In Stock', 'Low Stock', 'Out of Stock', 'Discontinued'];
+    const CATEGORIES = ['Electronics', 'Clothing', 'Food', 'Tools', 'Books', 'Toys'];
+
+    function generateData(count) {
+      const rows = [];
+      for (let i = 1; i <= count; i++) {
+        rows.push({
+          id: i,
+          name: `Product ${i}`,
+          category: CATEGORIES[i % CATEGORIES.length],
+          price: parseFloat((Math.random() * 500 + 5).toFixed(2)),
+          stock: Math.floor(Math.random() * 200),
+          status: STATUSES[i % STATUSES.length],
+        });
+      }
+      return rows;
+    }
+
+    const ALL_DATA = generateData(500);
+
+    document.getElementById('stats').textContent =
+      `${ALL_DATA.length} rows loaded into memory (all at once — no pagination)`;
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: ALL_DATA,
+      columns: [
+        { data: 'id', title: 'ID', width: 60, readOnly: true },
+        { data: 'name', title: 'Name', width: 150 },
+        { data: 'category', title: 'Category', width: 120, type: 'dropdown', source: CATEGORIES },
+        { data: 'price', title: 'Price ($)', width: 100, type: 'numeric', numericFormat: { pattern: '0.00' } },
+        { data: 'stock', title: 'Stock', width: 80, type: 'numeric' },
+        { data: 'status', title: 'Status', width: 120, type: 'dropdown', source: STATUSES },
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 460,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      // Client-side sorting — sorts ALL 500 rows in the browser
+      columnSorting: true,
+      // Client-side filtering — filters ALL 500 rows in the browser
+      filters: true,
+      dropdownMenu: ['filter_by_condition', 'filter_by_value', 'filter_action_bar'],
+      // Pagination plugin — slices the already-loaded data
+      pagination: {
+        pageSize: 25,
+      },
+      // afterChange: users must wire up their own CRUD API calls here
+      afterChange(changes, source) {
+        if (source === 'edit' && changes) {
+          // TODO: manually POST/PATCH to backend
+          console.log('Changes made (not sent to server):', changes);
+        }
+      },
+    });
+  </script>
+</body>
+</html>

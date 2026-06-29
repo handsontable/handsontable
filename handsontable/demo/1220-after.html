@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-1220 — After: DataProvider plugin (server-side integration)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn {
+      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
+      border: 1px solid #ccc;
+    }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-before { background: #fce4ec; color: #b71c1c; }
+    .badge-after { background: #e8f5e9; color: #2e7d32; }
+    .info { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
+    .info strong { color: #1b5e20; }
+    .benefits { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
+    .benefits strong { color: #1b5e20; }
+    .benefits ul { margin-left: 16px; margin-top: 6px; }
+    .benefits li { margin-bottom: 4px; }
+    #log { background: #1e1e1e; color: #d4d4d4; font-family: monospace; font-size: 12px; padding: 10px 14px; border-radius: 6px; margin-top: 14px; height: 110px; overflow-y: auto; white-space: pre-wrap; }
+    #log .ts { color: #808080; }
+    #log .req { color: #4fc1ff; }
+    #log .ok { color: #4ec9b0; }
+    #log .err { color: #f48771; }
+    #log .mut { color: #dcdcaa; }
+  </style>
+</head>
+<body>
+  <h1>DEV-1220: DataProvider Plugin — After (Server-Side Integration)</h1>
+
+  <nav>
+    <span class="nav-label">View:</span>
+    <a class="nav-btn" href="1220-before.html">Before <span class="badge badge-before">static data</span></a>
+    <span class="nav-btn active">After <span class="badge badge-after">dataProvider</span></span>
+  </nav>
+
+  <div class="info">
+    <strong>Scenario:</strong> Same 500-row product inventory — but now only the current page (25 rows) is
+    fetched from the "backend" on every page change, sort, or filter.<br>
+    The <code>dataProvider</code> plugin wires up pagination, sorting, filtering, and CRUD automatically.
+  </div>
+
+  <div class="benefits">
+    <strong>What the dataProvider plugin provides:</strong>
+    <ul>
+      <li>fetchRows called with <code>{ page, pageSize, sort, filters }</code> — only current page transferred</li>
+      <li>Server-side sorting and filtering — backend decides the order</li>
+      <li>onRowsCreate / onRowsUpdate / onRowsRemove — CRUD sent to backend automatically</li>
+      <li>Built-in loading overlay (via <code>dialog: true</code>) and error toasts (via <code>notification: true</code>)</li>
+      <li>Refetch button in error toast retries the last failed request automatically</li>
+    </ul>
+  </div>
+
+  <div id="hot-container"></div>
+
+  <div id="log"><span class="ts">[init]</span> DataProvider demo ready. Interact with the grid to see API calls below...</div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script>
+    // ─── Mock "backend" database ───────────────────────────────────────────────
+    const STATUSES = ['In Stock', 'Low Stock', 'Out of Stock', 'Discontinued'];
+    const CATEGORIES = ['Electronics', 'Clothing', 'Food', 'Tools', 'Books', 'Toys'];
+
+    const DB = [];
+    for (let i = 1; i <= 500; i++) {
+      DB.push({
+        id: i,
+        name: `Product ${i}`,
+        category: CATEGORIES[i % CATEGORIES.length],
+        price: parseFloat((((i * 137) % 500) + 5).toFixed(2)),
+        stock: (i * 31) % 200,
+        status: STATUSES[i % STATUSES.length],
+      });
+    }
+
+    function addLog(cls, msg) {
+      const el = document.getElementById('log');
+      const now = new Date().toLocaleTimeString();
+      el.innerHTML += `\n<span class="ts">[${now}]</span> <span class="${cls}">${msg}</span>`;
+      el.scrollTop = el.scrollHeight;
+    }
+
+    // Simulate network latency
+    function mockDelay() {
+      return new Promise(r => setTimeout(r, 80 + Math.random() * 120));
+    }
+
+    // ─── Mock fetchRows ─────────────────────────────────────────────────────────
+    async function fetchRows({ page, pageSize, sort, filters }) {
+      addLog('req', `→ GET /api/products?page=${page}&pageSize=${pageSize}` +
+        (sort ? `&sort=${sort.prop}:${sort.order}` : '') +
+        (filters && filters.length ? `&filters=${filters.length} column(s)` : ''));
+
+      await mockDelay();
+
+      let rows = [...DB];
+
+      // Apply server-side filters
+      if (filters && filters.length > 0) {
+        filters.forEach(col => {
+          col.conditions.forEach(cond => {
+            if (cond.name === 'contains') {
+              const needle = String(cond.args[0]).toLowerCase();
+              rows = rows.filter(r => String(r[col.prop]).toLowerCase().includes(needle));
+            } else if (cond.name === 'begins_with') {
+              const needle = String(cond.args[0]).toLowerCase();
+              rows = rows.filter(r => String(r[col.prop]).toLowerCase().startsWith(needle));
+            } else if (cond.name === 'eq') {
+              rows = rows.filter(r => String(r[col.prop]) === String(cond.args[0]));
+            } else if (cond.name === 'gt') {
+              rows = rows.filter(r => Number(r[col.prop]) > Number(cond.args[0]));
+            } else if (cond.name === 'lt') {
+              rows = rows.filter(r => Number(r[col.prop]) < Number(cond.args[0]));
+            }
+          });
+        });
+      }
+
+      // Apply server-side sort
+      if (sort) {
+        rows.sort((a, b) => {
+          const va = a[sort.prop], vb = b[sort.prop];
+          if (typeof va === 'number') return sort.order === 'asc' ? va - vb : vb - va;
+          return sort.order === 'asc'
+            ? String(va).localeCompare(String(vb))
+            : String(vb).localeCompare(String(va));
+        });
+      }
+
+      const totalRows = rows.length;
+      const start = (page - 1) * pageSize;
+      const pageRows = rows.slice(start, start + pageSize);
+
+      addLog('ok', `← 200 OK — page ${page}/${Math.ceil(totalRows / pageSize)}, returned ${pageRows.length} rows (${totalRows} total after filters)`);
+
+      return { rows: pageRows, totalRows };
+    }
+
+    // ─── Mock CRUD callbacks ────────────────────────────────────────────────────
+    async function onRowsCreate(rows) {
+      await mockDelay();
+      const created = rows.map(row => {
+        const newId = DB.length + 1;
+        const newRow = { ...row, id: newId };
+        DB.push(newRow);
+        addLog('mut', `← 201 Created — id=${newId} "${newRow.name}"`);
+        return newRow;
+      });
+      return created;
+    }
+
+    async function onRowsUpdate(rows) {
+      await mockDelay();
+      rows.forEach(row => {
+        const idx = DB.findIndex(r => r.id === row.id);
+        if (idx !== -1) {
+          Object.assign(DB[idx], row);
+          addLog('mut', `← 200 Updated — id=${row.id}`);
+        }
+      });
+    }
+
+    async function onRowsRemove(rows) {
+      await mockDelay();
+      rows.forEach(row => {
+        const idx = DB.findIndex(r => r.id === row.id);
+        if (idx !== -1) {
+          DB.splice(idx, 1);
+          addLog('mut', `← 200 Deleted — id=${row.id}`);
+        }
+      });
+    }
+
+    // ─── Handsontable with dataProvider ─────────────────────────────────────────
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      columns: [
+        { data: 'id', title: 'ID', width: 60, readOnly: true },
+        { data: 'name', title: 'Name', width: 150 },
+        { data: 'category', title: 'Category', width: 120, type: 'dropdown', source: CATEGORIES },
+        { data: 'price', title: 'Price ($)', width: 100, type: 'numeric', numericFormat: { pattern: '0.00' } },
+        { data: 'stock', title: 'Stock', width: 80, type: 'numeric' },
+        { data: 'status', title: 'Status', width: 120, type: 'dropdown', source: STATUSES },
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 460,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+
+      // ── DataProvider plugin configuration ──────────────────────────────
+      dataProvider: {
+        rowId: 'id',
+        fetchRows,
+        onRowsCreate,
+        onRowsUpdate,
+        onRowsRemove,
+      },
+
+      // Server-side sorting — sort descriptor sent to fetchRows
+      columnSorting: true,
+
+      // Server-side filtering — filter payload sent to fetchRows
+      filters: true,
+      dropdownMenu: ['filter_by_condition', 'filter_action_bar'],
+
+      // Pagination — only current page is fetched from "backend"
+      pagination: {
+        pageSize: 25,
+      },
+
+      // Loading overlay shown while fetchRows is in-flight
+      dialog: true,
+
+      // Error toast with Refetch button on network failures
+      notification: true,
+
+      // Allow adding/removing rows (CRUD demo)
+      contextMenu: ['row_above', 'row_below', 'remove_row'],
+      minSpareRows: 0,
+    });
+
+    addLog('ok', 'Grid initialized — fetching page 1...');
+  </script>
+</body>
+</html>
