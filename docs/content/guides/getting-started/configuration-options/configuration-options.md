@@ -193,6 +193,12 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
 
 For more details on Handsontable's cascading configuration, see the [MetaManager class](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/index.js).
 
+To read configuration at runtime, use the method that matches the level you need:
+
+- [`getSettings()`](@/api/core.md#getsettings) returns global grid settings only.
+- [`getColumnMeta()`](@/api/core.md#getcolumnmeta) returns column-level meta for a given column.
+- [`getCellMeta()`](@/api/core.md#getcellmeta) returns the effective merged meta for a given cell.
+
 ### Plugin options
 
 Configuration options come from:

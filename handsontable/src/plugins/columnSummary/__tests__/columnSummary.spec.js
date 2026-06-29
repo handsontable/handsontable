@@ -1402,4 +1402,74 @@ describe('ColumnSummarySpec', () => {
       expect(getDataAtCell(2, 2)).toBe(19);
     });
   });
+
+  describe('result cell meta (declarative styling)', () => {
+    it('should apply the result styling without firing the `beforeSetCellMeta`/`afterSetCellMeta` hooks', async() => {
+      const beforeSetCellMeta = jasmine.createSpy('beforeSetCellMeta');
+      const afterSetCellMeta = jasmine.createSpy('afterSetCellMeta');
+
+      handsontable({
+        data: [[1], [2], [3], [null]],
+        columns: [{ type: 'numeric' }],
+        columnSummary: [{
+          destinationRow: 3,
+          destinationColumn: 0,
+          type: 'sum',
+          forceNumeric: true,
+        }],
+        beforeSetCellMeta,
+        afterSetCellMeta,
+      });
+
+      // The result styling is plugin-internal render state - it is written declaratively and must not
+      // surface through the public cell-meta hooks.
+      expect(getCellMeta(3, 0).className).toBe('columnSummaryResult');
+      expect(getCellMeta(3, 0).readOnly).toBe(true);
+      expect(beforeSetCellMeta).not.toHaveBeenCalled();
+      expect(afterSetCellMeta).not.toHaveBeenCalled();
+    });
+
+    it('should apply the result styling even when `beforeSetCellMeta` vetoes every cell-meta write', async() => {
+      handsontable({
+        data: [[1], [2], [3], [null]],
+        columns: [{ type: 'numeric' }],
+        columnSummary: [{
+          destinationRow: 3,
+          destinationColumn: 0,
+          type: 'sum',
+          forceNumeric: true,
+        }],
+        beforeSetCellMeta: () => false,
+      });
+
+      // A `beforeSetCellMeta` veto blocks user-facing `setCellMeta` calls, but it must not block the
+      // plugin's own declarative result styling.
+      expect(getCellMeta(3, 0).className).toBe('columnSummaryResult');
+      expect(getCellMeta(3, 0).readOnly).toBe(true);
+    });
+
+    it('should re-apply the result styling after `updateSettings` without firing the cell-meta hooks', async() => {
+      const afterSetCellMeta = jasmine.createSpy('afterSetCellMeta');
+
+      handsontable({
+        data: [[1], [2], [3], [null]],
+        columns: [{ type: 'numeric' }],
+        columnSummary: [{
+          destinationRow: 3,
+          destinationColumn: 0,
+          type: 'sum',
+          forceNumeric: true,
+        }],
+        afterSetCellMeta,
+      });
+
+      await updateSettings({ columns: [{ type: 'numeric' }] });
+
+      // The result styling is reapplied after the `updateSettings` cache reset (the numeric cell type
+      // merges its own classes alongside it), and still without firing the public cell-meta hooks.
+      expect(getCellMeta(3, 0).className).toContain('columnSummaryResult');
+      expect(getCellMeta(3, 0).readOnly).toBe(true);
+      expect(afterSetCellMeta).not.toHaveBeenCalled();
+    });
+  });
 });

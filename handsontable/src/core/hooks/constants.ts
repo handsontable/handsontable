@@ -2866,6 +2866,10 @@ export const REGISTERED_HOOKS = [
    *
    * This hook gets also fired on Handsontable's initialization, returning the addresses and values of all cells.
    *
+   * The `row` and `col` of each address are HyperFormula engine indexes, not Handsontable visual indexes.
+   * They match Handsontable's physical and visual indexes only when no rows or columns are moved, trimmed, or hidden.
+   * Once you reorder, trim, or hide rows or columns, the engine indexes diverge from the visual ones.
+   *
    * Read more:
    * - [Guides: Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
    * - [HyperFormula documentation: `valuesUpdated`](https://hyperformula.handsontable.com/api/interfaces/listeners.html#valuesupdated)

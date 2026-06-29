@@ -463,4 +463,62 @@ describe('LazyFactoryMap', () => {
       expect(Array.from(map)).toEqual([[10, 5], [11, 5.5]]);
     });
   });
+
+  describe('evict()', () => {
+    it('should release the value but keep the index slot, re-creating it lazily on next obtain', () => {
+      const spyValueFactory = jest.fn(key => ({ i: key }));
+      const map = createLazyFactoryMap(spyValueFactory);
+
+      map.obtain(3);
+      map.obtain(10);
+
+      expect(spyValueFactory).toHaveBeenCalledTimes(2);
+
+      map.evict(3);
+
+      // The index mapping is preserved (no "hole" is created, surrounding keys do not shift).
+      expect(map.index).toEqual([,,, 0,,,,,,, 1]); // eslint-disable-line no-sparse-arrays
+      expect(Array.from(map.holes)).toEqual([]);
+
+      // The next obtain re-creates the value through the factory.
+      expect(map.obtain(3)).toEqual({ i: 3 });
+      expect(spyValueFactory).toHaveBeenCalledTimes(3);
+    });
+
+    it('should not call the factory again for a key that was not evicted', () => {
+      const spyValueFactory = jest.fn(key => ({ i: key }));
+      const map = createLazyFactoryMap(spyValueFactory);
+
+      map.obtain(3);
+      map.obtain(10);
+      map.evict(3);
+
+      map.obtain(10);
+
+      expect(spyValueFactory).toHaveBeenCalledTimes(2);
+    });
+
+    it('should be a no-op for a key with no materialized value', () => {
+      const spyValueFactory = jest.fn(key => ({ i: key }));
+      const map = createLazyFactoryMap(spyValueFactory);
+
+      map.obtain(3);
+
+      expect(() => map.evict(99)).not.toThrow();
+      expect(map.data).toEqual([{ i: 3 }]);
+    });
+
+    it('should skip the evicted value when iterating values/entries', () => {
+      const map = createLazyFactoryMap();
+
+      map.obtain(0);
+      map.obtain(1);
+      map.obtain(2);
+
+      map.evict(1);
+
+      expect(Array.from(map.values())).toEqual([{ i: 0 }, { i: 2 }]);
+      expect(Array.from(map)).toEqual([[0, { i: 0 }], [2, { i: 2 }]]);
+    });
+  });
 });

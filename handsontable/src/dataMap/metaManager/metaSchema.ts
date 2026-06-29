@@ -144,6 +144,18 @@ export default (): Record<string, unknown> => {
     _userDefinedMetaProps: undefined,
 
     /**
+     * Information on which cell meta properties were set through `setCellMeta` - both imperatively
+     * (user, context menu) and declaratively (the `cell` option). Unlike values derived on demand by
+     * `getCellMeta` (the cascade, the `cells` function, `type` expansion), these are not rebuilt on
+     * access, so the viewport-eviction pass keeps any cell whose set is non-empty.
+     *
+     * @private
+     * @type {Set}
+     * @default undefined
+     */
+    _persistedMetaProps: undefined,
+
+    /**
      * The `activeHeaderClassName` option lets you add a CSS class name
      * to every currently-active, currently-selected header (when a whole column or row is selected).
      *
