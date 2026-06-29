@@ -696,14 +696,21 @@ class MergedCellsCollection {
   }
 
   /**
-   * Rebuilds the whole coords->merge lookup matrix from the current merged cells. Used after the
-   * visual coordinates of merges are mutated in place (e.g. re-anchoring to the visible rows on a
-   * trimming change), so `get()` keeps resolving to the right merge.
+   * Relocates a batch of merges in the coords->merge lookup matrix, applying each merge's new visual
+   * top-left. Used after re-anchoring to the visible rows on a trimming/sort change. Incremental
+   * alternative to a full rebuild — only the cells of the affected merges are touched. Runs in two
+   * phases (remove all, then re-add all) so merges that swap visual positions don't clobber each
+   * other's freshly written entries.
+   *
+   * @param {Array<{ mergedCell: MergedCellCoords, row: number, col: number }>} relocations The merges
+   * to move together with their new top-left visual `row`/`col`.
    */
-  rebuildMatrix() {
-    this.mergedCellsMatrix.clear();
+  relocateInMatrix(relocations: { mergedCell: MergedCellCoords, row: number, col: number }[]) {
+    relocations.forEach(({ mergedCell }) => this.#removeMergedCellFromMatrix(mergedCell));
 
-    this.mergedCells.forEach((mergedCell) => {
+    relocations.forEach(({ mergedCell, row, col }) => {
+      mergedCell.row = row;
+      mergedCell.col = col;
       this.#addMergedCellToMatrix(mergedCell);
     });
   }

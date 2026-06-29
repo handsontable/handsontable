@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "public",
-  "title": "Fixed merged cells breaking after filtering — a merge whose rows get reordered by a filter (or `trimRows`/`nestedRows`) is now re-anchored onto the visible rows and kept whole, instead of rendering in the wrong place or splitting.",
+  "title": "Fixed merged cells breaking after filtering, `trimRows`/`nestedRows` collapse, or sorting — merges now stay whole and follow the visible rows.",
   "type": "fixed",
   "issueOrPR": 12792,
   "breaking": false,

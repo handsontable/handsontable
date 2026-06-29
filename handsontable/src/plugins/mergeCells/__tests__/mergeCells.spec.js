@@ -2251,5 +2251,95 @@ describe('MergeCells', () => {
 
       expect(merges()).toEqual([{ row: 0, col: 0, rowspan: 3, colspan: 2 }]);
     });
+
+    it('should re-anchor a merge to follow its physical rows after sorting', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        columnSorting: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }], // physical rows 2,3,4
+      });
+      const mc = getPlugin('mergeCells');
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      await render();
+
+      // the anchor follows physical row 2 (A3) to its new visual position; the span stays whole
+      expect(merges()).toEqual([{ row: mc.hot.toVisualRow(2), col: 2, rowspan: 3, colspan: 3 }]);
+      // sanity: the sort actually moved that physical row away from visual row 2
+      expect(mc.hot.toVisualRow(2)).not.toBe(2);
+    });
+
+    it('should not corrupt the merge anchor when a column is inserted while a filter is active', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }],
+      });
+      const filters = getPlugin('filters');
+
+      filters.addCondition(0, 'by_value', [['A3', 'A4', 'A5']]);
+      filters.filter();
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 0, col: 2, rowspan: 3, colspan: 3 }]); // re-anchored up
+
+      await alter('insert_col_start', 0, 1); // structural edit performed mid-filter
+
+      // merge shifts one column right; the trim-derived row anchor is preserved, not re-derived
+      expect(merges()).toEqual([{ row: 0, col: 3, rowspan: 3, colspan: 3 }]);
+
+      filters.clearConditions();
+      filters.filter();
+
+      await render();
+
+      // clearing the filter restores the original physical row; the inserted column is reflected
+      expect(merges()).toEqual([{ row: 2, col: 3, rowspan: 3, colspan: 3 }]);
+    });
+
+    it('should leave the merge untouched when hiddenRows hides rows above it', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        hiddenRows: { rows: [0, 1] },
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }],
+      });
+
+      // hiding keeps the visual row space intact, so the merge coords stay as-is
+      expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 3, colspan: 3 }]);
+
+      getPlugin('hiddenRows').showRows([0, 1]);
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 3, colspan: 3 }]);
+    });
+
+    it('should follow the visible rows down when a filter hides the merge\'s own anchor row', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }], // C3:E5, physical rows 2,3,4
+      });
+      const filters = getPlugin('filters');
+
+      // keep only A4,A5 (physical 3,4) — hides A3 (physical 2), the merge's own anchor row
+      filters.addCondition(0, 'by_value', [['A4', 'A5']]);
+      filters.filter();
+
+      await render();
+
+      // anchor row gone -> re-anchored to the topmost still-visible row of the span (physical 3 -> visual 0)
+      expect(merges()).toEqual([{ row: 0, col: 2, rowspan: 3, colspan: 3 }]);
+
+      filters.clearConditions();
+      filters.filter();
+
+      await render();
+
+      // clearing the filter brings the original anchor row back
+      expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 3, colspan: 3 }]);
+    });
   });
 });

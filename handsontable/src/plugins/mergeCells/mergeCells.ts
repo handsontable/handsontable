@@ -260,6 +260,7 @@ export class MergeCells extends BasePlugin {
     });
 
     this.addHook('afterMergeCells', this.#onAfterMergeCellsCapture);
+    this.addHook('afterColumnSort', this.#onAfterColumnSort);
 
     this.registerShortcuts();
 
@@ -280,6 +281,15 @@ export class MergeCells extends BasePlugin {
     this.hot.render();
     this.#initialized = false;
     super.disablePlugin();
+  }
+
+  /**
+   * Destroys the plugin instance. Removes the row index mapper local hook explicitly, because
+   * `BasePlugin#destroy` only clears `addHook`-managed hooks, not raw `addLocalHook` registrations.
+   */
+  destroy() {
+    this.hot?.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexCacheUpdated);
+    super.destroy();
   }
 
   /**
@@ -708,39 +718,72 @@ export class MergeCells extends BasePlugin {
   };
 
   /**
-   * Row index mapper `cacheUpdated` callback. On a pure row-trimming change (Filters / `trimRows` /
-   * `nestedRows` collapse, i.e. no index-sequence change), re-anchors each merge onto the rows that
-   * remain visible, so trimming rows above a merge no longer leaves its anchor behind. Moves, sorts,
-   * inserts and removals carry an index-sequence change and are handled by their dedicated hooks, so
-   * they are skipped here.
+   * Row index mapper `cacheUpdated` callback. On a pure visibility change (Filters / `trimRows` /
+   * `nestedRows` collapse / `hiddenRows`, i.e. no index-sequence change), re-anchors each merge onto
+   * the rows that remain visible, so trimming rows above a merge no longer leaves its anchor behind.
+   * Moves and sorts carry an index-sequence change and are handled by their dedicated hooks
+   * (`afterRowMove` / `afterColumnSort`), so they are skipped here.
    *
-   * @param {{ trimmedIndexesChanged: boolean, indexesSequenceChanged: boolean }} changes Cache flags.
+   * @param {{ trimmedIndexesChanged: boolean, hiddenIndexesChanged: boolean, indexesSequenceChanged:
+   *   boolean }} changes Cache flags.
    */
   #onRowIndexCacheUpdated = (
-    { trimmedIndexesChanged, indexesSequenceChanged }:
-    { trimmedIndexesChanged: boolean, indexesSequenceChanged: boolean }
+    { trimmedIndexesChanged, hiddenIndexesChanged, indexesSequenceChanged }:
+    { trimmedIndexesChanged: boolean, hiddenIndexesChanged: boolean, indexesSequenceChanged: boolean }
   ) => {
-    // `this.hot` is dropped on destroy, but this local hook outlives the plugin (it is not managed
-    // by `addHook`), so the row index map's final `updateCache` can still reach us.
+    // The hook is removed in `disablePlugin`/`destroy`, but keep a defensive guard in case a final
+    // `updateCache` still reaches us after `this.hot` has been dropped.
     if (!this.hot || !this.#initialized) {
       return;
     }
 
-    if (trimmedIndexesChanged && !indexesSequenceChanged) {
+    if ((trimmedIndexesChanged || hiddenIndexesChanged) && !indexesSequenceChanged) {
       this.#reanchorMergesToVisibleRows();
     }
   };
 
   /**
-   * Captures the physical top-left of a single merge from its current (authoritative) visual coords.
+   * `afterColumnSort` callback. Sorting reorders the visual row sequence without trimming, so each
+   * merge must follow its physical anchor to that row's new visual position. Runs before the sort's
+   * own render. Skipped when the sort was a no-op.
+   *
+   * @param {Array} _currentSortConfig Previous sort config (unused).
+   * @param {Array} _destinationSortConfig New sort config (unused).
+   * @param {boolean} sortPossible Whether the sort was actually applied.
+   */
+  #onAfterColumnSort = (_currentSortConfig: unknown, _destinationSortConfig: unknown, sortPossible: boolean) => {
+    if (!this.hot || !this.#initialized || !sortPossible) {
+      return;
+    }
+
+    this.#reanchorMergesToVisibleRows();
+  };
+
+  /**
+   * Captures the physical top-left of a single merge from its current visual coords. While row
+   * trimming is active the merge's visual `row` may be a re-anchored, derived value (set by
+   * {@link MergeCells#reanchorMergesToVisibleRows}), so re-deriving the physical row from it would
+   * corrupt the authoritative anchor captured earlier — the previously stored `physicalRow` is kept
+   * instead. The column is never distorted by row trimming, so it is always refreshed (covering
+   * column insert/remove performed while a filter is active). A merge with no anchor yet (e.g. created
+   * during an active filter) is captured best-effort from its current, visible position.
    *
    * @param {MergedCellCoords} merge The merge to capture.
+   * @param {boolean} [trimmingActive] Whether row trimming is currently active (computed if omitted).
    */
-  #captureAnchorOf(merge: MergedCellCoords) {
-    const physicalRow = this.hot.toPhysicalRow(merge.row);
+  #captureAnchorOf(merge: MergedCellCoords, trimmingActive: boolean = this.#isRowTrimmingActive()) {
     const physicalColumn = this.hot.toPhysicalColumn(merge.col);
 
-    if (physicalRow !== null && physicalColumn !== null) {
+    if (physicalColumn === null) {
+      return;
+    }
+
+    const existing = this.#mergeAnchors.get(merge);
+    const physicalRow = (trimmingActive && existing)
+      ? existing.physicalRow
+      : this.hot.toPhysicalRow(merge.row);
+
+    if (physicalRow !== null) {
       this.#mergeAnchors.set(merge, { physicalRow, physicalColumn });
     }
   }
@@ -749,41 +792,76 @@ export class MergeCells extends BasePlugin {
    * Captures the physical top-left of every merge (after a bulk (re)generation).
    */
   #captureMergeAnchors() {
-    this.mergedCellsCollection.mergedCells.forEach(merge => this.#captureAnchorOf(merge));
+    const trimmingActive = this.#isRowTrimmingActive();
+
+    this.mergedCellsCollection.mergedCells.forEach(merge => this.#captureAnchorOf(merge, trimmingActive));
+  }
+
+  /**
+   * Whether any row is currently trimmed (Filters / `trimRows` / `nestedRows`). Trimming compresses
+   * the visual row space, so while it is active a merge's visual `row` may be a re-anchored, derived
+   * value rather than an authoritative one.
+   *
+   * @returns {boolean}
+   */
+  #isRowTrimmingActive(): boolean {
+    const { rowIndexMapper } = this.hot;
+
+    return rowIndexMapper.getNotTrimmedIndexesLength() < rowIndexMapper.getNumberOfIndexes();
   }
 
   /**
    * Re-anchors every merge's visual `row`/`col` to the visual position of its captured physical
    * top-left, keeping `rowspan`/`colspan`. The render translation then spans the merge over the
-   * visible rows from there. Merges with no captured anchor, or whose anchor row/column is itself
-   * hidden, are left untouched.
+   * visible rows from there. When the anchor's own physical row is hidden, the merge falls back to the
+   * topmost still-visible physical row within its span, so it follows the visible rows down instead of
+   * being left behind on a hidden row. Merges with no captured anchor, a hidden anchor column, or a
+   * fully hidden row span are left untouched.
    */
   #reanchorMergesToVisibleRows() {
-    let changed = false;
+    const { mergedCells } = this.mergedCellsCollection;
 
-    this.mergedCellsCollection.mergedCells.forEach((merge) => {
+    // `cacheUpdated` fires on every filter/trim toggle, so bail out cheaply when there is nothing to
+    // re-anchor.
+    if (mergedCells.length === 0) {
+      return;
+    }
+
+    const relocations: { mergedCell: MergedCellCoords, row: number, col: number }[] = [];
+
+    mergedCells.forEach((merge) => {
       const anchor = this.#mergeAnchors.get(merge);
 
       if (!anchor) {
         return;
       }
 
-      const visualRow = this.hot.toVisualRow(anchor.physicalRow);
       const visualColumn = this.hot.toVisualColumn(anchor.physicalColumn);
 
-      if (visualRow === null || visualColumn === null) {
+      if (visualColumn === null) {
+        return;
+      }
+
+      let visualRow = this.hot.toVisualRow(anchor.physicalRow);
+
+      // Anchor row hidden: re-anchor to the first still-visible physical row inside the span (the span
+      // covers physical rows `[physicalRow, physicalRow + rowspan)` since anchors are captured while
+      // the merge is fully visible).
+      for (let offset = 1; visualRow === null && offset < merge.rowspan; offset++) {
+        visualRow = this.hot.toVisualRow(anchor.physicalRow + offset);
+      }
+
+      if (visualRow === null) {
         return;
       }
 
       if (merge.row !== visualRow || merge.col !== visualColumn) {
-        merge.row = visualRow;
-        merge.col = visualColumn;
-        changed = true;
+        relocations.push({ mergedCell: merge, row: visualRow, col: visualColumn });
       }
     });
 
-    if (changed) {
-      this.mergedCellsCollection.rebuildMatrix();
+    if (relocations.length > 0) {
+      this.mergedCellsCollection.relocateInMatrix(relocations);
     }
   }
 
