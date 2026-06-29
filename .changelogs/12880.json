@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the performance of sorting, filtering, and row/column hiding on large datasets by speeding up internal index translation.",
+  "type": "changed",
+  "issueOrPR": 12880,
+  "breaking": false,
+  "framework": "none"
+}
