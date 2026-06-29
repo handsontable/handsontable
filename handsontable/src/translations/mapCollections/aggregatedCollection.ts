@@ -43,12 +43,12 @@ export class AggregatedCollection extends MapCollection {
    * @param {boolean} [readFromCache=true] Determine if read results from the cache.
    * @returns {Array}
    */
-  getMergedValues(readFromCache = true) {
+  getMergedValues(readFromCache = true): unknown[] {
     if (readFromCache === true) {
       return this.mergedValuesCache;
     }
 
-    const maps = this.get() as { getValues(): unknown[] }[];
+    const maps = this.get();
     const numberOfMaps = maps.length;
 
     if (numberOfMaps === 0) {

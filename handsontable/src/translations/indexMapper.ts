@@ -582,7 +582,7 @@ export class IndexMapper {
     // Read the merged trimming cache directly instead of calling `isTrimmed()` per element (which
     // resolves through getMergedValueAtIndex → getMergedValues on every index). Same semantics:
     // `isTrimmed(i) === false` ⟺ the merged value is not strictly `true`.
-    const trimmedValues = this.trimmingMapsCollection.getMergedValues() as boolean[];
+    const trimmedValues = this.trimmingMapsCollection.getMergedValues();
     const notTrimmedIndexes = [];
 
     for (let i = 0; i < indexesSequence.length; i += 1) {
@@ -621,7 +621,7 @@ export class IndexMapper {
     }
 
     const indexesSequence = this.getIndexesSequence();
-    const hiddenValues = this.hidingMapsCollection.getMergedValues() as boolean[];
+    const hiddenValues = this.hidingMapsCollection.getMergedValues();
     const notHiddenIndexes = [];
 
     for (let i = 0; i < indexesSequence.length; i += 1) {
@@ -659,7 +659,7 @@ export class IndexMapper {
     }
 
     const notTrimmedIndexes = this.getNotTrimmedIndexes();
-    const hiddenValues = this.hidingMapsCollection.getMergedValues() as boolean[];
+    const hiddenValues = this.hidingMapsCollection.getMergedValues();
     const renderableIndexes = [];
 
     for (let i = 0; i < notTrimmedIndexes.length; i += 1) {
