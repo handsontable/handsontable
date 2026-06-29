@@ -1085,16 +1085,15 @@ export class Filters extends BasePlugin {
 
     type HotWithMetaManager = {
       _getMetaManager(): {
-        getCellMeta(row: number, col: number, opts: Record<string, unknown>): Record<string, unknown>;
+        getCellMetaUncached(row: number, col: number, opts: Record<string, unknown>): Record<string, unknown>;
       };
     };
 
     for (let physicalRow = 0; physicalRow < countSourceRows; physicalRow++) {
       const cellMeta = (this.hot as unknown as HotWithMetaManager)
-        ._getMetaManager().getCellMeta(physicalRow, physicalColumn, {
+        ._getMetaManager().getCellMetaUncached(physicalRow, physicalColumn, {
           visualRow: physicalRow,
           visualColumn: physicalColumn,
-          skipMetaExtension: true,
         });
       let value = getValueGetterValue(
         this.hot.getSourceDataAtCell(physicalRow, visualColumn),

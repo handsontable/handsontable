@@ -41,6 +41,41 @@ describe('LazyFactoryMap', () => {
     expect(Array.from(map.holes)).toEqual([]);
   });
 
+  describe('has()', () => {
+    it('should return false for keys that were never obtained, without creating them', () => {
+      const spyValueFactory = jest.fn(key => ({ i: key }));
+      const map = createLazyFactoryMap(spyValueFactory);
+
+      expect(map.has(0)).toBe(false);
+      expect(map.has(5)).toBe(false);
+      expect(map.has(999)).toBe(false);
+      expect(spyValueFactory).not.toHaveBeenCalled();
+    });
+
+    it('should return true only for keys that were already obtained', () => {
+      const map = createLazyFactoryMap();
+
+      map.obtain(3);
+      map.obtain(10);
+
+      expect(map.has(3)).toBe(true);
+      expect(map.has(10)).toBe(true);
+      expect(map.has(0)).toBe(false);
+      expect(map.has(4)).toBe(false);
+    });
+
+    it('should return false for a reserved-but-not-yet-created slot (insert)', () => {
+      const map = createLazyFactoryMap();
+
+      map.obtain(0);
+      map.insert(1, 2); // reserve 2 slots at key 1 with `undefined` data
+
+      expect(map.has(0)).toBe(true);
+      expect(map.has(1)).toBe(false);
+      expect(map.has(2)).toBe(false);
+    });
+  });
+
   describe('obtain()', () => {
     it('should lazy create data', () => {
       const map = createLazyFactoryMap();

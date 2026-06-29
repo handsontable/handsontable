@@ -190,6 +190,37 @@ export default class MetaManager {
   }
 
   /**
+   * Gets a cell meta object for read-only access without retaining it. When the cell already has a
+   * stored meta object (because it carries user-defined or declarative `cell` overrides) that object
+   * is returned; otherwise a transient object inheriting from the column layer is created and NOT
+   * stored. This avoids permanently materializing one cell meta object per scanned cell when iterating
+   * the whole dataset (for example, filtering), where the eager `getCellMeta` would otherwise grow the
+   * meta cache to O(rows × columns). The `afterGetCellMeta` extension is intentionally not run.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {object} options Options for the method.
+   * @param {number} options.visualRow The visual row index of the currently requested cell meta object.
+   * @param {number} options.visualColumn The visual column index of the currently requested cell meta object.
+   * @returns {object}
+   */
+  getCellMetaUncached(
+    physicalRow: number, physicalColumn: number,
+    options: { visualRow: number; visualColumn: number }
+  ) {
+    const cellMeta = this.cellMeta.hasMeta(physicalRow, physicalColumn)
+      ? this.cellMeta.getMeta(physicalRow, physicalColumn)
+      : this.cellMeta.createTransientMeta(physicalColumn);
+
+    cellMeta.visualRow = options.visualRow;
+    cellMeta.visualCol = options.visualColumn;
+    cellMeta.row = physicalRow;
+    cellMeta.col = physicalColumn;
+
+    return cellMeta;
+  }
+
+  /**
    * Gets a value (defined by the `key` property) from the cell meta object.
    *
    * @param {number} physicalRow The physical row index.

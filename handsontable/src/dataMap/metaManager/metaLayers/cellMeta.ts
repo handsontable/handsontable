@@ -173,6 +173,31 @@ export default class CellMeta {
   }
 
   /**
+   * Checks whether a cell meta object has already been created for the given coordinates, without
+   * creating one. Used to decide whether a cell carries its own (user/declarative) meta that must be
+   * reused, as opposed to deriving a fresh object from the column layer.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @returns {boolean}
+   */
+  hasMeta(physicalRow: number, physicalColumn: number): boolean {
+    return this.metas.has(physicalRow) && this.metas.obtain(physicalRow).has(physicalColumn);
+  }
+
+  /**
+   * Creates a cell meta object inheriting from the column layer without storing it in the map. The
+   * returned object is transient (eligible for garbage collection) and carries no per-cell overrides,
+   * so it must only be used for reads that do not need persisted per-cell meta.
+   *
+   * @param {number} physicalColumn The physical column index.
+   * @returns {object}
+   */
+  createTransientMeta(physicalColumn: number): Record<string, unknown> {
+    return this._createMeta(physicalColumn);
+  }
+
+  /**
    * Sets settings object for this layer defined by "key" property.
    *
    * @param {number} physicalRow The physical row index.
