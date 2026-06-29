@@ -176,6 +176,67 @@ In this example, the size of all columns is set using a function by taking a col
 
 :::
 
+## Set a dynamic maximum column width
+
+Use the [`modifyColWidth`](@/api/hooks.md#modifycolwidth) hook to cap how wide a column can grow based on its content. The hook receives the width that Handsontable already calculated for the column. Return a smaller number to limit it. This pattern is [middleware](@/guides/getting-started/events-and-hooks/events-and-hooks.md#middleware): you modify a value on its way through the width pipeline instead of setting a fixed size up front.
+
+Unlike [`colWidths`](@/api/options.md#colwidths), a cap in `modifyColWidth` does not force every cell onto one width. Short values keep a narrow column on a single line. When content would exceed your threshold, the column shrinks to your cap and the text wraps.
+
+Leave `colWidths` unset for columns you want to auto-size (or set the entry to `undefined` in an array). The [`AutoColumnSize`](@/api/autoColumnSize.md) plugin must stay enabled so Handsontable can measure content first. Setting `colWidths` as a single number disables auto-sizing for all columns.
+
+You can also enforce a minimum width by returning `Math.max(width, minWidth)` from the same hook.
+
+::: tip
+
+- Auto-sized columns never go below 50px.
+- [`stretchH`](@/api/options.md#stretchh) runs after your hook and can widen columns beyond your cap.
+- When [`manualColumnResize`](@/api/options.md#manualcolumnresize) is enabled, a width the user set by dragging overrides the hook for that column.
+
+:::
+
+::: only-for javascript
+
+::: example #example7 --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-width/javascript/example7.js)
+@[code](@/content/guides/columns/column-width/javascript/example7.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example7 :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-width/react/example7.jsx)
+@[code](@/content/guides/columns/column-width/react/example7.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example7 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-width/angular/example7.ts)
+@[code](@/content/guides/columns/column-width/angular/example7.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example7 :vue3
+
+@[code](@/content/guides/columns/column-width/vue/example7.vue)
+
+:::
+
+:::
+
 ## Adjust the column width manually
 
 Set the option [`manualColumnResize`](@/api/options.md#manualcolumnresize) to `true` to allow users to manually resize the column width by dragging the handle between the adjacent column headers. If you double-click on that handle, the width will be instantly adjusted to the size of the longest value in the column. Don't forget to enable column headers by setting [`colHeaders`](@/api/options.md#colheaders) to `true`.
