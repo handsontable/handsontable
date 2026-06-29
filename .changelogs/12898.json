@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the performance of sorting, filtering, and row/column hiding on large datasets by removing redundant per-operation allocations in the index translation layer.",
+  "type": "changed",
+  "issueOrPR": 12898,
+  "breaking": false,
+  "framework": "none"
+}
