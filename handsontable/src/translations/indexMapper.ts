@@ -172,19 +172,23 @@ export class IndexMapper {
    */
   renderablePhysicalIndexesCache: number[] = [];
   /**
-   * Visual indexes (native map's value) corresponding to physical indexes (native map's index).
+   * Visual indexes (typed array value) corresponding to physical indexes (typed array index).
+   * `-1` marks a physical index with no visual index (trimmed). Backed by a typed array instead of a
+   * `Map` to avoid per-rebuild hashing churn on large datasets.
    *
    * @private
-   * @type {Map}
+   * @type {Int32Array}
    */
-  fromPhysicalToVisualIndexesCache = new Map<number | null, number>();
+  fromPhysicalToVisualIndexesCache: Int32Array = new Int32Array(0);
   /**
-   * Visual indexes (native map's value) corresponding to physical indexes (native map's index).
+   * Renderable indexes (typed array value) corresponding to visual indexes (typed array index).
+   * `-1` marks a visual index with no renderable index (hidden). Backed by a typed array instead of a
+   * `Map` to avoid per-rebuild hashing churn on large datasets.
    *
    * @private
-   * @type {Map}
+   * @type {Int32Array}
    */
-  fromVisualToRenderableIndexesCache = new Map<number | null, number>();
+  fromVisualToRenderableIndexesCache: Int32Array = new Int32Array(0);
   /**
    * Map of observed IndexMap instances to their registered callback sets.
    * Used by {@link IndexMapper#observeMapChange} to track which maps are being
@@ -397,10 +401,17 @@ export class IndexMapper {
    * @returns {number|null} Returns a visual index of the index mapper.
    */
   getVisualFromPhysicalIndex(physicalIndex: number): number | null {
-    const visualIndex = this.fromPhysicalToVisualIndexesCache.get(physicalIndex);
+    // The typed-array cache coerces non-integer keys: a string like `'0'` would index slot 0 and
+    // `'__proto__'`/`'constructor'` would return prototype-chain values. The previous `Map` treated those
+    // as misses, so reject any non-integer key here to keep that exact-key semantics.
+    if (!Number.isInteger(physicalIndex)) {
+      return null;
+    }
 
-    // Index in the table boundaries provided by the `DataMap`.
-    return visualIndex ?? null;
+    const visualIndex = this.fromPhysicalToVisualIndexesCache[physicalIndex];
+
+    // Index in the table boundaries provided by the `DataMap`. `-1`/`undefined` means no mapping.
+    return visualIndex === undefined || visualIndex === -1 ? null : visualIndex;
   }
 
   /**
@@ -420,10 +431,16 @@ export class IndexMapper {
    * @returns {null|number}
    */
   getRenderableFromVisualIndex(visualIndex: number): number | null {
-    const renderableIndex = this.fromVisualToRenderableIndexesCache.get(visualIndex);
+    // Reject non-integer keys (string-numeric, `'__proto__'`, etc.) to keep the previous `Map`'s
+    // exact-key semantics — see getVisualFromPhysicalIndex.
+    if (!Number.isInteger(visualIndex)) {
+      return null;
+    }
 
-    // Index in the renderable table boundaries.
-    return renderableIndex ?? null;
+    const renderableIndex = this.fromVisualToRenderableIndexesCache[visualIndex];
+
+    // Index in the renderable table boundaries. `-1`/`undefined` means no mapping.
+    return renderableIndex === undefined || renderableIndex === -1 ? null : renderableIndex;
   }
 
   /**
@@ -446,28 +463,32 @@ export class IndexMapper {
       return null;
     }
 
-    if (this.fromVisualToRenderableIndexesCache.has(fromVisualIndex)) {
+    const renderableCache = this.fromVisualToRenderableIndexesCache;
+    const fromRenderableIndex = renderableCache[fromVisualIndex];
+
+    // The visual index is already visible when it has a renderable mapping. The `typeof number` check
+    // keeps non-integer keys (e.g. `'__proto__'`) from matching prototype-chain values.
+    if (typeof fromRenderableIndex === 'number' && fromRenderableIndex !== -1) {
       return fromVisualIndex;
     }
 
-    const visibleIndexes = Array.from(this.fromVisualToRenderableIndexesCache.keys());
-    let index = -1;
+    // Scan outward for the nearest visible visual index in the requested direction
+    // (`searchDirection` is `1` or `-1`, so the same loop covers both directions).
+    const length = renderableCache.length;
 
-    if (searchDirection > 0) {
-      index = visibleIndexes.findIndex(visualIndex => visualIndex !== null && visualIndex > fromVisualIndex);
-    } else {
-      index = visibleIndexes.reverse().findIndex(visualIndex => visualIndex !== null && visualIndex < fromVisualIndex);
-    }
-
-    if (index === -1) {
-      if (searchAlsoOtherWayAround) {
-        return this.getNearestNotHiddenIndex(fromVisualIndex, -searchDirection as 1 | -1, false);
+    for (let visualIndex = fromVisualIndex + searchDirection;
+      visualIndex >= 0 && visualIndex < length;
+      visualIndex += searchDirection) {
+      if (renderableCache[visualIndex] !== -1) {
+        return visualIndex;
       }
-
-      return null;
     }
 
-    return visibleIndexes[index];
+    if (searchAlsoOtherWayAround) {
+      return this.getNearestNotHiddenIndex(fromVisualIndex, -searchDirection as 1 | -1, false);
+    }
+
+    return null;
   }
 
   /**
@@ -858,22 +879,44 @@ export class IndexMapper {
   }
 
   /**
+   * Returns a `-1`-filled `Int32Array` of the given length, reusing the passed one when its length
+   * matches so a cache rebuild does not allocate a new buffer.
+   *
+   * @private
+   * @param {Int32Array} cache The existing cache to reuse when possible.
+   * @param {number} length The required length.
+   * @returns {Int32Array}
+   */
+  #allocateIndexCache(cache: Int32Array, length: number): Int32Array {
+    if (cache.length === length) {
+      cache.fill(-1);
+
+      return cache;
+    }
+
+    return new Int32Array(length).fill(-1);
+  }
+
+  /**
    * Update cache for translations from physical to visual indexes.
    *
    * @private
    */
   cacheFromPhysicalToVisualIndexes(): void {
     const nrOfNotTrimmedIndexes = this.getNotTrimmedIndexesLength();
-
-    this.fromPhysicalToVisualIndexesCache.clear();
+    const cache = this.#allocateIndexCache(this.fromPhysicalToVisualIndexesCache, this.getNumberOfIndexes());
 
     for (let visualIndex = 0; visualIndex < nrOfNotTrimmedIndexes; visualIndex += 1) {
       const physicalIndex = this.getPhysicalFromVisualIndex(visualIndex);
 
-      // Every visual index have corresponding physical index, but some physical indexes may don't have
-      // corresponding visual indexes (physical indexes may represent trimmed indexes, beyond the table boundaries)
-      this.fromPhysicalToVisualIndexesCache.set(physicalIndex, visualIndex);
+      // Every visual index has a corresponding physical index. Physical indexes with no visual index
+      // (trimmed indexes, beyond the table boundaries) keep the `-1` sentinel.
+      if (physicalIndex !== null) {
+        cache[physicalIndex] = visualIndex;
+      }
     }
+
+    this.fromPhysicalToVisualIndexesCache = cache;
   }
 
   /**
@@ -883,16 +926,20 @@ export class IndexMapper {
    */
   cacheFromVisualToRenderableIndexes(): void {
     const nrOfRenderableIndexes = this.getRenderableIndexesLength();
-
-    this.fromVisualToRenderableIndexesCache.clear();
+    const cache = this.#allocateIndexCache(this.fromVisualToRenderableIndexesCache, this.getNotTrimmedIndexesLength());
 
     for (let renderableIndex = 0; renderableIndex < nrOfRenderableIndexes; renderableIndex += 1) {
       // Can't use getRenderableFromVisualIndex here because we're building the cache here
       const physicalIndex = this.getPhysicalFromRenderableIndex(renderableIndex);
       const visualIndex = this.getVisualFromPhysicalIndex(physicalIndex!);
 
-      this.fromVisualToRenderableIndexesCache.set(visualIndex, renderableIndex);
+      // Visual indexes with no renderable index (hidden indexes) keep the `-1` sentinel.
+      if (visualIndex !== null) {
+        cache[visualIndex] = renderableIndex;
+      }
     }
+
+    this.fromVisualToRenderableIndexesCache = cache;
   }
   /**
    * Destroys the IndexMapper instance. Clears all registered map observers
