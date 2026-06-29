@@ -48,51 +48,35 @@ export class AggregatedCollection extends MapCollection {
       return this.mergedValuesCache;
     }
 
-    if (this.getLength() === 0) {
+    const maps = this.get() as { getValues(): unknown[] }[];
+    const numberOfMaps = maps.length;
+
+    if (numberOfMaps === 0) {
       return [];
     }
 
-    // Below variable stores values for every particular map. Example describing situation when we have 2 registered maps,
-    // with length equal to 5.
-    //
-    // +---------+---------------------------------------------+
-    // |         |                  indexes                    |
-    // +---------+---------------------------------------------+
-    // |   maps  |     0    |   1   |    2  |   3   |    4     |
-    // +---------+----------+-------+-------+-------+----------+
-    // |    0    | [[ value,  value,  value,  value,  value ], |
-    // |    1    | [  value,  value,  value,  value,  value ]] |
-    // +---------+----------+-------+-------+-------+----------+
-    const mapsValuesMatrix = arrayMap(this.get() as unknown[], (map: unknown) =>
-      (map as { getValues(): unknown[] }).getValues());
-    // Below variable stores values for every particular index. Example describing situation when we have 2 registered maps,
-    // with length equal to 5.
-    //
-    // +---------+---------------------+
-    // |         |         maps        |
-    // +---------+---------------------+
-    // | indexes |     0    |    1     |
-    // +---------+----------+----------+
-    // |    0    | [[ value,  value ], |
-    // |    1    | [  value,  value ], |
-    // |    2    | [  value,  value ], |
-    // |    3    | [  value,  value ], |
-    // |    4    | [  value,  value ]] |
-    // +---------+----------+----------+
-    const indexesValuesMatrix = [];
-    const mapsLength = (isDefined(mapsValuesMatrix[0]) && (mapsValuesMatrix[0] as unknown[]).length) || 0;
+    // Per-map value arrays. For 2 maps of length 5:
+    //   maps 0 | [ value, value, value, value, value ]
+    //   maps 1 | [ value, value, value, value, value ]
+    const mapsValuesMatrix = arrayMap(maps, map => map.getValues());
+    const indexesLength = (isDefined(mapsValuesMatrix[0]) && mapsValuesMatrix[0].length) || 0;
+    const mergedValues: unknown[] = new Array(indexesLength);
+    // A single scratch row, reused for every index, is passed to the aggregation function instead
+    // of allocating one `[value, value, ...]` array per index. The previous matrix approach built
+    // O(rows) throwaway sub-arrays on every sort/trim/hide rebuild (the dominant cost of updateCache
+    // on large datasets). The aggregation functions read this array synchronously and never retain
+    // it, so reuse is safe.
+    const valuesForIndex: unknown[] = new Array(numberOfMaps);
 
-    for (let index = 0; index < mapsLength; index += 1) {
-      const valuesForIndex = [];
-
-      for (let mapIndex = 0; mapIndex < this.getLength(); mapIndex += 1) {
-        valuesForIndex.push((mapsValuesMatrix[mapIndex] as unknown[])[index]);
+    for (let index = 0; index < indexesLength; index += 1) {
+      for (let mapIndex = 0; mapIndex < numberOfMaps; mapIndex += 1) {
+        valuesForIndex[mapIndex] = mapsValuesMatrix[mapIndex][index];
       }
 
-      indexesValuesMatrix.push(valuesForIndex);
+      mergedValues[index] = this.aggregationFunction(valuesForIndex);
     }
 
-    return arrayMap(indexesValuesMatrix, this.aggregationFunction);
+    return mergedValues;
   }
 
   /**
