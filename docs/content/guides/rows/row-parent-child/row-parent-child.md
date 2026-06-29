@@ -22,6 +22,7 @@ vue:
   metaTitle: Row parent-child - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
+menuTag: updated
 ---
 Reflect the parent-child relationship of your data, using the [`NestedRows`](@/api/nestedRows.md) plugin's interactive UI elements such as expand and collapse
 buttons or an extended context menu.
@@ -171,6 +172,9 @@ When you use the parent-child row structure, the following Handsontable features
 - [Data source as an array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays)
 - [Column filter](@/guides/columns/column-filter/column-filter.md)
 - [Rows sorting](@/guides/rows/rows-sorting/rows-sorting.md)
+- [Manual row moving via `moveRows()`](@/api/manualRowMove.md#moverows) - use [`dragRows()`](@/api/manualRowMove.md#dragrows) instead
+
+When the `NestedRows` plugin is enabled, the `ManualRowMove` plugin's [`moveRows()`](@/api/manualRowMove.md#moverows) method has no effect and logs a console warning. To move rows programmatically, use [`dragRows()`](@/api/manualRowMove.md#dragrows) instead.
 
 ### Keyboard shortcuts
 
