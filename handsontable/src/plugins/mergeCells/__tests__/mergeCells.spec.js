@@ -2400,5 +2400,98 @@ describe('MergeCells', () => {
       // clearing the filter brings the original anchor row back
       expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 3, colspan: 3 }]);
     });
+
+    it('should purge a fully hidden merge from the lookup matrix so it is not a phantom on an unrelated row', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }], // C3:E5, physical rows 2,3,4
+      });
+      const filters = getPlugin('filters');
+      const collection = getPlugin('mergeCells').mergedCellsCollection;
+
+      // show only the merge's own rows -> the merge re-anchors to visual row 0
+      filters.addCondition(0, 'by_value', [['A3', 'A4', 'A5']]);
+      filters.filter();
+
+      await render();
+
+      expect(collection.get(0, 2)).not.toBe(false); // the merge is present at visual row 0
+
+      // hide ALL the merge's rows, keeping only the unrelated A1 (physical 0), which now sits at visual row 0
+      filters.clearConditions();
+      filters.addCondition(0, 'by_value', [['A1']]);
+      filters.filter();
+
+      await render();
+
+      // the unrelated row now at visual row 0 must NOT resolve to the (now invisible) merge
+      expect(collection.get(0, 2)).toBe(false);
+    });
+
+    it('should re-add a purged merge to the matrix when it reappears at the same visual coordinates', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }],
+      });
+      const filters = getPlugin('filters');
+      const collection = getPlugin('mergeCells').mergedCellsCollection;
+
+      // show only the merge's rows -> merge at visual row 0
+      filters.addCondition(0, 'by_value', [['A3', 'A4', 'A5']]);
+      filters.filter();
+
+      await render();
+
+      expect(collection.get(0, 2)).not.toBe(false);
+
+      // hide all the merge's rows -> the merge is purged from the matrix
+      filters.clearConditions();
+      filters.addCondition(0, 'by_value', [['A1']]);
+      filters.filter();
+
+      await render();
+
+      expect(collection.get(0, 2)).toBe(false);
+
+      // show the merge's rows again -> it lands back at the exact visual row 0 it held before being purged
+      filters.clearConditions();
+      filters.addCondition(0, 'by_value', [['A3', 'A4', 'A5']]);
+      filters.filter();
+
+      await render();
+
+      // the "skip relocation when unchanged" optimization must not leave the merge out of the matrix
+      expect(collection.get(0, 2)).not.toBe(false);
+      expect(merges()).toEqual([{ row: 0, col: 2, rowspan: 3, colspan: 3 }]);
+    });
+
+    it('should re-anchor a merge when a sort and a filter are batched into one cacheUpdated', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        columnSorting: true,
+        filters: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }], // C3:E5, physical rows 2,3,4
+      });
+      const mc = getPlugin('mergeCells');
+
+      // a sort (index-sequence change) and a filter (trim change) collapsed into a single
+      // `cacheUpdated` via suspendOperations/resumeOperations
+      mc.hot.batch(() => {
+        getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+        getPlugin('filters').addCondition(0, 'by_value', [['A3', 'A4', 'A5', 'A9', 'A10']]);
+        getPlugin('filters').filter();
+      });
+
+      await render();
+
+      // sanity: the batch actually moved the merge's physical anchor row away from visual row 2
+      expect(mc.hot.toVisualRow(2)).not.toBe(2);
+
+      // the trim re-anchor must not be dropped just because the batch also carried a sequence change:
+      // the merge follows its physical anchor to the new visual position instead of staying at row 2
+      expect(merges()[0].row).toBe(mc.hot.toVisualRow(2));
+    });
   });
 });

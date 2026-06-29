@@ -193,6 +193,17 @@ export class MergeCells extends BasePlugin {
   #mergeAnchors: WeakMap<MergedCellCoords, { physicalRow: number, physicalColumn: number }> = new WeakMap();
 
   /**
+   * Merges whose entire row span is currently trimmed, so they have been removed from the lookup
+   * matrix to avoid colliding with whatever physical row later surfaces at their stale visual slot.
+   * Tracked so that when such a merge becomes visible again it is force-added back to the matrix even
+   * if it lands on the exact visual `row`/`col` it held before being purged (where the
+   * "skip when unchanged" relocation optimization would otherwise leave it absent).
+   *
+   * @type {WeakSet<MergedCellCoords>}
+   */
+  #purgedMerges: WeakSet<MergedCellCoords> = new WeakSet();
+
+  /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
    * hook and if it returns `true` then the {@link MergeCells#enablePlugin} method is called.
    *
@@ -718,17 +729,22 @@ export class MergeCells extends BasePlugin {
   };
 
   /**
-   * Row index mapper `cacheUpdated` callback. On a pure visibility change (Filters / `trimRows` /
-   * `nestedRows` collapse / `hiddenRows`, i.e. no index-sequence change), re-anchors each merge onto
-   * the rows that remain visible, so trimming rows above a merge no longer leaves its anchor behind.
-   * Moves and sorts carry an index-sequence change and are handled by their dedicated hooks
-   * (`afterRowMove` / `afterColumnSort`), so they are skipped here.
+   * Row index mapper `cacheUpdated` callback. On any visibility change (Filters / `trimRows` /
+   * `nestedRows` collapse / `hiddenRows`), re-anchors each merge onto the rows that remain visible, so
+   * trimming rows above a merge no longer leaves its anchor behind. The re-anchor is anchor-based and
+   * idempotent, and this hook fires after the mapper cache has been (re)built — including once at the
+   * end of a batched `suspendOperations`/`resumeOperations` block — so it is also the authoritative
+   * place to fix up a visibility change that arrives alongside an index-sequence change (a sort or
+   * move batched together with a filter); gating it on `!indexesSequenceChanged` used to drop that
+   * trim re-anchor entirely. A pure sequence change with no visibility change (a standalone sort/move)
+   * leaves `trimmedIndexesChanged`/`hiddenIndexesChanged` `false` and is handled by the dedicated
+   * `afterColumnSort` / `afterRowMove` hooks instead.
    *
    * @param {{ trimmedIndexesChanged: boolean, hiddenIndexesChanged: boolean, indexesSequenceChanged:
    *   boolean }} changes Cache flags.
    */
   #onRowIndexCacheUpdated = (
-    { trimmedIndexesChanged, hiddenIndexesChanged, indexesSequenceChanged }:
+    { trimmedIndexesChanged, hiddenIndexesChanged }:
     { trimmedIndexesChanged: boolean, hiddenIndexesChanged: boolean, indexesSequenceChanged: boolean }
   ) => {
     // The hook is removed in `disablePlugin`/`destroy`, but keep a defensive guard in case a final
@@ -737,7 +753,7 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    if ((trimmedIndexesChanged || hiddenIndexesChanged) && !indexesSequenceChanged) {
+    if (trimmedIndexesChanged || hiddenIndexesChanged) {
       this.#reanchorMergesToVisibleRows();
     }
   };
@@ -840,8 +856,10 @@ export class MergeCells extends BasePlugin {
    * top-left, keeping `rowspan`/`colspan`. The render translation then spans the merge over the
    * visible rows from there. When the anchor's own physical row is hidden, the merge falls back to the
    * topmost still-visible physical row within its span, so it follows the visible rows down instead of
-   * being left behind on a hidden row. Merges with no captured anchor, a hidden anchor column, or a
-   * fully hidden row span are left untouched.
+   * being left behind on a hidden row. Merges with no captured anchor are left untouched. Merges with
+   * a hidden anchor column or a fully hidden row span have no visible top-left, so they are purged
+   * from the lookup matrix (and re-added once they become visible again) to avoid leaving a stale
+   * entry that a later filter could resolve to as a phantom merge.
    */
   #reanchorMergesToVisibleRows() {
     const { mergedCells } = this.mergedCellsCollection;
@@ -853,6 +871,7 @@ export class MergeCells extends BasePlugin {
     }
 
     const relocations: { mergedCell: MergedCellCoords, row: number, col: number }[] = [];
+    const purges: MergedCellCoords[] = [];
 
     mergedCells.forEach((merge) => {
       const anchor = this.#mergeAnchors.get(merge);
@@ -863,27 +882,39 @@ export class MergeCells extends BasePlugin {
 
       const visualColumn = this.hot.toVisualColumn(anchor.physicalColumn);
 
-      if (visualColumn === null) {
-        return;
-      }
-
-      let visualRow = this.hot.toVisualRow(anchor.physicalRow);
+      let visualRow = visualColumn === null ? null : this.hot.toVisualRow(anchor.physicalRow);
 
       // Anchor row hidden: re-anchor to the first still-visible physical row inside the span (the span
       // covers physical rows `[physicalRow, physicalRow + rowspan)` since anchors are captured while
       // the merge is fully visible).
-      for (let offset = 1; visualRow === null && offset < merge.rowspan; offset++) {
+      for (let offset = 1; visualColumn !== null && visualRow === null && offset < merge.rowspan; offset++) {
         visualRow = this.hot.toVisualRow(anchor.physicalRow + offset);
       }
 
-      if (visualRow === null) {
+      // No visible top-left (whole row span or the anchor column is hidden): drop the stale matrix
+      // entry so a later filter showing a different physical row at the same visual slot does not
+      // resolve to this phantom merge.
+      if (visualColumn === null || visualRow === null) {
+        if (!this.#purgedMerges.has(merge)) {
+          this.#purgedMerges.add(merge);
+          purges.push(merge);
+        }
+
         return;
       }
 
-      if (merge.row !== visualRow || merge.col !== visualColumn) {
+      // Force a relocation for a merge that re-enters the viewport so it is re-added to the matrix even
+      // when it lands on the same visual coordinates it had before being purged.
+      const wasPurged = this.#purgedMerges.delete(merge);
+
+      if (wasPurged || merge.row !== visualRow || merge.col !== visualColumn) {
         relocations.push({ mergedCell: merge, row: visualRow, col: visualColumn });
       }
     });
+
+    if (purges.length > 0) {
+      this.mergedCellsCollection.removeFromMatrix(purges);
+    }
 
     if (relocations.length > 0) {
       this.mergedCellsCollection.relocateInMatrix(relocations);

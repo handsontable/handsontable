@@ -723,6 +723,92 @@ describe('MergeCells', () => {
       });
     });
 
+    describe('`relocateInMatrix` method', () => {
+      it('should move a merge to its new top-left, clearing the old footprint and writing the new one', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const merge = collection.add({ row: 0, col: 1, rowspan: 2, colspan: 2 }); // (0,1)-(1,2)
+
+        collection.relocateInMatrix([{ mergedCell: merge, row: 5, col: 5 }]);
+
+        // the merge's own coords are updated
+        expect(merge.row).toBe(5);
+        expect(merge.col).toBe(5);
+
+        // the old footprint no longer resolves to the merge
+        expect(collection.get(0, 1)).toBe(false);
+        expect(collection.get(1, 2)).toBe(false);
+
+        // the new footprint resolves to the merge across its whole span
+        expect(collection.get(5, 5)).toBe(merge);
+        expect(collection.get(6, 6)).toBe(merge);
+
+        // the merge stays in the list — only the matrix lookup is touched
+        expect(collection.mergedCells).toEqual([merge]);
+      });
+
+      it('should keep both merges intact when two merges swap visual positions (two-pass remove-then-add)', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const mergeA = collection.add({ row: 0, col: 0, rowspan: 1, colspan: 2 }); // (0,0)-(0,1)
+        const mergeB = collection.add({ row: 0, col: 2, rowspan: 1, colspan: 2 }); // (0,2)-(0,3)
+
+        // swap them: A takes B's old slot and B takes A's old slot, in one batch
+        collection.relocateInMatrix([
+          { mergedCell: mergeA, row: 0, col: 2 },
+          { mergedCell: mergeB, row: 0, col: 0 },
+        ]);
+
+        // the second merge's removal (done first, in the remove-all pass) must not clobber the first
+        // merge's freshly written entries — each footprint still resolves to the correct merge
+        expect(collection.get(0, 0)).toBe(mergeB);
+        expect(collection.get(0, 1)).toBe(mergeB);
+        expect(collection.get(0, 2)).toBe(mergeA);
+        expect(collection.get(0, 3)).toBe(mergeA);
+      });
+
+      it('should leave the matrix unchanged for an empty relocation list', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const merge = collection.add({ row: 0, col: 0, rowspan: 2, colspan: 2 });
+
+        collection.relocateInMatrix([]);
+
+        expect(collection.get(0, 0)).toBe(merge);
+        expect(collection.get(1, 1)).toBe(merge);
+      });
+    });
+
+    describe('`removeFromMatrix` method', () => {
+      it('should remove the merges\' footprints from the lookup matrix while keeping them in the list', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const mergeA = collection.add({ row: 0, col: 0, rowspan: 2, colspan: 2 });
+        const mergeB = collection.add({ row: 5, col: 5, rowspan: 2, colspan: 2 });
+
+        collection.removeFromMatrix([mergeA]);
+
+        // A is gone from the matrix...
+        expect(collection.get(0, 0)).toBe(false);
+        expect(collection.get(1, 1)).toBe(false);
+
+        // ...but still present in the list, and B is left untouched
+        expect(collection.mergedCells).toEqual([mergeA, mergeB]);
+        expect(collection.get(5, 5)).toBe(mergeB);
+      });
+
+      it('should write a fresh footprint with no stale duplicates when a removed merge is relocated back', () => {
+        const collection = new MergedCellsCollection({ hot: hotMock });
+        const merge = collection.add({ row: 0, col: 0, rowspan: 2, colspan: 2 });
+
+        collection.removeFromMatrix([merge]);
+
+        expect(collection.get(0, 0)).toBe(false);
+
+        // relocating it back to the same coords re-adds it cleanly
+        collection.relocateInMatrix([{ mergedCell: merge, row: 0, col: 0 }]);
+
+        expect(collection.get(0, 0)).toBe(merge);
+        expect(collection.get(1, 1)).toBe(merge);
+      });
+    });
+
     describe('`getBottomMostRowIndex` method', () => {
       it('should return bottom-most row index of where the merge cells are not intersected', () => {
         const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });

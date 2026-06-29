@@ -715,6 +715,18 @@ class MergedCellsCollection {
   }
 
   /**
+   * Removes a batch of merges from the coords->merge lookup matrix without touching the
+   * `mergedCells` list. Used to purge merges whose whole visible span has been trimmed away, so their
+   * stale entries cannot resolve to a phantom merge once a different row surfaces at the same visual
+   * slot. The merges themselves are kept (their physical anchor lets them be re-added when visible).
+   *
+   * @param {Array<MergedCellCoords>} merges The merges to remove from the matrix.
+   */
+  removeFromMatrix(merges: MergedCellCoords[]) {
+    merges.forEach(mergedCell => this.#removeMergedCellFromMatrix(mergedCell));
+  }
+
+  /**
    * Removes a merged cell from the matrix.
    *
    * @param {MergedCellCoords} mergedCell The merged cell to remove.
