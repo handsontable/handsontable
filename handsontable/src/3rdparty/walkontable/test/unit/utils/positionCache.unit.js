@@ -8,15 +8,17 @@ import { PositionCache } from '../../../src/utils/positionCache';
  * @param {number} defaultSize The default size.
  * @returns {object} An object with `cache` and setters to swap config at runtime.
  */
-function createCache(totalItems, sizeFn, defaultSize) {
+function createCache(totalItems, sizeFn, defaultSize, isUniformFn) {
   let _totalItems = totalItems;
   let _sizeFn = sizeFn;
   let _defaultSize = defaultSize;
+  let _isUniform = typeof isUniformFn === 'function' ? isUniformFn() : !!isUniformFn;
 
   const cache = new PositionCache({
     totalItemsFn: () => _totalItems,
     sizeFn: i => _sizeFn(i),
     defaultSizeFn: () => _defaultSize,
+    isUniformFn: () => _isUniform,
   });
 
   return {
@@ -24,6 +26,7 @@ function createCache(totalItems, sizeFn, defaultSize) {
     setTotalItems(n) { _totalItems = n; },
     setSizeFn(fn) { _sizeFn = fn; },
     setDefaultSize(v) { _defaultSize = v; },
+    setUniform(v) { _isUniform = v; },
   };
 }
 
@@ -248,6 +251,112 @@ describe('PositionCache', () => {
 
       expect(sizeFn).not.toHaveBeenCalled();
       expect(cache.getSizeAt(0)).toBe(10);
+    });
+  });
+
+  describe('uniform mode', () => {
+    it('should skip the prefix sum array when the uniform predicate is true', () => {
+      const { cache } = createCache(1000, () => 20, 20, true);
+
+      cache.build();
+
+      expect(cache.prefixSum).toBe(null);
+      expect(cache.totalItems).toBe(1000);
+    });
+
+    it('should not scan every item to build (only samples the last one)', () => {
+      const sizeFn = jest.fn(() => 20);
+      const { cache } = createCache(100000, sizeFn, 20, true);
+
+      cache.build();
+
+      // arithmetic mode reads a single representative size, never the full O(n) loop
+      expect(sizeFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('should compute offsets/sizes/total arithmetically and equal a full prefix-sum build', () => {
+      const SIZE = 23;
+      const COUNT = 5000;
+      const uniform = createCache(COUNT, () => SIZE, SIZE, true).cache;
+      const full = createCache(COUNT, () => SIZE, SIZE, false).cache;
+
+      uniform.build();
+      full.build();
+
+      expect(uniform.prefixSum).toBe(null);
+      expect(full.prefixSum).not.toBe(null);
+
+      for (const i of [0, 1, 2, 1000, 2500, COUNT - 1, COUNT, COUNT + 10]) {
+        expect(uniform.getOffset(i)).toBe(full.getOffset(i));
+        expect(uniform.getSizeAt(i)).toBe(full.getSizeAt(i));
+      }
+      for (const off of [-5, 0, 1, 22, 23, 24, 100000, SIZE * COUNT, SIZE * COUNT + 50]) {
+        expect(uniform.findIndexAtOffset(off)).toBe(full.findIndexAtOffset(off));
+      }
+      expect(uniform.getTotalSize()).toBe(full.getTotalSize());
+      expect(uniform.getTotalSize()).toBe(SIZE * COUNT);
+    });
+
+    it('should sample the LAST item for the uniform size (avoids first-item border compensation)', () => {
+      // index 0 is intentionally larger (mirrors the +1 first-rendered-row compensation);
+      // a correct uniform cache must NOT propagate it to every row.
+      const { cache } = createCache(10, i => (i === 0 ? 24 : 23), 23, true);
+
+      cache.build();
+
+      expect(cache.getSizeAt(0)).toBe(23);
+      expect(cache.getOffset(10)).toBe(230);
+      expect(cache.getTotalSize()).toBe(230);
+    });
+
+    it('should fall back to defaultSize when the sampled item returns NaN', () => {
+      const { cache } = createCache(100, () => NaN, 18, true);
+
+      cache.build();
+
+      expect(cache.getSizeAt(0)).toBe(18);
+      expect(cache.getTotalSize()).toBe(1800);
+    });
+
+    it('should treat uniform mode as built so ensureBuilt does not rebuild', () => {
+      const sizeFn = jest.fn(() => 20);
+      const { cache } = createCache(50, sizeFn, 20, true);
+
+      cache.ensureBuilt();
+      const callsAfterFirst = sizeFn.mock.calls.length;
+
+      cache.ensureBuilt();
+
+      expect(sizeFn.mock.calls.length).toBe(callsAfterFirst);
+    });
+
+    it('should rebuild as a full prefix sum after the predicate flips to false (e.g. an oversized row appears)', () => {
+      const sizes = { 3: 50 };
+      const { cache, setUniform } = createCache(10, i => sizes[i] ?? 20, 20, true);
+
+      cache.build();
+      expect(cache.prefixSum).toBe(null);
+      expect(cache.getSizeAt(3)).toBe(20); // uniform: ignores the override
+
+      // a per-row override appears → caller flips the predicate and invalidates
+      setUniform(false);
+      cache.invalidate();
+      cache.ensureBuilt();
+
+      expect(cache.prefixSum).not.toBe(null);
+      expect(cache.getSizeAt(3)).toBe(50); // heterogeneous: honors the override
+      expect(cache.getOffset(4)).toBe(20 * 3 + 50);
+    });
+
+    it('should clear uniform mode on invalidate', () => {
+      const { cache } = createCache(100, () => 20, 20, true);
+
+      cache.build();
+      cache.invalidate();
+
+      expect(cache.getSizeAt(0)).toBe(0);
+      expect(cache.getOffset(5)).toBe(0);
+      expect(cache.getTotalSize()).toBe(0);
     });
   });
 });
