@@ -17,6 +17,7 @@ vue:
   metaTitle: Configuration options - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 Configure your grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
 
@@ -184,6 +185,8 @@ When you modify the bottom-level cell options (using the [`cell`](@/api/options.
 - Any unchanged options are inherited from the mid-level column options or the top-level grid options.
 
 When you modify any options with the [`cells`](@/api/options.md#cells) function, the changes overwrite all other options.
+
+Unless an option's [reference entry](@/api/options.md) states otherwise, you can set it at any cascading level - the grid level, the [`columns`](@/api/options.md#columns) level, the [`cells`](@/api/options.md#cells) level, and the [`cell`](@/api/options.md#cell) level. An option marked as grid-level only has no effect when you set it per column or per cell.
 
 ::: tip
 
