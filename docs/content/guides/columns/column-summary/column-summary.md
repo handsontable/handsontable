@@ -1137,6 +1137,10 @@ To throw data type errors, set the [`suppressDataTypeErrors`](@/api/columnSummar
 
 :::
 
+## Result
+
+After completing this guide, your grid calculates and displays column aggregates using built-in or custom summary functions. You can target specific cell ranges, control rounding, and handle non-numeric values.
+
 ## Related API reference
 
 **Configuration options**

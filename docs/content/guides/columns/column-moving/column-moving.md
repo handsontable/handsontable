@@ -5,6 +5,10 @@ metaTitle: Column moving - JavaScript Data Grid | Handsontable
 description: Change the order of columns, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
 permalink: /column-moving
 canonicalUrl: /column-moving
+tags:
+  - moving
+  - manual column move
+  - ManualColumnMove
 react:
   metaTitle: Column moving - React Data Grid | Handsontable
 angular:
@@ -175,6 +179,10 @@ This renders the columns in the following order:
 - Visual position 2 → physical column `2`
 
 The array must contain all physical column indexes (its length must equal the total number of columns). After the initial render, users can still drag columns to change the order further.
+
+## Result
+
+After completing this guide, you can reorder columns by dragging them with the mouse or by calling `dragColumns()` and `moveColumns()` programmatically. You can also set a pre-defined column order at initialization.
 
 ## Drag and move actions of the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin
 

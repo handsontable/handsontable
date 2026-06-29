@@ -31,8 +31,8 @@ Set the [`comments`](@/api/options.md#comments) configuration option to `true` t
 ```js
 const hot = new Handsontable(container, {
   data: [
-    ['A1', 'B1', 'C1'],
-    ['A2', 'B2', 'C2'],
+    ['Update API docs', 'Ana García', 'In progress'],
+    ['Deploy hotfix', 'James Okafor', 'Blocked'],
   ],
   comments: true,
   autoWrapRow: true,
@@ -47,8 +47,8 @@ const hot = new Handsontable(container, {
 ```jsx
 <HotTable
   data={[
-    ['A1', 'B1', 'C1'],
-    ['A2', 'B2', 'C2'],
+    ['Update API docs', 'Ana García', 'In progress'],
+    ['Deploy hotfix', 'James Okafor', 'Blocked'],
   ]}
   comments={true}
 />
@@ -60,8 +60,8 @@ const hot = new Handsontable(container, {
 
 ```ts
 data = [
-  ["A1", "B1", "C1"],
-  ["A2", "B2", "C2"],
+  ["Update API docs", "Ana García", "In progress"],
+  ["Deploy hotfix", "James Okafor", "Blocked"],
 ];
 settings = {
   comments: true,
@@ -79,8 +79,8 @@ settings = {
 ```js
 const hotSettings = {
   data: [
-    ['A1', 'B1', 'C1'],
-    ['A2', 'B2', 'C2'],
+    ['Update API docs', 'Ana García', 'In progress'],
+    ['Deploy hotfix', 'James Okafor', 'Blocked'],
   ],
   comments: true,
   autoWrapRow: true,
