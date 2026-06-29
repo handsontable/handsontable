@@ -254,6 +254,21 @@ describe('MetaManager', () => {
 
       expect(metaManager.cellMeta.disableUserDefinedMetaRecording).toHaveBeenCalledWith();
     });
+
+    it('should apply a recording-disabled `setCellMeta` write without tracking it as user-defined', () => {
+      // Mirrors the `_setCellMetaDeclarative` path Core exposes for built-in plugins (for example
+      // ColumnSummary): the write lands on the cell meta but is not user-defined, so it survives the
+      // viewport meta eviction yet is cleared and re-applied on an `updateSettings` cache reset.
+      const metaManager = new MetaManager();
+
+      metaManager.disableUserDefinedMetaRecording();
+      metaManager.setCellMeta(3, 0, 'className', 'columnSummaryResult');
+      metaManager.enableUserDefinedMetaRecording();
+
+      expect(metaManager.getCellMeta(3, 0, { visualRow: 3, visualColumn: 0 }).className)
+        .toBe('columnSummaryResult');
+      expect(metaManager.getUserDefinedCellMetas()).toEqual([]);
+    });
   });
 
   describe('createRow()', () => {

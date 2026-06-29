@@ -786,4 +786,131 @@ describe('ColumnMeta', () => {
       ]);
     });
   });
+
+  describe('evictRow()', () => {
+    it('should evict render-derived cell meta for a row and re-create it lazily on next access', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      const firstMeta = meta.getMeta(5, 0);
+
+      // Returns the physical columns whose meta was evicted (only column 0 was materialized).
+      expect(meta.evictRow(5)).toEqual([0]);
+
+      // A fresh object is created on the next access (the original was released).
+      const secondMeta = meta.getMeta(5, 0);
+
+      expect(secondMeta).not.toBe(firstMeta);
+    });
+
+    it('should keep cells that carry user-defined meta props and evict the rest of the row', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.getMeta(5, 0); // render-derived (no user props)
+      meta.setMeta(5, 1, 'className', 'htRight'); // user-defined - must survive
+
+      const userMetaBefore = meta.getMeta(5, 1);
+
+      meta.evictRow(5);
+
+      // The user-defined cell keeps its identity and value; the prop-less cell is gone.
+      expect(meta.getMeta(5, 1)).toBe(userMetaBefore);
+      expect(meta.getMeta(5, 1)).toHaveProperty('className', 'htRight');
+      expect(meta.getUserDefinedMetas()).toEqual([
+        { physicalRow: 5, physicalColumn: 1, key: 'className', value: 'htRight' },
+      ]);
+    });
+
+    it('should return an empty array for a row that was never materialized', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      expect(meta.evictRow(42)).toEqual([]);
+    });
+
+    it('should preserve user-defined meta after eviction and re-materialization of sibling cells', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.setMeta(5, 1, 'className', 'htRight');
+      meta.getMeta(5, 0);
+      meta.getMeta(5, 2);
+
+      meta.evictRow(5);
+
+      // Re-access prop-less siblings; the user-defined cell is still intact.
+      meta.getMeta(5, 0);
+
+      expect(meta.getMeta(5, 1)).toHaveProperty('className', 'htRight');
+    });
+
+    it('should keep cells set declaratively while user-defined recording is disabled (the `cell` option path)', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      // Mirrors how Core applies the `cell` option: recording is disabled, so the write is NOT a
+      // user-defined prop, yet it is still non-reconstructable and must survive eviction.
+      meta.disableUserDefinedMetaRecording();
+      meta.setMeta(5, 1, 'className', 'declared-class');
+      meta.enableUserDefinedMetaRecording();
+
+      const declaredMetaBefore = meta.getMeta(5, 1);
+
+      meta.evictRow(5);
+
+      // It is not tracked as user-defined...
+      expect(meta.getUserDefinedMetas()).toEqual([]);
+      // ...but it is still kept and unchanged after eviction.
+      expect(meta.getMeta(5, 1)).toBe(declaredMetaBefore);
+      expect(meta.getMeta(5, 1)).toHaveProperty('className', 'declared-class');
+    });
+
+    it('should keep a cell flagged invalid (`valid === false`) and evict its valid siblings', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.getMeta(5, 0); // render-derived
+      const invalidMeta = meta.getMeta(5, 1);
+
+      invalidMeta.valid = false; // mirrors the validation flow writing directly onto the meta
+
+      // Only the valid sibling (column 0) is evicted; the row is not whole-dropped (column 1 is kept).
+      expect(meta.evictRow(5)).toEqual([0]);
+
+      // The invalid cell keeps its identity and flag; the valid sibling is re-created fresh.
+      expect(meta.getMeta(5, 1)).toBe(invalidMeta);
+      expect(meta.getMeta(5, 1).valid).toBe(false);
+    });
+  });
+
+  describe('createColumn() after eviction', () => {
+    it('should not re-create rows that were evicted (no re-materialization)', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.getMeta(0, 0);
+      meta.getMeta(1, 0);
+      meta.getMeta(2, 0);
+
+      meta.evictRow(1); // row 1 becomes unmaterialized
+
+      const materializedBefore = Array.from(meta.metas).length;
+
+      meta.createColumn(0, 1);
+
+      // createColumn must not resurrect the evicted row.
+      const materializedAfter = Array.from(meta.metas).length;
+
+      expect(materializedAfter).toBe(materializedBefore);
+      expect(Array.from(meta.metas).map(([key]) => key).sort((a, b) => a - b)).toEqual([0, 2]);
+    });
+  });
 });

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Reduced memory usage when scrolling large datasets by releasing cell metadata for rows scrolled out of the viewport.",
+  "type": "changed",
+  "issueOrPR": 12854,
+  "breaking": false,
+  "framework": "none"
+}

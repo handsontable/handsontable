@@ -189,6 +189,43 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
   }
 
   /**
+   * Releases the value stored under the given key while keeping its index slot intact. The next
+   * `obtain` call for that key re-creates the value through the factory. Unlike `remove`, the key
+   * mapping is preserved (no "hole" is created and surrounding keys do not shift), so this is safe
+   * for values that can be reconstructed deterministically - for example render-derived cell meta
+   * for rows scrolled out of the viewport. Does nothing when the key has no materialized value.
+   *
+   * The freed storage slot is deliberately NOT added to `holes`: a hole can be re-used by `obtain` for
+   * a different key, but here the key still maps to this slot (so the value can be lazily re-created),
+   * and reusing it would corrupt that mapping. A side effect is that `size()` keeps counting evicted
+   * slots, so it over-reports after `evict` - callers must not drive a `for (i < size()) obtain(i)`
+   * loop off it (the column-shift loops in `CellMeta` iterate materialized entries for this reason).
+   *
+   * @param {number} key The item key as zero-based index.
+   */
+  evict(key: number) {
+    const dataIndex = this._getStorageIndexByKey(key);
+
+    if (dataIndex >= 0) {
+      this.data[dataIndex] = undefined;
+    }
+  }
+
+  /**
+   * Returns the value stored under the given key, or `undefined` when the key has no materialized
+   * value. Unlike `obtain`, it never creates a value through the factory, so it is safe for
+   * read-only existence checks against the current contents.
+   *
+   * @param {number} key The item key as zero-based index.
+   * @returns {*}
+   */
+  getIfExists(key: number): V | undefined {
+    const dataIndex = this._getStorageIndexByKey(key);
+
+    return dataIndex >= 0 ? this.data[dataIndex] : undefined;
+  }
+
+  /**
    * Clears the map.
    */
   clear() {
