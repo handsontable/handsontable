@@ -61,6 +61,15 @@ export interface HotTableContextImpl {
   readonly clearRenderedCellCache: () => void;
 
   /**
+   * Returns the number of portal containers currently retained by the cache.
+   * Diagnostic hook used to assert the cache stays bounded to the viewport
+   * (it must not grow with the total scrolled row/column count).
+   *
+   * @returns {number} The portal container cache size.
+   */
+  readonly getPortalContainerCacheSize: () => number;
+
+  /**
    * Set the renderers portal manager dispatch function.
    *
    * @param {RenderersPortalManagerRef} pm The PortalManager dispatch function.
@@ -90,8 +99,16 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
   const renderedCellCache = useRef<Map<string, HTMLTableCellElement>>(new Map());
   const clearRenderedCellCache = useCallback(() => renderedCellCache.current.clear(), []);
   const portalCache = useRef<Map<string, ReactPortal>>(new Map());
-  const clearPortalCache = useCallback(() => portalCache.current.clear(), []);
   const portalContainerCache = useRef<Map<string, HTMLElement>>(new Map());
+  // Keys of the portal containers rendered in the current view-render pass.
+  // Reset every `beforeViewRender` and used after the render to evict
+  // containers whose cells left the viewport (see pushCellPortalsIntoPortalManager).
+  const renderedPortalContainerKeys = useRef<Set<string>>(new Set());
+  const clearPortalCache = useCallback(() => {
+    portalCache.current.clear();
+    renderedPortalContainerKeys.current.clear();
+  }, []);
+  const getPortalContainerCacheSize = useCallback(() => portalContainerCache.current.size, []);
 
   const getRendererWrapper = useCallback((Renderer: ComponentType<HotRendererProps>): typeof Handsontable.renderers.BaseRenderer => {
     return function __internalRenderer(instance, TD, row, col, prop, value, cellProperties) {
@@ -134,6 +151,7 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
         }
 
         portalContainerCache.current.set(portalContainerKey, portalContainer);
+        renderedPortalContainerKeys.current.add(portalContainerKey);
         portalCache.current.set(portalKey, portal);
       }
 
@@ -149,6 +167,20 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
   }, []);
 
   const pushCellPortalsIntoPortalManager = useCallback(() => {
+    // Evict portal containers whose cells were not rendered in this pass (e.g.
+    // scrolled out of the viewport). Their container DIVs are already detached
+    // from the DOM, so without this they would be retained forever, leaking
+    // O(rows × cols) detached nodes for component-based renderers. Containers
+    // still in the viewport stay cached, preserving the in-place reuse that
+    // avoids remounting renderer components on every grid render (#10800).
+    const liveKeys = renderedPortalContainerKeys.current;
+
+    portalContainerCache.current.forEach((_, cacheKey) => {
+      if (!liveKeys.has(cacheKey)) {
+        portalContainerCache.current.delete(cacheKey);
+      }
+    });
+
     renderersPortalManager.current!([...portalCache.current.values()]);
   }, []);
 
@@ -160,9 +192,10 @@ const HotTableContextProvider: FC<PropsWithChildren> = ({ children }) => {
     getRendererWrapper,
     clearPortalCache,
     clearRenderedCellCache,
+    getPortalContainerCacheSize,
     setRenderersPortalManagerRef,
     pushCellPortalsIntoPortalManager
-  }), [setHotColumnSettings, trimColumnSettings, getRendererWrapper, clearRenderedCellCache, setRenderersPortalManagerRef, pushCellPortalsIntoPortalManager]);
+  }), [setHotColumnSettings, trimColumnSettings, getRendererWrapper, clearRenderedCellCache, getPortalContainerCacheSize, setRenderersPortalManagerRef, pushCellPortalsIntoPortalManager]);
 
   return (
     <HotTableContext.Provider value={contextImpl}>{children}</HotTableContext.Provider>
