@@ -2615,7 +2615,8 @@ export default function Core(
    * to the DOM. While rendering the table all cell renderers are recalled.
    *
    * Calling this method manually is not recommended. Handsontable tries to render itself by choosing the most
-   * optimal moments in its lifecycle.
+   * optimal moments in its lifecycle. After [setCellMeta()](@/api/core.md#setcellmeta) changes visual cell
+   * properties, call this method to apply them, or wrap multiple calls in [batch()](@/api/core.md#batch).
    *
    * @memberof Core#
    * @function render
@@ -4288,6 +4289,10 @@ export default function Core(
 
   /**
    * Sets a property defined by the `key` property to the meta object of a cell corresponding to params `row` and `column`.
+   *
+   * This method updates internal cell metadata only. It does not repaint the grid. To reflect visual changes (such as
+   * `className`, `type`, or `readOnly`), call [render()](@/api/core.md#render) afterward, or wrap multiple calls in
+   * [batch()](@/api/core.md#batch).
    *
    * @memberof Core#
    * @function setCellMeta
