@@ -168,7 +168,7 @@ export class AppComponent {
     autoWrapCol: true,
     height: 'auto',
     afterInit(this: Handsontable) {
-      this.getPlugin('nestedRows').collapsingUI.collapseChildren(8);
+      this.getPlugin('nestedRows').collapsingUI?.collapseChildren(8);
     },
   };
 }
