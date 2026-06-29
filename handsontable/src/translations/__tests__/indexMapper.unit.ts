@@ -353,6 +353,26 @@ describe('IndexMapper', () => {
     indexMapper.unregisterMap('uniqueName');
   });
 
+  it('should return `null` from index translations for non-integer keys (e.g. `__proto__`, `constructor`, string-numeric)', () => {
+    const indexMapper = new IndexMapper();
+
+    indexMapper.initToLength(5);
+
+    // The translation caches are backed by typed arrays. Non-integer keys must be treated as misses (as the
+    // previous Map-backed cache did), so they neither leak prototype-chain values (`__proto__`, `constructor`)
+    // nor coerce string-numeric keys (`'0'` -> slot 0).
+    expect(indexMapper.getVisualFromPhysicalIndex('__proto__' as unknown as number)).toBe(null);
+    expect(indexMapper.getVisualFromPhysicalIndex('constructor' as unknown as number)).toBe(null);
+    expect(indexMapper.getVisualFromPhysicalIndex('0' as unknown as number)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex('__proto__' as unknown as number)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex('constructor' as unknown as number)).toBe(null);
+    expect(indexMapper.getRenderableFromVisualIndex('0' as unknown as number)).toBe(null);
+
+    // Integer keys still resolve normally.
+    expect(indexMapper.getVisualFromPhysicalIndex(0)).toBe(0);
+    expect(indexMapper.getRenderableFromVisualIndex(0)).toBe(0);
+  });
+
   it('should translate indexes from visual to physical and the other way round properly', () => {
     const indexMapper = new IndexMapper();
     const trimmingMap = new TrimmingMap();
