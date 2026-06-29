@@ -444,6 +444,9 @@ To change the number of rows or columns rendered by default, use the [`startRows
 Handsontable binds to your data source by reference, not by values. We don't copy the input dataset, and we rely on
 JavaScript to handle the objects. Any data entered into the grid will alter the original data source.
 
+This applies to cell value edits. Structural changes such as moving, sorting, or filtering rows do not reorder the
+source array - Handsontable stores that order as index metadata instead. For details, see [Row moving](@/guides/rows/row-moving/row-moving.md#data-model-behavior).
+
 ::: tip
 
 Handsontable initializes the source data for the table using a reference, but you shouldn't rely on it. For
