@@ -2230,6 +2230,25 @@ describe('MergeCells', () => {
       expect(merges()).toEqual([{ row: 2, col: 2, rowspan: 3, colspan: 3 }]);
     });
 
+    it('should capture correct anchors at bootstrap when trimRows hides rows above the merge from the config', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        trimRows: [0, 1], // physical rows 0,1 trimmed from the start — above the merge
+        mergeCells: [{ row: 0, col: 0, rowspan: 2, colspan: 2 }], // visual rows 0,1 -> physical 2,3
+      });
+
+      // the merge sits at its config (visual) coordinates over the still-visible rows
+      expect(merges()).toEqual([{ row: 0, col: 0, rowspan: 2, colspan: 2 }]);
+
+      getPlugin('trimRows').untrimAll();
+
+      await render();
+
+      // the bootstrap anchor was bound to physical row 2 (not left on the config visual row 0), so once
+      // the rows above reappear the merge follows its physical rows down to visual row 2
+      expect(merges()).toEqual([{ row: 2, col: 0, rowspan: 2, colspan: 2 }]);
+    });
+
     it('should re-anchor a merge created at runtime after a filter hides rows above it', async() => {
       handsontable({
         data: createSpreadsheetData(10, 5),
