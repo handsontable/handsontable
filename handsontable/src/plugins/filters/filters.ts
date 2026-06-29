@@ -3,7 +3,6 @@ import { BasePlugin } from '../base';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
-import { rangeEach } from '../../helpers/number';
 import { addClass, isBottomMostColumnHeader, isHTMLElement, removeClass } from '../../helpers/dom/element';
 import { isKey } from '../../helpers/unicode';
 import { getValueGetterValue } from '../../utils/valueAccessors';
@@ -995,24 +994,23 @@ export class Filters extends BasePlugin {
     );
 
     if (allowFiltering !== false && needToFilter) {
-      const trimmedRows: number[] = [];
       const dataFilter = this._createDataFilter();
       const rowIndexesToShow = arrayMap(dataFilter.filter(),
         rowData => (rowData as { meta: { row: number } }).meta.row);
       const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
+      const countSourceRows = this.hot.countSourceRows();
+      // Build the trimmed-state array in a single pass (`true` marks a row hidden by the filter), then
+      // write it to the map in one bulk `setValues` call. The previous approach scanned the dataset
+      // twice (a `clear()` that rebuilt the whole array, then a `rangeEach` pass) and fired a map
+      // `change` per trimmed row; for large datasets that was a measurable share of `filter()` time.
+      const trimmedRowsState = new Array(countSourceRows);
+
+      for (let physicalRow = 0; physicalRow < countSourceRows; physicalRow++) {
+        trimmedRowsState[physicalRow] = !rowIndexesToShowAssertion(physicalRow);
+      }
 
       this.hot.batchExecution(() => {
-        this.filtersRowsMap?.clear();
-
-        rangeEach(this.hot.countSourceRows() - 1, (row: number) => {
-          if (!rowIndexesToShowAssertion(row)) {
-            trimmedRows.push(row);
-          }
-        });
-
-        arrayEach(trimmedRows, (physicalRow) => {
-          this.filtersRowsMap?.setValueAtIndex(physicalRow, true);
-        });
+        this.filtersRowsMap?.setValues(trimmedRowsState);
       }, true);
 
       if (!navigableHeaders && !rowIndexesToShow.length) {
