@@ -358,4 +358,47 @@ describe('MetaManager', () => {
       expect(metaManager.columnMeta.clearCache).toHaveBeenCalledWith();
     });
   });
+
+  describe('getCellMetaUncached()', () => {
+    it('should not retain a meta object for a cell with no overrides', () => {
+      const metaManager = new MetaManager();
+
+      const meta = metaManager.getCellMetaUncached(2, 3, { visualRow: 2, visualColumn: 3 });
+
+      // positional props set, just like getCellMeta
+      expect(meta.row).toBe(2);
+      expect(meta.col).toBe(3);
+      expect(meta.visualRow).toBe(2);
+      expect(meta.visualCol).toBe(3);
+      // ...but nothing was stored in the cell-meta cache
+      expect(metaManager.cellMeta.hasMeta(2, 3)).toBe(false);
+      expect(metaManager.cellMeta.getMetas()).toHaveLength(0);
+    });
+
+    it('should inherit column-layer settings through the prototype chain', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(4, { className: 'htCenter', type: 'numeric' });
+
+      const meta = metaManager.getCellMetaUncached(10, 4, { visualRow: 10, visualColumn: 4 });
+
+      expect(meta.className).toBe('htCenter');
+      expect(meta.type).toBe('numeric');
+      expect(metaManager.cellMeta.hasMeta(10, 4)).toBe(false);
+    });
+
+    it('should reuse the stored meta object when the cell already has its own meta', () => {
+      const metaManager = new MetaManager();
+
+      // give the cell an override -> it now has a cached meta object
+      metaManager.setCellMeta(5, 1, 'className', 'htRight');
+
+      const stored = metaManager.getCellMeta(5, 1, { visualRow: 5, visualColumn: 1, skipMetaExtension: true });
+      const uncached = metaManager.getCellMetaUncached(5, 1, { visualRow: 5, visualColumn: 1 });
+
+      // the override is preserved AND the same object is reused (not a throwaway copy)
+      expect(uncached.className).toBe('htRight');
+      expect(uncached).toBe(stored);
+    });
+  });
 });

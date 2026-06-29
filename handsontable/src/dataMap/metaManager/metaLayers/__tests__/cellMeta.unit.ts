@@ -787,6 +787,70 @@ describe('ColumnMeta', () => {
     });
   });
 
+  describe('hasMeta()', () => {
+    it('should return false for a cell whose meta was never obtained, without creating it', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      expect(meta.hasMeta(2, 3)).toBe(false);
+      // peeking must not have materialized anything
+      expect(meta.getMetas()).toHaveLength(0);
+    });
+
+    it('should return true only after the cell meta was obtained', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.getMeta(2, 3);
+
+      expect(meta.hasMeta(2, 3)).toBe(true);
+      expect(meta.hasMeta(2, 4)).toBe(false);
+      expect(meta.hasMeta(5, 3)).toBe(false);
+    });
+
+    it('should return true for a cell that received meta via setMeta', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      meta.setMeta(1, 1, 'className', 'htRight');
+
+      expect(meta.hasMeta(1, 1)).toBe(true);
+    });
+  });
+
+  describe('createTransientMeta()', () => {
+    it('should create a cell meta inheriting from the column layer without storing it', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      columnMeta.getMeta(5).className = 'htCenter';
+
+      const transient = meta.createTransientMeta(5);
+
+      // inherits column-layer props through the prototype chain
+      expect(transient.className).toBe('htCenter');
+      // but is NOT retained in the map
+      expect(meta.hasMeta(0, 5)).toBe(false);
+      expect(meta.getMetas()).toHaveLength(0);
+    });
+
+    it('should return independent objects on repeated calls', () => {
+      const globalMeta = new GlobalMeta();
+      const columnMeta = new ColumnMeta(globalMeta);
+      const meta = new CellMeta(columnMeta);
+
+      const a = meta.createTransientMeta(0);
+      const b = meta.createTransientMeta(0);
+
+      expect(a).not.toBe(b);
+      expect(meta.getMetas()).toHaveLength(0);
+    });
+  });
+
   describe('evictRow()', () => {
     it('should evict render-derived cell meta for a row and re-create it lazily on next access', () => {
       const globalMeta = new GlobalMeta();

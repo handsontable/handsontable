@@ -86,6 +86,19 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
   }
 
   /**
+   * Checks whether a value for the given key has already been created, without creating one.
+   * Unlike `obtain`, this never triggers the value factory.
+   *
+   * @param {number} key The item key as zero-based index.
+   * @returns {boolean}
+   */
+  has(key: number): boolean {
+    const dataIndex = this._getStorageIndexByKey(key);
+
+    return dataIndex >= 0 && this.data[dataIndex] !== undefined;
+  }
+
+  /**
    * Inserts an empty data to the map. This method creates an empty space for obtaining
    * new data.
    *
