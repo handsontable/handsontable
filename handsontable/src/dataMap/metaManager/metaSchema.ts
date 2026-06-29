@@ -646,6 +646,12 @@ export default (): Record<string, unknown> => {
      * | `column`  | Yes      | Number           | A physical column index                                                                                                                                                                                                                                                                                                                 |
      * | `prop`    | No       | String \| Number | If [`data`](#data) is set to an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), `prop` is the same number as `column`.<br><br>If [`data`](#data) is set to an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), `prop` is a property name for the column's data object. |
      *
+     * Inside a regular (non-arrow) `cells` function, `this` is the cell meta object. Its
+     * `this.instance` property is the Handsontable instance, so you can call core API methods
+     * such as `this.instance.toVisualRow(row)` or `this.instance.toVisualColumn(column)` (as in
+     * the example below). Arrow functions (`cells: () => {}`) do not bind `this`, so
+     * `this.instance` is not available inside them – use a regular or shorthand function instead.
+     *
      * Read more:
      * - [Configuration options: Implementing custom logic](@/guides/getting-started/configuration-options/configuration-options.md#implement-custom-logic)
      * - [Configuration options: Setting row options](@/guides/getting-started/configuration-options/configuration-options.md#set-row-options)

@@ -501,6 +501,8 @@ Any options modified through [`cells`](@/api/options.md#cells) overwrite all oth
 - `prop`: if your [`data`](@/api/options.md#data) is an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), `prop` is a property name for a column's data source object.<br>
 If your [`data`](@/api/options.md#data) is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
 
+Inside the `cells` function, `this` is the cell meta object, and `this.instance` is the Handsontable instance. Use `this.instance` to call core API methods -- for example, `this.instance.toVisualRow(row)`.
+
 ```js
 const hot = new Handsontable(container, {
   // the `cells` options overwrite all other options
@@ -542,6 +544,8 @@ The function can take three arguments:<br>
 }}/>
 ```
 
+The arrow function passed to `cells` does not bind `this`, so `this.instance` is not available inside it. To access the Handsontable instance, use the component's ref: `hotTableRef.current.hotInstance`.
+
 :::
 
 ::: only-for angular
@@ -576,6 +580,8 @@ gridSettings: GridSettings = {
 <hot-table [settings]="gridSettings" />
 ```
 
+The arrow function passed to `cells` does not bind `this`, so `this.instance` is not available inside it. To access the Handsontable instance, use the component's ref: `hotTable.hotInstance`.
+
 :::
 
 ::: only-for vue
@@ -597,6 +603,8 @@ const hotSettings = ref({
 ```html
 <HotTable :settings="hotSettings" />
 ```
+
+Because the `cells` function above is a shorthand method, `this` is the cell meta object and `this.instance` is the Handsontable instance -- for example, `this.instance.toVisualRow(row)`. An arrow function (`cells: () => {}`) does not bind `this`; in that case, access the instance via the component's ref: `hotRef.value?.hotInstance`.
 
 :::
 
@@ -1044,6 +1052,8 @@ The function can take three arguments:<br>
    - `prop`: if your [`data`](@/api/options.md#data) is an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), `prop` is a property name for a column's data source object.<br>
    If your [`data`](@/api/options.md#data) is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
 
+Inside the `cells` function, `this` is the cell meta object, and `this.instance` is the Handsontable instance. Use `this.instance` to call core API methods -- for example, `this.instance.toVisualRow(row)`.
+
 ```js
 const hot = new Handsontable(container, {
   cells(row, col) {
@@ -1082,6 +1092,8 @@ The function can take three arguments:<br>
 />
 ```
 
+The arrow function passed to `cells` does not bind `this`, so `this.instance` is not available inside it. To access the Handsontable instance, use the component's ref: `hotTableRef.current.hotInstance`.
+
 :::
 
 ::: only-for angular
@@ -1114,6 +1126,8 @@ gridSettings: GridSettings = {
 <hot-table [settings]="gridSettings" />
 ```
 
+The arrow function passed to `cells` does not bind `this`, so `this.instance` is not available inside it. To access the Handsontable instance, use the component's ref: `hotTable.hotInstance`.
+
 :::
 
 ::: only-for vue
@@ -1133,6 +1147,8 @@ const hotSettings = ref({
 ```html
 <HotTable :settings="hotSettings" />
 ```
+
+Because the `cells` function above is a shorthand method, `this` is the cell meta object and `this.instance` is the Handsontable instance -- for example, `this.instance.toVisualRow(row)`. An arrow function (`cells: () => {}`) does not bind `this`; in that case, access the instance via the component's ref: `hotRef.value?.hotInstance`.
 
 :::
 
