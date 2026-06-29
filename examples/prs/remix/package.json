@@ -1,0 +1,35 @@
+{
+  "name": "handsontable-pr-remix-demo",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "remix vite:dev",
+    "build": "remix vite:build",
+    "preview": "remix-serve ./build/server/index.js"
+  },
+  "dependencies": {
+    "@handsontable/react-wrapper": "latest",
+    "@ngneat/falso": "^7.1.1",
+    "@remix-run/node": "^2.16.0",
+    "@remix-run/react": "^2.16.0",
+    "@remix-run/serve": "^2.16.0",
+    "handsontable": "latest",
+    "isbot": "^4.4.0",
+    "react": "^18.3.0",
+    "react-dom": "^18.3.0"
+  },
+  "devDependencies": {
+    "@remix-run/dev": "^2.16.0",
+    "typescript": "^5.4.5",
+    "vite": "^6.3.5",
+    "esbuild": "0.25.4"
+  },
+  "overrides": {
+    "esbuild": "0.25.4"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "license": "SEE LICENSE IN LICENSE.txt"
+}

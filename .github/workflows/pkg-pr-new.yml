@@ -58,6 +58,7 @@ jobs:
             --template ./examples/prs/js \
             --template ./examples/prs/ts \
             --template ./examples/prs/react \
+            --template ./examples/prs/remix \
             ./handsontable/tmp \
             './wrappers/angular-wrapper/dist/hot-table' \
             ./wrappers/react-wrapper \
