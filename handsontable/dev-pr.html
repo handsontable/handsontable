@@ -3,31 +3,33 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Undo after column remove with merged cells — AFTER fix</title>
-  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
+  <title>Undo after column remove — AFTER fix</title>
+  <link rel="stylesheet" href="https://rawcdn.githack.com/handsontable/handsontable/fb62f5b3cd5366389c07799363704d1587ef1cf6/handsontable/styles/ht-theme-main.min.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
     h1 { font-size: 18px; margin-bottom: 12px; }
-    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; flex-wrap: wrap; }
     .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
-    .nav-btn {
-      padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none;
-      border: 1px solid #ccc;
-    }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
     .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
     .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
     .nav-btn:not(.active):hover { background: #f0f0f0; }
     .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
     .badge-bug { background: #fce4e4; color: #b71c1c; }
     .badge-fix { background: #e8f5e9; color: #2e7d32; }
-    .info { background: #e8f5e9; border: 1px solid #66bb6a; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
-    .info strong { color: #2e7d32; }
-    .status { margin-top: 12px; padding: 10px 14px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: monospace; }
-    .status-label { font-weight: 600; margin-bottom: 4px; font-family: sans-serif; }
-    button { padding: 7px 16px; border-radius: 5px; border: 1px solid #aaa; background: #fff; cursor: pointer; font-size: 13px; margin-right: 6px; margin-bottom: 8px; }
+    .info { background: #e8f5e9; border: 1px solid #66bb6a; border-radius: 6px; padding: 12px 16px; margin-bottom: 12px; font-size: 13px; line-height: 1.6; }
+    .controls { margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
+    button { padding: 7px 14px; border-radius: 5px; border: 1px solid #aaa; background: #fff; cursor: pointer; font-size: 13px; }
     button:hover { background: #f0f0f0; }
-    .controls { margin-bottom: 12px; }
+    button:active { background: #e0e0e0; }
+    .status { margin-top: 12px; padding: 10px 14px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
+    .status-row { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 4px; }
+    .status-item { display: flex; flex-direction: column; gap: 2px; }
+    .status-label { font-size: 11px; text-transform: uppercase; letter-spacing: .05em; color: #888; font-weight: 600; }
+    .status-val { font-family: monospace; font-size: 13px; }
+    #merge-list { font-family: monospace; font-size: 12px; color: #555; margin-top: 6px; }
+    #err-box { display: none; background: #fff0f0; border: 1px solid #f88; border-radius: 6px; padding: 10px 14px; margin-bottom: 12px; font-size: 13px; color: #900; font-family: monospace; white-space: pre-wrap; }
   </style>
 </head>
 <body>
@@ -39,80 +41,89 @@
     <span class="nav-btn active">After fix <span class="badge badge-fix">FIXED</span></span>
   </nav>
 
+  <div id="err-box"></div>
+
   <div class="info">
-    <strong>Fix (PR #12801):</strong> Undo after column removal now correctly restores all merged
-    cell ranges that overlapped the removed column — fully contained, partial-left, partial-right,
-    and multi-merge cases.<br><br>
-    <strong>Steps to verify:</strong><br>
-    1. Click one of the <em>Remove col</em> buttons below.<br>
-    2. Click <strong>Undo</strong> (or press Ctrl+Z).<br>
-    3. The merged cell count and coordinates in the status bar return to their original values.<br>
-    4. Click <strong>Redo</strong> — the merge shrinks or disappears again as expected.
+    <strong>Fix (PR #12801):</strong> Undo after column removal now fully restores merged cell
+    ranges — fully-contained, partial-left, partial-right, and multi-merge cases.<br>
+    <strong>Steps:</strong> 1. Click a <em>Remove col</em> button.&nbsp; 2. Click <strong>Undo</strong>.&nbsp;
+    3. Watch <em>Merged cells</em> in the status — it returns to 2 (the initial count).
   </div>
 
   <div class="controls">
-    <button onclick="resetGrid()">Reset grid</button>
-    <button onclick="window.hot.getPlugin('undoRedo').undo()">Undo (Ctrl+Z)</button>
-    <button onclick="window.hot.getPlugin('undoRedo').redo()">Redo (Ctrl+Y)</button>
-    <button onclick="removeCol(2)">Remove col C (fully inside merge)</button>
-    <button onclick="removeCol(1)">Remove col B (partial-left overlap)</button>
-    <button onclick="removeCol(3)">Remove col D (partial-right overlap)</button>
+    <button onclick="doReset()">Reset grid</button>
+    <button onclick="doUndo()">Undo (Ctrl+Z)</button>
+    <button onclick="doRedo()">Redo (Ctrl+Y)</button>
+    <button onclick="doRemove(2)">Remove col C (fully inside merge)</button>
+    <button onclick="doRemove(1)">Remove col B (partial-left overlap)</button>
+    <button onclick="doRemove(3)">Remove col D (partial-right overlap)</button>
   </div>
 
   <div id="hot-container"></div>
 
   <div class="status">
-    <div class="status-label">Merge state</div>
-    <div>Count: <span id="merge-count">—</span></div>
-    <div id="merge-list" style="color:#555;margin-top:4px;"></div>
+    <div class="status-row">
+      <div class="status-item"><span class="status-label">Columns</span><span class="status-val" id="s-cols">—</span></div>
+      <div class="status-item"><span class="status-label">Merged cells</span><span class="status-val" id="s-merges">—</span></div>
+      <div class="status-item"><span class="status-label">Expected after reset</span><span class="status-val">2 merges, 6 cols</span></div>
+    </div>
+    <div id="merge-list"></div>
   </div>
 
-  <script src="dist/handsontable.full.min.js"></script>
+  <script src="https://rawcdn.githack.com/handsontable/handsontable/fb62f5b3cd5366389c07799363704d1587ef1cf6/handsontable/dist/handsontable.full.min.js"></script>
   <script>
-    const INITIAL_MERGES = [
+    var INITIAL_MERGES = [
       { row: 0, col: 1, rowspan: 2, colspan: 3 },
-      { row: 3, col: 2, rowspan: 2, colspan: 1 },
+      { row: 3, col: 2, rowspan: 2, colspan: 1 }
     ];
 
     function makeData() {
       return Handsontable.helper.createSpreadsheetData(6, 6);
     }
 
-    function removeCol(colIndex) {
-      window.hot.alter('remove_col', colIndex);
-    }
-
     function updateStatus() {
-      const plugin = window.hot.getPlugin('mergeCells');
-      const merges = plugin.mergedCellsCollection.mergedCells;
-      document.getElementById('merge-count').textContent = merges.length;
-      document.getElementById('merge-list').textContent =
-        merges.map(m => 'row=' + m.row + ' col=' + m.col + ' rowspan=' + m.rowspan + ' colspan=' + m.colspan).join(' | ') || '(none)';
+      var plugin = window.hot.getPlugin('mergeCells');
+      var merges = plugin.mergedCellsCollection.mergedCells;
+      document.getElementById('s-cols').textContent = window.hot.countCols();
+      document.getElementById('s-merges').textContent = merges.length;
+      document.getElementById('merge-list').textContent = merges.length
+        ? merges.map(function(m) {
+            return 'row=' + m.row + ' col=' + m.col + ' rowspan=' + m.rowspan + ' colspan=' + m.colspan;
+          }).join('  |  ')
+        : '(no merges)';
     }
 
-    function resetGrid() {
+    function doRemove(colIndex) { window.hot.alter('remove_col', colIndex); }
+    function doUndo() { window.hot.getPlugin('undoRedo').undo(); }
+    function doRedo() { window.hot.getPlugin('undoRedo').redo(); }
+    function doReset() {
       window.hot.loadData(makeData());
       window.hot.updateSettings({ mergeCells: INITIAL_MERGES.map(function(m) { return Object.assign({}, m); }) });
       updateStatus();
     }
 
-    window.hot = new Handsontable(document.getElementById('hot-container'), {
-      data: makeData(),
-      colHeaders: true,
-      rowHeaders: true,
-      width: '100%',
-      height: 320,
-      themeName: 'ht-theme-main',
-      licenseKey: 'non-commercial-and-evaluation',
-      mergeCells: INITIAL_MERGES.map(function(m) { return Object.assign({}, m); }),
-      contextMenu: true,
-      afterUndo: updateStatus,
-      afterRedo: updateStatus,
-      afterRemoveCol: updateStatus,
-      afterCreateCol: updateStatus,
-    });
-
-    updateStatus();
+    try {
+      window.hot = new Handsontable(document.getElementById('hot-container'), {
+        data: makeData(),
+        colHeaders: true,
+        rowHeaders: true,
+        width: '100%',
+        height: 320,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+        mergeCells: INITIAL_MERGES.map(function(m) { return Object.assign({}, m); }),
+        contextMenu: true,
+        afterUndo: updateStatus,
+        afterRedo: updateStatus,
+        afterRemoveCol: updateStatus,
+        afterCreateCol: updateStatus
+      });
+      updateStatus();
+    } catch(e) {
+      var box = document.getElementById('err-box');
+      box.style.display = 'block';
+      box.textContent = 'Handsontable init error: ' + e.message;
+    }
   </script>
 </body>
 </html>
