@@ -271,7 +271,6 @@ export class MergeCells extends BasePlugin {
     });
 
     this.addHook('afterMergeCells', this.#onAfterMergeCellsCapture);
-    this.addHook('afterColumnSort', this.#onAfterColumnSort);
 
     this.registerShortcuts();
 
@@ -729,22 +728,22 @@ export class MergeCells extends BasePlugin {
   };
 
   /**
-   * Row index mapper `cacheUpdated` callback. On any visibility change (Filters / `trimRows` /
-   * `nestedRows` collapse / `hiddenRows`), re-anchors each merge onto the rows that remain visible, so
-   * trimming rows above a merge no longer leaves its anchor behind. The re-anchor is anchor-based and
-   * idempotent, and this hook fires after the mapper cache has been (re)built — including once at the
-   * end of a batched `suspendOperations`/`resumeOperations` block — so it is also the authoritative
-   * place to fix up a visibility change that arrives alongside an index-sequence change (a sort or
-   * move batched together with a filter); gating it on `!indexesSequenceChanged` used to drop that
-   * trim re-anchor entirely. A pure sequence change with no visibility change (a standalone sort/move)
-   * leaves `trimmedIndexesChanged`/`hiddenIndexesChanged` `false` and is handled by the dedicated
-   * `afterColumnSort` / `afterRowMove` hooks instead.
+   * Row index mapper `cacheUpdated` callback. Re-anchors every merge onto its physical anchor's current
+   * visual position after any index-mapper cache change — a visibility change (Filters / `trimRows` /
+   * `nestedRows` collapse / `hiddenRows`) or an index-sequence change (a sort / move). The re-anchor is
+   * anchor-based and idempotent, and this hook fires after the mapper cache has been (re)built —
+   * including once at the end of a batched `suspendOperations`/`resumeOperations` block — so it is the
+   * authoritative place to position merges: it covers a plain filter, a sort and a filter batched
+   * together, and a standalone batched sort (where re-anchoring inside the in-batch `afterColumnSort`
+   * hook used to read a stale, pre-sort cache). Row/column moves additionally translate (and split)
+   * spans in their `afterRowMove`/`afterColumnMove` hooks; this re-anchor runs on top of that authoritative
+   * translation as a no-op.
    *
    * @param {{ trimmedIndexesChanged: boolean, hiddenIndexesChanged: boolean, indexesSequenceChanged:
    *   boolean }} changes Cache flags.
    */
   #onRowIndexCacheUpdated = (
-    { trimmedIndexesChanged, hiddenIndexesChanged }:
+    { trimmedIndexesChanged, hiddenIndexesChanged, indexesSequenceChanged }:
     { trimmedIndexesChanged: boolean, hiddenIndexesChanged: boolean, indexesSequenceChanged: boolean }
   ) => {
     // The hook is removed in `disablePlugin`/`destroy`, but keep a defensive guard in case a final
@@ -753,26 +752,9 @@ export class MergeCells extends BasePlugin {
       return;
     }
 
-    if (trimmedIndexesChanged || hiddenIndexesChanged) {
+    if (trimmedIndexesChanged || hiddenIndexesChanged || indexesSequenceChanged) {
       this.#reanchorMergesToVisibleRows();
     }
-  };
-
-  /**
-   * `afterColumnSort` callback. Sorting reorders the visual row sequence without trimming, so each
-   * merge must follow its physical anchor to that row's new visual position. Runs before the sort's
-   * own render. Skipped when the sort was a no-op.
-   *
-   * @param {Array} _currentSortConfig Previous sort config (unused).
-   * @param {Array} _destinationSortConfig New sort config (unused).
-   * @param {boolean} sortPossible Whether the sort was actually applied.
-   */
-  #onAfterColumnSort = (_currentSortConfig: unknown, _destinationSortConfig: unknown, sortPossible: boolean) => {
-    if (!this.hot || !this.#initialized || !sortPossible) {
-      return;
-    }
-
-    this.#reanchorMergesToVisibleRows();
   };
 
   /**
@@ -1803,6 +1785,9 @@ export class MergeCells extends BasePlugin {
 
     this.mergedCellsCollection.translateAfterAxisMove('column', snapshot);
     this.#captureMergeAnchors();
+    // `translateAfterAxisMove` rebuilt the matrix from every merge; re-anchor to drop the stale
+    // footprint of any merge that is still fully hidden by trimming.
+    this.#reanchorMergesToVisibleRows();
     this.hot.render();
   };
 
@@ -1849,6 +1834,9 @@ export class MergeCells extends BasePlugin {
 
     this.mergedCellsCollection.translateAfterAxisMove('row', snapshot);
     this.#captureMergeAnchors();
+    // `translateAfterAxisMove` rebuilt the matrix from every merge; re-anchor to drop the stale
+    // footprint of any merge that is still fully hidden by trimming.
+    this.#reanchorMergesToVisibleRows();
     this.hot.render();
   };
 
@@ -1887,6 +1875,9 @@ export class MergeCells extends BasePlugin {
 
     this.mergedCellsCollection.translateAfterAxisMove('column', snapshot);
     this.#captureMergeAnchors();
+    // `translateAfterAxisMove` rebuilt the matrix from every merge; re-anchor to drop the stale
+    // footprint of any merge that is still fully hidden by trimming.
+    this.#reanchorMergesToVisibleRows();
     this.hot.render();
   };
 

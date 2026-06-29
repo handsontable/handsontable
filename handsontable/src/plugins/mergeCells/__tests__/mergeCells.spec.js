@@ -2513,6 +2513,29 @@ describe('MergeCells', () => {
       expect(merges()[0].row).toBe(mc.hot.toVisualRow(2));
     });
 
+    it('should re-anchor a merge after a column sort wrapped in hot.batch() with no filter', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        columnSorting: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }], // physical rows 2,3,4
+      });
+      const mc = getPlugin('mergeCells');
+
+      // a standalone sort batched on its own: the only cacheUpdated carries indexesSequenceChanged.
+      // Re-anchoring inside the in-batch afterColumnSort would read a stale (pre-sort) cache.
+      mc.hot.batch(() => {
+        getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+      });
+
+      await render();
+
+      // sanity: the sort moved the merge's physical anchor row away from visual row 2
+      expect(mc.hot.toVisualRow(2)).not.toBe(2);
+
+      // the merge follows its physical anchor to the new visual position instead of staying at row 2
+      expect(merges()[0].row).toBe(mc.hot.toVisualRow(2));
+    });
+
     it('should not let a row insert re-add a fully hidden (purged) merge to the lookup matrix', async() => {
       handsontable({
         data: createSpreadsheetData(10, 5),
@@ -2563,6 +2586,123 @@ describe('MergeCells', () => {
 
       // the still-hidden merge must not reappear as a phantom footprint at its (shifted) stale coords
       expect(collection.get(merge.row, merge.col)).toBe(false);
+    });
+
+    it('should not let a column move re-add a fully hidden (purged) merge as a phantom', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        manualColumnMove: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 2 }], // physical rows 2,3,4
+      });
+      const filters = getPlugin('filters');
+      const collection = getPlugin('mergeCells').mergedCellsCollection;
+
+      // hide ALL the merge's rows -> the merge is purged from the matrix
+      filters.addCondition(0, 'by_value', [['A1']]);
+      filters.filter();
+
+      await render();
+
+      // a column move rebuilds the matrix via translateAfterAxisMove while the merge is still hidden
+      getPlugin('manualColumnMove').moveColumn(0, 4);
+
+      await render();
+
+      const merge = collection.mergedCells[0];
+
+      // the still-hidden merge must not resolve at any of its (current) coords
+      expect(merge === undefined ? false : collection.get(merge.row, merge.col)).toBe(false);
+    });
+
+    it('should not let a row move re-add a fully hidden (purged) merge as a phantom', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        manualRowMove: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 2 }], // physical rows 2,3,4
+      });
+      const filters = getPlugin('filters');
+      const collection = getPlugin('mergeCells').mergedCellsCollection;
+
+      filters.addCondition(0, 'by_value', [['A1']]);
+      filters.filter();
+
+      await render();
+
+      getPlugin('manualRowMove').moveRow(0, 3);
+
+      await render();
+
+      const merge = collection.mergedCells[0];
+
+      expect(merge === undefined ? false : collection.get(merge.row, merge.col)).toBe(false);
+    });
+
+    it('should keep a fully hidden merge correctly anchored across a column move (restored on clear)', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        manualColumnMove: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 2 }], // physical rows 2,3,4, cols 2,3
+      });
+      const mc = getPlugin('mergeCells');
+      const filters = getPlugin('filters');
+
+      // hide ALL the merge's rows
+      filters.addCondition(0, 'by_value', [['A1']]);
+      filters.filter();
+
+      await render();
+
+      // move a column while the merge is fully hidden (rebuilds the collection via translateAfterAxisMove)
+      getPlugin('manualColumnMove').moveColumn(0, 4);
+
+      await render();
+
+      // restoring visibility must bring the merge back on its physical rows (2,3,4) and follow its
+      // physical columns to the new visual position; a corrupted anchor would land it on a wrong row
+      filters.clearConditions();
+      filters.filter();
+
+      await render();
+
+      expect(mc.hot.toVisualRow(2)).toBe(2); // sanity: no trimming after clear
+      expect(merges()).toEqual([
+        { row: mc.hot.toVisualRow(2), col: mc.hot.toVisualColumn(2), rowspan: 3, colspan: 2 }
+      ]);
+    });
+
+    it('should keep a partially-trimmed (fully hidden) merge anchored across a column move (restored on clear)', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        manualColumnMove: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 2 }], // physical rows 2,3,4, cols 2,3
+      });
+      const mc = getPlugin('mergeCells');
+      const filters = getPlugin('filters');
+
+      // hide ONLY the merge's own rows (A3,A4,A5 = physical 2,3,4); rows above and below stay visible,
+      // so a stale visual row still maps to a real (wrong) physical row
+      filters.addCondition(0, 'by_value', [['A1', 'A2', 'A6', 'A7', 'A8', 'A9', 'A10']]);
+      filters.filter();
+
+      await render();
+
+      getPlugin('manualColumnMove').moveColumn(0, 4);
+
+      await render();
+
+      filters.clearConditions();
+      filters.filter();
+
+      await render();
+
+      expect(mc.hot.toVisualRow(2)).toBe(2); // sanity: no trimming after clear
+      expect(merges()).toEqual([
+        { row: mc.hot.toVisualRow(2), col: mc.hot.toVisualColumn(2), rowspan: 3, colspan: 2 }
+      ]);
     });
   });
 });
