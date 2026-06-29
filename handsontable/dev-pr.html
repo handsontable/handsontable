@@ -3,9 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Undo after column remove with merged cells — PR Build (fixed)</title>
-  <link rel="stylesheet"
-    href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <title>Undo after column remove with merged cells — AFTER fix</title>
+  <link rel="stylesheet" href="styles/ht-theme-main.min.css">
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
@@ -20,14 +19,12 @@
     .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
     .nav-btn:not(.active):hover { background: #f0f0f0; }
     .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
-    .badge-cdn { background: #fce4e4; color: #b71c1c; }
-    .badge-local { background: #e8f5e9; color: #2e7d32; }
+    .badge-bug { background: #fce4e4; color: #b71c1c; }
+    .badge-fix { background: #e8f5e9; color: #2e7d32; }
     .info { background: #e8f5e9; border: 1px solid #66bb6a; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.5; }
     .info strong { color: #2e7d32; }
-    .status { margin-top: 12px; padding: 10px 14px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
-    .status-label { font-weight: 600; margin-bottom: 4px; }
-    .bug { color: #b71c1c; font-weight: 600; }
-    .ok { color: #2e7d32; font-weight: 600; }
+    .status { margin-top: 12px; padding: 10px 14px; background: #fff; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; font-family: monospace; }
+    .status-label { font-weight: 600; margin-bottom: 4px; font-family: sans-serif; }
     button { padding: 7px 16px; border-radius: 5px; border: 1px solid #aaa; background: #fff; cursor: pointer; font-size: 13px; margin-right: 6px; margin-bottom: 8px; }
     button:hover { background: #f0f0f0; }
     .controls { margin-bottom: 12px; }
@@ -38,19 +35,19 @@
 
   <nav>
     <span class="nav-label">Version:</span>
-    <a class="nav-btn" href="dev-latest.html">Released <span class="badge badge-cdn">v17.1.0 — BUG</span></a>
-    <span class="nav-btn active">PR Build <span class="badge badge-local">fixed</span></span>
+    <a class="nav-btn" href="dev-latest.html">Before fix <span class="badge badge-bug">BUG</span></a>
+    <span class="nav-btn active">After fix <span class="badge badge-fix">FIXED</span></span>
   </nav>
 
   <div class="info">
-    <strong>Fix (PR #12801):</strong> Removing a column that overlaps a merged cell area and then
-    pressing Ctrl+Z now correctly restores the merged cell range alongside the column data.<br><br>
-    <strong>How to verify the fix:</strong><br>
-    1. The grid loads with several merge configurations (see labels below).<br>
-    2. Remove a column using the buttons or right-click context menu.<br>
-    3. Press <strong>Ctrl+Z</strong> (or click Undo).<br>
-    4. <span class="ok">FIXED:</span> the merged cell is restored to its original row/col/rowspan/colspan.<br>
-    5. Press <strong>Ctrl+Y</strong> (Redo) — the merge shrinks or disappears again as expected.
+    <strong>Fix (PR #12801):</strong> Undo after column removal now correctly restores all merged
+    cell ranges that overlapped the removed column — fully contained, partial-left, partial-right,
+    and multi-merge cases.<br><br>
+    <strong>Steps to verify:</strong><br>
+    1. Click one of the <em>Remove col</em> buttons below.<br>
+    2. Click <strong>Undo</strong> (or press Ctrl+Z).<br>
+    3. The merged cell count and coordinates in the status bar return to their original values.<br>
+    4. Click <strong>Redo</strong> — the merge shrinks or disappears again as expected.
   </div>
 
   <div class="controls">
@@ -65,15 +62,16 @@
   <div id="hot-container"></div>
 
   <div class="status">
-    <div class="status-label">Merged cells count: <span id="merge-count">—</span></div>
-    <div id="merge-list" style="color:#555;font-size:12px;"></div>
+    <div class="status-label">Merge state</div>
+    <div>Count: <span id="merge-count">—</span></div>
+    <div id="merge-list" style="color:#555;margin-top:4px;"></div>
   </div>
 
   <script src="dist/handsontable.full.min.js"></script>
   <script>
     const INITIAL_MERGES = [
-      { row: 0, col: 1, rowspan: 2, colspan: 3 }, // spans B–D, partial-left if B removed, partial-right if D removed, middle if C removed
-      { row: 3, col: 2, rowspan: 2, colspan: 1 }, // fully inside col C — disappears on remove
+      { row: 0, col: 1, rowspan: 2, colspan: 3 },
+      { row: 3, col: 2, rowspan: 2, colspan: 1 },
     ];
 
     function makeData() {
@@ -89,12 +87,12 @@
       const merges = plugin.mergedCellsCollection.mergedCells;
       document.getElementById('merge-count').textContent = merges.length;
       document.getElementById('merge-list').textContent =
-        merges.map(m => `row=${m.row} col=${m.col} rowspan=${m.rowspan} colspan=${m.colspan}`).join(' | ') || '(none)';
+        merges.map(m => 'row=' + m.row + ' col=' + m.col + ' rowspan=' + m.rowspan + ' colspan=' + m.colspan).join(' | ') || '(none)';
     }
 
     function resetGrid() {
       window.hot.loadData(makeData());
-      window.hot.updateSettings({ mergeCells: INITIAL_MERGES.map(m => ({ ...m })) });
+      window.hot.updateSettings({ mergeCells: INITIAL_MERGES.map(function(m) { return Object.assign({}, m); }) });
       updateStatus();
     }
 
@@ -106,9 +104,8 @@
       height: 320,
       themeName: 'ht-theme-main',
       licenseKey: 'non-commercial-and-evaluation',
-      mergeCells: INITIAL_MERGES.map(m => ({ ...m })),
+      mergeCells: INITIAL_MERGES.map(function(m) { return Object.assign({}, m); }),
       contextMenu: true,
-      afterChange: updateStatus,
       afterUndo: updateStatus,
       afterRedo: updateStatus,
       afterRemoveCol: updateStatus,
