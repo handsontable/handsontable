@@ -428,4 +428,242 @@ describe('MergeCells -> Undo/Redo', () => {
       expect(countRows()).toBe(4);
     });
   });
+
+  describe('column removal', () => {
+    it('should restore a merged cell that was fully contained in a removed column (single-col merge), and remove it again on redo', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        mergeCells: [
+          { row: 1, col: 2, rowspan: 3, colspan: 1 },
+        ],
+      });
+
+      const plugin = getPlugin('mergeCells');
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+
+      await alter('remove_col', 2);
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(0);
+
+      getPlugin('undoRedo').undo();
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+      const restored = plugin.mergedCellsCollection.mergedCells[0];
+
+      expect(restored.row).toBe(1);
+      expect(restored.col).toBe(2);
+      expect(restored.rowspan).toBe(3);
+      expect(restored.colspan).toBe(1);
+
+      getPlugin('undoRedo').redo();
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(0);
+      expect(countCols()).toBe(4);
+    });
+
+    it('should restore a multi-column merged cell that was fully contained in removed columns, and remove it again on redo', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 6),
+        mergeCells: [
+          { row: 0, col: 2, rowspan: 2, colspan: 2 },
+        ],
+      });
+
+      const plugin = getPlugin('mergeCells');
+
+      await alter('remove_col', 2, 2);
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(0);
+
+      getPlugin('undoRedo').undo();
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+      const restored = plugin.mergedCellsCollection.mergedCells[0];
+
+      expect(restored.row).toBe(0);
+      expect(restored.col).toBe(2);
+      expect(restored.rowspan).toBe(2);
+      expect(restored.colspan).toBe(2);
+
+      getPlugin('undoRedo').redo();
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(0);
+      expect(countCols()).toBe(4);
+    });
+
+    it('should preserve a partially-overlapping merged cell across remove + undo (middle column), and shrink it again on redo', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 6),
+        mergeCells: [
+          { row: 0, col: 0, rowspan: 2, colspan: 5 },
+        ],
+      });
+
+      const plugin = getPlugin('mergeCells');
+
+      await alter('remove_col', 2);
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+      expect(plugin.mergedCellsCollection.mergedCells[0].colspan).toBe(4);
+
+      getPlugin('undoRedo').undo();
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+      const restored = plugin.mergedCellsCollection.mergedCells[0];
+
+      expect(restored.row).toBe(0);
+      expect(restored.col).toBe(0);
+      expect(restored.rowspan).toBe(2);
+      expect(restored.colspan).toBe(5);
+
+      getPlugin('undoRedo').redo();
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+      expect(plugin.mergedCellsCollection.mergedCells[0].colspan).toBe(4);
+    });
+
+    it('should restore a merged cell after removing only its leftmost column (partial left overlap), and shrink it again on redo', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 6),
+        mergeCells: [
+          { row: 0, col: 2, rowspan: 2, colspan: 3 },
+        ],
+      });
+
+      const plugin = getPlugin('mergeCells');
+
+      await alter('remove_col', 2);
+
+      getPlugin('undoRedo').undo();
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+      const restored = plugin.mergedCellsCollection.mergedCells[0];
+
+      expect(restored.row).toBe(0);
+      expect(restored.col).toBe(2);
+      expect(restored.colspan).toBe(3);
+
+      getPlugin('undoRedo').redo();
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+      expect(plugin.mergedCellsCollection.mergedCells[0].col).toBe(2);
+      expect(plugin.mergedCellsCollection.mergedCells[0].colspan).toBe(2);
+    });
+
+    it('should restore a merged cell after removing only its rightmost column (partial right overlap), and shrink it again on redo', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 6),
+        mergeCells: [
+          { row: 0, col: 1, rowspan: 2, colspan: 3 },
+        ],
+      });
+
+      const plugin = getPlugin('mergeCells');
+
+      await alter('remove_col', 3);
+
+      getPlugin('undoRedo').undo();
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+      const restored = plugin.mergedCellsCollection.mergedCells[0];
+
+      expect(restored.row).toBe(0);
+      expect(restored.col).toBe(1);
+      expect(restored.colspan).toBe(3);
+
+      getPlugin('undoRedo').redo();
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+      expect(plugin.mergedCellsCollection.mergedCells[0].colspan).toBe(2);
+    });
+
+    it('should restore multiple merged cells after a multi-column removal overlapping all of them', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 8),
+        mergeCells: [
+          { row: 0, col: 1, rowspan: 1, colspan: 2 },
+          { row: 2, col: 3, rowspan: 1, colspan: 2 },
+        ],
+      });
+
+      const plugin = getPlugin('mergeCells');
+
+      await alter('remove_col', 1, 4);
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(0);
+
+      getPlugin('undoRedo').undo();
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(2);
+
+      getPlugin('undoRedo').redo();
+
+      expect(plugin.mergedCellsCollection.mergedCells.length).toBe(0);
+    });
+
+    it('should survive repeated undo/redo cycles for column removal with merged cells', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 5),
+        mergeCells: [
+          { row: 0, col: 1, rowspan: 2, colspan: 3 },
+        ],
+      });
+
+      const plugin = getPlugin('mergeCells');
+
+      await alter('remove_col', 2);
+
+      for (let i = 0; i < 3; i++) {
+        getPlugin('undoRedo').undo();
+        expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+        expect(plugin.mergedCellsCollection.mergedCells[0].col).toBe(1);
+        expect(plugin.mergedCellsCollection.mergedCells[0].colspan).toBe(3);
+
+        getPlugin('undoRedo').redo();
+        expect(plugin.mergedCellsCollection.mergedCells.length).toBe(1);
+        expect(plugin.mergedCellsCollection.mergedCells[0].colspan).toBe(2);
+      }
+    });
+
+    it('should restore cell data alongside the merged cell after undo', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 5),
+        mergeCells: [
+          { row: 0, col: 1, rowspan: 1, colspan: 3 },
+        ],
+      });
+
+      await alter('remove_col', 2);
+
+      getPlugin('undoRedo').undo();
+
+      // Only the top-left cell of a merge contains data; hidden cells return null.
+      expect(getDataAtCell(0, 1)).toBe('B1');
+      expect(getDataAtCell(1, 2)).toBe('C2');
+      expect(getDataAtCell(2, 3)).toBe('D3');
+
+      const plugin = getPlugin('mergeCells');
+      const restored = plugin.mergedCellsCollection.mergedCells[0];
+
+      expect(restored.row).toBe(0);
+      expect(restored.col).toBe(1);
+      expect(restored.colspan).toBe(3);
+    });
+
+    it('should not throw when removing columns while mergeCells plugin is disabled, and undo + redo should not affect merges', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        mergeCells: false,
+      });
+
+      await alter('remove_col', 2);
+
+      expect(() => getPlugin('undoRedo').undo()).not.toThrow();
+      expect(countCols()).toBe(5);
+
+      expect(() => getPlugin('undoRedo').redo()).not.toThrow();
+      expect(countCols()).toBe(4);
+    });
+  });
 });

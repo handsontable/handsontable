@@ -1,7 +1,7 @@
 import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import { BaseAction } from './_base';
-import { getCellMetas } from '../utils';
+import { getCellMetas, collectAffectedMergedCells, restoreMergedCells } from '../utils';
 import { rangeEach } from '../../../helpers/number';
 import { arrayMap, arrayEach } from '../../../helpers/array';
 
@@ -48,9 +48,14 @@ export class RemoveColumnAction extends BaseAction {
    * @param {Array} removedCellMetas List of removed cell metas.
    */
   removedCellMetas;
+  /**
+   * @param {Array} removedMergedCells List of merged cell ranges that overlap the removed
+   *   columns. Stored as plain `{ row, col, rowspan, colspan }` objects in visual coords.
+   */
+  removedMergedCells;
 
   /**
-   * Initializes the remove column action with the removed data, column indexes, headers, position sequences, and cell meta backup.
+   * Initializes the remove column action with the removed data, column indexes, headers, position sequences, cell meta backup, and affected merged cells.
    */
   constructor({
     index,
@@ -61,10 +66,12 @@ export class RemoveColumnAction extends BaseAction {
     columnPositions,
     rowPositions,
     fixedColumnsStart,
-    removedCellMetas
+    removedCellMetas,
+    removedMergedCells,
   }: {
     index: number, indexes: number[], data: unknown[][], amount: number, headers: unknown[],
-    columnPositions: number[], rowPositions: number[], fixedColumnsStart: number, removedCellMetas: unknown[]
+    columnPositions: number[], rowPositions: number[], fixedColumnsStart: number, removedCellMetas: unknown[],
+    removedMergedCells: Array<{ row: number, col: number, rowspan: number, colspan: number }>
   }) {
     super('remove_col');
     this.index = index;
@@ -76,6 +83,7 @@ export class RemoveColumnAction extends BaseAction {
     this.rowPositions = rowPositions.slice(0);
     this.fixedColumnsStart = fixedColumnsStart;
     this.removedCellMetas = removedCellMetas;
+    this.removedMergedCells = removedMergedCells;
   }
 
   /**
@@ -127,6 +135,7 @@ export class RemoveColumnAction extends BaseAction {
           rowPositions: hot.rowIndexMapper.getIndexesSequence(),
           fixedColumnsStart: hot.getSettings().fixedColumnsStart ?? 0,
           removedCellMetas: getCellMetas(hot, 0, hot.countRows(), columnIndex, lastColumnIndex),
+          removedMergedCells: collectAffectedMergedCells(hot, 'col', columnIndex, amount),
         });
       };
 
@@ -194,6 +203,8 @@ export class RemoveColumnAction extends BaseAction {
 
       hot.setCellMetaObject(rowIndex, columnIndex, cellMeta);
     });
+
+    restoreMergedCells(hot, this.removedMergedCells);
 
     hot.addHookOnce('afterViewRender', undoneCallback);
     hot.setSourceDataAtCell(changes, undefined, undefined, 'UndoRedo.undo');
