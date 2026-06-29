@@ -17,6 +17,7 @@ vue:
   metaTitle: Configuration options - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 Configure your grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
 
@@ -1024,6 +1025,8 @@ hot?.getCellMeta(1, 1).readOnly;
 ```
 
 :::
+
+[`setCellMeta()`](@/api/core.md#setcellmeta) updates a cell's metadata but doesn't repaint the grid on its own. To make a visual change appear -- such as a new `className`, `type`, or `readOnly` state -- call [`render()`](@/api/core.md#render) afterward. If you change several cells at once, wrap the calls in [`batch()`](@/api/core.md#batch) so the grid renders only once.
 
 ## Implement custom logic
 
