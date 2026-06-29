@@ -13,6 +13,7 @@ on:
     paths:
       - 'handsontable/**'
       - 'wrappers/**'
+      - 'examples/prs/**'
       - '.github/workflows/pkg-pr-new.yml'
   push:
     branches:
@@ -20,6 +21,7 @@ on:
     paths:
       - 'handsontable/**'
       - 'wrappers/**'
+      - 'examples/prs/**'
       - '.github/workflows/pkg-pr-new.yml'
 
 concurrency:
