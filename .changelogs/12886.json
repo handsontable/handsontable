@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved filtering performance on large datasets by writing the row-trimming state in a single bulk operation instead of scanning and updating it row by row.",
+  "type": "changed",
+  "issueOrPR": 12886,
+  "breaking": false,
+  "framework": "none"
+}
