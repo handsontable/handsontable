@@ -6,6 +6,7 @@ import { DropdownController, type DropdownEntry } from './controllers/dropdownCo
 import { SelectedItemsController } from './controllers/selectedItemsController';
 import { addClass, setAttribute } from '../../helpers/dom/element';
 import { isPrintableChar } from '../../helpers/unicode';
+import { localeLowerCase } from '../../helpers/string';
 import { A11Y_LABEL, A11Y_GROUP } from '../../helpers/a11y';
 import { EDITOR_EDIT_GROUP } from '../../shortcuts/contexts/constants';
 import {
@@ -378,6 +379,7 @@ export class MultiSelectEditor extends BaseEditor {
     query: string,
     filterSelectedItems: boolean = this.#getEditorSetting<boolean>('filterSelectedItems') ?? true
   ): void {
+    const locale = this.cellProperties.locale as string | undefined;
     const filteredItems = this.#getSource().filter((item: unknown) => {
       const value = (typeof item === 'object' && item !== null && 'value' in item)
         ? item.value
@@ -391,7 +393,7 @@ export class MultiSelectEditor extends BaseEditor {
         return String(value).includes(query);
       }
 
-      return String(value).toLowerCase().includes(query.toLowerCase());
+      return localeLowerCase(String(value), locale).includes(localeLowerCase(query, locale));
     });
 
     this.dropdownController!.fillDropdown(filteredItems, this.#selectedItems.getItemsArray());
