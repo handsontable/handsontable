@@ -709,8 +709,7 @@ class MergedCellsCollection {
     relocations.forEach(({ mergedCell }) => this.#removeMergedCellFromMatrix(mergedCell));
 
     relocations.forEach(({ mergedCell, row, col }) => {
-      mergedCell.row = row;
-      mergedCell.col = col;
+      mergedCell.relocate(row, col);
       this.#addMergedCellToMatrix(mergedCell);
     });
   }

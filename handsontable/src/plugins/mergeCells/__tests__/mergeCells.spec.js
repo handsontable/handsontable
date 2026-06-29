@@ -2299,6 +2299,65 @@ describe('MergeCells', () => {
       expect(merges()).toEqual([{ row: 2, col: 3, rowspan: 3, colspan: 3 }]);
     });
 
+    it('should not corrupt the merge anchor when a row is inserted while a filter is active', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }], // physical rows 2,3,4
+      });
+      const filters = getPlugin('filters');
+
+      filters.addCondition(0, 'by_value', [['A3', 'A4', 'A5']]);
+      filters.filter();
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 0, col: 2, rowspan: 3, colspan: 3 }]); // re-anchored up
+
+      await alter('insert_row_above', 0, 1); // structural edit performed mid-filter
+
+      // the blank row appears above; the merge follows its (now shifted) physical rows
+      expect(merges()).toEqual([{ row: 1, col: 2, rowspan: 3, colspan: 3 }]);
+
+      filters.clearConditions();
+      filters.filter();
+
+      await render();
+
+      // clearing the filter reflects the insert: the cached anchor moved physical 2 -> 3
+      expect(merges()).toEqual([{ row: 3, col: 2, rowspan: 3, colspan: 3 }]);
+    });
+
+    it('should not corrupt the merge anchor when a row above it is removed while a filter is active', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        mergeCells: [{ row: 5, col: 2, rowspan: 3, colspan: 3 }], // physical rows 5,6,7
+      });
+      const filters = getPlugin('filters');
+
+      // keep A1 (physical 0) plus the merge rows A6,A7,A8 (physical 5,6,7)
+      filters.addCondition(0, 'by_value', [['A1', 'A6', 'A7', 'A8']]);
+      filters.filter();
+
+      await render();
+
+      expect(merges()).toEqual([{ row: 1, col: 2, rowspan: 3, colspan: 3 }]); // re-anchored below A1
+
+      await alter('remove_row', 0, 1); // remove A1 (physical 0) mid-filter
+
+      // the merge slides up to the top of the still-visible rows
+      expect(merges()).toEqual([{ row: 0, col: 2, rowspan: 3, colspan: 3 }]);
+
+      filters.clearConditions();
+      filters.filter();
+
+      await render();
+
+      // clearing the filter reflects the removal: the cached anchor moved physical 5 -> 4
+      expect(merges()).toEqual([{ row: 4, col: 2, rowspan: 3, colspan: 3 }]);
+    });
+
     it('should leave the merge untouched when hiddenRows hides rows above it', async() => {
       handsontable({
         data: createSpreadsheetData(10, 5),

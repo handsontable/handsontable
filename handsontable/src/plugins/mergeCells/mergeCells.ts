@@ -798,6 +798,31 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
+   * Remaps the cached physical row of every merge's anchor after a row insert/remove. While trimming
+   * is active {@link MergeCells#captureAnchorOf} preserves the stored `physicalRow` verbatim, so the
+   * structural edit's physical renumbering has to be mirrored onto the cache here or re-anchoring would
+   * later target stale rows. Only merges still present in the collection are visited (fully removed ones
+   * were already dropped by `shiftCollections`), so each anchor always maps to a valid surviving row.
+   *
+   * @param {(physicalRow: number) => number} mapPhysicalRow Maps an old physical row to its new one.
+   */
+  #remapRowAnchors(mapPhysicalRow: (physicalRow: number) => number) {
+    this.mergedCellsCollection.mergedCells.forEach((merge) => {
+      const anchor = this.#mergeAnchors.get(merge);
+
+      if (!anchor) {
+        return;
+      }
+
+      const physicalRow = mapPhysicalRow(anchor.physicalRow);
+
+      if (physicalRow !== anchor.physicalRow) {
+        this.#mergeAnchors.set(merge, { physicalRow, physicalColumn: anchor.physicalColumn });
+      }
+    });
+  }
+
+  /**
    * Whether any row is currently trimmed (Filters / `trimRows` / `nestedRows`). Trimming compresses
    * the visual row space, so while it is active a merge's visual `row` may be a re-anchored, derived
    * value rather than an authoritative one.
@@ -1655,6 +1680,17 @@ export class MergeCells extends BasePlugin {
     }
 
     this.mergedCellsCollection.shiftCollections('down', row, count);
+
+    // Inserting renumbers physical rows at/after the insertion point up by `count`; mirror that onto the
+    // anchors the trimming-active path keeps verbatim (the non-trimming path re-derives them below).
+    if (this.#isRowTrimmingActive()) {
+      const pivot = this.hot.toPhysicalRow(row);
+
+      if (pivot !== null) {
+        this.#remapRowAnchors(physicalRow => (physicalRow >= pivot ? physicalRow + count : physicalRow));
+      }
+    }
+
     this.#captureMergeAnchors();
   };
 
@@ -1663,9 +1699,21 @@ export class MergeCells extends BasePlugin {
    *
    * @param {number} row Row index.
    * @param {number} count Number of removed rows.
+   * @param {number[]} physicalRows Physical indexes of the removed rows.
    */
-  #onAfterRemoveRow = (row: number, count: number) => {
+  #onAfterRemoveRow = (row: number, count: number, physicalRows: number[]) => {
     this.mergedCellsCollection.shiftCollections('up', row, count);
+
+    // Removing renumbers each surviving physical row down by how many removed rows sat below it; mirror
+    // that onto the anchors the trimming-active path keeps verbatim. Removed physical rows interleave
+    // with trimmed ones, so the shift is counted per anchor rather than from a single pivot. An anchor
+    // whose own row was removed collapses to the same index as its first surviving span row, so it needs
+    // no special case.
+    if (this.#isRowTrimmingActive() && Array.isArray(physicalRows)) {
+      this.#remapRowAnchors(physicalRow =>
+        physicalRow - physicalRows.reduce((shift, removed) => shift + (removed < physicalRow ? 1 : 0), 0));
+    }
+
     this.#captureMergeAnchors();
   };
 
