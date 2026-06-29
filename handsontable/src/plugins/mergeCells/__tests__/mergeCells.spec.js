@@ -2512,5 +2512,57 @@ describe('MergeCells', () => {
       // the merge follows its physical anchor to the new visual position instead of staying at row 2
       expect(merges()[0].row).toBe(mc.hot.toVisualRow(2));
     });
+
+    it('should not let a row insert re-add a fully hidden (purged) merge to the lookup matrix', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }], // physical rows 2,3,4
+      });
+      const filters = getPlugin('filters');
+      const collection = getPlugin('mergeCells').mergedCellsCollection;
+
+      // hide ALL the merge's rows (keep only the unrelated A1) -> the merge is purged from the matrix
+      filters.addCondition(0, 'by_value', [['A1']]);
+      filters.filter();
+
+      await render();
+
+      const merge = collection.mergedCells[0];
+
+      expect(collection.get(merge.row, merge.col)).toBe(false);
+
+      // a row insert rebuilds the matrix from every merge via shiftCollections, re-adding the purged one
+      await alter('insert_row_above', 0, 1);
+
+      // the still-hidden merge must not reappear as a phantom footprint at its (shifted) stale coords
+      expect(collection.get(merge.row, merge.col)).toBe(false);
+    });
+
+    it('should not let a column insert re-add a fully hidden (purged) merge to the lookup matrix', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        filters: true,
+        mergeCells: [{ row: 2, col: 2, rowspan: 3, colspan: 3 }], // physical rows 2,3,4
+      });
+      const filters = getPlugin('filters');
+      const collection = getPlugin('mergeCells').mergedCellsCollection;
+
+      // hide ALL the merge's rows -> the merge is purged from the matrix
+      filters.addCondition(0, 'by_value', [['A1']]);
+      filters.filter();
+
+      await render();
+
+      const merge = collection.mergedCells[0];
+
+      expect(collection.get(merge.row, merge.col)).toBe(false);
+
+      // a column insert also rebuilds the matrix via shiftCollections
+      await alter('insert_col_start', 0, 1);
+
+      // the still-hidden merge must not reappear as a phantom footprint at its (shifted) stale coords
+      expect(collection.get(merge.row, merge.col)).toBe(false);
+    });
   });
 });

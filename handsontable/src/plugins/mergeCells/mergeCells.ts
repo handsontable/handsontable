@@ -893,12 +893,12 @@ export class MergeCells extends BasePlugin {
 
       // No visible top-left (whole row span or the anchor column is hidden): drop the stale matrix
       // entry so a later filter showing a different physical row at the same visual slot does not
-      // resolve to this phantom merge.
+      // resolve to this phantom merge. Always re-purge (removing an absent footprint is a cheap no-op)
+      // so the entry stays gone even after `shiftCollections` rebuilds the matrix from every merge on a
+      // structural edit.
       if (visualColumn === null || visualRow === null) {
-        if (!this.#purgedMerges.has(merge)) {
-          this.#purgedMerges.add(merge);
-          purges.push(merge);
-        }
+        this.#purgedMerges.add(merge);
+        purges.push(merge);
 
         return;
       }
@@ -1685,6 +1685,9 @@ export class MergeCells extends BasePlugin {
   #onAfterCreateCol = (column: number, count: number) => {
     this.mergedCellsCollection.shiftCollections('right', column, count);
     this.#captureMergeAnchors();
+    // `shiftCollections` rebuilt the matrix from every merge, re-adding any currently purged
+    // (fully hidden) merge; re-anchor to drop those stale footprints again.
+    this.#reanchorMergesToVisibleRows();
   };
 
   /**
@@ -1696,6 +1699,9 @@ export class MergeCells extends BasePlugin {
   #onAfterRemoveCol = (column: number, count: number) => {
     this.mergedCellsCollection.shiftCollections('left', column, count);
     this.#captureMergeAnchors();
+    // `shiftCollections` rebuilt the matrix from every merge, re-adding any currently purged
+    // (fully hidden) merge; re-anchor to drop those stale footprints again.
+    this.#reanchorMergesToVisibleRows();
   };
 
   /**
@@ -1723,6 +1729,9 @@ export class MergeCells extends BasePlugin {
     }
 
     this.#captureMergeAnchors();
+    // `shiftCollections` rebuilt the matrix from every merge, re-adding any currently purged
+    // (fully hidden) merge; re-anchor to drop those stale footprints again.
+    this.#reanchorMergesToVisibleRows();
   };
 
   /**
@@ -1746,6 +1755,9 @@ export class MergeCells extends BasePlugin {
     }
 
     this.#captureMergeAnchors();
+    // `shiftCollections` rebuilt the matrix from every merge, re-adding any currently purged
+    // (fully hidden) merge; re-anchor to drop those stale footprints again.
+    this.#reanchorMergesToVisibleRows();
   };
 
   /**
