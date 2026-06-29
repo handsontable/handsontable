@@ -136,6 +136,10 @@ In this configuration, the fill handle is restricted to move only vertically. Ne
 
 :::
 
+## Result
+
+The fill handle appears on the selected cell. Dragging it copies or extends values into adjacent cells in the configured direction.
+
 ## Related API reference
 
 **Configuration options**
@@ -163,7 +167,3 @@ In this configuration, the fill handle is restricted to move only vertically. Ne
 - [Autofill](@/api/autofill.md)
 
 </div>
-
-## Result
-
-The fill handle appears on the selected cell. Dragging it copies or extends values into adjacent cells in the configured direction.

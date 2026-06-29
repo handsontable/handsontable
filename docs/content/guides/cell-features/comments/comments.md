@@ -333,6 +333,10 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 
 :::
 
+## Result
+
+Cells with comments display a small indicator in the corner. Users can view, edit, or delete comments through the context menu, and pre-configured comments appear when the table loads.
+
 ## Related keyboard shortcuts
 
 | Windows                                                 | macOS                                                      | Action                                  |  Excel  | Sheets  |
@@ -351,7 +355,3 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 - [comments](@/api/options.md#comments)
 
 </div>
-
-## Result
-
-Cells with comments display a small indicator in the corner. Users can view, edit, or delete comments through the context menu, and pre-configured comments appear when the table loads.

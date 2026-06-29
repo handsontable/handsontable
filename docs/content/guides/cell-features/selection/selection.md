@@ -318,6 +318,10 @@ To jump across a horizontal edge:
 - When cell selection is on a column's first cell, press <kbd>**↑**</kbd>.
 - When cell selection is on a column's last cell, press <kbd>**↓**</kbd>, or press <kbd>**Enter**</kbd>.
 
+## Result
+
+Users can select cells using the configured mode -- single cell, range, or multiple ranges. Programmatic selections take effect immediately and fire the relevant selection hooks.
+
 ## Related keyboard shortcuts
 
 | Windows                                                       | macOS                                                        | Action                                                                           |  Excel  | Sheets  |
@@ -398,7 +402,3 @@ To jump across a horizontal edge:
 - [DragToScroll](@/api/dragToScroll.md)
 
 </div>
-
-## Result
-
-Users can select cells using the configured mode -- single cell, range, or multiple ranges. Programmatic selections take effect immediately and fire the relevant selection hooks.

@@ -511,6 +511,10 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 
 </div>
 
+## Result
+
+Handsontable is installed and ready to use in your project. Import it and create your first grid instance.
+
 ## Related articles
 
 **Related guides**
@@ -546,7 +550,3 @@ To set Handsontable's [configuration options](@/guides/getting-started/configura
 - [construct](@/api/hooks.md#construct)
 
 </div>
-
-## Result
-
-Handsontable is installed and ready to use in your project. Import it and create your first grid instance.

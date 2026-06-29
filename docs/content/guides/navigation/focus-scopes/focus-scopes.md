@@ -364,6 +364,10 @@ The focus scope manager automatically:
 - Switches the shortcuts context to the scope's specified context name when the scope is activated
 - Handles tab navigation between scopes
 
+## Result
+
+After registering a focus scope, Handsontable automatically activates it when the user clicks inside the container or tabs to it. The associated shortcuts context switches accordingly, and tab navigation flows through your registered scopes in the correct order.
+
 ## API reference
 
 For the complete API reference, see the following pages:
@@ -405,10 +409,6 @@ For the complete API reference, see the following pages:
 - [beforeKeyDown](@/api/hooks.md#beforekeydown)
 
 </div>
-
-## Result
-
-After registering a focus scope, Handsontable automatically activates it when the user clicks inside the container or tabs to it. The associated shortcuts context switches accordingly, and tab navigation flows through your registered scopes in the correct order.
 
 ## Related blog articles
 

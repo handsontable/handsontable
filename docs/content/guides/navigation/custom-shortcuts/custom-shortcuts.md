@@ -333,6 +333,10 @@ const hotSettings = ref({
 
 :::
 
+## Result
+
+After completing these steps, you have custom keyboard shortcuts registered in the target context. The shortcuts trigger your callbacks when the user presses the configured key combination, and only when the specified context is active.
+
 ## Reference
 
 ### Keyboard shortcut contexts
@@ -410,10 +414,6 @@ For the list of [options](@/guides/getting-started/configuration-options/configu
 - [beforeKeyDown](@/api/hooks.md#beforekeydown)
 
 </div>
-
-## Result
-
-After completing these steps, you have custom keyboard shortcuts registered in the target context. The shortcuts trigger your callbacks when the user presses the configured key combination, and only when the specified context is active.
 
 ## Troubleshooting
 

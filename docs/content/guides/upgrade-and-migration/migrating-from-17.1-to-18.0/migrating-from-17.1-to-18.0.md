@@ -509,6 +509,10 @@ Use class-based selectors instead of positional ones, so future layout slot addi
 | `--ht-wrapper-border-radius` renamed to `--ht-border-radius`; `--ht-wrapper-border-width` and `--ht-wrapper-border-color` removed | Projects overriding these theme variables or passing the matching JS tokens | Rename to `--ht-border-radius` / `borderRadius`; recreate a wrapper border with `box-shadow` if needed |
 | Wrapper DOM structure changed -- new `.ht-grid-content`, `.ht-slot-top`, `.ht-slot-bottom`, and `.ht-overlay` elements | Projects with CSS selectors or DOM queries targeting Handsontable's wrapper elements by position | Update selectors to be class-based; account for the new `.ht-grid-content` wrapper and sibling slot containers |
 
+## Result
+
+Your application now runs on Handsontable 18.0.
+
 ## Related resources
 
 - [TypeScript types](@/guides/tools-and-building/typescript-types/typescript-types.md)
@@ -517,7 +521,3 @@ Use class-based selectors instead of positional ones, so future layout slot addi
 - [Date cell type](@/guides/cell-types/date-cell-type/date-cell-type.md)
 - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
 - [Security](@/guides/security/security/security.md)
-
-## Result
-
-Your application now runs on Handsontable 18.0.

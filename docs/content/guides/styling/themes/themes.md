@@ -601,6 +601,10 @@ In some cases, global styles enforced by the browser or operating system can imp
 - **High contrast mode in Windows**: To style the component when Windows' high contrast mode is active, use the `forced-colors` media query. This allows you to detect and adapt to forced color settings. [Read more](https://blogs.windows.com/msedgedev/2020/09/17/styling-for-windows-high-contrast-with-new-standards-for-forced-colors/)
 - **Auto dark theme in Google Chrome**: Chrome automatically applies a dark theme in some scenarios. To detect and manage this behavior, refer to the official [Chrome guide](https://developer.chrome.com/blog/auto-dark-theme)
 
+## Result
+
+Your grid now renders with the theme you configured. You can switch color schemes and density modes at runtime using the Theme API.
+
 ## Related blog articles
 
 <div class="boxes-list gray">
@@ -623,7 +627,3 @@ Didn't find what you need? Try this:
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>
-
-## Result
-
-Your grid now renders with the theme you configured. You can switch color schemes and density modes at runtime using the Theme API.

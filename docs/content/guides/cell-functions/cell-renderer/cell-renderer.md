@@ -477,6 +477,10 @@ Cell renderers are called separately for every displayed cell, during every tabl
 
 If you only need to format the displayed value (e.g., add units, format dates, or apply text transformations), consider using the [`valueFormatter`](@/api/options.md#valueformatter) option instead of a custom renderer. The `valueFormatter` is called before the renderer and focuses solely on value transformation, making it more performant for simple formatting tasks. Use a renderer when you need to modify the DOM structure, add custom HTML elements, or handle complex visual layouts.
 
+## Result
+
+You now have a custom cell renderer that controls how cell content appears in the DOM. You can use a built-in renderer by alias, register and reuse your own with `registerRenderer()`, or write inline renderer functions for full control over the cell's HTML structure.
+
 ## Related API
 
 ### Overview
@@ -774,7 +778,3 @@ In this example, `valueFormatter` adds the currency symbol and formatting, while
 - [beforeRenderer](@/api/hooks.md#beforerenderer)
 
 </div>
-
-## Result
-
-You now have a custom cell renderer that controls how cell content appears in the DOM. You can use a built-in renderer by alias, register and reuse your own with `registerRenderer()`, or write inline renderer functions for full control over the cell's HTML structure.

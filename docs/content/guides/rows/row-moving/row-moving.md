@@ -84,6 +84,10 @@ This renders the rows in the following order:
 
 The array must contain all physical row indexes (its length must equal the total number of rows). After the initial render, users can still drag rows to change the order further.
 
+## Result
+
+After completing this guide, you can reorder rows by dragging them with the mouse or by calling `dragRows()` and `moveRows()` programmatically. You can also set a pre-defined row order at initialization.
+
 ## API reference
 
 ### dragRows vs moveRows
@@ -145,7 +149,3 @@ The [`moveRows`](@/api/manualRowMove.md#moverows) function cannot perform some a
 - [ManualRowMove](@/api/manualRowMove.md)
 
 </div>
-
-## Result
-
-After completing this guide, you can reorder rows by dragging them with the mouse or by calling `dragRows()` and `moveRows()` programmatically. You can also set a pre-defined row order at initialization.
