@@ -1,6 +1,6 @@
 module.exports = {
   HOT_FILENAME: 'handsontable',
-  HOT_VERSION: '18.0.0-rc6',
+  HOT_VERSION: '18.0.0',
   HOT_PACKAGE_NAME: 'handsontable',
   HOT_BUILD_DATE: (() => {
     const d = new Date();

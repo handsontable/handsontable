@@ -26,7 +26,7 @@ This page aggregates all Handsontable release notes. For upgrade instructions, s
 
 [[toc]]
 
-## 18.0.0-rc6
+## 18.0.0
 
 Released on June 30th, 2026
 
