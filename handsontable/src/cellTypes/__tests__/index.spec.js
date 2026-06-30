@@ -110,6 +110,11 @@ describe('cellTypes', () => {
     expect(getCellType('handsontable').renderer).toBe(renderers.HandsontableRenderer);
     expect(getCellType('handsontable').validator).not.toBeDefined();
 
+    expect(getCellType('multiSelect')).toBe(getCellType('multiselect'));
+    expect(getEditor('multiSelect')).toBe(getEditor('multiselect'));
+    expect(getRenderer('multiSelect')).toBe(getRenderer('multiselect'));
+    expect(getValidator('multiSelect')).toBe(getValidator('multiselect'));
+
     expect(getCellType('numeric').editor).toBe(editors.NumericEditor);
     expect(getCellType('numeric').renderer).toBe(renderers.NumericRenderer);
     expect(getCellType('numeric').validator).toBe(validators.NumericValidator);

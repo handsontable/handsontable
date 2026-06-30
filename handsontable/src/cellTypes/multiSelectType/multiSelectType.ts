@@ -4,6 +4,7 @@ import { multiSelectValidator } from '../../validators/multiSelectValidator';
 import { valueGetter, valueSetter } from './accessors';
 
 export const CELL_TYPE = 'multiselect';
+export const LEGACY_CELL_TYPE = 'multiSelect';
 export const MultiSelectCellType = {
   CELL_TYPE,
   _complexDataFormat: true,

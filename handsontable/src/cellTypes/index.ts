@@ -5,7 +5,7 @@ import { DropdownCellType, CELL_TYPE as DROPDOWN_TYPE } from './dropdownType';
 import { HandsontableCellType, CELL_TYPE as HANDSONTABLE_TYPE } from './handsontableType';
 import { IntlDateCellType, CELL_TYPE as INTL_DATE_TYPE } from './intlDateType';
 import { IntlTimeCellType, CELL_TYPE as INTL_TIME_TYPE } from './intlTimeType';
-import { MultiSelectCellType } from './multiSelectType';
+import { MultiSelectCellType, LEGACY_CELL_TYPE as LEGACY_MULTISELECT_TYPE } from './multiSelectType';
 export { CELL_TYPE as MULTISELECT_TYPE } from './multiSelectType';
 import { NumericCellType, CELL_TYPE as NUMERIC_TYPE } from './numericType';
 import { PasswordCellType, CELL_TYPE as PASSWORD_TYPE } from './passwordType';
@@ -28,6 +28,7 @@ export function registerAllCellTypes() {
   registerCellType(IntlDateCellType);
   registerCellType(IntlTimeCellType);
   registerCellType(MultiSelectCellType);
+  registerCellType(LEGACY_MULTISELECT_TYPE, MultiSelectCellType);
   registerCellType(NumericCellType);
   registerCellType(PasswordCellType);
   registerCellType(SelectCellType);

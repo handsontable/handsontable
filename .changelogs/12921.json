@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Restored the `multiSelect` camelCase alias for the MultiSelect cell type, so both `multiselect` and `multiSelect` resolve to the same cell type.",
+  "type": "fixed",
+  "issueOrPR": 12921,
+  "breaking": false,
+  "framework": "none"
+}
