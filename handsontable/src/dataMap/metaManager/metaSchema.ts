@@ -481,9 +481,10 @@ export default (): Record<string, unknown> => {
      *
      * If you set the `autoRowSize` option to an object, you can set the following [`AutoRowSize`](@/api/autoRowSize.md) plugin options:
      *
-     * | Property    | Possible values                 | Description                                                       |
-     * | ----------- | ------------------------------- | ----------------------------------------------------------------- |
-     * | `syncLimit` | A number \| A percentage string | The number/percentage of rows to keep in sync<br>(default: `500`) |
+     * | Property                | Possible values                 | Description                                                                                                |
+     * | ----------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+     * | `syncLimit`             | A number \| A percentage string | The number/percentage of rows to keep in sync<br>(default: `500`)                                          |
+     * | `allowSampleDuplicates` | `true` \| `false`               | When calculating row heights:<br>`true`: Allow duplicate samples<br>`false`: Don't allow duplicate samples |
      *
      * Using the [`rowHeights`](#rowHeights) option forcibly disables the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
      *
@@ -502,7 +503,9 @@ export default (): Record<string, unknown> => {
      * ```js
      * autoRowSize: {
      *   // keep 40% of rows in sync (the rest of rows: async)
-     *   syncLimit: '40%'
+     *   syncLimit: '40%',
+     *   // when calculating row heights, allow duplicate samples
+     *   allowSampleDuplicates: true
      * },
      * ```
      */
