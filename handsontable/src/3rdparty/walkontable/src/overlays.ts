@@ -953,6 +953,12 @@ class Overlays {
    */
   refresh(fastDraw = false) {
     const isScrollTriggered = this.verticalScrolling || this.horizontalScrolling;
+    // On a pure vertical scroll the bottom overlay (and its inline-start corner) render the same fixed
+    // rows over the same visible columns, so their DOM is unchanged - a full re-render is wasted work and
+    // forces an expensive style/layout/paint of the clone subtree on every scroll frame. Reposition them
+    // (fast draw) instead. Any horizontal scroll changes the visible columns, and a non-scroll redraw
+    // (data, settings, resize) clears both flags, so those paths still trigger a full re-render.
+    const bottomFastDraw = fastDraw || (this.verticalScrolling && !this.horizontalScrolling);
 
     if (isScrollTriggered) {
       this.#postponedAdjustElementsSize();
@@ -961,7 +967,7 @@ class Overlays {
     }
 
     if (this.bottomOverlay.clone) {
-      this.bottomOverlay.refresh(fastDraw);
+      this.bottomOverlay.refresh(bottomFastDraw);
     }
 
     this.inlineStartOverlay.refresh(fastDraw);
@@ -972,7 +978,7 @@ class Overlays {
     }
 
     if (this.bottomInlineStartCornerOverlay && this.bottomInlineStartCornerOverlay.clone) {
-      this.bottomInlineStartCornerOverlay.refresh(fastDraw);
+      this.bottomInlineStartCornerOverlay.refresh(bottomFastDraw);
     }
   }
 

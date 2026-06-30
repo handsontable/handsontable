@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Included Walkontable in the main tsconfig.json type-check program and reduced as unknown escape-hatch casts in Walkontable from 68 to 10 (-85%) by using generics, union types, and direct structural assignments.",
-  "type": "changed",
-  "issueOrPR": 12734,
-  "breaking": false,
-  "framework": "none"
-}

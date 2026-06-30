@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed the select cell editor losing its scroll-tracking behavior after being closed and reopened.",
-  "type": "fixed",
-  "issueOrPR": 12468,
-  "breaking": false,
-  "framework": "none"
-}

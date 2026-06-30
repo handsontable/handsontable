@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Added the `visibleWhen` nested-header option (`'collapsed'`, `'expanded'`, `'always'`) that lets you choose which columns of a collapsible group stay visible when the group is collapsed or expanded.",
-  "type": "added",
-  "issueOrPR": 12776,
-  "breaking": false,
-  "framework": "none"
-}

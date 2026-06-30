@@ -13,6 +13,7 @@ vue:
   metaTitle: Handsontable cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Add a spreadsheet editor in a popup, by using the Handsontable cell type.
 
@@ -31,6 +32,8 @@ HOT-in-HOT opens by any of the following:
 While HOT-in-HOT is opened, the text field above the HOT-in-HOT remains focused at all times.
 
 ## Basic example
+
+The first column uses the handsontable cell type for a searchable manufacturer list. The color columns use the [dropdown cell type](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) for compact selection from a short list.
 
 ::: only-for javascript
 

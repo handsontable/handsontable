@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Renamed the `--ht-wrapper-border-radius` theme variable to `--ht-border-radius` (token `wrapperBorderRadius` to `borderRadius`) and removed the `--ht-wrapper-border-width` and `--ht-wrapper-border-color` variables (tokens `wrapperBorderWidth` and `wrapperBorderColor`).",
-  "type": "changed",
-  "issueOrPR": 12775,
-  "breaking": true,
-  "framework": "none"
-}

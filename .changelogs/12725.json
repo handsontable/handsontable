@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Removed stale hand-written type-cast interfaces in the Filters plugin (DropdownMenuPluginInterface, DropdownMenuInterface, MenuFocusNavigatorInterface) and replaced them with canonical types.",
-  "type": "fixed",
-  "issueOrPR": 12725,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed the comment editor rendering off-screen on narrow viewports such as mobile portrait.",
-  "type": "fixed",
-  "issueOrPR": 12594,
-  "breaking": false,
-  "framework": "none"
-}

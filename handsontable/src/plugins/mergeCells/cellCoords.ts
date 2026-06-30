@@ -357,6 +357,19 @@ class MergedCellCoords {
   }
 
   /**
+   * Sets a new visual top-left and invalidates the lazily cached range, so callers that mutate the
+   * merge's position (e.g. re-anchoring to visible rows) don't leave `getRange()` serving stale coords.
+   *
+   * @param {number} row New top row index.
+   * @param {number} col New left column index.
+   */
+  relocate(row: number, col: number) {
+    this.row = row;
+    this.col = col;
+    this.#cellRange = null;
+  }
+
+  /**
    * Get the range coordinates of the merged cell.
    *
    * @returns {CellRange}

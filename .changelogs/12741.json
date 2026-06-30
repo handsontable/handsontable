@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed rows in frozen columns becoming misaligned with the rest of the grid when column headers wrap onto multiple lines.",
-  "type": "fixed",
-  "issueOrPR": 12741,
-  "breaking": false,
-  "framework": "none"
-}

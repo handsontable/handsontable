@@ -85,6 +85,31 @@ This renders the rows in the following order:
 
 The array must contain all physical row indexes (its length must equal the total number of rows). After the initial render, users can still drag rows to change the order further.
 
+## Data model behavior
+
+Moving rows does not reorder your source data array. Handsontable stores the new order as index metadata through its [`IndexMapper`](@/api/indexMapper.md), and leaves the original `sourceData` array untouched. This affects how you read and save the data:
+
+- [`getData()`](@/api/core.md#getdata) returns rows in their current visual order, so it reflects any moves. Call it inside the [`afterRowMove`](@/api/hooks.md#afterrowmove) hook to get an order-accurate snapshot to persist.
+- [`getSourceData()`](@/api/core.md#getsourcedata) returns rows in their original physical order, ignoring any moves.
+
+To save the new order after a move, listen to the [`afterRowMove`](@/api/hooks.md#afterrowmove) hook:
+
+```js
+afterRowMove(movedRows, finalIndex, dropIndex, movePossible, orderChanged) {
+  if (orderChanged) {
+    const reorderedData = this.getData();
+
+    // persist reorderedData to your backend or local state
+  }
+}
+```
+
+::: only-for react
+
+In React, binding the [`data`](@/api/options.md#data) prop to a state variable does not keep that state in sync with row moves. The move updates Handsontable's internal index order, but your bound state still holds the original order. To align your state with the displayed order, update it explicitly from the [`afterRowMove`](@/api/hooks.md#afterrowmove) hook using [`getData()`](@/api/core.md#getdata).
+
+:::
+
 ## Result
 
 After completing this guide, you can reorder rows by dragging them with the mouse or by calling `dragRows()` and `moveRows()` programmatically. You can also set a pre-defined row order at initialization.

@@ -3147,6 +3147,10 @@ export default function Core(
    * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
    * through the declarative `cell` option takes precedence over the preserved imperative value.
    *
+   * Cell meta set imperatively through [[setCellMeta]] (for example, by the user or the context menu) is preserved across
+   * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
+   * through the declarative `cell` option takes precedence over the preserved imperative value.
+   *
    * When [[Hooks#hasExternalDataSource]] is true, Handsontable clears and rebinds the placeholder dataset only during
    * initialization or when `settings` includes `data` or `dataProvider`. Other keys alone (for example `height`) do not clear loaded rows.
    * If only `columns` changes, the column map is rebuilt without clearing rows.
