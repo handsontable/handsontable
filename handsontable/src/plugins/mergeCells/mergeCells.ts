@@ -820,7 +820,7 @@ export class MergeCells extends BasePlugin {
    * later target stale rows. Only merges still present in the collection are visited (fully removed ones
    * were already dropped by `shiftCollections`), so each anchor always maps to a valid surviving row.
    *
-   * @param {(physicalRow: number) => number} mapPhysicalRow Maps an old physical row to its new one.
+   * @param {function(number): number} mapPhysicalRow Maps an old physical row to its new one.
    */
   #remapRowAnchors(mapPhysicalRow: (physicalRow: number) => number) {
     this.mergedCellsCollection.mergedCells.forEach((merge) => {
