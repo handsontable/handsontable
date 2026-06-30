@@ -69,7 +69,16 @@ function extractPrNumber(text) {
   // `pull`) so consumers can rebuild the correct GitHub destination instead
   // of assuming every reference is a PR. Roughly 55% of changelog bullets
   // historically cite `/issues/...` rather than `/pull/...`.
-  const match = text.match(/\s*\(?\[#(\d+)\]\(https:\/\/github\.com\/handsontable\/handsontable\/(issues|pull)\/\d+\)\s*\)?\s*$/);
+  //
+  // The citation may be wrapped in parentheses, and the older v8/v12 changelogs
+  // trail it with a sentence period/colon and/or a `[migration guide](...)`
+  // link. The end anchor allows that tail so a well-formed, end-of-bullet
+  // citation is still captured -- without matching an ambiguous mid-sentence
+  // reference (anything other than punctuation/whitespace/a migration-guide
+  // link after the citation fails the match).
+  const match = text.match(
+    /\(?\[#(\d+)\]\(https:\/\/github\.com\/handsontable\/handsontable\/(issues|pull)\/\d+\)\)?(?:[.:\s]*\[\[?[^\]]*?migration guide[^\]]*?\]\]?\([^)]*\))?[.:\s]*$/i
+  );
   if (!match) return { prNumber: null, prKind: null, body: text };
   return { prNumber: Number(match[1]), prKind: match[2], body: text.slice(0, match.index).trim() };
 }
@@ -105,14 +114,37 @@ export function parseChangelogContent(markdown) {
   let currentDate = null;
   let currentCategory = null;
   let currentForceBreaking = false;
+  let insideBoxesList = false;
 
   for (let i = 0; i < lines.length; i += 1) {
     const line = lines[i];
+
+    // Track `<div class="boxes-list">` ... `</div>` blocks. Their bullets are
+    // navigation (Blog post, Documentation links), not changelog entries, so
+    // they must not surface on the version-comparison page.
+    if (/<div class="boxes-list/.test(line)) {
+      insideBoxesList = true;
+      continue;
+    }
+    if (insideBoxesList && /<\/div>/.test(line)) {
+      insideBoxesList = false;
+      continue;
+    }
 
     const versionMatch = line.match(/^## (\d+\.\d+\.\d+)\s*$/);
     if (versionMatch) {
       currentVersion = versionMatch[1];
       currentDate = findFirstReleaseDate(lines, i + 1);
+      currentCategory = null;
+      currentForceBreaking = false;
+      continue;
+    }
+
+    // A non-version level-2 heading (e.g. "## Related") ends the release
+    // context. Without this, trailing nav bullets are wrongly attributed to
+    // the previous release's last category.
+    if (/^## /.test(line)) {
+      currentVersion = null;
       currentCategory = null;
       currentForceBreaking = false;
       continue;
@@ -126,9 +158,34 @@ export function parseChangelogContent(markdown) {
     }
 
     if (!currentVersion || !currentCategory) continue;
+    if (insideBoxesList) continue;
     if (!line.startsWith('- ')) continue;
 
-    const { breaking, framework, prNumber, prKind, body } = parseBullet(line);
+    // Reassemble a hard-wrapped bullet. Older changelogs (v8-v12) wrap a single
+    // bullet across indented continuation lines, which would otherwise hide the
+    // trailing `[#NNNN](...)` citation and truncate the entry text. Stop at a
+    // blank line, a heading, the next top-level bullet, or a nested sub-bullet
+    // (`  - `), which stays ignored exactly as before.
+    let bulletText = line;
+    let j = i + 1;
+    while (j < lines.length) {
+      const next = lines[j];
+      if (next.trim() === '') break;
+      if (/^#/.test(next)) break;
+      if (/^- /.test(next)) break;
+      if (/^\s+- /.test(next)) break;
+      if (!/^\s+\S/.test(next)) break;
+      bulletText += ` ${next.trim()}`;
+      j += 1;
+    }
+    i = j - 1;
+
+    const { breaking, framework, prNumber, prKind, body } = parseBullet(bulletText);
+
+    // Skip pure-link bullets such as "- [Migrating from 8.4 to 9.0](@/...)":
+    // a whole-bullet markdown link with no citation is navigation, not a change.
+    if (prNumber === null && /^\[[^\]]*\]\([^)]*\)$/.test(body)) continue;
+
     entries.push({
       version: currentVersion,
       releaseDate: currentDate,
