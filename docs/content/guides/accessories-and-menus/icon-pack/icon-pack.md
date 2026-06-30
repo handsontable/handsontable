@@ -224,6 +224,6 @@ npm install @handsontable/spreadsheet-icons
 <div class="boxes-list">
 
 - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
-- [Column menu](@/guides/columns/column-menu/column-menu.md)
+- [Column menu](@/guides/accessories-and-menus/column-menu/column-menu.md)
 
 </div>

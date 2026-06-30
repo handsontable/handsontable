@@ -122,7 +122,7 @@ You can define the items in the menu by passing the [`contextMenu`](@/api/option
 
 The `filter_by_condition`, `filter_by_condition2`, `filter_operators`, `filter_by_value`, and
 `filter_action_bar` items build the filtering interface and take effect only in the dropdown (column)
-menu, not in the context menu. See [Filter menu items](@/guides/columns/column-menu/column-menu.md#filter-menu-items).
+menu, not in the context menu. See [Filter menu items](@/guides/accessories-and-menus/column-menu/column-menu.md#filter-menu-items).
 
 To see the context menu, right-click on a cell. On touch devices, long-press a cell to open the context menu.
 
