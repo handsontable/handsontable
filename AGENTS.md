@@ -154,7 +154,6 @@ These standards apply to **all** documentation across the monorepo — guides, t
 
 ### PR requirements
 
-- Every PR must be connected to a GitHub issue.
 - Every PR that changes package source code must include a changelog entry. Use the `changelog-creation` and `pr-creation` skills for the entry format and PR flow.
 - To skip changelog (for non-source-code changes only), write `[skip changelog]` in the PR description.
 - PRs are merged using **"Squash and merge"** in the GitHub UI by the PR author after full approval.
@@ -167,7 +166,6 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. Changel
 ### Visibility of work
 
 - If a task spans multiple days, create a draft PR and commit daily.
-- All work must be tracked as a GitHub issue. If no issue exists, create one.
 
 ---
 
