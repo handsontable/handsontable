@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: k4mb003v
 title: Column groups
 metaTitle: Column groups - JavaScript Data Grid | Handsontable
 description: Group your columns, using multiple levels of nested column headers, to better reflect the structure of your data.
@@ -13,11 +12,11 @@ tags:
   - colspan
   - rowspan
 react:
-  id: 2ei1omu0
   metaTitle: Column groups - React Data Grid | Handsontable
 angular:
-  id: 2k8cam98
   metaTitle: Column groups - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column groups - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 menuTag: updated
@@ -63,6 +62,19 @@ nestedHeaders={[
 
 :::
 
+::: only-for vue
+
+```js
+nestedHeaders: [
+  ['A', { label: 'B', colspan: 8 }, 'C'],
+  ['D', { label: 'E', colspan: 4 }, { label: 'F', colspan: 4 }, 'G'],
+  ['H', { label: 'I', colspan: 2 }, { label: 'J', colspan: 2 }, { label: 'K', colspan: 2 }, { label: 'L', colspan: 2 }, 'M'],
+  ['N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W'],
+],
+```
+
+:::
+
 ### Example
 
 ::: only-for javascript
@@ -93,6 +105,16 @@ nestedHeaders={[
 
 @[code](@/content/guides/columns/column-groups/angular/example1.ts)
 @[code](@/content/guides/columns/column-groups/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-groups/vue/example1.vue)
 
 :::
 
@@ -135,6 +157,17 @@ nestedHeaders: [
   [{ label: 'A', rowspan: 2 }, { label: 'B', colspan: 2 }],
   ['', 'C', 'D'],
 ];
+```
+
+:::
+
+::: only-for vue
+
+```js
+nestedHeaders: [
+  [{ label: 'A', rowspan: 2 }, { label: 'B', colspan: 2 }],
+  ['', 'C', 'D'],
+],
 ```
 
 :::
@@ -188,6 +221,17 @@ collapsibleColumns: [
 
 :::
 
+::: only-for vue
+
+```js
+collapsibleColumns: [
+  { row: -4, col: 1, collapsible: true }, // Add the button to the 4th-level header of the 1st column - counting from the first table row upwards.
+  { row: -3, col: 5, collapsible: true }, // Add the button to the 3rd-level header of the 5th column - counting from the first table row upwards.
+],
+```
+
+:::
+
 ### Example
 
 ::: only-for javascript
@@ -222,6 +266,73 @@ collapsibleColumns: [
 :::
 
 :::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/columns/column-groups/vue/example2.vue)
+
+:::
+
+:::
+
+### Choose which columns stay visible when collapsed
+
+By default, collapsing a group leaves its first column visible. To choose which columns stay visible in each state, add the `visibleWhen` property to a header in the `nestedHeaders` configuration. It accepts three values:
+
+- `'collapsed'` - the column is visible only while its group is collapsed (hidden while expanded).
+- `'expanded'` - the column is visible only while its group is expanded (hidden while collapsed).
+- `'always'` - the column is visible in both states.
+
+Once a group uses `visibleWhen` on any of its headers, the headers you leave unmarked default to `'expanded'` - they are hidden when the group collapses. So you only mark the column(s) you want to keep: tag one with `'always'` (stays in both states) or `'collapsed'` (a summary column that appears only on collapse). At least one column of a group always stays visible, so its collapse button is never lost.
+
+In the example below, collapse the **Q1 2025** group: the per-month columns (marked `'expanded'`) hide and the **Total** column (`'collapsed'`) appears. Expanding the group reverses it.
+
+::: only-for javascript
+
+::: example #example3 --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-groups/javascript/example3.js)
+@[code](@/content/guides/columns/column-groups/javascript/example3.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example3 :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-groups/react/example3.jsx)
+@[code](@/content/guides/columns/column-groups/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-groups/angular/example3.ts)
+@[code](@/content/guides/columns/column-groups/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/columns/column-groups/vue/example3.vue)
+
+:::
+
+:::
+
+A group whose headers use no `visibleWhen` markers keeps the default behavior - collapsing leaves its first column visible. The `visibleWhen` property applies only to headers within a [`collapsible`](@/api/options.md#collapsiblecolumns) group.
 
 ## Known limitations
 

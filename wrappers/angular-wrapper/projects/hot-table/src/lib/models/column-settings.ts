@@ -6,6 +6,14 @@ import { HotCellRendererComponent } from '../renderer/hot-cell-renderer.componen
 import { HotCellEditorComponent } from '../editor/hot-cell-editor.component';
 import { HotCellRendererAdvancedComponent } from '../renderer/hot-cell-renderer-advanced.component';
 import { HotCellEditorAdvancedComponent } from '../editor/hot-cell-editor-advanced.component';
+
+declare module 'handsontable/settings' {
+  interface ColumnSettings {
+    _editorComponentReference?: ComponentRef<HotCellEditorComponent<any>>;
+    _environmentInjector?: EnvironmentInjector;
+  }
+}
+
 export type CustomValidatorFn<T> = (value: T) => boolean;
 
 export type ColumnSettings =

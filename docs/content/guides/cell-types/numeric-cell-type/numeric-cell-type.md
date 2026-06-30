@@ -1,19 +1,19 @@
 ---
 type: how-to
-id: l5a447bl
 title: Numeric cell type
 metaTitle: Numeric cell type - JavaScript Data Grid | Handsontable
 description: Display, format, sort, and filter numbers correctly by using the numeric cell type.
 permalink: /numeric-cell-type
 canonicalUrl: /numeric-cell-type
 react:
-  id: e6zmmawj
   metaTitle: Numeric cell type - React Data Grid | Handsontable
 angular:
-  id: odhu846f
   metaTitle: Numeric cell type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Numeric cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Display, format, sort, and filter numbers correctly by using the numeric cell type.
 
@@ -74,6 +74,16 @@ Use the locale selector above the table to see how different locales affect numb
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-types/numeric-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ## Use the numeric cell type
 
 To use the numeric cell type, set the [`type`](@/api/options.md#type) option to `'numeric'`:
@@ -124,6 +134,21 @@ cell={[{
 
 :::
 
+::: only-for vue
+
+```html
+<!-- set the numeric cell type for each cell of the entire grid -->
+<HotTable :settings="{ type: 'numeric' }" />
+
+<!-- set the numeric cell type for each cell of a single column -->
+<HotTable :settings="{ columns: [{ type: 'numeric' }] }" />
+
+<!-- set the numeric cell type for a single cell -->
+<HotTable :settings="{ cell: [{ row: 0, col: 0, type: 'numeric' }] }" />
+```
+
+:::
+
 ::: only-for angular
 
 ```ts
@@ -169,7 +194,7 @@ use the [`numericFormat`](@/api/options.md#numericformat) option.
 
 Since Handsontable 17.0, the `numericFormat` option supports the native [`Intl.NumberFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat) API, which provides better performance and broader browser support without external dependencies.
 
-### Using Intl.NumberFormat (recommended)
+### Using Intl.NumberFormat
 
 The `numericFormat` option accepts all properties of [`Intl.NumberFormatOptions`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat). The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
 
@@ -221,6 +246,34 @@ columns: [
       minimumFractionDigits: 2
     }
   }]}
+/>
+```
+
+:::
+
+::: only-for vue
+
+```html
+<HotTable
+  :settings="{
+    columns: [{
+      type: 'numeric',
+      locale: 'en-US',
+      numericFormat: {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2
+      }
+    }, {
+      type: 'numeric',
+      locale: 'de-DE',
+      numericFormat: {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: 2
+      }
+    }]
+  }"
 />
 ```
 
@@ -317,77 +370,6 @@ settings = {
 
 For a complete reference, see the [`numericFormat` API documentation](@/api/options.md#numericformat) or [MDN: Intl.NumberFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/NumberFormat/NumberFormat#options).
 
-### Using Numbro.js format options (deprecated)
-
-::: warning Deprecated
-The `numericFormat.pattern` and `numericFormat.culture` options (numbro.js-based formatting) are deprecated and will be removed in the next major release. Migrate to the `Intl.NumberFormat` API shown above.
-:::
-
-The following demo uses the deprecated numbro.js format options. These options are still supported but will be removed in version 18.0.
-
-In the following demo, columns **Price in Japan** and **Price in Turkey** use two different
-[`numericFormat`](@/api/options.md#numericformat) configurations.
-
-::: only-for javascript
-
-::: example #example3 :hot-numbro --js 1 --ts 2
-
-@[code](@/content/guides/cell-types/numeric-cell-type/javascript/example3.js)
-@[code](@/content/guides/cell-types/numeric-cell-type/javascript/example3.ts)
-
-:::
-
-:::
-
-::: only-for react
-
-::: example #example3 :react-numbro --js 1 --ts 2
-
-@[code](@/content/guides/cell-types/numeric-cell-type/react/example3.jsx)
-@[code](@/content/guides/cell-types/numeric-cell-type/react/example3.tsx)
-
-:::
-
-:::
-
-::: only-for angular
-
-::: example #example3 :angular-numbro --ts 1 --html 2
-
-@[code](@/content/guides/cell-types/numeric-cell-type/angular/example3.ts)
-@[code](@/content/guides/cell-types/numeric-cell-type/angular/example3.html)
-
-:::
-
-:::
-
-**Deprecated options:**
-
-| Option | Description | Replacement |
-|--------|-------------|-------------|
-| `pattern` | Numbro.js format pattern (e.g., `'0,0.00 $'`) | Use `Intl.NumberFormat` options (see above) |
-| `culture` | Numbro.js locale identifier (e.g., `'en-US'`) | Use the [`locale`](@/api/options.md#locale) option |
-
-**Migration example:**
-
-```js
-// Before (deprecated)
-numericFormat: {
-  pattern: '0,0.00 $',
-  culture: 'en-US'
-}
-
-// After (recommended)
-locale: 'en-US',
-numericFormat: {
-  style: 'currency',
-  currency: 'USD',
-  minimumFractionDigits: 2
-}
-```
-
-For detailed migration instructions and more examples, see the [migration guide](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#1-migrate-from-numbro-format-to-intlnumberformat).
-
 ### Editor behavior
 
 Mind that the [`numericFormat`](@/api/options.md#numericformat) option doesn't change the way
@@ -399,8 +381,10 @@ you edit a numeric cell:
   separator or currency symbol.<br>For example, during editing `$7,000.02`, the number displays as
   `7000.02`.
 - You can enter a decimal separator either with a period (`.`), or with a comma (`,`).
-- You can't enter a thousands separator. After you finish editing the cell, the thousands
-  separator is added automatically, based on your [`numericFormat`](@/api/options.md#numericformat)
+- For European locales where the decimal separator is a comma (e.g., `de-DE`, `fr-FR`, `es-ES`),
+  you can enter a dot-thousands grouped value such as `7.000` or `7.000,25`. Handsontable parses
+  these as `7000` and `7000.25` respectively. For other locales, the thousands separator is added
+  automatically after editing, based on your [`numericFormat`](@/api/options.md#numericformat)
   configuration.
 
 ## Result
@@ -414,7 +398,6 @@ After configuring the numeric cell type, cells right-align their values and disp
 <div class="boxes-list">
 
 - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
-- [Migrating from 16.2 to 17.0](@/guides/upgrade-and-migration/migrating-from-16.2-to-17.0/migrating-from-16.2-to-17.0.md#1-migrate-from-numbro-format-to-intlnumberformat) - Migration guide for Intl.NumberFormat
 
 </div>
 

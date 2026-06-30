@@ -2,7 +2,7 @@
 
 This document is written for both human authors and AI agents. All rules are stated explicitly so both roles can apply them without ambiguity.
 
-Astro Starlight-based documentation site. **Requires Node 20** (separate from core's Node 22).
+Astro Starlight-based documentation site. **Requires Node 22**.
 
 For detailed authoring guidance, use skills `writing-docs-pages` and `creating-docs-examples`.
 
@@ -57,6 +57,8 @@ This field is in addition to the existing required frontmatter fields (see [Sect
 ---
 
 ## 2.2 Voice and Style
+
+This is the docs-**site** voice — it overrides the monorepo-wide documentation standards in `.ai/DOC-STANDARDS.md` where they differ (most notably clause separators: the site uses hyphens or double hyphens, never en dashes). Apply the monorepo standards for anything not restated here.
 
 ### Person, tense, and voice
 

@@ -129,7 +129,7 @@ describe('ColumnSorting', () => {
       columns: [
         {},
         {},
-        { type: 'date', dateFormat: 'MM/DD/YYYY' },
+        { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
         { type: 'numeric' },
         {}
       ],
@@ -164,7 +164,7 @@ describe('ColumnSorting', () => {
       columns: [
         {},
         {},
-        { type: 'date', dateFormat: 'MM/DD/YYYY' },
+        { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
         { type: 'numeric' },
         {}
       ],
@@ -319,7 +319,7 @@ describe('ColumnSorting', () => {
         {},
         {
           type: 'date',
-          dateFormat: 'mm/dd/yy'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         },
         {
           type: 'numeric'
@@ -800,13 +800,13 @@ describe('ColumnSorting', () => {
       handsontable({
         data: [
           ['Citroen1', 'C4 Coupe', null],
-          ['Mercedes1', 'A 160', '12/01/2008'],
-          ['Mercedes2', 'A 160', '01/14/2006'],
+          ['Mercedes1', 'A 160', '2008-12-01'],
+          ['Mercedes2', 'A 160', '2006-01-14'],
           ['Citroen2', 'C4 Coupe', undefined],
-          ['Audi1', 'A4 Avant', '11/19/2011'],
-          ['Opel1', 'Astra', '02/02/2004'],
+          ['Audi1', 'A4 Avant', '2011-11-19'],
+          ['Opel1', 'Astra', '2004-02-02'],
           ['Citroen3', 'C4 Coupe', null],
-          ['BMW1', '320i Coupe', '07/24/2011'],
+          ['BMW1', '320i Coupe', '2011-07-24'],
           ['Citroen4', 'C4 Coupe', ''],
           ['Citroen5', 'C4 Coupe', ''],
         ],
@@ -815,7 +815,7 @@ describe('ColumnSorting', () => {
           {},
           {
             type: 'date',
-            dateFormat: 'MM/DD/YYYY'
+            dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
           }
         ],
         columnSorting: {
@@ -851,13 +851,13 @@ describe('ColumnSorting', () => {
       handsontable({
         data: [
           ['Citroen1', 'C4 Coupe', null],
-          ['Mercedes1', 'A 160', '12/01/2008'],
-          ['Mercedes2', 'A 160', '01/14/2006'],
+          ['Mercedes1', 'A 160', '2008-12-01'],
+          ['Mercedes2', 'A 160', '2006-01-14'],
           ['Citroen2', 'C4 Coupe', undefined],
-          ['Audi1', 'A4 Avant', '11/19/2011'],
-          ['Opel1', 'Astra', '02/02/2004'],
+          ['Audi1', 'A4 Avant', '2011-11-19'],
+          ['Opel1', 'Astra', '2004-02-02'],
           ['Citroen3', 'C4 Coupe', null],
-          ['BMW1', '320i Coupe', '07/24/2011'],
+          ['BMW1', '320i Coupe', '2011-07-24'],
           ['Citroen4', 'C4 Coupe', ''],
           ['Citroen5', 'C4 Coupe', ''],
         ],
@@ -866,7 +866,7 @@ describe('ColumnSorting', () => {
           {},
           {
             type: 'date',
-            dateFormat: 'MM/DD/YYYY'
+            dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
           }
         ],
         columnSorting: {
@@ -898,67 +898,10 @@ describe('ColumnSorting', () => {
     describe('sorting date-typed files', () => {
       using('data set', [
         {
-          values: ['01/02/2032', '11/02/2023', '01/05/2023', '01/02/1975'],
-          dateFormat: 'DD/MM/YYYY'
+          values: ['2032-02-01', '2023-02-11', '2023-05-01', '1975-02-01'],
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         },
-        {
-          values: ['01/02/32', '11/02/23', '01/05/23', '01/02/75'],
-          dateFormat: 'DD/MM/YY'
-        },
-        {
-          values: ['1/2/32', '11/2/23', '1/5/23', '1/2/75'],
-          dateFormat: 'D/M/YY'
-        },
-        {
-          values: ['01/02/32', '11/02/23', '01/05/23', '01/02/75'],
-          dateFormat: 'D/M/YY'
-        },
-        {
-          values: ['01-02-2032', '11-02-2023', '01-05-2023', '01-02-1975'],
-          dateFormat: 'DD-MM-YYYY'
-        },
-        {
-          values: ['1-2-32', '11-2-23', '1-5-23', '1-2-75'],
-          dateFormat: 'D-M-YY'
-        },
-        {
-          values: ['2032 February 1st', '2023 February 11th', '2023 May 1st', '1975 February 1st'],
-          dateFormat: 'YYYY MMMM Do'
-        },
-        {
-          values: [
-            'The 1st of February \'32', 'The 11th of February \'23', 'The 1st of May \'23', 'The 1st of' +
-            ' February \'75'],
-          dateFormat: '[The] Do [of] MMMM \'YY'
-        },
-
-        // Improper date format configuration:
-        {
-          values: ['01/02/32', '11/02/23', '01/05/23', '01/02/75'],
-          dateFormat: 'DD/MM/YYYY'
-        },
-        {
-          values: ['1/2/32', '11/2/23', '1/5/23', '1/2/75'],
-          dateFormat: 'DD/MM/YY'
-        },
-        {
-          values: ['01/02/32', '11/02/23', '01/05/23', '01/02/75'],
-          dateFormat: 'D/M/YY'
-        },
-        {
-          values: ['1-2-32', '11-2-23', '1-5-23', '1-2-75'],
-          dateFormat: 'DD-MM-YYYY'
-        },
-        {
-          values: ['32 February 1st', '23 February 11th', '23 May 1st', '75 February 1st'],
-          dateFormat: 'YYYY MMMM Do'
-        },
-        {
-          values: ['1/2/2032', '11/2/2023', '1/5/2023', '1/2/1975'],
-          dateFormat: 'D.M.YYYY'
-        }
       ], ({ values, dateFormat }) => {
-        // TODO: not sure if all of them work by design
         it('it should be sorted properly', async() => {
           const data = values.map((value, ind) => [value, ind]);
 
@@ -984,11 +927,11 @@ describe('ColumnSorting', () => {
       using('data set', [
         {
           values: ['1.2.2032', '11.2.2023', '1.5.2023', '1.2.1975'],
-          dateFormat: 'D.M.YY'
+          dateFormat: { year: 'numeric', month: 'numeric', day: 'numeric' }
         },
         {
           values: ['1-2-2032', '11-2-2023', '1-5-2023', '1-2-1975'],
-          dateFormat: 'DD/MM/YY'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         },
 
       ], ({ values, dateFormat }) => {
@@ -1060,29 +1003,25 @@ describe('ColumnSorting', () => {
 
     describe('sorting time-typed files', () => {
       using('data set', [
-        { values: ['23:15', '20:44', '21:00', '14:12'], timeFormat: 'HH:mm' },
-        { values: ['11:15 PM', '08:44 PM', '09:00 PM', '02:12 PM'], timeFormat: 'hh:mm A' },
-        { values: ['11:15 pm', '08:44 pm', '09:00 pm', '02:12 pm'], timeFormat: 'hh:mm a' },
-        { values: ['08:44 pm', '11:15 am', '02:12 pm', '09:00 am'], timeFormat: 'hh:mm a' }, // mix pm/am
-        { values: ['23:15:22:33', '20:44:11:11', '21:00:11:11', '14:12:11:11'], timeFormat: 'HH:mm:mm:ss' },
-        { values: ['23:15:3:4', '20:44:1:1', '21:00:1:1', '14:12:1:1'], timeFormat: 'H:m:m:s' },
         {
-          values: ['23:15:22:33 +02:00', '20:44:22:33 +02:00', '21:00:22:33 +02:00', '14:12:22:33 +02:00'],
-          timeFormat: 'HH:mm:mm:ss Z'
+          values: ['23:15', '20:44', '21:00', '14:12'],
+          timeFormat: { hour: '2-digit', minute: '2-digit', hour12: false }
         },
         {
-          values: ['23:15:22:33 +0200', '20:44:22:33 +0200', '21:00:22:33 +0200', '14:12:22:33 +0200'],
-          timeFormat: 'HH:mm:mm:ss ZZ'
+          values: ['23:15:22', '20:44:11', '21:00:11', '14:12:11'],
+          timeFormat: { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }
         },
-
-        // Improper format:
-        { values: ['23:15:22:33', '20:44:11:11', '21:00:11:11', '14:12:11:11'], timeFormat: 'H:m:m:s' },
         {
-          values: ['23:15:22:33 +02:00', '20:44:22:33 +02:00', '21:00:22:33 +02:00', '14:12:22:33 +02:00'],
-          timeFormat: 'HH:mm:mm:ss ZZ'
+          values: ['23:15:22.100', '20:44:11.200', '21:00:11.300', '14:12:11.400'],
+          timeFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            fractionalSecondDigits: 3,
+            hour12: false
+          }
         },
       ], ({ values, timeFormat }) => {
-        // TODO: not sure if all of them work by design
         it('it should be sorted properly', async() => {
           const data = values.map((value, ind) => [value, ind]);
 
@@ -1139,7 +1078,7 @@ describe('ColumnSorting', () => {
           handsontable({
             data,
             columns: [
-              { type: 'intl-time', timeFormat },
+              { type: 'time', timeFormat },
               { type: 'numeric' },
             ],
             columnSorting: true
@@ -1159,20 +1098,20 @@ describe('ColumnSorting', () => {
     it('should sort date columns along with empty and null values', async() => {
       handsontable({
         data: [
-          ['Mercedes', 'A 160', '01/14/2006', 6999.9999],
-          ['Citroen', 'C4 Coupe', '12/01/2008', 8330],
+          ['Mercedes', 'A 160', '2006-01-14', 6999.9999],
+          ['Citroen', 'C4 Coupe', '2008-12-01', 8330],
           ['Citroen', 'C4 Coupe null', null, 8330],
           ['Citroen', 'C4 Coupe empty', '', 8330],
-          ['Audi', 'A4 Avant', '11/19/2011', 33900],
-          ['Opel', 'Astra', '02/02/2004', 7000],
-          ['BMW', '320i Coupe', '07/24/2011', 30500]
+          ['Audi', 'A4 Avant', '2011-11-19', 33900],
+          ['Opel', 'Astra', '2004-02-02', 7000],
+          ['BMW', '320i Coupe', '2011-07-24', 30500]
         ],
         columns: [
           {},
           {},
           {
             type: 'date',
-            dateFormat: 'MM/DD/YYYY'
+            dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
           },
           {
             type: 'numeric'
@@ -1184,53 +1123,103 @@ describe('ColumnSorting', () => {
 
       getPlugin('columnSorting').sort({ column: 2, sortOrder: 'asc' }); // ASC
 
-      expect(getDataAtRow(0)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
-      expect(getDataAtRow(1)).toEqual(['Mercedes', 'A 160', '01/14/2006', 6999.9999]);
-      expect(getDataAtRow(2)).toEqual(['Citroen', 'C4 Coupe', '12/01/2008', 8330]);
-      expect(getDataAtRow(3)).toEqual(['BMW', '320i Coupe', '07/24/2011', 30500]);
-      expect(getDataAtRow(4)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
+      expect(getDataAtRow(0)).toEqual(['Opel', 'Astra', '2004-02-02', 7000]);
+      expect(getDataAtRow(1)).toEqual(['Mercedes', 'A 160', '2006-01-14', 6999.9999]);
+      expect(getDataAtRow(2)).toEqual(['Citroen', 'C4 Coupe', '2008-12-01', 8330]);
+      expect(getDataAtRow(3)).toEqual(['BMW', '320i Coupe', '2011-07-24', 30500]);
+      expect(getDataAtRow(4)).toEqual(['Audi', 'A4 Avant', '2011-11-19', 33900]);
 
       getPlugin('columnSorting').sort({ column: 2, sortOrder: 'desc' }); // DESC
 
-      expect(getDataAtRow(0)).toEqual(['Audi', 'A4 Avant', '11/19/2011', 33900]);
-      expect(getDataAtRow(1)).toEqual(['BMW', '320i Coupe', '07/24/2011', 30500]);
-      expect(getDataAtRow(2)).toEqual(['Citroen', 'C4 Coupe', '12/01/2008', 8330]);
-      expect(getDataAtRow(3)).toEqual(['Mercedes', 'A 160', '01/14/2006', 6999.9999]);
-      expect(getDataAtRow(4)).toEqual(['Opel', 'Astra', '02/02/2004', 7000]);
+      expect(getDataAtRow(0)).toEqual(['Audi', 'A4 Avant', '2011-11-19', 33900]);
+      expect(getDataAtRow(1)).toEqual(['BMW', '320i Coupe', '2011-07-24', 30500]);
+      expect(getDataAtRow(2)).toEqual(['Citroen', 'C4 Coupe', '2008-12-01', 8330]);
+      expect(getDataAtRow(3)).toEqual(['Mercedes', 'A 160', '2006-01-14', 6999.9999]);
+      expect(getDataAtRow(4)).toEqual(['Opel', 'Astra', '2004-02-02', 7000]);
     });
   });
 
-  describe('data type: time', () => {
-    it('should properly rewrite time into correct format after sort', async() => {
+  describe('data type: text with boolean values', () => {
+    it('should sort boolean values ascending when column type is text', async() => {
       handsontable({
         data: [
-          ['0:00:01 am'],
-          ['5:30:14 pm'],
-          ['8:00:00 pm'],
-          ['11:15:05 am'],
-          ['4:07:48 am']
+          { a: false, b: 3 },
+          { a: true, b: -4 },
+          { a: false, b: 11 },
+          { a: true, b: 1 },
         ],
         columns: [
-          {
-            type: 'time',
-            dateFormat: 'h:mm:ss a',
-            correctFormat: true
-          }
+          { data: 'a', type: 'text' },
+          { data: 'b', type: 'numeric' },
         ],
-        colHeaders: true,
-        columnSorting: {
-          initialConfig: {
-            column: 0,
-            sortOrder: 'desc'
-          }
-        }
+        columnSorting: true,
       });
 
-      await waitForNextAnimationFrames(2);
-      await setDataAtCell(0, 0, '19:55', 'edit');
-      await waitForNextAnimationFrames(2);
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
 
-      expect(getDataAtCell(0, 0)).toEqual('7:55:00 pm');
+      expect(getData()).toEqual([
+        [false, 3],
+        [false, 11],
+        [true, -4],
+        [true, 1],
+      ]);
+    });
+
+    it('should sort boolean values descending when column type is text', async() => {
+      handsontable({
+        data: [
+          { a: false, b: 3 },
+          { a: true, b: -4 },
+          { a: false, b: 11 },
+          { a: true, b: 1 },
+        ],
+        columns: [
+          { data: 'a', type: 'text' },
+          { data: 'b', type: 'numeric' },
+        ],
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'desc' });
+
+      expect(getData()).toEqual([
+        [true, -4],
+        [true, 1],
+        [false, 3],
+        [false, 11],
+      ]);
+    });
+
+    it('should sort boolean values when mixed with other column types', async() => {
+      handsontable({
+        data: [
+          { a: false, b: false, c: 3, d: 5 },
+          { a: true, b: true, c: -4, d: 12 },
+          { a: false, b: false, c: 11, d: 4 },
+          { a: false, b: false, c: 3, d: 9 },
+          { a: true, b: true, c: -4, d: 1 },
+          { a: false, b: false, c: 11, d: 0 },
+        ],
+        columns: [
+          { data: 'a', type: 'text' },
+          { data: 'b', type: 'checkbox' },
+          { data: 'c', type: 'text' },
+          { data: 'd', type: 'text' },
+        ],
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+
+      const sorted = getData();
+
+      // All false rows must come before all true rows
+      const falseRows = sorted.filter(row => row[0] === false);
+      const trueRows = sorted.filter(row => row[0] === true);
+
+      expect(falseRows.length).toBe(4);
+      expect(trueRows.length).toBe(2);
+      expect(sorted.indexOf(falseRows[falseRows.length - 1])).toBeLessThan(sorted.indexOf(trueRows[0]));
     });
   });
 
@@ -1648,7 +1637,7 @@ describe('ColumnSorting', () => {
         {},
         {
           type: 'date',
-          dateFormat: 'mm/dd/yy'
+          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
         },
         {
           type: 'numeric'
@@ -2882,7 +2871,7 @@ describe('ColumnSorting', () => {
         columns: [
           { columnSorting: { headerAction: false } },
           {},
-          { type: 'date', dateFormat: 'MM/DD/YYYY' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
           { type: 'numeric' },
           {}
         ],
@@ -2924,7 +2913,7 @@ describe('ColumnSorting', () => {
         columns: [
           { columnSorting: { headerAction: false } },
           {},
-          { type: 'date', dateFormat: 'MM/DD/YYYY' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
           { type: 'numeric' },
           {}
         ],
@@ -2955,7 +2944,7 @@ describe('ColumnSorting', () => {
         columns: [
           {},
           {},
-          { type: 'date', dateFormat: 'MM/DD/YYYY' },
+          { type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
           { type: 'numeric' },
           {}
         ],
@@ -3370,6 +3359,83 @@ describe('ColumnSorting', () => {
       const cssTop = parseInt(wtSpreader.css('top'), 10);
 
       expect(cssTop).toBeGreaterThan(0);
+    });
+  });
+
+  describe('fixed rows interaction', () => {
+    it('should not include `fixedRowsBottom` rows in the sortable range', async() => {
+      handsontable({
+        data: [
+          ['Apple', 10],
+          ['Banana', 20],
+          ['Cherry', 30],
+          ['Date', 40],
+          ['Total', 999], // footer row, must stay last regardless of sort
+        ],
+        colHeaders: ['A', 'B'],
+        fixedRowsBottom: 1,
+        columnSorting: true,
+      });
+
+      // sort col B descending - 999 would normally float to the top
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'desc' });
+
+      // footer must remain at the last visual row
+      expect(getDataAtCell(4, 0)).toBe('Total');
+      expect(getDataAtCell(4, 1)).toBe(999);
+
+      // data rows above are sorted descending
+      expect(getDataAtCol(1).slice(0, 4)).toEqual([40, 30, 20, 10]);
+    });
+
+    it('should not include `fixedRowsTop` rows in the sortable range', async() => {
+      handsontable({
+        data: [
+          ['Header', 999], // header row, must stay first regardless of sort
+          ['Apple', 10],
+          ['Banana', 20],
+          ['Cherry', 30],
+          ['Date', 40],
+        ],
+        colHeaders: ['A', 'B'],
+        fixedRowsTop: 1,
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+      // header must remain at the first visual row
+      expect(getDataAtCell(0, 0)).toBe('Header');
+      expect(getDataAtCell(0, 1)).toBe(999);
+
+      // data rows below are sorted ascending
+      expect(getDataAtCol(1).slice(1)).toEqual([10, 20, 30, 40]);
+    });
+
+    it('should respect `fixedRowsTop`, `fixedRowsBottom`, and `minSpareRows` together', async() => {
+      handsontable({
+        data: [
+          ['Header', 999],
+          ['Banana', 20],
+          ['Apple', 10],
+          ['Date', 40],
+          ['Cherry', 30],
+          ['Total', 111],
+          [null, null], // spare row
+        ],
+        colHeaders: ['A', 'B'],
+        fixedRowsTop: 1,
+        fixedRowsBottom: 1,
+        minSpareRows: 1,
+        columnSorting: true,
+      });
+
+      getPlugin('columnSorting').sort({ column: 1, sortOrder: 'asc' });
+
+      expect(getDataAtCell(0, 0)).toBe('Header');
+      expect(getDataAtCol(1).slice(1, 5)).toEqual([10, 20, 30, 40]);
+      expect(getDataAtCell(5, 0)).toBe('Total');
+      expect(getDataAtCell(6, 0)).toBeNull();
     });
   });
 });

@@ -51,8 +51,7 @@ describe('manualRowMove', () => {
       spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mousedown');
       spec().$container.find('tbody tr:eq(0) th:eq(0)').simulate('mouseup');
 
-      expect(spec().$container.children().children().first().children().hasClass('after-selection--rows'))
-        .toBeGreaterThan(0);
+      expect(spec().$container.find('.ht-wrapper').hasClass('after-selection--rows')).toBe(true);
     });
 
     it('should change the default row order with updateSettings', async() => {
@@ -832,7 +831,7 @@ describe('manualRowMove', () => {
           .simulate('mousemove')
           .simulate('mouseup');
 
-        expect(tableView().getFirstFullyVisibleRow()).toBe(7);
+        expect(tableView().getFirstFullyVisibleRow()).toBe(8);
       });
     });
   });

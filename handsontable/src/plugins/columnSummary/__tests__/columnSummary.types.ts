@@ -1,5 +1,20 @@
 import Handsontable from 'handsontable';
-import { Endpoint } from 'handsontable/plugins/columnSummary';
+import type { SummaryEndpoint } from 'handsontable/plugins/columnSummary';
+
+interface Endpoint {
+  destinationRow: number;
+  destinationColumn: number;
+  forceNumeric: boolean;
+  reversedRowCoords: boolean;
+  suppressDataTypeErrors: boolean;
+  readOnly: boolean;
+  roundFloat: number | false | 'auto';
+  ranges: number[][];
+  sourceColumn: number;
+  type: string;
+  result: number;
+  customFunction: null | ((endpoint: unknown) => number);
+}
 
 const hot = new Handsontable(document.createElement('div'), {
   columnSummary: [
@@ -21,7 +36,7 @@ const hot = new Handsontable(document.createElement('div'), {
       type: 'custom',
       destinationRow: 3,
       destinationColumn: 2,
-      customFunction(endpoint) {
+      customFunction(endpoint: unknown) {
         return 1;
       }
     },
@@ -44,6 +59,7 @@ const hot = new Handsontable(document.createElement('div'), {
     },
   ],
 });
+
 new Handsontable(document.createElement('div'), {
   columnSummary() {
     return [
@@ -58,7 +74,7 @@ new Handsontable(document.createElement('div'), {
   }
 });
 const columnSummary = hot.getPlugin('columnSummary');
-const endpoint: Endpoint = {
+const endpoint: SummaryEndpoint = {
   destinationRow: 0,
   destinationColumn: 0,
   forceNumeric: true,
@@ -73,7 +89,7 @@ const endpoint: Endpoint = {
   customFunction: null,
 };
 
-const endpoint2: Endpoint = {
+const endpoint2: SummaryEndpoint = {
   destinationRow: 0,
   destinationColumn: 0,
   forceNumeric: false,
@@ -88,7 +104,7 @@ const endpoint2: Endpoint = {
   customFunction: null,
 };
 
-const endpoint3: Endpoint = {
+const endpoint3: SummaryEndpoint = {
   destinationRow: 0,
   destinationColumn: 0,
   forceNumeric: false,
@@ -108,9 +124,9 @@ const sum: number = columnSummary.calculateSum(endpoint);
 const min: number | string = columnSummary.calculateMinMax(endpoint, 'min');
 const max: number | string = columnSummary.calculateMinMax(endpoint, 'max');
 const avr: number = columnSummary.calculateAverage(endpoint);
-const empty: number = columnSummary.countEmpty([[1, 1, 2, 2]], 2);
+const empty: number = columnSummary.countEmpty([1, 1, 2, 2], 2);
 const entries: number = columnSummary.countEntries(endpoint);
-const cellValue: number = columnSummary.getCellValue(2, 2);
-const partialMin: number = columnSummary.getPartialMinMax([[1, 1, 2, 2]], 2, 'min');
-const partialMax: number = columnSummary.getPartialMinMax([[1, 1, 2, 2]], 2, 'max');
-const partialSum: number = columnSummary.getPartialSum([[1, 1, 2, 2]], 2);
+const cellValue: unknown = columnSummary.getCellValue(2, 2);
+const partialMin: number | null = columnSummary.getPartialMinMax([1, 1, 2, 2], 2, 'min');
+const partialMax: number | null = columnSummary.getPartialMinMax([1, 1, 2, 2], 2, 'max');
+const partialSum: number = columnSummary.getPartialSum([1, 1, 2, 2], 2);

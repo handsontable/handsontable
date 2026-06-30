@@ -505,7 +505,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
             return {
               start: v.scrollLeft,
-              top: v.offsetHeight - bottomOverlayHeight - L.cellBorderWidth,
+              top: v.offsetHeight - bottomOverlayHeight,
               maxWidth: v.clientWidth,
               maxHeight: bottomOverlayHeight + sb,
             };
@@ -637,7 +637,7 @@ describe('BaseEditor methods - getEditedCellRect', () => {
 
             return {
               start: 4949,
-              top: v.offsetHeight - cellOuterHeight - L.cellBorderWidth,
+              top: v.offsetHeight - cellOuterHeight,
               maxWidth: colOuter,
               maxHeight: cellOuterHeight + sb,
             };

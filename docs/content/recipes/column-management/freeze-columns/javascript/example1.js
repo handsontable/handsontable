@@ -22,8 +22,26 @@ let frozenCount = 0;
 const colHeaders = ['Campaign', 'Channel', 'Impressions', 'Clicks', 'Conversions', 'CPC ($)', 'Revenue ($)', 'ROI'];
 
 const container = document.querySelector('#example1');
-const controlsContainer = document.querySelector('#freeze-buttons');
-const statusEl = document.querySelector('#freeze-status');
+
+const toolbar = document.createElement('div');
+
+toolbar.classList.add('example-controls-container');
+
+const freezeRow = document.createElement('div');
+
+freezeRow.className = 'controls';
+
+const unfreezeRow = document.createElement('div');
+
+unfreezeRow.className = 'controls';
+
+const statusEl = document.createElement('span');
+
+statusEl.className = 'freeze-status';
+
+toolbar.appendChild(freezeRow);
+toolbar.appendChild(unfreezeRow);
+container.before(toolbar);
 
 const hot = new Handsontable(container, {
   data,
@@ -31,12 +49,12 @@ const hot = new Handsontable(container, {
   columns: [
     { data: 'campaign', type: 'text' },
     { data: 'channel', type: 'text' },
-    { data: 'impressions', type: 'numeric', numericFormat: { pattern: '0,0' } },
-    { data: 'clicks', type: 'numeric', numericFormat: { pattern: '0,0' } },
-    { data: 'conversions', type: 'numeric', numericFormat: { pattern: '0,0' } },
-    { data: 'cpc', type: 'numeric', numericFormat: { pattern: '0.00' } },
-    { data: 'revenue', type: 'numeric', numericFormat: { pattern: '$0,0' } },
-    { data: 'roi', type: 'numeric', numericFormat: { pattern: '0.00' } },
+    { data: 'impressions', type: 'numeric', numericFormat: { useGrouping: true, maximumFractionDigits: 0 } },
+    { data: 'clicks', type: 'numeric', numericFormat: { useGrouping: true, maximumFractionDigits: 0 } },
+    { data: 'conversions', type: 'numeric', numericFormat: { useGrouping: true, maximumFractionDigits: 0 } },
+    { data: 'cpc', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
+    { data: 'revenue', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 } },
+    { data: 'roi', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
   ],
   fixedColumnsStart: 0,
   manualColumnMove: true,
@@ -70,20 +88,27 @@ colHeaders.forEach((header, index) => {
 
   btn.type = 'button';
   btn.textContent = `Freeze up to "${header}"`;
-  btn.dataset.colIndex = String(index);
 
   btn.addEventListener('click', () => {
     freezeUpTo(index + 1);
   });
 
-  controlsContainer.appendChild(btn);
+  freezeRow.appendChild(btn);
 });
 
 // "Unfreeze all" resets fixedColumnsStart to 0.
-document.querySelector('#unfreeze-btn').addEventListener('click', () => {
+const unfreezeBtn = document.createElement('button');
+
+unfreezeBtn.type = 'button';
+unfreezeBtn.textContent = 'Unfreeze all';
+
+unfreezeBtn.addEventListener('click', () => {
   frozenCount = 0;
   hot.updateSettings({ fixedColumnsStart: 0 });
   updateStatus();
 });
+
+unfreezeRow.appendChild(unfreezeBtn);
+unfreezeRow.appendChild(statusEl);
 
 updateStatus();

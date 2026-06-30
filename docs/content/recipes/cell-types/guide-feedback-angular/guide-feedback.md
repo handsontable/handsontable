@@ -6,6 +6,7 @@ metaTitle: "Feedback Editor - JavaScript Data Grid | Handsontable"
 description: Learn how to create a custom Handsontable cell type using emoji buttons for quick feedback selection directly in your data grid.
 permalink: /recipes/cell-types/feedback-angular
 canonicalUrl: /recipes/cell-types/feedback-angular
+framework: angular
 tags:
   - guides
   - tutorial
@@ -16,6 +17,9 @@ react:
 angular:
   id: dg9oi3jt
   metaTitle: "Feedback Editor - Angular Data Grid | Handsontable"
+vue:
+  id: 5dtfu7cq
+  metaTitle: "Feedback Editor - Vue Data Grid | Handsontable"
 searchCategory: Recipes
 category: Cells
 ---

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 6elqkmhr
 title: Column hiding
 metaTitle: Column hiding - JavaScript Data Grid | Handsontable
 description:
@@ -9,11 +8,11 @@ description:
 permalink: /column-hiding
 canonicalUrl: /column-hiding
 react:
-  id: u1aw329h
   metaTitle: Column hiding - React Data Grid | Handsontable
 angular:
-  id: 69k5r1oh
   metaTitle: Column hiding - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Column hiding - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
 ---
@@ -73,6 +72,16 @@ To enable column hiding, use the [`hiddenColumns`](@/api/options.md#hiddencolumn
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/columns/column-hiding/vue/example1.vue)
+
+:::
+
+:::
+
 ## Set up column hiding
 
 To set up your column hiding configuration, follow the steps below.
@@ -117,6 +126,16 @@ Now, those columns are hidden by default:
 @[code](@/content/guides/columns/column-hiding/angular/example2.html)
 
 :::
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/columns/column-hiding/vue/example2.vue)
+
+:::
+
 :::
 
 ### Step 2: Show UI indicators
@@ -169,6 +188,16 @@ If you use both the [`NestedHeaders`](@/api/nestedHeaders.md) plugin and the
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/columns/column-hiding/vue/example3.vue)
+
+:::
+
+:::
+
 ### Step 3: Set up context menu items
 
 To easily hide and unhide columns, add column hiding items to Handsontable's
@@ -211,6 +240,16 @@ additional items for hiding and unhiding columns.
 :::
 :::
 
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/columns/column-hiding/vue/example4.vue)
+
+:::
+
+:::
+
 You can also add the column hiding menu items individually, by adding the
 [`hidden_columns_show`](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options)
 and
@@ -248,6 +287,16 @@ strings to the[ `contextMenu`](@/api/contextMenu.md) parameter:
 @[code](@/content/guides/columns/column-hiding/angular/example5.html)
 
 :::
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/columns/column-hiding/vue/example5.vue)
+
+:::
+
 :::
 
 ### Step 4: Set up copy and paste behavior
@@ -290,6 +339,16 @@ object, set the [`copyPasteEnabled`](@/api/hiddenColumns.md) property to `false`
 
 :::
 
+::: only-for vue
+
+::: example #example6 :vue3
+
+@[code](@/content/guides/columns/column-hiding/vue/example6.vue)
+
+:::
+
+:::
+
 ## Column hiding API methods
 
 For the most popular column hiding tasks, use the API methods below.
@@ -302,6 +361,19 @@ To use the Handsontable API, you'll need access to the Handsontable instance. Yo
 utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
 
 For more information, see the [Instance methods](@/guides/getting-started/react-methods/react-methods.md) page.
+
+:::
+
+:::
+
+::: only-for vue
+
+::: tip
+
+To use the Handsontable API, you'll need access to the Handsontable instance. You can do that by
+utilizing a reference to the `HotTable` component, and reading its `hotInstance` property.
+
+For more information, see the [Referencing the Handsontable instance](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md) page.
 
 :::
 

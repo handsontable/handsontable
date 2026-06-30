@@ -138,7 +138,7 @@ const correctFormat = (value, dateFormat) => {
 };
 
 const cellDateTypeDefinition = {
-  renderer: getRenderer('autocomplete'),
+  renderer: getRenderer('text'),
   validator(value, callback) {
     let valid = true;
 

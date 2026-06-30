@@ -1,5 +1,14 @@
 import Handsontable from 'handsontable';
 
+// hashRevealDelay, hashSymbol, hashLength type checks
+const hot = new Handsontable(document.createElement('div'), {
+  columns: [
+    { type: 'password', hashRevealDelay: 500, hashSymbol: '#', hashLength: 8 },
+  ],
+});
+
+hot.updateSettings({ hashRevealDelay: 0 });
+
 class PasswordEditor extends Handsontable.editors.TextEditor {
   createElements() {
     // Call the original createElements method

@@ -599,4 +599,34 @@ describe('Search plugin', () => {
       expect(cellClassName).toBe('cell');
     });
   });
+
+  it('should not throw and should return matches when a column locale is an invalid BCP 47 tag', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      columns: [{ locale: 'en_US' }, {}, {}, {}, {}], // 'en_US' (underscore) is an invalid tag
+      search: true,
+    });
+
+    const search = getPlugin('search');
+    let result;
+
+    expect(() => {
+      result = search.query('a');
+    }).not.toThrow();
+    expect(Array.isArray(result)).toBe(true);
+  });
+
+  it('should perform locale-aware search for Turkish text', async() => {
+    handsontable({
+      data: [['IST'], ['İST'], ['iyi']],
+      columns: [{ locale: 'tr-TR' }],
+      search: true,
+    });
+
+    const search = getPlugin('search');
+    // Under tr-TR, 'i' lowercases İ→i but I→ı, so 'i' matches 'İST' and 'iyi', not 'IST'.
+    const matches = search.query('i').map(r => r.row).sort();
+
+    expect(matches).toEqual([1, 2]);
+  });
 });

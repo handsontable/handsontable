@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: tpa768pc
 title: Migrating from 11.1 to 12.0
 metaTitle: Migrate from 11.1 to 12.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 11.1 to Handsontable 12.0, released on April 28, 2022.
@@ -8,11 +7,11 @@ permalink: /migration-from-11.1-to-12.0
 canonicalUrl: /migration-from-11.1-to-12.0
 pageClass: migration-guide
 react:
-  id: ncj9bstu
   metaTitle: Migrate from 11.1 to 12.0 - React Data Grid | Handsontable
 angular:
-  id: e9gbxrvk
   metaTitle: Migrate from 11.1 to 12.0 - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Migrate from 11.1 to 12.0 - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Upgrade and migration
 ---
@@ -94,8 +93,8 @@ To replace [`data`](@/api/options.md#data) and reset the states, call the [`load
 Read more on referencing the Handsontable instance:
 - [Referencing the Handsontable instance in Angular](@/angular/guides/getting-started/angular-hot-instance/angular-hot-instance.md)
 - [Referencing the Handsontable instance in React](@/react/guides/getting-started/react-methods/react-methods.md)
-- [Referencing the Handsontable instance in Vue](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md)
-- [Referencing the Handsontable instance in Vue 3](@/guides/integrate-with-vue3/vue3-hot-reference/vue3-hot-reference.md)
+- [Referencing the Handsontable instance in Vue](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md)
+- [Referencing the Handsontable instance in Vue 3](@/guides/getting-started/vue3-hot-reference/vue3-hot-reference.md)
 
 :::
 

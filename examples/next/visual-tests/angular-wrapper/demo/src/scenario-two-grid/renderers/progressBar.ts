@@ -1,5 +1,7 @@
 import Handsontable from "handsontable";
-import { baseRenderer } from 'handsontable/renderers/baseRenderer';
+import type { BaseRenderer } from "handsontable/renderers";
+
+const dom = (Handsontable as unknown as { dom: { addClass(el: HTMLElement, className: string): void; empty(el: HTMLElement): void } }).dom;
 
 type AddClassWhenNeeded = (
   td: HTMLTableCellElement,
@@ -10,11 +12,11 @@ const addClassWhenNeeded: AddClassWhenNeeded = (td, cellProperties) => {
   const className = cellProperties.className;
 
   if (className !== undefined) {
-    Handsontable.dom.addClass(td, className);
+    dom.addClass(td, className as string);
   }
 };
 
-export const progressBarRenderer: typeof baseRenderer = (
+const progressBarRendererImpl: BaseRenderer = (
   instance,
   td,
   row,
@@ -23,14 +25,19 @@ export const progressBarRenderer: typeof baseRenderer = (
   value,
   cellProperties
 ) => {
+  const numValue = value as number;
   const div = document.createElement("div");
 
-  div.style.width = `${value * 10}px`;
-  div.ariaLabel = `${value * 10}%`;
+  div.style.width = `${numValue * 10}px`;
+  div.ariaLabel = `${numValue * 10}%`;
 
-  addClassWhenNeeded(td, cellProperties);
-  Handsontable.dom.addClass(div, "progressBar");
-  Handsontable.dom.empty(td);
+  addClassWhenNeeded(td, cellProperties as Handsontable.CellProperties);
+  dom.addClass(div, "progressBar");
+  dom.empty(td);
 
   td.appendChild(div);
 };
+
+export const progressBarRenderer = Object.assign(progressBarRendererImpl, {
+  RENDERER_TYPE: "base" as const,
+});

@@ -49,13 +49,14 @@
 }
 
 .mobile-nav-link:hover {
-  color: var(--sl-color-white);
-  background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+  color: var(--sl-color-text);
+  background: var(--sl-color-accent-low, var(--sl-color-gray-6));
 }
 
-.mobile-nav-link--active {
-  color: var(--sl-color-white);
-  background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+.mobile-nav-link--active,
+.mobile-nav-link--active:hover {
+  color: var(--sl-color-text);
+  background: transparent;
   border-inline-start: 2px solid var(--sl-color-accent);
 }
 
@@ -80,9 +81,15 @@
 
 .mobile-nav-frameworks {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   border-top: 1px solid var(--sl-color-gray-5);
   gap: 0;
+}
+
+@media (min-width: 28rem) {
+  .mobile-nav-frameworks {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .mobile-nav-fw {
@@ -101,17 +108,30 @@
   white-space: nowrap;
 }
 
-.mobile-nav-fw:last-child {
+/* 2-column layout: even items are in the right column */
+.mobile-nav-fw:nth-child(2n) {
   border-right: 0;
 }
 
-.mobile-nav-fw:hover {
-  color: var(--sl-color-white);
-  background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+/* 4-column layout: restore right border for item 2, only last item has none */
+@media (min-width: 28rem) {
+  .mobile-nav-fw:nth-child(2n) {
+    border-right: 1px solid var(--sl-color-gray-5);
+  }
+
+  .mobile-nav-fw:last-child {
+    border-right: 0;
+  }
 }
 
-.mobile-nav-fw--active {
-  color: var(--sl-color-white);
+.mobile-nav-fw:hover {
+  color: var(--sl-color-text);
+  background: var(--sl-color-accent-low, var(--sl-color-gray-6));
+}
+
+.mobile-nav-fw--active,
+.mobile-nav-fw--active:hover {
+  color: var(--sl-color-text);
   border-bottom-color: var(--sl-color-accent);
-  background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+  background: transparent;
 }

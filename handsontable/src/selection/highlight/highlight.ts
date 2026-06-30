@@ -1,0 +1,533 @@
+import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
+import { arrayEach } from '../../helpers/array';
+import { createHighlight as createActiveHighlight } from './types/activeHeader';
+import { createHighlight as createAreaLayeredHighlight } from './types/areaLayered';
+import { createHighlight as createAreaHighlight } from './types/area';
+import { createHighlight as createColumnHighlight } from './types/column';
+import { createHighlight as createFocusHighlight } from './types/focus';
+import { createHighlight as createCustomHighlight } from './types/customSelection';
+import { createHighlight as createFillHighlight } from './types/fill';
+import { createHighlight as createHeaderHighlight } from './types/header';
+import { createHighlight as createRowHighlight } from './types/row';
+import type VisualSelection from './visualSelection';
+import {
+  HIGHLIGHT_ACTIVE_HEADER_TYPE,
+  HIGHLIGHT_AREA_TYPE,
+  HIGHLIGHT_FOCUS_TYPE,
+  HIGHLIGHT_CUSTOM_SELECTION_TYPE,
+  HIGHLIGHT_FILL_TYPE,
+  HIGHLIGHT_HEADER_TYPE,
+  HIGHLIGHT_ROW_TYPE,
+  HIGHLIGHT_COLUMN_TYPE,
+} from '../../3rdparty/walkontable/src';
+
+export {
+  HIGHLIGHT_ACTIVE_HEADER_TYPE as ACTIVE_HEADER_TYPE,
+  HIGHLIGHT_AREA_TYPE as AREA_TYPE,
+  HIGHLIGHT_FOCUS_TYPE as FOCUS_TYPE,
+  HIGHLIGHT_CUSTOM_SELECTION_TYPE as CUSTOM_SELECTION_TYPE,
+  HIGHLIGHT_FILL_TYPE as FILL_TYPE,
+  HIGHLIGHT_HEADER_TYPE as HEADER_TYPE,
+  HIGHLIGHT_ROW_TYPE as ROW_TYPE,
+  HIGHLIGHT_COLUMN_TYPE as COLUMN_TYPE,
+};
+
+/**
+ * Highlight class responsible for managing Walkontable Selection classes.
+ *
+ * With Highlight object you can manipulate four different highlight types:
+ *  - `cell` can be added only to a single cell at a time and it defines currently selected cell;
+ *  - `fill` can occur only once and its highlight defines selection of autofill functionality (managed by the plugin with the same name);
+ *  - `areas` can be added to multiple cells at a time. This type highlights selected cell or multiple cells.
+ *    The multiple cells have to be defined as an uninterrupted order (regular shape). Otherwise, the new layer of
+ *    that type should be created to manage not-consecutive selection;
+ *  - `header` can occur multiple times. This type is designed to highlight only headers. Like `area` type it
+ *    can appear with multiple highlights (accessed under different level layers).
+ *
+ * @class Highlight
+ * @util
+ */
+class Highlight {
+  /**
+   * Options consumed by Highlight class and Walkontable Selection classes.
+   *
+   * @type {object}
+   */
+  declare options: Record<string, unknown>;
+  /**
+   * The property which describes which layer level of the visual selection will be modified.
+   * This option is valid only for `area` and `header` highlight types which occurs multiple times on
+   * the table (as a non-consecutive selection).
+   *
+   * An order of the layers is the same as the order of added new non-consecutive selections.
+   *
+   * @type {number}
+   * @default 0
+   */
+  layerLevel = 0;
+  /**
+   * `cell` highlight object which describes attributes for the currently selected cell.
+   * It can only occur only once on the table.
+   *
+   * @type {Selection}
+   */
+  declare focus: VisualSelection;
+  /**
+   * `fill` highlight object which describes attributes for the borders for autofill functionality.
+   * It can only occur only once on the table.
+   *
+   * @type {Selection}
+   */
+  declare fill: VisualSelection;
+  /**
+   * Collection of the `area` highlights. That objects describes attributes for the borders and selection of
+   * the multiple selected cells. It can occur multiple times on the table.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  layeredAreas = new Map<number, VisualSelection>();
+  /**
+   * Collection of the `highlight` highlights. That objects describes attributes for the borders and selection of
+   * the multiple selected cells. It can occur multiple times on the table.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  areas = new Map<number, VisualSelection>();
+  /**
+   * Collection of the `header` highlights. That objects describes attributes for the selection of
+   * the multiple selected rows in the table header. It can occur multiple times on the table.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  rowHeaders = new Map<number, VisualSelection>();
+  /**
+   * Collection of the `header` highlights. That objects describes attributes for the selection of
+   * the multiple selected columns in the table header. It can occur multiple times on the table.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  columnHeaders = new Map<number, VisualSelection>();
+  /**
+   * Collection of the `active-header` highlights. That objects describes attributes for the selection of
+   * the multiple selected rows in the table header. The table headers which have selected all items in
+   * a row will be marked as `active-header`.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  activeRowHeaders = new Map<number, VisualSelection>();
+  /**
+   * Collection of the `active-header` highlights. That objects describes attributes for the selection of
+   * the multiple selected columns in the table header. The table headers which have selected all items in
+   * a row will be marked as `active-header`.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  activeColumnHeaders = new Map<number, VisualSelection>();
+  /**
+   * Collection of the `active-header` highlights. That objects describes attributes for the selection of
+   * the selected corner in the table header. The table headers which have selected all items in
+   * a row will be marked as `active-header`.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  activeCornerHeaders = new Map<number, VisualSelection>();
+  /**
+   * Collection of the `rows` highlights. That objects describes attributes for the selection of
+   * the multiple selected cells in a row. It can occur multiple times on the table.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  rowHighlights = new Map<number, VisualSelection>();
+  /**
+   * Collection of the `columns` highlights. That objects describes attributes for the selection of
+   * the multiple selected cells in a column. It can occur multiple times on the table.
+   *
+   * @type {Map.<number, Selection>}
+   */
+  columnHighlights = new Map<number, VisualSelection>();
+  /**
+   * Collection of the `custom-selection`, holder for example borders added through CustomBorders plugin.
+   *
+   * @type {Selection[]}
+   */
+  customSelections: VisualSelection[] = [];
+
+  /**
+   * Initializes the highlight manager with configuration options and creates the focus and fill highlight instances.
+   */
+  constructor(options: Record<string, unknown>) {
+    this.options = options;
+    this.focus = createFocusHighlight(options);
+    this.fill = createFillHighlight(options);
+  }
+
+  /**
+   * Check if highlight cell rendering is disabled for specified highlight type.
+   *
+   * @param {string} highlightType Highlight type. Possible values are: `cell`, `area`, `fill` or `header`.
+   * @param {CellCoords} coords The CellCoords instance with defined visual coordinates.
+   * @returns {boolean}
+   */
+  isEnabledFor(highlightType: string, coords: CellCoords) {
+    let type = highlightType;
+
+    // Legacy compatibility.
+    if (highlightType === HIGHLIGHT_FOCUS_TYPE) {
+      type = 'current'; // One from settings for `disableVisualSelection` up to Handsontable 0.36/Handsontable Pro 1.16.0.
+    }
+
+    const disabledCellSelection = this.options.disabledCellSelection;
+
+    if (typeof disabledCellSelection !== 'function') {
+      return true;
+    }
+
+    type DisabledCellSelectionFn = (row: number, col: number) => boolean | string | string[];
+    // coords.row and coords.col are always set when isEnabledFor is called on an active selection.
+    let disableHighlight = (disabledCellSelection as DisabledCellSelectionFn)(coords.row!, coords.col!);
+
+    if (typeof disableHighlight === 'string') {
+      disableHighlight = [disableHighlight];
+    }
+
+    return !disableHighlight || Array.isArray(disableHighlight) && !disableHighlight.includes(type);
+  }
+
+  /**
+   * Set a new layer level to make access to the desire `area` and `header` highlights.
+   *
+   * @param {number} [level=0] Layer level to use.
+   * @returns {Highlight}
+   */
+  useLayerLevel(level = 0) {
+    this.layerLevel = level;
+
+    return this;
+  }
+
+  /**
+   * Get Walkontable Selection instance created for controlling highlight of the currently
+   * focused cell (or header).
+   *
+   * @returns {Selection}
+   */
+  getFocus() {
+    return this.focus;
+  }
+
+  /**
+   * Get Walkontable Selection instance created for controlling highlight of the autofill functionality.
+   *
+   * @returns {Selection}
+   */
+  getFill() {
+    return this.fill;
+  }
+
+  /**
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
+   * `area` highlights.
+   *
+   * @returns {Selection}
+   */
+  createLayeredArea() {
+    return this.#createHighlight(this.layeredAreas, createAreaLayeredHighlight);
+  }
+
+  /**
+   * Get all Walkontable Selection instances which describes the state of the visual highlight of the cells.
+   *
+   * @returns {Selection[]}
+   */
+  getLayeredAreas() {
+    return [...this.layeredAreas.values()];
+  }
+
+  /**
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
+   * `highlight` highlights.
+   *
+   * @returns {Selection}
+   */
+  createArea() {
+    return this.#createHighlight(this.areas, createAreaHighlight);
+  }
+
+  /**
+   * Get all Walkontable Selection instances which describes the state of the visual highlight of the cells.
+   *
+   * @returns {Selection[]}
+   */
+  getAreas() {
+    return [...this.areas.values()];
+  }
+
+  /**
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
+   * header highlight for rows.
+   *
+   * @returns {Selection}
+   */
+  createRowHeader() {
+    return this.#createHighlight(this.rowHeaders, createHeaderHighlight);
+  }
+
+  /**
+   * Get all Walkontable Selection instances which describes the state of the visual highlight of the headers.
+   *
+   * @returns {Selection[]}
+   */
+  getRowHeaders() {
+    return [...this.rowHeaders.values()];
+  }
+
+  /**
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
+   * header highlight for columns.
+   *
+   * @returns {Selection}
+   */
+  createColumnHeader() {
+    return this.#createHighlight(this.columnHeaders, createHeaderHighlight);
+  }
+
+  /**
+   * Get all Walkontable Selection instances which describes the state of the visual highlight of the headers.
+   *
+   * @returns {Selection[]}
+   */
+  getColumnHeaders() {
+    return [...this.columnHeaders.values()];
+  }
+
+  /**
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
+   * highlight for active row headers.
+   *
+   * @returns {Selection}
+   */
+  createActiveRowHeader() {
+    return this.#createHighlight(this.activeRowHeaders, createActiveHighlight);
+  }
+
+  /**
+   * Get all Walkontable Selection instances which describes the state of the visual highlight of the active headers.
+   *
+   * @returns {Selection[]}
+   */
+  getActiveRowHeaders() {
+    return [...this.activeRowHeaders.values()];
+  }
+
+  /**
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
+   * highlight for active column headers.
+   *
+   * @returns {Selection}
+   */
+  createActiveColumnHeader() {
+    return this.#createHighlight(this.activeColumnHeaders, createActiveHighlight);
+  }
+
+  /**
+   * Get all Walkontable Selection instances which describes the state of the visual highlight of the active headers.
+   *
+   * @returns {Selection[]}
+   */
+  getActiveColumnHeaders() {
+    return [...this.activeColumnHeaders.values()];
+  }
+
+  /**
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
+   * highlight for the headers corner.
+   *
+   * @returns {Selection}
+   */
+  createActiveCornerHeader() {
+    return this.#createHighlight(this.activeCornerHeaders, createActiveHighlight);
+  }
+
+  /**
+   * Get all Walkontable Selection instances which describes the state of the visual highlight of the headers corner.
+   *
+   * @returns {Selection[]}
+   */
+  getActiveCornerHeaders() {
+    return [...this.activeCornerHeaders.values()];
+  }
+
+  /**
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
+   * highlight cells in a row.
+   *
+   * @returns {Selection}
+   */
+  createRowHighlight() {
+    return this.#createHighlight(this.rowHighlights, createRowHighlight);
+  }
+
+  /**
+   * Get all Walkontable Selection instances which describes the state of the rows highlighting.
+   *
+   * @returns {Selection[]}
+   */
+  getRowHighlights() {
+    return [...this.rowHighlights.values()];
+  }
+
+  /**
+   * Creates (if not exist in the cache) Walkontable Selection instance created for controlling
+   * highlight cells in a column.
+   *
+   * @returns {Selection}
+   */
+  createColumnHighlight() {
+    return this.#createHighlight(this.columnHighlights, createColumnHighlight);
+  }
+
+  /**
+   * Get all Walkontable Selection instances which describes the state of the columns highlighting.
+   *
+   * @returns {Selection[]}
+   */
+  getColumnHighlights() {
+    return [...this.columnHighlights.values()];
+  }
+
+  /**
+   * Get Walkontable Selection instance created for controlling highlight of the custom selection functionality.
+   *
+   * @returns {Selection}
+   */
+  getCustomSelections() {
+    return [...this.customSelections.values()];
+  }
+
+  /**
+   * Add selection to the custom selection instance. The new selection are added to the end of the selection collection.
+   *
+   * @param {object} selectionInstance The selection instance.
+   */
+  addCustomSelection(selectionInstance: Record<string, unknown>) {
+    this.customSelections.push(createCustomHighlight({
+      ...this.options,
+      ...selectionInstance
+    }));
+  }
+
+  /**
+   * Updates the CSS class names used for row, column, header, and active header highlights.
+   * Necessary when the related settings change at runtime (e.g. via `updateSettings()`).
+   *
+   * @param {object} options Options with updated class names.
+   * @param {string} [options.rowClassName] The new class name for row highlights.
+   * @param {string} [options.columnClassName] The new class name for column highlights.
+   * @param {string} [options.headerClassName] The new class name for header highlights.
+   * @param {string} [options.activeHeaderClassName] The new class name for active header highlights.
+   */
+  updateHighlightClassNames(options: {
+    rowClassName?: string;
+    columnClassName?: string;
+    headerClassName?: string;
+    activeHeaderClassName?: string;
+  }) {
+    if ('rowClassName' in options) {
+      this.options.rowClassName = options.rowClassName;
+      arrayEach(this.rowHighlights.values(), (h: VisualSelection) => {
+        h.settings.className = options.rowClassName;
+      });
+    }
+    if ('columnClassName' in options) {
+      this.options.columnClassName = options.columnClassName;
+      arrayEach(this.columnHighlights.values(), (h: VisualSelection) => {
+        h.settings.className = options.columnClassName;
+      });
+    }
+    if ('headerClassName' in options) {
+      this.options.headerClassName = options.headerClassName;
+      arrayEach(this.rowHeaders.values(), (h: VisualSelection) => {
+        h.settings.className = options.headerClassName;
+      });
+      arrayEach(this.columnHeaders.values(), (h: VisualSelection) => {
+        h.settings.className = options.headerClassName;
+      });
+    }
+    if ('activeHeaderClassName' in options) {
+      this.options.activeHeaderClassName = options.activeHeaderClassName;
+      arrayEach(this.activeRowHeaders.values(), (h: VisualSelection) => {
+        h.settings.className = options.activeHeaderClassName;
+      });
+      arrayEach(this.activeColumnHeaders.values(), (h: VisualSelection) => {
+        h.settings.className = options.activeHeaderClassName;
+      });
+      arrayEach(this.activeCornerHeaders.values(), (h: VisualSelection) => {
+        h.settings.className = options.activeHeaderClassName;
+      });
+    }
+  }
+
+  /**
+   * Perform cleaning visual highlights for the whole table.
+   */
+  clear() {
+    this.focus.clear();
+    this.fill.clear();
+
+    this.areas.forEach(highlight => highlight.clear());
+    this.layeredAreas.forEach(highlight => highlight.clear());
+    this.rowHeaders.forEach(highlight => highlight.clear());
+    this.columnHeaders.forEach(highlight => highlight.clear());
+    this.activeRowHeaders.forEach(highlight => highlight.clear());
+    this.activeColumnHeaders.forEach(highlight => highlight.clear());
+    this.activeCornerHeaders.forEach(highlight => highlight.clear());
+    this.rowHighlights.forEach(highlight => highlight.clear());
+    this.columnHighlights.forEach(highlight => highlight.clear());
+  }
+
+  /**
+   * Creates (if not exist in the cache) Walkontable Selection instance.
+   *
+   * @param {Map} cacheMap The map where the instance will be cached.
+   * @param {Function} highlightFactory The function factory.
+   * @returns {VisualSelection}
+   */
+  #createHighlight(
+    cacheMap: Map<number, VisualSelection>, highlightFactory: (options: Record<string, unknown>) => VisualSelection) {
+    const layerLevel = this.layerLevel;
+
+    if (cacheMap.has(layerLevel)) {
+      return cacheMap.get(layerLevel);
+    }
+
+    const highlight = highlightFactory({ layerLevel, ...this.options });
+
+    cacheMap.set(layerLevel, highlight);
+
+    return highlight;
+  }
+
+  /**
+   * This object can be iterate over using `for of` syntax or using internal `arrayEach` helper.
+   *
+   * @returns {Selection[]}
+   */
+  [Symbol.iterator]() {
+    return [
+      this.focus,
+      this.fill,
+      ...this.areas.values(),
+      ...this.layeredAreas.values(),
+      ...this.rowHeaders.values(),
+      ...this.columnHeaders.values(),
+      ...this.activeRowHeaders.values(),
+      ...this.activeColumnHeaders.values(),
+      ...this.activeCornerHeaders.values(),
+      ...this.rowHighlights.values(),
+      ...this.columnHighlights.values(),
+      ...this.customSelections,
+    ][Symbol.iterator]();
+  }
+}
+
+export default Highlight;

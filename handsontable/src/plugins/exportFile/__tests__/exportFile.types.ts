@@ -1,5 +1,5 @@
 import Handsontable from 'handsontable';
-import {
+import type {
   ExportFileSettings,
   SheetOptions,
   ConditionalFormattingDescriptor,
@@ -136,6 +136,9 @@ const asyncCsvDownload: Promise<void> = exportPlugin.downloadFileAsync('csv');
 const asyncDownloadWithOpts: Promise<void> = exportPlugin.downloadFileAsync('xlsx', xlsxOptions);
 
 // Can be awaited in an async context.
+/**
+ *
+ */
 async function testDownloadFileAsync(): Promise<void> {
   await exportPlugin.downloadFileAsync('xlsx', { filename: 'async-report' });
   await exportPlugin.downloadFileAsync('csv');
@@ -152,6 +155,9 @@ const asyncCsvBlob: Promise<Blob> = exportPlugin.exportAsBlobAsync('csv');
 const asyncXlsxBlob: Promise<Blob> = exportPlugin.exportAsBlobAsync('xlsx');
 const asyncBlobWithOpts: Promise<Blob> = exportPlugin.exportAsBlobAsync('xlsx', xlsxOptions);
 
+/**
+ *
+ */
 async function testExportAsBlobAsync(): Promise<void> {
   const blob: Blob = await exportPlugin.exportAsBlobAsync('xlsx');
   const _size: number = blob.size;

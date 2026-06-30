@@ -32,7 +32,7 @@ export class AppComponent {
     // @ts-ignore
     columnSummary() {
       const endpoints = [];
-      const nestedRowsPlugin = this.hot.getPlugin('nestedRows');
+      const nestedRowsPlugin = (this as any).hot.getPlugin('nestedRows');
       // @ts-ignore
       const getRowIndex = nestedRowsPlugin.dataManager.getRowIndex.bind(
         // @ts-ignore

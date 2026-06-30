@@ -1884,7 +1884,10 @@ describe('ContextMenu', () => {
     it('should disable Remove col in context menu when rows are selected by headers', async() => {
       handsontable({
         contextMenu: ['remove_col', 'remove_row'],
-        height: 100,
+        // Use containerHeightForRows(3) so that rows 0-2 are fully rendered in every theme.
+        // height: 100 was too small for themes with larger row heights (e.g. horizon) and left
+        // row headers for rows 1-2 out of the DOM, breaking the drag selection simulation.
+        height: containerHeightForRows(3),
         colHeaders: true,
         rowHeaders: true
       });
@@ -2109,30 +2112,31 @@ describe('ContextMenu', () => {
       expect(customItem.callback.calls.argsFor(0)[0]).toEqual('customItemKey');
     });
 
-    // TODO: To be changed in 18.0
-    it('should sanitize HTML for custom item by default', async() => {
+    it('should warn once when an HTML item name is rendered without a sanitizer configured', async() => {
       handsontable({
         contextMenu: {
           items: {
             customItemKey: {
-              name: '<img src onerror="__testFunction()"> XSS item',
+              name: '<b>Bold item</b>',
             }
           }
         },
       });
 
-      window.__testFunction = () => {};
-
-      spyOn(window, '__testFunction');
+      const warnSpy = spyOnConsoleWarn();
 
       await contextMenu();
       await sleep(10);
 
-      expect($('.htContextMenu .ht_master .htCore').find('tbody td').html())
-        .toBe('<div class="htItemWrapper"><img src=""> XSS item</div>');
-      expect(window.__testFunction).not.toHaveBeenCalled();
+      expect(warnSpy).toHaveBeenCalledWith(jasmine.stringMatching(/without a sanitizer/));
 
-      delete window.__testFunction;
+      // Opening the menu again must NOT emit a second warning (once per instance).
+      warnSpy.calls.reset();
+      await closeContextMenu();
+      await contextMenu();
+      await sleep(10);
+
+      expect(warnSpy).not.toHaveBeenCalled();
     });
 
     it('should sanitize HTML for custom item when custom sanitizer is set', async() => {
@@ -3166,5 +3170,50 @@ describe('ContextMenu', () => {
     hot.useTheme(undefined);
 
     expect($('.htContextMenu').is(':visible')).toBe(false);
+  });
+
+  describe('updateSettings called from beforeContextMenuShow', () => {
+    it('should open the menu without throwing when the hook callback calls ' +
+      'updateSettings({ contextMenu })', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        contextMenu: true,
+        height: 200,
+        beforeContextMenuShow() {
+          this.updateSettings({
+            contextMenu: ['row_above'],
+          });
+        },
+      });
+
+      await selectCell(0, 0);
+
+      await expectAsync((async() => {
+        await contextMenu();
+      })()).toBeResolved();
+
+      expect($('.htContextMenu').is(':visible')).toBe(true);
+    });
+
+    it('should apply the updated contextMenu items on the same open', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        contextMenu: true,
+        height: 200,
+        beforeContextMenuShow() {
+          this.updateSettings({
+            contextMenu: ['row_above'],
+          });
+        },
+      });
+
+      await selectCell(0, 0);
+      await contextMenu();
+
+      const items = $('.htContextMenu tbody td').not('.htSeparator');
+
+      expect(items.length).toBe(1);
+      expect(items.text()).toContain('Insert row above');
+    });
   });
 });

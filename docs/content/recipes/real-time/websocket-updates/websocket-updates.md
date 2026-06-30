@@ -18,6 +18,9 @@ react:
 angular:
   id: d9b1e5f3
   metaTitle: Real-time WebSocket Updates - Angular Data Grid | Handsontable
+vue:
+  id: fvoen1lx
+  metaTitle: Real-time WebSocket Updates - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Real-time & Integrations
 type: how-to
@@ -104,9 +107,9 @@ const hot = new Handsontable(document.querySelector('#example1'), {
   columns: [
     { data: 'symbol', readOnly: true },
     { data: 'company', readOnly: true, width: 180 },
-    { data: 'price', type: 'numeric', numericFormat: { pattern: '0,0.00' } },
-    { data: 'change', type: 'numeric', numericFormat: { pattern: '0,0.00' } },
-    { data: 'volume', type: 'numeric', numericFormat: { pattern: '0,0' } },
+    { data: 'price', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
+    { data: 'change', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
+    { data: 'volume', type: 'numeric', numericFormat: { useGrouping: true, maximumFractionDigits: 0 } },
     { data: 'marketCap', readOnly: true },
   ],
   rowHeaders: true,

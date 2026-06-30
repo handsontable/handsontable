@@ -103,6 +103,20 @@ describe('Pagination', () => {
     expect(countVisibleRows()).toBe(3);
   });
 
+  it('should remove the last rows when `index` is `null` and pagination is enabled (regression #11643)', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 1),
+      pagination: {
+        pageSize: 3,
+      },
+    });
+
+    await alter('remove_row', null, 2);
+
+    expect(countRows()).toBe(8);
+    expect(getDataAtCol(0)).toEqual(['A1', 'A2', 'A3', 'A4', 'A5', 'A6', 'A7', 'A8']);
+  });
+
   it('should recalculate the internal state correctly after removing rows (complex scenario)', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: cjib1mhw
 title: Autocomplete cell type
 metaTitle: Autocomplete cell type - JavaScript Data Grid | Handsontable
 description: Collect user input with a list of choices, by using the autocomplete cell type.
@@ -12,11 +11,11 @@ tags:
   - autocomplete
   - key value
 react:
-  id: vnnvp396
   metaTitle: Autocomplete cell type - React Data Grid | Handsontable
 angular:
-  id: md3vhixm
   metaTitle: Autocomplete cell type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Autocomplete cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
 ---
@@ -75,6 +74,16 @@ This example uses the `autocomplete` feature in the default flexible mode. In th
 
 :::
 
+::: only-for vue
+
+::: example #example1 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ## Autocomplete strict mode
 
 This is the same example as above, the difference being that `autocomplete` now runs in strict mode. In this mode, the autocomplete cells will only accept values that are defined in the source array. The mouse and keyboard bindings are identical to the `Handsontable` cell type but with the differences below:
@@ -120,6 +129,16 @@ In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option deter
 
 :::
 
+::: only-for vue
+
+::: example #example2 .docs-height-large :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example2.vue)
+
+:::
+
+:::
+
 ## Autocomplete strict mode (Ajax)
 
 Autocomplete can also be used with Ajax data sources. In the example below, suggestions for the "Car" column are loaded from the server. To load data from a remote *asynchronous* source, assign a function to the 'source' property. The function should perform the server-side request and call the callback function when the result is available.
@@ -152,6 +171,16 @@ Autocomplete can also be used with Ajax data sources. In the example below, sugg
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example3.ts)
 @[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example3.vue)
 
 :::
 
@@ -192,6 +221,16 @@ You can provide the `source` option as an array of values that will be used as t
 :::
 :::
 
+::: only-for vue
+
+::: example #example4 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example4.vue)
+
+:::
+
+:::
+
 ### Array of objects
 
 You can provide the `source` option as an array of objects with `key` and `value` properties. The `value` property will be used as the autocomplete suggestion, while the entire object will be used as the value of the cell.
@@ -223,6 +262,15 @@ You can provide the `source` option as an array of objects with `key` and `value
 :::
 :::
 
+::: only-for vue
+
+::: example #example5 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example5.vue)
+
+:::
+
+:::
 
 #### API methods
 
@@ -275,6 +323,16 @@ The left column uses the default behavior (`filter: true`) — options are narro
 
 :::
 
+::: only-for vue
+
+::: example #example6 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example6.vue)
+
+:::
+
+:::
+
 ## The `filteringCaseSensitive` option
 
 By default, the autocomplete search is case-insensitive — typing `"bl"` matches both `"Black"` and `"blue"`. Set `filteringCaseSensitive: true` to require an exact case match when filtering suggestions.
@@ -309,6 +367,16 @@ The left column uses the default case-insensitive behavior. The right column has
 
 @[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example7.ts)
 @[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example7.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example7 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example7.vue)
 
 :::
 

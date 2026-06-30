@@ -1,19 +1,19 @@
 ---
 type: how-to
-id: a7a5mkrw
 title: Password cell type
 metaTitle: Password cell type - JavaScript Data Grid | Handsontable
 description: Use the password cell type to mask confidential values by rendering entered characters as symbols.
 permalink: /password-cell-type
 canonicalUrl: /password-cell-type
 react:
-  id: gydne13d
   metaTitle: Password cell type - React Data Grid | Handsontable
 angular:
-  id: 2x5025ww
   metaTitle: Password cell type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Password cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Use the password cell type to mask confidential values by rendering entered characters as symbols.
 
@@ -58,6 +58,16 @@ The password cell type behaves like a text cell, the only difference being that 
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-types/password-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ## Fixed hash length
 
 By default, every hash has a length equal to the length of its corresponding value. Use option `hashLength` to set a fixed hash length.
@@ -90,6 +100,16 @@ By default, every hash has a length equal to the length of its corresponding val
 
 @[code](@/content/guides/cell-types/password-cell-type/angular/example2.ts)
 @[code](@/content/guides/cell-types/password-cell-type/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/cell-types/password-cell-type/vue/example2.vue)
 
 :::
 
@@ -132,9 +152,68 @@ By default, every hash consists of asterisks `*`. Use the option `hashSymbol` to
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-types/password-cell-type/vue/example3.vue)
+
+:::
+
+:::
+
+## Reveal delay
+
+Use the `hashRevealDelay` option to briefly show each character as you type it. After the delay (in milliseconds) elapses, the character is replaced by the hash symbol. This lets you confirm what you typed without permanently exposing the value.
+
+When `hashRevealDelay` is set, the editor switches from a native `<input type="password">` to a `<input type="text">` field with manual masking. Only the most recently typed character stays visible - all preceding characters are already masked.
+
+::: only-for javascript
+
+::: example #example4 --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/password-cell-type/javascript/example4.js)
+@[code](@/content/guides/cell-types/password-cell-type/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/password-cell-type/react/example4.jsx)
+@[code](@/content/guides/cell-types/password-cell-type/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/password-cell-type/angular/example4.ts)
+@[code](@/content/guides/cell-types/password-cell-type/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/cell-types/password-cell-type/vue/example4.vue)
+
+:::
+
+:::
+
 ## Result
 
-After configuring the password cell type, cells display asterisks instead of the actual value. The editor uses an `<input type="password">` field. The actual data is stored in plain text in the data source and is not encrypted by Handsontable.
+After configuring the password cell type, cells display asterisks instead of the actual value. The editor uses an `<input type="password">` field (or `<input type="text">` when `hashRevealDelay` is set). The actual data is stored in plain text in the data source and is not encrypted by Handsontable.
 
 ## Related articles
 
@@ -151,6 +230,9 @@ After configuring the password cell type, cells display asterisks instead of the
 <div class="boxes-list">
 
 - [type](@/api/options.md#type)
+- [hashLength](@/api/options.md#hashlength)
+- [hashRevealDelay](@/api/options.md#hashrevealdelay)
+- [hashSymbol](@/api/options.md#hashsymbol)
 
 </div>
 

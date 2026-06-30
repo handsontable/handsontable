@@ -1,4 +1,5 @@
 import Handsontable from 'handsontable';
+import type { HotInstance } from 'handsontable';
 
 const hot = new Handsontable(document.createElement('div'), {
   search: true,
@@ -10,18 +11,18 @@ new Handsontable(document.createElement('div'), {
     queryMethod(queryStr: string, value: any) {
       return true;
     },
-    callback(instance: Handsontable, row: number, column: number, value: any, result: boolean) {}
+    callback(instance: HotInstance, row: number, column: number, value: any, result: boolean) {}
   },
 });
 const plugin = hot.getPlugin('search');
 
 plugin.query(
   'foo',
-  (hotInstance: Handsontable, row: number, column: number, value: any, result: boolean) => {},
-  (query: string, value: any, cellMeta: Handsontable.CellProperties) => true
+  (hotInstance: HotInstance, row: number, column: number, value: any, result: boolean) => {},
+  (query: string, value: any, cellMeta: Record<string, unknown>) => true
 );
-plugin.setCallback((hotInstance: Handsontable, row: number, column: number, value: any, result: boolean) => {});
-plugin.setQueryMethod((query: string, value: any, cellMeta: Handsontable.CellProperties) => true);
+plugin.setCallback((hotInstance: HotInstance, row: number, column: number, value: any, result: boolean) => {});
+plugin.setQueryMethod((query: string, value: any, cellMeta: Record<string, unknown>) => true);
 plugin.setSearchResultClass('searchResultClass');
 
 const callback = plugin.getCallback();

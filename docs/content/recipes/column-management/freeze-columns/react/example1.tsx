@@ -35,12 +35,12 @@ const colHeaders = ['Campaign', 'Channel', 'Impressions', 'Clicks', 'Conversions
 const columns = [
   { data: 'campaign', type: 'text' as const },
   { data: 'channel', type: 'text' as const },
-  { data: 'impressions', type: 'numeric' as const, numericFormat: { pattern: '0,0' } },
-  { data: 'clicks', type: 'numeric' as const, numericFormat: { pattern: '0,0' } },
-  { data: 'conversions', type: 'numeric' as const, numericFormat: { pattern: '0,0' } },
-  { data: 'cpc', type: 'numeric' as const, numericFormat: { pattern: '0.00' } },
-  { data: 'revenue', type: 'numeric' as const, numericFormat: { pattern: '$0,0' } },
-  { data: 'roi', type: 'numeric' as const, numericFormat: { pattern: '0.00' } },
+  { data: 'impressions', type: 'numeric' as const, numericFormat: { useGrouping: true, maximumFractionDigits: 0 } },
+  { data: 'clicks', type: 'numeric' as const, numericFormat: { useGrouping: true, maximumFractionDigits: 0 } },
+  { data: 'conversions', type: 'numeric' as const, numericFormat: { useGrouping: true, maximumFractionDigits: 0 } },
+  { data: 'cpc', type: 'numeric' as const, numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
+  { data: 'revenue', type: 'numeric' as const, numericFormat: { style: 'currency', currency: 'USD', maximumFractionDigits: 0 } },
+  { data: 'roi', type: 'numeric' as const, numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
 ];
 
 const ExampleComponent = () => {
@@ -63,9 +63,9 @@ const ExampleComponent = () => {
     : `${frozenCount} column${frozenCount > 1 ? 's' : ''} frozen`;
 
   return (
-    <div>
-      <div className="freeze-controls">
-        <div className="freeze-controls__freeze-btns">
+    <>
+      <div className="example-controls-container">
+        <div className="controls">
           {colHeaders.map((header, index) => (
             <button
               key={header}
@@ -76,9 +76,9 @@ const ExampleComponent = () => {
             </button>
           ))}
         </div>
-        <div className="freeze-controls__footer">
+        <div className="controls">
           <button type="button" onClick={unfreezeAll}>Unfreeze all</button>
-          <span className="freeze-controls__status">{statusText}</span>
+          <span className="freeze-status">{statusText}</span>
         </div>
       </div>
       <HotTable
@@ -94,7 +94,7 @@ const ExampleComponent = () => {
         autoWrapRow={true}
         licenseKey="non-commercial-and-evaluation"
       />
-    </div>
+    </>
   );
 };
 

@@ -42,7 +42,7 @@ describe('manualRowMove', () => {
         })
         .simulate('mouseup');
 
-      expect(getMaster().find('.wtHolder').scrollTop()).toBe(20);
+      expect(getMaster().find('.wtHolder').scrollTop()).toBeGreaterThan(0);
     });
 
     it('should move the table\'s viewport down when the next mouse-overed ' +

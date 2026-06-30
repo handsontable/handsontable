@@ -1,5 +1,6 @@
 ---
 name: react-wrapper-dev
+path: wrappers/react-wrapper/**
 description: Use when developing or modifying the @handsontable/react-wrapper package - React components, hooks, settings mapping, and selection state preservation during updateSettings
 ---
 

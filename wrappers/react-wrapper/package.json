@@ -1,10 +1,11 @@
 {
   "name": "@handsontable/react-wrapper",
-  "version": "17.1.0",
+  "version": "18.0.0",
   "description": "Best Data Grid for React with Spreadsheet Look and Feel.",
   "author": "Handsoncode <hello@handsoncode.net> (https://handsoncode.net)",
   "homepage": "https://handsontable.com",
   "license": "SEE LICENSE IN LICENSE.txt",
+  "sideEffects": false,
   "main": "./commonjs/react-handsontable.js",
   "module": "./es/react-handsontable.mjs",
   "jsdelivr": "./dist/react-handsontable.min.js",
@@ -72,7 +73,7 @@
     "@types/react-dom": "^18.2.0",
     "@types/react-redux": "^7.1.7",
     "cross-env": "^7.0.3",
-    "handsontable": "^17.0.0",
+    "handsontable": "^18.0.0",
     "jest": "^27.5.1",
     "jest-environment-jsdom": "^27.5.1",
     "prop-types": "^15.7.2",
@@ -87,7 +88,7 @@
     "uglify-js": "^3.4.9"
   },
   "peerDependencies": {
-    "handsontable": "^17.0.0"
+    "handsontable": "^18.0.0"
   },
   "scripts": {
     "build": "npm run clean && npm run build:commonjs && npm run build:es && npm run build:umd && npm run build:min && npm run prepare:types",
@@ -107,6 +108,7 @@
   "jest": {
     "testEnvironment": "jsdom",
     "testURL": "http://localhost/",
+    "testTimeout": 60000,
     "transform": {
       "^.+\\.tsx?$": "babel-jest",
       "^.+\\.js$": "babel-jest"

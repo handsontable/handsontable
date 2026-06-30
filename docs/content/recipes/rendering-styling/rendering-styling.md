@@ -15,6 +15,9 @@ react:
 angular:
   id: c7f1a92e
   metaTitle: Rendering and styling recipes - Angular Data Grid | Handsontable
+vue:
+  id: l2jehwoc
+  metaTitle: Rendering and styling recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]
 

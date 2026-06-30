@@ -639,6 +639,57 @@ describe('NestedRows Data Manager', () => {
 
         expect(dataManager.getData()[0].__children[3].a).toEqual('test');
       });
+
+      it('should preserve grandparent\'s other branches when inserting into a deeply-nested ' +
+        'parent (#9670)', async() => {
+        const dataInstance = [
+          {
+            a: 'Group 1',
+            __children: [
+              {
+                a: 'Group 2',
+                __children: [
+                  { a: 'Line 1' }
+                ]
+              },
+              {
+                a: 'Group 3',
+                __children: [
+                  { a: 'Line 2' }
+                ]
+              }
+            ]
+          }
+        ];
+
+        handsontable({
+          data: dataInstance,
+          nestedRows: true,
+        });
+
+        const dataManager = getPlugin('nestedRows').dataManager;
+        const group1 = dataInstance[0];
+        const group2 = group1.__children[0];
+        const group3 = group1.__children[1];
+
+        dataManager.addChildAtIndex(group2, 0, null);
+
+        // Group 1 must retain Group 2 and Group 3 as direct children.
+        expect(group1.__children.length).toEqual(2);
+        expect(group1.__children[0]).toBe(group2);
+        expect(group1.__children[1]).toBe(group3);
+
+        // Group 2 receives the new placeholder before Line 1.
+        expect(group2.__children.length).toEqual(2);
+        expect(group2.__children[1].a).toEqual('Line 1');
+
+        // Group 3 and Line 2 must still be reachable through Group 1.
+        expect(group3.__children.length).toEqual(1);
+        expect(group3.__children[0].a).toEqual('Line 2');
+
+        // Row count must match: Group 1, Group 2, mock, Line 1, Group 3, Line 2.
+        expect(countRows()).toEqual(6);
+      });
     });
 
     describe('addSibling', () => {

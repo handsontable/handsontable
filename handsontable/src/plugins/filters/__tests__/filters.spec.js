@@ -184,8 +184,7 @@ describe('Filters', () => {
     const warnSpy = spyOnConsoleWarn();
 
     handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
+      data: createSpreadsheetData(10, 5),
       dropdownMenu: true,
       filters: true,
       width: 500,
@@ -219,8 +218,7 @@ describe('Filters', () => {
     const warnSpy = spyOnConsoleWarn();
 
     handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
+      data: createSpreadsheetData(10, 5),
       dropdownMenu: true,
       filters: true,
       width: 500,
@@ -245,8 +243,7 @@ describe('Filters', () => {
     const warnSpy = spyOnConsoleWarn();
 
     handsontable({
-      data: getDataForFilters(),
-      columns: getColumnsForFilters(),
+      data: createSpreadsheetData(10, 5),
       filters: true,
       width: 500,
       height: 300
@@ -486,7 +483,7 @@ describe('Filters', () => {
       expect(getData()[1][0]).toBe(24);
       expect(getData()[1][1]).toBe('Greta Patterson');
       expect(getData()[1][2]).toBe('Bartonsville');
-      expect(getData()[1][3]).toBe(moment().add(-2, 'days').format(FILTERS_DATE_FORMAT));
+      expect(getData()[1][3]).toBe(addDays(-2));
       expect(getData()[1][4]).toBe('green');
       expect(getData()[1][5]).toBe(2437.58);
       expect(getData()[1][6]).toBe(false);
@@ -921,5 +918,40 @@ describe('Filters', () => {
       // Verify that getDataAtCol was called with the visual index
       expect(hotInstance.getDataAtCol).toHaveBeenCalledWith(visualColumn);
     });
+  });
+
+  describe('Editing a cell in an earlier filtered column (issue #8874)', () => {
+    it('should keep dependent column by_value selection in cached state after editing earlier filtered column',
+      async() => {
+        handsontable({
+          data: [
+            { id: 1, country: 'Germany', company: 'BMW' },
+            { id: 2, country: 'Germany', company: 'Mercedes' },
+            { id: 3, country: 'Italy', company: 'Fiat' },
+            { id: 4, country: 'France', company: 'Renault' },
+          ],
+          columns: [
+            { data: 'id', type: 'numeric' },
+            { data: 'country' },
+            { data: 'company' },
+          ],
+          colHeaders: ['ID', 'Country', 'Company'],
+          dropdownMenu: true,
+          filters: true,
+        });
+
+        const filters = getPlugin('filters');
+
+        filters.addCondition(1, 'by_value', [['Germany', 'France']]);
+        filters.filter();
+        filters.addCondition(2, 'by_value', [['Mercedes', 'Renault']]);
+        filters.filter();
+
+        await setDataAtCell(0, 1, 'France');
+
+        const valueComponentState = filters.components.get('filter_by_value').state.getValueAtIndex(2);
+
+        expect(valueComponentState.args[0]).toEqual(['Mercedes', 'Renault']);
+      });
   });
 });

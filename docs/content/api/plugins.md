@@ -12,6 +12,9 @@ react:
 angular:
   id: gueng7dm
   metaTitle: 'API reference: Plugins - Angular Data Grid | Handsontable'
+vue:
+  id: mvftxzxh
+  metaTitle: 'API reference: Plugins - Vue Data Grid | Handsontable'
 ---
 |Plugin Name  | Description |
 |--|--|

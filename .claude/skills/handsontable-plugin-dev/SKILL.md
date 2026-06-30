@@ -1,5 +1,6 @@
 ---
 name: handsontable-plugin-dev
+path: handsontable/src/plugins/**
 description: Use when creating a new Handsontable plugin, modifying an existing plugin's behavior, adding hooks or options to a plugin, or working with the plugin lifecycle (enablePlugin, disablePlugin, updatePlugin). Covers the full plugin contract, conflict registration, settings validation, and IndexMapper integration.
 ---
 
@@ -7,8 +8,9 @@ description: Use when creating a new Handsontable plugin, modifying an existing 
 
 ```
 src/plugins/{pluginName}/
-├── index.js              # Re-exports PLUGIN_KEY, PLUGIN_PRIORITY, ClassName
-├── {pluginName}.js       # Main class extending BasePlugin
+├── index.ts              # Re-exports PLUGIN_KEY, PLUGIN_PRIORITY, ClassName
+├── {pluginName}.ts       # Main class extending BasePlugin
+├── types.ts              # (optional) exported plugin-local types
 ├── __tests__/            # Tests (*.spec.js for E2E, *.unit.js for unit)
 └── {submodules}/         # Additional files (UI classes, strategies, etc.)
 ```
@@ -36,48 +38,70 @@ destroy()        // Null out all fields. Call super.destroy() AT THE END.
 
 ## Key Patterns (from Pagination gold standard)
 
-**Private fields** -- Use `#` prefix for all internal state. No `@private` JSDoc.
+**Private fields** - Use `#` prefix for all internal state. No `@private` JSDoc.
 
-**Hook callbacks** -- Arrow function class fields so `removeLocalHook` works:
-```js
-#onIndexCacheUpdate = () => {
-  if (!this.#internalCall && this.hot?.view) {
-    this.#recompute();
-  }
+**Hook callbacks** (**required pattern**) - All `#on*` methods that are passed to `addHook` must be arrow function class fields, not regular methods. This is mandatory, not optional:
+
+```ts
+// ✅ Correct — arrow field, passed directly
+#onAfterLoadData = (sourceData: unknown[], initialLoad: boolean, source = '') => {
+  // ...
 };
+
+enablePlugin() {
+  this.addHook('afterLoadData', this.#onAfterLoadData);  // direct reference
+  super.enablePlugin();
+}
+
+// ❌ Wrong — regular method wrapped in an inline arrow
+enablePlugin() {
+  this.addHook('afterLoadData',
+    (data, init, src) => this.#onAfterLoadData(data, init, src));  // never do this
+  super.enablePlugin();
+}
+
+// ❌ Wrong — .bind(this)
+this.addHook('afterLoadData', this.#onAfterLoadData.bind(this));  // never do this
 ```
 
-**Hook registration** -- `this.addHook()` auto-cleans on `disablePlugin()`. `this.hot.addHook()` does NOT.
+Why: arrow fields capture `this` at construction time so `removeHook` can match the exact reference. Inline wrappers create new function instances on each `enablePlugin()` call, which means `removeHook` can never clean them up.
+
+If the hook with a priority argument:
+```ts
+this.addHook('init', this.#onInit, -1);  // priority as 3rd arg — still use direct ref
+```
+
+**Hook registration** - `this.addHook()` auto-cleans on `disablePlugin()`. `this.hot.addHook()` does NOT.
 Register new hook names at module level:
 ```js
 import Hooks from '../../core/hooks';
 Hooks.getSingleton().register('beforeMyAction');
 ```
 
-**Settings** -- Read via `this.getSetting('key')` (supports dot notation). Defaults come from `DEFAULT_SETTINGS`.
+**Settings** - Read via `this.getSetting('key')` (supports dot notation). Defaults come from `DEFAULT_SETTINGS`.
 
-**Conflict registration** -- At module level, before the class:
+**Conflict registration** - At module level, before the class:
 ```js
 import { registerConflict } from '../base/conflictRegistry';
 registerConflict(PLUGIN_KEY, ['nestedRows', 'mergeCells']);
 ```
 Check in `enablePlugin()` with `this.isHardConflictBlocked()`.
 
-**IndexMapper** -- Create maps in `enablePlugin()`, unregister in `disablePlugin()`:
+**IndexMapper** - Create maps in `enablePlugin()`, unregister in `disablePlugin()`:
 ```js
 this.#map = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName, 'hiding', false);
 // 'hiding' = HidingMap (not rendered, stays in DataMap)
 // 'trimming' = TrimmingMap (removed from DataMap entirely)
 ```
 
-**UI separation** -- Extract UI into its own class with dependency injection (no direct `hot` reference).
+**UI separation** - Extract UI into its own class with dependency injection (no direct `hot` reference).
 
-**Strategy pattern** -- Use for swappable logic (e.g., `autoPageSize` vs `fixedPageSize`).
+**Strategy pattern** - Use for swappable logic (e.g., `autoPageSize` vs `fixedPageSize`).
 
-**Batch rendering** -- When making multiple data/render changes, wrap them to avoid redundant render cycles:
+**Batch rendering** - When making multiple data/render changes, wrap them to avoid redundant render cycles:
 ```js
 this.hot.batch(() => {
-  // multiple operations here -- only one render at the end
+  // multiple operations here - only one render at the end
 });
 // Or for render-only batching:
 this.hot.suspendRender();
@@ -90,28 +114,28 @@ this.hot.resumeRender();
 - No direct cross-plugin imports. Use hooks or `hot.getPlugin('{Name}')`.
 - No circular dependencies between plugins.
 - Conflict ownership: the plugin introducing the incompatibility owns the blocking logic.
-- **DataProvider built-in errors** -- The DataProvider plugin surfaces request failures through `getPlugin('notification')` when `notification` is enabled (error toasts). **Fetch** failures include a primary **Refetch** action and `duration: 0` so the user can retry `fetchData()` from the toast. It does not use Dialog for that path. Dialog is still used elsewhere (for example Loading plugin, ExportFile overlay). Prefer hooks (`afterDataProviderFetchError`, `afterRowsMutationError`) for fully custom error UI when Notification is off.
+- **DataProvider built-in errors** - The DataProvider plugin surfaces request failures through `getPlugin('notification')` when `notification` is enabled (error toasts). **Fetch** failures include a primary **Refetch** action and `duration: 0` so the user can retry `fetchData()` from the toast. It does not use Dialog for that path. Dialog is still used elsewhere (for example Loading plugin, ExportFile overlay). Prefer hooks (`afterDataProviderFetchError`, `afterRowsMutationError`) for fully custom error UI when Notification is off.
 
 ## Registration Checklist
 
-1. Plugin's `index.js`: `export { PLUGIN_KEY, PLUGIN_PRIORITY, ClassName } from './pluginName';`
-2. Wire into `src/plugins/index.js`.
-3. Add default option (disabled) in `src/dataMap/metaManager/metaSchema.js`.
-4. Add TypeScript definitions in `types/`.
+1. Plugin's `index.ts`: `export { PLUGIN_KEY, PLUGIN_PRIORITY, ClassName } from './pluginName';`
+2. Wire into `src/plugins/index.ts`.
+3. Add default option (disabled) in `src/dataMap/metaManager/metaSchema.ts`.
+4. If the plugin introduces new hook signatures or settings, add them to `src/core/settings.ts` (`GridSettings`) — `npm run build:types` then regenerates the public `.d.ts` files directly into `tmp/`.
 
 ## Focus Management
 
 If your plugin provides UI elements (buttons, inputs, navigation bars), you must integrate with the focus manager (`src/focusManager/`).
 
 - **Register a focus scope** with a unique name for your plugin's UI region.
-- **Implement focus entry logic** -- when the scope is activated, focus the first or last focusable element depending on the navigation direction (Tab = first, Shift+Tab = last).
+- **Implement focus entry logic** - when the scope is activated, focus the first or last focusable element depending on the navigation direction (Tab = first, Shift+Tab = last).
 - The focus manager listens to Tab/Shift+Tab keyboard events and blocks or allows them to ensure the correct UI module is focused during normal focus navigation.
 - **Scopes switch automatically** based on which element the user clicks or focuses. The Core switches the active scope and sets the listen mode so the user can interact with either the grid or another module (e.g., pagination bar).
 - See the Pagination plugin for a reference implementation (`#registerFocusScope` / `#unregisterFocusScope`).
 
 ## Important Gotchas
 
-- **Merged cells -- read from meta, not DOM**: When working with merged cells, read `colspan`/`rowspan` from `hot.getCellMeta(row, col)` (set by MergeCells via `afterGetCellMeta`), not from DOM element attributes. The meta is authoritative and always available regardless of viewport state.
+- **Merged cells - read from meta, not DOM**: When working with merged cells, read `colspan`/`rowspan` from `hot.getCellMeta(row, col)` (set by MergeCells via `afterGetCellMeta`), not from DOM element attributes. The meta is authoritative and always available regardless of viewport state.
 
 ## Testing Requirements
 
@@ -120,5 +144,5 @@ If your plugin provides UI elements (buttons, inputs, navigation bars), you must
 - Test `updateSettings()`, `enablePlugin()`/`disablePlugin()` toggling.
 - Test interactions with other plugins (sorting, filters, hidden rows).
 
-**Gold standard:** `src/plugins/pagination/pagination.js`. **Base class:** `src/plugins/base/base.js`.
-See `.ai/ARCHITECTURE.md` and `.ai/CONVENTIONS.md` for deeper context.
+**Gold standard:** `src/plugins/pagination/pagination.ts`. **Base class:** `src/plugins/base/base.ts`.
+See `handsontable/.ai/ARCHITECTURE.md` and `handsontable/.ai/CONVENTIONS.md` for deeper context.

@@ -1234,6 +1234,115 @@ describe('AutocompleteEditor', () => {
       }
     });
 
+    it('should display the dropdown to the left of the edited cell, when there is not enough space on the right side (table has defined size)', async() => {
+      spec().$container.css('overflow', '');
+
+      const longChoices = [
+        'Short',
+        'A very long dropdown option that far exceeds the column width',
+        'AnotherVeryLongOptionWithoutAnySpaces',
+      ];
+
+      handsontable({
+        data: createEmptySpreadsheetData(5, 3),
+        editor: 'autocomplete',
+        source: longChoices,
+        trimDropdown: false,
+        width: 400,
+        height: 200,
+        stretchH: 'all',
+      });
+
+      await mouseDoubleClick($(getCell(0, 2)));
+      await waitForNextAnimationFrames(2);
+
+      const tableRight = hot().rootElement.getBoundingClientRect().right;
+      const { dd, td } = getDropdownVsEditedCell();
+
+      expect(dd.right).toBeLessThanOrEqual(tableRight + E2E_DOM_RECT_EPSILON_PX); // stays within table
+      expect(dd.left).toBeLessThan(td.left); // flipped to the left of the cell
+    });
+
+    it('should display the dropdown to the left of the edited cell, when there is not enough space on the right side (table has not defined size)', async() => {
+      spec().$container
+        .css('overflow', '')
+        .css('width', '')
+        .css('height', '');
+
+      const longChoices = [
+        'Short',
+        'A very long dropdown option that far exceeds the column width',
+        'AnotherVeryLongOptionWithoutAnySpaces',
+      ];
+
+      handsontable({
+        data: createEmptySpreadsheetData(5, 30),
+        editor: 'autocomplete',
+        source: longChoices,
+        trimDropdown: false,
+        colWidths: 100,
+      });
+
+      await scrollWindowTo(10000, 0); // scroll to the right edge
+
+      const cell = document.elementsFromPoint(
+        document.documentElement.clientWidth - 10, getDefaultRowHeight() + 10)[0];
+
+      await mouseDoubleClick($(cell));
+      await waitForNextAnimationFrames(2);
+
+      const { dd } = getDropdownVsEditedCell();
+
+      // dropdown must not overflow the viewport
+      expect(dd.right).toBeLessThanOrEqual(document.documentElement.clientWidth + E2E_DOM_RECT_EPSILON_PX);
+    });
+
+    it('should maintain the dropdown flipped to the left of the edited cell, after the choices list is changed (table has defined size)', async() => {
+      spec().$container.css('overflow', '');
+
+      const longChoices = [
+        'Short',
+        'A very long dropdown option that far exceeds the column width',
+      ];
+
+      handsontable({
+        data: createEmptySpreadsheetData(5, 3),
+        editor: 'autocomplete',
+        source: longChoices,
+        trimDropdown: false,
+        width: 400,
+        height: 200,
+        stretchH: 'all',
+      });
+
+      // Open shows all choices (including long one) — should flip left
+      await mouseDoubleClick($(getCell(0, 2)));
+      await waitForNextAnimationFrames(2);
+
+      {
+        const tableRight = hot().rootElement.getBoundingClientRect().right;
+        const { dd, td } = getDropdownVsEditedCell();
+
+        expect(dd.right).toBeLessThanOrEqual(tableRight + E2E_DOM_RECT_EPSILON_PX); // flipped left
+        expect(dd.left).toBeLessThan(td.left);
+      }
+
+      // Type 'a' — filters to only the long option ('Short' has no 'a') — dropdown stays wide and flipped
+      const editor = getActiveEditor();
+
+      editor.TEXTAREA.value = 'a';
+      await keyDownUp('a');
+      await waitForNextAnimationFrames(2);
+
+      {
+        const tableRight = hot().rootElement.getBoundingClientRect().right;
+        const { dd, td } = getDropdownVsEditedCell();
+
+        expect(dd.right).toBeLessThanOrEqual(tableRight + E2E_DOM_RECT_EPSILON_PX); // still flipped left
+        expect(dd.left).toBeLessThan(td.left);
+      }
+    });
+
     it('should not sort the choices list, when the `sortByRelevance` option is set to `true`', async() => {
       handsontable({
         editor: 'autocomplete',
@@ -2655,6 +2764,117 @@ describe('AutocompleteEditor', () => {
     expect(getDataAtCell(0, 0)).toEqual('');
   });
 
+  describe('HTML entities in source values', () => {
+    it('should filter dropdown items when the query contains an ampersand', async() => {
+      handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['cost&center', 'R&D', 'plain text'],
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+
+      const editorInput = $('.handsontableInput');
+
+      await keyDownUp('enter');
+      await sleep(200);
+
+      editorInput.val('&');
+      await keyDownUp('d');
+      await sleep(200);
+
+      const ac = getActiveEditor();
+      const innerHot = ac.htEditor;
+
+      expect(innerHot.countRows()).toBe(2);
+      expect(innerHot.getDataAtCell(0, 0)).toBe('cost&center');
+      expect(innerHot.getDataAtCell(1, 0)).toBe('R&D');
+    });
+
+    it('should filter dropdown items when the query matches a value containing HTML entity characters', async() => {
+      handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['cost&center', 'R&D', 'plain text'],
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+
+      const editorInput = $('.handsontableInput');
+
+      await keyDownUp('enter');
+      await sleep(200);
+
+      editorInput.val('center');
+      await keyDownUp('r');
+      await sleep(200);
+
+      const ac = getActiveEditor();
+      const innerHot = ac.htEditor;
+
+      expect(innerHot.countRows()).toBe(1);
+      expect(innerHot.getDataAtCell(0, 0)).toBe('cost&center');
+    });
+
+    it('should highlight matching query fragment inside a value containing an ampersand', async() => {
+      handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['cost&center', 'R&D', 'plain text'],
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+
+      const editorInput = $('.handsontableInput');
+
+      await keyDownUp('enter');
+      await sleep(200);
+
+      editorInput.val('cost');
+      await keyDownUp('t');
+      await sleep(200);
+
+      const ac = getActiveEditor();
+      const innerHot = ac.htEditor;
+      const autocompleteList = $(innerHot.rootElement);
+
+      expect(autocompleteList.find('td:eq(0)').text()).toBe('cost&center');
+      expect(autocompleteList.find('td:eq(0)').html()).toMatch(/<(strong|STRONG)>cost<\/(strong|STRONG)>/);
+    });
+
+    it('should display source values containing ampersand as plain text without decoding HTML entities', async() => {
+      handsontable({
+        columns: [
+          {
+            type: 'autocomplete',
+            source: ['cost&center', 'R&D', 'plain text'],
+          }
+        ]
+      });
+
+      await selectCell(0, 0);
+
+      await keyDownUp('enter');
+      await sleep(200);
+
+      const ac = getActiveEditor();
+      const innerHot = ac.htEditor;
+      const autocompleteList = $(innerHot.rootElement);
+
+      expect(autocompleteList.find('td:eq(0)').text()).toBe('cost&center');
+      expect(autocompleteList.find('td:eq(1)').text()).toBe('R&D');
+    });
+  });
+
   describe('allow html mode', () => {
     it('should allow inject html items (async mode)', async() => {
       handsontable({
@@ -3936,5 +4156,29 @@ describe('AutocompleteEditor', () => {
 
       expect(document.activeElement).toBe(getActiveEditor().TEXTAREA);
     });
+  });
+
+  it('should filter choices case-insensitively under an invalid column locale', async() => {
+    handsontable({
+      columns: [{
+        editor: 'autocomplete',
+        source: ['Apple', 'Apricot', 'Banana'],
+        locale: 'en_US', // invalid tag — current code throws while filtering
+        filter: true,
+      }],
+    });
+
+    await selectCell(0, 0);
+    await keyDownUp('enter'); // open the editor
+
+    const editor = getActiveEditor();
+
+    editor.TEXTAREA.value = 'ap';
+    await keyDownUp('p', {}, editor.TEXTAREA); // trigger the query/filter pass
+    await waitForNextAnimationFrames(2); // allow the async filter render
+
+    // 'ap' matches 'Apple' and 'Apricot' case-insensitively. If filtering threw on the
+    // invalid locale, the inner list would not populate with exactly these two rows.
+    expect(editor.htEditor.countRows()).toBe(2);
   });
 });

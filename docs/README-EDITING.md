@@ -80,7 +80,7 @@ searchCategory: API Reference
 
 When editing the documentation content, follow the guidelines below.
 
-> **Note:** Content `.md` files are cached by Astro's data store. After editing content files, you need to restart the dev server with `npm run dev -- --force` to see changes. CSS and JS changes are picked up by HMR automatically.
+> **Note:** Content `.md` files and the example source files they embed hot reload automatically in `npm run dev`. The custom content loader (`src/plugins/framework-loader.mjs`) watches `content/` and re-syncs the affected pages on each change. If content ever looks stale, restart the dev server with `npm run dev -- --force` to rebuild Astro's data store from scratch.
 
 ### Editing the `next` documentation version
 

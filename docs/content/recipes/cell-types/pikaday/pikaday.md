@@ -16,6 +16,9 @@ react:
 angular:
   id: b83502de
   metaTitle: Pikaday Cell Type - Angular Data Grid | Handsontable
+vue:
+  id: lnh85yd3
+  metaTitle: Pikaday Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
 ---
@@ -655,7 +658,6 @@ const hotOptions: Handsontable.GridSettings = {
       ...cellDefinition,
       renderFormat: DATE_FORMAT_US,
       dateFormat: DATE_FORMAT_US,
-      correctFormat: true,
       defaultDate: '01/01/2020',
       datePickerConfig: {
         firstDay: 0,

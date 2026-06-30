@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 2yi2yfl5
 title: Loading
 metaTitle: Loading - JavaScript Data Grid | Handsontable
 description: Display loading indicators and progress feedback in your data grid application using the Loading plugin.
@@ -14,11 +13,11 @@ tags:
   - spinner
   - indicator
 react:
-  id: 66z4zjaz
   metaTitle: Loading - React Data Grid | Handsontable
 angular:
-  id: wq2llzfz
   metaTitle: Loading - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Loading - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Dialog
 ---
@@ -69,6 +68,16 @@ To enable the Loading plugin, set the [`loading`](@/api/options.md#loading) opti
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code collapse={11-32,54-56}](@/content/guides/dialog/loading/vue/example1.vue)
+
+:::
+
+:::
+
 ## Custom configuration
 
 The loading dialog supports customization of the icon, title, and description.
@@ -101,6 +110,16 @@ The loading dialog supports customization of the icon, title, and description.
 
 @[code collapse={20-41,44-94}](@/content/guides/dialog/loading/angular/example2.ts)
 @[code](@/content/guides/dialog/loading/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code collapse={11-32,54-56}](@/content/guides/dialog/loading/vue/example2.vue)
 
 :::
 
@@ -144,6 +163,16 @@ Here are some common scenarios where the loading dialog is useful:
 
 :::
 
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code collapse={51-62,86-88}](@/content/guides/dialog/loading/vue/example3.vue)
+
+:::
+
+:::
+
 ## Loading with Pagination plugin
 
 The example below demonstrates how to use the Loading plugin with pagination in external container:
@@ -179,6 +208,17 @@ The example below demonstrates how to use the Loading plugin with pagination in 
 
 @[code collapse={55-104,162-191}](@/content/guides/dialog/loading/angular/example4.ts)
 @[code](@/content/guides/dialog/loading/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue3 --css 1
+
+@[code](@/content/guides/dialog/loading/vue/example4.css)
+@[code collapse={78-107,122-124}](@/content/guides/dialog/loading/vue/example4.vue)
 
 :::
 

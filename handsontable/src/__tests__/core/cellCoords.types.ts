@@ -27,4 +27,4 @@ const modified2CellCoords: CellCoords = cellCoords.assign({ col: 3 });
 const modified3CellCoords: CellCoords = cellCoords.assign({ row: 3, col: 3 });
 const modified4CellCoords: CellCoords = cellCoords.assign(cellCoords);
 const clonedCellCoords: CellCoords = cellCoords.clone();
-const cellCoordsAsObject: { row: number, col: number } = cellCoords.toObject();
+const cellCoordsAsObject: { row: number | null, col: number | null } = cellCoords.toObject();

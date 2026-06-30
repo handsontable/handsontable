@@ -6,10 +6,14 @@ on:
     paths:
       - 'docs/content/**/angular/*.ts'
       - 'docs/angular-type-check/**'
+      - 'handsontable/**'
+      - 'wrappers/angular-wrapper/**'
   push:
     paths:
       - 'docs/content/**/angular/*.ts'
       - 'docs/angular-type-check/**'
+      - 'handsontable/**'
+      - 'wrappers/angular-wrapper/**'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -20,10 +24,13 @@ jobs:
     name: Type check Angular examples
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    permissions:
+      contents: read
+      checks: write
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
 
-      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v5.0.0
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
 
       - name: Use Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238
@@ -41,4 +48,11 @@ jobs:
         run: npm run build --prefix wrappers/angular-wrapper
 
       - name: Run type check
+        # Gate on the build that was just checked out and built (the current branch - feature,
+        # develop, etc.), not on the last published `handsontable@latest`. Examples ship with the
+        # code in the same repo state, so one that uses an API added on this branch must not be
+        # failed for it; real type errors on the current build still fail the run.
         run: npm run typecheck --prefix docs/angular-type-check
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SKIP_LATEST: '1'

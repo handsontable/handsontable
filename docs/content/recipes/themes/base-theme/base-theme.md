@@ -22,6 +22,8 @@ react:
 angular:
   id: w5r2d8h4
   metaTitle: Handsontable with Base Web - Angular Data Grid | Handsontable
+vue:
+  id: x4lqd0rx
 searchCategory: Recipes
 category: Themes
 ---
@@ -136,7 +138,7 @@ For most Base Web integrations, start with the built-ins and only override shape
 
 ```tsx
 const baseThemeTokenOverrides = {
-  wrapperBorderRadius: 'var(--bds-radius-200)',
+  borderRadius: 'var(--bds-radius-200)',
   buttonBorderRadius: 'var(--bds-radius-200)',
   menuBorderRadius: 'var(--bds-radius-300)',
   inputBorderRadius: 'var(--bds-radius-200)',
@@ -164,7 +166,7 @@ const baseDataGridTheme = registerTheme('base-data-grid', {
   tokens: tokensHorizon,
 }).params({
   tokens: {
-    wrapperBorderRadius: 'var(--bds-radius-200)',
+    borderRadius: 'var(--bds-radius-200)',
     buttonBorderRadius: 'var(--bds-radius-200)',
     menuBorderRadius: 'var(--bds-radius-300)',
     inputBorderRadius: 'var(--bds-radius-200)',

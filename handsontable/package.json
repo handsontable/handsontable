@@ -10,68 +10,68 @@
     "url": "https://github.com/handsontable/handsontable/issues"
   },
   "author": "Handsoncode <hello@handsontable.com>",
-  "version": "17.1.0",
+  "version": "18.0.0",
   "main": "index",
   "module": "index.mjs",
   "jsnext:main": "index.mjs",
   "jsdelivr": "dist/handsontable.full.min.js",
   "unpkg": "dist/handsontable.full.min.js",
   "scripts": {
-    "clean": "rimraf commonjs es coverage tmp tmp_styles",
-    "lint": "npm run build:styles && npm run eslint && npm run type-lint && npm run stylelint",
-    "lint:fix": "npm run build:styles && npm run eslint:fix && npm run stylelint:fix && npm run type-lint:fix",
-    "stylelint": "stylelint --cache \"src/**/*.{css,scss}\" \"test/**/*.{css,scss}\"",
-    "stylelint:fix": "stylelint --fix \"src/**/*.{css,scss}\" \"test/**/*.{css,scss}\"",
-    "eslint": "eslint --cache src/ test/ .config/plugin scripts/",
-    "eslint:fix": "eslint --fix src/ test/ .config/plugin scripts/",
-    "type-lint": "cd types && eslint \"./**/*.d.ts\" --config \"./.eslintrc.js\"",
-    "type-lint:fix": "cd types && eslint --fix \"./**/*.d.ts\" --config \"./.eslintrc.js\"",
-    "measure:module-sizes": "node scripts/measure-module-sizes.mjs",
-    "test": "npm run lint && npm run test:unit && npm run test:types && npm run test:walkontable && npm run test:e2e && npm run test:production",
-    "test.random": "npm run lint && npm run test:unit && npm run test:types && npm run test:walkontable.random && npm run test:e2e.random && npm run test:production.random",
-    "test:walkontable": "npm run build:walkontable && npm run test:walkontable.dump && npm run test:walkontable.puppeteer",
-    "test:walkontable.random": "npm run build:walkontable && npm run test:walkontable.dump && npm run test:walkontable.puppeteer -- --random",
-    "test:walkontable.watch": "node ./test/scripts/run-puppeteer-on-watchers-change.mjs --cmdToListen \"npm run build:walkontable -- --watch\" --cmdToListen \"npm run test:walkontable.dump -- --watch\" --runnerFile \"src/3rdparty/walkontable/test/SpecRunner.html\"",
-    "test:walkontable.dump": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-walkontable env-cmd -f ../hot.config.js rspack ./src/3rdparty/walkontable/test/helpers/index.js ./src/3rdparty/walkontable/test/spec/index.js",
-    "test:walkontable.puppeteer": "node test/scripts/run-puppeteer.mjs src/3rdparty/walkontable/test/SpecRunner.html",
-    "test:production": "npm run build:umd.min && npm run build:languages.min && npm run build:themes-umd.min && npm run test:production.dump && npm run test:e2e.puppeteer",
-    "test:production.random": "npm run build:umd.min && npm run build:languages.min && npm run build:themes-umd.min && npm run test:production.dump && npm run test:e2e.puppeteer -- --random",
-    "test:production.dump": "npm run build:styles && cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-production env-cmd -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/index.js",
-    "test:e2e": "npm run build:umd && npm run build:languages && npm run build:themes-umd && npm run test:e2e.dump && npm run test:e2e.puppeteer",
-    "test:e2e.random": "npm run build:umd && npm run build:languages && npm run build:themes-umd && npm run test:e2e.dump && npm run test:e2e.puppeteer -- --random",
-    "test:e2e.verbose": "npm run build:umd && npm run build:languages && npm run build:themes-umd && npm run test:e2e.dump && npm run test:e2e.puppeteer -- --verbose",
-    "test:e2e.watch": "node ./test/scripts/run-puppeteer-on-watchers-change.mjs --cmdToListen \"npm run watch\" --cmdToListen \"npm run test:e2e.dump -- --watch\"",
-    "test:e2e.dump": "npm run build:styles && cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-e2e env-cmd -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/index.js",
-    "test:e2e.dump.esm-cjs": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-e2e-esm-cjs env-cmd -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/index.js",
-    "test:e2e.puppeteer": "node test/scripts/run-puppeteer.mjs",
-    "test:unit": "npm run build:styles && cross-env-shell BABEL_ENV=commonjs env-cmd -f ../hot.config.js jest --testPathPattern=${npm_config_testpathpattern:-.}",
-    "test:unit.watch": "npm run build:styles && cross-env-shell BABEL_ENV=commonjs env-cmd -f ../hot.config.js jest --testPathPattern=${npm_config_testpathpattern:-.} --watch",
-    "test:mobile.dump": "npm run build:styles && cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-mobile env-cmd --no-override -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/mobile/index.js",
-    "test:types": "tsc -p ./test/types -t es2015",
-    "watch": "npm run build:styles && cross-env-shell BABEL_ENV=commonjs NODE_ENV=watch env-cmd -f ../hot.config.js rspack --watch ./src/index.js",
-    "build": "npm run clean && node scripts/parallel-build.mjs",
-    "build:sequential": "npm run clean && npm run build:umd && npm run build:umd.min && npm run build:commonjs && npm run build:es && npm run build:languages && npm run build:languages.es && npm run build:languages.min && npm run build:themes-umd && npm run build:themes-umd.min",
-    "build:commonjs": "env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format commonjs --out-dir tmp",
-    "build:es": "npm run build:styles && env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format esm --out-dir tmp --out-ext .mjs",
-    "build:umd": "npm run build:all.styles && cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./src/index.js",
-    "build:umd-from-esm": "npm run build:all.styles && cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./tmp/index.mjs",
-    "build:umd-from-cjs": "npm run build:all.styles && cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./tmp/index.js",
-    "build:umd.min": "npm run build:all.styles.min && cross-env-shell BABEL_ENV=commonjs NODE_ENV=production env-cmd -f ../hot.config.js rspack ./src/index.js",
-    "build:all.styles": "npm run build:styles && npm run build:themes-css",
-    "build:all.styles.min": "npm run build:styles.min && npm run build:themes-css.min",
-    "build:styles": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=styles-development env-cmd -f ../hot.config.js rspack",
-    "build:styles.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=styles-production env-cmd -f ../hot.config.js rspack",
-    "build:themes-css": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-css-development env-cmd -f ../hot.config.js rspack",
-    "build:themes-css.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-css-production env-cmd -f ../hot.config.js rspack",
-    "build:themes-umd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-umd-development env-cmd -f ../hot.config.js rspack",
-    "build:themes-umd.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-umd-production env-cmd -f ../hot.config.js rspack",
-    "build:walkontable": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ../hot.config.js rspack ./src/3rdparty/walkontable/css/walkontable.scss ./src/3rdparty/walkontable/src/index.js",
-    "build:languages": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd -f ../hot.config.js rspack",
-    "build:languages.es": "env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format esm --src-dir src/i18n/languages --out-dir languages --out-ext .mjs --lang-registration",
-    "build:languages.min": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ../hot.config.js rspack",
+    "typecheck": "node scripts/run.mjs typecheck",
+    "clean": "node scripts/run.mjs clean",
+    "lint": "node scripts/run.mjs --parallel lint",
+    "lint:fix": "node scripts/run.mjs --sequential lint:fix",
+    "eslint": "node scripts/run.mjs lint:eslint",
+    "eslint:fix": "node scripts/run.mjs lint:eslint.fix",
+    "stylelint": "node scripts/run.mjs lint:stylelint",
+    "stylelint:fix": "node scripts/run.mjs lint:stylelint.fix",
+    "measure:module-sizes": "node scripts/run.mjs measure:module-sizes",
+    "test": "node scripts/run.mjs --sequential test",
+    "test.random": "node scripts/run.mjs --sequential test -- --random",
+    "test:walkontable": "node scripts/run.mjs --sequential test:walkontable",
+    "test:walkontable.random": "node scripts/run.mjs --sequential test:walkontable -- --random",
+    "test:walkontable.watch": "node scripts/run.mjs test:walkontable.watch",
+    "test:walkontable.dump": "node scripts/run.mjs test:walkontable.dump",
+    "test:walkontable.puppeteer": "node scripts/run.mjs test:walkontable.puppeteer",
+    "test:production": "node scripts/run.mjs --sequential test:production",
+    "test:production.random": "node scripts/run.mjs --sequential test:production -- --random",
+    "test:production.dump": "node scripts/run.mjs test:production.dump",
+    "test:e2e": "node scripts/run.mjs --sequential test:e2e",
+    "test:e2e.random": "node scripts/run.mjs --sequential test:e2e -- --random",
+    "test:e2e.verbose": "node scripts/run.mjs --sequential test:e2e -- --verbose",
+    "test:e2e.watch": "node scripts/run.mjs test:e2e.watch",
+    "test:e2e.dump": "node scripts/run.mjs test:e2e.dump",
+    "test:e2e.dump.esm-cjs": "node scripts/run.mjs test:e2e.dump.esm-cjs",
+    "test:e2e.puppeteer": "node scripts/run.mjs test:e2e.puppeteer",
+    "test:unit": "node scripts/run.mjs --sequential test:unit",
+    "test:unit.jest": "node scripts/run.mjs test:unit.jest",
+    "test:unit.watch": "node scripts/run.mjs --sequential test:unit -- --watch",
+    "test:mobile.dump": "node scripts/run.mjs test:mobile.dump",
+    "test:types": "node scripts/run.mjs test:types",
+    "watch": "node scripts/run.mjs --sequential watch",
+    "build": "node scripts/run.mjs --parallel build",
+    "postbuild": "node scripts/run.mjs prepare-package-for-publish",
+    "build:sequential": "node scripts/run.mjs --sequential build",
+    "build:commonjs": "node scripts/run.mjs build:commonjs",
+    "build:es": "node scripts/run.mjs build:es",
+    "build:umd": "node scripts/run.mjs build:umd",
+    "build:umd-from-esm": "node scripts/run.mjs build:umd-from-esm",
+    "build:umd-from-cjs": "node scripts/run.mjs build:umd-from-cjs",
+    "build:umd.min": "node scripts/run.mjs build:umd.min",
+    "build:styles": "node scripts/run.mjs build:styles",
+    "build:styles.min": "node scripts/run.mjs build:styles.min",
+    "build:themes-css": "node scripts/run.mjs build:themes-css",
+    "build:themes-css.min": "node scripts/run.mjs build:themes-css.min",
+    "build:themes-umd": "node scripts/run.mjs build:themes-umd",
+    "build:themes-umd.min": "node scripts/run.mjs build:themes-umd.min",
+    "generate:themes": "node scripts/run.mjs generate:themes-static",
+    "build:types": "node scripts/run.mjs build:types",
+    "build:walkontable": "node scripts/run.mjs build:walkontable",
+    "build:languages": "node scripts/run.mjs build:languages",
+    "build:languages.es": "node scripts/run.mjs build:languages.es",
+    "build:languages.min": "node scripts/run.mjs build:languages.min",
     "publish-package": "cd tmp && npm publish",
-    "create-package": "cd tmp && npm pack",
-    "postbuild": "node ./scripts/prepare-package-for-publish.mjs"
+    "create-package": "cd tmp && npm pack"
   },
   "keywords": [
     "data",
@@ -88,30 +88,23 @@
     "editable-table",
     "data-spreadsheet"
   ],
-  "dependencies": {
-    "@handsontable/pikaday": "^1.0.0",
-    "dompurify": "^3.1.7",
-    "moment": "2.30.1",
-    "numbro": "2.5.0"
-  },
-  "optionalDependencies": {
-    "hyperformula": "^3.0.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@babel/core": "^7.11.4",
     "@babel/eslint-parser": "^7.13.14",
     "@babel/eslint-plugin": "^7.13.16",
     "@babel/plugin-transform-runtime": "^7.11.0",
     "@babel/preset-env": "^7.11.0",
+    "@babel/preset-typescript": "^7.28.5",
     "@babel/register": "^7.8.3",
     "@babel/runtime": "^7.11.2",
     "@rspack/cli": "^1.7.11",
     "@rspack/core": "^1.7.11",
     "@swc/core": "^1.15.26",
     "@swc/helpers": "^0.5.21",
-    "@types/node": "^12.20.7",
-    "@typescript-eslint/eslint-plugin": "^4.33.0",
-    "@typescript-eslint/parser": "^4.33.0",
+    "@types/node": "^22.13.5",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
     "babel-jest": "^27.5.1",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "chalk": "^4.1.2",
@@ -119,12 +112,12 @@
     "cross-env": "^7.0.3",
     "css-loader": "6.10.0",
     "env-cmd": "^9.0.3",
-    "eslint": "^7.25.0",
-    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint": "^8.57.1",
+    "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-compat": "^4.2.0",
     "eslint-plugin-handsontable": "file:.config/plugin/eslint",
-    "eslint-plugin-import": "^2.22.1",
-    "eslint-plugin-jsdoc": "^32.3.3",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-jsdoc": "^46.0.0",
     "exceljs": "^4.4.0",
     "execa": "^5.0.0",
     "fs-extra": "^4.0.2",
@@ -132,6 +125,7 @@
     "global-jsdom": "^24.0.0",
     "html-parse-stringify": "^3.0.1",
     "http-server": "^14.1.1",
+    "hyperformula": "^3.0.0",
     "jasmine-co": "^1.2.2",
     "jasmine-console-reporter": "^3.1.0",
     "jasmine-core": "^3.4.0",
@@ -154,13 +148,13 @@
     "stylelint": "^16.3.1",
     "stylelint-config-standard": "^36.0.1",
     "stylelint-config-standard-scss": "^13.1.0",
-    "typescript": "3.8.2"
+    "typescript": "^6.0.0"
   },
   "license": "SEE LICENSE IN LICENSE.txt",
+  "typings": "./index.d.ts",
   "resolutions": {
     "@babel/core": "^7.11.4"
   },
-  "typings": "./index.d.ts",
   "handsontable": {
     "copy": [
       "dist/handsontable.full.js",
@@ -174,23 +168,19 @@
       "../CHANGELOG.md",
       "../handsontable-non-commercial-license.pdf",
       "../LICENSE.txt",
-      "README.md",
-      {
-        "pattern": "types/**/*.d.ts",
-        "pathSlice": 1
-      }
+      "README.md"
     ],
     "exports": [
-      "./cellTypes/*/+(index)*",
+      "./cellTypes/*/index.*",
       "./cellTypes/+(index|registry)*",
       "./languages/!(all.js)",
-      "./editors/*/+(index)*",
+      "./editors/*/index.*",
       "./editors/+(index|registry|factory)*",
-      "./plugins/*/+(index)*",
+      "./plugins/*/index.*",
       "./plugins/+(index|registry)*",
-      "./renderers/*/+(index)*",
+      "./renderers/*/index.*",
       "./renderers/+(index|registry|factory)*",
-      "./validators/*/+(index)*",
+      "./validators/*/index.*",
       "./validators/+(index|registry)*",
       "./i18n/+(index|registry)*",
       "./i18n/languages/*",
@@ -200,46 +190,38 @@
       "./themes/static/variables/**/*",
       {
         ".": {
-          "types": "./index.d.ts",
-          "import": "./index.mjs",
-          "require": "./index.js"
+          "import": { "types": "./index.d.mts", "default": "./index.mjs" },
+          "require": { "types": "./index.d.ts", "default": "./index.js" }
         }
       },
       {
         "./base": {
-          "types": "./base.d.ts",
-          "import": "./base.mjs",
-          "require": "./base.js"
-        }
-      },
-      {
-        "./common": {
-          "types": "./common.d.ts"
-        }
-      },
-      {
-        "./settings": {
-          "types": "./settings.d.ts"
+          "import": { "types": "./base.d.mts", "default": "./base.mjs" },
+          "require": { "types": "./base.d.ts", "default": "./base.js" }
         }
       },
       {
         "./languages/all": {
-          "import": "./languages/index.mjs",
-          "require": "./languages/all.js"
+          "import": { "default": "./languages/index.mjs" },
+          "require": { "default": "./languages/all.js" }
         }
       },
       {
         "./registry": {
-          "types": "./registry.d.ts",
-          "import": "./registry.mjs",
-          "require": "./registry.js"
+          "import": { "types": "./registry.d.mts", "default": "./registry.mjs" },
+          "require": { "types": "./registry.d.ts", "default": "./registry.js" }
+        }
+      },
+      {
+        "./settings": {
+          "import": { "types": "./settings.d.mts", "default": "./settings.mjs" },
+          "require": { "types": "./settings.d.ts", "default": "./settings.js" }
         }
       },
       {
         "./themes": {
-          "types": "./themes.d.ts",
-          "import": "./themes/index.mjs",
-          "require": "./themes/index.js"
+          "import": { "types": "./themes/index.d.mts", "default": "./themes/index.mjs" },
+          "require": { "types": "./themes/index.d.ts", "default": "./themes/index.js" }
         }
       }
     ],
@@ -260,13 +242,14 @@
       "dependencies",
       "optionalDependencies",
       "license",
-      "typings",
       "sideEffects"
     ]
   },
   "sideEffects": [
     "**/*.css",
-    "./languages/*"
+    "./languages/*",
+    "./plugins/filters/condition/**",
+    "./plugins/filters/logicalOperations/**"
   ],
   "publishConfig": {
     "directory": "tmp",

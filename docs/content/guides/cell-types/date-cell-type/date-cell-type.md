@@ -1,19 +1,19 @@
 ---
 type: how-to
-id: p25m5sco
 title: Date cell type
 metaTitle: Date cell type - JavaScript Data Grid | Handsontable
 description: Display, format, sort, and filter dates correctly by using the date cell type.
 permalink: /date-cell-type
 canonicalUrl: /date-cell-type
 react:
-  id: u7t2rn0n
   metaTitle: Date cell type - React Data Grid | Handsontable
 angular:
-  id: 9vvupwbx
   metaTitle: Date cell type - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Date cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Display, format, sort, and filter dates correctly by using the date cell type.
 
@@ -23,7 +23,7 @@ The date cell type provides a date picker for selecting and displaying dates. It
 
 ## Overview
 
-The date cell type lets you treat cell values as dates: format how they are displayed, validate input, and use an interactive date picker in the editor. Handsontable supports two configurations: the **object-style** configuration using the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API (recommended), and a **string-style** configuration using [Moment.js](https://github.com/moment/moment) (deprecated).
+The date cell type lets you treat cell values as dates: format how they are displayed, validate input, and use an interactive date picker in the editor. Use the `intl-date` or `date` cell type with the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API and ISO 8601 date strings.
 
 ## Date cell type demo
 
@@ -60,14 +60,24 @@ In the following demo, multiple columns use the date cell type with different fo
 :::
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-types/date-cell-type/vue/example1.vue)
+
+:::
+
+:::
+
 ## Use the date cell type
 
-Use the **object-style** configuration by setting the [`type`](@/api/options.md#type) option to `'intl-date'` and [`dateFormat`](@/api/options.md#dateformat) to an object (recommended). The locale is controlled via the [`locale`](@/api/options.md#locale) option.
+Use the **object-style** configuration by setting the [`type`](@/api/options.md#type) option to `'intl-date'` or `'date'` and [`dateFormat`](@/api/options.md#dateformat) to an object. The locale is controlled via the [`locale`](@/api/options.md#locale) option.
 
 ::: only-for javascript
 
 ```js
-// set the date cell type for the entire grid (Intl, recommended)
+// set the date cell type for the entire grid
 type: 'intl-date',
 locale: 'en-US',
 dateFormat: {
@@ -104,7 +114,7 @@ cell: [
 ::: only-for react
 
 ```jsx
-// set the date cell type for the entire grid (Intl, recommended)
+// set the date cell type for the entire grid
 type="intl-date"
 locale="en-US"
 dateFormat={{
@@ -135,7 +145,7 @@ cell={[{
 ::: only-for angular
 
 ```ts
-// set the date cell type for the entire grid (Intl, recommended)
+// set the date cell type for the entire grid
 settings1 = {
   type: 'intl-date',
   locale: 'en-US',
@@ -173,17 +183,58 @@ settings3 = {
 
 :::
 
-For `intl-date` cells, source data **must** be in **ISO 8601 date format** (`YYYY-MM-DD`) for dates to work correctly. The `dateFormat` object only affects how dates are displayed; sorting and filtering rely on the underlying ISO value.
+::: only-for vue
+
+```js
+// set the date cell type for the entire grid (Intl, recommended)
+const hotSettings = ref({
+  type: 'intl-date',
+  locale: 'en-US',
+  dateFormat: {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  }
+});
+
+// set the date cell type for a single column
+const hotSettings = ref({
+  columns: [
+    {
+      type: 'intl-date',
+      locale: 'en-US',
+      dateFormat: { dateStyle: 'short' }
+    }
+  ]
+});
+
+// set the date cell type for a single cell
+const hotSettings = ref({
+  cell: [
+    {
+      row: 0,
+      col: 2,
+      type: 'intl-date',
+      locale: 'en-US',
+      dateFormat: { dateStyle: 'medium' }
+    }
+  ]
+});
+```
+
+:::
+
+For `intl-date` and `date` cells, source data **must** be in **ISO 8601 date format** (`YYYY-MM-DD`) for dates to work correctly. The `dateFormat` object only affects how dates are displayed; sorting and filtering rely on the underlying ISO value.
 
 ## Format dates
 
 To control how dates are displayed in [cell renderers](@/guides/cell-functions/cell-renderer/cell-renderer.md), use the [`dateFormat`](@/api/options.md#dateformat) option.
 
-Since Handsontable 17.0, the recommended approach is the **object form** of `dateFormat` with the `intl-date` cell type, which uses the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
+Since Handsontable 18.0, the **object form** of `dateFormat` with the `intl-date` and `date` cell types is required. It uses the native [`Intl.DateTimeFormat`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat) API. The locale is controlled separately via the [`locale`](@/api/options.md#locale) option.
 
-### Using Intl.DateTimeFormat (recommended)
+### Using Intl.DateTimeFormat
 
-The `dateFormat` option accepts all properties of [`Intl.DateTimeFormat` options](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat). Use it with `type: 'intl-date'`.
+The `dateFormat` option accepts all properties of [`Intl.DateTimeFormat` options](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat). Use it with `type: 'intl-date'` or `type: 'date'`.
 
 ::: only-for javascript
 
@@ -257,6 +308,31 @@ settings = {
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = ref({
+  columns: [
+    {
+      type: 'intl-date',
+      locale: 'en-US',
+      dateFormat: {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }
+    },
+    {
+      type: 'intl-date',
+      locale: 'de-DE',
+      dateFormat: { dateStyle: 'long' }
+    }
+  ]
+});
+```
+
+:::
+
 **Date-specific options**
 
 **Style shortcuts:**
@@ -296,50 +372,13 @@ settings = {
 
 For a complete reference, see the [`dateFormat` API documentation](@/api/options.md#dateformat) or [MDN: Intl.DateTimeFormat](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat/DateTimeFormat).
 
-### Using string format with Moment.js (deprecated)
-
-::: warning Deprecated
-The **string form** of [`dateFormat`](@/api/options.md#dateformat) (e.g. `'DD/MM/YYYY'`, `'YYYY-MM-DD'`) is deprecated and will be removed in the next major release. It is used only by the `date` cell type, which relies on [Moment.js](https://github.com/moment/moment) and [Pikaday](https://github.com/dbushell/Pikaday). Migrate to the `intl-date` cell type with an `Intl.DateTimeFormat` options object.
-:::
-
-The `date` cell type with a string `dateFormat` is still supported but will be removed in next major release.
-
-**Deprecated options:**
-
-| Option               | Description | Replacement |
-| -------------------- | ----------- | ----------- |
-| `dateFormat` (string)| Moment.js format (e.g. `'DD/MM/YYYY'`) | Use `intl-date` with `dateFormat` object (see above) |
-| `correctFormat`      | Auto-correct entered date to match format | May be handled by [`valueParser`](@/api/options.md#valueparser) and/or [`valueSetter`](@/api/options.md#valuesetter) options |
-| `datePickerConfig`   | Pikaday options for the date picker | `intl-date` uses a native date picker; no direct equivalent |
-
-**Migration example:**
-
-```js
-// Before (deprecated)
-columns: [{
-  type: 'date',
-  dateFormat: 'YYYY-MM-DD',
-}]
-
-// After (recommended)
-columns: [{
-  type: 'intl-date',
-  locale: 'en-US',
-  dateFormat: {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }
-}]
-```
-
 ### Editor behavior
 
-The [`dateFormat`](@/api/options.md#dateformat) option controls how dates are displayed in the cell. The editor (date picker or text input) may show the value in a normalized form; for `intl-date`, the underlying value remains in ISO 8601 format.
+The [`dateFormat`](@/api/options.md#dateformat) option controls how dates are displayed in the cell. The editor (date picker or text input) may show the value in a normalized form; for `intl-date` and `date`, the underlying value remains in ISO 8601 format.
 
 ## Result
 
-After configuring the date cell type, cells display dates formatted according to your `dateFormat` configuration. Clicking an `intl-date` cell opens a native date picker. Source data is stored in ISO 8601 format (`YYYY-MM-DD`) regardless of the display format.
+After configuring the date cell type, cells display dates formatted according to your `dateFormat` configuration. Clicking an `intl-date` or `date` cell opens a native date picker. Source data is stored in ISO 8601 format (`YYYY-MM-DD`) regardless of the display format.
 
 ## Related articles
 
@@ -358,8 +397,6 @@ After configuring the date cell type, cells display dates formatted according to
 - [dateFormat](@/api/options.md#dateformat)
 - [locale](@/api/options.md#locale)
 - [type](@/api/options.md#type)
-- [correctFormat](@/api/options.md#correctformat)
-- [datePickerConfig](@/api/options.md#datepickerconfig)
 - [defaultDate](@/api/options.md#defaultdate)
 - [valueFormatter](@/api/options.md#valueformatter)
 - [valueParser](@/api/options.md#valueparser)

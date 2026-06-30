@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: x2u15qpx
 title: Theme Customization
 metaTitle: Theme Customization - JavaScript Data Grid | Handsontable
 description: Customize Handsontable's appearance using the Theme API, Figma Theme Generator, CSS variables, or the visual Theme Builder.
@@ -18,11 +17,11 @@ tags:
   - local variables
   - tokens
 react:
-  id: 0m19ic0d
   metaTitle: Theme Customization - React Data Grid | Handsontable
 angular:
-  id: xau2jfok
   metaTitle: Theme Customization - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Theme Customization - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
 menuTag: updated
@@ -123,6 +122,34 @@ myTheme.setDensityType('default');
 
 :::
 
+::: only-for vue
+
+```ts
+import { ref } from 'vue';
+import { HotTable } from '@handsontable/vue3';
+import { registerAllModules } from 'handsontable/registry';
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+registerAllModules();
+
+const myTheme = registerTheme(mainTheme);
+
+myTheme.setColorScheme('light');
+myTheme.setDensityType('default');
+
+const hotSettings = ref({
+  theme: myTheme,
+  // other options
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+```html
+<HotTable :settings="hotSettings" />
+```
+
+:::
+
 ### Configure theme parameters
 
 Use the `params()` method to update theme parameters dynamically:
@@ -174,6 +201,16 @@ The following example demonstrates using the Theme API to register a theme with 
 
 :::
 
+::: only-for vue
+
+::: example #example2 .disable-auto-theme :vue3
+
+@[code](@/content/guides/styling/theme-customization/vue/example2.vue)
+
+:::
+
+:::
+
 ## Option 2: Figma Theme Generator
 
 The Figma Theme Generator allows designers and developers to work together seamlessly by exporting design tokens directly from Figma into a CSS theme file.
@@ -184,7 +221,7 @@ To create a new theme or modify an existing one in Figma:
 
 1. Open your Figma design file and modify the design variables (colors, spacing, typography, etc.) to match your requirements.
 2. Export the design tokens as JSON using Figma's built-in variables export or a plugin.
-3. Visit the [Handsontable Theme Generator](https://github.com/handsontable/handsontable-figma) and follow the instructions to convert your Figma tokens into CSS theme files or JS variable objects.
+3. Use the [Handsontable Theme Generator](https://github.com/handsontable/handsontable/tree/develop/handsontable/scripts/themes/figma), located in the Handsontable monorepo at `handsontable/scripts/themes/figma`, to convert your Figma tokens into CSS theme files or JS variable objects. Run it with `npm run generate:themes` from the `handsontable/` package root.
 
 The Theme Generator transforms JSON tokens exported from Figma into properly formatted theme files that work with Handsontable. It outputs CSS files (with or without icons) and JS variable files for colors, tokens, and icons. This approach is ideal for teams where designers define the visual language in Figma and developers implement it in code.
 
@@ -220,6 +257,16 @@ Here's an example for `.ht-theme-main`:
 ::: example #example1 :angular --ts 1 --html 2
 @[code](@/content/guides/styling/theme-customization/angular/example1.ts)
 @[code](@/content/guides/styling/theme-customization/angular/example1.html)
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 .disable-auto-theme :vue3
+
+@[code](@/content/guides/styling/theme-customization/vue/example1.vue)
+
 :::
 
 :::
@@ -338,6 +385,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-gap-size` </div><div class="variables-table__item"><span>JS:</span> `gapSize` </div>         | Standard gap size used throughout the component |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-icon-size` </div><div class="variables-table__item"><span>JS:</span> `iconSize` </div>        | Size of icons throughout the interface          |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-table-transition` </div><div class="variables-table__item"><span>JS:</span> `tableTransition` </div> | Transition duration for table animations        |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-border-radius` </div><div class="variables-table__item"><span>JS:</span> `borderRadius` </div>     | Border radius of the table                      |
 
 #### Color System Variables
 
@@ -378,14 +426,6 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | -------- | -------------------------------- |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-horizontal-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellHorizontalBorderColor` </div> | Color of horizontal cell borders |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-vertical-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellVerticalBorderColor` </div>   | Color of vertical cell borders   |
-
-#### Wrapper Variables
-
-| Variable | Description                        |
-| -------- | ---------------------------------- |
-| <div class="variables-table__item"><span>CSS:</span> `--ht-wrapper-border-width` </div><div class="variables-table__item"><span>JS:</span> `wrapperBorderWidth` </div>  | Width of the table wrapper border  |
-| <div class="variables-table__item"><span>CSS:</span> `--ht-wrapper-border-radius` </div><div class="variables-table__item"><span>JS:</span> `wrapperBorderRadius` </div> | Border radius of the table wrapper |
-| <div class="variables-table__item"><span>CSS:</span> `--ht-wrapper-border-color` </div><div class="variables-table__item"><span>JS:</span> `wrapperBorderColor` </div>  | Color of the table wrapper border  |
 
 #### Row Styling Variables
 
@@ -740,7 +780,7 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 
 #### Notification Variables
 
-These variables style the [Notification](@/guides/dialog/notification/notification.md) plugin toasts. Shared layout tokens (for example `wrapperBorderRadius`, `tableTransition`, `gapSize`) and icon-button tokens still apply to the close control and spacing.
+These variables style the [Notification](@/guides/dialog/notification/notification.md) plugin toasts. Shared layout tokens (for example `borderRadius`, `tableTransition`, `gapSize`) and icon-button tokens still apply to the close control and spacing.
 
 | Variable | Description                                         |
 | -------- | --------------------------------------------------- |

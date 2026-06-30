@@ -63,7 +63,7 @@ export class AppComponent {
       { data: 'color', type: 'autocomplete', source: colors },
     ],
     cell: [{ row: 1, col: 0, renderer: greenRenderer }],
-    cells: (row, col) => {
+    cells: (row: number, col: number) => {
       if (row === 0 && col === 0) {
         return { renderer: greenRenderer };
       }

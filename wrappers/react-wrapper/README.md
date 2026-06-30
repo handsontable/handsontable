@@ -56,9 +56,6 @@
 &nbsp;&nbsp;✅&nbsp; [Hiding columns](https://handsontable.com/docs/react-data-grid/column-hiding/) <br>
 &nbsp;&nbsp;✅&nbsp; [Right-click context menu](https://handsontable.com/docs/react-data-grid/context-menu/) <br>
 &nbsp;&nbsp;✅&nbsp; [Row pagination](https://handsontable.com/docs/react-data-grid/rows-pagination/) <br>
-&nbsp;&nbsp;✅&nbsp; [Server-side data](https://handsontable.com/docs/react-data-grid/server-side-data/) <br>
-&nbsp;&nbsp;✅&nbsp; [Notifications](https://handsontable.com/docs/react-data-grid/notification/) <br>
-&nbsp;&nbsp;✅&nbsp; [Export to Excel](https://handsontable.com/docs/react-data-grid/export-to-excel/) <br>
 
 <div id="installation">
 

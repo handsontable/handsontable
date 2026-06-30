@@ -52,7 +52,6 @@ export const inputData = [
         <span class="rating-star" [class.active]="$index < value" [innerHTML]="starSvgMarkup"></span>
       }
     </div>`,
-  styleUrls: ['./example1.css'],
   standalone: true,
   imports: [],
 })
@@ -82,7 +81,6 @@ export class StarRendererComponent extends HotCellRendererAdvancedComponent<numb
       }
     </div>
   `,
-  styleUrls: ['./example1.css'],
 })
 export class StarEditorComponent extends HotCellEditorAdvancedComponent<number> {
   readonly stars = Array(5);

@@ -22,6 +22,9 @@ react:
 angular:
   id: a3b7c9e1
   metaTitle: Handsontable with MUI - Angular Data Grid | Handsontable
+vue:
+  id: 6qpczr7i
+  metaTitle: Handsontable with MUI - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Themes
 ---
@@ -135,7 +138,7 @@ export function createMuiDataGridTheme(theme: Theme) {
   }).params({
     tokens: {
       // Match MUI's default rounded corners.
-      wrapperBorderRadius: '4px',
+      borderRadius: '4px',
     },
   });
 }
@@ -228,7 +231,7 @@ export default function App() {
 
 ## What you learned
 
-You registered a custom Handsontable theme that maps MUI palette values to Handsontable colors. You used `useTheme()` to read MUI palette values at runtime, `useMemo` to avoid unnecessary theme re-registrations, and `registerTheme` with Horizon tokens and a `wrapperBorderRadius` override.
+You registered a custom Handsontable theme that maps MUI palette values to Handsontable colors. You used `useTheme()` to read MUI palette values at runtime, `useMemo` to avoid unnecessary theme re-registrations, and `registerTheme` with Horizon tokens and a `borderRadius` override.
 
 ## Next steps
 

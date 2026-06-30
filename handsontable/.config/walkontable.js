@@ -20,6 +20,9 @@ module.exports.create = function create() {
       libraryTarget: 'var',
       path: path.resolve(wotPath, 'dist'),
     },
+    resolve: {
+      extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
+    },
     module: {
       rules: [
         {
@@ -40,11 +43,30 @@ module.exports.create = function create() {
           },
         },
         {
+          test: /\.(ts|tsx)$/,
+          loader: 'builtin:swc-loader',
+          exclude: [
+            /node_modules/,
+          ],
+          options: {
+            env: {
+              targets: BROWSERS_LIST.join(', '),
+            },
+            jsc: {
+              parser: {
+                syntax: 'typescript',
+                tsx: true,
+                decorators: true,
+              },
+            },
+          },
+        },
+        {
           test: /\.(scss|css)$/,
           use: [
             { loader: rspack.CssExtractRspackPlugin.loader },
             { loader: 'css-loader' },
-            { loader: 'sass-loader'},
+            { loader: 'sass-loader', options: { sassOptions: { silenceDeprecations: ['legacy-js-api'] } } },
             { loader: path.resolve(__dirname, 'loader/sass-rtl-loader.js')}
           ]
         },

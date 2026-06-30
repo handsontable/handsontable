@@ -1,6 +1,5 @@
 ---
 type: explanation
-id: xfus5qpz
 title: Design System
 metaTitle: Design System / UI Kit - JavaScript Data Grid | Handsontable
 description: Design, prototype, and customize spreadsheet-like components with the Design System for Figma.
@@ -18,11 +17,11 @@ tags:
   - local variables
   - tokens
 react:
-  id: 0mz9id0l
   metaTitle: Design System / UI Kit - React Data Grid | Handsontable
 angular:
-  id: vru7jook
   metaTitle: Design System / UI Kit - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Design System / UI Kit - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Styling
 ---
@@ -46,7 +45,7 @@ Inside the Figma file, you’ll find local variables that define all parts of th
 
 You can tweak the variables however you like to match your brand or product style. Once you’re happy with the changes, export them as JSON tokens. We recommend using the [Design Tokens](https://www.figma.com/community/plugin/888356646278934516/design-tokens) plugin from the Figma Community — it’s straightforward and does the job well.
 
-After exporting, head over to our [Theme Generator on GitHub](https://github.com/handsontable/handsontable-figma) to convert your tokens into a CSS theme and JavaScript variables object that works with Handsontable.
+After exporting, use our [Theme Generator](https://github.com/handsontable/handsontable/tree/develop/handsontable/scripts/themes/figma), located in the Handsontable monorepo at `handsontable/scripts/themes/figma`, to convert your tokens into a CSS theme and JavaScript variables object that works with Handsontable. Run it with `npm run generate:themes` from the `handsontable/` package root.
 
 <span class="img-light">
 

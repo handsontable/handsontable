@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 3zi3znot
 title: Notification
 metaTitle: Notification - JavaScript Data Grid | Handsontable
 description: Show non-blocking toast notifications anchored to the grid with the Notification plugin.
@@ -12,14 +11,14 @@ tags:
   - dialog
   - accessibility
 react:
-  id: 77z5zjaz
   metaTitle: Notification - React Data Grid | Handsontable
 angular:
-  id: xr3llzfz
   metaTitle: Notification - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Notification - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Dialog
-menuTag: new
+menuTag: updated
 ---
 
 Show non-blocking toast notifications for save confirmations, errors, and other transient feedback. Toasts are anchored to the Handsontable root, support stacking per corner, and work with the design system themes.
@@ -30,7 +29,7 @@ Show non-blocking toast notifications for save confirmations, errors, and other 
 
 The Notification plugin adds a small API on top of the grid: `showMessage`, `hide`, `hideAll`, `isVisible`, and `getQueueSize`. You can choose severity variants, corner positions, optional titles, action buttons, and auto-dismiss timing. The plugin is disabled by default; set [`notification`](@/api/options.md#notification) to `true` or to a configuration object.
 
-Toasts use `aria-live="polite"` for informational variants and `aria-live="assertive"` for the `error` variant so assistive technologies announce them without moving keyboard focus. Press **F6** to move focus into the notification region when at least one toast is visible; **Tab** and **Shift+Tab** then move between controls across visible toasts. **Tab** from the last control in the region moves focus to the highlighted grid cell (the notification host follows the grid in the DOM, so default tab order would otherwise leave the table). **Shift+Tab** from the first control behaves like **Escape** and returns focus to the element that was active before you entered. Press **Escape** to leave the region the same way. Hiding the last toast while focus is in the notification region or on that toast restores focus the same way as **Escape**. Opening a toast does not move focus on its own.
+Toasts use `aria-live="polite"` for informational variants and `aria-live="assertive"` for the `error` variant so assistive technologies announce them without moving keyboard focus. Press **F6** to move focus into the notification region when at least one toast is visible; **Tab** and **Shift+Tab** then move between controls across visible toasts. **Tab** from the last control in the region moves focus to the highlighted grid cell (the notification host renders in the grid's overlay layer, so default tab order would otherwise leave the table). **Shift+Tab** from the first control behaves like **Escape** and returns focus to the element that was active before you entered. Press **Escape** to leave the region the same way. Hiding the last toast while focus is in the notification region or on that toast restores focus the same way as **Escape**. Opening a toast does not move focus on its own.
 
 ## Basic configuration
 
@@ -69,6 +68,16 @@ Enable the plugin with [`notification: true`](@/api/options.md#notification), th
 
 :::
 
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/dialog/notification/vue/example1.vue)
+
+:::
+
+:::
+
 ## Toolbar actions (inventory-style)
 
 Use separate buttons for save, error recovery, and warnings. Primary and secondary actions on an error toast can call `hideAll()` before showing follow-up feedback.
@@ -102,6 +111,16 @@ Use separate buttons for save, error recovery, and warnings. Primary and seconda
 
 @[code](@/content/guides/dialog/notification/angular/example2.ts)
 @[code](@/content/guides/dialog/notification/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/dialog/notification/vue/example2.vue)
 
 :::
 

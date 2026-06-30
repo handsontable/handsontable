@@ -59,9 +59,9 @@ const hot = new Handsontable(container, {
     width: '100%',
     columns: [
         { data: 'item', type: 'text', readOnly: false },
-        { data: 'units', type: 'numeric', numericFormat: { pattern: '0' } },
-        { data: 'price', type: 'numeric', numericFormat: { pattern: '0.00' } },
-        { data: 'tax', type: 'numeric', numericFormat: { pattern: '0.00' } },
+        { data: 'units', type: 'numeric', numericFormat: { maximumFractionDigits: 0 } },
+        { data: 'price', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
+        { data: 'tax', type: 'numeric', numericFormat: { minimumFractionDigits: 2, maximumFractionDigits: 2 } },
     ],
     cells(row, _col, prop) {
         if (row !== summaryRowIndex) {

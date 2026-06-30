@@ -164,6 +164,14 @@ const HotTableInner = forwardRef<
    * Initialize Handsontable after the component has mounted.
    */
   useEffect(() => {
+    // React guarantees child effects run before parent effects on each
+    // commit, so by the time this parent useEffect runs, every HotColumn
+    // has already written its slot. Trim to drop any leftover slots from
+    // a previous mount (e.g. StrictMode's double-invoke or HMR).
+    const hotColumnCount = Children.toArray(props.children).filter(isHotColumn).length;
+
+    context.trimColumnSettings(hotColumnCount);
+
     const newGlobalSettings = createNewGlobalSettings(true);
 
     // Update prevProps with the current props
@@ -211,6 +219,14 @@ const HotTableInner = forwardRef<
 
     const hotInstance = getHotInstance();
 
+    // React guarantees child effects run before parent effects on each
+    // commit, so by the time this parent useUpdateEffect runs, every
+    // surviving HotColumn has already written its slot. Trim to drop
+    // stale entries left behind by HotColumns that unmounted.
+    const hotColumnCount = Children.toArray(props.children).filter(isHotColumn).length;
+
+    context.trimColumnSettings(hotColumnCount);
+
     const newGlobalSettings = createNewGlobalSettings(false, prevProps.current);
 
     // Update prevProps with the current props
@@ -252,7 +268,11 @@ const HotTableInner = forwardRef<
 
   return (
     <Fragment>
-      <div ref={hotElementRef} {...containerProps}>
+      <div
+        ref={hotElementRef}
+        {...containerProps}
+        style={{ height: '100%', ...containerProps.style }}
+      >
         {hotColumnWrapped}
       </div>
       <RenderersPortalManager ref={context.setRenderersPortalManagerRef} />

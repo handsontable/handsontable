@@ -58,8 +58,8 @@ function model(opts: ModelOptions): Partial<Person> {
 }
 
 function property(attr: keyof Person | string) {
-  return (row: Handsontable.RowObject, value?: Handsontable.CellValue) =>
-    (row as Person).attr(attr, value);
+  return (row: Handsontable.RowObject | Handsontable.CellValue[], value?: Handsontable.CellValue) =>
+    (row as unknown as Person).attr(attr, value);
 }
 
 @Component({

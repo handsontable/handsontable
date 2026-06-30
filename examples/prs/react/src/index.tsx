@@ -26,8 +26,7 @@ const App = () => {
         'Repairable',
       ]}
       rowHeaders={true}
-      height={340}
-      width={800}
+      height={450}
       autoWrapRow={true}
       autoWrapCol={true}
       dropdownMenu={true}

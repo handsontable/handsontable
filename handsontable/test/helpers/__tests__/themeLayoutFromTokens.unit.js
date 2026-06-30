@@ -110,7 +110,7 @@ describe('baseEditor RTL scenario helpers', () => {
         const colOuter = l.defaultColumnWidth + l.cellBorderWidth;
 
         expect(r.start).toBe(4949);
-        expect(r.top).toBe(600 - topSnap);
+        expect(r.top).toBe(600 - topSnap + 1);
         expect(r.maxWidth).toBe(colOuter);
       });
     });

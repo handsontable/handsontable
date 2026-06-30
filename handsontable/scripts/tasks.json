@@ -1,0 +1,253 @@
+{
+  "tasks": {
+    "clean": {
+      "cmd": "rimraf commonjs es coverage tmp tmp_styles",
+      "deps": []
+    },
+    "prepare-package-for-publish": {
+      "cmd": "node scripts/prepare-package-for-publish.mjs",
+      "deps": []
+    },
+
+    "build:styles": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=styles-development env-cmd -f ../hot.config.js rspack",
+      "deps": []
+    },
+    "build:styles.min": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=styles-production env-cmd -f ../hot.config.js rspack",
+      "deps": ["build:styles"],
+      "note": "must run after build:styles to avoid race on src/styles/handsontableStyles.js"
+    },
+    "build:themes-css": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-css-development env-cmd -f ../hot.config.js rspack",
+      "deps": []
+    },
+    "build:themes-css.min": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-css-production env-cmd -f ../hot.config.js rspack",
+      "deps": []
+    },
+    "build:commonjs": {
+      "cmd": "env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format commonjs --out-dir tmp",
+      "deps": ["build:styles.min"],
+      "note": "needs build:styles.min to finalize handsontableStyles.js before reading src/"
+    },
+    "build:languages": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-development env-cmd -f ../hot.config.js rspack",
+      "deps": []
+    },
+    "build:languages.es": {
+      "cmd": "env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format esm --src-dir src/i18n/languages --out-dir languages --out-ext .mjs --lang-registration",
+      "deps": []
+    },
+    "build:languages.min": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=languages-production env-cmd -f ../hot.config.js rspack",
+      "deps": []
+    },
+    "build:themes-umd": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-umd-development env-cmd -f ../hot.config.js rspack",
+      "deps": []
+    },
+    "build:themes-umd.min": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=themes-umd-production env-cmd -f ../hot.config.js rspack",
+      "deps": []
+    },
+    "generate:themes-static": {
+      "cmd": "node scripts/themes/figma/index.mjs",
+      "deps": [],
+      "note": "Codegen: regenerates src/themes/static/** from scripts/themes/figma/tokens.json (gitignored Figma export). Run on demand when design tokens change; commit the result. NOT part of the default build graph."
+    },
+    "build:types": {
+      "cmd": "tsc -p tsconfig.build-types.json",
+      "deps": []
+    },
+    "downlevel:types": {
+      "cmd": "node scripts/downlevel-dts.mjs",
+      "deps": ["build:types"]
+    },
+    "build:umd": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./src/index.ts",
+      "deps": ["build:styles", "build:themes-css"]
+    },
+    "build:umd.min": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=production env-cmd -f ../hot.config.js rspack ./src/index.ts",
+      "deps": ["build:styles.min", "build:themes-css.min"]
+    },
+    "build:es": {
+      "cmd": "env-cmd -f ../hot.config.js node scripts/swc-transpile.mjs --format esm --out-dir tmp --out-ext .mjs",
+      "deps": ["build:styles.min"],
+      "note": "needs build:styles.min to finalize handsontableStyles.js"
+    },
+    "build:walkontable": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=walkontable env-cmd -f ../hot.config.js rspack ./src/3rdparty/walkontable/css/walkontable.scss ./src/3rdparty/walkontable/src/index.ts",
+      "deps": [],
+      "passthrough": true,
+      "passthroughFilter": ["--watch"]
+    },
+    "build:umd-from-esm": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./tmp/index.mjs",
+      "deps": ["build:styles", "build:themes-css"]
+    },
+    "build:umd-from-cjs": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=development env-cmd -f ../hot.config.js rspack ./tmp/index.js",
+      "deps": ["build:styles", "build:themes-css"]
+    },
+
+    "lint:eslint": {
+      "cmd": "eslint --cache --ext .js,.ts,.mjs src/ test/ .config/plugin scripts/",
+      "deps": [],
+      "mode": "inherit"
+    },
+    "lint:eslint.fix": {
+      "cmd": "eslint --fix --ext .js,.ts,.mjs src/ test/ .config/plugin scripts/",
+      "deps": [],
+      "mode": "inherit"
+    },
+    "lint:stylelint": {
+      "cmd": "stylelint --cache \"src/**/*.{css,scss}\" \"test/**/*.{css,scss}\"",
+      "deps": [],
+      "mode": "inherit"
+    },
+    "lint:stylelint.fix": {
+      "cmd": "stylelint --fix \"src/**/*.{css,scss}\" \"test/**/*.{css,scss}\"",
+      "deps": [],
+      "mode": "inherit"
+    },
+    "typecheck": {
+      "cmd": "tsc --noEmit",
+      "deps": [],
+      "mode": "inherit"
+    },
+
+    "test:unit.jest": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs env-cmd -f ../hot.config.js jest",
+      "deps": [],
+      "mode": "interactive",
+      "passthrough": true,
+      "passthroughFilter": ["--testPathPattern", "--watch", "--coverage"],
+      "note": "interactive gives Jest a real TTY so colors/progress work; passthroughFilter limits forwarded flags to Jest-understood args — blocks --random, --verbose, etc."
+    },
+    "test:types": {
+      "cmd": "tsc -p ./test/types",
+      "deps": ["downlevel:types"],
+      "mode": "inherit"
+    },
+    "test:e2e.dump": {
+      "cmd": "npm --silent run build:styles && cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-e2e env-cmd -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/index.js",
+      "deps": [],
+      "passthrough": true,
+      "passthroughFilter": ["--watch"]
+    },
+    "test:e2e.dump.esm-cjs": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-e2e-esm-cjs env-cmd -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/index.js",
+      "deps": []
+    },
+    "test:e2e.puppeteer": {
+      "cmd": "node test/scripts/run-puppeteer.mjs",
+      "deps": [],
+      "mode": "inherit",
+      "passthrough": true,
+      "passthroughFilter": ["--random", "--seed", "--verbose", "--hotVersion"]
+    },
+    "test:walkontable.dump": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-walkontable env-cmd -f ../hot.config.js rspack ./src/3rdparty/walkontable/test/helpers/index.js ./src/3rdparty/walkontable/test/spec/index.js",
+      "deps": [],
+      "passthrough": true,
+      "passthroughFilter": ["--watch"]
+    },
+    "test:walkontable.puppeteer": {
+      "cmd": "node test/scripts/run-puppeteer.mjs src/3rdparty/walkontable/test/SpecRunner.html",
+      "deps": [],
+      "mode": "inherit",
+      "passthrough": true,
+      "passthroughFilter": ["--random", "--seed", "--verbose", "--hotVersion"]
+    },
+    "test:production.dump": {
+      "cmd": "npm run build:styles && cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-production env-cmd -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/index.js",
+      "deps": []
+    },
+    "test:production.puppeteer": {
+      "cmd": "node test/scripts/run-puppeteer.mjs",
+      "deps": [],
+      "mode": "inherit",
+      "passthrough": true,
+      "passthroughFilter": ["--random", "--seed", "--verbose", "--hotVersion"]
+    },
+    "test:mobile.dump": {
+      "cmd": "npm run build:styles && cross-env-shell BABEL_ENV=commonjs_e2e NODE_ENV=test-mobile env-cmd --no-override -f ../hot.config.js rspack ./test/helpers/index.js ./test/e2e/mobile/index.js",
+      "deps": []
+    },
+    "test:e2e.watch": {
+      "cmd": "node ./test/scripts/run-puppeteer-on-watchers-change.mjs --cmdToListen \"npm run watch\" --cmdToListen \"npm run test:e2e.dump -- --watch\"",
+      "deps": [],
+      "mode": "inherit"
+    },
+    "test:walkontable.watch": {
+      "cmd": "node ./test/scripts/run-puppeteer-on-watchers-change.mjs --cmdToListen \"npm run build:walkontable -- --watch\" --cmdToListen \"npm run test:walkontable.dump -- --watch\" --runnerFile \"src/3rdparty/walkontable/test/SpecRunner.html\"",
+      "deps": [],
+      "mode": "inherit"
+    },
+
+    "watch:rspack": {
+      "cmd": "cross-env-shell BABEL_ENV=commonjs NODE_ENV=watch env-cmd -f ../hot.config.js rspack --watch ./src/index.ts",
+      "deps": [],
+      "mode": "inherit"
+    },
+    "measure:module-sizes": {
+      "cmd": "node scripts/measure-module-sizes.mjs",
+      "deps": [],
+      "mode": "inherit"
+    }
+  },
+
+  "pipelines": {
+    "build": {
+      "before": ["clean"],
+      "tasks": [
+        "build:styles",
+        "build:styles.min",
+        "build:themes-css",
+        "build:themes-css.min",
+        "build:commonjs",
+        "build:languages",
+        "build:languages.es",
+        "build:languages.min",
+        "build:themes-umd",
+        "build:themes-umd.min",
+        "build:umd",
+        "build:umd.min",
+        "build:es",
+        "build:types",
+        "downlevel:types"
+      ]
+    },
+    "lint": {
+      "before": ["build:styles"],
+      "tasks": ["lint:eslint", "lint:stylelint", "typecheck"]
+    },
+    "lint:fix": {
+      "before": ["build:styles"],
+      "tasks": ["lint:eslint.fix", "lint:stylelint.fix"]
+    },
+    "test:unit": {
+      "before": ["build:styles"],
+      "tasks": ["test:unit.jest"]
+    },
+    "test:e2e": {
+      "tasks": ["build:umd", "build:languages", "build:themes-umd", "test:e2e.dump", "test:e2e.puppeteer"]
+    },
+    "test:walkontable": {
+      "tasks": ["build:walkontable", "test:walkontable.dump", "test:walkontable.puppeteer"]
+    },
+    "test:production": {
+      "tasks": ["build:umd.min", "build:languages.min", "build:themes-umd.min", "test:production.dump", "test:production.puppeteer"]
+    },
+    "test": {
+      "before": ["lint"],
+      "tasks": ["test:unit", "test:types", "test:walkontable", "test:e2e", "test:production"]
+    },
+    "watch": {
+      "before": ["build:styles"],
+      "tasks": ["watch:rspack"]
+    }
+  }
+}

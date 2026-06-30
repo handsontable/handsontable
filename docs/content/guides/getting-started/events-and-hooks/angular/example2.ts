@@ -1,6 +1,7 @@
 /* file: app.component.ts */
 import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule} from '@handsontable/angular-wrapper';
+import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
 
 @Component({
   selector: 'example2-events-hooks',
@@ -50,7 +51,7 @@ export class AppComponent implements AfterViewInit {
 
         // BACKSPACE or DELETE
         if (e.keyCode === 8 || e.keyCode === 46) {
-          e.stopImmediatePropagation();
+          stopImmediatePropagation(e);
           // remove data at cell, shift up
           hot.spliceCol(selection[1], selection[0], 1);
           e.preventDefault();
@@ -63,7 +64,7 @@ export class AppComponent implements AfterViewInit {
             this.lastChange.length === 1 &&
             this.lastChange[0][2] == this.lastChange[0][3]
           ) {
-            e.stopImmediatePropagation();
+            stopImmediatePropagation(e);
             hot.spliceCol(selection[1], selection[0], 0, '');
             // add new cell
             hot.selectCell(selection[0], selection[1]);

@@ -11,15 +11,9 @@ describe('Pagination UI', () => {
   });
 
   function isTopBorderVisible() {
-    const {
-      borderTopColor,
-    } = getComputedStyle(getPaginationContainerElement());
-
-    if (!borderTopColor.startsWith('rgba')) {
-      return true;
-    }
-
-    return borderTopColor.slice(borderTopColor.lastIndexOf(',') + 1, -1) > 0;
+    // The first bottom-slot item never draws a top border (the grid's own bottom border divides them).
+    // The pagination is that first item in these specs, so its top border is always 0.
+    return getComputedStyle(getPaginationContainerElement()).borderTopWidth !== '0px';
   }
 
   it('should correctly calculate the width of the pagination container (table has defined size)', async() => {
@@ -30,10 +24,25 @@ describe('Pagination UI', () => {
       pagination: true,
     });
 
+    await waitForNextAnimationFrames(2);
+
     expect(getPaginationContainerElement().offsetWidth).toBe(500);
   });
 
-  it('should correctly calculate the width of the pagination container (table has not defined size)', async() => {
+  it('should set rootSlotBottomElement width after render when pagination is enabled', async() => {
+    handsontable({
+      data: createSpreadsheetData(15, 20),
+      width: 500,
+      height: 300,
+      pagination: true,
+    });
+
+    await waitForNextAnimationFrames(2);
+
+    expect(hot().rootSlotBottomElement.style.width).toBe('500px');
+  });
+
+  it('should fill the bottom slot width when the table has no defined size', async() => {
     handsontable({
       data: createSpreadsheetData(15, 10),
       pagination: {
@@ -41,7 +50,10 @@ describe('Pagination UI', () => {
       },
     });
 
-    expect(getPaginationContainerElement().offsetWidth).toBe(500);
+    await waitForNextAnimationFrames(2);
+
+    // The pagination no longer sets its own width - it fills the bottom slot.
+    expect(getPaginationContainerElement().offsetWidth).toBe(hot().rootSlotBottomElement.offsetWidth);
   });
 
   it('should hide the pagination container element when all sections are hidden', async() => {
@@ -116,76 +128,23 @@ describe('Pagination UI', () => {
     expect(hot().rootElement).not.toHaveClass('htPagination');
   });
 
-  it('should draw border-top of the pagination container when the workspace height is bigger than tables content height', async() => {
-    handsontable({
-      data: createSpreadsheetData(15, 10),
-      width: 600,
-      height: 400,
-      pagination: true,
-    });
-
-    expect(isTopBorderVisible()).toBe(true);
-  });
-
-  it('should draw border-top of the pagination container when there is horizontal scroll', async() => {
+  it('should never draw the top border of the pagination container (it is the first bottom-slot item)', async() => {
     handsontable({
       data: createSpreadsheetData(50, 50),
-      width: 500,
-      height: 200,
-      pagination: true,
-    });
-
-    await scrollViewportVertically(10000); // scroll to the most-bottom position
-
-    expect(isTopBorderVisible()).toBe(true);
-  });
-
-  it('should not draw border-top of the pagination container when the workspace height is the same as tables content height', async() => {
-    handsontable({
-      data: createSpreadsheetData(15, 10),
-      width: 600,
-      height: (getDefaultRowHeight() * 10) + getPaginationContainerHeight(),
-      pagination: true,
-    });
-
-    expect(isTopBorderVisible()).toBe(false);
-  });
-
-  it('should draw border-top of the pagination container when the workspace height is smaller than tables content height', async() => {
-    handsontable({
-      data: createSpreadsheetData(15, 10),
       width: 600,
       height: 250,
       pagination: true,
     });
 
-    expect(isTopBorderVisible()).toBe(true);
-  });
+    // Workspace taller than content, scrollable content, scrolled to the bottom, and reflows -
+    // the first bottom-slot item's top border is always removed regardless.
+    expect(isTopBorderVisible()).toBe(false);
 
-  it('should not draw border-top of the pagination container when the last row is fully visible (the viewport is scroll to most-bottom position)', async() => {
-    handsontable({
-      data: createSpreadsheetData(15, 10),
-      width: 600,
-      height: getDefaultRowHeight() * 5,
-      pagination: true,
-    });
-
-    expect(isTopBorderVisible()).toBe(true);
-
-    await scrollViewportTo({ row: 8 });
-
-    expect(isTopBorderVisible()).toBe(true);
-
-    await scrollViewportTo({ row: 9 });
+    await scrollViewportVertically(10000);
 
     expect(isTopBorderVisible()).toBe(false);
-  });
 
-  it('should not draw border-top of the pagination container in any case when table has not defined size', async() => {
-    handsontable({
-      data: createSpreadsheetData(11, 10),
-      pagination: true,
-    });
+    await updateSettings({ height: 400 });
 
     expect(isTopBorderVisible()).toBe(false);
 

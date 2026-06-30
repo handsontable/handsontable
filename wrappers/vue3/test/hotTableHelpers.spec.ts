@@ -1,8 +1,10 @@
-import { GridSettings } from 'handsontable/settings';
+import Handsontable from 'handsontable/base';
 import {
   prepareSettings,
   propFactory
 } from '../src/helpers';
+
+type GridSettings = Handsontable.GridSettings;
 
 describe('propFactory', () => {
   it('should generate an object containing all the available Handsontable properties and plugin hooks', () => {
@@ -109,5 +111,59 @@ describe('prepareSettings', () => {
 
     expect(preparedSettings.renderAllRows).toBe(true);
     expect(preparedSettings.width).toBe(300);
+  });
+
+  // Regression: GH #11220 - cell edit threw "Cannot read properties of undefined (reading 'wtTable')"
+  // when contextMenu/dropdownMenu had `uiContainer: <DOM element>` and the comparison via
+  // JSON.stringify walked into an object whose getter threw.
+  it('should not throw when settings contain a DOM element (uiContainer pattern)', () => {
+    const el = document.createElement('div');
+    const settingsObj = {
+      contextMenu: { uiContainer: el, items: ['row_above', 'row_below'] },
+    } as GridSettings;
+
+    expect(() => prepareSettings(settingsObj, settingsObj)).not.toThrow();
+  });
+
+  it('should not throw when comparing settings that contain a value whose getter throws', () => {
+    const obj: { uiContainer?: unknown } = {};
+
+    Object.defineProperty(obj, 'parentTableOffset', {
+      enumerable: true,
+      get() {
+        throw new TypeError('Cannot read properties of undefined (reading \'wtTable\')');
+      },
+    });
+
+    const propsMock = {
+      contextMenu: { uiContainer: obj, items: ['row_above'] },
+    } as GridSettings;
+    const currentSettings = {
+      contextMenu: { uiContainer: obj, items: ['row_above'] },
+    } as GridSettings;
+
+    expect(() => prepareSettings(propsMock, currentSettings)).not.toThrow();
+  });
+
+  it('should treat settings with the same DOM element reference as unchanged', () => {
+    const el = document.createElement('div');
+    const cm = { uiContainer: el, items: ['row_above'] };
+    const propsMock = { contextMenu: cm } as GridSettings;
+    const currentSettings = { contextMenu: cm } as GridSettings;
+
+    const preparedSettings = prepareSettings(propsMock, currentSettings);
+
+    expect(preparedSettings.contextMenu).toBe(undefined);
+  });
+
+  it('should treat settings with different DOM element references as changed', () => {
+    const el1 = document.createElement('div');
+    const el2 = document.createElement('div');
+    const propsMock = { contextMenu: { uiContainer: el1, items: ['row_above'] } } as GridSettings;
+    const currentSettings = { contextMenu: { uiContainer: el2, items: ['row_above'] } } as GridSettings;
+
+    const preparedSettings = prepareSettings(propsMock, currentSettings);
+
+    expect(preparedSettings.contextMenu).toEqual(propsMock.contextMenu);
   });
 });

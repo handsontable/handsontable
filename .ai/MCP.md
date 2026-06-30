@@ -19,14 +19,14 @@ To get a personal API token: ClickUp Settings > Apps > API Token > Generate.
 
 Project-level MCP servers are configured in `.mcp.json` at the repo root. This file is committed and shared with the team.
 
-The bearer token is **not** stored in `.mcp.json`. Store it as a secret:
+The bearer token is **not** stored in `.mcp.json`. Set it as a shell environment variable before starting Claude Code:
 
 ```bash
-# Store the token once (saved in Claude Code's local secrets store)
-claude secrets set CLICKUP_API_TOKEN pk_your_token_here
+# Add to your shell profile (~/.zshrc, ~/.bashrc, etc.) so it persists
+export CLICKUP_API_TOKEN=pk_your_token_here
 ```
 
-The `.mcp.json` file references the secret via `${CLICKUP_API_TOKEN}`. Claude Code expands secrets at startup.
+The `.mcp.json` file references the variable via `${CLICKUP_API_TOKEN}`. Claude Code expands environment variables at startup.
 
 If you prefer OAuth instead of a bearer token, remove the `headers` block from `.mcp.json`. Claude Code will prompt for OAuth on first use.
 
@@ -34,13 +34,15 @@ If you prefer OAuth instead of a bearer token, remove the `headers` block from `
 
 Project-level MCP servers for Cursor are configured in `.cursor/mcp.json`. This file is committed.
 
-The bearer token is stored as a Cursor secret:
+ClickUp is configured as an **HTTP** MCP server (`url` + `headers`). Cursor resolves secrets in `headers` using **`${env:VARIABLE_NAME}`** syntax where needed (see [Cursor MCP docs](https://cursor.com/docs/context/mcp) — Config interpolation).
 
-1. Open Cursor Settings > MCP.
-2. Find the `clickup` entry and click the lock icon next to `CLICKUP_API_TOKEN`.
-3. Enter your ClickUp personal API token.
+The committed `.cursor/mcp.json` sets **`x-workspace-id`** to the shared team workspace (numeric ID, fixed in the file). You only need a **`CLICKUP_API_TOKEN`** in your environment for the `Authorization` header.
 
-Alternatively, set the variable in your shell environment (`export CLICKUP_API_TOKEN=pk_...`) and Cursor will pick it up via `${CLICKUP_API_TOKEN}` in `.cursor/mcp.json`.
+Set it in the environment Cursor inherits (shell profile, or your OS user environment), then restart Cursor:
+
+```bash
+export CLICKUP_API_TOKEN=pk_your_token_here
+```
 
 ### Verifying the setup
 
@@ -66,9 +68,10 @@ Once connected, the following tools are available to AI assistants:
 | Symptom | Fix |
 |---|---|
 | `clickup` server not listed in `/mcp` | Run `claude mcp list` to check config; verify `.mcp.json` exists at repo root |
-| `401 Unauthorized` errors | Token is wrong or expired; re-run `claude secrets set CLICKUP_API_TOKEN` |
-| OAuth prompt keeps appearing | Switch to bearer token auth (set `CLICKUP_API_TOKEN` and add `headers` block) |
-| Cursor shows server as disconnected | Check that `CLICKUP_API_TOKEN` is set in Cursor secrets or shell env |
+| `401 Unauthorized` errors | Token is wrong or expired; update `CLICKUP_API_TOKEN` in your shell profile and restart Claude Code |
+| OAuth prompt keeps appearing | Switch to bearer token auth: set `CLICKUP_API_TOKEN` and restore the `headers` block in `.cursor/mcp.json` |
+| Cursor shows server as disconnected | Set `CLICKUP_API_TOKEN`; restart Cursor so `${env:CLICKUP_API_TOKEN}` resolves |
+| Wrong space or "not found" from ClickUp tools | Token may be for another workspace, or `x-workspace-id` in `.cursor/mcp.json` does not match the workspace you use. Adjust `x-workspace-id` locally if needed (see Cursor setup above) |
 
 ---
 
@@ -122,7 +125,11 @@ The `.cursor/mcp.json` and `.mcp.json` files also configure:
 
 | Server | Purpose |
 |---|---|
-| `github` | Read/write GitHub issues, PRs, and checks via `GITHUB_TOKEN` |
+| `github` | Read/write GitHub issues, PRs, and checks via `GITHUB_PERSONAL_ACCESS_TOKEN` (the package reads this env var — `GITHUB_TOKEN` is silently ignored) |
 | `filesystem_workspace` | Read/write access to the full repo workspace |
 | `filesystem_docs` | Read/write access to `./docs/content` only |
 | `code-review-graph` | Knowledge graph over the codebase (see above) |
+
+### Cursor secret interpolation
+
+All secrets in `.cursor/mcp.json` must use `${env:VARIABLE_NAME}` syntax — not shell-style `${VARIABLE_NAME}`. This applies to both HTTP server `headers` (e.g., ClickUp's `Authorization` header) and `command`-type server `env` blocks (e.g., the GitHub token). Without the `env:` prefix, Cursor treats the value as a literal string and the secret is never resolved.

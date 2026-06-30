@@ -4,9 +4,10 @@ import type {
   DataProviderQueryParameters,
   DataProviderFetchOptions,
   DataProviderBeforeFetchParameters,
-  DataProviderFilterColumn,
   RowUpdatePayload,
 } from 'handsontable/plugins/dataProvider';
+
+type DataProviderFilterColumn = NonNullable<DataProviderQueryParameters['filters']>[number];
 
 registerAllModules();
 
@@ -501,7 +502,7 @@ const hot = new Handsontable(container, {
     {
       data: 'unitPrice',
       type: 'numeric',
-      numericFormat: { pattern: '$0,0.00' },
+      numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 },
     },
     { data: 'inStock', type: 'numeric' },
   ],

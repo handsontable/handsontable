@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 7js3d370
 title: Saving data
 metaTitle: Saving data - JavaScript Data Grid | Handsontable
 description: Saving data after each change to the data set, using Handsontable's API hooks. Preserve the table's state by saving data to the local storage.
@@ -11,11 +10,11 @@ tags:
   - server
   - ajax
 react:
-  id: rib1rhmf
   metaTitle: Saving data - React Data Grid | Handsontable
 angular:
-  id: uny2nvqk
   metaTitle: Saving data - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Saving data - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
 ---
@@ -60,6 +59,16 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 @[code](@/content/guides/getting-started/saving-data/angular/example1.ts)
 @[code](@/content/guides/getting-started/saving-data/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue --js 1
+
+@[code](@/content/guides/getting-started/saving-data/vue/example1.vue)
 
 :::
 

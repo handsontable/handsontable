@@ -215,16 +215,16 @@ export function getPaginationContainerHeight() {
     autoRowSize: true,
     width: 600,
     height: 400,
+    // Use a valid key so the license notification does not join the bottom slot. Otherwise the
+    // pagination would not be the last slot item and would gain a divider border, skewing the height.
+    licenseKey: 'non-commercial-and-evaluation',
   });
 
+  // The pagination is the only bottom-slot item here (valid license, no notification), so it is the
+  // last slot item and carries its full top+bottom slot border - the real height below the grid.
   const paginationEl = tempDiv.querySelector('.ht-pagination');
 
-  // Add 1px because `AutoPageSizeStrategy.calculate` (strategies/autoPageSize.js) triggers
-  // a page break when `totalSize + itemSize >= viewportSize` (strict >=, not >). A spec
-  // that sets `height: N * rowHeight + paginationHeight` would otherwise truncate to
-  // `N - 1` visible rows. The +1 nudges the container height past the threshold so the
-  // N-th row renders. Fix the strategy (use `>` instead of `>=`) to remove this.
-  cachedPaginationHeight = paginationEl ? paginationEl.offsetHeight + 1 : 0;
+  cachedPaginationHeight = paginationEl ? paginationEl.offsetHeight : 0;
 
   $probe.handsontable('destroy');
   $probe.removeData();

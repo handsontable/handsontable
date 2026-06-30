@@ -16,6 +16,7 @@ import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
 import VersionsDropdown from './VersionsDropdown.astro';
 import SupportDropdown from './SupportDropdown.astro';
 import FrameworkSwitcher from './FrameworkSwitcher.astro';
+import { validUrlArrays } from 'virtual:valid-urls';
 
 const isProduction = import.meta.env.PUBLIC_BUILD_MODE === 'production';
 
@@ -30,17 +31,20 @@ const currentPrefix = pathname.includes('/react-data-grid/')
   ? 'react-data-grid'
   : pathname.includes('/angular-data-grid/')
     ? 'angular-data-grid'
-    : 'javascript-data-grid';
+    : pathname.includes('/vue-data-grid/')
+      ? 'vue-data-grid'
+      : 'javascript-data-grid';
 
 const guidesUrl = `/docs/${currentPrefix}/`;
 const recipesUrl = `/docs/${currentPrefix}/recipes/`;
 const apiUrl = `/docs/${currentPrefix}/api/`;
-const changelogUrl = `/docs/${currentPrefix}/changelog-17/`;
+const changelogUrl = `/docs/${currentPrefix}/changes-between-versions/`;
 const isApiPage = pathname.includes('/api/');
 const isRecipesPage = pathname.includes('/recipes/');
 const isChangelogPage =
   /\/changelog(-|\/)/.test(pathname) ||
   pathname.includes('/migration-from-') ||
+  pathname.includes('/changes-between-versions') ||
   pathname.includes('/versioning-policy/') ||
   pathname.includes('/deprecation-policy/') ||
   pathname.includes('/long-term-support/');
@@ -50,7 +54,38 @@ const frameworks = [
   { id: 'javascript-data-grid', label: 'JavaScript' },
   { id: 'react-data-grid', label: 'React' },
   { id: 'angular-data-grid', label: 'Angular' },
+  { id: 'vue-data-grid', label: 'Vue' },
 ];
+
+const FRAMEWORK_KEY: Record<string, string> = {
+  'javascript-data-grid': 'javascript',
+  'react-data-grid': 'react',
+  'angular-data-grid': 'angular',
+  'vue-data-grid': 'vue',
+};
+
+const BASE = '/docs';
+// Reconstruct Sets from the pre-computed arrays in the virtual module.
+// validUrlArrays is static JSON baked in at build time so sidebar.mjs
+// (which uses createRequire) is not pulled into the prerender bundle.
+const validUrls = Object.fromEntries(
+  Object.entries(validUrlArrays).map(([k, v]) => [k, new Set(v)])
+);
+
+function getMobileFrameworkHref(fw: { id: string }): string {
+  if (fw.id === currentPrefix) return pathname;
+
+  const targetPath = pathname.replace(currentPrefix, fw.id);
+  const sidebarPath = targetPath.startsWith(BASE) ? targetPath.slice(BASE.length) : targetPath;
+  // Normalize to trailing slash: sidebar links from toLink() always end with '/',
+  // but Astro.url.pathname may omit it. Without normalization the Set.has() check
+  // fails for otherwise-valid equivalent pages and incorrectly falls back to the
+  // framework root.
+  const normalizedSidebarPath = sidebarPath.endsWith('/') ? sidebarPath : `${sidebarPath}/`;
+  const fwKey = FRAMEWORK_KEY[fw.id];
+
+  return validUrls[fwKey]?.has(normalizedSidebarPath) ? targetPath : `${BASE}/${fw.id}/`;
+}
 ---
 
 <div class="header">
@@ -59,7 +94,7 @@ const frameworks = [
     <div class="title-wrapper sl-flex">
       <SiteTitle />
     </div>
-    <div class="sl-hidden md:sl-flex print:hidden search-wrapper">
+    <div class="sl-hidden md:sl-flex print:hidden search-wrapper" transition:persist="docs-search">
       {shouldRenderSearch && <Search />}
     </div>
     <div class="sl-hidden md:sl-flex print:hidden right-group">
@@ -223,7 +258,7 @@ const frameworks = [
       <div class="mobile-nav-frameworks">
         {frameworks.map(fw => (
           <a
-            href={pathname.replace(currentPrefix, fw.id)}
+            href={getMobileFrameworkHref(fw)}
             class:list={['mobile-nav-fw', { 'mobile-nav-fw--active': fw.id === currentPrefix }]}
             aria-current={fw.id === currentPrefix ? 'page' : undefined}
           >
@@ -269,6 +304,12 @@ const frameworks = [
   let cleanupPrevious: (() => void) | null = null;
 
   function initMobileNav() {
+    const currentMenuButton = document.querySelector('.mobile-menu-btn') as HTMLButtonElement | null;
+
+    if (!currentMenuButton) {
+      return;
+    }
+
     // Clean up previous invocation (view transitions)
     cleanupPrevious?.();
     const controller = new AbortController();
@@ -289,7 +330,7 @@ const frameworks = [
     }
 
     // --- Elements ---
-    const menuBtn = document.querySelector('.mobile-menu-btn') as HTMLButtonElement | null;
+    const menuBtn = currentMenuButton;
     const sidebarToggle = document.querySelector('.mobile-sidebar-toggle') as HTMLButtonElement | null;
     const tocToggle = document.querySelector('.mobile-toc-toggle') as HTMLButtonElement | null;
     const breadcrumbs = document.querySelector('.mobile-breadcrumbs') as HTMLElement | null;
@@ -304,6 +345,26 @@ const frameworks = [
     mobileSearchBtn?.addEventListener('click', () => {
       document.querySelector<HTMLButtonElement>('sl-doc-search .DocSearch-Button')?.click();
     }, { signal });
+
+    // --- Docs assistant: ensure React is mounted, then toggle (iOS needs touchend too) ---
+    const bindAssistantBtn = (btn: HTMLButtonElement | null) => {
+      if (!btn) return;
+      let lastTap = 0;
+      const onAssistantTap = (e: Event) => {
+        e.preventDefault();
+        const now = Date.now();
+        if (now - lastTap < 400) return;
+        lastTap = now;
+        const ensure = window.docsAssistantEnsureMounted?.() ?? Promise.resolve();
+        void ensure.then(() => {
+          window.dispatchEvent(new CustomEvent('docs-assistant:toggle'));
+        });
+      };
+      btn.addEventListener('click', onAssistantTap, { signal });
+      btn.addEventListener('touchend', onAssistantTap, { signal });
+    };
+    bindAssistantBtn(document.getElementById('header-assistant-btn') as HTMLButtonElement | null);
+    bindAssistantBtn(document.getElementById('mobile-assistant-btn') as HTMLButtonElement | null);
 
     let overlayOpen = false;
     let tocOpen = false;
@@ -434,7 +495,7 @@ const frameworks = [
     }
 
     // --- Hamburger: toggle main nav overlay ---
-    menuBtn?.addEventListener('click', () => {
+    menuBtn.addEventListener('click', () => {
       if (overlayOpen) {
         setOverlay(false);
       } else {
@@ -442,7 +503,7 @@ const frameworks = [
         setToc(false);
         setOverlay(true);
       }
-    });
+    }, { signal });
 
     // --- Sidebar toggle ---
     const isTablet = () => window.matchMedia('(min-width: 50rem) and (max-width: 71.99rem)').matches;
@@ -463,7 +524,7 @@ const frameworks = [
           sidebarToggle.setAttribute('aria-expanded', String(isSidebarOpen()));
         });
       }
-    });
+    }, { signal });
 
     // Observe body attribute to sync sidebar toggle state (e.g. Escape key)
     const observer = new MutationObserver(() => {
@@ -487,7 +548,7 @@ const frameworks = [
         closeSidebar();
         setToc(true);
       }
-    });
+    }, { signal });
 
     // --- Escape key: close everything ---
     document.addEventListener('keydown', (e) => {
@@ -505,7 +566,7 @@ const frameworks = [
       if ((e.target as HTMLElement).closest('a')) {
         setToc(false);
       }
-    });
+    }, { signal });
 
     // --- Initial state ---
     setOverlay(false);
@@ -524,9 +585,19 @@ const frameworks = [
     };
   }
 
-  // Run on initial load and after Astro view transitions
-  initMobileNav();
-  document.addEventListener('astro:after-swap', initMobileNav);
+  // Use astro:page-load (not astro:after-swap) so that Preact islands are fully
+  // hydrated before initMobileNav() moves DOM nodes out of their server-rendered
+  // positions via document.body.appendChild(). Moving nodes on astro:after-swap
+  // races with Preact hydration and causes "NotFoundError: insertBefore" failures
+  // (Sentry HANDSONTABLE-DOCS-1BT).
+  // Without <ClientRouter /> (View Transitions), astro:page-load never fires — not
+  // even on the initial page load. The window.load fallback covers that case:
+  // setTimeout(0) defers past any same-tick astro:page-load dispatch (ClientRouter
+  // fires it on window.load too) so we never call initMobileNav() twice.
+  document.addEventListener('astro:page-load', initMobileNav);
+  window.addEventListener('load', () => setTimeout(() => {
+    if (document.getElementById('mobile-nav-overlay')?.parentElement !== document.body) initMobileNav();
+  }, 0), { once: true });
 </script>
 
 <style>

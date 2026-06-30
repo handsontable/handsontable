@@ -1,5 +1,6 @@
 ---
 name: handsontable-validator-dev
+path: handsontable/src/validators/**
 description: Use when creating or modifying a Handsontable cell validator - async callback-based validation functions that determine if cell values are valid
 ---
 
@@ -30,11 +31,11 @@ function myValidator(value, callback) {
 
 ```
 src/validators/{validatorName}/
-  {validatorName}.js    # Validator function
-  index.js              # Re-exports
+  {validatorName}.ts    # Validator function
+  index.ts              # Re-exports
 ```
 
-Registry: `src/validators/registry.js`.
+Registry: `src/validators/registry.ts`.
 
 ## Registration
 
@@ -51,13 +52,23 @@ registerValidator('myValidator', myValidator);
 
 ## Reference implementations
 
-- `src/validators/numericValidator/numericValidator.js` -- Numeric validation with `allowEmpty` support.
-- `src/validators/dateValidator/dateValidator.js` -- Date format validation.
-- `src/validators/autocompleteValidator/autocompleteValidator.js` -- Validates against a list of allowed values.
+- `src/validators/numericValidator/numericValidator.ts` - Numeric validation with `allowEmpty` support.
+- `src/validators/dateValidator/dateValidator.ts` - Date format validation.
+- `src/validators/autocompleteValidator/autocompleteValidator.ts` - Validates against a list of allowed values.
+
+## Correcting cell values inside a validator
+
+Validators may correct a cell's value before passing it to the callback. If your validator calls `setDataAtCell` to write a corrected value, **pass a source string that ends with `'Validator'`** (e.g. `'myCustomValidator'`):
+
+```js
+this.instance.setDataAtCell(row, col, correctedValue, 'myCustomValidator');
+```
+
+This is required so that `validateChanges()` in `core.js` can track the correction and prevent it from being overwritten when an async validator in the same batch resolves later. Without the suffix, the correction is silently lost when the batch includes columns with async `source` callbacks (e.g. async autocomplete with `strict: true`).
 
 ## Common mistakes
 
 - Forgetting to call `callback`, which silently blocks editing and validation.
 - Not respecting `this.allowEmpty` for empty values.
-- Modifying data or DOM inside a validator.
+- Calling `setDataAtCell` inside a validator without a source ending in `'Validator'` - the correction will be overwritten when the batch contains async validators (see above).
 - Using arrow functions for the validator body (breaks `this` binding to cellProperties).

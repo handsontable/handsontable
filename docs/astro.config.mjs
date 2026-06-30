@@ -9,13 +9,14 @@ import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-s
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
-import { buildAllSidebars } from './src/sidebar.mjs';
+import { buildAllSidebars, buildAllValidUrls } from './src/sidebar.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, symlinkSync } from 'fs';
 import { relative, join } from 'path';
 import { createRequire } from 'module';
 import { transformWithEsbuild } from 'vite';
+import vue from '@vitejs/plugin-vue';
 
 // TypeScript is used to transpile Angular example .ts files because it
 // correctly strips type-only imports (e.g. ApplicationConfig, HotGlobalConfig)
@@ -629,6 +630,24 @@ function markdownRoutesIntegration() {
 
 const allSidebars = buildAllSidebars();
 
+// Pre-compute valid URL sets at config-evaluation time (plain Node.js context,
+// where import.meta.url correctly points to the source file and require() works).
+// The result is serialized into a virtual Vite module so that Astro components
+// can import it as static data without pulling sidebar.mjs — which uses
+// createRequire(import.meta.url) — into the prerender bundle. When bundled by
+// Vite, import.meta.url in sidebar.mjs would point to the chunk output path,
+// making require('../content/sidebars.js') fail to resolve.
+const _validUrlArrays = (() => {
+  const urls = buildAllValidUrls();
+  const out = {};
+
+  for (const [fw, set] of Object.entries(urls)) {
+    out[fw] = [...set];
+  }
+
+  return JSON.stringify(out);
+})();
+
 export default defineConfig({
   site: 'https://handsontable.com',
   base: '/docs',
@@ -678,6 +697,14 @@ export default defineConfig({
           tag: 'script',
           attrs: { src: '/docs/example-tabs.js', defer: true },
         },
+        // Prevent HOT from injecting a duplicate <style id="handsontable-core-styles"> at runtime.
+        // StylesHandler.#injectCoreStyles() skips injection when it finds an element with this ID.
+        // The actual HOT CSS is already loaded by handsontable-import.css via customCss above.
+        {
+          tag: 'style',
+          attrs: { id: 'handsontable-core-styles' },
+          content: '/* HOT base styles loaded via handsontable-import.css */',
+        },
         // ── All-environment 3rd-party scripts ──────────────────────────────
         // Sentry error monitoring
         {
@@ -726,15 +753,18 @@ export default defineConfig({
       ],
 
       sidebar: [
-        { label: 'JavaScript', collapsed: true, items: allSidebars.javascript },
-        { label: 'React', collapsed: true, items: allSidebars.react },
-        { label: 'Angular', collapsed: true, items: allSidebars.angular },
-        { label: 'JavaScript Recipes', collapsed: true, items: allSidebars.javascriptRecipes },
-        { label: 'React Recipes', collapsed: true, items: allSidebars.reactRecipes },
-        { label: 'Angular Recipes', collapsed: true, items: allSidebars.angularRecipes },
+        { label: 'JavaScript',           collapsed: true, items: allSidebars.javascript },
+        { label: 'React',                collapsed: true, items: allSidebars.react },
+        { label: 'Angular',              collapsed: true, items: allSidebars.angular },
+        { label: 'Vue 3',                collapsed: true, items: allSidebars.vue },
+        { label: 'JavaScript Recipes',   collapsed: true, items: allSidebars.javascriptRecipes },
+        { label: 'React Recipes',        collapsed: true, items: allSidebars.reactRecipes },
+        { label: 'Angular Recipes',      collapsed: true, items: allSidebars.angularRecipes },
+        { label: 'Vue 3 Recipes',        collapsed: true, items: allSidebars.vueRecipes },
         { label: 'JavaScript Changelog', collapsed: true, items: allSidebars.javascriptChangelog },
-        { label: 'React Changelog', collapsed: true, items: allSidebars.reactChangelog },
-        { label: 'Angular Changelog', collapsed: true, items: allSidebars.angularChangelog },
+        { label: 'React Changelog',      collapsed: true, items: allSidebars.reactChangelog },
+        { label: 'Angular Changelog',    collapsed: true, items: allSidebars.angularChangelog },
+        { label: 'Vue 3 Changelog',      collapsed: true, items: allSidebars.vueChangelog },
       ],
 
       components: {
@@ -754,9 +784,7 @@ export default defineConfig({
         ...(isProduction
           ? [
               starlightDocSearch({
-                appId: 'MMN6OTJMGX',
-                apiKey: 'c2430302c91e0162df988d4b383c9d8b',
-                indexName: 'handsontable',
+                clientOptionsModule: './src/config/docsearch.ts',
               }),
             ]
           : []),
@@ -882,6 +910,21 @@ export default defineConfig({
     },
 
     plugins: [
+      // Exposes pre-computed valid sidebar URL sets as static data. Astro
+      // components import from 'virtual:valid-urls' so that sidebar.mjs
+      // (which uses createRequire) is never pulled into the prerender bundle.
+      {
+        name: 'virtual:valid-urls',
+        resolveId(id) {
+          if (id === 'virtual:valid-urls') return '\0virtual:valid-urls';
+        },
+        load(id) {
+          if (id === '\0virtual:valid-urls') {
+            return `export const validUrlArrays = ${_validUrlArrays};`;
+          }
+        },
+      },
+
       // Runs BEFORE Astro's markdown processor.
       // Converts VuePress-specific syntax to Astro/CommonMark-compatible syntax.
       // Note: the only-for filtering in this plugin is redundant for content
@@ -893,6 +936,9 @@ export default defineConfig({
       // to local monorepo builds. Required because docs/ does not install these
       // packages in its own node_modules.
       resolveMonorepoPackages(),
+
+      // Enables Vite to process .vue SFC files used by Vue 3 doc examples.
+      vue(),
     ],
 
     // resolve.alias entries are honoured by both the Vite dev server and the

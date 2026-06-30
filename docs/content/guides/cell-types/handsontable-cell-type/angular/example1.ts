@@ -56,7 +56,9 @@ export class AppComponent {
 
             // Get the manufacturer name of the clicked row and ignore header
             // coordinates (negative values)
-            return this.getSourceDataAtRow(Math.max(selection[0], 0)).name;
+            const row = this.getSourceDataAtRow(Math.max(selection?.[0] ?? 0, 0)) as { name: string };
+
+            return row.name;
           },
         },
       },

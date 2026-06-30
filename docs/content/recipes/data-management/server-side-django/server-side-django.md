@@ -17,6 +17,9 @@ react:
 angular:
   id: q1s3u5w7
   metaTitle: Server-side Data with Django - Angular Data Grid | Handsontable
+vue:
+  id: avzy0eqi
+  metaTitle: Server-side Data with Django - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management
 type: how-to
@@ -45,60 +48,37 @@ An employee directory grid that:
 
 ## Before you begin
 
-Install the Python dependencies:
+- Docker and Docker Compose installed
+- Node.js and npm installed
 
-```shell
-pip install django djangorestframework django-cors-headers
-```
-
-Install the JavaScript dependency:
-
-```shell
-npm install handsontable
-```
+No local Python installation is required — the Django backend and PostgreSQL database run inside Docker.
 
 ## Step 1 -- Set up the Django app
 
-Create a Django project and a `employees` app:
+Start the backend and the Vite dev server with `bash setup.sh` (or `make setup`). The script builds and starts PostgreSQL + Django via Docker Compose, runs migrations, seeds 50 employee records, and opens the Vite dev server at `http://localhost:5173`.
 
-```shell
-django-admin startproject myproject .
-python manage.py startapp employees
-```
+The Django project uses a `employees` app:
 
 **Why a separate app?**  
 Django apps are self-contained modules. Keeping the employee model, serializer, and views in one app makes the code easier to extend and test independently.
 
 Register the app and required packages in `settings.py`:
 
-```python
-# settings-snippet.py
-INSTALLED_APPS = [
-    # ...
-    'rest_framework',
-    'corsheaders',
-    'employees',
-]
-```
+::: example #py-settings
+
+@[code py](@/content/recipes/data-management/server-side-django/server/settings-snippet.py)
+
+:::
 
 ## Step 2 -- Define the Employee model
 
 Create the model in `employees/models.py`:
 
-```python
-# models.py
-from django.db import models
+::: example #py-models
 
-class Employee(models.Model):
-    first_name = models.CharField(max_length=100)
-    last_name  = models.CharField(max_length=100)
-    department = models.CharField(max_length=100)
-    role       = models.CharField(max_length=100)
-    salary     = models.DecimalField(max_digits=10, decimal_places=2)
+@[code py](@/content/recipes/data-management/server-side-django/server/models.py)
 
-    class Meta:
-        ordering = ['last_name', 'first_name']
-```
+:::
 
 **What's happening:**
 
@@ -115,7 +95,15 @@ python manage.py migrate
 
 ## Step 3 -- Seed the database
 
-Create the seed command file at `employees/management/commands/seed.py` (see `server/seed_command.py` in this recipe) and run it:
+Create the seed command file at `employees/management/commands/seed.py`:
+
+::: example #py-seed-command
+
+@[code py](@/content/recipes/data-management/server-side-django/server/seed_command.py)
+
+:::
+
+Run it:
 
 ```shell
 python manage.py seed
@@ -127,17 +115,11 @@ The command inserts 50 realistic employee records. It checks whether data alread
 
 Create `employees/serializers.py`:
 
-```python
-# serializers.py
-from rest_framework import serializers
-from .models import Employee
+::: example #py-serializers
 
-class EmployeeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model  = Employee
-        fields = ['id', 'first_name', 'last_name', 'department', 'role', 'salary']
-        read_only_fields = ['id']
-```
+@[code py](@/content/recipes/data-management/server-side-django/server/serializers.py)
+
+:::
 
 **What's happening:**
 
@@ -149,22 +131,11 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 Create `employees/pagination.py`:
 
-```python
-# pagination.py
-from rest_framework.pagination import PageNumberPagination
-from rest_framework.response import Response
+::: example #py-pagination
 
-class EmployeePagination(PageNumberPagination):
-    page_size = 10
-    page_size_query_param = 'pageSize'  # matches Handsontable's default param name
-    max_page_size = 100
+@[code py](@/content/recipes/data-management/server-side-django/server/pagination.py)
 
-    def get_paginated_response(self, data):
-        return Response({
-            'rows':      data,
-            'totalRows': self.page.paginator.count,
-        })
-```
+:::
 
 **Why a custom pagination class?**
 
@@ -176,115 +147,60 @@ Handsontable sends `?pageSize=10` automatically. DRF's default param name is `pa
 
 ## Step 6 -- Write the ViewSet
 
-Create `employees/views.py`. The key parts are the sort translation and the three batch CRUD actions.
+Create `employees/views.py`:
+
+::: example #py-views
+
+@[code py](@/content/recipes/data-management/server-side-django/server/views.py)
+
+:::
+
+The key parts are the sort translation and the three batch CRUD actions.
 
 ### Sort translation
 
-Handsontable sends `?sort[prop]=salary&sort[order]=desc`. DRF's `OrderingFilter` expects `?ordering=-salary`. Translate in `get_queryset`:
-
-```python
-sort_prop  = self.request.query_params.get('sort[prop]')
-sort_order = self.request.query_params.get('sort[order]', 'asc')
-
-if sort_prop and sort_prop in self.ordering_fields:
-    ordering = sort_prop if sort_order == 'asc' else f'-{sort_prop}'
-    self.request._request.GET = self.request._request.GET.copy()
-    self.request._request.GET['ordering'] = ordering
-```
+Handsontable sends `?sort[prop]=salary&sort[order]=desc`. See `get_queryset` in `views.py` for the translation.
 
 **What's happening:**
 
 1. Read Handsontable's `sort[prop]` and `sort[order]` params.
-2. Prepend `-` for descending order (DRF convention).
-3. Inject the translated value into the mutable query params copy so `OrderingFilter` picks it up as if the frontend had sent `?ordering=` directly.
+2. Prepend `-` for descending order (Django ORM convention).
+3. Call `queryset.order_by()` directly. `ALLOWED_ORDERING_FIELDS` is a whitelist that prevents ORM injection through arbitrary field names.
 
 ### Filter translation
 
-Handsontable sends filters as:
+`dataProvider` passes filters as a single `filters` query param containing a JSON-encoded array. Each element is a `DataProviderFilterColumn` object:
 
+```json
+[
+  {
+    "prop": "department",
+    "operation": "conjunction",
+    "conditions": [{ "name": "eq", "args": ["Engineering"] }]
+  }
+]
 ```
-?filters[0][prop]=department&filters[0][value]=Engineering&filters[0][condition]=eq
-```
 
-Parse these and build a Django `Q` object:
-
-```python
-q = Q()
-index = 0
-
-while index < 20:
-    prefix    = f'filters[{index}]'
-    prop      = self.request.query_params.get(f'{prefix}[prop]')
-    value     = self.request.query_params.get(f'{prefix}[value]')
-    condition = self.request.query_params.get(f'{prefix}[condition]', 'contains')
-
-    if prop is None:
-        break
-
-    lookup_map = {
-        'contains':     f'{prop}__icontains',
-        'not_contains': f'{prop}__icontains',  # negated below
-        'eq':           f'{prop}__iexact',
-        'begins_with':  f'{prop}__istartswith',
-        'ends_with':    f'{prop}__iendswith',
-        'gte':          f'{prop}__gte',
-        'lte':          f'{prop}__lte',
-    }
-
-    lookup = lookup_map.get(condition)
-
-    if lookup:
-        if condition in ('not_contains',):
-            q &= ~Q(**{lookup: value})
-        else:
-            q &= Q(**{lookup: value})
-
-    index += 1
-
-return queryset.filter(q)
-```
+Decode and build a Django `Q` object. See `get_queryset` in `views.py` for the complete filter translation.
 
 **What's happening:**
 
-- The loop reads up to 20 filter conditions from the query string. Multiple conditions are combined with `AND` using `&=`.
-- `icontains`, `istartswith`, and `iendswith` are case-insensitive Django ORM lookups.
-- `not_contains` negates the `Q` object with `~`.
-- `gte` and `lte` work for numeric fields like `salary`.
+- `json.loads(filters_json)` decodes the single `filters` param into a list of column filter objects.
+- Each column object contains `prop`, `operation` (`conjunction` = AND, `disjunction` = OR), and a `conditions` list.
+- Conditions within one column combine according to `operation`; columns always combine with AND.
+- `eq`/`neq` use `exact` for `salary` (DecimalField rejects `iexact`) and `iexact` for text fields.
+- `empty`/`not_empty` handle both null and blank-string cases for text fields.
+- `ALLOWED_ORDERING_FIELDS` whitelists the `prop` value to prevent ORM injection.
 
 ### Batch CRUD endpoints
 
-Standard REST conventions use single-resource endpoints (`POST /employees/`, `DELETE /employees/{id}/`). Handsontable's `dataProvider` sends all mutations as arrays in a single request. A DRF `@action` solves this without creating a separate URL pattern by hand:
-
-```python
-@action(detail=False, methods=['post'], url_path='create-rows')
-def create_rows(self, request):
-    serializer = EmployeeSerializer(data=request.data, many=True)
-    serializer.is_valid(raise_exception=True)
-    serializer.save()
-    return Response(serializer.data, status=201)
-
-@action(detail=False, methods=['patch'], url_path='update-rows')
-def update_rows(self, request):
-    updated = []
-    for row in request.data:
-        employee = Employee.objects.get(pk=row['id'])
-        serializer = EmployeeSerializer(employee, data=row, partial=True)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        updated.append(serializer.data)
-    return Response(updated)
-
-@action(detail=False, methods=['delete'], url_path='remove-rows')
-def remove_rows(self, request):
-    deleted_count, _ = Employee.objects.filter(pk__in=request.data).delete()
-    return Response({'deleted': deleted_count})
-```
+Standard REST conventions use single-resource endpoints (`POST /employees/`, `DELETE /employees/{id}/`). Handsontable's `dataProvider` sends all mutations as arrays in a single request. A DRF `@action` solves this without creating a separate URL pattern by hand. See `create_rows`, `update_rows`, and `remove_rows` in `views.py`.
 
 **What's happening:**
 
 - `detail=False` registers the action at the list URL (`/api/employees/`) instead of the detail URL (`/api/employees/{id}/`).
-- `many=True` on the serializer tells DRF to accept and validate an array of objects at once.
-- `partial=True` in `update_rows` allows updating a subset of fields without requiring all fields to be present.
+- `create_rows` reads `rowsAmount` from the request and uses `bulk_create` to insert that many empty rows in one SQL statement. Returning them with their new `id` values lets `dataProvider` update its internal row map.
+- `partial=True` in `update_rows` allows updating a subset of fields (`row['changes']`) without requiring all fields to be present.
 - `filter(pk__in=ids).delete()` removes multiple rows in a single SQL statement.
 
 **Why not use standard `DELETE /api/employees/{id}/` for each row?**
@@ -295,19 +211,11 @@ Deleting N rows individually requires N requests. A single batch request is fast
 
 Create `employees/urls.py`:
 
-```python
-# urls.py
-from django.urls import include, path
-from rest_framework.routers import DefaultRouter
-from .views import EmployeeViewSet
+::: example #py-urls
 
-router = DefaultRouter()
-router.register(r'employees', EmployeeViewSet, basename='employee')
+@[code py](@/content/recipes/data-management/server-side-django/server/urls.py)
 
-urlpatterns = [
-    path('api/', include(router.urls)),
-]
-```
+:::
 
 Include this in your project's root `urls.py`:
 
@@ -325,19 +233,11 @@ urlpatterns = [
 
 The browser blocks cross-origin requests by default. Add `django-cors-headers` to allow requests from the frontend development server:
 
-```python
-# settings-snippet.py
-MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    # ... rest of your middleware ...
-]
+::: example #py-settings-cors
 
-CORS_ALLOWED_ORIGINS = [
-    'http://localhost:5173',   # Vite dev server
-    'http://localhost:3000',   # CRA / Next.js dev server
-]
-```
+@[code py](@/content/recipes/data-management/server-side-django/server/settings-snippet.py)
+
+:::
 
 **Why must `CorsMiddleware` come before `CommonMiddleware`?**  
 `CorsMiddleware` needs to intercept the preflight `OPTIONS` request before Django's routing logic handles it. Placing it after `CommonMiddleware` can result in missing CORS headers on preflight responses.
@@ -346,140 +246,59 @@ CORS_ALLOWED_ORIGINS = [
 
 ## Step 9 -- Handle CSRF in the frontend
 
-Django protects mutating endpoints with a CSRF token. It sets a `csrftoken` cookie on every response. Read it and include it in the `X-CSRFToken` header for every `POST`, `PATCH`, or `DELETE` request:
-
-```javascript
-function getCsrfToken() {
-  return document.cookie
-    .split('; ')
-    .find((row) => row.startsWith('csrftoken='))
-    ?.split('=')[1];
-}
-```
-
-Pass the token in the request headers:
-
-```javascript
-headers: {
-  'Content-Type': 'application/json',
-  'X-CSRFToken': getCsrfToken(),
-},
-```
+Django protects mutating endpoints with a CSRF token. It sets a `csrftoken` cookie on every response. Read it and include it in the `X-CSRFToken` header for every `POST`, `PATCH`, or `DELETE` request. See `getCsrfToken` in the code files in Step 11.
 
 **Why a cookie instead of a hidden form field?**  
 Handsontable uses `fetch()`, not HTML form submission. Reading the token from the cookie (SameSite + CSRF double-submit pattern) works with any JavaScript HTTP client without server-side template changes.
 
 ## Step 10 -- Build the URL for fetchRows
 
-Handsontable's `dataProvider` calls `fetchRows` with a `{ page, pageSize, sort, filters }` object. Translate these into query string parameters:
-
-```javascript
-function buildUrl(base, { page, pageSize, sort, filters }) {
-  const params = new URLSearchParams();
-
-  params.set('page', page);
-  params.set('pageSize', pageSize);
-
-  if (sort?.prop) {
-    params.set('sort[prop]', sort.prop);
-    params.set('sort[order]', sort.order ?? 'asc');
-  }
-
-  if (filters?.length) {
-    filters.forEach(({ prop, value, condition }, i) => {
-      params.set(`filters[${i}][prop]`, prop);
-      params.set(`filters[${i}][value]`, value);
-      params.set(`filters[${i}][condition]`, condition);
-    });
-  }
-
-  return `${base}?${params.toString()}`;
-}
-```
+Handsontable's `dataProvider` calls `fetchRows` with a `{ page, pageSize, sort, filters }` object. See `buildUrl` in the code files in Step 11.
 
 **What's happening:**
 
 - `page` and `pageSize` are sent as-is. DRF reads `pageSize` directly because `page_size_query_param = 'pageSize'` was set in Step 5.
-- `sort` is split into `sort[prop]` and `sort[order]`. The Django view reassembles them into DRF's `ordering` param (see Step 6).
-- Each filter condition becomes a `filters[N][prop]`, `filters[N][value]`, `filters[N][condition]` triplet. The Django view parses this indexed format in a loop.
+- `sort` is split into `sort[prop]` and `sort[order]`. The Django view reads both params and calls `queryset.order_by()` directly (see Step 6).
+- `filters` is serialised with `JSON.stringify`. `dataProvider` passes the full `DataProviderFilterColumn` array — including `operation` and nested `conditions` — which Django decodes with `json.loads()`.
+- `API_BASE` uses a relative path (`/api/employees/`). In development, Vite proxies `/api/*` to `http://localhost:8000`, so the browser and Django share one origin, which keeps CSRF cookies accessible without extra CORS configuration.
 
 ## Step 11 -- Initialize Handsontable
 
-Wire everything together in the `dataProvider` configuration:
+With the backend and Vite dev server running (`bash setup.sh`), open `http://localhost:5173` to see the grid. The Django API runs on `http://localhost:8000` inside Docker; Vite proxies all `/api/*` requests to it. The complete frontend code is in the files below.
 
-```javascript
-const hot = new Handsontable(container, {
-  dataProvider: {
-    rowId: 'id',
+::: only-for javascript vue
 
-    fetchRows: async ({ page, pageSize, sort, filters }, { signal }) => {
-      const url = buildUrl('http://localhost:8000/api/employees/', {
-        page, pageSize, sort, filters,
-      });
-      const res = await fetch(url, { signal });
+::: example #javascript-django --code-only
 
-      if (!res.ok) throw new Error(`Fetch failed: ${res.status}`);
+@[code js](@/content/recipes/data-management/server-side-django/javascript/example1.js)
 
-      // pagination.py already maps { count, results } to { rows, totalRows }.
-      return res.json();
-    },
+:::
 
-    onRowsCreate: async (rows) => {
-      const res = await fetch('.../create-rows/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-        body: JSON.stringify(rows),
-      });
-      return res.json(); // return created rows so dataProvider updates its row map
-    },
+:::
 
-    onRowsUpdate: async (rows) => {
-      await fetch('.../update-rows/', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-        body: JSON.stringify(rows),
-      });
-    },
+::: only-for typescript
 
-    onRowsRemove: async (rowIds) => {
-      await fetch('.../remove-rows/', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
-        body: JSON.stringify(rowIds),
-      });
-    },
-  },
+::: example #typescript-django --code-only
 
-  pagination:    { pageSize: 10 },
-  columnSorting: true,
-  filters:       true,
-  dropdownMenu:  ['filter_by_condition', 'filter_action_bar'],
-  emptyDataState: true,
-  notification:  true,
+@[code ts](@/content/recipes/data-management/server-side-django/javascript/example1.ts)
 
-  colHeaders: ['First Name', 'Last Name', 'Department', 'Role', 'Salary'],
-  columns: [
-    { data: 'first_name', type: 'text' },
-    { data: 'last_name',  type: 'text' },
-    { data: 'department', type: 'text' },
-    { data: 'role',       type: 'text' },
-    { data: 'salary',     type: 'numeric', numericFormat: { pattern: '$0,0' } },
-  ],
+:::
 
-  rowHeaders: true,
-  licenseKey: 'non-commercial-and-evaluation',
-});
-```
+:::
 
 ::: only-for react
+
+::: example #react-django --code-only
 
 @[code](@/content/recipes/data-management/server-side-django/react/example1.jsx)
 
 :::
 
+:::
+
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2
+::: example #angular-django --code-only
 
 @[code](@/content/recipes/data-management/server-side-django/angular/example1.ts)
 @[code](@/content/recipes/data-management/server-side-django/angular/example1.html)
@@ -500,12 +319,14 @@ const hot = new Handsontable(container, {
 | `filters: true` | Enables the column filter UI. Active conditions are passed to `fetchRows` on each change. |
 | `emptyDataState: true` | Shows a friendly illustration when `fetchRows` returns zero rows (for example, when a filter matches nothing). |
 | `notification: true` | Shows automatic error toast notifications when `fetchRows` or a mutation callback throws. Fetch failures include a **Refetch** action. |
+| `beforeRowsMutation` | Intercepts delete operations before they are sent. Used here to show a confirmation dialog; the actual delete is re-issued after the user confirms. |
+| `contextMenu: true` | Enables the right-click context menu with "Insert row above / below" and "Remove row" items. |
 
 ## How it works -- Complete flow
 
 1. **Initial load**: `dataProvider` calls `fetchRows({ page: 1, pageSize: 10 })`. The view returns the first 10 rows and the total row count.
 2. **User clicks a column header**: `columnSorting` updates its sort state and `dataProvider` calls `fetchRows` again with `sort: { prop: 'salary', order: 'desc' }`. The Django view translates this to `?ordering=-salary` for `OrderingFilter`.
-3. **User applies a column filter**: The filter UI updates its condition list and `dataProvider` calls `fetchRows` with the `filters` array. The Django view parses `filters[0][prop]`, `filters[0][value]`, and `filters[0][condition]` into a Django `Q` object.
+3. **User applies a column filter**: The filter UI updates its condition list and `dataProvider` calls `fetchRows` with the `filters` array. The Django view decodes the `filters` JSON string with `json.loads()` and builds a Django `Q` object from each column's `conditions` list.
 4. **User navigates to page 2**: `dataProvider` calls `fetchRows({ page: 2, pageSize: 10, ... })`.
 5. **User edits a cell**: `dataProvider` collects all changed cells for that row and calls `onRowsUpdate` with `[{ id: 7, salary: 102000 }]`. The `update-rows` endpoint applies a partial update.
 6. **User adds a row**: `dataProvider` calls `onRowsCreate` with the new row values. The `create-rows` endpoint inserts the row and returns it with an `id`. `dataProvider` updates its internal map so future edits use the correct id.
@@ -515,8 +336,8 @@ const hot = new Handsontable(container, {
 
 - DRF's default response shape (`{ count, results }`) differs from what `dataProvider` expects (`{ rows, totalRows }`). Override `get_paginated_response` in a custom pagination class to map the shape on the server.
 - Set `page_size_query_param = 'pageSize'` so DRF reads Handsontable's parameter name directly.
-- Translate Handsontable's `sort[prop]` + `sort[order]` params to DRF's `ordering` param in `get_queryset` before `OrderingFilter` runs.
-- Parse Handsontable's indexed `filters[N][...]` params into Django `Q` objects to support column-level filtering.
+- Read Handsontable's `sort[prop]` and `sort[order]` params in `get_queryset` and call `queryset.order_by()` directly. Whitelist the field name with `ALLOWED_ORDERING_FIELDS` to prevent ORM injection.
+- Receive Handsontable's `filters` param as a JSON string and decode it with `json.loads()`. Each entry is `{ prop, operation, conditions: [{ name, args }] }` — conditions within a column combine with AND or OR; columns always combine with AND.
 - Use DRF `@action` endpoints for batch CRUD instead of single-resource REST routes.
 - Read Django's CSRF token from the `csrftoken` cookie and include it as the `X-CSRFToken` header in all mutating requests.
 - Place `CorsMiddleware` before `CommonMiddleware` so preflight requests receive CORS headers.

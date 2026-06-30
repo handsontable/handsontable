@@ -1,17 +1,16 @@
 ---
 type: how-to
-id: chduupye
 title: Text alignment
 metaTitle: Text alignment - JavaScript Data Grid | Handsontable
 description: "Align values within cells: horizontally (to the right, left, center, or by justifying them), and vertically (to the top, middle, or bottom of the cell)."
 permalink: /text-alignment
 canonicalUrl: /text-alignment
 react:
-  id: 959g5cbf
   metaTitle: Text alignment - React Data Grid | Handsontable
 angular:
-  id: h6sbjq1g
   metaTitle: Text alignment - Angular Data Grid | Handsontable
+vue:
+  metaTitle: Text alignment - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
 ---
@@ -58,6 +57,16 @@ settings = { className: "htCenter" };
 
 :::
 
+::: only-for vue
+
+```js
+const hotSettings = {
+  className: 'htCenter',
+};
+```
+
+:::
+
 ## Basic example
 
 The following code sample configures the grid to use `htCenter` and configures individual cells to use different alignments.
@@ -90,6 +99,16 @@ The following code sample configures the grid to use `htCenter` and configures i
 
 @[code](@/content/guides/cell-features/text-alignment/angular/example1.ts)
 @[code](@/content/guides/cell-features/text-alignment/angular/example1.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+
+@[code](@/content/guides/cell-features/text-alignment/vue/example1.vue)
 
 :::
 

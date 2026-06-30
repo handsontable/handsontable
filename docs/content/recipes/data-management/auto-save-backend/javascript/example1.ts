@@ -19,16 +19,22 @@ const data: RowData[] = [
   { id: 5, product: 'Headset', stock: 16, price: 99, status: 'paused' },
 ];
 
-const container = document.querySelector('#example1');
+const rootContainer = document.querySelector('#example1');
 
-if (container instanceof HTMLElement) {
-  const statusEl = document.createElement('div');
-  statusEl.id = 'save-status';
-  statusEl.style.marginBottom = '8px';
-  statusEl.style.fontFamily = 'Arial, sans-serif';
-  statusEl.style.fontSize = '13px';
-  statusEl.style.fontWeight = '600';
-  container.before(statusEl);
+if (rootContainer instanceof HTMLElement) {
+  const toolbar = document.createElement('div');
+  const controls = document.createElement('div');
+  const statusEl = document.createElement('span');
+  const gridContainer = document.createElement('div');
+
+  toolbar.className = 'example-controls-container';
+  controls.className = 'controls';
+  statusEl.className = 'auto-save-backend-status';
+
+  toolbar.appendChild(controls);
+  controls.appendChild(statusEl);
+  rootContainer.appendChild(toolbar);
+  rootContainer.appendChild(gridContainer);
 
   const dirtyRows = new Set<number>();
   let saveTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -42,15 +48,7 @@ if (container instanceof HTMLElement) {
       error: 'Error',
     };
 
-    const colors = {
-      idle: '#616161',
-      saving: '#1a42e8',
-      saved: '#117a1f',
-      error: '#c62828',
-    };
-
     statusEl.textContent = labels[state];
-    statusEl.style.color = colors[state];
     statusEl.dataset.state = state;
   };
 
@@ -62,14 +60,14 @@ if (container instanceof HTMLElement) {
     });
   };
 
-  const hot = new Handsontable(container, {
+  const hot = new Handsontable(gridContainer, {
     data,
     colHeaders: ['ID', 'Product', 'Stock', 'Price', 'Status'],
     columns: [
       { data: 'id', type: 'numeric', readOnly: true, width: 70 },
       { data: 'product', type: 'text', width: 180 },
       { data: 'stock', type: 'numeric', width: 90 },
-      { data: 'price', type: 'numeric', numericFormat: { pattern: '$0,0.00' }, width: 110 },
+      { data: 'price', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 }, width: 110 },
       { data: 'status', type: 'text', width: 120 },
     ],
     stretchH: 'all',

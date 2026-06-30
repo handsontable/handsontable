@@ -1,9 +1,8 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { BaseEditor } from 'handsontable/editors/baseEditor';
-
+import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
 registerAllModules();
-
 class SelectEditor extends BaseEditor {
   init() {
     this.select = this.hot.rootDocument.createElement('SELECT');
@@ -14,14 +13,13 @@ class SelectEditor extends BaseEditor {
   }
   prepare(row, col, prop, td, originalValue, cellProperties) {
     super.prepare(row, col, prop, td, originalValue, cellProperties);
-
     const rawOptions = this.cellProperties.selectOptions ?? [];
-    const options = Array.isArray(rawOptions) ? Object.fromEntries(rawOptions.map((v) => [v, v])) : rawOptions;
-
+    const options = Array.isArray(rawOptions)
+      ? Object.fromEntries(rawOptions.map((v) => [v, v]))
+      : rawOptions;
     this.select.innerText = '';
     Object.keys(options).forEach((key) => {
       const option = this.hot.rootDocument.createElement('OPTION');
-
       option.value = key;
       option.innerText = options[key];
       this.select.appendChild(option);
@@ -36,7 +34,6 @@ class SelectEditor extends BaseEditor {
   open() {
     const { top, start, width, height } = this.getEditedCellRect();
     const s = this.select.style;
-
     s.height = `${height}px`;
     s.minWidth = `${width}px`;
     s.top = `${top}px`;
@@ -45,14 +42,14 @@ class SelectEditor extends BaseEditor {
     s.display = '';
     this.addHook('beforeKeyDown', (event) => {
       const { selectedIndex, length } = this.select;
-
       if (event.keyCode === 38 && selectedIndex > 0) {
         this.select[selectedIndex - 1].selected = true;
-        event.stopImmediatePropagation();
+        stopImmediatePropagation(event);
         event.preventDefault();
-      } else if (event.keyCode === 40 && selectedIndex < length - 1) {
+      }
+      else if (event.keyCode === 40 && selectedIndex < length - 1) {
         this.select[selectedIndex + 1].selected = true;
-        event.stopImmediatePropagation();
+        stopImmediatePropagation(event);
         event.preventDefault();
       }
     });
@@ -71,33 +68,26 @@ const PRIORITY_COLORS = {
   High: '#ef4444',
   Critical: '#7c3aed',
 };
-
 const STATUS_COLORS = {
   'To Do': '#6b7280',
   'In Progress': '#3b82f6',
   Review: '#f59e0b',
   Done: '#22c55e',
 };
-
 function badgeRenderer(colorMap) {
   return (hotInstance, td, row, col, prop, value) => {
     td.innerText = '';
-
     if (value) {
       const badge = hotInstance.rootDocument.createElement('span');
-
       badge.className = 'htSelectBadge';
       badge.style.background = colorMap[value] ?? '#6b7280';
       badge.innerText = value;
       td.appendChild(badge);
     }
-
     return td;
   };
 }
-
 const container = document.querySelector('#example2');
-
 new Handsontable(container, {
   data: [
     ['Migrate database schema', 'High', 'In Progress'],

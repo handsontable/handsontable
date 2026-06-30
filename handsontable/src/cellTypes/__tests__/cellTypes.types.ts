@@ -1,9 +1,34 @@
 import Handsontable from 'handsontable';
+import type { HotInstance } from 'handsontable';
+import {
+  AutocompleteCellType,
+  CheckboxCellType,
+  DateCellType,
+  DropdownCellType,
+  HandsontableCellType,
+  NumericCellType,
+  PasswordCellType,
+  TextCellType,
+  TimeCellType,
+  getCellType,
+  registerCellType,
+} from 'handsontable/cellTypes';
+import { BaseEditor } from 'handsontable/editors';
+
+interface CellProperties {
+  row: number;
+  col: number;
+  instance: HotInstance;
+  visualRow: number;
+  visualCol: number;
+  prop: string | number;
+  [key: string]: unknown;
+}
 
 const elem = document.createElement('div');
-const hot = new Handsontable(elem, {});
+const hot: HotInstance = Handsontable(elem, {});
 
-const cellProperties: Handsontable.CellProperties = {
+const cellProperties: CellProperties = {
   row: 0,
   col: 0,
   instance: hot,
@@ -15,46 +40,46 @@ const cellProperties: Handsontable.CellProperties = {
 const TD = document.createElement('td');
 
 // Verify the built-in cellTypes exist and have the correct shape
-new Handsontable.cellTypes.autocomplete.editor(hot);
-Handsontable.cellTypes.autocomplete.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
-Handsontable.cellTypes.autocomplete.validator.apply(cellProperties, ['', (valid: boolean) => {}]);
+new AutocompleteCellType.editor(hot);
+AutocompleteCellType.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
+AutocompleteCellType.validator.apply(cellProperties, ['', (valid: boolean) => {}]);
 
-new Handsontable.cellTypes.checkbox.editor(hot);
-Handsontable.cellTypes.checkbox.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
+new CheckboxCellType.editor(hot);
+CheckboxCellType.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
 
-new Handsontable.cellTypes.date.editor(hot);
-Handsontable.cellTypes.date.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
-Handsontable.cellTypes.date.validator.apply(cellProperties, ['', (valid: boolean) => {}]);
+new DateCellType.editor(hot);
+DateCellType.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
+DateCellType.validator.apply(cellProperties, ['', (valid: boolean) => {}]);
 
-new Handsontable.cellTypes.dropdown.editor(hot);
-Handsontable.cellTypes.dropdown.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
-Handsontable.cellTypes.dropdown.validator.apply(cellProperties, ['', (valid: boolean) => {}]);
+new DropdownCellType.editor(hot);
+DropdownCellType.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
+DropdownCellType.validator.apply(cellProperties, ['', (valid: boolean) => {}]);
 
-new Handsontable.cellTypes.handsontable.editor(hot);
-Handsontable.cellTypes.handsontable.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
+new HandsontableCellType.editor(hot);
+HandsontableCellType.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
 
-new Handsontable.cellTypes.numeric.editor(hot);
-Handsontable.cellTypes.numeric.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
-Handsontable.cellTypes.numeric.validator.apply(cellProperties, ['', (valid: boolean) => {}]);
+new NumericCellType.editor(hot);
+NumericCellType.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
+NumericCellType.validator.apply(cellProperties, ['', (valid: boolean) => {}]);
 
-new Handsontable.cellTypes.password.editor(hot);
-Handsontable.cellTypes.password.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
+new PasswordCellType.editor(hot);
+PasswordCellType.renderer(hot, TD, 0, 0, 'prop', 'foo');
 
-new Handsontable.cellTypes.text.editor(hot);
-Handsontable.cellTypes.text.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
+new TextCellType.editor(hot);
+TextCellType.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
 
-new Handsontable.cellTypes.time.editor(hot);
-Handsontable.cellTypes.time.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
-Handsontable.cellTypes.time.validator.apply(cellProperties, ['', (valid: boolean) => {}]);
+new TimeCellType.editor(hot);
+TimeCellType.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
+TimeCellType.validator.apply(cellProperties, ['', (valid: boolean) => {}]);
 
 // Verify top-level cellTypes API
-const autocomplete = Handsontable.cellTypes.getCellType('autocomplete');
+const autocomplete = getCellType('autocomplete');
 
-new autocomplete.editor(hot);
-autocomplete.renderer(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
-autocomplete.validator.apply(cellProperties, ['', (valid: boolean) => {}]);
+new (autocomplete.editor as any)(hot);
+(autocomplete.renderer as Function)(hot, TD, 0, 0, 'prop', 'foo', cellProperties);
+(autocomplete.validator as Function).apply(cellProperties, ['', (valid: boolean) => {}]);
 
-class CustomEditor extends Handsontable.editors.BaseEditor {
+class CustomEditor extends BaseEditor {
   open() {}
   close() {}
   getValue() {}
@@ -62,11 +87,12 @@ class CustomEditor extends Handsontable.editors.BaseEditor {
   focus() {}
 }
 
-Handsontable.cellTypes.registerCellType('custom', {
+registerCellType('custom', {
+  CELL_TYPE: 'custom',
   editor: CustomEditor,
-  renderer: (hot: Handsontable, TD: HTMLTableCellElement, row: number, col: number,
-    prop: number | string, value: any, cellProperties: Handsontable.CellProperties) => TD,
-  validator: (value: any, callback: (valid: boolean) => void) => {},
+  renderer: (hot: HotInstance, TD: HTMLTableCellElement, row: number, col: number,
+             prop: number | string, value: unknown, cellProperties: Record<string, unknown>) => TD,
+  validator: (value: unknown, callback: (valid: boolean) => void) => {},
   className: 'my-cell',
   allowInvalid: true,
   myCustomCellState: 'complete',

@@ -38,7 +38,6 @@
 @use "./editors/text-editor";
 @use "./editors/select-editor";
 @use "./editors/dropdown-editor";
-@use "./editors/date-editor";
 @use "./editors/multi-select-editor";
 
 // Form elements
@@ -62,7 +61,6 @@
   @include text-editor.output();
   @include select-editor.output();
   @include dropdown-editor.output();
-  @include date-editor.output();
   @include multi-select-editor.output();
   // Form Elements
   @include select.output();
