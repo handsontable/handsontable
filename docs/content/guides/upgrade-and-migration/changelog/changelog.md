@@ -26,9 +26,9 @@ This page aggregates all Handsontable release notes. For upgrade instructions, s
 
 [[toc]]
 
-## 18.0.0-rc5
+## 18.0.0-rc6
 
-Released on June 25th, 2026
+Released on June 30th, 2026
 
 For more information about this release, see:
 - [Documentation (18.0)](https://handsontable.com/docs/18.0)
@@ -42,6 +42,7 @@ For more information about this release, see:
 #### Changed
 - **Breaking change**: Migrated Handsontable core source from JavaScript to TypeScript [#12011](https://github.com/handsontable/handsontable/issues/12011)
 - **Breaking change**: Renamed the `--ht-wrapper-border-radius` theme variable to `--ht-border-radius` (token `wrapperBorderRadius` to `borderRadius`) and removed the `--ht-wrapper-border-width` and `--ht-wrapper-border-color` variables (tokens `wrapperBorderWidth` and `wrapperBorderColor`). [#12775](https://github.com/handsontable/handsontable/issues/12775)
+- **Breaking change**: Angular: Updated Angular peer dependency minimum version to 19 in `@handsontable/angular-wrapper` [#1836](https://github.com/handsontable/handsontable/pull/1836)
 - Dragging a selection past the viewport edge now scrolls the viewport and extends the selection to the newly-scrolled cells. [#12344](https://github.com/handsontable/handsontable/issues/12344)
 - Improved getSourceData() performance when called repeatedly inside the cells function or custom renderers. [#12480](https://github.com/handsontable/handsontable/issues/12480)
 - Improved scroll performance by caching overlay alignment calculations and using native visibility checks. [#12659](https://github.com/handsontable/handsontable/issues/12659)
