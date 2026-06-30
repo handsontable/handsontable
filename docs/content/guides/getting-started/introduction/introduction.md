@@ -41,7 +41,8 @@ Use Handsontable with plain JavaScript, TypeScript, or your favorite framework. 
 
 - [Angular](https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version={{$currentVersion}})
 - [Vanilla JS](https://handsontable.com/codesandbox-vm?example-dir=javascript&handsontable-version={{$currentVersion}})
-- [React](https://handsontable.com/codesandbox-vm?example-dir=react-wrapper&handsontable-version={{$currentVersion}})
+- [React TS](https://handsontable.com/codesandbox-vm?example-dir=react&handsontable-version={{$currentVersion}})
+- [React JS](https://handsontable.com/codesandbox-vm?example-dir=react-js&handsontable-version={{$currentVersion}})
 - [TypeScript](https://handsontable.com/codesandbox-vm?example-dir=typescript&handsontable-version={{$currentVersion}})
 - [Vue 3](https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version={{$currentVersion}})
 
