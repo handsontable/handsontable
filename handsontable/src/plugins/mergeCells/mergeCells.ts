@@ -424,6 +424,10 @@ export class MergeCells extends BasePlugin {
    * Clears the merged cells from the merged cell container.
    */
   clearCollections(): void {
+    arrayEach(this.mergedCellsCollection.mergedCells, (mergedCell: MergedCellCoords) => {
+      this.#resetMergedCellMeta(mergedCell);
+    });
+
     this.mergedCellsCollection.clear();
   }
 
@@ -563,6 +567,28 @@ export class MergeCells extends BasePlugin {
   }
 
   /**
+   * Eagerly removes the merge-related cell meta (`hidden`, `copyable`, `spanned`, `rowspan`,
+   * `colspan`) for every cell covered by the provided merged cell. Done at the moment the merge
+   * is dropped — rather than lazily in `afterGetCellMeta` — so the stale flags cannot linger in
+   * the cached meta and leak into consumers that read it directly (e.g. `toHTML`) when the
+   * following render is suspended/batched and never actually runs.
+   *
+   * @param {MergedCellCoords} mergedCell The merged cell whose meta should be reset.
+   */
+  #resetMergedCellMeta(mergedCell: MergedCellCoords) {
+    rangeEach(0, mergedCell.rowspan - 1, (i) => {
+      rangeEach(0, mergedCell.colspan - 1, (j) => {
+        this.hot.removeCellMeta(mergedCell.row + i, mergedCell.col + j, 'hidden');
+        this.hot.removeCellMeta(mergedCell.row + i, mergedCell.col + j, 'copyable');
+      });
+    });
+
+    this.hot.removeCellMeta(mergedCell.row, mergedCell.col, 'spanned');
+    this.hot.removeCellMeta(mergedCell.row, mergedCell.col, 'rowspan');
+    this.hot.removeCellMeta(mergedCell.row, mergedCell.col, 'colspan');
+  }
+
+  /**
    * Unmerges the selection provided as a cell range. If no cell range is provided, it uses the current selection.
    *
    * @private
@@ -583,15 +609,7 @@ export class MergeCells extends BasePlugin {
 
     arrayEach(mergedCells, (currentCollection: MergedCellCoords) => {
       this.mergedCellsCollection.remove(currentCollection.row, currentCollection.col);
-
-      rangeEach(0, currentCollection.rowspan - 1, (i) => {
-        rangeEach(0, currentCollection.colspan - 1, (j) => {
-          this.hot.removeCellMeta(currentCollection.row + i, currentCollection.col + j, 'hidden');
-          this.hot.removeCellMeta(currentCollection.row + i, currentCollection.col + j, 'copyable');
-        });
-      });
-
-      this.hot.removeCellMeta(currentCollection.row, currentCollection.col, 'spanned');
+      this.#resetMergedCellMeta(currentCollection);
     });
 
     this.hot.runHooks('afterUnmergeCells', cellRange, auto);
