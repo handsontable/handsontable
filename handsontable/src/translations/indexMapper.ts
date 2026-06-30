@@ -579,8 +579,21 @@ export class IndexMapper {
     }
 
     const indexesSequence = this.getIndexesSequence();
+    // Read the merged trimming cache directly instead of calling `isTrimmed()` per element (which
+    // resolves through getMergedValueAtIndex → getMergedValues on every index). Same semantics:
+    // `isTrimmed(i) === false` ⟺ the merged value is not strictly `true`.
+    const trimmedValues = this.trimmingMapsCollection.getMergedValues();
+    const notTrimmedIndexes = [];
 
-    return indexesSequence.filter(physicalIndex => this.isTrimmed(physicalIndex) === false);
+    for (let i = 0; i < indexesSequence.length; i += 1) {
+      const physicalIndex = indexesSequence[i];
+
+      if (trimmedValues[physicalIndex] !== true) {
+        notTrimmedIndexes.push(physicalIndex);
+      }
+    }
+
+    return notTrimmedIndexes;
   }
 
   /**
@@ -608,8 +621,18 @@ export class IndexMapper {
     }
 
     const indexesSequence = this.getIndexesSequence();
+    const hiddenValues = this.hidingMapsCollection.getMergedValues();
+    const notHiddenIndexes = [];
 
-    return indexesSequence.filter(physicalIndex => this.isHidden(physicalIndex) === false);
+    for (let i = 0; i < indexesSequence.length; i += 1) {
+      const physicalIndex = indexesSequence[i];
+
+      if (hiddenValues[physicalIndex] !== true) {
+        notHiddenIndexes.push(physicalIndex);
+      }
+    }
+
+    return notHiddenIndexes;
   }
 
   /**
@@ -636,8 +659,18 @@ export class IndexMapper {
     }
 
     const notTrimmedIndexes = this.getNotTrimmedIndexes();
+    const hiddenValues = this.hidingMapsCollection.getMergedValues();
+    const renderableIndexes = [];
 
-    return notTrimmedIndexes.filter(physicalIndex => this.isHidden(physicalIndex) === false);
+    for (let i = 0; i < notTrimmedIndexes.length; i += 1) {
+      const physicalIndex = notTrimmedIndexes[i];
+
+      if (hiddenValues[physicalIndex] !== true) {
+        renderableIndexes.push(physicalIndex);
+      }
+    }
+
+    return renderableIndexes;
   }
 
   /**

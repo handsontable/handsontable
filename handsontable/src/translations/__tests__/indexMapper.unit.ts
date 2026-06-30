@@ -3153,4 +3153,64 @@ describe('IndexMapper', () => {
       expect(callback).not.toHaveBeenCalled();
     });
   });
+
+  describe('merged-cache read + reused-scratch aggregation (perf optimizations)', () => {
+    it('ORs multiple trimming maps correctly (reused scratch row stays correct)', () => {
+      const indexMapper = new IndexMapper();
+
+      indexMapper.initToLength(5);
+
+      const t1 = indexMapper.registerMap('t1', new TrimmingMap());
+      const t2 = indexMapper.registerMap('t2', new TrimmingMap());
+
+      t1.setValues([true, false, false, false, false]);
+      t2.setValues([false, false, true, false, true]);
+
+      // Physical 0 (t1), 2 and 4 (t2) trimmed → only 1 and 3 remain.
+      expect(indexMapper.getNotTrimmedIndexes()).toEqual([1, 3]);
+      expect(indexMapper.getNotTrimmedIndexesLength()).toBe(2);
+    });
+
+    it('ORs multiple hiding maps and excludes the union from renderable indexes', () => {
+      const indexMapper = new IndexMapper();
+
+      indexMapper.initToLength(5);
+
+      const h1 = indexMapper.registerMap('h1', new HidingMap());
+      const h2 = indexMapper.registerMap('h2', new HidingMap());
+
+      h1.setValues([false, true, false, false, false]);
+      h2.setValues([false, false, false, true, false]);
+
+      expect(indexMapper.getNotHiddenIndexes()).toEqual([0, 2, 4]);
+      expect(indexMapper.getRenderableIndexes()).toEqual([0, 2, 4]);
+    });
+
+    it('excludes both trimmed and hidden physical indexes from renderable indexes', () => {
+      const indexMapper = new IndexMapper();
+
+      indexMapper.initToLength(5);
+
+      const t = indexMapper.registerMap('t', new TrimmingMap());
+      const h = indexMapper.registerMap('h', new HidingMap());
+
+      t.setValues([true, false, false, false, false]); // physical 0 trimmed
+      h.setValues([false, false, true, false, false]); // physical 2 hidden
+
+      expect(indexMapper.getNotTrimmedIndexes()).toEqual([1, 2, 3, 4]);
+      expect(indexMapper.getRenderableIndexes()).toEqual([1, 3, 4]);
+    });
+
+    it('seeds presized default values so nothing is trimmed or hidden right after init', () => {
+      const indexMapper = new IndexMapper();
+
+      indexMapper.initToLength(4);
+      indexMapper.registerMap('t', new TrimmingMap());
+      indexMapper.registerMap('h', new HidingMap());
+
+      expect(indexMapper.getNotTrimmedIndexes()).toEqual([0, 1, 2, 3]);
+      expect(indexMapper.getNotHiddenIndexes()).toEqual([0, 1, 2, 3]);
+      expect(indexMapper.getRenderableIndexes()).toEqual([0, 1, 2, 3]);
+    });
+  });
 });

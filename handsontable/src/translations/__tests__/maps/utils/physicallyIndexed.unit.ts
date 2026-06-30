@@ -1,4 +1,7 @@
-import { getListWithInsertedItems } from 'handsontable/translations/maps/utils/physicallyIndexed';
+import {
+  getListWithInsertedItems,
+  getListWithRemovedItems,
+} from 'handsontable/translations/maps/utils/physicallyIndexed';
 
 describe('physicallyIndexed', () => {
   describe('getListWithInsertedItems', () => {
@@ -32,6 +35,36 @@ describe('physicallyIndexed', () => {
 
       expect(finalList.length).toBe(4);
       expect(finalList).toEqual([false, false, false, false]);
+    });
+  });
+
+  describe('getListWithRemovedItems', () => {
+    it('removes items by index (small removal — linear includes path)', () => {
+      const startList = ['a', 'b', 'c', 'd', 'e'];
+
+      expect(getListWithRemovedItems(startList, [1, 3])).toEqual(['a', 'c', 'e']);
+    });
+
+    it('removes items by index (bulk removal — Set path above the threshold)', () => {
+      const startList = Array.from({ length: 50 }, (_, i) => i);
+      const removed = startList.filter(i => i % 2 === 0); // 25 indexes → Set branch
+      const expected = startList.filter(i => i % 2 === 1);
+
+      expect(getListWithRemovedItems(startList, removed)).toEqual(expected);
+    });
+
+    it('produces the same result regardless of which branch runs', () => {
+      const startList = Array.from({ length: 40 }, (_, i) => `v${i}`);
+      const removedBulk = Array.from({ length: 20 }, (_, i) => i * 2); // Set path
+      const bruteForce = startList.filter((_, i) => removedBulk.includes(i) === false);
+
+      expect(getListWithRemovedItems(startList, removedBulk)).toEqual(bruteForce);
+    });
+
+    it('returns the full list when nothing is removed', () => {
+      const startList = [false, true, false];
+
+      expect(getListWithRemovedItems(startList, [])).toEqual([false, true, false]);
     });
   });
 });
