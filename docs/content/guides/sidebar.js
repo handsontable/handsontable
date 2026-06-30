@@ -52,6 +52,7 @@ const columnsItems = [
   { path: 'guides/columns/column-header/column-header' },
   { path: 'guides/columns/column-groups/column-groups' },
   { path: 'guides/columns/column-hiding/column-hiding' },
+  { path: 'guides/columns/column-adding/column-adding' },
   { path: 'guides/columns/column-moving/column-moving' },
   { path: 'guides/columns/column-freezing/column-freezing' },
   { path: 'guides/columns/column-width/column-width' },
