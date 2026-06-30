@@ -350,6 +350,41 @@ describe('settings', () => {
       });
     });
 
+    it('should not throw when removing a frozen column using only fixedColumnsLeft', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        fixedColumnsLeft: 2,
+      });
+
+      expect(getSettings().fixedColumnsStart).toBe(2);
+
+      await alter('remove_col', 0);
+
+      expect(getSettings().fixedColumnsStart).toBe(1);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(1);
+    });
+
+    it('should not throw when undoing/redoing the removal of a frozen column using only fixedColumnsLeft', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        fixedColumnsLeft: 2,
+      });
+
+      await alter('remove_col', 0);
+
+      expect(getSettings().fixedColumnsStart).toBe(1);
+
+      getPlugin('undoRedo').undo();
+
+      expect(getSettings().fixedColumnsStart).toBe(2);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(2);
+
+      getPlugin('undoRedo').redo();
+
+      expect(getSettings().fixedColumnsStart).toBe(1);
+      expect(getInlineStartClone().find('tbody tr:eq(0) td').length).toBe(1);
+    });
+
     it('should limit fixed columns to dataset columns length', async() => {
       handsontable({
         data: createSpreadsheetData(3, 3),

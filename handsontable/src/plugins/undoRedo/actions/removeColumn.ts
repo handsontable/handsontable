@@ -151,7 +151,11 @@ export class RemoveColumnAction extends BaseAction {
     const settings = hot.getSettings();
 
     // Changing by the reference as `updateSettings` doesn't work the best.
-    settings.fixedColumnsStart = this.fixedColumnsStart;
+    // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
+    // However, keeping the old name still in effect. When both option names are used together,
+    // the error is thrown. To prevent that, the engine needs to modify the original option key
+    // to bypass the validation.
+    (settings as unknown as { _fixedColumnsStart: number })._fixedColumnsStart = this.fixedColumnsStart;
 
     const ascendingIndexes = this.indexes.slice(0).sort((a, b) => a - b);
     const sortByIndexes = (elem: unknown, j: number, arr: unknown[]) => arr[this.indexes.indexOf(ascendingIndexes[j])];

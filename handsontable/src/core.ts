@@ -1103,7 +1103,12 @@ export default function Core(
               const fixedColumnsStart = tableMeta.fixedColumnsStart;
 
               if (fixedColumnsStart >= calcIndex + 1) {
-                tableMeta.fixedColumnsStart -= Math.min(groupAmount, fixedColumnsStart - calcIndex);
+                // Since 12.0.0, the "fixedColumnsLeft" is replaced with the "fixedColumnsStart" option.
+                // However, keeping the old name still in effect. When both option names are used together,
+                // the error is thrown. To prevent that, the engine needs to modify the original option key
+                // to bypass the validation.
+                (tableMeta as unknown as { _fixedColumnsStart: number })._fixedColumnsStart -=
+                  Math.min(groupAmount, fixedColumnsStart - calcIndex);
               }
 
               if (Array.isArray(tableMeta.colHeaders)) {
