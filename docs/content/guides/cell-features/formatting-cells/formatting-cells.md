@@ -13,6 +13,7 @@ vue:
   metaTitle: Formatting cells - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
+menuTag: updated
 ---
 Change the appearance of cells, using custom CSS classes, inline styles, or custom cell borders.
 
@@ -29,7 +30,9 @@ You can format a cell either using a `CSS` class or with a style applied directl
 
 ## Apply custom CSS class styles
 
-In this example, we add a custom class `custom-cell` to the cell in the top left corner and add a `custom-table` CSS class that highlights the table headers.
+In this example, you add a custom class `custom-cell` to the cell in the top-left corner and a `custom-table` CSS class that highlights the table headers.
+
+To add a CSS class to a cell, column, or row, use the [`className`](@/api/options.md#classname) option. Set it in the grid configuration, in a `columns` entry, or per cell through the [`cells`](@/api/options.md#cells) callback. The class you provide is added to the cell's `<td>` element, where your CSS rules can target it.
 
 ::: only-for javascript
 

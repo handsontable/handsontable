@@ -13,6 +13,7 @@ vue:
   metaTitle: Conditional formatting - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
+menuTag: updated
 ---
 Format specified cells, based on dynamic conditions.
 
@@ -81,6 +82,10 @@ This demo shows how to use the cell type renderer feature to make some condition
 ## Result
 
 Cells that match the defined conditions display the configured styles -- colors, fonts, or borders -- automatically updating as data changes.
+
+## Format negative numbers
+
+A frequent conditional-formatting task is styling negative numbers -- for example, showing them in red. The example above does this in its renderer: it checks whether the cell value is below zero and applies a CSS class for negative values. Use the same approach to flag any value that meets a numeric condition, such as amounts over a threshold.
 
 ## Related articles
 
