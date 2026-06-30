@@ -317,6 +317,95 @@ test('does not merge or emit nested sub-bullets', () => {
   assert.equal(result[1].prNumber, 6000);
 });
 
+test('joins a bullet wrapped mid-sentence across physical lines', () => {
+  const md = [
+    '## 12.0.1',
+    'Released on November 18th, 2021',
+    '',
+    '#### Fixed',
+    '- Fixed an issue where checking or unchecking a checkbox in a row with',
+    '  [`autoRowSize: true`](@/api/options.md#autorowsize) and multi-line cell values caused rows to',
+    '  align incorrectly. [#7102](https://github.com/handsontable/handsontable/issues/7102)',
+  ].join('\n');
+
+  const result = parseChangelogContent(md);
+
+  assert.equal(result.length, 1);
+  assert.equal(
+    result[0].title,
+    'Fixed an issue where checking or unchecking a checkbox in a row with '
+      + '[`autoRowSize: true`](@/api/options.md#autorowsize) and multi-line cell values caused rows to '
+      + 'align incorrectly.',
+  );
+});
+
+test('recovers a PR link that sits on a wrapped continuation line', () => {
+  const md = [
+    '## 12.0.1',
+    'Released on November 18th, 2021',
+    '',
+    '#### Fixed',
+    '- Fixed an issue where checking or unchecking a checkbox changed the cell width.',
+    '  [#8211](https://github.com/handsontable/handsontable/issues/8211)',
+  ].join('\n');
+
+  const result = parseChangelogContent(md);
+
+  assert.equal(result.length, 1);
+  assert.equal(result[0].title, 'Fixed an issue where checking or unchecking a checkbox changed the cell width.');
+  assert.equal(result[0].prNumber, 8211);
+  assert.equal(result[0].prKind, 'issues');
+});
+
+test('keeps inline markdown from a wrapped bullet in the title', () => {
+  const md = [
+    '## 12.0.1',
+    'Released on November 18th, 2021',
+    '',
+    '#### Fixed',
+    '- Fixed an issue with',
+    '  [`autoRowSize: true`](@/api/options.md#autorowsize).',
+  ].join('\n');
+
+  const result = parseChangelogContent(md);
+
+  assert.equal(result.length, 1);
+  assert.equal(result[0].title, 'Fixed an issue with [`autoRowSize: true`](@/api/options.md#autorowsize).');
+});
+
+test('does not merge an indented line separated from the bullet by a blank line', () => {
+  const md = [
+    '## 12.0.1',
+    'Released on November 18th, 2021',
+    '',
+    '#### Fixed',
+    '- Fixed a standalone issue.',
+    '',
+    '  Some indented note that is not part of the bullet.',
+  ].join('\n');
+
+  const result = parseChangelogContent(md);
+
+  assert.equal(result.length, 1);
+  assert.equal(result[0].title, 'Fixed a standalone issue.');
+});
+
+test('the real v12.0.1 checkbox entry is no longer truncated (DEV-1958)', () => {
+  const result = parseAllChangelogs();
+  const entry = result.find(
+    (e) => e.version === '12.0.1'
+      && e.category === 'fixed'
+      && e.title.startsWith('Fixed an issue where checking or unchecking a checkbox in a row with'),
+  );
+
+  assert.ok(entry, 'expected the v12.0.1 checkbox/autoRowSize entry to be present');
+  assert.ok(
+    entry.title.includes('align incorrectly'),
+    `entry title is truncated: ${entry.title}`,
+  );
+  assert.equal(entry.prNumber, 7102);
+});
+
 test('parseAllChangelogs returns entries from every changelog-X file (v6..v17)', () => {
   const result = parseAllChangelogs();
   const majors = new Set(result.map((e) => Number(e.version.split('.')[0])));
