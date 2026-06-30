@@ -1939,7 +1939,7 @@ export const REGISTERED_HOOKS = [
    * @param {number} width Current column width.
    * @param {number} column Visual column index.
    * @param {string} [source] String that identifies source of hook call.
-   * @see {@link https://handsontable.com/docs/javascript-data-grid/column-width/ Column width}
+   * @see [Column width](@/guides/columns/column-width/column-width.md)
    * @example
    * ```js
    * // Cap the Product column at 100px when content would exceed 150px.
