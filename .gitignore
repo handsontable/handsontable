@@ -31,3 +31,4 @@ docs/.env
 /docs/*.png
 # Added by code-review-graph
 .code-review-graph/
+/package-lock.json
