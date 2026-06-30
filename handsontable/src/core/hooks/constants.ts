@@ -1939,6 +1939,16 @@ export const REGISTERED_HOOKS = [
    * @param {number} width Current column width.
    * @param {number} column Visual column index.
    * @param {string} [source] String that identifies source of hook call.
+   * @see [Column width](@/guides/columns/column-width/column-width.md)
+   * @example
+   * ```js
+   * // Cap the Product column at 100px when content would exceed 150px.
+   * modifyColWidth(width, column) {
+   *   if (column === 1 && width > 150) {
+   *     return 100;
+   *   }
+   * }
+   * ```
    */
   'modifyColWidth',
 
