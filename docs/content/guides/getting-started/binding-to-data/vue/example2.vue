@@ -16,7 +16,6 @@ const hotSettings = ref<GridSettings>({
     ['2021', 10, 11, 12, 13, 15, 16],
   ],
   colHeaders: true,
-  minSpareRows: 1,
   height: 'auto',
   width: 'auto',
   columns: [

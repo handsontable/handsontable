@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed filter menu components being wrongly hidden when dropdownMenu starts with a '---------' separator.",
-  "type": "fixed",
-  "issueOrPR": 12781,
-  "breaking": false,
-  "framework": "none"
-}

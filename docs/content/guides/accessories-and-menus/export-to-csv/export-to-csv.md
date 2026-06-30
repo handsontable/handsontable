@@ -16,7 +16,6 @@ vue:
   metaTitle: Export to CSV - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
-menuTag: updated
 ---
 Export your grid's raw data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
 
@@ -186,6 +185,10 @@ To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolea
 
 :::
 :::
+
+## Result
+
+After completing this guide, you can export grid data as a downloadable CSV file, a JavaScript Blob, or a string. You can customize delimiters, ranges, headers, and value sanitization through the export configuration.
 
 ## Available methods
 

@@ -26,7 +26,6 @@ vue:
   metaTitle: Row pagination - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
-menuTag: updated
 ---
 Split large data sets into pages to improve usability and rendering performance. Pagination operates fully on the client side and automatically recomputes the total page count whenever rows are added, removed, filtered, or otherwise modified.
 
@@ -465,6 +464,10 @@ When pagination is enabled:
 - The [`height`](@/api/options.md#height) option set as `auto` is not supported when the `pageSize: 'auto'` is set.
 - Pagination always displays a fixed number of rows per page (default is `10`), regardless of data changes such as hiding, trimming, filtering, removing, adding, or pasting rows - unless `pageSize: 'auto'` is set.
 
+## Result
+
+After completing this guide, your grid divides rows into pages with built-in navigation controls. You can configure the page size, customize the UI position, control pagination programmatically, and react to page changes using hooks.
+
 ## Related blog articles
 
 <div class="boxes-list gray">
@@ -508,10 +511,6 @@ When pagination is enabled:
 - [MergeCells](@/api/mergeCells.md)
 
 </div>
-
-## Result
-
-After completing this guide, your grid divides rows into pages with built-in navigation controls. You can configure the page size, customize the UI position, control pagination programmatically, and react to page changes using hooks.
 
 ## Troubleshooting
 

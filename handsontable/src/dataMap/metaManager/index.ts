@@ -190,6 +190,37 @@ export default class MetaManager {
   }
 
   /**
+   * Gets a cell meta object for read-only access without retaining it. When the cell already has a
+   * stored meta object (because it carries user-defined or declarative `cell` overrides) that object
+   * is returned; otherwise a transient object inheriting from the column layer is created and NOT
+   * stored. This avoids permanently materializing one cell meta object per scanned cell when iterating
+   * the whole dataset (for example, filtering), where the eager `getCellMeta` would otherwise grow the
+   * meta cache to O(rows × columns). The `afterGetCellMeta` extension is intentionally not run.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {object} options Options for the method.
+   * @param {number} options.visualRow The visual row index of the currently requested cell meta object.
+   * @param {number} options.visualColumn The visual column index of the currently requested cell meta object.
+   * @returns {object}
+   */
+  getCellMetaUncached(
+    physicalRow: number, physicalColumn: number,
+    options: { visualRow: number; visualColumn: number }
+  ) {
+    const cellMeta = this.cellMeta.hasMeta(physicalRow, physicalColumn)
+      ? this.cellMeta.getMeta(physicalRow, physicalColumn)
+      : this.cellMeta.createTransientMeta(physicalColumn);
+
+    cellMeta.visualRow = options.visualRow;
+    cellMeta.visualCol = options.visualColumn;
+    cellMeta.row = physicalRow;
+    cellMeta.col = physicalColumn;
+
+    return cellMeta;
+  }
+
+  /**
    * Gets a value (defined by the `key` property) from the cell meta object.
    *
    * @param {number} physicalRow The physical row index.
@@ -259,6 +290,32 @@ export default class MetaManager {
    */
   getCellsMetaAtRow(physicalRow: number) {
     return this.cellMeta.getMetasAtRow(physicalRow);
+  }
+
+  /**
+   * Returns a flat snapshot of all cell meta properties that were set imperatively through
+   * `setCellMeta` (for example, by the user or by the context menu), keyed by physical coordinates.
+   * Used to preserve user-defined meta across a `clearCache` call during `updateSettings`.
+   *
+   * @returns {{physicalRow: number, physicalColumn: number, key: string, value: *}[]}
+   */
+  getUserDefinedCellMetas() {
+    return this.cellMeta.getUserDefinedMetas();
+  }
+
+  /**
+   * Enables tracking of user-defined cell meta properties set through `setCellMeta`.
+   */
+  enableUserDefinedMetaRecording() {
+    this.cellMeta.enableUserDefinedMetaRecording();
+  }
+
+  /**
+   * Disables tracking of user-defined cell meta properties. Writes made while disabled are treated
+   * as declarative (for example, the `cell` option applied during `updateSettings`).
+   */
+  disableUserDefinedMetaRecording() {
+    this.cellMeta.disableUserDefinedMetaRecording();
   }
 
   /**

@@ -36,15 +36,36 @@ export function parseToLocalDate(value: unknown): Date | null {
 }
 
 /**
+ * Number of days in each month for a non-leap year, indexed by zero-based month.
+ */
+const DAYS_IN_MONTH = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+/**
+ * Checks if a year is a leap year in the proleptic Gregorian calendar.
+ */
+function isLeapYear(year: number): boolean {
+  return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+}
+
+/**
  * Checks if a string is a valid ISO 8601 date.
  */
 export function isValidISODate(value: unknown): value is string {
   if (typeof value !== 'string' || !ISO_DATE_REGEX.test(value)) {
     return false;
   }
-  const date = new Date(value);
 
-  return !Number.isNaN(date.getTime()) && value === date.toISOString().slice(0, 10);
+  // The regex guarantees the YYYY-MM-DD shape with month 01-12 and day 01-31. The only remaining
+  // check is the calendar bound: that the day fits the given month and year (e.g. rejecting 02-30,
+  // 04-31, or 02-29 in a non-leap year). Doing this arithmetically avoids constructing a Date and
+  // round-tripping through toISOString() for every cell, which dominated load time on large
+  // date-typed grids.
+  const year = +value.slice(0, 4);
+  const month = +value.slice(5, 7);
+  const day = +value.slice(8, 10);
+  const maxDay = month === 2 && isLeapYear(year) ? 29 : DAYS_IN_MONTH[month - 1];
+
+  return day <= maxDay;
 }
 
 /**

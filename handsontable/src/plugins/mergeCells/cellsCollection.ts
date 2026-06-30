@@ -696,6 +696,37 @@ class MergedCellsCollection {
   }
 
   /**
+   * Relocates a batch of merges in the coords->merge lookup matrix, applying each merge's new visual
+   * top-left. Used after re-anchoring to the visible rows on a trimming/sort change. Incremental
+   * alternative to a full rebuild — only the cells of the affected merges are touched. Runs in two
+   * phases (remove all, then re-add all) so merges that swap visual positions don't clobber each
+   * other's freshly written entries.
+   *
+   * @param {Array<{ mergedCell: MergedCellCoords, row: number, col: number }>} relocations The merges
+   * to move together with their new top-left visual `row`/`col`.
+   */
+  relocateInMatrix(relocations: { mergedCell: MergedCellCoords, row: number, col: number }[]) {
+    relocations.forEach(({ mergedCell }) => this.#removeMergedCellFromMatrix(mergedCell));
+
+    relocations.forEach(({ mergedCell, row, col }) => {
+      mergedCell.relocate(row, col);
+      this.#addMergedCellToMatrix(mergedCell);
+    });
+  }
+
+  /**
+   * Removes a batch of merges from the coords->merge lookup matrix without touching the
+   * `mergedCells` list. Used to purge merges whose whole visible span has been trimmed away, so their
+   * stale entries cannot resolve to a phantom merge once a different row surfaces at the same visual
+   * slot. The merges themselves are kept (their physical anchor lets them be re-added when visible).
+   *
+   * @param {Array<MergedCellCoords>} merges The merges to remove from the matrix.
+   */
+  removeFromMatrix(merges: MergedCellCoords[]) {
+    merges.forEach(mergedCell => this.#removeMergedCellFromMatrix(mergedCell));
+  }
+
+  /**
    * Removes a merged cell from the matrix.
    *
    * @param {MergedCellCoords} mergedCell The merged cell to remove.

@@ -1968,17 +1968,17 @@ describe('NestedHeaders', () => {
         expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
           <thead>
             <tr>
+              <th class="">PARENT</th>
               <th class="">A</th>
               <th class="">B</th>
-              <th class="">C</th>
               <th class="" colspan="2">PARENT</th>
               <th class="hiddenHeader"></th>
               <th class="">G</th>
             </tr>
             <tr>
+              <th class="">D</th>
               <th class="">A</th>
               <th class="">B</th>
-              <th class="">C</th>
               <th class="">E</th>
               <th class="">F</th>
               <th class="">G</th>
@@ -2017,17 +2017,17 @@ describe('NestedHeaders', () => {
         expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
           <thead>
             <tr>
+              <th class="">PARENT</th>
               <th class="">A</th>
               <th class="">B</th>
-              <th class="">C</th>
               <th class="" colspan="2">PARENT</th>
               <th class="hiddenHeader"></th>
               <th class="">G</th>
             </tr>
             <tr>
+              <th class="">D</th>
               <th class="">A</th>
               <th class="">B</th>
-              <th class="">C</th>
               <th class="">E</th>
               <th class="">F</th>
               <th class="">G</th>
@@ -2052,7 +2052,9 @@ describe('NestedHeaders', () => {
           data: createSpreadsheetData(2, 7),
           colHeaders: true,
           nestedHeaders: [
-            ['A', 'B', 'C', { label: 'PARENT', colspan: 3 }, 'G'],
+            // columnDropMode: 'split' opts into the split model (default is now cohesive: a moved-out column
+            // is released to standalone rather than tearing the group into banners).
+            ['A', 'B', 'C', { label: 'PARENT', colspan: 3, columnDropMode: 'split' }, 'G'],
             ['A', 'B', 'C', 'D', 'E', 'F', 'G'],
           ],
           manualColumnMove: true,
@@ -2067,17 +2069,17 @@ describe('NestedHeaders', () => {
         expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
           <thead>
             <tr>
+              <th class="">PARENT</th>
               <th class="">A</th>
               <th class="">B</th>
-              <th class="">C</th>
               <th class="" colspan="2">PARENT</th>
               <th class="hiddenHeader"></th>
               <th class="">G</th>
             </tr>
             <tr>
+              <th class="">D</th>
               <th class="">A</th>
               <th class="">B</th>
-              <th class="">C</th>
               <th class="">E</th>
               <th class="">F</th>
               <th class="">G</th>

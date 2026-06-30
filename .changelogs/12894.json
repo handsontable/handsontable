@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Improved vertical scrolling performance for grids with pinned bottom rows (`fixedRowsBottom`).",
+  "type": "changed",
+  "issueOrPR": 12894,
+  "breaking": false,
+  "framework": "none"
+}

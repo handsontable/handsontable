@@ -17,6 +17,7 @@ vue:
   metaTitle: Row headers - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
+menuTag: updated
 ---
 Use default row headers (1, 2, 3), or set them to custom values provided by an array or a function.
 
@@ -27,6 +28,100 @@ Use default row headers (1, 2, 3), or set them to custom values provided by an a
 Row headers are gray-colored columns that are used to label each row. By default, these headers are filled with numbers displayed in ascending order.
 
 To turn the headers on, set the option [`rowHeaders`](@/api/options.md#rowheaders) to `true`.
+
+## Row headers as an array
+
+An array of labels can be used to set the [`rowHeaders`](@/api/options.md#rowheaders) as shown in the example below:
+
+::: only-for javascript
+
+::: example #example2 --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-header/javascript/example2.js)
+@[code](@/content/guides/rows/row-header/javascript/example2.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example2 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-header/react/example2.jsx)
+@[code](@/content/guides/rows/row-header/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-header/angular/example2.ts)
+@[code](@/content/guides/rows/row-header/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/rows/row-header/vue/example2.vue)
+
+:::
+
+:::
+
+## Row headers as a function
+
+The [`rowHeaders`](@/api/options.md#rowheaders) can also be populated using a function as shown in the example below:
+
+::: only-for javascript
+
+::: example #example3 --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-header/javascript/example3.js)
+@[code](@/content/guides/rows/row-header/javascript/example3.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example3 :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/row-header/react/example3.jsx)
+@[code](@/content/guides/rows/row-header/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/rows/row-header/angular/example3.ts)
+@[code](@/content/guides/rows/row-header/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/rows/row-header/vue/example3.vue)
+
+:::
+
+:::
 
 ## Bind rows with headers
 

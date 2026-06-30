@@ -2,6 +2,7 @@ export interface PositionCacheConfig {
   totalItemsFn: () => number;
   sizeFn: (index: number) => number;
   defaultSizeFn: () => number;
+  isUniformFn?: () => boolean;
 }
 
 /**
@@ -47,6 +48,29 @@ export class PositionCache {
    * @type {Function}
    */
   readonly #defaultSizeFn: () => number;
+  /**
+   * Optional predicate. When it returns `true`, every item is guaranteed to have the same size,
+   * so the prefix sum array and the O(n) build loop are skipped and offsets are computed
+   * arithmetically. The predicate must be conservative: return `false` whenever any per-item
+   * size override may exist.
+   *
+   * @type {Function|undefined}
+   */
+  readonly #isUniformFn?: () => boolean;
+  /**
+   * The shared size used when the cache is in uniform mode. `null` when the cache is in
+   * prefix-sum mode (heterogeneous sizes) or not yet built.
+   *
+   * @type {number|null}
+   */
+  #uniformSize: number | null = null;
+  /**
+   * Whether the cache has been built in either mode (prefix-sum or uniform). Tracked separately
+   * from `prefixSum` because uniform mode keeps `prefixSum` as `null`.
+   *
+   * @type {boolean}
+   */
+  #built: boolean = false;
 
   /**
    * @param {object} config The configuration object.
@@ -54,16 +78,19 @@ export class PositionCache {
    * @param {Function} config.sizeFn A function that returns the size for a given index.
    * @param {Function} config.defaultSizeFn A function that returns the default size for items
    *   that return NaN/undefined.
+   * @param {Function} [config.isUniformFn] Optional predicate; when `true`, all items share one size.
    */
-  constructor({ totalItemsFn, sizeFn, defaultSizeFn }: PositionCacheConfig) {
+  constructor({ totalItemsFn, sizeFn, defaultSizeFn, isUniformFn }: PositionCacheConfig) {
     this.#totalItemsFn = totalItemsFn;
     this.#sizeFn = sizeFn;
     this.#defaultSizeFn = defaultSizeFn;
+    this.#isUniformFn = isUniformFn;
   }
 
   /**
    * Builds the prefix sum by reading the current total items, size function,
-   * and default size from the configured providers.
+   * and default size from the configured providers. When the optional uniform predicate
+   * reports that all items share one size, the array allocation and the O(n) loop are skipped.
    */
   build() {
     const totalItems = this.#totalItemsFn();
@@ -71,6 +98,21 @@ export class PositionCache {
     const defaultSize = this.#defaultSizeFn();
 
     this.totalItems = totalItems;
+    this.#built = true;
+
+    if (this.#isUniformFn?.()) {
+      // Sample the LAST item, never the first rendered one: `getDefaultRowHeight` adds a 1px
+      // border compensation to the first rendered visible row, so sampling index 0 at build time
+      // (scroll position 0) would propagate that +1 to every arithmetic offset.
+      const sampled = totalItems > 0 ? sizeFn(totalItems - 1) : NaN;
+
+      this.#uniformSize = isNaN(sampled) ? defaultSize : sampled;
+      this.prefixSum = null;
+
+      return;
+    }
+
+    this.#uniformSize = null;
     this.prefixSum = new Float64Array(totalItems + 1);
     this.prefixSum[0] = 0;
 
@@ -88,6 +130,14 @@ export class PositionCache {
    * @returns {number} The cumulative size before this index.
    */
   getOffset(index: number): number {
+    if (this.#uniformSize !== null) {
+      if (index <= 0) {
+        return 0;
+      }
+
+      return Math.min(index, this.totalItems) * this.#uniformSize;
+    }
+
     if (!this.prefixSum || index <= 0) {
       return 0;
     }
@@ -106,6 +156,14 @@ export class PositionCache {
    *   Returns `0` when there are no items (`totalItems === 0`), including when `offset > 0`.
    */
   findIndexAtOffset(offset: number): number {
+    if (this.#uniformSize !== null) {
+      if (offset <= 0 || this.totalItems === 0) {
+        return 0;
+      }
+
+      return Math.min(Math.floor(offset / this.#uniformSize), this.totalItems - 1);
+    }
+
     if (!this.isBuilt() || offset <= 0 || this.totalItems === 0) {
       return 0;
     }
@@ -134,7 +192,15 @@ export class PositionCache {
    * @returns {number} The size of the item (difference between consecutive prefix sums).
    */
   getSizeAt(index: number): number {
-    if (!this.prefixSum || index < 0 || index >= this.totalItems) {
+    if (index < 0 || index >= this.totalItems) {
+      return 0;
+    }
+
+    if (this.#uniformSize !== null) {
+      return this.#uniformSize;
+    }
+
+    if (!this.prefixSum) {
       return 0;
     }
 
@@ -146,7 +212,7 @@ export class PositionCache {
    * count has changed.
    */
   ensureBuilt() {
-    if (!this.isBuilt() || this.totalItems !== this.#totalItemsFn()) {
+    if (!this.#built || this.totalItems !== this.#totalItemsFn()) {
       this.build();
     }
   }
@@ -157,6 +223,10 @@ export class PositionCache {
    * @returns {number}
    */
   getTotalSize() {
+    if (this.#uniformSize !== null) {
+      return this.totalItems * this.#uniformSize;
+    }
+
     if (!this.prefixSum) {
       return 0;
     }
@@ -170,11 +240,14 @@ export class PositionCache {
    */
   invalidate() {
     this.prefixSum = null;
+    this.#uniformSize = null;
+    this.#built = false;
     this.totalItems = 0;
   }
 
   /**
-   * Returns whether the cache has been built.
+   * Returns whether the cache holds a prefix-sum array (heterogeneous mode). Uniform mode keeps
+   * `prefixSum` as `null`, so this is `false` there; use it only as the prefix-sum type guard.
    *
    * @returns {boolean}
    */

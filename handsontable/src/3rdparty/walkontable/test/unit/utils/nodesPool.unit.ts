@@ -28,34 +28,21 @@ describe('NodesPool', () => {
       expect(nodePool.obtain(1, 2).tagName).toBe('DIV');
     });
 
-    it('should return element from cache (the one argument as a key)', () => {
+    it('should always create a fresh element (no caching)', () => {
       const nodePool = new NodesPool('div');
       const rootDocument = document;
 
       nodePool.setRootDocument(rootDocument);
 
       spyOn(document, 'createElement').and.callThrough();
-      nodePool.obtain(2);
-      nodePool.obtain(2);
-      nodePool.obtain(2);
+      const a = nodePool.obtain();
+      const b = nodePool.obtain();
+      const c = nodePool.obtain();
 
-      expect(document.createElement).toBeCalledTimes(1);
-      expect(nodePool.obtain(2).tagName).toBe('DIV');
-    });
-
-    it('should return element from cache (the two arguments as a key)', () => {
-      const nodePool = new NodesPool('div');
-      const rootDocument = document;
-
-      nodePool.setRootDocument(rootDocument);
-
-      spyOn(document, 'createElement').and.callThrough();
-      nodePool.obtain(1, 2);
-      nodePool.obtain(1, 2);
-      nodePool.obtain(1, 2);
-
-      expect(document.createElement).toBeCalledTimes(1);
-      expect(nodePool.obtain(1, 2).tagName).toBe('DIV');
+      expect(document.createElement).toBeCalledTimes(3);
+      expect(a).not.toBe(b);
+      expect(b).not.toBe(c);
+      expect(a.tagName).toBe('DIV');
     });
   });
 });

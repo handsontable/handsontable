@@ -15,6 +15,7 @@ vue:
   metaTitle: Bundle size - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Optimization
+menuTag: updated
 ---
 Reduce the size of your JavaScript bundle by getting rid of redundant Handsontable modules.
 

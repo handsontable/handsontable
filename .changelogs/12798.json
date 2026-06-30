@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed clears stale cell meta after a merge is removed (unmerge)",
+  "type": "fixed",
+  "issueOrPR": 12798,
+  "breaking": false,
+  "framework": "none"
+}

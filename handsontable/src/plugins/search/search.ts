@@ -21,7 +21,28 @@ export const PLUGIN_PRIORITY = 190;
 const DEFAULT_SEARCH_RESULT_CLASS = 'htSearchResult';
 
 const DEFAULT_CALLBACK = function(instance: HotInstance, row: number, col: number, data: unknown, testResult: boolean) {
-  instance.getCellMeta(row, col).isSearchResult = testResult;
+  const cellMeta = instance.getCellMeta(row, col);
+
+  cellMeta.isSearchResult = testResult;
+
+  // `isSearchResult` is written directly here, not through `setMeta`, so on its own it would be dropped
+  // when the cell is evicted from the viewport (and the highlight lost after scrolling away and back).
+  // Record it in `_persistedMetaProps` for matches so the viewport meta eviction keeps the cell; it
+  // then also shifts with the data on row/column insert/remove, exactly like the meta object itself.
+  // Non-matches are removed from the set so they stay evictable. It is intentionally NOT recorded as
+  // user-defined, so an `updateSettings` cache reset clears it - the next `query()` re-applies it.
+  let persistedMetaProps = cellMeta._persistedMetaProps as Set<string> | undefined;
+
+  if (testResult) {
+    if (persistedMetaProps === undefined) {
+      persistedMetaProps = new Set();
+      cellMeta._persistedMetaProps = persistedMetaProps;
+    }
+
+    persistedMetaProps.add('isSearchResult');
+  } else {
+    persistedMetaProps?.delete('isSearchResult');
+  }
 };
 
 const DEFAULT_QUERY_METHOD = function(query: string, value: unknown, cellProperties: Record<string, unknown>) {
@@ -314,7 +335,12 @@ export class Search extends BasePlugin {
       classArray.push(...className);
     }
 
-    if (this.isEnabled() && cellProperties.isSearchResult) {
+    // `isSearchResult` is recorded in `_persistedMetaProps` for matches (see the default callback), so
+    // it survives viewport meta eviction and shifts with the cell on row/column changes - reading it
+    // here is enough; no separate match-coordinate set is needed.
+    const isSearchResult = cellProperties.isSearchResult;
+
+    if (this.isEnabled() && isSearchResult) {
       if (!classArray.includes(this.searchResultClass)) {
         classArray.push(`${this.searchResultClass}`);
       }

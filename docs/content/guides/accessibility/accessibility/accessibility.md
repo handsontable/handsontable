@@ -287,6 +287,10 @@ We make sure our data grid remains accessible by taking the following measures:
 - Dynamic ARIA attributes are sometimes omitted by screen readers.
 - The `aria-rowcount` attribute is intentionally set to `-1`, as most screen readers either ignore or misinterpret it. This configuration ensures accuracy with screen readers such as VoiceOver. We plan to revise this approach once screen readers consistently handle the `aria-rowcount` attribute correctly.
 
+## Result
+
+Your grid now supports keyboard navigation, screen reader announcements, and ARIA attributes for all major interactive elements.
+
 ## API reference
 
 For the list of [options](@/guides/getting-started/configuration-options/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to accessibility, see the following API reference pages:
@@ -329,7 +333,3 @@ Didn't find what you need? Try this:
 - [Contact our technical support](https://handsontable.com/contact?category=technical_support) to get help
 
 </div>
-
-## Result
-
-Your grid now supports keyboard navigation, screen reader announcements, and ARIA attributes for all major interactive elements.

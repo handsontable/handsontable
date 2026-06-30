@@ -1,4 +1,4 @@
-import { PhysicalIndexToValueMap } from './physicalIndexToValueMap';
+import { BooleanMap } from './booleanMap';
 import { arrayReduce } from '../../helpers/array';
 
 /**
@@ -7,7 +7,7 @@ import { arrayReduce } from '../../helpers/array';
  *
  * @class HidingMap
  */
-export class HidingMap extends PhysicalIndexToValueMap {
+export class HidingMap extends BooleanMap {
   /**
    * Initializes the hiding map with an optional default value, defaulting to `false` (not hidden).
    */

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed the middle mouse button (scroll wheel) not starting the browser's native autoscroll when clicked over the grid on Windows and Linux.",
-  "type": "fixed",
-  "issueOrPR": 12754,
-  "breaking": false,
-  "framework": "none"
-}

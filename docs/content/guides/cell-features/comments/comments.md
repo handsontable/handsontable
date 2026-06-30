@@ -31,8 +31,8 @@ Set the [`comments`](@/api/options.md#comments) configuration option to `true` t
 ```js
 const hot = new Handsontable(container, {
   data: [
-    ['A1', 'B1', 'C1'],
-    ['A2', 'B2', 'C2'],
+    ['Update API docs', 'Ana García', 'In progress'],
+    ['Deploy hotfix', 'James Okafor', 'Blocked'],
   ],
   comments: true,
   autoWrapRow: true,
@@ -47,8 +47,8 @@ const hot = new Handsontable(container, {
 ```jsx
 <HotTable
   data={[
-    ['A1', 'B1', 'C1'],
-    ['A2', 'B2', 'C2'],
+    ['Update API docs', 'Ana García', 'In progress'],
+    ['Deploy hotfix', 'James Okafor', 'Blocked'],
   ]}
   comments={true}
 />
@@ -60,8 +60,8 @@ const hot = new Handsontable(container, {
 
 ```ts
 data = [
-  ["A1", "B1", "C1"],
-  ["A2", "B2", "C2"],
+  ["Update API docs", "Ana García", "In progress"],
+  ["Deploy hotfix", "James Okafor", "Blocked"],
 ];
 settings = {
   comments: true,
@@ -79,8 +79,8 @@ settings = {
 ```js
 const hotSettings = {
   data: [
-    ['A1', 'B1', 'C1'],
-    ['A2', 'B2', 'C2'],
+    ['Update API docs', 'Ana García', 'In progress'],
+    ['Deploy hotfix', 'James Okafor', 'Blocked'],
   ],
   comments: true,
   autoWrapRow: true,
@@ -333,6 +333,10 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 
 :::
 
+## Result
+
+Cells with comments display a small indicator in the corner. Users can view, edit, or delete comments through the context menu, and pre-configured comments appear when the table loads.
+
 ## Related keyboard shortcuts
 
 | Windows                                                 | macOS                                                      | Action                                  |  Excel  | Sheets  |
@@ -351,7 +355,3 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 - [comments](@/api/options.md#comments)
 
 </div>
-
-## Result
-
-Cells with comments display a small indicator in the corner. Users can view, edit, or delete comments through the context menu, and pre-configured comments appear when the table loads.

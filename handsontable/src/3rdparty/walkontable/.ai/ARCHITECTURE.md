@@ -69,7 +69,7 @@ Only the visible cells plus the buffer are rendered. Hidden rows/columns are exc
 The `renderer/` submodule builds and updates the DOM for one table at a time (master or an overlay clone).
 
 - `renderer/table.ts` orchestrates the per-axis renderers: `rows.ts`, `cells.ts`, `colGroup.ts`, `columnHeaders.ts`, `columnHeaderRows.ts`, `rowHeaders.ts` (shared base in `renderer/_base.ts`).
-- **DOM nodes are reused, not recreated.** As the viewport scrolls, existing `<tr>`/`<td>`/`<th>` elements are repositioned and refilled rather than torn down and rebuilt. This keeps allocation and layout work bounded regardless of dataset size.
+- **DOM nodes are reused in place via a fixed, viewport-sized grid.** `OrderView` (`utils/orderView/view.ts`) keeps exactly `viewSize` children in the root node, growing or shrinking that count to match the viewport. On each render the existing `<tr>`/`<td>`/`<th>` children are kept in position and their content is overwritten by the cell renderer — scrolled-away rows/columns are refilled with the new content, not torn down or moved. Nodes are **not** cached by source coordinate, so memory is bounded to the viewport regardless of dataset size. (A previous diffing renderer — `ViewDiffer` plus a renderer-adapter strategy — and a coordinate-keyed `NodesPool` cache were removed in favor of this direct-DOM approach; the cache grew O(rows × cols) and could exhaust memory on large datasets. `NodesPool` remains only as a thin element factory.)
 - Walkontable calls the cell renderer functions supplied via settings (core's renderer registry) for each visible cell; it does not own renderer logic.
 
 ## Scroll Handling

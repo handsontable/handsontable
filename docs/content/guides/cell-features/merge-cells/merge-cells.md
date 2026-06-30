@@ -13,6 +13,7 @@ vue:
   metaTitle: Merge cells - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
+menuTag: updated
 ---
 Merge adjacent cells, using the <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> shortcut or the context menu. Control merged cells, using Handsontable's API.
 
@@ -200,6 +201,23 @@ The example below uses virtualized merged cells. It's also recommended to increa
 
 :::
 
+## Effect on viewport getter methods
+
+With merged cells, the rendered range extends to fit any merged cell that crosses the viewport edge. This is the same expansion that the `virtualized` option turns off. As a result, the rendered-range getters can return indexes beyond what you see on the screen:
+
+- [`getFirstRenderedVisibleRow()`](@/api/core.md#getfirstrenderedvisiblerow), [`getLastRenderedVisibleRow()`](@/api/core.md#getlastrenderedvisiblerow), [`getFirstRenderedVisibleColumn()`](@/api/core.md#getfirstrenderedvisiblecolumn), and [`getLastRenderedVisibleColumn()`](@/api/core.md#getlastrenderedvisiblecolumn).
+- [`AutoRowSize.getFirstVisibleRow()`](@/api/autoRowSize.md#getfirstvisiblerow) and [`AutoRowSize.getLastVisibleRow()`](@/api/autoRowSize.md#getlastvisiblerow), which delegate to the rendered-row getters.
+- [`AutoColumnSize.getFirstVisibleColumn()`](@/api/autoColumnSize.md#getfirstvisiblecolumn) and [`AutoColumnSize.getLastVisibleColumn()`](@/api/autoColumnSize.md#getlastvisiblecolumn), which delegate to the rendered-column getters.
+
+For example, a merged cell that spans columns 0 to 100 makes `getLastVisibleColumn()` return an index near 100, even when the viewport shows far fewer columns.
+
+To read the actual visible viewport, use the fully-visible or partially-visible getters, which ignore the merge-cell expansion:
+
+- [`getFirstFullyVisibleRow()`](@/api/core.md#getfirstfullyvisiblerow), [`getLastFullyVisibleRow()`](@/api/core.md#getlastfullyvisiblerow), [`getFirstFullyVisibleColumn()`](@/api/core.md#getfirstfullyvisiblecolumn), and [`getLastFullyVisibleColumn()`](@/api/core.md#getlastfullyvisiblecolumn).
+- [`getFirstPartiallyVisibleRow()`](@/api/core.md#getfirstpartiallyvisiblerow), [`getLastPartiallyVisibleRow()`](@/api/core.md#getlastpartiallyvisiblerow), [`getFirstPartiallyVisibleColumn()`](@/api/core.md#getfirstpartiallyvisiblecolumn), and [`getLastPartiallyVisibleColumn()`](@/api/core.md#getlastpartiallyvisiblecolumn).
+
+Setting `virtualized` to `true` also removes the range expansion, but it is a performance option -- the rendered-range getters still include buffered rows and columns outside the viewport.
+
 ## Behavior during row/column reorder and column freeze
 
 When a merged cell's underlying rows or columns are reordered (through [`manualColumnMove`](@/api/options.md#manualcolumnmove), [`manualRowMove`](@/api/options.md#manualrowmove), or [`manualColumnFreeze`](@/api/options.md#manualcolumnfreeze)), Handsontable follows the merge to the new visual position. Two side effects can occur:
@@ -208,6 +226,10 @@ When a merged cell's underlying rows or columns are reordered (through [`manualC
 - **Silent drop of single-cell fragments**: any resulting fragment that ends up as a single cell (`rowspan === 1 && colspan === 1`) is removed, because a single cell is no longer a merge. The [`afterMergeCells`](@/api/hooks.md#aftermergecells) hook is not fired for the dropped fragment.
 
 [`undo`](@/api/options.md#undo) and [`redo`](@/api/options.md#redo) restore the pre-move state, including any merges that were split or dropped by the reorder.
+
+## Result
+
+Cells at the configured positions are now merged. Users see a single cell spanning multiple rows or columns.
 
 ## Related keyboard shortcuts
 
@@ -247,7 +269,3 @@ When a merged cell's underlying rows or columns are reordered (through [`manualC
 - [MergeCells](@/api/mergeCells.md)
 
 </div>
-
-## Result
-
-Cells at the configured positions are now merged. Users see a single cell spanning multiple rows or columns.

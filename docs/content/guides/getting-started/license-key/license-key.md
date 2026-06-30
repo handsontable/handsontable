@@ -240,6 +240,10 @@ _The license key for Handsontable expired on `[expiration_date]`, and is not val
 
 To get a commercial license key for your Handsontable copy, contact our [Sales Team](https://handsontable.com/get-a-quote).
 
+## Result
+
+Your grid is now licensed. A valid commercial key removes the license notice from the grid header.
+
 ## Related articles
 
 ### Related guides
@@ -258,7 +262,3 @@ To get a commercial license key for your Handsontable copy, contact our [Sales T
   - [`licenseKey`](@/api/options.md#licensekey)
 
 </div>
-
-## Result
-
-Your grid is now licensed. A valid commercial key removes the license notice from the grid header.

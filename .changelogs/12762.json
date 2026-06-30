@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Improved the performance of locale-aware text comparisons (search, filtering, sorting, autocomplete, and checkbox rendering) on large datasets.",
-  "type": "fixed",
-  "issueOrPR": 12762,
-  "breaking": false,
-  "framework": "none"
-}

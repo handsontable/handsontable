@@ -18,7 +18,6 @@ const ExampleComponent: FC = () => (
   <HotTable
     data={data}
     colHeaders={true}
-    minSpareRows={1}
     height="auto"
     width="auto"
     columns={[

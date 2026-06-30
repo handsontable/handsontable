@@ -35,6 +35,18 @@ import {
 } from './helpers/a11y';
 
 /**
+ * Checks whether a size setting (`rowHeights`, `minRowHeights`, or `colWidths`) guarantees a uniform
+ * size for every item. Only a plain number (or unset) is uniform; an array or function defines
+ * per-item sizes, and a string is treated conservatively as non-uniform.
+ *
+ * @param {unknown} value The size setting value.
+ * @returns {boolean}
+ */
+function isUniformSizeSetting(value: unknown): boolean {
+  return value === undefined || value === null || typeof value === 'number';
+}
+
+/**
  * @class TableView
  * @private
  */
@@ -870,6 +882,16 @@ class TableView {
 
         return this.hot.runHooks('modifyRowHeightByOverlayName',
           this.hot.getRowHeight(visualRowIndex), visualRowIndex, overlayType);
+      },
+      rowHeightsUniform: () => {
+        const { rowHeights, minRowHeights } = this.hot.getSettings();
+
+        return isUniformSizeSetting(rowHeights) && isUniformSizeSetting(minRowHeights) &&
+          !this.hot.hasHook('modifyRowHeight');
+      },
+      columnWidthsUniform: () => {
+        return isUniformSizeSetting(this.hot.getSettings().colWidths) &&
+          !this.hot.hasHook('modifyColWidth');
       },
       cellRenderer: (renderedRowIndex: number, renderedColumnIndex: number, TD: HTMLTableCellElement) => {
         const [visualRowIndex, visualColumnIndex] = this

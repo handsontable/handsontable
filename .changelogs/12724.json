@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed private `indexSyncer` module leaking through the package exports wildcard pattern.",
-  "type": "fixed",
-  "issueOrPR": 12724,
-  "breaking": false,
-  "framework": "none"
-}

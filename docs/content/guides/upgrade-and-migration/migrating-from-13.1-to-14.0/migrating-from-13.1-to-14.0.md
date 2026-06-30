@@ -8,10 +8,8 @@ permalink: /migration-from-13.1-to-14.0
 canonicalUrl: /migration-from-13.1-to-14.0
 pageClass: migration-guide
 react:
-  id: migrating-13.1-to-14.0-react
   metaTitle: Migrate from 13.1 to 14.0 - React Data Grid | Handsontable
 angular:
-  id: rxlauyd8-13.1-to-14.0-react
   metaTitle: Migrate from 13.1 to 14.0 - Angular Data Grid | Handsontable
 vue:
   metaTitle: Migrate from 13.1 to 14.0 - Vue Data Grid | Handsontable

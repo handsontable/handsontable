@@ -37,7 +37,6 @@ new Handsontable(container, {
         return {};
     }
   },
-  minSpareRows: 1,
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed sort order for date and intl-date cell type values in the \"Filter by value\" dropdown.",
-  "type": "fixed",
-  "issueOrPR": 12471,
-  "breaking": false,
-  "framework": "none"
-}

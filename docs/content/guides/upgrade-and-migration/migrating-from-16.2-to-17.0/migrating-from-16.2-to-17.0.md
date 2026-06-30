@@ -1164,12 +1164,12 @@ See the [Formula calculation](@/guides/formulas/formula-calculation/formula-calc
 | `core-js` dependency removed                      | Add `core-js` or other polyfills in your app if you support older environments |
 | Built-in HyperFormula (deprecation)               | In 18.0, import HyperFormula yourself and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'` |
 
+## Result
+
+Your application now runs on Handsontable 17.0.
+
 ## Related resources
 
 - [Themes](@/guides/styling/themes/themes.md) - Learn about the theming system
 - [Theme Customization](@/guides/styling/theme-customization/theme-customization.md) - Customize themes with CSS variables
 - [Legacy Style](@/guides/styling/legacy-style/legacy-style.md) - Information about the legacy style deprecation
-
-## Result
-
-Your application now runs on Handsontable 17.0.

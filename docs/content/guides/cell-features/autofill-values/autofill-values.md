@@ -21,6 +21,7 @@ vue:
   metaTitle: Autofill values - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
+menuTag: updated
 ---
 Copy a cell's value into multiple other cells, using the "fill handle" UI element. Configure the direction of copying, and more, through Handsontable's API.
 
@@ -30,7 +31,20 @@ Autofill lets users drag the fill handle to copy or extend values across adjacen
 
 ## Autofill in all directions
 
-Using the tiny square known as the 'fill handle' in the corner of the selected cell, you can drag it (drag-down) to repeat the values from the cell. Double click the fill handle in `cell B4` where the value is `30` to fill the selection down to the last value in neighboring column, just like it would in Excel or Google Sheets.
+Using the tiny square known as the 'fill handle' in the corner of the selected cell, you can drag it to repeat or extend values across adjacent cells.
+
+You can also **double-click the fill handle** to autofill downward without dragging. Double-click the fill handle in `cell B4` where the value is `30` to see this in action.
+
+### How double-click autofill determines the range
+
+Handsontable scans the rows below your selection and fills down to the last row where the column immediately to the left or right of your selection contains a value. In the example below, the year column (column A) acts as the guide -- rows 2020 and 2021 have values there, so the fill extends through both rows.
+
+Two conditions must be met for the fill to happen:
+
+- **All cells below the selection in the filled column(s) must be empty.** If any cell below the selection in those columns contains data, double-clicking does nothing.
+- At least one column adjacent to your selection must have data in the rows below.
+
+**Visual difference from drag-fill:** When you drag the fill handle, a preview border shows the target range as you drag. When you double-click, no drag-preview appears -- the cells populate immediately based on the adjacent column data.
 
 ::: only-for javascript
 
@@ -122,6 +136,10 @@ In this configuration, the fill handle is restricted to move only vertically. Ne
 
 :::
 
+## Result
+
+The fill handle appears on the selected cell. Dragging it copies or extends values into adjacent cells in the configured direction.
+
 ## Related API reference
 
 **Configuration options**
@@ -149,7 +167,3 @@ In this configuration, the fill handle is restricted to move only vertically. Ne
 - [Autofill](@/api/autofill.md)
 
 </div>
-
-## Result
-
-The fill handle appears on the selected cell. Dragging it copies or extends values into adjacent cells in the configured direction.

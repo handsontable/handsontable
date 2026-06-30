@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed `nestedHeaders` overriding `colWidths` with measured header label widths when `autoColumnSize` is explicitly disabled",
-  "type": "fixed",
-  "issueOrPR": 12465,
-  "breaking": false,
-  "framework": "none"
-}

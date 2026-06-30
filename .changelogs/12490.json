@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed option `dragToScroll`",
-  "type": "fixed",
-  "issueOrPR": 12490,
-  "breaking": false,
-  "framework": "none"
-}

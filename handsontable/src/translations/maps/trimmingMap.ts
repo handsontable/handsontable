@@ -1,4 +1,4 @@
-import { PhysicalIndexToValueMap } from './physicalIndexToValueMap';
+import { BooleanMap } from './booleanMap';
 import { arrayReduce } from '../../helpers/array';
 
 /**
@@ -7,7 +7,7 @@ import { arrayReduce } from '../../helpers/array';
  *
  * @class TrimmingMap
  */
-export class TrimmingMap extends PhysicalIndexToValueMap {
+export class TrimmingMap extends BooleanMap {
   /**
    * Initializes the trimming map with an optional default value, defaulting to `false` (not trimmed).
    */

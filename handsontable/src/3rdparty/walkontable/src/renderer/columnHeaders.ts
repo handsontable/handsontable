@@ -32,12 +32,6 @@ export class ColumnHeadersRenderer extends BaseRenderer {
    * @type {WeakMap}
    */
   orderViews = new WeakMap<HTMLElement, OrderView>();
-  /**
-   * Row index which specifies the row position of the processed column header.
-   *
-   * @type {number}
-   */
-  sourceRowIndex: number = 0;
 
   /**
    * Creates a new ColumnHeadersRenderer instance.
@@ -56,7 +50,7 @@ export class ColumnHeadersRenderer extends BaseRenderer {
     if (!this.orderViews.has(rootNode)) {
       this.orderViews.set(rootNode, new OrderView(
         rootNode,
-        (sourceColumnIndex?: number) => this.nodesPool!.obtain(this.sourceRowIndex, sourceColumnIndex) as HTMLElement,
+        () => this.nodesPool!.obtain() as HTMLElement,
         this.nodeType!,
       ));
     }
@@ -79,8 +73,6 @@ export class ColumnHeadersRenderer extends BaseRenderer {
       if (!TR) {
         continue; // eslint-disable-line no-continue
       }
-
-      this.sourceRowIndex = visibleRowIndex;
 
       const orderView = this.obtainOrderView(TR);
 

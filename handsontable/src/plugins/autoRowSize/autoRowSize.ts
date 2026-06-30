@@ -40,17 +40,32 @@ const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
  *
  * // as a string (percent)
  * autoRowSize: {syncLimit: '40%'},
- *
- * // allow sample duplication
- * autoRowSize: {syncLimit: '40%', allowSampleDuplicates: true},
  * ```
  *
- * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
- * height. __Note__, that this might have a negative impact on performance.
+ * To speed up the calculations, the plugin samples a subset of rows rather than measuring every row. By default, it
+ * skips rows whose value it has already sampled, on the assumption that identical values render at the same height.
+ * Set the `allowSampleDuplicates` option to `true` to sample duplicate values as well:
+ *
+ * ```js
+ * autoRowSize: {allowSampleDuplicates: true},
+ * ```
+ *
+ * Enable this option when rows with the same value can still render at different heights - for example, with multiline
+ * text, or with custom renderers that vary a row's height based on its position or other data. Without it, the plugin
+ * may sample only one of those rows and apply its height to the rest, leading to incorrect row heights.
+ *
+ * The tradeoff is performance: allowing duplicates increases the number of rows measured, which lengthens the
+ * calculation and can block the UI for longer on large data sets.
  *
  * ::: tip
  * Note: Updating some of the table's settings can cause the row heights to change (e.g. `wordWrap`, `textEllipsis`, renderers etc.).
  * In those cases, to ensure that the row heights are properly recalculated, you need to call the {@link AutoRowSize#recalculateAllRowsHeight} method after calling {@link Core#updateSettings}.
+ * :::
+ *
+ * ::: tip
+ * If you use custom renderers, multiline text, or custom styles that produce non-standard row heights, and you call
+ * {@link Core#scrollViewportTo}, you must enable `AutoRowSize`. Without it, `scrollViewportTo()` calculates scroll
+ * positions based on the default row height and may scroll to an incorrect position.
  * :::
  *
  * To configure this plugin see {@link Options#autoRowSize}.
@@ -620,6 +635,11 @@ export class AutoRowSize extends BasePlugin {
   /**
    * Get the first visible row.
    *
+   * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
+   * cell that crosses the viewport edge extends the rendered row range. In that case this method can
+   * return a row index outside the strictly visible viewport. To read the actual visible viewport, use
+   * {@link Core#getFirstFullyVisibleRow} or {@link Core#getFirstPartiallyVisibleRow}.
+   *
    * @returns {number} Returns row index, -1 if table is not rendered or if there are no rows to base the the calculations on.
    */
   getFirstVisibleRow(): number {
@@ -628,6 +648,11 @@ export class AutoRowSize extends BasePlugin {
 
   /**
    * Gets the last visible row.
+   *
+   * When the {@link MergeCells} plugin is enabled with its default `virtualized: false` setting, a merged
+   * cell that crosses the viewport edge extends the rendered row range. In that case this method can
+   * return a row index outside the strictly visible viewport. To read the actual visible viewport, use
+   * {@link Core#getLastFullyVisibleRow} or {@link Core#getLastPartiallyVisibleRow}.
    *
    * @returns {number} Returns row index or -1 if table is not rendered.
    */

@@ -133,6 +133,29 @@ export default (): Record<string, unknown> => {
     _automaticallyAssignedMetaProps: undefined,
 
     /**
+     * Information on which of the cell meta properties were set imperatively through `setCellMeta`
+     * (for example, by the user or by the context menu). These properties are preserved across
+     * `updateSettings` calls, unlike the properties applied from the declarative `cell` option.
+     *
+     * @private
+     * @type {Set}
+     * @default undefined
+     */
+    _userDefinedMetaProps: undefined,
+
+    /**
+     * Information on which cell meta properties were set through `setCellMeta` - both imperatively
+     * (user, context menu) and declaratively (the `cell` option). Unlike values derived on demand by
+     * `getCellMeta` (the cascade, the `cells` function, `type` expansion), these are not rebuilt on
+     * access, so the viewport-eviction pass keeps any cell whose set is non-empty.
+     *
+     * @private
+     * @type {Set}
+     * @default undefined
+     */
+    _persistedMetaProps: undefined,
+
+    /**
      * The `activeHeaderClassName` option lets you add a CSS class name
      * to every currently-active, currently-selected header (when a whole column or row is selected).
      *
@@ -281,6 +304,9 @@ export default (): Record<string, unknown> => {
      * - **Insert row above**
      * - **Insert row below**
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {boolean}
      * @default true
@@ -357,6 +383,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Context menu](@/guides/accessories-and-menus/context-menu/context-menu.md)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {boolean}
      * @default true
@@ -413,6 +442,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Plugins: `AutoColumnSize`](@/api/autoColumnSize.md)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {object|boolean}
      * @default undefined
@@ -449,14 +481,18 @@ export default (): Record<string, unknown> => {
      *
      * If you set the `autoRowSize` option to an object, you can set the following [`AutoRowSize`](@/api/autoRowSize.md) plugin options:
      *
-     * | Property    | Possible values                 | Description                                                       |
-     * | ----------- | ------------------------------- | ----------------------------------------------------------------- |
-     * | `syncLimit` | A number \| A percentage string | The number/percentage of rows to keep in sync<br>(default: `500`) |
+     * | Property                | Possible values                 | Description                                                                                                |
+     * | ----------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+     * | `syncLimit`             | A number \| A percentage string | The number/percentage of rows to keep in sync<br>(default: `500`)                                          |
+     * | `allowSampleDuplicates` | `true` \| `false`               | When calculating row heights:<br>`true`: Allow duplicate samples<br>`false`: Don't allow duplicate samples |
      *
      * Using the [`rowHeights`](#rowHeights) option forcibly disables the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
      *
      * Read more:
      * - [Plugins: `AutoRowSize`](@/api/autoRowSize.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {object|boolean}
@@ -467,7 +503,9 @@ export default (): Record<string, unknown> => {
      * ```js
      * autoRowSize: {
      *   // keep 40% of rows in sync (the rest of rows: async)
-     *   syncLimit: '40%'
+     *   syncLimit: '40%',
+     *   // when calculating row heights, allow duplicate samples
+     *   allowSampleDuplicates: true
      * },
      * ```
      */
@@ -478,6 +516,9 @@ export default (): Record<string, unknown> => {
      * | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
      * | `false` (default) | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> doesn't do anything.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> doesn't do anything.                                                                    |
      * | `true`            | When you select a bottom-most cell, pressing <kbd>**↓**</kbd> takes you to the top-most cell of the next column.<br><br>When you select a top-most cell, pressing <kbd>**↑**</kbd> takes you to the bottom-most cell of the previous column. |
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
@@ -505,6 +546,9 @@ export default (): Record<string, unknown> => {
      *
      * \* The exact key depends on your [`layoutDirection`](#layoutdirection) configuration.<br>
      * \*\* Unless [`tabNavigation`](#tabnavigation) is set to `false`.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
@@ -567,6 +611,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Configuration options: Setting cell options](@/guides/getting-started/configuration-options/configuration-options.md#set-cell-options)
      * - [`columns`](#columns)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {Array[]}
@@ -686,14 +733,14 @@ export default (): Record<string, unknown> => {
     checkedTemplate: undefined,
 
     /**
-     * The `className` option lets you add CSS class names to every currently-selected element.
+     * The `className` option lets you add CSS class names to every cell that has this option set.
      *
      * You can set the `className` option to one of the following:
      *
-     * | Setting             | Description                                                      |
-     * | ------------------- | ---------------------------------------------------------------- |
-     * | A string            | Add a single CSS class name to every currently-selected element  |
-     * | An array of strings | Add multiple CSS class names to every currently-selected element |
+     * | Setting             | Description                                         |
+     * | ------------------- | --------------------------------------------------- |
+     * | A string            | Add a single CSS class name to every matching cell  |
+     * | An array of strings | Add multiple CSS class names to every matching cell |
      *
      * ::: tip
      * Don't change the `className` metadata of the [column summary](@/guides/columns/column-summary/column-summary.md) row.
@@ -722,12 +769,10 @@ export default (): Record<string, unknown> => {
      *
      * @example
      * ```js
-     * // add a `your-class-name` CSS class name
-     * // to every currently-selected element
+     * // add a `your-class-name` CSS class name to every cell
      * className: 'your-class-name',
      *
-     * // add `first-class-name` and `second-class-name` CSS class names
-     * // to every currently-selected element
+     * // add `first-class-name` and `second-class-name` CSS class names to every cell
      * className: ['first-class-name', 'second-class-name'],
      * ```
      */
@@ -745,8 +790,14 @@ export default (): Record<string, unknown> => {
      * | An array | Define your own column headers (e.g. `['One', 'Two', 'Three', ...]`) |
      * | A function | Define your own column headers, using a function                     |
      *
+     * To set the header label of an individual column, use that column's [`title`](#title) option.
+     *
      * Read more:
      * - [Column header](@/guides/columns/column-header/column-header.md)
+     * - [`title`](#title)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|string[]|Function}
@@ -823,6 +874,9 @@ export default (): Record<string, unknown> => {
      * | A number | Set the same height for every column header         |
      * | An array | Set different heights for individual column headers |
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {number|number[]}
      * @default undefined
@@ -857,6 +911,9 @@ export default (): Record<string, unknown> => {
      * - [`minCols`](#minCols)
      * - [`maxCols`](#maxCols)
      * - [`data`](#data)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {object[]|Function}
@@ -996,6 +1053,9 @@ export default (): Record<string, unknown> => {
      * - [Column summary](@/guides/columns/column-summary/column-summary.md)
      * - [Plugins: `ColumnSummary`](@/api/columnSummary.md)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {object[]|Function}
      * @default undefined
@@ -1048,6 +1108,9 @@ export default (): Record<string, unknown> => {
      * - [Column width](@/guides/columns/column-width/column-width.md)
      * - [Hooks: `modifyColWidth`](@/api/hooks.md#modifyColWidth)
      * - [`autoColumnSize`](#autoColumnSize)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -1136,6 +1199,9 @@ export default (): Record<string, unknown> => {
      * - [`readOnly`](#readOnly)
      * - [`commentedCellClassName`](#commentedCellClassName)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {boolean|object[]}
      * @default false
@@ -1182,6 +1248,9 @@ export default (): Record<string, unknown> => {
      * - [Context menu: Context menu with specific options](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-specific-options)
      * - [Context menu: Context menu with fully custom configuration options](@/guides/accessories-and-menus/context-menu/context-menu.md#context-menu-with-a-fully-custom-configuration)
      * - [Plugins: `ContextMenu`](@/api/contextMenu.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|string[]|object}
@@ -1306,6 +1375,9 @@ export default (): Record<string, unknown> => {
      * - [Plugins: `CopyPaste`](@/api/copyPaste.md)
      * - [Guides: Clipboard](@/guides/cell-features/clipboard/clipboard.md)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {object|boolean}
      * @default true
@@ -1362,6 +1434,9 @@ export default (): Record<string, unknown> => {
      * - [`TableClassName`](#TableClassName)
      * - [`className`](#className)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {string}
      * @default undefined
@@ -1390,6 +1465,9 @@ export default (): Record<string, unknown> => {
      * - [`noWordWrapClassName`](#noWordWrapClassName)
      * - [`TableClassName`](#TableClassName)
      * - [`className`](#className)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string}
@@ -1420,6 +1498,9 @@ export default (): Record<string, unknown> => {
      * - [`noWordWrapClassName`](#noWordWrapClassName)
      * - [`TableClassName`](#TableClassName)
      * - [`className`](#className)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string}
@@ -1476,6 +1557,9 @@ export default (): Record<string, unknown> => {
      * - [Plugins: `CustomBorders`](@/api/customBorders.md)
      * - [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
      * - [`layoutDirection`](#layoutDirection)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|object[]}
@@ -1572,6 +1656,9 @@ export default (): Record<string, unknown> => {
      * - [`startRows`](#startRows)
      * - [`startCols`](#startCols)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {Array[]|object[]}
      * @default undefined
@@ -1612,6 +1699,9 @@ export default (): Record<string, unknown> => {
      * map cleanly to your backend. Pair with **`pagination`** for server-side paging.
      * Valid cell edits apply at once; if **`onRowsUpdate`** fails or **`beforeRowsMutation`** blocks the update, affected cells roll back.
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @since 17.1.0
      * @memberof Options#
      * @type {object}
@@ -1650,6 +1740,9 @@ export default (): Record<string, unknown> => {
      * the dots in the object keys and you don't want Handsontable to interpret them as a nested object path, set this option to `false`.
      *
      * The option only works when defined in the global table settings.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 14.4.0
      * @memberof Options#
@@ -1698,6 +1791,9 @@ export default (): Record<string, unknown> => {
      * - [Binding to data: Array of objects with custom data schema](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects-with-custom-data-schema)
      * - [Binding to data: Function data source and schema](@/guides/getting-started/binding-to-data/binding-to-data.md#function-data-source-and-schema)
      * - [`data`](#data)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {object|Function}
@@ -1911,9 +2007,6 @@ export default (): Record<string, unknown> => {
      * | `'header'`        | - Show single-cell selection<br>- Show range selection<br>- Don't show header selection             |
      * | An array          | A combination of `'current'`, `'area'`, and/or `'header'`                                           |
      *
-     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
-     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
-     *
      * When set to any non-`false` value, the second-click deselect behavior
      * (Ctrl/Cmd+click on an already-selected cell removing it from a multi-cell selection)
      * is also skipped. Without visible feedback, toggling layers off can cause unexpected
@@ -1984,6 +2077,9 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Plugins: `Dialog`](@/api/dialog.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 16.1.0
      * @memberof Options#
@@ -2142,6 +2238,9 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Plugins: `DragToScroll`](@/api/dragToScroll.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|object}
@@ -2332,6 +2431,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Plugins: `EmptyDataState`](@/api/emptyDataState.md)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @since 16.2.0
      * @memberof Options#
      * @type {boolean|object}
@@ -2397,6 +2499,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [`enterMoves`](#enterMoves)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {boolean}
      * @default true
@@ -2457,6 +2562,9 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [`enterBeginsEditing`](#enterBeginsEditing)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {object|Function}
@@ -2539,6 +2647,9 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [AutoFill values](@/guides/cell-features/autofill-values/autofill-values.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|string|object}
@@ -2679,6 +2790,9 @@ export default (): Record<string, unknown> => {
      * - [Plugins: `Filters`](@/api/filters.md)
      * - [`dropdownMenu`](#dropdownMenu)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {boolean}
      * @default undefined
@@ -2722,6 +2836,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [`fixedColumnsStart`](#fixedcolumnsstart)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {number}
      * @default 0
@@ -2745,6 +2862,9 @@ export default (): Record<string, unknown> => {
      * - [Layout direction](@/guides/internationalization/layout-direction/layout-direction.md)
      * - [`fixedColumnsLeft`](#fixedcolumnsleft)
      * - [`layoutDirection`](#layoutDirection)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
@@ -2788,6 +2908,9 @@ export default (): Record<string, unknown> => {
      * - [Row freezing](@/guides/rows/row-freezing/row-freezing.md)
      * - [`height`](#height)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {number}
      * @default 0
@@ -2813,6 +2936,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Row freezing](@/guides/rows/row-freezing/row-freezing.md)
      * - [`height`](#height)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
@@ -2847,6 +2973,9 @@ export default (): Record<string, unknown> => {
      * - [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md)
      * - [HyperFormula documentation: Client-side installation](https://handsontable.github.io/hyperformula/guide/client-side-installation)
      * - [HyperFormula documentation: Configuration options](https://handsontable.github.io/hyperformula/api/interfaces/configparams.html)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {object}
@@ -2917,6 +3046,14 @@ export default (): Record<string, unknown> => {
      * | `false` (default) | Disable text selection                            |
      * | `true`            | Enable text selection in multiple cells at a time |
      * | `'cell'`          | Enable text selection in one cell at a time       |
+     *
+     * With `fragmentSelection: true`, copying text across multiple cells requires a
+     * [`selectionMode`](@/api/options.md#selectionmode) that allows selecting more than one cell.
+     * When [`selectionMode`](@/api/options.md#selectionmode) is set to `'single'`, copying is
+     * limited to a single cell.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|string}
@@ -3067,6 +3204,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Grid size](@/guides/getting-started/grid-size/grid-size.md)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {number|'auto'|string|Function}
      * @default undefined
@@ -3114,6 +3254,9 @@ export default (): Record<string, unknown> => {
      * - [Plugins: `HiddenColumns`](@/api/hiddenColumns.md)
      * - [Column hiding](@/guides/columns/column-hiding/column-hiding.md)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
@@ -3160,6 +3303,9 @@ export default (): Record<string, unknown> => {
      * - [Plugins: `HiddenRows`](@/api/hiddenRows.md)
      * - [Row hiding](@/guides/rows/row-hiding/row-hiding.md)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {boolean|object}
      * @default undefined
@@ -3189,6 +3335,9 @@ export default (): Record<string, unknown> => {
      * `initialState` and table settings, the table settings take precedence.
      * Note: The `initialState` option is ignored when passed to the
      * [`updateSettings()`](@/api/core.md#updatesettings) method.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 16.1.0
      * @memberof Options#
@@ -3241,6 +3390,9 @@ export default (): Record<string, unknown> => {
      * because of its incompatibility with some of the accessibility features.
      *
      * Enabling this option can make a negative impact on how some screen readers handle reading the table cells.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 14.0.0
      * @memberof Options#
@@ -3472,6 +3624,9 @@ export default (): Record<string, unknown> => {
      * - [`fixedColumnsStart`](#fixedcolumnsstart)
      * - [`customBorders`](#customBorders)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {string}
      * @default 'inherit'
@@ -3502,6 +3657,9 @@ export default (): Record<string, unknown> => {
      * modal layer, such as the dialog) are not orderable through this option. The license
      * notification is not orderable either; it always renders last in the `bottom` slot.
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @since 18.0.0
      * @memberof Options#
      * @type {object}
@@ -3530,6 +3688,9 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [License key](@/guides/getting-started/license-key/license-key.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string}
@@ -3608,6 +3769,10 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Plugins: `Loading`](@/api/loading.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @since 16.1.0
      * @memberof Options#
      * @type {boolean|object}
@@ -3651,6 +3816,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Plugins: `Notification`](@/api/notification.md)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @since 17.1.0
      * @memberof Options#
      * @type {boolean|object}
@@ -3676,6 +3844,9 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Column freezing](@/guides/columns/column-freezing/column-freezing.md#user-triggered-freeze)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
@@ -3703,6 +3874,9 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Column moving](@/guides/columns/column-moving/column-moving.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -3738,6 +3912,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Column width: Column stretching](@/guides/columns/column-width/column-width.md#column-stretching)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
@@ -3771,6 +3948,9 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Row moving](@/guides/rows/row-moving/row-moving.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -3806,6 +3986,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Row height: Adjust the row height manually](@/guides/rows/row-height/row-height.md#adjust-the-row-height-manually)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {boolean|number[]}
      * @default undefined
@@ -3833,6 +4016,9 @@ export default (): Record<string, unknown> => {
      * Handsontable trims columns from the right.
      * - At runtime: for example, when inserting columns.
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {number}
      * @default Infinity
@@ -3853,6 +4039,9 @@ export default (): Record<string, unknown> => {
      * - At initialization: if the `maxRows` value is lower than the initial number of rows,
      * Handsontable trims rows from the bottom.
      * - At runtime: for example, when inserting rows.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
@@ -3971,6 +4160,9 @@ export default (): Record<string, unknown> => {
      * - The [`dataSchema`](#dataSchema) option
      * - The [`columns`](#columns) option
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {number}
      * @default 0
@@ -3988,6 +4180,9 @@ export default (): Record<string, unknown> => {
      * Alias for the [`rowHeights`](#rowHeights) option.
      *
      * See the [`rowHeights`](#rowHeights) option description for more information.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 16.2.0
      * @memberof Options#
@@ -4024,6 +4219,9 @@ export default (): Record<string, unknown> => {
      * Handsontable adds empty rows at the bottom.
      * - At runtime: for example, when removing rows.
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {number}
      * @default 0
@@ -4053,6 +4251,9 @@ export default (): Record<string, unknown> => {
      * - The [`dataSchema`](#dataSchema) option
      * - The [`columns`](#columns) option
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {number}
      * @default 0
@@ -4074,6 +4275,9 @@ export default (): Record<string, unknown> => {
      * they are counted into the `minSpareRows` value.
      *
      * The total number of rows can't exceed the [`maxRows`](#maxRows) value.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
@@ -4165,6 +4369,9 @@ export default (): Record<string, unknown> => {
     /**
      * When set to `true`, the `navigableHeaders` option lets you navigate [row headers](@/guides/rows/row-header/row-header.md) and [column headers](@/guides/columns/column-header/column-header.md), using the arrow keys or the <kbd>**Tab**</kbd> key (if the [`tabNavigation`](#tabNavigation) option is set to `true`).
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @since 14.0.0
      * @memberof Options#
      * @type {boolean}
@@ -4187,6 +4394,9 @@ export default (): Record<string, unknown> => {
      * <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> keyboard shortcuts. The Handsontable
      * no more captures that shortcuts to make the grid navigation available (`tabNavigation: true`)
      * but returns control to the browser so the native page navigation is possible.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 14.0.0
      * @memberof Options#
@@ -4236,6 +4446,7 @@ export default (): Record<string, unknown> => {
      * | `rowspan`         | `number`  | The number of header rows the header spans (an integer greater than `1`).                                                                                                                                                                                                                            |
      * | `headerClassName` | `string`  | One or more space-separated CSS class names added to the header element (for example, `'htRight'`).                                                                                                                                                                                                  |
      * | `visibleWhen`     | `string`  | For a header inside a collapsible group, sets in which collapse state the header (and its columns) stays visible: `'collapsed'` (visible only while the group is collapsed), `'expanded'` (visible only while the group is expanded), or `'always'` (visible in both states). When omitted, a header in such a group defaults to `'expanded'` - it is hidden when the group collapses. At least one column of a group always stays visible. |
+     * | `columnDropMode`  | `string`  | Controls what a group does when a column move (with the [`ManualColumnMove`](#manualcolumnmove) plugin) drops a foreign column (one belonging to another group) into its span. With `'adopt'` (default), the group adopts that column as a child and stays one banner. With `'split'`, the group keeps its identity and renders as several same-label banners around the foreign column (it splits). A group always reclaims its own columns when they move back into its span, regardless of this setting. Meaningful only on a header that spans columns. |
      *
      * ::: tip
      * A header group is made collapsible through the [`collapsibleColumns`](#collapsibleColumns) option, not through
@@ -4252,6 +4463,9 @@ export default (): Record<string, unknown> => {
      * - [Plugins: `NestedHeaders`](@/api/nestedHeaders.md)
      * - [Column groups: Nested headers](@/guides/columns/column-groups/column-groups.md#nested-headers)
      * - [Column groups: Choose which columns stay visible when collapsed](@/guides/columns/column-groups/column-groups.md#choose-which-columns-stay-visible-when-collapsed)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|Array[]}
@@ -4291,6 +4505,9 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Plugins: `NestedRows`](@/guides/rows/row-parent-child/row-parent-child.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @example
      * ```js
@@ -4437,6 +4654,9 @@ export default (): Record<string, unknown> => {
      * Handsontable automatically triggers a rerender to ensure correct layout and dimensions.
      * Set this option to `false` if you want to control rendering manually (e.g. by calling `render()` yourself).
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {boolean}
      * @default true
@@ -4461,6 +4681,9 @@ export default (): Record<string, unknown> => {
      * | `true` (default) | On a mouse click outside of the grid, clear the current [selection](@/guides/cell-features/selection/selection.md) |
      * | `false`          | On a mouse click outside of the grid, keep the current [selection](@/guides/cell-features/selection/selection.md)  |
      * | A function       | A function that takes the click event target and returns a boolean                                       |
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|Function}
@@ -4516,6 +4739,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Rows pagination](@/guides/rows/rows-pagination/rows-pagination.md)
      * - [Plugins: `Pagination`](@/api/pagination.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 16.1.0
      * @memberof Options#
@@ -4615,6 +4841,9 @@ export default (): Record<string, unknown> => {
      * | `false` (default) | Don't prevent overflowing        |
      * | `'horizontal'`      | Prevent horizontal overflowing |
      * | `'vertical'`        | Prevent vertical overflowing   |
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string|boolean}
@@ -4750,6 +4979,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {boolean}
      * @default false
@@ -4777,6 +5009,9 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 14.1.0
      * @memberof Options#
@@ -5032,6 +5267,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Row header](@/guides/rows/row-header/row-header.md)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {boolean|string[]|Function}
      * @default undefined
@@ -5063,6 +5301,9 @@ export default (): Record<string, unknown> => {
      * | -------- | ----------------------------------------------- |
      * | A number | Set the same width for every row header         |
      * | An array | Set different widths for individual row headers |
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number|number[]}
@@ -5099,6 +5340,9 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Row height](@/guides/rows/row-height/row-height.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number|number[]|string|string[]|Array<undefined>|Function}
@@ -5237,8 +5481,14 @@ export default (): Record<string, unknown> => {
      * | `'range'`    | Allow the user to select one range of cells at a time.       |
      * | `'multiple'` | Allow the user to select multiple ranges of cells at a time. |
      *
+     * When `selectionMode` is set to `'single'`, copying with
+     * [`fragmentSelection`](@/api/options.md#fragmentselection) enabled is limited to a single cell.
+     *
      * Read more:
      * - [Selection: Selecting ranges](@/guides/cell-features/selection/selection.md#select-ranges)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string}
@@ -5524,6 +5774,9 @@ export default (): Record<string, unknown> => {
      * `startCols` and `minSpareCols`.
      * :::
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {number}
      * @default 5
@@ -5548,6 +5801,9 @@ export default (): Record<string, unknown> => {
      * minimum number of spare rows. As a result, the total initial row count will be the maximum of
      * `startRows` and `minSpareRows`.
      * :::
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {number}
@@ -5577,6 +5833,9 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Column width: Column stretching](@/guides/columns/column-width/column-width.md#column-stretching)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string}
@@ -5653,6 +5912,9 @@ export default (): Record<string, unknown> => {
      * - [`commentedCellClassName`](#commentedCellClassName)
      * - [`className`](#className)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {string|string[]}
      * @default undefined
@@ -5709,6 +5971,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Themes](@/guides/styling/themes/themes.md)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {string|undefined}
      * @default undefined
@@ -5745,6 +6010,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Themes](@/guides/styling/themes/themes.md)
      * - [`themeName`](#themeName)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {ThemeBuilder|string|undefined}
@@ -5803,6 +6071,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Themes](@/guides/styling/themes/themes.md)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {boolean}
      * @default true
@@ -5831,6 +6102,9 @@ export default (): Record<string, unknown> => {
      * | `row`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `row` rows down<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>, move selection `row` rows up              |
      * | `col`    | Number | - On pressing <kbd>**Tab**</kbd>, move selection `col` columns right<br>- On pressing <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>, move selection `col` columns left     |
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {object|Function}
      * @default {row: 0, col: 1}
@@ -5858,9 +6132,15 @@ export default (): Record<string, unknown> => {
      *
      * You can set the `title` option to a string.
      *
+     * To set the labels of all column headers at once, use the [`colHeaders`](#colheaders) option.
+     *
      * Read more:
      * - [Column header](@/guides/columns/column-header/column-header.md)
+     * - [`colHeaders`](#colheaders)
      * - [`columns`](#columns)
+     *
+     * This option can only be set at the [`columns`](#columns) level.
+     * It has no effect when set at the grid level, or in the [`cells`](#cells) or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {string}
@@ -5947,6 +6227,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Plugins: `TrimRows`](@/api/trimRows.md)
      * - [Row trimming](@/guides/rows/row-trimming/row-trimming.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean|number[]}
@@ -6121,6 +6404,9 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Undo and redo](@/guides/accessories-and-menus/undo-redo/undo-redo.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @type {boolean}
@@ -6327,6 +6613,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {number|'auto'}
      * @default 'auto'
@@ -6358,6 +6647,9 @@ export default (): Record<string, unknown> => {
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      * - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
      *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
+     *
      * @memberof Options#
      * @type {number|'auto'}
      * @default 'auto'
@@ -6388,6 +6680,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      * - [Column virtualization](@/guides/columns/column-virtualization/column-virtualization.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @since 1.14.7
@@ -6422,6 +6717,9 @@ export default (): Record<string, unknown> => {
      * Read more:
      * - [Performance: Define the number of pre-rendered rows and columns](@/guides/optimization/performance/performance.md#define-the-number-of-pre-rendered-rows-and-columns)
      * - [Row virtualization](@/guides/rows/row-virtualization/row-virtualization.md)
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @memberof Options#
      * @since 1.14.7
@@ -6603,6 +6901,9 @@ export default (): Record<string, unknown> => {
      *
      * This option is only respected when set in the table settings. It does not work when defined per column
      * or per cell (e.g. in `columns` or cell meta).
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
      *
      * @since 17.0.0
      * @memberof Options#

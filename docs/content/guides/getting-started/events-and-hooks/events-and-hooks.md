@@ -23,6 +23,7 @@ vue:
   metaTitle: Events and hooks - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Data management
+menuTag: updated
 ---
 Run your code before or after specific data grid actions, using Handsontable's API hooks (callbacks). For example, control what happens with the user's input.
 
@@ -214,6 +215,96 @@ const hotSettings = ref({
 
 The first argument may be modified and passed on through the Handsontable hooks that are next in the queue. This characteristic is shared between `before` and `after` hooks but is more common with the former. Before something happens, we can run the data through a pipeline of hooks that may modify or reject the operation. This provides many possibilities to extend the default Handsontable functionality and customize it for your application.
 
+## Commonly used hooks
+
+Handsontable exposes hundreds of hooks. The ones below are the hooks you reach for most often, grouped by what they do. Unlike the [`source` argument list](#definition-for-source-argument) further down this page, this grouping is about purpose, not about which callbacks receive a `source` argument.
+
+**Lifecycle** -- run code as the grid instance starts up.
+
+<div class="boxes-list">
+
+- [beforeInit](@/api/hooks.md#beforeinit) -- fired before the Handsontable instance is initialized.
+- [afterInit](@/api/hooks.md#afterinit) -- fired after the Handsontable instance is initialized.
+
+</div>
+
+**Data changes** -- react to or alter the user's edits. Returning `false` from [`beforeChange`](@/api/hooks.md#beforechange) rejects the change.
+
+<div class="boxes-list">
+
+- [beforeChange](@/api/hooks.md#beforechange) -- fired before one or more cells change. Use it to silently alter or reject changes before the grid re-renders.
+- [afterChange](@/api/hooks.md#afterchange) -- fired after one or more cells change.
+
+</div>
+
+When [`columns[].data`](@/api/options.md#columns) is a function, the `prop` field in each change tuple is that accessor function. Use [`propToCol()`](@/api/core.md#proptocol) to resolve the visual column index. See [Binding to data: Identify changed columns in hooks](@/guides/getting-started/binding-to-data/binding-to-data.md#identify-changed-columns-in-hooks).
+
+**Row and column structure (CRUD)** -- track rows and columns being added or removed. Each `before` variant can return `false` to block the operation.
+
+<div class="boxes-list">
+
+- [afterCreateRow](@/api/hooks.md#aftercreaterow) -- fired after a new row is created.
+- [afterCreateCol](@/api/hooks.md#aftercreatecol) -- fired after a new column is created.
+- [afterRemoveRow](@/api/hooks.md#afterremoverow) -- fired after one or more rows are removed.
+- [afterRemoveCol](@/api/hooks.md#afterremovecol) -- fired after one or more columns are removed.
+
+</div>
+
+**Selection** -- respond to the user selecting cells.
+
+<div class="boxes-list">
+
+- [afterSelection](@/api/hooks.md#afterselection) -- fired after one or more cells are selected, for example during a mouse move.
+- [afterSelectionEnd](@/api/hooks.md#afterselectionend) -- fired after the selection ends, for example on mouse up.
+
+</div>
+
+**Mouse interaction** -- respond to mouse actions on cells.
+
+<div class="boxes-list">
+
+- [afterOnCellMouseDown](@/api/hooks.md#afteroncellmousedown) -- fired after a `mousedown` event on a cell.
+- [afterOnCellMouseUp](@/api/hooks.md#afteroncellmouseup) -- fired after a `mouseup` event on a cell.
+- [afterOnCellMouseOver](@/api/hooks.md#afteroncellmouseover) -- fired after a `mouseover` event on a cell.
+- [afterOnCellMouseOut](@/api/hooks.md#afteroncellmouseout) -- fired after a `mouseout` event on a cell.
+
+</div>
+
+**Keyboard interaction** -- respond to or override key presses. See the [`beforeKeyDown`](#the-beforekeydown-callback) section below for a demo.
+
+<div class="boxes-list">
+
+- [beforeKeyDown](@/api/hooks.md#beforekeydown) -- fired before a `keydown` event is handled. Use it to stop default key bindings.
+- [afterDocumentKeyDown](@/api/hooks.md#afterdocumentkeydown) -- fired after a `keydown` event is handled.
+
+</div>
+
+## How validation affects hook order
+
+When an edited cell has a [`validator`](@/api/options.md#validator), Handsontable runs the validation asynchronously. This applies to every validator, including one that calls its callback synchronously. It also applies to the built-in validators that cell types such as [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md), [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md), [`time`](@/guides/cell-types/time-cell-type/time-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) use, so a cell can run a validator even without a custom `validator` function. The grid commits the change and fires the change-related hooks only after the validators for all edited cells resolve. As a result, the order in which hooks fire during an edit depends on whether the edited cell runs a validator.
+
+When the edited cell runs no validator, the hooks fire synchronously:
+
+1. [`beforeKeyDown`](@/api/hooks.md#beforekeydown)
+2. [`beforeChange`](@/api/hooks.md#beforechange)
+3. [`beforeChangeRender`](@/api/hooks.md#beforechangerender)
+4. [`afterChange`](@/api/hooks.md#afterchange)
+5. [`afterSelection`](@/api/hooks.md#afterselection)
+
+When the edited cell runs a validator, the grid defers the change until validation finishes, so [`afterSelection`](@/api/hooks.md#afterselection) fires before the change is committed:
+
+1. [`beforeKeyDown`](@/api/hooks.md#beforekeydown)
+2. [`beforeChange`](@/api/hooks.md#beforechange)
+3. [`beforeValidate`](@/api/hooks.md#beforevalidate)
+4. [`afterSelection`](@/api/hooks.md#afterselection)
+5. [`afterValidate`](@/api/hooks.md#aftervalidate)
+6. [`beforeChangeRender`](@/api/hooks.md#beforechangerender)
+7. [`afterChange`](@/api/hooks.md#afterchange)
+
+The exact sequence depends on how you confirm the edit. The lists above describe confirming an edit with <kbd>**Enter**</kbd> or <kbd>**Tab**</kbd>, which moves the selection and fires [`afterSelection`](@/api/hooks.md#afterselection) while validation is still pending.
+
+To act on a committed, validated value, use the [`afterChange`](@/api/hooks.md#afterchange) or [`afterValidate`](@/api/hooks.md#aftervalidate) hook. Don't rely on a hook firing before or after [`afterSelection`](@/api/hooks.md#afterselection), because a validator changes that order. The [`beforeValidate`](@/api/hooks.md#beforevalidate) and [`afterValidate`](@/api/hooks.md#aftervalidate) hooks fire only when a validator is defined.
+
 ::: only-for react
 
 ## External control
@@ -305,7 +396,7 @@ List of callbacks that operate on the `source` parameter:
 - [afterSetDataAtRowProp](@/api/hooks.md#aftersetdataatrowprop)
 - [afterSetSourceDataAtCell](@/api/hooks.md#aftersetsourcedataatcell)
 - [afterRemoveCol](@/api/hooks.md#afterremovecol)
-- [afterRemoveRow](@/api/hooks.md#aftermoverow)
+- [afterRemoveRow](@/api/hooks.md#afterremoverow)
 - [afterValidate](@/api/hooks.md#aftervalidate)
 - [beforeChange](@/api/hooks.md#beforechange)
 - [beforeChangeRender](@/api/hooks.md#beforechangerender)

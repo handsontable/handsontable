@@ -114,6 +114,10 @@ The following code sample configures the grid to use `htCenter` and configures i
 
 :::
 
+## Result
+
+Cells display the configured horizontal or vertical alignment. Global settings apply to all cells, and per-cell settings take precedence over the global defaults.
+
 ## Related API reference
 
 **Configuration options**
@@ -132,7 +136,3 @@ The following code sample configures the grid to use `htCenter` and configures i
 - [beforeCellAlignment](@/api/hooks.md#beforecellalignment)
 
 </div>
-
-## Result
-
-Cells display the configured horizontal or vertical alignment. Global settings apply to all cells, and per-cell settings take precedence over the global defaults.

@@ -12,8 +12,8 @@ new Handsontable(container, {
     ['2018', 'Toyota', 20],
     ['2019', 'Nissan', 30],
   ],
-  colWidths: [50, 70, 50],
-  colHeaders: true,
+  colWidths: [70, 90, 80],
+  colHeaders: ['Year', 'Make', 'In stock'],
   columns: [
     {},
     {

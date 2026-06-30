@@ -30,7 +30,6 @@ export class AppComponent {
     colHeaders: true,
     height: 'auto',
     width: 'auto',
-    minSpareRows: 1,
     autoWrapRow: true,
     autoWrapCol: true
   };

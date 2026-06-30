@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Reduced memory usage during scrolling and fixed potential out-of-memory errors on very large datasets.",
+  "type": "fixed",
+  "issueOrPR": 12844,
+  "breaking": false,
+  "framework": "none"
+}

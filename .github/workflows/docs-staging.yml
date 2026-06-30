@@ -1,14 +1,24 @@
 name: Docs Staging Deployment
 
 on:
+  # Build PR previews on the pull_request event. The PR number comes from the
+  # event payload, so the preview always knows which PR to comment on - unlike
+  # the old push-driven build, which raced PR creation and often resolved no PR
+  # (no preview comment, no Cloudflare deploy). The paths filter limits PR
+  # builds to pull requests that change documentation files.
   pull_request:
-    types: [ labeled, synchronize ]
+    types: [ opened, reopened, synchronize ]
+    paths:
+      - 'docs/**'
+      - 'handsontable/package.json'
+  # Push builds cover the non-PR contexts only: develop (apex staging) and
+  # release/* (RC staging, triggered by the handsontable/package.json version
+  # bump). Other branches get their preview from the pull_request event above,
+  # so they are intentionally not built on push (avoids a duplicate build).
   push:
-    branches-ignore:
-      - 'prod-docs/**'
-      - 'master'
-    # Trigger on docs changes (all branches) and on handsontable/package.json
-    # changes (so RC version bumps on release/* branches trigger a rebuild).
+    branches:
+      - develop
+      - 'release/**'
     paths:
       - 'docs/**'
       - 'handsontable/package.json'
@@ -115,12 +125,15 @@ jobs:
 
       # RC release branches: measure module sizes (same as production workflow).
       - name: Update module size measurements
+        id: measure-module-sizes
         if: ${{ steps.release-info.outputs.is_release == 'true' }}
+        continue-on-error: true
         working-directory: .
         run: |
           npm run measure:module-sizes --prefix handsontable
 
       - name: Build docs (for staging preview)
+        id: build-docs
         run: |
           npm run build
         env:
@@ -255,3 +268,67 @@ jobs:
           echo "This staging build uses production docs settings (BUILD_MODE=production) for release branch \`${{ steps.release-info.outputs.target_version }}\`." >> $GITHUB_STEP_SUMMARY
           echo "The published \`handsontable\` version from package.json (including any RC tag) is used in examples and CodeSandbox links." >> $GITHUB_STEP_SUMMARY
           echo "Use it to verify the docs before the final release." >> $GITHUB_STEP_SUMMARY
+
+      - name: Fail if module size measurements errored
+        if: ${{ steps.measure-module-sizes.outcome == 'failure' }}
+        run: |
+          echo "::error::Module size measurements failed. The docs were deployed but module-sizes.json may be stale."
+          exit 1
+
+      - name: Prepare RC docs failure Slack payload
+        if: ${{ !cancelled() && failure() && steps.release-info.outputs.is_release == 'true' }}
+        env:
+          RC_VERSION: ${{ steps.release-info.outputs.target_version }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO_URL: ${{ github.server_url }}/${{ github.repository }}
+          MEASURE_OUTCOME: ${{ steps.measure-module-sizes.outcome }}
+          BUILD_OUTCOME: ${{ steps.build-docs.outcome }}
+          NETLIFY_OUTCOME: ${{ steps.netlify-publish.outcome }}
+        run: |
+          BRANCH='${{ github.ref_name }}'
+
+          FAILURES=""
+          if [ "$MEASURE_OUTCOME" = "failure" ]; then
+            FAILURES="${FAILURES}• *Module size measurements* failed — \`module-sizes.json\` may be stale\n"
+          fi
+          if [ "$BUILD_OUTCOME" = "failure" ]; then
+            FAILURES="${FAILURES}• *Docs build* failed\n"
+          fi
+          if [ "$NETLIFY_OUTCOME" = "failure" ]; then
+            FAILURES="${FAILURES}• *Netlify publish* failed — preview may not be available\n"
+          fi
+          if [ -z "$FAILURES" ]; then
+            FAILURES="• Unknown failure — check the Actions run for details\n"
+          fi
+
+          jq -n \
+            --arg version  "${RC_VERSION}" \
+            --arg branch   "${BRANCH}" \
+            --arg run_url  "${RUN_URL}" \
+            --arg repo_url "${REPO_URL}" \
+            --arg failures "$FAILURES" \
+          '{
+            text: ("❌ RC docs staging failed for " + $version),
+            blocks: [
+              {
+                type: "section",
+                text: { type: "mrkdwn", text: (":x: *RC docs staging deployment failed for <" + $repo_url + "/tree/" + $branch + "|" + $version + ">*") }
+              },
+              {
+                type: "section",
+                text: { type: "mrkdwn", text: $failures }
+              },
+              {
+                type: "context",
+                elements: [{ type: "mrkdwn", text: ("<" + $run_url + "|🔗 View GitHub Actions run>") }]
+              }
+            ]
+          }' > /tmp/slack-rc-docs-failure.json
+
+      - name: Notify Slack on RC docs failure
+        if: ${{ !cancelled() && failure() && steps.release-info.outputs.is_release == 'true' }}
+        uses: slackapi/slack-github-action@03ea5433c137af7c0495bc0cad1af10403fc800c # https://github.com/slackapi/slack-github-action/releases/tag/v3.0.2
+        with:
+          webhook: ${{ secrets.SLACK_RELEASE_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload-file-path: /tmp/slack-rc-docs-failure.json

@@ -194,6 +194,15 @@ export default class Settings {
       rowHeightByOverlayName() {
         // return undefined means use default size for the rendered cell content
       },
+      rowHeightsUniform() {
+        // return true only when every row is guaranteed the default height (enables the
+        // PositionCache arithmetic fast path). Conservative default: false.
+        return false;
+      },
+      columnWidthsUniform() {
+        // return true only when every column is guaranteed the default width.
+        return false;
+      },
       defaultColumnWidth: 50,
       selections: null,
       hideBorderOnMouseDownOver: false,

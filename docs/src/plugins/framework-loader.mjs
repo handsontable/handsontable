@@ -86,8 +86,8 @@ try {
 const EXT_TO_LANG = {
   js: 'javascript',
   ts: 'typescript',
-  jsx: 'javascript',
-  tsx: 'typescript',
+  jsx: 'jsx',
+  tsx: 'tsx',
   html: 'html',
   css: 'css',
   vue: 'vue',
@@ -105,6 +105,8 @@ const META_LANG = {
   typescript: 'typescript',
   ts: 'typescript',
   js: 'javascript',
+  tsx: 'tsx',
+  jsx: 'jsx',
   properties: 'properties',
 };
 
