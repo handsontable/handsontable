@@ -28,7 +28,7 @@ test.beforeEach(async ({ page, baseURL }) => {
     },
   ]);
 
-  // Pre-navigate so Netlify's bot-verification challenge completes and sets its
+  // Pre-navigate so the host's bot-verification challenge completes and sets its
   // first-party cookie before the test's own navigation runs.
   await page.goto(PAGE_PATH);
   await expect(page.getByText('We are verifying your connection')).toHaveCount(0, { timeout: 30000 });

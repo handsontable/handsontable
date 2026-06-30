@@ -10,4 +10,3 @@ do
     img_id=$(docker create ghcr.io/handsontable/handsontable/handsontable-documentation:v$version)
     docker cp $img_id:/usr/share/nginx/html/docs/$version  ./docs/docs/$version
 done
-

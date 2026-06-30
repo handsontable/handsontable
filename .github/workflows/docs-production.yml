@@ -80,37 +80,20 @@ jobs:
         run: |
           docker push $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}-${{ github.sha }}"
 
-      - name: Build and deploy the production to Netlify (from Docker images)
+      # Assemble the multi-version docs site (current + previous versions from
+      # the GHCR Docker images) into docs/deploy/docs, which is deployed to
+      # Cloudflare Pages below.
+      - name: Assemble production docs (all versions)
         run: |
-          cd netlify
+          cd deploy
           mkdir -p docs/docs
           ./build_current_version.sh
 
-      - name: Publish production to Netlify
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # https://github.com/nick-fields/retry/releases/tag/v3.0.2
-        with:
-          timeout_seconds: 1600
-          max_attempts: 3
-          retry_on: error
-          command: |
-            cd docs
-            cd netlify
-            npm install netlify-cli -g
-            netlify deploy --prod --build --context production
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PROD_SITE_ID }}
-
-      # Cloudflare Pages deploy is independent of Netlify: !cancelled() lets
-      # these steps run even when the Netlify publish above fails, so the apex
-      # handsontable-docs.pages.dev still updates.
       - name: Add Cloudflare worker to production deploy
-        if: ${{ !cancelled() }}
         continue-on-error: true
-        run: cp cloudflare/_worker.js netlify/docs/_worker.js
+        run: cp cloudflare/_worker.js deploy/docs/_worker.js
 
       - name: Ensure Cloudflare Pages production project exists
-        if: ${{ !cancelled() }}
         continue-on-error: true
         run: node cloudflare/ensureProject.mjs
         env:
@@ -124,15 +107,15 @@ jobs:
           # branch here would move the apex on every release.
           CF_PAGES_APEX_BRANCH: production
 
+      # Cloudflare Pages is the sole production host, so a failed deploy must
+      # fail the workflow (no continue-on-error here).
       - name: Deploy production to Cloudflare Pages
-        if: ${{ !cancelled() }}
-        continue-on-error: true
         # Install wrangler in /tmp to avoid npm failures inside the pnpm workspace
         working-directory: /tmp
         run: |
           npm install wrangler
           ./node_modules/.bin/wrangler pages deploy \
-            "$GITHUB_WORKSPACE/docs/netlify/docs" \
+            "$GITHUB_WORKSPACE/docs/deploy/docs" \
             --project-name handsontable-docs \
             --branch production
         env:
