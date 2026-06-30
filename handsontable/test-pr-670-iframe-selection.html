@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RELEASE-670 — Selection border top position inside iframe</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 20px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 6px; }
+    .subtitle { font-size: 13px; color: #666; margin-bottom: 16px; }
+    .info { background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 14px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; }
+    .info strong { color: #856404; }
+    .info code { background: #ffe9a0; padding: 1px 5px; border-radius: 3px; font-size: 13px; }
+    .controls { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+    .btn { padding: 8px 20px; background: #0e639c; color: #fff; border: none; border-radius: 5px; font-size: 13px; cursor: pointer; }
+    .btn:hover { background: #1177bb; }
+    .btn.secondary { background: #555; }
+    .btn.secondary:hover { background: #666; }
+    label { font-size: 13px; color: #444; display: flex; align-items: center; gap: 6px; }
+    .debug-panel { background: #1e1e1e; color: #d4d4d4; border-radius: 6px; padding: 16px; font-family: monospace; font-size: 13px; line-height: 1.7; }
+    .debug-panel h2 { font-size: 14px; color: #9cdcfe; margin-bottom: 10px; letter-spacing: 0.03em; }
+    .log-entry { margin: 2px 0; }
+    .log-entry .lbl { color: #9cdcfe; }
+    .log-entry .val { color: #ce9178; }
+    .log-entry .pass { color: #4ec94e; font-weight: bold; }
+    .log-entry .fail { color: #f44747; font-weight: bold; }
+    .log-entry .note { color: #888; }
+    .run-sep { border-top: 1px solid #3e3e3e; margin: 8px 0; }
+    .tally { margin-top: 10px; border-top: 1px solid #3e3e3e; padding-top: 8px; font-size: 12px; }
+    iframe { display: block; border: 2px solid #aaa; border-radius: 4px; margin-top: 16px; background: #fff; }
+  </style>
+</head>
+<body>
+  <h1>RELEASE-670 — Selection border inside iframe</h1>
+  <p class="subtitle">
+    Reproduces E2E spec: <em>Selection &gt; running in iframe &gt; should set correct wtBorder top position of selected cell</em>
+    (<code>src/selection/__tests__/general.spec.js:1805</code>)
+  </p>
+
+  <div class="info">
+    <strong>What is being tested:</strong>
+    When Handsontable runs inside an <code>&lt;iframe&gt;</code>, selecting cell B2 (row&nbsp;1, col&nbsp;1)
+    must place the <code>.wtBorder.current</code> selection border at
+    <code>top: 29px</code> (= one default row height in <em>ht-theme-main</em>).
+    The spec fails intermittently with <code>Expected '1px' to equal '29px'</code>.<br><br>
+    <strong>Suspected cause:</strong>
+    The iframe's theme <code>&lt;link&gt;</code> stylesheet loads asynchronously after
+    <code>doc.write()</code>. If Handsontable initialises before the stylesheet applies,
+    rows render at an un-themed height and the border gets placed at the wrong offset.
+    The failure is timing-dependent (flaky).<br><br>
+    <strong>How to use this page:</strong>
+    Click <strong>Run once</strong> to execute one test iteration, or <strong>Run 10×</strong>
+    to stress-test for flakiness. Each run rebuilds the iframe from scratch (same as the spec's
+    <code>beforeEach</code>). Watch the log — any <span style="color:#f44747;font-weight:bold">FAIL</span>
+    entry confirms the race condition.
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="runOnce">Run once</button>
+    <button class="btn secondary" id="runMany">Run 10×</button>
+    <button class="btn secondary" id="clearLog">Clear log</button>
+    <label>
+      <input type="checkbox" id="waitForStyle">
+      Wait for stylesheet before init (proposed fix)
+    </label>
+  </div>
+
+  <div class="debug-panel" id="debug">
+    <h2>Test log</h2>
+    <div class="log-entry note">Ready. Click "Run once" or "Run 10×" to start.</div>
+  </div>
+
+  <iframe id="testFrame" width="450" height="320"></iframe>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable@17.1.0/dist/handsontable.full.min.js"></script>
+  <script>
+    const THEME_CSS = 'https://cdn.jsdelivr.net/npm/handsontable@17.1.0/styles/ht-theme-main.min.css';
+    const EXPECTED_ROW_HEIGHT = 29; // ht-theme-main defaultDataRowHeight
+    let runCount = 0, passCount = 0, failCount = 0;
+
+    function waitFrames(n) {
+      return new Promise(resolve => {
+        let c = 0;
+        (function tick() { if (++c >= n) resolve(); else requestAnimationFrame(tick); })();
+      });
+    }
+
+    function waitStylesheetLoad(doc, href) {
+      return new Promise(resolve => {
+        const link = doc.querySelector(`link[href="${href}"]`);
+        if (!link) return resolve();
+        if (link.sheet) return resolve();
+        link.addEventListener('load', resolve, { once: true });
+        link.addEventListener('error', resolve, { once: true }); // don't hang on error
+        // safety timeout — resolve after 2 s regardless
+        setTimeout(resolve, 2000);
+      });
+    }
+
+    function log(html) {
+      const panel = document.getElementById('debug');
+      const entry = document.createElement('div');
+      entry.className = 'log-entry';
+      entry.innerHTML = html;
+      panel.appendChild(entry);
+      panel.scrollTop = panel.scrollHeight;
+    }
+
+    function sep() {
+      const el = document.createElement('div');
+      el.className = 'run-sep';
+      document.getElementById('debug').appendChild(el);
+    }
+
+    async function runTest() {
+      const waitForStyle = document.getElementById('waitForStyle').checked;
+      runCount++;
+
+      // Replace iframe with a fresh one (mirrors spec beforeEach)
+      const oldFrame = document.getElementById('testFrame');
+      const frame = document.createElement('iframe');
+      frame.id = 'testFrame';
+      frame.width = '450';
+      frame.height = '320';
+      oldFrame.replaceWith(frame);
+
+      const iframeDoc = frame.contentDocument;
+      iframeDoc.open('text/html', 'replace');
+      iframeDoc.write(`<!doctype html><html><head>
+        <link type="text/css" rel="stylesheet" href="${THEME_CSS}">
+      </head><body><div id="hot"></div></body></html>`);
+      iframeDoc.close();
+
+      if (waitForStyle) {
+        await waitStylesheetLoad(iframeDoc, THEME_CSS);
+      } else {
+        // Exact same wait as the spec: 2 animation frames before init
+        await waitFrames(2);
+      }
+
+      const hot = new Handsontable(iframeDoc.getElementById('hot'), {
+        data: Handsontable.helper.createSpreadsheetData(5, 5),
+        colHeaders: true,
+        rowHeaders: true,
+        themeName: 'ht-theme-main',
+        licenseKey: 'non-commercial-and-evaluation',
+      });
+
+      hot.selectCell(1, 1);
+      await waitFrames(2);
+
+      const border = iframeDoc.querySelector('.wtBorder.current');
+      const actual = border ? border.style.top : '(element not found)';
+      const expected = `${EXPECTED_ROW_HEIGHT}px`;
+      const pass = actual === expected;
+
+      if (pass) passCount++; else failCount++;
+
+      log(`<span class="lbl">Run #${runCount}</span> &nbsp;|&nbsp; ` +
+          `<span class="lbl">wtBorder top:</span> <span class="val">${actual}</span> &nbsp;|&nbsp; ` +
+          `<span class="lbl">expected:</span> <span class="val">${expected}</span> &nbsp;|&nbsp; ` +
+          `<span class="${pass ? 'pass' : 'fail'}">${pass ? '✓ PASS' : '✗ FAIL'}</span>` +
+          (waitForStyle ? ' <span class="note">[waited for stylesheet]</span>' : ''));
+    }
+
+    function updateTally() {
+      const old = document.querySelector('.tally');
+      if (old) old.remove();
+      if (runCount === 0) return;
+      const el = document.createElement('div');
+      el.className = 'tally log-entry';
+      el.innerHTML = `<span class="lbl">Total:</span> ${runCount} runs &nbsp;|&nbsp; ` +
+        `<span class="pass">${passCount} passed</span> &nbsp;|&nbsp; ` +
+        `<span class="${failCount ? 'fail' : 'note'}">${failCount} failed</span>`;
+      document.getElementById('debug').appendChild(el);
+    }
+
+    document.getElementById('runOnce').addEventListener('click', async () => {
+      await runTest();
+      updateTally();
+    });
+
+    document.getElementById('runMany').addEventListener('click', async () => {
+      document.getElementById('runMany').disabled = true;
+      for (let i = 0; i < 10; i++) {
+        await runTest();
+        updateTally();
+        await new Promise(r => setTimeout(r, 100)); // small gap between runs
+      }
+      sep();
+      document.getElementById('runMany').disabled = false;
+    });
+
+    document.getElementById('clearLog').addEventListener('click', () => {
+      runCount = passCount = failCount = 0;
+      document.getElementById('debug').innerHTML =
+        '<h2>Test log</h2><div class="log-entry note">Log cleared.</div>';
+    });
+  </script>
+</body>
+</html>
