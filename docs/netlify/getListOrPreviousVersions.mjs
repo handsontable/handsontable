@@ -11,75 +11,45 @@ import semver from 'semver';
 const MIN_DOCS_VERSION = '9.0';
 
 /**
- * Number of times the releases request is retried before giving up.
- */
-const MAX_ATTEMPTS = 5;
-
-/**
- * Fetches the releases list, retrying on transient network failures.
+ * Reads the list of Docs versions from GitHub using the releases list.
  *
- * Unauthenticated requests from CI runner IP addresses are throttled and the connection is often cut
- * mid-response ("Premature close"). Passing a token (when available) lifts the rate limit, and the
- * retry loop covers the remaining transient failures.
- *
- * @param {Octokit} octokit The Octokit client.
- * @returns {Promise<object>}
- */
-async function fetchReleases(octokit) {
-  let lastError;
-
-  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-    try {
-      return await octokit.rest.repos.listReleases({
-        owner: 'handsontable',
-        repo: 'handsontable',
-        per_page: 50,
-      });
-    } catch (error) {
-      lastError = error;
-
-      // eslint-disable-next-line no-console
-      console.error(`Attempt ${attempt}/${MAX_ATTEMPTS} to fetch releases failed: ${error.message}`);
-
-      if (attempt < MAX_ATTEMPTS) {
-        const delay = 2 ** attempt * 1000;
-
-        await new Promise((resolve) => {
-          setTimeout(resolve, delay);
-        });
-      }
-    }
-  }
-
-  throw lastError;
-}
-
-/**
- * Reads the list of Docs version from the GitHub using the releases list.
+ * Uses the GraphQL API (authenticated with GITHUB_TOKEN) rather than REST
+ * listReleases. REST returns full release bodies (~280 KB) and was consistently
+ * failing on GitHub Actions runners with an undici "Premature close", which
+ * blocked production docs deploys. GraphQL returns only the tag names in a
+ * single small response over a different endpoint.
  *
  * @returns {object}
  */
 async function readFromGitHub() {
-  // `@octokit/rest@18` ships `node-fetch@2`, whose body stream throws "Premature close" on the large,
-  // gzip-compressed releases response under Node 18+ (the CI runner uses Node 22). Injecting the
-  // platform's native `fetch` (undici) avoids the broken node-fetch path. `GITHUB_TOKEN` is optional -
-  // it lifts the unauthenticated rate limit when present; the call still works locally without it.
-  const octokit = new Octokit({
-    auth: process.env.GITHUB_TOKEN,
-    request: { fetch: globalThis.fetch },
+  const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN || undefined });
+
+  const result = await octokit.graphql(`
+    query ($owner: String!, $repo: String!) {
+      repository(owner: $owner, name: $repo) {
+        releases(first: 100, orderBy: { field: CREATED_AT, direction: DESC }) {
+          nodes {
+            tagName
+          }
+        }
+      }
+    }
+  `, {
+    owner: 'handsontable',
+    repo: 'handsontable',
   });
 
-  const releases = await fetchReleases(octokit);
+  const nodes = result?.repository?.releases?.nodes;
 
-  if (releases.status !== 200) {
-    throw new Error('Incorrect response from the GitHub API.');
+  if (!Array.isArray(nodes) || nodes.length === 0) {
+    throw new Error('GitHub returned no releases.');
   }
 
   const tags = [];
 
-  releases.data
-    .map(item => item.tag_name)
-    .filter(tag => !semver.prerelease(tag))
+  nodes
+    .map(item => item.tagName)
+    .filter(tag => semver.valid(tag) && !semver.prerelease(tag))
     .sort((a, b) => semver.rcompare(a, b))
     .forEach((tag) => {
       const minorVersion = `${semver.parse(tag).major}.${
@@ -100,9 +70,52 @@ async function readFromGitHub() {
     latestVersion
   };
 }
-const versions = await readFromGitHub();
 
-// eslint-disable-next-line no-console
-console.log(`PREVIOUS_VERSIONS="${versions.previousVersions.join(' ')}"
+/**
+ * Calls readFromGitHub with retries so a transient GitHub API hiccup (rate
+ * limit, "Premature close", 5xx) does not abort the whole production deploy.
+ * After the final attempt the error propagates and the caller fails closed.
+ *
+ * @returns {object}
+ */
+async function readWithRetry() {
+  const maxAttempts = 5;
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await readFromGitHub();
+    } catch (error) {
+      lastError = error;
+
+      if (attempt < maxAttempts) {
+        const delayMs = 2000 * (2 ** (attempt - 1)); // 2s, 4s, 8s, 16s
+
+        // eslint-disable-next-line no-console
+        console.error(`Attempt ${attempt}/${maxAttempts} to read Docs versions failed (${error.message}); retrying in ${delayMs}ms.`);
+        await new Promise((resolve) => { setTimeout(resolve, delayMs); });
+      }
+    }
+  }
+
+  throw lastError;
+}
+
+try {
+  const versions = await readWithRetry();
+
+  if (!versions.latestVersion) {
+    throw new Error('Resolved an empty latest Docs version from the GitHub releases list.');
+  }
+
+  // eslint-disable-next-line no-console
+  console.log(`PREVIOUS_VERSIONS="${versions.previousVersions.join(' ')}"
 LATEST_VERSION="${versions.latestVersion}"`);
-
+} catch (error) {
+  // Exit non-zero so the caller (build_current_version.sh, run under `set -e`)
+  // aborts instead of producing an empty VERSIONS_VARS file and deploying a
+  // partial docs site. The error goes to stderr, not into VERSIONS_VARS.
+  // eslint-disable-next-line no-console
+  console.error(`Failed to read the Docs versions list from GitHub: ${error.message}`);
+  process.exit(1);
+}
