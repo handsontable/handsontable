@@ -40,13 +40,22 @@ const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
  *
  * // as a string (percent)
  * autoRowSize: {syncLimit: '40%'},
- *
- * // allow sample duplication
- * autoRowSize: {syncLimit: '40%', allowSampleDuplicates: true},
  * ```
  *
- * You can also use the `allowSampleDuplicates` option to allow sampling duplicate values when calculating the row
- * height. __Note__, that this might have a negative impact on performance.
+ * To speed up the calculations, the plugin samples a subset of rows rather than measuring every row. By default, it
+ * skips rows whose value it has already sampled, on the assumption that identical values render at the same height.
+ * Set the `allowSampleDuplicates` option to `true` to sample duplicate values as well:
+ *
+ * ```js
+ * autoRowSize: {allowSampleDuplicates: true},
+ * ```
+ *
+ * Enable this option when rows with the same value can still render at different heights - for example, with multiline
+ * text, or with custom renderers that vary a row's height based on its position or other data. Without it, the plugin
+ * may sample only one of those rows and apply its height to the rest, leading to incorrect row heights.
+ *
+ * The tradeoff is performance: allowing duplicates increases the number of rows measured, which lengthens the
+ * calculation and can block the UI for longer on large data sets.
  *
  * ::: tip
  * Note: Updating some of the table's settings can cause the row heights to change (e.g. `wordWrap`, `textEllipsis`, renderers etc.).
