@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed column widths widening for merged cells after `loadData` when `autoColumnSize` is enabled.",
-  "type": "fixed",
-  "issueOrPR": 12622,
-  "breaking": false,
-  "framework": "none"
-}

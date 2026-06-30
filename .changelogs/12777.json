@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Changed the Notification plugin to render its toasts in the grid's overlay layer.",
-  "type": "changed",
-  "issueOrPR": 12777,
-  "breaking": false,
-  "framework": "none"
-}

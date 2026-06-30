@@ -75,6 +75,10 @@ The following example specifies two fixed rows with `fixedRowsTop: 2`. Horizonta
 
 :::
 
+## Result
+
+After completing this guide, the rows you specify with `fixedRowsTop` or `fixedRowsBottom` stay visible while you scroll through the rest of the grid.
+
 ## Related API reference
 
 **Configuration options**

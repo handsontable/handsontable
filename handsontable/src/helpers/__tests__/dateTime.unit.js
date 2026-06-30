@@ -124,11 +124,40 @@ describe('Date helper', () => {
       expect(isValidISODate('2020-04-31')).toBe(false);
     });
 
+    it('should return false for the 31st in every 30-day month', () => {
+      expect(isValidISODate('2020-04-31')).toBe(false);
+      expect(isValidISODate('2020-06-31')).toBe(false);
+      expect(isValidISODate('2020-09-31')).toBe(false);
+      expect(isValidISODate('2020-11-31')).toBe(false);
+    });
+
+    it('should apply Gregorian leap-year rules to February 29', () => {
+      // Divisible by 4 (not by 100) - leap.
+      expect(isValidISODate('2024-02-29')).toBe(true);
+      // Not divisible by 4 - common.
+      expect(isValidISODate('2023-02-29')).toBe(false);
+      // Divisible by 100 but not 400 - common.
+      expect(isValidISODate('1900-02-29')).toBe(false);
+      expect(isValidISODate('2100-02-29')).toBe(false);
+      // Divisible by 400 - leap.
+      expect(isValidISODate('2000-02-29')).toBe(true);
+      expect(isValidISODate('2400-02-29')).toBe(true);
+    });
+
     it('should return true for valid ISO date string', () => {
       expect(isValidISODate('2020-01-01')).toBe(true);
       expect(isValidISODate('2020-12-31')).toBe(true);
       expect(isValidISODate('2016-02-29')).toBe(true);
       expect(isValidISODate('2000-01-15')).toBe(true);
+    });
+
+    it('should accept the last valid day of 30-day months and the year boundaries', () => {
+      expect(isValidISODate('2020-04-30')).toBe(true);
+      expect(isValidISODate('2020-06-30')).toBe(true);
+      expect(isValidISODate('2020-09-30')).toBe(true);
+      expect(isValidISODate('2020-11-30')).toBe(true);
+      expect(isValidISODate('0001-01-01')).toBe(true);
+      expect(isValidISODate('9999-12-31')).toBe(true);
     });
 
     it('should return false for ISO-like string with extra characters', () => {

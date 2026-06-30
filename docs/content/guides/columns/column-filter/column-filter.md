@@ -26,6 +26,7 @@ vue:
   metaTitle: Column filter - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
+menuTag: updated
 ---
 Filter data by values or by a set of conditions, using Handsontable's intuitive user interface or
 flexible API.
@@ -447,6 +448,10 @@ The following table contains all available filter operators for each built-in da
 | date                                                             | Default operators plus:<br><br>Before (exclusive -- boundary date excluded)<br>Before or equal to (boundary date included)<br>After (exclusive -- boundary date excluded)<br>After or equal to (boundary date included)<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
 | intl-date                                                        | Default operators plus:<br><br>Before (exclusive -- boundary date excluded)<br>Before or equal to (boundary date included)<br>After (exclusive -- boundary date excluded)<br>After or equal to (boundary date included)<br>Is between<br>Tomorrow<br>Today<br>Yesterday                                                |
 | intl-time                                                        | Default operators plus:<br><br>Begins with<br>Ends with<br>Contains<br>Does not contain<br>Before (exclusive -- boundary time excluded)<br>Before or equal to (boundary time included)<br>After (exclusive -- boundary time excluded)<br>After or equal to (boundary time included)<br>Is between                      |
+
+The **None** operator clears the column's filter. Its programmatic equivalent is
+[`filters.removeConditions(column)`](@/api/filters.md#removeconditions). For more on clearing
+filters with the API, see [Clear a column filter](#clear-a-column-filter).
 
 ## Filter data on initialization
 
@@ -1066,6 +1071,116 @@ Mind that before you apply new filter conditions, you need to clear the previous
 :::
 
 :::
+
+### Combine multiple filter conditions
+
+A column can hold more than one condition. The fourth argument of
+[`filters.addCondition()`](@/api/filters.md#addcondition) sets the logical operation that joins the
+conditions for that column:
+
+- `'conjunction'` -- AND logic. Every condition must match. This is the default, so you can omit the
+  argument.
+- `'disjunction'` -- OR logic. At least one condition must match.
+
+Apply the same operation to all conditions in a column. Don't mix `'conjunction'` and
+`'disjunction'` for a single column.
+
+The following snippet keeps the rows where the price (column index `2`) is less than `200` **or**
+greater than `400`.
+
+::: only-for javascript
+
+```js
+const filters = handsontableInstance.getPlugin('filters');
+
+// clear the column's existing conditions first
+filters.clearConditions(2);
+
+// match rows where the price is less than 200 OR greater than 400
+filters.addCondition(2, 'lt', [200], 'disjunction');
+filters.addCondition(2, 'gt', [400], 'disjunction');
+filters.filter();
+```
+
+:::
+
+::: only-for react
+
+```jsx
+const filters = hotTableComponentRef.current.hotInstance.getPlugin('filters');
+
+// clear the column's existing conditions first
+filters.clearConditions(2);
+
+// match rows where the price is less than 200 OR greater than 400
+filters.addCondition(2, 'lt', [200], 'disjunction');
+filters.addCondition(2, 'gt', [400], 'disjunction');
+filters.filter();
+```
+
+:::
+
+::: only-for angular
+
+```ts
+const filters = this.hotTable.hotInstance!.getPlugin('filters');
+
+// clear the column's existing conditions first
+filters.clearConditions(2);
+
+// match rows where the price is less than 200 OR greater than 400
+filters.addCondition(2, 'lt', [200], 'disjunction');
+filters.addCondition(2, 'gt', [400], 'disjunction');
+filters.filter();
+```
+
+:::
+
+::: only-for vue
+
+```js
+const filters = hotTableRef.value.hotInstance.getPlugin('filters');
+
+// clear the column's existing conditions first
+filters.clearConditions(2);
+
+// match rows where the price is less than 200 OR greater than 400
+filters.addCondition(2, 'lt', [200], 'disjunction');
+filters.addCondition(2, 'gt', [400], 'disjunction');
+filters.filter();
+```
+
+:::
+
+The dropdown menu shows at most two conditions plus one **Filter by value** condition per column.
+If you add more conditions than that, they still filter the data but don't appear in the menu. See
+[Known limitations](#known-limitations).
+
+### Clear a column filter
+
+To clear the conditions for a single column, call
+[`filters.removeConditions(column)`](@/api/filters.md#removeconditions). This is the programmatic
+equivalent of selecting the **None** operator in the column menu.
+
+```js
+const filters = handsontableInstance.getPlugin('filters');
+
+// clear the filter for the column at index 2
+filters.removeConditions(2);
+filters.filter();
+```
+
+To clear the conditions for every column at once, call
+[`filters.clearConditions()`](@/api/filters.md#clearconditions) without an argument.
+
+Adding the `'none'` condition with [`addCondition()`](@/api/filters.md#addcondition) has no
+filtering effect, because `'none'` matches every row:
+
+```js
+// matches all rows -- the column stays unfiltered
+filters.addCondition(2, 'none', []);
+filters.filter();
+```
 
 ## Import the filtering module
 

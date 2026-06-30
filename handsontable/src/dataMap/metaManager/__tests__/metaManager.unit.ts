@@ -254,6 +254,21 @@ describe('MetaManager', () => {
 
       expect(metaManager.cellMeta.disableUserDefinedMetaRecording).toHaveBeenCalledWith();
     });
+
+    it('should apply a recording-disabled `setCellMeta` write without tracking it as user-defined', () => {
+      // Mirrors the `_setCellMetaDeclarative` path Core exposes for built-in plugins (for example
+      // ColumnSummary): the write lands on the cell meta but is not user-defined, so it survives the
+      // viewport meta eviction yet is cleared and re-applied on an `updateSettings` cache reset.
+      const metaManager = new MetaManager();
+
+      metaManager.disableUserDefinedMetaRecording();
+      metaManager.setCellMeta(3, 0, 'className', 'columnSummaryResult');
+      metaManager.enableUserDefinedMetaRecording();
+
+      expect(metaManager.getCellMeta(3, 0, { visualRow: 3, visualColumn: 0 }).className)
+        .toBe('columnSummaryResult');
+      expect(metaManager.getUserDefinedCellMetas()).toEqual([]);
+    });
   });
 
   describe('createRow()', () => {
@@ -341,6 +356,49 @@ describe('MetaManager', () => {
       expect(metaManager.clearCache()).toBeUndefined();
       expect(metaManager.cellMeta.clearCache).toHaveBeenCalledWith();
       expect(metaManager.columnMeta.clearCache).toHaveBeenCalledWith();
+    });
+  });
+
+  describe('getCellMetaUncached()', () => {
+    it('should not retain a meta object for a cell with no overrides', () => {
+      const metaManager = new MetaManager();
+
+      const meta = metaManager.getCellMetaUncached(2, 3, { visualRow: 2, visualColumn: 3 });
+
+      // positional props set, just like getCellMeta
+      expect(meta.row).toBe(2);
+      expect(meta.col).toBe(3);
+      expect(meta.visualRow).toBe(2);
+      expect(meta.visualCol).toBe(3);
+      // ...but nothing was stored in the cell-meta cache
+      expect(metaManager.cellMeta.hasMeta(2, 3)).toBe(false);
+      expect(metaManager.cellMeta.getMetas()).toHaveLength(0);
+    });
+
+    it('should inherit column-layer settings through the prototype chain', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(4, { className: 'htCenter', type: 'numeric' });
+
+      const meta = metaManager.getCellMetaUncached(10, 4, { visualRow: 10, visualColumn: 4 });
+
+      expect(meta.className).toBe('htCenter');
+      expect(meta.type).toBe('numeric');
+      expect(metaManager.cellMeta.hasMeta(10, 4)).toBe(false);
+    });
+
+    it('should reuse the stored meta object when the cell already has its own meta', () => {
+      const metaManager = new MetaManager();
+
+      // give the cell an override -> it now has a cached meta object
+      metaManager.setCellMeta(5, 1, 'className', 'htRight');
+
+      const stored = metaManager.getCellMeta(5, 1, { visualRow: 5, visualColumn: 1, skipMetaExtension: true });
+      const uncached = metaManager.getCellMetaUncached(5, 1, { visualRow: 5, visualColumn: 1 });
+
+      // the override is preserved AND the same object is reused (not a throwaway copy)
+      expect(uncached.className).toBe('htRight');
+      expect(uncached).toBe(stored);
     });
   });
 });

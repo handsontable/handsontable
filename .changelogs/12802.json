@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed missing selection border edges and active header highlight accents along frozen-pane boundaries (`fixedRowsTop` / `fixedRowsBottom` / `fixedColumnsStart`).",
+  "type": "fixed",
+  "issueOrPR": 12802,
+  "breaking": false,
+  "framework": "none"
+}

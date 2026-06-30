@@ -17,6 +17,7 @@ vue:
   metaTitle: Configuration options - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 Configure your grid down to each column, row, and cell, using various built-in options that control Handsontable's behavior and user interface.
 
@@ -185,6 +186,8 @@ When you modify the bottom-level cell options (using the [`cell`](@/api/options.
 
 When you modify any options with the [`cells`](@/api/options.md#cells) function, the changes overwrite all other options.
 
+Unless an option's [reference entry](@/api/options.md) states otherwise, you can set it at any cascading level - the grid level, the [`columns`](@/api/options.md#columns) level, the [`cells`](@/api/options.md#cells) level, and the [`cell`](@/api/options.md#cell) level. An option marked as grid-level only has no effect when you set it per column or per cell.
+
 ::: tip
 
 The [`cells`](@/api/options.md#cells) option is a function invoked before Handsontable's [rendering cycle](@/guides/optimization/batch-operations/batch-operations.md). Implemented incorrectly, it can slow Handsontable down. Use the [`cells`](@/api/options.md#cells) option only if the [`cell`](@/api/options.md#cell) option, the [`columns`](@/api/options.md#columns) option, and the [`setCellMeta()`](#change-cell-options) method don't meet your needs.
@@ -192,6 +195,12 @@ The [`cells`](@/api/options.md#cells) option is a function invoked before Handso
 :::
 
 For more details on Handsontable's cascading configuration, see the [MetaManager class](https://github.com/handsontable/handsontable/blob/master/handsontable/src/dataMap/metaManager/index.js).
+
+To read configuration at runtime, use the method that matches the level you need:
+
+- [`getSettings()`](@/api/core.md#getsettings) returns global grid settings only.
+- [`getColumnMeta()`](@/api/core.md#getcolumnmeta) returns column-level meta for a given column.
+- [`getCellMeta()`](@/api/core.md#getcellmeta) returns the effective merged meta for a given cell.
 
 ### Plugin options
 
@@ -492,6 +501,8 @@ Any options modified through [`cells`](@/api/options.md#cells) overwrite all oth
 - `prop`: if your [`data`](@/api/options.md#data) is an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), `prop` is a property name for a column's data source object.<br>
 If your [`data`](@/api/options.md#data) is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
 
+Inside the `cells` function, `this` is the cell meta object, and `this.instance` is the Handsontable instance. Use `this.instance` to call core API methods -- for example, `this.instance.toVisualRow(row)`.
+
 ```js
 const hot = new Handsontable(container, {
   // the `cells` options overwrite all other options
@@ -533,6 +544,8 @@ The function can take three arguments:<br>
 }}/>
 ```
 
+The arrow function passed to `cells` does not bind `this`, so `this.instance` is not available inside it. To access the Handsontable instance, use the component's ref: `hotTableRef.current.hotInstance`.
+
 :::
 
 ::: only-for angular
@@ -567,6 +580,8 @@ gridSettings: GridSettings = {
 <hot-table [settings]="gridSettings" />
 ```
 
+The arrow function passed to `cells` does not bind `this`, so `this.instance` is not available inside it. To access the Handsontable instance, use the component's ref: `hotTable.hotInstance`.
+
 :::
 
 ::: only-for vue
@@ -588,6 +603,8 @@ const hotSettings = ref({
 ```html
 <HotTable :settings="hotSettings" />
 ```
+
+Because the `cells` function above is a shorthand method, `this` is the cell meta object and `this.instance` is the Handsontable instance -- for example, `this.instance.toVisualRow(row)`. An arrow function (`cells: () => {}`) does not bind `this`; in that case, access the instance via the component's ref: `hotRef.value?.hotInstance`.
 
 :::
 
@@ -1019,6 +1036,8 @@ hot?.getCellMeta(1, 1).readOnly;
 
 :::
 
+[`setCellMeta()`](@/api/core.md#setcellmeta) updates a cell's metadata but doesn't repaint the grid on its own. To make a visual change appear -- such as a new `className`, `type`, or `readOnly` state -- call [`render()`](@/api/core.md#render) afterward. If you change several cells at once, wrap the calls in [`batch()`](@/api/core.md#batch) so the grid renders only once.
+
 ## Implement custom logic
 
 You can apply configuration options to individual grid elements (columns, rows, cells), based on any logic you implement, using the [`cells`](@/api/options.md#cells) option.
@@ -1032,6 +1051,8 @@ The function can take three arguments:<br>
    - `col`: a column coordinate (a physical index)
    - `prop`: if your [`data`](@/api/options.md#data) is an [array of objects](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-objects), `prop` is a property name for a column's data source object.<br>
    If your [`data`](@/api/options.md#data) is an [array of arrays](@/guides/getting-started/binding-to-data/binding-to-data.md#array-of-arrays), `prop` is the same as `col`.
+
+Inside the `cells` function, `this` is the cell meta object, and `this.instance` is the Handsontable instance. Use `this.instance` to call core API methods -- for example, `this.instance.toVisualRow(row)`.
 
 ```js
 const hot = new Handsontable(container, {
@@ -1071,6 +1092,8 @@ The function can take three arguments:<br>
 />
 ```
 
+The arrow function passed to `cells` does not bind `this`, so `this.instance` is not available inside it. To access the Handsontable instance, use the component's ref: `hotTableRef.current.hotInstance`.
+
 :::
 
 ::: only-for angular
@@ -1103,6 +1126,8 @@ gridSettings: GridSettings = {
 <hot-table [settings]="gridSettings" />
 ```
 
+The arrow function passed to `cells` does not bind `this`, so `this.instance` is not available inside it. To access the Handsontable instance, use the component's ref: `hotTable.hotInstance`.
+
 :::
 
 ::: only-for vue
@@ -1122,6 +1147,8 @@ const hotSettings = ref({
 ```html
 <HotTable :settings="hotSettings" />
 ```
+
+Because the `cells` function above is a shorthand method, `this` is the cell meta object and `this.instance` is the Handsontable instance -- for example, `this.instance.toVisualRow(row)`. An arrow function (`cells: () => {}`) does not bind `this`; in that case, access the instance via the component's ref: `hotRef.value?.hotInstance`.
 
 :::
 
@@ -1303,6 +1330,10 @@ Use [`initialState`](@/api/options.md#initialstate) to apply these options only 
 
 :::
 
+## Result
+
+Your grid now applies configuration options at the scope you specified -- grid-wide, per column, per row, or per individual cell -- using Handsontable's cascading configuration system.
+
 ## Related API reference
 
 **Configuration options**
@@ -1341,7 +1372,3 @@ Use [`initialState`](@/api/options.md#initialstate) to apply these options only 
 - [afterUpdateSettings](@/api/hooks.md#afterupdatesettings)
 
 </div>
-
-## Result
-
-Your grid now applies configuration options at the scope you specified -- grid-wide, per column, per row, or per individual cell -- using Handsontable's cascading configuration system.

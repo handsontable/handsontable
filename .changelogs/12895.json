@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a memory leak in the React wrapper where the portal containers used by component-based renderers were retained for every scrolled cell instead of being released once a cell left the viewport.",
+  "type": "fixed",
+  "issueOrPR": 12895,
+  "breaking": false,
+  "framework": "react"
+}

@@ -496,6 +496,10 @@ Taller rows or wider columns lower these limits proportionally. For example, wit
 
 If your dataset can grow past these limits, load it in smaller chunks, for example with server-side or lazy data loading.
 
+## Result
+
+Your grid now renders at the dimensions you specified, responding to container size or fixed pixel values as configured.
+
 ## Related articles
 
 **Related guides**
@@ -537,7 +541,3 @@ If your dataset can grow past these limits, load it in smaller chunks, for examp
 - [beforeRefreshDimensions](@/api/hooks.md#beforerefreshdimensions)
 
 </div>
-
-## Result
-
-Your grid now renders at the dimensions you specified, responding to container size or fixed pixel values as configured.

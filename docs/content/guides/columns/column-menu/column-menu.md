@@ -119,6 +119,22 @@ To use the default dropdown contents, set it to `true`, or to customize it by se
 
 :::
 
+## Filter menu items
+
+When the [`Filters`](@/api/filters.md) plugin is enabled, it adds the following items to the
+dropdown menu. These items build the filtering interface and work only in the dropdown menu, not in
+the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md).
+
+| Key                                            | Action                                                                                       |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| [`filter_by_condition`](@/api/filters.md)      | Add the first filter condition.                                                              |
+| [`filter_by_condition2`](@/api/filters.md)     | Add the second filter condition. Required for the second condition's select element.         |
+| [`filter_operators`](@/api/filters.md)         | Select the operator (**And** or **Or**) that joins the two conditions.                       |
+| [`filter_by_value`](@/api/filters.md)          | Select the values to keep.                                                                   |
+| [`filter_action_bar`](@/api/filters.md)        | Apply or cancel the filter with the **OK** and **Cancel** buttons.                           |
+
+For a complete filtering guide, see [Column filter](@/guides/columns/column-filter/column-filter.md).
+
 ## Related keyboard shortcuts
 
 | Windows                                                  | macOS                                                       | Action                                                                                                       |  Excel  | Sheets  |

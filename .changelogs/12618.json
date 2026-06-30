@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed the `afterFormulasValuesUpdate` hook and `getDataAtCell` returning raw HyperFormula numerics for formula cells of type `time` or `date`.",
-  "type": "fixed",
-  "issueOrPR": 12618,
-  "breaking": false,
-  "framework": "none"
-}

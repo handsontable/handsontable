@@ -171,6 +171,12 @@ class Viewport {
       totalItemsFn: () => wtSettings.getSetting<number>('totalRows'),
       sizeFn: sourceRow => wtTable.getRowHeight(sourceRow) ?? NaN,
       defaultSizeFn: () => wtSettings.getSetting('stylesHandler').getDefaultRowHeight(),
+      // Uniform fast path: every row is the default height only when the core-side config reports
+      // it (no per-row `rowHeights`/`minRowHeights`, no `modifyRowHeight` hook) AND walkontable has
+      // measured no oversized rows. Any of these invalidates the cache, so the next build
+      // re-evaluates this predicate.
+      isUniformFn: () => wtSettings.getSetting<boolean>('rowHeightsUniform') &&
+        Object.keys(this.oversizedRows).length === 0,
     });
     /**
      * Cumulative column width prefix sum cache. Enables O(log n) scroll-to-column lookups
@@ -182,6 +188,10 @@ class Viewport {
       totalItemsFn: () => wtSettings.getSetting<number>('totalColumns'),
       sizeFn: sourceCol => wtTable.getColumnWidth(sourceCol),
       defaultSizeFn: () => DEFAULT_COLUMN_WIDTH,
+      // Uniform fast path: every column is the default width only when the core-side config reports
+      // it (no per-column `colWidths`, no `modifyColWidth` hook — note `autoColumnSize` is on by
+      // default and registers that hook, so this is true only when `colWidths` is set).
+      isUniformFn: () => wtSettings.getSetting<boolean>('columnWidthsUniform'),
     });
 
     this.eventManager = eventManager;

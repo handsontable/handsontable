@@ -875,6 +875,53 @@ describe('WalkontableScroll', () => {
       expect(lastRow.find('td:last').text()).toBe('K7');
     });
 
+    it('should keep the bottom overlay rows correct on vertical scroll and re-render its columns on ' +
+      'horizontal scroll', async() => {
+      // The bottom overlay fast-draws (repositions without re-rendering) on a pure vertical scroll, because
+      // its fixed rows over the same visible columns do not change. This guards that the optimization does
+      // not stale the overlay vertically, and that a horizontal scroll still refreshes its columns (the
+      // overlay's columns must always track the master's).
+      createDataArray(100, 100);
+      spec().$wrapper.width(245 + getScrollbarWidth()).height(186 + getScrollbarWidth());
+
+      const wt = walkontable({
+        data: getData,
+        totalRows: getTotalRows,
+        totalColumns: getTotalColumns,
+        fixedRowsBottom: 2,
+      });
+
+      wt.draw();
+
+      const stripRowNumber = text => text.replace(/\d+$/, '');
+      const bottomTable = () => $(wt.wtOverlays.bottomOverlay.clone.wtTable.TABLE);
+      const bottomFirstCells = () => bottomTable().find('tbody tr').toArray().map(tr => $(tr).find('td:first').text());
+      const columnsOf = $table => $table.find('tbody tr:first td').toArray().map(td => stripRowNumber(td.textContent));
+      const bottomColumns = () => columnsOf(bottomTable());
+      const masterColumns = () => columnsOf(getTableMaster());
+
+      // A real vertical scroll drives the fast-draw path for the bottom overlay.
+      wt.wtTable.holder.scrollTop = 400;
+      wt.draw();
+
+      await sleep(50);
+
+      // The bottom overlay still renders the two fixed bottom rows (the last rows of the data) ...
+      expect(bottomFirstCells().length).toBe(2);
+      expect(bottomFirstCells()[0]).toMatch(/99$/);
+      expect(bottomFirstCells()[1]).toMatch(/100$/);
+      // ... and its columns stay in sync with the master (not staled by the fast draw).
+      expect(bottomColumns()).toEqual(masterColumns());
+
+      // A horizontal scroll changes the visible columns, so the bottom overlay must re-render to match.
+      wt.wtTable.holder.scrollLeft = 400;
+      wt.draw();
+
+      await sleep(50);
+
+      expect(bottomColumns()).toEqual(masterColumns());
+    });
+
     it('should update the scroll position of overlays only once, when scrolling the master table', async() => {
       createDataArray(100, 100);
       spec().$wrapper.width(245 + getScrollbarWidth()).height(186 + getScrollbarWidth());

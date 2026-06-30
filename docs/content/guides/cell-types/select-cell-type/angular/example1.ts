@@ -20,8 +20,8 @@ export class AppComponent {
 
   readonly gridSettings: GridSettings = {
     height: 'auto',
-    colWidths: [50, 70, 50],
-    colHeaders: true,
+    colWidths: [70, 90, 80],
+    colHeaders: ['Year', 'Make', 'In stock'],
     autoWrapRow: true,
     autoWrapCol: true,
     columns: [

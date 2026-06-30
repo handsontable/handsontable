@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed additive `Ctrl`/`Cmd`+click selection not working in a Handsontable instance rendered inside a separate iframe (or any instance that was not the first one created).",
-  "type": "fixed",
-  "issueOrPR": 12737,
-  "breaking": false,
-  "framework": "none"
-}

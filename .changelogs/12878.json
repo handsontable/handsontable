@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Reduced memory usage when filtering large datasets: the Filters plugin no longer permanently retains a cell meta object for every source row of each filtered column.",
+  "type": "fixed",
+  "issueOrPR": 12878,
+  "breaking": false,
+  "framework": "none"
+}

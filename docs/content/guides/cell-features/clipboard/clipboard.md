@@ -346,6 +346,10 @@ Examples of how to use them are provided in their descriptions.
 3. `document.execCommand` can be called only during an immediate-execute event, such as a `MouseEvent` or a `KeyboardEvent`.
 4. Clipboard operations don’t work in Chrome 133+ with Handsontable 14.6.0, 14.6.1, or 15.0.0. Update to 14.6.2 or 15.0.1+. See the [incident announcement](https://handsontable.com/blog/incident-report-handsontable-14.6-15.0-clipboard-disruption-in-chrome-133) for details.
 
+## Result
+
+Users can copy, cut, and paste cell data using keyboard shortcuts or the context menu. Programmatic copy and cut operations work by calling `document.execCommand()` after selecting the target cells.
+
 ## Related keyboard shortcuts
 
 | Windows                                | macOS                                 | Action                                                          |  Excel  | Sheets  |
@@ -407,7 +411,3 @@ Examples of how to use them are provided in their descriptions.
 - [CopyPaste](@/api/copyPaste.md)
 
 </div>
-
-## Result
-
-Users can copy, cut, and paste cell data using keyboard shortcuts or the context menu. Programmatic copy and cut operations work by calling `document.execCommand()` after selecting the target cells.

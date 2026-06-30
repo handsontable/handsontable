@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed `Filter by value` selection being lost in dependent column when editing an earlier filtered column",
-  "type": "fixed",
-  "issueOrPR": 12620,
-  "breaking": false,
-  "framework": "none"
-}

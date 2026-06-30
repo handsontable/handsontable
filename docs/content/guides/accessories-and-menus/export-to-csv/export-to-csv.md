@@ -186,6 +186,10 @@ To prevent this attack, set the [`sanitizeValues` option](#sanitizevalues-boolea
 :::
 :::
 
+## Result
+
+After completing this guide, you can export grid data as a downloadable CSV file, a JavaScript Blob, or a string. You can customize delimiters, ranges, headers, and value sanitization through the export configuration.
+
 ## Available methods
 
 ::: only-for react

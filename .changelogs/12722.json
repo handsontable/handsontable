@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Improved TypeScript type annotations in built-in renderers and internal Core methods for strict-mode compatibility.",
-  "type": "changed",
-  "issueOrPR": 12722,
-  "breaking": false,
-  "framework": "none"
-}

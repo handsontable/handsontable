@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed undoing row removal to restore all source-data fields, including columns that are not exposed via the `columns` configuration.",
-  "type": "fixed",
-  "issueOrPR": 12629,
-  "breaking": false,
-  "framework": "none"
-}

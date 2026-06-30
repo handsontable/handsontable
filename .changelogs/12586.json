@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed context menu items in object form (e.g. `add_child`, `detach_from_parent`) not rendering plugin-provided callbacks and translated labels.",
-  "type": "fixed",
-  "issueOrPR": 12586,
-  "breaking": false,
-  "framework": "none"
-}

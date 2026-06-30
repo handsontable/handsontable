@@ -76,7 +76,13 @@ The example below handles data by using `fetch`. Note that this is just a mockup
 
 ## Save data locally
 
-To persist table state (e.g. column order, column widths, row order) across page reloads, use the browser's [`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) API or [`sessionStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage) in your application. Listen to the appropriate hooks (e.g. `afterColumnMove`, `afterColumnResize`) and save or restore state as needed.
+To persist table state (e.g. column order, column widths, row order) across page reloads, use the browser's [`localStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage) API or [`sessionStorage`](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage) in your application. Listen to the appropriate hooks (e.g. [`afterColumnMove`](@/api/hooks.md#aftercolumnmove), [`afterRowMove`](@/api/hooks.md#afterrowmove), [`afterColumnResize`](@/api/hooks.md#aftercolumnresize)) and save or restore state as needed.
+
+The [`afterChange`](@/api/hooks.md#afterchange) hook does not fire for structural changes such as row moves. To save a new row order, listen to [`afterRowMove`](@/api/hooks.md#afterrowmove) and read the current order with [`getData()`](@/api/core.md#getdata). For more on how moves affect the data model, see [Row moving](@/guides/rows/row-moving/row-moving.md#data-model-behavior).
+
+## Result
+
+Changes made in the grid are now persisted to your backend or local state on every edit.
 
 ## Related API reference
 
@@ -96,7 +102,3 @@ To persist table state (e.g. column order, column widths, row order) across page
 - [afterChange](@/api/hooks.md#afterchange)
 
 </div>
-
-## Result
-
-Changes made in the grid are now persisted to your backend or local state on every edit.

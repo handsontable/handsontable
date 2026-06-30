@@ -227,6 +227,10 @@ When a merged cell's underlying rows or columns are reordered (through [`manualC
 
 [`undo`](@/api/options.md#undo) and [`redo`](@/api/options.md#redo) restore the pre-move state, including any merges that were split or dropped by the reorder.
 
+## Result
+
+Cells at the configured positions are now merged. Users see a single cell spanning multiple rows or columns.
+
 ## Related keyboard shortcuts
 
 | Windows                                | macOS                                  | Action                              |  Excel  | Sheets  |
@@ -265,7 +269,3 @@ When a merged cell's underlying rows or columns are reordered (through [`manualC
 - [MergeCells](@/api/mergeCells.md)
 
 </div>
-
-## Result
-
-Cells at the configured positions are now merged. Users see a single cell spanning multiple rows or columns.

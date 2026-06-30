@@ -3,7 +3,6 @@ import { BasePlugin } from '../base';
 import { arrayEach, arrayMap } from '../../helpers/array';
 import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { warn } from '../../helpers/console';
-import { rangeEach } from '../../helpers/number';
 import { addClass, isBottomMostColumnHeader, isHTMLElement, removeClass } from '../../helpers/dom/element';
 import { isKey } from '../../helpers/unicode';
 import { getValueGetterValue } from '../../utils/valueAccessors';
@@ -539,7 +538,7 @@ export class Filters extends BasePlugin {
    * | `intl_time_between` | Between times (locale-aware) | `[fromTimeString: string, toTimeString: string]`, e.g. `['08:00', '12:00']` |
    * | `lt` | Less than | `[value: number]`, e.g. `[10]` |
    * | `lte` | Less than or equal | `[value: number]`, e.g. `[10]` |
-   * | `none` | None (no filter) | `[]` |
+   * | `none` | None (no filter) | `[]`. Matches every row, so it has no filtering effect. To clear a column's filter, use [`removeConditions()`](@/api/filters.md#removeconditions) instead. |
    * | `not_between` | Not between | `[from: number\|string, to: number\|string]`, e.g. `[10, 50]` |
    * | `not_contains` | Not contains | `[value: string]`, e.g. `['ing']` |
    * | `not_empty` | Not empty | `[]` |
@@ -902,6 +901,9 @@ export class Filters extends BasePlugin {
   /**
    * Removes conditions at specified column index.
    *
+   * This is the programmatic equivalent of selecting the `None` operator in the column menu – both
+   * clear the column's filter.
+   *
    * @param {number} column Visual column index.
    */
   removeConditions(column: number): void {
@@ -992,24 +994,23 @@ export class Filters extends BasePlugin {
     );
 
     if (allowFiltering !== false && needToFilter) {
-      const trimmedRows: number[] = [];
       const dataFilter = this._createDataFilter();
       const rowIndexesToShow = arrayMap(dataFilter.filter(),
         rowData => (rowData as { meta: { row: number } }).meta.row);
       const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
+      const countSourceRows = this.hot.countSourceRows();
+      // Build the trimmed-state array in a single pass (`true` marks a row hidden by the filter), then
+      // write it to the map in one bulk `setValues` call. The previous approach scanned the dataset
+      // twice (a `clear()` that rebuilt the whole array, then a `rangeEach` pass) and fired a map
+      // `change` per trimmed row; for large datasets that was a measurable share of `filter()` time.
+      const trimmedRowsState = new Array(countSourceRows);
+
+      for (let physicalRow = 0; physicalRow < countSourceRows; physicalRow++) {
+        trimmedRowsState[physicalRow] = !rowIndexesToShowAssertion(physicalRow);
+      }
 
       this.hot.batchExecution(() => {
-        this.filtersRowsMap?.clear();
-
-        rangeEach(this.hot.countSourceRows() - 1, (row: number) => {
-          if (!rowIndexesToShowAssertion(row)) {
-            trimmedRows.push(row);
-          }
-        });
-
-        arrayEach(trimmedRows, (physicalRow) => {
-          this.filtersRowsMap?.setValueAtIndex(physicalRow, true);
-        });
+        this.filtersRowsMap?.setValues(trimmedRowsState);
       }, true);
 
       if (!navigableHeaders && !rowIndexesToShow.length) {
@@ -1080,19 +1081,11 @@ export class Filters extends BasePlugin {
     const visualColumn = this.hot.toVisualColumn(physicalColumn);
     const data: Record<string, unknown>[] = [];
 
-    type HotWithMetaManager = {
-      _getMetaManager(): {
-        getCellMeta(row: number, col: number, opts: Record<string, unknown>): Record<string, unknown>;
-      };
-    };
-
     for (let physicalRow = 0; physicalRow < countSourceRows; physicalRow++) {
-      const cellMeta = (this.hot as unknown as HotWithMetaManager)
-        ._getMetaManager().getCellMeta(physicalRow, physicalColumn, {
-          visualRow: physicalRow,
-          visualColumn: physicalColumn,
-          skipMetaExtension: true,
-        });
+      const cellMeta = this.hot._getMetaManager().getCellMetaUncached(physicalRow, physicalColumn, {
+        visualRow: physicalRow,
+        visualColumn: physicalColumn,
+      });
       let value = getValueGetterValue(
         this.hot.getSourceDataAtCell(physicalRow, visualColumn),
         cellMeta

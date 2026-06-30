@@ -1045,6 +1045,10 @@ details, [contact our Sales Team](https://handsontable.com/get-a-quote).
 
 :::
 
+## Result
+
+After setting up the `Formulas` plugin with a HyperFormula engine, cells that contain a formula (starting with `=`) are evaluated automatically. Editing a cell updates all dependent formula cells in real time, and cross-sheet references stay in sync across linked Handsontable instances.
+
 ## Related articles
 
 **HyperFormula documentation**
@@ -1098,7 +1102,3 @@ details, [contact our Sales Team](https://handsontable.com/get-a-quote).
 - [Formulas](@/api/formulas.md)
 
 </div>
-
-## Result
-
-After setting up the `Formulas` plugin with a HyperFormula engine, cells that contain a formula (starting with `=`) are evaluated automatically. Editing a cell updates all dependent formula cells in real time, and cross-sheet references stay in sync across linked Handsontable instances.

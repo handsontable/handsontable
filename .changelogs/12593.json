@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed a crash when `updateSettings` was called from the `beforeContextMenuShow` or `beforeDropdownMenuShow` hook.",
-  "type": "fixed",
-  "issueOrPR": 12593,
-  "breaking": false,
-  "framework": "none"
-}

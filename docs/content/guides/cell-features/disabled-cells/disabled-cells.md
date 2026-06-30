@@ -276,6 +276,10 @@ To make specific cells non-editable, set `editor: false` in the cell configurati
 
 :::
 
+## Result
+
+Read-only cells display with the `htDimmed` CSS class and block paste and drag-to-fill operations. Non-editable cells block manual editing but allow copy-paste and drag-to-fill.
+
 ## Related API reference
 
 **Configuration options**
@@ -286,7 +290,3 @@ To make specific cells non-editable, set `editor: false` in the cell configurati
 - [readOnlyCellClassName](@/api/options.md#readonlycellclassname)
 
 </div>
-
-## Result
-
-Read-only cells display with the `htDimmed` CSS class and block paste and drag-to-fill operations. Non-editable cells block manual editing but allow copy-paste and drag-to-fill.

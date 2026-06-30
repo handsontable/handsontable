@@ -5,6 +5,10 @@ metaTitle: Row hiding - JavaScript Data Grid | Handsontable
 description: Hide individual rows to avoid rendering them as DOM elements. It helps you reduce screen clutter and improve the grid's performance.
 permalink: /row-hiding
 canonicalUrl: /row-hiding
+tags:
+  - hiding
+  - hidden rows
+  - HiddenRows
 react:
   metaTitle: Row hiding - React Data Grid | Handsontable
 angular:
@@ -319,6 +323,10 @@ To exclude hidden rows from copying and pasting, in the `hiddenRows` object, set
 :::
 
 :::
+
+## Result
+
+After completing this guide, you can hide rows from the grid without changing source data. You can configure default hidden rows, UI indicators, context menu items, and copy-paste behavior.
 
 ## Row hiding API methods
 

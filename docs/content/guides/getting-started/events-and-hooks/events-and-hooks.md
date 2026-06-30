@@ -237,6 +237,8 @@ Handsontable exposes hundreds of hooks. The ones below are the hooks you reach f
 
 </div>
 
+When [`columns[].data`](@/api/options.md#columns) is a function, the `prop` field in each change tuple is that accessor function. Use [`propToCol()`](@/api/core.md#proptocol) to resolve the visual column index. See [Binding to data: Identify changed columns in hooks](@/guides/getting-started/binding-to-data/binding-to-data.md#identify-changed-columns-in-hooks).
+
 **Row and column structure (CRUD)** -- track rows and columns being added or removed. Each `before` variant can return `false` to block the operation.
 
 <div class="boxes-list">
@@ -276,6 +278,32 @@ Handsontable exposes hundreds of hooks. The ones below are the hooks you reach f
 - [afterDocumentKeyDown](@/api/hooks.md#afterdocumentkeydown) -- fired after a `keydown` event is handled.
 
 </div>
+
+## How validation affects hook order
+
+When an edited cell has a [`validator`](@/api/options.md#validator), Handsontable runs the validation asynchronously. This applies to every validator, including one that calls its callback synchronously. It also applies to the built-in validators that cell types such as [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md), [`date`](@/guides/cell-types/date-cell-type/date-cell-type.md), [`time`](@/guides/cell-types/time-cell-type/time-cell-type.md), [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md), and [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) use, so a cell can run a validator even without a custom `validator` function. The grid commits the change and fires the change-related hooks only after the validators for all edited cells resolve. As a result, the order in which hooks fire during an edit depends on whether the edited cell runs a validator.
+
+When the edited cell runs no validator, the hooks fire synchronously:
+
+1. [`beforeKeyDown`](@/api/hooks.md#beforekeydown)
+2. [`beforeChange`](@/api/hooks.md#beforechange)
+3. [`beforeChangeRender`](@/api/hooks.md#beforechangerender)
+4. [`afterChange`](@/api/hooks.md#afterchange)
+5. [`afterSelection`](@/api/hooks.md#afterselection)
+
+When the edited cell runs a validator, the grid defers the change until validation finishes, so [`afterSelection`](@/api/hooks.md#afterselection) fires before the change is committed:
+
+1. [`beforeKeyDown`](@/api/hooks.md#beforekeydown)
+2. [`beforeChange`](@/api/hooks.md#beforechange)
+3. [`beforeValidate`](@/api/hooks.md#beforevalidate)
+4. [`afterSelection`](@/api/hooks.md#afterselection)
+5. [`afterValidate`](@/api/hooks.md#aftervalidate)
+6. [`beforeChangeRender`](@/api/hooks.md#beforechangerender)
+7. [`afterChange`](@/api/hooks.md#afterchange)
+
+The exact sequence depends on how you confirm the edit. The lists above describe confirming an edit with <kbd>**Enter**</kbd> or <kbd>**Tab**</kbd>, which moves the selection and fires [`afterSelection`](@/api/hooks.md#afterselection) while validation is still pending.
+
+To act on a committed, validated value, use the [`afterChange`](@/api/hooks.md#afterchange) or [`afterValidate`](@/api/hooks.md#aftervalidate) hook. Don't rely on a hook firing before or after [`afterSelection`](@/api/hooks.md#afterselection), because a validator changes that order. The [`beforeValidate`](@/api/hooks.md#beforevalidate) and [`afterValidate`](@/api/hooks.md#aftervalidate) hooks fire only when a validator is defined.
 
 ::: only-for react
 

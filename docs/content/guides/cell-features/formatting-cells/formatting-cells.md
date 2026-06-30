@@ -189,6 +189,10 @@ The example below demonstrates different border styles applied to various cell r
 
 :::
 
+## Result
+
+Cells display the configured CSS classes, inline styles, or custom borders. The appearance updates each time the grid renders, keeping styles in sync with your configuration.
+
 ## Related articles
 
 **Related guides**
@@ -226,7 +230,3 @@ The example below demonstrates different border styles applied to various cell r
 - [CustomBorders](@/api/customBorders.md)
 
 </div>
-
-## Result
-
-Cells display the configured CSS classes, inline styles, or custom borders. The appearance updates each time the grid renders, keeping styles in sync with your configuration.

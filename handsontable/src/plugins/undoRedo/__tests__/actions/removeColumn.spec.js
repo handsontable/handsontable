@@ -55,6 +55,7 @@ describe('UndoRedo -> RemoveColumn action', () => {
         [4, 2, jasmine.objectContaining({ visualRow: 4, visualCol: 2, row: 4, col: 2, prop: 2 })],
         [5, 2, jasmine.objectContaining({ visualRow: 5, visualCol: 2, row: 5, col: 2, prop: 2 })],
       ],
+      removedMergedCells: [],
     });
   });
 

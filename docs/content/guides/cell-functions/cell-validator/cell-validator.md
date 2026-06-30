@@ -13,6 +13,7 @@ vue:
   metaTitle: Cell validator - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
+menuTag: updated
 ---
 
 Cell validators run when a user finishes editing a cell. Use them to enforce data rules such as required fields, numeric ranges, or pattern matching.
@@ -276,7 +277,11 @@ Callback console log:
 
 Edit the above grid to see the `changes` argument from the callback.
 
-Mind that changes in table are applied after running all validators (both synchronous and and asynchronous) from every changed cell.
+Changes in the table are applied after all validators (both synchronous and asynchronous) for every changed cell finish. Validation always runs asynchronously, even when a validator calls its callback synchronously, so [`afterChange`](@/api/hooks.md#afterchange) fires after validation completes. To act on a validated value, use the [`afterChange`](@/api/hooks.md#afterchange) or [`afterValidate`](@/api/hooks.md#aftervalidate) hook. For how a validator changes the order in which hooks fire, see [How validation affects hook order](@/guides/getting-started/events-and-hooks/events-and-hooks.md#how-validation-affects-hook-order).
+
+## Result
+
+You now have a cell validator that enforces data rules when a user finishes editing. Register it under an alias to reference it by name across your column configuration, and use `allowInvalid: false` to keep the editor open until the user enters a valid value.
 
 ## Related API reference
 
@@ -327,7 +332,3 @@ Mind that changes in table are applied after running all validators (both synchr
 - [beforeValidate](@/api/hooks.md#beforevalidate)
 
 </div>
-
-## Result
-
-You now have a cell validator that enforces data rules when a user finishes editing. Register it under an alias to reference it by name across your column configuration, and use `allowInvalid: false` to keep the editor open until the user enters a valid value.

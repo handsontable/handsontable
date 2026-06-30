@@ -2615,7 +2615,8 @@ export default function Core(
    * to the DOM. While rendering the table all cell renderers are recalled.
    *
    * Calling this method manually is not recommended. Handsontable tries to render itself by choosing the most
-   * optimal moments in its lifecycle.
+   * optimal moments in its lifecycle. After [setCellMeta()](@/api/core.md#setcellmeta) changes visual cell
+   * properties, call this method to apply them, or wrap multiple calls in [batch()](@/api/core.md#batch).
    *
    * @memberof Core#
    * @function render
@@ -3146,6 +3147,10 @@ export default function Core(
    * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
    * through the declarative `cell` option takes precedence over the preserved imperative value.
    *
+   * Cell meta set imperatively through [[setCellMeta]] (for example, by the user or the context menu) is preserved across
+   * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
+   * through the declarative `cell` option takes precedence over the preserved imperative value.
+   *
    * When [[Hooks#hasExternalDataSource]] is true, Handsontable clears and rebinds the placeholder dataset only during
    * initialization or when `settings` includes `data` or `dataProvider`. Other keys alone (for example `height`) do not clear loaded rows.
    * If only `columns` changes, the column map is rebuilt without clearing rows.
@@ -3532,11 +3537,36 @@ export default function Core(
   };
 
   /**
-   * Returns the object settings.
+   * Returns the current global grid settings object.
+   *
+   * The returned object contains the settings passed to the constructor or the most recent
+   * `updateSettings()` call. It reflects the
+   * [grid-level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options)
+   * configuration only.
+   *
+   * It does not include merged per-cell or per-column values. Configuration options cascade from
+   * grid to column to cell (see
+   * [Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)).
+   * To read the effective value for a specific cell, use [[getCellMeta]]. To read column-level meta, use [[getColumnMeta]].
    *
    * @memberof Core#
    * @function getSettings
-   * @returns {TableMeta} Object containing the current table settings.
+   * @returns {TableMeta} Object containing the current global grid settings.
+   * @example
+   * ```js
+   * const hot = new Handsontable(container, {
+   *   readOnly: false,
+   *   columns: (index) => ({
+   *     readOnly: index === 2 || index === 8,
+   *   }),
+   * });
+   *
+   * // returns `false` (global grid-level setting)
+   * hot.getSettings().readOnly;
+   *
+   * // returns `true` for column 2 (merged column and cell meta)
+   * hot.getCellMeta(0, 2).readOnly;
+   * ```
    */
   this.getSettings = function() {
     return tableMeta as unknown as GridSettings;
@@ -4216,7 +4246,57 @@ export default function Core(
   };
 
   /**
+   * Writes a configuration-derived cell meta value declaratively. The value is applied to the cell meta
+   * (so it is retained while the cell is released from the viewport by the meta eviction), but is NOT
+   * recorded as user-defined, so an `updateSettings` cache reset clears it and it is re-applied from the
+   * current configuration - exactly like the `cell` option. Used by built-in plugins that derive cell
+   * meta from their own configuration (for example ColumnSummary) and re-apply it on each update.
+   *
+   * Unlike the public `setCellMeta`, this does NOT fire `beforeSetCellMeta`/`afterSetCellMeta` and is
+   * not vetoable: the write is plugin-internal render state the user never requested, so it must not
+   * surface through public hooks or be blocked by a `beforeSetCellMeta` veto. This matches the direct
+   * meta-object write these plugins used before the viewport meta eviction was introduced.
+   *
+   * Internal API: deliberately NOT declared on the public `HotInstance` type (`core/types.ts`), so it
+   * is not exposed to third-party code or the published `.d.ts`. Built-in consumers reach it through a
+   * local internal type (see `HotInstanceInternal` in the ColumnSummary plugin). Do not add it to
+   * `HotInstance` - that would turn an implementation detail into a supported public API.
+   *
+   * @private
+   * @memberof Core#
+   * @function _setCellMetaDeclarative
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} key The property name to set.
+   * @param {*} value The value to write.
+   */
+  this._setCellMetaDeclarative = function(row: number, column: number, key: string, value: unknown) {
+    let physicalRow = row;
+    let physicalColumn = column;
+
+    if (row < instance.countRows()) {
+      physicalRow = instance.toPhysicalRow(row);
+    }
+
+    if (column < instance.countCols()) {
+      physicalColumn = instance.toPhysicalColumn(column);
+    }
+
+    metaManager.disableUserDefinedMetaRecording();
+
+    try {
+      metaManager.setCellMeta(physicalRow, physicalColumn, key, value);
+    } finally {
+      metaManager.enableUserDefinedMetaRecording();
+    }
+  };
+
+  /**
    * Sets a property defined by the `key` property to the meta object of a cell corresponding to params `row` and `column`.
+   *
+   * This method updates internal cell metadata only. It does not repaint the grid. To reflect visual changes (such as
+   * `className`, `type`, or `readOnly`), call [render()](@/api/core.md#render) afterward, or wrap multiple calls in
+   * [batch()](@/api/core.md#batch).
    *
    * @memberof Core#
    * @function setCellMeta
@@ -4265,6 +4345,11 @@ export default function Core(
   /**
    * Returns the cell properties object for the given `row` and `column` coordinates.
    *
+   * The returned object reflects the effective cell configuration after
+   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * (grid, column, and cell levels). To read global grid settings only, use [[getSettings]].
+   * To read column-level meta, use [[getColumnMeta]].
+   *
    * @memberof Core#
    * @function getCellMeta
    * @param {number} row Visual row index.
@@ -4298,6 +4383,11 @@ export default function Core(
 
   /**
    * Returns the meta information for the provided column.
+   *
+   * The returned object reflects the column-level configuration after
+   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * (grid and column levels). To read global grid settings only, use [[getSettings]].
+   * To read the effective configuration for a specific cell, use [[getCellMeta]].
    *
    * @since 14.5.0
    * @memberof Core#

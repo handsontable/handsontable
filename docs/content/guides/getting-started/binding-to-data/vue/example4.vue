@@ -32,7 +32,6 @@ const hotSettings = ref<GridSettings>({
 
     return columnMeta;
   },
-  minSpareRows: 1,
   autoWrapRow: true,
   autoWrapCol: true,
   licenseKey: 'non-commercial-and-evaluation',
