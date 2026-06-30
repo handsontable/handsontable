@@ -60,9 +60,14 @@ async function fetchReleases(octokit) {
  * @returns {object}
  */
 async function readFromGitHub() {
-  // `GITHUB_TOKEN` is optional - when present it lifts the unauthenticated rate limit and makes the
-  // request reliable on CI runners; locally the call still works without it.
-  const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+  // `@octokit/rest@18` ships `node-fetch@2`, whose body stream throws "Premature close" on the large,
+  // gzip-compressed releases response under Node 18+ (the CI runner uses Node 22). Injecting the
+  // platform's native `fetch` (undici) avoids the broken node-fetch path. `GITHUB_TOKEN` is optional -
+  // it lifts the unauthenticated rate limit when present; the call still works locally without it.
+  const octokit = new Octokit({
+    auth: process.env.GITHUB_TOKEN,
+    request: { fetch: globalThis.fetch },
+  });
 
   const releases = await fetchReleases(octokit);
 
