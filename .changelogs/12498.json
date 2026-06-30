@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed an issue where the active cell flipped to the top-start corner after autofill, causing `getSelected` to report incorrect start/end coordinates. The selection direction now matches the drag direction (like Google Sheets and Excel).",
-  "type": "fixed",
-  "issueOrPR": 12498,
-  "breaking": false,
-  "framework": "none"
-}

@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed nested headers not staying aligned with the grid body when hiding or collapsing columns, made them follow column insertion and removal, made collapsing a group take effect (and stay collapsed) even when one of its columns is already hidden, and stopped column removal from leaving the selection on a hidden column (it now moves to the nearest visible one).",
-  "type": "fixed",
-  "issueOrPR": 12766,
-  "breaking": false,
-  "framework": "none"
-}

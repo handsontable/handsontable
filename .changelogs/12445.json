@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed the React and Vue 3 wrappers hiding the table when `height: '100%'` was set inside a fixed-height parent.",
-  "type": "fixed",
-  "issueOrPR": 12445,
-  "breaking": false,
-  "framework": "none"
-}

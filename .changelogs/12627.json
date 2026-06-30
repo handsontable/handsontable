@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "private",
-  "title": "Fixed column sorting permuting rows pinned by `fixedRowsTop` or `fixedRowsBottom`, which previously corrupted absolute-address formulas in footer rows.",
-  "type": "fixed",
-  "issueOrPR": 12627,
-  "breaking": false,
-  "framework": "none"
-}

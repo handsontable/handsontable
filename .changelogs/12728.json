@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Removed the deprecated Core-level undo/redo methods (`hot.undo()`, `hot.redo()`, `hot.clearUndo()`, `hot.isUndoAvailable()`, `hot.isRedoAvailable()`, `hot.undoRedo`). Use `hot.getPlugin('undoRedo')` instead.",
-  "type": "removed",
-  "issueOrPR": 12728,
-  "breaking": true,
-  "framework": "none"
-}

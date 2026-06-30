@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Modernized the Angular wrapper to align with Angular 17–19, simplify setup, reduce dependencies, and clean up tooling.",
-  "type": "changed",
-  "issueOrPR": 12451,
-  "breaking": false,
-  "framework": "angular"
-}

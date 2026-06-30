@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Migrated Handsontable core source from JavaScript to TypeScript",
-  "type": "changed",
-  "issueOrPR": 12011,
-  "breaking": true,
-  "framework": "none"
-}

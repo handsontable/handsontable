@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed pasting a single cell from Excel erasing the cell below the paste target when a custom `sanitizer` strips the HTML.",
-  "type": "fixed",
-  "issueOrPR": 12640,
-  "breaking": false,
-  "framework": "none"
-}

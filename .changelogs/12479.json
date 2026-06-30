@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Fixed column sorting not working for boolean data when the column type is set to `text`.",
-  "type": "fixed",
-  "issueOrPR": 12479,
-  "breaking": false,
-  "framework": "none"
-}
