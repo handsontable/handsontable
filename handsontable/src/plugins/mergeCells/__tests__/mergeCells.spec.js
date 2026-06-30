@@ -1751,7 +1751,7 @@ describe('MergeCells', () => {
 
     getPlugin('mergeCells').unmerge(1, 1, 1, 3);
 
-    const html = hot().toHTML();
+    const html = toHTML();
 
     expect(html).not.toContain('colspan');
     expect(html).not.toContain('rowspan');
@@ -1777,13 +1777,13 @@ describe('MergeCells', () => {
     // cleared eagerly in `unmergeRange` and cannot rely on `afterGetCellMeta` recomputing. The
     // read happens inside the batch on purpose: `batch` ends with a render that clears the memo,
     // so reading after it would mask the stale-meta path (the trap the original tests fell into).
-    hot().batch(() => {
+    batch(() => {
       getPlugin('mergeCells').unmerge(1, 1, 1, 3);
 
       // snapshot primitives - the meta object is a live reference mutated by the closing render
       parentMeta = { ...getCellMeta(1, 1) };
       coveredMeta = { ...getCellMeta(1, 2) };
-      html = hot().toHTML();
+      html = toHTML();
     });
 
     expect(parentMeta.spanned).toBeUndefined();
@@ -1813,13 +1813,13 @@ describe('MergeCells', () => {
     // Disabling the plugin drops the whole collection via `clearCollections`. The internal render
     // is suspended by `batch`, so - just like the unmerge case - the span meta must be cleared
     // eagerly. The read happens inside the batch, before the closing render clears the memo.
-    hot().batch(() => {
+    batch(() => {
       getPlugin('mergeCells').disablePlugin();
 
       // snapshot primitives - the meta object is a live reference mutated by the closing render
       parentMeta = { ...getCellMeta(1, 1) };
       coveredMeta = { ...getCellMeta(1, 2) };
-      html = hot().toHTML();
+      html = toHTML();
     });
 
     expect(parentMeta.spanned).toBeUndefined();
