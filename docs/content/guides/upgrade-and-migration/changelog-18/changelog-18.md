@@ -19,12 +19,13 @@ These are the release notes for Handsontable 18.x.
 
 ## 18.0.0
 
-Released on TODO: add release date
+Released on June 30th, 2026
 
 For more information about this release, see:
 
 <div class="boxes-list gray">
 
+- [Blog post (18.0.0)](https://handsontable.com/blog/handsontable-18.0.0-a-typescript-core-a-new-layout-system-and-a-faster-lighter-grid)
 - [Documentation (18.0)](https://handsontable.com/docs/18.0)
 - [Migration guide (17.1 → 18.0)](@/guides/upgrade-and-migration/migrating-from-17.1-to-18.0/migrating-from-17.1-to-18.0.md)
 
@@ -50,6 +51,7 @@ For more information about this release, see:
 - Changed the Notification plugin to render its toasts in the grid's overlay layer. [#12777](https://github.com/handsontable/handsontable/issues/12777)
 - Angular: Modernized the Angular wrapper to align with Angular 17–19, simplify setup, reduce dependencies, and clean up tooling. [#12451](https://github.com/handsontable/handsontable/issues/12451)
 - Angular: Added support for installing Angular 16 through 22, without the --force flag [#12752](https://github.com/handsontable/handsontable/issues/12752)
+- Reduced memory usage and improved initialization time for large datasets by no longer materializing cell metadata for every cell during source data validation. [#12847](https://github.com/handsontable/handsontable/pull/12847)
 
 #### Removed
 - **Breaking change**: Removed the numbro, moment.js, DOMPurify, and @handsontable/pikaday dependencies. [#12689](https://github.com/handsontable/handsontable/issues/12689)
@@ -134,6 +136,8 @@ For more information about this release, see:
 - Improved the performance of locale-aware text comparisons (search, filtering, sorting, autocomplete, and checkbox rendering) on large datasets. [#12762](https://github.com/handsontable/handsontable/issues/12762)
 - Fixed nested headers not staying aligned with the grid body when hiding or collapsing columns, made them follow column insertion and removal, made collapsing a group take effect (and stay collapsed) even when one of its columns is already hidden, and stopped column removal from leaving the selection on a hidden column (it now moves to the nearest visible one). [#12766](https://github.com/handsontable/handsontable/pull/12766)
 - Fixed filter menu components being wrongly hidden when dropdownMenu starts with a '---------' separator. [#12781](https://github.com/handsontable/handsontable/issues/12781)
+- Fixed cell meta set with `setCellMeta` (for example, `readOnly`) being reset by `updateSettings`. [#12811](https://github.com/handsontable/handsontable/issues/12811)
+- Reduced memory usage during scrolling and fixed potential out-of-memory errors on very large datasets. [#12844](https://github.com/handsontable/handsontable/pull/12844)
 - Vue: Fixed a Vue 3 wrapper crash on cell edit when `contextMenu` or `dropdownMenu` had `uiContainer` set to a DOM element under the Vue mount root. [#12475](https://github.com/handsontable/handsontable/issues/12475)
 - React: Fixed React component renderers being unmounted and visibly cleared on every grid render after a cell edit. [#12494](https://github.com/handsontable/handsontable/issues/12494)
 - React: Fixed an issue where `HotColumn` children removed from a `HotTable` left phantom columns behind in the React wrapper. [#12596](https://github.com/handsontable/handsontable/issues/12596)
