@@ -1,0 +1,15 @@
+{
+  "version": "18.0",
+  "highlighted": [
+    {
+      "prNumber": 12011,
+      "tagline": "A TypeScript core",
+      "whyItMatters": "Handsontable's core is now written in TypeScript, which ships more accurate types and a stronger foundation for catching integration mistakes at compile time."
+    },
+    {
+      "prNumber": 12094,
+      "tagline": "Configurable layout order",
+      "whyItMatters": "The new `layout` option and wrapper layout slots let you control the order of the UI elements rendered around the grid, such as pagination and dialogs."
+    }
+  ]
+}
