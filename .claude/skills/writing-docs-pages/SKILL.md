@@ -10,11 +10,10 @@ This skill covers how to create and edit guide pages in `docs/content/guides/`.
 
 ## 1. Frontmatter (required)
 
-Every `.md` file starts with YAML frontmatter. Generate unique 8-character alphanumeric IDs for new pages (never change existing IDs). Each framework variant needs its own ID.
+Every `.md` file starts with YAML frontmatter.
 
 ```yaml
 ---
-id: abc12345              # 8 random alphanumeric chars (never change existing)
 title: Feature Name
 metaTitle: Feature Name - JavaScript Data Grid | Handsontable
 description: Short SEO description under 160 characters.
@@ -24,7 +23,6 @@ tags:
   - keyword1
   - keyword2
 react:
-  id: def67890            # Different ID for React variant
   metaTitle: Feature Name - React Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features    # Must match a sidebar category exactly

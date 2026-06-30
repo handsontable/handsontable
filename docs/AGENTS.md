@@ -109,7 +109,6 @@ Use the appropriate template for each Diátaxis type. Do not omit required secti
 ```markdown
 ---
 type: tutorial
-id: <8-char alphanum>
 title: <Verb phrase — Build/Create/Set up X>
 metaTitle: <title> - JavaScript Data Grid | Handsontable
 description: <1-2 sentences summarizing outcome and who benefits>
@@ -150,7 +149,6 @@ In this tutorial, you will [concrete outcome]. You will learn [skill or concept]
 ```markdown
 ---
 type: how-to
-id: <8-char alphanum>
 title: How to [specific goal]
 metaTitle: How to [specific goal] - JavaScript Data Grid | Handsontable
 description: <1-2 sentences: what this achieves and when to use it>
@@ -191,7 +189,6 @@ category: <nav category>
 ```markdown
 ---
 type: reference
-id: <8-char alphanum>
 title: [Component/API/option name]
 metaTitle: [Component/API name] - JavaScript Data Grid | Handsontable
 description: <1-2 sentences describing what this is>
@@ -234,7 +231,6 @@ category: <nav category>
 ```markdown
 ---
 type: explanation
-id: <8-char alphanum>
 title: Understanding [concept]
 metaTitle: Understanding [concept] - JavaScript Data Grid | Handsontable
 description: <1-2 sentences: why this concept matters and who should read this>
@@ -396,14 +392,12 @@ Required fields for all pages:
 ```yaml
 ---
 type: tutorial | how-to | reference | explanation   # Diátaxis type (required)
-id: abc12345              # 8 random alphanumeric chars — NEVER change existing IDs
 title: Feature Name       # Matches H1; do NOT add H1 in body (Starlight renders title once)
 metaTitle: Feature Name - JavaScript Data Grid | Handsontable
 description: Short SEO description (1-2 sentences)
 permalink: /feature-name
 tags: [keyword1, keyword2]  # Optional; kebab-case
 react:
-  id: def67890            # Different ID per framework variant
   metaTitle: Feature Name - React Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
@@ -412,7 +406,6 @@ menuTag: new | updated    # Optional; sidebar badge -- see rule below
 ```
 
 **Rules:**
-- Never change an existing `id` value. IDs are permanent.
 - `title` is the only H1. Do not add `# Title` in the Markdown body.
 - `description` is used in SEO meta and link previews -- make it specific and accurate.
 - `tags` must be lowercase kebab-case.
@@ -476,7 +469,6 @@ Copy and complete this checklist in your PR description:
 - [ ] How-tos have a "Result" section
 - [ ] New page registered in `content/guides/sidebar.js`
 - [ ] `menuTag: new` set on new pages / `menuTag: updated` set on substantively changed pages (omit for trivial fixes, changelogs, and migration guides)
-- [ ] `id` field uses 8 random alphanumeric chars (existing IDs are unchanged)
 - [ ] Microsoft trademark disclaimer added where "Excel" is mentioned
 - [ ] TypeScript example exists; JS generated via `npm run docs:code-examples:generate-js`
 - [ ] `[skip changelog]` in PR body (docs changes don't need changelog entries)
