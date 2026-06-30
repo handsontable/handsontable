@@ -81,6 +81,8 @@ jobs:
           docker push $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}-${{ github.sha }}"
 
       - name: Build and deploy the production to Netlify (from Docker images)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd netlify
           mkdir -p docs/docs
