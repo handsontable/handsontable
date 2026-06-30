@@ -330,6 +330,13 @@ In this example, the first three columns are set to be 80px wide, and the last c
 
 :::
 
+### Column stretching and manual resizing
+
+Column stretching interacts with [`manualColumnResize`](@/api/options.md#manualcolumnresize) in two ways:
+
+- When `stretchH` is `'all'` or `'last'` together with `manualColumnResize: true`, you can still drag to resize a column. Stretching then recalculates, and the other columns adjust so the grid keeps filling the container. If your manual widths add up to more than the container width, stretching stops and the columns keep the sizes you set.
+- When you pass `manualColumnResize` an array of pre-defined widths (for example, `manualColumnResize: [80, 100, 120]`), the columns with explicit widths are excluded from stretching. Only the remaining columns are stretched to fill the container.
+
 ## A note about the performance
 
 As mentioned above, the default width of the column is based on the widest value in any cell within the column. You may be wondering how it's possible for data sets containing hundreds of thousands of records.

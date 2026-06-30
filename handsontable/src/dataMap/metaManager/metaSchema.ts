@@ -3911,6 +3911,10 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Column width: Column stretching](@/guides/columns/column-width/column-width.md#column-stretching)
+     * - [Column width: Column stretching and manual resizing](@/guides/columns/column-width/column-width.md#column-stretching-and-manual-resizing)
+     *
+     * When you set initial widths through the array form, those columns are excluded from
+     * [`stretchH`](#stretchh) redistribution. Only the columns without a pre-defined width are stretched.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
@@ -5833,6 +5837,11 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Column width: Column stretching](@/guides/columns/column-width/column-width.md#column-stretching)
+     * - [Column width: Column stretching and manual resizing](@/guides/columns/column-width/column-width.md#column-stretching-and-manual-resizing)
+     *
+     * When used with [`manualColumnResize`](#manualcolumnresize), columns that have a width set
+     * through pre-defined manual sizes are excluded from stretching. Only the remaining columns
+     * are stretched to fill the container.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
