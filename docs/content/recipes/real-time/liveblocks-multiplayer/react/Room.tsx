@@ -7,7 +7,7 @@ import {
   RoomProvider,
   ClientSideSuspense,
 } from "@liveblocks/react/suspense";
-import { GRID_COLS, GRID_ROWS } from "../liveblocks.config";
+import { GRID_COLS, GRID_ROWS } from "./liveblocks.config";
 
 export function Room({ children }: { children: ReactNode }) {
   return (

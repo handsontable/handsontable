@@ -10,7 +10,7 @@ import {
   useStorage,
 } from "@liveblocks/react/suspense";
 import { useCallback, useRef } from "react";
-import { GRID_COLS, GRID_ROWS } from "../liveblocks.config";
+import { GRID_COLS, GRID_ROWS } from "./liveblocks.config";
 
 registerAllModules();
 

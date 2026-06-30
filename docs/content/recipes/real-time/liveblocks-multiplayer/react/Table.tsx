@@ -12,7 +12,7 @@ import {
 } from "@liveblocks/react/suspense";
 import { useCallback, useRef } from "react";
 import type { HotTableRef } from "@handsontable/react-wrapper";
-import { GRID_COLS, GRID_ROWS } from "../liveblocks.config";
+import { GRID_COLS, GRID_ROWS } from "./liveblocks.config";
 
 registerAllModules();
 

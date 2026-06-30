@@ -104,9 +104,9 @@ Copy your public API key from the [Liveblocks dashboard](https://liveblocks.io/d
 
 ::: only-for react
 
-::: example #example1 --code-only
+::: example #table-component --code-only
 
-@[code](@/content/recipes/real-time/liveblocks-multiplayer/react/example1.jsx)
+@[code](@/content/recipes/real-time/liveblocks-multiplayer/react/Table.jsx)
 
 :::
 

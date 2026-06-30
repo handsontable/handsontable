@@ -139,9 +139,9 @@ Then add the cell-level styles. The comment pin is hidden until you hover the ce
 
 ::: only-for react
 
-::: example #example1 --code-only
+::: example #collaborative-app --code-only
 
-@[code](@/content/recipes/real-time/liveblocks-comments/react/example1.jsx)
+@[code](@/content/recipes/real-time/liveblocks-comments/react/CollaborativeApp.jsx)
 
 :::
 
