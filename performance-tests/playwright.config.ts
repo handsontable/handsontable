@@ -21,6 +21,7 @@ export default defineConfig({
       use: {
         browserName: 'chromium',
         launchOptions: {
+          executablePath: process.env.CHROMIUM_EXECUTABLE_PATH || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
           args: [
             '--disable-extensions',
             '--disable-background-networking',
