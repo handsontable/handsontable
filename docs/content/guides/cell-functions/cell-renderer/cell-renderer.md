@@ -13,6 +13,7 @@ vue:
   metaTitle: Cell renderer - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
+menuTag: updated
 ---
 
 A cell renderer is a function that controls how cell content is displayed in the DOM. Override a built-in renderer or write your own to customize the visual output.
@@ -410,6 +411,33 @@ In the below configuration:
 
 :::
 
+:::
+
+## Render hyperlinks in cells
+
+A common use of a custom renderer is to turn a cell value into a clickable hyperlink. The renderer reads the cell value, builds an anchor (`<a>`) element, and appends it to the cell's DOM node.
+
+```js
+function hyperlinkRenderer(instance, td, row, column, prop, value, cellProperties) {
+  Handsontable.dom.empty(td);
+
+  const link = document.createElement('a');
+
+  link.href = value;
+  link.textContent = value;
+  link.target = '_blank';
+  link.rel = 'noopener noreferrer';
+
+  td.appendChild(link);
+
+  return td;
+}
+```
+
+Assign the renderer to a column through the [`renderer`](@/api/options.md#renderer) option, or register it by alias with `registerRenderer()` as shown in [Register custom cell renderer](#register-custom-cell-renderer).
+
+::: warning Security
+When the link comes from untrusted input, validate the URL before rendering it. An unchecked `href` lets an attacker inject a `javascript:` link or other XSS vector. See [Security](@/guides/security/security/security.md) for details.
 :::
 
 ## Render custom HTML in header

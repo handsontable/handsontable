@@ -27,6 +27,8 @@ menuTag: updated
 Reflect the parent-child relationship of your data, using the [`NestedRows`](@/api/nestedRows.md) plugin's interactive UI elements such as expand and collapse
 buttons or an extended context menu.
 
+Handsontable renders this structure as a tree grid. The same pattern is also called a master-detail view or grouping rows.
+
 [[toc]]
 
 ## Quick setup

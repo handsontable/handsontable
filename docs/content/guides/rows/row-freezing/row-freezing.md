@@ -17,6 +17,7 @@ vue:
   metaTitle: Row freezing - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
+menuTag: updated
 ---
 Lock the position of specified rows, keeping them visible when scrolling.
 
@@ -74,6 +75,21 @@ The following example specifies two fixed rows with `fixedRowsTop: 2`. Horizonta
 :::
 
 :::
+
+## Freeze rows at the bottom
+
+To pin rows to the bottom edge of the grid -- sometimes called footer rows -- use the `fixedRowsBottom` option. The specified number of rows stays visible at the bottom of the viewport while you scroll through the rest of the data.
+
+```js
+const hot = new Handsontable(container, {
+  data: getData(),
+  // freeze the last two rows as a footer
+  fixedRowsBottom: 2,
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+You can combine `fixedRowsTop` and `fixedRowsBottom` to keep both a header and a footer row in view at the same time.
 
 ## Result
 
