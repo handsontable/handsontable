@@ -4,21 +4,15 @@ import { registerAllModules } from 'handsontable/registry';
 // Register all Handsontable's modules.
 registerAllModules();
 
-interface Album {
-  title: string;
-  artist: string;
-  label: string;
-}
-
-interface MusicAward {
-  category: string;
+interface MusicRow {
+  category?: string;
   artist?: string | null;
   title?: string | null;
   label?: string | null;
-  __children: Album[];
+  __children?: MusicRow[];
 }
 
-const sourceDataObject: MusicAward[] = [
+const sourceDataObject: MusicRow[] = [
   {
     category: 'Best Rock Performance',
     artist: null,
@@ -26,29 +20,45 @@ const sourceDataObject: MusicAward[] = [
     label: null,
     __children: [
       {
-        title: "Don't Wanna Fight",
-        artist: 'Alabama Shakes',
-        label: 'ATO Records',
+        category: 'Major label releases',
+        artist: null,
+        title: null,
+        label: null,
+        __children: [
+          {
+            title: "Don't Wanna Fight",
+            artist: 'Alabama Shakes',
+            label: 'ATO Records',
+          },
+          {
+            title: 'What Kind Of Man',
+            artist: 'Florence & The Machine',
+            label: 'Republic',
+          },
+          {
+            title: 'Something From Nothing',
+            artist: 'Foo Fighters',
+            label: 'RCA Records',
+          },
+        ],
       },
       {
-        title: 'What Kind Of Man',
-        artist: 'Florence & The Machine',
-        label: 'Republic',
-      },
-      {
-        title: 'Something From Nothing',
-        artist: 'Foo Fighters',
-        label: 'RCA Records',
-      },
-      {
-        title: "Ex's & Oh's",
-        artist: 'Elle King',
-        label: 'RCA Records',
-      },
-      {
-        title: 'Moaning Lisa Smile',
-        artist: 'Wolf Alice',
-        label: 'RCA Records/Dirty Hit',
+        category: 'Independent releases',
+        artist: null,
+        title: null,
+        label: null,
+        __children: [
+          {
+            title: 'Moaning Lisa Smile',
+            artist: 'Wolf Alice',
+            label: 'RCA Records/Dirty Hit',
+          },
+          {
+            title: "Ex's & Oh's",
+            artist: 'Elle King',
+            label: 'RCA Records',
+          },
+        ],
       },
     ],
   },
@@ -158,4 +168,8 @@ new Handsontable(container, {
   autoWrapCol: true,
   height: 'auto',
   licenseKey: 'non-commercial-and-evaluation',
+  // Collapse "Best Metal Performance" on load to demonstrate expand/collapse controls.
+  afterInit() {
+    this.getPlugin('nestedRows').collapsingUI.collapseChildren(8);
+  },
 });
