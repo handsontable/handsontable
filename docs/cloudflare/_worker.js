@@ -8,6 +8,7 @@
  * Redirect priority order (first match wins):
  *   1. /docs/next/:splat                   → /docs/:splat
  *  1a. /docs/sitemap.xml                   → /docs/sitemap-index.xml
+ *  1b. /docs/{LATEST_VERSION}/:splat       → /docs/:splat
  *   2. / → /docs
  *  2a. /0.8.0/*                            → /docs/javascript-data-grid/changelog
  *  2b. /docs/redirect?pageId=*             → /docs/javascript-data-grid/changelog
@@ -108,6 +109,18 @@ function redirect302(destination) {
 function abs(path, base) {
   return `${base.origin}${path}`;
 }
+
+// ---------------------------------------------------------------------------
+// Data: latest documentation version
+// ---------------------------------------------------------------------------
+
+// The MAJOR.MINOR version whose docs are also served at the unversioned
+// `/docs/...` root. The `__LATEST_DOCS_VERSION__` placeholder is replaced at
+// deploy time with the value computed by netlify/getListOrPreviousVersions.mjs
+// (the same source the Netlify build uses). When the placeholder is left
+// unreplaced (for example, on staging previews that have no versioned docs),
+// the `\d+\.\d+` guard in rule 1b makes the latest-version redirect a no-op.
+const LATEST_VERSION = '__LATEST_DOCS_VERSION__';
 
 // ---------------------------------------------------------------------------
 // Data: versioned HTML redirect map (used by /docs/{ver}/{page}.html)
@@ -710,6 +723,20 @@ export default {
     // Redirect the legacy single-file sitemap URL to Astro's sitemap index.
     if (path === '/docs/sitemap.xml') {
       return redirect301(abs('/docs/sitemap-index.xml', url));
+    }
+
+    // -- 1b. /docs/{LATEST_VERSION}/:splat → /docs/:splat ---------------------
+    // The latest version's docs are also served at the unversioned `/docs/...`
+    // root, so the versioned URLs are duplicates. Redirect them to the
+    // canonical unversioned path (matches the Netlify `_redirects` rule
+    // `/docs/$LATEST_VERSION/* /docs/:splat 301`). The `\d+\.\d+` guard makes
+    // this a no-op when the deploy-time placeholder was not substituted.
+    if (/^\d+\.\d+$/.test(LATEST_VERSION) &&
+        (path === `/docs/${LATEST_VERSION}` || path.startsWith(`/docs/${LATEST_VERSION}/`))) {
+      const splat = path.slice(`/docs/${LATEST_VERSION}`.length) || '/';
+      const dest = `/docs${splat}${url.search}`;
+
+      return redirect301(abs(dest, url));
     }
 
     // -- 2. Root / → /docs ---------------------------------------------------
