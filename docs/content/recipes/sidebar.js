@@ -1,6 +1,8 @@
 const realTimeItems = [
   { path: 'real-time/websocket-updates/websocket-updates', title: 'Real-time updates via WebSocket', onlyFor: ['javascript', 'react', 'angular'] },
   { path: 'real-time/chartjs-sync/chartjs-sync', title: 'Sync rows to Chart.js', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
+  { path: 'real-time/liveblocks-multiplayer/liveblocks-multiplayer', title: 'Multiplayer editing with Liveblocks', onlyFor: ['react'] },
+  { path: 'real-time/liveblocks-comments/liveblocks-comments', title: 'Cell comments with Liveblocks', onlyFor: ['react'] },
 ];
 
 const columnManagementItems = [
