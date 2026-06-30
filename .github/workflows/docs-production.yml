@@ -81,7 +81,12 @@ jobs:
           docker push $GHA_DOCKER_TAG":v${{steps.get-docs-version.outputs.result}}-${{ github.sha }}"
 
       - name: Build and deploy the production to Netlify (from Docker images)
+        id: build_bundle
         env:
+          # Authenticate the GitHub releases lookup in getListOrPreviousVersions.mjs
+          # so it does not hit the unauthenticated 60-req/hour rate limit and ship
+          # an empty version list. The script exits non-zero on any failure and the
+          # script below runs under `set -euo pipefail`, so a bad build fails here.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd netlify
@@ -103,17 +108,17 @@ jobs:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_PROD_SITE_ID }}
 
-      # Cloudflare Pages deploy is independent of Netlify: !cancelled() lets
-      # these steps run even when the Netlify publish above fails, so the apex
-      # handsontable-docs.pages.dev still updates.
+      # Cloudflare Pages deploy is decoupled from the Netlify *publish* (it runs
+      # even when Netlify publishing fails, so the apex handsontable-docs.pages.dev
+      # still updates) BUT it must NOT run when the bundle *build* failed - that
+      # would deploy a partial/empty docs site to production. The build_bundle
+      # gate fails closed: deploy only when the build succeeded.
       - name: Add Cloudflare worker to production deploy
-        if: ${{ !cancelled() }}
-        continue-on-error: true
+        if: ${{ !cancelled() && steps.build_bundle.outcome == 'success' }}
         run: cp cloudflare/_worker.js netlify/docs/_worker.js
 
       - name: Ensure Cloudflare Pages production project exists
-        if: ${{ !cancelled() }}
-        continue-on-error: true
+        if: ${{ !cancelled() && steps.build_bundle.outcome == 'success' }}
         run: node cloudflare/ensureProject.mjs
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -127,8 +132,7 @@ jobs:
           CF_PAGES_APEX_BRANCH: production
 
       - name: Deploy production to Cloudflare Pages
-        if: ${{ !cancelled() }}
-        continue-on-error: true
+        if: ${{ !cancelled() && steps.build_bundle.outcome == 'success' }}
         # Install wrangler in /tmp to avoid npm failures inside the pnpm workspace
         working-directory: /tmp
         run: |

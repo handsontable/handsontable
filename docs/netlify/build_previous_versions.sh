@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 set -euo pipefail
 mkdir -p docs/docs
 node getListOrPreviousVersions.mjs > VERSIONS_VARS
