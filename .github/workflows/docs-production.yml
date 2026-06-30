@@ -106,29 +106,38 @@ jobs:
       # Cloudflare Pages deploy is independent of Netlify: !cancelled() lets
       # these steps run even when the Netlify publish above fails, so the apex
       # handsontable-docs.pages.dev still updates.
-      # Substitute the __LATEST_DOCS_VERSION__ placeholder in the worker with the
-      # latest MAJOR.MINOR version (same source the Netlify build uses for the
-      # `/docs/$LATEST_VERSION/* /docs/:splat 301` rule). Cloudflare ignores
-      # _redirects when _worker.js is present, so the worker must carry this rule
-      # itself. If the version cannot be resolved, fall back to a verbatim copy;
-      # the worker's `\d+\.\d+` guard makes the latest-version redirect a no-op.
+      #
+      # Cloudflare ignores _redirects when _worker.js is present, so the worker
+      # carries ALL redirect logic. The worker MUST always be written to the
+      # publish dir: if it is missing, Pages silently falls back to _redirects
+      # and every worker-only redirect (version roots like /docs/14.1, /docs/next,
+      # framework routing, hyperformula) breaks site-wide.
+      #
+      # The worker's __LATEST_DOCS_VERSION__ placeholder (rule 1b) is substituted
+      # with the MAJOR.MINOR version being deployed, read from the prod-docs branch
+      # name (steps.get-docs-version) - a local value with NO network dependency.
+      # An earlier version of this step fetched the version from the GitHub API;
+      # a transient API failure ("Premature close") aborted the step under `bash -e`
+      # before the worker was copied, so the deploy shipped without a worker and
+      # took down all docs redirects (DEV-1969). Version substitution is now
+      # best-effort and can never block the worker copy.
       - name: Add Cloudflare worker to production deploy
         if: ${{ !cancelled() }}
         continue-on-error: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCS_VERSION: ${{ steps.get-docs-version.outputs.result }}
         run: |
           cd netlify
-          node getListOrPreviousVersions.mjs > VERSIONS_VARS
-          source VERSIONS_VARS
-          rm VERSIONS_VARS
-          if [ -n "${LATEST_VERSION:-}" ]; then
-            echo "Injecting LATEST_VERSION=$LATEST_VERSION into Cloudflare worker."
-            sed "s/__LATEST_DOCS_VERSION__/${LATEST_VERSION}/g" ../cloudflare/_worker.js > docs/_worker.js
+          if printf '%s' "${DOCS_VERSION:-}" | grep -Eq '^[0-9]+\.[0-9]+$'; then
+            echo "Injecting LATEST_VERSION=$DOCS_VERSION into Cloudflare worker."
+            sed "s/__LATEST_DOCS_VERSION__/${DOCS_VERSION}/g" ../cloudflare/_worker.js > docs/_worker.js
           else
-            echo "WARNING: LATEST_VERSION is empty - deploying worker without latest-version redirect." >&2
+            echo "WARNING: docs version '${DOCS_VERSION:-}' is not MAJOR.MINOR - deploying worker verbatim; rule 1b no-ops." >&2
             cp ../cloudflare/_worker.js docs/_worker.js
           fi
+          # Tripwire: the worker must exist in the publish dir, otherwise Pages
+          # falls back to _redirects and all worker redirects break.
+          test -f docs/_worker.js
 
       - name: Ensure Cloudflare Pages production project exists
         if: ${{ !cancelled() }}
