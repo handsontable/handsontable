@@ -14,25 +14,14 @@
  *   🏠 17.0.0 JavaScript Data Grid  ›  Current Page Title
  */
 
-import { createRequire } from 'module';
-import { dirname, join } from 'path';
-import { fileURLToPath } from 'url';
-
 import { shouldShowNewerVersionBanner } from '../lib/newer-version-banner.mjs';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const require   = createRequire(import.meta.url);
-
 // ── Library version ───────────────────────────────────────────────────────────
-let hotVersion = '';
-
-try {
-  const pkg = require(join(__dirname, '../../..', 'handsontable', 'package.json'));
-
-  hotVersion = pkg.version ?? '';
-} catch {
-  // Fallback: version label omitted from the home crumb.
-}
+// Injected at config-file scope (astro.config.mjs) via vite.define, not
+// resolved here -- this component's frontmatter is bundled and relocated by
+// Vite during the production build, breaking any self-relative package.json
+// path. See docs/src/lib/hot-version.mjs.
+const hotVersion = import.meta.env.PUBLIC_HOT_VERSION ?? '';
 
 // ── Version comparison (newer-version banner) ────────────────────────────────
 const currentMinor = hotVersion
