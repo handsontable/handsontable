@@ -7,32 +7,36 @@ export interface HookEntry {
   orderIndex: number;
   runOnce: boolean;
   initialHook: boolean;
-  skip: boolean;
+  /**
+   * Intrusive singly-linked-list pointer to the next entry. The entry IS the list node (no wrapper
+   * object) so dispatch reads `entry.callback` with a single indirection. `null` marks the tail.
+   */
+  next: HookEntry | null;
 }
 
 /**
- * The maximum number of hooks that can be skipped before the bucket is cleaned up.
+ * A per-hook singly-linked list. `head`/`tail` allow O(1) append; dispatch walks `head` → `next`.
  */
-const MAX_SKIPPED_HOOKS_COUNT = 100;
+interface HookList {
+  head: HookEntry | null;
+  tail: HookEntry | null;
+}
 
 /**
  * The class represents a collection that allows to manage hooks (add, remove).
+ *
+ * Storage is a `Map<hookName, singly-linked list of entries>`. Removal is a true delete (relink) — there
+ * is no soft-delete `skip` flag and no periodic compaction. An in-flight `run()` stays correct because it
+ * reads `entry.next` fresh after each callback (a later entry removed mid-run is skipped) and never nulls a
+ * removed node's `next` (a callback removing itself can still advance).
  *
  * @class HooksBucket
  */
 export class HooksBucket {
   /**
-   * A map that stores hooks.
+   * A map that stores the per-hook linked lists.
    */
-  #hooks: Map<string, HookEntry[]> = new Map();
-  /**
-   * A map that stores the number of skipped hooks.
-   */
-  #skippedHooksCount: Map<string, number> = new Map();
-  /**
-   * A set that stores hook names that need to be re-sorted.
-   */
-  #needsSort: Set<string> = new Set();
+  #hooks: Map<string, HookList> = new Map();
 
   /**
    * Initializes the bucket and pre-creates empty hook collections for all currently registered hook names.
@@ -42,13 +46,38 @@ export class HooksBucket {
   }
 
   /**
-   * Gets all hooks for the provided hook name.
+   * Gets the internal linked list for the provided hook name. Used by the dispatcher (`Hooks#runHandlers`)
+   * to walk entries without materializing an array on the hot path.
+   *
+   * @param {string} hookName The name of the hook.
+   * @returns {HookList|null}
+   */
+  getList(hookName: string): HookList | null {
+    return this.#hooks.get(hookName) ?? null;
+  }
+
+  /**
+   * Gets all live hooks for the provided hook name as an array, in execution order. The returned entries are
+   * the live list nodes (not copies), so an in-place `addAsFixed` callback swap is reflected in a
+   * previously returned array — relied on by the framework wrappers.
    *
    * @param {string} hookName The name of the hook.
    * @returns {HookEntry[]}
    */
   getHooks(hookName: string): HookEntry[] {
-    return this.#hooks.get(hookName) ?? [];
+    const list = this.#hooks.get(hookName);
+    const result: HookEntry[] = [];
+
+    if (list) {
+      let node = list.head;
+
+      while (node) {
+        result.push(node);
+        node = node.next;
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -63,101 +92,87 @@ export class HooksBucket {
     callback: HookCallback,
     options: { orderIndex?: number; runOnce?: boolean; initialHook?: boolean } = {}
   ) {
-    if (!this.#hooks.has(hookName)) {
-      this.#createHooksCollection(hookName);
+    let list = this.#hooks.get(hookName);
+
+    if (!list) {
+      list = this.#createHooksCollection(hookName);
       REGISTERED_HOOKS.push(hookName);
     }
 
-    const hooks = this.#hooks.get(hookName) ?? [];
-    const existingHook = hooks.find(hook => hook.callback === callback);
-
-    if (existingHook) {
-      if (existingHook.skip === true) {
-        // Re-enable the hook if it was previously added and then removed.
-        existingHook.skip = false;
+    // Adding the same callback twice is silently ignored. With true-delete a match is always a live entry.
+    for (let node = list.head; node !== null; node = node.next) {
+      if (node.callback === callback) {
+        return;
       }
-
-      // adding the same hook twice is now silently ignored
-      return;
     }
 
     const orderIndex = Number.isInteger(options.orderIndex) ? (options.orderIndex ?? 0) : 0;
     const runOnce = !!options.runOnce;
     const initialHook = !!options.initialHook;
 
-    let foundInitialHook = false;
-
     if (initialHook) {
-      const initialHookEntry = hooks.find(hook => hook.initialHook);
+      // Replace the callback of the existing initial hook IN PLACE — keeps the entry object and its
+      // position, so an array previously returned by getHooks() reflects the swap (wrapper contract).
+      for (let node = list.head; node !== null; node = node.next) {
+        if (node.initialHook) {
+          node.callback = callback;
 
-      if (initialHookEntry) {
-        initialHookEntry.callback = callback;
-        foundInitialHook = true;
+          return;
+        }
       }
     }
 
-    if (!foundInitialHook) {
-      hooks.push({
-        callback,
-        orderIndex,
-        runOnce,
-        initialHook,
-        skip: false,
-      });
-
-      let needsSort = this.#needsSort.has(hookName);
-
-      if (!needsSort && orderIndex !== 0) {
-        needsSort = true;
-        this.#needsSort.add(hookName);
-      }
-
-      if (needsSort && hooks.length > 1) {
-        this.#hooks.set(hookName, hooks.toSorted((a, b) => a.orderIndex - b.orderIndex));
-      }
-    }
+    this.#insertByOrder(list, { callback, orderIndex, runOnce, initialHook, next: null });
   }
 
   /**
-   * Checks if there are any hooks for the provided hook name.
+   * Checks if there are any live hooks for the provided hook name.
    *
    * @param {string} hookName The name of the hook.
    * @returns {boolean}
    */
   has(hookName: string): boolean {
-    return this.#hooks.has(hookName) && (this.#hooks.get(hookName)?.length ?? 0) > 0;
+    const list = this.#hooks.get(hookName);
+
+    return !!list && list.head !== null;
   }
 
   /**
-   * Removes a hook from the collection. If the hook was found and removed,
-   * the method returns `true`, otherwise `false`.
+   * Removes a hook from the collection (true delete). Returns `true` if the callback was found and removed,
+   * `false` otherwise.
    *
    * @param {string} hookName The name of the hook.
    * @param {*} callback The callback function to remove.
    * @returns {boolean}
    */
   remove(hookName: string, callback: HookCallback): boolean {
-    if (!this.#hooks.has(hookName)) {
+    const list = this.#hooks.get(hookName);
+
+    if (!list) {
       return false;
     }
 
-    const hooks = this.#hooks.get(hookName) ?? [];
-    const hookEntry = hooks.find(hook => hook.callback === callback);
+    let prev: HookEntry | null = null;
+    let node = list.head;
 
-    if (hookEntry) {
-      let skippedHooksCount = this.#skippedHooksCount.get(hookName) ?? 0;
+    while (node !== null) {
+      if (node.callback === callback) {
+        if (prev) {
+          prev.next = node.next;
+        } else {
+          list.head = node.next;
+        }
 
-      hookEntry.skip = true;
-      skippedHooksCount += 1;
+        if (node === list.tail) {
+          list.tail = prev;
+        }
 
-      if (skippedHooksCount > MAX_SKIPPED_HOOKS_COUNT) {
-        this.#hooks.set(hookName, hooks.filter(hook => !hook.skip));
-        skippedHooksCount = 0;
+        // Intentionally do NOT null `node.next`: an in-flight run() may hold this node and needs to advance.
+        return true;
       }
 
-      this.#skippedHooksCount.set(hookName, skippedHooksCount);
-
-      return true;
+      prev = node;
+      node = node.next;
     }
 
     return false;
@@ -168,16 +183,59 @@ export class HooksBucket {
    */
   destroy() {
     this.#hooks.clear();
-    this.#skippedHooksCount.clear();
   }
 
   /**
-   * Creates a initial collection for the provided hook name.
+   * Inserts an entry keeping the list sorted by ascending `orderIndex`. Entries with an equal `orderIndex`
+   * keep insertion order (stable). The common case (`orderIndex` 0, appended after equal entries) is an
+   * O(1) tail append.
+   *
+   * @param {HookList} list The list to insert into.
+   * @param {HookEntry} entry The entry to insert.
+   */
+  #insertByOrder(list: HookList, entry: HookEntry) {
+    if (list.head === null) {
+      list.head = entry;
+      list.tail = entry;
+
+      return;
+    }
+
+    if (entry.orderIndex >= list.tail!.orderIndex) {
+      list.tail!.next = entry;
+      list.tail = entry;
+
+      return;
+    }
+
+    let prev: HookEntry | null = null;
+    let node: HookEntry | null = list.head;
+
+    while (node !== null && node.orderIndex <= entry.orderIndex) {
+      prev = node;
+      node = node.next;
+    }
+
+    if (prev === null) {
+      entry.next = list.head;
+      list.head = entry;
+    } else {
+      entry.next = node;
+      prev.next = entry;
+    }
+  }
+
+  /**
+   * Creates an initial (empty) collection for the provided hook name.
    *
    * @param {string} hookName The name of the hook.
+   * @returns {HookList}
    */
-  #createHooksCollection(hookName: string) {
-    this.#hooks.set(hookName, []);
-    this.#skippedHooksCount.set(hookName, 0);
+  #createHooksCollection(hookName: string): HookList {
+    const list: HookList = { head: null, tail: null };
+
+    this.#hooks.set(hookName, list);
+
+    return list;
   }
 }

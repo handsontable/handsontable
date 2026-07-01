@@ -5,7 +5,7 @@ import { toSingleLine } from '../../helpers/templateLiteralTag';
 import { fastCall } from '../../helpers/function';
 import { REGISTERED_HOOKS, REMOVED_HOOKS, DEPRECATED_HOOKS } from './constants';
 import { HooksBucket } from './bucket';
-import type { HookCallback } from './bucket';
+import type { HookCallback, HookEntry } from './bucket';
 
 /**
  * Template warning message for removed hooks.
@@ -210,16 +210,21 @@ export class Hooks {
     context: Record<string, unknown>, key: string,
     p1?: unknown, p2?: unknown, p3?: unknown, p4?: unknown, p5?: unknown, p6?: unknown
   ) {
-    p1 = this.#runHandlers(this.getBucket().getHooks(key), context, key, null, p1, p2, p3, p4, p5, p6);
-    p1 = this.#runHandlers(this.getBucket(context).getHooks(key), context, key, context, p1, p2, p3, p4, p5, p6);
+    p1 = this.#runHandlers(this.getBucket().getList(key), context, key, null, p1, p2, p3, p4, p5, p6);
+    p1 = this.#runHandlers(this.getBucket(context).getList(key), context, key, context, p1, p2, p3, p4, p5, p6);
 
     return p1;
   }
 
   /**
-   * Runs all callbacks from a single handler list (global or local), threading the return value through p1.
+   * Runs all callbacks from a single hook list (global or local), threading the return value through p1.
    *
-   * @param {Array|null} handlers The list of hook entries to iterate.
+   * Walks the intrusive linked list from `head`. The `tail` captured at loop start is the boundary: hooks
+   * appended DURING this run (after the boundary) do not fire this run, matching the previous array's
+   * frozen-length behavior. `entry.next` is read fresh after each callback so a later entry removed mid-run
+   * is skipped; `remove()` never nulls a removed node's `next`, so a callback removing itself still advances.
+   *
+   * @param {object|null} list The hook list to iterate (or null when the hook has no collection).
    * @param {object} context Handsontable instance used as `this` for each callback.
    * @param {string} key Hook/Event name.
    * @param {object|null} removeContext Context passed to `remove` — null for global handlers.
@@ -232,35 +237,35 @@ export class Hooks {
    * @returns {*} Updated p1 value after running all callbacks.
    */
   #runHandlers(
-    handlers: ReturnType<HooksBucket['getHooks']>,
+    list: ReturnType<HooksBucket['getList']>,
     context: Record<string, unknown>,
     key: string,
     removeContext: Record<string, unknown> | null,
     p1: unknown, p2: unknown, p3: unknown, p4: unknown, p5: unknown, p6: unknown
   ) {
-    const length = handlers ? handlers.length : 0;
-    let index = 0;
+    if (list === null || list.head === null) {
+      return p1;
+    }
 
-    if (length) {
-      // Do not optimize this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
-      while (index < length) {
-        if (!handlers[index] || handlers[index].skip) {
-          index += 1;
-          /* eslint-disable no-continue */
-          continue;
-        }
+    let entry: HookEntry | null = list.head;
+    const boundary = list.tail;
 
-        const res = fastCall(handlers[index].callback, context, p1, p2, p3, p4, p5, p6);
+    // Do not optimize this loop with arrayEach or arrow function! If you do You'll decrease perf because of GC.
+    while (entry !== null) {
+      const res = fastCall(entry.callback, context, p1, p2, p3, p4, p5, p6);
 
-        if (res !== undefined) {
-          p1 = res;
-        }
-        if (handlers[index] && handlers[index].runOnce) {
-          this.remove(key, handlers[index].callback, removeContext);
-        }
-
-        index += 1;
+      if (res !== undefined) {
+        p1 = res;
       }
+      if (entry.runOnce) {
+        this.remove(key, entry.callback, removeContext);
+      }
+
+      if (entry === boundary) {
+        break;
+      }
+
+      entry = entry.next;
     }
 
     return p1;
