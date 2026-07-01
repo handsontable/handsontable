@@ -111,16 +111,51 @@ const pageHref       = pathname;
 
 </div>
 
-{showNewerBanner && (
-  <aside class="starlight-aside starlight-aside--tip hot-newer-version-banner">
-    <p class="starlight-aside__content">
-      There is a newer version of Handsontable available.
-      <a href={`https://handsontable.com/docs/${latestVersion}/`}>Switch to the latest version &rarr;</a>
-    </p>
-  </aside>
-)}
+<aside
+  id="hot-newer-version-banner"
+  class="starlight-aside starlight-aside--tip hot-newer-version-banner"
+  data-current-minor={currentMinor}
+  hidden={!showNewerBanner}
+>
+  <p class="starlight-aside__content">
+    There is a newer version of Handsontable available.
+    <a id="hot-newer-version-link" href={`https://handsontable.com/docs/${latestVersion}/`}>Switch to the latest version &rarr;</a>
+  </p>
+</aside>
 
 <h1 id="_top">{pageTitle}</h1>
+
+<script>
+  import { shouldShowNewerVersionBanner } from '../lib/newer-version-banner.mjs';
+
+  // The banner above reflects this page's own build-time snapshot of
+  // "latest version", which goes stale on old, frozen doc versions once a
+  // newer version ships (that old branch is never rebuilt just because
+  // production moved on). Re-check against the always-current production
+  // data at page load.
+  const banner = document.getElementById('hot-newer-version-banner') as HTMLElement | null;
+  const link = document.getElementById('hot-newer-version-link') as HTMLAnchorElement | null;
+
+  if (banner && link) {
+    const currentMinor = banner.dataset.currentMinor ?? '';
+
+    fetch('https://handsontable.com/docs/data/common.json')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((docsData) => {
+        if (!docsData?.latestVersion) return;
+
+        const show = shouldShowNewerVersionBanner(currentMinor, docsData.latestVersion);
+
+        banner.hidden = !show;
+        if (show) {
+          link.href = `https://handsontable.com/docs/${docsData.latestVersion}/`;
+        }
+      })
+      .catch(() => {
+        // Offline / network unavailable — keep the build-time rendered state.
+      });
+  }
+</script>
 
 <style>
   /* ── Page title ─────────────────────────────────────────────────────────── */
