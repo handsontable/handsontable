@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>RELEASE-656 — Undo/Redo checkbox multi-selection delete</title>
+  <link rel="stylesheet" href="./styles/handsontable.css" />
+  <link rel="stylesheet" href="./styles/ht-theme-main.css" />
+  <script src="./dist/handsontable.full.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 16px; }
+    #status { white-space: pre; font-family: monospace; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <h3>RELEASE-656 — mixed checkbox multi-selection delete + undo</h3>
+  <div id="hot" class="ht-theme-main"></div>
+  <div id="status"></div>
+  <script>
+    const container = document.getElementById('hot');
+    const initialData = [
+      { car: 'Nissan', year: 2016, available: false },
+      { car: 'Volvo', year: 2019, available: true },
+      { car: 'Chrysler', year: 2020, available: true },
+      { car: 'Toyota', year: 2021, available: false },
+    ];
+    const hot = new Handsontable(container, {
+      data: JSON.parse(JSON.stringify(initialData)),
+      columns: [
+        { data: 'car', type: 'text', title: 'Car' },
+        { data: 'year', type: 'numeric', title: 'Year' },
+        { data: 'available', type: 'checkbox', title: 'Available' },
+      ],
+      rowHeaders: true,
+      colHeaders: true,
+      undo: true,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+    // Expose for the driver script.
+    window.hot = hot;
+    window.noValueCount = () =>
+      container.querySelectorAll('input[type=checkbox].noValue').length;
+  </script>
+</body>
+</html>
