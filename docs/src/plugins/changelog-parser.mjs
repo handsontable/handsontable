@@ -148,6 +148,11 @@ function coalesceWrappedBullets(lines) {
     if (/^- /.test(line)) {
       result.push(line);
       openBullet = result.length - 1;
+    } else if (/^\s+- /.test(line)) {
+      // Nested sub-bullet -> closes the open bullet and is preserved as its
+      // own line (dropped downstream because it does not start with "- ").
+      openBullet = null;
+      result.push(line);
     } else if (openBullet !== null && /^\s+\S/.test(line)) {
       // Indented, non-blank line -> continuation of the open bullet.
       result[openBullet] += ` ${line.trim()}`;
