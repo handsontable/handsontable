@@ -10,6 +10,7 @@ import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { buildAllSidebars, buildAllValidUrls } from './src/sidebar.mjs';
+import { resolveHotVersion } from './src/lib/hot-version.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, symlinkSync } from 'fs';
@@ -50,6 +51,12 @@ const isProduction = buildMode === 'production';
 // Absolute path to the handsontable package root (used to resolve styles and
 // other non-tmp/ files like `handsontable/styles/ht-theme-main.css`).
 const HOT_DIR = resolve(__dirname, '../handsontable');
+
+// Current Handsontable core version, exposed to components via vite.define
+// below. Resolved here (config-file scope, never bundled by Vite) rather
+// than inside a component's own frontmatter, which Vite relocates during
+// the production build.
+const HOT_VERSION = resolveHotVersion(__dirname);
 
 // Absolute path to the local Handsontable ESM build (handsontable/tmp/).
 // Used to resolve `handsontable` and `handsontable/*` imports in example files
@@ -901,6 +908,7 @@ export default defineConfig({
     // env namespace so .astro components can read it at build time.
     define: {
       'import.meta.env.PUBLIC_BUILD_MODE': JSON.stringify(buildMode || ''),
+      'import.meta.env.PUBLIC_HOT_VERSION': JSON.stringify(HOT_VERSION),
       'import.meta.env.PUBLIC_CHAT_API_URL': JSON.stringify(
         process.env.PUBLIC_CHAT_API_URL || 'https://hot-docs-assistant.netlify.app'
       ),
