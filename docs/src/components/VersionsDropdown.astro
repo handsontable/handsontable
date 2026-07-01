@@ -140,6 +140,14 @@ const { buttonLabel, isLatest, latestVersion, versionItems } =
     const currentMinor = wrapper.dataset.currentMinor ?? '';
     const rawVersion = wrapper.dataset.rawVersion ?? currentMinor;
 
+    // Astro scopes this component's <style> block by appending a unique
+    // hashed class (e.g. "astro-xzzq4es2") to every element it renders, and
+    // rewriting the CSS selectors to require that class too. Elements built
+    // with document.createElement() don't carry it, so the styles below
+    // would silently not apply to them unless we tag them with it ourselves.
+    const scopeClass = [...wrapper.classList].find((c) => c.startsWith('astro-'));
+    const withScope = (className: string) => (scopeClass ? `${className} ${scopeClass}` : className);
+
     fetch('https://handsontable.com/docs/data/common.json')
       .then((res) => (res.ok ? res.json() : null))
       .then((docsData) => {
@@ -152,10 +160,10 @@ const { buttonLabel, isLatest, latestVersion, versionItems } =
         triggerLabel.replaceChildren();
         if (isLatest) {
           const versionSpan = document.createElement('span');
-          versionSpan.className = 'versions-trigger__version';
+          versionSpan.className = withScope('versions-trigger__version');
           versionSpan.textContent = buttonLabel.replace(' latest', '');
           const tag = document.createElement('span');
-          tag.className = 'versions-tag';
+          tag.className = withScope('versions-tag');
           tag.textContent = 'latest';
           triggerLabel.append(versionSpan, ' ', tag);
         } else {
@@ -170,7 +178,7 @@ const { buttonLabel, isLatest, latestVersion, versionItems } =
 
           const a = document.createElement('a');
           a.href = href;
-          a.className = isCurrent ? 'versions-item versions-item--current' : 'versions-item';
+          a.className = withScope(isCurrent ? 'versions-item versions-item--current' : 'versions-item');
           a.setAttribute('role', 'menuitem');
           a.setAttribute('tabindex', '-1');
           if (isCurrent) a.setAttribute('aria-current', 'page');
@@ -180,7 +188,7 @@ const { buttonLabel, isLatest, latestVersion, versionItems } =
 
           if (minor === latestVersion) {
             const tag = document.createElement('span');
-            tag.className = 'versions-tag';
+            tag.className = withScope('versions-tag');
             tag.textContent = 'latest';
             a.append(tag);
           }
