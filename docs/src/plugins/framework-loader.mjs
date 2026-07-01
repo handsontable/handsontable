@@ -1570,7 +1570,7 @@ export function frameworkLoader({ contentDir }) {
               + `<button class="minesweeper-reset" type="button" aria-label="Reset game">\u{1F642}</button>`
               + `<span class="minesweeper-timer">000</span>`
             + `</div>`
-            + `<div class="minesweeper-grid"></div>`
+            + `<div class="minesweeper-grid not-content"></div>`
             + `<div class="minesweeper-mobile-controls">`
               + `<button class="minesweeper-flag-toggle" type="button" aria-label="Toggle flag mode">`
                 + `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5a5 5 0 0 1 7 0a5 5 0 0 0 7 0v9a5 5 0 0 1 -7 0a5 5 0 0 0 -7 0v-9"/><path d="M5 21v-7"/></svg>`
