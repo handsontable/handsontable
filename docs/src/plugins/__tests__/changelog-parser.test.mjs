@@ -406,6 +406,75 @@ test('the real v12.0.1 checkbox entry is no longer truncated (DEV-1958)', () => 
   assert.equal(entry.prNumber, 7102);
 });
 
+test('converts <kbd> markup in bullets to inline code', () => {
+  const md = [
+    '## 12.0.0',
+    'Released on May 9th, 2022',
+    '',
+    '#### Added',
+    '- Added support for the <kbd>**Cmd**</kbd> key.',
+    '- Added the <kbd>**Ctrl**</kbd>+<kbd>**S**</kbd> shortcut.',
+    '- Added support for the <kbd>Enter</kbd> key.',
+    '- Added a feature without any keyboard markup.',
+  ].join('\n');
+
+  const result = parseChangelogContent(md);
+
+  assert.deepEqual(
+    result.map((e) => e.title),
+    [
+      'Added support for the `Cmd` key.',
+      'Added the `Ctrl`+`S` shortcut.',
+      'Added support for the `Enter` key.',
+      'Added a feature without any keyboard markup.',
+    ],
+  );
+});
+
+test('converts <kbd> markup while still extracting a trailing PR citation', () => {
+  const md = [
+    '## 12.0.0',
+    'Released on May 9th, 2022',
+    '',
+    '#### Fixed',
+    '- Fixed an issue with the <kbd>**Enter**</kbd> key. [#8546](https://github.com/handsontable/handsontable/pull/8546)',
+  ].join('\n');
+
+  const result = parseChangelogContent(md);
+
+  assert.equal(result.length, 1);
+  assert.equal(result[0].title, 'Fixed an issue with the `Enter` key.');
+  assert.equal(result[0].prNumber, 8546);
+  assert.equal(result[0].prKind, 'pull');
+});
+
+test('converts a dangling, unclosed <kbd> left by a multi-line bullet', () => {
+  // The parser captures only a bullet's first source line, so markup that wraps
+  // (as in changelog-12's "Shift + Page Up/Page Down" breaking change) ends with
+  // an unclosed <kbd>. The remainder must still convert -- no literal tag shown.
+  const md = [
+    '## 12.0.0',
+    'Released on May 9th, 2022',
+    '',
+    '#### Removed',
+    '- **Breaking change**: Removed the <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>/<kbd>**Page',
+    '  Down**</kbd> keyboard shortcuts.',
+  ].join('\n');
+
+  const result = parseChangelogContent(md);
+
+  assert.equal(result.length, 1);
+  assert.equal(result[0].title, 'Removed the `Shift`+`Page Up`/`Page`');
+  assert.ok(!/<kbd>/i.test(result[0].title));
+});
+
+test('parseAllChangelogs leaves no raw <kbd> tags in any entry title', () => {
+  const result = parseAllChangelogs();
+  for (const entry of result) {
+    assert.ok(!/<kbd>/i.test(entry.title), `raw <kbd> left in title: ${entry.title}`);
+  }
+});
+
 test('parseAllChangelogs returns entries from every changelog-X file (v6..v17)', () => {
   const result = parseAllChangelogs();
   const majors = new Set(result.map((e) => Number(e.version.split('.')[0])));
