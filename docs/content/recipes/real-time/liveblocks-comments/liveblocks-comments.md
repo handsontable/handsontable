@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 9d2v6b4n
 title: Cell comments with Liveblocks
 metaTitle: Cell comments with Liveblocks - React Data Grid | Handsontable
 description: Add threaded comments anchored to individual Handsontable cells with Liveblocks Comments. Attach threads to a cell through thread metadata and render comment pins with a custom cell renderer.
@@ -16,7 +15,6 @@ tags:
   - tutorial
   - recipes
 react:
-  id: 5f1t8w3k
   metaTitle: Cell comments with Liveblocks - React Data Grid | Handsontable
 searchCategory: Recipes
 category: Real-time & Integrations
