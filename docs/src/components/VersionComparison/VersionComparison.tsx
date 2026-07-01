@@ -142,17 +142,22 @@ function matchesFilter(entry: VersionEntry, filter: FilterKind): boolean {
   }
 }
 
+// Breaking highlights are also surfaced on the New tab for now, so a major
+// release's headline features (often breaking, e.g. a TypeScript migration or a
+// new layout system) stay visible on the default landing view. Set this to false
+// to revert to showing breaking highlights only on the Breaking and All tabs.
+const SHOW_BREAKING_HIGHLIGHTS_ON_NEW = true;
+
 // Whether a highlighted entry renders as a featured card under the active filter.
-// Featured highlights are curated marquee items, so on New and All they surface
-// regardless of category or breaking status (a major release's headline features
-// are often breaking, e.g. a TypeScript migration or a new layout system). On the
-// Breaking tab only the breaking highlights show, so a non-breaking highlight does
-// not leak into a breaking-only drill-down. Fixed and Deprecated show no featured
-// cards; a highlight that matches those filters falls back to the compact list.
+// A highlight always shows on All and on the tab matching its own category
+// (a deprecated highlight on Deprecated, a breaking one on Breaking, and so on),
+// so it never leaks onto an unrelated tab. The one exception is the revertable
+// rule above that also promotes breaking highlights onto New.
 function isFeatured(entry: VersionEntry, filter: FilterKind): boolean {
   if (!entry.highlighted) return false;
-  if (filter === 'breaking') return entry.breaking;
-  return filter === 'new' || filter === 'all';
+  if (filter === 'all') return true;
+  if (matchesFilter(entry, filter)) return true;
+  return SHOW_BREAKING_HIGHLIGHTS_ON_NEW && filter === 'new' && entry.breaking;
 }
 
 interface FilterTabsProps {
