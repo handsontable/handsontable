@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the performance of the internal hooks (events) dispatch: each hook's callbacks are now stored in a linked list, and removing a hook frees it immediately instead of accumulating skipped entries that were iterated over on every run.",
+  "type": "changed",
+  "issueOrPR": 12925,
+  "breaking": false,
+  "framework": "none"
+}
