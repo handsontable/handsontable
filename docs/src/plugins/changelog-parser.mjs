@@ -83,6 +83,35 @@ function extractPrNumber(text) {
   return { prNumber: Number(match[1]), prKind: match[2], body: text.slice(0, match.index).trim() };
 }
 
+/**
+ * Converts inline `<kbd>` markup from a changelog bullet into inline code so it
+ * renders as `<code>` in the version-comparison UI.
+ *
+ * That UI feeds each entry's title through a `react-markdown` instance with no
+ * raw-HTML plugin, so raw `<kbd>` tags would otherwise show as literal text.
+ * Bold markers inside the tag (e.g. `<kbd>**Cmd**</kbd>`) are stripped because
+ * markdown is not processed inside code spans -- leaving `**` would render the
+ * asterisks verbatim.
+ *
+ * The second pass catches a dangling, unclosed `<kbd>`: a few changelog bullets
+ * wrap their markup onto the next source line, and the parser only captures the
+ * first line, so the closing `</kbd>` is missing. Converting the remainder keeps
+ * any literal tag off the page (the trailing text is already truncated by the
+ * single-line capture, independent of this conversion).
+ *
+ * @param {string} text
+ * @returns {string}
+ */
+function convertKbdToCode(text) {
+  return text
+    .replace(/<kbd>\s*(.*?)\s*<\/kbd>/gi, (_, inner) =>
+      `\`${inner.replace(/^\*+|\*+$/g, '').trim()}\``
+    )
+    .replace(/<kbd>\s*(.*)$/i, (_, inner) =>
+      `\`${inner.replace(/^\*+|\*+$/g, '').trim()}\``
+    );
+}
+
 function parseBullet(line) {
   let raw = line.replace(/^- /, '').trim();
   let breaking = false;
@@ -220,7 +249,7 @@ export function parseChangelogContent(markdown) {
       framework,
       prNumber,
       prKind,
-      title: body,
+      title: convertKbdToCode(body),
     });
   }
 
