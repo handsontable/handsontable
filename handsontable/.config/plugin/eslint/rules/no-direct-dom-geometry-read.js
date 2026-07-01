@@ -35,7 +35,7 @@ module.exports = {
     type: 'problem',
 
     docs: {
-      description: 'Disallow direct layout-forcing DOM reads in Walkontable; route them through the GeometryReader proxy',
+      description: 'Disallow direct layout-forcing DOM reads in Walkontable; use the GeometryReader proxy instead',
       category: 'Custom',
       recommended: false,
       fixable: false,
@@ -43,8 +43,8 @@ module.exports = {
 
     messages: {
       useGeometryReader:
-        "Direct DOM read '{{name}}' bypasses the GeometryReader proxy. Read it through the injected " +
-        "geometry reader (e.g. `geometryReader.{{name}}(...)` / `this.#deps.geometryReader.{{name}}(...)`). " +
+        'Direct DOM read \'{{name}}\' bypasses the GeometryReader proxy. Read it through the injected ' +
+        'geometry reader (e.g. `geometryReader.{{name}}(...)` / `this.#deps.geometryReader.{{name}}(...)`). ' +
         'If the proxy has no method for this read, add one to GeometryReader + LiveGeometryReader and use that.',
     },
 
