@@ -1,0 +1,20 @@
+{
+  "version": "17.1",
+  "highlighted": [
+    {
+      "prNumber": 12166,
+      "tagline": "Export to Excel (XLSX)",
+      "whyItMatters": "The ExportFile plugin now exports grid data straight to .xlsx, so you can hand off spreadsheets without a separate conversion step."
+    },
+    {
+      "prNumber": 12147,
+      "tagline": "Server-side row model with the DataProvider plugin",
+      "whyItMatters": "The new DataProvider plugin and `dataProvider` option load and mutate rows on the server, letting the grid work with datasets too large to hold in the browser."
+    },
+    {
+      "prNumber": 12299,
+      "tagline": "Built-in toast notifications",
+      "whyItMatters": "The new Notification plugin shows non-blocking toast messages inside the grid, giving you a built-in way to surface status and feedback to users."
+    }
+  ]
+}
