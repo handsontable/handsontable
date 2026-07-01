@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the horizon theme row header background color not cascading from headerRowBackgroundColor for even rows.",
+  "type": "fixed",
+  "issueOrPR": 12908,
+  "breaking": false,
+  "framework": "none"
+}
