@@ -19,6 +19,7 @@
 
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { extname, join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 function escapeRegExp(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -60,7 +61,13 @@ export async function rewriteVersionedPaths(dir, version) {
   return changedCount;
 }
 
-const isMainModule = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
+// process.argv[1] is not resolved to an absolute path when the script is
+// invoked with a relative one (e.g. `node rewriteVersionedPaths.mjs ...`,
+// as build_current_version.sh does), so comparing it to import.meta.url as
+// a plain string would never match. pathToFileURL() resolves it the same
+// way Node resolves import.meta.url, relative to the current working
+// directory, so the comparison works regardless of how the script is invoked.
+const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
 
 if (isMainModule) {
   const [dir, version] = process.argv.slice(2);
