@@ -1097,7 +1097,17 @@ async function route(request, env) {
         }
 
         const cookieValue = getCookie(request, 'docs_fw');
-        const framework = getFrameworkFromCookie(cookieValue);
+        let framework = getFrameworkFromCookie(cookieValue);
+
+        // Angular has no dedicated per-version docs before 16.0 (see the
+        // LEGACY_ANGULAR_TO_ANGULAR_SET/_TO_JS_SET rule above). Sending the
+        // angular-cookie framework here would manufacture a
+        // /docs/{version}/angular-data-grid URL that rule 3 then collapses to
+        // the unversioned latest docs, dropping the version requested here.
+        if (framework === 'angular-data-grid' && major < 16) {
+          framework = 'javascript-data-grid';
+        }
+
         const dest = isFrameworkVersion ? `/docs/${version}/${framework}` : `/docs/${version}`;
 
         return redirect302(abs(dest, url));
