@@ -6519,6 +6519,14 @@ export default (): Record<string, unknown> => {
      * Optionally set [`sourceDataWarningMessage`](@/api/options.md#sourcedatawarningmessage) to customize the
      * message logged for invalid values.
      *
+     * __Limitation:__ source-data validation only sees a `sourceDataValidator` (and a validating cell
+     * [`type`](@/api/options.md#type)) that you define in the global settings, the
+     * [`columns`](@/api/options.md#columns) option, the [`cell`](@/api/options.md#cell) option, or with
+     * [`setCellMeta()`](@/api/core.md#setcellmeta). It does __not__ run the [`cells`](@/api/options.md#cells)
+     * function or the [`beforeGetCellMeta`](@/api/hooks.md#beforegetcellmeta) /
+     * [`afterGetCellMeta`](@/api/hooks.md#aftergetcellmeta) hooks, so a validator that you add only through those
+     * is skipped. Define the validator in one of the supported places to validate the source data.
+     *
      * @example
      * ```js
      * sourceDataWarningMessage: 'The source data is invalid.',

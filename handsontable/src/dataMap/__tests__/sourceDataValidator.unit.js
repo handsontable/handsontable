@@ -3,26 +3,30 @@ import { runSourceDataValidators } from '../sourceDataValidator';
 /**
  * Builds a minimal mock Handsontable instance for exercising `runSourceDataValidators` in isolation.
  *
+ * Source-data validation resolves meta through `MetaManager.getCellMetaUncached`, so the mock exposes
+ * that method (not the `Core#getCellMeta` visual-index wrapper) and counts its calls.
+ *
  * @param {object} options Mock configuration.
  * @param {number} options.rows Number of source rows.
  * @param {number} options.cols Number of source cols.
- * @param {Function} [options.validator] The `sourceDataValidator` placed on every cell's meta.
+ * @param {Function} [options.validator] The `sourceDataValidator` placed on every resolved cell meta.
  * @param {boolean} [options.allowInvalid] The `allowInvalid` meta value.
  * @param {object} [options.settings] The settings returned by `getSettings`.
  * @param {Function} [options.getValue] Maps `(row, col)` to a source value.
  * @param {Function} [options.toVisualRow] Maps a physical row to its visual index (or `null`).
- * @param {Array} [options.registeredHooks] Hook names that `hasHook` should report as registered.
  * @param {Array} [options.userDefinedCellMetas] Imperatively-set cell metas (`setCellMeta`) to report.
  * @returns {object} The mock and its spies.
  */
 function createMockHot({
   rows, cols, validator, allowInvalid, settings = {}, getValue, toVisualRow = row => row,
-  registeredHooks = [], userDefinedCellMetas = [],
+  userDefinedCellMetas = [],
 } = {}) {
-  const getCellMeta = jest.fn((visualRow, visualColumn) => {
+  const getCellMetaUncached = jest.fn((physicalRow, physicalColumn, { visualRow, visualColumn }) => {
     const meta = {
-      row: visualRow,
-      col: visualColumn,
+      row: physicalRow,
+      col: physicalColumn,
+      visualRow,
+      visualCol: visualColumn,
       sourceDataWarningMessage: 'invalid',
     };
 
@@ -45,12 +49,13 @@ function createMockHot({
     _getDataSource: () => ({ getAtCell, setAtCell }),
     rowIndexMapper: { getVisualFromPhysicalIndex: toVisualRow },
     columnIndexMapper: { getVisualFromPhysicalIndex: col => col },
-    getCellMeta,
-    hasHook: key => registeredHooks.includes(key),
-    _getMetaManager: () => ({ getUserDefinedCellMetas: () => userDefinedCellMetas }),
+    _getMetaManager: () => ({
+      getCellMetaUncached,
+      getUserDefinedCellMetas: () => userDefinedCellMetas,
+    }),
   };
 
-  return { hot, getCellMeta, getAtCell, setAtCell };
+  return { hot, getCellMetaUncached, getAtCell, setAtCell };
 }
 
 /**
@@ -74,12 +79,12 @@ function makeValidator(rowIndependent, impl = () => true) {
 describe('runSourceDataValidators', () => {
   it('should materialize meta once per column (O(cols)) for a row-independent validator', () => {
     const validator = makeValidator(true);
-    const { hot, getCellMeta } = createMockHot({ rows: 1000, cols: 10, validator });
+    const { hot, getCellMetaUncached } = createMockHot({ rows: 1000, cols: 10, validator });
 
     runSourceDataValidators(hot, 'init');
 
     // One sample meta per column — NOT one per cell.
-    expect(getCellMeta).toHaveBeenCalledTimes(10);
+    expect(getCellMetaUncached).toHaveBeenCalledTimes(10);
     // Every value is still validated.
     expect(validator).toHaveBeenCalledTimes(1000 * 10);
   });
@@ -100,28 +105,46 @@ describe('runSourceDataValidators', () => {
 
   it('should fall back to per-cell meta (O(rows*cols)) for a non-row-independent validator', () => {
     const validator = makeValidator(false);
-    const { hot, getCellMeta } = createMockHot({ rows: 50, cols: 4, validator });
+    const { hot, getCellMetaUncached } = createMockHot({ rows: 50, cols: 4, validator });
 
     runSourceDataValidators(hot, 'init');
 
     // Per-cell scan: the column probe samples column 0, then every cell is resolved.
-    expect(getCellMeta).toHaveBeenCalledTimes((50 * 4) + 1);
+    expect(getCellMetaUncached).toHaveBeenCalledTimes((50 * 4) + 1);
     expect(validator).toHaveBeenCalledTimes(50 * 4);
   });
 
   it('should skip the row scan entirely when no validator is configured', () => {
-    const { hot, getCellMeta, getAtCell } = createMockHot({ rows: 1000, cols: 8 });
+    const { hot, getCellMetaUncached, getAtCell } = createMockHot({ rows: 1000, cols: 8 });
 
     runSourceDataValidators(hot, 'init');
 
     // Only the per-column sample — no per-cell work.
-    expect(getCellMeta).toHaveBeenCalledTimes(8);
+    expect(getCellMetaUncached).toHaveBeenCalledTimes(8);
     expect(getAtCell).not.toHaveBeenCalled();
   });
 
-  it('should use per-cell meta when a `cells` function is configured (even with a row-independent validator)', () => {
+  it('should skip the scan when a `cells` function is configured but no validator exists', () => {
+    // The regression from the forum report: a `cells` function must NOT force full-dataset meta
+    // resolution when nothing carries a source-data validator.
+    const { hot, getCellMetaUncached, getAtCell } = createMockHot({
+      rows: 30000,
+      cols: 20,
+      settings: { cells: () => ({ className: 'x' }) },
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    // Only the per-column probe runs — the 600k-cell scan is skipped.
+    expect(getCellMetaUncached).toHaveBeenCalledTimes(20);
+    expect(getAtCell).not.toHaveBeenCalled();
+  });
+
+  it('should NOT force per-cell meta for a `cells` function when the validator is column-level', () => {
+    // A `cells` function no longer routes to the per-cell scan: uncached meta ignores it, so a
+    // row-independent column validator is still validated through the batched (O(cols)) path.
     const validator = makeValidator(true);
-    const { hot, getCellMeta } = createMockHot({
+    const { hot, getCellMetaUncached } = createMockHot({
       rows: 20,
       cols: 3,
       validator,
@@ -130,12 +153,26 @@ describe('runSourceDataValidators', () => {
 
     runSourceDataValidators(hot, 'init');
 
-    expect(getCellMeta).toHaveBeenCalledTimes(20 * 3);
+    expect(getCellMetaUncached).toHaveBeenCalledTimes(3);
+    expect(validator).toHaveBeenCalledTimes(20 * 3);
+  });
+
+  it('should NOT force per-cell meta when a `beforeGetCellMeta` hook is registered', () => {
+    // Hooks are never run during uncached resolution, so they cannot introduce a validator and must
+    // not route to the per-cell scan.
+    const validator = makeValidator(true);
+    const { hot, getCellMetaUncached } = createMockHot({ rows: 20, cols: 3, validator });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(getCellMetaUncached).toHaveBeenCalledTimes(3);
   });
 
   it('should use per-cell meta when a non-empty `cell` array is configured', () => {
+    // A declarative `cell` override is persistent per-cell meta that uncached resolution DOES see, so
+    // it forces the per-cell scan (a stored cell may carry a validator on any row).
     const validator = makeValidator(true);
-    const { hot, getCellMeta } = createMockHot({
+    const { hot, getCellMetaUncached } = createMockHot({
       rows: 20,
       cols: 3,
       validator,
@@ -144,40 +181,14 @@ describe('runSourceDataValidators', () => {
 
     runSourceDataValidators(hot, 'init');
 
-    expect(getCellMeta).toHaveBeenCalledTimes(20 * 3);
-  });
-
-  it('should use per-cell meta when a `beforeGetCellMeta` hook is registered', () => {
-    const validator = makeValidator(true);
-    const { hot, getCellMeta } = createMockHot({
-      rows: 20,
-      cols: 3,
-      validator,
-      registeredHooks: ['beforeGetCellMeta'],
-    });
-
-    runSourceDataValidators(hot, 'init');
-
-    expect(getCellMeta).toHaveBeenCalledTimes(20 * 3);
-  });
-
-  it('should use per-cell meta when an `afterGetCellMeta` hook is registered', () => {
-    const validator = makeValidator(true);
-    const { hot, getCellMeta } = createMockHot({
-      rows: 20,
-      cols: 3,
-      validator,
-      registeredHooks: ['afterGetCellMeta'],
-    });
-
-    runSourceDataValidators(hot, 'init');
-
-    expect(getCellMeta).toHaveBeenCalledTimes(20 * 3);
+    // Column probe (3) + full per-cell scan (20 * 3).
+    expect(getCellMetaUncached).toHaveBeenCalledTimes(3 + (20 * 3));
+    expect(validator).toHaveBeenCalledTimes(20 * 3);
   });
 
   it('should use per-cell meta when imperatively-set cell meta exists (`setCellMeta`)', () => {
     const validator = makeValidator(true);
-    const { hot, getCellMeta } = createMockHot({
+    const { hot, getCellMetaUncached } = createMockHot({
       rows: 20,
       cols: 3,
       validator,
@@ -186,17 +197,35 @@ describe('runSourceDataValidators', () => {
 
     runSourceDataValidators(hot, 'init');
 
-    expect(getCellMeta).toHaveBeenCalledTimes(20 * 3);
+    // Column probe (3) + full per-cell scan (20 * 3).
+    expect(getCellMetaUncached).toHaveBeenCalledTimes(3 + (20 * 3));
+    expect(validator).toHaveBeenCalledTimes(20 * 3);
   });
 
-  it('should keep the batched path when no hooks or imperative meta are present', () => {
+  it('should still scan when a `cell` array is present even if the column probe finds no validator', () => {
+    // No column validator, but a stored cell might carry one — the scan must run (not skip). With no
+    // validator on any cell here it does no validation work, but it must NOT skip the array case.
+    const { hot, getCellMetaUncached, getAtCell } = createMockHot({
+      rows: 20,
+      cols: 3,
+      settings: { cell: [{ row: 5, col: 1 }] },
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(getCellMetaUncached).toHaveBeenCalledTimes(3 + (20 * 3));
+    // No validator anywhere, so no source value is read.
+    expect(getAtCell).not.toHaveBeenCalled();
+  });
+
+  it('should keep the batched path when no `cell` array or imperative meta are present', () => {
     const validator = makeValidator(true);
-    const { hot, getCellMeta } = createMockHot({ rows: 20, cols: 3, validator });
+    const { hot, getCellMetaUncached } = createMockHot({ rows: 20, cols: 3, validator });
 
     runSourceDataValidators(hot, 'init');
 
     // One sample meta per column — the batched path is preserved.
-    expect(getCellMeta).toHaveBeenCalledTimes(3);
+    expect(getCellMetaUncached).toHaveBeenCalledTimes(3);
   });
 
   it('should blank invalid values when allowInvalid is false (batched path)', () => {
@@ -228,6 +257,25 @@ describe('runSourceDataValidators', () => {
     runSourceDataValidators(hot, 'init');
 
     expect(setAtCell).not.toHaveBeenCalled();
+  });
+
+  it('should blank invalid values on the per-cell path (`cell` array present)', () => {
+    // Guard against over-skipping: with persistent per-cell meta AND a validator, invalid source
+    // values must still be blanked at load.
+    const validator = makeValidator(false, value => value !== 'bad');
+    const { hot, setAtCell } = createMockHot({
+      rows: 3,
+      cols: 2,
+      validator,
+      allowInvalid: false,
+      settings: { cell: [{ row: 0, col: 0 }] },
+      getValue: (r, c) => (r === 2 && c === 1 ? 'bad' : 'ok'),
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(setAtCell).toHaveBeenCalledTimes(1);
+    expect(setAtCell).toHaveBeenCalledWith(2, 1, null);
   });
 
   it('should skip rows with no visual index (trimmed rows) in the batched path', () => {
@@ -277,10 +325,10 @@ describe('runSourceDataValidators', () => {
 
   it('should do nothing when the dataset is empty', () => {
     const validator = makeValidator(true);
-    const { hot, getCellMeta } = createMockHot({ rows: 0, cols: 5, validator });
+    const { hot, getCellMetaUncached } = createMockHot({ rows: 0, cols: 5, validator });
 
     runSourceDataValidators(hot, 'init');
 
-    expect(getCellMeta).not.toHaveBeenCalled();
+    expect(getCellMetaUncached).not.toHaveBeenCalled();
   });
 });
