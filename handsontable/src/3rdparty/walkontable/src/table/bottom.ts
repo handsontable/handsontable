@@ -1,5 +1,4 @@
-import type { DataAccessObject, DomBindings } from '../types';
-import type Settings from '../settings';
+import type { TableDeps } from '../table';
 import Table from '../table';
 import stickyRowsBottom from './mixin/stickyRowsBottom';
 import calculatedColumns from './mixin/calculatedColumns';
@@ -14,14 +13,10 @@ import { CLONE_BOTTOM } from '../overlay';
  */
 class BottomOverlayTable extends Table {
   /**
-   * @param {TableDao} dataAccessObject The data access object.
-   * @param {FacadeGetter} facadeGetter Function which return proper facade.
-   * @param {DomBindings} domBindings Bindings into DOM.
-   * @param {Settings} wtSettings The Walkontable settings.
+   * @param {TableDeps} deps The table module dependencies.
    */
-  constructor(
-    dataAccessObject: DataAccessObject, facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings) {
-    super(dataAccessObject, facadeGetter, domBindings, wtSettings, CLONE_BOTTOM);
+  constructor(deps: TableDeps) {
+    super(deps, CLONE_BOTTOM);
   }
 }
 

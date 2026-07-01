@@ -1,33 +1,53 @@
 
-import type { ScrollDao } from './types';
-import {
-  innerHeight,
-  innerWidth,
-  getScrollLeft,
-  getScrollTop,
-  offset,
-} from '../../../helpers/dom/element';
+import type { EngineContext } from './wire';
 import {
   createObjectPropListener,
 } from '../../../helpers/object';
+
+/**
+ * Assembles the Scroll module's dependencies from the engine composition context.
+ *
+ * This factory is the single source of truth for what Scroll depends on: adding or removing a
+ * dependency is a one-line edit here, and the `ScrollDeps` type is inferred from the return value,
+ * so there is no separate hand-written interface to keep in sync.
+ *
+ * @param {EngineContext} ctx The engine composition context.
+ * @returns {object} The Scroll dependency set.
+ */
+export function createScrollDeps(ctx: EngineContext) {
+  return {
+    wtSettings: ctx.wtSettings,
+    rootWindow: ctx.rootWindow,
+    geometryReader: ctx.geometryReader,
+    isDrawn: ctx.isDrawn,
+    getWtTable: ctx.getWtTable,
+    getWtViewport: ctx.getWtViewport,
+    getTopOverlay: ctx.getTopOverlay,
+    getInlineStartOverlay: ctx.getInlineStartOverlay,
+  };
+}
+
+/**
+ * The Scroll module dependencies, inferred from `createScrollDeps`.
+ */
+export type ScrollDeps = ReturnType<typeof createScrollDeps>;
 
 /**
  * @class Scroll
  */
 class Scroll {
   /**
-   * The data access object.
+   * The Scroll module dependencies.
    *
-   * @protected
-   * @type {ScrollDao}
+   * @type {ScrollDeps}
    */
-  declare dataAccessObject: ScrollDao;
+  #deps: ScrollDeps;
 
   /**
-   * @param {ScrollDao} dataAccessObject Tha data access object.
+   * @param {ScrollDeps} deps The Scroll module dependencies.
    */
-  constructor(dataAccessObject: ScrollDao) {
-    this.dataAccessObject = dataAccessObject;
+  constructor(deps: ScrollDeps) {
+    this.#deps = deps;
   }
 
   /**
@@ -63,18 +83,16 @@ class Scroll {
    * @returns {boolean}
    */
   scrollViewportHorizontally(column: number, snapping = 'auto') {
-    const {
-      drawn,
-      totalColumns
-    } = this.dataAccessObject;
+    const { wtSettings } = this.#deps;
 
-    if (!drawn) {
+    if (!this.#deps.isDrawn()) {
       return false;
     }
 
+    const totalColumns = wtSettings.getSetting<number>('totalColumns');
     const snappingObject = createObjectPropListener(snapping);
 
-    column = this.dataAccessObject.wtSettings
+    column = wtSettings
       .getSetting<number>('onBeforeViewportScrollHorizontally', column, snappingObject);
 
     if (!Number.isInteger(column) || column < 0 || column > totalColumns) {
@@ -83,10 +101,8 @@ class Scroll {
 
     snapping = snappingObject.value as string;
 
-    const {
-      fixedColumnsStart,
-      inlineStartOverlay,
-    } = this.dataAccessObject;
+    const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
+    const inlineStartOverlay = this.#deps.getInlineStartOverlay();
     const autoSnapping = snapping === 'auto';
 
     // for auto-snapping do not scroll the viewport when the columns points to the overlays
@@ -119,18 +135,16 @@ class Scroll {
    * @returns {boolean}
    */
   scrollViewportVertically(row: number, snapping = 'auto') {
-    const {
-      drawn,
-      totalRows
-    } = this.dataAccessObject;
+    const { wtSettings } = this.#deps;
 
-    if (!drawn) {
+    if (!this.#deps.isDrawn()) {
       return false;
     }
 
+    const totalRows = wtSettings.getSetting<number>('totalRows');
     const snappingObject = createObjectPropListener(snapping);
 
-    row = this.dataAccessObject.wtSettings
+    row = wtSettings
       .getSetting<number>('onBeforeViewportScrollVertically', row, snappingObject);
 
     if (!Number.isInteger(row) || row < 0 || row > totalRows) {
@@ -139,11 +153,9 @@ class Scroll {
 
     snapping = snappingObject.value as string;
 
-    const {
-      fixedRowsBottom,
-      fixedRowsTop,
-      topOverlay,
-    } = this.dataAccessObject;
+    const fixedRowsBottom = wtSettings.getSetting<number>('fixedRowsBottom');
+    const fixedRowsTop = wtSettings.getSetting<number>('fixedRowsTop');
+    const topOverlay = this.#deps.getTopOverlay();
     const autoSnapping = snapping === 'auto';
 
     // for auto-snapping do not scroll the viewport when the rows points to the overlays
@@ -173,7 +185,7 @@ class Scroll {
    * @returns {number}
    */
   getFirstVisibleRow() {
-    return this.dataAccessObject.wtTable.getFirstVisibleRow();
+    return this.#deps.getWtTable().getFirstVisibleRow();
   }
 
   /**
@@ -182,7 +194,7 @@ class Scroll {
    * @returns {number}
    */
   getLastVisibleRow() {
-    return this.#getLastRowIndex(this.dataAccessObject.wtTable.getLastVisibleRow());
+    return this.#getLastRowIndex(this.#deps.getWtTable().getLastVisibleRow());
   }
 
   /**
@@ -191,7 +203,7 @@ class Scroll {
    * @returns {number}
    */
   getFirstPartiallyVisibleRow() {
-    return this.dataAccessObject.wtTable.getFirstPartiallyVisibleRow();
+    return this.#deps.getWtTable().getFirstPartiallyVisibleRow();
   }
 
   /**
@@ -200,7 +212,7 @@ class Scroll {
    * @returns {number}
    */
   getLastPartiallyVisibleRow() {
-    return this.#getLastRowIndex(this.dataAccessObject.wtTable.getLastPartiallyVisibleRow());
+    return this.#getLastRowIndex(this.#deps.getWtTable().getLastPartiallyVisibleRow());
   }
 
   /**
@@ -209,7 +221,7 @@ class Scroll {
    * @returns {number}
    */
   getFirstVisibleColumn() {
-    return this.dataAccessObject.wtTable.getFirstVisibleColumn();
+    return this.#deps.getWtTable().getFirstVisibleColumn();
   }
 
   /**
@@ -218,7 +230,7 @@ class Scroll {
    * @returns {number}
    */
   getLastVisibleColumn() {
-    return this.#getLastColumnIndex(this.dataAccessObject.wtTable.getLastVisibleColumn());
+    return this.#getLastColumnIndex(this.#deps.getWtTable().getLastVisibleColumn());
   }
 
   /**
@@ -227,7 +239,7 @@ class Scroll {
    * @returns {number}
    */
   getFirstPartiallyVisibleColumn() {
-    return this.dataAccessObject.wtTable.getFirstPartiallyVisibleColumn();
+    return this.#deps.getWtTable().getFirstPartiallyVisibleColumn();
   }
 
   /**
@@ -236,7 +248,7 @@ class Scroll {
    * @returns {number}
    */
   getLastPartiallyVisibleColumn() {
-    return this.#getLastColumnIndex(this.dataAccessObject.wtTable.getLastPartiallyVisibleColumn());
+    return this.#getLastColumnIndex(this.#deps.getWtTable().getLastPartiallyVisibleColumn());
   }
 
   /**
@@ -246,37 +258,34 @@ class Scroll {
    * @returns {number}
    */
   #getLastColumnIndex(lastColumnIndex: number) {
-    const {
-      wtSettings,
-      inlineStartOverlay,
-      wtTable,
-      wtViewport,
-      totalColumns,
-      rootWindow,
-    } = this.dataAccessObject;
+    const { wtSettings, rootWindow, geometryReader } = this.#deps;
+    const inlineStartOverlay = this.#deps.getInlineStartOverlay();
+    const wtTable = this.#deps.getWtTable();
+    const wtViewport = this.#deps.getWtViewport();
+    const totalColumns = wtSettings.getSetting<number>('totalColumns');
 
     if (inlineStartOverlay.mainTableScrollableElement === rootWindow) {
       const isRtl: boolean = wtSettings.getSetting('rtlMode');
       let inlineStartRootElementOffset = null;
 
       if (isRtl) {
-        const tableRect = wtTable.TABLE.getBoundingClientRect();
+        const tableRect = geometryReader.getBoundingClientRect(wtTable.TABLE);
         const rootDocument = rootWindow.document;
-        const docOffsetWidth = rootDocument.documentElement.offsetWidth;
+        const docOffsetWidth = geometryReader.offsetWidth(rootDocument.documentElement);
 
         inlineStartRootElementOffset = Math.abs(tableRect.right - docOffsetWidth);
 
       } else {
-        const rootElementOffset = offset(wtTable.wtRootElement);
+        const rootElementOffset = geometryReader.offset(wtTable.wtRootElement);
 
         inlineStartRootElementOffset = rootElementOffset.left;
       }
 
-      const windowScrollLeft = Math.abs(getScrollLeft(rootWindow, rootWindow));
+      const windowScrollLeft = Math.abs(geometryReader.getScrollLeft(rootWindow));
 
       // Only calculate lastColumnIndex when table didn't filled (from right) whole viewport space
       if (inlineStartRootElementOffset > windowScrollLeft) {
-        const windowWidth = innerWidth(rootWindow);
+        const windowWidth = geometryReader.innerWidth(rootWindow);
         let columnsWidth = wtViewport.getRowHeaderWidth();
 
         for (let column = 1; column <= totalColumns; column++) {
@@ -301,21 +310,19 @@ class Scroll {
    * @returns {number}
    */
   #getLastRowIndex(lastRowIndex: number) {
-    const {
-      topOverlay,
-      wtTable,
-      wtViewport,
-      totalRows,
-      rootWindow,
-    } = this.dataAccessObject;
+    const { wtSettings, rootWindow, geometryReader } = this.#deps;
+    const topOverlay = this.#deps.getTopOverlay();
+    const wtTable = this.#deps.getWtTable();
+    const wtViewport = this.#deps.getWtViewport();
+    const totalRows = wtSettings.getSetting<number>('totalRows');
 
     if (topOverlay.mainTableScrollableElement === rootWindow) {
-      const rootElementOffset = offset(wtTable.wtRootElement);
-      const windowScrollTop = getScrollTop(rootWindow, rootWindow);
+      const rootElementOffset = geometryReader.offset(wtTable.wtRootElement);
+      const windowScrollTop = geometryReader.getScrollTop(rootWindow);
 
       // Only calculate lastRowIndex when table didn't filled (from bottom) whole viewport space
       if (rootElementOffset.top > windowScrollTop) {
-        const windowHeight = innerHeight(rootWindow);
+        const windowHeight = geometryReader.innerHeight(rootWindow);
         let rowsHeight = wtViewport.getColumnHeaderHeight();
 
         for (let row = 1; row <= totalRows; row++) {

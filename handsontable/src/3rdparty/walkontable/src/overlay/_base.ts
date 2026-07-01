@@ -1,9 +1,9 @@
-import type { DomBindings, WalkontableInstance } from '../types';
+import type { WalkontableInstance } from '../types';
+import type { EngineContext } from '../wire';
 import type Settings from '../settings';
 import {
   getScrollableElement,
   getTrimmingContainer,
-  getScrollbarWidth,
   setAttribute,
 } from '../../../../helpers/dom/element';
 import { defineGetter } from '../../../../helpers/object';
@@ -17,6 +17,63 @@ import {
 import Clone from '../core/clone';
 import { A11Y_PRESENTATION } from '../../../../helpers/a11y';
 import { throwWithCause } from '../../../../helpers/errors';
+
+/**
+ * Assembles the dependency set shared by every overlay (and its corner subclasses) from the engine
+ * composition context. Overlays still hold `wot` (the master instance) — the clone they build is a
+ * second Walkontable instance that also reaches back to the master, so `wot` is a structural handle,
+ * not a reach-through to be thunked away in this pass. The DOM roots are folded in flat.
+ *
+ * @param {EngineContext} ctx The engine composition context.
+ * @returns {object} The overlay dependency set.
+ */
+export function createOverlayDeps(ctx: EngineContext) {
+  return {
+    wot: ctx.wot,
+    facadeGetter: ctx.getFacade(),
+    wtSettings: ctx.wtSettings,
+    rootDocument: ctx.rootDocument,
+    rootWindow: ctx.rootWindow,
+    geometryReader: ctx.geometryReader,
+    // The master table (its DOM elements are mirrored onto the overlay at construction).
+    getWtTable: ctx.getWtTable,
+    // Resolved when the overlay builds its clone (see `createCloneDeps`). The clone shares the
+    // master's viewport and selection manager, and takes the master's event as its Event parent.
+    getWtViewport: ctx.getWtViewport,
+    getWtEvent: ctx.getWtEvent,
+    getSelectionManager: ctx.getSelectionManager,
+  };
+}
+
+/**
+ * The overlay dependencies, inferred from `createOverlayDeps`.
+ */
+export type OverlayDeps = ReturnType<typeof createOverlayDeps>;
+
+/**
+ * Assembles the dependency set for the clone (a second Walkontable instance the overlay renders).
+ * Replaces the former inline `this.wot.wtViewport` / `this.wot.wtEvent` / `this.wot.selectionManager`
+ * reach-throughs: the shared master collaborators now come through the overlay's declared deps, and
+ * the clone's back-reference to the master (`source`) and its owning `overlay` are passed explicitly.
+ *
+ * @param {OverlayDeps} deps The owning overlay's dependency set.
+ * @param {Overlay} overlay The overlay that renders the clone.
+ * @returns {object} The clone dependency set.
+ */
+export function createCloneDeps(deps: OverlayDeps, overlay: Overlay) {
+  return {
+    source: deps.wot,
+    overlay,
+    viewport: deps.getWtViewport(),
+    event: deps.getWtEvent(),
+    selectionManager: deps.getSelectionManager(),
+  };
+}
+
+/**
+ * The clone dependencies, inferred from `createCloneDeps`.
+ */
+export type CloneDeps = ReturnType<typeof createCloneDeps>;
 
 /**
  * Creates an overlay over the original Walkontable instance. The overlay renders the clone of the original Walkontable
@@ -42,23 +99,28 @@ export abstract class Overlay {
    */
   declare wot: WalkontableInstance;
   /**
-   * DOM elements bound to the current instance.
+   * The overlay module dependencies (holds the DOM roots and the master instance handle).
    *
-   * @type {DomBindings}
+   * @type {OverlayDeps}
    */
-  declare domBindings: DomBindings;
+  #deps: OverlayDeps;
+
+  /**
+   * Read-only access to the dependencies, for the overlay subclasses (top/bottom/inline-start and
+   * the corner overlays), which are defined outside this class and so cannot reach the private
+   * `#deps`.
+   *
+   * @returns {OverlayDeps}
+   */
+  get deps(): OverlayDeps {
+    return this.#deps;
+  }
   /**
    * Function that returns the proper facade.
    *
    * @type {Function}
    */
   declare facadeGetter: Function;
-  /**
-   * Legacy support for the Walkontable instance.
-   *
-   * @type {WalkontableInstance}
-   */
-  declare instance: WalkontableInstance;
   /**
    * The overlay type name.
    *
@@ -121,21 +183,16 @@ export abstract class Overlay {
   declare clone: WalkontableInstance | null;
 
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
-   * @param {FacadeGetter} facadeGetter Function which return proper facade.
+   * @param {OverlayDeps} deps The overlay module dependencies.
    * @param {CLONE_TYPES_ENUM} type The overlay type name (clone name).
-   * @param {Settings} wtSettings The Walkontable settings.
-   * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
-  constructor(
-    wotInstance: WalkontableInstance, facadeGetter: Function, type: string,
-    wtSettings: Settings, domBindings: DomBindings) {
-    defineGetter(this, 'wot', wotInstance, {
+  constructor(deps: OverlayDeps, type: string) {
+    defineGetter(this, 'wot', deps.wot, {
       writable: false,
     });
-    this.domBindings = domBindings;
-    this.facadeGetter = facadeGetter;
-    this.wtSettings = wtSettings;
+    this.#deps = deps;
+    this.facadeGetter = deps.facadeGetter;
+    this.wtSettings = deps.wtSettings;
 
     const {
       TABLE,
@@ -143,10 +200,7 @@ export abstract class Overlay {
       spreader,
       holder,
       wtRootElement,
-    } = this.wot.wtTable; // todo ioc
-
-    // legacy support, deprecated in the future
-    this.instance = this.wot;
+    } = deps.getWtTable();
 
     this.type = type;
     this.TABLE = TABLE;
@@ -220,8 +274,9 @@ export abstract class Overlay {
    */
   updateMainScrollableElement() {
     const { wtTable } = this.wot;
-    const { rootWindow } = this.domBindings;
-    const computedOverflow = rootWindow.getComputedStyle(wtTable.wtRootElement.parentNode as Element)
+    const { rootWindow } = this.#deps;
+    const computedOverflow = this.#deps.geometryReader
+      .getComputedStyle(wtTable.wtRootElement.parentNode as Element)
       .getPropertyValue('overflow');
 
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
@@ -255,20 +310,21 @@ export abstract class Overlay {
 
       return;
     }
-    const windowScroll = this.mainTableScrollableElement === this.domBindings.rootWindow;
+    const windowScroll = this.mainTableScrollableElement === this.#deps.rootWindow;
     const fixedColumnStart = columnIndex < this.wtSettings.getSetting<number>('fixedColumnsStart');
     const fixedRowTop = rowIndex < this.wtSettings.getSetting<number>('fixedRowsTop');
     const fixedRowBottom = rowIndex >=
       this.wtSettings.getSetting<number>('totalRows') - this.wtSettings.getSetting<number>('fixedRowsBottom');
     const spreader = this.clone.wtTable.spreader;
 
+    const { geometryReader } = this.#deps;
     const spreaderOffset = {
       start: this.getRelativeStartPosition(spreader),
-      top: spreader.offsetTop
+      top: geometryReader.offsetTop(spreader)
     };
     const elementOffset = {
       start: this.getRelativeStartPosition(element),
-      top: element.offsetTop
+      top: geometryReader.offsetTop(element)
     };
     let offsetObject = null;
 
@@ -293,9 +349,15 @@ export abstract class Overlay {
    * @returns {number}
    */
   getRelativeStartPosition(el: HTMLElement) {
-    return this.isRtl()
-      ? (el.offsetParent as HTMLElement).offsetWidth - el.offsetLeft - el.offsetWidth
-      : el.offsetLeft;
+    const { geometryReader } = this.#deps;
+
+    if (!this.isRtl()) {
+      return geometryReader.offsetLeft(el);
+    }
+
+    const offsetParentWidth = geometryReader.offsetWidth(geometryReader.offsetParent(el) as HTMLElement);
+
+    return offsetParentWidth - geometryReader.offsetLeft(el) - geometryReader.offsetWidth(el);
   }
 
   /**
@@ -312,11 +374,13 @@ export abstract class Overlay {
   getRelativeCellPositionWithinWindow(
     onFixedRowTop: boolean, onFixedColumn: boolean,
     elementOffset: { start: number; top: number }, spreaderOffset: { start: number; top: number }) {
-    const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect(); // todo refactoring: DEMETER
+    const { geometryReader } = this.#deps;
+    const absoluteRootElementPosition =
+      geometryReader.getBoundingClientRect(this.wot.wtTable.wtRootElement); // todo refactoring: DEMETER
     // `preventOverflow` can force this overlay onto the window (see `makeClone()`) while the
     // master still scrolls its holder. `wtRootElement` does not move with that scroll, so
     // subtract the master scroll from spreader-based offsets to align with the visible cell (#10403).
-    const masterScrollsHolder = this.wot.wtOverlays.scrollableElement !== this.domBindings.rootWindow;
+    const masterScrollsHolder = this.wot.wtOverlays.scrollableElement !== this.#deps.rootWindow;
     const tableScrollPosition = {
       horizontal: masterScrollsHolder ? this.wot.wtOverlays.inlineStartOverlay.getScrollPosition() : 0,
       vertical: masterScrollsHolder ? this.wot.wtOverlays.topOverlay.getScrollPosition() : 0,
@@ -331,15 +395,15 @@ export abstract class Overlay {
       let absoluteRootElementStartPosition = absoluteRootElementPosition.left;
 
       if (this.isRtl()) {
-        absoluteRootElementStartPosition = this.domBindings.rootWindow.innerWidth -
-          (absoluteRootElementPosition.left + absoluteRootElementPosition.width + getScrollbarWidth());
+        absoluteRootElementStartPosition = geometryReader.innerWidth(this.#deps.rootWindow) -
+          (absoluteRootElementPosition.left + absoluteRootElementPosition.width + geometryReader.getScrollbarWidth());
       }
 
       horizontalOffset = absoluteRootElementStartPosition <= 0 ? (-1) * absoluteRootElementStartPosition : 0;
     }
 
     if (onFixedRowTop && this.clone) {
-      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();
+      const absoluteOverlayPosition = geometryReader.getBoundingClientRect(this.clone.wtTable.TABLE);
 
       verticalOffset = absoluteOverlayPosition.top - absoluteRootElementPosition.top;
 
@@ -380,8 +444,11 @@ export abstract class Overlay {
     }
 
     if (onFixedRowBottom && this.clone) {
-      const absoluteRootElementPosition = this.wot.wtTable.wtRootElement.getBoundingClientRect();// todo refactoring: DEMETER
-      const absoluteOverlayPosition = this.clone.wtTable.TABLE.getBoundingClientRect();// todo refactoring: DEMETER
+      const { geometryReader } = this.#deps;
+      const absoluteRootElementPosition =
+        geometryReader.getBoundingClientRect(this.wot.wtTable.wtRootElement); // todo refactoring: DEMETER
+      const absoluteOverlayPosition =
+        geometryReader.getBoundingClientRect(this.clone.wtTable.TABLE); // todo refactoring: DEMETER
 
       verticalOffset = (absoluteOverlayPosition.top * (-1)) + absoluteRootElementPosition.top;
 
@@ -408,7 +475,7 @@ export abstract class Overlay {
       wtTable,
       wtSettings
     } = this.wot;
-    const { rootDocument, rootWindow } = this.domBindings;
+    const { rootDocument, rootWindow } = this.#deps;
     const clone = rootDocument.createElement('div');
     const clonedTable = rootDocument.createElement('table');
     const tableParent = wtTable.wtRootElement.parentNode;
@@ -449,7 +516,7 @@ export abstract class Overlay {
     tableParent.appendChild(clone);
 
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
-    const computedOverflow = rootWindow.getComputedStyle(tableParent as Element)
+    const computedOverflow = this.#deps.geometryReader.getComputedStyle(tableParent as Element)
       .getPropertyValue('overflow');
 
     if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
@@ -466,13 +533,7 @@ export abstract class Overlay {
     }
 
     // Create a new instance of the Walkontable class
-    return new Clone(clonedTable, this.wtSettings, { // todo ioc factory
-      source: this.wot,
-      overlay: this,
-      viewport: this.wot.wtViewport, // todo ioc , or factor func if used only here
-      event: this.wot.wtEvent, // todo ioc , or factory func if used only here
-      selectionManager: this.wot.selectionManager, // todo ioc , or factory func if used only here
-    }) as WalkontableInstance;
+    return new Clone(clonedTable, this.wtSettings, createCloneDeps(this.#deps, this)) as WalkontableInstance;
   }
 
   /**

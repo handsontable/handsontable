@@ -1,5 +1,4 @@
-import type { DataAccessObject } from '../types';
-import type Settings from '../settings';
+import type { TableDeps } from '../table';
 /**
  * Row utils class contains all necessary information about sizes of the rows.
  *
@@ -7,21 +6,32 @@ import type Settings from '../settings';
  */
 export default class RowUtils {
   /**
-   * @type {TableDao}
+   * The table module dependencies.
+   *
+   * @type {TableDeps}
    */
-  dataAccessObject;
+  #deps: TableDeps;
   /**
    * @type {Settings}
    */
   wtSettings;
 
   /**
-   * @param {TableDao} dataAccessObject The table Data Access Object.
-   * @param {Settings} wtSettings The walkontable settings.
+   * Read-only access to the dependencies, for the renderer, which reads `rowUtils.deps` externally
+   * and so cannot reach the private `#deps`.
+   *
+   * @returns {TableDeps}
    */
-  constructor(dataAccessObject: DataAccessObject, wtSettings: Settings) {
-    this.dataAccessObject = dataAccessObject;
-    this.wtSettings = wtSettings;
+  get deps(): TableDeps {
+    return this.#deps;
+  }
+
+  /**
+   * @param {TableDeps} deps The table module dependencies.
+   */
+  constructor(deps: TableDeps) {
+    this.#deps = deps;
+    this.wtSettings = deps.wtSettings;
   }
 
   /**
@@ -32,7 +42,7 @@ export default class RowUtils {
    */
   getHeight(sourceIndex: number) {
     let height = this.wtSettings.getSetting<number | undefined>('rowHeight', sourceIndex);
-    const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
+    const oversizedHeight = this.#deps.getWtViewport().oversizedRows[sourceIndex];
 
     if (oversizedHeight !== undefined) {
       height = height === undefined ? oversizedHeight : Math.max(height, oversizedHeight);
@@ -50,7 +60,7 @@ export default class RowUtils {
    */
   getHeightByOverlayName(sourceIndex: number, overlayName: string) {
     let height = this.wtSettings.getSetting<number | undefined>('rowHeightByOverlayName', sourceIndex, overlayName);
-    const oversizedHeight = this.dataAccessObject.wtViewport.oversizedRows[sourceIndex];
+    const oversizedHeight = this.#deps.getWtViewport().oversizedRows[sourceIndex];
 
     if (oversizedHeight !== undefined) {
       height = height === undefined ? oversizedHeight : Math.max(height, oversizedHeight);

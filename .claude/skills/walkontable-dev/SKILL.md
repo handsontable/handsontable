@@ -14,6 +14,60 @@ Walkontable is the low-level rendering engine embedded in Handsontable. It handl
 
 Walkontable source lives entirely within `src/3rdparty/walkontable/src/` and is **TypeScript** (`.ts` files). It is excluded from the main `tsconfig.json` and has its own separate build/test pipeline. The bridge between core Handsontable and Walkontable is the `TableView` class in `src/tableView.ts`. Plugins must never access Walkontable internals directly — always go through TableView.
 
+## Dependency injection & DOM geometry reads (mandatory)
+
+Two rules here are enforced, not stylistic. They exist so the engine can be optimized later without rewriting call sites — most of the rendering cost is JS, and the planned wins (a per-draw geometry cache, translate/diff scroll) need clean seams to slot into.
+
+### Dependency injection — how modules are wired
+
+The DAO layer is gone. Every module is built by a single composition root, `wire.ts`: `buildContext(wot)` returns an `EngineContext` holding the stable references plus every late-bound/cyclic dependency as a thunk (defined once). Each module has a **co-located factory** `create<Module>Deps(ctx)` and its type is **inferred**, never hand-written:
+
+```ts
+// scroll.ts — the ONLY place Scroll's deps are declared
+export function createScrollDeps(ctx: EngineContext) {
+  return { wtSettings: ctx.wtSettings, geometryReader: ctx.geometryReader, getWtTable: ctx.getWtTable /* … */ };
+}
+export type ScrollDeps = ReturnType<typeof createScrollDeps>;   // inferred — no hand-written interface
+
+class Scroll {
+  #deps: ScrollDeps;
+  constructor(deps: ScrollDeps) { this.#deps = deps; }          // single `deps` arg
+}
+```
+
+Rules when adding or changing a module:
+- Store deps in a **private `#deps`**; take a **single `deps` constructor argument** (plus at most one per-instance identity arg — a table `name`, an overlay `type`, an event `parent`, corner-overlay sibling refs).
+- **Never hand-write a `*Deps` interface** — infer it with `ReturnType<typeof createXDeps>`, so there is one source of truth and a one-line edit adds a dependency.
+- Add a **read-only `get deps()` getter over `#deps` only** where JS forces external reach: a base class whose subclasses need it (`Overlay`), a class with runtime mixins (`Table`), or a helper read by a collaborator (`RowUtils`, `ColumnUtils`). Everywhere else, `#deps` stays private.
+- Inject the **stable owner** (`getWtViewport()`), never a volatile per-draw object (a calculator or filter is recreated each draw and goes stale). Read volatile ranges fresh off the owner (that's what the `calculatedRows`/`calculatedColumns` mixins do).
+- The fastest way to add a module correctly is to **copy an existing one** — `scroll.ts` is the simplest template.
+
+### DOM geometry reads MUST go through the `GeometryReader` proxy
+
+Any layout-forcing DOM read goes through the injected reader — **never read the DOM element/window directly**. This is the seam a `CachingGeometryReader` will replace to memoize measurements per draw; a single raw read silently escapes the cache and defeats the optimization.
+
+Reads that must be proxied: `getBoundingClientRect`, `getClientRects`, `getComputedStyle`, `offsetWidth`/`offsetHeight`/`offsetTop`/`offsetLeft`/`offsetParent`, `clientWidth`/`clientHeight`, `scrollWidth`/`scrollHeight`, `scrollTop`/`scrollLeft` (reads), `innerWidth`/`innerHeight`, `scrollX`/`scrollY`, `pageXOffset`/`pageYOffset`.
+
+```ts
+// ✗ Bad — raw read escapes the proxy (and the future per-draw cache)
+const rect = el.getBoundingClientRect();
+const w = el.offsetWidth;
+const top = rootWindow.scrollY;
+
+// ✓ Good — through the injected reader
+const rect = this.#deps.geometryReader.getBoundingClientRect(el);
+const w = this.#deps.geometryReader.offsetWidth(el);
+const top = this.#deps.geometryReader.getScrollTop(rootWindow);
+```
+
+Access the reader by whichever handle the module has: `this.#deps.geometryReader` (most modules), `this.deps.geometryReader` (via the getter, e.g. overlays/table), or `wotInstance.domBindings.geometryReader` when only the instance is in hand (e.g. `utils/cellCoords.ts`, `selection/border/border.ts`).
+
+**Writes are fine** (`el.scrollTop = n`, `el.style.x = …`) — they don't force layout. So is `this.<field>` even when the field is named `clientHeight`/`scrollTop` (it's stored state, not a DOM read).
+
+**If the proxy has no method for a read you need, add it** — to both `geometry/geometryReader.ts` (the interface) and `geometry/liveGeometryReader.ts` (the live adapter) — then use it. Never fall back to a direct read "just this once".
+
+**Enforced by ESLint.** The rule `handsontable/no-direct-dom-geometry-read` (`error`) flags any direct read across all of `src/3rdparty/walkontable/src` (only `geometry/**`, the adapter itself, is exempt). It allows access on a `geometryReader`, writes, and `this.<field>`, and its message points you at the fix. The rule lives in `handsontable/.config/plugin/eslint/rules/` and is a pnpm `file:` dependency that is **copied, not symlinked** — after editing the rule (or on a checkout that predates it) run `pnpm install`, or eslint fails with "definition not found".
+
 ## Key subsystems
 
 - **Overlay system** (6 types): Manages frozen rows and columns and their scroll synchronization. This subsystem is fragile and well-documented in `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md`. Proceed with extreme caution when modifying overlay positioning or synchronization logic.
@@ -25,7 +79,8 @@ Walkontable source lives entirely within `src/3rdparty/walkontable/src/` and is 
 
 These issues are documented in `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md`:
 
-- **DAO layer**: Uses Data Access Objects instead of dependency injection. Over 20 TODO comments exist around this pattern. The DAO layer is not unit tested.
+- **DAO layer (resolved)**: The Data Access Object layer has been replaced by constructor injection + the `wire.ts` composition root (see "Dependency injection & DOM geometry reads" above). Do not reintroduce DAO getters or pass the whole `wot` god-object into a module.
+- **Deep `wot` decoupling (deferred)**: Overlays still reach the master through `this.wot.wtTable`/`.wtViewport`/`.wtOverlays` in their hot-path methods. The `Clone` is a second Walkontable instance holding a handle to the master — intentionally left until a later stage; don't pull it forward piecemeal.
 - **Filter object recreation**: Walkontable filter objects are recreated on every render pass instead of being updated in place. This is a known performance concern.
 - **Overlay complexity**: 6 overlay types with complex positioning logic. Changes here frequently cause regressions in frozen row/column scenarios.
 
@@ -59,9 +114,13 @@ Walkontable has its own dedicated test runner. Do NOT mix Walkontable tests with
 
 Even within Walkontable itself, prefer wrapping DOM logic in abstract modules rather than manipulating elements inline. Direct DOM manipulation makes the code hard to change and maintain. The goal is to keep DOM access behind well-defined abstractions so the rendering strategy can evolve independently.
 
+For **layout-forcing DOM reads** this is not a preference but a hard, lint-enforced rule: they must go through the `GeometryReader` proxy. See "Dependency injection & DOM geometry reads (mandatory)" above.
+
 ## Common mistakes
 
 - Accessing or modifying Walkontable DOM elements from plugins or core code instead of going through TableView.
+- Reading DOM geometry directly (`el.getBoundingClientRect()`, `.offsetWidth`, `getComputedStyle`, `rootWindow.scrollY`, …) instead of through the injected `GeometryReader` proxy — this is lint-enforced and breaks the future per-draw cache.
+- Hand-writing a `*Deps` interface instead of inferring it with `ReturnType<typeof createXDeps>`, or passing the whole `wot` into a module instead of a narrow `deps` object.
 - Manipulating DOM directly inside Walkontable instead of wrapping it in an abstraction module.
 - Running Walkontable tests through the main E2E pipeline instead of the dedicated runner.
 - Not testing with frozen rows and columns, which misses overlay edge cases.
