@@ -448,10 +448,10 @@ test('converts <kbd> markup while still extracting a trailing PR citation', () =
   assert.equal(result[0].prKind, 'pull');
 });
 
-test('converts a dangling, unclosed <kbd> left by a multi-line bullet', () => {
-  // The parser captures only a bullet's first source line, so markup that wraps
-  // (as in changelog-12's "Shift + Page Up/Page Down" breaking change) ends with
-  // an unclosed <kbd>. The remainder must still convert -- no literal tag shown.
+test('joins a <kbd> that wraps across source lines and fully converts it', () => {
+  // The parser joins soft-wrapped continuation lines (as in changelog-12's
+  // "Shift + Page Up/Page Down" breaking change), so a <kbd> split across
+  // source lines is reassembled and every tag converts -- no literal tag shown.
   const md = [
     '## 12.0.0',
     'Released on May 9th, 2022',
@@ -464,7 +464,7 @@ test('converts a dangling, unclosed <kbd> left by a multi-line bullet', () => {
   const result = parseChangelogContent(md);
 
   assert.equal(result.length, 1);
-  assert.equal(result[0].title, 'Removed the `Shift`+`Page Up`/`Page`');
+  assert.equal(result[0].title, 'Removed the `Shift`+`Page Up`/`Page Down` keyboard shortcuts.');
   assert.ok(!/<kbd>/i.test(result[0].title));
 });
 
