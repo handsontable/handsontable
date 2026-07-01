@@ -107,8 +107,34 @@ function parseBullet(line) {
   return { breaking, framework, prNumber, prKind, body };
 }
 
+// Merge soft-wrapped bullet continuation lines into their parent bullet.
+// Older changelogs hand-wrap bullets across multiple physical lines; without
+// this the line-based loop below keeps only the first line and silently drops
+// the rest (truncating the entry text and losing trailing PR links).
+function coalesceWrappedBullets(lines) {
+  const result = [];
+  let openBullet = null; // index in `result` of the bullet currently accepting continuations
+
+  for (const line of lines) {
+    if (/^- /.test(line)) {
+      result.push(line);
+      openBullet = result.length - 1;
+    } else if (openBullet !== null && /^\s+\S/.test(line)) {
+      // Indented, non-blank line -> continuation of the open bullet.
+      result[openBullet] += ` ${line.trim()}`;
+    } else {
+      // A blank line, heading, version line, HTML, or non-indented prose
+      // closes the open bullet and is preserved as its own line.
+      openBullet = null;
+      result.push(line);
+    }
+  }
+
+  return result;
+}
+
 export function parseChangelogContent(markdown) {
-  const lines = markdown.split('\n');
+  const lines = coalesceWrappedBullets(markdown.split('\n'));
   const entries = [];
   let currentVersion = null;
   let currentDate = null;
