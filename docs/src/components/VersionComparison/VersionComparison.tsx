@@ -142,6 +142,19 @@ function matchesFilter(entry: VersionEntry, filter: FilterKind): boolean {
   }
 }
 
+// Whether a highlighted entry renders as a featured card under the active filter.
+// Featured highlights are curated marquee items, so on New and All they surface
+// regardless of category or breaking status (a major release's headline features
+// are often breaking, e.g. a TypeScript migration or a new layout system). On the
+// Breaking tab only the breaking highlights show, so a non-breaking highlight does
+// not leak into a breaking-only drill-down. Fixed and Deprecated show no featured
+// cards; a highlight that matches those filters falls back to the compact list.
+function isFeatured(entry: VersionEntry, filter: FilterKind): boolean {
+  if (!entry.highlighted) return false;
+  if (filter === 'breaking') return entry.breaking;
+  return filter === 'new' || filter === 'all';
+}
+
 interface FilterTabsProps {
   value: FilterKind;
   onChange: (v: FilterKind) => void;
@@ -276,10 +289,10 @@ function CompactEntry({ entry }: { entry: VersionEntry }) {
 
 const COMPACT_THRESHOLD = 5;
 
-function ReleaseGroup({ version, entries, showFeatured }: { version: string; entries: VersionEntry[]; showFeatured: boolean }) {
+function ReleaseGroup({ version, entries, filter }: { version: string; entries: VersionEntry[]; filter: FilterKind }) {
   const [expanded, setExpanded] = useState(false);
-  const featured = showFeatured ? entries.filter((e) => e.highlighted) : [];
-  const compact = showFeatured ? entries.filter((e) => !e.highlighted) : entries;
+  const featured = entries.filter((e) => isFeatured(e, filter));
+  const compact = entries.filter((e) => !isFeatured(e, filter));
   const isCollapsible = compact.length > COMPACT_THRESHOLD;
   const shown = !isCollapsible || expanded
     ? compact
@@ -375,8 +388,12 @@ export function VersionComparison() {
     [data.entries, from, to],
   );
 
+  // A release's featured highlights are drawn from its in-range entries
+  // independent of the category filter (see isFeatured), so they must be kept in
+  // the visible set even when they don't match the active filter. Otherwise a
+  // breaking headline feature would never appear on the default New tab.
   const visible = useMemo(
-    () => filtered.filter((e) => matchesFilter(e, filter)),
+    () => filtered.filter((e) => isFeatured(e, filter) || matchesFilter(e, filter)),
     [filtered, filter],
   );
 
@@ -401,7 +418,7 @@ export function VersionComparison() {
         />
       </div>
       <FilterTabs value={filter} entries={filtered} onChange={(f) => setState((s) => ({ ...s, filter: f }))} />
-      {groups.map((g) => <ReleaseGroup key={g.version} version={g.version} entries={g.entries} showFeatured={filter !== 'breaking'} />)}
+      {groups.map((g) => <ReleaseGroup key={g.version} version={g.version} entries={g.entries} filter={filter} />)}
       <TocPortal groups={groups} />
     </div>
   );
