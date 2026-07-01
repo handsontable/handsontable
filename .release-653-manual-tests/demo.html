@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="handsontable.css">
+  <link rel="stylesheet" href="ht-theme-main.css">
+  <style>
+    body { font-family: sans-serif; margin: 12px; }
+    #grid { width: 420px; height: 360px; }
+  </style>
+</head>
+<body class="ht-theme-main">
+  <h3>RELEASE-653 Touch manual test</h3>
+  <div id="grid"></div>
+  <script src="handsontable.full.js"></script>
+  <script>
+    // Expose hook call counters for assertions.
+    window.__hooks = { beforeCtx: 0, afterCtx: 0 };
+    const container = document.getElementById('grid');
+    window.hot = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(8, 6),
+      colHeaders: true,
+      rowHeaders: true,
+      contextMenu: true,
+      licenseKey: 'non-commercial-and-evaluation',
+      beforeOnCellContextMenu() { window.__hooks.beforeCtx++; },
+      afterOnCellContextMenu() { window.__hooks.afterCtx++; },
+    });
+    // Helper to read state from the driver.
+    window.__state = () => ({
+      contextMenuVisible: !!document.querySelector('.htContextMenu') &&
+        document.querySelector('.htContextMenu').offsetParent !== null,
+      selected: window.hot.getSelected() || null,
+      editorActive: window.hot.getActiveEditor() ? window.hot.getActiveEditor().isOpened() : false,
+      editorValue: window.hot.getActiveEditor() ? window.hot.getActiveEditor().getValue() : null,
+      hooks: window.__hooks,
+    });
+  </script>
+</body>
+</html>
