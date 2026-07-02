@@ -103,7 +103,7 @@ const pluginConflictsState = new WeakMap();
  * }
  *
  * // as an object passed to the `column` property, allows specifying a custom options for the desired column.
- * // please take a look at documentation of `column` property: https://handsontable.com/docs/Options.html#columns
+ * // see the `columns` option documentation: @/api/options.md#columns
  * columns: [{
  *   columnSorting: {
  *     indicator: false, // disable indicator for the first column,
