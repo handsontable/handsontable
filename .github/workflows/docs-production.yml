@@ -117,8 +117,13 @@ jobs:
       # Reading the file written by the build step has no network dependency
       # of its own, and version substitution is still best-effort - it can
       # never block the worker copy.
+      #
+      # No continue-on-error: the tripwire below is a hard failure condition
+      # (worker never written), and Cloudflare Pages is the sole production
+      # host now that Netlify is removed - masking that failure here would let
+      # the next step publish without a worker anyway, silently reproducing
+      # the DEV-1969 outage.
       - name: Add Cloudflare worker to production deploy
-        continue-on-error: true
         run: |
           cd deploy
           LATEST_VERSION="$(cat LATEST_DOCS_VERSION 2>/dev/null || true)"

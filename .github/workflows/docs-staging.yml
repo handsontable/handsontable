@@ -211,9 +211,12 @@ jobs:
               core.setOutput('deploy', 'false');
             }
 
+      # No continue-on-error: Cloudflare Pages falls back to _redirects when
+      # _worker.js is missing, silently breaking every worker-only redirect
+      # while the workflow stays green - masking a failed copy here is the
+      # same class of bug the production deploy's tripwire exists to prevent.
       - name: Add Cloudflare worker to deploy
         if: ${{ steps.cf-target.outputs.deploy == 'true' }}
-        continue-on-error: true
         run: cp cloudflare/_worker.js deploy/preview/_worker.js
 
       - name: Ensure Cloudflare Pages project exists
@@ -251,18 +254,19 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
       # RC builds (release/x.y.z push) can resolve an open release PR via
-      # resolve-pr, but they deploy to rc-<version>, not pr-<N> - skip this
-      # comment for them so reviewers aren't linked to a URL nothing was
-      # published to. "Post RC staging summary" below reports the real URL.
+      # resolve-pr, but they deploy to rc-<version>, not pr-<N>. Build the URL
+      # from cf-target's actual resolved branch (pr-<N> for PR previews,
+      # rc-<version> for RC builds) instead of hardcoding pr-<N>, so release
+      # PRs still get a comment and it links to where the build really went.
       - name: Update sticky PR comment with Cloudflare Pages URL
         uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
-        if: ${{ steps.resolve-pr.outputs.number && steps.cf-pages-deploy.outcome == 'success' && steps.release-info.outputs.is_release != 'true' }}
+        if: ${{ steps.resolve-pr.outputs.number && steps.cf-pages-deploy.outcome == 'success' }}
         with:
           number: ${{ steps.resolve-pr.outputs.number }}
           message: |
             ✅ Preview documentation is available now at the Cloudflare Pages preview URL:
 
-            https://pr-${{ steps.resolve-pr.outputs.number }}.handsontable-docs-staging.pages.dev/docs
+            https://${{ steps.cf-target.outputs.branch }}.handsontable-docs-staging.pages.dev/docs
 
       - name: Post Cloudflare Pages apex summary
         if: ${{ steps.cf-target.outputs.is_production == 'true' && steps.cf-pages-deploy.outcome == 'success' }}

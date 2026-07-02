@@ -4,7 +4,7 @@
 rm -rf docs
 mkdir -p docs/docs
 cd ..
-BUILD_MODE=preview npm run docs:build
+BUILD_MODE=preview npm run build
 cd deploy
 cp -r ../dist/. docs/
 ./build_previous_versions.sh
