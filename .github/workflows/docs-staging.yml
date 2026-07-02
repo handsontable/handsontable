@@ -229,10 +229,15 @@ jobs:
           # (Here the label happens to match a real, long-lived git branch.)
           CF_PAGES_APEX_BRANCH: develop
 
+      # No continue-on-error here: with it, a failed deploy still left the job
+      # green (previews silently stopped updating with no visible signal), and
+      # the RC failure Slack alert below never fired for a Cloudflare-only
+      # failure - continue-on-error keeps steps.cf-pages-deploy.outcome as
+      # 'failure' but the job's own success() stays true, and the Slack steps'
+      # `failure()` condition only trips on a step that actually failed the job.
       - name: Deploy to Cloudflare Pages
         id: cf-pages-deploy
         if: ${{ steps.cf-target.outputs.deploy == 'true' }}
-        continue-on-error: true
         # Install wrangler in /tmp to avoid npm failures inside the pnpm workspace
         working-directory: /tmp
         run: |
@@ -245,9 +250,13 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
+      # RC builds (release/x.y.z push) can resolve an open release PR via
+      # resolve-pr, but they deploy to rc-<version>, not pr-<N> - skip this
+      # comment for them so reviewers aren't linked to a URL nothing was
+      # published to. "Post RC staging summary" below reports the real URL.
       - name: Update sticky PR comment with Cloudflare Pages URL
         uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
-        if: ${{ steps.resolve-pr.outputs.number && steps.cf-pages-deploy.outcome == 'success' }}
+        if: ${{ steps.resolve-pr.outputs.number && steps.cf-pages-deploy.outcome == 'success' && steps.release-info.outputs.is_release != 'true' }}
         with:
           number: ${{ steps.resolve-pr.outputs.number }}
           message: |

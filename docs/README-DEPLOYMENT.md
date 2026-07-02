@@ -96,7 +96,7 @@ You can also roll back instantly from the Cloudflare dashboard: open the `handso
 
 ## Redirects
 
-Redirect rules are implemented in `cloudflare/_worker.js` - the **sole** authority for both production and staging. When a `_worker.js` is present, Cloudflare Pages ignores `_redirects` entirely, so this worker re-implements every redirect rule. It is **hand-maintained** - there is no generator.
+Redirect rules are implemented in `cloudflare/_worker.js` - the **sole** authority for both production and staging. When a `_worker.js` is present, Cloudflare Pages ignores `_redirects` entirely, so this worker re-implements every redirect rule. It is **hand-maintained** - there is no generator. See `cloudflare/README.md` for the full rule catalog and the concepts (framework cookie, latest-version substitution, legacy version routing) behind it.
 
 When you add, change, or remove a redirect (for example, after renaming a page's `permalink`), add the old-slug-to-new-slug rule for all four framework prefixes (`javascript-/react-/angular-/vue-data-grid`) to the `crossFramework` map in `cloudflare/_worker.js` (it is matched before the static-asset fallthrough). Do **not** point a `:major.:minor` versioned wildcard at the new slug - that wildcard matches every frozen older version where the page still lives at the old slug.
 
