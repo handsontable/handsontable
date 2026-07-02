@@ -109,10 +109,13 @@ function validateSourceCell(
 }
 
 /**
- * Inspects column-level meta (one sample cell per column, O(cols)) to decide how source-data
- * validation should run. Returns the columns whose validator is row-independent (safe to validate by
- * reusing one column meta), or signals a full per-cell scan when any column carries a validator that
- * may depend on per-row meta.
+ * Inspects column-level meta (one uncached sample per column, O(cols)) to decide how source-data
+ * validation should run. Meta is resolved through `getCellMetaUncached`, so the sample reflects the
+ * global and column layers only — the `cells` function and the `before`/`afterGetCellMeta` hooks are
+ * never run here (see `runSourceDataValidators`). Because column meta does not vary by row, the sample
+ * is taken at physical row 0 regardless of trimming. Returns the columns whose validator is
+ * row-independent (safe to validate by reusing one column meta), or signals a full per-cell scan when
+ * any column carries a validator that may depend on per-row meta.
  *
  * @param {HotInstance} hotInstance The Handsontable instance.
  * @param {number} colSourceCount The number of physical source columns.
@@ -122,12 +125,7 @@ function collectColumnValidators(
   hotInstance: HotInstance,
   colSourceCount: number
 ): { fullScan: boolean; columns: ColumnValidator[] } {
-  const sampleVisualRow = hotInstance.rowIndexMapper.getVisualFromPhysicalIndex(0);
-
-  if (sampleVisualRow === null) {
-    return { fullScan: true, columns: [] };
-  }
-
+  const metaManager = hotInstance._getMetaManager();
   const columns: ColumnValidator[] = [];
 
   for (let physicalColumn = 0; physicalColumn < colSourceCount; physicalColumn += 1) {
@@ -137,7 +135,8 @@ function collectColumnValidators(
       continue;
     }
 
-    const cellMeta = hotInstance.getCellMeta<CellMeta>(sampleVisualRow, visualColumn);
+    const cellMeta = metaManager
+      .getCellMetaUncached<CellMeta>(0, physicalColumn, { visualRow: 0, visualColumn });
     const validator = cellMeta.sourceDataValidator;
 
     if (!isFunction(validator)) {
@@ -157,8 +156,11 @@ function collectColumnValidators(
 }
 
 /**
- * Validates every source cell by resolving meta per cell (O(rows*cols) meta). Used when per-cell meta
- * can vary by row (a `cells` function, a `cell` array, or a row-dependent custom validator).
+ * Validates every source cell by resolving meta per cell (O(rows*cols) meta). Used when a
+ * row-dependent custom validator is configured, or when a cell carries persistent per-cell meta (the
+ * `cell` option or `setCellMeta`) that a single column sample cannot represent. Meta is resolved with
+ * `getCellMetaUncached`, so no per-cell meta object is retained (the scan does not grow the meta cache
+ * to O(rows*cols)) and the `cells` function / `before`/`afterGetCellMeta` hooks are not run.
  *
  * @param {HotInstance} hotInstance The Handsontable instance.
  * @param {DataSource} dataSource The data source.
@@ -177,6 +179,7 @@ function validatePerCell(
   source?: string
 ): void {
   const { rowIndexMapper, columnIndexMapper } = hotInstance;
+  const metaManager = hotInstance._getMetaManager();
 
   for (let row = 0; row < rowSourceCount; row += 1) {
     for (let col = 0; col < colSourceCount; col += 1) {
@@ -187,7 +190,8 @@ function validatePerCell(
         continue;
       }
 
-      const cellMeta = hotInstance.getCellMeta<CellMeta>(visualRow, visualColumn);
+      const cellMeta = metaManager
+        .getCellMetaUncached<CellMeta>(row, col, { visualRow, visualColumn });
 
       if (!isFunction(cellMeta.sourceDataValidator)) {
         continue;
@@ -240,30 +244,36 @@ function validateBatched(
 }
 
 /**
- * Detects whether per-cell meta can vary by row, which makes the row-0 sample unsafe to reuse for the
- * whole column. Meta varies through a `cells` function, an explicit `cell` array, the
- * `beforeGetCellMeta`/`afterGetCellMeta` hooks (a row-dependent `type`/validator/`allowInvalid` can be
- * applied there), or any imperatively-set cell meta (`setCellMeta`) that survives `updateData`.
+ * Detects whether any cell carries persistent per-cell meta that a single column sample cannot
+ * represent — the declarative `cell` option or imperatively-set cell meta (`setCellMeta`). These are
+ * the only per-row sources that `getCellMetaUncached` resolves, so they force the per-cell scan. The
+ * `cells` function and the `before`/`afterGetCellMeta` hooks are deliberately NOT considered here:
+ * source-data validation resolves meta uncached and never runs them, so they cannot change which
+ * cells carry a `sourceDataValidator`.
  *
  * @param {HotInstance} hotInstance The Handsontable instance.
  * @param {GridSettings} settings The resolved grid settings.
  * @returns {boolean} `true` when meta must be resolved per cell.
  */
-function hasRowVaryingMeta(hotInstance: HotInstance, settings: GridSettings): boolean {
-  return isFunction(settings.cells) ||
-    (Array.isArray(settings.cell) && settings.cell.length > 0) ||
-    hotInstance.hasHook('beforeGetCellMeta') ||
-    hotInstance.hasHook('afterGetCellMeta') ||
+function hasStoredPerCellMeta(hotInstance: HotInstance, settings: GridSettings): boolean {
+  return (Array.isArray(settings.cell) && settings.cell.length > 0) ||
     hotInstance._getMetaManager().getUserDefinedCellMetas().length > 0;
 }
 
 /**
  * Runs source-data validators for all cells and emits one aggregated warning per cell type.
  *
- * For the common case (no `cells` function, no `cell` array, no `before`/`afterGetCellMeta` hooks, no
- * imperatively-set cell meta, and only row-independent built-in source validators such as `date`/`time`),
- * validation reuses one column-level meta per column — avoiding the O(rows*cols) cell-meta
- * materialization that otherwise retains a meta object for every cell at load.
+ * Meta is resolved with `getCellMetaUncached`, so validation considers the global and column layers,
+ * the declarative `cell` option, and imperative `setCellMeta` overrides — but never a `cells` function
+ * or the `before`/`afterGetCellMeta` hooks. A cheap O(cols) column probe decides the path:
+ *
+ * - No column exposes a `sourceDataValidator` and no cell carries persistent per-cell meta — there is
+ *   nothing to validate, so the scan is skipped entirely. This is what keeps a large grid with a
+ *   `cells` function (but no validators) from resolving meta for the whole dataset on every load.
+ * - Only row-independent built-in validators (`date`/`time`/`intlDate`/`intlTime`) and no persistent
+ *   per-cell meta — validation reuses one column-level meta per column (O(cols)).
+ * - A row-dependent custom validator, or persistent per-cell meta (`cell`/`setCellMeta`) — validation
+ *   resolves each cell uncached (O(rows*cols) work, but no retained per-cell meta objects).
  *
  * @param {HotInstance} hotInstance The Handsontable instance.
  * @param {string} [source] The source identifier of the operation.
@@ -280,19 +290,20 @@ export function runSourceDataValidators(hotInstance: HotInstance, source?: strin
   const settings = hotInstance.getSettings();
   const dataSource = hotInstance._getDataSource();
   const invalidByMessageType: InvalidItems = new Map();
+  const { fullScan, columns } = collectColumnValidators(hotInstance, colSourceCount);
+  const hasStoredMeta = hasStoredPerCellMeta(hotInstance, settings);
 
-  if (hasRowVaryingMeta(hotInstance, settings)) {
+  // Nothing carries (or could carry) a source-data validator — skip the scan entirely.
+  if (!fullScan && columns.length === 0 && !hasStoredMeta) {
+    return;
+  }
+
+  if (fullScan || hasStoredMeta) {
     validatePerCell(hotInstance, dataSource, rowSourceCount, colSourceCount, invalidByMessageType, source);
   } else {
-    const { fullScan, columns } = collectColumnValidators(hotInstance, colSourceCount);
+    const toVisualRow = (row: number) => hotInstance.rowIndexMapper.getVisualFromPhysicalIndex(row);
 
-    if (fullScan) {
-      validatePerCell(hotInstance, dataSource, rowSourceCount, colSourceCount, invalidByMessageType, source);
-    } else {
-      const toVisualRow = (row: number) => hotInstance.rowIndexMapper.getVisualFromPhysicalIndex(row);
-
-      validateBatched(columns, dataSource, rowSourceCount, toVisualRow, invalidByMessageType, source);
-    }
+    validateBatched(columns, dataSource, rowSourceCount, toVisualRow, invalidByMessageType, source);
   }
 
   invalidByMessageType.forEach((items, message) => {

@@ -30,7 +30,9 @@ describe('settings', () => {
       });
 
       expect(sourceDataValidator).toHaveBeenCalledTimes(25);
-      expect(sourceDataValidator).toHaveBeenCalledWith('E5', getCellMeta(4, 4), 'init');
+      // Source-data validation resolves meta uncached, so the validator receives a meta object that
+      // carries the cascade (including its coordinates) but not the render-time extensions.
+      expect(sourceDataValidator).toHaveBeenCalledWith('E5', jasmine.objectContaining({ row: 4, col: 4 }), 'init');
     });
 
     it('should be called when calling `loadData`', async() => {
@@ -46,7 +48,7 @@ describe('settings', () => {
       await loadData(createSpreadsheetData(5, 5));
 
       expect(sourceDataValidator).toHaveBeenCalledTimes(25);
-      expect(sourceDataValidator).toHaveBeenCalledWith('E5', getCellMeta(4, 4), 'loadData');
+      expect(sourceDataValidator).toHaveBeenCalledWith('E5', jasmine.objectContaining({ row: 4, col: 4 }), 'loadData');
     });
 
     it('should be called when calling `updateData`', async() => {
@@ -62,7 +64,8 @@ describe('settings', () => {
       await updateData(createSpreadsheetData(5, 5));
 
       expect(sourceDataValidator).toHaveBeenCalledTimes(25);
-      expect(sourceDataValidator).toHaveBeenCalledWith('E5', getCellMeta(4, 4), 'updateData');
+      expect(sourceDataValidator)
+        .toHaveBeenCalledWith('E5', jasmine.objectContaining({ row: 4, col: 4 }), 'updateData');
     });
 
     it('should be called when calling `setSourceDataAtCell`', async() => {
@@ -216,7 +219,7 @@ describe('settings', () => {
       ]);
     });
 
-    it('should respect per-row `allowInvalid` set via `beforeGetCellMeta` (otherwise allowInvalid: false)', async() => {
+    it('should NOT apply per-row `allowInvalid` set via `beforeGetCellMeta` (hook not run during validation)', async() => {
       handsontable({
         data: [['2024-01-01'], ['bad'], ['also-bad']],
         columns: [{ type: 'date', dateFormat: 'YYYY-MM-DD' }],
@@ -228,12 +231,66 @@ describe('settings', () => {
         },
       });
 
-      // Row 1 gets allowInvalid:true from the hook, so its invalid value survives; row 2 keeps the
-      // global allowInvalid:false and is blanked. Row 0's meta must not be reused for the whole column.
+      // Source-data validation resolves meta uncached and never runs `beforeGetCellMeta`, so the
+      // hook's per-row `allowInvalid` is ignored: both invalid rows keep the global allowInvalid:false
+      // and are blanked.
       expect(getSourceData()).toEqual([
         ['2024-01-01'],
-        ['bad'],
         [null],
+        [null],
+      ]);
+    });
+
+    it('should NOT apply a `sourceDataValidator` returned from a `cells` function', async() => {
+      const cellsValidator = jasmine.createSpy('cellsValidator').and.returnValue(false);
+
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        allowInvalid: false,
+        cells() {
+          return { sourceDataValidator: cellsValidator, sourceDataWarningMessage: 'invalid' };
+        },
+      });
+
+      // The validator is injected only through `cells`, which uncached resolution ignores — so it is
+      // never called and no value is blanked.
+      expect(cellsValidator).not.toHaveBeenCalled();
+      expect(getSourceData()).toEqual([
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A3', 'B3', 'C3'],
+      ]);
+    });
+
+    it('should not run any validation on load when a `cells` function is set but no validator is defined', async() => {
+      const cells = jasmine.createSpy('cells').and.returnValue({ className: 'x' });
+
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        cells,
+      });
+
+      // The presence of a `cells` function must not trigger source-data validation. Nothing is
+      // blanked and the data is untouched.
+      expect(getSourceData()).toEqual(createSpreadsheetData(5, 5));
+    });
+
+    it('should still validate a `date`-typed column when a `cells` function is also configured', async() => {
+      handsontable({
+        data: [['2024-01-01'], ['not-a-date'], ['2024-03-15']],
+        columns: [{ type: 'date', dateFormat: 'YYYY-MM-DD' }],
+        allowInvalid: false,
+        cells() {
+          return { className: 'x' };
+        },
+      });
+
+      // The column-level (declarative) date validator still runs through the batched path even though
+      // a `cells` function is present, so the invalid source value is blanked.
+      expect(getSourceData()).toEqual([
+        ['2024-01-01'],
+        [null],
+        ['2024-03-15'],
       ]);
     });
 

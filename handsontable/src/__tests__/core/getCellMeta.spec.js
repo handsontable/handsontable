@@ -222,7 +222,10 @@ describe('Core.getCellMeta', () => {
 
     const HOT = getInstance();
 
-    expect(called).toBe(50); // default dataset is 5x5 so 25 calls x 2 (for rendering engine and data source validation)
+    // Default dataset is 5x5 → 25 calls for the rendering engine only. Source-data validation no
+    // longer resolves per-cell meta (it runs uncached and skips when no validator is defined), so it
+    // does not re-invoke `cells`.
+    expect(called).toBe(25);
     expect(_this.row).toBe(_row);
     expect(_this.instance).toBe(HOT);
   });
