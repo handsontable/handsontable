@@ -1,5 +1,4 @@
 ---
-id: k9m2xp4q
 title: Frozen summary row
 metaTitle: Frozen summary row recipe - JavaScript Data Grid | Handsontable
 description: Pin a read-only totals row at the bottom with fixedRowsBottom, recalculate on afterChange, and style it with the cells callback.
@@ -12,13 +11,10 @@ tags:
   - fixed rows
   - summary
 react:
-  id: n4w7rt8y
   metaTitle: Frozen summary row recipe - React Data Grid | Handsontable
 angular:
-  id: h3j6vs2b
   metaTitle: Frozen summary row recipe - Angular Data Grid | Handsontable
 vue:
-  id: 3udunsuv
   metaTitle: Frozen summary row recipe - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Rendering and styling

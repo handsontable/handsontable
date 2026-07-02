@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: migrating-14.6-to-15.0
 title: Migrating from 14.6 to 15.0
 metaTitle: Migrating from 14.6 to 15.0 - JavaScript Data Grid | Handsontable
 description: Migrate from Handsontable 14.6 to Handsontable 15.0, released on December 16th, 2024.

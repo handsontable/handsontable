@@ -8,15 +8,11 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-id: e7c3b1a9
 react:
-  id: f8d4c2ba
   metaTitle: Performance Recipes - React Data Grid | Handsontable
 angular:
-  id: a9e5d3cb
   metaTitle: Performance Recipes - Angular Data Grid | Handsontable
 vue:
-  id: u4oumcn2
   metaTitle: Performance Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]

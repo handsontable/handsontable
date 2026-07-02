@@ -1,5 +1,4 @@
 ---
-id: d8c51f2a
 title: Server-side data with Ruby on Rails
 metaTitle: Server-side Data with Ruby on Rails - JavaScript Data Grid | Handsontable
 description: Connect Handsontable's dataProvider plugin to a Ruby on Rails API-only backend with paginated fetching, server-side sorting and filtering, and full CRUD using the kaminari gem.
@@ -12,13 +11,10 @@ tags:
   - data-provider
   - recipe
 react:
-  id: r4k9m2p7
   metaTitle: Server-side Data with Ruby on Rails - React Data Grid | Handsontable
 angular:
-  id: s6n1q8t3
   metaTitle: Server-side Data with Ruby on Rails - Angular Data Grid | Handsontable
 vue:
-  id: adgrh6zv
   metaTitle: Server-side Data with Ruby on Rails - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management

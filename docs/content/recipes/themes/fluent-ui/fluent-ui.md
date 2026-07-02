@@ -1,5 +1,4 @@
 ---
-id: p7f3k9d2
 title: Handsontable with Fluent UI
 metaTitle: Handsontable with Fluent UI - React Data Grid | Handsontable
 description: Integrate Handsontable into a React app with Fluent UI so your grid follows Fluent colors, typography, and spacing.
@@ -15,7 +14,6 @@ tags:
   - themes
   - Theme API
 react:
-  id: v4m8q1t6
   metaTitle: Handsontable with Fluent UI - React Data Grid | Handsontable
 searchCategory: Recipes
 category: Themes

@@ -1,5 +1,4 @@
 ---
-id: a3f7c2e1
 title: Server-side data with Django
 metaTitle: Server-side Data with Django - JavaScript Data Grid | Handsontable
 description: Connect Handsontable to a Django REST Framework backend with paginated fetching, server-side sorting and filtering, and full CRUD support.
@@ -12,13 +11,10 @@ tags:
   - data-provider
   - recipe
 react:
-  id: zdsrh5oc
   metaTitle: Server-side data with Django - React Data Grid | Handsontable
 angular:
-  id: q1s3u5w7
   metaTitle: Server-side Data with Django - Angular Data Grid | Handsontable
 vue:
-  id: avzy0eqi
   metaTitle: Server-side Data with Django - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management

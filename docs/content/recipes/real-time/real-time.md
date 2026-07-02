@@ -8,15 +8,11 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-id: w4d6e8f0
 react:
-  id: x5e7f9g1
   metaTitle: Real-time and Integration Recipes - React Data Grid | Handsontable
 angular:
-  id: y6f8g0h2
   metaTitle: Real-time and Integration Recipes - Angular Data Grid | Handsontable
 vue:
-  id: g4d4zmrv
   metaTitle: Real-time and Integration Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]

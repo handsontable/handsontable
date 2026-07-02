@@ -7,16 +7,12 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-id: b7d4k9q2
 description: Practical recipes for building external and in-grid search workflows with Handsontable.
 react:
-  id: r3n8x1m5
   metaTitle: Filtering and Search Recipes - React Data Grid | Handsontable
 angular:
-  id: a4p7c2v9
   metaTitle: Filtering and Search Recipes - Angular Data Grid | Handsontable
 vue:
-  id: h9ns5cm2
   metaTitle: Filtering and Search Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]

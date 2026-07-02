@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: cf4e768b
 title: Numbro
 metaTitle: Numbro Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a Handsontable custom numbro cell type using the Numbro library
@@ -12,13 +11,10 @@ tags:
   - recipes
   - numbro
 react:
-  id: 9f2d530e
   metaTitle: Numbro Cell Type - React Data Grid | Handsontable
 angular:
-  id: 1e23a45b
   metaTitle: Numbro Cell Type - Angular Data Grid | Handsontable
 vue:
-  id: teohjohf
   metaTitle: Numbro Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types

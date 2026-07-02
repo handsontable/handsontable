@@ -8,15 +8,11 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-id: t1a3b5c7
 react:
-  id: u2b4c6d8
   metaTitle: Accessibility and UX Recipes - React Data Grid | Handsontable
 angular:
-  id: v3c5d7e9
   metaTitle: Accessibility and UX Recipes - Angular Data Grid | Handsontable
 vue:
-  id: 88pek0th
   metaTitle: Accessibility and UX Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]

@@ -1,5 +1,4 @@
 ---
-id: k7m3p9q2
 title: Add a column to an object-based dataset
 metaTitle: Add a column to an object-based dataset - JavaScript Data Grid | Handsontable
 description: Learn how to add a column at runtime through the context menu when your grid uses an object-based dataset, where the built-in column-insert items do not apply.
@@ -11,13 +10,10 @@ tags:
   - columns
   - object data
 react:
-  id: r4n8t1w5
   metaTitle: Add a column to an object-based dataset - React Data Grid | Handsontable
 angular:
-  id: a6c2v7x3
   metaTitle: Add a column to an object-based dataset - Angular Data Grid | Handsontable
 vue:
-  id: v9b5d3f8
   metaTitle: Add a column to an object-based dataset - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Context Menu
