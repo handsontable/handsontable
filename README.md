@@ -235,10 +235,11 @@ At first glance, it might seem that a data table, spreadsheet, and data grid are
 **We're here to help!**
 
 If you're using Handsontable with a free, non-commercial license, you can:
-- Join the [Community Forums](https://github.com/handsontable/handsontable/discussions) to share ideas, request features, or find answers.
-- Report any bugs you find on our [GitHub Issue Board](https://github.com/handsontable/handsontable/issues).
+- Get quick help from our [**Ask AI** assistant](https://handsontable.com/docs/javascript-data-grid/ai-docs-assistant/) available in the documentation.
+- Report any bugs you find on our [**GitHub Issue Board**](https://github.com/handsontable/handsontable/issues).
+- Connect with other developers and find answers on our [**Developer Forum**](https://forum.handsontable.com/).
 
-If you have a commercial license, feel free to contact us directly at [support@handsontable.com](mailto:support@handsontable.com) or use our [contact form](https://handsontable.com/contact?category=technical_support).
+If you have a commercial license, feel free to contact us directly at [**support@handsontable.com**](mailto:support@handsontable.com) or use our [**contact form**](https://handsontable.com/contact?category=technical_support).
 
 <br>
 
