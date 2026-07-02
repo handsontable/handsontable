@@ -704,6 +704,13 @@ const FLAT_REACT_PAGES = {
 };
 
 // Old integrate-with-vue3 slugs redirect to the current Vue data grid pages.
+// Used as-is by the versioned rule below (7b): frozen historical doc versions
+// never got the 'custom-id-class-style' unification from rule 6, so
+// 'vue3-custom-id-class-style' still belongs here for that case. Rule 7a
+// (unversioned, framework-prefixed) never reaches this entry for that one
+// page - the crossFramework map (rule 6) matches it first, since that page's
+// *current* docs were unified into an all-framework 'custom-id-class-style'
+// page.
 const VUE3_LEGACY_PAGES = {
   'vue3-installation': '/docs/vue-data-grid/installation/',
   'vue3-basic-example': '/docs/vue-data-grid/installation/',
