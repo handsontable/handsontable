@@ -14,6 +14,12 @@ if [ -z "${LATEST_VERSION:-}" ]; then
     exit 1
 fi
 
+# Hand the resolved latest version to the "Add Cloudflare worker" workflow
+# step. It must match the content layout assembled below (latest version's
+# docs at the unversioned /docs root), not the prod-docs/<MAJOR.MINOR> branch
+# being deployed - those can differ when hotfixing an older version.
+printf '%s' "$LATEST_VERSION" > LATEST_DOCS_VERSION
+
 echo "/docs/$LATEST_VERSION/* /docs/:splat 301" >> _redirects
 
 for version in ${PREVIOUS_VERSIONS:-}
