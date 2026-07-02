@@ -1,6 +1,6 @@
 #!/bin/bash
 # Fail closed: abort on any error, unset variable, or failed pipe stage so a
-# partial bundle never reaches production. The Cloudflare/Netlify deploy steps
+# partial bundle never reaches production. The Cloudflare deploy steps
 # are gated on this script succeeding.
 set -euo pipefail
 

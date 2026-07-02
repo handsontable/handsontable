@@ -21,9 +21,6 @@ docs/tests/test-artifacts/
 docs/tests/.env
 docs/.env
 
-# Local Netlify folder
-.netlify
-
 *.nupkg
 
 # Playwright screenshots (created by Claude Code sessions)

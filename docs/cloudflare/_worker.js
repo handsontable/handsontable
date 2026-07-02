@@ -2,8 +2,8 @@
  * Cloudflare Pages Worker for Handsontable docs preview site.
  *
  * When a _worker.js is present in Cloudflare Pages, it intercepts ALL requests
- * and _redirects is ignored. This worker re-implements all redirect logic that
- * lives in the Netlify _redirects file and the Netlify edge functions.
+ * and _redirects is ignored. This worker is the sole, hand-maintained authority
+ * for every redirect rule below - there is no generator.
  *
  * Redirect priority order (first match wins):
  *   1. /docs/next/:splat                   → /docs/:splat
@@ -117,8 +117,8 @@ function abs(path, base) {
 
 // The MAJOR.MINOR version whose docs are also served at the unversioned
 // `/docs/...` root. The `__LATEST_DOCS_VERSION__` placeholder is replaced at
-// deploy time with the value computed by netlify/getListOrPreviousVersions.mjs
-// (the same source the Netlify build uses). When the placeholder is left
+// deploy time with the value computed by deploy/getListOrPreviousVersions.mjs
+// (the same source the docs build uses). When the placeholder is left
 // unreplaced (for example, on staging previews that have no versioned docs),
 // the `\d+\.\d+` guard in rule 1b makes the latest-version redirect a no-op.
 const LATEST_VERSION = '__LATEST_DOCS_VERSION__';
