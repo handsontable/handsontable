@@ -44,27 +44,32 @@ Rules when adding or changing a module:
 
 ### DOM geometry reads MUST go through the `GeometryReader` proxy
 
-Any layout-forcing DOM read goes through the injected reader — **never read the DOM element/window directly**. This is the seam a `CachingGeometryReader` will replace to memoize measurements per draw; a single raw read silently escapes the cache and defeats the optimization.
+Any **layout-forcing** DOM read goes through the injected reader — **never read the DOM element directly**. This is the seam a `CachingGeometryReader` will replace to memoize measurements per draw; a single raw read silently escapes the cache and defeats the optimization.
 
-Reads that must be proxied: `getBoundingClientRect`, `getClientRects`, `getComputedStyle`, `offsetWidth`/`offsetHeight`/`offsetTop`/`offsetLeft`/`offsetParent`, `clientWidth`/`clientHeight`, `scrollWidth`/`scrollHeight`, `scrollTop`/`scrollLeft` (reads), `innerWidth`/`innerHeight`, `scrollX`/`scrollY`, `pageXOffset`/`pageYOffset`.
+Reads that must be proxied (they force a reflow): `getBoundingClientRect`, `getClientRects`, `getComputedStyle`, `offsetWidth`/`offsetHeight`/`offsetTop`/`offsetLeft`/`offsetParent`, `clientWidth`/`clientHeight`, `scrollWidth`/`scrollHeight` (content size), and the `helpers/dom/element` measurement helpers (`offset`, `outerWidth`/`outerHeight`, element `innerWidth`/`innerHeight`, `getMaximumScrollTop`/`getMaximumScrollLeft`, `getScrollbarWidth`, `getStyle`).
+
+**Scroll-position and window-viewport reads are NOT proxied — read them directly.** `scrollX`/`scrollY`/`pageXOffset`/`pageYOffset`, element `scrollTop`/`scrollLeft`, and window `innerWidth`/`innerHeight` don't force a reflow, so they cost nothing and gain nothing from the cache. Read them straight off the element/window; for a polymorphic element-or-window scroll position use the raw `getScrollLeft`/`getScrollTop` helper. (Bonus: the direct read also survives an iframe realm boundary, where the `instanceof Window`-gated helper returns `undefined`.)
 
 ```ts
-// ✗ Bad — raw read escapes the proxy (and the future per-draw cache)
+// ✗ Bad — raw layout-forcing read escapes the proxy (and the future per-draw cache)
 const rect = el.getBoundingClientRect();
 const w = el.offsetWidth;
-const top = rootWindow.scrollY;
 
-// ✓ Good — through the injected reader
+// ✓ Good — layout-forcing reads through the injected reader
 const rect = this.#deps.geometryReader.getBoundingClientRect(el);
 const w = this.#deps.geometryReader.offsetWidth(el);
-const top = this.#deps.geometryReader.getScrollTop(rootWindow);
+
+// ✓ Good — scroll/viewport reads are cheap, read them directly
+const top = rootWindow.scrollY;
+const left = scrollEl.scrollLeft;
+const vw = rootWindow.innerWidth;
 ```
 
 Access the reader by whichever handle the module has: `this.#deps.geometryReader` (most modules), `this.deps.geometryReader` (via the getter, e.g. overlays/table), or `wotInstance.domBindings.geometryReader` when only the instance is in hand (e.g. `utils/cellCoords.ts`, `selection/border/border.ts`).
 
 **Writes are fine** (`el.scrollTop = n`, `el.style.x = …`) — they don't force layout. So is `this.<field>` even when the field is named `clientHeight`/`scrollTop` (it's stored state, not a DOM read).
 
-**If the proxy has no method for a read you need, add it** — to both `geometry/geometryReader.ts` (the interface) and `geometry/liveGeometryReader.ts` (the live adapter) — then use it. Never fall back to a direct read "just this once".
+**If the proxy has no method for a layout-forcing read you need, add it** — to both `geometry/geometryReader.ts` (the interface) and `geometry/liveGeometryReader.ts` (the live adapter) — then use it. Never fall back to a direct read for a layout-forcing measurement.
 
 **Enforced by ESLint.** The rule `handsontable/no-direct-dom-geometry-read` (`error`) flags any direct read across all of `src/3rdparty/walkontable/src` (only `geometry/**`, the adapter itself, is exempt). It allows access on a `geometryReader`, writes, and `this.<field>`, and its message points you at the fix. The rule lives in `handsontable/.config/plugin/eslint/rules/` and is a pnpm `file:` dependency that is **copied, not symlinked** — after editing the rule (or on a checkout that predates it) run `pnpm install`, or eslint fails with "definition not found".
 
@@ -119,7 +124,7 @@ For **layout-forcing DOM reads** this is not a preference but a hard, lint-enfor
 ## Common mistakes
 
 - Accessing or modifying Walkontable DOM elements from plugins or core code instead of going through TableView.
-- Reading DOM geometry directly (`el.getBoundingClientRect()`, `.offsetWidth`, `getComputedStyle`, `rootWindow.scrollY`, …) instead of through the injected `GeometryReader` proxy — this is lint-enforced and breaks the future per-draw cache.
+- Reading layout-forcing DOM geometry directly (`el.getBoundingClientRect()`, `.offsetWidth`, `getComputedStyle`, `.scrollWidth`, …) instead of through the injected `GeometryReader` proxy — this is lint-enforced and breaks the future per-draw cache. (Scroll-position and window-viewport reads like `rootWindow.scrollY` or `el.scrollLeft` are the exception — read those directly; they don't force layout.)
 - Hand-writing a `*Deps` interface instead of inferring it with `ReturnType<typeof createXDeps>`, or passing the whole `wot` into a module instead of a narrow `deps` object.
 - Manipulating DOM directly inside Walkontable instead of wrapping it in an abstraction module.
 - Running Walkontable tests through the main E2E pipeline instead of the dedicated runner.

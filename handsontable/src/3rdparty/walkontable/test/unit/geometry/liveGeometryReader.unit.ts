@@ -9,8 +9,6 @@ jest.mock('../../../../../helpers/dom/element', () => ({
   innerWidth: jest.fn(() => 444),
   getScrollbarWidth: jest.fn(() => 17),
   getStyle: jest.fn(() => 'auto'),
-  getScrollLeft: jest.fn(() => 55),
-  getScrollTop: jest.fn(() => 66),
   getMaximumScrollTop: jest.fn(() => 77),
   getMaximumScrollLeft: jest.fn(() => 88),
 }));
@@ -64,13 +62,6 @@ describe('LiveGeometryReader', () => {
       expect(reader.getBoundingClientRect(el)).toBe(rect);
     });
 
-    it('should return scrollTop / scrollLeft verbatim', () => {
-      const el = stubElement({ scrollTop: 700, scrollLeft: 800 });
-
-      expect(reader.scrollTop(el)).toBe(700);
-      expect(reader.scrollLeft(el)).toBe(800);
-    });
-
     it('should return offsetTop / offsetLeft verbatim', () => {
       const el = stubElement({ offsetTop: 900, offsetLeft: 1000 });
 
@@ -111,21 +102,7 @@ describe('LiveGeometryReader', () => {
     });
   });
 
-  describe('scroll-position reads', () => {
-    it('should delegate getScrollLeft to the DOM helper with the element and root window', () => {
-      const el = stubElement({});
-
-      expect(reader.getScrollLeft(el)).toBe(55);
-      expect(element.getScrollLeft).toHaveBeenCalledWith(el, mockRootWindow);
-    });
-
-    it('should delegate getScrollTop to the DOM helper with the element and root window', () => {
-      const el = stubElement({});
-
-      expect(reader.getScrollTop(el)).toBe(66);
-      expect(element.getScrollTop).toHaveBeenCalledWith(el, mockRootWindow);
-    });
-
+  describe('maximum-scroll reads', () => {
     it('should delegate getMaximumScrollTop to the DOM helper with the element', () => {
       const el = stubElement({});
 
