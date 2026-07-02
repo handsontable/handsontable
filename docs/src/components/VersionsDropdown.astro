@@ -16,6 +16,8 @@ import { dirname, join, resolve } from 'path';
 import { fileURLToPath } from 'url';
 import { readFileSync } from 'fs';
 
+import { computeVersionsDisplay } from '../lib/versions-menu.mjs';
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
 
@@ -70,40 +72,11 @@ if (!docsData) {
   }
 }
 
-const latestVersion = docsData?.latestVersion ?? currentMinor;
-
-// Build the dropdown items: all minor versions with major >= 9.
-const versionItems =
-  docsData?.versionsWithPatches
-    .filter(([v]) => {
-      const major = parseInt(v.split('.')[0], 10);
-      return major >= 9;
-    })
-    .map(([minor, patches]) => ({
-      minor,
-      display: minor.toUpperCase() === 'NEXT' ? 'dev' : minor,
-      // Link to handsontable.com for every published version.
-      href: `https://handsontable.com/docs/${minor}`,
-      isCurrent: minor === currentMinor,
-    })) ?? [];
-
-// Label shown on the dropdown trigger button.
-function getButtonLabel() {
-  if (currentMinor === latestVersion) {
-    const patchVersion =
-      docsData?.versionsWithPatches.find(([v]) => v === latestVersion)?.[1]?.[0] ??
-      rawVersion;
-    const display = currentMinor === 'next' ? 'dev' : patchVersion;
-    return `${display} latest`;
-  }
-  return currentMinor === 'next' ? 'dev' : currentMinor;
-}
-
-const buttonLabel = getButtonLabel();
-const isLatest = currentMinor === latestVersion;
+const { buttonLabel, isLatest, latestVersion, versionItems } =
+  computeVersionsDisplay(docsData, currentMinor, rawVersion);
 ---
 
-<div class="versions-dropdown">
+<div class="versions-dropdown" data-current-minor={currentMinor} data-raw-version={rawVersion}>
   <button
     class="versions-trigger"
     aria-haspopup="menu"
@@ -111,18 +84,20 @@ const isLatest = currentMinor === latestVersion;
     id="versions-trigger"
     type="button"
   >
-    {isLatest
-      ? (
-        <>
-          <span class="versions-trigger__version">
-            {buttonLabel.replace(' latest', '')}
-          </span>
-          {' '}
-          <span class="versions-tag">latest</span>
-        </>
-      )
-      : buttonLabel
-    }
+    <span id="versions-trigger-label">
+      {isLatest
+        ? (
+          <>
+            <span class="versions-trigger__version">
+              {buttonLabel.replace(' latest', '')}
+            </span>
+            {' '}
+            <span class="versions-tag">latest</span>
+          </>
+        )
+        : buttonLabel
+      }
+    </span>
     <svg class="versions-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>
   </button>
 
@@ -148,10 +123,84 @@ const isLatest = currentMinor === latestVersion;
 
 <script>
   import { attachDropdownKeyboardNav } from '../scripts/a11y-utils';
+  import { computeVersionsDisplay } from '../lib/versions-menu.mjs';
 
   const wrapper = document.querySelector('.versions-dropdown') as HTMLElement | null;
   const trigger = document.getElementById('versions-trigger') as HTMLButtonElement | null;
   const menu = document.querySelector('.versions-menu') as HTMLElement | null;
+  const triggerLabel = document.getElementById('versions-trigger-label') as HTMLElement | null;
+
+  // ── Live refresh ─────────────────────────────────────────────────────────
+  // The markup above is rendered from data baked in at this page's own build
+  // time, which goes stale on old, frozen doc versions once a newer version
+  // ships (that old branch is never rebuilt just because production moved
+  // on). Re-fetch the always-current production data at page load and
+  // re-render if it disagrees with what was baked in.
+  if (wrapper && trigger && menu && triggerLabel) {
+    const currentMinor = wrapper.dataset.currentMinor ?? '';
+    const rawVersion = wrapper.dataset.rawVersion ?? currentMinor;
+
+    // Astro scopes this component's <style> block by appending a unique
+    // hashed class (e.g. "astro-xzzq4es2") to every element it renders, and
+    // rewriting the CSS selectors to require that class too. Elements built
+    // with document.createElement() don't carry it, so the styles below
+    // would silently not apply to them unless we tag them with it ourselves.
+    const scopeClass = [...wrapper.classList].find((c) => c.startsWith('astro-'));
+    const withScope = (className: string) => (scopeClass ? `${className} ${scopeClass}` : className);
+
+    fetch('https://handsontable.com/docs/data/common.json')
+      .then((res) => (res.ok ? res.json() : null))
+      .then((docsData) => {
+        if (!docsData?.versionsWithPatches) return;
+
+        const { buttonLabel, isLatest, latestVersion, versionItems } =
+          computeVersionsDisplay(docsData, currentMinor, rawVersion);
+
+        // Rebuild the trigger label.
+        triggerLabel.replaceChildren();
+        if (isLatest) {
+          const versionSpan = document.createElement('span');
+          versionSpan.className = withScope('versions-trigger__version');
+          versionSpan.textContent = buttonLabel.replace(' latest', '');
+          const tag = document.createElement('span');
+          tag.className = withScope('versions-tag');
+          tag.textContent = 'latest';
+          triggerLabel.append(versionSpan, ' ', tag);
+        } else {
+          triggerLabel.textContent = buttonLabel;
+        }
+
+        // Rebuild the menu items.
+        menu.replaceChildren();
+        for (const { minor, display, href, isCurrent } of versionItems) {
+          const li = document.createElement('li');
+          li.setAttribute('role', 'none');
+
+          const a = document.createElement('a');
+          a.href = href;
+          a.className = withScope(isCurrent ? 'versions-item versions-item--current' : 'versions-item');
+          a.setAttribute('role', 'menuitem');
+          a.setAttribute('tabindex', '-1');
+          if (isCurrent) a.setAttribute('aria-current', 'page');
+          if (minor !== latestVersion) a.setAttribute('rel', 'nofollow');
+          a.target = '_self';
+          a.append(display);
+
+          if (minor === latestVersion) {
+            const tag = document.createElement('span');
+            tag.className = withScope('versions-tag');
+            tag.textContent = 'latest';
+            a.append(tag);
+          }
+
+          li.append(a);
+          menu.append(li);
+        }
+      })
+      .catch(() => {
+        // Offline / network unavailable — keep the build-time rendered state.
+      });
+  }
 
   if (wrapper && trigger && menu) {
     function openMenu() {

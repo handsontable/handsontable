@@ -13,7 +13,7 @@
     "docs:code-examples:generate-js": "node scripts/transpile-doc-example.mjs",
     "build": "npm run docs:api && npm run docs:validate-highlights && astro build",
     "preview": "astro preview",
-    "docs:test:plugins": "node --test src/plugins/__tests__/*.test.mjs src/lib/__tests__/*.test.mjs src/components/__tests__/*.test.mjs",
+    "docs:test:plugins": "node --test src/plugins/__tests__/*.test.mjs src/lib/__tests__/*.test.mjs src/components/__tests__/*.test.mjs cloudflare/__tests__/*.test.mjs netlify/__tests__/*.test.mjs",
     "docs:validate-highlights": "node scripts/validate-version-highlights.mjs",
     "docs:lint": "eslint --ext .js,.mjs,.ts,.astro src content",
     "docs:lint:fix": "eslint --ext .js,.mjs,.ts,.astro src content --fix",

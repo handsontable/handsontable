@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed a bug where Ctrl/Cmd+clicking an already-selected cell in a multi-cell selection caused the active highlight to jump to a different cell",
+  "type": "fixed",
+  "issueOrPR": 12841,
+  "breaking": false,
+  "framework": "none"
+}

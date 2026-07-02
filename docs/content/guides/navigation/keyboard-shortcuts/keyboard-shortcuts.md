@@ -215,7 +215,7 @@ These keyboard shortcuts work with [rows sorting](@/guides/rows/rows-sorting/row
 
 ### Column menu keyboard shortcuts
 
-These keyboard shortcuts work with the [column menu](@/guides/columns/column-menu/column-menu.md). To activate them, enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin.
+These keyboard shortcuts work with the [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md). To activate them, enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin.
 
 | Windows                                                  | macOS                                                       | Action                                                                                                       |  Excel  | Sheets  |
 | -------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | :-----: | :-----: |

@@ -204,10 +204,10 @@ export default class MetaManager {
    * @param {number} options.visualColumn The visual column index of the currently requested cell meta object.
    * @returns {object}
    */
-  getCellMetaUncached(
+  getCellMetaUncached<M extends object = Record<string, unknown>>(
     physicalRow: number, physicalColumn: number,
     options: { visualRow: number; visualColumn: number }
-  ) {
+  ): M {
     const cellMeta = this.cellMeta.hasMeta(physicalRow, physicalColumn)
       ? this.cellMeta.getMeta(physicalRow, physicalColumn)
       : this.cellMeta.createTransientMeta(physicalColumn);
@@ -217,7 +217,7 @@ export default class MetaManager {
     cellMeta.row = physicalRow;
     cellMeta.col = physicalColumn;
 
-    return cellMeta;
+    return cellMeta as M;
   }
 
   /**
