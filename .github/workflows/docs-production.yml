@@ -114,25 +114,38 @@ jobs:
       # framework routing, hyperformula) breaks site-wide.
       #
       # The worker's __LATEST_DOCS_VERSION__ placeholder (rule 1b) is substituted
-      # with the MAJOR.MINOR version being deployed, read from the prod-docs branch
-      # name (steps.get-docs-version) - a local value with NO network dependency.
-      # An earlier version of this step fetched the version from the GitHub API;
-      # a transient API failure ("Premature close") aborted the step under `bash -e`
-      # before the worker was copied, so the deploy shipped without a worker and
-      # took down all docs redirects (DEV-1969). Version substitution is now
-      # best-effort and can never block the worker copy.
+      # with the latest released MAJOR.MINOR version, read from
+      # netlify/LATEST_DOCS_VERSION - written by build_current_version.sh from
+      # the same getListOrPreviousVersions.mjs (GraphQL) source that decides
+      # the content layout (latest version's docs at the unversioned /docs
+      # root; older versions under /docs/<version>/).
+      #
+      # This must be the LATEST version, not the version being deployed
+      # (steps.get-docs-version, i.e. the prod-docs/<MAJOR.MINOR> branch name):
+      # those differ whenever a hotfix is pushed to an older prod-docs branch.
+      # Injecting the branch name there would make rule 1b redirect that
+      # older version's URLs to the unversioned root (301, browser-cached) -
+      # serving the wrong version's content - and make /docs/<latest> 404,
+      # since no /docs/<latest>/ directory exists in the publish dir.
+      #
+      # An earlier version of this step fetched the version from the GitHub
+      # API directly; a transient API failure ("Premature close") aborted the
+      # step under `bash -e` before the worker was copied, so the deploy
+      # shipped without a worker and took down all docs redirects (DEV-1969).
+      # Reading the file written by the build step has no network dependency
+      # of its own, and version substitution is still best-effort - it can
+      # never block the worker copy.
       - name: Add Cloudflare worker to production deploy
         if: ${{ !cancelled() }}
         continue-on-error: true
-        env:
-          DOCS_VERSION: ${{ steps.get-docs-version.outputs.result }}
         run: |
           cd netlify
-          if printf '%s' "${DOCS_VERSION:-}" | grep -Eq '^[0-9]+\.[0-9]+$'; then
-            echo "Injecting LATEST_VERSION=$DOCS_VERSION into Cloudflare worker."
-            sed "s/__LATEST_DOCS_VERSION__/${DOCS_VERSION}/g" ../cloudflare/_worker.js > docs/_worker.js
+          LATEST_VERSION="$(cat LATEST_DOCS_VERSION 2>/dev/null || true)"
+          if printf '%s' "${LATEST_VERSION:-}" | grep -Eq '^[0-9]+\.[0-9]+$'; then
+            echo "Injecting LATEST_VERSION=$LATEST_VERSION into Cloudflare worker."
+            sed "s/__LATEST_DOCS_VERSION__/${LATEST_VERSION}/g" ../cloudflare/_worker.js > docs/_worker.js
           else
-            echo "WARNING: docs version '${DOCS_VERSION:-}' is not MAJOR.MINOR - deploying worker verbatim; rule 1b no-ops." >&2
+            echo "WARNING: no valid LATEST_DOCS_VERSION from the build - deploying worker verbatim; rule 1b no-ops." >&2
             cp ../cloudflare/_worker.js docs/_worker.js
           fi
           # Tripwire: the worker must exist in the publish dir, otherwise Pages
