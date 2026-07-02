@@ -1,6 +1,7 @@
 import type { TableDeps } from '../table';
 import {
   addClass,
+  getScrollLeft,
   hasClass,
   removeClass,
   setOverlayPosition,
@@ -93,12 +94,11 @@ export class InlineStartOverlay extends Overlay {
     const scrollableElement = this.mainTableScrollableElement;
     const scrollEl = scrollableElement as HTMLElement;
     const getScrollPosition = () => {
-      return scrollableElement === rootWindow
-        ? this.deps.geometryReader.getScrollLeft(rootWindow) : this.deps.geometryReader.scrollLeft(scrollEl);
+      return scrollableElement === rootWindow ? rootWindow.scrollX : scrollEl.scrollLeft;
     };
     const setScrollPosition = (newPosition: number) => {
       if (scrollableElement === rootWindow) {
-        rootWindow.scrollTo(newPosition, this.deps.geometryReader.getScrollTop(rootWindow));
+        rootWindow.scrollTo(newPosition, rootWindow.scrollY);
       } else {
         scrollEl.scrollLeft = newPosition;
       }
@@ -349,7 +349,7 @@ export class InlineStartOverlay extends Overlay {
    * @returns {number} Main table's horizontal scroll position.
    */
   getScrollPosition() {
-    return Math.abs(this.deps.geometryReader.getScrollLeft(this.mainTableScrollableElement));
+    return Math.abs(getScrollLeft(this.mainTableScrollableElement, this.deps.rootWindow));
   }
 
   /**

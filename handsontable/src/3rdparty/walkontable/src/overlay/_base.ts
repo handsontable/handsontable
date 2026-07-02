@@ -395,7 +395,7 @@ export abstract class Overlay {
       let absoluteRootElementStartPosition = absoluteRootElementPosition.left;
 
       if (this.isRtl()) {
-        absoluteRootElementStartPosition = geometryReader.innerWidth(this.#deps.rootWindow) -
+        absoluteRootElementStartPosition = this.#deps.rootWindow.innerWidth -
           (absoluteRootElementPosition.left + absoluteRootElementPosition.width + geometryReader.getScrollbarWidth());
       }
 

@@ -3,6 +3,10 @@ import type { EngineContext } from './wire';
 import {
   createObjectPropListener,
 } from '../../../helpers/object';
+import {
+  getScrollLeft,
+  getScrollTop,
+} from '../../../helpers/dom/element';
 
 /**
  * Assembles the Scroll module's dependencies from the engine composition context.
@@ -281,7 +285,7 @@ class Scroll {
         inlineStartRootElementOffset = rootElementOffset.left;
       }
 
-      const windowScrollLeft = Math.abs(geometryReader.getScrollLeft(rootWindow));
+      const windowScrollLeft = Math.abs(getScrollLeft(rootWindow, rootWindow));
 
       // Only calculate lastColumnIndex when table didn't filled (from right) whole viewport space
       if (inlineStartRootElementOffset > windowScrollLeft) {
@@ -318,7 +322,7 @@ class Scroll {
 
     if (topOverlay.mainTableScrollableElement === rootWindow) {
       const rootElementOffset = geometryReader.offset(wtTable.wtRootElement);
-      const windowScrollTop = geometryReader.getScrollTop(rootWindow);
+      const windowScrollTop = getScrollTop(rootWindow, rootWindow);
 
       // Only calculate lastRowIndex when table didn't filled (from bottom) whole viewport space
       if (rootElementOffset.top > windowScrollTop) {

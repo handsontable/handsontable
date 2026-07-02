@@ -1,6 +1,7 @@
 import type { TableDeps } from '../table';
 import {
   addClass,
+  getScrollTop,
   hasClass,
   removeClass,
   setOverlayPosition,
@@ -119,12 +120,11 @@ export class TopOverlay extends Overlay {
     const scrollableElement = this.mainTableScrollableElement;
     const scrollEl = scrollableElement as HTMLElement;
     const getScrollPosition = () => {
-      return scrollableElement === rootWindow
-        ? this.deps.geometryReader.getScrollTop(rootWindow) : this.deps.geometryReader.scrollTop(scrollEl);
+      return scrollableElement === rootWindow ? rootWindow.scrollY : scrollEl.scrollTop;
     };
     const setScrollPosition = (newPosition: number) => {
       if (scrollableElement === rootWindow) {
-        rootWindow.scrollTo(this.deps.geometryReader.getScrollLeft(rootWindow), newPosition);
+        rootWindow.scrollTo(rootWindow.scrollX, newPosition);
       } else {
         scrollEl.scrollTop = newPosition;
       }
@@ -410,7 +410,7 @@ export class TopOverlay extends Overlay {
    * @returns {number} Main table's vertical scroll position.
    */
   getScrollPosition() {
-    return this.deps.geometryReader.getScrollTop(this.mainTableScrollableElement);
+    return getScrollTop(this.mainTableScrollableElement, this.deps.rootWindow);
   }
 
   /**

@@ -6,8 +6,6 @@ import {
   innerWidth,
   getScrollbarWidth,
   getStyle,
-  getScrollLeft,
-  getScrollTop,
   getMaximumScrollTop,
   getMaximumScrollLeft,
 } from '../../../../helpers/dom/element';
@@ -109,22 +107,6 @@ export class LiveGeometryReader implements GeometryReader {
 
   /**
    * @param {HTMLElement} element The element to measure.
-   * @returns {number}
-   */
-  scrollTop(element: HTMLElement): number {
-    return element.scrollTop;
-  }
-
-  /**
-   * @param {HTMLElement} element The element to measure.
-   * @returns {number}
-   */
-  scrollLeft(element: HTMLElement): number {
-    return element.scrollLeft;
-  }
-
-  /**
-   * @param {HTMLElement} element The element to measure.
    * @returns {DOMRect}
    */
   getBoundingClientRect(element: HTMLElement): DOMRect {
@@ -197,22 +179,6 @@ export class LiveGeometryReader implements GeometryReader {
    */
   getStyle(element: HTMLElement, property: string): string | undefined {
     return getStyle(element, property, this.#rootWindow);
-  }
-
-  /**
-   * @param {HTMLElement | Window} element The element (or window) to read.
-   * @returns {number}
-   */
-  getScrollLeft(element: HTMLElement | Window): number {
-    return getScrollLeft(element, this.#rootWindow);
-  }
-
-  /**
-   * @param {HTMLElement | Window} element The element (or window) to read.
-   * @returns {number}
-   */
-  getScrollTop(element: HTMLElement | Window): number {
-    return getScrollTop(element, this.#rootWindow);
   }
 
   /**

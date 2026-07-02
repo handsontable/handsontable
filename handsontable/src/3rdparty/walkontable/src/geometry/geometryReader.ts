@@ -88,22 +88,6 @@ export interface GeometryReader {
   scrollHeight(element: HTMLElement): number;
 
   /**
-   * Reads `element.scrollTop`.
-   *
-   * @param {HTMLElement} element The element to measure.
-   * @returns {number}
-   */
-  scrollTop(element: HTMLElement): number;
-
-  /**
-   * Reads `element.scrollLeft`.
-   *
-   * @param {HTMLElement} element The element to measure.
-   * @returns {number}
-   */
-  scrollLeft(element: HTMLElement): number;
-
-  /**
    * Reads `element.getBoundingClientRect()`.
    *
    * @param {HTMLElement} element The element to measure.
@@ -177,22 +161,6 @@ export interface GeometryReader {
    * @returns {string | undefined}
    */
   getStyle(element: HTMLElement, property: string): string | undefined;
-
-  /**
-   * Returns the element's (or window's) horizontal scroll position (the `getScrollLeft` DOM helper).
-   *
-   * @param {HTMLElement | Window} element The element (or window) to read.
-   * @returns {number}
-   */
-  getScrollLeft(element: HTMLElement | Window): number;
-
-  /**
-   * Returns the element's (or window's) vertical scroll position (the `getScrollTop` DOM helper).
-   *
-   * @param {HTMLElement | Window} element The element (or window) to read.
-   * @returns {number}
-   */
-  getScrollTop(element: HTMLElement | Window): number;
 
   /**
    * Returns the element's maximum vertical scroll offset (the `getMaximumScrollTop` DOM helper).

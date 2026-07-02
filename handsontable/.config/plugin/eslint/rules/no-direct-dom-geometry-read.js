@@ -1,14 +1,13 @@
 /**
  * Layout-forcing DOM reads that must go through the Walkontable `GeometryReader` proxy instead of
- * being read straight off an element/window. Routing every such read through the port is what lets a
- * caching adapter memoize measurements per draw without touching call sites.
+ * being read straight off an element. The properties listed here force a layout recalculation.
+ * Routing every such read through the port is what lets a caching adapter memoize measurements per
+ * draw without touching call sites.
  */
 const BANNED_PROPERTIES = new Set([
   'offsetWidth', 'offsetHeight', 'offsetTop', 'offsetLeft', 'offsetParent',
   'clientWidth', 'clientHeight',
-  'scrollWidth', 'scrollHeight', 'scrollTop', 'scrollLeft',
-  'innerWidth', 'innerHeight',
-  'scrollX', 'scrollY', 'pageXOffset', 'pageYOffset',
+  'scrollWidth', 'scrollHeight',
 ]);
 
 /**
@@ -26,7 +25,7 @@ const BANNED_METHODS = new Set([
  */
 const BANNED_HELPER_CALLS = new Set([
   'offset', 'outerWidth', 'outerHeight', 'innerWidth', 'innerHeight',
-  'getScrollLeft', 'getScrollTop', 'getMaximumScrollTop', 'getMaximumScrollLeft',
+  'getMaximumScrollTop', 'getMaximumScrollLeft',
   'getScrollbarWidth', 'getStyle',
 ]);
 

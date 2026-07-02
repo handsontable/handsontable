@@ -1076,10 +1076,10 @@ class Border {
     if (isRtl) {
       const containerWidth = geometryReader.outerWidth(wtTable.TABLE);
       const fromWidth = geometryReader.outerWidth(fromTDEl);
-      const gridRightPos = geometryReader.innerWidth(rootWindow) - containerOffset.left - containerWidth;
+      const gridRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
 
       width = minLeft + fromWidth - toOffset.left;
-      inlineStartPos = geometryReader.innerWidth(rootWindow) - minLeft - fromWidth - gridRightPos - 1;
+      inlineStartPos = rootWindow.innerWidth - minLeft - fromWidth - gridRightPos - 1;
 
     } else {
       width = toOffset.left + geometryReader.outerWidth(toTDEl) - minLeft;

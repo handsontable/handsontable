@@ -385,8 +385,8 @@ class Overlays {
 
     this.initBrowserLineHeight();
     this.registerListeners();
-    this.lastScrollX = this.#deps.geometryReader.getScrollLeft(rootWindow);
-    this.lastScrollY = this.#deps.geometryReader.getScrollTop(rootWindow);
+    this.lastScrollX = rootWindow.scrollX;
+    this.lastScrollY = rootWindow.scrollY;
   }
 
   /**
@@ -722,11 +722,11 @@ class Overlays {
     }
 
     const el = this.scrollableElement;
-    const previousScroll = this.#deps.geometryReader.scrollTop(el);
+    const previousScroll = el.scrollTop;
 
     el.scrollTop += delta;
 
-    return previousScroll !== this.#deps.geometryReader.scrollTop(el);
+    return previousScroll !== el.scrollTop;
   }
 
   /**
@@ -741,11 +741,11 @@ class Overlays {
     }
 
     const el = this.scrollableElement;
-    const previousScroll = this.#deps.geometryReader.scrollLeft(el);
+    const previousScroll = el.scrollLeft;
 
     el.scrollLeft += delta;
 
-    return previousScroll !== this.#deps.geometryReader.scrollLeft(el);
+    return previousScroll !== el.scrollLeft;
   }
 
   /**
@@ -763,16 +763,16 @@ class Overlays {
     const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
 
     let scrollX = this.scrollableElement instanceof HTMLElement
-      ? this.#deps.geometryReader.scrollLeft(this.scrollableElement) : 0;
+      ? this.scrollableElement.scrollLeft : 0;
     let scrollY = this.scrollableElement instanceof HTMLElement
-      ? this.#deps.geometryReader.scrollTop(this.scrollableElement) : 0;
+      ? this.scrollableElement.scrollTop : 0;
 
     if (
       this.wot.wtViewport.isHorizontallyScrollableByWindow()
       && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'horizontal')
       && this.scrollableElement instanceof Window
     ) {
-      scrollX = this.#deps.geometryReader.getScrollLeft(this.scrollableElement);
+      scrollX = this.scrollableElement.scrollX;
     }
 
     if (
@@ -780,7 +780,7 @@ class Overlays {
       && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'vertical')
       && this.scrollableElement instanceof Window
     ) {
-      scrollY = this.#deps.geometryReader.getScrollTop(this.scrollableElement);
+      scrollY = this.scrollableElement.scrollY;
     }
 
     this.horizontalScrolling = this.lastScrollX !== scrollX;
@@ -1040,7 +1040,7 @@ class Overlays {
         return false;
       }
 
-      return geometryReader.scrollTop(this.scrollableElement) >
+      return this.scrollableElement.scrollTop >
         Math.max(0, proposedHiderHeight - geometryReader.clientHeight(wtTable.holder));
     };
     const isScrolledBeyondHiderWidth = () => {
@@ -1048,7 +1048,7 @@ class Overlays {
         return false;
       }
 
-      return geometryReader.scrollLeft(this.scrollableElement) >
+      return this.scrollableElement.scrollLeft >
         Math.max(0, proposedHiderWidth - geometryReader.clientWidth(wtTable.holder));
     };
     const columnHeaderBorderCompensation = isScrolledBeyondHiderHeight() ? 1 : 0;

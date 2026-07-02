@@ -460,11 +460,11 @@ class Event {
       : tableOffset.top;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const tableViewportRight: number = wot.wtViewport.isHorizontallyScrollableByWindow()
-      ? this.#deps.geometryReader.innerWidth(rootWindow)
+      ? rootWindow.innerWidth
       : tableOffset.left + wot.wtViewport.getViewportWidth() + rowHeaderWidth;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const tableViewportBottom: number = wot.wtViewport.isVerticallyScrollableByWindow()
-      ? this.#deps.geometryReader.innerHeight(rootWindow)
+      ? rootWindow.innerHeight
       : tableOffset.top + wot.wtViewport.getViewportHeight() + columnHeaderHeight;
 
     const clampedX = clamp(mouseX, tableViewportLeft, tableViewportRight);
