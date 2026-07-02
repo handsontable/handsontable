@@ -40,6 +40,13 @@ async function redirectLocationOf(worker, path, cookie) {
   return response.headers.get('location');
 }
 
+async function assertRedirect(worker, path, destination, status = 301) {
+  const response = await worker.fetch(request(path), env);
+
+  assert.equal(response.status, status);
+  assert.equal(response.headers.get('location'), `https://handsontable.com${destination}`);
+}
+
 test('bare old-version URL with the angular cookie keeps the requested version (regression for DEV-1981)', async() => {
   const worker = loadWorker();
 
@@ -108,4 +115,74 @@ test('direct links to the legacy angular-data-grid path still collapse to the un
     await redirectLocationOf(worker, '/docs/12.0/angular-data-grid'),
     'https://handsontable.com/docs/javascript-data-grid/',
   );
+});
+
+// Old integrate-with-vue3 slugs redirect to the current Vue data grid pages.
+// Keep in sync with VUE3_LEGACY_PAGES in _worker.js.
+// 'vue3-custom-id-class-style' is deliberately omitted here and exercised
+// separately below: its *unversioned* form is intercepted by the
+// crossFramework map (rule 6) ahead of this map, since the current docs
+// unified it into an all-framework 'custom-id-class-style' page. Its
+// *versioned* form still needs the entry in VUE3_LEGACY_PAGES, because frozen
+// historical doc versions never received that rename.
+const vue3LegacyPages = {
+  'vue3-installation': '/docs/vue-data-grid/installation/',
+  'vue3-basic-example': '/docs/vue-data-grid/installation/',
+  'vue3-modules': '/docs/vue-data-grid/modules/',
+  'vue3-hot-column': '/docs/vue-data-grid/vue-hot-column/',
+  'vue3-hot-reference': '/docs/vue-data-grid/vue-instance-reference/',
+  'vue3-custom-renderer-example': '/docs/vue-data-grid/cell-renderer/',
+  'vue3-custom-editor-example': '/docs/vue-data-grid/cell-editor/',
+  'vue3-custom-context-menu-example': '/docs/vue-data-grid/context-menu/',
+  'vue3-formulas-example': '/docs/vue-data-grid/formula-calculation/',
+  'vue3-language-change-example': '/docs/vue-data-grid/language/',
+  'vue3-setting-up-a-translation': '/docs/vue-data-grid/language/',
+  'vue3-vuex-example': '/docs/vue-data-grid/vue-vuex/',
+};
+
+test('redirects Vue shorthand pages to the current Vue data grid installation page', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(worker, '/docs/vue', '/docs/vue-data-grid/installation/');
+  await assertRedirect(worker, '/docs/vue3', '/docs/vue-data-grid/installation/');
+});
+
+test('redirects legacy Vue 3 pages under every framework prefix', async() => {
+  const worker = loadWorker();
+
+  for (const framework of ['javascript', 'react', 'angular', 'vue']) {
+    for (const [page, destination] of Object.entries(vue3LegacyPages)) {
+      await assertRedirect(worker, `/docs/${framework}-data-grid/${page}/`, destination);
+    }
+  }
+});
+
+test('redirects versioned legacy Vue 3 pages to versioned Vue data grid pages', async() => {
+  const worker = loadWorker();
+
+  for (const [page, destination] of Object.entries(vue3LegacyPages)) {
+    const versionedDestination = `/docs/15.3${destination.slice('/docs'.length)}`;
+
+    await assertRedirect(worker, `/docs/15.3/${page}/`, versionedDestination);
+  }
+
+  // Frozen historical versions still have this page at its old slug - only the
+  // current/latest docs got the 'custom-id-class-style' unification.
+  await assertRedirect(
+    worker,
+    '/docs/15.3/vue3-custom-id-class-style/',
+    '/docs/15.3/vue-data-grid/vue-custom-id-class-style/',
+  );
+});
+
+test('vue3-custom-id-class-style redirects to the unified custom-id-class-style page (unversioned only)', async() => {
+  const worker = loadWorker();
+
+  for (const framework of ['javascript', 'react', 'angular', 'vue']) {
+    await assertRedirect(
+      worker,
+      `/docs/${framework}-data-grid/vue3-custom-id-class-style/`,
+      `/docs/${framework}-data-grid/custom-id-class-style/`,
+    );
+  }
 });
