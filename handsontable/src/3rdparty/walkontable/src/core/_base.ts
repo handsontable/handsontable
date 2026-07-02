@@ -1,4 +1,4 @@
-import type { ScrollDao, DomBindings, WalkontableInstance, DataAccessObject } from '../types';
+import type { DomBindings, WalkontableInstance } from '../types';
 import type Settings from '../settings';
 import type Table from '../table';
 import type Viewport from '../viewport';
@@ -11,9 +11,11 @@ import {
 } from '../../../../helpers/dom/element';
 import { randomString } from '../../../../helpers/string';
 import EventManager from '../../../../eventManager';
-import Scroll from '../scroll';
+import Scroll, { createScrollDeps } from '../scroll';
 import CellCoords from '../cell/coords';
 import CellRange from '../cell/range';
+import { LiveGeometryReader } from '../geometry/liveGeometryReader';
+import { buildContext, type EngineContext } from '../wire';
 
 /**
  * @abstract
@@ -111,6 +113,15 @@ export default class CoreAbstract {
   declare wtSettings: Settings;
 
   /**
+   * The engine composition context — stable references plus the late-bound dependency thunks,
+   * defined once and shared by every module's dependency object.
+   *
+   * @public
+   * @type {EngineContext}
+   */
+  declare engineContext: EngineContext;
+
+  /**
    * Gets or creates the event manager instance.
    *
    * @returns {EventManager} The event manager instance.
@@ -168,10 +179,22 @@ export default class CoreAbstract {
       rootTable: table,
       rootDocument: table.ownerDocument,
       rootWindow: table.ownerDocument.defaultView as Window,
-    } as DomBindings;
+      geometryReader: new LiveGeometryReader(table.ownerDocument.defaultView as Window),
+      // `rootElement` is intentionally assigned later (see TableView); the cast defers it as the
+      // original literal did. `unknown` is required because `LiveGeometryReader`'s `#`-private field
+      // makes it nominal, which narrows the direct `as DomBindings` overlap check.
+    } as unknown as DomBindings;
 
     this.wtSettings = settings;
-    this.wtScroll = new Scroll(this.createScrollDao());
+
+    // The engine context is the single composition surface: it holds the stable references and
+    // defines every late-bound/cyclic thunk ONCE. Built here because settings and DOM bindings now
+    // exist; the thunks resolve the table/viewport/overlays lazily, at call time, exactly as before.
+    this.engineContext = buildContext(this as WalkontableInstance);
+
+    // `Scroll` is created before the table/viewport/overlays exist, so its dependency set is assembled
+    // from the context (the late-bound engine objects come through as thunks resolved at call time).
+    this.wtScroll = new Scroll(createScrollDeps(this.engineContext));
   }
 
   /**
@@ -367,153 +390,5 @@ export default class CoreAbstract {
   destroy() {
     this.wtOverlays.destroy();
     this.wtEvent.destroy();
-  }
-
-  /**
-   * Create data access object for scroll.
-   *
-   * @protected
-   * @returns {ScrollDao}
-   */
-  createScrollDao() {
-    const wot = this;
-
-    return {
-      get drawn() {
-        return wot.drawn; // TODO refactoring: consider about injecting `isDrawn` function : ()=>return wot.drawn. (it'll enables remove dao layer)
-      },
-      get topOverlay() {
-        return wot.wtOverlays.topOverlay; // TODO refactoring: move outside dao, use IOC
-      },
-      get inlineStartOverlay() {
-        return wot.wtOverlays.inlineStartOverlay; // TODO refactoring: move outside dao, use IOC
-      },
-      get wtTable() {
-        return wot.wtTable; // TODO refactoring: move outside dao, use IOC
-      },
-      get wtViewport() {
-        return wot.wtViewport; // TODO refactoring: move outside dao, use IOC
-      },
-      get wtSettings() {
-        return wot.wtSettings;
-      },
-      get rootWindow() {
-        return wot.domBindings.rootWindow; // TODO refactoring: move outside dao
-      },
-      // TODO refactoring, consider about using injecting wtSettings into scroll (it'll enables remove dao layer)
-      get totalRows() {
-        return wot.wtSettings.getSetting<number>('totalRows');
-      },
-      get totalColumns() {
-        return wot.wtSettings.getSetting<number>('totalColumns');
-      },
-      get fixedRowsTop() {
-        return wot.wtSettings.getSetting<number>('fixedRowsTop');
-      },
-      get fixedRowsBottom() {
-        return wot.wtSettings.getSetting<number>('fixedRowsBottom');
-      },
-      get fixedColumnsStart() {
-        return wot.wtSettings.getSetting<number>('fixedColumnsStart');
-      },
-    } as ScrollDao;
-  }
-  // TODO refactoring: it will be much better to not use DAO objects. They are needed for now to provide
-  // dynamically access to related objects
-  /**
-   * Create data access object for wtTable.
-   *
-   * @protected
-   * @returns {Record<string, unknown>}
-   */
-  getTableDao(): Record<string, unknown> {
-    const wot = this;
-
-    return {
-      get wot() {
-        return wot;
-      },
-      get parentTableOffset() {
-        return wot.cloneSource.wtTable.tableOffset; // TODO rethink: cloneSource exists only in Clone type.
-      },
-      get cloneSource() {
-        return wot.cloneSource; // TODO rethink: cloneSource exists only in Clone type.
-      },
-      get workspaceWidth() {
-        return wot.wtViewport.getWorkspaceWidth();
-      },
-      get wtViewport() {
-        return wot.wtViewport; // TODO refactoring: move outside dao, use IOC
-      },
-      get wtOverlays() {
-        return wot.wtOverlays; // TODO refactoring: move outside dao, use IOC
-      },
-      get selectionManager() {
-        return wot.selectionManager; // TODO refactoring: move outside dao, use IOC
-      },
-      get drawn() {
-        return wot.drawn;
-      },
-      set drawn(v) { // TODO rethink: this breaks assumes of data access object, however it is required until invent better way to handle WOT state.
-        wot.drawn = v;
-      },
-      get wtTable() {
-        return wot.wtTable; // TODO refactoring: it provides itself
-      },
-      get startColumnRendered() {
-        return wot.wtViewport.columnsRenderCalculator?.startColumn ?? null;
-      },
-      get startColumnVisible() {
-        return wot.wtViewport.columnsVisibleCalculator?.startColumn ?? null;
-      },
-      get startColumnPartiallyVisible() {
-        return wot.wtViewport.columnsPartiallyVisibleCalculator?.startColumn ?? null;
-      },
-      get endColumnRendered() {
-        return wot.wtViewport.columnsRenderCalculator?.endColumn ?? null;
-      },
-      get endColumnVisible() {
-        return wot.wtViewport.columnsVisibleCalculator?.endColumn ?? null;
-      },
-      get endColumnPartiallyVisible() {
-        return wot.wtViewport.columnsPartiallyVisibleCalculator?.endColumn ?? null;
-      },
-      get countColumnsRendered() {
-        return wot.wtViewport.columnsRenderCalculator?.count ?? 0;
-      },
-      get countColumnsVisible() {
-        return wot.wtViewport.columnsVisibleCalculator?.count ?? 0;
-      },
-      get startRowRendered() {
-        return wot.wtViewport.rowsRenderCalculator?.startRow ?? null;
-      },
-      get startRowVisible() {
-        return wot.wtViewport.rowsVisibleCalculator?.startRow ?? null;
-      },
-      get startRowPartiallyVisible() {
-        return wot.wtViewport.rowsPartiallyVisibleCalculator?.startRow ?? null;
-      },
-      get endRowRendered() {
-        return wot.wtViewport.rowsRenderCalculator?.endRow ?? null;
-      },
-      get endRowVisible() {
-        return wot.wtViewport.rowsVisibleCalculator?.endRow ?? null;
-      },
-      get endRowPartiallyVisible() {
-        return wot.wtViewport.rowsPartiallyVisibleCalculator?.endRow ?? null;
-      },
-      get countRowsRendered() {
-        return wot.wtViewport.rowsRenderCalculator?.count ?? 0;
-      },
-      get countRowsVisible() {
-        return wot.wtViewport.rowsVisibleCalculator?.count ?? 0;
-      },
-      get columnHeaders() {
-        return wot.wtSettings.getSetting<Function[]>('columnHeaders');
-      },
-      get rowHeaders() {
-        return wot.wtSettings.getSetting<Function[]>('rowHeaders');
-      },
-    };
   }
 }

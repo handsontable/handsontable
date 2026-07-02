@@ -1,19 +1,15 @@
-import type { DataAccessObject, DomBindings, WalkontableInstance } from '../types';
-import type Settings from '../settings';
+import type { TableDeps } from '../table';
 import {
   addClass,
-  getMaximumScrollTop,
-  getScrollbarWidth,
   getScrollTop,
   hasClass,
-  outerHeight,
   removeClass,
   setOverlayPosition,
   resetCssTransform,
 } from '../../../../helpers/dom/element';
 import { isMobileBrowser } from '../../../../helpers/browser';
 import TopOverlayTable from './../table/top';
-import { Overlay } from './_base';
+import { Overlay, type OverlayDeps } from './_base';
 import { getCornerStyle } from '../selection';
 import type { Selection } from '../selection';
 import type { BorderInstanceSettings } from '../selection/border/types';
@@ -35,14 +31,9 @@ export class TopOverlay extends Overlay {
   cachedFixedRowsTop = -1;
 
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
-   * @param {FacadeGetter} facadeGetter Function which return proper facade.
-   * @param {Settings} wtSettings The Walkontable settings.
-   * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
-  constructor(
-    wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings, domBindings: DomBindings) {
-    super(wotInstance, facadeGetter, CLONE_TOP, wtSettings, domBindings);
+  constructor(deps: OverlayDeps) {
+    super(deps, CLONE_TOP);
     this.cachedFixedRowsTop = this.wtSettings.getSetting<number>('fixedRowsTop');
   }
 
@@ -53,8 +44,8 @@ export class TopOverlay extends Overlay {
    * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
    * @returns {TopOverlayTable}
    */
-  createTable(...args: [DataAccessObject, Function, DomBindings, Settings]) {
-    return new TopOverlayTable(...args);
+  createTable(deps: TableDeps) {
+    return new TopOverlayTable(deps);
   }
 
   /**
@@ -78,16 +69,17 @@ export class TopOverlay extends Overlay {
     }
 
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
-    const { rootWindow } = this.domBindings;
+    const { rootWindow } = this.deps;
     const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
     let overlayPosition = 0;
     let skipInnerBorderAdjusting = false;
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
       const { wtTable } = this.wot;
-      const hiderRect = wtTable.hider.getBoundingClientRect();
+      const { geometryReader } = this.deps;
+      const hiderRect = geometryReader.getBoundingClientRect(wtTable.hider);
       const bottom = Math.ceil(hiderRect.bottom);
-      const rootHeight = overlayRoot.offsetHeight;
+      const rootHeight = geometryReader.offsetHeight(overlayRoot);
 
       // This checks if the overlay is going to an infinite loop caused by added (or removed)
       // `innerBorderTop` class name. Toggling the class name shifts the viewport by 1px and
@@ -124,7 +116,7 @@ export class TopOverlay extends Overlay {
    * @returns {boolean}
    */
   setScrollPosition(pos: number) {
-    const { rootWindow } = this.domBindings;
+    const { rootWindow } = this.deps;
     const scrollableElement = this.mainTableScrollableElement;
     const scrollEl = scrollableElement as HTMLElement;
     const getScrollPosition = () => {
@@ -199,7 +191,7 @@ export class TopOverlay extends Overlay {
     }
 
     const { wtTable, wtViewport } = this.wot;
-    const { rootDocument, rootWindow } = this.domBindings;
+    const { rootDocument, rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
@@ -208,10 +200,10 @@ export class TopOverlay extends Overlay {
       let width = wtViewport.getWorkspaceWidth();
 
       if (wtViewport.hasVerticalScroll()) {
-        width -= getScrollbarWidth(rootDocument);
+        width -= this.deps.geometryReader.getScrollbarWidth(rootDocument);
       }
 
-      width = Math.min(width, wtTable.wtRootElement.scrollWidth);
+      width = Math.min(width, this.deps.geometryReader.scrollWidth(wtTable.wtRootElement));
       overlayRootStyle.width = `${width}px`;
 
     } else {
@@ -219,7 +211,7 @@ export class TopOverlay extends Overlay {
     }
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
-    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
+    let tableHeight = this.deps.geometryReader.outerHeight(this.clone.wtTable.TABLE);
 
     if (!wtTable.hasDefinedSize()) {
       tableHeight = 0;
@@ -343,6 +335,7 @@ export class TopOverlay extends Overlay {
    */
   scrollTo(sourceRow: number, bottomEdge: boolean) {
     const { wot, wtSettings } = this;
+    const { geometryReader } = this.deps;
     const sourceInstance = wot.cloneSource ? wot.cloneSource : wot;
     const mainHolder = sourceInstance.wtTable.holder;
     const columnHeaders = wtSettings.getSetting('columnHeaders') as ((...args: unknown[]) => unknown)[];
@@ -364,8 +357,8 @@ export class TopOverlay extends Overlay {
       }
     }
 
-    if (bottomEdge && mainHolder.offsetHeight !== mainHolder.clientHeight) {
-      scrollbarCompensation = getScrollbarWidth(this.domBindings.rootDocument);
+    if (bottomEdge && geometryReader.offsetHeight(mainHolder) !== geometryReader.clientHeight(mainHolder)) {
+      scrollbarCompensation = geometryReader.getScrollbarWidth(this.deps.rootDocument);
     }
 
     if (bottomEdge) {
@@ -388,7 +381,8 @@ export class TopOverlay extends Overlay {
     // If the table is scrolled all the way up when starting the scroll and going to be scrolled to the bottom,
     // we need to compensate for the potential header bottom border height.
     if (
-      getMaximumScrollTop(this.mainTableScrollableElement as HTMLElement) === newY - columnHeaderBorderCompensation &&
+      geometryReader.getMaximumScrollTop(this.mainTableScrollableElement as HTMLElement)
+        === newY - columnHeaderBorderCompensation &&
       columnHeaderBorderCompensation > 0
     ) {
       this.wot.wtOverlays.expandHiderVerticallyBy(columnHeaderBorderCompensation);
@@ -403,7 +397,7 @@ export class TopOverlay extends Overlay {
    * @returns {number}
    */
   getTableParentOffset() {
-    if (this.mainTableScrollableElement === this.domBindings.rootWindow) {
+    if (this.mainTableScrollableElement === this.deps.rootWindow) {
       return (this.wot.wtTable.holderOffset as { top: number; left: number }).top;
     }
 
@@ -416,7 +410,7 @@ export class TopOverlay extends Overlay {
    * @returns {number} Main table's vertical scroll position.
    */
   getScrollPosition() {
-    return getScrollTop(this.mainTableScrollableElement, this.domBindings.rootWindow);
+    return getScrollTop(this.mainTableScrollableElement, this.deps.rootWindow);
   }
 
   /**
@@ -425,7 +419,7 @@ export class TopOverlay extends Overlay {
    * @returns {number} Main table's vertical overlay offset.
    */
   getOverlayOffset() {
-    const { rootWindow } = this.domBindings;
+    const { rootWindow } = this.deps;
     const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
     let overlayOffset = 0;
 

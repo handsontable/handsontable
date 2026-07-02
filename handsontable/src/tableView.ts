@@ -1,7 +1,7 @@
 import type { HotInstance } from './core/types';
 import type { BaseRenderer } from './renderers/baseRenderer';
 import type { CellProperties } from './settings';
-import type { WalkontableInstance, DataAccessObject, ScrollDao } from './3rdparty/walkontable/src/types';
+import type { WalkontableInstance } from './3rdparty/walkontable/src/types';
 import type { RowsCalculationType, ColumnsCalculationType } from './3rdparty/walkontable/src/calculator/viewportBase';
 import {
   addClass,
@@ -2149,7 +2149,3 @@ class TableView {
 }
 
 export default TableView;
-
-// DataAccessObject and ScrollDao are defined in ./3rdparty/walkontable/src/types and re-exported here
-// for backward compatibility with code that imports them from tableView.
-export type { DataAccessObject, ScrollDao } from './3rdparty/walkontable/src/types';

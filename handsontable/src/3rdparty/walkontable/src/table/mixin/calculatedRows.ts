@@ -19,7 +19,7 @@ const calculatedRows = {
    * @this Table
    */
   getFirstRenderedRow(this: Table): number {
-    const startRow = this.dataAccessObject.startRowRendered;
+    const startRow = this.deps.getWtViewport().rowsRenderCalculator?.startRow ?? null;
 
     if (startRow === null) {
       return -1;
@@ -35,7 +35,7 @@ const calculatedRows = {
    * @this Table
    */
   getFirstVisibleRow(this: Table): number {
-    const startRow = this.dataAccessObject.startRowVisible;
+    const startRow = this.deps.getWtViewport().rowsVisibleCalculator?.startRow ?? null;
 
     if (startRow === null) {
       return -1;
@@ -51,7 +51,7 @@ const calculatedRows = {
    * @this Table
    */
   getFirstPartiallyVisibleRow(this: Table): number {
-    const startRow = this.dataAccessObject.startRowPartiallyVisible;
+    const startRow = this.deps.getWtViewport().rowsPartiallyVisibleCalculator?.startRow ?? null;
 
     if (startRow === null) {
       return -1;
@@ -67,7 +67,7 @@ const calculatedRows = {
    * @this Table
    */
   getLastRenderedRow(this: Table): number {
-    const endRow = this.dataAccessObject.endRowRendered;
+    const endRow = this.deps.getWtViewport().rowsRenderCalculator?.endRow ?? null;
 
     if (endRow === null) {
       return -1;
@@ -83,7 +83,7 @@ const calculatedRows = {
    * @this Table
    */
   getLastVisibleRow(this: Table): number {
-    const endRow = this.dataAccessObject.endRowVisible;
+    const endRow = this.deps.getWtViewport().rowsVisibleCalculator?.endRow ?? null;
 
     if (endRow === null) {
       return -1;
@@ -99,7 +99,7 @@ const calculatedRows = {
    * @this Table
    */
   getLastPartiallyVisibleRow(this: Table): number {
-    const endRow = this.dataAccessObject.endRowPartiallyVisible;
+    const endRow = this.deps.getWtViewport().rowsPartiallyVisibleCalculator?.endRow ?? null;
 
     if (endRow === null) {
       return -1;
@@ -115,7 +115,7 @@ const calculatedRows = {
    * @this Table
    */
   getRenderedRowsCount(this: Table): number {
-    return this.dataAccessObject.countRowsRendered;
+    return this.deps.getWtViewport().rowsRenderCalculator?.count ?? 0;
   },
 
   /**
@@ -125,7 +125,7 @@ const calculatedRows = {
    * @this Table
    */
   getVisibleRowsCount(this: Table): number {
-    return this.dataAccessObject.countRowsVisible;
+    return this.deps.getWtViewport().rowsVisibleCalculator?.count ?? 0;
   },
 
   /**
@@ -135,7 +135,7 @@ const calculatedRows = {
    * @this Table
    */
   getColumnHeadersCount(this: Table): number {
-    return this.dataAccessObject.columnHeaders.length;
+    return this.deps.getColumnHeaders().length;
   },
 };
 

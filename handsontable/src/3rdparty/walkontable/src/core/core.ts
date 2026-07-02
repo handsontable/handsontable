@@ -1,12 +1,12 @@
-import Event from '../event';
-import Overlays from '../overlays';
+import Event, { createEventDeps } from '../event';
+import Overlays, { createOverlaysDeps } from '../overlays';
 import { CLONE_TYPES } from '../overlay';
 import Settings from '../settings';
 import MasterTable from '../table/master';
-import Viewport from '../viewport';
+import { createTableDeps } from '../table';
+import Viewport, { createViewportDeps } from '../viewport';
 import CoreAbstract from './_base';
 import { SelectionManager } from '../selection/manager';
-import type { DataAccessObject, WalkontableInstance } from '../types';
 import type { Overlay } from '../overlay/_base';
 import { objectEach } from '../../../../helpers/object';
 import { addClass, removeClass } from '../../../../helpers/dom/element';
@@ -22,23 +22,13 @@ export default class Walkontable extends CoreAbstract {
   constructor(table: HTMLTableElement, settings: Record<string, unknown>) {
     super(table, new Settings(settings));
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const facadeGetter = this.wtSettings.getSetting('facade', this); // todo rethink. I would like to have no access to facade from the internal scope.
-
-    this.wtTable = new MasterTable(
-      this.getTableDao() as DataAccessObject, facadeGetter, this.domBindings, this.wtSettings);
-    this.wtViewport = new Viewport(
-      this.getViewportDao() as DataAccessObject, this.domBindings,
-      this.wtSettings, this.eventManager, this.wtTable);
+    this.wtTable = new MasterTable(createTableDeps(this.engineContext));
+    // Built after the master table exists (the deps resolve `getWtTable()` concretely); the overlays
+    // are still late-bound and come through as thunks in the deps.
+    this.wtViewport = new Viewport(createViewportDeps(this.engineContext));
     this.selectionManager = new SelectionManager(this.wtSettings.getSetting('selections'));
-    this.wtEvent = new Event(
-      facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable, this.selectionManager
-    );
-    this.wtOverlays = new Overlays(
-      // TODO create DAO and remove reference to the Walkontable instance.
-      this as WalkontableInstance, facadeGetter, this.domBindings,
-      this.wtSettings, this.eventManager, this.wtTable
-    );
+    this.wtEvent = new Event(createEventDeps(this.engineContext));
+    this.wtOverlays = new Overlays(createOverlaysDeps(this.engineContext));
 
     this.exportSettingsAsClassNames();
 
@@ -95,41 +85,4 @@ export default class Walkontable extends CoreAbstract {
     return (this.wtOverlays as OverlayRecord as Record<string, Overlay>)[`${camelCaseOverlay}Overlay`] ?? null;
   }
 
-  /**
-   * @returns {Record<string, unknown>}
-   */
-  getViewportDao(): Record<string, unknown> {
-    return ((instance: this) => ({
-      get wot() {
-        return instance;
-      },
-      get topOverlayTrimmingContainer() {
-        return instance.wtOverlays.topOverlay.trimmingContainer;
-      },
-      get inlineStartOverlayTrimmingContainer() {
-        return instance.wtOverlays.inlineStartOverlay.trimmingContainer;
-      },
-      get topScrollPosition() {
-        return instance.wtOverlays.topOverlay.getScrollPosition();
-      },
-      get topParentOffset() {
-        return instance.wtOverlays.topOverlay.getTableParentOffset();
-      },
-      get inlineStartScrollPosition() {
-        return instance.wtOverlays.inlineStartOverlay.getScrollPosition();
-      },
-      get inlineStartParentOffset() {
-        return instance.wtOverlays.inlineStartOverlay.getTableParentOffset();
-      },
-      get topOverlay() {
-        return instance.wtOverlays.topOverlay; // TODO refactoring: move outside dao, use IOC
-      },
-      get inlineStartOverlay() {
-        return instance.wtOverlays.inlineStartOverlay; // TODO refactoring: move outside dao, use IOC
-      },
-      get bottomOverlay() {
-        return instance.wtOverlays.bottomOverlay; // TODO refactoring: move outside dao, use IOC
-      }
-    }))(this);
-  }
 }

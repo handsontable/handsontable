@@ -1,15 +1,12 @@
-import type { DataAccessObject, DomBindings, WalkontableInstance } from '../types';
-import type Settings from '../settings';
+import type { TableDeps } from '../table';
 import {
   addClass,
-  getScrollbarWidth,
   getScrollTop,
   hasClass,
-  outerHeight,
   removeClass,
 } from '../../../../helpers/dom/element';
 import BottomOverlayTable from './../table/bottom';
-import { Overlay } from './_base';
+import { Overlay, type OverlayDeps } from './_base';
 import {
   CLONE_BOTTOM,
 } from './constants';
@@ -28,14 +25,9 @@ export class BottomOverlay extends Overlay {
   cachedFixedRowsBottom = -1;
 
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
-   * @param {FacadeGetter} facadeGetter Function which return proper facade.
-   * @param {Settings} wtSettings The Walkontable settings.
-   * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
-  constructor(
-    wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings, domBindings: DomBindings) {
-    super(wotInstance, facadeGetter, CLONE_BOTTOM, wtSettings, domBindings);
+  constructor(deps: OverlayDeps) {
+    super(deps, CLONE_BOTTOM);
     this.cachedFixedRowsBottom = this.wtSettings.getSetting<number>('fixedRowsBottom');
   }
 
@@ -46,8 +38,8 @@ export class BottomOverlay extends Overlay {
    * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
    * @returns {BottomOverlayTable}
    */
-  createTable(...args: [DataAccessObject, Function, DomBindings, Settings]) {
-    return new BottomOverlayTable(...args);
+  createTable(deps: TableDeps) {
+    return new BottomOverlayTable(deps);
   }
 
   /**
@@ -69,7 +61,7 @@ export class BottomOverlay extends Overlay {
       // removed from DOM
       return false;
     }
-    const { rootWindow } = this.domBindings;
+    const { rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
 
     overlayRoot.style.top = '';
@@ -85,8 +77,9 @@ export class BottomOverlay extends Overlay {
       // fractional CSS pixel past the holder's integer CSS height. Subtract this overflow
       // so the overlay sits flush against the actual table content instead of the
       // CSS-integer hider boundary.
-      const masterTableRect = this.wot.wtTable.TABLE.getBoundingClientRect();
-      const masterHolderRect = this.wot.wtTable.holder.getBoundingClientRect();
+      const { geometryReader } = this.deps;
+      const masterTableRect = geometryReader.getBoundingClientRect(this.wot.wtTable.TABLE);
+      const masterHolderRect = geometryReader.getBoundingClientRect(this.wot.wtTable.holder);
       const masterTableOverflow = Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
 
       overlayRoot.style.bottom = `${overlayPosition - masterTableOverflow}px`;
@@ -112,7 +105,7 @@ export class BottomOverlay extends Overlay {
     }
 
     const { wtTable, wtViewport } = this.wot;
-    const { rootDocument } = this.domBindings;
+    const { rootDocument } = this.deps;
     const cloneRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     let bottomOffset = 0;
 
@@ -121,7 +114,7 @@ export class BottomOverlay extends Overlay {
     }
 
     if (wtViewport.hasVerticalScroll() && wtViewport.hasHorizontalScroll()) {
-      bottomOffset += getScrollbarWidth(rootDocument);
+      bottomOffset += this.deps.geometryReader.getScrollbarWidth(rootDocument);
     }
 
     cloneRoot.style.bottom = `${bottomOffset}px`;
@@ -134,7 +127,7 @@ export class BottomOverlay extends Overlay {
    * @returns {boolean}
    */
   setScrollPosition(pos: number) {
-    const { rootWindow } = this.domBindings;
+    const { rootWindow } = this.deps;
     const scrollableElement = this.mainTableScrollableElement;
     const scrollEl = scrollableElement as HTMLElement;
     const getScrollPosition = () => {
@@ -210,7 +203,7 @@ export class BottomOverlay extends Overlay {
     }
 
     const { wtTable, wtViewport } = this.wot;
-    const { rootDocument, rootWindow } = this.domBindings;
+    const { rootDocument, rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wtSettings.getSetting<boolean | string>('preventOverflow');
@@ -219,10 +212,10 @@ export class BottomOverlay extends Overlay {
       let width = wtViewport.getWorkspaceWidth();
 
       if (wtViewport.hasVerticalScroll()) {
-        width -= getScrollbarWidth(rootDocument);
+        width -= this.deps.geometryReader.getScrollbarWidth(rootDocument);
       }
 
-      width = Math.min(width, wtTable.wtRootElement.scrollWidth);
+      width = Math.min(width, this.deps.geometryReader.scrollWidth(wtTable.wtRootElement));
       overlayRootStyle.width = `${width}px`;
 
     } else {
@@ -230,7 +223,7 @@ export class BottomOverlay extends Overlay {
     }
     this.clone.wtTable.holder.style.width = overlayRootStyle.width;
 
-    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
+    let tableHeight = this.deps.geometryReader.outerHeight(this.clone.wtTable.TABLE);
 
     if (!wtTable.hasDefinedSize()) {
       tableHeight = 0;
@@ -307,12 +300,13 @@ export class BottomOverlay extends Overlay {
    */
   scrollTo(sourceRow: number, bottomEdge: boolean) {
     let newY = this.getTableParentOffset();
+    const { geometryReader } = this.deps;
     const sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
     const mainHolder = sourceInstance.wtTable.holder;
     let scrollbarCompensation = 0;
 
-    if (bottomEdge && mainHolder.offsetHeight !== mainHolder.clientHeight) {
-      scrollbarCompensation = getScrollbarWidth(this.domBindings.rootDocument);
+    if (bottomEdge && geometryReader.offsetHeight(mainHolder) !== geometryReader.clientHeight(mainHolder)) {
+      scrollbarCompensation = geometryReader.getScrollbarWidth(this.deps.rootDocument);
     }
 
     if (bottomEdge) {
@@ -335,7 +329,7 @@ export class BottomOverlay extends Overlay {
    * @returns {number}
    */
   getTableParentOffset() {
-    if (this.mainTableScrollableElement === this.domBindings.rootWindow) {
+    if (this.mainTableScrollableElement === this.deps.rootWindow) {
       return (this.wot.wtTable.holderOffset as { top: number; left: number }).top;
     }
 
@@ -348,7 +342,7 @@ export class BottomOverlay extends Overlay {
    * @returns {number} Main table's vertical scroll position.
    */
   getScrollPosition() {
-    return getScrollTop(this.mainTableScrollableElement, this.domBindings.rootWindow);
+    return getScrollTop(this.mainTableScrollableElement, this.deps.rootWindow);
   }
 
   /**
@@ -357,7 +351,7 @@ export class BottomOverlay extends Overlay {
    * @returns {number} Main table's vertical overlay offset.
    */
   getOverlayOffset() {
-    const { rootWindow } = this.domBindings;
+    const { rootWindow } = this.deps;
     const preventOverflow = this.wtSettings.getSetting<boolean | string>('preventOverflow');
     let overlayOffset = 0;
 
@@ -365,7 +359,8 @@ export class BottomOverlay extends Overlay {
       const rootHeight = this.wot.wtTable.getTotalHeight();
       const overlayRootHeight = this.clone.wtTable.getTotalHeight();
       const maxOffset = rootHeight - overlayRootHeight;
-      const docClientHeight = this.domBindings.rootDocument.documentElement.clientHeight;
+      const docClientHeight =
+        this.deps.geometryReader.clientHeight(this.deps.rootDocument.documentElement);
 
       overlayOffset = Math.max(
         this.getTableParentOffset() - this.getScrollPosition() - docClientHeight + rootHeight, 0);

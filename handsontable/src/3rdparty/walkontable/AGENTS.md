@@ -9,6 +9,14 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 - Plugins must NEVER access Walkontable internals directly - always go through TableView
 - Do not import core Handsontable modules from Walkontable code
 
+## Dependency injection & DOM reads (mandatory)
+
+- **Wiring:** every module is built through the single composition root `wire.ts` (`buildContext(wot)` → `EngineContext`). Each module has a co-located `create<Module>Deps(ctx)` factory whose type is **inferred** (`export type XDeps = ReturnType<typeof createXDeps>`) — do **not** hand-write dep interfaces. Modules store deps in a private `#deps` and take a single `deps` constructor argument (plus at most one per-instance identity arg like a table `name` or overlay `type`). A read-only `get deps()` getter is used only where a subclass/mixin/collaborator must reach the deps (Table, Overlay, RowUtils, ColumnUtils). Copy any existing module (`scroll.ts` is the simplest) when adding a new one.
+- **Layout-forcing DOM reads MUST go through the `GeometryReader` proxy — never read the DOM directly.** These are the reads that force a reflow: `getBoundingClientRect`, `getComputedStyle`, `offset{Width,Height,Top,Left,Parent}`, `client{Width,Height}`, `scroll{Width,Height}` (content size), the `helpers/dom/element` measurement helpers (`offset`, `outer{Width,Height}`, element `inner{Width,Height}`, `getMaximumScroll{Top,Left}`, `getScrollbarWidth`, `getStyle`). Route them through the injected reader: `this.#deps.geometryReader.X(el)` / `this.deps.geometryReader.X(el)`, or `wotInstance.domBindings.geometryReader.X(el)` where only the instance is available. This is the seam a `CachingGeometryReader` will slot into for per-draw memoization — a single raw read defeats it.
+- **Scroll-position and window-viewport reads do NOT go through the proxy — read them directly.** `scrollX`/`scrollY`/`pageXOffset`/`pageYOffset`, element `scrollTop`/`scrollLeft`, and window `innerWidth`/`innerHeight` do not force a layout recalculation, so they are cheap to read at any point in a draw and gain nothing from memoization. Read them straight off the element/window (e.g. `rootWindow.scrollX`, `scrollEl.scrollLeft`); for the polymorphic element-or-window scroll position use the raw `getScroll{Left,Top}(el, rootWindow)` helper. Routing them through an `instanceof Window`-gated helper also breaks across an iframe realm boundary (returns `undefined`), so the direct read is both cheaper and more correct.
+- **If the proxy lacks a method for a layout-forcing read, add it** to both `geometry/geometryReader.ts` (interface) and `geometry/liveGeometryReader.ts` (adapter), then use it. Never fall back to a direct read for a layout-forcing measurement.
+- **Enforced by ESLint:** `handsontable/no-direct-dom-geometry-read` (`error`) flags any direct layout-forcing read across all of `src/3rdparty/walkontable/src` (only `geometry/**`, the adapter itself, is exempt). It allows access on a `geometryReader`, writes (`el.scrollTop = n`), `this.<field>`, and the scroll/viewport reads listed above. The rule lives in `handsontable/.config/plugin/eslint/rules/`; it is a pnpm `file:` dep that is **copied**, so after editing the rule run `pnpm install` or eslint errors "definition not found".
+
 ## Key Subsystems
 
 - **Overlay system** (6 types): Frozen rows/columns and scroll sync. Fragile - proceed with caution.
@@ -18,8 +26,9 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 ## Known Tech Debt
 
-- DAO layer uses Data Access Objects instead of DI (20+ TODO comments)
+- The DAO layer has been replaced by constructor injection + the `wire.ts` composition root (see the DI section above) — do not reintroduce DAO getters or `wot`-god-object passing.
 - Filter objects are recreated instead of updated
+- Overlays still reach the master through `this.wot.wtTable`/`.wtViewport`/`.wtOverlays` in their hot-path methods (the deep `wot` decoupling is deferred; the `Clone` is a second Walkontable instance holding a handle to the master)
 - See `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md` for full list
 
 ## Performance

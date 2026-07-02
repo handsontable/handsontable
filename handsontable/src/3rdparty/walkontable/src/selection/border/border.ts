@@ -7,11 +7,6 @@ import {
   hasClass,
   removeClass,
   getTrimmingContainer,
-  innerWidth,
-  innerHeight,
-  offset,
-  outerHeight,
-  outerWidth,
   isHTMLElement,
 } from '../../../../../helpers/dom/element';
 import { stopImmediatePropagation } from '../../../../../helpers/dom/event';
@@ -30,10 +25,6 @@ class Border {
    * @type {EventManager}
    */
   declare eventManager: EventManager;
-  /**
-   * @type {WalkontableInstance}
-   */
-  declare instance: WalkontableInstance;
   /**
    * @type {WalkontableInstance}
    */
@@ -119,7 +110,6 @@ class Border {
       return;
     }
     this.eventManager = wotInstance.eventManager;
-    this.instance = wotInstance;
     this.wot = wotInstance;
     this.settings = settings;
     this.mouseDown = false;
@@ -135,7 +125,7 @@ class Border {
     this.startStyle = null;
     this.endStyle = null;
 
-    this.cornerDefaultStyle = getCornerStyle(this.instance);
+    this.cornerDefaultStyle = getCornerStyle(this.wot);
     // Offset to moving the corner to be centered relative to the grid.
     this.cornerCenterPointOffset = -Math.ceil((parseInt(String(this.cornerDefaultStyle.width), 10) / 2));
     this.corner = null;
@@ -199,7 +189,7 @@ class Border {
     stopImmediatePropagation(event);
 
     const documentBody = this.wot.rootDocument.body;
-    const bounds = parentElement.getBoundingClientRect();
+    const bounds = this.wot.domBindings.geometryReader.getBoundingClientRect(parentElement);
 
     // Hide border to prevents selection jumping when fragmentSelection is enabled.
     parentElement.style.display = 'none';
@@ -316,7 +306,7 @@ class Border {
       this.cornerDefaultStyle.borderColor
     ].join(' ');
 
-    if (isMobileBrowser() && this.instance.getSetting('isDataViewInstance')) {
+    if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
       this.createMultipleSelectorHandles();
     }
     this.disappear();
@@ -693,7 +683,7 @@ class Border {
    * already-resolved vertical position, writes the horizontal anchor + width (RTL-aware) on the
    * supplied border element and reveals it. The top and bottom freeze edges differ only in which
    * gridline they sit on and which element they reuse, so they delegate the identical inline math
-   * here. Cheap range/cell-lookup guards run before any reflow-forcing `offset()`, so non-drawing
+   * here. Cheap range/cell-lookup guards run before any reflow-forcing `geometryReader.offset()`, so non-drawing
    * calls leave the styles untouched.
    *
    * @private
@@ -717,6 +707,8 @@ class Border {
       boundaryTD: HTMLElement, boundaryOffset: { top: number, left: number }, containerTop: number
     ) => number
   ): boolean {
+    const { geometryReader } = this.wot.domBindings;
+
     if (lastColumn < firstColumn) {
       return false;
     }
@@ -729,9 +721,9 @@ class Border {
       return false;
     }
 
-    const containerOffset = offset(wtTable.TABLE);
-    const boundaryOffset = offset(boundaryTD);
-    const endOffset = offset(boundaryEndTD);
+    const containerOffset = geometryReader.offset(wtTable.TABLE);
+    const boundaryOffset = geometryReader.offset(boundaryTD);
+    const endOffset = geometryReader.offset(boundaryEndTD);
 
     // The `-1` overlaps the border shared with the previous column, mirroring `appear`. At column 0
     // there is no previous column, so drop the shift and shorten the line to avoid protruding past
@@ -743,15 +735,17 @@ class Border {
 
     if (isRtl) {
       // `firstColumn` (lowest index) is the visual-right cell, `lastColumn` the visual-left one.
-      const spanRightX = boundaryOffset.left + outerWidth(boundaryTD);
-      const tableRightX = containerOffset.left + outerWidth(wtTable.TABLE);
+      const spanRightX = boundaryOffset.left + geometryReader.outerWidth(boundaryTD);
+      const tableRightX = containerOffset.left + geometryReader.outerWidth(wtTable.TABLE);
 
       style.right = `${tableRightX - spanRightX - startShift}px`;
       style.width = `${spanRightX - endOffset.left + delta - (1 - startShift)}px`;
     } else {
       style.left = `${boundaryOffset.left - containerOffset.left - startShift}px`;
-      style.width =
-        `${endOffset.left + outerWidth(boundaryEndTD) - boundaryOffset.left + delta - (1 - startShift)}px`;
+      const edgeWidth = endOffset.left + geometryReader.outerWidth(boundaryEndTD)
+        - boundaryOffset.left + delta - (1 - startShift);
+
+      style.width = `${edgeWidth}px`;
     }
 
     style.display = 'block';
@@ -778,7 +772,7 @@ class Border {
     return this.drawHorizontalFreezeEdge(
       boundaryRow, this.topStyle!, firstColumn, lastColumn, isRtl, delta,
       (boundaryTD, boundaryOffset, containerTop) =>
-        boundaryOffset.top + outerHeight(boundaryTD) - containerTop - 1
+        boundaryOffset.top + this.wot.domBindings.geometryReader.outerHeight(boundaryTD) - containerTop - 1
     );
   }
 
@@ -829,6 +823,7 @@ class Border {
       return false;
     }
 
+    const { geometryReader } = this.wot.domBindings;
     const { wtTable } = this.wot;
     const boundaryColumn = (this.wot.getSetting('fixedColumnsStart') as number) - 1;
     const boundaryTD = wtTable.getCell(this.wot.createCellCoords(firstRow, boundaryColumn));
@@ -838,15 +833,15 @@ class Border {
       return false;
     }
 
-    const containerOffset = offset(wtTable.TABLE);
-    const boundaryOffset = offset(boundaryTD);
-    const endOffset = offset(boundaryEndTD);
+    const containerOffset = geometryReader.offset(wtTable.TABLE);
+    const boundaryOffset = geometryReader.offset(boundaryTD);
+    const endOffset = geometryReader.offset(boundaryEndTD);
 
     // The `-1` overlaps the border shared with the row above, like `appear`. At row 0 there is no row
     // above, so drop the shift and shorten the line to avoid protruding past the pane top.
     const atFirstRow = firstRow === 0;
     let edgeTop = boundaryOffset.top - containerOffset.top - 1;
-    let edgeHeight = endOffset.top + outerHeight(boundaryEndTD) - boundaryOffset.top + delta;
+    let edgeHeight = endOffset.top + geometryReader.outerHeight(boundaryEndTD) - boundaryOffset.top + delta;
 
     if (atFirstRow) {
       edgeTop += 1;
@@ -859,11 +854,11 @@ class Border {
     if (isRtl) {
       // RTL: the frozen pane sits on the right, so the freeze line is the boundary cell's LEFT edge,
       // and the edge is drawn one pixel inside it (to the right) via the `right` anchor.
-      const tableRightX = containerOffset.left + outerWidth(wtTable.TABLE);
+      const tableRightX = containerOffset.left + geometryReader.outerWidth(wtTable.TABLE);
 
       this.startStyle!.right = `${tableRightX - boundaryOffset.left - 1}px`;
     } else {
-      const freezeLineX = boundaryOffset.left + outerWidth(boundaryTD);
+      const freezeLineX = boundaryOffset.left + geometryReader.outerWidth(boundaryTD);
 
       this.startStyle!.left = `${freezeLineX - containerOffset.left - 1}px`;
     }
@@ -898,6 +893,7 @@ class Border {
       boundaryTD: HTMLElement, boundaryOffset: { top: number, left: number }, containerTop: number
     ) => number
   ): boolean {
+    const { geometryReader } = this.wot.domBindings;
     const { wtTable } = this.wot;
     const boundaryColumn = (this.wot.getSetting('fixedColumnsStart') as number) - 1;
     const boundaryTD = wtTable.getCell(this.wot.createCellCoords(boundaryRow, boundaryColumn));
@@ -906,8 +902,8 @@ class Border {
       return false;
     }
 
-    const containerOffset = offset(wtTable.TABLE);
-    const boundaryOffset = offset(boundaryTD);
+    const containerOffset = geometryReader.offset(wtTable.TABLE);
+    const boundaryOffset = geometryReader.offset(boundaryTD);
 
     this.disappear();
     style.top = `${resolveTop(boundaryTD, boundaryOffset, containerOffset.top)}px`;
@@ -917,11 +913,11 @@ class Border {
     if (isRtl) {
       // RTL: the frozen pane is on the right, so the freeze line is the boundary cell's LEFT edge;
       // the square sits one pixel inside it (to the right) via the `right` anchor.
-      const tableRightX = containerOffset.left + outerWidth(wtTable.TABLE);
+      const tableRightX = containerOffset.left + geometryReader.outerWidth(wtTable.TABLE);
 
       style.right = `${tableRightX - boundaryOffset.left - 1}px`;
     } else {
-      const freezeLineX = boundaryOffset.left + outerWidth(boundaryTD);
+      const freezeLineX = boundaryOffset.left + geometryReader.outerWidth(boundaryTD);
 
       style.left = `${freezeLineX - containerOffset.left - 1}px`;
     }
@@ -947,7 +943,7 @@ class Border {
     return this.drawFreezeCorner(
       boundaryRow, this.topStyle!, isRtl, borderWidth,
       (boundaryTD, boundaryOffset, containerTop) =>
-        boundaryOffset.top + outerHeight(boundaryTD) - containerTop - 1
+        boundaryOffset.top + this.wot.domBindings.geometryReader.outerHeight(boundaryTD) - containerTop - 1
     );
   }
 
@@ -1015,6 +1011,7 @@ class Border {
     }
 
     const { wtTable, rootDocument, rootWindow } = this.wot;
+    const { geometryReader } = this.wot.domBindings;
     const isMultiple = (fromRow !== toRow || fromColumn !== toColumn);
     const firstRenderedRow = wtTable.getFirstRenderedRow();
     const lastRenderedRow = wtTable.getLastRenderedRow();
@@ -1066,9 +1063,9 @@ class Border {
     const toTD = isMultiple ? wtTable.getCell(this.wot.createCellCoords(toRow, toColumn)) : fromTD;
     const fromTDEl = fromTD;
     const toTDEl = isHTMLElement(toTD) ? toTD : fromTDEl;
-    const fromOffset = offset(fromTDEl);
-    const toOffset = isMultiple ? offset(toTDEl) : fromOffset;
-    const containerOffset = offset(wtTable.TABLE);
+    const fromOffset = geometryReader.offset(fromTDEl);
+    const toOffset = isMultiple ? geometryReader.offset(toTDEl) : fromOffset;
+    const containerOffset = geometryReader.offset(wtTable.TABLE);
     const minTop = fromOffset.top;
     const minLeft = fromOffset.left;
     const isRtl = this.wot.wtSettings.getSetting('rtlMode');
@@ -1077,15 +1074,15 @@ class Border {
     let width = 0;
 
     if (isRtl) {
-      const containerWidth = outerWidth(wtTable.TABLE);
-      const fromWidth = outerWidth(fromTDEl);
+      const containerWidth = geometryReader.outerWidth(wtTable.TABLE);
+      const fromWidth = geometryReader.outerWidth(fromTDEl);
       const gridRightPos = rootWindow.innerWidth - containerOffset.left - containerWidth;
 
       width = minLeft + fromWidth - toOffset.left;
       inlineStartPos = rootWindow.innerWidth - minLeft - fromWidth - gridRightPos - 1;
 
     } else {
-      width = toOffset.left + outerWidth(toTDEl) - minLeft;
+      width = toOffset.left + geometryReader.outerWidth(toTDEl) - minLeft;
       inlineStartPos = minLeft - containerOffset.left - 1;
     }
 
@@ -1104,7 +1101,7 @@ class Border {
     }
 
     let top = minTop - containerOffset.top - 1;
-    let height = toOffset.top + outerHeight(toTDEl) - minTop;
+    let height = toOffset.top + geometryReader.outerHeight(toTDEl) - minTop;
 
     if (this.isEntireRowSelected(fromColumn, toColumn)) {
       const columnHeader = fromColumn;
@@ -1120,7 +1117,7 @@ class Border {
       }
     }
 
-    const style = rootWindow.getComputedStyle(fromTDEl);
+    const style = geometryReader.getComputedStyle(fromTDEl);
 
     if (parseInt(style.borderTopWidth, 10) > 0) {
       top += 1;
@@ -1229,7 +1226,9 @@ class Border {
       const cornerHalfHeight = Math.ceil(parseInt(String(this.cornerDefaultStyle.height), 10) / 2);
 
       if (toColumn === (this.wot.getSetting('totalColumns') as number) - 1) {
-        const toTdOffsetLeft = trimToWindow ? toTDEl.getBoundingClientRect().left : toTDEl.offsetLeft;
+        const toTdOffsetLeft = trimToWindow
+          ? geometryReader.getBoundingClientRect(toTDEl).left
+          : geometryReader.offsetLeft(toTDEl);
         let cornerOverlappingContainer = false;
         let cornerEdge = 0;
 
@@ -1238,8 +1237,9 @@ class Border {
           cornerOverlappingContainer = cornerEdge < 0;
 
         } else {
-          cornerEdge = toTdOffsetLeft + outerWidth(toTDEl) + (parseInt(String(this.cornerDefaultStyle.width), 10) / 2);
-          cornerOverlappingContainer = cornerEdge >= innerWidth(trimmingContainer);
+          cornerEdge = toTdOffsetLeft + geometryReader.outerWidth(toTDEl)
+            + (parseInt(String(this.cornerDefaultStyle.width), 10) / 2);
+          cornerOverlappingContainer = cornerEdge >= geometryReader.innerWidth(trimmingContainer);
         }
 
         if (cornerOverlappingContainer) {
@@ -1256,10 +1256,12 @@ class Border {
       }
 
       if (toRow === (this.wot.getSetting('totalRows') as number) - 1) {
-        const toTdOffsetTop = trimToWindow ? toTDEl.getBoundingClientRect().top : toTDEl.offsetTop;
+        const toTdOffsetTop = trimToWindow
+          ? geometryReader.getBoundingClientRect(toTDEl).top
+          : geometryReader.offsetTop(toTDEl);
         const cornerHalfHeight = parseInt(String(this.cornerDefaultStyle.height), 10) / 2;
-        const cornerBottomEdge = toTdOffsetTop + outerHeight(toTDEl) + cornerHalfHeight;
-        const cornerOverlappingContainer = cornerBottomEdge >= innerHeight(trimmingContainer);
+        const cornerBottomEdge = toTdOffsetTop + geometryReader.outerHeight(toTDEl) + cornerHalfHeight;
+        const cornerOverlappingContainer = cornerBottomEdge >= geometryReader.innerHeight(trimmingContainer);
 
         if (cornerOverlappingContainer) {
           const cornerTopPosition = Math.floor(
@@ -1277,7 +1279,7 @@ class Border {
       this.cornerStyle!.display = 'block';
     }
 
-    if (isMobileBrowser() && this.instance.getSetting('isDataViewInstance')) {
+    if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
       this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, inlineStartPos, width, height);
     }
   }
@@ -1322,6 +1324,7 @@ class Border {
   getDimensionsFromHeader(
     direction: string, fromIndex: number, toIndex: number, headerIndex: number,
     containerOffset: { top: number; left: number }): false | [HTMLElement, number, number] {
+    const { geometryReader } = this.wot.domBindings;
     const { wtTable } = this.wot;
     const rootHotElement = wtTable.wtRootElement.parentNode as HTMLElement;
     let getHeaderFn: ((...args: unknown[]) => HTMLElement | undefined) | null = null;
@@ -1336,7 +1339,7 @@ class Border {
     switch (direction) {
       case 'rows':
         getHeaderFn = (...args: unknown[]) => wtTable.getRowHeader(args[0] as number, args[1] as number);
-        dimensionFn = (el: HTMLElement) => outerHeight(el);
+        dimensionFn = (el: HTMLElement) => geometryReader.outerHeight(el);
         entireSelectionClassname = 'ht__selection--rows';
         dimensionProperty = 'top';
 
@@ -1344,7 +1347,7 @@ class Border {
 
       case 'columns':
         getHeaderFn = (...args: unknown[]) => wtTable.getColumnHeader(args[0] as number, args[1] as number);
-        dimensionFn = (el: HTMLElement) => outerWidth(el);
+        dimensionFn = (el: HTMLElement) => geometryReader.outerWidth(el);
         entireSelectionClassname = 'ht__selection--columns';
         dimensionProperty = 'left';
         break;
@@ -1362,8 +1365,8 @@ class Border {
         return false;
       }
 
-      const startHeaderOffset = offset(startHeader);
-      const endOffset = offset(endHeader);
+      const startHeaderOffset = geometryReader.offset(startHeader);
+      const endOffset = geometryReader.offset(endHeader);
       const startOff = startHeaderOffset[dimensionProperty!];
       const endOff = endOffset[dimensionProperty!];
       const contOff = containerOffset[dimensionProperty!];
@@ -1456,7 +1459,7 @@ class Border {
     this.endStyle!.display = 'none';
     this.cornerStyle!.display = 'none';
 
-    if (isMobileBrowser() && this.instance.getSetting('isDataViewInstance')) {
+    if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
       this.selectionHandles.styles.top.display = 'none';
       this.selectionHandles.styles.topHitArea.display = 'none';
       this.selectionHandles.styles.bottom.display = 'none';

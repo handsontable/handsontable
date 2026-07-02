@@ -112,6 +112,22 @@ module.exports = {
         'handsontable/require-await': 'off',
       },
     },
+    // Walkontable: every layout-forcing DOM read must go through the GeometryReader proxy, so a
+    // caching adapter can memoize measurements per draw without touching call sites. The proxy
+    // adapter/interface (geometry/**) are exempt — they are the one place raw reads are correct.
+    {
+      files: ['src/3rdparty/walkontable/src/**/*.ts'],
+      excludedFiles: [
+        'src/3rdparty/walkontable/src/geometry/**', // the proxy adapter/interface itself
+        '*.unit.ts',
+        '*.spec.ts',
+        '*.types.ts',
+        '*.d.ts',
+      ],
+      rules: {
+        'handsontable/no-direct-dom-geometry-read': 'error',
+      },
+    },
     // Source files and build scripts must document classes, methods, functions, and fields
     // so the Typedoc API reference and guides render complete descriptions. Test/type files are
     // excluded (require-jsdoc is already off for *.unit.js / *.spec.js elsewhere in this config).

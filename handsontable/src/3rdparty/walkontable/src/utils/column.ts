@@ -1,5 +1,4 @@
-import type { DataAccessObject } from '../types';
-import type Settings from '../settings';
+import type { TableDeps } from '../table';
 /**
  * Column utils class contains all necessary information about sizes of the columns.
  *
@@ -7,9 +6,11 @@ import type Settings from '../settings';
  */
 export default class ColumnUtils {
   /**
-   * @type {TableDao}
+   * The table module dependencies.
+   *
+   * @type {TableDeps}
    */
-  dataAccessObject;
+  #deps: TableDeps;
   /**
    * @type {Settings}
    */
@@ -20,12 +21,21 @@ export default class ColumnUtils {
   headerWidths = new Map<number, number>();
 
   /**
-   * @param {TableDao} dataAccessObject The table Data Access Object.
-   * @param {Settings} wtSettings The walkontable settings.
+   * Read-only access to the dependencies, for the renderer, which reads `columnUtils.deps`
+   * externally and so cannot reach the private `#deps`.
+   *
+   * @returns {TableDeps}
    */
-  constructor(dataAccessObject: DataAccessObject, wtSettings: Settings) {
-    this.dataAccessObject = dataAccessObject;
-    this.wtSettings = wtSettings;
+  get deps(): TableDeps {
+    return this.#deps;
+  }
+
+  /**
+   * @param {TableDeps} deps The table module dependencies.
+   */
+  constructor(deps: TableDeps) {
+    this.#deps = deps;
+    this.wtSettings = deps.wtSettings;
   }
 
   /**
@@ -49,7 +59,7 @@ export default class ColumnUtils {
    */
   getHeaderHeight(level: number) {
     let height = this.wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
-    const oversizedHeight = this.dataAccessObject.wtViewport.oversizedColumnHeaders[level];
+    const oversizedHeight = this.#deps.getWtViewport().oversizedColumnHeaders[level];
 
     if (oversizedHeight !== undefined) {
       height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
@@ -65,7 +75,7 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getHeaderWidth(sourceIndex: number) {
-    const { columnFilter } = this.dataAccessObject.wtTable;
+    const { columnFilter } = this.#deps.getWtTable();
 
     if (!columnFilter) {
       return undefined;
