@@ -932,11 +932,12 @@ export class Filters extends BasePlugin {
   /**
    * Imports filter conditions to all columns to the plugin. The method accepts
    * the array of conditions with the same structure as the {@link Filters#exportConditions} method returns.
+   * The `column` property in each condition object must be a physical column index.
    * Importing conditions will replace the current conditions. Once replaced, the state of the condition
    * will be reflected in the UI. To apply the changes and filter the table, call
    * the {@link Filters#filter} method eventually.
    *
-   * @param {Array} conditions Array of conditions.
+   * @param {Array} conditions Array of conditions keyed by physical column indexes.
    */
   importConditions(conditions: ColumnConditions[]): void {
     this.conditionCollection?.importAllConditions(conditions);
@@ -944,7 +945,8 @@ export class Filters extends BasePlugin {
 
   /**
    * Exports filter conditions for all columns from the plugin.
-   * The array represents the filter state for each column. For example:
+   * The array represents the filter state for each column and uses physical column indexes in each `column` property.
+   * For example:
    *
    * ```js
    * [

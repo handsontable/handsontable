@@ -2690,7 +2690,7 @@ export const REGISTERED_HOOKS = [
    *
    * | Property     | Possible values                                                         | Description                                                                                                              |
    * | ------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-   * | `column`     | Number                                                                  | A visual index of the column to which the filter will be applied.                                                        |
+   * | `column`     | Number                                                                  | A physical index of the column to which the filter will be applied.                                                      |
    * | `conditions` | Array of objects                                                        | Each object represents one condition. For details, see [`addCondition()`](@/api/filters.md#addcondition).                |
    * | `operation`  | `'conjunction'` \| `'disjunction'` \| `'disjunctionWithExtraCondition'` | An operation to perform on your set of `conditions`. For details, see [`addCondition()`](@/api/filters.md#addcondition). |
    *
@@ -2750,7 +2750,7 @@ export const REGISTERED_HOOKS = [
    *
    * | Property     | Possible values                                                         | Description                                                                                                              |
    * | ------------ | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-   * | `column`     | Number                                                                  | A visual index of the column to which the filter was applied.                                                            |
+   * | `column`     | Number                                                                  | A physical index of the column to which the filter was applied.                                                          |
    * | `conditions` | Array of objects                                                        | Each object represents one condition. For details, see [`addCondition()`](@/api/filters.md#addcondition).                |
    * | `operation`  | `'conjunction'` \| `'disjunction'` \| `'disjunctionWithExtraCondition'` | An operation to perform on your set of `conditions`. For details, see [`addCondition()`](@/api/filters.md#addcondition). |
    *
