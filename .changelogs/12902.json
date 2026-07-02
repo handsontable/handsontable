@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed the `multiselect` cell type so its option filtering folds case in a locale-aware way, consistent with the `autocomplete` editor, for Turkish, Azeri, and Lithuanian locales.",
+  "type": "fixed",
+  "issueOrPR": 12902,
+  "breaking": false,
+  "framework": "none"
+}
