@@ -14,7 +14,8 @@ angular:
 vue:
   metaTitle: Column menu - Vue Data Grid | Handsontable
 searchCategory: Guides
-category: Columns
+category: Accessories and menus
+menuTag: updated
 ---
 Display a configurable dropdown menu, triggered by clicking on a button in a column header.
 
@@ -33,8 +34,8 @@ To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) co
 
 ::: example #example1 --js 1 --ts 2
 
-@[code](@/content/guides/columns/column-menu/javascript/example1.js)
-@[code](@/content/guides/columns/column-menu/javascript/example1.ts)
+@[code](@/content/guides/accessories-and-menus/column-menu/javascript/example1.js)
+@[code](@/content/guides/accessories-and-menus/column-menu/javascript/example1.ts)
 
 :::
 
@@ -44,8 +45,8 @@ To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) co
 
 ::: example #example1 :react --js 1 --ts 2
 
-@[code](@/content/guides/columns/column-menu/react/example1.jsx)
-@[code](@/content/guides/columns/column-menu/react/example1.tsx)
+@[code](@/content/guides/accessories-and-menus/column-menu/react/example1.jsx)
+@[code](@/content/guides/accessories-and-menus/column-menu/react/example1.tsx)
 
 :::
 
@@ -55,8 +56,8 @@ To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) co
 
 ::: example #example1 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-menu/angular/example1.ts)
-@[code](@/content/guides/columns/column-menu/angular/example1.html)
+@[code](@/content/guides/accessories-and-menus/column-menu/angular/example1.ts)
+@[code](@/content/guides/accessories-and-menus/column-menu/angular/example1.html)
 
 :::
 
@@ -66,7 +67,7 @@ To enable the plugin, set the [`dropdownMenu`](@/api/options.md#dropdownmenu) co
 
 ::: example #example1 :vue3
 
-@[code](@/content/guides/columns/column-menu/vue/example1.vue)
+@[code](@/content/guides/accessories-and-menus/column-menu/vue/example1.vue)
 
 :::
 
@@ -80,8 +81,8 @@ To use the default dropdown contents, set it to `true`, or to customize it by se
 
 ::: example #example2 --js 1 --ts 2
 
-@[code](@/content/guides/columns/column-menu/javascript/example2.js)
-@[code](@/content/guides/columns/column-menu/javascript/example2.ts)
+@[code](@/content/guides/accessories-and-menus/column-menu/javascript/example2.js)
+@[code](@/content/guides/accessories-and-menus/column-menu/javascript/example2.ts)
 
 :::
 
@@ -91,8 +92,8 @@ To use the default dropdown contents, set it to `true`, or to customize it by se
 
 ::: example #example2 :react --js 1 --ts 2
 
-@[code](@/content/guides/columns/column-menu/react/example2.jsx)
-@[code](@/content/guides/columns/column-menu/react/example2.tsx)
+@[code](@/content/guides/accessories-and-menus/column-menu/react/example2.jsx)
+@[code](@/content/guides/accessories-and-menus/column-menu/react/example2.tsx)
 
 :::
 
@@ -102,8 +103,8 @@ To use the default dropdown contents, set it to `true`, or to customize it by se
 
 ::: example #example2 :angular --ts 1 --html 2
 
-@[code](@/content/guides/columns/column-menu/angular/example2.ts)
-@[code](@/content/guides/columns/column-menu/angular/example2.html)
+@[code](@/content/guides/accessories-and-menus/column-menu/angular/example2.ts)
+@[code](@/content/guides/accessories-and-menus/column-menu/angular/example2.html)
 
 :::
 
@@ -113,7 +114,7 @@ To use the default dropdown contents, set it to `true`, or to customize it by se
 
 ::: example #example2 :vue3
 
-@[code](@/content/guides/columns/column-menu/vue/example2.vue)
+@[code](@/content/guides/accessories-and-menus/column-menu/vue/example2.vue)
 
 :::
 
