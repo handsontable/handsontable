@@ -2721,10 +2721,9 @@ export default (): Record<string, unknown> => {
      *   // set the `type` of each cell in this column to `autocomplete`
      *   type: 'autocomplete',
      *   // set options available in every `autocomplete` cell of this column
-     *   source: ['A', 'B', 'C'],
-     *   // when the end user types in `A`, display only the A option
-     *   // when the end user types in `B`, display only the B option
-     *   // when the end user types in `C`, display only the C option
+     *   source: ['Apple', 'Apricot', 'Avocado', 'Banana', 'Blueberry'],
+     *   // when the end user types in `a`, display options that contain `a`
+     *   // when the end user types in `ap`, display only `Apple` and `Apricot`
      *   filter: true
      * }],
      * ```
