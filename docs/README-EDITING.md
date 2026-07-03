@@ -117,11 +117,11 @@ To edit a published version's API reference:
 
 When reviewing someone else's changes, you can see the documentation output in a few different ways:
 - Switch to the reviewed branch, pull the latest changes, and [start a local documentation server](./README.md#getting-started-with-handsontable-documentation).
-- [Deploy the documentation to the staging environment](./README-DEPLOYMENT.md#manually-deploying-the-documentation-to-the-staging-environment) (https://dev.handsontable.com/docs).
+- [Deploy the documentation to the staging environment](./README-DEPLOYMENT.md#deploying-the-documentation-to-the-staging-environment) (https://dev.handsontable.com/docs).
 
 ## Documentation versioning
 
-New documentation is created automatically after the Handsontable is released. The `stable-publish` job in `.github/workflows/publish.yml` creates or updates the documentation production branch, generates API content from source code, commits, and pushes - which then triggers the Netlify deployment.
+New documentation is created automatically after the Handsontable is released. The `stable-publish` job in `.github/workflows/publish.yml` creates or updates the documentation production branch, generates API content from source code, commits, and pushes - which then triggers the Cloudflare Pages deployment.
 
 ## Markdown links
 

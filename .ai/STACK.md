@@ -176,7 +176,7 @@
 - `code-quality.yml` - Linting and code quality checks
 - `linter.yml` - ESLint checks
 - `publish.yml` - Package publishing pipeline to npm
-- `docs-staging.yml` / `docs-production.yml` - Documentation deployment (Netlify)
+- `docs-staging.yml` / `docs-production.yml` - Documentation deployment (Cloudflare Pages)
 - `docs-visual-tests.yml` - Visual regression testing for docs
 - `changelog.yml` - Changelog verification
 - `audit.yml` - Security audit
