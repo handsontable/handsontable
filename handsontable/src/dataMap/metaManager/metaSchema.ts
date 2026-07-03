@@ -6492,7 +6492,7 @@ export default (): Record<string, unknown> => {
      *    {
      *      // add a custom cell validator function
      *      validator(value, callback) {
-     *          ...
+     *        callback(value >= 0 && value <= 100);
      *      }
      *    },
      * ],
