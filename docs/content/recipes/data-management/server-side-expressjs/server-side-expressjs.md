@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: b5e92d71
 title: Server-side Data with Express.js
 metaTitle: Server-side Data with Express.js - JavaScript Data Grid | Handsontable
 description: Wire Handsontable's dataProvider plugin to an Express.js 4 backend with paginated, sorted, and filtered server-side data and full CRUD operations backed by PostgreSQL via TypeORM and Zod.
@@ -13,13 +12,10 @@ tags:
   - typescript
   - recipes
 react:
-  id: 7a3c1f8e
   metaTitle: Server-side data with Express.js - React Data Grid | Handsontable
 angular:
-  id: 4n6q9v2w
   metaTitle: Server-side Data with Express.js - Angular Data Grid | Handsontable
 vue:
-  id: 7r84584r
   metaTitle: Server-side Data with Express.js - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management

@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: ibewekco
 title: "Star Rating Editor"
 metaTitle: "Star Rating Editor - JavaScript Data Grid | Handsontable"
 description: Learn how to create a custom Handsontable cell type using SVG stars for intuitive 1-5 star ratings directly in your data grid.
@@ -12,13 +11,10 @@ tags:
   - tutorial
   - recipes
 react:
-  id: a070f35k
   metaTitle: "Star Rating Editor - React Data Grid | Handsontable"
 angular:
-  id: 66fxpbip
   metaTitle: "Star Rating Editor - Angular Data Grid | Handsontable"
 vue:
-  id: lod409ks
   metaTitle: "Star Rating Editor - Vue Data Grid | Handsontable"
 searchCategory: Recipes
 category: Cell Types

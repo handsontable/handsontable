@@ -7,16 +7,12 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-id: fe57c058
 description: Practical recipes for creating custom cell types in Handsontable.
 react:
-  id: 4515bc70
   metaTitle: Cell Recipes - React Data Grid | Handsontable
 angular:
-  id: e149d2af
   metaTitle: Cell Recipes - Angular Data Grid | Handsontable
 vue:
-  id: um7f5xlt
   metaTitle: Cell Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]

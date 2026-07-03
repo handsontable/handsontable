@@ -1,6 +1,5 @@
 ---
 type: how-to
-id: 01620d5a
 title: Pikaday
 metaTitle: Pikaday Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a custom Handsontable cell type using Pikaday for a date picker with per-column configuration directly inside your data grid. This guide serves as a migration path for users moving away from the built-in date cell type.
@@ -11,13 +10,10 @@ tags:
   - tutorial
   - recipes
 react:
-  id: 9ac52da1
   metaTitle: Pikaday Cell Type - React Data Grid | Handsontable
 angular:
-  id: b83502de
   metaTitle: Pikaday Cell Type - Angular Data Grid | Handsontable
 vue:
-  id: lnh85yd3
   metaTitle: Pikaday Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types

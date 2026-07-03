@@ -1,5 +1,4 @@
 ---
-id: a3f8c1d2
 title: Programmatic row operations
 metaTitle: Programmatic row operations - JavaScript Data Grid | Handsontable
 description: Learn how to add, delete, and reorder rows in Handsontable using external toolbar buttons wired to the alter() API and the ManualRowMove plugin.
@@ -10,13 +9,10 @@ tags:
   - tutorial
   - recipes
 react:
-  id: b4c7d2e5
   metaTitle: Programmatic row operations - React Data Grid | Handsontable
 angular:
-  id: c5d8e3f6
   metaTitle: Programmatic row operations - Angular Data Grid | Handsontable
 vue:
-  id: f2cq2guh
   metaTitle: Programmatic row operations - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Context Menu and Interaction

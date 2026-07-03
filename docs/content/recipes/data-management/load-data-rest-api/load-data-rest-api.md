@@ -1,5 +1,4 @@
 ---
-id: 1f8a3c7d
 title: Load data from a REST API
 metaTitle: Load Data from a REST API - JavaScript Data Grid | Handsontable
 description: Fetch JSON data from a REST API and load it into Handsontable with loading and error states.
@@ -16,13 +15,10 @@ tags:
   - pagination
   - server-side data
 react:
-  id: 7c4d2e9a
   metaTitle: Load Data from a REST API - React Data Grid | Handsontable
 angular:
-  id: a3b8c2d1
   metaTitle: Load Data from a REST API - Angular Data Grid | Handsontable
 vue:
-  id: o4k4wnz7
   metaTitle: Load Data from a REST API - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Data Management

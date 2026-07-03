@@ -1,5 +1,4 @@
 ---
-id: 5a27e806
 title: Recipes
 metaTitle: Recipes - JavaScript Data Grid | Handsontable
 description: Developer recipes and step-by-step tutorials for building with Handsontable
@@ -8,13 +7,10 @@ canonicalUrl: /recipes/
 searchCategory: Recipes
 type: how-to
 react:
-  id: 1ae45a27
   metaTitle: Recipes - React Data Grid | Handsontable
 angular:
-  id: d2815b7b
   metaTitle: Recipes - Angular Data Grid | Handsontable
 vue:
-  id: 5axgi4x9
   metaTitle: Recipes - Vue Data Grid | Handsontable
 ---
 

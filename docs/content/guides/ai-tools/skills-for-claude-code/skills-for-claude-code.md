@@ -1,18 +1,14 @@
 ---
 type: explanation
-id: ai1m9n3t
 title: Skills for Claude Code
 metaTitle: Skills for Claude Code - JavaScript Data Grid | Handsontable
 description: Reusable instructions that teach the Claude coding agent how to work with Handsontable, covering plugin development, cell editors, tests, and documentation examples.
 permalink: /skills-for-claude-code
 react:
-  id: ai5g8h6w
   metaTitle: Skills for Claude Code - React Data Grid | Handsontable
 angular:
-  id: ai7e4u2x
   metaTitle: Skills for Claude Code - Angular Data Grid | Handsontable
 vue:
-  id: ai0a5c1l
   metaTitle: Skills for Claude Code - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: AI Tools

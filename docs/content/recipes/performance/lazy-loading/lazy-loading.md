@@ -1,5 +1,4 @@
 ---
-id: b3f2a1c9
 title: Lazy loading with pagination
 metaTitle: Lazy loading with pagination - JavaScript Data Grid | Handsontable
 description: Load data page-by-page as the user scrolls to the bottom of the grid, using the afterScrollVertically hook and hot.updateData() to append rows without resetting scroll position.
@@ -14,13 +13,10 @@ tags:
   - lazy loading
   - infinite scroll
 react:
-  id: c4e7d1f8
   metaTitle: Lazy loading with pagination - React Data Grid | Handsontable
 angular:
-  id: d5f8e2a9
   metaTitle: Lazy loading with pagination - Angular Data Grid | Handsontable
 vue:
-  id: agk0hqm7
   metaTitle: Lazy loading with pagination - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Performance

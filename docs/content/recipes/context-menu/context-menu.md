@@ -8,15 +8,11 @@ searchCategory: Recipes
 hotPlugin: false
 editLink: false
 type: how-to
-id: c0j2k4l6
 react:
-  id: d1k3l5m7
   metaTitle: Context Menu Recipes - React Data Grid | Handsontable
 angular:
-  id: e2l4m6n8
   metaTitle: Context Menu Recipes - Angular Data Grid | Handsontable
 vue:
-  id: s4tb6gp7
   metaTitle: Context Menu Recipes - Vue Data Grid | Handsontable
 ---
 [[toc]]

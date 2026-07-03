@@ -1,5 +1,4 @@
 ---
-id: f2a9c4d1
 title: Handsontable with Ant Design
 metaTitle: Handsontable with Ant Design - React Data Grid | Handsontable
 description: Integrate Handsontable into a React app that uses Ant Design, and align the grid with your design system tokens through the Theme API.
@@ -15,13 +14,10 @@ tags:
   - themes
   - Theme API
 react:
-  id: a8d3e6f2
   metaTitle: Handsontable with Ant Design - React Data Grid | Handsontable
 angular:
-  id: c4b7e1a9
   metaTitle: Handsontable with Ant Design - Angular Data Grid | Handsontable
 vue:
-  id: 1idm09eu
 searchCategory: Recipes
 category: Themes
 type: how-to
