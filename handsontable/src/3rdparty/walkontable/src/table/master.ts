@@ -1,7 +1,5 @@
-import type { DataAccessObject, DomBindings } from '../types';
-import type Settings from '../settings';
+import type { TableDeps } from '../table';
 import {
-  getStyle,
   getTrimmingContainer,
   isVisible,
 } from './../../../../helpers/dom/element';
@@ -76,14 +74,10 @@ class MasterTable extends Table {
   #observedTrimmingElement: HTMLElement | null = null;
 
   /**
-   * @param {TableDao} dataAccessObject The data access object.
-   * @param {FacadeGetter} facadeGetter Function which return proper facade.
-   * @param {DomBindings} domBindings Bindings into DOM.
-   * @param {Settings} wtSettings The Walkontable settings.
+   * @param {TableDeps} deps The table module dependencies.
    */
-  constructor(
-    dataAccessObject: DataAccessObject, facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings) {
-    super(dataAccessObject, facadeGetter, domBindings, wtSettings, 'master');
+  constructor(deps: TableDeps) {
+    super(deps, 'master');
   }
 
   /**
@@ -100,7 +94,7 @@ class MasterTable extends Table {
     // pre-DEV-1777 behaviour and the side effects callers depend on.
     const fieldsInitialized = #trimmingCache in this;
     const trimmingElement = getTrimmingContainer(this.wtRootElement);
-    const { rootWindow } = this.domBindings;
+    const { geometryReader } = this.deps;
 
     if (!(trimmingElement instanceof HTMLElement)) {
       const preventOverflow = this.wtSettings.getSetting('preventOverflow');
@@ -140,14 +134,14 @@ class MasterTable extends Table {
       // ResizeObserver callbacks would miss between renders in the same tick —
       // for example `htEditor.loadData()` followed by an explicit
       // `alignOverlaysWithTrimmingContainer()` call in the autocomplete editor.
-      const trimmingOffsetWidth = trimmingElement.offsetWidth;
-      const trimmingOffsetHeight = trimmingElement.offsetHeight;
-      const trimmingScrollWidth = trimmingElement.scrollWidth;
-      const trimmingScrollHeight = trimmingElement.scrollHeight;
-      const trimmingOverflow = getStyle(trimmingElement, 'overflow', rootWindow) ?? '';
-      const trimmingHeight = getStyle(trimmingElement, 'height', rootWindow) ?? '';
-      const hiderOffsetHeight = this.hider.offsetHeight;
-      const hiderOffsetWidth = this.hider.offsetWidth;
+      const trimmingOffsetWidth = geometryReader.offsetWidth(trimmingElement);
+      const trimmingOffsetHeight = geometryReader.offsetHeight(trimmingElement);
+      const trimmingScrollWidth = geometryReader.scrollWidth(trimmingElement);
+      const trimmingScrollHeight = geometryReader.scrollHeight(trimmingElement);
+      const trimmingOverflow = geometryReader.getStyle(trimmingElement, 'overflow') ?? '';
+      const trimmingHeight = geometryReader.getStyle(trimmingElement, 'height') ?? '';
+      const hiderOffsetHeight = geometryReader.offsetHeight(this.hider);
+      const hiderOffsetWidth = geometryReader.offsetWidth(this.hider);
       const cache = this.#trimmingCache;
       const cacheValid = cache !== null
         && cache.trimmingOffsetWidth === trimmingOffsetWidth
@@ -186,8 +180,10 @@ class MasterTable extends Table {
         // covers jsdom, where setting overflowX inline does not update the overflow shorthand.
         const hasScrollOverflow = trimmingOverflow
           ? trimmingOverflow.split(' ').some(v => overflowValues.includes(v))
-          : [getStyle(trimmingElement, 'overflowX', rootWindow), getStyle(trimmingElement, 'overflowY', rootWindow)]
-            .some(v => v && overflowValues.includes(v));
+          : [
+            geometryReader.getStyle(trimmingElement, 'overflowX'),
+            geometryReader.getStyle(trimmingElement, 'overflowY'),
+          ].some(v => v && overflowValues.includes(v));
         let useAutoHeight = (trimmingHeight === 'auto');
 
         if (trimmingElementParent && hasScrollOverflow) {
@@ -213,7 +209,7 @@ class MasterTable extends Table {
             trimmingElementParent.appendChild(cloneNode);
           }
 
-          const cloneHeight = parseInt(rootWindow.getComputedStyle(cloneNode).height, 10);
+          const cloneHeight = parseInt(geometryReader.getComputedStyle(cloneNode).height, 10);
 
           trimmingElementParent.removeChild(cloneNode);
 
@@ -229,7 +225,7 @@ class MasterTable extends Table {
             // (the hider element) and breaks the loop. When overflow-y is scrollable (auto/
             // scroll), the container IS a vertical scroll viewport and height=0 correctly
             // signals that it has no defined size. See issue #3119.
-            const computedStyle = rootWindow.getComputedStyle(trimmingElement);
+            const computedStyle = geometryReader.getComputedStyle(trimmingElement);
             const overflowX = computedStyle.overflowX;
             const overflowY = computedStyle.overflowY;
 
@@ -294,7 +290,7 @@ class MasterTable extends Table {
    */
   markOversizedColumnHeaders() {
     const { wtSettings } = this;
-    const { wtViewport } = this.dataAccessObject;
+    const wtViewport = this.deps.getWtViewport();
     const overlayName = 'master';
     const columnHeaders = wtSettings.getSetting<unknown[]>('columnHeaders');
     const columnHeadersCount = columnHeaders.length;

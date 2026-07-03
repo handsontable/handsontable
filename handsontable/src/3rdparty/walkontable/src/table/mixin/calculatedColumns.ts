@@ -19,7 +19,7 @@ const calculatedColumns = {
    * @this Table
    */
   getFirstRenderedColumn(this: Table): number {
-    const startColumn = this.dataAccessObject.startColumnRendered;
+    const startColumn = this.deps.getWtViewport().columnsRenderCalculator?.startColumn ?? null;
 
     if (startColumn === null) {
       return -1;
@@ -35,7 +35,7 @@ const calculatedColumns = {
    * @this Table
    */
   getFirstVisibleColumn(this: Table): number {
-    const startColumn = this.dataAccessObject.startColumnVisible;
+    const startColumn = this.deps.getWtViewport().columnsVisibleCalculator?.startColumn ?? null;
 
     if (startColumn === null) {
       return -1;
@@ -51,7 +51,7 @@ const calculatedColumns = {
    * @this Table
    */
   getFirstPartiallyVisibleColumn(this: Table): number {
-    const startColumn = this.dataAccessObject.startColumnPartiallyVisible;
+    const startColumn = this.deps.getWtViewport().columnsPartiallyVisibleCalculator?.startColumn ?? null;
 
     if (startColumn === null) {
       return -1;
@@ -67,7 +67,7 @@ const calculatedColumns = {
    * @this Table
    */
   getLastRenderedColumn(this: Table): number {
-    const endColumn = this.dataAccessObject.endColumnRendered;
+    const endColumn = this.deps.getWtViewport().columnsRenderCalculator?.endColumn ?? null;
 
     if (endColumn === null) {
       return -1;
@@ -83,7 +83,7 @@ const calculatedColumns = {
    * @this Table
    */
   getLastVisibleColumn(this: Table): number {
-    const endColumn = this.dataAccessObject.endColumnVisible;
+    const endColumn = this.deps.getWtViewport().columnsVisibleCalculator?.endColumn ?? null;
 
     if (endColumn === null) {
       return -1;
@@ -99,7 +99,7 @@ const calculatedColumns = {
    * @this Table
    */
   getLastPartiallyVisibleColumn(this: Table): number {
-    const endColumn = this.dataAccessObject.endColumnPartiallyVisible;
+    const endColumn = this.deps.getWtViewport().columnsPartiallyVisibleCalculator?.endColumn ?? null;
 
     if (endColumn === null) {
       return -1;
@@ -115,7 +115,7 @@ const calculatedColumns = {
    * @this Table
    */
   getRenderedColumnsCount(this: Table): number {
-    return this.dataAccessObject.countColumnsRendered;
+    return this.deps.getWtViewport().columnsRenderCalculator?.count ?? 0;
   },
 
   /**
@@ -125,7 +125,7 @@ const calculatedColumns = {
    * @this Table
    */
   getVisibleColumnsCount(this: Table): number {
-    return this.dataAccessObject.countColumnsVisible;
+    return this.deps.getWtViewport().columnsVisibleCalculator?.count ?? 0;
   },
 
   /**
@@ -135,7 +135,7 @@ const calculatedColumns = {
    * @this Table
    */
   getRowHeadersCount(this: Table): number {
-    return this.dataAccessObject.rowHeaders.length;
+    return this.deps.getRowHeaders().length;
   },
 };
 

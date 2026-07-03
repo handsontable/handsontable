@@ -113,7 +113,7 @@ const stickyColumnsStart = {
    * @this Table
    */
   getRowHeadersCount(this: Table): number {
-    return this.dataAccessObject.rowHeaders.length;
+    return this.deps.getRowHeaders().length;
   },
 };
 

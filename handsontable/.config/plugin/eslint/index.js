@@ -15,5 +15,6 @@ module.exports = {
     'require-async-in-it': require('./rules/require-async-in-it'),
     'require-await': require('./rules/require-await'),
     'no-native-error-throw': require('./rules/no-native-error-throw'),
+    'no-direct-dom-geometry-read': require('./rules/no-direct-dom-geometry-read'),
   },
 };

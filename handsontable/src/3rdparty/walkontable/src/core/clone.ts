@@ -1,10 +1,8 @@
-import Event from '../event';
+import Event, { createEventDeps } from '../event';
+import { createTableDeps } from '../table';
 import CoreAbstract from './_base';
 import type Settings from '../settings';
-import type Viewport from '../viewport';
-import type { SelectionManager } from '../selection/manager';
-import type { Overlay } from '../overlay/_base';
-import type { WalkontableInstance } from '../types';
+import type { CloneDeps } from '../overlay/_base';
 
 /**
  * @class Walkontable
@@ -24,27 +22,19 @@ export default class Clone extends CoreAbstract {
    * @param {SettingsPure|Settings} settings The Walkontable settings.
    * @param {WalkontableCloneOptions} clone Clone data.
    */
-  constructor(table: HTMLTableElement, settings: Settings, clone: {
-    source: WalkontableInstance;
-    overlay: Overlay;
-    viewport: Viewport;
-    event: Event | Record<string, unknown> | null;
-    selectionManager: SelectionManager;
-  }) {
+  constructor(table: HTMLTableElement, settings: Settings, clone: CloneDeps) {
     super(table, settings);
-
-    const facadeGetter = this.wtSettings.getSetting<Function>('facade', this);
 
     this.cloneSource = clone.source;
     this.cloneOverlay = clone.overlay;
     this.wtTable = this.cloneOverlay
-      .createTable(this.getTableDao(), facadeGetter, this.domBindings, this.wtSettings) as typeof this.wtTable;
+      .createTable(createTableDeps(this.engineContext)) as typeof this.wtTable;
     this.wtViewport = clone.viewport;
     this.selectionManager = clone.selectionManager;
-    this.wtEvent = new Event(
-      facadeGetter, this.domBindings, this.wtSettings, this.eventManager, this.wtTable,
-      this.selectionManager, clone.event as Event | null
-    );
+    // Event deps resolve `getWtTable()`/`getSelectionManager()` off this clone's context, so they
+    // read the clone's own table and selection manager (set just above). The parent Event is the
+    // per-instance link back to the master, kept as a separate argument.
+    this.wtEvent = new Event(createEventDeps(this.engineContext), clone.event as Event | null);
 
     this.findOriginalHeaders();
   }

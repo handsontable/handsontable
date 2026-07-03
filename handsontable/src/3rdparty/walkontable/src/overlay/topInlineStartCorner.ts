@@ -1,13 +1,10 @@
-import type { DataAccessObject, DomBindings, WalkontableInstance } from '../types';
-import type Settings from '../settings';
+import type { TableDeps } from '../table';
 import {
-  outerHeight,
-  outerWidth,
   setOverlayPosition,
   resetCssTransform,
 } from '../../../../helpers/dom/element';
 import TopInlineStartCornerOverlayTable from '../table/topInlineStartCorner';
-import { Overlay } from './_base';
+import { Overlay, type OverlayDeps } from './_base';
 import {
   CLONE_TOP_INLINE_START_CORNER,
 } from './constants';
@@ -30,17 +27,11 @@ export class TopInlineStartCornerOverlay extends Overlay {
   declare inlineStartOverlay: Overlay;
 
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
-   * @param {FacadeGetter} facadeGetter Function which return proper facade.
-   * @param {Settings} wtSettings The Walkontable settings.
-   * @param {DomBindings} domBindings Dom elements bound to the current instance.
    * @param {TopOverlay} topOverlay The instance of the Top overlay.
    * @param {InlineStartOverlay} inlineStartOverlay The instance of the InlineStart overlay.
    */
-  constructor(
-    wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings,
-    domBindings: DomBindings, topOverlay: Overlay, inlineStartOverlay: Overlay) {
-    super(wotInstance, facadeGetter, CLONE_TOP_INLINE_START_CORNER, wtSettings, domBindings);
+  constructor(deps: OverlayDeps, topOverlay: Overlay, inlineStartOverlay: Overlay) {
+    super(deps, CLONE_TOP_INLINE_START_CORNER);
     this.topOverlay = topOverlay;
     this.inlineStartOverlay = inlineStartOverlay;
   }
@@ -52,8 +43,8 @@ export class TopInlineStartCornerOverlay extends Overlay {
    * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
    * @returns {TopInlineStartCornerOverlayTable}
    */
-  createTable(...args: [DataAccessObject, Function, DomBindings, Settings]) {
-    return new TopInlineStartCornerOverlayTable(...args);
+  createTable(deps: TableDeps) {
+    return new TopInlineStartCornerOverlayTable(deps);
   }
 
   /**
@@ -143,7 +134,7 @@ export class TopInlineStartCornerOverlay extends Overlay {
 
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
 
-    if (this.trimmingContainer === this.domBindings.rootWindow) {
+    if (this.trimmingContainer === this.deps.rootWindow) {
       const left = this.inlineStartOverlay.getOverlayOffset() * (this.isRtl() ? -1 : 1);
       const top = this.topOverlay.getOverlayOffset();
 
@@ -152,8 +143,9 @@ export class TopInlineStartCornerOverlay extends Overlay {
       resetCssTransform(overlayRoot);
     }
 
-    let tableHeight = outerHeight(this.clone.wtTable.TABLE);
-    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
+    const { geometryReader } = this.deps;
+    let tableHeight = geometryReader.outerHeight(this.clone.wtTable.TABLE);
+    const tableWidth = geometryReader.outerWidth(this.clone.wtTable.TABLE);
 
     if (!this.wot.wtTable.hasDefinedSize()) {
       tableHeight = 0;

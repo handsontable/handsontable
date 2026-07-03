@@ -1,13 +1,9 @@
-import type { DataAccessObject, DomBindings, WalkontableInstance } from '../types';
-import type Settings from '../settings';
+import type { TableDeps } from '../table';
 import {
-  getScrollbarWidth,
-  outerHeight,
-  outerWidth,
   resetCssTransform
 } from '../../../../helpers/dom/element';
 import BottomInlineStartCornerOverlayTable from '../table/bottomInlineStartCorner';
-import { Overlay } from './_base';
+import { Overlay, type OverlayDeps } from './_base';
 import {
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from './constants';
@@ -26,17 +22,11 @@ export class BottomInlineStartCornerOverlay extends Overlay {
   declare inlineStartOverlay: Overlay;
 
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
-   * @param {FacadeGetter} facadeGetter Function which return proper facade.
-   * @param {Settings} wtSettings The Walkontable settings.
-   * @param {DomBindings} domBindings Dom elements bound to the current instance.
    * @param {BottomOverlay} bottomOverlay The instance of the Top overlay.
    * @param {InlineStartOverlay} inlineStartOverlay The instance of the InlineStart overlay.
    */
-  constructor(
-    wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings,
-    domBindings: DomBindings, bottomOverlay: Overlay, inlineStartOverlay: Overlay) {
-    super(wotInstance, facadeGetter, CLONE_BOTTOM_INLINE_START_CORNER, wtSettings, domBindings);
+  constructor(deps: OverlayDeps, bottomOverlay: Overlay, inlineStartOverlay: Overlay) {
+    super(deps, CLONE_BOTTOM_INLINE_START_CORNER);
     this.bottomOverlay = bottomOverlay;
     this.inlineStartOverlay = inlineStartOverlay;
   }
@@ -48,8 +38,8 @@ export class BottomInlineStartCornerOverlay extends Overlay {
    * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
    * @returns {BottomInlineStartCornerOverlayTable}
    */
-  createTable(...args: [DataAccessObject, Function, DomBindings, Settings]) {
-    return new BottomInlineStartCornerOverlayTable(...args);
+  createTable(deps: TableDeps) {
+    return new BottomInlineStartCornerOverlayTable(deps);
   }
 
   /**
@@ -83,10 +73,11 @@ export class BottomInlineStartCornerOverlay extends Overlay {
 
     overlayRoot.style.top = '';
 
-    if (this.trimmingContainer === this.domBindings.rootWindow) {
+    if (this.trimmingContainer === this.deps.rootWindow) {
       const inlineStartOffset = this.inlineStartOverlay.getOverlayOffset();
-      const masterTableRect = this.wot.wtTable.TABLE.getBoundingClientRect();
-      const masterHolderRect = this.wot.wtTable.holder.getBoundingClientRect();
+      const { geometryReader } = this.deps;
+      const masterTableRect = geometryReader.getBoundingClientRect(this.wot.wtTable.TABLE);
+      const masterHolderRect = geometryReader.getBoundingClientRect(this.wot.wtTable.holder);
       const masterTableOverflow = Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
       const bottom = this.bottomOverlay.getOverlayOffset() - masterTableOverflow;
 
@@ -98,8 +89,8 @@ export class BottomInlineStartCornerOverlay extends Overlay {
       this.repositionOverlay();
     }
 
-    let tableHeight = outerHeight(clone.wtTable.TABLE);
-    const tableWidth = outerWidth(clone.wtTable.TABLE);
+    let tableHeight = this.deps.geometryReader.outerHeight(clone.wtTable.TABLE);
+    const tableWidth = this.deps.geometryReader.outerWidth(clone.wtTable.TABLE);
 
     if (!this.wot.wtTable.hasDefinedSize()) {
       tableHeight = 0;
@@ -182,7 +173,7 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     }
 
     const { wtTable, wtViewport } = this.wot;
-    const { rootDocument } = this.domBindings;
+    const { rootDocument } = this.deps;
     const cloneRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     let bottomOffset = 0;
 
@@ -191,7 +182,7 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     }
 
     if (wtViewport.hasVerticalScroll() && wtViewport.hasHorizontalScroll()) {
-      bottomOffset += getScrollbarWidth(rootDocument);
+      bottomOffset += this.deps.geometryReader.getScrollbarWidth(rootDocument);
     }
 
     cloneRoot.style.bottom = `${bottomOffset}px`;

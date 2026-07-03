@@ -1,10 +1,6 @@
 import type CellCoords from './cell/coords';
 import type CellRange from './cell/range';
-import type { DomBindings } from './types';
-import type Settings from './settings';
-import type Table from './table';
-import type { SelectionManager } from './selection/manager';
-import type EventManager from '../../../eventManager';
+import type { EngineContext } from './wire';
 import {
   closestDown,
   eventTargetEl,
@@ -21,6 +17,32 @@ import { isDefined } from '../../../helpers/mixed';
 
 const LONG_PRESS_DELAY = 500;
 const LONG_PRESS_MOVE_THRESHOLD = 10;
+
+/**
+ * Assembles the Event module's dependencies from the engine composition context. The DOM roots,
+ * settings, event manager, table, and selection manager fold into this one object; the parent Event
+ * (for clones) stays a separate constructor argument because it is per-instance, not engine-wide.
+ *
+ * @param {EngineContext} ctx The engine composition context.
+ * @returns {object} The Event dependency set.
+ */
+export function createEventDeps(ctx: EngineContext) {
+  return {
+    facadeGetter: ctx.getFacade(),
+    rootDocument: ctx.rootDocument,
+    rootWindow: ctx.rootWindow,
+    geometryReader: ctx.geometryReader,
+    wtSettings: ctx.wtSettings,
+    eventManager: ctx.makeEventManager(),
+    wtTable: ctx.getWtTable(),
+    selectionManager: ctx.getSelectionManager(),
+  };
+}
+
+/**
+ * The Event module dependencies, inferred from `createEventDeps`.
+ */
+export type EventDeps = ReturnType<typeof createEventDeps>;
 
 /**
  * @class Event
@@ -46,52 +68,17 @@ class Event {
   declare lastMouseOver: HTMLElement | null;
 
   /**
-   * Walkontable settings instance.
+   * The Event module dependencies (same `#deps` pattern as the other Walkontable modules).
    *
-   * @type {Settings}
+   * @type {EventDeps}
    */
-  #wtSettings;
-  /**
-   * DOM bindings for walkontable elements.
-   *
-   * @type {DomBindings}
-   */
-  #domBindings;
-  /**
-   * Reference to the walkontable table.
-   *
-   * @type {Table}
-   */
-  #wtTable;
-  /**
-   * Selection manager instance.
-   *
-   * @type {SelectionManager}
-   */
-  #selectionManager: SelectionManager;
+  #deps: EventDeps;
   /**
    * Parent Event instance, or null for the root instance.
    *
    * @type {Event | null}
    */
   #parent;
-  /**
-   * Instance of {@link EventManager}.
-   *
-   * @type {EventManager}
-   */
-  #eventManager;
-  /**
-   * Should be use only for passing face called external origin methods, like registered event listeners.
-   * It provides backward compatibility by getting instance facade.
-   *
-   * @todo Consider about removing this from Event class, because it make relationship into facade (implicit circular
-   *   dependency).
-   * @todo Con. Maybe passing listener caller as an ioc from faced resolves this issue. To rethink later.
-   *
-   * @type {FacadeGetter}
-   */
-  #facadeGetter;
   /**
    * @type {boolean}
    */
@@ -160,25 +147,12 @@ class Event {
   #mouseOverOutsideLastCoords: { row: number; col: number } | null = null;
 
   /**
-   * @param {FacadeGetter} facadeGetter Gets an instance facade.
-   * @param {DomBindings} domBindings Bindings into dom.
-   * @param {Settings} wtSettings The walkontable settings.
-   * @param {EventManager} eventManager The walkontable event manager.
-   * @param {Table} wtTable The table.
-   * @param {SelectionManager} selectionManager Selections.
+   * @param {EventDeps} deps The Event module dependencies.
    * @param {Event} [parent=null] The main Event instance.
    */
-  constructor(
-    facadeGetter: Function, domBindings: DomBindings, wtSettings: Settings,
-    eventManager: EventManager, wtTable: Table, selectionManager: SelectionManager,
-    parent: Event | null = null) {
-    this.#wtSettings = wtSettings;
-    this.#domBindings = domBindings;
-    this.#wtTable = wtTable;
-    this.#selectionManager = selectionManager;
+  constructor(deps: EventDeps, parent: Event | null = null) {
+    this.#deps = deps;
     this.#parent = parent;
-    this.#eventManager = eventManager;
-    this.#facadeGetter = facadeGetter;
 
     this.registerEvents();
   }
@@ -189,21 +163,21 @@ class Event {
    * @private
    */
   registerEvents() {
-    this.#eventManager.addEventListener(this.#wtTable.holder, 'contextmenu',
+    this.#deps.eventManager.addEventListener(this.#deps.wtTable.holder, 'contextmenu',
       (event: MouseEvent) => this.onContextMenu(event));
-    this.#eventManager.addEventListener(this.#wtTable.TABLE, 'mouseover',
+    this.#deps.eventManager.addEventListener(this.#deps.wtTable.TABLE, 'mouseover',
       (event: MouseEvent) => this.onMouseOver(event));
-    this.#eventManager.addEventListener(this.#wtTable.TABLE, 'mouseout',
+    this.#deps.eventManager.addEventListener(this.#deps.wtTable.TABLE, 'mouseout',
       (event: MouseEvent) => this.onMouseOut(event));
 
-    if (this.#wtTable.isMaster) {
-      this.#eventManager.addEventListener(
-        this.#domBindings.rootDocument,
+    if (this.#deps.wtTable.isMaster) {
+      this.#deps.eventManager.addEventListener(
+        this.#deps.rootDocument,
         'mousemove',
         (event: MouseEvent) => this.onMouseMove(event)
       );
-      this.#eventManager.addEventListener(
-        this.#domBindings.rootDocument,
+      this.#deps.eventManager.addEventListener(
+        this.#deps.rootDocument,
         'mouseup',
         () => {
           this.#mouseDown = false;
@@ -213,17 +187,17 @@ class Event {
     }
 
     const initTouchEvents = () => {
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'touchstart',
+      this.#deps.eventManager.addEventListener(this.#deps.wtTable.holder, 'touchstart',
         (event: TouchEvent) => this.onTouchStart(event));
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'touchend',
+      this.#deps.eventManager.addEventListener(this.#deps.wtTable.holder, 'touchend',
         (event: TouchEvent) => this.onTouchEnd(event));
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'touchmove',
+      this.#deps.eventManager.addEventListener(this.#deps.wtTable.holder, 'touchmove',
         (event: TouchEvent) => this.onTouchMove(event));
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'scroll', () => this.onHolderScroll());
+      this.#deps.eventManager.addEventListener(this.#deps.wtTable.holder, 'scroll', () => this.onHolderScroll());
     };
 
     const initMouseEvents = () => {
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'mouseup',
+      this.#deps.eventManager.addEventListener(this.#deps.wtTable.holder, 'mouseup',
         (event: MouseEvent) => {
           // On devices that register both touch and mouse listeners (e.g. iPad Safari),
           // `touchend` fires first and calls `onMouseUp` directly. The browser then
@@ -234,7 +208,7 @@ class Event {
           }
           this.onMouseUp(event);
         });
-      this.#eventManager.addEventListener(this.#wtTable.holder, 'mousedown',
+      this.#deps.eventManager.addEventListener(this.#deps.wtTable.holder, 'mousedown',
         (event: MouseEvent) => this.onMouseDown(event));
     };
 
@@ -280,29 +254,29 @@ class Event {
    */
   parentCell(elem: Element | null) {
     const cell: { coords: CellCoords | null; TD: HTMLTableCellElement | null } = { coords: null, TD: null };
-    const TABLE = this.#wtTable.TABLE;
+    const TABLE = this.#deps.wtTable.TABLE;
     const TD = closestDown(elem, ['TD', 'TH'], TABLE);
 
     const elemEl = elem as HTMLElement;
 
     if (TD) {
-      cell.coords = this.#wtTable.getCoords(TD);
+      cell.coords = this.#deps.wtTable.getCoords(TD);
       cell.TD = TD as HTMLTableCellElement;
 
     } else if (hasClass(elemEl, 'wtBorder') && hasClass(elemEl, 'current')) {
-      const focusCellRange = this.#selectionManager.getFocusSelection()?.cellRange;
+      const focusCellRange = this.#deps.selectionManager.getFocusSelection()?.cellRange;
 
       if (focusCellRange) {
         cell.coords = focusCellRange.highlight;
-        cell.TD = this.#wtTable.getCell(cell.coords) as HTMLTableCellElement;
+        cell.TD = this.#deps.wtTable.getCell(cell.coords) as HTMLTableCellElement;
       }
 
     } else if (hasClass(elemEl, 'wtBorder') && hasClass(elemEl, 'area')) {
-      const areaCellRange = this.#selectionManager.getAreaSelection()?.cellRange;
+      const areaCellRange = this.#deps.selectionManager.getAreaSelection()?.cellRange;
 
       if (areaCellRange) {
         cell.coords = areaCellRange.to;
-        cell.TD = this.#wtTable.getCell(cell.coords) as HTMLTableCellElement;
+        cell.TD = this.#deps.wtTable.getCell(cell.coords) as HTMLTableCellElement;
       }
     }
 
@@ -316,7 +290,7 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onMouseDown(event: MouseEvent | TouchEvent) {
-    const activeElement = this.#domBindings.rootDocument.activeElement;
+    const activeElement = this.#deps.rootDocument.activeElement;
     const targetEl = eventTargetEl(event)!;
     const getParentNode = (level: number) => getParent(targetEl, level);
     const realTarget = eventTargetEl(event);
@@ -336,13 +310,13 @@ class Event {
     const cell = this.parentCell(realTarget);
 
     if (hasClass(realTarget!, 'corner')) {
-      this.#wtSettings.getSetting('onCellCornerMouseDown', event, realTarget);
+      this.#deps.wtSettings.getSetting('onCellCornerMouseDown', event, realTarget);
 
     } else if (cell.TD) {
       this.#mouseDown = true;
       this.#mouseOverOutsideLastCoords = null;
 
-      if (this.#wtSettings.has('onCellMouseDown')) {
+      if (this.#deps.wtSettings.has('onCellMouseDown')) {
         this.callListener('onCellMouseDown', event, cell.coords!, cell.TD);
       }
     }
@@ -370,7 +344,7 @@ class Event {
   onContextMenu(event: MouseEvent) {
     this.#cancelLongPressTimer();
 
-    if (this.#wtSettings.has('onCellContextMenu')) {
+    if (this.#deps.wtSettings.has('onCellContextMenu')) {
       const cell = this.parentCell(eventTargetEl(event));
 
       if (cell.TD) {
@@ -386,18 +360,18 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onMouseOver(event: MouseEvent) {
-    if (!this.#wtSettings.has('onCellMouseOver')) {
+    if (!this.#deps.wtSettings.has('onCellMouseOver')) {
       return;
     }
 
-    const table = this.#wtTable.TABLE;
+    const table = this.#deps.wtTable.TABLE;
     const td = closestDown(eventTargetEl(event)!, ['TD', 'TH'], table);
     const parent = this.#parent || this;
 
     if (td && td !== parent.lastMouseOver && isChildOf(td, table)) {
       parent.lastMouseOver = td;
 
-      const tdCoords = this.#wtTable.getCoords(td);
+      const tdCoords = this.#deps.wtTable.getCoords(td);
 
       if (tdCoords) {
         this.callListener('onCellMouseOver', event, tdCoords, td);
@@ -423,7 +397,7 @@ class Event {
       const lastCoords = this.#mouseOverOutsideLastCoords;
 
       if (!lastCoords || lastCoords.row !== coords.row || lastCoords.col !== coords.col) {
-        const TD = this.#wtTable.getCell(coords);
+        const TD = this.#deps.wtTable.getCell(coords);
 
         if (TD instanceof HTMLElement) {
           // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
@@ -446,13 +420,13 @@ class Event {
    * @returns {{ coords: CellCoords, isOutside: boolean }}
    */
   #getCellCoordsFromMousePosition(mouseX: number, mouseY: number) {
-    const isRtl = this.#wtSettings.getSetting<boolean>('rtlMode');
+    const isRtl = this.#deps.wtSettings.getSetting<boolean>('rtlMode');
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const wot = this.#facadeGetter();
+    const wot = this.#deps.facadeGetter();
 
-    const numberOfFixedColumnsStart = this.#wtSettings.getSetting<number>('fixedColumnsStart');
-    const numberOfFixedRowsTop = this.#wtSettings.getSetting<number>('fixedRowsTop');
-    const numberOfFixedRowsBottom = this.#wtSettings.getSetting<number>('fixedRowsBottom');
+    const numberOfFixedColumnsStart = this.#deps.wtSettings.getSetting<number>('fixedColumnsStart');
+    const numberOfFixedRowsTop = this.#deps.wtSettings.getSetting<number>('fixedRowsTop');
+    const numberOfFixedRowsBottom = this.#deps.wtSettings.getSetting<number>('fixedRowsBottom');
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const firstPartiallyVisibleRow: number = wot.wtScroll.getFirstPartiallyVisibleRow();
@@ -462,15 +436,15 @@ class Event {
     const firstPartiallyVisibleColumn: number = wot.wtScroll.getFirstPartiallyVisibleColumn();
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const lastPartiallyVisibleColumn: number = wot.wtScroll.getLastPartiallyVisibleColumn();
-    const tableOffset = this.#wtTable.wtRootElement.getBoundingClientRect();
+    const tableOffset = this.#deps.geometryReader.getBoundingClientRect(this.#deps.wtTable.wtRootElement);
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const columnHeaderHeight: number = this.#wtSettings.getSetting<Function[]>('columnHeaders').length > 0
+    const columnHeaderHeight: number = this.#deps.wtSettings.getSetting<Function[]>('columnHeaders').length > 0
       ? wot.wtViewport.getColumnHeaderHeight() : 0;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const rowHeaderWidth: number = this.#wtSettings.getSetting<Function[]>('rowHeaders').length > 0
+    const rowHeaderWidth: number = this.#deps.wtSettings.getSetting<Function[]>('rowHeaders').length > 0
       ? wot.wtViewport.getRowHeaderWidth() : 0;
-    const { rootWindow } = this.#domBindings;
+    const rootWindow = this.#deps.rootWindow;
     // When the window is the scroll container and tableOffset.left/top > 0 (e.g. RTL
     // at max-left scroll where tableOffset.left can exceed innerWidth), using it as the
     // clamp minimum causes clamp(min > max) to always return min, mapping every mouse
@@ -503,7 +477,7 @@ class Event {
       const fixedCell = wot.getCell({ row: firstPartiallyVisibleRow, col: 0 }, true);
 
       if (fixedCell instanceof HTMLElement) {
-        const fixedCellRect = fixedCell.getBoundingClientRect();
+        const fixedCellRect = this.#deps.geometryReader.getBoundingClientRect(fixedCell);
         const fixedRelativeX = isRtl ? fixedCellRect.right - clampedX : clampedX - fixedCellRect.left;
 
         foundColumn = findColumnAtX(wot, firstPartiallyVisibleRow, 0, numberOfFixedColumnsStart - 1, fixedRelativeX);
@@ -515,7 +489,7 @@ class Event {
       const scrollCell = wot.getCell({ row: firstPartiallyVisibleRow, col: firstPartiallyVisibleColumn }, true);
 
       if (scrollCell instanceof HTMLElement) {
-        const scrollCellRect = scrollCell.getBoundingClientRect();
+        const scrollCellRect = this.#deps.geometryReader.getBoundingClientRect(scrollCell);
         const scrollRelativeX = isRtl ? scrollCellRect.right - clampedX : clampedX - scrollCellRect.left;
 
         foundColumn = findColumnAtX(
@@ -541,7 +515,7 @@ class Event {
       const fixedCell = wot.getCell({ row: 0, col: firstPartiallyVisibleColumn }, true);
 
       if (fixedCell instanceof HTMLElement) {
-        const fixedCellRect = fixedCell.getBoundingClientRect();
+        const fixedCellRect = this.#deps.geometryReader.getBoundingClientRect(fixedCell);
         const fixedRelativeY = clampedY - fixedCellRect.top;
 
         foundRow = findRowAtY(wot, firstPartiallyVisibleColumn, 0, numberOfFixedRowsTop - 1, fixedRelativeY);
@@ -549,14 +523,14 @@ class Event {
     }
 
     if (foundRow === null && numberOfFixedRowsBottom > 0) {
-      const totalRows = this.#wtSettings.getSetting<number>('totalRows');
+      const totalRows = this.#deps.wtSettings.getSetting<number>('totalRows');
       const bottomStartRow = totalRows - numberOfFixedRowsBottom;
       const bottomEndRow = totalRows - 1;
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const fixedBottomCell = wot.getCell({ row: bottomStartRow, col: firstPartiallyVisibleColumn }, true);
 
       if (fixedBottomCell instanceof HTMLElement) {
-        const fixedBottomCellRect = fixedBottomCell.getBoundingClientRect();
+        const fixedBottomCellRect = this.#deps.geometryReader.getBoundingClientRect(fixedBottomCell);
         const fixedBottomRelativeY = clampedY - fixedBottomCellRect.top;
 
         if (fixedBottomRelativeY >= 0) {
@@ -574,7 +548,7 @@ class Event {
       const scrollCell = wot.getCell({ row: firstPartiallyVisibleRow, col: firstPartiallyVisibleColumn }, true);
 
       if (scrollCell instanceof HTMLElement) {
-        const scrollCellRect = scrollCell.getBoundingClientRect();
+        const scrollCellRect = this.#deps.geometryReader.getBoundingClientRect(scrollCell);
         const scrollRelativeY = clampedY - scrollCellRect.top;
 
         foundRow = findRowAtY(
@@ -610,17 +584,17 @@ class Event {
    * @param {MouseEvent} event The mouse event object.
    */
   onMouseOut(event: MouseEvent) {
-    if (!this.#wtSettings.has('onCellMouseOut')) {
+    if (!this.#deps.wtSettings.has('onCellMouseOut')) {
       return;
     }
 
-    const table = this.#wtTable.TABLE;
+    const table = this.#deps.wtTable.TABLE;
     const lastTD = closestDown(eventTargetEl(event)!, ['TD', 'TH'], table);
     const nextTD = closestDown(event.relatedTarget as HTMLElement | null, ['TD', 'TH'], table);
     const parent = this.#parent || this;
 
     if (lastTD && lastTD !== nextTD && isChildOf(lastTD, table)) {
-      const lastTDCoords = this.#wtTable.getCoords(lastTD);
+      const lastTDCoords = this.#deps.wtTable.getCoords(lastTD);
 
       if (lastTDCoords) {
         this.callListener('onCellMouseOut', event, lastTDCoords, lastTD);
@@ -644,7 +618,7 @@ class Event {
 
     const cell = this.parentCell(eventTargetEl(event));
 
-    if (cell.TD && this.#wtSettings.has('onCellMouseUp')) {
+    if (cell.TD && this.#deps.wtSettings.has('onCellMouseUp')) {
       this.callListener('onCellMouseUp', event, cell.coords!, cell.TD);
     }
 
@@ -685,7 +659,7 @@ class Event {
    * @param {TouchEvent} event The touch event object.
    */
   onTouchStart(event: TouchEvent) {
-    this.#selectedCellBeforeTouchEnd = this.#selectionManager.getFocusSelection()?.cellRange ?? null;
+    this.#selectedCellBeforeTouchEnd = this.#deps.selectionManager.getFocusSelection()?.cellRange ?? null;
     this.touchApplied = true;
     this.#touchWasMoved = false;
     this.#longPressFired = false;
@@ -718,7 +692,8 @@ class Event {
     const parentCellCoords = this.parentCell(target)?.coords;
     const isCellsRange = parentCellCoords !== null && parentCellCoords !== undefined &&
       ((parentCellCoords.row ?? -1) >= 0 && (parentCellCoords.col ?? -1) >= 0);
-    const isEventCancelable = event.cancelable && isCellsRange && this.#wtSettings.getSetting('isDataViewInstance');
+    const isEventCancelable = event.cancelable && isCellsRange &&
+      this.#deps.wtSettings.getSetting('isDataViewInstance');
 
     // To prevent accidental redirects or other actions that the interactive elements (e.q "A" link) do
     // while the cell is highlighted, all touch events that are triggered on different cells are
@@ -842,7 +817,7 @@ class Event {
     clearTimeout(this.momentumScrolling._timeout);
 
     if (!this.momentumScrolling.ongoing) {
-      this.#wtSettings.getSetting('onBeforeTouchScroll');
+      this.#deps.wtSettings.getSetting('onBeforeTouchScroll');
     }
     this.momentumScrolling.ongoing = true;
 
@@ -850,7 +825,7 @@ class Event {
       if (!this.touchApplied) {
         this.momentumScrolling.ongoing = false;
 
-        this.#wtSettings.getSetting('onAfterMomentumScroll');
+        this.#deps.wtSettings.getSetting('onAfterMomentumScroll');
       }
     }, 200);
   }
@@ -910,10 +885,10 @@ class Event {
   callListener(name: string, event: Event | MouseEvent | TouchEvent, coords: CellCoords, target: HTMLElement) {
     type ListenerFn = (
       event: Event | MouseEvent | TouchEvent, coords: CellCoords, target: HTMLElement, facade: unknown) => void;
-    const listener = this.#wtSettings.getSettingPure(name) as ListenerFn | undefined;
+    const listener = this.#deps.wtSettings.getSettingPure(name) as ListenerFn | undefined;
 
     if (listener) {
-      listener(event, coords, target, this.#facadeGetter());
+      listener(event, coords, target, this.#deps.facadeGetter());
     }
   }
 
@@ -933,7 +908,7 @@ class Event {
       clearTimeout(this.momentumScrolling._timeout);
     }
 
-    this.#eventManager.destroy();
+    this.#deps.eventManager.destroy();
   }
 }
 

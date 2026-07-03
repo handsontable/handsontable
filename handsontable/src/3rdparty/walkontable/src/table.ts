@@ -1,17 +1,14 @@
-import type { DataAccessObject, WalkontableInstance, DomBindings } from './types';
+import type { WalkontableInstance } from './types';
+import type { EngineContext } from './wire';
 import type Settings from './settings';
 import {
   hasClass,
   index,
   isHTMLElement,
   isHTMLTableCellElement,
-  offset,
   removeTextNodes,
   overlayContainsElement,
   closest,
-  outerHeight,
-  outerWidth,
-  innerHeight,
   isVisible,
   setAttribute,
 } from '../../../helpers/dom/element';
@@ -32,6 +29,44 @@ import { A11Y_PRESENTATION, A11Y_TABINDEX } from '../../../helpers/a11y';
 import { throwWithCause } from '../../../helpers/errors';
 
 /**
+ * Assembles the Table module's dependencies from the engine composition context. Shared by the
+ * master table, every overlay clone table, and the `RowUtils`/`ColumnUtils`/range-query mixins.
+ *
+ * Everything the table once received as separate constructor arguments (facade getter, DOM roots,
+ * settings) is folded in here. The volatile viewport calculators are intentionally NOT exposed — the
+ * `calculatedRows`/`calculatedColumns` mixins read the current calculator off `getWtViewport()`, so
+ * there is no stale-reference risk across draws.
+ *
+ * @param {EngineContext} ctx The engine composition context.
+ * @returns {object} The Table dependency set.
+ */
+export function createTableDeps(ctx: EngineContext) {
+  return {
+    wot: ctx.wot,
+    facadeGetter: ctx.getFacade(),
+    wtSettings: ctx.wtSettings,
+    rootDocument: ctx.rootDocument,
+    rootTable: ctx.rootTable,
+    geometryReader: ctx.geometryReader,
+    getWtTable: ctx.getWtTable,
+    getWtViewport: ctx.getWtViewport,
+    getWtOverlays: ctx.getWtOverlays,
+    getSelectionManager: ctx.getSelectionManager,
+    getCloneSource: ctx.getCloneSource,
+    getParentTableOffset: ctx.getParentTableOffset,
+    getColumnHeaders: ctx.getColumnHeaders,
+    getRowHeaders: ctx.getRowHeaders,
+    isDrawn: ctx.isDrawn,
+    setDrawn: ctx.setDrawn,
+  };
+}
+
+/**
+ * The Table module dependencies, inferred from `createTableDeps`.
+ */
+export type TableDeps = ReturnType<typeof createTableDeps>;
+
+/**
  * @todo These mixes are never added to the class Table, however their members are used here.
  * @todo Continue: Potentially it works only, because some of these mixes are added to every inherited class.
  * @todo Refactoring, move code from `if(this.isMaster)` into MasterTable, and others like that.
@@ -50,12 +85,6 @@ class Table {
    * @type {Settings}
    */
   declare wtSettings: Settings;
-  /**
-   * The DOM bindings for the table.
-   *
-   * @type {DomBindings}
-   */
-  domBindings;
   /**
    * The table body element (TBODY).
    *
@@ -125,23 +154,28 @@ class Table {
    */
   declare name: string;
   /**
-   * The data access object.
+   * The table module dependencies.
    *
-   * @type {DataAccessObject}
+   * @type {TableDeps}
    */
-  declare dataAccessObject: DataAccessObject;
+  #deps: TableDeps;
+
+  /**
+   * Read-only access to the dependencies, for the range-query mixins (`calculatedRows`/
+   * `calculatedColumns`/`stickyRows*`/`stickyColumns*`) and `RowUtils`/`ColumnUtils`, which are
+   * defined outside this class and so cannot reach the private `#deps`.
+   *
+   * @returns {TableDeps}
+   */
+  get deps(): TableDeps {
+    return this.#deps;
+  }
   /**
    * Function which returns the proper facade.
    *
    * @type {Function}
    */
   declare facadeGetter: Function;
-  /**
-   * The Walkontable instance.
-   *
-   * @type {WalkontableInstance}
-   */
-  declare instance: WalkontableInstance;
   /**
    * The Walkontable instance (legacy alias for instance).
    *
@@ -345,16 +379,10 @@ class Table {
   /**
    *
    * @abstract
-   * @param {TableDao} dataAccessObject The data access object.
-   * @param {FacadeGetter} facadeGetter Function which return proper facade.
-   * @param {DomBindings} domBindings Bindings into DOM.
-   * @param {Settings} wtSettings The Walkontable settings.
+   * @param {TableDeps} deps The table module dependencies.
    * @param {'master'|CLONE_TYPES_ENUM} name Overlay name.
    */
-  constructor(
-    dataAccessObject: DataAccessObject, facadeGetter: Function, domBindings: DomBindings,
-    wtSettings: Settings, name: string) {
-    this.domBindings = domBindings;
+  constructor(deps: TableDeps, name: string) {
     /**
      * Indicates if this instance is of type `MasterTable` (i.e. It is NOT an overlay).
      *
@@ -362,14 +390,13 @@ class Table {
      */
     this.isMaster = name === 'master';
     this.name = name;
-    this.dataAccessObject = dataAccessObject;
-    this.facadeGetter = facadeGetter;
-    this.wtSettings = wtSettings;
+    this.#deps = deps;
+    this.facadeGetter = deps.facadeGetter;
+    this.wtSettings = deps.wtSettings;
 
     // legacy support
-    this.instance = this.dataAccessObject.wot; // TODO refactoring: it might be removed here, and provides legacy support through facade.
-    this.wot = this.dataAccessObject.wot;
-    this.TABLE = domBindings.rootTable;
+    this.wot = this.#deps.wot;
+    this.TABLE = deps.rootTable;
 
     removeTextNodes(this.TABLE);
 
@@ -395,10 +422,10 @@ class Table {
     // Fix for jumping row headers (https://github.com/handsontable/handsontable/issues/3850)
     this.wtSettings.update('rowHeaderWidth', () => this._modifyRowHeaderWidth(origRowHeaderWidth));
 
-    this.rowUtils = new RowUtils(this.dataAccessObject, this.wtSettings); // TODO refactoring, It can be passed through IOC.
-    this.columnUtils = new ColumnUtils(this.dataAccessObject, this.wtSettings); // TODO refactoring, It can be passed through IOC.
+    this.rowUtils = new RowUtils(this.#deps);
+    this.columnUtils = new ColumnUtils(this.#deps);
 
-    this.tableRenderer = new Renderer({ // TODO refactoring, It can be passed through IOC.
+    this.tableRenderer = new Renderer({
       TABLE: this.TABLE,
       THEAD: this.THEAD ?? undefined,
       COLGROUP: this.COLGROUP ?? undefined,
@@ -425,7 +452,7 @@ class Table {
    *
    */
   fixTableDomTree() {
-    const rootDocument = this.domBindings.rootDocument;
+    const rootDocument = this.#deps.rootDocument;
 
     this.TBODY = this.TABLE.querySelector('tbody');
 
@@ -457,7 +484,7 @@ class Table {
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
         !isHTMLElement(parent) || !hasClass(parent, 'wtHolder')) {
-      spreader = this.domBindings.rootDocument.createElement('div');
+      spreader = this.#deps.rootDocument.createElement('div');
       spreader.className = 'wtSpreader';
 
       if (parent) {
@@ -490,7 +517,7 @@ class Table {
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
         !isHTMLElement(parent) || !hasClass(parent, 'wtHolder')) {
-      hider = this.domBindings.rootDocument.createElement('div');
+      hider = this.#deps.rootDocument.createElement('div');
       hider.className = 'wtHider';
 
       if (parent) {
@@ -520,7 +547,7 @@ class Table {
 
     if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
         !isHTMLElement(parent) || !hasClass(parent, 'wtHolder')) {
-      holder = this.domBindings.rootDocument.createElement('div');
+      holder = this.#deps.rootDocument.createElement('div');
       holder.style.position = 'relative';
       holder.className = 'wtHolder';
 
@@ -573,7 +600,8 @@ class Table {
    */
   draw(fastDraw = false) {
     const { wtSettings } = this;
-    const { wtOverlays, wtViewport } = this.dataAccessObject;
+    const wtOverlays = this.#deps.getWtOverlays();
+    const wtViewport = this.#deps.getWtViewport();
     const totalRows = wtSettings.getSetting('totalRows');
     const totalColumns = wtSettings.getSetting('totalColumns');
     const rowHeaders = wtSettings.getSetting<Function[]>('rowHeaders');
@@ -584,7 +612,7 @@ class Table {
 
     if (this.isMaster) {
       wtOverlays.beforeDraw();
-      this.holderOffset = offset(this.holder);
+      this.holderOffset = this.#deps.geometryReader.offset(this.holder);
 
       wtViewport.rowHeightCache.ensureBuilt();
       wtViewport.columnWidthCache.ensureBuilt();
@@ -614,9 +642,9 @@ class Table {
       }
     } else {
       if (this.isMaster) {
-        this.tableOffset = offset(this.TABLE);
+        this.tableOffset = this.#deps.geometryReader.offset(this.TABLE);
       } else {
-        this.tableOffset = this.dataAccessObject.parentTableOffset;
+        this.tableOffset = this.#deps.getParentTableOffset();
       }
 
       const startRow = Math.max(this.getFirstRenderedRow(), 0);
@@ -681,7 +709,7 @@ class Table {
           this.wtSettings.getSetting('onDraw', true);
 
         } else if (this.is(CLONE_BOTTOM)) {
-          this.dataAccessObject.cloneSource.wtOverlays.adjustElementsSize();
+          this.#deps.getCloneSource().wtOverlays.adjustElementsSize();
         }
       }
     }
@@ -713,7 +741,7 @@ class Table {
       wtOverlays.refreshAll(); // `refreshAll()` internally already calls `refreshSelections()` method
       wtOverlays.adjustElementsSize();
     } else {
-      this.dataAccessObject.selectionManager
+      this.#deps.getSelectionManager()
         .setActiveOverlay(this.facadeGetter())
         .render(runFastDraw);
     }
@@ -722,7 +750,7 @@ class Table {
       wtOverlays.afterDraw();
     }
 
-    this.dataAccessObject.drawn = true;
+    this.#deps.setDrawn(true);
 
     return this;
   }
@@ -750,28 +778,28 @@ class Table {
         /* eslint-disable no-continue */
         continue;
       }
-      currentHeaderHeight = innerHeight(currentHeader);
+      currentHeaderHeight = this.#deps.geometryReader.innerHeight(currentHeader);
 
       if (!previousColHeaderHeight &&
           defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
-        this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = currentHeaderHeight;
+        this.#deps.getWtViewport().oversizedColumnHeaders[level] = currentHeaderHeight;
       }
 
       if (Array.isArray(columnHeaderHeightSetting)) {
         if (columnHeaderHeightSetting[level] !== null && columnHeaderHeightSetting[level] !== undefined) {
-          this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
+          this.#deps.getWtViewport().oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
         }
 
       } else if (!isNaN(columnHeaderHeightSetting)) {
-        this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = columnHeaderHeightSetting;
+        this.#deps.getWtViewport().oversizedColumnHeaders[level] = columnHeaderHeightSetting;
       }
 
       const headerHeightAtLevel: number = Array.isArray(columnHeaderHeightSetting) // eslint-disable-line max-len
         ? (columnHeaderHeightSetting[level] ?? 0)
         : columnHeaderHeightSetting;
 
-      if ((this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] ?? 0) < headerHeightAtLevel) {
-        this.dataAccessObject.wtViewport.oversizedColumnHeaders[level] = headerHeightAtLevel;
+      if ((this.#deps.getWtViewport().oversizedColumnHeaders[level] ?? 0) < headerHeightAtLevel) {
+        this.#deps.getWtViewport().oversizedColumnHeaders[level] = headerHeightAtLevel;
       }
     }
   }
@@ -782,7 +810,7 @@ class Table {
   adjustColumnHeaderHeights() {
     const { wtSettings } = this;
     const children = this.THEAD!.childNodes;
-    const oversizedColumnHeaders = this.dataAccessObject.wtViewport.oversizedColumnHeaders;
+    const oversizedColumnHeaders = this.#deps.getWtViewport().oversizedColumnHeaders;
     const columnHeaders = wtSettings.getSetting<Function[]>('columnHeaders');
 
     for (let i = 0, len = columnHeaders.length; i < len; i++) {
@@ -809,7 +837,7 @@ class Table {
   syncOversizedColumnHeadersWithDOM() {
     const { wtSettings } = this;
     const children = this.THEAD!.childNodes;
-    const oversizedColumnHeaders = this.dataAccessObject.wtViewport.oversizedColumnHeaders;
+    const oversizedColumnHeaders = this.#deps.getWtViewport().oversizedColumnHeaders;
     const columnHeaders = wtSettings.getSetting<unknown[]>('columnHeaders');
     const borderCompensation = 1;
 
@@ -819,7 +847,7 @@ class Table {
       }
 
       const child = children[i];
-      const actualRowHeight = isHTMLElement(child) ? innerHeight(child) : 0;
+      const actualRowHeight = isHTMLElement(child) ? this.#deps.geometryReader.innerHeight(child) : 0;
 
       if (actualRowHeight > (oversizedColumnHeaders[i] ?? 0) + borderCompensation) {
         oversizedColumnHeaders[i] = actualRowHeight;
@@ -847,7 +875,7 @@ class Table {
    * synchronization stable and lets the header shrink again when the content allows.
    */
   syncOversizedColumnHeadersWithFrozenOverlays(): void {
-    const { wtOverlays } = this.dataAccessObject;
+    const wtOverlays = this.#deps.getWtOverlays();
     // Cheapest possible bail-out first: with no frozen columns the corner overlay is not cloned,
     // so the overwhelmingly common (non-frozen) grids pay only a couple of property reads per draw.
     const cornerClone = wtOverlays.topInlineStartCornerOverlay?.clone;
@@ -876,7 +904,7 @@ class Table {
         continue;
       }
 
-      const cornerRowHeight = cornerChild.getBoundingClientRect().height;
+      const cornerRowHeight = this.#deps.geometryReader.getBoundingClientRect(cornerChild).height;
 
       targetTheads.forEach((thead) => {
         const targetRow = thead?.childNodes[i];
@@ -891,7 +919,9 @@ class Table {
           return;
         }
 
-        if (Math.abs(targetRow.getBoundingClientRect().height - cornerRowHeight) > epsilon) {
+        const targetRowHeight = this.#deps.geometryReader.getBoundingClientRect(targetRow).height;
+
+        if (Math.abs(targetRowHeight - cornerRowHeight) > epsilon) {
           firstChild.style.height = `${cornerRowHeight}px`;
         }
       });
@@ -904,7 +934,7 @@ class Table {
    */
   resetOversizedRows() {
     const { wtSettings } = this;
-    const { wtViewport } = this.dataAccessObject;
+    const wtViewport = this.#deps.getWtViewport();
 
     if (!this.isMaster && !this.is(CLONE_BOTTOM)) {
       return;
@@ -1191,9 +1221,11 @@ class Table {
     let rowCount = this.TBODY!.childNodes.length;
     const stylesHandler = this.wtSettings.getSetting('stylesHandler');
     const expectedTableHeight = rowCount * stylesHandler.getDefaultRowHeight();
-    const actualTableHeight = innerHeight(this.TBODY!) - 1;
+    const actualTableHeight = this.#deps.geometryReader.innerHeight(this.TBODY!) - 1;
     const borderBoxSizing = stylesHandler.areCellsBorderBox();
-    const rowHeightFn = borderBoxSizing ? outerHeight : innerHeight;
+    const rowHeightFn = borderBoxSizing
+      ? (element: HTMLElement) => this.#deps.geometryReader.outerHeight(element)
+      : (element: HTMLElement) => this.#deps.geometryReader.innerHeight(element);
     const borderCompensation = borderBoxSizing ? 0 : 1;
     const firstRowBorderCompensation = borderBoxSizing ? 1 : 0;
     let previousRowHeight;
@@ -1207,7 +1239,7 @@ class Table {
       return;
     }
 
-    const { wtViewport } = this.dataAccessObject;
+    const wtViewport = this.#deps.getWtViewport();
     let hasChanges = false;
 
     while (rowCount) {
@@ -1548,7 +1580,7 @@ class Table {
    * @returns {number}
    */
   getWidth() {
-    return outerWidth(this.TABLE);
+    return this.#deps.geometryReader.outerWidth(this.TABLE);
   }
 
   /**
@@ -1558,7 +1590,7 @@ class Table {
    * @returns {number}
    */
   getHeight() {
-    return outerHeight(this.TABLE);
+    return this.#deps.geometryReader.outerHeight(this.TABLE);
   }
 
   /**
@@ -1568,7 +1600,7 @@ class Table {
    * @returns {number}
    */
   getTotalWidth() {
-    const width = outerWidth(this.hider);
+    const width = this.#deps.geometryReader.outerWidth(this.hider);
 
     // when the overlay's table does not have any cells the hider returns 0, get then width from the table element
     return width !== 0 ? width : this.getWidth();
@@ -1581,7 +1613,7 @@ class Table {
    * @returns {number}
    */
   getTotalHeight() {
-    const height = outerHeight(this.hider);
+    const height = this.#deps.geometryReader.outerHeight(this.hider);
 
     // when the overlay's table does not have any cells the hider returns 0, get then height from the table element
     return height !== 0 ? height : this.getHeight();

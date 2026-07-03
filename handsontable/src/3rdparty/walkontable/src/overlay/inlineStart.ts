@@ -1,18 +1,14 @@
-import type { DataAccessObject, DomBindings, WalkontableInstance } from '../types';
-import type Settings from '../settings';
+import type { TableDeps } from '../table';
 import {
   addClass,
-  getScrollbarWidth,
   getScrollLeft,
-  getMaximumScrollLeft,
   hasClass,
-  outerWidth,
   removeClass,
   setOverlayPosition,
   resetCssTransform,
 } from '../../../../helpers/dom/element';
 import InlineStartOverlayTable from '../table/inlineStart';
-import { Overlay } from './_base';
+import { Overlay, type OverlayDeps } from './_base';
 import { getCornerStyle } from '../selection';
 import {
   CLONE_INLINE_START,
@@ -24,14 +20,9 @@ import { throwWithCause } from '../../../../helpers/errors';
  */
 export class InlineStartOverlay extends Overlay {
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance. @TODO refactoring: check if can be deleted.
-   * @param {FacadeGetter} facadeGetter Function which return proper facade.
-   * @param {Settings} wtSettings The Walkontable settings.
-   * @param {DomBindings} domBindings Dom elements bound to the current instance.
    */
-  constructor(
-    wotInstance: WalkontableInstance, facadeGetter: Function, wtSettings: Settings, domBindings: DomBindings) {
-    super(wotInstance, facadeGetter, CLONE_INLINE_START, wtSettings, domBindings);
+  constructor(deps: OverlayDeps) {
+    super(deps, CLONE_INLINE_START);
   }
 
   /**
@@ -41,8 +32,8 @@ export class InlineStartOverlay extends Overlay {
    * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
    * @returns {InlineStartOverlayTable}
    */
-  createTable(...args: [DataAccessObject, Function, DomBindings, Settings]) {
-    return new InlineStartOverlayTable(...args);
+  createTable(deps: TableDeps) {
+    return new InlineStartOverlayTable(deps);
   }
 
   /**
@@ -71,7 +62,7 @@ export class InlineStartOverlay extends Overlay {
       return false;
     }
 
-    const { rootWindow } = this.domBindings;
+    const { rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let overlayPosition = 0;
@@ -99,7 +90,7 @@ export class InlineStartOverlay extends Overlay {
    * @returns {boolean}
    */
   setScrollPosition(pos: number) {
-    const { rootWindow } = this.domBindings;
+    const { rootWindow } = this.deps;
     const scrollableElement = this.mainTableScrollableElement;
     const scrollEl = scrollableElement as HTMLElement;
     const getScrollPosition = () => {
@@ -176,7 +167,7 @@ export class InlineStartOverlay extends Overlay {
     }
 
     const { wtTable, wtViewport } = this.wot;
-    const { rootDocument, rootWindow } = this.domBindings;
+    const { rootDocument, rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const overlayRootStyle = overlayRoot.style;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
@@ -191,12 +182,13 @@ export class InlineStartOverlay extends Overlay {
         // from the real scrollbar size, giving the frozen overlay a different vertical scroll range
         // than the master. That mismatch clamps the overlay's scrollTop ~1px short at the bottom and
         // shifts the frozen rows out of alignment (#12632).
-        const masterClientHeight = wtTable.holder.clientHeight;
+        const masterClientHeight = this.deps.geometryReader.clientHeight(wtTable.holder);
 
-        height = masterClientHeight > 0 ? masterClientHeight : height - getScrollbarWidth(rootDocument);
+        height = masterClientHeight > 0
+          ? masterClientHeight : height - this.deps.geometryReader.getScrollbarWidth(rootDocument);
       }
 
-      height = Math.min(height, wtTable.wtRootElement.scrollHeight);
+      height = Math.min(height, this.deps.geometryReader.scrollHeight(wtTable.wtRootElement));
       overlayRootStyle.height = `${height}px`;
 
     } else {
@@ -204,7 +196,7 @@ export class InlineStartOverlay extends Overlay {
     }
     this.clone.wtTable.holder.style.height = overlayRootStyle.height;
 
-    const tableWidth = outerWidth(this.clone.wtTable.TABLE);
+    const tableWidth = this.deps.geometryReader.outerWidth(this.clone.wtTable.TABLE);
 
     overlayRootStyle.width = `${tableWidth}px`;
   }
@@ -285,6 +277,7 @@ export class InlineStartOverlay extends Overlay {
    */
   scrollTo(sourceCol: number, beyondRendered: boolean) {
     const { wtSettings } = this;
+    const { geometryReader } = this.deps;
     const rowHeaders = wtSettings.getSetting('rowHeaders') as ((...args: unknown[]) => unknown)[];
     const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
     const sourceInstance = this.wot.cloneSource ? this.wot.cloneSource : this.wot;
@@ -306,8 +299,8 @@ export class InlineStartOverlay extends Overlay {
       }
     }
 
-    if (beyondRendered && mainHolder.offsetWidth !== mainHolder.clientWidth) {
-      scrollbarCompensation = getScrollbarWidth(this.domBindings.rootDocument);
+    if (beyondRendered && geometryReader.offsetWidth(mainHolder) !== geometryReader.clientWidth(mainHolder)) {
+      scrollbarCompensation = geometryReader.getScrollbarWidth(this.deps.rootDocument);
     }
     if (beyondRendered) {
       newX += this.sumCellSizes(0, sourceCol + 1);
@@ -324,7 +317,8 @@ export class InlineStartOverlay extends Overlay {
     // If the table is scrolled all the way left when starting the scroll and going to be scrolled to the far right,
     // we need to compensate for the potential header border width.
     if (
-      getMaximumScrollLeft(this.mainTableScrollableElement as HTMLElement) === newX - rowHeaderBorderCompensation &&
+      geometryReader.getMaximumScrollLeft(this.mainTableScrollableElement as HTMLElement)
+        === newX - rowHeaderBorderCompensation &&
       rowHeaderBorderCompensation > 0
     ) {
       this.wot.wtOverlays.expandHiderHorizontallyBy(rowHeaderBorderCompensation);
@@ -342,7 +336,7 @@ export class InlineStartOverlay extends Overlay {
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let offset = 0;
 
-    if (!preventOverflow && this.trimmingContainer === this.domBindings.rootWindow) {
+    if (!preventOverflow && this.trimmingContainer === this.deps.rootWindow) {
       offset = (this.wot.wtTable.holderOffset as { top: number; left: number }).left;
     }
 
@@ -355,7 +349,7 @@ export class InlineStartOverlay extends Overlay {
    * @returns {number} Main table's horizontal scroll position.
    */
   getScrollPosition() {
-    return Math.abs(getScrollLeft(this.mainTableScrollableElement, this.domBindings.rootWindow));
+    return Math.abs(getScrollLeft(this.mainTableScrollableElement, this.deps.rootWindow));
   }
 
   /**
@@ -364,7 +358,7 @@ export class InlineStartOverlay extends Overlay {
    * @returns {number} Main table's horizontal overlay offset.
    */
   getOverlayOffset() {
-    const { rootWindow } = this.domBindings;
+    const { rootWindow } = this.deps;
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
     let overlayOffset = 0;
 

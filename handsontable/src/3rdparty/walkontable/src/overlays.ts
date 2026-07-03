@@ -1,4 +1,5 @@
-import type { WalkontableInstance, DomBindings } from './types';
+import type { WalkontableInstance } from './types';
+import type { EngineContext } from './wire';
 import type Settings from './settings';
 import type Table from './table';
 
@@ -25,7 +26,6 @@ import type EventManager from '../../../eventManager';
 import {
   eventTargetEl,
   getScrollableElement,
-  getScrollbarWidth,
   isHTMLElement,
 } from '../../../helpers/dom/element';
 import { requestAnimationFrame } from '../../../helpers/feature';
@@ -40,27 +40,48 @@ import {
   BottomOverlay,
   BottomInlineStartCornerOverlay,
 } from './overlay';
-import { StickyScrollStrategy } from './stickyScrollStrategy';
+import { createOverlayDeps } from './overlay/_base';
+import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './stickyScrollStrategy';
+
+/**
+ * Assembles the Overlays module's dependencies from the engine composition context. Overlays is the
+ * sub-composition point for the individual overlays, so it carries `makeOverlayDeps` — a factory that
+ * mints a fresh overlay dependency set (via `createOverlayDeps`) for each overlay it builds.
+ *
+ * @param {EngineContext} ctx The engine composition context.
+ * @returns {object} The Overlays dependency set.
+ */
+export function createOverlaysDeps(ctx: EngineContext) {
+  return {
+    wot: ctx.wot,
+    wtSettings: ctx.wtSettings,
+    rootDocument: ctx.rootDocument,
+    rootWindow: ctx.rootWindow,
+    geometryReader: ctx.geometryReader,
+    eventManager: ctx.makeEventManager(),
+    wtTable: ctx.getWtTable(),
+    makeOverlayDeps: () => createOverlayDeps(ctx),
+    // Sub-composition for the sticky-scroll strategy: mirrors `makeOverlayDeps`, but also needs the
+    // owning Overlays instance (for `refreshAll`/`applyToDOM`/`scrollableElement`/`eventManager`).
+    makeStickyScrollDeps: (overlays: Overlays) => createStickyScrollStrategyDeps(ctx, overlays),
+  };
+}
+
+/**
+ * The Overlays module dependencies, inferred from `createOverlaysDeps`.
+ */
+export type OverlaysDeps = ReturnType<typeof createOverlaysDeps>;
 
 /**
  * @class Overlays
  */
 class Overlays {
   /**
-   * DOM bindings for the Walkontable instance.
+   * The Overlays module dependencies (holds the DOM roots and the overlay-deps factory).
    *
-   * @protected
-   * @type {object}
+   * @type {OverlaysDeps}
    */
-  declare domBindings: DomBindings;
-
-  /**
-   * Function which returns proper facade.
-   *
-   * @protected
-   * @type {Function}
-   */
-  declare facadeGetter: Function;
+  #deps: OverlaysDeps;
 
   /**
    * Reference to the master table instance.
@@ -69,14 +90,6 @@ class Overlays {
    * @type {MasterTable}
    */
   declare wtTable: Table;
-
-  /**
-   * Legacy support reference to the Walkontable instance.
-   *
-   * @protected
-   * @type {Walkontable}
-   */
-  declare instance: WalkontableInstance;
 
   /**
    * The walkontable event manager instance.
@@ -283,7 +296,7 @@ class Overlays {
    *
    * @type {StickyScrollStrategy}
    */
-  #stickyScroll = new StickyScrollStrategy(this);
+  #stickyScroll!: StickyScrollStrategy;
 
   /**
    * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
@@ -324,29 +337,20 @@ class Overlays {
   });
 
   /**
-   * @param {Walkontable} wotInstance The Walkontable instance. @todo refactoring remove.
-   * @param {FacadeGetter} facadeGetter Function which return proper facade.
-   * @param {DomBindings} domBindings Bindings into DOM.
-   * @param {Settings} wtSettings The Walkontable settings.
-   * @param {EventManager} eventManager The walkontable event manager.
-   * @param {MasterTable} wtTable The master table.
+   * @param {OverlaysDeps} deps The Overlays module dependencies.
    */
-  constructor(
-    wotInstance: WalkontableInstance, facadeGetter: Function, domBindings: DomBindings,
-    wtSettings: Settings, eventManager: EventManager, wtTable: Table) {
-    this.wot = wotInstance;
-    this.wtSettings = wtSettings;
-    this.domBindings = domBindings;
-    this.facadeGetter = facadeGetter;
-    this.wtTable = wtTable;
-    const { rootDocument, rootWindow } = this.domBindings;
+  constructor(deps: OverlaysDeps) {
+    this.#deps = deps;
+    this.wot = deps.wot;
+    this.wtSettings = deps.wtSettings;
+    this.wtTable = deps.wtTable;
+    const { rootDocument, rootWindow, wtTable } = deps;
 
     // legacy support
-    this.instance = this.wot; // todo refactoring: move to facade
-    this.eventManager = eventManager;
+    this.eventManager = deps.eventManager;
 
     // TODO refactoring: probably invalid place to this logic
-    this.scrollbarSize = getScrollbarWidth(rootDocument);
+    this.scrollbarSize = this.#deps.geometryReader.getScrollbarWidth(rootDocument);
 
     const rootElementParent = wtTable.wtRootElement.parentNode;
     // Use nodeType === 1 instead of instanceof Element so the check works across realms (iframes).
@@ -354,13 +358,17 @@ class Overlays {
     const isOverflowClip = rootElementParent !== null
       && rootElementParent.nodeType === 1
       && (() => {
-        const overflow = rootWindow
+        const overflow = this.#deps.geometryReader
           .getComputedStyle(rootElementParent as Element).getPropertyValue('overflow');
 
         return overflow === 'hidden' || overflow === 'clip';
       })();
 
     this.scrollableElement = isOverflowClip ? wtTable.holder : getScrollableElement(wtTable.TABLE);
+
+    // Built here (not as a field initializer) so `eventManager` and `scrollableElement` are already
+    // set; the deps are assembled via the composition context, so sticky no longer holds `this`.
+    this.#stickyScroll = new StickyScrollStrategy(this.#deps.makeStickyScrollDeps(this));
 
     this.initOverlays();
     this.#cacheScrollCallbackPositions();
@@ -404,8 +412,8 @@ class Overlays {
    * @private
    */
   initBrowserLineHeight() {
-    const { rootWindow, rootDocument } = this.domBindings;
-    const computedStyle = rootWindow.getComputedStyle(rootDocument.body);
+    const { rootDocument, geometryReader } = this.#deps;
+    const computedStyle = geometryReader.getComputedStyle(rootDocument.body);
     /**
      * Sometimes `line-height` might be set to 'normal'. In that case, a default `font-size` should be multiplied by roughly 1.2.
      * Https://developer.mozilla.org/pl/docs/Web/CSS/line-height#Values.
@@ -422,19 +430,20 @@ class Overlays {
    * @private
    */
   initOverlays() {
-    const args = [this.wot, this.facadeGetter, this.wtSettings, this.domBindings] as const;
+    // Each overlay gets a fresh dependency set from the shared factory (all fields are stable refs,
+    // so the objects are independent but equivalent).
+    const makeDeps = this.#deps.makeOverlayDeps;
 
-    // todo refactoring: IOC, collection or factories.
     // TODO refactoring, conceive about using generic collection of overlays.
-    this.topOverlay = new TopOverlay(args[0], args[1], args[2], args[3]);
-    this.bottomOverlay = new BottomOverlay(args[0], args[1], args[2], args[3]);
-    this.inlineStartOverlay = new InlineStartOverlay(args[0], args[1], args[2], args[3]);
+    this.topOverlay = new TopOverlay(makeDeps());
+    this.bottomOverlay = new BottomOverlay(makeDeps());
+    this.inlineStartOverlay = new InlineStartOverlay(makeDeps());
 
     // TODO discuss, the controversial here would be removing the lazy creation mechanism for corners.
     // TODO cond. Has no any visual impact. They're initially hidden in same way like left, top, and bottom overlays.
-    this.topInlineStartCornerOverlay = new TopInlineStartCornerOverlay(args[0], args[1], args[2], args[3],
+    this.topInlineStartCornerOverlay = new TopInlineStartCornerOverlay(makeDeps(),
       this.topOverlay, this.inlineStartOverlay);
-    this.bottomInlineStartCornerOverlay = new BottomInlineStartCornerOverlay(args[0], args[1], args[2], args[3],
+    this.bottomInlineStartCornerOverlay = new BottomInlineStartCornerOverlay(makeDeps(),
       this.bottomOverlay, this.inlineStartOverlay);
 
     this.#overlays = [
@@ -504,7 +513,7 @@ class Overlays {
    * Register all necessary event listeners.
    */
   registerListeners() {
-    const { rootDocument, rootWindow } = this.domBindings;
+    const { rootDocument, rootWindow } = this.#deps;
     const { mainTableScrollableElement: topOverlayScrollableElement } = this.topOverlay;
     const { mainTableScrollableElement: inlineStartOverlayScrollableElement } = this.inlineStartOverlay;
 
@@ -591,7 +600,7 @@ class Overlays {
   onTableScroll(event: Event) {
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
     // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
-    const rootWindow = this.domBindings.rootWindow;
+    const rootWindow = this.#deps.rootWindow;
     const masterHorizontal = this.inlineStartOverlay.mainTableScrollableElement;
     const masterVertical = this.topOverlay.mainTableScrollableElement;
     const target = event.target;
@@ -622,7 +631,7 @@ class Overlays {
       return;
     }
 
-    const { rootWindow } = this.domBindings;
+    const { rootWindow } = this.#deps;
 
     // There was if statement which controlled flow of this function. It avoided the execution of the next lines
     // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
@@ -753,8 +762,10 @@ class Overlays {
     const leftHolder = this.inlineStartOverlay.clone?.wtTable.holder; // todo rethink
     const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
 
-    let scrollX = this.scrollableElement instanceof HTMLElement ? this.scrollableElement.scrollLeft : 0;
-    let scrollY = this.scrollableElement instanceof HTMLElement ? this.scrollableElement.scrollTop : 0;
+    let scrollX = this.scrollableElement instanceof HTMLElement
+      ? this.scrollableElement.scrollLeft : 0;
+    let scrollY = this.scrollableElement instanceof HTMLElement
+      ? this.scrollableElement.scrollTop : 0;
 
     if (
       this.wot.wtViewport.isHorizontallyScrollableByWindow()
@@ -896,12 +907,12 @@ class Overlays {
       this.bottomOverlay.updateMainScrollableElement();
     }
     const { wtTable } = this;
-    const { rootWindow } = this.domBindings;
+    const { geometryReader } = this.#deps;
     const tableParentNode = wtTable.wtRootElement.parentNode;
     // Use nodeType === 1 instead of instanceof Element so the check works across realms (iframes).
     // Falls back to '' when there is no element parent (null or detached).
     const computedOverflow = tableParentNode !== null && tableParentNode.nodeType === 1
-      ? rootWindow.getComputedStyle(tableParentNode as Element).getPropertyValue('overflow')
+      ? geometryReader.getComputedStyle(tableParentNode as Element).getPropertyValue('overflow')
       : '';
 
     if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
@@ -989,8 +1000,9 @@ class Overlays {
    */
   updateLastSpreaderSize() {
     const spreader = this.wtTable.spreader;
-    const width = spreader.clientWidth;
-    const height = spreader.clientHeight;
+    const { geometryReader } = this.#deps;
+    const width = geometryReader.clientWidth(spreader);
+    const height = geometryReader.clientHeight(spreader);
     const needsUpdating = width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height;
 
     if (needsUpdating) {
@@ -1007,7 +1019,7 @@ class Overlays {
   adjustElementsSize() {
     const { wtViewport } = this.wot;
     const { wtTable } = this;
-    const { rootWindow } = this.domBindings;
+    const { rootWindow, geometryReader } = this.#deps;
     const isWindowScrolled = this.scrollableElement === rootWindow;
     const totalColumns = this.wtSettings.getSetting<number>('totalColumns');
     const totalRows = this.wtSettings.getSetting<number>('totalRows');
@@ -1029,7 +1041,7 @@ class Overlays {
       }
 
       return this.scrollableElement.scrollTop >
-        Math.max(0, proposedHiderHeight - wtTable.holder.clientHeight);
+        Math.max(0, proposedHiderHeight - geometryReader.clientHeight(wtTable.holder));
     };
     const isScrolledBeyondHiderWidth = () => {
       if (isWindowScrolled || !(this.scrollableElement instanceof HTMLElement)) {
@@ -1037,7 +1049,7 @@ class Overlays {
       }
 
       return this.scrollableElement.scrollLeft >
-        Math.max(0, proposedHiderWidth - wtTable.holder.clientWidth);
+        Math.max(0, proposedHiderWidth - geometryReader.clientWidth(wtTable.holder));
     };
     const columnHeaderBorderCompensation = isScrolledBeyondHiderHeight() ? 1 : 0;
     const rowHeaderBorderCompensation = isScrolledBeyondHiderWidth() ? 1 : 0;

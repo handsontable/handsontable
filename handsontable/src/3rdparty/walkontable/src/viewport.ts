@@ -1,14 +1,9 @@
-import type { DataAccessObject, DomBindings, WalkontableInstance } from './types';
+import type { WalkontableInstance } from './types';
+import type { EngineContext } from './wire';
 import type Settings from './settings';
 import type Table from './table';
 import type EventManager from '../../../eventManager';
 import type { CalculationTypeLike, ColumnsCalculationType, RowsCalculationType } from './calculator/viewportBase';
-import {
-  getScrollbarWidth,
-  offset,
-  outerHeight,
-  outerWidth,
-} from '../../../helpers/dom/element';
 import { objectEach } from '../../../helpers/object';
 import {
   FullyVisibleColumnsCalculationType,
@@ -26,25 +21,50 @@ import { PositionCache } from './utils/positionCache';
 import { DEFAULT_COLUMN_WIDTH } from './constants';
 
 /**
+ * Assembles the Viewport module's dependencies from the engine composition context.
+ *
+ * Everything the Viewport once received as separate constructor arguments (DOM bindings, settings,
+ * event manager, table) now flows through this one object. The `EventManager` is created once here
+ * (matching the previous per-module `this.eventManager`), and the table is resolved concretely
+ * because the Viewport is constructed after the master table exists.
+ *
+ * @param {EngineContext} ctx The engine composition context.
+ * @returns {object} The Viewport dependency set.
+ */
+export function createViewportDeps(ctx: EngineContext) {
+  return {
+    wot: ctx.wot,
+    rootDocument: ctx.rootDocument,
+    rootWindow: ctx.rootWindow,
+    geometryReader: ctx.geometryReader,
+    wtSettings: ctx.wtSettings,
+    eventManager: ctx.makeEventManager(),
+    wtTable: ctx.getWtTable(),
+    getTopOverlay: ctx.getTopOverlay,
+    getInlineStartOverlay: ctx.getInlineStartOverlay,
+    getBottomOverlay: ctx.getBottomOverlay,
+  };
+}
+
+/**
+ * The Viewport module dependencies, inferred from `createViewportDeps`.
+ */
+export type ViewportDeps = ReturnType<typeof createViewportDeps>;
+
+/**
  * @class Viewport
  */
 class Viewport {
   /**
-   * @type {DataAccessObject}
+   * The Viewport module dependencies.
+   *
+   * @type {ViewportDeps}
    */
-  declare dataAccessObject: DataAccessObject;
+  #deps: ViewportDeps;
   /**
    * @type {WalkontableInstance}
    */
   declare wot: WalkontableInstance;
-  /**
-   * @type {WalkontableInstance}
-   */
-  declare instance: WalkontableInstance;
-  /**
-   * @type {DomBindings}
-   */
-  declare domBindings: DomBindings;
   /**
    * @type {Settings}
    */
@@ -123,20 +143,14 @@ class Viewport {
   declare columnWidthCache: PositionCache;
 
   /**
-   * @param {ViewportDao} dataAccessObject The Walkontable instance.
-   * @param {DomBindings} domBindings Bindings into DOM.
-   * @param {Settings} wtSettings The Walkontable settings.
-   * @param {EventManager} eventManager The instance event manager.
-   * @param {Table} wtTable The table.
+   * @param {ViewportDeps} deps The Viewport module dependencies.
    */
-  constructor(
-    dataAccessObject: DataAccessObject, domBindings: DomBindings, wtSettings: Settings,
-    eventManager: EventManager, wtTable: Table) {
-    this.dataAccessObject = dataAccessObject;
+  constructor(deps: ViewportDeps) {
+    const { wtSettings, wtTable } = deps;
+
+    this.#deps = deps;
     // legacy support
-    this.wot = dataAccessObject.wot;
-    this.instance = this.wot;
-    this.domBindings = domBindings;
+    this.wot = deps.wot;
     this.wtSettings = wtSettings;
     this.wtTable = wtTable;
     this.oversizedRows = {};
@@ -194,8 +208,8 @@ class Viewport {
       isUniformFn: () => wtSettings.getSetting<boolean>('columnWidthsUniform'),
     });
 
-    this.eventManager = eventManager;
-    this.eventManager.addEventListener(this.domBindings.rootWindow, 'resize', () => {
+    this.eventManager = deps.eventManager;
+    this.eventManager.addEventListener(this.#deps.rootWindow, 'resize', () => {
       this.clientHeight = this.getWorkspaceHeight();
     });
   }
@@ -204,25 +218,25 @@ class Viewport {
    * @returns {number}
    */
   getWorkspaceHeight() {
-    const currentDocument = this.domBindings.rootDocument;
-    const trimmingContainer = this.dataAccessObject.topOverlayTrimmingContainer;
+    const { rootDocument: currentDocument, rootWindow, geometryReader } = this.#deps;
+    const trimmingContainer = this.#deps.getTopOverlay().trimmingContainer;
     let height = 0;
 
-    if (trimmingContainer === this.domBindings.rootWindow) {
-      height = currentDocument.documentElement.clientHeight;
+    if (trimmingContainer === rootWindow) {
+      height = geometryReader.clientHeight(currentDocument.documentElement);
 
     } else {
-      const elemHeight = outerHeight(trimmingContainer as HTMLElement);
+      const elemHeight = geometryReader.outerHeight(trimmingContainer as HTMLElement);
 
       // returns height without DIV scrollbar
-      if (elemHeight > 0 && (trimmingContainer as HTMLElement).clientHeight > 0) {
-        height = (trimmingContainer as HTMLElement).clientHeight;
+      if (elemHeight > 0 && geometryReader.clientHeight(trimmingContainer as HTMLElement) > 0) {
+        height = geometryReader.clientHeight(trimmingContainer as HTMLElement);
       } else {
         // Fall back to window height when the trimming container has zero client height
         // (e.g. a parent with overflow set but no explicit height). Returning Infinity
         // previously caused an unbounded viewport, expanding the parent to the browser's
         // ~2^25 px CSS height limit. See issue #3119.
-        height = Math.max(currentDocument.documentElement.clientHeight, 1);
+        height = Math.max(geometryReader.clientHeight(currentDocument.documentElement), 1);
       }
     }
 
@@ -256,21 +270,21 @@ class Viewport {
    * @returns {number}
    */
   getWorkspaceWidth() {
-    const { rootDocument, rootWindow } = this.domBindings;
-    const trimmingContainer = this.dataAccessObject.inlineStartOverlayTrimmingContainer;
+    const { rootDocument, rootWindow, geometryReader } = this.#deps;
+    const trimmingContainer = this.#deps.getInlineStartOverlay().trimmingContainer;
     let width;
 
     if (trimmingContainer === rootWindow) {
       const totalColumns = this.wtSettings.getSetting<number>('totalColumns');
 
-      width = this.wtTable.holder.offsetWidth;
+      width = geometryReader.offsetWidth(this.wtTable.holder);
 
       if (this.getRowHeaderWidth() + this.sumColumnWidths(0, totalColumns) > width) {
-        width = rootDocument.documentElement.clientWidth;
+        width = geometryReader.clientWidth(rootDocument.documentElement);
       }
 
     } else {
-      width = (trimmingContainer as HTMLElement).clientWidth;
+      width = geometryReader.clientWidth(trimmingContainer as HTMLElement);
     }
 
     return width;
@@ -281,7 +295,6 @@ class Viewport {
    */
   getViewportWidth() {
     const containerWidth = this.getWorkspaceWidth();
-
     const rowHeaderWidth = this.getRowHeaderWidth();
 
     if (rowHeaderWidth > 0) {
@@ -297,15 +310,17 @@ class Viewport {
    * @returns {boolean}
    */
   hasVerticalScroll() {
-    if (this.isVerticallyScrollableByWindow()) {
-      const documentElement = this.domBindings.rootDocument.documentElement;
+    const { geometryReader } = this.#deps;
 
-      return documentElement.scrollHeight > documentElement.clientHeight;
+    if (this.isVerticallyScrollableByWindow()) {
+      const documentElement = this.#deps.rootDocument.documentElement;
+
+      return geometryReader.scrollHeight(documentElement) > geometryReader.clientHeight(documentElement);
     }
 
     const { holder, hider } = this.wtTable;
-    const holderHeight = holder.clientHeight;
-    const hiderOffsetHeight = hider.offsetHeight;
+    const holderHeight = geometryReader.clientHeight(holder);
+    const hiderOffsetHeight = geometryReader.offsetHeight(hider);
 
     if (holderHeight < hiderOffsetHeight) {
       return true;
@@ -320,15 +335,17 @@ class Viewport {
    * @returns {boolean}
    */
   hasHorizontalScroll() {
-    if (this.isVerticallyScrollableByWindow()) {
-      const documentElement = this.domBindings.rootDocument.documentElement;
+    const { geometryReader } = this.#deps;
 
-      return documentElement.scrollWidth > documentElement.clientWidth;
+    if (this.isVerticallyScrollableByWindow()) {
+      const documentElement = this.#deps.rootDocument.documentElement;
+
+      return geometryReader.scrollWidth(documentElement) > geometryReader.clientWidth(documentElement);
     }
 
     const { hider } = this.wtTable;
-    const hiderOffsetWidth = hider.offsetWidth;
-    const scrollbarWidth = this.hasVerticalScroll() ? getScrollbarWidth() : 0;
+    const hiderOffsetWidth = geometryReader.offsetWidth(hider);
+    const scrollbarWidth = this.hasVerticalScroll() ? geometryReader.getScrollbarWidth() : 0;
 
     return hiderOffsetWidth > this.getWorkspaceWidth() - scrollbarWidth;
   }
@@ -339,7 +356,7 @@ class Viewport {
    * @returns {boolean}
    */
   isVerticallyScrollableByWindow() {
-    return this.dataAccessObject.topOverlayTrimmingContainer === this.domBindings.rootWindow;
+    return this.#deps.getTopOverlay().trimmingContainer === this.#deps.rootWindow;
   }
 
   /**
@@ -348,7 +365,7 @@ class Viewport {
    * @returns {boolean}
    */
   isHorizontallyScrollableByWindow() {
-    return this.dataAccessObject.inlineStartOverlayTrimmingContainer === this.domBindings.rootWindow;
+    return this.#deps.getInlineStartOverlay().trimmingContainer === this.#deps.rootWindow;
   }
 
   /**
@@ -372,7 +389,7 @@ class Viewport {
    * @returns {number}
    */
   getWorkspaceOffset() {
-    return offset(this.wtTable.holder);
+    return this.#deps.geometryReader.offset(this.wtTable.holder);
   }
 
   /**
@@ -384,7 +401,8 @@ class Viewport {
     if (!columnHeaders.length) {
       this.columnHeaderHeight = 0;
     } else if (isNaN(this.columnHeaderHeight)) {
-      this.columnHeaderHeight = this.wtTable.THEAD ? outerHeight(this.wtTable.THEAD) : 0;
+      this.columnHeaderHeight = this.wtTable.THEAD
+        ? this.#deps.geometryReader.outerHeight(this.wtTable.THEAD) : 0;
     }
 
     return this.columnHeaderHeight;
@@ -418,7 +436,7 @@ class Viewport {
 
         for (let i = 0, len = rowHeaders.length; i < len; i++) {
           if (TH) {
-            this.rowHeaderWidth += outerWidth(TH as HTMLElement);
+            this.rowHeaderWidth += this.#deps.geometryReader.outerWidth(TH as HTMLElement);
             TH = TH.nextSibling as HTMLTableCellElement;
 
           } else {
@@ -457,27 +475,31 @@ class Viewport {
 
     this.rowHeaderWidth = NaN;
 
-    let pos = this.dataAccessObject.topScrollPosition - this.dataAccessObject.topParentOffset;
+    const topOverlay = this.#deps.getTopOverlay();
+    const bottomOverlay = this.#deps.getBottomOverlay();
+    let pos = topOverlay.getScrollPosition() - topOverlay.getTableParentOffset();
 
     const fixedRowsTop = wtSettings.getSetting<number>('fixedRowsTop');
     const fixedRowsBottom = wtSettings.getSetting<number>('fixedRowsBottom');
 
     if (fixedRowsTop && pos >= 0) {
-      fixedRowsHeight = this.dataAccessObject.topOverlay.sumCellSizes(0, fixedRowsTop);
+      fixedRowsHeight = topOverlay.sumCellSizes(0, fixedRowsTop);
       pos += fixedRowsHeight;
       height -= fixedRowsHeight;
     }
 
-    if (fixedRowsBottom && this.dataAccessObject.bottomOverlay.clone) {
-      fixedRowsHeight = this.dataAccessObject.bottomOverlay.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
+    if (fixedRowsBottom && bottomOverlay.clone) {
+      fixedRowsHeight = bottomOverlay.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
 
       height -= fixedRowsHeight;
     }
 
-    if (wtTable.holder.clientHeight === wtTable.holder.offsetHeight) {
+    const { geometryReader } = this.#deps;
+
+    if (geometryReader.clientHeight(wtTable.holder) === geometryReader.offsetHeight(wtTable.holder)) {
       scrollbarHeight = 0;
     } else {
-      scrollbarHeight = getScrollbarWidth(this.domBindings.rootDocument);
+      scrollbarHeight = geometryReader.getScrollbarWidth(this.#deps.rootDocument);
     }
 
     return new ViewportRowsCalculator({
@@ -506,23 +528,26 @@ class Viewport {
    */
   createColumnsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
     const { wtSettings, wtTable } = this;
+    const inlineStartOverlay = this.#deps.getInlineStartOverlay();
     const totalColumns = wtSettings.getSetting<number>('totalColumns');
 
     let width = this.getViewportWidth();
-    let pos = Math.abs(this.dataAccessObject.inlineStartScrollPosition) - this.dataAccessObject.inlineStartParentOffset;
+    let pos = Math.abs(inlineStartOverlay.getScrollPosition()) - inlineStartOverlay.getTableParentOffset();
 
     this.columnHeaderHeight = NaN;
 
     const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
 
     if (fixedColumnsStart && pos >= 0) {
-      const fixedColumnsWidth = this.dataAccessObject.inlineStartOverlay.sumCellSizes(0, fixedColumnsStart);
+      const fixedColumnsWidth = inlineStartOverlay.sumCellSizes(0, fixedColumnsStart);
 
       pos += fixedColumnsWidth;
       width -= fixedColumnsWidth;
     }
-    if (wtTable.holder.clientWidth !== wtTable.holder.offsetWidth) {
-      width -= getScrollbarWidth(this.domBindings.rootDocument);
+    const { geometryReader } = this.#deps;
+
+    if (geometryReader.clientWidth(wtTable.holder) !== geometryReader.offsetWidth(wtTable.holder)) {
+      width -= geometryReader.getScrollbarWidth(this.#deps.rootDocument);
     }
 
     return new ViewportColumnsCalculator({
@@ -535,7 +560,7 @@ class Viewport {
       scrollOffset: pos,
       totalColumns,
       overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
-      inlineStartOffset: this.dataAccessObject.inlineStartParentOffset,
+      inlineStartOffset: inlineStartOverlay.getTableParentOffset(),
       columnWidthCache: this.columnWidthCache,
     });
   }

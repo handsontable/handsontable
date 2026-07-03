@@ -1,23 +1,39 @@
 import { isSafari } from '../../../helpers/browser';
-import type { WalkontableInstance, DomBindings } from './types';
-import type Settings from './settings';
-import type Table from './table';
+import type { EngineContext } from './wire';
+import type { default as Overlays } from './overlays';
 import type { Overlay } from './overlay/_base';
-import type EventManager from '../../../eventManager';
 
-interface OverlaysLike {
-  wot: WalkontableInstance;
-  wtTable: Table;
-  wtSettings: Settings;
-  domBindings: DomBindings;
-  eventManager: EventManager;
-  scrollableElement: HTMLElement | Window;
-  topOverlay: Overlay;
-  bottomOverlay: Overlay;
-  inlineStartOverlay: Overlay;
-  refreshAll(): void;
-  applyToDOM(): void;
+/**
+ * Assembles the StickyScrollStrategy's dependencies. Most come from the engine composition context;
+ * the three that drive the Overlays coordinator itself (`refreshAll`/`applyToDOM`/`scrollableElement`)
+ * and the shared `eventManager` come from the owning Overlays instance — so its scrollbar listeners
+ * are tracked on (and torn down with) the same event manager as the rest of the overlays.
+ *
+ * @param {EngineContext} ctx The engine composition context.
+ * @param {Overlays} overlays The owning Overlays coordinator.
+ * @returns {object} The StickyScrollStrategy dependency set.
+ */
+export function createStickyScrollStrategyDeps(ctx: EngineContext, overlays: Overlays) {
+  return {
+    wtSettings: ctx.wtSettings,
+    rootDocument: ctx.rootDocument,
+    rootWindow: ctx.rootWindow,
+    eventManager: overlays.eventManager,
+    wtTable: ctx.getWtTable(),
+    getWtViewport: ctx.getWtViewport,
+    getTopOverlay: ctx.getTopOverlay,
+    getBottomOverlay: ctx.getBottomOverlay,
+    getInlineStartOverlay: ctx.getInlineStartOverlay,
+    getScrollableElement: () => overlays.scrollableElement,
+    refreshAll: () => overlays.refreshAll(),
+    applyToDOM: () => overlays.applyToDOM(),
+  };
 }
+
+/**
+ * The StickyScrollStrategy dependencies, inferred from `createStickyScrollStrategyDeps`.
+ */
+export type StickyScrollStrategyDeps = ReturnType<typeof createStickyScrollStrategyDeps>;
 
 /**
  * Manages the sticky-scroll optimization during native scrollbar drag.
@@ -36,11 +52,11 @@ interface OverlaysLike {
  */
 export class StickyScrollStrategy {
   /**
-   * Reference to the parent Overlays coordinator.
+   * The StickyScrollStrategy dependencies.
    *
-   * @type {OverlaysLike}
+   * @type {StickyScrollStrategyDeps}
    */
-  readonly #overlays: OverlaysLike;
+  readonly #deps: StickyScrollStrategyDeps;
 
   /**
    * Whether sticky-scroll mode is currently active.
@@ -57,10 +73,10 @@ export class StickyScrollStrategy {
   #mouseDown = false;
 
   /**
-   * @param {Overlays} overlays The parent Overlays instance.
+   * @param {StickyScrollStrategyDeps} deps The StickyScrollStrategy dependencies.
    */
-  constructor(overlays: OverlaysLike) {
-    this.#overlays = overlays;
+  constructor(deps: StickyScrollStrategyDeps) {
+    this.#deps = deps;
   }
 
   /**
@@ -68,7 +84,7 @@ export class StickyScrollStrategy {
    * Called from `Overlays.registerListeners()`.
    */
   registerListeners() {
-    const { eventManager, domBindings: { rootDocument } } = this.#overlays;
+    const { eventManager, rootDocument } = this.#deps;
 
     // Scrollable elements may have changed (e.g. updateSettings). Discard any
     // leftover sticky state so a stale deactivate() cannot compute a wrong scroll.
@@ -117,8 +133,7 @@ export class StickyScrollStrategy {
       return;
     }
 
-    const overlays = this.#overlays;
-    const { wtViewport } = overlays.wot;
+    const wtViewport = this.#deps.getWtViewport();
 
     const startTop = wtViewport.rowsRenderCalculator?.startPosition;
     const startLeft = wtViewport.columnsRenderCalculator?.startPosition;
@@ -152,9 +167,8 @@ export class StickyScrollStrategy {
    * using the exact visual offset so no jump occurs.
    */
   #activate() {
-    const overlays = this.#overlays;
-    const spreader = overlays.wtTable.spreader;
-    const isRtl = overlays.wtSettings.getSetting('rtlMode');
+    const spreader = this.#deps.wtTable.spreader;
+    const isRtl = this.#deps.wtSettings.getSetting('rtlMode');
     const leftProp = isRtl ? 'right' : 'left';
 
     const startTop = Number.parseInt(spreader.style.top, 10) || 0;
@@ -174,14 +188,13 @@ export class StickyScrollStrategy {
    * triggers a final full render.
    */
   deactivate() {
-    const overlays = this.#overlays;
-    const spreader = overlays.wtTable.spreader;
-    const { wtViewport } = overlays.wot;
-    const isRtl = overlays.wtSettings.getSetting('rtlMode');
+    const spreader = this.#deps.wtTable.spreader;
+    const wtViewport = this.#deps.getWtViewport();
+    const isRtl = this.#deps.wtSettings.getSetting('rtlMode');
     const leftProp = isRtl ? 'right' : 'left';
 
     // Render while still active (same code path as during drag).
-    overlays.refreshAll();
+    this.#deps.refreshAll();
 
     // Capture the sticky offsets and computed start positions.
     const lastStickyTop = Number.parseInt(spreader.style.top, 10) || 0;
@@ -203,8 +216,8 @@ export class StickyScrollStrategy {
     this.#applySpreaderStyles('relative', 0, 0);
 
     // Final render in normal mode at the corrected scroll position.
-    overlays.refreshAll();
-    overlays.applyToDOM();
+    this.#deps.refreshAll();
+    this.#deps.applyToDOM();
   }
 
   /**
@@ -213,7 +226,7 @@ export class StickyScrollStrategy {
    * @returns {number}
    */
   #getScrollTop() {
-    const { topOverlay } = this.#overlays;
+    const topOverlay = this.#deps.getTopOverlay();
 
     return topOverlay.getScrollPosition() - topOverlay.getTableParentOffset();
   }
@@ -224,7 +237,7 @@ export class StickyScrollStrategy {
    * @returns {number}
    */
   #getScrollLeft() {
-    const { inlineStartOverlay } = this.#overlays;
+    const inlineStartOverlay = this.#deps.getInlineStartOverlay();
 
     // For RTL window scrolling, scrollX increases as the user scrolls left (away from
     // the right-edge origin). getTableParentOffset() returns the left-edge offset which
@@ -244,23 +257,21 @@ export class StickyScrollStrategy {
    * @param {number} left Horizontal offset (hider coordinates).
    */
   #setScrollPosition(top: number, left: number): void {
-    const overlays = this.#overlays;
-
     if (this.#isWindowScroll()) {
-      const { rootWindow } = overlays.domBindings;
+      const { rootWindow } = this.#deps;
       // RTL + window-scroll: left is in scrollX coordinates (distance from the right-edge
       // origin), so pass it directly. LTR: add back the table's left page offset.
       const absoluteLeft = this.#isRtl()
         ? left
-        : left + overlays.inlineStartOverlay.getTableParentOffset();
+        : left + this.#deps.getInlineStartOverlay().getTableParentOffset();
 
       rootWindow.scrollTo(
         absoluteLeft,
-        top + overlays.topOverlay.getTableParentOffset()
+        top + this.#deps.getTopOverlay().getTableParentOffset()
       );
     } else {
-      overlays.wtTable.holder.scrollTop = top;
-      overlays.wtTable.holder.scrollLeft = this.#isRtl() ? -left : left;
+      this.#deps.wtTable.holder.scrollTop = top;
+      this.#deps.wtTable.holder.scrollLeft = this.#isRtl() ? -left : left;
     }
   }
 
@@ -286,8 +297,7 @@ export class StickyScrollStrategy {
    * @param {number} stickyLeft The horizontal offset (only used for sticky).
    */
   #applySpreaderStyles(position: 'sticky' | 'relative', stickyTop: number, stickyLeft: number): void {
-    const overlays = this.#overlays;
-    const spreader = overlays.wtTable.spreader;
+    const spreader = this.#deps.wtTable.spreader;
     const isRtl = this.#isRtl();
     const leftProp = isRtl ? 'right' : 'left';
     const isSticky = position === 'sticky';
@@ -312,9 +322,9 @@ export class StickyScrollStrategy {
       return;
     }
 
-    this.#applyCloneSpreaderStyles(overlays.inlineStartOverlay, position, isSticky, stickyTop, null, isRtl);
-    this.#applyCloneSpreaderStyles(overlays.topOverlay, position, isSticky, null, stickyLeft, isRtl);
-    this.#applyCloneSpreaderStyles(overlays.bottomOverlay, position, isSticky, null, stickyLeft, isRtl);
+    this.#applyCloneSpreaderStyles(this.#deps.getInlineStartOverlay(), position, isSticky, stickyTop, null, isRtl);
+    this.#applyCloneSpreaderStyles(this.#deps.getTopOverlay(), position, isSticky, null, stickyLeft, isRtl);
+    this.#applyCloneSpreaderStyles(this.#deps.getBottomOverlay(), position, isSticky, null, stickyLeft, isRtl);
   }
 
   /**
@@ -372,10 +382,10 @@ export class StickyScrollStrategy {
    */
   #isScrollbarTarget(event: MouseEvent): boolean {
     if (this.#isWindowScroll()) {
-      return event.target === this.#overlays.domBindings.rootDocument.documentElement;
+      return event.target === this.#deps.rootDocument.documentElement;
     }
 
-    return event.target === this.#overlays.scrollableElement;
+    return event.target === this.#deps.getScrollableElement();
   }
 
   /**
@@ -384,7 +394,7 @@ export class StickyScrollStrategy {
    * @returns {boolean}
    */
   #isWindowScroll() {
-    return this.#overlays.scrollableElement === this.#overlays.domBindings.rootWindow;
+    return this.#deps.getScrollableElement() === this.#deps.rootWindow;
   }
 
   /**
@@ -393,6 +403,6 @@ export class StickyScrollStrategy {
    * @returns {boolean}
    */
   #isRtl(): boolean {
-    return this.#overlays.wtSettings.getSetting<boolean>('rtlMode');
+    return this.#deps.wtSettings.getSetting<boolean>('rtlMode');
   }
 }

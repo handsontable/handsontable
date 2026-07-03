@@ -90,6 +90,10 @@ These are the shared vocabulary for selection, viewport, and overlay logic.
 
 ## Render Flow
 
+> For the phase-by-phase draw cycle (entry points, fast-draw vs full-draw downgrades, forced DOM reads,
+> public-hook firing semantics, and which phases are invariant on a pure scroll), see the deep reference
+> **`RENDERING-LIFECYCLE.md`** next to this file. The summary below is the high-level version.
+
 1. Core calls `this.view.render()` (directly, or a plugin triggers a render through hooks).
 2. `TableView` delegates to the Walkontable Facade, which calls the core instance's `draw()`.
 3. Walkontable recalculates the visible viewport using `ViewportRowsCalculator` and `ViewportColumnsCalculator`.

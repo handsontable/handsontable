@@ -27,7 +27,7 @@ export function findColumnAtX(
       continue;
     }
 
-    const width = cellElement.offsetWidth;
+    const width = wotInstance.domBindings.geometryReader.offsetWidth(cellElement);
 
     if (relativeX < accumulatedX + width) {
       return column;
@@ -66,7 +66,7 @@ export function findRowAtY(
       continue;
     }
 
-    const height = cellElement.offsetHeight;
+    const height = wotInstance.domBindings.geometryReader.offsetHeight(cellElement);
 
     if (relativeY < accumulatedY + height) {
       return row;
