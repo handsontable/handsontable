@@ -57,10 +57,10 @@ Press <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Y**</kbd> (or <kbd>**Ctrl**</kbd
 
 ::: only-for react
 
-::: example #example :react --tsx 1 --jsx 2
+::: example #example :react --js 1 --ts 2
 
-@[code](@/content/guides/accessories-and-menus/undo-redo/react/example.tsx)
 @[code](@/content/guides/accessories-and-menus/undo-redo/react/example.jsx)
+@[code](@/content/guides/accessories-and-menus/undo-redo/react/example.tsx)
 
 :::
 
