@@ -29,15 +29,19 @@ Revert and restore your changes, using the undo and redo features.
 
 ## Overview
 
-This feature allows you to revert changes made in the data grid. It is very useful in a normal day-to-day routine, especially when the change is unintentional. This feature stacks the changes made with the user interface of the grid. Modifications done programmatically are omitted.
+The [`UndoRedo`](@/api/undoRedo.md) plugin records supported grid operations and stores them in undo and redo stacks.
 
-The basic methods are [`undo()`](@/api/undoRedo.md#undo) and [`redo()`](@/api/undoRedo.md#redo). The [`undo()`](@/api/undoRedo.md#undo) method rolls back the last performed action, and the [`redo()`](@/api/undoRedo.md#redo) method restores it.
+You can use keyboard shortcuts or call API methods to move backward and forward through that history.
 
-This feature is provided by the [`UndoRedo`](@/api/undoRedo.md) plugin, and is enabled by default.
+The plugin is enabled by default.
 
 ## Basic demo
 
-Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Z**</kbd> command to redo the previous state. Then, use <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Y**</kbd> (or <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Shift**</kbd>+<kbd>**Z**</kbd>) to restore it.
+Make a few edits in the grid.
+
+Press <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Z**</kbd> to undo your last action.
+
+Press <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Y**</kbd> (or <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Shift**</kbd>+<kbd>**Z**</kbd>) to redo it.
 
 ::: only-for javascript
 
@@ -83,14 +87,69 @@ Make some changes to the grid below and the use the <kbd>**Ctrl**</kbd>/<kbd>⌘
 
 :::
 
+## What UndoRedo tracks
+
+UndoRedo tracks operations that emit dedicated hooks and register an action in the plugin.
+
+The built-in tracked actions include:
+
+- Cell value changes (`beforeChange`)
+- Row and column insertion/removal (`afterCreateRow`, `afterCreateCol`, `beforeRemoveRow`, `beforeRemoveCol`)
+- Column sorting (`beforeColumnSort`)
+- Filtering (`beforeFilter`)
+- Row and column moving (`beforeRowMove`, `beforeColumnMove`)
+- Merge and unmerge (`beforeMergeCells`, `afterUnmergeCells`)
+- Alignment changes (`beforeCellAlignment`)
+
+## Batch edits and multi-cell changes
+
+For data edits, UndoRedo records only effective changes:
+
+- Entries nullified by other `beforeChange` hooks are skipped.
+- If a single cell changed, UndoRedo restores selection to that cell.
+- If multiple cells changed in one operation, UndoRedo restores the full selection range.
+
+When you undo a data-change action, Handsontable can also remove rows or columns that were created as a side effect of that edit, and then restore the previous selection.
+
+## Hooks and stack lifecycle
+
+UndoRedo exposes hooks for both stack updates and action execution:
+
+- Stack update hooks: [`beforeUndoStackChange`](@/api/hooks.md#beforeundostackchange), [`afterUndoStackChange`](@/api/hooks.md#afterundostackchange), [`beforeRedoStackChange`](@/api/hooks.md#beforeredostackchange), and [`afterRedoStackChange`](@/api/hooks.md#afterredostackchange).
+- Action hooks: [`beforeUndo`](@/api/hooks.md#beforeundo), [`afterUndo`](@/api/hooks.md#afterundo), [`beforeRedo`](@/api/hooks.md#beforeredo), and [`afterRedo`](@/api/hooks.md#afterredo).
+
+You can return `false` from `beforeUndoStackChange`, `beforeUndo`, or `beforeRedo` to block recording or execution.
+
+Calling `loadData()` clears both stacks.
+
+## Programmatic control
+
+Use the plugin instance to inspect and control history:
+
+```js
+const undoRedo = hot.getPlugin('undoRedo');
+
+if (undoRedo.isUndoAvailable()) {
+  undoRedo.undo();
+}
+
+if (undoRedo.isRedoAvailable()) {
+  undoRedo.redo();
+}
+
+undoRedo.clear();
+```
+
 ## Known limitations
 
-Not all user-triggered actions are recorded in the undo-and-redo history.
-The following actions are not supported:
+UndoRedo does not record every possible operation.
+
+The following operations are not tracked by default:
 
 - [Column resizing](@/guides/columns/column-width/column-width.md) and [row resizing](@/guides/rows/row-height/row-height.md)
 - [Hiding columns](@/guides/columns/column-hiding/column-hiding.md) and [hiding rows](@/guides/rows/row-hiding/row-hiding.md)
 - [Trimming rows](@/guides/rows/row-trimming/row-trimming.md)
+- Generic cell metadata changes that don't register an UndoRedo action (for example, most direct `setCellMeta()` updates)
 
 ## Related keyboard shortcuts
 
@@ -140,3 +199,5 @@ The following actions are not supported:
 - [UndoRedo](@/api/undoRedo.md)
 
 </div>
+
+Microsoft and Excel are registered trademarks of Microsoft Corporation. Google Sheets is a trademark of Google LLC.
