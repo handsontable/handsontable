@@ -31,6 +31,7 @@
     "@expressive-code/plugin-line-numbers": "^0.41.7",
     "@handsontable/pikaday": "^1.0.0",
     "@simonwep/pickr": "^1.9.1",
+    "@supabase/supabase-js": "^2.110.0",
     "astro": "^6.4.5",
     "chart.js": "^4.5.1",
     "date-fns": "^4.1.0",
