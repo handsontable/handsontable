@@ -18,6 +18,7 @@ vue:
   metaTitle: Autocomplete cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Collect user input with a list of choices, by using the autocomplete cell type.
 
@@ -30,7 +31,7 @@ You can edit the autocomplete-typed cells in three different ways:
 
 - Flexible mode
 - Strict mode
-- Strict mode using Ajax
+- Strict mode with asynchronous data
 
 In all three modes, the `source` option can be provided in two formats:
 
@@ -139,9 +140,11 @@ In strict mode, the [`allowInvalid`](@/api/options.md#allowinvalid) option deter
 
 :::
 
-## Autocomplete strict mode (Ajax)
+<span id="autocomplete-strict-mode-ajax"></span>
 
-Autocomplete can also be used with Ajax data sources. In the example below, suggestions for the "Car" column are loaded from the server. To load data from a remote *asynchronous* source, assign a function to the 'source' property. The function should perform the server-side request and call the callback function when the result is available.
+## Autocomplete strict mode with asynchronous data
+
+Autocomplete can also use asynchronous data sources. In the example below, suggestions for the "Car" column are loaded from the server with the Fetch API. To load data from a remote source, assign a function to the `source` option. The function receives the query string and the `process` callback. Call `process()` with the result array when the request completes.
 
 ::: only-for javascript
 
