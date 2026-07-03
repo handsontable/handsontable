@@ -16,6 +16,7 @@ vue:
   metaTitle: Selection - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
+menuTag: updated
 ---
 Select a single cell, a range of adjacent cells, or multiple non-adjacent ranges of cells.
 
@@ -317,6 +318,52 @@ To jump across a horizontal edge:
 
 - When cell selection is on a column's first cell, press <kbd>**↑**</kbd>.
 - When cell selection is on a column's last cell, press <kbd>**↓**</kbd>, or press <kbd>**Enter**</kbd>.
+
+Use the checkboxes in the demo below to toggle `autoWrapRow` and `autoWrapCol`, then select a cell and use the keyboard to test the wrap-around behavior at the grid's edges.
+
+::: only-for javascript
+
+::: example #example6 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/cell-features/selection/javascript/example6.html)
+@[code](@/content/guides/cell-features/selection/javascript/example6.js)
+@[code](@/content/guides/cell-features/selection/javascript/example6.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example6 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/selection/react/example6.jsx)
+@[code](@/content/guides/cell-features/selection/react/example6.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example6 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/selection/angular/example6.ts)
+@[code](@/content/guides/cell-features/selection/angular/example6.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example6 :vue3
+
+@[code](@/content/guides/cell-features/selection/vue/example6.vue)
+
+:::
+
+:::
 
 ## Result
 
