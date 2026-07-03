@@ -32,7 +32,7 @@ export class AppComponent {
 
   readonly gridSettings: GridSettings = {
     rowHeaders: true,
-    colHeaders: true,
+    colHeaders: ['SKU', 'Product', 'Category', 'Price ($)', 'Stock'],
     stretchH: 'all',
     cell: [
       {
