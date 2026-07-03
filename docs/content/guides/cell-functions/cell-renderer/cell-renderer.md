@@ -361,6 +361,28 @@ settings = {
 
 :::
 
+When your custom renderer should preserve the default text output, call the built-in `textRenderer()` first. See [Extend a built-in renderer](#extend-a-built-in-renderer).
+
+## Extend a built-in renderer
+
+When you build on top of a built-in renderer, Handsontable does not call that base renderer for you. You call it inside your custom renderer before your extra logic.
+
+Use `textRenderer` as the base when you want plain-text output and then apply styling or additional DOM changes.
+
+Use `htmlRenderer` as the base when your output is trusted HTML and you intentionally render with `innerHTML`.
+
+Skip a base renderer when your renderer fully controls cell output from scratch, for example the image-based `coverRenderer` in [Render custom HTML in cells](#render-custom-html-in-cells).
+
+Both of the following call styles are valid:
+
+```js
+// Legacy style, common in classic JavaScript examples.
+textRenderer.apply(this, arguments);
+
+// Direct invocation style, common in ESM and TypeScript examples.
+textRenderer(instance, td, row, column, prop, value, cellProperties);
+```
+
 ## Render custom HTML in cells
 
 This example shows how to use custom cell renderers to display HTML content in a cell. This is a very powerful feature. Just remember to escape any HTML code that could be used for XSS attacks.
@@ -443,6 +465,8 @@ When the link comes from untrusted input, validate the URL before rendering it. 
 ## Render custom HTML in header
 
 You can also put HTML into row and column headers. If you need to attach events to DOM elements like the checkbox below, just remember to identify the element by class name, not by id. This is because row and column headers are duplicated in the DOM tree and id attribute must be unique.
+
+If your goal is to extend a built-in renderer before adding custom logic, see [Extend a built-in renderer](#extend-a-built-in-renderer).
 
 ::: warning Security
 Handsontable does not include a built-in HTML sanitizer. When header content comes from untrusted sources, supply a [`sanitizer`](@/api/options.md#sanitizer) function to prevent XSS.
