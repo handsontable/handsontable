@@ -1,7 +1,7 @@
 import type { TableDeps } from '../table';
 import Table from '../table';
 import stickyRowsTop from './mixin/stickyRowsTop';
-import calculatedColumns from './mixin/calculatedColumns';
+import { columnRangeQuery } from '../renderedRange';
 import { mixin } from '../../../../helpers/object';
 import { CLONE_TOP } from '../overlay';
 
@@ -21,6 +21,6 @@ class TopOverlayTable extends Table {
 }
 
 mixin(TopOverlayTable, stickyRowsTop);
-mixin(TopOverlayTable, calculatedColumns);
+mixin(TopOverlayTable, columnRangeQuery);
 
 export default TopOverlayTable;

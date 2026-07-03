@@ -1,4 +1,5 @@
 import type { TableDeps } from '../table';
+import type { RowSizeSource } from '../sizing/axisSizeSource';
 /**
  * Row utils class contains all necessary information about sizes of the rows.
  *
@@ -11,6 +12,12 @@ export default class RowUtils {
    * @type {TableDeps}
    */
   #deps: TableDeps;
+  /**
+   * The row-height source — supplies the provided (non-oversized) height half.
+   *
+   * @type {RowSizeSource}
+   */
+  #rowSizeSource: RowSizeSource;
   /**
    * @type {Settings}
    */
@@ -31,6 +38,7 @@ export default class RowUtils {
    */
   constructor(deps: TableDeps) {
     this.#deps = deps;
+    this.#rowSizeSource = deps.rowSizeSource;
     this.wtSettings = deps.wtSettings;
   }
 
@@ -41,7 +49,7 @@ export default class RowUtils {
    * @returns {number}
    */
   getHeight(sourceIndex: number) {
-    let height = this.wtSettings.getSetting<number | undefined>('rowHeight', sourceIndex);
+    let height = this.#rowSizeSource.getSize(sourceIndex);
     const oversizedHeight = this.#deps.getWtViewport().oversizedRows[sourceIndex];
 
     if (oversizedHeight !== undefined) {
@@ -59,7 +67,7 @@ export default class RowUtils {
    * @returns {number}
    */
   getHeightByOverlayName(sourceIndex: number, overlayName: string) {
-    let height = this.wtSettings.getSetting<number | undefined>('rowHeightByOverlayName', sourceIndex, overlayName);
+    let height = this.#rowSizeSource.getSizeForOverlay(sourceIndex, overlayName);
     const oversizedHeight = this.#deps.getWtViewport().oversizedRows[sourceIndex];
 
     if (oversizedHeight !== undefined) {

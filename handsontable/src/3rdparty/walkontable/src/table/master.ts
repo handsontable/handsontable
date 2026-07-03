@@ -4,8 +4,7 @@ import {
   isVisible,
 } from './../../../../helpers/dom/element';
 import Table from '../table';
-import calculatedRows from './mixin/calculatedRows';
-import calculatedColumns from './mixin/calculatedColumns';
+import { rowRangeQuery, columnRangeQuery } from '../renderedRange';
 import { mixin } from './../../../../helpers/object';
 
 /**
@@ -285,31 +284,6 @@ class MasterTable extends Table {
   }
 
   /**
-   * Marks oversized column headers in the master overlay by iterating through all
-   * rendered columns and marking those that exceed their container dimensions.
-   */
-  markOversizedColumnHeaders() {
-    const { wtSettings } = this;
-    const wtViewport = this.deps.getWtViewport();
-    const overlayName = 'master';
-    const columnHeaders = wtSettings.getSetting<unknown[]>('columnHeaders');
-    const columnHeadersCount = columnHeaders.length;
-
-    if (columnHeadersCount && !wtViewport.hasOversizedColumnHeadersMarked[overlayName]) {
-      const rowHeaders = wtSettings.getSetting<unknown[]>('rowHeaders');
-      const rowHeaderCount = rowHeaders.length;
-      const columnCount = this.getRenderedColumnsCount();
-
-      for (let i = 0; i < columnHeadersCount; i++) {
-        for (let renderedColumnIndex = (-1) * rowHeaderCount; renderedColumnIndex < columnCount; renderedColumnIndex++) { // eslint-disable-line max-len
-          this.markIfOversizedColumnHeader(renderedColumnIndex);
-        }
-      }
-      wtViewport.hasOversizedColumnHeadersMarked[overlayName] = true;
-    }
-  }
-
-  /**
    * Disconnects the ResizeObservers and drops cache references so the
    * MasterTable instance, the trimming container, and the hider can be
    * garbage-collected after Walkontable is destroyed.
@@ -324,7 +298,7 @@ class MasterTable extends Table {
   }
 }
 
-mixin(MasterTable, calculatedRows);
-mixin(MasterTable, calculatedColumns);
+mixin(MasterTable, rowRangeQuery);
+mixin(MasterTable, columnRangeQuery);
 
 export default MasterTable;

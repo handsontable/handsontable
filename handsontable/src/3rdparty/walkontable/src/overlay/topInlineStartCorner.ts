@@ -127,7 +127,7 @@ export class TopInlineStartCornerOverlay extends Overlay {
   resetFixedPosition() {
     this.updateTrimmingContainer();
 
-    if (!(this.wot.wtTable.holder.parentNode as HTMLElement) || !this.clone) {
+    if (!(this.deps.getWtTable().holder.parentNode as HTMLElement) || !this.clone) {
       // removed from DOM
       return false;
     }
@@ -147,7 +147,7 @@ export class TopInlineStartCornerOverlay extends Overlay {
     let tableHeight = geometryReader.outerHeight(this.clone.wtTable.TABLE);
     const tableWidth = geometryReader.outerWidth(this.clone.wtTable.TABLE);
 
-    if (!this.wot.wtTable.hasDefinedSize()) {
+    if (!this.deps.getWtTable().hasDefinedSize()) {
       tableHeight = 0;
     }
 

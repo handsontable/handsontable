@@ -63,7 +63,7 @@ export class TopOverlay extends Overlay {
    * @returns {boolean}
    */
   resetFixedPosition() {
-    if (!this.needFullRender || !this.shouldBeRendered() || !this.wot.wtTable.holder.parentNode || !this.clone) {
+    if (!this.needFullRender || !this.shouldBeRendered() || !this.deps.getWtTable().holder.parentNode || !this.clone) {
       // removed from DOM
       return false;
     }
@@ -75,7 +75,7 @@ export class TopOverlay extends Overlay {
     let skipInnerBorderAdjusting = false;
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
-      const { wtTable } = this.wot;
+      const wtTable = this.deps.getWtTable();
       const { geometryReader } = this.deps;
       const hiderRect = geometryReader.getBoundingClientRect(wtTable.hider);
       const bottom = Math.ceil(hiderRect.bottom);
@@ -161,7 +161,7 @@ export class TopOverlay extends Overlay {
     let sum = 0;
 
     while (row < to) {
-      const height = this.wot.wtTable.getRowHeight(row);
+      const height = this.deps.getWtTable().getRowHeight(row);
 
       sum += height === undefined ? defaultRowHeight : height;
       row += 1;
@@ -190,7 +190,8 @@ export class TopOverlay extends Overlay {
       return;
     }
 
-    const { wtTable, wtViewport } = this.wot;
+    const wtTable = this.deps.getWtTable();
+    const wtViewport = this.deps.getWtViewport();
     const { rootDocument, rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const overlayRootStyle = overlayRoot.style;
@@ -269,7 +270,7 @@ export class TopOverlay extends Overlay {
 
     const { holder } = this.clone.wtTable;
     const cornerStyle = getCornerStyle(this.wot);
-    const focusSelection = this.wot.selectionManager.getFocusSelection();
+    const focusSelection = this.deps.getSelectionManager().getFocusSelection();
     // Reserve the corner's protruding half-height only when it lands in this overlay's frozen rows;
     // otherwise the holder grows taller than its table and leaves a leftover top border at the seam.
     const selectionCornerOffset = this.shouldReserveSelectionCornerOffset(focusSelection)
@@ -290,8 +291,10 @@ export class TopOverlay extends Overlay {
   applyToDOM() {
     const total: number = this.wtSettings.getSetting('totalRows') ?? 0;
 
-    if (typeof this.wot.wtViewport.rowsRenderCalculator?.startPosition === 'number') {
-      this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
+    const rowsRenderCalculator = this.deps.getWtViewport().rowsRenderCalculator;
+
+    if (typeof rowsRenderCalculator?.startPosition === 'number') {
+      this.spreader.style.top = `${rowsRenderCalculator.startPosition}px`;
 
     } else if (total === 0) {
       // can happen if there are 0 rows
@@ -318,8 +321,10 @@ export class TopOverlay extends Overlay {
     const styleProperty = this.isRtl() ? 'right' : 'left';
     const { spreader } = this.clone.wtTable;
 
-    if (typeof this.wot.wtViewport.columnsRenderCalculator?.startPosition === 'number') {
-      spreader.style[styleProperty] = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
+    const columnsRenderCalculator = this.deps.getWtViewport().columnsRenderCalculator;
+
+    if (typeof columnsRenderCalculator?.startPosition === 'number') {
+      spreader.style[styleProperty] = `${columnsRenderCalculator.startPosition}px`;
 
     } else {
       spreader.style[styleProperty] = '';
@@ -349,8 +354,8 @@ export class TopOverlay extends Overlay {
     let scrollbarCompensation = 0;
 
     if (bottomEdge) {
-      const rowHeight = this.wot.wtTable.getRowHeight(sourceRow) ?? 0;
-      const viewportHeight = this.wot.wtViewport.getViewportHeight();
+      const rowHeight = this.deps.getWtTable().getRowHeight(sourceRow) ?? 0;
+      const viewportHeight = this.deps.getWtViewport().getViewportHeight();
 
       if (rowHeight > viewportHeight) {
         bottomEdge = false;
@@ -385,7 +390,7 @@ export class TopOverlay extends Overlay {
         === newY - columnHeaderBorderCompensation &&
       columnHeaderBorderCompensation > 0
     ) {
-      this.wot.wtOverlays.expandHiderVerticallyBy(columnHeaderBorderCompensation);
+      this.deps.getWtOverlays().expandHiderVerticallyBy(columnHeaderBorderCompensation);
     }
 
     return this.setScrollPosition(newY);
@@ -398,7 +403,7 @@ export class TopOverlay extends Overlay {
    */
   getTableParentOffset() {
     if (this.mainTableScrollableElement === this.deps.rootWindow) {
-      return (this.wot.wtTable.holderOffset as { top: number; left: number }).top;
+      return (this.deps.getWtTable().holderOffset as { top: number; left: number }).top;
     }
 
     return 0;
@@ -424,7 +429,7 @@ export class TopOverlay extends Overlay {
     let overlayOffset = 0;
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
-      const rootHeight = this.wot.wtTable.getTotalHeight();
+      const rootHeight = this.deps.getWtTable().getTotalHeight();
       const overlayRootHeight = this.clone ? this.clone.wtTable.getTotalHeight() : 0;
       const maxOffset = rootHeight - overlayRootHeight;
 
@@ -447,7 +452,7 @@ export class TopOverlay extends Overlay {
    */
   adjustHeaderBordersPosition(position: number, skipInnerBorderAdjusting = false) {
     const { wtSettings } = this;
-    const masterParent = this.wot.wtTable.holder.parentNode as HTMLElement;
+    const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
     const totalColumns: number = wtSettings.getSetting('totalColumns') ?? 0;
     const preventHorizontalOverflow = wtSettings.getSetting('preventOverflow') === 'horizontal';
 

@@ -40,6 +40,7 @@ export function createOverlayDeps(ctx: EngineContext) {
     // Resolved when the overlay builds its clone (see `createCloneDeps`). The clone shares the
     // master's viewport and selection manager, and takes the master's event as its Event parent.
     getWtViewport: ctx.getWtViewport,
+    getWtOverlays: ctx.getWtOverlays,
     getWtEvent: ctx.getWtEvent,
     getSelectionManager: ctx.getSelectionManager,
   };
@@ -67,6 +68,9 @@ export function createCloneDeps(deps: OverlayDeps, overlay: Overlay) {
     viewport: deps.getWtViewport(),
     event: deps.getWtEvent(),
     selectionManager: deps.getSelectionManager(),
+    // The master's geometry reader, shared into the clone so one reader serves the master and every
+    // overlay clone (see `CoreAbstract` constructor).
+    geometryReader: deps.geometryReader,
   };
 }
 
@@ -273,7 +277,7 @@ export abstract class Overlay {
    * Update the main scrollable element.
    */
   updateMainScrollableElement() {
-    const { wtTable } = this.wot;
+    const wtTable = this.#deps.getWtTable();
     const { rootWindow } = this.#deps;
     const computedOverflow = this.#deps.geometryReader
       .getComputedStyle(wtTable.wtRootElement.parentNode as Element)
@@ -282,7 +286,7 @@ export abstract class Overlay {
     const preventOverflow = this.wtSettings.getSetting('preventOverflow');
 
     if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
-      this.mainTableScrollableElement = this.wot.wtTable.holder;
+      this.mainTableScrollableElement = this.#deps.getWtTable().holder;
 
     } else if (
       preventOverflow === 'horizontal' && this.type === CLONE_TOP ||
@@ -376,14 +380,14 @@ export abstract class Overlay {
     elementOffset: { start: number; top: number }, spreaderOffset: { start: number; top: number }) {
     const { geometryReader } = this.#deps;
     const absoluteRootElementPosition =
-      geometryReader.getBoundingClientRect(this.wot.wtTable.wtRootElement); // todo refactoring: DEMETER
+      geometryReader.getBoundingClientRect(this.#deps.getWtTable().wtRootElement);
     // `preventOverflow` can force this overlay onto the window (see `makeClone()`) while the
     // master still scrolls its holder. `wtRootElement` does not move with that scroll, so
     // subtract the master scroll from spreader-based offsets to align with the visible cell (#10403).
-    const masterScrollsHolder = this.wot.wtOverlays.scrollableElement !== this.#deps.rootWindow;
+    const masterScrollsHolder = this.#deps.getWtOverlays().scrollableElement !== this.#deps.rootWindow;
     const tableScrollPosition = {
-      horizontal: masterScrollsHolder ? this.wot.wtOverlays.inlineStartOverlay.getScrollPosition() : 0,
-      vertical: masterScrollsHolder ? this.wot.wtOverlays.topOverlay.getScrollPosition() : 0,
+      horizontal: masterScrollsHolder ? this.#deps.getWtOverlays().inlineStartOverlay.getScrollPosition() : 0,
+      vertical: masterScrollsHolder ? this.#deps.getWtOverlays().topOverlay.getScrollPosition() : 0,
     };
     let horizontalOffset = 0;
     let verticalOffset = 0;
@@ -433,8 +437,8 @@ export abstract class Overlay {
     onFixedRowTop: boolean, onFixedRowBottom: boolean, onFixedColumn: boolean,
     elementOffset: { start: number; top: number }, spreaderOffset: { start: number; top: number }) {
     const tableScrollPosition = {
-      horizontal: this.wot.wtOverlays.inlineStartOverlay.getScrollPosition(),
-      vertical: this.wot.wtOverlays.topOverlay.getScrollPosition()
+      horizontal: this.#deps.getWtOverlays().inlineStartOverlay.getScrollPosition(),
+      vertical: this.#deps.getWtOverlays().topOverlay.getScrollPosition()
     };
     let horizontalOffset = 0;
     let verticalOffset = 0;
@@ -446,7 +450,7 @@ export abstract class Overlay {
     if (onFixedRowBottom && this.clone) {
       const { geometryReader } = this.#deps;
       const absoluteRootElementPosition =
-        geometryReader.getBoundingClientRect(this.wot.wtTable.wtRootElement); // todo refactoring: DEMETER
+        geometryReader.getBoundingClientRect(this.#deps.getWtTable().wtRootElement);
       const absoluteOverlayPosition =
         geometryReader.getBoundingClientRect(this.clone.wtTable.TABLE); // todo refactoring: DEMETER
 
@@ -471,10 +475,8 @@ export abstract class Overlay {
     if (CLONE_TYPES.indexOf(this.type) === -1) {
       throwWithCause(`Clone type "${this.type}" is not supported.`);
     }
-    const {
-      wtTable,
-      wtSettings
-    } = this.wot;
+    const wtTable = this.#deps.getWtTable();
+    const { wtSettings } = this;
     const { rootDocument, rootWindow } = this.#deps;
     const clone = rootDocument.createElement('div');
     const clonedTable = rootDocument.createElement('table');

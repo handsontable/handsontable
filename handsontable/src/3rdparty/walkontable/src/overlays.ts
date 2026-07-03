@@ -1014,6 +1014,23 @@ class Overlays {
   }
 
   /**
+   * Re-applies the column-header heights to the master and every header-bearing overlay after the
+   * Handsontable-side render-size probe has measured content-driven header heights. The probe runs
+   * after the draw completes (once the DOM is final), so the overlays first render at the provided
+   * height and are corrected here to match the master - a synchronous, hook-free reconcile that
+   * replaces the old mid-draw `markOversizedColumnHeaders` measurement. The frozen-overlay sync runs
+   * last so a wrapped header inside the frozen region still wins, and the sizes are flushed to the DOM.
+   */
+  refreshColumnHeaderHeights() {
+    this.wot.wtTable.adjustColumnHeaderHeights();
+    this.topOverlay.clone?.wtTable.adjustColumnHeaderHeights();
+    this.inlineStartOverlay.clone?.wtTable.adjustColumnHeaderHeights();
+    this.topInlineStartCornerOverlay?.clone?.wtTable.adjustColumnHeaderHeights();
+    this.wot.wtTable.syncOversizedColumnHeadersWithFrozenOverlays();
+    this.adjustElementsSize();
+  }
+
+  /**
    * Adjust overlays elements size and master table size.
    */
   adjustElementsSize() {

@@ -23,7 +23,9 @@ export default class Clone extends CoreAbstract {
    * @param {WalkontableCloneOptions} clone Clone data.
    */
   constructor(table: HTMLTableElement, settings: Settings, clone: CloneDeps) {
-    super(table, settings);
+    // Share the master's geometry reader instead of creating a new one, so a single reader serves
+    // the master and all overlay clones.
+    super(table, settings, clone.geometryReader);
 
     this.cloneSource = clone.source;
     this.cloneOverlay = clone.overlay;

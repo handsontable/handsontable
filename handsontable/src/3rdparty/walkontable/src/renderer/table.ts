@@ -9,6 +9,7 @@ import type ColumnFilter from '../filter/column';
 import type RowUtils from '../utils/row';
 import type ColumnUtils from '../utils/column';
 import type { StylesHandler } from '../types';
+import { getBoxAdjustedRowHeight } from '../sizing/boxModel';
 
 /**
  * TableRenderer class collects all renderers and properties necessary for table creation. It's
@@ -341,12 +342,14 @@ export class TableRenderer {
       if (TR && TR.firstChild) {
         const sourceRowIndex = this.renderedRowToSource(visibleRowIndex);
         const rowHeight = rowUtils!.getHeightByOverlayName(sourceRowIndex, this.activeOverlayName);
-        const isBorderBoxSizing = this.stylesHandler.areCellsBorderBox();
-        const borderCompensation = isBorderBoxSizing ? 0 : 1;
 
         if (rowHeight) {
-          // Decrease height. 1 pixel will be "replaced" by 1px border top
-          (TR.firstChild as HTMLElement).style.height = `${rowHeight - borderCompensation}px`;
+          // Convert the logical row height to the pixel height written to the DOM. In content-box mode
+          // 1px is "replaced" by the row's 1px top border; the shared helper keeps that constant in one
+          // place (see sizing/boxModel.ts).
+          const pixelHeight = getBoxAdjustedRowHeight(rowHeight, this.stylesHandler.areCellsBorderBox());
+
+          (TR.firstChild as HTMLElement).style.height = `${pixelHeight}px`;
         } else {
           (TR.firstChild as HTMLElement).style.height = '';
         }

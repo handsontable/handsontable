@@ -37,3 +37,4 @@ Tests are organized by subsystem: `overlay/`, `scroll/`, `selection/`, `renderer
 - Skipping frozen row/column scenarios -- this misses the overlay edge cases where most regressions occur.
 - Testing only small datasets -- Walkontable bugs often surface at scale.
 - Modifying Walkontable test bootstrap/Rspack config without verifying that both `spec/` and `unit/` sub-pipelines still pass.
+- Turning on the uniform-size flags (`rowHeightsUniform`/`columnWidthsUniform`) in a bare Walkontable spec and then asserting scrollbar-dependent row/column counts: the bare harness overflows content without rendering a real scrollbar, while the single-pass layout snapshot predicts one — so predicted and measured diverge there. Assert the snapshot booleans directly, or use a fixture that renders a real scrollbar; don't compare snapshot-predicted scrollbars/counts against the bare DOM.

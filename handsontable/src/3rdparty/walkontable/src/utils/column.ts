@@ -1,4 +1,5 @@
 import type { TableDeps } from '../table';
+import type { ColumnSizeSource } from '../sizing/axisSizeSource';
 /**
  * Column utils class contains all necessary information about sizes of the columns.
  *
@@ -11,6 +12,12 @@ export default class ColumnUtils {
    * @type {TableDeps}
    */
   #deps: TableDeps;
+  /**
+   * The column-width source — supplies the provided width and the default width.
+   *
+   * @type {ColumnSizeSource}
+   */
+  #columnSizeSource: ColumnSizeSource;
   /**
    * @type {Settings}
    */
@@ -35,6 +42,7 @@ export default class ColumnUtils {
    */
   constructor(deps: TableDeps) {
     this.#deps = deps;
+    this.#columnSizeSource = deps.columnSizeSource;
     this.wtSettings = deps.wtSettings;
   }
 
@@ -45,10 +53,9 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getWidth(sourceIndex: number): number | undefined {
-    const width = this.wtSettings.getSetting<number | undefined>('columnWidth', sourceIndex)
-      || this.wtSettings.getSetting<number | undefined>('defaultColumnWidth');
-
-    return width;
+    // Preserve the `||` (not `??`) fallback: a provided width of `0` intentionally falls through to
+    // the default.
+    return this.#columnSizeSource.getSize(sourceIndex) || this.#columnSizeSource.getDefaultSize();
   }
 
   /**
@@ -58,11 +65,17 @@ export default class ColumnUtils {
    * @returns {number}
    */
   getHeaderHeight(level: number) {
-    let height = this.wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
-    const oversizedHeight = this.#deps.getWtViewport().oversizedColumnHeaders[level];
+    const height = this.wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
+    // The provided header height arrives through the `columnHeaderHeight` setting funnel: the
+    // `columnHeaderHeight` option, the `modifyColumnHeaderHeight` hook (AutoRowSize feeds it), and -
+    // for content-driven headers with no plugin - the render-size probe, all merged per level by the
+    // Handsontable-side callback. Content taller than this is not measured here; the header cell is
+    // min-height, so it expands on its own and the probe records the result for the next draw.
+    const setting = this.wtSettings.getSetting<number | number[] | undefined>('columnHeaderHeight');
+    const providedHeight = Array.isArray(setting) ? setting[level] : setting;
 
-    if (oversizedHeight !== undefined) {
-      height = height ? Math.max(height, oversizedHeight) : oversizedHeight;
+    if (providedHeight !== undefined && providedHeight !== null) {
+      return height ? Math.max(height, providedHeight) : providedHeight;
     }
 
     return height;

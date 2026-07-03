@@ -76,8 +76,8 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     if (this.trimmingContainer === this.deps.rootWindow) {
       const inlineStartOffset = this.inlineStartOverlay.getOverlayOffset();
       const { geometryReader } = this.deps;
-      const masterTableRect = geometryReader.getBoundingClientRect(this.wot.wtTable.TABLE);
-      const masterHolderRect = geometryReader.getBoundingClientRect(this.wot.wtTable.holder);
+      const masterTableRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().TABLE);
+      const masterHolderRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().holder);
       const masterTableOverflow = Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
       const bottom = this.bottomOverlay.getOverlayOffset() - masterTableOverflow;
 
@@ -92,7 +92,7 @@ export class BottomInlineStartCornerOverlay extends Overlay {
     let tableHeight = this.deps.geometryReader.outerHeight(clone.wtTable.TABLE);
     const tableWidth = this.deps.geometryReader.outerWidth(clone.wtTable.TABLE);
 
-    if (!this.wot.wtTable.hasDefinedSize()) {
+    if (!this.deps.getWtTable().hasDefinedSize()) {
       tableHeight = 0;
     }
 
@@ -172,7 +172,8 @@ export class BottomInlineStartCornerOverlay extends Overlay {
       return;
     }
 
-    const { wtTable, wtViewport } = this.wot;
+    const wtTable = this.deps.getWtTable();
+    const wtViewport = this.deps.getWtViewport();
     const { rootDocument } = this.deps;
     const cloneRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     let bottomOffset = 0;

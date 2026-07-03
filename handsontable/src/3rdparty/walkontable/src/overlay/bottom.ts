@@ -57,7 +57,7 @@ export class BottomOverlay extends Overlay {
    * @returns {boolean}
    */
   resetFixedPosition() {
-    if (!this.needFullRender || !this.shouldBeRendered() || !this.wot.wtTable.holder.parentNode || !this.clone) {
+    if (!this.needFullRender || !this.shouldBeRendered() || !this.deps.getWtTable().holder.parentNode || !this.clone) {
       // removed from DOM
       return false;
     }
@@ -78,8 +78,8 @@ export class BottomOverlay extends Overlay {
       // so the overlay sits flush against the actual table content instead of the
       // CSS-integer hider boundary.
       const { geometryReader } = this.deps;
-      const masterTableRect = geometryReader.getBoundingClientRect(this.wot.wtTable.TABLE);
-      const masterHolderRect = geometryReader.getBoundingClientRect(this.wot.wtTable.holder);
+      const masterTableRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().TABLE);
+      const masterHolderRect = geometryReader.getBoundingClientRect(this.deps.getWtTable().holder);
       const masterTableOverflow = Math.max(0, masterTableRect.bottom - masterHolderRect.bottom);
 
       overlayRoot.style.bottom = `${overlayPosition - masterTableOverflow}px`;
@@ -104,7 +104,8 @@ export class BottomOverlay extends Overlay {
       return;
     }
 
-    const { wtTable, wtViewport } = this.wot;
+    const wtTable = this.deps.getWtTable();
+    const wtViewport = this.deps.getWtViewport();
     const { rootDocument } = this.deps;
     const cloneRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     let bottomOffset = 0;
@@ -166,7 +167,8 @@ export class BottomOverlay extends Overlay {
    * @returns {number} Height sum.
    */
   sumCellSizes(from: number, to: number) {
-    const { wtTable, wtSettings } = this.wot;
+    const wtTable = this.deps.getWtTable();
+    const { wtSettings } = this;
     const defaultRowHeight = wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
 
     let row = from;
@@ -202,7 +204,8 @@ export class BottomOverlay extends Overlay {
       return;
     }
 
-    const { wtTable, wtViewport } = this.wot;
+    const wtTable = this.deps.getWtTable();
+    const wtViewport = this.deps.getWtViewport();
     const { rootDocument, rootWindow } = this.deps;
     const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
     const overlayRootStyle = overlayRoot.style;
@@ -255,8 +258,10 @@ export class BottomOverlay extends Overlay {
   applyToDOM() {
     const total = this.wtSettings.getSetting<number>('totalRows');
 
-    if (typeof this.wot.wtViewport.rowsRenderCalculator?.startPosition === 'number') {
-      this.spreader.style.top = `${this.wot.wtViewport.rowsRenderCalculator.startPosition}px`;
+    const rowsRenderCalculator = this.deps.getWtViewport().rowsRenderCalculator;
+
+    if (typeof rowsRenderCalculator?.startPosition === 'number') {
+      this.spreader.style.top = `${rowsRenderCalculator.startPosition}px`;
 
     } else if (total === 0) {
       // can happen if there are 0 rows
@@ -284,8 +289,10 @@ export class BottomOverlay extends Overlay {
     const styleProperty = this.isRtl() ? 'right' : 'left';
     const { spreader } = this.clone.wtTable;
 
-    if (typeof this.wot.wtViewport.columnsRenderCalculator?.startPosition === 'number') {
-      spreader.style[styleProperty] = `${this.wot.wtViewport.columnsRenderCalculator.startPosition}px`;
+    const columnsRenderCalculator = this.deps.getWtViewport().columnsRenderCalculator;
+
+    if (typeof columnsRenderCalculator?.startPosition === 'number') {
+      spreader.style[styleProperty] = `${columnsRenderCalculator.startPosition}px`;
 
     } else {
       spreader.style[styleProperty] = '';
@@ -311,7 +318,7 @@ export class BottomOverlay extends Overlay {
 
     if (bottomEdge) {
       newY += this.sumCellSizes(0, sourceRow + 1);
-      newY -= this.wot.wtViewport.getViewportHeight();
+      newY -= this.deps.getWtViewport().getViewportHeight();
       // Fix 1 pixel offset when cell is selected
       newY += 1;
 
@@ -330,7 +337,7 @@ export class BottomOverlay extends Overlay {
    */
   getTableParentOffset() {
     if (this.mainTableScrollableElement === this.deps.rootWindow) {
-      return (this.wot.wtTable.holderOffset as { top: number; left: number }).top;
+      return (this.deps.getWtTable().holderOffset as { top: number; left: number }).top;
     }
 
     return 0;
@@ -356,7 +363,7 @@ export class BottomOverlay extends Overlay {
     let overlayOffset = 0;
 
     if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical') && this.clone) {
-      const rootHeight = this.wot.wtTable.getTotalHeight();
+      const rootHeight = this.deps.getWtTable().getTotalHeight();
       const overlayRootHeight = this.clone.wtTable.getTotalHeight();
       const maxOffset = rootHeight - overlayRootHeight;
       const docClientHeight =
@@ -386,7 +393,7 @@ export class BottomOverlay extends Overlay {
     let positionChanged = false;
 
     if ((areFixedRowsBottomChanged || fixedRowsBottom === 0) && columnHeaders.length > 0) {
-      const masterParent = this.wot.wtTable.holder.parentNode as HTMLElement;
+      const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
       const previousState = hasClass(masterParent, 'innerBorderBottom');
 
       this.cachedFixedRowsBottom = this.wtSettings.getSetting<number>('fixedRowsBottom');

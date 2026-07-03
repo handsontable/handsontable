@@ -254,4 +254,19 @@ export class PositionCache {
   isBuilt(): this is PositionCache & { prefixSum: Float64Array } {
     return this.prefixSum !== null;
   }
+
+  /**
+   * Returns whether the cache currently holds valid built data for the current item count, in either
+   * mode. Unlike {@link PositionCache#isBuilt} (a prefix-sum-mode type guard that is always `false` in
+   * uniform mode), this reflects the real build/invalidate state: {@link PositionCache#build} sets it
+   * regardless of mode, {@link PositionCache#invalidate} clears it, and a changed item count makes it
+   * stale (mirroring {@link PositionCache#ensureBuilt}). It is the signal for "the sizes the pre-render
+   * calculators read are still current" — e.g. `markOversizedRows` invalidates the row cache here when
+   * it finds a genuinely oversized row.
+   *
+   * @returns {boolean}
+   */
+  isCurrent(): boolean {
+    return this.#built && this.totalItems === this.#totalItemsFn();
+  }
 }

@@ -15,6 +15,7 @@ import Scroll, { createScrollDeps } from '../scroll';
 import CellCoords from '../cell/coords';
 import CellRange from '../cell/range';
 import { LiveGeometryReader } from '../geometry/liveGeometryReader';
+import type { GeometryReader } from '../geometry/geometryReader';
 import { buildContext, type EngineContext } from '../wire';
 
 /**
@@ -173,13 +174,17 @@ export default class CoreAbstract {
   /**
    * @param {HTMLTableElement} table Main table.
    * @param {Settings} settings The Walkontable settings.
+   * @param {GeometryReader} [geometryReader] The shared geometry reader. The master creates one live
+   *   reader and passes it to every clone (see `Clone`), so a single reader serves the master and all
+   *   overlay clones — the one place a `CachingGeometryReader` gets swapped in later. When omitted (the
+   *   master), a `LiveGeometryReader` is created.
    */
-  constructor(table: HTMLTableElement, settings: Settings) {
+  constructor(table: HTMLTableElement, settings: Settings, geometryReader?: GeometryReader) {
     this.domBindings = {
       rootTable: table,
       rootDocument: table.ownerDocument,
       rootWindow: table.ownerDocument.defaultView as Window,
-      geometryReader: new LiveGeometryReader(table.ownerDocument.defaultView as Window),
+      geometryReader: geometryReader ?? new LiveGeometryReader(table.ownerDocument.defaultView as Window),
       // `rootElement` is intentionally assigned later (see TableView); the cast defers it as the
       // original literal did. `unknown` is required because `LiveGeometryReader`'s `#`-private field
       // makes it nominal, which narrows the direct `as DomBindings` overlap check.

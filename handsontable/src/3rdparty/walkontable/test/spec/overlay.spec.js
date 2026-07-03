@@ -48,6 +48,28 @@ describe('WalkontableOverlay', () => {
     expect($(wt.wtOverlays.bottomOverlay.clone.wtTable.holder).height()).toBe(47);
   });
 
+  it('should share a single geometry reader between the master and every overlay clone', async() => {
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      fixedColumnsStart: 2,
+      fixedRowsTop: 2,
+      fixedRowsBottom: 2,
+    });
+
+    wt.draw();
+
+    const masterReader = wt.domBindings.geometryReader;
+
+    expect(masterReader).toBeTruthy();
+    expect(wt.wtOverlays.topOverlay.clone.domBindings.geometryReader).toBe(masterReader);
+    expect(wt.wtOverlays.bottomOverlay.clone.domBindings.geometryReader).toBe(masterReader);
+    expect(wt.wtOverlays.inlineStartOverlay.clone.domBindings.geometryReader).toBe(masterReader);
+    expect(wt.wtOverlays.topInlineStartCornerOverlay.clone.domBindings.geometryReader).toBe(masterReader);
+    expect(wt.wtOverlays.bottomInlineStartCornerOverlay.clone.domBindings.geometryReader).toBe(masterReader);
+  });
+
   it('should cloned overlays have to have proper dimensions (overflow clip)', async() => {
     spec().$wrapper.css({ overflow: 'clip' });
 

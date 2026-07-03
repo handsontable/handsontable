@@ -4,7 +4,7 @@ import type Settings from './settings';
 import type Table from './table';
 import type EventManager from '../../../eventManager';
 import type { CalculationTypeLike, ColumnsCalculationType, RowsCalculationType } from './calculator/viewportBase';
-import { objectEach } from '../../../helpers/object';
+import { mixin, objectEach } from '../../../helpers/object';
 import {
   FullyVisibleColumnsCalculationType,
   FullyVisibleRowsCalculationType,
@@ -14,11 +14,14 @@ import {
   RenderedAllRowsCalculationType,
   RenderedColumnsCalculationType,
   RenderedRowsCalculationType,
-  ViewportColumnsCalculator,
-  ViewportRowsCalculator,
 } from './calculator';
 import { PositionCache } from './utils/positionCache';
 import { DEFAULT_COLUMN_WIDTH } from './constants';
+import { workspaceSize, type WorkspaceSize } from './workspaceSize';
+import { calculatorFactory, type CalculatorFactory } from './calculatorFactory';
+import { createLayoutDeps, gatherLayoutInput, type LayoutDeps } from './layout/createLayoutDeps';
+import { resolveLayout } from './layout/resolveLayout';
+import type { LayoutSnapshot } from './layout/layoutSnapshot';
 
 /**
  * Assembles the Viewport module's dependencies from the engine composition context.
@@ -37,6 +40,9 @@ export function createViewportDeps(ctx: EngineContext) {
     rootDocument: ctx.rootDocument,
     rootWindow: ctx.rootWindow,
     geometryReader: ctx.geometryReader,
+    rowSizeSource: ctx.rowSizeSource,
+    columnSizeSource: ctx.columnSizeSource,
+    layoutDeps: createLayoutDeps(ctx),
     wtSettings: ctx.wtSettings,
     eventManager: ctx.makeEventManager(),
     wtTable: ctx.getWtTable(),
@@ -52,6 +58,12 @@ export function createViewportDeps(ctx: EngineContext) {
 export type ViewportDeps = ReturnType<typeof createViewportDeps>;
 
 /**
+ * The Viewport owns the per-draw calculator objects and the size prefix-sum caches. Its
+ * workspace-size / scroll-detection queries and its calculator-creation logic are supplied by two
+ * mixins (`workspaceSize`, `calculatorFactory`); the method bodies live in their own files so the
+ * single-pass refactor can rework the workspace-size group in isolation. The mixin methods reach the
+ * private dependency set through the public `deps` getter.
+ *
  * @class Viewport
  */
 class Viewport {
@@ -61,6 +73,19 @@ class Viewport {
    * @type {ViewportDeps}
    */
   #deps: ViewportDeps;
+  /**
+   * The layout slice's dependency set — the input-gathering seam for the single-pass snapshot.
+   *
+   * @type {LayoutDeps}
+   */
+  #layoutDeps: LayoutDeps;
+  /**
+   * The layout snapshot resolved at the top of the current draw, or `null` between draws / after an
+   * invalidation. Computed by `beginDrawLayout()`; read through `getLayout()`.
+   *
+   * @type {LayoutSnapshot | null}
+   */
+  #layout: LayoutSnapshot | null = null;
   /**
    * @type {WalkontableInstance}
    */
@@ -77,10 +102,6 @@ class Viewport {
    * @type {Record<number, number | undefined>}
    */
   declare oversizedRows: Record<number, number | undefined>;
-  /**
-   * @type {Record<number, number | undefined>}
-   */
-  declare oversizedColumnHeaders: Record<number, number | undefined>;
   /**
    * @type {Record<string, unknown>}
    */
@@ -143,18 +164,28 @@ class Viewport {
   declare columnWidthCache: PositionCache;
 
   /**
+   * Read-only access to the dependencies, for the `workspaceSize` / `calculatorFactory` mixins, which
+   * are defined outside this class and so cannot reach the private `#deps`.
+   *
+   * @returns {ViewportDeps}
+   */
+  get deps(): ViewportDeps {
+    return this.#deps;
+  }
+
+  /**
    * @param {ViewportDeps} deps The Viewport module dependencies.
    */
   constructor(deps: ViewportDeps) {
-    const { wtSettings, wtTable } = deps;
+    const { wtSettings, wtTable, rowSizeSource, columnSizeSource } = deps;
 
     this.#deps = deps;
+    this.#layoutDeps = deps.layoutDeps;
     // legacy support
     this.wot = deps.wot;
     this.wtSettings = wtSettings;
     this.wtTable = wtTable;
     this.oversizedRows = {};
-    this.oversizedColumnHeaders = {};
     this.hasOversizedColumnHeadersMarked = {};
     this.clientHeight = 0;
     this.rowHeaderWidth = NaN;
@@ -183,13 +214,17 @@ class Viewport {
      */
     this.rowHeightCache = new PositionCache({
       totalItemsFn: () => wtSettings.getSetting<number>('totalRows'),
+      // The size must stay the MERGED value (`Math.max(provided, oversized)`), so it reads
+      // `wtTable.getRowHeight` — not `rowSizeSource.getSize`, which supplies only the provided half.
+      // This is the LOGICAL row height; the constant relating it to the pixel height the renderer
+      // writes lives in `getBoxAdjustedRowHeight` (sizing/boxModel.ts). Do not box-adjust it here —
+      // the calculators and `sumCellSizes` sum this value and expect the logical height.
       sizeFn: sourceRow => wtTable.getRowHeight(sourceRow) ?? NaN,
-      defaultSizeFn: () => wtSettings.getSetting('stylesHandler').getDefaultRowHeight(),
-      // Uniform fast path: every row is the default height only when the core-side config reports
-      // it (no per-row `rowHeights`/`minRowHeights`, no `modifyRowHeight` hook) AND walkontable has
-      // measured no oversized rows. Any of these invalidates the cache, so the next build
-      // re-evaluates this predicate.
-      isUniformFn: () => wtSettings.getSetting<boolean>('rowHeightsUniform') &&
+      defaultSizeFn: () => rowSizeSource.getDefaultSize(),
+      // Uniform fast path: every row is the default height only when the source reports it (no per-row
+      // `rowHeights`/`minRowHeights`, no `modifyRowHeight` hook) AND walkontable has measured no
+      // oversized rows. Any of these invalidates the cache, so the next build re-evaluates this.
+      isUniformFn: () => rowSizeSource.isUniform() &&
         Object.keys(this.oversizedRows).length === 0,
     });
     /**
@@ -202,581 +237,60 @@ class Viewport {
       totalItemsFn: () => wtSettings.getSetting<number>('totalColumns'),
       sizeFn: sourceCol => wtTable.getColumnWidth(sourceCol),
       defaultSizeFn: () => DEFAULT_COLUMN_WIDTH,
-      // Uniform fast path: every column is the default width only when the core-side config reports
-      // it (no per-column `colWidths`, no `modifyColWidth` hook — note `autoColumnSize` is on by
-      // default and registers that hook, so this is true only when `colWidths` is set).
-      isUniformFn: () => wtSettings.getSetting<boolean>('columnWidthsUniform'),
+      // Uniform fast path: every column is the default width only when the source reports it (no
+      // per-column `colWidths`, no `modifyColWidth` hook — note `autoColumnSize` is on by default and
+      // registers that hook, so this is true only when `colWidths` is set).
+      isUniformFn: () => columnSizeSource.isUniform(),
     });
 
     this.eventManager = deps.eventManager;
     this.eventManager.addEventListener(this.#deps.rootWindow, 'resize', () => {
       this.clientHeight = this.getWorkspaceHeight();
+      this.invalidateLayout();
     });
   }
 
   /**
-   * @returns {number}
-   */
-  getWorkspaceHeight() {
-    const { rootDocument: currentDocument, rootWindow, geometryReader } = this.#deps;
-    const trimmingContainer = this.#deps.getTopOverlay().trimmingContainer;
-    let height = 0;
-
-    if (trimmingContainer === rootWindow) {
-      height = geometryReader.clientHeight(currentDocument.documentElement);
-
-    } else {
-      const elemHeight = geometryReader.outerHeight(trimmingContainer as HTMLElement);
-
-      // returns height without DIV scrollbar
-      if (elemHeight > 0 && geometryReader.clientHeight(trimmingContainer as HTMLElement) > 0) {
-        height = geometryReader.clientHeight(trimmingContainer as HTMLElement);
-      } else {
-        // Fall back to window height when the trimming container has zero client height
-        // (e.g. a parent with overflow set but no explicit height). Returning Infinity
-        // previously caused an unbounded viewport, expanding the parent to the browser's
-        // ~2^25 px CSS height limit. See issue #3119.
-        height = Math.max(geometryReader.clientHeight(currentDocument.documentElement), 1);
-      }
-    }
-
-    return height;
-  }
-
-  /**
-   * @returns {number}
-   */
-  getViewportHeight() {
-    let containerHeight = this.getWorkspaceHeight();
-
-    const columnHeaderHeight = this.getColumnHeaderHeight();
-
-    if (columnHeaderHeight > 0) {
-      containerHeight -= columnHeaderHeight;
-    }
-
-    return containerHeight;
-  }
-
-  /**
-   * Gets the width of the table workspace (in pixels). The workspace size in the current
-   * implementation returns the width of the table holder element including scrollbar width when
-   * the table has defined size and the width of the window excluding scrollbar width when
-   * the table has no defined size (the window is a scrollable container).
+   * Resolves the layout snapshot for the draw that is starting, stores it, and returns it. Called
+   * once per master draw, after the size caches are built and before the calculators run, so the
+   * snapshot reflects the geometry the draw will render into.
    *
-   * This is a bug, as the method should always return stable values, always without scrollbar width.
-   * Changing this behavior would break the column calculators, which would also need to be adjusted.
+   * The snapshot is not yet the source of truth for the calculators or the scroll-detection queries.
+   * Consuming it is a genuine behavior change — on the first draw the snapshot predicts a scrollbar
+   * from content totals while the live DOM still shows none, which shifts the rendered row/column
+   * counts — so it is sequenced into the single-pass stages (S13-S16) under the maximal test gate,
+   * not this behavior-preserving stage. S11 only validates that the snapshot matches the live
+   * measurement (see the `getLayout()` assertions in `viewport.spec.js`) and fixes its input bugs so
+   * that later consumption changes only timing, not pixels.
    *
-   * @returns {number}
+   * @returns {LayoutSnapshot}
    */
-  getWorkspaceWidth() {
-    const { rootDocument, rootWindow, geometryReader } = this.#deps;
-    const trimmingContainer = this.#deps.getInlineStartOverlay().trimmingContainer;
-    let width;
+  beginDrawLayout(): LayoutSnapshot {
+    this.#layout = resolveLayout(gatherLayoutInput(this.#layoutDeps));
 
-    if (trimmingContainer === rootWindow) {
-      const totalColumns = this.wtSettings.getSetting<number>('totalColumns');
-
-      width = geometryReader.offsetWidth(this.wtTable.holder);
-
-      if (this.getRowHeaderWidth() + this.sumColumnWidths(0, totalColumns) > width) {
-        width = geometryReader.clientWidth(rootDocument.documentElement);
-      }
-
-    } else {
-      width = geometryReader.clientWidth(trimmingContainer as HTMLElement);
-    }
-
-    return width;
+    return this.#layout;
   }
 
   /**
-   * @returns {number}
-   */
-  getViewportWidth() {
-    const containerWidth = this.getWorkspaceWidth();
-    const rowHeaderWidth = this.getRowHeaderWidth();
-
-    if (rowHeaderWidth > 0) {
-      return containerWidth - rowHeaderWidth;
-    }
-
-    return containerWidth;
-  }
-
-  /**
-   * Checks if viewport has vertical scroll.
+   * Returns the current layout snapshot. Recomputes lazily when there is none (between draws, or after
+   * an invalidation) so API callers outside the draw get a fresh answer.
    *
-   * @returns {boolean}
+   * @returns {LayoutSnapshot}
    */
-  hasVerticalScroll() {
-    const { geometryReader } = this.#deps;
-
-    if (this.isVerticallyScrollableByWindow()) {
-      const documentElement = this.#deps.rootDocument.documentElement;
-
-      return geometryReader.scrollHeight(documentElement) > geometryReader.clientHeight(documentElement);
+  getLayout(): LayoutSnapshot {
+    if (this.#layout === null) {
+      this.#layout = resolveLayout(gatherLayoutInput(this.#layoutDeps));
     }
 
-    const { holder, hider } = this.wtTable;
-    const holderHeight = geometryReader.clientHeight(holder);
-    const hiderOffsetHeight = geometryReader.offsetHeight(hider);
-
-    if (holderHeight < hiderOffsetHeight) {
-      return true;
-    }
-
-    return hiderOffsetHeight > this.getWorkspaceHeight();
+    return this.#layout;
   }
 
   /**
-   * Checks if viewport has horizontal scroll.
-   *
-   * @returns {boolean}
+   * Drops the cached layout snapshot so the next `getLayout()` recomputes it. Called whenever the
+   * geometry that feeds the snapshot may have changed (a resize or a size-cache invalidation).
    */
-  hasHorizontalScroll() {
-    const { geometryReader } = this.#deps;
-
-    if (this.isVerticallyScrollableByWindow()) {
-      const documentElement = this.#deps.rootDocument.documentElement;
-
-      return geometryReader.scrollWidth(documentElement) > geometryReader.clientWidth(documentElement);
-    }
-
-    const { hider } = this.wtTable;
-    const hiderOffsetWidth = geometryReader.offsetWidth(hider);
-    const scrollbarWidth = this.hasVerticalScroll() ? geometryReader.getScrollbarWidth() : 0;
-
-    return hiderOffsetWidth > this.getWorkspaceWidth() - scrollbarWidth;
-  }
-
-  /**
-   * Checks if the table uses the window as a viewport and if there is a vertical scrollbar.
-   *
-   * @returns {boolean}
-   */
-  isVerticallyScrollableByWindow() {
-    return this.#deps.getTopOverlay().trimmingContainer === this.#deps.rootWindow;
-  }
-
-  /**
-   * Checks if the table uses the window as a viewport and if there is a horizontal scrollbar.
-   *
-   * @returns {boolean}
-   */
-  isHorizontallyScrollableByWindow() {
-    return this.#deps.getInlineStartOverlay().trimmingContainer === this.#deps.rootWindow;
-  }
-
-  /**
-   * @param {number} from The visual column index from the width sum is start calculated.
-   * @param {number} length The length of the column to traverse.
-   * @returns {number}
-   */
-  sumColumnWidths(from: number, length: number) {
-    let sum = 0;
-    let column = from;
-
-    while (column < length) {
-      sum += this.wtTable.getColumnWidth(column);
-      column += 1;
-    }
-
-    return sum;
-  }
-
-  /**
-   * @returns {number}
-   */
-  getWorkspaceOffset() {
-    return this.#deps.geometryReader.offset(this.wtTable.holder);
-  }
-
-  /**
-   * @returns {number}
-   */
-  getColumnHeaderHeight() {
-    const columnHeaders = this.wtSettings.getSetting<Function[]>('columnHeaders');
-
-    if (!columnHeaders.length) {
-      this.columnHeaderHeight = 0;
-    } else if (isNaN(this.columnHeaderHeight)) {
-      this.columnHeaderHeight = this.wtTable.THEAD
-        ? this.#deps.geometryReader.outerHeight(this.wtTable.THEAD) : 0;
-    }
-
-    return this.columnHeaderHeight;
-  }
-
-  /**
-   * @returns {number}
-   */
-  getRowHeaderWidth() {
-    const rowHeadersWidthSetting = this.wtSettings.getSetting<number | Array<number | null>>('rowHeaderWidth');
-    const rowHeaders = this.wtSettings.getSetting<Function[]>('rowHeaders');
-
-    if (rowHeadersWidthSetting) {
-      this.rowHeaderWidth = 0;
-
-      for (let i = 0, len = rowHeaders.length; i < len; i++) {
-        const w = Array.isArray(rowHeadersWidthSetting)
-          ? rowHeadersWidthSetting[i]
-          : (rowHeadersWidthSetting as number);
-
-        this.rowHeaderWidth += w ?? NaN;
-      }
-    }
-
-    if (isNaN(this.rowHeaderWidth)) {
-
-      if (rowHeaders.length) {
-        let TH = this.wtTable.TABLE.querySelector('TH');
-
-        this.rowHeaderWidth = 0;
-
-        for (let i = 0, len = rowHeaders.length; i < len; i++) {
-          if (TH) {
-            this.rowHeaderWidth += this.#deps.geometryReader.outerWidth(TH as HTMLElement);
-            TH = TH.nextSibling as HTMLTableCellElement;
-
-          } else {
-            // yes this is a cheat but it worked like that before, just taking assumption from CSS instead of measuring.
-            // TODO: proper fix
-            this.rowHeaderWidth += 50;
-          }
-        }
-      } else {
-        this.rowHeaderWidth = 0;
-      }
-    }
-
-    this.rowHeaderWidth = this.wtSettings
-      .getSetting<number>('onModifyRowHeaderWidth', this.rowHeaderWidth) || this.rowHeaderWidth;
-
-    return this.rowHeaderWidth;
-  }
-
-  /**
-   * Creates rows calculators. The type of the calculations can be chosen from the list:
-   *  - 'rendered' Calculates rows that should be rendered within the current table's viewport;
-   *  - 'fullyVisible' Calculates rows that are fully visible (used mostly for scrolling purposes);
-   *  - 'partiallyVisible' Calculates rows that are partially visible (used mostly for scrolling purposes).
-   *
-   * @param {'rendered' | 'fullyVisible' | 'partiallyVisible'} calculatorTypes The list of the calculation types.
-   * @returns {ViewportRowsCalculator}
-   */
-  createRowsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
-    const { wtSettings, wtTable } = this;
-    const totalRows = wtSettings.getSetting<number>('totalRows');
-
-    let height = this.getViewportHeight();
-    let scrollbarHeight;
-    let fixedRowsHeight;
-
-    this.rowHeaderWidth = NaN;
-
-    const topOverlay = this.#deps.getTopOverlay();
-    const bottomOverlay = this.#deps.getBottomOverlay();
-    let pos = topOverlay.getScrollPosition() - topOverlay.getTableParentOffset();
-
-    const fixedRowsTop = wtSettings.getSetting<number>('fixedRowsTop');
-    const fixedRowsBottom = wtSettings.getSetting<number>('fixedRowsBottom');
-
-    if (fixedRowsTop && pos >= 0) {
-      fixedRowsHeight = topOverlay.sumCellSizes(0, fixedRowsTop);
-      pos += fixedRowsHeight;
-      height -= fixedRowsHeight;
-    }
-
-    if (fixedRowsBottom && bottomOverlay.clone) {
-      fixedRowsHeight = bottomOverlay.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
-
-      height -= fixedRowsHeight;
-    }
-
-    const { geometryReader } = this.#deps;
-
-    if (geometryReader.clientHeight(wtTable.holder) === geometryReader.offsetHeight(wtTable.holder)) {
-      scrollbarHeight = 0;
-    } else {
-      scrollbarHeight = geometryReader.getScrollbarWidth(this.#deps.rootDocument);
-    }
-
-    return new ViewportRowsCalculator({
-      calculationTypes: calculatorTypes.flatMap((type): Array<[string, CalculationTypeLike]> => {
-        const factory = this.rowsCalculatorTypes.get(type);
-
-        return factory ? [[type, factory()]] : [];
-      }),
-      viewportHeight: height,
-      scrollOffset: pos,
-      totalRows,
-      overrideFn: wtSettings.getSettingPure('viewportRowCalculatorOverride'),
-      horizontalScrollbarHeight: scrollbarHeight,
-      rowHeightCache: this.rowHeightCache,
-    });
-  }
-
-  /**
-   * Creates columns calculators. The type of the calculations can be chosen from the list:
-   *  - 'rendered' Calculates columns that should be rendered within the current table's viewport;
-   *  - 'fullyVisible' Calculates columns that are fully visible (used mostly for scrolling purposes);
-   *  - 'partiallyVisible' Calculates columns that are partially visible (used mostly for scrolling purposes).
-   *
-   * @param {'rendered' | 'fullyVisible' | 'partiallyVisible'} calculatorTypes The list of the calculation types.
-   * @returns {ViewportColumnsCalculator}
-   */
-  createColumnsCalculator(calculatorTypes = ['rendered', 'fullyVisible', 'partiallyVisible']) {
-    const { wtSettings, wtTable } = this;
-    const inlineStartOverlay = this.#deps.getInlineStartOverlay();
-    const totalColumns = wtSettings.getSetting<number>('totalColumns');
-
-    let width = this.getViewportWidth();
-    let pos = Math.abs(inlineStartOverlay.getScrollPosition()) - inlineStartOverlay.getTableParentOffset();
-
-    this.columnHeaderHeight = NaN;
-
-    const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
-
-    if (fixedColumnsStart && pos >= 0) {
-      const fixedColumnsWidth = inlineStartOverlay.sumCellSizes(0, fixedColumnsStart);
-
-      pos += fixedColumnsWidth;
-      width -= fixedColumnsWidth;
-    }
-    const { geometryReader } = this.#deps;
-
-    if (geometryReader.clientWidth(wtTable.holder) !== geometryReader.offsetWidth(wtTable.holder)) {
-      width -= geometryReader.getScrollbarWidth(this.#deps.rootDocument);
-    }
-
-    return new ViewportColumnsCalculator({
-      calculationTypes: calculatorTypes.flatMap((type): Array<[string, CalculationTypeLike]> => {
-        const factory = this.columnsCalculatorTypes.get(type);
-
-        return factory ? [[type, factory()]] : [];
-      }),
-      viewportWidth: width,
-      scrollOffset: pos,
-      totalColumns,
-      overrideFn: wtSettings.getSettingPure('viewportColumnCalculatorOverride'),
-      inlineStartOffset: inlineStartOverlay.getTableParentOffset(),
-      columnWidthCache: this.columnWidthCache,
-    });
-  }
-
-  /**
-   * Creates rowsRenderCalculator and columnsRenderCalculator (before draw, to determine what rows and
-   * cols should be rendered).
-   *
-   * @param {boolean} fastDraw If `true`, will try to avoid full redraw and only update the border positions.
-   *                           If `false` or `undefined`, will perform a full redraw.
-   * @returns {boolean} The fastDraw value, possibly modified.
-   */
-  createCalculators(fastDraw = false) {
-    const { wtSettings } = this;
-
-    const rowsCalculator = this.createRowsCalculator();
-    const columnsCalculator = this.createColumnsCalculator();
-
-    if (fastDraw && !wtSettings.getSetting('renderAllRows')) {
-      const proposedFullyVisibleRowsCalculator = rowsCalculator.getResultsFor('fullyVisible');
-      const proposedPartiallyVisibleRowsCalculator = rowsCalculator.getResultsFor('partiallyVisible');
-
-      fastDraw = this.areAllProposedVisibleRowsAlreadyRendered(
-        proposedFullyVisibleRowsCalculator,
-        proposedPartiallyVisibleRowsCalculator
-      );
-    }
-
-    if (fastDraw && !wtSettings.getSetting('renderAllColumns')) {
-      const proposedFullyVisibleColumnsCalculator = columnsCalculator.getResultsFor('fullyVisible');
-      const proposedPartiallyVisibleColumnsCalculator = columnsCalculator.getResultsFor('partiallyVisible');
-
-      fastDraw = this.areAllProposedVisibleColumnsAlreadyRendered(
-        proposedFullyVisibleColumnsCalculator,
-        proposedPartiallyVisibleColumnsCalculator
-      );
-    }
-
-    if (!fastDraw) {
-      this.rowsRenderCalculator = rowsCalculator.getResultsFor('rendered') ?? null;
-      this.columnsRenderCalculator = columnsCalculator.getResultsFor('rendered') ?? null;
-    }
-
-    this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible') ?? null;
-    this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible') ?? null;
-    this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible') ?? null;
-    this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible') ?? null;
-
-    return fastDraw;
-  }
-
-  /**
-   * Creates rows and columns calculators (after draw, to determine what are
-   * the actually fully visible and partially visible rows and columns).
-   */
-  createVisibleCalculators() {
-    const rowsCalculator = this.createRowsCalculator(['fullyVisible', 'partiallyVisible']);
-    const columnsCalculator = this.createColumnsCalculator(['fullyVisible', 'partiallyVisible']);
-
-    this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible') ?? null;
-    this.columnsVisibleCalculator = columnsCalculator.getResultsFor('fullyVisible') ?? null;
-    this.rowsPartiallyVisibleCalculator = rowsCalculator.getResultsFor('partiallyVisible') ?? null;
-    this.columnsPartiallyVisibleCalculator = columnsCalculator.getResultsFor('partiallyVisible') ?? null;
-  }
-
-  /**
-   * Returns information whether proposedFullyVisibleRowsCalculator viewport
-   * is contained inside rows rendered in previous draw (cached in rowsRenderCalculator).
-   *
-   * @param {ViewportRowsCalculator} proposedFullyVisibleRowsCalculator The instance of the fully visible rows viewport calculator to compare with.
-   * @param {ViewportRowsCalculator} proposedPartiallyVisibleRowsCalculator The instance of the partially visible rows viewport calculator to compare with.
-   * @returns {boolean} Returns `true` if all proposed visible rows are already rendered (meaning: redraw is not needed).
-   *                    Returns `false` if at least one proposed visible row is not already rendered (meaning: redraw is needed).
-   */
-  areAllProposedVisibleRowsAlreadyRendered(
-    proposedFullyVisibleRowsCalculator: RowsCalculationType | undefined,
-    proposedPartiallyVisibleRowsCalculator: RowsCalculationType | undefined) {
-    if (!this.rowsVisibleCalculator || !this.rowsRenderCalculator ||
-        !proposedFullyVisibleRowsCalculator || !proposedPartiallyVisibleRowsCalculator) {
-      return false;
-    }
-
-    let { startRow, endRow } = proposedFullyVisibleRowsCalculator;
-    const {
-      startRow: partiallyVisibleStartRow,
-      endRow: partiallyVisibleEndRow
-    } = proposedPartiallyVisibleRowsCalculator;
-
-    // if there are no fully visible rows at all...
-    if (startRow === null && endRow === null) {
-      if (
-        !proposedFullyVisibleRowsCalculator.isVisibleInTrimmingContainer &&
-        partiallyVisibleStartRow !== null &&
-        !this.wtTable.isRowBeforeRenderedRows(partiallyVisibleStartRow) &&
-        partiallyVisibleEndRow !== null &&
-        !this.wtTable.isRowAfterRenderedRows(partiallyVisibleEndRow)
-      ) {
-        return true;
-      }
-      // ...use partially visible rows calculator to determine what render type is needed
-      startRow = partiallyVisibleStartRow;
-      endRow = partiallyVisibleEndRow;
-    }
-
-    if (startRow === null || endRow === null) {
-      return false;
-    }
-
-    const {
-      startRow: renderedStartRow,
-      endRow: renderedEndRow,
-      rowStartOffset,
-      rowEndOffset,
-    } = this.rowsRenderCalculator;
-
-    if (renderedStartRow === null || renderedEndRow === null) {
-      return false;
-    }
-
-    const totalRows = this.wtSettings.getSetting<number>('totalRows') - 1;
-    const renderingThreshold = this.wtSettings.getSetting('viewportRowRenderingThreshold');
-
-    if (typeof renderingThreshold === 'number' && Number.isInteger(renderingThreshold) && renderingThreshold > 0) {
-      startRow = Math.max(0, startRow - Math.min(rowStartOffset, renderingThreshold));
-      endRow = Math.min(totalRows, endRow + Math.min(rowEndOffset, renderingThreshold));
-
-    } else if (renderingThreshold === 'auto') {
-      startRow = Math.max(0, startRow - Math.ceil(rowStartOffset / 2));
-      endRow = Math.min(totalRows, endRow + Math.ceil(rowEndOffset / 2));
-    }
-
-    if (startRow < renderedStartRow || (startRow === renderedStartRow && startRow > 0)) {
-      return false;
-
-    } else if (endRow > renderedEndRow || (endRow === renderedEndRow && endRow < totalRows)) {
-      return false;
-    }
-
-    return true;
-  }
-
-  /**
-   * Returns information whether proposedFullyVisibleColumnsCalculator viewport
-   * is contained inside column rendered in previous draw (cached in columnsRenderCalculator).
-   *
-   * @param {ViewportRowsCalculator} proposedFullyVisibleColumnsCalculator The instance of the fully visible columns viewport calculator to compare with.
-   * @param {ViewportRowsCalculator} proposedPartiallyVisibleColumnsCalculator The instance of the partially visible columns viewport calculator to compare with.
-   * @returns {boolean} Returns `true` if all proposed visible columns are already rendered (meaning: redraw is not needed).
-   *                    Returns `false` if at least one proposed visible column is not already rendered (meaning: redraw is needed).
-   */
-  areAllProposedVisibleColumnsAlreadyRendered(
-    proposedFullyVisibleColumnsCalculator: ColumnsCalculationType | undefined,
-    proposedPartiallyVisibleColumnsCalculator: ColumnsCalculationType | undefined
-  ) {
-    if (!this.columnsVisibleCalculator || !this.columnsRenderCalculator ||
-        !proposedFullyVisibleColumnsCalculator || !proposedPartiallyVisibleColumnsCalculator) {
-      return false;
-    }
-
-    let { startColumn, endColumn } = proposedFullyVisibleColumnsCalculator;
-    const {
-      startColumn: partiallyVisibleStartColumn,
-      endColumn: partiallyVisibleEndColumn
-    } = proposedPartiallyVisibleColumnsCalculator;
-
-    // if there are no fully visible columns at all...
-    if (startColumn === null && endColumn === null) {
-      if (
-        !proposedFullyVisibleColumnsCalculator.isVisibleInTrimmingContainer &&
-        partiallyVisibleStartColumn !== null &&
-        !this.wtTable.isColumnBeforeRenderedColumns(partiallyVisibleStartColumn) &&
-        partiallyVisibleEndColumn !== null &&
-        !this.wtTable.isColumnAfterRenderedColumns(partiallyVisibleEndColumn)
-      ) {
-        return true;
-      }
-      // ...use partially visible columns calculator to determine what render type is needed
-      startColumn = partiallyVisibleStartColumn;
-      endColumn = partiallyVisibleEndColumn;
-    }
-
-    if (startColumn === null || endColumn === null) {
-      return false;
-    }
-
-    const {
-      startColumn: renderedStartColumn,
-      endColumn: renderedEndColumn,
-      columnStartOffset,
-      columnEndOffset,
-    } = this.columnsRenderCalculator;
-
-    if (renderedStartColumn === null || renderedEndColumn === null) {
-      return false;
-    }
-
-    const totalColumns = this.wtSettings.getSetting<number>('totalColumns') - 1;
-    const renderingThreshold = this.wtSettings.getSetting('viewportColumnRenderingThreshold');
-
-    if (typeof renderingThreshold === 'number' && Number.isInteger(renderingThreshold) && renderingThreshold > 0) {
-      startColumn = Math.max(0, startColumn - Math.min(columnStartOffset, renderingThreshold));
-      endColumn = Math.min(totalColumns, endColumn + Math.min(columnEndOffset, renderingThreshold));
-
-    } else if (renderingThreshold === 'auto') {
-      startColumn = Math.max(0, startColumn - Math.ceil(columnStartOffset / 2));
-      endColumn = Math.min(totalColumns, endColumn + Math.ceil(columnEndOffset / 2));
-    }
-
-    if (startColumn < renderedStartColumn || (startColumn === renderedStartColumn && startColumn > 0)) {
-      return false;
-
-    } else if (endColumn > renderedEndColumn || (endColumn === renderedEndColumn && endColumn < totalColumns)) {
-      return false;
-    }
-
-    return true;
+  invalidateLayout() {
+    this.#layout = null;
   }
 
   /**
@@ -785,6 +299,7 @@ class Viewport {
    */
   invalidateRowHeightCache() {
     this.rowHeightCache.invalidate();
+    this.invalidateLayout();
   }
 
   /**
@@ -793,6 +308,7 @@ class Viewport {
    */
   invalidateColumnWidthCache() {
     this.columnWidthCache.invalidate();
+    this.invalidateLayout();
   }
 
   /**
@@ -801,6 +317,7 @@ class Viewport {
   invalidateAllCaches() {
     this.rowHeightCache.invalidate();
     this.columnWidthCache.invalidate();
+    this.invalidateLayout();
   }
 
   /**
@@ -812,5 +329,13 @@ class Viewport {
     });
   }
 }
+
+// The workspace-size and calculator-creation methods are supplied by mixins; their signatures are
+// merged onto the `Viewport` type through this interface declaration (same pattern as the range-query
+// mixins on `Table`). A method group not mixed in would have no runtime implementation.
+interface Viewport extends WorkspaceSize, CalculatorFactory {}
+
+mixin(Viewport, workspaceSize);
+mixin(Viewport, calculatorFactory);
 
 export default Viewport;

@@ -1,7 +1,7 @@
 import type { TableDeps } from '../table';
 import Table from '../table';
 import stickyRowsBottom from './mixin/stickyRowsBottom';
-import calculatedColumns from './mixin/calculatedColumns';
+import { columnRangeQuery } from '../renderedRange';
 import { mixin } from '../../../../helpers/object';
 import { CLONE_BOTTOM } from '../overlay';
 
@@ -21,6 +21,6 @@ class BottomOverlayTable extends Table {
 }
 
 mixin(BottomOverlayTable, stickyRowsBottom);
-mixin(BottomOverlayTable, calculatedColumns);
+mixin(BottomOverlayTable, columnRangeQuery);
 
 export default BottomOverlayTable;

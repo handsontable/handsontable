@@ -2,6 +2,7 @@ import { fastInnerText } from '../../../helpers/dom/element';
 import { objectEach } from '../../../helpers/object';
 import { throwWithCause } from '../../../helpers/errors';
 import type { StylesHandler } from './types';
+import type { SettingsPort } from './ports';
 
 /**
  * @todo Describe options.
@@ -16,6 +17,7 @@ import type { StylesHandler } from './types';
  * @property {Option} data Option `data`.
  * @property {Option} defaultColumnWidth Option `defaultColumnWidth`.
  * @property {Option} externalRowCalculator Option `externalRowCalculator`.
+ * @property {Option} singlePassLayout Option `singlePassLayout`.
  * @property {Option} fixedColumnsStart Option `fixedColumnsStart`.
  * @property {Option} fixedRowsBottom Option `fixedRowsBottom`.
  * @property {Option} fixedRowsTop Option `fixedRowsTop`.
@@ -84,7 +86,7 @@ import type { StylesHandler } from './types';
 /**
  * @class Settings
  */
-export default class Settings {
+export default class Settings implements SettingsPort {
 
   /**
    * Reference to settings.
@@ -137,6 +139,12 @@ export default class Settings {
       isDataViewInstance: true,
       // presentation mode
       externalRowCalculator: false,
+      // Escape hatch for the single-pass (predicted) layout. When `false`, the viewport's
+      // scrollbar/size queries measure the rendered DOM (the legacy, multi-pass path) instead of
+      // reading the predicted layout snapshot. Plugins whose rendering is incompatible with a
+      // predicted single pass (e.g. `mergeCells`, whose virtualized merged-cell height depends on the
+      // viewport it is trying to compute) opt out through this flag, wired in `TableView`.
+      singlePassLayout: true,
       currentRowClassName: null,
       currentColumnClassName: null,
       preventOverflow() {

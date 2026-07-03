@@ -360,4 +360,51 @@ describe('PositionCache', () => {
       expect(cache.getTotalSize()).toBe(0);
     });
   });
+
+  describe('isCurrent', () => {
+    it('should be false before the cache is built', () => {
+      const { cache } = createCache(3, () => 10, 10);
+
+      expect(cache.isCurrent()).toBe(false);
+    });
+
+    it('should be true after a heterogeneous build and false after invalidate', () => {
+      const { cache } = createCache(3, i => (i + 1) * 10, 0);
+
+      cache.build();
+
+      expect(cache.isCurrent()).toBe(true);
+
+      cache.invalidate();
+
+      expect(cache.isCurrent()).toBe(false);
+    });
+
+    it('should be true in uniform mode even though isBuilt() (prefix-sum guard) is false', () => {
+      const { cache } = createCache(1000, () => 20, 20, true);
+
+      cache.build();
+
+      // isBuilt() reports prefix-sum mode only, so it is false for a uniform cache...
+      expect(cache.isBuilt()).toBe(false);
+      // ...but the cache IS built and current — this is the distinction the single-pass skip relies on.
+      expect(cache.isCurrent()).toBe(true);
+
+      cache.invalidate();
+
+      expect(cache.isCurrent()).toBe(false);
+    });
+
+    it('should become stale when the item count changes (mirrors ensureBuilt)', () => {
+      const { cache, setTotalItems } = createCache(3, () => 10, 10);
+
+      cache.build();
+
+      expect(cache.isCurrent()).toBe(true);
+
+      setTotalItems(5);
+
+      expect(cache.isCurrent()).toBe(false);
+    });
+  });
 });

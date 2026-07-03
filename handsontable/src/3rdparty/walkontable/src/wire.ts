@@ -22,6 +22,8 @@ import type { default as Overlays } from './overlays';
 import type { SelectionManager } from './selection/manager';
 import type { Overlay } from './overlay/_base';
 import type { GeometryReader } from './geometry/geometryReader';
+import type { RowSizeSource, ColumnSizeSource } from './sizing/axisSizeSource';
+import { DefaultRowSizeSource, DefaultColumnSizeSource } from './sizing/defaultSizeSource';
 import type { default as EventManager } from '../../../eventManager';
 
 /**
@@ -38,6 +40,11 @@ export interface EngineContext {
   rootWindow: Window;
   rootTable: HTMLTableElement;
   geometryReader: GeometryReader;
+  // The sizing ports — the seam between the engine and whoever supplies row heights / column widths.
+  // Stateless pass-through wrappers over `wtSettings`, so master and each clone get their own; no
+  // shared instance is required (unlike `geometryReader`, which is shared for its future per-draw cache).
+  rowSizeSource: RowSizeSource;
+  columnSizeSource: ColumnSizeSource;
   /**
    * Creates a fresh `EventManager` bound to the instance. Each module gets its own manager (matching
    * the previous `this.eventManager` getter), so the factory calls this once and stores the result —
@@ -84,6 +91,8 @@ export function buildContext(wot: WalkontableInstance): EngineContext {
     rootWindow: wot.domBindings.rootWindow,
     rootTable: wot.domBindings.rootTable,
     geometryReader: wot.domBindings.geometryReader,
+    rowSizeSource: new DefaultRowSizeSource(wot.wtSettings),
+    columnSizeSource: new DefaultColumnSizeSource(wot.wtSettings),
     makeEventManager: () => wot.eventManager,
     getFacade: () => wot.wtSettings.getSetting<Function>('facade', wot),
     isDrawn: () => wot.drawn,

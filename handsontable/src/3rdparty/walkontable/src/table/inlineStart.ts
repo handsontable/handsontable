@@ -1,6 +1,6 @@
 import type { TableDeps } from '../table';
 import Table from '../table';
-import calculatedRows from './mixin/calculatedRows';
+import { rowRangeQuery } from '../renderedRange';
 import stickyColumnsStart from './mixin/stickyColumnsStart';
 import { mixin } from '../../../../helpers/object';
 import { CLONE_INLINE_START } from '../overlay';
@@ -17,7 +17,7 @@ class InlineStartOverlayTable extends Table {
   }
 }
 
-mixin(InlineStartOverlayTable, calculatedRows);
+mixin(InlineStartOverlayTable, rowRangeQuery);
 mixin(InlineStartOverlayTable, stickyColumnsStart);
 
 export default InlineStartOverlayTable;

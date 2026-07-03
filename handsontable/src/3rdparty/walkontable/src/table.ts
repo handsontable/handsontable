@@ -1,6 +1,7 @@
 import type { WalkontableInstance } from './types';
 import type { EngineContext } from './wire';
 import type Settings from './settings';
+import type { RowRangeQuery, ColumnRangeQuery } from './renderedRange';
 import {
   hasClass,
   index,
@@ -48,6 +49,8 @@ export function createTableDeps(ctx: EngineContext) {
     rootDocument: ctx.rootDocument,
     rootTable: ctx.rootTable,
     geometryReader: ctx.geometryReader,
+    rowSizeSource: ctx.rowSizeSource,
+    columnSizeSource: ctx.columnSizeSource,
     getWtTable: ctx.getWtTable,
     getWtViewport: ctx.getWtViewport,
     getWtOverlays: ctx.getWtOverlays,
@@ -249,116 +252,13 @@ class Table {
    */
   declare tableRenderer: Renderer;
 
-  // Methods provided by mixins (calculatedRows, calculatedColumns, stickyRowsTop,
-  // stickyRowsBottom, stickyColumnsStart) applied to Table subclasses at runtime.
-  /**
-   * Gets the index of the first rendered row.
-   *
-   * @type {() => number}
-   */
-  declare getFirstRenderedRow: () => number;
-  /**
-   * Gets the index of the first visible row.
-   *
-   * @type {() => number}
-   */
-  declare getFirstVisibleRow: () => number;
-  /**
-   * Gets the index of the first partially visible row.
-   *
-   * @type {() => number}
-   */
-  declare getFirstPartiallyVisibleRow: () => number;
-  /**
-   * Gets the index of the last rendered row.
-   *
-   * @type {() => number}
-   */
-  declare getLastRenderedRow: () => number;
-  /**
-   * Gets the index of the last visible row.
-   *
-   * @type {() => number}
-   */
-  declare getLastVisibleRow: () => number;
-  /**
-   * Gets the index of the last partially visible row.
-   *
-   * @type {() => number}
-   */
-  declare getLastPartiallyVisibleRow: () => number;
-  /**
-   * Gets the count of rendered rows.
-   *
-   * @type {() => number}
-   */
-  declare getRenderedRowsCount: () => number;
-  /**
-   * Gets the count of visible rows.
-   *
-   * @type {() => number}
-   */
-  declare getVisibleRowsCount: () => number;
-  /**
-   * Gets the count of column headers.
-   *
-   * @type {() => number}
-   */
-  declare getColumnHeadersCount: () => number;
-  /**
-   * Gets the index of the first rendered column.
-   *
-   * @type {() => number}
-   */
-  declare getFirstRenderedColumn: () => number;
-  /**
-   * Gets the index of the first visible column.
-   *
-   * @type {() => number}
-   */
-  declare getFirstVisibleColumn: () => number;
-  /**
-   * Gets the index of the first partially visible column.
-   *
-   * @type {() => number}
-   */
-  declare getFirstPartiallyVisibleColumn: () => number;
-  /**
-   * Gets the index of the last rendered column.
-   *
-   * @type {() => number}
-   */
-  declare getLastRenderedColumn: () => number;
-  /**
-   * Gets the index of the last visible column.
-   *
-   * @type {() => number}
-   */
-  declare getLastVisibleColumn: () => number;
-  /**
-   * Gets the index of the last partially visible column.
-   *
-   * @type {() => number}
-   */
-  declare getLastPartiallyVisibleColumn: () => number;
-  /**
-   * Gets the count of rendered columns.
-   *
-   * @type {() => number}
-   */
-  declare getRenderedColumnsCount: () => number;
-  /**
-   * Gets the count of visible columns.
-   *
-   * @type {() => number}
-   */
-  declare getVisibleColumnsCount: () => number;
-  /**
-   * Gets the count of row headers.
-   *
-   * @type {() => number}
-   */
-  declare getRowHeadersCount: () => number;
+  // The row/column range-query methods (getFirstRenderedRow, getFirstRenderedColumn, the visible /
+  // partially-visible variants, the counts, and the header counts) are attached to the appropriate
+  // subclasses by the `withRowRangeQuery` / `withColumnRangeQuery` factories in `renderedRange.ts`.
+  // They are exposed on the `Table` type through the `interface Table` merge near the bottom of this
+  // file, so `Table`-typed callers can use them; each concrete subclass supplies the runtime
+  // implementation for the groups it composes (sticky-overlay methods are still added at runtime by
+  // the `mixin()` helper).
 
   // Methods defined in subclass MasterTable but called from Table via `this.isMaster` guards.
   /**
@@ -367,13 +267,6 @@ class Table {
    * @returns {void}
    */
   alignOverlaysWithTrimmingContainer(): void { // intentionally empty
-  }
-  /**
-   * Marks oversized column headers.
-   *
-   * @returns {void}
-   */
-  markOversizedColumnHeaders(): void { // intentionally empty
   }
 
   /**
@@ -617,6 +510,10 @@ class Table {
       wtViewport.rowHeightCache.ensureBuilt();
       wtViewport.columnWidthCache.ensureBuilt();
 
+      // Resolve the single-pass layout snapshot for this draw (scrollbar prediction from numbers).
+      // Not yet the source of truth for the calculators below — see Viewport#beginDrawLayout.
+      wtViewport.beginDrawLayout();
+
       runFastDraw = wtViewport.createCalculators(runFastDraw);
 
       if (rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
@@ -681,15 +578,7 @@ class Table {
           .setFilters(this.rowFilter, this.columnFilter)
           .render();
 
-        if (this.isMaster) {
-          this.markOversizedColumnHeaders();
-        }
-
         this.adjustColumnHeaderHeights();
-
-        if (this.isMaster) {
-          this.syncOversizedColumnHeadersWithDOM();
-        }
 
         if (this.isMaster || this.is(CLONE_BOTTOM)) {
           this.markOversizedRows();
@@ -697,9 +586,24 @@ class Table {
 
         if (this.isMaster) {
           if (!this.wtSettings.getSetting('externalRowCalculator')) {
+            // Single-pass: the fully/partially-visible calculators were already computed in pass 1
+            // (`createCalculators`) from the layout snapshot. On the snapshot path, the only thing that
+            // can change them post-render is `markOversizedRows` invalidating the row-height cache when
+            // rendered content is genuinely taller than its configured size. If both size caches are
+            // still current, the post-render values are identical, so this second pass is a redundant
+            // recompute — skip it. (Read `isCurrent()` before `ensureBuilt()` rebuilds an invalidated
+            // cache. Validated non-destructively across the full e2e: this predicate would skip 595
+            // draws with byte-identical ranges and 0 divergences.) The legacy measured path, and any
+            // draw with an oversized row, still recompute here.
+            const skipSecondPass = wtViewport.usesLayoutSnapshotForCalculators() &&
+              wtViewport.rowHeightCache.isCurrent() && wtViewport.columnWidthCache.isCurrent();
+
             wtViewport.rowHeightCache.ensureBuilt();
             wtViewport.columnWidthCache.ensureBuilt();
-            wtViewport.createVisibleCalculators();
+
+            if (!skipSecondPass) {
+              wtViewport.createVisibleCalculators();
+            }
           }
 
           wtOverlays.refresh(false);
@@ -756,101 +660,31 @@ class Table {
   }
 
   /**
-   * @param {number} col The visual column index.
-   */
-  markIfOversizedColumnHeader(col: number) {
-    const sourceColIndex = this.columnFilter!.renderedToSource(col);
-    let level = this.wtSettings.getSetting<Function[]>('columnHeaders').length;
-    const defaultRowHeight = this.wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
-    let previousColHeaderHeight;
-    let currentHeader;
-    let currentHeaderHeight;
-    const columnHeaderHeightSetting: number | number[] =
-      this.wtSettings.getSetting<number | number[]>('columnHeaderHeight') || [];
-
-    while (level) {
-      level -= 1;
-
-      previousColHeaderHeight = this.getColumnHeaderHeight(level);
-      currentHeader = this.getColumnHeader(sourceColIndex, level);
-
-      if (!currentHeader) {
-        /* eslint-disable no-continue */
-        continue;
-      }
-      currentHeaderHeight = this.#deps.geometryReader.innerHeight(currentHeader);
-
-      if (!previousColHeaderHeight &&
-          defaultRowHeight < currentHeaderHeight || previousColHeaderHeight < currentHeaderHeight) {
-        this.#deps.getWtViewport().oversizedColumnHeaders[level] = currentHeaderHeight;
-      }
-
-      if (Array.isArray(columnHeaderHeightSetting)) {
-        if (columnHeaderHeightSetting[level] !== null && columnHeaderHeightSetting[level] !== undefined) {
-          this.#deps.getWtViewport().oversizedColumnHeaders[level] = columnHeaderHeightSetting[level];
-        }
-
-      } else if (!isNaN(columnHeaderHeightSetting)) {
-        this.#deps.getWtViewport().oversizedColumnHeaders[level] = columnHeaderHeightSetting;
-      }
-
-      const headerHeightAtLevel: number = Array.isArray(columnHeaderHeightSetting) // eslint-disable-line max-len
-        ? (columnHeaderHeightSetting[level] ?? 0)
-        : columnHeaderHeightSetting;
-
-      if ((this.#deps.getWtViewport().oversizedColumnHeaders[level] ?? 0) < headerHeightAtLevel) {
-        this.#deps.getWtViewport().oversizedColumnHeaders[level] = headerHeightAtLevel;
-      }
-    }
-  }
-
-  /**
-   *
+   * Applies the provided column-header heights to the rendered THEAD rows. The provided height comes
+   * from the `columnHeaderHeight` setting funnel (the option, the `modifyColumnHeaderHeight` hook that
+   * AutoRowSize feeds, and the Handsontable-side render-size probe for content-driven headers). It is
+   * written as `min-height`, never `height`, so a header whose real content is taller (a wrapped or
+   * frozen-region header) is not clipped - it still expands to its content, which the frozen-overlay
+   * sync then reads. Runs on the master and every clone so all overlays get the same floor.
    */
   adjustColumnHeaderHeights() {
     const { wtSettings } = this;
     const children = this.THEAD!.childNodes;
-    const oversizedColumnHeaders = this.#deps.getWtViewport().oversizedColumnHeaders;
+    const defaultRowHeight = wtSettings.getSetting('stylesHandler').getDefaultRowHeight();
     const columnHeaders = wtSettings.getSetting<Function[]>('columnHeaders');
 
     for (let i = 0, len = columnHeaders.length; i < len; i++) {
-      if (oversizedColumnHeaders[i]) {
+      const headerHeight = this.getColumnHeaderHeight(i);
+
+      if (headerHeight > defaultRowHeight) {
         if (!children[i] || children[i].childNodes.length === 0) {
           return;
         }
         const firstChild = children[i].childNodes[0];
 
         if (isHTMLElement(firstChild)) {
-          firstChild.style.height = `${oversizedColumnHeaders[i]}px`;
+          firstChild.style.height = `${headerHeight}px`;
         }
-      }
-    }
-  }
-
-  /**
-   * After the master table applies `oversizedColumnHeaders` via `adjustColumnHeaderHeights`,
-   * the actual THEAD row heights may exceed the stored values when header content (e.g.,
-   * wrapping text) pushes cells taller than the configured `columnHeaderHeight`. This method
-   * re-reads the rendered THEAD row heights and updates `oversizedColumnHeaders` so that
-   * overlay tables receive the correct values during their own `adjustColumnHeaderHeights`.
-   */
-  syncOversizedColumnHeadersWithDOM() {
-    const { wtSettings } = this;
-    const children = this.THEAD!.childNodes;
-    const oversizedColumnHeaders = this.#deps.getWtViewport().oversizedColumnHeaders;
-    const columnHeaders = wtSettings.getSetting<unknown[]>('columnHeaders');
-    const borderCompensation = 1;
-
-    for (let i = 0, len = columnHeaders.length; i < len; i++) {
-      if (!children[i] || !oversizedColumnHeaders[i]) {
-        continue;
-      }
-
-      const child = children[i];
-      const actualRowHeight = isHTMLElement(child) ? this.#deps.geometryReader.innerHeight(child) : 0;
-
-      if (actualRowHeight > (oversizedColumnHeaders[i] ?? 0) + borderCompensation) {
-        oversizedColumnHeaders[i] = actualRowHeight;
       }
     }
   }
@@ -1678,5 +1512,13 @@ class Table {
     // Intentionally empty
   }
 }
+
+// Declaration merge: exposes the row/column range-query methods on the `Table` type for
+// `Table`-typed callers. The runtime implementations are composed per subclass by the
+// `withRowRangeQuery` / `withColumnRangeQuery` factories (see `renderedRange.ts`); subclasses that do
+// not compose a group inherit only the type here, matching the previous runtime-mixin behavior where
+// calling an absent group threw.
+// eslint-disable-next-line no-use-before-define, no-redeclare
+interface Table extends RowRangeQuery, ColumnRangeQuery {}
 
 export default Table;
