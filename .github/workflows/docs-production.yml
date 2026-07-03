@@ -83,7 +83,15 @@ jobs:
       # Assemble the multi-version docs site (current + previous versions from
       # the GHCR Docker images) into docs/deploy/docs, which is deployed to
       # Cloudflare Pages below.
+      #
+      # GITHUB_TOKEN is required: build_current_version.sh runs
+      # getListOrPreviousVersions.mjs, which authenticates its GitHub GraphQL
+      # query with it. The GraphQL API rejects unauthenticated requests
+      # outright, so without this the script's retries all fail and the
+      # deploy aborts (fail-closed) on every run.
       - name: Assemble production docs (all versions)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd deploy
           mkdir -p docs/docs
@@ -153,16 +161,24 @@ jobs:
           CF_PAGES_APEX_BRANCH: production
 
       # Cloudflare Pages is the sole production host, so a failed deploy must
-      # fail the workflow (no continue-on-error here).
+      # fail the workflow (no continue-on-error here). Retried (unlike the old
+      # Netlify publish, this is single-attempt by default): wrangler retries
+      # asset uploads internally but not deployment creation, and `npm install
+      # wrangler` is an unretried network call too - a transient blip
+      # shouldn't fail a run that already spent 20+ minutes on Docker builds.
       - name: Deploy production to Cloudflare Pages
-        # Install wrangler in /tmp to avoid npm failures inside the pnpm workspace
-        working-directory: /tmp
-        run: |
-          npm install wrangler
-          ./node_modules/.bin/wrangler pages deploy \
-            "$GITHUB_WORKSPACE/docs/deploy/docs" \
-            --project-name handsontable-docs \
-            --branch production
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # https://github.com/nick-fields/retry/releases/tag/v3.0.2
+        with:
+          timeout_seconds: 600
+          max_attempts: 3
+          retry_on: error
+          command: |
+            cd /tmp
+            npm install wrangler
+            ./node_modules/.bin/wrangler pages deploy \
+              "$GITHUB_WORKSPACE/docs/deploy/docs" \
+              --project-name handsontable-docs \
+              --branch production
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

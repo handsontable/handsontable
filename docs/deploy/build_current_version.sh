@@ -20,8 +20,6 @@ fi
 # being deployed - those can differ when hotfixing an older version.
 printf '%s' "$LATEST_VERSION" > LATEST_DOCS_VERSION
 
-echo "/docs/$LATEST_VERSION/* /docs/:splat 301" >> _redirects
-
 for version in ${PREVIOUS_VERSIONS:-}
 do
     echo "Building version $version"
@@ -52,5 +50,4 @@ echo "Building current version $LATEST_VERSION"
 img_id=$(docker create "ghcr.io/handsontable/handsontable/handsontable-documentation:v$LATEST_VERSION")
 docker cp "$img_id:/usr/share/nginx/html/docs" ./docs
 
-cp _redirects docs/_redirects
 cp docs/docs/404.html docs/404.html

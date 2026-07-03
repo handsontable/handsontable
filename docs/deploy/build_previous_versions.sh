@@ -14,8 +14,6 @@ if [ -z "${LATEST_VERSION:-}" ]; then
     exit 1
 fi
 
-echo "/docs/$LATEST_VERSION/* /docs/:splat 301" >> _redirects
-
 for version in ${PREVIOUS_VERSIONS:-}
 do
     echo "Building version $version"

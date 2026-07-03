@@ -162,7 +162,6 @@ jobs:
           cp ../dist/404.html preview/404.html
 
           cp _dev_headers preview/_headers
-          cp _redirects preview/_redirects
 
       # Decide how this build maps to a Cloudflare Pages deployment. Every run
       # of this job deploys somewhere (matching the previous Netlify behavior,
@@ -189,7 +188,13 @@ jobs:
             const headBranch = ref.replace(/^refs\/heads\//, '');
 
             // Sanitize a git branch name into a Cloudflare Pages branch label.
-            const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40) || 'branch';
+            // Cloudflare truncates preview-branch subdomain aliases to 28
+            // chars (then trims dashes) - cap here first so the label we
+            // compute matches the hostname Pages actually serves; slicing
+            // after the dash-trim (as before) could leave the alias 12 chars
+            // longer than what Cloudflare exposes, pointing previews at a
+            // different, wrong hostname.
+            const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 28).replace(/^-+|-+$/g, '') || 'branch';
 
             if (ref === 'refs/heads/develop') {
               core.setOutput('deploy', 'true');
@@ -238,17 +243,27 @@ jobs:
       # failure - continue-on-error keeps steps.cf-pages-deploy.outcome as
       # 'failure' but the job's own success() stays true, and the Slack steps'
       # `failure()` condition only trips on a step that actually failed the job.
+      # Retried (unlike continue-on-error, this preserves hard-failure
+      # semantics once attempts are exhausted): wrangler retries asset
+      # uploads internally but not deployment creation, and `npm install
+      # wrangler` is an unretried network call too - a single transient
+      # Cloudflare API blip shouldn't fail the whole run (and, on release
+      # branches, fire the RC-failure Slack alert).
       - name: Deploy to Cloudflare Pages
         id: cf-pages-deploy
         if: ${{ steps.cf-target.outputs.deploy == 'true' }}
-        # Install wrangler in /tmp to avoid npm failures inside the pnpm workspace
-        working-directory: /tmp
-        run: |
-          npm install wrangler
-          ./node_modules/.bin/wrangler pages deploy \
-            "$GITHUB_WORKSPACE/docs/deploy/preview" \
-            --project-name handsontable-docs-staging \
-            --branch "${{ steps.cf-target.outputs.branch }}"
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # https://github.com/nick-fields/retry/releases/tag/v3.0.2
+        with:
+          timeout_seconds: 300
+          max_attempts: 3
+          retry_on: error
+          command: |
+            cd /tmp
+            npm install wrangler
+            ./node_modules/.bin/wrangler pages deploy \
+              "$GITHUB_WORKSPACE/docs/deploy/preview" \
+              --project-name handsontable-docs-staging \
+              --branch "${{ steps.cf-target.outputs.branch }}"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
