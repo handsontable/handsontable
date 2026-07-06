@@ -3,12 +3,11 @@ import type { EngineContext } from './wire';
 import type Settings from './settings';
 import type { RowRangeQuery, ColumnRangeQuery } from './renderedRange';
 import { cellAccess, type CellAccess } from './table/cellAccess';
+import { domScaffold, type DomScaffold } from './table/domScaffold';
 import {
-  hasClass,
   isHTMLElement,
   removeTextNodes,
   isVisible,
-  setAttribute,
 } from '../../../helpers/dom/element';
 import { mixin } from '../../../helpers/object';
 import ColumnFilter from './filter/column';
@@ -20,7 +19,6 @@ import {
   CLONE_BOTTOM,
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from './overlay';
-import { A11Y_PRESENTATION, A11Y_TABINDEX } from '../../../helpers/a11y';
 
 /**
  * Assembles the Table module's dependencies from the engine composition context. Shared by the
@@ -332,149 +330,6 @@ class Table {
    */
   is(overlayTypeName: string) { // todo refactoring: eliminate all protected and private usages
     return this.name === overlayTypeName;
-  }
-
-  /**
-   *
-   */
-  fixTableDomTree() {
-    const rootDocument = this.#deps.rootDocument;
-
-    this.TBODY = this.TABLE.querySelector('tbody');
-
-    if (!this.TBODY) {
-      this.TBODY = rootDocument.createElement('tbody');
-      this.TABLE.appendChild(this.TBODY);
-    }
-    this.THEAD = this.TABLE.querySelector('thead');
-
-    if (!this.THEAD) {
-      this.THEAD = rootDocument.createElement('thead');
-      this.TABLE.insertBefore(this.THEAD, this.TBODY);
-    }
-    this.COLGROUP = this.TABLE.querySelector('colgroup');
-
-    if (!this.COLGROUP) {
-      this.COLGROUP = rootDocument.createElement('colgroup');
-      this.TABLE.insertBefore(this.COLGROUP, this.THEAD);
-    }
-  }
-
-  /**
-   * @param {HTMLTableElement} table An element to process.
-   * @returns {HTMLElement}
-   */
-  createSpreader(table: HTMLTableElement) {
-    const parent = table.parentNode;
-    let spreader: HTMLDivElement | undefined;
-
-    if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
-        !isHTMLElement(parent) || !hasClass(parent, 'wtHolder')) {
-      spreader = this.#deps.rootDocument.createElement('div');
-      spreader.className = 'wtSpreader';
-
-      if (parent) {
-        // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
-        table.before(spreader);
-      }
-      spreader.appendChild(table);
-    }
-
-    if (spreader) {
-      spreader.style.position = 'relative';
-
-      if (this.wtSettings.getSetting('ariaTags')) {
-        setAttribute(spreader, [
-          A11Y_PRESENTATION()
-        ]);
-      }
-    }
-
-    return spreader;
-  }
-
-  /**
-   * @param {HTMLElement} spreader An element to the hider element is injected.
-   * @returns {HTMLElement}
-   */
-  createHider(spreader: HTMLElement) {
-    const parent = spreader.parentNode;
-    let hider: HTMLDivElement | undefined;
-
-    if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
-        !isHTMLElement(parent) || !hasClass(parent, 'wtHolder')) {
-      hider = this.#deps.rootDocument.createElement('div');
-      hider.className = 'wtHider';
-
-      if (parent) {
-        // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
-        spreader.before(hider);
-      }
-      hider.appendChild(spreader);
-    }
-
-    if (hider && this.wtSettings.getSetting('ariaTags')) {
-      setAttribute(hider, [
-        A11Y_PRESENTATION()
-      ]);
-    }
-
-    return hider;
-  }
-
-  /**
-   *
-   * @param {HTMLElement} hider An element to the holder element is injected.
-   * @returns {HTMLElement}
-   */
-  createHolder(hider: HTMLElement) {
-    const parent = hider.parentNode;
-    let holder;
-
-    if (!parent || parent.nodeType !== Node.ELEMENT_NODE ||
-        !isHTMLElement(parent) || !hasClass(parent, 'wtHolder')) {
-      holder = this.#deps.rootDocument.createElement('div');
-      holder.style.position = 'relative';
-      holder.className = 'wtHolder';
-
-      if (this.isMaster) {
-        setAttribute(holder, [
-          A11Y_TABINDEX(-1),
-        ]);
-      }
-
-      if (parent) {
-        // if TABLE is detached (e.g. in Jasmine test), it has no parentNode so we cannot attach holder to it
-        hider.before(holder);
-      }
-      if (this.isMaster) {
-        const holderParent = holder.parentNode;
-
-        // holderParent is null when TABLE is detached (e.g. in Jasmine tests); skip class assignment in that case.
-        // isHTMLElement() is used instead of `instanceof HTMLElement` because the latter fails in
-        // cross-frame contexts (e.g. when HoT is mounted inside an <iframe> via React portals):
-        // the iframe's HTMLElement constructor !== the parent frame's HTMLElement.
-        if (isHTMLElement(holderParent)) {
-          holderParent.className += 'ht_master handsontable';
-          holderParent.setAttribute('dir', this.wtSettings.getSettingPure('rtlMode') ? 'rtl' : 'ltr');
-
-          if (this.wtSettings.getSetting('ariaTags')) {
-            setAttribute(holderParent, [
-              A11Y_PRESENTATION()
-            ]);
-          }
-        }
-      }
-      holder.appendChild(hider);
-    }
-
-    if (holder && this.wtSettings.getSetting('ariaTags')) {
-      setAttribute(holder, [
-        A11Y_PRESENTATION()
-      ]);
-    }
-
-    return holder;
   }
 
   /**
@@ -1248,7 +1103,8 @@ class Table {
 // calling an absent group threw.
 // eslint-disable-next-line no-use-before-define, no-redeclare
 mixin(Table, cellAccess);
+mixin(Table, domScaffold);
 
-interface Table extends RowRangeQuery, ColumnRangeQuery, CellAccess {}
+interface Table extends RowRangeQuery, ColumnRangeQuery, CellAccess, DomScaffold {}
 
 export default Table;
