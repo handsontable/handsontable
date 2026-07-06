@@ -2,7 +2,7 @@ import type { WalkontableInstance } from './types';
 import type { EngineContext } from './wire';
 import type Settings from './settings';
 import type { RowRangeQuery, ColumnRangeQuery } from './viewport/renderedRange';
-import { cellAccess, type CellAccess } from './table/cellAccess';
+import { cellAccess, type CellAccess } from './cellLocator/cellAccess';
 import { domScaffold, type DomScaffold } from './table/domScaffold';
 import {
   isHTMLElement,
