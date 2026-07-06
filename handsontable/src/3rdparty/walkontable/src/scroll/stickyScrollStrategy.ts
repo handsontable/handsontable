@@ -1,6 +1,6 @@
 import { isSafari } from '../../../../helpers/browser';
 import type { EngineContext } from '../wire';
-import type { default as Overlays } from '../overlays';
+import type { default as Overlays } from '../overlay/overlays';
 import type { Overlay } from '../overlay/_base';
 
 /**

@@ -8,7 +8,7 @@ import type { default as WalkontableSettings } from './settings';
 import type { default as WalkontableTable } from './table/baseTable';
 import type { default as WalkontableViewport } from './viewport/viewport';
 import type { default as WalkontableScroll } from './scroll/scroll';
-import type { default as WalkontableOverlays } from './overlays';
+import type { default as WalkontableOverlays } from './overlay/overlays';
 import type { SelectionManager as WalkontableSelectionManager } from './selection/manager';
 import type { Overlay as WalkontableOverlay } from './overlay/_base';
 import type EventManager from '../../../eventManager';

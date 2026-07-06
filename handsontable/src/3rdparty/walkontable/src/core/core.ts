@@ -1,5 +1,5 @@
 import Event, { createEventDeps } from '../event';
-import Overlays, { createOverlaysDeps } from '../overlays';
+import Overlays, { createOverlaysDeps } from '../overlay/overlays';
 import { CLONE_TYPES } from '../overlay';
 import Settings from '../settings';
 import MasterTable from '../table/regions/masterTable';

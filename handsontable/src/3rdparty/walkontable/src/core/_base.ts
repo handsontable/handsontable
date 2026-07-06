@@ -2,7 +2,7 @@ import type { DomBindings, WalkontableInstance } from '../types';
 import type Settings from '../settings';
 import type Table from '../table/baseTable';
 import type Viewport from '../viewport/viewport';
-import type Overlays from '../overlays';
+import type Overlays from '../overlay/overlays';
 import type { SelectionManager } from '../selection/manager';
 import type Event from '../event';
 import {

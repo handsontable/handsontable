@@ -1,7 +1,7 @@
-import type { WalkontableInstance } from './types';
-import type { EngineContext } from './wire';
-import type Settings from './settings';
-import type Table from './table/baseTable';
+import type { WalkontableInstance } from '../types';
+import type { EngineContext } from '../wire';
+import type Settings from '../settings';
+import type Table from '../table/baseTable';
 
 /**
  * Extends WheelEvent with legacy (non-standard) delta properties used by older browsers.
@@ -21,27 +21,27 @@ interface WheelEventWithLegacyDelta extends WheelEvent {
 function isWheelEventWithLegacyDelta(event: WheelEvent): event is WheelEventWithLegacyDelta {
   return 'wheelDeltaY' in event || 'wheelDeltaX' in event;
 }
-import type { Overlay } from './overlay/_base';
-import type EventManager from '../../../eventManager';
+import type { Overlay } from './_base';
+import type EventManager from '../../../../eventManager';
 import {
   eventTargetEl,
   getScrollableElement,
   isHTMLElement,
-} from '../../../helpers/dom/element';
-import { requestAnimationFrame } from '../../../helpers/feature';
-import { debounce } from '../../../helpers/function';
-import { arrayEach } from '../../../helpers/array';
-import { isKey } from '../../../helpers/unicode';
-import { warn } from '../../../helpers/console';
+} from '../../../../helpers/dom/element';
+import { requestAnimationFrame } from '../../../../helpers/feature';
+import { debounce } from '../../../../helpers/function';
+import { arrayEach } from '../../../../helpers/array';
+import { isKey } from '../../../../helpers/unicode';
+import { warn } from '../../../../helpers/console';
 import {
   InlineStartOverlay,
   TopOverlay,
   TopInlineStartCornerOverlay,
   BottomOverlay,
   BottomInlineStartCornerOverlay,
-} from './overlay';
-import { createOverlayDeps } from './overlay/_base';
-import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './scroll/stickyScrollStrategy';
+} from './index';
+import { createOverlayDeps } from './_base';
+import { StickyScrollStrategy, createStickyScrollStrategyDeps } from '../scroll/stickyScrollStrategy';
 
 /**
  * Assembles the Overlays module's dependencies from the engine composition context. Overlays is the
