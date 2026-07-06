@@ -141,13 +141,29 @@ describe('size resolution (characterization)', () => {
       expect(new ColumnUtils(deps).getHeaderHeight(0)).toBe(23);
     });
 
-    it('should return the larger of the default row height and the oversized header height', () => {
+    it('should return the larger of the default row height and the columnHeaderHeight setting', () => {
+      // Post-S13: the provided header height arrives through the `columnHeaderHeight` setting funnel
+      // (option / `modifyColumnHeaderHeight` hook / render-size probe), not `oversizedColumnHeaders`.
       const deps = fakeDeps({
-        wtSettings: fakeSettings({ stylesHandler: { getDefaultRowHeight: () => 23 } }),
-        oversizedColumnHeaders: { 0: 40 },
+        wtSettings: fakeSettings({
+          stylesHandler: { getDefaultRowHeight: () => 23 },
+          columnHeaderHeight: 40,
+        }),
       });
 
       expect(new ColumnUtils(deps).getHeaderHeight(0)).toBe(40);
+    });
+
+    it('should read the columnHeaderHeight setting per level when it is an array', () => {
+      const deps = fakeDeps({
+        wtSettings: fakeSettings({
+          stylesHandler: { getDefaultRowHeight: () => 23 },
+          columnHeaderHeight: [40, undefined],
+        }),
+      });
+
+      expect(new ColumnUtils(deps).getHeaderHeight(0)).toBe(40);
+      expect(new ColumnUtils(deps).getHeaderHeight(1)).toBe(23); // falls back to the default
     });
   });
 
