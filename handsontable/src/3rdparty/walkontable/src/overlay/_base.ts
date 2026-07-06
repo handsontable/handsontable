@@ -230,6 +230,13 @@ export abstract class Overlay {
   abstract scrollTo(sourceIndex: number, snapToEdge: boolean): boolean;
 
   /**
+   * S16b: pre-applies the overlay's header-border class before the cell render (single-pass gated
+   * path). Overridden by the top, bottom, and inline-start overlays, which own an `innerBorder*`
+   * toggle; a no-op on overlays that have none (e.g. the corner overlays).
+   */
+  prepareHeaderBorders(): void {}
+
+  /**
    * Checks if the overlay rendering state has changed.
    *
    * @returns {boolean}

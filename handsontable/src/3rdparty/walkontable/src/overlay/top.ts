@@ -444,6 +444,24 @@ export class TopOverlay extends Overlay {
   }
 
   /**
+   * S16b: pre-applies the `innerBorderTop` class before the cell render, from the pre-render scroll
+   * position and settings. On the single-pass gated path the border is then already in its final
+   * state when cells render, so the post-render `resetFixedPosition` toggle becomes a no-op
+   * (`positionChanged` stays `false`) and the nested `wot.draw(true)` re-render is never triggered.
+   * Element mode only — the window path resolves the border from post-render geometry
+   * (`getOverlayOffset` + the #7256 guard) and is excluded by the single-pass gate.
+   */
+  prepareHeaderBorders() {
+    if (!this.needFullRender || !this.shouldBeRendered() ||
+        !this.deps.getWtTable().holder.parentNode || !this.clone ||
+        this.trimmingContainer === this.deps.rootWindow) {
+      return;
+    }
+
+    this.adjustHeaderBordersPosition(this.getScrollPosition());
+  }
+
+  /**
    * Adds css classes to hide the header border's header (cell-selection border hiding issue).
    *
    * @param {number} position Header Y position if trimming container is window or scroll top if not.

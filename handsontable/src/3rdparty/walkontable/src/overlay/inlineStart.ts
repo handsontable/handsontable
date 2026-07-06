@@ -386,6 +386,21 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
+   * S16b: pre-applies the `innerBorderInlineStart` class before the cell render (single-pass gated
+   * path), so the post-render `resetFixedPosition` toggle is a no-op and the nested re-draw is
+   * skipped. Element mode only — see `TopOverlay#prepareHeaderBorders`.
+   */
+  prepareHeaderBorders() {
+    if (!this.needFullRender || !this.shouldBeRendered() ||
+        !this.deps.getWtTable().holder.parentNode || !this.clone ||
+        this.trimmingContainer === this.deps.rootWindow) {
+      return;
+    }
+
+    this.adjustHeaderBordersPosition(this.getScrollPosition());
+  }
+
+  /**
    * Adds css classes to hide the header border's header (cell-selection border hiding issue).
    *
    * @param {number} position Header X position if trimming container is window or scroll top if not.

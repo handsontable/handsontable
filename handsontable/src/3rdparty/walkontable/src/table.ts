@@ -358,6 +358,17 @@ class Table {
       wtViewport.rowHeightCache.ensureBuilt();
       wtViewport.columnWidthCache.ensureBuilt();
 
+      // S16b: on the single-pass gated path, decide and apply the header-border classes
+      // (`innerBorderTop` / `innerBorderInlineStart`) BEFORE resolving the snapshot and rendering the
+      // cells, from the pre-render scroll position + settings. Cells then render in their final
+      // position, so the post-render `resetFixedPosition` toggle is a no-op (`positionChanged` stays
+      // `false`) and the nested `wot.draw(true)` re-render never fires. Element mode only (guaranteed
+      // by the gate); the border box is thus present when `beginDrawLayout` measures the workspace,
+      // matching a steady-state scrolled draw.
+      if (wtViewport.usesLayoutSnapshotForCalculators()) {
+        wtOverlays.prepareHeaderBorders();
+      }
+
       // Resolve the single-pass layout snapshot for this draw (scrollbar prediction from numbers).
       // Not yet the source of truth for the calculators below — see Viewport#beginDrawLayout.
       wtViewport.beginDrawLayout();
