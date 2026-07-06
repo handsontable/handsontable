@@ -217,7 +217,7 @@ class Viewport {
       // The size must stay the MERGED value (`Math.max(provided, oversized)`), so it reads
       // `wtTable.getRowHeight` — not `rowSizeSource.getSize`, which supplies only the provided half.
       // This is the LOGICAL row height; the constant relating it to the pixel height the renderer
-      // writes lives in `getBoxAdjustedRowHeight` (sizing/boxModel.ts). Do not box-adjust it here —
+      // writes lives in `getBoxAdjustedRowHeight` (axisSizing/boxModel.ts). Do not box-adjust it here —
       // the calculators and `sumCellSizes` sum this value and expect the logical height.
       sizeFn: sourceRow => wtTable.getRowHeight(sourceRow) ?? NaN,
       defaultSizeFn: () => rowSizeSource.getDefaultSize(),

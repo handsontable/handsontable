@@ -249,7 +249,7 @@ Key facts to keep:
 
 ## 7. Sizing: where row/column/header sizes come from
 
-Sizes reach the engine through the `AxisSizeSource` ports (`sizing/axisSizeSource.ts`); the WoT-internal
+Sizes reach the engine through the `AxisSizeSource` ports (`axisSizing/axisSizeSource.ts`); the WoT-internal
 `DefaultSizeSource` reads the `rowHeight`/`columnWidth` settings-callbacks, which in the product are the
 funnel `TableView.rowHeight`/`columnWidth` → `hot.getRowHeight`/`getColWidth` → `modifyRowHeight` /
 `modifyColWidth` hooks. `AutoRowSize` / `AutoColumnSize` answer through those hooks after measuring in an

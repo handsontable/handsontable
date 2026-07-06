@@ -9,7 +9,7 @@ import type ColumnFilter from '../filter/column';
 import type RowUtils from '../utils/row';
 import type ColumnUtils from '../utils/column';
 import type { StylesHandler } from '../types';
-import { getBoxAdjustedRowHeight } from '../sizing/boxModel';
+import { getBoxAdjustedRowHeight } from '../axisSizing/boxModel';
 
 /**
  * TableRenderer class collects all renderers and properties necessary for table creation. It's
@@ -346,7 +346,7 @@ export class TableRenderer {
         if (rowHeight) {
           // Convert the logical row height to the pixel height written to the DOM. In content-box mode
           // 1px is "replaced" by the row's 1px top border; the shared helper keeps that constant in one
-          // place (see sizing/boxModel.ts).
+          // place (see axisSizing/boxModel.ts).
           const pixelHeight = getBoxAdjustedRowHeight(rowHeight, this.stylesHandler.areCellsBorderBox());
 
           (TR.firstChild as HTMLElement).style.height = `${pixelHeight}px`;

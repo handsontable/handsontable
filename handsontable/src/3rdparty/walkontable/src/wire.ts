@@ -22,8 +22,8 @@ import type { default as Overlays } from './overlays';
 import type { SelectionManager } from './selection/manager';
 import type { Overlay } from './overlay/_base';
 import type { GeometryReader } from './domMeasure/geometryReader';
-import type { RowSizeSource, ColumnSizeSource } from './sizing/axisSizeSource';
-import { DefaultRowSizeSource, DefaultColumnSizeSource } from './sizing/defaultSizeSource';
+import type { RowSizeSource, ColumnSizeSource } from './axisSizing/axisSizeSource';
+import { DefaultRowSizeSource, DefaultColumnSizeSource } from './axisSizing/defaultSizeSource';
 import type { default as EventManager } from '../../../eventManager';
 
 /**

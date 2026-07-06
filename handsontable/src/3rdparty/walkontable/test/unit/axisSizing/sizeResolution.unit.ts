@@ -1,6 +1,6 @@
 import RowUtils from '../../../src/utils/row';
 import ColumnUtils from '../../../src/utils/column';
-import { DefaultRowSizeSource, DefaultColumnSizeSource } from '../../../src/sizing/defaultSizeSource';
+import { DefaultRowSizeSource, DefaultColumnSizeSource } from '../../../src/axisSizing/defaultSizeSource';
 import type { default as Settings } from '../../../src/settings';
 import type { TableDeps } from '../../../src/table';
 

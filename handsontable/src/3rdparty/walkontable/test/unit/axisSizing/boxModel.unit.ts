@@ -1,4 +1,4 @@
-import { getRowBorderCompensation, getBoxAdjustedRowHeight } from '../../../src/sizing/boxModel';
+import { getRowBorderCompensation, getBoxAdjustedRowHeight } from '../../../src/axisSizing/boxModel';
 
 // `isBorderBox` is the theme axis: the classic theme uses content-box cells (compensation 1), the new
 // themes use border-box cells (compensation 0). Both values are exercised here.
