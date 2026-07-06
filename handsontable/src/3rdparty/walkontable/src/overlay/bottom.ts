@@ -387,26 +387,51 @@ export class BottomOverlay extends Overlay {
    * @returns {boolean}
    */
   adjustHeaderBordersPosition(position: number) {
-    const fixedRowsBottom = this.wtSettings.getSetting<number>('fixedRowsBottom');
+    const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
+    const state = this.#computeHeaderBordersState(position);
+
+    if (state.innerBorderBottom === 'add') {
+      addClass(masterParent, 'innerBorderBottom');
+    } else if (state.innerBorderBottom === 'remove') {
+      removeClass(masterParent, 'innerBorderBottom');
+    }
+
+    if (state.innerBorderBottom !== 'keep') {
+      this.cachedFixedRowsBottom = this.wtSettings.getSetting<number>('fixedRowsBottom');
+    }
+
+    return state.positionChanged;
+  }
+
+  /**
+   * Computes the bottom overlay's header-border state without mutating the DOM. Pure: reads settings
+   * and the current class state only. Splitting the decision from the write lets the single-pass draw
+   * resolve the `innerBorderBottom` toggle before rendering, instead of after.
+   *
+   * @param {number} position Header Y position if trimming container is window or scroll top if not.
+   * @returns {{ innerBorderBottom: string, positionChanged: boolean }}
+   */
+  #computeHeaderBordersState(position: number) {
+    const { wtSettings } = this;
+    const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
+    const fixedRowsBottom = wtSettings.getSetting<number>('fixedRowsBottom');
     const areFixedRowsBottomChanged = this.cachedFixedRowsBottom !== fixedRowsBottom;
-    const columnHeaders = this.wtSettings.getSetting('columnHeaders') as ((...args: unknown[]) => unknown)[];
+    const columnHeaders = wtSettings.getSetting('columnHeaders') as ((...args: unknown[]) => unknown)[];
+    let innerBorderBottom = 'keep';
     let positionChanged = false;
 
     if ((areFixedRowsBottomChanged || fixedRowsBottom === 0) && columnHeaders.length > 0) {
-      const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
       const previousState = hasClass(masterParent, 'innerBorderBottom');
 
-      this.cachedFixedRowsBottom = this.wtSettings.getSetting<number>('fixedRowsBottom');
-
-      if (position || this.wtSettings.getSetting('totalRows') === 0) {
-        addClass(masterParent, 'innerBorderBottom');
+      if (position || wtSettings.getSetting('totalRows') === 0) {
+        innerBorderBottom = 'add';
         positionChanged = !previousState;
       } else {
-        removeClass(masterParent, 'innerBorderBottom');
+        innerBorderBottom = 'remove';
         positionChanged = previousState;
       }
     }
 
-    return positionChanged;
+    return { innerBorderBottom, positionChanged };
   }
 }

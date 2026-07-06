@@ -451,17 +451,44 @@ export class TopOverlay extends Overlay {
    * @returns {boolean}
    */
   adjustHeaderBordersPosition(position: number, skipInnerBorderAdjusting = false) {
+    const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
+    const state = this.#computeHeaderBordersState(position, skipInnerBorderAdjusting);
+
+    if (state.hasEmptyColumns) {
+      addClass(masterParent, 'emptyColumns');
+    } else {
+      removeClass(masterParent, 'emptyColumns');
+    }
+
+    if (state.innerBorderTop === 'add') {
+      addClass(masterParent, 'innerBorderTop');
+    } else if (state.innerBorderTop === 'remove') {
+      removeClass(masterParent, 'innerBorderTop');
+    }
+
+    if (state.innerBorderTop !== 'keep') {
+      this.cachedFixedRowsTop = this.wtSettings.getSetting<number>('fixedRowsTop');
+    }
+
+    return state.positionChanged;
+  }
+
+  /**
+   * Computes the top overlay's header-border state without mutating the DOM. Pure: reads settings and
+   * the current class state only. Splitting the decision from the write lets the single-pass draw
+   * resolve the `innerBorderTop` toggle before rendering, instead of after (which forces a re-draw).
+   *
+   * @param {number} position The overlay offset that decides whether the top border is shown.
+   * @param {boolean} skipInnerBorderAdjusting The #7256 guard that suppresses the toggle.
+   * @returns {{ hasEmptyColumns: boolean, innerBorderTop: string, positionChanged: boolean }}
+   */
+  #computeHeaderBordersState(position: number, skipInnerBorderAdjusting: boolean) {
     const { wtSettings } = this;
     const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
     const totalColumns: number = wtSettings.getSetting('totalColumns') ?? 0;
     const preventHorizontalOverflow = wtSettings.getSetting('preventOverflow') === 'horizontal';
-
-    if (totalColumns) {
-      removeClass(masterParent, 'emptyColumns');
-    } else {
-      addClass(masterParent, 'emptyColumns');
-    }
-
+    const hasEmptyColumns = !totalColumns;
+    let innerBorderTop = 'keep';
     let positionChanged = false;
 
     if (!skipInnerBorderAdjusting && !preventHorizontalOverflow) {
@@ -472,18 +499,16 @@ export class TopOverlay extends Overlay {
       if ((areFixedRowsTopChanged || fixedRowsTop === 0) && columnHeaders.length > 0) {
         const previousState = hasClass(masterParent, 'innerBorderTop');
 
-        this.cachedFixedRowsTop = wtSettings.getSetting<number>('fixedRowsTop');
-
         if (position || wtSettings.getSetting('totalRows') === 0) {
-          addClass(masterParent, 'innerBorderTop');
+          innerBorderTop = 'add';
           positionChanged = !previousState;
         } else {
-          removeClass(masterParent, 'innerBorderTop');
+          innerBorderTop = 'remove';
           positionChanged = previousState;
         }
       }
     }
 
-    return positionChanged;
+    return { hasEmptyColumns, innerBorderTop, positionChanged };
   }
 }

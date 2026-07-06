@@ -392,39 +392,61 @@ export class InlineStartOverlay extends Overlay {
    * @returns {boolean}
    */
   adjustHeaderBordersPosition(position: number) {
+    const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
+    const state = this.#computeHeaderBordersState(position);
+
+    if (state.hasEmptyRows) {
+      addClass(masterParent, 'emptyRows');
+    } else {
+      removeClass(masterParent, 'emptyRows');
+    }
+
+    // "innerBorderLeft" is for backward compatibility.
+    if (state.innerBorder === 'add') {
+      addClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
+    } else if (state.innerBorder === 'remove') {
+      removeClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
+    }
+
+    return state.positionChanged;
+  }
+
+  /**
+   * Computes the inline-start overlay's header-border state without mutating the DOM. Pure: reads
+   * settings and the current class state only. Splitting the decision from the write lets the
+   * single-pass draw resolve the `innerBorderInlineStart` toggle before rendering, instead of after.
+   *
+   * @param {number} position The overlay offset that decides whether the inline-start border is shown.
+   * @returns {{ hasEmptyRows: boolean, innerBorder: string, positionChanged: boolean }}
+   */
+  #computeHeaderBordersState(position: number) {
     const { wtSettings } = this;
     const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
     const rowHeaders = wtSettings.getSetting('rowHeaders') as ((...args: unknown[]) => unknown)[];
     const fixedColumnsStart = wtSettings.getSetting<number>('fixedColumnsStart');
     const totalRows = wtSettings.getSetting<number>('totalRows');
     const preventVerticalOverflow = wtSettings.getSetting('preventOverflow') === 'vertical';
-
-    if (totalRows) {
-      removeClass(masterParent, 'emptyRows');
-    } else {
-      addClass(masterParent, 'emptyRows');
-    }
-
+    const hasEmptyRows = !totalRows;
+    let innerBorder = 'keep';
     let positionChanged = false;
 
     if (!preventVerticalOverflow) {
       if (fixedColumnsStart && !rowHeaders.length) {
-        // "innerBorderLeft" is for backward compatibility
-        addClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
+        innerBorder = 'add';
 
       } else if (!fixedColumnsStart && rowHeaders.length) {
         const previousState = hasClass(masterParent, 'innerBorderInlineStart');
 
         if (position) {
-          addClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
+          innerBorder = 'add';
           positionChanged = !previousState;
         } else {
-          removeClass(masterParent, 'innerBorderLeft innerBorderInlineStart');
+          innerBorder = 'remove';
           positionChanged = previousState;
         }
       }
     }
 
-    return positionChanged;
+    return { hasEmptyRows, innerBorder, positionChanged };
   }
 }
