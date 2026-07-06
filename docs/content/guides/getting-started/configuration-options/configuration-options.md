@@ -661,6 +661,8 @@ Options modified through [`cells`](@/api/options.md#cells) overwrite all other o
 
 To apply configuration options to individual cells, use the [`cell`](@/api/options.md#cell) option.
 
+Each entry's `row` and `col` are visual indexes (unlike the [`cells`](@/api/options.md#cells) option, whose `row` and `column` are physical indexes).
+
 ::: only-for javascript
 
 ```js
