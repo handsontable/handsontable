@@ -1,4 +1,4 @@
-import type { TableDeps } from '../table/baseTable';
+import type { TableDeps } from '../../table/baseTable';
 import {
   addClass,
   getScrollLeft,
@@ -6,14 +6,14 @@ import {
   removeClass,
   setOverlayPosition,
   resetCssTransform,
-} from '../../../../helpers/dom/element';
-import InlineStartOverlayTable from '../table/regions/inlineStartTable';
+} from '../../../../../helpers/dom/element';
+import InlineStartOverlayTable from '../../table/regions/inlineStartTable';
 import { Overlay, type OverlayDeps } from './_base';
-import { getCornerStyle } from '../selection';
+import { getCornerStyle } from '../../selection';
 import {
   CLONE_INLINE_START,
-} from './constants';
-import { throwWithCause } from '../../../../helpers/errors';
+} from '../constants';
+import { throwWithCause } from '../../../../../helpers/errors';
 
 /**
  * @class InlineStartOverlay

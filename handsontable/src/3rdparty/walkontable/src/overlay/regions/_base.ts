@@ -1,22 +1,22 @@
-import type { WalkontableInstance } from '../types';
-import type { EngineContext } from '../wire';
-import type Settings from '../settings';
+import type { WalkontableInstance } from '../../types';
+import type { EngineContext } from '../../wire';
+import type Settings from '../../settings';
 import {
   getScrollableElement,
   getTrimmingContainer,
   setAttribute,
-} from '../../../../helpers/dom/element';
-import { defineGetter } from '../../../../helpers/object';
-import { warn } from '../../../../helpers/console';
+} from '../../../../../helpers/dom/element';
+import { defineGetter } from '../../../../../helpers/object';
+import { warn } from '../../../../../helpers/console';
 import {
   CLONE_TYPES,
   CLONE_CLASS_NAMES,
   CLONE_TOP,
   CLONE_INLINE_START,
-} from './constants';
-import Clone from '../core/clone';
-import { A11Y_PRESENTATION } from '../../../../helpers/a11y';
-import { throwWithCause } from '../../../../helpers/errors';
+} from '../constants';
+import Clone from '../../core/clone';
+import { A11Y_PRESENTATION } from '../../../../../helpers/a11y';
+import { throwWithCause } from '../../../../../helpers/errors';
 
 /**
  * Assembles the dependency set shared by every overlay (and its corner subclasses) from the engine

@@ -7,7 +7,7 @@ import { createTableDeps } from '../table/baseTable';
 import Viewport, { createViewportDeps } from '../viewport/viewport';
 import CoreAbstract from './_base';
 import { SelectionManager } from '../selection/manager';
-import type { Overlay } from '../overlay/_base';
+import type { Overlay } from '../overlay/regions/_base';
 import { objectEach } from '../../../../helpers/object';
 import { addClass, removeClass } from '../../../../helpers/dom/element';
 

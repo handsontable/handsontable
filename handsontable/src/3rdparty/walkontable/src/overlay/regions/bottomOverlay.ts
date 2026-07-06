@@ -1,16 +1,16 @@
-import type { TableDeps } from '../table/baseTable';
+import type { TableDeps } from '../../table/baseTable';
 import {
   addClass,
   getScrollTop,
   hasClass,
   removeClass,
-} from '../../../../helpers/dom/element';
-import BottomOverlayTable from '../table/regions/bottomTable';
+} from '../../../../../helpers/dom/element';
+import BottomOverlayTable from '../../table/regions/bottomTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
   CLONE_BOTTOM,
-} from './constants';
-import { throwWithCause } from '../../../../helpers/errors';
+} from '../constants';
+import { throwWithCause } from '../../../../../helpers/errors';
 
 /**
  * @class BottomOverlay

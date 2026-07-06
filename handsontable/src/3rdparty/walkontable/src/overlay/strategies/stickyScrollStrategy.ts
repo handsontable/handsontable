@@ -1,7 +1,7 @@
 import { isSafari } from '../../../../../helpers/browser';
 import type { EngineContext } from '../../wire';
 import type { default as Overlays } from '../overlays';
-import type { Overlay } from '../_base';
+import type { Overlay } from '../regions/_base';
 
 /**
  * Assembles the StickyScrollStrategy's dependencies. Most come from the engine composition context;

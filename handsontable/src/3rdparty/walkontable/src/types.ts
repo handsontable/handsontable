@@ -10,7 +10,7 @@ import type { default as WalkontableViewport } from './viewport/viewport';
 import type { default as WalkontableScroll } from './scroll/scroll';
 import type { default as WalkontableOverlays } from './overlay/overlays';
 import type { SelectionManager as WalkontableSelectionManager } from './selection/manager';
-import type { Overlay as WalkontableOverlay } from './overlay/_base';
+import type { Overlay as WalkontableOverlay } from './overlay/regions/_base';
 import type EventManager from '../../../eventManager';
 import type WalkontableEvent from './event';
 import type { GeometryReader } from './domMeasure/geometryReader';

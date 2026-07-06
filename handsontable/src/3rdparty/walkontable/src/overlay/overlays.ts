@@ -21,7 +21,7 @@ interface WheelEventWithLegacyDelta extends WheelEvent {
 function isWheelEventWithLegacyDelta(event: WheelEvent): event is WheelEventWithLegacyDelta {
   return 'wheelDeltaY' in event || 'wheelDeltaX' in event;
 }
-import type { Overlay } from './_base';
+import type { Overlay } from './regions/_base';
 import type EventManager from '../../../../eventManager';
 import {
   eventTargetEl,
@@ -39,7 +39,7 @@ import {
   BottomOverlay,
   BottomInlineStartCornerOverlay,
 } from './index';
-import { createOverlayDeps } from './_base';
+import { createOverlayDeps } from './regions/_base';
 import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './strategies/stickyScrollStrategy';
 import { ResizeMonitor, createResizeMonitorDeps } from './resizeMonitor';
 

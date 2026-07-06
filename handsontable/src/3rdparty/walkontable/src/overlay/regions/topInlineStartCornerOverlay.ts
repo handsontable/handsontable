@@ -1,13 +1,13 @@
-import type { TableDeps } from '../table/baseTable';
+import type { TableDeps } from '../../table/baseTable';
 import {
   setOverlayPosition,
   resetCssTransform,
-} from '../../../../helpers/dom/element';
-import TopInlineStartCornerOverlayTable from '../table/regions/topInlineStartCornerTable';
+} from '../../../../../helpers/dom/element';
+import TopInlineStartCornerOverlayTable from '../../table/regions/topInlineStartCornerTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
   CLONE_TOP_INLINE_START_CORNER,
-} from './constants';
+} from '../constants';
 
 /**
  * @class TopInlineStartCornerOverlay

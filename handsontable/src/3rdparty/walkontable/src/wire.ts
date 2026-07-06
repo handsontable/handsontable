@@ -20,7 +20,7 @@ import type { default as Table } from './table/baseTable';
 import type { default as Viewport } from './viewport/viewport';
 import type { default as Overlays } from './overlay/overlays';
 import type { SelectionManager } from './selection/manager';
-import type { Overlay } from './overlay/_base';
+import type { Overlay } from './overlay/regions/_base';
 import type { GeometryReader } from './domMeasure/geometryReader';
 import type { RowSizeSource, ColumnSizeSource } from './axisSizing/axisSizeSource';
 import { DefaultRowSizeSource, DefaultColumnSizeSource } from './axisSizing/defaultSizeSource';

@@ -1,4 +1,4 @@
-import type { TableDeps } from '../table/baseTable';
+import type { TableDeps } from '../../table/baseTable';
 import {
   addClass,
   getScrollTop,
@@ -6,17 +6,17 @@ import {
   removeClass,
   setOverlayPosition,
   resetCssTransform,
-} from '../../../../helpers/dom/element';
-import { isMobileBrowser } from '../../../../helpers/browser';
-import TopOverlayTable from '../table/regions/topTable';
+} from '../../../../../helpers/dom/element';
+import { isMobileBrowser } from '../../../../../helpers/browser';
+import TopOverlayTable from '../../table/regions/topTable';
 import { Overlay, type OverlayDeps } from './_base';
-import { getCornerStyle } from '../selection';
-import type { Selection } from '../selection';
-import type { BorderInstanceSettings } from '../selection/border/types';
+import { getCornerStyle } from '../../selection';
+import type { Selection } from '../../selection';
+import type { BorderInstanceSettings } from '../../selection/border/types';
 import {
   CLONE_TOP,
-} from './constants';
-import { throwWithCause } from '../../../../helpers/errors';
+} from '../constants';
+import { throwWithCause } from '../../../../../helpers/errors';
 
 /**
  * @class TopOverlay
