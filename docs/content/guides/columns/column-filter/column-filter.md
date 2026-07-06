@@ -735,6 +735,11 @@ filtering doesn't affect them.
 
 :::
 
+If you use [`bindRowsWithHeaders`](@/guides/rows/row-header/row-header.md#bind-rows-with-headers) to
+keep row headers tied to a row's position in the source data, filtering doesn't affect that binding.
+Filtering removes non-matching rows from view instead of renumbering the rows that remain, so bound
+row headers keep pointing to the same row after you filter or clear a filter.
+
 ## Server-side filtering
 
 You can decide to use Handsontable as an intuitive filtering interface, but perform the actual
@@ -1181,6 +1186,115 @@ filtering effect, because `'none'` matches every row:
 filters.addCondition(2, 'none', []);
 filters.filter();
 ```
+
+### Save and restore filter settings
+
+To persist a user's filter selections (for example, across page reloads or between sessions), export
+the current conditions with [`filters.exportConditions()`](@/api/filters.md#exportconditions), and
+store the result. To reapply them later, pass the stored array to
+[`filters.importConditions()`](@/api/filters.md#importconditions), then call
+[`filters.filter()`](@/api/filters.md#filter) to apply the change.
+
+Unlike [`addCondition()`](@/api/filters.md#addcondition), which takes a visual column index, the
+`column` property in each exported condition is a physical column index.
+
+::: only-for javascript
+
+::: example #exampleSaveRestoreFilters --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/columns/column-filter/javascript/exampleSaveRestoreFilters.html)
+@[code](@/content/guides/columns/column-filter/javascript/exampleSaveRestoreFilters.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleSaveRestoreFilters.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleSaveRestoreFilters :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-filter/react/exampleSaveRestoreFilters.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleSaveRestoreFilters.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example13 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example13.ts)
+@[code](@/content/guides/columns/column-filter/angular/example13.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleSaveRestoreFilters :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleSaveRestoreFilters.vue)
+
+:::
+
+:::
+
+### Get filtered data
+
+After filtering, [`getData()`](@/api/core.md#getdata) returns only the rows that pass the current
+filters, because filtering removes non-matching rows from the grid's data map instead of merely
+hiding them. To read every row regardless of the active filters, use
+[`getSourceData()`](@/api/core.md#getsourcedata).
+
+The following demo uses the [`afterFilter()`](@/api/hooks.md#afterfilter) hook to compare the two
+methods every time the filters change.
+
+::: only-for javascript
+
+::: example #exampleGetFilteredData --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/columns/column-filter/javascript/exampleGetFilteredData.html)
+@[code](@/content/guides/columns/column-filter/javascript/exampleGetFilteredData.js)
+@[code](@/content/guides/columns/column-filter/javascript/exampleGetFilteredData.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #exampleGetFilteredData :react --js 1 --ts 2
+
+@[code](@/content/guides/columns/column-filter/react/exampleGetFilteredData.jsx)
+@[code](@/content/guides/columns/column-filter/react/exampleGetFilteredData.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example14 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-filter/angular/example14.ts)
+@[code](@/content/guides/columns/column-filter/angular/example14.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #exampleGetFilteredData :vue3
+
+@[code](@/content/guides/columns/column-filter/vue/exampleGetFilteredData.vue)
+
+:::
+
+:::
 
 ## Import the filtering module
 
