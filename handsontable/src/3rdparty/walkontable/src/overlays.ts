@@ -41,7 +41,7 @@ import {
   BottomInlineStartCornerOverlay,
 } from './overlay';
 import { createOverlayDeps } from './overlay/_base';
-import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './stickyScrollStrategy';
+import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './scroll/stickyScrollStrategy';
 
 /**
  * Assembles the Overlays module's dependencies from the engine composition context. Overlays is the
