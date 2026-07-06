@@ -1,6 +1,6 @@
 import type { TableDeps } from '../table';
 import Table from '../table';
-import { rowRangeQuery } from '../rangeQuery/renderedRange';
+import { rowRangeQuery } from '../rangeQuery/virtualRange';
 import stickyColumnsStart from '../rangeQuery/stickyColumnsStart';
 import { mixin } from '../../../../helpers/object';
 import { CLONE_INLINE_START } from '../overlay';

@@ -1,4 +1,4 @@
-import { rowRangeQuery, columnRangeQuery } from '../../../src/rangeQuery/renderedRange';
+import { rowRangeQuery, columnRangeQuery } from '../../../src/rangeQuery/virtualRange';
 
 /**
  * Characterization tests for the row/column range-query logic, now provided by the `rowRangeQuery` /
