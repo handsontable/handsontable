@@ -1,7 +1,7 @@
 import type { TableDeps } from '../table';
 import Table from '../table';
-import { rowRangeQuery } from '../viewport/renderedRange';
-import stickyColumnsStart from './mixin/stickyColumnsStart';
+import { rowRangeQuery } from '../rangeQuery/renderedRange';
+import stickyColumnsStart from '../rangeQuery/stickyColumnsStart';
 import { mixin } from '../../../../helpers/object';
 import { CLONE_INLINE_START } from '../overlay';
 

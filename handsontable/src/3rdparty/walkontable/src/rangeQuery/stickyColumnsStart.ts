@@ -1,5 +1,5 @@
-import { defineGetter } from '../../../../../helpers/object';
-import type Table from '../../table';
+import { defineGetter } from '../../../../helpers/object';
+import type Table from '../table';
 
 const MIXIN_NAME = 'stickyColumnsStart';
 

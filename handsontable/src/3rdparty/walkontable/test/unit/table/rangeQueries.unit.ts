@@ -1,4 +1,4 @@
-import { rowRangeQuery, columnRangeQuery } from '../../../src/viewport/renderedRange';
+import { rowRangeQuery, columnRangeQuery } from '../../../src/rangeQuery/renderedRange';
 
 /**
  * Characterization tests for the row/column range-query logic, now provided by the `rowRangeQuery` /
