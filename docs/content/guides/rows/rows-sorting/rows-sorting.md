@@ -32,6 +32,7 @@ vue:
   metaTitle: Rows sorting - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Rows
+menuTag: updated
 ---
 Sort rows alphabetically or numerically, in ascending, descending, or a custom order, by one or multiple columns.
 
@@ -607,75 +608,51 @@ Run code before or after sorting using the following [Handsontable hooks](@/guid
 - [`beforeColumnSort`](@/api/hooks.md#beforecolumnsort) — fires before sorting. Return `false` to cancel the sort and keep the current order.
 - [`afterColumnSort`](@/api/hooks.md#aftercolumnsort) — fires after sorting completes.
 
-A common use of `beforeColumnSort` is server-side sorting: cancel the client-side sort, send the sort configuration to a server, and reload the data. A common use of `afterColumnSort` is excluding specific rows from the sorted result.
+A common use of `beforeColumnSort` is server-side sorting: cancel the client-side sort, send the sort configuration to a server, and reload the data. The following example simulates this: it cancels the front-end sort, "asks a server" to sort the rows, and loads the sorted rows back into the grid.
+
+A common use of `afterColumnSort` is excluding specific rows from the sorted result — see the [`afterColumnSort` example](#exclude-rows-from-sorting) in the next section.
 
 ::: only-for javascript
 
-```js
-const configurationOptions = {
-  beforeColumnSort(currentSortConfig, destinationSortConfigs) {
-    // add your code here
-    return false; // return false to block front-end sorting
-  },
-  afterColumnSort(currentSortConfig, sortedSortConfigs) {
-    // add your code here
-  },
-};
-```
+::: example #exampleSortingHooks --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortingHooks.html)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortingHooks.js)
+@[code](@/content/guides/rows/rows-sorting/javascript/exampleSortingHooks.ts)
+
+:::
 
 :::
 
 ::: only-for react
 
-```jsx
-<HotTable
-  beforeColumnSort={(currentSortConfig, destinationSortConfigs) => {
-    // add your code here
-    return false; // return false to block front-end sorting
-  }}
-  afterColumnSort={(currentSortConfig, sortedSortConfigs) => {
-    // add your code here
-  }}
-/>
-```
+::: example #exampleSortingHooks :react --js 1 --ts 2
+
+@[code](@/content/guides/rows/rows-sorting/react/exampleSortingHooks.jsx)
+@[code](@/content/guides/rows/rows-sorting/react/exampleSortingHooks.tsx)
+
+:::
 
 :::
 
 ::: only-for angular
 
-```ts
-import {GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
+::: example #example11 :angular --ts 1 --html 2
 
-const configurationOptions: GridSettings = {
-  beforeColumnSort(currentSortConfig, destinationSortConfigs) {
-    // add your code here
-    return false; // return false to block front-end sorting
-  },
-  afterColumnSort(currentSortConfig, sortedSortConfigs) {
-    // add your code here
-  },
-};
-```
+@[code](@/content/guides/rows/rows-sorting/angular/example11.ts)
+@[code](@/content/guides/rows/rows-sorting/angular/example11.html)
 
-```html
-<hot-table [settings]="configurationOptions"></hot-table>
-```
+:::
 
 :::
 
 ::: only-for vue
 
-```ts
-const hotSettings = {
-  beforeColumnSort(currentSortConfig, destinationSortConfigs) {
-    // add your code here
-    return false; // return false to block front-end sorting
-  },
-  afterColumnSort(currentSortConfig, sortedSortConfigs) {
-    // add your code here
-  },
-};
-```
+::: example #exampleSortingHooks :vue3
+
+@[code](@/content/guides/rows/rows-sorting/vue/exampleSortingHooks.vue)
+
+:::
 
 :::
 
