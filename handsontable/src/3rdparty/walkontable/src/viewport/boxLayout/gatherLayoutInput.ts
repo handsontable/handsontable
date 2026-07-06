@@ -12,9 +12,9 @@
  * minus borders) is refined when the snapshot is wired into the viewport in a later stage; the
  * scrollbar math it feeds is already final and unit-tested.
  */
-import type { EngineContext } from '../wire';
+import type { EngineContext } from '../../wire';
 import type { LayoutInput, OverflowMode } from './layoutSnapshot';
-import { measureWorkspaceWidth, measureWorkspaceHeight } from '../viewport/workspaceSize';
+import { measureWorkspaceWidth, measureWorkspaceHeight } from '../workspaceSize';
 
 /**
  * Narrows the engine context to the dependencies the layout slice reads.
