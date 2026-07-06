@@ -42,6 +42,7 @@ import {
 import { createOverlayDeps } from './regions/_base';
 import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './strategies/stickyScrollStrategy';
 import { ResizeMonitor, createResizeMonitorDeps } from './resizeMonitor';
+import { SpreaderSize, createSpreaderSizeDeps } from './spreaderSize';
 
 /**
  * Assembles the Overlays module's dependencies from the engine composition context. Overlays is the
@@ -65,6 +66,7 @@ export function createOverlaysDeps(ctx: EngineContext) {
     // owning Overlays instance (for `refreshAll`/`applyToDOM`/`scrollableElement`/`eventManager`).
     makeStickyScrollDeps: (overlays: Overlays) => createStickyScrollStrategyDeps(ctx, overlays),
     makeResizeMonitorDeps: () => createResizeMonitorDeps(ctx),
+    makeSpreaderSizeDeps: (overlays: Overlays) => createSpreaderSizeDeps(ctx, overlays),
   };
 }
 
@@ -133,12 +135,12 @@ class Overlays {
   keyPressed: boolean = false;
 
   /**
-   * The last cached spreader size.
+   * Owns the master hider/spreader sizing math. Extracted as a separate class to isolate the sizing
+   * lifecycle from the overlay coordinator; the coordinator keeps thin public delegates.
    *
-   * @protected
-   * @type {object}
+   * @type {SpreaderSize}
    */
-  spreaderLastSize: { width: number | null; height: number | null } = { width: null, height: null };
+  #spreaderSize!: SpreaderSize;
 
   /**
    * Flag indicating whether the table is being scrolled vertically.
@@ -328,16 +330,13 @@ class Overlays {
     // set; the deps are assembled via the composition context, so sticky no longer holds `this`.
     this.#stickyScroll = new StickyScrollStrategy(this.#deps.makeStickyScrollDeps(this));
     this.#resizeMonitor = new ResizeMonitor(this.#deps.makeResizeMonitorDeps());
+    this.#spreaderSize = new SpreaderSize(this.#deps.makeSpreaderSizeDeps(this));
 
     this.initOverlays();
     this.#cacheScrollCallbackPositions();
 
     this.destroyed = false;
     this.keyPressed = false;
-    this.spreaderLastSize = {
-      width: null,
-      height: null,
-    };
 
     this.verticalScrolling = false;
     this.horizontalScrolling = false;
@@ -966,18 +965,7 @@ class Overlays {
    * @returns {boolean} `true` if the lastSpreaderSize cache was updated, `false` otherwise.
    */
   updateLastSpreaderSize() {
-    const spreader = this.wtTable.spreader;
-    const { geometryReader } = this.#deps;
-    const width = geometryReader.clientWidth(spreader);
-    const height = geometryReader.clientHeight(spreader);
-    const needsUpdating = width !== this.spreaderLastSize.width || height !== this.spreaderLastSize.height;
-
-    if (needsUpdating) {
-      this.spreaderLastSize.width = width;
-      this.spreaderLastSize.height = height;
-    }
-
-    return needsUpdating;
+    return this.#spreaderSize.updateLastSpreaderSize();
   }
 
   /**
@@ -1001,51 +989,7 @@ class Overlays {
    * Adjust overlays elements size and master table size.
    */
   adjustElementsSize() {
-    const { wtViewport } = this.wot;
-    const { wtTable } = this;
-    const { rootWindow, geometryReader } = this.#deps;
-    const isWindowScrolled = this.scrollableElement === rootWindow;
-    const totalColumns = this.wtSettings.getSetting<number>('totalColumns');
-    const totalRows = this.wtSettings.getSetting<number>('totalRows');
-    const headerRowSize = wtViewport.getRowHeaderWidth();
-    const headerColumnSize = wtViewport.getColumnHeaderHeight();
-    // The internal row height calculator contains a known issue that results in a 1px miscalculation.
-    // Ideally, this should be addressed at the core level. However, resolving it is non-trivial,
-    // as the flaw is embedded across multiple core modules and corresponding test cases.
-    // This limitation does not affect when the external calculator is used (AutoRowSize), which
-    // computes heights accurately, so no adjustment is required when using it.
-    const hiderHeightComp = this.wtSettings.getSetting('externalRowCalculator') ? 0 : 1;
-    const proposedHiderHeight = headerColumnSize + this.topOverlay.sumCellSizes(0, totalRows) + hiderHeightComp;
-    const proposedHiderWidth = headerRowSize + this.inlineStartOverlay.sumCellSizes(0, totalColumns);
-    const hiderElement = wtTable.hider;
-    const hiderStyle = hiderElement.style;
-    const isScrolledBeyondHiderHeight = () => {
-      if (isWindowScrolled || !(this.scrollableElement instanceof HTMLElement)) {
-        return false;
-      }
-
-      return this.scrollableElement.scrollTop >
-        Math.max(0, proposedHiderHeight - geometryReader.clientHeight(wtTable.holder));
-    };
-    const isScrolledBeyondHiderWidth = () => {
-      if (isWindowScrolled || !(this.scrollableElement instanceof HTMLElement)) {
-        return false;
-      }
-
-      return this.scrollableElement.scrollLeft >
-        Math.max(0, proposedHiderWidth - geometryReader.clientWidth(wtTable.holder));
-    };
-    const columnHeaderBorderCompensation = isScrolledBeyondHiderHeight() ? 1 : 0;
-    const rowHeaderBorderCompensation = isScrolledBeyondHiderWidth() ? 1 : 0;
-
-    // If the elements are being adjusted after scrolling the table from the very beginning to the very end,
-    // we need to adjust the hider dimensions by the header border size. (https://github.com/handsontable/dev-handsontable/issues/1772)
-    hiderStyle.width = `${proposedHiderWidth + rowHeaderBorderCompensation}px`;
-    hiderStyle.height = `${proposedHiderHeight + columnHeaderBorderCompensation}px`;
-
-    this.topOverlay.adjustElementsSize();
-    this.inlineStartOverlay.adjustElementsSize();
-    this.bottomOverlay.adjustElementsSize();
+    this.#spreaderSize.adjustElementsSize();
   }
 
   /**
@@ -1054,9 +998,7 @@ class Overlays {
    * @param {number} heightDelta The delta value to expand the hider element by.
    */
   expandHiderVerticallyBy(heightDelta: number) {
-    const { wtTable } = this;
-
-    wtTable.hider.style.height = `${parseInt(wtTable.hider.style.height, 10) + heightDelta}px`;
+    this.#spreaderSize.expandHiderVerticallyBy(heightDelta);
   }
 
   /**
@@ -1065,9 +1007,7 @@ class Overlays {
    * @param {number} widthDelta The delta value to expand the hider element by.
    */
   expandHiderHorizontallyBy(widthDelta: number) {
-    const { wtTable } = this;
-
-    wtTable.hider.style.width = `${parseInt(wtTable.hider.style.width, 10) + widthDelta}px`;
+    this.#spreaderSize.expandHiderHorizontallyBy(widthDelta);
   }
 
   /**
