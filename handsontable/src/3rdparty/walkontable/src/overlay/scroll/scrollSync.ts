@@ -1,7 +1,7 @@
-import { getScrollableElement, isHTMLElement } from '../../../../helpers/dom/element';
-import type { EngineContext } from '../wire';
-import type { default as Overlays } from '../overlay/overlays';
-import type { StickyScrollStrategy } from '../overlay/strategies/stickyScrollStrategy';
+import { getScrollableElement, isHTMLElement } from '../../../../../helpers/dom/element';
+import type { EngineContext } from '../../wire';
+import type { default as Overlays } from '../overlays';
+import type { StickyScrollStrategy } from '../strategies/stickyScrollStrategy';
 
 /**
  * Assembles the ScrollSync's dependencies. Most come from the engine composition context; the ones

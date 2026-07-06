@@ -17,8 +17,8 @@ import { createOverlayDeps } from './regions/_base';
 import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './strategies/stickyScrollStrategy';
 import { ResizeMonitor, createResizeMonitorDeps } from './resizeMonitor';
 import { SpreaderSize, createSpreaderSizeDeps } from './spreaderSize';
-import { ScrollSync, createScrollSyncDeps } from '../scroll/scrollSync';
-import { NativeScrollInput, createNativeScrollInputDeps } from '../scroll/nativeScrollInput';
+import { ScrollSync, createScrollSyncDeps } from './scroll/scrollSync';
+import { NativeScrollInput, createNativeScrollInputDeps } from './scroll/nativeScrollInput';
 
 /**
  * Assembles the Overlays module's dependencies from the engine composition context. Overlays is the

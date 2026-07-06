@@ -1,10 +1,10 @@
-import { isKey } from '../../../../helpers/unicode';
-import { eventTargetEl } from '../../../../helpers/dom/element';
-import { requestAnimationFrame } from '../../../../helpers/feature';
-import type { EngineContext } from '../wire';
-import type { default as Overlays } from '../overlay/overlays';
-import type { StickyScrollStrategy } from '../overlay/strategies/stickyScrollStrategy';
-import type { ResizeMonitor } from '../overlay/resizeMonitor';
+import { isKey } from '../../../../../helpers/unicode';
+import { eventTargetEl } from '../../../../../helpers/dom/element';
+import { requestAnimationFrame } from '../../../../../helpers/feature';
+import type { EngineContext } from '../../wire';
+import type { default as Overlays } from '../overlays';
+import type { StickyScrollStrategy } from '../strategies/stickyScrollStrategy';
+import type { ResizeMonitor } from '../resizeMonitor';
 
 /**
  * Extends WheelEvent with legacy (non-standard) delta properties used by older browsers.
