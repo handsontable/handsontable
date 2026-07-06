@@ -307,6 +307,54 @@ If you want to style the header labels, you can pass any number of class names, 
 
 :::
 
+## Column header height
+
+When column labels are longer, header text can wrap and require more vertical space. To control the header size, set [`columnHeaderHeight`](@/api/options.md#columnheaderheight).
+
+You can set this option to one of the following:
+
+- A number - set the same height for every column header.
+- An array - set different heights for individual column header levels.
+
+The example below uses longer labels together with `columnHeaderHeight: 50`.
+
+::: only-for javascript
+
+::: example #example7 --js 1 --ts 2
+@[code](@/content/guides/columns/column-header/javascript/example7.js)
+@[code](@/content/guides/columns/column-header/javascript/example7.ts)
+:::
+
+:::
+
+::: only-for react
+
+::: example #example7 :react --js 1 --ts 2
+@[code](@/content/guides/columns/column-header/react/example7.jsx)
+@[code](@/content/guides/columns/column-header/react/example7.tsx)
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example7 :vue3
+
+@[code](@/content/guides/columns/column-header/vue/example7.vue)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example7 :angular --ts 1 --html 2
+@[code](@/content/guides/columns/column-header/angular/example7.ts)
+@[code](@/content/guides/columns/column-header/angular/example7.html)
+:::
+
+:::
+
 ## Nested headers
 
 More complex data structures can be displayed with multiple headers, each representing a different category of data. To learn more about nested headers, see the [column groups](@/guides/columns/column-groups/column-groups.md) page.
