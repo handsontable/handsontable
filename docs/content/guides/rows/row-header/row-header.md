@@ -123,6 +123,17 @@ The [`rowHeaders`](@/api/options.md#rowheaders) can also be populated using a fu
 
 :::
 
+## Row header width
+
+When you use custom row labels, their content can exceed the default header width. To control the header size, set [`rowHeaderWidth`](@/api/options.md#rowheaderwidth).
+
+You can set this option to one of the following:
+
+- A number - set the same width for every row header.
+- An array - set different widths for individual row header levels.
+
+The [Row headers as an array](#row-headers-as-an-array) example uses custom labels together with `rowHeaderWidth: 80`.
+
 ## Bind rows with headers
 
 You can bind row numbers with row headers. This is used mostly to differentiate two business cases in which Handsontable is most often used.
@@ -207,6 +218,7 @@ A tree grid enables you to represent the nested data structures within the data 
 - [currentHeaderClassName](@/api/options.md#currentheaderclassname)
 - [bindRowsWithHeaders](@/api/options.md#bindrowswithheaders)
 - [rowHeaders](@/api/options.md#rowheaders)
+- [rowHeaderWidth](@/api/options.md#rowheaderwidth)
 
 </div>
 
