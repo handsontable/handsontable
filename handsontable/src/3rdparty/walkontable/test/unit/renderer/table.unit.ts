@@ -1,4 +1,4 @@
-import { TableRenderer } from 'walkontable/render/table';
+import { TableRenderer } from 'walkontable/render/tableRenderer';
 
 /**
  *
