@@ -25,8 +25,6 @@ import type { Overlay } from './regions/_base';
 import type EventManager from '../../../../eventManager';
 import {
   eventTargetEl,
-  getScrollableElement,
-  isHTMLElement,
 } from '../../../../helpers/dom/element';
 import { requestAnimationFrame } from '../../../../helpers/feature';
 import { debounce } from '../../../../helpers/function';
@@ -43,6 +41,7 @@ import { createOverlayDeps } from './regions/_base';
 import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './strategies/stickyScrollStrategy';
 import { ResizeMonitor, createResizeMonitorDeps } from './resizeMonitor';
 import { SpreaderSize, createSpreaderSizeDeps } from './spreaderSize';
+import { ScrollSync, createScrollSyncDeps } from '../scroll/scrollSync';
 
 /**
  * Assembles the Overlays module's dependencies from the engine composition context. Overlays is the
@@ -67,6 +66,8 @@ export function createOverlaysDeps(ctx: EngineContext) {
     makeStickyScrollDeps: (overlays: Overlays) => createStickyScrollStrategyDeps(ctx, overlays),
     makeResizeMonitorDeps: () => createResizeMonitorDeps(ctx),
     makeSpreaderSizeDeps: (overlays: Overlays) => createSpreaderSizeDeps(ctx, overlays),
+    makeScrollSyncDeps: (overlays: Overlays, stickyScroll: StickyScrollStrategy) =>
+      createScrollSyncDeps(ctx, overlays, stickyScroll),
   };
 }
 
@@ -111,14 +112,6 @@ class Overlays {
   scrollbarSize: number = 0;
 
   /**
-   * The main scrollable element.
-   *
-   * @protected
-   * @type {HTMLElement|Window}
-   */
-  declare scrollableElement: HTMLElement | Window;
-
-  /**
    * Flag indicating whether the overlay has been destroyed.
    *
    * @protected
@@ -143,36 +136,54 @@ class Overlays {
   #spreaderSize!: SpreaderSize;
 
   /**
+   * Owns the shared scroll state and the master<->clone scroll synchronization. Extracted as a
+   * separate class to isolate the scroll-position lifecycle from the overlay coordinator; the
+   * coordinator keeps thin public delegates and get/set accessors for the state it and the tests use.
+   *
+   * @type {ScrollSync}
+   */
+  #scrollSync!: ScrollSync;
+
+  /**
    * Flag indicating whether the table is being scrolled vertically.
    *
-   * @protected
-   * @type {boolean}
+   * @returns {boolean}
    */
-  verticalScrolling: boolean = false;
+  get verticalScrolling() {
+    return this.#scrollSync.verticalScrolling;
+  }
+
+  /**
+   * @param {boolean} value Whether the table is being scrolled vertically.
+   */
+  set verticalScrolling(value: boolean) {
+    this.#scrollSync.verticalScrolling = value;
+  }
 
   /**
    * Flag indicating whether the table is being scrolled horizontally.
    *
-   * @protected
-   * @type {boolean}
+   * @returns {boolean}
    */
-  horizontalScrolling: boolean = false;
+  get horizontalScrolling() {
+    return this.#scrollSync.horizontalScrolling;
+  }
 
   /**
-   * The last horizontal scroll position.
-   *
-   * @protected
-   * @type {number}
+   * @param {boolean} value Whether the table is being scrolled horizontally.
    */
-  lastScrollX: number = 0;
+  set horizontalScrolling(value: boolean) {
+    this.#scrollSync.horizontalScrolling = value;
+  }
 
   /**
-   * The last vertical scroll position.
+   * The element that scrolls the table (the trimming container or the window).
    *
-   * @protected
-   * @type {number}
+   * @returns {HTMLElement | Window}
    */
-  lastScrollY: number = 0;
+  get scrollableElement() {
+    return this.#scrollSync.scrollableElement;
+  }
 
   /**
    * Walkontable instance's reference.
@@ -246,31 +257,6 @@ class Overlays {
   declare wtSettings: Settings;
 
   /**
-   * Indicates whether the rendering state has changed for one of the overlays.
-   *
-   * @type {boolean}
-   */
-  #hasRenderingStateChanged = false;
-
-  /**
-   * Cached vertical scroll position used to deduplicate `onScrollVertically` callbacks.
-   * Tracks the value returned by `topOverlay.getScrollPosition()` at the time the callback
-   * was last fired so that a second call with an unchanged position is suppressed.
-   *
-   * @type {number | null}
-   */
-  #lastVerticalScrollPositionForCallback: number | null = null;
-
-  /**
-   * Cached horizontal scroll position used to deduplicate `onScrollHorizontally` callbacks.
-   * Tracks the value returned by `inlineStartOverlay.getScrollPosition()` at the time the
-   * callback was last fired so that a second call with an unchanged position is suppressed.
-   *
-   * @type {number | null}
-   */
-  #lastHorizontalScrollPositionForCallback: number | null = null;
-
-  /**
    * Debounced `updateLastSpreaderSize` / `adjustElementsSize` used during scroll so rapid
    * `refresh` calls do not repeat layout work every frame.
    *
@@ -304,7 +290,7 @@ class Overlays {
     this.wot = deps.wot;
     this.wtSettings = deps.wtSettings;
     this.wtTable = deps.wtTable;
-    const { rootDocument, rootWindow, wtTable } = deps;
+    const { rootDocument } = deps;
 
     // legacy support
     this.eventManager = deps.eventManager;
@@ -312,39 +298,22 @@ class Overlays {
     // TODO refactoring: probably invalid place to this logic
     this.scrollbarSize = this.#deps.geometryReader.getScrollbarWidth(rootDocument);
 
-    const rootElementParent = wtTable.wtRootElement.parentNode;
-    // Use nodeType === 1 instead of instanceof Element so the check works across realms (iframes).
-    // Falls back to getScrollableElement when there is no element parent (null or detached).
-    const isOverflowClip = rootElementParent !== null
-      && rootElementParent.nodeType === 1
-      && (() => {
-        const overflow = this.#deps.geometryReader
-          .getComputedStyle(rootElementParent as Element).getPropertyValue('overflow');
-
-        return overflow === 'hidden' || overflow === 'clip';
-      })();
-
-    this.scrollableElement = isOverflowClip ? wtTable.holder : getScrollableElement(wtTable.TABLE);
-
-    // Built here (not as a field initializer) so `eventManager` and `scrollableElement` are already
-    // set; the deps are assembled via the composition context, so sticky no longer holds `this`.
+    // Built here (not as field initializers) so `eventManager` is set and each collaborator can be
+    // wired via the composition context. ScrollSync is built after the sticky strategy because it
+    // drives sticky activation on scroll; it owns the scrollable element and the scroll state.
     this.#stickyScroll = new StickyScrollStrategy(this.#deps.makeStickyScrollDeps(this));
     this.#resizeMonitor = new ResizeMonitor(this.#deps.makeResizeMonitorDeps());
     this.#spreaderSize = new SpreaderSize(this.#deps.makeSpreaderSizeDeps(this));
+    this.#scrollSync = new ScrollSync(this.#deps.makeScrollSyncDeps(this, this.#stickyScroll));
 
     this.initOverlays();
-    this.#cacheScrollCallbackPositions();
+    this.#scrollSync.cacheScrollCallbackPositions();
 
     this.destroyed = false;
     this.keyPressed = false;
 
-    this.verticalScrolling = false;
-    this.horizontalScrolling = false;
-
     this.initBrowserLineHeight();
     this.registerListeners();
-    this.lastScrollX = rootWindow.scrollX;
-    this.lastScrollY = rootWindow.scrollY;
   }
 
   /**
@@ -433,9 +402,9 @@ class Overlays {
    * Runs logic for the overlays before the table is drawn.
    */
   beforeDraw() {
-    this.#hasRenderingStateChanged = this.#overlays.reduce((acc, overlay) => {
+    this.#scrollSync.setRenderingStateChanged(this.#overlays.reduce((acc, overlay) => {
       return overlay.hasRenderingStateChanged() || acc;
-    }, false);
+    }, false));
 
     this.#overlays.forEach(overlay => overlay.updateStateOfRendering('before'));
   }
@@ -471,16 +440,7 @@ class Overlays {
     }
     this.wot.draw(true);
 
-    if (this.verticalScrolling && this.#didVerticalScrollPositionChange()) {
-      this.inlineStartOverlay.onScroll(); // todo the inlineStartOverlay.onScroll() fires hook. Why is it needed there, not in any another place?
-    }
-
-    if (this.horizontalScrolling && this.#didHorizontalScrollPositionChange()) {
-      this.topOverlay.onScroll();
-    }
-
-    this.verticalScrolling = false;
-    this.horizontalScrolling = false;
+    this.#scrollSync.fireScrollCallbacksAndReset();
   }
 
   /**
@@ -726,174 +686,21 @@ class Overlays {
    * @private
    */
   syncScrollPositions() {
-    if (this.destroyed) {
-      return;
-    }
-
-    const topHolder = this.topOverlay.clone?.wtTable.holder; // todo rethink
-    const leftHolder = this.inlineStartOverlay.clone?.wtTable.holder; // todo rethink
-    const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
-
-    let scrollX = this.scrollableElement instanceof HTMLElement
-      ? this.scrollableElement.scrollLeft : 0;
-    let scrollY = this.scrollableElement instanceof HTMLElement
-      ? this.scrollableElement.scrollTop : 0;
-
-    if (
-      this.wot.wtViewport.isHorizontallyScrollableByWindow()
-      && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'horizontal')
-      && this.scrollableElement instanceof Window
-    ) {
-      scrollX = this.scrollableElement.scrollX;
-    }
-
-    if (
-      this.wot.wtViewport.isVerticallyScrollableByWindow()
-      && ((typeof preventOverflow === 'boolean' && preventOverflow) || preventOverflow !== 'vertical')
-      && this.scrollableElement instanceof Window
-    ) {
-      scrollY = this.scrollableElement.scrollY;
-    }
-
-    this.horizontalScrolling = this.lastScrollX !== scrollX;
-    this.verticalScrolling = this.lastScrollY !== scrollY;
-    this.lastScrollX = scrollX;
-    this.lastScrollY = scrollY;
-
-    this.#stickyScroll.tryActivate(this.verticalScrolling, this.horizontalScrolling);
-
-    if (this.horizontalScrolling) {
-      if (isHTMLElement(topHolder)) {
-        topHolder.scrollLeft = scrollX;
-      }
-
-      const bottomHolder = this.bottomOverlay.needFullRender ? this.bottomOverlay.clone?.wtTable.holder : null; // todo rethink
-
-      if (bottomHolder) {
-        bottomHolder.scrollLeft = scrollX;
-      }
-    }
-
-    if (this.verticalScrolling) {
-      // In window-scroll mode the left overlay's row positions are driven by
-      // spreader.style.top; the holder must not accumulate scroll offset.
-      // Setting scrollTop to window.scrollY would be capped to the tiny
-      // hider/holder size difference caused by fractional zoom rounding,
-      // shifting the visible rows and misaligning them with the master table.
-      if (isHTMLElement(leftHolder)) {
-        if (this.wot.wtViewport.isVerticallyScrollableByWindow()) {
-          leftHolder.scrollTop = 0;
-        } else {
-          leftHolder.scrollTop = scrollY;
-        }
-      }
-    }
-
-    this.refreshAll();
-    this.#stickyScroll.syncOffsets();
+    this.#scrollSync.syncScrollPositions();
   }
 
   /**
    * Synchronize overlay scrollbars with the master scrollbar.
    */
   syncScrollWithMaster() {
-    if (!this.#hasRenderingStateChanged) {
-      return;
-    }
-
-    const masterScrollable = this.topOverlay.mainTableScrollableElement;
-
-    if (!(masterScrollable instanceof HTMLElement)) {
-      return;
-    }
-
-    const { scrollLeft, scrollTop } = masterScrollable;
-
-    if (this.topOverlay.needFullRender && this.topOverlay.clone) {
-      this.topOverlay.clone.wtTable.holder.scrollLeft = scrollLeft; // todo rethink, *overlay.setScroll*()
-    }
-    if (this.bottomOverlay.needFullRender && this.bottomOverlay.clone) {
-      this.bottomOverlay.clone.wtTable.holder.scrollLeft = scrollLeft; // todo rethink, *overlay.setScroll*()
-    }
-    if (this.inlineStartOverlay.needFullRender && this.inlineStartOverlay.clone) {
-      this.inlineStartOverlay.clone.wtTable.holder.scrollTop = scrollTop; // todo rethink, *overlay.setScroll*()
-    }
-
-    this.#hasRenderingStateChanged = false;
-  }
-
-  /**
-   * Caches the initial vertical and horizontal scroll positions for callback deduplication.
-   */
-  #cacheScrollCallbackPositions() {
-    this.#lastVerticalScrollPositionForCallback = this.topOverlay.getScrollPosition();
-    this.#lastHorizontalScrollPositionForCallback = this.inlineStartOverlay.getScrollPosition();
-  }
-
-  /**
-   * Checks whether the vertical scroll position has changed since the last `onScrollVertically`
-   * callback and updates the cache. Returns `true` when the callback should fire.
-   *
-   * @returns {boolean}
-   */
-  #didVerticalScrollPositionChange() {
-    const current = this.topOverlay.getScrollPosition();
-
-    if (this.#lastVerticalScrollPositionForCallback === current) {
-      return false;
-    }
-
-    this.#lastVerticalScrollPositionForCallback = current;
-
-    return true;
-  }
-
-  /**
-   * Checks whether the horizontal scroll position has changed since the last `onScrollHorizontally`
-   * callback and updates the cache. Returns `true` when the callback should fire.
-   *
-   * @returns {boolean}
-   */
-  #didHorizontalScrollPositionChange() {
-    const current = this.inlineStartOverlay.getScrollPosition();
-
-    if (this.#lastHorizontalScrollPositionForCallback === current) {
-      return false;
-    }
-
-    this.#lastHorizontalScrollPositionForCallback = current;
-
-    return true;
+    this.#scrollSync.syncScrollWithMaster();
   }
 
   /**
    * Update the main scrollable elements for all the overlays.
    */
   updateMainScrollableElements() {
-    this.eventManager.clearEvents(true);
-
-    this.inlineStartOverlay.updateMainScrollableElement();
-    this.topOverlay.updateMainScrollableElement();
-
-    if (this.bottomOverlay.needFullRender) {
-      this.bottomOverlay.updateMainScrollableElement();
-    }
-    const { wtTable } = this;
-    const { geometryReader } = this.#deps;
-    const tableParentNode = wtTable.wtRootElement.parentNode;
-    // Use nodeType === 1 instead of instanceof Element so the check works across realms (iframes).
-    // Falls back to '' when there is no element parent (null or detached).
-    const computedOverflow = tableParentNode !== null && tableParentNode.nodeType === 1
-      ? geometryReader.getComputedStyle(tableParentNode as Element).getPropertyValue('overflow')
-      : '';
-
-    if (computedOverflow === 'hidden' || computedOverflow === 'clip') {
-      this.scrollableElement = wtTable.holder;
-    } else {
-      this.scrollableElement = getScrollableElement(wtTable.TABLE);
-    }
-
-    this.registerListeners();
+    this.#scrollSync.updateMainScrollableElements();
   }
 
   /**
