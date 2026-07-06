@@ -38,11 +38,11 @@ const hot = new Handsontable(container, {
     ],
     colHeaders: ['SKU', 'Product', 'Category', 'Supplier', 'Quantity'],
     rowHeaders: true,
-    width: UNIT_SIZES.px.width,
-    height: UNIT_SIZES.px.height,
+    width: UNIT_SIZES['px'].width,
+    height: UNIT_SIZES['px'].height,
     licenseKey: 'non-commercial-and-evaluation',
 });
-unitCaption.textContent = UNIT_CAPTIONS.px;
+unitCaption.textContent = UNIT_CAPTIONS['px'];
 unitSelect.addEventListener('change', () => {
     const unit = UNIT_SIZES[unitSelect.value];
     hot.updateSettings({ width: unit.width, height: unit.height });

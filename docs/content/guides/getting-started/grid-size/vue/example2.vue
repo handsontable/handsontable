@@ -45,8 +45,8 @@ const hotSettings = ref<GridSettings>({
   ],
   colHeaders: ['SKU', 'Product', 'Category', 'Supplier', 'Quantity'],
   rowHeaders: true,
-  width: UNIT_SIZES.px.width,
-  height: UNIT_SIZES.px.height,
+  width: UNIT_SIZES['px'].width,
+  height: UNIT_SIZES['px'].height,
   licenseKey: 'non-commercial-and-evaluation',
 });
 

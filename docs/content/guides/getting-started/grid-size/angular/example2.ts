@@ -43,7 +43,7 @@ export class AppComponent {
   @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
 
   readonly unitKeys = Object.keys(UNIT_SIZES);
-  unitCaption = UNIT_CAPTIONS.px;
+  unitCaption = UNIT_CAPTIONS['px'];
 
   readonly data = [
     ['SKU-4821', 'Wireless Mouse', 'Electronics', 'Harbor Goods', 142],
@@ -63,8 +63,8 @@ export class AppComponent {
   readonly gridSettings: GridSettings = {
     colHeaders: ['SKU', 'Product', 'Category', 'Supplier', 'Quantity'],
     rowHeaders: true,
-    width: UNIT_SIZES.px.width,
-    height: UNIT_SIZES.px.height,
+    width: UNIT_SIZES['px'].width,
+    height: UNIT_SIZES['px'].height,
   };
 
   changeUnit(event: Event): void {
