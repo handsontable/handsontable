@@ -2,7 +2,7 @@
 
 # Walkontable — File/Folder Restructuring Proposal
 
-Vertical-slice + ports/adapters reorg of `handsontable/src/3rdparty/walkontable/src`. Branch: `feature/DEV-1995_Walkontable-single-pass-layout`. **STATUS: Groups A/B/D + scope refinements + Group C1 are EXECUTED and committed (all gated green). C2 is in progress: the `ResizeMonitor` collaborator is extracted, and the Overlay class hierarchy (`_base` + 5 concrete subclasses) is nested into `overlay/regions/` (mirrors `table/regions/`). C2 remaining = `spreaderSize` + `scroll/scrollSync` + `scroll/nativeScrollInput`; then C3. See the C2/C3 execution guide below.**
+Vertical-slice + ports/adapters reorg of `handsontable/src/3rdparty/walkontable/src`. Branch: `feature/DEV-1995_Walkontable-single-pass-layout`. **STATUS: Groups A/B/D + scope refinements + Group C1 + Group C2 are EXECUTED and committed (all gated green). C2 split `overlays.ts` 1214 -> 675 lines via four collaborator classes — `overlay/resizeMonitor.ts`, `overlay/spreaderSize.ts`, `overlay/scroll/scrollSync.ts`, `overlay/scroll/nativeScrollInput.ts` — plus nesting the Overlay class hierarchy into `overlay/regions/`. The overlay-only scroll collaborators live under `overlay/scroll/` (not the shared top-level `scroll/`). C3 (`table/baseTable.ts` split) remains. See the C2/C3 execution guide below.**
 
 ## How this was produced
 
@@ -121,21 +121,22 @@ handsontable/src/3rdparty/walkontable/src/
       bottomInlineStartCornerTable.ts
 
   overlay/         # frozen-pane region system
-    overlays.ts                 # coordinator: registry/lifecycle/draw
+    overlays.ts                 # coordinator: registry/lifecycle/draw (+ thin delegates)
     constants.ts index.ts       # shared constants + barrel
     resizeMonitor.ts            # (C2) ResizeObserver loop-guard collaborator, from overlays.ts
-    spreaderSize.ts             # (C2, TODO) hider/spreader sizing from overlays.ts
+    spreaderSize.ts             # (C2) hider/spreader sizing collaborator, from overlays.ts
     strategies/
       stickyScrollStrategy.ts   # drag-scrollbar gap-fix strategy (owned by Overlays)
+    scroll/                     # (C2) overlay-only scroll collaborators (Overlays-owned)
+      scrollSync.ts             # shared scroll state + master<->clone sync, from overlays.ts
+      nativeScrollInput.ts      # native scroll/wheel/key/resize input wiring, from overlays.ts
     regions/                    # the Overlay class hierarchy (mirrors table/regions/)
       _base.ts                  # abstract Overlay base + createOverlayDeps
       topOverlay.ts bottomOverlay.ts inlineStartOverlay.ts
       topInlineStartCornerOverlay.ts bottomInlineStartCornerOverlay.ts
 
-  scroll/          # scroll intent -> scroll position
+  scroll/          # viewport scroll intent -> scroll position (shared; used via facade)
     scroll.ts
-    nativeScrollInput.ts        # (C2, TODO) native wheel/key adapter from overlays.ts
-    scrollSync.ts               # (C2, TODO) master<->clone sync from overlays.ts
 
   input/           # (C) DOM pointer/touch -> cell hooks
     pointerInput.ts             # (C) was root event.ts (minus hit-testing)
@@ -214,12 +215,13 @@ These are **behavior-preserving code extractions, not `git mv`** — each gated 
 - The overlays scroll/sync/resize methods read+write `#private` state (`#lastVertical/HorizontalScrollPositionForCallback`, `#containerDomResizeCount`(+`Timeout`), `#hasRenderingStateChanged`). So they **cannot be mixins** → extract each stateful concern as a **collaborator class**, modeled on the existing `overlay/strategies/stickyScrollStrategy.ts`: constructed by `Overlays`, owns its own state, wired via a `createXxxDeps(ctx)` factory, **type-only** import of `Overlays` (never a runtime import → no cycle), callbacks passed in deps.
 - Pure getter groups (C3 `sizeGetters` — cache reads only) **can** be mixins living in `axisSizing/` and applied via `mixin(Table, sizeGetters)` (same shape as `table/rangeQuery/virtualRange.ts`). Verify each method's `#private`/`this.deps` usage before choosing mixin vs collaborator.
 
-**C2 concern groups in `overlay/overlays.ts`** (extract as collaborator classes; suggested order = self-contained first):
-1. **resizeMonitor ✅ DONE** → `overlay/resizeMonitor.ts` — the `ResizeObserver` + `#containerDomResizeCount`/`#containerDomResizeCountTimeout` endless-loop guard, extracted as a collaborator class (`createResizeMonitorDeps(ctx)` + `observe()`/`resetResizeCount()`/`destroy()`). Gated green.
-2. **hider/spreader sizing** → `overlay/spreaderSize.ts` — `updateLastSpreaderSize`, `adjustElementsSize`, `applyToDOM`, `expandHider*`, `#lastSpreaderSize` (the ~8 methods after line ~1017).
-3. **scroll sync** → `scroll/scrollSync.ts` — `syncScrollPositions`, `syncScrollWithMaster`, `#cacheScrollCallbackPositions`, `#didVertical/HorizontalScrollPositionChange`, `updateMainScrollableElements`, the `#last*ScrollPositionForCallback` fields.
-4. **native scroll input** → `scroll/nativeScrollInput.ts` — `registerListeners`, `onTableScroll`, `onCloneWheel`, `onKeyDown/Up`, `translateMouseWheelToScroll`, `scrollVertically`, `scrollHorizontally`.
-- **Residual coordinator** stays in `overlay/overlays.ts`: registry (`getOverlays`/`initOverlays`/`initBrowserLineHeight`), draw participation (`beforeDraw`/`afterDraw`/`refreshAll`/`refresh`/`prepareHeaderBorders`), `destroy`.
+**C2 concern groups in `overlay/overlays.ts` — ✅ ALL DONE** (extracted as collaborator classes, `stickyScrollStrategy` template; `overlays.ts` 1214 -> 675):
+1. **resizeMonitor ✅** → `overlay/resizeMonitor.ts` — `ResizeObserver` + `#containerDomResizeCount`/`Timeout` endless-loop guard (`observe()`/`resetResizeCount()`/`destroy()`).
+2. **spreaderSize ✅** → `overlay/spreaderSize.ts` — `updateLastSpreaderSize`, `adjustElementsSize`, `expandHider*` + the `#lastSize` cache. Overlays keeps public delegates (called from ~175 sites via `wtOverlays`/`view`); `applyToDOM`/`#adjustElementsSizeIfNeeded` stay in the coordinator (touch sticky + `this.destroyed`).
+3. **scrollSync ✅** → `overlay/scroll/scrollSync.ts` — shared scroll state (`scrollableElement`, scroll flags, `#hasRenderingStateChanged`, callback-position cache) + `syncScrollPositions`/`syncScrollWithMaster`/`updateMainScrollableElements`/`fireScrollCallbacksAndReset`. Overlays keeps public delegates + `scrollableElement` getter + `verticalScrolling`/`horizontalScrolling` get/set accessors (external + whitebox-test reads/writes). **Finding:** overlays resolved off the coordinator's own fields, not `wot.wtOverlays`, because `cacheScrollCallbackPositions` runs during the Overlays constructor.
+4. **nativeScrollInput ✅** → `overlay/scroll/nativeScrollInput.ts` — `registerListeners` + the scroll/wheel/key/resize handlers, `translateMouseWheelToScroll`, `keyPressed`, browser-line-height. Overlays keeps a public `registerListeners` delegate (ScrollSync re-registers) and public `scrollVertically`/`scrollHorizontally` (the wheel path routes through them; `scroll.spec` spies them via `wtOverlays`).
+- **Overlay-only scroll collaborators live in `overlay/scroll/`** (nested, not the shared top-level `scroll/`, and not flat in `overlay/` — grouped so the slice stays navigable).
+- **Residual coordinator** in `overlay/overlays.ts`: registry (`getOverlays`/`initOverlays`), draw participation (`beforeDraw`/`afterDraw`/`refreshAll`/`refresh`/`prepareHeaderBorders`/`applyToDOM`/`refreshColumnHeaderHeights`), `destroy`, and the thin delegates/accessors above.
 
 **C3 target for `table/baseTable.ts`:** `axisSizing/sizeGetters.ts` (getRowHeight/getColumnWidth/getWidth/getTotal*/hasDefinedSize/isVisible/getColumnHeaderHeight — pure cache reads → **mixin**) + `axisSizing/oversizedRows.ts` (markOversizedRows/resetOversizedRows/adjustColumnHeaderHeights — still present, kept by design) + `table/rangeQuery/` predicate helpers. Preserve exact per-region adapter composition.
 
