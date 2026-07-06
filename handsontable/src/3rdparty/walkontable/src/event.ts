@@ -10,7 +10,7 @@ import {
 } from '../../../helpers/dom/element';
 import { partial } from '../../../helpers/function';
 import { clamp } from '../../../helpers/number';
-import { findColumnAtX, findRowAtY } from './cellLocator/cellCoords';
+import { findColumnAtX, findRowAtY } from './utils/cellCoords';
 import { isTouchSupported } from '../../../helpers/feature';
 import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from '../../../helpers/browser';
 import { isDefined } from '../../../helpers/mixed';
