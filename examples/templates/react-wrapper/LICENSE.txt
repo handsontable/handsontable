@@ -3,7 +3,7 @@ Copyright (c) HANDSONCODE sp. z o. o.
 HANDSONTABLE is a software distributed by HANDSONCODE sp. z o. o.,
 a Polish corporation, based in Gdynia, Poland, at 96/98 Aleja Zwycięstwa,
 registered with the National Court Register under number 538651,
-EU tax ID number: PL5862294002, share capital: PLN 62,800.00.
+EU tax ID number: PL5862294002, share capital: PLN 67,200.00.
 
 This software is protected by applicable copyright laws, including
 international treaties, and dual-licensed – depending on whether
