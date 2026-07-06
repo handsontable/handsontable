@@ -15,7 +15,7 @@ import {
   RenderedColumnsCalculationType,
   RenderedRowsCalculationType,
 } from '../calculator';
-import { PositionCache } from '../utils/positionCache';
+import { PositionCache } from '../axisSizing/positionCache';
 import { DEFAULT_COLUMN_WIDTH } from '../constants';
 import { workspaceSize, type WorkspaceSize } from './workspaceSize';
 import { calculatorFactory, type CalculatorFactory } from './calculatorFactory';

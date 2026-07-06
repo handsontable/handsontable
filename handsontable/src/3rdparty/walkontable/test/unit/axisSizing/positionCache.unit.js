@@ -1,4 +1,4 @@
-import { PositionCache } from '../../../src/utils/positionCache';
+import { PositionCache } from '../../../src/axisSizing/positionCache';
 
 /**
  * Helper to create a PositionCache with mutable config functions.

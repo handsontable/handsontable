@@ -13,8 +13,8 @@ import { mixin } from '../../../helpers/object';
 import type ColumnFilter from './filter/column';
 import type RowFilter from './filter/row';
 import { Renderer } from './render';
-import ColumnUtils from './utils/column';
-import RowUtils from './utils/row';
+import ColumnUtils from './axisSizing/columnUtils';
+import RowUtils from './axisSizing/rowUtils';
 import { CLONE_BOTTOM } from './overlay';
 import { runDrawCycle } from './table/drawCycle';
 

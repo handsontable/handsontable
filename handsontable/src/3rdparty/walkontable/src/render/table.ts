@@ -6,8 +6,8 @@ import type { RowsRenderer } from './rows';
 import type { CellsRenderer } from './cells';
 import type RowFilter from '../filter/row';
 import type ColumnFilter from '../filter/column';
-import type RowUtils from '../utils/row';
-import type ColumnUtils from '../utils/column';
+import type RowUtils from '../axisSizing/rowUtils';
+import type ColumnUtils from '../axisSizing/columnUtils';
 import type { StylesHandler } from '../types';
 import { getBoxAdjustedRowHeight } from '../axisSizing/boxModel';
 

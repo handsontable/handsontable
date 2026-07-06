@@ -1,5 +1,5 @@
 import type { TableDeps } from '../table';
-import type { RowSizeSource } from '../axisSizing/axisSizeSource';
+import type { RowSizeSource } from './axisSizeSource';
 /**
  * Row utils class contains all necessary information about sizes of the rows.
  *

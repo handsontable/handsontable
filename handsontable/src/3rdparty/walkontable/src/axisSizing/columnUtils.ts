@@ -1,5 +1,5 @@
 import type { TableDeps } from '../table';
-import type { ColumnSizeSource } from '../axisSizing/axisSizeSource';
+import type { ColumnSizeSource } from './axisSizeSource';
 /**
  * Column utils class contains all necessary information about sizes of the columns.
  *

@@ -7,8 +7,8 @@ import { CellsRenderer } from './cells';
 import { TableRenderer } from './table';
 import type RowFilter from '../filter/row';
 import type ColumnFilter from '../filter/column';
-import type RowUtils from '../utils/row';
-import type ColumnUtils from '../utils/column';
+import type RowUtils from '../axisSizing/rowUtils';
+import type ColumnUtils from '../axisSizing/columnUtils';
 import type { StylesHandler } from '../types';
 
 interface RendererOptions {
