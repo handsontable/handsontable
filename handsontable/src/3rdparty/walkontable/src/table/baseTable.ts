@@ -1,22 +1,22 @@
-import type { WalkontableInstance } from './types';
-import type { EngineContext } from './wire';
-import type Settings from './settings';
-import type { RowRangeQuery, ColumnRangeQuery } from './rangeQuery/renderedRange';
-import { cellAccess, type CellAccess } from './cellLocator/cellAccess';
-import { domScaffold, type DomScaffold } from './table/domScaffold';
+import type { WalkontableInstance } from '../types';
+import type { EngineContext } from '../wire';
+import type Settings from '../settings';
+import type { RowRangeQuery, ColumnRangeQuery } from '../rangeQuery/renderedRange';
+import { cellAccess, type CellAccess } from '../cellLocator/cellAccess';
+import { domScaffold, type DomScaffold } from './domScaffold';
 import {
   isHTMLElement,
   removeTextNodes,
   isVisible,
-} from '../../../helpers/dom/element';
-import { mixin } from '../../../helpers/object';
-import type ColumnFilter from './filter/column';
-import type RowFilter from './filter/row';
-import { Renderer } from './render';
-import ColumnUtils from './axisSizing/columnUtils';
-import RowUtils from './axisSizing/rowUtils';
-import { CLONE_BOTTOM } from './overlay';
-import { runDrawCycle } from './table/drawCycle';
+} from '../../../../helpers/dom/element';
+import { mixin } from '../../../../helpers/object';
+import type ColumnFilter from '../filter/column';
+import type RowFilter from '../filter/row';
+import { Renderer } from '../render';
+import ColumnUtils from '../axisSizing/columnUtils';
+import RowUtils from '../axisSizing/rowUtils';
+import { CLONE_BOTTOM } from '../overlay';
+import { runDrawCycle } from './drawCycle';
 
 /**
  * Assembles the Table module's dependencies from the engine composition context. Shared by the

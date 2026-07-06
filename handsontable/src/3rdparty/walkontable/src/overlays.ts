@@ -1,7 +1,7 @@
 import type { WalkontableInstance } from './types';
 import type { EngineContext } from './wire';
 import type Settings from './settings';
-import type Table from './table';
+import type Table from './table/baseTable';
 
 /**
  * Extends WheelEvent with legacy (non-standard) delta properties used by older browsers.

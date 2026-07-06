@@ -1,4 +1,4 @@
-import type { TableDeps } from '../table';
+import type { TableDeps } from '../table/baseTable';
 import {
   addClass,
   getScrollTop,
@@ -8,7 +8,7 @@ import {
   resetCssTransform,
 } from '../../../../helpers/dom/element';
 import { isMobileBrowser } from '../../../../helpers/browser';
-import TopOverlayTable from './../table/top';
+import TopOverlayTable from '../table/regions/topTable';
 import { Overlay, type OverlayDeps } from './_base';
 import { getCornerStyle } from '../selection';
 import type { Selection } from '../selection';

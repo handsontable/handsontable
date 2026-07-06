@@ -1,9 +1,9 @@
-import type { TableDeps } from '../table';
-import Table from '../table';
-import stickyRowsTop from '../rangeQuery/stickyRowsTop';
-import stickyColumnsStart from '../rangeQuery/stickyColumnsStart';
-import { mixin } from '../../../../helpers/object';
-import { CLONE_TOP_INLINE_START_CORNER } from '../overlay';
+import type { TableDeps } from '../baseTable';
+import Table from '../baseTable';
+import stickyRowsTop from '../../rangeQuery/stickyRowsTop';
+import stickyColumnsStart from '../../rangeQuery/stickyColumnsStart';
+import { mixin } from '../../../../../helpers/object';
+import { CLONE_TOP_INLINE_START_CORNER } from '../../overlay';
 
 /**
  * Subclass of `Table` that provides the helper methods relevant to topInlineStartCornerOverlay

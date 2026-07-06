@@ -1,7 +1,7 @@
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
 import type { Overlay } from '../../3rdparty/walkontable/src/overlay/_base';
-import type { default as Table } from '../../3rdparty/walkontable/src/table';
+import type { default as Table } from '../../3rdparty/walkontable/src/table/baseTable';
 import { BasePlugin, defaultMainSettingSymbol } from '../base';
 import { Hooks } from '../../core/hooks';
 import MergedCellsCollection from './cellsCollection';

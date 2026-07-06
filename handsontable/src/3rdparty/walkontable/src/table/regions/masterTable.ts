@@ -1,11 +1,11 @@
-import type { TableDeps } from '../table';
+import type { TableDeps } from '../baseTable';
 import {
   getTrimmingContainer,
   isVisible,
-} from './../../../../helpers/dom/element';
-import Table from '../table';
-import { rowRangeQuery, columnRangeQuery } from '../rangeQuery/virtualRange';
-import { mixin } from './../../../../helpers/object';
+} from '../../../../../helpers/dom/element';
+import Table from '../baseTable';
+import { rowRangeQuery, columnRangeQuery } from '../../rangeQuery/virtualRange';
+import { mixin } from '../../../../../helpers/object';
 
 /**
  * Cached output of `alignOverlaysWithTrimmingContainer()` plus the input

@@ -1,4 +1,4 @@
-import type { TableDeps } from '../table';
+import type { TableDeps } from '../table/baseTable';
 import {
   addClass,
   getScrollLeft,
@@ -7,7 +7,7 @@ import {
   setOverlayPosition,
   resetCssTransform,
 } from '../../../../helpers/dom/element';
-import InlineStartOverlayTable from '../table/inlineStart';
+import InlineStartOverlayTable from '../table/regions/inlineStartTable';
 import { Overlay, type OverlayDeps } from './_base';
 import { getCornerStyle } from '../selection';
 import {

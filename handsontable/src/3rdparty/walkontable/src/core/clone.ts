@@ -1,5 +1,5 @@
 import Event, { createEventDeps } from '../event';
-import { createTableDeps } from '../table';
+import { createTableDeps } from '../table/baseTable';
 import CoreAbstract from './_base';
 import type Settings from '../settings';
 import type { CloneDeps } from '../overlay/_base';

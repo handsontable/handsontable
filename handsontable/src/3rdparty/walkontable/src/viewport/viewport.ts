@@ -1,7 +1,7 @@
 import type { WalkontableInstance } from '../types';
 import type { EngineContext } from '../wire';
 import type Settings from '../settings';
-import type Table from '../table';
+import type Table from '../table/baseTable';
 import type EventManager from '../../../../eventManager';
 import type { CalculationTypeLike, ColumnsCalculationType, RowsCalculationType } from '../calculator/viewportBase';
 import { mixin, objectEach } from '../../../../helpers/object';

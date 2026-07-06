@@ -13,7 +13,7 @@
  * per-draw calculator objects are never captured.
  */
 import { defineGetter } from '../../../../helpers/object';
-import type { default as Table } from '../table';
+import type { default as Table } from '../table/baseTable';
 import type { RowRangeQuery, ColumnRangeQuery } from './renderedRange';
 
 /**

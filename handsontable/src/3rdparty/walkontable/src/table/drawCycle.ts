@@ -4,7 +4,7 @@ import {
   CLONE_BOTTOM,
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from '../overlay';
-import type Table from '../table';
+import type Table from './baseTable';
 
 /**
  * Per-draw mutable scratch shared by the phase functions of a single draw. It also captures the

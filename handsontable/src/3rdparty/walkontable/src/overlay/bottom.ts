@@ -1,11 +1,11 @@
-import type { TableDeps } from '../table';
+import type { TableDeps } from '../table/baseTable';
 import {
   addClass,
   getScrollTop,
   hasClass,
   removeClass,
 } from '../../../../helpers/dom/element';
-import BottomOverlayTable from './../table/bottom';
+import BottomOverlayTable from '../table/regions/bottomTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
   CLONE_BOTTOM,

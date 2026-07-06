@@ -28,7 +28,7 @@ import {
   CLONE_TOP_INLINE_START_CORNER,
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from '../overlay';
-import type { default as Table } from '../table';
+import type { default as Table } from '../table/baseTable';
 import type CellCoords from '../cell/coords';
 
 /**

@@ -5,7 +5,7 @@
 import type CellCoords from './cell/coords';
 import type CellRange from './cell/range';
 import type { default as WalkontableSettings } from './settings';
-import type { default as WalkontableTable } from './table';
+import type { default as WalkontableTable } from './table/baseTable';
 import type { default as WalkontableViewport } from './viewport/viewport';
 import type { default as WalkontableScroll } from './scroll/scroll';
 import type { default as WalkontableOverlays } from './overlays';

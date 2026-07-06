@@ -1,8 +1,8 @@
-import type { TableDeps } from '../table';
+import type { TableDeps } from '../table/baseTable';
 import {
   resetCssTransform
 } from '../../../../helpers/dom/element';
-import BottomInlineStartCornerOverlayTable from '../table/bottomInlineStartCorner';
+import BottomInlineStartCornerOverlayTable from '../table/regions/bottomInlineStartCornerTable';
 import { Overlay, type OverlayDeps } from './_base';
 import {
   CLONE_BOTTOM_INLINE_START_CORNER,

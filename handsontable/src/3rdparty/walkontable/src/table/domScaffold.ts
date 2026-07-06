@@ -15,7 +15,7 @@
 import { isHTMLElement, hasClass, setAttribute } from '../../../../helpers/dom/element';
 import { A11Y_PRESENTATION, A11Y_TABINDEX } from '../../../../helpers/a11y';
 import { defineGetter } from '../../../../helpers/object';
-import type { default as Table } from '../table';
+import type { default as Table } from './baseTable';
 
 /**
  * Construction-time DOM scaffolding, mixed into every `Table` type.

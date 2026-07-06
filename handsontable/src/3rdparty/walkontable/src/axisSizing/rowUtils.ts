@@ -1,4 +1,4 @@
-import type { TableDeps } from '../table';
+import type { TableDeps } from '../table/baseTable';
 import type { RowSizeSource } from './axisSizeSource';
 /**
  * Row utils class contains all necessary information about sizes of the rows.

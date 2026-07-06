@@ -1,5 +1,5 @@
 import { defineGetter } from '../../../../helpers/object';
-import type Table from '../table';
+import type Table from '../table/baseTable';
 
 const MIXIN_NAME = 'stickyRowsTop';
 
