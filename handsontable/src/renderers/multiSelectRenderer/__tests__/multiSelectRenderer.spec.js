@@ -295,7 +295,7 @@ describe('multiSelectRenderer', () => {
 
         const removeButton = visibleChips.eq(0).find('.ht-multi-select-chip-remove');
 
-        removeButton.click();
+        await simulateClick(removeButton);
 
         chipsContainer = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
         renderedChips = chipsContainer.find('.ht-multi-select-chip');
@@ -349,7 +349,7 @@ describe('multiSelectRenderer', () => {
         const removeButton = renderedChips.eq(0).find('.ht-multi-select-chip-remove');
         const removedChipText = renderedChips.eq(0).text();
 
-        removeButton.click();
+        await simulateClick(removeButton);
 
         const sourceDataAfter = getSourceDataAtCell(physicalRow, 0);
         const expectedSourceData = sourceDataBefore.filter(
@@ -397,7 +397,7 @@ describe('multiSelectRenderer', () => {
         const removeButton = renderedChips.eq(0).find('.ht-multi-select-chip-remove');
         const removedChipText = renderedChips.eq(0).text();
 
-        removeButton.click();
+        await simulateClick(removeButton);
 
         const expectedSourceData = choices.filter(
           choice => (choice.value || choice) !== removedChipText
@@ -412,6 +412,58 @@ describe('multiSelectRenderer', () => {
         expect(renderedChipsAfter.eq(0).text()).toEqual(choices[1].value || choices[1]);
         expect(renderedChipsAfter.eq(1).text()).toEqual(choices[2].value || choices[2]);
         expect(renderedChipsAfter.eq(2).text()).toEqual(choices[3].value || choices[3]);
+      });
+
+      it('should fire `beforeChange` and `afterChange` (and skip `afterSetSourceDataAtCell`) ' +
+        'when removing a chip via the remove button, matching the editor deselect path (#12966)', async() => {
+        const beforeChangeSpy = jasmine.createSpy('beforeChange');
+        const afterChangeSpy = jasmine.createSpy('afterChange');
+        const afterSetSourceDataAtCellSpy = jasmine.createSpy('afterSetSourceDataAtCell');
+
+        handsontable({
+          data: [
+            { color: choices },
+          ],
+          columns: [
+            {
+              data: 'color',
+              type: 'multiselect',
+              source: choices,
+              width: 500,
+            },
+          ],
+          beforeChange: beforeChangeSpy,
+          afterChange: afterChangeSpy,
+          afterSetSourceDataAtCell: afterSetSourceDataAtCellSpy,
+        });
+
+        const chipsContainer = $('table.htCore tr:eq(0) td:eq(0) .ht-multi-select-chips-container');
+        const renderedChips = chipsContainer.find('.ht-multi-select-chip');
+        const removeButton = renderedChips.eq(0).find('.ht-multi-select-chip-remove');
+        const removedChipText = renderedChips.eq(0).text();
+
+        beforeChangeSpy.calls.reset();
+        afterChangeSpy.calls.reset();
+        afterSetSourceDataAtCellSpy.calls.reset();
+
+        await simulateClick(removeButton);
+
+        const expectedSourceData = choices.filter(
+          choice => (choice.value || choice) !== removedChipText
+        );
+
+        expect(beforeChangeSpy).toHaveBeenCalledTimes(1);
+        expect(afterChangeSpy).toHaveBeenCalledTimes(1);
+        expect(afterSetSourceDataAtCellSpy).not.toHaveBeenCalled();
+
+        const [changes, source] = afterChangeSpy.calls.mostRecent().args;
+
+        expect(source).toBe('multiselect-renderer');
+        expect(changes.length).toBe(1);
+        expect(changes[0][0]).toBe(0);
+        expect(changes[0][1]).toBe('color');
+        expect(changes[0][3]).toEqual(expectedSourceData);
+        expect(getSourceDataAtCell(0, 0)).toEqual(expectedSourceData);
       });
     });
   });
