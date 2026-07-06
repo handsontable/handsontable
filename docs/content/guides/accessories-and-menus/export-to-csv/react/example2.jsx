@@ -1,31 +1,26 @@
 import { useRef } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-
 // register Handsontable's modules
 registerAllModules();
-
 const ExampleComponent = () => {
-  const hotRef = useRef(null);
-  const buttonClickCallback = () => {
-    const hot = hotRef.current?.hotInstance;
-    const exportPlugin = hot?.getPlugin('exportFile');
-    const exportedBlob = exportPlugin?.exportAsBlob('csv', {
-      bom: false,
-      columnDelimiter: ',',
-      colHeaders: false,
-      exportHiddenColumns: true,
-      exportHiddenRows: true,
-      mimeType: 'text/csv',
-      rowDelimiter: '\r\n',
-      rowHeaders: true,
-    });
-
-    console.log(exportedBlob);
-  };
-
-  return (
-    <>
+    const hotRef = useRef(null);
+    const buttonClickCallback = () => {
+        const hot = hotRef.current?.hotInstance;
+        const exportPlugin = hot?.getPlugin('exportFile');
+        const exportedBlob = exportPlugin?.exportAsBlob('csv', {
+            bom: false,
+            columnDelimiter: ',',
+            colHeaders: false,
+            exportHiddenColumns: false,
+            exportHiddenRows: false,
+            mimeType: 'text/csv',
+            rowDelimiter: '\r\n',
+            rowHeaders: true,
+        });
+        console.log(exportedBlob);
+    };
+    return (<>
       <div className="example-controls-container">
         <div className="controls">
           <button id="export-blob" onClick={() => buttonClickCallback()}>
@@ -33,28 +28,15 @@ const ExampleComponent = () => {
           </button>
         </div>
       </div>
-      <HotTable
-        ref={hotRef}
-        data={[
-          ['A1', 'B1', 'C1', 'D1', 'E1', 'F1', 'G1'],
-          ['A2', 'B2', 'C2', 'D2', 'E2', 'F2', 'G2'],
-          ['A3', 'B3', 'C3', 'D3', 'E3', 'F3', 'G3'],
-          ['A4', 'B4', 'C4', 'D4', 'E4', 'F4', 'G4'],
-          ['A5', 'B5', 'C5', 'D5', 'E5', 'F5', 'G5'],
-          ['A6', 'B6', 'C6', 'D6', 'E6', 'F6', 'G6'],
-          ['A7', 'B7', 'C7', 'D7', 'E7', 'F7', 'G7'],
-        ]}
-        colHeaders={true}
-        rowHeaders={true}
-        hiddenRows={{ rows: [1, 3, 5], indicators: true }}
-        hiddenColumns={{ columns: [1, 3, 5], indicators: true }}
-        height="auto"
-        autoWrapRow={true}
-        autoWrapCol={true}
-        licenseKey="non-commercial-and-evaluation"
-      />
-    </>
-  );
+      <HotTable ref={hotRef} data={[
+            ['Spring Launch', 'Email', 'North America', '1240', '4.2%', '$12000', 'Q1 2025'],
+            ['Partner Webinar', 'Paid Search', 'EMEA', '860', '6.1%', '$9400', 'Q1 2025'],
+            ['Summer Upsell', 'Social', 'APAC', '1520', '3.7%', '$13800', 'Q2 2025'],
+            ['Product Video', 'Email', 'North America', '980', '5.4%', '$8600', 'Q2 2025'],
+            ['Back-to-School', 'Display', 'LATAM', '1110', '4.8%', '$10100', 'Q3 2025'],
+            ['Holiday Teaser', 'Affiliate', 'EMEA', '1340', '5.9%', '$12700', 'Q4 2025'],
+            ['Loyalty Drive', 'SMS', 'APAC', '790', '7.3%', '$6200', 'Q4 2025'],
+        ]} colHeaders={true} rowHeaders={true} hiddenRows={{ rows: [1, 3, 5], indicators: true }} hiddenColumns={{ columns: [1, 3, 5], indicators: true }} height="auto" autoWrapRow={true} autoWrapCol={true} licenseKey="non-commercial-and-evaluation"/>
+    </>);
 };
-
 export default ExampleComponent;

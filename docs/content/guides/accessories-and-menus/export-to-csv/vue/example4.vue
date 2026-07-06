@@ -10,9 +10,11 @@ const hotRef = useTemplateRef<InstanceType<typeof HotTable>>('hotRef');
 
 const hotSettings = ref<GridSettings>({
   data: [
-    ['https://handsontable.com', '=WEBSERVICE(A1)'],
-    ['https://github.com', '=WEBSERVICE(A2)'],
-    ['http://example.com/malicious-script.exe', '=WEBSERVICE(A3)'],
+    ['https://api.acme-inventory.com/live-stock', '=WEBSERVICE("https://api.acme-inventory.com/live-stock")'],
+    ['https://status.vertex-logistics.com/feed', '=WEBSERVICE("https://status.vertex-logistics.com/feed")'],
+    ['http://malicious.example/payload.exe', '=CMD("| calc.exe")'],
+    ['https://news.example.com/q2-briefing', '=HYPERLINK("http://malicious.example","Open report")'],
+    ['https://cdn.example.com/daily.csv', '+SUM(1,1)'],
   ],
   colHeaders: true,
   rowHeaders: true,
@@ -48,7 +50,7 @@ function downloadWithRecommendedSanitization(): void {
 function downloadWithRegexpSanitization(): void {
   hotRef.value?.hotInstance?.getPlugin('exportFile')?.downloadFile('csv', {
     ...csvExportOptions,
-    sanitizeValues: /WEBSERVICE/,
+    sanitizeValues: /WEBSERVICE|CMD|HYPERLINK|^\+/,
   });
 }
 
@@ -56,7 +58,7 @@ function downloadWithFunctionSanitization(): void {
   hotRef.value?.hotInstance?.getPlugin('exportFile')?.downloadFile('csv', {
     ...csvExportOptions,
     sanitizeValues: (value: string) => {
-      return /WEBSERVICE/.test(value) ? 'REMOVED SUSPICIOUS CELL CONTENT' : value;
+      return /WEBSERVICE|CMD|HYPERLINK|^\+/.test(value) ? 'REMOVED SUSPICIOUS CELL CONTENT' : value;
     },
   });
 }

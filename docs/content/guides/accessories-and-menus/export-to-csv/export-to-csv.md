@@ -16,16 +16,26 @@ vue:
   metaTitle: Export to CSV - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Accessories and menus
+menuTag: updated
 ---
 Export your grid's raw data to the CSV format, as a downloadable file, a blob, or a string. Customize your export using Handsontable's configuration options.
 
 [[toc]]
 
+## Prerequisites
+
+- You configured Handsontable in your project.
+- You registered the `ExportFile` plugin (the examples use `registerAllModules()`).
+
 ## Examples
 
 Mind that CSV exports contain only raw data, and don't include formulas, styling, or formatting information.
 
+Examples 1-3 use hidden rows and hidden columns with indicators turned on. The indicators show where hidden data exists in the grid, and each example explains whether the export includes or skips that hidden data.
+
 ### Export to file
+
+This example exports all rows and columns, including hidden ones, by setting both `exportHiddenRows` and `exportHiddenColumns` to `true`.
 
 ::: only-for javascript
 ::: example #example1 --html 1 --js 2 --ts 3
@@ -66,6 +76,7 @@ Mind that CSV exports contain only raw data, and don't include formulas, styling
 ### Export as a JavaScript Blob object
 
 Open a console in browser developer tools to see the result for the below example.
+This example keeps hidden indicators in the grid, but exports only visible rows and columns by setting `exportHiddenRows` and `exportHiddenColumns` to `false`.
 
 ::: only-for javascript
 ::: example #example2 --html 1 --js 2 --ts 3
@@ -106,6 +117,7 @@ Open a console in browser developer tools to see the result for the below exampl
 ### Export as a string
 
 Open a console in browser developer tools to see the result for the below example.
+Like the Blob example, this export uses only visible data and skips hidden rows and columns.
 
 ::: only-for javascript
 ::: example #example3 --html 1 --js 2 --ts 3
