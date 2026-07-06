@@ -1,6 +1,6 @@
 /* file: app.component.ts */
-import { Component, ViewChild } from '@angular/core';
-import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import { Component } from '@angular/core';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import type Handsontable from 'handsontable/base';
 
 interface Row {
@@ -9,6 +9,16 @@ interface Row {
   price: number;
   sellDate: string;
 }
+
+const originalData: Row[] = [
+  { brand: 'Jetpulse', model: 'Racing Socks', price: 30, sellDate: '2023-10-11' },
+  { brand: 'Gigabox', model: 'HL Mountain Frame', price: 1890.9, sellDate: '2023-05-03' },
+  { brand: 'Camido', model: 'Cycling Cap', price: 130.1, sellDate: '2023-03-27' },
+  { brand: 'Chatterpoint', model: 'Road Tire Tube', price: 59, sellDate: '2023-08-28' },
+  { brand: 'Eidel', model: 'HL Road Tire', price: 279.99, sellDate: '2023-10-02' },
+];
+
+const columnDataKeys: (keyof Row)[] = ['brand', 'model', 'price', 'sellDate'];
 
 @Component({
   standalone: true,
@@ -24,25 +34,26 @@ interface Row {
   `,
 })
 export class AppComponent {
-  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
-
   status = 'Click a column header to sort.';
+  data: Row[] = originalData;
 
-  readonly data: Row[] = [
-    { brand: 'Jetpulse', model: 'Racing Socks', price: 30, sellDate: '2023-10-11' },
-    { brand: 'Gigabox', model: 'HL Mountain Frame', price: 1890.9, sellDate: '2023-05-03' },
-    { brand: 'Camido', model: 'Cycling Cap', price: 130.1, sellDate: '2023-03-27' },
-    { brand: 'Chatterpoint', model: 'Road Tire Tube', price: 59, sellDate: '2023-08-28' },
-    { brand: 'Eidel', model: 'HL Road Tire', price: 279.99, sellDate: '2023-10-02' },
-  ];
+  // Canceling the front-end sort also stops Handsontable from tracking the column's sort
+  // order, so this example cycles ascending -> descending -> unsorted manually.
+  private activeSort: { column: number; sortOrder: 'asc' | 'desc' } | null = null;
 
-  readonly columnDataKeys: (keyof Row)[] = ['brand', 'model', 'price', 'sellDate'];
+  private getNextSortOrder(column: number): 'asc' | 'desc' | null {
+    if (!this.activeSort || this.activeSort.column !== column) {
+      return 'asc';
+    }
+
+    return this.activeSort.sortOrder === 'asc' ? 'desc' : null;
+  }
 
   // Simulates a server that receives a sort request and returns sorted rows.
-  sortOnServer(columnKey: keyof Row, sortOrder: string): Promise<Row[]> {
+  private sortOnServer(columnKey: keyof Row, sortOrder: string): Promise<Row[]> {
     return new Promise((resolve) => {
       setTimeout(() => {
-        const sortedData = [...this.data].sort((rowA, rowB) => {
+        const sortedData = [...originalData].sort((rowA, rowB) => {
           if (rowA[columnKey] === rowB[columnKey]) {
             return 0;
           }
@@ -84,16 +95,31 @@ export class AppComponent {
       currentSortConfig: Handsontable.plugins.ColumnSorting.Config[],
       destinationSortConfigs: Handsontable.plugins.ColumnSorting.Config[]
     ) => {
-      const [sortConfig] = destinationSortConfigs;
+      const [requestedSort] = destinationSortConfigs;
 
-      if (!sortConfig || sortConfig.sortOrder === 'none') {
-        return true;
+      if (!requestedSort) {
+        // the sorting was cleared programmatically, restore the original row order
+        this.activeSort = null;
+        this.data = originalData;
+
+        return false;
       }
 
+      const nextOrder = this.getNextSortOrder(requestedSort.column);
+
+      if (nextOrder === null) {
+        this.activeSort = null;
+        this.status = 'Cleared the sort.';
+        this.data = originalData;
+
+        return false;
+      }
+
+      this.activeSort = { column: requestedSort.column, sortOrder: nextOrder };
       this.status = 'Sorting on the server...';
 
-      this.sortOnServer(this.columnDataKeys[sortConfig.column], sortConfig.sortOrder).then((sortedData) => {
-        this.hotTable?.hotInstance?.loadData(sortedData);
+      this.sortOnServer(columnDataKeys[requestedSort.column], nextOrder).then((sortedData) => {
+        this.data = sortedData;
         this.status = 'Sorted on the server.';
       });
 

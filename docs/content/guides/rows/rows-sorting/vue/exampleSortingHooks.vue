@@ -19,6 +19,18 @@ const data = [
 
 const columnDataKeys = ['brand', 'model', 'price', 'sellDate'];
 
+// Canceling the front-end sort also stops Handsontable from tracking the column's sort
+// order, so this example cycles ascending -> descending -> unsorted manually.
+let activeSort: { column: number; sortOrder: 'asc' | 'desc' } | null = null;
+
+function getNextSortOrder(column: number): 'asc' | 'desc' | null {
+  if (!activeSort || activeSort.column !== column) {
+    return 'asc';
+  }
+
+  return activeSort.sortOrder === 'asc' ? 'desc' : null;
+}
+
 // Simulates a server that receives a sort request and returns sorted rows.
 function sortOnServer(columnKey: string, sortOrder: string) {
   return new Promise<typeof data>((resolve) => {
@@ -63,15 +75,30 @@ const hotSettings = ref<GridSettings>({
   autoWrapRow: true,
   autoWrapCol: true,
   beforeColumnSort(currentSortConfig, destinationSortConfigs) {
-    const [sortConfig] = destinationSortConfigs;
+    const [requestedSort] = destinationSortConfigs;
 
-    if (!sortConfig || sortConfig.sortOrder === 'none') {
-      return true;
+    if (!requestedSort) {
+      // the sorting was cleared programmatically, restore the original row order
+      activeSort = null;
+      (hotRef.value as any)?.hotInstance?.loadData(data);
+
+      return false;
     }
 
+    const nextOrder = getNextSortOrder(requestedSort.column);
+
+    if (nextOrder === null) {
+      activeSort = null;
+      status.value = 'Cleared the sort.';
+      (hotRef.value as any)?.hotInstance?.loadData(data);
+
+      return false;
+    }
+
+    activeSort = { column: requestedSort.column, sortOrder: nextOrder };
     status.value = 'Sorting on the server...';
 
-    sortOnServer(columnDataKeys[sortConfig.column], sortConfig.sortOrder).then((sortedData) => {
+    sortOnServer(columnDataKeys[requestedSort.column], nextOrder).then((sortedData) => {
       (hotRef.value as any)?.hotInstance?.loadData(sortedData);
       status.value = 'Sorted on the server.';
     });

@@ -33,8 +33,24 @@ function sortOnServer(columnKey, sortOrder) {
 }
 
 const ExampleComponent = () => {
-  const hotTableComponentRef = useRef(null);
+  // `data` is kept in state (instead of loaded imperatively) so a `status` update doesn't
+  // make HotTable re-apply the original `data` prop and undo the sort.
+  const [gridData, setGridData] = useState(data);
   const [status, setStatus] = useState('Click a column header to sort.');
+
+  // Canceling the front-end sort also stops Handsontable from tracking the column's sort
+  // order, so this example cycles ascending -> descending -> unsorted manually.
+  const activeSortRef = useRef(null);
+
+  const getNextSortOrder = (column) => {
+    const activeSort = activeSortRef.current;
+
+    if (!activeSort || activeSort.column !== column) {
+      return 'asc';
+    }
+
+    return activeSort.sortOrder === 'asc' ? 'desc' : null;
+  };
 
   return (
     <>
@@ -44,8 +60,7 @@ const ExampleComponent = () => {
         </div>
       </div>
       <HotTable
-        ref={hotTableComponentRef}
-        data={data}
+        data={gridData}
         columns={[
           { title: 'Brand', type: 'text', data: 'brand' },
           { title: 'Model', type: 'text', data: 'model' },
@@ -67,16 +82,31 @@ const ExampleComponent = () => {
         ]}
         columnSorting={true}
         beforeColumnSort={(currentSortConfig, destinationSortConfigs) => {
-          const [sortConfig] = destinationSortConfigs;
+          const [requestedSort] = destinationSortConfigs;
 
-          if (!sortConfig || sortConfig.sortOrder === 'none') {
-            return true;
+          if (!requestedSort) {
+            // the sorting was cleared programmatically, restore the original row order
+            activeSortRef.current = null;
+            setGridData(data);
+
+            return false;
           }
 
+          const nextOrder = getNextSortOrder(requestedSort.column);
+
+          if (nextOrder === null) {
+            activeSortRef.current = null;
+            setStatus('Cleared the sort.');
+            setGridData(data);
+
+            return false;
+          }
+
+          activeSortRef.current = { column: requestedSort.column, sortOrder: nextOrder };
           setStatus('Sorting on the server...');
 
-          sortOnServer(columnDataKeys[sortConfig.column], sortConfig.sortOrder).then((sortedData) => {
-            hotTableComponentRef.current?.hotInstance?.loadData(sortedData);
+          sortOnServer(columnDataKeys[requestedSort.column], nextOrder).then((sortedData) => {
+            setGridData(sortedData);
             setStatus('Sorted on the server.');
           });
 
