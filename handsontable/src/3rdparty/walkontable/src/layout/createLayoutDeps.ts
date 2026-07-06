@@ -14,7 +14,7 @@
  */
 import type { EngineContext } from '../wire';
 import type { LayoutInput, OverflowMode } from './layoutSnapshot';
-import { measureWorkspaceWidth, measureWorkspaceHeight } from '../workspaceSize';
+import { measureWorkspaceWidth, measureWorkspaceHeight } from '../viewport/workspaceSize';
 
 /**
  * Narrows the engine context to the dependencies the layout slice reads.

@@ -1,12 +1,12 @@
 
-import type { EngineContext } from './wire';
+import type { EngineContext } from '../wire';
 import {
   createObjectPropListener,
-} from '../../../helpers/object';
+} from '../../../../helpers/object';
 import {
   getScrollLeft,
   getScrollTop,
-} from '../../../helpers/dom/element';
+} from '../../../../helpers/dom/element';
 
 /**
  * Assembles the Scroll module's dependencies from the engine composition context.

@@ -1,7 +1,7 @@
 import type { DomBindings, WalkontableInstance } from '../types';
 import type Settings from '../settings';
 import type Table from '../table';
-import type Viewport from '../viewport';
+import type Viewport from '../viewport/viewport';
 import type Overlays from '../overlays';
 import type { SelectionManager } from '../selection/manager';
 import type Event from '../event';
@@ -11,7 +11,7 @@ import {
 } from '../../../../helpers/dom/element';
 import { randomString } from '../../../../helpers/string';
 import EventManager from '../../../../eventManager';
-import Scroll, { createScrollDeps } from '../scroll';
+import Scroll, { createScrollDeps } from '../scroll/scroll';
 import CellCoords from '../cell/coords';
 import CellRange from '../cell/range';
 import { LiveGeometryReader } from '../geometry/liveGeometryReader';

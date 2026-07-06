@@ -17,7 +17,7 @@
 import type { WalkontableInstance } from './types';
 import type { default as Settings } from './settings';
 import type { default as Table } from './table';
-import type { default as Viewport } from './viewport';
+import type { default as Viewport } from './viewport/viewport';
 import type { default as Overlays } from './overlays';
 import type { SelectionManager } from './selection/manager';
 import type { Overlay } from './overlay/_base';

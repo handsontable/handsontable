@@ -4,7 +4,7 @@ import {
   isVisible,
 } from './../../../../helpers/dom/element';
 import Table from '../table';
-import { rowRangeQuery, columnRangeQuery } from '../renderedRange';
+import { rowRangeQuery, columnRangeQuery } from '../viewport/renderedRange';
 import { mixin } from './../../../../helpers/object';
 
 /**

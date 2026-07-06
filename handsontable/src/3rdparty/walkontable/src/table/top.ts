@@ -1,7 +1,7 @@
 import type { TableDeps } from '../table';
 import Table from '../table';
 import stickyRowsTop from './mixin/stickyRowsTop';
-import { columnRangeQuery } from '../renderedRange';
+import { columnRangeQuery } from '../viewport/renderedRange';
 import { mixin } from '../../../../helpers/object';
 import { CLONE_TOP } from '../overlay';
 

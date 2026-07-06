@@ -10,8 +10,8 @@
  * The calculator RESULT fields (`rowsRenderCalculator`, `rowsVisibleCalculator`, …) stay owned by
  * `Viewport`; `createCalculators` / `createVisibleCalculators` assign them through `this`.
  */
-import type { CalculationTypeLike, ColumnsCalculationType, RowsCalculationType } from './calculator/viewportBase';
-import { ViewportColumnsCalculator, ViewportRowsCalculator } from './calculator';
+import type { CalculationTypeLike, ColumnsCalculationType, RowsCalculationType } from '../calculator/viewportBase';
+import { ViewportColumnsCalculator, ViewportRowsCalculator } from '../calculator';
 import type { default as Viewport } from './viewport';
 
 /**

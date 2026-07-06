@@ -15,8 +15,8 @@
  * before). Each method reads the calculator fresh through `this.deps.getWtViewport()`, so the
  * per-draw calculator objects are never captured.
  */
-import { defineGetter } from '../../../helpers/object';
-import type { default as Table } from './table';
+import { defineGetter } from '../../../../helpers/object';
+import type { default as Table } from '../table';
 
 /**
  * Row range queries — mixed into table types that render virtually along the vertical axis.

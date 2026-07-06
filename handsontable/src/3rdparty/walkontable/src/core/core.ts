@@ -4,7 +4,7 @@ import { CLONE_TYPES } from '../overlay';
 import Settings from '../settings';
 import MasterTable from '../table/master';
 import { createTableDeps } from '../table';
-import Viewport, { createViewportDeps } from '../viewport';
+import Viewport, { createViewportDeps } from '../viewport/viewport';
 import CoreAbstract from './_base';
 import { SelectionManager } from '../selection/manager';
 import type { Overlay } from '../overlay/_base';

@@ -1,10 +1,10 @@
-import type { WalkontableInstance } from './types';
-import type { EngineContext } from './wire';
-import type Settings from './settings';
-import type Table from './table';
-import type EventManager from '../../../eventManager';
-import type { CalculationTypeLike, ColumnsCalculationType, RowsCalculationType } from './calculator/viewportBase';
-import { mixin, objectEach } from '../../../helpers/object';
+import type { WalkontableInstance } from '../types';
+import type { EngineContext } from '../wire';
+import type Settings from '../settings';
+import type Table from '../table';
+import type EventManager from '../../../../eventManager';
+import type { CalculationTypeLike, ColumnsCalculationType, RowsCalculationType } from '../calculator/viewportBase';
+import { mixin, objectEach } from '../../../../helpers/object';
 import {
   FullyVisibleColumnsCalculationType,
   FullyVisibleRowsCalculationType,
@@ -14,14 +14,14 @@ import {
   RenderedAllRowsCalculationType,
   RenderedColumnsCalculationType,
   RenderedRowsCalculationType,
-} from './calculator';
-import { PositionCache } from './utils/positionCache';
-import { DEFAULT_COLUMN_WIDTH } from './constants';
+} from '../calculator';
+import { PositionCache } from '../utils/positionCache';
+import { DEFAULT_COLUMN_WIDTH } from '../constants';
 import { workspaceSize, type WorkspaceSize } from './workspaceSize';
 import { calculatorFactory, type CalculatorFactory } from './calculatorFactory';
-import { createLayoutDeps, gatherLayoutInput, type LayoutDeps } from './layout/createLayoutDeps';
-import { resolveLayout } from './layout/resolveLayout';
-import type { LayoutSnapshot } from './layout/layoutSnapshot';
+import { createLayoutDeps, gatherLayoutInput, type LayoutDeps } from '../layout/createLayoutDeps';
+import { resolveLayout } from '../layout/resolveLayout';
+import type { LayoutSnapshot } from '../layout/layoutSnapshot';
 
 /**
  * Assembles the Viewport module's dependencies from the engine composition context.
