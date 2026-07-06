@@ -2,32 +2,25 @@ import type { WalkontableInstance } from './types';
 import type { EngineContext } from './wire';
 import type Settings from './settings';
 import type { RowRangeQuery, ColumnRangeQuery } from './renderedRange';
+import { cellAccess, type CellAccess } from './table/cellAccess';
 import {
   hasClass,
-  index,
   isHTMLElement,
-  isHTMLTableCellElement,
   removeTextNodes,
-  overlayContainsElement,
-  closest,
   isVisible,
   setAttribute,
 } from '../../../helpers/dom/element';
-import { isFunction } from '../../../helpers/function';
+import { mixin } from '../../../helpers/object';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
 import { Renderer } from './renderer';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
 import {
-  CLONE_TOP,
   CLONE_BOTTOM,
-  CLONE_INLINE_START,
-  CLONE_TOP_INLINE_START_CORNER,
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from './overlay';
 import { A11Y_PRESENTATION, A11Y_TABINDEX } from '../../../helpers/a11y';
-import { throwWithCause } from '../../../helpers/errors';
 
 /**
  * Assembles the Table module's dependencies from the engine composition context. Shared by the
@@ -789,263 +782,6 @@ class Table {
   }
 
   /**
-   * Get cell element at coords.
-   * Negative coords.row or coords.col are used to retrieve header cells. If there are multiple header levels, the
-   * negative value corresponds to the distance from the working area. For example, when there are 3 levels of column
-   * headers, coords.col=-1 corresponds to the most inner header element, while coords.col=-3 corresponds to the
-   * outmost header element.
-   *
-   * In case an element for the coords is not rendered, the method returns an error code.
-   * To produce the error code, the input parameters are validated in the order in which they
-   * are given. Thus, if both the row and the column coords are out of the rendered bounds,
-   * the method returns the error code for the row.
-   *
-   * @param {CellCoords} coords The cell coordinates.
-   * @returns {HTMLElement|number} HTMLElement on success or Number one of the exit codes on error:
-   *  -1 row before viewport
-   *  -2 row after viewport
-   *  -3 column before viewport
-   *  -4 column after viewport.
-   */
-  getCell(coords: { row: number | null; col: number | null }) {
-    if (coords.row === null || coords.col === null) {
-      return -5;
-    }
-
-    let row = coords.row;
-    let column = coords.col;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const hookResult = this.wtSettings
-      .getSetting('onModifyGetCellCoords', row, column, !this.isMaster, 'render');
-
-    if (hookResult && Array.isArray(hookResult)) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      [row, column] = hookResult;
-    }
-
-    if (this.isRowBeforeRenderedRows(row)) {
-      // row before rendered rows
-      return -1;
-
-    } else if (this.isRowAfterRenderedRows(row)) {
-      // row after rendered rows
-      return -2;
-
-    } else if (this.isColumnBeforeRenderedColumns(column)) {
-      // column before rendered columns
-      return -3;
-
-    } else if (this.isColumnAfterRenderedColumns(column)) {
-      // column after rendered columns
-      return -4;
-    }
-
-    const TR = this.getRow(row);
-
-    if (!TR && row >= 0) {
-      throwWithCause('TR was expected to be rendered but is not');
-    }
-
-    const trElement = TR !== false ? TR : null;
-    const TD = trElement?.childNodes[this.columnFilter!.sourceColumnToVisibleRowHeadedColumn(column)];
-
-    if (!TD && column >= 0) {
-      throwWithCause('TD or TH was expected to be rendered but is not');
-    }
-
-    // TD is a TD/TH HTMLElement guaranteed by DOM structure. TypeScript cannot narrow ChildNode
-    // to HTMLElement without instanceof, but adding a throw here would change the existing contract
-    // for negative column (header) lookups where TD may be undefined.
-    return TD as HTMLElement;
-  }
-
-  /**
-   * Get the DOM element of the row with the provided index.
-   *
-   * @param {number} rowIndex Row index.
-   * @returns {HTMLTableRowElement|boolean} Return the row's DOM element or `false` if the row with the provided
-   * index doesn't exist.
-   */
-  getRow(rowIndex: number): HTMLTableRowElement | false {
-    let renderedRowIndex = null;
-    let parentElement = null;
-
-    if (rowIndex < 0) {
-      renderedRowIndex = this.rowFilter?.sourceRowToVisibleColHeadedRow(rowIndex);
-      parentElement = this.THEAD;
-
-    } else {
-      renderedRowIndex = this.rowFilter?.sourceToRendered(rowIndex);
-      parentElement = this.TBODY;
-    }
-
-    if (renderedRowIndex !== undefined && renderedRowIndex !== null && parentElement !== null) {
-      if (parentElement.childNodes.length < renderedRowIndex + 1) {
-        return false;
-
-      } else {
-        return parentElement.childNodes[renderedRowIndex] as HTMLTableRowElement;
-      }
-    }
-
-    return false;
-  }
-
-  /**
-   * GetColumnHeader.
-   *
-   * @param {number} col Column index.
-   * @param {number} [level=0] Header level (0 = most distant to the table).
-   * @returns {object} HTMLElement on success or undefined on error.
-   */
-  getColumnHeader(col: number, level = 0): HTMLElement | undefined {
-    const TR = this.THEAD!.childNodes[level];
-    const TH = TR?.childNodes[this.columnFilter!.sourceColumnToVisibleRowHeadedColumn(col)];
-
-    return isHTMLElement(TH) ? TH : undefined;
-  }
-
-  /**
-   * Gets all columns headers (TH elements) from the table.
-   *
-   * @param {number} column A source column index.
-   * @returns {HTMLTableCellElement[]}
-   */
-  getColumnHeaders(column: number) {
-    const THs: HTMLTableCellElement[] = [];
-    const visibleColumn = this.columnFilter!.sourceColumnToVisibleRowHeadedColumn(column);
-
-    this.THEAD!.childNodes.forEach((TR: ChildNode) => {
-      const TH = TR.childNodes[visibleColumn];
-
-      if (isHTMLTableCellElement(TH)) {
-        THs.push(TH);
-      }
-    });
-
-    return THs;
-  }
-
-  /**
-   * GetRowHeader.
-   *
-   * @param {number} row Row index.
-   * @param {number} [level=0] Header level (0 = most distant to the table).
-   * @returns {HTMLElement} HTMLElement on success or Number one of the exit codes on error: `null table doesn't have
-   *   row headers`.
-   */
-  getRowHeader(row: number, level = 0): HTMLElement | undefined {
-    const rowHeadersCount = this.wtSettings.getSetting<Function[]>('rowHeaders').length;
-
-    if (level >= rowHeadersCount) {
-      return undefined;
-    }
-
-    const renderedRow = this.rowFilter!.sourceToRendered(row);
-    const visibleRow = renderedRow < 0 ? this.rowFilter!.sourceRowToVisibleColHeadedRow(row) : renderedRow;
-    const parentElement = renderedRow < 0 ? this.THEAD : this.TBODY;
-    const TR = parentElement?.childNodes[visibleRow];
-    const TH = TR?.childNodes[level];
-
-    return isHTMLElement(TH) ? TH : undefined;
-  }
-
-  /**
-   * Gets all rows headers (TH elements) from the table.
-   *
-   * @param {number} row A source row index.
-   * @returns {HTMLTableCellElement[]}
-   */
-  getRowHeaders(row: number) {
-    const THs = [];
-    const rowHeadersCount = this.wtSettings.getSetting<Function[]>('rowHeaders').length;
-
-    for (let renderedRowIndex = 0; renderedRowIndex < rowHeadersCount; renderedRowIndex++) {
-      const TR = this.TBODY!.childNodes[this.rowFilter!.sourceToRendered(row)];
-      const TH = TR?.childNodes[renderedRowIndex];
-
-      if (TH) {
-        THs.push(TH);
-      }
-    }
-
-    return THs;
-  }
-
-  /**
-   * Returns cell coords object for a given TD (or a child element of a TD element).
-   *
-   * @param {HTMLTableCellElement} TD A cell DOM element (or a child of one).
-   * @returns {CellCoords|null} The coordinates of the provided TD element (or the closest TD element) or null, if the
-   *   provided element is not applicable.
-   */
-  getCoords(TD: HTMLTableCellElement | HTMLElement) {
-    let cellElement: HTMLElement | null = TD;
-
-    if (cellElement.nodeName !== 'TD' && cellElement.nodeName !== 'TH') {
-      cellElement = closest(cellElement, ['TD', 'TH']);
-    }
-
-    if (cellElement === null) {
-      return null;
-    }
-
-    const TR = cellElement.parentNode;
-
-    if (!TR) {
-      return null;
-    }
-
-    const CONTAINER = TR.parentNode as (Node & ParentNode) | null;
-
-    if (!CONTAINER) {
-      return null;
-    }
-
-    let row = isHTMLElement(TR) ? index(TR) : 0;
-    let col = isHTMLTableCellElement(cellElement) ? cellElement.cellIndex : 0;
-
-    if (overlayContainsElement(CLONE_TOP_INLINE_START_CORNER, cellElement, this.wtRootElement)
-      || overlayContainsElement(CLONE_TOP, cellElement, this.wtRootElement)) {
-      if (CONTAINER.nodeName === 'THEAD') {
-        row -= CONTAINER.childNodes.length;
-      }
-
-    } else if (overlayContainsElement(CLONE_BOTTOM_INLINE_START_CORNER, cellElement, this.wtRootElement)
-      || overlayContainsElement(CLONE_BOTTOM, cellElement, this.wtRootElement)) {
-      const totalRows = this.wtSettings.getSetting<number>('totalRows');
-
-      row = totalRows - CONTAINER.childNodes.length + row;
-
-    } else if (CONTAINER === this.THEAD) {
-      row = this.rowFilter!.visibleColHeadedRowToSourceRow(row);
-
-    } else if (this.rowFilter) {
-      row = this.rowFilter!.renderedToSource(row);
-    }
-
-    if (overlayContainsElement(CLONE_TOP_INLINE_START_CORNER, cellElement, this.wtRootElement)
-      || overlayContainsElement(CLONE_INLINE_START, cellElement, this.wtRootElement)
-      || overlayContainsElement(CLONE_BOTTOM_INLINE_START_CORNER, cellElement, this.wtRootElement)) {
-      col = this.columnFilter!.offsettedTH(col);
-
-    } else if (this.columnFilter) {
-      col = this.columnFilter!.visibleRowHeadedColumnToSourceColumn(col);
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const hookResult = this.wtSettings
-      .getSetting('onModifyGetCoordsElement', row, col);
-
-    if (hookResult && Array.isArray(hookResult)) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      [row, col] = hookResult;
-    }
-
-    return this.wot.createCellCoords(row, col);
-  }
-
-  /**
    * Check if any of the rendered rows is higher than expected, and if so, cache them.
    */
   markOversizedRows() {
@@ -1113,14 +849,6 @@ class Table {
     if (hasChanges) {
       wtViewport.rowHeightCache.invalidate();
     }
-  }
-
-  /**
-   * @param {number} row The visual row index.
-   * @returns {HTMLTableRowElement}
-   */
-  getTrForRow(row: number): HTMLTableRowElement {
-    return this.TBODY!.childNodes[this.rowFilter!.sourceToRendered(row)] as HTMLTableRowElement;
   }
 
   /**
@@ -1519,6 +1247,8 @@ class Table {
 // not compose a group inherit only the type here, matching the previous runtime-mixin behavior where
 // calling an absent group threw.
 // eslint-disable-next-line no-use-before-define, no-redeclare
-interface Table extends RowRangeQuery, ColumnRangeQuery {}
+mixin(Table, cellAccess);
+
+interface Table extends RowRangeQuery, ColumnRangeQuery, CellAccess {}
 
 export default Table;
