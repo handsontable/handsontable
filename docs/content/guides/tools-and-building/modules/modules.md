@@ -87,6 +87,12 @@ import Handsontable from 'handsontable/base';
 
 Now, you're ready to use any [optional modules](#optional-modules) of your choice.
 
+::: tip
+
+The base module doesn't resize columns to fit their content. If your columns look too narrow or your content gets clipped, import the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin module (and, for rows, [`AutoRowSize`](@/api/autoRowSize.md)). This differs from [`StretchColumns`](@/api/stretchColumns.md), which stretches columns to fill the available container width instead of fitting them to content.
+
+:::
+
 ## Optional modules
 
 Handsontable's optional modules are grouped into:
@@ -483,6 +489,8 @@ const hotSettings = ref<GridSettings>({
 ### Plugin modules
 
 Plugin modules contain Handsontable's [plugins](@/api/plugins.md).
+
+Some plugin modules affect how content displays by default. For example, without the [`AutoColumnSize`](@/api/autoColumnSize.md) plugin module, columns don't resize to fit their content -- to fill the available container width instead, use [`StretchColumns`](@/api/stretchColumns.md).
 
 You can import the following plugin modules:
 
