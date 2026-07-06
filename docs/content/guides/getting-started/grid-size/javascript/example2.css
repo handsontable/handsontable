@@ -6,6 +6,10 @@
   border: 1px dashed var(--sl-color-gray-5, #d1d5db);
 }
 
+#example2 {
+  height: 100%;
+}
+
 .unit-caption {
   margin-top: 8px;
   color: var(--sl-color-text, #485164);
