@@ -13,7 +13,7 @@ import type { SelectionManager as WalkontableSelectionManager } from './selectio
 import type { Overlay as WalkontableOverlay } from './overlay/_base';
 import type EventManager from '../../../eventManager';
 import type WalkontableEvent from './event';
-import type { GeometryReader } from './geometry/geometryReader';
+import type { GeometryReader } from './domMeasure/geometryReader';
 
 export interface DomBindings {
   rootDocument: Document;

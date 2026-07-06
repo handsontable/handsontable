@@ -1,4 +1,4 @@
-import { LiveGeometryReader } from '../../../src/geometry/liveGeometryReader';
+import { LiveGeometryReader } from '../../../src/domMeasure/liveGeometryReader';
 import * as element from '../../../../../helpers/dom/element';
 
 jest.mock('../../../../../helpers/dom/element', () => ({

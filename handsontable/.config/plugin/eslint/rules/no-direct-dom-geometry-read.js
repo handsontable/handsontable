@@ -65,7 +65,7 @@ module.exports = {
   create(context) {
     const options = context.options[0] || {};
     // The adapter/interface are the ONE place raw reads are correct — they define the proxy.
-    const excludePatterns = options.excludeFiles || ['**/geometry/**'];
+    const excludePatterns = options.excludeFiles || ['**/domMeasure/**'];
     const filename = context.getFilename().replace(/\\/g, '/');
 
     const globToRegex = (glob) => {

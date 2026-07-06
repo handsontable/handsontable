@@ -14,8 +14,8 @@ import EventManager from '../../../../eventManager';
 import Scroll, { createScrollDeps } from '../scroll/scroll';
 import CellCoords from '../cell/coords';
 import CellRange from '../cell/range';
-import { LiveGeometryReader } from '../geometry/liveGeometryReader';
-import type { GeometryReader } from '../geometry/geometryReader';
+import { LiveGeometryReader } from '../domMeasure/liveGeometryReader';
+import type { GeometryReader } from '../domMeasure/geometryReader';
 import { buildContext, type EngineContext } from '../wire';
 
 /**

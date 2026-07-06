@@ -21,7 +21,7 @@ import type { default as Viewport } from './viewport/viewport';
 import type { default as Overlays } from './overlays';
 import type { SelectionManager } from './selection/manager';
 import type { Overlay } from './overlay/_base';
-import type { GeometryReader } from './geometry/geometryReader';
+import type { GeometryReader } from './domMeasure/geometryReader';
 import type { RowSizeSource, ColumnSizeSource } from './sizing/axisSizeSource';
 import { DefaultRowSizeSource, DefaultColumnSizeSource } from './sizing/defaultSizeSource';
 import type { default as EventManager } from '../../../eventManager';

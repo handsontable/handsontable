@@ -114,11 +114,11 @@ module.exports = {
     },
     // Walkontable: every layout-forcing DOM read must go through the GeometryReader proxy, so a
     // caching adapter can memoize measurements per draw without touching call sites. The proxy
-    // adapter/interface (geometry/**) are exempt — they are the one place raw reads are correct.
+    // adapter/interface (domMeasure/**) are exempt — they are the one place raw reads are correct.
     {
       files: ['src/3rdparty/walkontable/src/**/*.ts'],
       excludedFiles: [
-        'src/3rdparty/walkontable/src/geometry/**', // the proxy adapter/interface itself
+        'src/3rdparty/walkontable/src/domMeasure/**', // the proxy adapter/interface itself
         '*.unit.ts',
         '*.spec.ts',
         '*.types.ts',
