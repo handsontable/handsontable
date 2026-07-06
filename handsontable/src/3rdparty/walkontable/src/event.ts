@@ -9,7 +9,7 @@ import {
   getParent,
 } from '../../../helpers/dom/element';
 import { partial } from '../../../helpers/function';
-import { getCellCoordsFromMousePosition } from './utils/hitTest';
+import { getCellCoordsFromMousePosition } from './utils/pointerToCoords';
 import { isTouchSupported } from '../../../helpers/feature';
 import { isMobileBrowser, isChromeWebKit, isFirefoxWebKit, isIOS } from '../../../helpers/browser';
 import { isDefined } from '../../../helpers/mixed';
