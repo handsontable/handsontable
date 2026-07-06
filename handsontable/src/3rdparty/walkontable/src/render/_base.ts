@@ -1,5 +1,5 @@
 import { NodesPool } from '../utils/nodesPool';
-import type { TableRenderer } from './table';
+import type { TableRenderer } from './tableRenderer';
 
 /**
  * Base renderer class, abstract logic for specialized renderers.

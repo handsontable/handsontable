@@ -4,7 +4,7 @@ import { ColumnHeadersRenderer } from './columnHeaders';
 import { ColGroupRenderer } from './colGroup';
 import { RowsRenderer } from './rows';
 import { CellsRenderer } from './cells';
-import { TableRenderer } from './table';
+import { TableRenderer } from './tableRenderer';
 import type RowFilter from '../filter/row';
 import type ColumnFilter from '../filter/column';
 import type RowUtils from '../axisSizing/rowUtils';
