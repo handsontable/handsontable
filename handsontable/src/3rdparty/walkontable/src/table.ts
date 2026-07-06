@@ -12,7 +12,7 @@ import {
 import { mixin } from '../../../helpers/object';
 import ColumnFilter from './filter/column';
 import RowFilter from './filter/row';
-import { Renderer } from './renderer';
+import { Renderer } from './render';
 import ColumnUtils from './utils/column';
 import RowUtils from './utils/row';
 import {
