@@ -2893,6 +2893,12 @@ export const REGISTERED_HOOKS = [
   /**
    * Fired by the {@link Formulas} plugin when a named expression is added to the engine instance.
    *
+   * This hook fires after the HyperFormula engine's `addNamedExpression()` method runs, either
+   * because you called it directly or because you defined the `namedExpressions` configuration option.
+   *
+   * Read more:
+   * - [HyperFormula documentation: `addNamedExpression`](https://hyperformula.handsontable.com/api/classes/hyperformula.html#addnamedexpression)
+   *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionAdded
    * @param {string} namedExpressionName The name of the added expression.
@@ -2902,6 +2908,11 @@ export const REGISTERED_HOOKS = [
 
   /**
    * Fired by the {@link Formulas} plugin when a named expression is removed from the engine instance.
+   *
+   * This hook fires after the HyperFormula engine's `removeNamedExpression()` method runs.
+   *
+   * Read more:
+   * - [HyperFormula documentation: `removeNamedExpression`](https://hyperformula.handsontable.com/api/classes/hyperformula.html#removenamedexpression)
    *
    * @since 9.0.0
    * @event Hooks#afterNamedExpressionRemoved
