@@ -166,6 +166,57 @@ If container is a block element, then its parent has to have defined `height`. B
 
 Changes called in [`updateSettings()`](@/api/core.md#updatesettings) will re-render the grid with the new properties.
 
+### Compare size units
+
+Use the dropdown in the demo below to switch the grid's `width` and `height` between `px`, `%`, `em`, `rem`, `vh`, and `vw`, and see how the same grid responds to each unit.
+
+::: only-for javascript
+
+::: example #example2 --html 1 --css 2 --js 3 --ts 4
+
+@[code](@/content/guides/getting-started/grid-size/javascript/example2.html)
+@[code](@/content/guides/getting-started/grid-size/javascript/example2.css)
+@[code](@/content/guides/getting-started/grid-size/javascript/example2.js)
+@[code](@/content/guides/getting-started/grid-size/javascript/example2.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example2 :react --css 1 --js 2 --ts 3
+
+@[code](@/content/guides/getting-started/grid-size/react/example2.css)
+@[code](@/content/guides/getting-started/grid-size/react/example2.jsx)
+@[code](@/content/guides/getting-started/grid-size/react/example2.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example2 :angular --css 1 --ts 2 --html 3
+
+@[code](@/content/guides/getting-started/grid-size/angular/example2.css)
+@[code](@/content/guides/getting-started/grid-size/angular/example2.ts)
+@[code](@/content/guides/getting-started/grid-size/angular/example2.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example2 :vue3
+
+@[code](@/content/guides/getting-started/grid-size/vue/example2.vue)
+
+:::
+
+:::
+
 ### Use `'auto'` sizing
 
 Set `height: 'auto'` to make the grid grow to match its content height. Handsontable writes `height: auto; overflow: clip;` as inline styles on the root element. No internal vertical scrollbar is created, so the page itself scrolls when the grid is taller than the viewport.
