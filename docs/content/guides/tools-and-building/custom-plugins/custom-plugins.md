@@ -17,6 +17,7 @@ vue:
   metaTitle: Custom plugins - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Tools and building
+menuTag: updated
 ---
 Extend Handsontable's functionality by writing your custom plugin. Use the BasePlugin for a quick start.
 
@@ -25,6 +26,8 @@ Extend Handsontable's functionality by writing your custom plugin. Use the BaseP
 ## Overview
 
 Plugins are a great way of extending Handsontable's capabilities. In fact, most Handsontable features are provided by plugins.
+
+Reach for a custom plugin when you need to share state across multiple hooks. A plugin also fits when you need an enable, disable, or update lifecycle, or a reusable, registrable unit for other developers to use. If you only need to react to a single action, add a hook instead - see [Events and hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md).
 
 ::: only-for react
 
