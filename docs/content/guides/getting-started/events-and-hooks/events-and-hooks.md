@@ -33,6 +33,8 @@ Run your code before or after specific data grid actions, using Handsontable's A
 
 Callbacks are used to react before or after actions occur. We refer to them as hooks. Handsontable's hooks share some characteristics with events and middleware, combining them both in a unique structure.
 
+If your logic grows beyond a single hook and needs shared state or a lifecycle, package it as a [custom plugin](@/guides/tools-and-building/custom-plugins/custom-plugins.md) instead.
+
 ## Events
 
 If you only react to emitted hooks and forget about all their other features, you can treat Handsontable's hooks as pure events. You would want to limit your scope to `after` prefixed hooks, so they are emitted after something has happened and the results of the actions are already committed.
