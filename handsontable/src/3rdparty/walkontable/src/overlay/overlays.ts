@@ -32,7 +32,6 @@ import { requestAnimationFrame } from '../../../../helpers/feature';
 import { debounce } from '../../../../helpers/function';
 import { arrayEach } from '../../../../helpers/array';
 import { isKey } from '../../../../helpers/unicode';
-import { warn } from '../../../../helpers/console';
 import {
   InlineStartOverlay,
   TopOverlay,
@@ -42,6 +41,7 @@ import {
 } from './index';
 import { createOverlayDeps } from './_base';
 import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './strategies/stickyScrollStrategy';
+import { ResizeMonitor, createResizeMonitorDeps } from './resizeMonitor';
 
 /**
  * Assembles the Overlays module's dependencies from the engine composition context. Overlays is the
@@ -64,6 +64,7 @@ export function createOverlaysDeps(ctx: EngineContext) {
     // Sub-composition for the sticky-scroll strategy: mirrors `makeOverlayDeps`, but also needs the
     // owning Overlays instance (for `refreshAll`/`applyToDOM`/`scrollableElement`/`eventManager`).
     makeStickyScrollDeps: (overlays: Overlays) => createStickyScrollStrategyDeps(ctx, overlays),
+    makeResizeMonitorDeps: () => createResizeMonitorDeps(ctx),
   };
 }
 
@@ -268,20 +269,6 @@ class Overlays {
   #lastHorizontalScrollPositionForCallback: number | null = null;
 
   /**
-   * The amount of times the ResizeObserver callback was fired in direct succession.
-   *
-   * @type {number}
-   */
-  #containerDomResizeCount = 0;
-
-  /**
-   * The timeout ID for the ResizeObserver endless-loop-blocking logic.
-   *
-   * @type {number}
-   */
-  #containerDomResizeCountTimeout: ReturnType<typeof setTimeout> | null = null;
-
-  /**
    * Debounced `updateLastSpreaderSize` / `adjustElementsSize` used during scroll so rapid
    * `refresh` calls do not repeat layout work every frame.
    *
@@ -299,42 +286,13 @@ class Overlays {
   #stickyScroll!: StickyScrollStrategy;
 
   /**
-   * The instance of the ResizeObserver that observes the size of the Walkontable wrapper element.
-   * In case of the size change detection the `onContainerElementResize` is fired.
+   * Watches the Walkontable wrapper's parent element for size changes (with an endless-loop guard)
+   * and fires the `onContainerElementResize` setting. Extracted as a separate class to isolate the
+   * ResizeObserver lifecycle from the overlay coordinator.
    *
-   * @private
-   * @type {ResizeObserver}
+   * @type {ResizeMonitor}
    */
-  resizeObserver = new ResizeObserver((entries) => {
-    requestAnimationFrame(() => {
-      if (!Array.isArray(entries) || !entries.length) {
-        return;
-      }
-
-      this.#containerDomResizeCount += 1;
-
-      if (this.#containerDomResizeCount === 300) {
-        warn('The ResizeObserver callback was fired too many times in direct succession.' +
-          '\nThis may be due to an infinite loop caused by setting a dynamic height/width (for example, ' +
-          'with the `dvh` units) to a Handsontable container\'s parent. ' +
-          '\nThe observer will be disconnected.');
-
-        this.resizeObserver.disconnect();
-      }
-
-      // This logic is required to prevent an endless loop of the ResizeObserver callback.
-      // https://github.com/handsontable/dev-handsontable/issues/1898#issuecomment-2154794817
-      if (this.#containerDomResizeCountTimeout !== null) {
-        clearTimeout(this.#containerDomResizeCountTimeout);
-      }
-
-      this.#containerDomResizeCountTimeout = setTimeout(() => {
-        this.#containerDomResizeCount = 0;
-      }, 100);
-
-      this.wtSettings.getSetting('onContainerElementResize');
-    });
-  });
+  #resizeMonitor!: ResizeMonitor;
 
   /**
    * @param {OverlaysDeps} deps The Overlays module dependencies.
@@ -369,6 +327,7 @@ class Overlays {
     // Built here (not as a field initializer) so `eventManager` and `scrollableElement` are already
     // set; the deps are assembled via the composition context, so sticky no longer holds `this`.
     this.#stickyScroll = new StickyScrollStrategy(this.#deps.makeStickyScrollDeps(this));
+    this.#resizeMonitor = new ResizeMonitor(this.#deps.makeResizeMonitorDeps());
 
     this.initOverlays();
     this.#cacheScrollCallbackPositions();
@@ -596,15 +555,13 @@ class Overlays {
 
         resizeTimeout = setTimeout(() => {
           // Remove resizing the window from the ResizeObserver's endless-loop-blocking logic.
-          this.#containerDomResizeCount = 0;
+          this.#resizeMonitor.resetResizeCount();
         }, 200);
       });
     });
 
     if (!isScrollOnWindow) {
-      if (this.wtTable.wtRootElement.parentElement) {
-        this.resizeObserver.observe(this.wtTable.wtRootElement.parentElement);
-      }
+      this.#resizeMonitor.observe();
     }
   }
 
@@ -945,13 +902,7 @@ class Overlays {
    */
   destroy() {
     this.#postponedAdjustElementsSize.cancel();
-
-    if (this.#containerDomResizeCountTimeout !== null) {
-      clearTimeout(this.#containerDomResizeCountTimeout);
-      this.#containerDomResizeCountTimeout = null;
-    }
-
-    this.resizeObserver.disconnect();
+    this.#resizeMonitor.destroy();
     this.#stickyScroll.destroy();
     this.eventManager.destroy();
     // todo, probably all below `destroy` calls has no sense. To analyze
