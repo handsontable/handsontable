@@ -229,7 +229,12 @@ export class CustomBorders extends BasePlugin {
    * ```
    *
    * @param {Array[]|CellRange[]} selectionRanges Array of selection ranges.
-   * @param {object} borderObject Object with `top`, `right`, `bottom` and `start` properties.
+   * @param {object} borderObject Object with `top`, `bottom`, `start`, and `end` properties.
+   * Each side object can include:
+   * - `width` (`number`) Border width in pixels (default: `1`).
+   * - `color` (`string`) CSS border color value (default: `'#000'`).
+   * - `hide` (`boolean`) Hides a border side when set to `true`.
+   * Legacy aliases `left` and `right` are also supported and are normalized to `start` and `end`.
    */
   setBorders(selectionRanges: unknown[], borderObject?: Record<string, unknown>): void {
     let borderKeys = ['top', 'bottom', 'start', 'end'];
