@@ -2,34 +2,10 @@ import type { WalkontableInstance } from '../types';
 import type { EngineContext } from '../wire';
 import type Settings from '../settings';
 import type Table from '../table/baseTable';
-
-/**
- * Extends WheelEvent with legacy (non-standard) delta properties used by older browsers.
- */
-interface WheelEventWithLegacyDelta extends WheelEvent {
-  wheelDeltaY?: number;
-  wheelDeltaX?: number;
-}
-
-/**
- * Type predicate that checks whether a WheelEvent carries the legacy
- * non-standard `wheelDeltaX`/`wheelDeltaY` properties emitted by older browsers.
- *
- * @param {WheelEvent} event The wheel event to test.
- * @returns {boolean}
- */
-function isWheelEventWithLegacyDelta(event: WheelEvent): event is WheelEventWithLegacyDelta {
-  return 'wheelDeltaY' in event || 'wheelDeltaX' in event;
-}
 import type { Overlay } from './regions/_base';
 import type EventManager from '../../../../eventManager';
-import {
-  eventTargetEl,
-} from '../../../../helpers/dom/element';
-import { requestAnimationFrame } from '../../../../helpers/feature';
 import { debounce } from '../../../../helpers/function';
 import { arrayEach } from '../../../../helpers/array';
-import { isKey } from '../../../../helpers/unicode';
 import {
   InlineStartOverlay,
   TopOverlay,
@@ -42,6 +18,7 @@ import { StickyScrollStrategy, createStickyScrollStrategyDeps } from './strategi
 import { ResizeMonitor, createResizeMonitorDeps } from './resizeMonitor';
 import { SpreaderSize, createSpreaderSizeDeps } from './spreaderSize';
 import { ScrollSync, createScrollSyncDeps } from '../scroll/scrollSync';
+import { NativeScrollInput, createNativeScrollInputDeps } from '../scroll/nativeScrollInput';
 
 /**
  * Assembles the Overlays module's dependencies from the engine composition context. Overlays is the
@@ -68,6 +45,8 @@ export function createOverlaysDeps(ctx: EngineContext) {
     makeSpreaderSizeDeps: (overlays: Overlays) => createSpreaderSizeDeps(ctx, overlays),
     makeScrollSyncDeps: (overlays: Overlays, stickyScroll: StickyScrollStrategy) =>
       createScrollSyncDeps(ctx, overlays, stickyScroll),
+    makeNativeScrollInputDeps: (overlays: Overlays, stickyScroll: StickyScrollStrategy, resizeMonitor: ResizeMonitor) =>
+      createNativeScrollInputDeps(ctx, overlays, stickyScroll, resizeMonitor),
   };
 }
 
@@ -120,12 +99,13 @@ class Overlays {
   destroyed: boolean = false;
 
   /**
-   * Flag indicating whether a key is currently pressed.
+   * Binds the native DOM input listeners (scroll, wheel, key, resize) and translates them into the
+   * engine's scroll actions. Extracted as a separate class to isolate the native-input lifecycle
+   * from the overlay coordinator; the coordinator keeps a thin public `registerListeners` delegate.
    *
-   * @protected
-   * @type {boolean}
+   * @type {NativeScrollInput}
    */
-  keyPressed: boolean = false;
+  #nativeScrollInput!: NativeScrollInput;
 
   /**
    * Owns the master hider/spreader sizing math. Extracted as a separate class to isolate the sizing
@@ -241,14 +221,6 @@ class Overlays {
   declare bottomInlineStartCornerOverlay: Overlay;
 
   /**
-   * Browser line height for purposes of translating mouse wheel.
-   *
-   * @private
-   * @type {number}
-   */
-  declare browserLineHeight: number;
-
-  /**
    * The walkontable settings.
    *
    * @protected
@@ -305,14 +277,15 @@ class Overlays {
     this.#resizeMonitor = new ResizeMonitor(this.#deps.makeResizeMonitorDeps());
     this.#spreaderSize = new SpreaderSize(this.#deps.makeSpreaderSizeDeps(this));
     this.#scrollSync = new ScrollSync(this.#deps.makeScrollSyncDeps(this, this.#stickyScroll));
+    this.#nativeScrollInput = new NativeScrollInput(
+      this.#deps.makeNativeScrollInputDeps(this, this.#stickyScroll, this.#resizeMonitor)
+    );
 
     this.initOverlays();
     this.#scrollSync.cacheScrollCallbackPositions();
 
     this.destroyed = false;
-    this.keyPressed = false;
 
-    this.initBrowserLineHeight();
     this.registerListeners();
   }
 
@@ -331,24 +304,6 @@ class Overlays {
     }
 
     return overlays;
-  }
-
-  /**
-   * Retrieve browser line height and apply its value to `browserLineHeight`.
-   *
-   * @private
-   */
-  initBrowserLineHeight() {
-    const { rootDocument, geometryReader } = this.#deps;
-    const computedStyle = geometryReader.getComputedStyle(rootDocument.body);
-    /**
-     * Sometimes `line-height` might be set to 'normal'. In that case, a default `font-size` should be multiplied by roughly 1.2.
-     * Https://developer.mozilla.org/pl/docs/Web/CSS/line-height#Values.
-     */
-    const lineHeight = parseInt(computedStyle.lineHeight, 10);
-    const lineHeightFalback = parseInt(computedStyle.fontSize, 10) * 1.2;
-
-    this.browserLineHeight = lineHeight || lineHeightFalback;
   }
 
   /**
@@ -447,203 +402,11 @@ class Overlays {
    * Register all necessary event listeners.
    */
   registerListeners() {
-    const { rootDocument, rootWindow } = this.#deps;
-    const { mainTableScrollableElement: topOverlayScrollableElement } = this.topOverlay;
-    const { mainTableScrollableElement: inlineStartOverlayScrollableElement } = this.inlineStartOverlay;
-
-    this.eventManager.addEventListener(rootDocument.documentElement, 'keydown',
-      (event: KeyboardEvent) => this.onKeyDown(event));
-    this.eventManager.addEventListener(rootDocument.documentElement, 'keyup', () => this.onKeyUp());
-    this.eventManager.addEventListener(rootDocument, 'visibilitychange', () => this.onKeyUp());
-
-    this.#stickyScroll.registerListeners();
-    this.eventManager.addEventListener(
-      topOverlayScrollableElement,
-      'scroll',
-      (event: Event) => this.onTableScroll(event),
-      { passive: true }
-    );
-
-    if (topOverlayScrollableElement !== inlineStartOverlayScrollableElement) {
-      this.eventManager.addEventListener(
-        inlineStartOverlayScrollableElement,
-        'scroll',
-        (event: Event) => this.onTableScroll(event),
-        { passive: true }
-      );
-    }
-
-    const isScrollOnWindow = this.scrollableElement === rootWindow;
-    const preventWheel = this.wtSettings.getSetting<boolean>('preventWheel');
-    const wheelEventOptions = { passive: isScrollOnWindow };
-
-    this.eventManager.addEventListener(
-      this.wtTable.wtRootElement,
-      'wheel',
-      (event: WheelEvent) => this.onCloneWheel(event, preventWheel),
-      wheelEventOptions
-    );
-
-    const overlays = [
-      this.topOverlay,
-      this.bottomOverlay,
-      this.inlineStartOverlay,
-      this.topInlineStartCornerOverlay,
-      this.bottomInlineStartCornerOverlay,
-    ];
-
-    overlays.forEach((overlay) => {
-      if (!overlay.clone) {
-        return;
-      }
-
-      this.eventManager.addEventListener(
-        overlay.clone.wtTable.holder,
-        'wheel',
-        (event: WheelEvent) => this.onCloneWheel(event, preventWheel),
-        wheelEventOptions
-      );
-    });
-
-    let resizeTimeout: ReturnType<typeof setTimeout>;
-
-    this.eventManager.addEventListener(rootWindow, 'resize', () => {
-      requestAnimationFrame(() => {
-        clearTimeout(resizeTimeout);
-        this.wtSettings.getSetting('onWindowResize');
-
-        resizeTimeout = setTimeout(() => {
-          // Remove resizing the window from the ResizeObserver's endless-loop-blocking logic.
-          this.#resizeMonitor.resetResizeCount();
-        }, 200);
-      });
-    });
-
-    if (!isScrollOnWindow) {
-      this.#resizeMonitor.observe();
-    }
+    this.#nativeScrollInput.registerListeners();
   }
 
   /**
-   * Scroll listener.
-   *
-   * @param {Event} event The mouse event object.
-   */
-  onTableScroll(event: Event) {
-    // There was if statement which controlled flow of this function. It avoided the execution of the next lines
-    // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
-    const rootWindow = this.#deps.rootWindow;
-    const masterHorizontal = this.inlineStartOverlay.mainTableScrollableElement;
-    const masterVertical = this.topOverlay.mainTableScrollableElement;
-    const target = event.target;
-
-    // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
-    // by hot.refreshBorder
-    if (this.keyPressed) {
-      if ((masterVertical !== rootWindow && target !== rootWindow &&
-           !(masterVertical instanceof HTMLElement && eventTargetEl(event)!.contains(masterVertical))) ||
-          (masterHorizontal !== rootWindow && target !== rootWindow &&
-           !(masterHorizontal instanceof HTMLElement && eventTargetEl(event)!.contains(masterHorizontal)))) {
-        return;
-      }
-    }
-
-    this.syncScrollPositions();
-  }
-
-  /**
-   * Wheel listener for cloned overlays.
-   *
-   * @param {Event} event The mouse event object.
-   * @param {boolean} preventDefault If `true`, the `preventDefault` will be called on event object.
-   */
-  onCloneWheel(event: WheelEvent, preventDefault: boolean) {
-    // Fix for Windows OS, where the ctrl key is used to zoom the page (issue #dev-2405).
-    if (event.ctrlKey) {
-      return;
-    }
-
-    const { rootWindow } = this.#deps;
-
-    // There was if statement which controlled flow of this function. It avoided the execution of the next lines
-    // on mobile devices. It was changed. Broader description of this case is included within issue #4856.
-
-    const masterHorizontal = this.inlineStartOverlay.mainTableScrollableElement;
-    const masterVertical = this.topOverlay.mainTableScrollableElement;
-    const target = event.target;
-
-    // For key press, sync only master -> overlay position because while pressing Walkontable.render is triggered
-    // by hot.refreshBorder
-    const shouldNotWheelVertically = masterVertical !== rootWindow &&
-      target !== rootWindow &&
-      !(target instanceof Node && masterVertical instanceof HTMLElement && target.contains(masterVertical));
-    const shouldNotWheelHorizontally = masterHorizontal !== rootWindow &&
-      target !== rootWindow &&
-      !(target instanceof Node && masterHorizontal instanceof HTMLElement && target.contains(masterHorizontal));
-
-    if (
-      (this.keyPressed && (shouldNotWheelVertically || shouldNotWheelHorizontally))
-       ||
-      this.scrollableElement === rootWindow
-    ) {
-      return;
-    }
-
-    const isScrollPossible = this.translateMouseWheelToScroll(event);
-
-    if (preventDefault || (this.scrollableElement !== rootWindow && isScrollPossible)) {
-      event.preventDefault();
-    }
-  }
-
-  /**
-   * Key down listener.
-   *
-   * @param {Event} event The keyboard event object.
-   */
-  onKeyDown(event: KeyboardEvent) {
-    this.keyPressed = isKey(event.keyCode, 'ARROW_UP|ARROW_RIGHT|ARROW_DOWN|ARROW_LEFT');
-  }
-
-  /**
-   * Key up listener.
-   */
-  onKeyUp() {
-    this.keyPressed = false;
-  }
-
-  /**
-   * Translate wheel event into scroll event and sync scroll overlays position.
-   *
-   * @private
-   * @param {Event} event The mouse event object.
-   * @returns {boolean}
-   */
-  translateMouseWheelToScroll(event: WheelEvent) {
-    let deltaY: number;
-    let deltaX: number;
-
-    if (isWheelEventWithLegacyDelta(event)) {
-      deltaY = isNaN(event.deltaY) ? (-1) * (event.wheelDeltaY ?? 0) : event.deltaY;
-      deltaX = isNaN(event.deltaX) ? (-1) * (event.wheelDeltaX ?? 0) : event.deltaX;
-    } else {
-      deltaY = event.deltaY;
-      deltaX = event.deltaX;
-    }
-
-    if (event.deltaMode === 1) {
-      deltaX += deltaX * this.browserLineHeight;
-      deltaY += deltaY * this.browserLineHeight;
-    }
-
-    const isScrollVerticallyPossible = this.scrollVertically(deltaY);
-    const isScrollHorizontallyPossible = this.scrollHorizontally(deltaX);
-
-    return isScrollVerticallyPossible || isScrollHorizontallyPossible;
-  }
-
-  /**
-   * Scrolls main scrollable element horizontally.
+   * Scrolls main scrollable element vertically.
    *
    * @param {number} delta Relative value to scroll.
    * @returns {boolean}
