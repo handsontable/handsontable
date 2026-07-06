@@ -1,5 +1,5 @@
-import RowUtils from '../../../src/utils/row';
-import ColumnUtils from '../../../src/utils/column';
+import RowUtils from '../../../src/axisSizing/rowUtils';
+import ColumnUtils from '../../../src/axisSizing/columnUtils';
 import { DefaultRowSizeSource, DefaultColumnSizeSource } from '../../../src/axisSizing/defaultSizeSource';
 import type { default as Settings } from '../../../src/settings';
 import type { TableDeps } from '../../../src/table';
