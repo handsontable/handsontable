@@ -22,18 +22,24 @@ Walkontable is a self-contained, low-level table rendering engine embedded as a 
 
 | Submodule | Path | Responsibility |
 |---|---|---|
-| Walkontable base | `core/_base.ts` | Shared base for core and clone instances. Builds the Data Access Objects (`createScrollDao()`, `getTableDao()`) used across the engine. |
+| Composition root | `wire.ts` | `buildContext()` assembles the single `EngineContext` (stable refs + late-bound/cyclic thunks). Per-slice `createXxxDeps(ctx)` factories build each module's narrow deps; every module stores them in a private `#deps`. |
+| Walkontable base | `core/_base.ts` | Shared base for core and clone instances. |
 | Walkontable core | `core/core.ts` | The master Walkontable instance; orchestrates draw, owns the master table, scroll, viewport, overlays. |
 | Clone | `core/clone.ts` | A lightweight Walkontable instance per overlay. Each overlay table is rendered by a clone synchronized with the master. |
 | Facade | `facade/core.ts` | `WalkontableFacade` — the public surface TableView uses. |
-| Master table | `table/master.ts` | The main (scrollable) table. Overlay tables (`table/top.ts`, `table/bottom.ts`, `table/inlineStart.ts`, `table/topInlineStartCorner.ts`, `table/bottomInlineStartCorner.ts`) extend the shared `Table` class in `table.ts`. |
-| Table base | `table.ts` | Shared `Table` class. Holds `rowFilter` / `columnFilter` and `rowUtils` / `columnUtils`. Subclass behavior is mixed in at runtime (`table/mixin/`). |
-| Overlays manager | `overlays.ts` | Creates and coordinates all overlays, synchronizes scroll between them, batches scroll/wheel events with `requestAnimationFrame`. |
-| Overlay types | `overlay/` | `_base.ts` plus 5 concrete overlay subclasses (see Overlay System). |
+| Ports | `ports.ts` | Cross-cutting port interfaces (`SettingsPort`, `HooksPort`). Slice-owned ports live in their slice. |
+| Master table | `table/regions/masterTable.ts` | The main (scrollable) table. Overlay tables (`table/regions/{top,bottom,inlineStart,topInlineStartCorner,bottomInlineStartCorner}Table.ts`) extend the shared `Table` class in `table/baseTable.ts`. |
+| Table base | `table/baseTable.ts` | Shared `Table` class. Construction (`table/domScaffold.ts`), per-draw orchestration (`table/drawCycle.ts`), coords→DOM access (`table/cellAccess.ts`), and the rendered/visible range-query port + adapters (`table/rangeQuery/`) live in the same slice. Range-query + sticky behavior is mixed in at runtime. |
+| Overlays manager | `overlay/overlays.ts` | Creates and coordinates all overlays, synchronizes scroll between them, batches scroll/wheel events with `requestAnimationFrame`. Overlay-extending strategies live in `overlay/strategies/` (e.g. `stickyScrollStrategy.ts`). |
+| Overlay types | `overlay/` | `_base.ts` plus 5 concrete overlay subclasses `*Overlay.ts` (see Overlay System). |
 | Viewport calculators | `calculator/` | `viewportRows.ts`, `viewportColumns.ts`, `viewportBase.ts`, `axisCalculation.ts`, `calculationType/` — compute the visible row/column ranges. |
-| Renderers | `renderer/` | Low-level DOM construction and reuse (see Renderer). |
-| Scroll | `scroll.ts` | Scroll position management — translates a target cell into scroll offsets and the resulting viewport position. |
-| Viewport | `viewport.ts` | Viewport state — visible row/column ranges, render boundaries, buffer. |
+| Renderers | `render/` | Low-level DOM construction and reuse (see Renderer). Orchestrated by `render/tableRenderer.ts`. |
+| Scroll | `scroll/scroll.ts` | Scroll position management — translates a target cell into scroll offsets and the resulting viewport position. |
+| Viewport | `viewport/viewport.ts` | Viewport state — visible row/column ranges, render boundaries, buffer. |
+| Layout solver | `viewport/boxLayout/` | Pure single-pass layout resolution: `resolveLayout()` solves the whole-table box + scrollbar fix-point from numbers (`layoutSnapshot.ts`); `gatherLayoutInput.ts` is the one impure input adapter. Gated by the `singlePassLayout` setting (off for `mergeCells`). |
+| DOM measurement | `domMeasure/` | The `GeometryReader` port (+ `LiveGeometryReader`): the single seam for layout-forcing DOM reads. |
+| Axis sizing | `axisSizing/` | Per-row/column size supply: `AxisSizeSource` ports + `DefaultSizeSource`, prefix-sum caches (`rowUtils`/`columnUtils`/`positionCache`), border-box (`boxModel.ts`). |
+| Settings | `settings/` | `defaults.ts` (config data) + `accessor.ts` (the `getSetting` engine, implements `SettingsPort`) + `index.ts` barrel. |
 | Cell primitives | `cell/coords.ts`, `cell/range.ts` | `CellCoords` and `CellRange` value objects (see Key Primitives). |
 | Selection rendering | `selection/` | Renders selection highlights / borders inside the engine. |
 
@@ -43,13 +49,13 @@ Walkontable renders frozen (fixed) rows and columns as separate **overlay clone 
 
 | Overlay | File | Frozen region |
 |---|---|---|
-| Top | `overlay/top.ts` | `fixedRowsTop` |
-| Bottom | `overlay/bottom.ts` | `fixedRowsBottom` |
-| Inline start | `overlay/inlineStart.ts` | `fixedColumnsStart` (left in LTR, right in RTL) |
-| Top inline-start corner | `overlay/topInlineStartCorner.ts` | Intersection of top + inline-start |
-| Bottom inline-start corner | `overlay/bottomInlineStartCorner.ts` | Intersection of bottom + inline-start |
+| Top | `overlay/topOverlay.ts` | `fixedRowsTop` |
+| Bottom | `overlay/bottomOverlay.ts` | `fixedRowsBottom` |
+| Inline start | `overlay/inlineStartOverlay.ts` | `fixedColumnsStart` (left in LTR, right in RTL) |
+| Top inline-start corner | `overlay/topInlineStartCornerOverlay.ts` | Intersection of top + inline-start |
+| Bottom inline-start corner | `overlay/bottomInlineStartCornerOverlay.ts` | Intersection of bottom + inline-start |
 
-Each overlay is backed by a Walkontable clone (`core/clone.ts`) rendering the matching table subclass under `table/`. Corner overlays are created lazily. `overlays.ts` coordinates them and keeps their scroll positions aligned with the master.
+Each overlay is backed by a Walkontable clone (`core/clone.ts`) rendering the matching table subclass under `table/regions/`. Corner overlays are created lazily. `overlay/overlays.ts` coordinates them and keeps their scroll positions aligned with the master.
 
 This is a **fragile area** — positioning logic is intricate, RTL adds mirroring, and overlay boundaries are prone to visual artifacts. See `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md`.
 
@@ -60,22 +66,22 @@ On every render Walkontable recomputes which rows and columns are visible, based
 - `calculator/viewportRows.ts` and `calculator/viewportColumns.ts` compute the start/end renderable indexes for each axis.
 - `calculator/viewportBase.ts` and `calculator/axisCalculation.ts` hold the shared per-axis math.
 - `calculator/calculationType/` defines the calculation modes (for example, fully-visible vs. partially-visible boundaries).
-- The result feeds `viewport.ts`, which holds the resolved visible ranges used during the draw.
+- The result feeds `viewport/viewport.ts`, which holds the resolved visible ranges used during the draw.
 
 Only the visible cells plus the buffer are rendered. Hidden rows/columns are excluded from renderable indexes and contribute zero size to layout.
 
 ## Renderer and DOM/Cell Reuse
 
-The `renderer/` submodule builds and updates the DOM for one table at a time (master or an overlay clone).
+The `render/` submodule builds and updates the DOM for one table at a time (master or an overlay clone).
 
-- `renderer/table.ts` orchestrates the per-axis renderers: `rows.ts`, `cells.ts`, `colGroup.ts`, `columnHeaders.ts`, `columnHeaderRows.ts`, `rowHeaders.ts` (shared base in `renderer/_base.ts`).
+- `render/tableRenderer.ts` orchestrates the per-axis renderers: `rows.ts`, `cells.ts`, `colGroup.ts`, `columnHeaders.ts`, `columnHeaderRows.ts`, `rowHeaders.ts` (shared base in `render/_base.ts`).
 - **DOM nodes are reused in place via a fixed, viewport-sized grid.** `OrderView` (`utils/orderView/view.ts`) keeps exactly `viewSize` children in the root node, growing or shrinking that count to match the viewport. On each render the existing `<tr>`/`<td>`/`<th>` children are kept in position and their content is overwritten by the cell renderer — scrolled-away rows/columns are refilled with the new content, not torn down or moved. Nodes are **not** cached by source coordinate, so memory is bounded to the viewport regardless of dataset size. (A previous diffing renderer — `ViewDiffer` plus a renderer-adapter strategy — and a coordinate-keyed `NodesPool` cache were removed in favor of this direct-DOM approach; the cache grew O(rows × cols) and could exhaust memory on large datasets. `NodesPool` remains only as a thin element factory.)
 - Walkontable calls the cell renderer functions supplied via settings (core's renderer registry) for each visible cell; it does not own renderer logic.
 
 ## Scroll Handling
 
-- `scroll.ts` manages scroll position: it maps a target cell to scroll offsets and computes the resulting viewport position. It is the "where should we be" logic.
-- `overlays.ts` owns the **`requestAnimationFrame` batching** of scroll and wheel events, coalescing rapid input into a single synchronized redraw per frame and keeping overlay clones aligned with the master. This is the "do it efficiently" logic.
+- `scroll/scroll.ts` manages scroll position: it maps a target cell to scroll offsets and computes the resulting viewport position. It is the "where should we be" logic.
+- `overlay/overlays.ts` owns the **`requestAnimationFrame` batching** of scroll and wheel events, coalescing rapid input into a single synchronized redraw per frame and keeping overlay clones aligned with the master. This is the "do it efficiently" logic.
 
 Batching through `requestAnimationFrame` is required to hold a smooth frame rate with large datasets. Never trigger a full redraw synchronously per scroll event.
 

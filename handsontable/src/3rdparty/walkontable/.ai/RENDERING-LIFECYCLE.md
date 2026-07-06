@@ -24,7 +24,7 @@ There are two ways a draw starts.
 | Trigger | Path in |
 |---|---|
 | **Programmatic render** (data change, settings change, `hot.render()`, plugins) | `TableView.render()` — `tableView.ts:204` |
-| **Scroll / mouse wheel** | `Overlays.onTableScroll()` / `Overlays.onCloneWheel()` — `overlays.ts` |
+| **Scroll / mouse wheel** | `Overlays.onTableScroll()` / `Overlays.onCloneWheel()` — `overlay/overlays.ts` |
 
 Scroll and wheel events do **not** draw synchronously. They are coalesced with `requestAnimationFrame`
 so rapid input produces one redraw per frame. The rAF callback ends up in `Overlays.refreshAll()`
@@ -109,7 +109,7 @@ mode). Non-uniform sizes fall back for the calculators because the content total
 `layout/resolveLayout.ts` `resolveLayout(input)` is a **pure function** (no DOM imports) that solves the
 2-variable scrollbar fixpoint: a vertical scrollbar consumes width, which may force a horizontal one, and
 vice versa. Two passes always converge — a scrollbar only shrinks the box, so the predicate is monotone.
-`createLayoutDeps.ts` `gatherLayoutInput()` builds the numeric `LayoutInput` (workspace box from
+`viewport/boxLayout/gatherLayoutInput.ts` `gatherLayoutInput()` builds the numeric `LayoutInput` (workspace box from
 `getWorkspaceWidth/Height`, content totals from the prefix-sum caches, scrollbar thickness, overflow
 modes, window-mode document metrics). The frozen `LayoutSnapshot` exposes both a scrollbar-**unaware**
 render band (`renderViewportWidth/Height`) and a scrollbar-**aware** visible band
@@ -180,7 +180,7 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
 - `setHeaderContentRenderers(...)` (`565`); bottom / bottom-corner clones do not render column headers
   (`567–571`).
 - `resetOversizedRows()` (`573`) — legacy path only clears the per-row measured overrides.
-- `tableRenderer.render()` (`575–579` → `renderer/table.ts`): renders in a fixed order —
+- `tableRenderer.render()` (`575–579` → `render/tableRenderer.ts`): renders in a fixed order —
   `columnHeaderRows → columnHeaders → rows → rowHeaders → cells`, then `columnUtils.calculateWidths()` →
   `colGroup` (COL widths) → a per-row height fixup loop. The reuse-node renderer is settled and out of
   scope.
@@ -211,7 +211,7 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
   `innerBorderTop` / `innerBorderInlineStart` / `innerBorderBottom` class via `adjustHeaderBordersPosition`.
   Those calls OR-together into `positionChanged`.
 - **S16a seam:** the border decision is now a pure `#computeHeaderBordersState(...)` separated from its
-  DOM write in `overlay/top.ts` / `inlineStart.ts` / `bottom.ts` — so S16b can move the decision
+  DOM write in `overlay/topOverlay.ts` / `inlineStart.ts` / `bottom.ts` — so S16b can move the decision
   pre-render. Behavior today is unchanged (compute + apply still called in sequence here).
 
 ### Phase H — Border refresh vs selection render, then afterDraw (`table.ts:621–657`)
@@ -253,7 +253,7 @@ Sizes reach the engine through the `AxisSizeSource` ports (`axisSizing/axisSizeS
 `DefaultSizeSource` reads the `rowHeight`/`columnWidth` settings-callbacks, which in the product are the
 funnel `TableView.rowHeight`/`columnWidth` → `hot.getRowHeight`/`getColWidth` → `modifyRowHeight` /
 `modifyColWidth` hooks. `AutoRowSize` / `AutoColumnSize` answer through those hooks after measuring in an
-off-screen ghost table — unchanged. Prefix-sum totals live inside WoT (`utils/positionCache.ts`), so the
+off-screen ghost table — unchanged. Prefix-sum totals live inside WoT (`axisSizing/positionCache.ts`), so the
 layout snapshot's content totals are O(1).
 
 **Render-size probe (HOT side, `renderSizeProbe.ts`, owned by `TableView`).** Runs from
@@ -270,7 +270,7 @@ signal on the single-pass path (an oversized row invalidates the row cache → t
 
 `externalRowCalculator` (`= AutoRowSize enabled`, `tableView.ts:793`) is still load-bearing: it skips
 `markOversizedRows` (`table.ts:1052`), gates the second-pass block (`table.ts:588`), and folds the 1px
-hider compensation in the snapshot (`createLayoutDeps.ts:90`) and overlays (`overlays.ts:1050`).
+hider compensation in the snapshot (`viewport/boxLayout/gatherLayoutInput.ts:90`) and overlays (`overlays.ts:1050`).
 
 ---
 
