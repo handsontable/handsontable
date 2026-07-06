@@ -229,6 +229,12 @@ columns: [
 
 :::
 
+::: tip
+
+While a cell's validator resolves, Handsontable keeps that cell's editor open and blocks other cells from entering edit mode. This is expected behavior, not a bug. The example below uses an asynchronous email validator that resolves after 1000 ms, so the editor stays open briefly after you finish typing. For more on how validation affects the editing flow, see [How validation affects hook order](@/guides/getting-started/events-and-hooks/events-and-hooks.md#how-validation-affects-hook-order).
+
+:::
+
 Callback console log:
 
 ::: only-for javascript
