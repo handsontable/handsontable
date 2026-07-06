@@ -1,5 +1,5 @@
-import { resolveLayout } from '../../../src/layout/resolveLayout';
-import type { LayoutInput } from '../../../src/layout/layoutSnapshot';
+import { resolveLayout } from '../../../src/boxLayout/resolveLayout';
+import type { LayoutInput } from '../../../src/boxLayout/layoutSnapshot';
 
 /**
  * Builds a `LayoutInput` with sane element-mode defaults, overridden per test. Defaults: a 500x400

@@ -19,9 +19,9 @@ import { PositionCache } from '../utils/positionCache';
 import { DEFAULT_COLUMN_WIDTH } from '../constants';
 import { workspaceSize, type WorkspaceSize } from './workspaceSize';
 import { calculatorFactory, type CalculatorFactory } from './calculatorFactory';
-import { createLayoutDeps, gatherLayoutInput, type LayoutDeps } from '../layout/createLayoutDeps';
-import { resolveLayout } from '../layout/resolveLayout';
-import type { LayoutSnapshot } from '../layout/layoutSnapshot';
+import { createLayoutDeps, gatherLayoutInput, type LayoutDeps } from '../boxLayout/gatherLayoutInput';
+import { resolveLayout } from '../boxLayout/resolveLayout';
+import type { LayoutSnapshot } from '../boxLayout/layoutSnapshot';
 
 /**
  * Assembles the Viewport module's dependencies from the engine composition context.
