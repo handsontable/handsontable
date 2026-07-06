@@ -1,7 +1,7 @@
 import type { TableDeps } from '../baseTable';
 import Table from '../baseTable';
-import stickyRowsTop from '../../rangeQuery/stickyRowsTop';
-import stickyColumnsStart from '../../rangeQuery/stickyColumnsStart';
+import stickyRowsTop from '../rangeQuery/stickyRowsTop';
+import stickyColumnsStart from '../rangeQuery/stickyColumnsStart';
 import { mixin } from '../../../../../helpers/object';
 import { CLONE_TOP_INLINE_START_CORNER } from '../../overlay';
 

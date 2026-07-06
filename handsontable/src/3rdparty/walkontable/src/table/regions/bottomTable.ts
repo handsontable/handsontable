@@ -1,7 +1,7 @@
 import type { TableDeps } from '../baseTable';
 import Table from '../baseTable';
-import stickyRowsBottom from '../../rangeQuery/stickyRowsBottom';
-import { columnRangeQuery } from '../../rangeQuery/virtualRange';
+import stickyRowsBottom from '../rangeQuery/stickyRowsBottom';
+import { columnRangeQuery } from '../rangeQuery/virtualRange';
 import { mixin } from '../../../../../helpers/object';
 import { CLONE_BOTTOM } from '../../overlay';
 
