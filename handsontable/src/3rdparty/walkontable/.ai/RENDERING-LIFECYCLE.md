@@ -47,16 +47,36 @@ TableView.render()                         tableView.ts:204
           drawInterrupted = false
           if table not visible OR parent has zero height → drawInterrupted = true, SKIP
           else → this.wtTable.draw(fastDraw)   core/_base.ts:238
-            → Table.draw(fastDraw)          table.ts:494        ← the master orchestration
+            → Table.draw(fastDraw)          table.ts        ← delegates to runDrawCycle
+              → runDrawCycle(table, fastDraw)  table/drawCycle.ts  ← the draw orchestration
   runHooks('afterRender', isFullRender)     tableView.ts:219   ← PUBLIC hook, fires on EVERY render
   renderSizeProbe.measure(...) + reconcile  tableView.ts:1548  ← HOT-side post-draw sizing (see §7)
 ```
 
 `this._wt` is the `WalkontableFacade`. The facade forwards `draw()` to the internal core (`_base.draw()`),
-which does a **visibility gate** and then hands off to `Table.draw()`, where the real work happens.
+which does a **visibility gate** and then hands off to `Table.draw()`. `Table.draw()` is a two-line
+delegate to **`runDrawCycle(table, fastDraw)`** in `table/drawCycle.ts` — a class-free module where
+the real work happens. It reaches the instance only through the public surface + `get deps()` (never
+`#deps`), the same pattern as the `cellAccess`/`domScaffold` mixins.
 
-`Table.draw()` runs for the master table **and** for each overlay clone. `this.isMaster` guards the
-master-only steps. Clones run a reduced subset.
+`runDrawCycle` dispatches by role into **two separate cycles** (this is the vertical-slice split; the
+master and clone no longer share one branchy method):
+- **`runMasterDrawCycle(table, ctx)`** — the master table: begin-layout → fast|full render →
+  `placeFixedOverlays` → reconcile-or-selection → finish (Phases B–H below).
+- **`runCloneDrawCycle(table, ctx)`** — an overlay clone: the strict subset a clone executes. No
+  begin-layout phase (so a clone cannot downgrade `runFastDraw` — it takes the master-resolved value),
+  no view hooks, no fixed-position pass (so `positionChanged` stays `false` and it always renders
+  selections). A clone's `draw()` is driven from the master's `wtOverlays.refresh(fastDraw)`.
+
+Shared steps are free-function phase helpers referenced by both cycles: `buildRenderFilters` (kept
+separate, run before the master `beforeDraw` gate), `renderCellBand` (with the inline
+`CLONE_BOTTOM`/bottom-corner header-suppression guards), `renderActiveSelections`. A per-draw
+`DrawContext` carries `runFastDraw`/`performRedraw`/`positionChanged` plus the header renderers/counts
+captured **pre-hook** (the render must use the values read before `beforeDraw` fires).
+
+The phase descriptions in §5 below still hold; their bodies now live in `table/drawCycle.ts` (master
+phases in `runMasterDrawCycle`, the shared render in `renderCellBand`). Anchor on the function names —
+the `table.ts` line numbers in §4/§5 predate the extraction.
 
 ---
 

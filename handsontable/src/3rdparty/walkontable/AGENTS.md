@@ -23,6 +23,7 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 - **Viewport calculation**: Determines visible rows/columns based on scroll position
 - **Renderer**: DOM element management, cell reuse
 - **Scroll handling**: requestAnimationFrame batching required
+- **Draw cycle** (`table/drawCycle.ts`): `Table.draw()` is a two-line delegate to the class-free `runDrawCycle(table, fastDraw)`, which dispatches by role into `runMasterDrawCycle` and `runCloneDrawCycle` over shared phase helpers (`buildRenderFilters`, `renderCellBand`, `renderActiveSelections`, `placeFixedOverlays`). The clone cycle is the strict subset (no begin-layout, no view hooks, no fixed-position pass). Phase functions use the public surface + `get deps()` only — the same free-function-over-instance pattern as the `cellAccess`/`domScaffold` mixins. A per-draw `DrawContext` captures the header renderers **pre-`beforeDraw`-hook** — the cell render must use those captured values. See `.ai/RENDERING-LIFECYCLE.md` §2.
 
 ## Known Tech Debt
 
