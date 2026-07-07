@@ -1380,7 +1380,8 @@ export const REGISTERED_HOOKS = [
    * Fired before aligning the cell contents.
    *
    * @event Hooks#beforeCellAlignment
-   * @param {object} stateBefore An object with class names defining the cell alignment.
+   * @param {object} stateBefore An object where each key is a visual row index and each value is an array
+   *                             of class names indexed by visual column.
    * @param {CellRange[]} range An array of `CellRange` coordinates where the alignment will be applied.
    * @param {string} type Type of the alignment - either `horizontal` or `vertical`.
    * @param {string} alignmentClass String defining the alignment class added to the cell.
