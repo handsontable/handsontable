@@ -363,8 +363,8 @@ const FLAT_HTML_MAP = {
   'demo-auto-fill': 'autofill-values',
   'demo-merged-cells': 'merge-cells',
   'demo-alignment': 'text-alignment',
-  'demo-read-only': 'disabled-cells',
-  'demo-disabled-editing': 'disabled-cells',
+  'demo-read-only': 'read-only-cells',
+  'demo-disabled-editing': 'read-only-cells',
   'demo-custom-renderers': 'cell-renderer',
   'demo-numeric': 'numeric-cell-type',
   'demo-date': 'date-cell-type',
@@ -479,6 +479,7 @@ const FLAT_PAGES_REMAP = {
   latest: '/',
   'internationalization-i18n': '/language/',
   'keyboard-navigation': '/keyboard-shortcuts/',
+  'disabled-cells': '/read-only-cells/',
   building: '/custom-builds/',
   plugins: '/custom-plugins/',
   'file-structure': '/folder-structure/',
@@ -552,7 +553,7 @@ const SITEMAP_PASSTHROUGH_SLUGS = new Set([
   'formatting-cells',
   'merge-cells',
   'selection',
-  'disabled-cells',
+  'read-only-cells',
   'text-alignment',
   'cell-function',
   'basic-clipboard',
@@ -929,6 +930,10 @@ async function route(request, env) {
         '/docs/react-data-grid/vue3-custom-id-class-style/': '/docs/react-data-grid/custom-id-class-style/',
         '/docs/angular-data-grid/vue3-custom-id-class-style/': '/docs/angular-data-grid/custom-id-class-style/',
         '/docs/vue-data-grid/vue3-custom-id-class-style/': '/docs/vue-data-grid/custom-id-class-style/',
+        '/docs/javascript-data-grid/disabled-cells/': '/docs/javascript-data-grid/read-only-cells/',
+        '/docs/react-data-grid/disabled-cells/': '/docs/react-data-grid/read-only-cells/',
+        '/docs/angular-data-grid/disabled-cells/': '/docs/angular-data-grid/read-only-cells/',
+        '/docs/vue-data-grid/disabled-cells/': '/docs/vue-data-grid/read-only-cells/',
       };
       // Also normalise without trailing slash.
       const normalised = path.endsWith('/') ? path : `${path}/`;

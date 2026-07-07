@@ -4897,9 +4897,9 @@ export default (): Record<string, unknown> => {
 
     /**
      * @description
-     * The `readOnly` option determines whether a [cell](@/guides/cell-features/disabled-cells/disabled-cells.md#read-only-specific-cells),
-     * [comment](@/guides/cell-features/comments/comments.md#make-a-comment-read-only), [column](@/guides/cell-features/disabled-cells/disabled-cells.md#read-only-columns)
-     * or the [entire grid](@/guides/cell-features/disabled-cells/disabled-cells.md#read-only-grid) is editable or not. You can configure it as follows:
+     * The `readOnly` option determines whether a [cell](@/guides/cell-features/read-only-cells/read-only-cells.md#make-specific-cells-read-only),
+     * [comment](@/guides/cell-features/comments/comments.md#make-a-comment-read-only), [column](@/guides/cell-features/read-only-cells/read-only-cells.md#make-a-column-read-only)
+     * or the [entire grid](@/guides/cell-features/read-only-cells/read-only-cells.md#make-the-grid-read-only) is editable or not. You can configure it as follows:
      *
      * | Setting           | Description                                                                                                                |
      * | ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
@@ -4909,7 +4909,7 @@ export default (): Record<string, unknown> => {
      * `readOnly` cells can't be changed by the [`populateFromArray()`](@/api/core.md#populatefromarray) method.
      *
      * Read more:
-     * - [Disabled cells](@/guides/cell-features/disabled-cells/disabled-cells.md)
+     * - [Read-only cells](@/guides/cell-features/read-only-cells/read-only-cells.md)
      * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
      *
      * @memberof Options#
