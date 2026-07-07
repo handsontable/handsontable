@@ -1,0 +1,17 @@
+.comment-cell-trigger {
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.comment-cell:hover .comment-cell-trigger,
+.comment-cell-trigger[data-open] {
+  opacity: 1;
+}
+
+.handsontable td {
+  vertical-align: middle;
+}
+
+.handsontable .comment-cell {
+  min-height: 40px;
+}
