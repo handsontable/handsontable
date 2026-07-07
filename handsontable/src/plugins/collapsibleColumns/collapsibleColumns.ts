@@ -60,6 +60,10 @@ const actionDictionary = new Map([
  * To limit this functionality to a smaller group of headers, define the `collapsibleColumns` property as an array
  * of objects, as in the example below.
  *
+ * Read more:
+ * - [Guides: Column groups](@/guides/columns/column-groups/column-groups.md#collapsible-headers)
+ * - [Configuration options: `collapsibleColumns`](@/api/options.md#collapsiblecolumns)
+ *
  * @example
  * ::: only-for javascript
  * ```js
