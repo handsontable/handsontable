@@ -94,10 +94,10 @@ The latest security audits:
 
 | Audit firm | Concluded on | Certificate                                              |
 |------------|--------------|----------------------------------------------------------|
-| Seqred     | Feb 21, 2022 | [Download](/seqred-certificate.pdf)         |
-| TestArmy   | Apr 28, 2023 | [Download](/testarmy-certificate.pdf)       |
-| TestArmy   | Apr 19, 2024 | [Download](/testarmy-certificate-2024.pdf)  |
-| TestArmy   | May 13, 2025 | [Download](/testarmy-certificate-2025.pdf)  |
+| Seqred     | Feb 21, 2022 | [Download](/docs/seqred-certificate.pdf)         |
+| TestArmy   | Apr 28, 2023 | [Download](/docs/testarmy-certificate.pdf)       |
+| TestArmy   | Apr 19, 2024 | [Download](/docs/testarmy-certificate-2024.pdf)  |
+| TestArmy   | May 13, 2025 | [Download](/docs/testarmy-certificate-2025.pdf)  |
 
 
 The security audits were carried out in accordance with industry-standard methodologies, including:
