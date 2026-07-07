@@ -1,0 +1,157 @@
+import Handsontable from 'handsontable/base';
+import { registerAllModules } from 'handsontable/registry';
+registerAllModules();
+// Serializes fetchRows query parameters into a URL the ASP.NET Core model
+// binder understands.
+//
+// Handsontable sends:
+//   sort:    { prop: 'orderNumber', order: 'asc' }  or  null
+//   filters: [{ prop, conditions: [{ name, args }] }]  or  null
+//
+// ASP.NET Core's default model binder reads nested properties from dot
+// notation and collections from bracket-indexed dot notation:
+//   pageSize, sort.prop, sort.order, filters[N].prop/condition/value
+function buildUrl(base, { page, pageSize, sort, filters }) {
+    const params = new URLSearchParams();
+    params.set('page', String(page));
+    params.set('pageSize', String(pageSize));
+    if (sort?.prop) {
+        params.set('sort.prop', sort.prop);
+        params.set('sort.order', sort.order ?? 'asc');
+    }
+    if (filters?.length) {
+        let idx = 0;
+        filters.forEach(({ prop, conditions }) => {
+            (conditions || []).forEach(({ name, args }) => {
+                if (!name)
+                    return;
+                params.set(`filters[${idx}].prop`, prop);
+                params.set(`filters[${idx}].condition`, name);
+                const a = args ?? [];
+                if (a[0] != null)
+                    params.set(`filters[${idx}].value`, String(a[0]));
+                idx++;
+            });
+        });
+    }
+    return `${base}?${params.toString()}`;
+}
+const API_BASE = 'http://localhost:5000/api/orders';
+const container = document.querySelector('#example1');
+let removeConfirmed = false;
+// eslint-disable-next-line no-unused-vars
+const hot = new Handsontable(container, {
+    dataProvider: {
+        rowId: 'id',
+        fetchRows: async (queryParameters, { signal }) => {
+            const url = buildUrl(API_BASE, queryParameters);
+            const res = await fetch(url, { signal });
+            if (!res.ok)
+                throw new Error(`Fetch failed: ${res.status}`);
+            const json = await res.json();
+            return { rows: json.rows, totalRows: json.totalRows };
+        },
+        onRowsCreate: async ({ rowsAmount }) => {
+            const newRows = Array.from({ length: rowsAmount }, () => ({
+                orderNumber: `ORD-${Date.now()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+                customer: 'New Customer',
+                status: 'pending',
+                total: 0,
+            }));
+            const res = await fetch(`${API_BASE}/create_rows`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rows: newRows }),
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error ?? `Create failed: ${res.status}`);
+            }
+            const json = await res.json();
+            const info = json.rows.map(r => `(order: ${r.orderNumber})`).join(', ');
+            hot.getPlugin('notification').showMessage({
+                variant: 'success',
+                title: 'Row added',
+                message: `Created: ${info}`,
+                duration: 3000,
+            });
+            return json.rows;
+        },
+        onRowsUpdate: async (rows) => {
+            const payload = rows.map((r) => ({
+                id: r.id,
+                changes: r.changes,
+            }));
+            const res = await fetch(`${API_BASE}/update_rows`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rows: payload }),
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.error ?? `Update failed: ${res.status}`);
+            }
+        },
+        onRowsRemove: async (rowIds) => {
+            const res = await fetch(`${API_BASE}/remove_rows`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ rowIds }),
+            });
+            if (!res.ok)
+                throw new Error(`Delete failed: ${res.status}`);
+        },
+    },
+    beforeRowsMutation(operation, payload) {
+        if (operation === 'remove' && !removeConfirmed) {
+            const rowsRemove = payload.rowsRemove;
+            const count = rowsRemove.length;
+            const notification = hot.getPlugin('notification');
+            const id = notification.showMessage({
+                variant: 'warning',
+                title: 'Delete rows',
+                message: `Delete ${count} row${count !== 1 ? 's' : ''}? This cannot be undone.`,
+                duration: 0,
+                actions: [
+                    {
+                        label: 'Delete',
+                        type: 'primary',
+                        callback: () => {
+                            notification.hide(id);
+                            removeConfirmed = true;
+                            hot.getPlugin('dataProvider').removeRows(rowsRemove).finally(() => {
+                                removeConfirmed = false;
+                            });
+                        },
+                    },
+                    {
+                        label: 'Cancel',
+                        type: 'secondary',
+                        callback: () => notification.hide(id),
+                    },
+                ],
+            });
+            return false;
+        }
+    },
+    pagination: { pageSize: 10 },
+    columnSorting: true,
+    filters: true,
+    dropdownMenu: ['filter_by_condition', 'filter_action_bar'],
+    contextMenu: true,
+    emptyDataState: true,
+    notification: true,
+    dialog: true,
+    colHeaders: ['Order #', 'Customer', 'Status', 'Total', 'Created'],
+    columns: [
+        { data: 'orderNumber', type: 'text' },
+        { data: 'customer', type: 'text' },
+        { data: 'status', type: 'text' },
+        { data: 'total', type: 'numeric', numericFormat: { style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2 } },
+        { data: 'createdAt', type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }, readOnly: true },
+    ],
+    rowHeaders: true,
+    height: 'auto',
+    licenseKey: 'non-commercial-and-evaluation',
+});
+export default hot;
