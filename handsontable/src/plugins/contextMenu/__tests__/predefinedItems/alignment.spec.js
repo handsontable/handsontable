@@ -406,6 +406,42 @@ describe('ContextMenu', () => {
       expect(getCellMeta(2, 3).className).toBe(undefined);
     });
 
+    it('should pass row-indexed alignment state through the `beforeCellAlignment` hook', async() => {
+      const beforeCellAlignment = jasmine.createSpy('beforeCellAlignment');
+
+      handsontable({
+        data: createSpreadsheetData(4, 4),
+        contextMenu: true,
+        beforeCellAlignment,
+        cells(row, col) {
+          if (row === 0 && col === 0) {
+            return { className: 'htCenter' };
+          }
+          if (row === 1 && col === 1) {
+            return { className: 'htTop' };
+          }
+
+          return {};
+        },
+      });
+
+      await selectCell(0, 0, 1, 1);
+      await contextMenu();
+      await selectContextSubmenuOption('Alignment', 'Right');
+
+      const [stateBefore, selectedRange, type, alignmentClass] = beforeCellAlignment.calls.argsFor(0);
+
+      expect(Array.isArray(stateBefore[0])).toBe(true);
+      expect(Array.isArray(stateBefore[1])).toBe(true);
+      expect(stateBefore[0][0]).toBe('htCenter');
+      expect(stateBefore[0][1]).toBe(undefined);
+      expect(stateBefore[1][0]).toBe(undefined);
+      expect(stateBefore[1][1]).toBe('htTop');
+      expect(selectedRange.length).toBe(1);
+      expect(type).toBe('horizontal');
+      expect(alignmentClass).toBe('htRight');
+    });
+
     describe('UI', () => {
       it('should display a disabled entry, when there\'s nothing selected', async() => {
         handsontable({
