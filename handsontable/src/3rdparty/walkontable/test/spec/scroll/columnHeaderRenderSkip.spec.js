@@ -116,4 +116,33 @@ describe('Walkontable column-header render skip on vertical scroll', () => {
 
     expect(columnHeaders).toHaveBeenCalled();
   });
+
+  it('should re-render the column headers on a full render even if the scroll-direction flags are still set', async() => {
+    const columnHeaders = jasmine.createSpy('columnHeaders').and.callFake((col, TH) => {
+      TH.innerHTML = `C${col}`;
+    });
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      rowHeaders: [function(row, TH) {
+        TH.innerHTML = row + 1;
+      }],
+      columnHeaders: [columnHeaders],
+    });
+
+    wt.draw();
+
+    // Simulate the reentrancy window: an `afterScroll` hook can call `hot.render()` (a full,
+    // `forceFullRender` `draw(false)`) while the scroll-direction flags are still set. A full render
+    // must always rebuild the headers, so the skip must NOT fire here.
+    wt.wtOverlays.verticalScrolling = true;
+    wt.wtOverlays.horizontalScrolling = false;
+
+    columnHeaders.calls.reset();
+
+    wt.draw(false); // full render (entered as a non-fast draw), flags still set
+
+    expect(columnHeaders).toHaveBeenCalled();
+  });
 });

@@ -99,6 +99,18 @@ class Overlays {
   destroyed: boolean = false;
 
   /**
+   * `true` while the in-progress master draw was entered as a fast/scroll draw (`draw(true)`), and
+   * `false` for a full render (`draw(false)`, e.g. a `forceFullRender` from `hot.render()`). Set once
+   * per master draw before the cells are rendered, and read by the draw cycle (master and its clones,
+   * which reach it through the clone source) to gate the column-header render skip. It exists because
+   * the `verticalScrolling`/`horizontalScrolling` flags can still be set when an `afterScroll` hook
+   * synchronously triggers a `forceFullRender`, and a full render must always rebuild the headers.
+   *
+   * @type {boolean}
+   */
+  isScrollDrivenDraw: boolean = false;
+
+  /**
    * Binds the native DOM input listeners (scroll, wheel, key, resize) and translates them into the
    * engine's scroll actions. Extracted as a separate class to isolate the native-input lifecycle
    * from the overlay coordinator; the coordinator keeps a thin public `registerListeners` delegate.

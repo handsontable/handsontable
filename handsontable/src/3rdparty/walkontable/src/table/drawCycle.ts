@@ -73,6 +73,13 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   const wtOverlays = table.deps.getWtOverlays();
   const wtViewport = table.deps.getWtViewport();
 
+  // Record whether this master draw was entered as a fast/scroll draw, BEFORE `createCalculators`
+  // below can downgrade `ctx.runFastDraw`. A `forceFullRender` (`hot.render()`) enters as `draw(false)`,
+  // so this is `false` for it even if the scroll-direction flags are still set (an `afterScroll` hook
+  // can trigger a render while they are). The clones read this off the master through their clone
+  // source, so the header-render skip decision stays consistent across the master and its overlays.
+  wtOverlays.isScrollDrivenDraw = ctx.runFastDraw;
+
   wtOverlays.beforeDraw();
   table.holderOffset = table.deps.geometryReader.offset(table.holder);
 
@@ -228,17 +235,22 @@ function buildRenderFilters(table: Table, ctx: DrawContext): { rowFilter: RowFil
 }
 
 /**
- * Returns `true` when this draw is a pure vertical scroll (only the vertical scroll position moved).
- * The scroll-direction flags live on the master's overlays, so the master passes its own overlays and
- * a clone passes its clone source's — each cycle already knows its role, so the resolution stays at the
- * call site rather than re-branching here. Same signal the bottom-overlay fast-draw uses (see
- * Overlays#refresh); a pure vertical scroll leaves the column window (and thus the THEAD) unchanged.
+ * Returns `true` when this draw is a pure vertical scroll (only the vertical scroll position moved),
+ * so the column window (and thus the THEAD) is unchanged. The scroll-direction flags live on the
+ * master's overlays, so the master passes its own overlays and a clone passes its clone source's —
+ * each cycle already knows its role, so the resolution stays at the call site rather than re-branching
+ * here. `isScrollDrivenDraw` guards against a `forceFullRender` that runs while the scroll-direction
+ * flags are still set (an `afterScroll` hook can trigger one): a full render enters as `draw(false)`,
+ * so it is excluded here and always rebuilds the headers.
  *
  * @param {Overlays} wtOverlays The master's overlays object (the owner of the scroll-direction flags).
  * @returns {boolean}
  */
 function isPureVerticalScrollDraw(wtOverlays: Overlays): boolean {
-  return !!wtOverlays && wtOverlays.verticalScrolling && !wtOverlays.horizontalScrolling;
+  return !!wtOverlays &&
+    wtOverlays.isScrollDrivenDraw &&
+    wtOverlays.verticalScrolling &&
+    !wtOverlays.horizontalScrolling;
 }
 
 /**
