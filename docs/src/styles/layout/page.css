@@ -205,6 +205,14 @@ starlight-toc {
 
 /* Generated recipe steps emit Starlight's `.sl-steps` markup without instantiating
    the `<Steps>` component, so keep the component's global marker styles here. */
+.sl-steps {
+  margin-top: 2rem;
+}
+
+.sl-steps > li > * + * {
+  margin-top: var(--sl-content-gap-y);
+}
+
 @layer starlight.components {
   .sl-steps {
     --bullet-size: calc(var(--sl-line-height) * 1rem);
@@ -213,7 +221,6 @@ starlight-toc {
     list-style: none;
     counter-reset: steps-counter var(--sl-steps-start, 0);
     padding-inline-start: 0;
-    margin-top: 2rem;
   }
 
   .sl-steps > li {
