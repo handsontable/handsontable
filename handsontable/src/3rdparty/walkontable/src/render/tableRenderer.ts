@@ -185,26 +185,38 @@ export class TableRenderer {
    * window is unchanged. Set once per draw by the draw cycle; only a pure vertical scroll (no data,
    * settings, selection, or column-window change) enables it. Defaults to `false` so every non-scroll
    * draw renders the headers.
+   *
+   * @type {boolean}
    */
   #columnHeadersRenderSkippable: boolean = false;
   /**
    * `true` once the column-header pass has rendered at least once and stored its render window.
+   *
+   * @type {boolean}
    */
   #hasStoredColumnHeaderWindow: boolean = false;
   /**
    * The first rendered column (column filter offset) captured on the last column-header render.
+   *
+   * @type {number}
    */
   #prevColumnHeaderOffset: number = -1;
   /**
    * The number of rendered columns captured on the last column-header render.
+   *
+   * @type {number}
    */
   #prevColumnsToRender: number = -1;
   /**
    * The column headers count captured on the last column-header render.
+   *
+   * @type {number}
    */
   #prevColumnHeadersCount: number = -1;
   /**
    * The row headers count captured on the last column-header render.
+   *
+   * @type {number}
    */
   #prevRowHeadersCount: number = -1;
 
