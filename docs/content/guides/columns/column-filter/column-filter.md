@@ -453,6 +453,12 @@ The **None** operator clears the column's filter. Its programmatic equivalent is
 [`filters.removeConditions(column)`](@/api/filters.md#removeconditions). For more on clearing
 filters with the API, see [Clear a column filter](#clear-a-column-filter).
 
+For the **Before**, **After**, **Before or equal to**, **After or equal to**, and **Is between**
+operators on `date`, `intl-date`, and `intl-time` columns, the filter menu shows a native date or
+time input. Pick the value from the browser's picker or type it in your locale's format. When you
+set the condition through the API instead, pass the value as an ISO 8601 string
+(`YYYY-MM-DD` for dates, `HH:mm` for times).
+
 ## Filter data on initialization
 
 You can filter data on Handsontable's initialization. This lets you apply pre-defined filters every
