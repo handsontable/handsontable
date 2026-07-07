@@ -248,6 +248,18 @@ function renderCellBand(
     table.tableRenderer.setHeaderContentRenderers(ctx.rowHeaders, []);
   }
 
+  // On a pure vertical scroll (nothing but the vertical scroll position moved) the column window is
+  // unchanged, so the THEAD is identical and its re-render is wasted work. The scroll-direction flags
+  // live on the master's overlays; a clone reads them through its clone source. Same signal the
+  // bottom-overlay fast-draw optimization uses (see Overlays#refresh).
+  const wtOverlays = table.isMaster
+    ? table.deps.getWtOverlays()
+    : table.deps.getCloneSource().wtOverlays;
+  const isPureVerticalScroll = !!wtOverlays &&
+    wtOverlays.verticalScrolling && !wtOverlays.horizontalScrolling;
+
+  table.tableRenderer.setColumnHeadersRenderSkippable(isPureVerticalScroll);
+
   table.resetOversizedRows();
 
   table.tableRenderer

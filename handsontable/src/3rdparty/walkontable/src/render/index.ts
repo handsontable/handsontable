@@ -111,6 +111,19 @@ class Renderer {
   }
 
   /**
+   * Marks this draw as one where the column-header (THEAD) pass may be skipped when the column render
+   * window is unchanged (a pure vertical scroll).
+   *
+   * @param {boolean} skippable Whether the column-header pass may be skipped for this draw.
+   * @returns {Renderer}
+   */
+  setColumnHeadersRenderSkippable(skippable: boolean) {
+    this.renderer.setColumnHeadersRenderSkippable(skippable);
+
+    return this;
+  }
+
+  /**
    * Renders the table.
    */
   render() {
