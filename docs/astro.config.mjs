@@ -1,4 +1,5 @@
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import starlight from '@astrojs/starlight';
 import starlightThemeRapide from 'starlight-theme-rapide';
 import starlightPageActions from 'starlight-page-actions';
@@ -681,6 +682,9 @@ export default defineConfig({
   site: 'https://handsontable.com',
   base: '/docs',
 
+  // Astro 7 changed the default from `true` to `'jsx'` (JSX-like whitespace
+  // stripping). Keep the pre-7 behavior so rendered markup stays unchanged.
+  compressHTML: true,
 
   integrations: [
     starlight({
@@ -716,6 +720,9 @@ export default defineConfig({
       customCss: [
         './src/styles/custom.css',
         './src/styles/interactive-example.css',
+        // Class equivalents of Expressive Code's per-token inline styles,
+        // interned by framework-loader.mjs to keep the data store small.
+        './src/styles/ec-token-classes.css',
         // Handsontable base styles (imported via CSS @import bridge to keep
         // astro.config.mjs free of absolute out-of-project paths).
         './src/styles/handsontable-import.css',
@@ -871,16 +878,20 @@ export default defineConfig({
   ],
 
   markdown: {
-    remarkPlugins: [
-      // No extra remark plugins needed — preprocessing is handled by the Vite
-      // plugin above which runs on the raw source before remark-parse.
-    ],
-    rehypePlugins: [
-      // Wraps <table> in a scrollable div (mirrors markdown-it-table-wrapper).
-      rehypeTableWrapper,
-      // Styles numbered h2 headings (e.g., "1. Title") as step indicators.
-      rehypeMigrationSteps,
-    ],
+    // Astro 7 defaults to the new Sätteri processor, which does not run
+    // remark/rehype plugins. Keep the classic unified pipeline so the rehype
+    // plugins below and `renderMarkdown()` in framework-loader.mjs keep
+    // producing the same HTML as before. Plugins must be passed to
+    // `unified()` directly — the top-level `remarkPlugins`/`rehypePlugins`
+    // config keys are ignored by a custom processor.
+    processor: unified({
+      rehypePlugins: [
+        // Wraps <table> in a scrollable div (mirrors markdown-it-table-wrapper).
+        rehypeTableWrapper,
+        // Styles numbered h2 headings (e.g., "1. Title") as step indicators.
+        rehypeMigrationSteps,
+      ],
+    }),
     shikiConfig: {
       // Mirrors the VuePress highlight.js colour scheme.
       themes: {

@@ -14,6 +14,8 @@ import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
 import { CURRENT_DOCS_VERSION, CURRENT_DOCS_MINOR_VERSION } from './docs-version.mjs';
 import { convertAsideBodyMarkdown } from './aside-inline-markdown.mjs';
+import { internEcTokenStyles } from './ec-token-styles.mjs';
+import { writeRenderedHtml } from './rendered-html-store.mjs';
 import { loadVersionHighlights } from './version-highlights-loader.mjs';
 
 const VC_SCRIPT_PATTERN = /<script type="application\/json" id="version-comparison-data">[\s\S]*?<\/script>/;
@@ -515,7 +517,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v40';
+const LOADER_VERSION = 'v41';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)
@@ -794,6 +796,16 @@ function postProcessRenderedHtml(rendered) {
   rendered.html = rendered.html
     .replace(/\u2705/g, checkSvg)   // ✅
     .replace(/\u274C/g, crossSvg);  // ❌
+
+  // Replace per-token inline styles emitted by Expressive Code with short
+  // classes (see ec-token-styles.mjs). Cuts roughly a quarter off the
+  // rendered HTML — smaller pages to serve and smaller
+  // `.astro/rendered-html/` files (DEV-1991).
+  rendered.html = internEcTokenStyles(rendered.html, (styleValue) => {
+    console.warn(
+      `[framework-loader] Unknown Expressive Code token style "${styleValue}" left inline — extend EC_TOKEN_STYLE_CLASSES in src/plugins/ec-token-styles.mjs.`
+    );
+  });
 
   // Wrap consecutive step headings ("Step N:" or "N. Title") into
   // <ol class="sl-steps"> to match Starlight's Steps component output.
@@ -1446,10 +1458,19 @@ export function frameworkLoader({ contentDir }) {
           const rendered = await renderMarkdown(processedBody);
           postProcessRenderedHtml(rendered);
 
+          // Store only a marker in the data store; the real HTML lives in
+          // `.astro/rendered-html/` and is injected by src/middleware.ts.
+          // Keeping ~120 MB of page HTML out of the store is what lets the
+          // dev server run within the default Node heap (DEV-1991).
+          rendered.html = writeRenderedHtml('index', rendered.html);
+
           store.set({
             id: 'index',
             data,
-            body: processedBody,
+            // `body` is intentionally not stored: nothing reads it (Starlight
+            // renders `rendered.html`), and omitting it keeps ~30 MB of
+            // processed markdown out of the data store, which Astro's dev
+            // server loads fully into memory.
             rendered,
             filePath: relative(siteRoot, absPath),
             digest,
@@ -1522,10 +1543,13 @@ export function frameworkLoader({ contentDir }) {
           const rendered = await renderMarkdown(processedBody);
           postProcessRenderedHtml(rendered);
 
+          // See the `index` entry above — HTML lives in `.astro/rendered-html/`.
+          rendered.html = writeRenderedHtml(id, rendered.html);
+
           store.set({
             id,
             data,
-            body: processedBody,
+            // `body` is intentionally not stored — see the `index` entry above.
             rendered,
             filePath: relative(siteRoot, absPath),
             digest,
