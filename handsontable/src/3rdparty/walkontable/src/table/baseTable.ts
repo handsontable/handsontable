@@ -4,10 +4,10 @@ import type Settings from '../settings';
 import type { RowRangeQuery, ColumnRangeQuery } from './rangeQuery/renderedRange';
 import { cellAccess, type CellAccess } from './cellAccess';
 import { domScaffold, type DomScaffold } from './domScaffold';
+import sizeGetters, { type SizeGetters } from '../axisSizing/sizeGetters';
 import {
   isHTMLElement,
   removeTextNodes,
-  isVisible,
 } from '../../../../helpers/dom/element';
 import { mixin } from '../../../../helpers/object';
 import type ColumnFilter from '../filter/column';
@@ -791,98 +791,6 @@ class Table {
   }
 
   /**
-   * Checks if any of the row's cells content exceeds its initial height, and if so, returns the oversized height.
-   *
-   * @param {number} sourceRow The physical row index.
-   * @returns {number}
-   */
-  getRowHeight(sourceRow: number) {
-    return this.rowUtils.getHeight(sourceRow);
-  }
-
-  /**
-   * @param {number} level The column level.
-   * @returns {number}
-   */
-  getColumnHeaderHeight(level: number) {
-    return this.columnUtils.getHeaderHeight(level);
-  }
-
-  /**
-   * @param {number} sourceColumn The physical column index.
-   * @returns {number}
-   */
-  getColumnWidth(sourceColumn: number): number {
-    return this.columnUtils.getWidth(sourceColumn) as number;
-  }
-
-  /**
-   * Checks if the table has defined size. It returns `true` when the table has width and height
-   * set bigger than `0px`.
-   *
-   * @returns {boolean}
-   */
-  hasDefinedSize() {
-    return this.hasTableHeight && this.hasTableWidth;
-  }
-
-  /**
-   * Gets table's width. The returned width is the width of the rendered cells that fit in the
-   * current viewport. The value may change depends on the viewport position (scroll position).
-   *
-   * @returns {number}
-   */
-  getWidth() {
-    return this.#deps.geometryReader.outerWidth(this.TABLE);
-  }
-
-  /**
-   * Gets table's height. The returned height is the height of the rendered cells that fit in the
-   * current viewport. The value may change depends on the viewport position (scroll position).
-   *
-   * @returns {number}
-   */
-  getHeight() {
-    return this.#deps.geometryReader.outerHeight(this.TABLE);
-  }
-
-  /**
-   * Gets table's total width. The returned width is the width of all rendered cells (including headers)
-   * that can be displayed in the table.
-   *
-   * @returns {number}
-   */
-  getTotalWidth() {
-    const width = this.#deps.geometryReader.outerWidth(this.hider);
-
-    // when the overlay's table does not have any cells the hider returns 0, get then width from the table element
-    return width !== 0 ? width : this.getWidth();
-  }
-
-  /**
-   * Gets table's total height. The returned height is the height of all rendered cells (including headers)
-   * that can be displayed in the table.
-   *
-   * @returns {number}
-   */
-  getTotalHeight() {
-    const height = this.#deps.geometryReader.outerHeight(this.hider);
-
-    // when the overlay's table does not have any cells the hider returns 0, get then height from the table element
-    return height !== 0 ? height : this.getHeight();
-  }
-
-  /**
-   * Checks if the table is visible. It returns `true` when the holder element (or its parents)
-   * has CSS 'display' property different than 'none'.
-   *
-   * @returns {boolean}
-   */
-  isVisible() {
-    return isVisible(this.TABLE);
-  }
-
-  /**
    * Modify row header widths provided by user in class contructor.
    *
    * @private
@@ -940,7 +848,8 @@ class Table {
 // eslint-disable-next-line no-use-before-define, no-redeclare
 mixin(Table, cellAccess);
 mixin(Table, domScaffold);
+mixin(Table, sizeGetters);
 
-interface Table extends RowRangeQuery, ColumnRangeQuery, CellAccess, DomScaffold {}
+interface Table extends RowRangeQuery, ColumnRangeQuery, CellAccess, DomScaffold, SizeGetters {}
 
 export default Table;
