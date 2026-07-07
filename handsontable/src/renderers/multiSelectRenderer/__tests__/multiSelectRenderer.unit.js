@@ -11,6 +11,9 @@ import {
   registerCellType,
   MultiSelectCellType,
 } from '../../../cellTypes';
+import {
+  removeValueByKey,
+} from '../utils/utils';
 
 registerCellType(MultiSelectCellType);
 
@@ -47,6 +50,25 @@ describe('multiSelectRenderer', () => {
 
       expect(getSourceDataAtCell).toHaveBeenCalledWith(physicalRow, visualColumn);
       expect(toPhysicalColumn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('removeValueByKey (#12966)', () => {
+    it('should remove the entry matching the given key from a plain string array', () => {
+      expect(removeValueByKey(['Red', 'Green', 'Blue'], 'Green')).toEqual(['Red', 'Blue']);
+    });
+
+    it('should remove the entry matching the given key from a key/value object array', () => {
+      const source = [
+        { key: 'r', value: 'Red' },
+        { key: 'g', value: 'Green' },
+        { key: 'b', value: 'Blue' },
+      ];
+
+      expect(removeValueByKey(source, 'g')).toEqual([
+        { key: 'r', value: 'Red' },
+        { key: 'b', value: 'Blue' },
+      ]);
     });
   });
 });

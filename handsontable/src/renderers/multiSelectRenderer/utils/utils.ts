@@ -57,6 +57,7 @@ export function createChipElement(
   item: string | Record<string, string>,
   isAriaEnabled: boolean,
   row: number,
+  col: number,
   prop: string | number
 ): HTMLElement {
   const chip = rootDocument.createElement('span');
@@ -64,6 +65,7 @@ export function createChipElement(
 
   addClass(chip, CHIP_CLASS);
   chip.dataset.row = String(row);
+  chip.dataset.col = String(col);
   chip.dataset.prop = String(prop);
   chip.title = textContent;
 
@@ -99,17 +101,6 @@ export function createOverflowIndicator(rootDocument: Document, count: number): 
   return indicator;
 }
 
-interface HotInstanceWithRoot {
-  rootElement: HTMLElement;
-  toPhysicalRow: (row: number | string) => number;
-  toPhysicalColumn: (col: number | string) => number;
-  propToCol: (prop: string | number) => number;
-  getSourceDataAtCell: (row: number, col: number) => unknown;
-  setSourceDataAtCell: (row: number, col: number | string, value: unknown, source?: string) => void;
-  render: () => void;
-  addHook: (name: string, callback: (...args: unknown[]) => unknown) => void;
-}
-
 /**
  *
  */
@@ -139,18 +130,19 @@ export function registerChipRemovingEvents(
       return;
     }
 
-    const rowIndex = chip.dataset.row;
-    const columnProp = chip.dataset.prop;
-    const physicalRow = hotInstance.toPhysicalRow(Number(rowIndex ?? 0));
-    const physicalColumn = typeof columnProp === 'string'
-      ? columnProp : hotInstance.toPhysicalColumn(Number(columnProp));
-    const visualColumn = hotInstance.propToCol(columnProp ?? '');
+    const visualRow = Number(chip.dataset.row ?? 0);
+    const visualColumn = Number(chip.dataset.col ?? 0);
+    const physicalRow = hotInstance.toPhysicalRow(visualRow);
+    // Read the raw source array, not `getDataAtCell` — the multiselect `valueGetter` turns the
+    // stored array into a display string, which `parseValue` cannot split back into items.
     const currentData = hotInstance.getSourceDataAtCell(physicalRow, visualColumn);
     const keyToRemove = chip.dataset.key;
     const newData = removeValueByKey(parseValue(currentData), keyToRemove);
 
-    hotInstance.setSourceDataAtCell(physicalRow, physicalColumn, newData, `${rendererType}-renderer`);
-    hotInstance.render();
+    // Route the removal through `setDataAtCell` so it runs the standard change and validation
+    // pipeline (`beforeChange` / `afterChange`), matching the editor's deselect path. Writing via
+    // `setSourceDataAtCell` bypassed those hooks and left the two removal paths inconsistent.
+    hotInstance.setDataAtCell(visualRow, visualColumn, newData, `${rendererType}-renderer`);
   });
 
   hotInstance.addHook('beforeOnCellMouseDown', (...args: unknown[]) => {
@@ -160,11 +152,6 @@ export function registerChipRemovingEvents(
       stopImmediatePropagation(event as MouseEvent);
     }
   });
-}
-
-interface HotInstanceWithColWidth {
-  getColWidth: (col: number) => number;
-  addHook: (name: string, callback: (...args: unknown[]) => unknown) => void;
 }
 
 /**

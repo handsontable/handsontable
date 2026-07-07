@@ -61,7 +61,7 @@ export function multiSelectRenderer(
   chipsContainer.className = CHIPS_CONTAINER_CLASS;
 
   values.forEach((item) => {
-    const chip = createChipElement(rootDocument, item, isAriaEnabled ?? false, row, prop);
+    const chip = createChipElement(rootDocument, item, isAriaEnabled ?? false, row, col, prop);
 
     chipsContainer.appendChild(chip);
   });

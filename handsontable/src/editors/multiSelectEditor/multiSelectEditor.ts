@@ -167,8 +167,8 @@ export class MultiSelectEditor extends BaseEditor {
     );
 
     this.addHook('afterDestroy', () => this.destroy());
-    this.addHook('afterSetSourceDataAtCell',
-      (changes: unknown[][], source: string) => this.#onAfterSetSourceDataAtCell(changes, source));
+    this.addHook('afterChange',
+      (changes: unknown[][], source: string) => this.#onAfterChange(changes, source));
     this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
     this.addHook('afterScrollVertically', () => this.refreshDimensions());
 
@@ -479,14 +479,16 @@ export class MultiSelectEditor extends BaseEditor {
   }
 
   /**
-   * Handles the afterSetSourceDataAtCell hook to re-sync the dropdown when the renderer updates the source data for the edited cell.
+   * Handles the `afterChange` hook to re-sync the dropdown when the renderer removes a chip from the edited cell.
    */
-  #onAfterSetSourceDataAtCell(changes: unknown[][], source: string): void {
+  #onAfterChange(changes: unknown[][] | null, source: string): void {
     if (
       this.isOpened() &&
       source === `${EDITOR_TYPE}-renderer` &&
-      parseInt(String(changes[0][0]), 10) === this.cellProperties.visualRow &&
-      parseInt(String(changes[0][1]), 10) === this.cellProperties.visualCol
+      Array.isArray(changes) &&
+      changes.length > 0 &&
+      changes[0][0] === this.cellProperties.visualRow &&
+      this.hot.propToCol(changes[0][1] as string | number) === this.cellProperties.visualCol
     ) {
       this.#syncSelectedValues(changes[0][3] as unknown[]);
       this.dropdownController!.fillDropdown(this.#getSource(), this.#selectedItems.getItemsArray());
