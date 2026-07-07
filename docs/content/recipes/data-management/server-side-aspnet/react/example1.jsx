@@ -34,7 +34,8 @@ function buildUrl(base, { page, pageSize, sort, filters }) {
         if (!name) return;
         params.set(`filters[${idx}].prop`, prop);
         params.set(`filters[${idx}].condition`, name);
-        params.set(`filters[${idx}].value`, args?.[0] ?? '');
+        const a = args ?? [];
+        if (a[0] != null) params.set(`filters[${idx}].value`, String(a[0]));
         idx++;
       });
     });
@@ -170,7 +171,6 @@ const ExampleComponent = () => {
         contextMenu={true}
         emptyDataState={true}
         notification={true}
-        dialog={true}
         colHeaders={['Order #', 'Customer', 'Status', 'Total', 'Created']}
         columns={[
           { data: 'orderNumber', type: 'text' },

@@ -1,3 +1,5 @@
+using System.Globalization;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using OrdersApi.Data;
 using OrdersApi.Models;
@@ -25,6 +27,10 @@ public class OrdersService
     // update_rows can never overwrite them.
     private static readonly HashSet<string> EditableColumns = new() { "orderNumber", "customer", "status", "total" };
 
+    // Caps how many rows a single request can pull, so a client-supplied
+    // pageSize can't force the server to materialize the whole table.
+    private const int MaxPageSize = 100;
+
     private readonly AppDbContext _db;
 
     public OrdersService(AppDbContext db)
@@ -35,7 +41,7 @@ public class OrdersService
     public async Task<(List<Order> Rows, int TotalRows)> GetOrdersAsync(OrdersQuery query, CancellationToken cancellationToken)
     {
         var page = Math.Max(query.Page, 1);
-        var pageSize = Math.Max(query.PageSize, 1);
+        var pageSize = Math.Clamp(query.PageSize, 1, MaxPageSize);
 
         var filtered = ApplyFilters(_db.Orders.AsNoTracking(), query.Filters);
         var totalRows = await filtered.CountAsync(cancellationToken);
@@ -101,7 +107,7 @@ public class OrdersService
             .ExecuteDeleteAsync(cancellationToken);
     }
 
-    private static void ApplyChanges(Order order, Dictionary<string, System.Text.Json.JsonElement> changes)
+    private static void ApplyChanges(Order order, Dictionary<string, JsonElement> changes)
     {
         foreach (var (key, element) in changes)
         {
@@ -122,7 +128,13 @@ public class OrdersService
                     order.Status = element.GetString() ?? order.Status;
                     break;
                 case "total":
-                    order.Total = element.GetDecimal();
+                    // A cleared cell sends JSON null -- GetDecimal() throws on
+                    // anything that isn't a JSON number, so check first instead
+                    // of leaving Total unchanged from a bad request.
+                    if (element.ValueKind == JsonValueKind.Number)
+                    {
+                        order.Total = element.GetDecimal();
+                    }
                     break;
             }
         }
@@ -195,7 +207,7 @@ public class OrdersService
             return query;
         }
 
-        if (!DateTime.TryParse(filter.Value, out var value))
+        if (!DateTime.TryParse(filter.Value, CultureInfo.InvariantCulture, DateTimeStyles.None, out var value))
         {
             return query; // malformed date input -- ignored rather than thrown
         }
@@ -220,7 +232,7 @@ public class OrdersService
             return query;
         }
 
-        if (!decimal.TryParse(filter.Value, out var value))
+        if (!decimal.TryParse(filter.Value, NumberStyles.Number, CultureInfo.InvariantCulture, out var value))
         {
             return query; // malformed numeric input -- ignored rather than thrown
         }

@@ -19,8 +19,10 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// UseCors must run before MapControllers -- registered after, the preflight
-// OPTIONS request reaches the router with no CORS headers attached.
+// General ASP.NET Core middleware order: CORS runs after routing and before
+// authentication/authorization. Keep this placement even without auth yet, so
+// adding UseAuthentication/UseAuthorization later doesn't reject preflight
+// requests.
 app.UseCors("AllowFrontend");
 app.MapControllers();
 

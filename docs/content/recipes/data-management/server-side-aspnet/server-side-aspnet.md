@@ -26,11 +26,13 @@ menuTag: new
 
 This tutorial shows how to wire Handsontable's `dataProvider` plugin to an [ASP.NET Core](https://dotnet.microsoft.com/apps/aspnet) Web API backend. The backend handles pagination, sorting, and filtering on the server. The frontend displays results and sends every edit back to the API.
 
+## Overview
+
 **Difficulty:** Intermediate  
 **Time:** ~30 minutes  
 **Backend:** .NET 8 SDK, ASP.NET Core MVC controllers, EF Core 8 with SQLite
 
-## What you'll build
+## What You'll Build
 
 An Order Management grid that:
 
@@ -47,7 +49,7 @@ An Order Management grid that:
 
 No database server is required -- the backend stores data in a local SQLite file.
 
-## Step 1 -- Create the project and add EF Core
+## Step 1: Create the project and add EF Core
 
 Create a Web API project that uses MVC controllers:
 
@@ -68,7 +70,7 @@ dotnet add package Microsoft.EntityFrameworkCore.Design
 - `--use-controllers` scaffolds the project with `[ApiController]` MVC controllers instead of Minimal API endpoints. Controllers group the pagination, sorting, filtering, and batch-CRUD logic this recipe needs into one typed class, instead of several `app.MapGet`/`app.MapPost` lambdas in `Program.cs`.
 - SQLite requires no separate database server or Docker setup -- the whole backend runs with `dotnet run`. `Microsoft.EntityFrameworkCore.Design` adds the tooling EF Core needs even though this recipe uses `EnsureCreated()` instead of migrations.
 
-## Step 2 -- Define the `Order` entity and the DbContext
+## Step 2: Define the `Order` entity and the DbContext
 
 Create `Order.cs`:
 
@@ -91,7 +93,7 @@ Create `AppDbContext.cs`:
 - The primary key `Id` is auto-incremented by SQLite. It becomes the `rowId` value on the Handsontable side.
 - SQLite has no native `decimal` column type -- EF Core stores `decimal` properties as `TEXT` by default, which sorts and compares lexicographically instead of numerically. `HasConversion<double>()` on `Total` stores it as a real number instead, so sorting by `total` and filtering with `gt`/`gte`/`lt`/`lte` behave correctly. This conversion is SQLite-specific -- PostgreSQL or SQL Server don't need it.
 
-## Step 3 -- Seed the database
+## Step 3: Seed the database
 
 Create `DbInitializer.cs`:
 
@@ -106,7 +108,7 @@ Create `DbInitializer.cs`:
 - The seed script inserts 50 orders across realistic statuses (`pending`, `paid`, `shipped`, `delivered`, `cancelled`). It checks whether data already exists, so restarting the app doesn't duplicate rows.
 - This recipe calls `Database.EnsureCreated()` in `Program.cs` (Step 4) instead of running EF Core migrations. `EnsureCreated()` creates the schema directly from the model, which is enough for a tutorial. For a production app, use `dotnet ef migrations add` and `Database.Migrate()` instead, so schema changes are versioned.
 
-## Step 4 -- Wire up `Program.cs`
+## Step 4: Wire up `Program.cs`
 
 Replace the generated `Program.cs` with:
 
@@ -131,18 +133,18 @@ The resulting routes, all under `/api/orders`, are:
 | `PATCH` | `/api/orders/update_rows` | `onRowsUpdate` |
 | `DELETE` | `/api/orders/remove_rows` | `onRowsRemove` |
 
-## Step 5 -- Configure CORS
+## Step 5: Configure CORS
 
 CORS is registered in `Program.cs` (Step 4). This step explains why.
 
 **What's happening:**
 
 - `AddCors` with `AllowFrontend` permits requests from `http://localhost:5173`, the default Vite dev server port. Without it, the browser blocks every request from the frontend before ASP.NET Core sees it.
-- `app.UseCors("AllowFrontend")` must run **before** `app.MapControllers()`. If the order is reversed, the routing middleware handles the request first and the CORS headers are never attached, so preflight `OPTIONS` requests for `PATCH` and `DELETE` fail.
+- `app.UseCors("AllowFrontend")` is registered before `app.MapControllers()` to follow the general ASP.NET Core middleware order -- CORS runs after routing and before authentication/authorization. This project has neither an explicit `UseRouting` call nor any authentication, so swapping these two specific lines wouldn't break anything here. The convention still matters the moment you add `UseAuthentication`/`UseAuthorization`, because CORS has to run before them so a preflight `OPTIONS` request never gets rejected by an auth check.
 
-**Production note:** Replace `http://localhost:5173` with your deployed frontend's domain. Never call `AllowAnyOrigin()` together with `AllowAnyHeader()` and `AllowAnyMethod()` on a policy that also accepts credentials.
+**Production note:** Replace `http://localhost:5173` with your deployed frontend's domain. If you need cookies or an `Authorization` header to travel with cross-origin requests, call `AllowCredentials()` on the policy and list explicit origins -- ASP.NET Core throws at startup if you combine `AllowCredentials()` with `AllowAnyOrigin()`.
 
-## Step 6 -- Decide on the case convention
+## Step 6: Decide on the case convention
 
 ASP.NET Core Web API projects serialize JSON with `JsonSerializerDefaults.Web` by default, which camelCases every property: the C# property `OrderNumber` becomes `orderNumber` in the response, and an incoming `{ "orderNumber": "ORD-1001" }` body binds to `OrderNumber` because property-name matching is case-insensitive. This means Handsontable's column `data` keys can use the same camelCase names as the JSON payload with no extra configuration on either side.
 
@@ -150,7 +152,7 @@ ASP.NET Core Web API projects serialize JSON with `JsonSerializerDefaults.Web` b
 
 **Why this matters for the whitelist dictionaries in Step 8:** the sort and filter column whitelists must be keyed by the wire-format name (`orderNumber`), not the C# property name (`OrderNumber`), because that's the string Handsontable actually sends in the query string.
 
-## Step 7 -- Bind Handsontable's query parameters
+## Step 7: Bind Handsontable's query parameters
 
 Create `OrdersQuery.cs`:
 
@@ -180,7 +182,7 @@ Given `[FromQuery] OrdersQuery query`, `sort.prop` and `sort.order` populate `qu
 
 `OrderCreateDto` has no `Id` or `CreatedAt` property. Where a dynamically typed backend blocks system-managed fields by filtering a dictionary at runtime, here the type system does it structurally: there's no property for a client to set.
 
-## Step 8 -- Build the service
+## Step 8: Build the service
 
 Create `OrdersService.cs`:
 
@@ -203,21 +205,22 @@ Create `OrdersService.cs`:
 `ApplyFilters` loops over `query.Filters` and dispatches each one to `ApplyStringFilter`, `ApplyDateFilter`, or `ApplyNumericFilter`, based on whether the column is in `StringColumns`, `DateColumns`, or neither. This three-way split matters because EF Core is strongly typed: calling `EF.Property<decimal>` against a `DateTime` column throws, so each column's filter values must be parsed and compared as the type that column actually is.
 
 - String columns (`orderNumber`, `customer`, `status`) support `eq`, `neq`, `contains`, `not_contains`, `begins_with`, `ends_with`, `empty`, and `not_empty`. `contains`/`begins_with`/`ends_with` use `EF.Functions.Like` with an explicit `ESCAPE '\'` clause, and `EscapeLike` escapes `%`, `_`, and `\` in the user-supplied value first, so those characters are matched literally instead of acting as LIKE wildcards.
-- The date column (`createdAt`) supports `eq`, `neq`, `gt`, `gte`, `lt`, and `lte`. `DateTime.TryParse` guards against malformed date input. `eq`/`neq` compare `.Date` on both sides so a filter value of a single day matches every `CreatedAt` timestamp on that day, not just an exact-to-the-second match.
-- The numeric column (`total`) supports `eq`, `neq`, `gt`, `gte`, `lt`, and `lte`. `empty`/`not_empty` are rejected for both `total` and `createdAt` because they're non-nullable columns -- there's no empty state to check. `decimal.TryParse` guards against malformed numeric input; a value that doesn't parse is ignored rather than throwing a `500`.
+- The date column (`createdAt`) supports `eq`, `neq`, `gt`, `gte`, `lt`, and `lte`. `DateTime.TryParse` -- with `CultureInfo.InvariantCulture` explicitly, so the parse doesn't depend on the server's OS culture -- guards against malformed date input. `eq`/`neq` compare `.Date` on both sides so a filter value of a single day matches every `CreatedAt` timestamp on that day, not just an exact-to-the-second match.
+- The numeric column (`total`) supports `eq`, `neq`, `gt`, `gte`, `lt`, and `lte`. `empty`/`not_empty` are rejected for both `total` and `createdAt` because they're non-nullable columns -- there's no empty state to check. `decimal.TryParse` -- also pinned to `CultureInfo.InvariantCulture` -- guards against malformed numeric input; a value that doesn't parse is ignored rather than throwing a `500`. Without the invariant culture, a value like `142.5` fails to parse on a server whose default culture uses a comma as the decimal separator, and the filter would silently no-op.
+- Handsontable's Filters plugin offers more conditions than this whitelist covers -- for example, `between`/`not_between` on `total`, and date-specific conditions like `date_before`/`date_after` on `createdAt`. Selecting one of those in the UI produces a filter the server doesn't recognize, so it's ignored and the grid shows unfiltered results. Extending `ApplyNumericFilter`/`ApplyDateFilter` with more `case` arms is a natural next step; this recipe sticks to the condition set the other server-side recipes support.
 - Multiple filters combine with `AND`, because each call reassigns `query` to a further-restricted `IQueryable`. `dataProvider` doesn't send `OR` groups by default.
 
 ### Pagination
 
-`GetOrdersAsync` runs `CountAsync()` on the filtered-but-unsorted query to get `totalRows`, then applies sorting and `Skip`/`Take` for the current page. Handsontable sends a 1-based `page` index, so `Skip` uses `(page - 1) * pageSize`.
+`GetOrdersAsync` runs `CountAsync()` on the filtered-but-unsorted query to get `totalRows`, then applies sorting and `Skip`/`Take` for the current page. Handsontable sends a 1-based `page` index, so `Skip` uses `(page - 1) * pageSize`. `pageSize` is clamped to `MaxPageSize` (100) with `Math.Clamp`, so a client can't force the server to materialize the entire table in one request.
 
 ### Batch CRUD
 
 - `CreateRowsAsync` builds new `Order` entities from `OrderCreateDto`, inserts them inside a transaction, and returns them with their database-assigned `Id`. `dataProvider` uses the returned rows to replace its client-side placeholder IDs.
-- `UpdateRowsAsync` loads each order by `Id` and applies only the keys present in `EditableColumns` from the `Changes` dictionary -- `id` and `createdAt` are never in that set, so they can't be overwritten even if a client sends them.
+- `UpdateRowsAsync` loads each order by `Id` and applies only the keys present in `EditableColumns` from the `Changes` dictionary -- `id` and `createdAt` are never in that set, so they can't be overwritten even if a client sends them. The `total` case also checks `element.ValueKind == JsonValueKind.Number` before calling `GetDecimal()` -- a cleared cell sends JSON `null`, and `GetDecimal()` throws on anything that isn't a JSON number.
 - `RemoveRowsAsync` calls EF Core's `ExecuteDeleteAsync()`, which issues a single `DELETE FROM Orders WHERE Id IN (...)` instead of loading and deleting each row individually.
 
-## Step 9 -- Create the controller
+## Step 9: Create the controller
 
 Create `OrdersController.cs`:
 
@@ -231,7 +234,7 @@ This thin controller has no business logic of its own -- every method delegates 
 
 **Antiforgery in API projects:** `dotnet new webapi --use-controllers` scaffolds a project with no antiforgery validation enabled by default -- `AddAntiforgery` and `[ValidateAntiForgeryToken]` are opt-in, and only matter when the app uses cookie-based authentication. A `fetch()` call from the browser using an `Authorization` header (or no authentication at all, as in this recipe) never needs an antiforgery token, because the browser doesn't attach that header automatically the way it attaches cookies.
 
-## Step 10 -- Build the request URL and initialize Handsontable
+## Step 10: Build the request URL and initialize Handsontable
 
 Run the backend:
 
@@ -295,10 +298,9 @@ Pinning the URL keeps the port stable -- otherwise the template's `launchSetting
 | `filters: true` with `dropdownMenu` | Renders the column filter UI. Active conditions are passed to `fetchRows`. |
 | `contextMenu: true` | Enables right-click context menu with **Insert row above / below** and **Remove row** options. |
 | `emptyDataState: true` | Shows a friendly illustration when the API returns zero rows (for example, when a filter matches nothing). |
-| `notification: true` | Shows automatic error toasts when `fetchRows` or a mutation callback throws. Fetch failures include a **Refetch** action. |
-| `dialog: true` | Enables the Dialog plugin used internally by other plugins for confirmation prompts. |
+| `notification: true` | Shows automatic error toasts when `fetchRows` or a mutation callback throws. Fetch failures include a **Refetch** action. The delete-confirmation prompt in `beforeRowsMutation` is also built on `notification`'s actionable toasts, not a separate dialog. |
 
-## How it works -- Complete flow
+## How It Works -- Complete Flow
 
 1. **Initial load**: `dataProvider` calls `fetchRows({ page: 1, pageSize: 10 })`. ASP.NET Core returns the first 10 orders and the total row count.
 2. **User clicks a column header**: `columnSorting` updates its sort state and `dataProvider` calls `fetchRows` again with `sort: { prop: 'total', order: 'desc' }`. The frontend builds `sort.prop=total&sort.order=desc`; the controller's `OrdersQuery.Sort` binds it, and `ApplySort` checks `ColumnMap` before calling `OrderByDescending`.
@@ -316,7 +318,9 @@ Pinning the URL keeps the port stable -- otherwise the template's `launchSetting
 - `HasConversion<double>()` is necessary for `decimal` columns on SQLite, because SQLite has no native decimal type and would otherwise sort and filter the column as text.
 - A typed create DTO with no `Id` or `CreatedAt` property blocks system-managed fields structurally, without runtime filtering.
 - `EF.Functions.Like` with an explicit `ESCAPE` clause, paired with manual escaping of `%`, `_`, and `\`, keeps LIKE-based filters safe from wildcard injection.
-- `UseCors` must run before `MapControllers`, or CORS preflight requests never get their response headers.
+- ASP.NET Core's general middleware order runs CORS after routing and before authentication/authorization -- keep that convention even in a project like this one that has neither yet, so adding auth later doesn't silently reject preflight requests.
+- Pass `CultureInfo.InvariantCulture` to `decimal.TryParse`/`DateTime.TryParse` in a Web API. Without it, parsing depends on the server's OS culture, and a value the client always formats the same way (JavaScript's `String(142.5)`) can fail or parse differently depending on where the server happens to run.
+- Clamp a client-supplied `pageSize` to a server-side maximum. Without a cap, a single request can force the server to materialize and serialize the entire table.
 
 ## Next steps
 

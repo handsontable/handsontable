@@ -184,7 +184,6 @@ const ExampleComponent = () => {
         contextMenu={true}
         emptyDataState={true}
         notification={true}
-        dialog={true}
         colHeaders={['Order #', 'Customer', 'Status', 'Total', 'Created']}
         columns={[
           { data: 'orderNumber', type: 'text' },

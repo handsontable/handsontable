@@ -193,7 +193,6 @@ export class AppComponent {
     contextMenu:    true,
     emptyDataState: true,
     notification:   true,
-    dialog:         true,
     rowHeaders:     true,
     colHeaders: ['Order #', 'Customer', 'Status', 'Total', 'Created'],
     columns: [
