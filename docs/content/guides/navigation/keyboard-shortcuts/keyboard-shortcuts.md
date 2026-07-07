@@ -40,7 +40,7 @@ These keyboard shortcuts work when you navigate the grid. They come from Handson
 | Windows                                      | macOS                                       | Action                                                                                          |  Excel  | Sheets  |
 | -------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------- | :-----: | :-----: |
 | Arrow keys                                   | Arrow keys                                  | Move one cell up, down, left, or right                                                          | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Backspace**</kbd> | <kbd>⌘</kbd>+<kbd>**Backspace**</kbd> | Scroll the viewport to show the focused cell                                                    | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Backspace**</kbd> | <kbd>⌘</kbd>+<kbd>**Backspace**</kbd> | Scroll the viewport to show the focused cell or header                                          | &cross; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**↑**</kbd>         | <kbd>⌘</kbd>+<kbd>**↑**</kbd>         | Move to the first cell of the current column                                                    | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**↓**</kbd>         | <kbd>⌘</kbd>+<kbd>**↓**</kbd>         | Move to the last cell of the current column                                                     | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**←**</kbd>         | <kbd>⌘</kbd>+<kbd>**←**</kbd>         | Move to the leftmost cell of the current row                                                    | &check; | &check; |
@@ -80,13 +80,14 @@ These keyboard shortcuts help you select cells. They come from Handsontable's [`
 | <kbd>**Shift**</kbd>+<kbd>**End**</kbd>                                                               | <kbd>⇧</kbd>+<kbd>**End**</kbd>                                                             | Extend the selection to the last non-frozen cell of the current row<sup>\*\*\*</sup>  | &cross; | &cross; |
 | <kbd>**Shift**</kbd>+<kbd>**Page Up**</kbd>                                                           | <kbd>⇧</kbd>+<kbd>**Page Up**</kbd>                                                         | Extend the selection by one screen up                                             | &check; | &check; |
 | <kbd>**Shift**</kbd>+<kbd>**Page Down**</kbd>                                                         | <kbd>⇧</kbd>+<kbd>**Page Down**</kbd>                                                       | Extend the selection by one screen down                                           | &check; | &check; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                                                              | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                                                             | Fill the selected range of cells with the value of the active cell                | &cross; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                                                              | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                                                             | Fill the selected range of cells with the value of the active cell<sup>\*\*\*\*</sup> | &cross; | &check; |
 | <kbd>**Delete**</kbd>                                                                                 | <kbd>**Delete**</kbd>                                                                               | Clear the contents of the selected cells                                          | &check; | &check; |
 | <kbd>**Backspace**</kbd>                                                                              | <kbd>**Backspace**</kbd>                                                                            | Clear the contents of the selected cells                                          | &check; | &check; |
 
 <sup>*</sup> Does not work on macOS with multiple keyboard layouts. To work around this issue, add <kbd>Fn</kbd> to the key combination.<br>
 <sup>\*\*</sup> In case of multiple selection layers, only the last selection layer gets extended.<br>
 <sup>\*\*\*</sup> This action depends on your layout direction.<br> 
+<sup>\*\*\*\*</sup> This action works only for selections of two or more cells. The active highlight must be on a cell, not on a row header, column header, or corner.<br>
 
 ## Edition keyboard shortcuts
 
