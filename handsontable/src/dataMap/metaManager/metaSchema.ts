@@ -484,6 +484,7 @@ export default (): Record<string, unknown> => {
      * | Property                | Possible values                 | Description                                                                                                |
      * | ----------------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------- |
      * | `syncLimit`             | A number \| A percentage string | The number/percentage of rows to keep in sync<br>(default: `500`)                                          |
+     * | `samplingRatio`         | A number                        | The number of samples of the same length to be used in row height calculations                             |
      * | `allowSampleDuplicates` | `true` \| `false`               | When calculating row heights:<br>`true`: Allow duplicate samples<br>`false`: Don't allow duplicate samples |
      *
      * Using the [`rowHeights`](#rowHeights) option forcibly disables the [`AutoRowSize`](@/api/autoRowSize.md) plugin.
@@ -504,6 +505,8 @@ export default (): Record<string, unknown> => {
      * autoRowSize: {
      *   // keep 40% of rows in sync (the rest of rows: async)
      *   syncLimit: '40%',
+     *   // when calculating row heights, use 10 samples of the same length
+     *   samplingRatio: 10,
      *   // when calculating row heights, allow duplicate samples
      *   allowSampleDuplicates: true
      * },
