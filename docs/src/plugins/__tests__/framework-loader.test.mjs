@@ -5,6 +5,30 @@ import { mkdtempSync, mkdirSync, writeFileSync, utimesSync, rmSync } from 'node:
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { frameworkLoader } from '../framework-loader.mjs';
+import { setRenderedHtmlDirForTests, readRenderedHtml } from '../rendered-html-store.mjs';
+
+// The loader writes each entry's rendered HTML to a file and stores only a
+// marker in the data store (see rendered-html-store.mjs) — keep test writes
+// out of the real docs/.astro directory.
+const renderedHtmlDir = mkdtempSync(join(tmpdir(), 'hot-rendered-'));
+
+setRenderedHtmlDirForTests(renderedHtmlDir);
+test.after(() => rmSync(renderedHtmlDir, { recursive: true, force: true }));
+
+/**
+ * Resolves an entry's rendered HTML through the marker + file indirection.
+ *
+ * @param {Map<string, object>} store
+ * @param {string} id
+ * @returns {string}
+ */
+function renderedHtmlOf(store, id) {
+  const marker = store.get(id).rendered.html;
+
+  assert.match(marker, /^<!--hot-rendered:[\w./-]+-->$/, 'store must hold a marker, not HTML');
+
+  return readRenderedHtml(id);
+}
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -108,7 +132,7 @@ test('initial load emits one entry per framework and inlines example code', asyn
     }
 
     assert.ok(store.has('index'), 'missing root index entry');
-    assert.match(store.get('javascript-data-grid/intro').rendered.html, /EXAMPLE_CODE_V1/);
+    assert.match(renderedHtmlOf(store, 'javascript-data-grid/intro'), /EXAMPLE_CODE_V1/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -122,7 +146,7 @@ test('editing a markdown file hot reloads its entries', async () => {
 
     await frameworkLoader({ contentDir }).load(ctx);
 
-    const before = store.get('javascript-data-grid/intro').rendered.html;
+    const before = renderedHtmlOf(store, 'javascript-data-grid/intro');
 
     assert.match(before, /Intro body v1\./);
 
@@ -146,7 +170,7 @@ test('editing a markdown file hot reloads its entries', async () => {
     watcher.emit('change', introMd);
     await sleep(250);
 
-    const after = store.get('javascript-data-grid/intro').rendered.html;
+    const after = renderedHtmlOf(store, 'javascript-data-grid/intro');
 
     assert.match(after, /Intro body v2 EDITED\./);
   } finally {
@@ -162,7 +186,7 @@ test('editing an embedded example source hot reloads the pages that embed it', a
 
     await frameworkLoader({ contentDir }).load(ctx);
 
-    assert.match(store.get('react-data-grid/intro').rendered.html, /EXAMPLE_CODE_V1/);
+    assert.match(renderedHtmlOf(store, 'react-data-grid/intro'), /EXAMPLE_CODE_V1/);
 
     // Rewrite the example and force a distinct mtime so the digest changes even
     // on filesystems with coarse mtime granularity.
@@ -174,7 +198,7 @@ test('editing an embedded example source hot reloads the pages that embed it', a
     watcher.emit('change', exampleJs);
     await sleep(250);
 
-    assert.match(store.get('react-data-grid/intro').rendered.html, /EXAMPLE_CODE_V2/);
+    assert.match(renderedHtmlOf(store, 'react-data-grid/intro'), /EXAMPLE_CODE_V2/);
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -300,7 +324,7 @@ test('.jsx/.tsx examples render with jsx/tsx code fences, not js/ts', async () =
 
     await frameworkLoader({ contentDir }).load(ctx);
 
-    const html = store.get('react-data-grid/intro').rendered.html;
+    const html = renderedHtmlOf(store, 'react-data-grid/intro');
 
     // The fix: .jsx/.tsx extensions map to the jsx/tsx Shiki grammars, so the
     // angle-bracket markup highlights correctly.

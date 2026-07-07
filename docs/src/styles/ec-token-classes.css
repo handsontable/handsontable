@@ -1,0 +1,29 @@
+/* Generated from src/plugins/ec-token-styles.mjs — do not edit by hand.
+ * Regenerate with the command documented in that file.
+ */
+.hot-tk-0 { --0:#E1E4E8;--1:#24292E; }
+.hot-tk-1 { --0:#9ECBFF;--1:#032F62; }
+.hot-tk-2 { --0:#F97583;--1:#BF3441; }
+.hot-tk-3 { --0:#79B8FF;--1:#005CC5; }
+.hot-tk-4 { --0:#B392F0;--1:#6F42C1; }
+.hot-tk-5 { --0:#99A0A6;--1:#616972; }
+.hot-tk-6 { --0:#FFAB70;--1:#AE4B07; }
+.hot-tk-7 { --0:#85E89D;--1:#1E7734; }
+.hot-tk-8 { --0:#9ECBFF; }
+.hot-tk-9 { --0:#DBEDFF; }
+.hot-tk-10 { --0:#DBEDFF;--1:#032F62; }
+.hot-tk-11 { --0:#FDAEB7;--0fs:italic;--1:#B31D28;--1fs:italic; }
+.hot-tk-12 { --0:#85E89D;--0fw:bold;--1:#1E7734;--1fw:bold; }
+
+/* Applying rules — mirror Expressive Code's token rules for interned spans. */
+.expressive-code .ec-line :where(span[class^='hot-tk-']),
+:root:not([data-theme='dark']) .expressive-code[data-theme='dark'] .ec-line :where(span[class^='hot-tk-']) {
+  color:var(--0, inherit);background-color:var(--0bg, transparent);font-style:var(--0fs, inherit);font-weight:var(--0fw, inherit);text-decoration:var(--0td, inherit);
+}
+:root:not([data-theme='dark']) .expressive-code .ec-line :where(span[class^='hot-tk-']) {
+  color:var(--1, inherit);background-color:var(--1bg, transparent);font-style:var(--1fs, inherit);font-weight:var(--1fw, inherit);text-decoration:var(--1td, inherit);
+}
+:root[data-theme='light'] .expressive-code:not([data-theme='dark']) .ec-line :where(span[class^='hot-tk-']),
+.expressive-code[data-theme='light'] .ec-line :where(span[class^='hot-tk-']) {
+  color:var(--1, inherit);background-color:var(--1bg, transparent);font-style:var(--1fs, inherit);font-weight:var(--1fw, inherit);text-decoration:var(--1td, inherit);
+}
