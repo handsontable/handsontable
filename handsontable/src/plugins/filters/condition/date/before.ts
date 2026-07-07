@@ -35,5 +35,6 @@ export function condition(dataRow: DataRow, [value]: (string | undefined)[]) {
 registerCondition(CONDITION_NAME, condition, {
   name: C.FILTERS_CONDITIONS_BEFORE,
   inputsCount: 1,
-  showOperators: true
+  showOperators: true,
+  inputType: 'date',
 });

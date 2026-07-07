@@ -40,7 +40,9 @@ export class InputUI extends BaseUI {
    * Register all necessary hooks.
    */
   registerHooks() {
-    this.addLocalHook('keyup', (event: Event) => this.#onKeyup(event));
+    this.addLocalHook('keyup', (event: Event) => this.#onValueChange(event));
+    this.addLocalHook('input', (event: Event) => this.#onValueChange(event));
+    this.addLocalHook('change', (event: Event) => this.#onValueChange(event));
   }
 
   /**
@@ -81,6 +83,17 @@ export class InputUI extends BaseUI {
   }
 
   /**
+   * Set the type of the native input element (e.g. `text`, `date`, or `time`).
+   */
+  setType(type: string) {
+    this.options.type = type;
+
+    if (this.isBuilt()) {
+      this.update();
+    }
+  }
+
+  /**
    * Focus element.
    */
   focus() {
@@ -90,11 +103,13 @@ export class InputUI extends BaseUI {
   }
 
   /**
-   * OnKeyup listener.
+   * Synchronizes the stored value with the native input element. Listens to `keyup` for typed
+   * characters and to `input`/`change` for values set without key presses, e.g. picked from the
+   * native date or time picker.
    *
-   * @param {Event} event The mouse event object.
+   * @param {Event} event The DOM event object.
    */
-  #onKeyup(event: Event) {
+  #onValueChange(event: Event) {
     this.options.value = eventTargetEl<HTMLInputElement>(event)!.value;
   }
 }
