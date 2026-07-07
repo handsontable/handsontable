@@ -339,3 +339,63 @@ test('.jsx/.tsx examples render with jsx/tsx code fences, not js/ts', async () =
     rmSync(root, { recursive: true, force: true });
   }
 });
+
+/**
+ * Builds a temp content tree with a server-side-only example (a .cs file with
+ * no runnable JS/TS/Vue entry point), so the fenced-code language mapping for
+ * non-JS backend languages can be asserted.
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createCsharpFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-'));
+  const contentDir = join(root, 'content');
+  const serverDir = join(contentDir, 'guides', 'intro', 'server');
+
+  mkdirSync(serverDir, { recursive: true });
+
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+
+  writeFileSync(
+    join(contentDir, 'guides', 'intro', 'intro.md'),
+    [
+      '---',
+      'title: Introduction',
+      'permalink: /intro',
+      '---',
+      '',
+      'Intro body.',
+      '',
+      '::: example #ex1',
+      '@[code csharp](@/content/guides/intro/server/Order.cs)',
+      ':::',
+      '',
+    ].join('\n')
+  );
+
+  writeFileSync(join(serverDir, 'Order.cs'), 'public class Order\n{\n    public int Id { get; set; }\n}\n');
+
+  return { contentDir, root };
+}
+
+test('.cs examples render with a csharp code fence, not a plain-text fence', async () => {
+  const { contentDir, root } = createCsharpFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'javascript-data-grid/intro');
+
+    // The fix: .cs extensions map to the csharp Shiki grammar, so the code
+    // highlights instead of rendering as flat, uncolored text.
+    assert.ok(html.includes('````csharp title="C#"'), 'expected a csharp code fence');
+
+    // Regression guard: before the fix, .cs had no EXT_TO_LANG entry and fell
+    // back to the plain-text grammar (no highlighting).
+    assert.ok(!html.includes('````text title='), '.cs must not fall back to a plain-text fence');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
