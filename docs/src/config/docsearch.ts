@@ -15,10 +15,52 @@ const HTML_ENTITIES: Record<string, string> = {
 const decodeHtml = (str: string | null | undefined): string | null | undefined =>
   str ? str.replace(/&(?:amp|lt|gt|quot|#039|apos);/g, (e) => HTML_ENTITIES[e] ?? e) : str;
 
+// Mirrors the URL-prefix -> display-name mapping in FrameworkSwitcher.astro.
+// Must match exactly: the Algolia crawler tags each record with the text it
+// scrapes from `.nav-frameworks .dropdown-title .title` on that page, which
+// renders `fullName` from that same mapping (e.g. "Vue 3", not "Vue").
+const FRAMEWORK_TAGS: Array<[prefix: string, tag: string]> = [
+  ['/javascript-data-grid/', 'JavaScript'],
+  ['/react-data-grid/', 'React'],
+  ['/angular-data-grid/', 'Angular'],
+  ['/vue-data-grid/', 'Vue 3'],
+];
+
+// Returns undefined for pages outside all four framework prefixes (if any
+// exist) so search falls back to unfiltered results instead of guessing.
+function getCurrentFrameworkTag(): string | undefined {
+  const { pathname } = window.location;
+
+  return FRAMEWORK_TAGS.find(([prefix]) => pathname.includes(prefix))?.[1];
+}
+
 export default {
   appId: 'MMN6OTJMGX',
   apiKey: 'c2430302c91e0162df988d4b383c9d8b',
   indexName: 'handsontable',
+  // Restricts search results to the framework of the current page. Read
+  // fresh per query (not computed once) because the search widget persists
+  // across Astro View Transitions (`transition:persist="docs-search"` in
+  // Header.astro, DEV-1792), so a value captured at init time would go
+  // stale after a client-side navigation to a different framework's pages.
+  transformSearchClient(searchClient: any) {
+    return {
+      ...searchClient,
+      search(params: any) {
+        const tag = getCurrentFrameworkTag();
+
+        if (!tag) return searchClient.search(params);
+
+        return searchClient.search({
+          ...params,
+          requests: params.requests.map((request: any) => ({
+            ...request,
+            facetFilters: [`tags:${tag}`],
+          })),
+        });
+      },
+    };
+  },
   transformItems(items: any[]) {
     return items.map((item) => {
       const url: string = item.url ?? '';
