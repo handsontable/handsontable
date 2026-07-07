@@ -2,7 +2,7 @@
 
 # Walkontable — File/Folder Restructuring Proposal
 
-Vertical-slice + ports/adapters reorg of `handsontable/src/3rdparty/walkontable/src`. Branch: `feature/DEV-1995_Walkontable-single-pass-layout`. **STATUS: Groups A/B/D + scope refinements + Group C1 + Group C2 are EXECUTED and committed (all gated green). C2 split `overlays.ts` 1214 -> 675 lines via four collaborator classes — `overlay/resizeMonitor.ts`, `overlay/spreaderSize.ts`, `overlay/scroll/scrollSync.ts`, `overlay/scroll/nativeScrollInput.ts` — plus nesting the Overlay class hierarchy into `overlay/regions/`. The overlay-only scroll collaborators live under `overlay/scroll/` (not the shared top-level `scroll/`). C3 (`table/baseTable.ts` split) remains. See the C2/C3 execution guide below.**
+Vertical-slice + ports/adapters reorg of `handsontable/src/3rdparty/walkontable/src`. Branch: `feature/DEV-1995_Walkontable-single-pass-layout`. **STATUS: Groups A/B/C/D + scope refinements are EXECUTED and committed — the whole restructure is done (all gated green). C2 split `overlays.ts` 1214 -> 675 via four collaborators (`overlay/resizeMonitor.ts`, `overlay/spreaderSize.ts`, `overlay/scroll/scrollSync.ts`, `overlay/scroll/nativeScrollInput.ts`) + nested the Overlay class hierarchy into `overlay/regions/`. C3 split `table/baseTable.ts` 946 -> 412 via three mixins (`axisSizing/sizeGetters.ts`, `table/rangeQuery/viewportPredicates.ts`, `axisSizing/oversizedRows.ts`) — C1 had already extracted the event hit-test. See the C2/C3 execution guide below for the delivered breakdown.**
 
 ## How this was produced
 
@@ -223,7 +223,11 @@ These are **behavior-preserving code extractions, not `git mv`** — each gated 
 - **Overlay-only scroll collaborators live in `overlay/scroll/`** (nested, not the shared top-level `scroll/`, and not flat in `overlay/` — grouped so the slice stays navigable).
 - **Residual coordinator** in `overlay/overlays.ts`: registry (`getOverlays`/`initOverlays`), draw participation (`beforeDraw`/`afterDraw`/`refreshAll`/`refresh`/`prepareHeaderBorders`/`applyToDOM`/`refreshColumnHeaderHeights`), `destroy`, and the thin delegates/accessors above.
 
-**C3 target for `table/baseTable.ts`:** `axisSizing/sizeGetters.ts` (getRowHeight/getColumnWidth/getWidth/getTotal*/hasDefinedSize/isVisible/getColumnHeaderHeight — pure cache reads → **mixin**) + `axisSizing/oversizedRows.ts` (markOversizedRows/resetOversizedRows/adjustColumnHeaderHeights — still present, kept by design) + `table/rangeQuery/` predicate helpers. Preserve exact per-region adapter composition.
+**C3 for `table/baseTable.ts` — ✅ ALL DONE** (three mixins, `cellAccess`/`domScaffold` template; `baseTable.ts` 946 -> 412):
+1. **sizeGetters ✅** → `axisSizing/sizeGetters.ts` — getRowHeight/getColumnHeaderHeight/getColumnWidth/getWidth/getHeight/getTotalWidth/getTotalHeight/hasDefinedSize/isVisible (cache + geometry-read delegates).
+2. **viewportPredicates ✅** → `table/rangeQuery/viewportPredicates.ts` — the 13 rendered-range / viewport predicates (is*Rendered / is*Before/AfterRendered / is*Viewport / isLast*FullyVisible / all*InViewport); `boolean|null` return types of the filter-guarded ones preserved exactly.
+3. **oversizedRows ✅** → `axisSizing/oversizedRows.ts` — markOversizedRows/resetOversizedRows/adjustColumnHeaderHeights/syncOversizedColumnHeadersWithFrozenOverlays (kept by design). Gated with core e2e (colHeader #12198/#12632, nestedHeaders, autoRowSize, mergeCells, getRowHeight, renderSizeProbe 837/0).
+- All three are declaration-merge mixins on `Table` (`mixin(Table, x)` + `interface Table extends X`), so the methods stay on the `Table` type and every external caller (core, plugins, overlays, drawCycle) is unaffected. `#deps` reads route through the existing `get deps()` getter. No subclass overrides existed. Per-region adapter composition unchanged.
 
 **Per-extraction gate (commit only when all green):** `npm --prefix handsontable run test:types` (the reliable broken-import checklist — trust it over lagging editor diagnostics) + `test:walkontable` (749 specs, 0 failures) + `eslint` (exit 0); targeted core `test:e2e --testPathPattern=<area>` for behavior-risky cuts. grep BOTH `src/` and `test/` for importers on every move.
 
