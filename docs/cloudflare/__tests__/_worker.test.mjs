@@ -214,3 +214,20 @@ test('redirects disabled cells guide slugs to the read-only cells guide', async(
     'https://handsontable.com/docs/angular-data-grid/read-only-cells/',
   );
 });
+
+test('keeps versioned demo redirects on historical disabled cells slugs', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(
+    worker,
+    '/docs/11.1/demo-read-only.html',
+    '/docs/11.1/disabled-cells',
+    302,
+  );
+  await assertRedirect(
+    worker,
+    '/docs/15.3/demo-disabled-editing.html',
+    '/docs/15.3/javascript-data-grid/disabled-cells',
+    302,
+  );
+});
