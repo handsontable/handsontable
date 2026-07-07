@@ -107,6 +107,8 @@ Handsontable provides a wide range of [keyboard shortcuts](@/guides/navigation/k
 
 *To use this shortcut, disable the default macOS behavior for the <kbd>**Ctrl**</kbd>+<kbd>**Space**</kbd> key combination, under **System Settings** > **Keyboard** > **Keyboard Shortcuts** > **Input Sources**.
 
+For filter-menu-specific navigation details, including <kbd>**Tab**</kbd> traversal and hover behavior, see [Column filter](@/guides/columns/column-filter/column-filter.md#navigate-the-filter-menu).
+
 ## Support for screen readers
 
 Although semantic HTML doesn't need any additional attributes to be properly interpreted by assistive technologies, some of Handsontable's complex features are not fully covered by the HTML specification. That's why Handsontable provides support for screen readers with ARIA attributes (Accessible Rich Internet Applications) applied to its HTML markup.

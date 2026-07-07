@@ -135,6 +135,7 @@ the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md).
 | [`filter_action_bar`](@/api/filters.md)        | Apply or cancel the filter with the **OK** and **Cancel** buttons.                           |
 
 For a complete filtering guide, see [Column filter](@/guides/columns/column-filter/column-filter.md).
+For filter-menu keyboard and pointer behavior, see [Navigate the filter menu](@/guides/columns/column-filter/column-filter.md#navigate-the-filter-menu).
 
 ## Related keyboard shortcuts
 

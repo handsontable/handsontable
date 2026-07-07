@@ -229,6 +229,10 @@ These keyboard shortcuts work with the [column filter](@/guides/columns/column-f
 | Windows                             | macOS                                  | Action            |  Excel  | Sheets  |
 | ----------------------------------- | -------------------------------------- | ----------------- | :-----: | :-----: |
 | <kbd>**Alt**</kbd>+<kbd>**A**</kbd> | <kbd>⌥</kbd>+<kbd>**A**</kbd> | Clear all filters | &cross; | &cross; |
+| <kbd>**Tab**</kbd> | <kbd>**Tab**</kbd> | Move focus to the next filtering component in the open filter menu. | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> | <kbd>⇧</kbd>+<kbd>**Tab**</kbd> | Move focus to the previous filtering component in the open filter menu. | &cross; | &cross; |
+| <kbd>**↑**</kbd> / <kbd>**↓**</kbd> | <kbd>**↑**</kbd> / <kbd>**↓**</kbd> | When the filter search input is focused, move through the **Filter by value** list. | &cross; | &cross; |
+| <kbd>**Enter**</kbd> / <kbd>**Space**</kbd> | <kbd>**Enter**</kbd> / <kbd>**Space**</kbd> | When **Select all** or **Clear all** is focused, run the action. | &cross; | &cross; |
 
 ### Comments keyboard shortcuts
 
