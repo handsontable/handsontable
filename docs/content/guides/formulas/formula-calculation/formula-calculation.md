@@ -220,7 +220,7 @@ const hotSettings = ref({
 
 :::
 
-or
+Or pass a configuration object to customize the engine. For all available options, see the [HyperFormula `ConfigParams` reference](https://hyperformula.handsontable.com/api/interfaces/configparams.html).
 
 ::: only-for javascript
 
@@ -231,7 +231,6 @@ or
       hyperformula: HyperFormula, // or `engine: hyperformulaInstance`
       leapYear1900: false,
       // ...and more engine configuration options.
-      // See https://handsontable.github.io/hyperformula/api/interfaces/configparams.html#number
     },
     // [plugin configuration]
   }
@@ -249,7 +248,6 @@ or
       hyperformula: HyperFormula, // or `engine: hyperformulaInstance`
       leapYear1900: false,
       // ...and more engine configuration options.
-      // See https://handsontable.github.io/hyperformula/api/interfaces/configparams.html#number
     },
     // [plugin configuration]
   }}
@@ -267,7 +265,6 @@ or
       hyperformula: HyperFormula, // or `engine: hyperformulaInstance`
       leapYear1900: false,
       // ...and more engine configuration options.
-      // See https://handsontable.github.io/hyperformula/api/interfaces/configparams.html#number
     },
     // [plugin configuration]
   }
@@ -285,7 +282,6 @@ const hotSettings = ref({
       hyperformula: HyperFormula, // or `engine: hyperformulaInstance`
       leapYear1900: false,
       // ...and more engine configuration options.
-      // See https://handsontable.github.io/hyperformula/api/interfaces/configparams.html#number
     },
     // [plugin configuration]
   },
