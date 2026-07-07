@@ -19,6 +19,7 @@ public class OrdersService
     };
 
     private static readonly HashSet<string> StringColumns = new() { "orderNumber", "customer", "status" };
+    private static readonly HashSet<string> DateColumns = new() { "createdAt" };
 
     // System-managed fields (id, createdAt) are deliberately excluded so
     // update_rows can never overwrite them.
@@ -150,9 +151,18 @@ public class OrdersService
                 continue; // unknown column name -- ignored instead of trusted
             }
 
-            query = StringColumns.Contains(filter.Prop)
-                ? ApplyStringFilter(query, property, filter)
-                : ApplyNumericFilter(query, property, filter);
+            if (StringColumns.Contains(filter.Prop))
+            {
+                query = ApplyStringFilter(query, property, filter);
+            }
+            else if (DateColumns.Contains(filter.Prop))
+            {
+                query = ApplyDateFilter(query, property, filter);
+            }
+            else
+            {
+                query = ApplyNumericFilter(query, property, filter);
+            }
         }
 
         return query;
@@ -173,6 +183,31 @@ public class OrdersService
             "ends_with" => query.Where(o => EF.Functions.Like(EF.Property<string>(o, property), $"%{likeValue}", "\\")),
             "empty" => query.Where(o => EF.Property<string>(o, property) == null || EF.Property<string>(o, property) == string.Empty),
             "not_empty" => query.Where(o => EF.Property<string>(o, property) != null && EF.Property<string>(o, property) != string.Empty),
+            _ => query,
+        };
+    }
+
+    private static IQueryable<Order> ApplyDateFilter(IQueryable<Order> query, string property, FilterDto filter)
+    {
+        if (filter.Condition is "empty" or "not_empty")
+        {
+            // CreatedAt is non-nullable -- there's no empty date state to check.
+            return query;
+        }
+
+        if (!DateTime.TryParse(filter.Value, out var value))
+        {
+            return query; // malformed date input -- ignored rather than thrown
+        }
+
+        return filter.Condition switch
+        {
+            "eq" => query.Where(o => EF.Property<DateTime>(o, property).Date == value.Date),
+            "neq" => query.Where(o => EF.Property<DateTime>(o, property).Date != value.Date),
+            "gt" => query.Where(o => EF.Property<DateTime>(o, property) > value),
+            "gte" => query.Where(o => EF.Property<DateTime>(o, property) >= value),
+            "lt" => query.Where(o => EF.Property<DateTime>(o, property) < value),
+            "lte" => query.Where(o => EF.Property<DateTime>(o, property) <= value),
             _ => query,
         };
     }

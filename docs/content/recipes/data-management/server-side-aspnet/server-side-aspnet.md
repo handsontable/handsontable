@@ -200,10 +200,11 @@ Create `OrdersService.cs`:
 
 ### Filter helper
 
-`ApplyFilters` loops over `query.Filters` and dispatches each one to `ApplyStringFilter` or `ApplyNumericFilter` based on whether the column is in `StringColumns`.
+`ApplyFilters` loops over `query.Filters` and dispatches each one to `ApplyStringFilter`, `ApplyDateFilter`, or `ApplyNumericFilter`, based on whether the column is in `StringColumns`, `DateColumns`, or neither. This three-way split matters because EF Core is strongly typed: calling `EF.Property<decimal>` against a `DateTime` column throws, so each column's filter values must be parsed and compared as the type that column actually is.
 
 - String columns (`orderNumber`, `customer`, `status`) support `eq`, `neq`, `contains`, `not_contains`, `begins_with`, `ends_with`, `empty`, and `not_empty`. `contains`/`begins_with`/`ends_with` use `EF.Functions.Like` with an explicit `ESCAPE '\'` clause, and `EscapeLike` escapes `%`, `_`, and `\` in the user-supplied value first, so those characters are matched literally instead of acting as LIKE wildcards.
-- The numeric column (`total`) supports `eq`, `neq`, `gt`, `gte`, `lt`, and `lte`. `empty`/`not_empty` are rejected for `total` because it's a non-nullable column -- there's no empty state to check. `decimal.TryParse` guards against malformed numeric input; a value that doesn't parse is ignored rather than throwing a `500`.
+- The date column (`createdAt`) supports `eq`, `neq`, `gt`, `gte`, `lt`, and `lte`. `DateTime.TryParse` guards against malformed date input. `eq`/`neq` compare `.Date` on both sides so a filter value of a single day matches every `CreatedAt` timestamp on that day, not just an exact-to-the-second match.
+- The numeric column (`total`) supports `eq`, `neq`, `gt`, `gte`, `lt`, and `lte`. `empty`/`not_empty` are rejected for both `total` and `createdAt` because they're non-nullable columns -- there's no empty state to check. `decimal.TryParse` guards against malformed numeric input; a value that doesn't parse is ignored rather than throwing a `500`.
 - Multiple filters combine with `AND`, because each call reassigns `query` to a further-restricted `IQueryable`. `dataProvider` doesn't send `OR` groups by default.
 
 ### Pagination
