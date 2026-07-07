@@ -44,6 +44,16 @@ const AUTO_ROW_SIZE_CLASS_NAME = 'htAutoRowSize';
  *
  * To speed up the calculations, the plugin samples a subset of rows rather than measuring every row. By default, it
  * skips rows whose value it has already sampled, on the assumption that identical values render at the same height.
+ *
+ * Sampling accepts additional options:
+ * - *samplingRatio* - Defines how many samples for the same length will be used to calculate. Default is `3`.
+ *
+ * ```js
+ *   autoRowSize: {
+ *     samplingRatio: 10,
+ *   }
+ * ```
+ *
  * Set the `allowSampleDuplicates` option to `true` to sample duplicate values as well:
  *
  * ```js
