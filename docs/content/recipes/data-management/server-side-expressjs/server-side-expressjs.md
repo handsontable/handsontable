@@ -323,3 +323,4 @@ Handsontable passes an array of `id` strings matching `dataProvider.rowId`. The 
 - Share the Zod schema types between the Express backend and the Handsontable frontend in a monorepo using a shared `packages/types` workspace package.
 - Compare with the [NestJS recipe](@/recipes/data-management/server-side-nestjs/server-side-nestjs.md) to see the same pattern implemented with decorators, a DI container, and `class-validator` instead of Zod.
 - Compare with the [Symfony recipe](@/recipes/data-management/server-side-symfony/server-side-symfony.md) to see the same Handsontable frontend wired to a PHP backend using the same endpoint shapes.
+- Compare with the [ASP.NET Core recipe](@/recipes/data-management/server-side-aspnet/server-side-aspnet.md) to see the same `buildUrl`/`fetchRows` pattern targeting ASP.NET Core's dot-notation query binding instead of Express's bracket notation.

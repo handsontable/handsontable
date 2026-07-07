@@ -97,6 +97,7 @@ const EXT_TO_LANG = {
   py: 'python',
   rb: 'ruby',
   java: 'java',
+  cs: 'csharp',
   properties: 'properties',
 };
 
@@ -104,6 +105,7 @@ const EXT_TO_LANG = {
 const META_LANG = {
   php: 'php',
   java: 'java',
+  csharp: 'csharp',
   typescript: 'typescript',
   ts: 'typescript',
   js: 'javascript',
@@ -124,6 +126,7 @@ const EXT_TO_LABEL = {
   py: 'Python',
   rb: 'Ruby',
   java: 'Java',
+  cs: 'C#',
   properties: 'Properties',
 };
 
@@ -517,7 +520,7 @@ const PREFIXES = {
 
 // Bump this when the loader logic changes to force Astro's data store to
 // re-process all entries (the store skips entries whose digest hasn't changed).
-const LOADER_VERSION = 'v41';
+const LOADER_VERSION = 'v42';
 
 // ---------------------------------------------------------------------------
 // File listing (recursive, no external glob)

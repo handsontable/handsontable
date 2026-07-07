@@ -377,3 +377,4 @@ Because `beforeRowsMutation` is synchronous and checks for a strict `=== false` 
 - Secure the API with Spring Security: require authentication for mutation endpoints while keeping `GET /api/products` public.
 - Compare with the [Laravel recipe](@/recipes/data-management/server-side-laravel/server-side-laravel.md) to see the same Handsontable frontend wired to a PHP backend using the same endpoint shapes.
 - Compare with the [Symfony recipe](@/recipes/data-management/server-side-symfony/server-side-symfony.md) to see the same Handsontable frontend wired to a PHP/Symfony backend using the same endpoint shapes.
+- Compare with the [ASP.NET Core recipe](@/recipes/data-management/server-side-aspnet/server-side-aspnet.md) to see the same Handsontable frontend wired to a .NET backend using EF Core instead of Spring Data JPA.
