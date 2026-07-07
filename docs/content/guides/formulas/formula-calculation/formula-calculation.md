@@ -1004,6 +1004,46 @@ For the full argument type reference, error handling patterns, and advanced opti
 function aliases and async functions, see the
 [HyperFormula custom functions guide](https://hyperformula.handsontable.com/guide/custom-functions.html).
 
+## Change the formula language
+
+HyperFormula ships with built-in language packs that translate function names and control
+locale-specific formula syntax, such as the argument separator. By default, Handsontable uses
+the English (`enGB`) language pack.
+
+To use a different language, import a language pack from `hyperformula/es/i18n/languages` and
+pass it to the `formulas.language` option:
+
+```javascript
+import { HyperFormula } from 'hyperformula';
+import plPL from 'hyperformula/es/i18n/languages/plPL';
+
+const hot = new Handsontable(container, {
+  data: [
+    ['Company', 'Revenue Q1', 'Revenue Q2', 'Total'],
+    ['Acme Corp', 4200000, 4800000, '=SUMA(B1:C1)'],
+  ],
+  formulas: {
+    engine: HyperFormula,
+    sheetName: 'Sheet1',
+    language: plPL,
+  },
+  licenseKey: 'non-commercial-and-evaluation',
+});
+```
+
+You can also change the language after initialization, with `updateSettings()`:
+
+```javascript
+hot.updateSettings({
+  formulas: {
+    language: plPL,
+  },
+});
+```
+
+For the full list of available language packs, see the
+[HyperFormula localizing functions guide](https://hyperformula.handsontable.com/guide/localizing-functions.html).
+
 ## View the explainer video
 
 <div class="docs-video-embed">

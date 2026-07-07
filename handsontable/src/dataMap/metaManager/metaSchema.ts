@@ -2975,6 +2975,7 @@ export default (): Record<string, unknown> => {
      * | `engine`    | `HyperFormula` \|<br>A [HyperFormula](https://handsontable.github.io/hyperformula/) instance \|<br>A [HyperFormula configuration](https://handsontable.github.io/hyperformula/api/interfaces/configparams.html) object |
      * | `sheetId`   | A number                                                                                                                                                                                                               |
      * | `sheetName` | A string                                                                                                                                                                                                               |
+     * | `language`  | A [HyperFormula language pack](https://handsontable.github.io/hyperformula/guide/localizing-functions.html), imported from `hyperformula/es/i18n/languages`                                                          |
      *
      * Read more:
      * - [Plugins: `Formulas`](@/api/formulas.md)
@@ -3040,6 +3041,22 @@ export default (): Record<string, unknown> => {
      *   sheetId: 1,
      *   sheetName: 'Sheet 1'
      * }
+     *
+     * // set a language pack for the built-in function names and formula syntax
+     * import plPL from 'hyperformula/es/i18n/languages/plPL';
+     *
+     * formulas: {
+     *   engine: HyperFormula,
+     *   sheetName: 'Sheet 1',
+     *   language: plPL
+     * }
+     *
+     * // update the language at runtime
+     * hot.updateSettings({
+     *   formulas: {
+     *     language: plPL
+     *   }
+     * });
      * ```
      */
     formulas: undefined,
