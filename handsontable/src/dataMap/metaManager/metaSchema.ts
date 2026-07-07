@@ -4105,8 +4105,8 @@ export default (): Record<string, unknown> => {
      *
      * | Property  | Description                                                |
      * | --------- | ---------------------------------------------------------- |
-     * | `row`     | The row index of the merged section's beginning            |
-     * | `col`     | The column index of the merged section's beginning         |
+     * | `row`     | The visual row index of the merged section's beginning     |
+     * | `col`     | The visual column index of the merged section's beginning  |
      * | `rowspan` | The width (as a number of rows) of the merged section      |
      * | `colspan` | The height (as a number of columns ) of the merged section |
      *

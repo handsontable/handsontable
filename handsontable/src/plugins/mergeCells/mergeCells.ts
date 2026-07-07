@@ -685,10 +685,10 @@ export class MergeCells extends BasePlugin {
   /**
    * Merges the specified range.
    *
-   * @param {number} startRow Start row of the merged cell.
-   * @param {number} startColumn Start column of the merged cell.
-   * @param {number} endRow End row of the merged cell.
-   * @param {number} endColumn End column of the merged cell.
+   * @param {number} startRow Visual start row of the merged cell.
+   * @param {number} startColumn Visual start column of the merged cell.
+   * @param {number} endRow Visual end row of the merged cell.
+   * @param {number} endColumn Visual end column of the merged cell.
    * @fires Hooks#beforeMergeCells
    * @fires Hooks#afterMergeCells
    */
@@ -702,10 +702,10 @@ export class MergeCells extends BasePlugin {
   /**
    * Unmerges the merged cell in the provided range.
    *
-   * @param {number} startRow Start row of the merged cell.
-   * @param {number} startColumn Start column of the merged cell.
-   * @param {number} endRow End row of the merged cell.
-   * @param {number} endColumn End column of the merged cell.
+   * @param {number} startRow Visual start row of the merged cell.
+   * @param {number} startColumn Visual start column of the merged cell.
+   * @param {number} endRow Visual end row of the merged cell.
+   * @param {number} endColumn Visual end column of the merged cell.
    * @fires Hooks#beforeUnmergeCells
    * @fires Hooks#afterUnmergeCells
    */

@@ -31,21 +31,43 @@ To enable the merge cells feature, set the [`mergeCells`](@/api/options.md#merge
 
 To initialize Handsontable with predefined merged cells, provide merged cells details in form of an array:
 
+The `row` and `col` properties use visual indexes. They refer to positions as displayed in the grid, in the same coordinate space as `selectCell()` and `getCellMeta()`.
+
 ::: only-for javascript
 
-`mergeCells: [{ row: 1, col: 1, rowspan: 2, colspan: 2 }]`
+```js
+mergeCells: [
+  { row: 1, col: 1, rowspan: 3, colspan: 3 },
+  { row: 3, col: 4, rowspan: 2, colspan: 2 },
+  { row: 5, col: 6, rowspan: 3, colspan: 3 },
+]
+```
 
 :::
 
 ::: only-for react
 
-`mergeCells={[{ row: 1, col: 1, rowspan: 2, colspan: 2 }]}`
+```jsx
+mergeCells={[
+  { row: 1, col: 1, rowspan: 3, colspan: 3 },
+  { row: 3, col: 4, rowspan: 2, colspan: 2 },
+  { row: 5, col: 6, rowspan: 3, colspan: 3 },
+]}
+```
 
 :::
 
 ::: only-for angular
 
-`settings = { mergeCells:[{ row: 1, col: 1, rowspan: 2, colspan: 2 }]}`
+```ts
+settings = {
+  mergeCells: [
+    { row: 1, col: 1, rowspan: 3, colspan: 3 },
+    { row: 3, col: 4, rowspan: 2, colspan: 2 },
+    { row: 5, col: 6, rowspan: 3, colspan: 3 },
+  ],
+};
+```
 
 :::
 
@@ -53,7 +75,11 @@ To initialize Handsontable with predefined merged cells, provide merged cells de
 
 ```js
 const hotSettings = {
-  mergeCells: [{ row: 1, col: 1, rowspan: 2, colspan: 2 }],
+  mergeCells: [
+    { row: 1, col: 1, rowspan: 3, colspan: 3 },
+    { row: 3, col: 4, rowspan: 2, colspan: 2 },
+    { row: 5, col: 6, rowspan: 3, colspan: 3 },
+  ],
 };
 ```
 
