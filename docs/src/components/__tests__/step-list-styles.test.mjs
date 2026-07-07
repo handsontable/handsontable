@@ -8,10 +8,10 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const pageCss = readFileSync(join(__dirname, '../../styles/layout/page.css'), 'utf8');
 
 test('generated step lists have global marker and guide styles', () => {
-  assert.match(pageCss, /\n\.sl-steps\s*\{[\s\S]*margin-top:\s*2rem/);
-  assert.match(pageCss, /\.sl-steps\s*\{[\s\S]*counter-reset:\s*steps-counter/);
-  assert.match(pageCss, /\.sl-steps\s*>\s*li\s*\{[\s\S]*counter-increment:\s*steps-counter/);
-  assert.match(pageCss, /\.sl-steps\s*>\s*li\s*>\s*\*\s*\+\s*\*\s*\{[\s\S]*margin-top:\s*var\(--sl-content-gap-y\)/);
-  assert.match(pageCss, /\.sl-steps\s*>\s*li::before\s*\{[\s\S]*content:\s*counter\(steps-counter\)/);
-  assert.match(pageCss, /\.sl-steps\s*>\s*li::after\s*\{[\s\S]*background-color:\s*var\(--sl-color-hairline-light\)/);
+  assert.match(pageCss, /(?:^|\n)\.sl-steps\s*\{[^}]*margin-top:\s*2rem/);
+  assert.match(pageCss, /\.sl-steps\s*\{[^}]*counter-reset:\s*steps-counter/);
+  assert.match(pageCss, /\.sl-steps\s*>\s*li\s*\{[^}]*counter-increment:\s*steps-counter/);
+  assert.match(pageCss, /\.sl-steps\s*>\s*li\s*>\s*\*\s*\+\s*\*\s*\{[^}]*margin-top:\s*var\(--sl-content-gap-y\)/);
+  assert.match(pageCss, /\.sl-steps\s*>\s*li::before\s*\{[^}]*content:\s*counter\(steps-counter\)/);
+  assert.match(pageCss, /\.sl-steps\s*>\s*li::after\s*\{[^}]*background-color:\s*var\(--sl-color-hairline-light\)/);
 });
