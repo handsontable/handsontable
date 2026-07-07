@@ -160,6 +160,62 @@ const hotSettings = ref({
 
 :::
 
+You can also pass a function to `width` and `height`. Use this when you calculate dimensions from your current layout. The function can return a number (pixels) or a CSS size string.
+
+:::: only-for javascript
+
+```js
+{
+  width() {
+    return `${window.innerWidth - 64}px`;
+  },
+  height() {
+    return 400;
+  },
+}
+```
+
+::::
+
+:::: only-for react
+
+```jsx
+const getGridWidth = () => `${window.innerWidth - 64}px`;
+const getGridHeight = () => 400;
+
+<HotTable width={getGridWidth} height={getGridHeight} />
+```
+
+::::
+
+:::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+gridSettings: GridSettings = {
+  width: () => `${window.innerWidth - 64}px`,
+  height: () => 400,
+};
+```
+
+```html
+<hot-table [settings]="gridSettings" />
+```
+
+::::
+
+:::: only-for vue
+
+```js
+const hotSettings = ref({
+  width: () => `${window.innerWidth - 64}px`,
+  height: () => 400,
+});
+```
+
+::::
+
 These dimensions will be set as inline styles in a container element, and `overflow: hidden` will be added automatically.
 
 If container is a block element, then its parent has to have defined `height`. By default block element is `0px` height, so `100%` from `0px` is still `0px`.
