@@ -13,7 +13,6 @@ vue:
   metaTitle: Cell validator - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell functions
-menuTag: updated
 ---
 
 Cell validators run when a user finishes editing a cell. Use them to enforce data rules such as required fields, numeric ranges, or pattern matching.
@@ -31,6 +30,79 @@ When you create a validator, assign it an alias so you can reference it by name 
 - `time` for `Handsontable.validators.TimeValidator`
 
 Aliases give you a convenient way to specify which validator runs when table validation triggers. You don't need to reference the validator function directly, and you can swap the function behind an alias without changing your column configuration.
+
+### Invalid cell commit semantics vs. visual marking
+
+When a validator returns `false`, Handsontable independently controls two separate outcomes:
+
+- **Commit behavior** — controlled by [`allowInvalid`](@/api/options.md#allowinvalid). When `true` (the default), the invalid value is written to the data source and the editor closes. When `false`, the editor stays open and the value is rejected until the user enters something that passes validation.
+- **Visual marking** — controlled by [`invalidCellClassName`](@/api/options.md#invalidcellclassname). Regardless of [`allowInvalid`], Handsontable applies a CSS class to every cell whose validator returned `false`. The default class is htInvalid; you can replace it per-column or table-wide using [`invalidCellClassName`].
+
+The following snippet shows both options used together on a single column:
+
+::: only-for javascript
+
+```js
+columns: [
+  {
+    data: 'ip',
+    validator: ipValidatorRegexp,
+    allowInvalid: true,          // keep the value even when invalid
+    invalidCellClassName: 'my-invalid-cell' // apply a custom CSS class
+  }
+]
+```
+
+:::
+
+These two options work independently. You can configure [`allowInvalid`] and [`invalidCellClassName`] together without one affecting the other.
+
+::: only-for react
+
+```jsx
+columns={[
+  {
+    data: 'ip',
+    validator: ipValidatorRegexp,
+    allowInvalid: true,
+    invalidCellClassName: 'my-invalid-cell'
+  }
+]}
+```
+
+:::
+
+::: only-for angular
+
+```ts
+columns: [
+  {
+    data: 'ip',
+    validator: ipValidatorRegexp,
+    allowInvalid: true,
+    invalidCellClassName: 'my-invalid-cell'
+  }
+]
+```
+
+:::
+
+::: only-for vue
+
+```html
+<HotTable :settings="{
+  columns: [
+    {
+      data: 'ip',
+      validator: ipValidatorRegexp,
+      allowInvalid: true,
+      invalidCellClassName: 'my-invalid-cell'
+    }
+  ]
+}" />
+```
+
+:::
 
 ## Register custom cell validator
 
@@ -51,6 +123,7 @@ Choose aliases wisely. If you register your validator under name that is already
 Handsontable.validators.registerValidator('date', creditCardValidator);
 ```
 Now 'date' alias points to `creditCardValidator` function, not `Handsontable.validators.DateValidator`.
+
 
 
 So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name (for example your GitHub username) to minimize the possibility of name collisions. This is especially important if you want to publish your validator, because you never know aliases has been registered by the user who uses your validator.
@@ -108,7 +181,7 @@ const hot = new Handsontable(container, {
 <HotTable
   columns={[{
     validator: 'my.custom'
-  }]}
+  } ]}
 />
 ```
 
@@ -141,7 +214,7 @@ Use the validator method to easily validate synchronous or asynchronous changes 
 
 Use the [`allowInvalid`](@/api/options.md#allowinvalid) option to define if the grid should accept input that does not validate. If you need to modify the input (e.g., censor bad words, uppercase first letter), use the plugin hook [`beforeChange`](@/api/hooks.md#beforechange).
 
-By default, all invalid cells are marked by `htInvalid` CSS class. If you want to change class to another you can basically add the `invalidCellClassName` option to Handsontable settings. For example:
+By default, all invalid cells are marked by the <code>htInvalid</code> CSS class. If you want to use a different class name, set <code>invalidCellClassName</code> — this replaces <code>htInvalid</code> for the affected cells. Add a CSS rule in your stylesheet for the chosen class. To apply a custom class name, add the <code>invalidCellClassName</code> option to your Handsontable settings. For example:
 
 For the entire table
 
@@ -194,11 +267,11 @@ columns: [
 ::: only-for react
 
 ```jsx
-columns={[
+columns=[
   { data: 'firstName', invalidCellClassName: 'myInvalidClass' },
   { data: 'lastName', invalidCellClassName: 'myInvalidSecondClass' },
   { data: 'address' }
-]}
+]
 ```
 
 :::
@@ -226,12 +299,6 @@ columns: [
   ]
 }" />
 ```
-
-:::
-
-::: tip
-
-While a cell's validator resolves, Handsontable keeps that cell's editor open and blocks other cells from entering edit mode. This is expected behavior, not a bug. The example below uses an asynchronous email validator that resolves after 1000 ms, so the editor stays open briefly after you finish typing. For more on how validation affects the editing flow, see [How validation affects hook order](@/guides/getting-started/events-and-hooks/events-and-hooks.md#how-validation-affects-hook-order).
 
 :::
 
@@ -283,11 +350,15 @@ Callback console log:
 
 Edit the above grid to see the `changes` argument from the callback.
 
-Changes in the table are applied after all validators (both synchronous and asynchronous) for every changed cell finish. Validation always runs asynchronously, even when a validator calls its callback synchronously, so [`afterChange`](@/api/hooks.md#afterchange) fires after validation completes. To act on a validated value, use the [`afterChange`](@/api/hooks.md#afterchange) or [`afterValidate`](@/api/hooks.md#aftervalidate) hook. For how a validator changes the order in which hooks fire, see [How validation affects hook order](@/guides/getting-started/events-and-hooks/events-and-hooks.md#how-validation-affects-hook-order).
+Mind that changes in table are applied after running all validators (both synchronous and and asynchronous) from every changed cell.
+
+### FAQ: Does the invalid CSS class still apply when <code>allowInvalid</code> is <code>true</code>?
+
+**Yes.** When <code>allowInvalid</code> is and a validator returns <code>false</code>, the value is written to the data source (the editor closes normally), but Handsontable still applies the invalid CSS class to the cell. By default that class is <code>htInvalid</code>; you can change it per-column or globally with the [`invalidCellClassName`](/docs/javascript-data-grid/api/options/#invalidcellclassname) option. The two concerns — whether to accept the value and how to mark the cell — are fully independent. See also the [`allowInvalid`](/docs/javascript-data-grid/api/options/#allowinvalid) option for details.
 
 ## Result
 
-You now have a cell validator that enforces data rules when a user finishes editing. Register it under an alias to reference it by name across your column configuration, and use `allowInvalid: false` to keep the editor open until the user enters a valid value.
+You now have a cell validator that enforces data rules when a user finishes editing. Register it under an alias to reference it by name across your column configuration. Use <code>allowInvalid</code> set to false to keep the editor open until the user enters a valid value, or <code>allowInvalid</code> set to true to accept the value while still visually flagging the cell. Use <code>invalidCellClassName</code> to customise the CSS class applied to cells that fail validation — the default is <code>htInvalid</code>.
 
 ## Related API reference
 
@@ -304,8 +375,8 @@ You now have a cell validator that enforces data rules when a user finishes edit
 <div class="boxes-list">
 
 - [allowEmpty](@/api/options.md#allowempty)
-- [allowInvalid](@/api/options.md#allowinvalid)
-- [invalidCellClassName](@/api/options.md#invalidcellclassname)
+- <code>allowInvalid</code> (@/api/options.md#allowinvalid) — controls whether an invalid value is committed to the data source
+- <code>invalidCellClassName</code> (@/api/options.md#invalidcellclassname) — sets the CSS class applied to cells that fail validation (default: <code>htInvalid</code>)
 - [validator](@/api/options.md#validator)
 
 </div>
