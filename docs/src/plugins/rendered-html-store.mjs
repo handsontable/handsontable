@@ -37,7 +37,6 @@ let currentDir = RENDERED_HTML_DIR;
  */
 export function setRenderedHtmlDirForTests(dir) {
   currentDir = dir;
-  dirCreated = false;
 }
 
 /**
@@ -48,11 +47,10 @@ export function setRenderedHtmlDirForTests(dir) {
  */
 export const RENDERED_HTML_MARKER_RE = /<!--hot-rendered:([\w./-]+)-->/g;
 
-let dirCreated = false;
-
 /**
- * Converts an entry id to its backing file path. Slashes are flattened so the
- * directory stays a single level deep.
+ * Converts an entry id to its backing file path. The id's slash-separated
+ * segments map 1:1 to directories, so distinct ids can never collide on the
+ * same file (flattening separators into a token like `__` could).
  *
  * @param {string} id – content entry id, e.g. `react-data-grid/cell-type`.
  * @param {string} [dir] – base directory; defaults to the module-relative
@@ -62,7 +60,15 @@ let dirCreated = false;
  * @returns {string}
  */
 export function renderedHtmlPath(id, dir = currentDir) {
-  return join(dir, `${id.replace(/\//g, '__')}.html`);
+  const segments = id.split('/');
+
+  // The middleware derives ids from markers found in page bodies — refuse
+  // anything that could escape the base directory.
+  if (segments.some(segment => segment === '' || segment === '.' || segment === '..')) {
+    throw new Error(`Invalid rendered-HTML entry id: "${id}"`);
+  }
+
+  return join(dir, ...segments.slice(0, -1), `${segments[segments.length - 1]}.html`);
 }
 
 /**
@@ -74,12 +80,10 @@ export function renderedHtmlPath(id, dir = currentDir) {
  * @returns {string} the marker comment for `entry.rendered.html`.
  */
 export function writeRenderedHtml(id, html) {
-  if (!dirCreated) {
-    mkdirSync(currentDir, { recursive: true });
-    dirCreated = true;
-  }
+  const path = renderedHtmlPath(id);
 
-  writeFileSync(renderedHtmlPath(id), html);
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, html);
 
   return `<!--hot-rendered:${id}-->`;
 }

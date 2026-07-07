@@ -42,3 +42,17 @@ test('replacement content containing $-sequences survives String.replace with a 
 test('reading a missing entry returns null', () => {
   assert.equal(readRenderedHtml('does-not-exist'), null);
 });
+
+test('ids differing only in separator shape never share a file', () => {
+  writeRenderedHtml('react-data-grid/cell__type', 'slash then underscores');
+  writeRenderedHtml('react-data-grid/cell/_type', 'nested');
+
+  assert.equal(readRenderedHtml('react-data-grid/cell__type'), 'slash then underscores');
+  assert.equal(readRenderedHtml('react-data-grid/cell/_type'), 'nested');
+});
+
+test('ids with empty or dot segments are rejected', () => {
+  for (const id of ['../escape', 'a/../b', 'a//b', './a', 'a/.']) {
+    assert.throws(() => writeRenderedHtml(id, 'x'), /Invalid rendered-HTML entry id/);
+  }
+});
