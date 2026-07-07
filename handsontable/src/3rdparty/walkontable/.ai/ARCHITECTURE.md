@@ -29,9 +29,9 @@ Walkontable is a self-contained, low-level table rendering engine embedded as a 
 | Facade | `facade/core.ts` | `WalkontableFacade` — the public surface TableView uses. |
 | Ports | `ports.ts` | Cross-cutting port interfaces (`SettingsPort`, `HooksPort`). Slice-owned ports live in their slice. |
 | Master table | `table/regions/masterTable.ts` | The main (scrollable) table. Overlay tables (`table/regions/{top,bottom,inlineStart,topInlineStartCorner,bottomInlineStartCorner}Table.ts`) extend the shared `Table` class in `table/baseTable.ts`. |
-| Table base | `table/baseTable.ts` | Shared `Table` class. Construction (`table/domScaffold.ts`), per-draw orchestration (`table/drawCycle.ts`), coords→DOM access (`table/cellAccess.ts`), and the rendered/visible range-query port + adapters (`table/rangeQuery/`) live in the same slice. Range-query + sticky behavior is mixed in at runtime. |
-| Overlays manager | `overlay/overlays.ts` | Creates and coordinates all overlays, synchronizes scroll between them, batches scroll/wheel events with `requestAnimationFrame`. Overlay-extending strategies live in `overlay/strategies/` (e.g. `stickyScrollStrategy.ts`). |
-| Overlay types | `overlay/` | `_base.ts` plus 5 concrete overlay subclasses `*Overlay.ts` (see Overlay System). |
+| Table base | `table/baseTable.ts` | Thin shared `Table` class: constructor, `draw()` entry, DOM scaffold, cell-meta, `destroy`. Most behavior is composed in as runtime mixins (see Module composition): DOM construction (`table/domScaffold.ts`), per-draw orchestration (`table/drawCycle.ts`), coords→DOM access (`table/cellAccess.ts`), rendered/visible range-query + viewport predicates (`table/rangeQuery/`), size getters (`axisSizing/sizeGetters.ts`), post-render measurement (`axisSizing/oversizedRows.ts`), plus range-query/sticky adapters. |
+| Overlays manager | `overlay/overlays.ts` | Thin coordinator: creates overlays, brackets the draw, refreshes clones. It delegates the stateful concerns to collaborator classes it owns (see Module composition) — `overlay/resizeMonitor.ts` (ResizeObserver loop-guard), `overlay/spreaderSize.ts` (hider/spreader sizing), `overlay/scroll/scrollSync.ts` (shared scroll state + master↔clone sync) and `overlay/scroll/nativeScrollInput.ts` (native scroll/wheel/key/resize input, `requestAnimationFrame` batching). Overlay-extending strategies live in `overlay/strategies/` (e.g. `stickyScrollStrategy.ts`). |
+| Overlay types | `overlay/regions/` | `_base.ts` (abstract `Overlay` + `createOverlayDeps`) plus 5 concrete overlay subclasses `*Overlay.ts` (see Overlay System). |
 | Viewport calculators | `calculator/` | `viewportRows.ts`, `viewportColumns.ts`, `viewportBase.ts`, `axisCalculation.ts`, `calculationType/` — compute the visible row/column ranges. |
 | Renderers | `render/` | Low-level DOM construction and reuse (see Renderer). Orchestrated by `render/tableRenderer.ts`. |
 | Scroll | `scroll/scroll.ts` | Scroll position management — translates a target cell into scroll offsets and the resulting viewport position. |
@@ -43,19 +43,26 @@ Walkontable is a self-contained, low-level table rendering engine embedded as a 
 | Cell primitives | `cell/coords.ts`, `cell/range.ts` | `CellCoords` and `CellRange` value objects (see Key Primitives). |
 | Selection rendering | `selection/` | Renders selection highlights / borders inside the engine. |
 
+## Module composition (collaborators & mixins)
+
+The two former god-objects — `Table` and `Overlays` — are thin shells; their behavior is split into focused units by two patterns. Both keep the public method surface on the owning class, so external callers (core, plugins, TableView, the draw cycle) are unchanged.
+
+- **Collaborator class** — for **stateful** concerns. The owner constructs the collaborator, which holds its own `#`-private state and is wired through a co-located `createXxxDeps(ctx[, owner])` factory (inferred `XxxDeps` type, `#deps` field) — the same shape as `stickyScrollStrategy.ts`. The collaborator reaches back into the owner only through **callbacks in its deps** and **type-only** imports (never a runtime import of the owner → no cycle). `Overlays` owns `ResizeMonitor`, `SpreaderSize`, `ScrollSync`, `NativeScrollInput` this way and keeps thin public delegates for the methods that are public API (`adjustElementsSize`, `registerListeners`, `syncScrollPositions`, `scrollVertically`, …) plus get/set accessors for the state the draw cycle and whitebox tests touch (`scrollableElement`, `verticalScrolling`, …). A collaborator that runs during the owner's constructor must resolve the owner's own fields (e.g. `overlays.topOverlay`), not `wot.wtOverlays`, which is assigned only after the constructor returns.
+- **Runtime mixin** — for **stateless** method groups (pure reads of public fields / other methods / the `deps` getter, no `#`-private access — a mixin function cannot see another class's `#` fields). Applied once with `mixin(Owner, group)` + a declaration-merge `interface Owner extends Group`, so the methods land on the owner's type. `Table` composes `cellAccess`, `domScaffold`, `rowRangeQuery`/`columnRangeQuery` + `viewportPredicates`, `sizeGetters`, and `oversizedRows` this way; sticky and range-query groups are applied per subclass. `#`-private deps are reached through the base class's read-only `get deps()` getter.
+
 ## The 6-Overlay System
 
-Walkontable renders frozen (fixed) rows and columns as separate **overlay clone tables** layered over the master table and kept scroll-synchronized. The system is framed as 6 overlays = **5 concrete overlay subclasses plus a shared base class** (`overlay/_base.ts`):
+Walkontable renders frozen (fixed) rows and columns as separate **overlay clone tables** layered over the master table and kept scroll-synchronized. The system is framed as 6 overlays = **5 concrete overlay subclasses plus a shared base class** (`overlay/regions/_base.ts`):
 
 | Overlay | File | Frozen region |
 |---|---|---|
-| Top | `overlay/topOverlay.ts` | `fixedRowsTop` |
-| Bottom | `overlay/bottomOverlay.ts` | `fixedRowsBottom` |
-| Inline start | `overlay/inlineStartOverlay.ts` | `fixedColumnsStart` (left in LTR, right in RTL) |
-| Top inline-start corner | `overlay/topInlineStartCornerOverlay.ts` | Intersection of top + inline-start |
-| Bottom inline-start corner | `overlay/bottomInlineStartCornerOverlay.ts` | Intersection of bottom + inline-start |
+| Top | `overlay/regions/topOverlay.ts` | `fixedRowsTop` |
+| Bottom | `overlay/regions/bottomOverlay.ts` | `fixedRowsBottom` |
+| Inline start | `overlay/regions/inlineStartOverlay.ts` | `fixedColumnsStart` (left in LTR, right in RTL) |
+| Top inline-start corner | `overlay/regions/topInlineStartCornerOverlay.ts` | Intersection of top + inline-start |
+| Bottom inline-start corner | `overlay/regions/bottomInlineStartCornerOverlay.ts` | Intersection of bottom + inline-start |
 
-Each overlay is backed by a Walkontable clone (`core/clone.ts`) rendering the matching table subclass under `table/regions/`. Corner overlays are created lazily. `overlay/overlays.ts` coordinates them and keeps their scroll positions aligned with the master.
+Each overlay is backed by a Walkontable clone (`core/clone.ts`) rendering the matching table subclass under `table/regions/`. Corner overlays are created lazily. `overlay/overlays.ts` coordinates them and keeps their scroll positions aligned with the master. The overlay class family mirrors the table family: `overlay/regions/*Overlay.ts` (positioning half) pairs with `table/regions/*Table.ts` (DOM half).
 
 This is a **fragile area** — positioning logic is intricate, RTL adds mirroring, and overlay boundaries are prone to visual artifacts. See `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md`.
 
@@ -166,4 +173,4 @@ These are the shared vocabulary for selection, viewport, and overlay logic.
 
 ## Known Tech Debt (summary)
 
-The engine carries documented debt: the DAO (Data Access Object) layer used in place of dependency injection, and the recreation of `rowFilter` / `columnFilter` objects on every render pass. The overlay system is the most fragile area. See `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md` for the full, file-referenced list.
+The engine carries documented debt: the recreation of `rowFilter` / `columnFilter` objects on every render pass (`table/drawCycle.ts`), and the overlay clones still reaching the master through `this.wot.wtTable`/`.wtViewport`/`.wtOverlays` in hot-path methods (the deep `wot` decoupling is deferred). The overlay system is the most fragile area. See `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md` for the full, file-referenced list. (The DAO layer that used to stand in for dependency injection is gone — modules are wired through the `wire.ts` composition root; see Key Submodules.)

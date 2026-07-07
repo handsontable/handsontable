@@ -76,7 +76,13 @@ captured **pre-hook** (the render must use the values read before `beforeDraw` f
 
 The phase descriptions in §5 below still hold; their bodies now live in `table/drawCycle.ts` (master
 phases in `runMasterDrawCycle`, the shared render in `renderCellBand`). Anchor on the function names —
-the `table.ts` line numbers in §4/§5 predate the extraction.
+the `table.ts` line numbers in §4/§5 predate the extraction. The `Table` methods those phases call are
+now composed in as runtime mixins (their public surface is unchanged — see ARCHITECTURE "Module
+composition"): the post-render measurement methods (`markOversizedRows`, `resetOversizedRows`,
+`adjustColumnHeaderHeights`, `syncOversizedColumnHeadersWithFrozenOverlays`) live in
+`axisSizing/oversizedRows.ts`; the size getters in `axisSizing/sizeGetters.ts`; the range/viewport
+predicates in `table/rangeQuery/`. Overlay hider sizing (`adjustElementsSize`) lives in the
+`overlay/spreaderSize.ts` collaborator.
 
 ---
 
@@ -211,8 +217,9 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
   `innerBorderTop` / `innerBorderInlineStart` / `innerBorderBottom` class via `adjustHeaderBordersPosition`.
   Those calls OR-together into `positionChanged`.
 - **S16a seam:** the border decision is now a pure `#computeHeaderBordersState(...)` separated from its
-  DOM write in `overlay/topOverlay.ts` / `inlineStart.ts` / `bottom.ts` — so S16b can move the decision
-  pre-render. Behavior today is unchanged (compute + apply still called in sequence here).
+  DOM write in `overlay/regions/topOverlay.ts` / `inlineStartOverlay.ts` / `bottomOverlay.ts` — so S16b
+  can move the decision pre-render. Behavior today is unchanged (compute + apply still called in
+  sequence here).
 
 ### Phase H — Border refresh vs selection render, then afterDraw (`table.ts:621–657`)
 - If `positionChanged` (`641`): `wtOverlays.refreshAll()` (`645`) — **which calls `wot.draw(true)` again**,
@@ -269,8 +276,12 @@ the escape hatch; it still serves the legacy/merge path and is the "is a second 
 signal on the single-pass path (an oversized row invalidates the row cache → the R4 skip does not fire).
 
 `externalRowCalculator` (`= AutoRowSize enabled`, `tableView.ts:793`) is still load-bearing: it skips
-`markOversizedRows` (`table.ts:1052`), gates the second-pass block (`table.ts:588`), and folds the 1px
-hider compensation in the snapshot (`viewport/boxLayout/gatherLayoutInput.ts:90`) and overlays (`overlays.ts:1050`).
+`markOversizedRows` (`axisSizing/oversizedRows.ts`), gates the second-pass block (`table/drawCycle.ts`),
+and folds the **1px** hider compensation in the snapshot (`viewport/boxLayout/gatherLayoutInput.ts`) and
+in the overlay hider sizing (`overlay/spreaderSize.ts` `adjustElementsSize`). **This 1px is the
+internal-calculator compensation: it is added on the internal path and skipped when the external
+calculator (AutoRowSize/AutoColumnSize) is active, because those plugins already measure exact sizes.
+See CONCERNS "Gotchas".**
 
 ---
 
