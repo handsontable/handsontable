@@ -535,6 +535,23 @@ describe('ColHeader', () => {
     expect(spec().$container.find('th').eq(0).height()).toEqual(39);
   });
 
+  it('should not let the `modifyColumnHeaderHeight` hook override an explicit `columnHeaderHeight` option', async() => {
+    handsontable({
+      startCols: 3,
+      colHeaders: true,
+      columnHeaderHeight: 40,
+      // A plugin/hook (e.g. AutoRowSize) reporting a taller header must NOT override the explicit
+      // `columnHeaderHeight` option — the option caps the header height.
+      modifyColumnHeaderHeight() {
+        return 100;
+      }
+    });
+
+    await render();
+
+    expect(spec().$container.find('th').eq(0).height()).toEqual(39);
+  });
+
   it('should allow defining custom column header heights using the columnHeaderHeight config option, when multiple column header levels are defined', async() => {
     handsontable({
       startCols: 3,

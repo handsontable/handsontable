@@ -552,6 +552,7 @@ export interface GridSettings {
   modifyRowHeaderWidth?: (rowHeaderWidth: number) => void | number;
   modifyRowHeight?: (height: number, row: number, source?: string) => void | number;
   modifyRowHeightByOverlayName?: (height: number, row: number, overlayType: string) => void | number;
+  modifySinglePassLayout?: (singlePassLayout: boolean) => void | boolean;
   modifySourceData?: (row: number, column: number, valueHolder: { value: CellValue }, ioMode: 'get' | 'set') => void;
   modifyTransformEnd?: (delta: WalkontableCellCoords) => void;
   modifyTransformFocus?: (delta: WalkontableCellCoords) => void;

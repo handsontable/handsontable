@@ -11,12 +11,8 @@
  * DOM-occupied total.
  *
  * Centralizing the 1px constant here keeps that equality true when the border model is edited later. It
- * is a prerequisite for the S16 hider math, which sizes the hider from the cache total and must agree
- * with the sum of the pixel heights the renderer actually wrote.
- *
- * NOTE: this is the row-height compensation only. `markOversizedRows` (deleted in S14) carries a second
- * constant of the OPPOSITE polarity (`firstRowBorderCompensation`) for the first row's top border — do
- * not route that one through here.
+ * also lets the hider math size the hider from the cache total and agree with the sum of the pixel
+ * heights the renderer actually wrote.
  */
 
 /**

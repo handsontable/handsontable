@@ -6,12 +6,9 @@
  * (`getFirstRenderedRow`, `getLastVisibleColumn`, …) supplied by the `withRowRangeQuery` /
  * `withColumnRangeQuery` mixins plus the row/column filters and settings. They are universal — every
  * table type needs them — so the mixin is applied once to the base `Table` (`mixin(Table,
- * viewportPredicates)` in `baseTable.ts`) and inherited by all subclasses.
- *
- * Extracted from `baseTable.ts` (C3) to co-locate the rendered-range queries with the rest of the
- * range-query slice. Behavior is unchanged: the methods run on the `Table` instance (`this`), reading
- * the same public fields (`rowFilter`/`columnFilter`/`wtSettings`) and range-query methods as before.
- * They use no `#`-private state, so no `deps` getter is needed here.
+ * viewportPredicates)` in `baseTable.ts`) and inherited by all subclasses. The methods run on the
+ * `Table` instance (`this`), reading its public fields (`rowFilter`/`columnFilter`/`wtSettings`) and
+ * range-query methods. They use no `#`-private state, so no `deps` getter is needed here.
  */
 import type { default as Table } from '../baseTable';
 

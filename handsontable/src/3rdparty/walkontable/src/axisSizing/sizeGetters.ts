@@ -4,11 +4,8 @@
  * These read the per-row / per-column sizes (through `RowUtils` / `ColumnUtils`) and the rendered
  * table box (through the `GeometryReader`). They are universal — every table type (master and each
  * overlay clone) needs them — so the mixin is applied once to the base `Table` (`mixin(Table,
- * sizeGetters)` in `baseTable.ts`) and inherited by all subclasses.
- *
- * Extracted from `baseTable.ts` (C3) to keep the class file focused and to co-locate the size reads
- * with the rest of the axis-sizing slice. Behavior is unchanged: the methods run on the `Table`
- * instance (`this`), reading the same public fields (`rowUtils`/`columnUtils`/`TABLE`/`hider`/
+ * sizeGetters)` in `baseTable.ts`) and inherited by all subclasses. The methods run on the `Table`
+ * instance (`this`), reading its public fields (`rowUtils`/`columnUtils`/`TABLE`/`hider`/
  * `hasTableWidth`/`hasTableHeight`) and the geometry-read port via the `deps` getter.
  */
 import { isVisible } from '../../../../helpers/dom/element';

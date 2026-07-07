@@ -255,13 +255,11 @@ class Viewport {
    * once per master draw, after the size caches are built and before the calculators run, so the
    * snapshot reflects the geometry the draw will render into.
    *
-   * The snapshot is not yet the source of truth for the calculators or the scroll-detection queries.
-   * Consuming it is a genuine behavior change — on the first draw the snapshot predicts a scrollbar
-   * from content totals while the live DOM still shows none, which shifts the rendered row/column
-   * counts — so it is sequenced into the single-pass stages (S13-S16) under the maximal test gate,
-   * not this behavior-preserving stage. S11 only validates that the snapshot matches the live
-   * measurement (see the `getLayout()` assertions in `viewport.spec.js`) and fixes its input bugs so
-   * that later consumption changes only timing, not pixels.
+   * On the single-pass gated path (element mode, uniform sizes) the calculators and the
+   * scroll-detection queries read this snapshot, so the scrollbars are predicted from content totals
+   * and the draw renders in one pass. Off that path (merged cells, window scroll, non-uniform sizes)
+   * the engine keeps measuring the rendered DOM; the snapshot is still resolved and its prediction
+   * stays in agreement with the live measurement (asserted in `viewport.spec.js`).
    *
    * @returns {LayoutSnapshot}
    */

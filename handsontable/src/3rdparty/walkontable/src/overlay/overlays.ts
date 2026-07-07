@@ -338,7 +338,7 @@ class Overlays {
   }
 
   /**
-   * S16b: pre-applies the header-border classes (`innerBorderTop` / `innerBorderInlineStart`) before
+   * Pre-applies the header-border classes (`innerBorderTop` / `innerBorderInlineStart`) before
    * the cell render, so the post-render `resetFixedPosition` toggle is a no-op and the nested
    * `wot.draw(true)` re-render is skipped. Called from the master draw on the single-pass gated path,
    * before `beginDrawLayout`. Mirrors the overlay set used by the post-render position pass.

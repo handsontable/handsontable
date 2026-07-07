@@ -792,15 +792,11 @@ class TableView {
       rtlMode: this.hot.isRtl(),
       externalRowCalculator: this.hot.getPlugin('autoRowSize') &&
         this.hot.getPlugin('autoRowSize').isEnabled(),
-      // Escape hatch: `mergeCells` is incompatible with the predicted single-pass layout (a
-      // virtualized merged cell's height depends on the viewport the layout is computing), so it
-      // keeps the legacy measured path. Evaluated per read so toggling the plugin via
-      // `updateSettings` takes effect without re-initializing Walkontable.
-      singlePassLayout: () => {
-        const mergeCells = this.hot.getPlugin('mergeCells');
-
-        return !(mergeCells && mergeCells.isEnabled());
-      },
+      // Single-pass rendering is on by default; the `modifySinglePassLayout` hook lets a plugin or
+      // user code force the legacy measure-then-render path by returning `false` (e.g. `mergeCells`,
+      // whose virtualized row heights depend on the viewport the layout is computing). Evaluated per
+      // read so toggling a plugin via `updateSettings` takes effect without re-initializing Walkontable.
+      singlePassLayout: () => this.hot.runHooks('modifySinglePassLayout', true),
       table: this.#table,
       isDataViewInstance: () => isRootInstance(this.hot),
       preventOverflow: () => this.settings.preventOverflow,
@@ -1390,17 +1386,25 @@ class TableView {
 
         for (let level = 0; level < levels; level++) {
           const configuredAtLevel = Array.isArray(configured) ? configured[level] : configured;
-          const candidates: number[] = [];
+          // The explicit `columnHeaderHeight` option takes precedence over the
+          // `modifyColumnHeaderHeight` hook (the legacy `option || hook` semantics — an explicit
+          // option caps the header and the hook must not override it). The render-size probe may
+          // still grow the header past that when the actual header content is taller, replacing the
+          // old oversized-header DOM measurement.
+          let base;
 
           if (typeof configuredAtLevel === 'number') {
-            candidates.push(configuredAtLevel);
-          }
-          if (typeof hookHeight === 'number') {
-            candidates.push(hookHeight);
+            base = configuredAtLevel;
+          } else if (typeof hookHeight === 'number') {
+            base = hookHeight;
           }
 
           const probeAtLevel = probe.get(level);
+          const candidates: number[] = [];
 
+          if (typeof base === 'number') {
+            candidates.push(base);
+          }
           if (typeof probeAtLevel === 'number') {
             candidates.push(probeAtLevel);
           }

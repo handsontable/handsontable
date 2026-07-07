@@ -80,6 +80,17 @@ Access the reader by whichever handle the module has: `this.#deps.geometryReader
 - **Renderer**: DOM element management, row and column painting, cell element reuse.
 - **Scroll handling**: Coordinates scroll between overlays and the main table. Uses `requestAnimationFrame` batching.
 
+## Single-pass layout & sizing
+
+The engine predicts whether scrollbars will appear from numbers, instead of rendering, measuring the result, and re-rendering. Two slices own this:
+
+- **`viewport/boxLayout/`** — `resolveLayout()` is a pure function (no DOM) that solves the workspace / inner / viewport / hider box decomposition plus the two-variable (vertical/horizontal) scrollbar fix-point, producing an immutable `LayoutSnapshot`. `gatherLayoutInput.ts` is the one impure adapter that reads the geometry the solver needs. `Viewport.beginDrawLayout()` resolves the snapshot once per master draw — after the size caches are built, before the calculators run.
+- **`axisSizing/`** — supplies the intended size of one row / one column: the `AxisSizeSource` port (`axisSizeSource.ts` + `defaultSizeSource.ts`), the prefix-sum caches (`positionCache.ts`), the border-box conversion (`boxModel.ts`), and the size getters + oversized-content measurement (`sizeGetters.ts`, `oversizedRows.ts`).
+
+**The `singlePassLayout` escape hatch (must respect).** The prediction is used only on the gated path: element mode, uniform sizes, and the `singlePassLayout` setting on. `TableView` sets that setting to `false` whenever `mergeCells` is enabled (a virtualized merged cell's height depends on the viewport being computed), and window-scrolled tables fall back to measurement too. **Any new method that reads `getLayout()` MUST branch on `singlePassLayout` and window mode and fall back to a direct DOM measure otherwise** — or merged-cell and window-scrolled tables break. `Viewport.usesLayoutSnapshotForCalculators()` is the gate predicate.
+
+The draw is orchestrated in `table/drawCycle.ts`: `Table.draw()` delegates to the class-free `runDrawCycle(table, fastDraw)`.
+
 ## Known technical debt
 
 These issues are documented in `handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md`:
@@ -112,6 +123,11 @@ Walkontable has its own dedicated test runner. Do NOT mix Walkontable tests with
 | `src/tableView.ts` | Bridge to core Handsontable (the safe boundary for plugins) |
 | `src/3rdparty/walkontable/src/overlay/` | Overlay system |
 | `src/3rdparty/walkontable/src/render/` | DOM rendering |
+| `src/3rdparty/walkontable/src/viewport/boxLayout/` | Layout snapshot + scrollbar fix-point solver (single-pass) |
+| `src/3rdparty/walkontable/src/axisSizing/` | Row/column size sources, prefix-sum caches, box model |
+| `src/3rdparty/walkontable/src/domMeasure/` | `GeometryReader` proxy + live adapter |
+| `src/3rdparty/walkontable/src/table/drawCycle.ts` | Draw-cycle orchestration (`runDrawCycle`) |
+| `src/3rdparty/walkontable/src/wire.ts` | Composition root (`buildContext` → `EngineContext`) |
 
 ## DOM abstraction rule
 

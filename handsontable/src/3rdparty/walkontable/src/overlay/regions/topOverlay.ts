@@ -444,7 +444,7 @@ export class TopOverlay extends Overlay {
   }
 
   /**
-   * S16b: pre-applies the `innerBorderTop` class before the cell render, from the pre-render scroll
+   * Pre-applies the `innerBorderTop` class before the cell render, from the pre-render scroll
    * position and settings. On the single-pass gated path the border is then already in its final
    * state when cells render, so the post-render `resetFixedPosition` toggle becomes a no-op
    * (`positionChanged` stays `false`) and the nested `wot.draw(true)` re-render is never triggered.

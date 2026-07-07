@@ -264,6 +264,7 @@ export class MergeCells extends BasePlugin {
     this.addHook('beforeRemoveCellClassNames', this.#onBeforeRemoveCellClassNames);
     this.addHook('beforeBeginEditing', this.#onBeforeBeginEditing);
     this.addHook('modifyRowHeightByOverlayName', this.#onModifyRowHeightByOverlayName);
+    this.addHook('modifySinglePassLayout', this.#onModifySinglePassLayout);
     this.addHook('beforeUndoStackChange', (action: unknown, source: unknown) => {
       if (source === 'MergeCells') {
         return false;
@@ -2001,6 +2002,15 @@ export class MergeCells extends BasePlugin {
       this.hot._createCellRange(from, from, to)
     );
   };
+
+  /**
+   * Opts the table out of single-pass rendering while merged cells are present. A virtualized merged
+   * cell's height depends on which rows are in the viewport — the very thing the predicted layout is
+   * trying to compute — so merge tables keep the legacy measure-then-render path.
+   *
+   * @returns {boolean}
+   */
+  #onModifySinglePassLayout = () => false;
 
   /**
    * Hook used to modify the row height depends on the merged cells in the row.

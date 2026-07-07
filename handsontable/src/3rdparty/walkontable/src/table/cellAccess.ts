@@ -5,12 +5,9 @@
  * a header, or the coords for a given element). They are universal — every table type (master and each
  * overlay clone) needs them — so the mixin is applied once to the base `Table` (`mixin(Table,
  * cellAccess)` in `table.ts`) and inherited by all subclasses, unlike the axis-selective range-query /
- * sticky mixins that are applied per subclass.
- *
- * Extracted from `table.ts` to keep the class file focused (S19). Behavior is unchanged: the methods
- * run on the `Table` instance (`this`), reading the same public fields (`THEAD`/`TBODY`/`rowFilter`/
- * `columnFilter`/`wtSettings`/`wot`/`wtRootElement`) as before. They use no `#`-private state, so no
- * `deps` getter is needed here.
+ * sticky mixins that are applied per subclass. The methods run on the `Table` instance (`this`),
+ * reading its public fields (`THEAD`/`TBODY`/`rowFilter`/`columnFilter`/`wtSettings`/`wot`/
+ * `wtRootElement`). They use no `#`-private state, so no `deps` getter is needed here.
  */
 import {
   index,

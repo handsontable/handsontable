@@ -386,7 +386,7 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
-   * S16b: pre-applies the `innerBorderInlineStart` class before the cell render (single-pass gated
+   * Pre-applies the `innerBorderInlineStart` class before the cell render (single-pass gated
    * path), so the post-render `resetFixedPosition` toggle is a no-op and the nested re-draw is
    * skipped. Element mode only — see `TopOverlay#prepareHeaderBorders`.
    */

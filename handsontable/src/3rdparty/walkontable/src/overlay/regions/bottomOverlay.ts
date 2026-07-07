@@ -381,7 +381,7 @@ export class BottomOverlay extends Overlay {
   }
 
   /**
-   * S16b: pre-applies the header-border class before the cell render (single-pass gated path), so the
+   * Pre-applies the header-border class before the cell render (single-pass gated path), so the
    * post-render `resetFixedPosition` toggle is a no-op and the nested re-draw is skipped. Element mode
    * only — see `TopOverlay#prepareHeaderBorders`.
    */

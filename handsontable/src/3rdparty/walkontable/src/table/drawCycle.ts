@@ -78,7 +78,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   wtViewport.rowHeightCache.ensureBuilt();
   wtViewport.columnWidthCache.ensureBuilt();
 
-  // S16b: on the single-pass gated path, decide and apply the header-border classes
+  // On the single-pass gated path, decide and apply the header-border classes
   // (`innerBorderTop` / `innerBorderInlineStart`) BEFORE resolving the snapshot and rendering the
   // cells, from the pre-render scroll position + settings. Cells then render in their final
   // position, so the post-render `resetFixedPosition` toggle is a no-op (`positionChanged` stays

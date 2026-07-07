@@ -781,6 +781,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const _row: number = row;
     const _overlayType: string = overlayType;
   },
+  modifySinglePassLayout: (singlePassLayout) => {
+    const _singlePassLayout: boolean = singlePassLayout;
+
+    return false;
+  },
   modifyTransformEnd: (delta) => {
     const rowDelta: number | null = delta.row;
     const colDelta: number | null = delta.row;

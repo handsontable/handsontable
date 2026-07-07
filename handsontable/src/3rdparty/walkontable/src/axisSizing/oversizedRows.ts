@@ -7,12 +7,8 @@
  * THEAD rows, and `syncOversizedColumnHeadersWithFrozenOverlays` keeps the frozen-overlay headers
  * pixel-aligned with the master. They are universal — every table type participates in the draw — so
  * the mixin is applied once to the base `Table` (`mixin(Table, oversizedRows)` in `baseTable.ts`) and
- * inherited by all subclasses.
- *
- * Extracted from `baseTable.ts` (C3) to co-locate the size-measurement logic with the rest of the
- * axis-sizing slice; kept by design (the single-pass work leaves it as the "is a second pass needed?"
- * signal). Behavior is unchanged: the methods run on the `Table` instance (`this`), reading the same
- * public fields (`THEAD`/`TBODY`/`rowFilter`/`wtSettings`/`isMaster`) and the geometry-read port + the
+ * inherited by all subclasses. The methods run on the `Table` instance (`this`), reading its public
+ * fields (`THEAD`/`TBODY`/`rowFilter`/`wtSettings`/`isMaster`) and the geometry-read port + the
  * overlays/viewport owners via the `deps` getter.
  */
 import { isHTMLElement } from '../../../../helpers/dom/element';
@@ -109,7 +105,7 @@ const oversizedRows = {
     for (let i = 0, len = columnHeaders.length; i < len; i++) {
       const cornerChild = cornerChildren[i];
 
-      if (!(cornerChild instanceof HTMLElement)) {
+      if (!isHTMLElement(cornerChild)) {
         continue;
       }
 
@@ -118,13 +114,13 @@ const oversizedRows = {
       targetTheads.forEach((thead) => {
         const targetRow = thead?.childNodes[i];
 
-        if (!(targetRow instanceof HTMLElement) || targetRow.childNodes.length === 0) {
+        if (!isHTMLElement(targetRow) || targetRow.childNodes.length === 0) {
           return;
         }
 
         const firstChild = targetRow.childNodes[0];
 
-        if (!(firstChild instanceof HTMLElement)) {
+        if (!isHTMLElement(firstChild)) {
           return;
         }
 
@@ -233,7 +229,10 @@ const oversizedRows = {
     }
 
     if (hasChanges) {
-      wtViewport.rowHeightCache.invalidate();
+      // Go through the Viewport method (not `rowHeightCache.invalidate()` directly) so the per-draw
+      // layout snapshot is dropped too — otherwise later snapshot readers in the same draw would use
+      // the pre-measurement scrollbar state after the content height changed.
+      wtViewport.invalidateRowHeightCache();
     }
   },
 };

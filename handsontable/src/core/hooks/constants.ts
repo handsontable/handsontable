@@ -2947,6 +2947,22 @@ export const REGISTERED_HOOKS = [
   'modifyColumnHeaderHeight',
 
   /**
+   * Fired while resolving whether the table renders in a single pass.
+   *
+   * Single-pass rendering predicts, from the row/column sizes and the container box, whether
+   * scrollbars will appear and then renders once — instead of rendering, measuring the result, and
+   * re-rendering. Return `false` to force the legacy measure-then-render path for the table. A feature
+   * whose content size depends on the viewport that is being computed (for example, merged cells) opts
+   * out this way; user code can also return `false` to disable single-pass rendering.
+   *
+   * @since 18.0.0
+   * @event Hooks#modifySinglePassLayout
+   * @param {boolean} singlePassLayout `true` when single-pass rendering is currently enabled.
+   * @returns {boolean|void} Return `false` to force the legacy measure-then-render path.
+   */
+  'modifySinglePassLayout',
+
+  /**
    * Fired while retrieving a column header's value.
    *
    * @since 12.3.0

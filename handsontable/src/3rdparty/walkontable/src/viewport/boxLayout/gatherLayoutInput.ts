@@ -103,11 +103,15 @@ export function gatherLayoutInput(deps: LayoutDeps): LayoutInput {
 
   if (isWindow) {
     const documentElement = rootDocument.documentElement;
+    // Read each layout-forcing dimension once — the live reader is uncached, so the workspace box
+    // and the window-context client size would otherwise force two reflows each per call.
+    const documentClientWidth = geometryReader.clientWidth(documentElement);
+    const documentClientHeight = geometryReader.clientHeight(documentElement);
 
     return {
       scrollMode: 'window',
-      workspaceWidth: geometryReader.clientWidth(documentElement),
-      workspaceHeight: geometryReader.clientHeight(documentElement),
+      workspaceWidth: documentClientWidth,
+      workspaceHeight: documentClientHeight,
       totalContentWidth,
       totalContentHeight,
       scrollbarSize,
@@ -119,8 +123,8 @@ export function gatherLayoutInput(deps: LayoutDeps): LayoutInput {
       windowContext: {
         documentScrollWidth: geometryReader.scrollWidth(documentElement),
         documentScrollHeight: geometryReader.scrollHeight(documentElement),
-        documentClientWidth: geometryReader.clientWidth(documentElement),
-        documentClientHeight: geometryReader.clientHeight(documentElement),
+        documentClientWidth,
+        documentClientHeight,
         currentHiderWidth: geometryReader.offsetWidth(wtTable.hider),
         currentHiderHeight: geometryReader.offsetHeight(wtTable.hider),
       },

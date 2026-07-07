@@ -5,12 +5,9 @@
  * `wtHolder` wrapper chain around the `<table>`, and the `thead`/`tbody`/`colgroup` sections. They run
  * once from the `Table` constructor. They are universal (every table type needs them), so the mixin is
  * applied once to the base `Table` (`mixin(Table, domScaffold)` in `table.ts`) and inherited by all
- * subclasses.
- *
- * Extracted from `table.ts` to keep the class file focused (S19). Behavior is unchanged: the methods
- * run on the `Table` instance (`this`), assigning the same public fields (`TABLE`/`THEAD`/`TBODY`/
- * `COLGROUP`) and reading the same settings. The only change from the in-class version is `this.#deps`
- * → `this.deps` (the read-only getter), since a mixin cannot see the class's private field.
+ * subclasses. The methods run on the `Table` instance (`this`), assigning its public fields
+ * (`TABLE`/`THEAD`/`TBODY`/`COLGROUP`) and reading the settings. They reach the injected deps through
+ * the read-only `this.deps` getter, since a mixin cannot see the class's `#deps` private field.
  */
 import { isHTMLElement, hasClass, setAttribute } from '../../../../helpers/dom/element';
 import { A11Y_PRESENTATION, A11Y_TABINDEX } from '../../../../helpers/a11y';

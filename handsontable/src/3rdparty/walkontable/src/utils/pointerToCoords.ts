@@ -1,4 +1,5 @@
 import { clamp } from '../../../../helpers/number';
+import { isHTMLElement } from '../../../../helpers/dom/element';
 import type { WalkontableInstance } from '../types';
 import type { default as Settings } from '../settings';
 import type { GeometryReader } from '../domMeasure/geometryReader';
@@ -35,7 +36,7 @@ export function findColumnAtX(
   for (let column = startColumn; column <= endColumn; column++) {
     const cellElement = wotInstance.getCell({ row, col: column }, true);
 
-    if (!(cellElement instanceof HTMLElement)) {
+    if (!isHTMLElement(cellElement)) {
       // eslint-disable-next-line no-continue
       continue;
     }
@@ -74,7 +75,7 @@ export function findRowAtY(
   for (let row = startRow; row <= endRow; row++) {
     const cellElement = wotInstance.getCell({ row, col: column }, true);
 
-    if (!(cellElement instanceof HTMLElement)) {
+    if (!isHTMLElement(cellElement)) {
       // eslint-disable-next-line no-continue
       continue;
     }
@@ -157,7 +158,7 @@ export function getCellCoordsFromMousePosition(deps: MousePositionDeps, mouseX: 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const fixedCell = wot.getCell({ row: firstPartiallyVisibleRow, col: 0 }, true);
 
-    if (fixedCell instanceof HTMLElement) {
+    if (isHTMLElement(fixedCell)) {
       const fixedCellRect = deps.geometryReader.getBoundingClientRect(fixedCell);
       const fixedRelativeX = isRtl ? fixedCellRect.right - clampedX : clampedX - fixedCellRect.left;
 
@@ -169,7 +170,7 @@ export function getCellCoordsFromMousePosition(deps: MousePositionDeps, mouseX: 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const scrollCell = wot.getCell({ row: firstPartiallyVisibleRow, col: firstPartiallyVisibleColumn }, true);
 
-    if (scrollCell instanceof HTMLElement) {
+    if (isHTMLElement(scrollCell)) {
       const scrollCellRect = deps.geometryReader.getBoundingClientRect(scrollCell);
       const scrollRelativeX = isRtl ? scrollCellRect.right - clampedX : clampedX - scrollCellRect.left;
 
@@ -195,7 +196,7 @@ export function getCellCoordsFromMousePosition(deps: MousePositionDeps, mouseX: 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const fixedCell = wot.getCell({ row: 0, col: firstPartiallyVisibleColumn }, true);
 
-    if (fixedCell instanceof HTMLElement) {
+    if (isHTMLElement(fixedCell)) {
       const fixedCellRect = deps.geometryReader.getBoundingClientRect(fixedCell);
       const fixedRelativeY = clampedY - fixedCellRect.top;
 
@@ -210,7 +211,7 @@ export function getCellCoordsFromMousePosition(deps: MousePositionDeps, mouseX: 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const fixedBottomCell = wot.getCell({ row: bottomStartRow, col: firstPartiallyVisibleColumn }, true);
 
-    if (fixedBottomCell instanceof HTMLElement) {
+    if (isHTMLElement(fixedBottomCell)) {
       const fixedBottomCellRect = deps.geometryReader.getBoundingClientRect(fixedBottomCell);
       const fixedBottomRelativeY = clampedY - fixedBottomCellRect.top;
 
@@ -228,7 +229,7 @@ export function getCellCoordsFromMousePosition(deps: MousePositionDeps, mouseX: 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const scrollCell = wot.getCell({ row: firstPartiallyVisibleRow, col: firstPartiallyVisibleColumn }, true);
 
-    if (scrollCell instanceof HTMLElement) {
+    if (isHTMLElement(scrollCell)) {
       const scrollCellRect = deps.geometryReader.getBoundingClientRect(scrollCell);
       const scrollRelativeY = clampedY - scrollCellRect.top;
 

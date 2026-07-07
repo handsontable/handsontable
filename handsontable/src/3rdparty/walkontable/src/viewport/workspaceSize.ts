@@ -4,13 +4,12 @@
  *
  * These methods answer "how big is the drawable area and will scrollbars appear" — the workspace and
  * viewport dimensions, the row-header width / column-header height (with their lazy caches), the
- * scrollbar-presence checks, and the window-scrollability checks. They were extracted verbatim from
- * `Viewport` and applied with the same `mixin()` helper the range-query and sticky mixins use, so the
- * public surface and behavior are unchanged; only the private `#deps` access became the public
- * `this.deps` getter.
+ * scrollbar-presence checks, and the window-scrollability checks. They are applied to `Viewport` with
+ * the same `mixin()` helper the range-query and sticky mixins use and reach the injected deps through
+ * the public `this.deps` getter (a mixin cannot see the class's `#deps` private field).
  *
- * This is the group the single-pass refactor (S10) rewrites to read a `LayoutSnapshot` instead of
- * forcing DOM layout — isolating it here keeps that diff surgical.
+ * On the single-pass gated path these read the per-draw `LayoutSnapshot` instead of forcing DOM
+ * layout; off that path they measure the DOM directly.
  */
 import type { default as Viewport } from './viewport';
 
@@ -159,12 +158,11 @@ export const workspaceSize: WorkspaceSize = {
    * @returns {number}
    */
   getWorkspaceHeight(this: Viewport): number {
-    // Single-pass (Inc 3): the workspace box is resolved ONCE per draw into the layout snapshot
-    // (`gatherLayoutInput` → `measureWorkspaceHeight`). On the gated path (element mode + uniform +
-    // `singlePassLayout`) return that stored value so the ~per-draw re-measures collapse to the one
-    // read the snapshot already did. The value is identical to the live measure — the trimming
-    // container does not resize mid-draw — so this is behavior-preserving, only fewer forced layouts.
-    // The legacy / window / non-uniform path measures the DOM exactly as before.
+    // The workspace box is resolved once per draw into the layout snapshot (`gatherLayoutInput` →
+    // `measureWorkspaceHeight`). On the gated path (element mode + uniform + `singlePassLayout`)
+    // return that stored value so the per-draw re-measures collapse to the one read the snapshot
+    // already did (identical value — the trimming container does not resize mid-draw — so this only
+    // removes forced layouts). Off that path (window / non-uniform) measure the DOM directly.
     if (this.usesLayoutSnapshotForCalculators()) {
       return this.getLayout().workspaceHeight;
     }
@@ -201,9 +199,8 @@ export const workspaceSize: WorkspaceSize = {
    * @returns {number}
    */
   getWorkspaceWidth(this: Viewport): number {
-    // Single-pass (Inc 3): return the workspace width the snapshot already resolved this draw. Same
-    // gate, same behavior-identical rationale as `getWorkspaceHeight`. Legacy/window/non-uniform path
-    // measures the DOM.
+    // Return the workspace width the snapshot already resolved this draw (same gate and
+    // identical-value rationale as `getWorkspaceHeight`). Off the gated path, measure the DOM.
     if (this.usesLayoutSnapshotForCalculators()) {
       return this.getLayout().workspaceWidth;
     }
@@ -242,9 +239,8 @@ export const workspaceSize: WorkspaceSize = {
       return measureHasVerticalScroll(this);
     }
 
-    // Single-pass consumption (S11-full): the scrollbar presence is predicted from numbers in the
-    // layout snapshot, so it is correct before the DOM is written — instead of measuring the rendered
-    // `hider` (which is only right on a second pass).
+    // Predict scrollbar presence from numbers in the layout snapshot, so it is correct before the DOM
+    // is written — instead of measuring the rendered `hider` (which is only right on a second pass).
     return this.getLayout().hasVerticalScroll;
   },
 
@@ -262,7 +258,7 @@ export const workspaceSize: WorkspaceSize = {
       return measureHasHorizontalScroll(this);
     }
 
-    // Single-pass consumption (S11-full): predicted from the layout snapshot, correct pre-render.
+    // Predicted from the layout snapshot, correct pre-render.
     return this.getLayout().hasHorizontalScroll;
   },
 
