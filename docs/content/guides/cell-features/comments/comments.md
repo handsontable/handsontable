@@ -355,3 +355,22 @@ Cells with comments display a small indicator in the corner. Users can view, edi
 - [comments](@/api/options.md#comments)
 
 </div>
+
+**Hooks**
+
+<div class="boxes-list">
+
+- [afterRemoveCellMeta](@/api/hooks.md#afterremovecellmeta)
+- [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
+- [beforeRemoveCellMeta](@/api/hooks.md#beforeremovecellmeta)
+- [beforeSetCellMeta](@/api/hooks.md#beforesetcellmeta)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [Comments](@/api/comments.md)
+
+</div>
