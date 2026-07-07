@@ -1331,6 +1331,17 @@ At the moment, filtering comes with the following limitations:
   [`addCondition()`](@/api/filters.md), the extra conditions are applied to the data but are not
   visible or editable in the dropdown menu.
 
+## Navigate the filter menu
+
+Use keyboard and pointer interactions together to control the filtering UI:
+
+- Press <kbd>**Tab**</kbd> and <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd> to move between filtering components, such as the search input, **Select all**, **Clear all**, condition controls, and action bar controls.
+- When the search input is focused, press <kbd>**Arrow up**</kbd> and <kbd>**Arrow down**</kbd> to move through the **Filter by value** list.
+- When **Select all** or **Clear all** is focused, press <kbd>**Enter**</kbd> or <kbd>**Space**</kbd> to run the action.
+- If you hover a non-filter menu item (for example, **Clear column**), the filter-components focus order resets. The next <kbd>**Tab**</kbd> focuses the first filter component.
+
+For a reference list of filter-related shortcuts, see [Keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#column-filter-keyboard-shortcuts).
+
 ## Related keyboard shortcuts
 
 | Windows                             | macOS                                  | Action            |  Excel  | Sheets  |

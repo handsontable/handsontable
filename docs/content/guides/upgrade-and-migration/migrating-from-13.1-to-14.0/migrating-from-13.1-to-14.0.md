@@ -46,6 +46,12 @@ The new Handsontable version comes with an updated set of keyboard shortcuts. Mo
 | ------------ | ------------ |
 | Iterates through the content list  | Iterates through the menu items. When focused on the search input, the arrow keys allow iterating through the content list  |
 
+##### Hover behavior in the Filtering menu
+
+| Before  | After  |
+| ------------ | ------------ |
+| After pressing <kbd>TAB</kbd> from the search input to **Select all**, hovering other menu items keeps keyboard focus on **Select all**.  | After pressing <kbd>TAB</kbd> from the search input to **Select all**, hovering a non-filter menu item (for example, **Clear column**) resets the filter-components focus order. The next <kbd>TAB</kbd> moves focus to the first filter component.  |
+
 More information: [Keyboard Shortcuts page in the documentation](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md)
 
 ### Check if your template looks fine with the updated colors
