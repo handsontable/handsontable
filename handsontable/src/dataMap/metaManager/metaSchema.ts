@@ -611,9 +611,13 @@ export default (): Record<string, unknown> => {
      * The `cell` option overwrites the [top-level grid options](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options),
      * and the [`columns`](#columns) options.
      *
+     * Each entry's `row` and `col` are **visual** indexes. This differs from the [`cells`](#cells)
+     * option, whose `row` and `column` are physical indexes.
+     *
      * Read more:
      * - [Configuration options: Setting cell options](@/guides/getting-started/configuration-options/configuration-options.md#set-cell-options)
      * - [`columns`](#columns)
+     * - [`cells`](#cells)
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      * It has no effect when set in the [`columns`](#columns), [`cells`](#cells), or [`cell`](#cell) options.
