@@ -2362,10 +2362,18 @@ export default (): Record<string, unknown> => {
      * You'll still be able to change cells' content through Handsontable's API
      * or through plugins (e.g. [`CopyPaste`](@/api/copyPaste.md)), though.
      *
+     * When the `editor` option is set to `false`, you can still use these keyboard shortcuts:
+     *
+     * | Shortcut                                | Action                                                      |
+     * | --------------------------------------- | ----------------------------------------------------------- |
+     * | `Delete` / `Backspace`                  | Clear the contents of the selected cells                    |
+     * | `Ctrl` + `Enter` / `Cmd` + `Enter`      | Fill selected cells with the value of the active cell       |
+     *
      * To set the [`editor`](#editor), [`renderer`](#renderer), and [`validator`](#validator)
      * options all at once, use the [`type`](#type) option.
      *
      * Read more:
+     * - [Keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md)
      * - [Cell editor](@/guides/cell-functions/cell-editor/cell-editor.md)
      * - [Cell type](@/guides/cell-types/cell-type/cell-type.md)
      * - [Configuration options: Cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
