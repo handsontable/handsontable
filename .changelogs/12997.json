@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an autofill bug where dragging the fill handle of the last column slightly diagonally, past the table's edge, drew the fill border but did not apply the values.",
+  "type": "fixed",
+  "issueOrPR": 12997,
+  "breaking": false,
+  "framework": "none"
+}
