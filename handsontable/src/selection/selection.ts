@@ -1151,9 +1151,12 @@ class Selection {
    * @param {{row: number, col: number} | boolean} [options.focusPosition] The argument allows changing the cell/header
    * focus position. The value takes an object with a `row` and `col` properties from -N to N, where
    * negative values point to the headers and positive values point to the cell range. If `false`, the focus
-   * position won't be changed.
+   * position won't be changed. When the {@link Options#navigableHeaders} option is disabled (the default), a
+   * `focusPosition` that points to a header is relocated to the nearest cell in the data set.
    * @param {boolean} [options.disableHeadersHighlight] If `true`, disables highlighting the headers even when
-   * the logical coordinates points on them.
+   * the logical coordinates points on them. This only suppresses the highlight shown on headers of a fully-selected
+   * row or column. It doesn't affect the focus indicator on the individual cell or header that holds the focus,
+   * which stays visible even when {@link Options#navigableHeaders} moves the focus onto a header.
    */
   selectAll(includeRowHeaders = false, includeColumnHeaders = false, options: {
     focusPosition?: SelectionFocusPosition | boolean; disableHeadersHighlight?: boolean
