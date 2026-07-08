@@ -33,6 +33,8 @@ Access all Handsontable features using just your keyboard. Use shortcuts you kno
 
 This page lists all of Handsontable's default keyboard shortcuts.
 
+To register these keys with [`addShortcut()`](@/api/shortcutContext.md#addshortcut), use key-name strings instead of display glyphs. For example, use `control/meta` for <kbd>⌘</kbd> and `ArrowLeft` for <kbd>←</kbd>. For the full naming convention, see [custom shortcuts](@/guides/navigation/custom-shortcuts/custom-shortcuts.md#addshortcut-parameters).
+
 ## Navigation keyboard shortcuts
 
 These keyboard shortcuts work when you navigate the grid. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no need for additional plugins.

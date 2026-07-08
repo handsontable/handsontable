@@ -65,8 +65,10 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
    * @memberof ShortcutContext#
    * @param {object} options The shortcut's options
    * @param {Array<Array<string>>} options.keys Names of the shortcut's keys,
-   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
-   * in lowercase or uppercase, unified across browsers
+   * in lowercase or uppercase, unified across browsers. You can use
+   * [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)
+   * values, such as `ArrowLeft`, and the Handsontable-specific `control/meta` virtual key name.
+   * `control/meta` matches `Control` on Windows and Linux, and `Meta` on macOS.
    * @param {Function} options.callback The shortcut's action
    * @param {object} options.group A group of shortcuts to which the shortcut belongs
    * @param {object} [options.runOnlyIf] A condition on which the shortcut's action runs
@@ -185,8 +187,10 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
    *
    * @memberof ShortcutContext#
    * @param {Array<string>} keys Names of the shortcut's keys,
-   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
-   * in lowercase or uppercase, unified across browsers
+   * in lowercase or uppercase, unified across browsers. You can use
+   * [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)
+   * values, such as `ArrowLeft`, and the Handsontable-specific `control/meta` virtual key name.
+   * `control/meta` matches `Control` on Windows and Linux, and `Meta` on macOS.
    */
   const removeShortcutsByKeys = (keys: string[]): void => {
     const normalizedKeys = normalizeKeys(keys);
@@ -223,8 +227,10 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
    *
    * @memberof ShortcutContext#
    * @param {Array<string>} keys Names of the shortcut's keys,
-   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
-   * in lowercase or uppercase, unified across browsers
+   * in lowercase or uppercase, unified across browsers. You can use
+   * [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)
+   * values, such as `ArrowLeft`, and the Handsontable-specific `control/meta` virtual key name.
+   * `control/meta` matches `Control` on Windows and Linux, and `Meta` on macOS.
    * @returns {Array}
    */
   const getShortcuts = (keys: string[]): Shortcut[] => {
@@ -239,8 +245,10 @@ export const createContext = (name: string, scope: string = 'table'): Context =>
    *
    * @memberof ShortcutContext#
    * @param {Array<string>} keys Names of the shortcut's keys,
-   * (coming from [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)),
-   * in lowercase or uppercase, unified across browsers
+   * in lowercase or uppercase, unified across browsers. You can use
+   * [`KeyboardEvent.key`](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key/Key_Values)
+   * values, such as `ArrowLeft`, and the Handsontable-specific `control/meta` virtual key name.
+   * `control/meta` matches `Control` on Windows and Linux, and `Meta` on macOS.
    * @returns {boolean}
    */
   const hasShortcut = (keys: string[]): boolean => {
