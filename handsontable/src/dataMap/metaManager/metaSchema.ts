@@ -855,6 +855,7 @@ export default (): Record<string, unknown> => {
      *
      * Read more:
      * - [Plugins: `CollapsibleColumns`](@/api/collapsibleColumns.md)
+     * - [Column groups: Collapsible headers](@/guides/columns/column-groups/column-groups.md#collapsible-headers)
      * - [`nestedHeaders`](#nestedHeaders)
      *
      * @memberof Options#
