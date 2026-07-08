@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Emit a sibling `.js` file from a documentation `.ts` example using the
+ * Emit a sibling `.js` or `.jsx` file from a documentation `.ts` or `.tsx` example using the
  * TypeScript compiler API (transpile only -- no typecheck, no path resolution).
  *
- * Usage: node scripts/transpile-doc-example.mjs <path-to-example.ts>
+ * Usage: node scripts/transpile-doc-example.mjs <path-to-example.ts|path-to-example.tsx>
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -11,8 +11,8 @@ import process from 'node:process';
 import ts from 'typescript';
 
 const tsPath = process.argv[2];
-if (!tsPath || !tsPath.endsWith('.ts')) {
-  console.error('Usage: node scripts/transpile-doc-example.mjs <path-to-example.ts>');
+if (!tsPath || !/\.(ts|tsx)$/.test(tsPath)) {
+  console.error('Usage: node scripts/transpile-doc-example.mjs <path-to-example.ts|path-to-example.tsx>');
   process.exit(1);
 }
 
@@ -23,11 +23,12 @@ if (!fs.existsSync(absoluteTs)) {
 }
 
 const sourceText = fs.readFileSync(absoluteTs, 'utf8');
-const jsPath = absoluteTs.replace(/\.ts$/, '.js');
+const jsPath = absoluteTs.replace(/\.tsx$/, '.jsx').replace(/\.ts$/, '.js');
 const { outputText } = ts.transpileModule(sourceText, {
   compilerOptions: {
     target: ts.ScriptTarget.ES2020,
     module: ts.ModuleKind.ESNext,
+    jsx: ts.JsxEmit.Preserve,
     removeComments: false,
     esModuleInterop: true,
   },
