@@ -30,6 +30,7 @@ export interface CalculatorFactory {
   createCalculators(fastDraw?: boolean): boolean;
   createVisibleCalculators(): void;
   usesLayoutSnapshotForCalculators(): boolean;
+  allowsRowDeltaRender(): boolean;
   areAllProposedVisibleRowsAlreadyRendered(
     proposedFullyVisibleRowsCalculator: RowsCalculationType | undefined,
     proposedPartiallyVisibleRowsCalculator: RowsCalculationType | undefined): boolean;
@@ -283,6 +284,24 @@ export const calculatorFactory: CalculatorFactory = {
       !this.isHorizontallyScrollableByWindow() &&
       this.wtSettings.getSetting<boolean>('rowHeightsUniform') &&
       this.wtSettings.getSetting<boolean>('columnWidthsUniform');
+  },
+
+  /**
+   * Decides whether the TBODY row band may be delta-rendered on a pure vertical scroll (rotate the
+   * surviving TR nodes, render only the entering rows). This is a looser gate than the single-pass
+   * layout gate: it drops the uniform-size requirements (row rotation preserves each surviving row's
+   * own content and height, and column widths never change on a vertical scroll), but keeps the two
+   * conditions that make skipping a survivor's re-render unsafe — `singlePassLayout` off (which
+   * `mergeCells` forces, and merged cells recompute their spans per viewport) and window scrolling
+   * (a different scroll/offset model). Anything else takes the full band render unchanged.
+   *
+   * @this Viewport
+   * @returns {boolean}
+   */
+  allowsRowDeltaRender(this: Viewport): boolean {
+    return this.wtSettings.getSetting<boolean>('singlePassLayout') &&
+      !this.isVerticallyScrollableByWindow() &&
+      !this.isHorizontallyScrollableByWindow();
   },
 
   /**
