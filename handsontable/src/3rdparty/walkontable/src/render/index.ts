@@ -124,6 +124,19 @@ class Renderer {
   }
 
   /**
+   * Marks this draw as one where the TBODY row band may be delta-rendered (rotate surviving rows,
+   * render only entering rows) when the row window shifted (a pure vertical scroll).
+   *
+   * @param {boolean} renderable Whether the row band may be delta-rendered for this draw.
+   * @returns {Renderer}
+   */
+  setRowDeltaRenderable(renderable: boolean) {
+    this.renderer.setRowDeltaRenderable(renderable);
+
+    return this;
+  }
+
+  /**
    * Renders the table.
    */
   render() {

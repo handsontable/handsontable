@@ -219,6 +219,48 @@ export class TableRenderer {
    * @type {number}
    */
   #prevRowHeadersCount: number = -1;
+  /**
+   * When `true`, the TBODY row band may be delta-rendered for this draw: instead of re-rendering
+   * every rendered row, rotate the surviving TR nodes and run the cell/row-header renderers only for
+   * the rows entering the band. Set once per draw by the draw cycle; only a pure vertical scroll (no
+   * data, settings, selection, or column-window change) enables it. Defaults to `false`.
+   *
+   * @type {boolean}
+   */
+  #rowDeltaRenderable: boolean = false;
+  /**
+   * `true` once a full render has stored the current row render window (offset + count).
+   *
+   * @type {boolean}
+   */
+  #hasStoredRowWindow: boolean = false;
+  /**
+   * The first rendered row (row filter offset, a renderable index) captured on the last render.
+   *
+   * @type {number}
+   */
+  #prevRowOffset: number = -1;
+  /**
+   * The number of rendered rows captured on the last render.
+   *
+   * @type {number}
+   */
+  #prevRowsToRender: number = -1;
+  /**
+   * The first visual row index that must be rendered on the current delta draw (the start of the
+   * half-open run of rows entering the band). `-1` means "render every rendered row" (a full band
+   * render). Consumed by the cells and row-headers renderers via {@link TableRenderer#isRowRenderable}.
+   *
+   * @type {number}
+   */
+  #enteringRowsStart: number = -1;
+  /**
+   * The end (exclusive) of the half-open run of visual row indexes entering the band on the current
+   * delta draw. Unused when {@link TableRenderer#enteringRowsStart} is `-1` (a full band render).
+   *
+   * @type {number}
+   */
+  #enteringRowsEnd: number = -1;
 
   /**
    * Creates a new TableRenderer instance.
@@ -278,6 +320,31 @@ export class TableRenderer {
    */
   setColumnHeadersRenderSkippable(skippable: boolean) {
     this.#columnHeadersRenderSkippable = skippable;
+  }
+
+  /**
+   * Marks this draw as one where the TBODY row band may be delta-rendered (rotate surviving rows,
+   * render only entering rows), provided the row render window shifted by fewer rows than the band
+   * holds. The draw cycle sets this to `true` only for a pure vertical scroll and to `false`
+   * otherwise, so any data, settings, selection, or column-window change re-renders the whole band.
+   *
+   * @param {boolean} renderable Whether the row band may be delta-rendered for this draw.
+   */
+  setRowDeltaRenderable(renderable: boolean) {
+    this.#rowDeltaRenderable = renderable;
+  }
+
+  /**
+   * Returns `true` when the cell / row-header renderers must render the given visual row on the
+   * current draw. On a full band render this is always `true`; on a delta draw it is `true` only for
+   * the rows entering the band (the surviving rows keep their existing content and are skipped).
+   *
+   * @param {number} visualRowIndex The visual (rendered) row index, `0` to `rowsToRender - 1`.
+   * @returns {boolean}
+   */
+  isRowRenderable(visualRowIndex: number) {
+    return this.#enteringRowsStart === -1 ||
+      (visualRowIndex >= this.#enteringRowsStart && visualRowIndex < this.#enteringRowsEnd);
   }
 
   /**
@@ -396,6 +463,89 @@ export class TableRenderer {
   }
 
   /**
+   * Computes the delta-render plan for the TBODY row band. Returns the half-open range of visual row
+   * indexes that must be rendered (the entering rows) and the rotation delta, or `null` when the band
+   * must be fully re-rendered. Delta rendering is only attempted on a pure vertical scroll where the
+   * band size is unchanged and the band shifted by fewer rows than it holds — otherwise every row is
+   * new (or the previous window is unknown), so a full render is both required and no slower.
+   *
+   * The offset is the row filter offset (a renderable index); renderable indexes stay contiguous
+   * across a scroll (hidden rows are already removed from the axis), so the shift is a clean rotation.
+   *
+   * @returns {{ delta: number, start: number, end: number } | null}
+   */
+  #computeRowDeltaPlan() {
+    if (!this.#rowDeltaRenderable || !this.#hasStoredRowWindow) {
+      return null;
+    }
+
+    const offset = this.rowFilter ? this.rowFilter.offset : 0;
+    const count = this.rowsToRender;
+
+    if (count === 0 || count !== this.#prevRowsToRender) {
+      return null;
+    }
+
+    const delta = offset - this.#prevRowOffset;
+
+    if (delta === 0 || Math.abs(delta) >= count) {
+      return null;
+    }
+
+    // Scroll down (delta > 0): the leaving rows are at the top, so the entering rows land at the
+    // bottom of the band. Scroll up (delta < 0): mirror — entering rows land at the top.
+    return delta > 0
+      ? { delta, start: count - delta, end: count }
+      : { delta, start: 0, end: -delta };
+  }
+
+  /**
+   * Rotates the surviving TR nodes of the TBODY in place so DOM child position `i` again holds the
+   * content for rendered row `i`, moving only the leaving nodes (which become the entering slots and
+   * are re-rendered afterwards). The surviving nodes are never re-parented, so any state they hold
+   * (focus, an open editor) is preserved. `moveBefore` (Chrome 133+) is used when available for the
+   * moved nodes with an `appendChild`/`insertBefore` fallback.
+   *
+   * @param {number} delta The signed row shift (positive = scrolled down, negative = scrolled up).
+   */
+  #rotateBodyRows(delta: number) {
+    const tbody = this.rows!.rootNode;
+    const supportsMoveBefore = typeof (tbody as unknown as {
+      moveBefore?: (node: Node, ref: Node | null) => void;
+    }).moveBefore === 'function';
+    const move = (node: Node, ref: Node | null) => {
+      if (supportsMoveBefore) {
+        (tbody as unknown as { moveBefore: (n: Node, r: Node | null) => void }).moveBefore(node, ref);
+      } else if (ref === null) {
+        tbody.appendChild(node);
+      } else {
+        tbody.insertBefore(node, ref);
+      }
+    };
+
+    if (delta > 0) {
+      // Move the top `delta` (leaving) rows to the end, keeping their relative order.
+      for (let i = 0; i < delta; i++) {
+        move(tbody.firstElementChild!, null);
+      }
+    } else {
+      // Move the bottom `|delta|` (leaving) rows to the front, keeping their relative order.
+      for (let i = 0; i < -delta; i++) {
+        move(tbody.lastElementChild!, tbody.firstElementChild);
+      }
+    }
+  }
+
+  /**
+   * Stores the current row render window (offset + count) so the next draw can compute its shift.
+   */
+  #storeRowWindow() {
+    this.#hasStoredRowWindow = true;
+    this.#prevRowOffset = this.rowFilter ? this.rowFilter.offset : 0;
+    this.#prevRowsToRender = this.rowsToRender;
+  }
+
+  /**
    * Renders the table.
    */
   render() {
@@ -408,9 +558,28 @@ export class TableRenderer {
       this.#storeColumnHeaderRenderWindow();
     }
 
+    // On a pure vertical scroll only the row band shifts. Rotate the surviving TR nodes into their
+    // new positions and render only the entering rows; the surviving rows keep their existing cell
+    // content, classes, and ARIA (their source row is unchanged). `#enteringRowsStart`/`End` gate the
+    // cell / row-header renderers through `isRowRenderable`. `-1` means every row renders (full band).
+    const rowDeltaPlan = this.#computeRowDeltaPlan();
+
+    if (rowDeltaPlan) {
+      this.#rotateBodyRows(rowDeltaPlan.delta);
+      this.#enteringRowsStart = rowDeltaPlan.start;
+      this.#enteringRowsEnd = rowDeltaPlan.end;
+    } else {
+      this.#enteringRowsStart = -1;
+      this.#enteringRowsEnd = -1;
+    }
+
     this.rows!.render();
     this.rowHeaders!.render();
     this.cells!.render();
+
+    this.#storeRowWindow();
+    this.#enteringRowsStart = -1;
+    this.#enteringRowsEnd = -1;
 
     // After the cells are rendered calculate columns width to prepare proper values
     // for colGroup renderer (which renders COL elements).
