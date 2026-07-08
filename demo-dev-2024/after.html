@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DEV-2024 autofill last column — PR #12997 build (fixed)</title>
+  <link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/handsontable@18.0.0/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; }
+    h1 { font-size: 18px; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-cdn { background: #ffebee; color: #c62828; }
+    .badge-local { background: #e8f5e9; color: #2e7d32; }
+    .info { background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.6; max-width: 720px; }
+    .info strong { color: #856404; }
+    .toolbar { margin: 14px 0; display: flex; gap: 12px; align-items: center; }
+    .toolbar button { padding: 6px 14px; border-radius: 6px; border: 1px solid #999; background: #fff; cursor: pointer; font-size: 13px; }
+    #status { font-size: 13px; font-weight: 600; }
+    #status.ok { color: #2e7d32; }
+    #status.none { color: #c62828; }
+    #hot-container { display: inline-block; }
+  </style>
+</head>
+<body>
+  <h1>DEV-2024 — Autofill on the last column with a slightly diagonal drag</h1>
+
+  <nav>
+    <span class="nav-label">Version:</span>
+    <a class="nav-btn" href="before.html">Released <span class="badge badge-cdn">18.0.0 (bug)</span></a>
+    <span class="nav-btn active">PR #12997 build <span class="badge badge-local">fixed</span></span>
+  </nav>
+
+  <div class="info">
+    <strong>How to test:</strong><br>
+    1. Click cell <strong>E1</strong> (the last column).<br>
+    2. Grab the small square (fill handle) in the cell's bottom-right corner.<br>
+    3. Drag it down in a <strong>straight diagonal line</strong>, keeping the pointer a few pixels
+       to the <strong>right of the table's edge</strong>, and release around row 4.<br>
+    <strong>Released 18.0.0 page:</strong> the fill border appears, but the values are NOT populated — the bug.<br>
+    <strong>This page (PR build):</strong> the same gesture fills the cells with "E1".
+  </div>
+
+  <div id="hot-container"></div>
+
+  <div class="toolbar">
+    <button id="reset">Reset data</button>
+    <span id="status"></span>
+  </div>
+
+  <script src="handsontable.full.min.js"></script>
+  <script>
+    const initialData = () => Handsontable.helper.createSpreadsheetData(6, 5);
+    const status = document.getElementById('status');
+
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: initialData(),
+      colHeaders: true,
+      rowHeaders: true,
+      fillHandle: true,
+      height: 'auto',
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+      afterAutofill() {
+        status.textContent = '✔ autofill applied';
+        status.className = 'ok';
+      },
+    });
+
+    document.title = document.title + ' — running ' + Handsontable.version;
+
+    document.getElementById('reset').addEventListener('click', () => {
+      window.hot.loadData(initialData());
+      status.textContent = '';
+      status.className = '';
+    });
+
+    // Reports whether the drag actually changed the data - fires on every mouseup.
+    document.addEventListener('mouseup', () => {
+      setTimeout(() => {
+        if (status.className !== 'ok') {
+          status.textContent = '';
+        }
+      }, 50);
+    });
+  </script>
+</body>
+</html>
