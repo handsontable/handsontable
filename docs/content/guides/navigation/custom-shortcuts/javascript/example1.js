@@ -19,16 +19,18 @@ const hot = new Handsontable(container, {
 });
 // get the `grid` context from the `ShortcutManager` API
 const gridContext = hot.getShortcutManager().getContext('grid');
-// register a custom keyboard shortcut in the `grid` context:
-// pressing Control/Meta+Enter inserts a new row below the selected cell
-gridContext.addShortcut({
-    keys: [['control/meta', 'enter']],
-    group: 'insertRowBelow',
-    callback: () => {
-        const selected = hot.getSelectedRangeLast();
-        if (!selected) {
-            return;
-        }
-        hot.alter('insert_row_below', selected.highlight.row);
-    },
-});
+if (gridContext) {
+    // register a custom keyboard shortcut in the `grid` context:
+    // pressing Control/Meta+Enter inserts a new row below the selected cell
+    gridContext.addShortcut({
+        keys: [['control/meta', 'enter']],
+        group: 'insertRowBelow',
+        callback: () => {
+            const selected = hot.getSelectedRangeLast();
+            if (!selected || selected.highlight.row === null) {
+                return;
+            }
+            hot.alter('insert_row_below', selected.highlight.row);
+        },
+    });
+}

@@ -25,6 +25,10 @@ const hotSettings = ref<GridSettings>({
     // get the `grid` context from the `ShortcutManager` API
     const gridContext = this.getShortcutManager().getContext('grid');
 
+    if (!gridContext) {
+      return;
+    }
+
     // register a custom keyboard shortcut in the `grid` context:
     // pressing Control/Meta+Enter inserts a new row below the selected cell
     gridContext.addShortcut({
@@ -33,7 +37,7 @@ const hotSettings = ref<GridSettings>({
       callback: () => {
         const selected = this.getSelectedRangeLast();
 
-        if (!selected) {
+        if (!selected || selected.highlight.row === null) {
           return;
         }
 
