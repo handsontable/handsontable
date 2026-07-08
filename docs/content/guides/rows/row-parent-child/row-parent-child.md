@@ -183,6 +183,8 @@ When the `NestedRows` plugin is enabled, the `ManualRowMove` plugin's [`moveRows
 
 ### Keyboard shortcuts
 
+This header-focused shortcut works only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+
 | Windows              | macOS                | Action                           |  Excel  | Sheets  |
 | -------------------- | -------------------- | -------------------------------- | :-----: | :-----: |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the row group | &cross; | &cross; |
