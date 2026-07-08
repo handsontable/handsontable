@@ -1051,11 +1051,11 @@ export class Filters extends BasePlugin {
   }
 
   /**
-   * Gets last selected column index.
+   * Gets the last selected column as an object with visual and physical indexes.
    *
    * @returns {{visualIndex: number, physicalIndex: number} | null} Returns `null` when a column is
    * not selected. Otherwise, returns an object with `visualIndex` and `physicalIndex` properties containing
-   * the index of the column.
+   * column indexes.
    */
   getSelectedColumn(): { physicalIndex: number, visualIndex: number } | null {
     const highlight = this.hot.getSelectedRangeActive()?.highlight;
