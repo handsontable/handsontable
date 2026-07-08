@@ -247,13 +247,20 @@ export class TableRenderer {
    */
   #prevRowsToRender: number = -1;
   /**
-   * The half-open range `[start, end)` of visual row indexes that must be rendered on the current
-   * delta draw (the rows entering the band). `null` means "render every rendered row" (a full band
+   * The first visual row index that must be rendered on the current delta draw (the start of the
+   * half-open run of rows entering the band). `-1` means "render every rendered row" (a full band
    * render). Consumed by the cells and row-headers renderers via {@link TableRenderer#isRowRenderable}.
    *
-   * @type {{ start: number, end: number } | null}
+   * @type {number}
    */
-  #enteringRowsRange: { start: number; end: number } | null = null;
+  #enteringRowsStart: number = -1;
+  /**
+   * The end (exclusive) of the half-open run of visual row indexes entering the band on the current
+   * delta draw. Unused when {@link TableRenderer#enteringRowsStart} is `-1` (a full band render).
+   *
+   * @type {number}
+   */
+  #enteringRowsEnd: number = -1;
 
   /**
    * Creates a new TableRenderer instance.
@@ -336,9 +343,8 @@ export class TableRenderer {
    * @returns {boolean}
    */
   isRowRenderable(visualRowIndex: number) {
-    const range = this.#enteringRowsRange;
-
-    return range === null || (visualRowIndex >= range.start && visualRowIndex < range.end);
+    return this.#enteringRowsStart === -1 ||
+      (visualRowIndex >= this.#enteringRowsStart && visualRowIndex < this.#enteringRowsEnd);
   }
 
   /**
@@ -554,15 +560,17 @@ export class TableRenderer {
 
     // On a pure vertical scroll only the row band shifts. Rotate the surviving TR nodes into their
     // new positions and render only the entering rows; the surviving rows keep their existing cell
-    // content, classes, and ARIA (their source row is unchanged). `#enteringRowsRange` gates the
-    // cell / row-header renderers through `isRowRenderable`. When it is `null`, every row renders.
+    // content, classes, and ARIA (their source row is unchanged). `#enteringRowsStart`/`End` gate the
+    // cell / row-header renderers through `isRowRenderable`. `-1` means every row renders (full band).
     const rowDeltaPlan = this.#computeRowDeltaPlan();
 
     if (rowDeltaPlan) {
       this.#rotateBodyRows(rowDeltaPlan.delta);
-      this.#enteringRowsRange = { start: rowDeltaPlan.start, end: rowDeltaPlan.end };
+      this.#enteringRowsStart = rowDeltaPlan.start;
+      this.#enteringRowsEnd = rowDeltaPlan.end;
     } else {
-      this.#enteringRowsRange = null;
+      this.#enteringRowsStart = -1;
+      this.#enteringRowsEnd = -1;
     }
 
     this.rows!.render();
@@ -570,7 +578,8 @@ export class TableRenderer {
     this.cells!.render();
 
     this.#storeRowWindow();
-    this.#enteringRowsRange = null;
+    this.#enteringRowsStart = -1;
+    this.#enteringRowsEnd = -1;
 
     // After the cells are rendered calculate columns width to prepare proper values
     // for colGroup renderer (which renders COL elements).
