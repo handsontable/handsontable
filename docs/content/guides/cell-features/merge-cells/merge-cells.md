@@ -13,7 +13,6 @@ vue:
   metaTitle: Merge cells - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
-menuTag: updated
 ---
 Merge adjacent cells, using the <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> shortcut or the context menu. Control merged cells, using Handsontable's API.
 
