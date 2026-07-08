@@ -372,6 +372,8 @@ The [`keys`](@/api/shortcutContext.md#addshortcut) parameter:
 - Handles key-name discrepancies between browsers (e.g., both `'Spacebar'` and `' '` work)
 - Accepts key names in any order (e.g., both `[['control', 'a']]` and `[['a', 'control']]`) work)
 
+The `control/meta` key name is specific to Handsontable. It matches `Control` on Windows and Linux, and `Meta` on macOS. For arrow keys, use `KeyboardEvent.key` names such as `ArrowLeft`, not display glyphs such as `←`.
+
 ## API reference
 
 For the list of [options](@/guides/getting-started/configuration-options/configuration-options.md), methods, and [Handsontable hooks](@/guides/getting-started/events-and-hooks/events-and-hooks.md) related to keyboard navigation, see the following API reference pages:
