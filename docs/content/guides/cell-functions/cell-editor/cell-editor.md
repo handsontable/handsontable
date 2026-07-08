@@ -241,8 +241,8 @@ Override only the methods you need. The `PasswordEditor` below extends `TextEdit
 
 ::: example #example3 :react --js 1 --ts 2
 
-@[code](@/content/guides/cell-functions/cell-editor/react/example2.jsx)
-@[code](@/content/guides/cell-functions/cell-editor/react/example2.tsx)
+@[code](@/content/guides/cell-functions/cell-editor/react/example3.jsx)
+@[code](@/content/guides/cell-functions/cell-editor/react/example3.tsx)
 
 :::
 
@@ -252,8 +252,8 @@ Override only the methods you need. The `PasswordEditor` below extends `TextEdit
 
 ::: example #example3 :angular --ts 1 --html 2
 
-@[code](@/content/guides/cell-functions/cell-editor/angular/example2.ts)
-@[code](@/content/guides/cell-functions/cell-editor/angular/example2.html)
+@[code](@/content/guides/cell-functions/cell-editor/angular/example3.ts)
+@[code](@/content/guides/cell-functions/cell-editor/angular/example3.html)
 
 :::
 
