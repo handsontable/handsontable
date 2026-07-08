@@ -874,8 +874,17 @@ export class Autofill extends BasePlugin {
     if (this.mouseDownOnCellCorner) {
       const { clientX, clientY } = event;
       const cellCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
+      const selectedRange = this.hot.getSelectedRangeLast();
 
       this.#lastMouseClientPosition = { clientX, clientY };
+
+      // The `beforeOnCellMouseOver`-based counting doesn't fire when the pointer leaves
+      // the table element (e.g. dragging the last column's fill handle at a slight angle,
+      // past the table's edge), so count the drag here as well. Otherwise the fill made
+      // with such a drag would never be committed on mouseup.
+      if (this.handleDraggedCells > 0 && selectedRange && !selectedRange.includes(cellCoords)) {
+        this.handleDraggedCells += 1;
+      }
 
       this.redrawBorders(cellCoords);
     }
