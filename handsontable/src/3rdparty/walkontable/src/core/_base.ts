@@ -1,8 +1,8 @@
 import type { DomBindings, WalkontableInstance } from '../types';
 import type Settings from '../settings';
-import type Table from '../table';
-import type Viewport from '../viewport';
-import type Overlays from '../overlays';
+import type Table from '../table/baseTable';
+import type Viewport from '../viewport/viewport';
+import type Overlays from '../overlay/overlays';
 import type { SelectionManager } from '../selection/manager';
 import type Event from '../event';
 import {
@@ -11,10 +11,11 @@ import {
 } from '../../../../helpers/dom/element';
 import { randomString } from '../../../../helpers/string';
 import EventManager from '../../../../eventManager';
-import Scroll, { createScrollDeps } from '../scroll';
+import Scroll, { createScrollDeps } from '../scroll/scroll';
 import CellCoords from '../cell/coords';
 import CellRange from '../cell/range';
-import { LiveGeometryReader } from '../geometry/liveGeometryReader';
+import { LiveGeometryReader } from '../domMeasure/liveGeometryReader';
+import type { GeometryReader } from '../domMeasure/geometryReader';
 import { buildContext, type EngineContext } from '../wire';
 
 /**
@@ -173,13 +174,17 @@ export default class CoreAbstract {
   /**
    * @param {HTMLTableElement} table Main table.
    * @param {Settings} settings The Walkontable settings.
+   * @param {GeometryReader} [geometryReader] The shared geometry reader. The master creates one live
+   *   reader and passes it to every clone (see `Clone`), so a single reader serves the master and all
+   *   overlay clones — the one place a `CachingGeometryReader` gets swapped in later. When omitted (the
+   *   master), a `LiveGeometryReader` is created.
    */
-  constructor(table: HTMLTableElement, settings: Settings) {
+  constructor(table: HTMLTableElement, settings: Settings, geometryReader?: GeometryReader) {
     this.domBindings = {
       rootTable: table,
       rootDocument: table.ownerDocument,
       rootWindow: table.ownerDocument.defaultView as Window,
-      geometryReader: new LiveGeometryReader(table.ownerDocument.defaultView as Window),
+      geometryReader: geometryReader ?? new LiveGeometryReader(table.ownerDocument.defaultView as Window),
       // `rootElement` is intentionally assigned later (see TableView); the cast defers it as the
       // original literal did. `unknown` is required because `LiveGeometryReader`'s `#`-private field
       // makes it nominal, which narrows the direct `as DomBindings` overlap check.

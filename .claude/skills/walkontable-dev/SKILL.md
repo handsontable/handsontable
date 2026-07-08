@@ -23,7 +23,7 @@ Two rules here are enforced, not stylistic. They exist so the engine can be opti
 The DAO layer is gone. Every module is built by a single composition root, `wire.ts`: `buildContext(wot)` returns an `EngineContext` holding the stable references plus every late-bound/cyclic dependency as a thunk (defined once). Each module has a **co-located factory** `create<Module>Deps(ctx)` and its type is **inferred**, never hand-written:
 
 ```ts
-// scroll.ts — the ONLY place Scroll's deps are declared
+// scroll/scroll.ts — the ONLY place Scroll's deps are declared
 export function createScrollDeps(ctx: EngineContext) {
   return { wtSettings: ctx.wtSettings, geometryReader: ctx.geometryReader, getWtTable: ctx.getWtTable /* … */ };
 }
@@ -39,8 +39,8 @@ Rules when adding or changing a module:
 - Store deps in a **private `#deps`**; take a **single `deps` constructor argument** (plus at most one per-instance identity arg — a table `name`, an overlay `type`, an event `parent`, corner-overlay sibling refs).
 - **Never hand-write a `*Deps` interface** — infer it with `ReturnType<typeof createXDeps>`, so there is one source of truth and a one-line edit adds a dependency.
 - Add a **read-only `get deps()` getter over `#deps` only** where JS forces external reach: a base class whose subclasses need it (`Overlay`), a class with runtime mixins (`Table`), or a helper read by a collaborator (`RowUtils`, `ColumnUtils`). Everywhere else, `#deps` stays private.
-- Inject the **stable owner** (`getWtViewport()`), never a volatile per-draw object (a calculator or filter is recreated each draw and goes stale). Read volatile ranges fresh off the owner (that's what the `calculatedRows`/`calculatedColumns` mixins do).
-- The fastest way to add a module correctly is to **copy an existing one** — `scroll.ts` is the simplest template.
+- Inject the **stable owner** (`getWtViewport()`), never a volatile per-draw object (a calculator or filter is recreated each draw and goes stale). Read volatile ranges fresh off the owner (that's what the `rowRangeQuery`/`columnRangeQuery` mixins in `table/rangeQuery/virtualRange.ts` do).
+- The fastest way to add a module correctly is to **copy an existing one** — `scroll/scroll.ts` is the simplest template.
 
 ### DOM geometry reads MUST go through the `GeometryReader` proxy
 
@@ -65,13 +65,13 @@ const left = scrollEl.scrollLeft;
 const vw = rootWindow.innerWidth;
 ```
 
-Access the reader by whichever handle the module has: `this.#deps.geometryReader` (most modules), `this.deps.geometryReader` (via the getter, e.g. overlays/table), or `wotInstance.domBindings.geometryReader` when only the instance is in hand (e.g. `utils/cellCoords.ts`, `selection/border/border.ts`).
+Access the reader by whichever handle the module has: `this.#deps.geometryReader` (most modules), `this.deps.geometryReader` (via the getter, e.g. overlays/table), or `wotInstance.domBindings.geometryReader` when only the instance is in hand (e.g. `utils/pointerToCoords.ts`, `selection/border/border.ts`).
 
 **Writes are fine** (`el.scrollTop = n`, `el.style.x = …`) — they don't force layout. So is `this.<field>` even when the field is named `clientHeight`/`scrollTop` (it's stored state, not a DOM read).
 
-**If the proxy has no method for a layout-forcing read you need, add it** — to both `geometry/geometryReader.ts` (the interface) and `geometry/liveGeometryReader.ts` (the live adapter) — then use it. Never fall back to a direct read for a layout-forcing measurement.
+**If the proxy has no method for a layout-forcing read you need, add it** — to both `domMeasure/geometryReader.ts` (the interface) and `domMeasure/liveGeometryReader.ts` (the live adapter) — then use it. Never fall back to a direct read for a layout-forcing measurement.
 
-**Enforced by ESLint.** The rule `handsontable/no-direct-dom-geometry-read` (`error`) flags any direct read across all of `src/3rdparty/walkontable/src` (only `geometry/**`, the adapter itself, is exempt). It allows access on a `geometryReader`, writes, and `this.<field>`, and its message points you at the fix. The rule lives in `handsontable/.config/plugin/eslint/rules/` and is a pnpm `file:` dependency that is **copied, not symlinked** — after editing the rule (or on a checkout that predates it) run `pnpm install`, or eslint fails with "definition not found".
+**Enforced by ESLint.** The rule `handsontable/no-direct-dom-geometry-read` (`error`) flags any direct read across all of `src/3rdparty/walkontable/src` (only `domMeasure/**`, the adapter itself, is exempt). It allows access on a `geometryReader`, writes, and `this.<field>`, and its message points you at the fix. The rule lives in `handsontable/.config/plugin/eslint/rules/` and is a pnpm `file:` dependency that is **copied, not symlinked** — after editing the rule (or on a checkout that predates it) run `pnpm install`, or eslint fails with "definition not found".
 
 ## Key subsystems
 
@@ -79,6 +79,17 @@ Access the reader by whichever handle the module has: `this.#deps.geometryReader
 - **Viewport calculation**: Determines which rows and columns are visible based on scroll position and container size.
 - **Renderer**: DOM element management, row and column painting, cell element reuse.
 - **Scroll handling**: Coordinates scroll between overlays and the main table. Uses `requestAnimationFrame` batching.
+
+## Single-pass layout & sizing
+
+The engine predicts whether scrollbars will appear from numbers, instead of rendering, measuring the result, and re-rendering. Two slices own this:
+
+- **`viewport/boxLayout/`** — `resolveLayout()` is a pure function (no DOM) that solves the workspace / inner / viewport / hider box decomposition plus the two-variable (vertical/horizontal) scrollbar fix-point, producing an immutable `LayoutSnapshot`. `gatherLayoutInput.ts` is the one impure adapter that reads the geometry the solver needs. `Viewport.beginDrawLayout()` resolves the snapshot once per master draw — after the size caches are built, before the calculators run.
+- **`axisSizing/`** — supplies the intended size of one row / one column: the `AxisSizeSource` port (`axisSizeSource.ts` + `defaultSizeSource.ts`), the prefix-sum caches (`positionCache.ts`), the border-box conversion (`boxModel.ts`), and the size getters + oversized-content measurement (`sizeGetters.ts`, `oversizedRows.ts`).
+
+**The `singlePassLayout` escape hatch (must respect).** The prediction is used only on the gated path: element mode, uniform sizes, and the `singlePassLayout` setting on. `TableView` sets that setting to `false` whenever `mergeCells` is enabled (a virtualized merged cell's height depends on the viewport being computed), and window-scrolled tables fall back to measurement too. **Any new method that reads `getLayout()` MUST branch on `singlePassLayout` and window mode and fall back to a direct DOM measure otherwise** — or merged-cell and window-scrolled tables break. `Viewport.usesLayoutSnapshotForCalculators()` is the gate predicate.
+
+The draw is orchestrated in `table/drawCycle.ts`: `Table.draw()` delegates to the class-free `runDrawCycle(table, fastDraw)`.
 
 ## Known technical debt
 
@@ -111,7 +122,12 @@ Walkontable has its own dedicated test runner. Do NOT mix Walkontable tests with
 | `src/3rdparty/walkontable/src/` | All Walkontable source code |
 | `src/tableView.ts` | Bridge to core Handsontable (the safe boundary for plugins) |
 | `src/3rdparty/walkontable/src/overlay/` | Overlay system |
-| `src/3rdparty/walkontable/src/renderer/` | DOM rendering |
+| `src/3rdparty/walkontable/src/render/` | DOM rendering |
+| `src/3rdparty/walkontable/src/viewport/boxLayout/` | Layout snapshot + scrollbar fix-point solver (single-pass) |
+| `src/3rdparty/walkontable/src/axisSizing/` | Row/column size sources, prefix-sum caches, box model |
+| `src/3rdparty/walkontable/src/domMeasure/` | `GeometryReader` proxy + live adapter |
+| `src/3rdparty/walkontable/src/table/drawCycle.ts` | Draw-cycle orchestration (`runDrawCycle`) |
+| `src/3rdparty/walkontable/src/wire.ts` | Composition root (`buildContext` → `EngineContext`) |
 
 ## DOM abstraction rule
 

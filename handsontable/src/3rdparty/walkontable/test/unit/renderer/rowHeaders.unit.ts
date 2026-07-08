@@ -1,4 +1,4 @@
-import { RowHeadersRenderer } from 'walkontable/renderer/rowHeaders';
+import { RowHeadersRenderer } from 'walkontable/render/rowHeaders';
 
 /**
  *

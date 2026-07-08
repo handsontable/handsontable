@@ -4,7 +4,7 @@ import {
   FullyVisibleColumnsCalculationType,
   PartiallyVisibleColumnsCalculationType,
 } from '../../../src/calculator';
-import { PositionCache } from '../../../src/utils/positionCache';
+import { PositionCache } from '../../../src/axisSizing/positionCache';
 
 /**
  *

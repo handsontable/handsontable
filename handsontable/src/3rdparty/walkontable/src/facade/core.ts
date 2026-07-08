@@ -1,5 +1,5 @@
 import type CellCoords from '../cell/coords';
-import type { Overlay } from '../overlay/_base';
+import type { Overlay } from '../overlay/regions/_base';
 import Walkontable from '../core/core';
 import CoreAbstract from '../core/_base';
 

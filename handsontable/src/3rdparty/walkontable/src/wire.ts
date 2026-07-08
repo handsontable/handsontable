@@ -16,12 +16,14 @@
  */
 import type { WalkontableInstance } from './types';
 import type { default as Settings } from './settings';
-import type { default as Table } from './table';
-import type { default as Viewport } from './viewport';
-import type { default as Overlays } from './overlays';
+import type { default as Table } from './table/baseTable';
+import type { default as Viewport } from './viewport/viewport';
+import type { default as Overlays } from './overlay/overlays';
 import type { SelectionManager } from './selection/manager';
-import type { Overlay } from './overlay/_base';
-import type { GeometryReader } from './geometry/geometryReader';
+import type { Overlay } from './overlay/regions/_base';
+import type { GeometryReader } from './domMeasure/geometryReader';
+import type { RowSizeSource, ColumnSizeSource } from './axisSizing/axisSizeSource';
+import { DefaultRowSizeSource, DefaultColumnSizeSource } from './axisSizing/defaultSizeSource';
 import type { default as EventManager } from '../../../eventManager';
 
 /**
@@ -38,6 +40,11 @@ export interface EngineContext {
   rootWindow: Window;
   rootTable: HTMLTableElement;
   geometryReader: GeometryReader;
+  // The sizing ports — the seam between the engine and whoever supplies row heights / column widths.
+  // Stateless pass-through wrappers over `wtSettings`, so master and each clone get their own; no
+  // shared instance is required (unlike `geometryReader`, which is shared for its future per-draw cache).
+  rowSizeSource: RowSizeSource;
+  columnSizeSource: ColumnSizeSource;
   /**
    * Creates a fresh `EventManager` bound to the instance. Each module gets its own manager (matching
    * the previous `this.eventManager` getter), so the factory calls this once and stores the result —
@@ -84,6 +91,8 @@ export function buildContext(wot: WalkontableInstance): EngineContext {
     rootWindow: wot.domBindings.rootWindow,
     rootTable: wot.domBindings.rootTable,
     geometryReader: wot.domBindings.geometryReader,
+    rowSizeSource: new DefaultRowSizeSource(wot.wtSettings),
+    columnSizeSource: new DefaultColumnSizeSource(wot.wtSettings),
     makeEventManager: () => wot.eventManager,
     getFacade: () => wot.wtSettings.getSetting<Function>('facade', wot),
     isDrawn: () => wot.drawn,

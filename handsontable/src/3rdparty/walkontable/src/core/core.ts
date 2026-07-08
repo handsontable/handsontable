@@ -1,13 +1,13 @@
 import Event, { createEventDeps } from '../event';
-import Overlays, { createOverlaysDeps } from '../overlays';
+import Overlays, { createOverlaysDeps } from '../overlay/overlays';
 import { CLONE_TYPES } from '../overlay';
 import Settings from '../settings';
-import MasterTable from '../table/master';
-import { createTableDeps } from '../table';
-import Viewport, { createViewportDeps } from '../viewport';
+import MasterTable from '../table/regions/masterTable';
+import { createTableDeps } from '../table/baseTable';
+import Viewport, { createViewportDeps } from '../viewport/viewport';
 import CoreAbstract from './_base';
 import { SelectionManager } from '../selection/manager';
-import type { Overlay } from '../overlay/_base';
+import type { Overlay } from '../overlay/regions/_base';
 import { objectEach } from '../../../../helpers/object';
 import { addClass, removeClass } from '../../../../helpers/dom/element';
 

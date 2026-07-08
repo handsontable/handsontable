@@ -1,7 +1,7 @@
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
-import type { Overlay } from '../../3rdparty/walkontable/src/overlay/_base';
-import type { default as Table } from '../../3rdparty/walkontable/src/table';
+import type { Overlay } from '../../3rdparty/walkontable/src/overlay/regions/_base';
+import type { default as Table } from '../../3rdparty/walkontable/src/table/baseTable';
 import { BasePlugin, defaultMainSettingSymbol } from '../base';
 import { Hooks } from '../../core/hooks';
 import MergedCellsCollection from './cellsCollection';
@@ -264,6 +264,7 @@ export class MergeCells extends BasePlugin {
     this.addHook('beforeRemoveCellClassNames', this.#onBeforeRemoveCellClassNames);
     this.addHook('beforeBeginEditing', this.#onBeforeBeginEditing);
     this.addHook('modifyRowHeightByOverlayName', this.#onModifyRowHeightByOverlayName);
+    this.addHook('modifySinglePassLayout', this.#onModifySinglePassLayout);
     this.addHook('beforeUndoStackChange', (action: unknown, source: unknown) => {
       if (source === 'MergeCells') {
         return false;
@@ -2001,6 +2002,15 @@ export class MergeCells extends BasePlugin {
       this.hot._createCellRange(from, from, to)
     );
   };
+
+  /**
+   * Opts the table out of single-pass rendering while merged cells are present. A virtualized merged
+   * cell's height depends on which rows are in the viewport — the very thing the predicted layout is
+   * trying to compute — so merge tables keep the legacy measure-then-render path.
+   *
+   * @returns {boolean}
+   */
+  #onModifySinglePassLayout = () => false;
 
   /**
    * Hook used to modify the row height depends on the merged cells in the row.

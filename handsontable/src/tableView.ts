@@ -21,6 +21,7 @@ import {
   getParentWindow,
 } from './helpers/dom/element';
 import EventManager from './eventManager';
+import { RenderSizeProbe } from './renderSizeProbe';
 import { isImmediatePropagationStopped, isRightClick, isLeftClick, isMiddleClick } from './helpers/dom/event';
 import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
@@ -122,6 +123,14 @@ class TableView {
    * @type {boolean}
    */
   postponedAdjustElementsSize = false;
+  /**
+   * The measurement-only probe of the rendered grid. Runs after each full master draw to record
+   * content-driven row and column-header heights. It does not yet feed those values back into
+   * rendering (see {@link RenderSizeProbe}).
+   *
+   * @type {RenderSizeProbe}
+   */
+  renderSizeProbe = new RenderSizeProbe();
   /**
    * Defines if the text should be selected during mousemove.
    *
@@ -783,6 +792,11 @@ class TableView {
       rtlMode: this.hot.isRtl(),
       externalRowCalculator: this.hot.getPlugin('autoRowSize') &&
         this.hot.getPlugin('autoRowSize').isEnabled(),
+      // Single-pass rendering is on by default; the `modifySinglePassLayout` hook lets a plugin or
+      // user code force the legacy measure-then-render path by returning `false` (e.g. `mergeCells`,
+      // whose virtualized row heights depend on the viewport the layout is computing). Evaluated per
+      // read so toggling a plugin via `updateSettings` takes effect without re-initializing Walkontable.
+      singlePassLayout: () => this.hot.runHooks('modifySinglePassLayout', true),
       table: this.#table,
       isDataViewInstance: () => isRootInstance(this.hot),
       preventOverflow: () => this.settings.preventOverflow,
@@ -1353,9 +1367,52 @@ class TableView {
       },
       rowHeaderWidth: () => this.settings.rowHeaderWidth,
       columnHeaderHeight: () => {
-        const columnHeaderHeight = this.hot.runHooks('modifyColumnHeaderHeight');
+        const hookHeight = this.hot.runHooks('modifyColumnHeaderHeight');
+        const configured = this.settings.columnHeaderHeight;
+        const probe = this.renderSizeProbe.columnHeaderHeights;
+        // Merge the three provided-height sources per header level: the `columnHeaderHeight` option
+        // (scalar or per-level array), the `modifyColumnHeaderHeight` hook (AutoRowSize), and the
+        // render-size probe (content-driven headers with no plugin). The engine reads this per level.
+        const levels = Math.max(
+          Array.isArray(configured) ? configured.length : 0,
+          probe.size ? Math.max(...probe.keys()) + 1 : 0,
+        );
 
-        return this.settings.columnHeaderHeight || columnHeaderHeight;
+        if (levels === 0) {
+          return configured || hookHeight;
+        }
+
+        const perLevel: (number | undefined)[] = [];
+
+        for (let level = 0; level < levels; level++) {
+          const configuredAtLevel = Array.isArray(configured) ? configured[level] : configured;
+          // The explicit `columnHeaderHeight` option takes precedence over the
+          // `modifyColumnHeaderHeight` hook (the legacy `option || hook` semantics — an explicit
+          // option caps the header and the hook must not override it). The render-size probe may
+          // still grow the header past that when the actual header content is taller, replacing the
+          // old oversized-header DOM measurement.
+          let base;
+
+          if (typeof configuredAtLevel === 'number') {
+            base = configuredAtLevel;
+          } else if (typeof hookHeight === 'number') {
+            base = hookHeight;
+          }
+
+          const probeAtLevel = probe.get(level);
+          const candidates: number[] = [];
+
+          if (typeof base === 'number') {
+            candidates.push(base);
+          }
+          if (typeof probeAtLevel === 'number') {
+            candidates.push(probeAtLevel);
+          }
+
+          perLevel[level] = candidates.length ? Math.max(...candidates) : undefined;
+        }
+
+        return perLevel;
       },
       stylesHandler: () => {
         return this.hot.stylesHandler;
@@ -1494,6 +1551,20 @@ class TableView {
    */
   afterRender(force: boolean) {
     if (force) {
+      // Measure the rendered grid while the DOM is final, before external `afterViewRender` listeners
+      // may mutate it.
+      this.renderSizeProbe.measure(this._wt);
+
+      // Single-pass header reconcile: the probe has just measured content-driven column-header
+      // heights (which the engine no longer measures mid-draw). If a header is taller than the
+      // default, re-apply the heights so the overlays match the master. This is a synchronous,
+      // hook-free reconcile - it never calls `hot.render()`, so the render-hook counts are unchanged.
+      const defaultRowHeight = this.hot.stylesHandler.getDefaultRowHeight() ?? 0;
+
+      if (this.renderSizeProbe.hasColumnHeaderTallerThan(defaultRowHeight)) {
+        this._wt.wtOverlays.refreshColumnHeaderHeights();
+      }
+
       this.hot.runHooks('afterViewRender', this.hot.forceFullRender);
     }
   }

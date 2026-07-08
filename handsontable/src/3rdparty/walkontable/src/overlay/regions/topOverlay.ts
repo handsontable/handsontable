@@ -1,0 +1,532 @@
+import type { TableDeps } from '../../table/baseTable';
+import {
+  addClass,
+  getScrollTop,
+  hasClass,
+  removeClass,
+  setOverlayPosition,
+  resetCssTransform,
+} from '../../../../../helpers/dom/element';
+import { isMobileBrowser } from '../../../../../helpers/browser';
+import TopOverlayTable from '../../table/regions/topTable';
+import { Overlay, type OverlayDeps } from './_base';
+import { getCornerStyle } from '../../selection';
+import type { Selection } from '../../selection';
+import type { BorderInstanceSettings } from '../../selection/border/types';
+import {
+  CLONE_TOP,
+} from '../constants';
+import { throwWithCause } from '../../../../../helpers/errors';
+
+/**
+ * @class TopOverlay
+ */
+export class TopOverlay extends Overlay {
+  /**
+   * Cached value which holds the previous value of the `fixedRowsTop` option.
+   * It is used as a comparison value that can be used to detect changes in this value.
+   *
+   * @type {number}
+   */
+  cachedFixedRowsTop = -1;
+
+  /**
+   */
+  constructor(deps: OverlayDeps) {
+    super(deps, CLONE_TOP);
+    this.cachedFixedRowsTop = this.wtSettings.getSetting<number>('fixedRowsTop');
+  }
+
+  /**
+   * Factory method to create a subclass of `Table` that is relevant to this overlay.
+   *
+   * @see Table#constructor
+   * @param {...*} args Parameters that will be forwarded to the `Table` constructor.
+   * @returns {TopOverlayTable}
+   */
+  createTable(deps: TableDeps) {
+    return new TopOverlayTable(deps);
+  }
+
+  /**
+   * Checks if overlay should be fully rendered.
+   *
+   * @returns {boolean}
+   */
+  shouldBeRendered(): boolean {
+    return this.wtSettings.getSetting('shouldRenderTopOverlay') as boolean;
+  }
+
+  /**
+   * Updates the top overlay position.
+   *
+   * @returns {boolean}
+   */
+  resetFixedPosition() {
+    if (!this.needFullRender || !this.shouldBeRendered() || !this.deps.getWtTable().holder.parentNode || !this.clone) {
+      // removed from DOM
+      return false;
+    }
+
+    const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
+    const { rootWindow } = this.deps;
+    const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
+    let overlayPosition = 0;
+    let skipInnerBorderAdjusting = false;
+
+    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+      const wtTable = this.deps.getWtTable();
+      const { geometryReader } = this.deps;
+      const hiderRect = geometryReader.getBoundingClientRect(wtTable.hider);
+      const bottom = Math.ceil(hiderRect.bottom);
+      const rootHeight = geometryReader.offsetHeight(overlayRoot);
+
+      // This checks if the overlay is going to an infinite loop caused by added (or removed)
+      // `innerBorderTop` class name. Toggling the class name shifts the viewport by 1px and
+      // triggers the `scroll` event. It causes the table to render. The new render cycle takes into,
+      // account the shift and toggles the class name again. This causes the next loops. This
+      // happens only on Chrome (#7256).
+      //
+      // When we detect that the table bottom position is the same as the overlay bottom,
+      // do not toggle the class name.
+      //
+      // This workaround will be able to be cleared after merging the SVG borders, which introduces
+      // frozen lines (no more `innerBorderTop` workaround).
+      skipInnerBorderAdjusting = bottom === rootHeight;
+      overlayPosition = this.getOverlayOffset();
+
+      setOverlayPosition(overlayRoot, '0px', `${overlayPosition}px`);
+
+    } else {
+      overlayPosition = this.getScrollPosition();
+      resetCssTransform(overlayRoot);
+    }
+
+    const positionChanged = this.adjustHeaderBordersPosition(overlayPosition, skipInnerBorderAdjusting);
+
+    this.adjustElementsSize();
+
+    return positionChanged;
+  }
+
+  /**
+   * Sets the main overlay's vertical scroll position.
+   *
+   * @param {number} pos The scroll position.
+   * @returns {boolean}
+   */
+  setScrollPosition(pos: number) {
+    const { rootWindow } = this.deps;
+    const scrollableElement = this.mainTableScrollableElement;
+    const scrollEl = scrollableElement as HTMLElement;
+    const getScrollPosition = () => {
+      return scrollableElement === rootWindow ? rootWindow.scrollY : scrollEl.scrollTop;
+    };
+    const setScrollPosition = (newPosition: number) => {
+      if (scrollableElement === rootWindow) {
+        rootWindow.scrollTo(rootWindow.scrollX, newPosition);
+      } else {
+        scrollEl.scrollTop = newPosition;
+      }
+    };
+    const oldScrollPosition = getScrollPosition();
+    let result = false;
+
+    if (pos !== oldScrollPosition) {
+      setScrollPosition(pos);
+      result = oldScrollPosition !== getScrollPosition();
+    }
+
+    return result;
+  }
+
+  /**
+   * Triggers onScroll hook callback.
+   */
+  onScroll() {
+    this.wtSettings.getSetting('onScrollHorizontally');
+  }
+
+  /**
+   * Calculates total sum cells height.
+   *
+   * @param {number} from Row index which calculates started from.
+   * @param {number} to Row index where calculation is finished.
+   * @returns {number} Height sum.
+   */
+  sumCellSizes(from: number, to: number) {
+    const stylesHandler = this.wtSettings.getSetting('stylesHandler');
+    const defaultRowHeight = stylesHandler.getDefaultRowHeight();
+    let row = from;
+    let sum = 0;
+
+    while (row < to) {
+      const height = this.deps.getWtTable().getRowHeight(row);
+
+      sum += height === undefined ? defaultRowHeight : height;
+      row += 1;
+    }
+
+    return sum;
+  }
+
+  /**
+   * Adjust overlay root element, children and master table element sizes (width, height).
+   */
+  adjustElementsSize() {
+    this.updateTrimmingContainer();
+
+    if (this.needFullRender) {
+      this.adjustRootElementSize();
+      this.adjustRootChildrenSize();
+    }
+  }
+
+  /**
+   * Adjust overlay root element size (width and height).
+   */
+  adjustRootElementSize() {
+    if (!this.clone) {
+      return;
+    }
+
+    const wtTable = this.deps.getWtTable();
+    const wtViewport = this.deps.getWtViewport();
+    const { rootDocument, rootWindow } = this.deps;
+    const overlayRoot = this.clone.wtTable.holder.parentNode as HTMLElement;
+    const overlayRootStyle = overlayRoot.style;
+    const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
+
+    if (this.trimmingContainer !== rootWindow || preventOverflow === 'horizontal') {
+      let width = wtViewport.getWorkspaceWidth();
+
+      if (wtViewport.hasVerticalScroll()) {
+        width -= this.deps.geometryReader.getScrollbarWidth(rootDocument);
+      }
+
+      width = Math.min(width, this.deps.geometryReader.scrollWidth(wtTable.wtRootElement));
+      overlayRootStyle.width = `${width}px`;
+
+    } else {
+      overlayRootStyle.width = '';
+    }
+    this.clone.wtTable.holder.style.width = overlayRootStyle.width;
+
+    let tableHeight = this.deps.geometryReader.outerHeight(this.clone.wtTable.TABLE);
+
+    if (!wtTable.hasDefinedSize()) {
+      tableHeight = 0;
+    }
+
+    overlayRootStyle.height = `${tableHeight}px`;
+  }
+
+  /**
+   * Tells whether the holder must reserve the selection corner's protruding half-height (#6937),
+   * needed only when the selection's bottom-end corner falls within the frozen top rows this overlay
+   * renders — otherwise the reserved strip leaves a leftover top border at the seam. On mobile the
+   * handles always protrude so the range check suffices; on desktop the fill handle must also be
+   * enabled (`cornerVisible` truthy), mirroring `Border#appear`.
+   *
+   * @private
+   * @param {Selection|null} focusSelection The focus Selection instance (or `null` when none).
+   * @returns {boolean}
+   */
+  shouldReserveSelectionCornerOffset(focusSelection: Selection | null): boolean {
+    if (!focusSelection || !focusSelection.cellRange) {
+      return false;
+    }
+
+    const fixedRowsTop = this.wtSettings.getSetting('fixedRowsTop') as number;
+    const bottomEndRow = focusSelection.cellRange.getBottomEndCorner().row;
+
+    // The corner is at the selection's bottom-end; reserve only when it lands inside the frozen rows
+    // this overlay renders.
+    if (bottomEndRow === null || bottomEndRow >= fixedRowsTop) {
+      return false;
+    }
+
+    if (isMobileBrowser()) {
+      return true;
+    }
+
+    const border = focusSelection.settings.border as BorderInstanceSettings['border'];
+    const cornerVisible = border?.cornerVisible;
+
+    if (typeof cornerVisible === 'function') {
+      return !!cornerVisible(focusSelection.settings.layerLevel);
+    }
+
+    return !!cornerVisible;
+  }
+
+  /**
+   * Adjust overlay root childs size.
+   */
+  adjustRootChildrenSize() {
+    if (!this.clone) {
+      return;
+    }
+
+    const { holder } = this.clone.wtTable;
+    const cornerStyle = getCornerStyle(this.wot);
+    const focusSelection = this.deps.getSelectionManager().getFocusSelection();
+    // Reserve the corner's protruding half-height only when it lands in this overlay's frozen rows;
+    // otherwise the holder grows taller than its table and leaves a leftover top border at the seam.
+    const selectionCornerOffset = this.shouldReserveSelectionCornerOffset(focusSelection)
+      ? parseInt(cornerStyle.height as string, 10) / 2 : 0;
+
+    this.clone.wtTable.hider.style.width = this.hider.style.width;
+    const holderParent = holder.parentNode as HTMLElement;
+
+    holder.style.width = holderParent.style.width;
+    // Add selection corner protruding part to the holder total height to make sure that
+    // borders' corner won't be cut after vertical scroll (#6937).
+    holder.style.height = `${parseInt(holderParent.style.height, 10) + selectionCornerOffset}px`;
+  }
+
+  /**
+   * Adjust the overlay dimensions and position.
+   */
+  applyToDOM() {
+    const total: number = this.wtSettings.getSetting('totalRows') ?? 0;
+
+    const rowsRenderCalculator = this.deps.getWtViewport().rowsRenderCalculator;
+
+    if (typeof rowsRenderCalculator?.startPosition === 'number') {
+      this.spreader.style.top = `${rowsRenderCalculator.startPosition}px`;
+
+    } else if (total === 0) {
+      // can happen if there are 0 rows
+      this.spreader.style.top = '0';
+
+    } else {
+      throwWithCause('Incorrect value of the rowsRenderCalculator');
+    }
+    this.spreader.style.bottom = '';
+
+    if (this.needFullRender) {
+      this.syncOverlayOffset();
+    }
+  }
+
+  /**
+   * Synchronize calculated left position to an element.
+   */
+  syncOverlayOffset() {
+    if (!this.clone) {
+      return;
+    }
+
+    const styleProperty = this.isRtl() ? 'right' : 'left';
+    const { spreader } = this.clone.wtTable;
+
+    const columnsRenderCalculator = this.deps.getWtViewport().columnsRenderCalculator;
+
+    if (typeof columnsRenderCalculator?.startPosition === 'number') {
+      spreader.style[styleProperty] = `${columnsRenderCalculator.startPosition}px`;
+
+    } else {
+      spreader.style[styleProperty] = '';
+    }
+  }
+
+  /**
+   * Scrolls vertically to a row.
+   *
+   * @param {number} sourceRow Row index which you want to scroll to.
+   * @param {boolean} [bottomEdge] If `true`, scrolls according to the bottom edge (top edge is by default).
+   * @returns {boolean}
+   */
+  scrollTo(sourceRow: number, bottomEdge: boolean) {
+    const { wot, wtSettings } = this;
+    const { geometryReader } = this.deps;
+    const sourceInstance = wot.cloneSource ? wot.cloneSource : wot;
+    const mainHolder = sourceInstance.wtTable.holder;
+    const columnHeaders = wtSettings.getSetting('columnHeaders') as ((...args: unknown[]) => unknown)[];
+    const fixedRowsTop = wtSettings.getSetting<number>('fixedRowsTop');
+    const columnHeaderBorderCompensation = (
+      fixedRowsTop === 0 &&
+      columnHeaders.length > 0 &&
+      !hasClass(mainHolder.parentNode as HTMLElement, 'innerBorderTop')
+    ) ? 1 : 0;
+    let newY = this.getTableParentOffset();
+    let scrollbarCompensation = 0;
+
+    if (bottomEdge) {
+      const rowHeight = this.deps.getWtTable().getRowHeight(sourceRow) ?? 0;
+      const viewportHeight = this.deps.getWtViewport().getViewportHeight();
+
+      if (rowHeight > viewportHeight) {
+        bottomEdge = false;
+      }
+    }
+
+    if (bottomEdge && geometryReader.offsetHeight(mainHolder) !== geometryReader.clientHeight(mainHolder)) {
+      scrollbarCompensation = geometryReader.getScrollbarWidth(this.deps.rootDocument);
+    }
+
+    if (bottomEdge) {
+      const fixedRowsBottom = wtSettings.getSetting<number>('fixedRowsBottom');
+      const totalRows = wtSettings.getSetting<number>('totalRows');
+
+      newY += this.sumCellSizes(0, sourceRow + 1);
+      newY -= wot.wtViewport.getViewportHeight() - this.sumCellSizes(totalRows - fixedRowsBottom, totalRows);
+      // Fix 1 pixel offset when cell is selected
+      newY += 1;
+      // Compensate for the bottom header border if scrolled from the absolute top.
+      newY += columnHeaderBorderCompensation;
+
+    } else {
+      newY += this.sumCellSizes(wtSettings.getSetting<number>('fixedRowsTop'), sourceRow);
+    }
+
+    newY += scrollbarCompensation;
+
+    // If the table is scrolled all the way up when starting the scroll and going to be scrolled to the bottom,
+    // we need to compensate for the potential header bottom border height.
+    if (
+      geometryReader.getMaximumScrollTop(this.mainTableScrollableElement as HTMLElement)
+        === newY - columnHeaderBorderCompensation &&
+      columnHeaderBorderCompensation > 0
+    ) {
+      this.deps.getWtOverlays().expandHiderVerticallyBy(columnHeaderBorderCompensation);
+    }
+
+    return this.setScrollPosition(newY);
+  }
+
+  /**
+   * Gets table parent top position.
+   *
+   * @returns {number}
+   */
+  getTableParentOffset() {
+    if (this.mainTableScrollableElement === this.deps.rootWindow) {
+      return (this.deps.getWtTable().holderOffset as { top: number; left: number }).top;
+    }
+
+    return 0;
+  }
+
+  /**
+   * Gets the main overlay's vertical scroll position.
+   *
+   * @returns {number} Main table's vertical scroll position.
+   */
+  getScrollPosition() {
+    return getScrollTop(this.mainTableScrollableElement, this.deps.rootWindow);
+  }
+
+  /**
+   * Gets the main overlay's vertical overlay offset.
+   *
+   * @returns {number} Main table's vertical overlay offset.
+   */
+  getOverlayOffset() {
+    const { rootWindow } = this.deps;
+    const preventOverflow: boolean | string = this.wtSettings.getSetting('preventOverflow');
+    let overlayOffset = 0;
+
+    if (this.trimmingContainer === rootWindow && (!preventOverflow || preventOverflow !== 'vertical')) {
+      const rootHeight = this.deps.getWtTable().getTotalHeight();
+      const overlayRootHeight = this.clone ? this.clone.wtTable.getTotalHeight() : 0;
+      const maxOffset = rootHeight - overlayRootHeight;
+
+      overlayOffset = Math.max(this.getScrollPosition() - this.getTableParentOffset(), 0);
+
+      if (overlayOffset > maxOffset) {
+        overlayOffset = 0;
+      }
+    }
+
+    return overlayOffset;
+  }
+
+  /**
+   * Pre-applies the `innerBorderTop` class before the cell render, from the pre-render scroll
+   * position and settings. On the single-pass gated path the border is then already in its final
+   * state when cells render, so the post-render `resetFixedPosition` toggle becomes a no-op
+   * (`positionChanged` stays `false`) and the nested `wot.draw(true)` re-render is never triggered.
+   * Element mode only — the window path resolves the border from post-render geometry
+   * (`getOverlayOffset` + the #7256 guard) and is excluded by the single-pass gate.
+   */
+  prepareHeaderBorders() {
+    if (!this.needFullRender || !this.shouldBeRendered() ||
+        !this.deps.getWtTable().holder.parentNode || !this.clone ||
+        this.trimmingContainer === this.deps.rootWindow) {
+      return;
+    }
+
+    this.adjustHeaderBordersPosition(this.getScrollPosition());
+  }
+
+  /**
+   * Adds css classes to hide the header border's header (cell-selection border hiding issue).
+   *
+   * @param {number} position Header Y position if trimming container is window or scroll top if not.
+   * @param {boolean} [skipInnerBorderAdjusting=false] If `true` the inner border adjusting will be skipped.
+   * @returns {boolean}
+   */
+  adjustHeaderBordersPosition(position: number, skipInnerBorderAdjusting = false) {
+    const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
+    const state = this.#computeHeaderBordersState(position, skipInnerBorderAdjusting);
+
+    if (state.hasEmptyColumns) {
+      addClass(masterParent, 'emptyColumns');
+    } else {
+      removeClass(masterParent, 'emptyColumns');
+    }
+
+    if (state.innerBorderTop === 'add') {
+      addClass(masterParent, 'innerBorderTop');
+    } else if (state.innerBorderTop === 'remove') {
+      removeClass(masterParent, 'innerBorderTop');
+    }
+
+    if (state.innerBorderTop !== 'keep') {
+      this.cachedFixedRowsTop = this.wtSettings.getSetting<number>('fixedRowsTop');
+    }
+
+    return state.positionChanged;
+  }
+
+  /**
+   * Computes the top overlay's header-border state without mutating the DOM. Pure: reads settings and
+   * the current class state only. Splitting the decision from the write lets the single-pass draw
+   * resolve the `innerBorderTop` toggle before rendering, instead of after (which forces a re-draw).
+   *
+   * @param {number} position The overlay offset that decides whether the top border is shown.
+   * @param {boolean} skipInnerBorderAdjusting The #7256 guard that suppresses the toggle.
+   * @returns {{ hasEmptyColumns: boolean, innerBorderTop: string, positionChanged: boolean }}
+   */
+  #computeHeaderBordersState(position: number, skipInnerBorderAdjusting: boolean) {
+    const { wtSettings } = this;
+    const masterParent = this.deps.getWtTable().holder.parentNode as HTMLElement;
+    const totalColumns: number = wtSettings.getSetting('totalColumns') ?? 0;
+    const preventHorizontalOverflow = wtSettings.getSetting('preventOverflow') === 'horizontal';
+    const hasEmptyColumns = !totalColumns;
+    let innerBorderTop = 'keep';
+    let positionChanged = false;
+
+    if (!skipInnerBorderAdjusting && !preventHorizontalOverflow) {
+      const fixedRowsTop = wtSettings.getSetting<number>('fixedRowsTop');
+      const areFixedRowsTopChanged = this.cachedFixedRowsTop !== fixedRowsTop;
+      const columnHeaders = wtSettings.getSetting('columnHeaders') as ((...args: unknown[]) => unknown)[];
+
+      if ((areFixedRowsTopChanged || fixedRowsTop === 0) && columnHeaders.length > 0) {
+        const previousState = hasClass(masterParent, 'innerBorderTop');
+
+        if (position || wtSettings.getSetting('totalRows') === 0) {
+          innerBorderTop = 'add';
+          positionChanged = !previousState;
+        } else {
+          innerBorderTop = 'remove';
+          positionChanged = previousState;
+        }
+      }
+    }
+
+    return { hasEmptyColumns, innerBorderTop, positionChanged };
+  }
+}
