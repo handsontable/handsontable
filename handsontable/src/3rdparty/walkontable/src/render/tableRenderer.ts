@@ -180,6 +180,45 @@ export class TableRenderer {
    * Styles handler instance.
    */
   declare stylesHandler: StylesHandler;
+  /**
+   * When `true`, the column-header pass (THEAD) may be skipped for this draw if the column render
+   * window is unchanged. Set once per draw by the draw cycle; only a pure vertical scroll (no data,
+   * settings, selection, or column-window change) enables it. Defaults to `false` so every non-scroll
+   * draw renders the headers.
+   *
+   * @type {boolean}
+   */
+  #columnHeadersRenderSkippable: boolean = false;
+  /**
+   * `true` once the column-header pass has rendered at least once and stored its render window.
+   *
+   * @type {boolean}
+   */
+  #hasStoredColumnHeaderWindow: boolean = false;
+  /**
+   * The first rendered column (column filter offset) captured on the last column-header render.
+   *
+   * @type {number}
+   */
+  #prevColumnHeaderOffset: number = -1;
+  /**
+   * The number of rendered columns captured on the last column-header render.
+   *
+   * @type {number}
+   */
+  #prevColumnsToRender: number = -1;
+  /**
+   * The column headers count captured on the last column-header render.
+   *
+   * @type {number}
+   */
+  #prevColumnHeadersCount: number = -1;
+  /**
+   * The row headers count captured on the last column-header render.
+   *
+   * @type {number}
+   */
+  #prevRowHeadersCount: number = -1;
 
   /**
    * Creates a new TableRenderer instance.
@@ -227,6 +266,18 @@ export class TableRenderer {
   setViewportSize(rowsCount: number, columnsCount: number) {
     this.rowsToRender = rowsCount;
     this.columnsToRender = columnsCount;
+  }
+
+  /**
+   * Marks this draw as one where the column-header (THEAD) pass may be skipped, provided the column
+   * render window is unchanged since the last header render. The draw cycle sets this to `true` only
+   * for a pure vertical scroll (nothing but the vertical scroll position changed), and to `false`
+   * otherwise, so any data, settings, selection, or column-window change re-renders the headers.
+   *
+   * @param {boolean} skippable Whether the column-header pass may be skipped for this draw.
+   */
+  setColumnHeadersRenderSkippable(skippable: boolean) {
+    this.#columnHeadersRenderSkippable = skippable;
   }
 
   /**
@@ -318,11 +369,45 @@ export class TableRenderer {
   }
 
   /**
+   * Returns `true` when the column-header (THEAD) pass can be skipped for this draw because it is a
+   * pure vertical scroll and the exact same column render window (offset + counts) was rendered on
+   * the previous header render. The THEAD content is then identical to what is already in the DOM.
+   *
+   * @returns {boolean}
+   */
+  #canSkipColumnHeadersRender() {
+    return this.#columnHeadersRenderSkippable &&
+      this.#hasStoredColumnHeaderWindow &&
+      this.#prevColumnHeaderOffset === (this.columnFilter ? this.columnFilter.offset : 0) &&
+      this.#prevColumnsToRender === this.columnsToRender &&
+      this.#prevColumnHeadersCount === this.columnHeadersCount &&
+      this.#prevRowHeadersCount === this.rowHeadersCount;
+  }
+
+  /**
+   * Stores the current column render window so the next draw can detect whether it is unchanged.
+   */
+  #storeColumnHeaderRenderWindow() {
+    this.#hasStoredColumnHeaderWindow = true;
+    this.#prevColumnHeaderOffset = this.columnFilter ? this.columnFilter.offset : 0;
+    this.#prevColumnsToRender = this.columnsToRender;
+    this.#prevColumnHeadersCount = this.columnHeadersCount;
+    this.#prevRowHeadersCount = this.rowHeadersCount;
+  }
+
+  /**
    * Renders the table.
    */
   render() {
-    this.columnHeaderRows!.render();
-    this.columnHeaders!.render();
+    // On a pure vertical scroll the THEAD (column header rows + cells) is identical draw-to-draw, so
+    // skip re-rendering it. The selection highlight classes on headers are (re)applied by the
+    // separate selection pass, and are unchanged while only the vertical scroll position moves.
+    if (!this.#canSkipColumnHeadersRender()) {
+      this.columnHeaderRows!.render();
+      this.columnHeaders!.render();
+      this.#storeColumnHeaderRenderWindow();
+    }
+
     this.rows!.render();
     this.rowHeaders!.render();
     this.cells!.render();

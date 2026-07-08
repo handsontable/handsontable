@@ -5,6 +5,7 @@ import {
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from '../overlay';
 import type Table from './baseTable';
+import type { default as Overlays } from '../overlay/overlays';
 
 /**
  * Per-draw mutable scratch shared by the phase functions of a single draw. It also captures the
@@ -72,6 +73,13 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   const wtOverlays = table.deps.getWtOverlays();
   const wtViewport = table.deps.getWtViewport();
 
+  // Record whether this master draw was entered as a fast/scroll draw, BEFORE `createCalculators`
+  // below can downgrade `ctx.runFastDraw`. A `forceFullRender` (`hot.render()`) enters as `draw(false)`,
+  // so this is `false` for it even if the scroll-direction flags are still set (an `afterScroll` hook
+  // can trigger a render while they are). The clones read this off the master through their clone
+  // source, so the header-render skip decision stays consistent across the master and its overlays.
+  wtOverlays.isScrollDrivenDraw = ctx.runFastDraw;
+
   wtOverlays.beforeDraw();
   table.holderOffset = table.deps.geometryReader.offset(table.holder);
 
@@ -125,7 +133,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
     ctx.performRedraw = skipRender.skipRender !== true;
 
     if (ctx.performRedraw) {
-      renderCellBand(table, ctx, filters);
+      renderCellBand(table, ctx, filters, isPureVerticalScrollDraw(wtOverlays));
 
       if (!wtSettings.getSetting('externalRowCalculator')) {
         // Single-pass: the fully/partially-visible calculators were already computed in pass 1
@@ -189,7 +197,8 @@ function runCloneDrawCycle(table: Table, ctx: DrawContext): void {
     const filters = buildRenderFilters(table, ctx);
 
     // A clone's render is never gated by `skipRender` (that gate is master-only), so it always runs.
-    renderCellBand(table, ctx, filters);
+    // The scroll-direction flags live on the master's overlays, reached via the clone source.
+    renderCellBand(table, ctx, filters, isPureVerticalScrollDraw(table.deps.getCloneSource().wtOverlays));
 
     if (table.is(CLONE_BOTTOM)) {
       table.deps.getCloneSource().wtOverlays.adjustElementsSize();
@@ -226,6 +235,25 @@ function buildRenderFilters(table: Table, ctx: DrawContext): { rowFilter: RowFil
 }
 
 /**
+ * Returns `true` when this draw is a pure vertical scroll (only the vertical scroll position moved),
+ * so the column window (and thus the THEAD) is unchanged. The scroll-direction flags live on the
+ * master's overlays, so the master passes its own overlays and a clone passes its clone source's —
+ * each cycle already knows its role, so the resolution stays at the call site rather than re-branching
+ * here. `isScrollDrivenDraw` guards against a `forceFullRender` that runs while the scroll-direction
+ * flags are still set (an `afterScroll` hook can trigger one): a full render enters as `draw(false)`,
+ * so it is excluded here and always rebuilds the headers.
+ *
+ * @param {Overlays} wtOverlays The master's overlays object (the owner of the scroll-direction flags).
+ * @returns {boolean}
+ */
+function isPureVerticalScrollDraw(wtOverlays: Overlays): boolean {
+  return !!wtOverlays &&
+    wtOverlays.isScrollDrivenDraw &&
+    wtOverlays.verticalScrolling &&
+    !wtOverlays.horizontalScrolling;
+}
+
+/**
  * Renders the header + cell band and measures the rendered rows. Shared by both cycles. The
  * role-specific branches stay inline and verbatim: bottom / bottom-left-corner overlays suppress
  * column headers, and only the master or the bottom clone marks oversized rows.
@@ -234,11 +262,14 @@ function buildRenderFilters(table: Table, ctx: DrawContext): { rowFilter: RowFil
  * @param {DrawContext} ctx The per-draw scratch (supplies the pre-hook header renderers).
  * @param {{ rowFilter: RowFilter, columnFilter: ColumnFilter }} filters The filters just built by
  *   `buildRenderFilters` (passed non-null rather than re-read off the nullable `table.*Filter`).
+ * @param {boolean} columnHeadersRenderSkippable Whether the column-header (THEAD) pass may be skipped
+ *   for this draw (a pure vertical scroll); resolved per role by the caller.
  */
 function renderCellBand(
   table: Table,
   ctx: DrawContext,
   filters: { rowFilter: RowFilter; columnFilter: ColumnFilter },
+  columnHeadersRenderSkippable: boolean,
 ): void {
   table.tableRenderer.setHeaderContentRenderers(ctx.rowHeaders, ctx.columnHeaders);
 
@@ -247,6 +278,8 @@ function renderCellBand(
     // do NOT render headers on the bottom or bottom-left corner overlay
     table.tableRenderer.setHeaderContentRenderers(ctx.rowHeaders, []);
   }
+
+  table.tableRenderer.setColumnHeadersRenderSkippable(columnHeadersRenderSkippable);
 
   table.resetOversizedRows();
 

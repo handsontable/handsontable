@@ -99,6 +99,18 @@ class Overlays {
   destroyed: boolean = false;
 
   /**
+   * `true` while the in-progress master draw was entered as a fast/scroll draw (`draw(true)`), and
+   * `false` for a full render (`draw(false)`, e.g. a `forceFullRender` from `hot.render()`). Set once
+   * per master draw before the cells are rendered, and read by the draw cycle (master and its clones,
+   * which reach it through the clone source) to gate the column-header render skip. It exists because
+   * the `verticalScrolling`/`horizontalScrolling` flags can still be set when an `afterScroll` hook
+   * synchronously triggers a `forceFullRender`, and a full render must always rebuild the headers.
+   *
+   * @type {boolean}
+   */
+  isScrollDrivenDraw: boolean = false;
+
+  /**
    * Binds the native DOM input listeners (scroll, wheel, key, resize) and translates them into the
    * engine's scroll actions. Extracted as a separate class to isolate the native-input lifecycle
    * from the overlay coordinator; the coordinator keeps a thin public `registerListeners` delegate.
@@ -499,13 +511,19 @@ class Overlays {
    *                                   rendering anyway.
    */
   refresh(fastDraw = false) {
-    const isScrollTriggered = this.verticalScrolling || this.horizontalScrolling;
+    // `isScrollDrivenDraw` guards both decisions below: the scroll-direction flags can still be set
+    // during a `forceFullRender` (an `afterScroll` hook may trigger `hot.render()` before the flags are
+    // reset), and a full render enters as `draw(false)` (so `isScrollDrivenDraw` is `false`), which must
+    // fully re-render and size the overlays rather than treat this as a scroll.
+    const isScrollTriggered = this.isScrollDrivenDraw &&
+      (this.verticalScrolling || this.horizontalScrolling);
     // On a pure vertical scroll the bottom overlay (and its inline-start corner) render the same fixed
     // rows over the same visible columns, so their DOM is unchanged - a full re-render is wasted work and
     // forces an expensive style/layout/paint of the clone subtree on every scroll frame. Reposition them
     // (fast draw) instead. Any horizontal scroll changes the visible columns, and a non-scroll redraw
-    // (data, settings, resize) clears both flags, so those paths still trigger a full re-render.
-    const bottomFastDraw = fastDraw || (this.verticalScrolling && !this.horizontalScrolling);
+    // (data, settings, resize) is not scroll-driven, so those paths still trigger a full re-render.
+    const bottomFastDraw = fastDraw ||
+      (this.isScrollDrivenDraw && this.verticalScrolling && !this.horizontalScrolling);
 
     if (isScrollTriggered) {
       this.#postponedAdjustElementsSize();
