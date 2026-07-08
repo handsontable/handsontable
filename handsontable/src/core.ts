@@ -5497,6 +5497,9 @@ export default function Core(
   /**
    * Scroll viewport to coordinates specified by the `row` and/or `col` object properties.
    *
+   * The object-based signature was introduced in v14.0.0. The positional arguments form is retained
+   * for backward compatibility.
+   *
    * ```js
    * // scroll the viewport to the visual row index (leave the horizontal scroll untouched)
    * hot.scrollViewportTo({ row: 50 });
@@ -5511,6 +5514,9 @@ export default function Core(
    * }, () => {
    *   // callback function executed after the viewport is scrolled
    * });
+   *
+   * // scroll the viewport using the backward-compatible positional arguments form
+   * hot.scrollViewportTo(50, 50, true, true);
    * ```
    *
    * @memberof Core#
