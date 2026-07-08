@@ -18,7 +18,6 @@ Each Markdown file can start with the following frontmatter tags:
 
 | Tag              | Meaning                                              | Default value                                              |
 | ---------------- | ---------------------------------------------------- | ---------------------------------------------------------- |
-| `id`             | The page's unique ID.                                  | Required. Used for redirecting between different versions (e.g., 12.1 to 11.0) of the same documentation page (https://github.com/handsontable/handsontable/pull/10163). Don't change the IDs of existing pages. To add an ID for a new page, generate 8 random alphanumeric characters (https://www.random.org/strings/?num=20&len=8&digits=on&loweralpha=on&unique=on&format=html&rnd=new). |
 | `title`          | The page's header.                                   | If not set, gets generated from the page's parent's title. |
 | `permalink`      | The page's **unique** URL.                           | If not set, gets generated from the Markdown file name.    |
 | `canonicalUrl`   | A canonical URL of the page's latest version.        | None (not required)                                        |
@@ -54,19 +53,16 @@ Frontmatter example:
 
 ```yaml
 ---
-id: 1ezrscdc
 title: Introduction
 metaTitle: Installation - Guide - Handsontable Documentation for Javascript
 description: Easily install the data grid using your preferred package manager or import Handsontable assets directly from the CDN.
 permalink: /api/
 canonicalUrl: /api/
 react:
-  id: xyr8fg2e # The page id should be different for different for other framework variations
   metaTitle: Installation - Guide - Handsontable Documentation for React
   description: Install the wrapper for React via npm, import stylesheets, and use it to get up and running your application.
   customValue: Custom # Custom value that can be used within template and will be available only for React framework
 angular:
-  id: abc12345
   metaTitle: Installation - Guide - Handsontable Documentation for Angular
   description: Install the wrapper for Angular via npm, import stylesheets, and use it to get up and running your application.
 tags:
@@ -121,11 +117,11 @@ To edit a published version's API reference:
 
 When reviewing someone else's changes, you can see the documentation output in a few different ways:
 - Switch to the reviewed branch, pull the latest changes, and [start a local documentation server](./README.md#getting-started-with-handsontable-documentation).
-- [Deploy the documentation to the staging environment](./README-DEPLOYMENT.md#manually-deploying-the-documentation-to-the-staging-environment) (https://dev.handsontable.com/docs).
+- [Deploy the documentation to the staging environment](./README-DEPLOYMENT.md#deploying-the-documentation-to-the-staging-environment) (https://dev.handsontable.com/docs).
 
 ## Documentation versioning
 
-New documentation is created automatically after the Handsontable is released. The `stable-publish` job in `.github/workflows/publish.yml` creates or updates the documentation production branch, generates API content from source code, commits, and pushes - which then triggers the Netlify deployment.
+New documentation is created automatically after the Handsontable is released. The `stable-publish` job in `.github/workflows/publish.yml` creates or updates the documentation production branch, generates API content from source code, commits, and pushes - which then triggers the Cloudflare Pages deployment.
 
 ## Markdown links
 
@@ -228,22 +224,6 @@ The `example` Markdown container offers the following options:
 | `--css <pos>`  | No       | `--css 2`       | Positive integer<br>(default `0`)                                                                                                                                                                                                                           | Sets the CSS code snippet's position<br>in the markdown container.<br><br>`0` disables the CSS tab.   |
 | `--no-edit`    | No       | `--no-edit`     | `--no-edit`                                                                                                                                                                                                                                                 | Removes the **Edit** button.                                                                          |
 | `--tab <tab>`  | No       | `--tab preview` | `code` \| `html` \| `css` \| `preview`                                                                                                                                                                                                                      | Sets a tab as open by default.                                                                        |
-
-### Non-editable examples
-You can also embed an example without the tabbed container.
-To display just the result of the code you want to present, use the `<HandsontablePreview>` component. The code wrapped in this component and a markdown code block will be rendered with the context of the current Handsontable version.
-```js
-<HandsontablePreview>
-```js
-  // enter the Handsontable-related code here.
-  const containerElement = document.querySelector('#hot');
-
-  new Handsontable(containerElement, {});
-```
-</HandsontablePreview>
-```
-
-**Note: Remember to place all the needed HTML and `<style>` elements in the markdown file as well.**
 
 ## React style guide
 

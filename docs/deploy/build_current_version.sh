@@ -1,6 +1,6 @@
 #!/bin/bash
 # Fail closed: abort on any error, unset variable, or failed pipe stage so a
-# partial bundle never reaches production. The Cloudflare/Netlify deploy steps
+# partial bundle never reaches production. The Cloudflare deploy steps
 # are gated on this script succeeding.
 set -euo pipefail
 
@@ -14,7 +14,11 @@ if [ -z "${LATEST_VERSION:-}" ]; then
     exit 1
 fi
 
-echo "/docs/$LATEST_VERSION/* /docs/:splat 301" >> _redirects
+# Hand the resolved latest version to the "Add Cloudflare worker" workflow
+# step. It must match the content layout assembled below (latest version's
+# docs at the unversioned /docs root), not the prod-docs/<MAJOR.MINOR> branch
+# being deployed - those can differ when hotfixing an older version.
+printf '%s' "$LATEST_VERSION" > LATEST_DOCS_VERSION
 
 for version in ${PREVIOUS_VERSIONS:-}
 do
@@ -46,5 +50,4 @@ echo "Building current version $LATEST_VERSION"
 img_id=$(docker create "ghcr.io/handsontable/handsontable/handsontable-documentation:v$LATEST_VERSION")
 docker cp "$img_id:/usr/share/nginx/html/docs" ./docs
 
-cp _redirects docs/_redirects
 cp docs/docs/404.html docs/404.html

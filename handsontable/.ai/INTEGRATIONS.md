@@ -46,7 +46,7 @@ Handsontable is a frontend-only library with no built-in external API integratio
 **Hosting:**
 - npm registry (published as `handsontable`, `@handsontable/react-wrapper`, `@handsontable/angular-wrapper`, `@handsontable/vue3`)
 - CDN: jsDelivr and unpkg (automatic from npm publish)
-- Documentation: Netlify (`docs/netlify/`)
+- Documentation: Cloudflare Pages (`docs/cloudflare/`, `docs/deploy/`)
 
 **CI Pipeline:**
 - GitHub Actions (`.github/workflows/`)
@@ -73,7 +73,7 @@ Handsontable is a frontend-only library with no built-in external API integratio
 
 **Secrets location:**
 - No secrets in the repository. No `.env` files present.
-- CI secrets managed via GitHub Actions secrets (for npm publish, Netlify deploy, Algolia reindex).
+- CI secrets managed via GitHub Actions secrets (for npm publish, Cloudflare deploy, Algolia reindex).
 
 ## Webhooks & Callbacks
 

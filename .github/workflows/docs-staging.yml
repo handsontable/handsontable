@@ -1,14 +1,24 @@
 name: Docs Staging Deployment
 
 on:
+  # Build PR previews on the pull_request event. The PR number comes from the
+  # event payload, so the preview always knows which PR to comment on - unlike
+  # the old push-driven build, which raced PR creation and often resolved no PR
+  # (no preview comment, no Cloudflare deploy). The paths filter limits PR
+  # builds to pull requests that change documentation files.
   pull_request:
-    types: [ labeled, synchronize ]
+    types: [ opened, reopened, synchronize ]
+    paths:
+      - 'docs/**'
+      - 'handsontable/package.json'
+  # Push builds cover the non-PR contexts only: develop (apex staging) and
+  # release/* (RC staging, triggered by the handsontable/package.json version
+  # bump). Other branches get their preview from the pull_request event above,
+  # so they are intentionally not built on push (avoids a duplicate build).
   push:
-    branches-ignore:
-      - 'prod-docs/**'
-      - 'master'
-    # Trigger on docs changes (all branches) and on handsontable/package.json
-    # changes (so RC version bumps on release/* branches trigger a rebuild).
+    branches:
+      - develop
+      - 'release/**'
     paths:
       - 'docs/**'
       - 'handsontable/package.json'
@@ -24,8 +34,15 @@ defaults:
 
 jobs:
   preview:
-    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'ci:docs-deploy') }}
-    name: Build and push Preview to Netlify (on pull request label)
+    name: Build and push Preview to Cloudflare Pages
+    # Release branches build their production-mode RC staging from the push
+    # trigger above, and that push build also resolves and comments on the open
+    # release PR (its head is the release branch). Skip the pull_request build
+    # for release-head PRs so they are not also built in dev mode on a separate
+    # concurrency key, which would deploy twice and post a duplicate comment.
+    # The prefix match is intentionally broader than the release/x.y.z version
+    # pattern; any release/* head PR defers to its push build.
+    if: ${{ !(github.event_name == 'pull_request' && startsWith(github.head_ref, 'release/')) }}
     runs-on: ubuntu-latest
 
     steps:
@@ -98,48 +115,6 @@ jobs:
 
             core.setOutput('number', prNumber ? String(prNumber) : '');
 
-      - name: Get PR details
-        id: get-pr
-        if: ${{ steps.resolve-pr.outputs.number }}
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
-        with:
-          script: |
-            const { data: pullRequest } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: Number('${{ steps.resolve-pr.outputs.number }}')
-            });
-
-            console.log(`PR #${{ steps.resolve-pr.outputs.number }} details fetched`);
-            console.log(`Source branch: ${pullRequest.head.ref}`);
-            console.log(`Target branch: ${pullRequest.base.ref}`);
-
-            // Set outputs to use in subsequent steps
-            core.setOutput('source_branch', pullRequest.head.ref);
-            core.setOutput('target_branch', pullRequest.base.ref);
-            core.setOutput('pr_owner', pullRequest.head.repo.owner.login);
-            core.setOutput('pr_repo', pullRequest.head.repo.name);
-
-            return pullRequest;
-          result-encoding: string
-
-      - name: Install Netlify dependencies
-        run: |
-           cd netlify
-           npm i
-           npm install netlify-cli -g
-
-      - name: Run the create or get Netlify Page process. Save the Netlify vars in a file
-        run: |
-          cd netlify
-          node createOrGet.mjs
-          cat NETLIFY_VARS >> $GITHUB_ENV
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
-          NETLIFY_ACCOUNT_SLUG: ${{ secrets.NETLIFY_ACCOUNT_SLUG }}
-          BRANCH_NAME_PREFIX: ${{ steps.release-info.outputs.is_release == 'true' && 'rc-handsontable-' || 'dev-handsontable-' }}
-          BRANCH_NAME: ${{ steps.release-info.outputs.is_release == 'true' && steps.release-info.outputs.target_version || github.head_ref || steps.get-pr.outputs.source_branch || github.ref_name }}
-
       - name: Publish sticky comment in PR. Docs are being built
         uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
         if: ${{ steps.resolve-pr.outputs.number }}
@@ -147,7 +122,7 @@ jobs:
           number: ${{ steps.resolve-pr.outputs.number }}
           message: |
             🏗️ Preview documentation is being built/rebuilt.
-            Current staging version of documentation will be available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
+            The Cloudflare Pages preview URL will be posted here once the build finishes.
 
       - name: Install the monorepo dependencies (including docs) and build the packages
         working-directory: .
@@ -174,93 +149,156 @@ jobs:
           BUILD_MODE: ${{ steps.release-info.outputs.is_release == 'true' && 'production' || '' }}
           PUBLIC_CHAT_API_URL: ${{ secrets.PUBLIC_CHAT_API_URL }}
 
-      - name: Build and deploy the preview to Netlify
+      # Stage the built docs into the directory deployed to Cloudflare Pages.
+      - name: Prepare Cloudflare Pages deploy directory
         run: |
-          cd netlify
-          mkdir -p deploy/docs
+          cd deploy
+          mkdir -p preview/docs
 
-          cp -r ../dist/. deploy/docs/
+          cp -r ../dist/. preview/docs/
 
-          # Place 404.html at the publish root so Netlify serves it
+          # Place 404.html at the publish root so the host serves it
           # automatically for all unmatched routes (no redirect rule needed).
-          cp ../dist/404.html deploy/404.html
+          cp ../dist/404.html preview/404.html
 
-          cp _dev_headers deploy/_headers
-          cp _redirects deploy/_redirects
+          cp _dev_headers preview/_headers
 
-      - name: Publish preview to Netlify
-        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # https://github.com/nick-fields/retry/releases/tag/v3.0.2
+      # Decide how this build maps to a Cloudflare Pages deployment. Every run
+      # of this job deploys somewhere (matching the previous Netlify behavior,
+      # where any branch/manual run produced a preview):
+      #   - push/dispatch on develop -> branch "develop" (the project's apex
+      #     branch), served at handsontable-docs-staging.pages.dev.
+      #   - release/x.y.z (RC build) -> branch "rc-<version>", served at
+      #     rc-<version>.handsontable-docs-staging.pages.dev (stable per-version
+      #     URL used by the release pipeline's RC docs link).
+      #   - a PR build -> branch "pr-<N>", served at
+      #     pr-<N>.handsontable-docs-staging.pages.dev.
+      #   - any other branch (e.g. manual workflow_dispatch) -> a sanitized
+      #     branch-name preview, served at <slug>.handsontable-docs-staging.pages.dev.
+      # Any deploy whose branch differs from the apex branch is a preview.
+      - name: Determine Cloudflare Pages target
+        id: cf-target
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
         with:
-          timeout_seconds: 1600
-          max_attempts: 3
-          retry_on: error
-          command: |
-            cd docs/netlify
-            netlify deploy --prod --dir deploy
-        env:
-          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_PREVIEW_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: ${{ env.NETLIFY_SITE_ID }}
+          script: |
+            const prNumber = '${{ steps.resolve-pr.outputs.number }}';
+            const isRelease = '${{ steps.release-info.outputs.is_release }}' === 'true';
+            const targetVersion = '${{ steps.release-info.outputs.target_version }}';
+            const ref = context.ref || '';
+            const headBranch = ref.replace(/^refs\/heads\//, '');
 
-      - name: Publish sticky comment in PR
-        uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
-        if: ${{ steps.resolve-pr.outputs.number }}
-        with:
-          number: ${{ steps.resolve-pr.outputs.number }}
-          message: |
-            ✅ Preview documentation is available now
-            Current staging version of documentation is available at: [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs)
+            // Sanitize a git branch name into a Cloudflare Pages branch label.
+            // Cloudflare truncates preview-branch subdomain aliases to 28
+            // chars (then trims dashes) - cap here first so the label we
+            // compute matches the hostname Pages actually serves; slicing
+            // after the dash-trim (as before) could leave the alias 12 chars
+            // longer than what Cloudflare exposes, pointing previews at a
+            // different, wrong hostname.
+            const slug = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 28).replace(/^-+|-+$/g, '') || 'branch';
 
+            if (ref === 'refs/heads/develop') {
+              core.setOutput('deploy', 'true');
+              core.setOutput('branch', 'develop');
+              core.setOutput('is_production', 'true');
+            } else if (isRelease && targetVersion) {
+              core.setOutput('deploy', 'true');
+              core.setOutput('branch', `rc-${targetVersion.replace(/\./g, '-')}`);
+              core.setOutput('is_production', 'false');
+            } else if (prNumber) {
+              core.setOutput('deploy', 'true');
+              core.setOutput('branch', `pr-${prNumber}`);
+              core.setOutput('is_production', 'false');
+            } else if (ref.startsWith('refs/heads/')) {
+              core.setOutput('deploy', 'true');
+              core.setOutput('branch', slug(headBranch));
+              core.setOutput('is_production', 'false');
+            } else {
+              core.setOutput('deploy', 'false');
+            }
+
+      # No continue-on-error: Cloudflare Pages falls back to _redirects when
+      # _worker.js is missing, silently breaking every worker-only redirect
+      # while the workflow stays green - masking a failed copy here is the
+      # same class of bug the production deploy's tripwire exists to prevent.
       - name: Add Cloudflare worker to deploy
-        if: ${{ steps.resolve-pr.outputs.number }}
-        continue-on-error: true
-        run: cp cloudflare/_worker.js netlify/deploy/_worker.js
+        if: ${{ steps.cf-target.outputs.deploy == 'true' }}
+        run: cp cloudflare/_worker.js deploy/preview/_worker.js
 
       - name: Ensure Cloudflare Pages project exists
-        if: ${{ steps.resolve-pr.outputs.number }}
+        if: ${{ steps.cf-target.outputs.deploy == 'true' }}
         continue-on-error: true
         run: node cloudflare/ensureProject.mjs
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CF_PROJECT_NAME: handsontable-docs-staging
+          # Develop builds deploy to --branch develop below, so the apex
+          # handsontable-docs-staging.pages.dev tracks the develop branch.
+          # (Here the label happens to match a real, long-lived git branch.)
+          CF_PAGES_APEX_BRANCH: develop
 
-      - name: Deploy preview to Cloudflare Pages
+      # No continue-on-error here: with it, a failed deploy still left the job
+      # green (previews silently stopped updating with no visible signal), and
+      # the RC failure Slack alert below never fired for a Cloudflare-only
+      # failure - continue-on-error keeps steps.cf-pages-deploy.outcome as
+      # 'failure' but the job's own success() stays true, and the Slack steps'
+      # `failure()` condition only trips on a step that actually failed the job.
+      # Retried (unlike continue-on-error, this preserves hard-failure
+      # semantics once attempts are exhausted): wrangler retries asset
+      # uploads internally but not deployment creation, and `npm install
+      # wrangler` is an unretried network call too - a single transient
+      # Cloudflare API blip shouldn't fail the whole run (and, on release
+      # branches, fire the RC-failure Slack alert).
+      - name: Deploy to Cloudflare Pages
         id: cf-pages-deploy
-        if: ${{ steps.resolve-pr.outputs.number }}
-        continue-on-error: true
-        # Install wrangler in /tmp to avoid npm failures inside the pnpm workspace
-        working-directory: /tmp
-        run: |
-          npm install wrangler
-          ./node_modules/.bin/wrangler pages deploy \
-            "$GITHUB_WORKSPACE/docs/netlify/deploy" \
-            --project-name handsontable-docs-staging \
-            --branch "pr-${{ steps.resolve-pr.outputs.number }}"
+        if: ${{ steps.cf-target.outputs.deploy == 'true' }}
+        uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 # https://github.com/nick-fields/retry/releases/tag/v3.0.2
+        with:
+          timeout_seconds: 300
+          max_attempts: 3
+          retry_on: error
+          command: |
+            cd /tmp
+            npm install wrangler
+            ./node_modules/.bin/wrangler pages deploy \
+              "$GITHUB_WORKSPACE/docs/deploy/preview" \
+              --project-name handsontable-docs-staging \
+              --branch "${{ steps.cf-target.outputs.branch }}"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
+      # RC builds (release/x.y.z push) can resolve an open release PR via
+      # resolve-pr, but they deploy to rc-<version>, not pr-<N>. Build the URL
+      # from cf-target's actual resolved branch (pr-<N> for PR previews,
+      # rc-<version> for RC builds) instead of hardcoding pr-<N>, so release
+      # PRs still get a comment and it links to where the build really went.
       - name: Update sticky PR comment with Cloudflare Pages URL
         uses: marocchino/sticky-pull-request-comment@0ea0beb66eb9baf113663a64ec522f60e49231c0 # https://github.com/marocchino/sticky-pull-request-comment/releases/tag/v3.0.4
         if: ${{ steps.resolve-pr.outputs.number && steps.cf-pages-deploy.outcome == 'success' }}
         with:
           number: ${{ steps.resolve-pr.outputs.number }}
           message: |
-            ✅ Preview documentation is available now
+            ✅ Preview documentation is available now at the Cloudflare Pages preview URL:
 
-            | Platform | URL |
-            |---|---|
-            | Netlify | [${{ env.NETLIFY_SITE_URL }}/docs](${{ env.NETLIFY_SITE_URL }}/docs) |
-            | Cloudflare Pages | [https://pr-${{ steps.resolve-pr.outputs.number }}.handsontable-docs-staging.pages.dev/docs](https://pr-${{ steps.resolve-pr.outputs.number }}.handsontable-docs-staging.pages.dev/docs) |
+            https://${{ steps.cf-target.outputs.branch }}.handsontable-docs-staging.pages.dev/docs
+
+      - name: Post Cloudflare Pages apex summary
+        if: ${{ steps.cf-target.outputs.is_production == 'true' && steps.cf-pages-deploy.outcome == 'success' }}
+        run: |
+          echo "## ☁️ Staging docs deployed to Cloudflare Pages apex" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Production deployment of the staging project (branch \`develop\`)." >> $GITHUB_STEP_SUMMARY
+          echo "**URL:** https://handsontable-docs-staging.pages.dev/docs" >> $GITHUB_STEP_SUMMARY
 
       - name: Post RC staging summary
-        if: ${{ steps.release-info.outputs.is_release == 'true' }}
+        if: ${{ steps.release-info.outputs.is_release == 'true' && steps.cf-pages-deploy.outcome == 'success' }}
         run: |
           echo "## 🧪 RC Docs Staging Deployment" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Target version:** ${{ steps.release-info.outputs.target_version }}" >> $GITHUB_STEP_SUMMARY
           echo "**Build mode:** production" >> $GITHUB_STEP_SUMMARY
-          echo "**Preview URL:** ${{ env.NETLIFY_SITE_URL }}/docs" >> $GITHUB_STEP_SUMMARY
+          echo "**Preview URL:** https://${{ steps.cf-target.outputs.branch }}.handsontable-docs-staging.pages.dev/docs" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "This staging build uses production docs settings (BUILD_MODE=production) for release branch \`${{ steps.release-info.outputs.target_version }}\`." >> $GITHUB_STEP_SUMMARY
           echo "The published \`handsontable\` version from package.json (including any RC tag) is used in examples and CodeSandbox links." >> $GITHUB_STEP_SUMMARY
@@ -280,7 +318,7 @@ jobs:
           REPO_URL: ${{ github.server_url }}/${{ github.repository }}
           MEASURE_OUTCOME: ${{ steps.measure-module-sizes.outcome }}
           BUILD_OUTCOME: ${{ steps.build-docs.outcome }}
-          NETLIFY_OUTCOME: ${{ steps.netlify-publish.outcome }}
+          CF_DEPLOY_OUTCOME: ${{ steps.cf-pages-deploy.outcome }}
         run: |
           BRANCH='${{ github.ref_name }}'
 
@@ -291,8 +329,8 @@ jobs:
           if [ "$BUILD_OUTCOME" = "failure" ]; then
             FAILURES="${FAILURES}• *Docs build* failed\n"
           fi
-          if [ "$NETLIFY_OUTCOME" = "failure" ]; then
-            FAILURES="${FAILURES}• *Netlify publish* failed — preview may not be available\n"
+          if [ "$CF_DEPLOY_OUTCOME" = "failure" ]; then
+            FAILURES="${FAILURES}• *Cloudflare Pages deploy* failed — preview may not be available\n"
           fi
           if [ -z "$FAILURES" ]; then
             FAILURES="• Unknown failure — check the Actions run for details\n"
