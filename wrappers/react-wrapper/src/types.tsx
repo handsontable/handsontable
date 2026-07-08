@@ -1,4 +1,4 @@
-import Handsontable from 'handsontable/base';
+import Handsontable, { RemoveIndexSignature } from 'handsontable/base';
 import React, {
   ComponentType,
   CSSProperties,
@@ -50,9 +50,16 @@ export interface UseHotEditorImpl<T> {
 /**
  * Helper type to expose GridSettings/ColumnSettings props with native renderers/editors separately
  * from component-based render prop. Uses conditional types so it works with both GridSettings
- * and ColumnSettings (ColumnSettings' index signature can make it incompatible with strict Pick<>).
+ * and ColumnSettings.
+ *
+ * `RemoveIndexSignature` (imported from the core package) strips the `[key: string]: any` index
+ * signature that `GridSettings`/`ColumnSettings` carry. Without it, `Omit` widens `keyof T` to
+ * `string` and collapses to a bare index signature, dropping every named option — which is why
+ * `HotTableProps`/`HotColumnProps` had no option names to autocomplete. It is defined in core (and
+ * imported here rather than redefined) because this package's declaration compiler predates the
+ * `as` key-remapping the helper relies on.
  */
-type ReplaceRenderersEditors<T> = Omit<T, 'renderer' | 'editor'> & {
+type ReplaceRenderersEditors<T> = Omit<RemoveIndexSignature<T>, 'renderer' | 'editor'> & {
   hotRenderer?: T extends { renderer?: infer R } ? R : never,
   renderer?: ComponentType<HotRendererProps>,
   hotEditor?: T extends { editor?: infer E } ? E : never,

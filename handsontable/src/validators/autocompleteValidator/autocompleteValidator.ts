@@ -41,7 +41,9 @@ export function autocompleteValidator(
 
   if (this.strict && this.source) {
     if (typeof this.source === 'function') {
-      this.source(valueToValidate, process(valueToValidate, callback));
+      // `source` is now strongly typed as `(query: string, ...) => void` (previously `any` before the
+      // `ColumnSettings` index-signature fix). The validated value is `unknown`; cast for the query arg.
+      this.source(valueToValidate as string, process(valueToValidate, callback));
     } else {
       process(valueToValidate, callback)(this.source as unknown[]);
     }

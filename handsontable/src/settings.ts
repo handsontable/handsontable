@@ -54,17 +54,35 @@ export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'updateData' | 'popula
   'ColumnSummary.reset' | 'DataProvider.revert';
 
 export type { GridSettings } from './core/settings';
+
+/**
+ * Removes the `[key: string]: any` / `[key: number]: any` index signature from a type while keeping
+ * every named property.
+ *
+ * `GridSettings` carries a broad index signature so that arbitrary plugin/meta keys are allowed. That
+ * signature widens `keyof GridSettings` to `string | number`, which makes `Omit`/`Pick` collapse to a
+ * bare index signature and drop every named option. Stripping it first keeps the named options — and
+ * their IDE autocomplete — intact through such transforms.
+ */
+export type RemoveIndexSignature<T> = {
+  [K in keyof T as string extends K ? never : number extends K ? never : K]: T[K]
+};
+
 /**
  * Column settings inherit grid settings but overload the meaning of `data` to be specific to each column.
  */
-export interface ColumnSettings extends Omit<GridSettings, 'data'> {
+export interface ColumnSettings extends Omit<RemoveIndexSignature<GridSettings>, 'data'> {
   data?: string | number | ColumnDataGetterSetterFunction;
 
-  // NOTE: do not add a `[key: string]: unknown` index signature here. Column and cell meta is already
-  // extensible with arbitrary keys through the `[key: string]: any` signature inherited from
-  // `GridSettings`. A second index signature with a different value type (`unknown` vs the inherited
-  // `any`) makes TypeScript drop the `this` binding on nested `handsontable.getValue` — contextual
-  // typing widens `this` to `{}`. The `_hotColumnGetValueFn` type test guards against re-adding it.
+  // The named grid options above come from `RemoveIndexSignature<GridSettings>` so that `Omit` keeps
+  // them (and their IDE autocomplete) instead of collapsing to a bare index signature.
+  //
+  // The index signature below must stay `any` — the exact value type inherited from `GridSettings`.
+  // A `[key: string]: unknown` here makes TypeScript drop the `this` binding on nested
+  // `handsontable.getValue` (contextual typing widens `this` to `{}`). The `_hotColumnGetValueFn`
+  // type test guards against changing it.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
 }
 
 /**

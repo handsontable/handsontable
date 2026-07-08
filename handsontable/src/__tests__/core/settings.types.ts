@@ -843,6 +843,38 @@ const _hotColumnGetValueFn: Handsontable.ColumnSettings = {
   },
 };
 
-// Custom plugin/meta keys still allowed via the `[key: string]: any` signature inherited from `GridSettings`.
+// Custom plugin/meta keys still allowed via the `[key: string]: any` signature.
 const _columnArbitraryKeys: Handsontable.ColumnSettings = { someCustomPluginKey: 123 };
 const _cellMetaArbitraryKeys: Handsontable.CellMeta = { someCustomMetaKey: true };
+
+// DEV-2020 regression: `GridSettings` carries a `[key: string]: any` index signature. `ColumnSettings`
+// (and, through it, `CellMeta`/`CellProperties`) is built with `Omit<..., 'data'>`, which used to
+// collapse to a bare index signature and drop every named option — so `columns: [{ ... }]` lost its
+// types and IDE autocomplete. The named options must keep their real types. Each `@ts-expect-error`
+// below fails to compile if that option ever collapses back to `any`.
+
+// @ts-expect-error `width` is `number | string | (() => number | string)`, not `boolean`.
+const _columnWidthTyped: Handsontable.ColumnSettings = { width: true };
+// @ts-expect-error `type` is a string cell-type name, not `number`.
+const _columnTypeTyped: Handsontable.ColumnSettings = { type: 123 };
+// @ts-expect-error `readOnly` is `boolean`, not `string`.
+const _cellMetaReadOnlyTyped: Handsontable.CellMeta = { readOnly: 'nope' };
+const _cellPropertiesCopyableTyped: Handsontable.CellProperties = {
+  row: 0,
+  col: 0,
+  visualRow: 0,
+  visualCol: 0,
+  prop: 0,
+  instance: {} as Handsontable,
+  // @ts-expect-error `copyable` on a computed cell keeps its real `boolean` type.
+  copyable: 'yes',
+};
+
+// Valid, fully-typed column config still compiles (options resolve to their real types).
+const _columnTypedConfig: Handsontable.ColumnSettings = {
+  data: 'name',
+  width: 80,
+  type: 'numeric',
+  readOnly: true,
+  className: 'foo',
+};
