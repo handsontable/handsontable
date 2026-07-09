@@ -181,7 +181,6 @@ export class AppComponent {
     colWidths: [120, 150, 120, 140, 120, 120],
     fixedRowsTop: 1,
     fixedRowsBottom: 1,
-    minSpareRows: 1,
     colHeaders: true,
     // enable filtering
     filters: true,
@@ -192,10 +191,7 @@ export class AppComponent {
       const filtersRowsMap = (filtersPlugin as any).filtersRowsMap;
 
       filtersRowsMap.setValueAtIndex(0, false);
-      filtersRowsMap.setValueAtIndex(
-        filtersRowsMap.indexedValues.length - 1,
-        false
-      );
+      filtersRowsMap.setValueAtIndex(filtersRowsMap.getLength() - 1, false);
     },
     autoWrapRow: true,
     autoWrapCol: true,
