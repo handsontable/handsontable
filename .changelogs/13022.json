@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `modifyCopyableRange` hook's type declaration to reflect that its return value is used.",
+  "type": "fixed",
+  "issueOrPR": 13022,
+  "breaking": false,
+  "framework": "none"
+}
