@@ -97,6 +97,7 @@ const cellFunctionsItems = [
 
 const cellTypesItems = [
   { path: 'guides/cell-types/cell-type/cell-type' },
+  { path: 'guides/cell-types/text-cell-type/text-cell-type' },
   { path: 'guides/cell-types/numeric-cell-type/numeric-cell-type' },
   { path: 'guides/cell-types/date-cell-type/date-cell-type' },
   { path: 'guides/cell-types/time-cell-type/time-cell-type' },

@@ -854,6 +854,7 @@ Empty cells may be treated differently in different contexts, for example, the [
 - [Numeric cell type](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md)
 - [Password cell type](@/guides/cell-types/password-cell-type/password-cell-type.md)
 - [Select cell type](@/guides/cell-types/select-cell-type/select-cell-type.md)
+- [Text cell type](@/guides/cell-types/text-cell-type/text-cell-type.md)
 - [Time cell type](@/guides/cell-types/time-cell-type/time-cell-type.md)
 
 </div>
