@@ -226,14 +226,11 @@ export class SelectionManager {
         continue; // eslint-disable-line no-continue
       }
 
-      let scannedElements: Set<HTMLElement> | null = null;
-
       if (className) {
         const elements = this.#scanner
           .setActiveSelection(selection)
           .scan() as Set<HTMLElement>;
-
-        scannedElements = elements;
+        const isActiveHeader = selectionType === ACTIVE_HEADER_TYPE;
 
         elements.forEach((element: HTMLElement) => {
           if (classNamesMap.has(element)) {
@@ -260,13 +257,18 @@ export class SelectionManager {
               headerAttributesMap.get(element).push(...attrs);
             }
           }
+
+          // Tag the active-header neighbour classes in this same pass, so the scanned element set is
+          // walked once. Order into `classNamesMap` does not matter — it is applied after the loop.
+          if (isActiveHeader) {
+            this.#markActiveHeaderNeighbor(element, className as string, classNamesMap);
+          }
         });
       }
 
       const corners = selection.getCorners();
 
       if (selectionType === ACTIVE_HEADER_TYPE && className) {
-        this.#markActiveHeaderNeighbors(scannedElements!, className as string, classNamesMap);
         this.#markFrozenColumnSeamHeader(corners, className as string, classNamesMap);
         this.#markFrozenTopRowSeamHeader(corners, className as string, classNamesMap);
         this.#markFrozenBottomRowSeamHeader(corners, className as string, classNamesMap);
@@ -306,7 +308,7 @@ export class SelectionManager {
   }
 
   /**
-   * Tags the neighbours of every active-header cell: the TH directly BEFORE an active header gets
+   * Tags the neighbours of a single active-header cell: the TH directly BEFORE an active header gets
    * `<className>-prev` (the theme colors its inline-end border, giving the active header its
    * inline-start accent), and every TH of the TBODY row directly ABOVE an active row header gets
    * `<className>-prev-row` (the theme colors its bottom border, giving the active row header its top
@@ -315,35 +317,34 @@ export class SelectionManager {
    * with the class name inside a `:has()` argument, every toggle of it (the selection pass re-applies
    * it on each draw, and it moves between the recycled header nodes while scrolling) forced a style
    * invalidation scaled to the whole host page. The row tag lands on TH elements (not the TR) so the
-   * per-band header render and `#resetCells` fully own its cleanup.
+   * per-band header render and `#resetCells` fully own its cleanup. Called once per scanned
+   * active-header element, from the class-applying pass in `render`.
    *
-   * @param {Set<HTMLElement>} elements The active-header elements collected by the scanner.
+   * @param {HTMLElement} element A scanned active-header element.
    * @param {string} activeHeaderClassName The active header class name (the neighbour classes derive from it).
    * @param {Map} classNamesMap The render cycle's element→classNames map (applied and cleaned up later).
    */
-  #markActiveHeaderNeighbors(
-    elements: Set<HTMLElement>,
+  #markActiveHeaderNeighbor(
+    element: HTMLElement,
     activeHeaderClassName: string,
     classNamesMap: Map<HTMLElement, Map<string, number>>
   ) {
-    elements.forEach((element) => {
-      if (element.nodeName !== 'TH') {
-        return;
-      }
+    if (element.nodeName !== 'TH') {
+      return;
+    }
 
-      const previousHeader = element.previousElementSibling;
+    const previousHeader = element.previousElementSibling;
 
-      if (previousHeader !== null && previousHeader.nodeName === 'TH') {
-        this.#tagSeamClass(classNamesMap, previousHeader as HTMLElement, `${activeHeaderClassName}-prev`);
-      }
+    if (previousHeader !== null && previousHeader.nodeName === 'TH') {
+      this.#tagSeamClass(classNamesMap, previousHeader as HTMLElement, `${activeHeaderClassName}-prev`);
+    }
 
-      this.#markPreviousRowHeaders(element, activeHeaderClassName, classNamesMap);
-    });
+    this.#markPreviousRowHeaders(element, activeHeaderClassName, classNamesMap);
   }
 
   /**
    * Tags every TH of the TBODY row directly above the given active row-header cell — the row-axis
-   * half of {@link SelectionManager#markActiveHeaderNeighbors}.
+   * half of {@link SelectionManager#markActiveHeaderNeighbor}.
    *
    * @param {HTMLElement} element The active row-header cell.
    * @param {string} activeHeaderClassName The active header class name (the neighbour class derives from it).

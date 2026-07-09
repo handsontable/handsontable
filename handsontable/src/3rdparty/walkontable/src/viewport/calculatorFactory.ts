@@ -42,6 +42,37 @@ export interface CalculatorFactory {
 }
 
 /**
+ * Computes how many tracks to extend a freshly computed render band by so it keeps the previous
+ * band's size across a scroll-driven draw — the overscan that stops the rendered node count from
+ * oscillating (a structural DOM add/remove that would trigger the host page's `:has()` style
+ * invalidation). Returns `0` when the band already covers the previous size, or when the dataset
+ * edge leaves no track to extend into. Axis-agnostic: the caller applies the result to its own
+ * end-index and count fields. Shared by the row and column stabilizers so the clamp arithmetic
+ * (notably the `(total - 1) - end` upper bound) lives in exactly one place — a divergent edit to it
+ * on one axis would silently reintroduce per-scroll structural mutations on that axis only.
+ *
+ * @param {number} renderedEnd The last index of the freshly computed band (`endRow` / `endColumn`).
+ * @param {number} renderedCount The freshly computed band size.
+ * @param {number} previousCount The size of the band rendered on the previous draw.
+ * @param {number} total The axis total (`totalRows` / `totalColumns`).
+ * @returns {number} The number of tracks to extend by (never negative).
+ */
+function bandStabilizationExtension(
+  renderedEnd: number,
+  renderedCount: number,
+  previousCount: number,
+  total: number,
+): number {
+  const missing = previousCount - renderedCount;
+
+  if (missing <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, Math.min(missing, (total - 1) - renderedEnd));
+}
+
+/**
  * The calculator-factory mixin. Implements `CalculatorFactory`.
  *
  * @type {CalculatorFactory}
@@ -347,18 +378,12 @@ export const calculatorFactory: CalculatorFactory = {
       return;
     }
 
-    const missingRows = previousBand.count - renderedRows.count;
-
-    if (missingRows <= 0) {
-      return;
-    }
-
-    const totalRows = this.wtSettings.getSetting<number>('totalRows');
-    const extension = Math.min(missingRows, (totalRows - 1) - renderedRows.endRow);
-
-    if (extension <= 0) {
-      return;
-    }
+    const extension = bandStabilizationExtension(
+      renderedRows.endRow,
+      renderedRows.count,
+      previousBand.count,
+      this.wtSettings.getSetting<number>('totalRows'),
+    );
 
     renderedRows.endRow += extension;
     renderedRows.count += extension;
@@ -385,18 +410,12 @@ export const calculatorFactory: CalculatorFactory = {
       return;
     }
 
-    const missingColumns = previousBand.count - renderedColumns.count;
-
-    if (missingColumns <= 0) {
-      return;
-    }
-
-    const totalColumns = this.wtSettings.getSetting<number>('totalColumns');
-    const extension = Math.min(missingColumns, (totalColumns - 1) - renderedColumns.endColumn);
-
-    if (extension <= 0) {
-      return;
-    }
+    const extension = bandStabilizationExtension(
+      renderedColumns.endColumn,
+      renderedColumns.count,
+      previousBand.count,
+      this.wtSettings.getSetting<number>('totalColumns'),
+    );
 
     renderedColumns.endColumn += extension;
     renderedColumns.count += extension;
