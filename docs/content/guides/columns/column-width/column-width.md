@@ -243,6 +243,12 @@ Set the option [`manualColumnResize`](@/api/options.md#manualcolumnresize) to `t
 
 You can adjust the size of one or multiple columns simultaneously, even if the selected columns are not placed next to each other.
 
+::: tip
+
+When you set a column width programmatically with [`ManualColumnResize#setManualSize()`](@/api/manualColumnResize.md#setmanualsize), call `hot.render()` after the method call to repaint the grid. Values below `20px` are stored as `20px`.
+
+:::
+
 ::: only-for javascript
 
 ::: example #example4 --js 1 --ts 2

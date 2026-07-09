@@ -238,10 +238,21 @@ export class ManualRowResize extends BasePlugin {
   }
 
   /**
-   * Sets the new height for specified row index.
+   * Sets the new height for the specified visual row index.
+   *
+   * This method updates the plugin's internal height map. Call `render()` after `setManualSize()` to repaint the grid.
+   * Values lower than the theme's default row height are saved as the default row height.
+   *
+   * @example
+   * ```js
+   * const resizePlugin = hot.getPlugin('manualRowResize');
+   *
+   * resizePlugin.setManualSize(0, 40);
+   * hot.render();
+   * ```
    *
    * @param {number} row Visual row index.
-   * @param {number} height Row height.
+   * @param {number} height Row height (no less than the theme's default row height).
    * @returns {number} Returns new height.
    */
   setManualSize(row: number, height: number): number {

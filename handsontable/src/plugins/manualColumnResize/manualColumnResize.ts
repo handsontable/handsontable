@@ -244,7 +244,18 @@ export class ManualColumnResize extends BasePlugin {
   }
 
   /**
-   * Sets the new width for specified column index.
+   * Sets the new width for the specified visual column index.
+   *
+   * This method updates the plugin's internal width map. Call `render()` after `setManualSize()` to repaint the grid.
+   * Values lower than `20px` are saved as `20px`.
+   *
+   * @example
+   * ```js
+   * const resizePlugin = hot.getPlugin('manualColumnResize');
+   *
+   * resizePlugin.setManualSize(0, 120);
+   * hot.render();
+   * ```
    *
    * @param {number} column Visual column index.
    * @param {number} width Column width (no less than 20px).
