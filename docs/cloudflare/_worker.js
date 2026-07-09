@@ -34,6 +34,7 @@
  *  17. /docs/react, /docs/angular, etc.    → framework homes
  *  18. /{/}                               → /docs
  *  19. /docs{/}                           → /docs/(framework)/ (cookie)
+ * 19a. POST /docs/scripts/json/save.json  → mock 200 JSON (saving-data demo)
  *  20. Static asset fallback (env.ASSETS)
  */
 
@@ -1272,6 +1273,19 @@ async function route(request, env) {
           return redirect301(abs(dest, url));
         }
       }
+    }
+
+    // -- 18a. POST to the saving-data demo's mock save endpoint --------------
+    // Cloudflare Pages' static-asset handler only serves GET/HEAD; a POST to
+    // a static file returns 405. The saving-data guide's demo intentionally
+    // POSTs here to illustrate a save request (see saving-data.md's "just a
+    // mockup" note), so answer it directly instead of falling through to
+    // env.ASSETS, which would 405.
+    if (path === '/docs/scripts/json/save.json' && request.method !== 'GET' && request.method !== 'HEAD') {
+      return new Response(JSON.stringify({ result: 'ok' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // -- 19. Fallback: serve static assets via env.ASSETS --------------------
