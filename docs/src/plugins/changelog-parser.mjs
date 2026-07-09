@@ -15,6 +15,17 @@ const CHANGELOG_FILES = readdirSync(CHANGELOG_ROOT, { withFileTypes: true })
   .filter(rel => existsSync(resolve(CHANGELOG_ROOT, rel)))
   .sort((a, b) => Number(a.match(/\d+/)[0]) - Number(b.match(/\d+/)[0]));
 
+/**
+ * The highest changelog-N major version with an existing changelog page,
+ * derived from CHANGELOG_FILES. Used to keep the Introduction page's
+ * "Changelog" link pointing at the latest version without manual updates.
+ *
+ * @type {number|null}
+ */
+export const LATEST_CHANGELOG_MAJOR = CHANGELOG_FILES.length > 0
+  ? Number(CHANGELOG_FILES[CHANGELOG_FILES.length - 1].match(/\d+/)[0])
+  : null;
+
 const MONTHS = {
   january: '01', february: '02', march: '03', april: '04',
   may: '05', june: '06', july: '07', august: '08',
