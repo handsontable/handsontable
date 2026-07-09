@@ -74,6 +74,8 @@ In the example above, the `sku` and `category` columns use `type: 'text'` explic
 
 The text cell type ships without a built-in [validator](@/guides/cell-functions/cell-validator/cell-validator.md). To validate text values, combine `type: 'text'` with your own validator function, and set [`allowInvalid`](@/api/options.md#allowinvalid) to `false` to reject invalid entries.
 
+With `allowInvalid: false`, the cell editor doesn't close on an invalid value. It stays open until you either enter a value that passes validation or press <kbd>**Esc**</kbd> to cancel the edit and restore the previous value. See [invalid cell commit semantics](@/guides/cell-functions/cell-validator/cell-validator.md#invalid-cell-commit-semantics-vs-visual-marking) for the full behavior, including how it differs from `allowInvalid: true`.
+
 ::: only-for javascript
 
 ::: example #example2 --js 1 --ts 2
