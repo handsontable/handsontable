@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { parseChangelogContent, parseAllChangelogs } from '../changelog-parser.mjs';
+import { parseChangelogContent, parseAllChangelogs, LATEST_CHANGELOG_MAJOR } from '../changelog-parser.mjs';
 
 test('extracts version and ISO release date from a single release block', () => {
   const md = [
@@ -489,4 +489,11 @@ test('parseAllChangelogs produces no entries with null releaseDate inside major 
   for (const entry of mainline) {
     assert.ok(entry.releaseDate, `release date missing for ${entry.version} (${entry.title})`);
   }
+});
+
+test('LATEST_CHANGELOG_MAJOR matches the highest major version parsed from the changelog files', () => {
+  const result = parseAllChangelogs();
+  const expectedMax = Math.max(...result.map((e) => Number(e.version.split('.')[0])));
+
+  assert.equal(LATEST_CHANGELOG_MAJOR, expectedMax);
 });
