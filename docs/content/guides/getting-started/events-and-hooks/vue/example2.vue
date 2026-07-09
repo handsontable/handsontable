@@ -2,7 +2,6 @@
 import { ref, onMounted, useTemplateRef } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
-import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
 import type { GridSettings } from 'handsontable/settings';
 import type { CellChange } from 'handsontable/common';
 
@@ -21,15 +20,28 @@ onMounted(() => {
       if (!selection) return;
       if (selection[0] < 0 || selection[1] < 0) return;
 
+      // BACKSPACE or DELETE
       if (e.keyCode === 8 || e.keyCode === 46) {
-        stopImmediatePropagation(e);
+        // remove data at cell, shift up
         hot.spliceCol(selection[1], selection[0], 1);
         e.preventDefault();
-      } else if (e.keyCode === 13) {
+        lastChange = null;
+
+        // block the default deletion behavior
+        return false;
+      }
+
+      // ENTER
+      if (e.keyCode === 13) {
+        // if last change affected a single cell and did not change its values
         if (lastChange && lastChange.length === 1 && lastChange[0][2] == lastChange[0][3]) {
-          stopImmediatePropagation(e);
           hot.spliceCol(selection[1], selection[0], 0, '');
+          // add new cell
           hot.selectCell(selection[0], selection[1]);
+          lastChange = null;
+
+          // block the default Enter behavior
+          return false;
         }
       }
 
