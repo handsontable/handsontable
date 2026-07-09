@@ -42,6 +42,10 @@ In all three modes, the `source` option can be provided in two formats:
 
 This example uses the `autocomplete` feature in the default flexible mode. In this mode, the user can choose one of the suggested options while typing or enter a custom value that is not included in the suggestions.
 
+The [`visibleRows`](@/api/options.md#visiblerows) option sets how many suggestions the dropdown shows without scrolling. The default is 10 rows. The **Chassis color** column sets `visibleRows: 4`, so the dropdown shows only four suggestions at a time and scrolls to reveal the rest.
+
+The [`trimDropdown`](@/api/options.md#trimdropdown) option controls the dropdown's width. By default (`trimDropdown: true`), the dropdown matches the width of the edited cell, which can truncate long suggestions. The **Bumper color** column sets `trimDropdown: false`, so the dropdown expands to fit its widest suggestion, even if that makes it wider than the cell.
+
 ::: only-for javascript
 
 ::: example #example1 .docs-height-small --js 1 --ts 2
@@ -385,6 +389,110 @@ The left column uses the default case-insensitive behavior. The right column has
 
 :::
 
+## The `sortByRelevance` option
+
+By default, the autocomplete dropdown shows suggestions in the order you provide them in the `source` array. Set `sortByRelevance: false` to sort suggestions alphabetically instead.
+
+The left column uses the default behavior (`sortByRelevance: true`) — suggestions keep the order from `source`. The right column has `sortByRelevance: false` — suggestions sort alphabetically.
+
+::: only-for javascript
+
+::: example #example8 .docs-height-small --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example8.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example8.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example8 .docs-height-small :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example8.jsx)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example8.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example8 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example8.ts)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example8.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example8 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example8.vue)
+
+:::
+
+:::
+
+## The `allowHtml` option
+
+By default, the autocomplete dropdown and cell renderer display `source` values as plain text, so any HTML tags they contain show up literally. Set `allowHtml: true` to render `source` values as HTML instead, for example to show colored status labels.
+
+::: warning Security
+
+Handsontable doesn't sanitize HTML rendered through `allowHtml`. Only enable it for static, trusted `source` data. Rendering `source` values that come from user input creates XSS vulnerabilities. See [Security](@/guides/security/security/security.md) for details.
+
+:::
+
+The left column uses the default behavior (`allowHtml: false`) — HTML tags in `source` show up as plain text. The right column has `allowHtml: true` — the same `source` values render as colored labels.
+
+::: only-for javascript
+
+::: example #example9 .docs-height-small --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example9.js)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/javascript/example9.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example9 .docs-height-small :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example9.jsx)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/react/example9.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example9 .docs-height-small :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example9.ts)
+@[code](@/content/guides/cell-types/autocomplete-cell-type/angular/example9.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example9 .docs-height-small :vue3
+
+@[code](@/content/guides/cell-types/autocomplete-cell-type/vue/example9.vue)
+
+:::
+
+:::
+
 ## Result
 
 After configuring the autocomplete cell type, cells display a text input that shows matching suggestions as the user types. In strict mode, only values from the source list are accepted. In flexible mode, users can also enter custom values not in the list.
@@ -406,6 +514,7 @@ After configuring the autocomplete cell type, cells display a text input that sh
 <div class="boxes-list">
 
 - [allowHtml](@/api/options.md#allowhtml)
+- [allowInvalid](@/api/options.md#allowinvalid)
 - [filter](@/api/options.md#filter)
 - [filteringCaseSensitive](@/api/options.md#filteringcasesensitive)
 - [sortByRelevance](@/api/options.md#sortbyrelevance)
