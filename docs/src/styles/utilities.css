@@ -77,6 +77,13 @@ html {
   border-color: var(--sl-color-accent);
 }
 
+.sl-markdown-content input[type="checkbox"]:checked:focus-visible:not(.htCheckboxRendererInput),
+.hot-example input[type="checkbox"]:checked:focus-visible:not(.handsontable input) {
+  outline: 2px solid var(--sl-color-bg);
+  outline-offset: 0;
+  box-shadow: 0 0 0 4px var(--sl-color-accent);
+}
+
 .sl-markdown-content input[type="checkbox"]:checked:not(.htCheckboxRendererInput)::after,
 .hot-example input[type="checkbox"]:checked:not(.handsontable input)::after {
   content: '';
