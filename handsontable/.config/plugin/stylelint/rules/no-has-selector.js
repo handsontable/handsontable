@@ -16,7 +16,8 @@ const messages = ruleMessages(ruleName, {
 });
 
 const meta = {
-  url: 'https://github.com/handsontable/handsontable/blob/develop/handsontable/src/3rdparty/walkontable/.ai/CONCERNS.md',
+  url: 'https://github.com/handsontable/handsontable/blob/develop/handsontable/'
+    + 'src/3rdparty/walkontable/.ai/CONCERNS.md',
 };
 
 const HAS_PSEUDO = /:has\(/i;
@@ -25,6 +26,11 @@ const HAS_PSEUDO = /:has\(/i;
  * Disallows the CSS `:has()` relational pseudo-class in Handsontable stylesheets. Reports once per
  * selector list item that uses it (so `.a:has(.b), .c { … }` flags only `.a:has(.b)`), and marks the
  * exact `:has(` position for editor squiggles. Interpolation-only selectors (`#{$x}`) are left alone.
+ *
+ * @param {boolean} primary The primary option; the rule runs only when it is `true`.
+ * @param {object} _secondaryOptions Unused secondary options (stylelint rule signature).
+ * @param {object} context The stylelint rule context (`fix` is intentionally unsupported).
+ * @returns {Function} The stylelint rule walker `(root, result) => void`.
  */
 const rule = (primary, _secondaryOptions, context) => {
   return (root, result) => {
