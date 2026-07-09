@@ -21,6 +21,13 @@ const config: Handsontable.GridSettings = {
   colHeaders: true,
   contextMenu: true,
   autoWrapCol: true,
+  dropdownMenu: true,
+  filters: true,
+  columnSorting: true,
+  mergeCells: true,
+  comments: true,
+  manualColumnMove: true,
+  manualRowMove: true,
   licenseKey: 'non-commercial-and-evaluation',
 };
 
