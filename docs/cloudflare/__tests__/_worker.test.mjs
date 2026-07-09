@@ -231,6 +231,9 @@ test('Content-Security-Policy frame-src allows the Figma embed (regression for D
   // Other embeds documented elsewhere in the guides must keep working too.
   assert.ok(hasSource('https://www.youtube.com'));
   assert.ok(hasSource('https://codesandbox.io'));
+
+  // Self-hosted demo embeds (demos.handsontable.com) replacing CodeSandbox/StackBlitz.
+  assert.ok(hasSource('https://demos.handsontable.com'));
 });
 
 test('keeps versioned demo redirects on historical disabled cells slugs', async() => {
