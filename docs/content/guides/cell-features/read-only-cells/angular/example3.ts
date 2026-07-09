@@ -1,17 +1,16 @@
 /* file: app.component.ts */
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
-import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
+import { Component } from '@angular/core';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
-  selector: 'example4-disabled-cells',
+  selector: 'example3-read-only-cells',
   standalone: true,
   imports: [HotTableModule],
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
 })
-export class AppComponent implements AfterViewInit {
-  @ViewChild(HotTableComponent, { static: false }) readonly hotTable!: HotTableComponent;
+export class AppComponent {
 
   readonly data = [
     { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
@@ -24,21 +23,26 @@ export class AppComponent implements AfterViewInit {
     height: 'auto',
     colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
     autoWrapRow: true,
-    autoWrapCol: true
-  };
-
-  ngAfterViewInit(): void {
-    const hot = this.hotTable?.hotInstance;
-
-    hot?.updateSettings({
-      cells: (row, _col, prop) => {
-        if (hot.getDataAtRowProp(row, prop as string) === 'Nissan') {
-          return { editor: false };
-        }
-        return { editor: 'text' };
+    autoWrapCol: true,
+    columns: [
+      {
+        data: 'car',
+        editor: false,
       },
-    });
-  }
+      {
+        data: 'year',
+        editor: 'numeric',
+      },
+      {
+        data: 'chassis',
+        editor: 'text',
+      },
+      {
+        data: 'bumper',
+        editor: 'text',
+      },
+    ]
+  };
 }
 /* end-file */
 

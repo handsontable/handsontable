@@ -137,12 +137,29 @@ the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md).
 For a complete filtering guide, see [Column filter](@/guides/columns/column-filter/column-filter.md).
 For filter-menu keyboard and pointer behavior, see [Navigate the filter menu](@/guides/columns/column-filter/column-filter.md#navigate-the-filter-menu).
 
+## Navigate the column menu
+
+Use keyboard shortcuts to navigate the column menu after you open it:
+
+- Press **Arrow up** and **Arrow down** to move between menu items.
+- Press **Arrow right** to open a submenu in left-to-right layouts. Press **Arrow left** to close it and return to the parent menu.
+- Press **Arrow left** to open a submenu in right-to-left layouts. Press **Arrow right** to close it and return to the parent menu.
+- Press **Home**, **Ctrl**+**Arrow up** on Windows, or **Cmd**+**Arrow up** on macOS to move to the first available item.
+- Press **End**, **Ctrl**+**Arrow down** on Windows, or **Cmd**+**Arrow down** on macOS to move to the last available item.
+- Press **Page Up** and **Page Down** to move by one visible menu page.
+- Press **Enter** or **Space** to run the selected menu item or open its submenu.
+- Press **Escape** to close the column menu or active submenu.
+
+Filter controls inside the column menu use additional navigation rules. For filter-menu keyboard and pointer behavior, see [Navigate the filter menu](@/guides/columns/column-filter/column-filter.md#navigate-the-filter-menu).
+
 ## Related keyboard shortcuts
+
+The <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd> shortcut works from a data cell. The <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> shortcut works only when a column header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
 | Windows                                                  | macOS                                                       | Action                                                                                                       |  Excel  | Sheets  |
 | -------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | :-----: | :-----: |
 | <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**↓**</kbd> | Open the column menu. Works in any cell, if the respective column header displays the menu button.           | &cross; | &cross; |
-| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>                | <kbd>⇧</kbd>+<kbd>**Enter**</kbd>                   | Open the column menu. Works only when you're selecting a column header that displays the column menu button. | &cross; | &cross; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                 | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                           | Open the column menu. Works only when a column header with the column menu button is focused.                | &cross; | &cross; |
 
 ## Related articles
 

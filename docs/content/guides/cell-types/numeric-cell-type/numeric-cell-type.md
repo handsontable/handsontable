@@ -422,6 +422,10 @@ Two options control how the validator treats values:
 
 After configuring the numeric cell type, cells right-align their values and display them using the format you defined in `numericFormat`. Invalid (non-numeric) values are marked as invalid -- see [Validate numbers](#validate-numbers). The underlying data source stores the raw number.
 
+## Keyboard shortcuts
+
+The numeric cell editor is a text editor, so it uses the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts). It has no numeric-specific key bindings. Type a period (`.`) or a comma (`,`) to enter a decimal separator -- see [Editor behavior](#editor-behavior).
+
 ## Related articles
 
 **Related guides**

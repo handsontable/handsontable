@@ -1,50 +1,55 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
-import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 
 @Component({
-  selector: 'example3-disabled-cells',
+  selector: 'example8-autocomplete-cell-type',
   standalone: true,
   imports: [HotTableModule],
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
-  </div>`,
+  </div>`
 })
 export class AppComponent {
+  readonly statuses = [
+    'Backlog',
+    'In progress',
+    'Blocked',
+    'Done',
+    'Cancelled',
+  ];
 
   readonly data = [
-    { car: 'Tesla', year: 2017, chassis: 'black', bumper: 'black' },
-    { car: 'Nissan', year: 2018, chassis: 'blue', bumper: 'blue' },
-    { car: 'Chrysler', year: 2019, chassis: 'yellow', bumper: 'black' },
-    { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' },
+    ['Backlog', 'Backlog'],
+    ['In progress', 'In progress'],
+    ['Blocked', 'Blocked'],
+    ['Done', 'Done'],
+    ['Cancelled', 'Cancelled'],
   ];
 
   readonly gridSettings: GridSettings = {
     height: 'auto',
-    colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
     autoWrapRow: true,
     autoWrapCol: true,
+    colHeaders: ['Source order (default)', 'Alphabetical order'],
     columns: [
       {
-        data: 'car',
-        editor: false,
+        type: 'autocomplete',
+        source: this.statuses,
+        strict: false,
       },
       {
-        data: 'year',
-        editor: 'numeric',
+        type: 'autocomplete',
+        source: this.statuses,
+        strict: false,
+        // sort suggestions alphabetically instead of using the `source` order
+        sortByRelevance: false,
       },
-      {
-        data: 'chassis',
-        editor: 'text',
-      },
-      {
-        data: 'bumper',
-        editor: 'text',
-      },
-    ]
+    ],
   };
 }
 /* end-file */
+
 
 
 /* file: app.config.ts */

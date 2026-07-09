@@ -90,6 +90,8 @@ The first column uses the handsontable cell type for a searchable manufacturer l
 | <kbd>**Arrow Right**</kbd> | Move text cursor in the text field to the left. If cursor was at start, behave as <kbd>**Enter**</kbd> but move main HOT selection to the left |
 | <kbd>**Arrow Left**</kbd> | Move text cursor in the text field to the right. If cursor was at end, behave as <kbd>**Tab**</kbd> |
 
+For the full list of default keyboard shortcuts, see [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#handsontable-editor-keyboard-shortcuts).
+
 ## Result
 
 After configuring the Handsontable cell type, cells display a text input with a trigger icon. Activating the cell opens a second embedded grid that users can navigate and select from. The selected row value is written back to the parent cell.

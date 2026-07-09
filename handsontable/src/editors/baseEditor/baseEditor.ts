@@ -24,7 +24,17 @@ export const EDITOR_STATE = Object.freeze({
 });
 
 /**
+ * The abstract base class for Handsontable cell editors.
+ *
+ * Extend it to create an editor that controls how a cell enters edit mode, reads and writes values,
+ * and returns focus to the grid. Concrete editors implement `init()`, `getValue()`, `setValue()`,
+ * `open()`, `close()`, and `focus()`.
+ *
  * @class BaseEditor
+ * @see https://handsontable.com/docs/javascript-data-grid/cell-editor/
+ * @see https://handsontable.com/docs/javascript-data-grid/cell-function/
+ * @see https://handsontable.com/docs/javascript-data-grid/api/options/#editor
+ * @see https://handsontable.com/docs/react-data-grid/api/hooks/#afterbeginediting
  */
 export class BaseEditor {
   /**
@@ -65,6 +75,8 @@ export class BaseEditor {
   /**
    * Callback to call after closing editor.
    *
+   * @private
+   *
    * @type {Function}
    */
   _closeCallback: ((result: boolean) => void) | null = null;
@@ -75,7 +87,7 @@ export class BaseEditor {
    */
   _closeAfterDataChange = true;
   /**
-   * Currently rendered cell's TD element.
+   * Currently rendered cell's `TD` element.
    *
    * @type {HTMLTableCellElement}
    */
@@ -650,7 +662,7 @@ export class BaseEditor {
   }
 
   /**
-   * Gets className of the edited cell if exist.
+   * Gets the `className` of the edited cell, if it exists.
    *
    * @returns {string}
    */
@@ -674,7 +686,7 @@ export class BaseEditor {
   }
 
   /**
-   * Gets HTMLTableCellElement of the edited cell if exist.
+   * Gets the `HTMLTableCellElement` of the edited cell, if it exists.
    *
    * @returns {HTMLTableCellElement|null}
    */

@@ -136,6 +136,58 @@ In this configuration, the fill handle is restricted to move only vertically. Ne
 
 :::
 
+## Altering and tracking autofilled values
+
+Use the [`beforeAutofill`](@/api/hooks.md#beforeautofill) hook to change the values Handsontable is about to fill in, and the [`afterAutofill`](@/api/hooks.md#afterautofill) hook to react once the fill completes.
+
+In the example below, drag the fill handle from `cell B4` down through rows `2020` and `2021`. The `beforeAutofill` hook rounds every filled sales figure up to the nearest multiple of 5, and the `afterAutofill` hook logs the affected range and direction to the output box below the grid.
+
+When Handsontable fires [`beforeChange`](@/api/hooks.md#beforechange) or [`afterChange`](@/api/hooks.md#afterchange) as part of an autofill operation, their `source` argument is `Autofill.fill`. Read more about the `source` argument in [Events and hooks: Definition for `source` argument](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument).
+
+::: only-for javascript
+
+::: example #example3 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/cell-features/autofill-values/javascript/example3.html)
+@[code](@/content/guides/cell-features/autofill-values/javascript/example3.js)
+@[code](@/content/guides/cell-features/autofill-values/javascript/example3.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example3 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/autofill-values/react/example3.jsx)
+@[code](@/content/guides/cell-features/autofill-values/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/autofill-values/angular/example3.ts)
+@[code](@/content/guides/cell-features/autofill-values/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-features/autofill-values/vue/example3.vue)
+
+:::
+
+:::
+
 ## Result
 
 The fill handle appears on the selected cell. Dragging it copies or extends values into adjacent cells in the configured direction.

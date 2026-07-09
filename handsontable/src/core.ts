@@ -900,8 +900,8 @@ export default function Core(
      *                             format `[[index, amount], [index, amount]...]` this can be used to remove
      *                             non-consecutive columns or rows in one call.
      * @param {number} [amount=1] Amount of rows or columns to remove.
-     * @param {string} [source] Optional. Source of hook runner.
-     * @param {boolean} [keepEmptyRows] Optional. Flag for preventing deletion of empty rows.
+     * @param {string} [source] Optional. Source indicator passed to related hooks.
+     * @param {boolean} [keepEmptyRows] Optional. Flag for skipping the post-alter empty row and column adjustment.
      */
     alter(action: string, index: number | number[][] | undefined, amount = 1, source: string, keepEmptyRows: boolean) {
 
@@ -1834,7 +1834,7 @@ export default function Core(
    *
    * @private
    * @param {Array} changes Array in form of [row, prop, oldValue, newValue].
-   * @param {string} source String that identifies how this change will be described in changes array (useful in onChange callback).
+   * @param {string} source String that identifies how this change will be described in changes array (useful in {@link Hooks#afterChange} or {@link Hooks#beforeChange} callbacks).
    * @fires Hooks#beforeChangeRender
    * @fires Hooks#afterChange
    */
@@ -2127,7 +2127,9 @@ export default function Core(
    * @param {number|Array} row Visual row index or array of changes in format `[[row, col, value],...]`.
    * @param {number} [column] Visual column index.
    * @param {string} [value] New value.
-   * @param {string} [source] String that identifies how this change will be described in the changes array (useful in afterChange or beforeChange callback). Set to 'edit' if left empty.
+   * @param {string} [source] String that identifies how this change will be described in the changes array (useful in {@link Hooks#afterChange} or {@link Hooks#beforeChange} callbacks). Set to 'edit' if left empty.
+   * @fires Hooks#beforeChange
+   * @fires Hooks#afterChange
    */
   this.setDataAtCell = function(
     row: number | Array<[number, string | number, unknown]>, column: number | string, value: string, source?: string
@@ -2191,7 +2193,9 @@ export default function Core(
    * @param {number|Array} row Visual row index or array of changes in format `[[row, prop, value], ...]`.
    * @param {string} prop Property name or the source string (e.g. `'first.name'` or `'0'`).
    * @param {string} value Value to be set.
-   * @param {string} [source] String that identifies how this change will be described in changes array (useful in onChange callback).
+   * @param {string} [source] String that identifies how this change will be described in changes array (useful in {@link Hooks#afterChange} or {@link Hooks#beforeChange} callbacks).
+   * @fires Hooks#beforeChange
+   * @fires Hooks#afterChange
    */
   this.setDataAtRowProp = function(
     row: number | Array<[number, string | number, unknown]>, prop: string | number, value: string, source?: string
@@ -2483,8 +2487,10 @@ export default function Core(
    *
    * @memberof Core#
    * @function emptySelectedCells
-   * @param {string} [source] String that identifies how this change will be described in the changes array (useful in afterChange or beforeChange callback). Set to 'edit' if left empty.
+   * @param {string} [source] String that identifies how this change will be described in the changes array (useful in {@link Hooks#afterChange} or {@link Hooks#beforeChange} callbacks). Set to 'edit' if left empty.
    * @since 0.36.0
+   * @fires Hooks#beforeChange
+   * @fires Hooks#afterChange
    */
   this.emptySelectedCells = function(source: string) {
     if (!selection.isSelected() || this.countRows() === 0 || this.countCols() === 0) {
@@ -3630,8 +3636,10 @@ export default function Core(
    * @param {number|number[]} [index] A visual index of the row/column before or after which the new row/column will be
    *                                inserted or removed. Can also be an array of arrays, in format `[[index, amount],...]`.
    * @param {number} [amount] The amount of rows or columns to be inserted or removed (default: `1`).
-   * @param {string} [source] Source indicator.
-   * @param {boolean} [keepEmptyRows] If set to `true`, prevents removing empty rows.
+   * @param {string} [source] Source indicator passed to related hooks.
+   * @param {boolean} [keepEmptyRows] If set to `true`, skips the automatic adjustment that normally adds empty rows
+   *                                  or columns after the operation to satisfy `minRows`, `minSpareRows`,
+   *                                  `minCols`, or `minSpareCols`.
    * @example
    * ```js
    * // above row 10 (by visual index), insert 1 new row
@@ -3651,9 +3659,23 @@ export default function Core(
    * // remove 2 rows, starting from row 10 (by visual index)
    * hot.alter('remove_row', 10, 2);
    *
+   * // remove 2 columns, starting from column 3 (by visual index)
+   * hot.alter('remove_col', 3, 2);
+   *
    * // remove 3 rows, starting from row 1 (by visual index)
    * // remove 2 rows, starting from row 5 (by visual index)
    * hot.alter('remove_row', [[1, 3], [5, 2]]);
+   *
+   * // pass a custom source string to hooks
+   * hot.addHook('afterCreateRow', (index, amount, source) => {
+   *   if (source === 'inventory-import') {
+   *     // Run logic only for rows created by the inventory import.
+   *   }
+   * });
+   * hot.alter('insert_row_above', 0, 1, 'inventory-import');
+   *
+   * // remove a row without immediately adding empty rows required by `minRows` or `minSpareRows`
+   * hot.alter('remove_row', 4, 1, 'inventory-cleanup', true);
    * ```
    */
   this.alter = function(

@@ -186,3 +186,66 @@ test('vue3-custom-id-class-style redirects to the unified custom-id-class-style 
     );
   }
 });
+
+test('redirects disabled cells guide slugs to the read-only cells guide', async() => {
+  const worker = loadWorker();
+
+  for (const framework of ['javascript', 'react', 'angular', 'vue']) {
+    await assertRedirect(
+      worker,
+      `/docs/${framework}-data-grid/disabled-cells/`,
+      `/docs/${framework}-data-grid/read-only-cells/`,
+    );
+  }
+
+  const oldFlatResponse = await worker.fetch(request('/docs/disabled-cells', 'react'), env);
+
+  assert.equal(oldFlatResponse.status, 302);
+  assert.equal(
+    oldFlatResponse.headers.get('location'),
+    'https://handsontable.com/docs/react-data-grid/read-only-cells/',
+  );
+
+  const newFlatResponse = await worker.fetch(request('/docs/read-only-cells', 'angular'), env);
+
+  assert.equal(newFlatResponse.status, 302);
+  assert.equal(
+    newFlatResponse.headers.get('location'),
+    'https://handsontable.com/docs/angular-data-grid/read-only-cells/',
+  );
+});
+
+test('Content-Security-Policy frame-src allows the Figma embed (regression for DEV-2032)', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(request('/docs/vue-data-grid/handsontable-design-system/'), env);
+  const csp = response.headers.get('Content-Security-Policy');
+  const frameSrc = csp.split(';').find((directive) => directive.trim().startsWith('frame-src'));
+
+  assert.ok(frameSrc, 'expected a frame-src directive in the Content-Security-Policy header');
+
+  const frameSrcSources = frameSrc.trim().split(/\s+/).slice(1); // drop the "frame-src" keyword
+  const hasSource = (source) => frameSrcSources.some((entry) => entry === source);
+
+  assert.ok(hasSource('https://embed.figma.com'));
+
+  // Other embeds documented elsewhere in the guides must keep working too.
+  assert.ok(hasSource('https://www.youtube.com'));
+  assert.ok(hasSource('https://codesandbox.io'));
+});
+
+test('keeps versioned demo redirects on historical disabled cells slugs', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(
+    worker,
+    '/docs/11.1/demo-read-only.html',
+    '/docs/11.1/disabled-cells',
+    302,
+  );
+  await assertRedirect(
+    worker,
+    '/docs/15.3/demo-disabled-editing.html',
+    '/docs/15.3/javascript-data-grid/disabled-cells',
+    302,
+  );
+});

@@ -84,11 +84,10 @@ Each Handsontable [project](#monorepo) has its own building processes defined in
 
 To run your first build:
 
-1. Install [Node.js](https://nodejs.org/).
-2. Install [pnpm](https://pnpm.io/) (the repository package manager). <br>The version should correspond to the one defined in the `packageManager` field of the root's `package.json`.
-3. Clone the [Handsontable repository](https://github.com/handsontable/handsontable).
-4. From the root directory, run `pnpm install`.<br>pnpm installs all required dependencies, including for the `docs` and `examples` workspaces.
-5. From the root directory, run `pnpm run build`.<br>The script builds all Handsontable packages.
+1. Make sure you meet the [build requirements](#build-requirements).
+2. Clone the [Handsontable repository](https://github.com/handsontable/handsontable).
+3. From the root directory, run `pnpm install`.<br>pnpm installs all required dependencies, including for the `docs` and `examples` workspaces.
+4. From the root directory, run `pnpm run build`.<br>The script builds all Handsontable packages.
 
 ## Build the packages
 

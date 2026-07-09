@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
-  selector: 'example1-disabled-cells',
+  selector: 'example1-read-only-cells',
   standalone: true,
   imports: [HotTableModule],
   template: ` <div>

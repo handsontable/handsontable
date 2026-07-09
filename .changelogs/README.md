@@ -7,6 +7,8 @@ This directory includes temporary changelog entries, in the form of simple `.jso
 
 Every pull request in this repository requires a new changelog entry to be created in this directory, asserted by a GitHub actions workflow. The commit workflow will fail in any PR that does not have a new `.changelogs/*.json` file added. If a pushed commit does not have a PR associated with it, the check is skipped entirely.
 
+Changelog entries are expected only for source-code changes to the library core or the wrappers. Documentation-only, test-only, and CI/tooling PRs should disable the check instead.
+
 **To disable this check**, simply add the following string to the **PR description**:
 
 ```

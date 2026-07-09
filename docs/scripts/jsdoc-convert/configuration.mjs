@@ -465,7 +465,7 @@ export default {
     'BaseEditor.md': {
       id: 'l025jsly',
       metaTitle: 'BaseEditor - JavaScript Data Grid | Handsontable',
-      description: 'Options, members, and methods of Handsontable\'s BaseEditor API.',
+      description: 'BaseEditor defines the lifecycle that Handsontable cell editors follow. Extend it to create custom editors for the editor option.',
       react: {
         id: 'snc3axwd',
         metaTitle: 'BaseEditor - React Data Grid | Handsontable',

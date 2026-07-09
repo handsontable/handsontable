@@ -2143,10 +2143,69 @@ export const REGISTERED_HOOKS = [
   'modifyAutofillRange',
 
   /**
-   * Fired to allow modifying the copyable range with a callback function.
+   * Fired by {@link CopyPaste} plugin to allow modifying the range that is about to be copied or cut. It's
+   * recalculated whenever the selection changes, and again right before the values are copied or cut to the
+   * clipboard. This hook is fired when {@link Options#copyPaste} option is enabled. It's also fired by the
+   * {@link Autofill} plugin while a fill-handle drag is in progress, to determine the range that would be
+   * copied if the drag ended at the current position.
    *
    * @event Hooks#modifyCopyableRange
-   * @param {Array[]} copyableRanges Array of objects defining copyable cells.
+   * @param {object[]} copyableRanges An array of objects with ranges of the visual indexes (`startRow`, `startCol`,
+   *                                  `endRow`, `endCol`) that are copyable.
+   * @returns {object[]|undefined} The modified array of copyable ranges. If nothing is returned, the ranges
+   *                                passed to the callback are used unchanged.
+   * @example
+   * ::: only-for javascript
+   * ```js
+   * new Handsontable(element, {
+   *   // Copy only the last column of each selected range, regardless of the selection width.
+   *   modifyCopyableRange(copyableRanges) {
+   *     return copyableRanges.map(({ startRow, endRow, endCol }) => ({
+   *       startRow,
+   *       endRow,
+   *       startCol: endCol,
+   *       endCol,
+   *     }));
+   *   }
+   * });
+   * ```
+   * :::
+   *
+   * ::: only-for react
+   * ```jsx
+   * <HotTable
+   *   // Copy only the last column of each selected range, regardless of the selection width.
+   *   modifyCopyableRange={(copyableRanges) => {
+   *     return copyableRanges.map(({ startRow, endRow, endCol }) => ({
+   *       startRow,
+   *       endRow,
+   *       startCol: endCol,
+   *       endCol,
+   *     }));
+   *   }}
+   * />
+   * ```
+   * :::
+   *
+   * ::: only-for angular
+   *```ts
+   * settings = {
+   *   // Copy only the last column of each selected range, regardless of the selection width.
+   *   modifyCopyableRange: (copyableRanges) => {
+   *     return copyableRanges.map(({ startRow, endRow, endCol }) => ({
+   *       startRow,
+   *       endRow,
+   *       startCol: endCol,
+   *       endCol,
+   *     }));
+   *   },
+   * };
+   * ```
+   *
+   * ```html
+   * <hot-table [settings]="settings"></hot-table>
+   * ```
+   * :::
    */
   'modifyCopyableRange',
 

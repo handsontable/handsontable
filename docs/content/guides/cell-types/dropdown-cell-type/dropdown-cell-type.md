@@ -346,6 +346,10 @@ In the example below, the **Job title (default)** column uses the default height
 
 After configuring the dropdown cell type, cells display a button that opens a dropdown list of options. Users can search the list by typing. Only values from the source list are accepted. The selected value is stored in the data source.
 
+## Keyboard shortcuts
+
+The dropdown cell editor is an [autocomplete](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) editor with strict mode always on, so it uses the same keyboard shortcuts as [Autocomplete strict mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode). See the [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#dropdown-editor-keyboard-shortcuts) reference for details.
+
 ## Related articles
 
 **Related guides**
