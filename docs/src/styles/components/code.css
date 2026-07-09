@@ -8,6 +8,8 @@
   --ec-codeBg: var(--sl-color-block-bg);
   --ec-codeFg: #e1e4e8;
   --ec-codeSelBg: #3392ff44;
+  /* Keep fitting lines from overflowing only because of Expressive Code's default padding. */
+  --ec-codePaddingInline: 0.85rem;
   /* Frame backgrounds */
   --ec-frm-edBg: var(--sl-color-block-bg);
   --ec-frm-termBg: var(--sl-color-block-bg);
