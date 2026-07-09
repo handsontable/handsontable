@@ -202,7 +202,11 @@ export default (): Record<string, unknown> => {
      * | `false`          | - Don't accept `null`, `undefined` and `''` values<br>- Mark cells that contain `null`, `undefined` or `''` values with as `invalid` |
      *
      * ::: tip
-     * To use the [`allowEmpty`](#allowempty) option, you need to set the [`validator`](#validator) option (or the [`type`](#type) option).
+     * The [`allowEmpty`](#allowempty) option only takes effect when the cell has a [`validator`](#validator).
+     * You can set a validator directly, or use a [`type`](#type) that comes with a built-in validator,
+     * such as `numeric`, `date`, `time`, `autocomplete`, `dropdown`, or `multiSelect`.
+     * Types without a built-in validator, such as `text`, `checkbox`, `password`, and `handsontable`,
+     * ignore the `allowEmpty` option unless you also set a `validator`.
      * :::
      *
      * This option can be set at any level of the [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration):
