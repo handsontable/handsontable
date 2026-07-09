@@ -12,6 +12,7 @@ import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { buildAllSidebars, buildAllValidUrls } from './src/sidebar.mjs';
 import { resolveHotVersion } from './src/lib/hot-version.mjs';
+import { resolveHotStylesId } from './src/lib/hot-styles-resolver.mjs';
 import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { existsSync, readFileSync, readdirSync, writeFileSync, mkdirSync, symlinkSync } from 'fs';
@@ -191,22 +192,10 @@ function resolveMonorepoPackages() {
       // build has not run yet, map theme .min.css imports to the source CSS
       // in src/themes/static/css/theme/ so the docs server always resolves
       // to a local file and never falls through to pnpm's virtual store.
-      if (id.startsWith('handsontable/styles/') && id.endsWith('.css')) {
-        const cssFileName = id.slice('handsontable/styles/'.length);
-        const builtPath = resolve(HOT_DIR, 'styles', cssFileName);
+      // (Logic lives in src/lib/hot-styles-resolver.mjs so it is unit-testable.)
+      const hotStylesPath = resolveHotStylesId(id, HOT_DIR);
 
-        if (existsSync(builtPath)) return builtPath;
-
-        // Strip ".min" suffix to locate the unminified source counterpart.
-        const srcBaseName = cssFileName.replace(/\.min\.css$/, '.css');
-        const srcThemePath = resolve(HOT_DIR, 'src/themes/static/css/theme', srcBaseName);
-
-        if (existsSync(srcThemePath)) return srcThemePath;
-
-        const srcIconsPath = resolve(HOT_DIR, 'src/themes/static/css/icons', srcBaseName);
-
-        if (existsSync(srcIconsPath)) return srcIconsPath;
-      }
+      if (hotStylesPath) return hotStylesPath;
 
       if (id.startsWith('handsontable/')) {
         const sub = id.slice('handsontable/'.length);
