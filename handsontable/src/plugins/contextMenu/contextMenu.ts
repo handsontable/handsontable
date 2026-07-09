@@ -104,6 +104,16 @@ export class ContextMenu extends BasePlugin {
   }
 
   /**
+   * The item descriptor that identifies a menu separator. Use it as a value in a custom
+   * `items` configuration object to insert a separator line at that key.
+   *
+   * @returns {MenuItemConfig}
+   */
+  static get SEPARATOR(): MenuItemConfig {
+    return { name: SEPARATOR };
+  }
+
+  /**
    * Context menu default items order when `contextMenu` options is set as `true`.
    *
    * @returns {string[]}
@@ -477,7 +487,3 @@ export class ContextMenu extends BasePlugin {
     super.destroy();
   }
 }
-
-(ContextMenu as unknown as Record<string, unknown>).SEPARATOR = {
-  name: SEPARATOR
-};
