@@ -146,6 +146,42 @@ These keyboard shortcuts work in the [`select`](@/guides/cell-types/select-cell-
 | <kbd>**↑**</kbd> | <kbd>**↑**</kbd> | Select the previous option      | &cross; | &cross; |
 | <kbd>**↓**</kbd> | <kbd>**↓**</kbd> | Select the next option          | &cross; | &cross; |
 
+### Autocomplete editor keyboard shortcuts
+
+The [`autocomplete`](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md) cell editor uses the same keyboard shortcuts as the [`handsontable` editor](#handsontable-editor-keyboard-shortcuts). In strict mode, a few of these shortcuts behave differently -- see [Autocomplete strict mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode).
+
+### Dropdown editor keyboard shortcuts
+
+The [`dropdown`](@/guides/cell-types/dropdown-cell-type/dropdown-cell-type.md) cell editor is an [autocomplete editor](#autocomplete-editor-keyboard-shortcuts) with strict mode always on, so it uses the same keyboard shortcuts as [Autocomplete strict mode](@/guides/cell-types/autocomplete-cell-type/autocomplete-cell-type.md#autocomplete-strict-mode).
+
+### MultiSelect editor keyboard shortcuts
+
+These keyboard shortcuts work in the [`multiselect`](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md) cell editor.
+
+| Windows                             | macOS                               | Action                                                                                                                                          |  Excel  | Sheets  |
+| ------------------------------------ | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | :-----: | :-----: |
+| <kbd>**↑**</kbd> / <kbd>**↓**</kbd>  | <kbd>**↑**</kbd> / <kbd>**↓**</kbd>  | Move the focus between items in the dropdown list                                                                                                | &cross; | &cross; |
+| <kbd>**Space**</kbd>                 | <kbd>**Space**</kbd>                 | Toggle the selection of the focused item                                                                                                         | &cross; | &cross; |
+| <kbd>**Enter**</kbd>                 | <kbd>**Enter**</kbd>                 | Toggle the focused item's selection, or close the editor and commit the selection, depending on the [`enterCommits`](@/api/options.md#entercommits) option | &cross; | &cross; |
+
+For the full behavior, including how [`searchInput`](@/api/options.md#searchinput) affects initial focus, see [Keyboard navigation](@/guides/cell-types/multiselect-cell-type/multiselect-cell-type.md#keyboard-navigation).
+
+### Numeric editor keyboard shortcuts
+
+The [`numeric`](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md) cell editor is a text editor, so it uses the standard [edition keyboard shortcuts](#edition-keyboard-shortcuts) above. It has no numeric-specific key bindings.
+
+### Date editor keyboard shortcuts
+
+The [`intl-date`/`date`](@/guides/cell-types/date-cell-type/date-cell-type.md) cell editor opens the browser's native date picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems.
+
+### Time editor keyboard shortcuts
+
+The [`intl-time`/`time`](@/guides/cell-types/time-cell-type/time-cell-type.md) cell editor opens the browser's native time picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems.
+
+### Password editor keyboard shortcuts
+
+The [`password`](@/guides/cell-types/password-cell-type/password-cell-type.md) cell editor is a text editor, so it uses the standard [edition keyboard shortcuts](#edition-keyboard-shortcuts) above. It has no password-specific key bindings.
+
 ## Plugin keyboard shortcuts
 
 These keyboard shortcuts work with particular plugins.

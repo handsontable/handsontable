@@ -246,6 +246,8 @@ After configuring the checkbox cell type, cells display an interactive checkbox.
 | <kbd>**Delete**</kbd>    | <kbd>**Delete**</kbd>    | Uncheck the checkbox          | &cross; | &check; |
 | <kbd>**Backspace**</kbd> | <kbd>**Backspace**</kbd> | Uncheck the checkbox          | &cross; | &check; |
 
+For the full list of default keyboard shortcuts, see [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#checkbox-editor-keyboard-shortcuts).
+
 ## Related articles
 
 **Related guides**

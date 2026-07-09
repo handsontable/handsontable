@@ -144,6 +144,8 @@ When the dropdown opens, the initial focus depends on the [**`searchInput`**](@/
 
 Each selection (or deselection) immediately updates the underlying cell data.
 
+For the full list of default keyboard shortcuts, see [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#multiselect-editor-keyboard-shortcuts).
+
 ## Other options
 
 The MultiSelect cell type provides several configuration options to tailor its behavior:
