@@ -186,3 +186,21 @@ test('vue3-custom-id-class-style redirects to the unified custom-id-class-style 
     );
   }
 });
+
+test('Content-Security-Policy frame-src allows the Figma embed (regression for DEV-2032)', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(request('/docs/vue-data-grid/handsontable-design-system/'), env);
+  const csp = response.headers.get('Content-Security-Policy');
+  const frameSrc = csp.split(';').find((directive) => directive.trim().startsWith('frame-src'));
+
+  assert.ok(frameSrc, 'expected a frame-src directive in the Content-Security-Policy header');
+
+  const frameSrcSources = frameSrc.trim().split(/\s+/).slice(1); // drop the "frame-src" keyword
+  const hasSource = (source) => frameSrcSources.some((entry) => entry === source);
+
+  assert.ok(hasSource('https://embed.figma.com'));
+
+  // Other embeds documented elsewhere in the guides must keep working too.
+  assert.ok(hasSource('https://www.youtube.com'));
+  assert.ok(hasSource('https://codesandbox.io'));
+});
