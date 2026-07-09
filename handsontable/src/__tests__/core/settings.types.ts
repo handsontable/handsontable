@@ -1,6 +1,6 @@
 import type Handsontable from 'handsontable';
 import HyperFormula from 'hyperformula';
-import type { CellProperties, CellCoords } from 'handsontable';
+import type { CellProperties, CellCoords, RangeType } from 'handsontable';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
 declare function oneOf<T extends Array<string | number | boolean | undefined | null | object>>(...args: T): T[number];
@@ -749,7 +749,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const _column: number = column;
     const _source: string | undefined = source;
   },
-  modifyCopyableRange: (copyableRanges) => {},
+  modifyCopyableRange: (copyableRanges) => {
+    const _copyableRanges: RangeType[] = copyableRanges;
+
+    return _copyableRanges;
+  },
   modifyFiltersMultiSelectValue: (value, meta) => '123',
   modifyFocusedElement: (row, column, focusedElement) => document.createElement('TD'),
   modifyData: () => {},
