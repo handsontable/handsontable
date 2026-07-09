@@ -1,19 +1,20 @@
 /**
- * Verifies that every Angular docs example renders on a running docs site.
+ * Verifies that every docs example of one framework renders on a running docs site.
  *
- * Scans `docs/content/guides` for `::: example … :angular` blocks, then drives
- * every `/angular-data-grid/<page>/` with Playwright/Chromium. For each example
+ * Scans `docs/content/guides` for `::: example … :<framework>` blocks, then drives
+ * every `/<framework>-data-grid/<page>/` with Playwright/Chromium. For each example
  * it waits for the loading shimmer to clear (the example-runner removes it once
  * the Angular component bootstraps), asserts a Handsontable grid rendered inside
  * the example container, records the rendered data-row count, and captures
  * uncaught page errors and console errors.
  *
  * Usage:
- *   node scripts/verify-angular-examples.mjs
+ *   FRAMEWORK=angular node scripts/verify-docs-examples.mjs
  *
  * Environment variables:
+ *   FRAMEWORK   – angular (default) | vue | react
  *   BASE_URL    – docs origin incl. the /docs prefix (default http://localhost:4321/docs)
- *   OUT_FILE    – JSON results path (default ./angular-examples-results.json)
+ *   OUT_FILE    – JSON results path (default ./<framework>-examples-results.json)
  *   CHROME_BIN  – Chromium executable override (else Playwright's default resolution)
  *   CONCURRENCY – parallel pages (default 4)
  *
@@ -24,8 +25,20 @@ import { readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const FRAMEWORKS = {
+  angular: { marker: /:::\s*example[^\n]*:angular\b/, urlPrefix: 'angular-data-grid' },
+  vue: { marker: /:::\s*example[^\n]*:vue3?\b/, urlPrefix: 'vue-data-grid' },
+  react: { marker: /:::\s*example[^\n]*:react\b/, urlPrefix: 'react-data-grid' },
+};
+const FRAMEWORK = process.env.FRAMEWORK ?? 'angular';
+
+if (!FRAMEWORKS[FRAMEWORK]) {
+  throw new Error(`Unknown FRAMEWORK "${FRAMEWORK}" — expected one of: ${Object.keys(FRAMEWORKS).join(', ')}`);
+}
+
+const { marker: EXAMPLE_MARKER, urlPrefix: URL_PREFIX } = FRAMEWORKS[FRAMEWORK];
 const BASE = process.env.BASE_URL ?? 'http://localhost:4321/docs';
-const OUT_FILE = process.env.OUT_FILE ?? './angular-examples-results.json';
+const OUT_FILE = process.env.OUT_FILE ?? `./${FRAMEWORK}-examples-results.json`;
 const CONCURRENCY = Number(process.env.CONCURRENCY ?? 4);
 const GUIDES_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'content', 'guides');
 
@@ -45,18 +58,18 @@ const IGNORED_ERROR_PATTERNS = [
 const shouldIgnore = message => IGNORED_ERROR_PATTERNS.some(pattern => pattern.test(message));
 
 /**
- * Collects every guide page that embeds at least one Angular example.
+ * Collects every guide page that embeds at least one example of the selected framework.
  *
  * @param {string} dir - Directory to scan recursively.
  * @param {Array} acc - Accumulator for the collected pages.
  * @returns {Array<{ permalink: string, ids: string[] }>} Pages with their example IDs.
  */
-function collectAngularPages(dir, acc = []) {
+function collectFrameworkPages(dir, acc = []) {
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = join(dir, entry.name);
 
     if (entry.isDirectory()) {
-      collectAngularPages(full, acc);
+      collectFrameworkPages(full, acc);
     } else if (entry.name.endsWith('.md')) {
       const text = readFileSync(full, 'utf8');
       const permalink = text.match(/^permalink:\s*(\S+)/m)?.[1];
@@ -66,7 +79,7 @@ function collectAngularPages(dir, acc = []) {
       const ids = [];
 
       for (const line of text.split('\n')) {
-        if (/^:::\s*example[^\n]*:angular/.test(line)) {
+        if (EXAMPLE_MARKER.test(line)) {
           // Unnamed example blocks render with the fallback container ID "unknown".
           ids.push(line.match(/#(\S+)/)?.[1] ?? 'unknown');
         }
@@ -79,7 +92,7 @@ function collectAngularPages(dir, acc = []) {
   return acc;
 }
 
-const pages = collectAngularPages(GUIDES_DIR).sort((a, b) => a.permalink.localeCompare(b.permalink));
+const pages = collectFrameworkPages(GUIDES_DIR).sort((a, b) => a.permalink.localeCompare(b.permalink));
 const results = [];
 
 const browser = await chromium.launch(
@@ -87,7 +100,7 @@ const browser = await chromium.launch(
 );
 
 /**
- * Checks a single docs page and all of its Angular examples.
+ * Checks a single docs page and all of its examples for the selected framework.
  *
  * @param {{ permalink: string, ids: string[] }} pageInfo - Page permalink and expected example IDs.
  */
@@ -113,7 +126,7 @@ async function checkPage({ permalink, ids }) {
     sameSite: 'Lax',
   }]);
 
-  const url = `${BASE}/angular-data-grid${permalink}/`;
+  const url = `${BASE}/${URL_PREFIX}${permalink}/`;
   const pageResult = { permalink, url, examples: [], pageErrors: errors };
 
   try {
