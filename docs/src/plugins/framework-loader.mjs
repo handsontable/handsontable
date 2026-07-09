@@ -13,6 +13,7 @@ import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
 import { CURRENT_DOCS_VERSION, CURRENT_DOCS_MINOR_VERSION } from './docs-version.mjs';
+import { LATEST_CHANGELOG_MAJOR } from './changelog-parser.mjs';
 import { convertAsideBodyMarkdown } from './aside-inline-markdown.mjs';
 import { loadVersionHighlights } from './version-highlights-loader.mjs';
 
@@ -1236,6 +1237,11 @@ function applyVuepressPreprocessing(content, prefix, contentDir) {
   // Staging/dev builds resolve to "develop" (no prod-docs/ prefix, since
   // the prod-docs/develop branch does not exist).
   result = result.replace(/\{\{\s*\$currentMinorVersion\s*\}\}/g, CURRENT_DOCS_MINOR_VERSION);
+
+  // Fix {{$latestChangelogVersion}} → highest existing changelog-N major version.
+  // Keeps the Introduction page's "Changelog" link current without manual edits
+  // on every major release.
+  result = result.replace(/\{\{\s*\$latestChangelogVersion\s*\}\}/g, String(LATEST_CHANGELOG_MAJOR));
 
   // Transform @/framework/path.md links to absolute Starlight URLs using permalinks.
   // When prefix/contentDir are available (framework pages), do full permalink resolution.
