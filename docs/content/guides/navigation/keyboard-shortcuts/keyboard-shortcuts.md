@@ -224,6 +224,13 @@ These keyboard shortcuts work with the [column menu](@/guides/accessories-and-me
 | -------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | :-----: | :-----: |
 | <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**↓**</kbd> | Open the column menu. Works in any cell, if the respective column header displays the menu button.           | &cross; | &cross; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                   | Open the column menu. Works only when you're selecting a column header that displays the column menu button. | &cross; | &cross; |
+| Arrow keys                                               | Arrow keys                                                  | Move one available menu item up, down, left, or right.                                                       | &check; | &check; |
+| <kbd>**Ctrl**</kbd>+<kbd>**↑**</kbd> or <kbd>**Home**</kbd> | <kbd>⌘</kbd>+<kbd>**↑**</kbd> or <kbd>**Home**</kbd> | Move to the first available menu item.                                                                       | &check; | &cross; |
+| <kbd>**Ctrl**</kbd>+<kbd>**↓**</kbd> or <kbd>**End**</kbd> | <kbd>⌘</kbd>+<kbd>**↓**</kbd> or <kbd>**End**</kbd>  | Move to the last available menu item.                                                                        | &check; | &cross; |
+| <kbd>**Page Up**</kbd>                                  | <kbd>**Page Up**</kbd>                              | Move one visible menu page up.                                                                               | &check; | &cross; |
+| <kbd>**Page Down**</kbd>                                | <kbd>**Page Down**</kbd>                            | Move one visible menu page down.                                                                             | &check; | &cross; |
+| <kbd>**Escape**</kbd>                                   | <kbd>**Escape**</kbd>                               | Close the column menu or submenu.                                                                            | &check; | &check; |
+| <kbd>**Enter**</kbd> or <kbd>**Space**</kbd>             | <kbd>**Enter**</kbd> or <kbd>**Space**</kbd>         | Run the action of the selected menu item, or open its submenu.                                               | &check; | &cross; |
 
 ### Column filter keyboard shortcuts
 
