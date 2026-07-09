@@ -27,10 +27,12 @@ export type ViewportBand = 'render' | 'visible';
 export interface CalculatorFactory {
   createRowsCalculator(calculatorTypes?: string[], band?: ViewportBand): ViewportRowsCalculator;
   createColumnsCalculator(calculatorTypes?: string[], band?: ViewportBand): ViewportColumnsCalculator;
-  createCalculators(fastDraw?: boolean): boolean;
+  createCalculators(fastDraw?: boolean, options?: { stationaryBands?: boolean }): boolean;
   createVisibleCalculators(): void;
   usesLayoutSnapshotForCalculators(): boolean;
-  allowsRowDeltaRender(): boolean;
+  allowsStationaryBands(): boolean;
+  stabilizeRenderedRowsBand(renderedRows: RowsCalculationType | null): void;
+  stabilizeRenderedColumnsBand(renderedColumns: ColumnsCalculationType | null): void;
   areAllProposedVisibleRowsAlreadyRendered(
     proposedFullyVisibleRowsCalculator: RowsCalculationType | undefined,
     proposedPartiallyVisibleRowsCalculator: RowsCalculationType | undefined): boolean;
@@ -200,9 +202,19 @@ export const calculatorFactory: CalculatorFactory = {
    * @this Viewport
    * @param {boolean} fastDraw If `true`, will try to avoid full redraw and only update the border positions.
    *                           If `false` or `undefined`, will perform a full redraw.
+   * @param {object} [options] The per-draw options.
+   * @param {boolean} [options.stationaryBands=false] When `true` (a scroll-driven draw on the
+   * stationary-band path), the new rendered row and column bands keep the previous bands' sizes —
+   * see {@link CalculatorFactory#stabilizeRenderedRowsBand}. Both axes are stabilized on ANY
+   * scroll-driven draw (not per scrolled axis): a draw for one axis recomputes the other axis'
+   * band too, so per-axis gating would let each axis shrink the other's band back and re-oscillate.
    * @returns {boolean} The fastDraw value, possibly modified.
    */
-  createCalculators(this: Viewport, fastDraw = false): boolean {
+  createCalculators(
+    this: Viewport,
+    fastDraw = false,
+    { stationaryBands = false }: { stationaryBands?: boolean } = {}
+  ): boolean {
     const { wtSettings } = this;
     const useSnapshot = this.usesLayoutSnapshotForCalculators();
 
@@ -239,8 +251,16 @@ export const calculatorFactory: CalculatorFactory = {
     }
 
     if (!fastDraw) {
-      this.rowsRenderCalculator = rowsRenderCalculator.getResultsFor('rendered') ?? null;
-      this.columnsRenderCalculator = columnsRenderCalculator.getResultsFor('rendered') ?? null;
+      const renderedRows = rowsRenderCalculator.getResultsFor('rendered') ?? null;
+      const renderedColumns = columnsRenderCalculator.getResultsFor('rendered') ?? null;
+
+      if (stationaryBands) {
+        this.stabilizeRenderedRowsBand(renderedRows);
+        this.stabilizeRenderedColumnsBand(renderedColumns);
+      }
+
+      this.rowsRenderCalculator = renderedRows;
+      this.columnsRenderCalculator = renderedColumns;
     }
 
     this.rowsVisibleCalculator = rowsCalculator.getResultsFor('fullyVisible') ?? null;
@@ -287,21 +307,99 @@ export const calculatorFactory: CalculatorFactory = {
   },
 
   /**
-   * Decides whether the TBODY row band may be delta-rendered on a pure vertical scroll (rotate the
-   * surviving TR nodes, render only the entering rows). This is a looser gate than the single-pass
-   * layout gate: it drops the uniform-size requirements (row rotation preserves each surviving row's
-   * own content and height, and column widths never change on a vertical scroll), but keeps the two
-   * conditions that make skipping a survivor's re-render unsafe — `singlePassLayout` off (which
-   * `mergeCells` forces, and merged cells recompute their spans per viewport) and window scrolling
-   * (a different scroll/offset model). Anything else takes the full band render unchanged.
+   * Decides whether the rendered row/column bands may be kept stationary on a scroll-driven draw
+   * (each band keeps its previous size so the `OrderView`s never add or remove TR/TD/TH/COL nodes —
+   * see {@link CalculatorFactory#stabilizeRenderedRowsBand}). This is a looser gate than the
+   * single-pass layout gate: it drops the uniform-size requirements (an extra rendered row/column
+   * past the viewport edge is harmless whatever its size), but keeps the two conditions with a
+   * different scroll/offset model — `singlePassLayout` off (which `mergeCells` forces, and merged
+   * cells recompute their spans per viewport) and window scrolling. Anything else takes the natural
+   * bands unchanged.
    *
    * @this Viewport
    * @returns {boolean}
    */
-  allowsRowDeltaRender(this: Viewport): boolean {
+  allowsStationaryBands(this: Viewport): boolean {
     return this.wtSettings.getSetting<boolean>('singlePassLayout') &&
       !this.isVerticallyScrollableByWindow() &&
       !this.isHorizontallyScrollableByWindow();
+  },
+
+  /**
+   * Keeps the rendered row band's size stable across a scroll-driven draw by extending the freshly
+   * computed band DOWNWARD (past the viewport's bottom edge) to the previous band's size. The natural
+   * band size oscillates by one row as the scroll position aligns with the row grid; without this,
+   * every other band shift adds/removes a TR, and a structural DOM mutation triggers the host page's
+   * `:has()` style invalidation — a style recalculation whose cost scales with the whole host
+   * document, paid on every scroll. The extra row is a plain overscan row: it is rendered from real
+   * data below the viewport and clipped by the holder. Near the dataset's end, where no rows remain
+   * to extend into, the band shrinks naturally (a one-time mutation at the edge, not one per shift).
+   *
+   * @this Viewport
+   * @param {RowsCalculationType | null} renderedRows The freshly computed rendered-rows result,
+   * mutated in place. The previous band is read off `this.rowsRenderCalculator` (not yet
+   * overwritten at the call site).
+   */
+  stabilizeRenderedRowsBand(this: Viewport, renderedRows: RowsCalculationType | null): void {
+    const previousBand = this.rowsRenderCalculator;
+
+    if (!renderedRows || !previousBand || renderedRows.endRow === null) {
+      return;
+    }
+
+    const missingRows = previousBand.count - renderedRows.count;
+
+    if (missingRows <= 0) {
+      return;
+    }
+
+    const totalRows = this.wtSettings.getSetting<number>('totalRows');
+    const extension = Math.min(missingRows, (totalRows - 1) - renderedRows.endRow);
+
+    if (extension <= 0) {
+      return;
+    }
+
+    renderedRows.endRow += extension;
+    renderedRows.count += extension;
+  },
+
+  /**
+   * Column-axis mirror of {@link CalculatorFactory#stabilizeRenderedRowsBand}: keeps the rendered
+   * column band's size stable across a scroll-driven draw by extending the freshly computed band
+   * toward the inline end (past the viewport's edge) to the previous band's size. Without it, every
+   * other column-band shift adds/removes a TD per body row, a TH per header row, and a COL — dozens
+   * of structural DOM mutations per crossing, each triggering the host page's `:has()` style
+   * invalidation. The extra column is plain overscan: real data, clipped by the holder. The
+   * extension works on logical indexes, so it is direction-agnostic (RTL-safe).
+   *
+   * @this Viewport
+   * @param {ColumnsCalculationType | null} renderedColumns The freshly computed rendered-columns
+   * result, mutated in place. The previous band is read off `this.columnsRenderCalculator` (not yet
+   * overwritten at the call site).
+   */
+  stabilizeRenderedColumnsBand(this: Viewport, renderedColumns: ColumnsCalculationType | null): void {
+    const previousBand = this.columnsRenderCalculator;
+
+    if (!renderedColumns || !previousBand || renderedColumns.endColumn === null) {
+      return;
+    }
+
+    const missingColumns = previousBand.count - renderedColumns.count;
+
+    if (missingColumns <= 0) {
+      return;
+    }
+
+    const totalColumns = this.wtSettings.getSetting<number>('totalColumns');
+    const extension = Math.min(missingColumns, (totalColumns - 1) - renderedColumns.endColumn);
+
+    if (extension <= 0) {
+      return;
+    }
+
+    renderedColumns.endColumn += extension;
+    renderedColumns.count += extension;
   },
 
   /**

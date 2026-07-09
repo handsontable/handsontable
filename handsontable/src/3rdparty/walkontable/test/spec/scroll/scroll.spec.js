@@ -181,9 +181,11 @@ describe('WalkontableScroll', () => {
       const lastRow = getTableMaster().find('tbody tr:last');
 
       expect(firstRow.find('td:first').text()).toBe('I1');
-      expect(firstRow.find('td:last').text()).toBe('K1');
+      // The scroll target (K) sticks to the right edge; the stationary-band path keeps the band at
+      // its pre-scroll size, so one overscan column (L) renders just past the edge (clipped).
+      expect(firstRow.find('td:last').text()).toBe('L1');
       expect(lastRow.find('td:first').text()).toBe('I8');
-      expect(lastRow.find('td:last').text()).toBe('K8');
+      expect(lastRow.find('td:last').text()).toBe('L8');
     });
 
     it('should scroll to the cell so that it sticks to the right edge of the viewport (forced by method flag)', async() => {

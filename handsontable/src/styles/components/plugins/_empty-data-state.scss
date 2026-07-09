@@ -123,7 +123,9 @@
     }
   }
 
-  .ht-root-wrapper:has(> .ht-slot-bottom > .ht-slot-element) {
+  // `ht-slot-bottom-filled` is kept in sync by the `LayoutManager`; see `base/_base.scss` for why
+  // `:has()` must not be used here.
+  .ht-root-wrapper.ht-slot-bottom-filled {
     .ht-empty-data-state {
       border-end-start-radius: 0;
       border-end-end-radius: 0;

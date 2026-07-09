@@ -6,7 +6,6 @@ import {
 } from '../overlay';
 import type Table from './baseTable';
 import type { default as Overlays } from '../overlay/overlays';
-import type { default as Viewport } from '../viewport/viewport';
 
 /**
  * Per-draw mutable scratch shared by the phase functions of a single draw. It also captures the
@@ -102,7 +101,16 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   // Not yet the source of truth for the calculators below — see Viewport#beginDrawLayout.
   wtViewport.beginDrawLayout();
 
-  ctx.runFastDraw = wtViewport.createCalculators(ctx.runFastDraw);
+  // On a scroll-driven draw both rendered bands (rows AND columns) keep their previous size
+  // (extending the new band past the viewport edge when the natural count is smaller). Stable band
+  // sizes mean the `OrderView`s never add or remove TR/TD/TH/COL nodes while scrolling — a
+  // structural DOM mutation would trigger the host page's `:has()` style invalidation, whose cost
+  // scales with the whole host document. Both axes stabilize on ANY scroll-driven draw: a draw for
+  // one axis recomputes the other axis' band too, so per-axis gating would let each axis shrink the
+  // other's band back and re-oscillate it.
+  ctx.runFastDraw = wtViewport.createCalculators(ctx.runFastDraw, {
+    stationaryBands: wtOverlays.isScrollDrivenDraw && wtViewport.allowsStationaryBands(),
+  });
 
   if (ctx.rowHeadersCount && !wtSettings.getSetting('fixedColumnsStart')) {
     const leftScrollPos = wtOverlays.inlineStartOverlay.getScrollPosition();
@@ -139,7 +147,6 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
         ctx,
         filters,
         isPureVerticalScrollDraw(wtOverlays),
-        isRowDeltaEligible(wtOverlays, wtViewport),
       );
 
       if (!wtSettings.getSetting('externalRowCalculator')) {
@@ -204,8 +211,7 @@ function runCloneDrawCycle(table: Table, ctx: DrawContext): void {
     const filters = buildRenderFilters(table, ctx);
 
     // A clone's render is never gated by `skipRender` (that gate is master-only), so it always runs.
-    // The scroll-direction flags live on the master's overlays, reached via the clone source. The
-    // single-pass predicate reads only shared settings, so the clone's own viewport answers it.
+    // The scroll-direction flags live on the master's overlays, reached via the clone source.
     const cloneSourceOverlays = table.deps.getCloneSource().wtOverlays;
 
     renderCellBand(
@@ -213,7 +219,6 @@ function runCloneDrawCycle(table: Table, ctx: DrawContext): void {
       ctx,
       filters,
       isPureVerticalScrollDraw(cloneSourceOverlays),
-      isRowDeltaEligible(cloneSourceOverlays, table.deps.getWtViewport()),
     );
 
     if (table.is(CLONE_BOTTOM)) {
@@ -270,20 +275,6 @@ function isPureVerticalScrollDraw(wtOverlays: Overlays): boolean {
 }
 
 /**
- * Returns `true` when the TBODY row band may be delta-rendered on this draw: it is a pure vertical
- * scroll AND the viewport allows row-delta rendering (`singlePassLayout` on — so no merged cells —
- * and the table is not window-scrolled). `allowsRowDeltaRender` reads only shared settings, so each
- * role can answer it from the viewport it has in hand.
- *
- * @param {Overlays} wtOverlays The master's overlays object (the owner of the scroll-direction flags).
- * @param {Viewport} wtViewport The viewport whose row-delta predicate gates the delta path.
- * @returns {boolean}
- */
-function isRowDeltaEligible(wtOverlays: Overlays, wtViewport: Viewport): boolean {
-  return isPureVerticalScrollDraw(wtOverlays) && wtViewport.allowsRowDeltaRender();
-}
-
-/**
  * Renders the header + cell band and measures the rendered rows. Shared by both cycles. The
  * role-specific branches stay inline and verbatim: bottom / bottom-left-corner overlays suppress
  * column headers, and only the master or the bottom clone marks oversized rows.
@@ -294,15 +285,12 @@ function isRowDeltaEligible(wtOverlays: Overlays, wtViewport: Viewport): boolean
  *   `buildRenderFilters` (passed non-null rather than re-read off the nullable `table.*Filter`).
  * @param {boolean} columnHeadersRenderSkippable Whether the column-header (THEAD) pass may be skipped
  *   for this draw (a pure vertical scroll); resolved per role by the caller.
- * @param {boolean} rowDeltaRenderable Whether the TBODY row band may be delta-rendered (rotate
- *   surviving rows, render only entering rows) for this draw; resolved per role by the caller.
  */
 function renderCellBand(
   table: Table,
   ctx: DrawContext,
   filters: { rowFilter: RowFilter; columnFilter: ColumnFilter },
   columnHeadersRenderSkippable: boolean,
-  rowDeltaRenderable: boolean,
 ): void {
   table.tableRenderer.setHeaderContentRenderers(ctx.rowHeaders, ctx.columnHeaders);
 
@@ -313,7 +301,6 @@ function renderCellBand(
   }
 
   table.tableRenderer.setColumnHeadersRenderSkippable(columnHeadersRenderSkippable);
-  table.tableRenderer.setRowDeltaRenderable(rowDeltaRenderable);
 
   table.resetOversizedRows();
 

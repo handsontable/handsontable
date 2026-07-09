@@ -41,6 +41,21 @@ Never mix CSS into JavaScript files. CSS and JS are always in separate files. Th
 - `build:themes-*` - Build theme-specific assets.
 - Stylelint validates all CSS/SCSS (`npm run stylelint --prefix handsontable`).
 
+## No `:has()` in stylesheets (lint-enforced)
+
+The custom rule `handsontable/no-has-selector` (error) bans the `:has()` relational pseudo-class in all
+`src/**/*.{css,scss}`. In Chrome, a `:has()` rule anywhere in the document makes every matching DOM
+mutation re-run style invalidation at a cost that scales with the whole host page — and the grid mutates
+the DOM on every scroll re-render, so `:has()` turns scrolling janky on large/complex host pages. Drive
+the style from a **class that JS toggles on the target element** instead (the `SelectionManager`
+header-accent stamping — `#markActiveHeaderNeighbors` / the `-seam` taggers — is the reference pattern).
+The rule lives in `.config/plugin/stylelint/` (a pnpm `file:` dependency, the SCSS analog of
+`eslint-plugin-handsontable`; **copied, not symlinked — run `pnpm install` after editing it**). A
+genuinely necessary exception (a `:has()` on state that is NOT re-evaluated during a scroll — dialog
+focus, dropdown selection, the offscreen `.htGhostTable`) uses
+`// stylelint-disable-next-line handsontable/no-has-selector -- <reason>` with a reason that says why it
+is off the scroll path.
+
 ## Browser Compatibility
 
 All CSS features must work in browsers listed in `browser-targets.js` (latest 2 major versions of Chrome, Firefox, Safari, Edge). The `eslint-plugin-compat` rule enforces this.

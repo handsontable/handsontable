@@ -226,10 +226,14 @@ export class SelectionManager {
         continue; // eslint-disable-line no-continue
       }
 
+      let scannedElements: Set<HTMLElement> | null = null;
+
       if (className) {
         const elements = this.#scanner
           .setActiveSelection(selection)
           .scan() as Set<HTMLElement>;
+
+        scannedElements = elements;
 
         elements.forEach((element: HTMLElement) => {
           if (classNamesMap.has(element)) {
@@ -262,6 +266,7 @@ export class SelectionManager {
       const corners = selection.getCorners();
 
       if (selectionType === ACTIVE_HEADER_TYPE && className) {
+        this.#markActiveHeaderNeighbors(scannedElements!, className as string, classNamesMap);
         this.#markFrozenColumnSeamHeader(corners, className as string, classNamesMap);
         this.#markFrozenTopRowSeamHeader(corners, className as string, classNamesMap);
         this.#markFrozenBottomRowSeamHeader(corners, className as string, classNamesMap);
@@ -298,6 +303,79 @@ export class SelectionManager {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       setAttribute(element, [...headerAttributesMap.get(element)]);
     });
+  }
+
+  /**
+   * Tags the neighbours of every active-header cell: the TH directly BEFORE an active header gets
+   * `<className>-prev` (the theme colors its inline-end border, giving the active header its
+   * inline-start accent), and every TH of the TBODY row directly ABOVE an active row header gets
+   * `<className>-prev-row` (the theme colors its bottom border, giving the active row header its top
+   * accent). Selecting on these stamped classes replaces the former
+   * `th:has(+ th.ht__active_highlight)` and `tr:has(+ tr > th.ht__active_highlight) th` theme rules:
+   * with the class name inside a `:has()` argument, every toggle of it (the selection pass re-applies
+   * it on each draw, and it moves between the recycled header nodes while scrolling) forced a style
+   * invalidation scaled to the whole host page. The row tag lands on TH elements (not the TR) so the
+   * per-band header render and `#resetCells` fully own its cleanup.
+   *
+   * @param {Set<HTMLElement>} elements The active-header elements collected by the scanner.
+   * @param {string} activeHeaderClassName The active header class name (the neighbour classes derive from it).
+   * @param {Map} classNamesMap The render cycle's element→classNames map (applied and cleaned up later).
+   */
+  #markActiveHeaderNeighbors(
+    elements: Set<HTMLElement>,
+    activeHeaderClassName: string,
+    classNamesMap: Map<HTMLElement, Map<string, number>>
+  ) {
+    elements.forEach((element) => {
+      if (element.nodeName !== 'TH') {
+        return;
+      }
+
+      const previousHeader = element.previousElementSibling;
+
+      if (previousHeader !== null && previousHeader.nodeName === 'TH') {
+        this.#tagSeamClass(classNamesMap, previousHeader as HTMLElement, `${activeHeaderClassName}-prev`);
+      }
+
+      this.#markPreviousRowHeaders(element, activeHeaderClassName, classNamesMap);
+    });
+  }
+
+  /**
+   * Tags every TH of the TBODY row directly above the given active row-header cell — the row-axis
+   * half of {@link SelectionManager#markActiveHeaderNeighbors}.
+   *
+   * @param {HTMLElement} element The active row-header cell.
+   * @param {string} activeHeaderClassName The active header class name (the neighbour class derives from it).
+   * @param {Map} classNamesMap The render cycle's element→classNames map (applied and cleaned up later).
+   */
+  #markPreviousRowHeaders(
+    element: HTMLElement,
+    activeHeaderClassName: string,
+    classNamesMap: Map<HTMLElement, Map<string, number>>
+  ) {
+    const row = element.parentElement;
+
+    if (row === null || row.nodeName !== 'TR' ||
+        row.parentElement === null || row.parentElement.nodeName !== 'TBODY') {
+      return;
+    }
+
+    const previousRow = row.previousElementSibling;
+
+    if (previousRow === null || previousRow.nodeName !== 'TR') {
+      return;
+    }
+
+    for (let i = 0; i < previousRow.children.length; i++) {
+      const cell = previousRow.children[i];
+
+      if (cell.nodeName !== 'TH') {
+        break;
+      }
+
+      this.#tagSeamClass(classNamesMap, cell as HTMLElement, `${activeHeaderClassName}-prev-row`);
+    }
   }
 
   /**

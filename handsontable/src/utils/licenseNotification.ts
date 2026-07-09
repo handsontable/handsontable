@@ -1,5 +1,6 @@
 import { _injectProductInfo } from '../helpers/mixed';
-import { SLOT_ITEM_CLASS } from '../core/layout/constants';
+import { LAYOUT_SLOTS, SLOT_ITEM_CLASS } from '../core/layout/constants';
+import { refreshSlotFilledState } from '../core/layout/layoutManager';
 import type { HotInstance } from '../core/types';
 
 const SCOPE_ID = 'licenseNotification';
@@ -74,6 +75,10 @@ export function initLicenseNotification(hotInstance: HotInstance): void {
   // as other contributors (for example pagination) register or reorder.
   notificationElement.classList.add(SLOT_ITEM_CLASS);
   container.appendChild(notificationElement);
+
+  // The notification bypasses `DomSlot`, so the wrapper's slot-filled state class (kept in sync by
+  // the `LayoutManager` for registered items) has to be refreshed here explicitly.
+  refreshSlotFilledState(LAYOUT_SLOTS.BOTTOM, container);
 
   // The scope is intentionally never unregistered: the license notification is created once during
   // init, cannot be disabled, and lives for the whole instance lifetime. It is cleaned up when

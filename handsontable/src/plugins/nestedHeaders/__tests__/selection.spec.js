@@ -66,7 +66,7 @@ describe('NestedHeaders', () => {
             <th class="">G</th>
           </tr>
           <tr>
-            <th class="">H</th>
+            <th class="my-active-header-prev">H</th>
             <th class="my-active-header" colspan="2">I</th>
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">J</th>
@@ -78,8 +78,8 @@ describe('NestedHeaders', () => {
             <th class="">M</th>
           </tr>
           <tr>
-            <th class="">N</th>
-            <th class="my-current-header my-active-header">O</th>
+            <th class="my-active-header-prev">N</th>
+            <th class="my-current-header my-active-header my-active-header-prev">O</th>
             <th class="my-current-header my-active-header">P</th>
             <th class="">Q</th>
             <th class="">R</th>

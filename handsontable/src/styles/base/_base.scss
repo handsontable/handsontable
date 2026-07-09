@@ -12,8 +12,11 @@
     flex-direction: column;
     height: 100%;
 
-    &:has(> .ht-slot-bottom > .ht-slot-element),
-    &:has(> .ht-slot-top > .ht-slot-element) {
+    // The `ht-slot-*-filled` classes are kept in sync by the `LayoutManager` (they mean "the slot
+    // has at least one `.ht-slot-element` child"). Selecting on `:has()` here instead makes every
+    // grid DOM mutation trigger a style invalidation scaled to the whole host page.
+    &.ht-slot-bottom-filled,
+    &.ht-slot-top-filled {
       .ht-wrapper {
         &:not(.htHorizontallyScrollableByWindow),
         &:not(.htVerticallyScrollableByWindow) {
@@ -308,15 +311,18 @@
       // An active header's inline-start edge has width 0 (only `:first-child`/`:nth-child(2)` reserve
       // it), so its accent went missing there while the inline-end side kept it — most visible on
       // frozen columns. Color the shared gridline on the inline-start neighbour instead, so every
-      // active column header shows a matching inline-start accent.
-      &:has(+ th.ht__active_highlight) {
+      // active column header shows a matching inline-start accent. `SelectionManager` stamps the
+      // neighbour with this class; selecting on `:has(+ th.ht__active_highlight)` instead makes every
+      // toggle of the active class (it moves between recycled header nodes on scroll) trigger a style
+      // invalidation scaled to the whole host page.
+      &.ht__active_highlight-prev {
         border-inline-end-color: var(--ht-header-active-border-color);
       }
 
       // Boundary seam: when the first non-frozen column is the active header, its inline-start edge
       // falls on the frozen-pane seam drawn by the frozen overlay (a separate table), out of reach of
-      // the `:has()` rule above. `SelectionManager` tags the last frozen header with this class so the
-      // seam gets the same accent.
+      // the neighbour class above (stamped within one table). `SelectionManager` tags the last frozen
+      // header with this class so the seam gets the same accent.
       &.ht__active_highlight-seam {
         border-inline-end-color: var(--ht-header-active-border-color);
       }
@@ -379,9 +385,11 @@
       // real border instead of drawing a box-shadow on the active header itself, so the accent rides
       // the layout gridline and never drifts a pixel (the box-shadow rounded independently and, on
       // the first row of each overlay table, doubled with the `tr:first-child` border-top below).
-      // Mirror of the column-header `:has(+ th.ht__active_highlight)` rule on the row axis. The first
+      // Mirror of the column-header `-prev` rule on the row axis; `SelectionManager` stamps every TH
+      // of the row above (selecting on `tr:has(+ tr > th.ht__active_highlight) th` instead makes
+      // every toggle of the active class trigger a host-page-scaled style invalidation). The first
       // row of each overlay (no row above to borrow from) is handled by `tr:first-child`.
-      tr:has(+ tr > th.ht__active_highlight) th {
+      tr th.ht__active_highlight-prev-row {
         border-bottom-color: var(--ht-header-active-border-color);
       }
     }
@@ -423,7 +431,7 @@
 
         // `-row-seam-bottom`: tagged by SelectionManager on the first bottom-frozen row header when
         // the last non-frozen row is active. Its top border is the bottom-freeze seam, out of reach
-        // of the `:has(+ tr ...)` accent rule (separate overlay table), so colour it here.
+        // of the `-prev-row` accent rule (separate overlay table), so colour it here.
         &.ht__active_highlight,
         &.ht__active_highlight-row-seam-bottom {
           border-top-color: var(--ht-header-active-border-color);
@@ -438,7 +446,7 @@
 
         // `-row-seam-top`: tagged by SelectionManager on the last top-frozen row header when the first
         // non-frozen row is active. Its bottom border is the top-freeze seam, out of reach of the
-        // `:has(+ tr ...)` accent rule (separate overlay table), so colour it here.
+        // `-prev-row` accent rule (separate overlay table), so colour it here.
         &.ht__active_highlight,
         &.ht__active_highlight-row-seam-top {
           border-bottom-color: var(--ht-header-active-border-color);

@@ -95,6 +95,7 @@
                     border-start-start-radius: var(--ht-border-radius);
                   }
 
+                  // stylelint-disable-next-line handsontable/no-has-selector -- "last visible header" corner rounding; deferred de-:has() hardening (see PLAN §9.9). A JS-tagged last-visible-header class would replace it.
                   &:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))) {
                     border-start-end-radius: var(--ht-border-radius);
                   }
@@ -107,6 +108,7 @@
                     border-end-start-radius: var(--ht-border-radius);
                   }
 
+                  // stylelint-disable-next-line handsontable/no-has-selector -- "last visible header" corner rounding; deferred de-:has() hardening (see PLAN §9.9). A JS-tagged last-visible-header class would replace it.
                   &:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))) {
                     border-end-end-radius: var(--ht-border-radius);
                   }
@@ -164,6 +166,7 @@
                     border-start-start-radius: var(--ht-border-radius);
                   }
 
+                  // stylelint-disable-next-line handsontable/no-has-selector -- "last visible header" corner rounding; deferred de-:has() hardening (see PLAN §9.9). A JS-tagged last-visible-header class would replace it.
                   &:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))) {
                     border-start-end-radius: var(--ht-border-radius);
                   }
@@ -256,6 +259,7 @@
             border-end-start-radius: 0;
           }
 
+          // stylelint-disable-next-line handsontable/no-has-selector -- "last visible header" corner rounding; deferred de-:has() hardening (see PLAN §9.9). A JS-tagged last-visible-header class would replace it.
           thead tr:last-child th:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))),
           tbody tr:last-child td:last-child,
           tbody tr:last-child th:last-child {
@@ -269,12 +273,14 @@
           border-start-end-radius: 0;
           border-end-end-radius: 0;
 
+          // stylelint-disable-next-line handsontable/no-has-selector -- "last visible header" corner rounding; deferred de-:has() hardening (see PLAN §9.9). A JS-tagged last-visible-header class would replace it.
           thead tr:first-child th:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))),
           tbody tr:first-child td:last-child,
           tbody tr:first-child th:last-child {
             border-start-end-radius: 0;
           }
 
+          // stylelint-disable-next-line handsontable/no-has-selector -- "last visible header" corner rounding; deferred de-:has() hardening (see PLAN §9.9). A JS-tagged last-visible-header class would replace it.
           thead tr:last-child th:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))),
           tbody tr:last-child td:last-child,
           tbody tr:last-child th:last-child {
@@ -288,7 +294,10 @@
   .ht-root-wrapper {
     border-radius: var(--ht-border-radius);
 
-    &:has(> .ht-slot-bottom > .ht-slot-element) {
+    // `ht-slot-*-filled` = the slot has at least one `.ht-slot-element` child; kept in sync by the
+    // `LayoutManager`. A `:has()` selector here would re-run host-page-scaled style invalidation on
+    // every grid DOM mutation.
+    &.ht-slot-bottom-filled {
       .ht-wrapper,
       .ht_master .wtHolder {
         border-end-start-radius: 0;
@@ -305,6 +314,7 @@
           border-end-start-radius: 0 !important;
         }
 
+        // stylelint-disable-next-line handsontable/no-has-selector -- "last visible header" corner rounding; deferred de-:has() hardening (see PLAN §9.9). A JS-tagged last-visible-header class would replace it.
         thead tr:last-child th:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))),
         tbody tr:last-child td:last-child,
         tbody tr:last-child th:last-child {
@@ -315,7 +325,7 @@
 
     // Mirror of the bottom-slot rules: the top slot sits above the grid, so it squares the
     // grid's top (block-start) corners instead of the bottom ones.
-    &:has(> .ht-slot-top > .ht-slot-element) {
+    &.ht-slot-top-filled {
       .ht-wrapper,
       .ht_master .wtHolder {
         border-start-start-radius: 0;
@@ -332,6 +342,7 @@
           border-start-start-radius: 0 !important;
         }
 
+        // stylelint-disable-next-line handsontable/no-has-selector -- "last visible header" corner rounding; deferred de-:has() hardening (see PLAN §9.9). A JS-tagged last-visible-header class would replace it.
         thead tr:first-child th:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader))),
         tbody tr:first-child td:last-child,
         tbody tr:first-child th:last-child {
