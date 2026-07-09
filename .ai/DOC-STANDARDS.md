@@ -9,13 +9,11 @@ The gating policy and a digest of the most-violated rules live in the root `AGEN
 - Any change to a public API (methods, options, hooks, plugins, typings, errors) **must** update the corresponding JSDoc/Typedoc comments and guides.
 - Any change to user-facing behavior or look-and-feel **must** be documented.
 - Any breaking change **must** include a migration guide step (see below).
-- A PR that adds a new documentation page is included in the changelog (do not use `[skip changelog]`).
 
 ## Documentation branch conventions
 
 - Feature docs branches: `docs/issue-xxxx` (e.g., `docs/issue-9024`), branched from the feature branch or `develop`.
 - Release docs branches: `release/x.y.z-docs`, branched from `release/x.y.z`.
-- Documentation-only PRs use `[skip changelog]` in the PR description, **unless** the PR adds a new documentation page.
 
 ## Writing style rules
 
