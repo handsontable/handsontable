@@ -98,6 +98,7 @@ The latest security audits:
 | TestArmy   | Apr 28, 2023 | [Download](/docs/testarmy-certificate.pdf)       |
 | TestArmy   | Apr 19, 2024 | [Download](/docs/testarmy-certificate-2024.pdf)  |
 | TestArmy   | May 13, 2025 | [Download](/docs/testarmy-certificate-2025.pdf)  |
+| TestArmy   | Jul 09, 2026 | [Download](/docs/testarmy-certificate-2026.pdf)  |
 
 
 The security audits were carried out in accordance with industry-standard methodologies, including:
