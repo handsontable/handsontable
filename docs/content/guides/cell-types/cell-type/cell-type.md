@@ -250,7 +250,7 @@ This gives users a convenient way of defining which cell type should be used for
 To register your own alias use `Handsontable.cellTypes.registerCellType()` function. It takes two arguments:
 
 - `cellTypeName` - a string representing the cell type object
-- [`type`](@/api/options.md#type) - an object with keys [`editor`](@/api/options.md#editor), [`renderer`](@/api/options.md#renderer), and [`validator`](@/api/options.md#validator) that will be represented by `cellTypeName`
+- [`type`](@/api/options.md#type) - an object represented by `cellTypeName`. It can include cell behavior callbacks, such as [`editor`](@/api/options.md#editor), [`renderer`](@/api/options.md#renderer), and [`validator`](@/api/options.md#validator). It can also include Handsontable settings, such as [`readOnly`](@/api/options.md#readonly), [`className`](@/api/options.md#classname), and [`allowInvalid`](@/api/options.md#allowinvalid), or custom properties, such as `myCustomCellState`, available through `cellProperties`.
 
 If you'd like to register `copyablePasswordType` under alias `copyable-password`, you need to call:
 
