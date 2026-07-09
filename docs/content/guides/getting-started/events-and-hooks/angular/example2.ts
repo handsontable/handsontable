@@ -41,10 +41,10 @@ export class AppComponent implements AfterViewInit {
       beforeKeyDown: (e) => {
         const selection = hot?.getSelected()?.[0];
 
-        if (!selection) return;
+        if (!selection) return undefined;
 
         // Ignore header and corner selections (row or column index < 0)
-        if (selection[0] < 0 || selection[1] < 0) return;
+        if (selection[0] < 0 || selection[1] < 0) return undefined;
 
         console.log(selection);
 
@@ -79,6 +79,8 @@ export class AppComponent implements AfterViewInit {
         }
 
         this.lastChange = null;
+
+        return undefined;
       },
     });
   }
