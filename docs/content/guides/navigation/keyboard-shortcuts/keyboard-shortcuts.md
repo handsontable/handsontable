@@ -195,6 +195,8 @@ These keyboard shortcuts work in context menus. To activate them, enable the [`C
 
 These keyboard shortcuts work in [column groups](@/guides/columns/column-groups/column-groups.md), also known as "nested headers". To activate them, enable the [`NestedHeaders`](@/api/nestedHeaders.md) plugin.
 
+The <kbd>**Enter**</kbd> shortcut works only when a collapsible column group header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+
 | Windows              | macOS                | Action                              |  Excel  | Sheets  |
 | -------------------- | -------------------- | ----------------------------------- | :-----: | :-----: |
 | <kbd>**Enter**</kbd> | <kbd>**Enter**</kbd> | Collapse or expand the column group | &cross; | &cross; |
@@ -202,6 +204,8 @@ These keyboard shortcuts work in [column groups](@/guides/columns/column-groups/
 ### Row parent-child keyboard shortcuts
 
 These keyboard shortcuts work in [row groups](@/guides/rows/row-parent-child/row-parent-child.md), also known as "nested rows". To activate them, enable the [`NestedRows`](@/api/nestedRows.md) plugin.
+
+The <kbd>**Enter**</kbd> shortcut works only when a row header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
 | Windows              | macOS                | Action                           |  Excel  | Sheets  |
 | -------------------- | -------------------- | -------------------------------- | :-----: | :-----: |
@@ -211,19 +215,23 @@ These keyboard shortcuts work in [row groups](@/guides/rows/row-parent-child/row
 
 These keyboard shortcuts work with [rows sorting](@/guides/rows/rows-sorting/rows-sorting.md). To activate them, enable the [`ColumnSorting`](@/api/columnSorting.md), or the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin.
 
+These header-focused shortcuts work only when a column header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+
 | Windows                                  | macOS                                   | Action                                                                                                                                                   |  Excel  | Sheets  |
 | ---------------------------------------- | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | :-----: | :-----: |
-| <kbd>**Enter**</kbd>                     | <kbd>**Enter**</kbd>                    | Sort data by the selected column, in ascending, descending, or the original order                                                                        | &cross; | &cross; |
-| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>⇧</kbd>+<kbd>**Enter**</kbd> | Sort data by multiple columns, in ascending, descending, or the original order. Requires the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin. | &cross; | &cross; |
+| <kbd>**Enter**</kbd>                     | <kbd>**Enter**</kbd>                    | Sort by the focused column, cycling through ascending, descending, and original order                                                                    | &cross; | &cross; |
+| <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>⇧</kbd>+<kbd>**Enter**</kbd> | Append the focused column to the active sort criteria. Requires the [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin.                         | &cross; | &cross; |
 
 ### Column menu keyboard shortcuts
 
 These keyboard shortcuts work with the [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md). To activate them, enable the [`DropdownMenu`](@/api/dropdownMenu.md) plugin.
 
+The <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd> shortcut works from a data cell. The <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Enter**</kbd> shortcut works only when a column header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+
 | Windows                                                  | macOS                                                       | Action                                                                                                       |  Excel  | Sheets  |
 | -------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ | :-----: | :-----: |
 | <kbd>**Shift**</kbd>+<kbd>**Alt**</kbd>+<kbd>**↓**</kbd> | <kbd>⇧</kbd>+<kbd>⌥</kbd>+<kbd>**↓**</kbd> | Open the column menu. Works in any cell, if the respective column header displays the menu button.           | &cross; | &cross; |
-| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                   | Open the column menu. Works only when you're selecting a column header that displays the column menu button. | &cross; | &cross; |
+| <kbd>**Ctrl**</kbd>+<kbd>**Enter**</kbd>                | <kbd>⌘</kbd>+<kbd>**Enter**</kbd>                   | Open the column menu. Works only when a column header with the column menu button is focused.                | &cross; | &cross; |
 | Arrow keys                                               | Arrow keys                                                  | Move one available menu item up, down, left, or right.                                                       | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**↑**</kbd> or <kbd>**Home**</kbd> | <kbd>⌘</kbd>+<kbd>**↑**</kbd> or <kbd>**Home**</kbd> | Move to the first available menu item.                                                                       | &check; | &cross; |
 | <kbd>**Ctrl**</kbd>+<kbd>**↓**</kbd> or <kbd>**End**</kbd> | <kbd>⌘</kbd>+<kbd>**↓**</kbd> or <kbd>**End**</kbd>  | Move to the last available menu item.                                                                        | &check; | &cross; |
