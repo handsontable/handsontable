@@ -48,6 +48,10 @@ export function isContextObject(objectToCheck: unknown): objectToCheck is Contex
  *
  * Each `ShortcutContext` object stores and manages its own set of keyboard shortcuts.
  *
+ * You don't create a `ShortcutContext` object directly. Instead, get one from the
+ * [`ShortcutManager`](@/api/shortcutManager.md), through its `getContext()`, `addContext()`, or
+ * `getOrCreateContext()` method.
+ *
  * @alias ShortcutContext
  * @class ShortcutContext
  * @param {string} name The name of the keyboard shortcut context
