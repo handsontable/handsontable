@@ -91,7 +91,7 @@ The [`trimDropdown`](@/api/options.md#trimdropdown) option controls the dropdown
 
 ## Autocomplete strict mode
 
-This is the same example as above, the difference being that `autocomplete` now runs in strict mode. In this mode, the autocomplete cells will only accept values that are defined in the source array. The mouse and keyboard bindings are identical to the `Handsontable` cell type but with the differences below:
+This is the same example as above, the difference being that `autocomplete` now runs in strict mode. In this mode, the autocomplete cells will only accept values that are defined in the source array. The mouse and keyboard bindings are identical to the [`handsontable` cell type](@/guides/cell-types/handsontable-cell-type/handsontable-cell-type.md) but with the differences below:
 
 - If there is at least one option visible, there always is a selection in HOT-in-HOT
 - When the first row is selected, pressing <kbd>**Arrow Up**</kbd> does not deselect HOT-in-HOT. Instead, it behaves as the <kbd>**Enter**</kbd> key but moves the selection in the main HOT upwards
@@ -496,6 +496,10 @@ The left column uses the default behavior (`allowHtml: false`) — HTML tags in 
 ## Result
 
 After configuring the autocomplete cell type, cells display a text input that shows matching suggestions as the user types. In strict mode, only values from the source list are accepted. In flexible mode, users can also enter custom values not in the list.
+
+## Keyboard shortcuts
+
+The autocomplete cell editor shares its keyboard shortcuts with the [`handsontable` editor](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#handsontable-editor-keyboard-shortcuts). In strict mode, a few of these shortcuts behave differently -- see [Autocomplete strict mode](#autocomplete-strict-mode).
 
 ## Related articles
 

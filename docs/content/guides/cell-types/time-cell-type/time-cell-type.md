@@ -403,6 +403,10 @@ The [`timeFormat`](@/api/options.md#timeformat) option controls how times are di
 
 After configuring the time cell type, cells display time values formatted according to your `timeFormat` configuration. Clicking an `intl-time` or `time` cell opens a native time picker. Source data is stored in 24-hour format (`HH:mm`, `HH:mm:ss`, or `HH:mm:ss.SSS`) regardless of the display format.
 
+## Keyboard shortcuts
+
+The `intl-time` and `time` cell editors open the browser's native time picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems. Outside the picker, the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts) apply.
+
 ## Related articles
 
 **Related guides**
