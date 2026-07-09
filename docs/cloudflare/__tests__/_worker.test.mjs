@@ -222,11 +222,14 @@ test('Content-Security-Policy frame-src allows the Figma embed (regression for D
   const frameSrc = csp.split(';').find((directive) => directive.trim().startsWith('frame-src'));
 
   assert.ok(frameSrc, 'expected a frame-src directive in the Content-Security-Policy header');
-  assert.ok(frameSrc.includes('https://embed.figma.com'));
+
+  const frameSrcSources = frameSrc.trim().split(/\s+/).slice(1); // drop the "frame-src" keyword
+
+  assert.ok(frameSrcSources.includes('https://embed.figma.com'));
 
   // Other embeds documented elsewhere in the guides must keep working too.
-  assert.ok(frameSrc.includes('https://www.youtube.com'));
-  assert.ok(frameSrc.includes('https://codesandbox.io'));
+  assert.ok(frameSrcSources.includes('https://www.youtube.com'));
+  assert.ok(frameSrcSources.includes('https://codesandbox.io'));
 });
 
 test('keeps versioned demo redirects on historical disabled cells slugs', async() => {
