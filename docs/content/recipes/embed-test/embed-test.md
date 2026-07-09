@@ -24,7 +24,7 @@ StackBlitz embeds. It is not intended to be merged into production.
 <iframe src="https://demos.handsontable.com/embed/2pw5i2e2i6"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
   title="Handsontable self-hosted demo embed test"
-  allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
+  allow="clipboard-read; clipboard-write"
   sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
 ></iframe>
 
