@@ -140,6 +140,38 @@ if (undoRedo.isRedoAvailable()) {
 undoRedo.clear();
 ```
 
+## Registering a custom undoable action
+
+Use [`done()`](@/api/undoRedo.md#done) to add an action to the undo stack that isn't tracked by default, such as a direct [`setCellMeta()`](@/api/core.md#setcellmeta) update.
+
+Call `done()` with a function that returns an action object. The action object needs an `undo()` method and a `redo()` method, each receiving the Handsontable instance and a callback to call once the operation finishes.
+
+```js
+function setCellBackgroundColor(row, col, className) {
+  const undoRedo = hot.getPlugin('undoRedo');
+  const previousClassName = hot.getCellMeta(row, col).className;
+
+  undoRedo.done(() => ({
+    actionType: 'cellBackgroundColor',
+    undo(instance, callback) {
+      instance.setCellMeta(row, col, 'className', previousClassName);
+      instance.render();
+      callback();
+    },
+    redo(instance, callback) {
+      instance.setCellMeta(row, col, 'className', className);
+      instance.render();
+      callback();
+    },
+  }), 'cellBackgroundColor');
+
+  hot.setCellMeta(row, col, 'className', className);
+  hot.render();
+}
+```
+
+After you call `setCellBackgroundColor()`, pressing <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Z**</kbd> reverts the color change, and pressing <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Y**</kbd> reapplies it.
+
 ## Known limitations
 
 UndoRedo does not record every possible operation.

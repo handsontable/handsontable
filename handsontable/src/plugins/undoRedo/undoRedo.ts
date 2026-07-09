@@ -162,6 +162,32 @@ export class UndoRedo extends BasePlugin {
   /**
    * Stash information about performed actions.
    *
+   * @example
+   * ```js
+   * // Register a custom action, for example when setting cell metadata directly
+   * // (a change that UndoRedo doesn't track by default).
+   * function setCellBackgroundColor(row, col, className) {
+   *   const undoRedo = hot.getPlugin('undoRedo');
+   *   const previousClassName = hot.getCellMeta(row, col).className;
+   *
+   *   undoRedo.done(() => ({
+   *     actionType: 'cellBackgroundColor',
+   *     undo(instance, callback) {
+   *       instance.setCellMeta(row, col, 'className', previousClassName);
+   *       instance.render();
+   *       callback();
+   *     },
+   *     redo(instance, callback) {
+   *       instance.setCellMeta(row, col, 'className', className);
+   *       instance.render();
+   *       callback();
+   *     },
+   *   }), 'cellBackgroundColor');
+   *
+   *   hot.setCellMeta(row, col, 'className', className);
+   *   hot.render();
+   * }
+   * ```
    * @fires Hooks#beforeUndoStackChange
    * @fires Hooks#afterUndoStackChange
    * @fires Hooks#beforeRedoStackChange
