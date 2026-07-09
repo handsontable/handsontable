@@ -210,6 +210,12 @@ module.exports = {
         'jsdoc/require-returns': 'off',
         'handsontable/restricted-module-imports': 'off',
         'handsontable/require-async-in-it': 'error',
+        // Determinism guards for the frozen Jasmine suite. WARN, not error: the
+        // existing sleep()/it.flaky() debt must surface without red-walling CI.
+        // Escalation to error happens in the flip-to-blocking task once the
+        // debt is burned down. New E2E belongs in Playwright (tests/e2e).
+        'handsontable/no-fixed-sleep-in-spec': 'warn',
+        'handsontable/no-new-it-flaky': 'warn',
         'brace-style': ['error', '1tbs', { allowSingleLine: true }],
       }
     },

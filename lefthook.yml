@@ -1,0 +1,9 @@
+# Local git hooks (lefthook). The pre-push gate is fast, local feedback — the
+# same enforcement CI runs, one step earlier. It is bypassable with
+# `git push --no-verify`; CI is the authoritative gate.
+#
+# Activate once after install:  npx lefthook install
+pre-push:
+  commands:
+    test-gate:
+      run: node scripts/pre-push.mjs

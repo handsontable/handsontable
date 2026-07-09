@@ -1,0 +1,44 @@
+// ESLint config for the Playwright test tier (tests/e2e, tests/visual).
+// CommonJS (.cjs) because this package is "type": "module" and ESLint's
+// legacy config loader requires CJS.
+//
+// This tier is greenfield — there is no legacy debt to baseline — so the
+// determinism bans ship at `error`, not `warn`. A fixed delay or a
+// `networkidle` wait must never enter a Playwright spec: wait for a
+// condition (a web-first assertion, a locator state) instead.
+//
+// Scope is deliberately minimal: the @typescript-eslint PARSER (so `.ts`
+// specs parse) plus core `no-restricted-syntax` bans. It does NOT pull in
+// eslint-plugin-playwright — that richer ruleset is a new third-party
+// dependency and is gated on the team-discussion required by the
+// minimal-dependency policy (see tests/README.md).
+module.exports = {
+  root: true,
+  parser: '@typescript-eslint/parser',
+  parserOptions: {
+    ecmaVersion: 'latest',
+    sourceType: 'module',
+  },
+  env: {
+    node: true,
+    browser: true,
+    es2022: true,
+  },
+  rules: {
+    'no-restricted-syntax': [
+      'error',
+      {
+        selector: "CallExpression[callee.property.name='waitForTimeout']",
+        message: 'No fixed page.waitForTimeout() — wait for a condition (a web-first assertion or a locator state). See .claude/skills/handsontable-playwright-e2e/references/determinism.md.',
+      },
+      {
+        selector: "CallExpression[callee.name='sleep']",
+        message: 'No fixed sleep() delay — wait for a condition instead. See .claude/skills/handsontable-playwright-e2e/references/determinism.md.',
+      },
+      {
+        selector: "Literal[value='networkidle']",
+        message: "No 'networkidle' wait — it is flaky and deprecated for web apps. Assert on a locator or response instead. See .claude/skills/handsontable-playwright-e2e/references/determinism.md.",
+      },
+    ],
+  },
+};

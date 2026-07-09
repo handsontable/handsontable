@@ -13,6 +13,23 @@
             "type": "command",
             "command": "command -v pipx >/dev/null 2>&1 && pipx run code-review-graph==2.3.2 update --skip-flows || true",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "node scripts/claude/post-tool-use.mjs",
+            "timeout": 60
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node scripts/claude/stop.mjs",
+            "timeout": 120
           }
         ]
       }

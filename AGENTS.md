@@ -94,7 +94,7 @@ Full rules (what counts, the per-change table, legacy vs deprecated, what is NOT
 
 Every code change produced by an agent **must** satisfy all of the following:
 
-1. **Tests are required.** Every change must include both **unit tests** (Jest, `*.unit.js`) and **E2E tests** (Jasmine/Puppeteer, `*.spec.js`). No change is complete without test coverage for the new or modified behavior.
+1. **Tests are required, and machine-enforced.** A change to `handsontable/src/**` or `wrappers/**` must ship a matching test change (the presence gate checks this on every PR). The *kind* follows the change: **unit** (Jest, `*.unit.js`) for logic, **E2E** for anything a user can see or do — and **new E2E is Playwright** (`tests/e2e/*.spec.ts`); the Jasmine/Puppeteer `*.spec.js` suite is frozen (edit existing specs, but do not add new ones — migrate broken ones to Playwright). A pure refactor needs no new test if declared with a `Refactor-only: <reason>` commit trailer. Full decision rules: `handsontable/.ai/TESTING.md`.
 2. **Documentation must be updated.** If a change affects the public API, configuration options, hooks, behavior, or user-facing experience, update the corresponding documentation (guides, API reference via JSDoc/Typedoc, migration guide) in the same change. See [Documentation standards](#documentation-standards-all-packages).
 3. **Update AGENTS.md.** If a change introduces new conventions, patterns, constraints, file locations, or gotchas that future agents should know, update the `AGENTS.md` at the correct scope.
 

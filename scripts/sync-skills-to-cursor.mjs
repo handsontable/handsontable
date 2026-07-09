@@ -22,6 +22,8 @@ const GLOB_MAP = {
   'handsontable-celltype-dev': ['handsontable/src/cellTypes/**'],
   'handsontable-unit-testing': ['handsontable/src/**/*.unit.js', 'handsontable/test/unit/**'],
   'handsontable-e2e-testing': ['handsontable/src/**/*.spec.js', 'handsontable/test/e2e/**'],
+  'handsontable-playwright-e2e': ['tests/e2e/**', 'tests/fixtures/**'],
+  'test-writing-discipline': null, // applies to all tests -- loaded on demand, no globs
   'walkontable-dev': ['handsontable/src/3rdparty/walkontable/**'],
   'walkontable-testing': ['handsontable/src/3rdparty/walkontable/test/**'],
   'visual-testing': ['visual-tests/**'],
