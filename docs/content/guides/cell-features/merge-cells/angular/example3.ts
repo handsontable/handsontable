@@ -1,6 +1,7 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+import { CellRange } from 'handsontable/base';
 
 @Component({
   selector: 'example3-merge-cells',
@@ -35,16 +36,19 @@ export class AppComponent {
     mergeCells: true,
     autoWrapRow: true,
     autoWrapCol: true,
-    beforeMergeCells: (cellRange) => {
+    beforeMergeCells: (cellRange: CellRange) => {
       this.logEvent(`beforeMergeCells: rows ${cellRange.from.row}-${cellRange.to.row}, columns ${cellRange.from.col}-${cellRange.to.col}.`);
     },
-    afterMergeCells: (cellRange, mergeParent) => {
+    afterMergeCells: (
+      cellRange: CellRange,
+      mergeParent: { row: number; col: number; rowspan: number; colspan: number }
+    ) => {
       this.logEvent(`afterMergeCells: merged into ${mergeParent.rowspan} row(s) by ${mergeParent.colspan} column(s).`);
     },
-    beforeUnmergeCells: (cellRange) => {
+    beforeUnmergeCells: (cellRange: CellRange) => {
       this.logEvent(`beforeUnmergeCells: rows ${cellRange.from.row}-${cellRange.to.row}, columns ${cellRange.from.col}-${cellRange.to.col}.`);
     },
-    afterUnmergeCells: (cellRange) => {
+    afterUnmergeCells: (cellRange: CellRange) => {
       this.logEvent(`afterUnmergeCells: rows ${cellRange.from.row}-${cellRange.to.row}, columns ${cellRange.from.col}-${cellRange.to.col}.`);
     },
   };
