@@ -3,7 +3,7 @@ import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
-  selector: 'example3-disabled-cells',
+  selector: 'example1-read-only-cells',
   standalone: true,
   imports: [HotTableModule],
   template: ` <div>
@@ -27,19 +27,16 @@ export class AppComponent {
     columns: [
       {
         data: 'car',
-        editor: false,
+        readOnly: true,
       },
       {
         data: 'year',
-        editor: 'numeric',
       },
       {
         data: 'chassis',
-        editor: 'text',
       },
       {
         data: 'bumper',
-        editor: 'text',
       },
     ]
   };

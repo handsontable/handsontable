@@ -186,3 +186,48 @@ test('vue3-custom-id-class-style redirects to the unified custom-id-class-style 
     );
   }
 });
+
+test('redirects disabled cells guide slugs to the read-only cells guide', async() => {
+  const worker = loadWorker();
+
+  for (const framework of ['javascript', 'react', 'angular', 'vue']) {
+    await assertRedirect(
+      worker,
+      `/docs/${framework}-data-grid/disabled-cells/`,
+      `/docs/${framework}-data-grid/read-only-cells/`,
+    );
+  }
+
+  const oldFlatResponse = await worker.fetch(request('/docs/disabled-cells', 'react'), env);
+
+  assert.equal(oldFlatResponse.status, 302);
+  assert.equal(
+    oldFlatResponse.headers.get('location'),
+    'https://handsontable.com/docs/react-data-grid/read-only-cells/',
+  );
+
+  const newFlatResponse = await worker.fetch(request('/docs/read-only-cells', 'angular'), env);
+
+  assert.equal(newFlatResponse.status, 302);
+  assert.equal(
+    newFlatResponse.headers.get('location'),
+    'https://handsontable.com/docs/angular-data-grid/read-only-cells/',
+  );
+});
+
+test('keeps versioned demo redirects on historical disabled cells slugs', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(
+    worker,
+    '/docs/11.1/demo-read-only.html',
+    '/docs/11.1/disabled-cells',
+    302,
+  );
+  await assertRedirect(
+    worker,
+    '/docs/15.3/demo-disabled-editing.html',
+    '/docs/15.3/javascript-data-grid/disabled-cells',
+    302,
+  );
+});

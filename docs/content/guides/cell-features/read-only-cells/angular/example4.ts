@@ -3,7 +3,7 @@ import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { GridSettings, HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
-  selector: 'example2-disabled-cells',
+  selector: 'example4-read-only-cells',
   standalone: true,
   imports: [HotTableModule],
   template: ` <div>
@@ -20,7 +20,7 @@ export class AppComponent implements AfterViewInit {
     { car: 'Volvo', year: 2020, chassis: 'white', bumper: 'gray' },
   ];
 
-  readonly gridSettings: GridSettings ={
+  readonly gridSettings: GridSettings = {
     height: 'auto',
     colHeaders: ['Car', 'Year', 'Chassis color', 'Bumper color'],
     autoWrapRow: true,
@@ -31,12 +31,11 @@ export class AppComponent implements AfterViewInit {
     const hot = this.hotTable?.hotInstance;
 
     hot?.updateSettings({
-      cells: (row: number, col: number, _: any) => {
-        if (hot.getData()[row][col] === 'Nissan') {
-          return { readOnly: true };
+      cells: (row, _col, prop) => {
+        if (hot.getDataAtRowProp(row, prop as string) === 'Nissan') {
+          return { editor: false };
         }
-
-        return {};
+        return { editor: 'text' };
       },
     });
   }
