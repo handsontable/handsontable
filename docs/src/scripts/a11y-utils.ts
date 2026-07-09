@@ -4,6 +4,8 @@
  * - createFocusTrap: traps Tab / Shift+Tab within a container.
  * - attachDropdownKeyboardNav: adds Arrow, Home/End, Enter, Escape to
  *   any trigger + menu dropdown pair.
+ * - attachTocKeyboardNav: keeps keyboard navigation inside the desktop
+ *   table of contents after hash-link clicks.
  */
 
 // ── Focus trap ──────────────────────────────────────────────────────────
@@ -163,6 +165,69 @@ export function attachDropdownKeyboardNav(
         trigger.focus();
         break;
       }
+    }
+  });
+}
+
+// ── Table of contents keyboard navigation ────────────────────────────────
+
+/**
+ * Attach keyboard navigation to a visible table of contents.
+ */
+export function attachTocKeyboardNav(toc: HTMLElement): void {
+  function getLinks(): HTMLAnchorElement[] {
+    return Array.from(toc.querySelectorAll<HTMLAnchorElement>('a[href^="#"]'))
+      .filter((link) => link.offsetParent !== null);
+  }
+
+  function focusLink(index: number) {
+    const links = getLinks();
+    if (links.length === 0) return;
+
+    const wrappedIndex = (index + links.length) % links.length;
+
+    links[wrappedIndex].focus();
+  }
+
+  function currentIndex(): number {
+    return getLinks().indexOf(document.activeElement as HTMLAnchorElement);
+  }
+
+  toc.addEventListener('click', (e: MouseEvent) => {
+    const link = (e.target as HTMLElement).closest<HTMLAnchorElement>('a[href^="#"]');
+
+    if (!link) return;
+
+    requestAnimationFrame(() => {
+      link.focus({ preventScroll: true });
+    });
+  });
+
+  toc.addEventListener('keydown', (e: KeyboardEvent) => {
+    const links = getLinks();
+    const idx = currentIndex();
+
+    if (links.length === 0 || idx === -1) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+      case 'Down':
+        e.preventDefault();
+        focusLink(idx + 1);
+        break;
+      case 'ArrowUp':
+      case 'Up':
+        e.preventDefault();
+        focusLink(idx - 1);
+        break;
+      case 'Home':
+        e.preventDefault();
+        focusLink(0);
+        break;
+      case 'End':
+        e.preventDefault();
+        focusLink(links.length - 1);
+        break;
     }
   });
 }

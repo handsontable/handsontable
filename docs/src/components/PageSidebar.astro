@@ -138,6 +138,23 @@ if (actions?.claude) {
 )}
 
 <script>
+  import { attachTocKeyboardNav } from '../scripts/a11y-utils';
+
+  function initDesktopTocKeyboardNav() {
+    const desktopToc = document.querySelector('.right-sidebar-panel starlight-toc') as HTMLElement | null;
+
+    if (!desktopToc || desktopToc.dataset.keyboardNavInitialized === 'true') return;
+
+    desktopToc.dataset.keyboardNavInitialized = 'true';
+    attachTocKeyboardNav(desktopToc);
+  }
+
+  customElements.whenDefined('starlight-toc').then(initDesktopTocKeyboardNav);
+  document.addEventListener('astro:page-load', initDesktopTocKeyboardNav);
+  window.addEventListener('load', initDesktopTocKeyboardNav);
+</script>
+
+<script>
   const copyButton = document.querySelector(
     '#copy-markdown'
   ) as HTMLButtonElement;
