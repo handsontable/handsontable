@@ -146,6 +146,45 @@
       diffVariables(pubUrl);
     }
 
+    // The published file is minified with LightningCSS, which rewrites values
+    // without changing meaning: #ffffffff -> #fff, rgba(0, 0, 0, 0.1) ->
+    // #0000001a, 0.5 -> .5. Canonicalize both sides so the diff only reports
+    // real differences; formatting-only ones are counted separately.
+    function normalizeValue(value) {
+      let out = value.toLowerCase().replace(/\s+/g, ' ').trim();
+
+      // rgb()/rgba() with numeric channels -> #rrggbbaa
+      out = out.replace(/rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+%?))?\s*\)/g,
+        (_, r, g, b, a) => {
+          const hex = n => Number(n).toString(16).padStart(2, '0');
+          let alpha = 255;
+
+          if (a !== undefined) {
+            alpha = a.endsWith('%') ? Math.round(parseFloat(a) * 2.55) : Math.round(parseFloat(a) * 255);
+          }
+
+          return `#${hex(r)}${hex(g)}${hex(b)}${hex(alpha)}`;
+        });
+
+      // #rgb / #rgba / #rrggbb -> #rrggbbaa
+      out = out.replace(/#([0-9a-f]{3,8})\b/g, (match, hex) => {
+        if (hex.length === 3 || hex.length === 4) {
+          hex = [...hex].map(c => c + c).join('');
+        }
+
+        if (hex.length === 6) hex += 'ff';
+
+        return hex.length === 8 ? `#${hex}` : match;
+      });
+
+      // 0.5 -> .5, 0px/0em/... -> 0, drop spaces around commas
+      out = out.replace(/\b0\.(\d)/g, '.$1');
+      out = out.replace(/(^|[\s,(])0(?:px|em|rem|%)(?=$|[\s,)])/g, '$10');
+      out = out.replace(/\s*,\s*/g, ',');
+
+      return out;
+    }
+
     function parseHtVars(cssText) {
       // First occurrence wins: the light-scheme block comes first in the
       // theme files, so the diff compares light-scheme values.
@@ -179,12 +218,18 @@
         const branchVars = parseHtVars(branchCss);
         const names = [...new Set([...pubVars.keys(), ...branchVars.keys()])].sort();
         let diffCount = 0;
+        let formattingOnly = 0;
 
         for (const name of names) {
           const a = pubVars.get(name);
           const b = branchVars.get(name);
 
           if (a === b) continue;
+
+          if (a !== undefined && b !== undefined && normalizeValue(a) === normalizeValue(b)) {
+            formattingOnly += 1;
+            continue;
+          }
           diffCount += 1;
 
           const row = tbody.insertRow();
@@ -194,12 +239,17 @@
           row.insertCell().textContent = b ?? '(missing)';
         }
 
+        const formattingNote = formattingOnly > 0 ?
+          ' (' + formattingOnly + ' formatting-only differences from minification were ignored)' : '';
+
         if (diffCount === 0) {
-          statusEl.textContent = 'No differences — the published ' + publishedSelect.value +
-            ' theme variables match this branch. Switch the published version to 17.0.1 to see the stale-CSS symptom.';
+          statusEl.textContent = 'No real differences — the published ' + publishedSelect.value +
+            ' theme variables match this branch' + formattingNote +
+            '. Switch the published version to 17.0.1 to see the stale-CSS symptom.';
           statusEl.className = 'same';
         } else {
-          statusEl.textContent = diffCount + ' variable(s) differ out of ' + names.length +
+          statusEl.textContent = diffCount + ' variable(s) really differ out of ' + names.length +
+            formattingNote +
             ' — this is the stale CSS the docs served when resolution fell through to the published package.';
           statusEl.className = 'differs';
           table.hidden = false;
