@@ -39,10 +39,7 @@ export function multiSelectValidator(this: CellProperties, value: unknown, callb
   if (this.source) {
     if (typeof this.source === 'function') {
       type SourceFn = (value: unknown[], fn: (source: unknown[]) => void) => void;
-
-      // `source` is now strongly typed as `(query: string, ...) => void` (previously `any` before the
-      // `ColumnSettings` index-signature fix). MultiSelect passes an array here, so cast via `unknown`.
-      (this.source as unknown as SourceFn)(valueToValidate, process(valueToValidate, callback));
+      (this.source as SourceFn)(valueToValidate, process(valueToValidate, callback));
     } else {
       process(valueToValidate, callback)(this.source as unknown[]);
     }

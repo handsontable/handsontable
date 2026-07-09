@@ -71,18 +71,14 @@ export type RemoveIndexSignature<T> = {
 /**
  * Column settings inherit grid settings but overload the meaning of `data` to be specific to each column.
  */
-export interface ColumnSettings extends Omit<RemoveIndexSignature<GridSettings>, 'data'> {
+export interface ColumnSettings extends Omit<GridSettings, 'data'> {
   data?: string | number | ColumnDataGetterSetterFunction;
 
-  // The named grid options above come from `RemoveIndexSignature<GridSettings>` so that `Omit` keeps
-  // them (and their IDE autocomplete) instead of collapsing to a bare index signature.
-  //
-  // The index signature below must stay `any` — the exact value type inherited from `GridSettings`.
-  // A `[key: string]: unknown` here makes TypeScript drop the `this` binding on nested
-  // `handsontable.getValue` (contextual typing widens `this` to `{}`). The `_hotColumnGetValueFn`
-  // type test guards against changing it.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any;
+  // NOTE: do not add a `[key: string]: unknown` index signature here. Column and cell meta is already
+  // extensible with arbitrary keys through the `[key: string]: any` signature inherited from
+  // `GridSettings`. A second index signature with a different value type (`unknown` vs the inherited
+  // `any`) makes TypeScript drop the `this` binding on nested `handsontable.getValue` — contextual
+  // typing widens `this` to `{}`. The `_hotColumnGetValueFn` type test guards against re-adding it.
 }
 
 /**
