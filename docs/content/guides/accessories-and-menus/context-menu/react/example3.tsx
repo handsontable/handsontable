@@ -1,5 +1,5 @@
 import { HotTable } from '@handsontable/react-wrapper';
-import { DetailedSettings, MenuItemConfig } from 'handsontable/plugins/contextMenu';
+import { ContextMenu, DetailedSettings } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
 
 // register Handsontable's modules
@@ -18,10 +18,9 @@ const contextMenuSettings: DetailedSettings = {
         return this.getSelectedLast()?.[0] === 0; // `this` === hot
       },
     },
-    // A separator line can also be added like this:
-    // 'sp1': { name: '---------' }
-    // and the key has to be unique
-    sp1: '---------' as MenuItemConfig,
+    // Use the dedicated separator constant to insert a separator line
+    // (the key has to be unique)
+    sp1: ContextMenu.SEPARATOR,
     row_below: {
       name: 'Click to add row below', // Set custom text for predefined option
     },

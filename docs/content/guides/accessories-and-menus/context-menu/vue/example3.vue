@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
-import type { DetailedSettings, MenuItemConfig } from 'handsontable/plugins/contextMenu';
+import { ContextMenu } from 'handsontable/plugins/contextMenu';
+import type { DetailedSettings } from 'handsontable/plugins/contextMenu';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
 
@@ -17,7 +18,7 @@ const contextMenuSettings: DetailedSettings = {
         return this.getSelectedLast()?.[0] === 0;
       },
     },
-    sp1: '---------' as MenuItemConfig,
+    sp1: ContextMenu.SEPARATOR,
     row_below: {
       name: 'Click to add row below',
     },
