@@ -3,8 +3,16 @@ import { ref } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
 import type { GridSettings } from 'handsontable/settings';
+import type { BaseRenderer } from 'handsontable/renderers';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 registerAllModules();
+
+const dimmedTextRenderer: BaseRenderer = (instance, td, ...rest) => {
+  textRenderer(instance, td, ...rest);
+
+  td.style.opacity = '0.6';
+};
 
 const hotSettings = ref<GridSettings>({
   data: [
@@ -20,6 +28,7 @@ const hotSettings = ref<GridSettings>({
     {
       data: 'car',
       editor: false,
+      renderer: dimmedTextRenderer,
     },
     {
       data: 'year',
