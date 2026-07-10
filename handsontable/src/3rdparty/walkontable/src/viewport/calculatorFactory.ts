@@ -11,7 +11,12 @@
  * `Viewport`; `createCalculators` / `createVisibleCalculators` assign them through `this`.
  */
 import type { CalculationTypeLike, ColumnsCalculationType, RowsCalculationType } from '../calculator/viewportBase';
-import { ViewportColumnsCalculator, ViewportRowsCalculator } from '../calculator';
+import {
+  RenderedColumnsCalculationType,
+  RenderedRowsCalculationType,
+  ViewportColumnsCalculator,
+  ViewportRowsCalculator,
+} from '../calculator';
 import type { default as Viewport } from './viewport';
 
 /**
@@ -31,6 +36,8 @@ export interface CalculatorFactory {
   createVisibleCalculators(): void;
   usesLayoutSnapshotForCalculators(): boolean;
   allowsStationaryBands(): boolean;
+  applyRenderedColumnsBandOverscan(renderedColumns: ColumnsCalculationType | null): void;
+  applyRenderedRowsBandOverscan(renderedRows: RowsCalculationType | null): void;
   stabilizeRenderedRowsBand(renderedRows: RowsCalculationType | null): void;
   stabilizeRenderedColumnsBand(renderedColumns: ColumnsCalculationType | null): void;
   areAllProposedVisibleRowsAlreadyRendered(
@@ -39,6 +46,78 @@ export interface CalculatorFactory {
   areAllProposedVisibleColumnsAlreadyRendered(
     proposedFullyVisibleColumnsCalculator: ColumnsCalculationType | undefined,
     proposedPartiallyVisibleColumnsCalculator: ColumnsCalculationType | undefined): boolean;
+}
+
+/**
+ * The cap on the directional column-band overscan (see
+ * {@link CalculatorFactory#applyRenderedColumnsBandOverscan}). Sized from measurement on a
+ * 50k-row/300-column grid: 16 columns of overscan turn most horizontal scroll steps into fast
+ * draws (frame p50 ~50 ms → ~10 ms) while keeping the band-crossing draw's own cost bounded —
+ * at 32 the crossing draw's worst frame grew from ~70 ms to ~100 ms, so bigger is not better.
+ */
+const COLUMN_BAND_OVERSCAN_MAX = 16;
+
+/**
+ * The cap on the directional row-band overscan (see
+ * {@link CalculatorFactory#applyRenderedRowsBandOverscan}). Rows tolerate a higher cap than columns:
+ * measured on a 200k-row/300-column grid, half-viewport overscan converts one-notch wheel steps
+ * (~120 px = 6 rows) and even aggressive 500 px flick steps into fast draws, while the crossing
+ * draw's extra cost stays within the same frame class the natural draw already pays.
+ */
+const ROW_BAND_OVERSCAN_MAX = 32;
+
+/**
+ * Decides the directional overscan for a freshly computed render band: which side of the band to
+ * extend (toward the scroll direction) and by how many tracks. Shared by the row and column overscan
+ * appliers — the axis methods map their field names onto this axis-agnostic arithmetic, so the
+ * direction rules stay single-sourced.
+ *
+ * Direction: the sign of the scroll-offset delta between this draw and the previous full draw.
+ * A zero delta means the OTHER axis scrolled; an existing overscan side is then preserved (so the
+ * band comes out identical), where "existing" is proven by a recorded side offset greater than 1 —
+ * the 'auto' offset override adds at most 1 per side, and clamps to 0 at the dataset edges, so
+ * offset inequality alone cannot be the test. A band that was never overscanned gets none.
+ *
+ * @param {number} scrollOffsetDelta The current band's scroll offset minus the previous band's.
+ * @param {object} previous The previous band's recorded side offsets.
+ * @param {number} previous.startOffset The previous band's start-side offset.
+ * @param {number} previous.endOffset The previous band's end-side offset.
+ * @param {object} fresh The freshly computed band's geometry.
+ * @param {number} fresh.start The band's first track index.
+ * @param {number} fresh.end The band's last track index.
+ * @param {number} fresh.count The band's track count.
+ * @param {number} total The axis total track count.
+ * @param {number} max The axis overscan cap.
+ * @returns {{ side: -1 | 1, extension: number } | null} The side to extend (`-1` = start, `1` =
+ * end) and the clamped track count, or `null` when no overscan applies.
+ */
+function directionalBandOverscan(
+  scrollOffsetDelta: number,
+  previous: { startOffset: number, endOffset: number },
+  fresh: { start: number, end: number, count: number },
+  total: number,
+  max: number,
+): { side: -1 | 1, extension: number } | null {
+  let side = Math.sign(scrollOffsetDelta);
+
+  if (side === 0) {
+    if (previous.startOffset > 1) {
+      side = -1;
+    } else if (previous.endOffset > 1) {
+      side = 1;
+    } else {
+      return null;
+    }
+  }
+
+  const overscan = Math.min(Math.ceil(fresh.count / 2), max);
+  const extension = side > 0 ? Math.min(overscan, (total - 1) - fresh.end) : Math.min(overscan, fresh.start);
+
+  if (extension <= 0) {
+    return null;
+  }
+
+  return { side: side as -1 | 1, extension };
 }
 
 /**
@@ -286,6 +365,11 @@ export const calculatorFactory: CalculatorFactory = {
       const renderedColumns = columnsRenderCalculator.getResultsFor('rendered') ?? null;
 
       if (stationaryBands) {
+        // Overscan must run BEFORE the stabilizers: the stabilizer tops the band up to the previous
+        // band's size at its end side, so overscan applied after it would double-pad the band on
+        // every scroll-direction flip.
+        this.applyRenderedColumnsBandOverscan(renderedColumns);
+        this.applyRenderedRowsBandOverscan(renderedRows);
         this.stabilizeRenderedRowsBand(renderedRows);
         this.stabilizeRenderedColumnsBand(renderedColumns);
       }
@@ -354,6 +438,141 @@ export const calculatorFactory: CalculatorFactory = {
     return this.wtSettings.getSetting<boolean>('singlePassLayout') &&
       !this.isVerticallyScrollableByWindow() &&
       !this.isHorizontallyScrollableByWindow();
+  },
+
+  /**
+   * Extends the freshly computed rendered column band by up to {@link COLUMN_BAND_OVERSCAN_MAX}
+   * columns of overscan on the side the user is scrolling toward, so the next several band
+   * crossings land inside the already-rendered band and resolve as fast draws (no cell render, no
+   * post-render measurements) instead of full band re-renders. This is the engine half of the
+   * `viewportColumnRenderingOffset: 'auto'` behavior: the static resolution (1 column, applied
+   * symmetrically by the `viewportColumnCalculatorOverride` override) stays as-is for non-scroll
+   * draws, and scroll-driven draws add the directional overscan on top. An explicit numeric
+   * offset (2 or more) is an exact user choice, so the overscan detects it through the recorded
+   * override offsets and leaves such bands untouched.
+   *
+   * The scroll direction comes from the sign of the zero-based scroll-offset delta between this
+   * draw and the previous full draw (both captured on the rendered results). Logical column
+   * indexes and absolute offsets both grow toward the inline end, so the same arithmetic is
+   * correct in LTR and RTL. A zero delta (a vertical-scroll-driven draw recomputing the column
+   * axis) keeps the overscan on the side that carried it on the previous draw, so the band stays
+   * identical instead of rotating.
+   *
+   * The band mutation keeps every derived field consistent: `startPosition` is recomputed from
+   * the width prefix-sum cache when the band grows at the start, and
+   * `columnStartOffset`/`columnEndOffset` grow with the applied overscan so the
+   * `viewportColumnRenderingThreshold` containment padding (see
+   * {@link CalculatorFactory#areAllProposedVisibleColumnsAlreadyRendered}) caps against the real
+   * overscan on each side.
+   *
+   * Runs only on scroll-driven draws on the stationary-band path (the caller gates on
+   * `stationaryBands`) and only under uniform column widths — with measured or varying widths
+   * (for example `autoColumnSize`) the pixel cost of the overscan is unpredictable, so those
+   * grids keep the previous behavior. Near a dataset edge the extension clamps to the remaining
+   * columns; the band stabilizer that runs next keeps the band size stable where possible.
+   *
+   * @this Viewport
+   * @param {ColumnsCalculationType | null} renderedColumns The freshly computed rendered-columns
+   * result, mutated in place. The previous band is read off `this.columnsRenderCalculator` (not
+   * yet overwritten at the call site).
+   */
+  applyRenderedColumnsBandOverscan(this: Viewport, renderedColumns: ColumnsCalculationType | null): void {
+    const previousBand = this.columnsRenderCalculator;
+
+    if (
+      !(renderedColumns instanceof RenderedColumnsCalculationType) ||
+      !(previousBand instanceof RenderedColumnsCalculationType) ||
+      renderedColumns.startColumn === null || renderedColumns.endColumn === null ||
+      // An explicit `viewportColumnRenderingOffset` number is an exact manual offset — only the
+      // 'auto' mode carries the dynamic overscan. The recorded-offsets check backs the flag up
+      // for custom `viewportColumnCalculatorOverride` functions that pad wider than 'auto' (1).
+      !this.wtSettings.getSetting<boolean>('viewportColumnRenderingOffsetIsAuto') ||
+      renderedColumns.columnStartOffset > 1 || renderedColumns.columnEndOffset > 1 ||
+      !this.wtSettings.getSetting<boolean>('columnWidthsUniform')
+    ) {
+      return;
+    }
+
+    const plan = directionalBandOverscan(
+      renderedColumns.scrollOffset - previousBand.scrollOffset,
+      { startOffset: previousBand.columnStartOffset, endOffset: previousBand.columnEndOffset },
+      { start: renderedColumns.startColumn, end: renderedColumns.endColumn, count: renderedColumns.count },
+      this.wtSettings.getSetting<number>('totalColumns'),
+      COLUMN_BAND_OVERSCAN_MAX,
+    );
+
+    if (!plan) {
+      return;
+    }
+
+    if (plan.side > 0) {
+      renderedColumns.endColumn += plan.extension;
+      renderedColumns.count += plan.extension;
+      renderedColumns.columnEndOffset += plan.extension;
+    } else {
+      renderedColumns.startColumn -= plan.extension;
+      renderedColumns.count += plan.extension;
+      renderedColumns.columnStartOffset += plan.extension;
+      renderedColumns.startPosition = this.columnWidthCache.getOffset(renderedColumns.startColumn);
+    }
+  },
+
+  /**
+   * Row-axis twin of {@link CalculatorFactory#applyRenderedColumnsBandOverscan}: extends the freshly
+   * computed rendered row band by up to {@link ROW_BAND_OVERSCAN_MAX} rows of overscan on the side
+   * the user is scrolling toward, so consecutive vertical scroll steps land inside the rendered
+   * band and resolve as fast draws. The direction rules, the preserve-vs-invent zero-delta logic,
+   * and the clamps live in the shared {@link directionalBandOverscan} helper. Gated to uniform row
+   * heights for the same reason the column overscan is gated to uniform widths: with measured or
+   * varying heights the pixel cost of the overscan is unpredictable. `startPosition` is recomputed
+   * from the height prefix-sum cache when the band grows upward, and `rowStartOffset`/`rowEndOffset`
+   * grow with the applied overscan so the `viewportRowRenderingThreshold` containment padding caps
+   * against the real overscan.
+   *
+   * @this Viewport
+   * @param {RowsCalculationType | null} renderedRows The freshly computed rendered-rows result,
+   * mutated in place. The previous band is read off `this.rowsRenderCalculator` (not yet
+   * overwritten at the call site).
+   */
+  applyRenderedRowsBandOverscan(this: Viewport, renderedRows: RowsCalculationType | null): void {
+    const previousBand = this.rowsRenderCalculator;
+
+    if (
+      !(renderedRows instanceof RenderedRowsCalculationType) ||
+      !(previousBand instanceof RenderedRowsCalculationType) ||
+      renderedRows.startRow === null || renderedRows.endRow === null ||
+      // An explicit `viewportRowRenderingOffset` number is an exact manual offset — only the
+      // 'auto' mode carries the dynamic overscan. The recorded-offsets check backs the flag up
+      // for custom `viewportRowCalculatorOverride` functions that pad wider than 'auto' (1).
+      !this.wtSettings.getSetting<boolean>('viewportRowRenderingOffsetIsAuto') ||
+      renderedRows.rowStartOffset > 1 || renderedRows.rowEndOffset > 1 ||
+      !this.wtSettings.getSetting<boolean>('rowHeightsUniform')
+    ) {
+      return;
+    }
+
+    const plan = directionalBandOverscan(
+      renderedRows.scrollOffset - previousBand.scrollOffset,
+      { startOffset: previousBand.rowStartOffset, endOffset: previousBand.rowEndOffset },
+      { start: renderedRows.startRow, end: renderedRows.endRow, count: renderedRows.count },
+      this.wtSettings.getSetting<number>('totalRows'),
+      ROW_BAND_OVERSCAN_MAX,
+    );
+
+    if (!plan) {
+      return;
+    }
+
+    if (plan.side > 0) {
+      renderedRows.endRow += plan.extension;
+      renderedRows.count += plan.extension;
+      renderedRows.rowEndOffset += plan.extension;
+    } else {
+      renderedRows.startRow -= plan.extension;
+      renderedRows.count += plan.extension;
+      renderedRows.rowStartOffset += plan.extension;
+      renderedRows.startPosition = this.rowHeightCache.getOffset(renderedRows.startRow);
+    }
   },
 
   /**

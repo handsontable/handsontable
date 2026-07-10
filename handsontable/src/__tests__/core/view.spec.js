@@ -373,9 +373,12 @@ describe('Core_view', () => {
     await keyDownUp('arrowup');
     await keyDownUp('arrowup');
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
-    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A4');
+    // The upward scroll leaves the band with the scroll-direction overscan above the viewport
+    // (clamped at the first row here), so row "A1" renders as the first body row while the
+    // viewport position itself is unchanged.
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A2');
+    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A3');
   });
 
   it('should scroll the viewport to the first row when the highlight moves ' +

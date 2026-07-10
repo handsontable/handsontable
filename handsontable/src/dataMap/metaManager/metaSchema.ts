@@ -6663,6 +6663,16 @@ export default (): Record<string, unknown> => {
      * | `auto` (default)   | Use the offset calculated automatically by Handsontable |
      * | A number           | Set the offset manually                                 |
      *
+     * With `auto`, the option works in a dynamic overscan mode: Handsontable renders 1 extra
+     * column on each side of the viewport and, while you scroll horizontally, extends the
+     * rendered area by up to 16 extra columns in the scroll direction, so consecutive scroll
+     * steps reuse the already-rendered columns instead of re-rendering them. The scroll-direction
+     * overscan applies only when all columns share the same width (a uniform
+     * [`colWidths`](#colWidths) value).
+     *
+     * An explicit number switches the option to a manual mode: exactly that many extra columns
+     * render on both sides, with no scroll-direction overscan.
+     *
      * The `viewportColumnRenderingOffset` setting is ignored when [`renderAllColumns`](#renderAllColumns) is set to `true`.
      *
      * Read more:
@@ -6695,6 +6705,15 @@ export default (): Record<string, unknown> => {
      * | ------------------ | ------------------------------------------------------- |
      * | `auto` (default)   | Use the offset calculated automatically by Handsontable |
      * | A number           | Set the offset manually                                 |
+     *
+     * With `auto`, the option works in a dynamic overscan mode: Handsontable renders 1 extra row
+     * on each side of the viewport and, while you scroll vertically, extends the rendered area by
+     * up to 32 extra rows in the scroll direction, so consecutive scroll steps reuse the
+     * already-rendered rows instead of re-rendering them. The scroll-direction overscan applies
+     * only when all rows share the same height (no varying [`rowHeights`](#rowHeights)).
+     *
+     * An explicit number switches the option to a manual mode: exactly that many extra rows
+     * render on both sides, with no scroll-direction overscan.
      *
      * The `viewportRowRenderingOffset` setting is ignored when [`renderAllRows`](#renderAllRows) is set to `true`.
      *
