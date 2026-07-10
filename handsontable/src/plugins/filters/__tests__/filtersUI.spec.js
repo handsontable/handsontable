@@ -21,6 +21,27 @@ describe('Filters UI', () => {
     }
   });
 
+  it('should not draw the frame ring on the "Filter by value" list holder (its separator comes from the menu item)', async() => {
+    handsontable({
+      data: getDataForFilters(),
+      columns: getColumnsForFilters(),
+      filters: true,
+      dropdownMenu: true,
+      width: 500,
+      height: 300,
+    });
+
+    await dropdownMenu(1);
+
+    const embeddedHolder = document.querySelector('.htDropdownMenu .htUIMultipleSelect .ht_master .wtHolder');
+
+    // Without the override, the embedded value-list grid gets the base inset frame ring
+    // (box-shadow) because it has its own scrollbar; its bottom line then doubles with the
+    // `.htFiltersMenuValue` menu item's separator border right below it.
+    expect(embeddedHolder).not.toBe(null);
+    expect(getComputedStyle(embeddedHolder).boxShadow).toBe('none');
+  });
+
   it('should deselect all values in "Filter by value" after clicking "Clear" link', async() => {
     handsontable({
       data: getDataForFilters(),
