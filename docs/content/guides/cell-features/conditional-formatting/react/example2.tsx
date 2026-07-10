@@ -19,6 +19,8 @@ const data = [
 const profitRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellProperties) => {
   const amount = Number(value);
 
+  td.classList.remove('loss-cell');
+
   if (!Number.isFinite(amount)) {
     textRenderer(instance, td, row, col, prop, value, cellProperties);
 

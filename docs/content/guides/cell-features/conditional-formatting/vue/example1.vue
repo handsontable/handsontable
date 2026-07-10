@@ -32,6 +32,8 @@ const hotSettings: GridSettings = {
     const value = data[row]?.[col];
 
     if (col > 0) {
+      cellProperties.className = '';
+
       if (typeof value === 'number' && value < 0) {
         cellProperties.className = 'loss';
       } else if (typeof value === 'number' && value > 10) {

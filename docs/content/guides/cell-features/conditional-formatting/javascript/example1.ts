@@ -31,6 +31,8 @@ new Handsontable(container, {
     const cellProperties: Handsontable.CellMeta = {};
 
     if (col > 0) {
+      cellProperties.className = '';
+
       const value = this.instance.getDataAtCell(row, col);
 
       if (typeof value === 'number' && value < 0) {

@@ -15,6 +15,7 @@ const data = [
 // display losses in an accounting format, so color is not the only signal
 const profitRenderer = (instance, td, row, col, prop, value, cellProperties) => {
     const amount = Number(value);
+    td.classList.remove('loss-cell');
     if (!Number.isFinite(amount)) {
         textRenderer(instance, td, row, col, prop, value, cellProperties);
         return;

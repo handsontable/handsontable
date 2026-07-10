@@ -26,6 +26,7 @@ new Handsontable(container, {
     cells(row, col) {
         const cellProperties = {};
         if (col > 0) {
+            cellProperties.className = '';
             const value = this.instance.getDataAtCell(row, col);
             if (typeof value === 'number' && value < 0) {
                 cellProperties.className = 'loss';

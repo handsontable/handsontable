@@ -52,6 +52,8 @@ export class AppComponent {
       const cellProperties: Handsontable.CellMeta = {};
 
       if (col > 0) {
+        cellProperties.className = '';
+
         const value = (this as any).instance.getDataAtCell(row, col);
 
         if (typeof value === 'number' && value < 0) {
