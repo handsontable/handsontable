@@ -71,14 +71,14 @@ describe('NestedHeaders', () => {
               <th class="collapsibleIndicator expanded" colspan="2">B</th>
               <th class="hiddenHeader"></th>
               <th class="">E</th>
-              <th class="">F</th>
+              <th class="htLastVisibleHeader">F</th>
             </tr>
             <tr>
               <th class="">A</th>
               <th class="">B</th>
               <th class="">D</th>
               <th class="">E</th>
-              <th class="">F</th>
+              <th class="htLastVisibleHeader">F</th>
             </tr>
           </thead>
           <tbody>
@@ -114,14 +114,14 @@ describe('NestedHeaders', () => {
               <th class="collapsibleIndicator expanded" colspan="2">B</th>
               <th class="hiddenHeader"></th>
               <th class="">E</th>
-              <th class="">F</th>
+              <th class="htLastVisibleHeader">F</th>
             </tr>
             <tr>
               <th class="">A</th>
               <th class="">B</th>
               <th class="">D</th>
               <th class="">E</th>
-              <th class="">F</th>
+              <th class="htLastVisibleHeader">F</th>
             </tr>
           </thead>
           <tbody>
@@ -159,13 +159,13 @@ describe('NestedHeaders', () => {
               <th class="">A</th>
               <th class="collapsibleIndicator collapsed">B</th>
               <th class="">E</th>
-              <th class="">F</th>
+              <th class="htLastVisibleHeader">F</th>
             </tr>
             <tr>
               <th class="">A</th>
               <th class="">B</th>
               <th class="">E</th>
-              <th class="">F</th>
+              <th class="htLastVisibleHeader">F</th>
             </tr>
           </thead>
           <tbody>
@@ -206,14 +206,14 @@ describe('NestedHeaders', () => {
               <th class="collapsibleIndicator expanded" colspan="2">B</th>
               <th class="hiddenHeader"></th>
               <th class="">E</th>
-              <th class="">F</th>
+              <th class="htLastVisibleHeader">F</th>
             </tr>
             <tr>
               <th class="">A</th>
               <th class="">B</th>
               <th class="">D</th>
               <th class="">E</th>
-              <th class="">F</th>
+              <th class="htLastVisibleHeader">F</th>
             </tr>
           </thead>
           <tbody>
@@ -257,14 +257,14 @@ describe('NestedHeaders', () => {
               <th class="collapsibleIndicator expanded" colspan="2">B</th>
               <th class="hiddenHeader"></th>
               <th class="">E</th>
-              <th class="">F</th>
+              <th class="htLastVisibleHeader">F</th>
             </tr>
             <tr>
               <th class="">A</th>
               <th class="">B</th>
               <th class="">C</th>
               <th class="">E</th>
-              <th class="">F</th>
+              <th class="htLastVisibleHeader">F</th>
             </tr>
           </thead>
           <tbody>
@@ -323,14 +323,14 @@ describe('NestedHeaders', () => {
               <th class="collapsibleIndicator expanded" colspan="2">B</th>
               <th class="hiddenHeader"></th>
               <th class="">E</th>
-              <th class="">F</th>
+              <th class="htLastVisibleHeader">F</th>
             </tr>
             <tr>
               <th class="">A</th>
               <th class="">B</th>
               <th class="">D</th>
               <th class="">E</th>
-              <th class="">F</th>
+              <th class="htLastVisibleHeader">F</th>
             </tr>
           </thead>
           <tbody>
@@ -627,21 +627,21 @@ describe('NestedHeaders', () => {
               <th class="collapsibleIndicator expanded" colspan="3">Group B</th>
               <th class="hiddenHeader"></th>
               <th class="hiddenHeader"></th>
-              <th class="">C</th>
+              <th class="htLastVisibleHeader">C</th>
             </tr>
             <tr>
               <th class="">A</th>
               <th class="collapsibleIndicator collapsed">B-left</th>
               <th class="collapsibleIndicator expanded" colspan="2">B-right</th>
               <th class="hiddenHeader"></th>
-              <th class="">C</th>
+              <th class="htLastVisibleHeader">C</th>
             </tr>
             <tr>
               <th class="">A</th>
               <th class="">B1</th>
               <th class="">B3</th>
               <th class="">B4</th>
-              <th class="">C</th>
+              <th class="htLastVisibleHeader">C</th>
             </tr>
           </thead>
           <tbody>
@@ -670,19 +670,19 @@ describe('NestedHeaders', () => {
               <th class="">A</th>
               <th class="collapsibleIndicator collapsed" colspan="2">Group B</th>
               <th class="hiddenHeader"></th>
-              <th class="">C</th>
+              <th class="htLastVisibleHeader">C</th>
             </tr>
             <tr>
               <th class="">A</th>
               <th class="collapsibleIndicator expanded" colspan="2">B-left</th>
               <th class="hiddenHeader"></th>
-              <th class="">C</th>
+              <th class="htLastVisibleHeader">C</th>
             </tr>
             <tr>
               <th class="">A</th>
               <th class="">B1</th>
               <th class="">B2</th>
-              <th class="">C</th>
+              <th class="htLastVisibleHeader">C</th>
             </tr>
           </thead>
           <tbody>
@@ -734,21 +734,21 @@ describe('NestedHeaders', () => {
               <th class="collapsibleIndicator expanded" colspan="3">Group B</th>
               <th class="hiddenHeader"></th>
               <th class="hiddenHeader"></th>
-              <th class="">C</th>
+              <th class="htLastVisibleHeader">C</th>
             </tr>
             <tr>
               <th class="">A</th>
               <th class="collapsibleIndicator collapsed">B-left</th>
               <th class="collapsibleIndicator expanded" colspan="2">B-right</th>
               <th class="hiddenHeader"></th>
-              <th class="">C</th>
+              <th class="htLastVisibleHeader">C</th>
             </tr>
             <tr>
               <th class="">A</th>
               <th class="beforeHiddenColumn">B1</th>
               <th class="afterHiddenColumn">B3</th>
               <th class="">B4</th>
-              <th class="">C</th>
+              <th class="htLastVisibleHeader">C</th>
             </tr>
           </thead>
           <tbody>
@@ -816,19 +816,19 @@ describe('NestedHeaders', () => {
               <th class="">A</th>
               <th class="collapsibleIndicator expanded" colspan="2">Group B</th>
               <th class="hiddenHeader"></th>
-              <th class="">C</th>
+              <th class="htLastVisibleHeader">C</th>
             </tr>
             <tr>
               <th class="">A</th>
               <th class="collapsibleIndicator expanded" colspan="2">B-right</th>
               <th class="hiddenHeader"></th>
-              <th class="">C</th>
+              <th class="htLastVisibleHeader">C</th>
             </tr>
             <tr>
               <th class="beforeHiddenColumn">A</th>
               <th class="">B3</th>
               <th class="">B4</th>
-              <th class="">C</th>
+              <th class="htLastVisibleHeader">C</th>
             </tr>
           </thead>
           <tbody>

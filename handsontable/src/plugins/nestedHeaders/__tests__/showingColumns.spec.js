@@ -39,7 +39,7 @@ describe('NestedHeaders', () => {
           <tr>
           <th class=""></th>
           <th class=""></th>
-          <th class=""></th>
+          <th class="htLastVisibleHeader"></th>
         </tr>
         </thead>
         <tbody>
@@ -74,7 +74,7 @@ describe('NestedHeaders', () => {
           <tr>
             <th class=""></th>
             <th class=""></th>
-            <th class=""></th>
+            <th class="htLastVisibleHeader"></th>
           </tr>
         </thead>
         <tbody>
@@ -106,7 +106,7 @@ describe('NestedHeaders', () => {
         <thead>
           <tr>
             <th class="">B</th>
-            <th class="">G</th>
+            <th class="htLastVisibleHeader">G</th>
           </tr>
         </thead>
         <tbody>
@@ -127,7 +127,7 @@ describe('NestedHeaders', () => {
             <th class="">B</th>
             <th class="">E</th>
             <th class="">F</th>
-            <th class="">G</th>
+            <th class="htLastVisibleHeader">G</th>
           </tr>
         </thead>
         <tbody>
@@ -154,7 +154,7 @@ describe('NestedHeaders', () => {
             <th class="">E</th>
             <th class="">F</th>
             <th class="">G</th>
-            <th class="">I</th>
+            <th class="htLastVisibleHeader">I</th>
           </tr>
         </thead>
         <tbody>
@@ -187,7 +187,7 @@ describe('NestedHeaders', () => {
             <th class="" colspan="2">G</th>
             <th class="hiddenHeader"></th>
             <th class="">I</th>
-            <th class="">J</th>
+            <th class="htLastVisibleHeader">J</th>
           </tr>
         </thead>
         <tbody>
@@ -228,7 +228,7 @@ describe('NestedHeaders', () => {
           <tr>
             <th class="" colspan="2">B</th>
             <th class="hiddenHeader"></th>
-            <th class="">G</th>
+            <th class="htLastVisibleHeader">G</th>
           </tr>
         </thead>
         <tbody>
@@ -247,7 +247,7 @@ describe('NestedHeaders', () => {
           <tr>
             <th class="" colspan="2">B</th>
             <th class="hiddenHeader"></th>
-            <th class="">G</th>
+            <th class="htLastVisibleHeader">G</th>
           </tr>
         </thead>
         <tbody>
@@ -281,20 +281,20 @@ describe('NestedHeaders', () => {
       expect(extractDOMStructure(getTopClone(), getMaster())).toMatchHTML(`
         <thead>
           <tr>
-            <th class="" colspan="2">B1</th>
+            <th class="htLastVisibleHeader" colspan="2">B1</th>
             <th class="hiddenHeader"></th>
           </tr>
           <tr>
             <th class="">B2</th>
-            <th class="">F2</th>
+            <th class="htLastVisibleHeader">F2</th>
           </tr>
           <tr>
             <th class="">C3</th>
-            <th class="">H3</th>
+            <th class="htLastVisibleHeader">H3</th>
           </tr>
           <tr>
             <th class="">D4</th>
-            <th class="">H4</th>
+            <th class="htLastVisibleHeader">H4</th>
           </tr>
         </thead>
         <tbody>
@@ -317,28 +317,28 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">J1</th>
+            <th class="htLastVisibleHeader">J1</th>
           </tr>
           <tr>
             <th class="" colspan="2">B2</th>
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">F2</th>
             <th class="hiddenHeader"></th>
-            <th class="">J2</th>
+            <th class="htLastVisibleHeader">J2</th>
           </tr>
           <tr>
             <th class="" colspan="2">C3</th>
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">H3</th>
             <th class="hiddenHeader"></th>
-            <th class="">J3</th>
+            <th class="htLastVisibleHeader">J3</th>
           </tr>
           <tr>
             <th class="">C4</th>
             <th class="">D4</th>
             <th class="">H4</th>
             <th class="">I4</th>
-            <th class="">J4</th>
+            <th class="htLastVisibleHeader">J4</th>
           </tr>
         </thead>
         <tbody>
@@ -365,7 +365,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">J1</th>
+            <th class="htLastVisibleHeader">J1</th>
           </tr>
           <tr>
             <th class="">A2</th>
@@ -374,7 +374,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">F2</th>
             <th class="hiddenHeader"></th>
-            <th class="">J2</th>
+            <th class="htLastVisibleHeader">J2</th>
           </tr>
           <tr>
             <th class="">A3</th>
@@ -383,7 +383,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">H3</th>
             <th class="hiddenHeader"></th>
-            <th class="">J3</th>
+            <th class="htLastVisibleHeader">J3</th>
           </tr>
           <tr>
             <th class="">A4</th>
@@ -392,7 +392,7 @@ describe('NestedHeaders', () => {
             <th class="">E4</th>
             <th class="">H4</th>
             <th class="">I4</th>
-            <th class="">J4</th>
+            <th class="htLastVisibleHeader">J4</th>
           </tr>
         </thead>
         <tbody>
@@ -425,7 +425,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">J1</th>
+            <th class="htLastVisibleHeader">J1</th>
           </tr>
           <tr>
             <th class="">A2</th>
@@ -437,7 +437,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">J2</th>
+            <th class="htLastVisibleHeader">J2</th>
           </tr>
           <tr>
             <th class="">A3</th>
@@ -449,7 +449,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="" colspan="2">H3</th>
             <th class="hiddenHeader"></th>
-            <th class="">J3</th>
+            <th class="htLastVisibleHeader">J3</th>
           </tr>
           <tr>
             <th class="">A4</th>
@@ -461,7 +461,7 @@ describe('NestedHeaders', () => {
             <th class="">G4</th>
             <th class="">H4</th>
             <th class="">I4</th>
-            <th class="">J4</th>
+            <th class="htLastVisibleHeader">J4</th>
           </tr>
         </thead>
         <tbody>
@@ -506,22 +506,22 @@ describe('NestedHeaders', () => {
           <tr>
             <th class="">A1</th>
             <th class="">J1</th>
-            <th class="">K1</th>
+            <th class="htLastVisibleHeader">K1</th>
           </tr>
           <tr>
             <th class="">A2</th>
             <th class="">J2</th>
-            <th class="">K2</th>
+            <th class="htLastVisibleHeader">K2</th>
           </tr>
           <tr>
             <th class="">A3</th>
             <th class="">J3</th>
-            <th class="">K3</th>
+            <th class="htLastVisibleHeader">K3</th>
           </tr>
           <tr>
             <th class="">A4</th>
             <th class="">J4</th>
-            <th class="">K4</th>
+            <th class="htLastVisibleHeader">K4</th>
           </tr>
         </thead>
         <tbody>
@@ -545,7 +545,7 @@ describe('NestedHeaders', () => {
             <th class="" colspan="2">B1</th>
             <th class="hiddenHeader"></th>
             <th class="">J1</th>
-            <th class="" colspan="2">K1</th>
+            <th class="htLastVisibleHeader" colspan="2">K1</th>
             <th class="hiddenHeader"></th>
           </tr>
           <tr>
@@ -553,7 +553,7 @@ describe('NestedHeaders', () => {
             <th class="" colspan="2">B2</th>
             <th class="hiddenHeader"></th>
             <th class="">J2</th>
-            <th class="" colspan="2">K2</th>
+            <th class="htLastVisibleHeader" colspan="2">K2</th>
             <th class="hiddenHeader"></th>
           </tr>
           <tr>
@@ -561,7 +561,7 @@ describe('NestedHeaders', () => {
             <th class="">B3</th>
             <th class="">F3</th>
             <th class="">J3</th>
-            <th class="" colspan="2">K3</th>
+            <th class="htLastVisibleHeader" colspan="2">K3</th>
             <th class="hiddenHeader"></th>
           </tr>
           <tr>
@@ -570,7 +570,7 @@ describe('NestedHeaders', () => {
             <th class="">F4</th>
             <th class="">J4</th>
             <th class="">K4</th>
-            <th class="">L4</th>
+            <th class="htLastVisibleHeader">L4</th>
           </tr>
         </thead>
         <tbody>
@@ -599,7 +599,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="">J1</th>
-            <th class="" colspan="3">K1</th>
+            <th class="htLastVisibleHeader" colspan="3">K1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
           </tr>
@@ -610,7 +610,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="">J2</th>
-            <th class="" colspan="3">K2</th>
+            <th class="htLastVisibleHeader" colspan="3">K2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
           </tr>
@@ -621,7 +621,7 @@ describe('NestedHeaders', () => {
             <th class="" colspan="2">F3</th>
             <th class="hiddenHeader"></th>
             <th class="">J3</th>
-            <th class="" colspan="3">K3</th>
+            <th class="htLastVisibleHeader" colspan="3">K3</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
           </tr>
@@ -633,7 +633,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="">J4</th>
             <th class="">K4</th>
-            <th class="" colspan="2">L4</th>
+            <th class="htLastVisibleHeader" colspan="2">L4</th>
             <th class="hiddenHeader"></th>
           </tr>
         </thead>
@@ -667,7 +667,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="">J1</th>
-            <th class="" colspan="3">K1</th>
+            <th class="htLastVisibleHeader" colspan="3">K1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
           </tr>
@@ -680,7 +680,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="">J2</th>
-            <th class="" colspan="3">K2</th>
+            <th class="htLastVisibleHeader" colspan="3">K2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
           </tr>
@@ -693,7 +693,7 @@ describe('NestedHeaders', () => {
             <th class="" colspan="2">F3</th>
             <th class="hiddenHeader"></th>
             <th class="">J3</th>
-            <th class="" colspan="3">K3</th>
+            <th class="htLastVisibleHeader" colspan="3">K3</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
           </tr>
@@ -707,7 +707,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="">J4</th>
             <th class="">K4</th>
-            <th class="" colspan="2">L4</th>
+            <th class="htLastVisibleHeader" colspan="2">L4</th>
             <th class="hiddenHeader"></th>
           </tr>
         </thead>
@@ -745,7 +745,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="">J1</th>
-            <th class="" colspan="3">K1</th>
+            <th class="htLastVisibleHeader" colspan="3">K1</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
           </tr>
@@ -760,7 +760,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="">J2</th>
-            <th class="" colspan="3">K2</th>
+            <th class="htLastVisibleHeader" colspan="3">K2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
           </tr>
@@ -775,7 +775,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="">J3</th>
-            <th class="" colspan="3">K3</th>
+            <th class="htLastVisibleHeader" colspan="3">K3</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
           </tr>
@@ -791,7 +791,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="">J4</th>
             <th class="">K4</th>
-            <th class="" colspan="2">L4</th>
+            <th class="htLastVisibleHeader" colspan="2">L4</th>
             <th class="hiddenHeader"></th>
           </tr>
         </thead>
@@ -838,16 +838,16 @@ describe('NestedHeaders', () => {
         const htmlPattern = `
           <thead>
             <tr>
-              <th class="">B1</th>
+              <th class="htLastVisibleHeader">B1</th>
             </tr>
             <tr>
-              <th class="">B2</th>
+              <th class="htLastVisibleHeader">B2</th>
             </tr>
             <tr>
-              <th class="">B3</th>
+              <th class="htLastVisibleHeader">B3</th>
             </tr>
             <tr>
-              <th class="">D4</th>
+              <th class="htLastVisibleHeader">D4</th>
             </tr>
           </thead>
           <tbody>
@@ -869,23 +869,23 @@ describe('NestedHeaders', () => {
         const htmlPattern = `
           <thead>
             <tr>
-              <th class="" colspan="3">B1</th>
+              <th class="htLastVisibleHeader" colspan="3">B1</th>
               <th class="hiddenHeader"></th>
               <th class="hiddenHeader"></th>
             </tr>
             <tr>
-              <th class="" colspan="3">B2</th>
+              <th class="htLastVisibleHeader" colspan="3">B2</th>
               <th class="hiddenHeader"></th>
               <th class="hiddenHeader"></th>
             </tr>
             <tr>
-              <th class="" colspan="3">B3</th>
+              <th class="htLastVisibleHeader" colspan="3">B3</th>
               <th class="hiddenHeader"></th>
               <th class="hiddenHeader"></th>
             </tr>
             <tr>
               <th class="">B4</th>
-              <th class="" colspan="2">D4</th>
+              <th class="htLastVisibleHeader" colspan="2">D4</th>
               <th class="hiddenHeader"></th>
             </tr>
           </thead>
@@ -910,26 +910,26 @@ describe('NestedHeaders', () => {
           <thead>
             <tr>
               <th class="">A1</th>
-              <th class="" colspan="3">B1</th>
+              <th class="htLastVisibleHeader" colspan="3">B1</th>
               <th class="hiddenHeader"></th>
               <th class="hiddenHeader"></th>
             </tr>
             <tr>
               <th class="">A2</th>
-              <th class="" colspan="3">B2</th>
+              <th class="htLastVisibleHeader" colspan="3">B2</th>
               <th class="hiddenHeader"></th>
               <th class="hiddenHeader"></th>
             </tr>
             <tr>
               <th class="">A3</th>
-              <th class="" colspan="3">B3</th>
+              <th class="htLastVisibleHeader" colspan="3">B3</th>
               <th class="hiddenHeader"></th>
               <th class="hiddenHeader"></th>
             </tr>
             <tr>
               <th class="">A4</th>
               <th class="">B4</th>
-              <th class="" colspan="2">D4</th>
+              <th class="htLastVisibleHeader" colspan="2">D4</th>
               <th class="hiddenHeader"></th>
             </tr>
           </thead>
@@ -956,7 +956,7 @@ describe('NestedHeaders', () => {
           <thead>
             <tr>
               <th class="">A1</th>
-              <th class="" colspan="5">B1</th>
+              <th class="htLastVisibleHeader" colspan="5">B1</th>
               <th class="hiddenHeader"></th>
               <th class="hiddenHeader"></th>
               <th class="hiddenHeader"></th>
@@ -964,7 +964,7 @@ describe('NestedHeaders', () => {
             </tr>
             <tr>
               <th class="">A2</th>
-              <th class="" colspan="5">B2</th>
+              <th class="htLastVisibleHeader" colspan="5">B2</th>
               <th class="hiddenHeader"></th>
               <th class="hiddenHeader"></th>
               <th class="hiddenHeader"></th>
@@ -976,7 +976,7 @@ describe('NestedHeaders', () => {
               <th class="hiddenHeader"></th>
               <th class="hiddenHeader"></th>
               <th class="hiddenHeader"></th>
-              <th class="">F3</th>
+              <th class="htLastVisibleHeader">F3</th>
             </tr>
             <tr>
               <th class="">A4</th>
@@ -984,7 +984,7 @@ describe('NestedHeaders', () => {
               <th class="hiddenHeader"></th>
               <th class="" colspan="2">D4</th>
               <th class="hiddenHeader"></th>
-              <th class="">F4</th>
+              <th class="htLastVisibleHeader">F4</th>
             </tr>
           </thead>
           <tbody>
@@ -1186,22 +1186,22 @@ describe('NestedHeaders', () => {
           <tr>
             <th class="" colspan="2">B1</th>
             <th class="hiddenHeader"></th>
-            <th class="">J1</th>
+            <th class="htLastVisibleHeader">J1</th>
           </tr>
           <tr>
             <th class="">B2</th>
             <th class="">F2</th>
-            <th class="">J2</th>
+            <th class="htLastVisibleHeader">J2</th>
           </tr>
           <tr>
             <th class="">C3</th>
             <th class="">F3</th>
-            <th class="">J3</th>
+            <th class="htLastVisibleHeader">J3</th>
           </tr>
           <tr>
             <th class="">D4</th>
             <th class="">G4</th>
-            <th class="">J4</th>
+            <th class="htLastVisibleHeader">J4</th>
           </tr>
         </thead>
         <tbody>
@@ -1244,7 +1244,7 @@ describe('NestedHeaders', () => {
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">J1</th>
+            <th class="htLastVisibleHeader">J1</th>
           </tr>
           <tr>
             <th class="" colspan="2">B2</th>
@@ -1252,7 +1252,7 @@ describe('NestedHeaders', () => {
             <th class="" colspan="3">F2</th>
             <th class="hiddenHeader"></th>
             <th class="hiddenHeader"></th>
-            <th class="">J2</th>
+            <th class="htLastVisibleHeader">J2</th>
           </tr>
           <tr>
             <th class="" colspan="2">C3</th>
@@ -1260,7 +1260,7 @@ describe('NestedHeaders', () => {
             <th class="" colspan="2">F3</th>
             <th class="hiddenHeader"></th>
             <th class="">H3</th>
-            <th class="">J3</th>
+            <th class="htLastVisibleHeader">J3</th>
           </tr>
           <tr>
             <th class="">C4</th>
@@ -1268,7 +1268,7 @@ describe('NestedHeaders', () => {
             <th class="">F4</th>
             <th class="">G4</th>
             <th class="">H4</th>
-            <th class="">J4</th>
+            <th class="htLastVisibleHeader">J4</th>
           </tr>
         </thead>
         <tbody>
@@ -1319,7 +1319,7 @@ describe('NestedHeaders', () => {
               <th class="">A</th>
               <th class="">B</th>
               <th class="">E</th>
-              <th class="">I</th>
+              <th class="htLastVisibleHeader">I</th>
             </tr>
           </thead>
           <tbody>
@@ -1348,7 +1348,7 @@ describe('NestedHeaders', () => {
               <th class="">F</th>
               <th class="">G</th>
               <th class="">I</th>
-              <th class="">J</th>
+              <th class="htLastVisibleHeader">J</th>
             </tr>
           </thead>
           <tbody>
@@ -1377,7 +1377,7 @@ describe('NestedHeaders', () => {
               <th class="">F</th>
               <th class="">G</th>
               <th class="">I</th>
-              <th class="">J</th>
+              <th class="htLastVisibleHeader">J</th>
             </tr>
           </thead>
           <tbody>

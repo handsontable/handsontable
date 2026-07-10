@@ -1,4 +1,7 @@
 import {
+  addClass,
+  hasClass,
+  removeClass,
   setAttribute,
   removeAttribute,
 } from '../../../../helpers/dom/element';
@@ -121,6 +124,38 @@ export class ColumnHeadersRenderer extends BaseRenderer {
       }
 
       orderView.end();
+
+      this.#markLastVisibleHeader(TR);
+    }
+  }
+
+  /**
+   * Stamps the `htLastVisibleHeader` class on the last TH of the header row that does not carry
+   * the `hiddenHeader` class (nested headers hide their colspan-continuation THs with it), and
+   * clears the class from every other TH. The theme CSS rounds the trailing header corner with
+   * this class. It replaces the former `th:not(.hiddenHeader):not(:has(~ th:not(.hiddenHeader)))`
+   * theme selector: any `:has()` rule in a stylesheet makes Chrome re-run host-page-scaled style
+   * invalidation on DOM mutations, so the state is stamped here, after the row's headers (and the
+   * header renderers that toggle `hiddenHeader`) have been rendered.
+   *
+   * @param {HTMLElement} TR The header row (TR element) to process.
+   */
+  #markLastVisibleHeader(TR: HTMLElement): void {
+    const { children } = TR;
+    let lastVisibleTH: Element | null = null;
+
+    for (let index = children.length - 1; index >= 0; index--) {
+      const TH = children[index];
+
+      if (lastVisibleTH === null && !hasClass(TH as HTMLElement, 'hiddenHeader')) {
+        lastVisibleTH = TH;
+
+        if (!hasClass(TH as HTMLElement, 'htLastVisibleHeader')) {
+          addClass(TH as HTMLElement, 'htLastVisibleHeader');
+        }
+      } else if (hasClass(TH as HTMLElement, 'htLastVisibleHeader')) {
+        removeClass(TH as HTMLElement, 'htLastVisibleHeader');
+      }
     }
   }
 }

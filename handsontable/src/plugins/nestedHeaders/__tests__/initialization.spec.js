@@ -42,7 +42,7 @@ describe('NestedHeaders', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
-            <th class=""></th>
+            <th class="htLastVisibleHeader"></th>
           </tr>
         </thead>
         <tbody>
@@ -89,7 +89,7 @@ describe('NestedHeaders', () => {
             <th class="">G</th>
             <th class="">H</th>
             <th class="">I</th>
-            <th class="">J</th>
+            <th class="htLastVisibleHeader">J</th>
           </tr>
         </thead>
         <tbody>
@@ -138,7 +138,7 @@ describe('NestedHeaders', () => {
             <th class="">G1</th>
             <th class=""></th>
             <th class=""></th>
-            <th class=""></th>
+            <th class="htLastVisibleHeader"></th>
           </tr>
           <tr>
             <th class="">A2</th>
@@ -150,7 +150,7 @@ describe('NestedHeaders', () => {
             <th class="">G2</th>
             <th class=""></th>
             <th class=""></th>
-            <th class=""></th>
+            <th class="htLastVisibleHeader"></th>
           </tr>
         </thead>
         <tbody>
@@ -195,7 +195,7 @@ describe('NestedHeaders', () => {
             <th class="">G1</th>
             <th class=""></th>
             <th class=""></th>
-            <th class=""></th>
+            <th class="htLastVisibleHeader"></th>
           </tr>
           <tr>
             <th class="">A2</th>
@@ -207,7 +207,7 @@ describe('NestedHeaders', () => {
             <th class="">G2</th>
             <th class=""></th>
             <th class=""></th>
-            <th class=""></th>
+            <th class="htLastVisibleHeader"></th>
           </tr>
         </thead>
         <tbody>
@@ -253,7 +253,7 @@ describe('NestedHeaders', () => {
             <th class="">G</th>
             <th class="">H</th>
             <th class="">I</th>
-            <th class="">J</th>
+            <th class="htLastVisibleHeader">J</th>
           </tr>
         </thead>
         <tbody>
@@ -303,7 +303,7 @@ describe('NestedHeaders', () => {
             <th class="">G1</th>
             <th class="">H1</th>
             <th class="">I1</th>
-            <th class="">J1</th>
+            <th class="htLastVisibleHeader">J1</th>
           </tr>
           <tr>
             <th class="">A2</th>
@@ -315,7 +315,7 @@ describe('NestedHeaders', () => {
             <th class="">G2</th>
             <th class="">H2</th>
             <th class="">I2</th>
-            <th class="">J2</th>
+            <th class="htLastVisibleHeader">J2</th>
           </tr>
           <tr>
             <th class="">A3</th>
@@ -327,7 +327,7 @@ describe('NestedHeaders', () => {
             <th class="">G3</th>
             <th class="">H3</th>
             <th class="">I3</th>
-            <th class="">J3</th>
+            <th class="htLastVisibleHeader">J3</th>
           </tr>
         </thead>
         <tbody>
@@ -368,7 +368,7 @@ describe('NestedHeaders', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
-            <th class=""></th>
+            <th class="htLastVisibleHeader"></th>
           </tr>
         </thead>
         <tbody>
@@ -388,7 +388,7 @@ describe('NestedHeaders', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
-            <th class=""></th>
+            <th class="htLastVisibleHeader"></th>
           </tr>
         </thead>
         <tbody>
@@ -434,7 +434,7 @@ describe('NestedHeaders', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
-            <th class=""></th>
+            <th class="htLastVisibleHeader"></th>
           </tr>
         </thead>
         <tbody>
@@ -470,7 +470,7 @@ describe('NestedHeaders', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
-            <th class=""></th>
+            <th class="htLastVisibleHeader"></th>
           </tr>
         </thead>
         <tbody>
@@ -506,7 +506,7 @@ describe('NestedHeaders', () => {
             <th class=""></th>
             <th class=""></th>
             <th class=""></th>
-            <th class=""></th>
+            <th class="htLastVisibleHeader"></th>
           </tr>
         </thead>
         <tbody>
@@ -542,7 +542,7 @@ describe('NestedHeaders', () => {
             <th class="">G</th>
             <th class="">H</th>
             <th class="">I</th>
-            <th class="">J</th>
+            <th class="htLastVisibleHeader">J</th>
           </tr>
         </thead>
         <tbody>
