@@ -25,9 +25,10 @@ function loadWorker() {
   return module.exports;
 }
 
-function request(path, cookie) {
+function request(path, cookie, method = 'GET') {
   return {
     url: `https://handsontable.com${path}`,
+    method,
     headers: { get: (name) => (name === 'Cookie' && cookie ? `docs_fw=${cookie}` : null) },
   };
 }
@@ -248,4 +249,27 @@ test('keeps versioned demo redirects on historical disabled cells slugs', async(
     '/docs/15.3/javascript-data-grid/disabled-cells',
     302,
   );
+});
+
+test('answers POST to the saving-data demo\'s save.json mock instead of 405ing (regression for DEV-2034)', async() => {
+  const worker = loadWorker();
+
+  const response = await worker.fetch(request('/docs/scripts/json/save.json', undefined, 'POST'), env);
+  const body = await response.json();
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('content-type'), 'application/json');
+  assert.deepEqual(body, { result: 'ok' });
+});
+
+test('still serves save.json as a static asset for GET/HEAD', async() => {
+  const worker = loadWorker();
+
+  const getResponse = await worker.fetch(request('/docs/scripts/json/save.json', undefined, 'GET'), env);
+
+  assert.equal(await getResponse.text(), 'static-asset-passthrough');
+
+  const headResponse = await worker.fetch(request('/docs/scripts/json/save.json', undefined, 'HEAD'), env);
+
+  assert.equal(await headResponse.text(), 'static-asset-passthrough');
 });
