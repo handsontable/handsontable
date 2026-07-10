@@ -15,6 +15,7 @@ vue:
   metaTitle: Comments - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
+menuTag: updated
 ---
 Add a comment (a note) to a cell, using the context menu, just like in Excel. Edit and delete comments. Make comments read-only.
 
@@ -328,6 +329,101 @@ To display comments after a pre-configured time delay, use the [`displayDelay`](
 ::: example #example4 :vue3
 
 @[code](@/content/guides/cell-features/comments/vue/example4.vue)
+
+:::
+
+:::
+
+## Flag invalid cells with a comment
+
+Combine comments with validation to explain data-entry errors. This example adds a comment to a cell when it fails validation and removes the comment once the value is valid. The [`afterValidate`](@/api/hooks.md#aftervalidate) hook drives the change, and [`setCommentAtCell()`](@/api/comments.md#setcommentatcell) writes the message. The grid validates on load, so the **Mechanical keyboard** row starts with an invalid stock value and shows its comment right away. Edit any **Stock** cell and enter a negative number or text to flag it, or enter a valid whole number to clear the flag.
+
+::: only-for javascript
+
+::: example #example5 --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/comments/javascript/example5.js)
+@[code](@/content/guides/cell-features/comments/javascript/example5.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example5 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/comments/react/example5.jsx)
+@[code](@/content/guides/cell-features/comments/react/example5.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/comments/angular/example5.ts)
+@[code](@/content/guides/cell-features/comments/angular/example5.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example5 :vue3
+
+@[code](@/content/guides/cell-features/comments/vue/example5.vue)
+
+:::
+
+:::
+
+## Read all comments programmatically
+
+To collect every comment in the grid, loop through the rows and read each cell's metadata with [`getCellMetaAtRow()`](@/api/core.md#getcellmetaatrow). Each returned cell-meta object stores its comment under the `comment` key. Click **List all comments** to print all comments below the grid.
+
+::: only-for javascript
+
+::: example #example6 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/cell-features/comments/javascript/example6.html)
+@[code](@/content/guides/cell-features/comments/javascript/example6.js)
+@[code](@/content/guides/cell-features/comments/javascript/example6.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example6 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/comments/react/example6.jsx)
+@[code](@/content/guides/cell-features/comments/react/example6.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example6 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/comments/angular/example6.ts)
+@[code](@/content/guides/cell-features/comments/angular/example6.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example6 :vue3
+
+@[code](@/content/guides/cell-features/comments/vue/example6.vue)
 
 :::
 
