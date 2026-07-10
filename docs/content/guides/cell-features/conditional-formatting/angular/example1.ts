@@ -3,6 +3,15 @@ import { Component, ViewEncapsulation } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
 
+const data = [
+  ['Acme Corp', 4.2, 5.1, -1.3, 6.8],
+  ['Vertex Industries', 12.5, 11.9, 13.2, 14],
+  ['Harbor Analytics', -2.4, 0.8, 2.1, 3.5],
+  ['Summit Logistics', 8.7, -3.2, 4.4, 5.9],
+  ['Pioneer Foods', 1.1, 1.4, 0.9, -0.5],
+  ['Meridian Retail', 6, 7.3, 8.1, 9.4],
+];
+
 @Component({
   selector: 'example1-conditional-formatting',
   standalone: true,
@@ -29,14 +38,7 @@ example1-conditional-formatting .handsontable td.strong-quarter {
 })
 export class AppComponent {
 
-  readonly data = [
-    ['Acme Corp', 4.2, 5.1, -1.3, 6.8],
-    ['Vertex Industries', 12.5, 11.9, 13.2, 14],
-    ['Harbor Analytics', -2.4, 0.8, 2.1, 3.5],
-    ['Summit Logistics', 8.7, -3.2, 4.4, 5.9],
-    ['Pioneer Foods', 1.1, 1.4, 0.9, -0.5],
-    ['Meridian Retail', 6, 7.3, 8.1, 9.4],
-  ];
+  readonly data = data;
 
   readonly gridSettings: GridSettings = {
     colHeaders: ['Company', 'Q1', 'Q2', 'Q3', 'Q4'],
@@ -54,7 +56,7 @@ export class AppComponent {
       if (col > 0) {
         cellProperties.className = '';
 
-        const value = (this as any).instance.getDataAtCell(row, col);
+        const value = data[row]?.[col];
 
         if (typeof value === 'number' && value < 0) {
           cellProperties.className = 'loss';

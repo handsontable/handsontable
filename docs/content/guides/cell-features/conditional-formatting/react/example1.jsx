@@ -21,7 +21,7 @@ const ExampleComponent = () => {
             const cellProperties = {};
             if (col > 0) {
                 cellProperties.className = '';
-                const value = this.instance.getDataAtCell(row, col);
+                const value = data[row]?.[col];
                 if (typeof value === 'number' && value < 0) {
                     cellProperties.className = 'loss';
                 }
