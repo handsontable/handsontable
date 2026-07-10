@@ -67,6 +67,9 @@ new Handsontable(container, {
   afterCopy(_data, coords) {
     copiedClassNames = collectClassNames(this, coords as CopyRange[]);
   },
+  afterCut(_data, coords) {
+    copiedClassNames = collectClassNames(this, coords as CopyRange[]);
+  },
   afterPaste(_data, coords) {
     applyClassNames(this, coords as CopyRange[]);
   },

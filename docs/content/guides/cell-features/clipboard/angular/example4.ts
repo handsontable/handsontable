@@ -61,6 +61,9 @@ export class AppComponent {
     afterCopy: (_data: unknown[][], coords: CopyRange[]) => {
       this.copiedClassNames = collectClassNames(this.hotTable.hotInstance!, coords);
     },
+    afterCut: (_data: unknown[][], coords: CopyRange[]) => {
+      this.copiedClassNames = collectClassNames(this.hotTable.hotInstance!, coords);
+    },
     afterPaste: (_data: unknown[][], coords: CopyRange[]) => {
       const target = coords[0];
       const hot = this.hotTable.hotInstance!;

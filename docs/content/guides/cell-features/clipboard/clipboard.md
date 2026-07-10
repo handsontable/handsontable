@@ -341,9 +341,9 @@ Examples of how to use them are provided in their descriptions.
 
 ### Copy cell appearance on paste
 
-The [`CopyPaste`](@/api/copyPaste.md) plugin copies cell values by default. To copy cell appearance, save each copied cell's `className` metadata in [`afterCopy`](@/api/hooks.md#aftercopy), and then apply it to the pasted range in [`afterPaste`](@/api/hooks.md#afterpaste).
+The [`CopyPaste`](@/api/copyPaste.md) plugin copies cell values by default. To copy cell appearance, save each copied or cut cell's `className` metadata in [`afterCopy`](@/api/hooks.md#aftercopy) and [`afterCut`](@/api/hooks.md#aftercut), and then apply it to the pasted range in [`afterPaste`](@/api/hooks.md#afterpaste).
 
-Copy a styled range from the grid, and paste it into another range to copy the cell values and appearance.
+Copy or cut a styled range from the grid, and paste it into another range to copy the cell values and appearance.
 
 ::: only-for javascript
 ::: example #example4 --js 1 --ts 2
@@ -382,9 +382,9 @@ Copy a styled range from the grid, and paste it into another range to copy the c
 
 ### Copy comments on paste
 
-To copy cell comments, enable the [`Comments`](@/api/comments.md) plugin. Then use [`getCommentAtCell()`](@/api/comments.md#getcommentatcell) in [`afterCopy`](@/api/hooks.md#aftercopy), and [`setCommentAtCell()`](@/api/comments.md#setcommentatcell) in [`afterPaste`](@/api/hooks.md#afterpaste).
+To copy cell comments, enable the [`Comments`](@/api/comments.md) plugin. Then use [`getCommentAtCell()`](@/api/comments.md#getcommentatcell) in [`afterCopy`](@/api/hooks.md#aftercopy) and [`afterCut`](@/api/hooks.md#aftercut), and [`setCommentAtCell()`](@/api/comments.md#setcommentatcell) in [`afterPaste`](@/api/hooks.md#afterpaste).
 
-Copy a commented range from the grid, and paste it into another range to copy the cell values and comments.
+Copy or cut a commented range from the grid, and paste it into another range to copy the cell values and comments.
 
 ::: only-for javascript
 ::: example #example5 --js 1 --ts 2

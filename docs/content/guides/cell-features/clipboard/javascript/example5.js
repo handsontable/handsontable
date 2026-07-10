@@ -61,6 +61,9 @@ new Handsontable(container, {
     afterCopy(_data, coords) {
         copiedComments = collectComments(this, coords);
     },
+    afterCut(_data, coords) {
+        copiedComments = collectComments(this, coords);
+    },
     afterPaste(_data, coords) {
         applyComments(this, coords);
     },

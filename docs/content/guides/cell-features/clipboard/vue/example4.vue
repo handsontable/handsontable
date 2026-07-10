@@ -51,6 +51,9 @@ const hotSettings = ref<GridSettings>({
   afterCopy(this: Handsontable, _data, coords) {
     copiedClassNames.value = collectClassNames(this, coords as CopyRange[]);
   },
+  afterCut(this: Handsontable, _data, coords) {
+    copiedClassNames.value = collectClassNames(this, coords as CopyRange[]);
+  },
   afterPaste(this: Handsontable, _data, coords) {
     const target = (coords as CopyRange[])[0];
 

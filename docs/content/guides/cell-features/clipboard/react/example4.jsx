@@ -33,6 +33,8 @@ const ExampleComponent = () => {
             { row: 2, col: 2, className: 'htCenter htDimmed' },
         ]} afterCopy={function (_data, coords) {
             copiedClassNames.current = collectClassNames(this, coords);
+        }} afterCut={function (_data, coords) {
+            copiedClassNames.current = collectClassNames(this, coords);
         }} afterPaste={function (_data, coords) {
             const target = coords[0];
             if (!target) {

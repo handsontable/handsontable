@@ -53,6 +53,9 @@ const ExampleComponent = () => {
       afterCopy={function (this: Handsontable, _data, coords) {
         copiedComments.current = collectComments(this, coords as CopyRange[]);
       }}
+      afterCut={function (this: Handsontable, _data, coords) {
+        copiedComments.current = collectComments(this, coords as CopyRange[]);
+      }}
       afterPaste={function (this: Handsontable, _data, coords) {
         const target = (coords as CopyRange[])[0];
         const comments = this.getPlugin('comments');

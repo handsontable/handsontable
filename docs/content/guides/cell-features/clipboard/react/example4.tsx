@@ -52,6 +52,9 @@ const ExampleComponent = () => {
       afterCopy={function (this: Handsontable, _data, coords) {
         copiedClassNames.current = collectClassNames(this, coords as CopyRange[]);
       }}
+      afterCut={function (this: Handsontable, _data, coords) {
+        copiedClassNames.current = collectClassNames(this, coords as CopyRange[]);
+      }}
       afterPaste={function (this: Handsontable, _data, coords) {
         const target = (coords as CopyRange[])[0];
 

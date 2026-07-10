@@ -33,6 +33,8 @@ const ExampleComponent = () => {
             { row: 2, col: 2, comment: { value: 'Expected delivery is July 18.' } },
         ]} afterCopy={function (_data, coords) {
             copiedComments.current = collectComments(this, coords);
+        }} afterCut={function (_data, coords) {
+            copiedComments.current = collectComments(this, coords);
         }} afterPaste={function (_data, coords) {
             const target = coords[0];
             const comments = this.getPlugin('comments');

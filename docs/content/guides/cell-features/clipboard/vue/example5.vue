@@ -52,6 +52,9 @@ const hotSettings = ref<GridSettings>({
   afterCopy(this: Handsontable, _data, coords) {
     copiedComments.value = collectComments(this, coords as CopyRange[]);
   },
+  afterCut(this: Handsontable, _data, coords) {
+    copiedComments.value = collectComments(this, coords as CopyRange[]);
+  },
   afterPaste(this: Handsontable, _data, coords) {
     const target = (coords as CopyRange[])[0];
     const comments = this.getPlugin('comments');
