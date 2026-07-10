@@ -214,44 +214,44 @@ Use a custom validator when a column must accept decimal values with either `.` 
 
 :::: only-for javascript
 
-:::: example #example2 --js 1 --ts 2
+::: example #example2 --js 1 --ts 2
 
 @[code](@/content/guides/cell-functions/cell-validator/javascript/example2.js)
 @[code](@/content/guides/cell-functions/cell-validator/javascript/example2.ts)
 
-::::
+:::
 
 ::::
 
 :::: only-for react
 
-:::: example #example2 :react --js 1 --ts 2
+::: example #example2 :react --js 1 --ts 2
 
 @[code](@/content/guides/cell-functions/cell-validator/react/example2.jsx)
 @[code](@/content/guides/cell-functions/cell-validator/react/example2.tsx)
 
-::::
+:::
 
 ::::
 
 :::: only-for angular
 
-:::: example #example2 :angular --ts 1 --html 2
+::: example #example2 :angular --ts 1 --html 2
 
 @[code](@/content/guides/cell-functions/cell-validator/angular/example2.ts)
 @[code](@/content/guides/cell-functions/cell-validator/angular/example2.html)
 
-::::
+:::
 
 ::::
 
 :::: only-for vue
 
-:::: example #example2 :vue3
+::: example #example2 :vue3
 
 @[code](@/content/guides/cell-functions/cell-validator/vue/example2.vue)
 
-::::
+:::
 
 ::::
 
