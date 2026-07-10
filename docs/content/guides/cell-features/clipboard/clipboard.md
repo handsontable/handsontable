@@ -339,9 +339,91 @@ The [`CopyPaste`](@/api/copyPaste.md) plugin exposes the following hooks to mani
 
 Examples of how to use them are provided in their descriptions.
 
+### Copy cell appearance on paste
+
+The [`CopyPaste`](@/api/copyPaste.md) plugin copies cell values by default. To copy cell appearance, save each copied cell's `className` metadata in [`afterCopy`](@/api/hooks.md#aftercopy), and then apply it to the pasted range in [`afterPaste`](@/api/hooks.md#afterpaste).
+
+Copy a styled range from the grid, and paste it into another range to copy the cell values and appearance.
+
+::: only-for javascript
+::: example #example4 --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/clipboard/javascript/example4.js)
+@[code](@/content/guides/cell-features/clipboard/javascript/example4.ts)
+
+:::
+:::
+
+::: only-for react
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/clipboard/react/example4.jsx)
+@[code](@/content/guides/cell-features/clipboard/react/example4.tsx)
+
+:::
+:::
+
+::: only-for angular
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/clipboard/angular/example4.ts)
+@[code](@/content/guides/cell-features/clipboard/angular/example4.html)
+
+:::
+:::
+
+::: only-for vue
+::: example #example4 :vue3
+
+@[code](@/content/guides/cell-features/clipboard/vue/example4.vue)
+
+:::
+:::
+
+### Copy comments on paste
+
+To copy cell comments, enable the [`Comments`](@/api/comments.md) plugin. Then use [`getCommentAtCell()`](@/api/comments.md#getcommentatcell) in [`afterCopy`](@/api/hooks.md#aftercopy), and [`setCommentAtCell()`](@/api/comments.md#setcommentatcell) in [`afterPaste`](@/api/hooks.md#afterpaste).
+
+Copy a commented range from the grid, and paste it into another range to copy the cell values and comments.
+
+::: only-for javascript
+::: example #example5 --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/clipboard/javascript/example5.js)
+@[code](@/content/guides/cell-features/clipboard/javascript/example5.ts)
+
+:::
+:::
+
+::: only-for react
+::: example #example5 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/clipboard/react/example5.jsx)
+@[code](@/content/guides/cell-features/clipboard/react/example5.tsx)
+
+:::
+:::
+
+::: only-for angular
+::: example #example5 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/clipboard/angular/example5.ts)
+@[code](@/content/guides/cell-features/clipboard/angular/example5.html)
+
+:::
+:::
+
+::: only-for vue
+::: example #example5 :vue3
+
+@[code](@/content/guides/cell-features/clipboard/vue/example5.vue)
+
+:::
+:::
+
 ## Known limitations
 
-1. The [`CopyPaste`](@/api/copyPaste.md) plugin doesn't copy, cut or paste cells' appearance.
+1. The [`CopyPaste`](@/api/copyPaste.md) plugin doesn't copy, cut or paste cells' appearance by default. To copy a cell's `className` metadata, see [Copy cell appearance on paste](#copy-cell-appearance-on-paste).
 2. The data copied from Handsontable will always remain as plain text. For example, if you copy a checked checkbox, the input will be kept as the value of `'true'`.
 3. `document.execCommand` can be called only during an immediate-execute event, such as a `MouseEvent` or a `KeyboardEvent`.
 4. Clipboard operations don’t work in Chrome 133+ with Handsontable 14.6.0, 14.6.1, or 15.0.0. Update to 14.6.2 or 15.0.1+. See the [incident announcement](https://handsontable.com/blog/incident-report-handsontable-14.6-15.0-clipboard-disruption-in-chrome-133) for details.
