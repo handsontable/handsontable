@@ -81,7 +81,13 @@
 }
 
 :root[data-theme='light'] .expressive-code .copy button {
+  background-color: var(--sl-color-gray-5);
+  border-color: var(--sl-color-gray-4);
+}
+
+:root[data-theme='light'] .expressive-code .copy button:hover {
   background-color: var(--sl-color-gray-6);
+  border-color: var(--sl-color-gray-3);
 }
 
 .expressive-code .ec-line .gutter {
