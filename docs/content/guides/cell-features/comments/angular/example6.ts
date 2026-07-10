@@ -55,7 +55,7 @@ export class AppComponent {
     // `getCellMetaAtRow()` takes a physical row index (equal to the visual index here, with no sorting or trimming).
     for (let row = 0; row < hot.countRows(); row += 1) {
       hot.getCellMetaAtRow(row).forEach((cellMeta, col) => {
-        const comment = cellMeta.comment as { value?: string } | undefined;
+        const comment = cellMeta['comment'] as { value?: string } | undefined;
 
         if (comment?.value !== undefined) {
           found.push(`Row ${row + 1}, "${hot.getColHeader(col)}": ${comment.value}`);
