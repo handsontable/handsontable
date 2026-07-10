@@ -57,13 +57,20 @@ export interface UseHotEditorImpl<T> {
  * `HotColumnProps` had no option names to autocomplete. It is defined in core (and imported here
  * rather than redefined) because this package's declaration compiler predates the `as` key-remapping
  * the helper relies on.
+ *
+ * The trailing `& { [key: string]: any }` keeps the escape hatch that the raw settings types carry:
+ * cell-type and plugin options that are not declared on `GridSettings` (e.g. `correctFormat`,
+ * `datePickerConfig`) stay assignable. The named options above keep their real types regardless — the
+ * same pattern as `React.CSSProperties`, which autocompletes known properties yet still accepts
+ * arbitrary custom ones. Dropping this hatch would type-check-break existing configs that pass such
+ * options.
  */
 type ReplaceRenderersEditors<T> = Omit<RemoveIndexSignature<T>, 'renderer' | 'editor'> & {
   hotRenderer?: T extends { renderer?: infer R } ? R : never,
   renderer?: ComponentType<HotRendererProps>,
   hotEditor?: T extends { editor?: infer E } ? E : never,
   editor?: ComponentType | boolean,
-}
+} & { [key: string]: any }
 
 /**
  * Column props are the grid options (with the index signature stripped so the named options survive
