@@ -327,6 +327,7 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 
 - [Adding comments via the context menu](@/guides/cell-features/comments/comments.md#add-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard/clipboard.md#context-menu)
+- [Text alignment: Align cells using the context menu](@/guides/cell-features/text-alignment/text-alignment.md#align-cells-using-the-context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack/icon-pack.md)
 ::: only-for javascript
 - [Custom context menu in React](@/react/guides/accessories-and-menus/context-menu/context-menu.md)
