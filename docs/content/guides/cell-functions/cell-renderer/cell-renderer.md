@@ -770,6 +770,53 @@ settings = {
 
 In this example, `valueFormatter` adds the currency symbol and formatting, while `renderer` wraps it in a custom DOM structure with additional styling.
 
+#### Format symbols outside the `Intl` standard
+
+The `numeric` renderer's `numericFormat` option formats numbers through `Intl.NumberFormat`, which only recognizes ISO 4217 currency codes and a fixed list of ECMA-402 sanctioned units. Symbols outside that list, such as the Bitcoin symbol (₿) or per mille (‰), aren't available through `numericFormat`. Attach them with `valueFormatter` instead:
+
+::: only-for javascript
+
+::: example #example6 --js 1 --ts 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/javascript/example6.js)
+@[code](@/content/guides/cell-functions/cell-renderer/javascript/example6.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example6 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/react/example6.jsx)
+@[code](@/content/guides/cell-functions/cell-renderer/react/example6.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example7 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example7.ts)
+@[code](@/content/guides/cell-functions/cell-renderer/angular/example7.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example6 :vue3
+
+@[code](@/content/guides/cell-functions/cell-renderer/vue/example6.vue)
+
+:::
+
+:::
+
 ### Configuration options and API
 
 ::: only-for javascript
