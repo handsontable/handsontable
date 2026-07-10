@@ -1,6 +1,7 @@
 /* file: app.component.ts */
 import { Component, OnInit } from '@angular/core';
 import Handsontable from 'handsontable';
+import { ContextMenu } from 'handsontable/plugins/contextMenu';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 
 @Component({
@@ -40,10 +41,9 @@ export class AppComponent implements OnInit {
             return this.getSelectedLast()?.[0] === 0; // `this` === hot
           },
         },
-        // A separator line can also be added like this:
-        // 'sp1': '---------'
-        // and the key has to be unique
-        sp1: { name: '---------' },
+        // Use the dedicated separator constant to insert a separator line
+        // (the key has to be unique)
+        sp1: ContextMenu.SEPARATOR,
         row_below: {
           name: 'Click to add row below',
         },
