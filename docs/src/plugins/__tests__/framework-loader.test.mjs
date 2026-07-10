@@ -5,6 +5,7 @@ import { mkdtempSync, mkdirSync, writeFileSync, utimesSync, rmSync } from 'node:
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { frameworkLoader } from '../framework-loader.mjs';
+import { LATEST_CHANGELOG_MAJOR } from '../changelog-parser.mjs';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -248,6 +249,68 @@ test('changes outside the content directory are ignored', async () => {
     await sleep(250);
 
     assert.equal(store.size, keysBefore);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+/**
+ * Builds a temp content tree with an intro page whose "Changelog" link uses
+ * the {{$latestChangelogVersion}} placeholder inside an @/...md reference,
+ * plus a matching changelog-N target page (DEV-2031).
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createChangelogLinkFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-changelog-'));
+  const contentDir = join(root, 'content');
+  const introDir = join(contentDir, 'guides', 'intro');
+  const changelogDir = join(contentDir, 'guides', 'upgrade-and-migration', `changelog-${LATEST_CHANGELOG_MAJOR}`);
+
+  mkdirSync(introDir, { recursive: true });
+  mkdirSync(changelogDir, { recursive: true });
+
+  writeFileSync(
+    join(introDir, 'intro.md'),
+    [
+      '---',
+      'title: Introduction',
+      'permalink: /intro',
+      '---',
+      '',
+      '[Changelog](@/guides/upgrade-and-migration/changelog-{{$latestChangelogVersion}}/changelog-{{$latestChangelogVersion}}.md)',
+      '',
+    ].join('\n')
+  );
+
+  writeFileSync(
+    join(changelogDir, `changelog-${LATEST_CHANGELOG_MAJOR}.md`),
+    ['---', 'title: Changelog', `permalink: /changelog-${LATEST_CHANGELOG_MAJOR}`, '---', '', 'Changelog body.', ''].join('\n')
+  );
+
+  return { contentDir, root };
+}
+
+test('{{$latestChangelogVersion}} placeholder resolves to the latest changelog page inside an @/...md link', async () => {
+  const { contentDir, root } = createChangelogLinkFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = store.get('javascript-data-grid/intro').rendered.html;
+
+    // The fix: the placeholder is resolved before @/...md link resolution,
+    // so the link lands on the real latest changelog-N page.
+    assert.ok(
+      html.includes(`/docs/javascript-data-grid/changelog-${LATEST_CHANGELOG_MAJOR}/`),
+      `expected link to resolve to the latest changelog (changelog-${LATEST_CHANGELOG_MAJOR})`
+    );
+
+    // Regression guard: if the placeholder were substituted after (or never),
+    // the literal "{{" would leak into the link or the fallback path.
+    assert.ok(!html.includes('{{'), 'no unresolved {{$latestChangelogVersion}} placeholder should remain');
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
