@@ -1,8 +1,16 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
+import { BaseRenderer } from 'handsontable/renderers';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
 
 // register Handsontable's modules
 registerAllModules();
+
+const dimmedTextRenderer: BaseRenderer = (instance, td, ...rest) => {
+  textRenderer(instance, td, ...rest);
+
+  td.style.opacity = '0.6';
+};
 
 const ExampleComponent = () => {
   return (
@@ -22,6 +30,7 @@ const ExampleComponent = () => {
         {
           data: 'car',
           editor: false,
+          renderer: dimmedTextRenderer,
         },
         {
           data: 'year',
