@@ -201,6 +201,14 @@
   background: var(--sl-color-gray-4);
 }
 
+.example-controls-container button:focus-visible,
+.example-controls-container .button:focus-visible,
+.hot-example-preview > button:focus-visible,
+.ht-dialog__content button.hot-doc-dialog-html-button:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--sl-color-accent);
+}
+
 /* Dialog guide: HTML `content` buttons sit below paragraph copy */
 .ht-dialog__content button.hot-doc-dialog-html-button {
   margin-top: 0.5rem;
