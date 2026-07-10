@@ -208,6 +208,53 @@ const hot = new Handsontable(container, {
 
 :::
 
+## Validate decimal numbers with dot or comma separators
+
+Use a custom validator when a column must accept decimal values with either `.` or `,` as the decimal separator. The following example validates campaign conversion rates. It accepts values such as `3.4` and `8,1`, and rejects values that do not match the decimal format.
+
+:::: only-for javascript
+
+:::: example #example2 --js 1 --ts 2
+
+@[code](@/content/guides/cell-functions/cell-validator/javascript/example2.js)
+@[code](@/content/guides/cell-functions/cell-validator/javascript/example2.ts)
+
+::::
+
+::::
+
+:::: only-for react
+
+:::: example #example2 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-functions/cell-validator/react/example2.jsx)
+@[code](@/content/guides/cell-functions/cell-validator/react/example2.tsx)
+
+::::
+
+::::
+
+:::: only-for angular
+
+:::: example #example2 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-functions/cell-validator/angular/example2.ts)
+@[code](@/content/guides/cell-functions/cell-validator/angular/example2.html)
+
+::::
+
+::::
+
+:::: only-for vue
+
+:::: example #example2 :vue3
+
+@[code](@/content/guides/cell-functions/cell-validator/vue/example2.vue)
+
+::::
+
+::::
+
 ## Full featured example
 
 Use the validator method to easily validate synchronous or asynchronous changes to a cell. If you need more control, [`beforeValidate`](@/api/hooks.md#beforevalidate) and [`afterValidate`](@/api/hooks.md#aftervalidate) hooks are available. In the below example, `email_validator_fn` is an async validator that resolves after 1000 ms.
