@@ -24,7 +24,7 @@ type AfterGetRowHeader = (this: Handsontable, row: number, TH: HTMLTableCellElem
 type AfterOnCellMouseDown = (
   this: Handsontable,
   event: MouseEvent,
-  coords: { row: number; col: number }
+  coords: { row: number | null; col: number | null }
 ) => void;
 
 export const addClassesToRows: BeforeRenderer = (
@@ -87,6 +87,6 @@ export const changeCheckboxCell: AfterOnCellMouseDown = function changeCheckboxC
     event.preventDefault(); // Handsontable will render checked/unchecked checkbox by it own.
 
     const hot = this as unknown as Handsontable;
-    (hot.setDataAtRowProp as (row: number, prop: string, value: boolean) => void)(coords.row, "0", !target.checked);
+    (hot.setDataAtRowProp as (row: number, prop: string, value: boolean) => void)(coords.row as number, "0", !target.checked);
   }
 };

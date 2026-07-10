@@ -1,4 +1,4 @@
-import Handsontable from 'handsontable/base';
+import Handsontable, { RemoveIndexSignature } from 'handsontable/base';
 import React, {
   ComponentType,
   CSSProperties,
@@ -48,15 +48,31 @@ export interface UseHotEditorImpl<T> {
 }
 
 /**
- * Helper type to expose GridSettings/ColumnSettings props with native renderers/editors separately
- * from component-based render prop. Uses conditional types so it works with both GridSettings
- * and ColumnSettings (ColumnSettings' index signature can make it incompatible with strict Pick<>).
+ * Helper type to expose Handsontable settings as props with native renderers/editors separated from
+ * the component-based render prop.
+ *
+ * `RemoveIndexSignature` (imported from the core package) strips the `[key: string]: any` index
+ * signature that `GridSettings` carries. Without it, `Omit` widens `keyof T` to `string` and
+ * collapses to a bare index signature, dropping every named option — which is why `HotTableProps`/
+ * `HotColumnProps` had no option names to autocomplete. It is defined in core (and imported here
+ * rather than redefined) because this package's declaration compiler predates the `as` key-remapping
+ * the helper relies on.
  */
-type ReplaceRenderersEditors<T> = Omit<T, 'renderer' | 'editor'> & {
+type ReplaceRenderersEditors<T> = Omit<RemoveIndexSignature<T>, 'renderer' | 'editor'> & {
   hotRenderer?: T extends { renderer?: infer R } ? R : never,
   renderer?: ComponentType<HotRendererProps>,
   hotEditor?: T extends { editor?: infer E } ? E : never,
   editor?: ComponentType | boolean,
+}
+
+/**
+ * Column props are the grid options (with the index signature stripped so the named options survive
+ * `Omit`) plus the column-specific `data` type. `data` is taken from `ColumnSettings` — an explicit
+ * member that resolves even though `ColumnSettings` itself carries the broad index signature — so the
+ * column form (`string | number | getter/setter`) overrides the grid's whole-table `data` type.
+ */
+type ColumnGridSettings = Omit<RemoveIndexSignature<Handsontable.GridSettings>, 'data'> & {
+  data?: Handsontable.ColumnSettings['data'],
 }
 
 /**
@@ -73,7 +89,7 @@ export interface HotTableProps extends ReplaceRenderersEditors<Handsontable.Grid
 /**
  * Properties related to the HotColumn architecture.
  */
-export interface HotColumnProps extends ReplaceRenderersEditors<Handsontable.ColumnSettings> {
+export interface HotColumnProps extends ReplaceRenderersEditors<ColumnGridSettings> {
   children?: ReactNode;
 }
 

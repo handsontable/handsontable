@@ -451,7 +451,7 @@ export {
 export type { GridSettings, Events } from './core/settings';
 export type {
   CellValue, CellChange, RowObject, SourceRowData, ChangeSource, CellMeta, CellProperties,
-  ColumnSettings
+  ColumnSettings, RemoveIndexSignature
 } from './settings';
 export type { RangeType, HotInstance } from './core/types';
 export type { OverlayType } from './3rdparty/walkontable/src/types';

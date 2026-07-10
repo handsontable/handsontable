@@ -54,6 +54,20 @@ export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'updateData' | 'popula
   'ColumnSummary.reset' | 'DataProvider.revert';
 
 export type { GridSettings } from './core/settings';
+
+/**
+ * Removes the `[key: string]: any` / `[key: number]: any` index signature from a type while keeping
+ * every named property.
+ *
+ * `GridSettings` carries a broad index signature so that arbitrary plugin/meta keys are allowed. That
+ * signature widens `keyof GridSettings` to `string | number`, which makes `Omit`/`Pick` collapse to a
+ * bare index signature and drop every named option. Stripping it first keeps the named options — and
+ * their IDE autocomplete — intact through such transforms.
+ */
+export type RemoveIndexSignature<T> = {
+  [K in keyof T as string extends K ? never : number extends K ? never : K]: T[K]
+};
+
 /**
  * Column settings inherit grid settings but overload the meaning of `data` to be specific to each column.
  */

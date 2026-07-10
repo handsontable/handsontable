@@ -31,5 +31,8 @@
 | Pitfall | What to do instead |
 |---|---|
 | `arr.push(...largeArray)` with large arrays | Causes stack overflow with 10k+ elements. Use `forEach` loop instead. |
+| Adding a modern type helper (e.g. `as` key-remapping, TS 4.1+) in `src/types.tsx` | The `.d.ts` build uses this package's own `typescript@3.8.2`, which silently mangles it (and `prepare-types.mjs` swallows the error, shipping broken types). Define the helper in `handsontable/src` and import it via `handsontable/base`. |
+| `Omit`/`Pick` on `GridSettings`/`ColumnSettings` for prop types | These carry a `[key: string]: any` index signature; `Omit`/`Pick` collapses `keyof` to `string` and drops every named option, killing `<HotTable>`/`<HotColumn>` prop autocomplete. Strip it first with `RemoveIndexSignature<T>` (from `handsontable/base`). For column props, derive from `RemoveIndexSignature<GridSettings>` (not core `ColumnSettings`, which is intentionally left loose) and override `data` with `ColumnSettings['data']`. |
+| Trusting a green `npm run build` for types, or `npx eslint src/*.tsx` | The type build hides `tsc` errors — inspect the emitted `types.d.ts` after any `src/` type change. This package has no lint script/config, so direct `npx eslint` misparses TS/JSX; use the monorepo lint. |
 
 For detailed guidance: use skill `react-wrapper-dev`
