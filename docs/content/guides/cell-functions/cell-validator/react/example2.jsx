@@ -9,9 +9,13 @@ const data = [
     ['Partner Webinar', 'Organic', '6,75'],
     ['Holiday Preview', 'Social', '9.25'],
 ];
-const decimalValidator = (value, callback) => {
-    callback(/^\d+[.,]\d+$/.test(value));
-};
+function decimalValidator(value, callback) {
+    if (this.allowEmpty && (value === null || value === undefined || value === '')) {
+        callback(true);
+        return;
+    }
+    callback(/^\d+[.,]\d+$/.test(String(value)));
+}
 const ExampleComponent = () => {
     return (<HotTable data={data} colHeaders={['Campaign', 'Channel', 'Conversion rate']} columns={[
             {},

@@ -14,9 +14,17 @@ const data = [
   ['Holiday Preview', 'Social', '9.25'],
 ];
 
-const decimalValidator = (value: string, callback: (valid: boolean) => void) => {
-  callback(/^\d+[.,]\d+$/.test(value));
-};
+type CellMeta = { allowEmpty?: boolean };
+
+function decimalValidator(this: CellMeta, value: unknown, callback: (valid: boolean) => void) {
+  if (this.allowEmpty && (value === null || value === undefined || value === '')) {
+    callback(true);
+
+    return;
+  }
+
+  callback(/^\d+[.,]\d+$/.test(String(value)));
+}
 
 new Handsontable(container, {
   data,
