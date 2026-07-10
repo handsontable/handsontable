@@ -24,7 +24,7 @@ const profitRenderer = (instance, td, row, col, prop, value, cellProperties) => 
         : `$${amount.toFixed(1)}M`;
     textRenderer(instance, td, row, col, prop, formatted, cellProperties);
     if (amount < 0) {
-        td.className = 'loss-cell';
+        td.classList.add('loss-cell');
     }
 };
 registerRenderer('profitRenderer', profitRenderer);

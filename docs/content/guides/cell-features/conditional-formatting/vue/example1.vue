@@ -51,20 +51,20 @@ const hotSettings: GridSettings = {
 </template>
 
 <style>
-.company-name {
+#example1 .handsontable td.company-name {
   font-weight: 600;
 }
 
-.loss {
+#example1 .handsontable td.loss {
   color: #d81e2c;
   background: #fdecea;
 }
 
-.loss::before {
+#example1 .handsontable td.loss::before {
   content: "▼ ";
 }
 
-.strong-quarter {
+#example1 .handsontable td.strong-quarter {
   color: #157a3d;
   font-weight: 600;
 }

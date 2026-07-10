@@ -10,17 +10,17 @@ import Handsontable from 'handsontable/base';
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
-  styles: `hot-table td.company-name {
+  styles: `example1-conditional-formatting .handsontable td.company-name {
     font-weight: 600;
 }
-hot-table td.loss {
+example1-conditional-formatting .handsontable td.loss {
     color: #d81e2c;
     background: #fdecea;
 }
-hot-table td.loss::before {
+example1-conditional-formatting .handsontable td.loss::before {
     content: "▼ ";
 }
-hot-table td.strong-quarter {
+example1-conditional-formatting .handsontable td.strong-quarter {
     color: #157a3d;
     font-weight: 600;
 }

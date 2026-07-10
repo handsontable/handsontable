@@ -34,7 +34,7 @@ const profitRenderer: BaseRenderer = (instance, td, row, col, prop, value, cellP
   textRenderer(instance, td, row, col, prop, formatted, cellProperties);
 
   if (amount < 0) {
-    td.className = 'loss-cell';
+    td.classList.add('loss-cell');
   }
 };
 
@@ -62,7 +62,7 @@ const hotSettings: GridSettings = {
 </template>
 
 <style>
-.loss-cell {
+#example2 .handsontable td.loss-cell {
   color: #d81e2c;
   font-weight: 600;
 }

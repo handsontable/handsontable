@@ -30,6 +30,7 @@ const heatmapRenderer: BaseRenderer = (instance, td, row, col, prop, value, cell
     const hue = Math.round(ratio * 120);
 
     td.style.background = `hsl(${hue}, 75%, 85%)`;
+    td.style.color = '#1b1b1b';
   }
 };
 

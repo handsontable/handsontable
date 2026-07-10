@@ -23,6 +23,7 @@ const heatmapRenderer = (instance, td, row, col, prop, value, cellProperties) =>
         const ratio = (amount - min) / (max - min);
         const hue = Math.round(ratio * 120);
         td.style.background = `hsl(${hue}, 75%, 85%)`;
+        td.style.color = '#1b1b1b';
     }
 };
 registerRenderer('heatmapRenderer', heatmapRenderer);

@@ -30,7 +30,7 @@ const profitRenderer = (
   textRenderer(instance, td, row, col, prop, formatted, cellProperties);
 
   if (amount < 0) {
-    td.className = 'loss-cell';
+    td.classList.add('loss-cell');
   }
 };
 
@@ -43,7 +43,7 @@ registerRenderer('profitRenderer', profitRenderer);
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
-  styles: `hot-table td.loss-cell {
+  styles: `example2-conditional-formatting .handsontable td.loss-cell {
     color: #d81e2c;
     font-weight: 600;
 }
