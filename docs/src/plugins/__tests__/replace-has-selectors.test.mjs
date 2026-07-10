@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { rewriteHasSelectors } from '../replace-has-selectors.mjs';
+import { rewriteHasSelectors, isStylesheetId } from '../replace-has-selectors.mjs';
 
 test('replaces a static :has() with a stamped class and emits a manifest', () => {
   const { css, replaced, kept } = rewriteHasSelectors('.hot-example:has(.theme-dropdown) { color: red; }');
@@ -105,4 +105,19 @@ test('same anchor in different rules maps to the same class', () => {
   assert.equal(classes.length, 2);
   assert.equal(classes[0], classes[1]);
   assert.equal([...css.matchAll(/--ht-nohas-/g)].length, 1);
+});
+
+test('treats plain stylesheets and astro/vue style blocks as CSS modules', () => {
+  assert.equal(isStylesheetId('/docs/src/styles/sidebar.css'), true);
+  assert.equal(isStylesheetId('/docs/src/pages/index.astro?astro&type=style&index=0&lang.css'), true);
+  assert.equal(isStylesheetId('/docs/src/components/Widget.vue?vue&type=style&index=0&lang.css'), true);
+});
+
+test('skips ?raw, ?url, and ?inline CSS imports (served as JavaScript, not stylesheets)', () => {
+  // The example runner imports example CSS with `?raw`; vite serves it as
+  // `export default "..."` - postcss parsing that failed the production build.
+  assert.equal(isStylesheetId('/docs/content/guides/navigation/focus-scopes/javascript/example1.css?raw'), false);
+  assert.equal(isStylesheetId('/docs/src/styles/anything.css?url'), false);
+  assert.equal(isStylesheetId('/docs/src/styles/anything.css?inline'), false);
+  assert.equal(isStylesheetId('/docs/src/components/module.mjs'), false);
 });

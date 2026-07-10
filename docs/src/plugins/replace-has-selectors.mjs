@@ -422,20 +422,31 @@ export function rewriteHasSelectors(css) {
 }
 
 /**
- * Returns `true` when a Vite module id points at a stylesheet: a plain
- * .css/.scss/.sass/.less file, or a compiled `<style>` block of an .astro/.vue
- * component (their ids carry an `astro&type=style` / `vue&type=style` query and
- * a `lang.css` marker).
+ * Returns `true` when a Vite module id points at a stylesheet served AS CSS: a
+ * plain .css/.scss/.sass/.less file, or a compiled `<style>` block of an
+ * .astro/.vue component (their ids carry an `astro&type=style` /
+ * `vue&type=style` query and a `lang.css` marker).
+ *
+ * A `?raw`, `?url`, or `?inline` query means the file is imported as a
+ * JavaScript module (`export default "..."`), not served as a stylesheet - the
+ * docs example runner imports example CSS this way. Those modules are not CSS
+ * at transform time and must be skipped (postcss cannot parse them, and in the
+ * production build this failed the whole `astro build`).
  *
  * @param {string} id The Vite module id.
  * @returns {boolean} Whether the id is a stylesheet module.
  */
-function isStylesheetId(id) {
+export function isStylesheetId(id) {
   if (id.includes('&type=style')) {
     return true;
   }
 
-  const cleanId = id.split('?')[0];
+  const [cleanId, query = ''] = id.split('?');
+  const params = new URLSearchParams(query);
+
+  if (params.has('raw') || params.has('url') || params.has('inline')) {
+    return false;
+  }
 
   return /\.(css|scss|sass|less)$/.test(cleanId);
 }
@@ -482,13 +493,24 @@ export function replaceHasSelectors() {
                     return null;
                   }
 
-                  const { css, replaced } = rewriteHasSelectors(code);
+                  let result;
 
-                  if (replaced === 0) {
+                  try {
+                    result = rewriteHasSelectors(code);
+                  } catch (error) {
+                    // A module that passed the id check but is not parseable CSS
+                    // (e.g. an import mode this plugin does not know about) must
+                    // never fail the whole build - serve it untouched and warn.
+                    this.warn(`replace-has-selectors: skipping unparseable stylesheet module "${id}": ${error.message}`);
+
                     return null;
                   }
 
-                  return { code: css, map: null };
+                  if (result.replaced === 0) {
+                    return null;
+                  }
+
+                  return { code: result.css, map: null };
                 },
               },
             ],
