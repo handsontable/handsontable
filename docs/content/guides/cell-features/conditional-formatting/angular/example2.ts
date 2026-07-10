@@ -2,26 +2,49 @@
 import { Component, ViewEncapsulation } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import Handsontable from 'handsontable/base';
+import { registerRenderer } from 'handsontable/renderers';
+import { textRenderer } from 'handsontable/renderers/textRenderer';
+
+// display losses in an accounting format, so color is not the only signal
+const profitRenderer = (
+  instance: Handsontable,
+  td: HTMLTableCellElement,
+  row: number,
+  col: number,
+  prop: string | number,
+  value: Handsontable.CellValue,
+  cellProperties: Handsontable.CellProperties
+) => {
+  const amount = Number(value);
+
+  if (!Number.isFinite(amount)) {
+    textRenderer(instance, td, row, col, prop, value, cellProperties);
+
+    return;
+  }
+
+  const formatted = amount < 0
+    ? `($${Math.abs(amount).toFixed(1)}M)`
+    : `$${amount.toFixed(1)}M`;
+
+  textRenderer(instance, td, row, col, prop, formatted, cellProperties);
+
+  if (amount < 0) {
+    td.className = 'loss-cell';
+  }
+};
+
+registerRenderer('profitRenderer', profitRenderer);
 
 @Component({
-  selector: 'example1-conditional-formatting',
+  selector: 'example2-conditional-formatting',
   standalone: true,
   imports: [HotTableModule],
   template: ` <div>
     <hot-table [data]="data" [settings]="gridSettings"></hot-table>
   </div>`,
-  styles: `hot-table td.company-name {
-    font-weight: 600;
-}
-hot-table td.loss {
+  styles: `hot-table td.loss-cell {
     color: #d81e2c;
-    background: #fdecea;
-}
-hot-table td.loss::before {
-    content: "▼ ";
-}
-hot-table td.strong-quarter {
-    color: #157a3d;
     font-weight: 600;
 }
 `,
@@ -42,27 +65,12 @@ export class AppComponent {
     colHeaders: ['Company', 'Q1', 'Q2', 'Q3', 'Q4'],
     height: 'auto',
     columns: [
-      { className: 'company-name' },
-      { type: 'numeric' },
-      { type: 'numeric' },
-      { type: 'numeric' },
-      { type: 'numeric' },
+      {},
+      { renderer: 'profitRenderer' },
+      { renderer: 'profitRenderer' },
+      { renderer: 'profitRenderer' },
+      { renderer: 'profitRenderer' },
     ],
-    cells(row: number, col: number) {
-      const cellProperties: Handsontable.CellMeta = {};
-
-      if (col > 0) {
-        const value = (this as any).instance.getDataAtCell(row, col);
-
-        if (typeof value === 'number' && value < 0) {
-          cellProperties.className = 'loss';
-        } else if (typeof value === 'number' && value > 10) {
-          cellProperties.className = 'strong-quarter';
-        }
-      }
-
-      return cellProperties;
-    },
   };
 }
 /* end-file */

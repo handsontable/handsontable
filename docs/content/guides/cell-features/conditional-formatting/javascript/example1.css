@@ -1,3 +1,17 @@
-.make-me-red {
-  color: #FF5A12 !important;
+.company-name {
+  font-weight: 600;
+}
+
+.loss {
+  color: #d81e2c;
+  background: #fdecea;
+}
+
+.loss::before {
+  content: "▼ ";
+}
+
+.strong-quarter {
+  color: #157a3d;
+  font-weight: 600;
 }
