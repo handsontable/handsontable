@@ -9,6 +9,7 @@ import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-s
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
+import { replaceHasSelectors } from './src/plugins/replace-has-selectors.mjs';
 import { buildAllSidebars, buildAllValidUrls } from './src/sidebar.mjs';
 import { resolveHotVersion } from './src/lib/hot-version.mjs';
 import { resolve, dirname } from 'path';
@@ -661,6 +662,7 @@ export default defineConfig({
 
 
   integrations: [
+    replaceHasSelectors(),
     starlight({
       title: 'Handsontable',
       description:
