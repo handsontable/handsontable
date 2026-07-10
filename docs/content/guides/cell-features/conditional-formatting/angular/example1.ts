@@ -24,7 +24,8 @@ const data = [
 }
 example1-conditional-formatting .handsontable td.loss {
     color: #d81e2c;
-    background: #fdecea;
+    background: var(--ht-cell-error-background-color, rgba(216, 30, 44, 0.14));
+    background: color-mix(in srgb, #d81e2c 16%, var(--ht-background-color, #ffffff));
 }
 example1-conditional-formatting .handsontable td.loss::before {
     content: "▼ ";
@@ -32,6 +33,13 @@ example1-conditional-formatting .handsontable td.loss::before {
 example1-conditional-formatting .handsontable td.strong-quarter {
     color: #157a3d;
     font-weight: 600;
+}
+html[data-theme="dark"] example1-conditional-formatting .handsontable td.loss {
+    color: #ff5c70;
+    background: color-mix(in srgb, #ff5c70 22%, var(--ht-background-color, #000000));
+}
+html[data-theme="dark"] example1-conditional-formatting .handsontable td.strong-quarter {
+    color: #22c55e;
 }
 `,
   encapsulation: ViewEncapsulation.None,

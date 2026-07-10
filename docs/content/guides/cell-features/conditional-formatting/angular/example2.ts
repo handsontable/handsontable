@@ -49,6 +49,9 @@ registerRenderer('profitRenderer', profitRenderer);
     color: #d81e2c;
     font-weight: 600;
 }
+html[data-theme="dark"] example2-conditional-formatting .handsontable td.loss-cell {
+    color: #ff5c70;
+}
 `,
   encapsulation: ViewEncapsulation.None,
 })
