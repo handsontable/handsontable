@@ -59,12 +59,12 @@ export class AppComponent {
       { row: 2, col: 1, comment: { value: 'Reorder request sent to Harbor Goods.' } },
       { row: 2, col: 2, comment: { value: 'Expected delivery is July 18.' } },
     ],
-    afterCopy: (_data, coords) => {
-      this.copiedComments = collectComments(this.hotTable.hotInstance, coords as CopyRange[]);
+    afterCopy: (_data: unknown[][], coords: CopyRange[]) => {
+      this.copiedComments = collectComments(this.hotTable.hotInstance!, coords);
     },
-    afterPaste: (_data, coords) => {
-      const target = (coords as CopyRange[])[0];
-      const hot = this.hotTable.hotInstance;
+    afterPaste: (_data: unknown[][], coords: CopyRange[]) => {
+      const target = coords[0];
+      const hot = this.hotTable.hotInstance!;
       const comments = hot.getPlugin('comments');
 
       if (!target) {

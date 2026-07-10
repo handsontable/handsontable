@@ -17,7 +17,7 @@ function collectClassNames(hot: Handsontable, coords: CopyRange[]): string[][] {
     const rowClassNames: string[] = [];
 
     for (let col = source.startCol; col <= source.endCol; col += 1) {
-      rowClassNames.push((hot.getCellMeta(row, col).className as string | undefined) ?? '');
+      rowClassNames.push((hot.getCellMeta(row, col)['className'] as string | undefined) ?? '');
     }
 
     classNames.push(rowClassNames);
@@ -58,12 +58,12 @@ export class AppComponent {
       { row: 2, col: 1, className: 'htRight htDimmed' },
       { row: 2, col: 2, className: 'htCenter htDimmed' },
     ],
-    afterCopy: (_data, coords) => {
-      this.copiedClassNames = collectClassNames(this.hotTable.hotInstance, coords as CopyRange[]);
+    afterCopy: (_data: unknown[][], coords: CopyRange[]) => {
+      this.copiedClassNames = collectClassNames(this.hotTable.hotInstance!, coords);
     },
-    afterPaste: (_data, coords) => {
-      const target = (coords as CopyRange[])[0];
-      const hot = this.hotTable.hotInstance;
+    afterPaste: (_data: unknown[][], coords: CopyRange[]) => {
+      const target = coords[0];
+      const hot = this.hotTable.hotInstance!;
 
       if (!target) {
         return;
