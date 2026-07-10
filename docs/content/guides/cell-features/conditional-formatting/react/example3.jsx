@@ -12,15 +12,18 @@ const data = [
     ['Pioneer Foods', 1.1, 1.4, 0.9, -0.5],
     ['Meridian Retail', 6, 7.3, 8.1, 9.4],
 ];
-const values = data.flatMap((row) => row.slice(1));
-const min = Math.min(...values);
-const max = Math.max(...values);
 // shade the background from red (low) to green (high); the value stays visible
 const heatmapRenderer = (instance, td, row, col, prop, value, cellProperties) => {
     textRenderer(instance, td, row, col, prop, value, cellProperties);
     const amount = Number(value);
     if (Number.isFinite(amount)) {
-        const ratio = (amount - min) / (max - min);
+        const values = instance.getData()
+            .flatMap((rowData) => rowData.slice(1))
+            .map(Number)
+            .filter((cellValue) => Number.isFinite(cellValue));
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        const ratio = min === max ? 0.5 : (amount - min) / (max - min);
         const hue = Math.round(ratio * 120);
         td.style.background = `hsl(${hue}, 75%, 85%)`;
         td.style.color = '#1b1b1b';
