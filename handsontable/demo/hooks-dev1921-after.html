@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>afterSetDataAtCell timing — AFTER (corrected docs)</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/handsontable/styles/ht-theme-main.min.css">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 16px; background: #f5f5f5; color: #111; }
+    h1 { font-size: 18px; margin-bottom: 4px; }
+    .subtitle { font-size: 13px; color: #666; margin-bottom: 12px; }
+    nav { display: flex; gap: 8px; margin-bottom: 16px; align-items: center; }
+    .nav-label { font-size: 13px; color: #666; margin-right: 4px; }
+    .nav-btn { padding: 6px 16px; border-radius: 6px; font-size: 14px; text-decoration: none; border: 1px solid #ccc; }
+    .nav-btn.active { background: #fff; font-weight: 600; border-color: #999; color: #111; pointer-events: none; }
+    .nav-btn:not(.active) { background: #e9e9e9; color: #333; }
+    .nav-btn:not(.active):hover { background: #f0f0f0; }
+    .badge { display: inline-block; font-size: 11px; padding: 1px 7px; border-radius: 10px; margin-left: 6px; vertical-align: middle; }
+    .badge-before { background: #fdecea; color: #b71c1c; }
+    .badge-after { background: #e8f5e9; color: #2e7d32; }
+    .info { background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; line-height: 1.55; }
+    .info strong { color: #2e7d32; }
+    .info code { background: #fff; padding: 1px 5px; border-radius: 4px; border: 1px solid #bfe3c1; font-size: 13px; }
+    .cdn-note { font-size: 12px; color: #777; margin-bottom: 14px; }
+    .layout { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-start; }
+    .grid-col { flex: 1 1 460px; min-width: 320px; }
+    .side-col { flex: 1 1 360px; min-width: 300px; }
+    .panel { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 14px 16px; margin-bottom: 14px; }
+    .panel h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: #888; margin-bottom: 8px; }
+    .mirror-value { font-size: 26px; font-weight: 700; font-family: 'SFMono-Regular', Consolas, monospace; word-break: break-all; }
+    .mirror-right { color: #2e7d32; }
+    .verdict { margin-top: 6px; font-size: 13px; color: #2e7d32; font-weight: 600; }
+    #log { font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12px; line-height: 1.5; white-space: pre-wrap; max-height: 260px; overflow-y: auto; background: #1e1e1e; color: #dcdcdc; border-radius: 6px; padding: 10px 12px; }
+    #log .old { color: #ff8a80; }
+    #log .new { color: #b9f6ca; }
+    #log .hook { color: #82b1ff; }
+  </style>
+</head>
+<body>
+  <h1>Hook timing: <code>afterSetDataAtCell</code> / <code>afterSetDataAtRowProp</code></h1>
+  <p class="subtitle">DEV-1921 · PR #12799 — manual verification (after the doc fix)</p>
+
+  <nav>
+    <span class="nav-label">Demo:</span>
+    <a class="nav-btn" href="hooks-dev1921-before.html">BEFORE — old docs <span class="badge badge-before">misleading</span></a>
+    <span class="nav-btn active">AFTER — corrected docs <span class="badge badge-after">fixed</span></span>
+  </nav>
+
+  <div class="info">
+    <strong>What the NEW JSDoc says:</strong> the hook fires after the setter is called and changes are processed,
+    <strong>before</strong> they are validated and applied to the data source — and
+    <em>“Use <code>afterChange</code> if you need to react after the data has been written.”</em><br>
+    Following that guidance, the integrator mirrors cell <code>A1</code> <strong>inside <code>afterChange</code></strong>.<br>
+    <strong>How to test:</strong> double-click cell <strong>A1</strong>, type <code>HELLO</code>, press <kbd>Enter</kbd>.
+    The mirror panel now shows <code>HELLO</code> — the value that was actually written.
+    <br>Compare with the <strong>BEFORE</strong> page, where the same panel is stuck on the old value.
+  </div>
+  <p class="cdn-note">
+    The runtime is unchanged by PR #12799 (a JSDoc-only fix), so this page loads Handsontable from the jsDelivr CDN.
+    The visible difference between BEFORE and AFTER comes only from <em>which hook</em> the docs steer you to.
+  </p>
+
+  <div class="layout">
+    <div class="grid-col">
+      <div id="hot-container"></div>
+    </div>
+    <div class="side-col">
+      <div class="panel">
+        <h2>Mirror of A1 — captured in <code>afterChange</code></h2>
+        <div id="mirror" class="mirror-value mirror-right">A1</div>
+        <div class="verdict" id="verdict">waiting for an edit…</div>
+      </div>
+      <div class="panel">
+        <h2>Event log</h2>
+        <div id="log"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/handsontable/dist/handsontable.full.min.js"></script>
+  <script>
+    const logEl = document.getElementById('log');
+    const mirrorEl = document.getElementById('mirror');
+    const verdictEl = document.getElementById('verdict');
+
+    function log(html) {
+      logEl.innerHTML += html + '\n';
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    // window.hot is exposed for browser console / DevTools debugging
+    window.hot = new Handsontable(document.getElementById('hot-container'), {
+      data: Handsontable.helper.createSpreadsheetData(10, 6),
+      colHeaders: true,
+      rowHeaders: true,
+      width: '100%',
+      height: 320,
+      themeName: 'ht-theme-main',
+      licenseKey: 'non-commercial-and-evaluation',
+
+      // Shown only in the log so the timing contrast is visible on this page too.
+      afterSetDataAtCell(changes, source) {
+        if (!changes || !changes.length) return;
+        const [row, col,, newValue] = changes[0];
+        const readBack = window.hot.getDataAtCell(row, col);
+        log(`<span class="hook">afterSetDataAtCell</span> (source: ${source})`);
+        log(`  typed newValue = <span class="new">${JSON.stringify(newValue)}</span>`);
+        log(`  getDataAtCell(${row},${col}) = <span class="old">${JSON.stringify(readBack)}</span>  ← still OLD (not written yet)`);
+      },
+      // CORRECTED-DOCS APPROACH: react in afterChange, where the data is written.
+      afterChange(changes, source) {
+        if (source === 'loadData' || !changes) return;
+        const [row, col, oldValue, newValue] = changes[0];
+        const readBack = window.hot.getDataAtCell(row, col);
+        log(`<span class="hook">afterChange</span> (source: ${source})`);
+        log(`  getDataAtCell(${row},${col}) = <span class="new">${JSON.stringify(readBack)}</span>  ← now WRITTEN`);
+        if (row === 0 && col === 0) {
+          mirrorEl.textContent = String(readBack);
+          const correct = readBack === newValue;
+          verdictEl.textContent = correct
+            ? `✓ CORRECT — shows the written value ${JSON.stringify(readBack)}`
+            : `(unexpected: ${JSON.stringify(readBack)})`;
+        }
+      },
+    });
+  </script>
+</body>
+</html>
