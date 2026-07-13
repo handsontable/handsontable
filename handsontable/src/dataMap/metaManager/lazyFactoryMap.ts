@@ -1,5 +1,30 @@
-import { assert, isNullish } from './utils';
+import { isNullish } from './utils';
+import { throwWithCause } from '../../helpers/errors';
 import { isUnsignedNumber } from '../../helpers/number';
+
+/**
+ * Throws when the key is not an unsigned integer. A plain function call instead of `assert()` -
+ * `assert` takes a condition closure, and allocating one per `obtain` call is measurable on the
+ * render path (the method runs twice per cell per draw).
+ *
+ * @param {*} key The key to validate.
+ */
+function assertUnsignedKey(key: unknown): asserts key is number {
+  if (!isUnsignedNumber(key)) {
+    throwWithCause('Assertion failed: Expecting an unsigned number.');
+  }
+}
+
+/**
+ * Throws when the key is neither an unsigned integer nor null/undefined.
+ *
+ * @param {*} key The key to validate.
+ */
+function assertUnsignedKeyOrNullish(key: unknown): asserts key is number | null | undefined {
+  if (!isUnsignedNumber(key) && !isNullish(key)) {
+    throwWithCause('Assertion failed: Expecting an unsigned number or null/undefined argument.');
+  }
+}
 
 /**
  * @class LazyFactoryMap
@@ -11,6 +36,14 @@ import { isUnsignedNumber } from '../../helpers/number';
  *
  * It's essential to notice that the "key" index under which the item was created
  * is volatile. After altering the grid, the "key" index can change.
+ *
+ * Values live in a single native Map keyed by the CURRENT volatile key. Lookups are a
+ * single integer-keyed `Map.get` - a native Map is always a hash table, so far-apart keys
+ * (for example, physical row 999990 on a million-row grid) cannot push the storage into a
+ * slow mode, unlike a sparse array. Insert and remove re-key the affected entries in
+ * O(materialized) time by rebuilding the map in its original iteration order, which keeps
+ * `values()` returning items in order of initialization. The materialized size is normally
+ * viewport-bound thanks to the render-derived cell meta eviction.
  */
 export default class LazyFactoryMap<V = Record<string, unknown>> {
   /**
@@ -20,25 +53,18 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
    */
   declare valueFactory: (key: number) => V;
   /**
-   * An array which contains data.
-   *
-   * @type {Array}
+   * Materialized values keyed by the CURRENT volatile key. Native Map iteration order is
+   * insertion order; `insert`/`remove` rebuild the map preserving that relative order, so
+   * iteration stays in order of value initialization.
    */
-  data: (V | undefined)[] = [];
+  #data = new Map<number, V>();
   /**
-   * An array of indexes where the key of the array is mapped to the value which points to the
-   * specific position of the data array.
-   *
-   * @type {number[]}
+   * The logical length of the collection: slots created by `insert` plus slots implied by
+   * obtaining a key at or past the current end. It only backs the "append"/"remove at end"
+   * semantics of nullish `insert`/`remove` keys - it does not bound `obtain`. Every key
+   * stored in the map is smaller than this value.
    */
-  index: number[] = [];
-  /**
-   * The collection of indexes that points to the data items which can be replaced by obtaining new
-   * ones. The "holes" are an intended effect of deleting entries.
-   *
-   * @type {Set<number>}
-   */
-  holes = new Set<number>();
+  #length = 0;
 
   /**
    * Initializes the map with the given factory function used to create values for new keys on first access.
@@ -54,35 +80,20 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
    * @returns {*}
    */
   obtain(key: number): V {
-    assert(() => isUnsignedNumber(key), 'Expecting an unsigned number.');
+    assertUnsignedKey(key);
 
-    const dataIndex = this._getStorageIndexByKey(key);
-    let result: V | undefined;
+    let value = this.#data.get(key);
 
-    if (dataIndex >= 0) {
-      result = this.data[dataIndex];
+    if (value === undefined) {
+      value = this.valueFactory(key);
+      this.#data.set(key, value);
 
-      if (result === undefined) {
-        result = this.valueFactory(key);
-        this.data[dataIndex] = result;
-      }
-    } else {
-      result = this.valueFactory(key);
-
-      const reuseIndex: number | undefined = this.holes.size > 0 ? this.holes.values().next().value : undefined;
-
-      if (reuseIndex !== undefined) {
-        this.holes.delete(reuseIndex);
-
-        this.data[reuseIndex] = result;
-        this.index[key] = reuseIndex;
-      } else {
-        this.data.push(result);
-        this.index[key] = this.data.length - 1;
+      if (key >= this.#length) {
+        this.#length = key + 1;
       }
     }
 
-    return result!;
+    return value;
   }
 
   /**
@@ -93,135 +104,130 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
    * @returns {boolean}
    */
   has(key: number): boolean {
-    const dataIndex = this._getStorageIndexByKey(key);
-
-    return dataIndex >= 0 && this.data[dataIndex] !== undefined;
+    return this.#data.get(key) !== undefined;
   }
 
   /**
-   * Inserts an empty data to the map. This method creates an empty space for obtaining
-   * new data.
+   * Inserts an empty space for new data. Materialized values stored under keys at or after
+   * the insertion point are re-keyed upwards by `amount`; the inserted keys themselves stay
+   * unmaterialized until the first `obtain` call. When no materialized key falls at or after
+   * the insertion point (the common case on a large grid, where only the viewport band is
+   * materialized), the operation is a key scan with no allocation.
    *
    * @param {number} key The key as volatile zero-based index at which to begin inserting space for new data.
    * @param {number} [amount=1] Amount of data to insert.
    */
   insert(key: number | null | undefined, amount = 1) {
-    assert(() => (isUnsignedNumber(key) || isNullish(key)), 'Expecting an unsigned number or null/undefined argument.');
+    assertUnsignedKeyOrNullish(key);
 
-    const newIndexes = [];
-    const dataLength = this.data.length;
+    const insertionIndex = isNullish(key) ? this.#length : key;
 
-    for (let i = 0; i < amount; i++) {
-      newIndexes.push(dataLength + i);
-      this.data.push(undefined);
+    this.#length += amount;
+
+    if (!this.#hasKeyAtOrAbove(insertionIndex)) {
+      return;
     }
 
-    const insertionIndex = isNullish(key) ? this.index.length : key;
+    const shifted = new Map<number, V>();
 
-    this.index = [...this.index.slice(0, insertionIndex), ...newIndexes, ...this.index.slice(insertionIndex)];
+    // Rebuilding (rather than re-keying in place with delete+set) preserves the map's
+    // iteration order, and with it the `values()` initialization-order contract.
+    for (const [itemKey, value] of this.#data) {
+      shifted.set(itemKey >= insertionIndex ? itemKey + amount : itemKey, value);
+    }
+
+    this.#data = shifted;
   }
 
   /**
-   * Removes (soft remove) data from "index" and according to the amount of data.
+   * Removes (soft remove) data from the map. Materialized values stored under the removed keys
+   * are dropped (freed for garbage collection) and values under higher keys are re-keyed
+   * downwards by `amount`. When no materialized key falls at or after the removal point, the
+   * operation is a key scan with no allocation.
    *
    * @param {number} key The key as volatile zero-based index at which to begin removing the data.
    * @param {number} [amount=1] Amount data to remove.
    */
   remove(key: number | null | undefined, amount = 1) {
-    assert(() => (isUnsignedNumber(key) || isNullish(key)), 'Expecting an unsigned number or null/undefined argument.');
+    assertUnsignedKeyOrNullish(key);
 
-    const removed = this.index.splice(isNullish(key) ? this.index.length - amount : key, amount);
+    let start: number;
 
-    for (let i = 0; i < removed.length; i++) {
-      const removedIndex = removed[i];
+    if (isNullish(key)) {
+      // Reproduces `index.splice(length - amount, amount)`: a negative start counts back from
+      // the end (never below zero), exactly like `Array.prototype.splice`.
+      const rawStart = this.#length - amount;
 
-      if (typeof removedIndex === 'number') {
-        this.holes.add(removedIndex);
+      start = rawStart < 0 ? Math.max(this.#length + rawStart, 0) : rawStart;
+    } else {
+      start = key;
+    }
+
+    const removedCount = Math.max(Math.min(this.#length - start, amount), 0);
+
+    this.#length -= removedCount;
+
+    if (!this.#hasKeyAtOrAbove(start)) {
+      return;
+    }
+
+    const end = start + amount;
+    const shifted = new Map<number, V>();
+
+    for (const [itemKey, value] of this.#data) {
+      if (itemKey < start) {
+        shifted.set(itemKey, value);
+      } else if (itemKey >= end) {
+        shifted.set(itemKey - amount, value);
       }
     }
+
+    this.#data = shifted;
   }
 
   /**
-   * Returns the size of the data which this map holds.
+   * Returns the number of materialized values this map currently holds. Keys reserved through
+   * `insert` but never obtained, and keys released through `evict` or `remove`, are not counted.
    *
    * @returns {number}
    */
   size() {
-    return this.data.length - this.holes.size;
+    return this.#data.size;
   }
 
   /**
-   * Returns a new Iterator object that contains the values for each item in the LazyMap object.
+   * Returns a new Iterator object that contains the values for each item in the LazyMap object,
+   * in order of value initialization.
    *
    * @returns {Iterator}
    */
   values(): IterableIterator<V> {
-    return (this.data.filter(
-      (meta, index): meta is V => meta !== undefined && !this.holes.has(index)
-    ))[Symbol.iterator]();
+    return this.#data.values();
   }
 
   /**
-   * Returns a new Iterator object that contains an array of `[index, value]` for each item in the LazyMap object.
+   * Returns a new Iterator object that contains an array of `[index, value]` for each item in
+   * the LazyMap object, in order of value initialization. The iterator is live: releasing the
+   * currently visited key during iteration (as `CellMeta.evictRow` does through `evict`) is safe.
    *
    * @returns {Iterator}
    */
-  entries() {
-    const validEntries: [number, V][] = [];
-
-    for (let i = 0; i < this.data.length; i++) {
-      const keyIndex = this._getKeyByStorageIndex(i);
-      const item = this.data[i];
-
-      if (keyIndex !== -1 && item !== undefined) {
-        validEntries.push([keyIndex, item]);
-      }
-    }
-
-    let dataIndex = 0;
-
-    type SelfIterator = Iterator<[number, V]> & { [Symbol.iterator](): SelfIterator };
-    const iterator: SelfIterator = {
-      next(): IteratorResult<[number, V]> {
-        if (dataIndex < validEntries.length) {
-          const value = validEntries[dataIndex];
-
-          dataIndex += 1;
-
-          return { value, done: false };
-        }
-
-        return { done: true, value: undefined as unknown as [number, V] };
-      },
-      [Symbol.iterator](): SelfIterator {
-        return iterator;
-      },
-    };
-
-    return iterator;
+  entries(): IterableIterator<[number, V]> {
+    return this.#data.entries();
   }
 
   /**
-   * Releases the value stored under the given key while keeping its index slot intact. The next
-   * `obtain` call for that key re-creates the value through the factory. Unlike `remove`, the key
-   * mapping is preserved (no "hole" is created and surrounding keys do not shift), so this is safe
-   * for values that can be reconstructed deterministically - for example render-derived cell meta
-   * for rows scrolled out of the viewport. Does nothing when the key has no materialized value.
-   *
-   * The freed storage slot is deliberately NOT added to `holes`: a hole can be re-used by `obtain` for
-   * a different key, but here the key still maps to this slot (so the value can be lazily re-created),
-   * and reusing it would corrupt that mapping. A side effect is that `size()` keeps counting evicted
-   * slots, so it over-reports after `evict` - callers must not drive a `for (i < size()) obtain(i)`
-   * loop off it (the column-shift loops in `CellMeta` iterate materialized entries for this reason).
+   * Releases the value stored under the given key. The next `obtain` call for that key
+   * re-creates the value through the factory (with a new identity). Unlike `remove`, the
+   * surrounding keys do not shift, so this is safe for values that can be reconstructed
+   * deterministically - for example render-derived cell meta for rows scrolled out of the
+   * viewport. The entry is genuinely deleted, so its memory is freed - there is no leftover
+   * slot. Does nothing when the key has no materialized value.
    *
    * @param {number} key The item key as zero-based index.
    */
   evict(key: number) {
-    const dataIndex = this._getStorageIndexByKey(key);
-
-    if (dataIndex >= 0) {
-      this.data[dataIndex] = undefined;
-    }
+    this.#data.delete(key);
   }
 
   /**
@@ -233,38 +239,33 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
    * @returns {*}
    */
   getIfExists(key: number): V | undefined {
-    const dataIndex = this._getStorageIndexByKey(key);
-
-    return dataIndex >= 0 ? this.data[dataIndex] : undefined;
+    return this.#data.get(key);
   }
 
   /**
    * Clears the map.
    */
   clear() {
-    this.data = [];
-    this.index = [];
-    this.holes.clear();
+    this.#data.clear();
+    this.#length = 0;
   }
 
   /**
-   * Gets storage index calculated from the key associated with the specified value.
+   * Checks whether any materialized key is greater than or equal to the given bound. Used as
+   * the fast no-op gate for `insert`/`remove`: when every materialized key sits below the
+   * shift point, no re-keying is needed. Early-exits on the first hit.
    *
-   * @param {number} key Volatile zero-based index.
-   * @returns {number} Returns index 0-N or -1 if no storage index found.
+   * @param {number} bound The zero-based key bound (inclusive).
+   * @returns {boolean}
    */
-  _getStorageIndexByKey(key: number) {
-    return this.index.length > key ? this.index[key] : -1;
-  }
+  #hasKeyAtOrAbove(bound: number): boolean {
+    for (const itemKey of this.#data.keys()) {
+      if (itemKey >= bound) {
+        return true;
+      }
+    }
 
-  /**
-   * Gets the key associated with the specified value calculated from storage index.
-   *
-   * @param {number} dataIndex Zero-based storage index.
-   * @returns {number} Returns index 0-N or -1 if no key found.
-   */
-  _getKeyByStorageIndex(dataIndex: number) {
-    return this.index.indexOf(dataIndex);
+    return false;
   }
 
   /**
@@ -272,7 +273,7 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
    *
    * @returns {Iterator}
    */
-  [Symbol.iterator]() {
+  [Symbol.iterator](): IterableIterator<[number, V]> {
     return this.entries();
   }
 }

@@ -154,14 +154,14 @@ Consequences:
 - `ColumnMeta` holds one `LazyFactoryMap` of column meta objects, keyed by physical column.
 - `CellMeta` holds a `LazyFactoryMap` of rows, where each row is itself a `LazyFactoryMap` of cell meta objects keyed by physical column. So storage is a grid of maps.
 
-The map keeps three internal structures: `data` (the objects), `index` (key-to-storage-slot), and `holes` (freed slots ready for reuse). The key under which an item was created is volatile — `insert` and `remove` shift it.
+The map stores materialized values in a single native `Map<number, V>` keyed by the CURRENT volatile key, plus a private logical-length counter that backs the nullish-key `insert`/`remove` ("append"/"remove at end") semantics. The key under which an item was created is volatile — `insert` and `remove` shift it by rebuilding the Map in its original iteration order (O(materialized), with an alloc-free no-op fast path when nothing sits at/above the shift point). This replaced the previous `data`/`index`/`holes` slot-recycling design, which had three measured pathologies: a V8 dictionary-elements cliff on the sparse `index[]` after a far-row access, O(n²) `entries()` iteration (`indexOf` per slot), and permanent memory residue (slots were never reclaimed). `evict()` is now a true `Map.delete` — memory is freed, and `size()` returns the exact materialized count. Iteration (`values()`/`entries()`) yields native lazy iterators in initialization order; deleting the currently visited key mid-iteration (as `evictRow` does) is spec-safe.
 
 ### Lifecycle on row and column insert/remove
 
 | Operation | Cell-meta storage | Column-meta storage |
 |---|---|---|
 | `createRow(physicalRow, amount)` | `cellMeta.createRow` → `metas.insert(physicalRow, amount)` inserts empty row slots. | unchanged |
-| `removeRow(physicalRow, amount)` | `cellMeta.removeRow` → `metas.remove(physicalRow, amount)` (soft remove into `holes`). | unchanged |
+| `removeRow(physicalRow, amount)` | `cellMeta.removeRow` → `metas.remove(physicalRow, amount)` (removed values are dropped; higher keys shift down). | unchanged |
 | `createColumn(physicalColumn, amount)` | `cellMeta.createColumn` inserts a column slot into every existing row map. | `columnMeta.createColumn` → `metas.insert(physicalColumn, amount)`. |
 | `removeColumn(physicalColumn, amount)` | `cellMeta.removeColumn` removes the column slot from every row map. | `columnMeta.removeColumn` → `metas.remove(physicalColumn, amount)`. |
 
