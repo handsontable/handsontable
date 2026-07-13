@@ -13,6 +13,7 @@ vue:
   metaTitle: Cell type - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell types
+menuTag: updated
 ---
 Use Handsontable's built-in cell types such as autocomplete, date, time, and more, for consistent UI across cell renderer, editor, and validator.
 
@@ -840,6 +841,53 @@ Please keep in mind that opening a cell with `undefined` and `null` values resul
 :::
 
 Empty cells may be treated differently in different contexts, for example, the [`ColumnSorting`](@/api/columnSorting.md) plugin has `sortEmptyCells` option which is responsible for establishing whether empty cells should be sorted like non-empty cells.
+
+## Set different cell types in one column
+
+Use the [`cells`](@/api/options.md#cells) option to assign a different cell type to each row in a column. The following example creates a project settings form with `dropdown`, `numeric`, `intl-date`, `checkbox`, `text`, `handsontable`, and `password` cell types.
+
+:::: only-for javascript
+
+::: example #example3 --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/cell-type/javascript/example3.js)
+@[code](@/content/guides/cell-types/cell-type/javascript/example3.ts)
+
+:::
+
+::::
+
+:::: only-for react
+
+::: example #example3 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-types/cell-type/react/example3.jsx)
+@[code](@/content/guides/cell-types/cell-type/react/example3.tsx)
+
+:::
+
+::::
+
+:::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-types/cell-type/angular/example3.ts)
+@[code](@/content/guides/cell-types/cell-type/angular/example3.html)
+
+:::
+
+::::
+
+:::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-types/cell-type/vue/example3.vue)
+
+:::
+
+::::
 
 ## Related
 
