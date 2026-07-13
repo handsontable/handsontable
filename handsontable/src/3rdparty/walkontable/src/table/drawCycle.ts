@@ -107,8 +107,8 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   // structural DOM mutation would trigger the host page's `:has()` style invalidation, whose cost
   // scales with the whole host document. Both axes stabilize on ANY scroll-driven draw: a draw for
   // one axis recomputes the other axis' band too, so per-axis gating would let each axis shrink the
-  // other's band back and re-oscillate it. On the column axis the band additionally gains
-  // directional overscan (`applyRenderedColumnsBandOverscan` / `applyRenderedRowsBandOverscan`) so consecutive scroll
+  // other's band back and re-oscillate it. On top of that, both bands gain directional overscan
+  // (`applyRenderedColumnsBandOverscan` / `applyRenderedRowsBandOverscan`) so consecutive scroll
   // steps land inside the rendered band and resolve as fast draws.
   ctx.runFastDraw = wtViewport.createCalculators(ctx.runFastDraw, {
     stationaryBands: wtOverlays.isScrollDrivenDraw && wtViewport.allowsStationaryBands(),

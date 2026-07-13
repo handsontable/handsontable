@@ -55,6 +55,9 @@ export interface CalculatorFactory {
  * taller (0 → a ~40 ms stall on nearly every scroll frame; 8 → a ~50 ms stall every ~10 frames;
  * 16 → every ~19 frames but up to ~60 ms). The 60 ms class reads as a visible catch during smooth
  * scrolling, so 8 trades a few more pauses for keeping every pause in the mild 40–50 ms class.
+ *
+ * When retuning, keep the user-facing number in the `viewportColumnRenderingOffset` JSDoc
+ * (`src/dataMap/metaManager/metaSchema.ts`) in sync.
  */
 const COLUMN_BAND_OVERSCAN_MAX = 8;
 
@@ -65,6 +68,9 @@ const COLUMN_BAND_OVERSCAN_MAX = 8;
  * (hitches over 33 ms: ~22 → 2) while the worst frame stays in the same ~40 ms class as no
  * overscan at all. Higher caps look better on medians but grow the band every full draw must
  * re-render, pushing fast-flick (~25 rows/frame) stalls into the 50–60 ms class.
+ *
+ * When retuning, keep the user-facing number in the `viewportRowRenderingOffset` JSDoc
+ * (`src/dataMap/metaManager/metaSchema.ts`) in sync.
  */
 const ROW_BAND_OVERSCAN_MAX = 4;
 
@@ -80,6 +86,9 @@ const ROW_BAND_OVERSCAN_MAX = 4;
  * the 'auto' offset override adds at most 1 per side, and clamps to 0 at the dataset edges, so
  * offset inequality alone cannot be the test. A band that was never overscanned gets none.
  *
+ * Exported for direct unit coverage; the production callers are the two band-overscan appliers
+ * in this module.
+ *
  * @param {number} scrollOffsetDelta The current band's scroll offset minus the previous band's.
  * @param {object} previous The previous band's recorded side offsets.
  * @param {number} previous.startOffset The previous band's start-side offset.
@@ -93,7 +102,7 @@ const ROW_BAND_OVERSCAN_MAX = 4;
  * @returns {{ side: -1 | 1, extension: number } | null} The side to extend (`-1` = start, `1` =
  * end) and the clamped track count, or `null` when no overscan applies.
  */
-function directionalBandOverscan(
+export function directionalBandOverscan(
   scrollOffsetDelta: number,
   previous: { startOffset: number, endOffset: number },
   fresh: { start: number, end: number, count: number },
