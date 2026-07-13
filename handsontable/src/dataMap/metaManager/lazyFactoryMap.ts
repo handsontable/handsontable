@@ -4,10 +4,11 @@ import { isUnsignedNumber } from '../../helpers/number';
 
 /**
  * The maximum number of key-shift operations (from `insert`/`remove`) buffered before they are
- * force-applied. Shifts are normally applied lazily, once, on the next read, so a caller that
- * loops single-row inserts/removes (for example, `DataMap.removeRow` calls the meta layer once
- * per removed physical row) pays one re-key pass per batch instead of one per call. The cap only
- * bounds the buffer for pathological no-read loops.
+ * force-applied. Shifts are normally applied lazily, once, on the next full-view read
+ * (`size`/`values`/`entries`), so a caller that loops single-row inserts/removes (for example,
+ * `DataMap.removeRow` calls the meta layer once per removed physical row) pays one re-key pass
+ * per batch instead of one per call. Contiguous runs of same-type shifts merge into a single
+ * buffered entry, so the cap only bounds the buffer for scattered, non-mergeable loops.
  */
 const MAX_PENDING_SHIFTS = 1024;
 
@@ -60,12 +61,15 @@ function assertUnsignedKeyOrNullish(key: unknown): asserts key is number | null 
  * Values live in a single native Map keyed by the CURRENT volatile key. Lookups are a
  * single integer-keyed `Map.get` - a native Map is always a hash table, so far-apart keys
  * (for example, physical row 999990 on a million-row grid) cannot push the storage into a
- * slow mode, unlike a sparse array. Key shifts coming from `insert`/`remove` are buffered
- * and applied in a single O(materialized) re-key pass on the next read, rebuilding the map
- * in its original iteration order - which keeps `values()` returning items in order of
- * initialization and makes a loop of single-row alters pay one pass per batch, not one per
- * call. The materialized size is normally viewport-bound thanks to the render-derived cell
- * meta eviction.
+ * slow mode, unlike a sparse array. Key shifts coming from `insert`/`remove` are buffered:
+ * contiguous runs of same-type calls merge into one buffered shift, single-key reads
+ * (`obtain`/`has`/`getIfExists`/`evict`) resolve through the buffer by mapping the requested
+ * key back to its stored key in O(buffered shifts), and only full-view reads
+ * (`size`/`values`/`entries`) apply the buffer in a single O(materialized) re-key pass that
+ * rebuilds the map in its original iteration order - which keeps `values()` returning items
+ * in order of initialization and makes a loop of single-row alters pay one pass per batch,
+ * not one per call. The materialized size is normally viewport-bound thanks to the
+ * render-derived cell meta eviction.
  */
 export default class LazyFactoryMap<V = Record<string, unknown>> {
   /**
@@ -117,22 +121,35 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
   obtain(key: number): V {
     assertUnsignedKey(key);
 
+    let storedKey = key;
+
     if (this.#pendingShifts.length > 0) {
-      this.#applyPendingShifts();
+      storedKey = this.#toStoredKey(key);
+
+      // The key sits inside a pending inserted gap - no stored key can map to it, so a new
+      // value has no stored coordinate to live under until the buffer is applied.
+      if (storedKey === -1) {
+        this.#applyPendingShifts();
+        storedKey = key;
+      }
     }
 
-    let value = this.#data.get(key);
+    let value = this.#data.get(storedKey);
 
     if (value === undefined) {
       value = this.valueFactory(key);
-      this.#data.set(key, value);
+      this.#data.set(storedKey, value);
 
       if (key >= this.#length) {
         this.#length = key + 1;
       }
 
-      if (key >= this.#keyUpperBound) {
-        this.#keyUpperBound = key + 1;
+      // The bound must stay valid in both coordinate spaces: `storedKey` covers the map as
+      // stored now, `key` covers it after the buffered shifts move `storedKey` to `key`.
+      const boundKey = storedKey > key ? storedKey : key;
+
+      if (boundKey >= this.#keyUpperBound) {
+        this.#keyUpperBound = boundKey + 1;
       }
     }
 
@@ -147,20 +164,17 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
    * @returns {boolean}
    */
   has(key: number): boolean {
-    if (this.#pendingShifts.length > 0) {
-      this.#applyPendingShifts();
-    }
-
-    return this.#data.get(key) !== undefined;
+    return this.getIfExists(key) !== undefined;
   }
 
   /**
    * Inserts an empty space for new data. Materialized values stored under keys at or after
    * the insertion point are re-keyed upwards by `amount`; the inserted keys themselves stay
-   * unmaterialized until the first `obtain` call. The re-keying is buffered and applied once
-   * on the next read, so a loop of inserts costs one re-key pass, not one per call. When the
-   * insertion point sits at or above every stored key (the common case on a large grid, where
-   * only the viewport band is materialized), nothing is buffered at all.
+   * unmaterialized until the first `obtain` call. The re-keying is buffered (a contiguous run
+   * of inserts merges into one buffered shift) and applied once on the next full-view read, so
+   * a loop of inserts costs one re-key pass, not one per call. When the insertion point sits
+   * at or above every stored key (the common case on a large grid, where only the viewport
+   * band is materialized), nothing is buffered at all.
    *
    * @param {number} key The key as volatile zero-based index at which to begin inserting space for new data.
    * @param {number} [amount=1] Amount of data to insert.
@@ -183,10 +197,11 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
   /**
    * Removes (soft remove) data from the map. Materialized values stored under the removed keys
    * are dropped (freed for garbage collection) and values under higher keys are re-keyed
-   * downwards by `amount`. The re-keying is buffered and applied once on the next read, so a
-   * loop of single-row removes (for example, the per-physical-row calls made by the data layer
-   * when removing many rows at once) costs one re-key pass, not one per call. When the removal
-   * point sits at or above every stored key, nothing is buffered at all.
+   * downwards by `amount`. The re-keying is buffered (a contiguous run of removes - ascending
+   * or descending - merges into one buffered shift) and applied once on the next full-view
+   * read, so a loop of single-row removes (for example, the per-physical-row calls made by the
+   * data layer when removing many rows at once) costs one re-key pass, not one per call. When
+   * the removal point sits at or above every stored key, nothing is buffered at all.
    *
    * @param {number} key The key as volatile zero-based index at which to begin removing the data.
    * @param {number} [amount=1] Amount data to remove.
@@ -288,7 +303,13 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
    */
   evict(key: number) {
     if (this.#pendingShifts.length > 0) {
-      this.#applyPendingShifts();
+      const storedKey = this.#toStoredKey(key);
+
+      if (storedKey !== -1) {
+        this.#data.delete(storedKey);
+      }
+
+      return;
     }
 
     this.#data.delete(key);
@@ -304,7 +325,9 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
    */
   getIfExists(key: number): V | undefined {
     if (this.#pendingShifts.length > 0) {
-      this.#applyPendingShifts();
+      const storedKey = this.#toStoredKey(key);
+
+      return storedKey === -1 ? undefined : this.#data.get(storedKey);
     }
 
     return this.#data.get(key);
@@ -321,17 +344,97 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
   }
 
   /**
-   * Buffers a key-shift operation and force-applies the buffer when it grows past
-   * `MAX_PENDING_SHIFTS` (a backstop for loops that never read between mutations).
+   * Buffers a key-shift operation, first trying to merge it into the previous one (a loop of
+   * contiguous single-slot calls - such as the descending per-row removes made by
+   * `DataMap.removeRow` - collapses into a single buffered shift). When the buffer still grows
+   * past `MAX_PENDING_SHIFTS`, it is force-applied as a backstop for scattered, non-mergeable
+   * loops that never read between mutations.
    *
    * @param {object} shift The shift operation to buffer.
    */
   #bufferShift(shift: PendingShift) {
-    this.#pendingShifts.push(shift);
+    const shifts = this.#pendingShifts;
+    const last = shifts.length > 0 ? shifts[shifts.length - 1] : undefined;
 
-    if (this.#pendingShifts.length >= MAX_PENDING_SHIFTS) {
+    if (last !== undefined && last.isInsert === shift.isInsert && this.#tryMergeShift(last, shift)) {
+      return;
+    }
+
+    shifts.push(shift);
+
+    if (shifts.length >= MAX_PENDING_SHIFTS) {
       this.#applyPendingShifts();
     }
+  }
+
+  /**
+   * Merges the incoming shift into the last buffered one when the two are provably equivalent
+   * to a single wider shift, and reports whether the merge happened. Two inserts merge when the
+   * new insertion point falls inside (or at either edge of) the still-pending inserted gap. Two
+   * removes merge when they start at the same key (an ascending loop - each call removes the
+   * next value that slid down into the same spot) or when the new range ends exactly where the
+   * previous one starts (a descending loop). Both callers must operate on the same shift type.
+   *
+   * @param {object} last The shift the buffer currently ends with, mutated on merge.
+   * @param {object} shift The incoming shift.
+   * @returns {boolean}
+   */
+  #tryMergeShift(last: PendingShift, shift: PendingShift): boolean {
+    if (shift.isInsert) {
+      if (shift.start >= last.start && shift.start <= last.start + last.amount) {
+        last.amount += shift.amount;
+
+        return true;
+      }
+
+      return false;
+    }
+
+    if (shift.start === last.start) {
+      last.amount += shift.amount;
+
+      return true;
+    }
+
+    if (shift.start + shift.amount === last.start) {
+      last.start = shift.start;
+      last.amount += shift.amount;
+
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Maps a key from the current (post-shift) coordinate space back to the stored key it
+   * corresponds to in `#data`, by undoing the buffered shifts in reverse call order. Returns
+   * `-1` when the key falls inside a still-pending inserted gap - no stored key maps there.
+   * This lets single-key reads resolve through the buffer in O(buffered shifts) instead of
+   * forcing the O(materialized) re-key pass.
+   *
+   * @param {number} key The key in the current coordinate space.
+   * @returns {number}
+   */
+  #toStoredKey(key: number): number {
+    const shifts = this.#pendingShifts;
+    let storedKey = key;
+
+    for (let i = shifts.length - 1; i >= 0; i--) {
+      const { start, amount, isInsert } = shifts[i];
+
+      if (isInsert) {
+        if (storedKey >= start + amount) {
+          storedKey -= amount;
+        } else if (storedKey >= start) {
+          return -1;
+        }
+      } else if (storedKey >= start) {
+        storedKey += amount;
+      }
+    }
+
+    return storedKey;
   }
 
   /**
@@ -345,12 +448,18 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
 
     this.#pendingShifts = [];
 
+    // Suffix minima of the shift starts: `minStartFrom[i]` is the lowest start among
+    // `shifts[i..]`. A key smaller than it cannot be touched by any remaining shift, so the
+    // per-key transform loop can stop early - which matters for scattered non-mergeable
+    // batches, where most keys sit below most shift points.
+    const minStartFrom = new Array(shifts.length);
     let lowestStart = Infinity;
 
-    for (let i = 0; i < shifts.length; i++) {
+    for (let i = shifts.length - 1; i >= 0; i--) {
       if (shifts[i].start < lowestStart) {
         lowestStart = shifts[i].start;
       }
+      minStartFrom[i] = lowestStart;
     }
 
     let isAffected = false;
@@ -370,7 +479,7 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
     let highestKey = -1;
 
     for (const [itemKey, value] of this.#data) {
-      const newKey = this.#transformKey(itemKey, shifts);
+      const newKey = this.#transformKey(itemKey, shifts, minStartFrom);
 
       if (newKey !== -1) {
         shifted.set(newKey, value);
@@ -388,16 +497,23 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
 
   /**
    * Runs a stored key through the buffered shift operations in call order and returns the
-   * resulting key, or `-1` when one of the remove operations drops it.
+   * resulting key, or `-1` when one of the remove operations drops it. Stops early once the
+   * key sits below every remaining shift point (`minStartFrom` suffix minima), where it can
+   * no longer change.
    *
    * @param {number} key The stored key to transform.
    * @param {object[]} shifts The buffered shift operations, in call order.
+   * @param {number[]} minStartFrom For each position, the lowest shift start from there on.
    * @returns {number}
    */
-  #transformKey(key: number, shifts: PendingShift[]): number {
+  #transformKey(key: number, shifts: PendingShift[], minStartFrom: number[]): number {
     let currentKey = key;
 
     for (let i = 0; i < shifts.length; i++) {
+      if (currentKey < minStartFrom[i]) {
+        return currentKey;
+      }
+
       const { start, amount, isInsert } = shifts[i];
 
       if (isInsert) {

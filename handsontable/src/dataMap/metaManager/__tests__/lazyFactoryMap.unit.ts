@@ -1,7 +1,7 @@
 import LazyFactoryMap from '../lazyFactoryMap';
 
 /**
- *
+ * Creates a LazyFactoryMap with a default factory that mints `{ i: key }` objects.
  */
 function createLazyFactoryMap(valueFactory) {
   if (!valueFactory) {
@@ -778,7 +778,7 @@ describe('LazyFactoryMap', () => {
       for (const [key, value] of map) {
         if (key === 0) {
           map.remove(0, 1); // buffered...
-          map.has(0); // ...and flushed by this read, replacing the internal map
+          map.size(); // ...and flushed by this full-view read, replacing the internal map
         }
         visited.push([key, value]);
       }
@@ -821,6 +821,123 @@ describe('LazyFactoryMap', () => {
       expect(map.has(0)).toBe(false);
       expect(map.has(1)).toBe(false);
       expect(map.has(2)).toBe(false);
+    });
+
+    it('should apply a descending run of single-slot removes as one consistent shift', () => {
+      const map = createLazyFactoryMap();
+      const values = [];
+
+      for (let i = 0; i < 10; i++) {
+        values.push(map.obtain(i));
+      }
+
+      // mirrors DataMap.removeRow exactly: it removes physical rows in DESCENDING order
+      map.remove(3, 1);
+      map.remove(2, 1);
+      map.remove(1, 1);
+
+      expect(map.size()).toBe(7);
+      expect(map.obtain(0)).toBe(values[0]);
+      expect(map.obtain(1)).toBe(values[4]);
+      expect(map.obtain(6)).toBe(values[9]);
+      expect(map.has(7)).toBe(false);
+    });
+
+    it('should apply a contiguous run of single-slot inserts as one consistent shift', () => {
+      const map = createLazyFactoryMap();
+      const before = map.obtain(1);
+      const after = map.obtain(2);
+
+      map.insert(2, 1);
+      map.insert(2, 1);
+      map.insert(2, 1);
+
+      expect(map.obtain(1)).toBe(before);
+      expect(map.obtain(5)).toBe(after);
+      expect(map.has(2)).toBe(false);
+      expect(map.has(3)).toBe(false);
+      expect(map.has(4)).toBe(false);
+      expect(map.size()).toBe(2);
+    });
+
+    it('should answer has()/getIfExists() through a pending buffer, including inserted gaps', () => {
+      const map = createLazyFactoryMap();
+      const v0 = map.obtain(0);
+      const v1 = map.obtain(1);
+
+      map.insert(1, 3);
+
+      expect(map.has(0)).toBe(true);
+      expect(map.getIfExists(0)).toBe(v0);
+      expect(map.has(1)).toBe(false);
+      expect(map.has(2)).toBe(false);
+      expect(map.has(3)).toBe(false);
+      expect(map.getIfExists(4)).toBe(v1);
+      expect(map.size()).toBe(2);
+    });
+
+    it('should mint a new value at its post-shift key while shifts are still buffered', () => {
+      const map = createLazyFactoryMap();
+
+      map.obtain(0);
+      const v1 = map.obtain(1);
+      const v2 = map.obtain(2);
+
+      map.remove(0, 1);
+
+      const minted = map.obtain(5);
+
+      expect(map.obtain(5)).toBe(minted);
+      expect(map.obtain(0)).toBe(v1);
+      expect(map.obtain(1)).toBe(v2);
+      expect(map.size()).toBe(3);
+      // still the same value after the flush triggered by size()
+      expect(map.obtain(5)).toBe(minted);
+    });
+
+    it('should mint into a pending inserted gap and keep the surrounding values consistent', () => {
+      const map = createLazyFactoryMap();
+      const v0 = map.obtain(0);
+      const v1 = map.obtain(1);
+
+      map.insert(1, 2);
+
+      const minted = map.obtain(2);
+
+      expect(map.obtain(0)).toBe(v0);
+      expect(map.obtain(2)).toBe(minted);
+      expect(map.obtain(3)).toBe(v1);
+      expect(map.size()).toBe(3);
+    });
+
+    it('should evict through a pending buffer without disturbing the buffered shift', () => {
+      const map = createLazyFactoryMap();
+      const v0 = map.obtain(0);
+      const v2 = map.obtain(2);
+
+      map.obtain(1);
+      map.remove(0, 1);
+
+      map.evict(0); // post-shift key 0 holds the value initialized at key 1
+
+      expect(map.obtain(1)).toBe(v2);
+      // only v2 survives: v0 was dropped by the remove, the evicted value is gone
+      expect(map.size()).toBe(1);
+      expect(v0).toEqual({ i: 0 }); // caller-held reference intact
+    });
+
+    it('should keep minted identities across a forced flush of non-mergeable shifts', () => {
+      const map = createLazyFactoryMap();
+      const tracked = map.obtain(0);
+
+      // alternating insertion points never merge, so the buffer crosses the flush backstop
+      for (let i = 0; i < 1200; i++) {
+        map.insert(0, 1);
+        map.insert(2, 1);
+      }
+
+      expect(map.obtain(2399)).toBe(tracked);
+      expect(map.size()).toBe(1);
     });
   });
 });
