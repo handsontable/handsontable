@@ -28,6 +28,65 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # Pillar 1 enforcement: source changed ⇒ a matching test changed, and new E2E
+  # is Playwright (a new Jasmine *.spec.js is flagged). Warn mode — it reports
+  # via the job summary but does not block. Flip to block in a later change once
+  # the suite is proven. Needs only node + git history, no build.
+  test-presence-gate:
+    name: "[CHECK] Test presence"
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          fetch-depth: 0
+      - name: Evaluate test-presence gate (warn)
+        run: node .github/scripts/test-presence-gate.mjs | tee -a "$GITHUB_STEP_SUMMARY"
+        env:
+          GATE_MODE: warn
+          GATE_BASE: ${{ github.event.pull_request.base.sha }}
+      - name: Detect weakened specs (warn)
+        run: node .github/scripts/test-weakening-gate.mjs | tee -a "$GITHUB_STEP_SUMMARY"
+        env:
+          GATE_BASE: ${{ github.event.pull_request.base.sha }}
+
+  # Functional Playwright E2E (tests/e2e). Runs inside the pinned Playwright
+  # container so the engine + browsers match local and baseline generation
+  # exactly; the version here tracks the tests/ package (bump together).
+  # Consumes the UMD build artifact — the fixture serves handsontable/dist.
+  test-e2e-playwright:
+    name: "[TEST] E2E (Playwright)"
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.61.1-noble
+    needs: [ check-scope, build-handsontable-umd ]
+    if: |
+      needs.check-scope.outputs.run-all == 'true' ||
+      needs.check-scope.outputs.build-handsontable-umd == 'true'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+
+      - name: Download the Handsontable UMD build artifact
+        uses: actions/download-artifact@70fc10c6e5e1ce46ad2ea6f2b72d43f7d47b13c3 # https://github.com/actions/download-artifact/releases/tag/v8.0.0
+        with:
+          name: handsontable-build-umd
+
+      - run: tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
+
+      - name: Install the Playwright test package
+        run: cd tests && npm ci
+
+      - name: Run Playwright E2E
+        run: cd tests && npx playwright test --project=e2e-chromium
+
+      - name: Upload the Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: playwright-report
+          path: tests/playwright-report
+          retention-days: 3
+
   check-scope:
     name: Check the scope
     runs-on: ubuntu-latest

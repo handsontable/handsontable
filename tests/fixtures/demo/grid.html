@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <link rel="stylesheet" href="/handsontable/styles/ht-theme-main.min.css">
+  <style> body { font-family: sans-serif; margin: 1rem; } #toolbar { margin-bottom: .8rem; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture. Cells are stamped with data-testid via a renderer so tests hook
+    into them unambiguously (data-testid="cell-<row>-<col>") instead of brittle
+    structural selectors. This mirrors the convention the authoring skill teaches.
+  -->
+  <div id="toolbar">
+    <button data-testid="add-row" type="button">Add row</button>
+  </div>
+  <div id="grid" data-testid="grid" class="ht-theme-main"></div>
+
+  <script src="/handsontable/dist/handsontable.full.min.js"></script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    const hot = new Handsontable(container, {
+      data: [
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A3', 'B3', 'C3'],
+        ['A4', 'B4', 'C4'],
+        ['A5', 'B5', 'C5'],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      renderer: testIdRenderer,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    document.querySelector('[data-testid="add-row"]').addEventListener('click', () => {
+      hot.alter('insert_row_below', hot.countRows() - 1);
+    });
+  </script>
+</body>
+</html>

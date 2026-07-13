@@ -28,3 +28,8 @@ docs/.env
 /docs/*.png
 # Added by code-review-graph
 .code-review-graph/
+
+# QA overhaul planning scaffold — ephemeral. Durable rules/skills/conventions
+# must be promoted into the committed repo structure (AGENTS.md, .ai/,
+# .claude/skills/, ESLint rules, hooks); nothing shipped may reference this dir.
+quality/

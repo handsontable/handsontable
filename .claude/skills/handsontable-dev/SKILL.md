@@ -25,8 +25,10 @@ Always invoke `handsontable-code-review` (architecture dimension) alongside the 
 | Create / modify a **renderer** | `handsontable-renderer-dev` |
 | Create / modify a **validator** | `handsontable-validator-dev` |
 | Create / modify a **cell type** | `handsontable-celltype-dev` |
-| Write / modify **E2E tests** (`*.spec.js`) | `handsontable-e2e-testing` |
+| Write a **new E2E test** | `handsontable-playwright-e2e` (Playwright, `tests/e2e/`) |
+| Maintain a **legacy E2E test** (`*.spec.js`, frozen) | `handsontable-e2e-testing` |
 | Write / modify **unit tests** (`*.unit.js`) | `handsontable-unit-testing` |
+| Make a test actually prove behavior | `test-writing-discipline` |
 | Build a **demo / test page** | `handsontable-demo-page` |
 | Work on **CSS / themes** | `handsontable-css-dev` |
 | Walkontable rendering engine | `walkontable-dev` / `walkontable-testing` |
@@ -369,7 +371,7 @@ The CI `verify-emitted-types` job reports the exact leaked identifier with `TS23
 - [ ] No `as` / `any` casts introduced — used generics or `unknown` + guards instead
 - [ ] No `.d.ts` files hand-edited
 - [ ] Unit tests written (`*.unit.js`) — pure logic, no mocks
-- [ ] E2E tests written (`*.spec.js`) — DOM / rendering behavior
+- [ ] E2E tests written — Playwright in `tests/e2e/` (new); the legacy `*.spec.js` suite is frozen
 - [ ] `npm run build` (or `build:types` + `downlevel:types`) run if public types changed
 - [ ] Wired into all relevant index / factory files
 - [ ] Added to `metaSchema.ts` if a new option was introduced
