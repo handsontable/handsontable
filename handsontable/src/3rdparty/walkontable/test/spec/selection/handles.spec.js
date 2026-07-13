@@ -25,6 +25,10 @@ describe('WalkontableSelectionHandles', () => {
       border: {
         width: 2,
         color: 'blue',
+        // On desktop data-view instances, handle elements are always created regardless of
+        // `adjustHandlesVisible` — this setting only gates their VISIBILITY during positioning.
+        // The positioning / visibility behaviour is exercised by the tests added in the next task.
+        // Keep `adjustHandlesVisible` in place: later tests rely on it to opt in to the feature.
         adjustHandlesVisible() {
           return true;
         }

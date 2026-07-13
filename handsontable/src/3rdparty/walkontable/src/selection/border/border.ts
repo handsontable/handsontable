@@ -313,7 +313,7 @@ class Border {
     if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
       this.createMultipleSelectorHandles();
     }
-    if (!isMobileBrowser()) {
+    if (!isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
       this.createAdjustHandles();
     }
     this.disappear();
