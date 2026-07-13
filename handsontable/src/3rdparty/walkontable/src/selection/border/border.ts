@@ -387,24 +387,41 @@ class Border {
 
   /**
    * Creates the four edge-adjustment handle elements used by the `selectionHandles` feature.
+   * Visual styling (size, background, border, border-radius) is read from CSS variables via
+   * the stylesHandler and applied as inline styles so that `positionAdjustHandles` can read the
+   * dimensions directly from `el.style.*` without forcing a layout-recalculating `getComputedStyle`.
    */
   createAdjustHandles() {
-    const { rootDocument } = this.wot;
-    const make = (edge: string) => {
+    const { rootDocument, wtSettings } = this.wot;
+    const stylesHandler = wtSettings.getSetting('stylesHandler');
+    const size = stylesHandler.getCSSVariableValue('cell-selection-handle-size');
+    const borderWidth = stylesHandler.getCSSVariableValue('cell-selection-handle-border-width');
+    const borderRadius = stylesHandler.getCSSVariableValue('cell-selection-handle-border-radius');
+    const borderColor = stylesHandler.getCSSVariableValue('cell-selection-handle-border-color');
+    const backgroundColor = stylesHandler.getCSSVariableValue('cell-selection-handle-background-color');
+
+    const make = (edge: string, cursor: string) => {
       const el = rootDocument.createElement('div');
 
       el.className = `wtSelectionHandle wtSelectionHandle--${edge}`;
       el.style.position = 'absolute';
       el.style.display = 'none';
+      el.style.width = `${size}px`;
+      el.style.height = `${size}px`;
+      el.style.background = `${backgroundColor}`;
+      el.style.border = `${borderWidth}px solid ${borderColor}`;
+      el.style.borderRadius = `${borderRadius}px`;
+      el.style.boxSizing = 'border-box';
+      el.style.cursor = cursor;
       this.main!.appendChild(el);
 
       return el;
     };
 
-    const top = make('top');
-    const bottom = make('bottom');
-    const start = make('start');
-    const end = make('end');
+    const top = make('top', 'ns-resize');
+    const bottom = make('bottom', 'ns-resize');
+    const start = make('start', 'ew-resize');
+    const end = make('end', 'ew-resize');
 
     this.adjustHandles = {
       top,

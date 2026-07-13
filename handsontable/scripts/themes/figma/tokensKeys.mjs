@@ -82,6 +82,13 @@ const tokensKeys = [
   'cell-mobile-handle-background-color',
   'cell-mobile-handle-background-opacity',
 
+  // Cell Selection Handle Variables
+  'cell-selection-handle-size',
+  'cell-selection-handle-border-width',
+  'cell-selection-handle-border-radius',
+  'cell-selection-handle-border-color',
+  'cell-selection-handle-background-color',
+
   // Header Variables
   'header-font-weight',
   'header-foreground-color',

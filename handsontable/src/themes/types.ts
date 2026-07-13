@@ -151,6 +151,12 @@ export type TokenKey =
   | 'cellMobileHandleBorderColor'
   | 'cellMobileHandleBackgroundColor'
   | 'cellMobileHandleBackgroundOpacity'
+  // Cell selection handle
+  | 'cellSelectionHandleSize'
+  | 'cellSelectionHandleBorderWidth'
+  | 'cellSelectionHandleBorderRadius'
+  | 'cellSelectionHandleBorderColor'
+  | 'cellSelectionHandleBackgroundColor'
   // Resize/Move indicators
   | 'resizeIndicatorColor'
   | 'moveBacklightColor'
