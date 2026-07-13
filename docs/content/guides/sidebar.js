@@ -41,6 +41,7 @@ const dataManagementItems = [
   { path: 'guides/getting-started/binding-to-data/binding-to-data' },
   { path: 'guides/getting-started/saving-data/saving-data' },
   { path: 'guides/getting-started/events-and-hooks/events-and-hooks' },
+  { path: 'guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes' },
   { path: 'guides/accessories-and-menus/export-to-excel/export-to-excel' },
   { path: 'guides/accessories-and-menus/export-to-csv/export-to-csv' },
   { path: 'guides/cell-features/clipboard/clipboard' },

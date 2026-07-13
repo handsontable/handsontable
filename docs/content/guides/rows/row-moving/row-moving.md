@@ -110,6 +110,8 @@ In React, binding the [`data`](@/api/options.md#data) prop to a state variable d
 
 :::
 
+For more on how physical and visual indexes relate, see [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
+
 ## Result
 
 After completing this guide, you can reorder rows by dragging them with the mouse or by calling `dragRows()` and `moveRows()` programmatically. You can also set a pre-defined row order at initialization.

@@ -188,6 +188,14 @@ When Handsontable fires [`beforeChange`](@/api/hooks.md#beforechange) or [`after
 
 :::
 
+## Autofill and formulas
+
+With the [`Formulas`](@/guides/formulas/formula-calculation/formula-calculation.md) plugin enabled, autofill delegates to the HyperFormula engine instead of copying cell contents literally:
+
+- **Relative references adjust per target cell.** Filling `=A1+B1` down from row 1 to row 2 produces `=A2+B2` in the new cell, the same way a spreadsheet application adjusts formulas on fill.
+- **Absolute references stay fixed.** Filling `=$A$1+B1` down keeps `$A$1` unchanged in every filled cell, while the relative `B1` part still adjusts.
+- **The fill is cancelled** if the engine reports that the target cells can't be written to (for example, because they're part of another formula's dependency chain), leaving the target range unchanged.
+
 ## Result
 
 The fill handle appears on the selected cell. Dragging it copies or extends values into adjacent cells in the configured direction.
