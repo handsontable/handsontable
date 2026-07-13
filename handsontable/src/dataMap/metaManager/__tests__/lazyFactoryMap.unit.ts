@@ -746,6 +746,67 @@ describe('LazyFactoryMap', () => {
       expect(map.size()).toBe(2);
     });
 
+    it('should keep iterating the pre-shift view when insert/remove happen mid-loop', () => {
+      const map = createLazyFactoryMap();
+      const v0 = map.obtain(0);
+      const v1 = map.obtain(1);
+      const v2 = map.obtain(2);
+      const visited = [];
+
+      for (const [key, value] of map) {
+        if (key === 0) {
+          map.insert(0, 5); // buffered; must not disturb this walk
+          map.remove(6, 1); // buffered (post-shift key of v1)
+        }
+        visited.push([key, value]);
+      }
+
+      expect(visited).toEqual([[0, v0], [1, v1], [2, v2]]);
+      // the buffered shifts apply on the next read: 0->5 (v0), 1->6 (dropped), 2->7->6 (v2)
+      expect(map.obtain(5)).toBe(v0);
+      expect(map.obtain(6)).toBe(v2);
+      expect(map.size()).toBe(2);
+    });
+
+    it('should complete a walk over the map it started on when a read flushes mid-loop', () => {
+      const map = createLazyFactoryMap();
+      const v0 = map.obtain(0);
+      const v1 = map.obtain(1);
+      const v2 = map.obtain(2);
+      const visited = [];
+
+      for (const [key, value] of map) {
+        if (key === 0) {
+          map.remove(0, 1); // buffered...
+          map.has(0); // ...and flushed by this read, replacing the internal map
+        }
+        visited.push([key, value]);
+      }
+
+      // the walk still completes over the pre-shift view it started on
+      expect(visited).toEqual([[0, v0], [1, v1], [2, v2]]);
+      expect(map.obtain(0)).toBe(v1);
+      expect(map.obtain(1)).toBe(v2);
+      expect(map.size()).toBe(2);
+    });
+
+    it('should visit a value materialized mid-loop for a new key (native Map iterator semantics)', () => {
+      const map = createLazyFactoryMap();
+
+      map.obtain(0);
+
+      const visitedKeys = [];
+
+      for (const [key] of map) {
+        if (key === 0) {
+          map.obtain(1);
+        }
+        visitedKeys.push(key);
+      }
+
+      expect(visitedKeys).toEqual([0, 1]);
+    });
+
     it('should not resurrect values removed within a batch', () => {
       const map = createLazyFactoryMap();
 

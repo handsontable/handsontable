@@ -207,10 +207,20 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
     }
 
     const removedCount = Math.max(Math.min(this.#length - start, amount), 0);
+    const isBeyondStoredKeys = start >= this.#keyUpperBound;
 
     this.#length -= removedCount;
 
-    if (start >= this.#keyUpperBound) {
+    // Every stored key is smaller than `#length` both before and after a remove, so the upper
+    // bound can be tightened to the new length. Without this, a remove would leave the bound
+    // stale-high and a later append-at-end `insert(null)` (for example, the `minSpareRows`
+    // spare-row top-up on every keystroke in the last row) would buffer a shift that can never
+    // affect a stored key.
+    if (this.#keyUpperBound > this.#length) {
+      this.#keyUpperBound = this.#length;
+    }
+
+    if (isBeyondStoredKeys) {
       return;
     }
 
@@ -247,8 +257,14 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
 
   /**
    * Returns a new Iterator object that contains an array of `[index, value]` for each item in
-   * the LazyMap object, in order of value initialization. The iterator is live: releasing the
-   * currently visited key during iteration (as `CellMeta.evictRow` does through `evict`) is safe.
+   * the LazyMap object, in order of value initialization.
+   *
+   * Mutation-during-iteration contract (also applies to `values()`): the iterator follows
+   * native Map semantics. Releasing the currently visited key through `evict` (as
+   * `CellMeta.evictRow` does) is safe; a value materialized mid-loop through `obtain` of a new
+   * key WILL be visited. Calling `insert`/`remove` mid-loop only buffers the key shift, so the
+   * walk continues undisturbed over the pre-shift view; if another read flushes the buffered
+   * shifts mid-loop, the walk still completes over the pre-shift map it started on.
    *
    * @returns {Iterator}
    */
@@ -351,16 +367,23 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
     }
 
     const shifted = new Map<number, V>();
+    let highestKey = -1;
 
     for (const [itemKey, value] of this.#data) {
       const newKey = this.#transformKey(itemKey, shifts);
 
       if (newKey !== -1) {
         shifted.set(newKey, value);
+
+        if (newKey > highestKey) {
+          highestKey = newKey;
+        }
       }
     }
 
     this.#data = shifted;
+    // The rebuild visits every entry anyway, so the key upper bound can be made exact for free.
+    this.#keyUpperBound = highestKey + 1;
   }
 
   /**
