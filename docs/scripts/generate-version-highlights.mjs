@@ -1,6 +1,6 @@
 import { access, mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const DEFAULT_DIR = join(dirname(fileURLToPath(import.meta.url)), '../content/data/version-highlights');
 
@@ -46,7 +46,14 @@ export async function generateHighlightsScaffold(version, directory = DEFAULT_DI
   return { status: 'created', filePath };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// process.argv[1] is not resolved to an absolute path when the script is
+// invoked with a relative one (e.g. `node docs/scripts/generate-version-highlights.mjs`,
+// as publish.yml does), so comparing it to import.meta.url as a plain string
+// would never match. pathToFileURL() resolves it the same way Node resolves
+// import.meta.url, so the comparison works regardless of how the script is invoked.
+const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isMainModule) {
   const [version] = process.argv.slice(2);
 
   if (!version) {
