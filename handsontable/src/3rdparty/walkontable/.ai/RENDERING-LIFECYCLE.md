@@ -143,6 +143,40 @@ cells." The hint is **downgraded to a full draw** by two checks (master only, `t
 A fast draw skips the filter recreation, cell/header render, and the post-render steps — it runs only the
 prepare step and the fixed-position/selection tail.
 
+### Scroll-driven draws: stationary bands + directional overscan
+
+`runDrawCycle` passes `{ stationaryBands: wtOverlays.isScrollDrivenDraw && wtViewport.allowsStationaryBands() }`
+into `createCalculators` (`table/drawCycle.ts`). `allowsStationaryBands()` (`viewport/calculatorFactory.ts`)
+= `singlePassLayout` on + not window-scrolled — looser than the strict snapshot gate; it does NOT require
+uniform sizes. Under that flag, a full draw post-processes the freshly computed rendered bands in a fixed
+order (order is load-bearing — see CONCERNS "Directional overscan invariants"):
+
+1. **Directional overscan** (`applyRenderedColumnsBandOverscan` / `applyRenderedRowsBandOverscan`): extends
+   the band by `min(ceil(count / 2), cap)` tracks **toward the scroll direction** (caps:
+   `COLUMN_BAND_OVERSCAN_MAX = 8`, `ROW_BAND_OVERSCAN_MAX = 4` — tuned for perceived smoothness, see the
+   constants' JSDoc). Consecutive scroll steps then land inside the rendered band and resolve as fast
+   draws. Gated per axis to the offset option's `'auto'` mode (`viewport{Row,Column}RenderingOffsetIsAuto`,
+   wired from `TableView`; an explicit number = exact manual offset, no overscan) and to uniform track
+   sizes (`columnWidthsUniform` / `rowHeightsUniform` — with measured or varying sizes the pixel cost and
+   the start-side pixel anchor are not predictable). The scroll direction is the sign of the zero-based
+   scroll-offset delta between consecutive full draws (captured on the rendered calculation results in
+   `finalize()`); a zero delta (the other axis scrolled) preserves an existing overscan side — proven only
+   by a recorded side offset **> 1** — and never invents one. Start-side growth recomputes `startPosition`
+   from the axis prefix-sum cache. The applied overscan is recorded in the band's side offsets, so the
+   `viewport*RenderingThreshold` containment padding in `areAllProposedVisible*AlreadyRendered` caps
+   against the real overscan. Any non-scroll full draw recomputes natural bands, dropping the overscan.
+2. **Band stabilization** (`stabilizeRenderedRowsBand` / `stabilizeRenderedColumnsBand`): extends the new
+   band to keep the previous draw's band SIZE, so the `OrderView`s never add or remove TR/TD/TH/COL nodes
+   while scrolling — a structural DOM mutation would trigger the host page's `:has()` style invalidation,
+   whose cost scales with the host document. Both axes stabilize on ANY scroll-driven draw (per-axis
+   gating would let each axis shrink the other's band back and re-oscillate it). Works for non-uniform
+   sizes too.
+
+Specs: `test/spec/scroll/stationaryColumnsBandOverscan.spec.js`, `stationaryRowsBandOverscan.spec.js`
+(directional extension, fast draws inside the overscan, pixel parity vs `draw(false)`, zero-delta rules,
+opt-outs, zero structural mutations, RTL); `test/unit/viewport/calculatorFactory.unit.js` (the pure
+`directionalBandOverscan` helper).
+
 ---
 
 ## 5. The draw phases

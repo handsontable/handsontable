@@ -74,8 +74,9 @@ On every render Walkontable recomputes which rows and columns are visible, based
 - `calculator/viewportBase.ts` and `calculator/axisCalculation.ts` hold the shared per-axis math.
 - `calculator/calculationType/` defines the calculation modes (for example, fully-visible vs. partially-visible boundaries).
 - The result feeds `viewport/viewport.ts`, which holds the resolved visible ranges used during the draw.
+- `viewport/calculatorFactory.ts` (a `Viewport` mixin) builds the calculators and post-processes the rendered bands on scroll-driven draws: **directional overscan** (the `viewport*RenderingOffset: 'auto'` mode extends the band up to 8 columns / 4 rows toward the scroll direction; uniform-size axes only) followed by **band stabilization** (each band keeps its previous size, so scrolling never adds or removes TR/TD/TH/COL nodes — the stationary-DOM invariant). See RENDERING-LIFECYCLE §4.
 
-Only the visible cells plus the buffer are rendered. Hidden rows/columns are excluded from renderable indexes and contribute zero size to layout.
+Only the visible cells plus the buffer are rendered. The buffer per axis is the offset option's static resolution (1 track per side under `'auto'`, or the explicit number) plus, during scrolling, the directional overscan above. Hidden rows/columns are excluded from renderable indexes and contribute zero size to layout.
 
 ## Renderer and DOM/Cell Reuse
 

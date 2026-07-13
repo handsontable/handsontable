@@ -86,6 +86,8 @@ export default class Settings implements SettingsPort {
   getSetting(key: 'defaultColumnWidth'): number | undefined;
   getSetting(key: 'viewportRowRenderingThreshold'): number | 'auto';
   getSetting(key: 'viewportColumnRenderingThreshold'): number | 'auto';
+  getSetting(key: 'viewportRowRenderingOffsetIsAuto'): boolean;
+  getSetting(key: 'viewportColumnRenderingOffsetIsAuto'): boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   getSetting<T = any>(key: string, param1?: any, param2?: unknown, param3?: unknown, param4?: unknown): T;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

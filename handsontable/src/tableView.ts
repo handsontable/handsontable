@@ -803,6 +803,10 @@ class TableView {
       preventWheel: () => this.settings.preventWheel,
       viewportColumnRenderingThreshold: () => this.settings.viewportColumnRenderingThreshold,
       viewportRowRenderingThreshold: () => this.settings.viewportRowRenderingThreshold,
+      // 'auto' is the dynamic-overscan mode; an explicit number is an exact manual offset, which
+      // also opts the axis out of the engine's directional scroll-overscan.
+      viewportColumnRenderingOffsetIsAuto: () => this.settings.viewportColumnRenderingOffset === 'auto',
+      viewportRowRenderingOffsetIsAuto: () => this.settings.viewportRowRenderingOffset === 'auto',
       data: (renderableRow: number, renderableColumn: number) => {
         const [visualRow, visualCol] = this.translateFromRenderableToVisualIndex(renderableRow, renderableColumn);
 
