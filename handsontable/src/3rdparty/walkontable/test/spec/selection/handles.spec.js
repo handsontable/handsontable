@@ -105,6 +105,22 @@ describe('WalkontableSelectionHandles', () => {
 
     // Start and end handles share the same vertical midpoint (both centred on the same row span).
     expect(styles.start.top).toBe(styles.end.top);
+
+    // Numeric non-tautological assertion: the top handle's left must land at the midpoint of the
+    // border's horizontal span, offset by half the handle size (half = 4 for an 8px handle).
+    // Expected: borderLeft + round(borderWidth / 2) - 4.
+    // Tolerance of ±2 px accounts for sub-pixel rounding in the implementation.
+    const borderLeft = parseInt(focusBorder.topStyle.left, 10);
+    const borderWidth = parseInt(focusBorder.topStyle.width, 10);
+    const half = 4; // handleSize / 2
+    const expectedTopHandleLeft = borderLeft + Math.round(borderWidth / 2) - half;
+
+    expect(Math.abs(parseInt(styles.top.left, 10) - expectedTopHandleLeft)).toBeLessThanOrEqual(2);
+
+    // The top handle must also fall strictly inside the border's horizontal extent, confirming it
+    // is genuinely centred and not clamped to an edge.
+    expect(parseInt(styles.top.left, 10)).toBeGreaterThan(borderLeft);
+    expect(parseInt(styles.top.left, 10)).toBeLessThan(borderLeft + borderWidth);
   });
 
   it('should hide the top handle when the selection top edge is at row 0', async() => {

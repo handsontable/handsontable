@@ -1444,6 +1444,7 @@ class Border {
    * whose edge is flush with the grid boundary. Called at the end of `appear()` when the
    * `selectionHandles` feature is enabled for this highlight.
    *
+   * @private
    * @param {number} top The selection border top (px, container-relative).
    * @param {number} inlineStart The selection border inline-start (px, container-relative).
    * @param {number} width The selection border width (px).
@@ -1457,6 +1458,10 @@ class Border {
     const [fromRow, fromColumn, toRow, toColumn] = corners;
     const lastRow = (this.wot.getSetting('totalRows') as number) - 1;
     const lastColumn = (this.wot.getSetting('totalColumns') as number) - 1;
+    // The handle size is read from the element's inline style (not computed style, which would be a
+    // forbidden layout-forcing read). The handle dimensions must therefore be set as inline styles
+    // when the handles are created (see createAdjustHandles + the theme sizing task); if only a
+    // stylesheet rule sets the size, this reads 0 and the `- half` centering offset is skipped.
     const size = parseInt(this.adjustHandles.styles.top.height || '0', 10) ||
       parseInt(this.adjustHandles.styles.top.width || '0', 10);
     const half = Math.round(size / 2);
