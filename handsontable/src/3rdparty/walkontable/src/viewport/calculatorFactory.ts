@@ -50,21 +50,23 @@ export interface CalculatorFactory {
 
 /**
  * The cap on the directional column-band overscan (see
- * {@link CalculatorFactory#applyRenderedColumnsBandOverscan}). Sized from measurement on a
- * 50k-row/300-column grid: 16 columns of overscan turn most horizontal scroll steps into fast
- * draws (frame p50 ~50 ms → ~10 ms) while keeping the band-crossing draw's own cost bounded —
- * at 32 the crossing draw's worst frame grew from ~70 ms to ~100 ms, so bigger is not better.
+ * {@link CalculatorFactory#applyRenderedColumnsBandOverscan}). Tuned on a 50k-row/300-column grid
+ * for perceived smoothness, not raw totals: raising the cap makes band-crossing stalls rarer but
+ * taller (0 → a ~40 ms stall on nearly every scroll frame; 8 → a ~50 ms stall every ~10 frames;
+ * 16 → every ~19 frames but up to ~60 ms). The 60 ms class reads as a visible catch during smooth
+ * scrolling, so 8 trades a few more pauses for keeping every pause in the mild 40–50 ms class.
  */
-const COLUMN_BAND_OVERSCAN_MAX = 16;
+const COLUMN_BAND_OVERSCAN_MAX = 8;
 
 /**
  * The cap on the directional row-band overscan (see
- * {@link CalculatorFactory#applyRenderedRowsBandOverscan}). Rows tolerate a higher cap than columns:
- * measured on a 200k-row/300-column grid, half-viewport overscan converts one-notch wheel steps
- * (~120 px = 6 rows) and even aggressive 500 px flick steps into fast draws, while the crossing
- * draw's extra cost stays within the same frame class the natural draw already pays.
+ * {@link CalculatorFactory#applyRenderedRowsBandOverscan}). Tuned the same way: at 4, one-notch
+ * wheel steps (~120 px = 6 rows) drop from a ~30 ms full draw nearly every frame to almost none
+ * (hitches over 33 ms: ~22 → 2) while the worst frame stays in the same ~40 ms class as no
+ * overscan at all. Higher caps look better on medians but grow the band every full draw must
+ * re-render, pushing fast-flick (~25 rows/frame) stalls into the 50–60 ms class.
  */
-const ROW_BAND_OVERSCAN_MAX = 32;
+const ROW_BAND_OVERSCAN_MAX = 4;
 
 /**
  * Decides the directional overscan for a freshly computed render band: which side of the band to

@@ -86,7 +86,8 @@ describe('Walkontable directional row band overscan on vertical scroll', () => {
 
     expect(band.startRow).toBe(3);
     expect(band.rowStartOffset).toBe(0);
-    expect(band.rowEndOffset).toBeGreaterThan(4);
+    // half the ~17-row viewport exceeds the cap, so the extension equals ROW_BAND_OVERSCAN_MAX
+    expect(band.rowEndOffset).toBe(4);
   });
 
   it('should resolve the scroll steps inside the overscan as fast draws (no cell renders)', async() => {
@@ -119,7 +120,8 @@ describe('Walkontable directional row band overscan on vertical scroll', () => {
     const band = renderedBand(wt);
 
     expect(band.startRow).toBeLessThan(59);
-    expect(band.rowStartOffset).toBeGreaterThan(4);
+    // half the ~17-row viewport exceeds the cap, so the extension equals ROW_BAND_OVERSCAN_MAX
+    expect(band.rowStartOffset).toBe(4);
 
     cellRenderer.calls.reset();
 
