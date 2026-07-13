@@ -660,6 +660,8 @@ You can also use the built-in mechanism of the Angular wrapper to update data. W
 
 To modify just a subset of data passed to Handsontable, these are the methods you might want to check out:
 
+Every accepted change -- even a single cell -- makes Handsontable re-render all visible cells. When you call several of these methods one after another, wrap them in [`batch()`](@/guides/optimization/batch-operations/batch-operations.md) so the grid renders only once.
+
 <ol class="sl-steps">
 <li>
 
@@ -711,7 +713,7 @@ hot.setDataAtRowProp(changes);
 
 **[`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell)**
 
-As the displayed data coordinates can differ from the way it's stored internally, sometimes you might need to target the cells more directly - that's when [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) comes in handy. The `row` and `columns`/`prop` arguments represent the *physical* indexes.
+As the displayed data coordinates can differ from the way it's stored internally, sometimes you might need to target the cells more directly - that's when [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) comes in handy. The `row` and `columns`/`prop` arguments represent the *physical* indexes. To learn how physical and visual indexes relate, see [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
 
 ```js
 // Replaces the cell contents at the (0, 2) coordinates (0 being the

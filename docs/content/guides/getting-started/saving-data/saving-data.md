@@ -17,6 +17,7 @@ vue:
   metaTitle: Saving data - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 Save data after each change to the data set, using Handsontable's API hooks. Preserve the table's state by saving data to the local storage.
 
@@ -80,6 +81,8 @@ To persist table state (e.g. column order, column widths, row order) across page
 
 The [`afterChange`](@/api/hooks.md#afterchange) hook does not fire for structural changes such as row moves. To save a new row order, listen to [`afterRowMove`](@/api/hooks.md#afterrowmove) and read the current order with [`getData()`](@/api/core.md#getdata). For more on how moves affect the data model, see [Row moving](@/guides/rows/row-moving/row-moving.md#data-model-behavior).
 
+If your save logic writes several confirmed values back to the grid at once (for example, after a batch save completes), wrap those writes in [`batch()`](@/guides/optimization/batch-operations/batch-operations.md) so the grid re-renders only once.
+
 ## Result
 
 Changes made in the grid are now persisted to your backend or local state on every edit.
@@ -91,6 +94,7 @@ Changes made in the grid are now persisted to your backend or local state on eve
 <div class="boxes-list">
 
 - [updateSettings()](@/api/core.md#updatesettings)
+- [batch()](@/api/core.md#batch)
 
 </div>
 
