@@ -2,7 +2,9 @@ import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 registerAllModules();
 const projectMembers = [
-    ['Ana García', 'Product Manager'], ['James Okafor', 'Senior Engineer'], ['Li Wei', 'UX Designer'],
+    ['Ana García', 'Product Manager'],
+    ['James Okafor', 'Senior Engineer'],
+    ['Li Wei', 'UX Designer'],
 ];
 const valueCellMeta = [
     { type: 'dropdown', source: ['Planning', 'In progress', 'Blocked'] },

@@ -5,7 +5,9 @@ import type { CellMeta } from 'handsontable/settings';
 registerAllModules();
 
 const projectMembers = [
-  ['Ana García', 'Product Manager'], ['James Okafor', 'Senior Engineer'], ['Li Wei', 'UX Designer'],
+  ['Ana García', 'Product Manager'],
+  ['James Okafor', 'Senior Engineer'],
+  ['Li Wei', 'UX Designer'],
 ];
 
 const valueCellMeta: CellMeta[] = [

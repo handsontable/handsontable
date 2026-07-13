@@ -4,9 +4,13 @@ import { registerAllModules } from 'handsontable/registry';
 import type { CellMeta, GridSettings } from 'handsontable/settings';
 
 registerAllModules();
+
 const projectMembers = [
-  ['Ana García', 'Product Manager'], ['James Okafor', 'Senior Engineer'], ['Li Wei', 'UX Designer'],
+  ['Ana García', 'Product Manager'],
+  ['James Okafor', 'Senior Engineer'],
+  ['Li Wei', 'UX Designer'],
 ];
+
 const valueCellMeta: CellMeta[] = [
   { type: 'dropdown', source: ['Planning', 'In progress', 'Blocked'] },
   {
@@ -32,6 +36,7 @@ const valueCellMeta: CellMeta[] = [
   },
   { type: 'password' },
 ];
+
 const hotSettings: GridSettings = {
   data: [
     ['Status', 'In progress'],
