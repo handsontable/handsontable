@@ -53,14 +53,16 @@ A Tree-sitter knowledge graph (28k+ nodes, 419k+ edges) pre-built over the full 
 
 **Prerequisite:** `pipx` must be installed. The MCP server starts automatically via `pipx run` on first use (one-time ~10s PyPI download, then cached). Rebuild after switching branches: `pipx run code-review-graph==2.3.6 build`.
 
-**Maintainer note:** the pinned version `2.3.6` appears in `.mcp.json`, the two hook commands in `.claude/settings.json`, `.ai/MCP.md`, `.claude/skills/code-graph/SKILL.md`, and the guidance below. Bumping requires updating all locations in sync.
+**Maintainer note:** the pinned version `2.3.6` appears in `.mcp.json`, `.cursor/mcp.json`, the two hook commands in `.claude/settings.json`, `.ai/MCP.md`, `.claude/skills/code-graph/SKILL.md`, and the guidance below. Bumping requires updating all locations in sync.
 
 ### First-call protocol - load schema before grep
 
-Graph MCP tools are **deferred** at session start; their schemas are not loaded. Calling them directly fails with `InputValidationError`. The sequence is always:
+In Claude Code, graph MCP tools are **deferred** at session start; their schemas are not loaded. Calling them directly fails with `InputValidationError`. The sequence is always:
 
 1. `ToolSearch` with `query: "select:mcp__code-review-graph__query_graph_tool"` to load the schema (comma-separate names to load several in one call).
 2. Call `mcp__code-review-graph__query_graph_tool` with `pattern` and `detail_level: "minimal"`.
+
+Agents without deferred tool loading (e.g. Cursor) skip step 1 — the graph tools are callable directly.
 
 If you reach for `grep -r "from.*foo"`, `grep -rn` for a symbol, or repeated `Read` calls to answer a cross-file question, **stop and load the graph tool first.** Grep produces 2-6x more tokens, lacks structural context, and misses dynamic dispatch.
 

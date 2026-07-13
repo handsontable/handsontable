@@ -85,7 +85,7 @@ A Tree-sitter knowledge graph over the full codebase (28k+ nodes, 419k+ edges). 
   - macOS: `brew install pipx && pipx ensurepath`
   - Linux: `python3 -m pip install --user pipx && pipx ensurepath`
 
-No manual `code-review-graph` install is required. The `.mcp.json` configuration invokes it via `pipx run code-review-graph==2.3.6 serve`, which fetches and caches the package on first use (~10s one-time download, instant on subsequent starts).
+No manual `code-review-graph` install is required. The `.mcp.json` configuration (Claude Code) and `.cursor/mcp.json` (Cursor) invoke it via `pipx run code-review-graph==2.3.6 serve`, which fetches and caches the package on first use (~10s one-time download, instant on subsequent starts).
 
 ### Verifying the setup
 

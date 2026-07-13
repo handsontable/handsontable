@@ -164,7 +164,7 @@ Extra args after `--` flow through to tasks with `"passthrough": true` in `tasks
 ## For Deeper Guidance
 
 Use these skills for detailed workflow instructions:
-- Cross-file queries (who calls X, what imports Y, rename impact, blast radius): `code-graph` skill — query the pre-built code-review-graph MCP before walking call chains with Grep+Read
+- Cross-file queries (who calls X, what imports Y, rename impact, blast radius): query the pre-built code-review-graph MCP before walking call chains with Grep+Read — workflow in `.ai/MCP.md` and, in Claude Code, the `code-graph` skill
 - Plugin development: `handsontable-plugin-dev`
 - Editors/renderers/validators/cellTypes: `handsontable-editor-dev`, `handsontable-renderer-dev`, `handsontable-validator-dev`, `handsontable-celltype-dev`
 - Testing: `handsontable-unit-testing`, `handsontable-e2e-testing`

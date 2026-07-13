@@ -38,7 +38,7 @@ In every directory, `CLAUDE.md` is a symlink to its sibling `AGENTS.md`. Edit `A
 
 ### Cross-file code queries: use the code-review-graph MCP
 
-A pre-built Tree-sitter knowledge graph over the whole monorepo answers cross-file questions far more cheaply than walking call chains with Grep+Read. For any of: "who calls X", "what imports Y", "where is X used", rename impact, PR blast radius, or dead-code hunting — query the graph FIRST. Its tools are deferred at session start, so load the schemas with one `ToolSearch` call (e.g. `select:mcp__code-review-graph__query_graph_tool,mcp__code-review-graph__get_impact_radius_tool`), then query. Plain Grep stays the right tool for single-symbol, single-file lookups. Full workflow (modes, staleness, rebuild after branch switches): the `code-graph` skill and `.ai/MCP.md`.
+A pre-built Tree-sitter knowledge graph over the whole monorepo answers cross-file questions far more cheaply than walking call chains with Grep+Read. For any of: "who calls X", "what imports Y", "where is X used", rename impact, PR blast radius, or dead-code hunting — query the graph FIRST. In Claude Code, its tools are deferred at session start — load the schemas with one `ToolSearch` call (e.g. `select:mcp__code-review-graph__query_graph_tool,mcp__code-review-graph__get_impact_radius_tool`), then query. In agents without deferred tool loading (e.g. Cursor), skip that step — the graph tools are callable directly. Plain Grep stays the right tool for single-symbol, single-file lookups. Full workflow (modes, staleness, rebuild after branch switches): `.ai/MCP.md`, plus the `code-graph` skill in Claude Code.
 
 ---
 
