@@ -940,4 +940,98 @@ describe('LazyFactoryMap', () => {
       expect(map.size()).toBe(1);
     });
   });
+
+  describe('in-place flush of a dense contiguous remove', () => {
+    it('should clamp a remove that overshoots the end of the collection', () => {
+      const map = createLazyFactoryMap();
+      const kept = [map.obtain(0), map.obtain(1), map.obtain(2)];
+
+      map.obtain(3);
+      map.obtain(4);
+
+      map.remove(3, 10);
+
+      expect(map.size()).toBe(3);
+      expect(map.has(3)).toBe(false);
+      expect(map.has(4)).toBe(false);
+      expect(Array.from(map.values())).toEqual(kept);
+    });
+
+    it('should empty the map when the remove covers every key, and stay usable after', () => {
+      const map = createLazyFactoryMap();
+
+      for (let i = 0; i < 5; i++) {
+        map.obtain(i);
+      }
+
+      map.remove(0, 5);
+
+      expect(map.size()).toBe(0);
+      expect(Array.from(map.values())).toEqual([]);
+
+      const fresh = map.obtain(0);
+
+      expect(map.obtain(0)).toBe(fresh);
+      expect(map.size()).toBe(1);
+    });
+
+    it('should stay correct when the highest key was evicted before the remove', () => {
+      const map = createLazyFactoryMap();
+      const v0 = map.obtain(0);
+      const v2 = map.obtain(2);
+      const v3 = map.obtain(3);
+
+      map.obtain(1);
+      map.obtain(4);
+
+      map.evict(4);
+      map.remove(1, 1);
+
+      expect(map.size()).toBe(3);
+      expect(map.obtain(0)).toBe(v0);
+      expect(map.obtain(1)).toBe(v2);
+      expect(map.obtain(2)).toBe(v3);
+    });
+
+    it('should not resurrect a tail value when an append follows a tail remove', () => {
+      const map = createLazyFactoryMap();
+
+      map.obtain(0);
+      map.obtain(1);
+
+      const tail = map.obtain(2);
+
+      map.remove(null, 1);
+      map.insert(null, 1);
+
+      expect(map.has(2)).toBe(false);
+      expect(map.size()).toBe(2);
+      expect(map.obtain(2)).not.toBe(tail);
+    });
+
+    it('should keep sliding values correctly across consecutive flushed removes', () => {
+      const map = createLazyFactoryMap();
+      const v0 = map.obtain(0);
+      const v2 = map.obtain(2);
+      const v3 = map.obtain(3);
+
+      map.obtain(1);
+      map.obtain(4);
+
+      // first remove goes through the rebuild path (key 4 was evicted -> map not provably dense)
+      map.evict(4);
+      map.remove(1, 1);
+
+      expect(map.size()).toBe(3);
+
+      // second remove runs on a rebuilt dense map
+      map.remove(0, 1);
+
+      expect(map.size()).toBe(2);
+      expect(map.obtain(0)).toBe(v2);
+      expect(map.obtain(1)).toBe(v3);
+      expect(Array.from(map.values())).toEqual([v2, v3]);
+      expect(v0).toEqual({ i: 0 });
+    });
+  });
 });

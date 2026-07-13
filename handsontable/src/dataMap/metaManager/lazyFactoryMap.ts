@@ -104,6 +104,23 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
    * beyond the materialized band - without scanning the keys.
    */
   #keyUpperBound = 0;
+  /**
+   * The highest key currently stored in `#data`, or `-1` when empty. May go stale-high after
+   * `evict` of the highest key (conservative - only disables the fast flush path).
+   */
+  #maxStoredKey = -1;
+  /**
+   * True while the map's iteration order provably equals ascending key order (every
+   * materialization so far appended a new maximum key). Enables the in-place flush fast path.
+   */
+  #isAscending = true;
+  /**
+   * True when an iterator over `#data` may still be live (handed out by `values`/`entries` and
+   * possibly not yet exhausted). The in-place flush fast path mutates `#data` directly, which a
+   * live iterator would observe - so the fast path is skipped; the rebuild path (which swaps the
+   * map, detaching any live iterator) clears the flag.
+   */
+  #mayHaveLiveIterator = false;
 
   /**
    * Initializes the map with the given factory function used to create values for new keys on first access.
@@ -150,6 +167,14 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
 
       if (boundKey >= this.#keyUpperBound) {
         this.#keyUpperBound = boundKey + 1;
+      }
+
+      // Ascending-order bookkeeping for the in-place flush fast path: a miss that does not
+      // append a new maximum key breaks "iteration order == ascending key order".
+      if (storedKey > this.#maxStoredKey) {
+        this.#maxStoredKey = storedKey;
+      } else {
+        this.#isAscending = false;
       }
     }
 
@@ -267,6 +292,8 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
       this.#applyPendingShifts();
     }
 
+    this.#mayHaveLiveIterator = true;
+
     return this.#data.values();
   }
 
@@ -287,6 +314,8 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
     if (this.#pendingShifts.length > 0) {
       this.#applyPendingShifts();
     }
+
+    this.#mayHaveLiveIterator = true;
 
     return this.#data.entries();
   }
@@ -341,6 +370,9 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
     this.#pendingShifts = [];
     this.#length = 0;
     this.#keyUpperBound = 0;
+    this.#maxStoredKey = -1;
+    this.#isAscending = true;
+    this.#mayHaveLiveIterator = false;
   }
 
   /**
@@ -448,6 +480,19 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
 
     this.#pendingShifts = [];
 
+    // Fast path: a single contiguous remove on a map whose keys are provably dense
+    // (0..size-1, by pigeonhole from maxKey == size-1) and iterated in ascending key
+    // order. Values slide down in place - keys never move, so the Map's structure and
+    // iteration order stay untouched, at a fraction of the full-rebuild cost.
+    if (
+      shifts.length === 1 && !shifts[0].isInsert && !this.#mayHaveLiveIterator &&
+      this.#isAscending && this.#maxStoredKey === this.#data.size - 1
+    ) {
+      this.#applySingleRemoveInPlace(shifts[0].start, shifts[0].amount);
+
+      return;
+    }
+
     // Suffix minima of the shift starts: `minStartFrom[i]` is the lowest start among
     // `shifts[i..]`. A key smaller than it cannot be touched by any remaining shift, so the
     // per-key transform loop can stop early - which matters for scattered non-mergeable
@@ -477,6 +522,8 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
 
     const shifted = new Map<number, V>();
     let highestKey = -1;
+    let isAscending = true;
+    let previousKey = -1;
 
     for (const [itemKey, value] of this.#data) {
       const newKey = this.#transformKey(itemKey, shifts, minStartFrom);
@@ -487,12 +534,51 @@ export default class LazyFactoryMap<V = Record<string, unknown>> {
         if (newKey > highestKey) {
           highestKey = newKey;
         }
+
+        if (newKey <= previousKey) {
+          isAscending = false;
+        }
+        previousKey = newKey;
       }
     }
 
     this.#data = shifted;
-    // The rebuild visits every entry anyway, so the key upper bound can be made exact for free.
+    // The old map (with any live iterators on it) is detached - in-place flushes of the NEW map
+    // can no longer be observed through iterators created before this rebuild.
+    this.#mayHaveLiveIterator = false;
+    // The rebuild visits every entry anyway, so the key upper bound can be made exact for
+    // free, and the ascending-order flag re-derived (a map can recover the fast flush path).
     this.#keyUpperBound = highestKey + 1;
+    this.#maxStoredKey = highestKey;
+    this.#isAscending = isAscending;
+  }
+
+  /**
+   * Applies a single buffered remove in place on a dense, ascending-ordered map: the value
+   * stored under each key at or above the removal point is overwritten with the value
+   * `amount` slots above it, and the now-duplicated top `amount` keys are deleted. Keys are
+   * only updated or deleted (never inserted), so the Map's iteration order stays ascending
+   * and the result is identical to the full rebuild - at the cost of only the affected
+   * suffix, with no allocation and no hash-table churn.
+   *
+   * @param {number} start The first removed key.
+   * @param {number} amount The number of removed keys.
+   */
+  #applySingleRemoveInPlace(start: number, amount: number) {
+    const data = this.#data;
+    const size = data.size;
+    const survivorsTop = Math.max(size - amount, start);
+
+    for (let key = start; key < survivorsTop; key++) {
+      data.set(key, data.get(key + amount) as V);
+    }
+
+    for (let key = survivorsTop; key < size; key++) {
+      data.delete(key);
+    }
+
+    this.#maxStoredKey = survivorsTop - 1;
+    this.#keyUpperBound = survivorsTop;
   }
 
   /**
