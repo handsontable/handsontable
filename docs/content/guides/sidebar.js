@@ -81,7 +81,7 @@ const cellFeaturesItems = [
   { path: 'guides/cell-features/merge-cells/merge-cells' },
   { path: 'guides/cell-features/conditional-formatting/conditional-formatting' },
   { path: 'guides/cell-features/text-alignment/text-alignment' },
-  { path: 'guides/cell-features/disabled-cells/disabled-cells' },
+  { path: 'guides/cell-features/read-only-cells/read-only-cells' },
   { path: 'guides/cell-features/comments/comments' },
   { path: 'guides/cell-features/autofill-values/autofill-values' },
   { path: 'guides/cell-features/formatting-cells/formatting-cells' },
@@ -97,6 +97,7 @@ const cellFunctionsItems = [
 
 const cellTypesItems = [
   { path: 'guides/cell-types/cell-type/cell-type' },
+  { path: 'guides/cell-types/text-cell-type/text-cell-type' },
   { path: 'guides/cell-types/numeric-cell-type/numeric-cell-type' },
   { path: 'guides/cell-types/date-cell-type/date-cell-type' },
   { path: 'guides/cell-types/time-cell-type/time-cell-type' },
@@ -128,6 +129,7 @@ const accessoriesAndMenusItems = [
   { path: 'guides/accessories-and-menus/drag-to-scroll/drag-to-scroll' },
   { path: 'guides/accessories-and-menus/undo-redo/undo-redo' },
   { path: 'guides/accessories-and-menus/icon-pack/icon-pack' },
+  { path: 'guides/accessories-and-menus/use-icons-in-cells/use-icons-in-cells' },
   { path: 'guides/accessories-and-menus/empty-data-state/empty-data-state' },
   { path: 'guides/dialog/dialog/dialog' },
   { path: 'guides/dialog/loading/loading' },

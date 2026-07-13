@@ -906,6 +906,8 @@ The [`MultiColumnSorting`](@/api/multiColumnSorting.md) plugin extends [`ColumnS
 - Press <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> with a column header focused to append that column to the active sort criteria.
 - `initialConfig` accepts an **array** of sort config objects to define a multi-column initial order.
 
+The <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> shortcut requires a focused column header. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys.
+
 `ColumnSorting` and `MultiColumnSorting` are mutually exclusive. If both are set to `true`, `ColumnSorting` is automatically disabled.
 
 ### Enable multi-column sorting
@@ -1398,6 +1400,8 @@ registerPlugin(ColumnSorting);
 After completing this guide, users can sort rows by clicking column headers, and you can control sort order programmatically. You can use `ColumnSorting` for single-column sorting or `MultiColumnSorting` for multi-column sorting with custom priority.
 
 ## Related keyboard shortcuts
+
+These header-focused shortcuts work only when a column header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
 
 | Windows | macOS | Action | Excel | Sheets |
 | --- | --- | --- | :---: | :---: |

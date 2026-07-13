@@ -170,6 +170,10 @@ An array of objects can be used as a data source as follows:
 
 :::
 
+If your data arrives as a JSON string (for example, from an API response), parse it with `JSON.parse()` into an array of objects before passing it to Handsontable -- the resulting structure matches the array of objects shown above.
+
+To combine an array-of-objects data source with a custom cell renderer, a checkbox cell type, and currency-formatted numeric columns, see the [built-in cell types example](@/guides/cell-types/cell-type/cell-type.md#built-in-cell-types-example) and [format numbers](@/guides/cell-types/numeric-cell-type/numeric-cell-type.md#format-numbers) sections.
+
 ### Array of objects with column as a function
 
 You can set the [`columns`](@/api/options.md#columns) configuration option to a function. This is good practice when you want to bind data more dynamically.
@@ -737,7 +741,7 @@ hot.setSourceDataAtCell(changes);
 
 Replaces a chunk of the dataset by provided the start (and optionally end) coordinates and a two-dimensional data array of new values.
 
-<aside class="starlight-aside starlight-aside--tip"><p class="starlight-aside__content">The <code>populateFromArray()</code> method can't change <a href="/docs/javascript-data-grid/disabled-cells/">read-only</a> cells.</p></aside>
+<aside class="starlight-aside starlight-aside--tip"><p class="starlight-aside__content">The <code>populateFromArray()</code> method can't change <a href="/docs/javascript-data-grid/read-only-cells/">read-only</a> cells.</p></aside>
 
 ```js
 const newValues = [

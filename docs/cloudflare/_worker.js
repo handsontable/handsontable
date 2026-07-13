@@ -34,6 +34,7 @@
  *  17. /docs/react, /docs/angular, etc.    → framework homes
  *  18. /{/}                               → /docs
  *  19. /docs{/}                           → /docs/(framework)/ (cookie)
+ * 19a. POST /docs/scripts/json/save.json  → mock 200 JSON (saving-data demo)
  *  20. Static asset fallback (env.ASSETS)
  */
 
@@ -363,8 +364,8 @@ const FLAT_HTML_MAP = {
   'demo-auto-fill': 'autofill-values',
   'demo-merged-cells': 'merge-cells',
   'demo-alignment': 'text-alignment',
-  'demo-read-only': 'disabled-cells',
-  'demo-disabled-editing': 'disabled-cells',
+  'demo-read-only': 'read-only-cells',
+  'demo-disabled-editing': 'read-only-cells',
   'demo-custom-renderers': 'cell-renderer',
   'demo-numeric': 'numeric-cell-type',
   'demo-date': 'date-cell-type',
@@ -479,6 +480,7 @@ const FLAT_PAGES_REMAP = {
   latest: '/',
   'internationalization-i18n': '/language/',
   'keyboard-navigation': '/keyboard-shortcuts/',
+  'disabled-cells': '/read-only-cells/',
   building: '/custom-builds/',
   plugins: '/custom-plugins/',
   'file-structure': '/folder-structure/',
@@ -552,7 +554,7 @@ const SITEMAP_PASSTHROUGH_SLUGS = new Set([
   'formatting-cells',
   'merge-cells',
   'selection',
-  'disabled-cells',
+  'read-only-cells',
   'text-alignment',
   'cell-function',
   'basic-clipboard',
@@ -753,7 +755,7 @@ const VUE3_LEGACY_PAGES = {
 // Set here rather than in a Pages `_headers` file because the policy exceeds the
 // 2000-character-per-line `_headers` limit and a CSP cannot be split across
 // multiple Content-Security-Policy lines.
-const CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://google.com https://js-eu1.hsforms.net https://static.reo.dev/ https://static.hsappstatic.net https://js-eu1.hs-analytics.net https://js-eu1.hsadspixel.net https://js-eu1.hscollectedforms.net https://js-eu1.hs-banner.com https://js-eu1.hs-scripts.com https://www.redditstatic.com https://bat.bing.com https://bat.bing.net https://dev.visualwebsiteoptimizer.com https://analytics.ahrefs.com https://*.cloudflareinsights.com https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://snap.licdn.com https://static.ads-twitter.com https://analytics.twitter.com https://consentcdn.cookiebot.com https://consent.cookiebot.com https://handsontable.piwik.pro https://handsontable.containers.piwik.pro https://*.list-manage.com https://docs.handsontable.com https://s3.amazonaws.com https://unpkg.com https://cdn.jsdelivr.net https://buttons.github.io https://code.jquery.com https://cdn.headwayapp.co https://www.google.com https://www.gstatic.com https://www.googleadservices.com https://www.googletagmanager.com https://*.google-analytics.com https://tagmanager.google.com https://script.crazyegg.com https://*.cloudfront.net https://*.cloudflare.com https://*.s3.amazonaws.com https://*.doubleclick.net https://connect.facebook.net https://*.sentry-cdn.com; img-src * 'self' data: https:; style-src 'self' 'unsafe-inline' https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://www.googletagmanager.com https://*.hotjar.com https://*.cloudflare.com https://fonts.googleapis.com https://tagmanager.google.com https://cdn.jsdelivr.net; font-src 'self' data: https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://fonts.gstatic.com; frame-src 'self' 'unsafe-inline' https://google.com https://js-eu1.hsforms.net https://handsontablestore.onfastspring.com https://handsontablestore.test.onfastspring.com https://*.doubleclick.net https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://examples.handsontable.com https://handsontable.github.io https://*.hotjar.com https://consentcdn.cookiebot.com https://www.google.com https://headway-widget.net https://www.youtube.com https://player.vimeo.com https://codesandbox.io https://www.youtube-nocookie.com https://www.facebook.com https://www.googletagmanager.com/; object-src 'self'; connect-src 'self' https://hot-docs-assistant.netlify.app https://hot-docs-assistant-dev.handsontable-sandbox.workers.dev https://*.algolia.net https://*.algolianet.com https://browser.sentry-cdn.com https://api.reo.dev https://api-eu1.hubapi.com https://static.hsappstatic.net https://forms-eu1.hscollectedforms.net https://ads.reddit.com https://www.redditstatic.com https://pixel-config.reddit.com https://www.googleadservices.com https://bat.bing.net https://bat.bing.com https://dev.visualwebsiteoptimizer.com https://api.github.com https://analytics.ahrefs.com https://ingesteer.services-prod.nsvcs.net https://plausible.io https://*.linkedin.com https://*.zendesk.com https://adservice.google.com https://*.zdassets.com https://*.hotjar.com https://*.hotjar.io wss://*.hotjar.com https://consentcdn.cookiebot.com https://cdn.linkedin.oribi.io https://www.google.com https://google.com https://stats.g.doubleclick.net https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.google.pl https://*.google-analytics.com https://*.analytics.google.com https://*.googlesyndication.com https://*.handsontable.com https://www.googletagmanager.com https://handsontable.com https://handsontablestore.test.onfastspring.com https://handsontablestore.onfastspring.com https://snap.licdn.com https://www.facebook.com https://*.sentry.io https://jsonplaceholder.typicode.com https://graphqlzero.almansi.me; worker-src 'self' blob:; frame-ancestors 'self';";
+const CONTENT_SECURITY_POLICY = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://google.com https://js-eu1.hsforms.net https://static.reo.dev/ https://static.hsappstatic.net https://js-eu1.hs-analytics.net https://js-eu1.hsadspixel.net https://js-eu1.hscollectedforms.net https://js-eu1.hs-banner.com https://js-eu1.hs-scripts.com https://www.redditstatic.com https://bat.bing.com https://bat.bing.net https://dev.visualwebsiteoptimizer.com https://analytics.ahrefs.com https://*.cloudflareinsights.com https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://snap.licdn.com https://static.ads-twitter.com https://analytics.twitter.com https://consentcdn.cookiebot.com https://consent.cookiebot.com https://handsontable.piwik.pro https://handsontable.containers.piwik.pro https://*.list-manage.com https://docs.handsontable.com https://s3.amazonaws.com https://unpkg.com https://cdn.jsdelivr.net https://buttons.github.io https://code.jquery.com https://cdn.headwayapp.co https://www.google.com https://www.gstatic.com https://www.googleadservices.com https://www.googletagmanager.com https://*.google-analytics.com https://tagmanager.google.com https://script.crazyegg.com https://*.cloudfront.net https://*.cloudflare.com https://*.s3.amazonaws.com https://*.doubleclick.net https://connect.facebook.net https://*.sentry-cdn.com; img-src * 'self' data: https:; style-src 'self' 'unsafe-inline' https://sbl.onfastspring.com https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://www.googletagmanager.com https://*.hotjar.com https://*.cloudflare.com https://fonts.googleapis.com https://tagmanager.google.com https://cdn.jsdelivr.net; font-src 'self' data: https://*.zendesk.com https://*.zdassets.com https://*.hotjar.com https://fonts.gstatic.com; frame-src 'self' 'unsafe-inline' https://google.com https://js-eu1.hsforms.net https://handsontablestore.onfastspring.com https://handsontablestore.test.onfastspring.com https://*.doubleclick.net https://plausible.io https://*.typeform.com https://*.zendesk.com https://*.zdassets.com https://examples.handsontable.com https://handsontable.github.io https://*.hotjar.com https://consentcdn.cookiebot.com https://www.google.com https://headway-widget.net https://www.youtube.com https://player.vimeo.com https://codesandbox.io https://www.youtube-nocookie.com https://www.facebook.com https://www.googletagmanager.com/ https://embed.figma.com; object-src 'self'; connect-src 'self' https://hot-docs-assistant.netlify.app https://hot-docs-assistant-dev.handsontable-sandbox.workers.dev https://*.algolia.net https://*.algolianet.com https://browser.sentry-cdn.com https://api.reo.dev https://api-eu1.hubapi.com https://static.hsappstatic.net https://forms-eu1.hscollectedforms.net https://ads.reddit.com https://www.redditstatic.com https://pixel-config.reddit.com https://www.googleadservices.com https://bat.bing.net https://bat.bing.com https://dev.visualwebsiteoptimizer.com https://api.github.com https://analytics.ahrefs.com https://ingesteer.services-prod.nsvcs.net https://plausible.io https://*.linkedin.com https://*.zendesk.com https://adservice.google.com https://*.zdassets.com https://*.hotjar.com https://*.hotjar.io wss://*.hotjar.com https://consentcdn.cookiebot.com https://cdn.linkedin.oribi.io https://www.google.com https://google.com https://stats.g.doubleclick.net https://googleads.g.doubleclick.net https://*.doubleclick.net https://www.google.pl https://*.google-analytics.com https://*.analytics.google.com https://*.googlesyndication.com https://*.handsontable.com https://www.googletagmanager.com https://handsontable.com https://handsontablestore.test.onfastspring.com https://handsontablestore.onfastspring.com https://snap.licdn.com https://www.facebook.com https://*.sentry.io https://jsonplaceholder.typicode.com https://graphqlzero.almansi.me; worker-src 'self' blob:; frame-ancestors 'self';";
 
 const SECURITY_HEADERS = {
   'Content-Security-Policy': CONTENT_SECURITY_POLICY,
@@ -934,6 +936,10 @@ async function route(request, env) {
         '/docs/react-data-grid/vue3-custom-id-class-style/': '/docs/react-data-grid/custom-id-class-style/',
         '/docs/angular-data-grid/vue3-custom-id-class-style/': '/docs/angular-data-grid/custom-id-class-style/',
         '/docs/vue-data-grid/vue3-custom-id-class-style/': '/docs/vue-data-grid/custom-id-class-style/',
+        '/docs/javascript-data-grid/disabled-cells/': '/docs/javascript-data-grid/read-only-cells/',
+        '/docs/react-data-grid/disabled-cells/': '/docs/react-data-grid/read-only-cells/',
+        '/docs/angular-data-grid/disabled-cells/': '/docs/angular-data-grid/read-only-cells/',
+        '/docs/vue-data-grid/disabled-cells/': '/docs/vue-data-grid/read-only-cells/',
       };
       // Also normalise without trailing slash.
       const normalised = path.endsWith('/') ? path : `${path}/`;
@@ -1267,6 +1273,19 @@ async function route(request, env) {
           return redirect301(abs(dest, url));
         }
       }
+    }
+
+    // -- 18a. POST to the saving-data demo's mock save endpoint --------------
+    // Cloudflare Pages' static-asset handler only serves GET/HEAD; a POST to
+    // a static file returns 405. The saving-data guide's demo intentionally
+    // POSTs here to illustrate a save request (see saving-data.md's "just a
+    // mockup" note), so answer it directly instead of falling through to
+    // env.ASSETS, which would 405.
+    if (path === '/docs/scripts/json/save.json' && request.method !== 'GET' && request.method !== 'HEAD') {
+      return new Response(JSON.stringify({ result: 'ok' }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
 
     // -- 19. Fallback: serve static assets via env.ASSETS --------------------

@@ -5,6 +5,13 @@ metaTitle: Text alignment - JavaScript Data Grid | Handsontable
 description: "Align values within cells: horizontally (to the right, left, center, or by justifying them), and vertically (to the top, middle, or bottom of the cell)."
 permalink: /text-alignment
 canonicalUrl: /text-alignment
+tags:
+  - align
+  - alignment
+  - text-align
+  - horizontal-alignment
+  - vertical-alignment
+  - justify
 react:
   metaTitle: Text alignment - React Data Grid | Handsontable
 angular:
@@ -13,12 +20,23 @@ vue:
   metaTitle: Text alignment - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Cell features
+menuTag: updated
 ---
 Align values within cells: horizontally (to the right, left, center, or by justifying them), and vertically (to the top, middle, or bottom of the cell).
 
 [[toc]]
 
 Apply text alignment to cells using CSS class names or the `className` configuration option.
+
+## Overview
+
+You can set cell alignment in two ways:
+
+| Configuration option<br>`className`/`cells` | Context menu<br>`alignment` item |
+|---|---|
+| Set programmatically, for the whole grid, a column, or individual cells | Set interactively, by the person using the grid |
+| Requires no additional plugin | Requires the [`ContextMenu`](@/guides/accessories-and-menus/context-menu/context-menu.md) plugin, with the `alignment` item enabled |
+| Not tracked by [`UndoRedo`](@/guides/accessories-and-menus/undo-redo/undo-redo.md) | Tracked by [`UndoRedo`](@/guides/accessories-and-menus/undo-redo/undo-redo.md) |
 
 ## To align a cell
 
@@ -66,6 +84,29 @@ const hotSettings = {
 ```
 
 :::
+
+## Align cells using the context menu
+
+Let the person using the grid set alignment interactively, through the [context menu](@/guides/accessories-and-menus/context-menu/context-menu.md).
+
+Enable the `ContextMenu` plugin and include the `alignment` item:
+
+```js
+contextMenu: ['alignment'],
+```
+
+Select one or more cells, right-click to open the context menu, and choose an option from the **Align** submenu:
+
+- Horizontal: **Left**, **Center**, **Right**, **Justify**
+- Vertical: **Top**, **Middle**, **Bottom**
+
+Each option sets the matching CSS class name (`htLeft`, `htCenter`, `htRight`, `htJustify`, `htTop`, `htMiddle`, `htBottom`) on the selected cells, and fires the [`beforeCellAlignment`](@/api/hooks.md#beforecellalignment) hook before applying the change.
+
+### Undo and redo alignment changes
+
+Alignment changes made through the context menu are tracked by the [`UndoRedo`](@/guides/accessories-and-menus/undo-redo/undo-redo.md) plugin. Press <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Z**</kbd> to undo an alignment change, and <kbd>**Ctrl**</kbd>/<kbd>⌘</kbd>+<kbd>**Y**</kbd> to redo it.
+
+Alignment changes made through the `className` or `cells` configuration options aren't tracked by `UndoRedo`.
 
 ## Basic example
 
@@ -125,6 +166,7 @@ Cells display the configured horizontal or vertical alignment. Global settings a
 <div class="boxes-list">
 
 - [className](@/api/options.md#classname)
+- [contextMenu](@/api/options.md#contextmenu)
 
 </div>
 
@@ -134,5 +176,14 @@ Cells display the configured horizontal or vertical alignment. Global settings a
 
 - [afterSetCellMeta](@/api/hooks.md#aftersetcellmeta)
 - [beforeCellAlignment](@/api/hooks.md#beforecellalignment)
+
+</div>
+
+**Plugins**
+
+<div class="boxes-list">
+
+- [ContextMenu](@/api/contextMenu.md)
+- [UndoRedo](@/api/undoRedo.md)
 
 </div>

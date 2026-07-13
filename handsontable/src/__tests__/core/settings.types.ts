@@ -1,6 +1,6 @@
 import type Handsontable from 'handsontable';
 import HyperFormula from 'hyperformula';
-import type { CellProperties, CellCoords } from 'handsontable';
+import type { CellProperties, CellCoords, RangeType, RemoveIndexSignature } from 'handsontable';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
 declare function oneOf<T extends Array<string | number | boolean | undefined | null | object>>(...args: T): T[number];
@@ -749,7 +749,11 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const _column: number = column;
     const _source: string | undefined = source;
   },
-  modifyCopyableRange: (copyableRanges) => {},
+  modifyCopyableRange: (copyableRanges) => {
+    const _copyableRanges: RangeType[] = copyableRanges;
+
+    return _copyableRanges;
+  },
   modifyFiltersMultiSelectValue: (value, meta) => '123',
   modifyFocusedElement: (row, column, focusedElement) => document.createElement('TD'),
   modifyData: () => {},
@@ -846,3 +850,25 @@ const _hotColumnGetValueFn: Handsontable.ColumnSettings = {
 // Custom plugin/meta keys still allowed via the `[key: string]: any` signature inherited from `GridSettings`.
 const _columnArbitraryKeys: Handsontable.ColumnSettings = { someCustomPluginKey: 123 };
 const _cellMetaArbitraryKeys: Handsontable.CellMeta = { someCustomMetaKey: true };
+
+// DEV-2020 regression: `GridSettings` carries a `[key: string]: any` index signature. `Omit`/`Pick`
+// over a type with a string index signature widens `keyof` to `string`, which collapses the result to
+// a bare index signature and drops every named option. The framework wrappers derive their prop types
+// with `Omit`, so without stripping the index signature first their props lose all option names (and
+// IDE autocomplete). `RemoveIndexSignature<T>` removes the index signature while keeping the named
+// members — the following asserts it does exactly that, so wrappers can `Omit` over the result safely.
+type _StrippedGridSettings = RemoveIndexSignature<Handsontable.GridSettings>;
+// The named options keep their real types after stripping.
+// @ts-expect-error `width` is `number | string | (() => number | string)`, not `boolean`.
+const _strippedWidthTyped: _StrippedGridSettings = { width: true };
+// @ts-expect-error `readOnly` is `boolean`, not `string`.
+const _strippedReadOnlyTyped: _StrippedGridSettings = { readOnly: 'nope' };
+// The index signature is gone, so arbitrary keys are no longer accepted on the stripped type.
+// @ts-expect-error `someCustomPluginKey` is not a known `GridSettings` option.
+const _strippedNoArbitraryKeys: _StrippedGridSettings = { someCustomPluginKey: 123 };
+// A valid, fully-typed config still compiles (options resolve to their real types).
+const _strippedTypedConfig: _StrippedGridSettings = {
+  width: 80,
+  readOnly: true,
+  className: 'foo',
+};

@@ -79,7 +79,9 @@ Handsontable doesn't require a mouse to navigate across the grid's elements. Thi
 Our experience with hundreds of implementations shows that Handsontable tends to be used either as a **spreadsheet application** or a **data grid component**. While at first the difference seems subtle, it significantly impacts user expectations regarding navigation.
 
 In a typical spreadsheet application (think of Microsoft Excel or Google Sheets), you can't move the focus onto headers. This makes it difficult to sort or filter data without knowing complex [keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md). Additionally, opening a [column menu](@/guides/accessories-and-menus/column-menu/column-menu.md) is not trivial.
-Handsontable offers flexibility in this regard, allowing users to switch between data grid and spreadsheet "modes". To do that switch, you can use a combination of two options: [`navigableHeaders`](@/api/options.md#navigableheaders) to enable or disable moving focus onto headers, and [`tabNavigation`](@/api/options.md#tabnavigation) to decide if the <kbd>**Tab**</kbd> key can be used to navigate across cells and headers.
+Handsontable offers flexibility in this regard, letting you switch between data grid and spreadsheet "modes". To do that switch, you can use a combination of two options: [`navigableHeaders`](@/api/options.md#navigableheaders) to enable or disable moving focus onto headers, and [`tabNavigation`](@/api/options.md#tabnavigation) to decide if the <kbd>**Tab**</kbd> key can be used to navigate across cells and headers.
+
+To control arrow-key wrapping at grid boundaries, use [`autoWrapRow`](@/api/options.md#autowraprow) and [`autoWrapCol`](@/api/options.md#autowrapcol). `autoWrapRow` wraps focus to the adjacent row when you move right or left past a row edge. `autoWrapCol` wraps focus to the adjacent column when you move up or down past a column edge.
 
 The following table provides more details about these two scenarios:
  

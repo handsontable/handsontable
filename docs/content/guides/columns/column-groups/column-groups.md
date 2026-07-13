@@ -475,6 +475,8 @@ In the example below, both quarters group three months. **Q1 2025** uses adopt m
 
 ## Related keyboard shortcuts
 
+This header-focused shortcut works only when a collapsible column group header is focused. Enable [`navigableHeaders: true`](@/api/options.md#navigableheaders) to move focus onto headers with the arrow keys. For more details, see [Keyboard navigation](@/guides/accessibility/accessibility/accessibility.md#keyboard-navigation).
+
 | Windows                                     | macOS                                        | Action                                                  |  Excel  | Sheets  |
 | ------------------------------------------- | -------------------------------------------- | ------------------------------------------------------- | :-----: | :-----: |
 | <kbd>**Enter**</kbd>                        | <kbd>**Enter**</kbd>                         | Collapse or expand the selected column group            | &cross; | &cross; |

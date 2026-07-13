@@ -207,12 +207,14 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 To fully customize the context menu, set `contextMenu` to an object with an `items` property. Each key in `items` identifies one menu entry. The value can be:
 
 - A predefined item key string such as `'row_above'` — includes the built-in item unchanged.
-- The string `'---------'` — inserts a horizontal separator line.
+- `ContextMenu.SEPARATOR` (imported from `handsontable/plugins/contextMenu`) — inserts a horizontal separator line.
 - A configuration object — defines a custom item or overrides a predefined one.
 
 This means you can freely mix built-in items with custom ones in the same menu:
 
 ```js
+import { ContextMenu } from 'handsontable/plugins/contextMenu';
+
 contextMenu: {
   // Optional: a shared callback fired on every item click.
   callback(key, selection, clickEvent) {
@@ -220,7 +222,7 @@ contextMenu: {
   },
   items: {
     row_above: {},                   // predefined item, unchanged
-    sp1: '---------',               // separator
+    sp1: ContextMenu.SEPARATOR,      // separator
     row_below: {
       name: 'Click to add row below', // override a predefined item's label
     },
@@ -325,6 +327,7 @@ To see the context menu, right-click on a cell. On touch devices, long-press a c
 
 - [Adding comments via the context menu](@/guides/cell-features/comments/comments.md#add-comments-via-the-context-menu)
 - [Clipboard: Context menu](@/guides/cell-features/clipboard/clipboard.md#context-menu)
+- [Text alignment: Align cells using the context menu](@/guides/cell-features/text-alignment/text-alignment.md#align-cells-using-the-context-menu)
 - [Icon pack](@/guides/accessories-and-menus/icon-pack/icon-pack.md)
 ::: only-for javascript
 - [Custom context menu in React](@/react/guides/accessories-and-menus/context-menu/context-menu.md)

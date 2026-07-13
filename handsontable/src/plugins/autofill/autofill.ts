@@ -126,11 +126,13 @@ export class Autofill extends BasePlugin {
    */
   #currentDragDirection: string | null = null;
   /**
-   * Last mouse client position.
+   * Last mouse client position. Stays `null` until the first `mousemove` of a drag, so a scroll
+   * that happens after pressing the fill handle but before any drag move is not replayed with a
+   * stale or default position.
    *
-   * @type {{ clientX: number, clientY: number }}
+   * @type {{ clientX: number, clientY: number } | null}
    */
-  #lastMouseClientPosition = { clientX: 0, clientY: 0 };
+  #lastMouseClientPosition: { clientX: number, clientY: number } | null = null;
 
   /**
    * Checks if the plugin is enabled in the Handsontable settings.
@@ -831,6 +833,7 @@ export class Autofill extends BasePlugin {
     this.handleDraggedCells = 1;
     this.mouseDownOnCellCorner = true;
     this.#currentDragDirection = null;
+    this.#lastMouseClientPosition = null;
   };
 
   /**
@@ -869,13 +872,26 @@ export class Autofill extends BasePlugin {
    * On mouse move listener.
    *
    * @param {MouseEvent} event `mousemove` event properties.
+   * @param {boolean} [countDragStep=true] Whether a move onto a new cell should be counted as a
+   * drag step. Only genuine pointer moves count; a scroll replay (see `#onAfterScroll`) redraws
+   * the border without counting, otherwise a scroll that shifts the cell under a resting pointer
+   * would register a drag that never happened.
    */
-  #onMouseMove(event: Pick<MouseEvent, 'clientX' | 'clientY'>) {
+  #onMouseMove(event: Pick<MouseEvent, 'clientX' | 'clientY'>, countDragStep = true) {
     if (this.mouseDownOnCellCorner) {
       const { clientX, clientY } = event;
       const cellCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
+      const selectedRange = this.hot.getSelectedRangeLast();
 
       this.#lastMouseClientPosition = { clientX, clientY };
+
+      // The `beforeOnCellMouseOver`-based counting doesn't fire when the pointer leaves
+      // the table element (e.g. dragging the last column's fill handle at a slight angle,
+      // past the table's edge), so count the drag here as well. Otherwise the fill made
+      // with such a drag would never be committed on mouseup.
+      if (countDragStep && this.handleDraggedCells > 0 && selectedRange && !selectedRange.includes(cellCoords)) {
+        this.handleDraggedCells += 1;
+      }
 
       this.redrawBorders(cellCoords);
     }
@@ -899,8 +915,8 @@ export class Autofill extends BasePlugin {
    * Refreshes the autofill borders using the last mouse client position after scroll.
    */
   #onAfterScroll = () => {
-    if (this.mouseDownOnCellCorner) {
-      this.#onMouseMove(this.#lastMouseClientPosition);
+    if (this.mouseDownOnCellCorner && this.#lastMouseClientPosition) {
+      this.#onMouseMove(this.#lastMouseClientPosition, false);
     }
   };
 

@@ -186,6 +186,12 @@ Set the option [`manualRowResize`](@/api/options.md#manualrowresize) to `true` t
 
 You can adjust the size of one or multiple rows simultaneously, even if the selected rows are not placed next to each other.
 
+::: tip
+
+When you set a row height programmatically with [`ManualRowResize#setManualSize()`](@/api/manualRowResize.md#setmanualsize), call `hot.render()` after the method call to repaint the grid. Values below the theme's default row height are stored as the default row height.
+
+:::
+
 ::: only-for javascript
 
 ::: example #example4 --js 1 --ts 2

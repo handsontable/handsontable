@@ -121,7 +121,7 @@ High-level principles. Core-internal detail lives in `handsontable/.ai/ARCHITECT
 
 These standards apply to **all** documentation across the monorepo — guides, the API reference (JSDoc/Typedoc inside `handsontable/src`), code comments, changelog entries, release notes, migration guides, and READMEs. An agent editing core JSDoc applies them without opening `docs/AGENTS.md`. **Full reference: `.ai/DOC-STANDARDS.md`** (the complete 13 writing-style rules, migration-guide spec, trademark rules, and docs branch conventions). The docs *site* has additional mechanics (frontmatter, sidebar, example embedding, voice overrides) in `docs/AGENTS.md`.
 
-- **When docs are required:** any public-API change updates JSDoc/Typedoc + guides; any user-facing behavior change is documented; any breaking change adds a migration guide step; a PR that adds a new docs page goes in the changelog (no `[skip changelog]`).
+- **When docs are required:** any public-API change updates JSDoc/Typedoc + guides; any user-facing behavior change is documented; any breaking change adds a migration guide step.
 - **Writing style (most-violated):** short sentences, active voice, American English (`behavior` not `behaviour`), "you" not "we", Oxford comma, no evaluative adjectives ("easy"/"simple"/"obvious"), en dashes (–) in non-site text. Full list in `.ai/DOC-STANDARDS.md`.
 - **Trademarks:** pages mentioning "Excel" (and "Google Sheets") need the trademark disclaimer — see `.ai/DOC-STANDARDS.md`.
 - **JSDoc format:** always use the multiline block style — never the single-line form. Every JSDoc comment must be written as:

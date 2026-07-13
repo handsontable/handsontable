@@ -158,6 +158,46 @@
 }
 
 /* -------------------------------------------------------------------------
+ * Icon pack catalog — search + category filter around the icon grid
+ * ------------------------------------------------------------------------- */
+.icon-catalog-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-block: 1.5rem 0.75rem;
+}
+
+.icon-catalog-search,
+.icon-catalog-category {
+  font-size: var(--sl-text-sm);
+  color: var(--sl-color-white);
+  background: var(--sl-color-black);
+  border: 1px solid var(--sl-color-gray-5);
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+}
+
+.icon-catalog-search {
+  flex: 1 1 16rem;
+}
+
+.icon-catalog-category {
+  flex: 0 1 14rem;
+}
+
+.icon-catalog-count {
+  margin-block: 0 0.5rem;
+  font-size: var(--sl-text-xs);
+  color: var(--sl-color-gray-2);
+}
+
+.icon-catalog-empty {
+  margin-block: 1.5rem;
+  color: var(--sl-color-gray-2);
+  text-align: center;
+}
+
+/* -------------------------------------------------------------------------
  * Icon pack grid — spreadsheet-style boxes, 4 per row
  * ------------------------------------------------------------------------- */
 .icons-wrapper {
@@ -179,10 +219,16 @@
   border-right: 1px solid var(--sl-color-gray-5);
   border-bottom: 1px solid var(--sl-color-gray-5);
   transition: background-color 0.15s;
+  cursor: pointer;
 }
 
-.icons-wrapper > div:hover {
+.icons-wrapper > div:hover,
+.icons-wrapper > div:focus-visible {
   background: var(--sl-color-hover-bg, var(--sl-color-gray-6));
+}
+
+.icons-wrapper > div[hidden] {
+  display: none;
 }
 
 .icons-wrapper > div svg {
@@ -196,4 +242,9 @@
   color: var(--sl-color-gray-2);
   text-align: center;
   word-break: break-word;
+}
+
+.icons-wrapper > div.icon-catalog-tile-copied span::after {
+  content: ' (copied)';
+  color: var(--sl-color-accent);
 }

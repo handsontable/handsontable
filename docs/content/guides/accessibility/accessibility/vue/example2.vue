@@ -674,10 +674,10 @@ const handleCheckboxChange = (checkboxName: string) => {
             aria-labelledby="arrow-rl-first-last-column-label"
             @change="handleCheckboxChange('enable-arrow-rl-first-last-column')"
           />
-          The right/left arrow keys move the focus to the first/last column
+          The right/left arrow keys wrap focus to the adjacent row
         </label>
         <a
-          href="https://handsontable.com/docs/vue-data-grid/api/options/#autowrapcol"
+          href="https://handsontable.com/docs/vue-data-grid/api/options/#autowraprow"
           target="_blank"
           class="external-link"
           rel="noopener noreferrer"
@@ -699,10 +699,10 @@ const handleCheckboxChange = (checkboxName: string) => {
             aria-labelledby="arrow-td-first-last-column-label"
             @change="handleCheckboxChange('enable-arrow-td-first-last-column')"
           />
-          The up/down arrow keys move the focus to the first/last row
+          The up/down arrow keys wrap focus to the adjacent column
         </label>
         <a
-          href="https://handsontable.com/docs/vue-data-grid/api/options/#autowraprow"
+          href="https://handsontable.com/docs/vue-data-grid/api/options/#autowrapcol"
           target="_blank"
           class="external-link"
           rel="noopener noreferrer"

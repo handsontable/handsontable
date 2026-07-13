@@ -24,6 +24,7 @@ vue:
   metaTitle: Custom shortcuts - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Navigation
+menuTag: updated
 ---
 Use the [`ShortcutManager`](@/api/shortcutManager.md) API to add, remove, replace, or block keyboard shortcuts in Handsontable.
 
@@ -133,6 +134,45 @@ gridContext.addShortcut({
 
 </li>
 </ol>
+
+### Try it out
+
+The example below registers a custom keyboard shortcut in the `grid` context, using the [`addShortcut()`](@/api/shortcutContext.md#addshortcut) method. Select a cell and press <kbd>Control</kbd>/<kbd>Cmd</kbd> + <kbd>Enter</kbd> to insert a new row below it.
+
+::: only-for javascript
+
+::: example #example1 --js 1 --ts 2
+@[code](@/content/guides/navigation/custom-shortcuts/javascript/example1.js)
+@[code](@/content/guides/navigation/custom-shortcuts/javascript/example1.ts)
+:::
+
+:::
+
+::: only-for react
+
+::: example #example1 :react --js 1 --ts 2
+@[code](@/content/guides/navigation/custom-shortcuts/react/example1.jsx)
+@[code](@/content/guides/navigation/custom-shortcuts/react/example1.tsx)
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example1 :angular --ts 1 --html 2
+@[code](@/content/guides/navigation/custom-shortcuts/angular/example1.ts)
+@[code](@/content/guides/navigation/custom-shortcuts/angular/example1.html)
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example1 :vue3
+@[code](@/content/guides/navigation/custom-shortcuts/vue/example1.vue)
+:::
+
+:::
 
 ### Add a conditional keyboard action
 

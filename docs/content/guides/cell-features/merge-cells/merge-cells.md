@@ -227,6 +227,111 @@ The example below uses virtualized merged cells. It's also recommended to increa
 
 :::
 
+## React to merge and unmerge events
+
+To run your own logic when cells merge or unmerge, use the [`beforeMergeCells`](@/api/hooks.md#beforemergecells), [`afterMergeCells`](@/api/hooks.md#aftermergecells), [`beforeUnmergeCells`](@/api/hooks.md#beforeunmergecells), and [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells) hooks. Each hook receives the affected `cellRange`, and `afterMergeCells` also receives the resulting `mergeParent` object (`row`, `col`, `rowspan`, `colspan`).
+
+The example below logs a message every time you merge or unmerge cells, using the context menu or the <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> shortcut.
+
+::: only-for javascript
+
+::: example #example3 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/cell-features/merge-cells/javascript/example3.html)
+@[code](@/content/guides/cell-features/merge-cells/javascript/example3.js)
+@[code](@/content/guides/cell-features/merge-cells/javascript/example3.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example3 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/merge-cells/react/example3.jsx)
+@[code](@/content/guides/cell-features/merge-cells/react/example3.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example3 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/merge-cells/angular/example3.ts)
+@[code](@/content/guides/cell-features/merge-cells/angular/example3.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example3 :vue3
+
+@[code](@/content/guides/cell-features/merge-cells/vue/example3.vue)
+
+:::
+
+:::
+
+## Merge and unmerge cells programmatically
+
+To merge or unmerge a range without a user action, call the [`MergeCells`](@/api/mergeCells.md) plugin's `merge()` and `unmerge()` methods. Both methods take a visual `startRow`, `startColumn`, `endRow`, and `endColumn`, the same coordinate space as `selectCell()`.
+
+```js
+hot.getPlugin('mergeCells').merge(startRow, startColumn, endRow, endColumn);
+hot.getPlugin('mergeCells').unmerge(startRow, startColumn, endRow, endColumn);
+```
+
+The example below merges and unmerges a footnote row that spans every column, using buttons instead of a manual selection.
+
+::: only-for javascript
+
+::: example #example4 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/cell-features/merge-cells/javascript/example4.html)
+@[code](@/content/guides/cell-features/merge-cells/javascript/example4.js)
+@[code](@/content/guides/cell-features/merge-cells/javascript/example4.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example4 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/merge-cells/react/example4.jsx)
+@[code](@/content/guides/cell-features/merge-cells/react/example4.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/merge-cells/angular/example4.ts)
+@[code](@/content/guides/cell-features/merge-cells/angular/example4.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/cell-features/merge-cells/vue/example4.vue)
+
+:::
+
+:::
+
 ## Effect on viewport getter methods
 
 With merged cells, the rendered range extends to fit any merged cell that crosses the viewport edge. This is the same expansion that the `virtualized` option turns off. As a result, the rendered-range getters can return indexes beyond what you see on the screen:

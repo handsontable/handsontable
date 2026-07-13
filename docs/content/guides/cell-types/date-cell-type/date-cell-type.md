@@ -380,6 +380,10 @@ The [`dateFormat`](@/api/options.md#dateformat) option controls how dates are di
 
 After configuring the date cell type, cells display dates formatted according to your `dateFormat` configuration. Clicking an `intl-date` or `date` cell opens a native date picker. Source data is stored in ISO 8601 format (`YYYY-MM-DD`) regardless of the display format.
 
+## Keyboard shortcuts
+
+The `intl-date` and `date` cell editors open the browser's native date picker. Keyboard navigation inside the picker comes from the browser, so it varies between browsers and operating systems. Outside the picker, the standard [edition keyboard shortcuts](@/guides/navigation/keyboard-shortcuts/keyboard-shortcuts.md#edition-keyboard-shortcuts) apply.
+
 ## Related articles
 
 **Related guides**

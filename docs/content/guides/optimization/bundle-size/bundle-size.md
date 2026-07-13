@@ -87,6 +87,29 @@ export class ExampleComponent {
 
 :::
 
+::: only-for vue
+
+```vue
+<script setup lang="ts">
+import Handsontable from 'handsontable/base';
+import { HotTable } from '@handsontable/vue3';
+import { registerPlugin, ContextMenu } from 'handsontable/plugins';
+import type { GridSettings } from 'handsontable/settings';
+
+registerPlugin(ContextMenu);
+
+const hotSettings: GridSettings = {
+  contextMenu: true,
+};
+</script>
+
+<template>
+  <HotTable :settings="hotSettings" />
+</template>
+```
+
+:::
+
 ## Related guides
 
 <div class="boxes-list">

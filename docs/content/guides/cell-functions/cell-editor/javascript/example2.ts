@@ -1,7 +1,6 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import { BaseEditor } from 'handsontable/editors/baseEditor';
-import { stopImmediatePropagation } from 'handsontable/helpers/dom/event';
 
 registerAllModules();
 
@@ -65,12 +64,18 @@ class SelectEditor extends BaseEditor {
 
       if (event.keyCode === 38 && selectedIndex > 0) {
         (this.select[selectedIndex - 1] as HTMLOptionElement).selected = true;
-        stopImmediatePropagation(event);
         event.preventDefault();
-      } else if (event.keyCode === 40 && selectedIndex < length - 1) {
+
+        // block the grid's default arrow-key actions
+        return false;
+      }
+
+      if (event.keyCode === 40 && selectedIndex < length - 1) {
         (this.select[selectedIndex + 1] as HTMLOptionElement).selected = true;
-        stopImmediatePropagation(event);
         event.preventDefault();
+
+        // block the grid's default arrow-key actions
+        return false;
       }
     });
   }
