@@ -296,6 +296,13 @@
       background: transparent;
       border-radius: 0 !important;
 
+      // The "Filter by value" list is deliberately chrome-less - the `.htFiltersMenuValue`
+      // menu item draws the separator line below it. Without this override, the embedded
+      // grid's holder also gets the base inset frame ring (it has its own scrollbar), and
+      // the ring's bottom line doubles with that separator. `!important` because the base
+      // frame-ring selector carries more classes than this menu-scoped one.
+      box-shadow: none !important;
+
       .htCore {
         box-shadow: none;
       }
