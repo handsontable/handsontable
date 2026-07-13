@@ -13,10 +13,6 @@ describe('Walkontable.Renderer.RowHeadersRenderer', () => {
     isAriaEnabled() {
       return true;
     }
-
-    isRowRenderable() {
-      return true;
-    }
   }
 
   function createRenderer() {

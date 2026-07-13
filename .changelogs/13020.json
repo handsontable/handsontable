@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved scrolling performance for grids embedded in complex pages by keeping the rendered cells in place during scroll instead of re-inserting them.",
+  "type": "changed",
+  "issueOrPR": 13020,
+  "breaking": false,
+  "framework": "none"
+}

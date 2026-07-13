@@ -26,3 +26,17 @@ export type LayoutSide = LayoutSlotName;
  * border styling.
  */
 export const SLOT_ITEM_CLASS = 'ht-slot-element';
+
+/**
+ * Returns the class mirrored onto the root wrapper while the given slot holds at least one slot
+ * item. The stylesheets select on this class instead of
+ * `.ht-root-wrapper:has(> .ht-slot-<name> > .ht-slot-element)` — a `:has()` selector here makes
+ * the browser re-run style invalidation on every grid DOM mutation (every scroll re-render), at a
+ * cost that scales with the whole host page.
+ *
+ * @param {LayoutSlotName} name The slot name.
+ * @returns {string} The state class for the slot.
+ */
+export function getSlotFilledClassName(name: LayoutSlotName): string {
+  return `ht-slot-${name}-filled`;
+}

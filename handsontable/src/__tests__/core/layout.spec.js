@@ -364,6 +364,70 @@ describe('Layout slots', () => {
     expect(second.matches('.ht-slot-bottom > .ht-slot-element:first-child')).toBe(false);
   });
 
+  it('marks the wrapper with ht-slot-*-filled classes as slots gain and lose elements', async() => {
+    const hot = handsontable({ data: createSpreadsheetData(3, 3) });
+
+    expect(hot.rootWrapperElement.classList.contains('ht-slot-top-filled')).toBe(false);
+    expect(hot.rootWrapperElement.classList.contains('ht-slot-bottom-filled')).toBe(false);
+
+    hot.getLayoutManager().register('a', document.createElement('div'), { side: 'top' });
+
+    expect(hot.rootWrapperElement.classList.contains('ht-slot-top-filled')).toBe(true);
+    expect(hot.rootWrapperElement.classList.contains('ht-slot-bottom-filled')).toBe(false);
+
+    hot.getLayoutManager().unregister('a', 'top');
+
+    expect(hot.rootWrapperElement.classList.contains('ht-slot-top-filled')).toBe(false);
+  });
+
+  it('marks the wrapper as bottom-filled while pagination is enabled', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(3, 3),
+      pagination: true,
+    });
+
+    expect(hot.rootWrapperElement.classList.contains('ht-slot-bottom-filled')).toBe(true);
+
+    await updateSettings({ pagination: false });
+
+    expect(hot.rootWrapperElement.classList.contains('ht-slot-bottom-filled')).toBe(false);
+  });
+
+  it('applies the filled-slot holder styling through the state class (not `:has()`)', async() => {
+    // Explicit size: the holder styling only targets grids that are not scrollable by the window.
+    const hot = handsontable({
+      data: createSpreadsheetData(3, 3),
+      width: 300,
+      height: 200,
+      pagination: true,
+    });
+    const holder = hot.rootWrapperElement.querySelector('.ht_master .wtHolder');
+    const filledBoxShadow = getComputedStyle(holder).boxShadow;
+
+    await updateSettings({ pagination: false });
+
+    // The exact shadow is theme-defined; what matters is that the styling reacts to the
+    // wrapper state class alone.
+    expect(getComputedStyle(holder).boxShadow).not.toBe(filledBoxShadow);
+  });
+
+  it('keeps the wrapper bottom-filled for the license notification even without registered items', async() => {
+    // Pass `true` so the test helper does not inject the default evaluation license key,
+    // which leaves the key missing and renders the license notification.
+    const hot = handsontable({
+      data: createSpreadsheetData(3, 3),
+      pagination: true,
+    }, true);
+
+    expect(hot.rootWrapperElement.classList.contains('ht-slot-bottom-filled')).toBe(true);
+
+    // The license notification is a foreign slot item that stays after pagination unregisters,
+    // so the bottom slot is still filled.
+    await updateSettings({ pagination: false });
+
+    expect(hot.rootWrapperElement.classList.contains('ht-slot-bottom-filled')).toBe(true);
+  });
+
   it('throws when getLayoutManager is called on a non-root instance', async() => {
     handsontable({
       contextMenu: true,

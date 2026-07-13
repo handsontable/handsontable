@@ -78,6 +78,7 @@
   }
 
   // Drop-down menu (label comes first in the header DOM, then `.changeType`)
+  // stylelint-disable-next-line handsontable/no-has-selector -- scoped to `.htGhostTable`, the offscreen measuring table rendered once during size calculation, never on a scroll re-render.
   .htGhostTable th div:has(.changeType) span.colHeader.columnSorting:not(.indicatorDisabled) {
     padding-inline-end: var(--ht-gap-size);
   }

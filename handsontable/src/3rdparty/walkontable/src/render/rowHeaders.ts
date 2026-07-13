@@ -61,12 +61,6 @@ export class RowHeadersRenderer extends BaseRenderer {
     const { rowsToRender, rowHeaderFunctions, rowHeadersCount, rows, cells } = this.table;
 
     for (let visibleRowIndex = 0; visibleRowIndex < rowsToRender; visibleRowIndex++) {
-      // On a delta (row-rotation) draw the surviving rows keep their existing row-header content —
-      // only the rows entering the band are re-rendered. On a full draw every row is renderable.
-      if (!this.table.isRowRenderable(visibleRowIndex)) {
-        continue; // eslint-disable-line no-continue
-      }
-
       const sourceRowIndex = this.table.renderedRowToSource(visibleRowIndex);
       const TR = rows!.getRenderedNode(visibleRowIndex);
 

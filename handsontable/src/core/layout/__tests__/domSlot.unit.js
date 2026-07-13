@@ -257,4 +257,50 @@ describe('DomSlot', () => {
 
     insertBefore.mockRestore();
   });
+
+  it('fires onContentChange after add, remove, and clear', () => {
+    const { parent, make } = setup();
+    const onContentChange = jest.fn();
+    const slot = new DomSlot(parent, { onContentChange });
+
+    slot.add('a', make('a'));
+
+    expect(onContentChange).toHaveBeenCalledTimes(1);
+
+    slot.add('b', make('b'));
+
+    expect(onContentChange).toHaveBeenCalledTimes(2);
+
+    slot.remove('a');
+
+    expect(onContentChange).toHaveBeenCalledTimes(3);
+
+    slot.clear();
+
+    expect(onContentChange).toHaveBeenCalledTimes(4);
+  });
+
+  it('does not fire onContentChange when removing an unknown key', () => {
+    const { parent } = setup();
+    const onContentChange = jest.fn();
+    const slot = new DomSlot(parent, { onContentChange });
+
+    slot.remove('missing');
+
+    expect(onContentChange).not.toHaveBeenCalled();
+  });
+
+  it('fires onContentChange after the DOM reflects the mutation', () => {
+    const { parent, make } = setup();
+    const seen = [];
+    const slot = new DomSlot(parent, {
+      onContentChange: () => seen.push(parent.children.length),
+    });
+
+    slot.add('a', make('a'));
+    slot.remove('a');
+
+    // 1 after the add, 0 after the remove - the callback observes the already-mutated DOM.
+    expect(seen).toEqual([1, 0]);
+  });
 });

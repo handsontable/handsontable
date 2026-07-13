@@ -887,10 +887,15 @@ describe('Selection using mouse interaction', () => {
     await simulateClick(spec().$container.find('.ht_master thead th:eq(2)'));
 
     expect(getSelected()).toEqual([[-1, 9, 9, 9]]);
+    // The stationary-band scroll path keeps the rendered row band at its pre-scroll size (the sticky
+    // overscan that avoids structural DOM churn on scroll), so one extra row renders past the viewport
+    // bottom edge (clipped) and carries the full-column selection highlight. The logical selection is
+    // unchanged.
     expect(`
       |   ║   : * |
       |===:===:===|
       | - ║   : A |
+      | - ║   : 0 |
       | - ║   : 0 |
       | - ║   : 0 |
       | - ║   : 0 |

@@ -32,6 +32,7 @@
       outline: none;
     }
 
+    // stylelint-disable-next-line handsontable/no-has-selector -- focus state on the dialog; the dialog does not re-render on scroll, so the :has() invalidation cost is not on any hot path.
     &:has(.htFocusCatcher:focus) {
       border: 1px solid var(--ht-accent-color);
       outline: none;
@@ -119,6 +120,7 @@
           justify-content: center;
           gap: var(--ht-gap-size);
 
+          // stylelint-disable-next-line handsontable/no-has-selector -- static dialog structure (buttons present or not); evaluated once when the dialog opens, never during a scroll re-render.
           &:has(.ht-dialog__buttons) {
             gap: calc(var(--ht-gap-size) * 2);
           }

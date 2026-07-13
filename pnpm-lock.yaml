@@ -604,6 +604,9 @@ importers:
       stylelint-config-standard-scss:
         specifier: ^13.1.0
         version: 13.1.0(postcss@8.5.16)(stylelint@16.26.1(typescript@6.0.3))
+      stylelint-plugin-handsontable:
+        specifier: file:.config/plugin/stylelint
+        version: file:handsontable/.config/plugin/stylelint
       typescript:
         specifier: ^6.0.0
         version: 6.0.3
@@ -11301,6 +11304,9 @@ packages:
     engines: {node: '>=18.12.0'}
     peerDependencies:
       stylelint: ^16.1.0
+
+  stylelint-plugin-handsontable@file:handsontable/.config/plugin/stylelint:
+    resolution: {directory: handsontable/.config/plugin/stylelint, type: directory}
 
   stylelint-scss@6.14.0:
     resolution: {integrity: sha512-ZKmHMZolxeuYsnB+PCYrTpFce0/QWX9i9gh0hPXzp73WjuIMqUpzdQaBCrKoLWh6XtCFSaNDErkMPqdjy1/8aA==}
@@ -25732,6 +25738,8 @@ snapshots:
     dependencies:
       stylelint: 16.26.1(typescript@6.0.3)
       stylelint-config-recommended: 14.0.1(stylelint@16.26.1(typescript@6.0.3))
+
+  stylelint-plugin-handsontable@file:handsontable/.config/plugin/stylelint: {}
 
   stylelint-scss@6.14.0(stylelint@16.26.1(typescript@6.0.3)):
     dependencies:

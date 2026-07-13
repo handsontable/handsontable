@@ -42,15 +42,27 @@ export class DomSlot {
    * @type {string}
    */
   readonly #itemClass: string;
+  /**
+   * Optional callback fired after any registered-content mutation (add, remove, clear), so the
+   * owner can derive slot-dependent state from the resulting DOM.
+   *
+   * @type {Function}
+   */
+  readonly #onContentChange: () => void;
 
   /**
    * @param {HTMLElement} parent The slot container element.
    * @param {object} [options] Slot options.
    * @param {string} [options.itemClass=''] Class added to every registered element.
+   * @param {Function} [options.onContentChange] Called after any registered-content mutation.
    */
-  constructor(parent: HTMLElement, { itemClass = '' }: { itemClass?: string } = {}) {
+  constructor(parent: HTMLElement, { itemClass = '', onContentChange = () => {} }: {
+    itemClass?: string,
+    onContentChange?: () => void,
+  } = {}) {
     this.#parent = parent;
     this.#itemClass = itemClass;
+    this.#onContentChange = onContentChange;
   }
 
   /**
@@ -99,6 +111,7 @@ export class DomSlot {
     }
 
     this.#reorder();
+    this.#onContentChange();
   }
 
   /**
@@ -120,6 +133,7 @@ export class DomSlot {
 
     entry.element.remove();
     this.#entries.delete(key);
+    this.#onContentChange();
   }
 
   /**
@@ -151,6 +165,7 @@ export class DomSlot {
   clear(): void {
     this.#entries.forEach(entry => entry.element.remove());
     this.#entries.clear();
+    this.#onContentChange();
   }
 
   /**

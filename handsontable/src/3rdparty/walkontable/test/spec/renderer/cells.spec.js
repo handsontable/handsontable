@@ -15,10 +15,6 @@ describe('Walkontable.Renderer.CellsRenderer', () => {
     isAriaEnabled() {
       return true;
     }
-
-    isRowRenderable() {
-      return true;
-    }
   }
 
   function createRenderer() {
