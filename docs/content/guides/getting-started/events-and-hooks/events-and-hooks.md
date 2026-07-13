@@ -367,6 +367,7 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 | `edit`                                             | Action triggered by Handsontable after the data has been changed, e.g., after an edit or using [`setDataAtCell()`](@/api/core.md#setdataatcell), [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop), or [`setSourceDataAtCell()`](@/api/core.md#setsourcedataatcell) methods. |
 | `loadData`                                         | Action triggered by Handsontable after the [`loadData`](@/api/core.md#loaddata) method has been called with the [`data`](@/api/options.md#data) property.
 | `updateData`                                         | Action triggered by Handsontable after the [`updateData`](@/api/core.md#updatedata) method has been called; e.g., before or after a data change.                                                                                                     |
+| `updateSettings`                                   | Action triggered by [`updateSettings()`](@/api/core.md#updatesettings) when its settings object includes the [`data`](@/api/options.md#data) option. The [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) and [`afterUpdateData`](@/api/hooks.md#afterupdatedata) hooks receive this source. |
 | `populateFromArray`                                | Action triggered by Handsontable after the [`populateFromArray()`](@/api/core.md#populatefromarray) method has been called.                                                                                            |
 | `spliceCol`                                        | Action triggered by Handsontable after the [`spliceCol()`](@/api/core.md#splicecol) method has been called.                                                                                                            |
 | `spliceRow`                                        | Action triggered by Handsontable after the [`spliceRow()`](@/api/core.md#splicerow) method has been called.                                                                                                            |
@@ -388,6 +389,26 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 | [`ColumnSummary.set`](@/api/columnSummary.md)      | Action triggered by the ColumnSummary plugin after the calculation has been done.                                                                                                                                      |
 | [`ColumnSummary.reset`](@/api/columnSummary.md)    | Action triggered by the ColumnSummary plugin after the calculation has been reset.                                                                                                                                    |
 
+### Prevent feedback loops when replacing data
+
+After initialization, [`updateSettings()`](@/api/core.md#updatesettings) uses [`updateData()`](@/api/core.md#updatedata) internally when its settings object includes `data`. The [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) and [`afterUpdateData`](@/api/hooks.md#afterupdatedata) hooks receive `source === 'updateSettings'`. The resulting [`afterChange`](@/api/hooks.md#afterchange) hook receives `changes === null` and `source === 'updateData'`.
+
+Calling `updateSettings({ data })` inside `afterChange` triggers `afterChange` again. Check the source before replacing data to prevent a feedback loop. In this callback snippet, `nextData` contains the dataset supplied by your application:
+
+```javascript
+hot.addHook('afterChange', (changes, source) => {
+  if (source === 'updateData') {
+    return;
+  }
+
+  hot.updateSettings({
+    data: nextData,
+  });
+});
+```
+
+The [`beforeChange`](@/api/hooks.md#beforechange) hook doesn't run for whole-dataset replacements. Use [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) to intercept data passed through `updateSettings({ data })`.
+
 List of callbacks that operate on the `source` parameter:
 
 <div class="boxes-list">
@@ -399,6 +420,7 @@ List of callbacks that operate on the `source` parameter:
 - [afterSetDataAtCell](@/api/hooks.md#aftersetdataatcell)
 - [afterSetDataAtRowProp](@/api/hooks.md#aftersetdataatrowprop)
 - [afterSetSourceDataAtCell](@/api/hooks.md#aftersetsourcedataatcell)
+- [afterUpdateData](@/api/hooks.md#afterupdatedata)
 - [afterRemoveCol](@/api/hooks.md#afterremovecol)
 - [afterRemoveRow](@/api/hooks.md#afterremoverow)
 - [afterValidate](@/api/hooks.md#aftervalidate)
@@ -409,6 +431,7 @@ List of callbacks that operate on the `source` parameter:
 - [beforeLoadData](@/api/hooks.md#beforeloaddata)
 - [beforeRemoveCol](@/api/hooks.md#beforeremovecol)
 - [beforeRemoveRow](@/api/hooks.md#beforeremoverow)
+- [beforeUpdateData](@/api/hooks.md#beforeupdatedata)
 - [beforeValidate](@/api/hooks.md#beforevalidate)
 
 </div>
