@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved the performance of the cell meta storage: reading cell settings no longer slows down permanently after visiting distant rows of a large grid, adding or removing columns with customized cells is up to 10 times faster, and memory used by cell settings of scrolled-away rows is now fully released.",
+  "type": "changed",
+  "issueOrPR": 13063,
+  "breaking": false,
+  "framework": "none"
+}
