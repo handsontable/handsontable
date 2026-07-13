@@ -218,6 +218,9 @@ jobs:
           CHANGELOG_CONTENT: ${{ steps.changelog.outputs.content }}
         run: node .github/scripts/update-docs-changelog.mjs '${{ steps.version.outputs.rc-version }}'
 
+      - name: Generate version highlights scaffold
+        run: node docs/scripts/generate-version-highlights.mjs '${{ steps.version.outputs.rc-version }}'
+
       - name: Commit and push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -674,6 +677,9 @@ jobs:
         env:
           CHANGELOG_CONTENT: ${{ steps.changelog.outputs.content }}
         run: node .github/scripts/update-docs-changelog.mjs '${{ steps.rc-version.outputs.rc-version }}'
+
+      - name: Generate version highlights scaffold
+        run: node docs/scripts/generate-version-highlights.mjs '${{ steps.rc-version.outputs.rc-version }}'
 
       - name: Commit and push
         env:
