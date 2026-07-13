@@ -236,8 +236,8 @@ Handsontable exposes hundreds of hooks. The ones below are the hooks you reach f
 
 <div class="boxes-list">
 
-- [beforeChange](@/api/hooks.md#beforechange) -- fired before one or more cells change. Use it to silently alter or reject changes before the grid re-renders.
-- [afterChange](@/api/hooks.md#afterchange) -- fired after one or more cells change.
+- [beforeChange](@/api/hooks.md#beforechange) -- fired before one or more cells change. Use it to silently alter or reject changes before the grid re-renders. See [Block changes with the beforeChange hook](#block-changes-with-the-beforechange-hook).
+- [afterChange](@/api/hooks.md#afterchange) -- fired after one or more cells change. See [Prevent feedback loops](#prevent-feedback-loops).
 
 </div>
 
@@ -389,7 +389,7 @@ It's worth mentioning that some Handsontable hooks are triggered from the Handso
 | [`ColumnSummary.set`](@/api/columnSummary.md)      | Action triggered by the ColumnSummary plugin after the calculation has been done.                                                                                                                                      |
 | [`ColumnSummary.reset`](@/api/columnSummary.md)    | Action triggered by the ColumnSummary plugin after the calculation has been reset.                                                                                                                                    |
 
-### Prevent feedback loops when replacing data
+### Prevent feedback loops
 
 After initialization, [`updateSettings()`](@/api/core.md#updatesettings) uses [`updateData()`](@/api/core.md#updatedata) internally when its settings object includes `data`. The [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) and [`afterUpdateData`](@/api/hooks.md#afterupdatedata) hooks receive `source === 'updateSettings'`. The resulting [`afterChange`](@/api/hooks.md#afterchange) hook receives `changes === null` and `source === 'updateData'`.
 
@@ -408,6 +408,41 @@ hot.addHook('afterChange', (changes, source) => {
 ```
 
 The [`beforeChange`](@/api/hooks.md#beforechange) hook doesn't run for whole-dataset replacements. Use [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) to intercept data passed through `updateSettings({ data })`.
+
+The same risk applies to a direct, single-cell write with [`setDataAtCell()`](@/api/core.md#setdataatcell): without a custom `source`, the write arrives in `afterChange` with `source === 'edit'` (see the [`source` table](#definition-for-source-argument) above), indistinguishable from a user edit, so calling `setDataAtCell()` again from inside `afterChange` re-triggers the hook. Pass a custom `source` string and check for it:
+
+```javascript
+hot.addHook('afterChange', (changes, source) => {
+  if (source === 'sync') {
+    return;
+  }
+
+  // send `changes` to the server, then write the confirmed value back:
+  hot.setDataAtCell(row, column, confirmedValue, 'sync');
+});
+```
+
+### Block changes with the beforeChange hook
+
+Use [`beforeChange`](@/api/hooks.md#beforechange) to validate or reject individual changes before they reach the grid. The hook receives the full batch of pending changes as an array of `[row, prop, oldValue, newValue]` tuples, so you can inspect and modify it in place.
+
+The example below works on object data and cancels any change to the `id` property that isn't a numeric string, using `setDataAtRowProp()`-style tuples:
+
+```javascript
+hot.addHook('beforeChange', (changes, source) => {
+  for (let i = changes.length - 1; i >= 0; i -= 1) {
+    const [row, prop, oldValue, newValue] = changes[i];
+
+    if (prop === 'id' && !/^\d+$/.test(String(newValue))) {
+      changes[i] = null; // cancel this one change
+    }
+  }
+
+  // return false; // cancels the entire batch instead
+});
+```
+
+Setting an entry in `changes` to `null` cancels only that change; the rest of the batch still applies. Returning `false` from the hook cancels the whole batch instead. A change made through [`setDataAtRowProp()`](@/api/core.md#setdataatrowprop) arrives with `source === 'edit'`, the same as any other direct edit (see the [`source` table](#definition-for-source-argument) above).
 
 List of callbacks that operate on the `source` parameter:
 
