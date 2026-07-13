@@ -3,6 +3,7 @@ import type { BaseRenderer } from './renderers/baseRenderer';
 import type { CellProperties } from './settings';
 import type { WalkontableInstance } from './3rdparty/walkontable/src/types';
 import type { RowsCalculationType, ColumnsCalculationType } from './3rdparty/walkontable/src/calculator/viewportBase';
+import type CellCoords from './3rdparty/walkontable/src/cell/coords';
 import {
   addClass,
   removeClass,
@@ -531,6 +532,12 @@ class TableView {
       // https://github.com/handsontable/handsontable/issues/160
       // Prevent text from being selected when performing drag down.
       event.preventDefault();
+    });
+
+    this.eventManager.addEventListener(rootElement, 'mouseleave', () => {
+      if (this.settings.selectionHandles) {
+        this.hot.selection.setHandlesHoveredLayer(null);
+      }
     });
   }
 
@@ -1083,6 +1090,7 @@ class TableView {
         }
 
         this.hot.runHooks('afterOnCellMouseOver', event, visualCoords, TD);
+        this.#updateHandlesHoveredLayer(visualCoords);
         this.activeWt = this._wt;
         this.#mouseDownLastPos = null;
       },
@@ -1513,6 +1521,24 @@ class TableView {
     }
 
     return this.#recentTouchEnd;
+  }
+
+  /**
+   * Updates the hovered layer for the `selectionHandles` feature based on the visual coords
+   * the pointer is currently over. When the mouse button is held down (selection drag in progress)
+   * this method is a no-op so handles stay hidden during drag.
+   *
+   * @private
+   * @param {CellCoords} visualCoords The visual cell coordinates.
+   */
+  #updateHandlesHoveredLayer(visualCoords: CellCoords) {
+    if (!this.settings.selectionHandles || this.#mouseDown) {
+      return;
+    }
+
+    const layer = this.hot.selection.getLayerContaining(visualCoords);
+
+    this.hot.selection.setHandlesHoveredLayer(layer);
   }
 
   /**

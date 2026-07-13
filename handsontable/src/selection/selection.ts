@@ -1089,6 +1089,29 @@ class Selection {
   }
 
   /**
+   * Returns the visual layer index of the selected range containing the given coords, or `null`.
+   * When multiple ranges overlap the coord, the topmost layer (highest index) wins.
+   *
+   * @param {CellCoords} coords The visual cell coordinates to test.
+   * @returns {number | null}
+   */
+  getLayerContaining(coords: CellCoords): number | null {
+    if (this.selectedRange.isEmpty()) {
+      return null;
+    }
+
+    let result: number | null = null;
+
+    this.selectedRange.ranges.forEach((cellRange, index) => {
+      if (cellRange.includes(coords)) {
+        result = index;
+      }
+    });
+
+    return result;
+  }
+
+  /**
    * Returns `true` if the cell corner should be visible.
    *
    * @private
