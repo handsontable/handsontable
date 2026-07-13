@@ -390,15 +390,20 @@ class Border {
    * Visual styling (size, background, border, border-radius) is read from CSS variables via
    * the stylesHandler and applied as inline styles so that `positionAdjustHandles` can read the
    * dimensions directly from `el.style.*` without forcing a layout-recalculating `getComputedStyle`.
+   *
+   * Handles are styled entirely inline (mirroring the mobile `createMultipleSelectorHandles`
+   * pattern). Do not add a `.wtSelectionHandle` SCSS rule referencing these variables — such a
+   * rule would be overridden by the inline styles and serve as dead code. The consumer override
+   * point is the `--ht-cell-selection-handle-*` CSS variables, which are read here by JS.
    */
   createAdjustHandles() {
     const { rootDocument, wtSettings } = this.wot;
     const stylesHandler = wtSettings.getSetting('stylesHandler');
-    const size = stylesHandler.getCSSVariableValue('cell-selection-handle-size');
-    const borderWidth = stylesHandler.getCSSVariableValue('cell-selection-handle-border-width');
-    const borderRadius = stylesHandler.getCSSVariableValue('cell-selection-handle-border-radius');
-    const borderColor = stylesHandler.getCSSVariableValue('cell-selection-handle-border-color');
-    const backgroundColor = stylesHandler.getCSSVariableValue('cell-selection-handle-background-color');
+    const size = stylesHandler.getCSSVariableValue('cell-selection-handle-size') ?? 8;
+    const borderWidth = stylesHandler.getCSSVariableValue('cell-selection-handle-border-width') ?? 1;
+    const borderRadius = stylesHandler.getCSSVariableValue('cell-selection-handle-border-radius') ?? 12;
+    const borderColor = stylesHandler.getCSSVariableValue('cell-selection-handle-border-color') ?? '';
+    const backgroundColor = stylesHandler.getCSSVariableValue('cell-selection-handle-background-color') ?? '';
 
     const make = (edge: string, cursor: string) => {
       const el = rootDocument.createElement('div');
@@ -406,6 +411,7 @@ class Border {
       el.className = `wtSelectionHandle wtSelectionHandle--${edge}`;
       el.style.position = 'absolute';
       el.style.display = 'none';
+      el.style.zIndex = '200';
       el.style.width = `${size}px`;
       el.style.height = `${size}px`;
       el.style.background = `${backgroundColor}`;

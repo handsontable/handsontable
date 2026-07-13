@@ -123,6 +123,53 @@ describe('WalkontableSelectionHandles', () => {
     expect(parseInt(styles.top.left, 10)).toBeLessThan(borderLeft + borderWidth);
   });
 
+  it('should apply visual inline styles (size, background, borderRadius, boxSizing, cursor, z-index) to handles immediately after createAdjustHandles', async() => {
+    const selections = createSelectionController({
+      border: {
+        width: 2,
+        color: 'blue',
+        adjustHandlesVisible() {
+          return true;
+        }
+      }
+    });
+    const wt = walkontable({
+      data: getData,
+      totalRows: 5,
+      totalColumns: 5,
+      selections,
+    });
+
+    // Interior selection — no grid edge touched, all four handles will be visible after draw.
+    selections.getFocus()
+      .add(new Walkontable.CellCoords(1, 1))
+      .add(new Walkontable.CellCoords(3, 3));
+
+    wt.draw();
+
+    const focusBorder = wt.selectionManager.getBorderInstance(selections.getFocus());
+    const topEl = focusBorder.adjustHandles.top;
+    const startEl = focusBorder.adjustHandles.start;
+
+    // Verify visual inline styles set by createAdjustHandles (before any positioning overwrite).
+    // This test does NOT overwrite those styles — it checks what createAdjustHandles produced.
+    expect(topEl.style.boxSizing).toBe('border-box');
+    expect(topEl.style.background).not.toBe('');
+    expect(topEl.style.borderRadius).not.toBe('');
+    expect(topEl.style.width).not.toBe('');
+    expect(topEl.style.height).not.toBe('');
+    expect(topEl.style.zIndex).toBe('200');
+    expect(topEl.style.cursor).toBe('ns-resize');
+
+    expect(startEl.style.boxSizing).toBe('border-box');
+    expect(startEl.style.background).not.toBe('');
+    expect(startEl.style.borderRadius).not.toBe('');
+    expect(startEl.style.width).not.toBe('');
+    expect(startEl.style.height).not.toBe('');
+    expect(startEl.style.zIndex).toBe('200');
+    expect(startEl.style.cursor).toBe('ew-resize');
+  });
+
   it('should hide the top handle when the selection top edge is at row 0', async() => {
     const selections = createSelectionController({
       border: {
