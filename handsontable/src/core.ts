@@ -3154,6 +3154,13 @@ export default function Core(
    * Passing `columns` inside the `settings` object resets the states corresponding to rows and columns
    * (for example, row/column sequence, column width, row height, frozen columns etc.). Passing `data` does not reset these states.
    *
+   * After initialization, passing `data` calls [`updateData()`](@/api/core.md#updatedata) internally.
+   * The resulting [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata) and
+   * [`afterUpdateData`](@/api/hooks.md#afterupdatedata) hooks receive `"updateSettings"` as their
+   * `source`, while [`afterChange`](@/api/hooks.md#afterchange) receives `null` as its `changes`
+   * argument and `"updateData"` as its `source`. If you call `updateSettings` with `data` inside
+   * `afterChange`, check the hook's `source` to prevent an infinite loop.
+   *
    * Cell meta set imperatively through [[setCellMeta]] (for example, by the user or the context menu) is preserved across
    * `updateSettings`, even when `settings` includes `cell`, `cells`, or `columns`. On a direct conflict, a value re-stated
    * through the declarative `cell` option takes precedence over the preserved imperative value.

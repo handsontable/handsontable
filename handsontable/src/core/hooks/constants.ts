@@ -137,17 +137,23 @@ export const REGISTERED_HOOKS = [
    * Fired after one or more cells has been changed. The changes are triggered in any situation when the
    * value is entered using an editor or changed using API (e.q [`setDataAtCell`](@/api/core.md#setdataatcell) method).
    *
-   * __Note:__ For performance reasons, the `changes` array is null for `"loadData"` source.
+   * For performance reasons, the `changes` array is `null` when the `source` is `"loadData"` or `"updateData"`.
+   *
+   * Calling [`updateSettings()`](@/api/core.md#updatesettings) with the `data` option inside this hook
+   * triggers another `afterChange` call with the `"updateData"` source. Check the `source` argument
+   * to prevent an infinite loop.
    *
    * @event Hooks#afterChange
-   * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`.
-   *                          `row` is a visual row index. `prop` is a property name, a column index, or – when
-   *                          [`columns[].data`](@/api/options.md#columns) is a function – the column accessor function.
-   *                          To resolve a visual column index from `prop`, call [`propToCol()`](@/api/core.md#proptocol).
-   *                          Unlike [`beforeValidate`](@/api/hooks.md#beforevalidate) and
-   *                          [`afterValidate`](@/api/hooks.md#aftervalidate), this hook passes the accessor function
-   *                          as `prop` so the grid can write data back. Read more:
-   *                          [Binding to data: Identify changed columns in hooks](@/guides/getting-started/binding-to-data/binding-to-data.md#identify-changed-columns-in-hooks).
+   * @param {Array[]|null} changes 2D array containing information about each of the edited cells
+   *                               `[[row, prop, oldVal, newVal], ...]`, or `null` for the `"loadData"`
+   *                               and `"updateData"` sources. `row` is a visual row index. `prop` is a property name,
+   *                               a column index, or – when [`columns[].data`](@/api/options.md#columns) is a function –
+   *                               the column accessor function. To resolve a visual column index from `prop`, call
+   *                               [`propToCol()`](@/api/core.md#proptocol). Unlike
+   *                               [`beforeValidate`](@/api/hooks.md#beforevalidate) and
+   *                               [`afterValidate`](@/api/hooks.md#aftervalidate), this hook passes the accessor function
+   *                               as `prop` so the grid can write data back. Read more:
+   *                               [Binding to data: Identify changed columns in hooks](@/guides/getting-started/binding-to-data/binding-to-data.md#identify-changed-columns-in-hooks).
    * @param {string} [source] String that identifies source of hook call ([list of all available sources](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
    * @example
    * ::: only-for javascript
@@ -1395,6 +1401,12 @@ export const REGISTERED_HOOKS = [
    * Use this hook to silently alter the user's changes before Handsontable re-renders.
    *
    * To ignore the user's changes, use a nullified array or return `false`.
+   *
+   * This hook doesn't run when the entire data source is replaced through
+   * [`loadData()`](@/api/core.md#loaddata), [`updateData()`](@/api/core.md#updatedata), or
+   * [`updateSettings()`](@/api/core.md#updatesettings) with the `data` option. To intercept these
+   * replacements, use [`beforeLoadData`](@/api/hooks.md#beforeloaddata) or
+   * [`beforeUpdateData`](@/api/hooks.md#beforeupdatedata).
    *
    * @event Hooks#beforeChange
    * @param {Array[]} changes 2D array containing information about each of the edited cells `[[row, prop, oldVal, newVal], ...]`.
