@@ -678,4 +678,88 @@ describe('LazyFactoryMap', () => {
       expect(map.obtain(0)).toEqual({ i: 0 });
     });
   });
+
+  describe('batched insert/remove (shifts buffered until the next read)', () => {
+    it('should apply a run of single-slot removes as one consistent shift', () => {
+      const map = createLazyFactoryMap();
+      const values = [];
+
+      for (let i = 0; i < 10; i++) {
+        values.push(map.obtain(i));
+      }
+
+      // mirrors DataMap.removeRow: one remove(key, 1) call per removed physical row
+      map.remove(1, 1);
+      map.remove(1, 1);
+      map.remove(1, 1);
+
+      expect(map.size()).toBe(7);
+      expect(map.obtain(0)).toBe(values[0]);
+      expect(map.obtain(1)).toBe(values[4]);
+      expect(map.obtain(6)).toBe(values[9]);
+      expect(map.has(7)).toBe(false);
+    });
+
+    it('should apply interleaved inserts and removes in call order', () => {
+      const map = createLazyFactoryMap();
+      const a = map.obtain(0);
+      const b = map.obtain(1);
+      const c = map.obtain(2);
+
+      map.insert(1, 2); // a, _, _, b, c
+      map.remove(0, 1); // _, _, b, c
+      map.insert(0, 1); // _, _, _, b, c
+
+      expect(map.has(0)).toBe(false);
+      expect(map.has(1)).toBe(false);
+      expect(map.has(2)).toBe(false);
+      expect(map.obtain(3)).toBe(b);
+      expect(map.obtain(4)).toBe(c);
+      expect(a).toEqual({ i: 0 }); // dropped from the map, caller-held reference intact
+    });
+
+    it('should preserve initialization order across a batched run of shifts', () => {
+      const map = createLazyFactoryMap();
+
+      map.obtain(5);
+      map.obtain(0);
+      map.obtain(9);
+
+      map.insert(1, 1);
+      map.remove(7, 1);
+      map.insert(0, 3);
+
+      expect(Array.from(map.values())).toEqual([{ i: 5 }, { i: 0 }, { i: 9 }]);
+    });
+
+    it('should stay correct when the buffered shifts exceed the internal flush backstop', () => {
+      const map = createLazyFactoryMap();
+      const kept = map.obtain(0);
+      const moved = map.obtain(1);
+
+      for (let i = 0; i < 2000; i++) {
+        map.insert(1, 1);
+      }
+
+      expect(map.obtain(0)).toBe(kept);
+      expect(map.obtain(2001)).toBe(moved);
+      expect(map.size()).toBe(2);
+    });
+
+    it('should not resurrect values removed within a batch', () => {
+      const map = createLazyFactoryMap();
+
+      map.obtain(0);
+      map.obtain(1);
+      map.obtain(2);
+
+      map.remove(0, 3);
+      map.insert(0, 3);
+
+      expect(map.size()).toBe(0);
+      expect(map.has(0)).toBe(false);
+      expect(map.has(1)).toBe(false);
+      expect(map.has(2)).toBe(false);
+    });
+  });
 });
