@@ -5556,6 +5556,32 @@ export default (): Record<string, unknown> => {
     selectionMode: 'multiple',
 
     /**
+     * The `selectionHandles` option enables draggable handles on the edges of a
+     * [selection](@/guides/cell-features/selection/selection.md). When enabled, hovering over a
+     * selected range shows a pill-shaped handle at the midpoint of each edge; dragging a handle
+     * resizes that edge of the selection. This adjusts the selected area only — it does not move,
+     * fill, or change any cell data.
+     *
+     * Handles are shown on desktop only and are hidden on any edge that is flush with the grid
+     * boundary. The option has no effect when [`selectionMode`](#selectionmode) is `'single'`.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     *
+     * @since 18.1.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // enable draggable selection-edge handles
+     * selectionHandles: true,
+     * ```
+     */
+    selectionHandles: false,
+
+    /**
      * The `selectOptions` option configures options that the end user can choose from in [`select`](@/guides/cell-types/select-cell-type/select-cell-type.md) cells.
      *
      * You can set the `selectOptions` option to one of the following:

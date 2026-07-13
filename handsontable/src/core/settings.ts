@@ -128,6 +128,12 @@ export interface GridSettings {
   navigableHeaders?: boolean;
   outsideClickDeselects?: boolean | ((target: HTMLElement, coords?: WalkontableCellCoords) => boolean);
   selectionMode?: 'single' | 'range' | 'multiple';
+  /**
+   * Enables draggable pill-shaped handles on the edges of a selection. When `true`, hovering
+   * over a selected range shows a handle at the midpoint of each edge; dragging it resizes
+   * that edge. Has no effect when `selectionMode` is `'single'`.
+   */
+  selectionHandles?: boolean;
   tabNavigation?: boolean;
   autoWrapCol?: boolean;
   autoWrapRow?: boolean;

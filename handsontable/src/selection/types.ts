@@ -57,6 +57,7 @@ export interface SelectionSettings {
   selectionMode?: 'single' | 'range' | 'multiple';
   disableVisualSelection?: boolean | string | string[];
   fillHandle?: unknown;
+  selectionHandles?: boolean;
   [key: string]: unknown;
 }
 

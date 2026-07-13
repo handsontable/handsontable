@@ -216,6 +216,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   sanitizer: (content: string, source: 'innerHTML' | 'CopyPaste.paste') => content,
   search: true,
   selectionMode: oneOf('single', 'range', 'multiple'),
+  selectionHandles: true,
   selectOptions: oneOf(
     ['A', 'B', 'C'],
     { a: 'A', b: 'B', c: 'C' },
@@ -872,3 +873,8 @@ const _strippedTypedConfig: _StrippedGridSettings = {
   readOnly: true,
   className: 'foo',
 };
+
+// Regression: selectionHandles must be accepted by updateSettings (DEV - Task 1).
+declare const hot: Handsontable;
+
+hot.updateSettings({ selectionHandles: true });
