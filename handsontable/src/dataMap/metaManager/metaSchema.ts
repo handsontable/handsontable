@@ -5559,7 +5559,7 @@ export default (): Record<string, unknown> => {
      * The `selectionHandles` option enables draggable handles on the edges of a
      * [selection](@/guides/cell-features/selection/selection.md). When enabled, hovering over a
      * selected range shows a pill-shaped handle at the midpoint of each edge; dragging a handle
-     * resizes that edge of the selection. This adjusts the selected area only — it does not move,
+     * resizes that edge of the selection. This adjusts the selected area only – it does not move,
      * fill, or change any cell data.
      *
      * Handles are shown on desktop only and are hidden on any edge that is flush with the grid
@@ -5567,7 +5567,7 @@ export default (): Record<string, unknown> => {
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      *
-     * @since 18.1.0
+     * @since 18.0.0
      * @memberof Options#
      * @type {boolean}
      * @default false

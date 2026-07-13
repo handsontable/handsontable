@@ -874,7 +874,7 @@ const _strippedTypedConfig: _StrippedGridSettings = {
   className: 'foo',
 };
 
-// Regression: selectionHandles must be accepted by updateSettings (DEV - Task 1).
+// Regression: selectionHandles must be accepted by updateSettings.
 declare const hot: Handsontable;
 
 hot.updateSettings({ selectionHandles: true });
