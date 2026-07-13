@@ -171,6 +171,12 @@ class Selection {
    * @type {number}
    */
   #activeSelectionLayer = 0;
+  /**
+   * Visual layer index of the range currently hovered while `selectionHandles` is on, or `null`.
+   *
+   * @type {number | null}
+   */
+  #handlesHoveredLayer: number | null = null;
 
   /**
    * Initializes the Selection manager with grid settings and table API references, and sets up transformation modules and highlight layers.
@@ -189,6 +195,7 @@ class Selection {
       disabledCellSelection: (row: number, column: number) => this.tableProps.isDisabledCellSelection(row, column),
       cellCornerVisible: () => this.isCellCornerVisible(),
       areaCornerVisible: (layerLevel: number) => this.isAreaCornerVisible(layerLevel),
+      adjustHandlesVisible: (layerLevel: number) => this.isAdjustHandlesVisibleFor(layerLevel),
       visualToRenderableCoords: (coords: CellCoords) => this.tableProps.visualToRenderableCoords(coords),
       renderableToVisualCoords: (coords: CellCoords) => this.tableProps.renderableToVisualCoords(coords),
       createCellCoords: (row: number, column: number) => this.tableProps.createCellCoords(row, column),
@@ -1116,6 +1123,32 @@ class Selection {
     }
 
     return this.settings.fillHandle && !this.tableProps.isEditorOpened() && this.isMultiple();
+  }
+
+  /**
+   * Tells whether the adjustment handles should render for the given highlight layer.
+   *
+   * @param {number} layerLevel The area highlight layer level.
+   * @returns {boolean}
+   */
+  isAdjustHandlesVisibleFor(layerLevel: number) {
+    return this.settings.selectionHandles === true &&
+      this.settings.selectionMode !== 'single' &&
+      this.#handlesHoveredLayer === layerLevel;
+  }
+
+  /**
+   * Sets which selection layer currently shows adjustment handles and refreshes the borders.
+   *
+   * @param {number | null} layer The hovered layer level, or `null` to hide all handles.
+   */
+  setHandlesHoveredLayer(layer: number | null) {
+    if (this.#handlesHoveredLayer === layer) {
+      return;
+    }
+
+    this.#handlesHoveredLayer = layer;
+    this.refresh();
   }
 
   /**

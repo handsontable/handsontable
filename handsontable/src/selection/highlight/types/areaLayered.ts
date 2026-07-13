@@ -6,9 +6,10 @@ import VisualSelection from '../visualSelection';
  *
  * @param {object} highlightParams A configuration object to create a highlight.
  * @param {object} highlightParams.areaCornerVisible Function to determine if area's corner should be visible.
+ * @param {object} highlightParams.adjustHandlesVisible Function to determine if adjustment handles should be visible.
  * @returns {Selection}
  */
-export function createHighlight({ areaCornerVisible, ...restOptions }: Record<string, unknown>) {
+export function createHighlight({ areaCornerVisible, adjustHandlesVisible, ...restOptions }: Record<string, unknown>) {
   return new VisualSelection({
     className: 'area',
     createLayers: true,
@@ -16,6 +17,7 @@ export function createHighlight({ areaCornerVisible, ...restOptions }: Record<st
       width: 1,
       color: '#4b89ff',
       cornerVisible: areaCornerVisible,
+      adjustHandlesVisible,
     },
     ...restOptions,
     selectionType: HIGHLIGHT_AREA_TYPE,
