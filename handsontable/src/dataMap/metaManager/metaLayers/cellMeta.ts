@@ -191,6 +191,20 @@ export default class CellMeta {
   }
 
   /**
+   * Returns the stored cell meta object for the given coordinates, or `undefined` when the cell
+   * has no materialized meta. Unlike `getMeta`, it never creates row or cell objects, so it is
+   * safe for bulk scans; unlike `hasMeta` followed by `getMeta`, it resolves in two map lookups
+   * instead of five, which matters on the per-cell read path.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @returns {object|undefined}
+   */
+  getMetaIfExists(physicalRow: number, physicalColumn: number): Record<string, unknown> | undefined {
+    return this.metas.getIfExists(physicalRow)?.getIfExists(physicalColumn);
+  }
+
+  /**
    * Creates a cell meta object inheriting from the column layer without storing it in the map. The
    * returned object is transient (eligible for garbage collection) and carries no per-cell overrides,
    * so it must only be used for reads that do not need persisted per-cell meta.

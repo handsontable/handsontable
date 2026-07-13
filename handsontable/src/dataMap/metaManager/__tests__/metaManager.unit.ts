@@ -400,5 +400,30 @@ describe('MetaManager', () => {
       expect(uncached.className).toBe('htRight');
       expect(uncached).toBe(stored);
     });
+
+    it('should return the stored meta object through a pending row-shift buffer', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.setCellMeta(10, 1, 'className', 'htRight');
+
+      const stored = metaManager.getCellMeta(10, 1, { visualRow: 10, visualColumn: 1, skipMetaExtension: true });
+
+      // buffer a row shift without any read in between, as DataMap.removeRow does
+      metaManager.removeRow(3, 1);
+
+      const uncached = metaManager.getCellMetaUncached(9, 1, { visualRow: 9, visualColumn: 1 });
+
+      expect(uncached).toBe(stored);
+      expect(uncached.className).toBe('htRight');
+    });
+
+    it('should not materialize a row map when probing an empty row', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.getCellMetaUncached(7, 0, { visualRow: 7, visualColumn: 0 });
+
+      expect(metaManager.cellMeta.getMetaIfExists(7, 0)).toBeUndefined();
+      expect(metaManager.cellMeta.metas.has(7)).toBe(false);
+    });
   });
 });

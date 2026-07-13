@@ -208,9 +208,11 @@ export default class MetaManager {
     physicalRow: number, physicalColumn: number,
     options: { visualRow: number; visualColumn: number }
   ): M {
-    const cellMeta = this.cellMeta.hasMeta(physicalRow, physicalColumn)
-      ? this.cellMeta.getMeta(physicalRow, physicalColumn)
-      : this.cellMeta.createTransientMeta(physicalColumn);
+    // Two map lookups on the warm path (vs five for `hasMeta` + `getMeta`), and the miss
+    // fallback stays inline - extracting this expression into a helper regresses the read
+    // through V8 inline-cache pollution.
+    const cellMeta = this.cellMeta.getMetaIfExists(physicalRow, physicalColumn) ??
+      this.cellMeta.createTransientMeta(physicalColumn);
 
     cellMeta.visualRow = options.visualRow;
     cellMeta.visualCol = options.visualColumn;

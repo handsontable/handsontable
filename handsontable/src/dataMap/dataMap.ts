@@ -29,6 +29,10 @@ interface MetaManagerLike {
   removeRow(physicalIndex: number, amount: number): void;
   removeColumn(physicalIndex: number, amount: number): void;
   getCellMeta(physicalRow: number, physicalColumn: number, options?: object): Record<string, unknown>;
+  getCellMetaUncached(
+    physicalRow: number, physicalColumn: number,
+    options: { visualRow: number; visualColumn: number }
+  ): Record<string, unknown>;
 }
 
 /*
@@ -855,13 +859,15 @@ class DataMap {
       ? this.hot!.toPhysicalColumn(visualColumnIndex)
       : null;
 
-    if (isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
+    if (typeof visualColumnIndex === 'number' && isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
+      // The uncached read returns the stored meta when the cell carries persisted overrides and a
+      // transient object otherwise - a plain data read must not permanently materialize one meta
+      // object per visited cell (a full-table scan such as sorting would retain O(rows) of them).
       value = getValueGetterValue(
         value,
-        this.metaManager!.getCellMeta(physicalRow, physicalColumn, {
+        this.metaManager!.getCellMetaUncached(physicalRow, physicalColumn, {
           visualRow: row,
           visualColumn: visualColumnIndex,
-          skipMetaExtension: true
         })
       );
     }
