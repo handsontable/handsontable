@@ -28,6 +28,15 @@ This is the engine-specific subset of the core concerns doc (`handsontable/.ai/C
   - `axisSizing/oversizedRows.ts` `markOversizedRows()` — the whole method early-returns when `externalRowCalculator` is `true`; on the internal path it applies the content-box border compensation (`borderCompensation` / `firstRowBorderCompensation` / the `+1` on non-border-box). See also the shared `axisSizing/boxModel.ts` helper.
 - **When adding any new sizing/compensation logic, keep this split:** compensate on the internal path, skip it when the external calculator (AutoRowSize/AutoColumnSize) owns the sizes.
 
+**Directional overscan invariants (`viewport/calculatorFactory.ts`):**
+- The scroll-direction band overscan (the `viewport*RenderingOffset: 'auto'` mode; see RENDERING-LIFECYCLE §4) has four invariants that specs pin — breaking any of them reintroduces a subtle scroll bug:
+  - **Overscan appliers run BEFORE the band stabilizers.** Reversed order double-pads the band on a scroll-direction flip (the stabilizer locks in the old overscan, then the applier adds a new one).
+  - **A zero-delta draw must never INVENT an overscan side.** When the other axis scrolled, the recomputed band keeps an existing overscan side only if a recorded side offset is **greater than 1** — the `'auto'` override adds at most 1 per side and clamps to 0 at dataset edges, so offset asymmetry alone proves nothing. Getting this wrong silently overscans the row axis on horizontal scrolls (or vice versa) and inflates every draw.
+  - **Start-side growth must recompute `startPosition`** from the axis prefix-sum cache (`rowHeightCache` / `columnWidthCache` `.getOffset()`), or the band renders at the wrong pixel (a pixel-parity spec against `draw(false)` pins this).
+  - **The band's side offsets must stay truthful** (grow with the applied overscan) — the `viewport*RenderingThreshold` containment padding caps against them.
+- The caps (`COLUMN_BAND_OVERSCAN_MAX = 8`, `ROW_BAND_OVERSCAN_MAX = 4`) are perceptual tuning, not correctness: they keep every band-crossing stall in the mild 40–50 ms class instead of rarer ~60 ms catches. When retuning, sync the numbers in the `viewport{Row,Column}RenderingOffset` JSDoc (`src/dataMap/metaManager/metaSchema.ts`).
+- Specs: `test/spec/scroll/stationary{Columns,Rows}BandOverscan.spec.js` and `test/unit/viewport/calculatorFactory.unit.js`. Spec-writing traps: pixel-parity comparisons must use CONTENT space (a `draw(false)` may move the holder's scroll position) and a target row fully inside the viewport; walkontable RTL specs need `rtlMode: true` in the walkontable settings (a `dir="rtl"` attribute alone is not read by the engine).
+
 ## Test Coverage Gaps
 
 **Single-pass layout solver (`viewport/boxLayout/`):**
