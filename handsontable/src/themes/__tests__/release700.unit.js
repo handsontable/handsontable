@@ -5,6 +5,8 @@
  * - Color scheme light/dark/auto support
  * - MultiSelect overflow chip padding tokens
  */
+import fs from 'fs';
+import path from 'path';
 import mainIcons from 'handsontable/themes/static/variables/icons/main';
 import mainColors from 'handsontable/themes/static/variables/colors/main';
 import mainTokens from 'handsontable/themes/static/variables/tokens/main';
@@ -147,6 +149,27 @@ describe('RELEASE-700: Theme Builder', () => {
       theme.params({ tokens: { headerRowBackgroundColor: '#00ff00' } });
 
       expect(theme.getThemeConfig().tokens.headerRowBackgroundColor).toBe('#00ff00');
+    });
+
+    describe('static CSS defaults', () => {
+      const themeCssFiles = [
+        'ht-theme-main.css',
+        'ht-theme-main-no-icons.css',
+        'ht-theme-classic.css',
+        'ht-theme-classic-no-icons.css',
+        'ht-theme-horizon.css',
+        'ht-theme-horizon-no-icons.css',
+      ];
+
+      it.each(themeCssFiles)('should cascade --ht-row-header-even-background-color from ' +
+        '--ht-header-row-background-color in %s', (fileName) => {
+        const cssPath = path.join(__dirname, '../static/css/theme', fileName);
+        const cssContent = fs.readFileSync(cssPath, 'utf8');
+
+        expect(cssContent).toMatch(
+          /--ht-row-header-even-background-color:\s*var\(--ht-header-row-background-color\);/
+        );
+      });
     });
   });
 
