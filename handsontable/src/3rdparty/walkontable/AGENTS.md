@@ -51,9 +51,9 @@ For detailed guidance: use skills `walkontable-dev`, `walkontable-testing`
 
 A Tree-sitter knowledge graph (28k+ nodes, 419k+ edges) pre-built over the full codebase. Provides structured, function-level results for cross-file queries that would otherwise require many Grep+Read round-trips.
 
-**Prerequisite:** `pipx` must be installed. The MCP server starts automatically via `pipx run` on first use (one-time ~10s PyPI download, then cached). Rebuild after switching branches: `pipx run code-review-graph==2.3.2 build`.
+**Prerequisite:** `pipx` must be installed. The MCP server starts automatically via `pipx run` on first use (one-time ~10s PyPI download, then cached). Rebuild after switching branches: `pipx run code-review-graph==2.3.6 build`.
 
-**Maintainer note:** the pinned version `2.3.2` appears in `.mcp.json`, the two hook commands in `.claude/settings.json`, and the guidance tables below. Bumping requires updating all four locations in sync.
+**Maintainer note:** the pinned version `2.3.6` appears in `.mcp.json`, the two hook commands in `.claude/settings.json`, `.ai/MCP.md`, `.claude/skills/code-graph/SKILL.md`, and the guidance below. Bumping requires updating all locations in sync.
 
 ### First-call protocol - load schema before grep
 
@@ -91,7 +91,7 @@ The first tool call should be `ToolSearch` for the graph schema whenever the use
 
 1. **Always pass `detail_level: "minimal"`** - standard mode repeats the full absolute path per node and inflates token cost 6x.
 2. **Use fully qualified names**: `path/to/file.ts::ClassName.methodName`. Bare names return an "ambiguous" error.
-3. **Rebuild on branch switch**: `pipx run code-review-graph==2.3.2 build`. A stale graph causes `detect_changes` to report function names from unrelated files.
+3. **Rebuild on branch switch**: `pipx run code-review-graph==2.3.6 build`. A stale graph causes `detect_changes` to report function names from unrelated files.
 
 ### Reliable tools
 

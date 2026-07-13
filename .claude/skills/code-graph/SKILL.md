@@ -1,6 +1,6 @@
 ---
 name: code-graph
-description: Use the pre-built code-review-graph knowledge graph for ANY cross-file task in this monorepo — exploring code, debugging symptom→root-cause, planning a safe refactor/rename, or reviewing a branch/PR. Reach for this BEFORE manual Grep+Read of call chains; results are 2-6x cheaper. Trigger on "who calls X", "what imports Y", "where is X used", "dependency chain", "blast radius", "trace this bug", "rename X across the codebase", "find dead code", "what would break if I change", "review this PR" — or any question that spans multiple files, even when Grep seems enough.
+description: Query the pre-built code-review-graph knowledge graph (Tree-sitter, whole monorepo) instead of walking call chains with Grep+Read — 2-6x cheaper, and it catches dynamic dispatch that grep misses. Use for ANY task that spans multiple files, even when the user never mentions a graph or asks for it - fixing or tracing a bug ("fix this bug", "why does X happen", "trace this"), exploring unfamiliar code ("how does X work", "who calls X", "what imports Y", "where is X used or handled"), planning or doing a refactor ("rename X", "is it safe to change or remove X", "what would break", "blast radius", "find dead code"), or reviewing changes ("review this PR", "review this branch or diff"). If you are about to Grep for a symbol to find its callers, callees, or importers, stop and use this skill instead.
 ---
 
 # Code graph (code-review-graph MCP)
@@ -22,8 +22,8 @@ Comma-separate whichever tools the task needs. One cheap call unblocks every gra
 A graph built on another branch makes `detect_changes` report function names from unrelated files. Verify and rebuild when needed (the `PostToolUse` hook keeps it in sync after edits, so a manual rebuild is only needed after `git checkout` / `git pull` / large merges):
 
 ```
-pipx run code-review-graph==2.3.2 status
-pipx run code-review-graph==2.3.2 build
+pipx run code-review-graph==2.3.6 status
+pipx run code-review-graph==2.3.6 build
 ```
 
 ## Pick your mode

@@ -85,7 +85,7 @@ A Tree-sitter knowledge graph over the full codebase (28k+ nodes, 419k+ edges). 
   - macOS: `brew install pipx && pipx ensurepath`
   - Linux: `python3 -m pip install --user pipx && pipx ensurepath`
 
-No manual `code-review-graph` install is required. The `.mcp.json` configuration invokes it via `pipx run code-review-graph==2.3.2 serve`, which fetches and caches the package on first use (~10s one-time download, instant on subsequent starts).
+No manual `code-review-graph` install is required. The `.mcp.json` configuration invokes it via `pipx run code-review-graph==2.3.6 serve`, which fetches and caches the package on first use (~10s one-time download, instant on subsequent starts).
 
 ### Verifying the setup
 
@@ -96,10 +96,10 @@ Run `/mcp` in Claude Code and confirm `code-review-graph` appears with status `c
 The graph is built against a specific git commit. After switching branches, rebuild so tools like `detect_changes` don't report function names from unrelated files:
 
 ```bash
-pipx run code-review-graph==2.3.2 build
+pipx run code-review-graph==2.3.6 build
 ```
 
-The `PostToolUse` hook in `.claude/settings.json` runs `pipx run code-review-graph==2.3.2 update --skip-flows` after each `Edit` or `Write` to keep the graph in sync during a session. The `--skip-flows` flag skips execution-flow re-analysis for speed -- flows are only re-indexed on a full `build`. A rebuild is only needed after `git checkout`, `git pull`, or large merges.
+The `PostToolUse` hook in `.claude/settings.json` runs `pipx run code-review-graph==2.3.6 update --skip-flows` after each `Edit` or `Write` to keep the graph in sync during a session. The `--skip-flows` flag skips execution-flow re-analysis for speed -- flows are only re-indexed on a full `build`. A rebuild is only needed after `git checkout`, `git pull`, or large merges.
 
 The hooks are guarded with `command -v pipx >/dev/null 2>&1 && ... || true` so machines without `pipx` installed (or air-gapped sessions where PyPI is unreachable) do not error on every session start or file edit.
 
@@ -107,9 +107,9 @@ The hooks are guarded with `command -v pipx >/dev/null 2>&1 && ... || true` so m
 
 | Symptom | Fix |
 |---|---|
-| `code-review-graph` not listed in `/mcp` | Check `pipx --version` is installed; run `pipx run code-review-graph==2.3.2 --version` manually to confirm |
+| `code-review-graph` not listed in `/mcp` | Check `pipx --version` is installed; run `pipx run code-review-graph==2.3.6 --version` manually to confirm |
 | First session is slow (~10s hang at start) | Expected -- pipx is downloading the package. Subsequent sessions use the cached venv |
-| `detect_changes` reports wrong function names | Graph is stale on the wrong branch. Run `pipx run code-review-graph==2.3.2 build` |
+| `detect_changes` reports wrong function names | Graph is stale on the wrong branch. Run `pipx run code-review-graph==2.3.6 build` |
 | `tests_for` returns 0 for files with known tests | Known limitation -- use grep for `.spec.js` / `.unit.js` files instead |
 | `get_architecture_overview` fails with token-limit error | Do not call this tool -- it produces 3.9M characters. Use `list_communities` + `get_community` for specific areas |
 
