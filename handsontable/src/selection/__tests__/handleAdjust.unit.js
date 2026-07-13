@@ -29,13 +29,23 @@ describe('getHiddenHandleEdges', () => {
     expect(hidden).toEqual(new Set(['top', 'end']));
   });
 
-  it('mirrors start/end in RTL', () => {
+  it('hides the start handle when fromCol is 0, regardless of text direction', () => {
+    // The helper is direction-agnostic: fromCol/toCol are visual indexes, so RTL mirroring is
+    // handled later in the Walkontable rendering layer, not here. isRtl: true must not change this.
     const hidden = getHiddenHandleEdges({
       fromRow: 2, toRow: 4, fromCol: 0, toCol: 5,
       lastRow: 20, lastCol: 9, isRtl: true,
     });
 
-    // fromCol === 0 is the inline-start edge
     expect(hidden.has('start')).toBe(true);
+  });
+
+  it('returns an empty set for a fully interior selection', () => {
+    const hidden = getHiddenHandleEdges({
+      fromRow: 3, toRow: 6, fromCol: 3, toCol: 6,
+      lastRow: 20, lastCol: 9, isRtl: false,
+    });
+
+    expect(hidden.size).toBe(0);
   });
 });

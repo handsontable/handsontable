@@ -3,6 +3,9 @@
  * clamp and boundary rules unit-test in isolation.
  */
 
+/**
+ * The four selection-edge handles: the block-axis `top`/`bottom` and the inline-axis `start`/`end`.
+ */
 export type HandleEdge = 'top' | 'bottom' | 'start' | 'end';
 
 interface ClampEdgeOptions {
@@ -35,6 +38,10 @@ interface HiddenEdgesOptions {
   toCol: number;
   lastRow: number;
   lastCol: number;
+  /**
+   * Reserved for future visual-side mirroring. Currently unused: `fromCol`/`toCol` are already
+   * visual indexes, and RTL inline-side mirroring is handled in the Walkontable rendering layer.
+   */
   isRtl: boolean;
 }
 
