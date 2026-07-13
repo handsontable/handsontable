@@ -1093,22 +1093,20 @@ class Selection {
    * When multiple ranges overlap the coord, the topmost layer (highest index) wins.
    *
    * @param {CellCoords} coords The visual cell coordinates to test.
-   * @returns {number | null}
+   * @returns {number | null} The highest-index (topmost) layer that contains `coords`, or `null` if none do.
    */
   getLayerContaining(coords: CellCoords): number | null {
     if (this.selectedRange.isEmpty()) {
       return null;
     }
 
-    let result: number | null = null;
-
-    this.selectedRange.ranges.forEach((cellRange, index) => {
-      if (cellRange.includes(coords)) {
-        result = index;
+    for (let layer = this.selectedRange.size() - 1; layer >= 0; layer--) {
+      if (this.selectedRange.peekByIndex(layer)?.includes(coords)) {
+        return layer;
       }
-    });
+    }
 
-    return result;
+    return null;
   }
 
   /**

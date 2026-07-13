@@ -1524,24 +1524,6 @@ class TableView {
   }
 
   /**
-   * Updates the hovered layer for the `selectionHandles` feature based on the visual coords
-   * the pointer is currently over. When the mouse button is held down (selection drag in progress)
-   * this method is a no-op so handles stay hidden during drag.
-   *
-   * @private
-   * @param {CellCoords} visualCoords The visual cell coordinates.
-   */
-  #updateHandlesHoveredLayer(visualCoords: CellCoords) {
-    if (!this.settings.selectionHandles || this.#mouseDown) {
-      return;
-    }
-
-    const layer = this.hot.selection.getLayerContaining(visualCoords);
-
-    this.hot.selection.setHandlesHoveredLayer(layer);
-  }
-
-  /**
    * Checks if active cell is editing.
    *
    * @private
@@ -2171,6 +2153,24 @@ class TableView {
    */
   isHorizontallyScrollableByWindow() {
     return this._wt.wtViewport.isHorizontallyScrollableByWindow();
+  }
+
+  /**
+   * Updates the hovered layer for the `selectionHandles` feature based on the visual coords
+   * the pointer is currently over. When the mouse button is held down (selection drag in progress)
+   * this method is a no-op so handles stay hidden during drag.
+   *
+   * @private
+   * @param {CellCoords} visualCoords The visual cell coordinates.
+   */
+  #updateHandlesHoveredLayer(visualCoords: CellCoords) {
+    if (!this.settings.selectionHandles || this.#mouseDown) {
+      return;
+    }
+
+    const layer = this.hot.selection.getLayerContaining(visualCoords);
+
+    this.hot.selection.setHandlesHoveredLayer(layer);
   }
 
   /**
