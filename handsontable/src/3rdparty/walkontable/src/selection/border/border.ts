@@ -1319,6 +1319,28 @@ class Border {
     if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
       this.updateMultipleSelectionHandlesPosition(toRow, toColumn, top, inlineStartPos, width, height);
     }
+
+    let adjustVisible = this.settings.border?.adjustHandlesVisible;
+
+    adjustVisible = typeof adjustVisible === 'function'
+      ? adjustVisible(this.settings.layerLevel) : adjustVisible;
+
+    if (!isMobileBrowser() && adjustVisible && this.adjustHandles) {
+      this.positionAdjustHandles(top, inlineStartPos, width, height, corners);
+
+      // v1 limitation: hide handles on an edge that lands on a frozen-pane line.
+      if (this.isFrozenBoundaryEdge('row', corners[0])) {
+        this.adjustHandles.styles.top.display = 'none';
+      }
+      if (this.isFrozenBoundaryEdge('column', corners[1])) {
+        this.adjustHandles.styles.start.display = 'none';
+      }
+    } else if (this.adjustHandles) {
+      this.adjustHandles.styles.top.display = 'none';
+      this.adjustHandles.styles.bottom.display = 'none';
+      this.adjustHandles.styles.start.display = 'none';
+      this.adjustHandles.styles.end.display = 'none';
+    }
   }
 
   /**
@@ -1415,6 +1437,61 @@ class Border {
     }
 
     return false;
+  }
+
+  /**
+   * Positions the four edge-adjustment handles at the midpoint of each edge, hiding any handle
+   * whose edge is flush with the grid boundary. Called at the end of `appear()` when the
+   * `selectionHandles` feature is enabled for this highlight.
+   *
+   * @param {number} top The selection border top (px, container-relative).
+   * @param {number} inlineStart The selection border inline-start (px, container-relative).
+   * @param {number} width The selection border width (px).
+   * @param {number} height The selection border height (px).
+   * @param {number[]} corners The raw `[fromRow, fromColumn, toRow, toColumn]` visual corners.
+   */
+  positionAdjustHandles(
+    top: number, inlineStart: number, width: number, height: number, corners: number[]) {
+    const isRtl = this.wot.wtSettings.getSetting('rtlMode');
+    const inlineProp = isRtl ? 'right' : 'left';
+    const [fromRow, fromColumn, toRow, toColumn] = corners;
+    const lastRow = (this.wot.getSetting('totalRows') as number) - 1;
+    const lastColumn = (this.wot.getSetting('totalColumns') as number) - 1;
+    const size = parseInt(this.adjustHandles.styles.top.height || '0', 10) ||
+      parseInt(this.adjustHandles.styles.top.width || '0', 10);
+    const half = Math.round(size / 2);
+    const s = this.adjustHandles.styles;
+
+    s.top.display = 'none';
+    s.bottom.display = 'none';
+    s.start.display = 'none';
+    s.end.display = 'none';
+
+    const midX = inlineStart + Math.round(width / 2) - half;
+
+    if (fromRow > 0) {
+      s.top[inlineProp] = `${midX}px`;
+      s.top.top = `${top - half}px`;
+      s.top.display = 'block';
+    }
+    if (toRow < lastRow) {
+      s.bottom[inlineProp] = `${midX}px`;
+      s.bottom.top = `${top + height - half}px`;
+      s.bottom.display = 'block';
+    }
+
+    const midY = top + Math.round(height / 2) - half;
+
+    if (fromColumn > 0) {
+      s.start[inlineProp] = `${inlineStart - half}px`;
+      s.start.top = `${midY}px`;
+      s.start.display = 'block';
+    }
+    if (toColumn < lastColumn) {
+      s.end[inlineProp] = `${inlineStart + width - half}px`;
+      s.end.top = `${midY}px`;
+      s.end.display = 'block';
+    }
   }
 
   /**
