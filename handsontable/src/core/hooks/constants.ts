@@ -610,6 +610,15 @@ export const REGISTERED_HOOKS = [
   'afterOnCellCornerMouseDown',
 
   /**
+   * Fired after the user presses a selection-adjustment handle (see [`selectionHandles`](@/api/options.md#selectionhandles)).
+   *
+   * @event Hooks#afterOnSelectionHandleMouseDown
+   * @param {MouseEvent} event The `mousedown` event.
+   * @param {'top'|'bottom'|'start'|'end'} edge The pressed handle's edge.
+   */
+  'afterOnSelectionHandleMouseDown',
+
+  /**
    * Fired after a `dblclick` event is triggered on the cell corner (the drag handle).
    *
    * @event Hooks#afterOnCellCornerDblClick

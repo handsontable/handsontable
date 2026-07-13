@@ -462,6 +462,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterOnCellContextMenu: (event, coords, TD) => {},
   afterOnCellCornerDblClick: (event) => {},
   afterOnCellCornerMouseDown: (event) => {},
+  afterOnSelectionHandleMouseDown: (event, edge) => {},
   afterOnCellMouseDown: (event, coords, TD) => {},
   afterOnCellMouseOver: (event, coords, TD) => {},
   afterOnCellMouseOut: (event, coords, TD) => {},
@@ -878,3 +879,6 @@ const _strippedTypedConfig: _StrippedGridSettings = {
 declare const hot: Handsontable;
 
 hot.updateSettings({ selectionHandles: true });
+
+// Regression: afterOnSelectionHandleMouseDown must be accepted by updateSettings.
+hot.updateSettings({ afterOnSelectionHandleMouseDown(event, edge) {} });
