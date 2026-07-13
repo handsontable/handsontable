@@ -384,6 +384,12 @@ describe('Hooks', () => {
 
       expect(hooks.isRegistered('test3')).toBe(true);
     });
+
+    it('should include afterOnSelectionHandleMouseDown in the registered hooks list', () => {
+      const hooks = new Hooks();
+
+      expect(hooks.isRegistered('afterOnSelectionHandleMouseDown')).toBe(true);
+    });
   });
 
   describe('deregister()', () => {
@@ -405,12 +411,6 @@ describe('Hooks', () => {
       const hooks = new Hooks();
 
       expect(hooks.getRegistered().length).toBeGreaterThan(0);
-    });
-
-    it('should include afterOnSelectionHandleMouseDown in the registered hooks list', () => {
-      const hooks = new Hooks();
-
-      expect(hooks.isRegistered('afterOnSelectionHandleMouseDown')).toBe(true);
     });
   });
 

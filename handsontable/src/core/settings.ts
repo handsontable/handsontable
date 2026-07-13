@@ -312,12 +312,6 @@ export interface GridSettings {
   afterOnCellContextMenu?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellCornerDblClick?: (event: MouseEvent) => void;
   afterOnCellCornerMouseDown?: (event: MouseEvent) => void;
-  /**
-   * Fired after the user presses a selection-adjustment handle (see [`selectionHandles`](#selectionhandles)).
-   *
-   * @param {MouseEvent} event The `mousedown` event.
-   * @param {'top' | 'bottom' | 'start' | 'end'} edge The pressed handle's edge.
-   */
   afterOnSelectionHandleMouseDown?: (event: MouseEvent, edge: 'top' | 'bottom' | 'start' | 'end') => void;
   afterOnCellMouseDown?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOut?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
