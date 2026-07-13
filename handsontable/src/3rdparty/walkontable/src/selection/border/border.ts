@@ -1,7 +1,7 @@
 
 import type { WalkontableInstance } from '../../types';
 import type EventManager from '../../../../../eventManager';
-import type { BorderInstanceSettings, CornerDefaultStyle, SelectionHandles } from './types';
+import type { BorderInstanceSettings, CornerDefaultStyle, SelectionHandles, AdjustHandles } from './types';
 import {
   addClass,
   hasClass,
@@ -93,6 +93,10 @@ class Border {
    * @type {SelectionHandles}
    */
   declare selectionHandles: SelectionHandles;
+  /**
+   * @type {AdjustHandles}
+   */
+  declare adjustHandles: AdjustHandles;
   /**
    * @type {boolean}
    */
@@ -309,6 +313,9 @@ class Border {
     if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
       this.createMultipleSelectorHandles();
     }
+    if (!isMobileBrowser()) {
+      this.createAdjustHandles();
+    }
     this.disappear();
 
     const { wtTable } = this.wot;
@@ -376,6 +383,36 @@ class Border {
       handleStyleTarget.background = `color-mix(in srgb, ${cellMobileHandleBackgroundColor} ${cellMobileHandleBackgroundOpacity}%, transparent)`;
       handleStyleTarget.border = `${cellMobileHandleBorderWidth}px solid ${cellMobileHandleBorderColor}`;
     }
+  }
+
+  /**
+   * Creates the four edge-adjustment handle elements used by the `selectionHandles` feature.
+   */
+  createAdjustHandles() {
+    const { rootDocument } = this.wot;
+    const make = (edge: string) => {
+      const el = rootDocument.createElement('div');
+
+      el.className = `wtSelectionHandle wtSelectionHandle--${edge}`;
+      el.style.position = 'absolute';
+      el.style.display = 'none';
+      this.main!.appendChild(el);
+
+      return el;
+    };
+
+    const top = make('top');
+    const bottom = make('bottom');
+    const start = make('start');
+    const end = make('end');
+
+    this.adjustHandles = {
+      top,
+      bottom,
+      start,
+      end,
+      styles: { top: top.style, bottom: bottom.style, start: start.style, end: end.style },
+    };
   }
 
   /**
@@ -1464,6 +1501,13 @@ class Border {
       this.selectionHandles.styles.topHitArea.display = 'none';
       this.selectionHandles.styles.bottom.display = 'none';
       this.selectionHandles.styles.bottomHitArea.display = 'none';
+    }
+
+    if (this.adjustHandles) {
+      this.adjustHandles.styles.top.display = 'none';
+      this.adjustHandles.styles.bottom.display = 'none';
+      this.adjustHandles.styles.start.display = 'none';
+      this.adjustHandles.styles.end.display = 'none';
     }
   }
 
