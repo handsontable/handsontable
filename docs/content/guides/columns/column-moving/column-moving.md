@@ -181,6 +181,8 @@ This renders the columns in the following order:
 
 The array must contain all physical column indexes (its length must equal the total number of columns). After the initial render, users can still drag columns to change the order further.
 
+For more on how physical and visual indexes relate, see [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
+
 ## Control column moving
 
 Use the [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) hook to decide whether each column move is allowed. Returning `false` cancels the move while keeping the [`manualColumnMove`](@/api/options.md#manualcolumnmove) plugin enabled.
