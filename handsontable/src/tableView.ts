@@ -191,10 +191,18 @@ class TableView {
   #recentTouchEndTimeout: ReturnType<typeof setTimeout> | null = null;
   /**
    * State of an in-progress selection-handle drag. Null when no drag is active.
+   * `fromRow`, `toRow`, `fromCol`, `toCol` are the normalized original selection corners
+   * (from <= to on each axis) captured at drag-start to preserve the non-dragged axis span.
    *
-   * @type {{ edge: HandleEdge, anchorRow: number, anchorCol: number } | null}
+   * @type {{ edge: HandleEdge, fromRow: number, toRow: number, fromCol: number, toCol: number } | null}
    */
-  #adjustDrag: { edge: HandleEdge; anchorRow: number; anchorCol: number } | null = null;
+  #adjustDrag: {
+    edge: HandleEdge;
+    fromRow: number;
+    toRow: number;
+    fromCol: number;
+    toCol: number;
+  } | null = null;
   /**
    * Bound document-level listeners installed for the duration of a handle drag. Stored
    * so they can be removed precisely on mouseup without clearing unrelated listeners.
@@ -2277,25 +2285,14 @@ class TableView {
     const from = activeRange.from;
     const to = activeRange.to;
 
-    // Anchor is the opposite corner from the dragged edge.
-    let anchorRow: number;
-    let anchorCol: number;
+    // Normalize the original selection corners so fromRow <= toRow and fromCol <= toCol.
+    // These are captured once at drag-start and kept immutable for the entire drag session.
+    const fromRow = Math.min(from.row ?? 0, to.row ?? 0);
+    const toRow = Math.max(from.row ?? 0, to.row ?? 0);
+    const fromCol = Math.min(from.col ?? 0, to.col ?? 0);
+    const toCol = Math.max(from.col ?? 0, to.col ?? 0);
 
-    if (edge === 'top') {
-      anchorRow = Math.max(from.row ?? 0, to.row ?? 0);
-      anchorCol = from.col ?? 0;
-    } else if (edge === 'bottom') {
-      anchorRow = Math.min(from.row ?? 0, to.row ?? 0);
-      anchorCol = from.col ?? 0;
-    } else if (edge === 'start') {
-      anchorRow = from.row ?? 0;
-      anchorCol = Math.max(from.col ?? 0, to.col ?? 0);
-    } else {
-      anchorRow = from.row ?? 0;
-      anchorCol = Math.min(from.col ?? 0, to.col ?? 0);
-    }
-
-    this.#adjustDrag = { edge, anchorRow, anchorCol };
+    this.#adjustDrag = { edge, fromRow, toRow, fromCol, toCol };
 
     const { documentElement } = this.hot.rootDocument;
 
@@ -2326,29 +2323,38 @@ class TableView {
       return;
     }
 
-    const { edge, anchorRow, anchorCol } = this.#adjustDrag;
+    const { edge, fromRow, toRow, fromCol, toCol } = this.#adjustDrag;
     const { clientX, clientY } = event;
     const cellCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
     const targetRow = cellCoords.row ?? 0;
     const targetCol = cellCoords.col ?? 0;
 
-    let newRow: number;
-    let newCol: number;
+    // For top/bottom handles only the row axis changes; columns stay fixed to the original span.
+    // For start/end handles only the column axis changes; rows stay fixed to the original span.
+    let anchorCoords: ReturnType<typeof this.hot._createCellCoords>;
+    let newCoords: ReturnType<typeof this.hot._createCellCoords>;
 
-    if (edge === 'top' || edge === 'bottom') {
-      const clampedRow = clampEdge({ edge, target: targetRow, oppositeIndex: anchorRow });
+    if (edge === 'top') {
+      const clampedRow = clampEdge({ edge, target: targetRow, oppositeIndex: toRow });
 
-      newRow = clampedRow;
-      newCol = targetCol;
+      anchorCoords = this.hot._createCellCoords(toRow, toCol);
+      newCoords = this.hot._createCellCoords(clampedRow, fromCol);
+    } else if (edge === 'bottom') {
+      const clampedRow = clampEdge({ edge, target: targetRow, oppositeIndex: fromRow });
+
+      anchorCoords = this.hot._createCellCoords(fromRow, fromCol);
+      newCoords = this.hot._createCellCoords(clampedRow, toCol);
+    } else if (edge === 'start') {
+      const clampedCol = clampEdge({ edge, target: targetCol, oppositeIndex: toCol });
+
+      anchorCoords = this.hot._createCellCoords(toRow, toCol);
+      newCoords = this.hot._createCellCoords(fromRow, clampedCol);
     } else {
-      const clampedCol = clampEdge({ edge, target: targetCol, oppositeIndex: anchorCol });
+      const clampedCol = clampEdge({ edge, target: targetCol, oppositeIndex: fromCol });
 
-      newRow = targetRow;
-      newCol = clampedCol;
+      anchorCoords = this.hot._createCellCoords(fromRow, fromCol);
+      newCoords = this.hot._createCellCoords(toRow, clampedCol);
     }
-
-    const anchorCoords = this.hot._createCellCoords(anchorRow, anchorCol);
-    const newCoords = this.hot._createCellCoords(newRow, newCol);
 
     this.hot.selection.setRangeStart(anchorCoords, undefined, false, anchorCoords);
     this.hot.selection.setRangeEnd(newCoords);

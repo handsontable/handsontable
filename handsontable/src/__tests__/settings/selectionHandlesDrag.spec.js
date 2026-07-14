@@ -42,7 +42,10 @@ describe('settings', () => {
       expect(bottomHandle).not.toBeNull();
 
       const handleRect = bottomHandle.getBoundingClientRect();
-      const targetCell = getCell(7, 4);
+
+      // Drag to a cell in a DIFFERENT column (col 8) to verify that horizontal mouse
+      // movement does NOT affect the column extent (the defect that was fixed).
+      const targetCell = getCell(7, 7);
       const targetRect = targetCell.getBoundingClientRect();
 
       // Mousedown the bottom handle.
@@ -51,7 +54,7 @@ describe('settings', () => {
         clientY: handleRect.top + (handleRect.height / 2),
       });
 
-      // Drag to row 7.
+      // Drag to row 7, col 7 (a different column than the original selection's col 2..4).
       $(document.documentElement).simulate('mousemove', {
         clientX: targetRect.left + (targetRect.width / 2),
         clientY: targetRect.top + (targetRect.height / 2),
@@ -59,11 +62,19 @@ describe('settings', () => {
 
       $(document.documentElement).simulate('mouseup');
 
-      // The selection should have expanded to row 7 (anchor = row 2, dragged bottom to row 7).
+      // The selection should have expanded to row 7, but columns MUST remain 2..4.
+      // The bottom handle only adjusts the row axis — horizontal mouse movement is ignored.
       const selected = getSelected();
 
-      expect(selected[0][0]).toBe(2); // anchor row
-      expect(selected[0][2]).toBe(7); // new bottom row
+      expect(selected[0][0]).toBe(2); // anchor row (top of original selection)
+      expect(selected[0][2]).toBe(7); // new bottom row — dragged down to row 7
+
+      // Column span must be unchanged despite mouse moving to col 7.
+      const minCol = Math.min(selected[0][1], selected[0][3]);
+      const maxCol = Math.max(selected[0][1], selected[0][3]);
+
+      expect(minCol).toBe(2); // original fromCol
+      expect(maxCol).toBe(4); // original toCol — NOT the mouse's col 7
     });
 
     it('should clamp the top handle so it cannot cross the bottom edge (no flip)', async() => {
@@ -126,8 +137,11 @@ describe('settings', () => {
       expect(startHandle).not.toBeNull();
 
       const handleRect = startHandle.getBoundingClientRect();
-      // Drag start edge to column 1.
-      const targetCell = getCell(3, 1);
+
+      // Drag start edge to col 1 in a DIFFERENT row (row 8) than the original selection (rows 2..5).
+      // This verifies the row axis is NOT affected by vertical mouse movement when dragging
+      // a start/end handle (the defect that was fixed).
+      const targetCell = getCell(8, 1);
       const targetRect = targetCell.getBoundingClientRect();
 
       $(startHandle).simulate('mousedown', {
@@ -144,13 +158,75 @@ describe('settings', () => {
 
       const selected = getSelected();
 
-      // Start column should have moved, end column (anchor = 6) stays.
-      // Column axis: anchor = col 6, new start = col 1.
+      // Start column should have moved to col 1, end column (anchor = 6) stays.
       const minCol = Math.min(selected[0][1], selected[0][3]);
       const maxCol = Math.max(selected[0][1], selected[0][3]);
 
       expect(minCol).toBe(1);
       expect(maxCol).toBe(6);
+
+      // Row span must be unchanged despite mouse moving to row 8.
+      // The start handle only adjusts the column axis — vertical mouse movement is ignored.
+      const minRow = Math.min(selected[0][0], selected[0][2]);
+      const maxRow = Math.max(selected[0][0], selected[0][2]);
+
+      expect(minRow).toBe(2); // original fromRow
+      expect(maxRow).toBe(5); // original toRow — NOT the mouse's row 8
+    });
+
+    it('should expand the selection to include the full merged block when the bottom handle is dragged into a merge', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 8),
+        selectionHandles: true,
+        selectionMode: 'multiple',
+        mergeCells: [{ row: 5, col: 2, rowspan: 2, colspan: 2 }],
+        width: 400,
+        height: 400,
+      });
+
+      // Initial selection: rows 2..4, cols 2..3.
+      await selectCells([[2, 2, 4, 3]]);
+      await mouseOver(getCell(3, 2));
+
+      const bottomHandle = getHandle('bottom');
+
+      expect(bottomHandle).not.toBeNull();
+
+      const handleRect = bottomHandle.getBoundingClientRect();
+
+      // Drag into the FIRST row of the merged region (row 5, col 3).
+      // Because the merge spans rows 5..6 the selection must extend to row 6
+      // so the merged block is fully included, not split.
+      const targetCell = getCell(5, 3);
+      const targetRect = targetCell.getBoundingClientRect();
+
+      $(bottomHandle).simulate('mousedown', {
+        clientX: handleRect.left + (handleRect.width / 2),
+        clientY: handleRect.top + (handleRect.height / 2),
+      });
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+      $(document.documentElement).simulate('mouseup');
+
+      const selected = getSelected();
+
+      // The anchor row stays at 2 (top of the original selection).
+      expect(selected[0][0]).toBe(2);
+
+      // The selection must reach at least row 6 (the last row of the merged block),
+      // confirming the merge is fully included and not visually split.
+      const bottomRow = Math.max(selected[0][0], selected[0][2]);
+
+      expect(bottomRow).toBeGreaterThanOrEqual(6);
+
+      // Column span must remain 2..3 (unchanged by the drag — only the row axis moves).
+      const minCol = Math.min(selected[0][1], selected[0][3]);
+      const maxCol = Math.max(selected[0][1], selected[0][3]);
+
+      expect(minCol).toBe(2);
+      expect(maxCol).toBe(3);
     });
 
     it('should not show handles when selectionMode is single', async() => {
