@@ -255,7 +255,7 @@ export function checkboxRenderer(
 
       for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
         for (let visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
-          const cachedCellProperties = hotInstance.getCellMeta<CellProperties>(visualRow, visualColumn);
+          const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
 
           /* eslint-disable no-continue */
           if (cachedCellProperties.hidden) {
@@ -555,7 +555,7 @@ function onChange(event: Event, instance: HotInstance) {
 
   const row = Number.parseInt(target.getAttribute(ATTR_ROW)!, 10);
   const col = Number.parseInt(target.getAttribute(ATTR_COLUMN)!, 10);
-  const cellProperties = instance.getCellMeta<CellProperties>(row, col);
+  const cellProperties = instance.getCellMeta(row, col);
 
   if (!cellProperties.readOnly) {
     let newCheckboxValue = null;

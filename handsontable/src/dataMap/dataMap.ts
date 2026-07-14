@@ -20,13 +20,6 @@ import { isDefined } from '../helpers/mixed';
 import { getValueGetterValue } from '../utils/valueAccessors';
 import { throwWithCause } from '../helpers/errors';
 
-/**
- * The subset of the `MetaManager` API that `DataMap` depends on, derived from the class itself so the
- * two stay in sync automatically.
- */
-type MetaManagerLike = Pick<MetaManager,
-  'getTableMeta' | 'createRow' | 'createColumn' | 'removeRow' | 'removeColumn' | 'getCellMetaUncached'>;
-
 /*
 This class contains open-source contributions covered by the MIT license.
 
@@ -86,7 +79,7 @@ class DataMap {
    * @private
    * @type {MetaManager}
    */
-  declare metaManager: MetaManagerLike | null;
+  declare metaManager: MetaManager | null;
   /**
    * Instance of {@link TableMeta}.
    *
@@ -135,7 +128,7 @@ class DataMap {
    * @param {Array} data Array of arrays or array of objects containing data.
    * @param {MetaManager} metaManager The meta manager instance.
    */
-  constructor(hotInstance: HotInstance, data: (Record<string, unknown> | unknown[])[], metaManager: MetaManagerLike) {
+  constructor(hotInstance: HotInstance, data: (Record<string, unknown> | unknown[])[], metaManager: MetaManager) {
     this.hot = hotInstance;
     this.metaManager = metaManager;
     this.tableMeta = metaManager.getTableMeta();

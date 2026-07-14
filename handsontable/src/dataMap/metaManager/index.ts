@@ -221,10 +221,10 @@ export default class MetaManager {
    * @param {number} options.visualColumn The visual column index of the currently requested cell meta object.
    * @returns {object}
    */
-  getCellMetaUncached<M extends object = Record<string, unknown>>(
+  getCellMetaUncached(
     physicalRow: number, physicalColumn: number,
     options: { visualRow: number; visualColumn: number }
-  ): M {
+  ): CellProperties {
     // Two map lookups on the warm path (vs five for `hasMeta` + `getMeta`), and the miss
     // fallback stays inline - extracting this expression into a helper regresses the read
     // through V8 inline-cache pollution.
@@ -236,7 +236,7 @@ export default class MetaManager {
     cellMeta.row = physicalRow;
     cellMeta.col = physicalColumn;
 
-    return cellMeta as M;
+    return cellMeta;
   }
 
   /**
@@ -257,12 +257,12 @@ export default class MetaManager {
    * @param {number} options.visualColumn The visual column index of the currently requested cell meta object.
    * @returns {object}
    */
-  getCellMetaTransient<M extends object = Record<string, unknown>>(
+  getCellMetaTransient(
     physicalRow: number, physicalColumn: number,
     options: { visualRow: number; visualColumn: number }
-  ): M {
+  ): CellProperties {
     if (this.cellMeta.getMetaIfExists(physicalRow, physicalColumn) !== undefined) {
-      return this.getCellMeta(physicalRow, physicalColumn, options) as M;
+      return this.getCellMeta(physicalRow, physicalColumn, options);
     }
 
     const cellMeta = this.cellMeta.createTransientMeta(physicalColumn);
@@ -274,7 +274,7 @@ export default class MetaManager {
 
     this.runLocalHooks('extendTransientCellMeta', cellMeta);
 
-    return cellMeta as M;
+    return cellMeta;
   }
 
   /**

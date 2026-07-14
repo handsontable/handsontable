@@ -509,8 +509,8 @@ describe('DynamicCellMetaMod', () => {
 
       jest.spyOn(hotMock, 'runHooks');
 
-      mod.extendTransientCellMeta({ row: 1, col: 2, visualRow: 1, visualCol: 2, cells: cellsSpy });
-      mod.extendTransientCellMeta({ row: 1, col: 2, visualRow: 1, visualCol: 2, cells: cellsSpy });
+      mod.extendTransientCellMeta(createCellMeta({ row: 1, col: 2, visualRow: 1, visualCol: 2, cells: cellsSpy }));
+      mod.extendTransientCellMeta(createCellMeta({ row: 1, col: 2, visualRow: 1, visualCol: 2, cells: cellsSpy }));
 
       // beforeGetCellMeta + afterGetCellMeta per call, no memo short-circuit
       expect(hotMock.runHooks).toHaveBeenCalledTimes(4);
@@ -528,7 +528,7 @@ describe('DynamicCellMetaMod', () => {
 
       expect(mod.metaSyncMemo.size).toBe(1);
 
-      mod.extendTransientCellMeta({ row: 1, col: 2, visualRow: 1, visualCol: 2, cells: cellsSpy });
+      mod.extendTransientCellMeta(createCellMeta({ row: 1, col: 2, visualRow: 1, visualCol: 2, cells: cellsSpy }));
 
       expect(cellsSpy).toHaveBeenCalledTimes(2);
       expect(mod.metaSyncMemo.size).toBe(1);

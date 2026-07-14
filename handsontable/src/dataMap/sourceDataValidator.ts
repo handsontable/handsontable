@@ -135,8 +135,8 @@ function collectColumnValidators(
       continue;
     }
 
-    const cellMeta = metaManager
-      .getCellMetaUncached<CellMeta>(0, physicalColumn, { visualRow: 0, visualColumn });
+    const cellMeta: CellMeta = metaManager
+      .getCellMetaUncached(0, physicalColumn, { visualRow: 0, visualColumn });
     const validator = cellMeta.sourceDataValidator;
 
     if (!isFunction(validator)) {
@@ -190,8 +190,8 @@ function validatePerCell(
         continue;
       }
 
-      const cellMeta = metaManager
-        .getCellMetaUncached<CellMeta>(row, col, { visualRow, visualColumn });
+      const cellMeta: CellMeta = metaManager
+        .getCellMetaUncached(row, col, { visualRow, visualColumn });
 
       if (!isFunction(cellMeta.sourceDataValidator)) {
         continue;
