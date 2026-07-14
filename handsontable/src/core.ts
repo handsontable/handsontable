@@ -4416,6 +4416,50 @@ export default function Core(
   };
 
   /**
+   * Returns the cell properties object for the given `row` and `column` coordinates without
+   * retaining it in the cell meta cache.
+   *
+   * Like [[getCellMeta]], the returned object reflects the effective cell configuration after
+   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * and dynamic extension (the `cells` function and the `beforeGetCellMeta`/`afterGetCellMeta`
+   * hooks run). Unlike `getCellMeta`, when the cell has no stored meta object the extension runs
+   * on a temporary object that is not saved, so scanning many cells (for example, a whole column
+   * or the entire dataset) does not permanently allocate one meta object per visited cell. Cells
+   * that already carry stored meta (for example, written by [[setCellMeta]] or the `cell` option)
+   * return their stored object, exactly as `getCellMeta` would.
+   *
+   * Use this method for read-only bulk scans. Do not write to the returned object - for cells
+   * without stored meta the write lands on the temporary object and is lost; use `setCellMeta`
+   * to persist values.
+   *
+   * @memberof Core#
+   * @function getCellMetaTransient
+   * @since 18.1.0
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {object} The cell properties object.
+   * @fires Hooks#beforeGetCellMeta
+   * @fires Hooks#afterGetCellMeta
+   */
+  this.getCellMetaTransient = function<M extends object = Record<string, unknown>>(row: number, column: number): M {
+    let physicalRow = instance.toPhysicalRow(row);
+    let physicalColumn = instance.toPhysicalColumn(column);
+
+    if (physicalRow === null) {
+      physicalRow = row;
+    }
+
+    if (physicalColumn === null) {
+      physicalColumn = column;
+    }
+
+    return metaManager.getCellMetaTransient(physicalRow, physicalColumn, {
+      visualRow: row,
+      visualColumn: column,
+    }) as M;
+  };
+
+  /**
    * Returns the meta information for the provided column.
    *
    * The returned object reflects the column-level configuration after
@@ -4669,12 +4713,7 @@ export default function Core(
         // stored object, because the transient read returns the stored object for them.
         const row = i;
         const column = j;
-        // Visual-to-physical conversion with the same fallback as `Core.getCellMeta`.
-        const cellMeta = metaManager.getCellMetaTransient(
-          instance.toPhysicalRow(row) ?? row,
-          instance.toPhysicalColumn(column) ?? column,
-          { visualRow: row, visualColumn: column }
-        );
+        const cellMeta = instance.getCellMetaTransient(row, column);
 
         instance.validateCell(instance.getDataAtCell(row, column), cellMeta, (result: boolean) => {
           if (typeof result !== 'boolean') {

@@ -134,6 +134,7 @@ export interface HotInstance {
 
   // Cell meta
   getCellMeta<M extends object = Record<string, unknown>>(row: number, column: number, options?: object): M;
+  getCellMetaTransient<M extends object = Record<string, unknown>>(row: number, column: number): M;
   getCellMetaAtRow(row: number): Record<string, unknown>[];
   setCellMeta(row: number, column: number, key: string, value: unknown): void;
   setCellMetaObject(row: number, column: number, prop: Record<string, unknown>): void;

@@ -342,17 +342,10 @@ class DataProvider {
     // The transient read resolves the full dynamic meta (hooks + `cells`) without storing
     // anything - an export walks the whole range, and the eager `getCellMeta` would permanently
     // materialize one meta object per exported cell. The returned transients are complete
-    // snapshots (prototype cascade + extension), safe for read-only serialization. The
-    // visual-index fallback mirrors `Core.getCellMeta`.
-    return this._extractDataMatrix((row: number, col: number): Record<string, unknown> => {
-      const physicalRow = this.hot.toPhysicalRow(row);
-      const physicalColumn = this.hot.toPhysicalColumn(col);
-
-      return this.hot._getMetaManager().getCellMetaTransient(physicalRow ?? row, physicalColumn ?? col, {
-        visualRow: row,
-        visualColumn: col,
-      });
-    });
+    // snapshots (prototype cascade + extension), safe for read-only serialization.
+    return this._extractDataMatrix(
+      (row: number, col: number): Record<string, unknown> => this.hot.getCellMetaTransient(row, col)
+    );
   }
 
   /**

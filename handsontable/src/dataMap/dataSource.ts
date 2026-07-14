@@ -384,23 +384,11 @@ class DataSource {
   getCopyable(row: number, prop: string | number): unknown {
     const visualColumn = this.propToCol(prop);
 
-    if (typeof visualColumn !== 'number') {
-      return '';
-    }
-
-    const physicalRow = this.hot!.toPhysicalRow(row);
-    const physicalColumn = this.hot!.toPhysicalColumn(visualColumn);
     // The transient read honors a `cells()`-driven `copyable: false` (the dynamic extension
     // runs) without permanently materializing one meta object per copied cell - `onCopy` walks
-    // the whole copied range through this method. The visual-index fallback mirrors
-    // `Core.getCellMeta`.
-    const cellMeta = this.hot!._getMetaManager().getCellMetaTransient(
-      physicalRow ?? row, physicalColumn ?? visualColumn,
-      { visualRow: row, visualColumn }
-    );
-
-    if (cellMeta.copyable) {
-      return this.getAtCell(physicalRow, visualColumn);
+    // the whole copied range through this method.
+    if (typeof visualColumn === 'number' && this.hot!.getCellMetaTransient(row, visualColumn).copyable) {
+      return this.getAtCell(this.hot!.toPhysicalRow(row), visualColumn);
     }
 
     return '';
