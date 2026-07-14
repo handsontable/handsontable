@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed source data validation for object data and moved columns.",
+  "type": "fixed",
+  "issueOrPR": 13073,
+  "breaking": false,
+  "framework": "none"
+}
