@@ -1167,9 +1167,13 @@ class Selection {
 
     // Hide handles for full-row, full-column, and select-all selections
     // because those cannot be meaningfully resized via edge handles.
+    // A select-all range spans all columns (isEntireRowSelected) AND all rows
+    // (isEntireColumnSelected), so it is already covered by those two checks —
+    // no separate isSelectedByCorner() call is needed here, and adding one would
+    // incorrectly suppress handles on valid non-top layers in multiple-selection
+    // mode (isSelectedByCorner() always inspects the topmost layer via getLayerLevel()).
     if (this.isEntireRowSelected(layerLevel) ||
-        this.isEntireColumnSelected(layerLevel) ||
-        this.isSelectedByCorner()) {
+        this.isEntireColumnSelected(layerLevel)) {
       return false;
     }
 

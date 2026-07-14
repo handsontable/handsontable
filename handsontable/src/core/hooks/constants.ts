@@ -613,6 +613,7 @@ export const REGISTERED_HOOKS = [
    * Fired after the user presses a selection-adjustment handle (see [`selectionHandles`](@/api/options.md#selectionhandles)).
    *
    * @event Hooks#afterOnSelectionHandleMouseDown
+   * @since 18.0.0
    * @param {Event} event The `mousedown` event.
    * @param {'top' | 'bottom' | 'start' | 'end'} edge The pressed handle's edge.
    */

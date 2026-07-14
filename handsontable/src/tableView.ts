@@ -2276,6 +2276,10 @@ class TableView {
    * @param {HandleEdge} edge Which edge handle was pressed.
    */
   #startAdjustDrag(event: MouseEvent, edge: HandleEdge) {
+    if (this.#adjustDrag) {
+      this.#endAdjustDrag();
+    }
+
     const activeRange = this.hot.getSelectedRangeLast();
 
     if (!activeRange) {
@@ -2326,8 +2330,8 @@ class TableView {
     const { edge, fromRow, toRow, fromCol, toCol } = this.#adjustDrag;
     const { clientX, clientY } = event;
     const cellCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
-    const targetRow = cellCoords.row ?? 0;
-    const targetCol = cellCoords.col ?? 0;
+    const targetRow = cellCoords.row!;
+    const targetCol = cellCoords.col!;
 
     // For top/bottom handles only the row axis changes; columns stay fixed to the original span.
     // For start/end handles only the column axis changes; rows stay fixed to the original span.
