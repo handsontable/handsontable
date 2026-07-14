@@ -74,7 +74,7 @@ import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
-import type { CellChange } from './settings';
+import type { CellChange, CellProperties } from './settings';
 import type { GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
@@ -4394,7 +4394,7 @@ export default function Core(
    * @fires Hooks#beforeGetCellMeta
    * @fires Hooks#afterGetCellMeta
    */
-  this.getCellMeta = function<M extends object = Record<string, unknown>>(
+  this.getCellMeta = function<M extends object = CellProperties>(
     row: number, column: number, options = { skipMetaExtension: false }
   ): M {
     let physicalRow = instance.toPhysicalRow(row);
@@ -4441,7 +4441,7 @@ export default function Core(
    * @fires Hooks#beforeGetCellMeta
    * @fires Hooks#afterGetCellMeta
    */
-  this.getCellMetaTransient = function<M extends object = Record<string, unknown>>(row: number, column: number): M {
+  this.getCellMetaTransient = function<M extends object = CellProperties>(row: number, column: number): M {
     let physicalRow = instance.toPhysicalRow(row);
     let physicalColumn = instance.toPhysicalColumn(column);
 
