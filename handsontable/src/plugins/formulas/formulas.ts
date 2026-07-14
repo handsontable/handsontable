@@ -798,9 +798,8 @@ export class Formulas extends BasePlugin {
       const visualRow = this.hot.toVisualRow(row);
       const visualColumn = this.hot.toVisualColumn(column);
       const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
-      const valueGetter = cellMeta.valueGetter;
 
-      value = getValueGetterValue(value, this.hot.getCellMeta(visualRow, visualColumn));
+      value = getValueGetterValue(value, cellMeta);
 
       if (value !== null && value !== undefined) {
         value = Object(value).toString();

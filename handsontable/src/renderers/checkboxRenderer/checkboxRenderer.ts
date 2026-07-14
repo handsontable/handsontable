@@ -19,6 +19,15 @@ const SHORTCUTS_GROUP = 'checkboxRenderer';
 
 export const RENDERER_TYPE: 'checkbox' = 'checkbox';
 
+/**
+ * Cell meta shape for checkbox cells - the two checkbox-specific templates typed on top of the base
+ * cell properties, so reads through `getCellMeta` are not widened to `any`.
+ */
+interface CheckboxCellProperties extends CellProperties {
+  checkedTemplate?: unknown;
+  uncheckedTemplate?: unknown;
+}
+
 Hooks.getSingleton().add('modifyAutoColumnSizeSeed',
   function(this: HotInstance, _bundleSeed: unknown, cellMeta: unknown, cellValue: unknown) {
     const { label, type, row, column, prop } = cellMeta as Record<string, unknown>;
@@ -255,7 +264,7 @@ export function checkboxRenderer(
 
       for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
         for (let visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
-          const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
+          const cachedCellProperties = hotInstance.getCellMeta<CheckboxCellProperties>(visualRow, visualColumn);
 
           /* eslint-disable no-continue */
           if (cachedCellProperties.hidden) {
@@ -555,7 +564,7 @@ function onChange(event: Event, instance: HotInstance) {
 
   const row = Number.parseInt(target.getAttribute(ATTR_ROW)!, 10);
   const col = Number.parseInt(target.getAttribute(ATTR_COLUMN)!, 10);
-  const cellProperties = instance.getCellMeta(row, col);
+  const cellProperties = instance.getCellMeta<CheckboxCellProperties>(row, col);
 
   if (!cellProperties.readOnly) {
     let newCheckboxValue = null;

@@ -106,9 +106,10 @@ export default class CellMeta {
    * Creates one or more rows at specific position.
    *
    * @param {number} physicalRow The physical row index which points from what position the row is added.
+   *   Pass `null` to append at the end.
    * @param {number} amount An amount of rows to add.
    */
-  createRow(physicalRow: number, amount: number) {
+  createRow(physicalRow: number | null, amount: number) {
     this.metas.insert(physicalRow, amount);
   }
 
@@ -116,9 +117,10 @@ export default class CellMeta {
    * Creates one or more columns at specific position.
    *
    * @param {number} physicalColumn The physical column index which points from what position the column is added.
+   *   Pass `null` to append at the end.
    * @param {number} amount An amount of columns to add.
    */
-  createColumn(physicalColumn: number, amount: number) {
+  createColumn(physicalColumn: number | null, amount: number) {
     // Iterate only materialized rows. Evicted/unmaterialized rows hold no cell meta to shift, so
     // re-creating them here (the previous `obtain(i)` over `size()`) would needlessly re-inflate
     // memory and add O(total rows) work after a viewport eviction.

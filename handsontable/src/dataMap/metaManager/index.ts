@@ -7,6 +7,16 @@ import { mixin } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
 
 /**
+ * The local hooks fired by `MetaManager`, mapped to their callback signatures. The `addLocalHook`,
+ * `removeLocalHook`, and `runLocalHooks` methods are typed against this map so callers get the cell
+ * meta argument inferred automatically instead of `unknown`.
+ */
+interface MetaManagerLocalHooks {
+  afterGetCellMeta: (cellMeta: Record<string, unknown>) => void;
+  extendTransientCellMeta: (cellMeta: Record<string, unknown>) => void;
+}
+
+/**
  * With the Meta Manager class, it can be possible to manage with meta objects for different layers in
  * one place. All coordinates used to fetch, updating, removing, or creating rows or columns have to
  * be passed as physical values.
@@ -63,15 +73,21 @@ export default class MetaManager {
   /**
    * Registers a callback for the given local hook name; returns this instance for chaining.
    */
-  declare addLocalHook: (key: string, callback: Function) => this;
+  declare addLocalHook: <K extends keyof MetaManagerLocalHooks>(
+    key: K, callback: MetaManagerLocalHooks[K]
+  ) => this;
   /**
    * Unregisters a previously added callback from the given local hook name; returns this instance for chaining.
    */
-  declare removeLocalHook: (key: string, callback: Function) => this;
+  declare removeLocalHook: <K extends keyof MetaManagerLocalHooks>(
+    key: K, callback: MetaManagerLocalHooks[K]
+  ) => this;
   /**
    * Executes all callbacks registered under the given local hook name, passing any extra arguments.
    */
-  declare runLocalHooks: (key: string, ...args: unknown[]) => void;
+  declare runLocalHooks: <K extends keyof MetaManagerLocalHooks>(
+    key: K, ...args: Parameters<MetaManagerLocalHooks[K]>
+  ) => void;
   /**
    * Removes all registered local hook callbacks and returns this instance for chaining.
    */
@@ -362,9 +378,10 @@ export default class MetaManager {
    * Creates one or more rows at specific position.
    *
    * @param {number} physicalRow The physical row index which points from what position the row is added.
+   *   Pass `null` to append at the end.
    * @param {number} [amount=1] An amount of rows to add.
    */
-  createRow(physicalRow: number, amount = 1) {
+  createRow(physicalRow: number | null, amount = 1) {
     this.cellMeta.createRow(physicalRow, amount);
   }
 
@@ -382,9 +399,10 @@ export default class MetaManager {
    * Creates one or more columns at specific position.
    *
    * @param {number} physicalColumn The physical column index which points from what position the column is added.
+   *   Pass `null` to append at the end.
    * @param {number} [amount=1] An amount of columns to add.
    */
-  createColumn(physicalColumn: number, amount = 1) {
+  createColumn(physicalColumn: number | null, amount = 1) {
     this.cellMeta.createColumn(physicalColumn, amount);
     this.columnMeta.createColumn(physicalColumn, amount);
   }

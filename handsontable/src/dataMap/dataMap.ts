@@ -1,4 +1,5 @@
 import type { HotInstance } from '../core/types';
+import type { default as MetaManager } from './metaManager';
 import { stringify } from '../3rdparty/SheetClip';
 import {
   countFirstRowKeys
@@ -20,20 +21,11 @@ import { getValueGetterValue } from '../utils/valueAccessors';
 import { throwWithCause } from '../helpers/errors';
 
 /**
- * Represents the MetaManager dependency shape used by DataMap.
+ * The subset of the `MetaManager` API that `DataMap` depends on, derived from the class itself so the
+ * two stay in sync automatically.
  */
-interface MetaManagerLike {
-  getTableMeta(): Record<string, unknown>;
-  createRow(physicalIndex: number | null, amount: number): void;
-  createColumn(physicalIndex: number | null, amount: number): void;
-  removeRow(physicalIndex: number, amount: number): void;
-  removeColumn(physicalIndex: number, amount: number): void;
-  getCellMeta(physicalRow: number, physicalColumn: number, options?: object): Record<string, unknown>;
-  getCellMetaUncached(
-    physicalRow: number, physicalColumn: number,
-    options: { visualRow: number; visualColumn: number }
-  ): Record<string, unknown>;
-}
+type MetaManagerLike = Pick<MetaManager,
+  'getTableMeta' | 'createRow' | 'createColumn' | 'removeRow' | 'removeColumn' | 'getCellMetaUncached'>;
 
 /*
 This class contains open-source contributions covered by the MIT license.

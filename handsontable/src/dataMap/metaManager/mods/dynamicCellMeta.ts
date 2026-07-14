@@ -22,7 +22,6 @@ import { extendByMetaType } from '../utils';
  */
 type MetaManagerWithHot = MetaManagerInstance & {
   hot: HotInstance;
-  addLocalHook: (hookName: string, callback: (...args: unknown[]) => void) => void;
   updateCellMeta: (...args: unknown[]) => void;
   [key: string]: unknown;
 };
@@ -75,12 +74,12 @@ export class DynamicCellMetaMod {
   constructor(metaManager: MetaManagerWithHot) {
     this.metaManager = metaManager;
 
-    metaManager.addLocalHook('afterGetCellMeta', (...args: unknown[]) => {
-      this.extendCellMeta(args[0] as Record<string, unknown>);
+    metaManager.addLocalHook('afterGetCellMeta', (cellMeta) => {
+      this.extendCellMeta(cellMeta);
     });
 
-    metaManager.addLocalHook('extendTransientCellMeta', (...args: unknown[]) => {
-      this.extendTransientCellMeta(args[0] as Record<string, unknown>);
+    metaManager.addLocalHook('extendTransientCellMeta', (cellMeta) => {
+      this.extendTransientCellMeta(cellMeta);
     });
 
     // These hooks are registered through `Hooks.getSingleton().add(..., hot)` rather than
