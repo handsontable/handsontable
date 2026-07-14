@@ -14,12 +14,14 @@ import { runSourceDataValidators } from '../sourceDataValidator';
  * @param {object} [options.settings] The settings returned by `getSettings`.
  * @param {Function} [options.getValue] Maps `(row, col)` to a source value.
  * @param {Function} [options.toVisualRow] Maps a physical row to its visual index (or `null`).
+ * @param {Function} [options.toVisualColumn] Maps a physical column to its visual index (or `null`).
+ * @param {Function} [options.colToProp] Maps a visual column to its source property.
  * @param {Array} [options.userDefinedCellMetas] Imperatively-set cell metas (`setCellMeta`) to report.
  * @returns {object} The mock and its spies.
  */
 function createMockHot({
   rows, cols, validator, allowInvalid, settings = {}, getValue, toVisualRow = row => row,
-  userDefinedCellMetas = [],
+  toVisualColumn = col => col, colToProp = col => col, userDefinedCellMetas = [],
 } = {}) {
   const getCellMetaUncached = jest.fn((physicalRow, physicalColumn, { visualRow, visualColumn }) => {
     const meta = {
@@ -47,8 +49,9 @@ function createMockHot({
     countSourceCols: () => cols,
     getSettings: () => settings,
     _getDataSource: () => ({ getAtCell, setAtCell }),
+    colToProp,
     rowIndexMapper: { getVisualFromPhysicalIndex: toVisualRow },
-    columnIndexMapper: { getVisualFromPhysicalIndex: col => col },
+    columnIndexMapper: { getVisualFromPhysicalIndex: toVisualColumn },
     _getMetaManager: () => ({
       getCellMetaUncached,
       getUserDefinedCellMetas: () => userDefinedCellMetas,
@@ -242,6 +245,26 @@ describe('runSourceDataValidators', () => {
 
     expect(setAtCell).toHaveBeenCalledTimes(1);
     expect(setAtCell).toHaveBeenCalledWith(1, 1, null);
+  });
+
+  it.each([
+    ['batched', true],
+    ['per-cell', false],
+  ])('should translate columns when reading and blanking source values (%s path)', (_path, rowIndependent) => {
+    const validator = makeValidator(rowIndependent, () => false);
+    const { hot, getAtCell, setAtCell } = createMockHot({
+      rows: 1,
+      cols: 2,
+      validator,
+      allowInvalid: false,
+      toVisualColumn: physicalColumn => 1 - physicalColumn,
+      colToProp: visualColumn => (visualColumn === 0 ? 'second' : 'first'),
+    });
+
+    runSourceDataValidators(hot, 'init');
+
+    expect(getAtCell.mock.calls).toEqual([[0, 1], [0, 0]]);
+    expect(setAtCell.mock.calls).toEqual([[0, 'first', null], [0, 'second', null]]);
   });
 
   it('should not blank invalid values when allowInvalid is true (batched path)', () => {

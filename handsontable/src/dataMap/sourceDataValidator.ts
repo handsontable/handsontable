@@ -27,6 +27,8 @@ type InvalidItems = Map<string, Array<{ row: number; col: number; value: unknown
 
 type ColumnValidator = {
   physicalColumn: number;
+  visualColumn: number;
+  sourceColumn: string | number;
   cellMeta: CellMeta;
 };
 
@@ -68,6 +70,7 @@ export function runSourceDataValidator(value: unknown, cellMeta: CellMeta, sourc
  * @param {unknown} value The source value to validate.
  * @param {number} physicalRow The physical row index.
  * @param {number} physicalColumn The physical column index.
+ * @param {string|number} sourceColumn The source data property or physical column index.
  * @param {object} dataSource The data source used to blank invalid values.
  * @param {Map} invalidByMessageType The accumulator of invalid entries keyed by warning message.
  * @param {string} [source] The source identifier of the operation.
@@ -78,6 +81,7 @@ function validateSourceCell(
   value: unknown,
   physicalRow: number,
   physicalColumn: number,
+  sourceColumn: string | number,
   dataSource: DataSource,
   invalidByMessageType: InvalidItems,
   source?: string
@@ -95,7 +99,7 @@ function validateSourceCell(
   }
 
   if (cellMeta.allowInvalid === false) {
-    dataSource.setAtCell(physicalRow, physicalColumn, null);
+    dataSource.setAtCell(physicalRow, sourceColumn, null);
   }
 
   const message = cellMeta.sourceDataWarningMessage;
@@ -149,7 +153,12 @@ function collectColumnValidators(
       return { fullScan: true, columns: [] };
     }
 
-    columns.push({ physicalColumn, cellMeta });
+    columns.push({
+      physicalColumn,
+      visualColumn,
+      sourceColumn: hotInstance.colToProp(visualColumn),
+      cellMeta,
+    });
   }
 
   return { fullScan: false, columns };
@@ -197,9 +206,10 @@ function validatePerCell(
         continue;
       }
 
-      const value = dataSource.getAtCell(row, col);
+      const sourceColumn = hotInstance.colToProp(visualColumn);
+      const value = dataSource.getAtCell(row, visualColumn);
 
-      validateSourceCell(cellMeta, value, row, col, dataSource, invalidByMessageType, source);
+      validateSourceCell(cellMeta, value, row, col, sourceColumn, dataSource, invalidByMessageType, source);
     }
   }
 }
@@ -235,10 +245,12 @@ function validateBatched(
     }
 
     for (let i = 0; i < columns.length; i += 1) {
-      const { physicalColumn, cellMeta } = columns[i];
-      const value = dataSource.getAtCell(row, physicalColumn);
+      const { physicalColumn, visualColumn, sourceColumn, cellMeta } = columns[i];
+      const value = dataSource.getAtCell(row, visualColumn);
 
-      validateSourceCell(cellMeta, value, row, physicalColumn, dataSource, invalidByMessageType, source);
+      validateSourceCell(
+        cellMeta, value, row, physicalColumn, sourceColumn, dataSource, invalidByMessageType, source
+      );
     }
   }
 }

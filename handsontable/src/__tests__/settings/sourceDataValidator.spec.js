@@ -104,6 +104,33 @@ describe('settings', () => {
       ]);
     });
 
+    it('should nullify the mapped object property when allowInvalid is false', async() => {
+      handsontable({
+        data: [{ date: 'not-a-date' }],
+        columns: [{ data: 'date', type: 'date', dateFormat: 'YYYY-MM-DD' }],
+        allowInvalid: false,
+      });
+
+      expect(getSourceData()).toEqual([{ date: null }]);
+    });
+
+    it('should validate the source column after it has been moved', async() => {
+      handsontable({
+        data: [['2024-01-01', '2024-02-02']],
+        columns: [
+          { type: 'date', dateFormat: 'YYYY-MM-DD' },
+          { type: 'date', dateFormat: 'YYYY-MM-DD' },
+        ],
+        manualColumnMove: true,
+        allowInvalid: false,
+      });
+
+      await getPlugin('manualColumnMove').moveColumn(0, 1);
+      await updateData([['not-a-date', '2024-02-02']]);
+
+      expect(getSourceData()).toEqual([[null, '2024-02-02']]);
+    });
+
     it('should nullify the value if the validator returns false and allowInvalid is false (`loadData`)', async() => {
       handsontable({
         data: [[]],
