@@ -27,6 +27,7 @@
 - Build: ng-packagr 19
 - Test: `npm run test --prefix wrappers/angular-wrapper` (Jest + jest-preset-angular)
 - Gotcha: Tests use `NODE_OPTIONS=--openssl-legacy-provider`
+- **Test paradigm:** the presence gate covers `wrappers/**` — a wrapper source change must ship a matching test. The Jest suite here is **jsdom** (inputs, lifecycle, change detection). Anything user-visible / real-browser goes to **Playwright E2E** in `tests/e2e/` — see the `handsontable-playwright-e2e` skill (NgZone / `runOutsideAngular` gotchas in its `references/wrappers.md`). Local gates + exact rules: `.ai/LOCAL-ENFORCEMENT.md`.
 
 ## Common Pitfalls
 

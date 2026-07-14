@@ -210,6 +210,21 @@ module.exports = {
         'jsdoc/require-returns': 'off',
         'handsontable/restricted-module-imports': 'off',
         'handsontable/require-async-in-it': 'error',
+        // Determinism guards for the frozen Jasmine suite. WARN, not error: the
+        // existing sleep()/it.flaky() debt must surface without red-walling CI.
+        // Escalation to error happens in the flip-to-blocking task once the
+        // debt is burned down. New E2E belongs in Playwright (tests/e2e).
+        'handsontable/no-fixed-sleep-in-spec': 'warn',
+        'handsontable/no-new-it-flaky': 'warn',
+        // Anti-gaming (green-for-the-sake-of-green) guards. Focus is ERROR — a
+        // committed .only/fit silently drops the suite and there are 0 today.
+        // Skip is WARN — 21 existing .skip must not red-wall; new skips are caught
+        // by the diff-based test-weakening detector.
+        'handsontable/no-focused-test': 'error',
+        'handsontable/no-skipped-test': 'warn',
+        // A test with no assertion is hollow coverage. WARN — heuristic (a test may
+        // assert only through a custom helper), so it surfaces rather than blocks.
+        'handsontable/require-assertion-in-test': 'warn',
         'brace-style': ['error', '1tbs', { allowSingleLine: true }],
       }
     },

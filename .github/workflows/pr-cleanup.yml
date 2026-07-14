@@ -1,5 +1,8 @@
-name: Docs delete Staging Deployment
+name: PR cleanup
 
+# THE single on-PR-close pipeline. Any job that must run when a PR closes
+# (preview teardown, cache eviction, label bookkeeping, …) belongs HERE — never
+# as its own workflow, so a closed PR produces exactly one cleanup run.
 on:
   pull_request:
     types: [closed]

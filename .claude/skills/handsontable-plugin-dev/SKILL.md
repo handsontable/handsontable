@@ -139,7 +139,7 @@ If your plugin provides UI elements (buttons, inputs, navigation bars), you must
 
 ## Testing Requirements
 
-- E2E tests (`__tests__/*.spec.js`): all `it()` callbacks must be `async`.
+- **New E2E tests are Playwright** in `tests/e2e/` (skill `handsontable-playwright-e2e`) — for a plugin's UI, interaction, rendering. Do not add new legacy `*.spec.js`; the presence gate blocks them. Editing an existing `*.spec.js` (async `it()` callbacks) is fine.
 - Unit tests (`__tests__/*.unit.js`): test strategies and helpers in isolation.
 - Test `updateSettings()`, `enablePlugin()`/`disablePlugin()` toggling.
 - Test interactions with other plugins (sorting, filters, hidden rows).

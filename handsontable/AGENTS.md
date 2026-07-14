@@ -47,7 +47,10 @@ Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` us
 | Type | Pattern | Framework | Run |
 |------|---------|-----------|-----|
 | Unit | `*.unit.js` | Jest (jsdom) | `npm run test:unit` |
-| E2E | `*.spec.js` | Jasmine (Puppeteer) | `npm run test:e2e` |
+| E2E (legacy, frozen) | `*.spec.js` | Jasmine (Puppeteer) | `npm run test:e2e` |
+| E2E (new) | `tests/e2e/*.spec.ts` | Playwright | `cd tests && npm test` |
+
+**New E2E is Playwright** in `tests/e2e/` (skill: `handsontable-playwright-e2e`). The Jasmine `*.spec.js` suite is frozen — edit existing specs, but add no new ones, and migrate broken ones to Playwright. What to test in which framework, and when a test is even required, is machine-enforced by the presence gate; the decision rules are in `.ai/TESTING.md`.
 
 - ALL `it()` callbacks in spec files MUST be `async`
 - HOT API calls MUST be `await`-ed

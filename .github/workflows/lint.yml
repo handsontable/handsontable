@@ -1,0 +1,34 @@
+name: Lint
+
+# Linters — core (JS/TS/CSS/D.TS) always; the visual-tests package lint only
+# when its scope changed. Called by test.yml on PRs (a merged PR already proved
+# lint, so no trunk runs).
+on:
+  workflow_call:
+    inputs:
+      run-visual:
+        description: 'Also lint the visual-tests package (its scope changed)'
+        type: boolean
+        default: false
+
+jobs:
+  core:
+    name: core
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+      - name: JavaScript lint
+        run: npm run lint
+      - name: CSS lint
+        run: npm run in handsontable stylelint
+
+  visual-tests:
+    name: visual tests
+    runs-on: ubuntu-latest
+    if: inputs.run-visual
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+      - name: Lint
+        run: npm run in visual-tests lint

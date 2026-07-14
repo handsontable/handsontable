@@ -15,7 +15,7 @@ Changelog entries are expected only for source-code changes to the library core 
 [skip changelog]
 ```
 
-...and push a new commit to restart the check (`git commit --allow-empty` to create an empty commit).
+...and re-run the failed **Changelog** check from the PR's checks tab (or push any new commit — `git commit --allow-empty` works). The check reads the PR body at run time; editing the description alone does not re-trigger it.
 
 
 ## Changelog helper
