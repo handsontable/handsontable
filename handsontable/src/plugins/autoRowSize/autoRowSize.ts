@@ -248,7 +248,16 @@ export class AutoRowSize extends BasePlugin {
     let cellMeta;
 
     if (row >= 0 && column >= 0) {
-      cellMeta = this.hot.getCellMeta(row, column);
+      const physicalRow = this.hot.toPhysicalRow(row);
+
+      // The transient read resolves the full dynamic meta (hooks + `cells`, so `hidden` from
+      // merged cells works) without storing anything - this sampler sweeps every row, and the
+      // eager `getCellMeta` would permanently materialize one meta per visited cell. The
+      // visual-index fallback mirrors `Core.getCellMeta` for rows/columns with no physical mapping.
+      cellMeta = this.hot._getMetaManager().getCellMetaTransient(physicalRow ?? row, physicalColumn ?? column, {
+        visualRow: row,
+        visualColumn: column,
+      });
 
       if (cellMeta.hidden) {
         // do not generate samples for cells that are covered by merged cell (null values)

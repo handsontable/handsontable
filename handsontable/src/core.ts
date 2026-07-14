@@ -4663,12 +4663,32 @@ export default function Core(
         }
         waitingForValidator.addValidatorToQueue();
 
-        instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), (result: boolean) => {
+        // The transient read keeps a bulk validation from permanently materializing one meta
+        // object per validated cell (O(rows x columns) retention). Cells with stored meta -
+        // including every currently rendered cell - still receive their `valid` result on the
+        // stored object, because the transient read returns the stored object for them.
+        const row = i;
+        const column = j;
+        // Visual-to-physical conversion with the same fallback as `Core.getCellMeta`.
+        const cellMeta = metaManager.getCellMetaTransient(
+          instance.toPhysicalRow(row) ?? row,
+          instance.toPhysicalColumn(column) ?? column,
+          { visualRow: row, visualColumn: column }
+        );
+
+        instance.validateCell(instance.getDataAtCell(row, column), cellMeta, (result: boolean) => {
           if (typeof result !== 'boolean') {
             throwWithCause('Validation error: result is not boolean');
           }
           if (result === false) {
             waitingForValidator.valid = false;
+
+            // A failed result written on a throwaway object would be lost - persist it on the
+            // stored meta (a DIRECT write, exactly like the edit-path validation flow; NOT
+            // `setCellMeta`, which would mark the property as user-persisted and change
+            // updateSettings/eviction semantics). Only failures materialize, so retention stays
+            // O(invalid cells); the eviction pass already keeps `valid === false` cells.
+            instance.getCellMeta(row, column, { skipMetaExtension: true }).valid = false;
           }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');

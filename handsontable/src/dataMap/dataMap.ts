@@ -895,11 +895,31 @@ class DataMap {
   getCopyable(row: number, prop: string | number) {
     const colIndex = this.propToCol(prop);
 
-    if (typeof colIndex === 'number' && this.hot!.getCellMeta(row, colIndex).copyable) {
+    if (typeof colIndex === 'number' && this.#getCopyableMeta(row, colIndex).copyable) {
       return this.get(row, prop);
     }
 
     return '';
+  }
+
+  /**
+   * Reads the cell meta for a copy-path `copyable` check through the transient (no-retention)
+   * path. The full dynamic extension runs, so a `cells()`-driven `copyable: false` is honored,
+   * but nothing is stored - a copy of a large selection must not permanently materialize one
+   * meta object per copied cell. The visual-index fallback mirrors `Core.getCellMeta`.
+   *
+   * @param {number} visualRow The visual row index.
+   * @param {number} visualColumn The visual column index.
+   * @returns {object}
+   */
+  #getCopyableMeta(visualRow: number, visualColumn: number): Record<string, unknown> {
+    const physicalRow = this.hot!.toPhysicalRow(visualRow);
+    const physicalColumn = this.hot!.toPhysicalColumn(visualColumn);
+
+    return this.hot!._getMetaManager().getCellMetaTransient(physicalRow ?? visualRow, physicalColumn ?? visualColumn, {
+      visualRow,
+      visualColumn,
+    });
   }
 
   /**
