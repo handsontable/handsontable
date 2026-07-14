@@ -887,3 +887,14 @@ const _cellPropsReadOnlyTyped: string = _cellPropsForNamedOptions.readOnly;
 // The `source` option keeps its declared union type through the chain.
 const _cellPropsSourceTyped: unknown[] | ((query: string, callback: (items: unknown[]) => void) => void) | undefined =
   _cellPropsForNamedOptions.source;
+
+// `sourceDataValidator` is a public option and is declared on `GridSettings` (with its
+// `rowIndependent` batching flag), so validators typed against the documented signature compile.
+const _sourceDataValidatorTyped: Handsontable.GridSettings = {
+  sourceDataWarningMessage: 'The source data is invalid.',
+  sourceDataValidator: (value, cellMeta) => cellMeta.allowEmpty === true || typeof value === 'string',
+};
+const _sourceDataValidatorBadReturn: Handsontable.GridSettings = {
+  // @ts-expect-error the validator must return `boolean`, not `string`.
+  sourceDataValidator: () => 'yes',
+};

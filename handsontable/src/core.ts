@@ -4042,16 +4042,21 @@ export default function Core(
     const input = setDataInputToArray(row, column, value);
     const isThereAnySetSourceListener = instance.hasHook('afterSetSourceDataAtCell');
     const changesForHook: Array<Array<unknown>> = [];
-    const getCellProperties = (changeRow: number, changeProp: string | number) => {
+    const getCellProperties = (changeRow: number, changeProp: string | number): CellProperties => {
       const visualRow = instance.toVisualRow(changeRow);
       const visualColumn = instance.toVisualColumn(changeProp as number);
 
       if (Number.isInteger(visualColumn)) {
-        return instance.getCellMeta(visualRow!, visualColumn as number) as Record<string, unknown>;
+        return instance.getCellMeta(visualRow!, visualColumn as number);
       }
 
-      // If there's no requested visual column, we can use the table meta as the cell properties
-      return { ...(Object.getPrototypeOf(tableMeta) as Record<string, unknown>), ...tableMeta };
+      // If there's no requested visual column, we can use the table meta as the cell properties.
+      // The snapshot lacks the per-cell coordinate properties, but every consumer here reads
+      // settings-level keys only.
+      return {
+        ...(Object.getPrototypeOf(tableMeta) as Record<string, unknown>),
+        ...tableMeta,
+      } as unknown as CellProperties;
     };
 
     if (isThereAnySetSourceListener) {

@@ -53,7 +53,7 @@ export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'updateData' | 'popula
   'CopyPaste.paste' | 'CopyPaste.cut' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'ColumnSummary.set' |
   'ColumnSummary.reset' | 'DataProvider.revert';
 
-export type { GridSettings } from './core/settings';
+export type { GridSettings, SourceDataValidatorFn } from './core/settings';
 
 /**
  * Removes the `[key: string]: any` / `[key: number]: any` index signature from a type while keeping
