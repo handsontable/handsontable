@@ -793,7 +793,9 @@ export class Autofill extends BasePlugin {
         columnIndex += 1
       ) {
         const targetCellSourceData = this.hot.getSourceDataAtCell(rowIndex, columnIndex);
-        const cellMeta = this.hot.getCellMeta<AutofillCellProperties>(rowIndex, columnIndex);
+        // The transient read keeps a large drag-fill or fill-down from permanently materializing
+        // one meta object per filled cell - the loop only reads `source`/`_complexDataFormat`.
+        const cellMeta = this.hot.getCellMetaTransient<AutofillCellProperties>(rowIndex, columnIndex);
         const cellSource = cellMeta.source;
         const cellSourceFirstItem: unknown = Array.isArray(cellSource) ? cellSource[0] : undefined;
         const isComplexDataFormatCell =

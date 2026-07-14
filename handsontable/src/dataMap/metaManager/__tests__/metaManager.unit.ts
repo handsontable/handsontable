@@ -450,6 +450,18 @@ describe('MetaManager', () => {
       expect(metaManager.cellMeta.getMetas()).toHaveLength(0);
     });
 
+    it('should resolve stored meta once, without a second storage lookup', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.setCellMeta(5, 1, 'className', 'htRight');
+
+      const getMetaSpy = jest.spyOn(metaManager.cellMeta, 'getMeta');
+      const meta = metaManager.getCellMetaTransient(5, 1, { visualRow: 5, visualColumn: 1 });
+
+      expect(meta.className).toBe('htRight');
+      expect(getMetaSpy).not.toHaveBeenCalled();
+    });
+
     it('should route cells with stored meta through the regular memoized getCellMeta path', () => {
       const metaManager = new MetaManager();
       const transientHookCalls = [];

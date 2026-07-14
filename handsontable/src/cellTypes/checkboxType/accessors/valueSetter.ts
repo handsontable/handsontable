@@ -8,13 +8,15 @@ import { stringify } from '../../../helpers/mixed';
  * @param {number} column The column index.
  * @returns {*} The new value to be set.
  */
-type SetterContext = { getCellMeta: (row: number, col: number) => Record<string, unknown> };
+type SetterContext = { getCellMetaTransient: (row: number, col: number) => Record<string, unknown> };
 
 /**
  *
  */
 export function valueSetter(this: SetterContext, newValue: unknown, row: number, column: number): unknown {
-  const { checkedTemplate, uncheckedTemplate } = this.getCellMeta(row, column);
+  // The transient read keeps a bulk write over a checkbox column from permanently materializing
+  // one meta object per written cell - the setter runs per change and only reads the templates.
+  const { checkedTemplate, uncheckedTemplate } = this.getCellMetaTransient(row, column);
 
   const stringifiedValue = stringify(newValue);
   const isChecked = stringifiedValue === stringify(checkedTemplate);

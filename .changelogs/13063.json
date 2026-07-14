@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Improved the performance and memory usage of the cell meta storage. Reading cell settings stays fast on large grids. Memory used by settings of scrolled-away rows is released. Bulk operations - sorting, copying, exporting, validation, and automatic size sampling - no longer permanently cache settings for every visited cell. Added the `getCellMetaTransient()` method for reading the effective cell configuration without caching it.",
+  "title": "Improved the performance and memory usage of the cell meta storage. Reading cell settings stays fast on large grids. Memory used by settings of scrolled-away rows is released. Bulk operations - sorting, copying, pasting, filling, exporting, validation, checkbox toggling, and automatic size sampling - no longer permanently cache settings for every visited cell. Added the `getCellMetaTransient()` method for reading the effective cell configuration without caching it.",
   "type": "changed",
   "issueOrPR": 13063,
   "breaking": false,

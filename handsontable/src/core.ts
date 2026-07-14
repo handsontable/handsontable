@@ -1378,7 +1378,11 @@ export default function Core(
             }
             current.col = start.col!;
 
-            cellMeta = instance.getCellMeta(current.row, current.col);
+            // The transient read keeps a bulk paste/fill from permanently materializing one meta
+            // object per target cell - this loop only reads (`skipRowOnPaste`, `skipColumnOnPaste`,
+            // `readOnly`, `valueSetter`, `parsePastedValue`); the write itself goes through the
+            // data layer.
+            cellMeta = instance.getCellMetaTransient(current.row, current.col);
 
             if ((source === 'CopyPaste.paste' || source === 'Autofill.fill' || source === 'autofill.fill') &&
                 cellMeta.skipRowOnPaste) {
@@ -1400,7 +1404,7 @@ export default function Core(
                 break;
               }
 
-              cellMeta = instance.getCellMeta(current.row, current.col);
+              cellMeta = instance.getCellMetaTransient(current.row, current.col);
 
               if ((source === 'CopyPaste.paste' || source === 'Autofill.fill' || source === 'autofill.fill') &&
                   cellMeta.skipColumnOnPaste) {
@@ -1793,8 +1797,15 @@ export default function Core(
       let cellProperties;
 
       if (Number.isInteger(visualCol)) {
+        // The transient read keeps a bulk change set from permanently materializing one meta
+        // object per changed cell while the validator is looked up. Cells that DO have a
+        // validator switch to the eagerly stored meta object below - validation writes its
+        // `valid` result on the meta, and that result must survive on the stored object.
+        cellProperties = instance.getCellMetaTransient(row, visualCol as number);
 
-        cellProperties = instance.getCellMeta(row, visualCol as number);
+        if (instance.getCellValidator(cellProperties)) {
+          cellProperties = instance.getCellMeta(row, visualCol as number);
+        }
 
       } else {
         // If there's no requested visual column, we can use the table meta as the cell properties when retrieving
@@ -2104,8 +2115,10 @@ export default function Core(
       let cellProperties;
 
       if (Number.isInteger(visualColumn)) {
-
-        cellProperties = instance.getCellMeta(row, visualColumn as number);
+        // The transient read keeps a bulk change set (paste, fill, checkbox toggle over a large
+        // selection) from permanently materializing one meta object per changed cell - the meta
+        // is only read here (`valueSetter`).
+        cellProperties = instance.getCellMetaTransient(row, visualColumn as number);
       } else {
         // If there's no requested visual column, we can use the table meta as the cell properties
         cellProperties = { ...Object.getPrototypeOf(tableMeta) as Record<string, unknown>, ...tableMeta };

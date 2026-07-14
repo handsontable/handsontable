@@ -261,8 +261,21 @@ export default class MetaManager {
     physicalRow: number, physicalColumn: number,
     options: { visualRow: number; visualColumn: number }
   ): CellProperties {
-    if (this.cellMeta.getMetaIfExists(physicalRow, physicalColumn) !== undefined) {
-      return this.getCellMeta(physicalRow, physicalColumn, options);
+    const storedMeta = this.cellMeta.getMetaIfExists(physicalRow, physicalColumn);
+
+    // The stored path mirrors `getCellMeta` on the already-resolved object instead of delegating
+    // to it - delegation would re-resolve the same cell (two more map lookups per stored cell on
+    // every bulk validate/copy/export scan), and widening `getCellMeta` itself with a pre-resolved
+    // parameter would add a branch to the hottest read path in the grid.
+    if (storedMeta !== undefined) {
+      storedMeta.visualRow = options.visualRow;
+      storedMeta.visualCol = options.visualColumn;
+      storedMeta.row = physicalRow;
+      storedMeta.col = physicalColumn;
+
+      this.runLocalHooks('afterGetCellMeta', storedMeta);
+
+      return storedMeta;
     }
 
     const cellMeta = this.cellMeta.createTransientMeta(physicalColumn);

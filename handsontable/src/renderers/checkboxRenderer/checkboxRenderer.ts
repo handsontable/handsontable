@@ -255,7 +255,12 @@ export function checkboxRenderer(
 
       for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
         for (let visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
-          const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
+          // The transient read keeps a toggle over a large selection (for example, a whole
+          // column) from permanently materializing one meta object per selected cell. The
+          // default-template writes below may land on a throwaway object - the render path
+          // re-applies the same defaults on every draw, and all reads in this loop happen on
+          // this same object.
+          const cachedCellProperties = hotInstance.getCellMetaTransient(visualRow, visualColumn);
 
           /* eslint-disable no-continue */
           if (cachedCellProperties.hidden) {
