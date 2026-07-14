@@ -223,6 +223,44 @@ export default class MetaManager {
   }
 
   /**
+   * Gets a fully-extended cell meta object without retaining it. Unlike `getCellMetaUncached`, the
+   * dynamic extension DOES run - the `beforeGetCellMeta`/`afterGetCellMeta` hooks and the `cells`
+   * function are applied (through the `extendTransientCellMeta` local hook), so hook-driven
+   * properties such as `readOnly`, `hidden`, or `spanned` resolve correctly. Unlike `getCellMeta`,
+   * nothing is stored: when the cell has no persisted meta, the extension runs on a transient object
+   * that is thrown away, so a bulk scan (for example, column-width sampling over the whole row
+   * range) does not permanently materialize one meta object per visited cell. Cells that already
+   * carry stored meta go through the regular memoized `getCellMeta` path. Hook mutations made on a
+   * transient object do not persist - callers that need to write meta must use `setCellMeta`.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {object} options Options for the method.
+   * @param {number} options.visualRow The visual row index of the currently requested cell meta object.
+   * @param {number} options.visualColumn The visual column index of the currently requested cell meta object.
+   * @returns {object}
+   */
+  getCellMetaTransient<M extends object = Record<string, unknown>>(
+    physicalRow: number, physicalColumn: number,
+    options: { visualRow: number; visualColumn: number }
+  ): M {
+    if (this.cellMeta.getMetaIfExists(physicalRow, physicalColumn) !== undefined) {
+      return this.getCellMeta(physicalRow, physicalColumn, options) as M;
+    }
+
+    const cellMeta = this.cellMeta.createTransientMeta(physicalColumn);
+
+    cellMeta.visualRow = options.visualRow;
+    cellMeta.visualCol = options.visualColumn;
+    cellMeta.row = physicalRow;
+    cellMeta.col = physicalColumn;
+
+    this.runLocalHooks('extendTransientCellMeta', cellMeta);
+
+    return cellMeta as M;
+  }
+
+  /**
    * Gets a value (defined by the `key` property) from the cell meta object.
    *
    * @param {number} physicalRow The physical row index.

@@ -1,8 +1,9 @@
 import type { default as MetaManagerInstance } from '..';
 import type { HotInstance } from '../../../core/types';
 import { Hooks } from '../../../core/hooks';
-import { hasOwnProperty } from '../../../helpers/object';
+import { hasOwnProperty, extend } from '../../../helpers/object';
 import { isFunction } from '../../../helpers/function';
+import { extendByMetaType } from '../utils';
 
 /**
  * @class DynamicCellMetaMod
@@ -78,6 +79,10 @@ export class DynamicCellMetaMod {
       this.extendCellMeta(args[0] as Record<string, unknown>);
     });
 
+    metaManager.addLocalHook('extendTransientCellMeta', (...args: unknown[]) => {
+      this.extendTransientCellMeta(args[0] as Record<string, unknown>);
+    });
+
     // These hooks are registered through `Hooks.getSingleton().add(..., hot)` rather than
     // `hot.addHook(...)` on purpose: this modifier is constructed from the `MetaManager`
     // constructor, which runs early in `Core` setup - before `hot.addHook` is defined. The
@@ -117,6 +122,50 @@ export class DynamicCellMetaMod {
       return;
     }
 
+    this.#runMetaExtension(cellMeta, (cellSettings) => {
+      this.metaManager.updateCellMeta(physicalRow, physicalColumn, cellSettings);
+    });
+
+    let memoRow = this.metaSyncMemo.get(physicalRow);
+
+    if (memoRow === undefined) {
+      memoRow = new Set();
+      this.metaSyncMemo.set(physicalRow, memoRow);
+    }
+
+    memoRow.add(physicalColumn);
+  }
+
+  /**
+   * Extends a transient (not stored) cell meta object by the same user-specific properties as
+   * `extendCellMeta`, with two deliberate differences. The `cells`/`type` settings are applied
+   * directly on the transient object - never through `updateCellMeta`, which would permanently
+   * materialize the cell. And `metaSyncMemo` is neither read nor written: the memo must reflect only
+   * STORED meta objects, or a stored cell created later would skip its extension (a rendering bug),
+   * and memo growth would defeat the point of a retention-free scan.
+   *
+   * @param {object} cellMeta The transient cell meta object.
+   */
+  extendTransientCellMeta(cellMeta: Record<string, unknown>) {
+    this.#runMetaExtension(cellMeta, (cellSettings) => {
+      extend(cellMeta, cellSettings);
+      extendByMetaType(cellMeta, cellSettings);
+    });
+  }
+
+  /**
+   * Runs the dynamic-extension sequence on a cell meta object: resolves `prop`, fires
+   * `beforeGetCellMeta`, evaluates the `cells` function and the `type` value it (or the hook)
+   * produced, hands the resulting settings to the caller-provided applier, and fires
+   * `afterGetCellMeta`. The applier is the only step that differs between the stored path
+   * (persist through `updateCellMeta`) and the transient path (extend the throwaway object).
+   *
+   * @param {object} cellMeta The cell meta object to extend.
+   * @param {Function} applyCellSettings Receives the resolved `cells`/`type` settings object.
+   */
+  #runMetaExtension(cellMeta: Record<string, unknown>, applyCellSettings: (settings: Record<string, unknown>) => void) {
+    const physicalRow = cellMeta.row as number;
+    const physicalColumn = cellMeta.col as number;
     const visualRow = cellMeta.visualRow as number;
     const visualCol = cellMeta.visualCol as number;
     const hot = this.metaManager.hot;
@@ -143,19 +192,10 @@ export class DynamicCellMetaMod {
     }
 
     if (cellSettings) {
-      this.metaManager.updateCellMeta(physicalRow, physicalColumn, cellSettings);
+      applyCellSettings(cellSettings);
     }
 
     hot.runHooks('afterGetCellMeta', visualRow, visualCol, cellMeta);
-
-    let memoRow = this.metaSyncMemo.get(physicalRow);
-
-    if (memoRow === undefined) {
-      memoRow = new Set();
-      this.metaSyncMemo.set(physicalRow, memoRow);
-    }
-
-    memoRow.add(physicalColumn);
   }
 
   /**

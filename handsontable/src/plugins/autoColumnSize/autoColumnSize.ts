@@ -233,7 +233,15 @@ export class AutoColumnSize extends BasePlugin {
       return false;
     }
 
-    const cellMeta = this.hot.getCellMeta(row, column);
+    // The transient read resolves the full dynamic meta (hooks + `cells`, so `hidden`/`spanned`
+    // from merged cells work) without storing anything - this sampler sweeps the whole row range
+    // per column, and the eager `getCellMeta` would permanently materialize one meta per visited
+    // cell (O(rows x columns) retention on init). The visual-index fallback mirrors
+    // `Core.getCellMeta` for rows/columns with no physical mapping.
+    const cellMeta = this.hot._getMetaManager().getCellMetaTransient(physicalRow ?? row, physicalColumn ?? column, {
+      visualRow: row,
+      visualColumn: column,
+    });
     let cellValue = '';
     let seedValue: unknown = '';
 
