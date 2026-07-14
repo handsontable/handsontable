@@ -50,6 +50,7 @@ import type { SettingsPort } from '../ports';
  * @property {?Option} onCellContextMenu Option `onCellContextMenu`.
  * @property {?Option} onCellCornerDblClick Option `onCellCornerDblClick`.
  * @property {?Option} onCellCornerMouseDown Option `onCellCornerMouseDown`.
+ * @property {?Option} onSelectionHandleMouseDown Option `onSelectionHandleMouseDown`.
  * @property {?Option} onCellDblClick Option `onCellDblClick`.
  * @property {?Option} onCellMouseDown Option `onCellMouseDown`.
  * @property {?Option} onCellMouseOut Option `onCellMouseOut`.
@@ -193,6 +194,7 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     onCellDblClick: null,
     onCellCornerMouseDown: null,
     onCellCornerDblClick: null,
+    onSelectionHandleMouseDown: null,
     beforeDraw: null,
     onDraw: null,
     onBeforeRemoveCellClassNames: null,

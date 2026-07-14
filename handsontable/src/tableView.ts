@@ -28,6 +28,9 @@ import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
 import { resolveWithInstance } from './utils/staticRegister';
+import { getCellCoordsFromMousePosition } from './helpers/dom/cellCoords';
+import { clampEdge } from './selection/handleAdjust';
+import type { HandleEdge } from './selection/handleAdjust';
 import {
   A11Y_COLCOUNT,
   A11Y_MULTISELECTABLE,
@@ -186,6 +189,22 @@ class TableView {
    * @type {number|null}
    */
   #recentTouchEndTimeout: ReturnType<typeof setTimeout> | null = null;
+  /**
+   * State of an in-progress selection-handle drag. Null when no drag is active.
+   *
+   * @type {{ edge: HandleEdge, anchorRow: number, anchorCol: number } | null}
+   */
+  #adjustDrag: { edge: HandleEdge; anchorRow: number; anchorCol: number } | null = null;
+  /**
+   * Bound document-level listeners installed for the duration of a handle drag. Stored
+   * so they can be removed precisely on mouseup without clearing unrelated listeners.
+   *
+   * @type {{ mousemove: ((event: MouseEvent) => void) | null, mouseup: (() => void) | null }}
+   */
+  #adjustDragListeners: {
+    mousemove: ((event: MouseEvent) => void) | null;
+    mouseup: (() => void) | null;
+  } = { mousemove: null, mouseup: null };
   /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
    */
@@ -1154,6 +1173,10 @@ class TableView {
       onCellCornerDblClick: (event: MouseEvent) => {
         event.preventDefault();
         this.hot.runHooks('afterOnCellCornerDblClick', event);
+      },
+      onSelectionHandleMouseDown: (event: MouseEvent, edge: HandleEdge) => {
+        this.hot.runHooks('afterOnSelectionHandleMouseDown', event, edge);
+        this.#startAdjustDrag(event, edge);
       },
       beforeDraw: (force: boolean, skipRender: boolean) => this.beforeRender(force, skipRender),
       onDraw: (force: boolean) => this.afterRender(force),
@@ -2232,6 +2255,132 @@ class TableView {
     } else {
       removeClass(rootElement, 'htScrollbarHidden');
     }
+  }
+
+  /**
+   * Starts a handle-drag session when the user presses a selection-adjustment handle.
+   * Records which edge is dragged and the anchor corner (the opposite edge's coords),
+   * then installs document-level `mousemove` / `mouseup` listeners for the duration
+   * of the drag.
+   *
+   * @private
+   * @param {MouseEvent} event The originating mousedown event.
+   * @param {HandleEdge} edge Which edge handle was pressed.
+   */
+  #startAdjustDrag(event: MouseEvent, edge: HandleEdge) {
+    const activeRange = this.hot.getSelectedRangeLast();
+
+    if (!activeRange) {
+      return;
+    }
+
+    const from = activeRange.from;
+    const to = activeRange.to;
+
+    // Anchor is the opposite corner from the dragged edge.
+    let anchorRow: number;
+    let anchorCol: number;
+
+    if (edge === 'top') {
+      anchorRow = Math.max(from.row ?? 0, to.row ?? 0);
+      anchorCol = from.col ?? 0;
+    } else if (edge === 'bottom') {
+      anchorRow = Math.min(from.row ?? 0, to.row ?? 0);
+      anchorCol = from.col ?? 0;
+    } else if (edge === 'start') {
+      anchorRow = from.row ?? 0;
+      anchorCol = Math.max(from.col ?? 0, to.col ?? 0);
+    } else {
+      anchorRow = from.row ?? 0;
+      anchorCol = Math.min(from.col ?? 0, to.col ?? 0);
+    }
+
+    this.#adjustDrag = { edge, anchorRow, anchorCol };
+
+    const { documentElement } = this.hot.rootDocument;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      this.#onAdjustDragMouseMove(moveEvent);
+    };
+
+    const onMouseUp = () => {
+      this.#endAdjustDrag();
+    };
+
+    this.#adjustDragListeners = { mousemove: onMouseMove, mouseup: onMouseUp };
+
+    this.eventManager.addEventListener(documentElement, 'mousemove', onMouseMove as (event: Event) => void);
+    this.eventManager.addEventListener(documentElement, 'mouseup', onMouseUp);
+  }
+
+  /**
+   * Handles document `mousemove` during a handle drag. Resolves the cell under the pointer,
+   * clamps the dragged edge index with {@link clampEdge} to prevent flipping, then rebuilds
+   * the selection range from the stored anchor to the new dragged corner.
+   *
+   * @private
+   * @param {MouseEvent} event The mousemove event.
+   */
+  #onAdjustDragMouseMove(event: MouseEvent) {
+    if (!this.#adjustDrag) {
+      return;
+    }
+
+    const { edge, anchorRow, anchorCol } = this.#adjustDrag;
+    const { clientX, clientY } = event;
+    const cellCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
+    const targetRow = cellCoords.row ?? 0;
+    const targetCol = cellCoords.col ?? 0;
+
+    let newRow: number;
+    let newCol: number;
+
+    if (edge === 'top' || edge === 'bottom') {
+      const clampedRow = clampEdge({ edge, target: targetRow, oppositeIndex: anchorRow });
+
+      newRow = clampedRow;
+      newCol = targetCol;
+    } else {
+      const clampedCol = clampEdge({ edge, target: targetCol, oppositeIndex: anchorCol });
+
+      newRow = targetRow;
+      newCol = clampedCol;
+    }
+
+    const anchorCoords = this.hot._createCellCoords(anchorRow, anchorCol);
+    const newCoords = this.hot._createCellCoords(newRow, newCol);
+
+    this.hot.selection.setRangeStart(anchorCoords, undefined, false, anchorCoords);
+    this.hot.selection.setRangeEnd(newCoords);
+  }
+
+  /**
+   * Ends the current handle drag session by clearing the drag state and removing the
+   * document-level listeners that were installed at drag start.
+   *
+   * @private
+   */
+  #endAdjustDrag() {
+    if (!this.#adjustDrag) {
+      return;
+    }
+
+    this.#adjustDrag = null;
+
+    const { documentElement } = this.hot.rootDocument;
+    const { mousemove, mouseup } = this.#adjustDragListeners;
+
+    if (mousemove) {
+      this.eventManager.removeEventListener(
+        documentElement, 'mousemove', mousemove as (event: Event) => void
+      );
+    }
+
+    if (mouseup) {
+      this.eventManager.removeEventListener(documentElement, 'mouseup', mouseup);
+    }
+
+    this.#adjustDragListeners = { mousemove: null, mouseup: null };
   }
 
   /**

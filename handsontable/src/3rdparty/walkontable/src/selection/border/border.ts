@@ -158,6 +158,20 @@ class Border {
             (event: MouseEvent) => this.onMouseEnter(event, mainNode.childNodes[c] as HTMLElement));
       }
     }
+
+    if (this.adjustHandles) {
+      const edges = ['top', 'bottom', 'start', 'end'] as const;
+
+      for (const edge of edges) {
+        const handleEl = this.adjustHandles[edge];
+
+        this.eventManager.addEventListener(handleEl, 'mousedown', (event: MouseEvent) => {
+          stopImmediatePropagation(event);
+          event.preventDefault();
+          this.wot.getSetting('onSelectionHandleMouseDown', event, edge);
+        });
+      }
+    }
   }
 
   /**

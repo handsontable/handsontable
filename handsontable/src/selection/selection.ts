@@ -1153,9 +1153,27 @@ class Selection {
    * @returns {boolean}
    */
   isAdjustHandlesVisibleFor(layerLevel: number) {
-    return this.settings.selectionHandles === true &&
-      this.settings.selectionMode !== 'single' &&
-      this.#handlesHoveredLayer === layerLevel;
+    if (this.settings.selectionHandles !== true) {
+      return false;
+    }
+
+    if (this.settings.selectionMode === 'single') {
+      return false;
+    }
+
+    if (this.#handlesHoveredLayer !== layerLevel) {
+      return false;
+    }
+
+    // Hide handles for full-row, full-column, and select-all selections
+    // because those cannot be meaningfully resized via edge handles.
+    if (this.isEntireRowSelected(layerLevel) ||
+        this.isEntireColumnSelected(layerLevel) ||
+        this.isSelectedByCorner()) {
+      return false;
+    }
+
+    return true;
   }
 
   /**
