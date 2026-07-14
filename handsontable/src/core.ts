@@ -2530,7 +2530,9 @@ export default function Core(
 
       const collectEmptyCellChanges = (row: number) => {
         rangeEach(fromColumn, toColumn, (column) => {
-          if (!this.getCellMeta(row, column).readOnly) {
+          // The transient read keeps clearing a large selection from permanently materializing
+          // one meta object per cell - only `readOnly` is read here.
+          if (!this.getCellMetaTransient(row, column).readOnly) {
             changes.push([row, column, null]);
           }
         });
@@ -4060,7 +4062,10 @@ export default function Core(
       const visualColumn = instance.toVisualColumn(changeProp as number);
 
       if (Number.isInteger(visualColumn)) {
-        return instance.getCellMeta(visualRow!, visualColumn as number);
+        // The transient read keeps a bulk source-data write from permanently materializing one
+        // meta object per changed cell - the meta only feeds the `valueSetter` and the
+        // source-data validator, both read-only.
+        return instance.getCellMetaTransient(visualRow!, visualColumn as number);
       }
 
       // If there's no requested visual column, we can use the table meta as the cell properties.
@@ -4199,7 +4204,7 @@ export default function Core(
       let isTypeEqual = true;
 
       rangeEach(Math.max(Math.min(columnStart, columnEnd), 0), Math.max(columnStart, columnEnd), (column) => {
-        const cellType = instance.getCellMeta(row, column);
+        const cellType = instance.getCellMetaTransient(row, column);
 
         currentType = (cellType.type as string | null | undefined) ?? null;
 

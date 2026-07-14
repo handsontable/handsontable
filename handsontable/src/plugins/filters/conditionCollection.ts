@@ -124,7 +124,7 @@ class ConditionCollection {
   addCondition(
     column: number, conditionDefinition: Record<string, unknown>, operation = OPERATION_AND, position?: number
   ) {
-    const localeForColumn = this.hot.getCellMeta(0, column).locale as string | undefined;
+    const localeForColumn = this.hot.getCellMetaTransient(0, column).locale as string | undefined;
     const args = (conditionDefinition.args as unknown[])
       .map((v: unknown) => (typeof v === 'string' ? localeLowerCase(v, localeForColumn) : v));
     const name = (conditionDefinition.name || (conditionDefinition.command as Record<string, unknown>).key) as string;

@@ -320,18 +320,18 @@ describe('GhostTable', () => {
 
     gt = new Handsontable.__GhostTable(hot);
 
-    spyOn(hot, 'getCellMeta').and.returnValue({
+    const cellMeta = {
       row: 3,
       col: 4,
       visualRow: 5,
       visualCol: 6,
       renderer: jasmine.createSpy('renderer'),
-    });
+    };
+
+    spyOn(hot, 'getCellMetaTransient').and.returnValue(cellMeta);
 
     gt.samples = new Map([[0, { strings: [{ col: 0, value: 'test' }] }]]);
     gt.createRow(0);
-
-    const cellMeta = getCellMeta(0, 0);
 
     expect(cellMeta.renderer).toHaveBeenCalledTimes(1);
     expect(cellMeta.row).toBe(3);
@@ -345,18 +345,18 @@ describe('GhostTable', () => {
 
     gt = new Handsontable.__GhostTable(hot);
 
-    spyOn(hot, 'getCellMeta').and.returnValue({
+    const cellMeta = {
       row: 3,
       col: 4,
       visualRow: 5,
       visualCol: 6,
       renderer: jasmine.createSpy('renderer'),
-    });
+    };
+
+    spyOn(hot, 'getCellMetaTransient').and.returnValue(cellMeta);
 
     gt.samples = new Map([[0, { strings: [{ row: 0, value: 'test' }] }]]);
     gt.createCol(0);
-
-    const cellMeta = getCellMeta(0, 0);
 
     expect(cellMeta.renderer).toHaveBeenCalledTimes(1);
     expect(cellMeta.row).toBe(3);
