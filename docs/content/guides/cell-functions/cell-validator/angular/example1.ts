@@ -6,9 +6,9 @@ import type Handsontable from 'handsontable/base';
 const ipValidatorRegexp =
   /^(?:\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b|null)$/;
 
-const emailValidator = (value: string, callback: (arg0: boolean) => void) => {
+const emailValidator = (value: unknown, callback: (valid: boolean) => void) => {
   setTimeout(() => {
-    if (/.+@.+/.test(value)) {
+    if (/.+@.+/.test(String(value))) {
       callback(true);
     } else {
       callback(false);
