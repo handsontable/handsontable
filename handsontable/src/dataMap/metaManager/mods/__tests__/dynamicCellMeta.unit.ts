@@ -3,6 +3,11 @@ import { DynamicCellMetaMod } from '../dynamicCellMeta';
 import MetaManager from '../../';
 import { Hooks } from '../../../../core/hooks';
 import { registerAllCellTypes } from '../../../../cellTypes';
+import type { CellProperties } from '../../../../settings';
+
+type MetaManagerArg = ConstructorParameters<typeof DynamicCellMetaMod>[0];
+
+const createCellMeta = (meta: Partial<CellProperties>) => meta as CellProperties;
 
 registerAllCellTypes();
 
@@ -22,7 +27,7 @@ describe('DynamicCellMetaMod', () => {
   it('should subscribe to the "afterGetCellMeta" hook of the MetaManager module', () => {
     const hotMock = new Handsontable();
     const metaManager = new MetaManager(hotMock);
-    const mod = new DynamicCellMetaMod(metaManager);
+    const mod = new DynamicCellMetaMod(metaManager as MetaManagerArg);
     const cellMeta = {
       row: 1,
       col: 2,
@@ -32,7 +37,7 @@ describe('DynamicCellMetaMod', () => {
 
     jest.spyOn(mod, 'extendCellMeta');
 
-    metaManager.runLocalHooks('afterGetCellMeta', cellMeta);
+    metaManager.runLocalHooks('afterGetCellMeta', createCellMeta(cellMeta));
 
     expect(mod.extendCellMeta).toHaveBeenCalledTimes(1);
     expect(mod.extendCellMeta).toHaveBeenCalledWith(cellMeta);
@@ -41,7 +46,7 @@ describe('DynamicCellMetaMod', () => {
   it('should extend the cell meta object by reference through the "beforeGetCellMeta" hook', () => {
     const hotMock = new Handsontable();
     const metaManager = new MetaManager(hotMock);
-    const mod = new DynamicCellMetaMod(metaManager);
+    const mod = new DynamicCellMetaMod(metaManager as MetaManagerArg);
     const cellMeta = {
       row: 1,
       col: 2,
@@ -57,7 +62,7 @@ describe('DynamicCellMetaMod', () => {
       }
     });
 
-    mod.extendCellMeta(cellMeta);
+    mod.extendCellMeta(createCellMeta(cellMeta));
 
     expect(cellMeta).toEqual({
       row: 1,
@@ -77,7 +82,7 @@ describe('DynamicCellMetaMod', () => {
   it('should extend the cell meta object by reference through the "afterGetCellMeta" hook', () => {
     const hotMock = new Handsontable();
     const metaManager = new MetaManager(hotMock);
-    const mod = new DynamicCellMetaMod(metaManager);
+    const mod = new DynamicCellMetaMod(metaManager as MetaManagerArg);
     const cellMeta = {
       row: 1,
       col: 2,
@@ -93,7 +98,7 @@ describe('DynamicCellMetaMod', () => {
       }
     });
 
-    mod.extendCellMeta(cellMeta);
+    mod.extendCellMeta(createCellMeta(cellMeta));
 
     expect(cellMeta).toEqual({
       row: 1,
@@ -110,7 +115,7 @@ describe('DynamicCellMetaMod', () => {
   it('should extend the cell meta object through the "cells" setting option (not by reference)', () => {
     const hotMock = new Handsontable();
     const metaManager = new MetaManager(hotMock);
-    const mod = new DynamicCellMetaMod(metaManager);
+    const mod = new DynamicCellMetaMod(metaManager as MetaManagerArg);
     const cellMeta = {
       row: 1,
       col: 2,
@@ -127,7 +132,7 @@ describe('DynamicCellMetaMod', () => {
     jest.spyOn(metaManager, 'updateCellMeta').mockReset();
     jest.spyOn(cellMeta, 'cells');
 
-    mod.extendCellMeta(cellMeta);
+    mod.extendCellMeta(createCellMeta(cellMeta));
 
     expect(cellMeta).toEqual({
       row: 1,
@@ -149,7 +154,7 @@ describe('DynamicCellMetaMod', () => {
   it('should extend the cell meta object only once per table slow render cycle', () => {
     const hotMock = new Handsontable();
     const metaManager = new MetaManager(hotMock);
-    const mod = new DynamicCellMetaMod(metaManager);
+    const mod = new DynamicCellMetaMod(metaManager as MetaManagerArg);
     const cellMeta = {
       row: 1,
       col: 2,
@@ -169,7 +174,7 @@ describe('DynamicCellMetaMod', () => {
       cellProperties.myId = `${row}x${column}`;
     });
 
-    mod.extendCellMeta(cellMeta);
+    mod.extendCellMeta(createCellMeta(cellMeta));
 
     expect(hotMock.runHooks).toHaveBeenCalledTimes(2);
     expect(cellMeta.cells).toHaveBeenCalledTimes(1);
@@ -191,9 +196,9 @@ describe('DynamicCellMetaMod', () => {
     cellMeta.cells.mockClear();
     metaManager.updateCellMeta.mockClear();
 
-    mod.extendCellMeta(cellMeta);
-    mod.extendCellMeta(cellMeta);
-    mod.extendCellMeta(cellMeta);
+    mod.extendCellMeta(createCellMeta(cellMeta));
+    mod.extendCellMeta(createCellMeta(cellMeta));
+    mod.extendCellMeta(createCellMeta(cellMeta));
 
     expect(hotMock.runHooks).toHaveBeenCalledTimes(0);
     expect(cellMeta.cells).toHaveBeenCalledTimes(0);
@@ -204,9 +209,9 @@ describe('DynamicCellMetaMod', () => {
 
     expect(mod.metaSyncMemo.size).toBe(1);
 
-    mod.extendCellMeta(cellMeta);
-    mod.extendCellMeta(cellMeta);
-    mod.extendCellMeta(cellMeta);
+    mod.extendCellMeta(createCellMeta(cellMeta));
+    mod.extendCellMeta(createCellMeta(cellMeta));
+    mod.extendCellMeta(createCellMeta(cellMeta));
 
     expect(hotMock.runHooks).toHaveBeenCalledTimes(0);
     expect(cellMeta.cells).toHaveBeenCalledTimes(0);
@@ -217,9 +222,9 @@ describe('DynamicCellMetaMod', () => {
 
     expect(mod.metaSyncMemo.size).toBe(0); // The cache is cleared
 
-    mod.extendCellMeta(cellMeta);
-    mod.extendCellMeta(cellMeta);
-    mod.extendCellMeta(cellMeta);
+    mod.extendCellMeta(createCellMeta(cellMeta));
+    mod.extendCellMeta(createCellMeta(cellMeta));
+    mod.extendCellMeta(createCellMeta(cellMeta));
 
     expect(hotMock.runHooks).toHaveBeenCalledTimes(2);
     expect(cellMeta.cells).toHaveBeenCalledTimes(1);
@@ -230,7 +235,7 @@ describe('DynamicCellMetaMod', () => {
   it('should re-extend the cell meta object when the physical index is changed', () => {
     const hotMock = new Handsontable();
     const metaManager = new MetaManager(hotMock);
-    const mod = new DynamicCellMetaMod(metaManager);
+    const mod = new DynamicCellMetaMod(metaManager as MetaManagerArg);
     const cellMeta = {
       row: 1,
       col: 2,
@@ -250,7 +255,7 @@ describe('DynamicCellMetaMod', () => {
       cellProperties.myId = `${row}x${column}`;
     });
 
-    mod.extendCellMeta(cellMeta);
+    mod.extendCellMeta(createCellMeta(cellMeta));
 
     expect(hotMock.runHooks).toHaveBeenCalledTimes(2);
     expect(cellMeta.cells).toHaveBeenCalledTimes(1);
@@ -286,9 +291,9 @@ describe('DynamicCellMetaMod', () => {
 
     jest.spyOn(cellMeta1, 'cells');
 
-    mod.extendCellMeta(cellMeta1);
-    mod.extendCellMeta(cellMeta1);
-    mod.extendCellMeta(cellMeta1);
+    mod.extendCellMeta(createCellMeta(cellMeta1));
+    mod.extendCellMeta(createCellMeta(cellMeta1));
+    mod.extendCellMeta(createCellMeta(cellMeta1));
 
     expect(cellMeta1).toEqual({
       row: 3,
@@ -309,7 +314,7 @@ describe('DynamicCellMetaMod', () => {
   it('should not re-extend the cell meta object when the visual index is changed', () => {
     const hotMock = new Handsontable();
     const metaManager = new MetaManager(hotMock);
-    const mod = new DynamicCellMetaMod(metaManager);
+    const mod = new DynamicCellMetaMod(metaManager as MetaManagerArg);
     const cellMeta = {
       row: 1,
       col: 2,
@@ -329,7 +334,7 @@ describe('DynamicCellMetaMod', () => {
       cellProperties.myId = `${row}x${column}`;
     });
 
-    mod.extendCellMeta(cellMeta);
+    mod.extendCellMeta(createCellMeta(cellMeta));
 
     expect(hotMock.runHooks).toHaveBeenCalledTimes(2);
     expect(cellMeta.cells).toHaveBeenCalledTimes(1);
@@ -365,9 +370,9 @@ describe('DynamicCellMetaMod', () => {
 
     jest.spyOn(cellMeta1, 'cells');
 
-    mod.extendCellMeta(cellMeta1);
-    mod.extendCellMeta(cellMeta1);
-    mod.extendCellMeta(cellMeta1);
+    mod.extendCellMeta(createCellMeta(cellMeta1));
+    mod.extendCellMeta(createCellMeta(cellMeta1));
+    mod.extendCellMeta(createCellMeta(cellMeta1));
 
     expect(cellMeta1).toEqual({
       row: 1,
@@ -385,24 +390,24 @@ describe('DynamicCellMetaMod', () => {
   it('should extend the cell meta object that are not yet marked as cached', () => {
     const hotMock = new Handsontable();
     const metaManager = new MetaManager(hotMock);
-    const mod = new DynamicCellMetaMod(metaManager);
+    const mod = new DynamicCellMetaMod(metaManager as MetaManagerArg);
     const cellsSpy = jest.fn();
 
     jest.spyOn(hotMock, 'runHooks');
 
-    mod.extendCellMeta({ row: 0, col: 0, visualRow: 0, visualCol: 0, cells: cellsSpy });
-    mod.extendCellMeta({ row: 1, col: 0, visualRow: 1, visualCol: 0, cells: cellsSpy });
-    mod.extendCellMeta({ row: 0, col: 1, visualRow: 0, visualCol: 1, cells: cellsSpy });
-    mod.extendCellMeta({ row: 1, col: 1, visualRow: 1, visualCol: 1, cells: cellsSpy });
+    mod.extendCellMeta(createCellMeta({ row: 0, col: 0, visualRow: 0, visualCol: 0, cells: cellsSpy }));
+    mod.extendCellMeta(createCellMeta({ row: 1, col: 0, visualRow: 1, visualCol: 0, cells: cellsSpy }));
+    mod.extendCellMeta(createCellMeta({ row: 0, col: 1, visualRow: 0, visualCol: 1, cells: cellsSpy }));
+    mod.extendCellMeta(createCellMeta({ row: 1, col: 1, visualRow: 1, visualCol: 1, cells: cellsSpy }));
 
     expect(hotMock.runHooks).toHaveBeenCalledTimes(8);
     expect(cellsSpy).toHaveBeenCalledTimes(4);
     expect(mod.metaSyncMemo.size).toBe(2);
 
-    mod.extendCellMeta({ row: 0, col: 0, visualRow: 0, visualCol: 0, cells: cellsSpy });
-    mod.extendCellMeta({ row: 1, col: 0, visualRow: 1, visualCol: 0, cells: cellsSpy });
-    mod.extendCellMeta({ row: 0, col: 1, visualRow: 0, visualCol: 1, cells: cellsSpy });
-    mod.extendCellMeta({ row: 1, col: 1, visualRow: 1, visualCol: 1, cells: cellsSpy });
+    mod.extendCellMeta(createCellMeta({ row: 0, col: 0, visualRow: 0, visualCol: 0, cells: cellsSpy }));
+    mod.extendCellMeta(createCellMeta({ row: 1, col: 0, visualRow: 1, visualCol: 0, cells: cellsSpy }));
+    mod.extendCellMeta(createCellMeta({ row: 0, col: 1, visualRow: 0, visualCol: 1, cells: cellsSpy }));
+    mod.extendCellMeta(createCellMeta({ row: 1, col: 1, visualRow: 1, visualCol: 1, cells: cellsSpy }));
 
     expect(hotMock.runHooks).toHaveBeenCalledTimes(8);
     expect(cellsSpy).toHaveBeenCalledTimes(4);
@@ -411,13 +416,13 @@ describe('DynamicCellMetaMod', () => {
     hotMock.runHooks.mockClear();
     cellsSpy.mockClear();
 
-    mod.extendCellMeta({ row: 2, col: 2, visualRow: 2, visualCol: 2, cells: cellsSpy });
+    mod.extendCellMeta(createCellMeta({ row: 2, col: 2, visualRow: 2, visualCol: 2, cells: cellsSpy }));
 
     expect(hotMock.runHooks).toHaveBeenCalledTimes(2);
     expect(cellsSpy).toHaveBeenCalledTimes(1);
     expect(mod.metaSyncMemo.size).toBe(3);
 
-    mod.extendCellMeta({ row: 2, col: 2, visualRow: 2, visualCol: 2, cells: cellsSpy });
+    mod.extendCellMeta(createCellMeta({ row: 2, col: 2, visualRow: 2, visualCol: 2, cells: cellsSpy }));
 
     expect(hotMock.runHooks).toHaveBeenCalledTimes(2);
     expect(cellsSpy).toHaveBeenCalledTimes(1);
@@ -428,7 +433,7 @@ describe('DynamicCellMetaMod', () => {
     it('should subscribe to the "extendTransientCellMeta" hook of the MetaManager module', () => {
       const hotMock = new Handsontable();
       const metaManager = new MetaManager(hotMock);
-      const mod = new DynamicCellMetaMod(metaManager);
+      const mod = new DynamicCellMetaMod(metaManager as MetaManagerArg);
       const cellMeta = {
         row: 1,
         col: 2,
@@ -438,7 +443,7 @@ describe('DynamicCellMetaMod', () => {
 
       jest.spyOn(mod, 'extendTransientCellMeta');
 
-      metaManager.runLocalHooks('extendTransientCellMeta', cellMeta);
+      metaManager.runLocalHooks('extendTransientCellMeta', createCellMeta(cellMeta));
 
       expect(mod.extendTransientCellMeta).toHaveBeenCalledTimes(1);
       expect(mod.extendTransientCellMeta).toHaveBeenCalledWith(cellMeta);
@@ -447,7 +452,7 @@ describe('DynamicCellMetaMod', () => {
     it('should apply the "cells" settings directly on the object without calling updateCellMeta', () => {
       const hotMock = new Handsontable();
       const metaManager = new MetaManager(hotMock);
-      const mod = new DynamicCellMetaMod(metaManager);
+      const mod = new DynamicCellMetaMod(metaManager as MetaManagerArg);
       const cellMeta = {
         row: 1,
         col: 2,
@@ -463,7 +468,7 @@ describe('DynamicCellMetaMod', () => {
 
       jest.spyOn(metaManager, 'updateCellMeta').mockReset();
 
-      mod.extendTransientCellMeta(cellMeta);
+      mod.extendTransientCellMeta(createCellMeta(cellMeta));
 
       expect(metaManager.updateCellMeta).not.toHaveBeenCalled();
       expect(cellMeta.readOnly).toBe(true);
@@ -474,7 +479,7 @@ describe('DynamicCellMetaMod', () => {
     it('should expand the "type" produced by hooks or "cells" directly on the object', () => {
       const hotMock = new Handsontable();
       const metaManager = new MetaManager(hotMock);
-      const mod = new DynamicCellMetaMod(metaManager);
+      const mod = new DynamicCellMetaMod(metaManager as MetaManagerArg);
       const cellMeta = {
         row: 1,
         col: 2,
@@ -487,7 +492,7 @@ describe('DynamicCellMetaMod', () => {
 
       jest.spyOn(metaManager, 'updateCellMeta').mockReset();
 
-      mod.extendTransientCellMeta(cellMeta);
+      mod.extendTransientCellMeta(createCellMeta(cellMeta));
 
       expect(metaManager.updateCellMeta).not.toHaveBeenCalled();
       // `type: 'password'` expands to the registered cell type's editor/renderer set
@@ -499,7 +504,7 @@ describe('DynamicCellMetaMod', () => {
     it('should run the hooks on every call and never touch the metaSyncMemo', () => {
       const hotMock = new Handsontable();
       const metaManager = new MetaManager(hotMock);
-      const mod = new DynamicCellMetaMod(metaManager);
+      const mod = new DynamicCellMetaMod(metaManager as MetaManagerArg);
       const cellsSpy = jest.fn();
 
       jest.spyOn(hotMock, 'runHooks');
@@ -516,10 +521,10 @@ describe('DynamicCellMetaMod', () => {
     it('should not short-circuit a transient extension for a cell already in the memo', () => {
       const hotMock = new Handsontable();
       const metaManager = new MetaManager(hotMock);
-      const mod = new DynamicCellMetaMod(metaManager);
+      const mod = new DynamicCellMetaMod(metaManager as MetaManagerArg);
       const cellsSpy = jest.fn();
 
-      mod.extendCellMeta({ row: 1, col: 2, visualRow: 1, visualCol: 2, cells: cellsSpy });
+      mod.extendCellMeta(createCellMeta({ row: 1, col: 2, visualRow: 1, visualCol: 2, cells: cellsSpy }));
 
       expect(mod.metaSyncMemo.size).toBe(1);
 

@@ -5,6 +5,7 @@ import CellMeta from './metaLayers/cellMeta';
 import localHooks from '../../mixins/localHooks';
 import { mixin } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
+import type { CellProperties } from '../../settings';
 
 /**
  * The local hooks fired by `MetaManager`, mapped to their callback signatures. The `addLocalHook`,
@@ -12,8 +13,8 @@ import { throwWithCause } from '../../helpers/errors';
  * meta argument inferred automatically instead of `unknown`.
  */
 interface MetaManagerLocalHooks {
-  afterGetCellMeta: (cellMeta: Record<string, unknown>) => void;
-  extendTransientCellMeta: (cellMeta: Record<string, unknown>) => void;
+  afterGetCellMeta: (cellMeta: CellProperties) => void;
+  extendTransientCellMeta: (cellMeta: CellProperties) => void;
 }
 
 /**

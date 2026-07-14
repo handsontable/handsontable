@@ -22,11 +22,11 @@ const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row_below';
 const INTERVAL_FOR_ADDING_ROW = 200;
 
 /**
- * Cell meta shape read by autofill - types the `source` and `_complexDataFormat` options on top of the
- * base cell properties, so reads through `getCellMeta` are not widened to `any`.
+ * Cell meta shape read by autofill. The `source` option is typed by `CellProperties` itself;
+ * `_complexDataFormat` is a private plugin key with no public declaration, typed here so its
+ * reads are `unknown` rather than the index-signature `any`.
  */
 interface AutofillCellProperties extends CellProperties {
-  source?: unknown;
   _complexDataFormat?: unknown;
 }
 

@@ -1,5 +1,6 @@
 import type { default as MetaManagerInstance } from '..';
 import type { HotInstance } from '../../../core/types';
+import type { CellProperties } from '../../../settings';
 import { Hooks } from '../../../core/hooks';
 import { hasOwnProperty, extend } from '../../../helpers/object';
 import { isFunction } from '../../../helpers/function';
@@ -113,9 +114,9 @@ export class DynamicCellMetaMod {
    *
    * @param {object} cellMeta The cell meta object.
    */
-  extendCellMeta(cellMeta: Record<string, unknown>) {
-    const physicalRow = cellMeta.row as number;
-    const physicalColumn = cellMeta.col as number;
+  extendCellMeta(cellMeta: CellProperties) {
+    const physicalRow = cellMeta.row;
+    const physicalColumn = cellMeta.col;
 
     if (this.metaSyncMemo.get(physicalRow)?.has(physicalColumn)) {
       return;
