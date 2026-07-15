@@ -1182,6 +1182,16 @@ class Selection {
   }
 
   /**
+   * Returns the selection layer currently showing adjustment handles, or `null`.
+   *
+   * @private
+   * @returns {number | null}
+   */
+  getHandlesHoveredLayer() {
+    return this.#handlesHoveredLayer;
+  }
+
+  /**
    * Sets which selection layer currently shows adjustment handles and refreshes the borders.
    * This is an internal method called by the hover wiring and is not part of the public API.
    *

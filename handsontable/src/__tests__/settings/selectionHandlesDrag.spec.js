@@ -376,5 +376,139 @@ describe('settings', () => {
       expect(minCol).toBe(2);
       expect(maxCol).toBe(4);
     });
+
+    it('should preserve other selection layers when dragging the bottom handle of the hovered (last) layer', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 6),
+        selectionHandles: true,
+        selectionMode: 'multiple',
+        width: 500,
+        height: 400,
+      });
+
+      // Select two disjoint ranges: col 1 rows 2-6 and col 3 rows 2-7.
+      await selectCells([[2, 1, 6, 1], [2, 3, 7, 3]]);
+
+      // Hover a cell inside the SECOND (last) range to show its handles.
+      await mouseOver(getCell(4, 3));
+
+      const bottomHandle = getHandle('bottom');
+
+      expect(bottomHandle).not.toBeNull();
+
+      const handleRect = bottomHandle.getBoundingClientRect();
+
+      // Drag the bottom handle of the second range from row 7 down to row 9.
+      const targetCell = getCell(9, 3);
+      const targetRect = targetCell.getBoundingClientRect();
+
+      $(bottomHandle).simulate('mousedown', {
+        clientX: handleRect.left + (handleRect.width / 2),
+        clientY: handleRect.top + (handleRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mouseup');
+
+      const selected = getSelected();
+
+      // There must be TWO ranges — the first one must not have been wiped out.
+      expect(selected.length).toBe(2);
+
+      // First range (col 1, rows 2-6) must be unchanged.
+      const firstRange = selected.find(([r1, c1, r2, c2]) =>
+        Math.min(c1, c2) === 1 && Math.max(c1, c2) === 1);
+
+      expect(firstRange).toBeDefined();
+
+      const firstMinRow = Math.min(firstRange[0], firstRange[2]);
+      const firstMaxRow = Math.max(firstRange[0], firstRange[2]);
+
+      expect(firstMinRow).toBe(2);
+      expect(firstMaxRow).toBe(6);
+
+      // Second range (col 3) should have its bottom edge resized to row 9.
+      const secondRange = selected.find(([r1, c1, r2, c2]) =>
+        Math.min(c1, c2) === 3 && Math.max(c1, c2) === 3);
+
+      expect(secondRange).toBeDefined();
+
+      const secondMinRow = Math.min(secondRange[0], secondRange[2]);
+      const secondMaxRow = Math.max(secondRange[0], secondRange[2]);
+
+      expect(secondMinRow).toBe(2);  // anchor row (top) unchanged
+      expect(secondMaxRow).toBe(9);  // dragged to row 9
+    });
+
+    it('should preserve other selection layers when dragging a handle on the non-last (first) layer', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 6),
+        selectionHandles: true,
+        selectionMode: 'multiple',
+        width: 500,
+        height: 400,
+      });
+
+      // Select two disjoint ranges: col 1 rows 2-6 and col 3 rows 2-7.
+      await selectCells([[2, 1, 6, 1], [2, 3, 7, 3]]);
+
+      // Hover a cell inside the FIRST range (col 1) to show its handles.
+      await mouseOver(getCell(4, 1));
+
+      const bottomHandle = getHandle('bottom');
+
+      expect(bottomHandle).not.toBeNull();
+
+      const handleRect = bottomHandle.getBoundingClientRect();
+
+      // Drag the bottom handle of the first range from row 6 down to row 9.
+      const targetCell = getCell(9, 1);
+      const targetRect = targetCell.getBoundingClientRect();
+
+      $(bottomHandle).simulate('mousedown', {
+        clientX: handleRect.left + (handleRect.width / 2),
+        clientY: handleRect.top + (handleRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mouseup');
+
+      const selected = getSelected();
+
+      // There must be TWO ranges — the second one must not have been wiped out.
+      expect(selected.length).toBe(2);
+
+      // Second range (col 3, rows 2-7) must be unchanged.
+      const secondRange = selected.find(([r1, c1, r2, c2]) =>
+        Math.min(c1, c2) === 3 && Math.max(c1, c2) === 3);
+
+      expect(secondRange).toBeDefined();
+
+      const secondMinRow = Math.min(secondRange[0], secondRange[2]);
+      const secondMaxRow = Math.max(secondRange[0], secondRange[2]);
+
+      expect(secondMinRow).toBe(2);
+      expect(secondMaxRow).toBe(7);
+
+      // First range (col 1) should have its bottom edge resized to row 9.
+      const firstRange = selected.find(([r1, c1, r2, c2]) =>
+        Math.min(c1, c2) === 1 && Math.max(c1, c2) === 1);
+
+      expect(firstRange).toBeDefined();
+
+      const firstMinRow = Math.min(firstRange[0], firstRange[2]);
+      const firstMaxRow = Math.max(firstRange[0], firstRange[2]);
+
+      expect(firstMinRow).toBe(2);  // anchor row (top) unchanged
+      expect(firstMaxRow).toBe(9);  // dragged to row 9
+    });
   });
 });

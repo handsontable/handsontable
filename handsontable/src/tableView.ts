@@ -194,7 +194,7 @@ class TableView {
    * `fromRow`, `toRow`, `fromCol`, `toCol` are the normalized original selection corners
    * (from <= to on each axis) captured at drag-start to preserve the non-dragged axis span.
    *
-   * @type {{ edge: HandleEdge, fromRow: number, toRow: number, fromCol: number, toCol: number } | null}
+   * @type {{ edge: HandleEdge, fromRow: number, toRow: number, fromCol: number, toCol: number, targetLayer: number } | null}
    */
   #adjustDrag: {
     edge: HandleEdge;
@@ -202,6 +202,7 @@ class TableView {
     toRow: number;
     fromCol: number;
     toCol: number;
+    targetLayer: number;
   } | null = null;
   /**
    * Bound document-level listeners installed for the duration of a handle drag. Stored
@@ -2195,7 +2196,7 @@ class TableView {
    * @param {CellCoords} visualCoords The visual cell coordinates.
    */
   #updateHandlesHoveredLayer(visualCoords: CellCoords) {
-    if (!this.settings.selectionHandles || this.#mouseDown) {
+    if (!this.settings.selectionHandles || this.#mouseDown || this.#adjustDrag) {
       return;
     }
 
@@ -2280,14 +2281,21 @@ class TableView {
       this.#endAdjustDrag();
     }
 
-    const activeRange = this.hot.getSelectedRangeLast();
+    const selection = this.hot.selection;
+    let targetLayer = selection.getHandlesHoveredLayer();
 
-    if (!activeRange) {
+    if (targetLayer === null) {
+      targetLayer = selection.getSelectedRange().size() - 1;
+    }
+
+    const targetRange = selection.getSelectedRange().peekByIndex(targetLayer);
+
+    if (!targetRange) {
       return;
     }
 
-    const from = activeRange.from;
-    const to = activeRange.to;
+    const from = targetRange.from;
+    const to = targetRange.to;
 
     // Normalize the original selection corners so fromRow <= toRow and fromCol <= toCol.
     // These are captured once at drag-start and kept immutable for the entire drag session.
@@ -2296,7 +2304,7 @@ class TableView {
     const fromCol = Math.min(from.col ?? 0, to.col ?? 0);
     const toCol = Math.max(from.col ?? 0, to.col ?? 0);
 
-    this.#adjustDrag = { edge, fromRow, toRow, fromCol, toCol };
+    this.#adjustDrag = { edge, fromRow, toRow, fromCol, toCol, targetLayer };
 
     const { documentElement } = this.hot.rootDocument;
 
@@ -2327,7 +2335,7 @@ class TableView {
       return;
     }
 
-    const { edge, fromRow, toRow, fromCol, toCol } = this.#adjustDrag;
+    const { edge, fromRow, toRow, fromCol, toCol, targetLayer } = this.#adjustDrag;
     const { clientX, clientY } = event;
     const cellCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
     const targetRow = cellCoords.row!;
@@ -2360,8 +2368,18 @@ class TableView {
       newCoords = this.hot._createCellCoords(toRow, clampedCol);
     }
 
-    this.hot.selection.setRangeStart(anchorCoords, undefined, false, anchorCoords);
-    this.hot.selection.setRangeEnd(newCoords);
+    // Resize only the target layer in-place, preserving all other selection layers.
+    // Calling setRangeStart would clear all layers via selectedRange.clear() — instead
+    // we mutate the target CellRange directly, then commit via setRangeEnd with the layer index.
+    const targetRange = this.hot.selection.getSelectedRange().peekByIndex(targetLayer);
+
+    if (!targetRange) {
+      return;
+    }
+
+    targetRange.setFrom(anchorCoords);
+    targetRange.setHighlight(anchorCoords.clone());
+    this.hot.selection.setRangeEnd(newCoords, targetLayer);
   }
 
   /**
