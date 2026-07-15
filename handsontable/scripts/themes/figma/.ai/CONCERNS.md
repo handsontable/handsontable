@@ -2,6 +2,18 @@
 
 Known sharp edges, technical debt, and behaviors that are easy to get wrong.
 
+## Hand-authored `cell-selection-handle-*` tokens will be lost on next `generate:themes`
+
+The five tokens `cell-selection-handle-size`, `cell-selection-handle-border-width`,
+`cell-selection-handle-border-color`, `cell-selection-handle-background-color`, and
+`cell-selection-handle-border-radius` were added **directly** to `src/themes/static/**`
+(six CSS files) and to `scripts/themes/figma/tokensKeys.mjs` because the Figma `tokens.json`
+source is gitignored and not available at generation time. Because `generate:themes` wipes
+`src/themes/static/` before regenerating, these tokens **will be stripped** the next time
+`npm run generate:themes` runs from a `tokens.json` that does not include them. Before running
+the generator again, ensure all five `cell-selection-handle-*` tokens are present in the Figma
+export (`tokens.json`), or the desktop selection handles will render unstyled.
+
 ## `src/themes/static` is destroyed on every run
 
 `index.mjs::main()` calls `rmSync(OUTPUT_PATH, { recursive: true })` before regenerating. Every file under `src/themes/static/` is tool-generated, so the wipe is safe — but it means the directory is **not** a place for hand-authored files. Unlike the original standalone repo, this output is **committed** to VCS: a regeneration shows up in the PR diff and must be reviewed. The single source of truth is `tokens.json`; if a theme is missing from the export, its files disappear on the next run (see the idempotency check in the migration plan).

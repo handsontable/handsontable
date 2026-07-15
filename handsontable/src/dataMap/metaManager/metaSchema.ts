@@ -5563,7 +5563,9 @@ export default (): Record<string, unknown> => {
      * fill, or change any cell data.
      *
      * Handles are shown on desktop only and are hidden on any edge that is flush with the grid
-     * boundary. The option has no effect when [`selectionMode`](#selectionmode) is `'single'`.
+     * boundary -- or that lands on a frozen-pane line ([`fixedRowsTop`](#fixedrowstop),
+     * [`fixedRowsBottom`](#fixedrowsbottom), [`fixedColumnsStart`](#fixedcolumnsstart)). The option
+     * has no effect when [`selectionMode`](#selectionmode) is `'single'`.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      *

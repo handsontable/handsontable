@@ -263,6 +263,7 @@ This option applies at the grid level and defaults to `false`.
 - The option has no effect when [`selectionMode`](@/api/options.md#selectionmode) is `'single'`.
 - Handles are not shown for full-row, full-column, or select-all selections.
 - A handle is not shown on an edge that is flush with the grid boundary or that lands on a frozen-pane line ([`fixedRowsTop`](@/api/options.md#fixedrowstop), [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom), [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart)).
+- The handles are pointer-only -- there is no keyboard equivalent. To resize a selection with the keyboard, use Shift+Arrow.
 
 ::: only-for javascript
 
