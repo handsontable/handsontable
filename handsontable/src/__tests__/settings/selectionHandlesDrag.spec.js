@@ -264,5 +264,117 @@ describe('settings', () => {
 
       expect(visibleHandles.length).toBe(0);
     });
+
+    it('should move only the end (right) edge, keeping the start (left) edge anchored', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        selectionHandles: true,
+        selectionMode: 'multiple',
+        width: 500,
+        height: 300,
+      });
+
+      await selectCells([[2, 3, 5, 6]]);
+
+      await mouseOver(getCell(3, 4));
+
+      const endHandle = getHandle('end');
+
+      expect(endHandle).not.toBeNull();
+
+      const handleRect = endHandle.getBoundingClientRect();
+
+      // Drag end edge to col 8 in a DIFFERENT row (row 9) than the original selection (rows 2..5).
+      // This verifies the row axis is NOT affected by vertical mouse movement when dragging
+      // an end handle (mirroring the start-edge axis-preservation spec for the opposite edge).
+      const targetCell = getCell(9, 8);
+      const targetRect = targetCell.getBoundingClientRect();
+
+      $(endHandle).simulate('mousedown', {
+        clientX: handleRect.left + (handleRect.width / 2),
+        clientY: handleRect.top + (handleRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mouseup');
+
+      const selected = getSelected();
+
+      // End column should have moved to col 8; start column (anchor = 3) stays.
+      const minCol = Math.min(selected[0][1], selected[0][3]);
+      const maxCol = Math.max(selected[0][1], selected[0][3]);
+
+      expect(minCol).toBe(3);
+      expect(maxCol).toBe(8);
+
+      // Row span must be unchanged despite mouse moving to row 9.
+      // The end handle only adjusts the column axis — vertical mouse movement is ignored.
+      const minRow = Math.min(selected[0][0], selected[0][2]);
+      const maxRow = Math.max(selected[0][0], selected[0][2]);
+
+      expect(minRow).toBe(2); // original fromRow
+      expect(maxRow).toBe(5); // original toRow — NOT the mouse's row 9
+    });
+
+    it('should resize the selection correctly when dragging the bottom handle in RTL mode', async() => {
+      // RTL affects the inline axis (column direction is visually mirrored), but getSelected()
+      // always returns visual column indexes (0 = leftmost physical column regardless of direction).
+      // To avoid RTL coordinate-mirroring ambiguity on the inline axis, this spec exercises the
+      // block axis (bottom handle / row resize), which is direction-independent, and verifies
+      // that the row axis changes while the column axis is preserved — the same invariant as
+      // the LTR bottom-handle spec, now confirmed under RTL rendering.
+      handsontable({
+        data: createSpreadsheetData(10, 8),
+        selectionHandles: true,
+        selectionMode: 'multiple',
+        layoutDirection: 'rtl',
+        width: 400,
+        height: 300,
+      });
+
+      await selectCells([[2, 2, 4, 4]]);
+
+      // Hover an interior cell of the selection to make handles visible.
+      await mouseOver(getCell(3, 3));
+
+      const bottomHandle = getHandle('bottom');
+
+      expect(bottomHandle).not.toBeNull();
+
+      const handleRect = bottomHandle.getBoundingClientRect();
+
+      // Drag to row 7 in a different column (col 6) to confirm the column axis is preserved.
+      const targetCell = getCell(7, 6);
+      const targetRect = targetCell.getBoundingClientRect();
+
+      $(bottomHandle).simulate('mousedown', {
+        clientX: handleRect.left + (handleRect.width / 2),
+        clientY: handleRect.top + (handleRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mouseup');
+
+      const selected = getSelected();
+
+      // Anchor row stays at 2 (top of original selection); bottom row should have moved to 7.
+      expect(selected[0][0]).toBe(2); // anchor row unchanged
+      expect(selected[0][2]).toBe(7); // dragged bottom row
+
+      // Column span must remain 2..4 — the bottom handle only adjusts the row axis in RTL too.
+      const minCol = Math.min(selected[0][1], selected[0][3]);
+      const maxCol = Math.max(selected[0][1], selected[0][3]);
+
+      expect(minCol).toBe(2);
+      expect(maxCol).toBe(4);
+    });
   });
 });
