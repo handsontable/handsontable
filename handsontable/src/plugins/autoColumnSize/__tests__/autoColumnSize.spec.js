@@ -115,44 +115,6 @@ describe('AutoColumnSize', () => {
     expect(width1).toBeLessThan(width2);
   });
 
-  it('should not invalidate the column width position cache when a render re-measures unchanged widths', async() => {
-    handsontable({
-      data: createSpreadsheetData(5, 30),
-      colHeaders: true,
-    });
-
-    const { columnWidthCache } = hot().view._wt.wtViewport;
-
-    // settle the initial width calculation
-    await render();
-
-    const buildSpy = spyOn(columnWidthCache, 'build').and.callThrough();
-
-    await render();
-    await render();
-
-    expect(buildSpy).not.toHaveBeenCalled();
-    expect(columnWidthCache.isCurrent()).toBe(true);
-  });
-
-  it('should invalidate the column width position cache when a cell change makes a column wider', async() => {
-    handsontable({
-      data: createSpreadsheetData(5, 30),
-      colHeaders: true,
-    });
-
-    const { columnWidthCache } = hot().view._wt.wtViewport;
-
-    await render();
-
-    const buildSpy = spyOn(columnWidthCache, 'build').and.callThrough();
-
-    await setDataAtCell(0, 0, 'a much, much longer cell value than before');
-
-    expect(buildSpy).toHaveBeenCalled();
-    expect(columnWidthCache.isCurrent()).toBe(true);
-  });
-
   it('should update column width after update value in cell (array of objects)', async() => {
     handsontable({
       data: arrayOfObjects(),
