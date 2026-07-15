@@ -1,4 +1,5 @@
 import type { PositionStrategy } from './strategy';
+import { lowerBound } from './strategy';
 
 /**
  * Position lookups over fully heterogeneous sizes: one prefix-sum array entry per item, where
@@ -69,21 +70,9 @@ export class PrefixSumPositionStrategy implements PositionStrategy {
       return 0;
     }
 
-    let lo = 0;
-    let hi = this.#totalItems;
+    const index = lowerBound(this.#totalItems, mid => this.prefixSum[mid + 1] <= offset);
 
-    while (lo < hi) {
-      // eslint-disable-next-line no-bitwise
-      const mid = (lo + hi) >>> 1;
-
-      if (this.prefixSum[mid + 1] <= offset) {
-        lo = mid + 1;
-      } else {
-        hi = mid;
-      }
-    }
-
-    return Math.min(lo, this.#totalItems - 1);
+    return Math.min(index, this.#totalItems - 1);
   }
 
   /**

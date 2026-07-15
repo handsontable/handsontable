@@ -49,3 +49,30 @@ export function sampleBaseSize(sampleIndex: number, sizeFn: (index: number) => n
 
   return isNaN(sampled) ? defaultSize : sampled;
 }
+
+/**
+ * Classic lower-bound binary search over `[0, hi]`: returns the smallest index for which
+ * `isBelow` is `false`. The predicate must be monotone — `true` for every index below the answer,
+ * `false` from the answer on. Shared by the strategies' offset-to-index lookups and the sparse
+ * strategy's exception counting, so the search/clamp logic lives in one place.
+ *
+ * @param {number} hi The exclusive upper bound of the search range.
+ * @param {Function} isBelow A monotone predicate deciding whether the answer lies above `mid`.
+ * @returns {number} The lower-bound index, in `[0, hi]`.
+ */
+export function lowerBound(hi: number, isBelow: (mid: number) => boolean): number {
+  let lo = 0;
+
+  while (lo < hi) {
+    // eslint-disable-next-line no-bitwise
+    const mid = (lo + hi) >>> 1;
+
+    if (isBelow(mid)) {
+      lo = mid + 1;
+    } else {
+      hi = mid;
+    }
+  }
+
+  return lo;
+}

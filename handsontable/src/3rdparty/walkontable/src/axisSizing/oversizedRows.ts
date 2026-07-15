@@ -9,7 +9,7 @@
  * so they are free functions over a `Table` instance (the same pattern as the draw-cycle phase
  * helpers in `table/drawCycle.ts`), reading the table's public fields (`THEAD`/`TBODY`/`rowFilter`/
  * `wtSettings`/`isMaster`) and the geometry-read port + the overlays/viewport owners via the `deps`
- * getter. They belong to the `axisSizing` slice: together with `positionCache.ts` and
+ * getter. They belong to the `axisSizing` slice: together with `positionCache/` and
  * `sizeGetters.ts` they own the "how tall is a row really" answer.
  */
 import { isHTMLElement } from '../../../../helpers/dom/element';

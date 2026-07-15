@@ -1,5 +1,5 @@
 import type { PositionStrategy } from './strategy';
-import { sampleBaseSize } from './strategy';
+import { lowerBound, sampleBaseSize } from './strategy';
 
 /**
  * Position lookups for a uniform base size plus per-index overrides ("exceptions" — e.g. the
@@ -64,14 +64,24 @@ export class SparsePositionStrategy implements PositionStrategy {
 
     for (const key of Object.keys(exceptions)) {
       const index = Number(key);
-      const size = exceptions[index];
 
       // Skip wiped records and records of items that no longer exist (item count shrank).
-      if (size !== undefined && index >= 0 && index < totalItems) {
-        sizes.set(index, size);
+      if (exceptions[index] !== undefined && index >= 0 && index < totalItems) {
+        // The record supplies only the KEY set. The size is read through `sizeFn` — the same
+        // resolution the prefix-sum strategy applies per item — so both strategies agree on
+        // every exception. Reading the record's raw value instead would skip the size funnel's
+        // clamp (`max(provided size, measured oversized size)`) and under-count a stale record
+        // whose provided size grew after it was measured.
+        const size = sizeFn(index);
+
+        sizes.set(index, isNaN(size) ? defaultSize : size);
       }
     }
 
+    // Integer-like record keys already arrive in ascending order (`Object.keys` index-key
+    // ordering, preserved through the Map). The sort is defensive only — it guards the binary
+    // searches against a future non-index-keyed provider, and it is numeric by default on a
+    // typed array.
     const indexes = Float64Array.from(sizes.keys()).sort();
 
     // Sample the base from the LAST non-exception item (see `sampleBaseSize` for why the last).
@@ -124,21 +134,9 @@ export class SparsePositionStrategy implements PositionStrategy {
       return 0;
     }
 
-    let lo = 0;
-    let hi = this.#totalItems;
+    const index = lowerBound(this.#totalItems, mid => this.getOffset(mid + 1) <= offset);
 
-    while (lo < hi) {
-      // eslint-disable-next-line no-bitwise
-      const mid = (lo + hi) >>> 1;
-
-      if (this.getOffset(mid + 1) <= offset) {
-        lo = mid + 1;
-      } else {
-        hi = mid;
-      }
-    }
-
-    return Math.min(lo, this.#totalItems - 1);
+    return Math.min(index, this.#totalItems - 1);
   }
 
   /**
@@ -173,20 +171,7 @@ export class SparsePositionStrategy implements PositionStrategy {
    */
   #countExceptionsBelow(index: number): number {
     const indexes = this.#indexes;
-    let lo = 0;
-    let hi = indexes.length;
 
-    while (lo < hi) {
-      // eslint-disable-next-line no-bitwise
-      const mid = (lo + hi) >>> 1;
-
-      if (indexes[mid] < index) {
-        lo = mid + 1;
-      } else {
-        hi = mid;
-      }
-    }
-
-    return lo;
+    return lowerBound(indexes.length, mid => indexes[mid] < index);
   }
 }

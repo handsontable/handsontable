@@ -545,6 +545,36 @@ describe('PositionCache', () => {
       expect(cache.getSizeAt(100)).toBe(0);
     });
 
+    it('should read exception sizes through sizeFn, not from the raw record', () => {
+      // Mirrors RowUtils#getHeight: the size funnel clamps a measured oversized record with the
+      // provided size (`max(provided, record)`). A record measured before the uniform size grew
+      // (e.g. `updateSettings({ rowHeights })` with a larger value) is smaller than the base and
+      // must not be counted raw — the sparse strategy has to resolve it exactly like the
+      // prefix-sum walk does, through `sizeFn`.
+      const uniformSize = 40;
+      const exceptions = { 5: 30, 8: 90 }; // 30 is stale: recorded before the size grew to 40
+      const sizeFn = i => (exceptions[i] === undefined ? uniformSize : Math.max(uniformSize, exceptions[i]));
+      const sparse = new PositionCache({
+        totalItemsFn: () => 100,
+        sizeFn,
+        defaultSizeFn: () => uniformSize,
+        isUniformFn: () => false,
+        sparseExceptionsFn: () => exceptions,
+      });
+      const { cache: full } = createCache(100, sizeFn, uniformSize);
+
+      sparse.build();
+      full.build();
+
+      expect(sparse.getSizeAt(5)).toBe(40); // clamped by sizeFn, not the raw 30
+      expect(sparse.getSizeAt(8)).toBe(90);
+
+      for (let i = 0; i <= 100; i += 1) {
+        expect(sparse.getOffset(i)).toBe(full.getOffset(i));
+      }
+      expect(sparse.getTotalSize()).toBe(full.getTotalSize());
+    });
+
     it('should find indexes at offsets identically to the full prefix-sum walk', () => {
       const exceptions = { 1: 30, 50: 200, 51: 200 };
       const sizeFn = i => (exceptions[i] === undefined ? 10 : exceptions[i]);
