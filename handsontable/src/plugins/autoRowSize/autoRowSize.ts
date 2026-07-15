@@ -790,17 +790,15 @@ export class AutoRowSize extends BasePlugin {
    * recalculated on the next render.
    */
   #onBeforeChange = (changes: unknown[][]) => {
-    const changedRows = changes.reduce<number[]>((acc, [row]: unknown[]) => {
-      const rowIndex = Number(row);
+    const changedRows = new Set<number>();
 
-      if (acc.indexOf(rowIndex) === -1) {
-        acc.push(rowIndex);
-      }
+    changes.forEach(([row]: unknown[]) => {
+      changedRows.add(Number(row));
+    });
 
-      return acc;
-    }, [] as number[]);
-
-    this.#visualRowsToRefresh.push(...changedRows);
+    changedRows.forEach((rowIndex) => {
+      this.#visualRowsToRefresh.push(rowIndex);
+    });
   };
 
   /**
