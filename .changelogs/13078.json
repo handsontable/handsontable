@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Improved rendering performance of grids with wrapped or content-sized rows: the row-height cache is no longer rebuilt on every render, edit, or scroll step when row heights have not changed, and rebuilds triggered by newly measured rows now scale with the number of taller rows instead of the total row count.",
+  "type": "changed",
+  "issueOrPR": 13078,
+  "breaking": false,
+  "framework": "none"
+}
