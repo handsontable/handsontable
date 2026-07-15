@@ -283,6 +283,10 @@ export const workspaceSize: WorkspaceSize = {
   },
 
   /**
+   * Sums the column widths live (no cache). Stretched widths (`stretchH`) are derived from the
+   * workspace width, which itself depends on this sum — the live walk resolves that cycle fresh
+   * on every call, while the column-width prefix-sum cache would freeze pre-stretch values.
+   *
    * @this Viewport
    * @param {number} from The visual column index from the width sum is start calculated.
    * @param {number} length The length of the column to traverse.

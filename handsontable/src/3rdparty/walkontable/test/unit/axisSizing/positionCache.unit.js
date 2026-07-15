@@ -361,6 +361,67 @@ describe('PositionCache', () => {
     });
   });
 
+  describe('onBuildFn', () => {
+    it('should be called once per build, in both modes', () => {
+      const onBuildFn = jest.fn();
+      const heterogeneous = new PositionCache({
+        totalItemsFn: () => 3,
+        sizeFn: () => 10,
+        defaultSizeFn: () => 10,
+        onBuildFn,
+      });
+
+      heterogeneous.build();
+
+      expect(onBuildFn).toHaveBeenCalledTimes(1);
+
+      const onBuildFnUniform = jest.fn();
+      const uniform = new PositionCache({
+        totalItemsFn: () => 3,
+        sizeFn: () => 10,
+        defaultSizeFn: () => 10,
+        isUniformFn: () => true,
+        onBuildFn: onBuildFnUniform,
+      });
+
+      uniform.build();
+
+      expect(onBuildFnUniform).toHaveBeenCalledTimes(1);
+    });
+
+    it('should be called by ensureBuilt only when it actually rebuilds', () => {
+      const onBuildFn = jest.fn();
+      let totalItems = 3;
+      const cache = new PositionCache({
+        totalItemsFn: () => totalItems,
+        sizeFn: () => 10,
+        defaultSizeFn: () => 10,
+        onBuildFn,
+      });
+
+      cache.ensureBuilt();
+
+      expect(onBuildFn).toHaveBeenCalledTimes(1);
+
+      // no-op: already built, same item count
+      cache.ensureBuilt();
+
+      expect(onBuildFn).toHaveBeenCalledTimes(1);
+
+      // rebuild via invalidation
+      cache.invalidate();
+      cache.ensureBuilt();
+
+      expect(onBuildFn).toHaveBeenCalledTimes(2);
+
+      // rebuild via item-count change
+      totalItems = 5;
+      cache.ensureBuilt();
+
+      expect(onBuildFn).toHaveBeenCalledTimes(3);
+    });
+  });
+
   describe('isCurrent', () => {
     it('should be false before the cache is built', () => {
       const { cache } = createCache(3, () => 10, 10);
