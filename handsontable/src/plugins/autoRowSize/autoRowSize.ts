@@ -6,7 +6,7 @@ import { isObject } from '../../helpers/object';
 import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
-import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { addClass, removeClass } from '../../helpers/dom/element';
 
 export const PLUGIN_KEY = 'autoRowSize';
@@ -291,7 +291,7 @@ export class AutoRowSize extends BasePlugin {
    * @private
    * @type {PhysicalIndexToValueMap}
    */
-  rowHeightsMap = new IndexToValueMap();
+  rowHeightsMap: IndexToValueMap;
   /**
    * An array of row indexes whose height will be recalculated.
    *
@@ -316,7 +316,11 @@ export class AutoRowSize extends BasePlugin {
    */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
-    this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
+    // The map holds numbers only, so re-writing an unchanged height is a no-op that must not
+    // invalidate the row-height position cache.
+    this.rowHeightsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(
+      ROW_WIDTHS_MAP_NAME, 'physicalIndexToValue', null, { skipUnchangedWrites: true },
+    );
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
     // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).

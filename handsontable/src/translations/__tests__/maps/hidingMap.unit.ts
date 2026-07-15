@@ -209,15 +209,25 @@ describe('HidingMap', () => {
       expect(changeCallback.calls.count()).toEqual(1);
     });
 
-    it('should trigger `change` hook on setting data which does not change value', () => {
+    it('should not trigger `change` hook on setting data which does not change value (skipUnchangedWrites)', () => {
       const hidingMap = new HidingMap();
       const changeCallback = jasmine.createSpy('change');
 
       hidingMap.init(10);
       hidingMap.addLocalHook('change', changeCallback);
 
-      // Default value is `false`. No real change, but hook is called anyway.
-      hidingMap.setValueAtIndex(0, false);
+      // Default value is `false`. No real change, so the no-op write is skipped entirely.
+      expect(hidingMap.setValueAtIndex(0, false)).toBe(true);
+
+      expect(changeCallback.calls.count()).toEqual(0);
+
+      // A genuine change still triggers the hook.
+      hidingMap.setValueAtIndex(0, true);
+
+      expect(changeCallback.calls.count()).toEqual(1);
+
+      // Re-writing the same non-default value is a no-op again.
+      hidingMap.setValueAtIndex(0, true);
 
       expect(changeCallback.calls.count()).toEqual(1);
     });

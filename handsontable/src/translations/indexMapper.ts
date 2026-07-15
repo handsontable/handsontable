@@ -7,7 +7,7 @@ import {
   IndexesSequence,
   TrimmingMap,
 } from './maps';
-import type { IndexMap } from './maps/indexMap';
+import type { IndexMap, IndexMapOptions } from './maps/indexMap';
 import type { LinkedPhysicalIndexToValueMap } from './maps/linkedPhysicalIndexToValueMap';
 import type { PhysicalIndexToValueMap } from './maps/physicalIndexToValueMap';
 import {
@@ -288,15 +288,20 @@ export class IndexMapper {
   createAndRegisterIndexMap(indexName: string, mapType: 'hiding', initValueOrFn?: unknown): HidingMap;
   /* eslint-disable jsdoc/require-jsdoc -- these overloads + the implementation share the JSDoc above */
   createAndRegisterIndexMap(indexName: string, mapType: 'trimming', initValueOrFn?: unknown): TrimmingMap;
+  createAndRegisterIndexMap(indexName: string, mapType: 'indexesSequence'): IndexesSequence;
   createAndRegisterIndexMap(
-    indexName: string, mapType: 'physicalIndexToValue', initValueOrFn?: unknown
+    indexName: string, mapType: 'physicalIndexToValue', initValueOrFn?: unknown, options?: IndexMapOptions
   ): PhysicalIndexToValueMap;
   createAndRegisterIndexMap(
     indexName: string, mapType: 'linkedPhysicalIndexToValue', initValueOrFn?: unknown
   ): LinkedPhysicalIndexToValueMap;
-  createAndRegisterIndexMap(indexName: string, mapType: string, initValueOrFn?: unknown): IndexMap;
-  createAndRegisterIndexMap(indexName: string, mapType: string, initValueOrFn?: unknown): IndexMap {
-    return this.registerMap(indexName, createIndexMap(mapType, initValueOrFn));
+  createAndRegisterIndexMap(
+    indexName: string, mapType: string, initValueOrFn?: unknown, options?: IndexMapOptions
+  ): IndexMap;
+  createAndRegisterIndexMap(
+    indexName: string, mapType: string, initValueOrFn?: unknown, options?: IndexMapOptions
+  ): IndexMap {
+    return this.registerMap(indexName, createIndexMap(mapType, initValueOrFn, options));
   }
   /* eslint-enable jsdoc/require-jsdoc */
 

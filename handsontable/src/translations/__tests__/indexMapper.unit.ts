@@ -2500,21 +2500,16 @@ describe('IndexMapper', () => {
 
       trimmingMap1.setValueAtIndex(0, false);
 
-      // Actions on the first collection. No real change. We rebuild cache anyway (`change` hook should be called?).
-      expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
-      expect(notTrimmedIndexesCache).toEqual(indexMapper.notTrimmedIndexesCache);
-      expect(notHiddenIndexesCache).not.toBe(indexMapper.notHiddenIndexesCache);
-      expect(notHiddenIndexesCache).toEqual(indexMapper.notHiddenIndexesCache);
-      expect(flattenTrimmingResult).not.toBe(indexMapper.trimmingMapsCollection.mergedValuesCache);
-      expect(flattenTrimmingResult).toEqual(indexMapper.trimmingMapsCollection.mergedValuesCache);
-      expect(flattenHidingResult).not.toBe(indexMapper.hidingMapsCollection.mergedValuesCache);
-      expect(flattenHidingResult).toEqual(indexMapper.hidingMapsCollection.mergedValuesCache);
-      expect(renderablePhysicalIndexesCache).not.toBe(indexMapper.renderablePhysicalIndexesCache);
-      expect(renderablePhysicalIndexesCache).toEqual(indexMapper.renderablePhysicalIndexesCache);
+      // Actions on the first collection. No real change - the no-op write is skipped, so the caches stay valid.
+      expect(notTrimmedIndexesCache).toBe(indexMapper.notTrimmedIndexesCache);
+      expect(notHiddenIndexesCache).toBe(indexMapper.notHiddenIndexesCache);
+      expect(flattenTrimmingResult).toBe(indexMapper.trimmingMapsCollection.mergedValuesCache);
+      expect(flattenHidingResult).toBe(indexMapper.hidingMapsCollection.mergedValuesCache);
+      expect(renderablePhysicalIndexesCache).toBe(indexMapper.renderablePhysicalIndexesCache);
 
       expect(flattenTrimmingResult.length).toBe(10);
       expect(flattenHidingResult.length).toBe(0);
-      expect(cacheUpdatedCallback.calls.count()).toEqual(3);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(2);
 
       notTrimmedIndexesCache = indexMapper.notTrimmedIndexesCache;
       notHiddenIndexesCache = indexMapper.notHiddenIndexesCache;
@@ -2532,7 +2527,7 @@ describe('IndexMapper', () => {
 
       expect(flattenTrimmingResult.length).toBe(10);
       expect(flattenHidingResult.length).toBe(0);
-      expect(cacheUpdatedCallback.calls.count()).toEqual(4);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(3);
 
       notTrimmedIndexesCache = indexMapper.notTrimmedIndexesCache;
       notHiddenIndexesCache = indexMapper.notHiddenIndexesCache;
@@ -2541,6 +2536,37 @@ describe('IndexMapper', () => {
       renderablePhysicalIndexesCache = indexMapper.renderablePhysicalIndexesCache;
 
       trimmingMap1.setValueAtIndex(0, false);
+
+      expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
+      expect(notHiddenIndexesCache).not.toBe(indexMapper.notHiddenIndexesCache);
+      expect(flattenTrimmingResult).not.toBe(indexMapper.trimmingMapsCollection.mergedValuesCache);
+      expect(flattenHidingResult).not.toBe(indexMapper.hidingMapsCollection.mergedValuesCache);
+      expect(renderablePhysicalIndexesCache).not.toBe(indexMapper.renderablePhysicalIndexesCache);
+
+      expect(flattenTrimmingResult.length).toBe(10);
+      expect(flattenHidingResult.length).toBe(0);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(4);
+
+      notTrimmedIndexesCache = indexMapper.notTrimmedIndexesCache;
+      notHiddenIndexesCache = indexMapper.notHiddenIndexesCache;
+      flattenTrimmingResult = indexMapper.trimmingMapsCollection.mergedValuesCache;
+      flattenHidingResult = indexMapper.hidingMapsCollection.mergedValuesCache;
+      renderablePhysicalIndexesCache = indexMapper.renderablePhysicalIndexesCache;
+
+      trimmingMap2.setValueAtIndex(0, false);
+
+      // Actions on the second collection. No real change - the no-op write is skipped, so the caches stay valid.
+      expect(notTrimmedIndexesCache).toBe(indexMapper.notTrimmedIndexesCache);
+      expect(notHiddenIndexesCache).toBe(indexMapper.notHiddenIndexesCache);
+      expect(flattenTrimmingResult).toBe(indexMapper.trimmingMapsCollection.mergedValuesCache);
+      expect(flattenHidingResult).toBe(indexMapper.hidingMapsCollection.mergedValuesCache);
+      expect(renderablePhysicalIndexesCache).toBe(indexMapper.renderablePhysicalIndexesCache);
+
+      expect(flattenTrimmingResult.length).toBe(10);
+      expect(flattenHidingResult.length).toBe(0);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(4);
+
+      trimmingMap2.setValueAtIndex(0, true);
 
       expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
       expect(notHiddenIndexesCache).not.toBe(indexMapper.notHiddenIndexesCache);
@@ -2560,51 +2586,15 @@ describe('IndexMapper', () => {
 
       trimmingMap2.setValueAtIndex(0, false);
 
-      // Actions on the second collection. No real change.  We rebuild cache anyway (`change` hook should be called?).
       expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
-      expect(notTrimmedIndexesCache).toEqual(indexMapper.notTrimmedIndexesCache);
       expect(notHiddenIndexesCache).not.toBe(indexMapper.notHiddenIndexesCache);
-      expect(notHiddenIndexesCache).toEqual(indexMapper.notHiddenIndexesCache);
       expect(flattenTrimmingResult).not.toBe(indexMapper.trimmingMapsCollection.mergedValuesCache);
-      expect(flattenTrimmingResult).toEqual(indexMapper.trimmingMapsCollection.mergedValuesCache);
       expect(flattenHidingResult).not.toBe(indexMapper.hidingMapsCollection.mergedValuesCache);
-      expect(flattenHidingResult).toEqual(indexMapper.hidingMapsCollection.mergedValuesCache);
       expect(renderablePhysicalIndexesCache).not.toBe(indexMapper.renderablePhysicalIndexesCache);
-      expect(renderablePhysicalIndexesCache).toEqual(indexMapper.renderablePhysicalIndexesCache);
 
       expect(flattenTrimmingResult.length).toBe(10);
       expect(flattenHidingResult.length).toBe(0);
       expect(cacheUpdatedCallback.calls.count()).toEqual(6);
-
-      trimmingMap2.setValueAtIndex(0, true);
-
-      expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
-      expect(notHiddenIndexesCache).not.toBe(indexMapper.notHiddenIndexesCache);
-      expect(flattenTrimmingResult).not.toBe(indexMapper.trimmingMapsCollection.mergedValuesCache);
-      expect(flattenHidingResult).not.toBe(indexMapper.hidingMapsCollection.mergedValuesCache);
-      expect(renderablePhysicalIndexesCache).not.toBe(indexMapper.renderablePhysicalIndexesCache);
-
-      expect(flattenTrimmingResult.length).toBe(10);
-      expect(flattenHidingResult.length).toBe(0);
-      expect(cacheUpdatedCallback.calls.count()).toEqual(7);
-
-      notTrimmedIndexesCache = indexMapper.notTrimmedIndexesCache;
-      notHiddenIndexesCache = indexMapper.notHiddenIndexesCache;
-      flattenTrimmingResult = indexMapper.trimmingMapsCollection.mergedValuesCache;
-      flattenHidingResult = indexMapper.hidingMapsCollection.mergedValuesCache;
-      renderablePhysicalIndexesCache = indexMapper.renderablePhysicalIndexesCache;
-
-      trimmingMap2.setValueAtIndex(0, false);
-
-      expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
-      expect(notHiddenIndexesCache).not.toBe(indexMapper.notHiddenIndexesCache);
-      expect(flattenTrimmingResult).not.toBe(indexMapper.trimmingMapsCollection.mergedValuesCache);
-      expect(flattenHidingResult).not.toBe(indexMapper.hidingMapsCollection.mergedValuesCache);
-      expect(renderablePhysicalIndexesCache).not.toBe(indexMapper.renderablePhysicalIndexesCache);
-
-      expect(flattenTrimmingResult.length).toBe(10);
-      expect(flattenHidingResult.length).toBe(0);
-      expect(cacheUpdatedCallback.calls.count()).toEqual(8);
     });
 
     it('should reset caches when any registered `HidingMap` is changed', () => {
@@ -2640,21 +2630,16 @@ describe('IndexMapper', () => {
 
       hidingMap1.setValueAtIndex(0, false);
 
-      // Actions on the first collection. No real change. We rebuild cache anyway (`change` hook should be called?).
-      expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
-      expect(notTrimmedIndexesCache).toEqual(indexMapper.notTrimmedIndexesCache);
-      expect(notHiddenIndexesCache).not.toBe(indexMapper.notHiddenIndexesCache);
-      expect(notHiddenIndexesCache).toEqual(indexMapper.notHiddenIndexesCache);
-      expect(flattenTrimmingResult).not.toBe(indexMapper.trimmingMapsCollection.mergedValuesCache);
-      expect(flattenTrimmingResult).toEqual(indexMapper.trimmingMapsCollection.mergedValuesCache);
-      expect(flattenHidingResult).not.toBe(indexMapper.hidingMapsCollection.mergedValuesCache);
-      expect(flattenHidingResult).toEqual(indexMapper.hidingMapsCollection.mergedValuesCache);
-      expect(renderablePhysicalIndexesCache).not.toBe(indexMapper.renderablePhysicalIndexesCache);
-      expect(renderablePhysicalIndexesCache).toEqual(indexMapper.renderablePhysicalIndexesCache);
+      // Actions on the first collection. No real change - the no-op write is skipped, so the caches stay valid.
+      expect(notTrimmedIndexesCache).toBe(indexMapper.notTrimmedIndexesCache);
+      expect(notHiddenIndexesCache).toBe(indexMapper.notHiddenIndexesCache);
+      expect(flattenTrimmingResult).toBe(indexMapper.trimmingMapsCollection.mergedValuesCache);
+      expect(flattenHidingResult).toBe(indexMapper.hidingMapsCollection.mergedValuesCache);
+      expect(renderablePhysicalIndexesCache).toBe(indexMapper.renderablePhysicalIndexesCache);
 
       expect(flattenTrimmingResult.length).toBe(0);
       expect(flattenHidingResult.length).toBe(10);
-      expect(cacheUpdatedCallback.calls.count()).toEqual(3);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(2);
 
       notTrimmedIndexesCache = indexMapper.notTrimmedIndexesCache;
       notHiddenIndexesCache = indexMapper.notHiddenIndexesCache;
@@ -2672,7 +2657,7 @@ describe('IndexMapper', () => {
 
       expect(flattenTrimmingResult.length).toBe(0);
       expect(flattenHidingResult.length).toBe(10);
-      expect(cacheUpdatedCallback.calls.count()).toEqual(4);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(3);
 
       notTrimmedIndexesCache = indexMapper.notTrimmedIndexesCache;
       notHiddenIndexesCache = indexMapper.notHiddenIndexesCache;
@@ -2681,6 +2666,37 @@ describe('IndexMapper', () => {
       renderablePhysicalIndexesCache = indexMapper.renderablePhysicalIndexesCache;
 
       hidingMap1.setValueAtIndex(0, false);
+
+      expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
+      expect(notHiddenIndexesCache).not.toBe(indexMapper.notHiddenIndexesCache);
+      expect(flattenTrimmingResult).not.toBe(indexMapper.trimmingMapsCollection.mergedValuesCache);
+      expect(flattenHidingResult).not.toBe(indexMapper.hidingMapsCollection.mergedValuesCache);
+      expect(renderablePhysicalIndexesCache).not.toBe(indexMapper.renderablePhysicalIndexesCache);
+
+      expect(flattenTrimmingResult.length).toBe(0);
+      expect(flattenHidingResult.length).toBe(10);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(4);
+
+      notTrimmedIndexesCache = indexMapper.notTrimmedIndexesCache;
+      notHiddenIndexesCache = indexMapper.notHiddenIndexesCache;
+      flattenTrimmingResult = indexMapper.trimmingMapsCollection.mergedValuesCache;
+      flattenHidingResult = indexMapper.hidingMapsCollection.mergedValuesCache;
+      renderablePhysicalIndexesCache = indexMapper.renderablePhysicalIndexesCache;
+
+      hidingMap2.setValueAtIndex(0, false);
+
+      // Actions on the second collection. No real change - the no-op write is skipped, so the caches stay valid.
+      expect(notTrimmedIndexesCache).toBe(indexMapper.notTrimmedIndexesCache);
+      expect(notHiddenIndexesCache).toBe(indexMapper.notHiddenIndexesCache);
+      expect(flattenTrimmingResult).toBe(indexMapper.trimmingMapsCollection.mergedValuesCache);
+      expect(flattenHidingResult).toBe(indexMapper.hidingMapsCollection.mergedValuesCache);
+      expect(renderablePhysicalIndexesCache).toBe(indexMapper.renderablePhysicalIndexesCache);
+
+      expect(flattenTrimmingResult.length).toBe(0);
+      expect(flattenHidingResult.length).toBe(10);
+      expect(cacheUpdatedCallback.calls.count()).toEqual(4);
+
+      hidingMap2.setValueAtIndex(0, true);
 
       expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
       expect(notHiddenIndexesCache).not.toBe(indexMapper.notHiddenIndexesCache);
@@ -2700,51 +2716,15 @@ describe('IndexMapper', () => {
 
       hidingMap2.setValueAtIndex(0, false);
 
-      // Actions on the second collection. No real change.  We rebuild cache anyway (`change` hook should be called?).
       expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
-      expect(notTrimmedIndexesCache).toEqual(indexMapper.notTrimmedIndexesCache);
       expect(notHiddenIndexesCache).not.toBe(indexMapper.notHiddenIndexesCache);
-      expect(notHiddenIndexesCache).toEqual(indexMapper.notHiddenIndexesCache);
       expect(flattenTrimmingResult).not.toBe(indexMapper.trimmingMapsCollection.mergedValuesCache);
-      expect(flattenTrimmingResult).toEqual(indexMapper.trimmingMapsCollection.mergedValuesCache);
       expect(flattenHidingResult).not.toBe(indexMapper.hidingMapsCollection.mergedValuesCache);
-      expect(flattenHidingResult).toEqual(indexMapper.hidingMapsCollection.mergedValuesCache);
       expect(renderablePhysicalIndexesCache).not.toBe(indexMapper.renderablePhysicalIndexesCache);
-      expect(renderablePhysicalIndexesCache).toEqual(indexMapper.renderablePhysicalIndexesCache);
 
       expect(flattenTrimmingResult.length).toBe(0);
       expect(flattenHidingResult.length).toBe(10);
       expect(cacheUpdatedCallback.calls.count()).toEqual(6);
-
-      hidingMap2.setValueAtIndex(0, true);
-
-      expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
-      expect(notHiddenIndexesCache).not.toBe(indexMapper.notHiddenIndexesCache);
-      expect(flattenTrimmingResult).not.toBe(indexMapper.trimmingMapsCollection.mergedValuesCache);
-      expect(flattenHidingResult).not.toBe(indexMapper.hidingMapsCollection.mergedValuesCache);
-      expect(renderablePhysicalIndexesCache).not.toBe(indexMapper.renderablePhysicalIndexesCache);
-
-      expect(flattenTrimmingResult.length).toBe(0);
-      expect(flattenHidingResult.length).toBe(10);
-      expect(cacheUpdatedCallback.calls.count()).toEqual(7);
-
-      notTrimmedIndexesCache = indexMapper.notTrimmedIndexesCache;
-      notHiddenIndexesCache = indexMapper.notHiddenIndexesCache;
-      flattenTrimmingResult = indexMapper.trimmingMapsCollection.mergedValuesCache;
-      flattenHidingResult = indexMapper.hidingMapsCollection.mergedValuesCache;
-      renderablePhysicalIndexesCache = indexMapper.renderablePhysicalIndexesCache;
-
-      hidingMap2.setValueAtIndex(0, false);
-
-      expect(notTrimmedIndexesCache).not.toBe(indexMapper.notTrimmedIndexesCache);
-      expect(notHiddenIndexesCache).not.toBe(indexMapper.notHiddenIndexesCache);
-      expect(flattenTrimmingResult).not.toBe(indexMapper.trimmingMapsCollection.mergedValuesCache);
-      expect(flattenHidingResult).not.toBe(indexMapper.hidingMapsCollection.mergedValuesCache);
-      expect(renderablePhysicalIndexesCache).not.toBe(indexMapper.renderablePhysicalIndexesCache);
-
-      expect(flattenTrimmingResult.length).toBe(0);
-      expect(flattenHidingResult.length).toBe(10);
-      expect(cacheUpdatedCallback.calls.count()).toEqual(8);
     });
 
     it('should not reset cache when any registered map inside various mappings collection is changed', () => {

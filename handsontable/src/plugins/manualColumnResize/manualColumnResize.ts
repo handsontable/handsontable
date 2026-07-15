@@ -14,7 +14,7 @@ import {
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { deprecatedWarn } from '../../helpers/console';
-import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import {
   getElementScaleFactor,
   normalizeVisualDelta,
@@ -173,9 +173,16 @@ export class ManualColumnResize extends BasePlugin {
       return;
     }
 
-    this.#columnWidthsMap = new IndexToValueMap();
+    this.#columnWidthsMap = this.hot.columnIndexMapper.createAndRegisterIndexMap(
+      this.pluginName!, 'physicalIndexToValue', null, { skipUnchangedWrites: true },
+    );
     this.#columnWidthsMap.addLocalHook('init', () => this.#onMapInit());
-    this.hot.columnIndexMapper.registerMap(this.pluginName!, this.#columnWidthsMap);
+
+    // `createAndRegisterIndexMap` initializes the map synchronously when the dataset is already
+    // loaded (a plugin re-enable), before the hook above could attach - replay the init handler.
+    if (this.hot.columnIndexMapper.getNumberOfIndexes() > 0) {
+      this.#onMapInit();
+    }
 
     this.#disposeMapObserver = this.hot.columnIndexMapper
       .observeMapChange(this.#columnWidthsMap, () => {

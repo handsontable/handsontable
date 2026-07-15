@@ -154,4 +154,66 @@ describe('PhysicalIndexToValueMap', () => {
       expect(changeCallback.calls.count()).toEqual(1);
     });
   });
+
+  describe('`skipUnchangedWrites` option', () => {
+    it('should skip the write and the `change` hook when the set value is strictly equal to the stored one', () => {
+      const indexToValueMap = new IndexToValueMap(null, { skipUnchangedWrites: true });
+      const changeCallback = jasmine.createSpy('change');
+
+      indexToValueMap.init(3);
+      indexToValueMap.setValueAtIndex(1, 50);
+      indexToValueMap.addLocalHook('change', changeCallback);
+
+      expect(indexToValueMap.setValueAtIndex(1, 50)).toBe(true);
+      expect(changeCallback.calls.count()).toEqual(0);
+      expect(indexToValueMap.getValueAtIndex(1)).toEqual(50);
+    });
+
+    it('should write and trigger the `change` hook when the set value differs from the stored one', () => {
+      const indexToValueMap = new IndexToValueMap(null, { skipUnchangedWrites: true });
+      const changeCallback = jasmine.createSpy('change');
+
+      indexToValueMap.init(3);
+      indexToValueMap.setValueAtIndex(1, 50);
+      indexToValueMap.addLocalHook('change', changeCallback);
+
+      expect(indexToValueMap.setValueAtIndex(1, 51)).toBe(true);
+      expect(changeCallback.calls.count()).toEqual(1);
+      expect(indexToValueMap.getValueAtIndex(1)).toEqual(51);
+    });
+
+    it('should treat writing the initial value over an untouched index as unchanged', () => {
+      const indexToValueMap = new IndexToValueMap(null, { skipUnchangedWrites: true });
+      const changeCallback = jasmine.createSpy('change');
+
+      indexToValueMap.init(3);
+      indexToValueMap.addLocalHook('change', changeCallback);
+
+      expect(indexToValueMap.setValueAtIndex(2, null)).toBe(true);
+      expect(changeCallback.calls.count()).toEqual(0);
+    });
+
+    it('should keep returning `false` and not trigger the `change` hook for indexes beyond the map', () => {
+      const indexToValueMap = new IndexToValueMap(null, { skipUnchangedWrites: true });
+      const changeCallback = jasmine.createSpy('change');
+
+      indexToValueMap.init(3);
+      indexToValueMap.addLocalHook('change', changeCallback);
+
+      expect(indexToValueMap.setValueAtIndex(3, 50)).toBe(false);
+      expect(changeCallback.calls.count()).toEqual(0);
+    });
+
+    it('should keep the default behavior (write + `change` hook on equal values) when the option is off', () => {
+      const indexToValueMap = new IndexToValueMap();
+      const changeCallback = jasmine.createSpy('change');
+
+      indexToValueMap.init(3);
+      indexToValueMap.setValueAtIndex(1, 50);
+      indexToValueMap.addLocalHook('change', changeCallback);
+
+      expect(indexToValueMap.setValueAtIndex(1, 50)).toBe(true);
+      expect(changeCallback.calls.count()).toEqual(1);
+    });
+  });
 });

@@ -30,7 +30,7 @@ import {
   OPERATION_OR,
   OPERATION_OR_THEN_VARIABLE
 } from './constants';
-import { TrimmingMap } from '../../translations';
+import type { TrimmingMap } from '../../translations';
 import type { BaseComponent } from './component/_base';
 
 export type OperationType = 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
@@ -272,7 +272,7 @@ export class Filters extends BasePlugin {
 
     this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
 
-    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName ?? '', new TrimmingMap()) as TrimmingMap;
+    this.filtersRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName ?? '', 'trimming');
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
