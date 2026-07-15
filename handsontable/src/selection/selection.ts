@@ -1149,6 +1149,7 @@ class Selection {
   /**
    * Tells whether the adjustment handles should render for the given highlight layer.
    *
+   * @private
    * @param {number} layerLevel The area highlight layer level.
    * @returns {boolean}
    */
@@ -1182,7 +1183,9 @@ class Selection {
 
   /**
    * Sets which selection layer currently shows adjustment handles and refreshes the borders.
+   * This is an internal method called by the hover wiring and is not part of the public API.
    *
+   * @private
    * @param {number | null} layer The hovered layer level, or `null` to hide all handles.
    */
   setHandlesHoveredLayer(layer: number | null) {
