@@ -37,6 +37,7 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 - Batch scroll events with requestAnimationFrame
 - Never `arr.push(...largeArray)` with 10k+ elements
 - Reuse DOM elements, minimize layout thrashing
+- **Row-height sums go through `Viewport#sumRowHeights`** (prefix-sum `PositionCache`, O(1)) — never add a new per-row summation loop. Two constraints it encodes: (1) the first rendered visible row reports a +1px border-top compensation (`StylesHandler#getDefaultRowHeight`, AutoRowSize), so `sumRowHeights` re-reads the build-time and current first-rendered rows live (`PositionCache#onBuildFn` records the build-time row) — bypassing this breaks totals by exactly 1px (AutoRowSize/Pagination specs catch it). (2) **Column-width sums must stay live walks** (`sumCellSizes` in `inlineStartOverlay`, `sumColumnWidths` in `workspaceSize`): stretched widths (`stretchH`) derive from the workspace width, which derives from the column sum — caching freezes that cycle and nothing invalidates the column cache on stretch (Core_init display-none and StretchColumns window-mode specs catch it).
 
 ## Testing
 

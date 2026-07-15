@@ -1003,4 +1003,64 @@ describe('Core.scrollViewportTo', () => {
       expect(tableView().scrollViewport).toHaveBeenCalledWith(cellCoords(40, 45), 'end', 'bottom');
     });
   });
+
+  describe('large datasets (scroll offsets come from the row-height prefix-sum cache)', () => {
+    it('should scroll exactly to a distant row with default row heights', async() => {
+      handsontable({
+        data: createSpreadsheetData(50000, 5),
+        width: 300,
+        height: 300,
+      });
+
+      await scrollViewportTo({ row: 40000, col: 0, verticalSnap: 'top' });
+
+      expect(getFirstFullyVisibleRow()).toBe(40000);
+
+      await scrollViewportTo({ row: 12345, col: 0, verticalSnap: 'top' });
+
+      expect(getFirstFullyVisibleRow()).toBe(12345);
+    });
+
+    it('should scroll exactly to a distant row with varied row heights', async() => {
+      handsontable({
+        data: createSpreadsheetData(50000, 5),
+        rowHeights: row => 20 + ((row % 7) * 4),
+        width: 300,
+        height: 300,
+      });
+
+      await scrollViewportTo({ row: 40000, col: 0, verticalSnap: 'top' });
+
+      // For some target rows the first-rendered-row 1px border compensation leaves the target
+      // 1px shy of fully visible after a top snap (same on every release), so the exactness of
+      // the scroll offset is pinned through the partially-visible index.
+      expect(getFirstPartiallyVisibleRow()).toBe(40000);
+
+      await scrollViewportTo({ row: 33333, col: 0, verticalSnap: 'top' });
+
+      expect(getFirstPartiallyVisibleRow()).toBe(33333);
+      expect(getFirstFullyVisibleRow()).toBe(33333);
+    });
+
+    it('should keep a distant selected cell fully visible when navigating past the viewport edge', async() => {
+      handsontable({
+        data: createSpreadsheetData(50000, 5),
+        rowHeights: row => 20 + ((row % 7) * 4),
+        width: 300,
+        height: 300,
+      });
+
+      await selectCell(40000, 1);
+
+      expect(getLastFullyVisibleRow()).toBe(40000);
+
+      await selectCell(40001, 1);
+
+      expect(getLastFullyVisibleRow()).toBe(40001);
+
+      await selectCell(40002, 1);
+
+      expect(getLastFullyVisibleRow()).toBe(40002);
+    });
+  });
 });

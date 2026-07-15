@@ -127,7 +127,11 @@ export class InlineStartOverlay extends Overlay {
   }
 
   /**
-   * Calculates total sum cells width.
+   * Calculates total sum cells width. Walks the columns live instead of reading the column-width
+   * prefix-sum cache: stretched widths (`stretchH`) are derived from the workspace width, which in
+   * turn depends on this sum — the live read resolves that cycle fresh on every call, while a
+   * cached read would freeze pre-stretch widths (nothing invalidates the cache when stretching
+   * recomputes). Column counts stay far below row counts, so this walk is not a scroll hotspot.
    *
    * @param {number} from Column index which calculates started from.
    * @param {number} to Column index where calculation is finished.

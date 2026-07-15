@@ -3,6 +3,7 @@ export interface PositionCacheConfig {
   sizeFn: (index: number) => number;
   defaultSizeFn: () => number;
   isUniformFn?: () => boolean;
+  onBuildFn?: () => void;
 }
 
 /**
@@ -58,6 +59,14 @@ export class PositionCache {
    */
   readonly #isUniformFn?: () => boolean;
   /**
+   * Optional callback invoked whenever the cache is (re)built, in either mode. Lets the owner
+   * record the context the sizes were read in (e.g. which row carried the first-rendered-row
+   * border compensation at build time).
+   *
+   * @type {Function|undefined}
+   */
+  readonly #onBuildFn?: () => void;
+  /**
    * The shared size used when the cache is in uniform mode. `null` when the cache is in
    * prefix-sum mode (heterogeneous sizes) or not yet built.
    *
@@ -80,11 +89,12 @@ export class PositionCache {
    *   that return NaN/undefined.
    * @param {Function} [config.isUniformFn] Optional predicate; when `true`, all items share one size.
    */
-  constructor({ totalItemsFn, sizeFn, defaultSizeFn, isUniformFn }: PositionCacheConfig) {
+  constructor({ totalItemsFn, sizeFn, defaultSizeFn, isUniformFn, onBuildFn }: PositionCacheConfig) {
     this.#totalItemsFn = totalItemsFn;
     this.#sizeFn = sizeFn;
     this.#defaultSizeFn = defaultSizeFn;
     this.#isUniformFn = isUniformFn;
+    this.#onBuildFn = onBuildFn;
   }
 
   /**
@@ -99,6 +109,7 @@ export class PositionCache {
 
     this.totalItems = totalItems;
     this.#built = true;
+    this.#onBuildFn?.();
 
     if (this.#isUniformFn?.()) {
       // Sample the LAST item, never the first rendered one: `getDefaultRowHeight` adds a 1px
