@@ -38,6 +38,16 @@ export default {
   appId: 'MMN6OTJMGX',
   apiKey: 'c2430302c91e0162df988d4b383c9d8b',
   indexName: 'handsontable',
+  // Restrict linguistic processing (plural matching) to English. Without
+  // this, Algolia applies plural dictionaries for all languages at once,
+  // and in Italian "date" is the plural of "data" -- so a query for "date"
+  // matched every "data" page with zero typos and ranked "Saving data" &co.
+  // above the date-related guides (DEV-2073). Set at query time so search
+  // is fixed even before the crawler's index-level settings are updated.
+  searchParameters: {
+    queryLanguages: ['en'],
+    ignorePlurals: ['en'],
+  },
   // Restricts search results to the framework of the current page. Read
   // fresh per query (not computed once) because the search widget persists
   // across Astro View Transitions (`transition:persist="docs-search"` in
