@@ -640,7 +640,7 @@ class Endpoints {
 
     if (destinationVisualRow !== null) {
       const destinationColumn = endpoint.destinationColumn!;
-      const cellMeta = this.hot.getCellMeta(destinationVisualRow, destinationColumn);
+      const cellMeta = this.hot.getCellMetaTransient(destinationVisualRow, destinationColumn);
 
       if (source === 'init' || cellMeta.readOnly !== endpoint.readOnly) {
         // Declarative writes (see `refreshCellMetas`) so the styling survives viewport meta eviction

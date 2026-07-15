@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Improved memory usage of read-only cell settings lookups. The context menu, filters dropdown, formulas synchronization, data type detection, column summaries, and clearing large selections no longer permanently cache settings for every visited cell.",
+  "type": "changed",
+  "issueOrPR": 13068,
+  "breaking": false,
+  "framework": "none"
+}

@@ -169,7 +169,12 @@ export class Formulas extends BasePlugin {
       return change;
     }
 
-    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, { skipMetaExtension: true });
+    // The uncached read keeps the same no-extension semantics as the previous
+    // `skipMetaExtension` read, without permanently materializing the cell meta.
+    const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
+      this.hot.toPhysicalRow(visualRow) ?? visualRow, this.hot.toPhysicalColumn(visualColumn) ?? visualColumn,
+      { visualRow, visualColumn },
+    );
     let newValue: unknown;
 
     if (cellMeta.type === 'date') {
@@ -768,7 +773,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const cellMeta = this.hot.getCellMeta(row, column);
+    const cellMeta = this.hot.getCellMetaTransient(row, column);
 
     if (isDate(newValue, cellMeta.type)) {
       if (isDateValid(newValue)) {
@@ -797,7 +802,7 @@ export class Formulas extends BasePlugin {
     if (isObject(value) && value !== null) {
       const visualRow = this.hot.toVisualRow(row);
       const visualColumn = this.hot.toVisualColumn(column);
-      const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
+      const cellMeta = this.hot.getCellMetaTransient(visualRow, visualColumn);
 
       value = getValueGetterValue(value, cellMeta);
 
@@ -885,7 +890,7 @@ export class Formulas extends BasePlugin {
         sheet: this.sheetId,
       };
 
-      const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
+      const cellMeta = this.hot.getCellMetaTransient(visualRow, visualColumn);
       let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel-like date).
 
       if (cellMeta.type === 'date' && isNumeric(cellValue)) {
@@ -1047,7 +1052,12 @@ export class Formulas extends BasePlugin {
 
     sourceDataArray.forEach((rowData: unknown[], rowIndex: number) => {
       rowData.forEach((cellValue: unknown, columnIndex: number) => {
-        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex, { skipMetaExtension: true });
+        // The uncached read keeps this full source-data scan from permanently materializing
+        // one meta object per cell (same no-extension semantics as `skipMetaExtension`).
+        const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
+          this.hot.toPhysicalRow(rowIndex) ?? rowIndex, this.hot.toPhysicalColumn(columnIndex) ?? columnIndex,
+          { visualRow: rowIndex, visualColumn: columnIndex },
+        );
 
         if (isDate(cellValue, cellMeta.type)) {
           if (isDateValid(cellValue)) {
@@ -1153,7 +1163,12 @@ export class Formulas extends BasePlugin {
     };
     let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel like date).
 
-    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, { skipMetaExtension: true });
+    // The uncached read matters here: this hook fires inside bulk data reads (for example, the
+    // filters column scan), so an eager read would materialize one meta per scanned cell.
+    const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
+      this.hot.toPhysicalRow(visualRow) ?? visualRow, this.hot.toPhysicalColumn(visualColumn) ?? visualColumn,
+      { visualRow, visualColumn },
+    );
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
       cellValue = getDateFromExcelDate(cellValue);

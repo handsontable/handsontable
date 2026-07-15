@@ -576,7 +576,7 @@ export class ColumnSorting extends BasePlugin {
   getMergedPluginSettings(column: number): Record<string, unknown> {
     const pluginMainSettings = this.hot.getSettings()[this.pluginKey] as Record<string, unknown>;
     const storedColumnProperties = this.columnStatesManager?.getAllColumnsProperties() ?? {};
-    const cellMeta = this.hot.getCellMeta(0, column);
+    const cellMeta = this.hot.getCellMetaTransient(0, column);
     const columnMeta = Object.getPrototypeOf(cellMeta) as Record<string, unknown>;
 
     if (Array.isArray(columnMeta.columns)) {
@@ -602,7 +602,7 @@ export class ColumnSorting extends BasePlugin {
   // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. Instead of getting properties from column meta we call this function.
   // TODO: Remove test named: "should not break the dataset when inserted new row" (#5431).
   getFirstCellSettings(column: number): Record<string, unknown> {
-    const cellMeta = this.hot.getCellMeta(0, column);
+    const cellMeta = this.hot.getCellMetaTransient(0, column);
 
     const cellMetaCopy = Object.create(cellMeta) as Record<string, unknown>;
 

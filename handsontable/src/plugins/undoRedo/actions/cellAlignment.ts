@@ -77,7 +77,7 @@ export class CellAlignmentAction extends BaseAction {
    * @param {function(): void} redoneCallback The callback to be called after the action is redone.
    */
   redo(hot: HotInstance, redoneCallback: HookCallback) {
-    align(this.range, this.type, this.alignment, (row: number, col: number) => hot.getCellMeta(row, col),
+    align(this.range, this.type, this.alignment, (row: number, col: number) => hot.getCellMetaTransient(row, col),
       (row: number, col: number, key: string, value: unknown) => hot.setCellMeta(row, col, key, value));
 
     hot.addHookOnce('afterViewRender', redoneCallback);
