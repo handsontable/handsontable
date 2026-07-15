@@ -1,6 +1,8 @@
 import type Handsontable from 'handsontable';
 import HyperFormula from 'hyperformula';
-import type { CellProperties, CellCoords, RangeType, RemoveIndexSignature } from 'handsontable';
+import type {
+  CellProperties, CellCoords, RangeType, RemoveIndexSignature, Events, HotInstance, CellChange, ChangeSource,
+} from 'handsontable';
 
 // Helpers to verify multiple different settings and prevent TS control-flow from eliminating unreachable values
 declare function oneOf<T extends Array<string | number | boolean | undefined | null | object>>(...args: T): T[number];
@@ -463,6 +465,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterOnCellCornerMouseDown: (event) => {},
   afterOnCellMouseDown: (event, coords, TD) => {},
   afterOnCellMouseOver: (event, coords, TD) => {},
+  afterOnCellMouseOverOutside: (event, coords, TD) => {},
   afterOnCellMouseOut: (event, coords, TD) => {},
   afterOnCellMouseUp: (event, coords, TD) => {},
   afterPageChange(oldPage, newPage) {
@@ -640,6 +643,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeOnCellMouseDown: (event, coords, TD, controller) => {},
   beforeOnCellMouseOut: (event, coords, TD) => {},
   beforeOnCellMouseOver: (event, coords, TD, controller) => {},
+  beforeOnCellMouseOverOutside: (event, coords, TD, controller) => {},
   beforeOnCellMouseUp: (event, coords, TD) => {},
   beforeDataProviderFetch: queryParameters => true,
   beforePageChange(oldPage, newPage) {
@@ -898,3 +902,38 @@ const _sourceDataValidatorBadReturn: Handsontable.GridSettings = {
   // @ts-expect-error the validator must return `boolean`, not `string`.
   sourceDataValidator: () => 'yes',
 };
+
+// DEV-2072 regression: `Events` is derived from `GridSettings` via `HookKey`. Without stripping
+// `GridSettings`'s index signature first, `HookKey` (and thus `Events`) collapsed to a bare index
+// signature, so every hook callback typed through `Events[hookName]` inferred its parameters as `any`.
+const _onAfterChange: Events['afterChange'] = (changes, source) => {
+  // These assignments only compile if the parameters keep their real, non-`any` types.
+  const _changes: CellChange[] | null = changes;
+  const _source: ChangeSource = source;
+};
+// Newly-documented hooks (previously missing from `GridSettings`) resolve to real callback types too.
+const _onBeforeOnCellMouseOverOutside: Events['beforeOnCellMouseOverOutside'] = (event, coords, TD, controller) => {
+  const _event: MouseEvent = event;
+  const _coords: CellCoords = coords;
+  const _TD: HTMLTableCellElement = TD;
+  const _controller: { row: boolean, column: boolean, cell: boolean } = controller;
+};
+
+// @ts-expect-error `notARealHook` is not a hook-shaped `GridSettings` property.
+type _NotAHook = Events['notARealHook'];
+// @ts-expect-error An arbitrary string is not a member of the now-finite `keyof Events` union.
+const _arbitraryHookKey: keyof Events = 'someArbitraryString';
+
+declare const hot: HotInstance;
+// Rung 1 of the `addHook` overload ladder: an unannotated arrow under a known hook name
+// gets full parameter inference from `Events[K]`.
+hot.addHook('afterChange', (changes, source) => {
+  const _changes: CellChange[] | null = changes;
+  const _source: ChangeSource = source;
+});
+// Rung 2: an explicitly-annotated callback that doesn't exactly match the declared hook
+// signature is still accepted under a known hook name (back-compat with pre-tightening code).
+hot.addHook('afterCreateRow', (index: number, amount: number, source: string) => {});
+// Rung 3: a dynamic/plugin-only hook name still compiles, including with a typed callback
+// (the `HookCallback` fallback is the sound function top type, not `(...args: unknown[])`).
+hot.addHook('someCustomPluginHook', (payload: { id: number }, flag: boolean) => {});
