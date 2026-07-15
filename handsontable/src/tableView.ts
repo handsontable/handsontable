@@ -170,6 +170,15 @@ class TableView {
    */
   #mouseDownLastPos: {row: number, col: number} | null = null;
   /**
+   * The visual coordinates of the last cell the pointer entered via a `mouseover` event.
+   * Updated on every `onCellMouseOver` call regardless of the drag state. Used after a
+   * drag-select ends (in the document-level `mouseup` handler) to re-evaluate the hovered
+   * layer so handles appear immediately without requiring an additional mouse move.
+   *
+   * @type {CellCoords | null}
+   */
+  #lastCellMouseOverCoords: CellCoords | null = null;
+  /**
    * Flag indicating that a touch interaction just ended. Set to `true` on
    * `touchend` and reset asynchronously via `_registerTimeout`. Used together with
    * `sourceCapabilities.firesTouchEvents` (Chrome/Blink) to detect synthetic
@@ -440,6 +449,12 @@ class TableView {
       // Ignore synthetic mouseup events from Android touch interactions.
       if (this.#isSyntheticMouseEvent(event)) {
         return;
+      }
+
+      // After a drag-select ends with the pointer still inside the selection, no new
+      // `mouseover` fires, so re-evaluate the hovered layer here to reveal the handles.
+      if (this.settings.selectionHandles && this.#lastCellMouseOverCoords) {
+        this.#updateHandlesHoveredLayer(this.#lastCellMouseOverCoords);
       }
 
       const isOutsideInputElement = isOutsideInput(rootDocument.activeElement as HTMLElement);
@@ -1118,6 +1133,9 @@ class TableView {
         }
 
         this.hot.runHooks('afterOnCellMouseOver', event, visualCoords, TD);
+        // Always track the last cell under the pointer so the mouseup handler can
+        // re-evaluate the hovered layer when the pointer is still inside the selection.
+        this.#lastCellMouseOverCoords = visualCoords;
         this.#updateHandlesHoveredLayer(visualCoords);
         this.activeWt = this._wt;
         this.#mouseDownLastPos = null;
@@ -2285,7 +2303,7 @@ class TableView {
     let targetLayer = selection.getHandlesHoveredLayer();
 
     if (targetLayer === null) {
-      targetLayer = selection.getSelectedRange().size() - 1;
+      targetLayer = selection.getLayerLevel();
     }
 
     const targetRange = selection.getSelectedRange().peekByIndex(targetLayer);
@@ -2371,6 +2389,11 @@ class TableView {
     // Resize only the target layer in-place, preserving all other selection layers.
     // Calling setRangeStart would clear all layers via selectedRange.clear() — instead
     // we mutate the target CellRange directly, then commit via setRangeEnd with the layer index.
+    //
+    // Known limitation: when resizing a non-last selection layer, the public `afterSelection` hook
+    // reports coordinates from the last layer because the `afterSetRangeEnd` handler in core.ts reads
+    // `selectionRange.current()` (always the topmost layer). The visual resize and scroll are correct;
+    // only the hook's reported coordinates reflect the last layer rather than the resized one.
     const targetRange = this.hot.selection.getSelectedRange().peekByIndex(targetLayer);
 
     if (!targetRange) {

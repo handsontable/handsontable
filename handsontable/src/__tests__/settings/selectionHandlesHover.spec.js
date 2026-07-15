@@ -74,5 +74,28 @@ describe('settings', () => {
 
       expect(visibleHandles.length).toBe(0);
     });
+
+    it('should show four handles immediately after a drag-select ends with the pointer still inside the selection', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        selectionHandles: true,
+        selectionMode: 'multiple',
+        width: 500,
+        height: 400,
+      });
+
+      // Simulate a real drag-select: mousedown on (2,2), mouseover intermediate cells, mouseup on (4,4).
+      // This reproduces the bug where no new mouseover fires after mouseup, so handles stay hidden.
+      await mouseDown(getCell(2, 2));
+      await mouseOver(getCell(3, 3));
+      await mouseOver(getCell(4, 4));
+      await mouseUp(getCell(4, 4));
+
+      // The handles must be visible immediately after mouseup — without any extra mouse move.
+      const handles = spec().$container[0].querySelectorAll('.wtSelectionHandle');
+      const visibleHandles = Array.from(handles).filter(el => el.style.display === 'block');
+
+      expect(visibleHandles.length).toBe(4);
+    });
   });
 });
