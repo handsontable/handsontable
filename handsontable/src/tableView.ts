@@ -2327,10 +2327,12 @@ class TableView {
     const toCol = Math.max(from.col ?? 0, to.col ?? 0);
 
     // Capture the original focus (active cell) so it can be preserved throughout the resize.
-    // Fall back to the top-start corner if highlight is somehow null.
+    // `targetRange.highlight` is a non-null CellCoords object after a successful peekByIndex,
+    // but its `row`/`col` properties can theoretically be null (header selections), so fall
+    // back to the top-start corner in that case.
     const focus = targetRange.highlight;
-    const focusRow = focus?.row ?? fromRow;
-    const focusCol = focus?.col ?? fromCol;
+    const focusRow = focus.row ?? fromRow;
+    const focusCol = focus.col ?? fromCol;
 
     this.#adjustDrag = { edge, fromRow, toRow, fromCol, toCol, targetLayer, focusRow, focusCol };
 
@@ -2413,9 +2415,16 @@ class TableView {
       return;
     }
 
-    // Clamp the original focus into the new range so it stays inside without jumping
-    // to the anchor corner. When the resize shrinks the range past the focus, the focus
-    // snaps to the nearest edge of the new range instead of teleporting to a corner.
+    // Clamp the original focus into the NEW range (not the original span) so it stays inside
+    // without jumping to the anchor corner. The clamp bounds intentionally come from
+    // `anchorCoords`/`newCoords` — the two corners of the post-drag range — rather than from
+    // the stored `fromRow`/`toRow`/`fromCol`/`toCol` originals. When the user GROWS the
+    // selection the focus is already inside the original span and therefore inside the new
+    // (larger) span, so the clamp is a no-op. When the user SHRINKS past the focus position,
+    // the new range is a strict subset of the original on the resized axis: clamping to the
+    // ORIGINAL span would not be tight enough and could leave the focus outside the new range.
+    // Using `anchorCoords`/`newCoords` gives exactly the new range's extent on each axis,
+    // which is the correct tight bound for both grow and shrink in all four edge directions.
     const rowMin = Math.min(anchorCoords.row!, newCoords.row!);
     const rowMax = Math.max(anchorCoords.row!, newCoords.row!);
     const colMin = Math.min(anchorCoords.col!, newCoords.col!);

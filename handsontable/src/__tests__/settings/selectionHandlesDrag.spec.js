@@ -649,11 +649,114 @@ describe('settings', () => {
 
       $(document.documentElement).simulate('mouseup');
 
-      // Focus must stay at (2, 2) — it must not jump to the anchor corner (2, 2 or 5, 2).
+      // Focus must stay at (2, 2) — it must not jump to the anchor corner (2, 2), which is
+      // the non-dragged (start) corner that setRangeEnd applies as the range's from-coord.
       const finalHighlight = hot().getSelectedRangeLast().highlight;
 
       expect(finalHighlight.row).toBe(2);
       expect(finalHighlight.col).toBe(2);
+    });
+
+    it('should clamp the focus to the new range when shrinking via the bottom handle pushes the focus out', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 8),
+        selectionHandles: true,
+        selectionMode: 'multiple',
+        width: 400,
+        height: 400,
+      });
+
+      // selectCells([[5, 2, 2, 5]]) → from=(5,2), to=(2,5). Focus lands at from=(5,2).
+      // This places the focus on the bottom row (row 5) of the normalized [2..5] range.
+      await selectCells([[5, 2, 2, 5]]);
+
+      const initialHighlight = hot().getSelectedRangeLast().highlight;
+
+      expect(initialHighlight.row).toBe(5);
+      expect(initialHighlight.col).toBe(2);
+
+      await mouseOver(getCell(3, 3));
+
+      const bottomHandle = getHandle('bottom');
+
+      expect(bottomHandle).not.toBeNull();
+
+      const handleRect = bottomHandle.getBoundingClientRect();
+      // Drag the bottom handle UP to row 3, shrinking the bottom edge past the original focus row (5).
+      // New range will be rows [2..3], cols [2..5]. Focus row 5 is outside — must clamp to 3.
+      const targetCell = getCell(3, 3);
+      const targetRect = targetCell.getBoundingClientRect();
+
+      $(bottomHandle).simulate('mousedown', {
+        clientX: handleRect.left + (handleRect.width / 2),
+        clientY: handleRect.top + (handleRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mouseup');
+
+      // Focus must be clamped to the nearest row inside the new range.
+      // Row 5 is above the new bottom edge (row 3 after shrink) → clamped to 3.
+      // Col 2 is still inside [2..5] → unchanged.
+      const finalHighlight = hot().getSelectedRangeLast().highlight;
+
+      expect(finalHighlight.row).toBe(3);
+      expect(finalHighlight.col).toBe(2);
+    });
+
+    it('should clamp the focus to the new range when shrinking via the start handle pushes the focus out', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        selectionHandles: true,
+        selectionMode: 'multiple',
+        width: 500,
+        height: 400,
+      });
+
+      // selectCells([[2, 2, 5, 5]]) → from=(2,2), to=(5,5). Focus lands at from=(2,2).
+      // This places the focus at the start column (col 2) of the normalized [2..5] range.
+      await selectCells([[2, 2, 5, 5]]);
+
+      const initialHighlight = hot().getSelectedRangeLast().highlight;
+
+      expect(initialHighlight.row).toBe(2);
+      expect(initialHighlight.col).toBe(2);
+
+      await mouseOver(getCell(3, 3));
+
+      const startHandle = getHandle('start');
+
+      expect(startHandle).not.toBeNull();
+
+      const handleRect = startHandle.getBoundingClientRect();
+      // Drag the start handle RIGHT to col 4, shrinking the start edge past the original focus col (2).
+      // New range will be rows [2..5], cols [4..5]. Focus col 2 is outside — must clamp to 4.
+      const targetCell = getCell(3, 4);
+      const targetRect = targetCell.getBoundingClientRect();
+
+      $(startHandle).simulate('mousedown', {
+        clientX: handleRect.left + (handleRect.width / 2),
+        clientY: handleRect.top + (handleRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mouseup');
+
+      // Focus must be clamped to the nearest column inside the new range.
+      // Col 2 is below the new start edge (col 4 after shrink) → clamped to 4.
+      // Row 2 is still inside [2..5] → unchanged.
+      const finalHighlight = hot().getSelectedRangeLast().highlight;
+
+      expect(finalHighlight.row).toBe(2);
+      expect(finalHighlight.col).toBe(4);
     });
   });
 });
