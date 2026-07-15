@@ -62,14 +62,26 @@ export interface ViewportScrollerInstance {
 /**
  * Handsontable Core instance interface.
  * Provides type-safe access to the Core API without requiring circular imports.
+ *
+ * The `addHook`/`addHookOnce`/`removeHook` methods form a three-rung overload ladder:
+ * 1. Strict -- a known hook name with a callback typed as `Events[K]`. Unannotated inline arrow
+ *    functions get full parameter inference from this rung.
+ * 2. Lenient -- a known hook name with any explicitly-annotated callback. `HookCallback` is the
+ *    sound function "top type" (see `core/hooks/bucket.ts`), so a callback whose annotations don't
+ *    exactly match the declared hook signature is still accepted, matching the runtime behavior and
+ *    keeping previously-compiling listener code compiling.
+ * 3. Fallback -- any string, for dynamically-named and plugin-local hooks.
  */
 export interface HotInstance {
   // Lifecycle & hooks
   addHook<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, orderIndex?: number): void;
+  addHook<K extends keyof Events>(key: K, callback: HookCallback | HookCallback[], orderIndex?: number): void;
   addHook(key: string, callback: HookCallback | HookCallback[], orderIndex?: number): void;
   addHookOnce<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, orderIndex?: number): void;
+  addHookOnce<K extends keyof Events>(key: K, callback: HookCallback | HookCallback[], orderIndex?: number): void;
   addHookOnce(key: string, callback: HookCallback | HookCallback[], orderIndex?: number): void;
   removeHook<K extends keyof Events>(key: K, callback: Events[K]): void;
+  removeHook<K extends keyof Events>(key: K, callback: HookCallback): void;
   removeHook(key: string, callback: HookCallback): void;
   runHooks<R = unknown>(name: string, ...args: unknown[]): R;
   hasHook(name: string): boolean;

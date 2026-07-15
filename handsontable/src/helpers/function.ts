@@ -285,8 +285,12 @@ export function curryRight(func: (...args: unknown[]) => unknown): (...args: unk
  * @returns {*}
  */
 export function fastCall(
-  func: (...args: unknown[]) => unknown, context: unknown,
+  dispatchedFunc: (...args: never[]) => unknown, context: unknown,
   arg1?: unknown, arg2?: unknown, arg3?: unknown, arg4?: unknown, arg5?: unknown, arg6?: unknown): unknown {
+  // This is the designated dynamic-dispatch boundary of the hooks system: listeners are stored as
+  // the uncallable function "top type" and must be cast to a callable shape exactly here.
+  const func = dispatchedFunc as (...args: unknown[]) => unknown;
+
   if (isDefined(arg6)) {
     return func.call(context, arg1, arg2, arg3, arg4, arg5, arg6);
 
