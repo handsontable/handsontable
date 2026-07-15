@@ -800,7 +800,11 @@ class DataMap {
     }
 
     this.dataSource!.length = 0;
-    Array.prototype.push.apply(this.dataSource!, data as unknown[]);
+    // Pushing in a loop instead of `push.apply`, which passes one call argument per row and
+    // overflows the call stack on grids with roughly 125k rows or more (same pattern as #7840).
+    (data as unknown[]).forEach((row) => {
+      this.dataSource!.push(row as Record<string, unknown> | unknown[]);
+    });
   }
 
   /**
