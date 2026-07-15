@@ -510,5 +510,150 @@ describe('settings', () => {
       expect(firstMinRow).toBe(2);  // anchor row (top) unchanged
       expect(firstMaxRow).toBe(9);  // dragged to row 9
     });
+
+    it('should keep the focus/active cell stable when growing the selection via the top handle', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 8),
+        selectionHandles: true,
+        selectionMode: 'multiple',
+        width: 400,
+        height: 400,
+      });
+
+      // selectCells([[fromRow, fromCol, toRow, toCol]]) — focus lands at the first corner (2, 2).
+      await selectCells([[2, 2, 5, 5]]);
+
+      // Capture initial focus — must be (2, 2).
+      const initialHighlight = hot().getSelectedRangeLast().highlight;
+
+      expect(initialHighlight.row).toBe(2);
+      expect(initialHighlight.col).toBe(2);
+
+      await mouseOver(getCell(3, 3));
+
+      const topHandle = getHandle('top');
+
+      expect(topHandle).not.toBeNull();
+
+      const handleRect = topHandle.getBoundingClientRect();
+      const targetCell = getCell(0, 3);
+      const targetRect = targetCell.getBoundingClientRect();
+
+      // Drag the top handle upward to row 0 — selection grows to rows 0..5.
+      $(topHandle).simulate('mousedown', {
+        clientX: handleRect.left + (handleRect.width / 2),
+        clientY: handleRect.top + (handleRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mouseup');
+
+      // The focus/active cell must NOT jump to the anchor corner (5, 5).
+      // It must remain at the original position (2, 2) which is still inside the new range.
+      const finalHighlight = hot().getSelectedRangeLast().highlight;
+
+      expect(finalHighlight.row).toBe(2);
+      expect(finalHighlight.col).toBe(2);
+    });
+
+    it('should clamp the focus to the new range when shrinking shrinks it out', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 8),
+        selectionHandles: true,
+        selectionMode: 'multiple',
+        width: 400,
+        height: 400,
+      });
+
+      // selectCells([[2, 2, 5, 5]]) — focus starts at (2, 2).
+      await selectCells([[2, 2, 5, 5]]);
+
+      const initialHighlight = hot().getSelectedRangeLast().highlight;
+
+      expect(initialHighlight.row).toBe(2);
+      expect(initialHighlight.col).toBe(2);
+
+      await mouseOver(getCell(3, 3));
+
+      const topHandle = getHandle('top');
+
+      expect(topHandle).not.toBeNull();
+
+      const handleRect = topHandle.getBoundingClientRect();
+      // Drag the top handle DOWN to row 4, shrinking the top edge past the original focus row (2).
+      // New range will be rows 4..5, cols 2..5. Focus row 2 is outside — must clamp to row 4.
+      const targetCell = getCell(4, 3);
+      const targetRect = targetCell.getBoundingClientRect();
+
+      $(topHandle).simulate('mousedown', {
+        clientX: handleRect.left + (handleRect.width / 2),
+        clientY: handleRect.top + (handleRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mouseup');
+
+      // Focus must be clamped to the nearest cell inside the new range.
+      // Row clamped to 4 (the new top edge), col stays at 2 (still inside 2..5).
+      const finalHighlight = hot().getSelectedRangeLast().highlight;
+
+      expect(finalHighlight.row).toBe(4);
+      expect(finalHighlight.col).toBe(2);
+    });
+
+    it('should keep the focus/active cell stable when growing the selection via the end handle', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        selectionHandles: true,
+        selectionMode: 'multiple',
+        width: 500,
+        height: 400,
+      });
+
+      // selectCells([[2, 2, 5, 5]]) — focus starts at (2, 2).
+      await selectCells([[2, 2, 5, 5]]);
+
+      const initialHighlight = hot().getSelectedRangeLast().highlight;
+
+      expect(initialHighlight.row).toBe(2);
+      expect(initialHighlight.col).toBe(2);
+
+      await mouseOver(getCell(3, 3));
+
+      const endHandle = getHandle('end');
+
+      expect(endHandle).not.toBeNull();
+
+      const handleRect = endHandle.getBoundingClientRect();
+      // Drag the end handle right to col 8, growing the selection rightward.
+      const targetCell = getCell(3, 8);
+      const targetRect = targetCell.getBoundingClientRect();
+
+      $(endHandle).simulate('mousedown', {
+        clientX: handleRect.left + (handleRect.width / 2),
+        clientY: handleRect.top + (handleRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mouseup');
+
+      // Focus must stay at (2, 2) — it must not jump to the anchor corner (2, 2 or 5, 2).
+      const finalHighlight = hot().getSelectedRangeLast().highlight;
+
+      expect(finalHighlight.row).toBe(2);
+      expect(finalHighlight.col).toBe(2);
+    });
   });
 });

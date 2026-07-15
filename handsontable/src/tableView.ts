@@ -202,8 +202,10 @@ class TableView {
    * State of an in-progress selection-handle drag. Null when no drag is active.
    * `fromRow`, `toRow`, `fromCol`, `toCol` are the normalized original selection corners
    * (from <= to on each axis) captured at drag-start to preserve the non-dragged axis span.
+   * `focusRow` and `focusCol` are the original focus/active cell coordinates captured at drag-start
+   * so the focus can be preserved (clamped into the new range) throughout the resize.
    *
-   * @type {{ edge: HandleEdge, fromRow: number, toRow: number, fromCol: number, toCol: number, targetLayer: number } | null}
+   * @type {{ edge: HandleEdge, fromRow: number, toRow: number, fromCol: number, toCol: number, targetLayer: number, focusRow: number, focusCol: number } | null}
    */
   #adjustDrag: {
     edge: HandleEdge;
@@ -212,6 +214,8 @@ class TableView {
     fromCol: number;
     toCol: number;
     targetLayer: number;
+    focusRow: number;
+    focusCol: number;
   } | null = null;
   /**
    * Bound document-level listeners installed for the duration of a handle drag. Stored
@@ -2322,7 +2326,13 @@ class TableView {
     const fromCol = Math.min(from.col ?? 0, to.col ?? 0);
     const toCol = Math.max(from.col ?? 0, to.col ?? 0);
 
-    this.#adjustDrag = { edge, fromRow, toRow, fromCol, toCol, targetLayer };
+    // Capture the original focus (active cell) so it can be preserved throughout the resize.
+    // Fall back to the top-start corner if highlight is somehow null.
+    const focus = targetRange.highlight;
+    const focusRow = focus?.row ?? fromRow;
+    const focusCol = focus?.col ?? fromCol;
+
+    this.#adjustDrag = { edge, fromRow, toRow, fromCol, toCol, targetLayer, focusRow, focusCol };
 
     const { documentElement } = this.hot.rootDocument;
 
@@ -2345,6 +2355,9 @@ class TableView {
    * clamps the dragged edge index with {@link clampEdge} to prevent flipping, then rebuilds
    * the selection range from the stored anchor to the new dragged corner.
    *
+   * The focus/active cell is preserved from the original selection (captured at drag-start)
+   * and clamped into the new range boundaries if the resize would push it outside.
+   *
    * @private
    * @param {MouseEvent} event The mousemove event.
    */
@@ -2353,7 +2366,7 @@ class TableView {
       return;
     }
 
-    const { edge, fromRow, toRow, fromCol, toCol, targetLayer } = this.#adjustDrag;
+    const { edge, fromRow, toRow, fromCol, toCol, targetLayer, focusRow, focusCol } = this.#adjustDrag;
     const { clientX, clientY } = event;
     const cellCoords = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
     const targetRow = cellCoords.row!;
@@ -2400,8 +2413,18 @@ class TableView {
       return;
     }
 
+    // Clamp the original focus into the new range so it stays inside without jumping
+    // to the anchor corner. When the resize shrinks the range past the focus, the focus
+    // snaps to the nearest edge of the new range instead of teleporting to a corner.
+    const rowMin = Math.min(anchorCoords.row!, newCoords.row!);
+    const rowMax = Math.max(anchorCoords.row!, newCoords.row!);
+    const colMin = Math.min(anchorCoords.col!, newCoords.col!);
+    const colMax = Math.max(anchorCoords.col!, newCoords.col!);
+    const clampedFocusRow = Math.min(Math.max(focusRow, rowMin), rowMax);
+    const clampedFocusCol = Math.min(Math.max(focusCol, colMin), colMax);
+
     targetRange.setFrom(anchorCoords);
-    targetRange.setHighlight(anchorCoords.clone());
+    targetRange.setHighlight(this.hot._createCellCoords(clampedFocusRow, clampedFocusCol));
     this.hot.selection.setRangeEnd(newCoords, targetLayer);
   }
 
