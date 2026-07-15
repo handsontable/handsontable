@@ -203,6 +203,12 @@ export class TrimRows extends BasePlugin {
     this.trimmedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap('trimRows', 'trimming');
     this.trimmedRowsMap!.addLocalHook('init', this.#onMapInit);
 
+    // `createAndRegisterIndexMap` initializes the map synchronously when the dataset is already
+    // loaded (a plugin re-enable), before the hook above could attach - replay the init handler.
+    if (this.hot.rowIndexMapper.getNumberOfIndexes() > 0) {
+      this.#onMapInit();
+    }
+
     super.enablePlugin();
   }
 
