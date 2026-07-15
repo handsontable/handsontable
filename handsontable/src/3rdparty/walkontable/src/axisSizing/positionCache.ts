@@ -3,6 +3,7 @@ export interface PositionCacheConfig {
   sizeFn: (index: number) => number;
   defaultSizeFn: () => number;
   isUniformFn?: () => boolean;
+  sparseExceptionsFn?: () => Record<number, number | undefined> | null;
   onBuildFn?: () => void;
 }
 
@@ -59,6 +60,16 @@ export class PositionCache {
    */
   readonly #isUniformFn?: () => boolean;
   /**
+   * Optional provider of "sparse exceptions": a record of per-index size overrides on top of an
+   * otherwise uniform base size (e.g. `wtViewport.oversizedRows` when the size source itself is
+   * uniform). When it returns a record, the cache builds in sparse mode — O(exceptions) instead of
+   * O(totalItems) — storing only the overrides and computing every other offset arithmetically.
+   * Return `null` whenever the base sizes are not uniform (per-item size settings or hooks exist).
+   *
+   * @type {Function|undefined}
+   */
+  readonly #sparseExceptionsFn?: () => Record<number, number | undefined> | null;
+  /**
    * Optional callback invoked whenever the cache is (re)built, in either mode. Lets the owner
    * record the context the sizes were read in (e.g. which row carried the first-rendered-row
    * border compensation at build time).
@@ -73,6 +84,33 @@ export class PositionCache {
    * @type {number|null}
    */
   #uniformSize: number | null = null;
+  /**
+   * The base size shared by every non-exception item when the cache is in sparse mode.
+   * `null` in every other mode.
+   *
+   * @type {number|null}
+   */
+  #sparseBase: number | null = null;
+  /**
+   * Sorted item indexes that override the sparse base size. Populated only in sparse mode.
+   *
+   * @type {Float64Array|null}
+   */
+  #sparseIndexes: Float64Array | null = null;
+  /**
+   * Prefix sums of the exceptions' size deltas against the base: `#sparseDeltaPrefix[j]` is the
+   * summed extra size of the first `j` exceptions. One element longer than `#sparseIndexes`.
+   * Populated only in sparse mode.
+   *
+   * @type {Float64Array|null}
+   */
+  #sparseDeltaPrefix: Float64Array | null = null;
+  /**
+   * Exception sizes keyed by item index, for O(1) single-item reads in sparse mode.
+   *
+   * @type {Map<number, number>|null}
+   */
+  #sparseSizes: Map<number, number> | null = null;
   /**
    * Whether the cache has been built in either mode (prefix-sum or uniform). Tracked separately
    * from `prefixSum` because uniform mode keeps `prefixSum` as `null`.
@@ -89,11 +127,14 @@ export class PositionCache {
    *   that return NaN/undefined.
    * @param {Function} [config.isUniformFn] Optional predicate; when `true`, all items share one size.
    */
-  constructor({ totalItemsFn, sizeFn, defaultSizeFn, isUniformFn, onBuildFn }: PositionCacheConfig) {
+  constructor({
+    totalItemsFn, sizeFn, defaultSizeFn, isUniformFn, sparseExceptionsFn, onBuildFn,
+  }: PositionCacheConfig) {
     this.#totalItemsFn = totalItemsFn;
     this.#sizeFn = sizeFn;
     this.#defaultSizeFn = defaultSizeFn;
     this.#isUniformFn = isUniformFn;
+    this.#sparseExceptionsFn = sparseExceptionsFn;
     this.#onBuildFn = onBuildFn;
   }
 
@@ -110,6 +151,10 @@ export class PositionCache {
     this.totalItems = totalItems;
     this.#built = true;
     this.#onBuildFn?.();
+    this.#sparseBase = null;
+    this.#sparseIndexes = null;
+    this.#sparseDeltaPrefix = null;
+    this.#sparseSizes = null;
 
     if (this.#isUniformFn?.()) {
       // Sample the LAST item, never the first rendered one: `getDefaultRowHeight` adds a 1px
@@ -124,6 +169,15 @@ export class PositionCache {
     }
 
     this.#uniformSize = null;
+
+    const exceptions = this.#sparseExceptionsFn?.();
+
+    if (exceptions) {
+      this.#buildSparse(exceptions, totalItems, defaultSize);
+
+      return;
+    }
+
     this.prefixSum = new Float64Array(totalItems + 1);
     this.prefixSum[0] = 0;
 
@@ -132,6 +186,82 @@ export class PositionCache {
 
       this.prefixSum[i + 1] = this.prefixSum[i] + (isNaN(s) ? defaultSize : s);
     }
+  }
+
+  /**
+   * Builds the cache in sparse mode: a uniform base size plus per-index overrides. Costs
+   * O(exceptions log exceptions), independent of the total item count, and allocates arrays
+   * sized by the exception count only — at 1M uniform rows with a few thousand DOM-measured
+   * oversized rows this replaces a 1M-iteration loop and an 8 MB allocation per rebuild.
+   *
+   * @param {Record<number, number|undefined>} exceptions Per-index size overrides.
+   * @param {number} totalItems The total item count read at build time.
+   * @param {number} defaultSize The default item size read at build time.
+   */
+  #buildSparse(exceptions: Record<number, number | undefined>, totalItems: number, defaultSize: number) {
+    const sizes = new Map<number, number>();
+
+    for (const key of Object.keys(exceptions)) {
+      const index = Number(key);
+      const size = exceptions[index];
+
+      // Skip wiped records and records of items that no longer exist (item count shrank).
+      if (size !== undefined && index >= 0 && index < totalItems) {
+        sizes.set(index, size);
+      }
+    }
+
+    const indexes = Float64Array.from(sizes.keys()).sort();
+
+    // Sample the base from the LAST non-exception item, mirroring the uniform-mode rule (the
+    // first rendered item carries a +1px border compensation, so never sample near the viewport
+    // start). Walk past trailing exception items; with every item excepted, fall back to the
+    // default size.
+    let sampleIndex = totalItems - 1;
+
+    while (sampleIndex >= 0 && sizes.has(sampleIndex)) {
+      sampleIndex -= 1;
+    }
+
+    const sampled = sampleIndex >= 0 ? this.#sizeFn(sampleIndex) : NaN;
+    const base = isNaN(sampled) ? defaultSize : sampled;
+    const deltaPrefix = new Float64Array(indexes.length + 1);
+
+    for (let j = 0; j < indexes.length; j++) {
+      deltaPrefix[j + 1] = deltaPrefix[j] + (sizes.get(indexes[j])! - base);
+    }
+
+    this.#sparseBase = base;
+    this.#sparseIndexes = indexes;
+    this.#sparseDeltaPrefix = deltaPrefix;
+    this.#sparseSizes = sizes;
+    this.prefixSum = null;
+  }
+
+  /**
+   * Returns how many exception indexes are smaller than the given index (sparse mode only) —
+   * the position in `#sparseDeltaPrefix` holding their summed deltas. Binary search, O(log k).
+   *
+   * @param {number} index The exclusive upper bound item index.
+   * @returns {number} The number of exceptions below the index.
+   */
+  #countExceptionsBelow(index: number): number {
+    const indexes = this.#sparseIndexes!;
+    let lo = 0;
+    let hi = indexes.length;
+
+    while (lo < hi) {
+      // eslint-disable-next-line no-bitwise
+      const mid = (lo + hi) >>> 1;
+
+      if (indexes[mid] < index) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+
+    return lo;
   }
 
   /**
@@ -147,6 +277,16 @@ export class PositionCache {
       }
 
       return Math.min(index, this.totalItems) * this.#uniformSize;
+    }
+
+    if (this.#sparseBase !== null) {
+      if (index <= 0) {
+        return 0;
+      }
+
+      const clamped = Math.min(index, this.totalItems);
+
+      return (clamped * this.#sparseBase) + this.#sparseDeltaPrefix![this.#countExceptionsBelow(clamped)];
     }
 
     if (!this.prefixSum || index <= 0) {
@@ -173,6 +313,29 @@ export class PositionCache {
       }
 
       return Math.min(Math.floor(offset / this.#uniformSize), this.totalItems - 1);
+    }
+
+    if (this.#sparseBase !== null) {
+      if (offset <= 0 || this.totalItems === 0) {
+        return 0;
+      }
+
+      // Same semantics as the prefix-sum branch below, expressed over `getOffset` (O(log n log k)).
+      let sparseLo = 0;
+      let sparseHi = this.totalItems;
+
+      while (sparseLo < sparseHi) {
+        // eslint-disable-next-line no-bitwise
+        const mid = (sparseLo + sparseHi) >>> 1;
+
+        if (this.getOffset(mid + 1) <= offset) {
+          sparseLo = mid + 1;
+        } else {
+          sparseHi = mid;
+        }
+      }
+
+      return Math.min(sparseLo, this.totalItems - 1);
     }
 
     if (!this.isBuilt() || offset <= 0 || this.totalItems === 0) {
@@ -211,6 +374,10 @@ export class PositionCache {
       return this.#uniformSize;
     }
 
+    if (this.#sparseBase !== null) {
+      return this.#sparseSizes!.get(index) ?? this.#sparseBase;
+    }
+
     if (!this.prefixSum) {
       return 0;
     }
@@ -238,6 +405,11 @@ export class PositionCache {
       return this.totalItems * this.#uniformSize;
     }
 
+    if (this.#sparseBase !== null) {
+      return (this.totalItems * this.#sparseBase) +
+        this.#sparseDeltaPrefix![this.#sparseDeltaPrefix!.length - 1];
+    }
+
     if (!this.prefixSum) {
       return 0;
     }
@@ -252,6 +424,10 @@ export class PositionCache {
   invalidate() {
     this.prefixSum = null;
     this.#uniformSize = null;
+    this.#sparseBase = null;
+    this.#sparseIndexes = null;
+    this.#sparseDeltaPrefix = null;
+    this.#sparseSizes = null;
     this.#built = false;
     this.totalItems = 0;
   }

@@ -235,6 +235,12 @@ class Viewport {
       // oversized rows. Any of these invalidates the cache, so the next build re-evaluates this.
       isUniformFn: () => rowSizeSource.isUniform() &&
         Object.keys(this.oversizedRows).length === 0,
+      // Sparse fast path: when the provided heights are uniform but walkontable HAS measured
+      // oversized rows, those records are the only deviations from the default height — the cache
+      // stores just them and rebuilds in O(oversized rows) instead of walking all `totalRows`
+      // (a scroll into unmeasured territory rebuilds on every band change). With per-row heights
+      // or a `modifyRowHeight` hook this returns `null` and the full prefix-sum walk runs.
+      sparseExceptionsFn: () => (rowSizeSource.isUniform() ? this.oversizedRows : null),
       onBuildFn: () => {
         this.#rowFirstRenderedAtBuild = wtTable.getFirstRenderedRow();
       },
