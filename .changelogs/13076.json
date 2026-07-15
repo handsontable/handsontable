@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `selectionHandles` option, which shows draggable handles at each edge midpoint of a selected range, letting users resize the selection by dragging.",
+  "type": "added",
+  "issueOrPR": 13076,
+  "breaking": false,
+  "framework": "none"
+}
