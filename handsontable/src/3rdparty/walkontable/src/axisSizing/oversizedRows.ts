@@ -243,9 +243,15 @@ export function markOversizedRows(table: Table, wipedOversizedRows?: Map<number,
 
       wtViewport.oversizedRows[sourceRowIndex] = rowCurrentHeight;
 
+      const wipedHeight = wipedOversizedRows?.get(sourceRowIndex);
+
       // Re-detecting the height that was already recorded before this render is not a change —
-      // the row-height cache still holds the correct value.
-      if (wipedOversizedRows?.get(sourceRowIndex) !== rowCurrentHeight) {
+      // the row-height cache still holds the correct value. A ±1px difference is the
+      // first-rendered-row border compensation flipping as the band boundary moves (the same
+      // row measures 1px taller while it is the band's first <tr>, see the `tr:first-child`
+      // compensation above); `Viewport#sumRowHeights` re-reads the boundary rows live for
+      // exactly this reason, so it is measurement noise, not a content change.
+      if (wipedHeight === undefined || Math.abs(rowCurrentHeight - wipedHeight) > 1) {
         hasChanges = true;
       }
 
