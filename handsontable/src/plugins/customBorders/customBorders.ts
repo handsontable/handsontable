@@ -24,7 +24,7 @@ import {
   normalizeBorder,
   denormalizeBorder,
 } from './utils';
-import type { BorderSettings, BorderObject, CustomBorderConfig } from './utils';
+import type { BorderSettings, BorderObject, CustomBorderConfig, BordersCellProperties } from './utils';
 import { detectSelectionType, normalizeSelectionFactory } from '../../selection';
 import { isDefined } from '../../helpers/mixed';
 import type { HotInstance } from '../../core/types';
@@ -530,7 +530,7 @@ export class CustomBorders extends BasePlugin {
    * @param {boolean} remove True when remove borders, and false when add borders.
    */
   setBorder(row: number, column: number, place: string, remove: boolean | undefined) {
-    const meta = this.hot.getCellMeta(row, column).borders;
+    const meta = this.hot.getCellMeta<BordersCellProperties>(row, column).borders;
     let bordersMeta: BorderObject;
 
     if (isBorderObject(meta)) {

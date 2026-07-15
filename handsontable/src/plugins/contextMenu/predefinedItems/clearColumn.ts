@@ -40,7 +40,7 @@ export default function clearColumnItem() {
           return true;
         }
 
-        const { readOnly } = this.getCellMeta(row, col);
+        const { readOnly } = this.getCellMetaTransient(row, col);
 
         if (!readOnly) {
           atLeastOneNonReadOnly = true;

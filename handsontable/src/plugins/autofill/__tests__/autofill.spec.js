@@ -480,6 +480,30 @@ describe('AutoFill', () => {
     expect(getDataAtCell(3, 2)).toEqual(3);
   });
 
+  it('should not permanently retain a cell meta object for every cell filled by a fill-down', async() => {
+    const rows = [];
+
+    for (let i = 0; i < 200; i++) {
+      rows.push([`a${i}`, i === 0 ? 'x' : null]);
+    }
+
+    const hot = handsontable({
+      data: rows,
+      width: 300,
+      height: 150,
+    });
+
+    await selectCell(0, 1);
+
+    const fillHandle = spec().$container.find('.wtBorder.current.corner')[0];
+    const retainedBefore = hot.getCellsMeta().length;
+
+    await mouseDoubleClick(fillHandle); // fills B2:B200, mostly off-screen
+
+    expect(getDataAtCell(199, 1)).toBe('x');
+    expect(hot.getCellsMeta().length).toBe(retainedBefore);
+  });
+
   // https://github.com/handsontable/dev-handsontable/issues/1757
   it('should fill empty cells below until the end of content in the neighbouring column with current cell\'s data' +
     'and NOT treat cells filled with 0s as empty', async() => {

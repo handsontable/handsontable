@@ -872,3 +872,29 @@ const _strippedTypedConfig: _StrippedGridSettings = {
   readOnly: true,
   className: 'foo',
 };
+
+// DEV-2056 regression: `ColumnSettings` derives from `Omit<RemoveIndexSignature<GridSettings>, 'data'>`
+// (NOT from `GridSettings` directly), so named options keep their real declared types through
+// `ColumnSettings`, `CellMeta`, and `CellProperties` instead of collapsing into the index-signature
+// `any`. Renderers and plugins read these options straight off `CellProperties` — no local
+// re-declaration (like the removed `CheckboxCellProperties`) is needed.
+declare const _cellPropsForNamedOptions: Handsontable.CellProperties;
+// `checkedTemplate` is declared `unknown` on `GridSettings` — an `any` read would let this compile.
+// @ts-expect-error `checkedTemplate` resolves to `unknown`, not `any` — no arithmetic on it.
+const _checkedTemplateIsUnknown: number = _cellPropsForNamedOptions.checkedTemplate + 1;
+// @ts-expect-error `readOnly` is `boolean`, not `string`, when read through `CellProperties`.
+const _cellPropsReadOnlyTyped: string = _cellPropsForNamedOptions.readOnly;
+// The `source` option keeps its declared union type through the chain.
+const _cellPropsSourceTyped: unknown[] | ((query: string, callback: (items: unknown[]) => void) => void) | undefined =
+  _cellPropsForNamedOptions.source;
+
+// `sourceDataValidator` is a public option and is declared on `GridSettings` (with its
+// `rowIndependent` batching flag), so validators typed against the documented signature compile.
+const _sourceDataValidatorTyped: Handsontable.GridSettings = {
+  sourceDataWarningMessage: 'The source data is invalid.',
+  sourceDataValidator: (value, cellMeta) => cellMeta.allowEmpty === true || typeof value === 'string',
+};
+const _sourceDataValidatorBadReturn: Handsontable.GridSettings = {
+  // @ts-expect-error the validator must return `boolean`, not `string`.
+  sourceDataValidator: () => 'yes',
+};

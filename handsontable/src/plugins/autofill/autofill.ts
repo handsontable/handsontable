@@ -1,5 +1,6 @@
 import type { default as CellCoords } from '../../3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from '../../3rdparty/walkontable/src/cell/range';
+import type { CellProperties } from '../../settings';
 import { BasePlugin } from '../base';
 import { Hooks } from '../../core/hooks';
 import { offset, outerHeight, outerWidth } from '../../helpers/dom/element';
@@ -19,6 +20,15 @@ export const PLUGIN_PRIORITY = 20;
 const SETTING_KEY = 'fillHandle';
 const INSERT_ROW_ALTER_ACTION_NAME = 'insert_row_below';
 const INTERVAL_FOR_ADDING_ROW = 200;
+
+/**
+ * Cell meta shape read by autofill. The `source` option is typed by `CellProperties` itself;
+ * `_complexDataFormat` is a private plugin key with no public declaration, typed here so its
+ * reads are `unknown` rather than the index-signature `any`.
+ */
+interface AutofillCellProperties extends CellProperties {
+  _complexDataFormat?: unknown;
+}
 
 /**
  * This plugin provides "drag-down" and "copy-down" functionalities, both operated using the small square in the right
@@ -787,7 +797,9 @@ export class Autofill extends BasePlugin {
         columnIndex += 1
       ) {
         const targetCellSourceData = this.hot.getSourceDataAtCell(rowIndex, columnIndex);
-        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex);
+        // The transient read keeps a large drag-fill or fill-down from permanently materializing
+        // one meta object per filled cell - the loop only reads `source`/`_complexDataFormat`.
+        const cellMeta = this.hot.getCellMetaTransient<AutofillCellProperties>(rowIndex, columnIndex);
         const cellSource = cellMeta.source;
         const cellSourceFirstItem: unknown = Array.isArray(cellSource) ? cellSource[0] : undefined;
         const isComplexDataFormatCell =

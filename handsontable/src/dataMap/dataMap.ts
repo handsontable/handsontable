@@ -1,4 +1,5 @@
 import type { HotInstance } from '../core/types';
+import type { default as MetaManager } from './metaManager';
 import { stringify } from '../3rdparty/SheetClip';
 import {
   countFirstRowKeys
@@ -18,18 +19,6 @@ import { rangeEach, isUnsignedNumber } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
 import { getValueGetterValue } from '../utils/valueAccessors';
 import { throwWithCause } from '../helpers/errors';
-
-/**
- * Represents the MetaManager dependency shape used by DataMap.
- */
-interface MetaManagerLike {
-  getTableMeta(): Record<string, unknown>;
-  createRow(physicalIndex: number | null, amount: number): void;
-  createColumn(physicalIndex: number | null, amount: number): void;
-  removeRow(physicalIndex: number, amount: number): void;
-  removeColumn(physicalIndex: number, amount: number): void;
-  getCellMeta(physicalRow: number, physicalColumn: number, options?: object): Record<string, unknown>;
-}
 
 /*
 This class contains open-source contributions covered by the MIT license.
@@ -90,7 +79,7 @@ class DataMap {
    * @private
    * @type {MetaManager}
    */
-  declare metaManager: MetaManagerLike | null;
+  declare metaManager: MetaManager | null;
   /**
    * Instance of {@link TableMeta}.
    *
@@ -139,7 +128,7 @@ class DataMap {
    * @param {Array} data Array of arrays or array of objects containing data.
    * @param {MetaManager} metaManager The meta manager instance.
    */
-  constructor(hotInstance: HotInstance, data: (Record<string, unknown> | unknown[])[], metaManager: MetaManagerLike) {
+  constructor(hotInstance: HotInstance, data: (Record<string, unknown> | unknown[])[], metaManager: MetaManager) {
     this.hot = hotInstance;
     this.metaManager = metaManager;
     this.tableMeta = metaManager.getTableMeta();
@@ -859,13 +848,15 @@ class DataMap {
       ? this.hot!.toPhysicalColumn(visualColumnIndex)
       : null;
 
-    if (isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
+    if (typeof visualColumnIndex === 'number' && isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
+      // The uncached read returns the stored meta when the cell carries persisted overrides and a
+      // transient object otherwise - a plain data read must not permanently materialize one meta
+      // object per visited cell (a full-table scan such as sorting would retain O(rows) of them).
       value = getValueGetterValue(
         value,
-        this.metaManager!.getCellMeta(physicalRow, physicalColumn, {
+        this.metaManager!.getCellMetaUncached(physicalRow, physicalColumn, {
           visualRow: row,
           visualColumn: visualColumnIndex,
-          skipMetaExtension: true
         })
       );
     }
@@ -893,7 +884,10 @@ class DataMap {
   getCopyable(row: number, prop: string | number) {
     const colIndex = this.propToCol(prop);
 
-    if (typeof colIndex === 'number' && this.hot!.getCellMeta(row, colIndex).copyable) {
+    // The transient read honors a `cells()`-driven `copyable: false` (the dynamic extension
+    // runs) without permanently materializing one meta object per copied cell - the copy path
+    // walks the whole copied range through this method.
+    if (typeof colIndex === 'number' && this.hot!.getCellMetaTransient(row, colIndex).copyable) {
       return this.get(row, prop);
     }
 

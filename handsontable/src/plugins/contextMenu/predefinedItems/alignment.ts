@@ -44,12 +44,12 @@ export default function alignmentItem() {
           callback(this: HotInstance) {
             const selectedRange = this.getSelectedRange() ?? [];
             const stateBefore = getAlignmentClasses(selectedRange,
-              (row: number, col: number) => this.getCellMeta(row, col).className as string);
+              (row: number, col: number) => this.getCellMetaTransient(row, col).className as string);
             const type = 'horizontal';
             const alignment = 'htLeft';
 
             this.runHooks('beforeCellAlignment', stateBefore, selectedRange, type, alignment);
-            align(selectedRange, type, alignment, (row: number, col: number) => this.getCellMeta(row, col),
+            align(selectedRange, type, alignment, (row: number, col: number) => this.getCellMetaTransient(row, col),
               (row: number, col: number, key: string, value: string) => this.setCellMeta(row, col, key, value));
             this.render();
           },
@@ -63,12 +63,12 @@ export default function alignmentItem() {
           callback(this: HotInstance) {
             const selectedRange = this.getSelectedRange() ?? [];
             const stateBefore = getAlignmentClasses(selectedRange,
-              (row: number, col: number) => this.getCellMeta(row, col).className as string);
+              (row: number, col: number) => this.getCellMetaTransient(row, col).className as string);
             const type = 'horizontal';
             const alignment = 'htCenter';
 
             this.runHooks('beforeCellAlignment', stateBefore, selectedRange, type, alignment);
-            align(selectedRange, type, alignment, (row: number, col: number) => this.getCellMeta(row, col),
+            align(selectedRange, type, alignment, (row: number, col: number) => this.getCellMetaTransient(row, col),
               (row: number, col: number, key: string, value: string) => this.setCellMeta(row, col, key, value));
             this.render();
           },
@@ -82,12 +82,12 @@ export default function alignmentItem() {
           callback(this: HotInstance) {
             const selectedRange = this.getSelectedRange() ?? [];
             const stateBefore = getAlignmentClasses(selectedRange,
-              (row: number, col: number) => this.getCellMeta(row, col).className as string);
+              (row: number, col: number) => this.getCellMetaTransient(row, col).className as string);
             const type = 'horizontal';
             const alignment = 'htRight';
 
             this.runHooks('beforeCellAlignment', stateBefore, selectedRange, type, alignment);
-            align(selectedRange, type, alignment, (row: number, col: number) => this.getCellMeta(row, col),
+            align(selectedRange, type, alignment, (row: number, col: number) => this.getCellMetaTransient(row, col),
               (row: number, col: number, key: string, value: string) => this.setCellMeta(row, col, key, value));
             this.render();
           },
@@ -101,12 +101,12 @@ export default function alignmentItem() {
           callback(this: HotInstance) {
             const selectedRange = this.getSelectedRange() ?? [];
             const stateBefore = getAlignmentClasses(selectedRange,
-              (row: number, col: number) => this.getCellMeta(row, col).className as string);
+              (row: number, col: number) => this.getCellMetaTransient(row, col).className as string);
             const type = 'horizontal';
             const alignment = 'htJustify';
 
             this.runHooks('beforeCellAlignment', stateBefore, selectedRange, type, alignment);
-            align(selectedRange, type, alignment, (row: number, col: number) => this.getCellMeta(row, col),
+            align(selectedRange, type, alignment, (row: number, col: number) => this.getCellMetaTransient(row, col),
               (row: number, col: number, key: string, value: string) => this.setCellMeta(row, col, key, value));
             this.render();
           },
@@ -123,12 +123,12 @@ export default function alignmentItem() {
           callback(this: HotInstance) {
             const selectedRange = this.getSelectedRange() ?? [];
             const stateBefore = getAlignmentClasses(selectedRange,
-              (row: number, col: number) => this.getCellMeta(row, col).className as string);
+              (row: number, col: number) => this.getCellMetaTransient(row, col).className as string);
             const type = 'vertical';
             const alignment = 'htTop';
 
             this.runHooks('beforeCellAlignment', stateBefore, selectedRange, type, alignment);
-            align(selectedRange, type, alignment, (row: number, col: number) => this.getCellMeta(row, col),
+            align(selectedRange, type, alignment, (row: number, col: number) => this.getCellMetaTransient(row, col),
               (row: number, col: number, key: string, value: string) => this.setCellMeta(row, col, key, value));
             this.render();
           },
@@ -142,12 +142,12 @@ export default function alignmentItem() {
           callback(this: HotInstance) {
             const selectedRange = this.getSelectedRange() ?? [];
             const stateBefore = getAlignmentClasses(selectedRange,
-              (row: number, col: number) => this.getCellMeta(row, col).className as string);
+              (row: number, col: number) => this.getCellMetaTransient(row, col).className as string);
             const type = 'vertical';
             const alignment = 'htMiddle';
 
             this.runHooks('beforeCellAlignment', stateBefore, selectedRange, type, alignment);
-            align(selectedRange, type, alignment, (row: number, col: number) => this.getCellMeta(row, col),
+            align(selectedRange, type, alignment, (row: number, col: number) => this.getCellMetaTransient(row, col),
               (row: number, col: number, key: string, value: string) => this.setCellMeta(row, col, key, value));
             this.render();
           },
@@ -161,12 +161,12 @@ export default function alignmentItem() {
           callback(this: HotInstance) {
             const selectedRange = this.getSelectedRange() ?? [];
             const stateBefore = getAlignmentClasses(selectedRange,
-              (row: number, col: number) => this.getCellMeta(row, col).className as string);
+              (row: number, col: number) => this.getCellMetaTransient(row, col).className as string);
             const type = 'vertical';
             const alignment = 'htBottom';
 
             this.runHooks('beforeCellAlignment', stateBefore, selectedRange, type, alignment);
-            align(selectedRange, type, alignment, (row: number, col: number) => this.getCellMeta(row, col),
+            align(selectedRange, type, alignment, (row: number, col: number) => this.getCellMetaTransient(row, col),
               (row: number, col: number, key: string, value: string) => this.setCellMeta(row, col, key, value));
             this.render();
           },

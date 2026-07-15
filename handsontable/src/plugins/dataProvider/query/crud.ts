@@ -368,7 +368,7 @@ export function filterChangesForBatchedServerUpdate(
       return false;
     }
 
-    return hot.getCellMeta(c[0], col).valid !== false;
+    return hot.getCellMetaTransient(c[0], col).valid !== false;
   });
 }
 

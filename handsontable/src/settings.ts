@@ -53,7 +53,7 @@ export type ChangeSource = 'auto' | 'edit' | 'loadData' | 'updateData' | 'popula
   'CopyPaste.paste' | 'CopyPaste.cut' | 'UndoRedo.redo' | 'UndoRedo.undo' | 'ColumnSummary.set' |
   'ColumnSummary.reset' | 'DataProvider.revert';
 
-export type { GridSettings } from './core/settings';
+export type { GridSettings, SourceDataValidatorFn } from './core/settings';
 
 /**
  * Removes the `[key: string]: any` / `[key: number]: any` index signature from a type while keeping
@@ -70,15 +70,23 @@ export type RemoveIndexSignature<T> = {
 
 /**
  * Column settings inherit grid settings but overload the meaning of `data` to be specific to each column.
+ *
+ * The base type is `RemoveIndexSignature<GridSettings>`, not `GridSettings` itself: `Omit` over a type
+ * with a string index signature collapses every named option into the bare signature (all reads become
+ * `any`, autocomplete disappears). Stripping first keeps each option's real type — `readOnly` resolves
+ * to `boolean`, `checkedTemplate` to `unknown`, and so on — through `ColumnSettings`, `CellMeta`, and
+ * `CellProperties`. The `_strippedWidthTyped`/`_columnNamedOptionsTyped` type tests guard this.
  */
-export interface ColumnSettings extends Omit<GridSettings, 'data'> {
+export interface ColumnSettings extends Omit<RemoveIndexSignature<GridSettings>, 'data'> {
+  // Keeps column and cell meta extensible with arbitrary plugin keys. Declared here with the SAME
+  // value type as the `[key: string]: any` on `GridSettings` — the base signature no longer reaches
+  // this type once `RemoveIndexSignature` strips it. NOTE: never change this to `unknown`; two
+  // signatures with different value types in one prototype chain make TypeScript drop the `this`
+  // binding on nested `handsontable.getValue` — contextual typing widens `this` to `{}`. The
+  // `_hotColumnGetValueFn` type test guards against that.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  [key: string]: any;
   data?: string | number | ColumnDataGetterSetterFunction;
-
-  // NOTE: do not add a `[key: string]: unknown` index signature here. Column and cell meta is already
-  // extensible with arbitrary keys through the `[key: string]: any` signature inherited from
-  // `GridSettings`. A second index signature with a different value type (`unknown` vs the inherited
-  // `any`) makes TypeScript drop the `this` binding on nested `handsontable.getValue` — contextual
-  // typing widens `this` to `{}`. The `_hotColumnGetValueFn` type test guards against re-adding it.
 }
 
 /**

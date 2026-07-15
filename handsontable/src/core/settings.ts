@@ -25,6 +25,17 @@ import type {
 import type { RangeType, HotInstance } from './types';
 
 /**
+ * The function shape of the `sourceDataValidator` option. Returns `true` when the value is valid.
+ * The optional `rowIndependent` flag marks a validator whose result depends only on the value and
+ * column/global-level meta, never on per-row meta - letting the source-data validation pass batch
+ * whole columns instead of scanning every cell.
+ */
+export type SourceDataValidatorFn = {
+  (value: CellValue, cellMeta: CellProperties, source?: string): boolean;
+  rowIndependent?: boolean;
+};
+
+/**
  * Grid settings interface representing all possible Handsontable configuration options.
  * Derived from the metaSchema factory in dataMap/metaManager/metaSchema.ts.
  */
@@ -100,6 +111,8 @@ export interface GridSettings {
   readOnly?: boolean;
   skipColumnOnPaste?: boolean;
   skipRowOnPaste?: boolean;
+  sourceDataValidator?: SourceDataValidatorFn;
+  sourceDataWarningMessage?: string;
   tabMoves?: { row: number; col: number } | ((event: KeyboardEvent) => { row: number; col: number });
   trimWhitespace?: boolean;
   undo?: boolean;

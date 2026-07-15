@@ -14,7 +14,7 @@ export default function readOnlyItem() {
     ariaChecked(this: HotInstance) {
       const atLeastOneReadOnly = checkSelectionConsistency(
         this.getSelectedRange() ?? [],
-        (row: number, col: number) => Boolean(this.getCellMeta(row, col).readOnly)
+        (row: number, col: number) => Boolean(this.getCellMetaTransient(row, col).readOnly)
       );
 
       return atLeastOneReadOnly;
@@ -28,7 +28,7 @@ export default function readOnlyItem() {
       let label = this.getTranslatedPhrase(C.CONTEXTMENU_ITEMS_READ_ONLY) as string;
       const atLeastOneReadOnly = checkSelectionConsistency(
         this.getSelectedRange() ?? [],
-        (row: number, col: number) => Boolean(this.getCellMeta(row, col).readOnly)
+        (row: number, col: number) => Boolean(this.getCellMetaTransient(row, col).readOnly)
       );
 
       if (atLeastOneReadOnly) {
@@ -41,7 +41,7 @@ export default function readOnlyItem() {
       const ranges = this.getSelectedRange() ?? [];
       const atLeastOneReadOnly = checkSelectionConsistency(
         ranges,
-        (row: number, col: number) => Boolean(this.getCellMeta(row, col).readOnly)
+        (row: number, col: number) => Boolean(this.getCellMetaTransient(row, col).readOnly)
       );
 
       for (const range of ranges) {

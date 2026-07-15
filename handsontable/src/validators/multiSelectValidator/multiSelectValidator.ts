@@ -38,8 +38,11 @@ export function multiSelectValidator(this: CellProperties, value: unknown, callb
 
   if (this.source) {
     if (typeof this.source === 'function') {
+      // For the multi-select cell type, the `source` function receives the ARRAY of selected
+      // values as its query - a different call contract than the string query declared on the
+      // `source` option (which is autocomplete-oriented), hence the two-step conversion.
       type SourceFn = (value: unknown[], fn: (source: unknown[]) => void) => void;
-      (this.source as SourceFn)(valueToValidate, process(valueToValidate, callback));
+      (this.source as unknown as SourceFn)(valueToValidate, process(valueToValidate, callback));
     } else {
       process(valueToValidate, callback)(this.source as unknown[]);
     }
