@@ -6,7 +6,6 @@ import { cellAccess, type CellAccess } from './cellAccess';
 import { domScaffold, type DomScaffold } from './domScaffold';
 import sizeGetters, { type SizeGetters } from '../axisSizing/sizeGetters';
 import viewportPredicates, { type ViewportPredicates } from './rangeQuery/viewportPredicates';
-import oversizedRows, { type OversizedRows } from '../axisSizing/oversizedRows';
 import {
   removeTextNodes,
 } from '../../../../helpers/dom/element';
@@ -403,10 +402,8 @@ mixin(Table, cellAccess);
 mixin(Table, domScaffold);
 mixin(Table, sizeGetters);
 mixin(Table, viewportPredicates);
-mixin(Table, oversizedRows);
 
 interface Table extends
-  RowRangeQuery, ColumnRangeQuery, CellAccess, DomScaffold, SizeGetters, ViewportPredicates,
-  OversizedRows {}
+  RowRangeQuery, ColumnRangeQuery, CellAccess, DomScaffold, SizeGetters, ViewportPredicates {}
 
 export default Table;

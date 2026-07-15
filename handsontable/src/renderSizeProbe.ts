@@ -5,7 +5,7 @@ import { innerHeight, outerHeight } from './helpers/dom/element';
  * A measurement-only ("shadow") probe of the rendered grid.
  *
  * The single-pass refactor moves content-driven size discovery out of the rendering engine. Today
- * Walkontable measures the rendered rows and headers mid-draw (`Table.markOversizedRows`,
+ * Walkontable measures the rendered rows and headers mid-draw (`markOversizedRows` (`axisSizing/oversizedRows`),
  * `Table.syncOversizedColumnHeadersWithDOM`) and re-runs its calculators in the same draw. The end
  * state supplies every size to the engine up front, so the engine renders once; whatever content
  * height cannot be known up front (wrapped cells and multi-line headers, with `AutoRowSize` off) is
@@ -92,7 +92,7 @@ export class RenderSizeProbe {
 
   /**
    * Measures every rendered row of one table body and stores the height under its source row index.
-   * The formula matches `Table.markOversizedRows`'s stored value exactly (a row with a row header is
+   * The formula matches `markOversizedRows` (`axisSizing/oversizedRows`)'s stored value exactly (a row with a row header is
    * measured from the TH; otherwise from the TR minus the content-box border, then the content-box
    * `+1` is folded back so the stored value equals the engine's).
    *
