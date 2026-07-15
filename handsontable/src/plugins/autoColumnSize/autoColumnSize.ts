@@ -550,7 +550,14 @@ export class AutoColumnSize extends BasePlugin {
       this.ghostTable.getWidths((visualColumn: number, width: number) => {
         const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
-        this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
+        // Skip no-op writes: every write emits a map-change event, and the map observer
+        // (see `enablePlugin`) invalidates the column-width position cache on each event —
+        // a full O(totalColumns) rebuild. Every render re-measures the visible columns
+        // (`forceFullRender` sets `overwriteCache`), so unchanged widths would otherwise
+        // rebuild that cache on every render of a wide grid.
+        if (this.columnWidthsMap.getValueAtIndex(physicalColumn) !== width) {
+          this.columnWidthsMap.setValueAtIndex(physicalColumn, width);
+        }
       });
     }, true);
   }
