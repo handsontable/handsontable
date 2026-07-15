@@ -89,10 +89,13 @@ export default function showRowItem(hiddenRowsPlugin: Record<string, Function>) 
         // Collect not trimmed rows if there are some hidden rows in the selection range.
         if (visualRowsInRange > renderedRowsInRange) {
           const physicalIndexesInRange = notTrimmedRowIndexes.slice(visualStartRow, visualEndRow + 1);
+          const hiddenPhysicalRowsLookup = new Set(hiddenPhysicalRows);
 
-          physicalRowIndexes.push(
-            ...physicalIndexesInRange.filter((physicalIndex: number) => hiddenPhysicalRows.includes(physicalIndex))
-          );
+          physicalIndexesInRange.forEach((physicalIndex: number) => {
+            if (hiddenPhysicalRowsLookup.has(physicalIndex)) {
+              physicalRowIndexes.push(physicalIndex);
+            }
+          });
         }
 
         // Handled row is the first rendered index and there are some visual indexes before it.

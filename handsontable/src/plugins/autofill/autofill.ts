@@ -230,17 +230,21 @@ export class Autofill extends BasePlugin {
     }]);
     const copyableRows: number[] = [];
     const copyableColumns: number[] = [];
+    const seenRows = new Set<number>();
+    const seenColumns = new Set<number>();
     const data: unknown[][] = [];
 
     arrayEach(copyableRanges, (range) => {
       for (let visualRow = range.startRow; visualRow <= range.endRow; visualRow += 1) {
-        if (copyableRows.indexOf(visualRow) === -1) {
+        if (!seenRows.has(visualRow)) {
+          seenRows.add(visualRow);
           copyableRows.push(visualRow);
         }
       }
 
       for (let visualColumn = range.startCol; visualColumn <= range.endCol; visualColumn += 1) {
-        if (copyableColumns.indexOf(visualColumn) === -1) {
+        if (!seenColumns.has(visualColumn)) {
+          seenColumns.add(visualColumn);
           copyableColumns.push(visualColumn);
         }
       }

@@ -342,6 +342,7 @@ export class ManualRowResize extends BasePlugin {
 
     if (this.hot.selection.isSelected() && isFullRowSelected) {
       const selectionRanges = this.hot.getSelectedRange() ?? [];
+      const seenRows = new Set<number>();
 
       arrayEach(selectionRanges, (selectionRange) => {
         const fromRow = (selectionRange as CellRange).getTopStartCorner().row;
@@ -353,7 +354,8 @@ export class ManualRowResize extends BasePlugin {
 
         // Add every selected row for resize action.
         rangeEach(fromRow, toRow, (rowIndex) => {
-          if (!this.#selectedRows.includes(rowIndex)) {
+          if (!seenRows.has(rowIndex)) {
+            seenRows.add(rowIndex);
             this.#selectedRows.push(rowIndex);
           }
         });

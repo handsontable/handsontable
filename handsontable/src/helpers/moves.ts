@@ -8,8 +8,9 @@
  * @returns {number} Index informing where to move the first element.
  */
 function getMoveLine(movedIndexes: number[], finalIndex: number, numberOfIndexes: number) {
+  const movedIndexesLookup = new Set(movedIndexes);
   const notMovedElements = Array.from(Array(numberOfIndexes).keys())
-    .filter(index => movedIndexes.includes(index) === false);
+    .filter(index => movedIndexesLookup.has(index) === false);
 
   if (finalIndex === 0) {
     return notMovedElements[finalIndex] ?? 0; // Moving before the first dataset's element.
