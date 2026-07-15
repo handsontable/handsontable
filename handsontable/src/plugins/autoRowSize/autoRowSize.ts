@@ -248,7 +248,10 @@ export class AutoRowSize extends BasePlugin {
     let cellMeta;
 
     if (row >= 0 && column >= 0) {
-      cellMeta = this.hot.getCellMeta(row, column);
+      // The transient read resolves the full dynamic meta (hooks + `cells`, so `hidden` from
+      // merged cells works) without storing anything - this sampler sweeps every row, and the
+      // eager `getCellMeta` would permanently materialize one meta per visited cell.
+      cellMeta = this.hot.getCellMetaTransient(row, column);
 
       if (cellMeta.hidden) {
         // do not generate samples for cells that are covered by merged cell (null values)
@@ -790,17 +793,15 @@ export class AutoRowSize extends BasePlugin {
    * recalculated on the next render.
    */
   #onBeforeChange = (changes: unknown[][]) => {
-    const changedRows = changes.reduce<number[]>((acc, [row]: unknown[]) => {
-      const rowIndex = Number(row);
+    const changedRows = new Set<number>();
 
-      if (acc.indexOf(rowIndex) === -1) {
-        acc.push(rowIndex);
-      }
+    changes.forEach(([row]: unknown[]) => {
+      changedRows.add(Number(row));
+    });
 
-      return acc;
-    }, [] as number[]);
-
-    this.#visualRowsToRefresh.push(...changedRows);
+    changedRows.forEach((rowIndex) => {
+      this.#visualRowsToRefresh.push(rowIndex);
+    });
   };
 
   /**

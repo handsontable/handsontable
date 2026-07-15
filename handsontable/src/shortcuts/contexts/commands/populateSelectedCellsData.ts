@@ -18,7 +18,7 @@ export const command = {
     for (let i = 0; i < selectedRange.length; i++) {
       selectedRange[i].forAll((row: number, column: number) => {
         if (row >= 0 && column >= 0 && (row !== highlightRow || column !== highlightColumn)) {
-          const { readOnly } = hot.getCellMeta(row, column);
+          const { readOnly } = hot.getCellMetaTransient(row, column);
 
           if (!readOnly) {
             cellValues.set(`${row}x${column}`, [row, column, valueToPopulate]);

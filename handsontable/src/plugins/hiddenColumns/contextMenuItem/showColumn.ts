@@ -89,9 +89,13 @@ export default function showColumnItem(hiddenColumnsPlugin: Record<string, Funct
         // Collect not trimmed columns if there are some hidden columns in the selection range.
         if (visualColumnsInRange > renderedColumnsInRange) {
           const physicalIndexesInRange = notTrimmedColumnIndexes.slice(visualStartColumn, visualEndColumn + 1);
+          const hiddenPhysicalColumnsLookup = new Set(hiddenPhysicalColumns);
 
-          physicalColumnIndexes.push(...physicalIndexesInRange
-            .filter((physicalIndex: number) => hiddenPhysicalColumns.includes(physicalIndex)));
+          physicalIndexesInRange.forEach((physicalIndex: number) => {
+            if (hiddenPhysicalColumnsLookup.has(physicalIndex)) {
+              physicalColumnIndexes.push(physicalIndex);
+            }
+          });
         }
 
       // Handled column is the first rendered index and there are some visual indexes before it.

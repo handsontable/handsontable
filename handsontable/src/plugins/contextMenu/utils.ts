@@ -188,7 +188,7 @@ export function getDocumentOffsetByElement(elementToCheck: HTMLElement, baseDocu
  */
 export function getAlignmentComparatorByClass(htClassName: string) {
   return function(this: HotInstance, row: number, col: number): boolean {
-    const className = this.getCellMeta(row, col).className as string | string[] | undefined;
+    const className = this.getCellMetaTransient(row, col).className as string | string[] | undefined;
 
     return Boolean(className && className.indexOf(htClassName) !== -1);
   };

@@ -343,6 +343,7 @@ export const getActiveEditor = handsontableMethodFactory('getActiveEditor');
 export const getCell = handsontableMethodFactory('getCell');
 export const getCellEditor = handsontableMethodFactory('getCellEditor');
 export const getCellMeta = handsontableMethodFactory('getCellMeta');
+export const getCellMetaTransient = handsontableMethodFactory('getCellMetaTransient');
 export const getCellMetaAtRow = handsontableMethodFactory('getCellMetaAtRow');
 export const getCellRenderer = handsontableMethodFactory('getCellRenderer');
 export const getCellsMeta = handsontableMethodFactory('getCellsMeta');

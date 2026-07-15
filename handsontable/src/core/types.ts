@@ -10,6 +10,7 @@ import type { IndexMapper } from '../translations';
 import type CellCoords from '../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../3rdparty/walkontable/src/cell/range';
 import type { Events, GridSettings } from './settings';
+import type { CellProperties } from '../settings';
 import type { default as SelectionManager } from '../selection/selection';
 import type { default as ViewInstance } from '../tableView';
 import type { ShortcutManager } from '../shortcuts/manager';
@@ -133,7 +134,8 @@ export interface HotInstance {
   ): object | false | undefined;
 
   // Cell meta
-  getCellMeta<M extends object = Record<string, unknown>>(row: number, column: number, options?: object): M;
+  getCellMeta<M extends object = CellProperties>(row: number, column: number, options?: object): M;
+  getCellMetaTransient<M extends object = CellProperties>(row: number, column: number): M;
   getCellMetaAtRow(row: number): Record<string, unknown>[];
   setCellMeta(row: number, column: number, key: string, value: unknown): void;
   setCellMetaObject(row: number, column: number, prop: Record<string, unknown>): void;

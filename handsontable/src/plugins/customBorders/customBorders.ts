@@ -3,7 +3,7 @@ import { throwWithCause } from '../../helpers/errors';
 import { hasOwnProperty, deepClone } from '../../helpers/object';
 import { warn } from '../../helpers/console';
 import { rangeEach } from '../../helpers/number';
-import { arrayEach, arrayReduce, arrayMap } from '../../helpers/array';
+import { arrayEach, arrayReduce } from '../../helpers/array';
 import * as C from '../../i18n/constants';
 import {
   top as menuItemTop,
@@ -24,10 +24,11 @@ import {
   normalizeBorder,
   denormalizeBorder,
 } from './utils';
-import type { BorderSettings, BorderObject, CustomBorderConfig } from './utils';
+import type { BorderSettings, BorderObject, CustomBorderConfig, BordersCellProperties } from './utils';
 import { detectSelectionType, normalizeSelectionFactory } from '../../selection';
 import { isDefined } from '../../helpers/mixed';
 import type { HotInstance } from '../../core/types';
+import type VisualSelection from '../../selection/highlight/visualSelection';
 import type Selection from '../../3rdparty/walkontable/src/selection/selection';
 import type Border from '../../3rdparty/walkontable/src/selection/border/border';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
@@ -161,6 +162,18 @@ export class CustomBorders extends BasePlugin {
    * @type {Array}
    */
   savedBorders: BorderObject[] = [];
+
+  /**
+   * Positions of the saved borders in the `savedBorders` array, keyed by the border id.
+   * Lets bulk border operations locate an existing border in O(1) instead of scanning the array.
+   */
+  #savedBordersIndex: Map<string, number> = new Map();
+
+  /**
+   * Cache of the plugin-created custom selections keyed by the border id.
+   * Rebuilt on demand when it goes out of sync with `hot.selection.highlight.customSelections`.
+   */
+  #customSelectionsCache: Map<string, VisualSelection> = new Map();
 
   /**
    * Checks if the plugin is enabled in the handsontable settings. This method is executed in {@link Hooks#beforeInit}
@@ -343,13 +356,16 @@ export class CustomBorders extends BasePlugin {
       this.setBorders(selectionRanges);
 
     } else {
+      const selectionsById = this.#customSelectionsById();
+
       arrayEach(this.savedBorders, (border) => {
-        this.clearBordersFromSelectionSettings(border.id);
-        this.clearNullCellRange();
+        selectionsById.get(border.id)?.clear();
         this.hot.removeCellMeta(border.row, border.col, 'borders');
       });
 
+      this.#clearNullCellRanges();
       this.savedBorders.length = 0;
+      this.#savedBordersIndex.clear();
     }
   }
 
@@ -365,6 +381,7 @@ export class CustomBorders extends BasePlugin {
 
     if (!hasSavedBorders) {
       this.savedBorders.push(border);
+      this.#savedBordersIndex.set(border.id, this.savedBorders.length - 1);
     }
 
     const borderCoords = this.hot._createCellCoords(border.row, border.col);
@@ -372,7 +389,10 @@ export class CustomBorders extends BasePlugin {
     const hasCustomSelections = this.checkCustomSelections(border, visualCellRange, place);
 
     if (!hasCustomSelections) {
+      const { customSelections } = this.hot.selection.highlight;
+
       this.hot.selection.highlight.addCustomSelection({ border, visualCellRange });
+      this.#customSelectionsCache.set(border.id, customSelections[customSelections.length - 1]);
     }
   }
 
@@ -510,7 +530,7 @@ export class CustomBorders extends BasePlugin {
    * @param {boolean} remove True when remove borders, and false when add borders.
    */
   setBorder(row: number, column: number, place: string, remove: boolean | undefined) {
-    const meta = this.hot.getCellMeta(row, column).borders;
+    const meta = this.hot.getCellMeta<BordersCellProperties>(row, column).borders;
     let bordersMeta: BorderObject;
 
     if (isBorderObject(meta)) {
@@ -666,13 +686,10 @@ export class CustomBorders extends BasePlugin {
    * @param {string} borderId Border id name as string.
    */
   clearBordersFromSelectionSettings(borderId: string) {
-    const index = arrayMap(
-      this.hot.selection.highlight.customSelections,
-      customSelection => customSelection.settings.id
-    ).indexOf(borderId);
+    const customSelection = this.#customSelectionsById().get(borderId);
 
-    if (index > -1) {
-      this.hot.selection.highlight.customSelections[index].clear();
+    if (customSelection) {
+      customSelection.clear();
     }
   }
 
@@ -684,12 +701,69 @@ export class CustomBorders extends BasePlugin {
   clearNullCellRange() {
     arrayEach(this.hot.selection.highlight.customSelections, (customSelection, index) => {
       if (customSelection.cellRange === null) {
+        const selectionId = customSelection.settings.id;
+
         customSelection.destroy();
         this.hot.selection.highlight.customSelections.splice(index, 1);
+
+        if (typeof selectionId === 'string') {
+          this.#customSelectionsCache.delete(selectionId);
+        }
 
         return false; // breaks forAll
       }
     });
+  }
+
+  /**
+   * Destroys and removes every custom selection whose cell range was cleared. Batched
+   * equivalent of calling `clearNullCellRange` once per cleared border.
+   */
+  #clearNullCellRanges() {
+    const { customSelections } = this.hot.selection.highlight;
+    const remainingSelections = customSelections.filter((customSelection) => {
+      if (customSelection.cellRange === null) {
+        customSelection.destroy();
+
+        return false;
+      }
+
+      return true;
+    });
+
+    if (remainingSelections.length !== customSelections.length) {
+      customSelections.length = 0;
+
+      arrayEach(remainingSelections, (customSelection) => {
+        customSelections.push(customSelection);
+      });
+
+      this.#customSelectionsCache.clear();
+    }
+  }
+
+  /**
+   * Returns the plugin-created custom selections keyed by the border id. The cached map is
+   * rebuilt when its size no longer matches the custom selections collection.
+   *
+   * @returns {Map<string, VisualSelection>}
+   */
+  #customSelectionsById(): Map<string, VisualSelection> {
+    const { customSelections } = this.hot.selection.highlight;
+
+    if (this.#customSelectionsCache.size !== customSelections.length) {
+      this.#customSelectionsCache.clear();
+
+      arrayEach(customSelections, (customSelection) => {
+        const selectionId = customSelection.settings.id;
+
+        if (typeof selectionId === 'string') {
+          this.#customSelectionsCache.set(selectionId, customSelection);
+        }
+      });
+    }
+
+    return this.#customSelectionsCache;
   }
 
   /**
@@ -698,10 +772,13 @@ export class CustomBorders extends BasePlugin {
    * @private
    */
   hideBorders() {
+    const selectionsById = this.#customSelectionsById();
+
     arrayEach(this.savedBorders, (border) => {
-      this.clearBordersFromSelectionSettings(border.id);
-      this.clearNullCellRange();
+      selectionsById.get(border.id)?.clear();
     });
+
+    this.#clearNullCellRanges();
   }
 
   /**
@@ -711,11 +788,23 @@ export class CustomBorders extends BasePlugin {
    * @param {string} borderId Border id name as string.
    */
   spliceBorder(borderId: string) {
-    const index = arrayMap(this.savedBorders, border => border.id).indexOf(borderId);
+    const index = this.#savedBordersIndex.get(borderId) ?? -1;
 
     if (index > -1) {
       this.savedBorders.splice(index, 1);
+      this.#rebuildSavedBordersIndex();
     }
+  }
+
+  /**
+   * Rebuilds the id-to-position index of the saved borders after positions have shifted.
+   */
+  #rebuildSavedBordersIndex() {
+    this.#savedBordersIndex.clear();
+
+    arrayEach(this.savedBorders, (border, index) => {
+      this.#savedBordersIndex.set(border.id, index);
+    });
   }
 
   /**
@@ -737,14 +826,12 @@ export class CustomBorders extends BasePlugin {
       check = true;
 
     } else {
-      arrayEach(this.savedBorders, (savedBorder, index) => {
-        if (border.id === savedBorder.id) {
-          this.savedBorders[index] = border;
-          check = true;
+      const index = this.#savedBordersIndex.get(border.id);
 
-          return false; // breaks forAll
-        }
-      });
+      if (index !== undefined) {
+        this.savedBorders[index] = border;
+        check = true;
+      }
     }
 
     return check;
@@ -763,25 +850,22 @@ export class CustomBorders extends BasePlugin {
    */
   checkCustomSelectionsFromContextMenu(border: Record<string, unknown>, place: string, remove: boolean | undefined) {
     let check = false;
+    const customSelection = typeof border.id === 'string'
+      ? this.#customSelectionsById().get(border.id)
+      : undefined;
 
-    const customSelections = this.hot.selection.highlight.customSelections as unknown as Selection[];
+    if (customSelection) {
+      const borders: Border[] = this.hot.view._wt.selectionManager
+        .getBorderInstances(customSelection as unknown as Selection) as Border[];
 
-    arrayEach(customSelections, (customSelection: Selection) => {
-      if (border.id === customSelection.settings.id) {
-        const borders: Border[] = this.hot.view._wt.selectionManager
-          .getBorderInstances(customSelection) as Border[];
-
-        if (isBorderSide(place)) {
-          arrayEach(borders, (borderObject: Border) => {
-            borderObject.toggleHiddenClass(place, remove ?? false);
-          });
-        }
-
-        check = true;
-
-        return false; // breaks forAll
+      if (isBorderSide(place)) {
+        arrayEach(borders, (borderObject: Border) => {
+          borderObject.toggleHiddenClass(place, remove ?? false);
+        });
       }
-    });
+
+      check = true;
+    }
 
     return check;
   }
@@ -805,25 +889,23 @@ export class CustomBorders extends BasePlugin {
       check = true;
 
     } else {
-      arrayEach(this.hot.selection.highlight.customSelections, (customSelection) => {
-        if (border.id === customSelection.settings.id) {
-          customSelection.visualCellRange = cellRange;
-          customSelection.commit();
+      const customSelection = this.#customSelectionsById().get(border.id);
 
-          if (place && isBorderSide(place)) {
-            const borders: Border[] = this.hot.view._wt.selectionManager
-              .getBorderInstances(customSelection as unknown as Selection) as Border[];
+      if (customSelection) {
+        customSelection.visualCellRange = cellRange;
+        customSelection.commit();
 
-            arrayEach(borders, (borderObject: Border) => {
-              borderObject.changeBorderStyle(place, border);
-            });
-          }
+        if (place && isBorderSide(place)) {
+          const borders: Border[] = this.hot.view._wt.selectionManager
+            .getBorderInstances(customSelection as unknown as Selection) as Border[];
 
-          check = true;
-
-          return false; // breaks forAll
+          arrayEach(borders, (borderObject: Border) => {
+            borderObject.changeBorderStyle(place, border);
+          });
         }
-      });
+
+        check = true;
+      }
     }
 
     return check;
@@ -844,6 +926,7 @@ export class CustomBorders extends BasePlugin {
 
       if (!bordersClone.length) {
         this.savedBorders = [];
+        this.#savedBordersIndex.clear();
       }
 
       this.createCustomBorders(bordersClone);

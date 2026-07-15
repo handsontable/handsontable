@@ -367,6 +367,7 @@ export class ManualColumnResize extends BasePlugin {
 
     if (this.hot.selection.isSelected() && isFullColumnSelected) {
       const selectionRanges = this.hot.getSelectedRange() ?? [];
+      const seenColumns = new Set<number>();
 
       arrayEach(selectionRanges, (selectionRange) => {
         const fromColumn = (selectionRange as CellRange).getTopStartCorner().col;
@@ -378,7 +379,8 @@ export class ManualColumnResize extends BasePlugin {
 
         // Add every selected column for resize action.
         rangeEach(fromColumn, toColumn, (columnIndex) => {
-          if (!this.#selectedCols.includes(columnIndex)) {
+          if (!seenColumns.has(columnIndex)) {
+            seenColumns.add(columnIndex);
             this.#selectedCols.push(columnIndex);
           }
         });

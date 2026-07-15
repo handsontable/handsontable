@@ -248,9 +248,11 @@ export function arrayFlatten(array: unknown[]): unknown[] {
  */
 export function arrayUnique<T = unknown>(array: T[]): T[] {
   const unique: T[] = [];
+  const seen = new Set<T>();
 
   arrayEach(array, (value: T) => {
-    if (unique.indexOf(value) === -1) {
+    if (!seen.has(value)) {
+      seen.add(value);
       unique.push(value);
     }
   });
@@ -269,7 +271,9 @@ export function getDifferenceOfArrays<T extends string | number>(...arrays: Arra
   let filteredFirstArray = first;
 
   arrayEach(rest, (array) => {
-    filteredFirstArray = filteredFirstArray.filter(value => !array.includes(value));
+    const lookup = new Set(array);
+
+    filteredFirstArray = filteredFirstArray.filter(value => !lookup.has(value));
   });
 
   return filteredFirstArray;
@@ -300,14 +304,18 @@ export function getIntersectionOfArrays(
     }
   });
 
-  const isMatch = comparator
-    ? (value: string | number, array: Array<string | number>) => array.some(item => comparator!(value, item))
-    : (value: string | number, array: Array<string | number>) => array.includes(value);
   const [first, ...rest] = arrays;
   let filteredFirstArray = first;
 
   arrayEach(rest, (array) => {
-    filteredFirstArray = filteredFirstArray.filter(value => isMatch(value, array));
+    if (comparator) {
+      filteredFirstArray = filteredFirstArray.filter(value => array.some(item => comparator!(value, item)));
+
+    } else {
+      const lookup = new Set(array);
+
+      filteredFirstArray = filteredFirstArray.filter(value => lookup.has(value));
+    }
   });
 
   return filteredFirstArray;

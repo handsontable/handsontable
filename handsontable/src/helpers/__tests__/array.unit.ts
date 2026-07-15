@@ -8,6 +8,7 @@ import {
   arrayMin,
   arrayReduce,
   arraySum,
+  arrayUnique,
   stringToArray,
   getDifferenceOfArrays,
   getIntersectionOfArrays,
@@ -278,6 +279,36 @@ describe('Array helper', () => {
       expect(arraySum([1, 1, 2, 3, 4])).toBe(11);
       expect(arraySum([1, 1, 0, 3.1, 4.2])).toBe(9.3);
       expect(arraySum(iterableObject)).toBe(12);
+    });
+  });
+
+  //
+  // Handsontable.helper.arrayUnique
+  //
+  describe('arrayUnique', () => {
+    it('should return a new array without duplicated values', () => {
+      expect(arrayUnique([1, 2, 2, 3, 1, 4])).toStrictEqual([1, 2, 3, 4]);
+      expect(arrayUnique(['a', 'b', 'a', 'c'])).toStrictEqual(['a', 'b', 'c']);
+    });
+
+    it('should keep the first-occurrence order of the values', () => {
+      expect(arrayUnique([3, 1, 3, 2, 1])).toStrictEqual([3, 1, 2]);
+    });
+
+    it('should compare values strictly (no type coercion)', () => {
+      expect(arrayUnique([1, '1', 1, '1'])).toStrictEqual([1, '1']);
+      expect(arrayUnique([0, false, '', null, undefined, 0, false])).toStrictEqual([0, false, '', null, undefined]);
+    });
+
+    it('should deduplicate objects by reference', () => {
+      const objectA = { id: 1 };
+      const objectB = { id: 1 };
+
+      expect(arrayUnique([objectA, objectB, objectA])).toStrictEqual([objectA, objectB]);
+    });
+
+    it('should return an empty array for an empty input', () => {
+      expect(arrayUnique([])).toStrictEqual([]);
     });
   });
 

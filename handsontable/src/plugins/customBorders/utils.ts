@@ -1,10 +1,19 @@
 import type { HotInstance } from '../../core/types';
+import type { CellProperties } from '../../settings';
 import {
   hasOwnProperty,
   isObject,
 } from '../../helpers/object';
 import { isDefined } from '../../helpers/mixed';
 import { arrayEach } from '../../helpers/array';
+
+/**
+ * Cell meta shape for cells that carry custom borders - types the `borders` option on top of the base
+ * cell properties, so reads through `getCellMeta` are not widened to `any`.
+ */
+export interface BordersCellProperties extends CellProperties {
+  borders?: unknown;
+}
 
 /**
  * Describes style properties for a single border side or corner.
@@ -230,7 +239,7 @@ export function checkSelectionBorders(hot: HotInstance, direction?: string) {
         return;
       }
 
-      const metaBorders = hot.getCellMeta(r, c).borders;
+      const metaBorders = hot.getCellMeta<BordersCellProperties>(r, c).borders;
 
       if (metaBorders) {
         if (direction) {

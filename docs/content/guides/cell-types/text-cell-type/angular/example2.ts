@@ -2,8 +2,8 @@
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule} from '@handsontable/angular-wrapper';
 
-const skuValidator = (value: string, callback: (isValid: boolean) => void) => {
-  callback(/^\d{6}$/.test(value));
+const skuValidator = (value: unknown, callback: (isValid: boolean) => void) => {
+  callback(/^\d{6}$/.test(String(value)));
 };
 
 @Component({

@@ -183,7 +183,7 @@ export class ValueComponent extends BaseComponent {
         const rowValues = arrayMap(filteredRows, row => row.value);
         const rowMetaMap = new Map(
           filteredRows.map((row: FilteredRow) =>
-            [row.value, this.hot?.getCellMeta(row.meta.visualRow, row.meta.visualCol)])
+            [row.value, this.hot?.getCellMetaTransient(row.meta.visualRow, row.meta.visualCol)])
         );
         const columnMeta = filteredRows[0]?.meta;
         const comparator = getSortComparatorForMeta(columnMeta);
@@ -209,7 +209,7 @@ export class ValueComponent extends BaseComponent {
 
         const column = stateInfo.editedConditionStack.column;
 
-        state.locale = this.hot?.getCellMeta(0, column).locale;
+        state.locale = this.hot?.getCellMetaTransient(0, column).locale;
         state.args = [selectedValues];
         state.command = getConditionDescriptor(CONDITION_BY_VALUE);
         state.itemsSnapshot = itemsSnapshot;
@@ -318,7 +318,8 @@ export class ValueComponent extends BaseComponent {
     const selectedColumn = this.hot?.getPlugin('filters').getSelectedColumn() ?? null;
 
     if (selectedColumn !== null) {
-      this.getMultipleSelectElement().setLocale(this.hot?.getCellMeta(0, selectedColumn.visualIndex).locale as string);
+      this.getMultipleSelectElement()
+        .setLocale(this.hot?.getCellMetaTransient(0, selectedColumn.visualIndex).locale as string);
     }
   }
 
@@ -386,7 +387,7 @@ export class ValueComponent extends BaseComponent {
     return arrayMap(this.hot?.getDataAtCol(selectedColumn.visualIndex) ?? [], (v, rowIndex) => {
       return {
         value: toEmptyString(v) as string,
-        meta: this.hot?.getCellMeta(rowIndex, selectedColumn.visualIndex) ?? {},
+        meta: this.hot?.getCellMetaTransient(rowIndex, selectedColumn.visualIndex) ?? {},
       };
     });
   }

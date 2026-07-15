@@ -502,7 +502,7 @@ export class ColumnSummary extends BasePlugin {
     let cellClassName = '';
 
     if (visualRowIndex !== null) {
-      cellClassName = (this.hot.getCellMeta(visualRowIndex, col).className as string) || '';
+      cellClassName = (this.hot.getCellMetaTransient(visualRowIndex, col).className as string) || '';
     }
 
     if (cellClassName.indexOf('columnSummaryResult') > -1) {

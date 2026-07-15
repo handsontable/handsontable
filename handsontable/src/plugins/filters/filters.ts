@@ -1140,7 +1140,7 @@ export class Filters extends BasePlugin {
   updateValueComponentCondition(columnIndex: number) {
     const visualColumnIndex = this.hot.toVisualColumn(columnIndex);
     const dataAtCol = this.hot.getDataAtCol(visualColumnIndex);
-    const columnMeta = this.hot.countRows() > 0 ? this.hot.getCellMeta(0, visualColumnIndex) : null;
+    const columnMeta = this.hot.countRows() > 0 ? this.hot.getCellMetaTransient(0, visualColumnIndex) : null;
     const comparator = getSortComparatorForMeta(columnMeta);
     const selectedValues = unifyColumnValues(dataAtCol, comparator);
 

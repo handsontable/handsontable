@@ -74,7 +74,7 @@ import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
-import type { CellChange } from './settings';
+import type { CellChange, CellProperties } from './settings';
 import type { GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
@@ -1378,7 +1378,11 @@ export default function Core(
             }
             current.col = start.col!;
 
-            cellMeta = instance.getCellMeta(current.row, current.col);
+            // The transient read keeps a bulk paste/fill from permanently materializing one meta
+            // object per target cell - this loop only reads (`skipRowOnPaste`, `skipColumnOnPaste`,
+            // `readOnly`, `valueSetter`, `parsePastedValue`); the write itself goes through the
+            // data layer.
+            cellMeta = instance.getCellMetaTransient(current.row, current.col);
 
             if ((source === 'CopyPaste.paste' || source === 'Autofill.fill' || source === 'autofill.fill') &&
                 cellMeta.skipRowOnPaste) {
@@ -1400,7 +1404,7 @@ export default function Core(
                 break;
               }
 
-              cellMeta = instance.getCellMeta(current.row, current.col);
+              cellMeta = instance.getCellMetaTransient(current.row, current.col);
 
               if ((source === 'CopyPaste.paste' || source === 'Autofill.fill' || source === 'autofill.fill') &&
                   cellMeta.skipColumnOnPaste) {
@@ -1793,8 +1797,15 @@ export default function Core(
       let cellProperties;
 
       if (Number.isInteger(visualCol)) {
+        // The transient read keeps a bulk change set from permanently materializing one meta
+        // object per changed cell while the validator is looked up. Cells that DO have a
+        // validator switch to the eagerly stored meta object below - validation writes its
+        // `valid` result on the meta, and that result must survive on the stored object.
+        cellProperties = instance.getCellMetaTransient(row, visualCol as number);
 
-        cellProperties = instance.getCellMeta(row, visualCol as number);
+        if (instance.getCellValidator(cellProperties)) {
+          cellProperties = instance.getCellMeta(row, visualCol as number);
+        }
 
       } else {
         // If there's no requested visual column, we can use the table meta as the cell properties when retrieving
@@ -2104,8 +2115,10 @@ export default function Core(
       let cellProperties;
 
       if (Number.isInteger(visualColumn)) {
-
-        cellProperties = instance.getCellMeta(row, visualColumn as number);
+        // The transient read keeps a bulk change set (paste, fill, checkbox toggle over a large
+        // selection) from permanently materializing one meta object per changed cell - the meta
+        // is only read here (`valueSetter`).
+        cellProperties = instance.getCellMetaTransient(row, visualColumn as number);
       } else {
         // If there's no requested visual column, we can use the table meta as the cell properties
         cellProperties = { ...Object.getPrototypeOf(tableMeta) as Record<string, unknown>, ...tableMeta };
@@ -2517,7 +2530,9 @@ export default function Core(
 
       const collectEmptyCellChanges = (row: number) => {
         rangeEach(fromColumn, toColumn, (column) => {
-          if (!this.getCellMeta(row, column).readOnly) {
+          // The transient read keeps clearing a large selection from permanently materializing
+          // one meta object per cell - only `readOnly` is read here.
+          if (!this.getCellMetaTransient(row, column).readOnly) {
             changes.push([row, column, null]);
           }
         });
@@ -4042,16 +4057,24 @@ export default function Core(
     const input = setDataInputToArray(row, column, value);
     const isThereAnySetSourceListener = instance.hasHook('afterSetSourceDataAtCell');
     const changesForHook: Array<Array<unknown>> = [];
-    const getCellProperties = (changeRow: number, changeProp: string | number) => {
+    const getCellProperties = (changeRow: number, changeProp: string | number): CellProperties => {
       const visualRow = instance.toVisualRow(changeRow);
       const visualColumn = instance.toVisualColumn(changeProp as number);
 
       if (Number.isInteger(visualColumn)) {
-        return instance.getCellMeta(visualRow!, visualColumn as number) as Record<string, unknown>;
+        // The transient read keeps a bulk source-data write from permanently materializing one
+        // meta object per changed cell - the meta only feeds the `valueSetter` and the
+        // source-data validator, both read-only.
+        return instance.getCellMetaTransient(visualRow!, visualColumn as number);
       }
 
-      // If there's no requested visual column, we can use the table meta as the cell properties
-      return { ...(Object.getPrototypeOf(tableMeta) as Record<string, unknown>), ...tableMeta };
+      // If there's no requested visual column, we can use the table meta as the cell properties.
+      // The snapshot lacks the per-cell coordinate properties, but every consumer here reads
+      // settings-level keys only.
+      return {
+        ...(Object.getPrototypeOf(tableMeta) as Record<string, unknown>),
+        ...tableMeta,
+      } as unknown as CellProperties;
     };
 
     if (isThereAnySetSourceListener) {
@@ -4181,7 +4204,7 @@ export default function Core(
       let isTypeEqual = true;
 
       rangeEach(Math.max(Math.min(columnStart, columnEnd), 0), Math.max(columnStart, columnEnd), (column) => {
-        const cellType = instance.getCellMeta(row, column);
+        const cellType = instance.getCellMetaTransient(row, column);
 
         currentType = (cellType.type as string | null | undefined) ?? null;
 
@@ -4394,7 +4417,7 @@ export default function Core(
    * @fires Hooks#beforeGetCellMeta
    * @fires Hooks#afterGetCellMeta
    */
-  this.getCellMeta = function<M extends object = Record<string, unknown>>(
+  this.getCellMeta = function<M extends object = CellProperties>(
     row: number, column: number, options = { skipMetaExtension: false }
   ): M {
     let physicalRow = instance.toPhysicalRow(row);
@@ -4412,6 +4435,50 @@ export default function Core(
       visualRow: row,
       visualColumn: column,
       ...options
+    }) as M;
+  };
+
+  /**
+   * Returns the cell properties object for the given `row` and `column` coordinates without
+   * retaining it in the cell meta cache.
+   *
+   * Like [[getCellMeta]], the returned object reflects the effective cell configuration after
+   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * and dynamic extension (the `cells` function and the `beforeGetCellMeta`/`afterGetCellMeta`
+   * hooks run). Unlike `getCellMeta`, when the cell has no stored meta object the extension runs
+   * on a temporary object that is not saved, so scanning many cells (for example, a whole column
+   * or the entire dataset) does not permanently allocate one meta object per visited cell. Cells
+   * that already carry stored meta (for example, written by [[setCellMeta]] or the `cell` option)
+   * return their stored object, exactly as `getCellMeta` would.
+   *
+   * Use this method for read-only bulk scans. Do not write to the returned object - for cells
+   * without stored meta the write lands on the temporary object and is lost; use `setCellMeta`
+   * to persist values.
+   *
+   * @memberof Core#
+   * @function getCellMetaTransient
+   * @since 18.1.0
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {object} The cell properties object.
+   * @fires Hooks#beforeGetCellMeta
+   * @fires Hooks#afterGetCellMeta
+   */
+  this.getCellMetaTransient = function<M extends object = CellProperties>(row: number, column: number): M {
+    let physicalRow = instance.toPhysicalRow(row);
+    let physicalColumn = instance.toPhysicalColumn(column);
+
+    if (physicalRow === null) {
+      physicalRow = row;
+    }
+
+    if (physicalColumn === null) {
+      physicalColumn = column;
+    }
+
+    return metaManager.getCellMetaTransient(physicalRow, physicalColumn, {
+      visualRow: row,
+      visualColumn: column,
     }) as M;
   };
 
@@ -4663,12 +4730,27 @@ export default function Core(
         }
         waitingForValidator.addValidatorToQueue();
 
-        instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), (result: boolean) => {
+        // The transient read keeps a bulk validation from permanently materializing one meta
+        // object per validated cell (O(rows x columns) retention). Cells with stored meta -
+        // including every currently rendered cell - still receive their `valid` result on the
+        // stored object, because the transient read returns the stored object for them.
+        const row = i;
+        const column = j;
+        const cellMeta = instance.getCellMetaTransient(row, column);
+
+        instance.validateCell(instance.getDataAtCell(row, column), cellMeta, (result: boolean) => {
           if (typeof result !== 'boolean') {
             throwWithCause('Validation error: result is not boolean');
           }
           if (result === false) {
             waitingForValidator.valid = false;
+
+            // A failed result written on a throwaway object would be lost - persist it on the
+            // stored meta (a DIRECT write, exactly like the edit-path validation flow; NOT
+            // `setCellMeta`, which would mark the property as user-persisted and change
+            // updateSettings/eviction semantics). Only failures materialize, so retention stays
+            // O(invalid cells); the eviction pass already keeps `valid === false` cells.
+            instance.getCellMeta(row, column, { skipMetaExtension: true }).valid = false;
           }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');
