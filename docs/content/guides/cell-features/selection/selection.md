@@ -245,6 +245,69 @@ The example below customizes the color of each selection layer using these CSS c
 
 Unfortunately, there is no easy way to change the border color of the selection.
 
+## Resize a selection with handles
+
+When you set [`selectionHandles`](@/api/options.md#selectionhandles) to `true`, hovering over a selected range shows a pill-shaped handle at the midpoint of each edge. Drag a handle to move that edge and resize the selection. The handles adjust the selected area only -- they do not move, fill, or change any cell data.
+
+To enable selection handles:
+
+```js
+selectionHandles: true,
+```
+
+This option applies at the grid level and defaults to `false`.
+
+**Limitations:**
+
+- Handles appear on desktop only. Touch devices keep their existing native selection handles and are not affected by this option.
+- The option has no effect when [`selectionMode`](@/api/options.md#selectionmode) is `'single'`.
+- Handles are not shown for full-row, full-column, or select-all selections.
+- A handle is not shown on an edge that is flush with the grid boundary or that lands on a frozen-pane line ([`fixedRowsTop`](@/api/options.md#fixedrowstop), [`fixedRowsBottom`](@/api/options.md#fixedrowsbottom), [`fixedColumnsStart`](@/api/options.md#fixedcolumnsstart)).
+
+::: only-for javascript
+
+::: example #example7 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/cell-features/selection/javascript/example7.html)
+@[code](@/content/guides/cell-features/selection/javascript/example7.js)
+@[code](@/content/guides/cell-features/selection/javascript/example7.ts)
+
+:::
+
+:::
+
+::: only-for react
+
+::: example #example7 :react --js 1 --ts 2
+
+@[code](@/content/guides/cell-features/selection/react/example7.jsx)
+@[code](@/content/guides/cell-features/selection/react/example7.tsx)
+
+:::
+
+:::
+
+::: only-for angular
+
+::: example #example7 :angular --ts 1 --html 2
+
+@[code](@/content/guides/cell-features/selection/angular/example7.ts)
+@[code](@/content/guides/cell-features/selection/angular/example7.html)
+
+:::
+
+:::
+
+::: only-for vue
+
+::: example #example7 :vue3
+
+@[code](@/content/guides/cell-features/selection/vue/example7.vue)
+
+:::
+
+:::
+
 ## Select cells programmatically
 
 Use [`selectCell()`](@/api/core.md#selectcell) to select a single cell or a range of cells from code. Pass the start and end row/column indices to define a range. Use [`deselectCell()`](@/api/core.md#deselectcell) to clear the selection.
@@ -404,6 +467,7 @@ Users can select cells using the configured mode -- single cell, range, or multi
 - [fragmentSelection](@/api/options.md#fragmentselection)
 - [disableVisualSelection](@/api/options.md#disablevisualselection)
 - [dragToScroll](@/api/options.md#dragtoscroll)
+- [selectionHandles](@/api/options.md#selectionhandles)
 - [selectionMode](@/api/options.md#selectionmode)
 - [outsideClickDeselects](@/api/options.md#outsideclickdeselects)
 
@@ -438,6 +502,7 @@ Users can select cells using the configured mode -- single cell, range, or multi
 - [afterSelectionByProp](@/api/hooks.md#afterselectionbyprop)
 - [afterSelectionEnd](@/api/hooks.md#afterselectionend)
 - [afterSelectionEndByProp](@/api/hooks.md#afterselectionendbyprop)
+- [afterOnSelectionHandleMouseDown](@/api/hooks.md#afteronselectionhandlemousedown)
 - [modifyTransformStart](@/api/hooks.md#modifytransformstart)
 
 </div>
