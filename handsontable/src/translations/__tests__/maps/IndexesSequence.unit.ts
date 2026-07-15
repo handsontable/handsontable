@@ -223,15 +223,22 @@ describe('IndexesSequence', () => {
       expect(changeCallback.calls.count()).toEqual(1);
     });
 
-    it('should trigger `change` hook on setting data which does not change value', () => {
+    it('should not trigger `change` hook on setting data which does not change value (skipUnchangedWrites)', () => {
       const indexesSequence = new IndexesSequence();
       const changeCallback = jasmine.createSpy('change');
 
       indexesSequence.init(10);
       indexesSequence.addLocalHook('change', changeCallback);
 
-      // Default value is `0` for index at position `0`. No real change, but hook is called anyway.
-      indexesSequence.setValueAtIndex(0, 0);
+      // Default value is `0` for index at position `0`. No real change, so the no-op write is
+      // skipped entirely - and the compact identity representation is preserved.
+      expect(indexesSequence.setValueAtIndex(0, 0)).toBe(true);
+
+      expect(changeCallback.calls.count()).toEqual(0);
+      expect(indexesSequence.getValues()).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+      // A genuine change still triggers the hook.
+      indexesSequence.setValueAtIndex(0, 5);
 
       expect(changeCallback.calls.count()).toEqual(1);
     });

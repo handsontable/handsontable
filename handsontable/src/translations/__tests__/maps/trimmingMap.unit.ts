@@ -115,15 +115,25 @@ describe('TrimmingMap', () => {
       expect(changeCallback.calls.count()).toEqual(1);
     });
 
-    it('should trigger `change` hook on setting data which does not change value', () => {
+    it('should not trigger `change` hook on setting data which does not change value (skipUnchangedWrites)', () => {
       const trimmingMap = new TrimmingMap();
       const changeCallback = jasmine.createSpy('change');
 
       trimmingMap.init(10);
       trimmingMap.addLocalHook('change', changeCallback);
 
-      // Default value is `false`. No real change, but hook is called anyway.
-      trimmingMap.setValueAtIndex(0, false);
+      // Default value is `false`. No real change, so the no-op write is skipped entirely.
+      expect(trimmingMap.setValueAtIndex(0, false)).toBe(true);
+
+      expect(changeCallback.calls.count()).toEqual(0);
+
+      // A genuine change still triggers the hook.
+      trimmingMap.setValueAtIndex(0, true);
+
+      expect(changeCallback.calls.count()).toEqual(1);
+
+      // Re-writing the same non-default value is a no-op again.
+      trimmingMap.setValueAtIndex(0, true);
 
       expect(changeCallback.calls.count()).toEqual(1);
     });

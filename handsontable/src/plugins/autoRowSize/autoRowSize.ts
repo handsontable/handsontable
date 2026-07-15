@@ -291,7 +291,7 @@ export class AutoRowSize extends BasePlugin {
    * @private
    * @type {PhysicalIndexToValueMap}
    */
-  rowHeightsMap = new IndexToValueMap();
+  rowHeightsMap = new IndexToValueMap(null, { skipUnchangedWrites: true });
   /**
    * An array of row indexes whose height will be recalculated.
    *

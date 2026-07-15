@@ -168,7 +168,7 @@ export class ManualRowResize extends BasePlugin {
       return;
     }
 
-    this.#rowHeightsMap = new IndexToValueMap();
+    this.#rowHeightsMap = new IndexToValueMap(null, { skipUnchangedWrites: true });
     this.#rowHeightsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.rowIndexMapper.registerMap(this.pluginName!, this.#rowHeightsMap);
 

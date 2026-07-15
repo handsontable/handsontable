@@ -173,7 +173,7 @@ export class ManualColumnResize extends BasePlugin {
       return;
     }
 
-    this.#columnWidthsMap = new IndexToValueMap();
+    this.#columnWidthsMap = new IndexToValueMap(null, { skipUnchangedWrites: true });
     this.#columnWidthsMap.addLocalHook('init', () => this.#onMapInit());
     this.hot.columnIndexMapper.registerMap(this.pluginName!, this.#columnWidthsMap);
 

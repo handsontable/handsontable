@@ -34,10 +34,14 @@ export class IndexesSequence extends IndexMap {
 
   /**
    * Initializes the sequence map with an identity function so each index maps to its own physical value.
+   *
+   * The sequence stores physical indexes (numbers), so a write of an unchanged index is provably a
+   * no-op — `skipUnchangedWrites` is always on, which also preserves the compact identity
+   * representation when an identity value is re-written.
    */
   constructor() {
     // Not handling custom init function or init value.
-    super((index: number) => index);
+    super((index: number) => index, { skipUnchangedWrites: true });
   }
 
   /**
@@ -114,6 +118,12 @@ export class IndexesSequence extends IndexMap {
    */
   setValueAtIndex(index: number, value: unknown): boolean {
     if (index < this.getLength()) {
+      // Check before materializing: re-writing the value the position already holds must not
+      // degrade the compact identity representation into a materialized array.
+      if (this.skipUnchangedWrites && this.getValueAtIndex(index) === value) {
+        return true;
+      }
+
       this.#materialize();
 
       return super.setValueAtIndex(index, value);

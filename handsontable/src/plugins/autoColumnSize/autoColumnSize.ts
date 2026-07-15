@@ -285,7 +285,7 @@ export class AutoColumnSize extends BasePlugin {
    * @private
    * @type {PhysicalIndexToValueMap}
    */
-  columnWidthsMap = new IndexToValueMap();
+  columnWidthsMap = new IndexToValueMap(null, { skipUnchangedWrites: true });
   /**
    * `true` value indicates that the #onInit() function has been already called.
    *
