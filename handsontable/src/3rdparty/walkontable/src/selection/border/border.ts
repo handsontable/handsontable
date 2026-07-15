@@ -1365,7 +1365,10 @@ class Border {
     if (!isMobileBrowser() && adjustVisible && this.adjustHandles) {
       this.positionAdjustHandles(top, inlineStartPos, width, height, corners);
 
-      // v1 limitation: hide handles on an edge that lands on a frozen-pane line.
+      // Hide handles on an edge that lands on a frozen-pane line. This boundary rule is
+      // intentionally Walkontable-local: Walkontable cannot import core helpers, so the
+      // equivalent check in `src/selection/handleAdjust.ts` (getHiddenHandleEdges) was
+      // removed as dead code — this is the single authoritative enforcement point.
       if (this.isFrozenBoundaryEdge('row', corners[0])) {
         this.adjustHandles.styles.top.display = 'none';
       }

@@ -1,4 +1,4 @@
-import { clampEdge, getHiddenHandleEdges } from '../handleAdjust';
+import { clampEdge } from '../handleAdjust';
 
 describe('clampEdge', () => {
   it('clamps a dragged top edge so it cannot cross the bottom edge (no flip)', () => {
@@ -19,48 +19,3 @@ describe('clampEdge', () => {
   });
 });
 
-describe('getHiddenHandleEdges', () => {
-  it('hides top when the selection touches row 0 and end when it touches the last column', () => {
-    const hidden = getHiddenHandleEdges({
-      fromRow: 0,
-      toRow: 4,
-      fromCol: 1,
-      toCol: 9,
-      lastRow: 20,
-      lastCol: 9,
-      isRtl: false,
-    });
-
-    expect(hidden).toEqual(new Set(['top', 'end']));
-  });
-
-  it('hides the start handle when fromCol is 0, regardless of text direction', () => {
-    // The helper is direction-agnostic: fromCol/toCol are visual indexes, so RTL mirroring is
-    // handled later in the Walkontable rendering layer, not here. isRtl: true must not change this.
-    const hidden = getHiddenHandleEdges({
-      fromRow: 2,
-      toRow: 4,
-      fromCol: 0,
-      toCol: 5,
-      lastRow: 20,
-      lastCol: 9,
-      isRtl: true,
-    });
-
-    expect(hidden.has('start')).toBe(true);
-  });
-
-  it('returns an empty set for a fully interior selection', () => {
-    const hidden = getHiddenHandleEdges({
-      fromRow: 3,
-      toRow: 6,
-      fromCol: 3,
-      toCol: 6,
-      lastRow: 20,
-      lastCol: 9,
-      isRtl: false,
-    });
-
-    expect(hidden.size).toBe(0);
-  });
-});
