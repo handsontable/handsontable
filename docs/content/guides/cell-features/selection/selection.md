@@ -251,7 +251,7 @@ When you set [`selectionHandles`](@/api/options.md#selectionhandles) to `true`, 
 
 To enable selection handles:
 
-```js
+```javascript
 selectionHandles: true,
 ```
 
