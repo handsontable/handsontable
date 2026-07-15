@@ -1183,6 +1183,7 @@ class Selection {
 
   /**
    * Returns the selection layer currently showing adjustment handles, or `null`.
+   * This is an internal method used by the hover and drag wiring in `TableView` and is not part of the public API.
    *
    * @private
    * @returns {number | null}
