@@ -6,7 +6,7 @@ import { SEPARATOR } from '../contextMenu/predefinedItems';
 import { Hooks } from '../../core/hooks';
 import hideRowItem from './contextMenuItem/hideRow';
 import showRowItem from './contextMenuItem/showRow';
-import { HidingMap } from '../../translations';
+import type { HidingMap } from '../../translations';
 
 Hooks.getSingleton().register('beforeHideRows');
 Hooks.getSingleton().register('afterHideRows');
@@ -238,9 +238,14 @@ export class HiddenRows extends BasePlugin {
       return;
     }
 
-    this.#hiddenRowsMap = new HidingMap();
-    this.#hiddenRowsMap!.addLocalHook('init', () => this.#onMapInit());
-    this.hot.rowIndexMapper.registerMap(this.pluginName!, this.#hiddenRowsMap);
+    this.#hiddenRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName!, 'hiding');
+    this.#hiddenRowsMap.addLocalHook('init', () => this.#onMapInit());
+
+    // `createAndRegisterIndexMap` initializes the map synchronously when the dataset is already
+    // loaded (a plugin re-enable), before the hook above could attach - replay the init handler.
+    if (this.hot.rowIndexMapper.getNumberOfIndexes() > 0) {
+      this.#onMapInit();
+    }
 
     this.addHook('afterContextMenuDefaultOptions', this.#onAfterContextMenuDefaultOptions);
     this.addHook('afterGetCellMeta', this.#onAfterGetCellMeta);

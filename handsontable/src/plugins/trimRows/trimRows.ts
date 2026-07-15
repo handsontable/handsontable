@@ -1,5 +1,5 @@
 import { BasePlugin } from '../base';
-import { TrimmingMap } from '../../translations';
+import type { TrimmingMap } from '../../translations';
 import { arrayEach, arrayReduce } from '../../helpers/array';
 
 export const PLUGIN_KEY = 'trimRows';
@@ -200,7 +200,7 @@ export class TrimRows extends BasePlugin {
       return;
     }
 
-    this.trimmedRowsMap = this.hot.rowIndexMapper.registerMap('trimRows', new TrimmingMap()) as TrimmingMap;
+    this.trimmedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap('trimRows', 'trimming');
     this.trimmedRowsMap!.addLocalHook('init', this.#onMapInit);
 
     super.enablePlugin();

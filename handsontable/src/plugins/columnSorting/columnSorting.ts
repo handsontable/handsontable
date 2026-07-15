@@ -11,7 +11,7 @@ import { isObject, isPlainObject } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
 import { arrayMap } from '../../helpers/array';
 import { BasePlugin } from '../base';
-import { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import type { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { Hooks } from '../../core/hooks';
 import { ColumnStatesManager } from './columnStatesManager';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
@@ -195,16 +195,19 @@ export class ColumnSorting extends BasePlugin {
     pluginConflictsState.set(this.hot, this.pluginKey);
 
     this.columnStatesManager = new ColumnStatesManager(this.hot, `${this.pluginKey}.sortingStates`);
-    this.columnMetaCache = new IndexToValueMap((physicalIndex: number) => {
-      let visualIndex: number = this.hot.toVisualColumn(physicalIndex);
+    this.columnMetaCache = this.hot.columnIndexMapper.createAndRegisterIndexMap(
+      `${this.pluginKey}.columnMeta`,
+      'physicalIndexToValue',
+      (physicalIndex: number) => {
+        let visualIndex: number = this.hot.toVisualColumn(physicalIndex);
 
-      if (visualIndex === null) {
-        visualIndex = physicalIndex;
-      }
+        if (visualIndex === null) {
+          visualIndex = physicalIndex;
+        }
 
-      return this.getMergedPluginSettings(visualIndex);
-    });
-    this.hot.columnIndexMapper.registerMap(`${this.pluginKey}.columnMeta`, this.columnMetaCache);
+        return this.getMergedPluginSettings(visualIndex);
+      },
+    );
 
     this.addHook('afterGetColHeader', this.#onAfterGetColHeader);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
@@ -348,7 +351,7 @@ export class ColumnSorting extends BasePlugin {
 
     if (currentSortConfig.length === 0 && this.indexesSequenceCache === null) {
       this.indexesSequenceCache =
-        this.hot.rowIndexMapper.registerMap(this.pluginKey, new IndexesSequence());
+        this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginKey, 'indexesSequence');
       this.indexesSequenceCache.setValues(this.hot.rowIndexMapper.getIndexesSequence());
     }
 

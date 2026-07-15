@@ -8,7 +8,7 @@ import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
 import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src';
-import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 Hooks.getSingleton().register('modifyAutoColumnSizeSeed');
 
@@ -285,7 +285,7 @@ export class AutoColumnSize extends BasePlugin {
    * @private
    * @type {PhysicalIndexToValueMap}
    */
-  columnWidthsMap = new IndexToValueMap(null, { skipUnchangedWrites: true });
+  columnWidthsMap: IndexToValueMap;
   /**
    * `true` value indicates that the #onInit() function has been already called.
    *
@@ -317,7 +317,11 @@ export class AutoColumnSize extends BasePlugin {
    */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
-    this.hot.columnIndexMapper.registerMap(COLUMN_SIZE_MAP_NAME, this.columnWidthsMap);
+    // The map holds numbers only, so re-writing an unchanged width is a no-op that must not
+    // invalidate the column-width position cache (every render re-measures the visible columns).
+    this.columnWidthsMap = this.hot.columnIndexMapper.createAndRegisterIndexMap(
+      COLUMN_SIZE_MAP_NAME, 'physicalIndexToValue', null, { skipUnchangedWrites: true },
+    );
 
     // Leave the listener active to allow auto-sizing the columns when the plugin is disabled.
     // This is necessary for width recalculation for resize handler doubleclick (ManualColumnResize).
