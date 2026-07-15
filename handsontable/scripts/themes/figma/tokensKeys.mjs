@@ -84,6 +84,7 @@ const tokensKeys = [
 
   // Cell Selection Handle Variables
   'cell-selection-handle-size',
+  'cell-selection-handle-length',
   'cell-selection-handle-border-width',
   'cell-selection-handle-border-radius',
   'cell-selection-handle-border-color',

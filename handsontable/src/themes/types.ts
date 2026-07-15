@@ -153,6 +153,7 @@ export type TokenKey =
   | 'cellMobileHandleBackgroundOpacity'
   // Cell selection handle
   | 'cellSelectionHandleSize'
+  | 'cellSelectionHandleLength'
   | 'cellSelectionHandleBorderWidth'
   | 'cellSelectionHandleBorderRadius'
   | 'cellSelectionHandleBorderColor'

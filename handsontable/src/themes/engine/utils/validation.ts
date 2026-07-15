@@ -141,6 +141,7 @@ const VALID_TOKEN_KEYS = new Set([
   'cellMobileHandleBackgroundOpacity',
   // Cell selection handle
   'cellSelectionHandleSize',
+  'cellSelectionHandleLength',
   'cellSelectionHandleBorderWidth',
   'cellSelectionHandleBorderRadius',
   'cellSelectionHandleBorderColor',

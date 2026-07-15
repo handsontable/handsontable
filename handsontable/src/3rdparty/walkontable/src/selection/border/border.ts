@@ -414,20 +414,21 @@ class Border {
     const { rootDocument, wtSettings } = this.wot;
     const stylesHandler = wtSettings.getSetting('stylesHandler');
     const size = stylesHandler.getCSSVariableValue('cell-selection-handle-size') ?? 8;
+    const length = stylesHandler.getCSSVariableValue('cell-selection-handle-length') ?? 24;
     const borderWidth = stylesHandler.getCSSVariableValue('cell-selection-handle-border-width') ?? 1;
     const borderRadius = stylesHandler.getCSSVariableValue('cell-selection-handle-border-radius') ?? 12;
     const borderColor = stylesHandler.getCSSVariableValue('cell-selection-handle-border-color') ?? '';
     const backgroundColor = stylesHandler.getCSSVariableValue('cell-selection-handle-background-color') ?? '';
 
-    const make = (edge: string, cursor: string) => {
+    const make = (edge: string, cursor: string, width: string | number, height: string | number) => {
       const el = rootDocument.createElement('div');
 
       el.className = `wtSelectionHandle wtSelectionHandle--${edge}`;
       el.style.position = 'absolute';
       el.style.display = 'none';
       el.style.zIndex = '200';
-      el.style.width = `${size}px`;
-      el.style.height = `${size}px`;
+      el.style.width = `${width}px`;
+      el.style.height = `${height}px`;
       el.style.background = `${backgroundColor}`;
       el.style.border = `${borderWidth}px solid ${borderColor}`;
       el.style.borderRadius = `${borderRadius}px`;
@@ -438,10 +439,12 @@ class Border {
       return el;
     };
 
-    const top = make('top', 'ns-resize');
-    const bottom = make('bottom', 'ns-resize');
-    const start = make('start', 'ew-resize');
-    const end = make('end', 'ew-resize');
+    // top and bottom handles sit on horizontal edges → width is the long axis (length), height is short (size).
+    // start and end handles sit on vertical edges → width is the short axis (size), height is the long axis (length).
+    const top = make('top', 'ns-resize', length, size);
+    const bottom = make('bottom', 'ns-resize', length, size);
+    const start = make('start', 'ew-resize', size, length);
+    const end = make('end', 'ew-resize', size, length);
 
     this.adjustHandles = {
       top,
@@ -1498,43 +1501,44 @@ class Border {
     const [fromRow, fromColumn, toRow, toColumn] = corners;
     const lastRow = (this.wot.getSetting('totalRows') as number) - 1;
     const lastColumn = (this.wot.getSetting('totalColumns') as number) - 1;
-    // The handle size is read from the element's inline style (not computed style, which would be a
-    // forbidden layout-forcing read). The handle dimensions must therefore be set as inline styles
-    // when the handles are created (see createAdjustHandles + the theme sizing task); if only a
-    // stylesheet rule sets the size, this reads 0 and the `- half` centering offset is skipped.
-    const size = parseInt(this.adjustHandles.styles.top.height || '0', 10) ||
-      parseInt(this.adjustHandles.styles.top.width || '0', 10);
-    const half = Math.round(size / 2);
+    // Handle dimensions are read from each element's inline style (not computed style, which would
+    // be a forbidden layout-forcing read). The handle dimensions must therefore be set as inline
+    // styles when the handles are created (see createAdjustHandles + the theme sizing task); if only
+    // a stylesheet rule sets the size, this reads 0 and the centering offset is skipped.
     const s = this.adjustHandles.styles;
+    const topW = parseInt(s.top.width || '0', 10);
+    const topH = parseInt(s.top.height || '0', 10);
+    const bottomW = parseInt(s.bottom.width || '0', 10);
+    const bottomH = parseInt(s.bottom.height || '0', 10);
+    const startW = parseInt(s.start.width || '0', 10);
+    const startH = parseInt(s.start.height || '0', 10);
+    const endW = parseInt(s.end.width || '0', 10);
+    const endH = parseInt(s.end.height || '0', 10);
 
     s.top.display = 'none';
     s.bottom.display = 'none';
     s.start.display = 'none';
     s.end.display = 'none';
 
-    const midX = inlineStart + Math.round(width / 2) - half;
-
     if (fromRow > 0) {
-      s.top[inlineProp] = `${midX}px`;
-      s.top.top = `${top - half}px`;
+      s.top[inlineProp] = `${inlineStart + Math.round(width / 2) - Math.round(topW / 2)}px`;
+      s.top.top = `${top - Math.round(topH / 2)}px`;
       s.top.display = 'block';
     }
     if (toRow < lastRow) {
-      s.bottom[inlineProp] = `${midX}px`;
-      s.bottom.top = `${top + height - half}px`;
+      s.bottom[inlineProp] = `${inlineStart + Math.round(width / 2) - Math.round(bottomW / 2)}px`;
+      s.bottom.top = `${top + height - Math.round(bottomH / 2)}px`;
       s.bottom.display = 'block';
     }
 
-    const midY = top + Math.round(height / 2) - half;
-
     if (fromColumn > 0) {
-      s.start[inlineProp] = `${inlineStart - half}px`;
-      s.start.top = `${midY}px`;
+      s.start[inlineProp] = `${inlineStart - Math.round(startW / 2)}px`;
+      s.start.top = `${top + Math.round(height / 2) - Math.round(startH / 2)}px`;
       s.start.display = 'block';
     }
     if (toColumn < lastColumn) {
-      s.end[inlineProp] = `${inlineStart + width - half}px`;
-      s.end.top = `${midY}px`;
+      s.end[inlineProp] = `${inlineStart + width - Math.round(endW / 2)}px`;
+      s.end.top = `${top + Math.round(height / 2) - Math.round(endH / 2)}px`;
       s.end.display = 'block';
     }
   }

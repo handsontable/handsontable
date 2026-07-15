@@ -4,15 +4,18 @@ Known sharp edges, technical debt, and behaviors that are easy to get wrong.
 
 ## Hand-authored `cell-selection-handle-*` tokens will be lost on next `generate:themes`
 
-The five tokens `cell-selection-handle-size`, `cell-selection-handle-border-width`,
-`cell-selection-handle-border-color`, `cell-selection-handle-background-color`, and
-`cell-selection-handle-border-radius` were added **directly** to `src/themes/static/**`
-(six CSS files) and to `scripts/themes/figma/tokensKeys.mjs` because the Figma `tokens.json`
-source is gitignored and not available at generation time. Because `generate:themes` wipes
-`src/themes/static/` before regenerating, these tokens **will be stripped** the next time
-`npm run generate:themes` runs from a `tokens.json` that does not include them. Before running
-the generator again, ensure all five `cell-selection-handle-*` tokens are present in the Figma
-export (`tokens.json`), or the desktop selection handles will render unstyled.
+The six tokens `cell-selection-handle-size`, `cell-selection-handle-length`,
+`cell-selection-handle-border-width`, `cell-selection-handle-border-color`,
+`cell-selection-handle-background-color`, and `cell-selection-handle-border-radius` were added
+**directly** to `src/themes/static/**` (six CSS files) and to
+`scripts/themes/figma/tokensKeys.mjs` because the Figma `tokens.json` source is gitignored and
+not available at generation time. Because `generate:themes` wipes `src/themes/static/` before
+regenerating, these tokens **will be stripped** the next time `npm run generate:themes` runs
+from a `tokens.json` that does not include them. Before running the generator again, ensure all
+six `cell-selection-handle-*` tokens are present in the Figma export (`tokens.json`), or the
+desktop selection handles will render unstyled. Note that `cell-selection-handle-length` (the
+long axis of the pill, 24 px = `size_6`) must also be added to the Figma token set alongside
+the original five.
 
 ## `src/themes/static` is destroyed on every run
 
