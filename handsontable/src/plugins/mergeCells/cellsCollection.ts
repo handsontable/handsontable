@@ -111,6 +111,50 @@ class MergedCellsCollection {
   }
 
   /**
+   * Get the merged cells that cover any cell of the provided visual row. The cost scales with the
+   * number of merged cells covering the row, not with the number of table columns. Merges purged
+   * from the lookup matrix (fully hidden) are not returned.
+   *
+   * @param {number} row Visual row index.
+   * @returns {MergedCellCoords[]} Array of merged cells covering the row.
+   */
+  getByVisualRow(row: number) {
+    const rowEntries = this.mergedCellsMatrix.get(row);
+
+    if (!rowEntries) {
+      return [];
+    }
+
+    return Array.from(new Set(rowEntries.values()));
+  }
+
+  /**
+   * Get the merged cells that cover any cell of the provided visual column. The cost scales with
+   * the total number of merged cells, not with the number of table rows. Merges purged from the
+   * lookup matrix (fully hidden) are not returned.
+   *
+   * @param {number} column Visual column index.
+   * @returns {MergedCellCoords[]} Array of merged cells covering the column.
+   */
+  getByVisualColumn(column: number) {
+    const result: MergedCellCoords[] = [];
+
+    for (let i = 0; i < this.mergedCells.length; i++) {
+      const mergedCell = this.mergedCells[i];
+
+      if (
+        mergedCell.col <= column && column <= mergedCell.col + mergedCell.colspan - 1 &&
+        // The lookup matrix is the authority on visibility (see `getWithinRange`).
+        this.get(mergedCell.row, mergedCell.col) === mergedCell
+      ) {
+        result.push(mergedCell);
+      }
+    }
+
+    return result;
+  }
+
+  /**
    * Filters merge cells objects provided by users from overlapping cells.
    *
    * @param {{ row: number, col: number, rowspan: number, colspan: number }} mergedCellsInfo The merged cell information object.
