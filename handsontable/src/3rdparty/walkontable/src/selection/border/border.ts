@@ -1,7 +1,7 @@
 
 import type { WalkontableInstance } from '../../types';
 import type EventManager from '../../../../../eventManager';
-import type { BorderInstanceSettings, CornerDefaultStyle, SelectionHandles, AdjustHandles } from './types';
+import type { BorderInstanceSettings, CornerDefaultStyle, SelectionHandles, AdjustHandles, MoveZone } from './types';
 import {
   addClass,
   hasClass,
@@ -14,6 +14,7 @@ import { isMobileBrowser } from '../../../../../helpers/browser';
 import { getCornerStyle } from './utils';
 
 const BORDER_STYLE_CLASS_PREFIX = 'ht-border-style-';
+const MOVE_ZONE_THICKNESS = 6;
 const BORDER_STYLE_VERTICAL_SUFFIX = '-vertical';
 const BORDER_STYLE_HORIZONTAL_SUFFIX = '-horizontal';
 
@@ -97,6 +98,10 @@ class Border {
    * @type {AdjustHandles}
    */
   declare adjustHandles: AdjustHandles;
+  /**
+   * @type {MoveZone}
+   */
+  declare moveZone: MoveZone;
   /**
    * @type {boolean}
    */
@@ -329,6 +334,7 @@ class Border {
     }
     if (!isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
       this.createAdjustHandles();
+      this.createMoveZone();
     }
     this.disappear();
 
@@ -453,6 +459,98 @@ class Border {
       end,
       styles: { top: top.style, bottom: bottom.style, start: start.style, end: end.style },
     };
+  }
+
+  /**
+   * Creates the four edge move-zone band elements. Each band is a thin overlay div positioned along
+   * one selection edge. Hovering a band shows a `grab` cursor; a `mousedown` on a band calls the
+   * `onSelectionEdgeMouseDown` Walkontable setting so the core can initiate a move drag.
+   *
+   * Bands sit at z-index 100 — below the resize pills (z-index 200) so the pills win in the corner
+   * regions where they overlap. All four bands are created hidden; `positionMoveZone` + `appear`
+   * control their visibility.
+   */
+  createMoveZone() {
+    const { rootDocument } = this.wot;
+
+    const make = (edge: string) => {
+      const el = rootDocument.createElement('div');
+
+      el.className = 'wtMoveZone';
+      el.style.position = 'absolute';
+      el.style.display = 'none';
+      el.style.zIndex = '100';
+      el.style.pointerEvents = 'auto';
+      el.style.cursor = 'grab';
+      this.main!.appendChild(el);
+
+      this.eventManager.addEventListener(el, 'mousedown', (event: MouseEvent) => {
+        stopImmediatePropagation(event);
+        event.preventDefault();
+        this.wot.getSetting('onSelectionEdgeMouseDown', event, edge);
+      });
+
+      return el;
+    };
+
+    const top = make('top');
+    const bottom = make('bottom');
+    const start = make('start');
+    const end = make('end');
+
+    this.moveZone = {
+      top,
+      bottom,
+      start,
+      end,
+      styles: { top: top.style, bottom: bottom.style, start: start.style, end: end.style },
+    };
+  }
+
+  /**
+   * Positions the four move-zone bands along the selection edges. Each band is `MOVE_ZONE_THICKNESS`
+   * pixels tall (or wide for the vertical bands) and centred on its respective edge line. RTL layout
+   * is handled by using `right` instead of `left` for the inline axis, mirroring `positionAdjustHandles`.
+   *
+   * @private
+   * @param {number} top The selection border top (px, container-relative).
+   * @param {number} inlineStart The selection border inline-start (px, container-relative).
+   * @param {number} width The selection border width (px).
+   * @param {number} height The selection border height (px).
+   */
+  positionMoveZone(top: number, inlineStart: number, width: number, height: number) {
+    const isRtl = this.wot.wtSettings.getSetting('rtlMode');
+    const inlineProp = isRtl ? 'right' : 'left';
+    const s = this.moveZone.styles;
+    const half = Math.floor(MOVE_ZONE_THICKNESS / 2);
+
+    // Top band — full width, centred on the top edge.
+    s.top[inlineProp] = `${inlineStart}px`;
+    s.top.top = `${top - half}px`;
+    s.top.width = `${width}px`;
+    s.top.height = `${MOVE_ZONE_THICKNESS}px`;
+    s.top.display = 'block';
+
+    // Bottom band — full width, centred on the bottom edge.
+    s.bottom[inlineProp] = `${inlineStart}px`;
+    s.bottom.top = `${top + height - half}px`;
+    s.bottom.width = `${width}px`;
+    s.bottom.height = `${MOVE_ZONE_THICKNESS}px`;
+    s.bottom.display = 'block';
+
+    // Start band — full height, centred on the inline-start edge.
+    s.start[inlineProp] = `${inlineStart - half}px`;
+    s.start.top = `${top}px`;
+    s.start.width = `${MOVE_ZONE_THICKNESS}px`;
+    s.start.height = `${height}px`;
+    s.start.display = 'block';
+
+    // End band — full height, centred on the inline-end edge.
+    s.end[inlineProp] = `${inlineStart + width - half}px`;
+    s.end.top = `${top}px`;
+    s.end.width = `${MOVE_ZONE_THICKNESS}px`;
+    s.end.height = `${height}px`;
+    s.end.display = 'block';
   }
 
   /**
@@ -1384,6 +1482,20 @@ class Border {
       this.adjustHandles.styles.start.display = 'none';
       this.adjustHandles.styles.end.display = 'none';
     }
+
+    let moveEnabled = this.settings.border?.moveEnabled;
+
+    moveEnabled = typeof moveEnabled === 'function'
+      ? moveEnabled(this.settings.layerLevel) : moveEnabled;
+
+    if (!isMobileBrowser() && moveEnabled && this.moveZone) {
+      this.positionMoveZone(top, inlineStartPos, width, height);
+    } else if (this.moveZone) {
+      this.moveZone.styles.top.display = 'none';
+      this.moveZone.styles.bottom.display = 'none';
+      this.moveZone.styles.start.display = 'none';
+      this.moveZone.styles.end.display = 'none';
+    }
   }
 
   /**
@@ -1634,6 +1746,13 @@ class Border {
       this.adjustHandles.styles.bottom.display = 'none';
       this.adjustHandles.styles.start.display = 'none';
       this.adjustHandles.styles.end.display = 'none';
+    }
+
+    if (this.moveZone) {
+      this.moveZone.styles.top.display = 'none';
+      this.moveZone.styles.bottom.display = 'none';
+      this.moveZone.styles.start.display = 'none';
+      this.moveZone.styles.end.display = 'none';
     }
   }
 
