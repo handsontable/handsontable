@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Added the `moveCells` option for moving a cell selection to a new location by dragging its border.",
+  "type": "added",
+  "issueOrPR": 13076,
+  "breaking": false,
+  "framework": "none"
+}
