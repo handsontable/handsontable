@@ -50,9 +50,14 @@
 
     // Ghost preview overlay shown during a move-cells drag (moveCells option).
     // The element is appended to the overlays container and positioned absolutely
-    // over the drop-target range. MC-10 will refine the visual appearance further.
+    // over the drop-target range. `pointer-events: none` is also set inline by JS
+    // but is repeated here so the intent is self-documenting in the stylesheet.
     .wtMoveGhost {
-      background-color: var(--ht-cell-selection-background-color, rgb(75 137 255 / 15%));
+      // Use color-mix to apply 15% opacity to the selection-border accent color.
+      // --ht-cell-selection-background-color resolves to a solid accent color in all
+      // themes (opacity is normally applied via ::before in td.area), so using it
+      // directly here would produce a fully opaque ghost in classic/horizon themes.
+      background-color: color-mix(in srgb, var(--ht-cell-selection-border-color, #4b89ff) 15%, transparent);
       outline: 2px dashed var(--ht-cell-selection-border-color, #4b89ff);
       outline-offset: -2px;
       box-sizing: border-box;
