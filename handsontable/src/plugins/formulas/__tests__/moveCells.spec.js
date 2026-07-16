@@ -1,6 +1,6 @@
 import HyperFormula from 'hyperformula';
 
-describe('Formulas', () => {
+describe('Formulas: moveCells integration', () => {
   beforeEach(function() {
     this.$container = $('<div id="testContainer"></div>').appendTo('body');
   });
@@ -117,31 +117,36 @@ describe('Formulas', () => {
       expect(getDataAtCell(3, 1)).toBe(20); // =A4*2 = 20
     });
 
-    it('vetoes the HF move when isItPossibleToMoveCells returns false', async() => {
-      // Use a ARRAYFORMULA-like scenario where HF would veto. In practice,
-      // we test that returning false from beforeMoveCells propagates correctly
-      // even when the Formulas plugin is the one vetoing.
-      // We simulate by checking that the beforeMoveCells hook can still be vetoed.
-      const spy = jasmine.createSpy('beforeMoveCells').and.returnValue(false);
-
+    it('vetoes the HF move when engine.isItPossibleToMoveCells returns false (array formula in source)', async() => {
+      // C1 holds an array formula that spills into C1:D2 via TRANSPOSE.
+      // HyperFormula's isItPossibleToMoveCells returns false when the source range
+      // overlaps an array-formula cell, so the Formulas plugin vetoes the move in
+      // #onBeforeMoveCells before delegating to HF.
       handsontable({
-        data: [[1, '=A1+10'], [null, null]],
+        data: [[1, 2, null, null], [3, 4, null, null]],
         formulas: {
           engine: HyperFormula,
         },
         moveCells: true,
-        beforeMoveCells: spy,
       });
 
-      const srcValue = getDataAtCell(0, 1); // 11
-
-      await selectCells([[0, 1, 0, 1]]);
-      await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(1, 1), false);
+      // Set an array formula at C1 (TRANSPOSE of A1:B2 → fills C1:D2).
+      await setDataAtCell(0, 2, '=TRANSPOSE(A1:B2)');
       await hot().render();
 
-      // Vetoed – values unchanged
-      expect(getDataAtCell(0, 1)).toBe(srcValue);
-      expect(getDataAtCell(1, 1)).toBe(null);
+      // Verify C1 is now an array formula cell.
+      expect(getPlugin('formulas').getCellType(0, 2)).toBe('ARRAYFORMULA');
+
+      const beforeC1 = getDataAtCell(0, 2);
+
+      // Attempt to move C1 (array-formula cell) to E1 – HF should veto this.
+      await selectCells([[0, 2, 0, 2]]);
+      await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(0, 4), false);
+      await hot().render();
+
+      // Move is vetoed: C1 still holds the array formula value, E1 is unchanged.
+      expect(getDataAtCell(0, 2)).toBe(beforeC1);
+      expect(getDataAtCell(0, 4)).toBe(null);
     });
 
     it('moves plain-value cell when Formulas plugin is active', async() => {

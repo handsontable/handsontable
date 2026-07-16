@@ -28,7 +28,6 @@ export interface HyperFormulaEngine {
   isItPossibleToMoveCells(source: object, destinationLeftCorner: object): boolean;
   moveCells(source: object, destinationLeftCorner: object): unknown[];
   copy(source: object): unknown[][];
-  cut(source: object): unknown[][];
   paste(targetLeftCorner: object): unknown[];
   batch(callback: () => void): unknown[];
   getConfig(): Record<string, unknown>;

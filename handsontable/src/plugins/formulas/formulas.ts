@@ -149,7 +149,7 @@ export class Formulas extends BasePlugin {
 
   /**
    * Stores the HyperFormula source range and destination address prepared in `beforeMoveCells` so that
-   * `afterMoveCells` can execute the corresponding HF operation without recomputing visual→HF coordinates.
+   * `afterMoveCells` can execute the corresponding HF operation without recomputing visual-to-HF coordinates.
    *
    * Set to `null` when no move is in flight.
    *
@@ -1625,14 +1625,24 @@ export class Formulas extends BasePlugin {
 
     let dependentCells: unknown[];
 
-    if (isCopy) {
-      // copy() reads cell values and cannot run inside batch() (evaluation must not be suspended).
-      this.engine.copy(source);
-      dependentCells = this.engine.paste(dest);
-    } else {
-      dependentCells = this.engine.batch(() => {
-        this.engine!.moveCells(source, dest);
-      });
+    // HyperFormula can throw during copy/paste (e.g. when pasting over a cell that is part of
+    // an array formula) and during moveCells (no isItPossibleToMoveCells pre-check is performed
+    // for the COPY path). Guard both paths so that a failed HF operation does not leave
+    // #pendingMoveCells or #moveCellsSyncPending in a dangling state.
+    try {
+      if (isCopy) {
+        // copy() reads cell values and cannot run inside batch() (evaluation must not be suspended).
+        this.engine.copy(source);
+        dependentCells = this.engine.paste(dest);
+      } else {
+        dependentCells = this.engine.batch(() => {
+          this.engine!.moveCells(source, dest);
+        });
+      }
+    } catch (e) {
+      warn(`Formulas: HyperFormula operation failed during ${isCopy ? 'copy/paste' : 'moveCells'}: ${e instanceof Error ? e.message : String(e)}`);
+
+      return;
     }
 
     // Sync HOT's source data with HF's updated state so that getDataAtCell returns
@@ -1646,7 +1656,7 @@ export class Formulas extends BasePlugin {
    * Synchronises HOT's raw data source array with HyperFormula's state after a
    * `moveCells` or copy operation.
    *
-   * Formula cells are already served correctly through `modifyData` → `getCellValue`.
+   * Formula cells are already served correctly through `modifyData` via `getCellValue`.
    * Plain VALUE / EMPTY cells, however, fall back to the raw HOT data, so after HF
    * moves the data the old raw values must be cleared from the source cells and the
    * serialised HF content must be written to the target cells.
