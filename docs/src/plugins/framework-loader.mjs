@@ -151,8 +151,8 @@ function escapeHtml(str) {
  * The output contains:
  * 1. A live preview container with a loading shimmer shown until the example JS
  *    mounts the Handsontable instance.
- * 2. A toolbar with a "Source code" toggle, an "Edit on StackBlitz" button, and
- *    a "See on GitHub" link.
+ * 2. A toolbar with a "Source code" toggle, an "Open in runner" link (guides only),
+ *    an "Edit on StackBlitz" button, and a "See on GitHub" link.
  * 3. Shiki-highlighted code tabs (hidden by default, revealed via the toggle).
  *
  * @param {string} id - Example ID, e.g. 'example1'
@@ -265,6 +265,24 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   const exampleDir = primaryRef ? primaryRef.split('/').slice(0, -1).join('/') : '';
   const githubUrl = `https://github.com/handsontable/handsontable/tree/develop/docs/content/${escapeHtml(exampleDir)}`;
 
+  // ── Runner link ────────────────────────────────────────────────────────────
+  // The demos.handsontable.com runner manifest only covers guides/** examples
+  // (recipes are not imported) and, per framework, only ships specific file
+  // extensions — pick the one the manifest actually has, not the tab-selection
+  // fallbacks used above (jsxRef prefers .jsx, vueRef falls back to .js).
+  const runnerRef =
+    isReactDir ? (fileRefs.find(r => r.endsWith('.tsx')) ?? jsxRef)
+    : isAngularDir ? tsRef
+    : isVueDir ? (fileRefs.find(r => r.endsWith('.vue')) ?? null)
+    : jsRef;
+  // Alternate JS/TS variant path, used only to let the client follow the active
+  // language tab (vanilla examples ship both variants in the runner manifest).
+  const runnerTsRef = jsRef ? (fileRefs.find(r => r.endsWith('.ts')) ?? null) : null;
+  const isRunnerEligible = !!runnerRef && runnerRef.startsWith('guides/');
+  const runnerUrl = isRunnerEligible
+    ? `https://demos.handsontable.com/?docs=${runnerRef}&v=${CURRENT_RELEASE_VERSION}`
+    : '';
+
   // ── StackBlitz data (embedded as JSON for the client-side handler) ─────────
 
   const framework = isReactDir ? 'react' : isAngularDir ? 'angular' : isVueDir ? 'vue' : 'javascript';
@@ -337,6 +355,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   // ── SVG icons (inlined to keep no external dependencies) ──────────────────
   const iconCode = `<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`;
   const iconChevron = `<svg class="hot-example-source-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>`;
+  const iconRunner = `<svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
   const iconStackBlitz = `<svg aria-hidden="true" width="13" height="13" viewBox="0 0 28 28" fill="currentColor"><path d="M15.245 0L0 15.556h10.976L7.757 28 28 12.444H17.024L15.245 0z"/></svg>`;
   const iconGitHub = `<svg aria-hidden="true" width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>`;
 
@@ -356,6 +375,9 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
     ${iconCode} Source code ${iconChevron}
   </button>
   <div class="hot-example-actions">
+    ${isRunnerEligible ? `<a class="hot-example-runner-btn" href="${escapeHtml(runnerUrl)}" target="_blank" rel="noopener noreferrer" title="Open in runner" aria-label="Open in runner"${runnerTsRef ? ` data-docs-js="${escapeHtml(jsRef)}" data-docs-ts="${escapeHtml(runnerTsRef)}" data-runner-version="${escapeHtml(CURRENT_RELEASE_VERSION)}"` : ''}>
+      ${iconRunner}
+    </a>` : ''}
     <button class="hot-example-stackblitz-btn" type="button" title="Edit on StackBlitz" aria-label="Edit on StackBlitz">
       ${iconStackBlitz}
     </button>

@@ -188,6 +188,15 @@ document.addEventListener('DOMContentLoaded', function () {
           // Update trigger label
           langTrigger.innerHTML = scriptLangs[activeScript] + ' <svg class="hot-example-lang-chevron" aria-hidden="true" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6-6"/></svg>';
 
+          // Follow the active JS/TS tab in the runner link, if present.
+          var runnerBtn = hotExample.querySelector('.hot-example-runner-btn');
+          if (runnerBtn && runnerBtn.dataset.docsJs && runnerBtn.dataset.docsTs) {
+            var docsPath = scriptLangs[activeScript] === 'TypeScript'
+              ? runnerBtn.dataset.docsTs : runnerBtn.dataset.docsJs;
+            runnerBtn.href = 'https://demos.handsontable.com/?docs=' + docsPath +
+              '&v=' + runnerBtn.dataset.runnerVersion;
+          }
+
           // Deactivate tab buttons, activate dropdown
           tabbar.querySelectorAll('.hot-example-tab').forEach(function (t) {
             t.classList.remove('is-active');
