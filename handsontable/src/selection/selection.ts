@@ -196,7 +196,7 @@ class Selection {
       cellCornerVisible: () => this.isCellCornerVisible(),
       areaCornerVisible: (layerLevel: number) => this.isAreaCornerVisible(layerLevel),
       adjustHandlesVisible: (layerLevel: number) => this.isAdjustHandlesVisibleFor(layerLevel),
-      moveEnabled: () => this.settings.moveCells === true,
+      moveEnabled: () => this.settings.moveCells === true && !this.settings.disableVisualSelection,
       visualToRenderableCoords: (coords: CellCoords) => this.tableProps.visualToRenderableCoords(coords),
       renderableToVisualCoords: (coords: CellCoords) => this.tableProps.renderableToVisualCoords(coords),
       createCellCoords: (row: number, column: number) => this.tableProps.createCellCoords(row, column),

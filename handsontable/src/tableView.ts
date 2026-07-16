@@ -2520,7 +2520,7 @@ class TableView {
     }
 
     if (this.#moveDrag) {
-      this.#endMoveDrag(false, event);
+      this.#endMoveDrag(false, null);
     }
 
     const selection = this.hot.selection;
@@ -2748,11 +2748,13 @@ class TableView {
     });
 
     const targetTopLeft = this.hot._createCellCoords(target.row, target.col);
-    const sourceRange = this.hot.getSelectedRangeLast();
 
-    if (!sourceRange) {
-      return;
-    }
+    // Reconstruct the source range from the immutable corners captured at drag-start.
+    // Using the live selection (`getSelectedRangeLast()`) here would be incorrect because
+    // the selection may have been mutated or scrolled during the drag.
+    const sourceFrom = this.hot._createCellCoords(fromRow, fromCol);
+    const sourceTo = this.hot._createCellCoords(toRow, toCol);
+    const sourceRange = this.hot._createCellRange(sourceFrom, sourceFrom, sourceTo);
 
     const isCopy = upEvent.ctrlKey || upEvent.metaKey;
 

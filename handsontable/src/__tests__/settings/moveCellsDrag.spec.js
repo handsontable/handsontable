@@ -235,5 +235,192 @@ describe('settings', () => {
       // Data must be unchanged.
       expect(getDataAtCell(2, 2)).toBe(src);
     });
+
+    it('should copy instead of moving when Meta (Cmd) is held on drop', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        moveCells: true,
+        width: 400,
+        height: 300,
+      });
+
+      const src = getDataAtCell(2, 2);
+
+      await selectCells([[2, 2, 3, 3]]);
+
+      const zone = getMoveZone();
+
+      expect(zone).not.toBeNull();
+
+      const zoneRect = zone.getBoundingClientRect();
+      const targetCell = getCell(5, 5);
+      const targetRect = targetCell.getBoundingClientRect();
+
+      $(zone).simulate('mousedown', {
+        clientX: zoneRect.left + (zoneRect.width / 2),
+        clientY: zoneRect.top + (zoneRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      // Drop with Meta (Cmd) held — should copy, not move.
+      $(document.documentElement).simulate('mouseup', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+        metaKey: true,
+      });
+
+      // Source is kept when copying.
+      expect(getDataAtCell(2, 2)).toBe(src);
+      // Target receives the value.
+      expect(getDataAtCell(5, 5)).toBe(src);
+    });
+
+    it('should show the ghost element during drag and remove it after drop', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        moveCells: true,
+        width: 400,
+        height: 300,
+      });
+
+      await selectCells([[2, 2, 3, 3]]);
+
+      const zone = getMoveZone();
+
+      expect(zone).not.toBeNull();
+
+      const zoneRect = zone.getBoundingClientRect();
+      const targetCell = getCell(5, 5);
+      const targetRect = targetCell.getBoundingClientRect();
+
+      $(zone).simulate('mousedown', {
+        clientX: zoneRect.left + (zoneRect.width / 2),
+        clientY: zoneRect.top + (zoneRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      // Ghost should be present and visible during the drag.
+      const ghostDuring = spec().$container[0].querySelector('.wtMoveGhost');
+
+      expect(ghostDuring).not.toBeNull();
+      expect(ghostDuring.style.display).toBe('block');
+
+      // Drop.
+      $(document.documentElement).simulate('mouseup', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      // Ghost should be removed after drop.
+      const ghostAfter = spec().$container[0].querySelector('.wtMoveGhost');
+
+      expect(ghostAfter).toBeNull();
+    });
+
+    it('should honor the grab offset when dragging from a non-top-left cell of a 2x2 range', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        moveCells: true,
+        width: 400,
+        height: 300,
+      });
+
+      // Select a 2x2 range: rows 1-2, cols 1-2.
+      await selectCells([[1, 1, 2, 2]]);
+
+      const zone = getMoveZone();
+
+      expect(zone).not.toBeNull();
+
+      // Grab the bottom-right cell of the range (row 2, col 2).
+      const grabCell = getCell(2, 2);
+      const grabRect = grabCell.getBoundingClientRect();
+
+      $(zone).simulate('mousedown', {
+        clientX: grabRect.left + (grabRect.width / 2),
+        clientY: grabRect.top + (grabRect.height / 2),
+      });
+
+      // Move so that the grabbed cell (bottom-right) lands on row 6, col 6.
+      // The grab offset within the range is (1, 1) (bottom-right of the 2x2),
+      // so the block's top-left should end up at (6 - 1, 6 - 1) = (5, 5).
+      const targetCell = getCell(6, 6);
+      const targetRect = targetCell.getBoundingClientRect();
+
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      // Drop.
+      $(document.documentElement).simulate('mouseup', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      // The 2x2 block should have moved so that its top-left is at (5, 5).
+      // Original top-left value (row 1, col 1) should now be at (5, 5).
+      expect(getDataAtCell(5, 5)).toBe('B2');
+      // Original positions should now be empty (moved, not copied).
+      expect(getDataAtCell(1, 1)).toBeNull();
+    });
+
+    it('should not show the move zone bands when disableVisualSelection is set', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        moveCells: true,
+        disableVisualSelection: true,
+        width: 400,
+        height: 300,
+      });
+
+      await selectCells([[2, 2, 3, 3]]);
+
+      const zone = getMoveZone();
+
+      // The move zone must not be rendered when visual selection is disabled.
+      expect(zone).toBeNull();
+    });
+
+    it('should not move data when disableVisualSelection is set and a drag is attempted', async() => {
+      const originalData = createSpreadsheetData(10, 10);
+
+      handsontable({
+        data: originalData,
+        moveCells: true,
+        disableVisualSelection: true,
+        width: 400,
+        height: 300,
+      });
+
+      const src = getDataAtCell(2, 2);
+
+      await selectCells([[2, 2, 3, 3]]);
+
+      // No zone should exist, so a manual drag attempt cannot start a move.
+      const zone = getMoveZone();
+
+      expect(zone).toBeNull();
+
+      // Attempt a raw mouseup at a different cell — data must remain unchanged.
+      const targetCell = getCell(5, 5);
+      const targetRect = targetCell.getBoundingClientRect();
+
+      $(document.documentElement).simulate('mouseup', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      expect(getDataAtCell(2, 2)).toBe(src);
+      expect(getDataAtCell(5, 5)).toBe(originalData[5][5]);
+    });
   });
 });

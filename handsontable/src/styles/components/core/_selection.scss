@@ -80,6 +80,10 @@
           transparent 4px,
           transparent 8px
         );
+        // `!important` here overrides the `background-color: ... !important` rules on
+        // `.wtBorder.current` and `.wtBorder.area` in the Borders section below — those
+        // rules already use `!important`, so this declaration must match that specificity
+        // to suppress the solid background while the dashed gradient is active.
         background-color: transparent !important;
       }
     }
