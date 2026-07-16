@@ -37,6 +37,15 @@
       );
     }
 
+    // Adjustment handles (desktop drag-to-resize, .wtSelectionHandle)
+    // Visual styling (size/color/etc.) is set as inline styles in border.ts createAdjustHandles;
+    // only the animation is applied here — it does not conflict with inline styles.
+    .wtSelectionHandle {
+      @media (prefers-reduced-motion: no-preference) {
+        animation: ht-selection-handle-fade-in var(--ht-table-transition) ease-in-out;
+      }
+    }
+
     // Borders
     .wtBorder {
       position: absolute;
@@ -103,6 +112,16 @@
           inset-block-end: 0;
         }
       }
+    }
+  }
+
+  @keyframes ht-selection-handle-fade-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
     }
   }
 }
