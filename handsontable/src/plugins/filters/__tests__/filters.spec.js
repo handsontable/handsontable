@@ -1038,6 +1038,47 @@ describe('Filters', () => {
       expect(updateSpy.calls.argsFor(1)[0].editedConditionStack.conditions.length).toBe(1);
     });
 
+    it('should reset the component state of a column dropped by the import and keep dependent ' +
+       'by_value state correct', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+      });
+
+      const filters = getPlugin('filters');
+
+      // pre-existing conditions: the import below drops column 1 and replaces column 2
+      filters.addCondition(1, 'by_value', [['B1', 'B2']]);
+      filters.filter();
+      filters.addCondition(2, 'contains', ['C']);
+      filters.filter();
+
+      filters.importConditions([
+        {
+          column: 2,
+          operation: 'conjunction',
+          conditions: [{ name: 'by_value', args: [['C1', 'C2', 'C3']] }],
+        },
+        {
+          column: 3,
+          operation: 'conjunction',
+          conditions: [{ name: 'contains', args: ['D'] }],
+        },
+      ]);
+      filters.filter();
+
+      // the dropped column's filter no longer applies and its component state is reset to "none"
+      expect(getDataAtCol(1)).toEqual(['B1', 'B2', 'B3']);
+
+      const valueComponentState = filters.components.get('filter_by_value').state;
+
+      expect(valueComponentState.getValueAtIndex(1).command.key).toBe('none');
+      // the imported by_value state reflects the imported condition, not the pre-import one
+      expect(valueComponentState.getValueAtIndex(2).args[0]).toEqual(['C1', 'C2', 'C3']);
+    });
+
     it('should filter the data correctly after importing conditions', async() => {
       handsontable({
         data: createSpreadsheetData(10, 5),
