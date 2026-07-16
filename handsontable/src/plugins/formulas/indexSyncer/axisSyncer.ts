@@ -7,6 +7,23 @@ interface AxisIndexMapper {
   getIndexesSequence(): number[];
   getNotTrimmedIndexes(): number[];
   getNumberOfIndexes(): number;
+  addLocalHook(key: string, callback: Function): unknown;
+}
+
+interface HfTranslationCache {
+  /**
+   * Snapshot of the physical indexes sequence. The position in this array is the HF index,
+   * the value is the physical index.
+   */
+  physicalIndexOfHf: number[];
+  /**
+   * Inverse of the sequence. The position in this array is the physical index, the value is the HF index.
+   */
+  hfIndexOfPhysical: number[];
+  /**
+   * Translation from a physical index to its visual index, or `-1` when the physical index is trimmed.
+   */
+  visualIndexOfPhysical: number[];
 }
 
 interface ParentIndexSyncer {
@@ -75,6 +92,16 @@ class AxisSyncer {
    * @type {Array<number>}
    */
   #removedIndexes: number[] = [];
+  /**
+   * Cached translation tables between physical, visual, and HF indexes. Built lazily on the first
+   * translation call and invalidated whenever the indexes sequence or the trimmed indexes change.
+   * Keeping the tables makes both translation methods O(1) per call — they are called for every
+   * rendered cell, so a per-call sequence scan would scale with the dataset size.
+   *
+   * @private
+   * @type {HfTranslationCache|null}
+   */
+  #translationCache: HfTranslationCache | null = null;
 
   /**
    * Initializes the axis syncer for the given axis with the corresponding index mapper and parent index syncer references.
@@ -83,6 +110,44 @@ class AxisSyncer {
     this.#axis = axis;
     this.#indexMapper = indexMapper;
     this.#indexSyncer = indexSyncer;
+
+    // The sequence hook fires synchronously on every sequence mutation (also mid-batch), the
+    // `cacheUpdated` hook fires when the mapper rebuilds its own `notTrimmedIndexes` cache — the
+    // same moment from which the translation methods would read the new trimming state.
+    this.#indexMapper.addLocalHook('indexesSequenceChange', () => {
+      this.#translationCache = null;
+    });
+    this.#indexMapper.addLocalHook('cacheUpdated', (changes: { trimmedIndexesChanged: boolean }) => {
+      if (changes.trimmedIndexesChanged) {
+        this.#translationCache = null;
+      }
+    });
+  }
+
+  /**
+   * Gets the cached translation tables between physical, visual, and HF indexes, building them when needed.
+   *
+   * @returns {HfTranslationCache}
+   */
+  #getTranslationCache(): HfTranslationCache {
+    if (this.#translationCache === null) {
+      const physicalIndexOfHf = this.#indexMapper.getIndexesSequence();
+      const notTrimmedIndexes = this.#indexMapper.getNotTrimmedIndexes();
+      const hfIndexOfPhysical: number[] = new Array<number>(physicalIndexOfHf.length);
+      const visualIndexOfPhysical: number[] = new Array<number>(physicalIndexOfHf.length).fill(-1);
+
+      for (let hfIndex = 0; hfIndex < physicalIndexOfHf.length; hfIndex += 1) {
+        hfIndexOfPhysical[physicalIndexOfHf[hfIndex]] = hfIndex;
+      }
+
+      for (let visualIndex = 0; visualIndex < notTrimmedIndexes.length; visualIndex += 1) {
+        visualIndexOfPhysical[notTrimmedIndexes[visualIndex]] = visualIndex;
+      }
+
+      this.#translationCache = { physicalIndexOfHf, hfIndexOfPhysical, visualIndexOfPhysical };
+    }
+
+    return this.#translationCache;
   }
 
   /**
@@ -118,13 +183,15 @@ class AxisSyncer {
    * @returns {number}
    */
   getHfIndexFromVisualIndex(visualIndex: number) {
-    const indexesSequence = this.#indexMapper.getIndexesSequence();
-    const notTrimmedIndexes = this.#indexMapper.getNotTrimmedIndexes();
+    const physicalIndex = this.#indexMapper.getNotTrimmedIndexes()[visualIndex];
 
-    // Optimization:
-    // notTrimmedIndexes is a subset of indexesSequence,
-    // so for every x indexesSequence.indexOf(x) is always >= notTrimmedIndexes.indexOf(x)
-    return indexesSequence.indexOf(notTrimmedIndexes[visualIndex], visualIndex);
+    if (physicalIndex === undefined) {
+      return -1;
+    }
+
+    // The `?? -1` covers a mid-batch state in which the mapper's not-trimmed cache still holds a
+    // physical index that is no longer part of the sequence.
+    return this.#getTranslationCache().hfIndexOfPhysical[physicalIndex] ?? -1;
   }
 
   /**
@@ -135,15 +202,14 @@ class AxisSyncer {
    * @returns {number}
    */
   getVisualIndexFromHfIndex(hfIndex: number) {
-    const indexesSequence = this.#indexMapper.getIndexesSequence();
-    const notTrimmedIndexes = this.#indexMapper.getNotTrimmedIndexes();
-    const physicalIndex = indexesSequence[hfIndex];
+    const { physicalIndexOfHf, visualIndexOfPhysical } = this.#getTranslationCache();
+    const physicalIndex = physicalIndexOfHf[hfIndex];
 
     if (physicalIndex === undefined) {
       return -1;
     }
 
-    return notTrimmedIndexes.indexOf(physicalIndex);
+    return visualIndexOfPhysical[physicalIndex];
   }
 
   /**
@@ -232,7 +298,15 @@ class AxisSyncer {
       const newSequence = this.#indexMapper.getIndexesSequence();
 
       if (source === 'update' && newSequence.length > 0) {
-        const relativeTransformation = this.#indexesSequence.map(index => newSequence.indexOf(index));
+        // One-pass inverse lookup instead of `newSequence.indexOf` per element, which would make
+        // every sort/unsort quadratic in the number of rows or columns.
+        const positionOfPhysical: number[] = new Array<number>(newSequence.length);
+
+        for (let position = 0; position < newSequence.length; position += 1) {
+          positionOfPhysical[newSequence[position]] = position;
+        }
+
+        const relativeTransformation = this.#indexesSequence.map(index => positionOfPhysical[index] ?? -1);
         const sheetDimensions = this.#indexSyncer.getEngine()!.getSheetDimensions(this.#indexSyncer.getSheetId()!);
         let sizeForAxis;
 
@@ -290,8 +364,13 @@ class AxisSyncer {
     const sizeForAxis = this.#axis === 'row' ? sheetDimensions.height : sheetDimensions.width;
     // HF currently holds data in physical order ([0..n-1] identity). The transformation tells HF where each
     // currently-held element should move to, so that HF's visual order matches HOT's visual order. For each
-    // current position `i`, the target position is the visual index of physical `i`, i.e. `sequence.indexOf(i)`.
-    const transformation = Array.from({ length: sequence.length }, (_, i) => sequence.indexOf(i));
+    // current position `i`, the target position is the visual index of physical `i` — that is, the inverse
+    // permutation of the sequence, built in one pass.
+    const transformation: number[] = new Array<number>(sequence.length);
+
+    for (let position = 0; position < sequence.length; position += 1) {
+      transformation[sequence[position]] = position;
+    }
 
     for (let i = transformation.length; i < sizeForAxis; i += 1) {
       transformation.push(i);

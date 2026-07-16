@@ -6,6 +6,7 @@ import { isObject } from '../../helpers/object';
 import { isDefined, isUndefined } from '../../helpers/mixed';
 import { getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine, } from './engine/register';
 import {
+  coalesceIndexesToSpans,
   getDateFromExcelDate,
   getDateInHfFormat,
   getDateInHotFormat,
@@ -94,6 +95,10 @@ Hooks.getSingleton().register('afterFormulasValuesUpdate');
 // instances of Handsontable and HyperFormula should be synced (number of actions should be the same).
 const isBlockedSource = (source: unknown) =>
   source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto';
+
+// Maximum number of `[startIndex, amount]` spans passed to a single variadic engine
+// `removeRows`/`removeColumns` call. An unbounded argument spread could overflow the call stack.
+const REMOVAL_SPANS_CHUNK_SIZE = 1000;
 
 /**
  * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
@@ -1480,14 +1485,10 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const descendingHfRows = this.rowAxisSyncer!
-      .getRemovedHfIndexes()
-      .sort((a: number, b: number) => b - a); // sort numeric values descending
+    const removedSpans = coalesceIndexesToSpans(this.rowAxisSyncer!.getRemovedHfIndexes());
 
     const changes = this.engine!.batch(() => {
-      descendingHfRows.forEach((hfRow: number) => {
-        this.engine!.removeRows(this.sheetId, [hfRow, 1]);
-      });
+      this.#removeSpansFromEngine(removedSpans, 'removeRows');
     });
 
     this.renderDependentSheets(changes);
@@ -1507,18 +1508,37 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const descendingHfColumns = this.columnAxisSyncer!
-      .getRemovedHfIndexes()
-      .sort((a: number, b: number) => b - a); // sort numeric values descending
+    const removedSpans = coalesceIndexesToSpans(this.columnAxisSyncer!.getRemovedHfIndexes());
 
     const changes = this.engine!.batch(() => {
-      descendingHfColumns.forEach((hfColumn: number) => {
-        this.engine!.removeColumns(this.sheetId, [hfColumn, 1]);
-      });
+      this.#removeSpansFromEngine(removedSpans, 'removeColumns');
     });
 
     this.renderDependentSheets(changes);
   };
+
+  /**
+   * Removes the provided `[startIndex, amount]` spans from the engine in as few calls as possible.
+   * One call handles many spans, so the engine pays its dependency-graph remap once per call instead
+   * of once per removed row or column. The engine methods are variadic, so the spans are chunked to
+   * keep the argument spread within call-stack limits; chunks run from the highest spans down, which
+   * keeps the original coordinates of the not-yet-removed lower spans valid.
+   *
+   * @param {Array<Array<number>>} spans Ascending list of `[startIndex, amount]` spans to remove.
+   * @param {'removeRows'|'removeColumns'} engineMethodName The engine removal method to call.
+   */
+  #removeSpansFromEngine(spans: [number, number][], engineMethodName: 'removeRows' | 'removeColumns') {
+    for (let end = spans.length; end > 0; end -= REMOVAL_SPANS_CHUNK_SIZE) {
+      const chunk = spans.slice(Math.max(0, end - REMOVAL_SPANS_CHUNK_SIZE), end);
+
+      if (engineMethodName === 'removeRows') {
+        this.engine!.removeRows(this.sheetId, ...chunk);
+
+      } else {
+        this.engine!.removeColumns(this.sheetId, ...chunk);
+      }
+    }
+  }
 
   /**
    * `afterDetachChild` hook callback.
