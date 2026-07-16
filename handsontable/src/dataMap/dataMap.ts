@@ -14,7 +14,7 @@ import {
   isObject,
   objectEach
 } from '../helpers/object';
-import { extendArray, to2dArray } from '../helpers/array';
+import { extendArray, insertValuesInPlace, removeIndexesInPlace, to2dArray } from '../helpers/array';
 import { rangeEach, isUnsignedNumber } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
 import { getValueGetterValue } from '../utils/valueAccessors';
@@ -474,17 +474,14 @@ class DataMap {
     const firstNewPhysicalColumnIndex = (mode === 'end') ?
       Math.min(physicalColumnIndex + 1, numberOfSourceCols) : physicalColumnIndex;
 
-    let numberOfCreatedCols = 0;
+    const numberOfCreatedCols = Math.max(
+      0, Math.min(amount, (maxCols ?? Infinity) - numberOfVisualCols)
+    );
 
-    for (
-      let col = firstNewPhysicalColumnIndex;
-      numberOfCreatedCols < amount && numberOfVisualCols + numberOfCreatedCols < (maxCols ?? Infinity);
-      col++, numberOfCreatedCols++
-    ) {
-      this.#insertColumnIntoDataSource(
-        dataSource, col, visualColumnIndex, numberOfVisualCols + numberOfCreatedCols, numberOfSourceRows
-      );
-    }
+    this.#insertColumnsIntoDataSource(
+      dataSource, firstNewPhysicalColumnIndex, visualColumnIndex, numberOfVisualCols,
+      numberOfSourceRows, numberOfCreatedCols
+    );
 
     if (numberOfCreatedCols > 0) {
       if ((index === undefined || index === null)) {
@@ -511,6 +508,72 @@ class DataMap {
       delta: numberOfCreatedCols,
       startPhysicalIndex: firstNewPhysicalColumnIndex,
     };
+  }
+
+  /**
+   * Inserts the given amount of null columns into the data source in one pass over the rows.
+   * A middle insert shifts each row's tail once by `amount` (instead of once per created column),
+   * and an append pushes all nulls in one walk. The rare mixed case - a visual index that lies
+   * beyond the current visual column count but within the source column count (possible only
+   * with trimmed columns and an out-of-range index) - starts as an append and switches to a
+   * middle insert partway through, so it falls back to the per-column path.
+   *
+   * @param {Array} dataSource The data source array.
+   * @param {number} firstColumn The physical column index at which the first column is inserted.
+   * @param {number|undefined} visualColumnIndex The visual column index being inserted.
+   * @param {number} numberOfVisualCols The visual column count before the insertion.
+   * @param {number} numberOfSourceRows The number of source rows.
+   * @param {number} amount The number of columns to insert.
+   */
+  #insertColumnsIntoDataSource(
+    dataSource: (Record<string, unknown> | unknown[])[],
+    firstColumn: number,
+    visualColumnIndex: number | undefined,
+    numberOfVisualCols: number,
+    numberOfSourceRows: number,
+    amount: number
+  ) {
+    if (amount === 0) {
+      return;
+    }
+
+    if (typeof visualColumnIndex === 'number' && visualColumnIndex < numberOfVisualCols) {
+      // Middle insert: shift each row's tail right once by `amount` and fill the gap with nulls.
+      // The insertion index clamps to the row length, so rows shorter than the insertion point
+      // get the nulls appended at their end, matching what repeated `splice` calls did.
+      for (let row = 0; row < numberOfSourceRows; row++) {
+        insertValuesInPlace(dataSource[row] as unknown[], firstColumn, amount, null);
+      }
+
+      return;
+    }
+
+    if (typeof visualColumnIndex !== 'number' || visualColumnIndex >= numberOfVisualCols + amount - 1) {
+      // Pure append: every created column lands past the last visual column.
+      if (numberOfSourceRows > 0) {
+        for (let row = 0; row < numberOfSourceRows; row++) {
+          if (typeof dataSource[row] === 'undefined') {
+            dataSource[row] = [];
+          }
+
+          for (let i = 0; i < amount; i++) {
+            (dataSource[row] as unknown[]).push(null);
+          }
+        }
+      } else {
+        for (let i = 0; i < amount; i++) {
+          dataSource.push([null]);
+        }
+      }
+
+      return;
+    }
+
+    for (let i = 0; i < amount; i++) {
+      this.#insertColumnIntoDataSource(
+        dataSource, firstColumn + i, visualColumnIndex, numberOfVisualCols + i, numberOfSourceRows
+      );
+    }
   }
 
   /**
@@ -657,8 +720,9 @@ class DataMap {
   }
 
   /**
-   * Splices the removed physical columns from each row in the data source,
-   * updating the meta manager for the first row.
+   * Removes the given physical columns from each row in the data source and keeps
+   * the meta manager in sync. Rows are mutated in place so external references to
+   * the row arrays stay valid.
    *
    * @param {Array} data The data source array.
    * @param {boolean} isTableUniform Whether the removed columns form a contiguous range.
@@ -683,15 +747,19 @@ class DataMap {
       }
 
     } else {
-      const removedColumnsCount = descendingPhysicalColumns.length;
+      // One in-place compaction pass per row instead of one `splice` per removed column per row.
+      // The splice variant costs O(rows * removed columns * columns) after any column reorder;
+      // the compaction pass is O(rows * columns) regardless of how many columns are removed.
+      const removedColumns = new Set(removedPhysicalIndexes);
+      const numberOfSourceRows = this.hot!.countSourceRows();
 
-      for (let r = 0, rlen = this.hot!.countSourceRows(); r < rlen; r++) {
-        for (let c = 0; c < removedColumnsCount; c++) {
-          (data[r] as unknown[]).splice(descendingPhysicalColumns[c], 1);
+      for (let r = 0; r < numberOfSourceRows; r++) {
+        removeIndexesInPlace(data[r] as unknown[], removedColumns);
+      }
 
-          if (r === 0) {
-            this.metaManager!.removeColumn(descendingPhysicalColumns[c], 1);
-          }
+      if (numberOfSourceRows > 0) {
+        for (let c = 0, clen = descendingPhysicalColumns.length; c < clen; c++) {
+          this.metaManager!.removeColumn(descendingPhysicalColumns[c], 1);
         }
       }
     }
@@ -781,19 +849,22 @@ class DataMap {
    */
   filterData(index: number, amount: number, physicalRows: number[]) {
     // Custom data filtering (run as a consequence of calling the below hook) provide an array containing new data.
-    let data = this.hot!.runHooks('filterData', index, amount, physicalRows);
+    const data = this.hot!.runHooks('filterData', index, amount, physicalRows);
 
     // Hooks by default returns first argument (when there is no callback changing execution result).
-    if (Array.isArray(data) === false) {
-      data = this.dataSource!.filter((_row, rowIndex: number) => physicalRows.indexOf(rowIndex) === -1);
+    if (Array.isArray(data)) {
+      this.dataSource!.length = 0;
+      // Pushing in a loop instead of `push.apply`, which passes one call argument per row and
+      // overflows the call stack on grids with roughly 125k rows or more (same pattern as #7840).
+      (data as unknown[]).forEach((row) => {
+        this.dataSource!.push(row as Record<string, unknown> | unknown[]);
+      });
+    } else {
+      // One O(source rows) compaction pass with an O(1) Set membership test per row. The previous
+      // `filter` + `indexOf` variant cost O(source rows * removed rows) - a multi-second freeze
+      // when bulk-removing rows from a large grid - and copied the survivors back afterwards.
+      removeIndexesInPlace(this.dataSource!, new Set(physicalRows));
     }
-
-    this.dataSource!.length = 0;
-    // Pushing in a loop instead of `push.apply`, which passes one call argument per row and
-    // overflows the call stack on grids with roughly 125k rows or more (same pattern as #7840).
-    (data as unknown[]).forEach((row) => {
-      this.dataSource!.push(row as Record<string, unknown> | unknown[]);
-    });
   }
 
   /**
