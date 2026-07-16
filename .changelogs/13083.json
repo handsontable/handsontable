@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Improved the performance of merged-cell lookups so that scrolling and extending large selections with the keyboard stay fast when the MergeCells plugin is enabled.",
+  "type": "changed",
+  "issueOrPR": 13083,
+  "breaking": false,
+  "framework": "none"
+}
