@@ -954,4 +954,115 @@ describe('Filters', () => {
         expect(valueComponentState.args[0]).toEqual(['Mercedes', 'Renault']);
       });
   });
+
+  describe('Batched value component updates (`afterChange`)', () => {
+    it('should update the value component state once per column for a multi-cell change batch', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+      });
+
+      const filters = getPlugin('filters');
+
+      filters.addCondition(1, 'by_value', [['B1', 'B2', 'B3', 'B4']]);
+      filters.filter();
+
+      const updateSpy = spyOn(filters, 'updateValueComponentCondition').and.callThrough();
+
+      await setDataAtCell([[0, 1, 'X1'], [1, 1, 'X2'], [2, 1, 'X3']]);
+
+      expect(updateSpy).toHaveBeenCalledTimes(1);
+      expect(updateSpy).toHaveBeenCalledWith(1);
+    });
+
+    it('should update the value component state for every distinct filtered column in one change batch', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+      });
+
+      const filters = getPlugin('filters');
+
+      filters.addCondition(1, 'by_value', [['B1', 'B2', 'B3', 'B4']]);
+      filters.filter();
+      filters.addCondition(2, 'by_value', [['C1', 'C2', 'C3', 'C4']]);
+      filters.filter();
+
+      const updateSpy = spyOn(filters, 'updateValueComponentCondition').and.callThrough();
+
+      await setDataAtCell([[0, 1, 'X1'], [0, 2, 'Y1'], [1, 1, 'X2'], [1, 2, 'Y2']]);
+
+      expect(updateSpy).toHaveBeenCalledTimes(2);
+      expect(updateSpy.calls.allArgs()).toEqual([[1], [2]]);
+    });
+  });
+
+  describe('Grouped condition imports (`importConditions`)', () => {
+    it('should trigger one state update per column instead of one per imported condition', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+      });
+
+      const filters = getPlugin('filters');
+      const updateSpy = jasmine.createSpy('update');
+
+      filters.conditionUpdateObserver.addLocalHook('update', updateSpy);
+
+      filters.importConditions([
+        {
+          column: 1,
+          operation: 'conjunction',
+          conditions: [
+            { name: 'contains', args: ['B'] },
+            { name: 'not_empty', args: [] },
+          ],
+        },
+        {
+          column: 2,
+          operation: 'conjunction',
+          conditions: [{ name: 'contains', args: ['C'] }],
+        },
+      ]);
+
+      expect(updateSpy).toHaveBeenCalledTimes(2);
+      expect(updateSpy.calls.argsFor(0)[0].editedConditionStack.column).toBe(1);
+      expect(updateSpy.calls.argsFor(0)[0].editedConditionStack.conditions.length).toBe(2);
+      expect(updateSpy.calls.argsFor(1)[0].editedConditionStack.column).toBe(2);
+      expect(updateSpy.calls.argsFor(1)[0].editedConditionStack.conditions.length).toBe(1);
+    });
+
+    it('should filter the data correctly after importing conditions', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 5),
+        colHeaders: true,
+        dropdownMenu: true,
+        filters: true,
+      });
+
+      const filters = getPlugin('filters');
+
+      filters.importConditions([
+        {
+          column: 1,
+          operation: 'conjunction',
+          conditions: [{ name: 'by_value', args: [['B1', 'B3', 'B5']] }],
+        },
+        {
+          column: 2,
+          operation: 'conjunction',
+          conditions: [{ name: 'contains', args: ['C'] }],
+        },
+      ]);
+      filters.filter();
+
+      expect(getDataAtCol(1)).toEqual(['B1', 'B3', 'B5']);
+    });
+  });
 });
