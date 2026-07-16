@@ -1653,7 +1653,10 @@ export class Formulas extends BasePlugin {
         });
       }
     } catch (e) {
-      warn(`Formulas: HyperFormula operation failed during ${isCopy ? 'copy/paste' : 'moveCells'}: ${e instanceof Error ? e.message : String(e)}`);
+      const operation = isCopy ? 'copy/paste' : 'moveCells';
+      const reason = e instanceof Error ? e.message : String(e);
+
+      warn(`Formulas: HyperFormula operation failed during ${operation}: ${reason}`);
 
       return;
     }
