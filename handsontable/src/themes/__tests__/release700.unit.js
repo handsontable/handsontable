@@ -128,8 +128,15 @@ describe('RELEASE-700: Theme Builder', () => {
       expect(horizonTokens.rowHeaderOddBackgroundColor).toBe('tokens.headerRowBackgroundColor');
     });
 
-    it('should define rowHeaderEvenBackgroundColor referencing headerRowBackgroundColor in horizon tokens', () => {
-      expect(horizonTokens.rowHeaderEvenBackgroundColor).toBe('tokens.headerRowBackgroundColor');
+    // Horizon keeps an independent even-row header value to preserve its intentional zebra stripe.
+    // See DEV-1189 / #12322 - collapsing this to headerRowBackgroundColor removes the stripe.
+    it('should define rowHeaderEvenBackgroundColor referencing backgroundSecondaryColor in horizon tokens', () => {
+      expect(horizonTokens.rowHeaderEvenBackgroundColor).toBe('tokens.backgroundSecondaryColor');
+    });
+
+    it('should keep horizon row header even and odd background tokens different to preserve the stripe', () => {
+      expect(horizonTokens.rowHeaderEvenBackgroundColor)
+        .not.toBe(horizonTokens.rowHeaderOddBackgroundColor);
     });
 
     it('should accept custom headerRowBackgroundColor value', () => {
@@ -152,22 +159,43 @@ describe('RELEASE-700: Theme Builder', () => {
     });
 
     describe('static CSS defaults', () => {
-      const themeCssFiles = [
+      // Main and classic are non-striped themes: even row headers cascade from the header row
+      // background so a custom header row color reaches them.
+      const cascadingThemeCssFiles = [
         'ht-theme-main.css',
         'ht-theme-main-no-icons.css',
         'ht-theme-classic.css',
         'ht-theme-classic-no-icons.css',
+      ];
+
+      // Horizon is a striped theme: its even row headers keep an independent
+      // background-secondary-color so the zebra stripe stays visible (DEV-1189 / #12322).
+      const stripedThemeCssFiles = [
         'ht-theme-horizon.css',
         'ht-theme-horizon-no-icons.css',
       ];
 
-      it.each(themeCssFiles)('should cascade --ht-row-header-even-background-color from ' +
+      it.each(cascadingThemeCssFiles)('should cascade --ht-row-header-even-background-color from ' +
         '--ht-header-row-background-color in %s', (fileName) => {
         const cssPath = path.join(__dirname, '../static/css/theme', fileName);
         const cssContent = fs.readFileSync(cssPath, 'utf8');
 
         expect(cssContent).toMatch(
           /--ht-row-header-even-background-color:\s*var\(--ht-header-row-background-color\);/
+        );
+      });
+
+      it.each(stripedThemeCssFiles)('should keep --ht-row-header-even-background-color referencing ' +
+        '--ht-background-secondary-color in %s to preserve the stripe', (fileName) => {
+        const cssPath = path.join(__dirname, '../static/css/theme', fileName);
+        const cssContent = fs.readFileSync(cssPath, 'utf8');
+
+        expect(cssContent).toMatch(
+          /--ht-row-header-even-background-color:\s*var\(--ht-background-secondary-color\);/
+        );
+        // Odd still cascades from the header row background, so the two differ (the stripe).
+        expect(cssContent).toMatch(
+          /--ht-row-header-odd-background-color:\s*var\(--ht-header-row-background-color\);/
         );
       });
     });
