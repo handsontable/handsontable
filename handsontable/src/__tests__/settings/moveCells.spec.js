@@ -19,8 +19,8 @@ describe('settings', () => {
         const src = getDataAtCell(2, 2);
 
         await selectCells([[2, 2, 3, 3]]);
-        hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
-        await sleep(50);
+        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+        await hot().render();
 
         expect(getDataAtCell(5, 5)).toBe(src);
         expect(getDataAtCell(2, 2)).toBe(null);
@@ -32,8 +32,8 @@ describe('settings', () => {
         const src = getDataAtCell(2, 2);
 
         await selectCells([[2, 2, 3, 3]]);
-        hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), true);
-        await sleep(50);
+        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), true);
+        await hot().render();
 
         expect(getDataAtCell(2, 2)).toBe(src); // kept
         expect(getDataAtCell(5, 5)).toBe(src);
@@ -45,8 +45,8 @@ describe('settings', () => {
         const dst = getDataAtCell(5, 5);
 
         await selectCells([[2, 2, 3, 3]]);
-        hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
-        await sleep(50);
+        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+        await hot().render();
 
         expect(getDataAtCell(2, 2)).toBe(src); // unchanged
         expect(getDataAtCell(5, 5)).toBe(dst); // unchanged
@@ -58,10 +58,10 @@ describe('settings', () => {
         handsontable({ data: createSpreadsheetData(10, 10), moveCells: true, afterMoveCells: spy });
 
         await selectCells([[2, 2, 3, 3]]);
-        hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
-        await sleep(50);
+        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+        await hot().render();
 
-        expect(spy).toHaveBeenCalled();
+        expect(spy).toHaveBeenCalledWith(jasmine.any(Object), jasmine.any(Object), false);
       });
 
       it('vetoes when the target overlaps a read-only cell', async() => {
@@ -73,8 +73,8 @@ describe('settings', () => {
         const src = getDataAtCell(2, 2);
 
         await selectCells([[2, 2, 3, 3]]);
-        hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
-        await sleep(50);
+        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+        await hot().render();
 
         expect(getDataAtCell(2, 2)).toBe(src); // unchanged, vetoed
       });
@@ -85,11 +85,51 @@ describe('settings', () => {
         await render();
 
         await selectCells([[2, 2, 2, 2]]);
-        hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
-        await sleep(50);
+        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+        await hot().render();
 
         expect(getCellMeta(5, 5).className).toBe('my-cell');
         expect(getCellMeta(2, 2).className).not.toBe('my-cell');
+      });
+
+      it('vetoes the move when the source or target intersects a merged cell', async() => {
+        handsontable({
+          data: createSpreadsheetData(10, 10),
+          moveCells: true,
+          mergeCells: [{ row: 5, col: 5, rowspan: 2, colspan: 2 }]
+        });
+        const src = getDataAtCell(2, 2);
+
+        await selectCells([[2, 2, 3, 3]]);
+        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+        await hot().render();
+
+        expect(getDataAtCell(2, 2)).toBe(src); // unchanged: target intersects the merge → vetoed
+      });
+
+      it('keeps the source cell className when isCopy is true', async() => {
+        handsontable({ data: createSpreadsheetData(10, 10), moveCells: true });
+        await setCellMeta(2, 2, 'className', 'my-cell');
+        await render();
+
+        await selectCells([[2, 2, 2, 2]]);
+        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), true);
+        await hot().render();
+
+        expect(getCellMeta(5, 5).className).toBe('my-cell');
+        expect(getCellMeta(2, 2).className).toBe('my-cell'); // copy – source still has className
+      });
+
+      it('vetoes the move when the target range would overflow the grid bounds', async() => {
+        handsontable({ data: createSpreadsheetData(10, 10), moveCells: true });
+        const src = getDataAtCell(2, 2);
+
+        await selectCells([[2, 2, 3, 3]]);
+        // Target (9, 9) + 2x2 range → bottom=10, right=10 — both exceed the 10x10 grid (max index 9)
+        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(9, 9), false);
+        await hot().render();
+
+        expect(getDataAtCell(2, 2)).toBe(src); // unchanged, vetoed
       });
     });
   });

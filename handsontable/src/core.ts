@@ -6413,7 +6413,7 @@ export default function Core(
 
   /**
    * The set of cell meta keys that travel with a cell when it is moved or copied.
-   * `readOnly` is intentionally excluded — it is a permission attribute that belongs
+   * `readOnly` is intentionally excluded – it is a permission attribute that belongs
    * to the destination, not the source.
    */
   const MOVABLE_META_KEYS: ReadonlyArray<string> = ['className'];
@@ -6474,11 +6474,11 @@ export default function Core(
    * operation is cancelled and the method returns `false`. After a successful operation
    * `afterMoveCells` is fired and the selection is updated to cover the target range.
    *
-   * The value-write step is skipped when the Formulas plugin is active — MC-8 will route the
-   * data through HyperFormula instead. Meta is still moved in that case.
+   * When the Formulas plugin is active, value writes are deferred to HyperFormula to preserve
+   * formula references; cell metadata is still moved.
    *
    * @memberof Core#
-   * @since 15.1.0
+   * @since 18.0.0
    * @function moveCellRange
    * @param {CellRange} sourceRange The range to move or copy. Use `hot.getSelectedRangeLast()`.
    * @param {CellCoords} targetTopLeft The top-left destination cell (visual coordinates).
@@ -6491,14 +6491,14 @@ export default function Core(
   this.moveCellRange = function(sourceRange: CellRange, targetTopLeft: CellCoords, isCopy = false): boolean {
     const topStart = sourceRange.getTopStartCorner();
     const bottomEnd = sourceRange.getBottomEndCorner();
-    const fromRow = topStart.row as number;
-    const fromCol = topStart.col as number;
-    const toRow = bottomEnd.row as number;
-    const toCol = bottomEnd.col as number;
+    const fromRow = topStart.row!;
+    const fromCol = topStart.col!;
+    const toRow = bottomEnd.row!;
+    const toCol = bottomEnd.col!;
     const height = toRow - fromRow + 1;
     const width = toCol - fromCol + 1;
-    const targetRow = targetTopLeft.row as number;
-    const targetCol = targetTopLeft.col as number;
+    const targetRow = targetTopLeft.row!;
+    const targetCol = targetTopLeft.col!;
     const targetBottom = targetRow + height - 1;
     const targetRight = targetCol + width - 1;
 
@@ -6521,6 +6521,27 @@ export default function Core(
       return false;
     }
 
+    const mergeCellsPlugin = instance.getPlugin('mergeCells');
+
+    if (mergeCellsPlugin?.enabled) {
+      const sourceCellRange = instance._createCellRange(
+        instance._createCellCoords(fromRow, fromCol),
+        instance._createCellCoords(fromRow, fromCol),
+        instance._createCellCoords(toRow, toCol)
+      );
+      const targetCellRange = instance._createCellRange(
+        instance._createCellCoords(targetRow, targetCol),
+        instance._createCellCoords(targetRow, targetCol),
+        instance._createCellCoords(targetBottom, targetRight)
+      );
+      const collection = mergeCellsPlugin.mergedCellsCollection;
+
+      if (collection.getWithinRange(sourceCellRange, true).length > 0 ||
+          collection.getWithinRange(targetCellRange, true).length > 0) {
+        return false;
+      }
+    }
+
     // Snapshot source values before any write so overlapping source/target is safe.
     const values = instance.getData(fromRow, fromCol, toRow, toCol);
 
@@ -6530,6 +6551,7 @@ export default function Core(
       // Move meta first, then values, so meta is in sync with data after the batch.
       // We need to collect cleared sources after the loop to avoid clearing a cell
       // that is also a move target within the same range.
+      const targetCellKeys = new Set(moveMap.map(e => `${e.toRow}:${e.toCol}`));
       const sourcesToClear = new Set<string>();
 
       for (const entry of moveMap) {
@@ -6547,11 +6569,7 @@ export default function Core(
       if (!isCopy) {
         for (const key of sourcesToClear) {
           // Only clear the source cell when it is not also a target in this move.
-          const isAlsoTarget = moveMap.some(
-            e => `${e.toRow}:${e.toCol}` === key
-          );
-
-          if (!isAlsoTarget) {
+          if (!targetCellKeys.has(key)) {
             const [r, c] = key.split(':').map(Number);
 
             for (const metaKey of MOVABLE_META_KEYS) {
@@ -6562,10 +6580,9 @@ export default function Core(
       }
 
       /**
-       * MC-8 forward-compat gate: when the Formulas plugin is active it will handle the value
+       * Forward-compat gate: when the Formulas plugin is active it handles the value
        * write through HyperFormula (preserving formula references). In that case we skip the
-       * raw data write here and let MC-8 do it. For now (no formulas in tests) the write
-       * always runs.
+       * raw data write here – meta is still moved above.
        */
       const formulasPlugin = instance.getPlugin('formulas');
       const formulasActive = formulasPlugin?.enabled === true;
