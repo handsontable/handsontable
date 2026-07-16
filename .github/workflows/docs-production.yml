@@ -60,6 +60,8 @@ jobs:
           npm run measure:module-sizes --prefix handsontable
 
       - name: Docker build
+        env:
+          PUBLIC_CHAT_API_URL: https://hot-docs-assistant.handsontable-sandbox.workers.dev
         run: |
           npm run docs:docker:build:production
 
