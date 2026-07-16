@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Improved Formulas plugin performance on large grids: faster rendering and sorting through cached index translations, and bulk row/column removals now issue batched engine calls.",
+  "type": "changed",
+  "issueOrPR": 13085,
+  "breaking": false,
+  "framework": "none"
+}

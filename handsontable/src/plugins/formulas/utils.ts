@@ -113,6 +113,32 @@ export function getDateFromExcelDate(numericDate: unknown): string {
 }
 
 /**
+ * Coalesces a list of indexes into an ascending list of contiguous `[startIndex, amount]` spans.
+ * For example, `[5, 1, 2, 3, 9]` becomes `[[1, 3], [5, 1], [9, 1]]`. The input order does not
+ * matter and duplicate indexes are counted once.
+ *
+ * @param {number[]} indexes List of indexes to coalesce.
+ * @returns {Array<Array<number>>} Ascending list of `[startIndex, amount]` spans.
+ */
+export function coalesceIndexesToSpans(indexes: number[]): [number, number][] {
+  const sortedIndexes = [...indexes].sort((a, b) => a - b);
+  const spans: [number, number][] = [];
+
+  sortedIndexes.forEach((index) => {
+    const lastSpan = spans[spans.length - 1];
+
+    if (lastSpan === undefined || index > lastSpan[0] + lastSpan[1]) {
+      spans.push([index, 1]);
+
+    } else if (index === lastSpan[0] + lastSpan[1]) {
+      lastSpan[1] += 1;
+    }
+  });
+
+  return spans;
+}
+
+/**
  * Converts a Handsontable cell value to a value accepted by HyperFormula.
  * HyperFormula doesn't accept arrays as direct cell values, so they are converted to a
  * comma-separated string.

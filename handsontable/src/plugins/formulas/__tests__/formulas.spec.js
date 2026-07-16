@@ -754,9 +754,64 @@ describe('Formulas general', () => {
       spyOn(engine, 'removeRows').and.callThrough();
       await alter('remove_row', 9, 3);
 
-      expect(engine.removeRows.calls.argsFor(0)).toEqual([0, [11, 1]]);
-      expect(engine.removeRows.calls.argsFor(1)).toEqual([0, [10, 1]]);
-      expect(engine.removeRows.calls.argsFor(2)).toEqual([0, [9, 1]]);
+      expect(engine.removeRows.calls.count()).toBe(1);
+      expect(engine.removeRows.calls.argsFor(0)).toEqual([0, [9, 3]]);
+    });
+
+    it('should remove rows with non-contiguous engine indexes (trimmed rows in between) within a single engine call', async() => {
+      handsontable({
+        data: [
+          [1, null],
+          [2, null],
+          [3, null],
+          [4, null],
+          [5, null],
+          [6, '=SUM(A1:A6)'],
+        ],
+        trimRows: [2],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      const engine = getPlugin('formulas').engine;
+
+      spyOn(engine, 'removeRows').and.callThrough();
+
+      // Visual rows 0-3 map to physical (and engine) rows 0, 1, 3, 4 — the trimmed
+      // physical row 2 splits them into two spans.
+      await alter('remove_row', 0, 4);
+
+      expect(engine.removeRows.calls.count()).toBe(1);
+      expect(engine.removeRows.calls.argsFor(0)).toEqual([0, [0, 2], [3, 2]]);
+      expect(countRows()).toBe(1);
+      expect(getDataAtRow(0)).toEqual([6, 9]);
+    });
+
+    it('should restore values with a single undo after a coalesced multi-row removal', async() => {
+      handsontable({
+        data: [
+          [1, '=SUM(A1:A5)'],
+          [2, null],
+          [3, null],
+          [4, null],
+          [5, null],
+        ],
+        formulas: {
+          engine: HyperFormula,
+        },
+      });
+
+      await alter('remove_row', 1, 3);
+
+      expect(countRows()).toBe(2);
+      expect(getDataAtCell(0, 1)).toBe(6);
+
+      getPlugin('undoRedo').undo();
+
+      expect(countRows()).toBe(5);
+      expect(getDataAtCol(0)).toEqual([1, 2, 3, 4, 5]);
+      expect(getDataAtCell(0, 1)).toBe(15);
     });
 
     it('should not throw an error after removing all rows', async() => {
@@ -942,9 +997,8 @@ describe('Formulas general', () => {
       spyOn(engine, 'removeColumns').and.callThrough();
       await alter('remove_col', 9, 3);
 
-      expect(engine.removeColumns.calls.argsFor(0)).toEqual([0, [11, 1]]);
-      expect(engine.removeColumns.calls.argsFor(1)).toEqual([0, [10, 1]]);
-      expect(engine.removeColumns.calls.argsFor(2)).toEqual([0, [9, 1]]);
+      expect(engine.removeColumns.calls.count()).toBe(1);
+      expect(engine.removeColumns.calls.argsFor(0)).toEqual([0, [9, 3]]);
     });
 
     it('should recalculate table and replace coordinates in formula expressions into #REF! ' +
