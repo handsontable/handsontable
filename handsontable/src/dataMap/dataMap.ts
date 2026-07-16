@@ -511,12 +511,13 @@ class DataMap {
   }
 
   /**
-   * Inserts the given amount of null columns into the data source in one pass over the rows.
-   * A middle insert shifts each row's tail once by `amount` (instead of once per created column),
-   * and an append pushes all nulls in one walk. The rare mixed case - a visual index that lies
-   * beyond the current visual column count but within the source column count (possible only
-   * with trimmed columns and an out-of-range index) - starts as an append and switches to a
-   * middle insert partway through, so it falls back to the per-column path.
+   * Inserts the given amount of null columns into the data source in at most two passes over
+   * the rows, instead of one full pass per created column. The previous per-column loop chose
+   * between an append and a middle splice per iteration, based on the visual index against the
+   * growing column count; the same sequence collapses into two batched phases: the first
+   * `appendCount` iterations (while the visual index is at or past the current count) are
+   * end-of-row pushes, and the remaining iterations are single splices at consecutive ascending
+   * positions - which is exactly one block insert at the first of those positions.
    *
    * @param {Array} dataSource The data source array.
    * @param {number} firstColumn The physical column index at which the first column is inserted.
@@ -533,81 +534,42 @@ class DataMap {
     numberOfSourceRows: number,
     amount: number
   ) {
-    if (amount === 0) {
+    if (amount <= 0) {
       return;
     }
 
-    if (typeof visualColumnIndex === 'number' && visualColumnIndex < numberOfVisualCols) {
-      // Middle insert: shift each row's tail right once by `amount` and fill the gap with nulls.
-      // The insertion index clamps to the row length, so rows shorter than the insertion point
-      // get the nulls appended at their end, matching what repeated `splice` calls did.
-      for (let row = 0; row < numberOfSourceRows; row++) {
-        insertValuesInPlace(dataSource[row] as unknown[], firstColumn, amount, null);
-      }
+    let appendCount = amount;
 
-      return;
+    if (typeof visualColumnIndex === 'number') {
+      appendCount = Math.max(0, Math.min(amount, visualColumnIndex - numberOfVisualCols + 1));
     }
 
-    if (typeof visualColumnIndex !== 'number' || visualColumnIndex >= numberOfVisualCols + amount - 1) {
-      // Pure append: every created column lands past the last visual column.
+    const middleCount = amount - appendCount;
+
+    if (appendCount > 0) {
       if (numberOfSourceRows > 0) {
         for (let row = 0; row < numberOfSourceRows; row++) {
           if (typeof dataSource[row] === 'undefined') {
             dataSource[row] = [];
           }
 
-          for (let i = 0; i < amount; i++) {
+          for (let i = 0; i < appendCount; i++) {
             (dataSource[row] as unknown[]).push(null);
           }
         }
       } else {
-        for (let i = 0; i < amount; i++) {
+        for (let i = 0; i < appendCount; i++) {
           dataSource.push([null]);
         }
       }
-
-      return;
     }
 
-    for (let i = 0; i < amount; i++) {
-      this.#insertColumnIntoDataSource(
-        dataSource, firstColumn + i, visualColumnIndex, numberOfVisualCols + i, numberOfSourceRows
-      );
-    }
-  }
-
-  /**
-   * Inserts a single null column into the data source at the given physical column index.
-   *
-   * @param {Array} dataSource The data source array.
-   * @param {number} col The physical column index at which to splice.
-   * @param {number|undefined} visualColumnIndex The visual column index being inserted.
-   * @param {number} currentVisualColCount The current visual column count including already-created columns.
-   * @param {number} numberOfSourceRows The number of source rows.
-   */
-  #insertColumnIntoDataSource(
-    dataSource: (Record<string, unknown> | unknown[])[],
-    col: number,
-    visualColumnIndex: number | undefined,
-    currentVisualColCount: number,
-    numberOfSourceRows: number
-  ) {
-    if (typeof visualColumnIndex !== 'number' || visualColumnIndex >= currentVisualColCount) {
-      if (numberOfSourceRows > 0) {
-        for (let row = 0; row < numberOfSourceRows; row += 1) {
-          if (typeof dataSource[row] === 'undefined') {
-            dataSource[row] = [];
-          }
-
-          (dataSource[row] as unknown[]).push(null);
-        }
-      } else {
-        dataSource.push([null]);
-      }
-
-    } else {
+    if (middleCount > 0) {
+      // The insertion index clamps to the row length inside `insertValuesInPlace`, so rows
+      // shorter than the insertion point get the nulls appended at their end - matching what
+      // the previous repeated clamped `splice` calls did.
       for (let row = 0; row < numberOfSourceRows; row++) {
-        (dataSource[row] as unknown[]).splice(col, 0, null);
+        insertValuesInPlace(dataSource[row] as unknown[], firstColumn + appendCount, middleCount, null);
       }
     }
   }
@@ -656,8 +618,8 @@ class DataMap {
 
     const descendingPhysicalRows = removedPhysicalIndexes.slice(0).sort((a, b) => b - a);
 
-    descendingPhysicalRows.forEach((rowPhysicalIndex) => {
-      this.metaManager!.removeRow(rowPhysicalIndex, 1);
+    this.#eachDescendingRun(descendingPhysicalRows, (start, runLength) => {
+      this.metaManager!.removeRow(start, runLength);
     });
 
     this.hot!.runHooks('afterRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source);
@@ -758,9 +720,33 @@ class DataMap {
       }
 
       if (numberOfSourceRows > 0) {
-        for (let c = 0, clen = descendingPhysicalColumns.length; c < clen; c++) {
-          this.metaManager!.removeColumn(descendingPhysicalColumns[c], 1);
-        }
+        this.#eachDescendingRun(descendingPhysicalColumns, (start, runLength) => {
+          this.metaManager!.removeColumn(start, runLength);
+        });
+      }
+    }
+  }
+
+  /**
+   * Groups physical indexes sorted in descending order into contiguous runs and invokes the
+   * callback once per run with the run's lowest index and its length. A sequence of
+   * one-at-a-time removals at descending contiguous indexes equals one bulk removal at the
+   * run's lowest index, and each meta-layer removal call pays a fixed walk over the
+   * materialized entries - so collapsing runs removes that per-index constant.
+   *
+   * @param {number[]} descendingIndexes Physical indexes sorted in descending order.
+   * @param {Function} callback Called with `(start, amount)` once per contiguous run.
+   */
+  #eachDescendingRun(descendingIndexes: number[], callback: (start: number, amount: number) => void) {
+    let runStartPosition = 0;
+
+    for (let i = 0; i < descendingIndexes.length; i++) {
+      const isLastOfRun = i + 1 >= descendingIndexes.length ||
+        descendingIndexes[i + 1] !== descendingIndexes[i] - 1;
+
+      if (isLastOfRun) {
+        callback(descendingIndexes[i], i - runStartPosition + 1);
+        runStartPosition = i + 1;
       }
     }
   }
