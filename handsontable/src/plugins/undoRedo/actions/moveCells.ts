@@ -1,5 +1,7 @@
 import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
+import type CellCoords from '../../../3rdparty/walkontable/src/cell/coords';
+import type CellRange from '../../../3rdparty/walkontable/src/cell/range';
 import { BaseAction } from './_base';
 
 /**
@@ -12,27 +14,27 @@ const MOVABLE_META_KEYS: ReadonlyArray<string> = ['className'];
  */
 interface RegionSnapshot {
   /**
-   * @param {number} fromRow Top row of the region (visual).
+   * Top row of the region (visual).
    */
   fromRow: number;
   /**
-   * @param {number} fromCol Left column of the region (visual).
+   * Left column of the region (visual).
    */
   fromCol: number;
   /**
-   * @param {number} toRow Bottom row of the region (visual).
+   * Bottom row of the region (visual).
    */
   toRow: number;
   /**
-   * @param {number} toCol Right column of the region (visual).
+   * Right column of the region (visual).
    */
   toCol: number;
   /**
-   * @param {unknown[][]} data Source-format cell values (formula strings for formula cells).
+   * Source-format cell values (formula strings for formula cells).
    */
   data: unknown[][];
   /**
-   * @param {Array<Record<string, unknown>>} meta Flat list of per-cell movable meta, row-major order.
+   * Flat list of per-cell movable meta, row-major order.
    */
   meta: Array<Record<string, unknown>>;
 }
@@ -54,15 +56,12 @@ function snapshotRegion(
   toRow: number,
   toCol: number,
 ): RegionSnapshot {
-  const getSourceDataArray = hot.getSourceDataArray as (
-    r: number, c: number, r2: number, c2: number
-  ) => unknown[][];
-  const data = getSourceDataArray(fromRow, fromCol, toRow, toCol);
+  const data = hot.getSourceDataArray(fromRow, fromCol, toRow, toCol);
   const meta: Array<Record<string, unknown>> = [];
 
   for (let r = fromRow; r <= toRow; r++) {
     for (let c = fromCol; c <= toCol; c++) {
-      const cellMeta = hot.getCellMeta(r, c) as Record<string, unknown>;
+      const cellMeta = hot.getCellMeta(r, c);
       const snapshot: Record<string, unknown> = {};
 
       for (const key of MOVABLE_META_KEYS) {
@@ -96,11 +95,7 @@ function restoreRegion(hot: HotInstance, snapshot: RegionSnapshot): void {
 
   // Restore values through populateFromArray which triggers the normal data-write path
   // and lets the Formulas plugin re-register formula strings in HyperFormula.
-  const populateFromArray = hot.populateFromArray as (
-    row: number, col: number, input: unknown[][], endRow: number, endCol: number, source: string
-  ) => void;
-
-  populateFromArray(fromRow, fromCol, data, toRow, toCol, 'UndoRedo.undo');
+  hot.populateFromArray(fromRow, fromCol, data, toRow, toCol, 'UndoRedo.undo');
 
   // Restore movable meta.
   let idx = 0;
@@ -141,17 +136,17 @@ interface UndoRedoPluginLike {
  */
 export class MoveCellsAction extends BaseAction {
   /**
-   * @param {RegionSnapshot} sourceSnapshot Source-region snapshot captured before the move.
+   * Source-region snapshot captured before the move.
    */
   sourceSnapshot;
 
   /**
-   * @param {RegionSnapshot} targetSnapshot Target-region snapshot captured before the move (the overwritten data).
+   * Target-region snapshot captured before the move (the overwritten data).
    */
   targetSnapshot;
 
   /**
-   * @param {boolean} isCopy `true` when the operation was a copy (source is kept intact).
+   * `true` when the operation was a copy (source is kept intact).
    */
   isCopy;
 
@@ -177,6 +172,11 @@ export class MoveCellsAction extends BaseAction {
    * Registers the `beforeMoveCells` hook listener that snapshots both the source and
    * target regions before mutation, and then pushes a new `MoveCellsAction` into the
    * undo stack via the `afterMoveCells` hook.
+   *
+   * Note: `afterMoveCells` only fires when the move was NOT vetoed. When `beforeMoveCells`
+   * returns `false` (or any guard in `moveCellRange` rejects the move), `afterMoveCells` is
+   * never called, so `pendingSnapshot` is simply overwritten on the next move attempt — a
+   * stale snapshot cannot enqueue a spurious undo action.
    */
   static startRegisteringEvents(hot: HotInstance, undoRedoPlugin: unknown): void {
     const plugin = undoRedoPlugin as UndoRedoPluginLike;
@@ -184,29 +184,26 @@ export class MoveCellsAction extends BaseAction {
     type PendingSnapshot = { sourceSnapshot: RegionSnapshot; targetSnapshot: RegionSnapshot; isCopy: boolean };
     let pendingSnapshot: PendingSnapshot | null = null;
 
-    type CornerCoords = { row: number; col: number };
-    type CellRangeLike = { getTopStartCorner(): CornerCoords; getBottomEndCorner(): CornerCoords };
-
     hot.addHook('beforeMoveCells', (sourceRange: unknown, targetTopLeft: unknown, isCopy: unknown) => {
       // `sourceRange` and `targetTopLeft` carry the raw CellRange / CellCoords objects.
-      const src = sourceRange as CellRangeLike;
-      const target = targetTopLeft as { row: number; col: number };
+      const src = sourceRange as CellRange;
+      const target = targetTopLeft as CellCoords;
       const topStart = src.getTopStartCorner();
       const bottomEnd = src.getBottomEndCorner();
 
-      const fromRow = topStart.row;
-      const fromCol = topStart.col;
-      const toRow = bottomEnd.row;
-      const toCol = bottomEnd.col;
+      const fromRow = topStart.row!;
+      const fromCol = topStart.col!;
+      const toRow = bottomEnd.row!;
+      const toCol = bottomEnd.col!;
 
       const height = toRow - fromRow + 1;
       const width = toCol - fromCol + 1;
-      const targetBottom = target.row + height - 1;
-      const targetRight = target.col + width - 1;
+      const targetBottom = target.row! + height - 1;
+      const targetRight = target.col! + width - 1;
 
       // Capture both regions before any data mutation.
       const sourceSnapshot = snapshotRegion(hot, fromRow, fromCol, toRow, toCol);
-      const targetSnapshot = snapshotRegion(hot, target.row, target.col, targetBottom, targetRight);
+      const targetSnapshot = snapshotRegion(hot, target.row!, target.col!, targetBottom, targetRight);
 
       pendingSnapshot = {
         sourceSnapshot,
@@ -215,6 +212,8 @@ export class MoveCellsAction extends BaseAction {
       };
     });
 
+    // afterMoveCells only fires when the move was NOT vetoed (see JSDoc on startRegisteringEvents),
+    // so the snapshot here is always valid and corresponds to the move that just completed.
     hot.addHook('afterMoveCells', () => {
       if (pendingSnapshot === null) {
         return;
@@ -236,20 +235,12 @@ export class MoveCellsAction extends BaseAction {
    *
    * For a copy: the source was not modified, so only the target region is restored.
    *
+   * After restoring data, selects the source region to reflect the pre-move state.
+   *
    * @param {HotInstance} hot The Handsontable instance.
    * @param {HookCallback} undoneCallback The callback to be called after the action is undone.
    */
   undo(hot: HotInstance, undoneCallback: HookCallback): void {
-    hot.addHookOnce('afterChange', () => {
-      hot.render();
-      hot.deselectCell();
-
-      const { fromRow, fromCol, toRow, toCol } = this.sourceSnapshot;
-
-      hot.selectCells([[fromRow, fromCol, toRow, toCol]], false, false);
-      undoneCallback();
-    });
-
     hot.batch(() => {
       // Restore the target region to what it held before the move.
       restoreRegion(hot, this.targetSnapshot);
@@ -259,10 +250,26 @@ export class MoveCellsAction extends BaseAction {
         restoreRegion(hot, this.sourceSnapshot);
       }
     });
+
+    hot.render();
+    hot.deselectCell();
+
+    const { fromRow, fromCol, toRow, toCol } = this.sourceSnapshot;
+
+    hot.selectCells([[fromRow, fromCol, toRow, toCol]], false, false);
+
+    // Call undoneCallback after the batch and selection are settled. This mirrors
+    // the pattern in dataChange.ts and avoids the latent fragility of firing the
+    // callback inside an afterChange hook (which would break if afterChange becomes async).
+    // The undoneCallback resets ignoreNewActions in the UndoRedo plugin — calling it here
+    // ensures that reset happens after all data mutations are complete.
+    undoneCallback();
   }
 
   /**
    * Re-applies the move after it has been undone.
+   *
+   * After the move re-runs, selects the target region to reflect the post-move state.
    *
    * @param {HotInstance} hot The Handsontable instance.
    * @param {HookCallback} redoneCallback The callback to be called after the action is redone.
@@ -270,11 +277,10 @@ export class MoveCellsAction extends BaseAction {
   redo(hot: HotInstance, redoneCallback: HookCallback): void {
     const { fromRow, fromCol, toRow, toCol } = this.sourceSnapshot;
     const { fromRow: targetRow, fromCol: targetCol } = this.targetSnapshot;
+    const height = toRow - fromRow + 1;
+    const width = toCol - fromCol + 1;
 
-    const createRange = hot._createCellRange as (
-      hl: unknown, from: unknown, to: unknown
-    ) => unknown;
-    const sourceRange = createRange(
+    const sourceRange = hot._createCellRange(
       hot._createCellCoords(fromRow, fromCol),
       hot._createCellCoords(fromRow, fromCol),
       hot._createCellCoords(toRow, toCol),
@@ -283,13 +289,16 @@ export class MoveCellsAction extends BaseAction {
 
     hot.addHookOnce('afterMoveCells', () => {
       hot.render();
+
+      // Restore selection to the target range so the user sees where the data ended up.
+      const targetEndRow = targetRow + height - 1;
+      const targetEndCol = targetCol + width - 1;
+
+      hot.selectCells([[targetRow, targetCol, targetEndRow, targetEndCol]], false, false);
+
       redoneCallback();
     });
 
-    const moveCellRange = hot.moveCellRange as (
-      sourceRange: unknown, targetTopLeft: unknown, isCopy: boolean
-    ) => boolean;
-
-    moveCellRange(sourceRange, targetTopLeft, this.isCopy);
+    hot.moveCellRange(sourceRange, targetTopLeft, this.isCopy);
   }
 }

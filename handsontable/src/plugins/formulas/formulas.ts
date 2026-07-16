@@ -1625,6 +1625,19 @@ export class Formulas extends BasePlugin {
 
     let dependentCells: unknown[];
 
+    // When an undo/redo operation triggered the moveCells (e.g. UndoRedo.redo calls
+    // moveCellRange to re-fire hooks), the HF engine has already been advanced by
+    // engine.redo() / engine.undo() in the beforeRedo / beforeUndo hook. Running
+    // engine.moveCells() here again would duplicate the operation. Skip the HF step
+    // and go straight to syncing HOT's source data from HF's (already correct) state.
+    if (this.indexSyncer?.isPerformingUndoRedo()) {
+      // HOT re-render after undo/redo refreshes all dependent cells, so no
+      // renderDependentSheets call is needed here.
+      this.#syncHotDataAfterMoveCells(sourceRange, targetRange, isCopy);
+
+      return;
+    }
+
     // HyperFormula can throw during copy/paste (e.g. when pasting over a cell that is part of
     // an array formula) and during moveCells (no isItPossibleToMoveCells pre-check is performed
     // for the COPY path). Guard both paths so that a failed HF operation does not leave
@@ -1709,10 +1722,12 @@ export class Formulas extends BasePlugin {
 
     try {
       // Write target cells with HF-serialised content (formula strings preserved).
+      // Use 'auto' source so UndoRedo does not record these writes as separate DataChangeActions
+      // — they are part of the move and are covered by the MoveCellsAction in the undo stack.
       this.hot.populateFromArray(
         tgtFromRow, tgtFromCol, targetData,
         tgtFromRow + height - 1, tgtFromCol + width - 1,
-        'moveCells'
+        'auto'
       );
 
       if (!isCopy) {
@@ -1723,7 +1738,7 @@ export class Formulas extends BasePlugin {
         this.hot.populateFromArray(
           srcFromRow, srcFromCol, nullGrid,
           srcToRow, srcToCol,
-          'moveCells'
+          'auto'
         );
       }
 
