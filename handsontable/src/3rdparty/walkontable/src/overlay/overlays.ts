@@ -19,6 +19,10 @@ import { ResizeMonitor, createResizeMonitorDeps } from './resizeMonitor';
 import { SpreaderSize, createSpreaderSizeDeps } from './spreaderSize';
 import { ScrollSync, createScrollSyncDeps } from './scroll/scrollSync';
 import { NativeScrollInput, createNativeScrollInputDeps } from './scroll/nativeScrollInput';
+import {
+  adjustColumnHeaderHeights,
+  syncOversizedColumnHeadersWithFrozenOverlays,
+} from '../axisSizing/oversizedRows';
 
 /**
  * Assembles the Overlays module's dependencies from the engine composition context. Overlays is the
@@ -565,11 +569,19 @@ class Overlays {
    * last so a wrapped header inside the frozen region still wins, and the sizes are flushed to the DOM.
    */
   refreshColumnHeaderHeights() {
-    this.wot.wtTable.adjustColumnHeaderHeights();
-    this.topOverlay.clone?.wtTable.adjustColumnHeaderHeights();
-    this.inlineStartOverlay.clone?.wtTable.adjustColumnHeaderHeights();
-    this.topInlineStartCornerOverlay?.clone?.wtTable.adjustColumnHeaderHeights();
-    this.wot.wtTable.syncOversizedColumnHeadersWithFrozenOverlays();
+    const headerBearingTables = [
+      this.wot.wtTable,
+      this.topOverlay.clone?.wtTable,
+      this.inlineStartOverlay.clone?.wtTable,
+      this.topInlineStartCornerOverlay?.clone?.wtTable,
+    ];
+
+    headerBearingTables.forEach((table) => {
+      if (table) {
+        adjustColumnHeaderHeights(table);
+      }
+    });
+    syncOversizedColumnHeadersWithFrozenOverlays(this.wot.wtTable);
     this.adjustElementsSize();
   }
 
