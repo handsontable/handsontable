@@ -84,6 +84,7 @@ import type { default as EditorManagerInstance } from './editorManager';
 import type { BaseEditor } from './editors/baseEditor';
 import type { default as MetaManagerInstance } from './dataMap/metaManager';
 import DataMap from './dataMap/dataMap';
+import { buildMoveMap } from './selection/moveCells';
 
 let activeGuid: string | null = null;
 
@@ -6408,6 +6409,190 @@ export default function Core(
     }
 
     return focusScopeManager as FocusScopeManager;
+  };
+
+  /**
+   * The set of cell meta keys that travel with a cell when it is moved or copied.
+   * `readOnly` is intentionally excluded — it is a permission attribute that belongs
+   * to the destination, not the source.
+   */
+  const MOVABLE_META_KEYS: ReadonlyArray<string> = ['className'];
+
+  /**
+   * Checks whether any cell in the target rectangle is read-only.
+   *
+   * @param {number} targetRow Top row of the target range (visual).
+   * @param {number} targetCol Left column of the target range (visual).
+   * @param {number} height Number of rows.
+   * @param {number} width Number of columns.
+   * @returns {boolean} `true` when at least one target cell is read-only.
+   */
+  function hasReadOnlyTargetCell(targetRow: number, targetCol: number, height: number, width: number): boolean {
+    for (let r = 0; r < height; r++) {
+      for (let c = 0; c < width; c++) {
+        if ((instance.getCellMeta(targetRow + r, targetCol + c) as Record<string, unknown>).readOnly) {
+          return true;
+        }
+      }
+    }
+
+    return false;
+  }
+
+  /**
+   * Moves the movable meta keys from a source cell to a target cell, optionally clearing the source.
+   *
+   * @param {number} fromRow Source row (visual).
+   * @param {number} fromCol Source column (visual).
+   * @param {number} toRow Target row (visual).
+   * @param {number} toCol Target column (visual).
+   * @param {boolean} clearSource When `true`, remove the keys from the source cell.
+   */
+  function moveCellMeta(fromRow: number, fromCol: number, toRow: number, toCol: number, clearSource: boolean): void {
+    const sourceMeta = instance.getCellMeta(fromRow, fromCol) as Record<string, unknown>;
+
+    for (const key of MOVABLE_META_KEYS) {
+      if (Object.prototype.hasOwnProperty.call(sourceMeta, key)) {
+        instance.setCellMeta(toRow, toCol, key, sourceMeta[key] as string);
+      }
+    }
+
+    if (clearSource) {
+      for (const key of MOVABLE_META_KEYS) {
+        instance.removeCellMeta(fromRow, fromCol, key);
+      }
+    }
+  }
+
+  /**
+   * Relocates a cell range's data and formatting meta to a new position in the grid.
+   *
+   * When `isCopy` is `false` (move), the source cells are cleared after the data is written to
+   * the target. When `isCopy` is `true`, the source cells are left intact.
+   *
+   * The method fires `beforeMoveCells` before any mutation. If that hook returns `false` the
+   * operation is cancelled and the method returns `false`. After a successful operation
+   * `afterMoveCells` is fired and the selection is updated to cover the target range.
+   *
+   * The value-write step is skipped when the Formulas plugin is active — MC-8 will route the
+   * data through HyperFormula instead. Meta is still moved in that case.
+   *
+   * @memberof Core#
+   * @since 15.1.0
+   * @function moveCellRange
+   * @param {CellRange} sourceRange The range to move or copy. Use `hot.getSelectedRangeLast()`.
+   * @param {CellCoords} targetTopLeft The top-left destination cell (visual coordinates).
+   * @param {boolean} [isCopy=false] When `true`, keep the source cells intact (copy); when `false`,
+   *   clear the source cells after writing to the target (move).
+   * @returns {boolean} `true` if the operation was performed; `false` if it was vetoed or blocked.
+   * @fires Hooks#beforeMoveCells
+   * @fires Hooks#afterMoveCells
+   */
+  this.moveCellRange = function(sourceRange: CellRange, targetTopLeft: CellCoords, isCopy = false): boolean {
+    const topStart = sourceRange.getTopStartCorner();
+    const bottomEnd = sourceRange.getBottomEndCorner();
+    const fromRow = topStart.row as number;
+    const fromCol = topStart.col as number;
+    const toRow = bottomEnd.row as number;
+    const toCol = bottomEnd.col as number;
+    const height = toRow - fromRow + 1;
+    const width = toCol - fromCol + 1;
+    const targetRow = targetTopLeft.row as number;
+    const targetCol = targetTopLeft.col as number;
+    const targetBottom = targetRow + height - 1;
+    const targetRight = targetCol + width - 1;
+
+    const hookResult = instance.runHooks('beforeMoveCells', sourceRange, targetTopLeft, isCopy);
+
+    if (hookResult === false) {
+      return false;
+    }
+
+    if (
+      targetRow < 0 ||
+      targetCol < 0 ||
+      targetBottom >= instance.countRows() ||
+      targetRight >= instance.countCols()
+    ) {
+      return false;
+    }
+
+    if (hasReadOnlyTargetCell(targetRow, targetCol, height, width)) {
+      return false;
+    }
+
+    // Snapshot source values before any write so overlapping source/target is safe.
+    const values = instance.getData(fromRow, fromCol, toRow, toCol);
+
+    instance.batch(() => {
+      const moveMap = buildMoveMap({ fromRow, fromCol, toRow, toCol, targetRow, targetCol });
+
+      // Move meta first, then values, so meta is in sync with data after the batch.
+      // We need to collect cleared sources after the loop to avoid clearing a cell
+      // that is also a move target within the same range.
+      const sourcesToClear = new Set<string>();
+
+      for (const entry of moveMap) {
+        const isSameCell = entry.fromRow === entry.toRow && entry.fromCol === entry.toCol;
+
+        if (!isSameCell) {
+          moveCellMeta(entry.fromRow, entry.fromCol, entry.toRow, entry.toCol, false);
+
+          if (!isCopy) {
+            sourcesToClear.add(`${entry.fromRow}:${entry.fromCol}`);
+          }
+        }
+      }
+
+      if (!isCopy) {
+        for (const key of sourcesToClear) {
+          // Only clear the source cell when it is not also a target in this move.
+          const isAlsoTarget = moveMap.some(
+            e => `${e.toRow}:${e.toCol}` === key
+          );
+
+          if (!isAlsoTarget) {
+            const [r, c] = key.split(':').map(Number);
+
+            for (const metaKey of MOVABLE_META_KEYS) {
+              instance.removeCellMeta(r, c, metaKey);
+            }
+          }
+        }
+      }
+
+      /**
+       * MC-8 forward-compat gate: when the Formulas plugin is active it will handle the value
+       * write through HyperFormula (preserving formula references). In that case we skip the
+       * raw data write here and let MC-8 do it. For now (no formulas in tests) the write
+       * always runs.
+       */
+      const formulasPlugin = instance.getPlugin('formulas');
+      const formulasActive = formulasPlugin?.enabled === true;
+
+      if (!formulasActive) {
+        if (!isCopy) {
+          // Clear source range first to handle potential overlap correctly.
+          const nullRow: null[] = Array.from<null>({ length: width }).fill(null);
+          const nullGrid: null[][] = Array.from({ length: height }, () => nullRow.slice());
+
+          instance.populateFromArray(fromRow, fromCol, nullGrid, toRow, toCol, 'moveCells');
+        }
+
+        instance.populateFromArray(targetRow, targetCol, values, targetBottom, targetRight, 'moveCells');
+      }
+    });
+
+    instance.selectCells([[targetRow, targetCol, targetBottom, targetRight]]);
+
+    type Coords = { row: number; col: number };
+    const tl = instance._createCellCoords(targetRow, targetCol) as Coords;
+    const br = instance._createCellCoords(targetBottom, targetRight) as Coords;
+    const targetRange = instance._createCellRange(tl, tl, br);
+
+    instance.runHooks('afterMoveCells', sourceRange, targetRange, isCopy);
+
+    return true;
   };
 
   /**

@@ -892,3 +892,6 @@ hot.updateSettings({ afterOnSelectionHandleMouseDown(event, edge) {} });
 // Regression: beforeMoveCells and afterMoveCells must be accepted by updateSettings.
 hot.updateSettings({ beforeMoveCells(sourceRange, targetTopLeft, isCopy) { return true; } });
 hot.updateSettings({ afterMoveCells(sourceRange, targetRange, isCopy) {} });
+
+// Regression: moveCellRange must be callable on the hot instance with correct arg/return types.
+const moveResult: boolean = hot.moveCellRange(hot.getSelectedRangeLast()!, hot._createCellCoords(5, 5), false);
