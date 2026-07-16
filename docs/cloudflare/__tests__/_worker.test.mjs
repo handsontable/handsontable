@@ -234,6 +234,20 @@ test('Content-Security-Policy frame-src allows the Figma embed (regression for D
   assert.ok(hasSource('https://codesandbox.io'));
 });
 
+test('Content-Security-Policy frame-src allows the demos.handsontable.com embed used by theme recipes', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(request('/docs/vue-data-grid/handsontable-design-system/'), env);
+  const csp = response.headers.get('Content-Security-Policy');
+  const frameSrc = csp.split(';').find((directive) => directive.trim().startsWith('frame-src'));
+
+  assert.ok(frameSrc, 'expected a frame-src directive in the Content-Security-Policy header');
+
+  const frameSrcSources = frameSrc.trim().split(/\s+/).slice(1); // drop the "frame-src" keyword
+  const hasSource = (source) => frameSrcSources.some((entry) => entry === source);
+
+  assert.ok(hasSource('https://demos.handsontable.com'));
+});
+
 test('keeps versioned demo redirects on historical disabled cells slugs', async() => {
   const worker = loadWorker();
 

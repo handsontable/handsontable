@@ -27,14 +27,15 @@ category: Themes
 
 This tutorial shows you how to integrate Handsontable into a React app that uses MUI, registering a custom theme that maps MUI palette values to Handsontable colors and tokens.
 
-<iframe src="https://codesandbox.io/embed/y4vsfq?view=preview"
+<iframe src="https://demos.handsontable.com/embed/2n1i1s6572"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
   title="Handsontable with MUI recipe (icons fixed)"
   allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
   sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
 ></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/y4vsfq)
+[**Open in sandbox**](https://demos.handsontable.com/?example=mui&v={{$currentReleaseVersion}})
+[**View source on GitHub**](https://github.com/handsontable/examples/tree/master/examples/mui)
 
 ## Overview
 

@@ -25,14 +25,14 @@ type: how-to
 
 In this tutorial, you will integrate Handsontable into a React app that uses Ant Design and align the grid with your design system tokens through the Theme API. You will learn how to map Ant Design tokens to Handsontable theme parameters so the grid matches your existing styles.
 
-<iframe src="https://codesandbox.io/embed/n3c25x?view=preview&module=%2Fsrc%2FApp.tsx"
+<iframe src="https://demos.handsontable.com/embed/62392g4k2u"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
   title="Handsontable with AntDesign"
   allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
   sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
 ></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/handsontable-with-antdesign-n3c25x)
+[**Open in sandbox**](https://demos.handsontable.com/?example=ant-design&v={{$currentReleaseVersion}})
 [**View source on GitHub**](https://github.com/handsontable/examples/tree/master/examples/ant-design)
 
 ## Overview
