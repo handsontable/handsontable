@@ -458,6 +458,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
     const colTransform: number = colTransformDir;
   },
   afterMomentumScroll: () => {},
+  afterMoveCells: (sourceRange, targetRange, isCopy) => {},
   afterNamedExpressionAdded: (namedExpressionName, changes) => {},
   afterNamedExpressionRemoved: (namedExpressionName, changes) => {},
   afterOnCellContextMenu: (event, coords, TD) => {},
@@ -639,6 +640,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeLanguageChange: (languageCode) => {},
   beforeLoadData: (sourceData, firstTime, source) => {},
   beforeMergeCells: (cellRange, auto) => {},
+  beforeMoveCells: (sourceRange, targetTopLeft, isCopy) => {},
   beforeOnCellContextMenu: (event, coords, TD) => {},
   beforeOnCellMouseDown: (event, coords, TD, controller) => {},
   beforeOnCellMouseOut: (event, coords, TD) => {},
@@ -886,3 +888,7 @@ hot.updateSettings({ moveCells: true });
 
 // Regression: afterOnSelectionHandleMouseDown must be accepted by updateSettings.
 hot.updateSettings({ afterOnSelectionHandleMouseDown(event, edge) {} });
+
+// Regression: beforeMoveCells and afterMoveCells must be accepted by updateSettings.
+hot.updateSettings({ beforeMoveCells(sourceRange, targetTopLeft, isCopy) { return true; } });
+hot.updateSettings({ afterMoveCells(sourceRange, targetRange, isCopy) {} });

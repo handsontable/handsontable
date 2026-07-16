@@ -297,6 +297,12 @@ export interface GridSettings {
   afterModifyTransformFocus?: (coords: WalkontableCellCoords, rowTransformDir: number, colTransformDir: number) => void;
   afterModifyTransformStart?: (coords: WalkontableCellCoords, rowTransformDir: number, colTransformDir: number) => void;
   afterMomentumScroll?: () => void;
+  /**
+   * Fired after a `moveCells` drag has relocated a selection.
+   *
+   * @since 18.0.0
+   */
+  afterMoveCells?: (sourceRange: WalkontableCellRange, targetRange: WalkontableCellRange, isCopy: boolean) => void;
   afterNamedExpressionAdded?: (namedExpressionName: string, changes: unknown[]) => void;
   afterNamedExpressionRemoved?: (namedExpressionName: string, changes: unknown[]) => void;
   afterNotificationHide?: (id: string) => void;
@@ -457,6 +463,12 @@ export interface GridSettings {
   beforeLoadingHide?: () => boolean | void;
   beforeLoadingShow?: () => boolean | void;
   beforeMergeCells?: (cellRange: WalkontableCellRange, auto: boolean) => void;
+  /**
+   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move.
+   *
+   * @since 18.0.0
+   */
+  beforeMoveCells?: (sourceRange: WalkontableCellRange, targetTopLeft: WalkontableCellCoords, isCopy: boolean) => void | boolean;
   beforeNotificationHide?: (id: string) => boolean | void;
   beforeNotificationShow?: (options: {
     id: string;

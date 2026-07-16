@@ -390,6 +390,13 @@ describe('Hooks', () => {
 
       expect(hooks.isRegistered('afterOnSelectionHandleMouseDown')).toBe(true);
     });
+
+    it('should register the beforeMoveCells and afterMoveCells hooks', () => {
+      const hooks = new Hooks();
+
+      expect(hooks.isRegistered('beforeMoveCells')).toBe(true);
+      expect(hooks.isRegistered('afterMoveCells')).toBe(true);
+    });
   });
 
   describe('deregister()', () => {

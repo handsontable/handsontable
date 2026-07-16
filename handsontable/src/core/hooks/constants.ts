@@ -620,6 +620,29 @@ export const REGISTERED_HOOKS = [
   'afterOnSelectionHandleMouseDown',
 
   /**
+   * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move.
+   *
+   * @event Hooks#beforeMoveCells
+   * @since 18.0.0
+   * @param {CellRange} sourceRange The range being moved.
+   * @param {CellCoords} targetTopLeft The top-left target cell.
+   * @param {boolean} isCopy `true` when copying (Ctrl held) instead of moving.
+   * @returns {void|boolean}
+   */
+  'beforeMoveCells',
+
+  /**
+   * Fired after a `moveCells` drag has relocated a selection.
+   *
+   * @event Hooks#afterMoveCells
+   * @since 18.0.0
+   * @param {CellRange} sourceRange The original range.
+   * @param {CellRange} targetRange The range the data was moved to.
+   * @param {boolean} isCopy `true` when the operation was a copy.
+   */
+  'afterMoveCells',
+
+  /**
    * Fired after a `dblclick` event is triggered on the cell corner (the drag handle).
    *
    * @event Hooks#afterOnCellCornerDblClick
