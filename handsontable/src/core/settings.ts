@@ -129,6 +129,7 @@ export interface GridSettings {
   outsideClickDeselects?: boolean | ((target: HTMLElement, coords?: WalkontableCellCoords) => boolean);
   selectionMode?: 'single' | 'range' | 'multiple';
   selectionHandles?: boolean;
+  moveCells?: boolean;
   tabNavigation?: boolean;
   autoWrapCol?: boolean;
   autoWrapRow?: boolean;

@@ -217,6 +217,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   search: true,
   selectionMode: oneOf('single', 'range', 'multiple'),
   selectionHandles: true,
+  moveCells: true,
   selectOptions: oneOf(
     ['A', 'B', 'C'],
     { a: 'A', b: 'B', c: 'C' },
@@ -879,6 +880,9 @@ const _strippedTypedConfig: _StrippedGridSettings = {
 declare const hot: Handsontable;
 
 hot.updateSettings({ selectionHandles: true });
+
+// Regression: moveCells must be accepted by updateSettings.
+hot.updateSettings({ moveCells: true });
 
 // Regression: afterOnSelectionHandleMouseDown must be accepted by updateSettings.
 hot.updateSettings({ afterOnSelectionHandleMouseDown(event, edge) {} });

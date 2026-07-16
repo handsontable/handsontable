@@ -253,4 +253,12 @@ describe('metaSchema', () => {
       expect(defaults.selectionHandles).toBe(false);
     });
   });
+
+  describe('moveCells', () => {
+    it('should default to false', () => {
+      const defaults = metaSchemaFactory();
+
+      expect(defaults.moveCells).toBe(false);
+    });
+  });
 });

@@ -58,6 +58,7 @@ export interface SelectionSettings {
   disableVisualSelection?: boolean | string | string[];
   fillHandle?: unknown;
   selectionHandles?: boolean;
+  moveCells?: boolean;
   [key: string]: unknown;
 }
 

@@ -5584,6 +5584,33 @@ export default (): Record<string, unknown> => {
     selectionHandles: false,
 
     /**
+     * The `moveCells` option lets you move a [selection](@/guides/cell-features/selection/selection.md) by
+     * dragging its edge. When enabled, hovering the border of a selected cell range shows a grab cursor;
+     * dragging the border moves the block's data (values, formatting, and – with the
+     * [`formulas`](@/api/options.md#formulas) plugin – adjusted formula references) to the new location.
+     * Hold <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> during the drag to copy instead of move.
+     *
+     * The move applies to a single contiguous cell range only. It has no effect on full-row, full-column,
+     * select-all, or multiple selections, and the target must stay within the grid and must not overlap
+     * read-only cells.
+     *
+     * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
+     *
+     * @since 18.0.0
+     * @memberof Options#
+     * @type {boolean}
+     * @default false
+     * @category Core
+     *
+     * @example
+     * ```js
+     * // enable drag-to-move for selections
+     * moveCells: true,
+     * ```
+     */
+    moveCells: false,
+
+    /**
      * The `selectOptions` option configures options that the end user can choose from in [`select`](@/guides/cell-types/select-cell-type/select-cell-type.md) cells.
      *
      * You can set the `selectOptions` option to one of the following:
