@@ -26,6 +26,7 @@ import type AxisSyncer from './indexSyncer/axisSyncer';
 import type { HyperFormulaEngine } from './engine/types';
 import type { CellChange } from '../../settings';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
+import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 
 /**
  * Represents a cell change from the HyperFormula engine.
@@ -145,6 +146,27 @@ export class Formulas extends BasePlugin {
    * @type {boolean}
    */
   #hotWasInitializedWithEmptyData = false;
+
+  /**
+   * Stores the HyperFormula source range and destination address prepared in `beforeMoveCells` so that
+   * `afterMoveCells` can execute the corresponding HF operation without recomputing visual→HF coordinates.
+   *
+   * Set to `null` when no move is in flight.
+   *
+   * @private
+   * @type {{ source: object, dest: object, isCopy: boolean }|null}
+   */
+  #pendingMoveCells: { source: object; dest: object; isCopy: boolean } | null = null;
+
+  /**
+   * Guard flag set while writing synced values back to HOT after a `moveCells` operation.
+   * Prevents the `afterSetDataAtCell` / `afterSetSourceDataAtCell` hooks from re-writing
+   * the same values into HyperFormula a second time.
+   *
+   * @private
+   * @type {boolean}
+   */
+  #moveCellsSyncPending = false;
 
   /**
    * Maps a HyperFormula `ExportedCellChange` to the same change with `newValue` translated to a
@@ -469,6 +491,9 @@ export class Formulas extends BasePlugin {
 
     this.addHook('afterDetachChild', this.#onAfterDetachChild);
     this.addHook('beforeAutofill', this.#onBeforeAutofill);
+
+    this.addHook('beforeMoveCells', this.#onBeforeMoveCells);
+    this.addHook('afterMoveCells', this.#onAfterMoveCells);
 
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine!.on(eventName, listener));
 
@@ -1231,6 +1256,11 @@ export class Formulas extends BasePlugin {
       return;
     }
 
+    // Skip HF re-sync when we are writing back to HOT after a moveCells HF operation.
+    if (this.#moveCellsSyncPending) {
+      return;
+    }
+
     // Skip engine sync when there are no changes (e.g. populateFromArray on readOnly cells).
     // Otherwise engine.batch() would push an empty undo step and undo would revert the wrong action (#dev-2136).
     if (!changes?.length) {
@@ -1294,6 +1324,11 @@ export class Formulas extends BasePlugin {
    */
   #onAfterSetSourceDataAtCell = (changes: CellChange[], source: string) => {
     if (isBlockedSource(source)) {
+      return;
+    }
+
+    // Skip HF re-sync when we are writing back to HOT after a moveCells HF operation.
+    if (this.#moveCellsSyncPending) {
       return;
     }
 
@@ -1505,6 +1540,187 @@ export class Formulas extends BasePlugin {
 
     this.renderDependentSheets(changes);
   };
+
+  /**
+   * `beforeMoveCells` hook callback.
+   *
+   * Converts the visual source range and target top-left corner to HyperFormula
+   * (physical) coordinates, validates feasibility for a MOVE operation, and stores
+   * the converted addresses for use in the `afterMoveCells` handler.
+   *
+   * Returns `false` to veto the whole operation when HyperFormula reports the move
+   * is not possible (e.g. the source or target contains an array formula).
+   *
+   * @param {CellRange} sourceRange The visual source range.
+   * @param {CellCoords} targetTopLeft The visual top-left of the destination.
+   * @param {boolean} isCopy `true` when copying (not moving) cells.
+   * @returns {boolean|undefined} `false` to cancel the operation; `undefined` otherwise.
+   */
+  #onBeforeMoveCells = (sourceRange: CellRange, targetTopLeft: CellCoords, isCopy: boolean) => {
+    if (!this.engine || this.sheetId === null) {
+      return;
+    }
+
+    const topStart = sourceRange.getTopStartCorner();
+    const bottomEnd = sourceRange.getBottomEndCorner();
+    const fromRow = topStart.row!;
+    const fromCol = topStart.col!;
+    const toRow = bottomEnd.row!;
+    const toCol = bottomEnd.col!;
+    const targetRow = targetTopLeft.row!;
+    const targetCol = targetTopLeft.col!;
+
+    const hfFromRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(fromRow);
+    const hfFromCol = this.columnAxisSyncer!.getHfIndexFromVisualIndex(fromCol);
+    const hfToRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(toRow);
+    const hfToCol = this.columnAxisSyncer!.getHfIndexFromVisualIndex(toCol);
+    const hfTargetRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(targetRow);
+    const hfTargetCol = this.columnAxisSyncer!.getHfIndexFromVisualIndex(targetCol);
+
+    const source = {
+      start: { sheet: this.sheetId, row: hfFromRow, col: hfFromCol },
+      end: { sheet: this.sheetId, row: hfToRow, col: hfToCol },
+    };
+    const dest = { sheet: this.sheetId, row: hfTargetRow, col: hfTargetCol };
+
+    if (!isCopy && !this.engine.isItPossibleToMoveCells(source, dest)) {
+      this.#pendingMoveCells = null;
+
+      return false;
+    }
+
+    this.#pendingMoveCells = { source, dest, isCopy };
+  };
+
+  /**
+   * `afterMoveCells` hook callback.
+   *
+   * Executes the HyperFormula move or copy operation using the coordinates
+   * prepared in `beforeMoveCells`. For a MOVE, calls `engine.moveCells` which
+   * physically relocates cell content and adjusts all dependent formula references
+   * (Excel-style). For a COPY, calls `engine.copy` followed by `engine.paste`
+   * which duplicates the content with adjusted relative references.
+   *
+   * Note: `engine.copy` reads cell values and must NOT be wrapped in `engine.batch`
+   * because batch suspends evaluation, causing `copy` to throw `EvaluationSuspendedError`.
+   *
+   * After the HF operation, HOT's source data array is synchronised with HF's state
+   * to ensure that `getDataAtCell` returns correct values for plain VALUE / EMPTY cells
+   * (formula cells are already served from HF via the `modifyData` hook). The sync is
+   * guarded by `#moveCellsSyncPending` so that `afterSetDataAtCell` does not re-write
+   * the same values back into HyperFormula.
+   *
+   * @param {CellRange} sourceRange The original source range (visual coordinates).
+   * @param {CellRange} targetRange The range the data was moved to (visual coordinates).
+   * @param {boolean} isCopy `true` when the operation was a copy.
+   */
+  #onAfterMoveCells = (sourceRange: CellRange, targetRange: CellRange, isCopy: boolean) => {
+    if (!this.engine || !this.#pendingMoveCells) {
+      return;
+    }
+
+    const { source, dest } = this.#pendingMoveCells;
+
+    this.#pendingMoveCells = null;
+
+    let dependentCells: unknown[];
+
+    if (isCopy) {
+      // copy() reads cell values and cannot run inside batch() (evaluation must not be suspended).
+      this.engine.copy(source);
+      dependentCells = this.engine.paste(dest);
+    } else {
+      dependentCells = this.engine.batch(() => {
+        this.engine!.moveCells(source, dest);
+      });
+    }
+
+    // Sync HOT's source data with HF's updated state so that getDataAtCell returns
+    // correct values for VALUE/EMPTY cells (formula cells are already served via modifyData).
+    this.#syncHotDataAfterMoveCells(sourceRange, targetRange, isCopy);
+
+    this.renderDependentSheets(dependentCells, true);
+  };
+
+  /**
+   * Synchronises HOT's raw data source array with HyperFormula's state after a
+   * `moveCells` or copy operation.
+   *
+   * Formula cells are already served correctly through `modifyData` → `getCellValue`.
+   * Plain VALUE / EMPTY cells, however, fall back to the raw HOT data, so after HF
+   * moves the data the old raw values must be cleared from the source cells and the
+   * serialised HF content must be written to the target cells.
+   *
+   * The write is fenced with `#moveCellsSyncPending` to prevent the `afterSetDataAtCell`
+   * hook from re-syncing the same data back into HyperFormula.
+   *
+   * @private
+   * @param {CellRange} sourceRange The source cell range (visual coordinates).
+   * @param {CellRange} targetRange The target cell range (visual coordinates).
+   * @param {boolean} isCopy `true` when the operation is a copy (source cells are kept).
+   */
+  #syncHotDataAfterMoveCells(sourceRange: CellRange, targetRange: CellRange, isCopy: boolean) {
+    const srcTopStart = sourceRange.getTopStartCorner();
+    const srcBottomEnd = sourceRange.getBottomEndCorner();
+    const tgtTopStart = targetRange.getTopStartCorner();
+
+    const srcFromRow = srcTopStart.row!;
+    const srcFromCol = srcTopStart.col!;
+    const srcToRow = srcBottomEnd.row!;
+    const srcToCol = srcBottomEnd.col!;
+    const tgtFromRow = tgtTopStart.row!;
+    const tgtFromCol = tgtTopStart.col!;
+
+    const height = srcToRow - srcFromRow + 1;
+    const width = srcToCol - srcFromCol + 1;
+
+    // Build target values from HF serialized content (formula strings or raw values).
+    const targetData: unknown[][] = [];
+
+    for (let r = 0; r < height; r++) {
+      const row: unknown[] = [];
+
+      for (let c = 0; c < width; c++) {
+        const hfRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(tgtFromRow + r);
+        const hfCol = this.columnAxisSyncer!.getHfIndexFromVisualIndex(tgtFromCol + c);
+        const serialized = this.engine!.getCellSerialized({
+          sheet: this.sheetId,
+          row: hfRow,
+          col: hfCol,
+        });
+
+        row.push(serialized ?? null);
+      }
+
+      targetData.push(row);
+    }
+
+    this.#moveCellsSyncPending = true;
+
+    try {
+      // Write target cells with HF-serialised content (formula strings preserved).
+      this.hot.populateFromArray(
+        tgtFromRow, tgtFromCol, targetData,
+        tgtFromRow + height - 1, tgtFromCol + width - 1,
+        'moveCells'
+      );
+
+      if (!isCopy) {
+        // Clear source cells in HOT's data (HF already moved them out).
+        const nullRow: null[] = Array.from<null>({ length: width }).fill(null);
+        const nullGrid: null[][] = Array.from({ length: height }, () => nullRow.slice());
+
+        this.hot.populateFromArray(
+          srcFromRow, srcFromCol, nullGrid,
+          srcToRow, srcToCol,
+          'moveCells'
+        );
+      }
+
+    } finally {
+      this.#moveCellsSyncPending = false;
+    }
+  }
 
   /**
    * `afterDetachChild` hook callback.
