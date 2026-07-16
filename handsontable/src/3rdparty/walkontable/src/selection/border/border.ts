@@ -469,6 +469,8 @@ class Border {
    * Bands sit at z-index 100 — below the resize pills (z-index 200) so the pills win in the corner
    * regions where they overlap. All four bands are created hidden; `positionMoveZone` + `appear`
    * control their visibility.
+   *
+   * @private
    */
   createMoveZone() {
     const { rootDocument } = this.wot;
@@ -509,7 +511,7 @@ class Border {
 
   /**
    * Positions the four move-zone bands along the selection edges. Each band is `MOVE_ZONE_THICKNESS`
-   * pixels tall (or wide for the vertical bands) and centred on its respective edge line. RTL layout
+   * pixels tall (or wide for the vertical bands) and centered on its respective edge line. RTL layout
    * is handled by using `right` instead of `left` for the inline axis, mirroring `positionAdjustHandles`.
    *
    * @private
@@ -524,28 +526,28 @@ class Border {
     const s = this.moveZone.styles;
     const half = Math.floor(MOVE_ZONE_THICKNESS / 2);
 
-    // Top band — full width, centred on the top edge.
+    // Top band — full width, centered on the top edge.
     s.top[inlineProp] = `${inlineStart}px`;
     s.top.top = `${top - half}px`;
     s.top.width = `${width}px`;
     s.top.height = `${MOVE_ZONE_THICKNESS}px`;
     s.top.display = 'block';
 
-    // Bottom band — full width, centred on the bottom edge.
+    // Bottom band — full width, centered on the bottom edge.
     s.bottom[inlineProp] = `${inlineStart}px`;
     s.bottom.top = `${top + height - half}px`;
     s.bottom.width = `${width}px`;
     s.bottom.height = `${MOVE_ZONE_THICKNESS}px`;
     s.bottom.display = 'block';
 
-    // Start band — full height, centred on the inline-start edge.
+    // Start band — full height, centered on the inline-start edge.
     s.start[inlineProp] = `${inlineStart - half}px`;
     s.start.top = `${top}px`;
     s.start.width = `${MOVE_ZONE_THICKNESS}px`;
     s.start.height = `${height}px`;
     s.start.display = 'block';
 
-    // End band — full height, centred on the inline-end edge.
+    // End band — full height, centered on the inline-end edge.
     s.end[inlineProp] = `${inlineStart + width - half}px`;
     s.end.top = `${top}px`;
     s.end.width = `${MOVE_ZONE_THICKNESS}px`;

@@ -173,6 +173,52 @@ describe('WalkontableMoveZone', () => {
     bands.forEach((b) => expect(b.style.zIndex).toBe('100'));
   });
 
+  it('calls onSelectionEdgeMouseDown with the correct edge on band mousedown', async() => {
+    const onSelectionEdgeMouseDown = jasmine.createSpy('onSelectionEdgeMouseDown');
+    const selections = createSelectionController({
+      border: {
+        width: 2,
+        color: 'blue',
+        moveEnabled() {
+          return true;
+        }
+      }
+    });
+    const wt = walkontable({
+      data: getData,
+      totalRows: 5,
+      totalColumns: 5,
+      selections,
+      onSelectionEdgeMouseDown,
+    });
+
+    selections.getFocus()
+      .add(new Walkontable.CellCoords(1, 1))
+      .add(new Walkontable.CellCoords(3, 3));
+
+    wt.draw();
+
+    const focusBorder = wt.selectionManager.getBorderInstance(selections.getFocus());
+
+    focusBorder.moveZone.top.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    expect(onSelectionEdgeMouseDown.calls.mostRecent().args[0]).toEqual(jasmine.any(MouseEvent));
+    expect(onSelectionEdgeMouseDown.calls.mostRecent().args[1]).toBe('top');
+
+    focusBorder.moveZone.bottom.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    expect(onSelectionEdgeMouseDown.calls.mostRecent().args[0]).toEqual(jasmine.any(MouseEvent));
+    expect(onSelectionEdgeMouseDown.calls.mostRecent().args[1]).toBe('bottom');
+
+    focusBorder.moveZone.start.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    expect(onSelectionEdgeMouseDown.calls.mostRecent().args[0]).toEqual(jasmine.any(MouseEvent));
+    expect(onSelectionEdgeMouseDown.calls.mostRecent().args[1]).toBe('start');
+
+    focusBorder.moveZone.end.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    expect(onSelectionEdgeMouseDown.calls.mostRecent().args[0]).toEqual(jasmine.any(MouseEvent));
+    expect(onSelectionEdgeMouseDown.calls.mostRecent().args[1]).toBe('end');
+
+    expect(onSelectionEdgeMouseDown).toHaveBeenCalledTimes(4);
+  });
+
   it('hides bands via disappear() when disappear is called', async() => {
     const selections = createSelectionController({
       border: {
