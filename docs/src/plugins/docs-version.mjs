@@ -67,19 +67,28 @@ function getCommitDate() {
 }
 
 /**
+ * Reads the `version` field from `handsontable/package.json`.
+ *
+ * @returns {string|null}
+ */
+function getPackageVersion() {
+  try {
+    const pkg = _require(join(_dir, '../../../handsontable/package.json'));
+
+    return pkg.version ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Computes the version string used in docs page links (e.g. CodeSandbox URLs).
  *
  * @returns {string}
  */
 function computeDocsVersion() {
   if (process.env.BUILD_MODE === 'production') {
-    try {
-      const pkg = _require(join(_dir, '../../../handsontable/package.json'));
-
-      return pkg.version ?? 'next';
-    } catch {
-      return 'next';
-    }
+    return getPackageVersion() ?? 'next';
   }
 
   // Staging / dev: 0.0.0-next-{shortSHA}-{YYYYMMDD}
@@ -96,6 +105,20 @@ function computeDocsVersion() {
  * @type {string}
  */
 export const CURRENT_DOCS_VERSION = computeDocsVersion();
+
+/**
+ * The published Handsontable package version (e.g. "18.0.0"), read directly
+ * from `handsontable/package.json` regardless of BUILD_MODE.
+ *
+ * Unlike CURRENT_DOCS_VERSION, this never resolves to a synthetic
+ * "0.0.0-next-..." pre-release string in staging/dev builds. Use it for links
+ * to external services that only understand published version numbers (e.g.
+ * the "Open in sandbox" links on the theme recipe pages), as opposed to
+ * CodeSandbox VM links, which intentionally target the in-progress build.
+ *
+ * @type {string}
+ */
+export const CURRENT_RELEASE_VERSION = getPackageVersion() ?? CURRENT_DOCS_VERSION;
 
 /**
  * The GitHub branch path used for source-code links in documentation pages.
