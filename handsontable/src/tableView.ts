@@ -31,6 +31,7 @@ import { resolveWithInstance } from './utils/staticRegister';
 import { getCellCoordsFromMousePosition } from './helpers/dom/cellCoords';
 import { clampEdge } from './selection/handleAdjust';
 import type { HandleEdge } from './selection/handleAdjust';
+import { canMoveRange, clampMoveTarget } from './selection/moveCells';
 import {
   A11Y_COLCOUNT,
   A11Y_MULTISELECTABLE,
@@ -227,6 +228,41 @@ class TableView {
     mousemove: ((event: MouseEvent) => void) | null;
     mouseup: (() => void) | null;
   } = { mousemove: null, mouseup: null };
+  /**
+   * State of an in-progress move-drag session. Null when no move drag is active.
+   * `fromRow`, `toRow`, `fromCol`, `toCol` are the normalized source selection corners
+   * captured once at drag-start (from <= to on each axis).
+   * `grabRowOffset` and `grabColOffset` are the distances from the source top-left to the
+   * cell under the pointer at mousedown, so the ghost stays aligned to the grab point.
+   *
+   * @type {{ fromRow: number, toRow: number, fromCol: number, toCol: number, grabRowOffset: number, grabColOffset: number } | null}
+   */
+  #moveDrag: {
+    fromRow: number;
+    toRow: number;
+    fromCol: number;
+    toCol: number;
+    grabRowOffset: number;
+    grabColOffset: number;
+  } | null = null;
+  /**
+   * Bound document-level listeners installed for the duration of a move drag. Stored
+   * so they can be removed precisely on mouseup without clearing unrelated listeners.
+   *
+   * @type {{ mousemove: ((event: MouseEvent) => void) | null, mouseup: ((event: MouseEvent) => void) | null, keydown: ((event: KeyboardEvent) => void) | null }}
+   */
+  #moveDragListeners: {
+    mousemove: ((event: MouseEvent) => void) | null;
+    mouseup: ((event: MouseEvent) => void) | null;
+    keydown: ((event: KeyboardEvent) => void) | null;
+  } = { mousemove: null, mouseup: null, keydown: null };
+  /**
+   * The ghost overlay element shown during a move drag to preview the drop target.
+   * Created on drag-start and removed on drag-end or cancel.
+   *
+   * @type {HTMLElement | null}
+   */
+  #moveGhostEl: HTMLElement | null = null;
   /**
    * @param {Hanstontable} hotInstance Instance of {@link Handsontable}.
    */
@@ -1208,6 +1244,9 @@ class TableView {
       onSelectionHandleMouseDown: (event: MouseEvent, edge: HandleEdge) => {
         this.hot.runHooks('afterOnSelectionHandleMouseDown', event, edge);
         this.#startAdjustDrag(event, edge);
+      },
+      onSelectionEdgeMouseDown: (event: MouseEvent) => {
+        this.#startMoveDrag(event);
       },
       beforeDraw: (force: boolean, skipRender: boolean) => this.beforeRender(force, skipRender),
       onDraw: (force: boolean) => this.afterRender(force),
@@ -2464,6 +2503,260 @@ class TableView {
     }
 
     this.#adjustDragListeners = { mousemove: null, mouseup: null };
+  }
+
+  /**
+   * Starts a move-drag session when the user presses the selection edge move zone (`.wtMoveZone`).
+   * Validates that the current selection is eligible for a move, captures the source range and
+   * grab offsets, applies the moving state class, creates the ghost preview element, and installs
+   * document-level `mousemove`, `mouseup`, and `keydown` listeners for the duration of the drag.
+   *
+   * @private
+   * @param {MouseEvent} event The originating mousedown event.
+   */
+  #startMoveDrag(event: MouseEvent) {
+    if (!this.settings.moveCells) {
+      return;
+    }
+
+    if (this.#moveDrag) {
+      this.#endMoveDrag(false, event);
+    }
+
+    const selection = this.hot.selection;
+    const rangeCount = selection.getSelectedRange().size();
+    const isEntireRow = selection.isEntireRowSelected();
+    const isEntireColumn = selection.isEntireColumnSelected();
+    const isHeader = selection.isSelectedByRowHeader() || selection.isSelectedByColumnHeader();
+
+    if (!canMoveRange({ rangeCount, isEntireRow, isEntireColumn, isHeader })) {
+      return;
+    }
+
+    const sourceRange = selection.getSelectedRange().current();
+
+    if (!sourceRange) {
+      return;
+    }
+
+    const from = sourceRange.from;
+    const to = sourceRange.to;
+    const fromRow = Math.min(from.row ?? 0, to.row ?? 0);
+    const toRow = Math.max(from.row ?? 0, to.row ?? 0);
+    const fromCol = Math.min(from.col ?? 0, to.col ?? 0);
+    const toCol = Math.max(from.col ?? 0, to.col ?? 0);
+
+    const pointerCoords = getCellCoordsFromMousePosition(this.hot, event.clientX, event.clientY);
+    const grabRowOffset = Math.max(0, (pointerCoords.row ?? fromRow) - fromRow);
+    const grabColOffset = Math.max(0, (pointerCoords.col ?? fromCol) - fromCol);
+
+    this.#moveDrag = { fromRow, toRow, fromCol, toCol, grabRowOffset, grabColOffset };
+
+    addClass(this.hot.rootElement, 'ht__moving');
+    this.#createMoveGhost();
+
+    const { documentElement } = this.hot.rootDocument;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      this.#onMoveDragMouseMove(moveEvent);
+    };
+
+    const onMouseUp = (upEvent: MouseEvent) => {
+      this.#endMoveDrag(true, upEvent);
+    };
+
+    const onKeyDown = (keyEvent: KeyboardEvent) => {
+      if (keyEvent.key === 'Escape') {
+        this.#endMoveDrag(false, null);
+      }
+    };
+
+    this.#moveDragListeners = { mousemove: onMouseMove, mouseup: onMouseUp, keydown: onKeyDown };
+
+    this.eventManager.addEventListener(documentElement, 'mousemove', onMouseMove as (event: Event) => void);
+    this.eventManager.addEventListener(documentElement, 'mouseup', onMouseUp as (event: Event) => void);
+    this.eventManager.addEventListener(documentElement, 'keydown', onKeyDown as (event: Event) => void);
+  }
+
+  /**
+   * Creates the ghost preview element and appends it to the overlays container.
+   * The ghost is a `div.wtMoveGhost` positioned absolutely; `#onMoveDragMouseMove` updates its position.
+   *
+   * @private
+   */
+  #createMoveGhost() {
+    const ghost = this.hot.rootDocument.createElement('div');
+
+    ghost.className = 'wtMoveGhost';
+    ghost.style.position = 'absolute';
+    ghost.style.display = 'none';
+    ghost.style.pointerEvents = 'none';
+    ghost.style.zIndex = '15';
+
+    this.hot.rootOverlaysElement.appendChild(ghost);
+    this.#moveGhostEl = ghost;
+  }
+
+  /**
+   * Handles document `mousemove` during a move drag. Resolves the cell under the pointer,
+   * computes the clamped target top-left via `clampMoveTarget`, and repositions the ghost
+   * preview element over the target range.
+   *
+   * @private
+   * @param {MouseEvent} event The mousemove event.
+   */
+  #onMoveDragMouseMove(event: MouseEvent) {
+    if (!this.#moveDrag || !this.#moveGhostEl) {
+      return;
+    }
+
+    const { fromRow, toRow, fromCol, toCol, grabRowOffset, grabColOffset } = this.#moveDrag;
+    const rangeHeight = toRow - fromRow + 1;
+    const rangeWidth = toCol - fromCol + 1;
+
+    const pointerCoords = getCellCoordsFromMousePosition(this.hot, event.clientX, event.clientY);
+    const pointerRow = pointerCoords.row ?? fromRow;
+    const pointerCol = pointerCoords.col ?? fromCol;
+
+    const target = clampMoveTarget({
+      pointerRow,
+      pointerCol,
+      grabRowOffset,
+      grabColOffset,
+      rangeHeight,
+      rangeWidth,
+      totalRows: this.hot.countRows(),
+      totalCols: this.hot.countCols(),
+    });
+
+    this.#positionMoveGhost(target.row, target.col, target.row + rangeHeight - 1, target.col + rangeWidth - 1);
+  }
+
+  /**
+   * Positions the ghost overlay element to cover the given visual cell range.
+   * Uses `getBoundingClientRect` on the top-start and bottom-end cells to compute
+   * the ghost's size and offset relative to the overlays container.
+   *
+   * @private
+   * @param {number} startRow The visual row of the ghost's top-left corner.
+   * @param {number} startCol The visual column of the ghost's top-left corner.
+   * @param {number} endRow The visual row of the ghost's bottom-right corner.
+   * @param {number} endCol The visual column of the ghost's bottom-right corner.
+   */
+  #positionMoveGhost(startRow: number, startCol: number, endRow: number, endCol: number) {
+    const ghost = this.#moveGhostEl;
+
+    if (!ghost) {
+      return;
+    }
+
+    const topStartTd = this.hot.getCell(startRow, startCol, true);
+    const bottomEndTd = this.hot.getCell(endRow, endCol, true);
+
+    if (!topStartTd || !bottomEndTd) {
+      ghost.style.display = 'none';
+
+      return;
+    }
+
+    const containerRect = this.hot.rootOverlaysElement.getBoundingClientRect();
+    const topStartRect = topStartTd.getBoundingClientRect();
+    const bottomEndRect = bottomEndTd.getBoundingClientRect();
+
+    const top = topStartRect.top - containerRect.top;
+    const left = topStartRect.left - containerRect.left;
+    const width = bottomEndRect.right - topStartRect.left;
+    const height = bottomEndRect.bottom - topStartRect.top;
+
+    ghost.style.display = 'block';
+    ghost.style.top = `${top}px`;
+    ghost.style.left = `${left}px`;
+    ghost.style.width = `${width}px`;
+    ghost.style.height = `${height}px`;
+  }
+
+  /**
+   * Ends the current move-drag session by optionally committing the move, then cleaning up the ghost
+   * element, the moving state class, and the document-level listeners installed at drag-start.
+   *
+   * @private
+   * @param {boolean} commit When `true` the move is committed via `hot.moveCellRange`; when `false`
+   *   (Esc or cancelled) the selection is left unchanged.
+   * @param {MouseEvent | null} upEvent The mouseup event (used to read the Ctrl/Meta key for copy mode).
+   *   `null` on an Escape cancel.
+   */
+  #endMoveDrag(commit: boolean, upEvent: MouseEvent | null) {
+    if (!this.#moveDrag) {
+      return;
+    }
+
+    const drag = this.#moveDrag;
+
+    this.#moveDrag = null;
+
+    if (this.#moveGhostEl) {
+      this.#moveGhostEl.remove();
+      this.#moveGhostEl = null;
+    }
+
+    removeClass(this.hot.rootElement, 'ht__moving');
+
+    const { documentElement } = this.hot.rootDocument;
+    const { mousemove, mouseup, keydown } = this.#moveDragListeners;
+
+    if (mousemove) {
+      this.eventManager.removeEventListener(
+        documentElement, 'mousemove', mousemove as (event: Event) => void
+      );
+    }
+
+    if (mouseup) {
+      this.eventManager.removeEventListener(
+        documentElement, 'mouseup', mouseup as (event: Event) => void
+      );
+    }
+
+    if (keydown) {
+      this.eventManager.removeEventListener(
+        documentElement, 'keydown', keydown as (event: Event) => void
+      );
+    }
+
+    this.#moveDragListeners = { mousemove: null, mouseup: null, keydown: null };
+
+    if (!commit || !upEvent) {
+      return;
+    }
+
+    const { fromRow, toRow, fromCol, toCol, grabRowOffset, grabColOffset } = drag;
+    const rangeHeight = toRow - fromRow + 1;
+    const rangeWidth = toCol - fromCol + 1;
+
+    const pointerCoords = getCellCoordsFromMousePosition(this.hot, upEvent.clientX, upEvent.clientY);
+    const pointerRow = pointerCoords.row ?? fromRow;
+    const pointerCol = pointerCoords.col ?? fromCol;
+
+    const target = clampMoveTarget({
+      pointerRow,
+      pointerCol,
+      grabRowOffset,
+      grabColOffset,
+      rangeHeight,
+      rangeWidth,
+      totalRows: this.hot.countRows(),
+      totalCols: this.hot.countCols(),
+    });
+
+    const targetTopLeft = this.hot._createCellCoords(target.row, target.col);
+    const sourceRange = this.hot.getSelectedRangeLast();
+
+    if (!sourceRange) {
+      return;
+    }
+
+    const isCopy = upEvent.ctrlKey || upEvent.metaKey;
+
+    this.hot.moveCellRange(sourceRange, targetTopLeft, isCopy);
   }
 
   /**
