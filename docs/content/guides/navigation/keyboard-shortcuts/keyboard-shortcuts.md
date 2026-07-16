@@ -39,6 +39,8 @@ To register these keys with [`addShortcut()`](@/api/shortcutContext.md#addshortc
 
 These keyboard shortcuts work when you navigate the grid. They come from Handsontable's [`Core`](@/api/core.md), so they work out of the box, with no need for additional plugins.
 
+By default, <kbd>Tab</kbd> moves the active cell one column to the right and <kbd>Shift</kbd>+<kbd>Tab</kbd> moves it one column to the left — matching standard spreadsheet navigation in Excel and Google Sheets. This behavior is controlled by the [`tabMoves`](@/api/options.md#tabmoves) option (default: `{ row: 0, col: 1 }`) and can be customized.
+
 | Windows                                      | macOS                                       | Action                                                                                          |  Excel  | Sheets  |
 | -------------------------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------- | :-----: | :-----: |
 | Arrow keys                                   | Arrow keys                                  | Move one cell up, down, left, or right                                                          | &check; | &check; |
@@ -52,8 +54,8 @@ These keyboard shortcuts work when you navigate the grid. They come from Handson
 | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>    | <kbd>⇧</kbd>+<kbd>**Enter**</kbd>   | Enter the editing mode of the active cell                                                       | &cross; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Shift**</kbd>+<kbd>**Enter**</kbd> | <kbd>⌘</kbd>+<kbd>⇧</kbd>+<kbd>**Enter**</kbd> | Save and close editor                                         | &check; | &check; |
 | Alphanumeric keys                            | Alphanumeric keys                           | Enter the editing mode of the active cell and enter the pressed key's value into the cell      | &check; | &check; |
-| <kbd>**Tab**</kbd>                           | <kbd>**Tab**</kbd>                          | Move to the next cell<sup>\*</sup> (if there's only one column available, move one cell down)   | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>      | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>     | Move to the previous cell<sup>\*</sup> (if there's only one column available, move one cell up) | &check; | &check; |
+| <kbd>**Tab**</kbd>                           | <kbd>**Tab**</kbd>                          | Move to the next cell to the right by default<sup>\*</sup> (if there's only one column available, move one cell down) — direction set by [`tabMoves`](@/api/options.md#tabmoves)   | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>      | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>     | Move to the previous cell to the left by default<sup>\*</sup> (if there's only one column available, move one cell up) — direction set by [`tabMoves`](@/api/options.md#tabmoves) | &check; | &check; |
 | <kbd>**Home**</kbd>                          | <kbd>**Home**</kbd>                         | Move to the first non-frozen cell of the current row<sup>\*</sup>                               | &check; | &check; |
 | <kbd>**Ctrl**</kbd>+<kbd>**Home**</kbd>      | <kbd>⌘</kbd>+<kbd>**Home**</kbd>      | Move to the first non-frozen cell of the grid<sup>\*</sup>                                      | &cross; | &check; |
 | <kbd>**End**</kbd>                           | <kbd>**End**</kbd>                          | Move to the last non-frozen cell of the current row<sup>\*</sup>                                | &cross; | &check; |
@@ -101,8 +103,8 @@ These keyboard shortcuts work when you're editing a cell's contents. They come f
 | Alphanumeric keys                                     | Alphanumeric keys                                           | Enter the pressed key's value into the cell                        | &check; | &check; |
 | <kbd>**Enter**</kbd>                                  | <kbd>**Enter**</kbd>                                        | Complete the cell entry and move to the cell below                 | &check; | &check; |
 | <kbd>**Shift**</kbd>+<kbd>**Enter**</kbd>             | <kbd>⇧</kbd>+<kbd>**Enter**</kbd>                   | Complete the cell entry and move to the cell above                 | &check; | &check; |
-| <kbd>**Tab**</kbd>                                    | <kbd>**Tab**</kbd>                                          | Complete the cell entry and move to the next cell<sup>\*</sup>     | &check; | &check; |
-| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>               | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>                     | Complete the cell entry and move to the previous cell<sup>\*</sup> | &check; | &check; |
+| <kbd>**Tab**</kbd>                                    | <kbd>**Tab**</kbd>                                          | Complete the cell entry and move to the next cell (right by default)<sup>\*</sup> — direction set by [`tabMoves`](@/api/options.md#tabmoves)     | &check; | &check; |
+| <kbd>**Shift**</kbd>+<kbd>**Tab**</kbd>               | <kbd>⇧</kbd>+<kbd>**Tab**</kbd>                     | Complete the cell entry and move to the previous cell (left by default)<sup>\*</sup> — direction set by [`tabMoves`](@/api/options.md#tabmoves) | &check; | &check; |
 | <kbd>**Delete**</kbd>                                 | <kbd>**Delete**</kbd>                                       | Delete one character after the cursor<sup>\*</sup>                 | &check; | &check; |
 | <kbd>**Backspace**</kbd>                              | <kbd>**Backspace**</kbd>                                    | Delete one character before the cursor<sup>\*</sup>                | &check; | &check; |
 | <kbd>**Home**</kbd>                                   | <kbd>**Home**</kbd>                                         | Move the cursor to the beginning of the text<sup>\*</sup>          | &check; | &check; |
