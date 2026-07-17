@@ -1431,6 +1431,25 @@ describe('AutoColumnSize', () => {
       expect(colWidth(spec().$container, 0)).toBe(grownWidth);
     });
 
+    it('should recalculate the column width when a cell meta change affects the rendered value', async() => {
+      handsontable({
+        data: dataWithOneLongValue(200, 50),
+        autoColumnSize: true,
+      });
+
+      await render();
+      await waitForNextAnimationFrames(2);
+
+      const widthBefore = colWidth(spec().$container, 0);
+
+      // The formatter shrinks the widest cell's rendered value without a data change.
+      await setCellMeta(50, 0, 'valueFormatter', () => 'x');
+      await render();
+      await waitForNextAnimationFrames(2);
+
+      expect(colWidth(spec().$container, 0)).toBeLessThan(widthBefore);
+    });
+
     it('should recalculate the column width when hiding the row with the widest value', async() => {
       handsontable({
         data: dataWithOneLongValue(200, 50),

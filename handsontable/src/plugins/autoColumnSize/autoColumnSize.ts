@@ -404,6 +404,7 @@ export class AutoColumnSize extends BasePlugin {
 
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeChangeRender', this.#onBeforeChange);
+    this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
     this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell);
     this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
     this.addHook('beforeRender', this.#onBeforeRender);
@@ -816,6 +817,7 @@ export class AutoColumnSize extends BasePlugin {
     }
 
     const sampleCount = this.samplesGenerator.getSampleCount();
+    let bucketOverflowed = false;
 
     samples.forEach((sample, seed) => {
       const cachedSample = cachedSamples.get(seed);
@@ -828,10 +830,18 @@ export class AutoColumnSize extends BasePlugin {
 
       cachedSample.strings.push(...sample.strings);
 
-      if (cachedSample.strings.length > sampleCount) {
-        cachedSample.strings.splice(0, cachedSample.strings.length - sampleCount);
+      if (cachedSample.strings.length > sampleCount * 2) {
+        bucketOverflowed = true;
       }
     });
+
+    // Trimming an overgrown bucket would have to guess which string is the widest — the
+    // width determiner can sit anywhere in it. Instead of risking its eviction (and a column
+    // that renders narrower than its content), the whole entry is dropped: the next
+    // re-measure falls back to one full scan that rebuilds it.
+    if (bucketOverflowed && physicalColumn !== null) {
+      this.#columnSamplesCache.delete(physicalColumn);
+    }
   }
 
   /**
@@ -854,14 +864,19 @@ export class AutoColumnSize extends BasePlugin {
 
     this.ghostTable.setSetting('useHeaders', false);
 
-    measurableItems.forEach(({ visualColumn, samples }) => {
-      this.#addGhostTableColumn(visualColumn, samples);
-    });
-    this.ghostTable.getWidths((visualColumn: number, width: number) => {
-      widths.set(visualColumn, width);
-    });
-    this.ghostTable.clean();
-    this.ghostTable.setSetting('useHeaders', useHeaders);
+    try {
+      measurableItems.forEach(({ visualColumn, samples }) => {
+        this.#addGhostTableColumn(visualColumn, samples);
+      });
+      this.ghostTable.getWidths((visualColumn: number, width: number) => {
+        widths.set(visualColumn, width);
+      });
+    } finally {
+      // A throwing custom renderer must not leave the ghost table with headers disabled (or
+      // with the probe's columns still attached) for every later full-scan measurement.
+      this.ghostTable.clean();
+      this.ghostTable.setSetting('useHeaders', useHeaders);
+    }
 
     return widths;
   }
@@ -1147,6 +1162,20 @@ export class AutoColumnSize extends BasePlugin {
    */
   #onAfterSetSourceDataAtCell = () => {
     this.#columnSamplesCache.clear();
+  };
+
+  /**
+   * Drops the cached samples of a column whose cell meta changed. Meta keys like
+   * `valueFormatter`, `renderer`, `className`, or `type` affect the rendered width, and the
+   * cached sample strings (formatted when they were sampled) would replay the previous meta
+   * on the next re-measure — the next full render re-walks the column instead.
+   */
+  #onAfterSetCellMeta = (_row: number, column: number) => {
+    const physicalColumn = this.hot.toPhysicalColumn(column);
+
+    if (physicalColumn !== null) {
+      this.#columnSamplesCache.delete(physicalColumn);
+    }
   };
 
   /**
