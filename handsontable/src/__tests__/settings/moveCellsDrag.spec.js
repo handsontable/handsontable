@@ -125,7 +125,9 @@ describe('settings', () => {
         clientY: targetRect.top + (targetRect.height / 2),
       });
 
-      const ghost = spec().$container[0].querySelector('.wtMoveGhost');
+      // The ghost is rendered on `document.body` (position: fixed) so it stays correct in any host
+      // layout, so it is queried from the document, not the grid container.
+      const ghost = document.querySelector('.wtMoveGhost');
 
       expect(ghost).not.toBeNull();
       expect(ghost.style.display).not.toBe('none');
@@ -398,8 +400,9 @@ describe('settings', () => {
         clientY: targetRect.top + (targetRect.height / 2),
       });
 
-      // Ghost should be present and visible during the drag.
-      const ghostDuring = spec().$container[0].querySelector('.wtMoveGhost');
+      // Ghost should be present and visible during the drag. It is rendered on `document.body`
+      // (position: fixed) so it stays correct in any host layout, so it is queried from the document.
+      const ghostDuring = document.querySelector('.wtMoveGhost');
 
       expect(ghostDuring).not.toBeNull();
       expect(ghostDuring.style.display).toBe('block');
@@ -411,7 +414,7 @@ describe('settings', () => {
       });
 
       // Ghost should be removed after drop.
-      const ghostAfter = spec().$container[0].querySelector('.wtMoveGhost');
+      const ghostAfter = document.querySelector('.wtMoveGhost');
 
       expect(ghostAfter).toBeNull();
     });

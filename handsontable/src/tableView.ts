@@ -2590,12 +2590,27 @@ class TableView {
     const ghost = this.hot.rootDocument.createElement('div');
 
     ghost.className = 'wtMoveGhost';
-    ghost.style.position = 'absolute';
+    // `position: fixed` on the document body positions the ghost in viewport coordinates, which
+    // matches `getBoundingClientRect` directly and is immune to the grid's ancestor positioning,
+    // overflow, and stacking contexts (the previous `.ht-overlay`-relative approach mispositioned or
+    // hid the ghost inside nested layouts such as the docs pages). A high z-index keeps it on top.
+    ghost.style.position = 'fixed';
     ghost.style.display = 'none';
     ghost.style.pointerEvents = 'none';
-    ghost.style.zIndex = '15';
+    ghost.style.zIndex = '10000';
+    ghost.style.boxSizing = 'border-box';
 
-    this.hot.rootOverlaysElement.appendChild(ghost);
+    // The ghost lives on `document.body`, outside the theme-scoped `.ht-theme-*` wrapper, so the
+    // scoped `.wtMoveGhost` stylesheet rule and the `--ht-*` theme variables do not apply to it.
+    // Resolve the selection accent color from the (theme-scoped) root element and set the dashed
+    // outline + translucent fill inline, so the preview is visible in any host layout.
+    const accent = getComputedStyle(this.hot.rootElement)
+      .getPropertyValue('--ht-cell-selection-border-color').trim() || '#4b89ff';
+
+    ghost.style.border = `2px dashed ${accent}`;
+    ghost.style.backgroundColor = `color-mix(in srgb, ${accent} 15%, transparent)`;
+
+    this.hot.rootDocument.body.appendChild(ghost);
     this.#moveGhostEl = ghost;
   }
 
@@ -2661,26 +2676,17 @@ class TableView {
       return;
     }
 
-    // Reveal the ghost before reading `offsetParent` — a `display: none` element reports a `null`
-    // offsetParent. The ghost is absolutely positioned, so its coordinates must be computed relative
-    // to its real offsetParent, NOT the `.ht-overlay` container (which is a zero-height static element
-    // at the bottom of the wrapper and would push the ghost off-screen).
-    ghost.style.display = 'block';
-
-    const offsetParent = (ghost.offsetParent as HTMLElement | null) ?? this.hot.rootDocument.documentElement;
-    const containerRect = offsetParent.getBoundingClientRect();
+    // The ghost is `position: fixed` on the document body, so its coordinates are viewport-relative
+    // and map directly to `getBoundingClientRect` — no offset-parent/container math, which keeps the
+    // preview correct inside any host layout (nested positioned/overflow/transform ancestors).
     const topStartRect = topStartTd.getBoundingClientRect();
     const bottomEndRect = bottomEndTd.getBoundingClientRect();
 
-    const top = topStartRect.top - containerRect.top;
-    const left = topStartRect.left - containerRect.left;
-    const width = bottomEndRect.right - topStartRect.left;
-    const height = bottomEndRect.bottom - topStartRect.top;
-
-    ghost.style.top = `${top}px`;
-    ghost.style.left = `${left}px`;
-    ghost.style.width = `${width}px`;
-    ghost.style.height = `${height}px`;
+    ghost.style.display = 'block';
+    ghost.style.top = `${topStartRect.top}px`;
+    ghost.style.left = `${topStartRect.left}px`;
+    ghost.style.width = `${bottomEndRect.right - topStartRect.left}px`;
+    ghost.style.height = `${bottomEndRect.bottom - topStartRect.top}px`;
   }
 
   /**
@@ -2776,6 +2782,12 @@ class TableView {
    * @private
    */
   destroy() {
+    // Tear down an in-progress move drag so its body-level ghost element and document listeners
+    // do not leak when the instance is destroyed mid-drag.
+    if (this.#moveDrag) {
+      this.#endMoveDrag(false, null);
+    }
+
     this._wt.destroy();
     this.eventManager.destroy();
   }
