@@ -1182,10 +1182,25 @@ export default function Core(
       }
       {
         let emptyCols = 0;
+        const canCreateSpareCols = minSpareCols > 0 && !tableMeta.columns && instance.dataType === 'array';
 
-        // count currently empty cols
-        if (minCols || minSpareCols) {
-          emptyCols = instance.countEmptyCols(true);
+        // Count trailing empty columns, but only when the `minSpareCols` branch below can consume
+        // the result, and never beyond `minSpareCols` itself. Verifying that a column is empty
+        // scans every row of that column, and this method runs after every change batch - an
+        // uncapped count (the previous `countEmptyCols(true)` call) paid O(empty columns * rows)
+        // per edit and also ran when only `minCols` was set, where the result was never used.
+        if (canCreateSpareCols) {
+          for (let visualIndex = instance.countCols() - 1; visualIndex >= 0; visualIndex--) {
+            if (!instance.isEmptyCol(visualIndex)) {
+              break;
+            }
+
+            emptyCols += 1;
+
+            if (emptyCols >= minSpareCols) {
+              break;
+            }
+          }
         }
 
         let nrOfColumns = instance.countCols();
@@ -1201,9 +1216,7 @@ export default function Core(
           datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
         }
         // should I add empty cols to meet minSpareCols?
-        if (minSpareCols && !tableMeta.columns && instance.dataType === 'array' &&
-          emptyCols < minSpareCols) {
-
+        if (canCreateSpareCols && emptyCols < minSpareCols) {
           nrOfColumns = instance.countCols();
           const emptyColsMissing = minSpareCols - emptyCols;
           const colsToCreate = Math.min(emptyColsMissing, tableMeta.maxCols - nrOfColumns);
@@ -1866,10 +1879,15 @@ export default function Core(
       }
 
       if (tableMeta.allowInsertRow) {
+        // Create the whole missing range in one call - one index-mapper insert and one hook
+        // round instead of one per row. Creating row by row made a paste reaching far below
+        // the last row quadratic in the gap size. The loop re-checks the count so a partial
+        // creation (e.g. a `maxRows` clamp) is detected and the change is skipped.
         while (changes[i][0] > instance.countRows() - 1) {
+          const missingRows = changes[i][0] - (instance.countRows() - 1);
           const {
             delta: numberOfCreatedRows
-          } = datamap.createRow(undefined, undefined, { source: 'auto' });
+          } = datamap.createRow(undefined, missingRows, { source: 'auto' });
 
           if (numberOfCreatedRows === 0) {
             skipThisChange = true;
@@ -1881,9 +1899,11 @@ export default function Core(
       if (instance.dataType === 'array' && (!tableMeta.columns || tableMeta.columns.length === 0) &&
           tableMeta.allowInsertColumn) {
         while (Number(datamap.propToCol(changes[i][1] as string | number)) > instance.countCols() - 1) {
+          const missingColumns =
+            Number(datamap.propToCol(changes[i][1] as string | number)) - (instance.countCols() - 1);
           const {
             delta: numberOfCreatedColumns
-          } = datamap.createCol(undefined, undefined, { source: 'auto' });
+          } = datamap.createCol(undefined, missingColumns, { source: 'auto' });
 
           if (numberOfCreatedColumns === 0) {
             skipThisChange = true;
