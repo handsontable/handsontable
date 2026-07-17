@@ -13,7 +13,7 @@
 //    generic) grid — so this also asserts the page displays the example's own
 //    guideTitle + exampleTitle from the manifest, which the fallback never does.
 //
-// Usage: node scripts/test-runner-links.mjs [options]
+// Usage: node scripts/test-runner-links.mjs [options] — see --help for the full option list.
 
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 import { extname, join, dirname } from 'node:path';
@@ -25,6 +25,18 @@ import { chromium } from '@playwright/test';
 // "&amp;", and the numeric entity "&#x26;" have all been observed in built
 // output — so every form must be accepted here.
 const RUNNER_LINK_RE = /href="(https:\/\/demos\.handsontable\.com\/\?docs=([^"&]+))(?:&(?:amp;|#x26;)?v=([^"&]+))?"/gi;
+
+const HELP_TEXT = `Usage: node scripts/test-runner-links.mjs [options]
+
+  --dist <dir>            built-HTML dir to scan (default: ./dist)
+  --runner-origin <url>   runner origin (default: https://demos.handsontable.com)
+  --manifest <url|path>   manifest override (default: <runner-origin>/docs-examples/manifest.json)
+  --static-only           skip the headless phase — link extraction + manifest cross-check only
+  --tier2-sample <N|all>  how many Vue/Angular links to headless-check per framework (default: 10)
+  --concurrency <N>       parallel Tier-1 pages, Tier-2 is capped at min(2, N) (default: 4)
+  --filter <substring>    only check docs paths containing this substring
+  --json <path>           report output path (default: ./test-artifacts/runner-sweep-report.json)
+  --help                  print this message and exit`;
 
 const TIER1_FRAMEWORKS = new Set(['javascript', 'typescript', 'react']);
 const TIER2_FRAMEWORKS = new Set(['vue', 'angular']);
@@ -186,16 +198,25 @@ async function hasExpectedContent(page, manifestEntry) {
 }
 
 /**
- * Loads one runner link and verifies it renders the correct example.
+ * Loads one runner link and verifies it renders the correct example. Logs a
+ * start line before navigating and a finish line with elapsed time — the
+ * headless phase can otherwise look hung for minutes (Angular's cold boot
+ * alone can take ~100s) with nothing printed until every check completes.
  *
  * @param {import('@playwright/test').Browser} browser
  * @param {string} docsPath
  * @param {{ url: string, pages: string[] }} link
  * @param {object} manifestEntry
+ * @param {{ label: string, index: number, total: number }} progress
  * @returns {Promise<object>} failure record, or null on success
  */
-async function verifyLink(browser, docsPath, link, manifestEntry) {
+async function verifyLink(browser, docsPath, link, manifestEntry, progress) {
   const timeoutMs = TIER_TIMEOUTS_MS[manifestEntry.framework] ?? TIER_TIMEOUTS_MS.javascript;
+  const prefix = `[${progress.label} ${progress.index}/${progress.total}]`;
+  const startedAt = Date.now();
+
+  console.log(`${prefix} loading ${docsPath} (${manifestEntry.framework}, timeout ${Math.round(timeoutMs / 1000)}s)...`);
+
   const page = await browser.newPage();
   const consoleWarnings = [];
 
@@ -206,28 +227,35 @@ async function verifyLink(browser, docsPath, link, manifestEntry) {
     if (!isIgnoredConsoleMessage(String(err))) consoleWarnings.push(String(err));
   });
 
+  const elapsed = () => `${((Date.now() - startedAt) / 1000).toFixed(1)}s`;
+  const finish = result => {
+    console.log(`${prefix} ${result ? `FAILED (${result.phase})` : 'passed'} — ${docsPath} (${elapsed()})`);
+
+    return result;
+  };
+
   try {
     const deadline = Date.now() + timeoutMs;
 
     try {
       await page.goto(link.url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
     } catch {
-      return { docsPath, url: link.url, framework: manifestEntry.framework, phase: 'load-timeout', reason: `page failed to load within ${timeoutMs}ms`, pages: link.pages, consoleWarnings };
+      return finish({ docsPath, url: link.url, framework: manifestEntry.framework, phase: 'load-timeout', reason: `page failed to load within ${timeoutMs}ms`, pages: link.pages, consoleWarnings });
     }
 
     const gridFound = await waitForGrid(page, deadline);
 
     if (!gridFound) {
-      return { docsPath, url: link.url, framework: manifestEntry.framework, phase: 'no-grid', reason: `no Handsontable grid rendered within ${timeoutMs}ms`, pages: link.pages, consoleWarnings };
+      return finish({ docsPath, url: link.url, framework: manifestEntry.framework, phase: 'no-grid', reason: `no Handsontable grid rendered within ${timeoutMs}ms`, pages: link.pages, consoleWarnings });
     }
 
     const contentOk = await hasExpectedContent(page, manifestEntry);
 
     if (!contentOk) {
-      return { docsPath, url: link.url, framework: manifestEntry.framework, phase: 'wrong-content', reason: `page does not display "${manifestEntry.guideTitle}" / "${manifestEntry.exampleTitle}" — likely the default fallback starter`, pages: link.pages, consoleWarnings };
+      return finish({ docsPath, url: link.url, framework: manifestEntry.framework, phase: 'wrong-content', reason: `page does not display "${manifestEntry.guideTitle}" / "${manifestEntry.exampleTitle}" — likely the default fallback starter`, pages: link.pages, consoleWarnings });
     }
 
-    return null;
+    return finish(null);
   } finally {
     await page.close();
   }
@@ -239,7 +267,7 @@ async function verifyLink(browser, docsPath, link, manifestEntry) {
  * @template T, R
  * @param {T[]} items
  * @param {number} limit
- * @param {(item: T) => Promise<R>} worker
+ * @param {(item: T, index: number) => Promise<R>} worker
  * @returns {Promise<R[]>}
  */
 async function runPool(items, limit, worker) {
@@ -250,7 +278,7 @@ async function runPool(items, limit, worker) {
     while (next < items.length) {
       const i = next++;
 
-      results[i] = await worker(items[i]);
+      results[i] = await worker(items[i], i);
     }
   }
 
@@ -314,6 +342,7 @@ export function parseArgs(argv) {
     concurrency: 4,
     filter: null,
     json: './test-artifacts/runner-sweep-report.json',
+    help: false,
   };
 
   for (let i = 0; i < argv.length; i++) {
@@ -328,6 +357,7 @@ export function parseArgs(argv) {
     else if (arg === '--concurrency') args.concurrency = Number(next());
     else if (arg === '--filter') args.filter = next();
     else if (arg === '--json') args.json = next();
+    else if (arg === '--help' || arg === '-h') args.help = true;
   }
 
   if (!args.manifest) args.manifest = `${args.runnerOrigin}/docs-examples/manifest.json`;
@@ -337,6 +367,16 @@ export function parseArgs(argv) {
 
 async function main(argv) {
   const args = parseArgs(argv);
+
+  if (args.help) {
+    console.log(HELP_TEXT);
+
+    return null;
+  }
+
+  console.log(
+    `Settings: dist=${args.dist} static-only=${args.staticOnly} tier2-sample=${args.tier2Sample} concurrency=${args.concurrency}${args.filter ? ` filter="${args.filter}"` : ''} (run with --help to see all options)`
+  );
 
   console.log(`Walking ${args.dist} for runner links...`);
   const allLinks = await collectRunnerLinks(args.dist);
@@ -369,9 +409,14 @@ async function main(argv) {
     try {
       const tier1Items = toCheck.filter(item => TIER1_FRAMEWORKS.has(item.manifestEntry.framework));
       const tier2Items = toCheck.filter(item => TIER2_FRAMEWORKS.has(item.manifestEntry.framework));
+      const tier2Concurrency = Math.min(2, args.concurrency);
 
-      const tier1Results = await runPool(tier1Items, args.concurrency, item => verifyLink(browser, item.docsPath, item, item.manifestEntry));
-      const tier2Results = await runPool(tier2Items, Math.min(2, args.concurrency), item => verifyLink(browser, item.docsPath, item, item.manifestEntry));
+      console.log(`Checking ${tier1Items.length} Tier-1 link(s) (concurrency ${args.concurrency}) and ${tier2Items.length} Tier-2 link(s) (concurrency ${tier2Concurrency})...`);
+
+      const [tier1Results, tier2Results] = await Promise.all([
+        runPool(tier1Items, args.concurrency, (item, i) => verifyLink(browser, item.docsPath, item, item.manifestEntry, { label: 'tier1', index: i + 1, total: tier1Items.length })),
+        runPool(tier2Items, tier2Concurrency, (item, i) => verifyLink(browser, item.docsPath, item, item.manifestEntry, { label: 'tier2', index: i + 1, total: tier2Items.length })),
+      ]);
 
       loaded = tier1Items.length + tier2Items.length;
       failures.push(...[...tier1Results, ...tier2Results].filter(Boolean));
@@ -413,5 +458,5 @@ const isMainModule = process.argv[1] && import.meta.url === pathToFileURL(proces
 if (isMainModule) {
   const report = await main(process.argv.slice(2));
 
-  process.exitCode = report.totals.failed > 0 ? 1 : 0;
+  process.exitCode = report ? (report.totals.failed > 0 ? 1 : 0) : 0;
 }
