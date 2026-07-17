@@ -196,7 +196,8 @@ class Selection {
       cellCornerVisible: () => this.isCellCornerVisible(),
       areaCornerVisible: (layerLevel: number) => this.isAreaCornerVisible(layerLevel),
       adjustHandlesVisible: (layerLevel: number) => this.isAdjustHandlesVisibleFor(layerLevel),
-      moveEnabled: () => this.settings.moveCells === true && !this.settings.disableVisualSelection,
+      moveEnabled: () => this.isRangeMovable(),
+      cellMoveEnabled: () => this.isSingleCellMovable(),
       visualToRenderableCoords: (coords: CellCoords) => this.tableProps.visualToRenderableCoords(coords),
       renderableToVisualCoords: (coords: CellCoords) => this.tableProps.renderableToVisualCoords(coords),
       createCellCoords: (row: number, column: number) => this.tableProps.createCellCoords(row, column),
@@ -970,6 +971,41 @@ class Selection {
     this.runLocalHooks('afterIsMultipleSelection', isMultipleListener);
 
     return isMultipleListener.value;
+  }
+
+  /**
+   * Tells whether the `moveCells` move zone should show on the area (multi-cell) selection border:
+   * the feature is on, visual selection is not disabled, and there is exactly one contiguous range
+   * spanning more than one cell.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isRangeMovable() {
+    if (this.settings.moveCells !== true || this.settings.disableVisualSelection) {
+      return false;
+    }
+
+    const range = this.getActiveSelectedRange();
+
+    return this.getSelectedRange().size() === 1 && !!range && !range.isSingle();
+  }
+
+  /**
+   * Tells whether the `moveCells` move zone should show on the focus (single-cell) selection border:
+   * the feature is on, visual selection is not disabled, and there is exactly one selected cell.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isSingleCellMovable() {
+    if (this.settings.moveCells !== true || this.settings.disableVisualSelection) {
+      return false;
+    }
+
+    const range = this.getActiveSelectedRange();
+
+    return this.getSelectedRange().size() === 1 && !!range && range.isSingle();
   }
 
   /**

@@ -189,6 +189,43 @@ describe('settings', () => {
       expect(document.body.style.cursor).toBe('');
     });
 
+    it('should show the move zone and move a SINGLE selected cell', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        moveCells: true,
+        width: 500,
+        height: 400,
+      });
+
+      const src = getDataAtCell(2, 2);
+
+      await selectCell(2, 2); // single cell
+
+      const zone = getMoveZone();
+
+      expect(zone).not.toBeNull(); // move zone is available for a single cell
+
+      const zoneRect = zone.getBoundingClientRect();
+      const targetRect = getCell(6, 4).getBoundingClientRect();
+
+      $(zone).simulate('mousedown', {
+        clientX: zoneRect.left + (zoneRect.width / 2),
+        clientY: zoneRect.top + (zoneRect.height / 2),
+      });
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+      $(document.documentElement).simulate('mouseup', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      expect(getDataAtCell(6, 4)).toBe(src);
+      expect(getDataAtCell(2, 2)).toBeNull();
+      expect(getSelected()).toEqual([[6, 4, 6, 4]]);
+    });
+
     it('should copy instead of moving when Ctrl is held on drop', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),
