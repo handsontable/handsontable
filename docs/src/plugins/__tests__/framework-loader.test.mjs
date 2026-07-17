@@ -527,8 +527,8 @@ test('React example links the runner to the .tsx variant, not .jsx, with no tab-
 });
 
 /**
- * Builds a temp content tree with a recipe example (not under guides/), which
- * the demos.handsontable.com runner manifest does not cover.
+ * Builds a temp content tree with a recipe example (not under guides/), to
+ * confirm recipe examples get a runner link just like guide examples do.
  *
  * @returns {{ contentDir: string, root: string }}
  */
@@ -561,7 +561,7 @@ function createRecipeFixture() {
   return { contentDir, root };
 }
 
-test('recipe examples (outside guides/) get no runner link — not in the runner manifest', async () => {
+test('recipe examples (outside guides/) get a runner link too', async () => {
   const { contentDir, root } = createRecipeFixture();
 
   try {
@@ -571,7 +571,10 @@ test('recipe examples (outside guides/) get no runner link — not in the runner
 
     const html = renderedHtmlOf(store, 'javascript-data-grid/recipes/themes/base-theme');
 
-    assert.ok(!html.includes('hot-example-runner-btn'), 'recipe examples must not link the runner');
+    assert.ok(
+      html.includes(`href="https://demos.handsontable.com/?docs=recipes/themes/base-theme/javascript/example1.js&amp;v=${CURRENT_RELEASE_VERSION}"`),
+      'recipe examples should link the runner the same way guide examples do'
+    );
     assert.ok(html.includes('hot-example-stackblitz-btn'), 'StackBlitz button should still render');
   } finally {
     rmSync(root, { recursive: true, force: true });

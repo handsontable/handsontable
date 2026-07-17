@@ -151,7 +151,7 @@ function escapeHtml(str) {
  * The output contains:
  * 1. A live preview container with a loading shimmer shown until the example JS
  *    mounts the Handsontable instance.
- * 2. A toolbar with a "Source code" toggle, an "Edit in sandbox" link (guides only),
+ * 2. A toolbar with a "Source code" toggle, an "Edit in sandbox" link,
  *    an "Edit on StackBlitz" button, and a "See on GitHub" link.
  * 3. Shiki-highlighted code tabs (hidden by default, revealed via the toggle).
  *
@@ -266,10 +266,11 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   const githubUrl = `https://github.com/handsontable/handsontable/tree/develop/docs/content/${escapeHtml(exampleDir)}`;
 
   // ── Runner link ────────────────────────────────────────────────────────────
-  // The demos.handsontable.com runner manifest only covers guides/** examples
-  // (recipes are not imported) and, per framework, only ships specific file
-  // extensions — pick the one the manifest actually has, not the tab-selection
-  // fallbacks used above (jsxRef prefers .jsx, vueRef falls back to .js).
+  // The demos.handsontable.com runner ships specific file extensions per
+  // framework — pick the one the manifest actually has, not the tab-selection
+  // fallbacks used above (jsxRef prefers .jsx, vueRef falls back to .js). A Vue
+  // example with no .vue file (display falls back to .js) has no valid runner
+  // target at all, so runnerRef stays null and no link is emitted.
   const runnerRef =
     isReactDir ? (fileRefs.find(r => r.endsWith('.tsx')) ?? jsxRef)
     : isAngularDir ? tsRef
@@ -278,7 +279,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   // Alternate JS/TS variant path, used only to let the client follow the active
   // language tab (vanilla examples ship both variants in the runner manifest).
   const runnerTsRef = jsRef ? (fileRefs.find(r => r.endsWith('.ts')) ?? null) : null;
-  const isRunnerEligible = !!runnerRef && runnerRef.startsWith('guides/');
+  const isRunnerEligible = !!runnerRef;
   const runnerUrl = isRunnerEligible
     ? `https://demos.handsontable.com/?docs=${runnerRef}&v=${CURRENT_RELEASE_VERSION}`
     : '';
