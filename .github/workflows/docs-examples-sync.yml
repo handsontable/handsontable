@@ -1,0 +1,34 @@
+name: Docs Examples Sync
+
+on:
+  push:
+    branches:
+      - develop
+      - 'prod-docs/**'
+    paths:
+      - 'docs/content/guides/**'
+      - 'docs/content/recipes/**'
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  dispatch:
+    name: Trigger examples snapshot import
+    # The import workflow in handsontable/examples accepts only "develop" or "prod-docs/<major>.<minor>".
+    if: github.ref_name == 'develop' || startsWith(github.ref_name, 'prod-docs/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send repository_dispatch to handsontable/examples
+        if: github.ref_name != 'prod-docs/latest'
+        env:
+          GH_TOKEN: ${{ secrets.EXAMPLES_REPO_TOKEN }}
+          DOCS_BRANCH: ${{ github.ref_name }}
+        run: |
+          gh api repos/handsontable/examples/dispatches \
+            -f event_type=docs-examples-sync \
+            -f "client_payload[docs_branch]=$DOCS_BRANCH"
