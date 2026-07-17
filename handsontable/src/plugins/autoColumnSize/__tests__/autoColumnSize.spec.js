@@ -1431,6 +1431,28 @@ describe('AutoColumnSize', () => {
       expect(colWidth(spec().$container, 0)).toBe(grownWidth);
     });
 
+    it('should drop pending width refreshes when the dataset is replaced by loadData', async() => {
+      const hotInstance = handsontable({
+        data: dataWithOneLongValue(200, 50),
+        autoColumnSize: true,
+      });
+
+      await render();
+      await waitForNextAnimationFrames(2);
+
+      // A suspended render leaves the change queued (no `beforeRender` consumes it) while
+      // `loadData` replaces the dataset — the queued row/previous-value pair must not feed
+      // the width-determiner probe against the new data.
+      hotInstance.suspendRender();
+      await setDataAtCell(0, 0, 'an even longer value than the longest value of them all');
+      await loadData(createSpreadsheetData(5, 1));
+      hotInstance.resumeRender();
+
+      await waitForNextAnimationFrames(2);
+
+      expect(colWidth(spec().$container, 0)).toBe(getDefaultColumnWidth());
+    });
+
     it('should recalculate the column width when a cell meta change affects the rendered value', async() => {
       handsontable({
         data: dataWithOneLongValue(200, 50),

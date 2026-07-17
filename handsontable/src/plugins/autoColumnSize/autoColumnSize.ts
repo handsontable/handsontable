@@ -947,6 +947,10 @@ export class AutoColumnSize extends BasePlugin {
    */
   recalculateAllColumnsWidth(): void {
     if (this.hot.view.isVisible()) {
+      // Every queued width refinement is subsumed by the full overwrite sweep — entries
+      // queued after this point (e.g. edits made while the asynchronous part is running)
+      // accumulate again and are consumed as usual.
+      this.#columnWidthsToRefresh.clear();
       this.calculateAllColumnsWidth({ from: 0, to: this.hot.countRows() - 1 }, true);
       // The synchronous part of the sweep runs inside `init`/`afterLoadData` hook cascades,
       // before other plugins re-apply their cell meta (e.g. MergeCells' `spanned`/`hidden`
@@ -1116,6 +1120,12 @@ export class AutoColumnSize extends BasePlugin {
    * load since `#onInit` already handles it.
    */
   #onAfterLoadData = (_sourceData: unknown[], isFirstLoad: boolean) => {
+    // Queued cells describe the previous dataset — their rows and previous values are
+    // meaningless once the data is replaced. Cleared unconditionally (even when the view is
+    // not visible and no sweep runs), so a pending entry that survived a suspended render
+    // can never feed the width-determiner probe with stale coordinates.
+    this.#columnWidthsToRefresh.clear();
+
     if (!isFirstLoad) {
       this.recalculateAllColumnsWidth();
     }
