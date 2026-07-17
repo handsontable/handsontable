@@ -1,6 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
-import { cancelAnimationFrame, requestAnimationFrame } from '../../helpers/feature';
+import { cancelIdleTask, requestIdleTask } from '../../helpers/feature';
 import GhostTable from '../../utils/ghostTable';
 import { Hooks } from '../../core/hooks';
 import { isObject } from '../../helpers/object';
@@ -9,12 +9,34 @@ import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
 import { DEFAULT_COLUMN_WIDTH } from '../../3rdparty/walkontable/src';
 import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import type { CellChange } from '../../settings';
 
 Hooks.getSingleton().register('modifyAutoColumnSizeSeed');
 
 export const PLUGIN_KEY = 'autoColumnSize';
 export const PLUGIN_PRIORITY = 10;
 const COLUMN_SIZE_MAP_NAME = 'autoColumnSize';
+
+/**
+ * A single changed cell tracked by the width refresh queue. The previous value feeds the
+ * width-determiner probe which decides whether a full column rescan can be skipped.
+ */
+interface ChangedCell {
+  row: number;
+  oldValue: unknown;
+  hasOldValue: boolean;
+}
+
+/**
+ * A width refresh queue entry prepared for the width-determiner probe.
+ */
+interface ColumnWidthProbe {
+  visualColumn: number;
+  cells: ChangedCell[];
+  cachedWidth: number;
+}
+
+type ColumnSamples = ReturnType<SamplesGenerator['generateSample']>;
 
 /**
  * @plugin AutoColumnSize
@@ -212,6 +234,16 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
+   * Returns the maximum number of cells sampled in a single asynchronous calculation step. Together
+   * with {@link AutoColumnSize.CALCULATION_STEP} it bounds the work done per animation frame: a
+   * column whose row range exceeds the budget is swept across multiple frames, and its width is
+   * written once, when the sweep completes.
+   */
+  static get CALCULATION_CELLS_BUDGET() {
+    return 100000;
+  }
+
+  /**
    * Instance of {@link GhostTable} for rows and columns size calculations.
    *
    * @private
@@ -300,11 +332,26 @@ export class AutoColumnSize extends BasePlugin {
    */
   #cachedColumnHeaders: unknown[] = [];
   /**
-   * An array of column indexes whose width will be recalculated.
+   * Pending width refresh requests keyed by visual column index, consumed before the next render.
+   * A `null` value means the column needs a full row-range rescan. An array value holds the
+   * changed cells (visual row index and the previous cell value) used by the width-determiner
+   * probe, which measures only the changed cells and skips the full rescan when the edit could
+   * not have changed the column's width.
    *
-   * @type {number[]}
+   * @type {Map<number, Array<object>|null>}
    */
-  #visualColumnsToRefresh: number[] = [];
+  #columnWidthsToRefresh: Map<number, ChangedCell[] | null> = new Map();
+  /**
+   * Caches the sampled values (a handful of bucketed strings per column) collected by the last
+   * full row-range scan, keyed by physical column index. Forced renders re-measure the visible
+   * columns by re-rendering these samples through the ghost table — picking up CSS or renderer
+   * changes — instead of re-walking the whole row range. The cache is dropped whenever the row
+   * set or the source data changes in a way the width refresh queue cannot describe, which
+   * makes the next re-measure fall back to a full scan.
+   *
+   * @type {Map<number, Map>}
+   */
+  #columnSamplesCache: Map<number, ColumnSamples> = new Map();
   /**
    * Disposer function for the column widths map observer. Called on disable to clean up.
    *
@@ -357,10 +404,14 @@ export class AutoColumnSize extends BasePlugin {
 
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeChangeRender', this.#onBeforeChange);
+    this.addHook('afterSetSourceDataAtCell', this.#onAfterSetSourceDataAtCell);
     this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
     this.addHook('beforeRender', this.#onBeforeRender);
     this.addHook('modifyColWidth', (width: number, col: number) => this.getColumnWidth(col, width), -10);
     this.addHook('init', this.#onInit);
+
+    this.hot.rowIndexMapper.addLocalHook('cacheUpdated', this.#onRowIndexMapperCacheUpdate);
+    this.hot.columnIndexMapper.addLocalHook('cacheUpdated', this.#onColumnIndexMapperCacheUpdate);
 
     this.#disposeMapObserver = this.hot.columnIndexMapper
       .observeMapChange(this.columnWidthsMap, () => {
@@ -374,7 +425,12 @@ export class AutoColumnSize extends BasePlugin {
    * Updates the plugin's state. This method is executed when {@link Core#updateSettings} is invoked.
    */
   updatePlugin(): void {
-    this.#visualColumnsToRefresh = this.findColumnsWhereHeaderWasChanged();
+    this.findColumnsWhereHeaderWasChanged().forEach((visualColumn) => {
+      this.#columnWidthsToRefresh.set(visualColumn, null);
+    });
+    // Settings may remap the data that feeds the samples (e.g. a new `columns` definition), so
+    // the cached samples cannot be trusted — the next re-measure falls back to a full scan.
+    this.#columnSamplesCache.clear();
     super.updatePlugin();
   }
 
@@ -386,6 +442,9 @@ export class AutoColumnSize extends BasePlugin {
       this.#disposeMapObserver();
       this.#disposeMapObserver = null;
     }
+
+    this.hot.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexMapperCacheUpdate);
+    this.hot.columnIndexMapper.removeLocalHook('cacheUpdated', this.#onColumnIndexMapperCacheUpdate);
 
     super.disablePlugin();
 
@@ -439,7 +498,16 @@ export class AutoColumnSize extends BasePlugin {
 
       if (overwriteCache || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null &&
           !this.hot._getColWidthFromSettings(physicalColumn))) {
-        this.#fillGhostTableWithSamples(visualColumn, rowsRange);
+        const cachedSamples = overwriteCache ? this.#columnSamplesCache.get(physicalColumn) : undefined;
+
+        // A re-measure (cache overwrite) with an intact samples cache re-renders the previously
+        // sampled values — picking up CSS or renderer changes — without re-walking the row range.
+        // Data changes refresh or drop the cached samples, so a full scan runs only when needed.
+        if (cachedSamples !== undefined) {
+          this.#addGhostTableColumn(visualColumn, cachedSamples);
+        } else {
+          this.#fillGhostTableWithSamples(visualColumn, rowsRange);
+        }
       }
     });
 
@@ -461,33 +529,108 @@ export class AutoColumnSize extends BasePlugin {
     rowRange: number | { from: number, to: number } = { from: 0, to: this.hot.countRows() - 1 },
     overwriteCache: boolean = false
   ): void {
-    let current = 0;
-    const length = this.hot.countCols() - 1;
+    const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
+    const lastColumn = this.hot.countCols() - 1;
+    let currentColumn = 0;
+    let currentRowCursor = rowsRange.from;
+    let columnSamples: ReturnType<SamplesGenerator['generateSample']> | null = null;
     let timer = 0;
 
     this.inProgress = true;
 
+    const shouldMeasureColumn = (visualColumn: number) => {
+      let physicalColumn = this.hot.toPhysicalColumn(visualColumn);
+
+      if (physicalColumn === null) {
+        physicalColumn = visualColumn;
+      }
+
+      return overwriteCache || (this.columnWidthsMap.getValueAtIndex(physicalColumn) === null &&
+          !this.hot._getColWidthFromSettings(physicalColumn));
+    };
+
+    /**
+     * Sweeps up to `columnsBudget` columns, sampling at most `cellsBudget` cells. A column whose
+     * remaining row range exceeds the cells budget is left mid-sweep (its samples accumulate in
+     * `columnSamples`) and is continued by the next call. Returns `true` when every column has
+     * been processed.
+     *
+     * @param {number} columnsBudget The maximum number of columns to process in this chunk.
+     * @param {number} cellsBudget The maximum number of cells to sample in this chunk.
+     * @returns {boolean}
+     */
+    const processChunk = (columnsBudget: number, cellsBudget: number) => {
+      let remainingColumns = columnsBudget;
+      let remainingCells = cellsBudget;
+
+      while (remainingColumns > 0 && currentColumn <= lastColumn) {
+        if (columnSamples === null) {
+          if (!shouldMeasureColumn(currentColumn)) {
+            currentColumn += 1;
+            remainingColumns -= 1;
+            continue;
+          }
+
+          columnSamples = new Map();
+          currentRowCursor = rowsRange.from;
+        }
+
+        if (currentRowCursor <= rowsRange.to) {
+          if (remainingCells <= 0) {
+            return false;
+          }
+
+          const sliceTo = Math.min(rowsRange.to, currentRowCursor + remainingCells - 1);
+
+          this.samplesGenerator
+            .generateSample('col', { from: currentRowCursor, to: sliceTo }, currentColumn, columnSamples);
+
+          remainingCells -= sliceTo - currentRowCursor + 1;
+          currentRowCursor = sliceTo + 1;
+        }
+
+        if (currentRowCursor > rowsRange.to) {
+          const physicalColumn = this.hot.toPhysicalColumn(currentColumn);
+
+          this.#addGhostTableColumn(currentColumn, columnSamples);
+          this.#columnSamplesCache.set(physicalColumn === null ? currentColumn : physicalColumn, columnSamples);
+          columnSamples = null;
+          currentColumn += 1;
+          remainingColumns -= 1;
+        }
+      }
+
+      return currentColumn > lastColumn;
+    };
+    const flushGhostTable = () => {
+      if (this.ghostTable.columns.length) {
+        this.#updateColumnWidthsMapBasedOnGhostTable();
+        this.measuredColumns = currentColumn;
+        this.ghostTable.clean();
+      }
+    };
+
     const loop = () => {
       // When hot was destroyed after calculating finished cancel frame
       if (!this.hot) {
-        cancelAnimationFrame(timer);
+        cancelIdleTask(timer);
         this.inProgress = false;
 
         return;
       }
 
-      this.calculateColumnsWidth({
-        from: current,
-        to: Math.min(current + AutoColumnSize.CALCULATION_STEP, length)
-      }, rowRange, overwriteCache);
+      const isDone = processChunk(
+        AutoColumnSize.CALCULATION_STEP + 1,
+        AutoColumnSize.CALCULATION_CELLS_BUDGET,
+      );
 
-      current = current + AutoColumnSize.CALCULATION_STEP + 1;
+      flushGhostTable();
 
-      if (current < length) {
-        timer = requestAnimationFrame(loop);
+      if (!isDone) {
+        timer = requestIdleTask(loop);
 
       } else {
-        cancelAnimationFrame(timer);
+        cancelIdleTask(timer);
         this.inProgress = false;
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
@@ -497,13 +640,14 @@ export class AutoColumnSize extends BasePlugin {
 
     const syncLimit = this.getSyncCalculationLimit();
 
-    // sync
+    // sync — the `syncLimit` columns are calculated exactly (whole row range) before the first
+    // paint, preserving the `syncLimit` contract.
     if (syncLimit >= 0) {
-      this.calculateColumnsWidth({ from: 0, to: syncLimit }, rowRange, overwriteCache);
-      current = syncLimit + 1;
+      processChunk(syncLimit + 1, Infinity);
+      flushGhostTable();
     }
     // async
-    if (current < length) {
+    if (currentColumn <= lastColumn) {
       loop();
     } else {
       this.inProgress = false;
@@ -511,27 +655,52 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Calculates specific columns width (overwrite cache values).
-   *
-   * @param {number[]} visualColumns List of visual columns to calculate.
+   * Consumes the width refresh queue. Columns queued with change details go through the
+   * width-determiner probe first; columns queued for a full refresh (and columns whose probe
+   * was inconclusive) are rescanned over the whole row range, like before.
    */
-  #calculateSpecificColumnsWidth(visualColumns: number[]) {
-    const rowsRange = {
-      from: 0,
-      to: this.hot.countRows() - 1,
-    };
+  #refreshQueuedColumnsWidth() {
+    if (this.#columnWidthsToRefresh.size === 0) {
+      return;
+    }
 
-    visualColumns.forEach((visualColumn: number) => {
+    const queue = this.#columnWidthsToRefresh;
+
+    this.#columnWidthsToRefresh = new Map();
+
+    const totalRows = this.hot.countRows();
+    const fullRescanColumns: number[] = [];
+    const probes: ColumnWidthProbe[] = [];
+
+    queue.forEach((cells, visualColumn) => {
       const physicalColumn = this.hot.toPhysicalColumn(visualColumn);
 
-      if (physicalColumn === null) {
+      if (physicalColumn === null || this.hot._getColWidthFromSettings(physicalColumn)) {
         return;
       }
 
-      if (!this.hot._getColWidthFromSettings(physicalColumn)) {
-        this.#fillGhostTableWithSamples(visualColumn, rowsRange);
+      const cachedWidth = this.columnWidthsMap.getValueAtIndex<number>(physicalColumn);
+
+      // A full rescan is needed when it was requested explicitly, when there is no cached width
+      // to compare the probe against, or when so many cells changed that probing them costs
+      // about as much as the rescan itself.
+      if (cells === null || cachedWidth === null || cachedWidth === undefined ||
+          cells.length * 2 >= totalRows) {
+        fullRescanColumns.push(visualColumn);
+      } else {
+        probes.push({ visualColumn, cells, cachedWidth });
       }
     });
+
+    this.#probeChangedCellsWidth(probes, fullRescanColumns);
+
+    if (fullRescanColumns.length > 0) {
+      const rowsRange = { from: 0, to: totalRows - 1 };
+
+      fullRescanColumns.forEach((visualColumn) => {
+        this.#fillGhostTableWithSamples(visualColumn, rowsRange);
+      });
+    }
 
     if (this.ghostTable.columns.length) {
       this.#updateColumnWidthsMapBasedOnGhostTable();
@@ -540,13 +709,208 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Generates content samples for the given column within the row range and adds each sample
-   * to the ghost table so its rendered width can be measured.
+   * Measures only the changed cells of the queued columns and decides, per column, whether the
+   * cached width is still valid, can be grown in place, or whether the column needs a full
+   * row-range rescan (appended to `fullRescanColumns`).
+   *
+   * The probe measures pure cell widths (ghost table headers disabled) and reasons as follows:
+   * - when a new value renders wider than the cached width, that value is the new widest cell
+   *   and the width is grown in place, without a rescan;
+   * - otherwise, when every previous value renders narrower than the cached width, the changed
+   *   cells were not the width determiners and the cached width stays valid;
+   * - otherwise a previous value could have determined the cached width, so the column is
+   *   rescanned to find the new widest cell (this is what allows the column to shrink).
+   *
+   * @param {object[]} probes The queued columns with their changed cells and cached widths.
+   * @param {number[]} fullRescanColumns The list that columns needing a full rescan are appended to.
+   */
+  #probeChangedCellsWidth(probes: ColumnWidthProbe[], fullRescanColumns: number[]) {
+    if (probes.length === 0) {
+      return;
+    }
+
+    const growths = new Map<number, number>();
+    const oldValueProbes: ColumnWidthProbe[] = [];
+    const probeItems = probes.map(({ visualColumn, cells }) => ({
+      visualColumn,
+      samples: this.samplesGenerator
+        .generateSample('col', cells.map(cell => cell.row), visualColumn),
+    }));
+    const samplesByColumn = new Map(probeItems.map(({ visualColumn, samples }) => [visualColumn, samples]));
+    const newWidths = this.#measureCellsWidth(probeItems);
+
+    probes.forEach((probe) => {
+      const newWidth = newWidths.get(probe.visualColumn);
+
+      if (newWidth !== undefined && newWidth > probe.cachedWidth) {
+        growths.set(probe.visualColumn, newWidth);
+        this.#updateCachedSamples(probe, samplesByColumn.get(probe.visualColumn));
+      } else if (probe.cells.some(cell => !cell.hasOldValue)) {
+        fullRescanColumns.push(probe.visualColumn);
+      } else {
+        oldValueProbes.push(probe);
+        this.#updateCachedSamples(probe, samplesByColumn.get(probe.visualColumn));
+      }
+    });
+
+    if (oldValueProbes.length > 0) {
+      const oldWidths = this.#measureCellsWidth(oldValueProbes.map(({ visualColumn, cells }) => ({
+        visualColumn,
+        samples: this.samplesGenerator.generateSampleFromValues('col', cells.map(cell => ({
+          index: cell.row,
+          value: this.#formatProbeValue(cell.row, visualColumn, cell.oldValue),
+        }))),
+      })));
+
+      oldValueProbes.forEach(({ visualColumn, cachedWidth }) => {
+        const oldWidth = oldWidths.get(visualColumn);
+
+        if (oldWidth !== undefined && oldWidth >= cachedWidth) {
+          fullRescanColumns.push(visualColumn);
+        }
+      });
+    }
+
+    if (growths.size > 0) {
+      this.hot.batchExecution(() => {
+        growths.forEach((width, visualColumn) => {
+          this.columnWidthsMap.setValueAtIndex(this.hot.toPhysicalColumn(visualColumn), width);
+        });
+      }, true);
+    }
+  }
+
+  /**
+   * Keeps the column's cached samples usable after an in-place decision: strings sampled from
+   * the changed rows are evicted (their values are stale now) and the freshly probed samples
+   * of the changed cells are merged in, so a later re-measure (e.g. after a CSS change) still
+   * sees the current values — including the one that grew the column. Columns without a cache
+   * entry are left without one — an incomplete entry would make a later re-measure compute the
+   * width from the changed cells alone.
+   *
+   * @param {object} probe The probed column with its changed cells.
+   * @param {Map} [samples] Freshly probed samples of the changed cells to merge in.
+   */
+  #updateCachedSamples(probe: ColumnWidthProbe, samples: ColumnSamples | undefined) {
+    const physicalColumn = this.hot.toPhysicalColumn(probe.visualColumn);
+    const cachedSamples = physicalColumn === null ? undefined : this.#columnSamplesCache.get(physicalColumn);
+
+    if (cachedSamples === undefined) {
+      return;
+    }
+
+    const changedRows = new Set(probe.cells.map(cell => cell.row));
+
+    cachedSamples.forEach((cachedSample, seed) => {
+      const strings = cachedSample.strings.filter(({ row }) => row === undefined || !changedRows.has(row));
+
+      if (strings.length === 0) {
+        cachedSamples.delete(seed);
+      } else {
+        cachedSample.strings = strings;
+      }
+    });
+
+    if (samples === undefined) {
+      return;
+    }
+
+    const sampleCount = this.samplesGenerator.getSampleCount();
+
+    samples.forEach((sample, seed) => {
+      const cachedSample = cachedSamples.get(seed);
+
+      if (cachedSample === undefined) {
+        cachedSamples.set(seed, sample);
+
+        return;
+      }
+
+      cachedSample.strings.push(...sample.strings);
+
+      if (cachedSample.strings.length > sampleCount) {
+        cachedSample.strings.splice(0, cachedSample.strings.length - sampleCount);
+      }
+    });
+  }
+
+  /**
+   * Measures the rendered width of the given per-column sample maps with the ghost table, with
+   * headers disabled — a header rendered next to the samples would put a floor under every
+   * measurement and mask the comparison against the cached width.
+   *
+   * @param {object[]} items An array of `{ visualColumn, samples }` objects to measure.
+   * @returns {Map<number, number>} Measured widths keyed by visual column index.
+   */
+  #measureCellsWidth(items: Array<{ visualColumn: number, samples: ColumnSamples }>) {
+    const widths = new Map<number, number>();
+    const measurableItems = items.filter(({ samples }) => samples.size > 0);
+
+    if (measurableItems.length === 0) {
+      return widths;
+    }
+
+    const useHeaders = this.ghostTable.getSetting('useHeaders');
+
+    this.ghostTable.setSetting('useHeaders', false);
+
+    measurableItems.forEach(({ visualColumn, samples }) => {
+      this.#addGhostTableColumn(visualColumn, samples);
+    });
+    this.ghostTable.getWidths((visualColumn: number, width: number) => {
+      widths.set(visualColumn, width);
+    });
+    this.ghostTable.clean();
+    this.ghostTable.setSetting('useHeaders', useHeaders);
+
+    return widths;
+  }
+
+  /**
+   * Runs the cell's `valueFormatter` (when defined) over a probed value so the measured string
+   * matches what the renderer produced for it.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {*} value The raw value to format.
+   * @returns {*}
+   */
+  #formatProbeValue(row: number, column: number, value: unknown) {
+    const cellMeta = this.hot.getCellMetaTransient(row, column);
+
+    if (typeof cellMeta.valueFormatter === 'function') {
+      return (cellMeta.valueFormatter as (v: unknown, meta: typeof cellMeta) => unknown)(value, cellMeta);
+    }
+
+    return value;
+  }
+
+  /**
+   * Generates content samples for the given column within the row range, adds each sample
+   * to the ghost table so its rendered width can be measured, and refreshes the column's
+   * samples cache.
    */
   #fillGhostTableWithSamples(visualColumn: number, rowsRange: { from: number, to: number }) {
     const samples = this.samplesGenerator.generateColumnSamples(visualColumn, rowsRange);
 
-    samples.forEach((sample, column) => this.ghostTable.addColumn(column, sample));
+    samples.forEach((sample, column) => {
+      const physicalColumn = this.hot.toPhysicalColumn(column);
+
+      this.#addGhostTableColumn(column, sample);
+      this.#columnSamplesCache.set(physicalColumn === null ? column : physicalColumn, sample);
+    });
+  }
+
+  /**
+   * Adds a column to the ghost table, passing a shallow clone of the samples map — the ghost
+   * table's `clean()` empties the last map it received, which must never wipe a map that is
+   * kept in the samples cache.
+   *
+   * @param {number} visualColumn Visual column index.
+   * @param {Map} samples The samples map to measure.
+   */
+  #addGhostTableColumn(visualColumn: number, samples: ColumnSamples) {
+    this.ghostTable.addColumn(visualColumn, new Map(samples));
   }
 
   /**
@@ -569,6 +933,13 @@ export class AutoColumnSize extends BasePlugin {
   recalculateAllColumnsWidth(): void {
     if (this.hot.view.isVisible()) {
       this.calculateAllColumnsWidth({ from: 0, to: this.hot.countRows() - 1 }, true);
+      // The synchronous part of the sweep runs inside `init`/`afterLoadData` hook cascades,
+      // before other plugins re-apply their cell meta (e.g. MergeCells' `spanned`/`hidden`
+      // flags), so the samples it collected cannot be trusted for later re-measures. Dropping
+      // them makes the next full render re-walk the visible columns with the settled meta,
+      // like it always did. Samples stored by the asynchronous part run after the cascade
+      // and stay.
+      this.#columnSamplesCache.clear();
     }
   }
 
@@ -693,11 +1064,13 @@ export class AutoColumnSize extends BasePlugin {
       this.hot.batchExecution(() => {
         physicalColumns.forEach((physicalIndex) => {
           this.columnWidthsMap.setValueAtIndex(physicalIndex, null);
+          this.#columnSamplesCache.delete(physicalIndex);
         });
       }, true);
 
     } else {
       this.columnWidthsMap.clear();
+      this.#columnSamplesCache.clear();
     }
   }
 
@@ -712,15 +1085,14 @@ export class AutoColumnSize extends BasePlugin {
   }
 
   /**
-   * Recalculates widths for currently visible columns and processes any columns queued by
-   * data or header changes before the next render.
+   * Recalculates widths for currently visible columns (cache misses only) and consumes the
+   * width refresh queue populated by data, header, or row-set changes.
    */
   #onBeforeRender = () => {
     this.calculateVisibleColumnsWidth();
 
     if (!this.inProgress) {
-      this.#calculateSpecificColumnsWidth(this.#visualColumnsToRefresh);
-      this.#visualColumnsToRefresh = [];
+      this.#refreshQueuedColumnsWidth();
     }
   };
 
@@ -735,21 +1107,73 @@ export class AutoColumnSize extends BasePlugin {
   };
 
   /**
-   * Queues the visual column indexes affected by the incoming changes so their widths are
-   * recalculated on the next render.
+   * Queues the cells affected by the incoming changes, keyed by their visual column, so the
+   * width-determiner probe can decide before the next render whether each column's width
+   * actually needs a refresh.
    */
-  #onBeforeChange = (changes: unknown[][]) => {
-    const changedColumns = changes.reduce<number[]>((acc, [, columnProperty]: unknown[]) => {
-      const visualColumn = this.hot.propToCol(columnProperty as string | number);
-
-      if (visualColumn !== null && Number.isInteger(visualColumn) && acc.indexOf(visualColumn) === -1) {
-        acc.push(visualColumn);
+  #onBeforeChange = (changes: CellChange[]) => {
+    changes.forEach(([row, columnProperty, oldValue]) => {
+      if (typeof columnProperty === 'function') {
+        return;
       }
 
-      return acc;
-    }, [] as number[]);
+      const visualColumn = this.hot.propToCol(columnProperty);
 
-    this.#visualColumnsToRefresh.push(...changedColumns);
+      if (visualColumn === null || !Number.isInteger(visualColumn)) {
+        return;
+      }
+
+      const entry = this.#columnWidthsToRefresh.get(visualColumn);
+
+      // The column is already queued for a full rescan.
+      if (entry === null) {
+        return;
+      }
+
+      const cell = { row, oldValue, hasOldValue: true };
+
+      if (entry === undefined) {
+        this.#columnWidthsToRefresh.set(visualColumn, [cell]);
+      } else {
+        entry.push(cell);
+      }
+    });
+  };
+
+  /**
+   * Drops the cached samples after a source-data write. Source-level changes bypass
+   * `beforeChangeRender`, so there is no per-cell change information to refresh the samples
+   * with — the render that follows falls back to full scans for the visible columns.
+   */
+  #onAfterSetSourceDataAtCell = () => {
+    this.#columnSamplesCache.clear();
+  };
+
+  /**
+   * Drops the cached samples when the set of rows that feeds the width calculation changes
+   * (rows inserted, removed, moved, trimmed, or hidden). Sampling skips hidden rows and the
+   * samples carry row coordinates, so a changed row set invalidates them — the next re-measure
+   * falls back to a full scan, which lets a column shrink when its widest cell disappears.
+   */
+  #onRowIndexMapperCacheUpdate = (indexesChangesState: {
+    indexesSequenceChanged: boolean, trimmedIndexesChanged: boolean, hiddenIndexesChanged: boolean
+  }) => {
+    const { indexesSequenceChanged, trimmedIndexesChanged, hiddenIndexesChanged } = indexesChangesState;
+
+    if (indexesSequenceChanged || trimmedIndexesChanged || hiddenIndexesChanged) {
+      this.#columnSamplesCache.clear();
+    }
+  };
+
+  /**
+   * Drops the cached samples when the column sequence changes (columns inserted, removed, or
+   * moved) — the cache is keyed by physical column index, and a structural change would leave
+   * the samples associated with the wrong columns.
+   */
+  #onColumnIndexMapperCacheUpdate = (indexesChangesState: { indexesSequenceChanged: boolean }) => {
+    if (indexesChangesState.indexesSequenceChanged) {
+      this.#columnSamplesCache.clear();
+    }
   };
 
   /**
@@ -779,8 +1203,10 @@ export class AutoColumnSize extends BasePlugin {
   };
 
   /**
-   * Queues visual column indexes whose formula results changed so their widths are recalculated
-   * before the next render. Skips changes belonging to a different sheet.
+   * Queues cells whose formula results changed so their columns' widths are refreshed before
+   * the next render. The engine does not carry previous values, so the probe can only grow the
+   * width in place — a potential shrink falls back to a full column rescan. Skips changes
+   * belonging to a different sheet.
    */
   #onAfterFormulasValuesUpdate = (changes: unknown[]) => {
     if (!this.#isInitialized) {
@@ -790,34 +1216,60 @@ export class AutoColumnSize extends BasePlugin {
     const formulasPlugin = this.hot.getPlugin('formulas');
     const sheetId = (formulasPlugin as unknown as Record<string, unknown> | undefined)?.sheetId;
 
-    const changedColumns = changes.reduce<number[]>((acc, change: unknown) => {
+    changes.forEach((change: unknown) => {
       const changeRecord = change as Record<string, unknown>;
+      const address = changeRecord.address as Record<string, unknown> | undefined;
 
-      if (sheetId !== null && sheetId !== undefined &&
-          (changeRecord.address as Record<string, unknown>)?.sheet !== sheetId) {
-        return acc;
+      if (sheetId !== null && sheetId !== undefined && address?.sheet !== sheetId) {
+        return;
       }
 
-      const physicalColumn = Number((changeRecord.address as Record<string, unknown>)?.col);
+      const physicalColumn = Number(address?.col);
+      const physicalRow = Number(address?.row);
 
-      if (Number.isInteger(physicalColumn)) {
-        const visualColumn = this.hot.toVisualColumn(physicalColumn);
-
-        if (visualColumn !== null && acc.indexOf(visualColumn) === -1) {
-          acc.push(visualColumn);
-        }
+      if (!Number.isInteger(physicalColumn)) {
+        return;
       }
 
-      return acc;
-    }, [] as number[]);
+      const visualColumn = this.hot.toVisualColumn(physicalColumn);
 
-    this.#visualColumnsToRefresh.push(...changedColumns);
+      if (visualColumn === null) {
+        return;
+      }
+
+      const entry = this.#columnWidthsToRefresh.get(visualColumn);
+
+      // The column is already queued for a full rescan.
+      if (entry === null) {
+        return;
+      }
+
+      const visualRow = Number.isInteger(physicalRow) ? this.hot.toVisualRow(physicalRow) : null;
+
+      // Without an addressable row the probe cannot measure the changed cell — fall back to
+      // a full column rescan.
+      if (visualRow === null) {
+        this.#columnWidthsToRefresh.set(visualColumn, null);
+
+        return;
+      }
+
+      const cell = { row: visualRow, oldValue: undefined, hasOldValue: false };
+
+      if (entry === undefined) {
+        this.#columnWidthsToRefresh.set(visualColumn, [cell]);
+      } else {
+        entry.push(cell);
+      }
+    });
   };
 
   /**
    * Destroys the plugin instance.
    */
   destroy(): void {
+    this.hot?.rowIndexMapper.removeLocalHook('cacheUpdated', this.#onRowIndexMapperCacheUpdate);
+    this.hot?.columnIndexMapper.removeLocalHook('cacheUpdated', this.#onColumnIndexMapperCacheUpdate);
     this.ghostTable.clean();
     super.destroy();
   }
