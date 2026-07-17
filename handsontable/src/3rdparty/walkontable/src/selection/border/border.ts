@@ -407,50 +407,28 @@ class Border {
 
   /**
    * Creates the four edge-adjustment handle elements used by the `selectionHandles` feature.
-   * Visual styling (size, background, border, border-radius) is read from CSS variables via
-   * the stylesHandler and applied as inline styles so that `positionAdjustHandles` can read the
-   * dimensions directly from `el.style.*` without forcing a layout-recalculating `getComputedStyle`.
-   *
-   * Handles are styled entirely inline (mirroring the mobile `createMultipleSelectorHandles`
-   * pattern). Do not add a `.wtSelectionHandle` SCSS rule referencing these variables — such a
-   * rule would be overridden by the inline styles and serve as dead code. The consumer override
-   * point is the `--ht-cell-selection-handle-*` CSS variables, which are read here by JS.
+   * Visual styling (size, background, border, border-radius, cursor, z-index) is driven entirely
+   * by CSS via the `--ht-cell-selection-handle-*` tokens defined in the theme stylesheets.
+   * JS sets only `display:none` (initial hidden state) and the positioning `top`/`left` values
+   * during `positionAdjustHandles`. Class names (`wtSelectionHandle--<edge>`) carry orientation.
    */
   createAdjustHandles() {
-    const { rootDocument, wtSettings } = this.wot;
-    const stylesHandler = wtSettings.getSetting('stylesHandler');
-    const size = stylesHandler.getCSSVariableValue('cell-selection-handle-size') ?? 8;
-    const length = stylesHandler.getCSSVariableValue('cell-selection-handle-length') ?? 24;
-    const borderWidth = stylesHandler.getCSSVariableValue('cell-selection-handle-border-width') ?? 1;
-    const borderRadius = stylesHandler.getCSSVariableValue('cell-selection-handle-border-radius') ?? 12;
-    const borderColor = stylesHandler.getCSSVariableValue('cell-selection-handle-border-color') ?? '';
-    const backgroundColor = stylesHandler.getCSSVariableValue('cell-selection-handle-background-color') ?? '';
+    const { rootDocument } = this.wot;
 
-    const make = (edge: string, cursor: string, width: string | number, height: string | number) => {
+    const make = (edge: string) => {
       const el = rootDocument.createElement('div');
 
       el.className = `wtSelectionHandle wtSelectionHandle--${edge}`;
-      el.style.position = 'absolute';
       el.style.display = 'none';
-      el.style.zIndex = '200';
-      el.style.width = `${width}px`;
-      el.style.height = `${height}px`;
-      el.style.background = `${backgroundColor}`;
-      el.style.border = `${borderWidth}px solid ${borderColor}`;
-      el.style.borderRadius = `${borderRadius}px`;
-      el.style.boxSizing = 'border-box';
-      el.style.cursor = cursor;
       this.main!.appendChild(el);
 
       return el;
     };
 
-    // top and bottom handles sit on horizontal edges → width is the long axis (length), height is short (size).
-    // start and end handles sit on vertical edges → width is the short axis (size), height is the long axis (length).
-    const top = make('top', 'ns-resize', length, size);
-    const bottom = make('bottom', 'ns-resize', length, size);
-    const start = make('start', 'ew-resize', size, length);
-    const end = make('end', 'ew-resize', size, length);
+    const top = make('top');
+    const bottom = make('bottom');
+    const start = make('start');
+    const end = make('end');
 
     this.adjustHandles = {
       top,
@@ -1601,6 +1579,11 @@ class Border {
    * whose edge is flush with the grid boundary. Called at the end of `appear()` when the
    * `selectionHandles` feature is enabled for this highlight.
    *
+   * Handle dimensions are sourced from the `--ht-cell-selection-handle-size` and
+   * `--ht-cell-selection-handle-length` CSS tokens via a cached stylesHandler read
+   * (no layout-forcing DOM access). Top/bottom handles are horizontal pills
+   * (width = length, height = size); start/end handles are vertical pills (width = size, height = length).
+   *
    * @private
    * @param {number} top The selection border top (px, container-relative).
    * @param {number} inlineStart The selection border inline-start (px, container-relative).
@@ -1615,19 +1598,26 @@ class Border {
     const [fromRow, fromColumn, toRow, toColumn] = corners;
     const lastRow = (this.wot.getSetting('totalRows') as number) - 1;
     const lastColumn = (this.wot.getSetting('totalColumns') as number) - 1;
-    // Handle dimensions are read from each element's inline style (not computed style, which would
-    // be a forbidden layout-forcing read). The handle dimensions must therefore be set as inline
-    // styles when the handles are created (see createAdjustHandles + the theme sizing task); if only
-    // a stylesheet rule sets the size, this reads 0 and the centering offset is skipped.
+    // Handle dimensions are read from the CSS token cache (not computed style — that would be a
+    // layout-forcing read). Visual sizing lives in the stylesheet; JS reads the resolved token values.
+    const stylesHandler = this.wot.wtSettings.getSetting('stylesHandler');
+    const sizeRaw = stylesHandler.getCSSVariableValue('cell-selection-handle-size');
+    const lengthRaw = stylesHandler.getCSSVariableValue('cell-selection-handle-length');
+    const size = parseInt(sizeRaw !== null && sizeRaw !== undefined ? String(sizeRaw) : '8', 10);
+    const length = parseInt(lengthRaw !== null && lengthRaw !== undefined ? String(lengthRaw) : '24', 10);
+
+    // top/bottom handles are horizontal pills: width = length, height = size.
+    const topW = length;
+    const topH = size;
+    const bottomW = length;
+    const bottomH = size;
+
+    // start/end handles are vertical pills: width = size, height = length.
+    const startW = size;
+    const startH = length;
+    const endW = size;
+    const endH = length;
     const s = this.adjustHandles.styles;
-    const topW = parseInt(s.top.width || '0', 10);
-    const topH = parseInt(s.top.height || '0', 10);
-    const bottomW = parseInt(s.bottom.width || '0', 10);
-    const bottomH = parseInt(s.bottom.height || '0', 10);
-    const startW = parseInt(s.start.width || '0', 10);
-    const startH = parseInt(s.start.height || '0', 10);
-    const endW = parseInt(s.end.width || '0', 10);
-    const endH = parseInt(s.end.height || '0', 10);
 
     s.top.display = 'none';
     s.bottom.display = 'none';

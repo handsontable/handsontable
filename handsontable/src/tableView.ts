@@ -2375,6 +2375,9 @@ class TableView {
 
     this.#adjustDrag = { edge, fromRow, toRow, fromCol, toCol, targetLayer, focusRow, focusCol };
 
+    // Add a root-element class so CSS can hide all handles except the one being dragged.
+    addClass(this.hot.rootElement, `ht__resizing-selection--${edge}`);
+
     const { documentElement } = this.hot.rootDocument;
 
     const onMouseMove = (moveEvent: MouseEvent) => {
@@ -2488,6 +2491,14 @@ class TableView {
     }
 
     this.#adjustDrag = null;
+
+    // Remove all resize-drag state classes regardless of which edge was dragged.
+    removeClass(this.hot.rootElement, [
+      'ht__resizing-selection--top',
+      'ht__resizing-selection--bottom',
+      'ht__resizing-selection--start',
+      'ht__resizing-selection--end',
+    ]);
 
     const { documentElement } = this.hot.rootDocument;
     const { mousemove, mouseup } = this.#adjustDragListeners;

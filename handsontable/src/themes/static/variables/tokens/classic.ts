@@ -63,7 +63,7 @@ const classicTokens: ThemeTokensConfig = {
   cellMobileHandleBackgroundColor: 'tokens.accentColor',
   cellMobileHandleBackgroundOpacity: '40%',
   cellSelectionHandleSize: 'sizing.size_2',
-  cellSelectionHandleLength: 'sizing.size_6',
+  cellSelectionHandleLength: 'sizing.size_2',
   cellSelectionHandleBorderWidth: 'sizing.size_0_25',
   cellSelectionHandleBorderRadius: 'sizing.size_3',
   cellSelectionHandleBorderColor: 'tokens.accentColor',

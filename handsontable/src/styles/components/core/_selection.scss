@@ -37,15 +37,53 @@
       );
     }
 
-    // Adjustment handles (desktop drag-to-resize, .wtSelectionHandle)
-    // Visual styling (size/color/etc.) is set as inline styles in border.ts createAdjustHandles;
-    // only the animation is applied here — it does not conflict with inline styles.
+    // Adjustment handles (desktop drag-to-resize, .wtSelectionHandle).
+    // Visual styling is driven entirely by CSS using the --ht-cell-selection-handle-* tokens.
+    // JS (border.ts createAdjustHandles) sets only display:none / positions via top/left.
     .wtSelectionHandle {
+      position: absolute;
+      box-sizing: border-box;
+      z-index: 200;
+      background: var(--ht-cell-selection-handle-background-color);
+      border: var(--ht-cell-selection-handle-border-width) solid var(--ht-cell-selection-handle-border-color);
+      border-radius: var(--ht-cell-selection-handle-border-radius);
       animation: ht-selection-handle-fade-in var(--ht-table-transition) ease-in-out backwards;
+
+      &:hover {
+        // Boost the background toward the accent color on hover.
+        background: color-mix(
+          in srgb,
+          var(--ht-cell-selection-handle-border-color) 30%,
+          var(--ht-cell-selection-handle-background-color)
+        );
+      }
 
       @media (prefers-reduced-motion: reduce) {
         animation: none;
       }
+    }
+
+    .wtSelectionHandle--top,
+    .wtSelectionHandle--bottom {
+      width: var(--ht-cell-selection-handle-length);
+      height: var(--ht-cell-selection-handle-size);
+      cursor: ns-resize;
+    }
+
+    .wtSelectionHandle--start,
+    .wtSelectionHandle--end {
+      width: var(--ht-cell-selection-handle-size);
+      height: var(--ht-cell-selection-handle-length);
+      cursor: ew-resize;
+    }
+
+    // While resizing via a handle, hide the other handles so only the dragged one shows.
+    // The root gets ht__resizing-selection--<edge> for the duration of the drag.
+    &.ht__resizing-selection--top .wtSelectionHandle:not(.wtSelectionHandle--top),
+    &.ht__resizing-selection--bottom .wtSelectionHandle:not(.wtSelectionHandle--bottom),
+    &.ht__resizing-selection--start .wtSelectionHandle:not(.wtSelectionHandle--start),
+    &.ht__resizing-selection--end .wtSelectionHandle:not(.wtSelectionHandle--end) {
+      display: none !important;
     }
 
     // Ghost preview overlay shown during a move-cells drag (moveCells option).

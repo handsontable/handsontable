@@ -80,34 +80,23 @@ describe('WalkontableSelectionHandles', () => {
     const focusBorder = wt.selectionManager.getBorderInstance(selections.getFocus());
     const { styles } = focusBorder.adjustHandles;
 
-    // Set explicit pill dimensions so midpoint assertions are deterministic.
-    // top/bottom: horizontal pills (width=24, height=8); start/end: vertical pills (width=8, height=24).
+    // Handle dimensions come from the CSS token cache (stylesHandler stub in tests):
+    // size=8, length=24. top/bottom: width=24 (length), height=8 (size).
+    // start/end: width=8 (size), height=24 (length). No inline style manipulation needed.
     const shortSide = 8;
     const longSide = 24;
-
-    focusBorder.adjustHandles.top.style.width = `${longSide}px`;
-    focusBorder.adjustHandles.top.style.height = `${shortSide}px`;
-    focusBorder.adjustHandles.bottom.style.width = `${longSide}px`;
-    focusBorder.adjustHandles.bottom.style.height = `${shortSide}px`;
-    focusBorder.adjustHandles.start.style.width = `${shortSide}px`;
-    focusBorder.adjustHandles.start.style.height = `${longSide}px`;
-    focusBorder.adjustHandles.end.style.width = `${shortSide}px`;
-    focusBorder.adjustHandles.end.style.height = `${longSide}px`;
-
-    // Re-draw so positionAdjustHandles picks up the dimensions we just set.
-    wt.draw();
 
     expect(styles.top.display).toBe('block');
     expect(styles.bottom.display).toBe('block');
     expect(styles.start.display).toBe('block');
     expect(styles.end.display).toBe('block');
 
-    // Top and bottom handles both have the same width (24px), so their inline position is equal
-    // (both centred on the same column span).
+    // Top and bottom handles both have the same token-derived width (24px), so their inline
+    // position is equal (both centred on the same column span).
     expect(styles.top.left).toBe(styles.bottom.left);
 
-    // Start and end handles both have the same height (24px), so their vertical midpoint is equal
-    // (both centred on the same row span).
+    // Start and end handles both have the same token-derived height (24px), so their vertical
+    // midpoint is equal (both centred on the same row span).
     expect(styles.start.top).toBe(styles.end.top);
 
     // Numeric non-tautological assertion: the top handle's left must land at the midpoint of the
@@ -127,7 +116,7 @@ describe('WalkontableSelectionHandles', () => {
     expect(parseInt(styles.top.left, 10)).toBeLessThan(borderLeft + borderWidth);
   });
 
-  it('should apply visual inline styles (size, background, borderRadius, boxSizing, cursor, z-index) to handles immediately after createAdjustHandles', async() => {
+  it('should assign correct CSS classes and start hidden after createAdjustHandles', async() => {
     const selections = createSelectionController({
       border: {
         width: 2,
@@ -157,36 +146,29 @@ describe('WalkontableSelectionHandles', () => {
     const startEl = focusBorder.adjustHandles.start;
     const endEl = focusBorder.adjustHandles.end;
 
-    // Verify visual inline styles set by createAdjustHandles (before any positioning overwrite).
-    // This test does NOT overwrite those styles — it checks what createAdjustHandles produced.
+    // Visual styling (size, background, border, border-radius, cursor, z-index) is now driven
+    // entirely by CSS via the --ht-cell-selection-handle-* tokens. JS only manages display state
+    // and positioning. Verify the class names (which carry CSS rules) and display state.
 
-    // top/bottom handles are horizontal pills: width (long axis) > height (short axis).
-    expect(topEl.style.boxSizing).toBe('border-box');
-    expect(topEl.style.background).not.toBe('');
-    expect(topEl.style.borderRadius).not.toBe('');
-    expect(topEl.style.zIndex).toBe('200');
-    expect(topEl.style.cursor).toBe('ns-resize');
-    expect(parseInt(topEl.style.width, 10)).toBeGreaterThan(parseInt(topEl.style.height, 10));
+    // Shared base class.
+    expect(topEl.classList.contains('wtSelectionHandle')).toBe(true);
+    expect(bottomEl.classList.contains('wtSelectionHandle')).toBe(true);
+    expect(startEl.classList.contains('wtSelectionHandle')).toBe(true);
+    expect(endEl.classList.contains('wtSelectionHandle')).toBe(true);
 
-    expect(bottomEl.style.boxSizing).toBe('border-box');
-    expect(bottomEl.style.background).not.toBe('');
-    expect(bottomEl.style.zIndex).toBe('200');
-    expect(bottomEl.style.cursor).toBe('ns-resize');
-    expect(parseInt(bottomEl.style.width, 10)).toBeGreaterThan(parseInt(bottomEl.style.height, 10));
+    // Edge-specific orientation classes that CSS uses for sizing/cursor.
+    expect(topEl.classList.contains('wtSelectionHandle--top')).toBe(true);
+    expect(bottomEl.classList.contains('wtSelectionHandle--bottom')).toBe(true);
+    expect(startEl.classList.contains('wtSelectionHandle--start')).toBe(true);
+    expect(endEl.classList.contains('wtSelectionHandle--end')).toBe(true);
 
-    // start/end handles are vertical pills: height (long axis) > width (short axis).
-    expect(startEl.style.boxSizing).toBe('border-box');
-    expect(startEl.style.background).not.toBe('');
-    expect(startEl.style.borderRadius).not.toBe('');
-    expect(startEl.style.zIndex).toBe('200');
-    expect(startEl.style.cursor).toBe('ew-resize');
-    expect(parseInt(startEl.style.height, 10)).toBeGreaterThan(parseInt(startEl.style.width, 10));
-
-    expect(endEl.style.boxSizing).toBe('border-box');
-    expect(endEl.style.background).not.toBe('');
-    expect(endEl.style.zIndex).toBe('200');
-    expect(endEl.style.cursor).toBe('ew-resize');
-    expect(parseInt(endEl.style.height, 10)).toBeGreaterThan(parseInt(endEl.style.width, 10));
+    // JS sets no inline visual properties on creation — only positioning and display are inline.
+    expect(topEl.style.background).toBe('');
+    expect(topEl.style.borderRadius).toBe('');
+    expect(topEl.style.zIndex).toBe('');
+    expect(topEl.style.cursor).toBe('');
+    expect(topEl.style.width).toBe('');
+    expect(topEl.style.height).toBe('');
   });
 
   it('should hide the top handle when the selection top edge is at row 0', async() => {
