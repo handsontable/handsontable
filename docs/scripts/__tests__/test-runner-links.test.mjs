@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extractRunnerLinks, crossCheckManifest, planHeadlessChecks, parseArgs } from '../verify-runner-links.mjs';
+import { extractRunnerLinks, crossCheckManifest, planHeadlessChecks, parseArgs } from '../test-runner-links.mjs';
 
 test('extractRunnerLinks finds a plain-& href with a version', () => {
   const html = '<a href="https://demos.handsontable.com/?docs=guides/foo/example1.js&v=18.0.0">Open</a>';

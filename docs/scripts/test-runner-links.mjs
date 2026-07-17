@@ -13,7 +13,7 @@
 //    generic) grid — so this also asserts the page displays the example's own
 //    guideTitle + exampleTitle from the manifest, which the fallback never does.
 //
-// Usage: node scripts/verify-runner-links.mjs [options]
+// Usage: node scripts/test-runner-links.mjs [options]
 
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
 import { extname, join, dirname } from 'node:path';
