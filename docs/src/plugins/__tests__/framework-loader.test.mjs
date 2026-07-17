@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { frameworkLoader } from '../framework-loader.mjs';
 import { LATEST_CHANGELOG_MAJOR } from '../changelog-parser.mjs';
+import { CURRENT_RELEASE_VERSION } from '../docs-version.mjs';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -290,6 +291,164 @@ function createChangelogLinkFixture() {
 
   return { contentDir, root };
 }
+
+/**
+ * Builds a temp content tree with a vanilla guide example that embeds both a
+ * .js and a .ts source file, so the runner-link tab-follow data can be asserted.
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createVanillaJsTsFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-jsts-'));
+  const contentDir = join(root, 'content');
+  const jsDir = join(contentDir, 'guides', 'intro', 'javascript');
+
+  mkdirSync(jsDir, { recursive: true });
+
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+
+  writeFileSync(
+    join(contentDir, 'guides', 'intro', 'intro.md'),
+    [
+      '---',
+      'title: Introduction',
+      'permalink: /intro',
+      '---',
+      '',
+      'Intro body.',
+      '',
+      '::: example #ex1 --js 1 --ts 2',
+      '@[code](@/content/guides/intro/javascript/example1.js)',
+      '@[code](@/content/guides/intro/javascript/example1.ts)',
+      ':::',
+      '',
+    ].join('\n')
+  );
+
+  writeFileSync(join(jsDir, 'example1.js'), "const grid = 'EXAMPLE_CODE_V1';\n");
+  writeFileSync(join(jsDir, 'example1.ts'), "const grid: string = 'EXAMPLE_CODE_V1';\n");
+
+  return { contentDir, root };
+}
+
+test('vanilla JS/TS guide example gets a runner link that follows the active tab', async () => {
+  const { contentDir, root } = createVanillaJsTsFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'javascript-data-grid/intro');
+
+    assert.ok(html.includes('class="hot-example-runner-btn"'), 'expected a runner link');
+    assert.ok(
+      html.includes(`href="https://demos.handsontable.com/?docs=guides/intro/javascript/example1.js&amp;v=${CURRENT_RELEASE_VERSION}"`),
+      'runner href should point at the .js variant with the current release version'
+    );
+    assert.ok(html.includes('data-docs-ts="guides/intro/javascript/example1.ts"'), 'expected the .ts variant path for the client-side tab rewrite');
+    assert.ok(html.includes('data-runner-version="'), 'expected the version to be carried for the client-side rewrite');
+
+    // The runner link must come first among the toolbar actions, before StackBlitz.
+    assert.ok(
+      html.indexOf('hot-example-runner-btn') < html.indexOf('hot-example-stackblitz-btn'),
+      'runner link should be placed before the StackBlitz button'
+    );
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('React example links the runner to the .tsx variant, not .jsx, with no tab-follow data', async () => {
+  const { contentDir, root } = createReactFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'react-data-grid/intro');
+
+    assert.ok(
+      html.includes(`href="https://demos.handsontable.com/?docs=guides/intro/react/example1.tsx&amp;v=${CURRENT_RELEASE_VERSION}"`),
+      'runner href should point at the .tsx variant even though .jsx is listed first'
+    );
+    assert.ok(!html.includes('data-docs-js'), 'React examples have no manifest-eligible JS variant to follow');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+/**
+ * Builds a temp content tree with a recipe example (not under guides/), to
+ * confirm recipe examples get a runner link just like guide examples do.
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createRecipeFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-recipe-'));
+  const contentDir = join(root, 'content');
+  const jsDir = join(contentDir, 'recipes', 'themes', 'base-theme', 'javascript');
+
+  mkdirSync(jsDir, { recursive: true });
+
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+
+  writeFileSync(
+    join(contentDir, 'recipes', 'themes', 'base-theme', 'base-theme.md'),
+    [
+      '---',
+      'title: Base theme',
+      'permalink: /recipes/themes/base-theme',
+      '---',
+      '',
+      '::: example #ex1',
+      '@[code](@/content/recipes/themes/base-theme/javascript/example1.js)',
+      ':::',
+      '',
+    ].join('\n')
+  );
+
+  writeFileSync(join(jsDir, 'example1.js'), "const grid = 'RECIPE_EXAMPLE';\n");
+
+  return { contentDir, root };
+}
+
+test('recipe examples (outside guides/) get a runner link too', async () => {
+  const { contentDir, root } = createRecipeFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'javascript-data-grid/recipes/themes/base-theme');
+
+    assert.ok(
+      html.includes(`href="https://demos.handsontable.com/?docs=recipes/themes/base-theme/javascript/example1.js&amp;v=${CURRENT_RELEASE_VERSION}"`),
+      'recipe examples should link the runner the same way guide examples do'
+    );
+    assert.ok(html.includes('hot-example-stackblitz-btn'), 'StackBlitz button should still render');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('server-side-only examples still render no toolbar at all (regression guard)', async () => {
+  const { contentDir, root } = createCsharpFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'javascript-data-grid/intro');
+
+    assert.ok(!html.includes('hot-example-runner-btn'), 'no runnable entry point means no toolbar, including the runner link');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
 
 test('{{$latestChangelogVersion}} placeholder resolves to the latest changelog page inside an @/...md link', async () => {
   const { contentDir, root } = createChangelogLinkFixture();
