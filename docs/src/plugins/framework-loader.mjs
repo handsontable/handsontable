@@ -151,7 +151,7 @@ function escapeHtml(str) {
  * The output contains:
  * 1. A live preview container with a loading shimmer shown until the example JS
  *    mounts the Handsontable instance.
- * 2. A toolbar with a "Source code" toggle, an "Open in runner" link (guides only),
+ * 2. A toolbar with a "Source code" toggle, an "Edit in sandbox" link (guides only),
  *    an "Edit on StackBlitz" button, and a "See on GitHub" link.
  * 3. Shiki-highlighted code tabs (hidden by default, revealed via the toggle).
  *
@@ -375,7 +375,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
     ${iconCode} Source code ${iconChevron}
   </button>
   <div class="hot-example-actions">
-    ${isRunnerEligible ? `<a class="hot-example-runner-btn" href="${escapeHtml(runnerUrl)}" target="_blank" rel="noopener noreferrer" title="Open in runner" aria-label="Open in runner"${runnerTsRef ? ` data-docs-js="${escapeHtml(jsRef)}" data-docs-ts="${escapeHtml(runnerTsRef)}" data-runner-version="${escapeHtml(CURRENT_RELEASE_VERSION)}"` : ''}>
+    ${isRunnerEligible ? `<a class="hot-example-runner-btn" href="${escapeHtml(runnerUrl)}" target="_blank" rel="noopener noreferrer" title="Edit in sandbox" aria-label="Edit in sandbox"${runnerTsRef ? ` data-docs-js="${escapeHtml(jsRef)}" data-docs-ts="${escapeHtml(runnerTsRef)}" data-runner-version="${escapeHtml(CURRENT_RELEASE_VERSION)}"` : ''}>
       ${iconRunner}
     </a>` : ''}
     <button class="hot-example-stackblitz-btn" type="button" title="Edit on StackBlitz" aria-label="Edit on StackBlitz">
