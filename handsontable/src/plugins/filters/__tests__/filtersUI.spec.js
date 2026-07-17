@@ -1934,6 +1934,66 @@ describe('Filters UI', () => {
     expect(text).toEqual(['Furkan İnanç']);
   });
 
+  it('should search within the current column values after the data changed between dropdown openings', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      colHeaders: true,
+      filters: true,
+      dropdownMenu: true,
+    });
+
+    await dropdownMenu(1);
+    await sleep(208);
+
+    const event = new Event('input', {
+      bubbles: true,
+      cancelable: true,
+    });
+    let inputElement = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
+
+    $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
+    $(inputElement).focus();
+
+    await sleep(208);
+
+    document.activeElement.value = 'b1';
+    document.activeElement.dispatchEvent(event);
+
+    let elements = $(byValueBoxRootElement()).find('label').toArray();
+    let text = elements.map(element => $(element).text());
+
+    expect(text).toEqual(['B1']);
+
+    await selectCell(0, 0);
+    await setDataAtCell(0, 1, 'Zebra');
+
+    await dropdownMenu(1);
+    await sleep(208);
+
+    inputElement = dropdownMenuRootElement().querySelector('.htUIMultipleSelectSearch input');
+
+    $(inputElement).simulate('mousedown').simulate('mouseup').simulate('click');
+    $(inputElement).focus();
+
+    await sleep(208);
+
+    document.activeElement.value = 'zebra';
+    document.activeElement.dispatchEvent(event);
+
+    elements = $(byValueBoxRootElement()).find('label').toArray();
+    text = elements.map(element => $(element).text());
+
+    expect(text).toEqual(['Zebra']);
+
+    document.activeElement.value = 'b2';
+    document.activeElement.dispatchEvent(event);
+
+    elements = $(byValueBoxRootElement()).find('label').toArray();
+    text = elements.map(element => $(element).text());
+
+    expect(text).toEqual(['B2']);
+  });
+
   it('should handle selection in value box properly', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),

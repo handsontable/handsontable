@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Improved Filters plugin performance: batch changes into a filtered column update the filter list once per column instead of once per changed cell, importing conditions updates once per column instead of once per condition, and applying filters no longer re-reads rows already rejected by earlier columns.",
+  "type": "changed",
+  "issueOrPR": 13090,
+  "breaking": false,
+  "framework": "none"
+}
