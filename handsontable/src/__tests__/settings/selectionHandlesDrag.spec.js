@@ -23,6 +23,54 @@ describe('settings', () => {
       return spec().$container[0].querySelector(`.wtSelectionHandle--${edge}[style*="display: block"]`);
     }
 
+    it('should hide the non-dragged handles while resizing (only the dragged one stays visible)', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 8),
+        selectionHandles: true,
+        selectionMode: 'multiple',
+        width: 400,
+        height: 300,
+      });
+
+      await selectCells([[2, 2, 5, 5]]);
+      await mouseOver(getCell(3, 3));
+
+      const bottomHandle = getHandle('bottom');
+
+      expect(bottomHandle).not.toBeNull();
+
+      const handleRect = bottomHandle.getBoundingClientRect();
+      const targetRect = getCell(8, 5).getBoundingClientRect();
+
+      $(bottomHandle).simulate('mousedown', {
+        clientX: handleRect.left + (handleRect.width / 2),
+        clientY: handleRect.top + (handleRect.height / 2),
+      });
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      // During the drag: the dragged (bottom) handle stays visible; the others are hidden by the
+      // `ht__resizing-selection--bottom` root class (computed display, not the inline style).
+      // There can be more than one handle per edge in the master (the area border and the focus
+      // border each create a set), so check whether ANY handle of an edge is visible.
+      const anyVisible = (edge) => Array
+        .from(spec().$container[0].querySelectorAll(`.ht_master .wtSelectionHandle--${edge}`))
+        .some(h => window.getComputedStyle(h).display !== 'none');
+
+      // The dragged (bottom) handle stays visible; the other edges are hidden during the drag.
+      expect(anyVisible('bottom')).toBe(true);
+      expect(anyVisible('top')).toBe(false);
+      expect(anyVisible('start')).toBe(false);
+      expect(anyVisible('end')).toBe(false);
+
+      $(document.documentElement).simulate('mouseup', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+    });
+
     it('should grow the selection downward when the bottom handle is dragged to a lower row', async() => {
       handsontable({
         data: createSpreadsheetData(10, 8),
