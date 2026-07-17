@@ -3219,6 +3219,10 @@ export default function Core(
       throwWithCause('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
+    // The `columns` option (or the state its function form reads) may change in this call - drop
+    // getColHeader's index translation cache so it rebuilds against the updated settings.
+    columnsSettingIndexes = null;
+
     if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
       warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
         'As one is the alias of the other, only one of them can be used at a time. ' +
@@ -4833,6 +4837,19 @@ export default function Core(
   };
 
   /**
+   * Caches the index translation that `getColHeader` derives from the `columns` option when that
+   * option is a function: the source column indexes for which `columns(index)` returns a truthy
+   * settings object. Only the membership array is cached — titles are still read live from the
+   * `columns` function. Rebuilt when the function reference or the column count changes; cleared
+   * by `updateSettings`.
+   */
+  let columnsSettingIndexes: {
+    columns: (...args: unknown[]) => Record<string, unknown>;
+    columnsLen: number;
+    indexes: number[];
+  } | null = null;
+
+  /**
    * Gets the values of column headers (if column headers are [enabled](@/api/options.md#colheaders)).
    *
    * To get an array with the values of all
@@ -4889,31 +4906,34 @@ export default function Core(
 
     let result: unknown = tableMeta.colHeaders;
     const columns = tableMeta.columns;
+    const columnsFn = typeof columns === 'function' ? columns : null;
+    const physicalColumn = instance.toPhysicalColumn(columnIndex as number);
+    let columnSettings: Record<string, unknown> | null = null;
 
-    const translateVisualIndexToColumns = function(visualColumnIndex: number) {
-      const arr: number[] = [];
-
+    if (columnsFn !== null) {
       const columnsLen = instance.countCols();
-      let index = 0;
 
-      for (; index < columnsLen; index++) {
-        if (isFunction(columns) && columns(index)) {
-          arr.push(index);
+      if (columnsSettingIndexes === null || columnsSettingIndexes.columns !== columnsFn ||
+          columnsSettingIndexes.columnsLen !== columnsLen) {
+        const indexes: number[] = [];
+
+        for (let index = 0; index < columnsLen; index++) {
+          if (columnsFn(index)) {
+            indexes.push(index);
+          }
         }
+
+        columnsSettingIndexes = { columns: columnsFn, columnsLen, indexes };
       }
 
-      return arr[visualColumnIndex];
-    };
-
-    const physicalColumn = instance.toPhysicalColumn(columnIndex as number);
-    const prop = translateVisualIndexToColumns(physicalColumn!);
+      columnSettings = columnsFn(columnsSettingIndexes.indexes[physicalColumn!]) ?? null;
+    }
 
     if (tableMeta.colHeaders === false) {
       result = null;
 
-    } else if (columns && isFunction(columns) && columns(prop) &&
-               (columns(prop) as Record<string, unknown>).title) {
-      result = (columns(prop) as Record<string, unknown>).title;
+    } else if (columnSettings && columnSettings.title) {
+      result = columnSettings.title;
 
     } else if (columns && !isFunction(columns) && columns[physicalColumn!] &&
                columns[physicalColumn!].title) {
