@@ -13,6 +13,10 @@
  */
 import { spawnSync } from 'node:child_process';
 
+// npx/npm are .cmd shims on Windows; spawnSync needs a shell there or it ENOENTs
+// (lefthook would then never install and Windows devs would get no local hooks).
+const WIN = process.platform === 'win32';
+
 if (process.env.CI) {
   process.exit(0);
 }
@@ -25,7 +29,7 @@ if (process.env.CI) {
  * @returns {void}
  */
 function step(label, cmd) {
-  const res = spawnSync(cmd[0], cmd.slice(1), { stdio: 'inherit' });
+  const res = spawnSync(cmd[0], cmd.slice(1), { stdio: 'inherit', shell: WIN });
 
   if (res.status !== 0) {
     console.warn(`\n⚠️  prepare: "${label}" failed (${cmd.join(' ')}). ` +

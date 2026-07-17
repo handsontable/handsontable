@@ -18,6 +18,9 @@ import { repoRoot, sessionEditsFile, stopVerdict, toRepoRelative } from './sessi
 import { changedPlaywrightSpecs, changedUnitTests, unitTestPattern, isJestInfraFailure } from '../pre-push.mjs';
 import { filterCached, recordGreen } from '../e2e-run-cache.mjs';
 
+// npx/npm are .cmd shims on Windows; spawnSync needs a shell there or it ENOENTs.
+const WIN = process.platform === 'win32';
+
 /**
  * Read all of stdin synchronously.
  *
@@ -25,7 +28,8 @@ import { filterCached, recordGreen } from '../e2e-run-cache.mjs';
  */
 function readStdin() {
   try {
-    return spawnSync('cat', { stdio: ['inherit', 'pipe', 'ignore'], encoding: 'utf8' }).stdout || '';
+    // Read fd 0 directly — cross-platform (a `cat` spawn ENOENTs on Windows).
+    return readFileSync(0, 'utf8');
   } catch {
     return '';
   }
@@ -124,7 +128,7 @@ if (toRun.length > 0) {
   // theme matrix (main/horizon/classic). See the run-scope note in the
   // handsontable-playwright-e2e skill.
   const pw = spawnSync('npx', ['playwright', 'test', '--project=e2e-main', ...toRun], {
-    cwd: path.join(root, 'tests'), stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8',
+    cwd: path.join(root, 'tests'), stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', shell: WIN,
   });
 
   if (pw.status !== 0) {
@@ -146,7 +150,7 @@ for (const file of unitFiles) {
   const jest = spawnSync(
     'npm',
     ['run', 'test:unit', '--', `--testPathPattern=${unitTestPattern(file)}`],
-    { cwd: path.join(root, 'handsontable'), encoding: 'utf8' },
+    { cwd: path.join(root, 'handsontable'), encoding: 'utf8', shell: WIN },
   );
 
   if (jest.status !== 0) {

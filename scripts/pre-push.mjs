@@ -15,6 +15,10 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { lintable, runEslint } from './lint-files.mjs';
 import { filterCached, recordGreen } from './e2e-run-cache.mjs';
 
+// npx/npm are .cmd shims on Windows; spawnSync needs a shell there or it ENOENTs
+// (a hook that fails-closed on every push just trains people to use --no-verify).
+const WIN = process.platform === 'win32';
+
 /**
  * Resolve the base ref to diff against — the merge-base with the trunk.
  *
@@ -143,6 +147,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const pw = spawnSync('npx', ['playwright', 'test', '--project=e2e-main', ...toRun], {
       cwd: path.join(root, 'tests'),
       stdio: 'inherit',
+      shell: WIN,
     });
 
     if (pw.status !== 0) {
@@ -166,7 +171,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       const jest = spawnSync(
         'npm',
         ['run', 'test:unit', '--', `--testPathPattern=${unitTestPattern(file)}`],
-        { cwd: path.join(root, 'handsontable'), encoding: 'utf8' },
+        { cwd: path.join(root, 'handsontable'), encoding: 'utf8', shell: WIN },
       );
 
       process.stdout.write(jest.stdout || '');

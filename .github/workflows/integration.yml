@@ -18,7 +18,6 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write
 
 jobs:
   # The wrapper list is precomputed by the Checks scope job and passed in, so
@@ -84,6 +83,17 @@ jobs:
   preview-packages:
     name: preview packages
     runs-on: ubuntu-latest
+    # Only THIS job needs pull-requests: write (it posts the preview comment) —
+    # job-level keeps the rest of the module least-privilege. NOTE: job-scoping
+    # alone does NOT protect the release path: GitHub validates every job-level
+    # request in a called workflow STATICALLY at run init, even for jobs whose
+    # `if:` will skip them (actions/runner#4151; verified on this repo). The
+    # release path works because publish.yml's test-call jobs grant a matching
+    # ceiling — if you add a NEW permission scope anywhere in the Tests module
+    # graph, extend that ceiling too, or every RC run fails at startup.
+    permissions:
+      contents: read
+      pull-requests: write
     # PR-only (never publishes a preview on a trunk/release run-all).
     if: github.event_name == 'pull_request' && (inputs.run-all || inputs.run-pkg-preview)
     env:

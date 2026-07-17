@@ -1,10 +1,13 @@
 name: Performance tests
 
-# On PRs this runs as a fragment of the Tests pipeline (workflow_call from
-# test.yml), scope-gated to handsontable/src/** + performance-tests/** by the
-# router — an ESLint-config-only PR no longer triggers a full CDP suite. The
-# push trigger stays: the develop run keeps the baseline fresh (the number the
-# next PR's delta compares against) and feeds the long-term trend.
+# This file's LIVE job is the develop PUSH run: it keeps the golden baseline fresh
+# (the number the next PR's delta compares against) and feeds the long-term trend.
+# The PR path does NOT go through here — it runs via performance.yml (the
+# workflow_call wrapper around the performance-run composite), scope-gated by the
+# router. The workflow_call trigger below is currently UNUSED (nothing calls it);
+# it is kept only until the develop-pipeline rework folds this push run onto the
+# shared composite (quality task 09 / DEV-2057). Do not wire new PR behavior here —
+# change performance.yml / the performance-run composite instead.
 on:
   push:
     branches:

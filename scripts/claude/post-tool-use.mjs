@@ -10,9 +10,12 @@
  * Reads the tool payload as JSON on stdin (there is no $CLAUDE_TOOL_FILE_PATH).
  */
 import { spawnSync } from 'node:child_process';
-import { appendFileSync, mkdirSync } from 'node:fs';
+import { appendFileSync, mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { repoRoot, sessionEditsFile, toRepoRelative } from './session.mjs';
+
+// npx is a .cmd shim on Windows; spawnSync needs a shell there or it ENOENTs.
+const WIN = process.platform === 'win32';
 
 /**
  * Read all of stdin synchronously.
@@ -21,7 +24,8 @@ import { repoRoot, sessionEditsFile, toRepoRelative } from './session.mjs';
  */
 function readStdin() {
   try {
-    return spawnSync('cat', { stdio: ['inherit', 'pipe', 'ignore'], encoding: 'utf8' }).stdout || '';
+    // Read fd 0 directly — cross-platform (a `cat` spawn ENOENTs on Windows).
+    return readFileSync(0, 'utf8');
   } catch {
     return '';
   }
@@ -60,7 +64,9 @@ try {
 // Lint edited specs only — running the full typed ESLint on every core .ts edit
 // is too slow for the edit loop.
 if (/\.(spec|unit)\.[jt]sx?$/.test(rel)) {
-  const res = spawnSync('npx', ['eslint', '--fix', file], { stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8' });
+  const res = spawnSync('npx', ['eslint', '--fix', file], {
+    stdio: ['ignore', 'pipe', 'pipe'], encoding: 'utf8', shell: WIN,
+  });
   const output = `${res.stdout || ''}${res.stderr || ''}`;
   // Only block on genuine rule violations. A parsing error or eslint's own error
   // (status 2) means no applicable config for this file type — do not blame the

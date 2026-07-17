@@ -72,3 +72,20 @@ jobs:
       - uses: fossas/fossa-action@ff70fe9fe17cbd2040648f1c45e8ec4e4884dcf3 # https://github.com/fossas/fossa-action/releases/tag/v1.9.0
         with:
           api-key: ${{secrets.FOSSA_API_KEY}}
+
+  audit:
+    name: "[SCAN] audit (baseline)"
+    runs-on: ubuntu-latest
+    # Trunk audit signal. The old audit.yml ran `pnpm audit` on every push; the PR
+    # audit is now PR-only, which left the default branch with no audit at all. This
+    # restores a nightly signal. Non-blocking while the ~380-vuln backlog burns down
+    # — the point is a visible report on trunk, not a gate (matches code-quality.yml).
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+      - name: NPM audit
+        run: |
+          # npm retired the legacy audit endpoints used by pnpm's audit command.
+          # Keep this check non-blocking when the registry endpoint itself errors.
+          pnpm audit --prod --ignore-unfixable --ignore-registry-errors

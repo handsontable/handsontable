@@ -143,7 +143,11 @@ jobs:
   emitted-types:
     name: Emitted Types
     needs: [ checks, build ]
-    if: ${{ !failure() && !cancelled() && github.event_name == 'pull_request' && (needs.checks.outputs.run-all == 'true' || needs.checks.outputs.verify-types == 'true') }}
+    # Runs on PRs (verify-types scope) AND on trunk push / release run-all — the old
+    # verify-emitted-types.yml ran on develop/master push too, so gating on the event
+    # would silently drop the check on trunk and the publish.yml release path. Gate on
+    # scope only, never on github.event_name.
+    if: ${{ !failure() && !cancelled() && (needs.checks.outputs.run-all == 'true' || needs.checks.outputs.verify-types == 'true') }}
     uses: ./.github/workflows/emitted-types.yml
     with:
       # publint checks the composed package (tmp/ + dist/ + styles/) → needs both.

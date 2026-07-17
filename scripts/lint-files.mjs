@@ -23,6 +23,9 @@
  */
 import { spawnSync } from 'node:child_process';
 
+// npx is a .cmd shim on Windows; spawnSync needs a shell there or it ENOENTs.
+const WIN = process.platform === 'win32';
+
 const SCOPES = [
   /^handsontable\/(src|test|scripts)\//,
   /^wrappers\/vue3\/(src|test)\//,
@@ -60,7 +63,7 @@ export function runEslint(files, { fix = false, cwd } = {}) {
     return 0;
   }
   const args = ['eslint', ...(fix ? ['--fix'] : []), ...files];
-  const res = spawnSync('npx', args, { stdio: 'inherit', ...(cwd ? { cwd } : {}) });
+  const res = spawnSync('npx', args, { stdio: 'inherit', shell: WIN, ...(cwd ? { cwd } : {}) });
 
   // 1 = lint errors → block. 2 = config/parse gap on some file → do not block
   // (that is tooling, not the author's fault; CI's full lint is authoritative).
