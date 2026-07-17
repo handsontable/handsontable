@@ -241,4 +241,75 @@ describe('Core.getColHeader', () => {
     expect(getColHeader(3, -5)).toBe('default'); // header level is out of range
     expect(getColHeader(4, -4)).toBe('default'); // column index is out of range
   });
+
+  it('should return column titles when the `columns` option is defined as a function', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 4),
+      colHeaders: true,
+      columns(index) {
+        return { title: `Col ${index}` };
+      },
+    });
+
+    expect(getColHeader(0)).toBe('Col 0');
+    expect(getColHeader(1)).toBe('Col 1');
+    expect(getColHeader(3)).toBe('Col 3');
+    expect(getColHeader()).toEqual(['Col 0', 'Col 1', 'Col 2', 'Col 3']);
+  });
+
+  it('should return the current title when the `columns` function returns a changing title', async() => {
+    let title = 'Before';
+
+    handsontable({
+      data: createSpreadsheetData(2, 3),
+      colHeaders: true,
+      columns() {
+        return { title };
+      },
+    });
+
+    expect(getColHeader(1)).toBe('Before');
+
+    title = 'After';
+
+    expect(getColHeader(1)).toBe('After');
+  });
+
+  it('should return titles from the new `columns` function after `updateSettings`', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 3),
+      colHeaders: true,
+      columns(index) {
+        return { title: `Old ${index}` };
+      },
+    });
+
+    expect(getColHeader(1)).toBe('Old 1');
+    expect(getColHeader()).toEqual(['Old 0', 'Old 1', 'Old 2']);
+
+    await updateSettings({
+      columns(index) {
+        return { title: `New ${index}` };
+      },
+    });
+
+    expect(getColHeader(1)).toBe('New 1');
+    expect(getColHeader()).toEqual(['New 0', 'New 1', 'New 2']);
+  });
+
+  it('should return titles for all columns after loading wider data when the `columns` option is a function', async() => {
+    handsontable({
+      data: createSpreadsheetData(2, 2),
+      colHeaders: true,
+      columns(index) {
+        return { title: `Col ${index}` };
+      },
+    });
+
+    expect(getColHeader()).toEqual(['Col 0', 'Col 1']);
+
+    await loadData(createSpreadsheetData(2, 5));
+
+    expect(getColHeader()).toEqual(['Col 0', 'Col 1', 'Col 2', 'Col 3', 'Col 4']);
+  });
 });
