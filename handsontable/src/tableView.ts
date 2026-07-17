@@ -2556,6 +2556,10 @@ class TableView {
     // Hold the grabbing cursor even when the pointer leaves the grid during the drag.
     this.hot.rootDocument.body.style.cursor = 'grabbing';
     this.#createMoveGhost();
+    // Show the ghost over the source range immediately so the dashed border appears in place the
+    // moment the drag starts (the source's own border is hidden via the `ht__moving` class), then
+    // follows the pointer on the first mousemove.
+    this.#positionMoveGhost(fromRow, fromCol, toRow, toCol);
 
     const { documentElement } = this.hot.rootDocument;
 
@@ -2601,14 +2605,16 @@ class TableView {
     ghost.style.boxSizing = 'border-box';
 
     // The ghost lives on `document.body`, outside the theme-scoped `.ht-theme-*` wrapper, so the
-    // scoped `.wtMoveGhost` stylesheet rule and the `--ht-*` theme variables do not apply to it.
-    // Resolve the selection accent color from the (theme-scoped) root element and set the dashed
-    // outline + translucent fill inline, so the preview is visible in any host layout.
-    const accent = getComputedStyle(this.hot.rootElement)
-      .getPropertyValue('--ht-cell-selection-border-color').trim() || '#4b89ff';
+    // scoped stylesheet rules and the `--ht-*` theme variables do not apply to it. Resolve the
+    // selection accent color and border width from the (theme-scoped) root element and set a dashed
+    // border inline, so the preview is visible in any host layout. The ghost is the single moving
+    // selection border: it carries NO fill (the source area keeps its light-blue fill in place) and
+    // matches the normal selection border width so it does not look thicker than the selection.
+    const rootStyle = getComputedStyle(this.hot.rootElement);
+    const accent = rootStyle.getPropertyValue('--ht-cell-selection-border-color').trim() || '#4b89ff';
+    const borderWidth = rootStyle.getPropertyValue('--ht-cell-selection-border-width').trim() || '1px';
 
-    ghost.style.border = `2px dashed ${accent}`;
-    ghost.style.backgroundColor = `color-mix(in srgb, ${accent} 15%, transparent)`;
+    ghost.style.border = `${borderWidth} dashed ${accent}`;
 
     this.hot.rootDocument.body.appendChild(ghost);
     this.#moveGhostEl = ghost;

@@ -65,8 +65,10 @@
       }
     }
 
-    // While a move drag is in progress the selection border uses a dashed style
-    // to indicate the source range. Applied via the ht__moving class on the root element.
+    // While a move drag is in progress the source selection border is hidden so the dashed ghost
+    // (rendered on the document body, following the pointer) is the single "moving" area border.
+    // The source area keeps its light-blue cell fill in place to mark where the selection came from.
+    // Applied via the ht__moving class on the root element.
     &.ht__moving {
       // Hold the grabbing cursor for the whole grid during the drag. Cells and other elements
       // set their own cursor, so `!important` on the subtree is required to keep it consistent
@@ -77,20 +79,12 @@
         cursor: grabbing !important;
       }
 
+      // Hide the source border lines (all edges + corner). `!important` matches the specificity of
+      // the `background-color: ... !important` rules on `.wtBorder.current`/`.wtBorder.area` in the
+      // Borders section below. The cell area fill is separate (on the cells) and stays visible.
       .wtBorder.area,
       .wtBorder.current {
-        background-image: repeating-linear-gradient(
-          to right,
-          var(--ht-cell-selection-border-color, #4b89ff) 0,
-          var(--ht-cell-selection-border-color, #4b89ff) 4px,
-          transparent 4px,
-          transparent 8px
-        );
-        // `!important` here overrides the `background-color: ... !important` rules on
-        // `.wtBorder.current` and `.wtBorder.area` in the Borders section below — those
-        // rules already use `!important`, so this declaration must match that specificity
-        // to suppress the solid background while the dashed gradient is active.
-        background-color: transparent !important;
+        display: none !important;
       }
     }
 
