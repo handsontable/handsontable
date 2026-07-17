@@ -96,6 +96,59 @@ describe('settings', () => {
       expect(getDataAtCell(2, 2)).toBeNull();
     });
 
+    it('should render the ghost preview over the drop target while dragging', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        moveCells: true,
+        width: 500,
+        height: 400,
+      });
+
+      await selectCells([[2, 2, 3, 3]]);
+
+      const zone = getMoveZone();
+
+      expect(zone).not.toBeNull();
+
+      const zoneRect = zone.getBoundingClientRect();
+      const targetCell = getCell(5, 5);
+      const targetRect = targetCell.getBoundingClientRect();
+
+      $(zone).simulate('mousedown', {
+        clientX: zoneRect.left + (zoneRect.width / 2),
+        clientY: zoneRect.top + (zoneRect.height / 2),
+      });
+
+      // Move the pointer over an interior target cell (drag not yet released).
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      const ghost = spec().$container[0].querySelector('.wtMoveGhost');
+
+      expect(ghost).not.toBeNull();
+      expect(ghost.style.display).not.toBe('none');
+
+      // The ghost must be positioned OVER the drop-target cell (it overlaps it), proving the preview
+      // shows where the selection will land. A positioning regression pushes the ghost off-screen
+      // (negative offset) so it no longer overlaps the target.
+      const ghostRect = ghost.getBoundingClientRect();
+      const overlapsTarget =
+        ghostRect.right > targetRect.left &&
+        ghostRect.left < targetRect.right &&
+        ghostRect.bottom > targetRect.top &&
+        ghostRect.top < targetRect.bottom;
+
+      expect(overlapsTarget).toBe(true);
+
+      // Release to finish the drag cleanly.
+      $(document.documentElement).simulate('mouseup', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+    });
+
     it('should copy instead of moving when Ctrl is held on drop', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),

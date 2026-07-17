@@ -2659,7 +2659,14 @@ class TableView {
       return;
     }
 
-    const containerRect = this.hot.rootOverlaysElement.getBoundingClientRect();
+    // Reveal the ghost before reading `offsetParent` — a `display: none` element reports a `null`
+    // offsetParent. The ghost is absolutely positioned, so its coordinates must be computed relative
+    // to its real offsetParent, NOT the `.ht-overlay` container (which is a zero-height static element
+    // at the bottom of the wrapper and would push the ghost off-screen).
+    ghost.style.display = 'block';
+
+    const offsetParent = (ghost.offsetParent as HTMLElement | null) ?? this.hot.rootDocument.documentElement;
+    const containerRect = offsetParent.getBoundingClientRect();
     const topStartRect = topStartTd.getBoundingClientRect();
     const bottomEndRect = bottomEndTd.getBoundingClientRect();
 
@@ -2668,7 +2675,6 @@ class TableView {
     const width = bottomEndRect.right - topStartRect.left;
     const height = bottomEndRect.bottom - topStartRect.top;
 
-    ghost.style.display = 'block';
     ghost.style.top = `${top}px`;
     ghost.style.left = `${left}px`;
     ghost.style.width = `${width}px`;
