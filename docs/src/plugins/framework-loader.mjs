@@ -9,8 +9,6 @@
 
 import { readdirSync, readFileSync, existsSync, statSync } from 'fs';
 import { join, relative, dirname } from 'path';
-import { createRequire } from 'module';
-import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
 import { CURRENT_DOCS_VERSION, CURRENT_DOCS_MINOR_VERSION, CURRENT_RELEASE_VERSION } from './docs-version.mjs';
 import { LATEST_CHANGELOG_MAJOR } from './changelog-parser.mjs';
@@ -33,53 +31,6 @@ function injectVersionComparisonData(body) {
   if (!VC_SCRIPT_PATTERN.test(body)) return body;
   const json = getVersionComparisonDataJson();
   return body.replace(VC_SCRIPT_PATTERN, `<script type="application/json" id="version-comparison-data">${json}</script>`);
-}
-
-// Read the current handsontable library version for StackBlitz package.json.
-const _require = createRequire(import.meta.url);
-const _loaderDir = dirname(fileURLToPath(import.meta.url));
-let HOT_VERSION = 'latest';
-
-try {
-  const pkg = _require(join(_loaderDir, '../../..', 'handsontable', 'package.json'));
-
-  HOT_VERSION = pkg.version ?? 'latest';
-} catch {
-  // Monorepo root not found — use 'latest' as fallback.
-}
-
-// Packages that are already provided by the framework project scaffolding
-// in example-tabs.js — do NOT add these to extraDeps.
-const BUILTIN_PKGS = new Set([
-  'handsontable',
-  '@handsontable/react-wrapper',
-  '@handsontable/vue3',
-  '@handsontable/angular-wrapper',
-  'vue',
-  'react',
-  'react-dom',
-  '@angular/core',
-  '@angular/common',
-  '@angular/compiler',
-  '@angular/platform-browser',
-  '@angular/platform-browser-dynamic',
-  '@angular/forms',
-  '@angular/animations',
-  '@angular/router',
-  'zone.js',
-  'rxjs',
-]);
-
-// docs/package.json dependency versions — used to pin extra deps to the same
-// version already installed in the docs dev environment.
-let DOCS_DEPS = {};
-
-try {
-  const docsPkg = _require(join(_loaderDir, '..', '..', 'package.json'));
-
-  DOCS_DEPS = { ...(docsPkg.dependencies ?? {}), ...(docsPkg.devDependencies ?? {}) };
-} catch {
-  // Ignore — fall back to 'latest' for unknown packages.
 }
 
 // ---------------------------------------------------------------------------
@@ -152,7 +103,7 @@ function escapeHtml(str) {
  * 1. A live preview container with a loading shimmer shown until the example JS
  *    mounts the Handsontable instance.
  * 2. A toolbar with a "Source code" toggle, an "Edit in sandbox" link,
- *    an "Edit on StackBlitz" button, and a "See on GitHub" link.
+ *    and a "See on GitHub" link.
  * 3. Shiki-highlighted code tabs (hidden by default, revealed via the toggle).
  *
  * @param {string} id - Example ID, e.g. 'example1'
@@ -284,44 +235,6 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
     ? `https://demos.handsontable.com/?docs=${runnerRef}&v=${CURRENT_RELEASE_VERSION}`
     : '';
 
-  // ── StackBlitz data (embedded as JSON for the client-side handler) ─────────
-
-  const framework = isReactDir ? 'react' : isAngularDir ? 'angular' : isVueDir ? 'vue' : 'javascript';
-
-  const sbFiles = {};
-
-  for (const f of files) {
-    sbFiles[f.ref.split('/').pop()] = f.code;
-  }
-
-  // Collect extra third-party imports not covered by the base project scaffold.
-  // Only top-level package names are extracted (scoped: @scope/pkg, plain: pkg).
-  const extraDeps = {};
-
-  for (const f of files) {
-    for (const [, imp] of f.code.matchAll(/from\s+['"]([^'"]+)['"]/g)) {
-      if (imp.startsWith('.') || imp.startsWith('/')) continue;
-
-      const pkgName = imp.startsWith('@')
-        ? imp.split('/').slice(0, 2).join('/')
-        : imp.split('/')[0];
-
-      if (!BUILTIN_PKGS.has(pkgName) && !pkgName.startsWith('handsontable/')) {
-        extraDeps[pkgName] = DOCS_DEPS[pkgName] ?? 'latest';
-      }
-    }
-  }
-
-  // Escape </script> sequences so the JSON block can't break the page.
-  const sbDataJson = JSON.stringify({
-    title: `Handsontable – ${id}`,
-    hotVersion: HOT_VERSION,
-    framework,
-    exampleId: id,
-    files: sbFiles,
-    extraDeps,
-  }).replace(/<\/script>/gi, '<\\/script>');
-
   // ── Code fences (rendered by Expressive Code at build time) ────────────────
   // Scripts (JS+TS or JSX+TSX) are grouped under one "JavaScript" tab with a
   // language dropdown selector. Remaining files (HTML, CSS) become separate tabs.
@@ -357,7 +270,6 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   const iconCode = `<svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`;
   const iconChevron = `<svg class="hot-example-source-chevron" aria-hidden="true" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6l6 -6"/></svg>`;
   const iconRunner = `<svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`;
-  const iconStackBlitz = `<svg aria-hidden="true" width="13" height="13" viewBox="0 0 28 28" fill="currentColor"><path d="M15.245 0L0 15.556h10.976L7.757 28 28 12.444H17.024L15.245 0z"/></svg>`;
   const iconGitHub = `<svg aria-hidden="true" width="13" height="13" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>`;
 
   return `<div class="hot-example not-content"${exampleAttr} id="hot-example-${escapeHtml(id)}">
@@ -379,15 +291,11 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
     ${isRunnerEligible ? `<a class="hot-example-runner-btn" href="${escapeHtml(runnerUrl)}" target="_blank" rel="noopener noreferrer" title="Edit in sandbox" aria-label="Edit in sandbox"${runnerTsRef ? ` data-docs-js="${escapeHtml(jsRef)}" data-docs-ts="${escapeHtml(runnerTsRef)}" data-runner-version="${escapeHtml(CURRENT_RELEASE_VERSION)}"` : ''}>
       ${iconRunner}
     </a>` : ''}
-    <button class="hot-example-stackblitz-btn" type="button" title="Edit on StackBlitz" aria-label="Edit on StackBlitz">
-      ${iconStackBlitz}
-    </button>
     <a class="hot-example-github-btn" href="${githubUrl}" target="_blank" rel="noopener noreferrer" title="See on GitHub" aria-label="See on GitHub">
       ${iconGitHub}
     </a>
   </div>
 </div>
-<script type="application/json" class="hot-example-sb-data">${sbDataJson}</script>
 </div>
 
 <div class="hot-example-code-start" data-example="${escapeHtml(id)}" data-tabs="${escapeHtml(tabLabels)}"${scriptLangs ? ` data-script-langs="${escapeHtml(scriptLangs)}" data-script-count="${scriptFiles.length}"` : ''}></div>
