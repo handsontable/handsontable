@@ -79,10 +79,6 @@ const horizonTokens: ThemeTokensConfig = {
   headerRowActiveForegroundColor: 'tokens.backgroundColor',
   headerRowActiveBackgroundColor: ['colors.palette.950', 'colors.primary.200'],
   rowHeaderOddBackgroundColor: 'tokens.headerRowBackgroundColor',
-  // Horizon keeps an independent even-row header value to preserve its intentional zebra stripe on
-  // row headers. Odd headers derive from `headerRowBackgroundColor` (so a custom header row color
-  // cascades), while even headers use `backgroundSecondaryColor` to alternate. Do NOT collapse this
-  // to `headerRowBackgroundColor` — that removes the stripe (see DEV-1189 / #12322).
   rowHeaderEvenBackgroundColor: 'tokens.backgroundSecondaryColor',
   rowCellOddBackgroundColor: 'tokens.backgroundColor',
   rowCellEvenBackgroundColor: 'tokens.backgroundSecondaryColor',
