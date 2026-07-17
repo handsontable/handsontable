@@ -149,6 +149,44 @@ describe('settings', () => {
       });
     });
 
+    it('should hold the grabbing cursor while dragging and clear it on drop', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        moveCells: true,
+        width: 500,
+        height: 400,
+      });
+
+      await selectCells([[2, 2, 3, 3]]);
+
+      const zone = getMoveZone();
+
+      expect(zone).not.toBeNull();
+
+      const zoneRect = zone.getBoundingClientRect();
+      const targetRect = getCell(5, 5).getBoundingClientRect();
+
+      $(zone).simulate('mousedown', {
+        clientX: zoneRect.left + (zoneRect.width / 2),
+        clientY: zoneRect.top + (zoneRect.height / 2),
+      });
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      // During the drag the document body holds the grabbing cursor (so it persists off-grid too).
+      expect(document.body.style.cursor).toBe('grabbing');
+
+      $(document.documentElement).simulate('mouseup', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      // The cursor is cleared once the drag ends.
+      expect(document.body.style.cursor).toBe('');
+    });
+
     it('should copy instead of moving when Ctrl is held on drop', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),

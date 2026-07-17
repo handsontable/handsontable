@@ -2553,6 +2553,8 @@ class TableView {
     this.#moveDrag = { fromRow, toRow, fromCol, toCol, grabRowOffset, grabColOffset };
 
     addClass(this.hot.rootElement, 'ht__moving');
+    // Hold the grabbing cursor even when the pointer leaves the grid during the drag.
+    this.hot.rootDocument.body.style.cursor = 'grabbing';
     this.#createMoveGhost();
 
     const { documentElement } = this.hot.rootDocument;
@@ -2706,6 +2708,7 @@ class TableView {
     }
 
     removeClass(this.hot.rootElement, 'ht__moving');
+    this.hot.rootDocument.body.style.cursor = '';
 
     const { documentElement } = this.hot.rootDocument;
     const { mousemove, mouseup, keydown } = this.#moveDragListeners;

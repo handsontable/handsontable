@@ -76,6 +76,15 @@
     // While a move drag is in progress the selection border uses a dashed style
     // to indicate the source range. Applied via the ht__moving class on the root element.
     &.ht__moving {
+      // Hold the grabbing cursor for the whole grid during the drag. Cells and other elements
+      // set their own cursor, so `!important` on the subtree is required to keep it consistent
+      // while the pointer moves over the data. (Off-grid, the cursor is held via body style in JS.)
+      cursor: grabbing;
+
+      * {
+        cursor: grabbing !important;
+      }
+
       .wtBorder.area,
       .wtBorder.current {
         background-image: repeating-linear-gradient(
