@@ -65,6 +65,9 @@ describe('settings', () => {
       expect(anyVisible('start')).toBe(false);
       expect(anyVisible('end')).toBe(false);
 
+      // The resize cursor is held for the whole drag (bottom handle → row axis → ns-resize).
+      expect(document.body.style.cursor).toBe('ns-resize');
+
       $(document.documentElement).simulate('mouseup', {
         clientX: targetRect.left + (targetRect.width / 2),
         clientY: targetRect.top + (targetRect.height / 2),

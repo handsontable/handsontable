@@ -86,6 +86,36 @@
       display: none !important;
     }
 
+    // While resizing, keep the resize cursor across the whole grid (cells set their own cursor, so
+    // `!important` on the subtree is required). Off-grid, the cursor is held via body style in JS.
+    &.ht__resizing-selection--top,
+    &.ht__resizing-selection--bottom {
+      &,
+      * {
+        cursor: ns-resize !important;
+      }
+    }
+
+    &.ht__resizing-selection--start,
+    &.ht__resizing-selection--end {
+      &,
+      * {
+        cursor: ew-resize !important;
+      }
+    }
+
+    // Keep the dragged handle styled as if hovered (boosted background) for the whole drag.
+    &.ht__resizing-selection--top .wtSelectionHandle--top,
+    &.ht__resizing-selection--bottom .wtSelectionHandle--bottom,
+    &.ht__resizing-selection--start .wtSelectionHandle--start,
+    &.ht__resizing-selection--end .wtSelectionHandle--end {
+      background: color-mix(
+        in srgb,
+        var(--ht-cell-selection-handle-border-color) 30%,
+        var(--ht-cell-selection-handle-background-color)
+      );
+    }
+
     // Ghost preview overlay shown during a move-cells drag (moveCells option).
     // The element is appended to the overlays container and positioned absolutely
     // over the drop-target range. `pointer-events: none` is also set inline by JS

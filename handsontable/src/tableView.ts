@@ -2375,8 +2375,12 @@ class TableView {
 
     this.#adjustDrag = { edge, fromRow, toRow, fromCol, toCol, targetLayer, focusRow, focusCol };
 
-    // Add a root-element class so CSS can hide all handles except the one being dragged.
+    // Add a root-element class so CSS can hide all handles except the one being dragged, keep the
+    // resize cursor over the grid, and keep the dragged handle styled as if hovered.
     addClass(this.hot.rootElement, `ht__resizing-selection--${edge}`);
+    // Hold the resize cursor for the whole drag, even when the pointer leaves the grid. Top/bottom
+    // handles resize the row axis (ns-resize); start/end resize the column axis (ew-resize).
+    this.hot.rootDocument.body.style.cursor = (edge === 'top' || edge === 'bottom') ? 'ns-resize' : 'ew-resize';
 
     const { documentElement } = this.hot.rootDocument;
 
@@ -2499,6 +2503,7 @@ class TableView {
       'ht__resizing-selection--start',
       'ht__resizing-selection--end',
     ]);
+    this.hot.rootDocument.body.style.cursor = '';
 
     const { documentElement } = this.hot.rootDocument;
     const { mousemove, mouseup } = this.#adjustDragListeners;
