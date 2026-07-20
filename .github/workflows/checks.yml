@@ -70,9 +70,14 @@ jobs:
             config-files: &config-files
               - './handsontable/.config/**'
               - './handsontable/package.json'
-              - './package-lock.json'
-              - './handsontable/hot.config.js'
+              # pnpm repo — the lockfile is pnpm-lock.yaml (the old package-lock.json
+              # entry was dead: dependency bumps never matched the filter).
+              - './pnpm-lock.yaml'
+              # Lives at the repo ROOT (tasks.json loads it via `env-cmd -f ../hot.config.js`).
+              - './hot.config.js'
               - './handsontable/babel.config.js'
+              # The bundler entry (rspack runs from the handsontable/ cwd).
+              - './handsontable/rspack.config.js'
               - './.github/workflows/**'
               - './visual-tests/playwright.config.ts'
               - './visual-tests/playwright-cross-browser.config.ts'
