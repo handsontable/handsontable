@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extractRunnerLinks, crossCheckManifest, planHeadlessChecks, parseArgs } from '../test-runner-links.mjs';
+import { extractRunnerLinks, crossCheckManifest, planHeadlessChecks, parseArgs, deriveManifestBucket, formatTimestamp } from '../test-runner-links.mjs';
 
 test('extractRunnerLinks finds a plain-& href with a version', () => {
   const html = '<a href="https://demos.handsontable.com/?docs=guides/foo/example1.js&v=18.0.0">Open</a>';
@@ -118,21 +118,37 @@ test('planHeadlessChecks checks every Tier-2 link when sample is "all"', () => {
   assert.equal(droppedTier2, 0);
 });
 
-test('parseArgs applies defaults and derives the manifest URL from runner-origin', () => {
+test('parseArgs applies defaults, defaulting version to "next" and deriving the bucketed manifest URL', () => {
   const args = parseArgs([]);
 
   assert.equal(args.dist, './dist');
   assert.equal(args.runnerOrigin, 'https://demos.handsontable.com');
-  assert.equal(args.manifest, 'https://demos.handsontable.com/docs-examples/manifest.json');
+  assert.equal(args.version, 'next');
+  assert.equal(args.manifest, 'https://demos.handsontable.com/docs-examples/next/manifest.json');
   assert.equal(args.staticOnly, false);
   assert.equal(args.tier2Sample, 10);
   assert.equal(args.concurrency, 4);
+  assert.match(args.json, /^\.\/tests\/test-artifacts\/runner-links\/runner-sweep-report-\d{8}-\d{6}\.json$/);
+});
+
+test('formatTimestamp renders YYYYMMDD-HHmmss', () => {
+  const date = new Date(2026, 6, 20, 9, 5, 3); // 2026-07-20 09:05:03 local time
+
+  assert.equal(formatTimestamp(date), '20260720-090503');
+});
+
+test('parseArgs derives the manifest bucket from a --version override', () => {
+  const args = parseArgs(['--version', '18.0.0']);
+
+  assert.equal(args.version, '18.0.0');
+  assert.equal(args.manifest, 'https://demos.handsontable.com/docs-examples/18.0/manifest.json');
 });
 
 test('parseArgs reads flags, including a custom manifest override and tier2Sample=all', () => {
   const args = parseArgs([
     '--dist', './build',
     '--runner-origin', 'https://runner.example.com',
+    '--version', '18.0.0',
     '--manifest', './local-manifest.json',
     '--static-only',
     '--tier2-sample', 'all',
@@ -143,10 +159,22 @@ test('parseArgs reads flags, including a custom manifest override and tier2Sampl
 
   assert.equal(args.dist, './build');
   assert.equal(args.runnerOrigin, 'https://runner.example.com');
+  assert.equal(args.version, '18.0.0');
+  // --manifest wins over the derived bucket URL when explicitly passed.
   assert.equal(args.manifest, './local-manifest.json');
   assert.equal(args.staticOnly, true);
   assert.equal(args.tier2Sample, 'all');
   assert.equal(args.concurrency, 8);
   assert.equal(args.filter, 'column-adding');
   assert.equal(args.json, './out/report.json');
+});
+
+test('deriveManifestBucket resolves "next" as-is and drops the patch segment from release versions', () => {
+  assert.equal(deriveManifestBucket('next'), 'next');
+  assert.equal(deriveManifestBucket('18.0.0'), '18.0');
+  assert.equal(deriveManifestBucket('18.0'), '18.0');
+});
+
+test('deriveManifestBucket maps the staging/dev pre-release stamp to the "next" bucket', () => {
+  assert.equal(deriveManifestBucket('0.0.0-next-64139ae-20260219'), 'next');
 });
