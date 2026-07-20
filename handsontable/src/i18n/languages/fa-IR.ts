@@ -9,6 +9,7 @@ import * as C from '../constants';
 
 const dictionary = {
   languageCode: 'fa-IR',
+  languageDirection: 'rtl',
 
   [C.OK]: 'تایید',
   [C.CANCEL]: 'لغو',
