@@ -5,7 +5,7 @@ import { registerAllModules } from 'handsontable/registry';
 // register Handsontable's modules
 registerAllModules();
 
-// Embedded so the example is self-contained in StackBlitz and bundler environments.
+// Embedded so the example is self-contained in bundler environments.
 const QUICK_FILTER_STYLES = `
   .controlsQuickFilter {
     position: relative;
