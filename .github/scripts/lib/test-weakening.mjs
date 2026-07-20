@@ -44,6 +44,29 @@ export function countSkipFocus(src) {
 }
 
 /**
+ * Parse `git diff --name-status` output into rows the gate can diff. Handles the
+ * rename/copy form (`R100\told\tnew`), where the OLD path anchors the base-side
+ * content — comparing a renamed spec against empty would false-positive every
+ * pre-existing skip as "added".
+ *
+ * @param {string} nameStatus Raw `git diff --name-status` output.
+ * @returns {{status: string, oldPath: string, path: string}[]} One row per changed
+ *   file: `status` is the single-letter code (M/A/D/R/C…), `path` the head-side
+ *   path, `oldPath` the base-side path (equal to `path` except for renames/copies).
+ */
+export function parseNameStatus(nameStatus) {
+  return (nameStatus || '').split('\n').filter(Boolean).map((line) => {
+    const [status, ...rest] = line.split('\t');
+
+    return {
+      status: status.trim()[0],
+      oldPath: rest[0].trim(),
+      path: rest[rest.length - 1].trim(),
+    };
+  });
+}
+
+/**
  * Detect weakening of a single spec between two revisions.
  *
  * @param {string} before The spec contents at the base revision.
