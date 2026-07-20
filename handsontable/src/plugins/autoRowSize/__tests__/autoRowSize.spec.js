@@ -992,4 +992,71 @@ describe('AutoRowSize', () => {
       expect(toVisualRowSpy).not.toHaveBeenCalled();
     });
   });
+
+  describe('render cost guards', () => {
+    it('should not rebuild the ghost table on selection-only renders when all heights are cached', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        autoRowSize: true,
+      });
+
+      await sleep(150); // let the initial (async) height calculation finish
+
+      const plugin = getPlugin('autoRowSize');
+      const injectTableSpy = spyOn(plugin.ghostTable, 'injectTable').and.callThrough();
+
+      await selectCell(1, 1);
+      await keyDownUp('arrowdown');
+      await keyDownUp('arrowdown');
+
+      expect(injectTableSpy).not.toHaveBeenCalled();
+    });
+
+    it('should re-measure the column header height when a full render follows a settings change', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        colWidths: 60,
+        colHeaders: true,
+        autoRowSize: true,
+      });
+
+      await sleep(150);
+
+      const plugin = getPlugin('autoRowSize');
+      const headerHeightBefore = plugin.getColumnHeaderHeight();
+
+      await updateSettings({
+        colHeaders: ['a<br>much<br>longer<br>label', 'B', 'C'],
+      });
+      await sleep(150);
+
+      expect(plugin.getColumnHeaderHeight()).toBeGreaterThan(headerHeightBefore);
+    });
+
+    it('should recalculate row heights once per multi-column resize gesture', async() => {
+      handsontable({
+        data: createSpreadsheetData(5, 5),
+        colHeaders: true,
+        autoRowSize: true,
+        manualColumnResize: true,
+      });
+
+      await sleep(150);
+
+      const plugin = getPlugin('autoRowSize');
+      const recalculateSpy = spyOn(plugin, 'recalculateAllRowsHeight').and.callThrough();
+
+      // ManualColumnResize fires the hook once per selected column within one synchronous loop.
+      runHooks('beforeColumnResize', 80, 0, false);
+      runHooks('beforeColumnResize', 80, 1, false);
+      runHooks('beforeColumnResize', 80, 2, false);
+
+      expect(recalculateSpy).not.toHaveBeenCalled(); // deferred past the gesture
+
+      await sleep(100);
+
+      expect(recalculateSpy.calls.count()).toBe(1);
+    });
+  });
 });
