@@ -495,12 +495,6 @@ test('vanilla JS/TS guide example gets a runner link that follows the active tab
     );
     assert.ok(html.includes('data-docs-ts="guides/intro/javascript/example1.ts"'), 'expected the .ts variant path for the client-side tab rewrite');
     assert.ok(html.includes('data-runner-version="'), 'expected the version to be carried for the client-side rewrite');
-
-    // The runner link must come first among the toolbar actions, before StackBlitz.
-    assert.ok(
-      html.indexOf('hot-example-runner-btn') < html.indexOf('hot-example-stackblitz-btn'),
-      'runner link should be placed before the StackBlitz button'
-    );
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
@@ -575,7 +569,8 @@ test('recipe examples (outside guides/) get a runner link too', async () => {
       html.includes(`href="https://demos.handsontable.com/?docs=recipes/themes/base-theme/javascript/example1.js&amp;v=${CURRENT_RELEASE_VERSION}"`),
       'recipe examples should link the runner the same way guide examples do'
     );
-    assert.ok(html.includes('hot-example-stackblitz-btn'), 'StackBlitz button should still render');
+    assert.ok(!html.includes('hot-example-stackblitz-btn'), 'StackBlitz button should not render');
+    assert.ok(!html.includes('hot-example-sb-data'), 'StackBlitz data blob should not render');
   } finally {
     rmSync(root, { recursive: true, force: true });
   }
