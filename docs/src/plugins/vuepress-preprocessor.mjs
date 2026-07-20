@@ -12,13 +12,12 @@
  * - ::: source-code-link URL  (convert to <a> tag)
  * - $withBase('/path') → /path
  * - {{$currentVersion}} → resolved Handsontable version string (full semver, e.g. "17.1.0")
- * - {{$currentReleaseVersion}} → published Handsontable package version (e.g. "18.0.0"), never a synthetic pre-release string
  * - {{$currentMinorVersion}} → GitHub branch path for source-code links (e.g. "prod-docs/17.1" or "develop")
  * - @/framework/path links  → /path (cross-framework alias)
  * - <div class="boxes-list"> ... </div>  → Starlight-styled card grid HTML
  */
 
-import { CURRENT_DOCS_VERSION, CURRENT_DOCS_MINOR_VERSION, CURRENT_RELEASE_VERSION } from './docs-version.mjs';
+import { CURRENT_DOCS_VERSION, CURRENT_DOCS_MINOR_VERSION } from './docs-version.mjs';
 import { convertAsideInlineMarkdown } from './aside-inline-markdown.mjs';
 
 /**
@@ -93,12 +92,6 @@ function preprocessMarkdown(content, framework) {
   //     Staging/dev builds use "0.0.0-next-{shortSHA}-{YYYYMMDD}" so that
   //     CodeSandbox links resolve to the correct in-progress build artifact.
   result = result.replace(/\{\{\s*\$currentVersion\s*\}\}/g, CURRENT_DOCS_VERSION);
-
-  // 6c-2. Fix {{$currentReleaseVersion}} → published Handsontable package version.
-  //       Always the version in handsontable/package.json (e.g. "18.0.0"), even
-  //       in staging/dev builds — for links to services that don't understand
-  //       the synthetic "0.0.0-next-..." pre-release string.
-  result = result.replace(/\{\{\s*\$currentReleaseVersion\s*\}\}/g, CURRENT_RELEASE_VERSION);
 
   // 6d. Fix {{$currentMinorVersion}} → GitHub branch path for source-code links.
   //     Production builds produce "prod-docs/X.Y" (e.g. "prod-docs/17.1").
