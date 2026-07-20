@@ -26,16 +26,33 @@ import { chromium } from '@playwright/test';
 // output — so every form must be accepted here.
 const RUNNER_LINK_RE = /href="(https:\/\/demos\.handsontable\.com\/\?docs=([^"&]+))(?:&(?:amp;|#x26;)?v=([^"&]+))?"/gi;
 
+/**
+ * Formats a Date as `YYYYMMDD-HHmmss` for use in a report filename, so
+ * repeated runs don't clobber each other's report.
+ *
+ * @param {Date} date
+ * @returns {string}
+ */
+export function formatTimestamp(date) {
+  const pad = n => String(n).padStart(2, '0');
+
+  return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}-${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+}
+
 const HELP_TEXT = `Usage: node scripts/test-runner-links.mjs [options]
 
   --dist <dir>            built-HTML dir to scan (default: ./dist)
   --runner-origin <url>   runner origin (default: https://demos.handsontable.com)
-  --manifest <url|path>   manifest override (default: <runner-origin>/docs-examples/manifest.json)
+  --version <ver>         Handsontable version the dist was built with — resolves to a
+                           docs-examples bucket ("next", or "X.Y"/"X.Y.Z" -> "X.Y")
+                           (default: next — matches local/staging builds)
+  --manifest <url|path>   manifest override, bypasses --version bucket derivation
+                           (default: <runner-origin>/docs-examples/<bucket>/manifest.json)
   --static-only           skip the headless phase — link extraction + manifest cross-check only
   --tier2-sample <N|all>  how many Vue/Angular links to headless-check per framework (default: 10)
   --concurrency <N>       parallel Tier-1 pages, Tier-2 is capped at min(2, N) (default: 4)
   --filter <substring>    only check docs paths containing this substring
-  --json <path>           report output path (default: ./test-artifacts/runner-sweep-report.json)
+  --json <path>           report output path (default: ./tests/test-artifacts/runner-links/runner-sweep-report-<timestamp>.json)
   --help                  print this message and exit`;
 
 const TIER1_FRAMEWORKS = new Set(['javascript', 'typescript', 'react']);
@@ -111,16 +128,54 @@ export async function collectRunnerLinks(distDir) {
 }
 
 /**
+ * Resolves a Handsontable version string to the docs-examples bucket that
+ * hosts its manifest — mirrors `deriveDocsBucketCandidate` in the runner repo
+ * (handsontable/examples, runner/packages/runtime/src/docs-bucket.ts):
+ * the in-progress build uses the "next" bucket, every release uses "X.Y"
+ * (patch is dropped — the runner buckets examples per minor version).
+ *
+ * Local/staging docs builds stamp `CURRENT_DOCS_VERSION` (see
+ * docs/src/plugins/docs-version.mjs) as `0.0.0-next-{sha}-{date}`, not the
+ * literal string "next" — that pre-release form is also mapped to "next"
+ * here so a version straight out of a runner link resolves correctly.
+ *
+ * @param {string} version
+ * @returns {string}
+ */
+export function deriveManifestBucket(version) {
+  if (version === 'next' || /^0\.0\.0-next-/.test(version)) return 'next';
+
+  const match = String(version).match(/^(\d+)\.(\d+)/);
+
+  return match ? `${match[1]}.${match[2]}` : version;
+}
+
+/**
  * Fetches the runner manifest from an http(s) URL or a local file path.
  *
  * @param {string} manifestSource
  * @returns {Promise<Map<string, object>>} docsPath -> manifest entry
  */
 export async function fetchManifest(manifestSource) {
-  const raw = manifestSource.startsWith('http')
-    ? await (await fetch(manifestSource)).text()
-    : await readFile(manifestSource, 'utf-8');
-  const parsed = JSON.parse(raw);
+  let raw;
+
+  if (manifestSource.startsWith('http')) {
+    const res = await fetch(manifestSource);
+
+    if (!res.ok) throw new Error(`Failed to fetch manifest from ${manifestSource}: HTTP ${res.status}`);
+    raw = await res.text();
+  } else {
+    raw = await readFile(manifestSource, 'utf-8');
+  }
+
+  let parsed;
+
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error(`Manifest at ${manifestSource} is not valid JSON — check the version/bucket is correct.`);
+  }
+
   const examples = parsed.examples ?? parsed;
 
   return new Map(examples.map(entry => [entry.docsPath, entry]));
@@ -158,15 +213,19 @@ function isIgnoredConsoleMessage(message) {
 
 /**
  * Polls every frame in the page (the flattened tree includes nested Sandpack /
- * container iframes) until a rendered Handsontable grid is found or the
- * deadline passes.
+ * container iframes) until a rendered Handsontable grid is found, the
+ * deadline passes, or `shouldAbort` reports a fatal condition (e.g. a 404 on
+ * a runner-origin resource) that makes waiting out the full timeout pointless.
  *
  * @param {import('@playwright/test').Page} page
  * @param {number} deadline - epoch ms
+ * @param {() => boolean} [shouldAbort]
  * @returns {Promise<boolean>}
  */
-async function waitForGrid(page, deadline) {
+async function waitForGrid(page, deadline, shouldAbort) {
   while (Date.now() < deadline) {
+    if (shouldAbort?.()) return false;
+
     for (const frame of page.frames()) {
       const found = await frame
         .evaluate(() => !!document.querySelector('.ht_master .htCore tbody tr td'))
@@ -219,12 +278,21 @@ async function verifyLink(browser, docsPath, link, manifestEntry, progress) {
 
   const page = await browser.newPage();
   const consoleWarnings = [];
+  const notFoundUrls = [];
+  const runnerOrigin = new URL(link.url).origin;
 
   page.on('console', msg => {
     if (msg.type() === 'error' && !isIgnoredConsoleMessage(msg.text())) consoleWarnings.push(msg.text());
   });
   page.on('pageerror', err => {
     if (!isIgnoredConsoleMessage(String(err))) consoleWarnings.push(String(err));
+  });
+  // A 404 on a runner-origin resource (manifest, example JSON, bundle) means
+  // the example can never render — abort the grid wait early instead of
+  // burning the full per-framework timeout. Third-party hosts (Sandpack CDN,
+  // fonts) are excluded: their transient 404s don't imply a broken example.
+  page.on('response', res => {
+    if (res.status() === 404 && res.url().startsWith(runnerOrigin)) notFoundUrls.push(res.url());
   });
 
   const elapsed = () => `${((Date.now() - startedAt) / 1000).toFixed(1)}s`;
@@ -237,15 +305,27 @@ async function verifyLink(browser, docsPath, link, manifestEntry, progress) {
   try {
     const deadline = Date.now() + timeoutMs;
 
+    let mainResponse;
+
     try {
-      await page.goto(link.url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
+      mainResponse = await page.goto(link.url, { waitUntil: 'domcontentloaded', timeout: timeoutMs });
     } catch {
       return finish({ docsPath, url: link.url, framework: manifestEntry.framework, phase: 'load-timeout', reason: `page failed to load within ${timeoutMs}ms`, pages: link.pages, consoleWarnings });
     }
 
-    const gridFound = await waitForGrid(page, deadline);
+    if (mainResponse && mainResponse.status() >= 400) {
+      return finish({ docsPath, url: link.url, framework: manifestEntry.framework, phase: 'http-error', reason: `runner page responded with HTTP ${mainResponse.status()}`, pages: link.pages, consoleWarnings });
+    }
+
+    const gridFound = await waitForGrid(page, deadline, () => notFoundUrls.length > 0);
 
     if (!gridFound) {
+      // A runner-origin 404 is the more precise diagnosis than "no grid" —
+      // and it's what aborted the wait early in the first place.
+      if (notFoundUrls.length > 0) {
+        return finish({ docsPath, url: link.url, framework: manifestEntry.framework, phase: 'http-404', reason: `runner resource(s) returned 404: ${notFoundUrls.slice(0, 3).join(', ')}`, pages: link.pages, consoleWarnings });
+      }
+
       return finish({ docsPath, url: link.url, framework: manifestEntry.framework, phase: 'no-grid', reason: `no Handsontable grid rendered within ${timeoutMs}ms`, pages: link.pages, consoleWarnings });
     }
 
@@ -336,12 +416,13 @@ export function parseArgs(argv) {
   const args = {
     dist: './dist',
     runnerOrigin: 'https://demos.handsontable.com',
+    version: 'next',
     manifest: null,
     staticOnly: false,
     tier2Sample: 10,
     concurrency: 4,
     filter: null,
-    json: './test-artifacts/runner-sweep-report.json',
+    json: `./tests/test-artifacts/runner-links/runner-sweep-report-${formatTimestamp(new Date())}.json`,
     help: false,
   };
 
@@ -351,6 +432,7 @@ export function parseArgs(argv) {
 
     if (arg === '--dist') args.dist = next();
     else if (arg === '--runner-origin') args.runnerOrigin = next();
+    else if (arg === '--version') args.version = next();
     else if (arg === '--manifest') args.manifest = next();
     else if (arg === '--static-only') args.staticOnly = true;
     else if (arg === '--tier2-sample') { const v = next(); args.tier2Sample = v === 'all' ? 'all' : Number(v); }
@@ -360,7 +442,7 @@ export function parseArgs(argv) {
     else if (arg === '--help' || arg === '-h') args.help = true;
   }
 
-  if (!args.manifest) args.manifest = `${args.runnerOrigin}/docs-examples/manifest.json`;
+  if (!args.manifest) args.manifest = `${args.runnerOrigin}/docs-examples/${deriveManifestBucket(args.version)}/manifest.json`;
 
   return args;
 }
@@ -375,7 +457,7 @@ async function main(argv) {
   }
 
   console.log(
-    `Settings: dist=${args.dist} static-only=${args.staticOnly} tier2-sample=${args.tier2Sample} concurrency=${args.concurrency}${args.filter ? ` filter="${args.filter}"` : ''} (run with --help to see all options)`
+    `Settings: dist=${args.dist} version=${args.version} static-only=${args.staticOnly} tier2-sample=${args.tier2Sample} concurrency=${args.concurrency}${args.filter ? ` filter="${args.filter}"` : ''} (run with --help to see all options)`
   );
 
   console.log(`Walking ${args.dist} for runner links...`);
