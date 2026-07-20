@@ -29,7 +29,7 @@ In this tutorial, you will integrate Handsontable into a React app with Fluent U
   sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
 ></iframe>
 
-[**Open in sandbox**](https://demos.handsontable.com/?example=fluent-ui&v={{$currentReleaseVersion}})
+[**Open in sandbox**](https://demos.handsontable.com/?example=fluent-ui&v={{$currentVersion}})
 [**View source on GitHub**](https://github.com/handsontable/examples/tree/master/examples/fluent-ui)
 
 ## Overview

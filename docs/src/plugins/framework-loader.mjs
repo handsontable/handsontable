@@ -12,7 +12,7 @@ import { join, relative, dirname } from 'path';
 import { createRequire } from 'module';
 import { fileURLToPath } from 'url';
 import matter from 'gray-matter';
-import { CURRENT_DOCS_VERSION, CURRENT_DOCS_MINOR_VERSION, CURRENT_RELEASE_VERSION } from './docs-version.mjs';
+import { CURRENT_DOCS_VERSION, CURRENT_DOCS_MINOR_VERSION } from './docs-version.mjs';
 import { LATEST_CHANGELOG_MAJOR } from './changelog-parser.mjs';
 import { convertAsideBodyMarkdown } from './aside-inline-markdown.mjs';
 import { internEcTokenStyles } from './ec-token-styles.mjs';
@@ -281,7 +281,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
   const runnerTsRef = jsRef ? (fileRefs.find(r => r.endsWith('.ts')) ?? null) : null;
   const isRunnerEligible = !!runnerRef;
   const runnerUrl = isRunnerEligible
-    ? `https://demos.handsontable.com/?docs=${runnerRef}&v=${CURRENT_RELEASE_VERSION}`
+    ? `https://demos.handsontable.com/?docs=${runnerRef}&v=${CURRENT_DOCS_VERSION}`
     : '';
 
   // ── StackBlitz data (embedded as JSON for the client-side handler) ─────────
@@ -376,7 +376,7 @@ function buildExampleHtml(id, directive, fileRefs, contentDir, fileMeta = {}, ex
     ${iconCode} Source code ${iconChevron}
   </button>
   <div class="hot-example-actions">
-    ${isRunnerEligible ? `<a class="hot-example-runner-btn" href="${escapeHtml(runnerUrl)}" target="_blank" rel="noopener noreferrer" title="Edit in sandbox" aria-label="Edit in sandbox"${runnerTsRef ? ` data-docs-js="${escapeHtml(jsRef)}" data-docs-ts="${escapeHtml(runnerTsRef)}" data-runner-version="${escapeHtml(CURRENT_RELEASE_VERSION)}"` : ''}>
+    ${isRunnerEligible ? `<a class="hot-example-runner-btn" href="${escapeHtml(runnerUrl)}" target="_blank" rel="noopener noreferrer" title="Edit in sandbox" aria-label="Edit in sandbox"${runnerTsRef ? ` data-docs-js="${escapeHtml(jsRef)}" data-docs-ts="${escapeHtml(runnerTsRef)}" data-runner-version="${escapeHtml(CURRENT_DOCS_VERSION)}"` : ''}>
       ${iconRunner}
     </a>` : ''}
     <button class="hot-example-stackblitz-btn" type="button" title="Edit on StackBlitz" aria-label="Edit on StackBlitz">
@@ -1271,12 +1271,6 @@ function applyVuepressPreprocessing(content, prefix, contentDir) {
   // Staging/dev builds use "0.0.0-next-{shortSHA}-{YYYYMMDD}" so that
   // CodeSandbox links resolve to the correct in-progress build artifact.
   result = result.replace(/\{\{\s*\$currentVersion\s*\}\}/g, CURRENT_DOCS_VERSION);
-
-  // Fix {{$currentReleaseVersion}} → published Handsontable package version.
-  // Always the version in handsontable/package.json (e.g. "18.0.0"), even in
-  // staging/dev builds — for links to services that don't understand the
-  // synthetic "0.0.0-next-..." pre-release string.
-  result = result.replace(/\{\{\s*\$currentReleaseVersion\s*\}\}/g, CURRENT_RELEASE_VERSION);
 
   // Fix {{$currentMinorVersion}} → GitHub branch path for source-code links.
   // Production builds produce "prod-docs/X.Y" (e.g. "prod-docs/17.1").

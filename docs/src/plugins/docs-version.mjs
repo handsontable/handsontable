@@ -107,20 +107,6 @@ function computeDocsVersion() {
 export const CURRENT_DOCS_VERSION = computeDocsVersion();
 
 /**
- * The published Handsontable package version (e.g. "18.0.0"), read directly
- * from `handsontable/package.json` regardless of BUILD_MODE.
- *
- * Unlike CURRENT_DOCS_VERSION, this never resolves to a synthetic
- * "0.0.0-next-..." pre-release string in staging/dev builds. Use it for links
- * to external services that only understand published version numbers (e.g.
- * the "Open in sandbox" links on the theme recipe pages), as opposed to
- * CodeSandbox VM links, which intentionally target the in-progress build.
- *
- * @type {string}
- */
-export const CURRENT_RELEASE_VERSION = getPackageVersion() ?? CURRENT_DOCS_VERSION;
-
-/**
  * The GitHub branch path used for source-code links in documentation pages.
  *
  * Production builds produce a `prod-docs/X.Y` path (e.g. `prod-docs/17.1`)
