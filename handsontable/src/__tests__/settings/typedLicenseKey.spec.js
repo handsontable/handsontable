@@ -190,7 +190,7 @@ describe('settings', () => {
         corner.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
 
         expect(wrapper.classList.contains('is-corner-hover')).toBe(true);
-        expect(getComputedStyle(popover).display).toBe('block');
+        expect(getComputedStyle(popover).display).not.toBe('none');
       });
 
       it('should keep the corner select-all click working underneath the badge', async() => {

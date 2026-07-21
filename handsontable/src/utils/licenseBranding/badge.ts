@@ -121,9 +121,11 @@ export function mountLicenseBadge(
       ${content ? `
         <div data-ref="popover" id="${popoverId}" class="${POPOVER_CLASS}"
           role="${content.dismissible ? 'dialog' : 'tooltip'}" aria-labelledby="${popoverId}-title">
-          <div data-ref="popoverTitle" id="${popoverId}-title" class="${POPOVER_CLASS}__title"></div>
-          <p data-ref="popoverBody" class="${POPOVER_CLASS}__body"></p>
-          <a data-ref="popoverLink" class="${POPOVER_CLASS}__link" target="_blank" rel="noopener noreferrer"></a>
+          <div class="${POPOVER_CLASS}__content">
+            <div data-ref="popoverTitle" id="${popoverId}-title" class="${POPOVER_CLASS}__title"></div>
+            <p data-ref="popoverBody" class="${POPOVER_CLASS}__body"></p>
+            <a data-ref="popoverLink" class="${POPOVER_CLASS}__link" target="_blank" rel="noopener noreferrer"></a>
+          </div>
           ${content.dismissible
     ? `<button data-ref="closeButton" type="button" class="${POPOVER_CLASS}__close" aria-label="Close"></button>`
     : ''}

@@ -103,15 +103,18 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
     );
     // Clamped to the grid box: the wrapper clips its children (`overflow: clip` above), so a fixed
     // 320px panel would be CUT OFF on a small grid - including its close button and links. With the
-    // end inset + auto sizing, the panel shrinks to the available space instead, and its content
-    // scrolls when the grid is shorter than the copy.
+    // end inset + auto sizing, the panel shrinks to the available width instead; its inner content
+    // (`__content`) scrolls when the grid is shorter than the copy. The panel itself stays
+    // `overflow: visible` so the tail is not clipped (any non-`visible` overflow would compute
+    // `overflow-x` to a clipping value and cut off the tail that sits just past the leading edge).
     inset-inline-end: 0;
     z-index: 1051;
     display: none;
+    flex-direction: column;
     inline-size: auto;
     max-inline-size: min(var(--ht-license-popover-width, 320px), calc(100vw - 32px));
     max-block-size: 100%;
-    overflow-y: auto;
+    overflow: visible;
     padding: 16px;
     border-radius: var(--ht-border-radius, 8px);
     // The top-start corner stays square: the tail merges into it.
@@ -142,6 +145,14 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
     }
   }
 
+  // The scrollable text column: it, not the panel, carries the overflow, so a grid shorter than the
+  // copy scrolls the content while the panel keeps its tail visible. `min-block-size: 0` lets it
+  // shrink below its content height inside the flex-column panel.
+  .ht-license-popover__content {
+    min-block-size: 0;
+    overflow-y: auto;
+  }
+
   // Visibility is CSS-driven: the popover shows while the pointer roams the corner (`is-corner-hover`,
   // stamped by delegation), while the pointer or focus is inside the popover itself, and the soft-stop
   // popover additionally stays open via `is-open`. `is-dismissed` (the close button / Escape) gates
@@ -151,7 +162,7 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
   .ht-license-badge-wrapper:not(.is-dismissed):hover .ht-license-popover,
   .ht-license-badge-wrapper:not(.is-dismissed):focus-within .ht-license-popover,
   .ht-license-popover.is-open {
-    display: block;
+    display: flex;
   }
 
   // Without a corner cell (no row or column headers) there is nothing for the badge to sit on and
