@@ -41,7 +41,10 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
     position: absolute;
     inset: 0;
     margin: auto;
-    translate: 3px 0;
+    // The +3px optical nudge (a 6px start inset halved by the auto margins), clamped so it decays
+    // to zero in corners too narrow to absorb it - the glyph must never leave the cell. A raw
+    // `translate` would push it back out of narrow corners.
+    inset-inline-start: clamp(0px, calc(100% - var(--ht-license-badge-size, 20px)), 6px);
     inline-size: min(var(--ht-license-badge-size, 20px), 100%);
     block-size: min(var(--ht-license-badge-size, 20px), 100%);
     background-color: var(--ht-license-badge-color, #c7c7c7);
@@ -54,6 +57,14 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
     mask-repeat: no-repeat;
     -webkit-mask-position: center;
     mask-position: center;
+  }
+
+  // The optical nudge is a physical RIGHTWARD shift in both directions (per design): in RTL,
+  // inline-start maps to the right edge, so the clamped inset moves to the opposite logical side
+  // to keep the same physical direction.
+  [dir="rtl"] .ht-license-badge-on .ht_clone_top_inline_start_corner thead tr:first-child th:first-child::after {
+    inset-inline-start: 0;
+    inset-inline-end: clamp(0px, calc(100% - var(--ht-license-badge-size, 20px)), 6px);
   }
 
   // The badge button is screen-reader-only: it carries the accessible name, the popover wiring
