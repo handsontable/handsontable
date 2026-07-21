@@ -3515,6 +3515,10 @@ export default function Core(
     // width blocks ran) so partial updateSettings calls see the correct state.
     // When height IS set, the height block's `overflow: clip` shorthand handles both axes — leave
     // overflowX untouched to avoid breaking that shorthand.
+    // Only clip for a definite pixel width. A relative width (`100%`, percentages, viewport units)
+    // fills its container, and content wider than that scrolls with the window — matching the
+    // long-standing behavior where the page gains a horizontal scrollbar and every column stays
+    // reachable. Clipping those would silently hide the off-width columns with no scrollbar.
     // Browser compatibility: `overflow-x: clip` requires Safari 16+. On Safari 14.1–15.x it silently
     // falls back to `visible` (graceful degradation — pre-existing behavior, not a new regression).
     if (typeof settings.height !== 'undefined' || typeof settings.width !== 'undefined') {
@@ -3529,8 +3533,7 @@ export default function Core(
         // by `clip`. Unlike `hidden`, `clip` creates no block formatting context and allows no
         // programmatic scroll.
         if (currentOverflowX === '' || currentOverflowX === 'clip') {
-          instance.rootElement.style.overflowX =
-            (effectiveWidth && effectiveWidth !== 'auto') ? 'clip' : '';
+          instance.rootElement.style.overflowX = /px$/.test(effectiveWidth) ? 'clip' : '';
         }
       }
     }

@@ -473,6 +473,22 @@ describe('settings', () => {
         expect(holder.getBoundingClientRect().height).toBeGreaterThan(0);
         expect(hot.view.isVerticallyScrollableByWindow()).toBe(true);
       });
+
+      it('should not clip horizontally when `width` is a percentage and `height` is omitted', async() => {
+        // A percentage width fills its container. Only a definite pixel width is clipped; a relative
+        // width lets content wider than the container scroll with the window (the page gains a
+        // horizontal scrollbar), so every column stays reachable instead of being clipped away.
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 20),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: '100%',
+        });
+
+        expect(window.getComputedStyle(hot.rootElement).overflowX).not.toBe('clip');
+        expect(hot.view.isHorizontallyScrollableByWindow()).toBe(true);
+      });
     });
   });
 });
