@@ -13,6 +13,7 @@ vue:
   metaTitle: License key - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 Activate Handsontable, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
 
@@ -144,6 +145,8 @@ Or include it in the settings object passed to `:settings`:
 
 If you use Handsontable for purposes not intended toward monetary compensation such as, but not limited to, teaching, academic research, evaluation, testing and experimentation, pass the string  `'non-commercial-and-evaluation'`.
 
+With this key, the grid shows the Handsontable badge in its top-left corner. The badge is the only marker of this license - it has no tooltip, and the grid displays no other message, because the Non-Commercial and Evaluation License permits your usage.
+
 ::: only-for javascript
 
 ```js
@@ -216,13 +219,86 @@ export const appConfig: ApplicationConfig = {
 
 :::
 
+## Typed license keys
+
+Handsontable also accepts typed license keys. A typed key is a long, self-descriptive string. Its prefix tells you which license terms apply: `[TRIAL]`, `[FREE]`, `[SUB]`, or `[PERP]`. Pass the whole key string, exactly as you received it, in the same [`licenseKey`](@/api/options.md#licensekey) option:
+
+::: only-for javascript
+
+```js
+const settings = {
+  licenseKey: '[SUB]_this_{Handsontable}_key_is_granted_under_a_subscription_license___...',
+  //... other options
+}
+```
+
+:::
+
+::: only-for react
+
+```jsx
+<HotTable licenseKey="[SUB]_this_{Handsontable}_key_is_granted_under_a_subscription_license___..." />
+```
+
+:::
+
+::: only-for angular
+
+```ts
+import { GridSettings } from "@handsontable/angular-wrapper";
+
+readonly gridSettings: GridSettings = {
+  licenseKey: '[SUB]_this_{Handsontable}_key_is_granted_under_a_subscription_license___...',
+};
+```
+
+:::
+
+::: only-for vue
+
+```html
+<HotTable licenseKey="[SUB]_this_{Handsontable}_key_is_granted_under_a_subscription_license___..." />
+```
+
+:::
+
+Keys issued in the 25-character format keep working without any change.
+
+Each key type behaves differently around its expiration date:
+
+### Trial keys
+
+A `[TRIAL]` key is time-boxed. During the trial, the grid shows the Handsontable badge in its top-left corner, and the console warns how many days remain. Hover over the badge to see the trial status. After the expiration date, a message opens next to the badge and below the grid, and the console reports an error. When the grace period stored in the key also passes, a blocking screen replaces the grid. To purchase a commercial license, contact our [Sales Team](https://handsontable.com/get-a-quote).
+
+### Free-plan keys
+
+A `[FREE]` key never expires. The grid shows the Handsontable badge in its top-left corner, with an upgrade tooltip on hover. The badge is the visible marker of the Free plan - upgrading to a commercial key removes it. The console stays silent.
+
+### Subscription keys
+
+The console warns when your `[SUB]` key expires in 60 days or less. After the expiration date, the console reports an error with the date the software becomes inactive. During that grace period, the grid itself displays no message.
+
+What happens after the grace period depends on the deployment model stored in your key. Keys issued for internal use show a dialog over the grid. You can close the dialog and keep working while your organization renews the license. Keys issued for SaaS products - where the grid is part of a product sold to your own customers - never show any message in the grid. The console error is the only signal.
+
+To renew your subscription, contact our [Sales Team](https://handsontable.com/get-a-quote).
+
+### Perpetual keys
+
+A `[PERP]` key works like the 25-character commercial keys: its maintenance end date is compared against the build date of your Handsontable version, never against the current date. You can use the versions released within your maintenance period indefinitely, including offline.
+
 ## The validation process
 
 We validate the license key to determine whether you are entitled to use the software. To do that, we compare the time between two dates. These dates come from two sources of information. One is the `build date` that is provided in each version of Handsontable. The other is the `creation date` that comes with the license key. This process does not trigger any connection to any server.
 
+Typed keys extend this process. Trial and subscription keys carry their expiration date inside the key, and Handsontable compares that date against the current date. Free-plan keys never expire. Perpetual keys keep the build-date comparison described above. No key type triggers any connection to any server.
+
 ## Notifications
 
-If your license key is missing, invalid, or expired, Handsontable will display an appropriate notification. The notification is displayed in two places, below the table as HTML text and in the console. The messages are as follows:
+If your license key is missing, invalid, or expired, Handsontable will display an appropriate notification. The notification is displayed in two places, below the table as HTML text and in the console.
+
+For a missing or invalid key, the grid also shows the Handsontable badge in its top-left corner, with a hover tooltip that explains the problem. For an expired key, the badge tooltip opens on its own with the expiration date, and you can dismiss it.
+
+The messages are as follows:
 
 ### Missing license key
 

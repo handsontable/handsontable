@@ -1,0 +1,338 @@
+import {
+  TRIAL_KEY,
+  FREEMIUM_KEY,
+  SUBSCRIPTION_KEY,
+  SUBSCRIPTION_SAAS_KEY,
+  FIXTURE_EXPIRY_TIMESTAMP,
+} from '../../utils/typedLicenseKey/__tests__/fixtures';
+
+/* eslint no-console: off */
+describe('settings', () => {
+  describe('licenseKey (typed keys)', () => {
+    const id = 'testContainer';
+    const DAY = 24 * 60 * 60 * 1000;
+    // TRIAL_KEY expires on FIXTURE_EXPIRY_TIMESTAMP with a 15-day grace.
+    const WITHIN_TRIAL = FIXTURE_EXPIRY_TIMESTAMP - (10 * DAY);
+    const WITHIN_GRACE = FIXTURE_EXPIRY_TIMESTAMP + (5 * DAY); // soft stop (0..-15d)
+    const AFTER_GRACE = FIXTURE_EXPIRY_TIMESTAMP + (20 * DAY); // hard stop (>15d)
+    // The subscription fixtures carry a 90-day grace.
+    const SUB_AFTER_GRACE = FIXTURE_EXPIRY_TIMESTAMP + (95 * DAY); // subscription hard stop (>90d)
+
+    beforeEach(function() {
+      this.$container = $(`<div id="${id}"></div>`).appendTo('body');
+      // The hard-stop path logs a console error; keep the test output clean.
+      spyOn(console, 'error');
+      spyOn(console, 'warn');
+    });
+
+    afterEach(function() {
+      if (this.$container) {
+        destroy();
+        this.$container.remove();
+      }
+    });
+
+    describe('active trial', () => {
+      it('should show the corner badge with the trial tooltip and no dialog or bottom bar', async() => {
+        spyOn(Date, 'now').and.returnValue(WITHIN_TRIAL);
+
+        handsontable({ licenseKey: TRIAL_KEY }, true);
+
+        const badge = hot().rootOverlaysElement.querySelector('.ht-license-badge');
+        const popover = hot().rootOverlaysElement.querySelector('.ht-license-popover');
+
+        expect(badge).not.toBe(null);
+        expect(popover.querySelector('.ht-license-popover__title').innerText).toBe('Handsontable Trial');
+        // A hover tooltip is not auto-open.
+        expect(popover.classList.contains('is-open')).toBe(false);
+        expect(getPlugin('dialog').isVisible()).toBe(false);
+        expect(spec().$container[0].querySelector('.hot-display-license-info')).toBe(null);
+      });
+
+      it('should size the badge area from the measured corner (ResizeObserver-delivered)', async() => {
+        spyOn(Date, 'now').and.returnValue(WITHIN_TRIAL);
+
+        handsontable({ licenseKey: TRIAL_KEY, rowHeaders: true, colHeaders: true }, true);
+
+        // The measurement arrives asynchronously (the observer delivers after layout).
+        await sleep(50);
+
+        const wrapper = hot().rootOverlaysElement.querySelector('.ht-license-badge-wrapper');
+        const corner = spec().$container[0].querySelector('.ht_clone_top_inline_start_corner');
+        const firstHeaderRow = corner.querySelector('thead tr');
+
+        expect(wrapper.style.getPropertyValue('--ht-license-badge-area-width'))
+          .toBe(`${corner.offsetWidth}px`);
+        expect(wrapper.style.getPropertyValue('--ht-license-badge-area-height'))
+          .toBe(`${firstHeaderRow.offsetHeight}px`);
+      });
+
+      it('should not pop the tooltip over frozen data cells when there are no headers', async() => {
+        spyOn(Date, 'now').and.returnValue(WITHIN_TRIAL);
+
+        handsontable({ licenseKey: TRIAL_KEY, fixedRowsTop: 2, fixedColumnsStart: 2 }, true);
+
+        const wrapper = hot().rootOverlaysElement.querySelector('.ht-license-badge-wrapper');
+        const popover = wrapper.querySelector('.ht-license-popover');
+        // Without headers the corner clone still exists - it holds the user's frozen DATA cells.
+        const frozenCell = spec().$container[0].querySelector('.ht_clone_top_inline_start_corner tbody td');
+
+        expect(wrapper.classList.contains('is-cornerless')).toBe(true);
+        expect(frozenCell).not.toBe(null);
+
+        frozenCell.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+
+        expect(wrapper.classList.contains('is-corner-hover')).toBe(false);
+        expect(getComputedStyle(popover).display).toBe('none');
+      });
+    });
+
+    describe('freemium', () => {
+      it('should show the corner badge with the freemium tooltip and no bottom bar', async() => {
+        handsontable({ licenseKey: FREEMIUM_KEY }, true);
+
+        const badge = hot().rootOverlaysElement.querySelector('.ht-license-badge');
+        const popover = hot().rootOverlaysElement.querySelector('.ht-license-popover');
+
+        expect(badge).not.toBe(null);
+        expect(popover.querySelector('.ht-license-popover__title').innerText)
+          .toContain('Freemium plan');
+        expect(popover.querySelector('.ht-license-popover__link').innerText).toBe('Learn more');
+        expect(spec().$container[0].querySelector('.hot-display-license-info')).toBe(null);
+      });
+    });
+
+    describe('soft stop (expired, within grace)', () => {
+      it('should show the bottom bar and the auto-open badge popover, and no dialog', async() => {
+        spyOn(Date, 'now').and.returnValue(WITHIN_GRACE);
+
+        handsontable({ licenseKey: TRIAL_KEY }, true);
+
+        const bar = spec().$container[0].querySelector('.hot-display-license-info');
+        const popover = hot().rootOverlaysElement.querySelector('.ht-license-popover');
+
+        expect(getPlugin('dialog').isVisible()).toBe(false);
+        expect(bar).not.toBe(null);
+        expect(bar.innerText).toContain('Your Handsontable license has expired');
+        // The soft-stop popover auto-opens and is dismissible.
+        expect(popover.classList.contains('is-open')).toBe(true);
+        expect(popover.querySelector('.ht-license-popover__close')).not.toBe(null);
+      });
+
+      it('should hide the popover on close even while hovered, and re-arm it once the pointer leaves', async() => {
+        spyOn(Date, 'now').and.returnValue(WITHIN_GRACE);
+
+        handsontable({ licenseKey: TRIAL_KEY, rowHeaders: true, colHeaders: true }, true);
+
+        const wrapper = hot().rootOverlaysElement.querySelector('.ht-license-badge-wrapper');
+        const popover = hot().rootOverlaysElement.querySelector('.ht-license-popover');
+        const corner = spec().$container[0]
+          .querySelector('.ht_clone_top_inline_start_corner thead th');
+
+        // The pointer hovers the popover when the close button is clicked - `is-dismissed` must gate
+        // the hover-driven visibility, so the popover really disappears.
+        popover.dispatchEvent(new MouseEvent('mouseenter', { bubbles: false }));
+        popover.querySelector('.ht-license-popover__close').click();
+
+        expect(popover.classList.contains('is-open')).toBe(false);
+        expect(wrapper.classList.contains('is-dismissed')).toBe(true);
+        expect(getComputedStyle(popover).display).toBe('none');
+
+        // Dismissal holds while the badge keeps the focus it received on close (so the popover does
+        // not flash back open); once focus returns to the grid and the pointer leaves, it re-arms...
+        popover.dispatchEvent(new MouseEvent('mouseleave', { bubbles: false }));
+        await selectCell(0, 0);
+        spec().$container[0].querySelector('td')
+          .dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+
+        expect(wrapper.classList.contains('is-dismissed')).toBe(false);
+
+        // ...and hovering the corner shows it again as a plain tooltip.
+        corner.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+
+        expect(wrapper.classList.contains('is-corner-hover')).toBe(true);
+        expect(getComputedStyle(popover).display).toBe('block');
+      });
+
+      it('should keep the corner select-all click working underneath the badge', async() => {
+        spyOn(Date, 'now').and.returnValue(WITHIN_GRACE);
+
+        handsontable({ licenseKey: TRIAL_KEY, rowHeaders: true, colHeaders: true }, true);
+
+        const badge = hot().rootOverlaysElement.querySelector('.ht-license-badge');
+        const badgeRect = badge.getBoundingClientRect();
+        const hitTarget = document.elementFromPoint(
+          badgeRect.x + (badgeRect.width / 2),
+          badgeRect.y + (badgeRect.height / 2),
+        );
+
+        // The badge is click-through (`pointer-events: none`): the hit target under it is the corner
+        // header, so its native select-all behavior stays intact.
+        expect(badge.contains(hitTarget)).toBe(false);
+
+        await simulateClick(spec().$container.find('.ht_clone_top_inline_start_corner thead th').eq(0));
+
+        expect(getSelected()).toEqual([[-1, -1, countRows() - 1, countCols() - 1]]);
+      });
+    });
+
+    describe('hard stop (grace elapsed) with the Dialog plugin bundled', () => {
+      it('should open a blocking, non-closable dialog', async() => {
+        spyOn(Date, 'now').and.returnValue(AFTER_GRACE);
+
+        handsontable({ licenseKey: TRIAL_KEY }, true);
+
+        const dialogPlugin = getPlugin('dialog');
+
+        expect(dialogPlugin.isVisible()).toBe(true);
+
+        const dialog = hot().rootOverlaysElement.querySelector('.ht-dialog');
+
+        expect(dialog).not.toBe(null);
+        // The lock class lets the theme render the "H." badge in the dialog's top strip.
+        expect(dialog.classList.contains('ht-license-lock')).toBe(true);
+        expect(dialog.innerText).toContain('Your Handsontable license has expired.');
+        expect(dialog.innerText).toContain('Contact Sales');
+      });
+
+      it('should keep the dialog blocking after updateSettings tears the plugin down', async() => {
+        spyOn(Date, 'now').and.returnValue(AFTER_GRACE);
+
+        handsontable({ licenseKey: TRIAL_KEY }, true);
+
+        expect(getPlugin('dialog').isVisible()).toBe(true);
+
+        // A settings update disables an on-demand-enabled plugin; the license lock must survive it.
+        await updateSettings({ rowHeaders: true });
+
+        expect(getPlugin('dialog').isVisible()).toBe(true);
+        expect(hot().rootOverlaysElement.querySelector('.ht-dialog')).not.toBe(null);
+      });
+
+      it('should remove the dialog when the instance is destroyed', async() => {
+        spyOn(Date, 'now').and.returnValue(AFTER_GRACE);
+
+        handsontable({ licenseKey: TRIAL_KEY }, true);
+
+        expect(getPlugin('dialog').isVisible()).toBe(true);
+
+        destroy();
+
+        expect(document.querySelector('.ht-dialog')).toBe(null);
+      });
+
+      it('should release the lock when updateSettings fixes the license key', async() => {
+        spyOn(Date, 'now').and.returnValue(AFTER_GRACE);
+
+        handsontable({ licenseKey: TRIAL_KEY }, true);
+
+        expect(getPlugin('dialog').isVisible()).toBe(true);
+
+        // The customer swapped in a usable key at runtime: the lock must stand down, not re-assert.
+        await updateSettings({ licenseKey: 'non-commercial-and-evaluation' });
+
+        expect(getPlugin('dialog').isVisible()).toBe(false);
+      });
+
+      it('should bring the lock back when the app hides the dialog through the plugin API', async() => {
+        spyOn(Date, 'now').and.returnValue(AFTER_GRACE);
+
+        handsontable({ licenseKey: TRIAL_KEY }, true);
+
+        expect(getPlugin('dialog').isVisible()).toBe(true);
+
+        // The Dialog plugin is a single shared surface - a plain `hide()` must not defeat the
+        // non-closable lock. The re-assert is microtask-deferred.
+        getPlugin('dialog').hide();
+
+        await sleep(10);
+
+        expect(getPlugin('dialog').isVisible()).toBe(true);
+      });
+    });
+
+    describe('subscription hard stop (grace elapsed)', () => {
+      it('should open a closable dialog for an Internal-mode key, with no bar and no badge', async() => {
+        spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
+
+        handsontable({ licenseKey: SUBSCRIPTION_KEY }, true);
+
+        const dialogPlugin = getPlugin('dialog');
+
+        expect(dialogPlugin.isVisible()).toBe(true);
+
+        const dialog = hot().rootOverlaysElement.querySelector('.ht-dialog');
+
+        expect(dialog.classList.contains('ht-license-lock')).toBe(true);
+        expect(dialog.innerText).toContain('Your Handsontable subscription has expired.');
+        expect(dialog.innerText).toContain('Contact Sales');
+        expect(dialog.innerText).toContain('Close');
+        // The dialog is the only subscription surface - no bottom bar, no corner badge.
+        expect(spec().$container[0].querySelector('.hot-display-license-info')).toBe(null);
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);
+      });
+
+      it('should let the end user dismiss the dialog, and keep it dismissed across settings updates', async() => {
+        spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
+
+        handsontable({ licenseKey: SUBSCRIPTION_KEY }, true);
+
+        const dialog = hot().rootOverlaysElement.querySelector('.ht-dialog');
+        const closeButton = Array.from(dialog.querySelectorAll('.ht-button'))
+          .find(button => button.innerText === 'Close');
+
+        expect(closeButton).not.toBe(undefined);
+
+        closeButton.click();
+
+        expect(getPlugin('dialog').isVisible()).toBe(false);
+
+        // The user's dismissal sticks: a settings update must not bring the dialog back.
+        await updateSettings({ rowHeaders: true });
+
+        expect(getPlugin('dialog').isVisible()).toBe(false);
+      });
+
+      it('should keep the dialog up after updateSettings when it was NOT dismissed', async() => {
+        spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
+
+        handsontable({ licenseKey: SUBSCRIPTION_KEY }, true);
+
+        expect(getPlugin('dialog').isVisible()).toBe(true);
+
+        // A settings update disables the on-demand-enabled Dialog plugin and hides the dialog on the
+        // way; that hide is a teardown, not a dismissal, so the lock comes back.
+        await updateSettings({ rowHeaders: true });
+
+        expect(getPlugin('dialog').isVisible()).toBe(true);
+        expect(hot().rootOverlaysElement.querySelector('.ht-dialog')).not.toBe(null);
+      });
+
+      it('should release the lock when updateSettings fixes the license key', async() => {
+        spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
+
+        handsontable({ licenseKey: SUBSCRIPTION_KEY }, true);
+
+        expect(getPlugin('dialog').isVisible()).toBe(true);
+
+        // A renewed key swapped in at runtime must stand the lock down, not re-assert it.
+        await updateSettings({ licenseKey: 'non-commercial-and-evaluation' });
+
+        expect(getPlugin('dialog').isVisible()).toBe(false);
+      });
+
+      it('should stay console-only for a SaaS-mode key: no dialog, no bar, no badge', async() => {
+        spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
+
+        handsontable({ licenseKey: SUBSCRIPTION_SAAS_KEY }, true);
+
+        // The expiry signal is developer-facing only (Case 3b of the license spec): the console
+        // error (asserted in the unit tests - it logs once per page, so a prior spec may have
+        // already consumed it here) with no frontend surface at all.
+        expect(getPlugin('dialog').isVisible()).toBe(false);
+        expect(spec().$container[0].querySelector('.hot-display-license-info')).toBe(null);
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);
+      });
+    });
+  });
+});

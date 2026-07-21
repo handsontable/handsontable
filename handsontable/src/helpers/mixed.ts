@@ -1,4 +1,12 @@
 import { toSingleLine } from './templateLiteralTag';
+import {
+  hasTypedKeyTag,
+  extractTypedKeyData,
+  classifyTypedKeyState,
+  getLicenseGrants,
+  UNRESTRICTED_GRANTS,
+} from '../utils/typedLicenseKey';
+import type { LicenseLifecycle, LicenseGrants } from '../utils/typedLicenseKey';
 
 /**
  * Converts any value to string.
@@ -114,6 +122,95 @@ const domMessages: Record<string, (params: { keyValidityDate?: string; hotVersio
   non_commercial: () => '',
 };
 
+/**
+ * The parameters a typed-key message needs to fill in its placeholders: the days
+ * left until expiry (active/ending states), the formatted expiry date, and the
+ * formatted hard-stop date (subscription soft stop).
+ */
+type TypedMessageParams = {
+  daysRemaining?: number | null;
+  expiryDate?: string;
+  hardStopDate?: string;
+};
+
+/**
+ * The console copy for each typed-license lifecycle state that talks to the
+ * developer. Silent states (freemium, comfortably-valid subscription, valid
+ * perpetual) have no entry. The wording is fixed by the license spec.
+ */
+const typedConsoleMessages: Record<string, (params: TypedMessageParams) => string> = {
+  trial_active: ({ daysRemaining }) => toSingleLine`
+    Your Handsontable trial license key expires in ${daysRemaining} days. To continue using Handsontable\x20
+    contact sales@handsontable.com to purchase a valid commercial license.`,
+  trial_expired: ({ expiryDate }) => toSingleLine`
+    Your Handsontable trial license key expired on ${expiryDate}. To continue using Handsontable\x20
+    contact sales@handsontable.com to purchase a valid commercial license.`,
+  trial_expired_hard: ({ expiryDate }) => toSingleLine`
+    Your Handsontable trial license key expired on ${expiryDate}. You may no longer use Handsontable under the\x20
+    trial license. To continue using the software contact sales@handsontable.com to purchase a valid license.`,
+  sub_ending: ({ expiryDate }) => toSingleLine`
+    Your Handsontable subscription license expires on ${expiryDate}.\x20
+    To renew your license contact sales@handsontable.com.`,
+  sub_expired: ({ expiryDate, hardStopDate }) => toSingleLine`
+    Your Handsontable subscription license key expired on ${expiryDate}. The software will become inactive on\x20
+    ${hardStopDate}. To renew your license contact sales@handsontable.com.`,
+  sub_expired_hard: ({ expiryDate }) => toSingleLine`
+    Your Handsontable subscription license key expired on ${expiryDate}. To continue using the software\x20
+    contact sales@handsontable.com to purchase a valid license key.`,
+};
+
+/**
+ * The console severity for each typed-license state that notifies: a warning
+ * while the license still works (trial running, subscription ending), an error
+ * once it has stopped (expired, hard-stopped).
+ */
+const typedConsoleSeverity: Record<string, 'warn' | 'error'> = {
+  trial_active: 'warn',
+  trial_expired: 'error',
+  trial_expired_hard: 'error',
+  sub_ending: 'warn',
+  sub_expired: 'error',
+  sub_expired_hard: 'error',
+};
+
+/**
+ * The bottom-bar (DOM) copy for the typed states that show one: the soft-stopped
+ * trial, and the hard-stopped trial when the blocking dialog cannot be shown (the
+ * Dialog plugin is not in the bundle). The lapsed perpetual license reuses the
+ * legacy `expired` bar instead.
+ */
+const typedDomMessages: Record<string, (params: TypedMessageParams) => string> = {
+  trial_expired: () => toSingleLine`
+    Your Handsontable license has expired. To continue using Handsontable, you need to purchase a commercial\x20
+    license. <a href="mailto:sales@handsontable.com">Contact Sales</a>.`,
+  trial_expired_hard: () => toSingleLine`
+    Your Handsontable trial license has expired and can no longer be used. To continue using Handsontable, you\x20
+    need to purchase a commercial license. <a href="mailto:sales@handsontable.com">Contact Sales</a>.`,
+};
+
+/**
+ * Builds the bottom-bar DOM node for the hard-stopped trial fallback (shown when
+ * the Dialog plugin is not in the bundle). The node has the same shape and class
+ * names as the notification bar so it drops into the bottom slot the same way -
+ * only the copy differs (see `typedDomMessages.trial_expired_hard`). It is created
+ * detached; the caller mounts it into the bottom slot.
+ *
+ * @param {string} className The license notification class name.
+ * @returns {HTMLElement} The detached bar node.
+ */
+export function _createHardStopLicenseBar(className: string): HTMLElement {
+  const messageNode = document.createElement('div');
+  const innerNode = document.createElement('div');
+
+  messageNode.className = `handsontable ${className}`;
+  innerNode.className = `${className}_inner`;
+  innerNode.innerHTML = typedDomMessages.trial_expired_hard({});
+
+  messageNode.appendChild(innerNode);
+
+  return messageNode;
+}
+
 export function _injectProductInfo(
   { className, key, element, releaseDate }: {
     className?: string;
@@ -122,6 +219,14 @@ export function _injectProductInfo(
     releaseDate?: string;
   }
 ): HTMLElement | null {
+  // Typed keys ([TRIAL], [FREE], [SUB], [PERP]) are routed to their own path
+  // BEFORE any legacy normalization runs. The legacy branch below is left exactly
+  // as-is, so every existing key keeps behaving the same. The tag test is a cheap
+  // prefix check, so a legacy key pays almost nothing for it.
+  if (typeof key === 'string' && hasTypedKeyTag(key)) {
+    return _injectTypedProductInfo({ className, key, element, releaseDate });
+  }
+
   const hasValidType = !isEmpty(key);
   const isNonCommercial = typeof key === 'string' &&
     (key.toLowerCase() === 'non-commercial-and-evaluation' || key.toLowerCase() === 'ht68e-1f2b7-47158-70b05-0842f');
@@ -215,6 +320,267 @@ export function _injectProductInfo(
   }
 
   return null;
+}
+
+/**
+ * Formats an epoch-millisecond timestamp as a UTC calendar date (for example
+ * "August 27, 2026"), the same wording the legacy expired message uses. Exported
+ * for the branding popover copy, so every license surface formats dates the same
+ * way.
+ *
+ * @param {number} timestamp The time to format, in epoch milliseconds.
+ * @returns {string}
+ */
+export function _formatUtcDate(timestamp: number): string {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: '2-digit',
+    timeZone: 'UTC',
+  }).format(timestamp);
+}
+
+/**
+ * Converts the build release date ("dd/mm/yyyy", as injected at build time) into
+ * the epoch milliseconds of its UTC midnight, so a perpetual key can be checked
+ * static-against-static (airgap-safe), exactly like the legacy path.
+ *
+ * @param {string} releaseDate The build release date in "dd/mm/yyyy".
+ * @returns {number}
+ */
+function _releaseDateToTimestamp(releaseDate: string): number {
+  const [dd, mm, yyyy] = `${releaseDate}`.split('/').map(Number);
+
+  return Date.UTC(yyyy, mm - 1, dd);
+}
+
+/**
+ * The non-typed lifecycle states: the legacy 25-character family classified the
+ * same way the frozen legacy emitter classifies it (valid, expired, missing,
+ * non-commercial), plus "invalid" (a broken legacy key or an unreadable typed
+ * key).
+ */
+type NonTypedLifecycleState = 'legacy_valid' | 'legacy_expired' | 'missing' | 'non_commercial' | 'invalid';
+
+/**
+ * The lifecycle facet a consumer reads: the typed states plus the non-typed
+ * states. The typed-only fields are `null` for the non-typed states (except
+ * `expiryTimestamp`, which a legacy-expired key carries too), so a caller can
+ * read `.state` uniformly.
+ */
+export interface LicenseLifecycleFacet {
+  state: LicenseLifecycle['state'] | NonTypedLifecycleState;
+  keyType: LicenseLifecycle['keyType'] | null;
+  daysRemaining: number | null;
+  expiryTimestamp: number | null;
+  hardStopTimestamp: number | null;
+}
+
+/**
+ * The resolved license state handed to the UI and (later) the feature gates:
+ * the lifecycle facet (what the license IS right now) and the grants facet (what
+ * it UNLOCKS). `grants` is never null - the same query API serves legacy keys
+ * (unlock everything) and typed keys (unlock what the payload lists).
+ */
+export interface LicenseStateDescriptor {
+  lifecycle: LicenseLifecycleFacet;
+  grants: LicenseGrants;
+}
+
+/**
+ * Builds the lifecycle facet for a non-typed license state (the legacy
+ * 25-character family, a missing key, the non-commercial key, or an unreadable
+ * typed key).
+ *
+ * @param {string} state The non-typed state.
+ * @param {number|null} [expiryTimestamp] The expiration time (epoch milliseconds)
+ *                                        of a legacy-expired key.
+ * @returns {LicenseLifecycleFacet}
+ */
+function _nonTypedLifecycle(state: NonTypedLifecycleState, expiryTimestamp: number | null = null): LicenseLifecycleFacet {
+  return {
+    state,
+    keyType: null,
+    daysRemaining: null,
+    expiryTimestamp,
+    hardStopTimestamp: null,
+  };
+}
+
+/**
+ * Classifies a non-typed license key into its lifecycle state. This mirrors -
+ * read-only - the exact checks of the frozen legacy branch of
+ * `_injectProductInfo` (the non-commercial comparison, the empty-key test, the
+ * key schema checksum, and the release-days versus validity-days comparison), so
+ * the branding UI sees the same state the legacy console/DOM messaging acts on.
+ * The legacy emitter itself is untouched.
+ *
+ * @param {string} [key] The license key from the grid settings.
+ * @param {string} [releaseDate] The build release date ("dd/mm/yyyy").
+ * @returns {LicenseLifecycleFacet}
+ */
+function _classifyLegacyKey(key?: string, releaseDate?: string): LicenseLifecycleFacet {
+  const isNonCommercial = typeof key === 'string' &&
+    (key.toLowerCase() === 'non-commercial-and-evaluation' || key.toLowerCase() === 'ht68e-1f2b7-47158-70b05-0842f');
+
+  if (isNonCommercial) {
+    return _nonTypedLifecycle('non_commercial');
+  }
+  if (isEmpty(key)) {
+    return _nonTypedLifecycle('missing');
+  }
+
+  const normalizedKey = _norm(key || '') as string;
+
+  if (!_checkKeySchema(normalizedKey)) {
+    return _nonTypedLifecycle('invalid');
+  }
+
+  // `||`, not `??`: a caller resolving the build constant in a broken way passes '' (not
+  // undefined), and the empty string must still fall back to the build-time value.
+  const resolvedReleaseDate = releaseDate || process.env.HOT_RELEASE_DATE || '';
+  const [dd, mm, yyyy] = resolvedReleaseDate.split('/').map(Number);
+  const releaseDays = Math.floor(Date.UTC(yyyy, mm - 1, dd) / 8.64e7);
+  const keyValidityDays = _extractTime(normalizedKey);
+
+  if (releaseDays > keyValidityDays) {
+    return _nonTypedLifecycle('legacy_expired', (keyValidityDays + 1) * 8.64e7);
+  }
+
+  return _nonTypedLifecycle('legacy_valid');
+}
+
+/**
+ * Resolves the full license state (lifecycle + grants) of a license key. This is
+ * the single entry point shared by the console/DOM notification and the branding
+ * UI, so the key is classified once. A non-typed or unreadable key resolves to
+ * UNRESTRICTED grants on purpose: introducing add-on gating must never take a
+ * feature away from an existing customer, and an invalid key nags - it does not
+ * strip features.
+ *
+ * @param {string} [key] The license key from the grid settings.
+ * @param {string} [releaseDate] The build release date ("dd/mm/yyyy").
+ * @returns {LicenseStateDescriptor}
+ */
+export function _getLicenseState(key?: string, releaseDate?: string): LicenseStateDescriptor {
+  // The `*.handsontable.com` bypass applies to the whole license state, not just
+  // the console path. This is the single point that both consumers (the console/
+  // DOM notification and the branding dialog) read, so honoring the bypass here
+  // keeps them consistent - without it, the app-blocking hard-stop dialog would
+  // render on Handsontable's own site.
+  if (_ignored()) {
+    return { lifecycle: _nonTypedLifecycle('legacy_valid'), grants: UNRESTRICTED_GRANTS };
+  }
+
+  if (typeof key !== 'string' || !hasTypedKeyTag(key)) {
+    return { lifecycle: _classifyLegacyKey(key, releaseDate), grants: UNRESTRICTED_GRANTS };
+  }
+
+  const keyData = extractTypedKeyData(key);
+
+  if (keyData === null) {
+    return { lifecycle: _nonTypedLifecycle('invalid'), grants: UNRESTRICTED_GRANTS };
+  }
+
+  // `||`, not `??`: a caller resolving the build constant in a broken way passes '' (not
+  // undefined), and the empty string must still fall back to the build-time value.
+  const resolvedReleaseDate = releaseDate || process.env.HOT_RELEASE_DATE || '';
+  const lifecycle = classifyTypedKeyState(keyData, {
+    now: Date.now(),
+    buildTimestamp: _releaseDateToTimestamp(resolvedReleaseDate),
+  });
+
+  // A checksum-valid key that grants no Handsontable license (for example an
+  // HyperFormula-only key) is not a valid Handsontable license, so it messages
+  // as invalid. Its grants stay UNRESTRICTED though - this null-from-classify
+  // case must NOT fall through to `getLicenseGrants(keyData)`, or an invalid key
+  // would wrongly report Handsontable as not-granted (the opposite of the
+  // single-API guarantee that invalid keys unlock everything).
+  if (lifecycle === null) {
+    return { lifecycle: _nonTypedLifecycle('invalid'), grants: UNRESTRICTED_GRANTS };
+  }
+
+  return { lifecycle, grants: getLicenseGrants(keyData) };
+}
+
+/**
+ * Emits the console and DOM notifications for a typed license key. The console
+ * message fires at most once per page (the shared `_notified` flag) and picks
+ * warn/error by state; the DOM bottom bar is shown only for the soft-stopped
+ * trial and the lapsed perpetual license. The `*.handsontable.com` bypass forces
+ * a silent, valid state, exactly like the legacy path.
+ *
+ * @param {object} params The notification parameters.
+ * @param {string} [params.className] The notification element class name.
+ * @param {string} [params.key] The typed license key.
+ * @param {HTMLElement} [params.element] The container to append the bar into.
+ * @param {string} [params.releaseDate] The build release date ("dd/mm/yyyy").
+ * @returns {HTMLElement|null} The appended bar element, or `null` when none is shown.
+ */
+function _injectTypedProductInfo(
+  { className, key, element, releaseDate }: {
+    className?: string;
+    key?: string;
+    element?: HTMLElement;
+    releaseDate?: string;
+  }
+): HTMLElement | null {
+  if (_ignored()) {
+    return null;
+  }
+
+  const { lifecycle } = _getLicenseState(key, releaseDate);
+  const { state } = lifecycle;
+  const hotVersion = process.env.HOT_VERSION;
+  const expiryDate = lifecycle.expiryTimestamp === null ? undefined : _formatUtcDate(lifecycle.expiryTimestamp);
+  const hardStopDate = lifecycle.hardStopTimestamp === null ? undefined : _formatUtcDate(lifecycle.hardStopTimestamp);
+
+  if (!_notified) {
+    let consoleMessage = '';
+    let consoleMethod: 'warn' | 'error' = 'warn';
+
+    if (state === 'invalid') {
+      consoleMessage = consoleMessages.invalid({});
+    } else if (state === 'perp_expired') {
+      consoleMessage = consoleMessages.expired({ keyValidityDate: expiryDate, hotVersion });
+    } else if (Object.prototype.hasOwnProperty.call(typedConsoleMessages, state)) {
+      consoleMessage = typedConsoleMessages[state]({ daysRemaining: lifecycle.daysRemaining, expiryDate, hardStopDate });
+      consoleMethod = typedConsoleSeverity[state];
+    }
+
+    if (consoleMessage) {
+      console[consoleMethod](consoleMessage);
+      _notified = true;
+    }
+  }
+
+  let domMessage = '';
+
+  if (state === 'trial_expired') {
+    domMessage = typedDomMessages.trial_expired({});
+  } else if (state === 'perp_expired') {
+    domMessage = domMessages.expired({ keyValidityDate: expiryDate, hotVersion });
+  } else if (state === 'invalid') {
+    // An unreadable typed key renders the legacy invalid bar, keeping the
+    // "console once, DOM on every instance" invariant the legacy path has.
+    domMessage = domMessages.invalid({});
+  }
+
+  if (!domMessage || !element) {
+    return null;
+  }
+
+  const messageNode = document.createElement('div');
+  const innerNode = document.createElement('div');
+
+  messageNode.className = `handsontable ${className}`;
+  innerNode.className = `${className}_inner`;
+  innerNode.innerHTML = domMessage;
+
+  messageNode.appendChild(innerNode);
+  element.appendChild(messageNode);
+
+  return messageNode;
 }
 
 function _checkKeySchema(v: string) {

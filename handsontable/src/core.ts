@@ -67,6 +67,7 @@ import {
   uninstall as uninstallAccessibilityAnnouncer,
 } from './utils/a11yAnnouncer';
 import { initLicenseNotification } from './utils/licenseNotification';
+import { initLicenseBranding } from './utils/licenseBranding';
 import { getValueSetterValue } from './utils/valueAccessors';
 import { createThemeManager } from './themes/engine';
 import { LayoutManager, type LayoutConfig } from './core/layout';
@@ -1612,6 +1613,7 @@ export default function Core(
     if (isRootInstance(this)) {
       installAccessibilityAnnouncer(instance.rootPortalElement);
       initLicenseNotification(instance);
+      initLicenseBranding(instance);
 
       // Keep the edge slots (top, bottom) as wide as the table so their content
       // (toolbars, pagination, license notification) aligns with the grid.

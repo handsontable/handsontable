@@ -1,0 +1,220 @@
+@use "../../utils/mixins";
+
+// Handsontable license branding: the corner "H." badge + its popover (trial active, trial soft-stop,
+// freemium, missing key, invalid key, expired legacy key), the popover-less badge of the
+// Non-Commercial and Evaluation License, and the "H." badge in the hard-stop dialog's top strip.
+// ---
+// The badge glyph is ALSO registered as the theme icon `licenseBadge`
+// (`themes/static/variables/icons/main.ts`) for the Figma design pipeline, but the mask is applied
+// here directly so it renders in the base stylesheet without a per-theme icon-CSS regeneration (which
+// needs the gitignored Figma `tokens.json`).
+// Any change here must update the `licenseBadge` icon AND `$license-badge-icon` together.
+$license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0H3.46V4.58H7.4V0H10.84V12H7.4V7.27H3.46V12H0V0Z' fill='%23000'/%3E%3Crect x='12.7' y='12.7' width='3.3' height='3.3' fill='%23000'/%3E%3C/svg%3E";
+
+@mixin output {
+  .ht-license-badge-wrapper {
+    position: absolute;
+    // Spans the root wrapper box exactly and clips its children: an absolutely positioned box still
+    // adds scrollable overflow to a scroll container above it, so a badge sticking out of a short
+    // grid would spawn a scrollbar on the user's `overflow: auto` container (and shrink the measured
+    // grid width - see the settings/width E2E specs). With inset 0 + clip, the license chrome can
+    // never leak outside the grid's own box. `clip` (not `hidden`) - it does not create a scroll
+    // container.
+    inset: 0;
+    overflow: clip;
+    z-index: 1050; // above the grid, below the hard-stop dialog (1060)
+    // Click-through: the corner header cell underneath keeps its native behavior (select-all click,
+    // right-click context menu, drag, touch). Hovering is detected by a delegated listener that stamps
+    // `is-corner-hover` (see licenseBranding.ts); the popover re-enables pointer events for its links.
+    pointer-events: none;
+  }
+
+  .ht-license-badge {
+    // Pinned to the corner: the wrapper spans the whole grid, so the badge must anchor itself (and
+    // use fixed sizes - as a static child it would stretch to the grid width).
+    position: absolute;
+    inset-block-start: 0;
+    // Align the H. badge to the center organoleptically, not pixel-perfectly.
+    inset-inline-start: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    // Spans the corner-header cell exactly: the area variables are set per instance from the MEASURED
+    // corner clone (licenseBranding.ts), so the glyph centers correctly in every theme; the values
+    // here are only the pre-measurement fallback.
+    inline-size: var(--ht-license-badge-area-width, 50px);
+    block-size: var(--ht-license-badge-area-height, 30px);
+    padding: 0;
+    border: 0;
+    background: transparent;
+    // The badge keeps one color in every pointer state (per design) - only keyboard focus darkens it,
+    // as the visible focus indicator.
+    color: var(--ht-license-badge-color, #c7c7c7);
+
+    &:focus-visible {
+      color: var(--ht-license-badge-focus-color, #6b6b6b);
+    }
+
+    // The optical nudge is a physical rightward shift. In RTL, inline-start maps to the right
+    // edge, so the sign flips to keep the glyph nudged the same physical way.
+    [dir="rtl"] & {
+      inset-inline-start: -4px;
+    }
+  }
+
+  .ht-license-badge__glyph {
+    display: block;
+    inline-size: var(--ht-license-badge-size, 20px);
+    block-size: var(--ht-license-badge-size, 20px);
+    background-color: currentColor;
+    pointer-events: none;
+    -webkit-mask-image: url($license-badge-icon);
+    mask-image: url($license-badge-icon);
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
+  }
+
+  .ht-license-popover {
+    @include mixins.font-family;
+
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: calc(
+      var(--ht-license-badge-area-width, 50px) + var(--ht-license-popover-tail-size, 12px) - 11px
+    );
+    z-index: 1051;
+    display: none;
+    inline-size: var(--ht-license-popover-width, 320px);
+    max-inline-size: calc(100vw - 32px);
+    padding: 16px;
+    border-radius: var(--ht-border-radius, 8px);
+    // The top-start corner stays square: the tail merges into it.
+    border-start-start-radius: 0;
+    background-color: var(--ht-license-popover-background-color, #16171a);
+    color: var(--ht-license-popover-foreground-color, #fff);
+    font-size: var(--ht-font-size-small, 12px);
+    line-height: var(--ht-line-height-small, 18px);
+    text-align: start;
+    // The panel is interactive (links, close button) even though its wrapper is click-through.
+    pointer-events: auto;
+
+    @include mixins.box-shadow;
+
+    // The tail (per the design mockups): a right triangle on the leading edge whose flat top runs
+    // collinear with the panel's top edge and whose hypotenuse slopes back into the panel - built
+    // from the border-triangle trick, so it mirrors automatically in RTL.
+    &::before {
+      content: "";
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline-end: 100%;
+      inline-size: 0;
+      block-size: 0;
+      border-block-start: var(--ht-license-popover-tail-size, 12px)
+        solid var(--ht-license-popover-background-color, #16171a);
+      border-inline-start: var(--ht-license-popover-tail-size, 12px) solid transparent;
+    }
+  }
+
+  // Visibility is CSS-driven: the popover shows while the pointer roams the corner (`is-corner-hover`,
+  // stamped by delegation), while the pointer or focus is inside the popover itself, and the soft-stop
+  // popover additionally stays open via `is-open`. `is-dismissed` (the close button / Escape) gates
+  // every hover/focus rule - at dismissal time the pointer still hovers the popover, so without the
+  // gate the hover rules would keep it visible.
+  .ht-license-badge-wrapper.is-corner-hover:not(.is-dismissed) .ht-license-popover,
+  .ht-license-badge-wrapper:not(.is-dismissed):hover .ht-license-popover,
+  .ht-license-badge-wrapper:not(.is-dismissed):focus-within .ht-license-popover,
+  .ht-license-popover.is-open {
+    display: block;
+  }
+
+  // Without a corner cell (no row or column headers) there is nothing for the badge to sit on and
+  // nothing for the tail to point at: the badge hides, and the popover attaches to the table's
+  // inline-start edge with its rounded corner restored and no tail.
+  .ht-license-badge-wrapper.is-cornerless {
+    .ht-license-badge {
+      display: none;
+    }
+
+    .ht-license-popover {
+      inset-inline-start: 0;
+      border-start-start-radius: var(--ht-border-radius, 8px);
+
+      &::before {
+        display: none;
+      }
+    }
+  }
+
+  .ht-license-popover__title {
+    margin-block-end: 8px;
+    padding-inline-end: 16px; // clear the close button
+    font-weight: bold;
+  }
+
+  .ht-license-popover__body {
+    margin: 0 0 12px;
+    color: var(--ht-license-popover-body-color, #d5d6d8);
+  }
+
+  .ht-license-popover__link {
+    color: var(--ht-license-popover-link-color, #3ba0ff);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  .ht-license-popover__close {
+    position: absolute;
+    inset-block-start: 12px;
+    inset-inline-end: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    inline-size: 20px;
+    block-size: 20px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    line-height: 1;
+
+    &::before {
+      content: "\2715"; // placeholder close glyph until the design icon ships
+      font-size: 14px;
+    }
+  }
+
+  // The hard-stop dialog: render the "H." badge in the dialog's top-left corner (the greyed logomark
+  // of the hard-stop mockup). The content wrapper fills the whole dialog while the inner box is the
+  // centered content, so the badge is pinned to the wrapper. Placeholder styling until the design
+  // asset ships.
+  .ht-license-lock {
+    .ht-dialog__content-wrapper {
+      position: relative;
+    }
+
+    .ht-dialog__content-wrapper::before {
+      content: "";
+      position: absolute;
+      inset-block-start: 14px;
+      inset-inline-start: 16px;
+      inline-size: 20px;
+      block-size: 20px;
+      background-color: var(--ht-license-badge-color, #c7c7c7);
+      -webkit-mask-image: url($license-badge-icon);
+      mask-image: url($license-badge-icon);
+      -webkit-mask-size: contain;
+      mask-size: contain;
+      -webkit-mask-repeat: no-repeat;
+      mask-repeat: no-repeat;
+    }
+  }
+}
