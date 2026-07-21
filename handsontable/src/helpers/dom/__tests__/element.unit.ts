@@ -1190,5 +1190,33 @@ describe('DomElement helper', () => {
 
       expect(getTrimmingContainer(base)).toBe(wrapper);
     });
+
+    it('should return the window when the two-value `overflow` shorthand clips one axis (`clip visible`)', () => {
+      // The inline `overflow` shorthand can carry two values. `clip visible` means
+      // `overflow-x: clip; overflow-y: visible`, so the single-axis-clip rule must apply here too —
+      // the early inline path must not treat any non-`visible` shorthand as a trimming container.
+      wrapper.style.overflow = 'clip visible';
+
+      expect(getTrimmingContainer(base)).toBe(window);
+    });
+
+    it('should return the window when the two-value `overflow` shorthand clips the vertical axis (`visible clip`)', () => {
+      wrapper.style.overflow = 'visible clip';
+
+      expect(getTrimmingContainer(base)).toBe(window);
+    });
+
+    it('should return the ancestor when the `overflow` shorthand clips both axes (`clip`)', () => {
+      wrapper.style.overflow = 'clip';
+
+      expect(getTrimmingContainer(base)).toBe(wrapper);
+    });
+
+    it('should return the ancestor when the two-value `overflow` shorthand scrolls one axis (`auto visible`)', () => {
+      // A real single-axis scroll container via the shorthand still trims.
+      wrapper.style.overflow = 'auto visible';
+
+      expect(getTrimmingContainer(base)).toBe(wrapper);
+    });
   });
 });

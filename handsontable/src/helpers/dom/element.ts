@@ -862,6 +862,28 @@ function overflowAxisTraps(axis: string, perpendicular: string): boolean {
 }
 
 /**
+ * Resolves the effective `overflow-x`/`overflow-y` of an element, preferring inline styles.
+ *
+ * The inline `overflow` shorthand can carry two values (`overflow: clip visible` → x, y). Some
+ * engines (jsdom) neither split that shorthand into `overflowX`/`overflowY` nor reflect it in the
+ * computed style, so the shorthand string is parsed directly. Inline values win over computed ones
+ * so an inline single-axis clip is evaluated by the same `overflowAxisTraps` rule as a computed one.
+ *
+ * @param {HTMLElement} el The element to read overflow from.
+ * @param {CSSStyleDeclaration} computedStyle The element's computed style.
+ * @returns {{ x: string, y: string }}
+ */
+function resolveOverflowAxes(el: HTMLElement, computedStyle: CSSStyleDeclaration): { x: string, y: string } {
+  const shorthand = el.style.overflow.split(/\s+/).filter(Boolean);
+  const [shorthandX = '', shorthandY = shorthandX] = shorthand;
+
+  return {
+    x: el.style.overflowX || shorthandX || computedStyle.getPropertyValue('overflow-x'),
+    y: el.style.overflowY || shorthandY || computedStyle.getPropertyValue('overflow-y'),
+  };
+}
+
+/**
  * Returns a DOM element responsible for trimming the provided element.
  *
  * @param {HTMLElement} base Base element.
@@ -874,21 +896,14 @@ export function getTrimmingContainer(base: HTMLElement): HTMLElement | Window {
   let el: HTMLElement | null = base.parentElement;
 
   while (el && el.style && rootDocument.body !== el) {
-    if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
-      return el;
-    }
-
     if (rootWindow) {
-      const computedStyle = rootWindow.getComputedStyle(el);
-      const property = computedStyle.getPropertyValue('overflow');
-      const propertyY = computedStyle.getPropertyValue('overflow-y');
-      const propertyX = computedStyle.getPropertyValue('overflow-x');
+      const { x, y } = resolveOverflowAxes(el, rootWindow.getComputedStyle(el));
 
-      if (OVERFLOW_TRIMMING_VALUES.includes(property) ||
-          overflowAxisTraps(propertyX, propertyY) ||
-          overflowAxisTraps(propertyY, propertyX)) {
+      if (overflowAxisTraps(x, y) || overflowAxisTraps(y, x)) {
         return el;
       }
+    } else if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
+      return el;
     }
 
     el = el.parentElement;
