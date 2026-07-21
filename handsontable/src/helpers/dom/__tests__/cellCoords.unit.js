@@ -399,4 +399,178 @@ describe('getCellCoordsFromMousePosition', () => {
       expect(coords.row).toBe(4);
     });
   });
+
+  describe('reference column selection with a horizontal merge present', () => {
+    // Regression guard: column 1 is a slave of a purely horizontal merge, so its cells report
+    // `hidden: true` while still rendering at their own single-row height. Column 0 holds a
+    // vertical merge (rows 0-2). The row lookup must not reject column 1 just because it is
+    // hidden — otherwise it falls back to the vertically merged column 0 and collapses the row.
+    const rowHeight = 30;
+    const colWidth = 80;
+    const mergeSpan = 3; // column 0 merged across rows 0-2
+
+    /**
+     * Builds a HOT stub: column 0 is a vertical merge (rows 0-2), column 1 is a hidden slave of
+     * a purely horizontal merge (single-row height per row).
+     *
+     * @returns {object} Stubbed HOT instance.
+     */
+    function buildHotWithHorizontalSlave() {
+      return {
+        rootWindow: { innerWidth: 1280, innerHeight: 720 },
+        rootElement: { getBoundingClientRect: () => ({ left: 0, top: 0, right: 160, bottom: 120 }) },
+        isRtl: () => false,
+        hasColHeaders: () => false,
+        hasRowHeaders: () => false,
+        getFirstPartiallyVisibleRow: () => 0,
+        getLastPartiallyVisibleRow: () => 3,
+        getFirstPartiallyVisibleColumn: () => 0,
+        getLastPartiallyVisibleColumn: () => 1,
+        countRows: () => 4,
+        countCols: () => 2,
+        getCell: (row, col) => {
+          const el = document.createElement('td');
+          const isVerticalMerge = col === 0 && row < mergeSpan;
+          const top = isVerticalMerge ? 0 : row * rowHeight;
+          const height = isVerticalMerge ? rowHeight * mergeSpan : rowHeight;
+
+          Object.defineProperty(el, 'offsetHeight', { get: () => height });
+          Object.defineProperty(el, 'offsetWidth', { get: () => colWidth });
+          el.getBoundingClientRect = () => ({
+            top,
+            left: col * colWidth,
+            bottom: top + height,
+            right: (col * colWidth) + colWidth,
+          });
+
+          return el;
+        },
+        getCellMeta: (row, col) => {
+          if (col === 0 && row === 0) {
+            return { rowspan: mergeSpan, colspan: 1 };
+          }
+          // Column 1 is a hidden slave of a horizontal merge, but not vertically spanned.
+          if (col === 1) {
+            return { rowspan: 1, colspan: 1, hidden: true };
+          }
+
+          return { rowspan: 1, colspan: 1 };
+        },
+        _createCellCoords: (row, col) => ({ row, col }),
+        columnIndexMapper: {
+          getVisualFromRenderableIndex: n => n,
+          getNearestNotHiddenIndex: n => n,
+        },
+        rowIndexMapper: {
+          getVisualFromRenderableIndex: n => n,
+          getNearestNotHiddenIndex: n => n,
+          getNotHiddenIndexesLength: () => 4,
+        },
+        view: {
+          isVerticallyScrollableByWindow: () => false,
+          isHorizontallyScrollableByWindow: () => false,
+          getViewportWidth: () => 160,
+          getViewportHeight: () => 120,
+          getColumnHeaderHeight: () => 0,
+          getRowHeaderWidth: () => 0,
+          countNotHiddenFixedColumnsStart: () => 0,
+          countNotHiddenFixedRowsTop: () => 0,
+          countNotHiddenFixedRowsBottom: () => 0,
+        },
+      };
+    }
+
+    it('does not reject a hidden horizontal-merge slave as the row reference', () => {
+      const hot = buildHotWithHorizontalSlave();
+      // Y at the centre of row 2 (60..90 → 75), inside column 0's vertical merge band.
+      // Column 1 (hidden horizontal slave) has real per-row heights, so the row must resolve
+      // to 2 - not collapse onto the merge anchor (row 0) via a fallback to column 0.
+      const coords = getCellCoordsFromMousePosition(hot, 100, 75);
+
+      expect(coords.row).toBe(2);
+    });
+  });
+
+  describe('vertical merge confined to the fixed (frozen) top rows', () => {
+    // Regression guard (DEV-2115 follow-up): a vertical merge that lives only in the frozen top
+    // rows must be detected when resolving a row inside the frozen overlay. The reference column
+    // is chosen per row-scan range, so the fixed-top walk sees the frozen merge even though the
+    // scrollable "partially visible" range starts below it.
+    const rowHeight = 30;
+    const colWidth = 80;
+
+    /**
+     * Builds a HOT stub with 3 fixed top rows; column 0 holds a vertical merge across the frozen
+     * rows 0-1, while the scrollable body (rows 10+) has no merges.
+     *
+     * @returns {object} Stubbed HOT instance.
+     */
+    function buildHotWithFrozenMerge() {
+      return {
+        rootWindow: { innerWidth: 1280, innerHeight: 720 },
+        rootElement: { getBoundingClientRect: () => ({ left: 0, top: 0, right: 400, bottom: 400 }) },
+        isRtl: () => false,
+        hasColHeaders: () => false,
+        hasRowHeaders: () => false,
+        // Scrollable body is scrolled down - the frozen rows (0-2) are outside this range.
+        getFirstPartiallyVisibleRow: () => 10,
+        getLastPartiallyVisibleRow: () => 20,
+        getFirstPartiallyVisibleColumn: () => 0,
+        getLastPartiallyVisibleColumn: () => 4,
+        countRows: () => 30,
+        countCols: () => 5,
+        getCell: (row, col) => {
+          const el = document.createElement('td');
+          const isFrozenMerge = col === 0 && row < 2; // A1:A2 vertical merge in frozen rows
+          const top = isFrozenMerge ? 0 : row * rowHeight;
+          const height = isFrozenMerge ? rowHeight * 2 : rowHeight;
+
+          Object.defineProperty(el, 'offsetHeight', { get: () => height });
+          Object.defineProperty(el, 'offsetWidth', { get: () => colWidth });
+          el.getBoundingClientRect = () => ({
+            top,
+            left: col * colWidth,
+            bottom: top + height,
+            right: (col * colWidth) + colWidth,
+          });
+
+          return el;
+        },
+        getCellMeta: (row, col) => (
+          col === 0 && row === 0 ? { rowspan: 2, colspan: 1 } : { rowspan: 1, colspan: 1 }
+        ),
+        _createCellCoords: (row, col) => ({ row, col }),
+        columnIndexMapper: {
+          getVisualFromRenderableIndex: n => n,
+          getNearestNotHiddenIndex: n => n,
+        },
+        rowIndexMapper: {
+          getVisualFromRenderableIndex: n => n,
+          getNearestNotHiddenIndex: n => n,
+          getNotHiddenIndexesLength: () => 30,
+        },
+        view: {
+          isVerticallyScrollableByWindow: () => false,
+          isHorizontallyScrollableByWindow: () => false,
+          getViewportWidth: () => 400,
+          getViewportHeight: () => 400,
+          getColumnHeaderHeight: () => 0,
+          getRowHeaderWidth: () => 0,
+          countNotHiddenFixedColumnsStart: () => 0,
+          countNotHiddenFixedRowsTop: () => 3,
+          countNotHiddenFixedRowsBottom: () => 0,
+        },
+      };
+    }
+
+    it('resolves a frozen row inside the merge band using a merge-free reference column', () => {
+      const hot = buildHotWithFrozenMerge();
+      // Y at the centre of frozen row 1 (30..60 → 45), inside column 0's frozen merge band.
+      // Pointer over column 1 (x 80-160). Must resolve to row 1, not the merge anchor (row 0).
+      const coords = getCellCoordsFromMousePosition(hot, 100, 45);
+
+      expect(coords.col).toBe(1);
+      expect(coords.row).toBe(1);
+    });
+  });
 });
