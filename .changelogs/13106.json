@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Added support for typed license keys ([TRIAL], [FREE], [SUB], [PERP]): per-type console messaging around expiration, a corner Handsontable badge with a status tooltip (also shown for missing, invalid, non-commercial, and expired legacy keys), a blocking screen after the trial grace period, and a closable expiration dialog for internal-use subscription licenses. Existing license keys work unchanged.",
+  "type": "added",
+  "issueOrPR": 13106,
+  "breaking": false,
+  "framework": "none"
+}
