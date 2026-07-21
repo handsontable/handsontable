@@ -94,6 +94,49 @@ function findRowAtY(
 }
 
 /**
+ * Finds a column suitable for mapping a Y coordinate to a row: the first column in the range
+ * whose cells across the scanned rows all render at their own single-row height. `findRowAtY`
+ * walks a single column's cell heights, so it is distorted by two kinds of merged cell:
+ * a vertical-merge anchor (`rowspan > 1`, whose cell spans and hides the rows below it) and any
+ * merge slave (`hidden`, whose cell is collapsed to zero height — this also covers the hidden
+ * columns of a purely horizontal merge). A merge in one column must not distort the row lookup
+ * used for other columns (DEV-2115).
+ *
+ * @param {Handsontable} hotInstance The Handsontable instance.
+ * @param {number} startColumn First column to consider.
+ * @param {number} endColumn Last column to consider (inclusive).
+ * @param {number} startRow First row of the scanned range.
+ * @param {number} endRow Last row of the scanned range (inclusive).
+ * @returns {number} A column index free of merge distortion, or `startColumn` if none qualifies.
+ */
+function findRowReferenceColumn(
+  hotInstance: HotInstance,
+  startColumn: number,
+  endColumn: number,
+  startRow: number,
+  endRow: number,
+): number {
+  for (let column = startColumn; column <= endColumn; column++) {
+    let isDistortedByMerge = false;
+
+    for (let row = startRow; row <= endRow; row++) {
+      const { rowspan, hidden } = hotInstance.getCellMeta<{ rowspan?: number, hidden?: boolean }>(row, column);
+
+      if (hidden === true || (rowspan !== undefined && rowspan > 1)) {
+        isDistortedByMerge = true;
+        break;
+      }
+    }
+
+    if (!isDistortedByMerge) {
+      return column;
+    }
+  }
+
+  return startColumn;
+}
+
+/**
  * Get the cell coordinates from the mouse position. When the mouse is outside of the table,
  * the nearest cell is returned.
  *
@@ -214,6 +257,23 @@ export function getCellCoordsFromMousePosition(
     }
   }
 
+  if (foundColumn === null) {
+    throwWithCause('Failed to resolve cell coordinates from mouse position.');
+  }
+
+  // Resolve the row against a column that has no vertical merge across the visible rows.
+  // `findRowAtY` skips a merged cell's spanned rows, so measuring against a vertically merged
+  // column collapses every Y inside the band onto the merge anchor. Neither a fixed column nor
+  // the pointer's column is universally safe (a merge can live in either), so pick the first
+  // visible column that is free of vertical merges in the scanned range (DEV-2115).
+  const rowReferenceColumn = findRowReferenceColumn(
+    hotInstance,
+    firstPartiallyVisibleColumn ?? 0,
+    lastPartiallyVisibleColumn ?? (hotInstance.countCols() - 1),
+    firstPartiallyVisibleRow ?? 0,
+    lastPartiallyVisibleRow ?? (hotInstance.countRows() - 1),
+  );
+
   let foundRow: number | null = null;
 
   // Check fixed top rows first
@@ -225,7 +285,7 @@ export function getCellCoordsFromMousePosition(
       : null;
 
     if (firstNonHiddenRow !== null && lastFixedRow !== null) {
-      const fixedCell = hotInstance.getCell(firstNonHiddenRow, firstPartiallyVisibleColumn, true);
+      const fixedCell = hotInstance.getCell(firstNonHiddenRow, rowReferenceColumn, true);
 
       if (fixedCell instanceof HTMLElement) {
         const fixedCellRect = fixedCell.getBoundingClientRect();
@@ -233,7 +293,7 @@ export function getCellCoordsFromMousePosition(
 
         foundRow = findRowAtY(
           hotInstance,
-          firstPartiallyVisibleColumn,
+          rowReferenceColumn,
           firstNonHiddenRow,
           lastFixedRow,
           fixedRelativeY,
@@ -255,7 +315,7 @@ export function getCellCoordsFromMousePosition(
       : null;
 
     if (bottomStartNonHiddenRow !== null && bottomEndNonHiddenRow !== null) {
-      const fixedBottomCell = hotInstance.getCell(bottomStartNonHiddenRow, firstPartiallyVisibleColumn, true);
+      const fixedBottomCell = hotInstance.getCell(bottomStartNonHiddenRow, rowReferenceColumn, true);
 
       if (fixedBottomCell instanceof HTMLElement) {
         const fixedBottomCellRect = fixedBottomCell.getBoundingClientRect();
@@ -264,7 +324,7 @@ export function getCellCoordsFromMousePosition(
         if (fixedBottomRelativeY >= 0) {
           foundRow = findRowAtY(
             hotInstance,
-            firstPartiallyVisibleColumn,
+            rowReferenceColumn,
             bottomStartNonHiddenRow,
             bottomEndNonHiddenRow,
             fixedBottomRelativeY
@@ -280,7 +340,7 @@ export function getCellCoordsFromMousePosition(
 
   // Check scrollable rows (main table)
   if (foundRow === null) {
-    const scrollCell = hotInstance.getCell(firstPartiallyVisibleRow, firstPartiallyVisibleColumn, true);
+    const scrollCell = hotInstance.getCell(firstPartiallyVisibleRow, rowReferenceColumn, true);
 
     if (scrollCell instanceof HTMLElement) {
       const scrollCellRect = scrollCell.getBoundingClientRect();
@@ -288,7 +348,7 @@ export function getCellCoordsFromMousePosition(
 
       foundRow = findRowAtY(
         hotInstance,
-        firstPartiallyVisibleColumn,
+        rowReferenceColumn,
         firstPartiallyVisibleRow,
         lastPartiallyVisibleRow,
         scrollRelativeY,
@@ -306,7 +366,7 @@ export function getCellCoordsFromMousePosition(
     }
   }
 
-  if (foundRow === null || foundColumn === null) {
+  if (foundRow === null) {
     throwWithCause('Failed to resolve cell coordinates from mouse position.');
   }
 

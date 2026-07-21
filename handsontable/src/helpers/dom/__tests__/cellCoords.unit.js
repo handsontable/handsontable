@@ -304,4 +304,99 @@ describe('getCellCoordsFromMousePosition', () => {
       });
     });
   });
+
+  describe('vertical merge in a column other than the one under the mouse', () => {
+    // Reproduces DEV-2115: the first visible column (col 0) has a vertical merge
+    // spanning rows 2-4 (rowspan 3). The row lookup used to always measure against
+    // that first column, so any mouse Y inside the merged band collapsed onto the
+    // merge anchor (row 2). When the mouse is over a NON-merged column, the row must
+    // resolve to the actual row under the pointer, independent of the other column's
+    // merge.
+    const rowHeight = 30;
+    const colWidth = 80;
+    const mergeStart = 2;
+    const mergeSpan = 3; // rows 2, 3, 4 merged in column 0
+
+    /**
+     * Builds a HOT stub whose column 0 holds a rowspan-3 merge (rows 2-4).
+     *
+     * @returns {object} Stubbed HOT instance.
+     */
+    function buildHotWithMergedFirstColumn() {
+      return {
+        rootWindow: { innerWidth: 1280, innerHeight: 720 },
+        rootElement: { getBoundingClientRect: () => ({ left: 0, top: 0, right: 500, bottom: 180 }) },
+        isRtl: () => false,
+        hasColHeaders: () => false,
+        hasRowHeaders: () => false,
+        getFirstPartiallyVisibleRow: () => 0,
+        getLastPartiallyVisibleRow: () => 5,
+        getFirstPartiallyVisibleColumn: () => 0,
+        getLastPartiallyVisibleColumn: () => 4,
+        countRows: () => 6,
+        countCols: () => 5,
+        getCell: (row, col) => {
+          const el = document.createElement('td');
+          const isMerged = col === 0 && row >= mergeStart && row < mergeStart + mergeSpan;
+          const top = isMerged ? mergeStart * rowHeight : row * rowHeight;
+          const height = isMerged ? rowHeight * mergeSpan : rowHeight;
+
+          Object.defineProperty(el, 'offsetHeight', { get: () => height });
+          Object.defineProperty(el, 'offsetWidth', { get: () => colWidth });
+          el.getBoundingClientRect = () => ({
+            top,
+            left: col * colWidth,
+            bottom: top + height,
+            right: (col * colWidth) + colWidth,
+          });
+
+          return el;
+        },
+        getCellMeta: (row, col) => (
+          col === 0 && row === mergeStart
+            ? { rowspan: mergeSpan, colspan: 1 }
+            : { rowspan: 1, colspan: 1 }
+        ),
+        _createCellCoords: (row, col) => ({ row, col }),
+        columnIndexMapper: {
+          getVisualFromRenderableIndex: n => n,
+          getNearestNotHiddenIndex: n => n,
+        },
+        rowIndexMapper: {
+          getVisualFromRenderableIndex: n => n,
+          getNearestNotHiddenIndex: n => n,
+          getNotHiddenIndexesLength: () => 6,
+        },
+        view: {
+          isVerticallyScrollableByWindow: () => false,
+          isHorizontallyScrollableByWindow: () => false,
+          getViewportWidth: () => 500,
+          getViewportHeight: () => 180,
+          getColumnHeaderHeight: () => 0,
+          getRowHeaderWidth: () => 0,
+          countNotHiddenFixedColumnsStart: () => 0,
+          countNotHiddenFixedRowsTop: () => 0,
+          countNotHiddenFixedRowsBottom: () => 0,
+        },
+      };
+    }
+
+    it('resolves the row under the mouse in a non-merged column, ignoring the merge in column 0', () => {
+      const hot = buildHotWithMergedFirstColumn();
+      // Mouse over column 1 (x 80-160), Y at the centre of row 3 (90..120 → 105).
+      const coords = getCellCoordsFromMousePosition(hot, 100, 105);
+
+      expect(coords.col).toBe(1);
+      expect(coords.row).toBe(3);
+    });
+
+    it('resolves the last merged-band row in a non-merged column', () => {
+      const hot = buildHotWithMergedFirstColumn();
+      // Y at the centre of row 4 (120..150 → 135), still inside column 0's merged band.
+      const coords = getCellCoordsFromMousePosition(hot, 100, 135);
+
+      expect(coords.col).toBe(1);
+      expect(coords.row).toBe(4);
+    });
+  });
 });
