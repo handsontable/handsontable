@@ -410,6 +410,46 @@ describe('settings', () => {
         expect(hot.rootElement.style.overflow).toBe('hidden');
         expect(hot.rootElement.style.overflowX).toBe('hidden');
       });
+
+      it('should not vertically collapse the grid when `width` is set and `height` is omitted', async() => {
+        // Regression guard: the width-clip block sets `overflow-x: clip` on the root. The trimming
+        // container lookup must not treat that horizontal-only clip as a vertical trimming
+        // container, or the master holder is pinned to `0px` and the fully rendered rows are
+        // clipped to an invisible grid (the table's content height is > 0 but nothing shows).
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 6),
+          rowHeaders: true,
+          colHeaders: true,
+          width: '100%',
+        });
+
+        const holder = hot.rootElement.querySelector('.ht_master .wtHolder');
+        const table = hot.rootElement.querySelector('.ht_master .htCore');
+
+        // The holder must size to its content, not collapse to zero.
+        expect(holder.getBoundingClientRect().height).toBeGreaterThan(0);
+        expect(holder.getBoundingClientRect().height)
+          .toBeAroundValue(table.getBoundingClientRect().height, 2);
+      });
+
+      it('should stay window-scrollable when `width` is set and `height` is omitted', async() => {
+        // The horizontal-only `overflow-x: clip` must leave the vertical axis scrolling with the
+        // window. If the clipped root is picked as the trimming container, the overlays drop out of
+        // window-scroll mode: frozen rows stop pinning and vertical virtualization stops (every row
+        // renders into the DOM).
+        const hot = handsontable({
+          data: createSpreadsheetData(200, 6),
+          rowHeaders: true,
+          colHeaders: true,
+          fixedRowsTop: 2,
+          width: '100%',
+        });
+
+        expect(hot.view.isVerticallyScrollableByWindow()).toBe(true);
+        // Window-scroll viewport virtualizes: only a slice of the 200 rows is rendered.
+        expect(hot.rootElement.querySelectorAll('.ht_master .htCore tbody tr').length)
+          .toBeLessThan(200);
+      });
     });
   });
 });

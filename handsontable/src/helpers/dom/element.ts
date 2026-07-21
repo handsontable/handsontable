@@ -864,9 +864,18 @@ export function getTrimmingContainer(base: HTMLElement): HTMLElement | Window {
       const propertyY = computedStyle.getPropertyValue('overflow-y');
       const propertyX = computedStyle.getPropertyValue('overflow-x');
 
-      if (allowedProperties.includes(property) ||
-          allowedProperties.includes(propertyY) ||
-          allowedProperties.includes(propertyX)) {
+      // `overflow: clip` establishes no scroll port. When an element clips a single axis while the
+      // other axis stays `visible`, it does not trap the table's scroll — the table still scrolls
+      // with the window on the visible axis. A width-constrained, window-scrolled table sets
+      // `overflow-x: clip` on its root (see core.ts, DEV-1025); treating that root as the trimming
+      // container drops the overlays out of window-scroll mode (frozen rows stop pinning, vertical
+      // virtualization stops). Such a single-axis clip must not qualify the element as trimming.
+      const clipsHorizontallyOnly = propertyX === 'clip' && (propertyY === 'visible' || propertyY === '');
+      const clipsVerticallyOnly = propertyY === 'clip' && (propertyX === 'visible' || propertyX === '');
+      const trimsX = allowedProperties.includes(propertyX) && !clipsHorizontallyOnly;
+      const trimsY = allowedProperties.includes(propertyY) && !clipsVerticallyOnly;
+
+      if (allowedProperties.includes(property) || trimsX || trimsY) {
         return el;
       }
     }
