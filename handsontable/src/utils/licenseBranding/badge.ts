@@ -1,9 +1,11 @@
+import { html } from '../../helpers/templateLiteralTag';
 import { POPOVER_CONTENT, BADGE_ONLY_LABELS } from './content';
 import type { HotInstance } from '../../core/types';
 import type { LicenseLifecycleFacet } from '../../helpers/mixed';
 
 const SCOPE_ID = 'licenseBranding';
 const SHORTCUTS_CONTEXT_NAME = `plugin:${SCOPE_ID}`;
+const SHORTCUTS_GROUP = SCOPE_ID;
 
 const BADGE_WRAPPER_CLASS = 'ht-license-badge-wrapper';
 const BADGE_CLASS = 'ht-license-badge';
@@ -109,9 +111,28 @@ export function mountLicenseBadge(
     cleanups.push(() => hotInstance.removeHook(name, callback));
   };
 
-  const wrapper = doc.createElement('div');
+  // The badge button is screen-reader-only (the visual glyph is pure CSS inside the corner cell);
+  // the popover renders only for the states that carry one. The copy is assigned through
+  // `textContent` below, never interpolated into the markup.
+  const { refs } = html`
+    <div data-ref="wrapper" class="${BADGE_WRAPPER_CLASS}">
+      <button data-ref="badge" type="button" class="${BADGE_CLASS}"
+        aria-label="Handsontable license information"></button>
+      ${content ? `
+        <div data-ref="popover" id="${popoverId}" class="${POPOVER_CLASS}"
+          role="${content.dismissible ? 'dialog' : 'tooltip'}" aria-labelledby="${popoverId}-title">
+          <div data-ref="popoverTitle" id="${popoverId}-title" class="${POPOVER_CLASS}__title"></div>
+          <p data-ref="popoverBody" class="${POPOVER_CLASS}__body"></p>
+          <a data-ref="popoverLink" class="${POPOVER_CLASS}__link" target="_blank" rel="noopener noreferrer"></a>
+          ${content.dismissible
+    ? `<button data-ref="closeButton" type="button" class="${POPOVER_CLASS}__close" aria-label="Close"></button>`
+    : ''}
+        </div>` : ''}
+    </div>
+  `;
+  const wrapper = refs.wrapper;
+  const badge = refs.badge as HTMLButtonElement;
 
-  wrapper.className = BADGE_WRAPPER_CLASS;
   cleanups.push(() => wrapper.remove());
 
   // Presence sync: `is-cornerless` on the wrapper re-anchors the popover to the table's
@@ -131,12 +152,6 @@ export function mountLicenseBadge(
   addHook('afterRender', () => syncCornerPresence());
   cleanups.push(() => hotInstance.rootElement?.classList.remove(BADGE_ON_CLASS));
 
-  const badge = doc.createElement('button');
-
-  badge.type = 'button';
-  badge.className = BADGE_CLASS;
-  badge.setAttribute('aria-label', 'Handsontable license information');
-
   const unmount = () => {
     cleanups.forEach(cleanup => cleanup());
     cleanups.length = 0;
@@ -148,7 +163,6 @@ export function mountLicenseBadge(
     // message.
     badge.setAttribute('aria-label', badgeOnlyLabel);
     badge.tabIndex = -1;
-    wrapper.appendChild(badge);
     host.appendChild(wrapper);
 
     return unmount;
@@ -220,37 +234,14 @@ export function mountLicenseBadge(
   badge.setAttribute('aria-haspopup', 'dialog');
   badge.setAttribute('aria-controls', popoverId);
 
-  const popover = doc.createElement('div');
+  // A non-modal informational popover (already in the template): `dialog` for the dismissible
+  // soft-stop (it has an actionable close), `tooltip` for the hover-only variants.
+  const popover = refs.popover;
 
-  popover.id = popoverId;
-  popover.className = POPOVER_CLASS;
-  // A non-modal informational popover: `dialog` for the dismissible soft-stop (it has an actionable
-  // close), `tooltip` for the hover-only variants.
-  popover.setAttribute('role', content.dismissible ? 'dialog' : 'tooltip');
-  popover.setAttribute('aria-labelledby', `${popoverId}-title`);
-
-  const title = doc.createElement('div');
-
-  title.id = `${popoverId}-title`;
-  title.className = `${POPOVER_CLASS}__title`;
-  title.textContent = content.title;
-
-  const body = doc.createElement('p');
-
-  body.className = `${POPOVER_CLASS}__body`;
-  body.textContent = content.body(lifecycle);
-
-  const link = doc.createElement('a');
-
-  link.className = `${POPOVER_CLASS}__link`;
-  link.href = content.linkHref;
-  link.target = '_blank';
-  link.rel = 'noopener noreferrer';
-  link.textContent = content.linkText;
-
-  popover.appendChild(title);
-  popover.appendChild(body);
-  popover.appendChild(link);
+  refs.popoverTitle.textContent = content.title;
+  refs.popoverBody.textContent = content.body(lifecycle);
+  (refs.popoverLink as HTMLAnchorElement).href = content.linkHref;
+  refs.popoverLink.textContent = content.linkText;
 
   // The wrapper is click-through, so `:hover` never matches on it directly; the popover re-enables
   // pointer events for its links, and this flag tracks whether the pointer is inside it.
@@ -284,24 +275,28 @@ export function mountLicenseBadge(
       badge.focus();
     };
 
-    const closeButton = doc.createElement('button');
-
-    closeButton.type = 'button';
-    closeButton.className = `${POPOVER_CLASS}__close`;
-    closeButton.setAttribute('aria-label', 'Close');
-    closeButton.addEventListener('click', () => dismiss());
-    popover.appendChild(closeButton);
+    refs.closeButton.addEventListener('click', () => dismiss());
 
     // Auto-open the soft-stop popover without stealing focus from the grid: it is shown visually via
     // the `is-open` class; focus only moves when the user tabs to the badge.
     popover.classList.add(POPOVER_OPEN_CLASS);
     badge.setAttribute('aria-expanded', 'true');
 
-    // Escape dismisses the popover when focus is inside it.
-    wrapper.addEventListener('keydown', (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        dismiss();
-      }
+    // Escape dismisses the popover through the shortcut manager (the same mechanism the Dialog
+    // plugin uses): the focus scope below switches the manager to this context while focus is
+    // inside the popover, so no raw keydown listener is involved.
+    const shortcutManager = hotInstance.getShortcutManager();
+    const shortcutsContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME) ??
+      shortcutManager.addContext(SHORTCUTS_CONTEXT_NAME);
+
+    shortcutsContext.addShortcut({
+      keys: [['Escape']],
+      callback: () => dismiss(),
+      runOnlyIf: () => host.contains(wrapper),
+      group: SHORTCUTS_GROUP,
+    });
+    cleanups.push(() => {
+      shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME)?.removeShortcutsByGroup(SHORTCUTS_GROUP);
     });
 
     // Dismissal holds while the badge keeps focus (so the popover does not flash back open); once
@@ -317,8 +312,6 @@ export function mountLicenseBadge(
     badge.setAttribute('aria-expanded', 'false');
   }
 
-  wrapper.appendChild(badge);
-  wrapper.appendChild(popover);
   host.appendChild(wrapper);
 
   if (!content.dismissible) {

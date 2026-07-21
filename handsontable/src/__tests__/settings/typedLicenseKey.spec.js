@@ -227,10 +227,11 @@ describe('settings', () => {
         expect(lock.getAttribute('role')).toBe('alertdialog');
         expect(lock.innerText).toContain('Your Handsontable license has expired.');
         expect(lock.innerText).toContain('Contact Sales');
-        // Non-closable: no Close button, and Escape does nothing.
+        // Non-closable: no Close button, and Escape (through the real shortcut pipeline - the
+        // lock's shortcuts context is active while focus is inside it) does nothing.
         expect(lock.innerText).not.toContain('Close');
 
-        lock.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+        await keyDownUp('escape');
 
         expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
         // The modal focus scope moved focus to the lock's primary action.
@@ -326,6 +327,20 @@ describe('settings', () => {
 
         // The user's dismissal sticks: a settings update must not bring the lock back.
         await updateSettings({ rowHeaders: true });
+
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
+      });
+
+      it('should dismiss the lock on Escape through the shortcut pipeline', async() => {
+        spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
+
+        handsontable({ licenseKey: SUBSCRIPTION_KEY }, true);
+
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
+
+        // Focus sits inside the lock (its modal scope activated on init), so its shortcuts context
+        // is the active one.
+        await keyDownUp('escape');
 
         expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
       });

@@ -34,6 +34,7 @@ function createMockHotInstance(overrides = {}) {
     activateScope: jest.fn(),
     deactivateScope: jest.fn(),
   };
+  const shortcutContext = { addShortcut: jest.fn(), removeShortcutsByGroup: jest.fn() };
   const rootElement = document.createElement('div');
   const cornerClone = document.createElement('div');
   // The corner clone's header area: hover only triggers inside the clone's `thead` (the clone can
@@ -72,7 +73,13 @@ function createMockHotInstance(overrides = {}) {
       }
     }),
     getFocusScopeManager: jest.fn(() => focusScope),
+    getShortcutManager: jest.fn(() => ({
+      getContext: jest.fn(() => shortcutContext),
+      addContext: jest.fn(() => shortcutContext),
+    })),
+    shortcutContext,
     deselectCell: jest.fn(),
+    listen: jest.fn(),
     hasRowHeaders: jest.fn(() => overrides.rowHeaders ?? true),
     hasColHeaders: jest.fn(() => overrides.colHeaders ?? true),
     rootDocument: document,
@@ -107,6 +114,20 @@ function grantsWithMode(mode) {
     unrestricted: false,
     products: { handsontable: { tier: 'enterprise', mode, addons: [] } },
   };
+}
+
+/**
+ * Finds a registered shortcut config by its key name (e.g. 'Escape', 'Tab').
+ *
+ * @param {object} hotInstance The mock instance.
+ * @param {string} key The key the shortcut listens to.
+ * @returns {object|undefined} The shortcut config, or `undefined` when not registered.
+ */
+function findShortcut(hotInstance, key) {
+  const call = hotInstance.shortcutContext.addShortcut.mock.calls
+    .find(([config]) => config.keys.some(combo => combo.join('+') === key));
+
+  return call?.[0];
 }
 
 function setLifecycle(state, extra = {}, grants = { unrestricted: false, products: {} }) {
@@ -424,7 +445,7 @@ describe('licenseBranding', () => {
       expect(badge.getAttribute('aria-expanded')).toBe('false');
     });
 
-    it('should dismiss the soft-stop popover on Escape', () => {
+    it('should dismiss the soft-stop popover through the Escape shortcut (shortcut manager)', () => {
       setLifecycle('trial_expired');
       const hotInstance = createMockHotInstance();
 
@@ -433,8 +454,14 @@ describe('licenseBranding', () => {
       const overlays = hotInstance.rootOverlaysElement;
       const wrapper = overlays.querySelector('.ht-license-badge-wrapper');
       const popover = overlays.querySelector('.ht-license-popover');
+      // Registered in the badge's own shortcuts context - the focus scope switches to it while
+      // focus is inside the popover.
+      const escape = findShortcut(hotInstance, 'Escape');
 
-      popover.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      expect(escape).not.toBe(undefined);
+      expect(escape.group).toBe('licenseBranding');
+
+      escape.callback();
 
       expect(popover.classList.contains('is-open')).toBe(false);
       expect(wrapper.classList.contains('is-dismissed')).toBe(true);
@@ -587,14 +614,14 @@ describe('licenseBranding', () => {
       );
     });
 
-    it('should ignore Escape - the trial lock is not closable', () => {
+    it('should register the Tab focus trap but NO Escape shortcut - the trial lock is not closable', () => {
       const hotInstance = mountTrialLock();
 
-      const lock = hotInstance.rootOverlaysElement.querySelector('.ht-license-lock');
+      const tab = findShortcut(hotInstance, 'Tab');
 
-      lock.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
-
-      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
+      expect(tab).not.toBe(undefined);
+      expect(tab.group).toBe('licenseLock');
+      expect(findShortcut(hotInstance, 'Escape')).toBe(undefined);
     });
 
     it('should survive settings updates that do not change the key', () => {
@@ -625,6 +652,8 @@ describe('licenseBranding', () => {
       expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
       expect(hotInstance.focusScope.deactivateScope).toHaveBeenCalledWith('licenseLock');
       expect(hotInstance.focusScope.unregisterScope).toHaveBeenCalledWith('licenseLock');
+      // The lock's shortcuts die with it.
+      expect(hotInstance.shortcutContext.removeShortcutsByGroup).toHaveBeenCalledWith('licenseLock');
     });
   });
 
@@ -670,16 +699,19 @@ describe('licenseBranding', () => {
       expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
     });
 
-    it('should dismiss the lock on Escape', () => {
+    it('should dismiss the lock through the Escape shortcut (shortcut manager)', () => {
       setLifecycle('sub_expired_hard', {}, grantsWithMode('internal'));
       const hotInstance = createMockHotInstance();
 
       initLicenseBranding(hotInstance);
       hotInstance.hooks.addHookOnce.afterInit();
 
-      const lock = hotInstance.rootOverlaysElement.querySelector('.ht-license-lock');
+      const escape = findShortcut(hotInstance, 'Escape');
 
-      lock.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      expect(escape).not.toBe(undefined);
+      expect(escape.group).toBe('licenseLock');
+
+      escape.callback();
 
       expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
     });

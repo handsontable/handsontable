@@ -1,3 +1,4 @@
+import { html } from '../../helpers/templateLiteralTag';
 import { SALES_MAILTO } from './content';
 import type { LockContent } from './content';
 import type { HotInstance } from '../../core/types';
@@ -5,6 +6,7 @@ import type { HotInstance } from '../../core/types';
 const LOCK_CLASS = 'ht-license-lock';
 const SCOPE_ID = 'licenseLock';
 const SHORTCUTS_CONTEXT_NAME = `plugin:${SCOPE_ID}`;
+const SHORTCUTS_GROUP = SCOPE_ID;
 
 /**
  * Options of a lock-screen mount.
@@ -63,53 +65,36 @@ export function mountLicenseLock(
   }
 
   const lockId = `${hotInstance.guid}-license-lock`;
-  const lock = doc.createElement('div');
 
-  lock.className = LOCK_CLASS;
   // `alertdialog` for the non-closable trial lock (it interrupts and offers no way back), plain
-  // `dialog` for the closable subscription lock.
-  lock.setAttribute('role', content.closable ? 'dialog' : 'alertdialog');
-  lock.setAttribute('aria-modal', 'true');
-  lock.setAttribute('aria-labelledby', `${lockId}-title`);
-  lock.setAttribute('aria-describedby', `${lockId}-description`);
-  lock.tabIndex = -1;
+  // `dialog` for the closable subscription lock. The copy is assigned through `textContent` below,
+  // never interpolated into the markup.
+  const { refs } = html`
+    <div data-ref="lock" class="${LOCK_CLASS}" role="${content.closable ? 'dialog' : 'alertdialog'}"
+      aria-modal="true" aria-labelledby="${lockId}-title" aria-describedby="${lockId}-description"
+      tabindex="-1">
+      <div class="${LOCK_CLASS}__panel">
+        <div data-ref="title" id="${lockId}-title" class="${LOCK_CLASS}__title"></div>
+        <p data-ref="description" id="${lockId}-description" class="${LOCK_CLASS}__description"></p>
+        <div class="${LOCK_CLASS}__buttons">
+          <button data-ref="contactButton" type="button" class="ht-button ht-button--primary">Contact Sales</button>
+          ${content.closable
+    ? '<button data-ref="closeButton" type="button" class="ht-button ht-button--secondary">Close</button>'
+    : ''}
+        </div>
+      </div>
+    </div>
+  `;
+  const lock = refs.lock;
 
-  const panel = doc.createElement('div');
-
-  panel.className = `${LOCK_CLASS}__panel`;
-
-  const title = doc.createElement('div');
-
-  title.id = `${lockId}-title`;
-  title.className = `${LOCK_CLASS}__title`;
-  title.textContent = content.title;
-
-  const description = doc.createElement('p');
-
-  description.id = `${lockId}-description`;
-  description.className = `${LOCK_CLASS}__description`;
-  description.textContent = content.description;
-
-  const buttons = doc.createElement('div');
-
-  buttons.className = `${LOCK_CLASS}__buttons`;
-
-  const contactButton = doc.createElement('button');
-
-  contactButton.type = 'button';
-  contactButton.className = 'ht-button ht-button--primary';
-  contactButton.textContent = 'Contact Sales';
-  contactButton.addEventListener('click', () => {
+  refs.title.textContent = content.title;
+  refs.description.textContent = content.description;
+  refs.contactButton.addEventListener('click', () => {
     hotInstance.rootWindow.open(SALES_MAILTO, '_blank', 'noopener');
   });
-  buttons.appendChild(contactButton);
-
-  panel.appendChild(title);
-  panel.appendChild(description);
-  panel.appendChild(buttons);
-  lock.appendChild(panel);
 
   const focusScopeManager = hotInstance.getFocusScopeManager();
+  const shortcutManager = hotInstance.getShortcutManager();
 
   const unmount = () => {
     if (!host.contains(lock)) {
@@ -117,45 +102,41 @@ export function mountLicenseLock(
     }
 
     lock.remove();
+    shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME)?.removeShortcutsByGroup(SHORTCUTS_GROUP);
     focusScopeManager.deactivateScope(SCOPE_ID);
     focusScopeManager.unregisterScope(SCOPE_ID);
   };
 
-  if (content.closable) {
-    const closeButton = doc.createElement('button');
+  refs.closeButton?.addEventListener('click', () => unmount());
 
-    closeButton.type = 'button';
-    closeButton.className = 'ht-button ht-button--secondary';
-    closeButton.textContent = 'Close';
-    closeButton.addEventListener('click', () => unmount());
-    buttons.appendChild(closeButton);
-  }
+  // The keyboard paths go through the shortcut manager, exactly like the Dialog plugin's: the focus
+  // scope switches the manager to this context while focus is inside the lock, so the shortcuts
+  // never fire for the grid and the grid's shortcuts never fire under the lock.
+  const shortcutsContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME) ??
+    shortcutManager.addContext(SHORTCUTS_CONTEXT_NAME);
 
-  lock.addEventListener('keydown', (event: KeyboardEvent) => {
-    if (event.key === 'Escape' && content.closable) {
-      event.stopPropagation();
-      unmount();
-
-      return;
-    }
-
-    // The modal focus trap: Tab cycles through the lock's own controls and never leaves.
-    if (event.key === 'Tab') {
+  // The modal focus trap: Tab cycles through the lock's own controls and never leaves.
+  shortcutsContext.addShortcut({
+    keys: [['Tab'], ['Shift', 'Tab']],
+    callback: (event: KeyboardEvent) => {
       const controls = getFocusableControls(lock);
-      const first = controls[0];
-      const last = controls[controls.length - 1];
-      const active = doc.activeElement;
+      const index = controls.indexOf(doc.activeElement as HTMLElement);
+      const delta = event.shiftKey ? -1 : 1;
 
-      if (event.shiftKey && (active === first || active === lock)) {
-        event.preventDefault();
-        last?.focus();
-
-      } else if (!event.shiftKey && active === last) {
-        event.preventDefault();
-        first?.focus();
-      }
-    }
+      controls[(index + delta + controls.length) % controls.length]?.focus();
+    },
+    runOnlyIf: () => host.contains(lock),
+    group: SHORTCUTS_GROUP,
   });
+
+  if (content.closable) {
+    shortcutsContext.addShortcut({
+      keys: [['Escape']],
+      callback: () => unmount(),
+      runOnlyIf: () => host.contains(lock),
+      group: SHORTCUTS_GROUP,
+    });
+  }
 
   focusScopeManager.registerScope(SCOPE_ID, lock, {
     shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
@@ -181,6 +162,10 @@ export function mountLicenseLock(
     }
 
     hotInstance.deselectCell();
+    // The lock takes over the whole grid surface, so it claims the keyboard explicitly: the
+    // shortcut pipeline only processes non-global events while the instance is listening, and a
+    // freshly initialized grid is not listening until the user interacts with it.
+    hotInstance.listen();
     focusScopeManager.activateScope(SCOPE_ID);
   };
 
