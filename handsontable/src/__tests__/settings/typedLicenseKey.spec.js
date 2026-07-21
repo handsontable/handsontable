@@ -177,10 +177,9 @@ describe('settings', () => {
         expect(wrapper.classList.contains('is-dismissed')).toBe(true);
         expect(getComputedStyle(popover).display).toBe('none');
 
-        // Dismissal holds while the badge keeps the focus it received on close (so the popover does
-        // not flash back open); once focus returns to the grid and the pointer leaves, it re-arms...
+        // Dismissal is purely pointer-driven now (the popover is a floating visual, never focused):
+        // it re-arms as soon as the pointer leaves the popover and the corner...
         popover.dispatchEvent(new MouseEvent('mouseleave', { bubbles: false }));
-        await selectCell(0, 0);
         spec().$container[0].querySelector('td')
           .dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
 

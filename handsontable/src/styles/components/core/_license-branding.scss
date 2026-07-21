@@ -86,13 +86,6 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
     color: transparent;
   }
 
-  // The button is invisible, so keyboard focus indicates on the popover it controls (which is
-  // already shown via `:focus-within` while the badge holds focus).
-  .ht-license-badge:focus-visible ~ .ht-license-popover {
-    outline: 2px solid var(--ht-license-badge-focus-color, #6b6b6b);
-    outline-offset: 2px;
-  }
-
   .ht-license-popover {
     @include mixins.font-family;
 
@@ -153,14 +146,13 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
     overflow-y: auto;
   }
 
-  // Visibility is CSS-driven: the popover shows while the pointer roams the corner (`is-corner-hover`,
-  // stamped by delegation), while the pointer or focus is inside the popover itself, and the soft-stop
-  // popover additionally stays open via `is-open`. `is-dismissed` (the close button / Escape) gates
-  // every hover/focus rule - at dismissal time the pointer still hovers the popover, so without the
-  // gate the hover rules would keep it visible.
+  // Visibility is pointer-driven (the popover is a purely visual floating element - never focused):
+  // it shows while the pointer roams the corner (`is-corner-hover`, stamped by delegation) or hovers
+  // the popover itself, and the soft-stop popover additionally stays open via `is-open`.
+  // `is-dismissed` (the close button) gates every hover rule - at dismissal time the pointer still
+  // hovers the popover, so without the gate the hover rules would keep it visible.
   .ht-license-badge-wrapper.is-corner-hover:not(.is-dismissed) .ht-license-popover,
   .ht-license-badge-wrapper:not(.is-dismissed):hover .ht-license-popover,
-  .ht-license-badge-wrapper:not(.is-dismissed):focus-within .ht-license-popover,
   .ht-license-popover.is-open {
     display: flex;
   }

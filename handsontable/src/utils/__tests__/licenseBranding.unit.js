@@ -204,34 +204,28 @@ describe('licenseBranding', () => {
       }
     );
 
-    it.each(['trial_expired', 'legacy_expired'])(
-      'should register the focus scope for the dismissible "%s" popover (an actionable dialog)',
+    it.each(['trial_active', 'trial_expired', 'freemium', 'missing', 'invalid', 'legacy_expired'])(
+      'should keep the "%s" badge and popover entirely out of the Tab order (a floating visual only)',
       (state) => {
-        setLifecycle(state, { expiryTimestamp: Date.UTC(2026, 7, 27) });
+        setLifecycle(state, { daysRemaining: 5, expiryTimestamp: Date.UTC(2026, 7, 27) });
         const hotInstance = createMockHotInstance();
 
         initLicenseBranding(hotInstance);
 
-        expect(hotInstance.focusScope.registerScope).toHaveBeenCalledWith(
-          'licenseBranding', expect.any(HTMLElement), expect.objectContaining({
-            shortcutsContextName: 'plugin:licenseBranding',
-          })
-        );
-      }
-    );
+        const overlays = hotInstance.rootOverlaysElement;
 
-    it.each(['trial_active', 'freemium', 'missing', 'invalid'])(
-      'should keep the hover-only "%s" badge out of the Tab order (no focus scope, tabindex -1)',
-      (state) => {
-        setLifecycle(state, { daysRemaining: 5 });
-        const hotInstance = createMockHotInstance();
-
-        initLicenseBranding(hotInstance);
-
-        // The non-commercial/missing badges mount on virtually every developer grid - a focusable
-        // badge would add a Tab stop to every keyboard path through the grid.
+        // The popover is a purely visual floating element: no focus scope, no shortcuts, and none of
+        // its controls are keyboard-focusable (the info is duplicated in the console and bottom bar).
         expect(hotInstance.focusScope.registerScope).not.toHaveBeenCalled();
-        expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-badge').tabIndex).toBe(-1);
+        expect(hotInstance.shortcutContext.addShortcut).not.toHaveBeenCalled();
+        expect(overlays.querySelector('.ht-license-badge').tabIndex).toBe(-1);
+        expect(overlays.querySelector('.ht-license-popover__link').tabIndex).toBe(-1);
+
+        const closeButton = overlays.querySelector('.ht-license-popover__close');
+
+        if (closeButton) {
+          expect(closeButton.tabIndex).toBe(-1);
+        }
       }
     );
 
@@ -425,7 +419,7 @@ describe('licenseBranding', () => {
   });
 
   describe('soft-stop popover dismissal', () => {
-    it('should auto-open the soft-stop popover as a dialog with a working close button', () => {
+    it('should auto-open the soft-stop popover with a working (mouse-only) close button', () => {
       setLifecycle('trial_expired');
       const hotInstance = createMockHotInstance();
 
@@ -433,48 +427,23 @@ describe('licenseBranding', () => {
 
       const overlays = hotInstance.rootOverlaysElement;
       const wrapper = overlays.querySelector('.ht-license-badge-wrapper');
-      const badge = overlays.querySelector('.ht-license-badge');
       const popover = overlays.querySelector('.ht-license-popover');
       const closeButton = popover.querySelector('.ht-license-popover__close');
 
-      expect(popover.getAttribute('role')).toBe('dialog');
       expect(popover.querySelector('.ht-license-popover__title').textContent).toBe('Expired trial license key');
       expect(popover.classList.contains('is-open')).toBe(true);
-      expect(badge.getAttribute('aria-expanded')).toBe('true');
       expect(closeButton).not.toBe(null);
 
       closeButton.click();
 
       expect(popover.classList.contains('is-open')).toBe(false);
-      // Dismissal stamps `is-dismissed`: it gates the hover/focus CSS open rules, so the popover
-      // closes even though the pointer still hovers it at click time.
+      // Dismissal stamps `is-dismissed`: it gates the hover CSS open rule, so the popover closes even
+      // though the pointer still hovers it at click time. No shortcut is registered (mouse-only).
       expect(wrapper.classList.contains('is-dismissed')).toBe(true);
-      expect(badge.getAttribute('aria-expanded')).toBe('false');
+      expect(hotInstance.shortcutContext.addShortcut).not.toHaveBeenCalled();
     });
 
-    it('should dismiss the soft-stop popover through the Escape shortcut (shortcut manager)', () => {
-      setLifecycle('trial_expired');
-      const hotInstance = createMockHotInstance();
-
-      initLicenseBranding(hotInstance);
-
-      const overlays = hotInstance.rootOverlaysElement;
-      const wrapper = overlays.querySelector('.ht-license-badge-wrapper');
-      const popover = overlays.querySelector('.ht-license-popover');
-      // Registered in the badge's own shortcuts context - the focus scope switches to it while
-      // focus is inside the popover.
-      const escape = findShortcut(hotInstance, 'Escape');
-
-      expect(escape).not.toBe(undefined);
-      expect(escape.group).toBe('licenseBranding');
-
-      escape.callback();
-
-      expect(popover.classList.contains('is-open')).toBe(false);
-      expect(wrapper.classList.contains('is-dismissed')).toBe(true);
-    });
-
-    it('should re-arm the dismissed soft-stop popover once the pointer and focus leave', () => {
+    it('should re-arm the dismissed soft-stop popover once the pointer leaves', () => {
       setLifecycle('trial_expired');
       const hotInstance = createMockHotInstance();
 

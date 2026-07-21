@@ -3,10 +3,6 @@ import { POPOVER_CONTENT, BADGE_ONLY_LABELS } from './content';
 import type { HotInstance } from '../../core/types';
 import type { LicenseLifecycleFacet } from '../../helpers/mixed';
 
-const SCOPE_ID = 'licenseBranding';
-const SHORTCUTS_CONTEXT_NAME = `plugin:${SCOPE_ID}`;
-const SHORTCUTS_GROUP = SCOPE_ID;
-
 const BADGE_WRAPPER_CLASS = 'ht-license-badge-wrapper';
 const BADGE_CLASS = 'ht-license-badge';
 const BADGE_ON_CLASS = 'ht-license-badge-on';
@@ -102,7 +98,6 @@ export function mountLicenseBadge(
     return null;
   }
 
-  const doc = hotInstance.rootDocument;
   const popoverId = `${hotInstance.guid}-license-popover`;
   const cleanups: Array<() => void> = [];
 
@@ -233,26 +228,32 @@ export function mountLicenseBadge(
     addHook('afterRender', () => measurePopoverAnchor());
   }
 
-  badge.setAttribute('aria-haspopup', 'dialog');
-  badge.setAttribute('aria-controls', popoverId);
+  // The popover is a purely visual floating element - it is never focusable and never enters the Tab
+  // order (its links/close are mouse-only, and the same information is in the console and the bottom
+  // bar). So the badge is out of the Tab order too, and there is no focus scope, no shortcut, and no
+  // focus outline to manage.
+  badge.tabIndex = -1;
 
   // A non-modal informational popover (already in the template): `dialog` for the dismissible
-  // soft-stop (it has an actionable close), `tooltip` for the hover-only variants.
+  // soft-stop (it has a close button), `tooltip` for the hover-only variants.
   const popover = refs.popover;
 
   refs.popoverTitle.textContent = content.title;
   refs.popoverBody.textContent = content.body(lifecycle);
   (refs.popoverLink as HTMLAnchorElement).href = content.linkHref;
   refs.popoverLink.textContent = content.linkText;
+  // Mouse-only: keep the popover out of the Tab order entirely (its link and close button stay
+  // clickable, and the same information is duplicated in the console and the bottom bar).
+  refs.popoverLink.tabIndex = -1;
 
   // The wrapper is click-through, so `:hover` never matches on it directly; the popover re-enables
   // pointer events for its links, and this flag tracks whether the pointer is inside it.
   let pointerOverPopover = false;
 
-  const rearmIfIdle = (focusStillInside = wrapper.contains(doc.activeElement)) => {
+  const rearmIfIdle = () => {
     const pointerInside = pointerOverPopover || wrapper.classList.contains(CORNER_HOVER_CLASS);
 
-    if (!focusStillInside && !pointerInside) {
+    if (!pointerInside) {
       wrapper.classList.remove(POPOVER_DISMISSED_CLASS);
     }
   };
@@ -267,83 +268,20 @@ export function mountLicenseBadge(
   cleanups.push(wireCornerHoverDetection(hotInstance, wrapper, rearmIfIdle));
 
   if (content.dismissible) {
-    // Dismissal stamps `is-dismissed` on the wrapper: removing `is-open` alone is not enough, because
-    // at click time the pointer still hovers the popover (and the close button holds focus), so the
-    // hover/focus CSS rules would keep it visible. The class gates all of them.
-    const dismiss = () => {
+    // Auto-open the soft-stop popover. Dismissal (the close button) stamps `is-dismissed` on the
+    // wrapper: removing `is-open` alone is not enough, because at click time the pointer still hovers
+    // the popover, so the hover CSS rule would keep it visible. The class gates every open rule and
+    // re-arms once the pointer leaves the popover and the corner, so a later corner hover reopens it
+    // as a plain tooltip.
+    popover.classList.add(POPOVER_OPEN_CLASS);
+    refs.closeButton.tabIndex = -1;
+    refs.closeButton.addEventListener('click', () => {
       popover.classList.remove(POPOVER_OPEN_CLASS);
       wrapper.classList.add(POPOVER_DISMISSED_CLASS);
-      badge.setAttribute('aria-expanded', 'false');
-      badge.focus();
-    };
-
-    refs.closeButton.addEventListener('click', () => dismiss());
-
-    // Auto-open the soft-stop popover without stealing focus from the grid: it is shown visually via
-    // the `is-open` class; focus only moves when the user tabs to the badge.
-    popover.classList.add(POPOVER_OPEN_CLASS);
-    badge.setAttribute('aria-expanded', 'true');
-
-    // Escape dismisses the popover through the shortcut manager (the same mechanism the Dialog
-    // plugin uses): the focus scope below switches the manager to this context while focus is
-    // inside the popover, so no raw keydown listener is involved.
-    const shortcutManager = hotInstance.getShortcutManager();
-    const shortcutsContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME) ??
-      shortcutManager.addContext(SHORTCUTS_CONTEXT_NAME);
-
-    shortcutsContext.addShortcut({
-      keys: [['Escape']],
-      callback: () => dismiss(),
-      runOnlyIf: () => host.contains(wrapper),
-      group: SHORTCUTS_GROUP,
     });
-    cleanups.push(() => {
-      shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME)?.removeShortcutsByGroup(SHORTCUTS_GROUP);
-    });
-
-    // Dismissal holds while the badge keeps focus (so the popover does not flash back open); once
-    // focus leaves the wrapper - and the pointer is outside too - the tooltip re-arms. The realm
-    // check mirrors the hover detector: an iframe-hosted grid's nodes are not instances of the
-    // loading window's `Node`.
-    wrapper.addEventListener('focusout', (event: FocusEvent) => {
-      rearmIfIdle(
-        event.relatedTarget instanceof hotInstance.rootWindow.Node && wrapper.contains(event.relatedTarget),
-      );
-    });
-  } else {
-    badge.setAttribute('aria-expanded', 'false');
   }
 
   host.appendChild(wrapper);
-
-  if (!content.dismissible) {
-    // A hover-only tooltip stays OUT of the Tab order on purpose: the non-commercial and missing-key
-    // badges mount on virtually every developer grid, and a focusable badge (plus its focus scope)
-    // would insert an extra Tab stop into every keyboard path through the grid. The information is
-    // duplicated in the console/bottom-bar messaging, so nothing keyboard-only is lost.
-    badge.tabIndex = -1;
-
-    return unmount;
-  }
-
-  // The dismissible (auto-open) popovers are actionable dialogs - their close button and link must be
-  // reachable by keyboard: the grid intercepts Tab, so an inline focus scope hands focus to the badge
-  // (or the last popover control on shift+Tab). Unregistered on unmount (a runtime key change).
-  hotInstance.getFocusScopeManager()
-    .registerScope(SCOPE_ID, wrapper, {
-      shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
-      runOnlyIf: () => host.contains(wrapper),
-      onActivate: (focusSource) => {
-        if (focusSource === 'tab_from_below') {
-          const focusable = wrapper.querySelectorAll<HTMLElement>('a[href], button');
-
-          focusable[focusable.length - 1]?.focus();
-        } else {
-          badge.focus();
-        }
-      },
-    });
-  cleanups.push(() => hotInstance.getFocusScopeManager().unregisterScope(SCOPE_ID));
 
   return unmount;
 }
