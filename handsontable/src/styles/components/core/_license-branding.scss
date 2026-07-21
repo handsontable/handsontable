@@ -2,7 +2,7 @@
 
 // Handsontable license branding: the corner "H." badge + its popover (trial active, trial soft-stop,
 // freemium, missing key, invalid key, expired legacy key), the popover-less badge of the
-// Non-Commercial and Evaluation License, and the "H." badge in the hard-stop dialog's top strip.
+// Non-Commercial and Evaluation License, and the Core-owned hard-stop lock screen.
 // ---
 // The badge glyph is ALSO registered as the theme icon `licenseBadge`
 // (`themes/static/variables/icons/main.ts`) for the Figma design pipeline, but the mask is applied
@@ -101,10 +101,17 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
     inset-inline-start: calc(
       var(--ht-license-badge-area-width, 50px) + var(--ht-license-popover-tail-size, 12px) - 11px
     );
+    // Clamped to the grid box: the wrapper clips its children (`overflow: clip` above), so a fixed
+    // 320px panel would be CUT OFF on a small grid - including its close button and links. With the
+    // end inset + auto sizing, the panel shrinks to the available space instead, and its content
+    // scrolls when the grid is shorter than the copy.
+    inset-inline-end: 0;
     z-index: 1051;
     display: none;
-    inline-size: var(--ht-license-popover-width, 320px);
-    max-inline-size: calc(100vw - 32px);
+    inline-size: auto;
+    max-inline-size: min(var(--ht-license-popover-width, 320px), calc(100vw - 32px));
+    max-block-size: 100%;
+    overflow-y: auto;
     padding: 16px;
     border-radius: var(--ht-border-radius, 8px);
     // The top-start corner stays square: the tail merges into it.
@@ -207,16 +214,29 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
     }
   }
 
-  // The hard-stop dialog: render the "H." badge in the dialog's top-left corner (the greyed logomark
-  // of the hard-stop mockup). The content wrapper fills the whole dialog while the inner box is the
-  // centered content, so the badge is pinned to the wrapper. Placeholder styling until the design
-  // asset ships.
+  // The hard-stop lock screen: a Core-owned overlay covering the grid (see
+  // licenseBranding/lockScreen.ts - deliberately NOT the Dialog plugin, which is a shared surface
+  // an app legitimately uses for its own dialogs). The "H." logomark sits in the top strip per the
+  // hard-stop mockup; the panel centers via auto margins inside a flex+scroll box, so a grid
+  // shorter than the copy scrolls the lock instead of clipping its buttons.
   .ht-license-lock {
-    .ht-dialog__content-wrapper {
-      position: relative;
-    }
+    @include mixins.font-family;
 
-    .ht-dialog__content-wrapper::before {
+    position: absolute;
+    inset: 0;
+    // Above the badge chrome (1050/1051) AND any Dialog-plugin dialog (1060) - an app dialog must
+    // not cover the license lock.
+    z-index: 1070;
+    display: flex;
+    overflow: auto;
+    padding: 16px;
+    background-color: var(--ht-license-lock-background-color, var(--ht-dialog-solid-background-color, #fff));
+    font-size: var(--ht-font-size, 14px);
+    line-height: var(--ht-line-height, 21px);
+    pointer-events: auto;
+
+    // The greyed "H." logomark in the lock's top strip.
+    &::before {
       content: "";
       position: absolute;
       inset-block-start: 14px;
@@ -231,5 +251,26 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
       -webkit-mask-repeat: no-repeat;
       mask-repeat: no-repeat;
     }
+  }
+
+  .ht-license-lock__panel {
+    max-inline-size: 480px;
+    margin: auto;
+    text-align: center;
+  }
+
+  .ht-license-lock__title {
+    margin-block-end: 8px;
+    font-weight: bold;
+  }
+
+  .ht-license-lock__description {
+    margin: 0 0 16px;
+  }
+
+  .ht-license-lock__buttons {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
   }
 }

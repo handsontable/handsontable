@@ -124,6 +124,21 @@ describe('settings', () => {
         expect(popover.querySelector('.ht-license-popover__link').innerText).toBe('Learn more');
         expect(spec().$container[0].querySelector('.hot-display-license-info')).toBe(null);
       });
+
+      it('should remove the badge when a commercial key is swapped in at runtime', async() => {
+        spyOn(Date, 'now').and.returnValue(WITHIN_TRIAL);
+
+        handsontable({ licenseKey: FREEMIUM_KEY }, true);
+
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-badge')).not.toBe(null);
+
+        // "Upgrading to a commercial key removes it" - the docs' promise must hold at runtime,
+        // without destroying and rebuilding the grid.
+        await updateSettings({ licenseKey: SUBSCRIPTION_KEY });
+
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);
+        expect(hot().rootElement.classList.contains('ht-license-badge-on')).toBe(false);
+      });
     });
 
     describe('soft stop (expired, within grace)', () => {
@@ -200,136 +215,133 @@ describe('settings', () => {
       });
     });
 
-    describe('hard stop (grace elapsed) with the Dialog plugin bundled', () => {
-      it('should open a blocking, non-closable dialog', async() => {
+    describe('hard stop (grace elapsed): the Core-owned lock screen', () => {
+      it('should mount a blocking, non-closable lock over the grid and move focus into it', async() => {
         spyOn(Date, 'now').and.returnValue(AFTER_GRACE);
 
         handsontable({ licenseKey: TRIAL_KEY }, true);
 
-        const dialogPlugin = getPlugin('dialog');
+        const lock = hot().rootOverlaysElement.querySelector('.ht-license-lock');
 
-        expect(dialogPlugin.isVisible()).toBe(true);
+        expect(lock).not.toBe(null);
+        expect(lock.getAttribute('role')).toBe('alertdialog');
+        expect(lock.innerText).toContain('Your Handsontable license has expired.');
+        expect(lock.innerText).toContain('Contact Sales');
+        // Non-closable: no Close button, and Escape does nothing.
+        expect(lock.innerText).not.toContain('Close');
 
-        const dialog = hot().rootOverlaysElement.querySelector('.ht-dialog');
+        lock.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
 
-        expect(dialog).not.toBe(null);
-        // The lock class lets the theme render the "H." badge in the dialog's top strip.
-        expect(dialog.classList.contains('ht-license-lock')).toBe(true);
-        expect(dialog.innerText).toContain('Your Handsontable license has expired.');
-        expect(dialog.innerText).toContain('Contact Sales');
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
+        // The modal focus scope moved focus to the lock's primary action.
+        expect(document.activeElement.innerText).toBe('Contact Sales');
       });
 
-      it('should keep the dialog blocking after updateSettings tears the plugin down', async() => {
+      it('should keep the lock across settings updates', async() => {
         spyOn(Date, 'now').and.returnValue(AFTER_GRACE);
 
         handsontable({ licenseKey: TRIAL_KEY }, true);
 
-        expect(getPlugin('dialog').isVisible()).toBe(true);
-
-        // A settings update disables an on-demand-enabled plugin; the license lock must survive it.
         await updateSettings({ rowHeaders: true });
 
-        expect(getPlugin('dialog').isVisible()).toBe(true);
-        expect(hot().rootOverlaysElement.querySelector('.ht-dialog')).not.toBe(null);
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
       });
 
-      it('should remove the dialog when the instance is destroyed', async() => {
+      it('should not be affected by the app using the Dialog plugin for its own dialogs', async() => {
         spyOn(Date, 'now').and.returnValue(AFTER_GRACE);
 
-        handsontable({ licenseKey: TRIAL_KEY }, true);
+        handsontable({ licenseKey: TRIAL_KEY, dialog: true }, true);
 
-        expect(getPlugin('dialog').isVisible()).toBe(true);
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
 
-        destroy();
-
-        expect(document.querySelector('.ht-dialog')).toBe(null);
-      });
-
-      it('should release the lock when updateSettings fixes the license key', async() => {
-        spyOn(Date, 'now').and.returnValue(AFTER_GRACE);
-
-        handsontable({ licenseKey: TRIAL_KEY }, true);
-
-        expect(getPlugin('dialog').isVisible()).toBe(true);
-
-        // The customer swapped in a usable key at runtime: the lock must stand down, not re-assert.
-        await updateSettings({ licenseKey: 'non-commercial-and-evaluation' });
-
-        expect(getPlugin('dialog').isVisible()).toBe(false);
-      });
-
-      it('should bring the lock back when the app hides the dialog through the plugin API', async() => {
-        spyOn(Date, 'now').and.returnValue(AFTER_GRACE);
-
-        handsontable({ licenseKey: TRIAL_KEY }, true);
-
-        expect(getPlugin('dialog').isVisible()).toBe(true);
-
-        // The Dialog plugin is a single shared surface - a plain `hide()` must not defeat the
-        // non-closable lock. The re-assert is microtask-deferred.
+        // The lock does not live on the shared Dialog plugin surface: the app showing and hiding
+        // its own dialogs neither replaces nor dismisses the license lock.
+        getPlugin('dialog').show({ content: 'An app dialog' });
         getPlugin('dialog').hide();
 
         await sleep(10);
 
-        expect(getPlugin('dialog').isVisible()).toBe(true);
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
+      });
+
+      it('should remove the lock when the instance is destroyed', async() => {
+        spyOn(Date, 'now').and.returnValue(AFTER_GRACE);
+
+        handsontable({ licenseKey: TRIAL_KEY }, true);
+
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
+
+        destroy();
+
+        expect(document.querySelector('.ht-license-lock')).toBe(null);
+      });
+
+      it('should release the lock when updateSettings fixes the license key, even with dialog: true', async() => {
+        spyOn(Date, 'now').and.returnValue(AFTER_GRACE);
+
+        // `dialog: true` used to keep the plugin-based lock alive through updates - the Core-owned
+        // lock releases regardless of any Dialog plugin configuration.
+        handsontable({ licenseKey: TRIAL_KEY, dialog: true }, true);
+
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
+
+        await updateSettings({ licenseKey: 'non-commercial-and-evaluation' });
+
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
       });
     });
 
     describe('subscription hard stop (grace elapsed)', () => {
-      it('should open a closable dialog for an Internal-mode key, with no bar and no badge', async() => {
+      it('should mount a closable lock for an Internal-mode key, with no bar and no badge', async() => {
         spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
 
         handsontable({ licenseKey: SUBSCRIPTION_KEY }, true);
 
-        const dialogPlugin = getPlugin('dialog');
+        const lock = hot().rootOverlaysElement.querySelector('.ht-license-lock');
 
-        expect(dialogPlugin.isVisible()).toBe(true);
-
-        const dialog = hot().rootOverlaysElement.querySelector('.ht-dialog');
-
-        expect(dialog.classList.contains('ht-license-lock')).toBe(true);
-        expect(dialog.innerText).toContain('Your Handsontable subscription has expired.');
-        expect(dialog.innerText).toContain('Contact Sales');
-        expect(dialog.innerText).toContain('Close');
-        // The dialog is the only subscription surface - no bottom bar, no corner badge.
+        expect(lock).not.toBe(null);
+        expect(lock.getAttribute('role')).toBe('dialog');
+        expect(lock.innerText).toContain('Your Handsontable subscription has expired.');
+        expect(lock.innerText).toContain('Contact Sales');
+        expect(lock.innerText).toContain('Close');
+        // The lock is the only subscription surface - no bottom bar, no corner badge.
         expect(spec().$container[0].querySelector('.hot-display-license-info')).toBe(null);
         expect(hot().rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);
       });
 
-      it('should let the end user dismiss the dialog, and keep it dismissed across settings updates', async() => {
+      it('should let the end user dismiss the lock, and keep it dismissed across settings updates', async() => {
         spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
 
         handsontable({ licenseKey: SUBSCRIPTION_KEY }, true);
 
-        const dialog = hot().rootOverlaysElement.querySelector('.ht-dialog');
-        const closeButton = Array.from(dialog.querySelectorAll('.ht-button'))
+        const lock = hot().rootOverlaysElement.querySelector('.ht-license-lock');
+        const closeButton = Array.from(lock.querySelectorAll('button'))
           .find(button => button.innerText === 'Close');
 
         expect(closeButton).not.toBe(undefined);
 
         closeButton.click();
 
-        expect(getPlugin('dialog').isVisible()).toBe(false);
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
 
-        // The user's dismissal sticks: a settings update must not bring the dialog back.
+        // The user's dismissal sticks: a settings update must not bring the lock back.
         await updateSettings({ rowHeaders: true });
 
-        expect(getPlugin('dialog').isVisible()).toBe(false);
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
       });
 
-      it('should keep the dialog up after updateSettings when it was NOT dismissed', async() => {
+      it('should keep the lock up after updateSettings when it was NOT dismissed', async() => {
         spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
 
         handsontable({ licenseKey: SUBSCRIPTION_KEY }, true);
 
-        expect(getPlugin('dialog').isVisible()).toBe(true);
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
 
-        // A settings update disables the on-demand-enabled Dialog plugin and hides the dialog on the
-        // way; that hide is a teardown, not a dismissal, so the lock comes back.
+        // The Core-owned lock does not live on any plugin surface, so a settings update cannot
+        // tear it down as a side effect.
         await updateSettings({ rowHeaders: true });
 
-        expect(getPlugin('dialog').isVisible()).toBe(true);
-        expect(hot().rootOverlaysElement.querySelector('.ht-dialog')).not.toBe(null);
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
       });
 
       it('should release the lock when updateSettings fixes the license key', async() => {
@@ -337,15 +349,15 @@ describe('settings', () => {
 
         handsontable({ licenseKey: SUBSCRIPTION_KEY }, true);
 
-        expect(getPlugin('dialog').isVisible()).toBe(true);
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
 
-        // A renewed key swapped in at runtime must stand the lock down, not re-assert it.
+        // A renewed key swapped in at runtime must stand the lock down.
         await updateSettings({ licenseKey: 'non-commercial-and-evaluation' });
 
-        expect(getPlugin('dialog').isVisible()).toBe(false);
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
       });
 
-      it('should stay console-only for a SaaS-mode key: no dialog, no bar, no badge', async() => {
+      it('should stay console-only for a SaaS-mode key: no lock, no bar, no badge', async() => {
         spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
 
         handsontable({ licenseKey: SUBSCRIPTION_SAAS_KEY }, true);
@@ -353,7 +365,7 @@ describe('settings', () => {
         // The expiry signal is developer-facing only (Case 3b of the license spec): the console
         // error (asserted in the unit tests - it logs once per page, so a prior spec may have
         // already consumed it here) with no frontend surface at all.
-        expect(getPlugin('dialog').isVisible()).toBe(false);
+        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
         expect(spec().$container[0].querySelector('.hot-display-license-info')).toBe(null);
         expect(hot().rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);
       });

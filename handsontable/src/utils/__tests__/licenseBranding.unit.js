@@ -2,44 +2,42 @@ import { initLicenseBranding } from '../licenseBranding';
 
 jest.mock('../../helpers/mixed', () => ({
   _getLicenseState: jest.fn(),
-  _createHardStopLicenseBar: jest.fn(),
   // The real formatter (not a jest.fn) - the popover copy tests assert the formatted date.
   _formatUtcDate: timestamp => new Intl.DateTimeFormat('en-US', {
     year: 'numeric', month: 'long', day: '2-digit', timeZone: 'UTC',
   }).format(timestamp),
 }));
-jest.mock('../licenseNotification', () => ({
-  LICENSE_INFO_CLASS: 'hot-display-license-info',
-  mountBottomLicenseBar: jest.fn(),
-}));
-jest.mock('../../plugins/registry', () => ({
-  hasPlugin: jest.fn(),
-}));
 
-const { _getLicenseState, _createHardStopLicenseBar } = require('../../helpers/mixed');
-const { mountBottomLicenseBar } = require('../licenseNotification');
-const { hasPlugin } = require('../../plugins/registry');
-
-function createMockDialog(overrides = {}) {
-  return {
-    enabled: false,
-    enablePlugin: jest.fn(function() {
-      this.enabled = true;
-    }),
-    isVisible: jest.fn(() => false),
-    show: jest.fn(),
-    hide: jest.fn(),
-    ...overrides,
-  };
-}
+const { _getLicenseState } = require('../../helpers/mixed');
 
 function createMockHotInstance(overrides = {}) {
+  // Hook callbacks are stored per name as arrays; `hooks.addHook[name](...)` runs them all in
+  // registration order (like the real hooks), and `removeHook` drops one - the branding module
+  // unregisters its hooks when a runtime key change unmounts a surface.
+  const registered = { addHook: {}, addHookOnce: {} };
   const hooks = { addHook: {}, addHookOnce: {} };
-  const registerScope = jest.fn();
+  const wireRunner = (bucket, name) => {
+    if (!hooks[bucket][name]) {
+      hooks[bucket][name] = (...args) => {
+        const callbacks = [...registered[bucket][name]];
+
+        if (bucket === 'addHookOnce') {
+          registered[bucket][name] = [];
+        }
+        callbacks.forEach(callback => callback(...args));
+      };
+    }
+  };
+  const focusScope = {
+    registerScope: jest.fn(),
+    unregisterScope: jest.fn(),
+    activateScope: jest.fn(),
+    deactivateScope: jest.fn(),
+  };
   const rootElement = document.createElement('div');
   const cornerClone = document.createElement('div');
   // The corner clone's header area: hover only triggers inside the clone's `thead` (the clone can
-  // also hold frozen data cells), and the badge height is measured from the first header row.
+  // also hold frozen data cells), and the glyph renders inside the first header cell.
   const cornerThead = document.createElement('thead');
   const cornerHeaderRow = document.createElement('tr');
   const cornerHeaderCell = document.createElement('th');
@@ -52,26 +50,29 @@ function createMockHotInstance(overrides = {}) {
 
   return {
     hooks,
-    registerScope,
+    focusScope,
     cornerClone,
     cornerHeaderRow,
     cornerHeaderCell,
     getSettings: jest.fn(() => ({ licenseKey: overrides.licenseKey })),
-    getPlugin: jest.fn(() => overrides.dialog),
-    addHook: jest.fn((name, cb) => {
-      // Multiple listeners can register on the same hook (e.g. two `afterRender` ones) - compose
-      // them so `hooks.addHook[name]()` runs all of them in registration order, like the real hooks.
-      const existing = hooks.addHook[name];
+    addHook: jest.fn((name, callback) => {
+      (registered.addHook[name] = registered.addHook[name] || []).push(callback);
+      wireRunner('addHook', name);
+    }),
+    addHookOnce: jest.fn((name, callback) => {
+      (registered.addHookOnce[name] = registered.addHookOnce[name] || []).push(callback);
+      wireRunner('addHookOnce', name);
+    }),
+    removeHook: jest.fn((name, callback) => {
+      const callbacks = registered.addHook[name];
+      const index = callbacks ? callbacks.indexOf(callback) : -1;
 
-      hooks.addHook[name] = existing ? (...args) => {
-        existing(...args);
-        cb(...args);
-      } : cb;
+      if (index !== -1) {
+        callbacks.splice(index, 1);
+      }
     }),
-    addHookOnce: jest.fn((name, cb) => {
-      hooks.addHookOnce[name] = cb;
-    }),
-    getFocusScopeManager: jest.fn(() => ({ registerScope })),
+    getFocusScopeManager: jest.fn(() => focusScope),
+    deselectCell: jest.fn(),
     hasRowHeaders: jest.fn(() => overrides.rowHeaders ?? true),
     hasColHeaders: jest.fn(() => overrides.colHeaders ?? true),
     rootDocument: document,
@@ -95,13 +96,6 @@ function roamPointerOver(element) {
   element.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
 }
 
-function setLifecycle(state, extra = {}, grants = { unrestricted: false, products: {} }) {
-  _getLicenseState.mockReturnValue({
-    lifecycle: { state, daysRemaining: null, expiryTimestamp: null, hardStopTimestamp: null, ...extra },
-    grants,
-  });
-}
-
 /**
  * Grants of a verified typed key licensing Handsontable in the given deployment mode.
  *
@@ -115,10 +109,32 @@ function grantsWithMode(mode) {
   };
 }
 
+function setLifecycle(state, extra = {}, grants = { unrestricted: false, products: {} }) {
+  _getLicenseState.mockReturnValue({
+    lifecycle: { state, daysRemaining: null, expiryTimestamp: null, hardStopTimestamp: null, ...extra },
+    grants,
+  });
+}
+
+/**
+ * Mounts the trial hard-stop lock and completes its deferred activation.
+ *
+ * @param {object} overrides Mock instance overrides.
+ * @returns {object} The mock instance.
+ */
+function mountTrialLock(overrides = {}) {
+  setLifecycle('trial_expired_hard');
+  const hotInstance = createMockHotInstance(overrides);
+
+  initLicenseBranding(hotInstance);
+  hotInstance.hooks.addHookOnce.afterInit();
+
+  return hotInstance;
+}
+
 describe('licenseBranding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    _createHardStopLicenseBar.mockReturnValue(document.createElement('div'));
   });
 
   describe('unbranded states', () => {
@@ -130,12 +146,11 @@ describe('licenseBranding', () => {
 
         initLicenseBranding(hotInstance);
 
-        expect(hasPlugin).not.toHaveBeenCalled();
-        expect(mountBottomLicenseBar).not.toHaveBeenCalled();
-        expect(hotInstance.addHook).not.toHaveBeenCalled();
-        expect(hotInstance.addHookOnce).not.toHaveBeenCalled();
-        expect(hotInstance.registerScope).not.toHaveBeenCalled();
-        expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);
+        // Only the runtime key watcher registers - no badge, no lock, no focus scope.
+        expect(hotInstance.addHook).toHaveBeenCalledTimes(1);
+        expect(hotInstance.addHook).toHaveBeenCalledWith('afterUpdateSettings', expect.any(Function));
+        expect(hotInstance.focusScope.registerScope).not.toHaveBeenCalled();
+        expect(hotInstance.rootOverlaysElement.children).toHaveLength(0);
       }
     );
   });
@@ -156,10 +171,8 @@ describe('licenseBranding', () => {
         expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(true);
         expect(overlays.querySelector('.ht-license-popover')).not.toBe(null);
         expect(overlays.querySelector('.ht-license-popover__link')).not.toBe(null);
-
-        // No hard-stop machinery in the branded, non-blocking states.
-        expect(hasPlugin).not.toHaveBeenCalled();
-        expect(mountBottomLicenseBar).not.toHaveBeenCalled();
+        // No lock screen in the branded, non-blocking states.
+        expect(overlays.querySelector('.ht-license-lock')).toBe(null);
       }
     );
 
@@ -171,7 +184,7 @@ describe('licenseBranding', () => {
 
         initLicenseBranding(hotInstance);
 
-        expect(hotInstance.registerScope).toHaveBeenCalledWith(
+        expect(hotInstance.focusScope.registerScope).toHaveBeenCalledWith(
           'licenseBranding', expect.any(HTMLElement), expect.objectContaining({
             shortcutsContextName: 'plugin:licenseBranding',
           })
@@ -189,11 +202,32 @@ describe('licenseBranding', () => {
 
         // The non-commercial/missing badges mount on virtually every developer grid - a focusable
         // badge would add a Tab stop to every keyboard path through the grid.
-        expect(hotInstance.registerScope).not.toHaveBeenCalled();
+        expect(hotInstance.focusScope.registerScope).not.toHaveBeenCalled();
         expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-badge').tabIndex).toBe(-1);
       }
     );
 
+    it('should show the badge alone for the non-commercial state - no popover, label only', () => {
+      setLifecycle('non_commercial');
+      const hotInstance = createMockHotInstance();
+
+      initLicenseBranding(hotInstance);
+
+      const overlays = hotInstance.rootOverlaysElement;
+      const badge = overlays.querySelector('.ht-license-badge');
+
+      // The Non-Commercial and Evaluation License permits the usage - the badge is the only marker,
+      // with no tooltip and no purchase messaging.
+      expect(badge).not.toBe(null);
+      expect(badge.getAttribute('aria-label'))
+        .toBe('You\'re using the Non-Commercial and Evaluation License of Handsontable');
+      expect(badge.tabIndex).toBe(-1);
+      expect(overlays.querySelector('.ht-license-popover')).toBe(null);
+      expect(hotInstance.focusScope.registerScope).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('corner presence and popover anchor', () => {
     it('should stamp `is-cornerless` when there is no corner cell, and re-sync it on settings updates', () => {
       setLifecycle('trial_expired');
       const hotInstance = createMockHotInstance({ rowHeaders: false });
@@ -214,6 +248,17 @@ describe('licenseBranding', () => {
 
       expect(wrapper.classList.contains('is-cornerless')).toBe(false);
       expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(true);
+    });
+
+    it('should not stamp `is-cornerless` when both header types are on', () => {
+      setLifecycle('trial_expired');
+      const hotInstance = createMockHotInstance();
+
+      initLicenseBranding(hotInstance);
+
+      const wrapper = hotInstance.rootOverlaysElement.querySelector('.ht-license-badge-wrapper');
+
+      expect(wrapper.classList.contains('is-cornerless')).toBe(false);
     });
 
     it('should measure the corner width for the popover anchor and re-sync it on renders', () => {
@@ -260,26 +305,16 @@ describe('licenseBranding', () => {
 
       expect(wrapper.style.getPropertyValue('--ht-license-badge-area-width')).toBe('50px');
     });
+  });
 
-    it('should not stamp `is-cornerless` when both header types are on', () => {
-      setLifecycle('trial_expired');
-      const hotInstance = createMockHotInstance();
-
-      initLicenseBranding(hotInstance);
-
-      const wrapper = hotInstance.rootOverlaysElement.querySelector('.ht-license-badge-wrapper');
-
-      expect(wrapper.classList.contains('is-cornerless')).toBe(false);
-    });
-
+  describe('popover copy', () => {
     it('should show the trial-active tooltip copy with the days remaining and a Contact Sales link', () => {
       setLifecycle('trial_active', { daysRemaining: 5 });
       const hotInstance = createMockHotInstance();
 
       initLicenseBranding(hotInstance);
 
-      const overlays = hotInstance.rootOverlaysElement;
-      const popover = overlays.querySelector('.ht-license-popover');
+      const popover = hotInstance.rootOverlaysElement.querySelector('.ht-license-popover');
 
       expect(popover.getAttribute('role')).toBe('tooltip');
       expect(popover.querySelector('.ht-license-popover__title').textContent).toBe('Handsontable Trial');
@@ -292,6 +327,76 @@ describe('licenseBranding', () => {
       expect(popover.querySelector('.ht-license-popover__close')).toBe(null);
     });
 
+    it('should show the freemium upgrade copy with a Learn more link', () => {
+      setLifecycle('freemium');
+      const hotInstance = createMockHotInstance();
+
+      initLicenseBranding(hotInstance);
+
+      const popover = hotInstance.rootOverlaysElement.querySelector('.ht-license-popover');
+
+      expect(popover.querySelector('.ht-license-popover__title').textContent)
+        .toBe('You\'re using the Handsontable Freemium plan.');
+      expect(popover.querySelector('.ht-license-popover__link').textContent).toBe('Learn more');
+      expect(popover.querySelector('.ht-license-popover__link').getAttribute('href'))
+        .toBe('https://handsontable.com/pricing');
+    });
+
+    it('should show the missing-key copy as a hover tooltip without a close button', () => {
+      setLifecycle('missing');
+      const hotInstance = createMockHotInstance();
+
+      initLicenseBranding(hotInstance);
+
+      const popover = hotInstance.rootOverlaysElement.querySelector('.ht-license-popover');
+
+      expect(popover.getAttribute('role')).toBe('tooltip');
+      expect(popover.querySelector('.ht-license-popover__title').textContent).toBe('Missing license key');
+      expect(popover.querySelector('.ht-license-popover__body').textContent)
+        .toContain('The license key for Handsontable is missing');
+      expect(popover.querySelector('.ht-license-popover__body').textContent)
+        .toContain('non-commercial-and-evaluation');
+      expect(popover.querySelector('.ht-license-popover__link').textContent).toBe('Learn more');
+      expect(popover.querySelector('.ht-license-popover__link').getAttribute('href'))
+        .toBe('https://handsontable.com/docs/license-key/');
+      expect(popover.classList.contains('is-open')).toBe(false);
+      expect(popover.querySelector('.ht-license-popover__close')).toBe(null);
+    });
+
+    it('should show the invalid-key copy as a hover tooltip without a close button', () => {
+      setLifecycle('invalid');
+      const hotInstance = createMockHotInstance();
+
+      initLicenseBranding(hotInstance);
+
+      const popover = hotInstance.rootOverlaysElement.querySelector('.ht-license-popover');
+
+      expect(popover.getAttribute('role')).toBe('tooltip');
+      expect(popover.querySelector('.ht-license-popover__title').textContent).toBe('Invalid license key');
+      expect(popover.querySelector('.ht-license-popover__body').textContent)
+        .toContain('The license key for Handsontable is invalid');
+      expect(popover.querySelector('.ht-license-popover__link').textContent).toBe('Learn more');
+      expect(popover.classList.contains('is-open')).toBe(false);
+      expect(popover.querySelector('.ht-license-popover__close')).toBe(null);
+    });
+
+    it('should auto-open the legacy-expired popover with the expiration date and a close button', () => {
+      setLifecycle('legacy_expired', { expiryTimestamp: Date.UTC(2011, 4, 24) });
+      const hotInstance = createMockHotInstance();
+
+      initLicenseBranding(hotInstance);
+
+      const popover = hotInstance.rootOverlaysElement.querySelector('.ht-license-popover');
+
+      expect(popover.getAttribute('role')).toBe('dialog');
+      expect(popover.querySelector('.ht-license-popover__title').textContent).toBe('Expired license key');
+      expect(popover.querySelector('.ht-license-popover__body').textContent).toContain('expired on May 24, 2011');
+      expect(popover.classList.contains('is-open')).toBe(true);
+      expect(popover.querySelector('.ht-license-popover__close')).not.toBe(null);
+    });
+  });
+
+  describe('soft-stop popover dismissal', () => {
     it('should auto-open the soft-stop popover as a dialog with a working close button', () => {
       setLifecycle('trial_expired');
       const hotInstance = createMockHotInstance();
@@ -335,6 +440,30 @@ describe('licenseBranding', () => {
       expect(wrapper.classList.contains('is-dismissed')).toBe(true);
     });
 
+    it('should re-arm the dismissed soft-stop popover once the pointer and focus leave', () => {
+      setLifecycle('trial_expired');
+      const hotInstance = createMockHotInstance();
+
+      initLicenseBranding(hotInstance);
+
+      const overlays = hotInstance.rootOverlaysElement;
+      const wrapper = overlays.querySelector('.ht-license-badge-wrapper');
+      const popover = overlays.querySelector('.ht-license-popover');
+
+      popover.querySelector('.ht-license-popover__close').click();
+      expect(wrapper.classList.contains('is-dismissed')).toBe(true);
+
+      // Still dismissed while the pointer roams the corner...
+      roamPointerOver(hotInstance.cornerHeaderCell);
+      expect(wrapper.classList.contains('is-dismissed')).toBe(true);
+
+      // ...and re-armed once it leaves, so the next corner hover shows the tooltip again.
+      roamPointerOver(hotInstance.rootElement);
+      expect(wrapper.classList.contains('is-dismissed')).toBe(false);
+    });
+  });
+
+  describe('corner hover detection', () => {
     it('should stamp `is-corner-hover` while the pointer roams the corner header (click-through hover)', () => {
       setLifecycle('trial_active', { daysRemaining: 5 });
       const hotInstance = createMockHotInstance();
@@ -405,435 +534,240 @@ describe('licenseBranding', () => {
       roamPointerOver(hotInstance.cornerHeaderCell);
       expect(wrapper.classList.contains('is-corner-hover')).toBe(false);
     });
+  });
 
-    it('should re-arm the dismissed soft-stop popover once the pointer and focus leave', () => {
-      setLifecycle('trial_expired');
+  describe('trial hard stop (the Core-owned lock screen)', () => {
+    it('should mount a non-closable, modal lock over the grid', () => {
+      const hotInstance = mountTrialLock();
+
+      const lock = hotInstance.rootOverlaysElement.querySelector('.ht-license-lock');
+
+      expect(lock).not.toBe(null);
+      expect(lock.getAttribute('role')).toBe('alertdialog');
+      expect(lock.getAttribute('aria-modal')).toBe('true');
+      expect(lock.querySelector('.ht-license-lock__title').textContent)
+        .toBe('Your Handsontable license has expired.');
+      expect(lock.querySelector('.ht-license-lock__description').textContent)
+        .toContain('purchase a commercial license');
+
+      const buttons = lock.querySelectorAll('button');
+
+      // Contact Sales only - the trial lock offers no dismiss affordance.
+      expect(buttons).toHaveLength(1);
+      expect(buttons[0].textContent).toBe('Contact Sales');
+
+      buttons[0].click();
+      expect(hotInstance.rootWindow.open).toHaveBeenCalledWith('mailto:sales@handsontable.com', '_blank', 'noopener');
+    });
+
+    it('should defer moving focus into the lock to afterInit (the grid is unrendered during init)', () => {
+      setLifecycle('trial_expired_hard');
       const hotInstance = createMockHotInstance();
 
       initLicenseBranding(hotInstance);
 
-      const overlays = hotInstance.rootOverlaysElement;
-      const wrapper = overlays.querySelector('.ht-license-badge-wrapper');
-      const popover = overlays.querySelector('.ht-license-popover');
+      // The lock DOM mounts immediately, but activation (deselect + focus move) waits for the grid.
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
+      expect(hotInstance.focusScope.activateScope).not.toHaveBeenCalled();
 
-      popover.querySelector('.ht-license-popover__close').click();
-      expect(wrapper.classList.contains('is-dismissed')).toBe(true);
+      hotInstance.hooks.addHookOnce.afterInit();
 
-      // Still dismissed while the pointer roams the corner...
-      roamPointerOver(hotInstance.cornerHeaderCell);
-      expect(wrapper.classList.contains('is-dismissed')).toBe(true);
-
-      // ...and re-armed once it leaves, so the next corner hover shows the tooltip again.
-      roamPointerOver(hotInstance.rootElement);
-      expect(wrapper.classList.contains('is-dismissed')).toBe(false);
+      expect(hotInstance.deselectCell).toHaveBeenCalledTimes(1);
+      expect(hotInstance.focusScope.activateScope).toHaveBeenCalledWith('licenseLock');
     });
 
-    it('should show the freemium upgrade copy with a Learn more link', () => {
+    it('should register a modal focus scope for the lock', () => {
+      const hotInstance = mountTrialLock();
+
+      expect(hotInstance.focusScope.registerScope).toHaveBeenCalledWith(
+        'licenseLock', expect.any(HTMLElement), expect.objectContaining({
+          shortcutsContextName: 'plugin:licenseLock',
+          type: 'modal',
+        })
+      );
+    });
+
+    it('should ignore Escape - the trial lock is not closable', () => {
+      const hotInstance = mountTrialLock();
+
+      const lock = hotInstance.rootOverlaysElement.querySelector('.ht-license-lock');
+
+      lock.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
+    });
+
+    it('should survive settings updates that do not change the key', () => {
+      const hotInstance = mountTrialLock();
+
+      expect(_getLicenseState).toHaveBeenCalledTimes(1);
+
+      hotInstance.hooks.addHook.afterUpdateSettings();
+
+      // Nothing tears the Core-owned lock down, and the unchanged key is not re-resolved
+      // (resolution checksums the whole key - SHA-512).
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
+      expect(_getLicenseState).toHaveBeenCalledTimes(1);
+    });
+
+    it('should unmount the lock when a settings update fixes the license key', () => {
+      const hotInstance = mountTrialLock();
+
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
+
+      // The customer bought a license and swapped the key at runtime: the surface re-resolves and
+      // the lock releases the grid - no page reload needed. This must work regardless of the
+      // Dialog plugin or any `dialog: true` setting (the lock does not depend on the plugin).
+      hotInstance.getSettings.mockReturnValue({ licenseKey: 'A-FIXED-KEY' });
+      setLifecycle('legacy_valid');
+      hotInstance.hooks.addHook.afterUpdateSettings();
+
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
+      expect(hotInstance.focusScope.deactivateScope).toHaveBeenCalledWith('licenseLock');
+      expect(hotInstance.focusScope.unregisterScope).toHaveBeenCalledWith('licenseLock');
+    });
+  });
+
+  describe('subscription hard stop (Cases 3a/3b: the deployment mode selects the surface)', () => {
+    it('should mount a closable lock with Contact Sales and Close buttons for an Internal-mode key', () => {
+      setLifecycle('sub_expired_hard', {}, grantsWithMode('internal'));
+      const hotInstance = createMockHotInstance();
+
+      initLicenseBranding(hotInstance);
+      hotInstance.hooks.addHookOnce.afterInit();
+
+      const lock = hotInstance.rootOverlaysElement.querySelector('.ht-license-lock');
+
+      expect(lock).not.toBe(null);
+      expect(lock.getAttribute('role')).toBe('dialog');
+      expect(lock.querySelector('.ht-license-lock__title').textContent)
+        .toBe('Your Handsontable subscription has expired.');
+
+      const buttons = lock.querySelectorAll('button');
+
+      expect(buttons).toHaveLength(2);
+      expect(buttons[0].textContent).toBe('Contact Sales');
+      expect(buttons[1].textContent).toBe('Close');
+    });
+
+    it('should dismiss the lock with the Close button, and keep it dismissed across settings updates', () => {
+      setLifecycle('sub_expired_hard', {}, grantsWithMode('internal'));
+      const hotInstance = createMockHotInstance();
+
+      initLicenseBranding(hotInstance);
+      hotInstance.hooks.addHookOnce.afterInit();
+
+      const lock = hotInstance.rootOverlaysElement.querySelector('.ht-license-lock');
+
+      lock.querySelectorAll('button')[1].click();
+
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
+      expect(hotInstance.focusScope.deactivateScope).toHaveBeenCalledWith('licenseLock');
+
+      // A settings update with the unchanged key remounts nothing - the dismissal sticks.
+      hotInstance.hooks.addHook.afterUpdateSettings();
+
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
+    });
+
+    it('should dismiss the lock on Escape', () => {
+      setLifecycle('sub_expired_hard', {}, grantsWithMode('internal'));
+      const hotInstance = createMockHotInstance();
+
+      initLicenseBranding(hotInstance);
+      hotInstance.hooks.addHookOnce.afterInit();
+
+      const lock = hotInstance.rootOverlaysElement.querySelector('.ht-license-lock');
+
+      lock.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
+    });
+
+    it.each(['saas', 'some-future-mode'])(
+      'should stay console-only for the "%s" mode: no lock, no badge',
+      (mode) => {
+        setLifecycle('sub_expired_hard', {}, grantsWithMode(mode));
+        const hotInstance = createMockHotInstance();
+
+        initLicenseBranding(hotInstance);
+
+        expect(hotInstance.rootOverlaysElement.children).toHaveLength(0);
+        expect(hotInstance.focusScope.registerScope).not.toHaveBeenCalled();
+      }
+    );
+
+    it('should unmount the lock when a settings update supplies a renewed key', () => {
+      setLifecycle('sub_expired_hard', {}, grantsWithMode('internal'));
+      const hotInstance = createMockHotInstance();
+
+      initLicenseBranding(hotInstance);
+      hotInstance.hooks.addHookOnce.afterInit();
+
+      hotInstance.getSettings.mockReturnValue({ licenseKey: 'A-RENEWED-KEY' });
+      setLifecycle('sub_active', { daysRemaining: 300 }, grantsWithMode('internal'));
+      hotInstance.hooks.addHook.afterUpdateSettings();
+
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
+    });
+  });
+
+  describe('re-branding on a runtime key change', () => {
+    it('should remove the freemium badge when a commercial key is swapped in', () => {
       setLifecycle('freemium');
-      const hotInstance = createMockHotInstance();
+      const hotInstance = createMockHotInstance({ licenseKey: 'A-FREE-KEY' });
 
       initLicenseBranding(hotInstance);
 
-      const popover = hotInstance.rootOverlaysElement.querySelector('.ht-license-popover');
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-badge')).not.toBe(null);
+      expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(true);
 
-      expect(popover.querySelector('.ht-license-popover__title').textContent)
-        .toBe('You\'re using the Handsontable Freemium plan.');
-      expect(popover.querySelector('.ht-license-popover__link').textContent).toBe('Learn more');
-      expect(popover.querySelector('.ht-license-popover__link').getAttribute('href'))
-        .toBe('https://handsontable.com/pricing');
+      // "Upgrading to a commercial key removes it" - the docs' promise must hold at runtime.
+      hotInstance.getSettings.mockReturnValue({ licenseKey: 'A-COMMERCIAL-KEY' });
+      setLifecycle('legacy_valid');
+      hotInstance.hooks.addHook.afterUpdateSettings();
+
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);
+      expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(false);
+
+      // The badge's render hooks are gone too - a later render must not re-stamp the glyph class.
+      hotInstance.hooks.addHook.afterRender();
+      expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(false);
     });
 
-    it('should show the missing-key copy as a hover tooltip without a close button', () => {
+    it('should swap the badge surface when the key changes to another branded state', () => {
       setLifecycle('missing');
       const hotInstance = createMockHotInstance();
 
       initLicenseBranding(hotInstance);
 
-      const popover = hotInstance.rootOverlaysElement.querySelector('.ht-license-popover');
+      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-popover__title').textContent)
+        .toBe('Missing license key');
 
-      expect(popover.getAttribute('role')).toBe('tooltip');
-      expect(popover.querySelector('.ht-license-popover__title').textContent).toBe('Missing license key');
-      expect(popover.querySelector('.ht-license-popover__body').textContent)
-        .toContain('The license key for Handsontable is missing');
-      expect(popover.querySelector('.ht-license-popover__body').textContent)
-        .toContain('non-commercial-and-evaluation');
-      expect(popover.querySelector('.ht-license-popover__link').textContent).toBe('Learn more');
-      expect(popover.querySelector('.ht-license-popover__link').getAttribute('href'))
-        .toBe('https://handsontable.com/docs/license-key/');
-      expect(popover.classList.contains('is-open')).toBe(false);
-      expect(popover.querySelector('.ht-license-popover__close')).toBe(null);
-    });
-
-    it('should show the badge alone for the non-commercial state - no popover, label only', () => {
-      setLifecycle('non_commercial');
-      const hotInstance = createMockHotInstance();
-
-      initLicenseBranding(hotInstance);
-
-      const overlays = hotInstance.rootOverlaysElement;
-      const badge = overlays.querySelector('.ht-license-badge');
-
-      // The Non-Commercial and Evaluation License permits the usage - the badge is the only marker,
-      // with no tooltip and no purchase messaging.
-      expect(badge).not.toBe(null);
-      expect(badge.getAttribute('aria-label'))
-        .toBe('You\'re using the Non-Commercial and Evaluation License of Handsontable');
-      expect(badge.tabIndex).toBe(-1);
-      expect(overlays.querySelector('.ht-license-popover')).toBe(null);
-      expect(hotInstance.registerScope).not.toHaveBeenCalled();
-    });
-
-    it('should show the invalid-key copy as a hover tooltip without a close button', () => {
-      setLifecycle('invalid');
-      const hotInstance = createMockHotInstance();
-
-      initLicenseBranding(hotInstance);
-
-      const popover = hotInstance.rootOverlaysElement.querySelector('.ht-license-popover');
-
-      expect(popover.getAttribute('role')).toBe('tooltip');
-      expect(popover.querySelector('.ht-license-popover__title').textContent).toBe('Invalid license key');
-      expect(popover.querySelector('.ht-license-popover__body').textContent)
-        .toContain('The license key for Handsontable is invalid');
-      expect(popover.querySelector('.ht-license-popover__link').textContent).toBe('Learn more');
-      expect(popover.classList.contains('is-open')).toBe(false);
-      expect(popover.querySelector('.ht-license-popover__close')).toBe(null);
-    });
-
-    it('should auto-open the legacy-expired popover with the expiration date and a close button', () => {
-      setLifecycle('legacy_expired', { expiryTimestamp: Date.UTC(2011, 4, 24) });
-      const hotInstance = createMockHotInstance();
-
-      initLicenseBranding(hotInstance);
-
-      const overlays = hotInstance.rootOverlaysElement;
-      const badge = overlays.querySelector('.ht-license-badge');
-      const popover = overlays.querySelector('.ht-license-popover');
-      const closeButton = popover.querySelector('.ht-license-popover__close');
-
-      expect(popover.getAttribute('role')).toBe('dialog');
-      expect(popover.querySelector('.ht-license-popover__title').textContent).toBe('Expired license key');
-      expect(popover.querySelector('.ht-license-popover__body').textContent)
-        .toContain('expired on May 24, 2011');
-      expect(popover.classList.contains('is-open')).toBe(true);
-      expect(badge.getAttribute('aria-expanded')).toBe('true');
-      expect(closeButton).not.toBe(null);
-
-      closeButton.click();
-
-      expect(popover.classList.contains('is-open')).toBe(false);
-    });
-  });
-
-  describe('trial_expired_hard with the Dialog plugin bundled', () => {
-    beforeEach(() => {
-      setLifecycle('trial_expired_hard');
-      hasPlugin.mockReturnValue(true);
-    });
-
-    it('should not render the bottom bar (the dialog replaces it)', () => {
-      const dialog = createMockDialog();
-      const hotInstance = createMockHotInstance({ dialog });
-
-      initLicenseBranding(hotInstance);
-
-      expect(mountBottomLicenseBar).not.toHaveBeenCalled();
-    });
-
-    it('should defer the first show to afterInit and re-assert on afterUpdateSettings', () => {
-      const dialog = createMockDialog();
-      const hotInstance = createMockHotInstance({ dialog });
-
-      initLicenseBranding(hotInstance);
-
-      // Nothing shown synchronously - the grid has not rendered yet during init.
-      expect(dialog.show).not.toHaveBeenCalled();
-      expect(hotInstance.addHookOnce).toHaveBeenCalledWith('afterInit', expect.any(Function));
-      expect(hotInstance.addHook).toHaveBeenCalledWith('afterUpdateSettings', expect.any(Function));
-    });
-
-    it('should enable the plugin on demand and show a blocking Contact Sales dialog on afterInit', () => {
-      const dialog = createMockDialog();
-      const hotInstance = createMockHotInstance({ dialog });
-
-      initLicenseBranding(hotInstance);
-      hotInstance.hooks.addHookOnce.afterInit();
-
-      expect(dialog.enablePlugin).toHaveBeenCalledTimes(1);
-      expect(dialog.show).toHaveBeenCalledTimes(1);
-
-      const options = dialog.show.mock.calls[0][0];
-
-      expect(options.closable).toBe(false);
-      expect(options.customClassName).toBe('ht-license-lock');
-      expect(options.template.type).toBe('confirm');
-      expect(options.template.title).toBe('Your Handsontable license has expired.');
-      expect(options.template.buttons).toHaveLength(1);
-      expect(options.template.buttons[0].text).toBe('Contact Sales');
-
-      // The button opens the sales contact.
-      options.template.buttons[0].callback();
-      expect(hotInstance.rootWindow.open).toHaveBeenCalledWith('mailto:sales@handsontable.com', '_blank', 'noopener');
-    });
-
-    it('should not enable an already-enabled plugin again', () => {
-      const dialog = createMockDialog({ enabled: true });
-      const hotInstance = createMockHotInstance({ dialog });
-
-      initLicenseBranding(hotInstance);
-      hotInstance.hooks.addHookOnce.afterInit();
-
-      expect(dialog.enablePlugin).not.toHaveBeenCalled();
-      expect(dialog.show).toHaveBeenCalledTimes(1);
-    });
-
-    it('should be idempotent: it does not re-show while the dialog is already visible', () => {
-      const dialog = createMockDialog({ enabled: true, isVisible: jest.fn(() => true) });
-      const hotInstance = createMockHotInstance({ dialog });
-
-      initLicenseBranding(hotInstance);
-      hotInstance.hooks.addHookOnce.afterInit();
-      // Simulate a settings update re-asserting the lock while the dialog is still up.
-      hotInstance.hooks.addHook.afterUpdateSettings();
-
-      expect(dialog.show).not.toHaveBeenCalled();
-    });
-
-    it('should re-show after a settings update that tore the dialog down', () => {
-      const dialog = createMockDialog({ enabled: true });
-      const hotInstance = createMockHotInstance({ dialog });
-
-      initLicenseBranding(hotInstance);
-      hotInstance.hooks.addHookOnce.afterInit();
-      expect(dialog.show).toHaveBeenCalledTimes(1);
-
-      // An updateSettings disabled and hid the dialog; the re-assert hook brings it back.
-      dialog.enabled = false;
-      hotInstance.hooks.addHook.afterUpdateSettings();
-
-      expect(dialog.enablePlugin).toHaveBeenCalled();
-      expect(dialog.show).toHaveBeenCalledTimes(2);
-    });
-
-    it('should release the lock when a settings update fixes the license key', () => {
-      const dialog = createMockDialog({ enabled: true });
-      const hotInstance = createMockHotInstance({ dialog });
-
-      initLicenseBranding(hotInstance);
-      hotInstance.hooks.addHookOnce.afterInit();
-      expect(dialog.show).toHaveBeenCalledTimes(1);
-
-      // The customer bought a license and swapped the key at runtime: the re-assert must re-read
-      // the CURRENT key and stand down instead of locking a now-licensed grid.
-      hotInstance.getSettings.mockReturnValue({ licenseKey: 'A-FIXED-KEY' });
+      hotInstance.getSettings.mockReturnValue({ licenseKey: 'A-TRIAL-KEY' });
       setLifecycle('trial_active', { daysRemaining: 30 });
       hotInstance.hooks.addHook.afterUpdateSettings();
 
-      expect(dialog.show).toHaveBeenCalledTimes(1);
+      const popovers = hotInstance.rootOverlaysElement.querySelectorAll('.ht-license-popover');
+
+      expect(popovers).toHaveLength(1);
+      expect(popovers[0].querySelector('.ht-license-popover__title').textContent).toBe('Handsontable Trial');
     });
 
-    it('should re-assert the lock when something else hides the dialog (an app dialog closing)', async() => {
-      const dialog = createMockDialog({ enabled: true });
-      const hotInstance = createMockHotInstance({ dialog });
-
-      initLicenseBranding(hotInstance);
-      hotInstance.hooks.addHookOnce.afterInit();
-      expect(dialog.show).toHaveBeenCalledTimes(1);
-
-      // The Dialog plugin is a single shared surface: an app hiding it (or an app dialog closing)
-      // must not defeat the non-closable lock. The re-assert is microtask-deferred.
-      hotInstance.hooks.addHook.afterDialogHide();
-      await Promise.resolve();
-
-      expect(dialog.show).toHaveBeenCalledTimes(2);
-    });
-
-    it('should NOT re-assert the lock for the hide that is part of destroy()', async() => {
-      const dialog = createMockDialog({ enabled: true });
-      const hotInstance = createMockHotInstance({ dialog });
-
-      initLicenseBranding(hotInstance);
-      hotInstance.hooks.addHookOnce.afterInit();
-      expect(dialog.show).toHaveBeenCalledTimes(1);
-
-      // The teardown hide fires while destroying; by the time the deferred re-assert runs, the
-      // instance is destroyed and must be left alone.
-      hotInstance.hooks.addHook.afterDialogHide();
-      hotInstance.isDestroyed = true;
-      await Promise.resolve();
-
-      expect(dialog.show).toHaveBeenCalledTimes(1);
-    });
-
-    it('should do nothing when the plugin instance is unavailable', () => {
-      const hotInstance = createMockHotInstance({ dialog: undefined });
+    it('should not re-resolve the state when a settings update keeps the same key', () => {
+      setLifecycle('freemium');
+      const hotInstance = createMockHotInstance({ licenseKey: 'A-FREE-KEY' });
 
       initLicenseBranding(hotInstance);
 
-      expect(() => hotInstance.hooks.addHookOnce.afterInit()).not.toThrow();
-      expect(mountBottomLicenseBar).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('trial_expired_hard without the Dialog plugin bundled', () => {
-    beforeEach(() => {
-      setLifecycle('trial_expired_hard');
-      hasPlugin.mockReturnValue(false);
-    });
-
-    it('should fall back to mounting the hard-stop bottom bar', () => {
-      const barNode = document.createElement('div');
-
-      _createHardStopLicenseBar.mockReturnValue(barNode);
-      const hotInstance = createMockHotInstance();
-
-      initLicenseBranding(hotInstance);
-
-      expect(_createHardStopLicenseBar).toHaveBeenCalledWith('hot-display-license-info');
-      expect(mountBottomLicenseBar).toHaveBeenCalledWith(hotInstance, barNode);
-      // No dialog machinery in the fallback path.
-      expect(hotInstance.addHook).not.toHaveBeenCalled();
-      expect(hotInstance.addHookOnce).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('sub_expired_hard (Cases 3a/3b: the deployment mode selects the surface)', () => {
-    beforeEach(() => {
-      hasPlugin.mockReturnValue(true);
-    });
-
-    it('should show a closable dialog with Contact Sales and Close buttons for an Internal-mode key', () => {
-      setLifecycle('sub_expired_hard', {}, grantsWithMode('internal'));
-      const dialog = createMockDialog();
-      const hotInstance = createMockHotInstance({ dialog });
-
-      initLicenseBranding(hotInstance);
-
-      // Nothing shown synchronously - the grid has not rendered yet during init.
-      expect(dialog.show).not.toHaveBeenCalled();
-
-      hotInstance.hooks.addHookOnce.afterInit();
-
-      expect(dialog.enablePlugin).toHaveBeenCalledTimes(1);
-      expect(dialog.show).toHaveBeenCalledTimes(1);
-
-      const options = dialog.show.mock.calls[0][0];
-
-      expect(options.closable).toBe(true);
-      expect(options.customClassName).toBe('ht-license-lock');
-      expect(options.template.title).toBe('Your Handsontable subscription has expired.');
-      expect(options.template.buttons).toHaveLength(2);
-      expect(options.template.buttons[0].text).toBe('Contact Sales');
-      expect(options.template.buttons[1].text).toBe('Close');
-
-      // The Close button hides the dialog.
-      options.template.buttons[1].callback();
-      expect(dialog.hide).toHaveBeenCalledTimes(1);
-
-      // No bar and no badge - the dialog is the only subscription surface.
-      expect(mountBottomLicenseBar).not.toHaveBeenCalled();
-      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);
-    });
-
-    it.each(['saas', 'some-future-mode'])(
-      'should stay console-only for the "%s" mode: no dialog, no bar, no badge',
-      (mode) => {
-        setLifecycle('sub_expired_hard', {}, grantsWithMode(mode));
-        const dialog = createMockDialog();
-        const hotInstance = createMockHotInstance({ dialog });
-
-        initLicenseBranding(hotInstance);
-
-        // The mode gate short-circuits before the plugin lookup.
-        expect(hasPlugin).not.toHaveBeenCalled();
-        expect(hotInstance.addHook).not.toHaveBeenCalled();
-        expect(hotInstance.addHookOnce).not.toHaveBeenCalled();
-        expect(mountBottomLicenseBar).not.toHaveBeenCalled();
-        expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);
-      }
-    );
-
-    it('should not fall back to the bottom bar when the Dialog plugin is not bundled', () => {
-      setLifecycle('sub_expired_hard', {}, grantsWithMode('internal'));
-      hasPlugin.mockReturnValue(false);
-      const hotInstance = createMockHotInstance();
-
-      initLicenseBranding(hotInstance);
-
-      // The bar is never a subscription surface - the console error is the only remaining signal.
-      expect(mountBottomLicenseBar).not.toHaveBeenCalled();
-      expect(hotInstance.addHookOnce).not.toHaveBeenCalled();
-    });
-
-    it('should re-assert the dialog after a settings-update teardown (not a user dismissal)', () => {
-      setLifecycle('sub_expired_hard', {}, grantsWithMode('internal'));
-      const dialog = createMockDialog();
-      const hotInstance = createMockHotInstance({ dialog });
-
-      initLicenseBranding(hotInstance);
-      hotInstance.hooks.addHookOnce.afterInit();
-
-      expect(dialog.show).toHaveBeenCalledTimes(1);
-
-      // A settings update tears the plugin down: the hide and `afterUpdateSettings` fire in the
-      // same task, so the hide is not a dismissal and the lock comes back.
-      hotInstance.hooks.addHook.afterDialogHide();
-      hotInstance.hooks.addHook.afterUpdateSettings();
-
-      expect(dialog.show).toHaveBeenCalledTimes(2);
-    });
-
-    it('should NOT re-assert the dialog after an Escape dismissal', async() => {
-      setLifecycle('sub_expired_hard', {}, grantsWithMode('internal'));
-      const dialog = createMockDialog();
-      const hotInstance = createMockHotInstance({ dialog });
-
-      initLicenseBranding(hotInstance);
-      hotInstance.hooks.addHookOnce.afterInit();
-
-      // An Escape close is a bare hide with no settings update in the same task: once the task ends
-      // (the awaited microtask), the hide is confirmed as a user dismissal.
-      hotInstance.hooks.addHook.afterDialogHide();
-      await Promise.resolve();
+      expect(_getLicenseState).toHaveBeenCalledTimes(1);
 
       hotInstance.hooks.addHook.afterUpdateSettings();
-
-      expect(dialog.show).toHaveBeenCalledTimes(1);
-    });
-
-    it('should NOT re-assert the dialog after a Close-button dismissal', () => {
-      setLifecycle('sub_expired_hard', {}, grantsWithMode('internal'));
-      const dialog = createMockDialog();
-      const hotInstance = createMockHotInstance({ dialog });
-
-      initLicenseBranding(hotInstance);
-      hotInstance.hooks.addHookOnce.afterInit();
-
-      // The Close button reports the dismissal directly - no timing inference, so even a settings
-      // update in the SAME task does not bring the dialog back.
-      dialog.show.mock.calls[0][0].template.buttons[1].callback();
-      hotInstance.hooks.addHook.afterDialogHide();
       hotInstance.hooks.addHook.afterUpdateSettings();
 
-      expect(dialog.show).toHaveBeenCalledTimes(1);
-    });
-
-    it('should release the lock when a settings update fixes the license key', () => {
-      setLifecycle('sub_expired_hard', {}, grantsWithMode('internal'));
-      const dialog = createMockDialog();
-      const hotInstance = createMockHotInstance({ dialog });
-
-      initLicenseBranding(hotInstance);
-      hotInstance.hooks.addHookOnce.afterInit();
-      expect(dialog.show).toHaveBeenCalledTimes(1);
-
-      // A renewed subscription key swapped in at runtime must stand the lock down.
-      hotInstance.getSettings.mockReturnValue({ licenseKey: 'A-RENEWED-KEY' });
-      setLifecycle('sub_active', { daysRemaining: 300 }, grantsWithMode('internal'));
-      hotInstance.hooks.addHook.afterDialogHide();
-      hotInstance.hooks.addHook.afterUpdateSettings();
-
-      expect(dialog.show).toHaveBeenCalledTimes(1);
+      // Resolution checksums the whole key (SHA-512) - it must not re-run per settings update.
+      expect(_getLicenseState).toHaveBeenCalledTimes(1);
+      expect(hotInstance.rootOverlaysElement.querySelectorAll('.ht-license-badge-wrapper')).toHaveLength(1);
     });
   });
 });

@@ -371,32 +371,3 @@ describe('_getLicenseState', () => {
   });
 });
 
-describe('_createHardStopLicenseBar', () => {
-  let _createHardStopLicenseBar;
-
-  beforeEach(() => {
-    jest.resetModules();
-    // eslint-disable-next-line global-require
-    _createHardStopLicenseBar = require('../mixed')._createHardStopLicenseBar;
-  });
-
-  it('builds the hard-stop bar node with the license classes, copy, and Contact Sales link', () => {
-    const node = _createHardStopLicenseBar(LICENSE_INFO_CLASS);
-
-    expect(node.className).toBe(`handsontable ${LICENSE_INFO_CLASS}`);
-
-    const inner = node.querySelector(`.${LICENSE_INFO_CLASS}_inner`);
-
-    expect(inner).not.toBe(null);
-    expect(inner.innerHTML).toBe(
-      'Your Handsontable trial license has expired and can no longer be used. To continue using ' +
-      'Handsontable, you need to purchase a commercial license. ' +
-      '<a href="mailto:sales@handsontable.com">Contact Sales</a>.'
-    );
-
-    const link = inner.querySelector('a');
-
-    expect(link.getAttribute('href')).toBe('mailto:sales@handsontable.com');
-    expect(link.textContent).toBe('Contact Sales');
-  });
-});

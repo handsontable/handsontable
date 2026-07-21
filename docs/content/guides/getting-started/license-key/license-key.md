@@ -278,7 +278,7 @@ A `[FREE]` key never expires. The grid shows the Handsontable badge in its top-l
 
 The console warns when your `[SUB]` key expires in 60 days or less. After the expiration date, the console reports an error with the date the software becomes inactive. During that grace period, the grid itself displays no message.
 
-What happens after the grace period depends on the deployment model stored in your key. Keys issued for internal use show a dialog over the grid. You can close the dialog and keep working while your organization renews the license. Keys issued for SaaS products - where the grid is part of a product sold to your own customers - never show any message in the grid. The console error is the only signal.
+What happens after the grace period depends on the deployment model stored in your key. Keys issued for internal use show a message screen over the grid. You can close the screen and keep working while your organization renews the license. Keys issued for SaaS products - where the grid is part of a product sold to your own customers - never show any message in the grid. The console error is the only signal.
 
 To renew your subscription, contact our [Sales Team](https://handsontable.com/get-a-quote).
 

@@ -174,42 +174,16 @@ const typedConsoleSeverity: Record<string, 'warn' | 'error'> = {
 };
 
 /**
- * The bottom-bar (DOM) copy for the typed states that show one: the soft-stopped
- * trial, and the hard-stopped trial when the blocking dialog cannot be shown (the
- * Dialog plugin is not in the bundle). The lapsed perpetual license reuses the
- * legacy `expired` bar instead.
+ * The bottom-bar (DOM) copy for the typed states that show one: only the
+ * soft-stopped trial (the hard stops render the Core-owned lock screen instead -
+ * see `utils/licenseBranding/lockScreen.ts`). The lapsed perpetual license reuses
+ * the legacy `expired` bar.
  */
 const typedDomMessages: Record<string, (params: TypedMessageParams) => string> = {
   trial_expired: () => toSingleLine`
     Your Handsontable license has expired. To continue using Handsontable, you need to purchase a commercial\x20
     license. <a href="mailto:sales@handsontable.com">Contact Sales</a>.`,
-  trial_expired_hard: () => toSingleLine`
-    Your Handsontable trial license has expired and can no longer be used. To continue using Handsontable, you\x20
-    need to purchase a commercial license. <a href="mailto:sales@handsontable.com">Contact Sales</a>.`,
 };
-
-/**
- * Builds the bottom-bar DOM node for the hard-stopped trial fallback (shown when
- * the Dialog plugin is not in the bundle). The node has the same shape and class
- * names as the notification bar so it drops into the bottom slot the same way -
- * only the copy differs (see `typedDomMessages.trial_expired_hard`). It is created
- * detached; the caller mounts it into the bottom slot.
- *
- * @param {string} className The license notification class name.
- * @returns {HTMLElement} The detached bar node.
- */
-export function _createHardStopLicenseBar(className: string): HTMLElement {
-  const messageNode = document.createElement('div');
-  const innerNode = document.createElement('div');
-
-  messageNode.className = `handsontable ${className}`;
-  innerNode.className = `${className}_inner`;
-  innerNode.innerHTML = typedDomMessages.trial_expired_hard({});
-
-  messageNode.appendChild(innerNode);
-
-  return messageNode;
-}
 
 export function _injectProductInfo(
   { className, key, element, releaseDate }: {
