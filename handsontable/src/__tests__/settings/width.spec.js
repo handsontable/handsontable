@@ -450,6 +450,29 @@ describe('settings', () => {
         expect(hot.rootElement.querySelectorAll('.ht_master .htCore tbody tr').length)
           .toBeLessThan(200);
       });
+
+      it('should render vertically when `width` is narrower than the columns and `height` is omitted', async() => {
+        // A width-constrained grid whose columns are wider than the width renders at content height
+        // and scrolls vertically with the window (previously the whole grid collapsed to `0px`).
+        // Known limitation: the columns past the constrained width are clipped by the root's
+        // `overflow-x: clip` and are not reachable via a horizontal scrollbar — reaching them needs
+        // per-axis trimming (window vertical + element horizontal), tracked in a follow-up task.
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 10),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: 300,
+        });
+
+        const holder = hot.rootElement.querySelector('.ht_master .wtHolder');
+
+        expect($(hot.rootElement).width()).toBeAroundValue(300, 1);
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+        // Not collapsed: the grid is visible and sizes vertically to its content.
+        expect(holder.getBoundingClientRect().height).toBeGreaterThan(0);
+        expect(hot.view.isVerticallyScrollableByWindow()).toBe(true);
+      });
     });
   });
 });

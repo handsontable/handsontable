@@ -840,6 +840,27 @@ export function getMaximumScrollLeft(element: HTMLElement) {
   return element.scrollWidth - element.clientWidth;
 }
 
+const OVERFLOW_TRIMMING_VALUES = ['scroll', 'hidden', 'auto', 'clip'];
+
+/**
+ * Checks whether a single overflow axis traps the table on that axis.
+ *
+ * `overflow: clip` establishes no scroll port. When an axis is `clip` while the perpendicular axis
+ * stays `visible`, it does not trap the table's scroll — the table still scrolls with the window on
+ * the visible axis. A width-constrained, window-scrolled table sets `overflow-x: clip` on its root
+ * (see core.ts, DEV-1025); treating that root as the trimming container drops the overlays out of
+ * window-scroll mode (frozen rows stop pinning, vertical virtualization stops). Such a single-axis
+ * clip must not qualify the axis as trimming.
+ *
+ * @param {string} axis The `overflow-x`/`overflow-y` value of the axis being tested.
+ * @param {string} perpendicular The `overflow` value of the other axis.
+ * @returns {boolean}
+ */
+function overflowAxisTraps(axis: string, perpendicular: string): boolean {
+  return OVERFLOW_TRIMMING_VALUES.includes(axis) &&
+    !(axis === 'clip' && (perpendicular === 'visible' || perpendicular === ''));
+}
+
 /**
  * Returns a DOM element responsible for trimming the provided element.
  *
@@ -859,23 +880,13 @@ export function getTrimmingContainer(base: HTMLElement): HTMLElement | Window {
 
     if (rootWindow) {
       const computedStyle = rootWindow.getComputedStyle(el);
-      const allowedProperties = ['scroll', 'hidden', 'auto', 'clip'];
       const property = computedStyle.getPropertyValue('overflow');
       const propertyY = computedStyle.getPropertyValue('overflow-y');
       const propertyX = computedStyle.getPropertyValue('overflow-x');
 
-      // `overflow: clip` establishes no scroll port. When an element clips a single axis while the
-      // other axis stays `visible`, it does not trap the table's scroll — the table still scrolls
-      // with the window on the visible axis. A width-constrained, window-scrolled table sets
-      // `overflow-x: clip` on its root (see core.ts, DEV-1025); treating that root as the trimming
-      // container drops the overlays out of window-scroll mode (frozen rows stop pinning, vertical
-      // virtualization stops). Such a single-axis clip must not qualify the element as trimming.
-      const clipsHorizontallyOnly = propertyX === 'clip' && (propertyY === 'visible' || propertyY === '');
-      const clipsVerticallyOnly = propertyY === 'clip' && (propertyX === 'visible' || propertyX === '');
-      const trimsX = allowedProperties.includes(propertyX) && !clipsHorizontallyOnly;
-      const trimsY = allowedProperties.includes(propertyY) && !clipsVerticallyOnly;
-
-      if (allowedProperties.includes(property) || trimsX || trimsY) {
+      if (OVERFLOW_TRIMMING_VALUES.includes(property) ||
+          overflowAxisTraps(propertyX, propertyY) ||
+          overflowAxisTraps(propertyY, propertyX)) {
         return el;
       }
     }

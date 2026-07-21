@@ -21,6 +21,7 @@ import {
   isShadowRoot,
   outerHeight,
   outerWidth,
+  getTrimmingContainer,
 } from 'handsontable/helpers/dom/element';
 import { setPlatformMeta } from 'handsontable/helpers/browser';
 
@@ -1118,6 +1119,76 @@ describe('DomElement helper', () => {
       getScrollbarWidth();
 
       expect(spy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('getTrimmingContainer', () => {
+    let wrapper = null;
+    let base = null;
+
+    beforeEach(() => {
+      wrapper = document.createElement('div');
+      base = document.createElement('div');
+      wrapper.appendChild(base);
+      document.body.appendChild(wrapper);
+    });
+
+    afterEach(() => {
+      wrapper.parentNode.removeChild(wrapper);
+      wrapper = null;
+      base = null;
+    });
+
+    it('should return the window when no ancestor traps the element', () => {
+      expect(getTrimmingContainer(base)).toBe(window);
+    });
+
+    it('should return the window when an ancestor clips only the horizontal axis (`overflow-x: clip`)', () => {
+      // A width-constrained, window-scrolled grid sets `overflow-x: clip` on its root. That clip
+      // establishes no scroll port and leaves the vertical axis scrolling with the window, so the
+      // ancestor must NOT become the trimming container — otherwise the grid drops out of
+      // window-scroll mode (frozen rows stop pinning, vertical virtualization stops).
+      wrapper.style.overflowX = 'clip';
+      wrapper.style.overflowY = 'visible';
+
+      expect(getTrimmingContainer(base)).toBe(window);
+    });
+
+    it('should return the window when an ancestor clips only the vertical axis (`overflow-y: clip`)', () => {
+      wrapper.style.overflowX = 'visible';
+      wrapper.style.overflowY = 'clip';
+
+      expect(getTrimmingContainer(base)).toBe(window);
+    });
+
+    it('should return the ancestor when it is a real horizontal scroll container (`overflow-x: auto`)', () => {
+      // Only the non-scrolling `clip` value is exempt. A genuine single-axis scroll container
+      // (`auto`/`scroll`) still trims and must remain the trimming container.
+      wrapper.style.overflowX = 'auto';
+      wrapper.style.overflowY = 'visible';
+
+      expect(getTrimmingContainer(base)).toBe(wrapper);
+    });
+
+    it('should return the ancestor when it is a real vertical scroll container (`overflow-y: scroll`)', () => {
+      wrapper.style.overflowX = 'visible';
+      wrapper.style.overflowY = 'scroll';
+
+      expect(getTrimmingContainer(base)).toBe(wrapper);
+    });
+
+    it('should return the ancestor when it clips both axes (`overflow: clip`)', () => {
+      // Clipping both axes does trap the element on both axes, so it is a trimming container.
+      wrapper.style.overflowX = 'clip';
+      wrapper.style.overflowY = 'clip';
+
+      expect(getTrimmingContainer(base)).toBe(wrapper);
+    });
+
+    it('should return the ancestor when it hides overflow (`overflow: hidden`)', () => {
+      wrapper.style.overflow = 'hidden';
+
+      expect(getTrimmingContainer(base)).toBe(wrapper);
     });
   });
 });
