@@ -489,6 +489,34 @@ describe('settings', () => {
         expect(window.getComputedStyle(hot.rootElement).overflowX).not.toBe('clip');
         expect(hot.view.isHorizontallyScrollableByWindow()).toBe(true);
       });
+
+      it('should not clip when `width` is a `calc()` that mixes in a percentage and `height` is omitted', async() => {
+        // A `calc()` referencing a percentage is container-driven even though it ends in `px`, so it
+        // must be treated as relative (no clip) rather than as a definite pixel width.
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 10),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: 'calc(100% - 20px)',
+        });
+
+        expect(window.getComputedStyle(hot.rootElement).overflowX).not.toBe('clip');
+      });
+
+      it('should clip when `width` is a definite non-pixel length (`em`) and `height` is omitted', async() => {
+        // Absolute lengths other than `px` (em, rem, etc.) still establish a fixed box, so the table
+        // must not visually overflow it — clip applies.
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 10),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: '20em',
+        });
+
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+      });
     });
   });
 });

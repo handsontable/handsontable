@@ -3515,15 +3515,21 @@ export default function Core(
     // width blocks ran) so partial updateSettings calls see the correct state.
     // When height IS set, the height block's `overflow: clip` shorthand handles both axes — leave
     // overflowX untouched to avoid breaking that shorthand.
-    // Only clip for a definite pixel width. A relative width (`100%`, percentages, viewport units)
-    // fills its container, and content wider than that scrolls with the window — matching the
-    // long-standing behavior where the page gains a horizontal scrollbar and every column stays
-    // reachable. Clipping those would silently hide the off-width columns with no scrollbar.
+    // Only clip for a definite width. A relative width (`100%`, other percentages, viewport units,
+    // or a `calc()` that mixes them in) fills its container, and content wider than that scrolls
+    // with the window — matching the long-standing behavior where the page gains a horizontal
+    // scrollbar and every column stays reachable. Clipping those would silently hide the off-width
+    // columns with no scrollbar. A definite width (`px`, `em`, `rem`, and other absolute lengths)
+    // establishes a fixed box the table must not visually overflow, so it is clipped.
     // Browser compatibility: `overflow-x: clip` requires Safari 16+. On Safari 14.1–15.x it silently
     // falls back to `visible` (graceful degradation — pre-existing behavior, not a new regression).
     if (typeof settings.height !== 'undefined' || typeof settings.width !== 'undefined') {
       const effectiveHeight = instance.rootElement.style.height;
       const effectiveWidth = instance.rootElement.style.width;
+      // Relative: percentages and viewport units resolve against an ancestor, so a `%` or `vw`/`vh`/
+      // `vmin`/`vmax` token anywhere (including inside `calc()`) marks the width as container-driven.
+      const isRelativeWidth = /%|\bv(?:w|h|min|max)\b/i.test(effectiveWidth);
+      const isDefiniteWidth = effectiveWidth !== '' && effectiveWidth !== 'auto' && !isRelativeWidth;
 
       if (!effectiveHeight) {
         const currentOverflowX = instance.rootElement.style.overflowX;
@@ -3533,7 +3539,7 @@ export default function Core(
         // by `clip`. Unlike `hidden`, `clip` creates no block formatting context and allows no
         // programmatic scroll.
         if (currentOverflowX === '' || currentOverflowX === 'clip') {
-          instance.rootElement.style.overflowX = /px$/.test(effectiveWidth) ? 'clip' : '';
+          instance.rootElement.style.overflowX = isDefiniteWidth ? 'clip' : '';
         }
       }
     }
