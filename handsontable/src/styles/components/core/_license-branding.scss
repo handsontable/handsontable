@@ -29,44 +29,21 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
     pointer-events: none;
   }
 
-  .ht-license-badge {
-    // Pinned to the corner: the wrapper spans the whole grid, so the badge must anchor itself (and
-    // use fixed sizes - as a static child it would stretch to the grid width).
+  // The visual glyph renders INSIDE the corner header cell (the first header row's first cell of
+  // the corner overlay clone), so it can never overflow or drift out of the corner: the cell is the
+  // positioning context (`th` is `position: relative`), `inset: 0; margin: auto` centers the glyph
+  // exactly, and `min()` scales it down inside corners narrower than the glyph. No JS measurement
+  // is involved - themes, nested headers, runtime resizes, and RTL all align for free. The
+  // `ht-license-badge-on` class is stamped on the root element (licenseBranding.ts) only while a
+  // branded state has a corner cell to sit on.
+  .ht-license-badge-on .ht_clone_top_inline_start_corner thead tr:first-child th:first-child::after {
+    content: "";
     position: absolute;
-    inset-block-start: 0;
-    // Align the H. badge to the center organoleptically, not pixel-perfectly.
-    inset-inline-start: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    // Spans the corner-header cell exactly: the area variables are set per instance from the MEASURED
-    // corner clone (licenseBranding.ts), so the glyph centers correctly in every theme; the values
-    // here are only the pre-measurement fallback.
-    inline-size: var(--ht-license-badge-area-width, 50px);
-    block-size: var(--ht-license-badge-area-height, 30px);
-    padding: 0;
-    border: 0;
-    background: transparent;
-    // The badge keeps one color in every pointer state (per design) - only keyboard focus darkens it,
-    // as the visible focus indicator.
-    color: var(--ht-license-badge-color, #c7c7c7);
-
-    &:focus-visible {
-      color: var(--ht-license-badge-focus-color, #6b6b6b);
-    }
-
-    // The optical nudge is a physical rightward shift. In RTL, inline-start maps to the right
-    // edge, so the sign flips to keep the glyph nudged the same physical way.
-    [dir="rtl"] & {
-      inset-inline-start: -4px;
-    }
-  }
-
-  .ht-license-badge__glyph {
-    display: block;
-    inline-size: var(--ht-license-badge-size, 20px);
-    block-size: var(--ht-license-badge-size, 20px);
-    background-color: currentColor;
+    inset: 0;
+    margin: auto;
+    inline-size: min(var(--ht-license-badge-size, 20px), 100%);
+    block-size: min(var(--ht-license-badge-size, 20px), 100%);
+    background-color: var(--ht-license-badge-color, #c7c7c7);
     pointer-events: none;
     -webkit-mask-image: url($license-badge-icon);
     mask-image: url($license-badge-icon);
@@ -76,6 +53,32 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
     mask-repeat: no-repeat;
     -webkit-mask-position: center;
     mask-position: center;
+  }
+
+  // The badge button is screen-reader-only: it carries the accessible name, the popover wiring
+  // (aria-controls / aria-expanded), and the keyboard entry point, while the VISUAL glyph lives in
+  // the corner cell above. Keeping the visual out of this box is what guarantees the alignment.
+  .ht-license-badge {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    inline-size: 1px;
+    block-size: 1px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+    background: transparent;
+    color: transparent;
+  }
+
+  // The button is invisible, so keyboard focus indicates on the popover it controls (which is
+  // already shown via `:focus-within` while the badge holds focus).
+  .ht-license-badge:focus-visible ~ .ht-license-popover {
+    outline: 2px solid var(--ht-license-badge-focus-color, #6b6b6b);
+    outline-offset: 2px;
   }
 
   .ht-license-popover {

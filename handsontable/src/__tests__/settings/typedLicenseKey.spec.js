@@ -49,22 +49,46 @@ describe('settings', () => {
         expect(spec().$container[0].querySelector('.hot-display-license-info')).toBe(null);
       });
 
-      it('should size the badge area from the measured corner (ResizeObserver-delivered)', async() => {
+      it('should render the glyph inside the corner header cell, never overflowing it', async() => {
         spyOn(Date, 'now').and.returnValue(WITHIN_TRIAL);
 
         handsontable({ licenseKey: TRIAL_KEY, rowHeaders: true, colHeaders: true }, true);
 
-        // The measurement arrives asynchronously (the observer delivers after layout).
+        // The popover anchor measurement arrives asynchronously (the observer delivers after layout).
         await sleep(50);
 
         const wrapper = hot().rootOverlaysElement.querySelector('.ht-license-badge-wrapper');
         const corner = spec().$container[0].querySelector('.ht_clone_top_inline_start_corner');
-        const firstHeaderRow = corner.querySelector('thead tr');
+        const cornerCell = corner.querySelector('thead tr:first-child th:first-child');
+        const glyph = getComputedStyle(cornerCell, '::after');
 
+        // The glyph is CSS-rendered inside the corner cell itself, so it cannot leave the corner.
+        expect(hot().rootElement.classList.contains('ht-license-badge-on')).toBe(true);
+        expect(glyph.maskImage).not.toBe('none');
+        expect(parseFloat(glyph.width)).toBeLessThanOrEqual(cornerCell.offsetWidth);
+        expect(parseFloat(glyph.height)).toBeLessThanOrEqual(cornerCell.offsetHeight);
+        // The popover anchor tracks the measured corner width.
         expect(wrapper.style.getPropertyValue('--ht-license-badge-area-width'))
           .toBe(`${corner.offsetWidth}px`);
-        expect(wrapper.style.getPropertyValue('--ht-license-badge-area-height'))
-          .toBe(`${firstHeaderRow.offsetHeight}px`);
+      });
+
+      it('should scale the glyph down inside a corner narrower than the glyph', async() => {
+        spyOn(Date, 'now').and.returnValue(WITHIN_TRIAL);
+
+        handsontable({
+          licenseKey: TRIAL_KEY,
+          rowHeaders: true,
+          colHeaders: true,
+          rowHeaderWidth: 16,
+        }, true);
+
+        const cornerCell = spec().$container[0]
+          .querySelector('.ht_clone_top_inline_start_corner thead tr:first-child th:first-child');
+        const glyph = getComputedStyle(cornerCell, '::after');
+
+        // `min(20px, 100%)` clamps the glyph to the cell - a 16px corner must not spill a 20px glyph.
+        expect(cornerCell.offsetWidth).toBeLessThan(20);
+        expect(parseFloat(glyph.width)).toBeLessThanOrEqual(cornerCell.offsetWidth);
       });
 
       it('should not pop the tooltip over frozen data cells when there are no headers', async() => {

@@ -19,7 +19,7 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${SCOPE_ID}`;
 
 const BADGE_WRAPPER_CLASS = 'ht-license-badge-wrapper';
 const BADGE_CLASS = 'ht-license-badge';
-const BADGE_GLYPH_CLASS = 'ht-license-badge__glyph';
+const BADGE_ON_CLASS = 'ht-license-badge-on';
 const POPOVER_CLASS = 'ht-license-popover';
 const POPOVER_OPEN_CLASS = 'is-open';
 const POPOVER_DISMISSED_CLASS = 'is-dismissed';
@@ -368,112 +368,28 @@ function mountLicenseBadge(hotInstance: HotInstance, lifecycle: LicenseLifecycle
 
   wrapper.className = BADGE_WRAPPER_CLASS;
 
-  // Without a corner cell (row headers and column headers both on) there is nothing for the badge to
-  // sit on: `is-cornerless` hides the badge and re-anchors the popover to the table's inline-start
-  // edge, with no tail (there is no badge to point at). When the corner exists, the badge area takes
-  // the MEASURED corner size - every theme sizes the corner differently (row-header width, header
-  // height), and a fixed area renders the glyph off-center.
-  let lastBadgeAreaWidth = 0;
-  let lastBadgeAreaHeight = 0;
-
+  // Presence sync: `is-cornerless` on the wrapper re-anchors the popover to the table's
+  // inline-start edge (there is no corner cell for a tail to point at), and `ht-license-badge-on`
+  // on the root element renders the glyph INSIDE the corner header cell - the glyph is pure CSS
+  // (see _license-branding.scss), anchored by the cell itself, so it can never overflow or drift
+  // out of the corner. Settings reads only, never layout - safe to run on every render.
   const hasCornerCell = () => hotInstance.hasRowHeaders() && hotInstance.hasColHeaders();
-  const getCornerClone = () =>
-    hotInstance.rootElement?.querySelector<HTMLElement>(CORNER_CLONE_SELECTOR) ?? null;
 
-  // Settings reads only, never layout - safe to run on every render.
   const syncCornerPresence = () => {
-    wrapper.classList.toggle(CORNERLESS_CLASS, !hasCornerCell());
+    const hasCorner = hasCornerCell();
+
+    wrapper.classList.toggle(CORNERLESS_CLASS, !hasCorner);
+    hotInstance.rootElement?.classList.toggle(BADGE_ON_CLASS, hasCorner);
   };
-
-  // The ONLY place that reads layout. The corner clone spans the headers AND any fixed rows; the
-  // badge sits on the FIRST header row only - with nested headers the corner stacks several header
-  // rows, and the badge belongs to the topmost one, not centered across the whole stack.
-  const measureCornerGeometry = () => {
-    const corner = getCornerClone();
-
-    if (!corner || !hasCornerCell()) {
-      return;
-    }
-
-    const width = corner.offsetWidth;
-    const height = (corner.querySelector<HTMLElement>('thead tr') ?? corner).offsetHeight;
-
-    // 1px deadband: while horizontally scrolled, walkontable grows the corner clone by 1px (the
-    // doubled-border compensation), and copying that flutter into the badge area would visibly nudge
-    // the centered glyph on every scroll. A real corner resize (theme switch, wider row numbers) is
-    // always bigger than 1px.
-    const changed = Math.abs(width - lastBadgeAreaWidth) > 1 || Math.abs(height - lastBadgeAreaHeight) > 1;
-
-    if (width > 0 && height > 0 && changed) {
-      lastBadgeAreaWidth = width;
-      lastBadgeAreaHeight = height;
-      wrapper.style.setProperty('--ht-license-badge-area-width', `${width}px`);
-      wrapper.style.setProperty('--ht-license-badge-area-height', `${height}px`);
-    }
-  };
-
-  const win = hotInstance.rootWindow;
 
   syncCornerPresence();
-
-  if (typeof win.ResizeObserver === 'function') {
-    // Measuring inside an `afterRender` hook would read `offsetWidth` right after the draw's DOM
-    // writes - a forced synchronous reflow on EVERY render of every badge-bearing grid (including
-    // the default non-commercial one). A ResizeObserver delivers its entries after layout, when the
-    // tree is clean, so the corner size stays fresh at zero per-render layout cost. The observed
-    // elements can be swapped by a structural render (header rows are re-created), so the render
-    // hook only re-attaches the observer when the element identity changed - a DOM query, no layout.
-    const observer = new win.ResizeObserver(() => measureCornerGeometry());
-    let observedCorner: HTMLElement | null = null;
-    let observedRow: HTMLElement | null = null;
-
-    const observeCornerParts = () => {
-      const corner = getCornerClone();
-      const row = corner?.querySelector<HTMLElement>('thead tr') ?? null;
-
-      if (corner === observedCorner && row === observedRow) {
-        return;
-      }
-
-      observer.disconnect();
-      observedCorner = corner;
-      observedRow = row;
-
-      if (corner) {
-        observer.observe(corner);
-      }
-      if (row) {
-        observer.observe(row);
-      }
-      // No synchronous measure here: `observe()` delivers an initial entry after the next layout.
-    };
-
-    observeCornerParts();
-    hotInstance.addHook('afterRender', () => {
-      syncCornerPresence();
-      observeCornerParts();
-    });
-    hotInstance.addHook('afterDestroy', () => observer.disconnect());
-  } else {
-    // No ResizeObserver (jsdom): fall back to measuring per render.
-    measureCornerGeometry();
-    hotInstance.addHook('afterRender', () => {
-      syncCornerPresence();
-      measureCornerGeometry();
-    });
-  }
+  hotInstance.addHook('afterRender', () => syncCornerPresence());
 
   const badge = doc.createElement('button');
 
   badge.type = 'button';
   badge.className = BADGE_CLASS;
   badge.setAttribute('aria-label', 'Handsontable license information');
-
-  const glyph = doc.createElement('span');
-
-  glyph.className = BADGE_GLYPH_CLASS;
-  glyph.setAttribute('aria-hidden', 'true');
-  badge.appendChild(glyph);
 
   if (badgeOnlyLabel && !content) {
     // The badge-only states (Non-Commercial and Evaluation License): the badge is the only marker -
@@ -485,6 +401,69 @@ function mountLicenseBadge(hotInstance: HotInstance, lifecycle: LicenseLifecycle
     host.appendChild(wrapper);
 
     return;
+  }
+
+  // Popover anchor: the popover offsets from the corner's inline-end edge, so it needs the corner
+  // WIDTH - the only measured value left (the glyph itself is CSS-anchored inside the corner cell
+  // and needs no measurement). Badge-only states return above and skip this entirely.
+  let lastAnchorWidth = 0;
+
+  const getCornerClone = () =>
+    hotInstance.rootElement?.querySelector<HTMLElement>(CORNER_CLONE_SELECTOR) ?? null;
+
+  const measurePopoverAnchor = () => {
+    const corner = getCornerClone();
+
+    if (!corner || !hasCornerCell()) {
+      return;
+    }
+
+    const width = corner.offsetWidth;
+
+    // 1px deadband: while horizontally scrolled, walkontable grows the corner clone by 1px (the
+    // doubled-border compensation), and copying that flutter into the anchor would nudge the open
+    // popover on every scroll. A real corner resize (theme switch, wider row numbers) is always
+    // bigger than 1px.
+    if (width > 0 && Math.abs(width - lastAnchorWidth) > 1) {
+      lastAnchorWidth = width;
+      wrapper.style.setProperty('--ht-license-badge-area-width', `${width}px`);
+    }
+  };
+
+  const win = hotInstance.rootWindow;
+
+  if (typeof win.ResizeObserver === 'function') {
+    // Measuring inside an `afterRender` hook would read `offsetWidth` right after the draw's DOM
+    // writes - a forced synchronous reflow on EVERY render. A ResizeObserver delivers its entries
+    // after layout, when the tree is clean, so the anchor stays fresh at zero per-render layout
+    // cost. The clone element persists for the instance lifetime, but the render hook re-attaches
+    // defensively when the element identity changed - a DOM query, no layout.
+    const observer = new win.ResizeObserver(() => measurePopoverAnchor());
+    let observedCorner: HTMLElement | null = null;
+
+    const observeCorner = () => {
+      const corner = getCornerClone();
+
+      if (corner === observedCorner) {
+        return;
+      }
+
+      observer.disconnect();
+      observedCorner = corner;
+
+      if (corner) {
+        observer.observe(corner);
+      }
+      // No synchronous measure here: `observe()` delivers an initial entry after the next layout.
+    };
+
+    observeCorner();
+    hotInstance.addHook('afterRender', () => observeCorner());
+    hotInstance.addHook('afterDestroy', () => observer.disconnect());
+  } else {
+    // No ResizeObserver (jsdom): fall back to measuring per render.
+    measurePopoverAnchor();
+    hotInstance.addHook('afterRender', () => measurePopoverAnchor());
   }
 
   badge.setAttribute('aria-haspopup', 'dialog');

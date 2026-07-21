@@ -59,7 +59,14 @@ function createMockHotInstance(overrides = {}) {
     getSettings: jest.fn(() => ({ licenseKey: overrides.licenseKey })),
     getPlugin: jest.fn(() => overrides.dialog),
     addHook: jest.fn((name, cb) => {
-      hooks.addHook[name] = cb;
+      // Multiple listeners can register on the same hook (e.g. two `afterRender` ones) - compose
+      // them so `hooks.addHook[name]()` runs all of them in registration order, like the real hooks.
+      const existing = hooks.addHook[name];
+
+      hooks.addHook[name] = existing ? (...args) => {
+        existing(...args);
+        cb(...args);
+      } : cb;
     }),
     addHookOnce: jest.fn((name, cb) => {
       hooks.addHookOnce[name] = cb;
@@ -145,7 +152,8 @@ describe('licenseBranding', () => {
         const overlays = hotInstance.rootOverlaysElement;
 
         expect(overlays.querySelector('.ht-license-badge')).not.toBe(null);
-        expect(overlays.querySelector('.ht-license-badge__glyph')).not.toBe(null);
+        // The visual glyph is CSS-rendered inside the corner header cell, gated by this class.
+        expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(true);
         expect(overlays.querySelector('.ht-license-popover')).not.toBe(null);
         expect(overlays.querySelector('.ht-license-popover__link')).not.toBe(null);
 
@@ -194,30 +202,31 @@ describe('licenseBranding', () => {
 
       const wrapper = hotInstance.rootOverlaysElement.querySelector('.ht-license-badge-wrapper');
 
-      // No corner -> no badge to sit on: the CSS hides the badge and re-anchors the popover to the
-      // table's inline-start edge, without the tail.
+      // No corner -> no badge to sit on: the glyph class comes OFF the root element (the CSS stops
+      // rendering it inside the corner cell), and the popover re-anchors to the table's
+      // inline-start edge, without the tail.
       expect(wrapper.classList.contains('is-cornerless')).toBe(true);
+      expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(false);
 
-      // Headers can be toggled at runtime - the class follows on the next render.
+      // Headers can be toggled at runtime - the classes follow on the next render.
       hotInstance.hasRowHeaders.mockReturnValue(true);
       hotInstance.hooks.addHook.afterRender();
 
       expect(wrapper.classList.contains('is-cornerless')).toBe(false);
+      expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(true);
     });
 
-    it('should size the badge area from the measured corner clone, so it centers in every theme', () => {
+    it('should measure the corner width for the popover anchor and re-sync it on renders', () => {
       setLifecycle('trial_active', { daysRemaining: 5 });
       const hotInstance = createMockHotInstance();
 
       Object.defineProperty(hotInstance.cornerClone, 'offsetWidth', { configurable: true, value: 48 });
-      Object.defineProperty(hotInstance.cornerHeaderRow, 'offsetHeight', { configurable: true, value: 26 });
 
       initLicenseBranding(hotInstance);
 
       const wrapper = hotInstance.rootOverlaysElement.querySelector('.ht-license-badge-wrapper');
 
       expect(wrapper.style.getPropertyValue('--ht-license-badge-area-width')).toBe('48px');
-      expect(wrapper.style.getPropertyValue('--ht-license-badge-area-height')).toBe('26px');
 
       // The corner resizes at runtime (for example wider row numbers) - the next render re-syncs.
       Object.defineProperty(hotInstance.cornerClone, 'offsetWidth', { configurable: true, value: 64 });
@@ -226,30 +235,11 @@ describe('licenseBranding', () => {
       expect(wrapper.style.getPropertyValue('--ht-license-badge-area-width')).toBe('64px');
     });
 
-    it('should size the badge to the FIRST header row when the corner stacks nested headers', () => {
-      setLifecycle('trial_active', { daysRemaining: 5 });
-      const hotInstance = createMockHotInstance();
-      const secondRow = document.createElement('tr');
-
-      hotInstance.cornerHeaderRow.parentElement.appendChild(secondRow);
-      Object.defineProperty(hotInstance.cornerClone, 'offsetWidth', { configurable: true, value: 50 });
-      // The whole corner stacks several header rows; the badge belongs to the topmost one.
-      Object.defineProperty(hotInstance.cornerClone, 'offsetHeight', { configurable: true, value: 116 });
-      Object.defineProperty(hotInstance.cornerHeaderRow, 'offsetHeight', { configurable: true, value: 29 });
-
-      initLicenseBranding(hotInstance);
-
-      const wrapper = hotInstance.rootOverlaysElement.querySelector('.ht-license-badge-wrapper');
-
-      expect(wrapper.style.getPropertyValue('--ht-license-badge-area-height')).toBe('29px');
-    });
-
     it('should ignore the 1px corner flutter of the scrolled-state border compensation', () => {
       setLifecycle('trial_active', { daysRemaining: 5 });
       const hotInstance = createMockHotInstance();
 
       Object.defineProperty(hotInstance.cornerClone, 'offsetWidth', { configurable: true, value: 50 });
-      Object.defineProperty(hotInstance.cornerHeaderRow, 'offsetHeight', { configurable: true, value: 29 });
 
       initLicenseBranding(hotInstance);
 
@@ -258,7 +248,7 @@ describe('licenseBranding', () => {
       expect(wrapper.style.getPropertyValue('--ht-license-badge-area-width')).toBe('50px');
 
       // Horizontal scroll grows the corner clone by exactly 1px (doubled-border compensation) - the
-      // badge must NOT follow, or the glyph nudges left/right on every scroll.
+      // popover anchor must NOT follow, or the open popover nudges left/right on every scroll.
       Object.defineProperty(hotInstance.cornerClone, 'offsetWidth', { configurable: true, value: 51 });
       hotInstance.hooks.addHook.afterRender();
 
