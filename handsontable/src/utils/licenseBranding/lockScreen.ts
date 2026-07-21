@@ -3,6 +3,12 @@ import { SALES_MAILTO } from './content';
 import type { LockContent } from './content';
 import type { HotInstance } from '../../core/types';
 
+// The lock reuses the confirm Dialog's CSS by wearing its class names. The stylesheet ships in full
+// regardless of which JS plugins are bundled, so borrowing the classes inherits the dialog's whole
+// look and sizing for free - while the JS below is a minimal, self-contained copy that never
+// imports the (optional) Dialog plugin. Keep these names in sync with `plugins/dialog/constants.ts`
+// and the confirm template.
+const DIALOG_CLASS = 'ht-dialog';
 const LOCK_CLASS = 'ht-license-lock';
 const SCOPE_ID = 'licenseLock';
 const SHORTCUTS_CONTEXT_NAME = `plugin:${SCOPE_ID}`;
@@ -20,28 +26,21 @@ export interface LockMountOptions {
 }
 
 /**
- * Collects the lock's focusable controls, in DOM order.
- *
- * @param {HTMLElement} lock The lock element.
- * @returns {HTMLElement[]}
- */
-function getFocusableControls(lock: HTMLElement): HTMLElement[] {
-  return Array.from(lock.querySelectorAll<HTMLElement>('a[href], button'));
-}
-
-/**
- * Mounts the license lock screen: a Core-owned overlay covering the grid, shown for the
- * hard-stopped states. It is deliberately NOT built on the Dialog plugin - the plugin is a single
- * shared surface that an application legitimately uses for its own dialogs, so a lock based on it
- * cannot tell its own lifecycle apart from the app's (any `show` replaces it, any hide looks like a
- * dismissal, and a `dialog: true` setup never tears it down). This lock owns its element, so
+ * Mounts the license lock screen: a blocking hard-stop overlay covering the grid. It looks and
+ * sizes itself exactly like a confirm Dialog by wearing the dialog's own CSS class names (the
+ * stylesheet is always shipped in full, so the styling is inherited without duplicating it), but it
+ * is a self-contained Core-owned element - it never touches the Dialog PLUGIN, which is optional
+ * (it may be absent from a bundle) and, being a single shared surface an app uses for its own
+ * dialogs, could not tell its own lifecycle apart from the lock's. This lock owns its element, so
  * showing, dismissing, and unmounting are unambiguous.
  *
- * The lock integrates with the focus manager as a modal scope: `Tab` cycles through its controls,
- * focus moves in when it appears (deferred to `afterInit` on the initial mount - the grid has not
- * rendered yet during `init()`), and the scope dies with the lock. A closable lock (the
- * subscription Case 3a) dismisses through its Close button or `Escape`; the trial lock has no
- * dismiss affordance at all.
+ * Only the copy and behavior differ from a confirm dialog: it cannot be dismissed (the trial lock
+ * has no Close button; the subscription lock has one per spec Case 3a), and it sits above app
+ * dialogs. Its width is pinned to the table's workspace width on every render (the `.ht-dialog` box
+ * is otherwise `width: 100%`, which would span the whole root wrapper, not the grid - a minimal
+ * copy of the plugin's own sizing); its height is the grid box. It integrates with the focus
+ * manager as a modal scope and routes its keyboard paths (the Tab focus trap, and `Escape` when
+ * closable) through the shortcut manager, exactly like the Dialog plugin.
  *
  * Returns the unmount function - the caller (see `index.ts`) unmounts when a runtime key change
  * resolves to a different license state, which is what releases a fixed-up grid without a page
@@ -58,29 +57,42 @@ export function mountLicenseLock(
   options: LockMountOptions,
 ): () => void {
   const host = hotInstance.rootOverlaysElement;
-  const doc = hotInstance.rootDocument;
 
   if (!host) {
     return () => {};
   }
 
-  const lockId = `${hotInstance.guid}-license-lock`;
-
-  // `alertdialog` for the non-closable trial lock (it interrupts and offers no way back), plain
-  // `dialog` for the closable subscription lock. The copy is assigned through `textContent` below,
-  // never interpolated into the markup.
-  const { refs } = html`
-    <div data-ref="lock" class="${LOCK_CLASS}" role="${content.closable ? 'dialog' : 'alertdialog'}"
-      aria-modal="true" aria-labelledby="${lockId}-title" aria-describedby="${lockId}-description"
-      tabindex="-1">
-      <div class="${LOCK_CLASS}__panel">
-        <div data-ref="title" id="${lockId}-title" class="${LOCK_CLASS}__title"></div>
-        <p data-ref="description" id="${lockId}-description" class="${LOCK_CLASS}__description"></p>
-        <div class="${LOCK_CLASS}__buttons">
-          <button data-ref="contactButton" type="button" class="ht-button ht-button--primary">Contact Sales</button>
-          ${content.closable
+  const focusScopeManager = hotInstance.getFocusScopeManager();
+  const shortcutManager = hotInstance.getShortcutManager();
+  const isRtl = hotInstance.isRtl();
+  const titleId = `${hotInstance.guid}-license-lock-title`;
+  const descriptionId = `${hotInstance.guid}-license-lock-description`;
+  // The exact class set the plugin's confirm dialog carries when shown, plus `ht-license-lock`.
+  const lockClassName = `${DIALOG_CLASS} ${DIALOG_CLASS}--confirm handsontable ${LOCK_CLASS} ` +
+    `${DIALOG_CLASS}--background-solid ${DIALOG_CLASS}--show`;
+  const closeButton = content.closable
     ? '<button data-ref="closeButton" type="button" class="ht-button ht-button--secondary">Close</button>'
-    : ''}
+    : '';
+
+  // The confirm-dialog DOM, rebuilt with the dialog's class names (`ht-dialog--confirm`,
+  // `__content-wrapper`, `__content`, `__title`, `__description`, `__buttons`, `ht-button`) plus the
+  // `handsontable` class the dialog carries (the `.ht-button` base rules are scoped under it). The
+  // copy is assigned through `textContent` below, never interpolated into the markup.
+  const { refs } = html`
+    <div data-ref="lock" class="${lockClassName}"
+      role="${content.closable ? 'dialog' : 'alertdialog'}" aria-modal="true"
+      aria-labelledby="${titleId}" aria-describedby="${descriptionId}"
+      tabindex="-1" dir="${isRtl ? 'rtl' : 'ltr'}" style="display: block;">
+      <div class="${DIALOG_CLASS}__content-wrapper">
+        <div data-ref="inner" tabindex="-1" class="${DIALOG_CLASS}__content-wrapper-inner">
+          <div class="${DIALOG_CLASS}__content">
+            <h2 data-ref="title" id="${titleId}" class="${DIALOG_CLASS}__title"></h2>
+            <p data-ref="description" id="${descriptionId}" class="${DIALOG_CLASS}__description"></p>
+          </div>
+          <div class="${DIALOG_CLASS}__buttons">
+            <button data-ref="contactButton" type="button" class="ht-button ht-button--primary">Contact Sales</button>
+            ${closeButton}
+          </div>
         </div>
       </div>
     </div>
@@ -93,14 +105,28 @@ export function mountLicenseLock(
     hotInstance.rootWindow.open(SALES_MAILTO, '_blank', 'noopener');
   });
 
-  const focusScopeManager = hotInstance.getFocusScopeManager();
-  const shortcutManager = hotInstance.getShortcutManager();
+  const getFocusableControls = () => Array.from(lock.querySelectorAll<HTMLElement>('a[href], button'));
+
+  // Match the dialog's sizing: the `.ht-dialog` box is `width: 100%` of the root wrapper, so it is
+  // pinned to the table's workspace width on every render (a minimal copy of the plugin's
+  // `#onAfterViewRender`); the height is the grid box via the CSS `height: 100%`.
+  const syncWidth = () => {
+    const { view } = hotInstance;
+    const width = view.isHorizontallyScrollableByWindow()
+      ? view.getTotalTableWidth() : view.getWorkspaceWidth();
+
+    lock.style.width = `${width}px`;
+  };
+
+  let unmounted = false;
 
   const unmount = () => {
-    if (!host.contains(lock)) {
+    if (unmounted) {
       return;
     }
 
+    unmounted = true;
+    hotInstance.removeHook('afterViewRender', syncWidth);
     lock.remove();
     shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME)?.removeShortcutsByGroup(SHORTCUTS_GROUP);
     focusScopeManager.deactivateScope(SCOPE_ID);
@@ -109,23 +135,24 @@ export function mountLicenseLock(
 
   refs.closeButton?.addEventListener('click', () => unmount());
 
-  // The keyboard paths go through the shortcut manager, exactly like the Dialog plugin's: the focus
-  // scope switches the manager to this context while focus is inside the lock, so the shortcuts
-  // never fire for the grid and the grid's shortcuts never fire under the lock.
+  hotInstance.addHook('afterViewRender', syncWidth);
+
   const shortcutsContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME) ??
     shortcutManager.addContext(SHORTCUTS_CONTEXT_NAME);
 
-  // The modal focus trap: Tab cycles through the lock's own controls and never leaves.
+  // The modal focus trap: Tab cycles through the lock's own controls and never leaves. The focus
+  // scope switches the manager to this context while focus is inside the lock, so these shortcuts
+  // never fire for the grid and the grid's shortcuts never fire under the lock.
   shortcutsContext.addShortcut({
     keys: [['Tab'], ['Shift', 'Tab']],
     callback: (event: KeyboardEvent) => {
-      const controls = getFocusableControls(lock);
-      const index = controls.indexOf(doc.activeElement as HTMLElement);
+      const controls = getFocusableControls();
+      const index = controls.indexOf(hotInstance.rootDocument.activeElement as HTMLElement);
       const delta = event.shiftKey ? -1 : 1;
 
       controls[(index + delta + controls.length) % controls.length]?.focus();
     },
-    runOnlyIf: () => host.contains(lock),
+    runOnlyIf: () => !unmounted,
     group: SHORTCUTS_GROUP,
   });
 
@@ -133,7 +160,7 @@ export function mountLicenseLock(
     shortcutsContext.addShortcut({
       keys: [['Escape']],
       callback: () => unmount(),
-      runOnlyIf: () => host.contains(lock),
+      runOnlyIf: () => !unmounted,
       group: SHORTCUTS_GROUP,
     });
   }
@@ -141,9 +168,9 @@ export function mountLicenseLock(
   focusScopeManager.registerScope(SCOPE_ID, lock, {
     shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
     type: 'modal',
-    runOnlyIf: () => host.contains(lock),
+    runOnlyIf: () => !unmounted,
     onActivate: (focusSource: string) => {
-      const controls = getFocusableControls(lock);
+      const controls = getFocusableControls();
 
       if (focusSource === 'tab_from_below') {
         controls[controls.length - 1]?.focus();
@@ -157,14 +184,15 @@ export function mountLicenseLock(
 
   const activate = () => {
     // A runtime key change can unmount the lock before the deferred activation fires.
-    if (!host.contains(lock)) {
+    if (unmounted) {
       return;
     }
 
+    syncWidth();
     hotInstance.deselectCell();
-    // The lock takes over the whole grid surface, so it claims the keyboard explicitly: the
-    // shortcut pipeline only processes non-global events while the instance is listening, and a
-    // freshly initialized grid is not listening until the user interacts with it.
+    // The lock takes over the whole grid surface, so it claims the keyboard explicitly: the shortcut
+    // pipeline only processes non-global events while the instance is listening, and a freshly
+    // initialized grid is not listening until the user interacts with it.
     hotInstance.listen();
     focusScopeManager.activateScope(SCOPE_ID);
   };

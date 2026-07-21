@@ -78,6 +78,13 @@ function createMockHotInstance(overrides = {}) {
       addContext: jest.fn(() => shortcutContext),
     })),
     shortcutContext,
+    // The lock reuses the dialog's confirm markup and its width sizing.
+    isRtl: jest.fn(() => false),
+    view: {
+      isHorizontallyScrollableByWindow: jest.fn(() => false),
+      getWorkspaceWidth: jest.fn(() => 400),
+      getTotalTableWidth: jest.fn(() => 600),
+    },
     deselectCell: jest.fn(),
     listen: jest.fn(),
     hasRowHeaders: jest.fn(() => overrides.rowHeaders ?? true),
@@ -572,9 +579,9 @@ describe('licenseBranding', () => {
       expect(lock).not.toBe(null);
       expect(lock.getAttribute('role')).toBe('alertdialog');
       expect(lock.getAttribute('aria-modal')).toBe('true');
-      expect(lock.querySelector('.ht-license-lock__title').textContent)
+      expect(lock.querySelector('.ht-dialog__title').textContent)
         .toBe('Your Handsontable license has expired.');
-      expect(lock.querySelector('.ht-license-lock__description').textContent)
+      expect(lock.querySelector('.ht-dialog__description').textContent)
         .toContain('purchase a commercial license');
 
       const buttons = lock.querySelectorAll('button');
@@ -669,7 +676,7 @@ describe('licenseBranding', () => {
 
       expect(lock).not.toBe(null);
       expect(lock.getAttribute('role')).toBe('dialog');
-      expect(lock.querySelector('.ht-license-lock__title').textContent)
+      expect(lock.querySelector('.ht-dialog__title').textContent)
         .toBe('Your Handsontable subscription has expired.');
 
       const buttons = lock.querySelectorAll('button');

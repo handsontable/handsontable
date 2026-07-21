@@ -214,28 +214,19 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
     }
   }
 
-  // The hard-stop lock screen: a Core-owned overlay covering the grid (see
-  // licenseBranding/lockScreen.ts - deliberately NOT the Dialog plugin, which is a shared surface
-  // an app legitimately uses for its own dialogs). The "H." logomark sits in the top strip per the
-  // hard-stop mockup; the panel centers via auto margins inside a flex+scroll box, so a grid
-  // shorter than the copy scrolls the lock instead of clipping its buttons.
-  .ht-license-lock {
-    @include mixins.font-family;
-
-    position: absolute;
-    inset: 0;
+  // The hard-stop lock screen REUSES the confirm Dialog's own UI (`DialogUI` + the `confirm`
+  // template - see licenseBranding/lockScreen.ts), so it inherits ALL of the dialog's styling and
+  // sizing from `components/plugins/_dialog.scss`: `ht-license-lock` is just the `customClassName`
+  // the dialog carries. It is deliberately NOT the Dialog PLUGIN (a shared surface an app uses for
+  // its own dialogs); this instance is Core-owned and non-dismissable. Only two things differ from
+  // a plain confirm dialog: the lock renders above app dialogs, and it paints the "H." logomark in
+  // its top strip.
+  .ht-dialog.ht-license-lock {
     // Above the badge chrome (1050/1051) AND any Dialog-plugin dialog (1060) - an app dialog must
-    // not cover the license lock.
+    // never cover the license lock.
     z-index: 1070;
-    display: flex;
-    overflow: auto;
-    padding: 16px;
-    background-color: var(--ht-license-lock-background-color, var(--ht-dialog-solid-background-color, #fff));
-    font-size: var(--ht-font-size, 14px);
-    line-height: var(--ht-line-height, 21px);
-    pointer-events: auto;
 
-    // The greyed "H." logomark in the lock's top strip.
+    // The greyed "H." logomark in the lock's top strip (the `.ht-dialog` box is positioned).
     &::before {
       content: "";
       position: absolute;
@@ -251,26 +242,5 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
       -webkit-mask-repeat: no-repeat;
       mask-repeat: no-repeat;
     }
-  }
-
-  .ht-license-lock__panel {
-    max-inline-size: 480px;
-    margin: auto;
-    text-align: center;
-  }
-
-  .ht-license-lock__title {
-    margin-block-end: 8px;
-    font-weight: bold;
-  }
-
-  .ht-license-lock__description {
-    margin: 0 0 16px;
-  }
-
-  .ht-license-lock__buttons {
-    display: flex;
-    gap: 8px;
-    justify-content: center;
   }
 }
