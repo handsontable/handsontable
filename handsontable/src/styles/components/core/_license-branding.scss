@@ -41,6 +41,7 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
     position: absolute;
     inset: 0;
     margin: auto;
+    translate: 3px 0;
     inline-size: min(var(--ht-license-badge-size, 20px), 100%);
     block-size: min(var(--ht-license-badge-size, 20px), 100%);
     background-color: var(--ht-license-badge-color, #c7c7c7);
