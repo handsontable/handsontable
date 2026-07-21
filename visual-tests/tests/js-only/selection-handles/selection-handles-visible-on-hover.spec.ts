@@ -29,8 +29,8 @@ test(__filename, async({ goto, tablePage }) => {
   const cellBox = await cell.boundingBox();
 
   await tablePage.mouse.move(
-    cellBox!.x + cellBox!.width / 2,
-    cellBox!.y + cellBox!.height / 2
+    cellBox!.x + (cellBox!.width / 2),
+    cellBox!.y + (cellBox!.height / 2)
   );
 
   // The four edge-adjustment handles are rendered only on the master overlay (.ht_master).

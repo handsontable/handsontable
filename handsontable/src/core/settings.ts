@@ -468,7 +468,11 @@ export interface GridSettings {
    *
    * @since 18.0.0
    */
-  beforeMoveCells?: (sourceRange: WalkontableCellRange, targetTopLeft: WalkontableCellCoords, isCopy: boolean) => void | boolean;
+  beforeMoveCells?: (
+    sourceRange: WalkontableCellRange,
+    targetTopLeft: WalkontableCellCoords,
+    isCopy: boolean
+  ) => void | boolean;
   beforeNotificationHide?: (id: string) => boolean | void;
   beforeNotificationShow?: (options: {
     id: string;

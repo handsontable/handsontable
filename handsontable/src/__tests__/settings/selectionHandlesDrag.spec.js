@@ -55,7 +55,7 @@ describe('settings', () => {
       // `ht__resizing-selection--bottom` root class (computed display, not the inline style).
       // There can be more than one handle per edge in the master (the area border and the focus
       // border each create a set), so check whether ANY handle of an edge is visible.
-      const anyVisible = (edge) => Array
+      const anyVisible = edge => Array
         .from(spec().$container[0].querySelectorAll(`.ht_master .wtSelectionHandle--${edge}`))
         .some(h => window.getComputedStyle(h).display !== 'none');
 
@@ -471,7 +471,7 @@ describe('settings', () => {
       expect(selected.length).toBe(2);
 
       // First range (col 1, rows 2-6) must be unchanged.
-      const firstRange = selected.find(([r1, c1, r2, c2]) =>
+      const firstRange = selected.find(([, c1, , c2]) =>
         Math.min(c1, c2) === 1 && Math.max(c1, c2) === 1);
 
       expect(firstRange).toBeDefined();
@@ -483,7 +483,7 @@ describe('settings', () => {
       expect(firstMaxRow).toBe(6);
 
       // Second range (col 3) should have its bottom edge resized to row 9.
-      const secondRange = selected.find(([r1, c1, r2, c2]) =>
+      const secondRange = selected.find(([, c1, , c2]) =>
         Math.min(c1, c2) === 3 && Math.max(c1, c2) === 3);
 
       expect(secondRange).toBeDefined();
@@ -491,8 +491,8 @@ describe('settings', () => {
       const secondMinRow = Math.min(secondRange[0], secondRange[2]);
       const secondMaxRow = Math.max(secondRange[0], secondRange[2]);
 
-      expect(secondMinRow).toBe(2);  // anchor row (top) unchanged
-      expect(secondMaxRow).toBe(9);  // dragged to row 9
+      expect(secondMinRow).toBe(2); // anchor row (top) unchanged
+      expect(secondMaxRow).toBe(9); // dragged to row 9
     });
 
     it('should preserve other selection layers when dragging a handle on the non-last (first) layer', async() => {
@@ -538,7 +538,7 @@ describe('settings', () => {
       expect(selected.length).toBe(2);
 
       // Second range (col 3, rows 2-7) must be unchanged.
-      const secondRange = selected.find(([r1, c1, r2, c2]) =>
+      const secondRange = selected.find(([, c1, , c2]) =>
         Math.min(c1, c2) === 3 && Math.max(c1, c2) === 3);
 
       expect(secondRange).toBeDefined();
@@ -550,7 +550,7 @@ describe('settings', () => {
       expect(secondMaxRow).toBe(7);
 
       // First range (col 1) should have its bottom edge resized to row 9.
-      const firstRange = selected.find(([r1, c1, r2, c2]) =>
+      const firstRange = selected.find(([, c1, , c2]) =>
         Math.min(c1, c2) === 1 && Math.max(c1, c2) === 1);
 
       expect(firstRange).toBeDefined();
@@ -558,8 +558,8 @@ describe('settings', () => {
       const firstMinRow = Math.min(firstRange[0], firstRange[2]);
       const firstMaxRow = Math.max(firstRange[0], firstRange[2]);
 
-      expect(firstMinRow).toBe(2);  // anchor row (top) unchanged
-      expect(firstMaxRow).toBe(9);  // dragged to row 9
+      expect(firstMinRow).toBe(2); // anchor row (top) unchanged
+      expect(firstMaxRow).toBe(9); // dragged to row 9
     });
 
     it('should keep the focus/active cell stable when growing the selection via the top handle', async() => {

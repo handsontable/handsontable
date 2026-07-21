@@ -83,7 +83,6 @@ describe('WalkontableSelectionHandles', () => {
     // Handle dimensions come from the CSS token cache (stylesHandler stub in tests):
     // size=8, length=24. top/bottom: width=24 (length), height=8 (size).
     // start/end: width=8 (size), height=24 (length). No inline style manipulation needed.
-    const shortSide = 8;
     const longSide = 24;
 
     expect(styles.top.display).toBe('block');

@@ -34,6 +34,7 @@ test(__filename, async({ goto, tablePage }) => {
   // We use page.evaluate() to find the first non-hidden element since Playwright
   // locator.all() may include display:none siblings from clone overlays.
   const zoneBounds = await tablePage.evaluate(() => {
+    // eslint-disable-next-line no-restricted-globals
     const all = document.querySelectorAll<HTMLElement>('.ht_master .wtMoveZone');
     const visible = Array.from(all).find(el => el.style.display !== 'none');
 
@@ -50,8 +51,8 @@ test(__filename, async({ goto, tablePage }) => {
 
   // Press the mouse down on the centre of the move zone to start the drag.
   await tablePage.mouse.move(
-    zoneBounds!.x + zoneBounds!.width / 2,
-    zoneBounds!.y + zoneBounds!.height / 2
+    zoneBounds!.x + (zoneBounds!.width / 2),
+    zoneBounds!.y + (zoneBounds!.height / 2)
   );
   await tablePage.mouse.down();
 
@@ -61,6 +62,7 @@ test(__filename, async({ goto, tablePage }) => {
   const targetBounds = await tablePage.evaluate(() => {
     // Row 7, col 6: tbody tr:nth-child(8) td:nth-child(7) (1-indexed; no row-header offset
     // because querySelector counts all td elements — use nth-of-type instead).
+    // eslint-disable-next-line no-restricted-globals
     const trs = document.querySelectorAll<HTMLTableRowElement>('.ht_master tbody tr');
     const tr = trs[6]; // 0-indexed → row 7
     const td = tr?.querySelectorAll<HTMLTableCellElement>('td')[5]; // col 6 (0-indexed)
@@ -77,8 +79,8 @@ test(__filename, async({ goto, tablePage }) => {
   expect(targetBounds).not.toBeNull();
 
   await tablePage.mouse.move(
-    targetBounds!.x + targetBounds!.width / 2,
-    targetBounds!.y + targetBounds!.height / 2
+    targetBounds!.x + (targetBounds!.width / 2),
+    targetBounds!.y + (targetBounds!.height / 2)
   );
 
   // Self-verifying assertion: the ghost element must be present and visible

@@ -47,7 +47,7 @@ describe('WalkontableMoveZone', () => {
     const bands = focusBorder.main.querySelectorAll('.wtMoveZone');
 
     expect(bands.length).toBe(4);
-    bands.forEach((b) => expect(b.style.cursor).toBe('grab'));
+    bands.forEach(b => expect(b.style.cursor).toBe('grab'));
   });
 
   it('shows all four bands with display:block after draw when moveEnabled', async() => {
@@ -170,7 +170,7 @@ describe('WalkontableMoveZone', () => {
     const focusBorder = wt.selectionManager.getBorderInstance(selections.getFocus());
     const bands = focusBorder.main.querySelectorAll('.wtMoveZone');
 
-    bands.forEach((b) => expect(b.style.zIndex).toBe('100'));
+    bands.forEach(b => expect(b.style.zIndex).toBe('100'));
   });
 
   it('calls onSelectionEdgeMouseDown with the correct edge on band mousedown', async() => {
