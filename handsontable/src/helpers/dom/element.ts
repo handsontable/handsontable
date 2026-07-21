@@ -841,6 +841,7 @@ export function getMaximumScrollLeft(element: HTMLElement) {
 }
 
 const OVERFLOW_TRIMMING_VALUES = ['scroll', 'hidden', 'auto', 'clip'];
+const OVERFLOW_CONCRETE_VALUES = ['visible', 'clip', 'hidden', 'scroll', 'auto', 'overlay'];
 
 /**
  * Checks whether a single overflow axis traps the table on that axis.
@@ -866,8 +867,11 @@ function overflowAxisTraps(axis: string, perpendicular: string): boolean {
  *
  * The inline `overflow` shorthand can carry two values (`overflow: clip visible` → x, y). Some
  * engines (jsdom) neither split that shorthand into `overflowX`/`overflowY` nor reflect it in the
- * computed style, so the shorthand string is parsed directly. Inline values win over computed ones
- * so an inline single-axis clip is evaluated by the same `overflowAxisTraps` rule as a computed one.
+ * computed style, so the shorthand string is parsed directly. An inline value is only preferred when
+ * it is a concrete overflow keyword; a global keyword (`inherit`, `initial`, `revert`, `unset`) or
+ * any other non-concrete value falls back to the computed style, which resolves it to the real value
+ * (e.g. an inherited `auto`). Otherwise an inline `inherit` would be read literally and miss the
+ * scroll value it inherits.
  *
  * @param {HTMLElement} el The element to read overflow from.
  * @param {CSSStyleDeclaration} computedStyle The element's computed style.
@@ -876,10 +880,15 @@ function overflowAxisTraps(axis: string, perpendicular: string): boolean {
 function resolveOverflowAxes(el: HTMLElement, computedStyle: CSSStyleDeclaration): { x: string, y: string } {
   const shorthand = el.style.overflow.split(/\s+/).filter(Boolean);
   const [shorthandX = '', shorthandY = shorthandX] = shorthand;
+  const resolveAxis = (inlineAxis: string, shorthandAxis: string, computedProperty: string): string => {
+    const inline = inlineAxis || shorthandAxis;
+
+    return OVERFLOW_CONCRETE_VALUES.includes(inline) ? inline : computedStyle.getPropertyValue(computedProperty);
+  };
 
   return {
-    x: el.style.overflowX || shorthandX || computedStyle.getPropertyValue('overflow-x'),
-    y: el.style.overflowY || shorthandY || computedStyle.getPropertyValue('overflow-y'),
+    x: resolveAxis(el.style.overflowX, shorthandX, 'overflow-x'),
+    y: resolveAxis(el.style.overflowY, shorthandY, 'overflow-y'),
   };
 }
 

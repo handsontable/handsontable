@@ -1218,5 +1218,14 @@ describe('DomElement helper', () => {
 
       expect(getTrimmingContainer(base)).toBe(wrapper);
     });
+
+    it('should defer to computed style for a global `overflow` keyword instead of reading it literally', () => {
+      // `inherit`/`initial`/`revert`/`unset` are not concrete overflow values. The inline keyword
+      // must not be treated as a (non-trimming) literal — the computed style resolves the real value
+      // (here it resolves to `visible`, so the element does not trim and the window is returned).
+      wrapper.style.overflow = 'inherit';
+
+      expect(getTrimmingContainer(base)).toBe(window);
+    });
   });
 });
