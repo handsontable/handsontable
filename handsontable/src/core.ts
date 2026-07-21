@@ -3526,9 +3526,11 @@ export default function Core(
     if (typeof settings.height !== 'undefined' || typeof settings.width !== 'undefined') {
       const effectiveHeight = instance.rootElement.style.height;
       const effectiveWidth = instance.rootElement.style.width;
-      // Relative: percentages and viewport units resolve against an ancestor, so a `%` or `vw`/`vh`/
-      // `vmin`/`vmax` token anywhere (including inside `calc()`) marks the width as container-driven.
-      const isRelativeWidth = /%|\bv(?:w|h|min|max)\b/i.test(effectiveWidth);
+      // Relative: percentages and viewport units resolve against an ancestor, so a `%` or a viewport
+      // unit (`vw`/`vh`/`vmin`/`vmax`, and dynamic `dvh`/`svh`/`lvh` via the `vh` match) anywhere —
+      // including inside `calc()` — marks the width as container-driven. No word boundaries: the unit
+      // is preceded by digits (`100vw`), which are word characters, so `\bv` would never match.
+      const isRelativeWidth = /%|v(?:w|h|min|max)/i.test(effectiveWidth);
       const isDefiniteWidth = effectiveWidth !== '' && effectiveWidth !== 'auto' && !isRelativeWidth;
 
       if (!effectiveHeight) {

@@ -504,6 +504,20 @@ describe('settings', () => {
         expect(window.getComputedStyle(hot.rootElement).overflowX).not.toBe('clip');
       });
 
+      it('should not clip when `width` is a viewport unit (`vw`) and `height` is omitted', async() => {
+        // Viewport units resolve against the viewport, not a fixed box, so they are relative — the
+        // unit is preceded by digits (`100vw`), which must still be detected as relative (no clip).
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 10),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: '100vw',
+        });
+
+        expect(window.getComputedStyle(hot.rootElement).overflowX).not.toBe('clip');
+      });
+
       it('should clip when `width` is a definite non-pixel length (`em`) and `height` is omitted', async() => {
         // Absolute lengths other than `px` (em, rem, etc.) still establish a fixed box, so the table
         // must not visually overflow it — clip applies.
