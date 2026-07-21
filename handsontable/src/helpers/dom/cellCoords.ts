@@ -123,6 +123,7 @@ function findRowReferenceColumn(
 ): number {
   for (let column = startColumn; column <= endColumn; column++) {
     let spansMultipleRows = false;
+    let hasRenderableCell = false;
     let previousCell: HTMLElement | null = null;
 
     for (let row = startRow; row <= endRow; row++) {
@@ -138,10 +139,14 @@ function findRowReferenceColumn(
 
       if (cell !== null) {
         previousCell = cell;
+        hasRenderableCell = true;
       }
     }
 
-    if (!spansMultipleRows) {
+    // A hidden column (e.g. `hiddenColumns`) renders no cells, so `findRowAtY` cannot measure
+    // against it. Require at least one renderable cell so a hidden column between the merged
+    // column and a usable one is skipped rather than picked as the reference.
+    if (!spansMultipleRows && hasRenderableCell) {
       return column;
     }
   }

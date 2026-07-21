@@ -573,4 +573,88 @@ describe('getCellCoordsFromMousePosition', () => {
       expect(coords.row).toBe(1);
     });
   });
+
+  describe('hidden column between the merged column and a usable one', () => {
+    // Regression guard (DEV-2115 follow-up): column 0 is vertically merged (rows 0-2) and
+    // column 1 is hidden (e.g. `hiddenColumns`), so it renders no cells. The reference-column
+    // search must skip the hidden column (no renderable cell to measure) rather than pick it,
+    // which would hand back a null start cell and collapse the row lookup.
+    const rowHeight = 30;
+    const colWidth = 80;
+    const mergeSpan = 3;
+
+    /**
+     * Builds a HOT stub: column 0 vertical merge (rows 0-2), column 1 hidden (no rendered cell),
+     * column 2 normal.
+     *
+     * @returns {object} Stubbed HOT instance.
+     */
+    function buildHotWithHiddenColumn() {
+      return {
+        rootWindow: { innerWidth: 1280, innerHeight: 720 },
+        rootElement: { getBoundingClientRect: () => ({ left: 0, top: 0, right: 240, bottom: 120 }) },
+        isRtl: () => false,
+        hasColHeaders: () => false,
+        hasRowHeaders: () => false,
+        getFirstPartiallyVisibleRow: () => 0,
+        getLastPartiallyVisibleRow: () => 3,
+        getFirstPartiallyVisibleColumn: () => 0,
+        getLastPartiallyVisibleColumn: () => 2,
+        countRows: () => 4,
+        countCols: () => 3,
+        getCell: (row, col) => {
+          if (col === 1) {
+            return null; // hidden column - renders no cell
+          }
+
+          const el = document.createElement('td');
+          const isVerticalMerge = col === 0 && row < mergeSpan;
+          const top = isVerticalMerge ? 0 : row * rowHeight;
+          const height = isVerticalMerge ? rowHeight * mergeSpan : rowHeight;
+          // Column 2 is visually the second rendered column (column 1 is hidden).
+          const left = col === 2 ? colWidth : 0;
+
+          Object.defineProperty(el, 'offsetHeight', { get: () => height });
+          Object.defineProperty(el, 'offsetWidth', { get: () => colWidth });
+          el.getBoundingClientRect = () => ({ top, left, bottom: top + height, right: left + colWidth });
+
+          return el;
+        },
+        getCellMeta: (row, col) => (
+          col === 0 && row === 0 ? { rowspan: mergeSpan, colspan: 1 } : { rowspan: 1, colspan: 1 }
+        ),
+        _createCellCoords: (row, col) => ({ row, col }),
+        columnIndexMapper: {
+          getVisualFromRenderableIndex: n => n,
+          getNearestNotHiddenIndex: n => n,
+        },
+        rowIndexMapper: {
+          getVisualFromRenderableIndex: n => n,
+          getNearestNotHiddenIndex: n => n,
+          getNotHiddenIndexesLength: () => 4,
+        },
+        view: {
+          isVerticallyScrollableByWindow: () => false,
+          isHorizontallyScrollableByWindow: () => false,
+          getViewportWidth: () => 240,
+          getViewportHeight: () => 120,
+          getColumnHeaderHeight: () => 0,
+          getRowHeaderWidth: () => 0,
+          countNotHiddenFixedColumnsStart: () => 0,
+          countNotHiddenFixedRowsTop: () => 0,
+          countNotHiddenFixedRowsBottom: () => 0,
+        },
+      };
+    }
+
+    it('skips the hidden column and resolves the row against column 2', () => {
+      const hot = buildHotWithHiddenColumn();
+      // Pointer over column 2 (x 80-160), Y at the centre of row 2 (60..90 → 75), inside
+      // column 0's merged band. Must resolve to row 2 via column 2, not collapse onto row 0.
+      const coords = getCellCoordsFromMousePosition(hot, 100, 75);
+
+      expect(coords.col).toBe(2);
+      expect(coords.row).toBe(2);
+    });
+  });
 });

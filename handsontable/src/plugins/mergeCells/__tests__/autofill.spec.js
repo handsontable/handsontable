@@ -69,6 +69,25 @@ describe('MergeCells cooperation with autofill', () => {
     expect(getDataAtCell(5, 1)).toBe('B6'); // untouched - below the drag range
   });
 
+  it('should fill into a merged band when a hidden column sits between it and the dragged column (DEV-2115)', async() => {
+    handsontable({
+      data: createSpreadsheetData(10, 5),
+      hiddenColumns: { columns: [1] }, // hide column 1, between the merged column 0 and column 2
+      mergeCells: [
+        { row: 2, col: 0, rowspan: 3, colspan: 1 }, // A3:A5 vertical merge in column 0
+      ],
+    });
+
+    await selectCell(2, 2); // the first cell of column 2 within the merged band (column 1 hidden)
+
+    // Drag down one row. The reference-column search must skip the hidden column 1 (no rendered
+    // cell) instead of picking it, which would collapse the row lookup onto the merge anchor.
+    simulateFillHandleDrag(getCell(3, 2));
+
+    expect(getDataAtCell(3, 2)).toBe('C3'); // filled from the source
+    expect(getDataAtCell(4, 2)).toBe('C5'); // untouched - drag stopped one row down
+  });
+
   it('should populate merged cells data up', async() => {
     handsontable({
       data: createSpreadsheetData(10, 10),
