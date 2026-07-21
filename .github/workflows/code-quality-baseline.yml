@@ -13,8 +13,11 @@ name: Code quality baseline (nightly)
 # their new-code comparison on). workflow_dispatch allows an on-demand refresh.
 on:
   schedule:
-    # 03:00 UTC daily — off-peak; the exact minute is arbitrary.
-    - cron: '0 3 * * *'
+    # 03:00 UTC, Mon–Fri — off-peak; the exact minute is arbitrary. Weekends are
+    # skipped: nothing merges to trunk on Sat/Sun, so the baseline can't go stale
+    # then, and Sat/Sun scans would only burn CI minutes re-analyzing Friday's HEAD.
+    # A Monday 03:00 run refreshes the baseline before the week's first PRs.
+    - cron: '0 3 * * 1-5'
   workflow_dispatch:
 
 concurrency:
