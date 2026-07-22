@@ -15,24 +15,23 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${SCOPE_ID}`;
 const SHORTCUTS_GROUP = SCOPE_ID;
 
 /**
- * Mounts the license lock screen: a blocking hard-stop overlay covering the grid. It looks and
- * sizes itself exactly like a confirm Dialog by wearing the dialog's own CSS class names (the
- * stylesheet is always shipped in full, so the styling is inherited without duplicating it), but it
- * is a self-contained Core-owned element - it never touches the Dialog PLUGIN, which is optional
- * (it may be absent from a bundle) and, being a single shared surface an app uses for its own
- * dialogs, could not tell its own lifecycle apart from the lock's. This lock owns its element, so
- * showing and dismissing are unambiguous.
+ * Mounts the license lock screen: a blocking, non-dismissable hard-stop overlay covering the grid.
+ * It looks and sizes itself exactly like a confirm Dialog by wearing the dialog's own CSS class
+ * names (the stylesheet is always shipped in full, so the styling is inherited without duplicating
+ * it), but it is a self-contained Core-owned element - it never touches the Dialog PLUGIN, which is
+ * optional (it may be absent from a bundle) and, being a single shared surface an app uses for its
+ * own dialogs, could not tell its own lifecycle apart from the lock's. This lock owns its element,
+ * so showing it is unambiguous.
  *
- * Only the copy and behavior differ from a confirm dialog: it cannot be dismissed (the trial lock
- * has no Close button; the subscription lock has one per spec Case 3a), and it sits above app
- * dialogs. Its width is pinned to the table's workspace width on every render (the `.ht-dialog` box
- * is otherwise `width: 100%`, which would span the whole root wrapper, not the grid - a minimal
- * copy of the plugin's own sizing); its height is the grid box. It integrates with the focus
- * manager as a modal scope and routes its keyboard paths (the Tab focus trap, and `Escape` when
- * closable) through the shortcut manager, exactly like the Dialog plugin.
+ * Only the copy and behavior differ from a confirm dialog: it cannot be dismissed (no Close button,
+ * no Escape shortcut - the hard stop is final), and it sits above app dialogs. Its width is pinned
+ * to the table's workspace width on every render (the `.ht-dialog` box is otherwise `width: 100%`,
+ * which would span the whole root wrapper, not the grid - a minimal copy of the plugin's own
+ * sizing); its height is the grid box. It integrates with the focus manager as a modal scope and
+ * routes its Tab focus trap through the shortcut manager, exactly like the Dialog plugin.
  *
  * @param {HotInstance} hotInstance The root Handsontable instance.
- * @param {LockContent} content The lock copy and closability.
+ * @param {LockContent} content The lock copy.
  * @returns {void}
  */
 export function mountLicenseLock(hotInstance: HotInstance, content: LockContent): void {
@@ -50,9 +49,6 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
   // The exact class set the plugin's confirm dialog carries when shown, plus `ht-license-lock`.
   const lockClassName = `${DIALOG_CLASS} ${DIALOG_CLASS}--confirm handsontable ${LOCK_CLASS} ` +
     `${DIALOG_CLASS}--background-solid ${DIALOG_CLASS}--show`;
-  const closeButton = content.closable
-    ? '<button data-ref="closeButton" type="button" class="ht-button ht-button--secondary">Close</button>'
-    : '';
 
   // The confirm-dialog DOM, rebuilt with the dialog's class names (`ht-dialog--confirm`,
   // `__content-wrapper`, `__content`, `__title`, `__description`, `__buttons`, `ht-button`) plus the
@@ -60,7 +56,7 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
   // copy is assigned through `textContent` below, never interpolated into the markup.
   const { refs } = html`
     <div data-ref="lock" class="${lockClassName}"
-      role="${content.closable ? 'dialog' : 'alertdialog'}" aria-modal="true"
+      role="alertdialog" aria-modal="true"
       aria-labelledby="${titleId}" aria-describedby="${descriptionId}"
       tabindex="-1" dir="${isRtl ? 'rtl' : 'ltr'}" style="display: block;">
       <div class="${DIALOG_CLASS}__content-wrapper">
@@ -71,7 +67,6 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
           </div>
           <div class="${DIALOG_CLASS}__buttons">
             <button data-ref="contactButton" type="button" class="ht-button ht-button--primary">Contact Sales</button>
-            ${closeButton}
           </div>
         </div>
       </div>
@@ -98,23 +93,6 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
     lock.style.width = `${width}px`;
   };
 
-  let unmounted = false;
-
-  const unmount = () => {
-    if (unmounted) {
-      return;
-    }
-
-    unmounted = true;
-    hotInstance.removeHook('afterViewRender', syncWidth);
-    lock.remove();
-    shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME)?.removeShortcutsByGroup(SHORTCUTS_GROUP);
-    focusScopeManager.deactivateScope(SCOPE_ID);
-    focusScopeManager.unregisterScope(SCOPE_ID);
-  };
-
-  refs.closeButton?.addEventListener('click', () => unmount());
-
   hotInstance.addHook('afterViewRender', syncWidth);
 
   const shortcutsContext = shortcutManager.getContext(SHORTCUTS_CONTEXT_NAME) ??
@@ -132,23 +110,12 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
 
       controls[(index + delta + controls.length) % controls.length]?.focus();
     },
-    runOnlyIf: () => !unmounted,
     group: SHORTCUTS_GROUP,
   });
-
-  if (content.closable) {
-    shortcutsContext.addShortcut({
-      keys: [['Escape']],
-      callback: () => unmount(),
-      runOnlyIf: () => !unmounted,
-      group: SHORTCUTS_GROUP,
-    });
-  }
 
   focusScopeManager.registerScope(SCOPE_ID, lock, {
     shortcutsContextName: SHORTCUTS_CONTEXT_NAME,
     type: 'modal',
-    runOnlyIf: () => !unmounted,
     onActivate: (focusSource: string) => {
       const controls = getFocusableControls();
 
@@ -163,13 +130,8 @@ export function mountLicenseLock(hotInstance: HotInstance, content: LockContent)
   host.appendChild(lock);
 
   // The lock mounts during `init()`, before the grid's first render, so moving focus into it waits
-  // for `afterInit`. A closable lock can be dismissed before that fires (it never happens in
-  // practice at init, but the guard keeps activation safe).
+  // for `afterInit`.
   hotInstance.addHookOnce('afterInit', () => {
-    if (unmounted) {
-      return;
-    }
-
     syncWidth();
     hotInstance.deselectCell();
     // The lock takes over the whole grid surface, so it claims the keyboard explicitly: the shortcut

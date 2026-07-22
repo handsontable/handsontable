@@ -1,7 +1,6 @@
 import {
   LICENSE_EXPIRED_TITLE,
   PURCHASE_COMMERCIAL_LICENSE_TEXT,
-  RENEW_LICENSE_TEXT,
 } from '../../helpers/mixed';
 import type { LicenseLifecycleFacet, LicenseStateKey } from '../../helpers/mixed';
 
@@ -33,15 +32,12 @@ export interface PopoverContent {
 }
 
 /**
- * The copy of one hard-stop lock screen. The trial lock is not closable - the evaluation has
- * definitively ended. The subscription lock (Internal deployments only, see the routing in
- * `index.ts`) is closable per the license spec: the end user can dismiss it and keep working while
- * the licensee renews.
+ * The copy of one hard-stop lock screen. The lock is a final, non-dismissable overlay (only the
+ * trial hard stop renders one - see the routing in `index.ts`).
  */
 export interface LockContent {
   title: string;
   description: string;
-  closable: boolean;
 }
 
 /**
@@ -76,17 +72,12 @@ export const POPOVER_CONTENT: Partial<Record<LicenseStateKey, PopoverContent>> =
 };
 
 /**
- * The lock-screen copy per hard-stopped lifecycle state.
+ * The lock-screen copy per hard-stopped lifecycle state. Only the trial hard stop renders a lock;
+ * the subscription hard stop is developer-facing (console) only.
  */
 export const LOCK_CONTENT = {
   trial_expired_hard: {
     title: LICENSE_EXPIRED_TITLE,
     description: PURCHASE_COMMERCIAL_LICENSE_TEXT,
-    closable: false,
-  },
-  sub_expired_hard: {
-    title: 'Your Handsontable subscription has expired.',
-    description: RENEW_LICENSE_TEXT,
-    closable: true,
   },
 } satisfies Partial<Record<LicenseStateKey, LockContent>>;

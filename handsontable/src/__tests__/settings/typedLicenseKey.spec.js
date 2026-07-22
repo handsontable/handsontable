@@ -329,80 +329,17 @@ describe('settings', () => {
     });
 
     describe('subscription hard stop (grace elapsed)', () => {
-      it('should mount a closable lock for an Internal-mode key, with no bar and no badge', async() => {
+      // The subscription hard stop is developer-facing only, for every deployment mode: the console
+      // error (asserted in the unit tests - it logs once per page, so a prior spec may have already
+      // consumed it here) with no frontend surface at all - no lock, no bottom bar, no corner badge.
+      it.each([
+        ['Internal-mode', SUBSCRIPTION_KEY],
+        ['SaaS-mode', SUBSCRIPTION_SAAS_KEY],
+      ])('should stay console-only for a %s key: no lock, no bar, no badge', async(_label, key) => {
         spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
 
-        handsontable({ licenseKey: SUBSCRIPTION_KEY }, true);
+        handsontable({ licenseKey: key }, true);
 
-        const lock = hot().rootOverlaysElement.querySelector('.ht-license-lock');
-
-        expect(lock).not.toBe(null);
-        expect(lock.getAttribute('role')).toBe('dialog');
-        expect(lock.innerText).toContain('Your Handsontable subscription has expired.');
-        expect(lock.innerText).toContain('Contact Sales');
-        expect(lock.innerText).toContain('Close');
-        // The lock is the only subscription surface - no bottom bar, no corner badge.
-        expect(spec().$container[0].querySelector('.hot-display-license-info')).toBe(null);
-        expect(hot().rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);
-      });
-
-      it('should let the end user dismiss the lock, and keep it dismissed across settings updates', async() => {
-        spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
-
-        handsontable({ licenseKey: SUBSCRIPTION_KEY }, true);
-
-        const lock = hot().rootOverlaysElement.querySelector('.ht-license-lock');
-        const closeButton = Array.from(lock.querySelectorAll('button'))
-          .find(button => button.innerText === 'Close');
-
-        expect(closeButton).not.toBe(undefined);
-
-        closeButton.click();
-
-        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
-
-        // The user's dismissal sticks: a settings update must not bring the lock back.
-        await updateSettings({ rowHeaders: true });
-
-        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
-      });
-
-      it('should dismiss the lock on Escape through the shortcut pipeline', async() => {
-        spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
-
-        handsontable({ licenseKey: SUBSCRIPTION_KEY }, true);
-
-        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
-
-        // Focus sits inside the lock (its modal scope activated on init), so its shortcuts context
-        // is the active one.
-        await keyDownUp('escape');
-
-        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
-      });
-
-      it('should keep the lock up after updateSettings when it was NOT dismissed', async() => {
-        spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
-
-        handsontable({ licenseKey: SUBSCRIPTION_KEY }, true);
-
-        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
-
-        // The Core-owned lock does not live on any plugin surface, so a settings update cannot
-        // tear it down as a side effect.
-        await updateSettings({ rowHeaders: true });
-
-        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
-      });
-
-      it('should stay console-only for a SaaS-mode key: no lock, no bar, no badge', async() => {
-        spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
-
-        handsontable({ licenseKey: SUBSCRIPTION_SAAS_KEY }, true);
-
-        // The expiry signal is developer-facing only (Case 3b of the license spec): the console
-        // error (asserted in the unit tests - it logs once per page, so a prior spec may have
-        // already consumed it here) with no frontend surface at all.
         expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
         expect(spec().$container[0].querySelector('.hot-display-license-info')).toBe(null);
         expect(hot().rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);

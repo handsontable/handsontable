@@ -10,7 +10,6 @@ jest.mock('../../helpers/mixed', () => ({
   // assert this exact wording).
   LICENSE_EXPIRED_TITLE: 'Your Handsontable license has expired.',
   PURCHASE_COMMERCIAL_LICENSE_TEXT: 'To continue using Handsontable, you need to purchase a commercial license.',
-  RENEW_LICENSE_TEXT: 'To continue using Handsontable, you need to renew your license.',
 }));
 
 const { _getLicenseState } = require('../../helpers/mixed');
@@ -573,72 +572,22 @@ describe('licenseBranding', () => {
     });
   });
 
-  describe('subscription hard stop (Cases 3a/3b: the deployment mode selects the surface)', () => {
-    it('should mount a closable lock with Contact Sales and Close buttons for an Internal-mode key', () => {
-      setLifecycle('sub_expired_hard', {}, grantsWithMode('internal'));
-      const hotInstance = createMockHotInstance();
-
-      initLicenseBranding(hotInstance);
-      hotInstance.hooks.addHookOnce.afterInit();
-
-      const lock = hotInstance.rootOverlaysElement.querySelector('.ht-license-lock');
-
-      expect(lock).not.toBe(null);
-      expect(lock.getAttribute('role')).toBe('dialog');
-      expect(lock.querySelector('.ht-dialog__title').textContent)
-        .toBe('Your Handsontable subscription has expired.');
-
-      const buttons = lock.querySelectorAll('button');
-
-      expect(buttons).toHaveLength(2);
-      expect(buttons[0].textContent).toBe('Contact Sales');
-      expect(buttons[1].textContent).toBe('Close');
-    });
-
-    it('should dismiss the lock with the Close button, and keep it dismissed across settings updates', () => {
-      setLifecycle('sub_expired_hard', {}, grantsWithMode('internal'));
-      const hotInstance = createMockHotInstance();
-
-      initLicenseBranding(hotInstance);
-      hotInstance.hooks.addHookOnce.afterInit();
-
-      const lock = hotInstance.rootOverlaysElement.querySelector('.ht-license-lock');
-
-      lock.querySelectorAll('button')[1].click();
-
-      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
-      expect(hotInstance.focusScope.deactivateScope).toHaveBeenCalledWith('licenseLock');
-
-      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
-    });
-
-    it('should dismiss the lock through the Escape shortcut (shortcut manager)', () => {
-      setLifecycle('sub_expired_hard', {}, grantsWithMode('internal'));
-      const hotInstance = createMockHotInstance();
-
-      initLicenseBranding(hotInstance);
-      hotInstance.hooks.addHookOnce.afterInit();
-
-      const escape = findShortcut(hotInstance, 'Escape');
-
-      expect(escape).not.toBe(undefined);
-      expect(escape.group).toBe('licenseLock');
-
-      escape.callback();
-
-      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
-    });
-
-    it.each(['saas', 'some-future-mode'])(
-      'should stay console-only for the "%s" mode: no lock, no badge',
+  describe('subscription hard stop', () => {
+    // The subscription hard stop renders no front-end surface for ANY deployment mode - it is
+    // developer-facing (a console error, in the notification path) only.
+    it.each(['internal', 'saas', 'some-future-mode'])(
+      'should render nothing for the "%s" mode: no lock, no badge, no focus scope',
       (mode) => {
         setLifecycle('sub_expired_hard', {}, grantsWithMode(mode));
         const hotInstance = createMockHotInstance();
 
         initLicenseBranding(hotInstance);
 
+        expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
+        expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);
         expect(hotInstance.rootOverlaysElement.children).toHaveLength(0);
         expect(hotInstance.focusScope.registerScope).not.toHaveBeenCalled();
+        expect(hotInstance.addHook).not.toHaveBeenCalled();
       }
     );
   });

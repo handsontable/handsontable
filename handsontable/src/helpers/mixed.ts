@@ -171,8 +171,6 @@ type TypedConsoleNotification = {
 export const LICENSE_EXPIRED_TITLE = 'Your Handsontable license has expired.';
 export const PURCHASE_COMMERCIAL_LICENSE_TEXT =
   'To continue using Handsontable, you need to purchase a commercial license.';
-export const RENEW_LICENSE_TEXT =
-  'To continue using Handsontable, you need to renew your license.';
 
 /**
  * The console notification for each typed-license lifecycle state that talks to

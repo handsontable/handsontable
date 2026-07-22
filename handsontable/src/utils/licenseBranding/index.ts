@@ -1,5 +1,4 @@
 import { _getLicenseState } from '../../helpers/mixed';
-import { getProductMode, HANDSONTABLE_PRODUCT } from '../typedLicenseKey';
 import { LOCK_CONTENT } from './content';
 import { mountLicenseBadge } from './badge';
 import { mountLicenseLock } from './lockScreen';
@@ -8,14 +7,13 @@ import type { HotInstance } from '../../core/types';
 /**
  * Mounts the branding surface for one resolved license state:
  *   - `trial_active`, `trial_expired`, `freemium` -> the corner "H." badge with its popover;
- *   - `trial_expired_hard` -> the Core-owned, non-closable lock screen;
- *   - `sub_expired_hard` -> the lock screen, closable, but ONLY for Internal-mode keys; SaaS-mode
- *     keys - and any unknown future mode, whose audience is not the licensee - stay console-only:
- *     no lock, no bar, no badge.
+ *   - `trial_expired_hard` -> the Core-owned, non-dismissable lock screen.
  *
- * Every other state (`missing`, `invalid`, `non_commercial`, expired legacy, valid legacy, running
- * subscription, perpetual) renders nothing here - the corner badge is reserved for trial and
- * freemium. Their console warning and any bottom bar still come from `initLicenseNotification`.
+ * Every other state renders nothing here - the corner badge is reserved for trial and freemium, and
+ * the only hard-stop lock is the trial one. A hard-stopped subscription (`sub_expired_hard`, any
+ * mode) is developer-facing only: no lock, no bar, no badge - just its console error. `missing`,
+ * `invalid`, `non_commercial`, expired/valid legacy, running subscription, and perpetual likewise
+ * render nothing here; their console warning and any bottom bar come from `initLicenseNotification`.
  *
  * @param {HotInstance} hotInstance The root Handsontable instance.
  * @param {ReturnType<typeof _getLicenseState>} descriptor The resolved license state descriptor.
@@ -25,18 +23,10 @@ function mountBrandingSurface(
   hotInstance: HotInstance,
   descriptor: ReturnType<typeof _getLicenseState>,
 ): void {
-  const { lifecycle, grants } = descriptor;
+  const { lifecycle } = descriptor;
 
   if (lifecycle.state === 'trial_expired_hard') {
     mountLicenseLock(hotInstance, LOCK_CONTENT.trial_expired_hard);
-
-    return;
-  }
-
-  if (lifecycle.state === 'sub_expired_hard') {
-    if (getProductMode(grants, HANDSONTABLE_PRODUCT) === 'internal') {
-      mountLicenseLock(hotInstance, LOCK_CONTENT.sub_expired_hard);
-    }
 
     return;
   }
