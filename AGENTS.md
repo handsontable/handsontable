@@ -24,6 +24,7 @@ Route to the lowest correct scope. `AGENTS.md` answers "what must I never get wr
 | Angular wrapper | `wrappers/angular-wrapper/AGENTS.md` |
 | Vue 3 wrapper | `wrappers/vue3/AGENTS.md` |
 | Visual regression tests | `visual-tests/AGENTS.md` |
+| Test-generation evals (meaningfulness scorer + fixtures) | `evals/README.md` |
 | Step-by-step task workflows | `.claude/skills/` (e.g., `handsontable-dev`, `handsontable-plugin-dev`, `handsontable-code-review`, `pr-creation`) |
 
 `.ai/` reference locations:
@@ -98,7 +99,7 @@ Full rules (what counts, the per-change table, legacy vs deprecated, what is NOT
 
 Every code change produced by an agent **must** satisfy all of the following:
 
-1. **Tests are required.** Every change must include both **unit tests** (Jest, `*.unit.js`) and **E2E tests** (Jasmine/Puppeteer, `*.spec.js`). No change is complete without test coverage for the new or modified behavior.
+1. **Tests are required, and machine-enforced.** A change to `handsontable/src/**` or `wrappers/**` must ship a matching test change (the presence gate checks this on every PR). The *kind* follows the change: **unit** (Jest, `*.unit.js`) for logic, **E2E** for anything a user can see or do — and **new E2E is Playwright** (`tests/e2e/*.spec.ts`); the Jasmine/Puppeteer `*.spec.js` suite is frozen (edit existing specs, but do not add new ones — migrate broken ones to Playwright). A pure refactor needs no new test if declared with a `Refactor-only: <reason>` commit trailer. Full decision rules: `handsontable/.ai/TESTING.md`. The local gates that enforce this **before** a commit/PR (pre-commit + pre-push + the Claude Code hooks) and the exact rules for creating tests, enforcement hooks, and skills are in **`.ai/LOCAL-ENFORCEMENT.md`** (run `npx lefthook install` once).
 2. **Documentation must be updated.** If a change affects the public API, configuration options, hooks, behavior, or user-facing experience, update the corresponding documentation (guides, API reference via JSDoc/Typedoc, migration guide) in the same change. See [Documentation standards](#documentation-standards-all-packages).
 3. **Update AGENTS.md.** If a change introduces new conventions, patterns, constraints, file locations, or gotchas that future agents should know, update the `AGENTS.md` at the correct scope.
 

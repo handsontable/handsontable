@@ -1,0 +1,25 @@
+{
+  "$schema": "../node_modules/@stryker-mutator/core/schema/stryker-schema.json",
+  "testRunner": "jest",
+  "jest": {
+    "projectType": "custom",
+    "configFile": "jest.stryker.config.js",
+    "enableFindRelatedTests": true
+  },
+  "coverageAnalysis": "all",
+  "reporters": [
+    "clear-text",
+    "progress"
+  ],
+  "incremental": true,
+  "incrementalFile": ".stryker-tmp/incremental.json",
+  "tempDirName": ".stryker-tmp",
+  "cleanTempDir": true,
+  "mutate": [
+    "src/helpers/errors.ts"
+  ],
+  "plugins": [
+    "../node_modules/@stryker-mutator/jest-runner/dist/src/index.js"
+  ],
+  "inPlace": true
+}

@@ -25,16 +25,33 @@ const run = async() => {
     );
   }
 
-  if ((pr.body || '').includes(skipCheckString)) {
-    console.log('The PR body (description) includes a string to disable this check, exiting.');
-    process.exit(0);
-  }
-
   // @actions/github@6 uses octokit.rest.* while older versions exposed octokit.pulls.*.
+  const getPull = octokit.rest?.pulls?.get ?? octokit.pulls?.get;
   const listPullFiles = octokit.rest?.pulls?.listFiles ?? octokit.pulls?.listFiles;
 
-  if (!listPullFiles) {
-    return core.setFailed('Could not resolve Octokit pull file listing API method.');
+  if (!getPull || !listPullFiles) {
+    return core.setFailed('Could not resolve Octokit pull request API methods.');
+  }
+
+  // Read the LIVE PR body over the API rather than trusting
+  // `github.context.payload.pull_request.body`, which is frozen at the event that
+  // triggered the run and stays stale across "Re-run failed jobs". Reading it live
+  // lets an author add `[skip changelog]` to the description and re-run this job to
+  // clear the check — no empty commit, and no `edited` trigger re-running the whole
+  // pipeline. Falls back to the payload body if the fetch is unavailable.
+  let body = pr.body || '';
+
+  try {
+    const { data: livePr } = await getPull({ owner, repo, pull_number: pr.number });
+
+    body = livePr.body || '';
+  } catch (error) {
+    console.log(`Could not fetch the live PR body, falling back to the event payload: ${error.message}`);
+  }
+
+  if (body.includes(skipCheckString)) {
+    console.log('The PR body (description) includes a string to disable this check, exiting.');
+    process.exit(0);
   }
 
   // https://octokit.github.io/rest.js/v18#pagination

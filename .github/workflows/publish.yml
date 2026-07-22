@@ -285,6 +285,22 @@ jobs:
   first-rc-test:
     name: Run tests (first RC)
     needs: [first-rc-build]
+    # Ceiling for the called Tests graph. GitHub validates EVERY job-level
+    # permissions request in the nested reusable-workflow graph against this set
+    # STATICALLY at run init — `if:` conditions on runtime-skipped PR-only jobs do
+    # NOT exempt them (actions/runner#4151; verified empirically on this repo).
+    # The write scopes below are requested by PR-only jobs (preview comment,
+    # docs check, CodeQL upload, perf report) that never RUN on this path — they
+    # only have to VALIDATE. Deliberately no id-token: nothing in the test graph
+    # publishes, so this also stops the test jobs inheriting OIDC from the
+    # workflow default.
+    permissions:
+      contents: write
+      actions: read
+      pull-requests: write
+      checks: write
+      security-events: write
+      packages: read
     uses: ./.github/workflows/test.yml
     with:
       test-all: true
@@ -743,6 +759,15 @@ jobs:
   rc-test:
     name: Run tests (RC)
     needs: [rc-build]
+    # Same ceiling as first-rc-test — see the comment there (static nested
+    # permission validation; no id-token for the test graph).
+    permissions:
+      contents: write
+      actions: read
+      pull-requests: write
+      checks: write
+      security-events: write
+      packages: read
     uses: ./.github/workflows/test.yml
     with:
       test-all: true
