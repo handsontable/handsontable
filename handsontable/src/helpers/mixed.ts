@@ -134,43 +134,70 @@ type TypedMessageParams = {
 };
 
 /**
- * The console copy for each typed-license lifecycle state that talks to the
- * developer. Silent states (freemium, comfortably-valid subscription, valid
- * perpetual) have no entry. The wording is fixed by the license spec.
+ * Formats a day count with a correctly pluralized unit ("1 day", "2 days"), so
+ * the last-day trial message does not read "expires in 1 days".
+ *
+ * @param {number|null|undefined} days The number of days.
+ * @returns {string}
  */
-const typedConsoleMessages: Record<string, (params: TypedMessageParams) => string> = {
-  trial_active: ({ daysRemaining }) => toSingleLine`
-    Your Handsontable trial license key expires in ${daysRemaining} days. To continue using Handsontable\x20
-    contact sales@handsontable.com to purchase a valid commercial license.`,
-  trial_expired: ({ expiryDate }) => toSingleLine`
-    Your Handsontable trial license key expired on ${expiryDate}. To continue using Handsontable\x20
-    contact sales@handsontable.com to purchase a valid commercial license.`,
-  trial_expired_hard: ({ expiryDate }) => toSingleLine`
-    Your Handsontable trial license key expired on ${expiryDate}. You may no longer use Handsontable under the\x20
-    trial license. To continue using the software contact sales@handsontable.com to purchase a valid license.`,
-  sub_ending: ({ expiryDate }) => toSingleLine`
-    Your Handsontable subscription license expires on ${expiryDate}.\x20
-    To renew your license contact sales@handsontable.com.`,
-  sub_expired: ({ expiryDate, hardStopDate }) => toSingleLine`
-    Your Handsontable subscription license key expired on ${expiryDate}. The software will become inactive on\x20
-    ${hardStopDate}. To renew your license contact sales@handsontable.com.`,
-  sub_expired_hard: ({ expiryDate }) => toSingleLine`
-    Your Handsontable subscription license key expired on ${expiryDate}. To continue using the software\x20
-    contact sales@handsontable.com to purchase a valid license key.`,
+function _formatDays(days: number | null | undefined): string {
+  return `${days} ${days === 1 ? 'day' : 'days'}`;
+}
+
+/**
+ * One console notification for a typed-license state: its severity and the copy
+ * builder. Kept as a single record (not parallel severity/message maps) so a new
+ * state cannot be added to one without the other - a `console[undefined](...)`
+ * at init is impossible. Severity is a warning while the license still works
+ * (trial running, subscription ending) and an error once it has stopped.
+ */
+type TypedConsoleNotification = {
+  severity: 'warn' | 'error';
+  message: (params: TypedMessageParams) => string;
 };
 
 /**
- * The console severity for each typed-license state that notifies: a warning
- * while the license still works (trial running, subscription ending), an error
- * once it has stopped (expired, hard-stopped).
+ * The console notification for each typed-license lifecycle state that talks to
+ * the developer. Silent states (freemium, comfortably-valid subscription, valid
+ * perpetual) have no entry. The wording is fixed by the license spec.
  */
-const typedConsoleSeverity: Record<string, 'warn' | 'error'> = {
-  trial_active: 'warn',
-  trial_expired: 'error',
-  trial_expired_hard: 'error',
-  sub_ending: 'warn',
-  sub_expired: 'error',
-  sub_expired_hard: 'error',
+const typedConsoleNotifications: Record<string, TypedConsoleNotification> = {
+  trial_active: {
+    severity: 'warn',
+    message: ({ daysRemaining }) => toSingleLine`
+      Your Handsontable trial license key expires in ${_formatDays(daysRemaining)}. To continue using\x20
+      Handsontable contact sales@handsontable.com to purchase a valid commercial license.`,
+  },
+  trial_expired: {
+    severity: 'error',
+    message: ({ expiryDate }) => toSingleLine`
+      Your Handsontable trial license key expired on ${expiryDate}. To continue using Handsontable\x20
+      contact sales@handsontable.com to purchase a valid commercial license.`,
+  },
+  trial_expired_hard: {
+    severity: 'error',
+    message: ({ expiryDate }) => toSingleLine`
+      Your Handsontable trial license key expired on ${expiryDate}. You may no longer use Handsontable under\x20
+      the trial license. To continue using the software contact sales@handsontable.com to purchase a valid license.`,
+  },
+  sub_ending: {
+    severity: 'warn',
+    message: ({ expiryDate }) => toSingleLine`
+      Your Handsontable subscription license expires on ${expiryDate}.\x20
+      To renew your license contact sales@handsontable.com.`,
+  },
+  sub_expired: {
+    severity: 'error',
+    message: ({ expiryDate, hardStopDate }) => toSingleLine`
+      Your Handsontable subscription license key expired on ${expiryDate}. The software will become inactive on\x20
+      ${hardStopDate}. To renew your license contact sales@handsontable.com.`,
+  },
+  sub_expired_hard: {
+    severity: 'error',
+    message: ({ expiryDate }) => toSingleLine`
+      Your Handsontable subscription license key expired on ${expiryDate}. To continue using the software\x20
+      contact sales@handsontable.com to purchase a valid license key.`,
+  },
 };
 
 /**
@@ -517,9 +544,11 @@ function _injectTypedProductInfo(
       consoleMessage = consoleMessages.invalid({});
     } else if (state === 'perp_expired') {
       consoleMessage = consoleMessages.expired({ keyValidityDate: expiryDate, hotVersion });
-    } else if (Object.prototype.hasOwnProperty.call(typedConsoleMessages, state)) {
-      consoleMessage = typedConsoleMessages[state]({ daysRemaining: lifecycle.daysRemaining, expiryDate, hardStopDate });
-      consoleMethod = typedConsoleSeverity[state];
+    } else if (Object.prototype.hasOwnProperty.call(typedConsoleNotifications, state)) {
+      const notification = typedConsoleNotifications[state];
+
+      consoleMessage = notification.message({ daysRemaining: lifecycle.daysRemaining, expiryDate, hardStopDate });
+      consoleMethod = notification.severity;
     }
 
     if (consoleMessage) {

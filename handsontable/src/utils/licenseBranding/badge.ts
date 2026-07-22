@@ -11,7 +11,27 @@ const POPOVER_OPEN_CLASS = 'is-open';
 const POPOVER_DISMISSED_CLASS = 'is-dismissed';
 const CORNER_HOVER_CLASS = 'is-corner-hover';
 const CORNERLESS_CLASS = 'is-cornerless';
-const CORNER_CLONE_SELECTOR = '.ht_clone_top_inline_start_corner';
+
+/**
+ * The corner-header clone's table and its header section, read straight from Walkontable through the
+ * TableView. This is THIS grid's own corner, never a nested grid's: a grid rendered inside a cell
+ * (the `handsontable` cell type) has its own corner clone earlier in document order, so a CSS
+ * selector on the root subtree could match the inner one and make the badge measure - and pop over -
+ * the wrong corner. The overlay reference sidesteps that entirely. Returns `null` before the first
+ * render (the overlay/clone is not built yet) or when there is no corner.
+ *
+ * @param {HotInstance} hotInstance The root Handsontable instance.
+ * @returns {{ table: HTMLElement, thead: HTMLElement|null }|null}
+ */
+function getCornerClone(hotInstance: HotInstance): { table: HTMLElement; thead: HTMLElement | null } | null {
+  const wtTable = hotInstance.view?._wt?.wtOverlays?.topInlineStartCornerOverlay?.clone?.wtTable;
+
+  if (!wtTable?.TABLE) {
+    return null;
+  }
+
+  return { table: wtTable.TABLE, thead: wtTable.THEAD ?? null };
+}
 
 /**
  * Wires the corner-hover detection for the click-through badge. The badge and its wrapper render with
@@ -20,53 +40,46 @@ const CORNER_CLONE_SELECTOR = '.ht_clone_top_inline_start_corner';
  * delegation instead: a `mouseover` listener on the root element stamps the `is-corner-hover` class on
  * the wrapper whenever the pointer roams over the corner clone's HEADER area (the clone also holds
  * frozen data cells, which must never pop the license tooltip), and the popover CSS opens on that
- * class. Every roam also gives the dismissed soft-stop popover a chance to re-arm.
- *
- * Returns the listener cleanup for the badge unmount.
+ * class. Every roam also gives the dismissed soft-stop popover a chance to re-arm. The listeners
+ * die with the root element on destroy.
  *
  * @param {HotInstance} hotInstance The root Handsontable instance.
  * @param {HTMLElement} wrapper The badge wrapper element.
  * @param {Function} onPointerRoam Called after every pointer roam (used to re-arm the dismissed popover).
- * @returns {Function} The cleanup removing the listeners.
+ * @returns {void}
  */
 function wireCornerHoverDetection(
   hotInstance: HotInstance,
   wrapper: HTMLElement,
   onPointerRoam: () => void,
-): () => void {
+): void {
   const rootElement = hotInstance.rootElement;
 
   if (!rootElement) {
-    return () => {};
+    return;
   }
 
-  const onMouseOver = (event: MouseEvent) => {
+  rootElement.addEventListener('mouseover', (event: MouseEvent) => {
     // Checked against the grid's OWN realm: for an iframe-hosted grid, the loading window's
     // `Element` does not match nodes from the iframe's document, and the bare `instanceof Element`
     // would silently kill hover detection there.
     const target = event.target instanceof hotInstance.rootWindow.Element ? event.target : null;
-    // Only the corner HEADER area (the clone's `thead`) triggers the popover: the corner clone
-    // also holds frozen data cells (`fixedRowsTop` + `fixedColumnsStart`), and hovering the user's
-    // own data must never pop the license tooltip. Without a corner cell (`is-cornerless`) there
-    // is no badge to point at, so hover never triggers - only the auto-open popovers show there.
+    // Only the corner HEADER area (the clone's `thead`, read from the overlay - THIS grid's, never a
+    // nested grid's) triggers the popover: the corner clone also holds frozen data cells
+    // (`fixedRowsTop` + `fixedColumnsStart`), and hovering the user's own data must never pop the
+    // license tooltip. Without a corner cell (`is-cornerless`) there is no badge to point at, so
+    // hover never triggers - only the auto-open popovers show there.
+    const cornerThead = getCornerClone(hotInstance)?.thead ?? null;
     const overCornerHeader = !wrapper.classList.contains(CORNERLESS_CLASS) &&
-      !!target?.closest(`${CORNER_CLONE_SELECTOR} thead`);
+      target !== null && cornerThead !== null && cornerThead.contains(target);
 
     wrapper.classList.toggle(CORNER_HOVER_CLASS, overCornerHeader);
     onPointerRoam();
-  };
-  const onMouseLeave = () => {
+  });
+  rootElement.addEventListener('mouseleave', () => {
     wrapper.classList.remove(CORNER_HOVER_CLASS);
     onPointerRoam();
-  };
-
-  rootElement.addEventListener('mouseover', onMouseOver);
-  rootElement.addEventListener('mouseleave', onMouseLeave);
-
-  return () => {
-    rootElement.removeEventListener('mouseover', onMouseOver);
-    rootElement.removeEventListener('mouseleave', onMouseLeave);
-  };
+  });
 }
 
 /**
@@ -77,34 +90,26 @@ function wireCornerHoverDetection(
  * name, the popover wiring, and the keyboard entry point. The soft-stop popovers additionally
  * auto-open via the `is-open` class until dismissed with the close (X) button or Escape; dismissal
  * stamps `is-dismissed` on the wrapper (which gates every CSS open rule, so the popover closes even
- * while the pointer still hovers it) and re-arms once both the pointer and the focus have left.
+ * while the pointer still hovers it) and re-arms once the pointer has left.
  *
- * Returns the unmount function (or `null` for the unbranded states) - the caller unmounts when a
- * runtime key change resolves to a different license state.
+ * Mounts once, for the instance lifetime (the license key is read only at init - see
+ * `initLicenseBranding`); its DOM lives in the overlays layer and its hooks are cleared with the
+ * grid on destroy.
  *
  * @param {HotInstance} hotInstance The root Handsontable instance.
  * @param {LicenseLifecycleFacet} lifecycle The resolved lifecycle facet (state + days remaining).
- * @returns {Function|null} The unmount function, or `null` when the state renders no badge.
+ * @returns {void}
  */
-export function mountLicenseBadge(
-  hotInstance: HotInstance,
-  lifecycle: LicenseLifecycleFacet,
-): (() => void) | null {
+export function mountLicenseBadge(hotInstance: HotInstance, lifecycle: LicenseLifecycleFacet): void {
   const content = POPOVER_CONTENT[lifecycle.state];
   const badgeOnlyLabel = BADGE_ONLY_LABELS[lifecycle.state];
   const host = hotInstance.rootOverlaysElement;
 
   if ((!content && !badgeOnlyLabel) || !host) {
-    return null;
+    return;
   }
 
   const popoverId = `${hotInstance.guid}-license-popover`;
-  const cleanups: Array<() => void> = [];
-
-  const addHook = (name: string, callback: (...args: unknown[]) => void) => {
-    hotInstance.addHook(name, callback);
-    cleanups.push(() => hotInstance.removeHook(name, callback));
-  };
 
   // The badge button is screen-reader-only (the visual glyph is pure CSS inside the corner cell);
   // the popover renders only for the states that carry one. The copy is assigned through
@@ -130,8 +135,6 @@ export function mountLicenseBadge(
   const wrapper = refs.wrapper;
   const badge = refs.badge as HTMLButtonElement;
 
-  cleanups.push(() => wrapper.remove());
-
   // Presence sync: `is-cornerless` on the wrapper re-anchors the popover to the table's
   // inline-start edge (there is no corner cell for a tail to point at), and `ht-license-badge-on`
   // on the root element renders the glyph inside the corner header cell. Settings reads only,
@@ -146,13 +149,7 @@ export function mountLicenseBadge(
   };
 
   syncCornerPresence();
-  addHook('afterRender', () => syncCornerPresence());
-  cleanups.push(() => hotInstance.rootElement?.classList.remove(BADGE_ON_CLASS));
-
-  const unmount = () => {
-    cleanups.forEach(cleanup => cleanup());
-    cleanups.length = 0;
-  };
+  hotInstance.addHook('afterRender', () => syncCornerPresence());
 
   if (badgeOnlyLabel && !content) {
     // The badge-only states (Non-Commercial and Evaluation License): the badge is the only marker -
@@ -162,7 +159,7 @@ export function mountLicenseBadge(
     badge.tabIndex = -1;
     host.appendChild(wrapper);
 
-    return unmount;
+    return;
   }
 
   // Popover anchor: the popover offsets from the corner's inline-end edge, so it needs the corner
@@ -170,17 +167,14 @@ export function mountLicenseBadge(
   // and needs no measurement). Badge-only states return above and skip this entirely.
   let lastAnchorWidth = 0;
 
-  const getCornerClone = () =>
-    hotInstance.rootElement?.querySelector<HTMLElement>(CORNER_CLONE_SELECTOR) ?? null;
-
   const measurePopoverAnchor = () => {
-    const corner = getCornerClone();
+    const corner = getCornerClone(hotInstance);
 
     if (!corner || !hasCornerCell()) {
       return;
     }
 
-    const width = corner.offsetWidth;
+    const width = corner.table.offsetWidth;
 
     // 1px deadband: while horizontally scrolled, walkontable grows the corner clone by 1px (the
     // doubled-border compensation), and copying that flutter into the anchor would nudge the open
@@ -201,31 +195,31 @@ export function mountLicenseBadge(
     // cost. The clone element persists for the instance lifetime, but the render hook re-attaches
     // defensively when the element identity changed - a DOM query, no layout.
     const observer = new win.ResizeObserver(() => measurePopoverAnchor());
-    let observedCorner: HTMLElement | null = null;
+    let observedTable: HTMLElement | null = null;
 
     const observeCorner = () => {
-      const corner = getCornerClone();
+      const table = getCornerClone(hotInstance)?.table ?? null;
 
-      if (corner === observedCorner) {
+      if (table === observedTable) {
         return;
       }
 
       observer.disconnect();
-      observedCorner = corner;
+      observedTable = table;
 
-      if (corner) {
-        observer.observe(corner);
+      if (table) {
+        observer.observe(table);
       }
       // No synchronous measure here: `observe()` delivers an initial entry after the next layout.
     };
 
     observeCorner();
-    addHook('afterRender', () => observeCorner());
-    cleanups.push(() => observer.disconnect());
+    hotInstance.addHook('afterRender', () => observeCorner());
+    hotInstance.addHook('afterDestroy', () => observer.disconnect());
   } else {
     // No ResizeObserver (jsdom): fall back to measuring per render.
     measurePopoverAnchor();
-    addHook('afterRender', () => measurePopoverAnchor());
+    hotInstance.addHook('afterRender', () => measurePopoverAnchor());
   }
 
   // The popover is a purely visual floating element - it is never focusable and never enters the Tab
@@ -265,7 +259,7 @@ export function mountLicenseBadge(
     pointerOverPopover = false;
     rearmIfIdle();
   });
-  cleanups.push(wireCornerHoverDetection(hotInstance, wrapper, rearmIfIdle));
+  wireCornerHoverDetection(hotInstance, wrapper, rearmIfIdle);
 
   if (content.dismissible) {
     // Auto-open the soft-stop popover. Dismissal (the close button) stamps `is-dismissed` on the
@@ -282,6 +276,4 @@ export function mountLicenseBadge(
   }
 
   host.appendChild(wrapper);
-
-  return unmount;
 }

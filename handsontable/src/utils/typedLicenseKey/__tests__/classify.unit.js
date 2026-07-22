@@ -118,6 +118,27 @@ describe('typedLicenseKey/classifyTypedKeyState', () => {
       expect(at(data, expiry + (89 * DAY)).state).toBe('sub_expired');
       expect(at(data, expiry + (90 * DAY)).state).toBe('sub_expired_hard');
     });
+
+    it('should fall back to the default grace for a non-finite grace (JSON `1e999` -> Infinity)', () => {
+      // A payload JSON of `1e999` parses to Infinity, which is a `number`. Without the finite guard,
+      // the hard-stop timestamp would be Infinity, and formatting that date throws during grid
+      // construction. Built as a literal because JSON.stringify(Infinity) is `null`.
+      const expiry = Date.UTC(2026, 7, 1);
+      const data = {
+        keyType: 'subscription',
+        payload: {
+          v: 1,
+          holder: 'x',
+          products: { handsontable: { tier: 'enterprise', mode: 'internal', exp: '2026-08-01', grace: Infinity } },
+        },
+        expiryTimestamp: expiry,
+      };
+      const result = at(data, expiry + (89 * DAY));
+
+      // The grace fell back to the 90-day default, and the hard-stop timestamp stays finite.
+      expect(result.state).toBe('sub_expired');
+      expect(Number.isFinite(result.hardStopTimestamp)).toBe(true);
+    });
   });
 
   describe('trial grace fallback', () => {

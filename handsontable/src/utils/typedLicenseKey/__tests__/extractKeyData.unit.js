@@ -117,6 +117,17 @@ describe('typedLicenseKey/extractTypedKeyData', () => {
       expect(extractTypedKeyData(`\n  ${TRIAL_KEY}  \n`).keyType).toBe('trial');
     });
 
+    it('should tolerate whitespace INSIDE the key (an email hard-wrapping a pasted key)', () => {
+      // A mail client wraps the 500+ char key, inserting newlines mid-string. The alphabet has no
+      // whitespace, so stripping ALL of it is lossless and the checksum still verifies.
+      const wrapped = `${TRIAL_KEY.slice(0, 40)}\n${TRIAL_KEY.slice(40, 120)}\r\n  ${TRIAL_KEY.slice(120)}`;
+      const data = extractTypedKeyData(wrapped);
+
+      expect(data).not.toBe(null);
+      expect(data.keyType).toBe('trial');
+      expect(data.expiryTimestamp).toBe(FIXTURE_EXPIRY_TIMESTAMP);
+    });
+
     it('should keep a real epoch-0 expiry distinct from "never" (null)', () => {
       // The 1970-01-01 timestamp of 0 must stay distinguishable from a
       // freemium key's `null` - the code uses `=== null`/`=== undefined`, not
@@ -167,7 +178,7 @@ describe('typedLicenseKey/extractTypedKeyData', () => {
       expect(extractTypedKeyData(key)).toBe(null);
     });
 
-    it('should reject a payload granting an unknown product', () => {
+    it('should reject a payload granting ONLY an unknown product', () => {
       const key = buildTestKey('[SUB]', {
         v: 1,
         holder: 'x',
@@ -175,6 +186,26 @@ describe('typedLicenseKey/extractTypedKeyData', () => {
       });
 
       expect(extractTypedKeyData(key)).toBe(null);
+    });
+
+    it('should read a forward-compatible key granting Handsontable AND an unknown future product', () => {
+      // Product names are append-only, so a newer key can grant Handsontable plus a product this
+      // build has never heard of. It must still read (Handsontable keeps top priority, so the extra
+      // product cannot change which product is licensed); the unknown product is simply skipped.
+      const key = buildTestKey('[SUB]', {
+        v: 1,
+        holder: 'x',
+        products: {
+          handsontable: { tier: 'enterprise', mode: 'internal', exp: '2027-01-01', grace: 90 },
+          future_product: { tier: 'ultra', exp: '2099-01-01' },
+        },
+      });
+      const data = extractTypedKeyData(key);
+
+      expect(data).not.toBe(null);
+      expect(data.keyType).toBe('subscription');
+      // The expiry resolves from Handsontable (top priority), not the unknown product.
+      expect(data.expiryTimestamp).toBe(Date.UTC(2027, 0, 1));
     });
 
     it('should reject a payload with an impossible expiry date', () => {

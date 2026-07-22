@@ -55,11 +55,13 @@ describe('typedLicenseKey/grants', () => {
       expect(getProductTier(grants, 'hyperformula')).toBe('freemium');
     });
 
-    it('should default a missing mode to internal', () => {
-      // The perpetual/freemium products carry no mode; grants normalize it.
+    it('should NOT default a missing mode to internal (the blocking lock is opt-in)', () => {
+      // The perpetual/freemium products carry no mode. A missing mode must normalize to '', not
+      // 'internal': the hard-stop lock gates on `mode === 'internal'`, so defaulting there would
+      // wrongly enable the blocking screen for a mode-less (malformed) key.
       const grants = getLicenseGrants(extractTypedKeyData(FREEMIUM_KEY));
 
-      expect(getProductMode(grants, 'handsontable')).toBe('internal');
+      expect(getProductMode(grants, 'handsontable')).toBe('');
     });
 
     it('should surface the saas mode from the payload', () => {

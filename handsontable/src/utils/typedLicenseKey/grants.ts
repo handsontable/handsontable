@@ -36,9 +36,9 @@ export const UNRESTRICTED_GRANTS: LicenseGrants = Object.freeze({
 
 /**
  * Normalizes one product entry from a verified payload into a grant: a tier
- * (defaulting to the top tier), a mode (defaulting to "internal"), and an
- * add-on list (defaulting to empty). Unknown tier/mode/add-on strings pass
- * through untouched - the gate that does not know a name simply unlocks
+ * (defaulting to the top tier), a mode (defaulting to empty - "unspecified"),
+ * and an add-on list (defaulting to empty). Unknown tier/mode/add-on strings
+ * pass through untouched - the gate that does not know a name simply unlocks
  * nothing for it.
  *
  * @param {TypedKeyData} keyData The verified typed key data.
@@ -58,9 +58,14 @@ function normalizeProductGrant(keyData: TypedKeyData, productName: string): Prod
   // falsy, so the first gate written as `if (getProductTier(...))` would lock out a paying customer.
   const tier = typeof product.tier === 'string' && product.tier.length > 0 ? product.tier : UNRESTRICTED_TIER;
 
+  // A missing mode defaults to '' ("unspecified"), NOT 'internal': the blocking hard-stop lock is
+  // gated on `mode === 'internal'`, and defaulting there would block the end users of a SaaS app
+  // (who cannot fix the license) on a malformed key that omits the mode. The blocking UI must be
+  // opt-in - only an explicit 'internal' enables it. Real Handsontable keys always carry an explicit
+  // mode (the generator requires it), so this only hardens the malformed case.
   return {
     tier,
-    mode: typeof product.mode === 'string' ? product.mode : UNRESTRICTED_MODE,
+    mode: typeof product.mode === 'string' ? product.mode : '',
     addons: Array.isArray(product.addons) ? product.addons.filter(addon => typeof addon === 'string') : [],
   };
 }

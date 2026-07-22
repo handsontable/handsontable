@@ -15,24 +15,13 @@ const SHORTCUTS_CONTEXT_NAME = `plugin:${SCOPE_ID}`;
 const SHORTCUTS_GROUP = SCOPE_ID;
 
 /**
- * Options of a lock-screen mount.
- */
-export interface LockMountOptions {
-  /**
-   * Defers moving focus into the lock to `afterInit`. Used for the initial mount, which runs during
-   * `init()` before the grid has rendered; a remount (a runtime key change) activates immediately.
-   */
-  deferActivation: boolean;
-}
-
-/**
  * Mounts the license lock screen: a blocking hard-stop overlay covering the grid. It looks and
  * sizes itself exactly like a confirm Dialog by wearing the dialog's own CSS class names (the
  * stylesheet is always shipped in full, so the styling is inherited without duplicating it), but it
  * is a self-contained Core-owned element - it never touches the Dialog PLUGIN, which is optional
  * (it may be absent from a bundle) and, being a single shared surface an app uses for its own
  * dialogs, could not tell its own lifecycle apart from the lock's. This lock owns its element, so
- * showing, dismissing, and unmounting are unambiguous.
+ * showing and dismissing are unambiguous.
  *
  * Only the copy and behavior differ from a confirm dialog: it cannot be dismissed (the trial lock
  * has no Close button; the subscription lock has one per spec Case 3a), and it sits above app
@@ -42,24 +31,15 @@ export interface LockMountOptions {
  * manager as a modal scope and routes its keyboard paths (the Tab focus trap, and `Escape` when
  * closable) through the shortcut manager, exactly like the Dialog plugin.
  *
- * Returns the unmount function - the caller (see `index.ts`) unmounts when a runtime key change
- * resolves to a different license state, which is what releases a fixed-up grid without a page
- * reload.
- *
  * @param {HotInstance} hotInstance The root Handsontable instance.
  * @param {LockContent} content The lock copy and closability.
- * @param {LockMountOptions} options The mount options.
- * @returns {Function} The unmount function.
+ * @returns {void}
  */
-export function mountLicenseLock(
-  hotInstance: HotInstance,
-  content: LockContent,
-  options: LockMountOptions,
-): () => void {
+export function mountLicenseLock(hotInstance: HotInstance, content: LockContent): void {
   const host = hotInstance.rootOverlaysElement;
 
   if (!host) {
-    return () => {};
+    return;
   }
 
   const focusScopeManager = hotInstance.getFocusScopeManager();
@@ -182,8 +162,10 @@ export function mountLicenseLock(
 
   host.appendChild(lock);
 
-  const activate = () => {
-    // A runtime key change can unmount the lock before the deferred activation fires.
+  // The lock mounts during `init()`, before the grid's first render, so moving focus into it waits
+  // for `afterInit`. A closable lock can be dismissed before that fires (it never happens in
+  // practice at init, but the guard keeps activation safe).
+  hotInstance.addHookOnce('afterInit', () => {
     if (unmounted) {
       return;
     }
@@ -195,13 +177,5 @@ export function mountLicenseLock(
     // initialized grid is not listening until the user interacts with it.
     hotInstance.listen();
     focusScopeManager.activateScope(SCOPE_ID);
-  };
-
-  if (options.deferActivation) {
-    hotInstance.addHookOnce('afterInit', () => activate());
-  } else {
-    activate();
-  }
-
-  return unmount;
+  });
 }

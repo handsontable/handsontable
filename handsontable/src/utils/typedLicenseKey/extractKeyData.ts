@@ -37,6 +37,21 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 /**
+ * Normalizes a pasted license key for reading: every whitespace character is
+ * removed. The key alphabet has no whitespace, so this is lossless - and it
+ * repairs a key mangled by hard-wrapping (an email client inserting newlines
+ * inside the 500+ character string) as well as the common trailing newline from
+ * a copy-paste. Without it, an internal newline breaks the checksum and a valid
+ * key reads as invalid.
+ *
+ * @param {string} licenseKey The raw license key.
+ * @returns {string}
+ */
+function normalizeKey(licenseKey: string): string {
+  return `${licenseKey}`.replace(/\s+/g, '');
+}
+
+/**
  * Verifies the decoded JSON has the shape of a typed key payload: a supported
  * format version and a plain-object `products` map. Field-level leniency (an
  * unknown tier or add-on inside a known product) is intentional - the reader
@@ -67,18 +82,23 @@ function isTypedKeyPayload(value: unknown): value is TypedKeyPayload {
 function extractExpiryTimestamp(payload: TypedKeyPayload): number | null | undefined {
   const { products } = payload;
 
-  // A payload granting a product this reader does not know cannot be read
-  // reliably - the licensed product (and so the expiry) could be resolved
-  // wrongly. Reject it instead of guessing.
-  if (Object.keys(products).some(name => KNOWN_PRODUCTS.indexOf(name) === -1)) {
+  // The licensed product is the first known product present in the payload (the
+  // list order defines the priority). Presence is read own-property only, so an
+  // inherited prototype-chain property cannot masquerade as a grant. A product
+  // this build does not know is simply skipped, NOT a reason to reject the whole
+  // key: product names are append-only, so a newer key that grants Handsontable
+  // AND some future product must still read on today's builds - and since the
+  // known products keep their relative priority, the extra unknown product can
+  // never change which product is licensed here.
+  const licensedProductName = KNOWN_PRODUCTS.find(name => hasOwn(products, name));
+
+  // The payload grants no product this build knows - there is nothing to resolve
+  // the license from.
+  if (licensedProductName === undefined) {
     return undefined;
   }
 
-  // The licensed product is the first known product present in the payload
-  // (the list order defines the priority). Presence is read own-property only,
-  // so an inherited prototype-chain property cannot masquerade as a grant.
-  const licensedProductName = KNOWN_PRODUCTS.find(name => hasOwn(products, name));
-  const licensedProduct = licensedProductName === undefined ? undefined : products[licensedProductName];
+  const licensedProduct = products[licensedProductName];
 
   if (!isPlainObject(licensedProduct)) {
     return undefined;
@@ -102,24 +122,19 @@ function extractExpiryTimestamp(payload: TypedKeyPayload): number | null | undef
  * @returns {boolean}
  */
 export function hasTypedKeyTag(licenseKey: string): boolean {
-  const key = `${licenseKey}`.trim();
+  const key = normalizeKey(licenseKey);
 
   return Object.keys(TAG_TO_TYPE).some(tag => key.indexOf(`${tag}${PAYLOAD_SEPARATOR.charAt(0)}`) === 0);
 }
 
 /**
- * Extracts the machine-readable data from a typed license key (`[TRIAL]`,
- * `[FREE]`, `[SUB]` or `[PERP]`). The checksum is verified first, so the
- * returned data is guaranteed to belong to an intact key. Returns `null` for a
- * malformed, tampered, unknown-version, or unknown-product key.
+ * Reads and verifies a normalized typed key. Split out from the memoized public
+ * entry point so the memo can wrap every exit path uniformly.
  *
- * @param {string} licenseKey The license key to extract the data from.
+ * @param {string} key The whitespace-normalized license key.
  * @returns {TypedKeyData|null}
  */
-export function extractTypedKeyData(licenseKey: string): TypedKeyData | null {
-  // The key alphabet has no whitespace, so trimming is lossless - keys are
-  // commonly pasted with a trailing newline (email, terminal).
-  const key = `${licenseKey}`.trim();
+function readTypedKeyData(key: string): TypedKeyData | null {
   const foundTag = Object.keys(TAG_TO_TYPE).find(tag => key.indexOf(`${tag}_`) === 0);
   const keyType: TypedKeyType | null = foundTag === undefined ? null : TAG_TO_TYPE[foundTag];
 
@@ -176,6 +191,34 @@ export function extractTypedKeyData(licenseKey: string): TypedKeyData | null {
     payload: parsed,
     expiryTimestamp,
   };
+}
+
+// The license key is read twice per grid init - the bottom bar (`initLicenseNotification`) and the
+// corner badge (`initLicenseBranding`) each resolve the license state - and reading runs the full
+// SHA-512 + base64 + JSON parse. A one-entry memo on the normalized key makes the second read free.
+// The returned data is treated as read-only by every caller, so sharing one object is safe.
+let memoizedKey: string | null = null;
+let memoizedData: TypedKeyData | null = null;
+
+/**
+ * Extracts the machine-readable data from a typed license key (`[TRIAL]`,
+ * `[FREE]`, `[SUB]` or `[PERP]`). The checksum is verified first, so the
+ * returned data is guaranteed to belong to an intact key. Returns `null` for a
+ * malformed, tampered, unknown-version, or unknown-product key. The result for
+ * the most recently read key is memoized (see above).
+ *
+ * @param {string} licenseKey The license key to extract the data from.
+ * @returns {TypedKeyData|null}
+ */
+export function extractTypedKeyData(licenseKey: string): TypedKeyData | null {
+  const key = normalizeKey(licenseKey);
+
+  if (key !== memoizedKey) {
+    memoizedKey = key;
+    memoizedData = readTypedKeyData(key);
+  }
+
+  return memoizedData;
 }
 
 /**

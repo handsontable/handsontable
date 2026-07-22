@@ -6,6 +6,17 @@ export const PRICING_URL = 'https://handsontable.com/pricing';
 export const LICENSE_DOCS_URL = 'https://handsontable.com/docs/license-key/';
 
 /**
+ * Formats a day count with a correctly pluralized unit ("1 day", "2 days"), so the last-day trial
+ * popover does not read "expires in 1 days".
+ *
+ * @param {number|null} days The number of days.
+ * @returns {string}
+ */
+function formatDays(days: number | null): string {
+  return `${days} ${days === 1 ? 'day' : 'days'}`;
+}
+
+/**
  * The copy of one badge popover: its title, body (interpolated from the lifecycle facet), and the
  * action link. `dismissible` marks the auto-opening popovers (the stops) that carry a close (X)
  * button; the others are hover/focus tooltips.
@@ -39,7 +50,7 @@ export const POPOVER_CONTENT: Record<string, PopoverContent> = {
   trial_active: {
     title: 'Handsontable Trial',
     body: ({ daysRemaining }) =>
-      `Your Handsontable license key expires in ${daysRemaining} days. ` +
+      `Your Handsontable license key expires in ${formatDays(daysRemaining)}. ` +
       'To continue using Handsontable, you need to purchase a commercial license.',
     linkText: 'Contact Sales',
     linkHref: SALES_MAILTO,
@@ -55,7 +66,7 @@ export const POPOVER_CONTENT: Record<string, PopoverContent> = {
     dismissible: true,
   },
   freemium: {
-    title: 'You\'re using the Handsontable Freemium plan.',
+    title: 'You\'re using the Handsontable Free plan.',
     body: () => 'Upgrade to remove the watermark and unlock all features.',
     linkText: 'Learn more',
     linkHref: PRICING_URL,

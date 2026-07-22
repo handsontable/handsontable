@@ -120,24 +120,11 @@ describe('settings', () => {
 
         expect(badge).not.toBe(null);
         expect(popover.querySelector('.ht-license-popover__title').innerText)
-          .toContain('Freemium plan');
+          .toContain('Free plan');
         expect(popover.querySelector('.ht-license-popover__link').innerText).toBe('Learn more');
+        // Exactly one badge wrapper - a duplicate would mean a mount ran twice.
+        expect(hot().rootOverlaysElement.querySelectorAll('.ht-license-badge-wrapper').length).toBe(1);
         expect(spec().$container[0].querySelector('.hot-display-license-info')).toBe(null);
-      });
-
-      it('should remove the badge when a commercial key is swapped in at runtime', async() => {
-        spyOn(Date, 'now').and.returnValue(WITHIN_TRIAL);
-
-        handsontable({ licenseKey: FREEMIUM_KEY }, true);
-
-        expect(hot().rootOverlaysElement.querySelector('.ht-license-badge')).not.toBe(null);
-
-        // "Upgrading to a commercial key removes it" - the docs' promise must hold at runtime,
-        // without destroying and rebuilding the grid.
-        await updateSettings({ licenseKey: SUBSCRIPTION_KEY });
-
-        expect(hot().rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);
-        expect(hot().rootElement.classList.contains('ht-license-badge-on')).toBe(false);
       });
     });
 
@@ -275,20 +262,6 @@ describe('settings', () => {
 
         expect(document.querySelector('.ht-license-lock')).toBe(null);
       });
-
-      it('should release the lock when updateSettings fixes the license key, even with dialog: true', async() => {
-        spyOn(Date, 'now').and.returnValue(AFTER_GRACE);
-
-        // `dialog: true` used to keep the plugin-based lock alive through updates - the Core-owned
-        // lock releases regardless of any Dialog plugin configuration.
-        handsontable({ licenseKey: TRIAL_KEY, dialog: true }, true);
-
-        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
-
-        await updateSettings({ licenseKey: 'non-commercial-and-evaluation' });
-
-        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
-      });
     });
 
     describe('subscription hard stop (grace elapsed)', () => {
@@ -356,19 +329,6 @@ describe('settings', () => {
         await updateSettings({ rowHeaders: true });
 
         expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
-      });
-
-      it('should release the lock when updateSettings fixes the license key', async() => {
-        spyOn(Date, 'now').and.returnValue(SUB_AFTER_GRACE);
-
-        handsontable({ licenseKey: SUBSCRIPTION_KEY }, true);
-
-        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
-
-        // A renewed key swapped in at runtime must stand the lock down.
-        await updateSettings({ licenseKey: 'non-commercial-and-evaluation' });
-
-        expect(hot().rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
       });
 
       it('should stay console-only for a SaaS-mode key: no lock, no bar, no badge', async() => {

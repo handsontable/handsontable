@@ -12,8 +12,8 @@ const { _getLicenseState } = require('../../helpers/mixed');
 
 function createMockHotInstance(overrides = {}) {
   // Hook callbacks are stored per name as arrays; `hooks.addHook[name](...)` runs them all in
-  // registration order (like the real hooks), and `removeHook` drops one - the branding module
-  // unregisters its hooks when a runtime key change unmounts a surface.
+  // registration order (like the real hooks). `removeHook` drops one (the badge disconnects its
+  // ResizeObserver on `afterDestroy`).
   const registered = { addHook: {}, addHookOnce: {} };
   const hooks = { addHook: {}, addHookOnce: {} };
   const wireRunner = (bucket, name) => {
@@ -36,23 +36,27 @@ function createMockHotInstance(overrides = {}) {
   };
   const shortcutContext = { addShortcut: jest.fn(), removeShortcutsByGroup: jest.fn() };
   const rootElement = document.createElement('div');
-  const cornerClone = document.createElement('div');
-  // The corner clone's header area: hover only triggers inside the clone's `thead` (the clone can
-  // also hold frozen data cells), and the glyph renders inside the first header cell.
+  // The corner clone's table + header, as Walkontable exposes them through the TableView overlay
+  // (`view._wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable`): the badge measures TABLE and
+  // detects hover inside THEAD. The clone can also hold frozen data cells, so hover is gated on the
+  // THEAD, not the whole table.
+  const cornerTable = document.createElement('table');
   const cornerThead = document.createElement('thead');
   const cornerHeaderRow = document.createElement('tr');
   const cornerHeaderCell = document.createElement('th');
 
-  cornerClone.className = 'ht_clone_top_inline_start_corner';
   cornerHeaderRow.appendChild(cornerHeaderCell);
   cornerThead.appendChild(cornerHeaderRow);
-  cornerClone.appendChild(cornerThead);
-  rootElement.appendChild(cornerClone);
+  cornerTable.appendChild(cornerThead);
+  rootElement.appendChild(cornerTable);
+
+  const cornerCloneWtTable = { TABLE: cornerTable, THEAD: cornerThead };
 
   return {
     hooks,
     focusScope,
-    cornerClone,
+    cornerTable,
+    cornerThead,
     cornerHeaderRow,
     cornerHeaderCell,
     getSettings: jest.fn(() => ({ licenseKey: overrides.licenseKey })),
@@ -78,12 +82,18 @@ function createMockHotInstance(overrides = {}) {
       addContext: jest.fn(() => shortcutContext),
     })),
     shortcutContext,
-    // The lock reuses the dialog's confirm markup and its width sizing.
+    // The lock reuses the dialog's confirm markup and its width sizing; the badge reads the corner
+    // clone straight from the Walkontable overlay (never a nested grid's).
     isRtl: jest.fn(() => false),
     view: {
       isHorizontallyScrollableByWindow: jest.fn(() => false),
       getWorkspaceWidth: jest.fn(() => 400),
       getTotalTableWidth: jest.fn(() => 600),
+      _wt: {
+        wtOverlays: {
+          topInlineStartCornerOverlay: { clone: { wtTable: cornerCloneWtTable } },
+        },
+      },
     },
     deselectCell: jest.fn(),
     listen: jest.fn(),
@@ -174,9 +184,8 @@ describe('licenseBranding', () => {
 
         initLicenseBranding(hotInstance);
 
-        // Only the runtime key watcher registers - no badge, no lock, no focus scope.
-        expect(hotInstance.addHook).toHaveBeenCalledTimes(1);
-        expect(hotInstance.addHook).toHaveBeenCalledWith('afterUpdateSettings', expect.any(Function));
+        // Nothing is rendered and nothing is wired - no badge, no lock, no hook, no focus scope.
+        expect(hotInstance.addHook).not.toHaveBeenCalled();
         expect(hotInstance.focusScope.registerScope).not.toHaveBeenCalled();
         expect(hotInstance.rootOverlaysElement.children).toHaveLength(0);
       }
@@ -287,7 +296,7 @@ describe('licenseBranding', () => {
       setLifecycle('trial_active', { daysRemaining: 5 });
       const hotInstance = createMockHotInstance();
 
-      Object.defineProperty(hotInstance.cornerClone, 'offsetWidth', { configurable: true, value: 48 });
+      Object.defineProperty(hotInstance.cornerTable, 'offsetWidth', { configurable: true, value: 48 });
 
       initLicenseBranding(hotInstance);
 
@@ -296,7 +305,7 @@ describe('licenseBranding', () => {
       expect(wrapper.style.getPropertyValue('--ht-license-badge-area-width')).toBe('48px');
 
       // The corner resizes at runtime (for example wider row numbers) - the next render re-syncs.
-      Object.defineProperty(hotInstance.cornerClone, 'offsetWidth', { configurable: true, value: 64 });
+      Object.defineProperty(hotInstance.cornerTable, 'offsetWidth', { configurable: true, value: 64 });
       hotInstance.hooks.addHook.afterRender();
 
       expect(wrapper.style.getPropertyValue('--ht-license-badge-area-width')).toBe('64px');
@@ -306,7 +315,7 @@ describe('licenseBranding', () => {
       setLifecycle('trial_active', { daysRemaining: 5 });
       const hotInstance = createMockHotInstance();
 
-      Object.defineProperty(hotInstance.cornerClone, 'offsetWidth', { configurable: true, value: 50 });
+      Object.defineProperty(hotInstance.cornerTable, 'offsetWidth', { configurable: true, value: 50 });
 
       initLicenseBranding(hotInstance);
 
@@ -316,13 +325,13 @@ describe('licenseBranding', () => {
 
       // Horizontal scroll grows the corner clone by exactly 1px (doubled-border compensation) - the
       // popover anchor must NOT follow, or the open popover nudges left/right on every scroll.
-      Object.defineProperty(hotInstance.cornerClone, 'offsetWidth', { configurable: true, value: 51 });
+      Object.defineProperty(hotInstance.cornerTable, 'offsetWidth', { configurable: true, value: 51 });
       hotInstance.hooks.addHook.afterRender();
 
       expect(wrapper.style.getPropertyValue('--ht-license-badge-area-width')).toBe('50px');
 
       // Scrolling back restores 50 - still no write.
-      Object.defineProperty(hotInstance.cornerClone, 'offsetWidth', { configurable: true, value: 50 });
+      Object.defineProperty(hotInstance.cornerTable, 'offsetWidth', { configurable: true, value: 50 });
       hotInstance.hooks.addHook.afterRender();
 
       expect(wrapper.style.getPropertyValue('--ht-license-badge-area-width')).toBe('50px');
@@ -358,7 +367,7 @@ describe('licenseBranding', () => {
       const popover = hotInstance.rootOverlaysElement.querySelector('.ht-license-popover');
 
       expect(popover.querySelector('.ht-license-popover__title').textContent)
-        .toBe('You\'re using the Handsontable Freemium plan.');
+        .toBe('You\'re using the Handsontable Free plan.');
       expect(popover.querySelector('.ht-license-popover__link').textContent).toBe('Learn more');
       expect(popover.querySelector('.ht-license-popover__link').getAttribute('href'))
         .toBe('https://handsontable.com/pricing');
@@ -495,7 +504,7 @@ describe('licenseBranding', () => {
       const dataCell = document.createElement('td');
 
       tbody.appendChild(document.createElement('tr')).appendChild(dataCell);
-      hotInstance.cornerClone.appendChild(tbody);
+      hotInstance.cornerTable.appendChild(tbody);
 
       initLicenseBranding(hotInstance);
 
@@ -600,36 +609,13 @@ describe('licenseBranding', () => {
       expect(findShortcut(hotInstance, 'Escape')).toBe(undefined);
     });
 
-    it('should survive settings updates that do not change the key', () => {
+    it('should read the license key only at init - no settings-update hook', () => {
       const hotInstance = mountTrialLock();
 
+      // The key is init-only (like the console message and the bottom bar), so the branding never
+      // registers an `afterUpdateSettings` listener and never re-resolves the state.
       expect(_getLicenseState).toHaveBeenCalledTimes(1);
-
-      hotInstance.hooks.addHook.afterUpdateSettings();
-
-      // Nothing tears the Core-owned lock down, and the unchanged key is not re-resolved
-      // (resolution checksums the whole key - SHA-512).
-      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
-      expect(_getLicenseState).toHaveBeenCalledTimes(1);
-    });
-
-    it('should unmount the lock when a settings update fixes the license key', () => {
-      const hotInstance = mountTrialLock();
-
-      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).not.toBe(null);
-
-      // The customer bought a license and swapped the key at runtime: the surface re-resolves and
-      // the lock releases the grid - no page reload needed. This must work regardless of the
-      // Dialog plugin or any `dialog: true` setting (the lock does not depend on the plugin).
-      hotInstance.getSettings.mockReturnValue({ licenseKey: 'A-FIXED-KEY' });
-      setLifecycle('legacy_valid');
-      hotInstance.hooks.addHook.afterUpdateSettings();
-
-      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
-      expect(hotInstance.focusScope.deactivateScope).toHaveBeenCalledWith('licenseLock');
-      expect(hotInstance.focusScope.unregisterScope).toHaveBeenCalledWith('licenseLock');
-      // The lock's shortcuts die with it.
-      expect(hotInstance.shortcutContext.removeShortcutsByGroup).toHaveBeenCalledWith('licenseLock');
+      expect(hotInstance.addHook).not.toHaveBeenCalledWith('afterUpdateSettings', expect.any(Function));
     });
   });
 
@@ -669,9 +655,6 @@ describe('licenseBranding', () => {
       expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
       expect(hotInstance.focusScope.deactivateScope).toHaveBeenCalledWith('licenseLock');
 
-      // A settings update with the unchanged key remounts nothing - the dismissal sticks.
-      hotInstance.hooks.addHook.afterUpdateSettings();
-
       expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
     });
 
@@ -704,77 +687,19 @@ describe('licenseBranding', () => {
         expect(hotInstance.focusScope.registerScope).not.toHaveBeenCalled();
       }
     );
-
-    it('should unmount the lock when a settings update supplies a renewed key', () => {
-      setLifecycle('sub_expired_hard', {}, grantsWithMode('internal'));
-      const hotInstance = createMockHotInstance();
-
-      initLicenseBranding(hotInstance);
-      hotInstance.hooks.addHookOnce.afterInit();
-
-      hotInstance.getSettings.mockReturnValue({ licenseKey: 'A-RENEWED-KEY' });
-      setLifecycle('sub_active', { daysRemaining: 300 }, grantsWithMode('internal'));
-      hotInstance.hooks.addHook.afterUpdateSettings();
-
-      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-lock')).toBe(null);
-    });
   });
 
-  describe('re-branding on a runtime key change', () => {
-    it('should remove the freemium badge when a commercial key is swapped in', () => {
+  describe('init-only license key', () => {
+    it('should resolve the license state exactly once (no re-classification)', () => {
       setLifecycle('freemium');
       const hotInstance = createMockHotInstance({ licenseKey: 'A-FREE-KEY' });
 
       initLicenseBranding(hotInstance);
 
-      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-badge')).not.toBe(null);
-      expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(true);
-
-      // "Upgrading to a commercial key removes it" - the docs' promise must hold at runtime.
-      hotInstance.getSettings.mockReturnValue({ licenseKey: 'A-COMMERCIAL-KEY' });
-      setLifecycle('legacy_valid');
-      hotInstance.hooks.addHook.afterUpdateSettings();
-
-      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-badge')).toBe(null);
-      expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(false);
-
-      // The badge's render hooks are gone too - a later render must not re-stamp the glyph class.
-      hotInstance.hooks.addHook.afterRender();
-      expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(false);
-    });
-
-    it('should swap the badge surface when the key changes to another branded state', () => {
-      setLifecycle('missing');
-      const hotInstance = createMockHotInstance();
-
-      initLicenseBranding(hotInstance);
-
-      expect(hotInstance.rootOverlaysElement.querySelector('.ht-license-popover__title').textContent)
-        .toBe('Missing license key');
-
-      hotInstance.getSettings.mockReturnValue({ licenseKey: 'A-TRIAL-KEY' });
-      setLifecycle('trial_active', { daysRemaining: 30 });
-      hotInstance.hooks.addHook.afterUpdateSettings();
-
-      const popovers = hotInstance.rootOverlaysElement.querySelectorAll('.ht-license-popover');
-
-      expect(popovers).toHaveLength(1);
-      expect(popovers[0].querySelector('.ht-license-popover__title').textContent).toBe('Handsontable Trial');
-    });
-
-    it('should not re-resolve the state when a settings update keeps the same key', () => {
-      setLifecycle('freemium');
-      const hotInstance = createMockHotInstance({ licenseKey: 'A-FREE-KEY' });
-
-      initLicenseBranding(hotInstance);
-
+      // The key is read once, at init. There is no `afterUpdateSettings` listener, so the state
+      // (which runs the SHA-512 checksum) is never re-resolved.
       expect(_getLicenseState).toHaveBeenCalledTimes(1);
-
-      hotInstance.hooks.addHook.afterUpdateSettings();
-      hotInstance.hooks.addHook.afterUpdateSettings();
-
-      // Resolution checksums the whole key (SHA-512) - it must not re-run per settings update.
-      expect(_getLicenseState).toHaveBeenCalledTimes(1);
+      expect(hotInstance.addHook).not.toHaveBeenCalledWith('afterUpdateSettings', expect.any(Function));
       expect(hotInstance.rootOverlaysElement.querySelectorAll('.ht-license-badge-wrapper')).toHaveLength(1);
     });
   });

@@ -23,29 +23,29 @@ import type { HotInstance } from '../../core/types';
  *
  * @param {HotInstance} hotInstance The root Handsontable instance.
  * @param {ReturnType<typeof _getLicenseState>} descriptor The resolved license state descriptor.
- * @param {boolean} isInitialMount Whether this mount runs during `init()` (the grid is not rendered yet).
- * @returns {Function|null} The unmount function, or `null` when the state renders nothing.
+ * @returns {void}
  */
 function mountBrandingSurface(
   hotInstance: HotInstance,
   descriptor: ReturnType<typeof _getLicenseState>,
-  isInitialMount: boolean,
-): (() => void) | null {
+): void {
   const { lifecycle, grants } = descriptor;
 
   if (lifecycle.state === 'trial_expired_hard') {
-    return mountLicenseLock(hotInstance, LOCK_CONTENT.trial_expired_hard, { deferActivation: isInitialMount });
+    mountLicenseLock(hotInstance, LOCK_CONTENT.trial_expired_hard);
+
+    return;
   }
 
   if (lifecycle.state === 'sub_expired_hard') {
-    if (getProductMode(grants, HANDSONTABLE_PRODUCT) !== 'internal') {
-      return null;
+    if (getProductMode(grants, HANDSONTABLE_PRODUCT) === 'internal') {
+      mountLicenseLock(hotInstance, LOCK_CONTENT.sub_expired_hard);
     }
 
-    return mountLicenseLock(hotInstance, LOCK_CONTENT.sub_expired_hard, { deferActivation: isInitialMount });
+    return;
   }
 
-  return mountLicenseBadge(hotInstance, lifecycle);
+  mountLicenseBadge(hotInstance, lifecycle);
 }
 
 /**
@@ -53,38 +53,17 @@ function mountBrandingSurface(
  * screen) for the resolved license state. The `*.handsontable.com` bypass is already resolved by
  * `_getLicenseState`. Runs once for the root instance.
  *
- * The surface follows RUNTIME KEY CHANGES: when `updateSettings({ licenseKey })` supplies a
- * different key, the current surface unmounts and the new state's surface mounts - a customer who
- * buys a license must never stay locked (or badged) until a page reload. The re-resolution is
- * memoized on the key string, because resolving checksums the whole key (SHA-512) - a settings
- * update that does not touch the key costs one string comparison. A user's dismissal of the
- * closable subscription lock naturally survives settings updates: nothing remounts while the key
- * is unchanged.
+ * The license key is read once, at initialization - like the rest of the license system (the
+ * console message and the bottom bar in `initLicenseNotification`). Changing `licenseKey` through
+ * `updateSettings` does not re-brand; applying a new key requires re-creating the instance.
  *
  * @param {HotInstance} hotInstance The root Handsontable instance.
  * @returns {void}
  */
 export function initLicenseBranding(hotInstance: HotInstance): void {
-  const resolveState = () => {
-    // Bare on purpose - see the matching comment in `initLicenseNotification`: a `typeof process`
-    // guard breaks the build-time replacement in browser bundles.
-    const releaseDate = process.env.HOT_RELEASE_DATE || '';
+  // Bare on purpose - see the matching comment in `initLicenseNotification`: a `typeof process`
+  // guard breaks the build-time replacement in browser bundles.
+  const releaseDate = process.env.HOT_RELEASE_DATE || '';
 
-    return _getLicenseState(hotInstance.getSettings().licenseKey, releaseDate);
-  };
-
-  let currentKey = hotInstance.getSettings().licenseKey;
-  let unmountSurface = mountBrandingSurface(hotInstance, resolveState(), true);
-
-  hotInstance.addHook('afterUpdateSettings', () => {
-    const key = hotInstance.getSettings().licenseKey;
-
-    if (key === currentKey) {
-      return;
-    }
-
-    currentKey = key;
-    unmountSurface?.();
-    unmountSurface = mountBrandingSurface(hotInstance, resolveState(), false);
-  });
+  mountBrandingSurface(hotInstance, _getLicenseState(hotInstance.getSettings().licenseKey, releaseDate));
 }

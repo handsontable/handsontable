@@ -46,9 +46,13 @@ function readHandsontableLicense(keyData: TypedKeyData): HandsontableLicenseInpu
 
   const expiryTimestamp = product.exp === undefined ? null : parseIsoDateToTimestamp(`${product.exp}`);
 
-  // A hard-stop key carries its grace in the payload; the default only guards a
-  // verified payload that somehow omits it.
-  const graceDays = typeof product.grace === 'number'
+  // A hard-stop key carries its grace in the payload; the default guards a
+  // verified payload that omits it. `Number.isFinite` also rejects Infinity/NaN
+  // (JSON `1e999` parses to Infinity, which is a `number`): a non-finite grace
+  // would make the hard-stop timestamp non-finite, and formatting that date
+  // throws during grid construction - every other malformed field fails soft, so
+  // this one must too.
+  const graceDays = typeof product.grace === 'number' && Number.isFinite(product.grace)
     ? product.grace
     : (DEFAULT_GRACE_DAYS[keyData.keyType] ?? 0);
 
