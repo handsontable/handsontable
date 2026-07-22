@@ -185,6 +185,30 @@ describe('settings', () => {
         expect(popover.querySelector('.ht-license-popover__close')).not.toBe(null);
       });
 
+      it('should hide the badge and re-anchor the auto-open popover when there is no corner cell', async() => {
+        spyOn(Date, 'now').and.returnValue(WITHIN_GRACE);
+
+        handsontable({ licenseKey: TRIAL_KEY, rowHeaders: false, colHeaders: true }, true);
+
+        const wrapper = hot().rootOverlaysElement.querySelector('.ht-license-badge-wrapper');
+        const badge = wrapper.querySelector('.ht-license-badge');
+        const popover = wrapper.querySelector('.ht-license-popover');
+
+        // No corner -> nothing for the badge to sit on and nothing for the tail to point at.
+        expect(wrapper.classList.contains('is-cornerless')).toBe(true);
+        expect(getComputedStyle(badge).display).toBe('none');
+        // The auto-open soft-stop popover attaches to the table's inline-start edge instead.
+        expect(popover.classList.contains('is-open')).toBe(true);
+        expect(popover.getBoundingClientRect().left)
+          .toBe(hot().rootWrapperElement.getBoundingClientRect().left);
+
+        // Turning the row headers on restores the corner badge.
+        await updateSettings({ rowHeaders: true });
+
+        expect(wrapper.classList.contains('is-cornerless')).toBe(false);
+        expect(getComputedStyle(badge).display).not.toBe('none');
+      });
+
       it('should hide the popover on close even while hovered, and re-arm it once the pointer leaves', async() => {
         spyOn(Date, 'now').and.returnValue(WITHIN_GRACE);
 

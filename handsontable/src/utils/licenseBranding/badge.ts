@@ -1,6 +1,6 @@
 import { html } from '../../helpers/templateLiteralTag';
 import { CLONE_TOP_INLINE_START_CORNER } from '../../3rdparty/walkontable/src/overlay/constants';
-import { POPOVER_CONTENT, BADGE_ONLY_LABELS } from './content';
+import { POPOVER_CONTENT } from './content';
 import type { HotInstance } from '../../core/types';
 import type { Overlay } from '../../3rdparty/walkontable/src/overlay/regions/_base';
 import type { LicenseLifecycleFacet } from '../../helpers/mixed';
@@ -91,8 +91,9 @@ function wireCornerHoverDetection(
 }
 
 /**
- * Builds the corner badge + popover for a branded, non-blocking state and mounts it into the
- * overlays layer. The VISUAL glyph is pure CSS inside the corner header cell (gated by the
+ * Builds the corner badge + popover and mounts it into the overlays layer. Only the trial and
+ * freemium states carry `POPOVER_CONTENT`; for every other state this is a no-op (no badge, no
+ * popover). The VISUAL glyph is pure CSS inside the corner header cell (gated by the
  * `ht-license-badge-on` root class - see `_license-branding.scss`), so it can never overflow or
  * drift out of the corner. The badge button itself is screen-reader-only: it carries the accessible
  * name, the popover wiring, and the keyboard entry point. The soft-stop popovers additionally
@@ -110,34 +111,34 @@ function wireCornerHoverDetection(
  */
 export function mountLicenseBadge(hotInstance: HotInstance, lifecycle: LicenseLifecycleFacet): void {
   const content = POPOVER_CONTENT[lifecycle.state];
-  const badgeOnlyLabel = BADGE_ONLY_LABELS[lifecycle.state];
   const host = hotInstance.rootOverlaysElement;
 
-  if ((!content && !badgeOnlyLabel) || !host) {
+  // The badge (and its popover) render ONLY for the trial and freemium states in `POPOVER_CONTENT`;
+  // every other state returns here with no badge - its console message and any bottom bar come from
+  // `initLicenseNotification` instead.
+  if (!content || !host) {
     return;
   }
 
   const popoverId = `${hotInstance.guid}-license-popover`;
 
-  // The badge button is screen-reader-only (the visual glyph is pure CSS inside the corner cell);
-  // the popover renders only for the states that carry one. The copy is assigned through
-  // `textContent` below, never interpolated into the markup.
+  // The badge button is screen-reader-only (the visual glyph is pure CSS inside the corner cell).
+  // The copy is assigned through `textContent` below, never interpolated into the markup.
   const { refs } = html`
     <div data-ref="wrapper" class="${BADGE_WRAPPER_CLASS}">
       <button data-ref="badge" type="button" class="${BADGE_CLASS}"
         aria-label="Handsontable license information"></button>
-      ${content ? `
-        <div data-ref="popover" id="${popoverId}" class="${POPOVER_CLASS}"
-          role="${content.dismissible ? 'dialog' : 'tooltip'}" aria-labelledby="${popoverId}-title">
-          <div class="${POPOVER_CLASS}__content">
-            <div data-ref="popoverTitle" id="${popoverId}-title" class="${POPOVER_CLASS}__title"></div>
-            <p data-ref="popoverBody" class="${POPOVER_CLASS}__body"></p>
-            <a data-ref="popoverLink" class="${POPOVER_CLASS}__link" target="_blank" rel="noopener noreferrer"></a>
-          </div>
-          ${content.dismissible
+      <div data-ref="popover" id="${popoverId}" class="${POPOVER_CLASS}"
+        role="${content.dismissible ? 'dialog' : 'tooltip'}" aria-labelledby="${popoverId}-title">
+        <div class="${POPOVER_CLASS}__content">
+          <div data-ref="popoverTitle" id="${popoverId}-title" class="${POPOVER_CLASS}__title"></div>
+          <p data-ref="popoverBody" class="${POPOVER_CLASS}__body"></p>
+          <a data-ref="popoverLink" class="${POPOVER_CLASS}__link" target="_blank" rel="noopener noreferrer"></a>
+        </div>
+        ${content.dismissible
     ? `<button data-ref="closeButton" type="button" class="${POPOVER_CLASS}__close" aria-label="Close"></button>`
     : ''}
-        </div>` : ''}
+      </div>
     </div>
   `;
   const wrapper = refs.wrapper;
@@ -163,24 +164,6 @@ export function mountLicenseBadge(hotInstance: HotInstance, lifecycle: LicenseLi
 
   syncCornerPresence();
   hotInstance.addHook('afterRender', () => syncCornerPresence());
-
-  if (badgeOnlyLabel && !content) {
-    // The badge-only states (Non-Commercial and Evaluation License): the badge is the only marker -
-    // no popover, no hover behavior, out of the Tab order. The accessible label carries the whole
-    // message.
-    badge.setAttribute('aria-label', badgeOnlyLabel);
-    badge.tabIndex = -1;
-    host.appendChild(wrapper);
-
-    return;
-  }
-
-  // Past the badge-only return, a state that reaches here always has popover content (the guard
-  // above returned for a badge-only label, and the initial guard returned when neither existed);
-  // this narrows `content` from `PopoverContent | undefined` for the popover setup below.
-  if (!content) {
-    return;
-  }
 
   // Popover anchor: the popover offsets from the corner's inline-end edge, so it needs the corner
   // WIDTH - the only measured value left (the glyph itself is CSS-anchored inside the corner cell

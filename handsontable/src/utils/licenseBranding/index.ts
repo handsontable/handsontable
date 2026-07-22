@@ -8,18 +8,14 @@ import type { HotInstance } from '../../core/types';
 /**
  * Mounts the branding surface for one resolved license state:
  *   - `trial_active`, `trial_expired`, `freemium` -> the corner "H." badge with its popover;
- *   - `missing`, `invalid` -> the corner badge with a hover tooltip;
- *   - `non_commercial` -> the corner badge alone, no popover (the Non-Commercial and Evaluation
- *     License permits the usage, so there is nothing to warn about);
- *   - `legacy_expired` -> the corner badge with the auto-open, closable expired popover (the legacy
- *     bottom bar and console message stay exactly as they always were);
  *   - `trial_expired_hard` -> the Core-owned, non-closable lock screen;
- *   - `sub_expired_hard` -> the lock screen, closable, but ONLY for Internal-mode keys (Case 3a of
- *     the license spec); SaaS-mode keys - and any unknown future mode, whose audience is not the
- *     licensee - stay console-only (Case 3b): no lock, no bar, no badge.
+ *   - `sub_expired_hard` -> the lock screen, closable, but ONLY for Internal-mode keys; SaaS-mode
+ *     keys - and any unknown future mode, whose audience is not the licensee - stay console-only:
+ *     no lock, no bar, no badge.
  *
- * Every other state (valid legacy, running subscription, perpetual) renders nothing here - their
- * console warning and any bottom bar come from `initLicenseNotification`.
+ * Every other state (`missing`, `invalid`, `non_commercial`, expired legacy, valid legacy, running
+ * subscription, perpetual) renders nothing here - the corner badge is reserved for trial and
+ * freemium. Their console warning and any bottom bar still come from `initLicenseNotification`.
  *
  * @param {HotInstance} hotInstance The root Handsontable instance.
  * @param {ReturnType<typeof _getLicenseState>} descriptor The resolved license state descriptor.

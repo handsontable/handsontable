@@ -1,5 +1,4 @@
 import {
-  _formatUtcDate,
   LICENSE_EXPIRED_TITLE,
   PURCHASE_COMMERCIAL_LICENSE_TEXT,
   RENEW_LICENSE_TEXT,
@@ -8,7 +7,6 @@ import type { LicenseLifecycleFacet, LicenseStateKey } from '../../helpers/mixed
 
 export const SALES_MAILTO = 'mailto:sales@handsontable.com';
 export const PRICING_URL = 'https://handsontable.com/pricing';
-export const LICENSE_DOCS_URL = 'https://handsontable.com/docs/license-key/';
 
 /**
  * Formats a day count with a correctly pluralized unit ("1 day", "2 days"), so the last-day trial
@@ -47,9 +45,10 @@ export interface LockContent {
 }
 
 /**
- * The badge popover copy per branded lifecycle state - the typed states come from the license spec
- * mockups; the non-typed states (missing key, expired legacy key, invalid key) reuse the same badge
- * + popover surface.
+ * The badge popover copy per branded lifecycle state. Only the trial and freemium states show the
+ * corner badge and its popover; every other state (missing/invalid/expired-legacy/non-commercial,
+ * running subscription, perpetual) renders no badge here - its console message and any bottom bar
+ * come from `initLicenseNotification` instead.
  */
 export const POPOVER_CONTENT: Partial<Record<LicenseStateKey, PopoverContent>> = {
   trial_active: {
@@ -74,44 +73,6 @@ export const POPOVER_CONTENT: Partial<Record<LicenseStateKey, PopoverContent>> =
     linkHref: PRICING_URL,
     dismissible: false,
   },
-  missing: {
-    title: 'Missing license key',
-    body: () =>
-      'The license key for Handsontable is missing. Use your purchased key, or pass ' +
-      '\'non-commercial-and-evaluation\' for non-commercial use.',
-    linkText: 'Learn more',
-    linkHref: LICENSE_DOCS_URL,
-    dismissible: false,
-  },
-  invalid: {
-    title: 'Invalid license key',
-    body: () =>
-      'The license key for Handsontable is invalid. Check that you pass the whole key string, ' +
-      'exactly as you received it.',
-    linkText: 'Learn more',
-    linkHref: LICENSE_DOCS_URL,
-    dismissible: false,
-  },
-  legacy_expired: {
-    title: 'Expired license key',
-    body: ({ expiryTimestamp }) => {
-      const expiredOn = expiryTimestamp === null ? '' : _formatUtcDate(expiryTimestamp);
-
-      return `Your Handsontable license key expired on ${expiredOn}. ${RENEW_LICENSE_TEXT}`;
-    },
-    linkText: 'Contact Sales',
-    linkHref: SALES_MAILTO,
-    dismissible: true,
-  },
-};
-
-/**
- * The badge-only states: the corner badge renders with an accessible label but WITHOUT any popover.
- * The Non-Commercial and Evaluation License permits the usage, so it gets no tooltip and no
- * upgrade/purchase messaging - the badge itself is the only marker.
- */
-export const BADGE_ONLY_LABELS: Partial<Record<LicenseStateKey, string>> = {
-  non_commercial: 'You\'re using the Non-Commercial and Evaluation License of Handsontable',
 };
 
 /**

@@ -1,8 +1,7 @@
 @use "../../utils/mixins";
 
-// Handsontable license branding: the corner "H." badge + its popover (trial active, trial soft-stop,
-// freemium, missing key, invalid key, expired legacy key), the popover-less badge of the
-// Non-Commercial and Evaluation License, and the Core-owned hard-stop lock screen.
+// Handsontable license branding: the corner "H." badge + its popover (shown for trial active, trial
+// soft-stop, and freemium keys only) and the Core-owned hard-stop lock screen.
 // ---
 // The badge glyph is ALSO registered as the theme icon `licenseBadge`
 // (`themes/static/variables/icons/main.ts`) for the Figma design pipeline, but the mask is applied

@@ -177,10 +177,16 @@ describe('licenseBranding', () => {
   });
 
   describe('unbranded states', () => {
-    it.each(['sub_ending', 'sub_expired', 'perp_expired', 'legacy_valid'])(
+    // The corner badge is reserved for trial and freemium; every other non-hard-stop state renders
+    // no badge here (missing/invalid/legacy-expired/non-commercial keep only their notification-path
+    // console message and bottom bar).
+    it.each([
+      'sub_ending', 'sub_expired', 'perp_expired', 'legacy_valid',
+      'missing', 'invalid', 'legacy_expired', 'non_commercial',
+    ])(
       'should render nothing for the "%s" state',
       (state) => {
-        setLifecycle(state);
+        setLifecycle(state, { expiryTimestamp: Date.UTC(2011, 4, 24) });
         const hotInstance = createMockHotInstance();
 
         initLicenseBranding(hotInstance);
@@ -189,12 +195,13 @@ describe('licenseBranding', () => {
         expect(hotInstance.addHook).not.toHaveBeenCalled();
         expect(hotInstance.focusScope.registerScope).not.toHaveBeenCalled();
         expect(hotInstance.rootOverlaysElement.children).toHaveLength(0);
+        expect(hotInstance.rootElement.classList.contains('ht-license-badge-on')).toBe(false);
       }
     );
   });
 
-  describe('badge states (trial active, trial soft-stop, freemium, missing, invalid, legacy expired)', () => {
-    it.each(['trial_active', 'trial_expired', 'freemium', 'missing', 'invalid', 'legacy_expired'])(
+  describe('badge states (trial active, trial soft-stop, freemium)', () => {
+    it.each(['trial_active', 'trial_expired', 'freemium'])(
       'should mount the corner badge + popover for the "%s" state',
       (state) => {
         setLifecycle(state, { daysRemaining: 5 });
@@ -214,7 +221,7 @@ describe('licenseBranding', () => {
       }
     );
 
-    it.each(['trial_active', 'trial_expired', 'freemium', 'missing', 'invalid', 'legacy_expired'])(
+    it.each(['trial_active', 'trial_expired', 'freemium'])(
       'should keep the "%s" badge and popover entirely out of the Tab order (a floating visual only)',
       (state) => {
         setLifecycle(state, { daysRemaining: 5, expiryTimestamp: Date.UTC(2026, 7, 27) });
@@ -238,25 +245,6 @@ describe('licenseBranding', () => {
         }
       }
     );
-
-    it('should show the badge alone for the non-commercial state - no popover, label only', () => {
-      setLifecycle('non_commercial');
-      const hotInstance = createMockHotInstance();
-
-      initLicenseBranding(hotInstance);
-
-      const overlays = hotInstance.rootOverlaysElement;
-      const badge = overlays.querySelector('.ht-license-badge');
-
-      // The Non-Commercial and Evaluation License permits the usage - the badge is the only marker,
-      // with no tooltip and no purchase messaging.
-      expect(badge).not.toBe(null);
-      expect(badge.getAttribute('aria-label'))
-        .toBe('You\'re using the Non-Commercial and Evaluation License of Handsontable');
-      expect(badge.tabIndex).toBe(-1);
-      expect(overlays.querySelector('.ht-license-popover')).toBe(null);
-      expect(hotInstance.focusScope.registerScope).not.toHaveBeenCalled();
-    });
   });
 
   describe('corner presence and popover anchor', () => {
@@ -390,59 +378,6 @@ describe('licenseBranding', () => {
       expect(popover.querySelector('.ht-license-popover__link').textContent).toBe('Learn more');
       expect(popover.querySelector('.ht-license-popover__link').getAttribute('href'))
         .toBe('https://handsontable.com/pricing');
-    });
-
-    it('should show the missing-key copy as a hover tooltip without a close button', () => {
-      setLifecycle('missing');
-      const hotInstance = createMockHotInstance();
-
-      initLicenseBranding(hotInstance);
-
-      const popover = hotInstance.rootOverlaysElement.querySelector('.ht-license-popover');
-
-      expect(popover.getAttribute('role')).toBe('tooltip');
-      expect(popover.querySelector('.ht-license-popover__title').textContent).toBe('Missing license key');
-      expect(popover.querySelector('.ht-license-popover__body').textContent)
-        .toContain('The license key for Handsontable is missing');
-      expect(popover.querySelector('.ht-license-popover__body').textContent)
-        .toContain('non-commercial-and-evaluation');
-      expect(popover.querySelector('.ht-license-popover__link').textContent).toBe('Learn more');
-      expect(popover.querySelector('.ht-license-popover__link').getAttribute('href'))
-        .toBe('https://handsontable.com/docs/license-key/');
-      expect(popover.classList.contains('is-open')).toBe(false);
-      expect(popover.querySelector('.ht-license-popover__close')).toBe(null);
-    });
-
-    it('should show the invalid-key copy as a hover tooltip without a close button', () => {
-      setLifecycle('invalid');
-      const hotInstance = createMockHotInstance();
-
-      initLicenseBranding(hotInstance);
-
-      const popover = hotInstance.rootOverlaysElement.querySelector('.ht-license-popover');
-
-      expect(popover.getAttribute('role')).toBe('tooltip');
-      expect(popover.querySelector('.ht-license-popover__title').textContent).toBe('Invalid license key');
-      expect(popover.querySelector('.ht-license-popover__body').textContent)
-        .toContain('The license key for Handsontable is invalid');
-      expect(popover.querySelector('.ht-license-popover__link').textContent).toBe('Learn more');
-      expect(popover.classList.contains('is-open')).toBe(false);
-      expect(popover.querySelector('.ht-license-popover__close')).toBe(null);
-    });
-
-    it('should auto-open the legacy-expired popover with the expiration date and a close button', () => {
-      setLifecycle('legacy_expired', { expiryTimestamp: Date.UTC(2011, 4, 24) });
-      const hotInstance = createMockHotInstance();
-
-      initLicenseBranding(hotInstance);
-
-      const popover = hotInstance.rootOverlaysElement.querySelector('.ht-license-popover');
-
-      expect(popover.getAttribute('role')).toBe('dialog');
-      expect(popover.querySelector('.ht-license-popover__title').textContent).toBe('Expired license key');
-      expect(popover.querySelector('.ht-license-popover__body').textContent).toContain('expired on May 24, 2011');
-      expect(popover.classList.contains('is-open')).toBe(true);
-      expect(popover.querySelector('.ht-license-popover__close')).not.toBe(null);
     });
   });
 
