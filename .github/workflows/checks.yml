@@ -177,16 +177,21 @@ jobs:
             docs:
               - './docs/**'
               - './handsontable/package.json'
-            # True when the PR changes anything OUTSIDE the CI pipeline itself
-            # (./.github/**). Lint + the code-quality scans (Sonar/CodeQL/FOSSA/
-            # audit) gate on this so a pipeline-only PR (e.g. adding or editing a
-            # workflow) skips them — there is no library source to lint or scan,
-            # and a workflow's own YAML is validated by actionlint, not these jobs.
-            # NOTE: dorny/paths-filter negation is OR-based — a `!x` rule matches
-            # every file NOT under x. So this is a negation-ONLY rule: adding a
-            # positive like `**` would make it match everything (`**` alone is true).
+            # True when the PR changes anything that ESLint/scans can act on —
+            # i.e. NOT confined to the YAML pipeline definitions. Lint + the
+            # code-quality scans (Sonar/CodeQL/FOSSA/audit) gate on this so a
+            # workflow/action-only PR skips them (a YAML pipeline change is
+            # validated by the pipeline running itself + actionlint, not ESLint).
+            # Excludes ONLY the YAML CI dirs (workflows + actions), NOT
+            # `.github/scripts/**` — those are `.mjs` the root ESLint config
+            # targets and the local hooks defer to CI, so a scripts-only PR MUST
+            # still lint.
+            # NOTE: dorny/paths-filter negation is OR-based (predicate-quantifier:
+            # some) — a `!x` rule matches every file NOT under x. So this must be a
+            # single negation-only rule; a second `!y` (or a positive `**`) would
+            # make it match nearly everything.
             outside-ci:
-              - '!./.github/**'
+              - '!./.github/{workflows,actions}/**'
 
       # Build the Integration wrapper matrix from the scope flags (run-all → all
       # three). Emitting it here means the wrapper job fans out with no extra
