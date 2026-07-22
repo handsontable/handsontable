@@ -32,6 +32,9 @@ on:
       docs-angular: { value: '${{ jobs.scope.outputs.docs-angular }}' }
       pkg-preview: { value: '${{ jobs.scope.outputs.pkg-preview }}' }
       docs: { value: '${{ jobs.scope.outputs.docs }}' }
+      # True when the PR touches anything outside the CI pipeline (.github/**).
+      # Lint + the code-quality scans gate on it, so a pipeline-only PR skips them.
+      outside-ci: { value: '${{ jobs.scope.outputs.outside-ci }}' }
       # Precomputed here so the Integration wrapper matrix fans out with NO
       # per-module setup job (matrix context is illegal in a job-level if).
       wrapper-matrix: { value: '${{ jobs.scope.outputs.wrapper-matrix }}' }
@@ -58,6 +61,7 @@ jobs:
       docs-angular: ${{ steps.path-filter.outputs.docs-angular }}
       pkg-preview: ${{ steps.path-filter.outputs.pkg-preview }}
       docs: ${{ steps.path-filter.outputs.docs }}
+      outside-ci: ${{ steps.path-filter.outputs.outside-ci }}
       wrapper-matrix: ${{ steps.wrappers.outputs.list }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
@@ -169,6 +173,14 @@ jobs:
             docs:
               - './docs/**'
               - './handsontable/package.json'
+            # True when the PR changes anything OUTSIDE the CI pipeline itself
+            # (./.github/**). Lint + the code-quality scans (Sonar/CodeQL/FOSSA/
+            # audit) gate on this so a pipeline-only PR (e.g. adding or editing a
+            # workflow) skips them — there is no library source to lint or scan,
+            # and a workflow's own YAML is validated by actionlint, not these jobs.
+            outside-ci:
+              - '**'
+              - '!.github/**'
 
       # Build the Integration wrapper matrix from the scope flags (run-all → all
       # three). Emitting it here means the wrapper job fans out with no extra
