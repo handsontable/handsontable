@@ -234,5 +234,63 @@ describe('settings', () => {
         expect(getCellMeta(0, 6).test).toBeUndefined();
       });
     });
+
+    describe('trailing empty-column verification', () => {
+      it('should verify at most `minSpareCols` trailing columns after a change', async() => {
+        const isEmptyCol = jasmine.createSpy('isEmptyCol').and.callFake(function(visualCol) {
+          for (let row = 0; row < this.countRows(); row++) {
+            if (this.getDataAtCell(row, visualCol) !== null) {
+              return false;
+            }
+          }
+
+          return true;
+        });
+
+        handsontable({
+          data: createSpreadsheetData(3, 2),
+          minSpareCols: 2,
+          isEmptyCol,
+        });
+
+        expect(countCols()).toBe(4);
+
+        isEmptyCol.calls.reset();
+
+        await setDataAtCell(0, 0, 'x');
+
+        expect(countCols()).toBe(4);
+        expect(isEmptyCol.calls.count()).toBe(2);
+      });
+
+      it('should add the missing spare columns after typing in a spare column', async() => {
+        handsontable({
+          data: createSpreadsheetData(3, 2),
+          minSpareCols: 3,
+        });
+
+        expect(countCols()).toBe(5);
+
+        await setDataAtCell(0, 2, 'x');
+
+        expect(countCols()).toBe(6);
+      });
+
+      it('should not add spare columns when more empty columns than `minSpareCols` already exist', async() => {
+        handsontable({
+          data: [
+            ['x', null, null, null, null],
+            ['x', null, null, null, null],
+          ],
+          minSpareCols: 2,
+        });
+
+        expect(countCols()).toBe(5);
+
+        await setDataAtCell(0, 0, 'y');
+
+        expect(countCols()).toBe(5);
+      });
+    });
   });
 });

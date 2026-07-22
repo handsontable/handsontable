@@ -676,6 +676,23 @@ describe('Core.alter', () => {
         expect(getDataAtRow(0)).toEqual([null, 'E1', null, 'A1', 'B1', 'C1', 'D1', null]);
         expect(getSourceDataAtRow(0)).toEqual([null, 'A1', 'B1', 'C1', 'D1', null, 'E1', null]);
       });
+
+      it('should append the created cells at the end of source rows shorter than the insertion point', async() => {
+        handsontable({
+          data: [
+            ['a', 'b', 'c', 'd'],
+            ['a'],
+            [],
+          ],
+        });
+
+        await alter('insert_col_start', 2, 2);
+
+        expect(countCols()).toBe(6);
+        expect(getSourceDataAtRow(0)).toEqual(['a', 'b', null, null, 'c', 'd']);
+        expect(getSourceDataAtRow(1)).toEqual(['a', null, null]);
+        expect(getSourceDataAtRow(2)).toEqual([null, null]);
+      });
     });
   });
 });

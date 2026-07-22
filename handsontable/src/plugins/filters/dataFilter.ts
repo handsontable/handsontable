@@ -1,4 +1,4 @@
-import { arrayEach } from '../../helpers/array';
+import { arrayEach, arrayMap } from '../../helpers/array';
 
 /**
  * @private
@@ -12,7 +12,8 @@ class DataFilter {
    */
   conditionCollection;
   /**
-   * Function which provide source data factory for specified column.
+   * Function which provide source data factory for specified column. The optional second
+   * argument narrows the read to the given physical rows only.
    *
    * @type {Function}
    */
@@ -23,7 +24,7 @@ class DataFilter {
    */
   constructor(
     conditionCollection: { getFilteredColumns: () => unknown[]; isMatch: (value: unknown, column: number) => boolean },
-    columnDataFactory: (column: number) => unknown[] = () => []
+    columnDataFactory: (column: number, physicalRows?: number[]) => unknown[] = () => []
   ) {
     this.conditionCollection = conditionCollection;
     this.columnDataFactory = columnDataFactory;
@@ -38,10 +39,17 @@ class DataFilter {
     let filteredData: unknown[] = [];
 
     arrayEach(this.conditionCollection.getFilteredColumns(), (physicalColumn, index) => {
-      let columnData = this.columnDataFactory(physicalColumn as number);
+      let columnData;
 
       if (index) {
-        columnData = this._getIntersectData(columnData, filteredData);
+        // Materialize only the rows that survived the previous columns' conditions instead of
+        // re-reading (and re-creating cell meta for) every source row once per filtered column.
+        const survivingRows = arrayMap(filteredData,
+          rowData => (rowData as { row: number }).row);
+
+        columnData = this.columnDataFactory(physicalColumn as number, survivingRows);
+      } else {
+        columnData = this.columnDataFactory(physicalColumn as number);
       }
 
       filteredData = this.filterByColumn(physicalColumn as number, columnData);
@@ -67,28 +75,6 @@ class DataFilter {
     });
 
     return filteredData;
-  }
-
-  /**
-   * Intersect data.
-   *
-   * @private
-   * @param {Array} data The data to intersect.
-   * @param {Array} needles The collection intersected rows with the data.
-   * @returns {Array}
-   */
-  _getIntersectData(data: unknown[], needles: unknown[]) {
-    const result: unknown[] = [];
-
-    arrayEach(needles, (needleRow) => {
-      const row = (needleRow as Record<string, unknown> & { meta: Record<string, unknown> }).meta.row as number;
-
-      if (data[row] !== undefined) {
-        result[row] = data[row];
-      }
-    });
-
-    return result;
   }
 }
 

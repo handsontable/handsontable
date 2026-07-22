@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Improved sorting performance on large datasets: date and time columns no longer re-parse values on every comparison, and text columns no longer re-lowercase values on every comparison.",
+  "type": "changed",
+  "issueOrPR": 13087,
+  "breaking": false,
+  "framework": "none"
+}

@@ -25,6 +25,7 @@ interface ConditionStack {
 }
 
 interface FilteredRow {
+  row: number;
   value: unknown;
   meta: { visualRow: number; visualCol: number; [key: string]: unknown };
   [key: string]: unknown;
@@ -181,10 +182,16 @@ export class ValueComponent extends BaseComponent {
       if (firstByValueCondition) {
         const filteredRows = filteredRowsFactory(physicalColumn, conditionsStack);
         const rowValues = arrayMap(filteredRows, row => row.value);
-        const rowMetaMap = new Map(
-          filteredRows.map((row: FilteredRow) =>
-            [row.value, this.hot?.getCellMetaTransient(row.meta.visualRow, row.meta.visualCol)])
-        );
+        // The map feeds only the `modifyFiltersMultiSelectValue` hook. Building it costs one
+        // meta-pipeline read per filtered row, so skip it when the hook is not registered.
+        // The rows are addressed through the entry's own `row` property - the coordinate stamps
+        // on `row.meta` are shared with other meta readers and may have been overwritten.
+        const rowMetaMap = this.hot?.hasHook('modifyFiltersMultiSelectValue')
+          ? new Map(
+            filteredRows.map((row: FilteredRow) =>
+              [row.value, this.hot?.getCellMetaTransient(row.row, physicalColumn)])
+          )
+          : null;
         const columnMeta = filteredRows[0]?.meta;
         const comparator = getSortComparatorForMeta(columnMeta);
         const unifiedRowValues = unifyColumnValues(rowValues, comparator);
@@ -303,7 +310,9 @@ export class ValueComponent extends BaseComponent {
     const defaultBlankCellValue = this.hot?.getTranslatedPhrase(C.FILTERS_VALUES_BLANK_CELLS) ?? '';
     const rowEntries = this._getColumnVisibleValues();
     const rowValues = rowEntries.map(entry => entry.value);
-    const rowMetaMap = new Map(rowEntries.map(row => [row.value, row.meta]));
+    const rowMetaMap = this.hot?.hasHook('modifyFiltersMultiSelectValue')
+      ? new Map<unknown, unknown>(rowEntries.map(row => [row.value, row.meta]))
+      : null;
     const columnMeta = rowEntries[0]?.meta;
     const comparator = getSortComparatorForMeta(columnMeta);
     const values = unifyColumnValues(rowValues, comparator);
@@ -347,10 +356,10 @@ export class ValueComponent extends BaseComponent {
    * Trigger the `modifyFiltersMultiSelectValue` hook.
    *
    * @param {object} item Item from the multiple select list.
-   * @param {Map} metaMap Map of row meta objects.
+   * @param {Map|null} metaMap Map of row meta objects, or `null` when the hook is not registered.
    */
-  #triggerModifyMultipleSelectionValueHook(item: Record<string, unknown>, metaMap: Map<unknown, unknown>) {
-    if (this.hot?.hasHook('modifyFiltersMultiSelectValue')) {
+  #triggerModifyMultipleSelectionValueHook(item: Record<string, unknown>, metaMap: Map<unknown, unknown> | null) {
+    if (metaMap && this.hot?.hasHook('modifyFiltersMultiSelectValue')) {
       item.visualValue =
         this.hot?.runHooks('modifyFiltersMultiSelectValue', item.visualValue, metaMap.get(item.value));
     }

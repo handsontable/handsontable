@@ -42,13 +42,11 @@ describe('DataFilter', () => {
       const dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
 
       spyOn(dataFilter, 'columnDataFactory').and.callThrough();
-      spyOn(dataFilter, '_getIntersectData').and.callThrough();
       spyOn(dataFilter, 'filterByColumn').and.returnValue([1, 2]);
 
       const result = dataFilter.filter();
 
       expect(dataFilter.columnDataFactory).toHaveBeenCalledWith(0);
-      expect(dataFilter._getIntersectData).not.toHaveBeenCalled();
       expect(dataFilter.filterByColumn).toHaveBeenCalledWith(0, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
       expect(result).toEqual([1, 2]);
     });
@@ -58,19 +56,23 @@ describe('DataFilter', () => {
         // filtering applied first to column at index 1 and later at index 0
         getFilteredColumns: jasmine.createSpy('getFilteredColumns').and.returnValue([1, 0]),
       };
+      const survivingRows = [
+        { value: 'b', row: 1, meta: {} },
+        { value: 'e', row: 4, meta: {} },
+      ];
       const dataFilter = new DataFilter(conditionCollectionMock, columnDataMock);
 
       spyOn(dataFilter, 'columnDataFactory').and.callThrough();
-      spyOn(dataFilter, '_getIntersectData').and.returnValue([1, 2]);
-      spyOn(dataFilter, 'filterByColumn').and.returnValue([1, 2]);
+      spyOn(dataFilter, 'filterByColumn').and.returnValue(survivingRows);
 
       const result = dataFilter.filter();
 
-      expect(dataFilter.columnDataFactory).toHaveBeenCalledWith(0);
-      expect(dataFilter._getIntersectData).toHaveBeenCalledWith([1, 2, 3, 4, 5, 6, 7, 8, 9], [1, 2]);
+      // the first filtered column reads every source row
+      expect(dataFilter.columnDataFactory.calls.argsFor(0)).toEqual([1]);
+      // later columns read only the physical rows that survived the previous conditions
+      expect(dataFilter.columnDataFactory.calls.argsFor(1)).toEqual([0, [1, 4]]);
       expect(dataFilter.filterByColumn.calls.argsFor(0)).toEqual([1, ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i']]);
-      expect(dataFilter.filterByColumn.calls.argsFor(1)).toEqual([0, [1, 2]]);
-      expect(result).toEqual([1, 2]);
+      expect(result).toEqual(survivingRows);
     });
   });
 

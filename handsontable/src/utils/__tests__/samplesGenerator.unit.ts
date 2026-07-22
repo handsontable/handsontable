@@ -318,4 +318,72 @@ describe('SamplesGenerator', () => {
     expect(result.get('9').strings).toEqual([{ row: 8, value: true }]);
     expect(result.get('10').strings).toEqual([{ row: 9, value: true }]);
   });
+
+  it('should generate samples from an explicit list of indexes passed as the range', () => {
+    const data = [['a'], ['bb'], ['ccc'], ['dddd'], ['eeeee']];
+    const sg = new SamplesGenerator((row, col) => ({ value: data[row][col] }));
+
+    const result = sg.generateSample('col', [1, 4], 0);
+
+    expect(result.size).toBe(2);
+    expect(result.get('2').strings).toEqual([{ row: 1, value: 'bb' }]);
+    expect(result.get('5').strings).toEqual([{ row: 4, value: 'eeeee' }]);
+  });
+
+  it('should accumulate samples into an existing map across separate calls', () => {
+    const data = [['a'], ['b'], ['c'], ['d'], ['e']];
+    const sg = new SamplesGenerator((row, col) => ({ value: data[row][col] }));
+
+    const samples = sg.generateSample('col', { from: 0, to: 1 }, 0);
+
+    expect(samples.get('1').strings.length).toBe(2);
+
+    const result = sg.generateSample('col', { from: 2, to: 4 }, 0, samples);
+
+    expect(result).toBe(samples);
+    // The per-bucket sample limit (3) applies across both calls.
+    expect(result.get('1').strings.length).toBe(3);
+    expect(result.get('1').strings).toEqual([
+      { row: 0, value: 'a' },
+      { row: 1, value: 'b' },
+      { row: 2, value: 'c' },
+    ]);
+  });
+
+  it('should detect duplicates across accumulated calls', () => {
+    const data = [['same'], ['same'], ['same']];
+    const sg = new SamplesGenerator((row, col) => ({ value: data[row][col] }));
+
+    const samples = sg.generateSample('col', { from: 0, to: 0 }, 0);
+    const result = sg.generateSample('col', { from: 1, to: 2 }, 0, samples);
+
+    expect(result.get('4').strings.length).toBe(1);
+  });
+
+  it('should generate samples from already-known values, bypassing the data factory', () => {
+    const dataFactory = jasmine.createSpy('dataFactory');
+    const sg = new SamplesGenerator(dataFactory);
+
+    const result = sg.generateSampleFromValues('col', [
+      { index: 3, value: 'aa' },
+      { index: 7, value: 'bb' },
+      { index: 9, value: 'cccc' },
+    ]);
+
+    expect(dataFactory).not.toHaveBeenCalled();
+    expect(result.size).toBe(2);
+    expect(result.get('2').strings).toEqual([
+      { row: 3, value: 'aa' },
+      { row: 7, value: 'bb' },
+    ]);
+    expect(result.get('4').strings).toEqual([{ row: 9, value: 'cccc' }]);
+  });
+
+  it('should throw an error when `generateSampleFromValues` is called with an unsupported type', () => {
+    const sg = new SamplesGenerator(() => ({ value: '' }));
+
+    expect(() => {
+      sg.generateSampleFromValues('unsupported', []);
+    }).toThrowWithCause('Unsupported sample type', { handsontable: true });
+  });
 });
