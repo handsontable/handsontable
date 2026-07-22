@@ -245,6 +245,25 @@ describe('typed license notification (via _injectProductInfo)', () => {
       expect(first).not.toBe(null);
       expect(second).toBe(secondContainer.querySelector(`.${LICENSE_INFO_CLASS}`));
     });
+
+    it('does not let a silent non-commercial legacy init suppress a later typed warning', () => {
+      // A non-commercial (legacy) grid initializes first. It prints nothing, but the frozen legacy
+      // path still sets its once-per-page flag - which must NOT be the flag the typed path consults,
+      // or the typed grid below would be silenced despite showing its badge/bar UI.
+      inject('non-commercial-and-evaluation');
+
+      expect(console.warn).not.toHaveBeenCalled();
+      expect(console.info).not.toHaveBeenCalled();
+
+      // A later typed-key grid on the SAME page (no module reset between the two inits) must still
+      // emit its spec console warning.
+      inject(TRIAL_KEY, { now: DURING_TRIAL });
+
+      expect(console.warn).toHaveBeenCalledWith(
+        'Your Handsontable trial license key expires in 10 days. To continue using Handsontable ' +
+        'contact sales@handsontable.com to purchase a valid commercial license.'
+      );
+    });
   });
 
   describe('handsontable.com host bypass', () => {

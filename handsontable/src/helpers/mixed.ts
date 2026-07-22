@@ -88,6 +88,11 @@ const _norm = (v: unknown) => `${v}`.replace(/\-/g, '');
 const _extractTime = (v: unknown) => _hd(_ss(_norm(v), _hd('12'), _cp('\x46'))) / (_hd(_ss(_norm(v) as string, _cp('\x42'), ~~![][ _m as keyof never[]])) || 9);
 const _ignored = () => typeof location !== 'undefined' && /^([a-z0-9\-]+\.)?\x68\x61\x6E\x64\x73\x6F\x6E\x74\x61\x62\x6C\x65\x2E\x63\x6F\x6D$/i.test(location.host);
 let _notified = false;
+// The typed-key console message uses its OWN once-per-page flag, deliberately SEPARATE from the
+// legacy `_notified` above - do NOT merge them. The frozen legacy path sets `_notified` even when it
+// prints nothing (a non-commercial key's console message is empty), so a shared flag would let a
+// silent non-commercial grid initialized first suppress a later typed key's spec console warning.
+let _typedNotified = false;
 
 const consoleMessages: Record<string, (params: { keyValidityDate?: string; hotVersion?: string }) => string> = {
   invalid: () => toSingleLine`
@@ -528,7 +533,8 @@ export function _getLicenseState(key?: string, releaseDate?: string): LicenseSta
 
 /**
  * Emits the console and DOM notifications for a typed license key. The console
- * message fires at most once per page (the shared `_notified` flag) and picks
+ * message fires at most once per page (via the typed-only `_typedNotified` flag,
+ * kept separate from the legacy `_notified`) and picks
  * warn/error by state; the DOM bottom bar is shown only for the soft-stopped
  * trial and the lapsed perpetual license. The `*.handsontable.com` bypass forces
  * a silent, valid state, exactly like the legacy path.
@@ -558,7 +564,7 @@ function _injectTypedProductInfo(
   const expiryDate = lifecycle.expiryTimestamp === null ? undefined : _formatUtcDate(lifecycle.expiryTimestamp);
   const hardStopDate = lifecycle.hardStopTimestamp === null ? undefined : _formatUtcDate(lifecycle.hardStopTimestamp);
 
-  if (!_notified) {
+  if (!_typedNotified) {
     let consoleMessage = '';
     let consoleMethod: 'warn' | 'error' = 'warn';
 
@@ -577,7 +583,7 @@ function _injectTypedProductInfo(
 
     if (consoleMessage) {
       (consoleMethod === 'error' ? error : warn)(consoleMessage);
-      _notified = true;
+      _typedNotified = true;
     }
   }
 
