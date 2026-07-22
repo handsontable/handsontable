@@ -78,7 +78,11 @@ jobs:
               - './handsontable/babel.config.js'
               # The bundler entry (rspack runs from the handsontable/ cwd).
               - './handsontable/rspack.config.js'
-              - './.github/workflows/**'
+              # NOTE: `.github/workflows/**` is deliberately NOT here. A pipeline
+              # (workflow) change must not route the library build/unit/e2e/wrapper/
+              # perf matrix — a PR that only edits a workflow (e.g. adding an unrelated
+              # workflow) previously ran the entire suite. A CI change is validated by
+              # the pipeline running itself, not by re-running library tests.
               - './visual-tests/playwright.config.ts'
               - './visual-tests/playwright-cross-browser.config.ts'
             hot-definition-files: &hot-definition-files
@@ -135,10 +139,11 @@ jobs:
               - './examples/next/visual-tests/**'
               - './visual-tests/**'
             test-performance:
-              # config-files (deps in package.json, babel/hot.config, workflows) can
-              # shift bundle perf — run the suite on the PR for those too, not just
+              # config-files (deps in package.json, babel/hot.config, bundler config)
+              # can shift bundle perf — run the suite on the PR for those too, not just
               # src changes. Otherwise a config-driven slowdown skips the PR run and
               # is then recorded as the new golden baseline on the develop push.
+              # (Workflow changes are intentionally excluded — see the config-files note.)
               - *config-files
               - './handsontable/src/**'
               - './performance-tests/**'
@@ -154,6 +159,10 @@ jobs:
               - './handsontable/package.json'
               - './handsontable/tsconfig*.json'
               - './wrappers/angular-wrapper/**'
+              # Markdown never shapes public types; exclude it so an AGENTS.md /
+              # README edit under the trees above does not route docs-angular.
+              # Keep in sync with docs-angular-typecheck.yml's push paths.
+              - '!**/*.md'
             pkg-preview:
               - './handsontable/**'
               - './wrappers/**'

@@ -21,6 +21,11 @@ on:
       - 'handsontable/package.json'
       - 'handsontable/tsconfig*.json'
       - 'wrappers/angular-wrapper/**'
+      # Markdown can never change the emitted public types, but AGENTS.md /
+      # README files live under the src and wrapper trees above and were
+      # triggering a full typecheck (e.g. an edit to
+      # wrappers/angular-wrapper/AGENTS.md). Exclude all markdown.
+      - '!**/*.md'
   workflow_call:
 
 concurrency:
