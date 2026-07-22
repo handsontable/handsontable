@@ -178,9 +178,11 @@ jobs:
             # audit) gate on this so a pipeline-only PR (e.g. adding or editing a
             # workflow) skips them — there is no library source to lint or scan,
             # and a workflow's own YAML is validated by actionlint, not these jobs.
+            # NOTE: dorny/paths-filter negation is OR-based — a `!x` rule matches
+            # every file NOT under x. So this is a negation-ONLY rule: adding a
+            # positive like `**` would make it match everything (`**` alone is true).
             outside-ci:
-              - '**'
-              - '!.github/**'
+              - '!./.github/**'
 
       # Build the Integration wrapper matrix from the scope flags (run-all → all
       # three). Emitting it here means the wrapper job fans out with no extra
