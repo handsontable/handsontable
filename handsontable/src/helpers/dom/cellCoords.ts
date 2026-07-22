@@ -38,7 +38,7 @@ function findColumnAtX(
 
     accumulatedX += width;
 
-    const { colspan } = hotInstance.getCellMeta<{ colspan?: number }>(row, column);
+    const { colspan } = hotInstance.getCellMetaTransient<{ colspan?: number }>(row, column);
 
     if (colspan !== undefined && colspan > 1) {
       column += colspan - 1;
@@ -83,7 +83,7 @@ function findRowAtY(
 
     accumulatedY += height;
 
-    const { rowspan } = hotInstance.getCellMeta<{ rowspan?: number }>(row, column);
+    const { rowspan } = hotInstance.getCellMetaTransient<{ rowspan?: number }>(row, column);
 
     if (rowspan !== undefined && rowspan > 1) {
       row += rowspan - 1;
@@ -128,7 +128,7 @@ function findRowReferenceColumn(
 
     for (let row = startRow; row <= endRow; row++) {
       const cell = hotInstance.getCell(row, column, true);
-      const { rowspan } = hotInstance.getCellMeta<{ rowspan?: number }>(row, column);
+      const { rowspan } = hotInstance.getCellMetaTransient<{ rowspan?: number }>(row, column);
 
       // A vertically merged cell reports `rowspan > 1` on its anchor and resolves to the same
       // rendered element for every row it covers; either signal marks the column as distorting.
@@ -151,6 +151,10 @@ function findRowReferenceColumn(
     }
   }
 
+  // Best-effort fallback: every column in the scanned range is vertically merged (e.g. a grouped
+  // report grid whose visible columns all merge across the same band). No column is free of the
+  // distortion, so `findRowAtY` will still collapse the band onto its anchor — `startColumn` is
+  // simply the least-surprising choice. This is a known narrow case of DEV-2115, not a bug here.
   return startColumn;
 }
 
@@ -285,7 +289,12 @@ export function getCellCoordsFromMousePosition(
   // the pointer's column is universally safe (a merge can live in either), so each row-scan
   // branch picks the first column free of vertical merges within its own row range (DEV-2115).
   const rowReferenceColumnStart = firstPartiallyVisibleColumn ?? 0;
-  const rowReferenceColumnEnd = lastPartiallyVisibleColumn ?? (hotInstance.countCols() - 1);
+  // When the viewport query returns null nothing is rendered, so there is no cell to measure
+  // against. Keep the search inside the (empty) rendered range instead of opening it to every
+  // column in the grid — otherwise `findRowReferenceColumn` walks the full column x row product,
+  // calling `getCellMetaTransient` on each step, and a single held autofill/`dragToScroll` drag
+  // on a large off-screen grid locks the tab.
+  const rowReferenceColumnEnd = lastPartiallyVisibleColumn ?? rowReferenceColumnStart;
 
   let foundRow: number | null = null;
 
@@ -357,12 +366,17 @@ export function getCellCoordsFromMousePosition(
 
   // Check scrollable rows (main table)
   if (foundRow === null) {
+    const scrollRowScanStart = firstPartiallyVisibleRow ?? 0;
+    // Same null-viewport guard as the column bound above: clamp the row scan to the (empty)
+    // rendered range rather than `countRows()`, so the reference-column search cannot walk the
+    // whole grid when nothing is rendered.
+    const scrollRowScanEnd = lastPartiallyVisibleRow ?? scrollRowScanStart;
     const rowReferenceColumn = findRowReferenceColumn(
       hotInstance,
       rowReferenceColumnStart,
       rowReferenceColumnEnd,
-      firstPartiallyVisibleRow ?? 0,
-      lastPartiallyVisibleRow ?? (hotInstance.countRows() - 1),
+      scrollRowScanStart,
+      scrollRowScanEnd,
     );
     const scrollCell = hotInstance.getCell(firstPartiallyVisibleRow, rowReferenceColumn, true);
 
