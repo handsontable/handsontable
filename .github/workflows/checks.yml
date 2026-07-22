@@ -163,10 +163,14 @@ jobs:
               - './handsontable/package.json'
               - './handsontable/tsconfig*.json'
               - './wrappers/angular-wrapper/**'
-              # Markdown never shapes public types; exclude it so an AGENTS.md /
-              # README edit under the trees above does not route docs-angular.
-              # Keep in sync with docs-angular-typecheck.yml's push paths.
-              - '!**/*.md'
+              # NOTE: markdown can't be excluded here. dorny/paths-filter runs with
+              # predicate-quantifier: some (OR), so a `!**/*.md` rule is NOT
+              # subtractive — it would fail to exclude .md under the trees above and
+              # would match any non-md file on its own. The markdown exclusion that
+              # matters (the reported bug) is on docs-angular-typecheck.yml's PUSH
+              # paths, where GitHub-native path filters ARE subtractive. On a PR an
+              # AGENTS.md edit sets this flag but is inert unless the docs job also
+              # runs (it needs the `docs` flag), so it never routes a typecheck alone.
             pkg-preview:
               - './handsontable/**'
               - './wrappers/**'
