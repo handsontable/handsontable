@@ -23,10 +23,23 @@ jobs:
     if: github.ref_name == 'develop' || startsWith(github.ref_name, 'prod-docs/')
     runs-on: ubuntu-latest
     steps:
+      # Mint a short-lived, repository-scoped token from the GitHub App.
+      # The built-in GITHUB_TOKEN cannot reach another repository, so a
+      # cross-repo dispatch requires an App installation token (or a PAT).
+      - name: Mint GitHub App token
+        id: app-token
+        if: github.ref_name != 'prod-docs/latest'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # https://github.com/actions/create-github-app-token/releases/tag/v3.2.0
+        with:
+          app-id: ${{ secrets.EXAMPLES_SYNC_APP_ID }}
+          private-key: ${{ secrets.EXAMPLES_SYNC_APP_KEY }}
+          owner: handsontable
+          repositories: examples
+
       - name: Send repository_dispatch to handsontable/examples
         if: github.ref_name != 'prod-docs/latest'
         env:
-          GH_TOKEN: ${{ secrets.EXAMPLES_REPO_TOKEN }}
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
           DOCS_BRANCH: ${{ github.ref_name }}
         run: |
           gh api repos/handsontable/examples/dispatches \
