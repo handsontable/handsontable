@@ -135,7 +135,8 @@ You can connect HyperFormula to Handsontable in more than one way. The `formulas
 accepts the `HyperFormula` class, a pre-built HyperFormula instance, or an engine configuration
 object. Choose the approach that fits your setup.
 
-**Pass the `HyperFormula` class.** This is the shortest path, shown above. You import the class and
+### Pass the `HyperFormula` class
+This is the shortest path, shown above. You import the class and
 pass it to `formulas.engine`. Handsontable builds the engine, applies the
 `'internal-use-in-handsontable'` license key, and manages the engine's lifecycle for you. Use this
 for a single grid, or for grids that each work on their own data.
@@ -151,7 +152,8 @@ const hot = new Handsontable(container, {
 });
 ```
 
-**Build a HyperFormula instance first, then pass it.** Create the engine yourself with
+### Build a `HyperFormula` instance first, then pass it
+Create the engine yourself with
 `HyperFormula.buildEmpty()`, set the license key, and pass the instance to `formulas.engine`. This
 gives you direct access to the engine's API. It also lets several Handsontable instances share one
 engine, so formulas can reference cells across grids with cross-sheet references.
@@ -171,7 +173,8 @@ const hot = new Handsontable(container, {
 });
 ```
 
-**Pass an engine configuration object.** Instead of the bare class, pass an object with a
+### Pass an engine configuration object
+Instead of the bare class, pass an object with a
 `hyperformula` field (the class or an instance) alongside HyperFormula configuration options, such
 as `leapYear1900`. Use this to customize how the engine behaves.
 
