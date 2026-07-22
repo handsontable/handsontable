@@ -109,10 +109,12 @@ export function initLicenseNotification(hotInstance: HotInstance): void {
   }
 
   const licenseKey = hotInstance.getSettings().licenseKey;
-  // Read the build constant bare (no `typeof process` guard): the bundler replaces the whole
-  // `process.env.HOT_RELEASE_DATE` expression with a literal at build time, while a guard compiles to
-  // `typeof process !== 'undefined' && "..."` - false in every browser, which silently blanked the
-  // release date and killed the expired-key detection in the built bundles.
+  // DO NOT wrap this in a `typeof process` guard (or any `process` existence check). The bundler
+  // replaces the whole `process.env.HOT_RELEASE_DATE` expression with a string literal at build time,
+  // so the bare read never touches a runtime `process` object and cannot crash. A guard is NOT
+  // inlined - it survives as `typeof process !== 'undefined' && "..."`, which is `false` in every
+  // browser bundle, blanks the release date, and silently kills expired-key detection. That was the
+  // 18.0.0 regression this read restores; re-adding the guard reintroduces it.
   const releaseDate = process.env.HOT_RELEASE_DATE || '';
 
   const notificationElement = _injectProductInfo({

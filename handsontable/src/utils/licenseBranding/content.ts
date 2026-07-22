@@ -1,4 +1,9 @@
-import { _formatUtcDate } from '../../helpers/mixed';
+import {
+  _formatUtcDate,
+  LICENSE_EXPIRED_TITLE,
+  PURCHASE_COMMERCIAL_LICENSE_TEXT,
+  RENEW_LICENSE_TEXT,
+} from '../../helpers/mixed';
 import type { LicenseLifecycleFacet } from '../../helpers/mixed';
 
 export const SALES_MAILTO = 'mailto:sales@handsontable.com';
@@ -50,17 +55,14 @@ export const POPOVER_CONTENT: Record<string, PopoverContent> = {
   trial_active: {
     title: 'Handsontable Trial',
     body: ({ daysRemaining }) =>
-      `Your Handsontable license key expires in ${formatDays(daysRemaining)}. ` +
-      'To continue using Handsontable, you need to purchase a commercial license.',
+      `Your Handsontable license key expires in ${formatDays(daysRemaining)}. ${PURCHASE_COMMERCIAL_LICENSE_TEXT}`,
     linkText: 'Contact Sales',
     linkHref: SALES_MAILTO,
     dismissible: false,
   },
   trial_expired: {
     title: 'Expired trial license key',
-    body: () =>
-      'Your Handsontable license has expired. ' +
-      'To continue using Handsontable, you need to purchase a commercial license.',
+    body: () => `${LICENSE_EXPIRED_TITLE} ${PURCHASE_COMMERCIAL_LICENSE_TEXT}`,
     linkText: 'Contact Sales',
     linkHref: SALES_MAILTO,
     dismissible: true,
@@ -92,9 +94,11 @@ export const POPOVER_CONTENT: Record<string, PopoverContent> = {
   },
   legacy_expired: {
     title: 'Expired license key',
-    body: ({ expiryTimestamp }) =>
-      `Your Handsontable license key expired on ${expiryTimestamp === null ? '' : _formatUtcDate(expiryTimestamp)}. ` +
-      'To continue using Handsontable, you need to renew your license.',
+    body: ({ expiryTimestamp }) => {
+      const expiredOn = expiryTimestamp === null ? '' : _formatUtcDate(expiryTimestamp);
+
+      return `Your Handsontable license key expired on ${expiredOn}. ${RENEW_LICENSE_TEXT}`;
+    },
     linkText: 'Contact Sales',
     linkHref: SALES_MAILTO,
     dismissible: true,
@@ -115,13 +119,13 @@ export const BADGE_ONLY_LABELS: Record<string, string> = {
  */
 export const LOCK_CONTENT: Record<string, LockContent> = {
   trial_expired_hard: {
-    title: 'Your Handsontable license has expired.',
-    description: 'To continue using Handsontable, you need to purchase a commercial license.',
+    title: LICENSE_EXPIRED_TITLE,
+    description: PURCHASE_COMMERCIAL_LICENSE_TEXT,
     closable: false,
   },
   sub_expired_hard: {
     title: 'Your Handsontable subscription has expired.',
-    description: 'To continue using Handsontable, you need to renew your license.',
+    description: RENEW_LICENSE_TEXT,
     closable: true,
   },
 };

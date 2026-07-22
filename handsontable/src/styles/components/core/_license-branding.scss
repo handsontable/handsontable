@@ -35,8 +35,11 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
   // exactly, and `min()` scales it down inside corners narrower than the glyph. No JS measurement
   // is involved - themes, nested headers, runtime resizes, and RTL all align for free. The
   // `ht-license-badge-on` class is stamped on the root element (licenseBranding.ts) only while a
-  // branded state has a corner cell to sit on.
-  .ht-license-badge-on .ht_clone_top_inline_start_corner thead tr:first-child th:first-child::after {
+  // branded state has a corner cell to sit on. The `ht-license-badge-corner` marker is stamped on
+  // THIS grid's own corner clone table (resolved through the Walkontable overlay API, see badge.ts);
+  // targeting the structural `.ht_clone_top_inline_start_corner` class instead would also paint a
+  // stray glyph in a nested grid's corner (the `handsontable` cell type) inside this branded root.
+  .ht-license-badge-on .ht-license-badge-corner thead tr:first-child th:first-child::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -62,7 +65,7 @@ $license-badge-icon: "data:image/svg+xml;charset=utf-8,%3Csvg width='16' height=
   // The optical nudge is a physical RIGHTWARD shift in both directions (per design): in RTL,
   // inline-start maps to the right edge, so the clamped inset moves to the opposite logical side
   // to keep the same physical direction.
-  [dir="rtl"] .ht-license-badge-on .ht_clone_top_inline_start_corner thead tr:first-child th:first-child::after {
+  [dir="rtl"] .ht-license-badge-on .ht-license-badge-corner thead tr:first-child th:first-child::after {
     inset-inline-start: 0;
     inset-inline-end: clamp(0px, calc(100% - var(--ht-license-badge-size, 20px)), 6px);
   }

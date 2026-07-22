@@ -61,8 +61,10 @@ function mountBrandingSurface(
  * @returns {void}
  */
 export function initLicenseBranding(hotInstance: HotInstance): void {
-  // Bare on purpose - see the matching comment in `initLicenseNotification`: a `typeof process`
-  // guard breaks the build-time replacement in browser bundles.
+  // DO NOT add a `typeof process` guard here - see the matching comment in `initLicenseNotification`.
+  // The bundler inlines `process.env.HOT_RELEASE_DATE` to a string literal (the bare read cannot
+  // crash); a guard is left un-inlined and compiles to `false` in browser bundles, blanking the date
+  // and silently killing expired-key detection.
   const releaseDate = process.env.HOT_RELEASE_DATE || '';
 
   mountBrandingSurface(hotInstance, _getLicenseState(hotInstance.getSettings().licenseKey, releaseDate));

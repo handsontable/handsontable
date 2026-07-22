@@ -1,4 +1,5 @@
 import { toSingleLine } from './templateLiteralTag';
+import { warn, error } from './console';
 import {
   hasTypedKeyTag,
   extractTypedKeyData,
@@ -157,6 +158,18 @@ type TypedConsoleNotification = {
 };
 
 /**
+ * License sentences the spec repeats verbatim across surfaces - the bottom bar (here), the badge
+ * popover, and the hard-stop lock screen (`utils/licenseBranding/content.ts`). Keeping one constant
+ * per sentence means a legal/marketing wording change lands in every surface at once, instead of
+ * drifting when only one copy is updated.
+ */
+export const LICENSE_EXPIRED_TITLE = 'Your Handsontable license has expired.';
+export const PURCHASE_COMMERCIAL_LICENSE_TEXT =
+  'To continue using Handsontable, you need to purchase a commercial license.';
+export const RENEW_LICENSE_TEXT =
+  'To continue using Handsontable, you need to renew your license.';
+
+/**
  * The console notification for each typed-license lifecycle state that talks to
  * the developer. Silent states (freemium, comfortably-valid subscription, valid
  * perpetual) have no entry. The wording is fixed by the license spec.
@@ -208,8 +221,8 @@ const typedConsoleNotifications: Record<string, TypedConsoleNotification> = {
  */
 const typedDomMessages: Record<string, (params: TypedMessageParams) => string> = {
   trial_expired: () => toSingleLine`
-    Your Handsontable license has expired. To continue using Handsontable, you need to purchase a commercial\x20
-    license. <a href="mailto:sales@handsontable.com">Contact Sales</a>.`,
+    ${LICENSE_EXPIRED_TITLE} ${PURCHASE_COMMERCIAL_LICENSE_TEXT}\x20
+    <a href="mailto:sales@handsontable.com">Contact Sales</a>.`,
 };
 
 export function _injectProductInfo(
@@ -552,7 +565,7 @@ function _injectTypedProductInfo(
     }
 
     if (consoleMessage) {
-      console[consoleMethod](consoleMessage);
+      (consoleMethod === 'error' ? error : warn)(consoleMessage);
       _notified = true;
     }
   }
@@ -573,8 +586,11 @@ function _injectTypedProductInfo(
     return null;
   }
 
-  const messageNode = document.createElement('div');
-  const innerNode = document.createElement('div');
+  // Use the target element's own document so an iframe-hosted grid builds its bar nodes in the
+  // right realm (the global `document` would be the loading window's).
+  const ownerDocument = element.ownerDocument;
+  const messageNode = ownerDocument.createElement('div');
+  const innerNode = ownerDocument.createElement('div');
 
   messageNode.className = `handsontable ${className}`;
   innerNode.className = `${className}_inner`;

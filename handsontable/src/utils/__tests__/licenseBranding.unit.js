@@ -6,6 +6,11 @@ jest.mock('../../helpers/mixed', () => ({
   _formatUtcDate: timestamp => new Intl.DateTimeFormat('en-US', {
     year: 'numeric', month: 'long', day: '2-digit', timeZone: 'UTC',
   }).format(timestamp),
+  // The shared license copy the branding content imports (real values - the lock/popover tests
+  // assert this exact wording).
+  LICENSE_EXPIRED_TITLE: 'Your Handsontable license has expired.',
+  PURCHASE_COMMERCIAL_LICENSE_TEXT: 'To continue using Handsontable, you need to purchase a commercial license.',
+  RENEW_LICENSE_TEXT: 'To continue using Handsontable, you need to renew your license.',
 }));
 
 const { _getLicenseState } = require('../../helpers/mixed');
@@ -37,9 +42,9 @@ function createMockHotInstance(overrides = {}) {
   const shortcutContext = { addShortcut: jest.fn(), removeShortcutsByGroup: jest.fn() };
   const rootElement = document.createElement('div');
   // The corner clone's table + header, as Walkontable exposes them through the TableView overlay
-  // (`view._wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable`): the badge measures TABLE and
-  // detects hover inside THEAD. The clone can also hold frozen data cells, so hover is gated on the
-  // THEAD, not the whole table.
+  // accessor (`view.getOverlayByName('top_inline_start_corner').clone.wtTable`): the badge measures
+  // TABLE and detects hover inside THEAD. The clone can also hold frozen data cells, so hover is gated
+  // on the THEAD, not the whole table.
   const cornerTable = document.createElement('table');
   const cornerThead = document.createElement('thead');
   const cornerHeaderRow = document.createElement('tr');
@@ -89,11 +94,7 @@ function createMockHotInstance(overrides = {}) {
       isHorizontallyScrollableByWindow: jest.fn(() => false),
       getWorkspaceWidth: jest.fn(() => 400),
       getTotalTableWidth: jest.fn(() => 600),
-      _wt: {
-        wtOverlays: {
-          topInlineStartCornerOverlay: { clone: { wtTable: cornerCloneWtTable } },
-        },
-      },
+      getOverlayByName: jest.fn(() => ({ clone: { wtTable: cornerCloneWtTable } })),
     },
     deselectCell: jest.fn(),
     listen: jest.fn(),
@@ -290,6 +291,24 @@ describe('licenseBranding', () => {
       const wrapper = hotInstance.rootOverlaysElement.querySelector('.ht-license-badge-wrapper');
 
       expect(wrapper.classList.contains('is-cornerless')).toBe(false);
+    });
+
+    it('should mark this grid\'s own corner clone so the CSS glyph never leaks into a nested grid', () => {
+      setLifecycle('trial_active', { daysRemaining: 5 });
+      const hotInstance = createMockHotInstance();
+
+      initLicenseBranding(hotInstance);
+
+      // The glyph selector keys off `ht-license-badge-corner`, stamped on the corner clone resolved
+      // through the Walkontable overlay - this grid's own corner, never a nested grid's (the
+      // `handsontable` cell type renders its own corner clone inside this root).
+      expect(hotInstance.cornerTable.classList.contains('ht-license-badge-corner')).toBe(true);
+
+      // When the corner disappears (a header turned off at runtime) the marker comes off with it.
+      hotInstance.hasColHeaders.mockReturnValue(false);
+      hotInstance.hooks.addHook.afterRender();
+
+      expect(hotInstance.cornerTable.classList.contains('ht-license-badge-corner')).toBe(false);
     });
 
     it('should measure the corner width for the popover anchor and re-sync it on renders', () => {

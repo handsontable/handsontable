@@ -1,6 +1,8 @@
 import { html } from '../../helpers/templateLiteralTag';
+import { CLONE_TOP_INLINE_START_CORNER } from '../../3rdparty/walkontable/src/overlay/constants';
 import { POPOVER_CONTENT, BADGE_ONLY_LABELS } from './content';
 import type { HotInstance } from '../../core/types';
+import type { Overlay } from '../../3rdparty/walkontable/src/overlay/regions/_base';
 import type { LicenseLifecycleFacet } from '../../helpers/mixed';
 
 const BADGE_WRAPPER_CLASS = 'ht-license-badge-wrapper';
@@ -11,20 +13,26 @@ const POPOVER_OPEN_CLASS = 'is-open';
 const POPOVER_DISMISSED_CLASS = 'is-dismissed';
 const CORNER_HOVER_CLASS = 'is-corner-hover';
 const CORNERLESS_CLASS = 'is-cornerless';
+const CORNER_MARKER_CLASS = 'ht-license-badge-corner';
 
 /**
- * The corner-header clone's table and its header section, read straight from Walkontable through the
- * TableView. This is THIS grid's own corner, never a nested grid's: a grid rendered inside a cell
- * (the `handsontable` cell type) has its own corner clone earlier in document order, so a CSS
+ * The corner-header clone's table and its header section, read through the TableView's public overlay
+ * accessor (`getOverlayByName`, the same entry the MergeCells plugin uses) rather than reaching into
+ * `_wt.wtOverlays`. This is THIS grid's own corner, never a nested grid's: a grid rendered inside a
+ * cell (the `handsontable` cell type) has its own corner clone earlier in document order, so a CSS
  * selector on the root subtree could match the inner one and make the badge measure - and pop over -
- * the wrong corner. The overlay reference sidesteps that entirely. Returns `null` before the first
- * render (the overlay/clone is not built yet) or when there is no corner.
+ * the wrong corner. The overlay reference sidesteps that entirely. `getOverlayByName` is typed as a
+ * broad union (any overlay or the master table), so it is narrowed to `Overlay` here - a corner name
+ * never resolves to the master instance. Returns `null` before the first render (the overlay/clone is
+ * not built yet) or when there is no corner.
  *
  * @param {HotInstance} hotInstance The root Handsontable instance.
  * @returns {{ table: HTMLElement, thead: HTMLElement|null }|null}
  */
 function getCornerClone(hotInstance: HotInstance): { table: HTMLElement; thead: HTMLElement | null } | null {
-  const wtTable = hotInstance.view?._wt?.wtOverlays?.topInlineStartCornerOverlay?.clone?.wtTable;
+  const cornerOverlay =
+    hotInstance.view?.getOverlayByName(CLONE_TOP_INLINE_START_CORNER) as unknown as Overlay | null;
+  const wtTable = cornerOverlay?.clone?.wtTable;
 
   if (!wtTable?.TABLE) {
     return null;
@@ -136,9 +144,13 @@ export function mountLicenseBadge(hotInstance: HotInstance, lifecycle: LicenseLi
   const badge = refs.badge as HTMLButtonElement;
 
   // Presence sync: `is-cornerless` on the wrapper re-anchors the popover to the table's
-  // inline-start edge (there is no corner cell for a tail to point at), and `ht-license-badge-on`
-  // on the root element renders the glyph inside the corner header cell. Settings reads only,
-  // never layout - safe to run on every render.
+  // inline-start edge (there is no corner cell for a tail to point at), `ht-license-badge-on`
+  // on the root element enables the glyph, and `ht-license-badge-corner` marks THIS grid's own
+  // corner clone table so the pure-CSS glyph lands only there. The marker is the CSS counterpart of
+  // the Walkontable-API corner lookup the rest of this file uses: the glyph selector keys off the
+  // marker, not the structural `.ht_clone_top_inline_start_corner` class, which also matches a nested
+  // grid's corner (the `handsontable` cell type) inside this root and would paint a stray badge there.
+  // Settings/overlay reads only, never layout - safe to run on every render.
   const hasCornerCell = () => hotInstance.hasRowHeaders() && hotInstance.hasColHeaders();
 
   const syncCornerPresence = () => {
@@ -146,6 +158,7 @@ export function mountLicenseBadge(hotInstance: HotInstance, lifecycle: LicenseLi
 
     wrapper.classList.toggle(CORNERLESS_CLASS, !hasCorner);
     hotInstance.rootElement?.classList.toggle(BADGE_ON_CLASS, hasCorner);
+    getCornerClone(hotInstance)?.table.classList.toggle(CORNER_MARKER_CLASS, hasCorner);
   };
 
   syncCornerPresence();

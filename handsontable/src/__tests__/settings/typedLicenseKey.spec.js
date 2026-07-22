@@ -72,6 +72,46 @@ describe('settings', () => {
           .toBe(`${corner.offsetWidth}px`);
       });
 
+      it('should not leak the corner glyph into a nested grid (handsontable cell type)', async() => {
+        spyOn(Date, 'now').and.returnValue(WITHIN_TRIAL);
+
+        handsontable({
+          licenseKey: TRIAL_KEY,
+          rowHeaders: true,
+          colHeaders: true,
+          columns: [
+            {
+              type: 'handsontable',
+              handsontable: { data: [['a', 'b'], ['c', 'd']], rowHeaders: true, colHeaders: true },
+            },
+            {}, {},
+          ],
+        }, true);
+
+        // Open the handsontable-cell-type editor so the nested grid renders its own corner clone
+        // inside this root - the corner a root-scoped CSS selector would wrongly match.
+        await selectCell(0, 0);
+        await keyDownUp('enter');
+        await sleep(50);
+
+        const nestedHot = getActiveEditor().htEditor;
+        const outerCorner = hot().view._wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.TABLE;
+        const nestedCorner = nestedHot.view._wt.wtOverlays.topInlineStartCornerOverlay.clone.wtTable.TABLE;
+
+        // The nested corner really sits inside the branded root (otherwise there is nothing to leak into).
+        expect(hot().rootElement.contains(nestedCorner)).toBe(true);
+
+        // Only this grid's own corner carries the marker and paints the glyph...
+        expect(outerCorner.classList.contains('ht-license-badge-corner')).toBe(true);
+        expect(getComputedStyle(outerCorner.querySelector('thead tr:first-child th:first-child'), '::after')
+          .maskImage).not.toBe('none');
+
+        // ...the nested grid's corner gets neither the marker nor a stray "H." glyph.
+        expect(nestedCorner.classList.contains('ht-license-badge-corner')).toBe(false);
+        expect(getComputedStyle(nestedCorner.querySelector('thead tr:first-child th:first-child'), '::after')
+          .maskImage).toBe('none');
+      });
+
       it('should scale the glyph down inside a corner narrower than the glyph', async() => {
         spyOn(Date, 'now').and.returnValue(WITHIN_TRIAL);
 
