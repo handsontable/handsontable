@@ -140,14 +140,54 @@ pass it to `formulas.engine`. Handsontable builds the engine, applies the
 `'internal-use-in-handsontable'` license key, and manages the engine's lifecycle for you. Use this
 for a single grid, or for grids that each work on their own data.
 
+```js
+import { HyperFormula } from 'hyperformula';
+
+const hot = new Handsontable(container, {
+  formulas: {
+    engine: HyperFormula,
+  },
+  licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
+});
+```
+
 **Build a HyperFormula instance first, then pass it.** Create the engine yourself with
 `HyperFormula.buildEmpty()`, set the license key, and pass the instance to `formulas.engine`. This
 gives you direct access to the engine's API. It also lets several Handsontable instances share one
 engine, so formulas can reference cells across grids with cross-sheet references.
 
+```js
+import { HyperFormula } from 'hyperformula';
+
+const hyperformulaInstance = HyperFormula.buildEmpty({
+  licenseKey: 'internal-use-in-handsontable',
+});
+
+const hot = new Handsontable(container, {
+  formulas: {
+    engine: hyperformulaInstance,
+  },
+  licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
+});
+```
+
 **Pass an engine configuration object.** Instead of the bare class, pass an object with a
 `hyperformula` field (the class or an instance) alongside HyperFormula configuration options, such
 as `leapYear1900`. Use this to customize how the engine behaves.
+
+```js
+import { HyperFormula } from 'hyperformula';
+
+const hot = new Handsontable(container, {
+  formulas: {
+    engine: {
+      hyperformula: HyperFormula, // or a pre-built HyperFormula instance
+      leapYear1900: false,
+    },
+  },
+  licenseKey: 'non-commercial-and-evaluation', // for non-commercial use only
+});
+```
 
 For complete, framework-specific examples of each approach - including shared and external engines
 across multiple grids - see [Initialization methods](@/guides/formulas/formula-calculation/formula-calculation.md#initialization-methods).
