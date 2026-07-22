@@ -175,6 +175,13 @@ export function mountLicenseBadge(hotInstance: HotInstance, lifecycle: LicenseLi
     return;
   }
 
+  // Past the badge-only return, a state that reaches here always has popover content (the guard
+  // above returned for a badge-only label, and the initial guard returned when neither existed);
+  // this narrows `content` from `PopoverContent | undefined` for the popover setup below.
+  if (!content) {
+    return;
+  }
+
   // Popover anchor: the popover offsets from the corner's inline-end edge, so it needs the corner
   // WIDTH - the only measured value left (the glyph itself is CSS-anchored inside the corner cell
   // and needs no measurement). Badge-only states return above and skip this entirely.

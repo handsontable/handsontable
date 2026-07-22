@@ -4,7 +4,7 @@ import {
   PURCHASE_COMMERCIAL_LICENSE_TEXT,
   RENEW_LICENSE_TEXT,
 } from '../../helpers/mixed';
-import type { LicenseLifecycleFacet } from '../../helpers/mixed';
+import type { LicenseLifecycleFacet, LicenseStateKey } from '../../helpers/mixed';
 
 export const SALES_MAILTO = 'mailto:sales@handsontable.com';
 export const PRICING_URL = 'https://handsontable.com/pricing';
@@ -51,7 +51,7 @@ export interface LockContent {
  * mockups; the non-typed states (missing key, expired legacy key, invalid key) reuse the same badge
  * + popover surface.
  */
-export const POPOVER_CONTENT: Record<string, PopoverContent> = {
+export const POPOVER_CONTENT: Partial<Record<LicenseStateKey, PopoverContent>> = {
   trial_active: {
     title: 'Handsontable Trial',
     body: ({ daysRemaining }) =>
@@ -110,14 +110,14 @@ export const POPOVER_CONTENT: Record<string, PopoverContent> = {
  * The Non-Commercial and Evaluation License permits the usage, so it gets no tooltip and no
  * upgrade/purchase messaging - the badge itself is the only marker.
  */
-export const BADGE_ONLY_LABELS: Record<string, string> = {
+export const BADGE_ONLY_LABELS: Partial<Record<LicenseStateKey, string>> = {
   non_commercial: 'You\'re using the Non-Commercial and Evaluation License of Handsontable',
 };
 
 /**
  * The lock-screen copy per hard-stopped lifecycle state.
  */
-export const LOCK_CONTENT: Record<string, LockContent> = {
+export const LOCK_CONTENT = {
   trial_expired_hard: {
     title: LICENSE_EXPIRED_TITLE,
     description: PURCHASE_COMMERCIAL_LICENSE_TEXT,
@@ -128,4 +128,4 @@ export const LOCK_CONTENT: Record<string, LockContent> = {
     description: RENEW_LICENSE_TEXT,
     closable: true,
   },
-};
+} satisfies Partial<Record<LicenseStateKey, LockContent>>;

@@ -174,7 +174,7 @@ export const RENEW_LICENSE_TEXT =
  * the developer. Silent states (freemium, comfortably-valid subscription, valid
  * perpetual) have no entry. The wording is fixed by the license spec.
  */
-const typedConsoleNotifications: Record<string, TypedConsoleNotification> = {
+const typedConsoleNotifications: Partial<Record<LicenseStateKey, TypedConsoleNotification>> = {
   trial_active: {
     severity: 'warn',
     message: ({ daysRemaining }) => toSingleLine`
@@ -219,11 +219,11 @@ const typedConsoleNotifications: Record<string, TypedConsoleNotification> = {
  * see `utils/licenseBranding/lockScreen.ts`). The lapsed perpetual license reuses
  * the legacy `expired` bar.
  */
-const typedDomMessages: Record<string, (params: TypedMessageParams) => string> = {
+const typedDomMessages = {
   trial_expired: () => toSingleLine`
     ${LICENSE_EXPIRED_TITLE} ${PURCHASE_COMMERCIAL_LICENSE_TEXT}\x20
     <a href="mailto:sales@handsontable.com">Contact Sales</a>.`,
-};
+} satisfies Partial<Record<LicenseStateKey, (params: TypedMessageParams) => string>>;
 
 export function _injectProductInfo(
   { className, key, element, releaseDate }: {
@@ -389,6 +389,15 @@ export interface LicenseLifecycleFacet {
   expiryTimestamp: number | null;
   hardStopTimestamp: number | null;
 }
+
+/**
+ * Every lifecycle state a state-keyed table can hold an entry for (typed plus non-typed). The
+ * console/DOM notification tables here and the badge/lock content tables in
+ * `utils/licenseBranding/content.ts` are keyed by this union rather than `string`, so the compiler
+ * rejects a typoed or unknown state key - a `string` key would compile fine and silently drop that
+ * state's entry.
+ */
+export type LicenseStateKey = LicenseLifecycleFacet['state'];
 
 /**
  * The resolved license state handed to the UI and (later) the feature gates:
@@ -557,11 +566,13 @@ function _injectTypedProductInfo(
       consoleMessage = consoleMessages.invalid({});
     } else if (state === 'perp_expired') {
       consoleMessage = consoleMessages.expired({ keyValidityDate: expiryDate, hotVersion });
-    } else if (Object.prototype.hasOwnProperty.call(typedConsoleNotifications, state)) {
+    } else {
       const notification = typedConsoleNotifications[state];
 
-      consoleMessage = notification.message({ daysRemaining: lifecycle.daysRemaining, expiryDate, hardStopDate });
-      consoleMethod = notification.severity;
+      if (notification) {
+        consoleMessage = notification.message({ daysRemaining: lifecycle.daysRemaining, expiryDate, hardStopDate });
+        consoleMethod = notification.severity;
+      }
     }
 
     if (consoleMessage) {
@@ -573,7 +584,7 @@ function _injectTypedProductInfo(
   let domMessage = '';
 
   if (state === 'trial_expired') {
-    domMessage = typedDomMessages.trial_expired({});
+    domMessage = typedDomMessages.trial_expired();
   } else if (state === 'perp_expired') {
     domMessage = domMessages.expired({ keyValidityDate: expiryDate, hotVersion });
   } else if (state === 'invalid') {
