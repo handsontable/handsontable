@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { extractRunnerLinks, crossCheckManifest, planHeadlessChecks, parseArgs, deriveManifestBucket, formatTimestamp } from '../test-runner-links.mjs';
+import { extractRunnerLinks, crossCheckManifest, planHeadlessChecks, parseArgs, deriveManifestBucket, formatTimestamp, isIgnoredConsoleMessage, matchesExpectedContent, matchesSetupFailure, interactiveMarkerFor } from '../test-runner-links.mjs';
 
 test('extractRunnerLinks finds a plain-& href with a version', () => {
   const html = '<a href="https://demos.handsontable.com/?docs=guides/foo/example1.js&v=18.0.0">Open</a>';
@@ -177,4 +177,50 @@ test('deriveManifestBucket resolves "next" as-is and drops the patch segment fro
 
 test('deriveManifestBucket maps the staging/dev pre-release stamp to the "next" bucket', () => {
   assert.equal(deriveManifestBucket('0.0.0-next-64139ae-20260219'), 'next');
+});
+
+test('isIgnoredConsoleMessage filters benign infra noise on the first line', () => {
+  assert.equal(isIgnoredConsoleMessage('Failed to load resource: net::ERR_CONNECTION_TIMED_OUT @ https://col.csbops.io/data/sandpack'), true);
+  assert.equal(isIgnoredConsoleMessage('[vite] failed to connect to websocket.'), true);
+  assert.equal(isIgnoredConsoleMessage("WebSocket connection to 'wss://localhost:5173/' failed"), true);
+});
+
+test('isIgnoredConsoleMessage does NOT swallow a real error whose stack points at codesandbox.io', () => {
+  // A genuine SyntaxError/TypeError carries a multi-line stack with codesandbox.io frames;
+  // matching the whole string would hide the exact failures this sweep must catch.
+  const syntaxError = [
+    'SyntaxError: /index.js: Unexpected token (70:17)',
+    '    at J.raise (https://2-19-8-sandpack.codesandbox.io/static/js/babel.6.26.min.js:7:5751)',
+  ].join('\n');
+  const typeError = [
+    "TypeError: Cannot read properties of undefined (reading 'show')",
+    '    at eval (https://2-19-8-sandpack.codesandbox.io/src/App.tsx:145:36)',
+  ].join('\n');
+
+  assert.equal(isIgnoredConsoleMessage(syntaxError), false);
+  assert.equal(isIgnoredConsoleMessage(typeError), false);
+});
+
+test('matchesExpectedContent compares titles case-insensitively', () => {
+  const entry = { guideTitle: 'Cell functions', exampleTitle: 'Standard example' };
+
+  // Runner header title-cases the guide segment; the manifest stores sentence case.
+  assert.equal(matchesExpectedContent('Cell Functions · Standard example', entry), true);
+  assert.equal(matchesExpectedContent('Row hiding · Standard example', entry), false);
+});
+
+test('matchesSetupFailure detects the runner build-failure banner', () => {
+  assert.equal(matchesSetupFailure('Error: Setup failed'), true);
+  assert.equal(matchesSetupFailure('Cell Functions · Standard example'), false);
+});
+
+test('interactiveMarkerFor returns a marker for interactive examples and null otherwise', () => {
+  const marker = interactiveMarkerFor('recipes/import-export/import-csv-excel/javascript/example1.js');
+
+  assert.ok(marker instanceof RegExp);
+  assert.equal(marker.test('Load sample data'), true);
+  // Same interactive example, React variant.
+  assert.ok(interactiveMarkerFor('recipes/import-export/import-csv-excel/react/example1.tsx') instanceof RegExp);
+  // A normal grid-rendering example has no marker.
+  assert.equal(interactiveMarkerFor('guides/rows/row-hiding/javascript/example1.js'), null);
 });

@@ -4,14 +4,13 @@
 // Two phases:
 // 1. Static: walk the built dist/ HTML, extract every runner href, and cross-check
 //    each docs path against the runner's manifest.json. A path missing from the
-//    manifest is a guaranteed failure — the runner silently falls back to a
-//    generic starter project for unknown paths instead of erroring, so this is
-//    the only fast, deterministic way to catch that.
-// 2. Headless (skipped with --static-only): load each link in Chromium and
-//    confirm a Handsontable grid actually rendered. A rendered grid alone isn't
-//    proof of correctness — the fallback starter also renders a (different,
-//    generic) grid — so this also asserts the page displays the example's own
-//    guideTitle + exampleTitle from the manifest, which the fallback never does.
+//    manifest is a guaranteed failure — the runner has no such example and renders
+//    an "Example not found" page, so this is the fast, deterministic way to catch a
+//    dead runner link.
+// 2. Headless (skipped with --static-only): load each link in Chromium and confirm a
+//    Handsontable grid actually rendered, then assert the page displays the example's
+//    own guideTitle + exampleTitle from the manifest — a guard against the runner
+//    loading a different example than the link intended.
 //
 // Usage: node scripts/test-runner-links.mjs [options] — see --help for the full option list.
 
@@ -50,15 +49,52 @@ const HELP_TEXT = `Usage: node scripts/test-runner-links.mjs [options]
                            (default: <runner-origin>/docs-examples/<bucket>/manifest.json)
   --static-only           skip the headless phase — link extraction + manifest cross-check only
   --tier2-sample <N|all>  how many Vue/Angular links to headless-check per framework (default: 10)
-  --concurrency <N>       parallel Tier-1 pages, Tier-2 is capped at min(2, N) (default: 4)
+  --concurrency <N>       parallel Tier-1 pages; Tier-2 (vue/angular) always runs serially
+                           to avoid cloud-container contention, retrying transient
+                           failures once (default: 4)
   --filter <substring>    only check docs paths containing this substring
   --json <path>           report output path (default: ./tests/test-artifacts/runner-links/runner-sweep-report-<timestamp>.json)
   --help                  print this message and exit`;
 
 const TIER1_FRAMEWORKS = new Set(['javascript', 'typescript', 'react']);
 const TIER2_FRAMEWORKS = new Set(['vue', 'angular']);
-const TIER_TIMEOUTS_MS = { javascript: 60_000, typescript: 60_000, react: 60_000, vue: 120_000, angular: 240_000 };
+// Vue/Angular boot a full cloud dev-server (Vite) container; under concurrent load the
+// cold boot routinely runs past two minutes, so the caps are generous — a shorter cap
+// reports a slow-but-working example as a false "no-grid" failure.
+const TIER_TIMEOUTS_MS = { javascript: 60_000, typescript: 60_000, react: 60_000, vue: 240_000, angular: 240_000 };
 
+// A tier-2 cloud container sometimes fails to provision under load — a transient
+// no-grid/load-timeout rather than a broken example (the same link boots fine when
+// run alone). Retry these phases once before recording a failure. Tier-1 is excluded:
+// its sandboxes are cheap and reliable, and it has hundreds of links to re-run.
+const RETRYABLE_PHASES = new Set(['no-grid', 'load-timeout']);
+const TIER2_RETRIES = 1;
+
+// Some examples build their grid only after a user action (drop a file, click a
+// button), so no `.ht_master .htCore` exists at load and the plain grid check
+// reports a false no-grid. For these, the sweep instead asserts the example
+// rendered its own pre-interaction UI (a "ready marker"), which confirms it
+// loaded and is not the blank/failed sandbox. Keyed by docsPath substring.
+const INTERACTIVE_EXAMPLES = [
+  { match: 'import-export/import-csv-excel', marker: /Load sample data|No data loaded yet/i },
+];
+
+/**
+ * Returns the ready-marker regex for an interactive example, or null if the
+ * example is expected to render a grid on its own.
+ *
+ * @param {string} docsPath
+ * @returns {RegExp | null}
+ */
+export function interactiveMarkerFor(docsPath) {
+  return INTERACTIVE_EXAMPLES.find(entry => docsPath.includes(entry.match))?.marker ?? null;
+}
+
+// Benign console noise the runner/sandbox emit even on a healthy example: network churn
+// while Sandpack reboots its preview, and Vite HMR websocket chatter from the tier-2
+// dev-server containers. These are matched against the message's FIRST LINE only (see
+// isIgnoredConsoleMessage) so a genuine SyntaxError/TypeError — whose multi-line stack
+// happens to contain a codesandbox.io URL — is still captured rather than swallowed.
 const IGNORED_CONSOLE_PATTERNS = [
   /net::ERR_/i,
   /Failed to load resource/i,
@@ -68,6 +104,9 @@ const IGNORED_CONSOLE_PATTERNS = [
   /Outdated Optimize Dep/i,
   /csb\.app/i,
   /codesandbox\.io/i,
+  /WebSocket connection to/i,
+  /\[vite\]/i,
+  /@vite\/client/i,
 ];
 
 /**
@@ -183,8 +222,9 @@ export async function fetchManifest(manifestSource) {
 
 /**
  * Flags every extracted runner link whose docs path is absent from the
- * manifest — the deterministic, no-browser-needed catch for the silent
- * default-starter fallback (typo'd path, renamed guide, recipe path, etc.).
+ * manifest — the deterministic, no-browser-needed catch for a dead runner link
+ * (typo'd path, renamed guide, recipe path, etc.); the runner renders an
+ * "Example not found" page for an unknown docs path.
  *
  * @param {Map<string, { url: string, pages: string[] }>} links
  * @param {Map<string, object>} manifestByDocsPath
@@ -207,8 +247,36 @@ export function crossCheckManifest(links, manifestByDocsPath) {
   return { missing, reverseDiffCount };
 }
 
-function isIgnoredConsoleMessage(message) {
-  return IGNORED_CONSOLE_PATTERNS.some(pattern => pattern.test(message));
+/**
+ * Reports whether a console/page-error message is benign infrastructure noise.
+ *
+ * Only the FIRST LINE is matched: a real error (e.g. `SyntaxError: Unexpected
+ * token`) carries a multi-line stack whose frames point at codesandbox.io, and
+ * matching the whole string against the `/codesandbox\.io/i` pattern would
+ * silently swallow the very failures this sweep exists to catch. The first line
+ * of a genuine error is the error itself; the first line of infra noise is the
+ * noise ("Failed to load resource ...", "[vite] ...").
+ *
+ * @param {string} message
+ * @returns {boolean}
+ */
+export function isIgnoredConsoleMessage(message) {
+  const firstLine = String(message).split('\n', 1)[0];
+
+  return IGNORED_CONSOLE_PATTERNS.some(pattern => pattern.test(firstLine));
+}
+
+/**
+ * Reports whether page text shows the runner's terminal "Setup failed" banner.
+ * The sandbox renders it when the example fails to build/transpile (for
+ * example, syntax its compiler can't parse). It never recovers, so the sweep
+ * stops waiting and reports it immediately instead of burning the full timeout.
+ *
+ * @param {string} text
+ * @returns {boolean}
+ */
+export function matchesSetupFailure(text) {
+  return /setup failed/i.test(text);
 }
 
 /**
@@ -217,34 +285,80 @@ function isIgnoredConsoleMessage(message) {
  * deadline passes, or `shouldAbort` reports a fatal condition (e.g. a 404 on
  * a runner-origin resource) that makes waiting out the full timeout pointless.
  *
+ * The presence signal is the rendered master table (`.ht_master .htCore`), NOT a
+ * data cell: an intentionally empty example (empty-data-state, a "load data on
+ * click" demo, `data={[]}`) renders a valid grid with headers but zero `<td>`
+ * cells, and keying on a `<td>` reports those working examples as false "no-grid"
+ * failures. The runner renders no `.htCore` at all on its "Example not found" page,
+ * so table presence alone remains a reliable real-grid signal.
+ *
+ * Returns a status: 'grid' (rendered), 'interactive-ready' (no grid yet, but the
+ * example rendered its `readyMarker` pre-interaction UI), 'setup-failed' (runner
+ * build/transpile failure — terminal), 'aborted' (shouldAbort fired, e.g. a
+ * runner-origin 404), or 'timeout' (deadline reached with none of the above).
+ *
  * @param {import('@playwright/test').Page} page
  * @param {number} deadline - epoch ms
  * @param {() => boolean} [shouldAbort]
- * @returns {Promise<boolean>}
+ * @param {RegExp | null} [readyMarker] - for interactive examples, page text that counts as loaded
+ * @returns {Promise<'grid'|'interactive-ready'|'setup-failed'|'aborted'|'timeout'>}
  */
-async function waitForGrid(page, deadline, shouldAbort) {
+async function waitForGrid(page, deadline, shouldAbort, readyMarker = null) {
   while (Date.now() < deadline) {
-    if (shouldAbort?.()) return false;
+    if (shouldAbort?.()) return 'aborted';
 
     for (const frame of page.frames()) {
       const found = await frame
-        .evaluate(() => !!document.querySelector('.ht_master .htCore tbody tr td'))
+        .evaluate(() => !!document.querySelector('.ht_master .htCore'))
         .catch(() => false); // frames can detach mid-poll while Sandpack reboots its preview
 
-      if (found) return true;
+      if (found) return 'grid';
+
+      // A rendered grid always wins; for an interactive example that has none
+      // yet, its own pre-interaction UI (the ready marker) counts as loaded.
+      if (readyMarker) {
+        const frameText = await frame.evaluate(() => document.body?.innerText ?? '').catch(() => '');
+
+        if (readyMarker.test(frameText)) return 'interactive-ready';
+      }
     }
+
+    // No grid yet — if the runner has instead put up its terminal "Setup failed"
+    // banner the example can never render, so end the wait now rather than
+    // polling until the deadline.
+    const topText = await page.evaluate(() => document.body?.innerText ?? '').catch(() => '');
+
+    if (matchesSetupFailure(topText)) return 'setup-failed';
 
     await page.waitForTimeout(500);
   }
 
-  return false;
+  return 'timeout';
 }
 
 /**
- * Confirms the page displays this example's own title, not the generic
- * fallback starter's. The runner header renders "<guideTitle> · <exampleTitle>"
- * for a manifest hit; an unknown docs path shows a generic starter name
- * instead (e.g. "React (Vite, TS)") with neither string present.
+ * Tests whether page text contains both of an example's manifest titles.
+ *
+ * The comparison is case-insensitive: the runner header title-cases the guide
+ * segment ("Cell Functions"), while the manifest stores it in sentence case
+ * ("Cell functions"), and a case-sensitive check reported that mismatch as a
+ * false "wrong-content" failure.
+ *
+ * @param {string} text
+ * @param {object} manifestEntry
+ * @returns {boolean}
+ */
+export function matchesExpectedContent(text, manifestEntry) {
+  const haystack = text.toLowerCase();
+
+  return haystack.includes(String(manifestEntry.guideTitle).toLowerCase())
+    && haystack.includes(String(manifestEntry.exampleTitle).toLowerCase());
+}
+
+/**
+ * Confirms the runner header displays this example's own "<guideTitle> ·
+ * <exampleTitle>", guarding against the runner loading a different example than
+ * the link intended.
  *
  * @param {import('@playwright/test').Page} page
  * @param {object} manifestEntry
@@ -253,7 +367,7 @@ async function waitForGrid(page, deadline, shouldAbort) {
 async function hasExpectedContent(page, manifestEntry) {
   const text = await page.evaluate(() => document.body.innerText).catch(() => '');
 
-  return text.includes(manifestEntry.guideTitle) && text.includes(manifestEntry.exampleTitle);
+  return matchesExpectedContent(text, manifestEntry);
 }
 
 /**
@@ -317,9 +431,15 @@ async function verifyLink(browser, docsPath, link, manifestEntry, progress) {
       return finish({ docsPath, url: link.url, framework: manifestEntry.framework, phase: 'http-error', reason: `runner page responded with HTTP ${mainResponse.status()}`, pages: link.pages, consoleWarnings });
     }
 
-    const gridFound = await waitForGrid(page, deadline, () => notFoundUrls.length > 0);
+    const gridState = await waitForGrid(page, deadline, () => notFoundUrls.length > 0, interactiveMarkerFor(docsPath));
 
-    if (!gridFound) {
+    if (gridState !== 'grid' && gridState !== 'interactive-ready') {
+      // The runner's "Setup failed" banner is a terminal build/transpile error —
+      // report it precisely (and fast; the wait ended as soon as it appeared).
+      if (gridState === 'setup-failed') {
+        return finish({ docsPath, url: link.url, framework: manifestEntry.framework, phase: 'setup-failed', reason: 'runner reported "Setup failed" — the example sandbox failed to build (often unsupported JS syntax)', pages: link.pages, consoleWarnings });
+      }
+
       // A runner-origin 404 is the more precise diagnosis than "no grid" —
       // and it's what aborted the wait early in the first place.
       if (notFoundUrls.length > 0) {
@@ -332,7 +452,7 @@ async function verifyLink(browser, docsPath, link, manifestEntry, progress) {
     const contentOk = await hasExpectedContent(page, manifestEntry);
 
     if (!contentOk) {
-      return finish({ docsPath, url: link.url, framework: manifestEntry.framework, phase: 'wrong-content', reason: `page does not display "${manifestEntry.guideTitle}" / "${manifestEntry.exampleTitle}" — likely the default fallback starter`, pages: link.pages, consoleWarnings });
+      return finish({ docsPath, url: link.url, framework: manifestEntry.framework, phase: 'wrong-content', reason: `page does not display "${manifestEntry.guideTitle}" / "${manifestEntry.exampleTitle}" — the runner rendered a different example than the link intended`, pages: link.pages, consoleWarnings });
     }
 
     return finish(null);
@@ -447,6 +567,29 @@ export function parseArgs(argv) {
   return args;
 }
 
+/**
+ * Runs verifyLink, retrying up to `retries` times while the result is a
+ * retryable transient (a tier-2 container that failed to provision under load).
+ * verifyLink logs its own start/finish line per attempt, so a retry is visible
+ * in the output as a repeated load of the same docs path.
+ *
+ * @param {import('@playwright/test').Browser} browser
+ * @param {{ docsPath: string, manifestEntry: object }} item
+ * @param {{ label: string, index: number, total: number }} progress
+ * @param {number} retries
+ * @returns {Promise<object|null>} failure record, or null on success
+ */
+async function verifyWithRetry(browser, item, progress, retries) {
+  let result = await verifyLink(browser, item.docsPath, item, item.manifestEntry, progress);
+
+  for (let attempt = 1; attempt <= retries && result && RETRYABLE_PHASES.has(result.phase); attempt++) {
+    console.log(`[${progress.label} ${progress.index}/${progress.total}] retrying ${item.docsPath} after ${result.phase} (attempt ${attempt + 1})...`);
+    result = await verifyLink(browser, item.docsPath, item, item.manifestEntry, progress);
+  }
+
+  return result;
+}
+
 async function main(argv) {
   const args = parseArgs(argv);
 
@@ -474,7 +617,7 @@ async function main(argv) {
 
   console.log(`Manifest cross-check: ${missing.length} missing, ${reverseDiffCount} manifest-only path(s) (expected, informational).`);
 
-  const failures = missing.map(m => ({ ...m, phase: 'manifest', reason: 'docs path is not in the runner manifest — would silently render the default fallback starter', framework: null, consoleWarnings: [] }));
+  const failures = missing.map(m => ({ ...m, phase: 'manifest', reason: 'docs path is not in the runner manifest — the runner renders an "Example not found" page (dead link)', framework: null, consoleWarnings: [] }));
 
   const matched = [...links].filter(([docsPath]) => manifestByDocsPath.has(docsPath)).map(([docsPath, link]) => ({ docsPath, ...link }));
   let loaded = 0;
@@ -491,14 +634,17 @@ async function main(argv) {
     try {
       const tier1Items = toCheck.filter(item => TIER1_FRAMEWORKS.has(item.manifestEntry.framework));
       const tier2Items = toCheck.filter(item => TIER2_FRAMEWORKS.has(item.manifestEntry.framework));
-      const tier2Concurrency = Math.min(2, args.concurrency);
+      // Tier-2 runs serially (concurrency 1) AND only after tier-1 finishes, not
+      // overlapped with it. A Vue/Angular cloud dev-server container needs ~1 min
+      // to boot; running two at once, or alongside the tier-1 page pool, starves
+      // that boot past the timeout and produces false no-grid failures. The same
+      // links boot fine in isolation, so tier-2 is given the machine to itself.
+      const tier2Concurrency = 1;
 
-      console.log(`Checking ${tier1Items.length} Tier-1 link(s) (concurrency ${args.concurrency}) and ${tier2Items.length} Tier-2 link(s) (concurrency ${tier2Concurrency})...`);
+      console.log(`Checking ${tier1Items.length} Tier-1 link(s) (concurrency ${args.concurrency}), then ${tier2Items.length} Tier-2 link(s) (serial, isolated, retry ${TIER2_RETRIES}x on transient failures)...`);
 
-      const [tier1Results, tier2Results] = await Promise.all([
-        runPool(tier1Items, args.concurrency, (item, i) => verifyLink(browser, item.docsPath, item, item.manifestEntry, { label: 'tier1', index: i + 1, total: tier1Items.length })),
-        runPool(tier2Items, tier2Concurrency, (item, i) => verifyLink(browser, item.docsPath, item, item.manifestEntry, { label: 'tier2', index: i + 1, total: tier2Items.length })),
-      ]);
+      const tier1Results = await runPool(tier1Items, args.concurrency, (item, i) => verifyLink(browser, item.docsPath, item, item.manifestEntry, { label: 'tier1', index: i + 1, total: tier1Items.length }));
+      const tier2Results = await runPool(tier2Items, tier2Concurrency, (item, i) => verifyWithRetry(browser, item, { label: 'tier2', index: i + 1, total: tier2Items.length }, TIER2_RETRIES));
 
       loaded = tier1Items.length + tier2Items.length;
       failures.push(...[...tier1Results, ...tier2Results].filter(Boolean));
@@ -527,7 +673,9 @@ async function main(argv) {
   await writeFile(args.json, JSON.stringify(report, null, 2));
 
   if (failures.length > 0) {
-    console.table(failures.map(f => ({ docsPath: f.docsPath, phase: f.phase, reason: f.reason })));
+    // `url` is the runner sandbox link — printed so a failure can be opened and
+    // eyeballed straight from the table without cross-referencing the JSON report.
+    console.table(failures.map(f => ({ docsPath: f.docsPath, phase: f.phase, url: f.url, reason: f.reason })));
   }
 
   console.log(`Report written to ${args.json}. ${report.totals.failed} failure(s).`);
