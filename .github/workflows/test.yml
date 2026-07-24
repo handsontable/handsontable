@@ -201,3 +201,50 @@ jobs:
       run-angular: ${{ needs.checks.outputs.docs-angular == 'true' }}
       is-pr: ${{ github.event_name == 'pull_request' }}
     secrets: inherit
+
+  # ── Single merge gate ──────────────────────────────────────────────────────
+  # THE one status check to pin in branch protection. Every other job here is
+  # conditional (scope-gated) or matrix-expanded, so pinning individual names is
+  # fragile: a scope-skipped matrix job never emits its per-leg check runs, which
+  # then sit as "Expected — waiting for status to be reported" and block the PR
+  # forever. This job instead ALWAYS runs (so it always reports one stable name)
+  # and derives a single verdict from every other job's result: it fails if any
+  # job that actually ran failed or was cancelled, and passes when everything
+  # else succeeded or was legitimately scope-skipped. Branch protection should
+  # require ONLY "CI Gate" and unpin every individual/matrix check name.
+  ci-gate:
+    name: CI Gate
+    if: ${{ always() }}
+    needs:
+      - checks
+      - manual-qa
+      - lint
+      - code-quality
+      - unit
+      - types
+      - build
+      - walkontable
+      - e2e
+      - integration
+      - emitted-types
+      - performance
+      - visual
+      - docs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify every pipeline job passed or was scope-skipped
+        run: |
+          results="${{ join(needs.*.result, ',') }}"
+          echo "Upstream job results: $results"
+          failed=0
+          IFS=',' read -ra arr <<< "$results"
+          for r in "${arr[@]}"; do
+            case "$r" in
+              success|skipped) ;;
+              *) echo "::error::Pipeline job result '$r' — merge blocked."; failed=1 ;;
+            esac
+          done
+          if [ "$failed" -ne 0 ]; then
+            exit 1
+          fi
+          echo "All pipeline jobs passed or were legitimately scope-skipped."
