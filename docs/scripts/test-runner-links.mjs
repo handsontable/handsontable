@@ -499,6 +499,11 @@ async function verifyLink(browser, docsPath, link, manifestEntry, progress) {
 
     return finish(null);
   } finally {
+    // Navigating away fires pagehide, which makes the runner app tear down its
+    // Tier-2 container session (DELETE /api/session/:id, keepalive fetch) —
+    // page.close() alone does not reliably fire pagehide, and a leaked session
+    // squats one of the 5 prod container slots until the idle timeout.
+    await page.goto('about:blank', { timeout: 5000 }).catch(() => {});
     await page.close();
   }
 }
@@ -726,6 +731,9 @@ async function main(argv) {
       loaded = tier1Items.length + tier2Items.length;
       failures.push(...[...tier1Results, ...tier2Results].filter(Boolean));
     } finally {
+      // Give the last page's keepalive DELETE a moment to leave the wire before
+      // the browser process is torn down.
+      await new Promise(r => setTimeout(r, 1000));
       await browser.close();
     }
   }
