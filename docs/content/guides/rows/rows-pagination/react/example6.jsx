@@ -1,3 +1,4 @@
+import Handsontable from 'handsontable/base';
 import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 
