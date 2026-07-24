@@ -678,6 +678,16 @@ async function main(argv) {
     console.table(failures.map(f => ({ docsPath: f.docsPath, phase: f.phase, url: f.url, reason: f.reason })));
   }
 
+  // A pass/fail tally so a run's outcome is legible without scrolling the log or
+  // opening the JSON report — the failure table only ever shows the failures.
+  const headlessFailed = failures.filter(f => f.phase !== 'manifest').length;
+
+  console.log('Summary:');
+  console.log(`  Runner links found:   ${report.totals.extracted}`);
+  console.log(`  Manifest cross-check: ${report.totals.extracted - report.totals.manifestMissing} present, ${report.totals.manifestMissing} missing`);
+  console.log(`  Headless render:      ${report.totals.passed} passed, ${headlessFailed} failed (of ${loaded} checked)${droppedTier2 ? `, ${droppedTier2} tier-2 skipped` : ''}`);
+  console.log(`  Total failures:       ${report.totals.failed}`);
+
   console.log(`Report written to ${args.json}. ${report.totals.failed} failure(s).`);
 
   return report;
