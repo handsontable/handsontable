@@ -12,6 +12,12 @@
 //    own guideTitle + exampleTitle from the manifest — a guard against the runner
 //    loading a different example than the link intended.
 //
+// Run this AFTER building the docs: it scans the built HTML under --dist (default
+// ./dist) and fails loudly if that directory is absent. The build stamps the
+// Handsontable version into every runner link, and the sweep auto-detects that
+// version to pick the matching manifest bucket — so no --version flag is needed for
+// a normal run.
+//
 // Usage: node scripts/test-runner-links.mjs [options] — see --help for the full option list.
 
 import { readdir, readFile, mkdir, writeFile } from 'node:fs/promises';
@@ -40,21 +46,31 @@ export function formatTimestamp(date) {
 
 const HELP_TEXT = `Usage: node scripts/test-runner-links.mjs [options]
 
-  --dist <dir>            built-HTML dir to scan (default: ./dist)
-  --runner-origin <url>   runner origin (default: https://demos.handsontable.com)
-  --version <ver>         Handsontable version the dist was built with — resolves to a
-                           docs-examples bucket ("next", or "X.Y"/"X.Y.Z" -> "X.Y")
-                           (default: next — matches local/staging builds)
-  --manifest <url|path>   manifest override, bypasses --version bucket derivation
-                           (default: <runner-origin>/docs-examples/<bucket>/manifest.json)
-  --static-only           skip the headless phase — link extraction + manifest cross-check only
-  --tier2-sample <N|all>  how many Vue/Angular links to headless-check per framework (default: 10)
-  --concurrency <N>       parallel Tier-1 pages; Tier-2 (vue/angular) always runs serially
-                           to avoid cloud-container contention, retrying transient
-                           failures once (default: 4)
-  --filter <substring>    only check docs paths containing this substring
-  --json <path>           report output path (default: ./tests/test-artifacts/runner-links/runner-sweep-report-<timestamp>.json)
-  --help                  print this message and exit`;
+  Run after building the docs — the sweep scans the built HTML under --dist.
+
+  --dist <dir>              built-HTML dir to scan (default: ./dist)
+  --runner-origin <url>     runner origin (default: https://demos.handsontable.com)
+  --version <ver>           OVERRIDE the manifest bucket. Normally unneeded: the sweep
+                             auto-detects the version the docs were built with from the
+                             runner links themselves. Pass this only to force a bucket
+                             ("next", or "X.Y"/"X.Y.Z" -> "X.Y"), e.g. when the links
+                             carry no version. Does NOT affect the docs build.
+  --static-only             skip ALL headless rendering (Tier-1 and Tier-2) — do only link
+                             extraction + manifest cross-check. Never launches a browser, so
+                             it runs even without Playwright's Chromium installed.
+  --tier1-sample <N|all>    how many JS/TS/React links to headless-check per framework;
+                             0 skips Tier-1 entirely (default: all)
+  --tier2-sample <N|all>    how many Vue/Angular links to headless-check per framework;
+                             0 skips Tier-2 entirely (default: 10)
+  --tier1-concurrency <N>   parallel Tier-1 pages. Does NOT affect Tier-2, which always
+                             runs serially to avoid cloud-container contention (default: 4)
+  --tier1-retries <N>       retry a transient Tier-1 failure (no-grid/load-timeout) up to
+                             N times (default: 0 — Tier-1 sandboxes are cheap and reliable)
+  --tier2-retries <N>       retry a transient Tier-2 failure up to N times (default: 1 —
+                             a cloud container sometimes fails to provision under load)
+  --filter <substring>      only check docs paths containing this substring
+  --json <path>             report output path (default: ./tests/test-artifacts/runner-links/runner-sweep-report-<timestamp>.json)
+  --help                    print this message and exit`;
 
 const TIER1_FRAMEWORKS = new Set(['javascript', 'typescript', 'react']);
 const TIER2_FRAMEWORKS = new Set(['vue', 'angular']);
@@ -65,10 +81,11 @@ const TIER_TIMEOUTS_MS = { javascript: 60_000, typescript: 60_000, react: 60_000
 
 // A tier-2 cloud container sometimes fails to provision under load — a transient
 // no-grid/load-timeout rather than a broken example (the same link boots fine when
-// run alone). Retry these phases once before recording a failure. Tier-1 is excluded:
-// its sandboxes are cheap and reliable, and it has hundreds of links to re-run.
+// run alone). Only these phases are retried; a `setup-failed` (build/transpile error)
+// is deterministic and never retried. How many times each tier retries is set per run
+// via --tier1-retries / --tier2-retries (tier-1 defaults to 0 — its sandboxes are cheap
+// and reliable and it has hundreds of links; tier-2 defaults to 1).
 const RETRYABLE_PHASES = new Set(['no-grid', 'load-timeout']);
-const TIER2_RETRIES = 1;
 
 // Some examples build their grid only after a user action (drop a file, click a
 // button), so no `.ht_master .htCore` exists at load and the plain grid check
@@ -187,6 +204,31 @@ export function deriveManifestBucket(version) {
   const match = String(version).match(/^(\d+)\.(\d+)/);
 
   return match ? `${match[1]}.${match[2]}` : version;
+}
+
+/**
+ * Resolves which manifest to cross-check against. The version is taken from,
+ * in priority order: an explicit --version override, the version the docs build
+ * stamped into the runner links (framework-loader emits `v=<CURRENT_DOCS_VERSION>`
+ * on every link — see docs/src/plugins/framework-loader.mjs), or the literal
+ * "next" when links carry no version at all. The manifest URL is always derived
+ * from the runner origin and the version's bucket — there is no separate manifest
+ * flag to keep in sync.
+ *
+ * @param {{ explicitVersion: string | null, runnerOrigin: string, links: Map<string, { version: string | null }> }} params
+ * @returns {{ version: string, bucket: string, source: string, url: string }}
+ */
+export function resolveManifestSource({ explicitVersion, runnerOrigin, links }) {
+  const versionFromLinks = [...links.values()].find(link => link.version)?.version ?? null;
+  const version = explicitVersion ?? versionFromLinks ?? 'next';
+  const source = explicitVersion
+    ? 'from --version override'
+    : versionFromLinks
+      ? 'auto-detected from links'
+      : 'default "next" (links carry no version)';
+  const bucket = deriveManifestBucket(version);
+
+  return { version, bucket, source, url: `${runnerOrigin}/docs-examples/${bucket}/manifest.json` };
 }
 
 /**
@@ -488,44 +530,64 @@ async function runPool(items, limit, worker) {
 }
 
 /**
- * Splits manifest-matched links into Tier-1 (checked exhaustively) and a
- * deterministic per-framework sample of Tier-2 (slow cloud-container boots).
+ * Deterministically samples per-framework buckets down to `sample` links each.
+ * `'all'` keeps every link; `0` drops every link (skips the whole group); a
+ * positive N keeps the first N per framework after a stable docsPath sort.
+ *
+ * @param {Map<string, object[]>} byFramework
+ * @param {number | 'all'} sample
+ * @returns {{ kept: object[], dropped: number }}
+ */
+function sampleByFramework(byFramework, sample) {
+  let dropped = 0;
+  const kept = [];
+
+  for (const bucket of byFramework.values()) {
+    bucket.sort((a, b) => a.docsPath.localeCompare(b.docsPath));
+
+    const sampled = sample === 'all' ? bucket : bucket.slice(0, sample);
+
+    dropped += bucket.length - sampled.length;
+    kept.push(...sampled);
+  }
+
+  return { kept, dropped };
+}
+
+/**
+ * Splits manifest-matched links into a deterministic per-framework sample of
+ * Tier-1 (fast JS/TS/React sandboxes) and Tier-2 (slow Vue/Angular cloud-container
+ * boots). Each tier samples independently: `'all'` checks every link, `0` skips the
+ * tier entirely, and a positive N keeps the first N links per framework.
  *
  * @param {{ docsPath: string, url: string, pages: string[] }[]} matched
  * @param {Map<string, object>} manifestByDocsPath
+ * @param {number | 'all'} tier1Sample
  * @param {number | 'all'} tier2Sample
- * @returns {{ toCheck: object[], droppedTier2: number }}
+ * @returns {{ toCheck: object[], droppedTier1: number, droppedTier2: number }}
  */
-export function planHeadlessChecks(matched, manifestByDocsPath, tier2Sample) {
-  const tier1 = [];
+export function planHeadlessChecks(matched, manifestByDocsPath, tier1Sample, tier2Sample) {
+  const tier1ByFramework = new Map();
   const tier2ByFramework = new Map();
 
   for (const item of matched) {
     const manifestEntry = manifestByDocsPath.get(item.docsPath);
+    const target = TIER1_FRAMEWORKS.has(manifestEntry.framework) ? tier1ByFramework
+      : TIER2_FRAMEWORKS.has(manifestEntry.framework) ? tier2ByFramework
+        : null;
 
-    if (TIER1_FRAMEWORKS.has(manifestEntry.framework)) {
-      tier1.push({ ...item, manifestEntry });
-    } else if (TIER2_FRAMEWORKS.has(manifestEntry.framework)) {
-      const bucket = tier2ByFramework.get(manifestEntry.framework) ?? [];
+    if (!target) continue;
 
-      bucket.push({ ...item, manifestEntry });
-      tier2ByFramework.set(manifestEntry.framework, bucket);
-    }
+    const bucket = target.get(manifestEntry.framework) ?? [];
+
+    bucket.push({ ...item, manifestEntry });
+    target.set(manifestEntry.framework, bucket);
   }
 
-  let droppedTier2 = 0;
-  const tier2 = [];
+  const tier1 = sampleByFramework(tier1ByFramework, tier1Sample);
+  const tier2 = sampleByFramework(tier2ByFramework, tier2Sample);
 
-  for (const bucket of tier2ByFramework.values()) {
-    bucket.sort((a, b) => a.docsPath.localeCompare(b.docsPath));
-
-    const sampled = tier2Sample === 'all' ? bucket : bucket.slice(0, tier2Sample);
-
-    droppedTier2 += bucket.length - sampled.length;
-    tier2.push(...sampled);
-  }
-
-  return { toCheck: [...tier1, ...tier2], droppedTier2 };
+  return { toCheck: [...tier1.kept, ...tier2.kept], droppedTier1: tier1.dropped, droppedTier2: tier2.dropped };
 }
 
 /**
@@ -536,11 +598,15 @@ export function parseArgs(argv) {
   const args = {
     dist: './dist',
     runnerOrigin: 'https://demos.handsontable.com',
-    version: 'next',
-    manifest: null,
+    // null = no override; the manifest bucket is auto-detected from the links
+    // (resolveManifestSource). An explicit --version forces the bucket instead.
+    version: null,
     staticOnly: false,
+    tier1Sample: 'all',
     tier2Sample: 10,
-    concurrency: 4,
+    tier1Concurrency: 4,
+    tier1Retries: 0,
+    tier2Retries: 1,
     filter: null,
     json: `./tests/test-artifacts/runner-links/runner-sweep-report-${formatTimestamp(new Date())}.json`,
     help: false,
@@ -553,25 +619,27 @@ export function parseArgs(argv) {
     if (arg === '--dist') args.dist = next();
     else if (arg === '--runner-origin') args.runnerOrigin = next();
     else if (arg === '--version') args.version = next();
-    else if (arg === '--manifest') args.manifest = next();
     else if (arg === '--static-only') args.staticOnly = true;
+    else if (arg === '--tier1-sample') { const v = next(); args.tier1Sample = v === 'all' ? 'all' : Number(v); }
     else if (arg === '--tier2-sample') { const v = next(); args.tier2Sample = v === 'all' ? 'all' : Number(v); }
-    else if (arg === '--concurrency') args.concurrency = Number(next());
+    else if (arg === '--tier1-concurrency') args.tier1Concurrency = Number(next());
+    else if (arg === '--tier1-retries') args.tier1Retries = Number(next());
+    else if (arg === '--tier2-retries') args.tier2Retries = Number(next());
     else if (arg === '--filter') args.filter = next();
     else if (arg === '--json') args.json = next();
     else if (arg === '--help' || arg === '-h') args.help = true;
   }
-
-  if (!args.manifest) args.manifest = `${args.runnerOrigin}/docs-examples/${deriveManifestBucket(args.version)}/manifest.json`;
 
   return args;
 }
 
 /**
  * Runs verifyLink, retrying up to `retries` times while the result is a
- * retryable transient (a tier-2 container that failed to provision under load).
- * verifyLink logs its own start/finish line per attempt, so a retry is visible
- * in the output as a repeated load of the same docs path.
+ * retryable transient (a no-grid/load-timeout — e.g. a cloud container that
+ * failed to provision under load). Used by both tiers; `retries` is 0 for
+ * tier-1 by default (single attempt) and 1 for tier-2. verifyLink logs its own
+ * start/finish line per attempt, so a retry is visible in the output as a
+ * repeated load of the same docs path.
  *
  * @param {import('@playwright/test').Browser} browser
  * @param {{ docsPath: string, manifestEntry: object }} item
@@ -600,7 +668,7 @@ async function main(argv) {
   }
 
   console.log(
-    `Settings: dist=${args.dist} version=${args.version} static-only=${args.staticOnly} tier2-sample=${args.tier2Sample} concurrency=${args.concurrency}${args.filter ? ` filter="${args.filter}"` : ''} (run with --help to see all options)`
+    `Settings: dist=${args.dist} static-only=${args.staticOnly} tier1-sample=${args.tier1Sample} tier2-sample=${args.tier2Sample} tier1-concurrency=${args.tier1Concurrency} tier1-retries=${args.tier1Retries} tier2-retries=${args.tier2Retries}${args.filter ? ` filter="${args.filter}"` : ''} (run with --help to see all options)`
   );
 
   console.log(`Walking ${args.dist} for runner links...`);
@@ -611,8 +679,13 @@ async function main(argv) {
 
   console.log(`Found ${links.size} distinct runner link(s)${args.filter ? ` matching "${args.filter}"` : ''} (${allLinks.size} total).`);
 
-  console.log(`Fetching manifest from ${args.manifest}...`);
-  const manifestByDocsPath = await fetchManifest(args.manifest);
+  // Detect the version from the links the build stamped, so the manifest bucket
+  // matches the dist under test without a hand-passed --version.
+  const manifest = resolveManifestSource({ explicitVersion: args.version, runnerOrigin: args.runnerOrigin, links: allLinks });
+
+  console.log(`Version: ${manifest.version} (${manifest.source}) -> bucket ${manifest.bucket}`);
+  console.log(`Fetching manifest from ${manifest.url}...`);
+  const manifestByDocsPath = await fetchManifest(manifest.url);
   const { missing, reverseDiffCount } = crossCheckManifest(links, manifestByDocsPath);
 
   console.log(`Manifest cross-check: ${missing.length} missing, ${reverseDiffCount} manifest-only path(s) (expected, informational).`);
@@ -621,13 +694,17 @@ async function main(argv) {
 
   const matched = [...links].filter(([docsPath]) => manifestByDocsPath.has(docsPath)).map(([docsPath, link]) => ({ docsPath, ...link }));
   let loaded = 0;
+  let droppedTier1 = 0;
   let droppedTier2 = 0;
 
   if (!args.staticOnly) {
-    const { toCheck, droppedTier2: dropped } = planHeadlessChecks(matched, manifestByDocsPath, args.tier2Sample);
+    const plan = planHeadlessChecks(matched, manifestByDocsPath, args.tier1Sample, args.tier2Sample);
+    const { toCheck } = plan;
 
-    droppedTier2 = dropped;
-    if (droppedTier2 > 0) console.log(`Sampling Tier-2 (vue/angular): checking ${toCheck.length}, skipping ${droppedTier2} (use --tier2-sample all to check every one).`);
+    droppedTier1 = plan.droppedTier1;
+    droppedTier2 = plan.droppedTier2;
+    if (droppedTier1 > 0) console.log(`Sampling Tier-1 (js/ts/react): skipping ${droppedTier1} (use --tier1-sample all to check every one).`);
+    if (droppedTier2 > 0) console.log(`Sampling Tier-2 (vue/angular): skipping ${droppedTier2} (use --tier2-sample all to check every one).`);
 
     const browser = await chromium.launch({ headless: true });
 
@@ -641,10 +718,10 @@ async function main(argv) {
       // links boot fine in isolation, so tier-2 is given the machine to itself.
       const tier2Concurrency = 1;
 
-      console.log(`Checking ${tier1Items.length} Tier-1 link(s) (concurrency ${args.concurrency}), then ${tier2Items.length} Tier-2 link(s) (serial, isolated, retry ${TIER2_RETRIES}x on transient failures)...`);
+      console.log(`Checking ${tier1Items.length} Tier-1 link(s) (concurrency ${args.tier1Concurrency}, retry ${args.tier1Retries}x), then ${tier2Items.length} Tier-2 link(s) (serial, isolated, retry ${args.tier2Retries}x)...`);
 
-      const tier1Results = await runPool(tier1Items, args.concurrency, (item, i) => verifyLink(browser, item.docsPath, item, item.manifestEntry, { label: 'tier1', index: i + 1, total: tier1Items.length }));
-      const tier2Results = await runPool(tier2Items, tier2Concurrency, (item, i) => verifyWithRetry(browser, item, { label: 'tier2', index: i + 1, total: tier2Items.length }, TIER2_RETRIES));
+      const tier1Results = await runPool(tier1Items, args.tier1Concurrency, (item, i) => verifyWithRetry(browser, item, { label: 'tier1', index: i + 1, total: tier1Items.length }, args.tier1Retries));
+      const tier2Results = await runPool(tier2Items, tier2Concurrency, (item, i) => verifyWithRetry(browser, item, { label: 'tier2', index: i + 1, total: tier2Items.length }, args.tier2Retries));
 
       loaded = tier1Items.length + tier2Items.length;
       failures.push(...[...tier1Results, ...tier2Results].filter(Boolean));
@@ -656,6 +733,8 @@ async function main(argv) {
   const report = {
     generatedAt: new Date().toISOString(),
     runnerOrigin: args.runnerOrigin,
+    version: manifest.version,
+    manifestUrl: manifest.url,
     distDir: args.dist,
     totals: {
       extracted: links.size,
@@ -663,7 +742,7 @@ async function main(argv) {
       loaded,
       passed: loaded - failures.filter(f => f.phase !== 'manifest').length,
       failed: failures.length,
-      tier2Sampled: args.staticOnly ? 0 : loaded,
+      tier1Dropped: droppedTier1,
       tier2Dropped: droppedTier2,
     },
     failures,
@@ -685,7 +764,9 @@ async function main(argv) {
   console.log('Summary:');
   console.log(`  Runner links found:   ${report.totals.extracted}`);
   console.log(`  Manifest cross-check: ${report.totals.extracted - report.totals.manifestMissing} present, ${report.totals.manifestMissing} missing`);
-  console.log(`  Headless render:      ${report.totals.passed} passed, ${headlessFailed} failed (of ${loaded} checked)${droppedTier2 ? `, ${droppedTier2} tier-2 skipped` : ''}`);
+  const skipped = [droppedTier1 ? `${droppedTier1} tier-1` : null, droppedTier2 ? `${droppedTier2} tier-2` : null].filter(Boolean).join(', ');
+
+  console.log(`  Headless render:      ${report.totals.passed} passed, ${headlessFailed} failed (of ${loaded} checked)${skipped ? `, ${skipped} skipped` : ''}`);
   console.log(`  Total failures:       ${report.totals.failed}`);
 
   console.log(`Report written to ${args.json}. ${report.totals.failed} failure(s).`);
