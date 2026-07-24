@@ -34,6 +34,7 @@ Explore Handsontable core features in this interactive demo. Click cells, sort c
 @[code](@/content/guides/getting-started/demo/react/example2.html)
 @[code](@/content/guides/getting-started/demo/react/example2.css)
 @[code](@/content/guides/getting-started/demo/react/example2.jsx)
+@[code](@/content/guides/getting-started/demo/react/example2.tsx)
 :::
 :::
 
