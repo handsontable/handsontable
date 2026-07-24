@@ -1,5 +1,8 @@
 name: Publish
 
+# The `experimental` pre-release does NOT live here anymore: it is the final
+# job of the develop pipeline (develop.yml → publish-experimental), where npm's
+# trusted publisher is now pinned. This workflow is rc/stable-only.
 on:
   workflow_dispatch:
   push:
@@ -7,10 +10,6 @@ on:
       - 'release/**' # Must match RELEASE_BRANCH_PREFIX
   release:
     types: [created]
-  workflow_run:
-    workflows: ['Tests']
-    types: [completed]
-    branches: [develop]
 
 env:
   RELEASE_BRANCH_PREFIX: 'release/'
@@ -24,49 +23,6 @@ permissions:
   actions: read
 
 jobs:
-  # ============================================================
-  # Scenario A — Pre-release (workflow_dispatch from non-release branch or automatically ran on develop after testing)
-  # ============================================================
-  pre-release:
-    name: Build and publish a pre-release
-    runs-on: ubuntu-latest
-    if: |
-      (github.event_name == 'workflow_dispatch' &&
-        !startsWith(github.ref_name, 'release/') &&
-        !startsWith(github.ref_name, 'lts/')) ||
-      (github.event_name == 'workflow_run' &&
-        github.event.workflow_run.conclusion == 'success')
-    steps:
-      - name: Determine branch
-        id: branch
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_run" ]; then
-            echo "ref=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
-          else
-            echo "ref=${{ github.ref_name }}" >> $GITHUB_OUTPUT
-          fi
-
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
-        with:
-          ref: ${{ steps.branch.outputs.ref }}
-
-      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
-        name: Install pnpm
-
-      - name: Use Node.js
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-          registry-url: https://registry.npmjs.org/
-
-      - run: |
-          pnpm install
-          npm install -g npm@11.6 # Ensure npm 11.5.1 or later for trusted publishing
-
-      - name: Publish pre-release
-        run: npm run pre-release
-
   # ============================================================
   # Scenario B — First RC (release event with prerelease flag)
   # ============================================================

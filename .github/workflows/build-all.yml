@@ -1,15 +1,21 @@
 name: Build every package in different environments.
 
+# Multi-OS/env build sanity (ubuntu, macos, windows). On develop this runs as a
+# stage of the develop pipeline (workflow_call from develop.yml); master and
+# release/** keep the direct push trigger below.
 on:
   push:
     branches:
       - 'master'
-      - 'develop'
       - 'release/**'
   workflow_dispatch:
+  workflow_call:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Static prefix, NOT ${{ github.workflow }} — when called from develop.yml the
+  # workflow name resolves to the CALLER's, which could collide with the caller's
+  # own concurrency group and cancel/deadlock the run.
+  group: build-all-${{ github.ref }}
   cancel-in-progress: true
 
 env:

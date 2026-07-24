@@ -202,6 +202,7 @@ Follows [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format. Changel
 - The Angular wrapper tests use `NODE_OPTIONS=--openssl-legacy-provider`; this is wired into the `test` script.
 - `pnpm-workspace.yaml` has `ignoredBuiltDependencies` and `onlyBuiltDependencies` lists. If pnpm warns about ignored build scripts (e.g., `less`), this is expected.
 - Root-level `npm run lint` and `npm run test` use a custom `translate-to-native-npm.mjs` script to fan out across all workspace packages.
+- CI orchestrators are per-stage: `test.yml` = PRs (+ master push + the rc/stable `workflow_call`), `develop.yml` = the develop push (same reusable modules + trunk-only stages, ending in the `experimental` npm publish). npm's trusted publisher (OIDC) is **pinned to `develop.yml` / job `publish-experimental` / environment `experimental`** — renaming any of the three breaks the publish until npm's trusted-publisher config is updated to match. Never add explicit `permissions:` to develop.yml's module-caller jobs: nested job-level requests (e.g. integration.yml's preview `pull-requests: write`) are validated against the caller grant **statically at run startup**, PR CI cannot see it, and one miss fails every develop push.
 - The docs site (`docs/`) uses Node 22 (its own `.nvmrc`) and is not needed for core library development.
 - Walkontable (the rendering engine) lives inside `handsontable/src/3rdparty/walkontable/` and has its **own test runner** — do not mix Walkontable tests with main E2E tests.
 - No Docker, databases, or external services are required.
