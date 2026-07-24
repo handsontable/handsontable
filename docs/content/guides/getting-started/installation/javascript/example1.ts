@@ -4,8 +4,9 @@ import { registerAllModules } from 'handsontable/registry';
 // Register all Handsontable's modules.
 registerAllModules();
 
-const container = document.querySelector('#example');
-const data = [
+const container = document.querySelector<HTMLDivElement>('#example1')!;
+
+const data: Handsontable.CellValue[][] = [
   ['', 'Tesla', 'Volvo', 'Toyota', 'Ford'],
   ['2019', 10, 11, 12, 13],
   ['2020', 20, 11, 14, 13],
