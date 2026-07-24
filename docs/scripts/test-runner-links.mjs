@@ -62,8 +62,11 @@ const HELP_TEXT = `Usage: node scripts/test-runner-links.mjs [options]
                              0 skips Tier-1 entirely (default: all)
   --tier2-sample <N|all>    how many Vue/Angular links to headless-check per framework;
                              0 skips Tier-2 entirely (default: 10)
-  --tier1-concurrency <N>   parallel Tier-1 pages. Does NOT affect Tier-2, which always
-                             runs serially to avoid cloud-container contention (default: 4)
+  --tier1-concurrency <N>   parallel Tier-1 pages (default: 4)
+  --tier2-concurrency <N>   parallel Tier-2 pages. Kept at 1 by default: a Vue/Angular cloud
+                             dev-server container needs ~1 min to cold-boot, booting several
+                             at once can starve each past the timeout, and prod caps
+                             concurrent containers at 5 (default: 1)
   --tier1-retries <N>       retry a transient Tier-1 failure (no-grid/load-timeout) up to
                              N times (default: 0 — Tier-1 sandboxes are cheap and reliable)
   --tier2-retries <N>       retry a transient Tier-2 failure up to N times (default: 1 —
@@ -610,6 +613,7 @@ export function parseArgs(argv) {
     tier1Sample: 'all',
     tier2Sample: 10,
     tier1Concurrency: 4,
+    tier2Concurrency: 1,
     tier1Retries: 0,
     tier2Retries: 1,
     filter: null,
@@ -628,6 +632,7 @@ export function parseArgs(argv) {
     else if (arg === '--tier1-sample') { const v = next(); args.tier1Sample = v === 'all' ? 'all' : Number(v); }
     else if (arg === '--tier2-sample') { const v = next(); args.tier2Sample = v === 'all' ? 'all' : Number(v); }
     else if (arg === '--tier1-concurrency') args.tier1Concurrency = Number(next());
+    else if (arg === '--tier2-concurrency') args.tier2Concurrency = Number(next());
     else if (arg === '--tier1-retries') args.tier1Retries = Number(next());
     else if (arg === '--tier2-retries') args.tier2Retries = Number(next());
     else if (arg === '--filter') args.filter = next();
@@ -673,7 +678,7 @@ async function main(argv) {
   }
 
   console.log(
-    `Settings: dist=${args.dist} static-only=${args.staticOnly} tier1-sample=${args.tier1Sample} tier2-sample=${args.tier2Sample} tier1-concurrency=${args.tier1Concurrency} tier1-retries=${args.tier1Retries} tier2-retries=${args.tier2Retries}${args.filter ? ` filter="${args.filter}"` : ''} (run with --help to see all options)`
+    `Settings: dist=${args.dist} static-only=${args.staticOnly} tier1-sample=${args.tier1Sample} tier2-sample=${args.tier2Sample} tier1-concurrency=${args.tier1Concurrency} tier2-concurrency=${args.tier2Concurrency} tier1-retries=${args.tier1Retries} tier2-retries=${args.tier2Retries}${args.filter ? ` filter="${args.filter}"` : ''} (run with --help to see all options)`
   );
 
   console.log(`Walking ${args.dist} for runner links...`);
@@ -716,14 +721,15 @@ async function main(argv) {
     try {
       const tier1Items = toCheck.filter(item => TIER1_FRAMEWORKS.has(item.manifestEntry.framework));
       const tier2Items = toCheck.filter(item => TIER2_FRAMEWORKS.has(item.manifestEntry.framework));
-      // Tier-2 runs serially (concurrency 1) AND only after tier-1 finishes, not
-      // overlapped with it. A Vue/Angular cloud dev-server container needs ~1 min
-      // to boot; running two at once, or alongside the tier-1 page pool, starves
-      // that boot past the timeout and produces false no-grid failures. The same
-      // links boot fine in isolation, so tier-2 is given the machine to itself.
-      const tier2Concurrency = 1;
+      // Tier-2 runs only after tier-1 finishes, not overlapped with it, and
+      // serially by default (--tier2-concurrency 1). A Vue/Angular cloud
+      // dev-server container needs ~1 min to boot; running several at once, or
+      // alongside the tier-1 page pool, can starve those boots past the timeout
+      // and produce false no-grid failures, and prod caps concurrent containers
+      // at 5.
+      const tier2Concurrency = args.tier2Concurrency;
 
-      console.log(`Checking ${tier1Items.length} Tier-1 link(s) (concurrency ${args.tier1Concurrency}, retry ${args.tier1Retries}x), then ${tier2Items.length} Tier-2 link(s) (serial, isolated, retry ${args.tier2Retries}x)...`);
+      console.log(`Checking ${tier1Items.length} Tier-1 link(s) (concurrency ${args.tier1Concurrency}, retry ${args.tier1Retries}x), then ${tier2Items.length} Tier-2 link(s) (concurrency ${tier2Concurrency}, isolated, retry ${args.tier2Retries}x)...`);
 
       const tier1Results = await runPool(tier1Items, args.tier1Concurrency, (item, i) => verifyWithRetry(browser, item, { label: 'tier1', index: i + 1, total: tier1Items.length }, args.tier1Retries));
       const tier2Results = await runPool(tier2Items, tier2Concurrency, (item, i) => verifyWithRetry(browser, item, { label: 'tier2', index: i + 1, total: tier2Items.length }, args.tier2Retries));

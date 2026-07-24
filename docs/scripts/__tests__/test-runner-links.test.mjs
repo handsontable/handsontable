@@ -160,6 +160,7 @@ test('parseArgs applies defaults, leaving version null (auto-detected later) and
   assert.equal(args.tier1Sample, 'all');
   assert.equal(args.tier2Sample, 10);
   assert.equal(args.tier1Concurrency, 4);
+  assert.equal(args.tier2Concurrency, 1);
   assert.equal(args.tier1Retries, 0);
   assert.equal(args.tier2Retries, 1);
   assert.match(args.json, /^\.\/tests\/test-artifacts\/runner-links\/runner-sweep-report-\d{8}-\d{6}\.json$/);
@@ -186,6 +187,7 @@ test('parseArgs reads every flag, including tier1/tier2 samples, concurrency, an
     '--tier1-sample', '5',
     '--tier2-sample', 'all',
     '--tier1-concurrency', '8',
+    '--tier2-concurrency', '3',
     '--tier1-retries', '2',
     '--tier2-retries', '3',
     '--filter', 'column-adding',
@@ -199,6 +201,7 @@ test('parseArgs reads every flag, including tier1/tier2 samples, concurrency, an
   assert.equal(args.tier1Sample, 5);
   assert.equal(args.tier2Sample, 'all');
   assert.equal(args.tier1Concurrency, 8);
+  assert.equal(args.tier2Concurrency, 3);
   assert.equal(args.tier1Retries, 2);
   assert.equal(args.tier2Retries, 3);
   assert.equal(args.filter, 'column-adding');
