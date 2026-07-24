@@ -79,7 +79,7 @@ const horizonTokens: ThemeTokensConfig = {
   headerRowActiveForegroundColor: 'tokens.backgroundColor',
   headerRowActiveBackgroundColor: ['colors.palette.950', 'colors.primary.200'],
   rowHeaderOddBackgroundColor: 'tokens.headerRowBackgroundColor',
-  rowHeaderEvenBackgroundColor: 'tokens.headerRowBackgroundColor',
+  rowHeaderEvenBackgroundColor: 'tokens.backgroundSecondaryColor',
   rowCellOddBackgroundColor: 'tokens.backgroundColor',
   rowCellEvenBackgroundColor: 'tokens.backgroundSecondaryColor',
   buttonBorderRadius: 'sizing.size_4',
