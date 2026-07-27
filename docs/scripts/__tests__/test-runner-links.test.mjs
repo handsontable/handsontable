@@ -187,7 +187,7 @@ test('parseArgs applies defaults, leaving version null (auto-detected later) and
   assert.equal(args.tier1Offset, 0);
   assert.equal(args.tier2Offset, 0);
   assert.equal(args.tier1Concurrency, 4);
-  assert.equal(args.tier2Concurrency, 1);
+  assert.equal(args.tier2Concurrency, 2);
   assert.equal(args.tier1Retries, 0);
   assert.equal(args.tier2Retries, 1);
   assert.match(args.json, /^\.\/tests\/test-artifacts\/runner-links\/runner-sweep-report-\d{8}-\d{6}\.json$/);

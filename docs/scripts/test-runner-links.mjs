@@ -69,10 +69,7 @@ const HELP_TEXT = `Usage: node scripts/test-runner-links.mjs [options]
                              --tier2-offset 15 --tier2-sample 35 checks the 16th-50th
                              per framework (default: 0)
   --tier1-concurrency <N>   parallel Tier-1 pages (default: 4)
-  --tier2-concurrency <N>   parallel Tier-2 pages. Kept at 1 by default: a Vue/Angular cloud
-                             dev-server container needs ~1 min to cold-boot, booting several
-                             at once can starve each past the timeout, and prod caps
-                             concurrent containers at 5 (default: 1)
+  --tier2-concurrency <N>   parallel Tier-2 pages (default: 2)
   --tier1-retries <N>       retry a transient Tier-1 failure (no-grid/load-timeout) up to
                              N times (default: 0 — Tier-1 sandboxes are cheap and reliable)
   --tier2-retries <N>       retry a transient Tier-2 failure up to N times (default: 1 —
@@ -640,7 +637,7 @@ export function parseArgs(argv) {
     tier1Offset: 0,
     tier2Offset: 0,
     tier1Concurrency: 4,
-    tier2Concurrency: 1,
+    tier2Concurrency: 2,
     tier1Retries: 0,
     tier2Retries: 1,
     filter: null,
@@ -750,12 +747,12 @@ async function main(argv) {
     try {
       const tier1Items = toCheck.filter(item => TIER1_FRAMEWORKS.has(item.manifestEntry.framework));
       const tier2Items = toCheck.filter(item => TIER2_FRAMEWORKS.has(item.manifestEntry.framework));
-      // Tier-2 runs only after tier-1 finishes, not overlapped with it, and
-      // serially by default (--tier2-concurrency 1). A Vue/Angular cloud
-      // dev-server container needs ~1 min to boot; running several at once, or
-      // alongside the tier-1 page pool, can starve those boots past the timeout
-      // and produce false no-grid failures, and prod caps concurrent containers
-      // at 5.
+      // Tier-2 runs only after tier-1 finishes, not overlapped with it: a
+      // Vue/Angular cloud dev-server container needs ~1 min to boot, and running
+      // it alongside the tier-1 page pool starves that boot. It defaults to
+      // --tier2-concurrency 2 (prod caps concurrent containers at 5); each page
+      // frees its container slot on close (see verifyLink), so 2 boots stay well
+      // under the cap.
       const tier2Concurrency = args.tier2Concurrency;
 
       console.log(`Checking ${tier1Items.length} Tier-1 link(s) (concurrency ${args.tier1Concurrency}, retry ${args.tier1Retries}x), then ${tier2Items.length} Tier-2 link(s) (concurrency ${tier2Concurrency}, isolated, retry ${args.tier2Retries}x)...`);
