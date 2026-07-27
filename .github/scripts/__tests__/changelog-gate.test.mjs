@@ -51,6 +51,21 @@ test('stripHtmlComments removes single and multiline comment blocks', () => {
   assert.equal(stripped.includes('tail'), true);
 });
 
+test('a comment reassembled around a removed match cannot smuggle the marker', () => {
+  // Single-pass stripping of the inner comment would reconstruct
+  // `<!-- [skip changelog] -->` and match the marker; the fixed-point loop
+  // removes the reconstruction too (CodeQL js/incomplete-multi-character-sanitization).
+  const body = `<!-<!-- x -->- ${SKIP_MARKER} -->`;
+
+  assert.equal(stripHtmlComments(body).includes(SKIP_MARKER), false);
+});
+
+test('an unterminated trailing comment hides the marker (comment-to-EOF)', () => {
+  assert.equal(stripHtmlComments(`text <!-- dangling ${SKIP_MARKER}`).includes(SKIP_MARKER), false);
+  // ...but a marker BEFORE the dangling comment stays visible and active.
+  assert.equal(stripHtmlComments(`${SKIP_MARKER} <!-- dangling`).includes(SKIP_MARKER), true);
+});
+
 // --- evaluateChangelogGate ---
 const src = { status: 'modified', filename: 'handsontable/src/core.ts' };
 const scss = { status: 'modified', filename: 'handsontable/src/styles/themes/main.scss' };
