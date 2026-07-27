@@ -149,6 +149,31 @@ test('planHeadlessChecks checks every Tier-2 link when sample is "all"', () => {
   assert.equal(droppedTier2, 0);
 });
 
+test('planHeadlessChecks skips the first tier2Offset links per framework before sampling', () => {
+  const { matched, manifestByDocsPath } = buildMatched({ vue: 6, angular: 6 });
+
+  // Skip the first 2 per framework, then keep the next 3: the 3rd-5th per framework.
+  const { toCheck, droppedTier2 } = planHeadlessChecks(matched, manifestByDocsPath, 0, 3, 0, 2);
+  const vue = toCheck.filter(item => item.manifestEntry.framework === 'vue').map(item => item.docsPath);
+
+  assert.deepEqual(vue, [
+    'guides/g/vue/example2.vue',
+    'guides/g/vue/example3.vue',
+    'guides/g/vue/example4.vue',
+  ], 'the offset skips example0-1 and the sample keeps the next three');
+  // 6 per framework, 3 kept each -> 3 dropped each (2 skipped by offset + 1 beyond sample).
+  assert.equal(droppedTier2, 6);
+});
+
+test('planHeadlessChecks with an offset and sample "all" keeps every link from the offset on', () => {
+  const { matched, manifestByDocsPath } = buildMatched({ vue: 5 });
+
+  const { toCheck, droppedTier2 } = planHeadlessChecks(matched, manifestByDocsPath, 0, 'all', 0, 2);
+
+  assert.equal(toCheck.length, 3, 'example2-4 remain after skipping example0-1');
+  assert.equal(droppedTier2, 2, 'only the offset-skipped prefix is dropped');
+});
+
 test('parseArgs applies defaults, leaving version null (auto-detected later) and no manifest override', () => {
   const args = parseArgs([]);
 
@@ -159,6 +184,8 @@ test('parseArgs applies defaults, leaving version null (auto-detected later) and
   assert.equal(args.staticOnly, false);
   assert.equal(args.tier1Sample, 'all');
   assert.equal(args.tier2Sample, 10);
+  assert.equal(args.tier1Offset, 0);
+  assert.equal(args.tier2Offset, 0);
   assert.equal(args.tier1Concurrency, 4);
   assert.equal(args.tier2Concurrency, 1);
   assert.equal(args.tier1Retries, 0);
@@ -186,6 +213,8 @@ test('parseArgs reads every flag, including tier1/tier2 samples, concurrency, an
     '--static-only',
     '--tier1-sample', '5',
     '--tier2-sample', 'all',
+    '--tier1-offset', '2',
+    '--tier2-offset', '15',
     '--tier1-concurrency', '8',
     '--tier2-concurrency', '3',
     '--tier1-retries', '2',
@@ -200,6 +229,8 @@ test('parseArgs reads every flag, including tier1/tier2 samples, concurrency, an
   assert.equal(args.staticOnly, true);
   assert.equal(args.tier1Sample, 5);
   assert.equal(args.tier2Sample, 'all');
+  assert.equal(args.tier1Offset, 2);
+  assert.equal(args.tier2Offset, 15);
   assert.equal(args.tier1Concurrency, 8);
   assert.equal(args.tier2Concurrency, 3);
   assert.equal(args.tier1Retries, 2);

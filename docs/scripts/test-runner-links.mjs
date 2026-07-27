@@ -62,6 +62,12 @@ const HELP_TEXT = `Usage: node scripts/test-runner-links.mjs [options]
                              0 skips Tier-1 entirely (default: all)
   --tier2-sample <N|all>    how many Vue/Angular links to headless-check per framework;
                              0 skips Tier-2 entirely (default: 10)
+  --tier1-offset <N>        skip the first N JS/TS/React links per framework before
+                             sampling (default: 0)
+  --tier2-offset <N>        skip the first N Vue/Angular links per framework before
+                             sampling -- resume past links already checked, e.g.
+                             --tier2-offset 15 --tier2-sample 35 checks the 16th-50th
+                             per framework (default: 0)
   --tier1-concurrency <N>   parallel Tier-1 pages (default: 4)
   --tier2-concurrency <N>   parallel Tier-2 pages. Kept at 1 by default: a Vue/Angular cloud
                              dev-server container needs ~1 min to cold-boot, booting several
@@ -548,22 +554,29 @@ async function runPool(items, limit, worker) {
 }
 
 /**
- * Deterministically samples per-framework buckets down to `sample` links each.
- * `'all'` keeps every link; `0` drops every link (skips the whole group); a
- * positive N keeps the first N per framework after a stable docsPath sort.
+ * Deterministically samples per-framework buckets down to `sample` links each,
+ * after skipping the first `offset` per framework. `'all'` keeps every link
+ * (from `offset` on); `0` drops every link (skips the whole group); a positive N
+ * keeps N per framework after a stable docsPath sort. `offset` lets a run resume
+ * past links already checked in a previous run (e.g. `--tier2-offset 15
+ * --tier2-sample 35` checks the 16th-50th per framework). Anything not kept --
+ * both the offset-skipped prefix and links beyond the sample -- counts as
+ * dropped.
  *
  * @param {Map<string, object[]>} byFramework
  * @param {number | 'all'} sample
+ * @param {number} [offset]
  * @returns {{ kept: object[], dropped: number }}
  */
-function sampleByFramework(byFramework, sample) {
+function sampleByFramework(byFramework, sample, offset = 0) {
   let dropped = 0;
   const kept = [];
 
   for (const bucket of byFramework.values()) {
     bucket.sort((a, b) => a.docsPath.localeCompare(b.docsPath));
 
-    const sampled = sample === 'all' ? bucket : bucket.slice(0, sample);
+    const afterOffset = bucket.slice(offset);
+    const sampled = sample === 'all' ? afterOffset : afterOffset.slice(0, sample);
 
     dropped += bucket.length - sampled.length;
     kept.push(...sampled);
@@ -582,9 +595,11 @@ function sampleByFramework(byFramework, sample) {
  * @param {Map<string, object>} manifestByDocsPath
  * @param {number | 'all'} tier1Sample
  * @param {number | 'all'} tier2Sample
+ * @param {number} [tier1Offset] - skip this many per framework before sampling Tier-1
+ * @param {number} [tier2Offset] - skip this many per framework before sampling Tier-2
  * @returns {{ toCheck: object[], droppedTier1: number, droppedTier2: number }}
  */
-export function planHeadlessChecks(matched, manifestByDocsPath, tier1Sample, tier2Sample) {
+export function planHeadlessChecks(matched, manifestByDocsPath, tier1Sample, tier2Sample, tier1Offset = 0, tier2Offset = 0) {
   const tier1ByFramework = new Map();
   const tier2ByFramework = new Map();
 
@@ -602,8 +617,8 @@ export function planHeadlessChecks(matched, manifestByDocsPath, tier1Sample, tie
     target.set(manifestEntry.framework, bucket);
   }
 
-  const tier1 = sampleByFramework(tier1ByFramework, tier1Sample);
-  const tier2 = sampleByFramework(tier2ByFramework, tier2Sample);
+  const tier1 = sampleByFramework(tier1ByFramework, tier1Sample, tier1Offset);
+  const tier2 = sampleByFramework(tier2ByFramework, tier2Sample, tier2Offset);
 
   return { toCheck: [...tier1.kept, ...tier2.kept], droppedTier1: tier1.dropped, droppedTier2: tier2.dropped };
 }
@@ -622,6 +637,8 @@ export function parseArgs(argv) {
     staticOnly: false,
     tier1Sample: 'all',
     tier2Sample: 10,
+    tier1Offset: 0,
+    tier2Offset: 0,
     tier1Concurrency: 4,
     tier2Concurrency: 1,
     tier1Retries: 0,
@@ -641,6 +658,8 @@ export function parseArgs(argv) {
     else if (arg === '--static-only') args.staticOnly = true;
     else if (arg === '--tier1-sample') { const v = next(); args.tier1Sample = v === 'all' ? 'all' : Number(v); }
     else if (arg === '--tier2-sample') { const v = next(); args.tier2Sample = v === 'all' ? 'all' : Number(v); }
+    else if (arg === '--tier1-offset') args.tier1Offset = Number(next());
+    else if (arg === '--tier2-offset') args.tier2Offset = Number(next());
     else if (arg === '--tier1-concurrency') args.tier1Concurrency = Number(next());
     else if (arg === '--tier2-concurrency') args.tier2Concurrency = Number(next());
     else if (arg === '--tier1-retries') args.tier1Retries = Number(next());
@@ -688,7 +707,7 @@ async function main(argv) {
   }
 
   console.log(
-    `Settings: dist=${args.dist} static-only=${args.staticOnly} tier1-sample=${args.tier1Sample} tier2-sample=${args.tier2Sample} tier1-concurrency=${args.tier1Concurrency} tier2-concurrency=${args.tier2Concurrency} tier1-retries=${args.tier1Retries} tier2-retries=${args.tier2Retries}${args.filter ? ` filter="${args.filter}"` : ''} (run with --help to see all options)`
+    `Settings: dist=${args.dist} static-only=${args.staticOnly} tier1-sample=${args.tier1Sample} tier2-sample=${args.tier2Sample} tier1-offset=${args.tier1Offset} tier2-offset=${args.tier2Offset} tier1-concurrency=${args.tier1Concurrency} tier2-concurrency=${args.tier2Concurrency} tier1-retries=${args.tier1Retries} tier2-retries=${args.tier2Retries}${args.filter ? ` filter="${args.filter}"` : ''} (run with --help to see all options)`
   );
 
   console.log(`Walking ${args.dist} for runner links...`);
@@ -718,7 +737,7 @@ async function main(argv) {
   let droppedTier2 = 0;
 
   if (!args.staticOnly) {
-    const plan = planHeadlessChecks(matched, manifestByDocsPath, args.tier1Sample, args.tier2Sample);
+    const plan = planHeadlessChecks(matched, manifestByDocsPath, args.tier1Sample, args.tier2Sample, args.tier1Offset, args.tier2Offset);
     const { toCheck } = plan;
 
     droppedTier1 = plan.droppedTier1;
