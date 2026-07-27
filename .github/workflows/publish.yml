@@ -1,8 +1,10 @@
 name: Publish
 
-# The `experimental` pre-release does NOT live here anymore: it is the final
-# job of the develop pipeline (develop.yml → publish-experimental), where npm's
-# trusted publisher is now pinned. This workflow is rc/stable-only.
+# EVERY `npm publish` (experimental / rc / stable) lives in THIS file: npm
+# trusted publishing (OIDC) allows exactly ONE workflow file per package, and
+# the packages' trusted-publisher configs are pinned here. Never move a publish
+# job to another workflow — it would break OIDC for that publish until npm's
+# config is repointed, and repointing breaks the OTHER publishes instead.
 on:
   workflow_dispatch:
   push:
@@ -10,6 +12,14 @@ on:
       - 'release/**' # Must match RELEASE_BRANCH_PREFIX
   release:
     types: [created]
+  # Chained final stage of the develop pipeline: fires when a `Develop` run
+  # (develop.yml) completes on develop; the pre-release job below publishes the
+  # `experimental` tag after a fully green run. The branches filter keeps
+  # develop.yml's PR-validation and foreign-branch dispatch runs out.
+  workflow_run:
+    workflows: ['Develop']
+    types: [completed]
+    branches: [develop]
 
 env:
   RELEASE_BRANCH_PREFIX: 'release/'
@@ -23,6 +33,47 @@ permissions:
   actions: read
 
 jobs:
+  # ============================================================
+  # Scenario A — Experimental pre-release (chained after a green Develop run)
+  # ============================================================
+  pre-release:
+    name: Build and publish a pre-release
+    runs-on: ubuntu-latest
+    # Publishes ONLY after a fully green Develop run. Two notes vs the old
+    # Tests-triggered version: (1) stricter — the Develop run also contains the
+    # multi-OS build-all (and, on src/perf merges, the golden perf job), so a
+    # broken Windows/macOS build now blocks the experimental publish (deliberate
+    # hardening); (2) the old manual workflow_dispatch pre-release arm is
+    # removed by design — feature branches use the pkg.pr.new PR previews.
+    if: |
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          # The EXACT sha the Develop run tested — not the branch tip, which may
+          # have advanced by the time this chained run starts. The detached HEAD
+          # is fine here: pre-release.mjs only branch-checks for release/*
+          # version stamping, which never applies to this develop-only hook.
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+        name: Install pnpm
+
+      - name: Use Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+          registry-url: https://registry.npmjs.org/
+
+      - run: |
+          pnpm install
+          npm install -g npm@11.6 # Ensure npm 11.5.1 or later for trusted publishing
+
+      - name: Publish pre-release
+        run: npm run pre-release
+
   # ============================================================
   # Scenario B — First RC (release event with prerelease flag)
   # ============================================================

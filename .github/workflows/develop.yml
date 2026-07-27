@@ -3,9 +3,16 @@ name: Develop
 # ── Post-merge (develop) pipeline ORCHESTRATOR ──────────────────────────────
 # develop's OWN DAG (DEV-2057, quality task 09): the functional suite against
 # the merged develop HEAD + the trunk-only jobs a PR can't give (multi-OS build
-# sanity, the golden perf baseline), ending in the `experimental` npm publish
-# as an explicit final job. Replaces three separate runs (Tests-on-push,
-# build-all, performance-tests) plus the workflow_run-chained publish.
+# sanity, the golden perf baseline). Replaces three separate runs (Tests-on-push,
+# build-all, performance-tests).
+#
+# THE PUBLISH IS CHAINED, NOT IN-DAG — a hard npm constraint: trusted publishing
+# (OIDC) allows ONE workflow file per package, and that file is publish.yml
+# (it must also publish rc/stable). So publish.yml listens for this workflow's
+# completion (workflow_run: ['Develop'], branches: [develop]) and its
+# `pre-release` job publishes the `experimental` tag after a fully green run —
+# pinned to the exact sha this run tested. Consequence: this file holds ZERO
+# elevated permissions — no id-token exists anywhere in the develop test graph.
 #
 # Shares the SAME reusable modules as the PR pipeline (test.yml) — only the
 # orchestration differs. master / release/** keep their existing workflows
@@ -17,17 +24,15 @@ name: Develop
 # grant here would be a second ceiling registry that PR CI can never validate
 # (a nested job-level request exceeding it — e.g. integration.yml's preview
 # `pull-requests: write` — hard-fails the WHOLE run at startup, runtime `if:`
-# skips notwithstanding). The one exception: `publish-experimental` holds the
-# only `id-token: write`, job-scoped — the test graph can never mint OIDC.
+# skips notwithstanding).
 #
 # SCOPE-GATING: Checks runs with test-all:false on push, so the path filter
 # computes real scope flags from the pushed diff. Today run-all is still true
 # on develop (ref-based) → the full suite runs — same coverage as before.
 # DEV-2058 flips the ref→run-all rule to trim develop (nightly takes the full
-# matrix); the per-job `if:` gating below is already written for that. NOTE for
-# that flip: `publish-experimental` gates on success(), which a SKIPPED need
-# also fails — the gate must move to a CI-Gate-style "nothing that ran failed"
-# when trimming lands.
+# matrix); the per-job `if:` gating below is already written for that, and the
+# chained publish gate (the RUN conclusion) is trim-proof: scope-skipped jobs
+# do not fail a run's conclusion.
 #
 # NOT folded here (deliberately, this increment): the docs sub-system.
 # docs-staging.yml (deploy to dev, docs/**-gated) and docs-angular-typecheck.yml
@@ -39,10 +44,10 @@ name: Develop
 on:
   push:
     branches: [ develop ]
-  # Manual full run of the develop pipeline. On the develop ref this INCLUDES
-  # the experimental publish (a deliberate re-publish lever); on any other ref
-  # the publish job skips (and the `experimental` environment's branch policy
-  # blocks it besides). Dispatch passes test-all:true → deterministic full
+  # Manual full run of the develop pipeline. On the develop ref a green run
+  # then triggers the chained experimental publish in publish.yml (a deliberate
+  # re-publish lever); on any other ref the workflow_run hook's branch filter
+  # keeps the publish off. Dispatch passes test-all:true → deterministic full
   # suite, no path filter.
   workflow_dispatch:
   # Self-validation: develop.yml never runs on ordinary PRs, so without this a
@@ -59,11 +64,9 @@ concurrency:
   # that to the CALLER's name and could collide with this very group).
   # cancel-in-progress stays ON — parity with today's Tests-on-develop: a
   # follow-up merge cancels the in-flight run so the hotfix starts testing
-  # immediately, and the superseded sha is never published. Cancelling a run
-  # whose publish job is mid-flight is safe: `npm publish` is atomic on the
-  # registry side (the version either fully lands or not at all), and the next
-  # run publishes a newer sha-stamped version that the `experimental` dist-tag
-  # then points at.
+  # immediately. A cancelled run emits workflow_run with conclusion=cancelled,
+  # so the chained publish in publish.yml never fires for a superseded sha
+  # (its gate requires conclusion=success) — same mechanics as today.
   group: develop-${{ github.ref }}
   cancel-in-progress: true
 
@@ -186,55 +189,10 @@ jobs:
       hot-prebuilt: ${{ needs.build.outputs.umd-built == 'true' }}
     secrets: inherit
 
-  # ── Final stage: ship it ────────────────────────────────────────────────────
-  # Publishes the `experimental` npm dist-tag (0.0.0-next-<sha>-<date>) once the
-  # functional suite is green — the same gate as the old "publish.yml pre-release
-  # after a green Tests run", now an explicit job in the same DAG. Publishes the
-  # EXACT tested sha (the old workflow_run re-checkout could grab a newer tip).
-  #
-  # Publish-safety, three layers:
-  #   1. `if: success() && ref == develop` — every needed job green, develop only.
-  #   2. `environment: experimental` with a deployment-branch policy pinned to
-  #      develop — platform-enforced, immune to workflow bugs.
-  #   3. npm trusted publishing (OIDC) is pinned on npm's side to THIS workflow
-  #      file + job + environment. MOVING/RENAMING this file, this job id, or the
-  #      environment name breaks the publish until npm's trusted-publisher config
-  #      is updated to match.
-  # The job holds the pipeline's only id-token grant, job-scoped.
-  publish-experimental:
-    name: Publish experimental
-    needs:
-      - checks
-      - unit
-      - types
-      - build
-      - walkontable
-      - e2e
-      - integration
-      - emitted-types
-      - visual
-    if: ${{ success() && github.ref == 'refs/heads/develop' }}
-    runs-on: ubuntu-latest
-    permissions:
-      id-token: write   # OIDC trusted publishing — this job only
-      contents: read
-    environment: experimental
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
-
-      - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
-        name: Install pnpm
-
-      - name: Use Node.js
-        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'pnpm'
-          registry-url: https://registry.npmjs.org/
-
-      - run: |
-          pnpm install
-          npm install -g npm@11.6 # npm >= 11.5.1 required for trusted publishing (OIDC)
-
-      - name: Publish pre-release
-        run: npm run pre-release
+  # ── Final stage (chained): the `experimental` npm publish ──────────────────
+  # Lives in publish.yml (its `pre-release` job), NOT here — npm trusted
+  # publishing allows ONE workflow file per package and publish.yml is it
+  # (rc/stable publish there too). publish.yml fires on this workflow's
+  # completion (workflow_run: ['Develop'], branches: [develop]) and publishes
+  # only when the run conclusion is `success`, checked out at the exact sha
+  # this run tested.
