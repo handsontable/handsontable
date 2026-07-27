@@ -506,11 +506,17 @@ async function verifyLink(browser, docsPath, link, manifestEntry, progress) {
 
     return finish(null);
   } finally {
-    // Navigating away fires pagehide, which makes the runner app tear down its
-    // Tier-2 container session (DELETE /api/session/:id, keepalive fetch) —
-    // page.close() alone does not reliably fire pagehide, and a leaked session
-    // squats one of the 5 prod container slots until the idle timeout.
+    // Navigate away so the old document fires pagehide, which makes the runner
+    // tear down its Tier-2 container session (a keepalive DELETE /api/session/:id);
+    // page.close() alone does not reliably fire pagehide. Then, for tier-2 only,
+    // settle briefly BEFORE closing the page: closing it immediately drops the
+    // still-in-flight keepalive DELETE, so the session leaks and squats one of the
+    // 5 prod container slots until its idle timeout (verified against the live
+    // runner — an immediate close leaves the session alive 15s+, a ~1s settle
+    // tears it down, HTTP 410). Tier-1 uses Sandpack and has no such container
+    // session, so it needs no settle (avoids adding a second to every tier-1 page).
     await page.goto('about:blank', { timeout: 5000 }).catch(() => {});
+    if (TIER2_FRAMEWORKS.has(manifestEntry.framework)) await page.waitForTimeout(1000);
     await page.close();
   }
 }
@@ -741,9 +747,6 @@ async function main(argv) {
       loaded = tier1Items.length + tier2Items.length;
       failures.push(...[...tier1Results, ...tier2Results].filter(Boolean));
     } finally {
-      // Give the last page's keepalive DELETE a moment to leave the wire before
-      // the browser process is torn down.
-      await new Promise(r => setTimeout(r, 1000));
       await browser.close();
     }
   }
