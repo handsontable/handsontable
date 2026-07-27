@@ -352,6 +352,17 @@ async function waitForGrid(page, deadline, shouldAbort, readyMarker = null) {
   while (Date.now() < deadline) {
     if (shouldAbort?.()) return 'aborted';
 
+    // Check the terminal "Setup failed" banner BEFORE the per-frame grid/marker
+    // scan. A build/transpile failure is terminal, so an interactive example's
+    // ready marker must never mask it: mid-boot the marker can appear in the
+    // Sandpack preview frame while the runner also puts up the banner, and a
+    // marker-first order would report that broken example as interactive-ready.
+    // A rendered grid and the banner cannot coexist, so checking the banner
+    // first never suppresses a real grid.
+    const topText = await page.evaluate(() => document.body?.innerText ?? '').catch(() => '');
+
+    if (matchesSetupFailure(topText)) return 'setup-failed';
+
     for (const frame of page.frames()) {
       const found = await frame
         .evaluate(() => !!document.querySelector('.ht_master .htCore'))
@@ -367,13 +378,6 @@ async function waitForGrid(page, deadline, shouldAbort, readyMarker = null) {
         if (readyMarker.test(frameText)) return 'interactive-ready';
       }
     }
-
-    // No grid yet — if the runner has instead put up its terminal "Setup failed"
-    // banner the example can never render, so end the wait now rather than
-    // polling until the deadline.
-    const topText = await page.evaluate(() => document.body?.innerText ?? '').catch(() => '');
-
-    if (matchesSetupFailure(topText)) return 'setup-failed';
 
     await page.waitForTimeout(500);
   }
