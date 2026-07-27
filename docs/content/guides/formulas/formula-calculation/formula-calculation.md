@@ -979,10 +979,10 @@ each sales representative's commission amount.
 
 ::: only-for angular
 
-::: example #example5 :angular --ts 1 --html 2
+::: example #example-custom-functions :angular --ts 1 --html 2
 
-@[code](@/content/guides/formulas/formula-calculation/angular/example5.ts)
-@[code](@/content/guides/formulas/formula-calculation/angular/example5.html)
+@[code](@/content/guides/formulas/formula-calculation/angular/example-custom-functions.ts)
+@[code](@/content/guides/formulas/formula-calculation/angular/example-custom-functions.html)
 
 :::
 
