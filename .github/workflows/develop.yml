@@ -57,13 +57,15 @@ on:
 concurrency:
   # Static prefix (never ${{ github.workflow }} — a called workflow resolves
   # that to the CALLER's name and could collide with this very group).
-  # cancel-in-progress is OFF: a follow-up merge must never cancel a run that
-  # may be mid-`npm publish` (today's separate publish.yml run was equally
-  # uncancellable). Pending runs in the group collapse to the newest, so rapid
-  # merges stay strictly sequential and each completed run publishes its exact
-  # tested sha.
+  # cancel-in-progress stays ON — parity with today's Tests-on-develop: a
+  # follow-up merge cancels the in-flight run so the hotfix starts testing
+  # immediately, and the superseded sha is never published. Cancelling a run
+  # whose publish job is mid-flight is safe: `npm publish` is atomic on the
+  # registry side (the version either fully lands or not at all), and the next
+  # run publishes a newer sha-stamped version that the `experimental` dist-tag
+  # then points at.
   group: develop-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   # Scope router. On push: test-all=false → dorny path-filter diffs the push
