@@ -300,3 +300,18 @@ test('serves the React and Angular variants of the multi-framework cell-type rec
     }
   }
 });
+
+test('still maps cell-type recipes that have a framework-specific counterpart page', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(
+    worker,
+    '/docs/react-data-grid/recipes/cell-types/color-picker/',
+    '/docs/react-data-grid/recipes/cell-types/colorful-picker/',
+  );
+  await assertRedirect(
+    worker,
+    '/docs/angular-data-grid/recipes/cell-types/react-rating/',
+    '/docs/angular-data-grid/recipes/cell-types/rating/',
+  );
+});
