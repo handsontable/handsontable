@@ -1,22 +1,24 @@
 /* eslint-disable no-console, no-restricted-globals */
 
-// Ensures that a new changelog entry was added in the current PR, if there
-// exists a PR associated with the current commit. If multiple PR's are
-// found, the first one returned from the API will be used for the check.
+// Path-aware changelog gate. A PR must add a `.changelogs/*.json` entry when
+// it changes shippable source (handsontable/src/** or wrappers/**, tests and
+// markdown excluded); docs-, test-, and CI/tooling-only PRs pass
+// automatically. `[skip changelog]` in the PR description — outside HTML
+// comments — overrides the requirement on a source change; the override is
+// logged with the source files it waves through. The decision logic lives in
+// lib/changelog-gate.mjs (pure, unit-tested); this wrapper only talks to the
+// GitHub API.
 
 const core = require('@actions/core');
 const github = require('@actions/github');
 
 const token = process.env.TOKEN;
 
-const skipCheckString = '[skip changelog]';
-
-const changelogsPath = '.changelogs/';
-
 const { owner, repo } = github.context.repo;
 const octokit = github.getOctokit(token);
 
 const run = async() => {
+  const { evaluateChangelogGate, SKIP_MARKER } = await import('./lib/changelog-gate.mjs');
   const pr = github.context.payload.pull_request;
 
   if (pr === undefined) {
@@ -34,11 +36,12 @@ const run = async() => {
   }
 
   // Read the LIVE PR body over the API rather than trusting
-  // `github.context.payload.pull_request.body`, which is frozen at the event that
-  // triggered the run and stays stale across "Re-run failed jobs". Reading it live
-  // lets an author add `[skip changelog]` to the description and re-run this job to
-  // clear the check — no empty commit, and no `edited` trigger re-running the whole
-  // pipeline. Falls back to the payload body if the fetch is unavailable.
+  // `github.context.payload.pull_request.body`, which is frozen at the event
+  // that triggered the run and stays stale across "Re-run failed jobs". Reading
+  // it live lets an author add the skip marker to the description and re-run
+  // this job to clear the check — no empty commit, and no `edited` trigger
+  // re-running the whole pipeline. Falls back to the payload body if the fetch
+  // is unavailable.
   let body = pr.body || '';
 
   try {
@@ -49,11 +52,6 @@ const run = async() => {
     console.log(`Could not fetch the live PR body, falling back to the event payload: ${error.message}`);
   }
 
-  if (body.includes(skipCheckString)) {
-    console.log('The PR body (description) includes a string to disable this check, exiting.');
-    process.exit(0);
-  }
-
   // https://octokit.github.io/rest.js/v18#pagination
   const files = await octokit.paginate(listPullFiles, {
     owner,
@@ -61,24 +59,26 @@ const run = async() => {
     pull_number: pr.number
   });
 
-  const newChangelogFileAddedwasAdded = files.some(file =>
-    file.status === 'added' && file.filename.startsWith(changelogsPath) && file.filename.endsWith('.json')
-  );
+  const { reason, sourceFiles } = evaluateChangelogGate({ body, files });
 
-  if (newChangelogFileAddedwasAdded) {
-    console.log('Found new changelog(s), success!');
-  } else {
-    console.log('Added files:');
-    console.log(
-      files
-        .filter(({ status }) => status === 'added')
-        .map(({ filename }) => `${filename}\n`)
-    );
-
-    core.setFailed(
-      // eslint-disable-next-line max-len
-      'Expected a new changelog file to be added in this PR. See instructions in .changelogs/README.md for information on how to do that and instructions on how to mute this error.'
-    );
+  switch (reason) {
+    case 'entry-added':
+      console.log('Found new changelog(s), success!');
+      break;
+    case 'no-source-change':
+      console.log('No shippable source change (handsontable/src/** or wrappers/**) — a changelog entry is not required.');
+      break;
+    case 'skipped-explicitly':
+      console.log(`The PR description opts out via \`${SKIP_MARKER}\`. Source files waved through without a changelog entry:`);
+      sourceFiles.forEach(file => console.log(`  - ${file}`));
+      break;
+    default:
+      console.log('Shippable source changed in this PR:');
+      sourceFiles.forEach(file => console.log(`  - ${file}`));
+      core.setFailed(
+        // eslint-disable-next-line max-len
+        `This PR changes shippable source but adds no changelog entry. Create one with \`npm run changelog entry\` (see .changelogs/README.md), or — when a source change genuinely warrants no entry — write \`${SKIP_MARKER}\` in the PR description (outside HTML comments) and re-run this check.`
+      );
   }
 };
 
