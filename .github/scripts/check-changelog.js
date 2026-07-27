@@ -18,6 +18,9 @@ const { owner, repo } = github.context.repo;
 const octokit = github.getOctokit(token);
 
 const run = async() => {
+  // The extension is mandatory here: ESM resolution (dynamic import from CJS)
+  // does not add `.mjs` the way require() adds `.js`.
+  // eslint-disable-next-line import/extensions
   const { evaluateChangelogGate, SKIP_MARKER } = await import('./lib/changelog-gate.mjs');
   const pr = github.context.payload.pull_request;
 
@@ -66,10 +69,14 @@ const run = async() => {
       console.log('Found new changelog(s), success!');
       break;
     case 'no-source-change':
-      console.log('No shippable source change (handsontable/src/** or wrappers/**) — a changelog entry is not required.');
+      console.log(
+        'No shippable source change (handsontable/src/** or wrappers/**) — a changelog entry is not required.'
+      );
       break;
     case 'skipped-explicitly':
-      console.log(`The PR description opts out via \`${SKIP_MARKER}\`. Source files waved through without a changelog entry:`);
+      console.log(
+        `The PR description opts out via \`${SKIP_MARKER}\`. Source files waved through without a changelog entry:`
+      );
       sourceFiles.forEach(file => console.log(`  - ${file}`));
       break;
     default:
