@@ -151,6 +151,62 @@ describe('settings', () => {
       });
     });
 
+    it('should render the ghost preview over the drop target while dragging in RTL layout', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        moveCells: true,
+        layoutDirection: 'rtl',
+        width: 500,
+        height: 400,
+      });
+
+      await selectCells([[2, 2, 3, 3]]);
+
+      const zone = getMoveZone();
+
+      expect(zone).not.toBeNull();
+
+      const zoneRect = zone.getBoundingClientRect();
+      const targetCell = getCell(5, 5);
+      const targetRect = targetCell.getBoundingClientRect();
+
+      $(zone).simulate('mousedown', {
+        clientX: zoneRect.left + (zoneRect.width / 2),
+        clientY: zoneRect.top + (zoneRect.height / 2),
+      });
+
+      $(document.documentElement).simulate('mousemove', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+
+      const ghost = document.querySelector('.wtMoveGhost');
+
+      expect(ghost).not.toBeNull();
+
+      // In RTL the lower column index sits visually on the right, so the ghost box must be the
+      // union of the corner cells' rects. A regression computing width as `end.right - start.left`
+      // goes negative here (the style write is rejected) and collapses the ghost to a border-only
+      // sliver — so assert the ghost is as wide as the full 2-column block, not just "overlaps".
+      const ghostRect = ghost.getBoundingClientRect();
+
+      expect(ghostRect.width).toBeGreaterThanOrEqual(targetRect.width * 1.5);
+      expect(ghostRect.height).toBeGreaterThanOrEqual(targetRect.height * 1.5);
+
+      const overlapsTarget =
+        ghostRect.right > targetRect.left &&
+        ghostRect.left < targetRect.right &&
+        ghostRect.bottom > targetRect.top &&
+        ghostRect.top < targetRect.bottom;
+
+      expect(overlapsTarget).toBe(true);
+
+      $(document.documentElement).simulate('mouseup', {
+        clientX: targetRect.left + (targetRect.width / 2),
+        clientY: targetRect.top + (targetRect.height / 2),
+      });
+    });
+
     it('should hold the grabbing cursor while dragging and clear it on drop', async() => {
       handsontable({
         data: createSpreadsheetData(10, 10),

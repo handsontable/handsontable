@@ -2705,10 +2705,16 @@ class TableView {
     const topStartRect = topStartTd.getBoundingClientRect();
     const bottomEndRect = bottomEndTd.getBoundingClientRect();
 
+    // In RTL layouts the lower column index sits visually on the RIGHT, so the two corner cells
+    // swap horizontally. Take the union box of both corner rects instead of assuming the start
+    // corner is the left one — otherwise the width comes out negative and the ghost collapses.
+    const ghostLeft = Math.min(topStartRect.left, bottomEndRect.left);
+    const ghostRight = Math.max(topStartRect.right, bottomEndRect.right);
+
     ghost.style.display = 'block';
     ghost.style.top = `${topStartRect.top}px`;
-    ghost.style.left = `${topStartRect.left}px`;
-    ghost.style.width = `${bottomEndRect.right - topStartRect.left}px`;
+    ghost.style.left = `${ghostLeft}px`;
+    ghost.style.width = `${ghostRight - ghostLeft}px`;
     ghost.style.height = `${bottomEndRect.bottom - topStartRect.top}px`;
   }
 
