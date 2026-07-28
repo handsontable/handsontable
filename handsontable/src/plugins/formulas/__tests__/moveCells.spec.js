@@ -149,6 +149,32 @@ describe('Formulas: moveCells integration', () => {
       expect(getDataAtCell(0, 4)).toBe(null);
     });
 
+    it('keeps moved values when the target range overlaps the source range', async() => {
+      // Source 2x2 value block at A1:B2, target top-left B1 — columns B overlap.
+      // Regression: the post-move HOT-data sync must clear the source BEFORE writing
+      // the target, otherwise the overlap cells are written and then nulled out.
+      handsontable({
+        data: [[1, 2, null], [3, 4, null], [null, null, null]],
+        formulas: {
+          engine: HyperFormula,
+        },
+        moveCells: true,
+      });
+
+      await selectCells([[0, 0, 1, 1]]);
+      await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(0, 1), false);
+      await hot().render();
+
+      // The block now occupies B1:C2.
+      expect(getDataAtCell(0, 1)).toBe(1);
+      expect(getDataAtCell(0, 2)).toBe(2);
+      expect(getDataAtCell(1, 1)).toBe(3);
+      expect(getDataAtCell(1, 2)).toBe(4);
+      // Only the non-overlapping part of the source is cleared.
+      expect(getDataAtCell(0, 0)).toBe(null);
+      expect(getDataAtCell(1, 0)).toBe(null);
+    });
+
     it('moves plain-value cell when Formulas plugin is active', async() => {
       // Ensures non-formula cells are also relocated by HF moveCells.
       handsontable({

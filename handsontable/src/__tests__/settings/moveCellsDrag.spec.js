@@ -521,6 +521,39 @@ describe('settings', () => {
       expect(zone).toBeNull();
     });
 
+    it('should not show the move zone for a full row selection', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        moveCells: true,
+        rowHeaders: true,
+        colHeaders: true,
+        width: 400,
+        height: 300,
+      });
+
+      await selectRows(2);
+
+      // Full-row selections are not movable (`#startMoveDrag` rejects them), so no
+      // move-zone band or grab cursor may be offered for them.
+      expect(getMoveZone()).toBeNull();
+    });
+
+    it('should not show the move zone for a full column selection', async() => {
+      handsontable({
+        data: createSpreadsheetData(10, 10),
+        moveCells: true,
+        rowHeaders: true,
+        colHeaders: true,
+        width: 400,
+        height: 300,
+      });
+
+      await selectColumns(2);
+
+      // Full-column selections are not movable, so no move-zone band may be offered for them.
+      expect(getMoveZone()).toBeNull();
+    });
+
     it('should not move data when disableVisualSelection is set and a drag is attempted', async() => {
       const originalData = createSpreadsheetData(10, 10);
 

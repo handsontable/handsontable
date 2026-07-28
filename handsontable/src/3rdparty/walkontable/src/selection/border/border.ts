@@ -1456,6 +1456,9 @@ class Border {
       if (this.isFrozenBoundaryEdge('column', corners[1])) {
         this.adjustHandles.styles.start.display = 'none';
       }
+      if (this.isFrozenBottomBoundaryEdge(corners[2])) {
+        this.adjustHandles.styles.bottom.display = 'none';
+      }
     } else if (this.adjustHandles) {
       this.adjustHandles.styles.top.display = 'none';
       this.adjustHandles.styles.bottom.display = 'none';

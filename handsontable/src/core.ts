@@ -6603,8 +6603,9 @@ export default function Core(
    * When `isCopy` is `false` (move), the source cells are cleared after the data is written to
    * the target. When `isCopy` is `true`, the source cells are left intact.
    *
-   * The method fires `beforeMoveCells` before any mutation. If that hook returns `false` the
-   * operation is cancelled and the method returns `false`. After a successful operation
+   * The method first validates the operation (target bounds, read-only target cells, merged
+   * cells) and then fires `beforeMoveCells` before any mutation. If that hook returns `false`
+   * the operation is cancelled and the method returns `false`. After a successful operation
    * `afterMoveCells` is fired and the selection is updated to cover the target range.
    *
    * When the Formulas plugin is active, value writes are deferred to HyperFormula to preserve
@@ -6635,12 +6636,9 @@ export default function Core(
     const targetBottom = targetRow + height - 1;
     const targetRight = targetCol + width - 1;
 
-    const hookResult = instance.runHooks('beforeMoveCells', sourceRange, targetTopLeft, isCopy);
-
-    if (hookResult === false) {
-      return false;
-    }
-
+    // Validate the operation before firing `beforeMoveCells`, so hook listeners (e.g. the
+    // Formulas plugin, which stores a pending HyperFormula operation there) never observe
+    // a move that the core is about to reject anyway.
     if (
       targetRow < 0 ||
       targetCol < 0 ||
@@ -6673,6 +6671,12 @@ export default function Core(
           collection.getWithinRange(targetCellRange, true).length > 0) {
         return false;
       }
+    }
+
+    const hookResult = instance.runHooks('beforeMoveCells', sourceRange, targetTopLeft, isCopy);
+
+    if (hookResult === false) {
+      return false;
     }
 
     // Snapshot source values before any write so overlapping source/target is safe.

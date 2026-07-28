@@ -1735,17 +1735,10 @@ export class Formulas extends BasePlugin {
     this.#moveCellsSyncPending = true;
 
     try {
-      // Write target cells with HF-serialised content (formula strings preserved).
-      // Use 'auto' source so UndoRedo does not record these writes as separate DataChangeActions
-      // — they are part of the move and are covered by the MoveCellsAction in the undo stack.
-      this.hot.populateFromArray(
-        tgtFromRow, tgtFromCol, targetData,
-        tgtFromRow + height - 1, tgtFromCol + width - 1,
-        'auto'
-      );
-
       if (!isCopy) {
-        // Clear source cells in HOT's data (HF already moved them out).
+        // Clear source cells in HOT's data first (HF already moved them out), so that an
+        // overlapping source/target range does not null out cells the target write is about
+        // to fill — the target data was already snapshotted from HF above.
         const nullRow: null[] = Array.from<null>({ length: width }).fill(null);
         const nullGrid: null[][] = Array.from({ length: height }, () => nullRow.slice());
 
@@ -1756,6 +1749,14 @@ export class Formulas extends BasePlugin {
         );
       }
 
+      // Write target cells with HF-serialised content (formula strings preserved).
+      // Use 'auto' source so UndoRedo does not record these writes as separate DataChangeActions
+      // — they are part of the move and are covered by the MoveCellsAction in the undo stack.
+      this.hot.populateFromArray(
+        tgtFromRow, tgtFromCol, targetData,
+        tgtFromRow + height - 1, tgtFromCol + width - 1,
+        'auto'
+      );
     } finally {
       this.#moveCellsSyncPending = false;
     }

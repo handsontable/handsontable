@@ -32,7 +32,7 @@ import { resolveWithInstance } from './utils/staticRegister';
 import { getCellCoordsFromMousePosition } from './helpers/dom/cellCoords';
 import { clampEdge } from './selection/handleAdjust';
 import type { HandleEdge } from './selection/handleAdjust';
-import { canMoveRange, clampMoveTarget } from './selection/moveCells';
+import { clampMoveTarget } from './selection/moveCells';
 import {
   A11Y_COLCOUNT,
   A11Y_MULTISELECTABLE,
@@ -2545,12 +2545,8 @@ class TableView {
     }
 
     const selection = this.hot.selection;
-    const rangeCount = selection.getSelectedRange().size();
-    const isEntireRow = selection.isEntireRowSelected();
-    const isEntireColumn = selection.isEntireColumnSelected();
-    const isHeader = selection.isSelectedByRowHeader() || selection.isSelectedByColumnHeader();
 
-    if (!canMoveRange({ rangeCount, isEntireRow, isEntireColumn, isHeader })) {
+    if (!selection.isRangeMovable() && !selection.isSingleCellMovable()) {
       return;
     }
 

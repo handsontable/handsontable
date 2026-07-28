@@ -12,6 +12,7 @@ import { createObjectPropListener, mixin } from './../helpers/object';
 import { isUndefined } from './../helpers/mixed';
 import { clamp } from './../helpers/number';
 import localHooks from './../mixins/localHooks';
+import { canMoveRange } from './moveCells';
 import { ExtenderTransformation, FocusTransformation } from './transformation';
 import {
   detectSelectionType,
@@ -974,38 +975,53 @@ class Selection {
   }
 
   /**
+   * Tells whether the current selection is eligible for a `moveCells` drag at all: the feature is
+   * on, visual selection is not disabled, and the selection shape passes {@link canMoveRange}
+   * (exactly one contiguous range that is not a full row, full column, or header selection).
+   * Mirrors the eligibility gate applied when a move drag starts, so the move zone and grab
+   * cursor never show for a selection that a drag would reject.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  #isSelectionMovable() {
+    if (this.settings.moveCells !== true || this.settings.disableVisualSelection) {
+      return false;
+    }
+
+    return canMoveRange({
+      rangeCount: this.getSelectedRange().size(),
+      isEntireRow: this.isEntireRowSelected(),
+      isEntireColumn: this.isEntireColumnSelected(),
+      isHeader: this.isSelectedByRowHeader() || this.isSelectedByColumnHeader(),
+    });
+  }
+
+  /**
    * Tells whether the `moveCells` move zone should show on the area (multi-cell) selection border:
-   * the feature is on, visual selection is not disabled, and there is exactly one contiguous range
-   * spanning more than one cell.
+   * the selection is movable (see {@link Selection##isSelectionMovable}) and spans more than one cell.
    *
    * @private
    * @returns {boolean}
    */
   isRangeMovable() {
-    if (this.settings.moveCells !== true || this.settings.disableVisualSelection) {
-      return false;
-    }
-
     const range = this.getActiveSelectedRange();
 
-    return this.getSelectedRange().size() === 1 && !!range && !range.isSingle();
+    return this.#isSelectionMovable() && !!range && !range.isSingle();
   }
 
   /**
    * Tells whether the `moveCells` move zone should show on the focus (single-cell) selection border:
-   * the feature is on, visual selection is not disabled, and there is exactly one selected cell.
+   * the selection is movable (see {@link Selection##isSelectionMovable}) and there is exactly one
+   * selected cell.
    *
    * @private
    * @returns {boolean}
    */
   isSingleCellMovable() {
-    if (this.settings.moveCells !== true || this.settings.disableVisualSelection) {
-      return false;
-    }
-
     const range = this.getActiveSelectedRange();
 
-    return this.getSelectedRange().size() === 1 && !!range && range.isSingle();
+    return this.#isSelectionMovable() && !!range && range.isSingle();
   }
 
   /**

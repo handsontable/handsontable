@@ -97,5 +97,28 @@ describe('settings', () => {
 
       expect(visibleHandles.length).toBe(4);
     });
+
+    it('should hide the bottom handle when the selection bottom edge lies on the fixedRowsBottom boundary', async() => {
+      handsontable({
+        data: createSpreadsheetData(8, 8),
+        selectionHandles: true,
+        selectionMode: 'multiple',
+        fixedRowsBottom: 2,
+        width: 400,
+        height: 300,
+      });
+
+      // Row 5 is the last non-frozen row (8 rows − 2 bottom-frozen − 1), so the selection's
+      // bottom edge lands exactly on the bottom freeze line.
+      await selectCells([[2, 2, 5, 5]]);
+      await mouseOver(getCell(3, 3));
+
+      const handles = spec().$container[0].querySelectorAll('.wtSelectionHandle');
+      const visibleHandles = Array.from(handles).filter(el => el.style.display === 'block');
+
+      // The bottom handle is suppressed on the frozen-pane boundary; the other three stay.
+      expect(visibleHandles.length).toBe(3);
+      expect(visibleHandles.some(el => el.classList.contains('wtSelectionHandle--bottom'))).toBe(false);
+    });
   });
 });

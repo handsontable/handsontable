@@ -120,6 +120,51 @@ describe('settings', () => {
         expect(getCellMeta(2, 2).className).toBe('my-cell'); // copy – source still has className
       });
 
+      it('moves data correctly when the target overlaps the source range', async() => {
+        handsontable({ data: createSpreadsheetData(10, 10), moveCells: true });
+
+        // Source 2x2 block at rows 2-3, cols 2-3; target top-left (2, 3) overlaps cols 3.
+        await selectCells([[2, 2, 3, 3]]);
+        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(2, 3), false);
+        await hot().render();
+
+        expect(getDataAtCell(2, 3)).toBe('C3');
+        expect(getDataAtCell(2, 4)).toBe('D3');
+        expect(getDataAtCell(3, 3)).toBe('C4');
+        expect(getDataAtCell(3, 4)).toBe('D4');
+        // The non-overlapping part of the source is cleared.
+        expect(getDataAtCell(2, 2)).toBe(null);
+        expect(getDataAtCell(3, 2)).toBe(null);
+      });
+
+      it('does not fire beforeMoveCells when the target range would overflow the grid bounds', async() => {
+        const spy = jasmine.createSpy('beforeMoveCells');
+
+        handsontable({ data: createSpreadsheetData(10, 10), moveCells: true, beforeMoveCells: spy });
+
+        await selectCells([[2, 2, 3, 3]]);
+        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(9, 9), false);
+
+        // Validation runs before the hook, so listeners never observe a rejected move.
+        expect(spy).not.toHaveBeenCalled();
+      });
+
+      it('does not fire beforeMoveCells when the target overlaps a read-only cell', async() => {
+        const spy = jasmine.createSpy('beforeMoveCells');
+
+        handsontable({
+          data: createSpreadsheetData(10, 10),
+          moveCells: true,
+          beforeMoveCells: spy,
+          cell: [{ row: 5, col: 5, readOnly: true }]
+        });
+
+        await selectCells([[2, 2, 3, 3]]);
+        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+
+        expect(spy).not.toHaveBeenCalled();
+      });
+
       it('vetoes the move when the target range would overflow the grid bounds', async() => {
         handsontable({ data: createSpreadsheetData(10, 10), moveCells: true });
         const src = getDataAtCell(2, 2);
