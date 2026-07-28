@@ -2,11 +2,19 @@
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import numbro from 'numbro';
+// numbro ships no type declarations for its bundled language pack.
+// @ts-expect-error -- untyped module
 import languages from 'numbro/dist/languages.min.js';
 import { rendererFactory, getRenderer } from 'handsontable/renderers';
 import { getEditor } from 'handsontable/editors';
 import { getValidator } from 'handsontable/validators';
 import { registerCellType } from 'handsontable/cellTypes';
+import { registerAllModules } from 'handsontable/registry';
+
+// Register the modules here, not in app.config.ts: this file reaches for the built-in
+// numeric editor and validator while its own module body runs, which is before any
+// later import has been evaluated.
+registerAllModules();
 
 Object.values(languages).forEach((language: any) => numbro.registerLanguage(language));
 
