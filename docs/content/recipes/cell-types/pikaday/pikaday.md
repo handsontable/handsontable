@@ -405,7 +405,7 @@ Close the Pikaday calendar.
 
 ```typescript
 hideDatepicker(editor) {
-  editor.pickaday.hide();
+  editor.pickaday?.hide();
 }
 ```
 
@@ -439,7 +439,7 @@ Clean up the Pikaday instance when the editor closes.
 
 ```typescript
 afterClose(editor) {
-  if (editor.pickaday.destroy) {
+  if (editor.pickaday?.destroy) {
     editor.pickaday.destroy();
   }
 }
@@ -449,6 +449,7 @@ afterClose(editor) {
 - Pikaday creates DOM elements and event listeners
 - Without cleanup, these accumulate over time
 - Essential for long-running applications
+- The instance check is required: Handsontable can close an editor that never opened (for example, when the edited cell leaves the rendered viewport), so `pickaday` may not exist yet
 
 ## Step 11: Editor - Get Value and Set Value
 

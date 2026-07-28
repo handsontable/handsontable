@@ -304,7 +304,7 @@ const cellDefinition = {
       return options;
     },
     hideDatepicker(editor) {
-      editor.pickaday.hide();
+      editor.pickaday?.hide();
     },
     showDatepicker(editor, event) {
       const dateFormat = editor.getDateFormat(editor);
@@ -361,7 +361,7 @@ const cellDefinition = {
       }
     },
     afterClose(editor) {
-      if (editor.pickaday.destroy) {
+      if (editor.pickaday?.destroy) {
         editor.pickaday.destroy();
       }
     },

@@ -120,7 +120,7 @@ const pikadayEditor = editorFactory<PikadayEditorInstance>({
     return options;
   },
   hideDatepicker(editor: any) {
-    editor.pickaday.hide();
+    editor.pickaday?.hide();
   },
   showDatepicker(editor: any, event: Event) {
     const dateFormat = editor.getDateFormat(editor);
@@ -172,7 +172,7 @@ const pikadayEditor = editorFactory<PikadayEditorInstance>({
     }
   },
   afterClose(editor: any) {
-    if (editor.pickaday.destroy) {
+    if (editor.pickaday?.destroy) {
       editor.pickaday.destroy();
     }
   },

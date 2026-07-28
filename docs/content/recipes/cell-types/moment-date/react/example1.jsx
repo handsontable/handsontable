@@ -162,7 +162,7 @@ const cellDateTypeDefinition = {
       return options;
     },
     hideDatepicker(editor) {
-      editor.pikaday.hide();
+      editor.pikaday?.hide();
     },
     showDatepicker(editor, event) {
       const dateFormat = editor.getDateFormat(editor);
@@ -212,7 +212,7 @@ const cellDateTypeDefinition = {
       }
     },
     afterClose(editor) {
-      if (editor.pikaday.destroy) {
+      if (editor.pikaday?.destroy) {
         editor.pikaday.destroy();
       }
     },
