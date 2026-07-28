@@ -29,23 +29,52 @@ import Default from '@astrojs/starlight/components/Head.astro';
 </script>
 
 <script is:inline>
-  // Patch StarlightTOC to silently handle browsers that don't support :has() (Chrome < 105,
-  // e.g. Chrome Mobile 75 on Android 6.0). The TOC uses :has() inside querySelectorAll which
-  // throws a DOMException named "SyntaxError" in those browsers. Catching it degrades gracefully: the TOC renders
-  // but doesn't highlight the active section while scrolling.
-  customElements.whenDefined('starlight-toc').then(function () {
-    var StarlightTOC = customElements.get('starlight-toc');
-    if (!StarlightTOC || !StarlightTOC.prototype.init) return;
-    var _originalInit = StarlightTOC.prototype.init;
-    StarlightTOC.prototype.init = function () {
-      try {
-        _originalInit.call(this);
-      } catch (e) {
-        if (e instanceof DOMException && e.name === 'SyntaxError') return;
-        throw e;
+  // Patch Starlight's table-of-contents elements to silently handle browsers without :has()
+  // support (Chrome < 105, e.g. Chrome Mobile 75 on Android 6.0; Safari < 15.4). Their init
+  // passes :has() to querySelectorAll, which throws a DOMException named "SyntaxError" there
+  // and surfaces as an uncaught page error (Sentry HANDSONTABLE-DOCS-1GA). Catching it
+  // degrades gracefully: the TOC renders but doesn't highlight the active section on scroll.
+  //
+  // Starlight assigns init as an own instance field inside the constructor, so a patch on
+  // StarlightTOC.prototype.init never applies - the instance field shadows it. Wrap init per
+  // instance instead, by subclassing the constructor as it is registered. This inline script
+  // runs during head parsing, before the deferred module that defines the elements.
+  (function () {
+    var guardedTags = ['starlight-toc', 'mobile-starlight-toc'];
+    var originalDefine = customElements.define;
+
+    customElements.define = function (name, constructor, options) {
+      if (guardedTags.indexOf(name) === -1 || typeof constructor !== 'function') {
+        return originalDefine.call(customElements, name, constructor, options);
       }
+
+      var GuardedElement = class extends constructor {
+        constructor() {
+          super();
+
+          var originalInit = this.init;
+
+          if (typeof originalInit !== 'function') {
+            return;
+          }
+
+          this.init = function () {
+            try {
+              return originalInit.apply(this, arguments);
+            } catch (error) {
+              if (error instanceof DOMException && error.name === 'SyntaxError') {
+                return undefined;
+              }
+
+              throw error;
+            }
+          };
+        }
+      };
+
+      return originalDefine.call(customElements, name, GuardedElement, options);
     };
-  });
+  })();
 </script>
 
 <script>
