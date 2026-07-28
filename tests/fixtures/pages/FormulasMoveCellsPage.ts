@@ -1,30 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
-
-type CellValue = string | number | null;
-
-/**
- * The slice of the Handsontable instance API the fixture-driving evaluate
- * callbacks use, so the in-page calls stay typed without importing the core
- * types into the test tier.
- */
-interface FixtureHotInstance {
-  getDataAtCell(row: number, col: number): CellValue;
-  setDataAtCell(row: number, col: number, value: CellValue): void;
-  getPlugin(name: 'formulas'): { getCellType(row: number, col: number): string };
-  selectCells(ranges: number[][]): boolean;
-  getSelectedRangeLast(): unknown;
-  _createCellCoords(row: number, col: number): unknown;
-  moveCellRange(sourceRange: unknown, targetTopLeft: unknown, isCopy?: boolean): boolean;
-}
-
-declare global {
-  interface Window {
-    /** The fixture's live Handsontable instance. */
-    hot: FixtureHotInstance;
-    /** Rebuilds the fixture grid with the given dataset. */
-    initGrid(data: CellValue[][]): boolean;
-  }
-}
+import type { CellValue } from './windowTypes';
 
 /**
  * Page Object for the Formulas + moveCells fixture
@@ -95,6 +70,24 @@ export class FormulasMoveCellsPage {
   /** The Formulas plugin's cell type for a cell (e.g. 'FORMULA', 'ARRAYFORMULA'). */
   async formulaCellType(row: number, col: number): Promise<string> {
     return this.page.evaluate(([r, c]) => window.hot.getPlugin('formulas').getCellType(r, c), [row, col]);
+  }
+
+  /**
+   * Read a cell's raw source data (`getSourceDataAtCell`) — the stored formula
+   * string for formula cells, not the computed value.
+   */
+  async sourceCellValue(row: number, col: number): Promise<CellValue> {
+    return this.page.evaluate(([r, c]) => window.hot.getSourceDataAtCell(r, c), [row, col]);
+  }
+
+  /** Undo the last operation through the UndoRedo plugin. */
+  async undo(): Promise<void> {
+    await this.page.evaluate(() => window.hot.getPlugin('undoRedo').undo());
+  }
+
+  /** Redo the last undone operation through the UndoRedo plugin. */
+  async redo(): Promise<void> {
+    await this.page.evaluate(() => window.hot.getPlugin('undoRedo').redo());
   }
 
   /**
