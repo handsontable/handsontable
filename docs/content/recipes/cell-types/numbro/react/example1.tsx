@@ -5,6 +5,8 @@ import { getEditor } from 'handsontable/editors';
 import { getValidator } from 'handsontable/validators';
 import { registerCellType } from 'handsontable/cellTypes';
 import numbro from 'numbro';
+// numbro ships no type declarations for its bundled language pack.
+// @ts-expect-error -- untyped module
 import languages from 'numbro/dist/languages.min.js';
 
 registerAllModules();

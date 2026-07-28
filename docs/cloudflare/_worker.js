@@ -1021,8 +1021,6 @@ async function route(request, env) {
         '/docs/angular-data-grid/recipes/cell-types/flatpickr/': '/docs/angular-data-grid/recipes/cell-types/',
         '/docs/react-data-grid/recipes/cell-types/pikaday/': '/docs/react-data-grid/recipes/cell-types/',
         '/docs/angular-data-grid/recipes/cell-types/pikaday/': '/docs/angular-data-grid/recipes/cell-types/',
-        '/docs/react-data-grid/recipes/cell-types/numbro/': '/docs/react-data-grid/recipes/cell-types/',
-        '/docs/angular-data-grid/recipes/cell-types/numbro/': '/docs/angular-data-grid/recipes/cell-types/',
         '/docs/react-data-grid/recipes/cell-types/moment-date/': '/docs/react-data-grid/recipes/cell-types/',
         '/docs/angular-data-grid/recipes/cell-types/moment-date/': '/docs/angular-data-grid/recipes/cell-types/',
         '/docs/react-data-grid/recipes/cell-types/moment-time/': '/docs/react-data-grid/recipes/cell-types/',
