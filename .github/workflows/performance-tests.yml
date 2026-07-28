@@ -1,21 +1,16 @@
 name: Performance tests
 
-# This file's LIVE job is the develop PUSH run: it keeps the golden baseline fresh
-# (the number the next PR's delta compares against) and feeds the long-term trend.
-# The PR path does NOT go through here — it runs via performance.yml (the
-# workflow_call wrapper around the performance-run composite), scope-gated by the
-# router. The workflow_call trigger below is currently UNUSED (nothing calls it);
-# it is kept only until the develop-pipeline rework folds this push run onto the
-# shared composite (quality task 09 / DEV-2057). Do not wire new PR behavior here —
-# change performance.yml / the performance-run composite instead.
+# The golden-baseline run: keeps the gh-pages golden fresh (the number the next
+# PR's delta compares against) and feeds the long-term trend. Runs as a stage of
+# the develop pipeline (workflow_call from develop.yml, gated on the
+# test-performance scope flag) — develop.yml is the SOLE writer of the golden;
+# there is no push trigger here anymore, so a double-write race cannot exist.
+# Golden mode keys off the CALLER's event (push → PERF_MODE=golden below). The
+# PR path does NOT go through here — it runs via performance.yml (the
+# workflow_call wrapper around the performance-run composite), scope-gated by
+# the router. Do not wire new PR behavior here — change performance.yml / the
+# performance-run composite instead.
 on:
-  push:
-    branches:
-      - 'develop'
-    paths:
-      - 'handsontable/src/**'
-      - 'performance-tests/**'
-      - '.github/workflows/performance-tests.yml'
   workflow_call:
     inputs:
       hot-prebuilt:

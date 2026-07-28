@@ -7,10 +7,12 @@ name: Tests
 # artifact ordering) and `if` (scope gating from the Checks router's outputs).
 # The jobs/steps live in the module files, so each is small and reviewable.
 #
-# The filename, the `workflow_call` `test-all` input, and the push triggers are
-# a stable contract: publish.yml (rc/stable/release) calls this workflow with
-# `test-all: true`, and develop/master push runs it with run-all — both get the
-# SAME jobs (now nested one level deeper) with only display names changed.
+# The filename and the `workflow_call` `test-all` input are a stable contract:
+# publish.yml (rc/stable/release) calls this workflow with `test-all: true`, and
+# a master push runs it with run-all — both get the SAME jobs (nested one level
+# deeper) with only display names changed. develop is NOT handled here anymore:
+# it has its own orchestrator (develop.yml — the same modules plus the trunk-only
+# stages, ending in the experimental npm publish).
 on:
   pull_request:
     types:
@@ -20,7 +22,6 @@ on:
   push:
     branches:
       - 'master'
-      - 'develop'
   workflow_dispatch:
     inputs:
       test-all:
