@@ -5183,9 +5183,9 @@ export default function Core(
    * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedRows = function(): number {
-    const view = instance.view as TableView;
+    const view = instance.view as TableView | undefined;
 
-    return view._wt.drawn ? view._wt.wtTable.getRenderedRowsCount() as number : -1;
+    return view?._wt.drawn ? view._wt.wtTable.getRenderedRowsCount() as number : -1;
   };
 
   /**
@@ -5197,9 +5197,9 @@ export default function Core(
    * @returns {number} Number of visible rows or -1.
    */
   this.countVisibleRows = function(): number {
-    const view = instance.view as TableView;
+    const view = instance.view as TableView | undefined;
 
-    return view._wt.drawn ? view._wt.wtTable.getVisibleRowsCount() as number : -1;
+    return view?._wt.drawn ? view._wt.wtTable.getVisibleRowsCount() as number : -1;
   };
 
   /**
@@ -5211,9 +5211,9 @@ export default function Core(
    * @returns {number} Returns -1 if table is not visible.
    */
   this.countRenderedCols = function(): number {
-    const view = instance.view as TableView;
+    const view = instance.view as TableView | undefined;
 
-    return view._wt.drawn ? view._wt.wtTable.getRenderedColumnsCount() as number : -1;
+    return view?._wt.drawn ? view._wt.wtTable.getRenderedColumnsCount() as number : -1;
   };
 
   /**
@@ -5225,9 +5225,9 @@ export default function Core(
    * @returns {number} Number of visible columns or -1.
    */
   this.countVisibleCols = function(): number {
-    const view = instance.view as TableView;
+    const view = instance.view as TableView | undefined;
 
-    return view._wt.drawn ? view._wt.wtTable.getVisibleColumnsCount() as number : -1;
+    return view?._wt.drawn ? view._wt.wtTable.getVisibleColumnsCount() as number : -1;
   };
 
   /**
