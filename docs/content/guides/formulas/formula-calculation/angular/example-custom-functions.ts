@@ -2,9 +2,14 @@
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
 import { FunctionArgumentType, FunctionPlugin, HyperFormula } from 'hyperformula';
-import type { ProcedureAst } from 'hyperformula/typings/parser/Ast';
-import type { InterpreterState } from 'hyperformula/typings/interpreter/InterpreterState';
-import type { InterpreterValue } from 'hyperformula/typings/interpreter/InterpreterValue';
+
+// HyperFormula does not export its parser and interpreter types from the package
+// entry point, so derive them from the inherited `runFunction` signature.
+type RunFunction = FunctionPlugin['runFunction'];
+type Ast = Parameters<RunFunction>[0][number];
+type ProcedureAst = Extract<Ast, { procedureName: string }>;
+type InterpreterState = Parameters<RunFunction>[1];
+type InterpreterValue = ReturnType<Parameters<RunFunction>[3]>;
 
 class CommissionPlugin extends FunctionPlugin {
   commission(ast: ProcedureAst, state: InterpreterState): InterpreterValue {
@@ -34,7 +39,7 @@ HyperFormula.registerFunctionPlugin(CommissionPlugin, {
 @Component({
   standalone: true,
   imports: [HotTableModule],
-  selector: 'app-example5',
+  selector: 'app-example-custom-functions',
   template: `
     <hot-table [settings]="gridSettings" [data]="data"></hot-table>
   `,
