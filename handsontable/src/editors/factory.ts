@@ -29,6 +29,11 @@ type EditorWithExtendedProps = InstanceType<typeof BaseEditor> & {
 
 type Shortcut = Parameters<Context['addShortcut']>[0];
 
+/**
+ * The shortcuts group used when the editor does not define its own `shortcutsGroup`.
+ */
+const DEFAULT_SHORTCUTS_GROUP = 'customEditor';
+
 export type ExtendedEditor<T> = BaseEditor & {
   render: (editor: ExtendedEditor<T>) => void;
   value?: T extends {
@@ -135,7 +140,7 @@ export const editorFactory = <TProperties, TMethods = Record<string, unknown>>(
   const registerShortcuts = (editor: EditorWithExtendedProps & Extended) => {
     const shortcutManager = editor.hot.getShortcutManager();
     const editorContext = shortcutManager.getContext('editor');
-    const contextConfig = { group: shortcutsGroup };
+    const contextConfig = { group: shortcutsGroup ?? DEFAULT_SHORTCUTS_GROUP };
 
     if (shortcuts) {
       editorContext!.addShortcuts(shortcuts.map(shortcut => ({
@@ -261,7 +266,7 @@ export const editorFactory = <TProperties, TMethods = Record<string, unknown>>(
       const shortcutManager = editor.hot.getShortcutManager();
       const editorContext = shortcutManager.getContext('editor');
 
-      editorContext!.removeShortcutsByGroup(shortcutsGroup ?? '');
+      editorContext!.removeShortcutsByGroup(shortcutsGroup ?? DEFAULT_SHORTCUTS_GROUP);
 
       if (typeof afterClose === 'function') {
         afterClose(editor);
