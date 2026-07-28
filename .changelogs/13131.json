@@ -1,6 +1,6 @@
 {
   "issuesOrigin": "private",
-  "title": "Fixed an error thrown on every focus change when the grid's initialization did not finish — the row and column counting methods now report -1 instead of throwing.",
+  "title": "Fixed an error thrown on every focus change when the grid failed to initialize.",
   "type": "fixed",
   "issueOrPR": 13131,
   "breaking": false,
