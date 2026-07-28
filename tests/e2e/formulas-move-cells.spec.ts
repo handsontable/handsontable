@@ -98,6 +98,30 @@ test.describe('Formulas: moveCells integration', () => {
     expect(await grid.cellValue(0, 4)).toBe(null);
   });
 
+  test('vetoes a copy onto an array formula before mutating the grid', async () => {
+    // E1 holds an array formula spilling into E1:F2. Pasting a copy over it throws inside
+    // HyperFormula, so the copy must be vetoed by the isItPossibleToSetCellContents
+    // pre-check BEFORE the grid mutates — no meta/selection change and no undo entry.
+    await grid.initGrid([[1, 2, null, null, null, null], [3, 4, null, null, null, null]]);
+
+    await grid.setCellValue(0, 4, '=TRANSPOSE(A1:B2)');
+
+    await expect.poll(() => grid.formulaCellType(0, 4)).toBe('ARRAYFORMULA');
+
+    const result = await grid.moveRange([0, 0, 1, 1], [0, 4], true);
+
+    // The copy is rejected and nothing changed: source intact, array output intact.
+    expect(result).toBe(false);
+    await grid.expectCell(0, 0, '1');
+    await grid.expectCell(0, 4, '1');
+
+    // No undo entry was recorded for the failed copy: undo reverts the array-formula
+    // write (the previous action), not a phantom move.
+    await grid.undo();
+    expect(await grid.cellValue(0, 4)).toBe(null);
+    await grid.expectCell(0, 0, '1');
+  });
+
   test('keeps moved values when the target range overlaps the source range', async () => {
     // Source 2x2 value block at A1:B2, target top-left B1 — column B overlaps.
     // Regression: the post-move HOT-data sync must clear the source BEFORE writing

@@ -6573,27 +6573,36 @@ export default function Core(
   }
 
   /**
-   * Moves the movable meta keys from a source cell to a target cell, optionally clearing the source.
+   * Reads the movable meta keys present on a cell (own properties only, so meta cascading
+   * from column/global level does not travel with the cell).
    *
-   * @param {number} fromRow Source row (visual).
-   * @param {number} fromCol Source column (visual).
-   * @param {number} toRow Target row (visual).
-   * @param {number} toCol Target column (visual).
-   * @param {boolean} clearSource When `true`, remove the keys from the source cell.
+   * @param {number} row Cell row (visual).
+   * @param {number} col Cell column (visual).
+   * @returns {object} The movable key/value pairs present on the cell.
    */
-  function moveCellMeta(fromRow: number, fromCol: number, toRow: number, toCol: number, clearSource: boolean): void {
-    const sourceMeta = instance.getCellMeta(fromRow, fromCol) as Record<string, unknown>;
+  function readMovableCellMeta(row: number, col: number): Record<string, unknown> {
+    const cellMeta = instance.getCellMeta(row, col) as Record<string, unknown>;
+    const movableMeta: Record<string, unknown> = {};
 
     for (const key of MOVABLE_META_KEYS) {
-      if (Object.prototype.hasOwnProperty.call(sourceMeta, key)) {
-        instance.setCellMeta(toRow, toCol, key, sourceMeta[key] as string);
+      if (Object.prototype.hasOwnProperty.call(cellMeta, key)) {
+        movableMeta[key] = cellMeta[key];
       }
     }
 
-    if (clearSource) {
-      for (const key of MOVABLE_META_KEYS) {
-        instance.removeCellMeta(fromRow, fromCol, key);
-      }
+    return movableMeta;
+  }
+
+  /**
+   * Writes previously read movable meta onto a cell.
+   *
+   * @param {number} row Cell row (visual).
+   * @param {number} col Cell column (visual).
+   * @param {object} movableMeta The movable key/value pairs to write.
+   */
+  function writeMovableCellMeta(row: number, col: number, movableMeta: Record<string, unknown>): void {
+    for (const key of Object.keys(movableMeta)) {
+      instance.setCellMeta(row, col, key, movableMeta[key] as string);
     }
   }
 
@@ -6682,26 +6691,42 @@ export default function Core(
     // Snapshot source values before any write so overlapping source/target is safe.
     const values = instance.getData(fromRow, fromCol, toRow, toCol);
 
+    /**
+     * Forward-compat gate: when the Formulas plugin is active it handles the value write
+     * through HyperFormula (preserving formula references) and the raw data write below is
+     * skipped. The engine operation runs BEFORE any grid mutation, so an engine failure
+     * aborts the whole operation atomically — no meta, selection, or undo change may record
+     * a move whose data write never happened.
+     */
+    const formulasPlugin = instance.getPlugin('formulas');
+    const formulasActive = formulasPlugin?.enabled === true;
+
+    if (formulasActive && !formulasPlugin.commitPendingMoveCells()) {
+      return false;
+    }
+
     instance.batch(() => {
       const moveMap = buildMoveMap({ fromRow, fromCol, toRow, toCol, targetRow, targetCol });
 
       // Move meta first, then values, so meta is in sync with data after the batch.
-      // We need to collect cleared sources after the loop to avoid clearing a cell
-      // that is also a move target within the same range.
+      // The movable meta of every source cell is snapshotted BEFORE any meta write: with an
+      // overlapping source/target block, an in-place move would otherwise read a source cell
+      // whose meta an earlier mapping already overwrote. Cleared sources are collected after
+      // the loop to avoid clearing a cell that is also a move target within the same range.
+      const movingEntries = moveMap.filter(
+        entry => entry.fromRow !== entry.toRow || entry.fromCol !== entry.toCol
+      );
+      const metaSnapshots = movingEntries.map(entry => readMovableCellMeta(entry.fromRow, entry.fromCol));
       const targetCellKeys = new Set(moveMap.map(e => `${e.toRow}:${e.toCol}`));
       const sourcesToClear = new Set<string>();
 
-      for (const entry of moveMap) {
-        const isSameCell = entry.fromRow === entry.toRow && entry.fromCol === entry.toCol;
+      movingEntries.forEach((entry, index) => {
+        writeMovableCellMeta(entry.toRow, entry.toCol, metaSnapshots[index]);
 
-        if (!isSameCell) {
-          moveCellMeta(entry.fromRow, entry.fromCol, entry.toRow, entry.toCol, false);
-
-          if (!isCopy) {
-            sourcesToClear.add(`${entry.fromRow}:${entry.fromCol}`);
-          }
+        if (!isCopy) {
+          sourcesToClear.add(`${entry.fromRow}:${entry.fromCol}`);
         }
-      }
+      });
 
       if (!isCopy) {
         for (const key of sourcesToClear) {
@@ -6715,14 +6740,6 @@ export default function Core(
           }
         }
       }
-
-      /**
-       * Forward-compat gate: when the Formulas plugin is active it handles the value
-       * write through HyperFormula (preserving formula references). In that case we skip the
-       * raw data write here – meta is still moved above.
-       */
-      const formulasPlugin = instance.getPlugin('formulas');
-      const formulasActive = formulasPlugin?.enabled === true;
 
       if (!formulasActive) {
         if (!isCopy) {

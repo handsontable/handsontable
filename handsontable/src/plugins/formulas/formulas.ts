@@ -154,7 +154,8 @@ export class Formulas extends BasePlugin {
 
   /**
    * Stores the HyperFormula source range and destination address prepared in `beforeMoveCells` so that
-   * `afterMoveCells` can execute the corresponding HF operation without recomputing visual-to-HF coordinates.
+   * `commitPendingMoveCells` can execute the corresponding HF operation without recomputing
+   * visual-to-HF coordinates.
    *
    * Set to `null` when no move is in flight.
    *
@@ -162,6 +163,23 @@ export class Formulas extends BasePlugin {
    * @type {{ source: object, dest: object, isCopy: boolean }|null}
    */
   #pendingMoveCells: { source: object; dest: object; isCopy: boolean } | null = null;
+
+  /**
+   * Set by `commitPendingMoveCells` when the engine operation for the current `moveCells`
+   * operation succeeded (or was intentionally skipped during undo/redo replay). Consumed by
+   * the `afterMoveCells` listener to run the HOT-data sync only for committed operations.
+   */
+  #moveCellsCommitted = false;
+
+  /**
+   * The dependent-cell changes returned by the engine operation in `commitPendingMoveCells`,
+   * consumed by the `afterMoveCells` listener to re-render dependent sheets. `null` when the
+   * engine step was skipped (undo/redo replay re-renders everything anyway).
+   *
+   * @private
+   * @type {unknown[]|null}
+   */
+  #moveCellsChanges: unknown[] | null = null;
 
   /**
    * Guard flag set while writing synced values back to HOT after a `moveCells` operation.
@@ -1600,66 +1618,75 @@ export class Formulas extends BasePlugin {
       return false;
     }
 
+    if (isCopy) {
+      // Pre-check the paste target for a COPY the same way isItPossibleToMoveCells guards a
+      // MOVE (e.g. pasting over part of an array formula throws in `engine.paste`), so the
+      // operation vetoes cleanly before the grid mutates instead of failing halfway through.
+      const targetRegion = {
+        start: dest,
+        end: {
+          sheet: this.sheetId,
+          row: hfTargetRow + (hfToRow - hfFromRow),
+          col: hfTargetCol + (hfToCol - hfFromCol),
+        },
+      };
+
+      if (!this.engine.isItPossibleToSetCellContents(targetRegion)) {
+        this.#pendingMoveCells = null;
+
+        return false;
+      }
+    }
+
     this.#pendingMoveCells = { source, dest, isCopy };
   };
 
   /**
-   * `afterMoveCells` hook callback.
+   * Executes the HyperFormula move or copy operation prepared in `beforeMoveCells`. Called by
+   * the core's `moveCellRange` BEFORE any grid mutation (cell meta, selection, undo history),
+   * so a failed engine operation aborts the whole `moveCells` operation atomically instead of
+   * leaving the grid state recording a move whose data write never happened.
    *
-   * Executes the HyperFormula move or copy operation using the coordinates
-   * prepared in `beforeMoveCells`. For a MOVE, calls `engine.moveCells` which
-   * physically relocates cell content and adjusts all dependent formula references
-   * (Excel-style). For a COPY, calls `engine.copy` followed by `engine.paste`
-   * which duplicates the content with adjusted relative references.
+   * For a MOVE, calls `engine.moveCells`, which physically relocates cell content and adjusts
+   * all dependent formula references (Excel-style). For a COPY, calls `engine.copy` followed
+   * by `engine.paste`, which duplicates the content with adjusted relative references. Note:
+   * `engine.copy` reads cell values and must NOT be wrapped in `engine.batch` because batch
+   * suspends evaluation, causing `copy` to throw `EvaluationSuspendedError`.
    *
-   * Note: `engine.copy` reads cell values and must NOT be wrapped in `engine.batch`
-   * because batch suspends evaluation, causing `copy` to throw `EvaluationSuspendedError`.
+   * When an undo/redo operation triggered the move (e.g. `UndoRedo.redo` calls `moveCellRange`
+   * to re-fire hooks), the engine has already been advanced by `engine.redo()`/`engine.undo()`
+   * in the `beforeRedo`/`beforeUndo` hook, so the engine step is skipped and only the HOT-data
+   * sync (in the `afterMoveCells` listener) runs.
    *
-   * After the HF operation, HOT's source data array is synchronised with HF's state
-   * to ensure that `getDataAtCell` returns correct values for plain VALUE / EMPTY cells
-   * (formula cells are already served from HF via the `modifyData` hook). The sync is
-   * guarded by `#moveCellsSyncPending` so that `afterSetDataAtCell` does not re-write
-   * the same values back into HyperFormula.
-   *
-   * @param {CellRange} sourceRange The original source range (visual coordinates).
-   * @param {CellRange} targetRange The range the data was moved to (visual coordinates).
-   * @param {boolean} isCopy `true` when the operation was a copy.
+   * @returns {boolean} `true` when the engine operation succeeded (or was intentionally
+   *   skipped); `false` when there is no prepared operation or the engine rejected it.
    */
-  #onAfterMoveCells = (sourceRange: CellRange, targetRange: CellRange, isCopy: boolean) => {
+  commitPendingMoveCells(): boolean {
     if (!this.engine || !this.#pendingMoveCells) {
-      return;
+      return false;
     }
 
-    const { source, dest } = this.#pendingMoveCells;
+    const { source, dest, isCopy } = this.#pendingMoveCells;
 
     this.#pendingMoveCells = null;
+    this.#moveCellsChanges = null;
 
-    let dependentCells: unknown[];
-
-    // When an undo/redo operation triggered the moveCells (e.g. UndoRedo.redo calls
-    // moveCellRange to re-fire hooks), the HF engine has already been advanced by
-    // engine.redo() / engine.undo() in the beforeRedo / beforeUndo hook. Running
-    // engine.moveCells() here again would duplicate the operation. Skip the HF step
-    // and go straight to syncing HOT's source data from HF's (already correct) state.
     if (this.indexSyncer?.isPerformingUndoRedo()) {
-      // HOT re-render after undo/redo refreshes all dependent cells, so no
-      // renderDependentSheets call is needed here.
-      this.#syncHotDataAfterMoveCells(sourceRange, targetRange, isCopy);
+      this.#moveCellsCommitted = true;
 
-      return;
+      return true;
     }
 
-    // HyperFormula can throw during copy/paste (e.g. when pasting over a cell that is part of
-    // an array formula) and during moveCells (no isItPossibleToMoveCells pre-check is performed
-    // for the COPY path). Guard both paths so that a failed HF operation does not leave
-    // #pendingMoveCells or #moveCellsSyncPending in a dangling state.
+    // HyperFormula can still throw for cases the isItPossibleTo* pre-checks in
+    // `beforeMoveCells` do not cover. Failing here is safe: the core has not mutated
+    // anything yet and aborts the whole operation when `false` is returned.
     try {
       if (isCopy) {
         // copy() reads cell values and cannot run inside batch() (evaluation must not be suspended).
         this.engine.copy(source);
-        dependentCells = this.engine.paste(dest);
+        this.#moveCellsChanges = this.engine.paste(dest);
       } else {
-        dependentCells = this.engine.batch(() => {
+        this.#moveCellsChanges = this.engine.batch(() => {
           this.engine!.moveCells(source, dest);
         });
       }
@@ -1669,14 +1696,48 @@ export class Formulas extends BasePlugin {
 
       warn(`Formulas: HyperFormula operation failed during ${operation}: ${reason}`);
 
+      return false;
+    }
+
+    this.#moveCellsCommitted = true;
+
+    return true;
+  }
+
+  /**
+   * `afterMoveCells` hook callback.
+   *
+   * Runs after the engine operation already executed in `commitPendingMoveCells` (the core
+   * calls it before mutating the grid, so a failed engine operation never reaches this hook).
+   * Synchronises HOT's source data array with HF's state so that `getDataAtCell` returns
+   * correct values for plain VALUE / EMPTY cells (formula cells are already served from HF
+   * via the `modifyData` hook), then re-renders the dependent sheets. The sync is guarded by
+   * `#moveCellsSyncPending` so that `afterSetDataAtCell` does not re-write the same values
+   * back into HyperFormula.
+   *
+   * @param {CellRange} sourceRange The original source range (visual coordinates).
+   * @param {CellRange} targetRange The range the data was moved to (visual coordinates).
+   * @param {boolean} isCopy `true` when the operation was a copy.
+   */
+  #onAfterMoveCells = (sourceRange: CellRange, targetRange: CellRange, isCopy: boolean) => {
+    if (!this.engine || !this.#moveCellsCommitted) {
       return;
     }
+
+    const dependentCells = this.#moveCellsChanges;
+
+    this.#moveCellsCommitted = false;
+    this.#moveCellsChanges = null;
 
     // Sync HOT's source data with HF's updated state so that getDataAtCell returns
     // correct values for VALUE/EMPTY cells (formula cells are already served via modifyData).
     this.#syncHotDataAfterMoveCells(sourceRange, targetRange, isCopy);
 
-    this.renderDependentSheets(dependentCells, true);
+    // During undo/redo replay the engine step was skipped (dependentCells is null) and the
+    // HOT re-render after undo/redo refreshes all dependent cells anyway.
+    if (dependentCells !== null) {
+      this.renderDependentSheets(dependentCells, true);
+    }
   };
 
   /**

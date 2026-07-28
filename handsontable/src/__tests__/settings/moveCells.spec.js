@@ -137,6 +137,23 @@ describe('settings', () => {
         expect(getDataAtCell(3, 2)).toBe(null);
       });
 
+      it('moves cell formatting correctly when the target overlaps the source range', async() => {
+        handsontable({ data: createSpreadsheetData(10, 10), moveCells: true });
+        await setCellMeta(2, 2, 'className', 'meta-a');
+        await setCellMeta(2, 3, 'className', 'meta-b');
+        await render();
+
+        await selectCells([[2, 2, 2, 3]]);
+        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(2, 3), false);
+        await hot().render();
+
+        // (2,3) receives (2,2)'s meta and (2,4) receives (2,3)'s ORIGINAL meta — an in-place
+        // move would overwrite (2,3)'s meta before reading it and duplicate 'meta-a' into (2,4).
+        expect(getCellMeta(2, 3).className).toBe('meta-a');
+        expect(getCellMeta(2, 4).className).toBe('meta-b');
+        expect(getCellMeta(2, 2).className).not.toBe('meta-a');
+      });
+
       it('does not fire beforeMoveCells when the target range would overflow the grid bounds', async() => {
         const spy = jasmine.createSpy('beforeMoveCells');
 
