@@ -237,8 +237,12 @@ jobs:
   changelog:
     name: changelog
     runs-on: ubuntu-latest
-    # PR-only. Deliberately NOT re-run on `edited`: re-run the failed job after
-    # adding an entry or `[skip changelog]`.
+    # PR-only, and path-aware: an entry is required only when shippable source
+    # changed (handsontable/src/** or wrappers/**, tests + markdown excluded) —
+    # docs/test/CI-only PRs pass automatically, and `[skip changelog]` (outside
+    # HTML comments) overrides on a source change. Deliberately NOT re-run on
+    # `edited`: re-run the failed job after adding an entry or the marker (the
+    # script reads the live PR body).
     if: github.event_name == 'pull_request'
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2

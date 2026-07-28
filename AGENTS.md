@@ -160,7 +160,7 @@ These standards apply to **all** documentation across the monorepo — guides, t
 ### PR requirements
 
 - Every PR that changes package source code must include a changelog entry. Use the `changelog-creation` and `pr-creation` skills for the entry format and PR flow.
-- To skip changelog (for non-source-code changes only), write `[skip changelog]` in the PR description.
+- The changelog gate is path-aware: docs-, test-, and CI/tooling-only PRs pass it automatically. To skip it on a genuine source change (`handsontable/src/**` or `wrappers/**`), write `[skip changelog]` in the PR description — outside HTML comments; a commented mention (like the PR template's hint) is inert.
 - PRs are merged using **"Squash and merge"** in the GitHub UI by the PR author after full approval.
 - The PR author addresses reviewer comments. The reviewer confirms resolution by clicking **Resolve conversation**.
 

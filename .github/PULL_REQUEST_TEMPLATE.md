@@ -14,6 +14,15 @@ Fill in the paths below, or apply a `Refactor-only: <reason>` commit trailer.
 - For a bug fix — the spec that fails without this fix: <!-- name -->
 - Demo page / recorded trace (for UI changes): <!-- link -->
 
+<!--
+Changelog: a change under handsontable/src/** or wrappers/** (tests and .md
+excluded) requires a new .changelogs/*.json entry — run `npm run changelog
+entry` AFTER opening the PR (the file is named after the PR number). Docs-,
+test-, and CI/tooling-only PRs pass the check automatically. To deliberately
+skip it on a source change, write [skip changelog] in this description OUTSIDE
+any HTML comment — here, inside a comment, it is inert.
+-->
+
 ### Commands run
 <!--- Paste the test commands and their final output lines. -->
 
