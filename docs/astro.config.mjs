@@ -731,6 +731,24 @@ export default defineConfig({
       ],
 
       head: [
+        // Opaque-origin storage guard — MUST stay the first head entry (Sentry
+        // HANDSONTABLE-DOCS-206). Headless crawlers render the page with
+        // `page.setContent()`, which leaves the document at about:blank with an opaque
+        // origin (`location.origin === 'null'`); sandboxed and srcdoc iframes behave the
+        // same. There, `window.localStorage` is an own accessor that throws SecurityError
+        // on read, so `typeof localStorage !== 'undefined'` throws instead of
+        // short-circuiting. That kills Starlight's inline ThemeProvider script (no theme
+        // applied, `window.StarlightThemeProvider` never defined, cascading
+        // ReferenceErrors), plus ThemeSelect, SidebarPersister, and our own
+        // DocsAssistant storage reads. Running first means every later script — ours or
+        // third-party — sees a working storage object.
+        {
+          tag: 'script',
+          content: readFileSync(
+            resolve(__dirname, 'src', 'scripts', 'opaque-origin-storage-guard.js'),
+            'utf8'
+          ),
+        },
         {
           tag: 'script',
           attrs: { src: '/docs/example-tabs.js', defer: true },
@@ -761,6 +779,12 @@ export default defineConfig({
         //      but the check only tests for presence so any truthy value works). These
         //      are intentional developer-feedback errors (e.g. ColumnSummary data-type
         //      errors in demo examples) and should not be forwarded to Sentry.
+        //
+        //   3. Errors from documents whose URL is `about:blank` or another `about:` page.
+        //      No real visitor browses there; these come from headless crawlers that
+        //      inject the fetched HTML with `page.setContent()`. Every stack frame reads
+        //      `about:blank:<line>:<col>`, so the events are unattributable to a page and
+        //      the storage guard above already fixes the behavior for such contexts.
         {
           tag: 'script',
           content: `window.sentryOnLoad = function () {
@@ -775,6 +799,11 @@ export default defineConfig({
         var url = (event.request && event.request.url) || '';
 
         if (isDemoHttpError && url.indexOf('/recipes/data-management/server-side') !== -1) {
+          return null;
+        }
+
+        // Drop crawler noise from opaque-origin renders (about:blank and friends).
+        if (url.indexOf('about:') === 0) {
           return null;
         }
 
