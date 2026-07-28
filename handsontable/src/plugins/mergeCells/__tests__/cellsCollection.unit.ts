@@ -564,6 +564,185 @@ describe('MergeCells', () => {
       });
     });
 
+    describe('`getWithinRange` method with partials', () => {
+      it('should return a merged cell overlapping the range partially only when `countPartials` is `true`', () => {
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+        mergedCellsCollection.add({
+          row: 3,
+          col: 3,
+          rowspan: 4,
+          colspan: 4
+        });
+
+        const range = createCellRange(5, 5, 10, 10);
+
+        expect(mergedCellsCollection.getWithinRange(range, false)).toEqual([]);
+        expect(mergedCellsCollection.getWithinRange(range, true).length).toBe(1);
+        expect(mergedCellsCollection.getWithinRange(range, true)[0].row).toBe(3);
+      });
+
+      it('should return each merged cell exactly once, even when it spans multiple cells of the range', () => {
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+        mergedCellsCollection.add({
+          row: 1,
+          col: 1,
+          rowspan: 5,
+          colspan: 5
+        });
+
+        const range = createCellRange(0, 0, 10, 10);
+
+        expect(mergedCellsCollection.getWithinRange(range, true).length).toBe(1);
+        expect(mergedCellsCollection.getWithinRange(range, false).length).toBe(1);
+      });
+
+      it('should return merged cells ordered by their first covered cell in row-major order, ' +
+        'regardless of the insertion order', () => {
+        const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+        mergedCellsCollection.add({ row: 20, col: 21, rowspan: 3, colspan: 4 });
+        mergedCellsCollection.add({ row: 0, col: 5, rowspan: 3, colspan: 4 });
+        mergedCellsCollection.add({ row: 0, col: 1, rowspan: 3, colspan: 4 });
+        mergedCellsCollection.add({ row: 10, col: 11, rowspan: 3, colspan: 4 });
+
+        const wantedCollections = mergedCellsCollection.getWithinRange(createCellRange(0, 0, 30, 30));
+
+        expect(wantedCollections.map(({ row, col }) => [row, col])).toEqual([
+          [0, 1], [0, 5], [10, 11], [20, 21],
+        ]);
+      });
+    });
+
+    describe('non-intersecting index lookups compared with the exhaustive cell-scan reference', () => {
+      /**
+       * The pre-optimization implementation: visits every cell of the range and gathers, per
+       * row/column line, the set of indexes the line's cells point at. Kept here as the source
+       * of truth the optimized implementation must agree with.
+       */
+      function referenceNonIntersectingIndexes(collection, range, axis, scanDirection) {
+        const indexes = new Map();
+        const from = scanDirection === 1 ? range.getTopStartCorner() : range.getBottomEndCorner();
+        const to = scanDirection === 1 ? range.getBottomEndCorner() : range.getTopStartCorner();
+
+        for (let row = from.row; scanDirection === 1 ? row <= to.row : row >= to.row; row += scanDirection) {
+          for (
+            let column = from.col;
+            scanDirection === 1 ? column <= to.col : column >= to.col;
+            column += scanDirection
+          ) {
+            const index = axis === 'row' ? row : column;
+            const mergedCell = collection.get(row, column);
+            let lastIndex = index;
+
+            if (mergedCell) {
+              lastIndex = scanDirection === 1 ? mergedCell[axis] + mergedCell[`${axis}span`] - 1 : mergedCell[axis];
+            }
+
+            if (!indexes.has(index)) {
+              indexes.set(index, new Set());
+            }
+
+            indexes.get(index).add(lastIndex);
+          }
+        }
+
+        return Array.from(
+          new Set(Array.from(indexes.entries())
+            .filter(([, set]) => set.size === 1)
+            .flatMap(([, set]) => Array.from(set)))
+        );
+      }
+
+      /**
+       * Replays the pre-optimization caller loop: the first emitted index at or past the
+       * provided visual index (in the scan direction) wins.
+       */
+      function referenceMostIndex(collection, range, axis, scanDirection, visualIndex) {
+        const indexes = referenceNonIntersectingIndexes(collection, range, axis, scanDirection);
+        let result = visualIndex;
+
+        for (let i = 0; i < indexes.length; i++) {
+          if (scanDirection === 1 ? indexes[i] >= visualIndex : indexes[i] <= visualIndex) {
+            result = indexes[i];
+            break;
+          }
+        }
+
+        return result;
+      }
+
+      /**
+       * Deterministic pseudo-random generator (Park-Miller), so failures are reproducible.
+       */
+      function createRandom(seed) {
+        let state = (seed % 2147483647) || 1;
+
+        return () => {
+          state = (state * 16807) % 2147483647;
+
+          return (state - 1) / 2147483646;
+        };
+      }
+
+      it('should agree with the reference implementation on randomized merge layouts', () => {
+        const random = createRandom(2026);
+        const randomInt = (min, max) => min + Math.floor(random() * (max - min + 1));
+
+        for (let round = 0; round < 30; round++) {
+          const mergedCellsCollection = new MergedCellsCollection({ hot: hotMock });
+
+          // Non-overlapping placement: one optional merge per 5x5 block of a 30x30 grid.
+          for (let blockRow = 0; blockRow < 6; blockRow++) {
+            for (let blockColumn = 0; blockColumn < 6; blockColumn++) {
+              if (random() < 0.4) {
+                const rowspan = randomInt(1, 5);
+                const colspan = randomInt(1, 5);
+
+                if (rowspan === 1 && colspan === 1) {
+                  continue;
+                }
+
+                mergedCellsCollection.add({
+                  row: (blockRow * 5) + randomInt(0, 5 - rowspan),
+                  col: (blockColumn * 5) + randomInt(0, 5 - colspan),
+                  rowspan,
+                  colspan,
+                });
+              }
+            }
+          }
+
+          for (let check = 0; check < 20; check++) {
+            const rowA = randomInt(0, 29);
+            const rowB = randomInt(0, 29);
+            const columnA = randomInt(0, 29);
+            const columnB = randomInt(0, 29);
+            const range = createCellRange(
+              Math.min(rowA, rowB), Math.min(columnA, columnB),
+              Math.max(rowA, rowB), Math.max(columnA, columnB)
+            );
+            const visualRow = randomInt(-2, 31);
+            const visualColumn = randomInt(-2, 31);
+            const context = `round ${round}, check ${check}, ` +
+              `range [${range.getTopStartCorner().row}, ${range.getTopStartCorner().col}, ` +
+              `${range.getBottomEndCorner().row}, ${range.getBottomEndCorner().col}], ` +
+              `visualRow ${visualRow}, visualColumn ${visualColumn}`;
+
+            expect({ context, value: mergedCellsCollection.getStartMostColumnIndex(range, visualColumn) })
+              .toEqual({ context, value: referenceMostIndex(mergedCellsCollection, range, 'col', -1, visualColumn) });
+            expect({ context, value: mergedCellsCollection.getEndMostColumnIndex(range, visualColumn) })
+              .toEqual({ context, value: referenceMostIndex(mergedCellsCollection, range, 'col', 1, visualColumn) });
+            expect({ context, value: mergedCellsCollection.getTopMostRowIndex(range, visualRow) })
+              .toEqual({ context, value: referenceMostIndex(mergedCellsCollection, range, 'row', -1, visualRow) });
+            expect({ context, value: mergedCellsCollection.getBottomMostRowIndex(range, visualRow) })
+              .toEqual({ context, value: referenceMostIndex(mergedCellsCollection, range, 'row', 1, visualRow) });
+          }
+        }
+      });
+    });
+
     describe('static `detectContiguousRuns` method', () => {
       it('should return an empty array for an empty input', () => {
         expect(MergedCellsCollection.detectContiguousRuns([])).toEqual([]);

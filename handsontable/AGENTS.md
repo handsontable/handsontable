@@ -47,7 +47,10 @@ Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` us
 | Type | Pattern | Framework | Run |
 |------|---------|-----------|-----|
 | Unit | `*.unit.js` | Jest (jsdom) | `npm run test:unit` |
-| E2E | `*.spec.js` | Jasmine (Puppeteer) | `npm run test:e2e` |
+| E2E (legacy, frozen) | `*.spec.js` | Jasmine (Puppeteer) | `npm run test:e2e` |
+| E2E (new) | `tests/e2e/*.spec.ts` | Playwright | `cd tests && npm test` |
+
+**New E2E is Playwright** in `tests/e2e/` (skill: `handsontable-playwright-e2e`). The Jasmine `*.spec.js` suite is frozen — edit existing specs, but add no new ones, and migrate broken ones to Playwright. What to test in which framework, and when a test is even required, is machine-enforced by the presence gate; the decision rules are in `.ai/TESTING.md`.
 
 - ALL `it()` callbacks in spec files MUST be `async`
 - HOT API calls MUST be `await`-ed
@@ -62,6 +65,7 @@ Gotcha: Filters `conditionCollection` uses physical indexes, `getDataAtCol()` us
 
 - **Wrapper UI placement**: The root wrapper has `ht-slot-top`, `ht-grid` (grid + empty-data-state), `ht-slot-bottom`, `ht-overlay` (last). Add plugin UI to a user-orderable edge slot via `hot.getLayoutManager().register(key, element, { side: 'top'|'bottom', weight })` and `unregister(key, side)` on teardown — `register` owns the DOM placement, so do NOT `appendChild` into the slot elements yourself. `getLayoutManager()` throws on non-root instances, so guard slot calls with `isRootInstance(this.hot)`. Edge-slot order is user-overridable through the `layout` setting (`top`/`bottom`). The slot registry is data-driven from `LAYOUT_SLOTS` (`src/core/layout/constants.ts`) — `register`/`getSlot`/`applyConfig`/the manager constructor all derive from it, so adding a slot (e.g. `start`/`end`) means extending `LAYOUT_SLOTS` + wiring its element + CSS. `ht-grid` and `ht-overlay` are fixed internal elements (NOT slots, not orderable); a plugin needing the overlays layer (e.g. Dialog, Notification) appends into `hot.rootOverlaysElement` directly. `LayoutManager.destroy()` keeps its slot map (only clears contents) so a plugin's `disablePlugin` running after core destroy stays safe. See `src/core/layout/`.
 - **`arr.push(...largeArray)`**: Causes stack overflow with 10k+ elements. Use `forEach` loop instead.
+- **`getCellMeta` vs `getCellMetaTransient` — pick by whether the cell must stay materialized.** Both resolve the same effective configuration (full cascade + `cells` function + meta hooks). The difference: `hot.getCellMeta(row, col)` permanently stores one meta object per visited cell; `hot.getCellMetaTransient(row, col)` stores nothing (unstored cells get a throwaway object; cells that already carry stored meta return that stored object). Default to **`getCellMetaTransient` for every read-only use** — any loop over a row/column range or per-change read (copy, export, validation, sampling, fills, toggles, `valueSetter`/`valueGetter` accessors). Reserve `getCellMeta` for the render path and for reads whose result must survive on the stored object (e.g. validation writing `valid`). A loop of `getCellMeta` over a large range retains O(visited cells) memory that viewport eviction cannot sweep — this class of leak was the core of the OOM investigation. Never mutate what either method returns; persist with `setCellMeta`. Details: `src/dataMap/metaManager/AGENTS.md`.
 - **Merged cells**: Read `colspan`/`rowspan` from `hot.getCellMeta(row, col)`, NOT from DOM element attributes. The meta is authoritative regardless of viewport state.
 - **Filters visual/physical index**: `conditionCollection` uses physical indexes, `getDataAtCol()` uses visual. Always convert when `manualColumnMove` is active.
 - **Hook signature / TypeScript fixes**: When changing hook signatures, add both a runtime regression test and a TypeScript regression (`src/__tests__/core/settings.types.ts`).
@@ -164,6 +168,7 @@ Extra args after `--` flow through to tasks with `"passthrough": true` in `tasks
 ## For Deeper Guidance
 
 Use these skills for detailed workflow instructions:
+- Cross-file queries (who calls X, what imports Y, rename impact, blast radius): query the pre-built code-review-graph MCP before walking call chains with Grep+Read — workflow in `.ai/MCP.md` and, in Claude Code, the `code-graph` skill
 - Plugin development: `handsontable-plugin-dev`
 - Editors/renderers/validators/cellTypes: `handsontable-editor-dev`, `handsontable-renderer-dev`, `handsontable-validator-dev`, `handsontable-celltype-dev`
 - Testing: `handsontable-unit-testing`, `handsontable-e2e-testing`

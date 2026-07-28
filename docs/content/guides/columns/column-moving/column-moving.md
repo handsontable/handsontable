@@ -17,6 +17,7 @@ vue:
   metaTitle: Column moving - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Columns
+menuTag: updated
 ---
 Change the order of columns, either manually (dragging them to another location), or programmatically (using Handsontable's API methods).
 
@@ -180,9 +181,61 @@ This renders the columns in the following order:
 
 The array must contain all physical column indexes (its length must equal the total number of columns). After the initial render, users can still drag columns to change the order further.
 
+For more on how physical and visual indexes relate, see [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
+
+## Control column moving
+
+Use the [`beforeColumnMove`](@/api/hooks.md#beforecolumnmove) hook to decide whether each column move is allowed. Returning `false` cancels the move while keeping the [`manualColumnMove`](@/api/options.md#manualcolumnmove) plugin enabled.
+
+In the following example, select **Allow column moving** before you drag a column to a new position. Clear the checkbox to block column moving again.
+
+:::: only-for javascript
+
+::: example #example4 --html 1 --js 2 --ts 3
+
+@[code](@/content/guides/columns/column-moving/javascript/example4.html)
+@[code](@/content/guides/columns/column-moving/javascript/example4.js)
+@[code](@/content/guides/columns/column-moving/javascript/example4.ts)
+
+:::
+
+::::
+
+:::: only-for react
+
+::: example #example4 :react --jsx 1 --tsx 2
+
+@[code](@/content/guides/columns/column-moving/react/example4.jsx)
+@[code](@/content/guides/columns/column-moving/react/example4.tsx)
+
+:::
+
+::::
+
+:::: only-for angular
+
+::: example #example4 :angular --ts 1 --html 2
+
+@[code](@/content/guides/columns/column-moving/angular/example4.ts)
+@[code](@/content/guides/columns/column-moving/angular/example4.html)
+
+:::
+
+::::
+
+:::: only-for vue
+
+::: example #example4 :vue3
+
+@[code](@/content/guides/columns/column-moving/vue/example4.vue)
+
+:::
+
+::::
+
 ## Result
 
-After completing this guide, you can reorder columns by dragging them with the mouse or by calling `dragColumns()` and `moveColumns()` programmatically. You can also set a pre-defined column order at initialization.
+After completing this guide, you can reorder columns by dragging them with the mouse or by calling `dragColumns()` and `moveColumns()` programmatically. You can also set a pre-defined column order at initialization or use `beforeColumnMove` to block individual moves.
 
 ## Drag and move actions of the [`ManualColumnMove`](@/api/manualColumnMove.md) plugin
 

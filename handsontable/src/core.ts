@@ -74,7 +74,7 @@ import { getTheme, hasTheme, registerTheme, mainTheme } from './themes';
 import type { ThemeBuilder } from './themes/engine/builder';
 import type { default as CellCoords } from './3rdparty/walkontable/src/cell/coords';
 import type { default as CellRange } from './3rdparty/walkontable/src/cell/range';
-import type { CellChange } from './settings';
+import type { CellChange, CellProperties } from './settings';
 import type { GridHelperInstance, HotInstance, ViewportScrollerInstance } from './core/types';
 import type { FocusScopeManager } from './focusManager/scopeManager';
 import type { SelectionTableProps } from './selection/types';
@@ -1183,10 +1183,25 @@ export default function Core(
       }
       {
         let emptyCols = 0;
+        const canCreateSpareCols = minSpareCols > 0 && !tableMeta.columns && instance.dataType === 'array';
 
-        // count currently empty cols
-        if (minCols || minSpareCols) {
-          emptyCols = instance.countEmptyCols(true);
+        // Count trailing empty columns, but only when the `minSpareCols` branch below can consume
+        // the result, and never beyond `minSpareCols` itself. Verifying that a column is empty
+        // scans every row of that column, and this method runs after every change batch - an
+        // uncapped count (the previous `countEmptyCols(true)` call) paid O(empty columns * rows)
+        // per edit and also ran when only `minCols` was set, where the result was never used.
+        if (canCreateSpareCols) {
+          for (let visualIndex = instance.countCols() - 1; visualIndex >= 0; visualIndex--) {
+            if (!instance.isEmptyCol(visualIndex)) {
+              break;
+            }
+
+            emptyCols += 1;
+
+            if (emptyCols >= minSpareCols) {
+              break;
+            }
+          }
         }
 
         let nrOfColumns = instance.countCols();
@@ -1202,9 +1217,7 @@ export default function Core(
           datamap.createCol(nrOfColumns, colsToCreate, { source: 'auto' });
         }
         // should I add empty cols to meet minSpareCols?
-        if (minSpareCols && !tableMeta.columns && instance.dataType === 'array' &&
-          emptyCols < minSpareCols) {
-
+        if (canCreateSpareCols && emptyCols < minSpareCols) {
           nrOfColumns = instance.countCols();
           const emptyColsMissing = minSpareCols - emptyCols;
           const colsToCreate = Math.min(emptyColsMissing, tableMeta.maxCols - nrOfColumns);
@@ -1379,7 +1392,11 @@ export default function Core(
             }
             current.col = start.col!;
 
-            cellMeta = instance.getCellMeta(current.row, current.col);
+            // The transient read keeps a bulk paste/fill from permanently materializing one meta
+            // object per target cell - this loop only reads (`skipRowOnPaste`, `skipColumnOnPaste`,
+            // `readOnly`, `valueSetter`, `parsePastedValue`); the write itself goes through the
+            // data layer.
+            cellMeta = instance.getCellMetaTransient(current.row, current.col);
 
             if ((source === 'CopyPaste.paste' || source === 'Autofill.fill' || source === 'autofill.fill') &&
                 cellMeta.skipRowOnPaste) {
@@ -1401,7 +1418,7 @@ export default function Core(
                 break;
               }
 
-              cellMeta = instance.getCellMeta(current.row, current.col);
+              cellMeta = instance.getCellMetaTransient(current.row, current.col);
 
               if ((source === 'CopyPaste.paste' || source === 'Autofill.fill' || source === 'autofill.fill') &&
                   cellMeta.skipColumnOnPaste) {
@@ -1794,8 +1811,15 @@ export default function Core(
       let cellProperties;
 
       if (Number.isInteger(visualCol)) {
+        // The transient read keeps a bulk change set from permanently materializing one meta
+        // object per changed cell while the validator is looked up. Cells that DO have a
+        // validator switch to the eagerly stored meta object below - validation writes its
+        // `valid` result on the meta, and that result must survive on the stored object.
+        cellProperties = instance.getCellMetaTransient(row, visualCol as number);
 
-        cellProperties = instance.getCellMeta(row, visualCol as number);
+        if (instance.getCellValidator(cellProperties)) {
+          cellProperties = instance.getCellMeta(row, visualCol as number);
+        }
 
       } else {
         // If there's no requested visual column, we can use the table meta as the cell properties when retrieving
@@ -1856,10 +1880,15 @@ export default function Core(
       }
 
       if (tableMeta.allowInsertRow) {
+        // Create the whole missing range in one call - one index-mapper insert and one hook
+        // round instead of one per row. Creating row by row made a paste reaching far below
+        // the last row quadratic in the gap size. The loop re-checks the count so a partial
+        // creation (e.g. a `maxRows` clamp) is detected and the change is skipped.
         while (changes[i][0] > instance.countRows() - 1) {
+          const missingRows = changes[i][0] - (instance.countRows() - 1);
           const {
             delta: numberOfCreatedRows
-          } = datamap.createRow(undefined, undefined, { source: 'auto' });
+          } = datamap.createRow(undefined, missingRows, { source: 'auto' });
 
           if (numberOfCreatedRows === 0) {
             skipThisChange = true;
@@ -1871,9 +1900,11 @@ export default function Core(
       if (instance.dataType === 'array' && (!tableMeta.columns || tableMeta.columns.length === 0) &&
           tableMeta.allowInsertColumn) {
         while (Number(datamap.propToCol(changes[i][1] as string | number)) > instance.countCols() - 1) {
+          const missingColumns =
+            Number(datamap.propToCol(changes[i][1] as string | number)) - (instance.countCols() - 1);
           const {
             delta: numberOfCreatedColumns
-          } = datamap.createCol(undefined, undefined, { source: 'auto' });
+          } = datamap.createCol(undefined, missingColumns, { source: 'auto' });
 
           if (numberOfCreatedColumns === 0) {
             skipThisChange = true;
@@ -2105,8 +2136,10 @@ export default function Core(
       let cellProperties;
 
       if (Number.isInteger(visualColumn)) {
-
-        cellProperties = instance.getCellMeta(row, visualColumn as number);
+        // The transient read keeps a bulk change set (paste, fill, checkbox toggle over a large
+        // selection) from permanently materializing one meta object per changed cell - the meta
+        // is only read here (`valueSetter`).
+        cellProperties = instance.getCellMetaTransient(row, visualColumn as number);
       } else {
         // If there's no requested visual column, we can use the table meta as the cell properties
         cellProperties = { ...Object.getPrototypeOf(tableMeta) as Record<string, unknown>, ...tableMeta };
@@ -2518,7 +2551,9 @@ export default function Core(
 
       const collectEmptyCellChanges = (row: number) => {
         rangeEach(fromColumn, toColumn, (column) => {
-          if (!this.getCellMeta(row, column).readOnly) {
+          // The transient read keeps clearing a large selection from permanently materializing
+          // one meta object per cell - only `readOnly` is read here.
+          if (!this.getCellMetaTransient(row, column).readOnly) {
             changes.push([row, column, null]);
           }
         });
@@ -3205,6 +3240,10 @@ export default function Core(
       throwWithCause('Since 8.0.0 the "ganttChart" setting is no longer supported.');
     }
 
+    // The `columns` option (or the state its function form reads) may change in this call - drop
+    // getColHeader's index translation cache so it rebuilds against the updated settings.
+    columnsSettingIndexes = null;
+
     if (isDefined(settings.rowHeights) && isDefined(settings.minRowHeights)) {
       warn('Both `rowHeights` and `minRowHeights` are defined in your configuration. ' +
         'As one is the alias of the other, only one of them can be used at a time. ' +
@@ -3477,11 +3516,23 @@ export default function Core(
     // width blocks ran) so partial updateSettings calls see the correct state.
     // When height IS set, the height block's `overflow: clip` shorthand handles both axes — leave
     // overflowX untouched to avoid breaking that shorthand.
+    // Only clip for a definite width. A relative width (`100%`, other percentages, viewport units,
+    // or a `calc()` that mixes them in) fills its container, and content wider than that scrolls
+    // with the window — matching the long-standing behavior where the page gains a horizontal
+    // scrollbar and every column stays reachable. Clipping those would silently hide the off-width
+    // columns with no scrollbar. A definite width (`px`, `em`, `rem`, and other absolute lengths)
+    // establishes a fixed box the table must not visually overflow, so it is clipped.
     // Browser compatibility: `overflow-x: clip` requires Safari 16+. On Safari 14.1–15.x it silently
     // falls back to `visible` (graceful degradation — pre-existing behavior, not a new regression).
     if (typeof settings.height !== 'undefined' || typeof settings.width !== 'undefined') {
       const effectiveHeight = instance.rootElement.style.height;
       const effectiveWidth = instance.rootElement.style.width;
+      // Relative: percentages and viewport units resolve against an ancestor, so a `%` or a viewport
+      // unit (`vw`/`vh`/`vmin`/`vmax`, and dynamic `dvh`/`svh`/`lvh` via the `vh` match) anywhere —
+      // including inside `calc()` — marks the width as container-driven. No word boundaries: the unit
+      // is preceded by digits (`100vw`), which are word characters, so `\bv` would never match.
+      const isRelativeWidth = /%|v(?:w|h|min|max)/i.test(effectiveWidth);
+      const isDefiniteWidth = effectiveWidth !== '' && effectiveWidth !== 'auto' && !isRelativeWidth;
 
       if (!effectiveHeight) {
         const currentOverflowX = instance.rootElement.style.overflowX;
@@ -3491,8 +3542,7 @@ export default function Core(
         // by `clip`. Unlike `hidden`, `clip` creates no block formatting context and allows no
         // programmatic scroll.
         if (currentOverflowX === '' || currentOverflowX === 'clip') {
-          instance.rootElement.style.overflowX =
-            (effectiveWidth && effectiveWidth !== 'auto') ? 'clip' : '';
+          instance.rootElement.style.overflowX = isDefiniteWidth ? 'clip' : '';
         }
       }
     }
@@ -4043,16 +4093,24 @@ export default function Core(
     const input = setDataInputToArray(row, column, value);
     const isThereAnySetSourceListener = instance.hasHook('afterSetSourceDataAtCell');
     const changesForHook: Array<Array<unknown>> = [];
-    const getCellProperties = (changeRow: number, changeProp: string | number) => {
+    const getCellProperties = (changeRow: number, changeProp: string | number): CellProperties => {
       const visualRow = instance.toVisualRow(changeRow);
       const visualColumn = instance.toVisualColumn(changeProp as number);
 
       if (Number.isInteger(visualColumn)) {
-        return instance.getCellMeta(visualRow!, visualColumn as number) as Record<string, unknown>;
+        // The transient read keeps a bulk source-data write from permanently materializing one
+        // meta object per changed cell - the meta only feeds the `valueSetter` and the
+        // source-data validator, both read-only.
+        return instance.getCellMetaTransient(visualRow!, visualColumn as number);
       }
 
-      // If there's no requested visual column, we can use the table meta as the cell properties
-      return { ...(Object.getPrototypeOf(tableMeta) as Record<string, unknown>), ...tableMeta };
+      // If there's no requested visual column, we can use the table meta as the cell properties.
+      // The snapshot lacks the per-cell coordinate properties, but every consumer here reads
+      // settings-level keys only.
+      return {
+        ...(Object.getPrototypeOf(tableMeta) as Record<string, unknown>),
+        ...tableMeta,
+      } as unknown as CellProperties;
     };
 
     if (isThereAnySetSourceListener) {
@@ -4182,7 +4240,7 @@ export default function Core(
       let isTypeEqual = true;
 
       rangeEach(Math.max(Math.min(columnStart, columnEnd), 0), Math.max(columnStart, columnEnd), (column) => {
-        const cellType = instance.getCellMeta(row, column);
+        const cellType = instance.getCellMetaTransient(row, column);
 
         currentType = (cellType.type as string | null | undefined) ?? null;
 
@@ -4395,7 +4453,7 @@ export default function Core(
    * @fires Hooks#beforeGetCellMeta
    * @fires Hooks#afterGetCellMeta
    */
-  this.getCellMeta = function<M extends object = Record<string, unknown>>(
+  this.getCellMeta = function<M extends object = CellProperties>(
     row: number, column: number, options = { skipMetaExtension: false }
   ): M {
     let physicalRow = instance.toPhysicalRow(row);
@@ -4413,6 +4471,50 @@ export default function Core(
       visualRow: row,
       visualColumn: column,
       ...options
+    }) as M;
+  };
+
+  /**
+   * Returns the cell properties object for the given `row` and `column` coordinates without
+   * retaining it in the cell meta cache.
+   *
+   * Like [[getCellMeta]], the returned object reflects the effective cell configuration after
+   * [cascading configuration](@/guides/getting-started/configuration-options/configuration-options.md#cascading-configuration)
+   * and dynamic extension (the `cells` function and the `beforeGetCellMeta`/`afterGetCellMeta`
+   * hooks run). Unlike `getCellMeta`, when the cell has no stored meta object the extension runs
+   * on a temporary object that is not saved, so scanning many cells (for example, a whole column
+   * or the entire dataset) does not permanently allocate one meta object per visited cell. Cells
+   * that already carry stored meta (for example, written by [[setCellMeta]] or the `cell` option)
+   * return their stored object, exactly as `getCellMeta` would.
+   *
+   * Use this method for read-only bulk scans. Do not write to the returned object - for cells
+   * without stored meta the write lands on the temporary object and is lost; use `setCellMeta`
+   * to persist values.
+   *
+   * @memberof Core#
+   * @function getCellMetaTransient
+   * @since 18.1.0
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @returns {object} The cell properties object.
+   * @fires Hooks#beforeGetCellMeta
+   * @fires Hooks#afterGetCellMeta
+   */
+  this.getCellMetaTransient = function<M extends object = CellProperties>(row: number, column: number): M {
+    let physicalRow = instance.toPhysicalRow(row);
+    let physicalColumn = instance.toPhysicalColumn(column);
+
+    if (physicalRow === null) {
+      physicalRow = row;
+    }
+
+    if (physicalColumn === null) {
+      physicalColumn = column;
+    }
+
+    return metaManager.getCellMetaTransient(physicalRow, physicalColumn, {
+      visualRow: row,
+      visualColumn: column,
     }) as M;
   };
 
@@ -4664,12 +4766,27 @@ export default function Core(
         }
         waitingForValidator.addValidatorToQueue();
 
-        instance.validateCell(instance.getDataAtCell(i, j), instance.getCellMeta(i, j), (result: boolean) => {
+        // The transient read keeps a bulk validation from permanently materializing one meta
+        // object per validated cell (O(rows x columns) retention). Cells with stored meta -
+        // including every currently rendered cell - still receive their `valid` result on the
+        // stored object, because the transient read returns the stored object for them.
+        const row = i;
+        const column = j;
+        const cellMeta = instance.getCellMetaTransient(row, column);
+
+        instance.validateCell(instance.getDataAtCell(row, column), cellMeta, (result: boolean) => {
           if (typeof result !== 'boolean') {
             throwWithCause('Validation error: result is not boolean');
           }
           if (result === false) {
             waitingForValidator.valid = false;
+
+            // A failed result written on a throwaway object would be lost - persist it on the
+            // stored meta (a DIRECT write, exactly like the edit-path validation flow; NOT
+            // `setCellMeta`, which would mark the property as user-persisted and change
+            // updateSettings/eviction semantics). Only failures materialize, so retention stays
+            // O(invalid cells); the eviction pass already keeps `valid === false` cells.
+            instance.getCellMeta(row, column, { skipMetaExtension: true }).valid = false;
           }
           waitingForValidator.removeValidatorFormQueue();
         }, 'validateCells');
@@ -4752,6 +4869,19 @@ export default function Core(
   };
 
   /**
+   * Caches the index translation that `getColHeader` derives from the `columns` option when that
+   * option is a function: the source column indexes for which `columns(index)` returns a truthy
+   * settings object. Only the membership array is cached — titles are still read live from the
+   * `columns` function. Rebuilt when the function reference or the column count changes; cleared
+   * by `updateSettings`.
+   */
+  let columnsSettingIndexes: {
+    columns: (...args: unknown[]) => Record<string, unknown>;
+    columnsLen: number;
+    indexes: number[];
+  } | null = null;
+
+  /**
    * Gets the values of column headers (if column headers are [enabled](@/api/options.md#colheaders)).
    *
    * To get an array with the values of all
@@ -4808,31 +4938,34 @@ export default function Core(
 
     let result: unknown = tableMeta.colHeaders;
     const columns = tableMeta.columns;
+    const columnsFn = typeof columns === 'function' ? columns : null;
+    const physicalColumn = instance.toPhysicalColumn(columnIndex as number);
+    let columnSettings: Record<string, unknown> | null = null;
 
-    const translateVisualIndexToColumns = function(visualColumnIndex: number) {
-      const arr: number[] = [];
-
+    if (columnsFn !== null) {
       const columnsLen = instance.countCols();
-      let index = 0;
 
-      for (; index < columnsLen; index++) {
-        if (isFunction(columns) && columns(index)) {
-          arr.push(index);
+      if (columnsSettingIndexes === null || columnsSettingIndexes.columns !== columnsFn ||
+          columnsSettingIndexes.columnsLen !== columnsLen) {
+        const indexes: number[] = [];
+
+        for (let index = 0; index < columnsLen; index++) {
+          if (columnsFn(index)) {
+            indexes.push(index);
+          }
         }
+
+        columnsSettingIndexes = { columns: columnsFn, columnsLen, indexes };
       }
 
-      return arr[visualColumnIndex];
-    };
-
-    const physicalColumn = instance.toPhysicalColumn(columnIndex as number);
-    const prop = translateVisualIndexToColumns(physicalColumn!);
+      columnSettings = columnsFn(columnsSettingIndexes.indexes[physicalColumn!]) ?? null;
+    }
 
     if (tableMeta.colHeaders === false) {
       result = null;
 
-    } else if (columns && isFunction(columns) && columns(prop) &&
-               (columns(prop) as Record<string, unknown>).title) {
-      result = (columns(prop) as Record<string, unknown>).title;
+    } else if (columnSettings && columnSettings.title) {
+      result = columnSettings.title;
 
     } else if (columns && !isFunction(columns) && columns[physicalColumn!] &&
                columns[physicalColumn!].title) {

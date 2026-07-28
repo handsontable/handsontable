@@ -267,9 +267,9 @@ const settings: GridSettings = {
 `Events` maps every hook name to its callback signature. Extract a specific callback type with `Events[hookName]`:
 
 ```typescript
-import type { Events } from 'handsontable';
+import type { Events, CellChange, ChangeSource } from 'handsontable';
 
-const onAfterChange: Events['afterChange'] = (changes, source) => {
+const onAfterChange: Events['afterChange'] = (changes: CellChange[] | null, source: ChangeSource) => {
   if (!changes) return;
   console.log(source, changes);
 };
@@ -294,7 +294,7 @@ function statusRenderer(
   value: string,
   cellProperties: CellProperties
 ): void {
-  Handsontable.renderers.TextRenderer.apply(this, [hotInstance, TD, row, col, prop, value, cellProperties]);
+  Handsontable.renderers.TextRenderer(hotInstance, TD, row, col, prop, value, cellProperties);
   TD.style.color = value === 'Active' ? 'green' : 'red';
 }
 ```
@@ -304,10 +304,10 @@ function statusRenderer(
 Extend `BaseEditorInstance` for full IDE support when writing custom editors:
 
 ```typescript
-import { BaseEditor } from 'handsontable/editors';
+import { TextEditor } from 'handsontable/editors';
 import type { GridSettings } from 'handsontable';
 
-class RatingEditor extends BaseEditor {
+class RatingEditor extends TextEditor {
   override getValue(): string {
     return this.TEXTAREA?.value ?? '';
   }
@@ -329,23 +329,29 @@ const settings: GridSettings = {
 
 ### Type the HOT instance in a React ref
 
+`HotTable` exposes its ref as `HotTableRef`, not `HotInstance` -- read the Handsontable instance through `hotRef.current?.hotInstance`. The wrapper takes grid options as individual props, so there's no `settings` prop -- type a reusable settings object as `HotTableProps` and spread it onto `<HotTable>`. See [React methods](@/guides/getting-started/react-methods/react-methods.md) for more on working with the instance ref.
+
 ```tsx
 import { useRef } from 'react';
 import { HotTable } from '@handsontable/react-wrapper';
-import type { HotInstance, GridSettings } from 'handsontable';
+import type { HotTableRef, HotTableProps } from '@handsontable/react-wrapper';
 
 export function Grid() {
-  const hotRef = useRef<HotInstance | null>(null);
+  const hotRef = useRef<HotTableRef>(null);
 
-  const settings: GridSettings = {
+  const settings: HotTableProps = {
     data: myData,
     licenseKey: 'non-commercial-and-evaluation',
+  };
+
+  const selectFirstCell = () => {
+    hotRef.current?.hotInstance?.selectCell(0, 0);
   };
 
   return (
     <HotTable
       ref={hotRef}
-      settings={settings}
+      {...settings}
     />
   );
 }
@@ -359,8 +365,7 @@ export function Grid() {
 
 ```typescript
 import { Component, ViewChild } from '@angular/core';
-import { HotTableComponent, HotTableModule } from '@handsontable/angular-wrapper';
-import type { GridSettings } from 'handsontable';
+import { HotTableComponent, HotTableModule, GridSettings } from '@handsontable/angular-wrapper';
 
 @Component({
   standalone: true,
@@ -376,6 +381,8 @@ export class GridComponent {
   };
 }
 ```
+
+Read the Handsontable instance through `hotTable.hotInstance`.
 
 :::
 

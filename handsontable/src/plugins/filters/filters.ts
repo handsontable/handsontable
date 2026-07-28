@@ -30,7 +30,7 @@ import {
   OPERATION_OR,
   OPERATION_OR_THEN_VARIABLE
 } from './constants';
-import { TrimmingMap } from '../../translations';
+import type { TrimmingMap } from '../../translations';
 import type { BaseComponent } from './component/_base';
 
 export type OperationType = 'conjunction' | 'disjunction' | 'disjunctionWithExtraCondition';
@@ -272,7 +272,7 @@ export class Filters extends BasePlugin {
 
     this.#isDataProviderActive = this.hot.runHooks('hasExternalDataSource') === true;
 
-    this.filtersRowsMap = this.hot.rowIndexMapper.registerMap(this.pluginName ?? '', new TrimmingMap()) as TrimmingMap;
+    this.filtersRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginName ?? '', 'trimming');
     this.dropdownMenuPlugin = this.hot.getPlugin('dropdownMenu');
 
     const dropdownSettings = this.hot.getSettings().dropdownMenu;
@@ -352,7 +352,8 @@ export class Filters extends BasePlugin {
       this.conditionUpdateObserver = new ConditionUpdateObserver(
         this.hot,
         this.conditionCollection,
-        (physicalColumn: number) => this.getDataMapAtColumn(physicalColumn),
+        (physicalColumn: number, physicalRows?: number[]) =>
+          this.getDataMapAtColumn(physicalColumn, physicalRows),
       );
       this.conditionUpdateObserver.addLocalHook('update',
         (conditionState: Record<string, unknown>) => this.#updateComponents(conditionState));
@@ -940,7 +941,12 @@ export class Filters extends BasePlugin {
    * @param {Array} conditions Array of conditions keyed by physical column indexes.
    */
   importConditions(conditions: ColumnConditions[]): void {
+    // Group the per-condition `afterAdd`/`afterClean` cascade the same way the action-bar
+    // submit does. Without grouping, every imported condition triggers a full component
+    // update that re-scans the whole dataset once per earlier filtered column.
+    this.conditionUpdateObserver?.groupChanges();
     this.conditionCollection?.importAllConditions(conditions);
+    this.conditionUpdateObserver?.flush();
   }
 
   /**
@@ -998,7 +1004,7 @@ export class Filters extends BasePlugin {
     if (allowFiltering !== false && needToFilter) {
       const dataFilter = this._createDataFilter();
       const rowIndexesToShow = arrayMap(dataFilter.filter(),
-        rowData => (rowData as { meta: { row: number } }).meta.row);
+        rowData => (rowData as { row: number }).row);
       const rowIndexesToShowAssertion = createArrayAssertion(rowIndexesToShow);
       const countSourceRows = this.hot.countSourceRows();
       // Build the trimmed-state array in a single pass (`true` marks a row hidden by the filter), then
@@ -1073,17 +1079,22 @@ export class Filters extends BasePlugin {
   /**
    * Returns the full dataset for a column with cell meta for each row. The dataset is independent of
    * any index mapper - no matter if the data is filtered, sorted, or otherwise transformed all rows
-   * are included.
+   * are included, unless `physicalRows` narrows the read to specific rows.
    *
    * @param {number} physicalColumn The physical column index.
-   * @returns {Array<{meta: CellProperties, value: *}>} Array of objects with `meta` and `value`, one per source row.
+   * @param {number[]} [physicalRows] When provided, only these physical rows are read (in the given
+   * order) instead of every source row.
+   * @returns {Array<{row: number, meta: CellProperties, value: *}>} Array of objects with `row` (the physical
+   * row index), `meta`, and `value`, one per read row. Consumers correlate rows through the `row` property -
+   * the coordinate stamps on `meta` are shared with other readers and may change after this method returns.
    */
-  getDataMapAtColumn(physicalColumn: number): Record<string, unknown>[] {
-    const countSourceRows = this.hot.countSourceRows();
+  getDataMapAtColumn(physicalColumn: number, physicalRows?: number[]): Record<string, unknown>[] {
+    const rowsCount = physicalRows ? physicalRows.length : this.hot.countSourceRows();
     const visualColumn = this.hot.toVisualColumn(physicalColumn);
     const data: Record<string, unknown>[] = [];
 
-    for (let physicalRow = 0; physicalRow < countSourceRows; physicalRow++) {
+    for (let rowIndex = 0; rowIndex < rowsCount; rowIndex++) {
+      const physicalRow = physicalRows ? physicalRows[rowIndex] : rowIndex;
       const cellMeta = this.hot._getMetaManager().getCellMetaUncached(physicalRow, physicalColumn, {
         visualRow: physicalRow,
         visualColumn: physicalColumn,
@@ -1104,6 +1115,7 @@ export class Filters extends BasePlugin {
       }
 
       data.push({
+        row: physicalRow,
         meta: cellMeta,
         value: toEmptyString(value),
       });
@@ -1119,14 +1131,23 @@ export class Filters extends BasePlugin {
    */
   #onAfterChange = (changes: unknown[]) => {
     if (changes) {
+      // A single batch (paste, fill, undo) can carry thousands of changes that hit the same
+      // column. The value-component refresh reads and sorts the whole column, so run it once
+      // per distinct filtered column instead of once per changed cell.
+      const changedColumns = new Set<number>();
+
       arrayEach(changes, (change) => {
         const [, prop] = change as unknown[];
         const visualColumnIndex = this.hot.propToCol(prop as string | number);
         const physicalColumnIndex = this.hot.toPhysicalColumn(visualColumnIndex);
 
         if (this.conditionCollection?.hasConditions(physicalColumnIndex)) {
-          this.updateValueComponentCondition(physicalColumnIndex);
+          changedColumns.add(physicalColumnIndex);
         }
+      });
+
+      changedColumns.forEach((physicalColumnIndex) => {
+        this.updateValueComponentCondition(physicalColumnIndex);
       });
     }
   };
@@ -1140,7 +1161,7 @@ export class Filters extends BasePlugin {
   updateValueComponentCondition(columnIndex: number) {
     const visualColumnIndex = this.hot.toVisualColumn(columnIndex);
     const dataAtCol = this.hot.getDataAtCol(visualColumnIndex);
-    const columnMeta = this.hot.countRows() > 0 ? this.hot.getCellMeta(0, visualColumnIndex) : null;
+    const columnMeta = this.hot.countRows() > 0 ? this.hot.getCellMetaTransient(0, visualColumnIndex) : null;
     const comparator = getSortComparatorForMeta(columnMeta);
     const selectedValues = unifyColumnValues(dataAtCol, comparator);
 
@@ -1458,7 +1479,7 @@ export class Filters extends BasePlugin {
     }
 
     return new DataFilter(conditionCollection,
-      ((physicalColumn: number) => this.getDataMapAtColumn(physicalColumn)) as () => Record<string, unknown>[]);
+      (physicalColumn: number, physicalRows?: number[]) => this.getDataMapAtColumn(physicalColumn, physicalRows));
   }
 
   /**

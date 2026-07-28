@@ -28,6 +28,8 @@ Row trimming is similar to [row hiding](@/guides/rows/row-hiding/row-hiding.md),
 
 The [`TrimRows`](@/api/trimRows.md) plugin allows the trimming of specific rows from the table. Rows being trimmed aren't rendered and aren't included in the `DataMap`, which can be retrieved by calling the [`getData`](@/api/core.md#getdata) method.
 
+Unlike hidden rows, trimmed rows are removed from the visual dataset entirely, so rows after them shift to a lower visual index. For a full comparison, see [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md#how-features-affect-the-two-datasets).
+
 ## Setup
 
 To enable row trimming, set the [`trimRows`](@/api/options.md#trimrows) option to `true`.

@@ -275,6 +275,8 @@ The following examples show how much the [`batch()`](@/api/core.md#batch) method
 <div class="boxes-list">
 
 - [Performance](@/guides/optimization/performance/performance.md)
+- [Binding to data](@/guides/getting-started/binding-to-data/binding-to-data.md)
+- [Saving data](@/guides/getting-started/saving-data/saving-data.md)
 
 </div>
 

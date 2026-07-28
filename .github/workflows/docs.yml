@@ -1,0 +1,103 @@
+name: Docs
+
+# Everything docs — lint, plugin tests, Angular-example type-check, the
+# Cloudflare preview deploy, and the label-gated visual suite. Internal
+# ordering: lint/plugins/angular in parallel → preview (needs lint+plugins) →
+# visual (needs preview + the live label gate). The orchestrator gates the whole
+# module on docs scope.
+on:
+  workflow_call:
+    inputs:
+      run-all: { type: boolean, default: false }
+      run-angular: { type: boolean, default: false }
+      is-pr: { type: boolean, default: false }
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+      - name: Lint
+        run: npm run docs:lint --prefix docs
+
+  plugins:
+    name: plugins
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+      - name: Test plugins
+        run: npm run docs:test:plugins --prefix docs
+
+  angular-types:
+    name: Angular types
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # PR-only, and only when the Angular-relevant scope changed.
+    if: inputs.is-pr && (inputs.run-all || inputs.run-angular)
+    permissions:
+      contents: read
+      checks: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/docs-angular-typecheck
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Cheap, early label read (independent of the preview build) — the PR's CURRENT
+  # labels, so adding `run-docs-visual` + "Re-run all jobs" activates the visual
+  # suite mid-review.
+  visual-label:
+    name: visual label
+    runs-on: ubuntu-latest
+    if: inputs.is-pr
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - name: Evaluate the gate
+        id: check
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        with:
+          script: |
+            const prNumber = context.payload.pull_request?.number;
+            if (!prNumber) { core.setOutput('run', 'false'); return; }
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber,
+            });
+            const run = pr.labels.some(l => l.name === 'run-docs-visual');
+            core.setOutput('run', String(run));
+            if (!run) {
+              core.notice('docs-visual skipped — add the "run-docs-visual" label to the PR and press "Re-run all jobs" to run it inside this pipeline.');
+            }
+
+  # Deploys the PR's Cloudflare preview (the standalone docs-staging.yml keeps
+  # the trunk develop/release push deploys). PR-only. Depends on all the docs
+  # gates so it lands at the BUILD stage (alongside the core build jobs); skipped
+  # gates (angular-types/visual-label off-scope) don't block it.
+  preview:
+    name: preview
+    # Depends on the docs QUALITY gates only — NOT visual-label, which is a live
+    # API label read for the optional visual suite (a routing flag, not a gate);
+    # coupling the preview to it would skip the deploy if that API call flaked.
+    needs: [ lint, plugins, angular-types ]
+    if: ${{ !failure() && !cancelled() && inputs.is-pr }}
+    uses: ./.github/workflows/docs-staging.yml
+    secrets: inherit
+
+  visual:
+    name: visual
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    needs: [ visual-label, preview ]
+    if: |
+      !failure() && !cancelled() &&
+      needs.visual-label.outputs.run == 'true' &&
+      needs.preview.result == 'success'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/docs-visual-run
+        with:
+          test-url: ${{ needs.preview.outputs.preview-url }}
+          pass-cookie: ${{ secrets.PASS_COOKIE }}

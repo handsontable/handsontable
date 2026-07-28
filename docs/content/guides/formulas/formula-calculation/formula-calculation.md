@@ -27,6 +27,8 @@ menuTag: updated
 ---
 The `Formulas` plugin adds spreadsheet-style calculation to Handsontable, powered by [HyperFormula](https://hyperformula.handsontable.com/). It supports ~400 built-in functions, cross-sheet references, named expressions, and custom function implementations.
 
+Filling formula cells with [autofill](@/guides/cell-features/autofill-values/autofill-values.md) adjusts relative references per target cell, the same way a spreadsheet application does. See [Autofill and formulas](@/guides/cell-features/autofill-values/autofill-values.md#autofill-and-formulas).
+
 [[toc]]
 
 ## Basic multi-sheet example
@@ -977,10 +979,10 @@ each sales representative's commission amount.
 
 ::: only-for angular
 
-::: example #example5 :angular --ts 1 --html 2
+::: example #example-custom-functions :angular --ts 1 --html 2
 
-@[code](@/content/guides/formulas/formula-calculation/angular/example5.ts)
-@[code](@/content/guides/formulas/formula-calculation/angular/example5.html)
+@[code](@/content/guides/formulas/formula-calculation/angular/example-custom-functions.ts)
+@[code](@/content/guides/formulas/formula-calculation/angular/example-custom-functions.html)
 
 :::
 

@@ -4,6 +4,12 @@ import {
   CLONE_BOTTOM,
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from '../overlay';
+import {
+  adjustColumnHeaderHeights,
+  markOversizedRows,
+  resetOversizedRows,
+  syncOversizedColumnHeadersWithFrozenOverlays,
+} from '../axisSizing/oversizedRows';
 import type Table from './baseTable';
 import type { default as Overlays } from '../overlay/overlays';
 
@@ -107,7 +113,9 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   // structural DOM mutation would trigger the host page's `:has()` style invalidation, whose cost
   // scales with the whole host document. Both axes stabilize on ANY scroll-driven draw: a draw for
   // one axis recomputes the other axis' band too, so per-axis gating would let each axis shrink the
-  // other's band back and re-oscillate it.
+  // other's band back and re-oscillate it. On top of that, both bands gain directional overscan
+  // (`applyRenderedColumnsBandOverscan` / `applyRenderedRowsBandOverscan`) so consecutive scroll
+  // steps land inside the rendered band and resolve as fast draws.
   ctx.runFastDraw = wtViewport.createCalculators(ctx.runFastDraw, {
     stationaryBands: wtOverlays.isScrollDrivenDraw && wtViewport.allowsStationaryBands(),
   });
@@ -129,7 +137,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
     // header heights can drift against the frozen overlays during scrolling (a tall wrapped
     // frozen header that the master never renders). Re-sync here. The method is a cheap no-op
     // unless the grid has frozen columns with column headers, so non-frozen grids are unaffected.
-    table.syncOversizedColumnHeadersWithFrozenOverlays();
+    syncOversizedColumnHeadersWithFrozenOverlays(table);
   } else {
     table.tableOffset = table.deps.geometryReader.offset(table.TABLE);
 
@@ -171,7 +179,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
       }
 
       wtOverlays.refresh(false);
-      table.syncOversizedColumnHeadersWithFrozenOverlays();
+      syncOversizedColumnHeadersWithFrozenOverlays(table);
       wtOverlays.applyToDOM();
 
       wtSettings.getSetting('onDraw', true);
@@ -302,7 +310,7 @@ function renderCellBand(
 
   table.tableRenderer.setColumnHeadersRenderSkippable(columnHeadersRenderSkippable);
 
-  table.resetOversizedRows();
+  const wipedOversizedRows = resetOversizedRows(table);
 
   table.tableRenderer
     .setActiveOverlayName(table.name)
@@ -310,10 +318,10 @@ function renderCellBand(
     .setFilters(filters.rowFilter, filters.columnFilter)
     .render();
 
-  table.adjustColumnHeaderHeights();
+  adjustColumnHeaderHeights(table);
 
   if (table.isMaster || table.is(CLONE_BOTTOM)) {
-    table.markOversizedRows();
+    markOversizedRows(table, wipedOversizedRows);
   }
 }
 

@@ -1,0 +1,51 @@
+name: Unit
+
+# Jest unit tests + the changed-line coverage floor. Tier 1 — gates the build.
+# The coverage floor is a STEP of the same job (not a separate stage): it reads
+# the lcov this run just produced, so it cannot start before the tests anyway.
+on:
+  workflow_call:
+    inputs:
+      is-pr:
+        description: 'Running for a pull request (the coverage floor is PR-only)'
+        type: boolean
+        default: false
+
+jobs:
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+        with:
+          # Full history so the coverage-floor step can diff against the PR base.
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-workspace
+      - name: Test (with coverage)
+        run: |
+          cd handsontable
+          # Instrument ALL of src (not just files a test imports) so a changed
+          # file no test exercises shows as uncovered in the lcov — the coverage
+          # floor must see it, not silently skip it.
+          npm run test:unit -- --coverage \
+            --collectCoverageFrom='src/**/*.{js,ts}' \
+            --coveragePathIgnorePatterns='/__tests__/' \
+            --coveragePathIgnorePatterns='/3rdparty/'
+      - name: Upload unit coverage (lcov)
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+        with:
+          name: unit-coverage
+          path: handsontable/coverage/lcov.info
+          retention-days: 3
+          if-no-files-found: warn
+      # Report-only: a UNIT-coverage floor reads 0% for changes that are correctly
+      # E2E-tested (routing, not a gap), so it must be calibrated before it can
+      # block. Flip GATE_MODE to 'block' later (pairs with the presence-gate flip).
+      - name: Changed-line coverage floor (warn)
+        if: inputs.is-pr
+        run: node .github/scripts/diff-coverage-gate.mjs
+        env:
+          GATE_MODE: warn
+          COVERAGE_FLOOR: '80'
+          GATE_BASE: ${{ github.event.pull_request.base.sha }}

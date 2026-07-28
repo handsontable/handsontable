@@ -443,6 +443,15 @@ export class BasePlugin {
    */
   addHook<K extends keyof Events>(name: K, callback: Events[K], orderIndex?: number): void;
   /**
+   * Registers a hook listener under a known hook name, accepting any explicitly-annotated callback
+   * (see the overload-ladder description on `HotInstance` in `core/types.ts`).
+   */
+  addHook<K extends keyof Events>(name: K, callback: HookCallback, orderIndex?: number): void;
+  /**
+   * Registers a hook listener under a dynamically-named hook.
+   */
+  addHook(name: string, callback: HookCallback, orderIndex?: number): void;
+  /**
    * Registers a hook listener and tracks it so it can be removed automatically when the plugin is disabled.
    */
   addHook(name: string, callback: HookCallback, orderIndex?: number): void {

@@ -1,27 +1,30 @@
 # Testing Patterns
 
+> **Paradigm (read first):** new E2E is **Playwright**, in the `tests/` package (`tests/e2e/*.spec.ts`) — see the `handsontable-playwright-e2e` skill. The **Jasmine + Puppeteer** `*.spec.js` suite documented below is the **frozen legacy** suite: keep it running, edit existing specs, but add no new ones — migrate broken/flaky ones to Playwright. Unit tests stay Jest. Which framework a change needs is decided in "What to test, and in which framework" below and machine-enforced by the presence gate.
+
 ## Test Framework
 
-**Runner:**
-- Jest for unit tests (configured in `handsontable/jest.config.js`)
-- Jasmine with Puppeteer for E2E tests (browser-based, headless Chrome via `test/scripts/run-puppeteer.mjs`)
+**Runners:**
+- Jest for unit tests (configured in `handsontable/jest.config.js`; `jest-jasmine2` runner)
+- **Playwright for new E2E** (`tests/` package; the current paradigm — skill: `handsontable-playwright-e2e`)
+- Jasmine with Puppeteer for the **frozen legacy** E2E suite (headless Chrome via `test/scripts/run-puppeteer.mjs`)
 - Separate test runner for Walkontable (`npm run test:walkontable`)
-- Test runner: `jest-jasmine2` (not the default Jest runner)
 
 **Assertion Library:**
 - Jest's built-in `expect()` for unit tests
-- Jasmine's `expect()` for E2E tests
-- Custom matchers from `test/helpers/custom-matchers.js` (shared between unit and E2E)
+- Playwright's web-first `expect()` for new E2E (auto-retrying)
+- Jasmine's `expect()` for the legacy E2E suite
+- Custom matchers from `test/helpers/custom-matchers.js` (shared between unit and legacy E2E)
 
 **Run Commands:**
 ```bash
 # From handsontable/ directory:
 npm run test:unit                  # Run all Jest unit tests (~216 files)
-npm run test:e2e                   # Build + run Jasmine E2E tests (~946 spec files)
+npm run test:e2e                   # Build + run the LEGACY Jasmine E2E suite (~946 spec files)
 npm run test:walkontable           # Run Walkontable-specific tests
-npm run test:e2e.watch             # Watch mode for E2E tests
 npm run test:types                 # TypeScript type checking only
-npm run test                       # Full pipeline: lint + unit + types + walkontable + e2e + production
+# New Playwright E2E (from the repo root):
+cd tests && npm test               # Playwright functional + visual projects
 
 # From monorepo root (npm --prefix):
 npm --prefix handsontable run test:unit
@@ -60,8 +63,9 @@ The helper that derives the hash lives in `handsontable/.config/helper/run-id.js
 
 **Test Environment:**
 - Unit tests: jsdom (JavaScript DOM implementation)
-- E2E tests: Puppeteer with real headless Chrome
-- Default Jasmine timeout: 15000ms (set in `test/bootstrap.js`)
+- New E2E: Playwright (real Chromium; `tests/` package)
+- Legacy E2E: Puppeteer with real headless Chrome
+- Default legacy-Jasmine timeout: 15000ms (set in `test/bootstrap.js`)
 
 ## Test File Organization
 
@@ -266,13 +270,36 @@ Keyboard events: `keyDownUp`, `keyDown`, `keyUp`
 **Scroll-Awaiting Pattern (`test/helpers/utils.js`):**
 Many helpers (e.g., `selectCell`, `scrollViewportTo`, `selectAll`) are wrapped with `waitOnScroll()`, which returns a Promise that resolves after any triggered scroll completes. This is why they must be `await`-ed.
 
-**Delay Pattern:**
+**Waiting — condition-based, never a fixed delay (rule):**
+Do **not** add `await sleep(100)` / `sleep(200)` to new tests. A fixed delay is either too short (flaky) or too long (slow), and it is the root of this suite's flakiness. Wait for the *condition* instead:
 ```javascript
-await sleep(100); // Wait for async validation or animation
-await sleep(200); // Wait for dropdown menus to render
+// legacy Jasmine E2E: await the state, not the clock
+await selectCell(0, 0);                 // helpers already await the scroll they trigger
+await sleep(...);                        // ← avoid; if you must, root-cause it and add a real waiter
 ```
+For new Playwright tests use web-first, auto-retrying assertions (`await expect(locator).toBeVisible()`); see the `handsontable-playwright-e2e` skill. Existing `sleep()` sites are baselined by lint, but a broken or flaky legacy test is a signal to migrate it (see below), not to add another delay.
 
 **Unit tests are synchronous:** `handsontable/require-async-in-it` and `handsontable/require-await` are both off for `*.unit.js`.
+
+## What to test, and in which framework (Pillar 1)
+
+**Aim for a low number of extremely meaningful tests.** Coverage is the **floor**, not the goal: new code must be exercised (the unit coverage gate + SonarCloud enforce this, and it may extend to E2E), but coverage only proves a line *ran* — a test that executes it while asserting nothing, or asserting the *buggy* output, is worse than none. So: **hit the coverage floor with tests that meaningfully assert behavior** — never pad coverage with hollow tests, and never skip it either. Two principles govern every test here (full discipline in the `test-writing-discipline` skill):
+
+- **Green is not the goal — correct behavior is.** Write the test from the *intended* behavior (ideally before the code). When it is red, **diagnose which is actually wrong — the code or the test's expectation — and fix whichever genuinely is.** The code is the prime *suspect*, not a rule: if the test mis-encoded the intended behavior, fix the test (tighten it toward the real behavior). What is never allowed is reaching green by weakening/skipping/loosening a test to match output you have not confirmed is correct.
+- **Handsontable is a library, not an app** — it *implements* the low-level interactions, so tests validate **granular user actions**: scroll (incl. momentum), hover, drag / fill-handle / resize / move, keyboard, IME, touch, RTL, virtualization edges — not app happy-paths. Judge a test by whether it would **catch a real bug in the code it covers**, not only by whether it covers the line.
+
+Machine-enforced by the presence gate (`.github/scripts/test-presence-gate.mjs`): a change to `handsontable/src/**` or `wrappers/**` must ship a matching test change. Which kind:
+
+- **A user could see or do it** (rendering, editing, selection, keyboard, menus, overlays) → **E2E**. New E2E is **Playwright** in `tests/e2e/` — see the `handsontable-playwright-e2e` skill.
+- **Behavior changed but is invisible to users** (data, indexing, algorithms, internal state) → a **Jest `*.unit.js`**. Still mandatory — "not user-facing" is not a free pass.
+- **No behavior change** (pure refactor) or **non-runtime** (types, docs, config, i18n text, re-exports) → **no new test**; declare a refactor with a `Refactor-only: <reason>` commit trailer.
+
+**New spec vs modify existing:** new public API / plugin / editor → a new spec; a bug fix → add a case to the closest existing spec (its test must fail without the fix).
+
+**The Jasmine suite is frozen — and migrates by attrition:**
+- Adding a **new** `*.spec.js` is blocked; new E2E goes to Playwright.
+- **Editing** an existing `*.spec.js` for routine maintenance is fine.
+- But if a legacy Jasmine test is **broken or flaky, fix it by migrating it to Playwright** (delete the `*.spec.js`, write the equivalent `tests/e2e/*.spec.ts`) rather than patching Jasmine. That is how the suite gradually migrates — the tests that hurt most move first.
 
 ## Mocking
 
@@ -306,7 +333,8 @@ handsontable({
 });
 
 await setDataAtCell(2, 0, 123);
-await sleep(100);
+await sleep(100); // ⚠️ legacy pattern only — a NEW/edited test must wait on the condition
+                  // (the spy firing), never a fixed delay. See the "Waiting" rule above.
 
 expect(onAfterValidate).toHaveBeenCalledWith(true, 123, 2, 'id');
 ```

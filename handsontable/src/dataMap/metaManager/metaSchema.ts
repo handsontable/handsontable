@@ -6722,6 +6722,21 @@ export default (): Record<string, unknown> => {
      * | `auto` (default)   | Use the offset calculated automatically by Handsontable |
      * | A number           | Set the offset manually                                 |
      *
+     * With `auto`, the option works in a dynamic overscan mode: Handsontable renders 1 extra
+     * column on each side of the viewport and, while you scroll horizontally, extends the
+     * rendered area by up to 8 extra columns in the scroll direction, so consecutive scroll
+     * steps reuse the already-rendered columns instead of re-rendering them.
+     *
+     * The scroll-direction overscan works only when Handsontable knows every column's width up
+     * front and all columns share the same width: set [`colWidths`](#colWidths) to a single
+     * number. Features that measure or change individual column widths turn the overscan off for
+     * the column axis – for example, [`autoColumnSize`](#autoColumnSize) (enabled by default),
+     * [`manualColumnResize`](#manualColumnResize), or [`hiddenColumns`](#hiddenColumns). The grid
+     * then keeps the static offset of 1 column on each side.
+     *
+     * An explicit number switches the option to a manual mode: exactly that many extra columns
+     * render on both sides, with no scroll-direction overscan.
+     *
      * The `viewportColumnRenderingOffset` setting is ignored when [`renderAllColumns`](#renderAllColumns) is set to `true`.
      *
      * Read more:
@@ -6754,6 +6769,21 @@ export default (): Record<string, unknown> => {
      * | ------------------ | ------------------------------------------------------- |
      * | `auto` (default)   | Use the offset calculated automatically by Handsontable |
      * | A number           | Set the offset manually                                 |
+     *
+     * With `auto`, the option works in a dynamic overscan mode: Handsontable renders 1 extra row
+     * on each side of the viewport and, while you scroll vertically, extends the rendered area by
+     * up to 4 extra rows in the scroll direction, so consecutive scroll steps reuse the
+     * already-rendered rows instead of re-rendering them.
+     *
+     * The scroll-direction overscan works only when Handsontable knows every row's height up
+     * front and all rows share the same height: keep the default [`rowHeights`](#rowHeights) or
+     * set it to a single number. Features that measure or change individual row heights turn the
+     * overscan off for the row axis – for example, [`autoRowSize`](#autoRowSize),
+     * [`manualRowResize`](#manualRowResize), or [`hiddenRows`](#hiddenRows). The grid then keeps
+     * the static offset of 1 row on each side.
+     *
+     * An explicit number switches the option to a manual mode: exactly that many extra rows
+     * render on both sides, with no scroll-direction overscan.
      *
      * The `viewportRowRenderingOffset` setting is ignored when [`renderAllRows`](#renderAllRows) is set to `true`.
      *

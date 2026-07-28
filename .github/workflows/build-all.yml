@@ -1,15 +1,21 @@
 name: Build every package in different environments.
 
+# Multi-OS/env build sanity (ubuntu, macos, windows). On develop this runs as a
+# stage of the develop pipeline (workflow_call from develop.yml); master and
+# release/** keep the direct push trigger below.
 on:
   push:
     branches:
       - 'master'
-      - 'develop'
       - 'release/**'
   workflow_dispatch:
+  workflow_call:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Static prefix, NOT ${{ github.workflow }} — when called from develop.yml the
+  # workflow name resolves to the CALLER's, which could collide with the caller's
+  # own concurrency group and cancel/deadlock the run.
+  group: build-all-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -64,6 +70,13 @@ jobs:
         run: |
           mkdir D:/handsontable
           git clone -b $env:GITHUB_REF_NAME https://github.com/handsontable/handsontable D:/handsontable --depth 1
+          # Pin to the exact commit of THIS run. A bare depth-1 branch clone
+          # grabs whatever the branch points at when the job starts, so a
+          # rapid follow-up push could silently make this job build a newer
+          # commit than the one the run reports (the unix jobs use
+          # actions/checkout, which always pins github.sha).
+          git -C D:/handsontable fetch --depth 1 origin $env:GITHUB_SHA
+          git -C D:/handsontable checkout $env:GITHUB_SHA
 
       # Create temp and cache directories on D drive
       - name: Setup D drive directories

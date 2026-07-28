@@ -23,7 +23,7 @@ Merge adjacent cells, using the <kbd>**Ctrl**</kbd>+<kbd>**M**</kbd> shortcut or
 
 By merging, you can combine two or more adjacent cells into a single cell that spans several rows or columns.
 
-Handsontable merges cells in the same way as Microsoft Excel: keeps only the upper-left value of the selected range and clears other values.
+Handsontable merges cells in the same way as Microsoft Excel: keeps only the upper-left value of the selected range and clears other values. This clearing happens in the underlying data, not just on screen -- see [Effect on the underlying data](#effect-on-the-underlying-data).
 
 ## How to merge cells
 
@@ -286,6 +286,8 @@ hot.getPlugin('mergeCells').merge(startRow, startColumn, endRow, endColumn);
 hot.getPlugin('mergeCells').unmerge(startRow, startColumn, endRow, endColumn);
 ```
 
+This clears the underlying data the same way as merging through the UI or the [`mergeCells`](@/api/options.md#mergecells) configuration option. See [Effect on the underlying data](#effect-on-the-underlying-data).
+
 The example below merges and unmerges a footnote row that spans every column, using buttons instead of a manual selection.
 
 ::: only-for javascript
@@ -331,6 +333,24 @@ The example below merges and unmerges a footnote row that spans every column, us
 :::
 
 :::
+
+## Effect on the underlying data
+
+Merging doesn't only hide the covered cells visually -- it clears their values in the underlying data too, whether you merge through the UI, the [`mergeCells`](@/api/options.md#mergecells) configuration option, or the `merge()` method. Only the top-left cell of the range keeps its value; every other cell covered by the merge is set to `null`.
+
+For a range merged at `(0, 0)` with `rowspan: 2` and `colspan: 2`:
+
+```js
+hot.getData();
+// -> [['Top-left value', null], [null, null]]
+
+hot.getSourceData();
+// -> [['Top-left value', null], [null, null]] (the same)
+```
+
+Both [`getData()`](@/api/core.md#getdata) and [`getSourceData()`](@/api/core.md#getsourcedata) return `null` for the covered cells, because the clearing runs through the normal change pipeline: it fires [`beforeChange`](@/api/hooks.md#beforechange) and [`afterChange`](@/api/hooks.md#afterchange) with `source === 'MergeCells'` (see [Events and hooks: Definition for `source` argument](@/guides/getting-started/events-and-hooks/events-and-hooks.md#definition-for-source-argument)).
+
+Unmerging does not restore the cleared values. If you need the original values back, keep a copy before merging, or restore them yourself in a [`beforeUnmergeCells`](@/api/hooks.md#beforeunmergecells) or [`afterUnmergeCells`](@/api/hooks.md#afterunmergecells) handler.
 
 ## Effect on viewport getter methods
 

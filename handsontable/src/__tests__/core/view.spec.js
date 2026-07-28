@@ -373,9 +373,15 @@ describe('Core_view', () => {
     await keyDownUp('arrowup');
     await keyDownUp('arrowup');
 
-    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A2');
-    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A3');
-    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A4');
+    // The scroll position must pin the navigated-to row (10 - 8 = 2) at the top of the viewport —
+    // the DOM assertions below cannot catch a scroll-position error near the top boundary, because
+    // the upward overscan band clamps at the first row for a range of scroll positions.
+    expect(getFirstFullyVisibleRow()).toBe(2);
+    // The upward scroll leaves the band with the scroll-direction overscan above the viewport
+    // (clamped at the first row here), so row "A1" renders as the first body row.
+    expect(htCore.find('tr:eq(1) td:eq(0)').html()).toEqual('A1');
+    expect(htCore.find('tr:eq(2) td:eq(0)').html()).toEqual('A2');
+    expect(htCore.find('tr:eq(3) td:eq(0)').html()).toEqual('A3');
   });
 
   it('should scroll the viewport to the first row when the highlight moves ' +

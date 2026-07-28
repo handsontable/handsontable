@@ -10,6 +10,7 @@ import type { IndexMapper } from '../translations';
 import type CellCoords from '../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../3rdparty/walkontable/src/cell/range';
 import type { Events, GridSettings } from './settings';
+import type { CellProperties } from '../settings';
 import type { default as SelectionManager } from '../selection/selection';
 import type { default as ViewInstance } from '../tableView';
 import type { ShortcutManager } from '../shortcuts/manager';
@@ -61,14 +62,26 @@ export interface ViewportScrollerInstance {
 /**
  * Handsontable Core instance interface.
  * Provides type-safe access to the Core API without requiring circular imports.
+ *
+ * The `addHook`/`addHookOnce`/`removeHook` methods form a three-rung overload ladder:
+ * 1. Strict -- a known hook name with a callback typed as `Events[K]`. Unannotated inline arrow
+ *    functions get full parameter inference from this rung.
+ * 2. Lenient -- a known hook name with any explicitly-annotated callback. `HookCallback` is the
+ *    sound function "top type" (see `core/hooks/bucket.ts`), so a callback whose annotations don't
+ *    exactly match the declared hook signature is still accepted, matching the runtime behavior and
+ *    keeping previously-compiling listener code compiling.
+ * 3. Fallback -- any string, for dynamically-named and plugin-local hooks.
  */
 export interface HotInstance {
   // Lifecycle & hooks
   addHook<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, orderIndex?: number): void;
+  addHook<K extends keyof Events>(key: K, callback: HookCallback | HookCallback[], orderIndex?: number): void;
   addHook(key: string, callback: HookCallback | HookCallback[], orderIndex?: number): void;
   addHookOnce<K extends keyof Events>(key: K, callback: Events[K] | Array<Events[K]>, orderIndex?: number): void;
+  addHookOnce<K extends keyof Events>(key: K, callback: HookCallback | HookCallback[], orderIndex?: number): void;
   addHookOnce(key: string, callback: HookCallback | HookCallback[], orderIndex?: number): void;
   removeHook<K extends keyof Events>(key: K, callback: Events[K]): void;
+  removeHook<K extends keyof Events>(key: K, callback: HookCallback): void;
   removeHook(key: string, callback: HookCallback): void;
   runHooks<R = unknown>(name: string, ...args: unknown[]): R;
   hasHook(name: string): boolean;
@@ -134,7 +147,8 @@ export interface HotInstance {
   moveCellRange(sourceRange: CellRange, targetTopLeft: CellCoords, isCopy?: boolean): boolean;
 
   // Cell meta
-  getCellMeta<M extends object = Record<string, unknown>>(row: number, column: number, options?: object): M;
+  getCellMeta<M extends object = CellProperties>(row: number, column: number, options?: object): M;
+  getCellMetaTransient<M extends object = CellProperties>(row: number, column: number): M;
   getCellMetaAtRow(row: number): Record<string, unknown>[];
   setCellMeta(row: number, column: number, key: string, value: unknown): void;
   setCellMetaObject(row: number, column: number, prop: Record<string, unknown>): void;

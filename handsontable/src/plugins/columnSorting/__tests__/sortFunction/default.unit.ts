@@ -50,3 +50,34 @@ it('should sort case-insensitively and identically to the default Unicode mappin
   expect(compare('apple', 'Apple')).toBe(0);
   expect(compare('Apple', 'banana')).toBeLessThan(0);
 });
+
+it('should lowercase each distinct string once per created compare function', () => {
+  // eslint-disable-next-line global-require
+  const stringHelpers = require('handsontable/helpers/string');
+  const spy = jest.spyOn(stringHelpers, 'localeLowerCase');
+  const compare = defaultSort('asc', { locale: 'en-US' }, {});
+
+  expect(compare('Banana', 'apple')).toBe(1);
+  expect(compare('apple', 'Cherry')).toBe(-1);
+  expect(compare('Cherry', 'Banana')).toBe(1);
+  expect(compare('Banana', 'Cherry')).toBe(-1);
+
+  // 3 distinct strings across 8 sides — every repeat must hit the per-run cache.
+  expect(spy).toHaveBeenCalledTimes(3);
+
+  spy.mockRestore();
+});
+
+it('should not share the lowercase cache between separately created compare functions', () => {
+  // eslint-disable-next-line global-require
+  const stringHelpers = require('handsontable/helpers/string');
+  const spy = jest.spyOn(stringHelpers, 'localeLowerCase');
+
+  defaultSort('asc', { locale: 'en-US' }, {})('Apple', 'Banana');
+  defaultSort('asc', { locale: 'en-US' }, {})('Apple', 'Banana');
+
+  // Each compare function owns a fresh cache, so both runs lowercase both strings.
+  expect(spy).toHaveBeenCalledTimes(4);
+
+  spy.mockRestore();
+});

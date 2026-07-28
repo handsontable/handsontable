@@ -14,7 +14,7 @@ import {
 import { arrayEach } from '../../helpers/array';
 import { rangeEach } from '../../helpers/number';
 import { deprecatedWarn } from '../../helpers/console';
-import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import {
   getElementScaleFactor,
   normalizeVisualDelta,
@@ -168,9 +168,16 @@ export class ManualRowResize extends BasePlugin {
       return;
     }
 
-    this.#rowHeightsMap = new IndexToValueMap();
+    this.#rowHeightsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(
+      this.pluginName!, 'physicalIndexToValue', null, { skipUnchangedWrites: true },
+    );
     this.#rowHeightsMap.addLocalHook('init', () => this.#onMapInit());
-    this.hot.rowIndexMapper.registerMap(this.pluginName!, this.#rowHeightsMap);
+
+    // `createAndRegisterIndexMap` initializes the map synchronously when the dataset is already
+    // loaded (a plugin re-enable), before the hook above could attach - replay the init handler.
+    if (this.hot.rowIndexMapper.getNumberOfIndexes() > 0) {
+      this.#onMapInit();
+    }
 
     this.#disposeMapObserver = this.hot.rowIndexMapper
       .observeMapChange(this.#rowHeightsMap, () => {
@@ -342,6 +349,7 @@ export class ManualRowResize extends BasePlugin {
 
     if (this.hot.selection.isSelected() && isFullRowSelected) {
       const selectionRanges = this.hot.getSelectedRange() ?? [];
+      const seenRows = new Set<number>();
 
       arrayEach(selectionRanges, (selectionRange) => {
         const fromRow = (selectionRange as CellRange).getTopStartCorner().row;
@@ -353,7 +361,8 @@ export class ManualRowResize extends BasePlugin {
 
         // Add every selected row for resize action.
         rangeEach(fromRow, toRow, (rowIndex) => {
-          if (!this.#selectedRows.includes(rowIndex)) {
+          if (!seenRows.has(rowIndex)) {
+            seenRows.add(rowIndex);
             this.#selectedRows.push(rowIndex);
           }
         });

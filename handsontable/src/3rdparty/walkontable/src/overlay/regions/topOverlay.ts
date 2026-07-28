@@ -148,26 +148,17 @@ export class TopOverlay extends Overlay {
   }
 
   /**
-   * Calculates total sum cells height.
+   * Calculates total sum cells height. Delegates to the viewport's row-height prefix-sum cache
+   * (`Viewport#sumRowHeights`), so a call costs O(1) instead of walking every row in the
+   * `[from, to)` range — `scrollTo` passes ranges that start at row 0, which made keyboard
+   * navigation near the bottom of a large grid re-sum the whole dataset on every keypress.
    *
    * @param {number} from Row index which calculates started from.
    * @param {number} to Row index where calculation is finished.
    * @returns {number} Height sum.
    */
   sumCellSizes(from: number, to: number) {
-    const stylesHandler = this.wtSettings.getSetting('stylesHandler');
-    const defaultRowHeight = stylesHandler.getDefaultRowHeight();
-    let row = from;
-    let sum = 0;
-
-    while (row < to) {
-      const height = this.deps.getWtTable().getRowHeight(row);
-
-      sum += height === undefined ? defaultRowHeight : height;
-      row += 1;
-    }
-
-    return sum;
+    return this.deps.getWtViewport().sumRowHeights(from, to);
   }
 
   /**

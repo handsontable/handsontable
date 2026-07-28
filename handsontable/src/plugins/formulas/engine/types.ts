@@ -22,8 +22,8 @@ export interface HyperFormulaEngine {
   isItPossibleToRemoveColumns(sheetId: number | null, spec: [number, number]): boolean;
   addRows(sheetId: number | null, spec: [number, number]): unknown[];
   addColumns(sheetId: number | null, spec: [number, number]): unknown[];
-  removeRows(sheetId: number | null, spec: [number, number]): void;
-  removeColumns(sheetId: number | null, spec: [number, number]): void;
+  removeRows(sheetId: number | null, ...indexes: [number, number][]): void;
+  removeColumns(sheetId: number | null, ...indexes: [number, number][]): void;
   getFillRangeData(sourceRange: object, targetRange: object): unknown[][];
   isItPossibleToMoveCells(source: object, destinationLeftCorner: object): boolean;
   moveCells(source: object, destinationLeftCorner: object): unknown[];

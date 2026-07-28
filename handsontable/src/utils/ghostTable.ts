@@ -322,7 +322,7 @@ class GhostTable {
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
         const column = string.col!;
-        const cellProperties = this.hot!.getCellMeta<CellProperties>(row, column);
+        const cellProperties = this.hot!.getCellMetaTransient<CellProperties>(row, column);
         const renderer = this.hot!.getCellRenderer(cellProperties);
         const td = rootDocument.createElement('td');
 
@@ -386,7 +386,7 @@ class GhostTable {
     this.samples!.forEach((sample: SampleEntry) => {
       arrayEach(sample.strings, (string: SampleString) => {
         const row = string.row!;
-        const cellProperties = this.hot!.getCellMeta<CellProperties>(row, column);
+        const cellProperties = this.hot!.getCellMetaTransient<CellProperties>(row, column);
         const renderer = this.hot!.getCellRenderer(cellProperties);
         const td = rootDocument.createElement('td');
         const tr = rootDocument.createElement('tr');
@@ -453,7 +453,7 @@ class GhostTable {
     let colspan = 0;
 
     if (row >= 0 && column >= 0) {
-      colspan = Number(this.hot!.getCellMeta(row, column).colspan);
+      colspan = Number(this.hot!.getCellMetaTransient(row, column).colspan);
     }
 
     let width = this.hot!.getColWidth(column);

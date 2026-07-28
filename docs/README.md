@@ -86,6 +86,8 @@ The documentation branches are created and updated automatically by the `stable-
     * Update the docs changelog and generate API content via `npm run docs:api`;
     * Commit and push the changes to the origin;
 
+The first RC build of a release (see `first-rc-build` in `.github/workflows/publish.yml`) also auto-creates an empty version-highlights scaffold at `docs/content/data/version-highlights/<MAJOR.MINOR>.json` (`{ "version": "<MAJOR.MINOR>", "highlighted": [] }`) if one doesn't already exist. Before the docs release, an author fills in up to 5 `highlighted` entries (each keyed by `prNumber`, with editorial `tagline` and `whyItMatters` fields) to feature them on the "Changes between versions" page. The scaffolding step never overwrites an existing file, so it's safe across RC2+ builds and patch releases.
+
 The prod-docs/latest branch is automatically recreated by the CI/CD pipeline whenever a patch or release update is applied to the latest documentation version. This branch triggers a GitHub workflow that initiates a rebuild and deploys to Cloudflare Pages on each push or when a new branch `prod-docs/<MAJOR.MINOR>` is created.
 
 Committing directly to the Documentation production branch triggers GitHub workflow that deploys the changes to Cloudflare Pages. The exception is the `develop` branch that holds the changes for the "next" version. The staging version can be deployed only [manually](./README-DEPLOYMENT.md#deploying-the-documentation-to-the-staging-environment).

@@ -1,0 +1,19 @@
+diff --git a/handsontable/src/helpers/number.ts b/handsontable/src/helpers/number.ts
+--- a/handsontable/src/helpers/number.ts
++++ b/handsontable/src/helpers/number.ts
+@@ -220,6 +220,14 @@ export function getParsedNumber(numericData: string, options: { decimalSeparator?: '.' | ',' } = {}) {
+   if (isCommaThousandsGroupedInteger(numericData, decimalSeparator)) {
+     return Number.parseFloat(normalizedNumericData.replaceAll(',', ''));
+   }
+
++  if (isDotThousandsGroupedInteger(numericData, decimalSeparator)) {
++    return Number.parseFloat(normalizedNumericData.replaceAll('.', ''));
++  }
++
++  if (isDotThousandsGroupedFloat(numericData, decimalSeparator)) {
++    return Number.parseFloat(normalizedNumericData.replaceAll('.', '').replace(',', '.'));
++  }
++
+   // Unifying "float like" string. Change from value with comma determiner to value with dot determiner,
+   // for example from `450,65` to `450.65`.
+   const unifiedNumericData = normalizedNumericData.replace(',', '.');

@@ -126,6 +126,34 @@ describe('CheckboxRenderer', () => {
     expect(getData()).toEqual([[true], [true], [true]]);
   });
 
+  it('should not permanently retain a cell meta object for every toggled cell in a large selection', async() => {
+    const rows = [];
+
+    for (let i = 0; i < 200; i++) {
+      rows.push([true]);
+    }
+
+    const hot = handsontable({
+      data: rows,
+      width: 300,
+      height: 150,
+      columns: [
+        {
+          type: 'checkbox'
+        }
+      ]
+    });
+
+    await selectCell(0, 0, 199, 0);
+
+    const retainedBefore = hot.getCellsMeta().length;
+
+    await keyDownUp(' '); // toggles all 200 cells, mostly off-screen
+
+    expect(getDataAtCell(199, 0)).toBe(false);
+    expect(hot.getCellsMeta().length).toBe(retainedBefore);
+  });
+
   it('should change checkboxes values properly when data contains null or/and undefined', async() => {
     handsontable({
       data: [[null], [undefined]],

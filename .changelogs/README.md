@@ -5,17 +5,17 @@ This directory includes temporary changelog entries, in the form of simple `.jso
 
 ## Mandatory PR check
 
-Every pull request in this repository requires a new changelog entry to be created in this directory, asserted by a GitHub actions workflow. The commit workflow will fail in any PR that does not have a new `.changelogs/*.json` file added. If a pushed commit does not have a PR associated with it, the check is skipped entirely.
+A changelog entry is required — and asserted by a GitHub Actions workflow — when a PR changes **shippable source**: anything under `handsontable/src/**` or `wrappers/**` except test files and markdown. The check fails when such a PR does not add a new `.changelogs/*.json` file.
 
-Changelog entries are expected only for source-code changes to the library core or the wrappers. Documentation-only, test-only, and CI/tooling PRs should disable the check instead.
+Documentation-only, test-only, and CI/tooling PRs **pass automatically** — no entry and no opt-out needed. If a pushed commit does not have a PR associated with it, the check is skipped entirely.
 
-**To disable this check**, simply add the following string to the **PR description**:
+**To skip the requirement on a source change** (rare — e.g. an internal change with no user-visible effect), add the following string to the **PR description**, outside any HTML comment (a commented mention, like the hint in the PR template, is deliberately inert):
 
 ```
 [skip changelog]
 ```
 
-...and push a new commit to restart the check (`git commit --allow-empty` to create an empty commit).
+...and re-run the failed **Changelog** check from the PR's checks tab (or push any new commit — `git commit --allow-empty` works). The check reads the PR body at run time; editing the description alone does not re-trigger it. The override is logged together with the source files it waves through, so reviewers can judge it.
 
 
 ## Changelog helper

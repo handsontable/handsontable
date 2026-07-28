@@ -144,6 +144,33 @@ nested one level deeper. The other categories use two levels: category and nomin
 Note that the first 0-level object in the array needs to have all columns defined to display the table properly. They can be declared as `null` or an empty
 string `''`, but they need to be defined. This is optional for the other objects.
 
+### Nested data vs. a flat array
+
+A nested rows data source differs from a regular flat array of objects in one respect: child rows live inside their parent's `__children` property, instead of being separate top-level elements. For example, the same three records can be represented either way:
+
+```js
+// flat array -- three independent top-level rows
+const flatData = [
+  { category: 'Best Rock Performance', artist: null },
+  { category: null, artist: 'Twenty One Pilots' },
+  { category: null, artist: 'Coldplay' },
+];
+
+// nested rows -- two nominees grouped under one category
+const nestedData = [
+  {
+    category: 'Best Rock Performance',
+    artist: null,
+    __children: [
+      { category: null, artist: 'Twenty One Pilots' },
+      { category: null, artist: 'Coldplay' },
+    ],
+  },
+];
+```
+
+[`getSourceData()`](@/api/core.md#getsourcedata) returns this nested structure, `__children` arrays and all. [`getData()`](@/api/core.md#getdata) returns the flattened, currently visible rows -- collapsed child rows are excluded. For more on how Handsontable relates source data to what's displayed, see [Understanding data and indexes](@/guides/getting-started/understanding-data-and-indexes/understanding-data-and-indexes.md).
+
 ## User interface
 
 The _Nested Rows_ plugin's user interface is placed in the row headers and the Handsontable’s context menu.

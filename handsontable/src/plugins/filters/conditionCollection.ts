@@ -51,7 +51,7 @@ class ConditionCollection {
    *
    * @type {LinkedPhysicalIndexToValueMap}
    */
-  filteringStates = new IndexToValueMap();
+  filteringStates: IndexToValueMap;
 
   /**
    * Initializes the condition collection with the Handsontable instance, optionally registering the filtering states index map on the column index mapper.
@@ -61,9 +61,12 @@ class ConditionCollection {
     this.isMapRegistrable = isMapRegistrable;
 
     if (this.isMapRegistrable === true) {
-      this.hot.columnIndexMapper.registerMap(MAP_NAME, this.filteringStates);
+      this.filteringStates = this.hot.columnIndexMapper
+        .createAndRegisterIndexMap(MAP_NAME, 'linkedPhysicalIndexToValue');
 
     } else {
+      // A standalone (unregistered) map cannot go through the mapper factory.
+      this.filteringStates = new IndexToValueMap();
       this.filteringStates.init(this.hot.columnIndexMapper.getNumberOfIndexes());
     }
   }
@@ -124,7 +127,7 @@ class ConditionCollection {
   addCondition(
     column: number, conditionDefinition: Record<string, unknown>, operation = OPERATION_AND, position?: number
   ) {
-    const localeForColumn = this.hot.getCellMeta(0, column).locale as string | undefined;
+    const localeForColumn = this.hot.getCellMetaTransient(0, column).locale as string | undefined;
     const args = (conditionDefinition.args as unknown[])
       .map((v: unknown) => (typeof v === 'string' ? localeLowerCase(v, localeForColumn) : v));
     const name = (conditionDefinition.name || (conditionDefinition.command as Record<string, unknown>).key) as string;

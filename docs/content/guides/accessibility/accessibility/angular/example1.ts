@@ -513,7 +513,7 @@ export class AppComponent implements OnInit {
           data: 'sellDate',
           type: 'intl-date',
           locale: 'en-GB',
-          dateFormat: { day: '2-digit', month: '2-digit', year: 'numeric' } as unknown as string,
+          dateFormat: { day: '2-digit', month: '2-digit', year: 'numeric' },
         },
         {
           data: 'inStock',

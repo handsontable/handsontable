@@ -5,6 +5,17 @@ import CellMeta from './metaLayers/cellMeta';
 import localHooks from '../../mixins/localHooks';
 import { mixin } from '../../helpers/object';
 import { throwWithCause } from '../../helpers/errors';
+import type { CellProperties } from '../../settings';
+
+/**
+ * The local hooks fired by `MetaManager`, mapped to their callback signatures. The `addLocalHook`,
+ * `removeLocalHook`, and `runLocalHooks` methods are typed against this map so callers get the cell
+ * meta argument inferred automatically instead of `unknown`.
+ */
+interface MetaManagerLocalHooks {
+  afterGetCellMeta: (cellMeta: CellProperties) => void;
+  extendTransientCellMeta: (cellMeta: CellProperties) => void;
+}
 
 /**
  * With the Meta Manager class, it can be possible to manage with meta objects for different layers in
@@ -63,15 +74,21 @@ export default class MetaManager {
   /**
    * Registers a callback for the given local hook name; returns this instance for chaining.
    */
-  declare addLocalHook: (key: string, callback: Function) => this;
+  declare addLocalHook: <K extends keyof MetaManagerLocalHooks>(
+    key: K, callback: MetaManagerLocalHooks[K]
+  ) => this;
   /**
    * Unregisters a previously added callback from the given local hook name; returns this instance for chaining.
    */
-  declare removeLocalHook: (key: string, callback: Function) => this;
+  declare removeLocalHook: <K extends keyof MetaManagerLocalHooks>(
+    key: K, callback: MetaManagerLocalHooks[K]
+  ) => this;
   /**
    * Executes all callbacks registered under the given local hook name, passing any extra arguments.
    */
-  declare runLocalHooks: (key: string, ...args: unknown[]) => void;
+  declare runLocalHooks: <K extends keyof MetaManagerLocalHooks>(
+    key: K, ...args: Parameters<MetaManagerLocalHooks[K]>
+  ) => void;
   /**
    * Removes all registered local hook callbacks and returns this instance for chaining.
    */
@@ -204,20 +221,73 @@ export default class MetaManager {
    * @param {number} options.visualColumn The visual column index of the currently requested cell meta object.
    * @returns {object}
    */
-  getCellMetaUncached<M extends object = Record<string, unknown>>(
+  getCellMetaUncached(
     physicalRow: number, physicalColumn: number,
     options: { visualRow: number; visualColumn: number }
-  ): M {
-    const cellMeta = this.cellMeta.hasMeta(physicalRow, physicalColumn)
-      ? this.cellMeta.getMeta(physicalRow, physicalColumn)
-      : this.cellMeta.createTransientMeta(physicalColumn);
+  ): CellProperties {
+    // Two map lookups on the warm path (vs five for `hasMeta` + `getMeta`), and the miss
+    // fallback stays inline - extracting this expression into a helper regresses the read
+    // through V8 inline-cache pollution.
+    const cellMeta = this.cellMeta.getMetaIfExists(physicalRow, physicalColumn) ??
+      this.cellMeta.createTransientMeta(physicalColumn);
 
     cellMeta.visualRow = options.visualRow;
     cellMeta.visualCol = options.visualColumn;
     cellMeta.row = physicalRow;
     cellMeta.col = physicalColumn;
 
-    return cellMeta as M;
+    return cellMeta;
+  }
+
+  /**
+   * Gets a fully-extended cell meta object without retaining it. Unlike `getCellMetaUncached`, the
+   * dynamic extension DOES run - the `beforeGetCellMeta`/`afterGetCellMeta` hooks and the `cells`
+   * function are applied (through the `extendTransientCellMeta` local hook), so hook-driven
+   * properties such as `readOnly`, `hidden`, or `spanned` resolve correctly. Unlike `getCellMeta`,
+   * nothing is stored: when the cell has no persisted meta, the extension runs on a transient object
+   * that is thrown away, so a bulk scan (for example, column-width sampling over the whole row
+   * range) does not permanently materialize one meta object per visited cell. Cells that already
+   * carry stored meta go through the regular memoized `getCellMeta` path. Hook mutations made on a
+   * transient object do not persist - callers that need to write meta must use `setCellMeta`.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @param {object} options Options for the method.
+   * @param {number} options.visualRow The visual row index of the currently requested cell meta object.
+   * @param {number} options.visualColumn The visual column index of the currently requested cell meta object.
+   * @returns {object}
+   */
+  getCellMetaTransient(
+    physicalRow: number, physicalColumn: number,
+    options: { visualRow: number; visualColumn: number }
+  ): CellProperties {
+    const storedMeta = this.cellMeta.getMetaIfExists(physicalRow, physicalColumn);
+
+    // The stored path mirrors `getCellMeta` on the already-resolved object instead of delegating
+    // to it - delegation would re-resolve the same cell (two more map lookups per stored cell on
+    // every bulk validate/copy/export scan), and widening `getCellMeta` itself with a pre-resolved
+    // parameter would add a branch to the hottest read path in the grid.
+    if (storedMeta !== undefined) {
+      storedMeta.visualRow = options.visualRow;
+      storedMeta.visualCol = options.visualColumn;
+      storedMeta.row = physicalRow;
+      storedMeta.col = physicalColumn;
+
+      this.runLocalHooks('afterGetCellMeta', storedMeta);
+
+      return storedMeta;
+    }
+
+    const cellMeta = this.cellMeta.createTransientMeta(physicalColumn);
+
+    cellMeta.visualRow = options.visualRow;
+    cellMeta.visualCol = options.visualColumn;
+    cellMeta.row = physicalRow;
+    cellMeta.col = physicalColumn;
+
+    this.runLocalHooks('extendTransientCellMeta', cellMeta);
+
+    return cellMeta;
   }
 
   /**
@@ -322,9 +392,10 @@ export default class MetaManager {
    * Creates one or more rows at specific position.
    *
    * @param {number} physicalRow The physical row index which points from what position the row is added.
+   *   Pass `null` to append at the end.
    * @param {number} [amount=1] An amount of rows to add.
    */
-  createRow(physicalRow: number, amount = 1) {
+  createRow(physicalRow: number | null, amount = 1) {
     this.cellMeta.createRow(physicalRow, amount);
   }
 
@@ -342,9 +413,10 @@ export default class MetaManager {
    * Creates one or more columns at specific position.
    *
    * @param {number} physicalColumn The physical column index which points from what position the column is added.
+   *   Pass `null` to append at the end.
    * @param {number} [amount=1] An amount of columns to add.
    */
-  createColumn(physicalColumn: number, amount = 1) {
+  createColumn(physicalColumn: number | null, amount = 1) {
     this.cellMeta.createColumn(physicalColumn, amount);
     this.columnMeta.createColumn(physicalColumn, amount);
   }

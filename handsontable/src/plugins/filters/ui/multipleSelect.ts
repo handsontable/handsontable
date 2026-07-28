@@ -47,6 +47,12 @@ export class MultipleSelectUI extends BaseUI {
    */
   #itemsBox: HotInstance | null = null;
   /**
+   * Lowercased form of every item's value, aligned by index with `#items`. Built lazily on the
+   * first search keystroke and reused for subsequent ones — the lowercase form of an item never
+   * changes between keystrokes. Invalidated when the items or the locale change.
+   */
+  #lowerCaseItemValues: string[] | null = null;
+  /**
    * Current locale string used for sorting and comparing filter values.
    */
   #locale: string = '';
@@ -113,6 +119,7 @@ export class MultipleSelectUI extends BaseUI {
    */
   setItems(items: Record<string, unknown>[]) {
     this.#items = items as SelectItem[];
+    this.#lowerCaseItemValues = null;
     this.#itemsBox?.loadData(this.#items);
   }
 
@@ -122,7 +129,24 @@ export class MultipleSelectUI extends BaseUI {
    * @param {string} locale Locale used for filter actions performed on data, ie. `en-US`.
    */
   setLocale(locale: string) {
+    if (this.#locale !== locale) {
+      this.#lowerCaseItemValues = null;
+    }
     this.#locale = locale;
+  }
+
+  /**
+   * Gets the lowercased form of every item's value, building the cache on first access.
+   *
+   * @returns {string[]} Array aligned by index with the items list.
+   */
+  #getLowerCaseItemValues(): string[] {
+    if (this.#lowerCaseItemValues === null) {
+      this.#lowerCaseItemValues = this.#items
+        .map(item => localeLowerCase(`${item.value}`, this.getLocale()));
+    }
+
+    return this.#lowerCaseItemValues;
   }
 
   /**
@@ -348,6 +372,7 @@ export class MultipleSelectUI extends BaseUI {
     this.#selectAllUI = null;
     this.#itemsBox = null;
     this.#items.length = 0;
+    this.#lowerCaseItemValues = null;
     super.destroy();
   }
 
@@ -360,6 +385,8 @@ export class MultipleSelectUI extends BaseUI {
     const trimmed = eventTargetEl<HTMLInputElement>(event)!.value.trim();
     const value = localeLowerCase(trimmed, this.getLocale());
 
+    const lowerCaseValues = this.#getLowerCaseItemValues();
+
     if ((this.options as Record<string, unknown>).searchMode === 'apply') {
       const hiddenRows = this.#itemsBox?.getPlugin('hiddenRows');
       const rowsToHide: number[] = [];
@@ -369,7 +396,7 @@ export class MultipleSelectUI extends BaseUI {
       }
 
       this.#items.forEach((item, index) => {
-        item.checked = localeLowerCase(`${item.value}`, this.getLocale()).indexOf(value) >= 0;
+        item.checked = lowerCaseValues[index].indexOf(value) >= 0;
 
         if (!item.checked) {
           rowsToHide.push(index);
@@ -388,7 +415,7 @@ export class MultipleSelectUI extends BaseUI {
         filteredItems = [...this.#items];
       } else {
         filteredItems = this.#items
-          .filter(item => localeLowerCase(`${item.value}`, this.getLocale()).indexOf(value) >= 0);
+          .filter((item, index) => lowerCaseValues[index].indexOf(value) >= 0);
       }
 
       this.#itemsBox?.loadData(filteredItems);

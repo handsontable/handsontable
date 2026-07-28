@@ -188,6 +188,7 @@ module.exports = {
       files: [
         'scripts/**/*.mjs',
         'scripts/**/*.js',
+        'evals/**/*.mjs',
       ],
       rules: {
         'import/extensions': [

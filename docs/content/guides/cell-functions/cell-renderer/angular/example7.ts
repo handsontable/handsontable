@@ -30,15 +30,15 @@ export class AppComponent {
         data: 'btcValue',
         // Bitcoin (₿) isn't an ISO 4217 currency, so `numericFormat` can't format it.
         // `valueFormatter` prepends the symbol instead.
-        valueFormatter(value: number) {
-          return `₿${value.toFixed(4)}`;
+        valueFormatter(value: unknown) {
+          return `₿${(value as number).toFixed(4)}`;
         },
       },
       {
         data: 'portfolioShare',
         // Per mille (‰) isn't a unit sanctioned by `Intl.NumberFormat`, so `valueFormatter`
         // appends the symbol manually.
-        valueFormatter(value: number) {
+        valueFormatter(value: unknown) {
           return `${value}‰`;
         },
       },

@@ -7,7 +7,9 @@ import type {
   CellCoords as WalkontableCellCoords,
   CellRange as WalkontableCellRange,
 } from '../3rdparty/walkontable/src';
-import type { CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings } from '../settings';
+import type {
+  CellChange, ChangeSource, RowObject, CellValue, CellProperties, ColumnSettings, RemoveIndexSignature,
+} from '../settings';
 import type { ColumnConditions } from '../plugins/filters';
 import type { LayoutConfig } from './layout';
 import type { PredefinedMenuItemKey, MenuItemConfig, ContextMenu } from '../plugins/contextMenu';
@@ -23,6 +25,17 @@ import type {
   DataProviderConfig,
 } from '../plugins/dataProvider';
 import type { RangeType, HotInstance } from './types';
+
+/**
+ * The function shape of the `sourceDataValidator` option. Returns `true` when the value is valid.
+ * The optional `rowIndependent` flag marks a validator whose result depends only on the value and
+ * column/global-level meta, never on per-row meta - letting the source-data validation pass batch
+ * whole columns instead of scanning every cell.
+ */
+export type SourceDataValidatorFn = {
+  (value: CellValue, cellMeta: CellProperties, source?: string): boolean;
+  rowIndependent?: boolean;
+};
 
 /**
  * Grid settings interface representing all possible Handsontable configuration options.
@@ -100,6 +113,8 @@ export interface GridSettings {
   readOnly?: boolean;
   skipColumnOnPaste?: boolean;
   skipRowOnPaste?: boolean;
+  sourceDataValidator?: SourceDataValidatorFn;
+  sourceDataWarningMessage?: string;
   tabMoves?: { row: number; col: number } | ((event: KeyboardEvent) => { row: number; col: number });
   trimWhitespace?: boolean;
   undo?: boolean;
@@ -323,6 +338,7 @@ export interface GridSettings {
   afterOnCellMouseDown?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOut?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOver?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
+  afterOnCellMouseOverOutside?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseUp?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterPageChange?: (oldPage: number, newPage: number) => void;
   afterPageCounterVisibilityChange?: (isVisible: boolean) => void;
@@ -490,6 +506,8 @@ export interface GridSettings {
   beforeOnCellMouseOut?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   beforeOnCellMouseOver?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement,
     controller: { preventDefault: boolean }) => void;
+  beforeOnCellMouseOverOutside?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement,
+    controller: { row: boolean, column: boolean, cell: boolean }) => void;
   beforeOnCellMouseUp?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   beforePageChange?: (oldPage: number, newPage: number) => void | boolean;
   beforePageSizeChange?: (oldPageSize: number | 'auto', newPageSize: number | 'auto') => void | boolean;
@@ -585,10 +603,15 @@ export interface GridSettings {
 /**
  * Extracts all hook callback keys from GridSettings.
  * Used to derive the Events type for addHook/removeHook generics.
+ *
+ * Derived from `RemoveIndexSignature<GridSettings>` rather than `GridSettings` directly -- the raw
+ * type's `[key: string]: any` index signature makes `keyof GridSettings` include `string`, which
+ * collapses this mapped type to `string` and, in turn, collapses `Events` to `{ [key: string]: any }`.
  */
 type HookKey = {
-  [K in keyof GridSettings]-?: NonNullable<GridSettings[K]> extends (...args: any[]) => any ? K : never; // eslint-disable-line @typescript-eslint/no-explicit-any
-}[keyof GridSettings];
+  [K in keyof RemoveIndexSignature<GridSettings>]-?:
+    NonNullable<GridSettings[K]> extends (...args: never[]) => unknown ? K : never;
+}[keyof RemoveIndexSignature<GridSettings>];
 
 /**
  * Map of all Handsontable hook names to their typed callback signatures.

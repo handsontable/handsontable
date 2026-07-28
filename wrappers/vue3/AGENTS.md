@@ -31,6 +31,7 @@
 
 - Build: Rollup 4
 - Test: `npm run test --prefix wrappers/vue3` (Jest + @vue/test-utils)
+- **Test paradigm:** the presence gate covers `wrappers/**` — a wrapper source change must ship a matching test. The Jest suite here is **jsdom** (props, deep-watch reactivity, lifecycle). Anything user-visible / real-browser goes to **Playwright E2E** in `tests/e2e/` — see the `handsontable-playwright-e2e` skill (Vue reactivity / deep-watch gotchas in its `references/wrappers.md`). Local gates + exact rules: `.ai/LOCAL-ENFORCEMENT.md`.
 
 ## Common Pitfalls
 

@@ -16,7 +16,6 @@ import {
   RenderedRowsCalculationType,
 } from '../calculator';
 import { PositionCache } from '../axisSizing/positionCache';
-import { DEFAULT_COLUMN_WIDTH } from '../constants';
 import { workspaceSize, type WorkspaceSize } from './workspaceSize';
 import { calculatorFactory, type CalculatorFactory } from './calculatorFactory';
 import { createLayoutDeps, gatherLayoutInput, type LayoutDeps } from './boxLayout/gatherLayoutInput';
@@ -162,6 +161,16 @@ class Viewport {
    * @type {PositionCache}
    */
   declare columnWidthCache: PositionCache;
+  /**
+   * The row that was the first rendered row when `rowHeightCache` was last built, or `-1` when
+   * nothing was rendered at that moment. The first rendered visible row carries a 1px border-top
+   * compensation in its reported height (see `StylesHandler#getDefaultRowHeight`), so the cache
+   * holds a value for this row that stops being correct once the viewport scrolls.
+   * {@link Viewport#sumRowHeights} re-reads it (and the current first rendered row) live.
+   *
+   * @type {number}
+   */
+  #rowFirstRenderedAtBuild: number = -1;
 
   /**
    * Read-only access to the dependencies, for the `workspaceSize` / `calculatorFactory` mixins, which
@@ -226,6 +235,15 @@ class Viewport {
       // oversized rows. Any of these invalidates the cache, so the next build re-evaluates this.
       isUniformFn: () => rowSizeSource.isUniform() &&
         Object.keys(this.oversizedRows).length === 0,
+      // Sparse fast path: when the provided heights are uniform but walkontable HAS measured
+      // oversized rows, those records are the only deviations from the default height — the cache
+      // stores just them and rebuilds in O(oversized rows) instead of walking all `totalRows`
+      // (a scroll into unmeasured territory rebuilds on every band change). With per-row heights
+      // or a `modifyRowHeight` hook this returns `null` and the full prefix-sum walk runs.
+      sparseExceptionsFn: () => (rowSizeSource.isUniform() ? this.oversizedRows : null),
+      onBuildFn: () => {
+        this.#rowFirstRenderedAtBuild = wtTable.getFirstRenderedRow();
+      },
     });
     /**
      * Cumulative column width prefix sum cache. Enables O(log n) scroll-to-column lookups
@@ -236,7 +254,10 @@ class Viewport {
     this.columnWidthCache = new PositionCache({
       totalItemsFn: () => wtSettings.getSetting<number>('totalColumns'),
       sizeFn: sourceCol => wtTable.getColumnWidth(sourceCol),
-      defaultSizeFn: () => DEFAULT_COLUMN_WIDTH,
+      // Read the default through the size source (the `defaultColumnWidth` setting) — the same
+      // fallback the overlays' `sumCellSizes` used before they delegated to this cache — so a
+      // consumer-overridden default keeps scroll offsets and calculators in agreement.
+      defaultSizeFn: () => columnSizeSource.getDefaultSize(),
       // Uniform fast path: every column is the default width only when the source reports it (no
       // per-column `colWidths`, no `modifyColWidth` hook — note `autoColumnSize` is on by default and
       // registers that hook, so this is true only when `colWidths` is set).
@@ -289,6 +310,39 @@ class Viewport {
    */
   invalidateLayout() {
     this.#layout = null;
+  }
+
+  /**
+   * Sums the heights of the `[from, to)` row range in O(1) using the row-height prefix-sum cache,
+   * with the exact semantics of a live per-row walk. Row heights are position-independent except
+   * for one row: the first rendered visible row reports a 1px border-top compensation
+   * (`StylesHandler#getDefaultRowHeight`, AutoRowSize). The cache holds the heights read at build
+   * time, so the row that carried the compensation then, and the row that carries it now, are
+   * re-read live and the cached values are replaced by the live ones.
+   *
+   * @param {number} from Start row index (inclusive).
+   * @param {number} to End row index (exclusive).
+   * @returns {number} The height sum in pixels.
+   */
+  sumRowHeights(from: number, to: number): number {
+    const cache = this.rowHeightCache;
+
+    cache.ensureBuilt();
+
+    let sum = cache.getOffset(to) - cache.getOffset(from);
+    const compensationRows = new Set([this.#rowFirstRenderedAtBuild, this.wtTable.getFirstRenderedRow()]);
+
+    compensationRows.forEach((row) => {
+      if (row >= 0 && row >= from && row < to && row < cache.totalItems) {
+        const liveHeight = this.wtTable.getRowHeight(row);
+        const resolvedLiveHeight = liveHeight === undefined
+          ? this.#deps.rowSizeSource.getDefaultSize() : liveHeight;
+
+        sum += resolvedLiveHeight - cache.getSizeAt(row);
+      }
+    });
+
+    return sum;
   }
 
   /**

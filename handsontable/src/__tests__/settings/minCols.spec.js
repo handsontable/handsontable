@@ -154,5 +154,32 @@ describe('settings', () => {
         expect(getCellMeta(0, 6).test).toBeUndefined();
       });
     });
+
+    it('should not verify column emptiness when `minSpareCols` is not set', async() => {
+      const isEmptyCol = jasmine.createSpy('isEmptyCol').and.callFake(function(visualCol) {
+        for (let row = 0; row < this.countRows(); row++) {
+          if (this.getDataAtCell(row, visualCol) !== null) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        minCols: 5,
+        isEmptyCol,
+      });
+
+      expect(countCols()).toBe(5);
+
+      isEmptyCol.calls.reset();
+
+      await setDataAtCell(0, 0, 'x');
+
+      expect(countCols()).toBe(5);
+      expect(isEmptyCol).not.toHaveBeenCalled();
+    });
   });
 });

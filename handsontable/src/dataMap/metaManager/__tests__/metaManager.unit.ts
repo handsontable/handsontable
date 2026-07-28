@@ -400,5 +400,95 @@ describe('MetaManager', () => {
       expect(uncached.className).toBe('htRight');
       expect(uncached).toBe(stored);
     });
+
+    it('should return the stored meta object through a pending row-shift buffer', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.setCellMeta(10, 1, 'className', 'htRight');
+
+      const stored = metaManager.getCellMeta(10, 1, { visualRow: 10, visualColumn: 1, skipMetaExtension: true });
+
+      // buffer a row shift without any read in between, as DataMap.removeRow does
+      metaManager.removeRow(3, 1);
+
+      const uncached = metaManager.getCellMetaUncached(9, 1, { visualRow: 9, visualColumn: 1 });
+
+      expect(uncached).toBe(stored);
+      expect(uncached.className).toBe('htRight');
+    });
+
+    it('should not materialize a row map when probing an empty row', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.getCellMetaUncached(7, 0, { visualRow: 7, visualColumn: 0 });
+
+      expect(metaManager.cellMeta.getMetaIfExists(7, 0)).toBeUndefined();
+      expect(metaManager.cellMeta.metas.has(7)).toBe(false);
+    });
+  });
+
+  describe('getCellMetaTransient()', () => {
+    it('should run the "extendTransientCellMeta" local hook on the throwaway object without storing it', () => {
+      const metaManager = new MetaManager();
+      const extended = [];
+
+      metaManager.addLocalHook('extendTransientCellMeta', (cellMeta) => {
+        extended.push(cellMeta);
+        cellMeta.readOnly = true; // simulates a `cells()`-driven property
+      });
+
+      const meta = metaManager.getCellMetaTransient(2, 3, { visualRow: 2, visualColumn: 3 });
+
+      expect(extended).toEqual([meta]);
+      expect(meta.readOnly).toBe(true);
+      expect(meta.row).toBe(2);
+      expect(meta.col).toBe(3);
+      expect(meta.visualRow).toBe(2);
+      expect(meta.visualCol).toBe(3);
+      // nothing retained
+      expect(metaManager.cellMeta.getMetaIfExists(2, 3)).toBeUndefined();
+      expect(metaManager.cellMeta.getMetas()).toHaveLength(0);
+    });
+
+    it('should resolve stored meta once, without a second storage lookup', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.setCellMeta(5, 1, 'className', 'htRight');
+
+      const getMetaSpy = jest.spyOn(metaManager.cellMeta, 'getMeta');
+      const meta = metaManager.getCellMetaTransient(5, 1, { visualRow: 5, visualColumn: 1 });
+
+      expect(meta.className).toBe('htRight');
+      expect(getMetaSpy).not.toHaveBeenCalled();
+    });
+
+    it('should route cells with stored meta through the regular memoized getCellMeta path', () => {
+      const metaManager = new MetaManager();
+      const transientHookCalls = [];
+      const eagerHookCalls = [];
+
+      metaManager.addLocalHook('extendTransientCellMeta', () => transientHookCalls.push(1));
+      metaManager.addLocalHook('afterGetCellMeta', () => eagerHookCalls.push(1));
+
+      metaManager.setCellMeta(5, 1, 'className', 'htRight');
+
+      const meta = metaManager.getCellMetaTransient(5, 1, { visualRow: 5, visualColumn: 1 });
+
+      expect(meta.className).toBe('htRight');
+      expect(meta).toBe(metaManager.getCellMeta(5, 1, { visualRow: 5, visualColumn: 1, skipMetaExtension: true }));
+      expect(transientHookCalls).toHaveLength(0);
+      expect(eagerHookCalls).toHaveLength(1);
+    });
+
+    it('should inherit column-layer settings through the prototype chain', () => {
+      const metaManager = new MetaManager();
+
+      metaManager.updateColumnMeta(4, { className: 'htCenter' });
+
+      const meta = metaManager.getCellMetaTransient(10, 4, { visualRow: 10, visualColumn: 4 });
+
+      expect(meta.className).toBe('htCenter');
+      expect(metaManager.cellMeta.getMetaIfExists(10, 4)).toBeUndefined();
+    });
   });
 });

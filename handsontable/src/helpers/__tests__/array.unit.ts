@@ -8,6 +8,9 @@ import {
   arrayMin,
   arrayReduce,
   arraySum,
+  arrayUnique,
+  insertValuesInPlace,
+  removeIndexesInPlace,
   stringToArray,
   getDifferenceOfArrays,
   getIntersectionOfArrays,
@@ -278,6 +281,120 @@ describe('Array helper', () => {
       expect(arraySum([1, 1, 2, 3, 4])).toBe(11);
       expect(arraySum([1, 1, 0, 3.1, 4.2])).toBe(9.3);
       expect(arraySum(iterableObject)).toBe(12);
+    });
+  });
+
+  //
+  // Handsontable.helper.arrayUnique
+  //
+  describe('arrayUnique', () => {
+    it('should return a new array without duplicated values', () => {
+      expect(arrayUnique([1, 2, 2, 3, 1, 4])).toStrictEqual([1, 2, 3, 4]);
+      expect(arrayUnique(['a', 'b', 'a', 'c'])).toStrictEqual(['a', 'b', 'c']);
+    });
+
+    it('should keep the first-occurrence order of the values', () => {
+      expect(arrayUnique([3, 1, 3, 2, 1])).toStrictEqual([3, 1, 2]);
+    });
+
+    it('should compare values strictly (no type coercion)', () => {
+      expect(arrayUnique([1, '1', 1, '1'])).toStrictEqual([1, '1']);
+      expect(arrayUnique([0, false, '', null, undefined, 0, false])).toStrictEqual([0, false, '', null, undefined]);
+    });
+
+    it('should deduplicate objects by reference', () => {
+      const objectA = { id: 1 };
+      const objectB = { id: 1 };
+
+      expect(arrayUnique([objectA, objectB, objectA])).toStrictEqual([objectA, objectB]);
+    });
+
+    it('should return an empty array for an empty input', () => {
+      expect(arrayUnique([])).toStrictEqual([]);
+    });
+  });
+
+  //
+  // Handsontable.helper.removeIndexesInPlace
+  //
+  describe('removeIndexesInPlace', () => {
+    it('should remove the elements at the given indexes', () => {
+      expect(removeIndexesInPlace(['a', 'b', 'c', 'd', 'e'], new Set([1, 3]))).toStrictEqual(['a', 'c', 'e']);
+    });
+
+    it('should remove non-contiguous indexes in one pass', () => {
+      expect(removeIndexesInPlace([0, 1, 2, 3, 4, 5, 6, 7], new Set([0, 2, 5, 7]))).toStrictEqual([1, 3, 4, 6]);
+    });
+
+    it('should mutate the array in place and return the same reference', () => {
+      const array = ['a', 'b', 'c'];
+      const result = removeIndexesInPlace(array, new Set([1]));
+
+      expect(result).toBe(array);
+      expect(array).toStrictEqual(['a', 'c']);
+    });
+
+    it('should ignore indexes beyond the array length', () => {
+      expect(removeIndexesInPlace(['a', 'b'], new Set([1, 5, 100]))).toStrictEqual(['a']);
+    });
+
+    it('should empty the array when every index is removed', () => {
+      expect(removeIndexesInPlace(['a', 'b'], new Set([0, 1]))).toStrictEqual([]);
+    });
+
+    it('should not change the array when the index set is empty', () => {
+      expect(removeIndexesInPlace(['a', 'b'], new Set([]))).toStrictEqual(['a', 'b']);
+    });
+
+    it('should keep falsy elements that are not removed', () => {
+      expect(removeIndexesInPlace([null, undefined, 0, '', false], new Set([2])))
+        .toStrictEqual([null, undefined, 0, '', false].filter((_, i) => i !== 2));
+    });
+  });
+
+  //
+  // Handsontable.helper.insertValuesInPlace
+  //
+  describe('insertValuesInPlace', () => {
+    it('should insert the given amount of copies at the index', () => {
+      expect(insertValuesInPlace(['a', 'b', 'c'], 1, 2, null)).toStrictEqual(['a', null, null, 'b', 'c']);
+    });
+
+    it('should mutate the array in place and return the same reference', () => {
+      const array = ['a', 'b'];
+      const result = insertValuesInPlace(array, 0, 1, 'x');
+
+      expect(result).toBe(array);
+      expect(array).toStrictEqual(['x', 'a', 'b']);
+    });
+
+    it('should append the values when the index equals the array length', () => {
+      expect(insertValuesInPlace(['a', 'b'], 2, 2, null)).toStrictEqual(['a', 'b', null, null]);
+    });
+
+    it('should clamp an index greater than the array length to the length', () => {
+      expect(insertValuesInPlace(['a', 'b'], 10, 2, null)).toStrictEqual(['a', 'b', null, null]);
+    });
+
+    it('should insert at the start of the array', () => {
+      expect(insertValuesInPlace(['a', 'b'], 0, 3, 0)).toStrictEqual([0, 0, 0, 'a', 'b']);
+    });
+
+    it('should work on an empty array', () => {
+      expect(insertValuesInPlace([], 0, 2, null)).toStrictEqual([null, null]);
+    });
+
+    it('should not change the array when the amount is zero or negative', () => {
+      expect(insertValuesInPlace(['a', 'b'], 1, 0, null)).toStrictEqual(['a', 'b']);
+      expect(insertValuesInPlace(['a', 'b'], 1, -2, null)).toStrictEqual(['a', 'b']);
+    });
+
+    it('should produce the same result as the equivalent splice calls', () => {
+      const viaSplice = ['a', 'b', 'c', 'd'];
+
+      viaSplice.splice(2, 0, null, null, null);
+
+      expect(insertValuesInPlace(['a', 'b', 'c', 'd'], 2, 3, null)).toStrictEqual(viaSplice);
     });
   });
 

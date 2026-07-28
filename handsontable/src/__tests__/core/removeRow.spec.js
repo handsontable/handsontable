@@ -91,6 +91,23 @@ describe('Core.alter', () => {
         expect(getData().length).toBe(5);
       });
 
+      it('should remove a row from a grid with hundreds of thousands of rows', async() => {
+        const rows = [];
+
+        for (let i = 0; i < 200000; i++) {
+          rows.push([i]);
+        }
+
+        handsontable({
+          data: rows,
+        });
+
+        await alter('remove_row', 0, 1);
+
+        expect(countRows()).toBe(199999);
+        expect(getDataAtCell(0, 0)).toBe(1);
+      });
+
       it('should remove rows when index groups are passed as intersecting values (the second scenario)', async() => {
         handsontable({
           data: createSpreadsheetData(15, 5),

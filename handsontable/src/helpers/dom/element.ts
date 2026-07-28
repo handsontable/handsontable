@@ -840,6 +840,58 @@ export function getMaximumScrollLeft(element: HTMLElement) {
   return element.scrollWidth - element.clientWidth;
 }
 
+const OVERFLOW_TRIMMING_VALUES = ['scroll', 'hidden', 'auto', 'clip'];
+const OVERFLOW_CONCRETE_VALUES = ['visible', 'clip', 'hidden', 'scroll', 'auto', 'overlay'];
+
+/**
+ * Checks whether a single overflow axis traps the table on that axis.
+ *
+ * `overflow: clip` establishes no scroll port. When an axis is `clip` while the perpendicular axis
+ * stays `visible`, it does not trap the table's scroll — the table still scrolls with the window on
+ * the visible axis. A width-constrained, window-scrolled table sets `overflow-x: clip` on its root
+ * (see core.ts, DEV-1025); treating that root as the trimming container drops the overlays out of
+ * window-scroll mode (frozen rows stop pinning, vertical virtualization stops). Such a single-axis
+ * clip must not qualify the axis as trimming.
+ *
+ * @param {string} axis The `overflow-x`/`overflow-y` value of the axis being tested.
+ * @param {string} perpendicular The `overflow` value of the other axis.
+ * @returns {boolean}
+ */
+function overflowAxisTraps(axis: string, perpendicular: string): boolean {
+  return OVERFLOW_TRIMMING_VALUES.includes(axis) &&
+    !(axis === 'clip' && (perpendicular === 'visible' || perpendicular === ''));
+}
+
+/**
+ * Resolves the effective `overflow-x`/`overflow-y` of an element, preferring inline styles.
+ *
+ * The inline `overflow` shorthand can carry two values (`overflow: clip visible` → x, y). Some
+ * engines (jsdom) neither split that shorthand into `overflowX`/`overflowY` nor reflect it in the
+ * computed style, so the shorthand string is parsed directly. An inline value is only preferred when
+ * it is a concrete overflow keyword; a global keyword (`inherit`, `initial`, `revert`, `unset`) or
+ * any other non-concrete value falls back to the computed style, which resolves it to the real value
+ * (e.g. an inherited `auto`). Otherwise an inline `inherit` would be read literally and miss the
+ * scroll value it inherits.
+ *
+ * @param {HTMLElement} el The element to read overflow from.
+ * @param {CSSStyleDeclaration} computedStyle The element's computed style.
+ * @returns {{ x: string, y: string }}
+ */
+function resolveOverflowAxes(el: HTMLElement, computedStyle: CSSStyleDeclaration): { x: string, y: string } {
+  const shorthand = el.style.overflow.split(/\s+/).filter(Boolean);
+  const [shorthandX = '', shorthandY = shorthandX] = shorthand;
+  const resolveAxis = (inlineAxis: string, shorthandAxis: string, computedProperty: string): string => {
+    const inline = inlineAxis || shorthandAxis;
+
+    return OVERFLOW_CONCRETE_VALUES.includes(inline) ? inline : computedStyle.getPropertyValue(computedProperty);
+  };
+
+  return {
+    x: resolveAxis(el.style.overflowX, shorthandX, 'overflow-x'),
+    y: resolveAxis(el.style.overflowY, shorthandY, 'overflow-y'),
+  };
+}
+
 /**
  * Returns a DOM element responsible for trimming the provided element.
  *
@@ -853,22 +905,14 @@ export function getTrimmingContainer(base: HTMLElement): HTMLElement | Window {
   let el: HTMLElement | null = base.parentElement;
 
   while (el && el.style && rootDocument.body !== el) {
-    if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
-      return el;
-    }
-
     if (rootWindow) {
-      const computedStyle = rootWindow.getComputedStyle(el);
-      const allowedProperties = ['scroll', 'hidden', 'auto', 'clip'];
-      const property = computedStyle.getPropertyValue('overflow');
-      const propertyY = computedStyle.getPropertyValue('overflow-y');
-      const propertyX = computedStyle.getPropertyValue('overflow-x');
+      const { x, y } = resolveOverflowAxes(el, rootWindow.getComputedStyle(el));
 
-      if (allowedProperties.includes(property) ||
-          allowedProperties.includes(propertyY) ||
-          allowedProperties.includes(propertyX)) {
+      if (overflowAxisTraps(x, y) || overflowAxisTraps(y, x)) {
         return el;
       }
+    } else if (el.style.overflow !== 'visible' && el.style.overflow !== '') {
+      return el;
     }
 
     el = el.parentElement;

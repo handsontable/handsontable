@@ -59,7 +59,7 @@ export function instanceToHTML(instance: HotInstance): string {
 
       } else {
         const cellData = data[row][column];
-        const { hidden, rowspan, colspan } = instance.getCellMeta(row - columnModifier, column - rowModifier);
+        const { hidden, rowspan, colspan } = instance.getCellMetaTransient(row - columnModifier, column - rowModifier);
 
         if (!hidden) {
           const attrs = [];

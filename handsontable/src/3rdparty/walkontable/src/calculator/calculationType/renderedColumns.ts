@@ -17,6 +17,16 @@ export class RenderedColumnsCalculationType extends PartiallyVisibleColumnsCalcu
    * @type {number}
    */
   columnEndOffset: number = 0;
+  /**
+   * The horizontal scroll offset (zero-based, in px) the band was computed at. Read on the next
+   * scroll-driven draw by `applyRenderedColumnsBandOverscan` (`viewport/calculatorFactory.ts`): the
+   * sign of the offset delta between two consecutive full draws picks the band side that receives
+   * the directional overscan. The value is clamped to zero and derived from an absolute scroll
+   * position, so the comparison works the same in LTR and RTL.
+   *
+   * @type {number}
+   */
+  scrollOffset: number = 0;
 
   /**
    * Finalizes the calculation.
@@ -31,6 +41,8 @@ export class RenderedColumnsCalculationType extends PartiallyVisibleColumnsCalcu
       totalColumns,
       positionCache,
     } = viewportCalculator;
+
+    this.scrollOffset = viewportCalculator.zeroBasedScrollOffset;
 
     if (this.startColumn !== null && typeof overrideFn === 'function') {
       const startColumn = this.startColumn;

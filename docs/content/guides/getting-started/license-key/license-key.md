@@ -13,6 +13,7 @@ vue:
   metaTitle: License key - Vue Data Grid | Handsontable
 searchCategory: Guides
 category: Getting started
+menuTag: updated
 ---
 Activate Handsontable, passing your license key in the configuration object. Use a special key for non-commercial and evaluation purposes.
 
@@ -216,6 +217,10 @@ export const appConfig: ApplicationConfig = {
 
 :::
 
+## Result
+
+Your grid is now licensed. A valid commercial key removes the license notice from the grid header.
+
 ## The validation process
 
 We validate the license key to determine whether you are entitled to use the software. To do that, we compare the time between two dates. These dates come from two sources of information. One is the `build date` that is provided in each version of Handsontable. The other is the `creation date` that comes with the license key. This process does not trigger any connection to any server.
@@ -240,9 +245,42 @@ _The license key for Handsontable expired on `[expiration_date]`, and is not val
 
 To get a commercial license key for your Handsontable copy, contact our [Sales Team](https://handsontable.com/get-a-quote).
 
-## Result
+## FAQ
 
-Your grid is now licensed. A valid commercial key removes the license notice from the grid header.
+### How do I update the license key in many tables at once?
+
+There's no built-in method to update all existing instances automatically. You have two options:
+
+- **Before creating any instances:** set the key globally so every new instance picks it up.
+
+  ```js
+  Handsontable.defaults.licenseKey = 'your-new-key';
+  ```
+
+- **For instances that already exist:** call [`updateSettings()`](@/api/core.md#updatesettings) on each one, looping through them manually.
+
+  ```js
+  hot1.updateSettings({ licenseKey: 'your-new-key' });
+  hot2.updateSettings({ licenseKey: 'your-new-key' });
+  ```
+
+### What happens if I keep using a stale (expired) license key?
+
+What you can do depends on your license type:
+
+- **Subscription license:** once your subscription expires, you can no longer use Handsontable. Renew your subscription to keep using the grid.
+- **Perpetual license:** you can keep using any version of Handsontable that was released _before_ your license expired. You won't be able to upgrade to versions released after that date.
+
+If you load a version that your license doesn't cover, you'll see a [console warning](#expired-license-key) and a watermark on the grid. To keep support and access to updates, keep your license up to date.
+
+### What will I see if I update to a newer version with a stale key?
+
+If your license key is expired and you update to a version of Handsontable released after it expired, you'll see:
+
+- A watermark below the table saying the license is invalid.
+- A warning in the browser console (see [Expired license key](#expired-license-key)).
+
+All features still work, but you're not entitled to use that version under an expired license. To remove the warning and watermark, either downgrade to the last version released while your license was still active, or renew the license.
 
 ## Related articles
 

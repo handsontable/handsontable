@@ -74,6 +74,8 @@ import type { SettingsPort } from '../ports';
  * @property {?Option} viewportRowCalculatorOverride Option `viewportRowCalculatorOverride`.
  * @property {?Option} viewportColumnRenderingThreshold Option `viewportColumnRenderingThreshold`.
  * @property {?Option} viewportRowRenderingThreshold Option `viewportRowRenderingThreshold`.
+ * @property {?Option} viewportColumnRenderingOffsetIsAuto Option `viewportColumnRenderingOffsetIsAuto`.
+ * @property {?Option} viewportRowRenderingOffsetIsAuto Option `viewportRowRenderingOffsetIsAuto`.
  * @property {?Option} stylesHandler Option `stylesHandler`.
  */
 
@@ -182,6 +184,12 @@ export function getDefaults(settings: SettingsPort): Record<string, unknown> {
     viewportColumnCalculatorOverride: null,
     viewportRowRenderingThreshold: null,
     viewportColumnRenderingThreshold: null,
+    // Whether the corresponding `viewport*RenderingOffset` grid option is in its 'auto' (dynamic
+    // overscan) mode. An explicit numeric offset is an exact user choice — the directional
+    // scroll-overscan then stays off (see `viewport/calculatorFactory.ts`). Engine-level default is
+    // `true`: a raw Walkontable consumer with no offset override gets the overscan.
+    viewportRowRenderingOffsetIsAuto: true,
+    viewportColumnRenderingOffsetIsAuto: true,
 
     // callbacks
     onCellMouseDown: null,
