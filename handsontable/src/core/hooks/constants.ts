@@ -620,6 +620,16 @@ export const REGISTERED_HOOKS = [
   'afterOnSelectionHandleMouseDown',
 
   /**
+   * Fired after the user presses a selection edge move zone.
+   *
+   * @event Hooks#afterOnSelectionEdgeMouseDown
+   * @since 18.0.0
+   * @param {Event} event The `mousedown` event.
+   * @param {'top' | 'bottom' | 'start' | 'end'} edge The pressed edge.
+   */
+  'afterOnSelectionEdgeMouseDown',
+
+  /**
    * Fired before a `moveCells` drag relocates a selection. Return `false` to cancel the move.
    *
    * @event Hooks#beforeMoveCells

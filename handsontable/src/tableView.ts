@@ -1248,10 +1248,9 @@ class TableView {
       },
       onSelectionHandleMouseDown: (event: MouseEvent, edge: HandleEdge) => {
         this.hot.runHooks('afterOnSelectionHandleMouseDown', event, edge);
-        this.#startAdjustDrag(event, edge);
       },
-      onSelectionEdgeMouseDown: (event: MouseEvent) => {
-        this.#startMoveDrag(event);
+      onSelectionEdgeMouseDown: (event: MouseEvent, edge: HandleEdge) => {
+        this.hot.runHooks('afterOnSelectionEdgeMouseDown', event, edge);
       },
       beforeDraw: (force: boolean, skipRender: boolean) => this.beforeRender(force, skipRender),
       onDraw: (force: boolean) => this.afterRender(force),

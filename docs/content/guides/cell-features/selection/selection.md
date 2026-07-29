@@ -335,6 +335,8 @@ This option applies at the grid level and defaults to `false`.
 - [`beforeMoveCells`](@/api/hooks.md#beforemovecells) fires before the data relocates. Return `false` from the handler to cancel the move.
 - [`afterMoveCells`](@/api/hooks.md#aftermovecells) fires after the data has been relocated.
 
+To move or copy a range programmatically, call `hot.getPlugin('moveCells').moveCellRange(sourceRange, targetTopLeft, isCopy)`.
+
 ::: only-for javascript
 
 ::: example #example8 --html 1 --js 2 --ts 3

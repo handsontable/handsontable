@@ -335,6 +335,7 @@ export interface GridSettings {
   afterOnCellCornerDblClick?: (event: MouseEvent) => void;
   afterOnCellCornerMouseDown?: (event: MouseEvent) => void;
   afterOnSelectionHandleMouseDown?: (event: MouseEvent, edge: 'top' | 'bottom' | 'start' | 'end') => void;
+  afterOnSelectionEdgeMouseDown?: (event: MouseEvent, edge: 'top' | 'bottom' | 'start' | 'end') => void;
   afterOnCellMouseDown?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOut?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;
   afterOnCellMouseOver?: (event: MouseEvent, coords: WalkontableCellCoords, TD: HTMLTableCellElement) => void;

@@ -21,11 +21,11 @@ export interface FixtureHotInstance {
   setDataAtCell(row: number, col: number, value: CellValue): void;
   getPlugin(name: 'formulas'): { getCellType(row: number, col: number): string };
   getPlugin(name: 'undoRedo'): { undo(): void, redo(): void };
+  getPlugin(name: 'moveCells'): { moveCellRange(sourceRange: unknown, targetTopLeft: unknown, isCopy?: boolean): boolean };
   selectCells(ranges: number[][]): boolean;
   deselectCell(): void;
   getSelectedRangeLast(): unknown;
   _createCellCoords(row: number, col: number): unknown;
-  moveCellRange(sourceRange: unknown, targetTopLeft: unknown, isCopy?: boolean): boolean;
 }
 
 declare global {

@@ -92,7 +92,7 @@ export class FormulasMoveCellsPage {
 
   /**
    * Select the given range and move (or copy) it so its top-left lands on the
-   * target cell, through the public `moveCellRange` API. Resolves to the
+   * target cell, through the `moveCells` plugin API. Resolves to the
    * operation's return value (`false` when vetoed).
    */
   async moveRange(
@@ -105,7 +105,7 @@ export class FormulasMoveCellsPage {
 
       hot.selectCells([from]);
 
-      return hot.moveCellRange(
+      return hot.getPlugin('moveCells').moveCellRange(
         hot.getSelectedRangeLast(),
         hot._createCellCoords(target[0], target[1]),
         copy,

@@ -467,6 +467,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterOnCellCornerDblClick: (event) => {},
   afterOnCellCornerMouseDown: (event) => {},
   afterOnSelectionHandleMouseDown: (event, edge) => {},
+  afterOnSelectionEdgeMouseDown: (event, edge) => {},
   afterOnCellMouseDown: (event, coords, TD) => {},
   afterOnCellMouseOver: (event, coords, TD) => {},
   afterOnCellMouseOverOutside: (event, coords, TD) => {},
@@ -951,6 +952,7 @@ hot.updateSettings({ moveCells: true });
 
 // Regression: afterOnSelectionHandleMouseDown must be accepted by updateSettings.
 hot.updateSettings({ afterOnSelectionHandleMouseDown(event, edge) {} });
+hot.updateSettings({ afterOnSelectionEdgeMouseDown(event, edge) {} });
 
 // Regression: beforeMoveCells and afterMoveCells must be accepted by updateSettings.
 hot.updateSettings({ beforeMoveCells(sourceRange, targetTopLeft, isCopy) { return true; } });
