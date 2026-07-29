@@ -58,6 +58,20 @@ test.describe('Formulas: moveCells undo/redo integration', () => {
     expect(await grid.cellValue(2, 1)).toBe(null);
   });
 
+  test('keeps formulas synchronized when a redo move is vetoed', async () => {
+    await grid.moveRange([0, 1, 0, 1], [2, 1]);
+    await grid.undo();
+    await grid.vetoNextMove();
+    await grid.redo();
+
+    await grid.expectCell(0, 1, '11');
+    expect(await grid.cellValue(2, 1)).toBe(null);
+
+    await expect(grid.moveRange([0, 1, 0, 1], [1, 1])).resolves.toBe(true);
+    await grid.expectCell(1, 1, '11');
+    expect(await grid.cellValue(0, 1)).toBe(null);
+  });
+
   test('undo of a copy keeps the source and restores the overwritten target', async () => {
     await grid.expectCell(0, 1, '11');
 

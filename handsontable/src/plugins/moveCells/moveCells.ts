@@ -96,6 +96,14 @@ export class MoveCells extends BasePlugin {
   }
 
   /**
+   * Destroys the plugin and removes any active drag preview.
+   */
+  destroy(): void {
+    this.#endDrag(false, null);
+    super.destroy();
+  }
+
+  /**
    * Moves or copies a visual cell range.
    *
    * @param {CellRange} sourceRange The source range.

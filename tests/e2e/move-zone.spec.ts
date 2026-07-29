@@ -84,6 +84,26 @@ test.describe('moveCells edge move bands', () => {
     await expect(grid.visibleMoveZones()).toHaveCount(4);
   });
 
+  test('removes the move preview when the grid is destroyed during a drag', async ({ page }) => {
+    await grid.selectCells(1, 1, 3, 3);
+
+    const box = await grid.visibleMoveZones().first().boundingBox();
+
+    expect(box).not.toBeNull();
+
+    await page.mouse.move(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
+    await page.mouse.down();
+
+    await expect(grid.movingRoot()).toHaveCount(1);
+    await expect(grid.moveGhost()).toHaveCount(1);
+
+    await grid.destroyGrid();
+
+    await expect(grid.moveGhost()).toHaveCount(0);
+    await expect(page.locator('body')).toHaveCSS('cursor', 'auto');
+    await page.mouse.up();
+  });
+
   test('shows no move bands when moveCells is disabled', async () => {
     await grid.initGrid({ moveCells: false });
     await grid.selectCells(1, 1, 3, 3);

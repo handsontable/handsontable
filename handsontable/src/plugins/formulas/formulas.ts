@@ -172,6 +172,14 @@ export class Formulas extends BasePlugin {
   #moveCellsCommitted = false;
 
   /**
+   * `true` while a move-cells redo is replaying through the MoveCells plugin.
+   *
+   * Unlike other redo actions, it must validate the Handsontable move before advancing
+   * HyperFormula, so `commitPendingMoveCells` performs the engine operation itself.
+   */
+  #isRedoingMoveCells = false;
+
+  /**
    * The dependent-cell changes returned by the engine operation in `commitPendingMoveCells`,
    * consumed by the `afterMoveCells` listener to re-render dependent sheets. `null` when the
    * engine step was skipped (undo/redo replay re-renders everything anyway).
@@ -502,11 +510,14 @@ export class Formulas extends BasePlugin {
       this.engine!.undo();
     });
 
-    // Handling redo actions on data just using HyperFormula's UndoRedo mechanism
-    this.addHook('beforeRedo', () => {
+    // Handling redo actions on data just using HyperFormula's UndoRedo mechanism.
+    this.addHook('beforeRedo', (action: { actionType: string }) => {
       this.indexSyncer!.setPerformRedo(true);
+      this.#isRedoingMoveCells = action.actionType === 'move_cells';
 
-      this.engine!.redo();
+      if (!this.#isRedoingMoveCells) {
+        this.engine!.redo();
+      }
     });
 
     this.addHook('afterUndo', () => {
@@ -515,6 +526,7 @@ export class Formulas extends BasePlugin {
 
     this.addHook('afterRedo', () => {
       this.indexSyncer!.setPerformRedo(false);
+      this.#isRedoingMoveCells = false;
     });
 
     this.addHook('afterDetachChild', this.#onAfterDetachChild);
@@ -1659,10 +1671,10 @@ export class Formulas extends BasePlugin {
    * `engine.copy` reads cell values and must NOT be wrapped in `engine.batch` because batch
    * suspends evaluation, causing `copy` to throw `EvaluationSuspendedError`.
    *
-   * When an undo/redo operation triggered the move, the engine has already been advanced by
-   * `engine.redo()`/`engine.undo()`
-   * in the `beforeRedo`/`beforeUndo` hook, so the engine step is skipped and only the HOT-data
-   * sync (in the `afterMoveCells` listener) runs.
+   * During undo and non-move redo operations, the engine has already been advanced in the
+   * `beforeUndo`/`beforeRedo` hook, so this method only enables the HOT-data sync in the
+   * `afterMoveCells` listener. A move redo is validated first, then executed here to keep a
+   * rejected move from advancing HyperFormula.
    *
    * @returns {boolean} `true` when the engine operation succeeded (or was intentionally
    *   skipped); `false` when there is no prepared operation or the engine rejected it.
@@ -1677,7 +1689,7 @@ export class Formulas extends BasePlugin {
     this.#pendingMoveCells = null;
     this.#moveCellsChanges = null;
 
-    if (this.indexSyncer?.isPerformingUndoRedo()) {
+    if (this.indexSyncer?.isPerformingUndoRedo() && !this.#isRedoingMoveCells) {
       this.#moveCellsCommitted = true;
 
       return true;

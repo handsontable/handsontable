@@ -90,6 +90,11 @@ export class FormulasMoveCellsPage {
     await this.page.evaluate(() => window.hot.getPlugin('undoRedo').redo());
   }
 
+  /** Veto the next move through the public beforeMoveCells hook. */
+  async vetoNextMove(): Promise<void> {
+    await this.page.evaluate(() => window.hot.addHookOnce('beforeMoveCells', () => false));
+  }
+
   /**
    * Select the given range and move (or copy) it so its top-left lands on the
    * target cell, through the `moveCells` plugin API. Resolves to the

@@ -55,6 +55,11 @@ export class SelectionFeaturesPage {
     await this.page.evaluate(() => window.hot.deselectCell());
   }
 
+  /** Destroy the grid instance. */
+  async destroyGrid(): Promise<void> {
+    await this.page.evaluate(() => window.hot.destroy());
+  }
+
   /** Hover a cell with the real pointer (drives the handle-visibility logic). */
   async hoverCell(row: number, col: number): Promise<void> {
     await this.cell(row, col).hover();
@@ -91,6 +96,11 @@ export class SelectionFeaturesPage {
    */
   movingRoot(): Locator {
     return this.page.locator('.handsontable.ht__moving');
+  }
+
+  /** The document-level move preview ghost. */
+  moveGhost(): Locator {
+    return this.page.locator('.wtMoveGhost');
   }
 
   /** The union bounding box of a cell range — the selection's visual extent. */

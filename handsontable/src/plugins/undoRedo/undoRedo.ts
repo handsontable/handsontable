@@ -314,13 +314,13 @@ export class UndoRedo extends BasePlugin {
       redo: (hot: HotInstance, callback: (wasRedone?: boolean) => void) => void
     };
 
-    redo.redo(this.hot, (wasRedone = true) => {
+    redo.redo(this.hot, (result) => {
       this.ignoreNewActions = false;
 
-      if (wasRedone) {
-        this.doneActions.push(action);
-      } else {
+      if ((result as { wasRedone?: boolean } | undefined)?.wasRedone === false) {
         this.undoneActions.push(action);
+      } else {
+        this.doneActions.push(action);
       }
     });
 

@@ -278,9 +278,10 @@ export class MoveCellsAction extends BaseAction {
    * After the move re-runs, selects the target region to reflect the post-move state.
    *
    * @param {HotInstance} hot The Handsontable instance.
-   * @param {(wasRedone?: boolean) => void} redoneCallback The callback that settles the redo state.
+   * @param {(result?: { wasRedone?: boolean }) => void} redoneCallback The callback that settles
+   * the redo state.
    */
-  redo(hot: HotInstance, redoneCallback: (wasRedone?: boolean) => void): void {
+  redo(hot: HotInstance, redoneCallback: (result?: { wasRedone?: boolean }) => void): void {
     const { fromRow, fromCol, toRow, toCol } = this.sourceSnapshot;
     const { fromRow: targetRow, fromCol: targetCol } = this.targetSnapshot;
     const height = toRow - fromRow + 1;
@@ -309,7 +310,7 @@ export class MoveCellsAction extends BaseAction {
 
     if (!hot.getPlugin('moveCells').moveCellRange(sourceRange, targetTopLeft, this.isCopy)) {
       hot.removeHook('afterMoveCells', onAfterMoveCells);
-      redoneCallback(false);
+      redoneCallback({ wasRedone: false });
     }
   }
 }
