@@ -137,6 +137,8 @@ describe('settings', () => {
 
       const undoCountBefore = getPlugin('undoRedo').doneActions.length;
 
+      expect(undoCountBefore).toBe(1);
+
       getPlugin('undoRedo').undo();
       await hot().render();
       getPlugin('undoRedo').redo();

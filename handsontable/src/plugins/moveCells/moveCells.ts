@@ -172,10 +172,10 @@ export class MoveCells extends BasePlugin {
         if (!isCopy) {
           const empty = Array.from({ length: height }, () => Array<null>(width).fill(null));
 
-          this.hot.populateFromArray(fromRow, fromCol, empty, toRow, toCol, 'moveCells');
+          this.hot.populateFromArray(fromRow, fromCol, empty, toRow, toCol, 'auto');
         }
 
-        this.hot.populateFromArray(targetRow, targetCol, values, targetBottom, targetRight, 'moveCells');
+        this.hot.populateFromArray(targetRow, targetCol, values, targetBottom, targetRight, 'auto');
       }
     });
 
