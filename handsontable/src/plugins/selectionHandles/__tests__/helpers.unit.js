@@ -14,4 +14,8 @@ describe('clampEdge', () => {
   it('does not allow header coordinates', () => {
     expect(clampEdge({ edge: 'top', target: -1, oppositeIndex: 4 })).toBe(0);
   });
+
+  it('does not modify a valid drag target', () => {
+    expect(clampEdge({ edge: 'top', target: 3, oppositeIndex: 5 })).toBe(3);
+  });
 });
