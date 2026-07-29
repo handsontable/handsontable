@@ -497,3 +497,14 @@ The custom loader (`src/plugins/framework-loader.mjs`) renders every source page
 - Both `.astro/data-store.json` and `.astro/rendered-html/` are derived caches — reset them together with `rm -rf .astro`. Never delete one without the other.
 - `npm run dev` must work with the default Node heap. Do not add `NODE_OPTIONS=--max-old-space-size` workarounds; shrink the data store instead.
 - Plugin unit tests run with `node --test src/plugins/__tests__/*.test.mjs`.
+
+---
+
+## 2.13 Example-Runner Error Handling
+
+`src/scripts/example-runner.ts` catches every example failure so one broken example cannot take a page down. Two rules keep that from hiding real crashes (Sentry HANDSONTABLE-DOCS-20K) or leaking unhandled rejections (HANDSONTABLE-DOCS-1FX):
+
+- **Every caught example failure goes through `reportExampleError()`** from `src/lib/example-error-reporting.mjs`. That module owns the drop list - failed chunk fetches, errors carrying `cause.handsontable` (core `throwWithCause()`), the expected `HTTP <status>` of the server-side data examples - plus deduplication by message and a cap of three forwarded failures per page load. Widen or narrow the drop list there, never at the call site. Sentry reaches the runner through the Loader Script (`window.Sentry`), whose deferred `<script>` tag precedes the bundled Head scripts, so the queueing stub exists by the time the runner runs; a blocked CDN request degrades to no report.
+- **A framework runtime (`react`, `vue`, `zone.js`, `@angular/compiler`) must only be imported inside `loadRuntime()`.** A bare `await import(...)` there escapes every try/catch as an unhandled rejection and leaves each example of that framework stuck on its loading shimmer forever. `loadRuntime()` returns `null` on failure, and the group is marked with `markFailed()` - the only place that shows a reader-visible notice (`.hot-example-error`). Per-example failures keep the silent `markLoaded()` degradation, because some examples render nothing by design.
+
+Guards for both rules live in `src/lib/__tests__/example-error-reporting.test.mjs` (run by `npm run docs:test:plugins`).

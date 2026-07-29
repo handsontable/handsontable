@@ -12,6 +12,15 @@
  *   - Modern standalone: export class AppComponent {} + export const appConfig  (bootstrapped via bootstrapApplication)
  */
 
+import { createExampleErrorReporter } from '../lib/example-error-reporting.mjs';
+
+/**
+ * Forwards caught example failures to Sentry, minus the classes that carry no signal (failed chunk
+ * fetches, errors Handsontable throws on purpose, the expected `HTTP <status>` of the server-side
+ * data examples), deduplicated and capped per page load. See the module for the full rationale.
+ */
+const reportExampleError = createExampleErrorReporter();
+
 // ── Glob maps resolved by Vite at build time ──────────────────────────────
 const jsModules       = import.meta.glob('/content/**/example*.js');
 const jsxModules      = import.meta.glob('/content/**/example*.jsx');
@@ -26,8 +35,9 @@ let zoneLoaded = false;
 
 async function ensureZone(): Promise<void> {
   if (zoneLoaded) return;
-  zoneLoaded = true;
+  // Flag set after the import resolves, so a failed load does not mark zone.js as present.
   await import('zone.js');
+  zoneLoaded = true;
 }
 
 // ── Angular bootstrap helper (NgModule + standalone) ─────────────────────
@@ -61,6 +71,52 @@ async function bootstrapAngular(mod: Record<string, unknown>): Promise<void> {
 /** Removes the loading shimmer from the preview section of an example element. */
 function markLoaded(el: Element): void {
   el.querySelector('.hot-example-preview')?.classList.remove('hot-example-preview--loading');
+}
+
+/**
+ * Stops the shimmer and tells the reader the example is not coming.
+ *
+ * Used only where nothing can possibly mount - the shared framework runtime failed to load, so
+ * every example of that framework on the page is dead. A per-example failure keeps the plain
+ * markLoaded() degradation: some examples render nothing by design, and a notice there would be
+ * wrong more often than right.
+ */
+function markFailed(el: Element): void {
+  markLoaded(el);
+
+  const preview = el.querySelector('.hot-example-preview');
+
+  if (!preview || preview.querySelector('.hot-example-error')) return;
+
+  const notice = document.createElement('p');
+
+  notice.className = 'hot-example-error';
+  notice.textContent = 'This example could not be loaded. Reload the page to try again.';
+  preview.appendChild(notice);
+}
+
+/**
+ * Loads a framework runtime that a whole group of examples depends on.
+ *
+ * These imports used to sit outside every try/catch, so a single failed chunk escaped as an
+ * unhandled rejection (Sentry HANDSONTABLE-DOCS-1FX for `import('vue')`) and left every example of
+ * that framework stuck on its loading shimmer. Returns `null` when the runtime is unavailable, in
+ * which case the group is marked as failed and skipped.
+ */
+async function loadRuntime<T>(
+  framework: string,
+  els: Element[],
+  load: () => Promise<T>
+): Promise<T | null> {
+  try {
+    return await load();
+  } catch (err) {
+    console.error(`[hot-example] ${framework} runtime failed to load:`, err);
+    reportExampleError(err, { framework, phase: 'runtime-import' });
+    els.forEach(markFailed);
+
+    return null;
+  }
 }
 
 /** Frame budget guarding each RAF wait loop (~1s at 60fps) against a never-met condition. */
@@ -196,6 +252,8 @@ async function runExamples(): Promise<void> {
         style.textContent = cssText;
         document.head.appendChild(style);
       } catch (err) {
+        // Not forwarded to Sentry: a missing stylesheet leaves the example working, and the only
+        // realistic cause is the chunk-fetch failure the reporter drops anyway.
         console.error('[hot-example] CSS failed:', src, err);
       }
     }
@@ -218,6 +276,7 @@ async function runExamples(): Promise<void> {
       renderInstances(el);
     } catch (err) {
       console.error('[hot-example] JS failed:', src, err);
+      reportExampleError(err, { framework: 'javascript', phase: 'example-init', source: src });
       markLoaded(el);
     }
   }
@@ -225,11 +284,15 @@ async function runExamples(): Promise<void> {
   // ── React JSX examples ─────────────────────────────────────────────────
   const jsxEls = [...document.querySelectorAll('[data-example-jsx]')] as HTMLElement[];
 
-  if (jsxEls.length > 0) {
-    const [{ createRoot }, { createElement }] = await Promise.all([
+  const react = jsxEls.length > 0
+    ? await loadRuntime('react', jsxEls, () => Promise.all([
       import('react-dom/client'),
       import('react'),
-    ]);
+    ]))
+    : null;
+
+  if (react) {
+    const [{ createRoot }, { createElement }] = react;
 
     for (const el of jsxEls) {
       const src = el.dataset.exampleJsx!;
@@ -260,6 +323,7 @@ async function runExamples(): Promise<void> {
         renderInstances(el);
       } catch (err) {
         console.error('[hot-example] JSX failed:', src, err);
+        reportExampleError(err, { framework: 'react', phase: 'example-init', source: src });
         markLoaded(el);
       }
     }
@@ -268,12 +332,26 @@ async function runExamples(): Promise<void> {
   // ── Vue 3 examples ────────────────────────────────────────────────────
   const vueEls = [...document.querySelectorAll('[data-example-vue]')] as HTMLElement[];
 
-  if (vueEls.length > 0) {
-    const { createApp } = await import('vue');
+  const vue = vueEls.length > 0
+    ? await loadRuntime('vue', vueEls, () => import('vue'))
+    : null;
+
+  if (vue) {
+    const { createApp } = vue;
 
     for (const el of vueEls) {
       const src = el.dataset.exampleVue!;
       const id  = el.dataset.exampleId;
+      const loader = vueModules[src] ?? vueJsModules[src];
+
+      // Same early-out as the other frameworks. Without it a src that matches neither glob - a
+      // .vue file moved out of a vue/ directory, say - would throw "loader is not a function" for
+      // every reader of that page, and the reporter has no reason to treat that as noise.
+      if (!loader) {
+        console.warn('[hot-example] No Vue module for:', src);
+        markLoaded(el);
+        continue;
+      }
 
       const container = id ? document.getElementById(id) : null;
 
@@ -295,7 +373,6 @@ async function runExamples(): Promise<void> {
           }
         }
 
-        const loader = vueModules[src] ?? vueJsModules[src];
         const mod = await loader() as { default: any };
         const mountTarget = container.querySelector('[id]') ?? container;
         const app = createApp(mod.default);
@@ -305,6 +382,7 @@ async function runExamples(): Promise<void> {
         renderInstances(el);
       } catch (err) {
         console.error('[hot-example] Vue failed:', src, err);
+        reportExampleError(err, { framework: 'vue', phase: 'example-init', source: src });
         markLoaded(el);
       }
     }
@@ -313,14 +391,20 @@ async function runExamples(): Promise<void> {
   // ── Angular examples ───────────────────────────────────────────────────
   const ngEls = [...document.querySelectorAll('[data-example-angular]')] as HTMLElement[];
 
-  if (ngEls.length > 0) {
-    await ensureZone();
+  const angularReady = ngEls.length > 0
+    ? await loadRuntime('angular', ngEls, async () => {
+      await ensureZone();
 
-    // @angular/compiler must be imported before platformBrowserDynamic.
-    // Vite tree-shakes it out of production bundles unless explicitly imported,
-    // causing "JIT compiler not available" errors for partially-compiled libraries.
-    await import('@angular/compiler');
+      // @angular/compiler must be imported before platformBrowserDynamic.
+      // Vite tree-shakes it out of production bundles unless explicitly imported,
+      // causing "JIT compiler not available" errors for partially-compiled libraries.
+      await import('@angular/compiler');
 
+      return true;
+    })
+    : null;
+
+  if (angularReady) {
     for (const el of ngEls) {
       const src     = el.dataset.exampleAngular!;
       const htmlSrc = el.dataset.exampleHtml;
@@ -356,6 +440,7 @@ async function runExamples(): Promise<void> {
         renderInstances(el);
       } catch (err) {
         console.error('[hot-example] Angular failed:', src, err);
+        reportExampleError(err, { framework: 'angular', phase: 'example-init', source: src });
         markLoaded(el);
       }
     }
@@ -363,8 +448,19 @@ async function runExamples(): Promise<void> {
 
 }
 
+/**
+ * Last-resort guard: `runExamples()` is async, so anything that escapes its inner handlers would
+ * surface as an unhandled rejection with no page context. Report it once and keep the page alive.
+ */
+function startExamples(): void {
+  runExamples().catch((err) => {
+    console.error('[hot-example] runner failed:', err);
+    reportExampleError(err, { framework: 'runner', phase: 'run-examples' });
+  });
+}
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', runExamples);
+  document.addEventListener('DOMContentLoaded', startExamples);
 } else {
-  runExamples();
+  startExamples();
 }
