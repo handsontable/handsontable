@@ -29,7 +29,6 @@ import Walkontable from './3rdparty/walkontable/src';
 import { handleMouseEvent } from './selection/mouseEventHandler';
 import { isRootInstance } from './utils/rootInstance';
 import { resolveWithInstance } from './utils/staticRegister';
-import type { HandleEdge } from './selection/handleAdjust';
 import {
   A11Y_COLCOUNT,
   A11Y_MULTISELECTABLE,
@@ -168,15 +167,6 @@ class TableView {
    * @type {{ x: number, y: number } | null}
    */
   #mouseDownLastPos: {row: number, col: number} | null = null;
-  /**
-   * The visual coordinates of the last cell the pointer entered via a `mouseover` event.
-   * Updated on every `onCellMouseOver` call regardless of the drag state. Used after a
-   * drag-select ends (in the document-level `mouseup` handler) to re-evaluate the hovered
-   * layer so handles appear immediately without requiring an additional mouse move.
-   *
-   * @type {CellCoords | null}
-   */
-  #lastCellMouseOverCoords: CellCoords | null = null;
   /**
    * Flag indicating that a touch interaction just ended. Set to `true` on
    * `touchend` and reset asynchronously via `_registerTimeout`. Used together with
@@ -425,12 +415,6 @@ class TableView {
         return;
       }
 
-      // After a drag-select ends with the pointer still inside the selection, no new
-      // `mouseover` fires, so re-evaluate the hovered layer here to reveal the handles.
-      if (this.settings.selectionHandles && this.#lastCellMouseOverCoords) {
-        this.#updateHandlesHoveredLayer(this.#lastCellMouseOverCoords);
-      }
-
       const isOutsideInputElement = isOutsideInput(rootDocument.activeElement as HTMLElement);
 
       if (isInput(rootDocument.activeElement as HTMLElement) && !isOutsideInputElement) {
@@ -551,11 +535,6 @@ class TableView {
       event.preventDefault();
     });
 
-    this.eventManager.addEventListener(rootElement, 'mouseleave', () => {
-      if (this.settings.selectionHandles) {
-        this.hot.selection.setHandlesHoveredLayer(null);
-      }
-    });
   }
 
   /**
@@ -1111,10 +1090,6 @@ class TableView {
         }
 
         this.hot.runHooks('afterOnCellMouseOver', event, visualCoords, TD);
-        // Always track the last cell under the pointer so the mouseup handler can
-        // re-evaluate the hovered layer when the pointer is still inside the selection.
-        this.#lastCellMouseOverCoords = visualCoords;
-        this.#updateHandlesHoveredLayer(visualCoords);
         this.activeWt = this._wt;
         this.#mouseDownLastPos = null;
       },
@@ -1179,10 +1154,10 @@ class TableView {
         event.preventDefault();
         this.hot.runHooks('afterOnCellCornerDblClick', event);
       },
-      onSelectionHandleMouseDown: (event: MouseEvent, edge: HandleEdge) => {
+      onSelectionHandleMouseDown: (event: MouseEvent, edge: 'top' | 'bottom' | 'start' | 'end') => {
         this.hot.runHooks('afterOnSelectionHandleMouseDown', event, edge);
       },
-      onSelectionEdgeMouseDown: (event: MouseEvent, edge: HandleEdge) => {
+      onSelectionEdgeMouseDown: (event: MouseEvent, edge: 'top' | 'bottom' | 'start' | 'end') => {
         this.hot.runHooks('afterOnSelectionEdgeMouseDown', event, edge);
       },
       beforeDraw: (force: boolean, skipRender: boolean) => this.beforeRender(force, skipRender),
@@ -2183,24 +2158,6 @@ class TableView {
    */
   isHorizontallyScrollableByWindow() {
     return this._wt.wtViewport.isHorizontallyScrollableByWindow();
-  }
-
-  /**
-   * Updates the hovered layer for the `selectionHandles` feature based on the visual coords
-   * the pointer is currently over. When the mouse button is held down (selection drag in progress)
-   * this method is a no-op so handles stay hidden during drag.
-   *
-   * @private
-   * @param {CellCoords} visualCoords The visual cell coordinates.
-   */
-  #updateHandlesHoveredLayer(visualCoords: CellCoords) {
-    if (!this.settings.selectionHandles || this.#mouseDown) {
-      return;
-    }
-
-    const layer = this.hot.selection.getLayerContaining(visualCoords);
-
-    this.hot.selection.setHandlesHoveredLayer(layer);
   }
 
   /**

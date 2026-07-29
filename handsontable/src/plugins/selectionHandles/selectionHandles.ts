@@ -2,7 +2,7 @@ import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 import { BasePlugin } from '../base';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
-import { clampEdge, type HandleEdge } from '../../selection/handleAdjust';
+import { clampEdge, type HandleEdge } from './helpers';
 
 export const PLUGIN_KEY = 'selectionHandles';
 export const PLUGIN_PRIORITY = 24;

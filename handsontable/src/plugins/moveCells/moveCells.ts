@@ -3,7 +3,7 @@ import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 import { BasePlugin } from '../base';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
-import { buildMoveMap, clampMoveTarget } from '../../selection/moveCells';
+import { buildMoveMap, clampMoveTarget } from './helpers';
 
 export const PLUGIN_KEY = 'moveCells';
 export const PLUGIN_PRIORITY = 25;
