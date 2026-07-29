@@ -19,7 +19,7 @@ describe('settings', () => {
         const src = getDataAtCell(2, 2);
 
         await selectCells([[2, 2, 3, 3]]);
-        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+        await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
         await hot().render();
 
         expect(getDataAtCell(5, 5)).toBe(src);
@@ -32,7 +32,7 @@ describe('settings', () => {
         const src = getDataAtCell(2, 2);
 
         await selectCells([[2, 2, 3, 3]]);
-        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), true);
+        await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), true);
         await hot().render();
 
         expect(getDataAtCell(2, 2)).toBe(src); // kept
@@ -45,7 +45,7 @@ describe('settings', () => {
         const dst = getDataAtCell(5, 5);
 
         await selectCells([[2, 2, 3, 3]]);
-        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+        await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
         await hot().render();
 
         expect(getDataAtCell(2, 2)).toBe(src); // unchanged
@@ -58,7 +58,7 @@ describe('settings', () => {
         handsontable({ data: createSpreadsheetData(10, 10), moveCells: true, afterMoveCells: spy });
 
         await selectCells([[2, 2, 3, 3]]);
-        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+        await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
         await hot().render();
 
         expect(spy).toHaveBeenCalledWith(jasmine.any(Object), jasmine.any(Object), false);
@@ -73,7 +73,7 @@ describe('settings', () => {
         const src = getDataAtCell(2, 2);
 
         await selectCells([[2, 2, 3, 3]]);
-        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+        await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
         await hot().render();
 
         expect(getDataAtCell(2, 2)).toBe(src); // unchanged, vetoed
@@ -85,7 +85,7 @@ describe('settings', () => {
         await render();
 
         await selectCells([[2, 2, 2, 2]]);
-        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+        await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
         await hot().render();
 
         expect(getCellMeta(5, 5).className).toBe('my-cell');
@@ -101,7 +101,7 @@ describe('settings', () => {
         const src = getDataAtCell(2, 2);
 
         await selectCells([[2, 2, 3, 3]]);
-        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+        await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
         await hot().render();
 
         expect(getDataAtCell(2, 2)).toBe(src); // unchanged: target intersects the merge → vetoed
@@ -113,7 +113,7 @@ describe('settings', () => {
         await render();
 
         await selectCells([[2, 2, 2, 2]]);
-        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), true);
+        await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), true);
         await hot().render();
 
         expect(getCellMeta(5, 5).className).toBe('my-cell');
@@ -125,7 +125,7 @@ describe('settings', () => {
 
         // Source 2x2 block at rows 2-3, cols 2-3; target top-left (2, 3) overlaps cols 3.
         await selectCells([[2, 2, 3, 3]]);
-        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(2, 3), false);
+        await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(2, 3), false);
         await hot().render();
 
         expect(getDataAtCell(2, 3)).toBe('C3');
@@ -144,7 +144,7 @@ describe('settings', () => {
         await render();
 
         await selectCells([[2, 2, 2, 3]]);
-        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(2, 3), false);
+        await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(2, 3), false);
         await hot().render();
 
         // (2,3) receives (2,2)'s meta and (2,4) receives (2,3)'s ORIGINAL meta — an in-place
@@ -160,7 +160,7 @@ describe('settings', () => {
         handsontable({ data: createSpreadsheetData(10, 10), moveCells: true, beforeMoveCells: spy });
 
         await selectCells([[2, 2, 3, 3]]);
-        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(9, 9), false);
+        await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(9, 9), false);
 
         // Validation runs before the hook, so listeners never observe a rejected move.
         expect(spy).not.toHaveBeenCalled();
@@ -177,7 +177,7 @@ describe('settings', () => {
         });
 
         await selectCells([[2, 2, 3, 3]]);
-        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+        await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
 
         expect(spy).not.toHaveBeenCalled();
       });
@@ -188,7 +188,7 @@ describe('settings', () => {
 
         await selectCells([[2, 2, 3, 3]]);
         // Target (9, 9) + 2x2 range → bottom=10, right=10 — both exceed the 10x10 grid (max index 9)
-        await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(9, 9), false);
+        await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(9, 9), false);
         await hot().render();
 
         expect(getDataAtCell(2, 2)).toBe(src); // unchanged, vetoed

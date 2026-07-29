@@ -19,7 +19,7 @@ describe('settings', () => {
       const dstBefore = getDataAtCell(5, 5);
 
       await selectCells([[2, 2, 3, 3]]);
-      await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+      await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
       await hot().render();
 
       expect(getDataAtCell(5, 5)).toBe(src);
@@ -44,7 +44,7 @@ describe('settings', () => {
       const dstBefore = getDataAtCell(5, 5);
 
       await selectCells([[2, 2, 3, 3]]);
-      await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), true); // copy
+      await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), true); // copy
       await hot().render();
 
       expect(getDataAtCell(2, 2)).toBe(src); // source kept (copy)
@@ -65,7 +65,7 @@ describe('settings', () => {
       const dstBottomRight = getDataAtCell(6, 6);
 
       await selectCells([[0, 0, 1, 1]]);
-      await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+      await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
       await hot().render();
 
       expect(getDataAtCell(5, 5)).toBe(topLeft);
@@ -97,7 +97,7 @@ describe('settings', () => {
       await render();
 
       await selectCells([[2, 2, 2, 2]]);
-      await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+      await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
       await hot().render();
 
       expect(getCellMeta(5, 5).className).toBe('my-cell'); // moved
@@ -115,7 +115,7 @@ describe('settings', () => {
       const src = getDataAtCell(2, 2);
 
       await selectCells([[2, 2, 3, 3]]);
-      await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+      await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
       await hot().render();
 
       // undo, then redo — should end up at the moved state
@@ -132,7 +132,7 @@ describe('settings', () => {
       handsontable({ data: createSpreadsheetData(10, 10), moveCells: true, undo: true });
 
       await selectCells([[2, 2, 3, 3]]);
-      await hot().moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+      await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
       await hot().render();
 
       const undoCountBefore = getPlugin('undoRedo').doneActions.length;

@@ -185,6 +185,12 @@ export class MoveCellsAction extends BaseAction {
     let pendingSnapshot: PendingSnapshot | null = null;
 
     hot.addHook('beforeMoveCells', (sourceRange: unknown, targetTopLeft: unknown, isCopy: unknown) => {
+      if (sourceRange === false) {
+        pendingSnapshot = null;
+
+        return false;
+      }
+
       // `sourceRange` and `targetTopLeft` carry the raw CellRange / CellCoords objects.
       const src = sourceRange as CellRange;
       const target = targetTopLeft as CellCoords;

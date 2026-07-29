@@ -1580,12 +1580,18 @@ export class Formulas extends BasePlugin {
    * Returns `false` to veto the whole operation when HyperFormula reports the move
    * is not possible (e.g. the source or target contains an array formula).
    *
-   * @param {CellRange} sourceRange The visual source range.
+   * @param {CellRange|boolean} sourceRange The visual source range, or `false` after an earlier veto.
    * @param {CellCoords} targetTopLeft The visual top-left of the destination.
    * @param {boolean} isCopy `true` when copying (not moving) cells.
    * @returns {boolean|undefined} `false` to cancel the operation; `undefined` otherwise.
    */
-  #onBeforeMoveCells = (sourceRange: CellRange, targetTopLeft: CellCoords, isCopy: boolean) => {
+  #onBeforeMoveCells = (sourceRange: CellRange | false, targetTopLeft: CellCoords, isCopy: boolean) => {
+    if (sourceRange === false) {
+      this.#pendingMoveCells = null;
+
+      return false;
+    }
+
     if (!this.engine || this.sheetId === null) {
       return;
     }

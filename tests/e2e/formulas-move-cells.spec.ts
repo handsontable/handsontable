@@ -122,6 +122,17 @@ test.describe('Formulas: moveCells integration', () => {
     await grid.expectCell(0, 0, '1');
   });
 
+  test('propagates a preceding veto without crashing Formulas or UndoRedo listeners', async () => {
+    await grid.initGrid([[1, null], [null, null]]);
+    await grid.page.evaluate(() => {
+      window.hot.addHook('beforeMoveCells', () => false, -1);
+    });
+
+    await expect(grid.moveRange([0, 0, 0, 0], [1, 0])).resolves.toBe(false);
+    await grid.expectCell(0, 0, '1');
+    expect(await grid.cellValue(1, 0)).toBe(null);
+  });
+
   test('keeps moved values when the target range overlaps the source range', async () => {
     // Source 2x2 value block at A1:B2, target top-left B1 — column B overlaps.
     // Regression: the post-move HOT-data sync must clear the source BEFORE writing
