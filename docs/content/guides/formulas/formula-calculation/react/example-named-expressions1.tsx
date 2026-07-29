@@ -10,6 +10,7 @@ registerAllModules();
 const ExampleComponent = () => {
   const hotNamedExpressionsRef = useRef<HotTableRef>(null);
   const [namedExpressionValue, setNamedExpressionValue] = useState('=10 * Sheet1!$A$2');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const data = [
     ['Travel ID', 'Destination', 'Base price', 'Price with extra cost'],
@@ -26,8 +27,16 @@ const ExampleComponent = () => {
     const hotNamedExpressions = hotNamedExpressionsRef.current?.hotInstance;
     const formulasPlugin = hotNamedExpressions?.getPlugin('formulas');
 
-    formulasPlugin?.engine?.changeNamedExpression('ADDITIONAL_COST', namedExpressionValue);
+    try {
+      formulasPlugin?.engine?.changeNamedExpression('ADDITIONAL_COST', namedExpressionValue);
+    } catch (error) {
+      // HyperFormula rejects some expressions, for example relative references such as `Sheet1!A2`.
+      setErrorMessage(error instanceof Error ? error.message : String(error));
 
+      return;
+    }
+
+    setErrorMessage('');
     hotNamedExpressions?.render();
   };
 
@@ -45,6 +54,7 @@ const ExampleComponent = () => {
             Calculate the price
           </button>
         </div>
+        <output className={errorMessage ? 'is-error' : undefined}>{errorMessage}</output>
       </div>
       <HotTable
         ref={hotNamedExpressionsRef}
