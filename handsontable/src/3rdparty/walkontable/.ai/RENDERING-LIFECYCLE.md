@@ -215,6 +215,16 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
 - Master: `alignOverlaysWithTrimmingContainer()` (`557`; overridden in `MasterTable`).
 - Master: fire the `beforeDraw` setting (`560`) → the **public `beforeViewRender` hook**. It can set
   `skipRender`, which gates Phase E (`performRedraw`, `561`).
+- **When that gate cancels the render, the master restores the pre-draw rendered state**
+  (`restoreRenderedState` in `table/drawCycle.ts`): `wtViewport.rowsRenderCalculator` /
+  `columnsRenderCalculator` and `table.rowFilter` / `columnFilter` all go back to the values they held
+  before this draw. Rationale: `Table#getCell` *gates* on the rendered bands but *resolves* the element
+  through the filters + `TBODY.childNodes`, so a band advanced past a DOM that was never re-rendered
+  makes the two disagree and `getCell` throws `TR was expected to be rendered but is not` — including
+  from the engine's own selection render in Phase G of the very same draw. A skipped render leaves the
+  screen unchanged, so the rendered state stays unchanged too, exactly like a fast draw. The
+  fully/partially-**visible** calculators are deliberately NOT restored: they describe the scroll
+  position, not the DOM contents.
 
 ### Phase E — Full path: cell + header render (`table.ts:564–585`, only if `performRedraw`)
 - `setHeaderContentRenderers(...)` (`565`); bottom / bottom-corner clones do not render column headers
@@ -282,7 +292,8 @@ Key facts to keep:
 - `beforeViewRender` / `afterViewRender` fire only on a full draw, only on the master, and
   `afterViewRender` fires mid-draw (before fixed-position finalization), not last.
 - `beforeViewRender` receives the `skipRender` object; `skipRender.skipRender = true` cancels the cell
-  render for that draw.
+  render for that draw — and the master then rolls the rendered bands + render filters back to their
+  pre-draw values, so `getCell` keeps describing the DOM that is actually on screen (see Phase D).
 - **The render-size probe reconcile (§7) must NOT fire these hooks** — it runs a hook-free WoT-internal
   reconcile, never `hot.render()`, so hook-count expectations hold.
 
