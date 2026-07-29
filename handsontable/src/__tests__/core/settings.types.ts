@@ -958,5 +958,6 @@ hot.updateSettings({ afterOnSelectionEdgeMouseDown(event, edge) {} });
 hot.updateSettings({ beforeMoveCells(sourceRange, targetTopLeft, isCopy) { return true; } });
 hot.updateSettings({ afterMoveCells(sourceRange, targetRange, isCopy) {} });
 
-// Regression: moveCellRange must be callable on the hot instance with correct arg/return types.
-const moveResult: boolean = hot.moveCellRange(hot.getSelectedRangeLast()!, hot._createCellCoords(5, 5), false);
+// Regression: MoveCells exposes moveCellRange with correct arg/return types.
+const moveResult: boolean = hot.getPlugin('moveCells')
+  .moveCellRange(hot.getSelectedRangeLast()!, hot._createCellCoords(5, 5), false);

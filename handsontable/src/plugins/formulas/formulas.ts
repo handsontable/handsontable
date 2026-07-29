@@ -1643,7 +1643,7 @@ export class Formulas extends BasePlugin {
 
   /**
    * Executes the HyperFormula move or copy operation prepared in `beforeMoveCells`. Called by
-   * the core's `moveCellRange` BEFORE any grid mutation (cell meta, selection, undo history),
+   * the MoveCells plugin BEFORE any grid mutation (cell meta, selection, undo history),
    * so a failed engine operation aborts the whole `moveCells` operation atomically instead of
    * leaving the grid state recording a move whose data write never happened.
    *
@@ -1653,8 +1653,8 @@ export class Formulas extends BasePlugin {
    * `engine.copy` reads cell values and must NOT be wrapped in `engine.batch` because batch
    * suspends evaluation, causing `copy` to throw `EvaluationSuspendedError`.
    *
-   * When an undo/redo operation triggered the move (e.g. `UndoRedo.redo` calls `moveCellRange`
-   * to re-fire hooks), the engine has already been advanced by `engine.redo()`/`engine.undo()`
+   * When an undo/redo operation triggered the move, the engine has already been advanced by
+   * `engine.redo()`/`engine.undo()`
    * in the `beforeRedo`/`beforeUndo` hook, so the engine step is skipped and only the HOT-data
    * sync (in the `afterMoveCells` listener) runs.
    *

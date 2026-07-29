@@ -299,6 +299,6 @@ export class MoveCellsAction extends BaseAction {
       redoneCallback();
     });
 
-    hot.moveCellRange(sourceRange, targetTopLeft, this.isCopy);
+    hot.getPlugin('moveCells').moveCellRange(sourceRange, targetTopLeft, this.isCopy);
   }
 }

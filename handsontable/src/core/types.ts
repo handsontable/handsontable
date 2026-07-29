@@ -144,7 +144,6 @@ export interface HotInstance {
     row: number, column: number, input: unknown[][], endRow?: number | null, endCol?: number | null,
     source?: string, method?: string
   ): object | false | undefined;
-  moveCellRange(sourceRange: CellRange, targetTopLeft: CellCoords, isCopy?: boolean): boolean;
 
   // Cell meta
   getCellMeta<M extends object = CellProperties>(row: number, column: number, options?: object): M;
