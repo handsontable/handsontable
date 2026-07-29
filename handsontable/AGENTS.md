@@ -18,6 +18,7 @@ This is the core data grid package. **TypeScript** - source files in `src/` are 
 - Method ordering: public methods first, then private listeners
 - In text and comments, always write `Handsontable`, never `HOT` (a `hot` variable holding an instance is fine)
 - Never call `String.prototype.toLocaleLowerCase`/`toLocaleUpperCase` directly — use `localeLowerCase()` from `helpers/string` (faster, locale-correct, crash-safe). Enforced by `no-restricted-syntax`. See `.ai/CONVENTIONS.md`.
+- Never call a JavaScript method newer than `../browser-targets.js` (Chrome >= 110, Firefox >= 110, Safari >= 14.1). swc lowers syntax only and adds no core-js polyfills, so such a call throws `X is not a function` on a supported browser. Banned by `no-restricted-syntax`: `toSorted`/`toSpliced`/`toReversed`/`with` → `[...arr].sort()` / `[...arr].reverse()`; `at` → `arr[0]` / `arr[arr.length - 1]`; `findLast`/`findLastIndex` → reverse `for` loop; `Object.hasOwn` → `Object.prototype.hasOwnProperty.call()`; `structuredClone` → `deepClone()` from `helpers/object`. Verify any new method's floor against `core-js-compat`'s `data.json` before using it (`structuredClone` has no entry there — its floor comes from `compat/compat`).
 
 ## Plugin Lifecycle
 
