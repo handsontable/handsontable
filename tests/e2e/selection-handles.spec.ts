@@ -90,4 +90,13 @@ test.describe('selectionHandles adjust handles', () => {
     await expect(grid.handle('end')).toBeVisible();
     await expect(grid.handle('top')).toBeHidden();
   });
+
+  test('hides end and bottom handles on top and start frozen-pane seams', async () => {
+    await grid.initGrid({ fixedRowsTop: 2, fixedColumnsStart: 2 });
+    await grid.selectCells(0, 0, 1, 1);
+    await grid.hoverFrozenCornerCell(0, 0);
+
+    await expect(grid.handle('bottom')).toBeHidden();
+    await expect(grid.handle('end')).toBeHidden();
+  });
 });

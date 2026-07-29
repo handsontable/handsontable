@@ -37,12 +37,12 @@ export class SelectionFeaturesPage {
    */
   async initGrid(overrides: Record<string, unknown> = {}): Promise<void> {
     await this.page.evaluate(settings => window.initSelectionGrid(settings), overrides);
-    await expect(this.cell(0, 0)).toBeVisible();
+    await expect(this.grid.locator('.ht-wrapper')).toBeVisible();
   }
 
   /** A single data cell, by visual row/column, via its stable test id. */
   cell(row: number, col: number): Locator {
-    return this.page.getByTestId(`cell-${row}-${col}`);
+    return this.page.locator('.ht_master').getByTestId(`cell-${row}-${col}`);
   }
 
   /** Select a cell range through the instance API. */
@@ -58,6 +58,11 @@ export class SelectionFeaturesPage {
   /** Hover a cell with the real pointer (drives the handle-visibility logic). */
   async hoverCell(row: number, col: number): Promise<void> {
     await this.cell(row, col).hover();
+  }
+
+  /** Hover a cell rendered by the top-left frozen overlay. */
+  async hoverFrozenCornerCell(row: number, col: number): Promise<void> {
+    await this.page.locator('.ht_clone_top_left_corner').getByTestId(`cell-${row}-${col}`).hover();
   }
 
   /**

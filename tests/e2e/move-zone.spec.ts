@@ -30,14 +30,16 @@ test.describe('moveCells edge move bands', () => {
   });
 
   test('starts a move drag from each edge band and cancels on Escape', async ({ page }) => {
-    await grid.selectCells(1, 1, 3, 3);
-
-    const bands = grid.visibleMoveZones();
-
-    await expect(bands).toHaveCount(4);
-
     for (let index = 0; index < 4; index++) {
-      const box = await bands.nth(index).boundingBox();
+      await grid.initGrid();
+      await grid.selectCells(1, 1, 3, 3);
+
+      const bands = grid.visibleMoveZones();
+
+      await expect(bands).toHaveCount(4);
+
+      const band = bands.nth(index);
+      const box = await band.boundingBox();
 
       expect(box).not.toBeNull();
 
@@ -53,6 +55,33 @@ test.describe('moveCells edge move bands', () => {
 
       await expect(grid.movingRoot()).toHaveCount(0);
     }
+  });
+
+  test('hides source move affordances while a drag preview is active', async ({ page }) => {
+    await grid.selectCells(1, 1, 3, 3);
+    await grid.hoverCell(2, 2);
+
+    await expect(grid.visibleHandles()).toHaveCount(4);
+    await expect(grid.visibleMoveZones()).toHaveCount(4);
+
+    const box = await grid.visibleMoveZones().first().boundingBox();
+
+    expect(box).not.toBeNull();
+
+    await page.mouse.move(box!.x + 10, box!.y + (box!.height / 2));
+    await page.mouse.down();
+
+    await expect(grid.movingRoot()).toHaveCount(1);
+    await expect(grid.visibleHandles()).toHaveCount(0);
+    await expect(grid.visibleMoveZones()).toHaveCount(0);
+
+    await page.keyboard.press('Escape');
+    await page.mouse.up();
+
+    await expect(grid.movingRoot()).toHaveCount(0);
+    await grid.hoverCell(2, 2);
+    await expect(grid.visibleHandles()).toHaveCount(4);
+    await expect(grid.visibleMoveZones()).toHaveCount(4);
   });
 
   test('shows no move bands when moveCells is disabled', async () => {

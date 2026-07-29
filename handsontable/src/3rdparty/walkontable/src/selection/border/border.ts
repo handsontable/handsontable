@@ -667,6 +667,26 @@ class Border {
   }
 
   /**
+   * Tells whether a selection's bottom or end edge lands immediately before a top or start frozen pane.
+   *
+   * @private
+   * @param {'row'|'column'} axis The freeze axis to test.
+   * @param {number} toIndex The selection's bottom (`row`) or inline-end (`column`) corner index.
+   * @returns {boolean}
+   */
+  isFrozenStartBoundaryOppositeEdge(axis: 'row' | 'column', toIndex: number): boolean {
+    if (axis === 'row') {
+      const fixedRowsTop = this.wot.getSetting('fixedRowsTop') as number;
+
+      return fixedRowsTop > 0 && toIndex === fixedRowsTop - 1;
+    }
+
+    const fixedColumnsStart = this.wot.getSetting('fixedColumnsStart') as number;
+
+    return fixedColumnsStart > 0 && toIndex === fixedColumnsStart - 1;
+  }
+
+  /**
    * Tells whether the selection's boundary corner (the cell flush with a frozen-pane line) has
    * scrolled behind the frozen pane in the master viewport. The frozen overlay can't detect this
    * itself (its rendered range is sticky), so we consult the scroll-aware master and stop drawing the
@@ -1456,8 +1476,12 @@ class Border {
       if (this.isFrozenBoundaryEdge('column', corners[1])) {
         this.adjustHandles.styles.start.display = 'none';
       }
-      if (this.isFrozenBottomBoundaryEdge(corners[2])) {
+      if (this.isFrozenStartBoundaryOppositeEdge('row', corners[2]) ||
+          this.isFrozenBottomBoundaryEdge(corners[2])) {
         this.adjustHandles.styles.bottom.display = 'none';
+      }
+      if (this.isFrozenStartBoundaryOppositeEdge('column', corners[3])) {
+        this.adjustHandles.styles.end.display = 'none';
       }
     } else if (this.adjustHandles) {
       this.adjustHandles.styles.top.display = 'none';

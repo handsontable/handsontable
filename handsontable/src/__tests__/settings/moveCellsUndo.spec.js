@@ -128,6 +128,33 @@ describe('settings', () => {
       expect(getDataAtCell(2, 2)).toBe(null);
     });
 
+    it('keeps the move available for redo when a redo is vetoed', async() => {
+      handsontable({ data: createSpreadsheetData(10, 10), moveCells: true, undo: true });
+      const src = getDataAtCell(2, 2);
+
+      await selectCells([[2, 2, 3, 3]]);
+      await getPlugin('moveCells').moveCellRange(hot().getSelectedRangeLast(), hot()._createCellCoords(5, 5), false);
+      await hot().render();
+      getPlugin('undoRedo').undo();
+      await hot().render();
+
+      addHookOnce('beforeMoveCells', () => false);
+      getPlugin('undoRedo').redo();
+      await hot().render();
+
+      expect(getPlugin('undoRedo').isRedoAvailable()).toBe(true);
+      expect(getPlugin('undoRedo').isUndoAvailable()).toBe(false);
+      expect(getDataAtCell(2, 2)).toBe(src);
+      expect(getDataAtCell(5, 5)).not.toBe(src);
+
+      getPlugin('undoRedo').redo();
+      await hot().render();
+
+      expect(getPlugin('undoRedo').doneActions.length).toBe(1);
+      expect(getDataAtCell(2, 2)).toBe(null);
+      expect(getDataAtCell(5, 5)).toBe(src);
+    });
+
     it('does not register a new undo action when moveCellRange is called during redo', async() => {
       handsontable({ data: createSpreadsheetData(10, 10), moveCells: true, undo: true });
 

@@ -310,9 +310,18 @@ export class UndoRedo extends BasePlugin {
 
     this.hot.runHooks('beforeUndoStackChange', doneActionsCopy);
 
-    (action as { redo: (hot: HotInstance, callback: () => void) => void }).redo(this.hot, () => {
+    const redo = action as {
+      redo: (hot: HotInstance, callback: (wasRedone?: boolean) => void) => void
+    };
+
+    redo.redo(this.hot, (wasRedone = true) => {
       this.ignoreNewActions = false;
-      this.doneActions.push(action);
+
+      if (wasRedone) {
+        this.doneActions.push(action);
+      } else {
+        this.undoneActions.push(action);
+      }
     });
 
     this.hot.runHooks('afterUndoStackChange', doneActionsCopy, this.doneActions.slice());

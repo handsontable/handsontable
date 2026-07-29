@@ -154,6 +154,13 @@
       .wtBorder.current {
         display: none !important;
       }
+
+      // Keep affordances in the document flow while making them invisible. Removing the move zone
+      // with `display: none` during its mousedown can interrupt the active pointer interaction.
+      .wtSelectionHandle,
+      .wtMoveZone {
+        visibility: hidden !important;
+      }
     }
 
     // Borders
