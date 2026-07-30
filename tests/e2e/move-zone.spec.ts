@@ -168,6 +168,21 @@ test.describe('moveCells edge move bands', () => {
     await grid.releasePointer();
   });
 
+  test('keeps the grab offset inside a single-cell selection', async () => {
+    await grid.selectCells(1, 1, 1, 1);
+    await grid.dragOuterMoveZoneToCell('bottom', 4, 4);
+
+    expect(await grid.sourceCellValue(1, 1)).toBe(null);
+    expect(await grid.sourceCellValue(4, 4)).toBe('R2C2');
+
+    await grid.goto();
+    await grid.selectCells(1, 1, 1, 1);
+    await grid.dragOuterMoveZoneToCell('end', 4, 4);
+
+    expect(await grid.sourceCellValue(1, 1)).toBe(null);
+    expect(await grid.sourceCellValue(4, 4)).toBe('R2C2');
+  });
+
   test('shows no move bands when moveCells is disabled', async () => {
     await grid.initGrid({ moveCells: false });
     await grid.selectCells(1, 1, 3, 3);

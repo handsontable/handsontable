@@ -107,6 +107,14 @@ export class SelectionHandles extends BasePlugin {
   }
 
   /**
+   * Destroys the plugin and clears an active resize interaction.
+   */
+  destroy(): void {
+    this.#endDrag();
+    super.destroy();
+  }
+
+  /**
    * Records the topmost range under the pointer.
    */
   #onCellMouseOver = (_event: MouseEvent, coords: CellCoords): void => {

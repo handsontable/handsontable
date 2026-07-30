@@ -115,4 +115,21 @@ test.describe('selectionHandles adjust handles', () => {
 
     await grid.releasePointer();
   });
+
+  test('cleans up an active handle drag when the grid is destroyed', async ({ page }) => {
+    await grid.selectCells(1, 1, 3, 3);
+    await grid.hoverCell(2, 2);
+    await expect(grid.handle('bottom')).toBeVisible();
+
+    await grid.pressBottomHandle();
+
+    await expect(grid.resizingRoot()).toHaveCount(1);
+    await expect(page.locator('body')).toHaveCSS('cursor', 'ns-resize');
+
+    await grid.destroyGrid();
+
+    await expect(grid.resizingRoot()).toHaveCount(0);
+    await expect(page.locator('body')).toHaveCSS('cursor', 'auto');
+    await grid.releasePointer();
+  });
 });

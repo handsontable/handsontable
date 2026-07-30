@@ -146,6 +146,47 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Drag the outer half of a move zone to the center of a target cell.
+   */
+  async dragOuterMoveZoneToCell(edge: 'bottom' | 'end', row: number, col: number): Promise<void> {
+    const isBottomEdge = edge === 'bottom';
+    const moveZoneBox = await this.visibleMoveZones().nth(isBottomEdge ? 1 : 3).boundingBox();
+    const targetBox = await this.cell(row, col).boundingBox();
+
+    if (!moveZoneBox || !targetBox) {
+      throw new Error('The move zone or target cell is not rendered.');
+    }
+
+    await this.page.mouse.move(
+      isBottomEdge ? moveZoneBox.x + (moveZoneBox.width / 2) : moveZoneBox.x + moveZoneBox.width - 1,
+      isBottomEdge ? moveZoneBox.y + moveZoneBox.height - 1 : moveZoneBox.y + (moveZoneBox.height / 2),
+    );
+    await this.page.mouse.down();
+    await this.page.mouse.move(
+      targetBox.x + (targetBox.width / 2),
+      targetBox.y + (targetBox.height / 2),
+    );
+    await this.page.mouse.up();
+  }
+
+  /**
+   * Press the bottom selection handle without releasing the pointer.
+   */
+  async pressBottomHandle(): Promise<void> {
+    const handleBox = await this.handle('bottom').boundingBox();
+
+    if (!handleBox) {
+      throw new Error('The bottom selection handle is not rendered.');
+    }
+
+    await this.page.mouse.move(
+      handleBox.x + (handleBox.width / 2),
+      handleBox.y + (handleBox.height / 2),
+    );
+    await this.page.mouse.down();
+  }
+
+  /**
    * Release the active pointer drag.
    */
   async releasePointer(): Promise<void> {
@@ -253,6 +294,13 @@ export class SelectionFeaturesPage {
    */
   movingRoot(): Locator {
     return this.page.locator('.handsontable.ht__moving');
+  }
+
+  /**
+   * The grid root carrying an active selection-resize class.
+   */
+  resizingRoot(): Locator {
+    return this.page.locator('[class*="ht__resizing-selection--"]');
   }
 
   /** The document-level move preview ghost. */

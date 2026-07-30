@@ -260,8 +260,8 @@ export class MoveCells extends BasePlugin {
       fromCol,
       toRow,
       toCol,
-      grabRowOffset: Math.max(0, (pointer.row ?? fromRow) - fromRow),
-      grabColOffset: Math.max(0, (pointer.col ?? fromCol) - fromCol),
+      grabRowOffset: Math.min(toRow - fromRow, Math.max(0, (pointer.row ?? fromRow) - fromRow)),
+      grabColOffset: Math.min(toCol - fromCol, Math.max(0, (pointer.col ?? fromCol) - fromCol)),
     };
     this.#pointerPosition = { clientX: event.clientX, clientY: event.clientY };
     this.#bodyCursor = this.hot.rootDocument.body.style.cursor;
