@@ -1,5 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
-import type {} from './windowTypes';
+import type { CellValue } from './windowTypes';
 
 /**
  * Page Object for the selection features fixture
@@ -40,6 +40,19 @@ export class SelectionFeaturesPage {
     await expect(this.grid.locator('.ht-wrapper')).toBeVisible();
   }
 
+  /**
+   * Rebuild the grid with reordered indexes and a value getter that distinguishes displayed
+   * and source values.
+   */
+  async initGridWithValueGetter(): Promise<void> {
+    await this.page.evaluate(() => window.initSelectionGrid({
+      valueGetter: value => `Display: ${value}`,
+      manualRowMove: [1, 0, 2, 3, 4, 5, 6, 7, 8, 9],
+      manualColumnMove: [1, 0, 2, 3, 4, 5, 6, 7, 8, 9],
+    }));
+    await expect(this.grid.locator('.ht-wrapper')).toBeVisible();
+  }
+
   /** A single data cell, by visual row/column, via its stable test id. */
   cell(row: number, col: number): Locator {
     return this.page.locator('.ht_master').getByTestId(`cell-${row}-${col}`);
@@ -58,6 +71,46 @@ export class SelectionFeaturesPage {
   /** Destroy the grid instance. */
   async destroyGrid(): Promise<void> {
     await this.page.evaluate(() => window.hot.destroy());
+  }
+
+  /**
+   * Move a selected range through the MoveCells plugin API.
+   */
+  async moveRange(
+    [fromRow, fromCol, toRow, toCol]: [number, number, number, number],
+    [targetRow, targetCol]: [number, number],
+  ): Promise<boolean> {
+    return this.page.evaluate(({ from, target }) => {
+      const hot = window.hot;
+
+      hot.selectCells([from]);
+
+      return hot.getPlugin('moveCells').moveCellRange(
+        hot.getSelectedRangeLast(),
+        hot._createCellCoords(target[0], target[1]),
+      );
+    }, { from: [fromRow, fromCol, toRow, toCol], target: [targetRow, targetCol] });
+  }
+
+  /**
+   * Read a raw source value without applying valueGetter.
+   */
+  async sourceCellValue(row: number, col: number): Promise<CellValue> {
+    return this.page.evaluate(([r, c]) => window.hot.getSourceDataAtCell(r, c), [row, col]);
+  }
+
+  /**
+   * Undo the last action.
+   */
+  async undo(): Promise<void> {
+    await this.page.evaluate(() => window.hot.getPlugin('undoRedo').undo());
+  }
+
+  /**
+   * Redo the last undone action.
+   */
+  async redo(): Promise<void> {
+    await this.page.evaluate(() => window.hot.getPlugin('undoRedo').redo());
   }
 
   /** Hover a cell with the real pointer (drives the handle-visibility logic). */

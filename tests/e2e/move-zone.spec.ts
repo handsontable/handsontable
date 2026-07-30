@@ -104,6 +104,28 @@ test.describe('moveCells edge move bands', () => {
     await page.mouse.up();
   });
 
+  test('moves visual source values without persisting valueGetter output', async () => {
+    await grid.initGridWithValueGetter();
+
+    await expect(grid.cell(0, 0)).toHaveText('Display: R2C2');
+    await expect(grid.moveRange([0, 0, 0, 0], [2, 2])).resolves.toBe(true);
+
+    expect(await grid.sourceCellValue(1, 0)).toBe(null);
+    expect(await grid.sourceCellValue(2, 2)).toBe('R2C2');
+    await expect(grid.cell(2, 2)).toHaveText('Display: R2C2');
+
+    await grid.undo();
+
+    expect(await grid.sourceCellValue(1, 0)).toBe('R2C2');
+    expect(await grid.sourceCellValue(2, 2)).toBe('R3C3');
+
+    await grid.redo();
+
+    expect(await grid.sourceCellValue(1, 0)).toBe(null);
+    expect(await grid.sourceCellValue(2, 2)).toBe('R2C2');
+    await expect(grid.cell(2, 2)).toHaveText('Display: R2C2');
+  });
+
   test('shows no move bands when moveCells is disabled', async () => {
     await grid.initGrid({ moveCells: false });
     await grid.selectCells(1, 1, 3, 3);

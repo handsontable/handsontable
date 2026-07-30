@@ -56,11 +56,16 @@ function snapshotRegion(
   toRow: number,
   toCol: number,
 ): RegionSnapshot {
-  const data = hot.getSourceDataArray(fromRow, fromCol, toRow, toCol);
+  const data: unknown[][] = [];
   const meta: Array<Record<string, unknown>> = [];
 
   for (let r = fromRow; r <= toRow; r++) {
+    const physicalRow = hot.toPhysicalRow(r);
+    const rowData: unknown[] = [];
+
     for (let c = fromCol; c <= toCol; c++) {
+      rowData.push(hot.getSourceDataAtCell(physicalRow, c));
+
       const cellMeta = hot.getCellMeta(r, c);
       const snapshot: Record<string, unknown> = {};
 
@@ -72,6 +77,8 @@ function snapshotRegion(
 
       meta.push(snapshot);
     }
+
+    data.push(rowData);
   }
 
   return {

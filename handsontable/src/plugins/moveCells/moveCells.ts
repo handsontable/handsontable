@@ -159,7 +159,7 @@ export class MoveCells extends BasePlugin {
       return false;
     }
 
-    const values = this.hot.getData(fromRow, fromCol, toRow, toCol);
+    const values = this.#getSourceValues(fromRow, fromCol, toRow, toCol);
 
     this.hot.batch(() => {
       const moveMap = buildMoveMap({ fromRow, fromCol, toRow, toCol, targetRow, targetCol });
@@ -197,6 +197,32 @@ export class MoveCells extends BasePlugin {
     this.hot.runHooks('afterMoveCells', sourceRange, targetRange, isCopy);
 
     return true;
+  }
+
+  /**
+   * Reads untransformed source values in the range's current visual order.
+   *
+   * @param {number} fromRow The visual top row.
+   * @param {number} fromCol The visual start column.
+   * @param {number} toRow The visual bottom row.
+   * @param {number} toCol The visual end column.
+   * @returns {Array[]}
+   */
+  #getSourceValues(fromRow: number, fromCol: number, toRow: number, toCol: number): unknown[][] {
+    const values: unknown[][] = [];
+
+    for (let row = fromRow; row <= toRow; row++) {
+      const physicalRow = this.hot.toPhysicalRow(row);
+      const rowValues: unknown[] = [];
+
+      for (let col = fromCol; col <= toCol; col++) {
+        rowValues.push(this.hot.getSourceDataAtCell(physicalRow, col));
+      }
+
+      values.push(rowValues);
+    }
+
+    return values;
   }
 
   /**
