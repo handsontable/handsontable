@@ -116,6 +116,32 @@ test.describe('selectionHandles adjust handles', () => {
     await grid.releasePointer();
   });
 
+  test('preserves fixed edges when resizing reverse-direction selections', async () => {
+    const selections = [
+      [1, 1, 3, 3],
+      [1, 3, 3, 1],
+      [3, 1, 1, 3],
+      [3, 3, 1, 1],
+    ];
+    const resizeCases = [
+      { edge: 'top', row: 0, col: 2, expected: { top: 0, start: 1, bottom: 3, end: 3 } },
+      { edge: 'bottom', row: 5, col: 2, expected: { top: 1, start: 1, bottom: 5, end: 3 } },
+      { edge: 'start', row: 2, col: 0, expected: { top: 1, start: 0, bottom: 3, end: 3 } },
+      { edge: 'end', row: 2, col: 5, expected: { top: 1, start: 1, bottom: 3, end: 5 } },
+    ] as const;
+
+    for (const selection of selections) {
+      for (const { edge, row, col, expected } of resizeCases) {
+        await grid.initGrid();
+        await grid.selectCells(selection[0], selection[1], selection[2], selection[3]);
+        await grid.hoverCell(2, 2);
+        await grid.dragHandleToCell(edge, row, col);
+
+        expect(await grid.selectedBounds()).toEqual(expected);
+      }
+    }
+  });
+
   test('cleans up an active handle drag when the grid is destroyed', async ({ page }) => {
     await grid.selectCells(1, 1, 3, 3);
     await grid.hoverCell(2, 2);

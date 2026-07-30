@@ -11,6 +11,7 @@
 export type CellValue = string | number | null;
 
 interface FixtureCellRange {
+  getTopStartCorner(): { row: number | null, col: number | null };
   getBottomEndCorner(): { row: number | null, col: number | null };
 }
 
@@ -30,6 +31,7 @@ export interface FixtureHotInstance {
   getFirstFullyVisibleRow(): number;
   getLastFullyVisibleRow(): number;
   getLastRenderedVisibleRow(): number;
+  scrollViewportTo(options: { row?: number, col?: number, verticalSnap?: string }): boolean;
   selectCells(ranges: number[][]): boolean;
   deselectCell(): void;
   getSelectedRangeLast(): FixtureCellRange;

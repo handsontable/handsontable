@@ -146,6 +146,22 @@ test.describe('moveCells edge move bands', () => {
     await expect.poll(() => grid.selectedBottomRow()).toBeGreaterThan(initiallyVisibleBottomRow);
   });
 
+  test('updates a multi-row ghost when its target extends beyond the viewport', async () => {
+    await grid.installClock();
+    await grid.initLongAutoScrollGrid();
+    await grid.selectCells(1, 1, 20, 2);
+    await grid.scrollRowToBottom(20);
+
+    await grid.dragBottomMoveZoneBelowViewport();
+    await grid.advanceClock(100);
+
+    expect(await grid.firstFullyVisibleRow()).toBeGreaterThan(0);
+    await expect(grid.moveGhost()).toBeVisible();
+
+    await grid.cancelPointerDrag();
+    await grid.releasePointer();
+  });
+
   test('stops auto-scroll when a move drag is canceled', async () => {
     await grid.installClock();
     await grid.initLongAutoScrollGrid();

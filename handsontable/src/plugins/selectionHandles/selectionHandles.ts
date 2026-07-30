@@ -228,6 +228,7 @@ export class SelectionHandles extends BasePlugin {
     const col = Math.min(Math.max(focusCol, Math.min(anchor.col!, end.col!)), Math.max(anchor.col!, end.col!));
 
     range.setFrom(anchor);
+    range.setTo(anchor);
     range.setHighlight(this.hot._createCellCoords(row, col));
     this.hot.selection.setRangeEnd(end, layer);
   }

@@ -187,6 +187,29 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Drag a selection handle to the center of a rendered cell.
+   */
+  async dragHandleToCell(edge: 'top' | 'bottom' | 'start' | 'end', row: number, col: number): Promise<void> {
+    const handleBox = await this.handle(edge).boundingBox();
+    const targetBox = await this.cell(row, col).boundingBox();
+
+    if (!handleBox || !targetBox) {
+      throw new Error('The selection handle or target cell is not rendered.');
+    }
+
+    await this.page.mouse.move(
+      handleBox.x + (handleBox.width / 2),
+      handleBox.y + (handleBox.height / 2),
+    );
+    await this.page.mouse.down();
+    await this.page.mouse.move(
+      targetBox.x + (targetBox.width / 2),
+      targetBox.y + (targetBox.height / 2),
+    );
+    await this.page.mouse.up();
+  }
+
+  /**
    * Release the active pointer drag.
    */
   async releasePointer(): Promise<void> {
@@ -229,10 +252,39 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Scroll the target row to the bottom of the viewport.
+   */
+  async scrollRowToBottom(row: number): Promise<void> {
+    await this.page.evaluate(targetRow => window.hot.scrollViewportTo({
+      row: targetRow,
+      verticalSnap: 'bottom',
+    }), row);
+    await expect(this.cell(row, 0)).toBeVisible();
+  }
+
+  /**
    * Read the selected range's bottom visual row.
    */
   async selectedBottomRow(): Promise<number> {
     return this.page.evaluate(() => window.hot.getSelectedRangeLast().getBottomEndCorner().row ?? -1);
+  }
+
+  /**
+   * Read the normalized bounds of the latest selected range.
+   */
+  async selectedBounds(): Promise<{ top: number, start: number, bottom: number, end: number }> {
+    return this.page.evaluate(() => {
+      const range = window.hot.getSelectedRangeLast();
+      const topStart = range.getTopStartCorner();
+      const bottomEnd = range.getBottomEndCorner();
+
+      return {
+        top: topStart.row ?? -1,
+        start: topStart.col ?? -1,
+        bottom: bottomEnd.row ?? -1,
+        end: bottomEnd.col ?? -1,
+      };
+    });
   }
 
   /**

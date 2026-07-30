@@ -402,13 +402,44 @@ export class MoveCells extends BasePlugin {
   }
 
   /**
-   * Positions the drag preview over a visual range.
+   * Positions the drag preview over the rendered portion of a visual range.
    */
   #positionGhost(fromRow: number, fromCol: number, toRow: number, toCol: number): void {
-    const first = this.hot.getCell(fromRow, fromCol, true);
-    const last = this.hot.getCell(toRow, toCol, true);
+    if (!this.#ghost) {
+      return;
+    }
 
-    if (!this.#ghost || !first || !last) {
+    const firstRow = this.hot.rowIndexMapper.getNearestNotHiddenIndex(
+      Math.max(fromRow, this.hot.getFirstRenderedVisibleRow()),
+      1,
+    );
+    const lastRow = this.hot.rowIndexMapper.getNearestNotHiddenIndex(
+      Math.min(toRow, this.hot.getLastRenderedVisibleRow()),
+      -1,
+    );
+    const firstCol = this.hot.columnIndexMapper.getNearestNotHiddenIndex(
+      Math.max(fromCol, this.hot.getFirstRenderedVisibleColumn()),
+      1,
+    );
+    const lastCol = this.hot.columnIndexMapper.getNearestNotHiddenIndex(
+      Math.min(toCol, this.hot.getLastRenderedVisibleColumn()),
+      -1,
+    );
+
+    if (firstRow === null || lastRow === null || firstCol === null || lastCol === null ||
+      firstRow > lastRow || firstCol > lastCol || firstRow > toRow || lastRow < fromRow ||
+      firstCol > toCol || lastCol < fromCol) {
+      this.#ghost.style.display = 'none';
+
+      return;
+    }
+
+    const first = this.hot.getCell(firstRow, firstCol, true);
+    const last = this.hot.getCell(lastRow, lastCol, true);
+
+    if (!first || !last) {
+      this.#ghost.style.display = 'none';
+
       return;
     }
 
