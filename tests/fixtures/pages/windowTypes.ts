@@ -10,6 +10,10 @@
 
 export type CellValue = string | number | null;
 
+interface FixtureCellRange {
+  getBottomEndCorner(): { row: number | null, col: number | null };
+}
+
 /**
  * The slice of the Handsontable instance API the fixture-driving evaluate
  * callbacks use, so the in-page calls stay typed without importing the core
@@ -22,9 +26,13 @@ export interface FixtureHotInstance {
   getPlugin(name: 'formulas'): { getCellType(row: number, col: number): string };
   getPlugin(name: 'undoRedo'): { undo(): void, redo(): void };
   getPlugin(name: 'moveCells'): { moveCellRange(sourceRange: unknown, targetTopLeft: unknown, isCopy?: boolean): boolean };
+  getPlugin(name: 'dragToScroll'): { isListening(): boolean };
+  getFirstFullyVisibleRow(): number;
+  getLastFullyVisibleRow(): number;
+  getLastRenderedVisibleRow(): number;
   selectCells(ranges: number[][]): boolean;
   deselectCell(): void;
-  getSelectedRangeLast(): unknown;
+  getSelectedRangeLast(): FixtureCellRange;
   _createCellCoords(row: number, col: number): unknown;
 }
 

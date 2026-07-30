@@ -59,6 +59,11 @@ export class SelectionHandles extends BasePlugin {
   #bodyCursor = '';
 
   /**
+   * Stores the latest pointer position so scrolling can continue the resize.
+   */
+  #pointerPosition: { clientX: number; clientY: number } | null = null;
+
+  /**
    * Checks whether the plugin is enabled in the Handsontable settings.
    *
    * @returns {boolean}
@@ -77,6 +82,7 @@ export class SelectionHandles extends BasePlugin {
 
     this.addHook('afterOnSelectionHandleMouseDown', this.#onHandleMouseDown);
     this.addHook('beforeOnCellMouseOver', this.#onCellMouseOver);
+    this.addHook('afterScroll', this.#onAfterScroll);
     this.eventManager.addEventListener(this.hot.rootElement, 'mouseleave', this.#onRootMouseLeave);
     this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mouseup', this.#onDocumentMouseUp);
     super.enablePlugin();
@@ -114,7 +120,7 @@ export class SelectionHandles extends BasePlugin {
   /**
    * Starts a selection resize session.
    */
-  #onHandleMouseDown = (_event: MouseEvent, edge: HandleEdge): void => {
+  #onHandleMouseDown = (event: MouseEvent, edge: HandleEdge): void => {
     const selection = this.hot.selection;
     const layer = selection.getHandlesHoveredLayer() ?? selection.getLayerLevel();
     const range = selection.getSelectedRange().peekByIndex(layer);
@@ -141,6 +147,7 @@ export class SelectionHandles extends BasePlugin {
       focusRow: focus.row ?? fromRow,
       focusCol: focus.col ?? fromCol,
     };
+    this.#pointerPosition = { clientX: event.clientX, clientY: event.clientY };
     this.#bodyCursor = this.hot.rootDocument.body.style.cursor;
     this.hot.rootDocument.body.style.cursor = edge === 'top' || edge === 'bottom' ? 'ns-resize' : 'ew-resize';
     addClass(this.hot.rootElement, `ht__resizing-selection--${edge}`);
@@ -160,8 +167,32 @@ export class SelectionHandles extends BasePlugin {
       return;
     }
 
+    this.#pointerPosition = { clientX: event.clientX, clientY: event.clientY };
+    this.#resizeSelection(event.clientX, event.clientY);
+  };
+
+  /**
+   * Continues the resize after DragToScroll changes the rendered viewport.
+   */
+  #onAfterScroll = (): void => {
+    if (this.#drag && this.#pointerPosition) {
+      this.#resizeSelection(this.#pointerPosition.clientX, this.#pointerPosition.clientY);
+    }
+  };
+
+  /**
+   * Resizes the selected range toward the current pointer coordinates.
+   *
+   * @param {number} clientX The pointer's viewport X coordinate.
+   * @param {number} clientY The pointer's viewport Y coordinate.
+   */
+  #resizeSelection(clientX: number, clientY: number): void {
+    if (!this.#drag) {
+      return;
+    }
+
     const { edge, layer, fromRow, toRow, fromCol, toCol, focusRow, focusCol } = this.#drag;
-    const pointer = getCellCoordsFromMousePosition(this.hot, event.clientX, event.clientY);
+    const pointer = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
     let anchor: CellCoords;
     let end: CellCoords;
 
@@ -191,7 +222,7 @@ export class SelectionHandles extends BasePlugin {
     range.setFrom(anchor);
     range.setHighlight(this.hot._createCellCoords(row, col));
     this.hot.selection.setRangeEnd(end, layer);
-  };
+  }
 
   /**
    * Clears hover state after the pointer leaves the grid.
@@ -220,6 +251,7 @@ export class SelectionHandles extends BasePlugin {
     }
 
     this.#drag = null;
+    this.#pointerPosition = null;
     this.eventManager.removeEventListener(this.hot.rootDocument.documentElement, 'mousemove', this.#onMouseMove);
     this.eventManager.removeEventListener(this.hot.rootDocument.documentElement, 'mouseup', this.#endDrag);
     removeClass(this.hot.rootElement, [

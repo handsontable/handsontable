@@ -58,6 +58,11 @@ export class MoveCells extends BasePlugin {
   #bodyCursor = '';
 
   /**
+   * Stores the latest pointer position so scrolling can refresh the drag preview.
+   */
+  #pointerPosition: { clientX: number; clientY: number } | null = null;
+
+  /**
    * Checks whether the plugin is enabled in the Handsontable settings.
    *
    * @returns {boolean}
@@ -75,6 +80,7 @@ export class MoveCells extends BasePlugin {
     }
 
     this.addHook('afterOnSelectionEdgeMouseDown', this.#onSelectionEdgeMouseDown);
+    this.addHook('afterScroll', this.#onAfterScroll);
     super.enablePlugin();
   }
 
@@ -257,6 +263,7 @@ export class MoveCells extends BasePlugin {
       grabRowOffset: Math.max(0, (pointer.row ?? fromRow) - fromRow),
       grabColOffset: Math.max(0, (pointer.col ?? fromCol) - fromCol),
     };
+    this.#pointerPosition = { clientX: event.clientX, clientY: event.clientY };
     this.#bodyCursor = this.hot.rootDocument.body.style.cursor;
     this.hot.rootDocument.body.style.cursor = 'grabbing';
     addClass(this.hot.rootElement, 'ht__moving');
@@ -277,8 +284,34 @@ export class MoveCells extends BasePlugin {
       return;
     }
 
-    const { fromRow, fromCol, toRow, toCol, grabRowOffset, grabColOffset } = this.#drag;
-    const pointer = getCellCoordsFromMousePosition(this.hot, mouseEvent.clientX, mouseEvent.clientY);
+    this.#pointerPosition = { clientX: mouseEvent.clientX, clientY: mouseEvent.clientY };
+    this.#updateDragPreview(mouseEvent.clientX, mouseEvent.clientY);
+  };
+
+  /**
+   * Refreshes the preview after DragToScroll changes the rendered viewport.
+   */
+  #onAfterScroll = (): void => {
+    if (this.#drag && this.#pointerPosition) {
+      this.#updateDragPreview(this.#pointerPosition.clientX, this.#pointerPosition.clientY);
+    }
+  };
+
+  /**
+   * Positions the preview for the current pointer coordinates.
+   *
+   * @param {number} clientX The pointer's viewport X coordinate.
+   * @param {number} clientY The pointer's viewport Y coordinate.
+   */
+  #updateDragPreview(clientX: number, clientY: number): void {
+    const drag = this.#drag;
+
+    if (!drag) {
+      return;
+    }
+
+    const { fromRow, fromCol, toRow, toCol, grabRowOffset, grabColOffset } = drag;
+    const pointer = getCellCoordsFromMousePosition(this.hot, clientX, clientY);
     const target = clampMoveTarget({
       pointerRow: pointer.row ?? fromRow,
       pointerCol: pointer.col ?? fromCol,
@@ -291,7 +324,7 @@ export class MoveCells extends BasePlugin {
     });
 
     this.#positionGhost(target.row, target.col, target.row + toRow - fromRow, target.col + toCol - fromCol);
-  };
+  }
 
   /**
    * Commits a drag on mouse release.
@@ -320,6 +353,7 @@ export class MoveCells extends BasePlugin {
     }
 
     this.#drag = null;
+    this.#pointerPosition = null;
     this.eventManager.removeEventListener(this.hot.rootDocument.documentElement, 'mousemove', this.#onMouseMove);
     this.eventManager.removeEventListener(this.hot.rootDocument.documentElement, 'mouseup', this.#onMouseUp);
     this.eventManager.removeEventListener(this.hot.rootDocument.documentElement, 'keydown', this.#onKeyDown);

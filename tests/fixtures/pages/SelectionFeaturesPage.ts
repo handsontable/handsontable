@@ -53,6 +53,24 @@ export class SelectionFeaturesPage {
     await expect(this.grid.locator('.ht-wrapper')).toBeVisible();
   }
 
+  /**
+   * Rebuild the grid with enough rows and deterministic timers for auto-scroll tests.
+   */
+  async initLongAutoScrollGrid(): Promise<void> {
+    await this.page.evaluate(() => window.initSelectionGrid({
+      data: Array.from({ length: 100 }, (_, row) =>
+        Array.from({ length: 10 }, (_, col) => `R${row + 1}C${col + 1}`)),
+      height: 150,
+      dragToScroll: {
+        interval: {
+          min: 50,
+          max: 50,
+        },
+      },
+    }));
+    await expect(this.grid.locator('.ht-wrapper')).toBeVisible();
+  }
+
   /** A single data cell, by visual row/column, via its stable test id. */
   cell(row: number, col: number): Locator {
     return this.page.locator('.ht_master').getByTestId(`cell-${row}-${col}`);
@@ -111,6 +129,92 @@ export class SelectionFeaturesPage {
    */
   async redo(): Promise<void> {
     await this.page.evaluate(() => window.hot.getPlugin('undoRedo').redo());
+  }
+
+  /**
+   * Start dragging the bottom move zone below the scrollable viewport.
+   */
+  async dragBottomMoveZoneBelowViewport(): Promise<void> {
+    await this.#dragElementBelowViewport(this.visibleMoveZones().nth(1));
+  }
+
+  /**
+   * Start dragging the bottom selection handle below the scrollable viewport.
+   */
+  async dragBottomHandleBelowViewport(): Promise<void> {
+    await this.#dragElementBelowViewport(this.handle('bottom'));
+  }
+
+  /**
+   * Release the active pointer drag.
+   */
+  async releasePointer(): Promise<void> {
+    await this.page.mouse.up();
+  }
+
+  /**
+   * Cancel the active pointer drag.
+   */
+  async cancelPointerDrag(): Promise<void> {
+    await this.page.keyboard.press('Escape');
+  }
+
+  /**
+   * Install Playwright's deterministic browser clock.
+   */
+  async installClock(): Promise<void> {
+    await this.page.clock.install();
+  }
+
+  /**
+   * Advance browser timers by the given number of milliseconds.
+   */
+  async advanceClock(milliseconds: number): Promise<void> {
+    await this.page.clock.fastForward(milliseconds);
+  }
+
+  /**
+   * Read the first fully visible visual row.
+   */
+  async firstFullyVisibleRow(): Promise<number> {
+    return this.page.evaluate(() => window.hot.getFirstFullyVisibleRow());
+  }
+
+  /**
+   * Read the last fully visible visual row.
+   */
+  async lastFullyVisibleRow(): Promise<number> {
+    return this.page.evaluate(() => window.hot.getLastFullyVisibleRow());
+  }
+
+  /**
+   * Read the selected range's bottom visual row.
+   */
+  async selectedBottomRow(): Promise<number> {
+    return this.page.evaluate(() => window.hot.getSelectedRangeLast().getBottomEndCorner().row ?? -1);
+  }
+
+  /**
+   * Check whether DragToScroll is listening for pointer movement.
+   */
+  async isDragToScrollListening(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getPlugin('dragToScroll').isListening());
+  }
+
+  /**
+   * Check whether the move ghost matches the last rendered row's vertical bounds.
+   */
+  async isMoveGhostAlignedWithLastRenderedRow(): Promise<boolean> {
+    const lastRenderedRow = await this.page.evaluate(() => window.hot.getLastRenderedVisibleRow());
+    const ghostBox = await this.moveGhost().boundingBox();
+    const rowBox = await this.cell(lastRenderedRow, 0).boundingBox();
+
+    if (!ghostBox || !rowBox) {
+      return false;
+    }
+
+    return Math.abs(ghostBox.y - rowBox.y) <= 1 &&
+      Math.abs(ghostBox.height - rowBox.height) <= 1;
   }
 
   /** Hover a cell with the real pointer (drives the handle-visibility logic). */
@@ -173,5 +277,27 @@ export class SelectionFeaturesPage {
       top: Math.min(fromBox.y, toBox.y),
       bottom: Math.max(fromBox.y + fromBox.height, toBox.y + toBox.height),
     };
+  }
+
+  /**
+   * Press an interaction affordance and move the pointer below the master viewport.
+   */
+  async #dragElementBelowViewport(element: Locator): Promise<void> {
+    const elementBox = await element.boundingBox();
+    const viewportBox = await this.page.locator('.ht_master .wtHolder').boundingBox();
+
+    if (!elementBox || !viewportBox) {
+      throw new Error('The drag affordance or grid viewport is not rendered.');
+    }
+
+    await this.page.mouse.move(
+      elementBox.x + (elementBox.width / 2),
+      elementBox.y + (elementBox.height / 2),
+    );
+    await this.page.mouse.down();
+    await this.page.mouse.move(
+      viewportBox.x + (viewportBox.width / 2),
+      viewportBox.y + viewportBox.height + 40,
+    );
   }
 }

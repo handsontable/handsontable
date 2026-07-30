@@ -99,4 +99,20 @@ test.describe('selectionHandles adjust handles', () => {
     await expect(grid.handle('bottom')).toBeHidden();
     await expect(grid.handle('end')).toBeHidden();
   });
+
+  test('scrolls and extends the selection while dragging a handle beyond the viewport', async () => {
+    await grid.initGrid({ height: 150 });
+    await grid.selectCells(1, 1, 2, 2);
+    await grid.hoverCell(2, 2);
+
+    const initiallyVisibleBottomRow = await grid.lastFullyVisibleRow();
+
+    await expect(grid.handle('bottom')).toBeVisible();
+    await grid.dragBottomHandleBelowViewport();
+
+    await expect.poll(() => grid.firstFullyVisibleRow()).toBeGreaterThan(2);
+    await expect.poll(() => grid.selectedBottomRow()).toBeGreaterThan(initiallyVisibleBottomRow + 2);
+
+    await grid.releasePointer();
+  });
 });

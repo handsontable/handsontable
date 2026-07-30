@@ -126,6 +126,48 @@ test.describe('moveCells edge move bands', () => {
     await expect(grid.cell(2, 2)).toHaveText('Display: R2C2');
   });
 
+  test('scrolls beyond the viewport while dragging a selection', async () => {
+    await grid.initGrid({
+      height: 150,
+      rowHeights: [23, 23, 23, 23, 60, 23, 23, 23, 23, 40],
+    });
+    await grid.selectCells(1, 1, 1, 1);
+
+    const initiallyVisibleBottomRow = await grid.lastFullyVisibleRow();
+
+    await grid.dragBottomMoveZoneBelowViewport();
+
+    await expect(grid.movingRoot()).toHaveCount(1);
+    await expect.poll(() => grid.firstFullyVisibleRow()).toBeGreaterThan(2);
+    await expect.poll(() => grid.isMoveGhostAlignedWithLastRenderedRow()).toBe(true);
+
+    await grid.releasePointer();
+
+    await expect.poll(() => grid.selectedBottomRow()).toBeGreaterThan(initiallyVisibleBottomRow);
+  });
+
+  test('stops auto-scroll when a move drag is canceled', async () => {
+    await grid.installClock();
+    await grid.initLongAutoScrollGrid();
+    await grid.selectCells(1, 1, 1, 1);
+
+    await grid.dragBottomMoveZoneBelowViewport();
+    await grid.advanceClock(50);
+    expect(await grid.firstFullyVisibleRow()).toBeGreaterThan(0);
+    expect(await grid.isDragToScrollListening()).toBe(true);
+
+    await grid.cancelPointerDrag();
+
+    await expect(grid.movingRoot()).toHaveCount(0);
+    expect(await grid.isDragToScrollListening()).toBe(false);
+
+    const rowAfterCancel = await grid.firstFullyVisibleRow();
+
+    await grid.advanceClock(500);
+    expect(await grid.firstFullyVisibleRow()).toBe(rowAfterCancel);
+    await grid.releasePointer();
+  });
+
   test('shows no move bands when moveCells is disabled', async () => {
     await grid.initGrid({ moveCells: false });
     await grid.selectCells(1, 1, 3, 3);
