@@ -215,14 +215,19 @@ export class MoveCells extends BasePlugin {
       }
     });
 
-    this.hot.selectCells([[targetRow, targetCol, targetBottom, targetRight]]);
     const targetRange = this.hot._createCellRange(
       this.hot._createCellCoords(targetRow, targetCol),
       this.hot._createCellCoords(targetRow, targetCol),
       this.hot._createCellCoords(targetBottom, targetRight),
     );
 
+    // `afterMoveCells` must run BEFORE the target is selected. With the Formulas plugin active this
+    // hook is where the HOT data source is brought back in line with HyperFormula, which has already
+    // relocated the cells — so selecting first made `afterSelection` listeners read the stale
+    // pre-move value at the target. UndoRedo's listener works off the `beforeMoveCells` snapshots
+    // rather than the selection, so nothing needs the target selected while the hook runs.
     this.hot.runHooks('afterMoveCells', sourceRange, targetRange, isCopy);
+    this.hot.selectCells([[targetRow, targetCol, targetBottom, targetRight]]);
 
     return true;
   }

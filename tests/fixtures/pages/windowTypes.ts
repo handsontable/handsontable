@@ -49,6 +49,8 @@ export interface FixtureHotInstance {
   deselectCell(): void;
   getSelectedRangeLast(): FixtureCellRange;
   getSelectedRange(): FixtureCellRange[];
+  addHook(name: string, callback: () => void): void;
+  addHookOnce(name: string, callback: () => unknown): void;
   getSelectedLast(): number[];
   countRows(): number;
   countCols(): number;

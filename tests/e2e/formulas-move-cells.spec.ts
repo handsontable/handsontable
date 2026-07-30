@@ -160,4 +160,19 @@ test.describe('Formulas: moveCells integration', () => {
     expect(await grid.cellValue(0, 0)).toBe(null);
     await grid.expectCell(1, 0, '42');
   });
+
+  test('selects the target only after the engine sync, so listeners never read a stale value', async () => {
+    await grid.initGrid([['A1', 'B1'], ['A2', 'B2'], ['A3', 'B3']]);
+
+    const observed = await grid.observeDuringSelectionWhileMoving([0, 0, 0, 0], [2, 0]);
+
+    expect(observed.settled).toBe('A1');
+    // Selecting the target before `afterMoveCells` let an `afterSelection` listener read the
+    // pre-move value ('A3') at a cell HyperFormula had already rewritten.
+    expect(observed.seenDuringSelection.length).toBeGreaterThan(0);
+    expect(observed.seenDuringSelection).not.toContain('A3');
+    for (const seen of observed.seenDuringSelection) {
+      expect(seen).toBe('A1');
+    }
+  });
 });

@@ -32,6 +32,39 @@ export class FormulasMoveCellsPage {
   }
 
   /**
+   * Record what an `afterSelection` listener sees at a cell, then move a range onto it.
+   *
+   * With the Formulas plugin active the HOT data source is only brought back in line with
+   * HyperFormula inside the `afterMoveCells` listener, so a listener that runs before that hook
+   * observes the stale pre-move value at the target.
+   *
+   * @returns The values seen during `afterSelection`, and the settled value after the move.
+   */
+  async observeDuringSelectionWhileMoving(
+    [fromRow, fromCol, toRow, toCol]: [number, number, number, number],
+    [targetRow, targetCol]: [number, number],
+  ): Promise<{ seenDuringSelection: CellValue[], settled: CellValue }> {
+    return this.page.evaluate(({ from, target }) => {
+      const hot = window.hot;
+      const seenDuringSelection: CellValue[] = [];
+
+      hot.addHook('afterSelection', () => {
+        seenDuringSelection.push(hot.getDataAtCell(target[0], target[1]));
+      });
+
+      const range = hot._createCellRange(
+        hot._createCellCoords(from[0], from[1]),
+        hot._createCellCoords(from[0], from[1]),
+        hot._createCellCoords(from[2], from[3]),
+      );
+
+      hot.getPlugin('moveCells').moveCellRange(range, hot._createCellCoords(target[0], target[1]));
+
+      return { seenDuringSelection, settled: hot.getDataAtCell(target[0], target[1]) };
+    }, { from: [fromRow, fromCol, toRow, toCol], target: [targetRow, targetCol] });
+  }
+
+  /**
    * Rebuild the grid with this test's dataset — a fresh Handsontable instance
    * and a fresh HyperFormula sheet, so tests stay isolated.
    */
