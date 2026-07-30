@@ -2,6 +2,7 @@ import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 import { BasePlugin } from '../base';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
+import { isRightClick } from '../../helpers/dom/event';
 import { clampEdge, type HandleEdge } from './helpers';
 
 export const PLUGIN_KEY = 'selectionHandles';
@@ -73,6 +74,18 @@ export class SelectionHandles extends BasePlugin {
   }
 
   /**
+   * Checks whether a resize drag is currently in progress. Reachable through `getPlugin` because
+   * DragToScroll needs it — it must not start auto-scrolling for a press this plugin rejected — but
+   * internal, not part of the public API.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isDragActive(): boolean {
+    return this.#drag !== null;
+  }
+
+  /**
    * Enables handle hover and resize interactions.
    */
   enablePlugin(): void {
@@ -129,6 +142,11 @@ export class SelectionHandles extends BasePlugin {
    * Starts a selection resize session.
    */
   #onHandleMouseDown = (event: MouseEvent, edge: HandleEdge): void => {
+    // A right-press opens the context menu; it must not also start (and on release, commit) a resize.
+    if (isRightClick(event)) {
+      return;
+    }
+
     const selection = this.hot.selection;
     const layer = selection.getHandlesHoveredLayer() ?? selection.getLayerLevel();
     const range = selection.getSelectedRange().peekByIndex(layer);

@@ -1676,6 +1676,11 @@ export class Formulas extends BasePlugin {
    * `afterMoveCells` listener. A move redo is validated first, then executed here to keep a
    * rejected move from advancing HyperFormula.
    *
+   * This is the second half of a two-phase protocol with the MoveCells plugin: `beforeMoveCells`
+   * prepares `#pendingMoveCells`, and this method commits it. It is internal despite being reachable
+   * through `getPlugin('formulas')` — not part of the public API.
+   *
+   * @private
    * @returns {boolean} `true` when the engine operation succeeded (or was intentionally
    *   skipped); `false` when there is no prepared operation or the engine rejected it.
    */

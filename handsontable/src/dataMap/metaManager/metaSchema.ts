@@ -5591,8 +5591,9 @@ export default (): Record<string, unknown> => {
      * Hold <kbd>Ctrl</kbd>/<kbd>Cmd</kbd> during the drag to copy instead of move.
      *
      * The move applies to a single contiguous cell range only. It has no effect on full-row, full-column,
-     * select-all, or multiple selections, and the target must stay within the grid and must not overlap
-     * read-only cells.
+     * select-all, or multiple selections, and the target must stay within the grid. Neither the target nor
+     * the source may overlap read-only cells, because a move has to clear the source — a copy leaves the
+     * source in place, so a read-only source cell blocks a move but not a copy.
      *
      * This option can only be set at the [grid level](@/guides/getting-started/configuration-options/configuration-options.md#set-grid-options).
      *

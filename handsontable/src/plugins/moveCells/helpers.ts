@@ -1,3 +1,9 @@
+/**
+ * The cell-meta keys that travel with a moved cell. Exported because the UndoRedo `MoveCellsAction`
+ * must restore exactly this set — a key added here but missed there would silently stop being undone.
+ */
+export const MOVABLE_META_KEYS: ReadonlyArray<string> = ['className'];
+
 interface ClampMoveTargetOptions {
   pointerRow: number;
   pointerCol: number;

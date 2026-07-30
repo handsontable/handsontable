@@ -116,13 +116,12 @@
       );
     }
 
-    // Ghost preview overlay shown during a move-cells drag (moveCells option).
-    // The element is appended to the overlays container and positioned absolutely
-    // over the drop-target range. `pointer-events: none` is also set inline by JS
-    // but is repeated here so the intent is self-documenting in the stylesheet.
-    // Note: the `.wtMoveGhost` drop-target preview is rendered on `document.body` (outside this
-    // theme scope) and styled inline in `TableView` so it works in any host layout, so it has no
-    // rule here.
+    // The `.wtMoveGhost` drop-target preview (moveCells option) has no rule here on purpose: the
+    // MoveCells plugin appends it to `document.body` with `position: fixed` so it is never clipped
+    // by a host layout's overflow. That places it outside this theme scope, so the
+    // `--ht-cell-selection-border-*` tokens do not resolve on it and a rule here would never match.
+    // The plugin therefore reads those two tokens off the root element and inlines the resolved
+    // values — see `#createGhost` in `src/plugins/moveCells/moveCells.ts`.
 
     // Move zone bands on the selection border (show grab cursor on hover).
     .wtMoveZone {

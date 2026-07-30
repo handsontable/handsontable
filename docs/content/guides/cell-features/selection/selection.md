@@ -326,7 +326,7 @@ This option applies at the grid level and defaults to `false`.
 **Limitations:**
 
 - Drag-to-move works on a single contiguous cell range only. It has no effect on full-row, full-column, select-all, or multiple selections.
-- The target must stay within the grid and must not overlap read-only cells.
+- The target must stay within the grid. Neither the target nor the source may overlap read-only cells, because a move has to clear the source. Copying with <kbd>**Ctrl**</kbd> or <kbd>⌘</kbd> leaves the source in place, so a read-only source cell blocks a move but not a copy.
 - Drag-to-move is hidden when [`disableVisualSelection`](@/api/options.md#disablevisualselection) is set.
 - A move that would split a merged cell is blocked.
 

@@ -1,5 +1,5 @@
 import { type Page, type Locator, expect } from '@playwright/test';
-import type { CellValue } from './windowTypes';
+import type { CellValue, MoveCellsHookRecord } from './windowTypes';
 
 /**
  * Page Object for the selection features fixture
@@ -111,10 +111,84 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Move or copy a range through the MoveCells plugin API, without going through the pointer.
+   * Unlike `moveRange` this does not pre-select, so it can exercise ranges the UI would not offer.
+   */
+  async moveCellRange(
+    [fromRow, fromCol, toRow, toCol]: [number, number, number, number],
+    [targetRow, targetCol]: [number, number],
+    isCopy = false,
+  ): Promise<boolean> {
+    return this.page.evaluate(({ from, target, copy }) => {
+      const hot = window.hot;
+      const range = hot._createCellRange(
+        hot._createCellCoords(from[0], from[1]),
+        hot._createCellCoords(from[0], from[1]),
+        hot._createCellCoords(from[2], from[3]),
+      );
+
+      return hot.getPlugin('moveCells').moveCellRange(
+        range,
+        hot._createCellCoords(target[0], target[1]),
+        copy,
+      );
+    }, { from: [fromRow, fromCol, toRow, toCol], target: [targetRow, targetCol], copy: isCopy });
+  }
+
+  /**
+   * Read a displayed cell value.
+   */
+  async cellValue(row: number, col: number): Promise<CellValue> {
+    return this.page.evaluate(([r, c]) => window.hot.getDataAtCell(r, c), [row, col]);
+  }
+
+  /**
    * Read a raw source value without applying valueGetter.
    */
   async sourceCellValue(row: number, col: number): Promise<CellValue> {
     return this.page.evaluate(([r, c]) => window.hot.getSourceDataAtCell(r, c), [row, col]);
+  }
+
+  /**
+   * Read a cell's `className` meta — the one meta key `moveCellRange` moves with the data.
+   */
+  async cellClassName(row: number, col: number): Promise<string | undefined> {
+    return this.page.evaluate(([r, c]) => window.hot.getCellMeta(r, c).className, [row, col]);
+  }
+
+  /**
+   * The moveCells hook calls recorded since the grid was built.
+   */
+  async hookLog(): Promise<MoveCellsHookRecord[]> {
+    return this.page.evaluate(() => window.moveCellsHookLog);
+  }
+
+  /**
+   * Make the fixture's `beforeMoveCells` listener veto the next move.
+   */
+  async setBeforeMoveCellsVeto(shouldVeto: boolean): Promise<void> {
+    await this.page.evaluate(veto => window.setBeforeMoveCellsVeto(veto), shouldVeto);
+  }
+
+  /**
+   * Whether a redo is currently available.
+   */
+  async isRedoAvailable(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getPlugin('undoRedo').isRedoAvailable());
+  }
+
+  /**
+   * Whether an undo is currently available.
+   */
+  async isUndoAvailable(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getPlugin('undoRedo').isUndoAvailable());
+  }
+
+  /**
+   * How many actions sit on the undo stack — guards against a redo pushing a duplicate action.
+   */
+  async doneActionsCount(): Promise<number> {
+    return this.page.evaluate(() => window.hot.getPlugin('undoRedo').doneActions.length);
   }
 
   /**
@@ -210,10 +284,194 @@ export class SelectionFeaturesPage {
   }
 
   /**
+   * Drag the first visible move-zone band onto a target cell and drop.
+   *
+   * `modifier` is held down only for the release, which is when MoveCells reads it to decide between
+   * a move and a copy.
+   */
+  async dragMoveZoneToCell(
+    row: number, col: number, modifier?: 'Control' | 'Meta',
+  ): Promise<void> {
+    await this.#pressFirstMoveZone();
+    await this.#movePointerToCell(row, col);
+
+    if (modifier) {
+      await this.page.keyboard.down(modifier);
+    }
+
+    await this.page.mouse.up();
+
+    if (modifier) {
+      await this.page.keyboard.up(modifier);
+    }
+  }
+
+  /**
+   * Press the first visible move-zone band and move the pointer over a cell, without releasing.
+   */
+  async startMoveZoneDragOverCell(row: number, col: number): Promise<void> {
+    await this.#pressFirstMoveZone();
+    await this.#movePointerToCell(row, col);
+  }
+
+  /**
+   * Drag a range by grabbing it at a specific cell's bottom-end corner, then drop on a target cell.
+   *
+   * The grab offset MoveCells applies is derived from the pointer coordinates, not from which band
+   * element was pressed — so the press has to land at the grabbed cell, on the sliver where the
+   * bottom and end bands run along that cell's edges.
+   */
+  async dragRangeByCellCornerToCell(
+    grabRow: number, grabCol: number, targetRow: number, targetCol: number,
+  ): Promise<void> {
+    const grabBox = await this.cell(grabRow, grabCol).boundingBox();
+
+    if (!grabBox) {
+      throw new Error('The grab cell is not rendered.');
+    }
+
+    await this.page.mouse.move(
+      grabBox.x + grabBox.width - 2,
+      grabBox.y + grabBox.height - 2,
+    );
+    await this.page.mouse.down();
+    await this.#movePointerToCell(targetRow, targetCol);
+    await this.page.mouse.up();
+  }
+
+  /**
+   * Drag-select a range with the real pointer, ending with the pointer inside the new selection.
+   *
+   * Distinct from the `selectCells` API call: no fresh `mouseover` fires after the `mouseup`, which is
+   * the condition under which the handles used to stay hidden after a drag-select.
+   */
+  async dragSelectCells(fromRow: number, fromCol: number, toRow: number, toCol: number): Promise<void> {
+    await this.#movePointerToCell(fromRow, fromCol);
+    await this.page.mouse.down();
+    await this.#movePointerToCell(Math.round((fromRow + toRow) / 2), Math.round((fromCol + toCol) / 2));
+    await this.#movePointerToCell(toRow, toCol);
+    await this.page.mouse.up();
+  }
+
+  /**
+   * Press a move-zone band with the right button — must not start a move drag.
+   */
+  async rightPressMoveZone(): Promise<void> {
+    await this.#pressElementCenter(this.visibleMoveZones().first(), 'right');
+  }
+
+  /**
+   * Press a selection handle with the right button — must not start a resize drag.
+   */
+  async rightPressHandle(edge: 'top' | 'bottom' | 'start' | 'end'): Promise<void> {
+    await this.#pressElementCenter(this.handle(edge), 'right');
+  }
+
+  /**
+   * Whether the MoveCells plugin reports an active drag.
+   */
+  async isMoveDragActive(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getPlugin('moveCells').isDragActive());
+  }
+
+  /**
+   * Whether the SelectionHandles plugin reports an active drag.
+   */
+  async isHandleDragActive(): Promise<boolean> {
+    return this.page.evaluate(() => window.hot.getPlugin('selectionHandles').isDragActive());
+  }
+
+  /**
+   * The cursor the document body currently holds. The drag cursor lives on the body so it persists
+   * while the pointer is outside the grid.
+   */
+  async bodyCursor(): Promise<string> {
+    return this.page.evaluate(() => document.body.style.cursor);
+  }
+
+  /**
+   * Whether the move ghost currently overlaps a cell — the preview must sit over the drop target.
+   * A positioning regression pushes the ghost off-screen, so it stops overlapping.
+   */
+  async isMoveGhostOverCell(row: number, col: number): Promise<boolean> {
+    const ghostBox = await this.moveGhost().boundingBox();
+    const cellBox = await this.cell(row, col).boundingBox();
+
+    if (!ghostBox || !cellBox) {
+      return false;
+    }
+
+    return ghostBox.x + ghostBox.width > cellBox.x &&
+      ghostBox.x < cellBox.x + cellBox.width &&
+      ghostBox.y + ghostBox.height > cellBox.y &&
+      ghostBox.y < cellBox.y + cellBox.height;
+  }
+
+  /**
+   * The move ghost's rendered size, for asserting it spans a whole multi-cell block.
+   */
+  async moveGhostSize(): Promise<{ width: number, height: number }> {
+    const ghostBox = await this.moveGhost().boundingBox();
+
+    if (!ghostBox) {
+      throw new Error('The move ghost is not rendered.');
+    }
+
+    return { width: ghostBox.width, height: ghostBox.height };
+  }
+
+  /**
+   * A rendered cell's size, used as the yardstick for ghost-span assertions.
+   */
+  async cellSize(row: number, col: number): Promise<{ width: number, height: number }> {
+    const cellBox = await this.cell(row, col).boundingBox();
+
+    if (!cellBox) {
+      throw new Error('The cell is not rendered.');
+    }
+
+    return { width: cellBox.width, height: cellBox.height };
+  }
+
+  /**
    * Release the active pointer drag.
    */
   async releasePointer(): Promise<void> {
     await this.page.mouse.up();
+  }
+
+  /**
+   * Press the centre of the first visible move-zone band.
+   */
+  async #pressFirstMoveZone(): Promise<void> {
+    await this.#pressElementCenter(this.visibleMoveZones().first());
+  }
+
+  /**
+   * Press the centre of an element with the given mouse button.
+   */
+  async #pressElementCenter(element: Locator, button: 'left' | 'right' = 'left'): Promise<void> {
+    const box = await element.boundingBox();
+
+    if (!box) {
+      throw new Error('The target element is not rendered.');
+    }
+
+    await this.page.mouse.move(box.x + (box.width / 2), box.y + (box.height / 2));
+    await this.page.mouse.down({ button });
+  }
+
+  /**
+   * Move the pointer to the centre of a rendered cell.
+   */
+  async #movePointerToCell(row: number, col: number): Promise<void> {
+    const box = await this.cell(row, col).boundingBox();
+
+    if (!box) {
+      throw new Error('The target cell is not rendered.');
+    }
+
+    await this.page.mouse.move(box.x + (box.width / 2), box.y + (box.height / 2));
   }
 
   /**
@@ -285,6 +543,55 @@ export class SelectionFeaturesPage {
         end: bottomEnd.col ?? -1,
       };
     });
+  }
+
+  /**
+   * The focus (highlight) cell of the last selected range. Resizing must keep it stable when it stays
+   * inside the new range, and clamp it into the range when a shrink pushes it out.
+   */
+  async focusCell(): Promise<{ row: number, col: number }> {
+    return this.page.evaluate(() => {
+      const highlight = window.hot.getSelectedRangeLast().highlight;
+
+      return { row: highlight.row ?? -1, col: highlight.col ?? -1 };
+    });
+  }
+
+  /**
+   * Normalized bounds for every selection layer, so a resize can be checked not to disturb the others.
+   */
+  async allSelectedBounds(): Promise<{ top: number, start: number, bottom: number, end: number }[]> {
+    return this.page.evaluate(() => window.hot.getSelectedRange().map((range) => {
+      const topStart = range.getTopStartCorner();
+      const bottomEnd = range.getBottomEndCorner();
+
+      return {
+        top: topStart.row ?? -1,
+        start: topStart.col ?? -1,
+        bottom: bottomEnd.row ?? -1,
+        end: bottomEnd.col ?? -1,
+      };
+    }));
+  }
+
+  /** Select several disjoint ranges as separate selection layers. */
+  async selectLayers(ranges: [number, number, number, number][]): Promise<void> {
+    await this.page.evaluate(layers => window.hot.selectCells(layers), ranges);
+  }
+
+  /** Select whole columns through the instance API. */
+  async selectColumns(fromCol: number, toCol: number): Promise<void> {
+    await this.page.evaluate(([from, to]) => window.hot.selectColumns(from, to), [fromCol, toCol]);
+  }
+
+  /**
+   * Drag a selection handle onto a cell without releasing, so mid-drag state can be asserted.
+   */
+  async startHandleDragOverCell(
+    edge: 'top' | 'bottom' | 'start' | 'end', row: number, col: number,
+  ): Promise<void> {
+    await this.#pressElementCenter(this.handle(edge));
+    await this.#movePointerToCell(row, col);
   }
 
   /**

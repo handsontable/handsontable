@@ -3,11 +3,9 @@ import type { HotInstance } from '../../../core/types';
 import type CellCoords from '../../../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../../../3rdparty/walkontable/src/cell/range';
 import { BaseAction } from './_base';
-
-/**
- * The meta keys that `moveCellRange` moves alongside cell data.
- */
-const MOVABLE_META_KEYS: ReadonlyArray<string> = ['className'];
+// Imported rather than duplicated: undo must restore exactly the key set `moveCellRange` moved, and
+// two copies would silently drift the moment a key is added to one of them.
+import { MOVABLE_META_KEYS } from '../../moveCells/helpers';
 
 /**
  * A snapshot of the values and movable meta for a rectangular cell region.
@@ -66,7 +64,9 @@ function snapshotRegion(
     for (let c = fromCol; c <= toCol; c++) {
       rowData.push(hot.getSourceDataAtCell(physicalRow, c));
 
-      const cellMeta = hot.getCellMeta(r, c);
+      // Transient: only the movable keys are copied out below and the meta object is discarded, so
+      // materializing one per visited cell would retain memory the viewport cannot evict.
+      const cellMeta = hot.getCellMetaTransient(r, c);
       const snapshot: Record<string, unknown> = {};
 
       for (const key of MOVABLE_META_KEYS) {
@@ -313,9 +313,19 @@ export class MoveCellsAction extends BaseAction {
       redoneCallback();
     };
 
+    const moveCells = hot.getPlugin('moveCells');
+
+    // `base.ts` is the tree-shakeable entry, so a consumer can register UndoRedo without MoveCells.
+    // The record path implies the plugin was present, but nothing guarantees it still is at redo time.
+    if (!moveCells) {
+      redoneCallback({ wasRedone: false });
+
+      return;
+    }
+
     hot.addHookOnce('afterMoveCells', onAfterMoveCells);
 
-    if (!hot.getPlugin('moveCells').moveCellRange(sourceRange, targetTopLeft, this.isCopy)) {
+    if (!moveCells.moveCellRange(sourceRange, targetTopLeft, this.isCopy)) {
       hot.removeHook('afterMoveCells', onAfterMoveCells);
       redoneCallback({ wasRedone: false });
     }

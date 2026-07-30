@@ -1,4 +1,12 @@
-import { buildMoveMap, clampMoveTarget } from '../helpers';
+import { buildMoveMap, clampMoveTarget, MOVABLE_META_KEYS } from '../helpers';
+
+describe('MOVABLE_META_KEYS', () => {
+  it('exports the meta keys that travel with a moved cell', () => {
+    // The UndoRedo `MoveCellsAction` imports this same constant. It used to hold a private copy in
+    // each module, so adding a key here silently stopped it being restored on undo.
+    expect(MOVABLE_META_KEYS).toEqual(['className']);
+  });
+});
 
 describe('clampMoveTarget', () => {
   it('keeps the whole block inside the grid', () => {

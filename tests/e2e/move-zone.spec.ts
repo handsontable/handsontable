@@ -217,4 +217,174 @@ test.describe('moveCells edge move bands', () => {
 
     await expect(grid.visibleMoveZones()).toHaveCount(0);
   });
+
+  test('moves the data when a band is dragged to a new location', async () => {
+    await grid.selectCells(2, 2, 3, 3);
+
+    await grid.dragMoveZoneToCell(5, 5);
+
+    expect(await grid.cellValue(5, 5)).toBe('R3C3');
+    expect(await grid.cellValue(2, 2)).toBe(null);
+  });
+
+  test('moves a single selected cell', async () => {
+    await grid.selectCells(2, 2, 2, 2);
+
+    // A single cell is movable too — the bands are not limited to multi-cell ranges.
+    await expect(grid.visibleMoveZones()).toHaveCount(4);
+
+    await grid.dragMoveZoneToCell(6, 4);
+
+    expect(await grid.cellValue(6, 4)).toBe('R3C3');
+    expect(await grid.cellValue(2, 2)).toBe(null);
+    expect(await grid.selectedBounds()).toEqual({ top: 6, start: 4, bottom: 6, end: 4 });
+  });
+
+  test('renders the ghost preview over the drop target while dragging', async () => {
+    await grid.selectCells(2, 2, 3, 3);
+
+    await grid.startMoveZoneDragOverCell(5, 5);
+
+    await expect(grid.moveGhost()).toBeVisible();
+    expect(await grid.isMoveGhostOverCell(5, 5)).toBe(true);
+
+    await grid.releasePointer();
+  });
+
+  test('renders the ghost preview over the drop target in an RTL layout', async () => {
+    await grid.initGrid({ layoutDirection: 'rtl' });
+    await grid.selectCells(2, 2, 3, 3);
+
+    await grid.startMoveZoneDragOverCell(5, 5);
+
+    await expect(grid.moveGhost()).toBeVisible();
+
+    // In RTL the lower column index sits visually on the right, so the ghost box must be the union
+    // of the corner rects. Computing width as `end.right - start.left` goes negative here, the style
+    // write is rejected, and the ghost collapses to a border-only sliver — so assert it spans the
+    // full 2x2 block rather than merely overlapping.
+    const ghost = await grid.moveGhostSize();
+    const cell = await grid.cellSize(5, 5);
+
+    expect(ghost.width).toBeGreaterThanOrEqual(cell.width * 1.5);
+    expect(ghost.height).toBeGreaterThanOrEqual(cell.height * 1.5);
+    expect(await grid.isMoveGhostOverCell(5, 5)).toBe(true);
+
+    await grid.releasePointer();
+  });
+
+  test('holds the grabbing cursor during the drag and clears it on drop', async () => {
+    await grid.selectCells(2, 2, 3, 3);
+
+    await grid.startMoveZoneDragOverCell(5, 5);
+
+    // The cursor lives on the body so it persists while the pointer is outside the grid.
+    expect(await grid.bodyCursor()).toBe('grabbing');
+
+    await grid.releasePointer();
+
+    expect(await grid.bodyCursor()).toBe('');
+  });
+
+  test('adds the ht__moving class during the drag and removes it on drop', async () => {
+    await grid.selectCells(2, 2, 3, 3);
+
+    await grid.startMoveZoneDragOverCell(5, 5);
+
+    await expect(grid.movingRoot()).toHaveCount(1);
+
+    await grid.releasePointer();
+
+    await expect(grid.movingRoot()).toHaveCount(0);
+  });
+
+  test('removes the ghost element after the drop', async () => {
+    await grid.selectCells(2, 2, 3, 3);
+
+    await grid.startMoveZoneDragOverCell(5, 5);
+
+    await expect(grid.moveGhost()).toBeVisible();
+
+    await grid.releasePointer();
+
+    await expect(grid.moveGhost()).toHaveCount(0);
+  });
+
+  test('copies instead of moving when Ctrl is held on drop', async () => {
+    await grid.selectCells(2, 2, 3, 3);
+
+    await grid.dragMoveZoneToCell(5, 5, 'Control');
+
+    expect(await grid.cellValue(5, 5)).toBe('R3C3');
+    // Copy: the source survives.
+    expect(await grid.cellValue(2, 2)).toBe('R3C3');
+  });
+
+  test('copies instead of moving when Meta is held on drop', async () => {
+    await grid.selectCells(2, 2, 3, 3);
+
+    await grid.dragMoveZoneToCell(5, 5, 'Meta');
+
+    expect(await grid.cellValue(5, 5)).toBe('R3C3');
+    expect(await grid.cellValue(2, 2)).toBe('R3C3');
+  });
+
+  test('honors the grab offset when dragging from a non-top-left cell of a 2x2 range', async () => {
+    await grid.selectCells(1, 1, 2, 2);
+
+    // Grab the range's bottom-end cell (offset (1, 1) within the block) and drop on (6, 6). The
+    // grabbed cell must land under the pointer, so the block's top-left ends up at (5, 5) — a
+    // regression that ignores the offset would put the top-left at (6, 6) instead.
+    await grid.dragRangeByCellCornerToCell(2, 2, 6, 6);
+
+    expect(await grid.cellValue(5, 5)).toBe('R2C2');
+    expect(await grid.cellValue(1, 1)).toBe(null);
+    expect(await grid.selectedBounds()).toEqual({ top: 5, start: 5, bottom: 6, end: 6 });
+  });
+
+  test('shows no move bands when disableVisualSelection is set', async () => {
+    await grid.initGrid({ disableVisualSelection: true });
+    await grid.selectCells(2, 2, 3, 3);
+
+    await expect(grid.visibleMoveZones()).toHaveCount(0);
+  });
+
+  test('does not move data when disableVisualSelection is set', async () => {
+    await grid.initGrid({ disableVisualSelection: true });
+    await grid.selectCells(2, 2, 3, 3);
+
+    // With no bands there is nothing to grab, so the data must be untouched.
+    await expect(grid.visibleMoveZones()).toHaveCount(0);
+    expect(await grid.cellValue(2, 2)).toBe('R3C3');
+    expect(await grid.cellValue(5, 5)).toBe('R6C6');
+  });
+
+  test('shows no move bands for a full row selection', async () => {
+    await grid.selectCells(2, -1, 2, 9);
+
+    await expect(grid.visibleMoveZones()).toHaveCount(0);
+  });
+
+  test('shows no move bands for a full column selection', async () => {
+    await grid.selectCells(-1, 2, 9, 2);
+
+    await expect(grid.visibleMoveZones()).toHaveCount(0);
+  });
+
+  test('does not start a move drag on a right-press', async () => {
+    await grid.selectCells(2, 2, 3, 3);
+
+    await grid.rightPressMoveZone();
+
+    // A right-press opens the context menu; it must not also start a move that the release commits.
+    // This pins the guard in MoveCells' own `afterOnSelectionEdgeMouseDown` listener. The matching
+    // guard in the Walkontable border's mousedown listener is defense-in-depth and is NOT covered
+    // here — with it removed, the plugin guard alone still keeps this assertion green.
+    expect(await grid.isMoveDragActive()).toBe(false);
+    await expect(grid.movingRoot()).toHaveCount(0);
+
+    await grid.releasePointer();
+
+    expect(await grid.cellValue(2, 2)).toBe('R3C3');
+  });
 });

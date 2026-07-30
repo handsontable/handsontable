@@ -376,20 +376,35 @@ export class DragToScroll extends BasePlugin {
   }
 
   /**
-   * Starts auto-scrolling for a move-zone drag.
+   * Starts auto-scrolling for a move-zone drag, but only if MoveCells actually began one.
+   *
+   * The `afterOnSelectionEdgeMouseDown` hook fires unconditionally from `TableView`, while MoveCells
+   * may reject the press (no movable range, a drag already running). MoveCells owns the drag and its
+   * listener runs first — plugins initialize in ascending `PLUGIN_PRIORITY` order, and MoveCells is
+   * 25 against this plugin's 100 — so the drag state is already settled by the time this runs.
+   * Without the check, auto-scroll would run with no drag in progress.
    *
    * @param {MouseEvent} event The move-zone mouse event.
    */
   #onSelectionEdgeMouseDown = (event: MouseEvent): void => {
+    if (this.hot.getPlugin('moveCells')?.isDragActive() !== true) {
+      return;
+    }
+
     this.#setupListening('move', event);
   };
 
   /**
-   * Starts auto-scrolling for a selection-handle drag.
+   * Starts auto-scrolling for a selection-handle drag, but only if SelectionHandles actually began
+   * one. Same ordering guarantee as `#onSelectionEdgeMouseDown` (SelectionHandles is priority 24).
    *
    * @param {MouseEvent} event The selection-handle mouse event.
    */
   #onSelectionHandleMouseDown = (event: MouseEvent): void => {
+    if (this.hot.getPlugin('selectionHandles')?.isDragActive() !== true) {
+      return;
+    }
+
     this.#setupListening('handle', event);
   };
 

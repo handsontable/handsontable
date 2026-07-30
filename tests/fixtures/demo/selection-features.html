@@ -32,7 +32,9 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
-    const data = Array.from({ length: 10 }, (_, r) =>
+    // Built fresh on every init: moveCells and undo/redo mutate the data array in place, so a
+    // single shared array would leak one test's moves into the next.
+    const buildData = () => Array.from({ length: 10 }, (_, r) =>
       Array.from({ length: 10 }, (_, c) => `R${r + 1}C${c + 1}`));
 
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
@@ -42,13 +44,47 @@
 
     // (Re)creates the grid with the default selection-feature settings merged
     // with the given overrides (e.g. { moveCells: false }).
+    // Records moveCells hook calls so a test can assert the arguments a hook received, and can veto
+    // a move. Reset on every init together with the grid.
+    window.moveCellsHookLog = [];
+    window.vetoBeforeMoveCells = false;
+
     window.initSelectionGrid = (overrides = {}) => {
       if (window.hot) {
         window.hot.destroy();
       }
 
+      window.moveCellsHookLog = [];
+
       window.hot = new Handsontable(container, Object.assign({
-        data,
+        beforeMoveCells: (source, target, isCopy) => {
+          window.moveCellsHookLog.push({
+            hook: 'beforeMoveCells',
+            source: [
+              source.getTopStartCorner().row, source.getTopStartCorner().col,
+              source.getBottomEndCorner().row, source.getBottomEndCorner().col,
+            ],
+            target: [target.row, target.col],
+            isCopy,
+          });
+
+          return window.vetoBeforeMoveCells ? false : undefined;
+        },
+        afterMoveCells: (source, target, isCopy) => {
+          window.moveCellsHookLog.push({
+            hook: 'afterMoveCells',
+            source: [
+              source.getTopStartCorner().row, source.getTopStartCorner().col,
+              source.getBottomEndCorner().row, source.getBottomEndCorner().col,
+            ],
+            target: [
+              target.getTopStartCorner().row, target.getTopStartCorner().col,
+              target.getBottomEndCorner().row, target.getBottomEndCorner().col,
+            ],
+            isCopy,
+          });
+        },
+        data: buildData(),
         width: 500,
         height: 400,
         rowHeaders: true,
@@ -63,6 +99,14 @@
       return true;
     };
 
+    // Toggles the beforeMoveCells veto for the veto tests.
+    window.setBeforeMoveCellsVeto = (shouldVeto) => {
+      window.vetoBeforeMoveCells = shouldVeto;
+
+      return true;
+    };
+
+    window.vetoBeforeMoveCells = false;
     window.initSelectionGrid();
   </script>
 </body>

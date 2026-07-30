@@ -3,12 +3,16 @@ import type CellRange from '../../3rdparty/walkontable/src/cell/range';
 import { BasePlugin } from '../base';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
-import { buildMoveMap, clampMoveTarget } from './helpers';
+import { isRightClick } from '../../helpers/dom/event';
+import { buildMoveMap, clampMoveTarget, MOVABLE_META_KEYS } from './helpers';
 
 export const PLUGIN_KEY = 'moveCells';
 export const PLUGIN_PRIORITY = 25;
 
-const MOVABLE_META_KEYS: ReadonlyArray<string> = ['className'];
+// Used only when the theme tokens cannot be resolved (the ghost lives outside the theme scope —
+// see `#createGhost`). Mirrors the `main` theme's selection border.
+const GHOST_BORDER_WIDTH = '1px';
+const GHOST_BORDER_COLOR = '#4b89ff';
 
 /**
  * Provides drag-to-move and programmatic move/copy operations for cell selections.
@@ -110,6 +114,18 @@ export class MoveCells extends BasePlugin {
   }
 
   /**
+   * Checks whether a move drag is currently in progress. Reachable through `getPlugin` because
+   * DragToScroll needs it — it must not start auto-scrolling for a press this plugin rejected — but
+   * internal, not part of the public API.
+   *
+   * @private
+   * @returns {boolean}
+   */
+  isDragActive(): boolean {
+    return this.#drag !== null;
+  }
+
+  /**
    * Moves or copies a visual cell range.
    *
    * @param {CellRange} sourceRange The source range.
@@ -131,10 +147,16 @@ export class MoveCells extends BasePlugin {
     const targetBottom = targetRow + height - 1;
     const targetRight = targetCol + width - 1;
 
+    // A read-only cell vetoes the move from either end. The target case is the obvious one; the
+    // source case matters just as much, because `populateFromArray` skips read-only cells (see
+    // `core.ts`, which exempts only `'UndoRedo.undo'`). Without this check the source values survive
+    // and the move silently degrades into a copy — and with the Formulas plugin active it is worse
+    // still: HyperFormula has already relocated the cell, so the engine and the data source diverge.
     if (
       targetRow < 0 || targetCol < 0 ||
       targetBottom >= this.hot.countRows() || targetRight >= this.hot.countCols() ||
-      this.#hasReadOnlyCell(targetRow, targetCol, height, width)
+      this.#hasReadOnlyCell(targetRow, targetCol, height, width) ||
+      (!isCopy && this.#hasReadOnlyCell(fromRow, fromCol, height, width))
     ) {
       return false;
     }
@@ -237,6 +259,11 @@ export class MoveCells extends BasePlugin {
   #onSelectionEdgeMouseDown = (event: MouseEvent): void => {
     const selection = this.hot.selection;
 
+    // A right-press opens the context menu; it must not also start (and on release, commit) a move.
+    if (isRightClick(event)) {
+      return;
+    }
+
     if (this.#drag || (!selection.isRangeMovable() && !selection.isSingleCellMovable())) {
       return;
     }
@@ -278,7 +305,13 @@ export class MoveCells extends BasePlugin {
    * Updates the preview while moving a selection.
    */
   #onMouseMove = (event: Event): void => {
-    const mouseEvent = event as MouseEvent;
+    // Cross-realm safe: the grid may live in an iframe, where the event's `MouseEvent` constructor
+    // is the child realm's, not this one's. Matches the narrowing in the SelectionHandles plugin.
+    if (!(event instanceof this.hot.rootWindow.MouseEvent)) {
+      return;
+    }
+
+    const mouseEvent = event;
 
     if (!this.#drag) {
       return;
@@ -388,15 +421,27 @@ export class MoveCells extends BasePlugin {
 
   /**
    * Creates the drag preview element.
+   *
+   * The ghost is appended to `document.body` with `position: fixed` so a host layout's overflow can
+   * never clip it. That puts it outside the theme scope, where the `--ht-cell-selection-border-*`
+   * tokens do not resolve — so the two theme-derived values are read off the root element and
+   * inlined here rather than declared in `_selection.scss` (which documents the same constraint).
    */
   #createGhost(): void {
     const ghost = this.hot.rootDocument.createElement('div');
-    const style = this.hot.rootWindow.getComputedStyle(this.hot.rootElement);
+    const rootStyle = this.hot.rootWindow.getComputedStyle(this.hot.rootElement);
+    const borderWidth = rootStyle.getPropertyValue('--ht-cell-selection-border-width').trim() || GHOST_BORDER_WIDTH;
+    const borderColor = rootStyle.getPropertyValue('--ht-cell-selection-border-color').trim() || GHOST_BORDER_COLOR;
 
     ghost.className = 'wtMoveGhost';
-    ghost.style.cssText = `position:fixed;display:none;pointer-events:none;z-index:10000;box-sizing:border-box;border:${
-      style.getPropertyValue('--ht-cell-selection-border-width').trim() || '1px'
-    } dashed ${style.getPropertyValue('--ht-cell-selection-border-color').trim() || '#4b89ff'};`;
+    Object.assign(ghost.style, {
+      position: 'fixed',
+      display: 'none',
+      pointerEvents: 'none',
+      zIndex: '10000',
+      boxSizing: 'border-box',
+      border: `${borderWidth} dashed ${borderColor}`,
+    });
     this.hot.rootDocument.body.appendChild(ghost);
     this.#ghost = ghost;
   }
@@ -458,7 +503,7 @@ export class MoveCells extends BasePlugin {
   }
 
   /**
-   * Checks whether a target range contains a read-only cell.
+   * Checks whether a range contains a read-only cell. Used for both the source and the target range.
    */
   #hasReadOnlyCell(row: number, col: number, height: number, width: number): boolean {
     for (let rowOffset = 0; rowOffset < height; rowOffset++) {
@@ -476,7 +521,9 @@ export class MoveCells extends BasePlugin {
    * Captures movable own cell metadata.
    */
   #readMeta(row: number, col: number): Record<string, unknown> {
-    const meta = this.hot.getCellMeta(row, col) as Record<string, unknown>;
+    // Transient: the snapshot below copies out the movable keys and the meta object is discarded,
+    // so materializing one per visited cell would retain memory the viewport cannot evict.
+    const meta = this.hot.getCellMetaTransient(row, col) as Record<string, unknown>;
 
     return MOVABLE_META_KEYS.reduce<Record<string, unknown>>((snapshot, key) => {
       if (Object.prototype.hasOwnProperty.call(meta, key)) {

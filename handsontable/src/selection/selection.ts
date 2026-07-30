@@ -1236,7 +1236,8 @@ class Selection {
 
   /**
    * Returns the selection layer currently showing adjustment handles, or `null`.
-   * This is an internal method used by the hover and drag wiring in `TableView` and is not part of the public API.
+   * This is an internal method used by the SelectionHandles plugin's hover and drag wiring, and is
+   * not part of the public API.
    *
    * @private
    * @returns {number | null}
@@ -1247,7 +1248,8 @@ class Selection {
 
   /**
    * Sets which selection layer currently shows adjustment handles and refreshes the borders.
-   * This is an internal method called by the hover wiring and is not part of the public API.
+   * This is an internal method called by the SelectionHandles plugin's hover wiring, and is not part
+   * of the public API.
    *
    * @private
    * @param {number | null} layer The hovered layer level, or `null` to hide all handles.

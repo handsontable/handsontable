@@ -4,7 +4,6 @@ import type { CellProperties } from './settings';
 import type { IndexMapper } from './translations';
 import type { WalkontableInstance } from './3rdparty/walkontable/src/types';
 import type { RowsCalculationType, ColumnsCalculationType } from './3rdparty/walkontable/src/calculator/viewportBase';
-import type CellCoords from './3rdparty/walkontable/src/cell/coords';
 import {
   addClass,
   removeClass,
@@ -534,7 +533,6 @@ class TableView {
       // Prevent text from being selected when performing drag down.
       event.preventDefault();
     });
-
   }
 
   /**

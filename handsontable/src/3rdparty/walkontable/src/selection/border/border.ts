@@ -9,7 +9,7 @@ import {
   getTrimmingContainer,
   isHTMLElement,
 } from '../../../../../helpers/dom/element';
-import { stopImmediatePropagation } from '../../../../../helpers/dom/event';
+import { stopImmediatePropagation, isRightClick } from '../../../../../helpers/dom/event';
 import { isMobileBrowser } from '../../../../../helpers/browser';
 import { getCornerStyle } from './utils';
 
@@ -95,13 +95,19 @@ class Border {
    */
   declare selectionHandles: SelectionHandles;
   /**
-   * @type {AdjustHandles}
+   * Created lazily on the first `appear()` whose visibility predicate resolves truthy, so it stays
+   * `undefined` while the `selectionHandles` option is off.
+   *
+   * @type {AdjustHandles | undefined}
    */
-  declare adjustHandles: AdjustHandles;
+  declare adjustHandles: AdjustHandles | undefined;
   /**
-   * @type {MoveZone}
+   * Created lazily on the first `appear()` whose visibility predicate resolves truthy, so it stays
+   * `undefined` while the `moveCells` option is off.
+   *
+   * @type {MoveZone | undefined}
    */
-  declare moveZone: MoveZone;
+  declare moveZone: MoveZone | undefined;
   /**
    * @type {boolean}
    */
@@ -153,6 +159,11 @@ class Border {
     this.eventManager.addEventListener(documentBody, 'mousedown', () => this.onMouseDown());
     this.eventManager.addEventListener(documentBody, 'mouseup', () => this.onMouseUp());
 
+    // Only the five border divs created by `createBorders` are present at this point, which is
+    // exactly the set that wants the fragment-selection hide-on-enter behavior. The lazily created
+    // `selectionHandles`/`moveCells` elements must NOT get it — `onMouseEnter` restores with an
+    // unconditional `display = 'block'`, which would un-hide a handle the visibility predicate
+    // wants hidden. Their own listeners are attached in their `create*` methods instead.
     if (this.main) {
       for (let c = 0, len = this.main.childNodes.length; c < len; c++) {
         const mainNode = this.main;
@@ -161,20 +172,6 @@ class Border {
         this.eventManager
           .addEventListener(element as Element, 'mouseenter',
             (event: MouseEvent) => this.onMouseEnter(event, mainNode.childNodes[c] as HTMLElement));
-      }
-    }
-
-    if (this.adjustHandles) {
-      const edges = ['top', 'bottom', 'start', 'end'] as const;
-
-      for (const edge of edges) {
-        const handleEl = this.adjustHandles[edge];
-
-        this.eventManager.addEventListener(handleEl, 'mousedown', (event: MouseEvent) => {
-          stopImmediatePropagation(event);
-          event.preventDefault();
-          this.wot.getSetting('onSelectionHandleMouseDown', event, edge);
-        });
       }
     }
   }
@@ -332,10 +329,10 @@ class Border {
     if (isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
       this.createMultipleSelectorHandles();
     }
-    if (!isMobileBrowser() && this.wot.getSetting('isDataViewInstance')) {
-      this.createAdjustHandles();
-      this.createMoveZone();
-    }
+    // The `selectionHandles` and `moveCells` elements are created lazily, on the first `appear()`
+    // whose visibility predicate resolves truthy. Creating them here would add 8 divs and their
+    // listeners to every border of every highlight in every overlay, for every instance — including
+    // the majority that leave both options off. See `appear()`.
     this.disappear();
 
     const { wtTable } = this.wot;
@@ -411,8 +408,15 @@ class Border {
    * by CSS via the `--ht-cell-selection-handle-*` tokens defined in the theme stylesheets.
    * JS sets only `display:none` (initial hidden state) and the positioning `top`/`left` values
    * during `positionAdjustHandles`. Class names (`wtSelectionHandle--<edge>`) carry orientation.
+   *
+   * Called lazily from `appear()` on the first draw whose `adjustHandlesVisible` predicate resolves
+   * truthy, so the elements never exist for instances that leave `selectionHandles` off. Because
+   * `registerListeners` has already run by then, each handle attaches its own `mousedown` listener
+   * here.
+   *
+   * @returns {AdjustHandles} The created handle set, so the caller can use it without a null check.
    */
-  createAdjustHandles() {
+  createAdjustHandles(): AdjustHandles {
     const { rootDocument } = this.wot;
 
     const make = (edge: string) => {
@@ -421,6 +425,17 @@ class Border {
       el.className = `wtSelectionHandle wtSelectionHandle--${edge}`;
       el.style.display = 'none';
       this.main!.appendChild(el);
+
+      this.eventManager.addEventListener(el, 'mousedown', (event: MouseEvent) => {
+        // A right-press must fall through to the context menu without starting a resize drag.
+        if (isRightClick(event)) {
+          return;
+        }
+
+        stopImmediatePropagation(event);
+        event.preventDefault();
+        this.wot.getSetting('onSelectionHandleMouseDown', event, edge);
+      });
 
       return el;
     };
@@ -437,6 +452,8 @@ class Border {
       end,
       styles: { top: top.style, bottom: bottom.style, start: start.style, end: end.style },
     };
+
+    return this.adjustHandles;
   }
 
   /**
@@ -447,6 +464,9 @@ class Border {
    * Bands sit at z-index 100 — below the resize pills (z-index 200) so the pills win in the corner
    * regions where they overlap. All four bands are created hidden; `positionMoveZone` + `appear`
    * control their visibility.
+   *
+   * Called lazily from `appear()` on the first draw whose `moveEnabled` predicate resolves truthy,
+   * so the bands never exist for instances that leave `moveCells` off.
    *
    * @private
    */
@@ -465,6 +485,11 @@ class Border {
       this.main!.appendChild(el);
 
       this.eventManager.addEventListener(el, 'mousedown', (event: MouseEvent) => {
+        // A right-press must fall through to the context menu without starting a move drag.
+        if (isRightClick(event)) {
+          return;
+        }
+
         stopImmediatePropagation(event);
         event.preventDefault();
         this.wot.getSetting('onSelectionEdgeMouseDown', event, edge);
@@ -501,7 +526,8 @@ class Border {
   positionMoveZone(top: number, inlineStart: number, width: number, height: number) {
     const isRtl = this.wot.wtSettings.getSetting('rtlMode');
     const inlineProp = isRtl ? 'right' : 'left';
-    const s = this.moveZone.styles;
+    // Only ever called from `appear()` after the bands have been created.
+    const s = this.moveZone!.styles;
     const half = Math.floor(MOVE_ZONE_THICKNESS / 2);
 
     // Top band — full width, centered on the top edge.
@@ -1463,7 +1489,9 @@ class Border {
     adjustVisible = typeof adjustVisible === 'function'
       ? adjustVisible(this.settings.layerLevel) : adjustVisible;
 
-    if (!isMobileBrowser() && adjustVisible && this.adjustHandles) {
+    if (!isMobileBrowser() && adjustVisible && this.wot.getSetting('isDataViewInstance')) {
+      const adjustHandles = this.adjustHandles ?? this.createAdjustHandles();
+
       this.positionAdjustHandles(top, inlineStartPos, width, height, corners);
 
       // Hide handles on an edge that lands on a frozen-pane line. This boundary rule is
@@ -1471,17 +1499,17 @@ class Border {
       // matching core-side check was removed as dead code — this is the single
       // authoritative enforcement point.
       if (this.isFrozenBoundaryEdge('row', corners[0])) {
-        this.adjustHandles.styles.top.display = 'none';
+        adjustHandles.styles.top.display = 'none';
       }
       if (this.isFrozenBoundaryEdge('column', corners[1])) {
-        this.adjustHandles.styles.start.display = 'none';
+        adjustHandles.styles.start.display = 'none';
       }
       if (this.isFrozenStartBoundaryOppositeEdge('row', corners[2]) ||
           this.isFrozenBottomBoundaryEdge(corners[2])) {
-        this.adjustHandles.styles.bottom.display = 'none';
+        adjustHandles.styles.bottom.display = 'none';
       }
       if (this.isFrozenStartBoundaryOppositeEdge('column', corners[3])) {
-        this.adjustHandles.styles.end.display = 'none';
+        adjustHandles.styles.end.display = 'none';
       }
     } else if (this.adjustHandles) {
       this.adjustHandles.styles.top.display = 'none';
@@ -1495,7 +1523,11 @@ class Border {
     moveEnabled = typeof moveEnabled === 'function'
       ? moveEnabled(this.settings.layerLevel) : moveEnabled;
 
-    if (!isMobileBrowser() && moveEnabled && this.moveZone) {
+    if (!isMobileBrowser() && moveEnabled && this.wot.getSetting('isDataViewInstance')) {
+      if (!this.moveZone) {
+        this.createMoveZone();
+      }
+
       this.positionMoveZone(top, inlineStartPos, width, height);
     } else if (this.moveZone) {
       this.moveZone.styles.top.display = 'none';
@@ -1644,7 +1676,8 @@ class Border {
     const startH = length;
     const endW = size;
     const endH = length;
-    const s = this.adjustHandles.styles;
+    // Only ever called from `appear()` after the handles have been created.
+    const s = this.adjustHandles!.styles;
 
     s.top.display = 'none';
     s.bottom.display = 'none';
