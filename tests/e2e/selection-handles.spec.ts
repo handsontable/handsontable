@@ -9,6 +9,14 @@ import { SelectionFeaturesPage } from '../fixtures/pages/SelectionFeaturesPage';
 test.describe('selectionHandles adjust handles', () => {
   let grid: SelectionFeaturesPage;
 
+  /**
+   * A viewport big enough that every row and column a resize test drags to is fully rendered in all
+   * three themes. The fixture's 500x400 default only renders roughly the first six columns, and cell
+   * sizes differ per theme — so a drag toward column 8 either never finds its target (horizon) or
+   * triggers horizontal auto-scroll and over-extends the selection by a column (classic).
+   */
+  const ROOMY_VIEWPORT = { width: 900, height: 520 };
+
   test.beforeEach(async ({ page, theme }) => {
     grid = new SelectionFeaturesPage(page, theme);
     await grid.goto();
@@ -220,6 +228,7 @@ test.describe('selectionHandles adjust handles', () => {
   });
 
   test('grows the selection downward without changing the column span', async () => {
+    await grid.initGrid(ROOMY_VIEWPORT);
     await grid.selectCells(2, 2, 4, 4);
     await grid.hoverCell(3, 3);
 
@@ -231,6 +240,7 @@ test.describe('selectionHandles adjust handles', () => {
   });
 
   test('clamps the top handle at the bottom edge instead of flipping the selection', async () => {
+    await grid.initGrid(ROOMY_VIEWPORT);
     await grid.selectCells(2, 2, 5, 5);
     await grid.hoverCell(3, 3);
 
@@ -245,6 +255,7 @@ test.describe('selectionHandles adjust handles', () => {
   });
 
   test('moves only the start edge, keeping the end edge anchored', async () => {
+    await grid.initGrid(ROOMY_VIEWPORT);
     await grid.selectCells(2, 3, 5, 6);
     await grid.hoverCell(3, 4);
 
@@ -255,6 +266,7 @@ test.describe('selectionHandles adjust handles', () => {
   });
 
   test('moves only the end edge, keeping the start edge anchored', async () => {
+    await grid.initGrid(ROOMY_VIEWPORT);
     await grid.selectCells(2, 3, 5, 6);
     await grid.hoverCell(3, 4);
 
@@ -282,7 +294,7 @@ test.describe('selectionHandles adjust handles', () => {
   });
 
   test('resizes correctly when dragging the bottom handle in an RTL layout', async () => {
-    await grid.initGrid({ layoutDirection: 'rtl' });
+    await grid.initGrid({ ...ROOMY_VIEWPORT, layoutDirection: 'rtl' });
     await grid.selectCells(2, 2, 4, 4);
     await grid.hoverCell(3, 3);
 
@@ -294,6 +306,7 @@ test.describe('selectionHandles adjust handles', () => {
   });
 
   test('preserves the other layer when resizing the hovered last layer', async () => {
+    await grid.initGrid(ROOMY_VIEWPORT);
     await grid.selectLayers([[2, 1, 6, 1], [2, 3, 7, 3]]);
     await grid.hoverCell(4, 3);
 
@@ -307,6 +320,7 @@ test.describe('selectionHandles adjust handles', () => {
   });
 
   test('preserves the other layer when resizing a non-last layer', async () => {
+    await grid.initGrid(ROOMY_VIEWPORT);
     await grid.selectLayers([[2, 1, 6, 1], [2, 3, 7, 3]]);
     await grid.hoverCell(4, 1);
 
@@ -333,6 +347,7 @@ test.describe('selectionHandles adjust handles', () => {
   });
 
   test('keeps the focus cell stable when growing the selection via the end handle', async () => {
+    await grid.initGrid(ROOMY_VIEWPORT);
     await grid.selectCells(2, 2, 5, 5);
     await grid.hoverCell(3, 3);
 
