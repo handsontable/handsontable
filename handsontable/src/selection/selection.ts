@@ -1327,7 +1327,13 @@ class Selection {
       this.selectedByColumnHeader.add(this.getLayerLevel());
       this.setRangeEnd(to);
       this.runLocalHooks('afterSelectColumns', from, to, highlight);
-      this.finish();
+
+      // For mouse-driven selection the process is finished by the document-level `mouseup`/`touchend`
+      // handler once the user releases the button. Finishing here as well would fire `afterSelectionEnd`
+      // prematurely on the initial `mousedown`, causing it to run twice for a header drag (#7133).
+      if (this.getSelectionSource() !== 'mouse') {
+        this.finish();
+      }
     }
 
     return isValid;
@@ -1385,7 +1391,13 @@ class Selection {
       this.selectedByRowHeader.add(this.getLayerLevel());
       this.setRangeEnd(to);
       this.runLocalHooks('afterSelectRows', from, to, highlight);
-      this.finish();
+
+      // For mouse-driven selection the process is finished by the document-level `mouseup`/`touchend`
+      // handler once the user releases the button. Finishing here as well would fire `afterSelectionEnd`
+      // prematurely on the initial `mousedown`, causing it to run twice for a header drag (#7133).
+      if (this.getSelectionSource() !== 'mouse') {
+        this.finish();
+      }
     }
 
     return isValid;
