@@ -974,6 +974,42 @@ class Border {
   }
 
   /**
+   * Resolves the position the fill handle's overflow checks measure from, in the same space as the
+   * trimming container they compare against: viewport coordinates when the window trims the grid,
+   * otherwise the offset inside the scrollable content.
+   *
+   * A cell's own `offsetLeft`/`offsetTop` are relative to the `<table>`, and the master shifts that
+   * table through the spreader by the frozen-pane size and by the first rendered column/row offset.
+   * That shift is missing from the cell offsets, so the handle could measure as "inside" while it
+   * protruded past the content edge and forced a spurious scrollbar. The hider spans the whole
+   * scrollable content, so measuring from it puts the shift back.
+   *
+   * @private
+   * @param {HTMLElement} TD The cell that carries the fill handle (the selection's bottom-end cell).
+   * @param {{ top: number, left: number }} TDOffset The cell's already-measured document offset.
+   * @param {boolean} trimToWindow Whether the grid is trimmed by the window rather than an element.
+   * @returns {{ top: number, left: number }}
+   */
+  getFillHandleAnchor(
+    TD: HTMLElement, TDOffset: { top: number, left: number }, trimToWindow: boolean
+  ): { top: number, left: number } {
+    const { geometryReader } = this.wot.domBindings;
+
+    if (trimToWindow) {
+      const { top, left } = geometryReader.getBoundingClientRect(TD);
+
+      return { top, left };
+    }
+
+    const hiderOffset = geometryReader.offset(this.wot.wtTable.hider);
+
+    return {
+      top: TDOffset.top - hiderOffset.top,
+      left: TDOffset.left - hiderOffset.left,
+    };
+  }
+
+  /**
    * Show border around one or many cells.
    *
    * @param {Array} corners The corner coordinates.
@@ -1224,11 +1260,10 @@ class Border {
       const cornerBorderCompensation = parseInt(String(this.cornerDefaultStyle.borderWidth), 10) - 1;
       const cornerHalfWidth = Math.ceil(parseInt(String(this.cornerDefaultStyle.width), 10) / 2);
       const cornerHalfHeight = Math.ceil(parseInt(String(this.cornerDefaultStyle.height), 10) / 2);
+      const fillHandleAnchor = this.getFillHandleAnchor(toTDEl, toOffset, trimToWindow);
 
       if (toColumn === (this.wot.getSetting('totalColumns') as number) - 1) {
-        const toTdOffsetLeft = trimToWindow
-          ? geometryReader.getBoundingClientRect(toTDEl).left
-          : geometryReader.offsetLeft(toTDEl);
+        const { left: toTdOffsetLeft } = fillHandleAnchor;
         let cornerOverlappingContainer = false;
         let cornerEdge = 0;
 
@@ -1256,9 +1291,7 @@ class Border {
       }
 
       if (toRow === (this.wot.getSetting('totalRows') as number) - 1) {
-        const toTdOffsetTop = trimToWindow
-          ? geometryReader.getBoundingClientRect(toTDEl).top
-          : geometryReader.offsetTop(toTDEl);
+        const { top: toTdOffsetTop } = fillHandleAnchor;
         const cornerHalfHeight = parseInt(String(this.cornerDefaultStyle.height), 10) / 2;
         const cornerBottomEdge = toTdOffsetTop + geometryReader.outerHeight(toTDEl) + cornerHalfHeight;
         const cornerOverlappingContainer = cornerBottomEdge >= geometryReader.innerHeight(trimmingContainer);
