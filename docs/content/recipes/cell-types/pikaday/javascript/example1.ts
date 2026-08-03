@@ -2,6 +2,7 @@ import Handsontable from "handsontable/base";
 import { registerAllModules } from "handsontable/registry";
 import moment from "moment";
 import Pikaday from "@handsontable/pikaday";
+import "@handsontable/pikaday/css/pikaday.css";
 import { CellProperties } from "handsontable/settings";
 import { editorFactory } from "handsontable/editors";
 import { rendererFactory } from "handsontable/renderers";

@@ -90,6 +90,7 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
+import '@handsontable/pikaday/css/pikaday.css';
 import { CellProperties } from 'handsontable/settings';
 import { editorFactory } from 'handsontable/editors';
 import { rendererFactory } from 'handsontable/renderers';
@@ -789,7 +790,7 @@ options.format = 'MM/DD/YYYY'; // Pikaday format string
 ### 4. Localization
 
 ```typescript
-import 'pikaday/css/pikaday.css';
+import '@handsontable/pikaday/css/pikaday.css';
 import moment from 'moment';
 import 'moment/locale/fr';
 

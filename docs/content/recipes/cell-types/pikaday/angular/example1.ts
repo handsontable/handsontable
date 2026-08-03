@@ -8,6 +8,7 @@ import {
 } from '@handsontable/angular-wrapper';
 import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
+import '@handsontable/pikaday/css/pikaday.css';
 
 const DATE_FORMAT_US = 'MM/DD/YYYY';
 
