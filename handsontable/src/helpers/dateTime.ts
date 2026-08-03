@@ -107,6 +107,65 @@ export function isValidTime(value: unknown): value is string {
 }
 
 /**
+ * ISO 8601 date-time pattern. The date part is required; the time part is optional and may use a
+ * `T` or space separator, with optional seconds and fractional seconds (`YYYY-MM-DD`,
+ * `YYYY-MM-DDTHH:mm`, `YYYY-MM-DDTHH:mm:ss`, `YYYY-MM-DD HH:mm:ss.SSS`).
+ */
+export const ISO_DATETIME_REGEX =
+  /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])(?:[T ]([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(?:\.(\d{1,3}))?)?)?$/;
+
+/**
+ * Parses an ISO 8601 date-time string to a local Date. Date-only values become local midnight.
+ */
+export function parseToLocalDateTime(value: unknown): Date | null {
+  if (isEmpty(value)) {
+    return null;
+  }
+  if (typeof value !== 'string') {
+    return null;
+  }
+
+  const match = ISO_DATETIME_REGEX.exec(value);
+
+  if (!match) {
+    return null;
+  }
+
+  const [datePart] = value.split(/[T ]/);
+  const [year, month, day] = datePart.split('-').map(Number);
+  const hours = match[3] !== undefined ? Number(match[3]) : 0;
+  const minutes = match[4] !== undefined ? Number(match[4]) : 0;
+  const seconds = match[5] !== undefined ? Number(match[5]) : 0;
+  const milliseconds = match[6] !== undefined
+    ? Number(match[6].padEnd(3, '0').slice(0, 3))
+    : 0;
+
+  return new Date(year, month - 1, day, hours, minutes, seconds, milliseconds);
+}
+
+/**
+ * Checks if a string is a valid ISO 8601 date-time, enforcing the day-of-month calendar bound.
+ */
+export function isValidISODateTime(value: unknown): value is string {
+  if (typeof value !== 'string') {
+    return false;
+  }
+
+  const match = ISO_DATETIME_REGEX.exec(value);
+
+  if (!match) {
+    return false;
+  }
+
+  const year = +value.slice(0, 4);
+  const month = +match[1];
+  const day = +match[2];
+  const maxDay = month === 2 && isLeapYear(year) ? 29 : DAYS_IN_MONTH[month - 1];
+
+  return day <= maxDay;
+}
+
+/**
  * Returns a Date at local midnight for today.
  *
  * @returns {Date} A Date object representing today at local midnight.
