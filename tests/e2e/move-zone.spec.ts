@@ -329,6 +329,70 @@ test.describe('moveCells edge move bands', () => {
     expect(await grid.cellValue(2, 2)).toBe('R3C3');
   });
 
+  test('records no undo entry for a click on a move zone without dragging', async ({ page }) => {
+    // A mousedown + mouseup on the same pixel resolves the move target back to the source, which
+    // used to run the whole commit pipeline for zero data change — every click on a selection
+    // border consumed one undo entry and pushed the user's real edits out of the undo stack.
+    await grid.selectCells(2, 2, 3, 3);
+
+    const box = await grid.visibleMoveZones().first().boundingBox();
+
+    expect(box).not.toBeNull();
+
+    await page.mouse.move(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
+    await page.mouse.down();
+    await page.mouse.up();
+
+    expect(await grid.cellValue(2, 2)).toBe('R3C3');
+    expect(await grid.doneActionsCount()).toBe(0);
+    expect(await grid.isUndoAvailable()).toBe(false);
+  });
+
+  test('records no undo entry for a macOS-style Ctrl+click on a move zone', async ({ page }) => {
+    // On macOS a Ctrl+click reaches the plugin as button 0 with ctrlKey set, so it passes the
+    // right-click guard — and because Ctrl on drop means "copy", it used to commit a no-op copy.
+    await grid.selectCells(2, 2, 3, 3);
+
+    const box = await grid.visibleMoveZones().first().boundingBox();
+
+    expect(box).not.toBeNull();
+
+    await page.keyboard.down('Control');
+    await page.mouse.move(box!.x + (box!.width / 2), box!.y + (box!.height / 2));
+    await page.mouse.down();
+    await page.mouse.up();
+    await page.keyboard.up('Control');
+
+    expect(await grid.cellValue(2, 2)).toBe('R3C3');
+    expect(await grid.doneActionsCount()).toBe(0);
+    expect(await grid.isUndoAvailable()).toBe(false);
+  });
+
+  test('records no undo entry when a drag is released back at its origin', async ({ page }) => {
+    await grid.selectCells(2, 2, 3, 3);
+
+    const box = await grid.visibleMoveZones().first().boundingBox();
+
+    expect(box).not.toBeNull();
+
+    const pressX = box!.x + (box!.width / 2);
+    const pressY = box!.y + (box!.height / 2);
+    const awayBox = await grid.cell(6, 6).boundingBox();
+
+    expect(awayBox).not.toBeNull();
+
+    // Drag away and back to the exact press point, so the resolved target equals the source.
+    await page.mouse.move(pressX, pressY);
+    await page.mouse.down();
+    await page.mouse.move(awayBox!.x + (awayBox!.width / 2), awayBox!.y + (awayBox!.height / 2), { steps: 2 });
+    await page.mouse.move(pressX, pressY, { steps: 2 });
+    await page.mouse.up();
+
+    expect(await grid.cellValue(2, 2)).toBe('R3C3');
+    expect(await grid.doneActionsCount()).toBe(0);
+    expect(await grid.isUndoAvailable()).toBe(false);
+  });
+
   test('honors the grab offset when dragging from a non-top-left cell of a 2x2 range', async () => {
     await grid.selectCells(1, 1, 2, 2);
 

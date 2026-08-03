@@ -1,3 +1,6 @@
+import type { HotInstance } from '../../core/types';
+import { hasOwnProperty } from '../../helpers/object';
+
 /**
  * The cell-meta keys that travel with a moved cell. Exported because the UndoRedo `MoveCellsAction`
  * must restore exactly this set — a key added here but missed there would silently stop being undone.
@@ -36,31 +39,65 @@ export function clampMoveTarget({
   };
 }
 
-interface BuildMoveMapOptions {
-  fromRow: number;
-  fromCol: number;
-  toRow: number;
-  toCol: number;
-  targetRow: number;
-  targetCol: number;
+/**
+ * A sparse record of one cell's own movable meta: the cell's visual coordinates plus only the
+ * movable keys the cell carries as its own properties.
+ */
+export interface MovableMetaEntry {
+  /**
+   * The visual row index of the cell.
+   */
+  row: number;
+  /**
+   * The visual column index of the cell.
+   */
+  col: number;
+  /**
+   * The cell's own movable meta keys and their values.
+   */
+  meta: Record<string, unknown>;
 }
 
 /**
- * Builds source-to-target coordinate mappings for a move.
+ * Collects the cells of a visual region that carry their own movable meta keys. The result is
+ * sparse — cells without any own movable key produce no entry — so a move allocates
+ * proportionally to the number of styled cells, not to the range area.
  *
- * @param {BuildMoveMapOptions} options The source corners and target top-left.
- * @returns {Array<{ fromRow: number, fromCol: number, toRow: number, toCol: number }>}
+ * @param {HotInstance} hot The Handsontable instance.
+ * @param {number} fromRow The visual top row of the region.
+ * @param {number} fromCol The visual start column of the region.
+ * @param {number} toRow The visual bottom row of the region.
+ * @param {number} toCol The visual end column of the region.
+ * @returns {MovableMetaEntry[]}
  */
-export function buildMoveMap({
-  fromRow, fromCol, toRow, toCol, targetRow, targetCol,
-}: BuildMoveMapOptions): Array<{ fromRow: number, fromCol: number, toRow: number, toCol: number }> {
-  const map = [];
+export function collectMovableMeta(
+  hot: HotInstance,
+  fromRow: number,
+  fromCol: number,
+  toRow: number,
+  toCol: number,
+): MovableMetaEntry[] {
+  const entries: MovableMetaEntry[] = [];
 
   for (let row = fromRow; row <= toRow; row++) {
     for (let col = fromCol; col <= toCol; col++) {
-      map.push({ fromRow: row, fromCol: col, toRow: targetRow + (row - fromRow), toCol: targetCol + (col - fromCol) });
+      // Transient: only the movable keys are copied out below and the meta object is discarded, so
+      // materializing one per visited cell would retain memory the viewport cannot evict.
+      const cellMeta = hot.getCellMetaTransient<Record<string, unknown>>(row, col);
+      let meta: Record<string, unknown> | null = null;
+
+      for (const key of MOVABLE_META_KEYS) {
+        if (hasOwnProperty(cellMeta, key)) {
+          meta = meta ?? {};
+          meta[key] = cellMeta[key];
+        }
+      }
+
+      if (meta !== null) {
+        entries.push({ row, col, meta });
+      }
     }
   }
 
-  return map;
+  return entries;
 }

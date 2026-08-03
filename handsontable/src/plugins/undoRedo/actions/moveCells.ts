@@ -3,9 +3,11 @@ import type { HotInstance } from '../../../core/types';
 import type CellCoords from '../../../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../../../3rdparty/walkontable/src/cell/range';
 import { BaseAction } from './_base';
+import { hasOwnProperty } from '../../../helpers/object';
 // Imported rather than duplicated: undo must restore exactly the key set `moveCellRange` moved, and
 // two copies would silently drift the moment a key is added to one of them.
-import { MOVABLE_META_KEYS } from '../../moveCells/helpers';
+import { collectMovableMeta, MOVABLE_META_KEYS } from '../../moveCells/helpers';
+import type { MovableMetaEntry } from '../../moveCells/helpers';
 
 /**
  * A snapshot of the values and movable meta for a rectangular cell region.
@@ -32,9 +34,11 @@ interface RegionSnapshot {
    */
   data: unknown[][];
   /**
-   * Flat list of per-cell movable meta, row-major order.
+   * Sparse list of the cells that carried own movable meta — one entry per styled cell, not per
+   * region cell, so the snapshot (and the `deepClone` the undo stack runs over it) stays small
+   * for large unstyled regions.
    */
-  meta: Array<Record<string, unknown>>;
+  meta: MovableMetaEntry[];
 }
 
 /**
@@ -55,7 +59,6 @@ function snapshotRegion(
   toCol: number,
 ): RegionSnapshot {
   const data: unknown[][] = [];
-  const meta: Array<Record<string, unknown>> = [];
 
   for (let r = fromRow; r <= toRow; r++) {
     const physicalRow = hot.toPhysicalRow(r);
@@ -63,19 +66,6 @@ function snapshotRegion(
 
     for (let c = fromCol; c <= toCol; c++) {
       rowData.push(hot.getSourceDataAtCell(physicalRow, c));
-
-      // Transient: only the movable keys are copied out below and the meta object is discarded, so
-      // materializing one per visited cell would retain memory the viewport cannot evict.
-      const cellMeta = hot.getCellMetaTransient(r, c);
-      const snapshot: Record<string, unknown> = {};
-
-      for (const key of MOVABLE_META_KEYS) {
-        if (Object.prototype.hasOwnProperty.call(cellMeta, key)) {
-          snapshot[key] = cellMeta[key];
-        }
-      }
-
-      meta.push(snapshot);
     }
 
     data.push(rowData);
@@ -87,7 +77,7 @@ function snapshotRegion(
     toRow,
     toCol,
     data,
-    meta,
+    meta: collectMovableMeta(hot, fromRow, fromCol, toRow, toCol),
   };
 }
 
@@ -104,24 +94,29 @@ function restoreRegion(hot: HotInstance, snapshot: RegionSnapshot): void {
   // and lets the Formulas plugin re-register formula strings in HyperFormula.
   hot.populateFromArray(fromRow, fromCol, data, toRow, toCol, 'UndoRedo.undo');
 
-  // Restore movable meta.
-  let idx = 0;
+  // Restore movable meta sparsely: clear the movable keys the region carries NOW that the
+  // snapshot does not record (they arrived with the move being undone), then write the recorded
+  // ones back. Scanning the current state instead of blanket-removing over the whole region keeps
+  // the per-cell `removeCellMeta` hook dispatch proportional to styled cells, not to region area.
+  const snapshotByCoord = new Map(meta.map(entry => [`${entry.row}:${entry.col}`, entry.meta]));
 
-  for (let r = fromRow; r <= toRow; r++) {
-    for (let c = fromCol; c <= toCol; c++) {
-      const cellSnapshot = meta[idx];
+  collectMovableMeta(hot, fromRow, fromCol, toRow, toCol).forEach(({ row, col, meta: currentMeta }) => {
+    const recorded = snapshotByCoord.get(`${row}:${col}`);
 
-      for (const key of MOVABLE_META_KEYS) {
-        if (Object.prototype.hasOwnProperty.call(cellSnapshot, key)) {
-          hot.setCellMeta(r, c, key, cellSnapshot[key] as string);
-        } else {
-          hot.removeCellMeta(r, c, key);
-        }
+    for (const key of MOVABLE_META_KEYS) {
+      if (hasOwnProperty(currentMeta, key) && !(recorded && hasOwnProperty(recorded, key))) {
+        hot.removeCellMeta(row, col, key);
       }
-
-      idx += 1;
     }
-  }
+  });
+
+  meta.forEach(({ row, col, meta: recordedMeta }) => {
+    for (const key of MOVABLE_META_KEYS) {
+      if (hasOwnProperty(recordedMeta, key)) {
+        hot.setCellMeta(row, col, key, recordedMeta[key]);
+      }
+    }
+  });
 }
 
 /**

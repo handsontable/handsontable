@@ -1,4 +1,4 @@
-import { buildMoveMap, clampMoveTarget, MOVABLE_META_KEYS } from '../helpers';
+import { clampMoveTarget, collectMovableMeta, MOVABLE_META_KEYS } from '../helpers';
 
 describe('MOVABLE_META_KEYS', () => {
   it('exports the meta keys that travel with a moved cell', () => {
@@ -34,20 +34,36 @@ describe('clampMoveTarget', () => {
   });
 });
 
-describe('buildMoveMap', () => {
-  it('maps source cells to target cells while preserving layout', () => {
-    expect(buildMoveMap({
-      fromRow: 2,
-      fromCol: 2,
-      toRow: 3,
-      toCol: 3,
-      targetRow: 5,
-      targetCol: 6,
-    })).toEqual([
-      { fromRow: 2, fromCol: 2, toRow: 5, toCol: 6 },
-      { fromRow: 2, fromCol: 3, toRow: 5, toCol: 7 },
-      { fromRow: 3, fromCol: 2, toRow: 6, toCol: 6 },
-      { fromRow: 3, fromCol: 3, toRow: 6, toCol: 7 },
+describe('collectMovableMeta', () => {
+  it('returns one entry per cell that owns a movable key, skipping the rest of the region', () => {
+    // A move must allocate proportionally to styled cells, not range area — an unstyled 1M-cell
+    // block used to materialize one meta object per cell through the dense per-cell write pass.
+    const ownMeta = {
+      '1:1': { className: 'marked' },
+      '2:0': { className: '' },
+    };
+    const hot = {
+      getCellMetaTransient(row, col) {
+        // Own props only for "stored" cells; every other cell resolves to a prototype-derived
+        // object whose movable keys are not own properties.
+        return { ...ownMeta[`${row}:${col}`] };
+      },
+    };
+
+    expect(collectMovableMeta(hot, 0, 0, 2, 2)).toEqual([
+      { row: 1, col: 1, meta: { className: 'marked' } },
+      { row: 2, col: 0, meta: { className: '' } },
     ]);
+  });
+
+  it('ignores movable keys inherited from the cascade', () => {
+    const inherited = Object.create({ className: 'column-level' });
+    const hot = {
+      getCellMetaTransient() {
+        return inherited;
+      },
+    };
+
+    expect(collectMovableMeta(hot, 0, 0, 1, 1)).toEqual([]);
   });
 });

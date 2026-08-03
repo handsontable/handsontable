@@ -4,7 +4,8 @@ import { BasePlugin } from '../base';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { getCellCoordsFromMousePosition } from '../../helpers/dom/cellCoords';
 import { isRightClick } from '../../helpers/dom/event';
-import { buildMoveMap, clampMoveTarget, MOVABLE_META_KEYS } from './helpers';
+import { hasOwnProperty } from '../../helpers/object';
+import { clampMoveTarget, collectMovableMeta, MOVABLE_META_KEYS } from './helpers';
 
 export const PLUGIN_KEY = 'moveCells';
 export const PLUGIN_PRIORITY = 25;
@@ -49,6 +50,8 @@ export class MoveCells extends BasePlugin {
     toCol: number;
     grabRowOffset: number;
     grabColOffset: number;
+    pressRow: number | null;
+    pressCol: number | null;
   } | null = null;
 
   /**
@@ -131,7 +134,9 @@ export class MoveCells extends BasePlugin {
    * @param {CellRange} sourceRange The source range.
    * @param {CellCoords} targetTopLeft The destination top-left cell.
    * @param {boolean} [isCopy=false] Whether to keep the source values.
-   * @returns {boolean} Whether the operation completed.
+   * @returns {boolean} Whether the operation completed. Returns `false` when the target equals the
+   * source top-left (a no-op — no hook fires and no undo entry is recorded) or when any guard
+   * vetoes the operation.
    */
   moveCellRange(sourceRange: CellRange, targetTopLeft: CellCoords, isCopy = false): boolean {
     const sourceStart = sourceRange.getTopStartCorner();
@@ -146,6 +151,15 @@ export class MoveCells extends BasePlugin {
     const targetCol = targetTopLeft.col!;
     const targetBottom = targetRow + height - 1;
     const targetRight = targetCol + width - 1;
+
+    // A move (or copy) onto itself is a no-op. Without this guard a plain click on the move zone
+    // — mousedown and mouseup on the same cell — would run the whole commit pipeline for zero data
+    // change: a HyperFormula mutation, a rewrite of the source region, and an undo entry that
+    // pushes the user's real edits out of the undo stack. Bail before any hook fires so neither
+    // UndoRedo nor Formulas snapshot anything.
+    if (targetRow === fromRow && targetCol === fromCol) {
+      return false;
+    }
 
     // A read-only cell vetoes the move from either end. The target case is the obvious one; the
     // source case matters just as much, because `populateFromArray` skips read-only cells (see
@@ -190,19 +204,7 @@ export class MoveCells extends BasePlugin {
     const values = this.#getSourceValues(fromRow, fromCol, toRow, toCol);
 
     this.hot.batch(() => {
-      const moveMap = buildMoveMap({ fromRow, fromCol, toRow, toCol, targetRow, targetCol });
-      const snapshots = moveMap.map(({ fromRow: row, fromCol: col }) => this.#readMeta(row, col));
-      const targetKeys = new Set(moveMap.map(({ toRow: row, toCol: col }) => `${row}:${col}`));
-
-      moveMap.forEach(({
-        fromRow: sourceRow, fromCol: sourceCol, toRow: destinationRow, toCol: destinationCol
-      }, index) => {
-        this.#writeMeta(destinationRow, destinationCol, snapshots[index]);
-
-        if (!isCopy && !targetKeys.has(`${sourceRow}:${sourceCol}`)) {
-          MOVABLE_META_KEYS.forEach(key => this.hot.removeCellMeta(sourceRow, sourceCol, key));
-        }
-      });
+      this.#transferMovableMeta({ fromRow, fromCol, toRow, toCol, targetRow, targetCol, isCopy });
 
       if (!formulasActive) {
         if (!isCopy) {
@@ -294,6 +296,8 @@ export class MoveCells extends BasePlugin {
       toCol,
       grabRowOffset: Math.min(toRow - fromRow, Math.max(0, (pointer.row ?? fromRow) - fromRow)),
       grabColOffset: Math.min(toCol - fromCol, Math.max(0, (pointer.col ?? fromCol) - fromCol)),
+      pressRow: pointer.row,
+      pressCol: pointer.col,
     };
     this.#pointerPosition = { clientX: event.clientX, clientY: event.clientY };
     this.#bodyCursor = this.hot.rootDocument.body.style.cursor;
@@ -405,6 +409,15 @@ export class MoveCells extends BasePlugin {
     }
 
     const pointer = getCellCoordsFromMousePosition(this.hot, event.clientX, event.clientY);
+
+    // A gesture that starts and ends in the same cell is a click, not a move. The move bands
+    // straddle the selection border, so a press can resolve to the cell just OUTSIDE the range —
+    // committing there would shift the block by one cell on a plain click (and on macOS a
+    // Ctrl+click would commit a spurious copy the same way).
+    if (pointer.row === drag.pressRow && pointer.col === drag.pressCol) {
+      return;
+    }
+
     const target = clampMoveTarget({
       pointerRow: pointer.row ?? drag.fromRow,
       pointerCol: pointer.col ?? drag.fromCol,
@@ -523,31 +536,61 @@ export class MoveCells extends BasePlugin {
   }
 
   /**
-   * Captures movable own cell metadata.
+   * Moves the movable cell meta of the source region onto the target region. Works sparsely: both
+   * regions are scanned transiently up front (they may overlap, so all reads happen before any
+   * write), and only cells that carry an own movable key produce a `setCellMeta`/`removeCellMeta`
+   * call. Moving an unstyled block therefore materializes no cell meta at all — a dense per-cell
+   * write over a large target region is exactly the O(visited cells) retention pattern the meta
+   * layer documentation forbids.
    */
-  #readMeta(row: number, col: number): Record<string, unknown> {
-    // Transient: the snapshot below copies out the movable keys and the meta object is discarded,
-    // so materializing one per visited cell would retain memory the viewport cannot evict.
-    const meta = this.hot.getCellMetaTransient(row, col) as Record<string, unknown>;
+  #transferMovableMeta({ fromRow, fromCol, toRow, toCol, targetRow, targetCol, isCopy }: {
+    fromRow: number;
+    fromCol: number;
+    toRow: number;
+    toCol: number;
+    targetRow: number;
+    targetCol: number;
+    isCopy: boolean;
+  }): void {
+    const rowDelta = targetRow - fromRow;
+    const colDelta = targetCol - fromCol;
+    const targetBottom = targetRow + (toRow - fromRow);
+    const targetRight = targetCol + (toCol - fromCol);
+    const sourceMeta = collectMovableMeta(this.hot, fromRow, fromCol, toRow, toCol);
+    const targetMeta = collectMovableMeta(this.hot, targetRow, targetCol, targetBottom, targetRight);
+    const sourceByCoord = new Map(sourceMeta.map(({ row, col, meta }) => [`${row}:${col}`, meta]));
 
-    return MOVABLE_META_KEYS.reduce<Record<string, unknown>>((snapshot, key) => {
-      if (Object.prototype.hasOwnProperty.call(meta, key)) {
-        snapshot[key] = meta[key];
-      }
+    sourceMeta.forEach(({ row, col, meta }) => {
+      MOVABLE_META_KEYS.forEach((key) => {
+        if (hasOwnProperty(meta, key)) {
+          this.hot.setCellMeta(row + rowDelta, col + colDelta, key, meta[key]);
+        }
+      });
+    });
 
-      return snapshot;
-    }, {});
-  }
+    // Clear the movable keys the target region carried before the move, unless the incoming
+    // source cell just wrote that key over them.
+    targetMeta.forEach(({ row, col, meta }) => {
+      const incoming = sourceByCoord.get(`${row - rowDelta}:${col - colDelta}`);
 
-  /**
-   * Replaces the movable metadata at a target cell.
-   */
-  #writeMeta(row: number, col: number, meta: Record<string, unknown>): void {
-    MOVABLE_META_KEYS.forEach((key) => {
-      if (Object.prototype.hasOwnProperty.call(meta, key)) {
-        this.hot.setCellMeta(row, col, key, meta[key]);
-      } else {
-        this.hot.removeCellMeta(row, col, key);
+      MOVABLE_META_KEYS.forEach((key) => {
+        if (hasOwnProperty(meta, key) && !(incoming && hasOwnProperty(incoming, key))) {
+          this.hot.removeCellMeta(row, col, key);
+        }
+      });
+    });
+
+    if (isCopy) {
+      return;
+    }
+
+    // A moved (not copied) cell leaves its meta behind — unless it sits inside the target region,
+    // where the write pass above has already decided its final state.
+    sourceMeta.forEach(({ row, col }) => {
+      const insideTarget = row >= targetRow && row <= targetBottom && col >= targetCol && col <= targetRight;
+
+      if (!insideTarget) {
+        MOVABLE_META_KEYS.forEach(key => this.hot.removeCellMeta(row, col, key));
       }
     });
   }
