@@ -471,6 +471,10 @@ export class Formulas extends BasePlugin {
 
     this.addHook('afterUndo', () => {
       this.indexSyncer!.setPerformUndo(false);
+      // Also clears the redo flag: a redo cancelled by a `beforeRedo` listener never fires
+      // `afterRedo`, so without this reset the flag set in `beforeRedo` would leak until the
+      // next successful redo.
+      this.indexSyncer!.setPerformRedo(false);
     });
 
     this.addHook('afterRedo', () => {
