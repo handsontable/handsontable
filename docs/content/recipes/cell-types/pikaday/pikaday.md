@@ -102,6 +102,7 @@ registerAllModules();
 - Handsontable core and styles
 - `editorFactory` and `rendererFactory` for creating custom cell type components
 - Pikaday for date picker functionality
+- `@handsontable/pikaday/css/pikaday.css` for the calendar panel styling
 - Moment for date formatting and parsing
 
 ## Step 2: Define Date Formats
