@@ -25,8 +25,10 @@ import {
 import {
   parseIsoStringToSerial,
   parseTimeStringToSerial,
+  parseIsoDateTimeStringToSerial,
   getDateNumFmt,
   getTimeNumFmt,
+  getDateTimeNumFmt,
 } from './xlsx/date-utils';
 import { intlNumFormatToExcelNumFmt } from './xlsx/numeric-utils';
 import type { HotInstance } from '../../../core/types';
@@ -674,6 +676,14 @@ class Xlsx extends BaseType {
         },
         numFmt: null,
       };
+    }
+
+    if (meta.type === 'datetime' || meta.type === 'intl-datetime') {
+      const serial = parseIsoDateTimeStringToSerial(cellValue);
+
+      if (serial !== null) {
+        return { value: serial, numFmt: getDateTimeNumFmt() };
+      }
     }
 
     if (meta.type === 'date' || meta.type === 'intl-date') {

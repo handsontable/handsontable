@@ -117,3 +117,48 @@ export function getDateNumFmt(): string {
 export function getTimeNumFmt(): string {
   return 'h:mm:ss';
 }
+
+/**
+ * Parses an ISO 8601 date-time string to an Excel date serial number with a fractional-day time part.
+ *
+ * @private
+ * @param {*} value Cell value — expected to be an ISO 8601 date-time string.
+ * @returns {number|null}
+ */
+export function parseIsoDateTimeStringToSerial(value: unknown): number | null {
+  if (!value) {
+    return null;
+  }
+
+  const match = String(value).match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const year = parseInt(match[1], 10);
+  const month = parseInt(match[2], 10);
+  const day = parseInt(match[3], 10);
+  const hours = match[4] ? parseInt(match[4], 10) : 0;
+  const minutes = match[5] ? parseInt(match[5], 10) : 0;
+  const seconds = match[6] ? parseInt(match[6], 10) : 0;
+  const date = new Date(year, month - 1, day);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  const timeSerial = ((hours * 3600) + (minutes * 60) + seconds) / 86400;
+
+  return toExcelDateSerial(date) + timeSerial;
+}
+
+/**
+ * Returns the Excel `numFmt` string for a date-time cell.
+ *
+ * @private
+ * @returns {string}
+ */
+export function getDateTimeNumFmt(): string {
+  return 'mm-dd-yy h:mm:ss';
+}
