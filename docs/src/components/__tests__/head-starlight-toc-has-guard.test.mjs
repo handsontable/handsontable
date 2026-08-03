@@ -67,6 +67,10 @@ function createRegistry() {
  */
 function createStarlightTocClass(errorToThrow) {
   return class extends FakeHTMLElement {
+    // The browser reads observedAttributes off the constructor the registry holds, so the
+    // guard has to keep statics reachable from whatever it registers in place of this class.
+    static observedAttributes = ['data-min-h', 'data-max-h'];
+
     constructor() {
       super();
 
@@ -146,6 +150,63 @@ for (const tagName of ['starlight-toc', 'mobile-starlight-toc']) {
     assert.throws(() => element.init(), TypeError);
   });
 }
+
+test('Starlight keeps init as an own instance property, so a prototype patch cannot attach', () => {
+  // This is the defect the guard exists for (Sentry HANDSONTABLE-DOCS-1GA, 21Y). The fix that
+  // shipped before it patched `customElements.get('starlight-toc').prototype.init`, which is
+  // undefined, so the patch attached to nothing and the error kept reaching window.onerror.
+  const StarlightTocClass = createStarlightTocClass();
+
+  assert.equal(StarlightTocClass.prototype.init, undefined);
+
+  const instance = new StarlightTocClass();
+
+  assert.ok(Object.hasOwn(instance, 'init'), 'init must be an own property of the instance');
+});
+
+test('the shipped guard does not rely on prototype.init', () => {
+  // Comments are stripped first: the guard's own comment explains why the prototype approach
+  // fails, so matching the raw source would flag the explanation instead of the code.
+  const guardCode = readTocGuardScript().replace(/^\s*\/\/.*$/gm, '');
+
+  assert.doesNotMatch(
+    guardCode,
+    /prototype\.init/,
+    'init is a class field, so prototype.init is always undefined - wrap per instance instead'
+  );
+  assert.doesNotMatch(
+    guardCode,
+    /whenDefined/,
+    'whenDefined resolves after the element class is registered, which is too late to reach an instance field'
+  );
+});
+
+test('an error named SyntaxError that is not a DOMException still propagates', async () => {
+  // The guard checks `instanceof DOMException` as well as the name. A plain SyntaxError means a
+  // parse failure in code the site owns, and hiding it would hide a real regression.
+  const element = await setUpGuardedElement({
+    tagName: 'starlight-toc',
+    errorToThrow: new SyntaxError('a real parse error'),
+  });
+
+  assert.throws(() => element.init(), { name: 'SyntaxError' });
+});
+
+test('the registered constructor keeps instanceof and static members intact', async () => {
+  const customElements = createRegistry();
+  const runGuardScript = new Function('customElements', 'DOMException', readTocGuardScript());
+
+  runGuardScript(customElements, DOMException);
+
+  const StarlightTocClass = createStarlightTocClass();
+
+  customElements.define('starlight-toc', StarlightTocClass);
+
+  const RegisteredClass = customElements.get('starlight-toc');
+
+  assert.ok(new RegisteredClass() instanceof StarlightTocClass, 'the browser upgrades elements against the registered class');
+  assert.deepEqual(RegisteredClass.observedAttributes, ['data-min-h', 'data-max-h']);
+});
 
 test('the guard leaves unrelated custom element definitions untouched', () => {
   const customElements = createRegistry();

@@ -508,3 +508,22 @@ The custom loader (`src/plugins/framework-loader.mjs`) renders every source page
 - **A framework runtime (`react`, `vue`, `zone.js`, `@angular/compiler`) must only be imported inside `loadRuntime()`.** A bare `await import(...)` there escapes every try/catch as an unhandled rejection and leaves each example of that framework stuck on its loading shimmer forever. `loadRuntime()` returns `null` on failure, and the group is marked with `markFailed()` - the only place that shows a reader-visible notice (`.hot-example-error`). Per-example failures keep the silent `markLoaded()` degradation, because some examples render nothing by design.
 
 Guards for both rules live in `src/lib/__tests__/example-error-reporting.test.mjs` (run by `npm run docs:test:plugins`).
+
+---
+
+## 2.14 Patching Starlight's Custom Elements
+
+Starlight's custom elements assign their methods as **class fields** (`private init = (): void => {...}`), not as prototype methods. An own instance property never reaches the prototype, so `customElements.get('starlight-toc').prototype.init` is `undefined` and any prototype patch silently no-ops. A guard written that way looks correct in review, passes locally, and fixes nothing in production - that is exactly how the `:has()` table-of-contents guard stayed dead for two months (Sentry HANDSONTABLE-DOCS-1GA).
+
+To patch such an element, intercept `customElements.define` in an `is:inline` head script and wrap the method on `this` right after `super()`. Two rules:
+
+- **Cover every registered name.** `mobile-starlight-toc` (`components/MobileTableOfContents.astro`) extends the same `StarlightTOC` class but registers separately, so it needs its own wrap.
+- **Subclass with `class extends`,** which keeps statics reachable through the prototype chain and keeps `instanceof` true for the original constructor. The browser reads `observedAttributes` off whatever constructor the registry holds, and it upgrades elements against it.
+
+Wrapping after `super()` works because the base constructor only *schedules* the method through `requestIdleCallback`, and that callback reads `this.init` when it fires.
+
+The install does not need a re-entry flag today. The site does not use `<ClientRouter />`, and Astro's swap logic keys executed scripts by `textContent` (`detectScriptExecuted()` in `astro/dist/transitions/swap-functions.js`), so an unchanged inline head script never runs twice. Add one if either of those stops holding.
+
+The live guard is in `src/components/Head.astro`; its regression test is `src/components/__tests__/head-starlight-toc-has-guard.test.mjs`, which extracts the shipped script, asserts `Head.astro` holds exactly one guard script, and runs the guard against a double that replicates the class-field shape. It runs under `npm run docs:test:plugins`. Any claim that such a patch works needs a browser check of the *instance* property, not just the absence of a local error.
+
+Unrelated to this: `src/plugins/replace-has-selectors.mjs` and `src/plugins/has-fallback-runtime.mjs` rewrite `:has()` in **stylesheets** for performance. They do not touch selector strings passed to `querySelectorAll` inside third-party bundles.
