@@ -512,7 +512,17 @@ export class Formulas extends BasePlugin {
     });
 
     // Handling redo actions on data just using HyperFormula's UndoRedo mechanism.
-    this.addHook('beforeRedo', (action: { actionType: string }) => {
+    this.addHook('beforeRedo', (action: unknown) => {
+      // Defensive: `Hooks.run` threads a preceding listener's non-`undefined` return value into
+      // this argument, and the global bucket runs before this one. Without a trustworthy
+      // `actionType` the engine step cannot be dispatched safely (`engine.redo()` vs the
+      // `move_cells` replay path — the wrong branch runs the engine operation twice), so cancel
+      // the redo instead of desyncing HyperFormula. The guard runs BEFORE `setPerformRedo(true)`
+      // — a cancelled redo never fires `afterRedo`, so a flag set here would leak.
+      if (typeof action !== 'object' || action === null || !('actionType' in action)) {
+        return false;
+      }
+
       this.indexSyncer!.setPerformRedo(true);
       this.#isRedoingMoveCells = action.actionType === 'move_cells';
 

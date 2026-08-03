@@ -99,6 +99,27 @@ test.describe('Formulas: moveCells undo/redo integration', () => {
     expect(await grid.cellValue(0, 1)).toBe(null);
   });
 
+  test('cancels the redo without desyncing when a global listener returns a truthy non-action', async ({ page }) => {
+    // `Hooks.run` threads a listener's truthy return into the next listener's first argument.
+    // Without a trustworthy `actionType` the Formulas plugin cannot pick the engine step
+    // (`engine.redo()` vs the move_cells replay path), so it cancels the redo — no crash,
+    // no HyperFormula advance, and no leaked redo flag.
+    await grid.moveRange([0, 1, 0, 1], [2, 1]);
+    await grid.undo();
+
+    await page.evaluate(() => {
+      window.Handsontable.hooks.add('beforeRedo', () => 'garbage');
+    });
+
+    await grid.redo();
+
+    // The redo was cancelled: the grid still shows the undone state, consistently in both
+    // the data and the engine.
+    await grid.expectCell(0, 1, '11');
+    expect(await grid.cellValue(2, 1)).toBe(null);
+    expect(await grid.isFormulasSyncerInUndoRedo()).toBe(false);
+  });
+
   test('undo of a copy keeps the source and restores the overwritten target', async () => {
     await grid.expectCell(0, 1, '11');
 
