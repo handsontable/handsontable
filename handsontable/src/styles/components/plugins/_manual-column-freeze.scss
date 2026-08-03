@@ -4,9 +4,10 @@
 
 @mixin output {
   .handsontable {
+    // Grid headers/cells only, never a nested user table (#4363)
     .htRowHeaders .ht_master.innerBorderInlineStart ~ .ht_clone {
-      &_top_inline_start_corner th:nth-child(2),
-      &_inline_start td:first-of-type {
+      &_top_inline_start_corner :where(table.htCore > thead > tr) > th:nth-child(2),
+      &_inline_start :where(table.htCore > tbody > tr) > td:first-of-type {
         border-left: 0 none;
       }
     }

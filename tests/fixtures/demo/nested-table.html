@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable e2e fixture — nested table in a cell (#4363)</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Active theme from ?theme=, mapped through a fixed allowlist to a literal (default main)
+    // so a crafted value can never be reflected into the document. Mirrors grid.html.
+    window.htTheme = ({ horizon: 'horizon', classic: 'classic' })[new URLSearchParams(location.search).get('theme')] || 'main';
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    /* A table a user renders inside a cell, with its OWN box model. It never sets `box-sizing`,
+       so a `border-box` reading on its cells is a leak from the grid (issue #4363). Its explicit
+       border + padding also make the host row auto-expand, which is what exercises the
+       oversized-row height measurement (the row-header-alignment guard below). */
+    .nested-user-table { border-collapse: collapse; }
+    .nested-user-table td { border: 2px solid #008000; padding: 6px; }
+  </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script src="/handsontable/dist/handsontable.full.min.js"></script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Base renderer: stamp every cell so specs hook cells unambiguously.
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // Renders a bare <table> inside the cell. Its cells carry data-testid="nested-cell".
+    // The nested table is tall enough to force the host row to auto-expand — this is what
+    // exercises the oversized-row height measurement path (areCellsBorderBox), so the spec
+    // can assert the row-header overlay stays aligned with the master.
+    const nestedTableRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+      td.innerHTML = '';
+      const t = document.createElement('table');
+
+      t.className = 'nested-user-table';
+      t.innerHTML =
+        '<tbody>' +
+        '<tr><td data-testid="nested-cell">Mo</td><td>Tu</td></tr>' +
+        '<tr><td>1</td><td>2</td></tr>' +
+        '<tr><td>3</td><td>4</td></tr>' +
+        '</tbody>';
+      td.appendChild(t);
+
+      return td;
+    };
+
+    new Handsontable(container, {
+      data: [
+        ['Alice', null, 'x'],
+        ['Bob', 'plain', 'y'],
+        ['Carol', 'plain', 'z'],
+      ],
+      colHeaders: ['Name', 'Nested', 'Note'],
+      rowHeaders: true,
+      rowHeights: 90,
+      colWidths: [120, 220, 120],
+      renderer: testIdRenderer,
+      cells(row, col) {
+        if (row === 0 && col === 1) {
+          return { renderer: nestedTableRenderer };
+        }
+
+        return {};
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>
