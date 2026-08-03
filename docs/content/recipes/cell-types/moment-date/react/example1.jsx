@@ -379,7 +379,8 @@ const ExampleComponent = () => {
         type="numeric"
         width={120}
         className="htRight"
-        numericFormat={{ pattern: '$0,0.00', culture: 'en-US' }}
+        locale="en-US"
+        numericFormat={{ style: 'currency', currency: 'USD', minimumFractionDigits: 2 }}
       />
     </HotTable>
   );
