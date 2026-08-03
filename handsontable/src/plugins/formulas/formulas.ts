@@ -1590,12 +1590,43 @@ export class Formulas extends BasePlugin {
    * the converted addresses for use in the `afterMoveCells` handler.
    *
    * Returns `false` to veto the whole operation when HyperFormula reports the move
-   * is not possible (e.g. the source or target contains an array formula).
+   * is not possible (e.g. the source or target contains an array formula), or when the visual
+   * ranges do not map to contiguous HF blocks (trimmed/filtered/reordered indexes), because the
+   * engine rectangle would then cover cells outside the visual operation.
    *
    * @param {CellRange|boolean} sourceRange The visual source range, or `false` after an earlier veto.
    * @param {CellCoords} targetTopLeft The visual top-left of the destination.
    * @param {boolean} isCopy `true` when copying (not moving) cells.
    * @returns {boolean|undefined} `false` to cancel the operation; `undefined` otherwise.
+   */
+  /**
+   * Checks whether every visual index in the `[visualFrom, visualTo]` span maps to consecutive
+   * HyperFormula indexes on the given axis. Only then is a visual rectangle equivalent to the
+   * single HF rectangle the `moveCells` engine operation works on.
+   *
+   * @param {AxisSyncer} syncer The row or column axis syncer.
+   * @param {number} visualFrom The first visual index of the span.
+   * @param {number} visualTo The last visual index of the span.
+   * @returns {boolean}
+   */
+  #mapsToContiguousHfBlock(syncer: AxisSyncer, visualFrom: number, visualTo: number): boolean {
+    const hfBase = syncer.getHfIndexFromVisualIndex(visualFrom);
+
+    if (hfBase < 0) {
+      return false;
+    }
+
+    for (let offset = 1; offset <= visualTo - visualFrom; offset++) {
+      if (syncer.getHfIndexFromVisualIndex(visualFrom + offset) !== hfBase + offset) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  /**
+   *
    */
   #onBeforeMoveCells = (sourceRange: CellRange | false, targetTopLeft: CellCoords, isCopy: boolean) => {
     if (sourceRange === false) {
@@ -1616,6 +1647,22 @@ export class Formulas extends BasePlugin {
     const toCol = bottomEnd.col!;
     const targetRow = targetTopLeft.row!;
     const targetCol = targetTopLeft.col!;
+
+    // The engine operates on a single HF rectangle built from the mapped corners below. That is
+    // only equivalent to the visual operation when every visual index in all four spans maps to
+    // consecutive HF indexes. With Filters/TrimRows the HF sheet still contains the trimmed rows,
+    // and sorting or manual move permutes the order — a rectangle would then move cells the grid
+    // never touches, desyncing the engine from the data source. Veto instead.
+    if (
+      !this.#mapsToContiguousHfBlock(this.rowAxisSyncer!, fromRow, toRow) ||
+      !this.#mapsToContiguousHfBlock(this.columnAxisSyncer!, fromCol, toCol) ||
+      !this.#mapsToContiguousHfBlock(this.rowAxisSyncer!, targetRow, targetRow + (toRow - fromRow)) ||
+      !this.#mapsToContiguousHfBlock(this.columnAxisSyncer!, targetCol, targetCol + (toCol - fromCol))
+    ) {
+      this.#pendingMoveCells = null;
+
+      return false;
+    }
 
     const hfFromRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(fromRow);
     const hfFromCol = this.columnAxisSyncer!.getHfIndexFromVisualIndex(fromCol);

@@ -98,6 +98,50 @@ test.describe('Formulas: moveCells integration', () => {
     expect(await grid.cellValue(0, 4)).toBe(null);
   });
 
+  test('vetoes a move whose visual range spans a trimmed row', async () => {
+    // With trimRows: [1], visual rows 0 and 1 map to HF rows 0 and 2 — a non-contiguous block.
+    // The engine's moveCells works on a single HF rectangle, which would also relocate the
+    // trimmed row 1 the grid never touches, desyncing HyperFormula from the data source.
+    await grid.initGrid(
+      [
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+        [null, null],
+        [null, null],
+      ],
+      { trimRows: [1] },
+    );
+
+    const result = await grid.moveRange([0, 0, 1, 0], [2, 0]);
+
+    // Vetoed: nothing moved, visually or in the engine.
+    expect(result).toBe(false);
+    await grid.expectCell(0, 0, 'A1');
+    await grid.expectCell(1, 0, 'A3');
+    expect(await grid.cellValue(2, 0)).toBe(null);
+  });
+
+  test('still moves a range that sits entirely above a trimmed row', async () => {
+    // Trimming alone must not disable moveCells — only ranges whose HF mapping is
+    // non-contiguous are vetoed.
+    await grid.initGrid(
+      [
+        [1, '=A1+10'],
+        [null, null],
+        ['trimmed', 'trimmed'],
+        [null, null],
+      ],
+      { trimRows: [2] },
+    );
+
+    const result = await grid.moveRange([0, 0, 0, 1], [1, 0]);
+
+    expect(result).toBe(true);
+    await grid.expectCell(1, 0, '1');
+    await grid.expectCell(1, 1, '11');
+  });
+
   test('vetoes a copy onto an array formula before mutating the grid', async () => {
     // E1 holds an array formula spilling into E1:F2. Pasting a copy over it throws inside
     // HyperFormula, so the copy must be vetoed by the isItPossibleToSetCellContents

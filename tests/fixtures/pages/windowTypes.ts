@@ -74,7 +74,7 @@ declare global {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
     /** Rebuilds the formulas fixture grid with the given dataset. */
-    initGrid(data: CellValue[][]): boolean;
+    initGrid(data: CellValue[][], overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the selection-features fixture grid with the given setting overrides. */
     initSelectionGrid(overrides?: Record<string, unknown>): boolean;
     /** Recorded moveCells hook calls for the current grid instance. */

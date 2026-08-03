@@ -37,15 +37,16 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    // (Re)creates the grid with the given dataset. Destroying and recreating —
+    // (Re)creates the grid with the given dataset merged with the given setting
+    // overrides (e.g. { trimRows: [1] }). Destroying and recreating —
     // instead of updateSettings({ data }) — guarantees a fresh HyperFormula
     // sheet per test.
-    window.initGrid = (data) => {
+    window.initGrid = (data, overrides = {}) => {
       if (window.hot) {
         window.hot.destroy();
       }
 
-      window.hot = new Handsontable(container, {
+      window.hot = new Handsontable(container, Object.assign({
         data,
         colHeaders: true,
         rowHeaders: true,
@@ -55,7 +56,7 @@
         },
         moveCells: true,
         licenseKey: 'non-commercial-and-evaluation',
-      });
+      }, overrides));
 
       return true;
     };

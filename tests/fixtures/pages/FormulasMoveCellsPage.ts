@@ -65,11 +65,15 @@ export class FormulasMoveCellsPage {
   }
 
   /**
-   * Rebuild the grid with this test's dataset — a fresh Handsontable instance
-   * and a fresh HyperFormula sheet, so tests stay isolated.
+   * Rebuild the grid with this test's dataset merged with optional setting overrides
+   * (e.g. `{ trimRows: [1] }`) — a fresh Handsontable instance and a fresh HyperFormula
+   * sheet, so tests stay isolated.
    */
-  async initGrid(data: CellValue[][]): Promise<void> {
-    await this.page.evaluate(gridData => window.initGrid(gridData), data);
+  async initGrid(data: CellValue[][], overrides: Record<string, unknown> = {}): Promise<void> {
+    await this.page.evaluate(
+      ({ gridData, gridOverrides }) => window.initGrid(gridData, gridOverrides),
+      { gridData: data, gridOverrides: overrides },
+    );
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
