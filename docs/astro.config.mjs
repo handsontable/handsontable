@@ -738,7 +738,7 @@ export default defineConfig({
         // DSN and any dashboard-enabled integrations (Performance/Replay) are applied
         // automatically, so adding `beforeSend` does not disturb the rest of the setup.
         //
-        // Two classes of expected errors are dropped:
+        // Four classes of expected errors are dropped:
         //
         //   1. HTTP <status> errors from server-side data recipe examples.
         //      The docs site has no `/api/products` backend, so fetchRows() correctly
@@ -756,9 +756,39 @@ export default defineConfig({
         //      inject the fetched HTML with `page.setContent()`. Every stack frame reads
         //      `about:blank:<line>:<col>`, so the events are unattributable to a page and
         //      the storage guard above already fixes the behavior for such contexts.
+        //
+        //   4. `SyntaxError: Unexpected token …` script-parse failures reported by
+        //      browser engines that predate the ES2020 syntax every bundle on this site
+        //      ships (optional chaining, nullish coalescing). Chrome WebView 57 and the
+        //      Android in-app browsers that spoof a modern Chrome UA cannot parse those
+        //      bundles at all, so each page load files one issue per bundle -- and the
+        //      same clients also fail on third-party code we do not build (Cloudflare's
+        //      `beacon.min.js`). The site's supported range is `browserslist` in
+        //      docs/package.json ("last 2 versions"), so these clients are out of scope
+        //      and nothing in our source can fix them.
+        //
+        //      The filter is gated on a runtime feature test, not on the message alone:
+        //      an engine that CAN parse `?.`/`??` still reports its parse errors, so a
+        //      real build regression on a supported browser keeps reaching Sentry.
+        //      Matching `^Unexpected token` also keeps genuine
+        //      `SyntaxError: Failed to execute 'querySelectorAll'` bugs (the Starlight
+        //      TOC `:has()` defect) visible.
         {
           tag: 'script',
           content: `window.sentryOnLoad = function () {
+  var supportsModernSyntax = (function () {
+    try {
+      new Function('var o = {}; return o?.a ?? 1');
+
+      return true;
+    } catch (e) {
+      // Only a SyntaxError means the engine cannot parse the syntax. A CSP that
+      // blocks \`new Function\` throws EvalError instead -- treat that as a supported
+      // engine so real parse errors keep reaching Sentry.
+      return !(e instanceof SyntaxError);
+    }
+  })();
+
   Sentry.init({
     beforeSend: function (event, hint) {
       try {
@@ -785,6 +815,18 @@ export default defineConfig({
 
         if (error && error.cause && 'handsontable' in error.cause) {
           return null;
+        }
+
+        // Drop script-parse failures from engines too old to parse our bundles.
+        if (!supportsModernSyntax) {
+          var isParseError = values.some(function (value) {
+            return value && value.type === 'SyntaxError' &&
+              typeof value.value === 'string' && /^Unexpected token/.test(value.value);
+          });
+
+          if (isParseError) {
+            return null;
+          }
         }
       } catch (e) {
         // never let the filter break error reporting
