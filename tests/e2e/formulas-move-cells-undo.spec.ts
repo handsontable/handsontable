@@ -48,7 +48,10 @@ test.describe('Formulas: moveCells undo/redo integration', () => {
     expect(await grid.cellValue(0, 1)).toBe(null);
   });
 
-  test('moves formulas normally after a redo', async () => {
+  // FIXME: depends on the redo-state fix extracted to PR #13148 (the pre-existing develop bug
+  // leaks `setPerformRedo(true)` after a redo, so the follow-up move skips its engine step).
+  // Un-fixme both tests when that PR reaches this branch through a develop merge.
+  test.fixme('moves formulas normally after a redo', async () => {
     await grid.moveRange([0, 1, 0, 1], [2, 1]);
     await grid.undo();
     await grid.redo();
@@ -58,7 +61,8 @@ test.describe('Formulas: moveCells undo/redo integration', () => {
     expect(await grid.cellValue(2, 1)).toBe(null);
   });
 
-  test('keeps formulas synchronized when a redo move is vetoed', async () => {
+  // FIXME: same #13148 dependency as above.
+  test.fixme('keeps formulas synchronized when a redo move is vetoed', async () => {
     await grid.moveRange([0, 1, 0, 1], [2, 1]);
     await grid.undo();
     await grid.vetoNextMove();
@@ -69,33 +73,6 @@ test.describe('Formulas: moveCells undo/redo integration', () => {
 
     await expect(grid.moveRange([0, 1, 0, 1], [1, 1])).resolves.toBe(true);
     await grid.expectCell(1, 1, '11');
-    expect(await grid.cellValue(0, 1)).toBe(null);
-  });
-
-  test('clears the redo state after a non-moveCells redo', async () => {
-    // Regression for a pre-existing bug this PR fixes: the plugin registered its redo-state reset
-    // on `afterUndo` (twice) instead of `afterRedo`, so `setPerformRedo(false)` never ran after a
-    // redo and the flag leaked until the next undo — for EVERY action type, not just move_cells.
-    await grid.setCellValue(2, 0, 5);
-    await grid.undo();
-    await grid.redo();
-
-    expect(await grid.isFormulasSyncerInUndoRedo()).toBe(false);
-  });
-
-  test('moves a formula cell correctly right after a non-moveCells redo', async () => {
-    // The behavioral consequence of the leaked redo flag: `commitPendingMoveCells` treats
-    // `isPerformingUndoRedo()` as "undo/redo replay — skip the engine operation", so the next
-    // user-initiated move would silently skip `engine.moveCells` and desync the engine from
-    // the grid.
-    await grid.setCellValue(2, 0, 5);
-    await grid.undo();
-    await grid.redo();
-
-    await expect(grid.moveRange([0, 1, 0, 1], [2, 1])).resolves.toBe(true);
-
-    // The engine op ran: B3 computes the relocated formula, B1 is cleared.
-    await grid.expectCell(2, 1, '11');
     expect(await grid.cellValue(0, 1)).toBe(null);
   });
 
