@@ -27,6 +27,7 @@ import type AxisSyncer from './indexSyncer/axisSyncer';
 import type { HyperFormulaEngine } from './engine/types';
 import type { CellChange } from '../../settings';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
+import { isCellRangeLike } from '../../3rdparty/walkontable/src/cell/range';
 import type CellCoords from '../../3rdparty/walkontable/src/cell/coords';
 
 /**
@@ -1583,23 +1584,6 @@ export class Formulas extends BasePlugin {
   };
 
   /**
-   * `beforeMoveCells` hook callback.
-   *
-   * Converts the visual source range and target top-left corner to HyperFormula
-   * (physical) coordinates, validates feasibility for a MOVE operation, and stores
-   * the converted addresses for use in the `afterMoveCells` handler.
-   *
-   * Returns `false` to veto the whole operation when HyperFormula reports the move
-   * is not possible (e.g. the source or target contains an array formula), or when the visual
-   * ranges do not map to contiguous HF blocks (trimmed/filtered/reordered indexes), because the
-   * engine rectangle would then cover cells outside the visual operation.
-   *
-   * @param {CellRange|boolean} sourceRange The visual source range, or `false` after an earlier veto.
-   * @param {CellCoords} targetTopLeft The visual top-left of the destination.
-   * @param {boolean} isCopy `true` when copying (not moving) cells.
-   * @returns {boolean|undefined} `false` to cancel the operation; `undefined` otherwise.
-   */
-  /**
    * Checks whether every visual index in the `[visualFrom, visualTo]` span maps to consecutive
    * HyperFormula indexes on the given axis. Only then is a visual rectangle equivalent to the
    * single HF rectangle the `moveCells` engine operation works on.
@@ -1626,10 +1610,26 @@ export class Formulas extends BasePlugin {
   }
 
   /**
+   * `beforeMoveCells` hook callback.
    *
+   * Converts the visual source range and target top-left corner to HyperFormula
+   * (physical) coordinates, validates feasibility for a MOVE operation, and stores
+   * the converted addresses for use in the `afterMoveCells` handler.
+   *
+   * Returns `false` to veto the whole operation when the source range is not a valid range
+   * (the documented `false` veto value, or garbage folded into the argument by a preceding
+   * listener's truthy return value), when HyperFormula reports the move is not possible
+   * (e.g. the source or target contains an array formula), or when the visual ranges do not map
+   * to contiguous HF blocks (trimmed/filtered/reordered indexes), because the engine rectangle
+   * would then cover cells outside the visual operation.
+   *
+   * @param {CellRange|boolean} sourceRange The visual source range, or `false` after an earlier veto.
+   * @param {CellCoords} targetTopLeft The visual top-left of the destination.
+   * @param {boolean} isCopy `true` when copying (not moving) cells.
+   * @returns {boolean|undefined} `false` to cancel the operation; `undefined` otherwise.
    */
-  #onBeforeMoveCells = (sourceRange: CellRange | false, targetTopLeft: CellCoords, isCopy: boolean) => {
-    if (sourceRange === false) {
+  #onBeforeMoveCells = (sourceRange: unknown, targetTopLeft: CellCoords, isCopy: boolean) => {
+    if (!isCellRangeLike(sourceRange)) {
       this.#pendingMoveCells = null;
 
       return false;
@@ -1789,8 +1789,10 @@ export class Formulas extends BasePlugin {
    * @param {CellRange} targetRange The range the data was moved to (visual coordinates).
    * @param {boolean} isCopy `true` when the operation was a copy.
    */
-  #onAfterMoveCells = (sourceRange: CellRange, targetRange: CellRange, isCopy: boolean) => {
-    if (!this.engine || !this.#moveCellsCommitted) {
+  #onAfterMoveCells = (sourceRange: unknown, targetRange: CellRange, isCopy: boolean) => {
+    // The shape guard covers garbage folded into the argument by a preceding listener's truthy
+    // return value (`Hooks.run` threads returns into the next listener's first argument).
+    if (!this.engine || !this.#moveCellsCommitted || !isCellRangeLike(sourceRange)) {
       return;
     }
 

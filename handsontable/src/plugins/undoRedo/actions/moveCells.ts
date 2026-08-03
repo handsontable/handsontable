@@ -2,6 +2,7 @@ import type { HookCallback } from '../../../core/hooks/bucket';
 import type { HotInstance } from '../../../core/types';
 import type CellCoords from '../../../3rdparty/walkontable/src/cell/coords';
 import type CellRange from '../../../3rdparty/walkontable/src/cell/range';
+import { isCellRangeLike } from '../../../3rdparty/walkontable/src/cell/range';
 import { BaseAction } from './_base';
 import { hasOwnProperty } from '../../../helpers/object';
 // Imported rather than duplicated: undo must restore exactly the key set `moveCellRange` moved, and
@@ -187,14 +188,17 @@ export class MoveCellsAction extends BaseAction {
     let pendingSnapshot: PendingSnapshot | null = null;
 
     hot.addHook('beforeMoveCells', (sourceRange: unknown, targetTopLeft: unknown, isCopy: unknown) => {
-      if (sourceRange === false) {
+      // Covers the documented `false` veto value AND any garbage a preceding listener folded into
+      // the argument — `Hooks.run` threads a truthy return value into the next listener's first
+      // argument, and the global bucket runs before this one.
+      if (!isCellRangeLike(sourceRange)) {
         pendingSnapshot = null;
 
         return false;
       }
 
-      // `sourceRange` and `targetTopLeft` carry the raw CellRange / CellCoords objects.
-      const src = sourceRange as CellRange;
+      // `sourceRange` is narrowed by the guard above; `targetTopLeft` carries the raw CellCoords.
+      const src = sourceRange;
       const target = targetTopLeft as CellCoords;
       const topStart = src.getTopStartCorner();
       const bottomEnd = src.getBottomEndCorner();

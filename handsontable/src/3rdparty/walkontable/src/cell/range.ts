@@ -1049,4 +1049,17 @@ class CellRange {
   }
 }
 
+/**
+ * Checks whether a value has the shape of a `CellRange`. Duck-typed rather than `instanceof` so it
+ * stays correct across realm boundaries (a range created in an iframe's realm), and usable as a
+ * defense for hook arguments: `Hooks.run` threads any non-`undefined` listener return value into
+ * the next listener's first argument, so an internal listener cannot trust the argument's type.
+ *
+ * @param {*} value The value to check.
+ * @returns {boolean}
+ */
+export function isCellRangeLike(value: unknown): value is CellRange {
+  return typeof (value as { getTopStartCorner?: unknown } | null | undefined)?.getTopStartCorner === 'function';
+}
+
 export default CellRange;

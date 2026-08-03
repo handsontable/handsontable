@@ -26,7 +26,10 @@ export interface FixtureHotInstance {
   getSourceDataAtCell(row: number, col: number): CellValue;
   setDataAtCell(row: number, col: number, value: CellValue): void;
   getCellMeta(row: number, col: number): { className?: string, readOnly?: boolean };
-  getPlugin(name: 'formulas'): { getCellType(row: number, col: number): string };
+  getPlugin(name: 'formulas'): {
+    getCellType(row: number, col: number): string,
+    indexSyncer: { isPerformingUndoRedo(): boolean },
+  };
   getPlugin(name: 'undoRedo'): {
     undo(): void,
     redo(): void,
@@ -73,6 +76,12 @@ declare global {
   interface Window {
     /** The fixture's live Handsontable instance. */
     hot: FixtureHotInstance;
+    /** The Handsontable constructor loaded by the fixture — exposes the global hooks bucket. */
+    Handsontable: {
+      hooks: {
+        add(key: string, callback: (...args: unknown[]) => unknown): void;
+      };
+    };
     /** Rebuilds the formulas fixture grid with the given dataset. */
     initGrid(data: CellValue[][], overrides?: Record<string, unknown>): boolean;
     /** Rebuilds the selection-features fixture grid with the given setting overrides. */

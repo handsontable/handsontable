@@ -2,20 +2,22 @@
 
 Known sharp edges, technical debt, and behaviors that are easy to get wrong.
 
-## Hand-authored `cell-selection-handle-*` tokens will be lost on next `generate:themes`
+## Hand-authored `cell-selection-handle-*` tokens are not yet in the Figma token set
 
 The six tokens `cell-selection-handle-size`, `cell-selection-handle-length`,
 `cell-selection-handle-border-width`, `cell-selection-handle-border-color`,
 `cell-selection-handle-background-color`, and `cell-selection-handle-border-radius` were added
 **directly** to `src/themes/static/**` (six CSS files) and to
 `scripts/themes/figma/tokensKeys.mjs` because the Figma `tokens.json` source is gitignored and
-not available at generation time. Because `generate:themes` wipes `src/themes/static/` before
-regenerating, these tokens **will be stripped** the next time `npm run generate:themes` runs
-from a `tokens.json` that does not include them. Before running the generator again, ensure all
-six `cell-selection-handle-*` tokens are present in the Figma export (`tokens.json`), or the
-desktop selection handles will render unstyled. Note that `cell-selection-handle-length` (the
-long axis of the pill, 24 px = `size_6`) must also be added to the Figma token set alongside
-the original five.
+not available at generation time. `generate:themes` wipes `src/themes/static/` before
+regenerating — but the wipe is now guarded: `utils/validation.mjs::validateThemeTokens` runs in
+`index.mjs::main()` **before** the wipe and fails the generator when any key listed in
+`tokensKeys.mjs` (minus its documented `OPTIONAL_TOKENS` exceptions, currently only `density`)
+does not resolve for every theme. A `tokens.json` that lacks the handle tokens therefore aborts
+the run instead of silently shipping unstyled selection handles. The tokens still need to be
+added to the Figma token set so a raw export regenerates cleanly — note that
+`cell-selection-handle-length` (the long axis of the pill, 24 px = `size_6`) must be added
+alongside the original five.
 
 ## `src/themes/static` is destroyed on every run
 
@@ -24,7 +26,7 @@ the original five.
 ## Silent drops
 
 - Tokens present in `tokens.json` but not listed in `tokensKeys.mjs` are **silently dropped** from per-theme output. There is no warning. If a design change doesn't show up in the generated CSS, this is the first place to check.
-- `processTokenValue` returns `null` when a token isn't found at all, and the null is filtered by `processThemeTokens`. Again, no warning.
+- `processTokenValue` returns `null` when a token isn't found at all, and the null is filtered by `processThemeTokens`. The reverse direction is now guarded: `validateThemeTokens` fails the run (before the wipe) when a `tokensKeys.mjs` key produced no value for a theme.
 - `mode` references that don't resolve both a light and a dark variant return `null` (see `processReference` case `MODE_KEY`: it requires `result.length === 2`).
 
 ## Hardcoded icon-set branching

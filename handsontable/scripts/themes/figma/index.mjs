@@ -1,5 +1,6 @@
 import { rmSync, existsSync, loadTokens } from './utils/helpers/fileSystem.mjs';
 import { generateAllVariables } from './utils/themeProcessing.mjs';
+import { validateThemeTokens } from './utils/validation.mjs';
 import { writeJsThemeFiles } from './utils/jsGeneration.mjs';
 import { writeCssThemeFiles } from './utils/cssGeneration.mjs';
 import { OUTPUT_PATH, TOKENS_KEY } from './utils/constants.mjs';
@@ -18,6 +19,10 @@ function main() {
     if (Object.keys(themeVariables[TOKENS_KEY]).length === 0) {
       throw new Error('No themes found in tokens.json. Aborting before wiping src/themes/static.');
     }
+
+    // Also before the wipe: an export that resolves but silently lost tokens (processThemeTokens
+    // skips unresolved keys) must not strip them from the committed output.
+    validateThemeTokens(themeVariables);
 
     if (existsSync(OUTPUT_PATH)) {
       rmSync(OUTPUT_PATH, { recursive: true });

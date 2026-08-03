@@ -98,6 +98,28 @@ test.describe('Formulas: moveCells integration', () => {
     expect(await grid.cellValue(0, 4)).toBe(null);
   });
 
+  test('vetoes the move without crashing when a global listener returns a truthy non-range', async ({ page }) => {
+    // `Hooks.run` threads a listener's truthy return value into the next listener's first
+    // argument, and global-bucket listeners run before the plugin's internal ones — the Formulas
+    // `beforeMoveCells` listener used to crash dereferencing the folded garbage.
+    await grid.initGrid([
+      [1, '=A1+10'],
+      [null, null],
+      [null, null],
+    ]);
+
+    await page.evaluate(() => {
+      window.Handsontable.hooks.add('beforeMoveCells', () => 'garbage');
+    });
+
+    const result = await grid.moveRange([0, 1, 0, 1], [2, 1]);
+
+    // Vetoed, not crashed: nothing moved.
+    expect(result).toBe(false);
+    await grid.expectCell(0, 1, '11');
+    expect(await grid.cellValue(2, 1)).toBe(null);
+  });
+
   test('vetoes a move whose visual range spans a trimmed row', async () => {
     // With trimRows: [1], visual rows 0 and 1 map to HF rows 0 and 2 — a non-contiguous block.
     // The engine's moveCells works on a single HF rectangle, which would also relocate the
