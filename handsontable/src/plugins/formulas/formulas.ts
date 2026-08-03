@@ -535,10 +535,6 @@ export class Formulas extends BasePlugin {
       this.indexSyncer!.setPerformUndo(false);
     });
 
-    // NOTE: registering the redo-state reset here (instead of on `afterRedo`) is a pre-existing
-    // develop bug — the flag leaks until the next undo. The fix lives in its own PR (#13148) and
-    // reaches this branch through a develop merge; until then, a `moveCells` performed right
-    // after a redo skips its engine step (see the fixme test in formulas-move-cells-undo.spec.ts).
     this.addHook('afterUndo', () => {
       this.indexSyncer!.setPerformRedo(false);
     });

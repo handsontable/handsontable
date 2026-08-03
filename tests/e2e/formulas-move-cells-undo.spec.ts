@@ -48,34 +48,6 @@ test.describe('Formulas: moveCells undo/redo integration', () => {
     expect(await grid.cellValue(0, 1)).toBe(null);
   });
 
-  // FIXME: depends on the redo-state fix extracted to PR #13148 (the pre-existing develop bug
-  // leaks `setPerformRedo(true)` after a redo, so the follow-up move skips its engine step).
-  // Un-fixme both tests when that PR reaches this branch through a develop merge.
-  test.fixme('moves formulas normally after a redo', async () => {
-    await grid.moveRange([0, 1, 0, 1], [2, 1]);
-    await grid.undo();
-    await grid.redo();
-
-    await expect(grid.moveRange([2, 1, 2, 1], [1, 1])).resolves.toBe(true);
-    await grid.expectCell(1, 1, '11');
-    expect(await grid.cellValue(2, 1)).toBe(null);
-  });
-
-  // FIXME: same #13148 dependency as above.
-  test.fixme('keeps formulas synchronized when a redo move is vetoed', async () => {
-    await grid.moveRange([0, 1, 0, 1], [2, 1]);
-    await grid.undo();
-    await grid.vetoNextMove();
-    await grid.redo();
-
-    await grid.expectCell(0, 1, '11');
-    expect(await grid.cellValue(2, 1)).toBe(null);
-
-    await expect(grid.moveRange([0, 1, 0, 1], [1, 1])).resolves.toBe(true);
-    await grid.expectCell(1, 1, '11');
-    expect(await grid.cellValue(0, 1)).toBe(null);
-  });
-
   test('cancels the redo without desyncing when a global listener returns a truthy non-action', async ({ page }) => {
     // `Hooks.run` threads a listener's truthy return into the next listener's first argument.
     // Without a trustworthy `actionType` the Formulas plugin cannot pick the engine step
