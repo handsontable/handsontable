@@ -37,6 +37,11 @@ import { CONDITION_NAME as CONDITION_INTL_TIME_BEFORE_OR_EQUAL } from './conditi
 import { CONDITION_NAME as CONDITION_INTL_TIME_AFTER } from './condition/intlTime/after';
 import { CONDITION_NAME as CONDITION_INTL_TIME_AFTER_OR_EQUAL } from './condition/intlTime/afterOrEqual';
 import { CONDITION_NAME as CONDITION_INTL_TIME_BETWEEN } from './condition/intlTime/between';
+import { CONDITION_NAME as CONDITION_INTL_DATETIME_BEFORE } from './condition/intlDatetime/before';
+import { CONDITION_NAME as CONDITION_INTL_DATETIME_BEFORE_OR_EQUAL } from './condition/intlDatetime/beforeOrEqual';
+import { CONDITION_NAME as CONDITION_INTL_DATETIME_AFTER } from './condition/intlDatetime/after';
+import { CONDITION_NAME as CONDITION_INTL_DATETIME_AFTER_OR_EQUAL } from './condition/intlDatetime/afterOrEqual';
+import { CONDITION_NAME as CONDITION_INTL_DATETIME_BETWEEN } from './condition/intlDatetime/between';
 import { CONDITION_NAME as CONDITION_FALSE } from './condition/false';
 
 export { CONDITION_NAME as CONDITION_BY_VALUE } from './condition/byValue';
@@ -80,6 +85,8 @@ export const TYPE_TEXT = 'text';
 export const TYPE_DATE = 'date';
 export const TYPE_INTL_DATE = 'intl-date';
 export const TYPE_INTL_TIME = 'intl-time';
+export const TYPE_DATETIME = 'datetime';
+export const TYPE_INTL_DATETIME = 'intl-datetime';
 /**
  * Default types and order for filter conditions.
  *
@@ -176,7 +183,24 @@ export const TYPES: Record<string, string[]> = {
     CONDITION_INTL_TIME_AFTER_OR_EQUAL,
     CONDITION_INTL_TIME_BETWEEN,
   ],
+  [TYPE_INTL_DATETIME]: [
+    CONDITION_NONE,
+    SEPARATOR,
+    CONDITION_EMPTY,
+    CONDITION_NOT_EMPTY,
+    SEPARATOR,
+    CONDITION_EQUAL,
+    CONDITION_NOT_EQUAL,
+    SEPARATOR,
+    CONDITION_INTL_DATETIME_BEFORE,
+    CONDITION_INTL_DATETIME_BEFORE_OR_EQUAL,
+    CONDITION_INTL_DATETIME_AFTER,
+    CONDITION_INTL_DATETIME_AFTER_OR_EQUAL,
+    CONDITION_INTL_DATETIME_BETWEEN,
+  ],
 };
+
+TYPES[TYPE_DATETIME] = TYPES[TYPE_INTL_DATETIME];
 
 /**
  * Get options list for conditional filter by data type (e.q: `'text'`, `'numeric'`, `'date'`).
