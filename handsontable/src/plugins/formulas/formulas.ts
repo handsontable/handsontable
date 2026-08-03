@@ -473,7 +473,7 @@ export class Formulas extends BasePlugin {
       this.indexSyncer!.setPerformUndo(false);
     });
 
-    this.addHook('afterUndo', () => {
+    this.addHook('afterRedo', () => {
       this.indexSyncer!.setPerformRedo(false);
     });
 
