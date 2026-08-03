@@ -80,7 +80,9 @@ export class DatetimeEditor extends TextEditor {
       return;
     }
 
-    let normalized = String(value).replace(' ', 'T');
+    // The native datetime-local input (even with step="1") cannot represent milliseconds, so drop the
+    // fractional-second part here rather than letting the browser silently truncate an unparsed value.
+    let normalized = String(value).replace(' ', 'T').replace(/\.\d+$/, '');
 
     if (DATE_ONLY_RE.test(normalized)) {
       normalized += 'T00:00:00';
