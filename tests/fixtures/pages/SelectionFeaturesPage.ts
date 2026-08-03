@@ -330,8 +330,10 @@ export class SelectionFeaturesPage {
       throw new Error('The grab cell is not rendered.');
     }
 
+    // Press on the bottom band along the grab cell's edge, at the cell's horizontal center — the
+    // exact SE corner point belongs to the autofill fill handle, which sits above the move bands.
     await this.page.mouse.move(
-      grabBox.x + grabBox.width - 2,
+      grabBox.x + (grabBox.width / 2),
       grabBox.y + grabBox.height - 2,
     );
     await this.page.mouse.down();

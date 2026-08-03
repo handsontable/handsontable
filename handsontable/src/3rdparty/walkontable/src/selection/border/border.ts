@@ -461,9 +461,10 @@ class Border {
    * one selection edge. Hovering a band shows a `grab` cursor; a `mousedown` on a band calls the
    * `onSelectionEdgeMouseDown` Walkontable setting so the core can initiate a move drag.
    *
-   * Bands sit at z-index 100 — below the resize pills (z-index 200) so the pills win in the corner
-   * regions where they overlap. All four bands are created hidden; `positionMoveZone` + `appear`
-   * control their visibility.
+   * Bands sit at z-index 100 — below the resize pills (z-index 200) and below the autofill fill
+   * handle (`.wtBorder.corner`, z-index 150), so both keep winning their own pixels in the corner
+   * regions where the bands overlap them. All four bands are created hidden; `positionMoveZone`
+   * + `appear` control their visibility.
    *
    * Called lazily from `appear()` on the first draw whose `moveEnabled` predicate resolves truthy,
    * so the bands never exist for instances that leave `moveCells` off.

@@ -368,6 +368,36 @@ test.describe('moveCells edge move bands', () => {
     expect(await grid.isUndoAvailable()).toBe(false);
   });
 
+  test('keeps the autofill fill handle clickable above the move bands', async ({ page }) => {
+    // The bottom/end bands span the SE corner where the fill handle sits. The handle must win
+    // that overlap (z-index 150 vs the bands' 100) — otherwise pressing it starts a move drag
+    // instead of autofill.
+    await grid.selectCells(2, 2, 2, 2);
+
+    const corner = page.locator('.wtBorder.corner:visible').first();
+    const cornerBox = await corner.boundingBox();
+
+    expect(cornerBox).not.toBeNull();
+
+    const targetBox = await grid.cell(4, 2).boundingBox();
+
+    expect(targetBox).not.toBeNull();
+
+    await page.mouse.move(cornerBox!.x + (cornerBox!.width / 2), cornerBox!.y + (cornerBox!.height / 2));
+    await page.mouse.down();
+
+    // A move drag would flag the root with ht__moving; autofill must not.
+    await expect(grid.movingRoot()).toHaveCount(0);
+
+    await page.mouse.move(targetBox!.x + (targetBox!.width / 2), targetBox!.y + (targetBox!.height / 2), { steps: 2 });
+    await page.mouse.up();
+
+    // Autofill copied the value down; nothing moved.
+    expect(await grid.cellValue(3, 2)).toBe('R3C3');
+    expect(await grid.cellValue(4, 2)).toBe('R3C3');
+    expect(await grid.cellValue(2, 2)).toBe('R3C3');
+  });
+
   test('records no undo entry when a drag is released back at its origin', async ({ page }) => {
     await grid.selectCells(2, 2, 3, 3);
 

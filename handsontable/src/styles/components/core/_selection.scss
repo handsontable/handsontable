@@ -210,7 +210,9 @@
         border-color: var(--ht-cell-autofill-border-color) !important;
         font-size: 0;
         cursor: crosshair;
-        z-index: 10;
+        // Above the moveCells bands (z-index 100, inline) — they span the SE corner, and the fill
+        // handle must keep winning its own pixels there — but below the resize pills (z-index 200).
+        z-index: 150;
 
         &::after {
           content: '';
