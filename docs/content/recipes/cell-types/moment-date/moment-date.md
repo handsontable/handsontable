@@ -237,7 +237,7 @@ editor: editorFactory({
     editor.showDatepicker(editor, event);
   },
   afterClose(editor) {
-    if (editor.pikaday.destroy) {
+    if (editor.pikaday?.destroy) {
       editor.pikaday.destroy();
     }
   },
@@ -258,7 +258,7 @@ editor: editorFactory({
 **What's happening:**
 - `init` creates the input element and binds the Pikaday container
 - `afterOpen` sizes the input to match the cell dimensions, then opens the date picker
-- `afterClose` destroys the Pikaday instance to prevent memory leaks
+- `afterClose` destroys the Pikaday instance to prevent memory leaks - it checks the instance first, because Handsontable can close an editor that never opened (for example, when the edited cell leaves the rendered viewport)
 - Arrow key shortcuts navigate the calendar (left/right = day, up/down = week)
 
 ## Step 6: Style the Editor Input
