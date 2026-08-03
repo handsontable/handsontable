@@ -108,6 +108,32 @@ test.describe('selectionHandles adjust handles', () => {
     await expect(grid.handle('end')).toBeHidden();
   });
 
+  test('hides the top handle when the selection starts on the bottom frozen-pane seam', async () => {
+    // 10 rows, fixedRowsBottom: 2 → the seam runs between rows 7 and 8. A selection starting at
+    // row 8 (inside the bottom pane) has its top edge ON the seam — the top handle must be
+    // suppressed there, exactly like the mirrored cases on the fixedRowsTop seam.
+    await grid.initGrid({ fixedRowsBottom: 2 });
+    await grid.selectCells(8, 1, 8, 2);
+    await grid.hoverFrozenBottomCell(8, 1);
+
+    await expect(grid.frozenBottomHandle('top')).toBeHidden();
+    // Row 8 is neither the seam nor the grid boundary from below, so the bottom handle stays.
+    await expect(grid.frozenBottomHandle('bottom')).toBeVisible();
+    await expect(grid.frozenBottomHandle('start')).toBeVisible();
+    await expect(grid.frozenBottomHandle('end')).toBeVisible();
+  });
+
+  test('hides the bottom handle when the selection ends on the bottom frozen-pane seam', async () => {
+    // The already-covered mirror: a selection ending at row 7 (last non-frozen row) has its
+    // bottom edge on the seam.
+    await grid.initGrid({ fixedRowsBottom: 2 });
+    await grid.selectCells(6, 1, 7, 2);
+    await grid.hoverCell(6, 1);
+
+    await expect(grid.handle('bottom')).toBeHidden();
+    await expect(grid.handle('top')).toBeVisible();
+  });
+
   test('scrolls and extends the selection while dragging a handle beyond the viewport', async () => {
     await grid.initGrid({ height: 150 });
     await grid.selectCells(1, 1, 2, 2);

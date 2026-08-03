@@ -629,6 +629,11 @@ export class SelectionFeaturesPage {
     await this.page.locator('.ht_clone_top_left_corner').getByTestId(`cell-${row}-${col}`).hover();
   }
 
+  /** Hover a cell rendered by the bottom frozen overlay. */
+  async hoverFrozenBottomCell(row: number, col: number): Promise<void> {
+    await this.page.locator('.ht_clone_bottom').getByTestId(`cell-${row}-${col}`).hover();
+  }
+
   /**
    * The visible selection-adjust handle for an edge, scoped to the master
    * overlay. Every border instance (focus, area, fill) owns a full handle set,
@@ -636,6 +641,15 @@ export class SelectionFeaturesPage {
    */
   handle(edge: 'top' | 'bottom' | 'start' | 'end'): Locator {
     return this.page.locator(`.ht_master .wtSelectionHandle--${edge}:visible`);
+  }
+
+  /**
+   * The visible selection-adjust handle for an edge, scoped to the bottom frozen overlay — a
+   * selection inside the bottom frozen pane renders its border (and handles) on that clone,
+   * not on the master.
+   */
+  frozenBottomHandle(edge: 'top' | 'bottom' | 'start' | 'end'): Locator {
+    return this.page.locator(`.ht_clone_bottom .wtSelectionHandle--${edge}:visible`);
   }
 
   /** The currently visible selection-adjust handles in the master overlay. */

@@ -755,6 +755,23 @@ class Border {
   }
 
   /**
+   * Mirror of {@link Border#isFrozenStartBoundaryOppositeEdge} for the bottom freeze line: tells
+   * whether the selection's top edge lands exactly on the `fixedRowsBottom` boundary (the selection
+   * starts at the first bottom-frozen row), so the top handle sits on the freeze line and must be
+   * suppressed there like every other frozen-seam edge.
+   *
+   * @private
+   * @param {number} fromIndex The selection's top corner row index.
+   * @returns {boolean}
+   */
+  isFrozenBottomBoundaryOppositeEdge(fromIndex: number): boolean {
+    const fixedRowsBottom = this.wot.getSetting('fixedRowsBottom') as number;
+    const totalRows = this.wot.getSetting('totalRows') as number;
+
+    return fixedRowsBottom > 0 && fromIndex === totalRows - fixedRowsBottom;
+  }
+
+  /**
    * Mirror of {@link Border#isBoundaryCornerScrolledOut} for the bottom freeze line: tells whether the
    * selection's bottom boundary cell has scrolled behind the bottom frozen pane in the master viewport
    * (it then drops below the last visible master row), so the edge must not be drawn.
@@ -1499,7 +1516,7 @@ class Border {
       // intentionally Walkontable-local: Walkontable cannot import core helpers, so the
       // matching core-side check was removed as dead code — this is the single
       // authoritative enforcement point.
-      if (this.isFrozenBoundaryEdge('row', corners[0])) {
+      if (this.isFrozenBoundaryEdge('row', corners[0]) || this.isFrozenBottomBoundaryOppositeEdge(corners[0])) {
         adjustHandles.styles.top.display = 'none';
       }
       if (this.isFrozenBoundaryEdge('column', corners[1])) {
