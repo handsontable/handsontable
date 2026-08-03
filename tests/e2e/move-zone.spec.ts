@@ -407,7 +407,10 @@ test.describe('moveCells edge move bands', () => {
 
     const pressX = box!.x + (box!.width / 2);
     const pressY = box!.y + (box!.height / 2);
-    const awayBox = await grid.cell(6, 6).boundingBox();
+    // An interior cell: dragging near the viewport edge (e.g. over column 6 in the wider horizon
+    // theme) can trigger DragToScroll on a slow runner, and once the viewport scrolls the press
+    // pixel no longer maps to the press cell — the gesture is then a real move, not a click.
+    const awayBox = await grid.cell(4, 4).boundingBox();
 
     expect(awayBox).not.toBeNull();
 
