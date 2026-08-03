@@ -331,6 +331,96 @@ function createVanillaJsTsFixture() {
   return { contentDir, root };
 }
 
+/**
+ * Resolves an entry's rendered HTML. On this branch the store holds the HTML
+ * directly (no marker + file indirection), so this is a plain accessor kept
+ * for parity with the develop test suite.
+ *
+ * @param {Map<string, object>} store
+ * @param {string} id
+ * @returns {string}
+ */
+function renderedHtmlOf(store, id) {
+  return store.get(id).rendered.html;
+}
+
+/**
+ * Builds a temp content tree with a React example that embeds both a .jsx and a
+ * .tsx source file, so the fenced-code language mapping can be asserted.
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createReactFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-'));
+  const contentDir = join(root, 'content');
+  const reactDir = join(contentDir, 'guides', 'intro', 'react');
+
+  mkdirSync(reactDir, { recursive: true });
+
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+
+  writeFileSync(
+    join(contentDir, 'guides', 'intro', 'intro.md'),
+    [
+      '---',
+      'title: Introduction',
+      'permalink: /intro',
+      '---',
+      '',
+      'Intro body.',
+      '',
+      '::: example #ex1',
+      '@[code](@/content/guides/intro/react/example1.jsx)',
+      '@[code](@/content/guides/intro/react/example1.tsx)',
+      ':::',
+      '',
+    ].join('\n')
+  );
+
+  writeFileSync(join(reactDir, 'example1.jsx'), 'export const Grid = () => <HotTable data={[]} />;\n');
+  writeFileSync(join(reactDir, 'example1.tsx'), 'export const Grid = (): JSX.Element => <HotTable data={[]} />;\n');
+
+  return { contentDir, root };
+}
+
+/**
+ * Builds a temp content tree with a server-side-only example (a .cs file with
+ * no runnable JS/TS/Vue entry point), so the fenced-code language mapping for
+ * non-JS backend languages can be asserted.
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createCsharpFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-'));
+  const contentDir = join(root, 'content');
+  const serverDir = join(contentDir, 'guides', 'intro', 'server');
+
+  mkdirSync(serverDir, { recursive: true });
+
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+
+  writeFileSync(
+    join(contentDir, 'guides', 'intro', 'intro.md'),
+    [
+      '---',
+      'title: Introduction',
+      'permalink: /intro',
+      '---',
+      '',
+      'Intro body.',
+      '',
+      '::: example #ex1',
+      '@[code csharp](@/content/guides/intro/server/Order.cs)',
+      ':::',
+      '',
+    ].join('\n')
+  );
+
+  writeFileSync(join(serverDir, 'Order.cs'), 'public class Order\n{\n    public int Id { get; set; }\n}\n');
+
+  return { contentDir, root };
+}
+
 test('vanilla JS/TS guide example gets a runner link that follows the active tab', async () => {
   const { contentDir, root } = createVanillaJsTsFixture();
 
