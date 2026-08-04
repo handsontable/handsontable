@@ -5,6 +5,7 @@ import { editorFactory } from 'handsontable/editors';
 import { registerCellType } from 'handsontable/cellTypes';
 import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
+import '@handsontable/pikaday/css/pikaday.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -388,9 +389,11 @@ const hotOptions = {
       type: 'numeric',
       width: 120,
       className: 'htRight',
+      locale: 'en-US',
       numericFormat: {
-        pattern: '$0,0.00',
-        culture: 'en-US',
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
       },
     },
   ],

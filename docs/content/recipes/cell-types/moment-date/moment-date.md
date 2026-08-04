@@ -90,6 +90,7 @@ import { editorFactory } from 'handsontable/editors';
 import { registerCellType } from 'handsontable/cellTypes';
 import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
+import '@handsontable/pikaday/css/pikaday.css';
 
 registerAllModules();
 ```
@@ -97,6 +98,7 @@ registerAllModules();
 **Why this matters:**
 - `moment` handles date parsing, validation, and formatting
 - `Pikaday` provides the calendar date picker UI
+- `@handsontable/pikaday/css/pikaday.css` provides the calendar panel styling
 - `editorFactory` creates a portal-based editor that overlays the cell
 - `registerCellType` registers the custom cell type for use in column config
 
@@ -336,9 +338,11 @@ const hotOptions: Handsontable.GridSettings = {
       type: 'numeric',
       width: 120,
       className: 'htRight',
+      locale: 'en-US',
       numericFormat: {
-        pattern: '$0,0.00',
-        culture: 'en-US',
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
       },
     },
   ],

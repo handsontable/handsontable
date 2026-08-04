@@ -8,8 +8,12 @@ import {
 } from '@handsontable/angular-wrapper';
 import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
+import '@handsontable/pikaday/css/pikaday.css';
 
 const DATE_FORMAT = 'YYYY-MM-DD';
+
+// `useMoment()` exists at runtime but is missing from the Pikaday type definitions.
+type PikadayWithMoment = Pikaday & { useMoment(momentFunction: typeof moment): void };
 
 @Component({
   standalone: true,
@@ -18,11 +22,12 @@ const DATE_FORMAT = 'YYYY-MM-DD';
   styles: [
     `
     :host { display: block; }
-    .pikaday-container { min-height: 250px; }
+    .pikaday-container { width: 290px; }
   `,
   ],
 })
 export class MomentDateEditorComponent extends HotCellEditorAdvancedComponent<string> {
+  override position = 'portal' as const;
   @ViewChild('container', { static: true }) container!: ElementRef;
   private pikaday: Pikaday | null = null;
 
@@ -43,11 +48,13 @@ export class MomentDateEditorComponent extends HotCellEditorAdvancedComponent<st
       },
     });
 
+    (this.pikaday as PikadayWithMoment).useMoment(moment);
+
     if (this.value) {
       const m = moment(this.value, DATE_FORMAT, true);
 
       if (m.isValid()) {
-        (this.pikaday as any).setMoment?.(m);
+        this.pikaday.setMoment(m, true);
       }
     } else {
       this.pikaday.gotoToday();
@@ -157,9 +164,11 @@ export class AppComponent {
         type: 'numeric',
         width: 120,
         className: 'htRight',
+        locale: 'en-US',
         numericFormat: {
-          pattern: '$0,0.00',
-          culture: 'en-US',
+          style: 'currency',
+          currency: 'USD',
+          minimumFractionDigits: 2,
         },
       },
     ],
