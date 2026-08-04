@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Removed leftover Pikaday styles from the themes.",
+  "type": "removed",
+  "issueOrPR": 13156,
+  "breaking": false,
+  "framework": "none"
+}
