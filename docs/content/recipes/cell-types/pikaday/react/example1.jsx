@@ -2,6 +2,7 @@ import { HotTable, HotColumn } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
 import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
+import '@handsontable/pikaday/css/pikaday.css';
 import { editorFactory } from 'handsontable/editors';
 import { rendererFactory } from 'handsontable/renderers';
 import Handsontable from 'handsontable/base';
@@ -403,7 +404,8 @@ const ExampleComponent = () => {
         type="numeric"
         width={120}
         className="htRight"
-        numericFormat={{ pattern: '$0,0.00', culture: 'en-US' }}
+        locale="en-US"
+        numericFormat={{ style: 'currency', currency: 'USD', minimumFractionDigits: 2 }}
       />
     </HotTable>
   );

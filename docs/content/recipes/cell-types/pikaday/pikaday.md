@@ -94,6 +94,7 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
+import '@handsontable/pikaday/css/pikaday.css';
 import { CellProperties } from 'handsontable/settings';
 import { editorFactory } from 'handsontable/editors';
 import { rendererFactory } from 'handsontable/renderers';
@@ -105,6 +106,7 @@ registerAllModules();
 - Handsontable core and styles
 - `editorFactory` and `rendererFactory` for creating custom cell type components
 - Pikaday for date picker functionality
+- `@handsontable/pikaday/css/pikaday.css` for the calendar panel styling
 - Moment for date formatting and parsing
 
 ## Step 2: Define Date Formats
@@ -672,9 +674,11 @@ const hotOptions: Handsontable.GridSettings = {
       type: 'numeric',
       width: 120,
       className: 'htRight',
+      locale: 'en-US',
       numericFormat: {
-        pattern: '$0,0.00',
-        culture: 'en-US',
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
       },
     },
   ],
@@ -790,7 +794,7 @@ options.format = 'MM/DD/YYYY'; // Pikaday format string
 ### 4. Localization
 
 ```typescript
-import 'pikaday/css/pikaday.css';
+import '@handsontable/pikaday/css/pikaday.css';
 import moment from 'moment';
 import 'moment/locale/fr';
 

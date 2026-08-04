@@ -5,6 +5,7 @@ import { editorFactory } from 'handsontable/editors';
 import { registerCellType } from 'handsontable/cellTypes';
 import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
+import '@handsontable/pikaday/css/pikaday.css';
 import Handsontable from 'handsontable/base';
 import './example1.css';
 
@@ -379,7 +380,8 @@ const ExampleComponent = () => {
         type="numeric"
         width={120}
         className="htRight"
-        numericFormat={{ pattern: '$0,0.00', culture: 'en-US' }}
+        locale="en-US"
+        numericFormat={{ style: 'currency', currency: 'USD', minimumFractionDigits: 2 }}
       />
     </HotTable>
   );

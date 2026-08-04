@@ -2,6 +2,7 @@ import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import moment from 'moment';
 import Pikaday from '@handsontable/pikaday';
+import '@handsontable/pikaday/css/pikaday.css';
 import { editorFactory } from 'handsontable/editors';
 import { rendererFactory } from 'handsontable/renderers';
 
@@ -419,9 +420,11 @@ const hotOptions = {
       type: 'numeric',
       width: 120,
       className: 'htRight',
+      locale: 'en-US',
       numericFormat: {
-        pattern: '$0,0.00',
-        culture: 'en-US',
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: 2,
       },
     },
   ],
