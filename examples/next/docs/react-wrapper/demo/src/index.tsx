@@ -1,6 +1,5 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import "@handsontable/pikaday/css/pikaday.css";
 import "./styles.css";
 import Handsontable from 'handsontable';
 import { HotTable, HotColumn } from "@handsontable/react-wrapper";
