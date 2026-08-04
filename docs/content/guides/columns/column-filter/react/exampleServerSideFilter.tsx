@@ -104,10 +104,16 @@ const ExampleComponent = () => {
       beforeFilter={function (conditionsStack) {
         // gather information about the filters
         console.log(`The amount of filters: ${conditionsStack.length}`);
-        console.log(`The last changed column index: ${conditionsStack[0].column}`);
-        console.log(`The amount of filters added to this column: ${conditionsStack[0].conditions.length}`);
-        // the list of filter conditions
-        console.log(conditionsStack[0].conditions);
+
+        // when the filters are cleared, the conditions stack is empty
+        const [lastChanged] = conditionsStack;
+
+        if (lastChanged) {
+          console.log(`The last changed column index: ${lastChanged.column}`);
+          console.log(`The amount of filters added to this column: ${lastChanged.conditions.length}`);
+          // the list of filter conditions
+          console.log(lastChanged.conditions);
+        }
 
         // return `false` to disable filtering on the client side
         return false;

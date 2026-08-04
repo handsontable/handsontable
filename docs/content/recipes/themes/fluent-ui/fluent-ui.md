@@ -24,14 +24,15 @@ type: how-to
 
 In this tutorial, you will integrate Handsontable into a React app with Fluent UI so your grid follows Fluent colors, typography, and spacing. You will learn how to map Fluent UI tokens to Handsontable theme parameters through the Theme API.
 
-<iframe src="https://codesandbox.io/embed/2y26vw?view=preview&module=%2Fsrc%2FApp.tsx"
+<iframe src="https://demos.handsontable.com/embed/3w4w5x6f54"
   style="width:100%; height: 500px; border:0; border-radius: 4px; overflow:hidden;"
   title="Handsontable with Fluent UI"
   allow="accelerometer; ambient-light-sensor; camera; encrypted-media; geolocation; gyroscope; hid; microphone; midi; payment; usb; vr; xr-spatial-tracking"
   sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts"
 ></iframe>
 
-[**Open in CodeSandbox**](https://codesandbox.io/p/sandbox/2y26vw)
+[**Open in sandbox**](https://demos.handsontable.com/?example=fluent-ui&v={{$currentVersion}})
+[**View source on GitHub**](https://github.com/handsontable/examples/tree/master/examples/fluent-ui)
 
 ## Overview
 

@@ -9,6 +9,7 @@ import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-s
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
+import { replaceHasSelectors } from './src/plugins/replace-has-selectors.mjs';
 import { buildAllSidebars, buildAllValidUrls } from './src/sidebar.mjs';
 import { resolveHotVersion } from './src/lib/hot-version.mjs';
 import { resolve, dirname } from 'path';
@@ -661,6 +662,7 @@ export default defineConfig({
 
 
   integrations: [
+    replaceHasSelectors(),
     starlight({
       title: 'Handsontable',
       description:
@@ -700,6 +702,24 @@ export default defineConfig({
       ],
 
       head: [
+        // Opaque-origin storage guard — MUST stay the first head entry (Sentry
+        // HANDSONTABLE-DOCS-206). Headless crawlers render the page with
+        // `page.setContent()`, which leaves the document at about:blank with an opaque
+        // origin (`location.origin === 'null'`); sandboxed and srcdoc iframes behave the
+        // same. There, `window.localStorage` is an own accessor that throws SecurityError
+        // on read, so `typeof localStorage !== 'undefined'` throws instead of
+        // short-circuiting. That kills Starlight's inline ThemeProvider script (no theme
+        // applied, `window.StarlightThemeProvider` never defined, cascading
+        // ReferenceErrors), plus ThemeSelect, SidebarPersister, and our own
+        // DocsAssistant storage reads. Running first means every later script — ours or
+        // third-party — sees a working storage object.
+        {
+          tag: 'script',
+          content: readFileSync(
+            resolve(__dirname, 'src', 'scripts', 'opaque-origin-storage-guard.js'),
+            'utf8'
+          ),
+        },
         {
           tag: 'script',
           attrs: { src: '/docs/example-tabs.js', defer: true },
@@ -713,6 +733,110 @@ export default defineConfig({
           content: '/* HOT base styles loaded via handsontable-import.css */',
         },
         // ── All-environment 3rd-party scripts ──────────────────────────────
+        // Sentry: filter out expected demo errors before the Loader Script auto-inits.
+        // `window.sentryOnLoad` is the Loader Script's documented custom-config hook — the
+        // DSN and any dashboard-enabled integrations (Performance/Replay) are applied
+        // automatically, so adding `beforeSend` does not disturb the rest of the setup.
+        //
+        // Four classes of expected errors are dropped:
+        //
+        //   1. HTTP <status> errors from server-side data recipe examples.
+        //      The docs site has no `/api/products` backend, so fetchRows() correctly
+        //      throws `HTTP <status>` (e.g. 404) on those pages. That is expected here,
+        //      not a product bug.
+        //
+        //   2. Errors thrown by Handsontable's throwWithCause() helper.
+        //      All such errors carry `error.cause.handsontable` (set to `true` today,
+        //      but the check only tests for presence so any truthy value works). These
+        //      are intentional developer-feedback errors (e.g. ColumnSummary data-type
+        //      errors in demo examples) and should not be forwarded to Sentry.
+        //
+        //   3. Errors from documents whose URL is `about:blank` or another `about:` page.
+        //      No real visitor browses there; these come from headless crawlers that
+        //      inject the fetched HTML with `page.setContent()`. Every stack frame reads
+        //      `about:blank:<line>:<col>`, so the events are unattributable to a page and
+        //      the storage guard above already fixes the behavior for such contexts.
+        //
+        //   4. `SyntaxError: Unexpected token …` script-parse failures reported by
+        //      browser engines that predate the ES2020 syntax every bundle on this site
+        //      ships (optional chaining, nullish coalescing). Chrome WebView 57 and the
+        //      Android in-app browsers that spoof a modern Chrome UA cannot parse those
+        //      bundles at all, so each page load files one issue per bundle -- and the
+        //      same clients also fail on third-party code we do not build (Cloudflare's
+        //      `beacon.min.js`). The site's supported range is `browserslist` in
+        //      docs/package.json ("last 2 versions"), so these clients are out of scope
+        //      and nothing in our source can fix them.
+        //
+        //      The filter is gated on a runtime feature test, not on the message alone:
+        //      an engine that CAN parse `?.`/`??` still reports its parse errors, so a
+        //      real build regression on a supported browser keeps reaching Sentry.
+        //      Matching `^Unexpected token` also keeps genuine
+        //      `SyntaxError: Failed to execute 'querySelectorAll'` bugs (the Starlight
+        //      TOC `:has()` defect) visible.
+        {
+          tag: 'script',
+          content: `window.sentryOnLoad = function () {
+  var supportsModernSyntax = (function () {
+    try {
+      new Function('var o = {}; return o?.a ?? 1');
+
+      return true;
+    } catch (e) {
+      // Only a SyntaxError means the engine cannot parse the syntax. A CSP that
+      // blocks \`new Function\` throws EvalError instead -- treat that as a supported
+      // engine so real parse errors keep reaching Sentry.
+      return !(e instanceof SyntaxError);
+    }
+  })();
+
+  Sentry.init({
+    beforeSend: function (event, hint) {
+      try {
+        // Drop HTTP <status> errors from server-side data recipe pages.
+        var values = (event.exception && event.exception.values) || [];
+        var isDemoHttpError = values.some(function (value) {
+          return value && typeof value.value === 'string' && /^HTTP \\d{3}$/.test(value.value);
+        });
+        var url = (event.request && event.request.url) || '';
+
+        if (isDemoHttpError && url.indexOf('/recipes/data-management/server-side') !== -1) {
+          return null;
+        }
+
+        // Drop crawler noise from opaque-origin renders (about:blank and friends).
+        if (url.indexOf('about:') === 0) {
+          return null;
+        }
+
+        // Drop errors thrown by Handsontable's throwWithCause() helper.
+        // error.cause.handsontable is currently true but may become an object,
+        // so only check that the property is present.
+        var error = hint && hint.originalException;
+
+        if (error && error.cause && 'handsontable' in error.cause) {
+          return null;
+        }
+
+        // Drop script-parse failures from engines too old to parse our bundles.
+        if (!supportsModernSyntax) {
+          var isParseError = values.some(function (value) {
+            return value && value.type === 'SyntaxError' &&
+              typeof value.value === 'string' && /^Unexpected token/.test(value.value);
+          });
+
+          if (isParseError) {
+            return null;
+          }
+        }
+      } catch (e) {
+        // never let the filter break error reporting
+      }
+
+      return event;
+    },
+  });
+};`,
+        },
         // Sentry error monitoring
         {
           tag: 'script',
@@ -855,8 +979,17 @@ export default defineConfig({
     define: {
       'import.meta.env.PUBLIC_BUILD_MODE': JSON.stringify(buildMode || ''),
       'import.meta.env.PUBLIC_HOT_VERSION': JSON.stringify(HOT_VERSION),
+      // Docs-assistant backend base URL. The backend is migrating from Netlify
+      // to a Cloudflare Worker (SU-633). Dev soaks the new Worker first: non-
+      // production builds (develop apex staging, PR previews, local dev) default
+      // to the dev Worker, while production stays on Netlify until its own
+      // separate cutover. The PUBLIC_CHAT_API_URL env var (wired into the staging
+      // build in SU-589) still takes precedence over this default in either mode.
       'import.meta.env.PUBLIC_CHAT_API_URL': JSON.stringify(
-        process.env.PUBLIC_CHAT_API_URL || 'https://hot-docs-assistant.netlify.app'
+        process.env.PUBLIC_CHAT_API_URL ||
+          (isProduction
+            ? 'https://hot-docs-assistant.netlify.app'
+            : 'https://hot-docs-assistant-dev.handsontable-sandbox.workers.dev')
       ),
     },
 

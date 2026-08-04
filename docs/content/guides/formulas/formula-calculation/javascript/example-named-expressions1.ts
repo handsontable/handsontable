@@ -38,8 +38,20 @@ const hot = new Handsontable(container, {
 const input = document.getElementById('named-expressions-input')!;
 const formulasPlugin: Formulas = hot.getPlugin('formulas');
 const button = document.getElementById('named-expressions-button')!;
+const statusOutput = document.getElementById('named-expressions-status')!;
 
 button!.addEventListener('click', () => {
-  formulasPlugin.engine?.changeNamedExpression('ADDITIONAL_COST', (input as HTMLInputElement).value);
+  try {
+    formulasPlugin.engine?.changeNamedExpression('ADDITIONAL_COST', (input as HTMLInputElement).value);
+  } catch (error) {
+    // HyperFormula rejects some expressions, for example relative references such as `Sheet1!A2`.
+    statusOutput.textContent = error instanceof Error ? error.message : String(error);
+    statusOutput.classList.add('is-error');
+
+    return;
+  }
+
+  statusOutput.textContent = '';
+  statusOutput.classList.remove('is-error');
   hot.render();
 });

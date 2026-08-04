@@ -351,8 +351,8 @@
   transform: rotate(180deg);
 }
 
-/* Icon-only action buttons (StackBlitz, GitHub) — merged as cells */
-.hot-example-stackblitz-btn,
+/* Icon-only action buttons (runner, GitHub) — merged as cells */
+.hot-example-runner-btn,
 .hot-example-github-btn {
   appearance: none;
   display: inline-flex;
@@ -369,13 +369,13 @@
   transition: color 0.15s, background-color 0.15s;
 }
 
-.hot-example-stackblitz-btn:hover,
+.hot-example-runner-btn:hover,
 .hot-example-github-btn:hover {
   color: var(--sl-color-white);
   background: var(--sl-color-gray-6);
 }
 
-.hot-example-stackblitz-btn:focus-visible,
+.hot-example-runner-btn:focus-visible,
 .hot-example-github-btn:focus-visible {
   outline: none;
   box-shadow: inset 0 0 0 2px var(--sl-color-accent);

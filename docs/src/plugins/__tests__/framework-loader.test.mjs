@@ -6,6 +6,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { frameworkLoader } from '../framework-loader.mjs';
 import { LATEST_CHANGELOG_MAJOR } from '../changelog-parser.mjs';
+import { CURRENT_DOCS_VERSION } from '../docs-version.mjs';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -290,6 +291,249 @@ function createChangelogLinkFixture() {
 
   return { contentDir, root };
 }
+
+/**
+ * Builds a temp content tree with a vanilla guide example that embeds both a
+ * .js and a .ts source file, so the runner-link tab-follow data can be asserted.
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createVanillaJsTsFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-jsts-'));
+  const contentDir = join(root, 'content');
+  const jsDir = join(contentDir, 'guides', 'intro', 'javascript');
+
+  mkdirSync(jsDir, { recursive: true });
+
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+
+  writeFileSync(
+    join(contentDir, 'guides', 'intro', 'intro.md'),
+    [
+      '---',
+      'title: Introduction',
+      'permalink: /intro',
+      '---',
+      '',
+      'Intro body.',
+      '',
+      '::: example #ex1 --js 1 --ts 2',
+      '@[code](@/content/guides/intro/javascript/example1.js)',
+      '@[code](@/content/guides/intro/javascript/example1.ts)',
+      ':::',
+      '',
+    ].join('\n')
+  );
+
+  writeFileSync(join(jsDir, 'example1.js'), "const grid = 'EXAMPLE_CODE_V1';\n");
+  writeFileSync(join(jsDir, 'example1.ts'), "const grid: string = 'EXAMPLE_CODE_V1';\n");
+
+  return { contentDir, root };
+}
+
+/**
+ * Resolves an entry's rendered HTML. On this branch the store holds the HTML
+ * directly (no marker + file indirection), so this is a plain accessor kept
+ * for parity with the develop test suite.
+ *
+ * @param {Map<string, object>} store
+ * @param {string} id
+ * @returns {string}
+ */
+function renderedHtmlOf(store, id) {
+  return store.get(id).rendered.html;
+}
+
+/**
+ * Builds a temp content tree with a React example that embeds both a .jsx and a
+ * .tsx source file, so the fenced-code language mapping can be asserted.
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createReactFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-'));
+  const contentDir = join(root, 'content');
+  const reactDir = join(contentDir, 'guides', 'intro', 'react');
+
+  mkdirSync(reactDir, { recursive: true });
+
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+
+  writeFileSync(
+    join(contentDir, 'guides', 'intro', 'intro.md'),
+    [
+      '---',
+      'title: Introduction',
+      'permalink: /intro',
+      '---',
+      '',
+      'Intro body.',
+      '',
+      '::: example #ex1',
+      '@[code](@/content/guides/intro/react/example1.jsx)',
+      '@[code](@/content/guides/intro/react/example1.tsx)',
+      ':::',
+      '',
+    ].join('\n')
+  );
+
+  writeFileSync(join(reactDir, 'example1.jsx'), 'export const Grid = () => <HotTable data={[]} />;\n');
+  writeFileSync(join(reactDir, 'example1.tsx'), 'export const Grid = (): JSX.Element => <HotTable data={[]} />;\n');
+
+  return { contentDir, root };
+}
+
+/**
+ * Builds a temp content tree with a server-side-only example (a .cs file with
+ * no runnable JS/TS/Vue entry point), so the fenced-code language mapping for
+ * non-JS backend languages can be asserted.
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createCsharpFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-'));
+  const contentDir = join(root, 'content');
+  const serverDir = join(contentDir, 'guides', 'intro', 'server');
+
+  mkdirSync(serverDir, { recursive: true });
+
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+
+  writeFileSync(
+    join(contentDir, 'guides', 'intro', 'intro.md'),
+    [
+      '---',
+      'title: Introduction',
+      'permalink: /intro',
+      '---',
+      '',
+      'Intro body.',
+      '',
+      '::: example #ex1',
+      '@[code csharp](@/content/guides/intro/server/Order.cs)',
+      ':::',
+      '',
+    ].join('\n')
+  );
+
+  writeFileSync(join(serverDir, 'Order.cs'), 'public class Order\n{\n    public int Id { get; set; }\n}\n');
+
+  return { contentDir, root };
+}
+
+test('vanilla JS/TS guide example gets a runner link that follows the active tab', async () => {
+  const { contentDir, root } = createVanillaJsTsFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'javascript-data-grid/intro');
+
+    assert.ok(html.includes('class="hot-example-runner-btn"'), 'expected a runner link');
+    assert.ok(
+      html.includes(`href="https://demos.handsontable.com/?docs=guides/intro/javascript/example1.js&amp;v=${CURRENT_DOCS_VERSION}"`),
+      'runner href should point at the .js variant with the resolved docs version'
+    );
+    assert.ok(html.includes('data-docs-ts="guides/intro/javascript/example1.ts"'), 'expected the .ts variant path for the client-side tab rewrite');
+    assert.ok(html.includes('data-runner-version="'), 'expected the version to be carried for the client-side rewrite');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('React example links the runner to the .tsx variant, not .jsx, with no tab-follow data', async () => {
+  const { contentDir, root } = createReactFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'react-data-grid/intro');
+
+    assert.ok(
+      html.includes(`href="https://demos.handsontable.com/?docs=guides/intro/react/example1.tsx&amp;v=${CURRENT_DOCS_VERSION}"`),
+      'runner href should point at the .tsx variant even though .jsx is listed first'
+    );
+    assert.ok(!html.includes('data-docs-js'), 'React examples have no manifest-eligible JS variant to follow');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+/**
+ * Builds a temp content tree with a recipe example (not under guides/), to
+ * confirm recipe examples get a runner link just like guide examples do.
+ *
+ * @returns {{ contentDir: string, root: string }}
+ */
+function createRecipeFixture() {
+  const root = mkdtempSync(join(tmpdir(), 'hot-loader-recipe-'));
+  const contentDir = join(root, 'content');
+  const jsDir = join(contentDir, 'recipes', 'themes', 'base-theme', 'javascript');
+
+  mkdirSync(jsDir, { recursive: true });
+
+  writeFileSync(join(contentDir, 'index.md'), '---\ntitle: Home\n---\n\nWelcome.\n');
+
+  writeFileSync(
+    join(contentDir, 'recipes', 'themes', 'base-theme', 'base-theme.md'),
+    [
+      '---',
+      'title: Base theme',
+      'permalink: /recipes/themes/base-theme',
+      '---',
+      '',
+      '::: example #ex1',
+      '@[code](@/content/recipes/themes/base-theme/javascript/example1.js)',
+      ':::',
+      '',
+    ].join('\n')
+  );
+
+  writeFileSync(join(jsDir, 'example1.js'), "const grid = 'RECIPE_EXAMPLE';\n");
+
+  return { contentDir, root };
+}
+
+test('recipe examples (outside guides/) get a runner link too', async () => {
+  const { contentDir, root } = createRecipeFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'javascript-data-grid/recipes/themes/base-theme');
+
+    assert.ok(
+      html.includes(`href="https://demos.handsontable.com/?docs=recipes/themes/base-theme/javascript/example1.js&amp;v=${CURRENT_DOCS_VERSION}"`),
+      'recipe examples should link the runner the same way guide examples do'
+    );
+    assert.ok(!html.includes('hot-example-stackblitz-btn'), 'StackBlitz button should not render');
+    assert.ok(!html.includes('hot-example-sb-data'), 'StackBlitz data blob should not render');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('server-side-only examples still render no toolbar at all (regression guard)', async () => {
+  const { contentDir, root } = createCsharpFixture();
+
+  try {
+    const { ctx, store } = createContext();
+
+    await frameworkLoader({ contentDir }).load(ctx);
+
+    const html = renderedHtmlOf(store, 'javascript-data-grid/intro');
+
+    assert.ok(!html.includes('hot-example-runner-btn'), 'no runnable entry point means no toolbar, including the runner link');
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
+});
 
 test('{{$latestChangelogVersion}} placeholder resolves to the latest changelog page inside an @/...md link', async () => {
   const { contentDir, root } = createChangelogLinkFixture();
