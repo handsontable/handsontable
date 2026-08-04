@@ -995,16 +995,23 @@ async function route(request, env) {
     {
       const forced301 = {
         '/docs/angular-data-grid/recipes/color-picker-angular/': '/docs/angular-data-grid/recipes/cell-types/color-picker/',
-        '/docs/angular-data-grid/recipes/feedback-angular/': '/docs/angular-data-grid/recipes/cell-types/feedback/',
-        '/docs/angular-data-grid/recipes/stars-rating-angular/': '/docs/angular-data-grid/recipes/cell-types/rating/',
+        // The Angular Feedback and Star Rating recipes are temporarily unreachable: their
+        // editors pass `shortcuts` through `HotCellEditorAdvancedComponent`, and the adapter
+        // does not forward `shortcutsGroup`, so the editor throws on Handsontable 18.0.0.
+        // Point every Angular alias at the cell-types index until the core default shortcuts
+        // group ships (18.1.0), then restore the destinations below.
+        '/docs/angular-data-grid/recipes/cell-types/feedback/': '/docs/angular-data-grid/recipes/cell-types/',
+        '/docs/angular-data-grid/recipes/cell-types/rating/': '/docs/angular-data-grid/recipes/cell-types/',
+        '/docs/angular-data-grid/recipes/feedback-angular/': '/docs/angular-data-grid/recipes/cell-types/',
+        '/docs/angular-data-grid/recipes/stars-rating-angular/': '/docs/angular-data-grid/recipes/cell-types/',
         '/docs/angular-data-grid/recipes/datepicker-angular/': '/docs/angular-data-grid/recipes/cell-types/datepicker/',
         '/docs/angular-data-grid/recipes/cell-types/color-picker-angular/': '/docs/angular-data-grid/recipes/cell-types/color-picker/',
         '/docs/javascript-data-grid/recipes/cell-types/color-picker-angular/': '/docs/javascript-data-grid/recipes/cell-types/color-picker/',
         '/docs/react-data-grid/recipes/cell-types/color-picker-angular/': '/docs/react-data-grid/recipes/cell-types/colorful-picker/',
-        '/docs/angular-data-grid/recipes/cell-types/feedback-angular/': '/docs/angular-data-grid/recipes/cell-types/feedback/',
+        '/docs/angular-data-grid/recipes/cell-types/feedback-angular/': '/docs/angular-data-grid/recipes/cell-types/',
         '/docs/javascript-data-grid/recipes/cell-types/feedback-angular/': '/docs/javascript-data-grid/recipes/cell-types/feedback/',
         '/docs/react-data-grid/recipes/cell-types/feedback-angular/': '/docs/react-data-grid/recipes/cell-types/feedback-react/',
-        '/docs/angular-data-grid/recipes/cell-types/rating-angular/': '/docs/angular-data-grid/recipes/cell-types/rating/',
+        '/docs/angular-data-grid/recipes/cell-types/rating-angular/': '/docs/angular-data-grid/recipes/cell-types/',
         '/docs/javascript-data-grid/recipes/cell-types/rating-angular/': '/docs/javascript-data-grid/recipes/cell-types/rating/',
         '/docs/react-data-grid/recipes/cell-types/rating-angular/': '/docs/react-data-grid/recipes/cell-types/react-rating/',
         '/docs/angular-data-grid/recipes/cell-types/datepicker-angular/': '/docs/angular-data-grid/recipes/cell-types/datepicker/',
@@ -1015,8 +1022,8 @@ async function route(request, env) {
         '/docs/javascript-data-grid/recipes/cell-types/feedback-react/': '/docs/javascript-data-grid/recipes/cell-types/feedback/',
         '/docs/javascript-data-grid/recipes/cell-types/react-rating/': '/docs/javascript-data-grid/recipes/cell-types/rating/',
         '/docs/angular-data-grid/recipes/cell-types/colorful-picker/': '/docs/angular-data-grid/recipes/cell-types/color-picker/',
-        '/docs/angular-data-grid/recipes/cell-types/feedback-react/': '/docs/angular-data-grid/recipes/cell-types/feedback/',
-        '/docs/angular-data-grid/recipes/cell-types/react-rating/': '/docs/angular-data-grid/recipes/cell-types/rating/',
+        '/docs/angular-data-grid/recipes/cell-types/feedback-react/': '/docs/angular-data-grid/recipes/cell-types/',
+        '/docs/angular-data-grid/recipes/cell-types/react-rating/': '/docs/angular-data-grid/recipes/cell-types/',
         '/docs/javascript-data-grid/recipes/cell-types/datepicker/': '/docs/javascript-data-grid/recipes/cell-types/',
         '/docs/react-data-grid/recipes/cell-types/datepicker/': '/docs/react-data-grid/recipes/cell-types/',
       };

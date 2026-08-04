@@ -311,7 +311,25 @@ test('still maps cell-type recipes that have a framework-specific counterpart pa
   );
   await assertRedirect(
     worker,
-    '/docs/angular-data-grid/recipes/cell-types/react-rating/',
-    '/docs/angular-data-grid/recipes/cell-types/rating/',
+    '/docs/javascript-data-grid/recipes/cell-types/react-rating/',
+    '/docs/javascript-data-grid/recipes/cell-types/rating/',
   );
+});
+
+test('bounces every Angular alias of the Feedback and Star Rating recipes to the cell-types index', async() => {
+  const worker = loadWorker();
+  const aliases = [
+    '/docs/angular-data-grid/recipes/cell-types/feedback/',
+    '/docs/angular-data-grid/recipes/cell-types/feedback-angular/',
+    '/docs/angular-data-grid/recipes/cell-types/feedback-react/',
+    '/docs/angular-data-grid/recipes/feedback-angular/',
+    '/docs/angular-data-grid/recipes/cell-types/rating/',
+    '/docs/angular-data-grid/recipes/cell-types/rating-angular/',
+    '/docs/angular-data-grid/recipes/cell-types/react-rating/',
+    '/docs/angular-data-grid/recipes/stars-rating-angular/',
+  ];
+
+  for (const alias of aliases) {
+    await assertRedirect(worker, alias, '/docs/angular-data-grid/recipes/cell-types/');
+  }
 });

@@ -35,6 +35,7 @@ const cellDefinition = {
     callback(value >= 0 && value <= 100);
   },
   editor: editorFactory({
+    shortcutsGroup: 'customEditor',
     shortcuts: [
       {
         keys: [['1'], ['2'], ['3'], ['4'], ['5']],

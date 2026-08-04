@@ -41,6 +41,7 @@ const cellDefinition: Pick<
   },
 
   editor: editorFactory<{ input: HTMLDivElement }>({
+    shortcutsGroup: 'customEditor',
     shortcuts: [
       {
         keys: [["1"], ["2"], ["3"], ["4"], ["5"]],
