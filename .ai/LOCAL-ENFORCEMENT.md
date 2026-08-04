@@ -33,8 +33,9 @@ report-only at 80% until calibrated — a unit floor reads 0% for correctly
 E2E-tested changes, so it earns "blocking" only after the numbers are trusted).
 
 **Touched E2E specs run exactly once locally, whichever tool proves them first.**
-The Stop hook and pre-push share a green-run cache (`.git/hot-e2e-green.json`,
-via `scripts/e2e-run-cache.mjs`) keyed on spec content + environment (dist bundle,
+The Stop hook and pre-push share a green-run cache (`hot-e2e-green.json` in the
+checkout's git directory — `<root>/.git/` in a clone, `<main>/.git/worktrees/<name>/`
+in a linked worktree; via `scripts/e2e-run-cache.mjs`) keyed on spec content + environment (dist bundle,
 fixtures, Playwright config): with Claude, Stop proves the spec and pre-push skips
 it; with Cursor (no agent hooks), pre-push proves it once and repeat pushes skip.
 Editing the spec, rebuilding the dist, or touching a fixture invalidates the entry.
@@ -77,7 +78,8 @@ presence gate or the test requirement. Do not use it to dodge writing tests.
 
 ## 2. Creating or changing enforcement hooks (git + agent) — exact rules
 
-- **Location.** Git hooks → `lefthook.yml` + `scripts/` (`pre-push.mjs`, `lint-staged.mjs`, `lint-files.mjs`). Agent hooks → `scripts/claude/` (`post-tool-use.mjs`, `stop.mjs`, `session.mjs`), wired in `.claude/settings.json`. Shared, pure classifiers → `.github/scripts/lib/` (`presence-gate.mjs`, `test-weakening.mjs`).
+- **Location.** Git hooks → `lefthook.yml` + `scripts/` (`pre-push.mjs`, `lint-staged.mjs`, `lint-files.mjs`). Agent hooks → `scripts/claude/` (`post-tool-use.mjs`, `stop.mjs`, `session.mjs`), wired in `.claude/settings.json`. Shared, pure classifiers and layout helpers → `.github/scripts/lib/` (`presence-gate.mjs`, `test-weakening.mjs`, `repo-root.mjs`).
+- **Must work in a linked worktree.** Agent-driven work runs in `git worktree` checkouts, so never derive the repo layout from git or the cwd: take the root from `repoRoot()` (`.github/scripts/lib/repo-root.mjs`) and per-checkout state from `gitDir(root)`. A hook exports `GIT_DIR`, and with it set `git rev-parse --show-toplevel` returns the *cwd*, not the work tree; in a worktree `<root>/.git` is a **file**, so writing under it fails with ENOTDIR. Strip `GIT_DIR`/`GIT_WORK_TREE` from the environment of any child you spawn with an explicit `cwd`.
 - **Pure + tested.** Put the decision logic in a **pure function** in a lib and **unit-test it** (`scripts/__tests__/`, `.github/scripts/__tests__/`, run with `node --test`). **A hook change ships a test change** — this rule applies to the enforcement machinery too.
 - **Must not false-block.** Skip config/parse gaps (ESLint exit 2), record only **repo-relative, in-repo** paths (never scratchpad/out-of-repo), tolerate a missing base ref. A hook that fires on a false positive gets disabled — that is worse than no hook.
 - **Must stay fast.** No build in the pre-push or agent hooks; run only the **changed scope**. Heavy/full-suite work is CI's job.

@@ -12,15 +12,32 @@
  * a fixture changes the key → the spec runs again. CI remains authoritative and
  * always runs the full project on the PR.
  *
- * The cache lives in `.git/` — per-clone, never committed, survives tmpdir
- * cleanups, and vanishes with the clone.
+ * The cache lives in the checkout's git directory — `<root>/.git/` in a normal
+ * clone, `<main>/.git/worktrees/<name>/` in a linked worktree. Per-checkout,
+ * never committed, survives tmpdir cleanups, and vanishes with the checkout.
  */
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import path from 'node:path';
+import { gitDir } from '../.github/scripts/lib/repo-root.mjs';
 
 const CACHE_FILE = 'hot-e2e-green.json';
 const MAX_ENTRIES = 200;
+
+/**
+ * Absolute path of the cache file for the checkout at `root`. Goes through
+ * `gitDir()` rather than `<root>/.git`, because in a linked worktree `.git` is a
+ * FILE — joining onto it yields a path that can never be read or written
+ * (ENOTDIR), which silently disabled the cache in every worktree.
+ *
+ * @param {string} root Repo root.
+ * @returns {string|null} The cache path, or null when `root` is not a checkout.
+ */
+export function cacheFile(root) {
+  const dir = gitDir(root);
+
+  return dir ? path.join(dir, CACHE_FILE) : null;
+}
 
 /**
  * SHA-256 of a file's bytes ('' when unreadable).
@@ -107,7 +124,7 @@ export function specKey(root, spec, env) {
  */
 function readCache(root) {
   try {
-    return new Set(JSON.parse(readFileSync(path.join(root, '.git', CACHE_FILE), 'utf8')).keys);
+    return new Set(JSON.parse(readFileSync(cacheFile(root), 'utf8')).keys);
   } catch {
     return new Set();
   }
@@ -149,6 +166,11 @@ export function recordGreen(root, specs) {
     return;
   }
   const keys = new Set(readCache(root));
+  const file = cacheFile(root);
+
+  if (!file) {
+    return;
+  }
 
   for (const s of specs) {
     const key = specKey(root, s, env);
@@ -159,9 +181,6 @@ export function recordGreen(root, specs) {
   }
 
   try {
-    writeFileSync(
-      path.join(root, '.git', CACHE_FILE),
-      JSON.stringify({ keys: [...keys].slice(-MAX_ENTRIES) }),
-    );
+    writeFileSync(file, JSON.stringify({ keys: [...keys].slice(-MAX_ENTRIES) }));
   } catch { /* cache is an optimization — never fail the hook over it */ }
 }

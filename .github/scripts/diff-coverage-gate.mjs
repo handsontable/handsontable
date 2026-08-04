@@ -18,8 +18,9 @@
 import { execSync } from 'node:child_process';
 import { readFileSync, existsSync, appendFileSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
 import { parseLcov, addedLinesByFile, computeDiffCoverage, evaluate } from './lib/diff-coverage.mjs';
+import { repoRoot } from './lib/repo-root.mjs';
 
 /**
  * Resolve the base ref to diff against — an explicit GATE_BASE, else the
@@ -43,8 +44,9 @@ function resolveBase(cwd) {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-  const root = execSync('git rev-parse --show-toplevel', { encoding: 'utf8', cwd: scriptDir }).trim();
+  // Location-derived, not git-derived: correct from any cwd, and under the
+  // `GIT_DIR` a git hook exports (see `lib/repo-root.mjs`).
+  const root = repoRoot();
   const mode = process.env.GATE_MODE === 'block' ? 'block' : 'warn';
   const floor = Number(process.env.COVERAGE_FLOOR ?? 80);
   const lcovPath = path.join(root, process.env.LCOV_PATH || 'handsontable/coverage/lcov.info');
