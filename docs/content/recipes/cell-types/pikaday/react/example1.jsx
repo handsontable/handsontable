@@ -19,7 +19,6 @@ const pikadayRenderer = rendererFactory(({ td, value, cellProperties }) => {
 
 const pikadayEditor = editorFactory({
   position: 'portal',
-  shortcutsGroup: 'customEditor',
   shortcuts: [
     {
       keys: [['ArrowLeft']],

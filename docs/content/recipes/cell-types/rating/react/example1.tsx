@@ -28,7 +28,6 @@ const ratingValidator = (value: unknown, callback: (valid: boolean) => void) => 
 };
 
 const ratingEditor = editorFactory<RatingEditorInstance>({
-  shortcutsGroup: 'customEditor',
   shortcuts: [
     {
       keys: [['1'], ['2'], ['3'], ['4'], ['5']],

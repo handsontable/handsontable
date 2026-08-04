@@ -178,7 +178,6 @@ const cellDateTypeDefinition = {
   },
   editor: editorFactory({
     position: 'portal',
-    shortcutsGroup: 'customEditor',
     shortcuts: [
       {
         keys: [['ArrowLeft']],

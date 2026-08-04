@@ -77,7 +77,6 @@ const cellDateTypeDefinition = {
   },
   editor: editorFactory<MomentDateEditorInstance>({
     position: 'portal',
-    shortcutsGroup: 'customEditor',
     shortcuts: [
       {
         keys: [['ArrowLeft']],
