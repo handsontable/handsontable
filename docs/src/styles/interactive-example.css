@@ -81,6 +81,14 @@
   display: none;
 }
 
+/* Failure notice added by example-runner.ts when a framework runtime cannot load, so the reader
+   sees why the example is missing instead of an empty box. */
+.hot-example-error {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--sl-color-gray-2);
+}
+
 /* Keep the mount container invisible while loading to avoid a flash of
    unstyled content (Handsontable sets its own dimensions after mount). */
 .hot-example-preview--loading #\31 ,

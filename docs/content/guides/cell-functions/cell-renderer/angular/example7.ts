@@ -28,10 +28,17 @@ export class AppComponent {
       { data: 'asset' },
       {
         data: 'btcValue',
+        type: 'numeric',
         // Bitcoin (₿) isn't an ISO 4217 currency, so `numericFormat` can't format it.
         // `valueFormatter` prepends the symbol instead.
         valueFormatter(value: unknown) {
-          return `₿${(value as number).toFixed(4)}`;
+          // `type: 'numeric'` turns numeric input into a number, but invalid input
+          // stays a string, so check the type before calling `toFixed()`.
+          if (typeof value !== 'number') {
+            return value;
+          }
+
+          return `₿${value.toFixed(4)}`;
         },
       },
       {

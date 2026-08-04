@@ -804,7 +804,8 @@ for the full naming rules and supported expression types.
 
 The example below registers `ADDITIONAL_COST` as a plain number. Cell formulas in column D add that
 constant to each base price. The input below the grid lets you replace the expression at runtime
-using `changeNamedExpression()`.
+using `changeNamedExpression()`. If HyperFormula rejects the expression - for example when you use a
+relative reference such as `Sheet1!A2` - the demo shows the error message below the input.
 
 ::: only-for javascript
 

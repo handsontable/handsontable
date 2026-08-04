@@ -181,3 +181,15 @@ test('a Walkontable source change is satisfied by a Playwright spec, blocked by 
   assert.equal(withNewJasmine.pass, false, 'a new walkontable Jasmine spec is blocked');
   assert.equal(withNewJasmine.reason, 'new-jasmine-spec');
 });
+
+// --- specs directly under src/__tests__/ (no intermediate directory) ---
+test('a spec under src/__tests__/ with no intermediate directory is inside the frozen tree', () => {
+  // `handsontable/src/__tests__/` holds the bulk of the frozen suite (core/,
+  // hooks/, settings/, ...). The tree pattern must not require an intermediate
+  // directory between `src/` and `__tests__/`.
+  const spec = 'handsontable/src/__tests__/settings/rowHeights.spec.js';
+  assert.equal(isNewJasmineSpec({ status: 'A', path: spec }), true, 'a new spec there is a freeze violation');
+  assert.equal(isNewJasmineSpec({ status: 'M', path: spec }), false, 'editing one is not a violation');
+  assert.equal(isCoverage({ status: 'M', path: spec }), true, 'editing an existing spec there counts as coverage');
+  assert.equal(isCoverage({ status: 'A', path: spec }), false, 'a new spec there does not count as coverage');
+});

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an error thrown on every focus change when the grid failed to initialize.",
+  "type": "fixed",
+  "issueOrPR": 13131,
+  "breaking": false,
+  "framework": "none"
+}
