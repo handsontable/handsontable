@@ -27,6 +27,7 @@ const feedbackCellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'e
   editor: editorFactory<FeedbackEditorInstance>({
     config: ['👍', '👎', '🤷'],
     value: '👍',
+    shortcutsGroup: 'customEditor',
     shortcuts: [
       {
         keys: [['ArrowRight'], ['Tab']],

@@ -19,6 +19,7 @@ const feedbackCellDefinition = {
   editor: editorFactory({
     config: ['👍', '👎', '🤷'],
     value: '👍',
+    shortcutsGroup: 'customEditor',
     shortcuts: [
       {
         keys: [['ArrowRight'], ['Tab']],

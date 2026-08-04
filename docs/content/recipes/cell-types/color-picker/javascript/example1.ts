@@ -281,6 +281,7 @@ const cellDefinition: Pick<CellProperties, 'renderer' | 'validator' | 'editor'> 
     setValue(editor, value) {
       editor.input.value = value;
     },
+    shortcutsGroup: 'customEditor',
     shortcuts: [
       {
         keys: [['Tab']],

@@ -601,6 +601,7 @@ const cellDefinition: Pick<
     EditorMethodsType
   >({
     position: 'portal',
+    shortcutsGroup: 'customEditor',
     shortcuts: [
       // ... keyboard shortcuts from Step 13
     ],

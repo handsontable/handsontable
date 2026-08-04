@@ -194,6 +194,7 @@ The editor uses `editorFactory` with `position: 'portal'` to overlay a Pikaday c
 ```typescript
 editor: editorFactory({
   position: 'portal',
+  shortcutsGroup: 'customEditor',
   shortcuts: [
     {
       keys: [['ArrowLeft']],

@@ -32,8 +32,12 @@ const dataManagementItems = [
 const cellTypesItems = [
   // JavaScript + Angular + Vue (shared multi-framework pages)
   { path: 'cell-types/color-picker/color-picker', title: 'Color picker', onlyFor: ['javascript', 'angular', 'vue'] },
-  { path: 'cell-types/feedback/feedback', title: 'Feedback', onlyFor: ['javascript', 'angular', 'vue'] },
-  { path: 'cell-types/rating/rating', title: 'Star Rating', onlyFor: ['javascript', 'angular', 'vue'] },
+  // Angular is temporarily hidden on these two pages: their Angular editors pass
+  // `shortcuts` through `HotCellEditorAdvancedComponent`, and the adapter does not
+  // forward `shortcutsGroup`, so the editor throws on Handsontable 18.0.0. Restore
+  // 'angular' once the core default shortcuts group ships (18.1.0).
+  { path: 'cell-types/feedback/feedback', title: 'Feedback', onlyFor: ['javascript', 'vue'] },
+  { path: 'cell-types/rating/rating', title: 'Star Rating', onlyFor: ['javascript', 'vue'] },
   // All frameworks
   { path: 'cell-types/radio/radio', title: 'Radio buttons', onlyFor: ['javascript', 'react', 'angular', 'vue'] },
   { path: 'cell-types/numbro/numbro', title: 'Numbro', onlyFor: ['javascript', 'react', 'angular', 'vue'] },

@@ -299,6 +299,7 @@ const cellDefinition = {
   editor: editorFactory<{ input: HTMLDivElement; value: string; config: string[] }>({
     config: ['👍', '👎', '🤷'],
     value: '👍',
+    shortcutsGroup: 'customEditor',
     shortcuts: [
       {
         keys: [['ArrowRight'], ['Tab']],
