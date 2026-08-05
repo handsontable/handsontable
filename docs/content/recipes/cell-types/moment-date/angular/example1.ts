@@ -1,92 +1,86 @@
 /* file: app.component.ts */
-import { Component, ChangeDetectionStrategy, ElementRef, ViewChild } from '@angular/core';
-import {
-  HotCellEditorAdvancedComponent,
-  HotCellRendererAdvancedComponent,
-  GridSettings,
-  HotTableModule
-} from '@handsontable/angular-wrapper';
+import { Component } from '@angular/core';
+import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
+import { registerCellType, DateCellType } from 'handsontable/cellTypes';
+import { CellChange, CellProperties } from 'handsontable/settings';
+import { HotInstance } from 'handsontable';
 import moment from 'moment';
-import Pikaday from '@handsontable/pikaday';
-import '@handsontable/pikaday/css/pikaday.css';
 
-const DATE_FORMAT = 'YYYY-MM-DD';
+// The built-in `date` cell type stores every value in the ISO 8601 format.
+const ISO_FORMAT = 'YYYY-MM-DD';
 
-// `useMoment()` exists at runtime but is missing from the Pikaday type definitions.
-type PikadayWithMoment = Pikaday & { useMoment(momentFunction: typeof moment): void };
+// Converts a loosely written date into ISO.
+const toISODate = (value: string, inputFormat: string): string => {
+  // The column's own format wins, parsed strictly so a near-miss does not silently shift.
+  const fromInputFormat = moment(value, inputFormat, true);
 
-@Component({
-  standalone: true,
-  selector: 'example1-moment-date-editor',
-  template: `<div #container class="pikaday-container"></div>`,
-  styles: [
-    `
-    :host { display: block; }
-    .pikaday-container { width: 290px; }
-  `,
-  ],
-})
-export class MomentDateEditorComponent extends HotCellEditorAdvancedComponent<string> {
-  override position = 'portal' as const;
-  @ViewChild('container', { static: true }) container!: ElementRef;
-  private pikaday: Pikaday | null = null;
+  if (fromInputFormat.isValid()) {
+    return fromInputFormat.format(ISO_FORMAT);
+  }
 
-  override afterOpen(): void {
-    this.pikaday = new Pikaday({
-      field: this.container.nativeElement,
-      container: this.container.nativeElement,
-      bound: false,
-      format: DATE_FORMAT,
-      firstDay: 0,
-      showWeekNumber: true,
-      disableDayFn: (date: Date) => date.getDay() === 0 || date.getDay() === 6,
-      onSelect: (date: Date) => {
-        this.setValue(moment(date).format(DATE_FORMAT));
-      },
-      onClose: () => {
-        this.finishEdit.emit();
-      },
-    });
+  // Fall back to the browser's parsing for values that format cannot describe, such as
+  // "March 14, 2025". Handing Moment a Date avoids its string-parsing deprecation warning.
+  const nativeDate = new Date(value);
 
-    (this.pikaday as PikadayWithMoment).useMoment(moment);
+  return Number.isNaN(nativeDate.getTime()) ? value : moment(nativeDate).format(ISO_FORMAT);
+};
 
-    if (this.value) {
-      const m = moment(this.value, DATE_FORMAT, true);
+// The custom cell properties this cell type reads, on top of the built-in ones.
+type MomentDateCellProperties = CellProperties & {
+  renderFormat?: string;
+  inputFormat?: string;
+  correctFormat?: boolean;
+};
 
-      if (m.isValid()) {
-        this.pikaday.setMoment(m, true);
-      }
-    } else {
-      this.pikaday.gotoToday();
+const cellDateTypeDefinition = {
+  // Inherit the built-in date editor (a native date input), its ISO validator, and the source-data
+  // check that warns when the underlying data is not ISO.
+  ...DateCellType,
+
+  // Display the ISO source value in the column's own Moment format. `valueFormatter` runs before the
+  // renderer, so the inherited renderer receives the formatted string and no custom renderer is needed.
+  valueFormatter: (value: unknown, cellProperties: MomentDateCellProperties) => {
+    if (typeof value !== 'string' || value === '') {
+      return value;
     }
 
-    this.pikaday.show();
-  }
+    const date = moment(value, ISO_FORMAT, true);
 
-  override afterClose(): void {
-    this.pikaday?.destroy();
-    this.pikaday = null;
-  }
+    return date.isValid() ? date.format(cellProperties.renderFormat ?? ISO_FORMAT) : value;
+  },
+};
 
-  override onFocus(): void {
-    this.container.nativeElement.focus();
-  }
+// Rewrites a non-ISO value into ISO before it reaches the cell. This runs ahead of both the editor
+// and the validator, which is what keeps the built-in ISO-only editor from warning about the raw
+// value. It also covers pasted and programmatically written values, which never touch the editor.
+function correctDatesBeforeChange(this: HotInstance, changes: (CellChange | null)[]): void {
+  changes.forEach((change) => {
+    if (!change) {
+      return;
+    }
+
+    const [visualRow, prop, , newValue] = change;
+    const cellMeta = this.getCellMetaTransient(
+      visualRow,
+      this.propToCol(prop as string) as number
+    ) as MomentDateCellProperties;
+
+    if (
+      cellMeta.type !== 'moment-date' ||
+      cellMeta.correctFormat !== true ||
+      typeof newValue !== 'string' ||
+      newValue === ''
+    ) {
+      return;
+    }
+
+    if (!moment(newValue, ISO_FORMAT, true).isValid()) {
+      change[3] = toISODate(newValue, cellMeta.inputFormat ?? ISO_FORMAT);
+    }
+  });
 }
 
-@Component({
-  standalone: true,
-  selector: 'example1-moment-date-renderer',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<span>{{ formattedDate }}</span>`,
-})
-export class MomentDateRendererComponent extends HotCellRendererAdvancedComponent<string> {
-  get formattedDate(): string {
-    if (!this.value) return '';
-    const m = moment(this.value, DATE_FORMAT, true);
-
-    return m.isValid() ? m.format(DATE_FORMAT) : this.value;
-  }
-}
+registerCellType('moment-date', cellDateTypeDefinition);
 
 @Component({
   standalone: true,
@@ -148,17 +142,21 @@ export class AppComponent {
     width: '100%',
     autoWrapRow: true,
     headerClassName: 'htLeft',
+    beforeChange: correctDatesBeforeChange,
     columns: [
       { data: 'itemName', type: 'text', width: 130 },
       { data: 'category', type: 'text', width: 120 },
       { data: 'leadEngineer', type: 'text', width: 150 },
       {
         data: 'restockDate',
+        type: 'moment-date',
         width: 150,
-        allowInvalid: false,
-        editor: MomentDateEditorComponent,
-        renderer: MomentDateRendererComponent,
-      } as any,
+        // Display format, applied by `valueFormatter`. The stored value stays ISO.
+        renderFormat: 'MMM D, YYYY',
+        // Format tried first when correcting a pasted value.
+        inputFormat: 'MM/DD/YYYY',
+        correctFormat: true,
+      },
       {
         data: 'cost',
         type: 'numeric',

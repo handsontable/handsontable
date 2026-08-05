@@ -11,13 +11,8 @@ export const iconsMap = (icons, themePrefix) => {
 
   return `${prefix}.htDropdownMenu table tbody tr td.htSubmenu .htItemWrapper::after,
 ${prefix}.htContextMenu table tbody tr td.htSubmenu .htItemWrapper::after,
-${prefix}.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after,
-${prefix}.pika-single .pika-next {
+${prefix}.htFiltersConditionsMenu table tbody tr td.htSubmenu .htItemWrapper::after {
   ${icon(icons, 'arrowRight')}
-}
-
-${prefix}.pika-single .pika-prev {
-  ${icon(icons, 'arrowLeft')}
 }
 
 ${prefix}.ht-page-size-section__select-wrapper::after {

@@ -31,7 +31,6 @@
             "preserveSymlinks": true,
             "allowedCommonJsDependencies": [
               "core-js",
-              "pikaday",
               "@handsontable/formulajs"
             ]
           },

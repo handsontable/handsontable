@@ -1,5 +1,5 @@
 ---
-type: how-to
+type: tutorial
 title: Pikaday
 metaTitle: Pikaday Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a custom Handsontable cell type using Pikaday for a date picker with per-column configuration directly inside your data grid. This guide serves as a migration path for users moving away from the built-in date cell type.
@@ -17,13 +17,14 @@ vue:
   metaTitle: Pikaday Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
+menuTag: updated
 ---
 
 This tutorial shows you how to integrate the Pikaday date picker as a custom Handsontable cell editor, with portal positioning and Moment.js formatting. This recipe also serves as a migration guide for users moving away from the built-in `date` cell type.
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps moment @handsontable/pikaday
+::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps moment pikaday
 
 @[code](@/content/recipes/cell-types/pikaday/javascript/example1.js)
 @[code](@/content/recipes/cell-types/pikaday/javascript/example1.ts)
@@ -35,7 +36,7 @@ This tutorial shows you how to integrate the Pikaday date picker as a custom Han
 
 ::: only-for react
 
-::: example #example1 :react-advanced --css 1 --js 2 --ts 3 --deps moment @handsontable/pikaday
+::: example #example1 :react-advanced --css 1 --js 2 --ts 3 --deps moment pikaday
 
 @[code](@/content/recipes/cell-types/pikaday/react/example1.css)
 @[code](@/content/recipes/cell-types/pikaday/react/example1.jsx)
@@ -46,10 +47,11 @@ This tutorial shows you how to integrate the Pikaday date picker as a custom Han
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2 --deps moment @handsontable/pikaday
+::: example #example1 :angular --ts 1 --html 2 --css 3 --deps moment pikaday
 
 @[code](@/content/recipes/cell-types/pikaday/angular/example1.ts)
 @[code](@/content/recipes/cell-types/pikaday/angular/example1.html)
+@[code](@/content/recipes/cell-types/pikaday/angular/example1.css)
 
 :::
 
@@ -57,17 +59,21 @@ This tutorial shows you how to integrate the Pikaday date picker as a custom Han
 
 ## Overview
 
-This guide shows how to create a custom date picker cell using [Pikaday](https://github.com/Pikaday/Pikaday), a date picker library with no dependencies. **Migration note:** the built-in `date` cell type with Pikaday will be removed in the next Handsontable release. Use this recipe to maintain Pikaday functionality in your application.
+This guide shows how to create a custom date picker cell using [Pikaday](https://github.com/Pikaday/Pikaday), a date picker library with no dependencies. **Migration note:** Handsontable 18.0 removed Pikaday from the built-in `date` cell type, which now uses a native date input. Use this recipe to keep Pikaday functionality in your application.
 
 **Difficulty:** Intermediate
 **Time:** ~25 minutes
-**Libraries:** `@handsontable/pikaday`, `moment`
+**Libraries:** `pikaday`, `moment`
+
+::: tip
+Pikaday's last release, 1.8.2, dates from 2020 and the project is no longer actively maintained. For a maintained picker, see the [flatpickr recipe](@/recipes/cell-types/flatpickr/flatpickr.md).
+:::
 
 ## What You'll Build
 
 A cell that:
 - Displays formatted dates (e.g., "12/31/2024" or "31/12/2024")
-- Opens a beautiful calendar picker when edited
+- Opens a calendar picker when edited, themed to match the grid
 - Supports per-column configuration (date formats, first day of week, disabled dates)
 - Handles keyboard navigation (arrow keys to navigate dates)
 - Auto-closes and saves when a date is selected
@@ -76,11 +82,17 @@ A cell that:
 ## Prerequisites
 
 ```bash
-npm install @handsontable/pikaday moment
+npm install pikaday moment
+```
+
+TypeScript users also need the community type definitions, which Pikaday does not ship itself:
+
+```bash
+npm install --save-dev @types/pikaday
 ```
 
 **Why these libraries?**
-- `@handsontable/pikaday` - The Pikaday date picker library (Handsontable's fork)
+- `pikaday` - The Pikaday date picker library
 - `moment` - Date formatting and parsing (can be replaced with date-fns, dayjs, etc.)
 
 ## Step 1: Import Dependencies
@@ -89,8 +101,8 @@ npm install @handsontable/pikaday moment
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
 import moment from 'moment';
-import Pikaday from '@handsontable/pikaday';
-import '@handsontable/pikaday/css/pikaday.css';
+import Pikaday from 'pikaday';
+import 'pikaday/css/pikaday.css';
 import { CellProperties } from 'handsontable/settings';
 import { editorFactory } from 'handsontable/editors';
 import { rendererFactory } from 'handsontable/renderers';
@@ -102,7 +114,7 @@ registerAllModules();
 - Handsontable core and styles
 - `editorFactory` and `rendererFactory` for creating custom cell type components
 - Pikaday for date picker functionality
-- `@handsontable/pikaday/css/pikaday.css` for the calendar panel styling
+- `pikaday/css/pikaday.css` for the calendar panel structure
 - Moment for date formatting and parsing
 
 ## Step 2: Define Date Formats
@@ -270,6 +282,8 @@ getDatePickerConfig(editor) {
   options.bound = false;
   options.keyboardInput = false;
   options.format = options.format ?? editor.getDateFormat(editor);
+  options.toString = (date, format) => moment(date).format(format);
+  options.parse = (dateString, format) => moment(dateString, format).toDate();
   options.reposition = options.reposition || false;
   options.isRTL = false;
 
@@ -286,7 +300,7 @@ getDatePickerConfig(editor) {
       origOnSelect.call(editor.pickaday, date);
     }
 
-    if (Handsontable.helper.isMobileBrowser()) {
+    if (editor.hot.rootWindow.matchMedia('(pointer: coarse)').matches) {
       editor.hideDatepicker(editor);
     }
   };
@@ -320,6 +334,9 @@ getDatePickerConfig(editor) {
 - `bound: false`: Don't position relative to field
 - `keyboardInput: false`: Disable direct keyboard input (handled via shortcuts)
 - `reposition: false`: Don't auto-reposition (positioning is handled manually)
+- `toString` and `parse`: Route display formatting and input parsing through Moment.js
+
+Pikaday formats and parses dates with Moment.js only when it can reach `moment` itself, which it cannot under a bundler. Without these two hooks it falls back to `Date#toDateString()` on display and `Date.parse()` on input, so `format` is ignored and a `DD/MM/YYYY` column misreads its own values. Pikaday checks `toString` and `parse` before its internal path, so setting them makes `format` authoritative in both directions.
 
 ## Step 7: Editor - Show Datepicker (`showDatepicker`)
 
@@ -330,8 +347,9 @@ showDatepicker(editor, event) {
   const dateFormat = editor.getDateFormat(editor);
   // @ts-ignore
   const isMouseDown = editor.hot.view.isMouseDown();
-  const isMeta = event && 'keyCode' in event
-    ? Handsontable.helper.isFunctionKey((event as KeyboardEvent).keyCode)
+  // A printable character reports a single-character `key`; anything else is a function key.
+  const isMeta = event && 'key' in event
+    ? (event as KeyboardEvent).key.length > 1
     : false;
   let dateStr;
 
@@ -340,12 +358,6 @@ showDatepicker(editor, event) {
   // Create new Pikaday instance
   editor.pickaday = new Pikaday(editor.getDatePickerConfig(editor));
 
-  // Configure Moment.js integration if available
-  // @ts-ignore
-  if (typeof editor.pickaday.useMoment === 'function') {
-    // @ts-ignore
-    editor.pickaday.useMoment(moment);
-  }
   // @ts-ignore
   editor.pickaday._onInputFocus = function () {};
 
@@ -354,7 +366,7 @@ showDatepicker(editor, event) {
     dateStr = editor.originalValue;
 
     if (moment(dateStr, dateFormat, true).isValid()) {
-      editor.pickaday.setMoment(moment(dateStr, dateFormat), true);
+      editor.pickaday.setDate(moment(dateStr, dateFormat).toDate(), true);
     }
 
     if (editor.getValue() !== editor.originalValue) {
@@ -368,7 +380,7 @@ showDatepicker(editor, event) {
     dateStr = editor.cellProperties.defaultDate;
 
     if (moment(dateStr, dateFormat, true).isValid()) {
-      editor.pickaday.setMoment(moment(dateStr, dateFormat), true);
+      editor.pickaday.setDate(moment(dateStr, dateFormat).toDate(), true);
     }
 
     if (!isMeta && !isMouseDown) {
@@ -385,9 +397,8 @@ showDatepicker(editor, event) {
 2. Check if mouse is down or function key pressed (for special behavior)
 3. Show the date picker container
 4. Create new Pikaday instance with configuration
-5. Configure Moment.js integration
-6. Disable input focus handler (focus is handled by the editor lifecycle)
-7. Set initial date based on cell value, default date, or today
+5. Disable input focus handler (focus is handled by the editor lifecycle)
+6. Set initial date based on cell value, default date, or today
 
 **Key concepts:**
 
@@ -539,9 +550,9 @@ position: 'portal',
 - Portal ensures it's always on top
 - Better for complex layouts
 
-## Step 15: Editor Input Styling (CSS)
+## Step 15: Editor Input and Calendar Styling (CSS)
 
-Style the editor input to match Handsontable's native editor appearance using CSS custom properties.
+Two stylesheets are involved. Style the editor input to match Handsontable's native editor appearance using CSS custom properties, then re-point the calendar's own colors at the same theme variables.
 
 ```css
 .ht_editor_visible > input {
@@ -577,6 +588,36 @@ Style the editor input to match Handsontable's native editor appearance using CS
 - `-1px` margins correct portal positioning offset
 - Inherits font properties from the table for consistency
 - `:focus-visible` overrides prevent browser default focus styles
+
+### Theming the calendar
+
+`pikaday/css/pikaday.css` gives the calendar its layout, but every color in it is a hardcoded literal, and its prev/next arrows are baked-in PNG sprites. On a Handsontable theme the panel clashes, and on a dark page it stays light. Override those properties with the theme's CSS variables:
+
+```css
+.pika-single {
+  color: var(--ht-foreground-color);
+  background: var(--ht-background-color, #ffffff);
+  border: var(--ht-menu-border-width, 1px) solid var(--ht-menu-border-color, #e5e5e9);
+  border-radius: var(--ht-menu-border-radius);
+}
+
+.pika-single .pika-table .pika-button {
+  background: transparent;
+  color: var(--ht-foreground-color);
+  border-radius: var(--ht-button-border-radius);
+}
+
+.pika-single .pika-table td.is-selected .pika-button {
+  background: var(--ht-accent-color, #1a42e8);
+  color: var(--ht-primary-button-foreground-color, #ffffff);
+}
+```
+
+The full rule set is in the CSS tab of the example above, including the arrow replacement and the right-to-left flip.
+
+**Why this works without extra wiring:** the editor uses `position: 'portal'`, so its container is attached to the body-level `.ht-portal` element, and Handsontable puts the active `ht-theme-*` class on that element. Every `--ht-*` variable and the theme's `color-scheme` resolve on the calendar's own ancestor, so the panel follows the grid's theme -- light or dark -- with no JavaScript.
+
+Handsontable shipped equivalent rules until 18.0, when the native date input replaced the built-in Pikaday editor. They now belong to your application.
 
 ## Step 16: Complete Cell Definition
 
@@ -791,7 +832,7 @@ options.format = 'MM/DD/YYYY'; // Pikaday format string
 ### 4. Localization
 
 ```typescript
-import '@handsontable/pikaday/css/pikaday.css';
+import 'pikaday/css/pikaday.css';
 import moment from 'moment';
 import 'moment/locale/fr';
 

@@ -1,8 +1,8 @@
 import Handsontable from "handsontable/base";
 import { registerAllModules } from "handsontable/registry";
 import moment from "moment";
-import Pikaday from "@handsontable/pikaday";
-import "@handsontable/pikaday/css/pikaday.css";
+import Pikaday from "pikaday";
+import "pikaday/css/pikaday.css";
 import { CellProperties } from "handsontable/settings";
 import { editorFactory } from "handsontable/editors";
 import { rendererFactory } from "handsontable/renderers";
@@ -316,6 +316,12 @@ const cellDefinition: Pick<
       options.bound = false;
       options.keyboardInput = false;
       options.format = options.format ?? editor.getDateFormat(editor);
+      // Pikaday only formats and parses through Moment.js when it can reach `moment` itself, which
+      // it cannot under a bundler. These two hooks take precedence over its internal path, so the
+      // `format` above is honored both on display and on input.
+      options.toString = (date, format) => moment(date).format(format);
+      options.parse = (dateString, format) =>
+        moment(dateString, format).toDate();
       options.reposition = options.reposition || false;
       // Set the RTL to `false`. Due to the https://github.com/Pikaday/Pikaday/issues/647 bug, the layout direction
       // of the date picker is controlled by juggling the "dir" attribute of the root date picker element.
@@ -332,7 +338,7 @@ const cellDefinition: Pick<
           origOnSelect.call(editor.pickaday, date);
         }
 
-        if (Handsontable.helper.isMobileBrowser()) {
+        if (editor.hot.rootWindow.matchMedia("(pointer: coarse)").matches) {
           editor.hideDatepicker(editor);
         }
       };
@@ -355,8 +361,9 @@ const cellDefinition: Pick<
       // TODO: view is not exported in the handsontable library d.ts, so we need to use @ts-ignore
       // @ts-ignore
       const isMouseDown = editor.hot.view.isMouseDown();
-      const isMeta = event && "keyCode" in event
-        ? Handsontable.helper.isFunctionKey((event as KeyboardEvent).keyCode)
+      // A printable character reports a single-character `key`; anything else is a function key.
+      const isMeta = event && "key" in event
+        ? (event as KeyboardEvent).key.length > 1
         : false;
       let dateStr;
 
@@ -364,12 +371,6 @@ const cellDefinition: Pick<
 
       editor.pickaday = new Pikaday(editor.getDatePickerConfig(editor));
 
-      // TODO: useMoment is not exported in the pikaday library d.ts, so we need to use @ts-ignore
-      // @ts-ignore
-      if (typeof editor.pickaday.useMoment === "function") {
-        // @ts-ignore
-        editor.pickaday.useMoment(moment);
-      }
       // TODO: _onInputFocus is not exported in the pikaday library d.ts, so we need to use @ts-ignore
       // @ts-ignore
       editor.pickaday._onInputFocus = function () {};
@@ -378,7 +379,7 @@ const cellDefinition: Pick<
         dateStr = editor.originalValue;
 
         if (moment(dateStr, dateFormat, true).isValid()) {
-          editor.pickaday.setMoment(moment(dateStr, dateFormat), true);
+          editor.pickaday.setDate(moment(dateStr, dateFormat).toDate(), true);
         }
 
         // workaround for date/time cells - pikaday resets the cell value to 12:00 AM by default, this will overwrite the value.
@@ -393,7 +394,7 @@ const cellDefinition: Pick<
         dateStr = editor.cellProperties.defaultDate;
 
         if (moment(dateStr, dateFormat, true).isValid()) {
-          editor.pickaday.setMoment(moment(dateStr, dateFormat), true);
+          editor.pickaday.setDate(moment(dateStr, dateFormat).toDate(), true);
         }
 
         if (!isMeta && !isMouseDown) {
