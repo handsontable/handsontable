@@ -390,6 +390,9 @@ describe('StretchColumns', () => {
 
     const hot = spec();
     const savedView = hot.view;
+    const onError = jasmine.createSpy('onError');
+
+    window.addEventListener('error', onError);
 
     // Simulate the race condition where hot.view is undefined when the rAF callback fires
     // (e.g. during initialization or after destruction)
@@ -404,5 +407,8 @@ describe('StretchColumns', () => {
     // Restore for proper cleanup
     hot.view = savedView;
     document.body.style.overflowY = '';
+    window.removeEventListener('error', onError);
+
+    expect(onError).not.toHaveBeenCalled();
   });
 });

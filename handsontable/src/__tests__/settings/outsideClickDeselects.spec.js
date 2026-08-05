@@ -257,7 +257,7 @@ describe('settings', () => {
       textarea.remove();
     });
 
-    xit('should allow to type in external input after opening cell editor', async() => {
+    it('should allow to type in external input after opening cell editor', async() => {
       const textarea = $('<textarea></textarea>').prependTo($('body'));
       let keyPressed;
 
