@@ -131,8 +131,10 @@
   mask-image: url("data:image/svg+xml;charset=utf-8,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.49268 11.2929L6.19978 8.00001L9.49268 4.70712' stroke='currentColor' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E%0A");
 }
 
+.pika-single .pika-table,
 [class*='ht-theme-'] .pika-single .pika-table {
   border-collapse: collapse;
+  table-layout: fixed;
 }
 
 [class*='ht-theme-'] .pika-single .pika-table thead {
@@ -157,6 +159,7 @@
   vertical-align: middle;
 }
 
+.pika-single .pika-table .pika-button,
 [class*='ht-theme-'] .pika-single .pika-table .pika-button {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -169,6 +172,7 @@
   box-shadow: none;
   cursor: pointer;
   font-size: inherit;
+  text-align: center !important;
 }
 
 [class*='ht-theme-'] .pika-single .pika-table .pika-button:hover,
