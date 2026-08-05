@@ -17,7 +17,7 @@ Add `[skip changelog]` in the PR description to explicitly skip.
 
 ## Workflow: Create the PR First, Then the Changelog
 
-The changelog file is named after the GitHub PR number, so the PR must exist before the entry is written. Guessing the next available number by reading `.changelogs/` or the GitHub API is unreliable — another PR can be opened between the check and the push, and the filename will no longer match.
+This is the `issuesOrigin: "private"` flow — the default, and what almost every entry uses. The changelog file is named after the GitHub PR number, so the PR must exist before the entry is written. Guessing the next available number by reading `.changelogs/` or the GitHub API is unreliable — another PR can be opened between the check and the push, and the filename will no longer match.
 
 Correct order:
 
@@ -27,13 +27,15 @@ Correct order:
 4. Create `.changelogs/<PR-number>.json` at the **repo root** using that number, set `"issueOrPR"` to the same number. The correct path is always `<repo-root>/.changelogs/<PR-number>.json` — never inside a package subdirectory like `handsontable/.changelogs/`.
 5. Commit the new file with a message like `DEV-xxx: Add changelog entry for PR #<number>` and push — the PR picks it up.
 
+For the rare case where the entry cites a **public GitHub issue** instead, see [Issue Origin](#issue-origin) below.
+
 ## JSON Format
 
 Create a file at `.changelogs/{PR-number}.json` (using the PR number returned by `gh pr create`):
 
 ```json
 {
-  "issuesOrigin": "public",
+  "issuesOrigin": "private",
   "title": "User-facing description of what changed.",
   "type": "fixed",
   "issueOrPR": 12345,
@@ -41,6 +43,21 @@ Create a file at `.changelogs/{PR-number}.json` (using the PR number returned by
   "framework": "none"
 }
 ```
+
+## Issue Origin
+
+`issuesOrigin` answers one question: **is the number in `issueOrPR` a public GitHub issue?** It says nothing about the PR, and nothing about whether the repository is public.
+
+The field picks the link path in the generated `CHANGELOG.md`, and `bin/changelog` derives the filename from `issueOrPR`, so the two fields move together:
+
+| `issuesOrigin` | `issueOrPR` | Filename | Rendered link |
+|---|---|---|---|
+| `"private"` — default, almost always | PR number | `<PR-number>.json` | `.../pull/<n>` |
+| `"public"` — rare | public GitHub **issue** number | `<issue-number>.json` | `.../issues/<n>` |
+
+Use `"private"` when the work is tracked in a private ClickUp task — this is the normal case, including every task with a `DEV-xxx` ID. Use `"public"` only when you are citing a real public GitHub issue number; then name the file after the issue, not the PR.
+
+Getting this wrong is not fatal — GitHub redirects `/issues/<n>` to `/pull/<n>` — but it publishes a wrong path in the release notes and makes the field meaningless.
 
 ## Categorization Guide
 
@@ -92,5 +109,6 @@ Create **one changelog entry per PR**, even if the PR fixes multiple issues. The
 3. Write a clear, user-facing `title` ending with a period.
 4. Set `breaking` to `true` only if the change breaks existing behavior.
 5. Set `framework` to match the affected package, or `"none"` for core.
-6. Name the file `<PR-number>.json` and set `"issueOrPR"` to the same number. Do not guess or infer the number — read it from the created PR. Write to `<repo-root>/.changelogs/<PR-number>.json` — **not** inside any package subdirectory (e.g. `handsontable/.changelogs/` is wrong).
-7. Commit and push the new changelog file to the same feature branch so the open PR picks it up.
+6. Leave `issuesOrigin` as `"private"` unless the entry cites a real public GitHub issue number — see [Issue Origin](#issue-origin).
+7. Name the file `<PR-number>.json` and set `"issueOrPR"` to the same number. Do not guess or infer the number — read it from the created PR. Write to `<repo-root>/.changelogs/<PR-number>.json` — **not** inside any package subdirectory (e.g. `handsontable/.changelogs/` is wrong). With `"public"`, both the filename and `issueOrPR` use the **issue** number instead.
+8. Commit and push the new changelog file to the same feature branch so the open PR picks it up.
