@@ -149,7 +149,7 @@ function correctDatesBeforeChange(changes) {
             return;
         }
         const [visualRow, prop, , newValue] = change;
-        const cellMeta = this.getCellMetaTransient(visualRow, this.propToCol(prop));
+        const cellMeta = this.getCellMeta(visualRow, this.propToCol(prop));
         if (cellMeta.type !== 'moment-date' ||
             cellMeta.correctFormat !== true ||
             typeof newValue !== 'string' ||

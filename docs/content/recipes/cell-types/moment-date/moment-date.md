@@ -157,7 +157,7 @@ function correctDatesBeforeChange(changes) {
     }
 
     const [visualRow, prop, , newValue] = change;
-    const cellMeta = this.getCellMetaTransient(visualRow, this.propToCol(prop));
+    const cellMeta = this.getCellMeta(visualRow, this.propToCol(prop));
 
     if (
       cellMeta.type !== 'moment-date' ||
@@ -181,7 +181,7 @@ Pass it as the grid's `beforeChange` handler.
 
 `beforeChange` runs before both the editor and the validator, so the corrected ISO value is the only value the rest of the grid ever sees. Correcting later -- inside a validator, with `setDataAtCell` -- also works, but the built-in editor receives the raw value first and logs `DateEditor: value must be in ISO date format`. Rewriting the change up front avoids that entirely, and it leaves the inherited ISO validator untouched, so a value Moment.js cannot read is still flagged.
 
-`getCellMetaTransient` reads the resolved cell configuration without permanently materializing meta for the cell, which is what you want for a per-change read inside a hook.
+`getCellMeta` returns the cell configuration resolved through the cascade -- grid, column, then cell -- so the handler reads the `type`, `correctFormat`, and `inputFormat` that actually apply to the changed cell instead of assuming the column-level values.
 
 ::: tip
 The correction lives on the grid rather than inside the cell type, because a cell type cannot register hooks. Wire `beforeChange` on every grid that needs lenient input; the `moment-date` type itself stays reusable as-is.
