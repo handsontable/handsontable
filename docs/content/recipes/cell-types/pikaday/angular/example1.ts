@@ -20,7 +20,7 @@ const DATE_FORMAT_US = 'MM/DD/YYYY';
   styles: [
     `
     :host { display: block; }
-    .pikaday-container { width: 260px; }
+    .pikaday-container { width: 278px; }
   `,
   ],
 })

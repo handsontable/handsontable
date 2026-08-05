@@ -33,6 +33,15 @@ test.describe('Pikaday recipe', () => {
         clientWidth: element.clientWidth,
         scrollWidth: element.scrollWidth,
       }));
+      const calendarGutters = await calendar.evaluate(element => {
+        const calendarRect = element.getBoundingClientRect();
+        const monthRect = element.querySelector('.pika-lendar').getBoundingClientRect();
+
+        return {
+          left: monthRect.left - calendarRect.left,
+          right: calendarRect.right - monthRect.right,
+        };
+      });
       const textAlignmentErrors = await calendar.locator('.pika-button').evaluateAll(buttons =>
         buttons.map((button) => {
           const range = button.ownerDocument.createRange();
@@ -51,6 +60,7 @@ test.describe('Pikaday recipe', () => {
       expect(widthDifference).toBeLessThanOrEqual(1);
       expect(horizontalMetrics.scrollWidth).toBeLessThanOrEqual(horizontalMetrics.clientWidth);
       expect(calendarMetrics.scrollWidth).toBeLessThanOrEqual(calendarMetrics.clientWidth);
+      expect(Math.abs(calendarGutters.left - calendarGutters.right)).toBeLessThanOrEqual(1);
       expect(textAlignmentErrors).toEqual([]);
       await expect(calendar.locator('.pika-button').first()).toHaveCSS('text-align', 'center');
     });
