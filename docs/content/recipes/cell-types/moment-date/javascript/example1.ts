@@ -1,11 +1,9 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import { getRenderer } from 'handsontable/renderers';
-import { editorFactory } from 'handsontable/editors';
-import { registerCellType } from 'handsontable/cellTypes';
+import { registerCellType, DateCellType } from 'handsontable/cellTypes';
+import { CellChange, CellProperties } from 'handsontable/settings';
+import { HotInstance } from 'handsontable';
 import moment from 'moment';
-import Pikaday from '@handsontable/pikaday';
-import '@handsontable/pikaday/css/pikaday.css';
 
 // Register all Handsontable's modules.
 registerAllModules();
@@ -119,239 +117,79 @@ const data = [
 // Get the DOM element with the ID 'example1' where the Handsontable will be rendered
 const container = document.querySelector('#example1')!;
 
-const correctFormat = (value: string, dateFormat: string): string => {
-  const dateFromDate = moment(value);
-  const dateFromMoment = moment(value, dateFormat);
-  const isAlphanumeric = value.search(/[A-Za-z]/g) > -1;
-  let date;
+// The built-in `date` cell type stores every value in the ISO 8601 format.
+const ISO_FORMAT = 'YYYY-MM-DD';
 
-  if ((dateFromDate.isValid() && dateFromDate.format('x') === dateFromMoment.format('x')) ||
-      !dateFromMoment.isValid() ||
-      isAlphanumeric) {
-    date = dateFromDate;
+// Converts a loosely written date into ISO.
+const toISODate = (value: string, inputFormat: string): string => {
+  // The column's own format wins, parsed strictly so a near-miss does not silently shift.
+  const fromInputFormat = moment(value, inputFormat, true);
 
-  } else {
-    date = dateFromMoment;
+  if (fromInputFormat.isValid()) {
+    return fromInputFormat.format(ISO_FORMAT);
   }
 
-  return date.format(dateFormat);
-}
+  // Fall back to the browser's parsing for values that format cannot describe, such as
+  // "March 14, 2025". Handing Moment a Date avoids its string-parsing deprecation warning.
+  const nativeDate = new Date(value);
+
+  return Number.isNaN(nativeDate.getTime()) ? value : moment(nativeDate).format(ISO_FORMAT);
+};
+
+// The custom cell properties this cell type reads, on top of the built-in ones.
+type MomentDateCellProperties = CellProperties & {
+  renderFormat?: string;
+  inputFormat?: string;
+  correctFormat?: boolean;
+};
 
 const cellDateTypeDefinition = {
-  renderer: getRenderer('autocomplete'),
-  validator: function(value, callback) {
-    let valid = true;
+  // Inherit the built-in date editor (a native date input), its ISO validator, and the source-data
+  // check that warns when the underlying data is not ISO.
+  ...DateCellType,
 
-    if (value === null || value === undefined) {
-      value = '';
+  // Display the ISO source value in the column's own Moment format. `valueFormatter` runs before the
+  // renderer, so the inherited renderer receives the formatted string and no custom renderer is needed.
+  valueFormatter: (value: unknown, cellProperties: MomentDateCellProperties) => {
+    if (typeof value !== 'string' || value === '') {
+      return value;
     }
 
-    let isValidFormat = moment(value, this.dateFormat, true).isValid();
-    let isValidDate = moment(new Date(value)).isValid() || isValidFormat;
+    const date = moment(value, ISO_FORMAT, true);
 
-    if (this.allowEmpty && value === '') {
-      isValidDate = true;
-      isValidFormat = true;
-    }
-    if (!isValidDate) {
-      valid = false;
-    }
-    if (!isValidDate && isValidFormat) {
-      valid = true;
-    }
-
-    if (isValidDate && !isValidFormat) {
-      if (this.correctFormat === true) {
-        const correctedValue = correctFormat(value, this.dateFormat);
-
-        this.instance.setDataAtCell(this.visualRow, this.visualCol, correctedValue, 'dateValidator');
-        valid = true;
-      } else {
-        valid = false;
-      }
-    }
-
-    callback(valid);
+    return date.isValid() ? date.format(cellProperties.renderFormat ?? ISO_FORMAT) : value;
   },
-  editor: editorFactory({
-    position: 'portal',
-    shortcutsGroup: 'customEditor',
-    shortcuts: [
-      {
-        keys: [['ArrowLeft']],
-        callback: (editor, _event) => {
-          // @ts-ignore
-          editor.pikaday.adjustDate('subtract', 1);
-          _event.preventDefault();
-        },
-      },
-      {
-        keys: [['ArrowRight']],
-        callback: (editor, _event) => {
-          // @ts-ignore
-          editor.pikaday.adjustDate('add', 1);
-          _event.preventDefault();
-        },
-      },
-      {
-        keys: [['ArrowUp']],
-        callback: (editor, _event) => {
-          // @ts-ignore
-          editor.pikaday.adjustDate('subtract', 7);
-          _event.preventDefault();
-        },
-      },
-      {
-        keys: [['ArrowDown']],
-        callback: (editor, _event) => {
-          // @ts-ignore
-          editor.pikaday.adjustDate('add', 7);
-          _event.preventDefault();
-        },
-      },
-    ],
-    init(editor) {
-      editor.parentDestroyed = false;
-      // create the input element on init. This is a text input that color picker will be attached to.
-      editor.input = editor.hot.rootDocument.createElement('input');
-      editor.datePicker = editor.container;
-      // Prevent recognizing clicking on datepicker as clicking outside of table.
-      editor.hot.rootDocument.addEventListener('mousedown', (event) => {
-        if (event.target && event.target.classList.contains('pika-day')) {
-          editor.hideDatepicker(editor);
-        }
-      });
-    },
-    getDatePickerConfig(editor) {
-      const htInput = editor.input;
-      const options = {};
-
-      if (editor.cellProperties && editor.cellProperties.datePickerConfig) {
-        Object.assign(options, editor.cellProperties.datePickerConfig);
-      }
-
-      const origOnSelect = options.onSelect;
-      const origOnClose = options.onClose;
-
-      options.field = htInput;
-      options.trigger = htInput;
-      options.container = editor.datePicker;
-      options.bound = false;
-      options.keyboardInput = false;
-      options.format = options.format ?? editor.getDateFormat(editor);
-      options.reposition = options.reposition || false;
-      // Set the RTL to `false`. Due to the https://github.com/Pikaday/Pikaday/issues/647 bug, the layout direction
-      // of the date picker is controlled by juggling the "dir" attribute of the root date picker element.
-      options.isRTL = false;
-      options.onSelect = function (date) {
-        let dateStr;
-
-        if (!isNaN(date.getTime())) {
-          dateStr = moment(date).format(editor.getDateFormat(editor));
-        }
-
-        editor.setValue(dateStr);
-
-        if (origOnSelect) {
-          origOnSelect.call(editor.pikaday, date);
-        }
-
-        if (Handsontable.helper.isMobileBrowser()) {
-          editor.hideDatepicker(editor);
-        }
-      };
-      options.onClose = () => {
-        if (!editor.parentDestroyed) {
-          editor.finishEditing(false);
-        }
-
-        if (origOnClose) {
-          origOnClose();
-        }
-      };
-
-      return options;
-    },
-    hideDatepicker(editor) {
-      editor.pikaday.hide();
-    },
-    showDatepicker(editor, event) {
-      const dateFormat = editor.getDateFormat(editor);
-      // TODO: view is not exported in the handsontable library d.ts, so we need to use @ts-ignore
-      // @ts-ignore
-      const isMouseDown = editor.hot.view.isMouseDown();
-      const isMeta = event && 'keyCode' in event ? Handsontable.helper.isFunctionKey(event.keyCode) : false;
-
-      let dateStr;
-
-      editor.datePicker.style.display = 'block';
-      editor.pikaday = new Pikaday(editor.getDatePickerConfig(editor));
-
-      // TODO: useMoment is not exported in the pikaday library d.ts, so we need to use @ts-ignore
-      // @ts-ignore
-      if (typeof editor.pikaday.useMoment === 'function') {
-        // @ts-ignore
-        editor.pikaday.useMoment(moment);
-      }
-
-      // TODO: _onInputFocus is not exported in the pikaday library d.ts, so we need to use @ts-ignore
-      // @ts-ignore
-      editor.pikaday._onInputFocus = function () {};
-
-      if (editor.originalValue) {
-        dateStr = editor.originalValue;
-
-        if (moment(dateStr, dateFormat, true).isValid()) {
-          editor.pikaday.setMoment(moment(dateStr, dateFormat), true);
-        }
-
-        // workaround for date/time cells - pikaday resets the cell value to 12:00 AM by default, this will overwrite the value.
-        if (editor.getValue() !== editor.originalValue) {
-          editor.setValue(editor.originalValue);
-        }
-
-        if (!isMeta && !isMouseDown) {
-          editor.setValue('');
-        }
-      } else if (editor.cellProperties.defaultDate) {
-        dateStr = editor.cellProperties.defaultDate;
-
-        if (moment(dateStr, dateFormat, true).isValid()) {
-          editor.pikaday.setMoment(moment(dateStr, dateFormat), true);
-        }
-
-        if (!isMeta && !isMouseDown) {
-          editor.setValue('');
-        }
-      } else {
-        // if a default date is not defined, set a soft-default-date: display the current day and month in the
-        // datepicker, but don't fill the editor input
-        editor.pikaday.gotoToday();
-      }
-    },
-    afterClose(editor) {
-      if (editor.pikaday.destroy) {
-        editor.pikaday.destroy();
-      }
-    },
-    afterOpen(editor, event) {
-      const cellRect = editor.TD.getBoundingClientRect();
-
-      editor.input.style.width = `${cellRect.width}px`;
-      editor.input.style.height = `${cellRect.height}px`;
-      editor.showDatepicker(editor, event);
-    },
-    getValue(editor) {
-      return editor.input.value;
-    },
-    setValue(editor, value) {
-      editor.input.value = value;
-    },
-    getDateFormat(editor) {
-      return editor.cellProperties.dateFormat ?? 'DD/MM/YYYY';
-    },
-  }),
 };
+
+// Rewrites a non-ISO value into ISO before it reaches the cell. This runs ahead of both the editor
+// and the validator, which is what keeps the built-in ISO-only editor from warning about the raw
+// value. It also covers pasted and programmatically written values, which never touch the editor.
+function correctDatesBeforeChange(this: HotInstance, changes: (CellChange | null)[]): void {
+  changes.forEach((change) => {
+    if (!change) {
+      return;
+    }
+
+    const [visualRow, prop, , newValue] = change;
+    const cellMeta = this.getCellMetaTransient(
+      visualRow,
+      this.propToCol(prop as string) as number
+    ) as MomentDateCellProperties;
+
+    if (
+      cellMeta.type !== 'moment-date' ||
+      cellMeta.correctFormat !== true ||
+      typeof newValue !== 'string' ||
+      newValue === ''
+    ) {
+      return;
+    }
+
+    if (!moment(newValue, ISO_FORMAT, true).isValid()) {
+      change[3] = toISODate(newValue, cellMeta.inputFormat ?? ISO_FORMAT);
+    }
+  });
+}
 
 registerCellType('moment-date', cellDateTypeDefinition);
 
@@ -373,15 +211,11 @@ const hotOptions: Handsontable.GridSettings = {
       data: 'restockDate',
       type: 'moment-date',
       width: 150,
-      dateFormat: 'YYYY-MM-DD',
+      // Display format, applied by `valueFormatter`. The stored value stays ISO.
+      renderFormat: 'MMM D, YYYY',
+      // Format tried first when correcting a pasted value.
+      inputFormat: 'MM/DD/YYYY',
       correctFormat: true,
-      datePickerConfig: {
-        firstDay: 0,
-        showWeekNumber: true,
-        disableDayFn(date: Date) {
-          return date.getDay() === 0 || date.getDay() === 6;
-        },
-      },
     },
     {
       data: 'cost',
@@ -397,6 +231,7 @@ const hotOptions: Handsontable.GridSettings = {
     },
   ],
   licenseKey: 'non-commercial-and-evaluation',
+  beforeChange: correctDatesBeforeChange,
 };
 
 // Initialize the Handsontable instance with the specified configuration options
