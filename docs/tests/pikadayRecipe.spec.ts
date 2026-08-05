@@ -29,10 +29,15 @@ test.describe('Pikaday recipe', () => {
         clientWidth: element.clientWidth,
         scrollWidth: element.scrollWidth,
       }));
+      const calendarMetrics = await calendar.evaluate(element => ({
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
+      }));
 
       expect(cellCount).toBe(calendarColumns);
       expect(widthDifference).toBeLessThanOrEqual(1);
       expect(horizontalMetrics.scrollWidth).toBeLessThanOrEqual(horizontalMetrics.clientWidth);
+      expect(calendarMetrics.scrollWidth).toBeLessThanOrEqual(calendarMetrics.clientWidth);
       await expect(calendar.locator('.pika-button').first()).toHaveCSS('text-align', 'center');
     });
   }
