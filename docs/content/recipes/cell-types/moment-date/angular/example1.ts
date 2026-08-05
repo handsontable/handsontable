@@ -60,10 +60,10 @@ function correctDatesBeforeChange(this: HotInstance, changes: (CellChange | null
     }
 
     const [visualRow, prop, , newValue] = change;
-    const cellMeta = this.getCellMetaTransient(
+    const cellMeta = this.getCellMeta<MomentDateCellProperties>(
       visualRow,
       this.propToCol(prop as string) as number
-    ) as MomentDateCellProperties;
+    );
 
     if (
       cellMeta.type !== 'moment-date' ||
