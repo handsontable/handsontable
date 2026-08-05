@@ -1,9 +1,11 @@
 name: E2E
 
-# End-to-end tests, build-dependent (consume the UMD artifact). Two matrices:
-# the frozen Puppeteer suite over theme × bundle (UMD / UMD.min), and the new
-# Playwright suite over theme. Per-leg gating keeps the exact old scope
-# behaviour (UMD legs on the e2e scope, UMD.min on the e2e-min scope).
+# End-to-end tests, build-dependent (consume the UMD artifact). Two matrices,
+# 1:1 with each other: the frozen Puppeteer suite and the new Playwright suite,
+# both over theme × bundle (UMD / UMD.min). Per-leg gating keeps the exact old
+# scope behaviour (UMD legs on the e2e scope, UMD.min on the e2e-min scope).
+# The FULL bundles (handsontable.full[.min].js) are deliberately not covered
+# here — they belong to the nightly on develop (DEV-2058).
 on:
   workflow_call:
     inputs:
@@ -60,10 +62,11 @@ jobs:
           npm run ${{ matrix.bundle.dump }} --theme=${{ matrix.theme }} && npm run test:e2e.puppeteer --theme=${{ matrix.theme }}
 
   # Runs inside the pinned Playwright container so the engine + browsers match
-  # local and baseline generation. One leg per theme (the `theme` project drives
-  # the fixture stylesheet).
+  # local and baseline generation. One leg per theme × bundle — the same matrix
+  # shape as the Puppeteer job above (the project name selects both: the theme
+  # stylesheet and the dist bundle the fixture loads).
   playwright:
-    name: "Playwright (theme: ${{ matrix.theme }})"
+    name: "Playwright ${{ matrix.bundle.label }} (theme: ${{ matrix.theme }})"
     runs-on: ubuntu-latest
     container:
       image: mcr.microsoft.com/playwright:v1.61.1-noble
@@ -72,6 +75,9 @@ jobs:
       fail-fast: false
       matrix:
         theme: [main, horizon, classic]
+        bundle:
+          - { label: 'UMD', suffix: '' }
+          - { label: 'UMD.min', suffix: '-min' }
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
       - name: Download the Handsontable UMD build artifact
@@ -84,12 +90,12 @@ jobs:
       - name: Install the Playwright test package
         run: pnpm install --filter handsontable-tests
       - name: Run Playwright E2E
-        run: cd tests && npx playwright test --project=e2e-${{ matrix.theme }}
+        run: cd tests && npx playwright test --project=e2e-${{ matrix.theme }}${{ matrix.bundle.suffix }}
       - name: Upload the Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
         with:
-          name: playwright-report-${{ matrix.theme }}
+          name: playwright-report-${{ matrix.theme }}${{ matrix.bundle.suffix }}
           path: |
             tests/playwright-report
             tests/test-results

@@ -10,8 +10,8 @@ import { WalkontablePage } from '../../fixtures/pages/WalkontablePage';
 test.describe('walkontable overlays', { tag: '@walkontable' }, () => {
   let wt: WalkontablePage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    wt = new WalkontablePage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    wt = new WalkontablePage(page, theme, bundle);
     await wt.goto();
   });
 
