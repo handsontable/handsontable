@@ -53,6 +53,11 @@ describe('Formulas', () => {
       ]);
     });
 
+    // Verified still failing (2026-08-05): the fill populates only one visual
+    // row (the last source row stays untouched) and the expectation itself
+    // predates trimming semantics (expects 5 visual rows where trimRows leaves
+    // 4). Needs a product-level decision on fill-across-trimmed-rows before
+    // the expectations can be trusted — tracked in the DEV-2183 fix bucket.
     xit('should cooperate properly with trimmed rows (populating two elements placed next to trimmed element)',
       async() => {
         handsontable({
