@@ -33,11 +33,25 @@ test.describe('Pikaday recipe', () => {
         clientWidth: element.clientWidth,
         scrollWidth: element.scrollWidth,
       }));
+      const textAlignmentErrors = await calendar.locator('.pika-button').evaluateAll(buttons =>
+        buttons.map((button) => {
+          const range = button.ownerDocument.createRange();
+
+          range.selectNodeContents(button);
+
+          const textRect = range.getBoundingClientRect();
+          const buttonRect = button.getBoundingClientRect();
+
+          return Math.abs(
+            textRect.left + textRect.width / 2 - (buttonRect.left + buttonRect.width / 2),
+          );
+        }).filter(offset => offset > 1));
 
       expect(cellCount).toBe(calendarColumns);
       expect(widthDifference).toBeLessThanOrEqual(1);
       expect(horizontalMetrics.scrollWidth).toBeLessThanOrEqual(horizontalMetrics.clientWidth);
       expect(calendarMetrics.scrollWidth).toBeLessThanOrEqual(calendarMetrics.clientWidth);
+      expect(textAlignmentErrors).toEqual([]);
       await expect(calendar.locator('.pika-button').first()).toHaveCSS('text-align', 'center');
     });
   }

@@ -137,8 +137,9 @@
 [class*='ht-theme-'] .pika-single .pika-table .pika-button {
   width: 100%;
   aspect-ratio: 1 / 1;
+  box-sizing: border-box;
   margin: 0;
-  padding: 10px;
+  padding: 0;
   background: transparent;
   color: var(--ht-foreground-color);
   border: none;
