@@ -9,6 +9,7 @@ import {
 import moment from 'moment';
 import Pikaday from 'pikaday';
 import 'pikaday/css/pikaday.css';
+import './example1.css';
 
 const DATE_FORMAT_US = 'MM/DD/YYYY';
 
@@ -19,7 +20,7 @@ const DATE_FORMAT_US = 'MM/DD/YYYY';
   styles: [
     `
     :host { display: block; }
-    .pikaday-container { width: 250px; }
+    .pikaday-container { width: 278px; }
   `,
   ],
 })
