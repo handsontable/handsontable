@@ -199,7 +199,6 @@ const cellDefinition = {
   }),
   editor: editorFactory({
     position: 'portal',
-    shortcutsGroup: 'customEditor',
     shortcuts: [
       {
         keys: [['ArrowLeft']],

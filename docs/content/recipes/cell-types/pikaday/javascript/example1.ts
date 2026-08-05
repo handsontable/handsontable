@@ -242,7 +242,6 @@ const cellDefinition: Pick<
     EditorMethodsType
   >({
     position: "portal",
-    shortcutsGroup: "customEditor",
     shortcuts: [{
       keys: [["ArrowLeft"]],
       callback: (editor, _event) => {

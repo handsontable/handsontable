@@ -93,7 +93,6 @@ const colorPickerEditor = editorFactory<ColorPickerEditorInstance>({
   setValue(editor, value) {
     editor.input.value = value;
   },
-  shortcutsGroup: 'customEditor',
   shortcuts: [
     {
       keys: [['Tab']],
