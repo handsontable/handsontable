@@ -66,7 +66,7 @@ function correctDatesBeforeChange(this: HotInstance, changes: (CellChange | null
     );
 
     if (
-      cellMeta.type !== 'moment-date' ||
+      cellMeta['type'] !== 'moment-date' ||
       cellMeta.correctFormat !== true ||
       typeof newValue !== 'string' ||
       newValue === ''
