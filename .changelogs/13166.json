@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Fixed several `CustomBorders` bugs: borders now follow their cell when rows or columns are inserted, removed, or moved (and stay removable from the context menu afterward), and ranges defined with a top-level `border` object - including overlapping ranges - now render with the configured width, color, and style.",
+  "type": "fixed",
+  "issueOrPR": 13166,
+  "breaking": false,
+  "framework": "none"
+}
