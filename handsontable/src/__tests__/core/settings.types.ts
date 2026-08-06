@@ -81,6 +81,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   currentHeaderClassName: 'foo',
   currentRowClassName: 'foo',
   customBorders: true,
+  customBordersProgressive: oneOf(true, { chunkSize: 5000 }),
   data: oneOf([{}, {}, {}], [[], [], []]),
   dataDotNotation: oneOf(true),
   dataProvider: {
@@ -386,6 +387,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   afterColumnMove: (columns, target) => {},
   afterColumnResize: (newSize, column, isDoubleClick) => {},
   afterColumnSequenceChange: (source) => {},
+  afterCustomBordersUpdate: () => {},
   afterColumnSequenceCacheUpdate: (indexesChangesState) => {},
   afterColumnSort: (currentSortConfig, destinationSortConfigs) => {},
   afterColumnUnfreeze: (columnIndex, isFreezingPerformed) => {},

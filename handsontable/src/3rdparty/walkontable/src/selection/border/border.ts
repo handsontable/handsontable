@@ -12,6 +12,7 @@ import {
 import { stopImmediatePropagation } from '../../../../../helpers/dom/event';
 import { isMobileBrowser } from '../../../../../helpers/browser';
 import { getCornerStyle } from './utils';
+import { CUSTOM_SELECTION_TYPE } from '../constants';
 
 const BORDER_STYLE_CLASS_PREFIX = 'ht-border-style-';
 const BORDER_STYLE_VERTICAL_SUFFIX = '-vertical';
@@ -243,6 +244,14 @@ class Border {
     style.top = '0';
     style.left = '0';
 
+    // Custom borders can overlap (e.g. two configured ranges sharing a cell). Each EDGE is stacked by
+    // its own width so overlapping ranges paint deterministically - the thicker (more emphasized) edge
+    // consistently sits on top. Stacking per edge, not per whole border, keeps a single visual line
+    // uniform where it crosses a shared cell (that cell's merged border mixes a thin and a thick side).
+    // The `main` wrapper must NOT carry a z-index, or it would create a stacking context and trap each
+    // edge's z-index inside its own border instead of ordering edges across overlapping borders.
+    const isCustomBorder = settings.selectionType === CUSTOM_SELECTION_TYPE;
+
     const createdDivs: HTMLDivElement[] = [];
 
     for (let i = 0; i < 5; i++) {
@@ -281,6 +290,10 @@ class Border {
 
       style.height = `${getSettingsProperty('width')}px`;
       style.width = `${getSettingsProperty('width')}px`;
+
+      if (isCustomBorder) {
+        style.zIndex = `${getSettingsProperty('width') ?? 1}`;
+      }
 
       createdDivs.push(div);
       this.main.appendChild(div);
@@ -1129,26 +1142,51 @@ class Border {
     }
 
     const inlinePosProperty = isRtl ? 'right' : 'left';
-    const delta = Math.ceil((this.settings.border?.width ?? 0) / 2);
+
+    // Corner geometry is resolved per edge rather than from a single `settings.border.width` delta,
+    // which misaligns edges whose own width differs from the border-object default - e.g. a cell
+    // shared by two overlapping custom-border ranges of different widths. Two distinct roles:
+    //   - POSITION offset (bottom `top`, end inline-start) uses the edge's OWN half-thickness, so a
+    //     straight run of same-width edges stays level across a shared cell.
+    //   - LENGTH extension (so a corner is filled) uses the PERPENDICULAR edge's half-thickness - the
+    //     edge it meets at that corner - so the horizontal line reaches, but does not overshoot, the
+    //     vertical one. Using its own half-thickness would make a thick edge stick out past a thinner
+    //     perpendicular edge.
+    // For uniform-width borders every per-edge delta equals the old shared delta, so regular
+    // selections are unaffected.
+    // A corner is only filled when the perpendicular edge is actually drawn there. A horizontal edge
+    // extends toward the end corner only if this cell has a visible end edge, and toward the bottom
+    // only if it has a visible bottom edge. Without this, a per-cell custom border whose end/bottom
+    // side is hidden (an interior or split-range edge) would still extend into the empty neighbour and
+    // stick out. For regular selections the side settings are absent, so `!undefined?.hide` is `true`
+    // and the extension behaves exactly as before.
+    const extendToEnd = !this.settings.end?.hide;
+    const extendToBottom = !this.settings.bottom?.hide;
+    const bottomThickness = parseInt(this.bottomStyle!.height, 10);
+    const endThickness = parseInt(this.endStyle!.width, 10);
+    const bottomDelta = Math.ceil(bottomThickness / 2);
+    const endDelta = Math.ceil(endThickness / 2);
+    const horizontalExtension = extendToEnd ? endDelta : 0;
+    const verticalExtension = extendToBottom ? bottomDelta : 0;
 
     this.topStyle!.top = `${top}px`;
     this.topStyle![inlinePosProperty] = `${inlineStartPos}px`;
-    this.topStyle!.width = `${width + delta}px`;
+    this.topStyle!.width = `${width + horizontalExtension}px`;
     this.topStyle!.display = 'block';
 
     this.startStyle!.top = `${top}px`;
     this.startStyle![inlinePosProperty] = `${inlineStartPos}px`;
-    this.startStyle!.height = `${height + delta}px`;
+    this.startStyle!.height = `${height + verticalExtension}px`;
     this.startStyle!.display = 'block';
 
-    this.bottomStyle!.top = `${top + height - parseInt(this.bottomStyle!.height, 10) + delta}px`;
+    this.bottomStyle!.top = `${top + height - bottomThickness + bottomDelta}px`;
     this.bottomStyle![inlinePosProperty] = `${inlineStartPos}px`;
-    this.bottomStyle!.width = `${width + delta}px`;
+    this.bottomStyle!.width = `${width + horizontalExtension}px`;
     this.bottomStyle!.display = 'block';
 
     this.endStyle!.top = `${top}px`;
-    this.endStyle![inlinePosProperty] = `${inlineStartPos + width - parseInt(this.endStyle!.width, 10) + delta}px`;
-    this.endStyle!.height = `${height + delta}px`;
+    this.endStyle![inlinePosProperty] = `${inlineStartPos + width - endThickness + endDelta}px`;
+    this.endStyle!.height = `${height + verticalExtension}px`;
     this.endStyle!.display = 'block';
 
     // A boundary edge owned by the frozen overlay must be hidden on every other overlay that would

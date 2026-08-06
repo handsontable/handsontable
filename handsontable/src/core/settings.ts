@@ -171,6 +171,7 @@ export interface GridSettings {
   comments?: boolean | object | object[];
   contextMenu?: boolean | object | string[];
   customBorders?: boolean | object[];
+  customBordersProgressive?: boolean | { chunkSize?: number };
   dialog?: boolean | object;
   dataProvider?: DataProviderConfig;
   dragToScroll?: boolean | { interval?: { min?: number; max?: number }; rampDistance?: number };
@@ -256,6 +257,7 @@ export interface GridSettings {
     movePossible: boolean, orderChanged: boolean) => void;
   afterColumnResize?: (newSize: number, column: number, isDoubleClick: boolean) => void;
   afterColumnSequenceChange?: (source: ChangeSource) => void;
+  afterCustomBordersUpdate?: () => void;
   afterColumnSequenceCacheUpdate?: (indexesChangesState: {
     indexesSequenceChanged: boolean; trimmedIndexesChanged: boolean; hiddenIndexesChanged: boolean;
   }) => void;

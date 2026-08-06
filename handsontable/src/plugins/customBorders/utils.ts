@@ -80,6 +80,75 @@ export function createId(row: number, col: number) {
 }
 
 /**
+ * Computes the new position of a coordinate index after `amount` rows/columns are inserted
+ * at `insertionIndex`. An index at or after the insertion point moves down/right by `amount`;
+ * an index before it stays put.
+ *
+ * @param {number} index The visual index to shift.
+ * @param {number} insertionIndex The visual index at which the insertion starts.
+ * @param {number} amount The number of inserted rows/columns.
+ * @returns {number}
+ */
+export function getShiftedIndexAfterInsert(index: number, insertionIndex: number, amount: number): number {
+  return index >= insertionIndex ? index + amount : index;
+}
+
+/**
+ * Computes the new position of a coordinate index after `amount` rows/columns are removed
+ * starting at `removalIndex`. An index below the removed range moves up/left by `amount`;
+ * an index inside the removed range returns `-1` (the border no longer has a cell); an index
+ * above the removed range stays put.
+ *
+ * @param {number} index The visual index to shift.
+ * @param {number} removalIndex The visual index at which the removal starts.
+ * @param {number} amount The number of removed rows/columns.
+ * @returns {number}
+ */
+export function getShiftedIndexAfterRemove(index: number, removalIndex: number, amount: number): number {
+  if (index >= removalIndex + amount) {
+    return index - amount;
+  }
+
+  if (index >= removalIndex) {
+    return -1;
+  }
+
+  return index;
+}
+
+/**
+ * Resolves the style of a single border side declared inside a range configuration. An explicit
+ * per-side style object takes precedence and is used unchanged. An enabled but unstyled side
+ * (an empty object `{}`, an empty string, or `true`) inherits the range-level `border` object's
+ * style (width, color, and line style) so it renders with the configured look instead of the
+ * default 1px black. When no range-level `border` is provided the raw side value is kept, which
+ * preserves the previous behavior.
+ *
+ * @param {object} [rawSide] The side value from the range configuration.
+ * @param {object} [rangeBorder] The range-level `border` object shared by all sides.
+ * @returns {object}
+ */
+export function resolveRangeBorderSide(
+  rawSide: BorderSettings | undefined,
+  rangeBorder: Record<string, unknown> | undefined
+): BorderSettings | undefined {
+  if (rawSide && isObject(rawSide) && Object.keys(rawSide).length > 0) {
+    return rawSide;
+  }
+
+  if (rangeBorder && isObject(rangeBorder)) {
+    const resolved: BorderSettings = { ...rangeBorder };
+
+    // `cornerVisible` describes the selection corner, not an individual side, so it is dropped.
+    delete resolved.cornerVisible;
+
+    return resolved;
+  }
+
+  return rawSide;
+}
+
+/**
  * Create default single border for each position (top/right/bottom/left).
  *
  * @returns {object} `{{width: number, color: string}}`.

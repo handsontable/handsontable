@@ -1654,6 +1654,40 @@ export default (): Record<string, unknown> => {
 
     /**
      * @description
+     * The `customBordersProgressive` option controls how a large [`customBorders`](#customborders)
+     * configuration is applied at initialization.
+     *
+     * By default (`false`), all custom borders are built synchronously before the first render, which
+     * can block the initial paint when the configuration contains a very large number of borders.
+     *
+     * Set it to `true` to apply the borders in background batches after the grid has rendered: the
+     * grid becomes interactive immediately and the borders fill in progressively. Pass an object to
+     * tune the batch size, for example `{ chunkSize: 5000 }`.
+     *
+     * When enabled, [`getBorders()`](@/api/customBorders.md#getborders) and the borders' cell meta
+     * are populated incrementally, so they may be incomplete until the
+     * [`afterCustomBordersUpdate`](@/api/hooks.md#aftercustombordersupdate) hook fires.
+     *
+     * @since 18.1.0
+     * @memberof Options#
+     * @type {boolean|object}
+     * @default false
+     * @category CustomBorders
+     *
+     * @example
+     * ```js
+     * // apply a large custom-borders config in background batches
+     * customBorders: [ / * ...many borders... * / ],
+     * customBordersProgressive: true,
+     *
+     * // tune the batch size
+     * customBordersProgressive: { chunkSize: 5000 },
+     * ```
+     */
+    customBordersProgressive: false,
+
+    /**
+     * @description
      * The `data` option sets the initial [data](@/guides/getting-started/binding-to-data/binding-to-data.md) of your Handsontable instance.
      *
      * Handsontable's data is bound to your source data by reference (i.e. when you edit Handsontable's data, your source data alters as well).
