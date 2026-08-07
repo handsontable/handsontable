@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Added the FormulaBuilder plugin: a formula bar, an inline formula editor with colored references, cell/range/header reference picking, autocomplete, function help, and formula error indicators.",
+  "type": "added",
+  "issueOrPR": 13172,
+  "breaking": false,
+  "framework": "none"
+}
