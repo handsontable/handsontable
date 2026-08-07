@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable menu-scroll e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Active theme from the ?theme= query param, mapped through a fixed allowlist
+    // to a LITERAL (default main) — same sanitization as grid.html, no XSS.
+    window.htTheme = ({ horizon: 'horizon', classic: 'classic' })[new URLSearchParams(location.search).get('theme')] || 'main';
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    #scroll-container { height: 320px; overflow: auto; border: 1px solid #ccc; }
+    .spacer-top { height: 80px; }
+    .spacer-bottom { height: 800px; }
+    .page-spacer { height: 1500px; }
+  </style>
+</head>
+<body>
+  <!--
+    Reproduction layout for #12719: the grid sits inside a scrollable (overflow: auto)
+    container. Menus portal to document.body and follow the anchor cell when this
+    container scrolls; they close only when the anchor scrolls out of the rendered
+    viewport. The page spacer below makes the WINDOW scrollable too, testing whether
+    viewport scroll also triggers the follow-anchor behavior.
+  -->
+  <div id="scroll-container" data-testid="scroll-container">
+    <div class="spacer-top"></div>
+    <div id="grid" data-testid="grid"></div>
+    <div class="spacer-bottom"></div>
+  </div>
+  <div class="page-spacer"></div>
+
+  <script src="/handsontable/dist/handsontable.full.min.js"></script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // `?uicontainer=1` renders the menus inside the scrollable container instead of the
+    // default body portal. Both cases follow the anchor; this flag only changes HOW
+    // the menu follows (natively with its container vs. repositioned by JS).
+    // Sanitized boolean check, same spirit as the theme allowlist above - no XSS.
+    const useUiContainer = new URLSearchParams(location.search).get('uicontainer') === '1';
+    const scrollContainer = document.getElementById('scroll-container');
+
+    // Wide + tall enough that the grid has BOTH of its own scrollbars, so the
+    // "grid's own wtHolder scroll closes the menu" cases are reachable.
+    window.hot = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(30, 30),
+      colHeaders: true,
+      rowHeaders: true,
+      dropdownMenu: useUiContainer ? { uiContainer: scrollContainer } : true,
+      filters: true,
+      contextMenu: useUiContainer ? { uiContainer: scrollContainer } : true,
+      colWidths: 120,
+      width: 600,
+      height: 200,
+      renderer: testIdRenderer,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

@@ -21,6 +21,7 @@ import {
   addClass,
   eventTargetEl,
   isChildOf,
+  isHTMLElement,
   getParentWindow,
   hasClass,
   setAttribute,
@@ -50,6 +51,12 @@ const MIN_WIDTH = 215;
 function hasName(value: unknown): value is { name: unknown } {
   return typeof value === 'object' && value !== null && 'name' in value;
 }
+
+/**
+ * Returns the current bounding rectangle of the element the menu is anchored to,
+ * or `null` when the anchor is not rendered anymore (scrolled out of the viewport).
+ */
+export type MenuAnchorRectProvider = () => DOMRect | null;
 
 interface MenuOptions {
   // eslint-disable-next-line no-use-before-define
@@ -162,6 +169,41 @@ export class Menu {
    * @type {number}
    */
   #tableBorderWidth: number | undefined;
+  /**
+   * Provides the current anchor rectangle for scroll-follow repositioning, or `null`
+   * when the anchor is no longer rendered. Set through `setPosition()`.
+   *
+   * @type {Function|null}
+   */
+  #anchorRectProvider: MenuAnchorRectProvider | null = null;
+  /**
+   * Position baseline captured when the menu is positioned: the offset between the
+   * menu's document coordinates and its anchor (or the grid root when no anchor
+   * provider is available). Used to keep the menu attached while outside elements scroll.
+   *
+   * @type {object|null}
+   */
+  #scrollFollowBaseline: { offsetLeft: number; offsetTop: number } | null = null;
+  /**
+   * When `true`, `afterOnCellMouseOver` ignores the hover instead of opening/closing a
+   * sub-menu. Armed for a couple of animation frames right after `#followAnchor` moves
+   * the menu: repositioning a menu item out from under a stationary mouse cursor makes
+   * the browser recompute `:hover` and fire `mouseout`/`mouseover` on the next frame(s)
+   * with NO real pointer movement involved — left unguarded, that spurious hover would
+   * toggle sub-menus as if the user had moved the mouse (#12719).
+   *
+   * @type {boolean}
+   */
+  #suppressHoverSubMenuToggle = false;
+  /**
+   * The identifier of the latest pending animation frame request that lifts
+   * `#suppressHoverSubMenuToggle`, so a new repositioning can cancel and re-arm the
+   * window instead of having it cut short by an earlier one (continuous scrolling
+   * repositions the menu on every scroll event).
+   *
+   * @type {number|null}
+   */
+  #suppressHoverSubMenuToggleFrameId: number | null = null;
 
   /**
    * Getter for the table border width.
@@ -233,6 +275,8 @@ export class Menu {
       this.eventManager.addEventListener(frame.document, 'mousedown', event => this.onDocumentMouseDown(event));
       this.eventManager.addEventListener(frame.document, 'touchstart', event => this.onDocumentMouseDown(event));
       this.eventManager.addEventListener(frame.document, 'contextmenu', event => this.onDocumentContextMenu(event));
+      this.eventManager.addEventListener(frame.document, 'scroll',
+        event => this.onDocumentScroll(event), { capture: true, passive: true });
 
       frame = getParentWindow(frame);
     }
@@ -397,9 +441,25 @@ export class Menu {
       },
       beforeRefreshDimensions: () => false,
       beforeOnCellMouseOver: (event: MouseEvent, coords: { row: number; col: number }) => {
+        // See the matching guard in `afterOnCellMouseOver` below — keeps the keyboard
+        // (PageUp/PageDown) page-cursor base row from silently drifting to whatever row
+        // the spurious hover lands on.
+        if (this.#suppressHoverSubMenuToggle) {
+          return;
+        }
+
         this.#navigator!.setPageCursorAt(coords.row);
       },
       afterOnCellMouseOver: (event: MouseEvent, coords: { row: number; col: number }) => {
+        // Dropped, not deferred: a genuine hover that lands on a new row while this
+        // window is armed gets no submenu toggle at all — the user has to cross another
+        // row boundary (a fresh `mouseover`) for the hover to register. Rare in practice
+        // (the window is 2 frames) and preferable to replaying a possibly-stale coords.row
+        // once the window closes.
+        if (this.#suppressHoverSubMenuToggle) {
+          return;
+        }
+
         if (this.isAllSubMenusClosed()) {
           delayedOpenSubMenu(coords.row);
         } else {
@@ -497,6 +557,15 @@ export class Menu {
       this.container.style.display = 'none';
       this.hotMenu!.destroy();
       this.hotMenu = null;
+      this.#anchorRectProvider = null;
+      this.#scrollFollowBaseline = null;
+
+      if (this.#suppressHoverSubMenuToggleFrameId !== null) {
+        this.hot.rootWindow.cancelAnimationFrame(this.#suppressHoverSubMenuToggleFrameId);
+        this.#suppressHoverSubMenuToggleFrameId = null;
+      }
+
+      this.#suppressHoverSubMenuToggle = false;
       this.hot.getSettings().outsideClickDeselects = this.origOutsideClickDeselects;
       this.runLocalHooks('afterClose');
 
@@ -550,7 +619,10 @@ export class Menu {
 
     subMenu.setMenuItems(dataItem.submenu!.items);
     subMenu.open();
-    subMenu.setPosition(cell.getBoundingClientRect());
+    subMenu.setPosition(
+      cell.getBoundingClientRect(),
+      () => (cell.isConnected ? cell.getBoundingClientRect() : null),
+    );
     this.hotSubMenus[dataItem.key!] = subMenu;
 
     // Update the accessibility tags on the cell being the base for the submenu.
@@ -625,6 +697,7 @@ export class Menu {
     this.clearLocalHooks();
     this.close();
     this.parentMenu = null;
+
     this.eventManager.destroy();
 
     if (menuContainerParentElement) {
@@ -702,8 +775,10 @@ export class Menu {
    * Set menu position based on dom event or based on literal object.
    *
    * @param {Event|object} coords Event or literal Object with coordinates.
+   * @param {Function} [anchorRectProvider] Returns the current anchor rectangle for
+   * scroll-follow repositioning, or `null` when the anchor is no longer rendered.
    */
-  setPosition(coords: Event | DOMRect | Record<string, unknown>) {
+  setPosition(coords: Event | DOMRect | Record<string, unknown>, anchorRectProvider?: MenuAnchorRectProvider) {
     if (this.isSubMenu()) {
       this.positioner.setParentElement(this.parentMenu!.container);
     }
@@ -711,6 +786,26 @@ export class Menu {
     this.positioner
       .setElement(this.container)
       .updatePosition(coords);
+
+    this.#anchorRectProvider = anchorRectProvider ?? null;
+    this.#captureScrollFollowBaseline();
+  }
+
+  /**
+   * Captures the offset between the menu's measured document position and its anchor's
+   * (or the grid root element's, when no anchor provider is set). Both sides are
+   * MEASURED rects — never `style.left/top`, which are not document coordinates when
+   * the menu lives in a custom `uiContainer` with its own containing block. The offset
+   * stays constant while outside elements scroll; repositioning restores it.
+   */
+  #captureScrollFollowBaseline() {
+    const menuRect = this.container.getBoundingClientRect();
+    const anchorRect = this.#anchorRectProvider?.() ?? this.hot.rootElement.getBoundingClientRect();
+
+    this.#scrollFollowBaseline = {
+      offsetLeft: menuRect.left - anchorRect.left,
+      offsetTop: menuRect.top - anchorRect.top,
+    };
   }
 
   /**
@@ -811,6 +906,99 @@ export class Menu {
     } else if ((this.isAllSubMenusClosed() || this.isSubMenu()) && !isChildOf(eventTargetEl(event)!, '.htMenu')) {
       this.close(true);
     }
+  }
+
+  /**
+   * Document's scroll listener (capture phase). When an element outside of the menu
+   * is scrolled, repositions the menu so it stays visually attached to its anchor
+   * (column header, cell, or parent menu item) — the menu is rendered in a portal
+   * positioned in document coordinates, so it would otherwise stay stranded (#12719).
+   * Closes the menu when the anchor is scrolled out of the rendered viewport.
+   * Ignored: page/document scroll (document coordinates already track it), scrolls
+   * within the menu, and scrolls of elements that contain the menu (custom
+   * `uiContainer` — the menu moves natively with its container).
+   *
+   * @private
+   * @param {Event} event The scroll event object.
+   */
+  onDocumentScroll(event: Event) {
+    if (!this.isOpened() || this.#scrollFollowBaseline === null) {
+      return;
+    }
+
+    if (!isHTMLElement(event.target) || isChildOf(event.target, '.htMenu')) {
+      return;
+    }
+
+    this.#followAnchor(event.target);
+  }
+
+  /**
+   * Repositions the menu to restore its captured offset to the anchor. The correction
+   * is computed from MEASURED rects (desired document position minus actual document
+   * position) and applied as an increment to the current inline `left`/`top` styles,
+   * which keeps the math correct in any containing block (default body portal or a
+   * custom `uiContainer`) and makes scrolls the menu already follows natively a no-op.
+   * Closes the menu when the anchor provider reports the anchor as no longer rendered,
+   * or — when no provider is available — when the scroll happened inside the grid root
+   * element (an anchor-less menu cannot track content movement within the grid).
+   *
+   * @param {HTMLElement} scrolledElement The element whose scroll triggered the update.
+   */
+  #followAnchor(scrolledElement: HTMLElement) {
+    let anchorRect: DOMRect | null;
+
+    if (this.#anchorRectProvider) {
+      anchorRect = this.#anchorRectProvider();
+    } else if (scrolledElement === this.hot.rootElement || isChildOf(scrolledElement, this.hot.rootElement)) {
+      this.close(true);
+
+      return;
+    } else {
+      anchorRect = this.hot.rootElement.getBoundingClientRect();
+    }
+
+    if (anchorRect === null) {
+      this.close(true);
+
+      return;
+    }
+
+    const { offsetLeft, offsetTop } = this.#scrollFollowBaseline!;
+    const menuRect = this.container.getBoundingClientRect();
+    const correctionLeft = (anchorRect.left + offsetLeft) - menuRect.left;
+    const correctionTop = (anchorRect.top + offsetTop) - menuRect.top;
+
+    if (correctionLeft === 0 && correctionTop === 0) {
+      return;
+    }
+
+    this.container.style.left = `${(Number.parseFloat(this.container.style.left) || 0) + correctionLeft}px`;
+    this.container.style.top = `${(Number.parseFloat(this.container.style.top) || 0) + correctionTop}px`;
+
+    this.#armHoverSuppression();
+  }
+
+  /**
+   * Arms `#suppressHoverSubMenuToggle` for two animation frames. The browser recomputes
+   * `:hover` (and dispatches the resulting `mouseout`/`mouseover`) on a frame AFTER the
+   * layout-affecting style change that just moved menu content out from under the
+   * pointer, not synchronously with it — one frame is not reliably enough to outlast it.
+   * Re-arming cancels a still-pending lift so continuous scrolling keeps the window open.
+   */
+  #armHoverSuppression() {
+    this.#suppressHoverSubMenuToggle = true;
+
+    if (this.#suppressHoverSubMenuToggleFrameId !== null) {
+      this.hot.rootWindow.cancelAnimationFrame(this.#suppressHoverSubMenuToggleFrameId);
+    }
+
+    this.#suppressHoverSubMenuToggleFrameId = this.hot.rootWindow.requestAnimationFrame(() => {
+      this.#suppressHoverSubMenuToggleFrameId = this.hot.rootWindow.requestAnimationFrame(() => {
+        this.#suppressHoverSubMenuToggle = false;
+        this.#suppressHoverSubMenuToggleFrameId = null;
+      });
+    });
   }
 
   /**
