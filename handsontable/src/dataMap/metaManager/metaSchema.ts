@@ -2979,6 +2979,46 @@ export default (): Record<string, unknown> => {
     fixedRowsTop: 0,
 
     /**
+     * The `formulaBuilder` option configures the [`FormulaBuilder`](@/api/formulaBuilder.md) plugin.
+     *
+     * The [`FormulaBuilder`](@/api/formulaBuilder.md) plugin provides a spreadsheet-grade formula
+     * editing experience (formula bar, inline formula editor with colored references, reference
+     * picking, and formula error indicators) on top of the [`Formulas`](@/api/formulas.md) plugin,
+     * which must be enabled with a configured engine.
+     *
+     * You can set the `formulaBuilder` option to an object with the following properties:
+     *
+     * | Property         | Possible values                                                 |
+     * | ---------------- | --------------------------------------------------------------- |
+     * | `builder`        | The `@hfe/core` module namespace (`import * as FormulaBuilderModule from '@hfe/core'`) |
+     * | `showFormulaBar` | A boolean - renders the formula bar above the grid when `true`  |
+     *
+     * Read more:
+     * - [Plugins: `Formulas`](@/api/formulas.md)
+     *
+     * @since 18.1.0
+     * @memberof Options#
+     * @type {object}
+     * @default undefined
+     * @category FormulaBuilder
+     *
+     * @example
+     * ```js
+     * import * as FormulaBuilderModule from '@hfe/core';
+     * import { HyperFormula } from 'hyperformula';
+     *
+     * formulas: {
+     *   engine: HyperFormula,
+     * },
+     * formulaBuilder: {
+     *   builder: FormulaBuilderModule,
+     *   showFormulaBar: true,
+     * },
+     * ```
+     */
+    formulaBuilder: undefined,
+
+    /**
      * The `formulas` option configures the [`Formulas`](@/api/formulas.md) plugin.
      *
      * The [`Formulas`](@/api/formulas.md) plugin uses the [HyperFormula](https://handsontable.github.io/hyperformula/) calculation engine.

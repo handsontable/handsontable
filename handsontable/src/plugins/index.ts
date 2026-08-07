@@ -15,6 +15,7 @@ import { DragToScroll } from './dragToScroll';
 import { DropdownMenu } from './dropdownMenu';
 import { ExportFile } from './exportFile';
 import { Filters } from './filters';
+import { FormulaBuilder } from './formulaBuilder';
 import { Formulas } from './formulas';
 import { HiddenColumns } from './hiddenColumns';
 import { HiddenRows } from './hiddenRows';
@@ -65,6 +66,7 @@ declare module './registry' {
     dropdownMenu: typeof DropdownMenu;
     exportFile: typeof ExportFile;
     filters: typeof Filters;
+    formulaBuilder: typeof FormulaBuilder;
     formulas: typeof Formulas;
     hiddenColumns: typeof HiddenColumns;
     hiddenRows: typeof HiddenRows;
@@ -112,6 +114,7 @@ export function registerAllPlugins() {
   registerPlugin(ExportFile);
   registerPlugin(Filters);
   registerPlugin(Formulas);
+  registerPlugin(FormulaBuilder);
   registerPlugin(HiddenColumns);
   registerPlugin(HiddenRows);
   registerPlugin(ManualColumnFreeze);
@@ -153,6 +156,7 @@ export {
   DropdownMenu,
   ExportFile,
   Filters,
+  FormulaBuilder,
   Formulas,
   HiddenColumns,
   HiddenRows,

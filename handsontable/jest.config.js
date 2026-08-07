@@ -16,6 +16,9 @@ module.exports = {
   ],
   testRunner: 'jest-jasmine2',
   moduleNameMapper: {
+    // The linked @hfe/core package lives outside this tree; babel-jest injects
+    // @babel/runtime helper imports into it, which must resolve to our copy.
+    '^@babel/runtime/(.*)$': '<rootDir>/node_modules/@babel/runtime/$1',
     '^handsontable(.*)$': '<rootDir>/src$1',
     '^walkontable(.*)$': '<rootDir>/src/3rdparty/walkontable/src$1',
     '\\.(css|scss)$': '<rootDir>/test/__mocks__/styleMock.js',

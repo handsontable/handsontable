@@ -117,6 +117,10 @@ const allSettings: Required<Handsontable.GridSettings> = {
   fixedColumnsStart: 123,
   fixedRowsBottom: 123,
   fixedRowsTop: 123,
+  formulaBuilder: oneOf(true, {
+    builder: class {},
+    showFormulaBar: true,
+  }),
   formulas: {
     engine: HyperFormula,
   },
