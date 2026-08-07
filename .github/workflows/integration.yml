@@ -121,9 +121,12 @@ jobs:
         if: env.HOT_PREBUILT == 'true'
         run: |
           tar -zxf dist.tar.gz ./handsontable/dist ./handsontable/styles && rm dist.tar.gz
-          rm -rf handsontable/tmp/dist handsontable/tmp/styles
+          rm -rf handsontable/tmp/dist
           cp -R handsontable/dist handsontable/tmp/dist
-          cp -R handsontable/styles handsontable/tmp/styles
+          # Merge the CSS into tmp/styles instead of replacing the directory —
+          # tmp/styles also holds the generated handsontableStyles.{js,mjs,d.ts}
+          # module that utils/stylesHandler imports at runtime.
+          cp -R handsontable/styles/. handsontable/tmp/styles/
       - name: Build wrapper packages (handsontable prebuilt)
         if: env.HOT_PREBUILT == 'true'
         run: npm run all build -- --e examples visual-tests handsontable
@@ -165,18 +168,18 @@ jobs:
 
             | Framework | Link |
             |-----------|------|
-            | Angular | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=angular&handsontable-version=${{ github.event.pull_request.number }}) |
-            | Vanilla JS | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=javascript&handsontable-version=${{ github.event.pull_request.number }}) |
-            | React TS | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=react&handsontable-version=${{ github.event.pull_request.number }}) |
-            | React JS | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=react-js&handsontable-version=${{ github.event.pull_request.number }}) |
-            | TypeScript | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=typescript&handsontable-version=${{ github.event.pull_request.number }}) |
-            | Vue 3 | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=vue&handsontable-version=${{ github.event.pull_request.number }}) |
+            | Angular | [Open live demo](https://demos.handsontable.com/?example=angular&v=${{ github.event.pull_request.number }}) |
+            | Vanilla JS | [Open live demo](https://demos.handsontable.com/?example=javascript&v=${{ github.event.pull_request.number }}) |
+            | React TS | [Open live demo](https://demos.handsontable.com/?example=react&v=${{ github.event.pull_request.number }}) |
+            | React JS | [Open live demo](https://demos.handsontable.com/?example=react-js&v=${{ github.event.pull_request.number }}) |
+            | TypeScript | [Open live demo](https://demos.handsontable.com/?example=typescript&v=${{ github.event.pull_request.number }}) |
+            | Vue 3 | [Open live demo](https://demos.handsontable.com/?example=vue&v=${{ github.event.pull_request.number }}) |
 
             **SSR Examples:**
 
             | Framework | Link |
             |-----------|------|
-            | Next.js | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=next.js&handsontable-version=${{ github.event.pull_request.number }}) |
-            | Astro | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=astro&handsontable-version=${{ github.event.pull_request.number }}) |
-            | Remix | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=remix&handsontable-version=${{ github.event.pull_request.number }}) |
-            | Nuxt | [Open in CodeSandbox](https://handsontable.com/codesandbox-vm?example-dir=nuxt&handsontable-version=${{ github.event.pull_request.number }}) |
+            | Next.js | [Open live demo](https://demos.handsontable.com/?example=next.js&v=${{ github.event.pull_request.number }}) |
+            | Astro | [Open live demo](https://demos.handsontable.com/?example=astro&v=${{ github.event.pull_request.number }}) |
+            | Remix | [Open live demo](https://demos.handsontable.com/?example=remix&v=${{ github.event.pull_request.number }}) |
+            | Nuxt | [Open live demo](https://demos.handsontable.com/?example=nuxt&v=${{ github.event.pull_request.number }}) |
