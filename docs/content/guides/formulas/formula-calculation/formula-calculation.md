@@ -29,6 +29,8 @@ The `Formulas` plugin adds spreadsheet-style calculation to Handsontable, powere
 
 Filling formula cells with [autofill](@/guides/cell-features/autofill-values/autofill-values.md) adjusts relative references per target cell, the same way a spreadsheet application does. See [Autofill and formulas](@/guides/cell-features/autofill-values/autofill-values.md#autofill-and-formulas).
 
+For a spreadsheet-style formula editing UI - a formula bar, colored references, reference picking, and autocomplete - see the [Formula builder](@/guides/formulas/formula-builder/formula-builder.md) guide.
+
 [[toc]]
 
 ## Basic multi-sheet example
