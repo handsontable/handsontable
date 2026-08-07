@@ -509,6 +509,16 @@ The custom loader (`src/plugins/framework-loader.mjs`) renders every source page
 
 Guards for both rules live in `src/lib/__tests__/example-error-reporting.test.mjs` (run by `npm run docs:test:plugins`).
 
+### The two-layer drop policy
+
+`reportExampleError()` only sees failures the runner **caught**. Anything raised outside our try/catch - Astro's own island hydration, a frozen build under `/docs/<major>.<minor>/` - reaches Sentry through `onerror`/`onunhandledrejection` and can only be filtered in the `beforeSend` hook inlined in `astro.config.mjs` (`window.sentryOnLoad`). When triage says "expected noise", ask which layer the event actually travels through before editing a drop list; a rule added to the wrong layer changes nothing in production.
+
+The two layers overlap on failed dynamic imports of content-hashed `_astro/*.js` chunks - stale cached HTML, offline readers, blocking extensions. Three phrase lists must stay in step: `isChunkLoadError()` in `src/lib/example-error-reporting.mjs`, the same check in `src/scripts/docs-assistant-bootstrap.ts`, and `chunkLoadFailures` in the `beforeSend` hook. Each engine words the failure differently (Chrome `Failed to fetch dynamically imported module`, Firefox `error loading dynamically imported module`, Safari `Importing a module script failed`), so a one-engine list silently keeps filing issues from the other two.
+
+Frozen version builds are the other reason `beforeSend` carries rules with no source counterpart: they are archived, never rebuilt, and still run whatever the recipe hard-coded at the time - `http://localhost:3000/tickets` in the server-side recipes, which raises a network error rather than an `HTTP <status>` (HANDSONTABLE-DOCS-1FM). Gate such rules on the page URL so the same failure stays visible everywhere else.
+
+Regression tests for the hook live in `src/scripts/__tests__/sentry-before-send.test.mjs`; it evaluates the script exactly as inlined, so every drop rule needs both a drops-it and a keeps-the-real-thing case.
+
 ---
 
 ## 2.14 Patching Starlight's Custom Elements

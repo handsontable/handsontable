@@ -767,12 +767,20 @@ export default defineConfig({
         // DSN and any dashboard-enabled integrations (Performance/Replay) are applied
         // automatically, so adding `beforeSend` does not disturb the rest of the setup.
         //
-        // Four classes of expected errors are dropped:
+        // Six classes of expected errors are dropped:
         //
-        //   1. HTTP <status> errors from server-side data recipe examples.
+        //   1. Failed requests from server-side data recipe examples.
         //      The docs site has no `/api/products` backend, so fetchRows() correctly
         //      throws `HTTP <status>` (e.g. 404) on those pages. That is expected here,
         //      not a product bug.
+        //
+        //      Frozen older versions under `/docs/<major>.<minor>/` fail one step earlier.
+        //      They were built when the recipe hard-coded `http://localhost:3000/tickets`,
+        //      so the request never reaches a server and the browser raises a network
+        //      error instead of an HTTP status (Sentry HANDSONTABLE-DOCS-1FM). Those
+        //      builds are archived and are never rebuilt, so no source change can reach
+        //      them. Every engine words the failure differently, hence the phrase list.
+        //      The URL gate keeps genuine network failures on every other page visible.
         //
         //   2. Errors thrown by Handsontable's throwWithCause() helper.
         //      All such errors carry `error.cause.handsontable` (set to `true` today,
@@ -802,6 +810,23 @@ export default defineConfig({
         //      Matching `^Unexpected token` also keeps genuine
         //      `SyntaxError: Failed to execute 'querySelectorAll'` bugs (the Starlight
         //      TOC `:has()` defect) visible.
+        //
+        //   5. Failed dynamic imports of content-hashed `_astro/*.js` chunks
+        //      (Sentry HANDSONTABLE-DOCS-1FH, HANDSONTABLE-DOCS-1FX). A reader holding
+        //      cached HTML from a previous deployment asks for chunks that the new
+        //      deployment no longer serves; an offline or throttled mobile connection
+        //      and a blocking extension produce the same failure. None of it says
+        //      anything about our code.
+        //
+        //      `src/lib/example-error-reporting.mjs` drops the same three phrasings for
+        //      failures the example runner catches, and `docs-assistant-bootstrap.ts`
+        //      repeats them for its own mount. Neither can reach these events: they
+        //      arrive through `onunhandledrejection` from Astro's own island hydration,
+        //      outside any try/catch of ours. Keep the three lists in step.
+        //
+        //      Tradeoff: this also hides a deployment that ships HTML referencing a
+        //      chunk that was never uploaded. Deploy-time asset verification, not error
+        //      volume from readers, is the right detector for that.
         {
           tag: 'script',
           content: `window.sentryOnLoad = function () {
@@ -821,14 +846,48 @@ export default defineConfig({
   Sentry.init({
     beforeSend: function (event, hint) {
       try {
-        // Drop HTTP <status> errors from server-side data recipe pages.
+        // Drop failed requests from server-side data recipe pages: the HTTP <status>
+        // thrown by current builds, and the network error that frozen older builds
+        // raise against their hard-coded http://localhost:3000 backend.
         var values = (event.exception && event.exception.values) || [];
-        var isDemoHttpError = values.some(function (value) {
-          return value && typeof value.value === 'string' && /^HTTP \\d{3}$/.test(value.value);
+        var demoRequestFailures = [
+          'Failed to fetch', // Chrome, Edge
+          'NetworkError when attempting to fetch resource.', // Firefox
+          'Load failed', // Safari
+        ];
+        var isDemoRequestFailure = values.some(function (value) {
+          if (!value || typeof value.value !== 'string') {
+            return false;
+          }
+
+          return (
+            /^HTTP \\d{3}$/.test(value.value) || demoRequestFailures.indexOf(value.value) !== -1
+          );
         });
         var url = (event.request && event.request.url) || '';
 
-        if (isDemoHttpError && url.indexOf('/recipes/data-management/server-side') !== -1) {
+        if (isDemoRequestFailure && url.indexOf('/recipes/data-management/server-side') !== -1) {
+          return null;
+        }
+
+        // Drop failed dynamic imports of content-hashed chunks. Each engine words it
+        // differently; all three mean the same stale-deploy or blocked-request failure.
+        var chunkLoadFailures = [
+          'Failed to fetch dynamically imported module', // Chrome, Edge
+          'error loading dynamically imported module', // Firefox
+          'Importing a module script failed', // Safari
+        ];
+        var isChunkLoadError = values.some(function (value) {
+          if (!value || typeof value.value !== 'string') {
+            return false;
+          }
+
+          return chunkLoadFailures.some(function (phrase) {
+            return value.value.indexOf(phrase) !== -1;
+          });
+        });
+
+        if (isChunkLoadError) {
           return null;
         }
 
