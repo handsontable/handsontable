@@ -2,6 +2,8 @@ import {
   isCommaThousandsGroupedInteger,
   isDotThousandsGroupedInteger,
   isDotThousandsGroupedFloat,
+  isLossyNumericConversion,
+  isNumeric,
   isNumericLike,
   getParsedNumber,
 } from '../../../helpers/number';
@@ -67,18 +69,38 @@ export function valueSetter(newValue: unknown, _row: number, _column: number, ce
   }
 
   const decimalSeparator = getCellDecimalSeparator(cellMeta);
+  const isCommaGrouped = isCommaThousandsGroupedInteger(newValue, decimalSeparator);
+  const isDotGroupedInteger = isDotThousandsGroupedInteger(newValue, decimalSeparator);
+  const isDotGroupedFloat = isDotThousandsGroupedFloat(newValue, decimalSeparator);
 
-  if (
-    isNumericLike(newValue) ||
-    isCommaThousandsGroupedInteger(newValue, decimalSeparator) ||
-    isDotThousandsGroupedInteger(newValue, decimalSeparator) ||
-    isDotThousandsGroupedFloat(newValue, decimalSeparator)
-  ) {
+  if (isNumericLike(newValue) || isCommaGrouped || isDotGroupedInteger || isDotGroupedFloat) {
     const parsedNumber = getParsedNumber(newValue, {
       decimalSeparator,
     });
 
-    return isNullish(parsedNumber) ? newValue : parsedNumber;
+    if (isNullish(parsedNumber)) {
+      return newValue;
+    }
+
+    const isGrouped = isCommaGrouped || isDotGroupedInteger || isDotGroupedFloat;
+
+    // Opt-in: keep the original literal when parsing to a JS number would lose information
+    // (trailing fractional zeros like `9.0`, or precision beyond Number.MAX_SAFE_INTEGER). This
+    // preserves what the user typed in the editor, matching spreadsheet behavior. Gated behind
+    // `preserveNumericLiteral` (default `false`) so existing configurations are unchanged. The
+    // guard is limited to plain, dot-decimal literals (`isNumeric`): grouping removal
+    // (e.g. `7.000` → 7000) is intended, and preserving a comma-bearing literal (`9,0`, `0,100`)
+    // would break numeric rendering and validation, which do not accept a comma decimal separator.
+    if (
+      cellMeta.preserveNumericLiteral === true &&
+      !isGrouped &&
+      isNumeric(newValue) &&
+      isLossyNumericConversion(newValue, parsedNumber)
+    ) {
+      return newValue.trim();
+    }
+
+    return parsedNumber;
   }
 
   return newValue;

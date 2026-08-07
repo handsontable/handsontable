@@ -243,6 +243,42 @@ export function getParsedNumber(numericData: string, options: { decimalSeparator
 }
 
 /**
+ * Whether converting a plain numeric string to its parsed JS number loses information.
+ * Two situations count as lossy: trailing fractional zeros (e.g. `9.0` → `9`) and precision
+ * beyond `Number.MAX_SAFE_INTEGER` (e.g. `12345678901234567.8` → `12345678901234568`).
+ *
+ * It compares a canonicalized form of the input (leading zeros and a leading sign normalized,
+ * decimal separator unified to `.`, but trailing zeros and all significant digits kept) against
+ * `String(parsedNumber)`. Purely cosmetic differences (leading zeros, a leading `+`, `.5`/`5.`)
+ * are not treated as loss.
+ *
+ * Intended only for the plain float path. Thousands-grouped inputs (e.g. `7.000`) are resolved
+ * by the caller before this runs and must not be passed here.
+ *
+ * @param {string} rawInput The raw user input string.
+ * @param {number} parsedNumber The number produced from `rawInput` by `getParsedNumber`.
+ * @returns {boolean}
+ */
+export function isLossyNumericConversion(rawInput: string, parsedNumber: number): boolean {
+  const negative = /^\s*-/.test(rawInput);
+  let normalized = rawInput.trim().replace(',', '.').replace(/^[+-]/, '');
+
+  normalized = normalized.replace(/^0+(?=\d)/, '');
+
+  if (normalized.startsWith('.')) {
+    normalized = `0${normalized}`;
+  }
+
+  if (normalized.endsWith('.')) {
+    normalized = normalized.slice(0, -1);
+  }
+
+  const canonical = `${negative ? '-' : ''}${normalized}`;
+
+  return canonical !== String(parsedNumber);
+}
+
+/**
  * Check if the provided argument is an unsigned number.
  *
  * @param {*} value Value to check.

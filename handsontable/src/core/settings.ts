@@ -214,6 +214,7 @@ export interface GridSettings {
   locale?: string;
   language?: string;
   numericFormat?: object;
+  preserveNumericLiteral?: boolean;
   selectOptions?: string[] | number[] | object[] | Record<string, string>
     | ((visualRow: number, visualColumn: number, prop: string | number) => string[] | Record<string, string>);
   strict?: boolean;

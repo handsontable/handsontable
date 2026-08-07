@@ -10,6 +10,7 @@ import {
   clamp,
   isUnsignedNumber,
   getParsedNumber,
+  isLossyNumericConversion,
 } from 'handsontable/helpers/number';
 
 describe('Number helper', () => {
@@ -512,6 +513,45 @@ describe('Number helper', () => {
       expect(getParsedNumber('100,000', dotDecimal)).toBe(100000);
       expect(getParsedNumber('1,234,567', dotDecimal)).toBe(1234567);
       expect(getParsedNumber('-12,345', dotDecimal)).toBe(-12345);
+    });
+  });
+
+  //
+  // Handsontable.helper.isLossyNumericConversion
+  //
+  describe('isLossyNumericConversion', () => {
+    it('should return false when the string round-trips to its parsed number without loss', () => {
+      expect(isLossyNumericConversion('9', 9)).toBe(false);
+      expect(isLossyNumericConversion('9.5', 9.5)).toBe(false);
+      expect(isLossyNumericConversion('1000', 1000)).toBe(false);
+      expect(isLossyNumericConversion('-123.456', -123.456)).toBe(false);
+      expect(isLossyNumericConversion('0', 0)).toBe(false);
+    });
+
+    it('should return false when only leading zeros or a leading plus differ (cosmetic, not information)', () => {
+      expect(isLossyNumericConversion('09', 9)).toBe(false);
+      expect(isLossyNumericConversion('+9', 9)).toBe(false);
+      expect(isLossyNumericConversion('007', 7)).toBe(false);
+      expect(isLossyNumericConversion('.5', 0.5)).toBe(false);
+      expect(isLossyNumericConversion('5.', 5)).toBe(false);
+    });
+
+    it('should return true when trailing fractional zeros would be lost', () => {
+      expect(isLossyNumericConversion('9.0', 9)).toBe(true);
+      expect(isLossyNumericConversion('9.50', 9.5)).toBe(true);
+      expect(isLossyNumericConversion('0.0', 0)).toBe(true);
+      expect(isLossyNumericConversion('1000.0', 1000)).toBe(true);
+      expect(isLossyNumericConversion('-9.0', -9)).toBe(true);
+    });
+
+    it('should return true when precision beyond Number.MAX_SAFE_INTEGER would be lost', () => {
+      expect(isLossyNumericConversion('12345678901234567.8', 12345678901234568)).toBe(true);
+      expect(isLossyNumericConversion('9007199254740989.00', 9007199254740989)).toBe(true);
+    });
+
+    it('should handle whitespace-padded input by trimming before comparison', () => {
+      expect(isLossyNumericConversion('  9.0  ', 9)).toBe(true);
+      expect(isLossyNumericConversion('  9  ', 9)).toBe(false);
     });
   });
 });

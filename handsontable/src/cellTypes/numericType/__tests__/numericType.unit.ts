@@ -105,5 +105,62 @@ describe('NumericCellType', () => {
       expect(valueSetter('0,100', 0, 0, meta)).toBe(0.1);
       expect(valueSetter('0,010', 0, 0, meta)).toBe(0.01);
     });
+
+    it('should return a number for lossless conversions regardless of the option', () => {
+      const on = { preserveNumericLiteral: true };
+
+      expect(valueSetter('9', 0, 0, on)).toBe(9);
+      expect(valueSetter('9.5', 0, 0, on)).toBe(9.5);
+      expect(valueSetter('1000', 0, 0, on)).toBe(1000);
+      expect(valueSetter('-123.456', 0, 0, on)).toBe(-123.456);
+      expect(valueSetter('09', 0, 0, on)).toBe(9);
+    });
+
+    it('should keep the old behavior (parse to number) by default, without the option', () => {
+      expect(valueSetter('9.0', 0, 0, {})).toBe(9);
+      expect(valueSetter('9.50', 0, 0, {})).toBe(9.5);
+      expect(valueSetter('12345678901234567.8', 0, 0, {})).toBe(12345678901234568);
+      expect(valueSetter('9.0', 0, 0, { preserveNumericLiteral: false })).toBe(9);
+    });
+
+    it('should preserve the original literal when a trailing fractional zero would be lost', () => {
+      const on = { preserveNumericLiteral: true };
+
+      expect(valueSetter('9.0', 0, 0, on)).toBe('9.0');
+      expect(valueSetter('9.50', 0, 0, on)).toBe('9.50');
+      expect(valueSetter('0.0', 0, 0, on)).toBe('0.0');
+      expect(valueSetter('1000.0', 0, 0, on)).toBe('1000.0');
+      expect(valueSetter('-9.0', 0, 0, on)).toBe('-9.0');
+    });
+
+    it('should preserve the original literal when precision beyond MAX_SAFE_INTEGER would be lost', () => {
+      const on = { preserveNumericLiteral: true };
+
+      expect(valueSetter('12345678901234567.8', 0, 0, on)).toBe('12345678901234567.8');
+      expect(valueSetter('9007199254740989.00', 0, 0, on)).toBe('9007199254740989.00');
+    });
+
+    it('should trim surrounding whitespace on a preserved literal', () => {
+      expect(valueSetter('  9.0  ', 0, 0, { preserveNumericLiteral: true })).toBe('9.0');
+    });
+
+    it('should be idempotent on a preserved literal', () => {
+      const on = { preserveNumericLiteral: true };
+      const preserved = valueSetter('9.0', 0, 0, on);
+
+      expect(valueSetter(preserved, 0, 0, on)).toBe('9.0');
+    });
+
+    it('should not preserve comma-bearing literals even with the option on (guard limited to dot-decimal)', () => {
+      expect(valueSetter('9,0', 0, 0, { locale: 'de-DE', preserveNumericLiteral: true })).toBe(9);
+      expect(valueSetter('0,100', 0, 0, { locale: 'en-US', preserveNumericLiteral: true })).toBe(0.1);
+    });
+
+    it('should not preserve when grouping removal changes the string (not information loss)', () => {
+      const on = { preserveNumericLiteral: true };
+
+      expect(valueSetter('1,000', 0, 0, { ...on, locale: 'en-US' })).toBe(1000);
+      expect(valueSetter('7.000', 0, 0, { ...on, locale: 'de-DE' })).toBe(7000);
+    });
   });
 });
