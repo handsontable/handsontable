@@ -29,7 +29,7 @@ This tutorial shows you how to create a custom time cell type using Moment.js fo
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2 --deps moment @handsontable/pikaday
+::: example #example1 :hot-recipe --js 1 --ts 2 --deps moment
 
 @[code](@/content/recipes/cell-types/moment-time/javascript/example1.js)
 @[code](@/content/recipes/cell-types/moment-time/javascript/example1.ts)
@@ -264,6 +264,6 @@ You created a custom Moment.js-based time cell type in Handsontable. You used Mo
 
 ## Next steps
 
-- [Moment.js date](@/recipes/cell-types/moment-date/moment-date.md) - The same Moment.js pattern applied to date values, with a Pikaday calendar picker.
+- [Moment.js date](@/recipes/cell-types/moment-date/moment-date.md) - The same Moment.js pattern applied to date values, on top of the built-in date cell type.
 - [Numbro](@/recipes/cell-types/numbro/numbro.md) - A custom numeric cell type using the Numbro formatting library.
 - [Flatpickr](@/recipes/cell-types/flatpickr/flatpickr.md) - A date picker using Flatpickr with dark theme support.

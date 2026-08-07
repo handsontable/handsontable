@@ -7,13 +7,11 @@ import {
   HotTableModule
 } from '@handsontable/angular-wrapper';
 import moment from 'moment';
-import Pikaday from '@handsontable/pikaday';
-import '@handsontable/pikaday/css/pikaday.css';
+import Pikaday from 'pikaday';
+import 'pikaday/css/pikaday.css';
+import './example1.css';
 
 const DATE_FORMAT_US = 'MM/DD/YYYY';
-
-// `useMoment()` exists at runtime but is missing from the Pikaday type definitions.
-type PikadayWithMoment = Pikaday & { useMoment(momentFunction: typeof moment): void };
 
 @Component({
   standalone: true,
@@ -22,7 +20,7 @@ type PikadayWithMoment = Pikaday & { useMoment(momentFunction: typeof moment): v
   styles: [
     `
     :host { display: block; }
-    .pikaday-container { width: 250px; }
+    .pikaday-container { width: 278px; }
   `,
   ],
 })
@@ -39,6 +37,11 @@ export class PikadayEditorComponent extends HotCellEditorAdvancedComponent<strin
       container: this.container.nativeElement,
       bound: false,
       format: FORMAT,
+      // Pikaday only formats and parses through Moment.js when it can reach `moment` itself, which
+      // it cannot under a bundler. These two hooks take precedence over its internal path, so the
+      // `format` above is honored both on display and on input.
+      toString: (date: Date, format?: string) => moment(date).format(format),
+      parse: (dateString: string, format: string) => moment(dateString, format).toDate(),
       onSelect: (date: Date) => {
         this.setValue(moment(date).format(FORMAT));
       },
@@ -47,13 +50,11 @@ export class PikadayEditorComponent extends HotCellEditorAdvancedComponent<strin
       },
     });
 
-    (this.pikaday as PikadayWithMoment).useMoment(moment);
-
     if (this.value) {
       const m = moment(this.value, FORMAT, true);
 
       if (m.isValid()) {
-        this.pikaday.setMoment(m, true);
+        this.pikaday.setDate(m.toDate(), true);
       }
     }
 
