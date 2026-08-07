@@ -79,4 +79,23 @@ export class GridPage {
   async rowCount(): Promise<number> {
     return this.rowLocator().count();
   }
+
+  /** Open the context menu on a cell and wait for it to be visible. */
+  async openContextMenu(row: number, col: number): Promise<void> {
+    await this.cell(row, col).click({ button: 'right' });
+    await expect(this.page.locator('.htContextMenu.handsontable')).toBeVisible();
+  }
+
+  /** Click a context-menu entry by its visible label (e.g. "Copy", "Cut"). */
+  async clickContextMenuItem(label: string): Promise<void> {
+    await this.page
+      .locator('.htContextMenu .ht_master td')
+      .filter({ hasText: new RegExp(`^${label}$`) })
+      .click();
+  }
+
+  /** Read the page clipboard (requires clipboard-read permission). */
+  async clipboardText(): Promise<string> {
+    return this.page.evaluate(() => navigator.clipboard.readText());
+  }
 }

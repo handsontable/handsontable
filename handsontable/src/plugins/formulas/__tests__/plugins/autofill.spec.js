@@ -57,7 +57,7 @@ describe('Formulas', () => {
     // row (the last source row stays untouched) and the expectation itself
     // predates trimming semantics (expects 5 visual rows where trimRows leaves
     // 4). Needs a product-level decision on fill-across-trimmed-rows before
-    // the expectations can be trusted — tracked in the DEV-2183 fix bucket.
+    // the expectations can be trusted — tracked in DEV-2195.
     xit('should cooperate properly with trimmed rows (populating two elements placed next to trimmed element)',
       async() => {
         handsontable({
@@ -201,115 +201,6 @@ describe('Formulas', () => {
       expect(getSourceDataAtCell(3, 0)).toEqual('=A3');
       expect(getSourceDataAtCell(4, 0)).toEqual('=A4');
       expect(getSourceDataAtCell(5, 0)).toBe(null);
-    });
-
-    // TODO: DEV-99 - fix: this test needs a range selection (rows 1-2, cols 2-4) which uses
-    // the .area fill handle. The simulateFillHandleDrag helper currently only targets
-    // .current.corner. Needs investigation into how to drag .area.corner outside the viewport.
-    xit('should populate dates and formulas referencing to them properly', async() => {
-      handsontable({
-        data: [
-          [null, null, null, null, null],
-          [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-          [null, null, '=C2', '=D2', '=E2'],
-          [null, null, null, null, null],
-          [null, null, null, null, null],
-          [null, null, null, null, null],
-          [null, null, null, null, null],
-        ],
-        formulas: {
-          engine: HyperFormula,
-          sheetName: 'Sheet1'
-        },
-        columns: [{}, {}, {
-          type: 'date',
-          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
-        }, {
-          type: 'date',
-          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
-        }, {
-          type: 'date',
-          dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' }
-        }],
-        fillHandle: true,
-        width: 400,
-        height: 130,
-        rowHeaders: true,
-        colHeaders: true,
-      });
-
-      await selectCells([[1, 2, 2, 4]]);
-
-      // Drag fill handle below the viewport to extend through all remaining rows.
-      // Use a visible cell as the anchor and add a large offsetY to push mouse below viewport.
-      const visibleCell = $(getCell(2, 2, true));
-
-      simulateFillHandleDragStart(visibleCell);
-      simulateFillHandleDragMove(visibleCell, { offsetY: 400 });
-
-      await waitForNextAnimationFrames(30);
-
-      simulateFillHandleDragFinish(visibleCell, { offsetY: 400 });
-
-      const formulasPlugin = getPlugin('formulas');
-
-      expect(getData()).toEqual([
-        [null, null, null, null, null],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, null, null, null]
-      ]);
-
-      expect(getSourceData()).toEqual([
-        [null, null, null, null, null],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, '=C2', '=D2', '=E2'],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, '=C4', '=D4', '=E4'],
-        [null, null, '28/02/1900', '28/02/1900', '28/02/1900'],
-        [null, null, '=C6', '=D6', '=E6'],
-        [null, null, null, null, null]
-      ]);
-
-      expect(formulasPlugin.engine.getSheetValues(0)).toEqual([
-        [],
-        [null, null, '28/02/1900', 60, '28/02/1900'],
-        [null, null, '28/02/1900', 60, '28/02/1900'],
-        [null, null, '28/02/1900', 60, '28/02/1900'],
-        [null, null, '28/02/1900', 60, '28/02/1900'],
-        [null, null, '28/02/1900', 60, '28/02/1900'],
-        [null, null, '28/02/1900', 60, '28/02/1900'],
-      ]);
-
-      expect(formulasPlugin.engine.getSheetSerialized(0)).toEqual([
-        [],
-        [null, null, '\'28/02/1900', '28/02/1900', '\'28/02/1900'],
-        [null, null, '=C2', '=D2', '=E2'],
-        [null, null, '\'28/02/1900', '28/02/1900', '\'28/02/1900'],
-        [null, null, '=C4', '=D4', '=E4'],
-        [null, null, '\'28/02/1900', '28/02/1900', '\'28/02/1900'],
-        [null, null, '=C6', '=D6', '=E6'],
-      ]);
-
-      expect(getCellMeta(3, 2).valid).toBe(false);
-      expect(getCellMeta(3, 3).valid).toBe(true);
-      expect(getCellMeta(3, 4).valid).toBe(false);
-
-      expect(getCellMeta(4, 2).valid).toBe(false);
-      expect(getCellMeta(4, 3).valid).toBe(true);
-      expect(getCellMeta(4, 4).valid).toBe(false);
-
-      expect(getCellMeta(5, 2).valid).toBe(false);
-      expect(getCellMeta(5, 3).valid).toBe(true);
-      expect(getCellMeta(5, 4).valid).toBe(false);
-
-      expect(getCellMeta(6, 2).valid).toBe(false);
-      expect(getCellMeta(6, 3).valid).toBe(true);
-      expect(getCellMeta(6, 4).valid).toBe(false);
     });
   });
 });

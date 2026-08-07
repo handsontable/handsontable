@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Formulas fill-handle e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Active theme from the ?theme= query param set by the Playwright project.
+    // Mapped through a fixed allowlist to a LITERAL (default main), so a crafted
+    // ?theme= can never be reflected into the document — no XSS. Exposed as
+    // window.htTheme so the grid init below reuses the sanitized value.
+    window.htTheme = ({ horizon: 'horizon', classic: 'classic' })[new URLSearchParams(location.search).get('theme')] || 'main';
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    HyperFormula-backed grid for fill-handle drags over a RANGE selection (the
+    `.area.corner` handle), including drags past the viewport edge — the
+    interaction the legacy simulateFillHandleDrag helper could never produce
+    (DEV-99). Migrated from the skipped formulas autofill spec (DEV-2183).
+    HyperFormula loads as an external script beside the full bundle so the
+    fixture works identically under every bundle leg (see DEV-2190).
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script src="/handsontable/node_modules/hyperformula/dist/hyperformula.full.min.js"></script>
+  <script src="/handsontable/dist/handsontable.full.min.js"></script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const dateColumn = {
+      type: 'date',
+      dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' },
+    };
+
+    window.hot = new Handsontable(container, {
+      data: [
+        [null, null, null, null, null],
+        [null, null, '1900-02-28', '1900-02-28', '1900-02-28'],
+        [null, null, '=C2', '=D2', '=E2'],
+        [null, null, null, null, null],
+        [null, null, null, null, null],
+        [null, null, null, null, null],
+        [null, null, null, null, null],
+      ],
+      formulas: {
+        engine: HyperFormula,
+        sheetName: 'Sheet1',
+      },
+      columns: [{}, {}, dateColumn, dateColumn, dateColumn],
+      // autoInsertRow off: a real drag past the last row would otherwise keep
+      // appending rows for as long as the pointer lingers — nondeterministic.
+      // The behavior under test is the range fill itself, not row insertion.
+      fillHandle: { autoInsertRow: false },
+      width: 400,
+      height: 130,
+      rowHeaders: true,
+      colHeaders: true,
+      // Stamp test ids without displacing the per-type (date) renderers.
+      afterRenderer(td, row, col) {
+        td.setAttribute('data-testid', `cell-${row}-${col}`);
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

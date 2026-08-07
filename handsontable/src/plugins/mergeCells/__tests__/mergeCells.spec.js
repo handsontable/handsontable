@@ -1872,7 +1872,7 @@ describe('MergeCells', () => {
   // Verified still failing (2026-08-05): the top overlay keeps the 2-row height
   // (59px in the main theme) instead of expanding to cover the 3-row merge
   // (88px) — the sibling left-overlay test shows the expected behavior. Real
-  // product bug tracked for the DEV-2183 fix bucket; unskip with the fix.
+  // product bug tracked in DEV-2194; unskip with the fix.
   xit('should not collapse the top overlay height when the merge cell covers all overlay cells width', async() => {
     handsontable({
       data: createSpreadsheetData(5, 5),

@@ -1,8 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar" dir="rtl">
 <head>
   <meta charset="UTF-8">
-  <title>Handsontable e2e fixture</title>
+  <title>Walkontable RTL window-scroll e2e fixture</title>
   <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
   <script>
     // Active theme from the ?theme= query param set by the Playwright project.
@@ -13,17 +13,19 @@
     // Written into <head> so the themed stylesheet is present before first render.
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
   </script>
-  <style> body { font-family: sans-serif; margin: 1rem; } #toolbar { margin-bottom: .8rem; } </style>
+  <style> body { font-family: sans-serif; margin: 0; } </style>
 </head>
 <body>
   <!--
-    E2E fixture. Cells are stamped with data-testid via a renderer so tests hook
-    into them unambiguously (data-testid="cell-<row>-<col>") instead of brittle
-    structural selectors. This mirrors the convention the authoring skill teaches.
+    Exercises the Walkontable overlay clones in RTL when the WINDOW is the
+    scrollable element in both axes (no grid width/height): frozen top rows,
+    frozen bottom rows, frozen inline-start columns, and both header kinds.
+    Migrated from the two skipped legacy specs in
+    walkontable/test/spec/rtl/overlay.spec.js ("…after table scroll (window
+    object as scrollable element)"), rewritten behaviorally at the grid level
+    (overlay stickiness to viewport edges) instead of engine-internal holder
+    rect arithmetic (DEV-2183).
   -->
-  <div id="toolbar">
-    <button data-testid="add-row" type="button">Add row</button>
-  </div>
   <div id="grid" data-testid="grid"></div>
 
   <script src="/handsontable/dist/handsontable.full.min.js"></script>
@@ -32,28 +34,24 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
+    const data = Array.from({ length: 80 }, (_, r) =>
+      Array.from({ length: 30 }, (_, c) => `R${r + 1}C${c + 1}`));
+
     const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
       Handsontable.renderers.TextRenderer.apply(this, arguments);
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    const hot = new Handsontable(container, {
-      data: [
-        ['A1', 'B1', 'C1'],
-        ['A2', 'B2', 'C2'],
-        ['A3', 'B3', 'C3'],
-        ['A4', 'B4', 'C4'],
-        ['A5', 'B5', 'C5'],
-      ],
-      colHeaders: true,
+    window.hot = new Handsontable(container, {
+      data,
+      layoutDirection: 'rtl',
+      fixedRowsTop: 2,
+      fixedRowsBottom: 2,
+      fixedColumnsStart: 2,
       rowHeaders: true,
-      contextMenu: true,
+      colHeaders: true,
       renderer: testIdRenderer,
       licenseKey: 'non-commercial-and-evaluation',
-    });
-
-    document.querySelector('[data-testid="add-row"]').addEventListener('click', () => {
-      hot.alter('insert_row_below', hot.countRows() - 1);
     });
   </script>
 </body>
