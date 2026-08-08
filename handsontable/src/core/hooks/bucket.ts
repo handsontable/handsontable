@@ -1,6 +1,13 @@
 import { REGISTERED_HOOKS } from './constants';
 
-export type HookCallback = (...args: unknown[]) => unknown;
+/**
+ * The storage type for hook listeners. `(...args: never[]) => unknown` is the "top type" of
+ * functions: every function is assignable to it (parameter contravariance -- `never` is assignable
+ * to every type), yet it cannot be invoked without a deliberate cast. This lets the hooks system
+ * accept any correctly-typed listener without resorting to `any`, while confining the unavoidable
+ * dynamically-typed call to a single cast at the dispatch boundary (`fastCall`).
+ */
+export type HookCallback = (...args: never[]) => unknown;
 
 export interface HookEntry {
   callback: HookCallback;

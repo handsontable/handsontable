@@ -6,7 +6,7 @@ import HeadersUI from './ui/headers';
 import ContextMenuUI from './ui/contextMenu';
 import { isValidDataSource } from './utils/isValidDataSource';
 import { error } from '../../helpers/console';
-import { TrimmingMap } from '../../translations';
+import type { TrimmingMap } from '../../translations';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
 import RowMoveController from './utils/rowMoveController';
 
@@ -121,7 +121,7 @@ export class NestedRows extends BasePlugin {
       return;
     }
 
-    this.collapsedRowsMap = this.hot.rowIndexMapper.registerMap('nestedRows', new TrimmingMap()) as TrimmingMap;
+    this.collapsedRowsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap('nestedRows', 'trimming');
 
     this.dataManager = new DataManager(this, this.hot);
     this.collapsingUI = new CollapsingUI(this, this.hot);

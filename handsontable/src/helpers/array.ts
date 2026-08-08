@@ -241,6 +241,63 @@ export function arrayFlatten(array: unknown[]): unknown[] {
 }
 
 /**
+ * Removes the elements at the given indexes from the array. The array is compacted in one
+ * pass and mutated in place, so external references to it stay valid. Cost is O(array length)
+ * regardless of how many indexes are removed - unlike one `splice` call per removed index,
+ * which re-shifts the tail every time.
+ *
+ * @param {Array} array The array to mutate.
+ * @param {Set<number>} indexes The indexes of the elements to remove.
+ * @returns {Array} Returns the same, mutated array.
+ */
+export function removeIndexesInPlace<T>(array: T[], indexes: Set<number>): T[] {
+  let writeIndex = 0;
+
+  for (let readIndex = 0; readIndex < array.length; readIndex++) {
+    if (!indexes.has(readIndex)) {
+      array[writeIndex] = array[readIndex];
+      writeIndex += 1;
+    }
+  }
+
+  array.length = writeIndex;
+
+  return array;
+}
+
+/**
+ * Inserts `amount` copies of `value` into the array at the given index. The tail is shifted
+ * right once by `amount` and the array is mutated in place, so external references to it stay
+ * valid. An index greater than the array length is clamped to it (the values are appended),
+ * matching `Array.prototype.splice` semantics. Cost is O(array length + amount) regardless of
+ * `amount` - unlike one `splice` call per inserted value, which re-shifts the tail every time.
+ *
+ * @param {Array} array The array to mutate.
+ * @param {number} index The index at which to insert the values.
+ * @param {number} amount The number of copies to insert.
+ * @param {*} value The value to insert.
+ * @returns {Array} Returns the same, mutated array.
+ */
+export function insertValuesInPlace<T>(array: T[], index: number, amount: number, value: T): T[] {
+  if (amount <= 0) {
+    return array;
+  }
+
+  const oldLength = array.length;
+  const insertAt = Math.min(index, oldLength);
+
+  array.length = oldLength + amount;
+
+  for (let i = oldLength - 1; i >= insertAt; i--) {
+    array[i + amount] = array[i];
+  }
+
+  array.fill(value, insertAt, insertAt + amount);
+
+  return array;
+}
+
+/**
  * Unique values in the array.
  *
  * @param {Array} array The array to process.
@@ -248,9 +305,11 @@ export function arrayFlatten(array: unknown[]): unknown[] {
  */
 export function arrayUnique<T = unknown>(array: T[]): T[] {
   const unique: T[] = [];
+  const seen = new Set<T>();
 
   arrayEach(array, (value: T) => {
-    if (unique.indexOf(value) === -1) {
+    if (!seen.has(value)) {
+      seen.add(value);
       unique.push(value);
     }
   });
@@ -269,7 +328,9 @@ export function getDifferenceOfArrays<T extends string | number>(...arrays: Arra
   let filteredFirstArray = first;
 
   arrayEach(rest, (array) => {
-    filteredFirstArray = filteredFirstArray.filter(value => !array.includes(value));
+    const lookup = new Set(array);
+
+    filteredFirstArray = filteredFirstArray.filter(value => !lookup.has(value));
   });
 
   return filteredFirstArray;
@@ -300,14 +361,18 @@ export function getIntersectionOfArrays(
     }
   });
 
-  const isMatch = comparator
-    ? (value: string | number, array: Array<string | number>) => array.some(item => comparator!(value, item))
-    : (value: string | number, array: Array<string | number>) => array.includes(value);
   const [first, ...rest] = arrays;
   let filteredFirstArray = first;
 
   arrayEach(rest, (array) => {
-    filteredFirstArray = filteredFirstArray.filter(value => isMatch(value, array));
+    if (comparator) {
+      filteredFirstArray = filteredFirstArray.filter(value => array.some(item => comparator!(value, item)));
+
+    } else {
+      const lookup = new Set(array);
+
+      filteredFirstArray = filteredFirstArray.filter(value => lookup.has(value));
+    }
   });
 
   return filteredFirstArray;

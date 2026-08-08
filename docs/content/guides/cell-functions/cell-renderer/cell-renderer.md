@@ -230,7 +230,7 @@ All the sections below describe how to utilize the features available for the Ha
 
 ## Register custom cell renderer
 
-To register your own alias use `registerRenderer()` function from the `@handsontable/renderers` package. It takes two arguments:
+To register your own alias use `registerRenderer()` function from the `handsontable/renderers` module. It takes two arguments:
 
 - `rendererName` - a string representing a renderer function
 - `renderer` - a renderer function that will be represented by `rendererName`
@@ -238,7 +238,7 @@ To register your own alias use `registerRenderer()` function from the `@handsont
 If you'd like to register `asteriskDecoratorRenderer` under alias `asterisk` you have to call:
 
 ```js
-import { registerRenderer } from "@handsontable/renderers";
+import { registerRenderer } from "handsontable/renderers";
 
 registerRenderer("asterisk", asteriskDecoratorRenderer);
 ```
@@ -256,7 +256,7 @@ When using `registerRenderer()`, remember to call it at startup (e.g. in `main.t
 Choose aliases wisely. If you register your renderer under name that is already registered, the target function will be overwritten:
 
 ```js
-import { registerRenderer } from "@handsontable/renderers";
+import { registerRenderer } from "handsontable/renderers";
 
 registerRenderer("text", asteriskDecoratorRenderer);
 ```
@@ -266,7 +266,7 @@ Now `"text"` alias points to `asteriskDecoratorRenderer` function, not the built
 So, unless you intentionally want to overwrite an existing alias, try to choose a unique name. A good practice is prefixing your aliases with some custom name (for example your GitHub username) to minimize the possibility of name collisions. This is especially important if you want to publish your renderer, because you never know aliases has been registered by the user who uses your renderer.
 
 ```js
-import { registerRenderer } from "@handsontable/renderers";
+import { registerRenderer } from "handsontable/renderers";
 
 registerRenderer("asterisk", asteriskDecoratorRenderer);
 ```
@@ -274,7 +274,7 @@ registerRenderer("asterisk", asteriskDecoratorRenderer);
 Someone might already registered such alias
 
 ```js
-import { registerRenderer } from "@handsontable/renderers";
+import { registerRenderer } from "handsontable/renderers";
 
 registerRenderer("my.asterisk", asteriskDecoratorRenderer);
 ```
@@ -288,7 +288,7 @@ The final touch is to use registered aliases. That way users can easily refer to
 To sum up, a well prepared renderer function should look like this:
 
 ```js
-import { registerRenderer } from "@handsontable/renderers";
+import { registerRenderer } from "handsontable/renderers";
 
 function customRenderer(
   hotInstance,

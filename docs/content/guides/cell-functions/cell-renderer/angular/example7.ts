@@ -28,9 +28,16 @@ export class AppComponent {
       { data: 'asset' },
       {
         data: 'btcValue',
+        type: 'numeric',
         // Bitcoin (₿) isn't an ISO 4217 currency, so `numericFormat` can't format it.
         // `valueFormatter` prepends the symbol instead.
-        valueFormatter(value: number) {
+        valueFormatter(value: unknown) {
+          // `type: 'numeric'` turns numeric input into a number, but invalid input
+          // stays a string, so check the type before calling `toFixed()`.
+          if (typeof value !== 'number') {
+            return value;
+          }
+
           return `₿${value.toFixed(4)}`;
         },
       },
@@ -38,7 +45,7 @@ export class AppComponent {
         data: 'portfolioShare',
         // Per mille (‰) isn't a unit sanctioned by `Intl.NumberFormat`, so `valueFormatter`
         // appends the symbol manually.
-        valueFormatter(value: number) {
+        valueFormatter(value: unknown) {
           return `${value}‰`;
         },
       },

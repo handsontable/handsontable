@@ -1482,22 +1482,20 @@ export class MergeCells extends BasePlugin {
   modifyViewportRowStart(calc: { startRow: number, endRow: number }, nrOfColumns: number) {
     const rowMapper = this.hot.rowIndexMapper;
     const visualStartRow = rowMapper.getVisualFromRenderableIndex(calc.startRow) ?? 0;
+    const mergedCellsWithinRow = this.mergedCellsCollection.getByVisualRow(visualStartRow);
 
-    for (let visualColumnIndex = 0; visualColumnIndex < nrOfColumns; visualColumnIndex += 1) {
-      const mergeParentForViewportStart = this.mergedCellsCollection.get(visualStartRow, visualColumnIndex);
+    for (let i = 0; i < mergedCellsWithinRow.length; i += 1) {
+      const mergeParentForViewportStart = mergedCellsWithinRow[i];
+      const nearestNotHiddenRow = rowMapper.getNearestNotHiddenIndex(mergeParentForViewportStart.row, 1);
+      const renderableIndexAtMergeStart = nearestNotHiddenRow !== null
+        ? rowMapper.getRenderableFromVisualIndex(nearestNotHiddenRow)
+        : null;
 
-      if (mergeParentForViewportStart !== false) {
-        const nearestNotHiddenRow = rowMapper.getNearestNotHiddenIndex(mergeParentForViewportStart.row, 1);
-        const renderableIndexAtMergeStart = nearestNotHiddenRow !== null
-          ? rowMapper.getRenderableFromVisualIndex(nearestNotHiddenRow)
-          : null;
+      if (renderableIndexAtMergeStart !== null && renderableIndexAtMergeStart < calc.startRow) {
+        calc.startRow = renderableIndexAtMergeStart;
+        this.modifyViewportRowStart(calc, nrOfColumns);
 
-        if (renderableIndexAtMergeStart !== null && renderableIndexAtMergeStart < calc.startRow) {
-          calc.startRow = renderableIndexAtMergeStart;
-          this.modifyViewportRowStart(calc, nrOfColumns);
-
-          return;
-        }
+        return;
       }
     }
   }
@@ -1512,23 +1510,21 @@ export class MergeCells extends BasePlugin {
   modifyViewportRowEnd(calc: { startRow: number, endRow: number }, nrOfColumns: number) {
     const rowMapper = this.hot.rowIndexMapper;
     const visualEndRow = rowMapper.getVisualFromRenderableIndex(calc.endRow) ?? 0;
+    const mergedCellsWithinRow = this.mergedCellsCollection.getByVisualRow(visualEndRow);
 
-    for (let visualColumnIndex = 0; visualColumnIndex < nrOfColumns; visualColumnIndex += 1) {
-      const mergeParentForViewportEnd = this.mergedCellsCollection.get(visualEndRow, visualColumnIndex);
+    for (let i = 0; i < mergedCellsWithinRow.length; i += 1) {
+      const mergeParentForViewportEnd = mergedCellsWithinRow[i];
+      const mergeEnd = mergeParentForViewportEnd.row + mergeParentForViewportEnd.rowspan - 1;
+      const nearestRow = rowMapper.getNearestNotHiddenIndex(mergeEnd, -1);
 
-      if (mergeParentForViewportEnd !== false) {
-        const mergeEnd = mergeParentForViewportEnd.row + mergeParentForViewportEnd.rowspan - 1;
-        const nearestRow = rowMapper.getNearestNotHiddenIndex(mergeEnd, -1);
+      if (nearestRow !== null) {
+        const renderableIndexAtMergeEnd = rowMapper.getRenderableFromVisualIndex(nearestRow);
 
-        if (nearestRow !== null) {
-          const renderableIndexAtMergeEnd = rowMapper.getRenderableFromVisualIndex(nearestRow);
+        if (renderableIndexAtMergeEnd !== null && renderableIndexAtMergeEnd > calc.endRow) {
+          calc.endRow = renderableIndexAtMergeEnd;
+          this.modifyViewportRowEnd(calc, nrOfColumns);
 
-          if (renderableIndexAtMergeEnd !== null && renderableIndexAtMergeEnd > calc.endRow) {
-            calc.endRow = renderableIndexAtMergeEnd;
-            this.modifyViewportRowEnd(calc, nrOfColumns);
-
-            return;
-          }
+          return;
         }
       }
     }
@@ -1560,22 +1556,20 @@ export class MergeCells extends BasePlugin {
   modifyViewportColumnStart(calc: { startColumn: number, endColumn: number }, nrOfRows: number) {
     const columnMapper = this.hot.columnIndexMapper;
     const visualStartCol = columnMapper.getVisualFromRenderableIndex(calc.startColumn) ?? 0;
+    const mergedCellsWithinColumn = this.mergedCellsCollection.getByVisualColumn(visualStartCol);
 
-    for (let visualRowIndex = 0; visualRowIndex < nrOfRows; visualRowIndex += 1) {
-      const mergeParentForViewportStart = this.mergedCellsCollection.get(visualRowIndex, visualStartCol);
+    for (let i = 0; i < mergedCellsWithinColumn.length; i += 1) {
+      const mergeParentForViewportStart = mergedCellsWithinColumn[i];
+      const nearestCol = columnMapper.getNearestNotHiddenIndex(mergeParentForViewportStart.col, 1);
 
-      if (mergeParentForViewportStart !== false) {
-        const nearestCol = columnMapper.getNearestNotHiddenIndex(mergeParentForViewportStart.col, 1);
+      if (nearestCol !== null) {
+        const renderableIndexAtMergeStart = columnMapper.getRenderableFromVisualIndex(nearestCol);
 
-        if (nearestCol !== null) {
-          const renderableIndexAtMergeStart = columnMapper.getRenderableFromVisualIndex(nearestCol);
+        if (renderableIndexAtMergeStart !== null && renderableIndexAtMergeStart < calc.startColumn) {
+          calc.startColumn = renderableIndexAtMergeStart;
+          this.modifyViewportColumnStart(calc, nrOfRows);
 
-          if (renderableIndexAtMergeStart !== null && renderableIndexAtMergeStart < calc.startColumn) {
-            calc.startColumn = renderableIndexAtMergeStart;
-            this.modifyViewportColumnStart(calc, nrOfRows);
-
-            return;
-          }
+          return;
         }
       }
     }
@@ -1591,23 +1585,21 @@ export class MergeCells extends BasePlugin {
   modifyViewportColumnEnd(calc: { startColumn: number, endColumn: number }, nrOfRows: number) {
     const columnMapper = this.hot.columnIndexMapper;
     const visualEndCol = columnMapper.getVisualFromRenderableIndex(calc.endColumn) ?? 0;
+    const mergedCellsWithinColumn = this.mergedCellsCollection.getByVisualColumn(visualEndCol);
 
-    for (let visualRowIndex = 0; visualRowIndex < nrOfRows; visualRowIndex += 1) {
-      const mergeParentForViewportEnd = this.mergedCellsCollection.get(visualRowIndex, visualEndCol);
+    for (let i = 0; i < mergedCellsWithinColumn.length; i += 1) {
+      const mergeParentForViewportEnd = mergedCellsWithinColumn[i];
+      const mergeEnd = mergeParentForViewportEnd.col + mergeParentForViewportEnd.colspan - 1;
+      const nearestCol = columnMapper.getNearestNotHiddenIndex(mergeEnd, -1);
 
-      if (mergeParentForViewportEnd !== false) {
-        const mergeEnd = mergeParentForViewportEnd.col + mergeParentForViewportEnd.colspan - 1;
-        const nearestCol = columnMapper.getNearestNotHiddenIndex(mergeEnd, -1);
+      if (nearestCol !== null) {
+        const renderableIndexAtMergeEnd = columnMapper.getRenderableFromVisualIndex(nearestCol);
 
-        if (nearestCol !== null) {
-          const renderableIndexAtMergeEnd = columnMapper.getRenderableFromVisualIndex(nearestCol);
+        if (renderableIndexAtMergeEnd !== null && renderableIndexAtMergeEnd > calc.endColumn) {
+          calc.endColumn = renderableIndexAtMergeEnd;
+          this.modifyViewportColumnEnd(calc, nrOfRows);
 
-          if (renderableIndexAtMergeEnd !== null && renderableIndexAtMergeEnd > calc.endColumn) {
-            calc.endColumn = renderableIndexAtMergeEnd;
-            this.modifyViewportColumnEnd(calc, nrOfRows);
-
-            return;
-          }
+          return;
         }
       }
     }

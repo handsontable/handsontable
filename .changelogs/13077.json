@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Improved performance of copy, autofill, bulk edits, header resize, and custom borders on large selections by replacing linear membership scans with set-based lookups.",
+  "type": "changed",
+  "issueOrPR": 13077,
+  "breaking": false,
+  "framework": "none"
+}

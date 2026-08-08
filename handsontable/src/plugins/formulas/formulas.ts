@@ -6,6 +6,7 @@ import { isObject } from '../../helpers/object';
 import { isDefined, isUndefined } from '../../helpers/mixed';
 import { getRegisteredHotInstances, setupEngine, setupSheet, unregisterEngine, } from './engine/register';
 import {
+  coalesceIndexesToSpans,
   getDateFromExcelDate,
   getDateInHfFormat,
   getDateInHotFormat,
@@ -95,6 +96,10 @@ Hooks.getSingleton().register('afterFormulasValuesUpdate');
 const isBlockedSource = (source: unknown) =>
   source === 'UndoRedo.undo' || source === 'UndoRedo.redo' || source === 'auto';
 
+// Maximum number of `[startIndex, amount]` spans passed to a single variadic engine
+// `removeRows`/`removeColumns` call. An unbounded argument spread could overflow the call stack.
+const REMOVAL_SPANS_CHUNK_SIZE = 1000;
+
 /**
  * This plugin allows you to perform Excel-like calculations in your business applications. It does it by an
  * integration with our other product, [HyperFormula](https://github.com/handsontable/hyperformula/), which is a
@@ -169,7 +174,12 @@ export class Formulas extends BasePlugin {
       return change;
     }
 
-    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, { skipMetaExtension: true });
+    // The uncached read keeps the same no-extension semantics as the previous
+    // `skipMetaExtension` read, without permanently materializing the cell meta.
+    const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
+      this.hot.toPhysicalRow(visualRow) ?? visualRow, this.hot.toPhysicalColumn(visualColumn) ?? visualColumn,
+      { visualRow, visualColumn },
+    );
     let newValue: unknown;
 
     if (cellMeta.type === 'date') {
@@ -461,9 +471,13 @@ export class Formulas extends BasePlugin {
 
     this.addHook('afterUndo', () => {
       this.indexSyncer!.setPerformUndo(false);
+      // Also clears the redo flag: a redo cancelled by a `beforeRedo` listener never fires
+      // `afterRedo`, so without this reset the flag set in `beforeRedo` would leak until the
+      // next successful redo.
+      this.indexSyncer!.setPerformRedo(false);
     });
 
-    this.addHook('afterUndo', () => {
+    this.addHook('afterRedo', () => {
       this.indexSyncer!.setPerformRedo(false);
     });
 
@@ -768,7 +782,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const cellMeta = this.hot.getCellMeta(row, column);
+    const cellMeta = this.hot.getCellMetaTransient(row, column);
 
     if (isDate(newValue, cellMeta.type)) {
       if (isDateValid(newValue)) {
@@ -797,10 +811,9 @@ export class Formulas extends BasePlugin {
     if (isObject(value) && value !== null) {
       const visualRow = this.hot.toVisualRow(row);
       const visualColumn = this.hot.toVisualColumn(column);
-      const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
-      const valueGetter = cellMeta.valueGetter;
+      const cellMeta = this.hot.getCellMetaTransient(visualRow, visualColumn);
 
-      value = getValueGetterValue(value, this.hot.getCellMeta(visualRow, visualColumn));
+      value = getValueGetterValue(value, cellMeta);
 
       if (value !== null && value !== undefined) {
         value = Object(value).toString();
@@ -886,7 +899,7 @@ export class Formulas extends BasePlugin {
         sheet: this.sheetId,
       };
 
-      const cellMeta = this.hot.getCellMeta(visualRow, visualColumn);
+      const cellMeta = this.hot.getCellMetaTransient(visualRow, visualColumn);
       let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel-like date).
 
       if (cellMeta.type === 'date' && isNumeric(cellValue)) {
@@ -1048,7 +1061,12 @@ export class Formulas extends BasePlugin {
 
     sourceDataArray.forEach((rowData: unknown[], rowIndex: number) => {
       rowData.forEach((cellValue: unknown, columnIndex: number) => {
-        const cellMeta = this.hot.getCellMeta(rowIndex, columnIndex, { skipMetaExtension: true });
+        // The uncached read keeps this full source-data scan from permanently materializing
+        // one meta object per cell (same no-extension semantics as `skipMetaExtension`).
+        const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
+          this.hot.toPhysicalRow(rowIndex) ?? rowIndex, this.hot.toPhysicalColumn(columnIndex) ?? columnIndex,
+          { visualRow: rowIndex, visualColumn: columnIndex },
+        );
 
         if (isDate(cellValue, cellMeta.type)) {
           if (isDateValid(cellValue)) {
@@ -1154,7 +1172,12 @@ export class Formulas extends BasePlugin {
     };
     let cellValue = this.engine!.getCellValue(address); // Date as an integer (Excel like date).
 
-    const cellMeta = this.hot.getCellMeta(visualRow, visualColumn, { skipMetaExtension: true });
+    // The uncached read matters here: this hook fires inside bulk data reads (for example, the
+    // filters column scan), so an eager read would materialize one meta per scanned cell.
+    const cellMeta = this.hot._getMetaManager().getCellMetaUncached(
+      this.hot.toPhysicalRow(visualRow) ?? visualRow, this.hot.toPhysicalColumn(visualColumn) ?? visualColumn,
+      { visualRow, visualColumn },
+    );
 
     if (cellMeta.type === 'date' && isNumeric(cellValue)) {
       cellValue = getDateFromExcelDate(cellValue);
@@ -1466,14 +1489,10 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const descendingHfRows = this.rowAxisSyncer!
-      .getRemovedHfIndexes()
-      .sort((a: number, b: number) => b - a); // sort numeric values descending
+    const removedSpans = coalesceIndexesToSpans(this.rowAxisSyncer!.getRemovedHfIndexes());
 
     const changes = this.engine!.batch(() => {
-      descendingHfRows.forEach((hfRow: number) => {
-        this.engine!.removeRows(this.sheetId, [hfRow, 1]);
-      });
+      this.#removeSpansFromEngine(removedSpans, 'removeRows');
     });
 
     this.renderDependentSheets(changes);
@@ -1493,18 +1512,37 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const descendingHfColumns = this.columnAxisSyncer!
-      .getRemovedHfIndexes()
-      .sort((a: number, b: number) => b - a); // sort numeric values descending
+    const removedSpans = coalesceIndexesToSpans(this.columnAxisSyncer!.getRemovedHfIndexes());
 
     const changes = this.engine!.batch(() => {
-      descendingHfColumns.forEach((hfColumn: number) => {
-        this.engine!.removeColumns(this.sheetId, [hfColumn, 1]);
-      });
+      this.#removeSpansFromEngine(removedSpans, 'removeColumns');
     });
 
     this.renderDependentSheets(changes);
   };
+
+  /**
+   * Removes the provided `[startIndex, amount]` spans from the engine in as few calls as possible.
+   * One call handles many spans, so the engine pays its dependency-graph remap once per call instead
+   * of once per removed row or column. The engine methods are variadic, so the spans are chunked to
+   * keep the argument spread within call-stack limits; chunks run from the highest spans down, which
+   * keeps the original coordinates of the not-yet-removed lower spans valid.
+   *
+   * @param {Array<Array<number>>} spans Ascending list of `[startIndex, amount]` spans to remove.
+   * @param {'removeRows'|'removeColumns'} engineMethodName The engine removal method to call.
+   */
+  #removeSpansFromEngine(spans: [number, number][], engineMethodName: 'removeRows' | 'removeColumns') {
+    for (let end = spans.length; end > 0; end -= REMOVAL_SPANS_CHUNK_SIZE) {
+      const chunk = spans.slice(Math.max(0, end - REMOVAL_SPANS_CHUNK_SIZE), end);
+
+      if (engineMethodName === 'removeRows') {
+        this.engine!.removeRows(this.sheetId, ...chunk);
+
+      } else {
+        this.engine!.removeColumns(this.sheetId, ...chunk);
+      }
+    }
+  }
 
   /**
    * `afterDetachChild` hook callback.

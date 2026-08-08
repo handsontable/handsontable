@@ -363,6 +363,8 @@ All Angular docs examples use `standalone: true` bootstrapped via `bootstrapAppl
 - **`@ViewChild`**: Safe to use. It is populated after the component view is initialized.
 - **Control flow**: Use `@for`, `@if`, `@switch` (Angular 17+ built-in control flow). Do **not** use `*ngFor`, `*ngIf`, or `*ngSwitch` with structural directives — they require importing `NgFor`, `NgIf`, etc. from `@angular/common`, which is error-prone. The built-in control flow syntax requires no imports.
 - **Imports**: Only import symbols you actually use. Unused imports (e.g., `RowObject`, `ViewChild`, `NgFor`) can cause module resolution errors.
+- **`registerAllModules()` placement**: `app.config.ts` is the default home for it, but if `app.component.ts` reaches into a registry at module scope -- `getValidator('numeric')`, `getEditor('numeric')`, `getRenderer(...)` outside a function body -- call `registerAllModules()` at the top of `app.component.ts` instead. ES imports are hoisted, so the component module body runs before `app.config.ts` is ever evaluated, and the lookup throws `No registered validator found under "..." name`. Only the built-ins that core registers on import (for example the `text` editor) survive the wrong order, which is why the bug hides until an example uses a module-provided cell type.
+- **Untyped third-party imports**: If an example imports a module with no TypeScript declarations (e.g. `numbro/dist/languages.min.js`), put `// @ts-expect-error` directly above the import in the example. Do not add a `declare module` shim to `docs/angular-type-check/types/shims.d.ts` -- a shim satisfies the type-check job while the same import still fails in the docs example runner and in a reader's own strict project. See `docs/angular-type-check/README.md`.
 
 Correct standalone component skeleton:
 ```typescript
@@ -495,3 +497,33 @@ The custom loader (`src/plugins/framework-loader.mjs`) renders every source page
 - Both `.astro/data-store.json` and `.astro/rendered-html/` are derived caches — reset them together with `rm -rf .astro`. Never delete one without the other.
 - `npm run dev` must work with the default Node heap. Do not add `NODE_OPTIONS=--max-old-space-size` workarounds; shrink the data store instead.
 - Plugin unit tests run with `node --test src/plugins/__tests__/*.test.mjs`.
+
+---
+
+## 2.13 Example-Runner Error Handling
+
+`src/scripts/example-runner.ts` catches every example failure so one broken example cannot take a page down. Two rules keep that from hiding real crashes (Sentry HANDSONTABLE-DOCS-20K) or leaking unhandled rejections (HANDSONTABLE-DOCS-1FX):
+
+- **Every caught example failure goes through `reportExampleError()`** from `src/lib/example-error-reporting.mjs`. That module owns the drop list - failed chunk fetches, errors carrying `cause.handsontable` (core `throwWithCause()`), the expected `HTTP <status>` of the server-side data examples - plus deduplication by message and a cap of three forwarded failures per page load. Widen or narrow the drop list there, never at the call site. Sentry reaches the runner through the Loader Script (`window.Sentry`), whose deferred `<script>` tag precedes the bundled Head scripts, so the queueing stub exists by the time the runner runs; a blocked CDN request degrades to no report.
+- **A framework runtime (`react`, `vue`, `zone.js`, `@angular/compiler`) must only be imported inside `loadRuntime()`.** A bare `await import(...)` there escapes every try/catch as an unhandled rejection and leaves each example of that framework stuck on its loading shimmer forever. `loadRuntime()` returns `null` on failure, and the group is marked with `markFailed()` - the only place that shows a reader-visible notice (`.hot-example-error`). Per-example failures keep the silent `markLoaded()` degradation, because some examples render nothing by design.
+
+Guards for both rules live in `src/lib/__tests__/example-error-reporting.test.mjs` (run by `npm run docs:test:plugins`).
+
+---
+
+## 2.14 Patching Starlight's Custom Elements
+
+Starlight's custom elements assign their methods as **class fields** (`private init = (): void => {...}`), not as prototype methods. An own instance property never reaches the prototype, so `customElements.get('starlight-toc').prototype.init` is `undefined` and any prototype patch silently no-ops. A guard written that way looks correct in review, passes locally, and fixes nothing in production - that is exactly how the `:has()` table-of-contents guard stayed dead for two months (Sentry HANDSONTABLE-DOCS-1GA).
+
+To patch such an element, intercept `customElements.define` in an `is:inline` head script and wrap the method on `this` right after `super()`. Two rules:
+
+- **Cover every registered name.** `mobile-starlight-toc` (`components/MobileTableOfContents.astro`) extends the same `StarlightTOC` class but registers separately, so it needs its own wrap.
+- **Subclass with `class extends`,** which keeps statics reachable through the prototype chain and keeps `instanceof` true for the original constructor. The browser reads `observedAttributes` off whatever constructor the registry holds, and it upgrades elements against it.
+
+Wrapping after `super()` works because the base constructor only *schedules* the method through `requestIdleCallback`, and that callback reads `this.init` when it fires.
+
+The install does not need a re-entry flag today. The site does not use `<ClientRouter />`, and Astro's swap logic keys executed scripts by `textContent` (`detectScriptExecuted()` in `astro/dist/transitions/swap-functions.js`), so an unchanged inline head script never runs twice. Add one if either of those stops holding.
+
+The live guard is in `src/components/Head.astro`; its regression test is `src/components/__tests__/head-starlight-toc-has-guard.test.mjs`, which extracts the shipped script, asserts `Head.astro` holds exactly one guard script, and runs the guard against a double that replicates the class-field shape. It runs under `npm run docs:test:plugins`. Any claim that such a patch works needs a browser check of the *instance* property, not just the absence of a local error.
+
+Unrelated to this: `src/plugins/replace-has-selectors.mjs` and `src/plugins/has-fallback-runtime.mjs` rewrite `:has()` in **stylesheets** for performance. They do not touch selector strings passed to `querySelectorAll` inside third-party bundles.

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Improved `getColHeader` performance: the index translation derived from the `columns` function is now cached instead of being rebuilt on every call, which also speeds up grid initialization and `updateSettings` on grids with many columns.",
+  "type": "changed",
+  "issueOrPR": 13096,
+  "breaking": false,
+  "framework": "none"
+}

@@ -41,7 +41,10 @@ export function autocompleteValidator(
 
   if (this.strict && this.source) {
     if (typeof this.source === 'function') {
-      this.source(valueToValidate, process(valueToValidate, callback));
+      // The `source` option declares its query parameter as `string`; the validator forwards the
+      // raw cell value unchanged (a number stays a number), matching the long-standing runtime
+      // behavior, so the value is cast rather than coerced.
+      this.source(valueToValidate as string, process(valueToValidate, callback));
     } else {
       process(valueToValidate, callback)(this.source as unknown[]);
     }

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the `Formulas` plugin leaving its internal redo state active after a redo operation, which made the plugin treat subsequent operations as undo/redo replay.",
+  "type": "fixed",
+  "issueOrPR": 13148,
+  "breaking": false,
+  "framework": "none"
+}

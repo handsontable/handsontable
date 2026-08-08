@@ -67,19 +67,28 @@ function getCommitDate() {
 }
 
 /**
+ * Reads the `version` field from `handsontable/package.json`.
+ *
+ * @returns {string|null}
+ */
+function getPackageVersion() {
+  try {
+    const pkg = _require(join(_dir, '../../../handsontable/package.json'));
+
+    return pkg.version ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Computes the version string used in docs page links (e.g. CodeSandbox URLs).
  *
  * @returns {string}
  */
 function computeDocsVersion() {
   if (process.env.BUILD_MODE === 'production') {
-    try {
-      const pkg = _require(join(_dir, '../../../handsontable/package.json'));
-
-      return pkg.version ?? 'next';
-    } catch {
-      return 'next';
-    }
+    return getPackageVersion() ?? 'next';
   }
 
   // Staging / dev: 0.0.0-next-{shortSHA}-{YYYYMMDD}

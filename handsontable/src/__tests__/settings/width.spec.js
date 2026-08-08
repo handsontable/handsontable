@@ -410,6 +410,127 @@ describe('settings', () => {
         expect(hot.rootElement.style.overflow).toBe('hidden');
         expect(hot.rootElement.style.overflowX).toBe('hidden');
       });
+
+      it('should not vertically collapse the grid when `width` is set and `height` is omitted', async() => {
+        // Regression guard: the width-clip block sets `overflow-x: clip` on the root. The trimming
+        // container lookup must not treat that horizontal-only clip as a vertical trimming
+        // container, or the master holder is pinned to `0px` and the fully rendered rows are
+        // clipped to an invisible grid (the table's content height is > 0 but nothing shows).
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 6),
+          rowHeaders: true,
+          colHeaders: true,
+          width: '100%',
+        });
+
+        const holder = hot.rootElement.querySelector('.ht_master .wtHolder');
+        const table = hot.rootElement.querySelector('.ht_master .htCore');
+
+        // The holder must size to its content, not collapse to zero.
+        expect(holder.getBoundingClientRect().height).toBeGreaterThan(0);
+        expect(holder.getBoundingClientRect().height)
+          .toBeAroundValue(table.getBoundingClientRect().height, 2);
+      });
+
+      it('should stay window-scrollable when `width` is set and `height` is omitted', async() => {
+        // The horizontal-only `overflow-x: clip` must leave the vertical axis scrolling with the
+        // window. If the clipped root is picked as the trimming container, the overlays drop out of
+        // window-scroll mode: frozen rows stop pinning and vertical virtualization stops (every row
+        // renders into the DOM).
+        const hot = handsontable({
+          data: createSpreadsheetData(200, 6),
+          rowHeaders: true,
+          colHeaders: true,
+          fixedRowsTop: 2,
+          width: '100%',
+        });
+
+        expect(hot.view.isVerticallyScrollableByWindow()).toBe(true);
+        // Window-scroll viewport virtualizes: only a slice of the 200 rows is rendered.
+        expect(hot.rootElement.querySelectorAll('.ht_master .htCore tbody tr').length)
+          .toBeLessThan(200);
+      });
+
+      it('should render vertically when `width` is narrower than the columns and `height` is omitted', async() => {
+        // A width-constrained grid whose columns are wider than the width renders at content height
+        // and scrolls vertically with the window (previously the whole grid collapsed to `0px`).
+        // Known limitation: the columns past the constrained width are clipped by the root's
+        // `overflow-x: clip` and are not reachable via a horizontal scrollbar — reaching them needs
+        // per-axis trimming (window vertical + element horizontal), tracked in a follow-up task.
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 10),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: 300,
+        });
+
+        const holder = hot.rootElement.querySelector('.ht_master .wtHolder');
+
+        expect($(hot.rootElement).width()).toBeAroundValue(300, 1);
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+        // Not collapsed: the grid is visible and sizes vertically to its content.
+        expect(holder.getBoundingClientRect().height).toBeGreaterThan(0);
+        expect(hot.view.isVerticallyScrollableByWindow()).toBe(true);
+      });
+
+      it('should not clip horizontally when `width` is a percentage and `height` is omitted', async() => {
+        // A percentage width fills its container. Only a definite pixel width is clipped; a relative
+        // width lets content wider than the container scroll with the window (the page gains a
+        // horizontal scrollbar), so every column stays reachable instead of being clipped away.
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 20),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: '100%',
+        });
+
+        expect(window.getComputedStyle(hot.rootElement).overflowX).not.toBe('clip');
+        expect(hot.view.isHorizontallyScrollableByWindow()).toBe(true);
+      });
+
+      it('should not clip when `width` is a `calc()` that mixes in a percentage and `height` is omitted', async() => {
+        // A `calc()` referencing a percentage is container-driven even though it ends in `px`, so it
+        // must be treated as relative (no clip) rather than as a definite pixel width.
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 10),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: 'calc(100% - 20px)',
+        });
+
+        expect(window.getComputedStyle(hot.rootElement).overflowX).not.toBe('clip');
+      });
+
+      it('should not clip when `width` is a viewport unit (`vw`) and `height` is omitted', async() => {
+        // Viewport units resolve against the viewport, not a fixed box, so they are relative — the
+        // unit is preceded by digits (`100vw`), which must still be detected as relative (no clip).
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 10),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: '100vw',
+        });
+
+        expect(window.getComputedStyle(hot.rootElement).overflowX).not.toBe('clip');
+      });
+
+      it('should clip when `width` is a definite non-pixel length (`em`) and `height` is omitted', async() => {
+        // Absolute lengths other than `px` (em, rem, etc.) still establish a fixed box, so the table
+        // must not visually overflow it — clip applies.
+        const hot = handsontable({
+          data: createSpreadsheetData(8, 10),
+          rowHeaders: true,
+          colHeaders: true,
+          colWidths: 150,
+          width: '20em',
+        });
+
+        expect(window.getComputedStyle(hot.rootElement).overflowX).toBe('clip');
+      });
     });
   });
 });

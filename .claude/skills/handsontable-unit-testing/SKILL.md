@@ -7,6 +7,8 @@ description: Use when writing or modifying Jest unit tests (*.unit.js) or TypeSc
 
 ## When to Use Unit Tests vs E2E
 
+> "E2E" below means a **new Playwright** test in `tests/e2e/` (skill `handsontable-playwright-e2e`). The `handsontable()` / `selectCell()` globals mentioned later are the **legacy Jasmine** helpers — do not add new `*.spec.js`.
+
 **Favor E2E tests over unit tests.** The key rule: if a unit test requires mocking a module, write an E2E test instead. Mocking couples tests tightly to internal module shape, making code resistant to refactoring and extension - every internal restructure forces test updates even when behavior hasn't changed.
 
 - **Good unit test candidates:** Pure logic, utility functions, data transformations, calculations - anything that needs **no mocking**.

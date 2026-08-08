@@ -1,0 +1,198 @@
+name: Develop
+
+# ── Post-merge (develop) pipeline ORCHESTRATOR ──────────────────────────────
+# develop's OWN DAG (DEV-2057, quality task 09): the functional suite against
+# the merged develop HEAD + the trunk-only jobs a PR can't give (multi-OS build
+# sanity, the golden perf baseline). Replaces three separate runs (Tests-on-push,
+# build-all, performance-tests).
+#
+# THE PUBLISH IS CHAINED, NOT IN-DAG — a hard npm constraint: trusted publishing
+# (OIDC) allows ONE workflow file per package, and that file is publish.yml
+# (it must also publish rc/stable). So publish.yml listens for this workflow's
+# completion (workflow_run: ['Develop'], branches: [develop]) and its
+# `pre-release` job publishes the `experimental` tag after a fully green run —
+# pinned to the exact sha this run tested. Consequence: this file holds ZERO
+# elevated permissions — no id-token exists anywhere in the develop test graph.
+#
+# Shares the SAME reusable modules as the PR pipeline (test.yml) — only the
+# orchestration differs. master / release/** keep their existing workflows
+# untouched; this file owns `develop` only.
+#
+# PERMISSIONS — deliberate parity with test.yml: NO permissions blocks on the
+# module-caller jobs, so every nested workflow_call validates against the same
+# default token the PR path is proven against in production. An explicit caller
+# grant here would be a second ceiling registry that PR CI can never validate
+# (a nested job-level request exceeding it — e.g. integration.yml's preview
+# `pull-requests: write` — hard-fails the WHOLE run at startup, runtime `if:`
+# skips notwithstanding).
+#
+# SCOPE-GATING: Checks runs with test-all:false on push, so the path filter
+# computes real scope flags from the pushed diff. Today run-all is still true
+# on develop (ref-based) → the full suite runs — same coverage as before.
+# DEV-2058 flips the ref→run-all rule to trim develop (nightly takes the full
+# matrix); the per-job `if:` gating below is already written for that, and the
+# chained publish gate (the RUN conclusion) is trim-proof: scope-skipped jobs
+# do not fail a run's conclusion.
+#
+# NOT folded here (deliberately, this increment): the docs sub-system.
+# docs-staging.yml (deploy to dev, docs/**-gated) and docs-angular-typecheck.yml
+# keep their own `push: develop` triggers and behave exactly as before. Target
+# state (spec 09): docs deploy interwoven here, PR-proven docs validation
+# dropped on develop. Consequence of not folding: a docs-red state cannot block
+# the experimental publish (accepted — docs are validated on the PR and are not
+# part of the npm package).
+on:
+  push:
+    branches: [ develop ]
+  # Manual full run of the develop pipeline. On the develop ref a green run
+  # then triggers the chained experimental publish in publish.yml (a deliberate
+  # re-publish lever); on any other ref the workflow_run hook's branch filter
+  # keeps the publish off. Dispatch passes test-all:true → deterministic full
+  # suite, no path filter.
+  workflow_dispatch:
+  # Self-validation: develop.yml never runs on ordinary PRs, so without this a
+  # broken workflow_call graph (the startup_failure class — bad input, missing
+  # output, a nested permissions request above the caller ceiling) would first
+  # execute AFTER merging, breaking every develop push. With it, any PR that
+  # touches this file gets a startup-validated run in which the scope flags are
+  # false and every job skips — validation for ~2 minutes of Checks.
+  pull_request:
+    paths: [ '.github/workflows/develop.yml' ]
+
+concurrency:
+  # Static prefix (never ${{ github.workflow }} — a called workflow resolves
+  # that to the CALLER's name and could collide with this very group).
+  # cancel-in-progress stays ON — parity with today's Tests-on-develop: a
+  # follow-up merge cancels the in-flight run so the hotfix starts testing
+  # immediately. A cancelled run emits workflow_run with conclusion=cancelled,
+  # so the chained publish in publish.yml never fires for a superseded sha
+  # (its gate requires conclusion=success) — same mechanics as today.
+  group: develop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Scope router. On push: test-all=false → dorny path-filter diffs the push
+  # (event.before…after = the merged PR) and computes real flags; run-all is
+  # true via the develop ref, so everything below still runs today. On
+  # dispatch: test-all=true → filter skipped, deterministic full run. The
+  # PR-only gates inside (presence/changelog/tooling/weakening) skip on push.
+  checks:
+    name: Checks
+    uses: ./.github/workflows/checks.yml
+    with:
+      test-all: ${{ github.event_name == 'workflow_dispatch' }}
+    secrets: inherit
+
+  unit:
+    name: Unit
+    needs: [ checks ]
+    if: ${{ !failure() && !cancelled() && (needs.checks.outputs.run-all == 'true' || needs.checks.outputs.test-handsontable-unit == 'true') }}
+    uses: ./.github/workflows/unit.yml
+    with:
+      is-pr: false
+    secrets: inherit
+
+  types:
+    name: Types
+    needs: [ checks ]
+    if: ${{ !failure() && !cancelled() && (needs.checks.outputs.run-all == 'true' || needs.checks.outputs.test-handsontable-types == 'true') }}
+    uses: ./.github/workflows/types.yml
+    secrets: inherit
+
+  build:
+    name: Build
+    needs: [ checks, unit, types ]
+    if: ${{ !failure() && !cancelled() && (needs.checks.outputs.run-all == 'true' || needs.checks.outputs.build-handsontable-umd == 'true' || needs.checks.outputs.build-handsontable-es-cjs == 'true') }}
+    uses: ./.github/workflows/build.yml
+    with:
+      run-all: ${{ needs.checks.outputs.run-all == 'true' }}
+      run-umd: ${{ needs.checks.outputs.build-handsontable-umd == 'true' }}
+      run-es-cjs: ${{ needs.checks.outputs.build-handsontable-es-cjs == 'true' }}
+    secrets: inherit
+
+  walkontable:
+    name: Walkontable
+    needs: [ checks, unit, types ]
+    if: ${{ !failure() && !cancelled() && (needs.checks.outputs.run-all == 'true' || needs.checks.outputs.test-handsontable-walkontable == 'true') }}
+    uses: ./.github/workflows/walkontable.yml
+    secrets: inherit
+
+  e2e:
+    name: E2E
+    needs: [ checks, build ]
+    if: ${{ !failure() && !cancelled() && (needs.checks.outputs.run-all == 'true' || needs.checks.outputs.test-handsontable-e2e == 'true' || needs.checks.outputs.test-handsontable-e2e-min == 'true' || needs.checks.outputs.build-handsontable-umd == 'true') }}
+    uses: ./.github/workflows/e2e.yml
+    with:
+      run-all: ${{ needs.checks.outputs.run-all == 'true' }}
+      run-e2e: ${{ needs.checks.outputs.test-handsontable-e2e == 'true' }}
+      run-e2e-min: ${{ needs.checks.outputs.test-handsontable-e2e-min == 'true' }}
+      run-playwright: ${{ needs.checks.outputs.build-handsontable-umd == 'true' }}
+    secrets: inherit
+
+  integration:
+    name: Integration
+    needs: [ checks, build ]
+    if: ${{ !failure() && !cancelled() && (needs.checks.outputs.run-all == 'true' || needs.checks.outputs.test-angular-wrapper == 'true' || needs.checks.outputs.test-react-wrapper == 'true' || needs.checks.outputs.test-vue3 == 'true') }}
+    uses: ./.github/workflows/integration.yml
+    with:
+      run-all: ${{ needs.checks.outputs.run-all == 'true' }}
+      # pkg.pr.new previews comment on a PR; there is no PR on a develop push
+      # and the run below publishes `experimental` to npm anyway. (The module's
+      # preview job is additionally PR-event-gated — this is explicitness.)
+      run-pkg-preview: false
+      hot-prebuilt: ${{ needs.build.outputs.umd-built == 'true' && needs.build.outputs.es-cjs-built == 'true' }}
+      wrapper-matrix: ${{ needs.checks.outputs.wrapper-matrix }}
+    secrets: inherit
+
+  emitted-types:
+    name: Emitted Types
+    needs: [ checks, build ]
+    if: ${{ !failure() && !cancelled() && (needs.checks.outputs.run-all == 'true' || needs.checks.outputs.verify-types == 'true') }}
+    uses: ./.github/workflows/emitted-types.yml
+    with:
+      hot-prebuilt: ${{ needs.build.outputs.umd-built == 'true' && needs.build.outputs.es-cjs-built == 'true' }}
+    secrets: inherit
+
+  visual:
+    name: Visual
+    needs: [ checks, build, e2e, integration ]
+    if: ${{ !failure() && !cancelled() && (needs.build.outputs.es-cjs-built == 'true' || needs.checks.outputs.test-visual == 'true') }}
+    uses: ./.github/workflows/visual.yml
+    secrets: inherit
+
+  # ── Trunk-only stages ───────────────────────────────────────────────────────
+  # Multi-OS/env build sanity (ubuntu + macos + windows; PRs build ubuntu only).
+  # Folded from the standalone build-all.yml develop push trigger. Parallel to
+  # the test fan-out; does NOT gate the publish (parity: today's pre-release
+  # fired on the Tests run alone, never on build-all).
+  build-all:
+    name: Build all
+    needs: [ checks ]
+    if: ${{ !failure() && !cancelled() && needs.checks.outputs.run-all == 'true' }}
+    uses: ./.github/workflows/build-all.yml
+    secrets: inherit
+
+  # The golden performance baseline — now the SOLE writer of the gh-pages golden
+  # snapshot (performance-tests.yml's own develop push trigger is removed), so
+  # the double-write race is gone. Gated on the test-performance scope flag ONLY
+  # (parity with the old push paths filter: src/perf changes refresh the golden;
+  # a docs-only merge must NOT rewrite the baseline — run-all deliberately does
+  # not force it). Inside the called workflow github.event_name is the caller's
+  # ('push') → PERF_MODE=golden. Consumes the shared UMD artifact (5×→2 build
+  # de-dup). Does NOT gate the publish (parity).
+  performance:
+    name: Performance
+    needs: [ checks, build ]
+    if: ${{ !failure() && !cancelled() && needs.checks.outputs.test-performance == 'true' }}
+    uses: ./.github/workflows/performance-tests.yml
+    with:
+      hot-prebuilt: ${{ needs.build.outputs.umd-built == 'true' }}
+    secrets: inherit
+
+  # ── Final stage (chained): the `experimental` npm publish ──────────────────
+  # Lives in publish.yml (its `pre-release` job), NOT here — npm trusted
+  # publishing allows ONE workflow file per package and publish.yml is it
+  # (rc/stable publish there too). publish.yml fires on this workflow's
+  # completion (workflow_run: ['Develop'], branches: [develop]) and publishes
+  # only when the run conclusion is `success`, checked out at the exact sha
+  # this run tested.

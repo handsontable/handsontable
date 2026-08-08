@@ -123,7 +123,7 @@
       "deps": [],
       "mode": "interactive",
       "passthrough": true,
-      "passthroughFilter": ["--testPathPattern", "--watch", "--coverage"],
+      "passthroughFilter": ["--testPathPattern", "--watch", "--coverage", "--collectCoverageFrom", "--coveragePathIgnorePatterns"],
       "note": "interactive gives Jest a real TTY so colors/progress work; passthroughFilter limits forwarded flags to Jest-understood args — blocks --random, --verbose, etc."
     },
     "test:types": {

@@ -3,7 +3,6 @@ import { arrayEach } from '../../../helpers/array';
 import { throwWithCause } from '../../../helpers/errors';
 import { mixin } from '../../../helpers/object';
 import localHooks from '../../../mixins/localHooks';
-import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../../translations';
 
 /**
  * @private
@@ -54,7 +53,8 @@ export class BaseComponent {
     this.hot = hotInstance;
     this.id = id;
     this.stateId = `Filters.component.${this.id}`;
-    this.state = stateless ? null : this.hot.columnIndexMapper.registerMap(this.stateId, new IndexToValueMap());
+    this.state = stateless
+      ? null : this.hot.columnIndexMapper.createAndRegisterIndexMap(this.stateId, 'linkedPhysicalIndexToValue');
   }
 
   /**

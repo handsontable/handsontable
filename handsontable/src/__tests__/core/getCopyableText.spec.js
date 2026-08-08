@@ -31,4 +31,33 @@ describe('Core.getCopyableText', () => {
     expect(getCopyableText(0, 0)).toBe('');
     expect(getCopyableText(0, 0, 1, 2)).toBe('\t\t\n\t\t');
   });
+
+  it('should honor `copyable: false` driven by the `cells` function', async() => {
+    handsontable({
+      data: createSpreadsheetData(5, 5),
+      cells(row, column) {
+        if (column === 1) {
+          return { copyable: false };
+        }
+
+        return null;
+      },
+    });
+
+    expect(getCopyableText(0, 0, 0, 2)).toBe('A1\t\tC1');
+  });
+
+  it('should not permanently retain a cell meta object for every copied cell', async() => {
+    const hot = handsontable({
+      data: createSpreadsheetData(200, 10),
+      width: 400,
+      height: 200,
+    });
+
+    const retainedBefore = hot.getCellsMeta().length;
+
+    getCopyableText(0, 0, 199, 9); // walks all 2,000 cells
+
+    expect(hot.getCellsMeta().length).toBe(retainedBefore);
+  });
 });

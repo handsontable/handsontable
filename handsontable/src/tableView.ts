@@ -1,6 +1,7 @@
 import type { HotInstance } from './core/types';
 import type { BaseRenderer } from './renderers/baseRenderer';
 import type { CellProperties } from './settings';
+import type { IndexMapper } from './translations';
 import type { WalkontableInstance } from './3rdparty/walkontable/src/types';
 import type { RowsCalculationType, ColumnsCalculationType } from './3rdparty/walkontable/src/calculator/viewportBase';
 import {
@@ -596,7 +597,7 @@ class TableView {
    *
    * @returns {number|*}
    */
-  countRenderableIndexes(indexMapper: import('./translations').IndexMapper, maxElements: number) {
+  countRenderableIndexes(indexMapper: IndexMapper, maxElements: number) {
     const consideredElements = Math.min(indexMapper.getNotTrimmedIndexesLength(), maxElements);
     // Don't take hidden indexes into account. We are looking just for renderable indexes.
     const firstNotHiddenIndex = indexMapper.getNearestNotHiddenIndex(consideredElements - 1, -1);
@@ -665,7 +666,7 @@ class TableView {
    */
   countNotHiddenIndexes(
     visualIndex: number, incrementBy: number,
-    indexMapper: import('./translations').IndexMapper, renderableIndexesCount: number
+    indexMapper: IndexMapper, renderableIndexesCount: number
   ) {
     if (isNaN(visualIndex) || visualIndex < 0) {
       return 0;

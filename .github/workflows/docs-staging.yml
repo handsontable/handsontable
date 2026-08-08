@@ -1,16 +1,15 @@
 name: Docs Staging Deployment
 
 on:
-  # Build PR previews on the pull_request event. The PR number comes from the
-  # event payload, so the preview always knows which PR to comment on - unlike
-  # the old push-driven build, which raced PR creation and often resolved no PR
-  # (no preview comment, no Cloudflare deploy). The paths filter limits PR
-  # builds to pull requests that change documentation files.
-  pull_request:
-    types: [ opened, reopened, synchronize ]
-    paths:
-      - 'docs/**'
-      - 'handsontable/package.json'
+  # PR previews run as a fragment of the Tests pipeline (workflow_call from
+  # test.yml, scope-gated by the router's `docs` filter) — the PR context is
+  # preserved in the called workflow, so PR-number resolution and the sticky
+  # comment behave exactly as before.
+  workflow_call:
+    outputs:
+      preview-url:
+        description: 'The deployed Cloudflare Pages preview URL (…/docs)'
+        value: ${{ jobs.preview.outputs.preview-url }}
   # Push builds cover the non-PR contexts only: develop (apex staging) and
   # release/* (RC staging, triggered by the handsontable/package.json version
   # bump). Other branches get their preview from the pull_request event above,
@@ -25,7 +24,9 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Static prefix — the workflow name resolves to the CALLER's when invoked via
+  # workflow_call, which would collide with the caller's concurrency group.
+  group: docs-staging-${{ github.ref }}
   cancel-in-progress: true
 
 defaults:
@@ -34,7 +35,7 @@ defaults:
 
 jobs:
   preview:
-    name: Build and push Preview to Cloudflare Pages
+    name: deploy
     # Release branches build their production-mode RC staging from the push
     # trigger above, and that push build also resolves and comments on the open
     # release PR (its head is the release branch). Skip the pull_request build
@@ -44,6 +45,8 @@ jobs:
     # pattern; any release/* head PR defers to its push build.
     if: ${{ !(github.event_name == 'pull_request' && startsWith(github.head_ref, 'release/')) }}
     runs-on: ubuntu-latest
+    outputs:
+      preview-url: ${{ steps.cf-target.outputs.deploy == 'true' && format('https://{0}.handsontable-docs-staging.pages.dev/docs', steps.cf-target.outputs.branch) || '' }}
 
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2

@@ -1,4 +1,5 @@
 import {
+  coalesceIndexesToSpans,
   isEscapedFormulaExpression,
   unescapeFormulaExpression,
   isDateValid,
@@ -144,6 +145,42 @@ describe('Formulas utils', () => {
       expect(normalizeValueForFormulaEngine(123)).toBe(123);
       expect(normalizeValueForFormulaEngine(null)).toBeNull();
       expect(normalizeValueForFormulaEngine(objectValue)).toBe(objectValue);
+    });
+  });
+
+  describe('coalesceIndexesToSpans', () => {
+    it('should return an empty list for an empty input', () => {
+      expect(coalesceIndexesToSpans([])).toEqual([]);
+    });
+
+    it('should wrap a single index in a single span', () => {
+      expect(coalesceIndexesToSpans([5])).toEqual([[5, 1]]);
+    });
+
+    it('should merge contiguous indexes into one span', () => {
+      expect(coalesceIndexesToSpans([2, 3, 4])).toEqual([[2, 3]]);
+    });
+
+    it('should keep non-contiguous indexes in separate ascending spans', () => {
+      expect(coalesceIndexesToSpans([0, 2, 4])).toEqual([[0, 1], [2, 1], [4, 1]]);
+    });
+
+    it('should sort unordered input before coalescing', () => {
+      expect(coalesceIndexesToSpans([5, 1, 2, 3, 9])).toEqual([[1, 3], [5, 1], [9, 1]]);
+      expect(coalesceIndexesToSpans([10, 9, 8, 0])).toEqual([[0, 1], [8, 3]]);
+    });
+
+    it('should count duplicate indexes once', () => {
+      expect(coalesceIndexesToSpans([1, 1, 2, 2, 3])).toEqual([[1, 3]]);
+      expect(coalesceIndexesToSpans([4, 4])).toEqual([[4, 1]]);
+    });
+
+    it('should not mutate the input list', () => {
+      const indexes = [3, 1, 2];
+
+      coalesceIndexesToSpans(indexes);
+
+      expect(indexes).toEqual([3, 1, 2]);
     });
   });
 });

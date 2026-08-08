@@ -1,0 +1,102 @@
+name: Docs visual tests
+description: >-
+  Run the docs Playwright visual suite against a base URL (the PR's Cloudflare
+  preview) and upload the report. Reused by the PR Tests pipeline; the
+  standalone docs-visual-tests.yml keeps its own copy for the workflow_dispatch
+  manual runs until the higher pipelines are reworked. The label gate is a
+  separate, earlier job in the caller — this action only runs the tests.
+  Requires checkout first.
+
+inputs:
+  test-url:
+    description: 'Base docs URL to test (e.g. the PR preview)'
+    required: true
+  update-snapshots:
+    description: 'Regenerate snapshots instead of comparing'
+    required: false
+    default: 'false'
+  pass-cookie:
+    description: 'Auth cookie for the target docs environment'
+    required: false
+    default: ''
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@0e279bb959325dab635dd2c09392533439d90093 # v6.0.8
+      name: Install pnpm
+
+    - name: Set up Node
+      uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # https://github.com/actions/setup-node/releases/tag/v6.2.0
+      with:
+        cache: 'pnpm'
+        cache-dependency-path: pnpm-lock.yaml
+        node-version: "22"
+        check-latest: true
+
+    - name: Install monorepo dependencies (including docs)
+      shell: bash
+      run: pnpm install
+
+    - name: Install Playwright browsers
+      shell: bash
+      working-directory: ./docs
+      run: pnpm exec playwright install --with-deps
+
+    - name: Restore snapshot cache
+      id: cache
+      uses: actions/cache/restore@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
+      with:
+        key: plawyright-cache/${{ github.repository }}/${{ github.ref }}-${{ github.run_id }}
+        restore-keys: |
+          plawyright-cache/${{ github.repository }}/${{ github.ref }}
+          plawyright-cache/${{ github.repository }}/refs/heads/develop
+        path: docs/tests/test-artifacts
+
+    - name: Check if cache was restored
+      id: check-cache
+      shell: bash
+      working-directory: ./docs
+      run: |
+        if [[ -n "$(find . -name 'test-artifacts' -type d -not -path '*/node_modules/*' -print0 | xargs -0 -I {} find {} -type f -print -quit)" ]]; then
+          echo "cache-restored=true" >> $GITHUB_ENV
+        else
+          echo "cache-restored=false" >> $GITHUB_ENV
+        fi
+
+    - name: Initialize snapshots
+      if: ${{ env.cache-restored != 'true' || inputs.update-snapshots == 'true' }}
+      shell: bash
+      working-directory: ./docs
+      # PASS_COOKIE here too — the source job set it job-level, so BOTH the
+      # init (cache-miss/update) and the compare run authenticated with it.
+      env:
+        PASS_COOKIE: ${{ inputs.pass-cookie }}
+      run: BASE_URL=${{ inputs.test-url }} npx playwright test --update-snapshots
+
+    - name: Test
+      if: ${{ env.cache-restored == 'true' && inputs.update-snapshots != 'true' }}
+      shell: bash
+      working-directory: ./docs
+      env:
+        PASS_COOKIE: ${{ inputs.pass-cookie }}
+      run: BASE_URL=${{ inputs.test-url }} npx playwright test
+
+    - name: Save snapshot cache
+      if: ${{ !cancelled() && (env.cache-restored != 'true' || inputs.update-snapshots == 'true') }}
+      uses: actions/cache/save@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # https://github.com/actions/cache/releases/tag/v5.0.3
+      with:
+        key: plawyright-cache/${{ github.repository }}/${{ github.ref }}-${{ github.run_id }}
+        path: docs/tests/test-artifacts
+
+    - name: Upload test report
+      if: always()
+      uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # https://github.com/actions/upload-artifact/releases/tag/v7.0.0
+      with:
+        # Not "playwright-report" — that name is taken by the e2e failure
+        # artifact when running inside the Tests pipeline (names are immutable
+        # per run).
+        name: docs-visual-report
+        path: ./docs/tests/test-artifacts/results
+        retention-days: 30
+        overwrite: true

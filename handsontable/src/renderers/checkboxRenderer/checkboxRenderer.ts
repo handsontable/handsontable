@@ -255,7 +255,12 @@ export function checkboxRenderer(
 
       for (let visualRow = startRow; visualRow <= endRow; visualRow += 1) {
         for (let visualColumn = startColumn; visualColumn <= endColumn; visualColumn += 1) {
-          const cachedCellProperties = hotInstance.getCellMeta(visualRow, visualColumn);
+          // The transient read keeps a toggle over a large selection (for example, a whole
+          // column) from permanently materializing one meta object per selected cell. The
+          // default-template writes below may land on a throwaway object - the render path
+          // re-applies the same defaults on every draw, and all reads in this loop happen on
+          // this same object.
+          const cachedCellProperties = hotInstance.getCellMetaTransient(visualRow, visualColumn);
 
           /* eslint-disable no-continue */
           if (cachedCellProperties.hidden) {
@@ -394,7 +399,7 @@ export function checkboxRenderer(
 
       for (let visualRow = topLeft.row; visualRow <= bottomRight.row; visualRow++) {
         for (let visualColumn = topLeft.col; visualColumn <= bottomRight.col; visualColumn++) {
-          const cellMeta = hotInstance.getCellMeta(visualRow, visualColumn);
+          const cellMeta = hotInstance.getCellMetaTransient(visualRow, visualColumn);
 
           /* eslint-disable no-continue */
           if (cellMeta.readOnly) {
@@ -529,7 +534,7 @@ function onClick(event: Event, instance: HotInstance) {
 
   const row = Number.parseInt(target.getAttribute(ATTR_ROW)!, 10);
   const col = Number.parseInt(target.getAttribute(ATTR_COLUMN)!, 10);
-  const cellProperties = instance.getCellMeta(row, col);
+  const cellProperties = instance.getCellMetaTransient(row, col);
 
   if (cellProperties.readOnly) {
     event.preventDefault();
@@ -555,7 +560,7 @@ function onChange(event: Event, instance: HotInstance) {
 
   const row = Number.parseInt(target.getAttribute(ATTR_ROW)!, 10);
   const col = Number.parseInt(target.getAttribute(ATTR_COLUMN)!, 10);
-  const cellProperties = instance.getCellMeta(row, col);
+  const cellProperties = instance.getCellMetaTransient(row, col);
 
   if (!cellProperties.readOnly) {
     let newCheckboxValue = null;

@@ -11,7 +11,7 @@ import { isObject, isPlainObject } from '../../helpers/object';
 import { isFunction } from '../../helpers/function';
 import { arrayMap } from '../../helpers/array';
 import { BasePlugin } from '../base';
-import { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import type { IndexesSequence, PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { Hooks } from '../../core/hooks';
 import { ColumnStatesManager } from './columnStatesManager';
 import { EDITOR_EDIT_GROUP as SHORTCUTS_GROUP_EDITOR } from '../../shortcuts/contexts';
@@ -195,16 +195,19 @@ export class ColumnSorting extends BasePlugin {
     pluginConflictsState.set(this.hot, this.pluginKey);
 
     this.columnStatesManager = new ColumnStatesManager(this.hot, `${this.pluginKey}.sortingStates`);
-    this.columnMetaCache = new IndexToValueMap((physicalIndex: number) => {
-      let visualIndex: number = this.hot.toVisualColumn(physicalIndex);
+    this.columnMetaCache = this.hot.columnIndexMapper.createAndRegisterIndexMap(
+      `${this.pluginKey}.columnMeta`,
+      'physicalIndexToValue',
+      (physicalIndex: number) => {
+        let visualIndex: number = this.hot.toVisualColumn(physicalIndex);
 
-      if (visualIndex === null) {
-        visualIndex = physicalIndex;
-      }
+        if (visualIndex === null) {
+          visualIndex = physicalIndex;
+        }
 
-      return this.getMergedPluginSettings(visualIndex);
-    });
-    this.hot.columnIndexMapper.registerMap(`${this.pluginKey}.columnMeta`, this.columnMetaCache);
+        return this.getMergedPluginSettings(visualIndex);
+      },
+    );
 
     this.addHook('afterGetColHeader', this.#onAfterGetColHeader);
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
@@ -348,7 +351,7 @@ export class ColumnSorting extends BasePlugin {
 
     if (currentSortConfig.length === 0 && this.indexesSequenceCache === null) {
       this.indexesSequenceCache =
-        this.hot.rowIndexMapper.registerMap(this.pluginKey, new IndexesSequence());
+        this.hot.rowIndexMapper.createAndRegisterIndexMap(this.pluginKey, 'indexesSequence');
       this.indexesSequenceCache.setValues(this.hot.rowIndexMapper.getIndexesSequence());
     }
 
@@ -576,7 +579,7 @@ export class ColumnSorting extends BasePlugin {
   getMergedPluginSettings(column: number): Record<string, unknown> {
     const pluginMainSettings = this.hot.getSettings()[this.pluginKey] as Record<string, unknown>;
     const storedColumnProperties = this.columnStatesManager?.getAllColumnsProperties() ?? {};
-    const cellMeta = this.hot.getCellMeta(0, column);
+    const cellMeta = this.hot.getCellMetaTransient(0, column);
     const columnMeta = Object.getPrototypeOf(cellMeta) as Record<string, unknown>;
 
     if (Array.isArray(columnMeta.columns)) {
@@ -602,7 +605,7 @@ export class ColumnSorting extends BasePlugin {
   // TODO: Workaround. Inheriting of non-primitive cell meta values doesn't work. Instead of getting properties from column meta we call this function.
   // TODO: Remove test named: "should not break the dataset when inserted new row" (#5431).
   getFirstCellSettings(column: number): Record<string, unknown> {
-    const cellMeta = this.hot.getCellMeta(0, column);
+    const cellMeta = this.hot.getCellMetaTransient(0, column);
 
     const cellMetaCopy = Object.create(cellMeta) as Record<string, unknown>;
 

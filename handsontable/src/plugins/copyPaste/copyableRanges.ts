@@ -202,6 +202,8 @@ export class CopyableRangesFactory {
 export function normalizeRanges(ranges: Record<string, number>[]) {
   const rows: number[] = [];
   const columns: number[] = [];
+  const seenRows = new Set<number>();
+  const seenColumns = new Set<number>();
 
   arrayEach(ranges, (range) => {
     const r = range as Record<string, number>;
@@ -209,7 +211,8 @@ export function normalizeRanges(ranges: Record<string, number>[]) {
     const maxRow = Math.max(r.startRow, r.endRow);
 
     rangeEach(minRow, maxRow, (row) => {
-      if (rows.indexOf(row) === -1) {
+      if (!seenRows.has(row)) {
+        seenRows.add(row);
         rows.push(row);
       }
     });
@@ -218,7 +221,8 @@ export function normalizeRanges(ranges: Record<string, number>[]) {
     const maxColumn = Math.max(r.startCol, r.endCol);
 
     rangeEach(minColumn, maxColumn, (column) => {
-      if (columns.indexOf(column) === -1) {
+      if (!seenColumns.has(column)) {
+        seenColumns.add(column);
         columns.push(column);
       }
     });

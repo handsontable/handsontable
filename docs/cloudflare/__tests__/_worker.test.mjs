@@ -234,6 +234,20 @@ test('Content-Security-Policy frame-src allows the Figma embed (regression for D
   assert.ok(hasSource('https://codesandbox.io'));
 });
 
+test('Content-Security-Policy frame-src allows the demos.handsontable.com embed used by theme recipes', async() => {
+  const worker = loadWorker();
+  const response = await worker.fetch(request('/docs/vue-data-grid/handsontable-design-system/'), env);
+  const csp = response.headers.get('Content-Security-Policy');
+  const frameSrc = csp.split(';').find((directive) => directive.trim().startsWith('frame-src'));
+
+  assert.ok(frameSrc, 'expected a frame-src directive in the Content-Security-Policy header');
+
+  const frameSrcSources = frameSrc.trim().split(/\s+/).slice(1); // drop the "frame-src" keyword
+  const hasSource = (source) => frameSrcSources.some((entry) => entry === source);
+
+  assert.ok(hasSource('https://demos.handsontable.com'));
+});
+
 test('keeps versioned demo redirects on historical disabled cells slugs', async() => {
   const worker = loadWorker();
 
@@ -272,4 +286,32 @@ test('still serves save.json as a static asset for GET/HEAD', async() => {
   const headResponse = await worker.fetch(request('/docs/scripts/json/save.json', undefined, 'HEAD'), env);
 
   assert.equal(await headResponse.text(), 'static-asset-passthrough');
+});
+
+test('serves the React and Angular variants of the multi-framework cell-type recipes instead of bouncing them to the index', async() => {
+  const worker = loadWorker();
+
+  for (const slug of ['flatpickr', 'pikaday', 'moment-date', 'moment-time', 'numbro']) {
+    for (const framework of ['react', 'angular']) {
+      const path = `/docs/${framework}-data-grid/recipes/cell-types/${slug}/`;
+      const response = await worker.fetch(request(path), env);
+
+      assert.equal(await response.text(), 'static-asset-passthrough', `${path} must be served, not redirected`);
+    }
+  }
+});
+
+test('still maps cell-type recipes that have a framework-specific counterpart page', async() => {
+  const worker = loadWorker();
+
+  await assertRedirect(
+    worker,
+    '/docs/react-data-grid/recipes/cell-types/color-picker/',
+    '/docs/react-data-grid/recipes/cell-types/colorful-picker/',
+  );
+  await assertRedirect(
+    worker,
+    '/docs/angular-data-grid/recipes/cell-types/react-rating/',
+    '/docs/angular-data-grid/recipes/cell-types/rating/',
+  );
 });

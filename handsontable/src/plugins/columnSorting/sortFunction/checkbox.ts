@@ -34,16 +34,14 @@ function compareTemplateValues(
  * @param {boolean} isValueFromTemplate Whether the first value is from the template.
  * @param {boolean} isNextValueFromTemplate Whether the second value is from the template.
  * @param {string} sortOrder Sort order (`asc` for ascending, `desc` for descending).
- * @param {object} columnMeta Column meta object.
- * @param {object} columnPluginSettings Plugin settings for the column.
+ * @param {Function} compareDefaultValues Compare function used for two non-template values.
  * @param {unknown} value The first value.
  * @param {unknown} nextValue The second value.
  * @returns {number | null} The comparison result or null if both values are from template.
  */
 function compareBadValues(
   isValueFromTemplate: boolean, isNextValueFromTemplate: boolean,
-  sortOrder: string, columnMeta: Record<string, unknown>,
-  columnPluginSettings: Record<string, unknown>,
+  sortOrder: string, compareDefaultValues: (value: unknown, nextValue: unknown) => number,
   value: unknown, nextValue: unknown
 ): number | null {
   // 1st value === #BAD_VALUE#
@@ -59,7 +57,7 @@ function compareBadValues(
   // 1st value === #BAD_VALUE# && 2nd value === #BAD_VALUE#
   if (isValueFromTemplate === false && isNextValueFromTemplate === false) {
     // Sorting by values (not just by visual representation).
-    return defaultCompareFunctionFactory(sortOrder, columnMeta, columnPluginSettings)(value, nextValue);
+    return compareDefaultValues(value, nextValue);
   }
 
   return null;
@@ -79,6 +77,9 @@ export function compareFunctionFactory(
   const checkedTemplate = columnMeta.checkedTemplate;
   const uncheckedTemplate = columnMeta.uncheckedTemplate;
   const { sortEmptyCells } = columnPluginSettings;
+  // Created once per sort run so the default comparator's per-run caches stay effective when
+  // non-template ("bad") values fall back to value-based sorting.
+  const compareDefaultValues = defaultCompareFunctionFactory(sortOrder, columnMeta, columnPluginSettings);
 
   return function(value: unknown, nextValue: unknown) {
     const isEmptyValue = isEmpty(value);
@@ -101,7 +102,7 @@ export function compareFunctionFactory(
 
     const badValueResult = compareBadValues(
       isValueFromTemplate, isNextValueFromTemplate,
-      sortOrder, columnMeta, columnPluginSettings, value, nextValue
+      sortOrder, compareDefaultValues, value, nextValue
     );
 
     if (badValueResult !== null) {

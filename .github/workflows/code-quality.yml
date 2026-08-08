@@ -1,13 +1,11 @@
-name: Code Quality
+name: Code quality
 
+# Static scanners — SonarCloud, CodeQL, FOSSA, npm audit. These are MERGE gates
+# (parallel, never block a build). PR-only; the trunk baseline runs on a
+# schedule (code-quality-baseline.yml). Four distinct tools → four jobs, not a
+# matrix (they share no steps).
 on:
-  push:
-    branches:
-      - 'master'
-      - 'develop'
-      - 'release/**'
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_call:
 
 jobs:
   sonarcloud:
@@ -17,55 +15,59 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         with:
           fetch-depth: 0
-
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@299e4b793aaa83bf2aba7c9c14bedbb485688ec4 # https://github.com/SonarSource/sonarqube-scan-action/releases/tag/v7.1.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
       - name: SonarQube Quality Gate check
         uses: SonarSource/sonarqube-quality-gate-action@cf038b0e0cdecfa9e56c198bbb7d21d751d62c3b # https://github.com/SonarSource/sonarqube-quality-gate-action/releases/tag/v1.2.0
-        # Force to fail step after specific time
         timeout-minutes: 1
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   codeql:
-      name: CodeQL
-      runs-on: 'ubuntu-latest'
-      timeout-minutes: 60
-      permissions:
-        security-events: write
-        packages: read
-        actions: read
-        contents: read
-
-      strategy:
-        fail-fast: false
-        matrix:
-          language: [javascript-typescript]
-      steps:
+    name: CodeQL
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+    steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
-
       - name: Initialize CodeQL
         uses: github/codeql-action/init@89a39a4e59826350b863aa6b6252a07ad50cf83e # https://github.com/github/codeql-action/releases/tag/v4.32.4
         with:
-          languages: ${{ matrix.language }}
+          languages: javascript-typescript
           config-file: .github/codeql/codeql-config.yml
-
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@89a39a4e59826350b863aa6b6252a07ad50cf83e # https://github.com/github/codeql-action/releases/tag/v4.32.4
         with:
-          category: "/language:${{matrix.language}}"
+          category: "/language:javascript-typescript"
 
-  fossa-scan:
-      name: FOSSA Scan
-      runs-on: ubuntu-latest
-      env:
-        FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-      steps:
-        - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
-        - uses: fossas/fossa-action@ff70fe9fe17cbd2040648f1c45e8ec4e4884dcf3 # https://github.com/fossas/fossa-action/releases/tag/v1.9.0
-          with:
-            api-key: ${{secrets.FOSSA_API_KEY}}
+  fossa:
+    name: FOSSA
+    runs-on: ubuntu-latest
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: fossas/fossa-action@ff70fe9fe17cbd2040648f1c45e8ec4e4884dcf3 # https://github.com/fossas/fossa-action/releases/tag/v1.9.0
+        with:
+          api-key: ${{secrets.FOSSA_API_KEY}}
+
+  audit:
+    name: audit (warn)
+    runs-on: ubuntu-latest
+    # Non-blocking by design (~380 known vulns to burn down before this can gate).
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/setup-workspace
+      - name: NPM audit
+        run: |
+          # npm retired the legacy audit endpoints used by pnpm's audit command.
+          # Keep this check non-blocking when the registry endpoint itself errors.
+          pnpm audit --prod --ignore-unfixable --ignore-registry-errors

@@ -1,4 +1,5 @@
 import type { HotInstance } from '../core/types';
+import type { default as MetaManager } from './metaManager';
 import { stringify } from '../3rdparty/SheetClip';
 import {
   countFirstRowKeys
@@ -13,23 +14,11 @@ import {
   isObject,
   objectEach
 } from '../helpers/object';
-import { extendArray, to2dArray } from '../helpers/array';
+import { extendArray, insertValuesInPlace, removeIndexesInPlace, to2dArray } from '../helpers/array';
 import { rangeEach, isUnsignedNumber } from '../helpers/number';
 import { isDefined } from '../helpers/mixed';
 import { getValueGetterValue } from '../utils/valueAccessors';
 import { throwWithCause } from '../helpers/errors';
-
-/**
- * Represents the MetaManager dependency shape used by DataMap.
- */
-interface MetaManagerLike {
-  getTableMeta(): Record<string, unknown>;
-  createRow(physicalIndex: number | null, amount: number): void;
-  createColumn(physicalIndex: number | null, amount: number): void;
-  removeRow(physicalIndex: number, amount: number): void;
-  removeColumn(physicalIndex: number, amount: number): void;
-  getCellMeta(physicalRow: number, physicalColumn: number, options?: object): Record<string, unknown>;
-}
 
 /*
 This class contains open-source contributions covered by the MIT license.
@@ -90,7 +79,7 @@ class DataMap {
    * @private
    * @type {MetaManager}
    */
-  declare metaManager: MetaManagerLike | null;
+  declare metaManager: MetaManager | null;
   /**
    * Instance of {@link TableMeta}.
    *
@@ -139,7 +128,7 @@ class DataMap {
    * @param {Array} data Array of arrays or array of objects containing data.
    * @param {MetaManager} metaManager The meta manager instance.
    */
-  constructor(hotInstance: HotInstance, data: (Record<string, unknown> | unknown[])[], metaManager: MetaManagerLike) {
+  constructor(hotInstance: HotInstance, data: (Record<string, unknown> | unknown[])[], metaManager: MetaManager) {
     this.hot = hotInstance;
     this.metaManager = metaManager;
     this.tableMeta = metaManager.getTableMeta();
@@ -485,17 +474,14 @@ class DataMap {
     const firstNewPhysicalColumnIndex = (mode === 'end') ?
       Math.min(physicalColumnIndex + 1, numberOfSourceCols) : physicalColumnIndex;
 
-    let numberOfCreatedCols = 0;
+    const numberOfCreatedCols = Math.max(
+      0, Math.min(amount, (maxCols ?? Infinity) - numberOfVisualCols)
+    );
 
-    for (
-      let col = firstNewPhysicalColumnIndex;
-      numberOfCreatedCols < amount && numberOfVisualCols + numberOfCreatedCols < (maxCols ?? Infinity);
-      col++, numberOfCreatedCols++
-    ) {
-      this.#insertColumnIntoDataSource(
-        dataSource, col, visualColumnIndex, numberOfVisualCols + numberOfCreatedCols, numberOfSourceRows
-      );
-    }
+    this.#insertColumnsIntoDataSource(
+      dataSource, firstNewPhysicalColumnIndex, visualColumnIndex, numberOfVisualCols,
+      numberOfSourceRows, numberOfCreatedCols
+    );
 
     if (numberOfCreatedCols > 0) {
       if ((index === undefined || index === null)) {
@@ -525,37 +511,65 @@ class DataMap {
   }
 
   /**
-   * Inserts a single null column into the data source at the given physical column index.
+   * Inserts the given amount of null columns into the data source in at most two passes over
+   * the rows, instead of one full pass per created column. The previous per-column loop chose
+   * between an append and a middle splice per iteration, based on the visual index against the
+   * growing column count; the same sequence collapses into two batched phases: the first
+   * `appendCount` iterations (while the visual index is at or past the current count) are
+   * end-of-row pushes, and the remaining iterations are single splices at consecutive ascending
+   * positions - which is exactly one block insert at the first of those positions.
    *
    * @param {Array} dataSource The data source array.
-   * @param {number} col The physical column index at which to splice.
+   * @param {number} firstColumn The physical column index at which the first column is inserted.
    * @param {number|undefined} visualColumnIndex The visual column index being inserted.
-   * @param {number} currentVisualColCount The current visual column count including already-created columns.
+   * @param {number} numberOfVisualCols The visual column count before the insertion.
    * @param {number} numberOfSourceRows The number of source rows.
+   * @param {number} amount The number of columns to insert.
    */
-  #insertColumnIntoDataSource(
+  #insertColumnsIntoDataSource(
     dataSource: (Record<string, unknown> | unknown[])[],
-    col: number,
+    firstColumn: number,
     visualColumnIndex: number | undefined,
-    currentVisualColCount: number,
-    numberOfSourceRows: number
+    numberOfVisualCols: number,
+    numberOfSourceRows: number,
+    amount: number
   ) {
-    if (typeof visualColumnIndex !== 'number' || visualColumnIndex >= currentVisualColCount) {
+    if (amount <= 0) {
+      return;
+    }
+
+    let appendCount = amount;
+
+    if (typeof visualColumnIndex === 'number') {
+      appendCount = Math.max(0, Math.min(amount, visualColumnIndex - numberOfVisualCols + 1));
+    }
+
+    const middleCount = amount - appendCount;
+
+    if (appendCount > 0) {
       if (numberOfSourceRows > 0) {
-        for (let row = 0; row < numberOfSourceRows; row += 1) {
+        for (let row = 0; row < numberOfSourceRows; row++) {
           if (typeof dataSource[row] === 'undefined') {
             dataSource[row] = [];
           }
 
-          (dataSource[row] as unknown[]).push(null);
+          for (let i = 0; i < appendCount; i++) {
+            (dataSource[row] as unknown[]).push(null);
+          }
         }
       } else {
-        dataSource.push([null]);
+        for (let i = 0; i < appendCount; i++) {
+          dataSource.push([null]);
+        }
       }
+    }
 
-    } else {
+    if (middleCount > 0) {
+      // The insertion index clamps to the row length inside `insertValuesInPlace`, so rows
+      // shorter than the insertion point get the nulls appended at their end - matching what
+      // the previous repeated clamped `splice` calls did.
       for (let row = 0; row < numberOfSourceRows; row++) {
-        (dataSource[row] as unknown[]).splice(col, 0, null);
+        insertValuesInPlace(dataSource[row] as unknown[], firstColumn + appendCount, middleCount, null);
       }
     }
   }
@@ -604,8 +618,8 @@ class DataMap {
 
     const descendingPhysicalRows = removedPhysicalIndexes.slice(0).sort((a, b) => b - a);
 
-    descendingPhysicalRows.forEach((rowPhysicalIndex) => {
-      this.metaManager!.removeRow(rowPhysicalIndex, 1);
+    this.#eachDescendingRun(descendingPhysicalRows, (start, runLength) => {
+      this.metaManager!.removeRow(start, runLength);
     });
 
     this.hot!.runHooks('afterRemoveRow', rowIndex, numberOfRemovedIndexes, removedPhysicalIndexes, source);
@@ -668,8 +682,9 @@ class DataMap {
   }
 
   /**
-   * Splices the removed physical columns from each row in the data source,
-   * updating the meta manager for the first row.
+   * Removes the given physical columns from each row in the data source and keeps
+   * the meta manager in sync. Rows are mutated in place so external references to
+   * the row arrays stay valid.
    *
    * @param {Array} data The data source array.
    * @param {boolean} isTableUniform Whether the removed columns form a contiguous range.
@@ -694,16 +709,44 @@ class DataMap {
       }
 
     } else {
-      const removedColumnsCount = descendingPhysicalColumns.length;
+      // One in-place compaction pass per row instead of one `splice` per removed column per row.
+      // The splice variant costs O(rows * removed columns * columns) after any column reorder;
+      // the compaction pass is O(rows * columns) regardless of how many columns are removed.
+      const removedColumns = new Set(removedPhysicalIndexes);
+      const numberOfSourceRows = this.hot!.countSourceRows();
 
-      for (let r = 0, rlen = this.hot!.countSourceRows(); r < rlen; r++) {
-        for (let c = 0; c < removedColumnsCount; c++) {
-          (data[r] as unknown[]).splice(descendingPhysicalColumns[c], 1);
+      for (let r = 0; r < numberOfSourceRows; r++) {
+        removeIndexesInPlace(data[r] as unknown[], removedColumns);
+      }
 
-          if (r === 0) {
-            this.metaManager!.removeColumn(descendingPhysicalColumns[c], 1);
-          }
-        }
+      if (numberOfSourceRows > 0) {
+        this.#eachDescendingRun(descendingPhysicalColumns, (start, runLength) => {
+          this.metaManager!.removeColumn(start, runLength);
+        });
+      }
+    }
+  }
+
+  /**
+   * Groups physical indexes sorted in descending order into contiguous runs and invokes the
+   * callback once per run with the run's lowest index and its length. A sequence of
+   * one-at-a-time removals at descending contiguous indexes equals one bulk removal at the
+   * run's lowest index, and each meta-layer removal call pays a fixed walk over the
+   * materialized entries - so collapsing runs removes that per-index constant.
+   *
+   * @param {number[]} descendingIndexes Physical indexes sorted in descending order.
+   * @param {Function} callback Called with `(start, amount)` once per contiguous run.
+   */
+  #eachDescendingRun(descendingIndexes: number[], callback: (start: number, amount: number) => void) {
+    let runStartPosition = 0;
+
+    for (let i = 0; i < descendingIndexes.length; i++) {
+      const isLastOfRun = i + 1 >= descendingIndexes.length ||
+        descendingIndexes[i + 1] !== descendingIndexes[i] - 1;
+
+      if (isLastOfRun) {
+        callback(descendingIndexes[i], i - runStartPosition + 1);
+        runStartPosition = i + 1;
       }
     }
   }
@@ -792,15 +835,22 @@ class DataMap {
    */
   filterData(index: number, amount: number, physicalRows: number[]) {
     // Custom data filtering (run as a consequence of calling the below hook) provide an array containing new data.
-    let data = this.hot!.runHooks('filterData', index, amount, physicalRows);
+    const data = this.hot!.runHooks('filterData', index, amount, physicalRows);
 
     // Hooks by default returns first argument (when there is no callback changing execution result).
-    if (Array.isArray(data) === false) {
-      data = this.dataSource!.filter((_row, rowIndex: number) => physicalRows.indexOf(rowIndex) === -1);
+    if (Array.isArray(data)) {
+      this.dataSource!.length = 0;
+      // Pushing in a loop instead of `push.apply`, which passes one call argument per row and
+      // overflows the call stack on grids with roughly 125k rows or more (same pattern as #7840).
+      (data as unknown[]).forEach((row) => {
+        this.dataSource!.push(row as Record<string, unknown> | unknown[]);
+      });
+    } else {
+      // One O(source rows) compaction pass with an O(1) Set membership test per row. The previous
+      // `filter` + `indexOf` variant cost O(source rows * removed rows) - a multi-second freeze
+      // when bulk-removing rows from a large grid - and copied the survivors back afterwards.
+      removeIndexesInPlace(this.dataSource!, new Set(physicalRows));
     }
-
-    this.dataSource!.length = 0;
-    Array.prototype.push.apply(this.dataSource!, data as unknown[]);
   }
 
   /**
@@ -855,13 +905,15 @@ class DataMap {
       ? this.hot!.toPhysicalColumn(visualColumnIndex)
       : null;
 
-    if (isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
+    if (typeof visualColumnIndex === 'number' && isUnsignedNumber(physicalRow) && isUnsignedNumber(physicalColumn)) {
+      // The uncached read returns the stored meta when the cell carries persisted overrides and a
+      // transient object otherwise - a plain data read must not permanently materialize one meta
+      // object per visited cell (a full-table scan such as sorting would retain O(rows) of them).
       value = getValueGetterValue(
         value,
-        this.metaManager!.getCellMeta(physicalRow, physicalColumn, {
+        this.metaManager!.getCellMetaUncached(physicalRow, physicalColumn, {
           visualRow: row,
           visualColumn: visualColumnIndex,
-          skipMetaExtension: true
         })
       );
     }
@@ -889,7 +941,10 @@ class DataMap {
   getCopyable(row: number, prop: string | number) {
     const colIndex = this.propToCol(prop);
 
-    if (typeof colIndex === 'number' && this.hot!.getCellMeta(row, colIndex).copyable) {
+    // The transient read honors a `cells()`-driven `copyable: false` (the dynamic extension
+    // runs) without permanently materializing one meta object per copied cell - the copy path
+    // walks the whole copied range through this method.
+    if (typeof colIndex === 'number' && this.hot!.getCellMetaTransient(row, colIndex).copyable) {
       return this.get(row, prop);
     }
 

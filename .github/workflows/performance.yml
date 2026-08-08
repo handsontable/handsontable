@@ -1,0 +1,27 @@
+name: Performance
+
+# The CDP performance regression suite (build-dependent). Uses the shared
+# performance-run composite; the standalone performance-tests.yml keeps the
+# trunk golden-baseline push trigger until the higher pipelines are reworked.
+on:
+  workflow_call:
+    inputs:
+      hot-prebuilt:
+        description: 'The shared UMD build artifact is available — skip the internal build'
+        type: boolean
+        default: false
+
+jobs:
+  run:
+    name: run
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
+      - uses: ./.github/actions/performance-run
+        with:
+          hot-prebuilt: ${{ inputs.hot-prebuilt }}

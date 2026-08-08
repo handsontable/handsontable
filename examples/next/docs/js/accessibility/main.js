@@ -1,5 +1,4 @@
 import Handsontable from "handsontable";
-import "@handsontable/pikaday/css/pikaday.css";
 
 // Import sample data and helper functions
 import { data, countries } from "./data";

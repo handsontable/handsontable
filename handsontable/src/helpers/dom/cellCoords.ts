@@ -38,7 +38,7 @@ function findColumnAtX(
 
     accumulatedX += width;
 
-    const { colspan } = hotInstance.getCellMeta<{ colspan?: number }>(row, column);
+    const { colspan } = hotInstance.getCellMetaTransient<{ colspan?: number }>(row, column);
 
     if (colspan !== undefined && colspan > 1) {
       column += colspan - 1;
@@ -83,7 +83,7 @@ function findRowAtY(
 
     accumulatedY += height;
 
-    const { rowspan } = hotInstance.getCellMeta<{ rowspan?: number }>(row, column);
+    const { rowspan } = hotInstance.getCellMetaTransient<{ rowspan?: number }>(row, column);
 
     if (rowspan !== undefined && rowspan > 1) {
       row += rowspan - 1;
@@ -91,6 +91,71 @@ function findRowAtY(
   }
 
   return null;
+}
+
+/**
+ * Finds a column suitable for mapping a Y coordinate to a row: the first column in the range
+ * whose cells across the scanned rows each occupy their own single row. `findRowAtY` walks one
+ * column's cell heights and skips a merged cell's spanned rows, so it is distorted by a cell
+ * that spans multiple rows — a vertical-merge anchor or any of its slaves. Such a column is
+ * detected two ways: `rowspan > 1` on the anchor's meta, and element identity, since every row
+ * inside a vertical merge resolves to the same rendered cell. A purely horizontal merge resolves
+ * to a distinct, single-row master cell per row, so its columns stay valid. A merge in one column
+ * must not distort the row lookup used for other columns (DEV-2115).
+ *
+ * The scanned row range must match the range the returned column will be walked over (the frozen
+ * overlays and the scrollable body are resolved separately), so a merge confined to frozen rows
+ * cannot leak into the body lookup or vice versa.
+ *
+ * @param {Handsontable} hotInstance The Handsontable instance.
+ * @param {number} startColumn First column to consider.
+ * @param {number} endColumn Last column to consider (inclusive).
+ * @param {number} startRow First row of the scanned range.
+ * @param {number} endRow Last row of the scanned range (inclusive).
+ * @returns {number} A column index free of vertical-merge distortion, or `startColumn` if none qualifies.
+ */
+function findRowReferenceColumn(
+  hotInstance: HotInstance,
+  startColumn: number,
+  endColumn: number,
+  startRow: number,
+  endRow: number,
+): number {
+  for (let column = startColumn; column <= endColumn; column++) {
+    let spansMultipleRows = false;
+    let hasRenderableCell = false;
+    let previousCell: HTMLElement | null = null;
+
+    for (let row = startRow; row <= endRow; row++) {
+      const cell = hotInstance.getCell(row, column, true);
+      const { rowspan } = hotInstance.getCellMetaTransient<{ rowspan?: number }>(row, column);
+
+      // A vertically merged cell reports `rowspan > 1` on its anchor and resolves to the same
+      // rendered element for every row it covers; either signal marks the column as distorting.
+      if ((rowspan !== undefined && rowspan > 1) || (cell !== null && cell === previousCell)) {
+        spansMultipleRows = true;
+        break;
+      }
+
+      if (cell !== null) {
+        previousCell = cell;
+        hasRenderableCell = true;
+      }
+    }
+
+    // A hidden column (e.g. `hiddenColumns`) renders no cells, so `findRowAtY` cannot measure
+    // against it. Require at least one renderable cell so a hidden column between the merged
+    // column and a usable one is skipped rather than picked as the reference.
+    if (!spansMultipleRows && hasRenderableCell) {
+      return column;
+    }
+  }
+
+  // Best-effort fallback: every column in the scanned range is vertically merged (e.g. a grouped
+  // report grid whose visible columns all merge across the same band). No column is free of the
+  // distortion, so `findRowAtY` will still collapse the band onto its anchor — `startColumn` is
+  // simply the least-surprising choice. This is a known narrow case of DEV-2115, not a bug here.
+  return startColumn;
 }
 
 /**
@@ -214,6 +279,23 @@ export function getCellCoordsFromMousePosition(
     }
   }
 
+  if (foundColumn === null) {
+    throwWithCause('Failed to resolve cell coordinates from mouse position.');
+  }
+
+  // Resolve the row against a column that has no vertical merge across the rows being walked.
+  // `findRowAtY` skips a merged cell's spanned rows, so measuring against a vertically merged
+  // column collapses every Y inside the band onto the merge anchor. Neither a fixed column nor
+  // the pointer's column is universally safe (a merge can live in either), so each row-scan
+  // branch picks the first column free of vertical merges within its own row range (DEV-2115).
+  const rowReferenceColumnStart = firstPartiallyVisibleColumn ?? 0;
+  // When the viewport query returns null nothing is rendered, so there is no cell to measure
+  // against. Keep the search inside the (empty) rendered range instead of opening it to every
+  // column in the grid — otherwise `findRowReferenceColumn` walks the full column x row product,
+  // calling `getCellMetaTransient` on each step, and a single held autofill/`dragToScroll` drag
+  // on a large off-screen grid locks the tab.
+  const rowReferenceColumnEnd = lastPartiallyVisibleColumn ?? rowReferenceColumnStart;
+
   let foundRow: number | null = null;
 
   // Check fixed top rows first
@@ -225,7 +307,9 @@ export function getCellCoordsFromMousePosition(
       : null;
 
     if (firstNonHiddenRow !== null && lastFixedRow !== null) {
-      const fixedCell = hotInstance.getCell(firstNonHiddenRow, firstPartiallyVisibleColumn, true);
+      const rowReferenceColumn = findRowReferenceColumn(
+        hotInstance, rowReferenceColumnStart, rowReferenceColumnEnd, firstNonHiddenRow, lastFixedRow);
+      const fixedCell = hotInstance.getCell(firstNonHiddenRow, rowReferenceColumn, true);
 
       if (fixedCell instanceof HTMLElement) {
         const fixedCellRect = fixedCell.getBoundingClientRect();
@@ -233,7 +317,7 @@ export function getCellCoordsFromMousePosition(
 
         foundRow = findRowAtY(
           hotInstance,
-          firstPartiallyVisibleColumn,
+          rowReferenceColumn,
           firstNonHiddenRow,
           lastFixedRow,
           fixedRelativeY,
@@ -255,7 +339,9 @@ export function getCellCoordsFromMousePosition(
       : null;
 
     if (bottomStartNonHiddenRow !== null && bottomEndNonHiddenRow !== null) {
-      const fixedBottomCell = hotInstance.getCell(bottomStartNonHiddenRow, firstPartiallyVisibleColumn, true);
+      const rowReferenceColumn = findRowReferenceColumn(
+        hotInstance, rowReferenceColumnStart, rowReferenceColumnEnd, bottomStartNonHiddenRow, bottomEndNonHiddenRow);
+      const fixedBottomCell = hotInstance.getCell(bottomStartNonHiddenRow, rowReferenceColumn, true);
 
       if (fixedBottomCell instanceof HTMLElement) {
         const fixedBottomCellRect = fixedBottomCell.getBoundingClientRect();
@@ -264,7 +350,7 @@ export function getCellCoordsFromMousePosition(
         if (fixedBottomRelativeY >= 0) {
           foundRow = findRowAtY(
             hotInstance,
-            firstPartiallyVisibleColumn,
+            rowReferenceColumn,
             bottomStartNonHiddenRow,
             bottomEndNonHiddenRow,
             fixedBottomRelativeY
@@ -280,7 +366,19 @@ export function getCellCoordsFromMousePosition(
 
   // Check scrollable rows (main table)
   if (foundRow === null) {
-    const scrollCell = hotInstance.getCell(firstPartiallyVisibleRow, firstPartiallyVisibleColumn, true);
+    const scrollRowScanStart = firstPartiallyVisibleRow ?? 0;
+    // Same null-viewport guard as the column bound above: clamp the row scan to the (empty)
+    // rendered range rather than `countRows()`, so the reference-column search cannot walk the
+    // whole grid when nothing is rendered.
+    const scrollRowScanEnd = lastPartiallyVisibleRow ?? scrollRowScanStart;
+    const rowReferenceColumn = findRowReferenceColumn(
+      hotInstance,
+      rowReferenceColumnStart,
+      rowReferenceColumnEnd,
+      scrollRowScanStart,
+      scrollRowScanEnd,
+    );
+    const scrollCell = hotInstance.getCell(firstPartiallyVisibleRow, rowReferenceColumn, true);
 
     if (scrollCell instanceof HTMLElement) {
       const scrollCellRect = scrollCell.getBoundingClientRect();
@@ -288,7 +386,7 @@ export function getCellCoordsFromMousePosition(
 
       foundRow = findRowAtY(
         hotInstance,
-        firstPartiallyVisibleColumn,
+        rowReferenceColumn,
         firstPartiallyVisibleRow,
         lastPartiallyVisibleRow,
         scrollRelativeY,
@@ -306,7 +404,7 @@ export function getCellCoordsFromMousePosition(
     }
   }
 
-  if (foundRow === null || foundColumn === null) {
+  if (foundRow === null) {
     throwWithCause('Failed to resolve cell coordinates from mouse position.');
   }
 

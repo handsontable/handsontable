@@ -531,4 +531,62 @@ describe('Core.setDataAtCell', () => {
       expect(getData()).toEqual([['aaa']]);
     });
   });
+
+  describe('setting a value beyond the current grid size', () => {
+    it('should create all missing rows in one bulk `createRow` call', async() => {
+      const afterCreateRow = jasmine.createSpy('afterCreateRow');
+
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        afterCreateRow,
+      });
+
+      await setDataAtCell(9, 0, 'foo');
+
+      expect(countRows()).toBe(10);
+      expect(getDataAtCell(9, 0)).toBe('foo');
+      expect(afterCreateRow).toHaveBeenCalledTimes(1);
+      expect(afterCreateRow).toHaveBeenCalledWith(3, 7, 'auto');
+    });
+
+    it('should create all missing columns in one bulk `createCol` call', async() => {
+      const afterCreateCol = jasmine.createSpy('afterCreateCol');
+
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        afterCreateCol,
+      });
+
+      await setDataAtCell(0, 9, 'foo');
+
+      expect(countCols()).toBe(10);
+      expect(getDataAtCell(0, 9)).toBe('foo');
+      expect(afterCreateCol).toHaveBeenCalledTimes(1);
+      expect(afterCreateCol).toHaveBeenCalledWith(3, 7, 'auto');
+    });
+
+    it('should skip the change when `maxRows` prevents reaching the target row', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        maxRows: 5,
+      });
+
+      await setDataAtCell(9, 0, 'foo');
+
+      expect(countRows()).toBe(5);
+      expect(getDataAtCell(4, 0)).toBe(null);
+    });
+
+    it('should skip the change when `maxCols` prevents reaching the target column', async() => {
+      handsontable({
+        data: createSpreadsheetData(3, 3),
+        maxCols: 5,
+      });
+
+      await setDataAtCell(0, 9, 'foo');
+
+      expect(countCols()).toBe(5);
+      expect(getDataAtCell(0, 4)).toBe(null);
+    });
+  });
 });

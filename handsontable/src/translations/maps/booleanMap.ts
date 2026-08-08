@@ -1,4 +1,4 @@
-import { IndexMap } from './indexMap';
+import { IndexMap, type IndexMapOptions } from './indexMap';
 
 /**
  * Map from a physical index to a boolean (hidden/trimmed flags).
@@ -54,8 +54,11 @@ export class BooleanMap extends IndexMap {
   /**
    * Initializes the boolean map with a default value or factory (defaults to `false`).
    */
-  constructor(initValueOrFn: boolean | ((index: number, ordinalNumber: number) => unknown) = false) {
-    super(initValueOrFn);
+  constructor(
+    initValueOrFn: boolean | ((index: number, ordinalNumber: number) => unknown) = false,
+    options: IndexMapOptions = {},
+  ) {
+    super(initValueOrFn, options);
     this.#defaultFn = typeof initValueOrFn === 'function' ? initValueOrFn : null;
     this.#defaultValue = initValueOrFn === true;
   }
@@ -167,12 +170,20 @@ export class BooleanMap extends IndexMap {
 
     if (this.#allDefault) {
       if (flag === this.#defaultValue) {
-        this.runLocalHooks('change');
+        // Writing the default into the compact (all-default) state is always a no-op for the
+        // stored data; with `skipUnchangedWrites` the `change` hook is skipped too.
+        if (!this.skipUnchangedWrites) {
+          this.runLocalHooks('change');
+        }
 
         return true;
       }
 
       this.#materialize();
+    }
+
+    if (this.skipUnchangedWrites && (this.#store as boolean[])[index] === flag) {
+      return true;
     }
 
     (this.#store as boolean[])[index] = flag;

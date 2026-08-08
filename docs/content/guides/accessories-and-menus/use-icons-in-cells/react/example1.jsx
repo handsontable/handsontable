@@ -36,7 +36,7 @@ const ExampleComponent = () => {
     return (<HotTable data={data} colHeaders={['Task', 'Assignee', 'Due date', 'Flagged']} columns={[
             { data: 'task' },
             { data: 'assignee' },
-            { data: 'dueDate', type: 'date', dateFormat: 'YYYY-MM-DD' },
+            { data: 'dueDate', type: 'date', dateFormat: { year: 'numeric', month: '2-digit', day: '2-digit' } },
             { data: 'flagged', renderer: flagRenderer, className: 'htCenter' },
         ]} height="auto" autoWrapRow={true} autoWrapCol={true} licenseKey="non-commercial-and-evaluation"/>);
 };

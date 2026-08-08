@@ -1,27 +1,10 @@
 import type { HotInstance } from '../core/types';
 import type { GridSettings } from '../core/settings';
+import type { CellProperties } from '../settings';
 import type { default as DataSource } from './dataSource';
 import { logAggregatedItems, warn } from '../helpers/console';
 import { isFunction } from '../helpers/function';
 import { stringify } from '../helpers/mixed';
-
-type SourceDataValidatorFn = {
-  (value: unknown, cellMeta: CellMeta, source?: string): boolean;
-
-  /**
-   * When `true`, the validator's result depends only on the value and column/global-level meta, never
-   * on per-row meta — so a single column-level meta object can validate every row of the column.
-   */
-  rowIndependent?: boolean;
-};
-
-type CellMeta = Record<string, unknown> & {
-  sourceDataValidator?: SourceDataValidatorFn;
-  sourceDataWarningMessage?: string;
-  allowInvalid?: boolean;
-  row?: number;
-  col?: number;
-};
 
 type InvalidItems = Map<string, Array<{ row: number; col: number; value: unknown; message?: string }>>;
 
@@ -29,7 +12,7 @@ type ColumnValidator = {
   physicalColumn: number;
   visualColumn: number;
   sourceColumn: string | number;
-  cellMeta: CellMeta;
+  cellMeta: CellProperties;
 };
 
 /**
@@ -40,7 +23,7 @@ type ColumnValidator = {
  * @param {string} [source] The source identifier of the operation.
  * @returns {boolean} `true` when the value is valid (or no validator is configured).
  */
-export function runSourceDataValidator(value: unknown, cellMeta: CellMeta, source?: string): boolean {
+export function runSourceDataValidator(value: unknown, cellMeta: CellProperties, source?: string): boolean {
   const validator = cellMeta.sourceDataValidator;
 
   if (!isFunction(validator)) {
@@ -77,7 +60,7 @@ export function runSourceDataValidator(value: unknown, cellMeta: CellMeta, sourc
  * @returns {void}
  */
 function validateSourceCell(
-  cellMeta: CellMeta,
+  cellMeta: CellProperties,
   value: unknown,
   physicalRow: number,
   physicalColumn: number,
@@ -140,7 +123,7 @@ function collectColumnValidators(
     }
 
     const cellMeta = metaManager
-      .getCellMetaUncached<CellMeta>(0, physicalColumn, { visualRow: 0, visualColumn });
+      .getCellMetaUncached(0, physicalColumn, { visualRow: 0, visualColumn });
     const validator = cellMeta.sourceDataValidator;
 
     if (!isFunction(validator)) {
@@ -200,7 +183,7 @@ function validatePerCell(
       }
 
       const cellMeta = metaManager
-        .getCellMetaUncached<CellMeta>(row, col, { visualRow, visualColumn });
+        .getCellMetaUncached(row, col, { visualRow, visualColumn });
 
       if (!isFunction(cellMeta.sourceDataValidator)) {
         continue;

@@ -1,7 +1,6 @@
 import type { HotInstance } from '../../core/types';
 import { isObject, objectEach } from '../../helpers/object';
-import { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
-import { isDefined } from '../../helpers/mixed';
+import type { LinkedPhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 
 const inheritedColumnProperties = ['sortEmptyCells', 'indicator', 'headerAction', 'compareFunctionFactory'];
 
@@ -27,7 +26,7 @@ export class ColumnStatesManager {
    *
    * @type {LinkedPhysicalIndexToValueMap}
    */
-  sortingStates = new IndexToValueMap();
+  sortingStates: IndexToValueMap;
   /**
    * Determines whether we should sort empty cells.
    *
@@ -63,7 +62,8 @@ export class ColumnStatesManager {
   constructor(hot: HotInstance, mapName: string) {
     this.hot = hot;
     this.mapName = mapName;
-    this.hot.columnIndexMapper.registerMap(mapName, this.sortingStates);
+    this.sortingStates = this.hot.columnIndexMapper
+      .createAndRegisterIndexMap(mapName, 'linkedPhysicalIndexToValue');
   }
 
   /**

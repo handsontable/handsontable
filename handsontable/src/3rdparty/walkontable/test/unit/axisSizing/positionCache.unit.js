@@ -361,6 +361,67 @@ describe('PositionCache', () => {
     });
   });
 
+  describe('onBuildFn', () => {
+    it('should be called once per build, in both modes', () => {
+      const onBuildFn = jest.fn();
+      const heterogeneous = new PositionCache({
+        totalItemsFn: () => 3,
+        sizeFn: () => 10,
+        defaultSizeFn: () => 10,
+        onBuildFn,
+      });
+
+      heterogeneous.build();
+
+      expect(onBuildFn).toHaveBeenCalledTimes(1);
+
+      const onBuildFnUniform = jest.fn();
+      const uniform = new PositionCache({
+        totalItemsFn: () => 3,
+        sizeFn: () => 10,
+        defaultSizeFn: () => 10,
+        isUniformFn: () => true,
+        onBuildFn: onBuildFnUniform,
+      });
+
+      uniform.build();
+
+      expect(onBuildFnUniform).toHaveBeenCalledTimes(1);
+    });
+
+    it('should be called by ensureBuilt only when it actually rebuilds', () => {
+      const onBuildFn = jest.fn();
+      let totalItems = 3;
+      const cache = new PositionCache({
+        totalItemsFn: () => totalItems,
+        sizeFn: () => 10,
+        defaultSizeFn: () => 10,
+        onBuildFn,
+      });
+
+      cache.ensureBuilt();
+
+      expect(onBuildFn).toHaveBeenCalledTimes(1);
+
+      // no-op: already built, same item count
+      cache.ensureBuilt();
+
+      expect(onBuildFn).toHaveBeenCalledTimes(1);
+
+      // rebuild via invalidation
+      cache.invalidate();
+      cache.ensureBuilt();
+
+      expect(onBuildFn).toHaveBeenCalledTimes(2);
+
+      // rebuild via item-count change
+      totalItems = 5;
+      cache.ensureBuilt();
+
+      expect(onBuildFn).toHaveBeenCalledTimes(3);
+    });
+  });
+
   describe('isCurrent', () => {
     it('should be false before the cache is built', () => {
       const { cache } = createCache(3, () => 10, 10);
@@ -405,6 +466,173 @@ describe('PositionCache', () => {
       setTotalItems(5);
 
       expect(cache.isCurrent()).toBe(false);
+    });
+  });
+
+  describe('sparse mode', () => {
+    /**
+     * Creates a cache whose sizes are a uniform base plus the given exception record —
+     * the shape `sparseExceptionsFn` receives from `wtViewport.oversizedRows`.
+     *
+     * @param {number} totalItems The total number of items.
+     * @param {number} base The uniform base size.
+     * @param {object} exceptions Per-index size overrides.
+     * @returns {object} An object with the `cache` and the mutable `exceptions` record.
+     */
+    function createSparseCache(totalItems, base, exceptions) {
+      let _totalItems = totalItems;
+
+      const cache = new PositionCache({
+        totalItemsFn: () => _totalItems,
+        sizeFn: i => (exceptions[i] === undefined ? base : exceptions[i]),
+        defaultSizeFn: () => base,
+        isUniformFn: () => Object.keys(exceptions).length === 0,
+        sparseExceptionsFn: () => exceptions,
+      });
+
+      return { cache, exceptions, setTotalItems(n) { _totalItems = n; } };
+    }
+
+    it('should not allocate a prefix sum array (isBuilt stays false, like uniform mode)', () => {
+      const { cache } = createSparseCache(1000, 10, { 5: 30 });
+
+      cache.build();
+
+      expect(cache.isBuilt()).toBe(false);
+      expect(cache.isCurrent()).toBe(true);
+      expect(cache.prefixSum).toBe(null);
+    });
+
+    it('should compute offsets as base * index plus the deltas of preceding exceptions', () => {
+      const { cache } = createSparseCache(1000, 10, { 2: 35, 5: 50 });
+
+      cache.build();
+
+      expect(cache.getOffset(0)).toBe(0);
+      expect(cache.getOffset(1)).toBe(10);
+      expect(cache.getOffset(2)).toBe(20);
+      expect(cache.getOffset(3)).toBe(55); // 30 + (35 - 10)
+      expect(cache.getOffset(5)).toBe(75);
+      expect(cache.getOffset(6)).toBe(125); // 75 + 50
+      expect(cache.getOffset(1000)).toBe(10065);
+      expect(cache.getOffset(2000)).toBe(10065); // clamped to totalItems
+    });
+
+    it('should produce byte-identical offsets to the full prefix-sum walk', () => {
+      const exceptions = { 0: 41, 7: 23, 63: 120, 64: 121, 999: 77 };
+      const sizeFn = i => (exceptions[i] === undefined ? 10 : exceptions[i]);
+      const { cache: sparse } = createSparseCache(1000, 10, exceptions);
+      const { cache: full } = createCache(1000, sizeFn, 10);
+
+      sparse.build();
+      full.build();
+
+      for (let i = 0; i <= 1000; i += 1) {
+        expect(sparse.getOffset(i)).toBe(full.getOffset(i));
+      }
+      expect(sparse.getTotalSize()).toBe(full.getTotalSize());
+    });
+
+    it('should return exception sizes from getSizeAt and the base for other items', () => {
+      const { cache } = createSparseCache(100, 10, { 3: 42 });
+
+      cache.build();
+
+      expect(cache.getSizeAt(2)).toBe(10);
+      expect(cache.getSizeAt(3)).toBe(42);
+      expect(cache.getSizeAt(4)).toBe(10);
+      expect(cache.getSizeAt(-1)).toBe(0);
+      expect(cache.getSizeAt(100)).toBe(0);
+    });
+
+    it('should read exception sizes through sizeFn, not from the raw record', () => {
+      // Mirrors RowUtils#getHeight: the size funnel clamps a measured oversized record with the
+      // provided size (`max(provided, record)`). A record measured before the uniform size grew
+      // (e.g. `updateSettings({ rowHeights })` with a larger value) is smaller than the base and
+      // must not be counted raw — the sparse strategy has to resolve it exactly like the
+      // prefix-sum walk does, through `sizeFn`.
+      const uniformSize = 40;
+      const exceptions = { 5: 30, 8: 90 }; // 30 is stale: recorded before the size grew to 40
+      const sizeFn = i => (exceptions[i] === undefined ? uniformSize : Math.max(uniformSize, exceptions[i]));
+      const sparse = new PositionCache({
+        totalItemsFn: () => 100,
+        sizeFn,
+        defaultSizeFn: () => uniformSize,
+        isUniformFn: () => false,
+        sparseExceptionsFn: () => exceptions,
+      });
+      const { cache: full } = createCache(100, sizeFn, uniformSize);
+
+      sparse.build();
+      full.build();
+
+      expect(sparse.getSizeAt(5)).toBe(40); // clamped by sizeFn, not the raw 30
+      expect(sparse.getSizeAt(8)).toBe(90);
+
+      for (let i = 0; i <= 100; i += 1) {
+        expect(sparse.getOffset(i)).toBe(full.getOffset(i));
+      }
+      expect(sparse.getTotalSize()).toBe(full.getTotalSize());
+    });
+
+    it('should find indexes at offsets identically to the full prefix-sum walk', () => {
+      const exceptions = { 1: 30, 50: 200, 51: 200 };
+      const sizeFn = i => (exceptions[i] === undefined ? 10 : exceptions[i]);
+      const { cache: sparse } = createSparseCache(100, 10, exceptions);
+      const { cache: full } = createCache(100, sizeFn, 10);
+
+      sparse.build();
+      full.build();
+
+      for (let offset = -5; offset <= 1500; offset += 7) {
+        expect(sparse.findIndexAtOffset(offset)).toBe(full.findIndexAtOffset(offset));
+      }
+    });
+
+    it('should skip wiped (undefined) records and records past the item count', () => {
+      const { cache } = createSparseCache(10, 10, { 2: undefined, 5: 60, 50: 999 });
+
+      cache.build();
+
+      expect(cache.getSizeAt(2)).toBe(10);
+      expect(cache.getSizeAt(5)).toBe(60);
+      expect(cache.getTotalSize()).toBe(150); // 10 * 10 + (60 - 10)
+    });
+
+    it('should fall back to the default size when every item is an exception', () => {
+      const { cache } = createSparseCache(2, 10, { 0: 30, 1: 40 });
+
+      cache.build();
+
+      expect(cache.getSizeAt(0)).toBe(30);
+      expect(cache.getSizeAt(1)).toBe(40);
+      expect(cache.getTotalSize()).toBe(70);
+    });
+
+    it('should rebuild into uniform mode when the exceptions empty out', () => {
+      const { cache, exceptions } = createSparseCache(100, 10, { 5: 60 });
+
+      cache.build();
+
+      expect(cache.getTotalSize()).toBe(1050);
+
+      delete exceptions[5];
+      cache.invalidate();
+      cache.build();
+
+      expect(cache.getTotalSize()).toBe(1000);
+      expect(cache.getSizeAt(5)).toBe(10);
+    });
+
+    it('should clear sparse state on invalidate', () => {
+      const { cache } = createSparseCache(100, 10, { 5: 60 });
+
+      cache.build();
+      cache.invalidate();
+
+      expect(cache.isCurrent()).toBe(false);
+      expect(cache.getOffset(50)).toBe(0);
+      expect(cache.getTotalSize()).toBe(0);
     });
   });
 });

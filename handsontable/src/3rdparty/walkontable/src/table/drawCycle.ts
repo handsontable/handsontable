@@ -4,6 +4,12 @@ import {
   CLONE_BOTTOM,
   CLONE_BOTTOM_INLINE_START_CORNER,
 } from '../overlay';
+import {
+  adjustColumnHeaderHeights,
+  markOversizedRows,
+  resetOversizedRows,
+  syncOversizedColumnHeadersWithFrozenOverlays,
+} from '../axisSizing/oversizedRows';
 import type Table from './baseTable';
 import type { default as Overlays } from '../overlay/overlays';
 
@@ -131,7 +137,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
     // header heights can drift against the frozen overlays during scrolling (a tall wrapped
     // frozen header that the master never renders). Re-sync here. The method is a cheap no-op
     // unless the grid has frozen columns with column headers, so non-frozen grids are unaffected.
-    table.syncOversizedColumnHeadersWithFrozenOverlays();
+    syncOversizedColumnHeadersWithFrozenOverlays(table);
   } else {
     table.tableOffset = table.deps.geometryReader.offset(table.TABLE);
 
@@ -173,7 +179,7 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
       }
 
       wtOverlays.refresh(false);
-      table.syncOversizedColumnHeadersWithFrozenOverlays();
+      syncOversizedColumnHeadersWithFrozenOverlays(table);
       wtOverlays.applyToDOM();
 
       wtSettings.getSetting('onDraw', true);
@@ -304,7 +310,7 @@ function renderCellBand(
 
   table.tableRenderer.setColumnHeadersRenderSkippable(columnHeadersRenderSkippable);
 
-  table.resetOversizedRows();
+  const wipedOversizedRows = resetOversizedRows(table);
 
   table.tableRenderer
     .setActiveOverlayName(table.name)
@@ -312,10 +318,10 @@ function renderCellBand(
     .setFilters(filters.rowFilter, filters.columnFilter)
     .render();
 
-  table.adjustColumnHeaderHeights();
+  adjustColumnHeaderHeights(table);
 
   if (table.isMaster || table.is(CLONE_BOTTOM)) {
-    table.markOversizedRows();
+    markOversizedRows(table, wipedOversizedRows);
   }
 }
 

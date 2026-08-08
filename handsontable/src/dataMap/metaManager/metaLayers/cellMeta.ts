@@ -4,6 +4,7 @@ import { extend, hasOwnProperty } from '../../../helpers/object';
 import { isDefined } from '../../../helpers/mixed';
 import { isUnsignedNumber } from '../../../helpers/number';
 import type ColumnMeta from './columnMeta';
+import type { CellProperties } from '../../../settings';
 
 /**
  * @class CellMeta
@@ -106,9 +107,10 @@ export default class CellMeta {
    * Creates one or more rows at specific position.
    *
    * @param {number} physicalRow The physical row index which points from what position the row is added.
+   *   Pass `null` to append at the end.
    * @param {number} amount An amount of rows to add.
    */
-  createRow(physicalRow: number, amount: number) {
+  createRow(physicalRow: number | null, amount: number) {
     this.metas.insert(physicalRow, amount);
   }
 
@@ -116,9 +118,10 @@ export default class CellMeta {
    * Creates one or more columns at specific position.
    *
    * @param {number} physicalColumn The physical column index which points from what position the column is added.
+   *   Pass `null` to append at the end.
    * @param {number} amount An amount of columns to add.
    */
-  createColumn(physicalColumn: number, amount: number) {
+  createColumn(physicalColumn: number | null, amount: number) {
     // Iterate only materialized rows. Evicted/unmaterialized rows hold no cell meta to shift, so
     // re-creating them here (the previous `obtain(i)` over `size()`) would needlessly re-inflate
     // memory and add O(total rows) work after a viewport eviction.
@@ -159,7 +162,7 @@ export default class CellMeta {
    * @param {string} [key] If the key exists its value will be returned, otherwise the whole cell meta object.
    * @returns {object}
    */
-  getMeta(physicalRow: number, physicalColumn: number): Record<string, unknown>;
+  getMeta(physicalRow: number, physicalColumn: number): CellProperties;
   /**
    * Returns the value of the specified property key from the cell meta object at the given physical row and column.
    */
@@ -167,7 +170,7 @@ export default class CellMeta {
   /**
    * Returns the cell meta object or a specific property value from it, depending on whether a key is provided.
    */
-  getMeta(physicalRow: number, physicalColumn: number, key?: string): Record<string, unknown> | unknown {
+  getMeta(physicalRow: number, physicalColumn: number, key?: string): CellProperties | unknown {
     const cellMeta = this.metas.obtain(physicalRow).obtain(physicalColumn);
 
     if (key === undefined) {
@@ -191,6 +194,20 @@ export default class CellMeta {
   }
 
   /**
+   * Returns the stored cell meta object for the given coordinates, or `undefined` when the cell
+   * has no materialized meta. Unlike `getMeta`, it never creates row or cell objects, so it is
+   * safe for bulk scans; unlike `hasMeta` followed by `getMeta`, it resolves in two map lookups
+   * instead of five, which matters on the per-cell read path.
+   *
+   * @param {number} physicalRow The physical row index.
+   * @param {number} physicalColumn The physical column index.
+   * @returns {object|undefined}
+   */
+  getMetaIfExists(physicalRow: number, physicalColumn: number): CellProperties | undefined {
+    return this.metas.getIfExists(physicalRow)?.getIfExists(physicalColumn);
+  }
+
+  /**
    * Creates a cell meta object inheriting from the column layer without storing it in the map. The
    * returned object is transient (eligible for garbage collection) and carries no per-cell overrides,
    * so it must only be used for reads that do not need persisted per-cell meta.
@@ -198,7 +215,7 @@ export default class CellMeta {
    * @param {number} physicalColumn The physical column index.
    * @returns {object}
    */
-  createTransientMeta(physicalColumn: number): Record<string, unknown> {
+  createTransientMeta(physicalColumn: number): CellProperties {
     return this._createMeta(physicalColumn);
   }
 
@@ -257,8 +274,8 @@ export default class CellMeta {
    *
    * @returns {object[]}
    */
-  getMetas(): Record<string, unknown>[] {
-    const metas: Record<string, unknown>[] = [];
+  getMetas(): CellProperties[] {
+    const metas: CellProperties[] = [];
     const rows = Array.from(this.metas.values());
 
     for (let row = 0; row < rows.length; row++) {
@@ -282,15 +299,13 @@ export default class CellMeta {
   getMetasAtRow(physicalRow: number) {
     assert(() => isUnsignedNumber(physicalRow), 'Expecting an unsigned number.');
 
-    const rowsMeta = new Map(
-      this.metas as unknown as Iterable<readonly [number, LazyFactoryMap<Record<string, unknown>>]>
-    );
+    const rowMeta = this.metas.getIfExists(physicalRow);
 
-    if (!rowsMeta.has(physicalRow)) {
+    if (rowMeta === undefined) {
       return [];
     }
 
-    return Array.from((rowsMeta.get(physicalRow) as LazyFactoryMap))
+    return Array.from(rowMeta)
       .sort(([a], [b]) => a - b)
       .map(([, meta]) => meta);
   }
@@ -402,7 +417,11 @@ export default class CellMeta {
    * @returns {object}
    */
   _createMeta(physicalColumn: number) {
-    const ColumnMeta = this.columnMeta.getMetaConstructor(physicalColumn) as new () => Record<string, unknown>;
+    // The constructor is produced by `columnFactory` through runtime prototype inheritance, which
+    // TypeScript cannot follow - this single cast is where the meta object type enters the layer.
+    // The prototype chain supplies every grid setting; the coordinate properties are stamped by
+    // `MetaManager` on each read, completing the `CellProperties` shape.
+    const ColumnMeta = this.columnMeta.getMetaConstructor(physicalColumn) as new () => CellProperties;
 
     return new ColumnMeta();
   }

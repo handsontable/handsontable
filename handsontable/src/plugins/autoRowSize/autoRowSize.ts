@@ -1,12 +1,12 @@
 import type { HotInstance } from '../../core/types';
 import { BasePlugin } from '../base';
-import { cancelAnimationFrame, requestAnimationFrame } from '../../helpers/feature';
+import { cancelIdleTask, requestIdleTask } from '../../helpers/feature';
 import GhostTable from '../../utils/ghostTable';
 import { isObject } from '../../helpers/object';
 import { valueAccordingPercent, rangeEach } from '../../helpers/number';
 import SamplesGenerator from '../../utils/samplesGenerator';
 import { isPercentValue } from '../../helpers/string';
-import { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
+import type { PhysicalIndexToValueMap as IndexToValueMap } from '../../translations';
 import { addClass, removeClass } from '../../helpers/dom/element';
 
 export const PLUGIN_KEY = 'autoRowSize';
@@ -248,7 +248,10 @@ export class AutoRowSize extends BasePlugin {
     let cellMeta;
 
     if (row >= 0 && column >= 0) {
-      cellMeta = this.hot.getCellMeta(row, column);
+      // The transient read resolves the full dynamic meta (hooks + `cells`, so `hidden` from
+      // merged cells works) without storing anything - this sampler sweeps every row, and the
+      // eager `getCellMeta` would permanently materialize one meta per visited cell.
+      cellMeta = this.hot.getCellMetaTransient(row, column);
 
       if (cellMeta.hidden) {
         // do not generate samples for cells that are covered by merged cell (null values)
@@ -288,7 +291,7 @@ export class AutoRowSize extends BasePlugin {
    * @private
    * @type {PhysicalIndexToValueMap}
    */
-  rowHeightsMap = new IndexToValueMap();
+  rowHeightsMap: IndexToValueMap;
   /**
    * An array of row indexes whose height will be recalculated.
    *
@@ -307,13 +310,26 @@ export class AutoRowSize extends BasePlugin {
    * @type {boolean}
    */
   #isInitialized = false;
+  /**
+   * `true` when a full row-height recalculation is already scheduled for the current
+   * column-resize gesture. Resizing several selected columns fires `beforeColumnResize` once
+   * per column in one synchronous loop — the flag coalesces those calls into a single
+   * recalculation that runs after every new width has been applied.
+   *
+   * @type {boolean}
+   */
+  #columnResizeRecalcScheduled = false;
 
   /**
    * Initializes the plugin, registers the row heights map, and sets up the row resize hook.
    */
   constructor(hotInstance: HotInstance) {
     super(hotInstance);
-    this.hot.rowIndexMapper.registerMap(ROW_WIDTHS_MAP_NAME, this.rowHeightsMap);
+    // The map holds numbers only, so re-writing an unchanged height is a no-op that must not
+    // invalidate the row-height position cache.
+    this.rowHeightsMap = this.hot.rowIndexMapper.createAndRegisterIndexMap(
+      ROW_WIDTHS_MAP_NAME, 'physicalIndexToValue', null, { skipUnchangedWrites: true },
+    );
 
     // Leave the listener active to allow auto-sizing the rows when the plugin is disabled.
     // This is necessary for height recalculation for resize handler doubleclick (ManualRowResize).
@@ -350,7 +366,7 @@ export class AutoRowSize extends BasePlugin {
 
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('beforeChangeRender', this.#onBeforeChange);
-    this.addHook('beforeColumnResize', () => this.recalculateAllRowsHeight());
+    this.addHook('beforeColumnResize', this.#onBeforeColumnResize);
     this.addHook('afterFormulasValuesUpdate', this.#onAfterFormulasValuesUpdate);
     this.addHook('beforeViewRender', this.#onBeforeViewRender);
     this.addHook('beforeRender', this.#onBeforeRender);
@@ -427,7 +443,11 @@ export class AutoRowSize extends BasePlugin {
     const rowsRange = typeof rowRange === 'number' ? { from: rowRange, to: rowRange } : rowRange;
     const columnsRange = typeof colRange === 'number' ? { from: colRange, to: colRange } : colRange;
 
-    if (this.hot.getColHeader(0) !== null) {
+    // The cached header height is reused unless the caller explicitly overwrites the cache
+    // (full renders triggered by data or settings changes do). Without this guard, every
+    // render — including selection-driven ones — would re-sample the header row across all
+    // columns and force a ghost-table reflow even when every height is already cached.
+    if ((overwriteCache || this.headerHeight === null) && this.hot.getColHeader(0) !== null) {
       const samples = this.samplesGenerator.generateRowSamples(-1, columnsRange);
 
       this.ghostTable.addColumnHeadersRow(samples.get(-1));
@@ -485,7 +505,7 @@ export class AutoRowSize extends BasePlugin {
     const loop = () => {
       // When hot was destroyed after calculating finished cancel frame
       if (!this.hot) {
-        cancelAnimationFrame(timer);
+        cancelIdleTask(timer);
         this.inProgress = false;
 
         return;
@@ -499,9 +519,9 @@ export class AutoRowSize extends BasePlugin {
       current = current + AutoRowSize.CALCULATION_STEP + 1;
 
       if (current < length) {
-        timer = requestAnimationFrame(loop);
+        timer = requestIdleTask(loop);
       } else {
-        cancelAnimationFrame(timer);
+        cancelIdleTask(timer);
         this.inProgress = false;
 
         // @TODO Should call once per render cycle, currently fired separately in different plugins
@@ -760,6 +780,25 @@ export class AutoRowSize extends BasePlugin {
   };
 
   /**
+   * Schedules a single full row-height recalculation per column-resize gesture. The hook fires
+   * once per selected column, so the recalculation is deferred until the gesture's synchronous
+   * loop (and the render that applies the new widths) has finished — the heights are then
+   * measured once, against the final column widths.
+   */
+  #onBeforeColumnResize = () => {
+    if (this.#columnResizeRecalcScheduled) {
+      return;
+    }
+
+    this.#columnResizeRecalcScheduled = true;
+
+    this.hot._registerTimeout(() => {
+      this.#columnResizeRecalcScheduled = false;
+      this.recalculateAllRowsHeight();
+    }, 0);
+  };
+
+  /**
    * Recalculates the row height from content on a double-click and returns it as the new
    * size; returns the user-dragged size otherwise.
    */
@@ -790,17 +829,15 @@ export class AutoRowSize extends BasePlugin {
    * recalculated on the next render.
    */
   #onBeforeChange = (changes: unknown[][]) => {
-    const changedRows = changes.reduce<number[]>((acc, [row]: unknown[]) => {
-      const rowIndex = Number(row);
+    const changedRows = new Set<number>();
 
-      if (acc.indexOf(rowIndex) === -1) {
-        acc.push(rowIndex);
-      }
+    changes.forEach(([row]: unknown[]) => {
+      changedRows.add(Number(row));
+    });
 
-      return acc;
-    }, [] as number[]);
-
-    this.#visualRowsToRefresh.push(...changedRows);
+    changedRows.forEach((rowIndex) => {
+      this.#visualRowsToRefresh.push(rowIndex);
+    });
   };
 
   /**
