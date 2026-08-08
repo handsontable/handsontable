@@ -153,3 +153,182 @@ export function normalizeValueForFormulaEngine(value: unknown) {
 
   return value;
 }
+
+/**
+ * A formula reference token with a stable color index for editor and grid highlighting.
+ */
+export type FormulaReferenceToken = {
+  start: number;
+  end: number;
+  colorIndex: number;
+};
+
+/**
+ * Parsed A1-style cell, column, row, or range reference (0-based HyperFormula indexes).
+ * `toRow`/`toCol` may be `Infinity` for whole-column or whole-row references.
+ */
+export type ParsedCellReference = {
+  sheetName: string | null;
+  fromRow: number;
+  fromCol: number;
+  toRow: number;
+  toCol: number;
+};
+
+/**
+ * Converts a 1-based column index to an Excel column letter string.
+ *
+ * @param {number} colIndex 1-based column index.
+ * @returns {string}
+ */
+export function colIndexToLetter(colIndex: number): string {
+  let letter = '';
+  let n = colIndex;
+
+  while (n > 0) {
+    const remainder = (n - 1) % 26;
+
+    letter = String.fromCharCode(65 + remainder) + letter;
+    n = Math.floor((n - 1) / 26);
+  }
+
+  return letter;
+}
+
+/**
+ * Converts an Excel column letter string to a 1-based column index.
+ *
+ * @param {string} letters Column letter string.
+ * @returns {number}
+ */
+export function colLetterToIndex(letters: string): number {
+  let index = 0;
+  const upperLetters = letters.toUpperCase();
+
+  for (let i = 0; i < upperLetters.length; i++) {
+    index = (index * 26) + (upperLetters.charCodeAt(i) - 64);
+  }
+
+  return index;
+}
+
+/**
+ * Parses an A1-style cell, column, row, or range reference token into 0-based HyperFormula indexes.
+ *
+ * @param {string} text Reference token text.
+ * @returns {ParsedCellReference|null}
+ */
+export function parseCellReferenceToken(text: string): ParsedCellReference | null {
+  const sheetPrefixMatch = text.match(/^(?:(?:'([^']+)'|(\w+))!)?/i);
+  const sheetName = sheetPrefixMatch?.[1] ?? sheetPrefixMatch?.[2] ?? null;
+  const addressPart = sheetPrefixMatch?.[0] ? text.slice(sheetPrefixMatch[0].length) : text;
+  const columnMatch = addressPart.match(/^(\$?)([A-Za-z]{1,3}):(\$?)([A-Za-z]{1,3})$/i);
+
+  if (columnMatch !== null) {
+    const fromCol = colLetterToIndex(columnMatch[2]) - 1;
+    const toCol = colLetterToIndex(columnMatch[4]) - 1;
+
+    return {
+      sheetName,
+      fromRow: 0,
+      fromCol: Math.min(fromCol, toCol),
+      toRow: Number.POSITIVE_INFINITY,
+      toCol: Math.max(fromCol, toCol),
+    };
+  }
+
+  const rowMatch = addressPart.match(/^(\$?)(\d{1,7}):(\$?)(\d{1,7})$/i);
+
+  if (rowMatch !== null) {
+    const fromRow = Number.parseInt(rowMatch[2], 10) - 1;
+    const toRow = Number.parseInt(rowMatch[4], 10) - 1;
+
+    return {
+      sheetName,
+      fromRow: Math.min(fromRow, toRow),
+      fromCol: 0,
+      toRow: Math.max(fromRow, toRow),
+      toCol: Number.POSITIVE_INFINITY,
+    };
+  }
+
+  const [startCorner, endCorner = startCorner] = addressPart.split(':');
+  const fromCorner = parseCellReferenceCorner(startCorner);
+  const toCorner = parseCellReferenceCorner(endCorner);
+
+  if (fromCorner === null || toCorner === null) {
+    return null;
+  }
+
+  return {
+    sheetName,
+    fromRow: Math.min(fromCorner.row, toCorner.row),
+    fromCol: Math.min(fromCorner.col, toCorner.col),
+    toRow: Math.max(fromCorner.row, toCorner.row),
+    toCol: Math.max(fromCorner.col, toCorner.col),
+  };
+}
+
+/**
+ * Parses a single A1-style cell corner into 0-based HyperFormula indexes.
+ *
+ * @param {string} corner Single cell address without a sheet prefix.
+ * @returns {{ row: number; col: number }|null}
+ */
+function parseCellReferenceCorner(corner: string): { row: number; col: number } | null {
+  const match = corner.match(/^(\$?)([A-Za-z]{1,3})(\$?)(\d{1,7})$/i);
+
+  if (match === null) {
+    return null;
+  }
+
+  return {
+    col: colLetterToIndex(match[2]) - 1,
+    row: Number.parseInt(match[4], 10) - 1,
+  };
+}
+
+/**
+ * Extracts all A1-style cell, column, row, and range references from a formula.
+ *
+ * @param {string} formula Formula string.
+ * @returns {FormulaReferenceToken[]} Character ranges of each reference occurrence with stable color indexes.
+ */
+export function referencesFromFormula(formula: string): FormulaReferenceToken[] {
+  const stringLiteralRanges: Array<{ start: number; end: number }> = [];
+
+  for (const match of formula.matchAll(/"[^"\\]*(?:\\.[^"\\]*)*"/g)) {
+    stringLiteralRanges.push({
+      start: match.index,
+      end: match.index + match[0].length,
+    });
+  }
+
+  const colorMap = new Map<string, number>();
+  let nextColorIndex = 0;
+  const ranges: FormulaReferenceToken[] = [];
+
+  // eslint-disable-next-line max-len
+  for (const match of formula.matchAll(/(?:(?:'[^']+'|\w+)!)?(?:\$?[A-Za-z]{1,3}\$?[0-9]{1,7}(?::\$?[A-Za-z]{1,3}\$?[0-9]{1,7})?|\$?[A-Za-z]{1,3}:\$?[A-Za-z]{1,3}|\$?[0-9]{1,7}:\$?[0-9]{1,7})/g)) {
+    const start = match.index;
+    const text = match[0];
+    const upperText = text.toUpperCase();
+
+    if (stringLiteralRanges.some(({ start: literalStart, end }) => start >= literalStart && start < end)) {
+      continue;
+    }
+
+    if (!colorMap.has(text)) {
+      colorMap.set(text, (nextColorIndex % 10) + 1);
+      nextColorIndex += 1;
+    }
+
+    ranges.push({
+      start,
+      end: start + text.length,
+      colorIndex: colorMap.get(text) ?? 1,
+    });
+  }
+
+  return ranges;
+}

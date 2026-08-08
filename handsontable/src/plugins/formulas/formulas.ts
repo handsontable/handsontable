@@ -27,6 +27,12 @@ import type AxisSyncer from './indexSyncer/axisSyncer';
 import type { HyperFormulaEngine } from './engine/types';
 import type { CellChange } from '../../settings';
 import type CellRange from '../../3rdparty/walkontable/src/cell/range';
+import {
+  clearFormulaReferenceHighlights,
+  updateFormulaReferenceHighlights,
+} from './engine/referenceHighlighter';
+import type { FormulaReferenceHighlight } from './engine/referenceHighlighter';
+import { TextEditor } from '../../editors/textEditor/textEditor';
 
 /**
  * Represents a cell change from the HyperFormula engine.
@@ -480,6 +486,8 @@ export class Formulas extends BasePlugin {
     this.addHook('afterDetachChild', this.#onAfterDetachChild);
     this.addHook('beforeAutofill', this.#onBeforeAutofill);
 
+    this.addHook('afterBeginEditing', this.#onAfterBeginEditing);
+
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine!.on(eventName, listener));
 
     super.enablePlugin();
@@ -498,6 +506,56 @@ export class Formulas extends BasePlugin {
     this.engine = null;
 
     super.disablePlugin();
+  }
+
+  /**
+   * Clears formula reference grid highlights on this instance.
+   */
+  clearFormulaReferenceHighlights(): void {
+    const { customSelections } = this.hot.selection.highlight;
+
+    for (let index = customSelections.length - 1; index >= 0; index -= 1) {
+      const customSelection = customSelections[index];
+      const selectionId = customSelection.settings.id;
+
+      if (typeof selectionId === 'string' && selectionId.startsWith('formula-ref-')) {
+        customSelection.destroy();
+        customSelections.splice(index, 1);
+      }
+    }
+
+    this.hot.view.render();
+  }
+
+  /**
+   * Applies formula reference grid highlights on this instance.
+   *
+   * @param {FormulaReferenceHighlight[]} highlights Resolved highlight descriptors.
+   */
+  setFormulaReferenceHighlights(highlights: FormulaReferenceHighlight[]): void {
+    this.clearFormulaReferenceHighlights();
+
+    highlights.forEach((highlight, index) => {
+      const fromCoords = this.hot._createCellCoords(highlight.fromRow, highlight.fromCol);
+      const toCoords = this.hot._createCellCoords(highlight.toRow, highlight.toCol);
+      const visualCellRange = this.hot._createCellRange(fromCoords, fromCoords, toCoords);
+      const borderColor = `var(--ht-formula-reference-color-${highlight.colorIndex})`;
+
+      this.hot.selection.highlight.addCustomSelection({
+        id: `formula-ref-${index}`,
+        ...(highlight.isActive ? {
+          className: `formula-reference-area-${highlight.colorIndex}`,
+        } : {}),
+        border: {
+          width: 2,
+          color: borderColor,
+          cornerVisible: false,
+        },
+        visualCellRange,
+      });
+    });
+
+    this.hot.view.render();
   }
 
   /**
@@ -1573,5 +1631,59 @@ export class Formulas extends BasePlugin {
       });
     });
   };
+
+  /**
+   * Schedules formula reference grid highlights when editing begins.
+   */
+  #onAfterBeginEditing = () => {
+    const editor = this.hot.getActiveEditor();
+
+    if (!(editor instanceof TextEditor)) {
+      return;
+    }
+
+    this.eventManager.addEventListener(
+      editor.TEXTAREA,
+      'input',
+      () => this.#updateFormulaReferenceHighlights(),
+    );
+
+    this.eventManager.addEventListener(
+      editor.TEXTAREA,
+      'selectionchange',
+      () => this.#updateFormulaReferenceHighlights(),
+    );
+
+    const previousCloseCallback = editor._closeCallback;
+
+    editor._closeCallback = (result) => {
+      if (previousCloseCallback) {
+        previousCloseCallback(result);
+      }
+      clearFormulaReferenceHighlights(this.engine!);
+    };
+
+    this.#updateFormulaReferenceHighlights();
+  };
+
+  /**
+   * Reads the active editor state and schedules a formula reference highlight update.
+   */
+  #updateFormulaReferenceHighlights(): void {
+    const editor = this.hot.getActiveEditor();
+
+    if (!(editor instanceof TextEditor)) {
+      return;
+    }
+
+    const value = String(editor.getValue() ?? '');
+    const caretIndex = editor.TEXTAREA.selectionStart ?? value.length;
+
+    if (value.startsWith('=')) {
+      updateFormulaReferenceHighlights(this.hot, value, caretIndex);
+    } else {
+      clearFormulaReferenceHighlights(this.engine!);
+    }
+  }
 
 }

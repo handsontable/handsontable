@@ -36,7 +36,10 @@ Filling formula cells with [autofill](@/guides/cell-features/autofill-values/aut
 You can use formulas in a single-sheet mode or with multiple Handsontable instances with
 cross-sheet references.
 
-Double click on a cell to open the editor and preview the formula.
+Double click on a cell to open the editor and preview the formula. When you edit a
+formula, Handsontable highlights each unique cell reference in the editor with a
+distinct color. The same colors outline the referenced cells and ranges on the grid.
+Customize the palette with the `--ht-formula-reference-color-*` theme variables.
 
 ::: only-for javascript
 

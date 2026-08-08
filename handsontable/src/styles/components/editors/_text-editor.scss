@@ -32,5 +32,46 @@
         outline: none;
       }
     }
+
+    .handsontableInputReferenceHighlight {
+      display: none;
+    }
+
+    &[data-highlight-formula="true"] {
+      .handsontableInputReferenceHighlight {
+        display: block;
+        position: absolute;
+        top: 0;
+        left: 0;
+        overflow: hidden;
+        pointer-events: none;
+        color: var(--ht-cell-editor-foreground-color);
+        background-color: var(--ht-cell-editor-background-color, #ffffff);
+        box-sizing: border-box;
+      }
+
+      .handsontableInput {
+        position: relative;
+        z-index: 1;
+        color: transparent;
+        caret-color: var(--ht-cell-editor-foreground-color);
+        background-color: transparent;
+
+        &::selection {
+          background-color: color-mix(
+            in srgb,
+            var(--ht-cell-selection-background-color) 10%,
+            transparent
+          );
+          color: transparent;
+        }
+      }
+
+      @for $i from 1 through 10 {
+        .ht-formula-reference-#{$i} {
+          color: var(--ht-formula-reference-color-#{$i});
+        }
+      }
+    }
   }
 }

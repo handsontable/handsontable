@@ -10,6 +10,10 @@ import {
   getDateFromExcelDate,
   getTimeFromHfTimeFraction,
   normalizeValueForFormulaEngine,
+  colIndexToLetter,
+  colLetterToIndex,
+  parseCellReferenceToken,
+  referencesFromFormula,
 } from '../utils';
 
 describe('Formulas utils', () => {
@@ -181,6 +185,153 @@ describe('Formulas utils', () => {
       coalesceIndexesToSpans(indexes);
 
       expect(indexes).toEqual([3, 1, 2]);
+    });
+  });
+
+  describe('colIndexToLetter', () => {
+    it('should convert 1-based column indexes to letters', () => {
+      expect(colIndexToLetter(1)).toBe('A');
+      expect(colIndexToLetter(26)).toBe('Z');
+      expect(colIndexToLetter(27)).toBe('AA');
+    });
+  });
+
+  describe('colLetterToIndex', () => {
+    it('should convert column letters to 1-based indexes', () => {
+      expect(colLetterToIndex('A')).toBe(1);
+      expect(colLetterToIndex('Z')).toBe(26);
+      expect(colLetterToIndex('AA')).toBe(27);
+    });
+  });
+
+  describe('parseCellReferenceToken', () => {
+    it('should parse single-cell and range references into 0-based indexes', () => {
+      expect(parseCellReferenceToken('B2')).toEqual({
+        sheetName: null,
+        fromRow: 1,
+        fromCol: 1,
+        toRow: 1,
+        toCol: 1,
+      });
+
+      expect(parseCellReferenceToken('A1:C3')).toEqual({
+        sheetName: null,
+        fromRow: 0,
+        fromCol: 0,
+        toRow: 2,
+        toCol: 2,
+      });
+
+      expect(parseCellReferenceToken('Sheet1!D4')).toEqual({
+        sheetName: 'Sheet1',
+        fromRow: 3,
+        fromCol: 3,
+        toRow: 3,
+        toCol: 3,
+      });
+    });
+
+    it('should parse whole-column and whole-row references', () => {
+      expect(parseCellReferenceToken('A:A')).toEqual({
+        sheetName: null,
+        fromRow: 0,
+        fromCol: 0,
+        toRow: Number.POSITIVE_INFINITY,
+        toCol: 0,
+      });
+
+      expect(parseCellReferenceToken('A:C')).toEqual({
+        sheetName: null,
+        fromRow: 0,
+        fromCol: 0,
+        toRow: Number.POSITIVE_INFINITY,
+        toCol: 2,
+      });
+
+      expect(parseCellReferenceToken('1:3')).toEqual({
+        sheetName: null,
+        fromRow: 0,
+        fromCol: 0,
+        toRow: 2,
+        toCol: Number.POSITIVE_INFINITY,
+      });
+
+      expect(parseCellReferenceToken('Sheet1!$A:$A')).toEqual({
+        sheetName: 'Sheet1',
+        fromRow: 0,
+        fromCol: 0,
+        toRow: Number.POSITIVE_INFINITY,
+        toCol: 0,
+      });
+    });
+
+    it('should return null for non-cell tokens', () => {
+      expect(parseCellReferenceToken('TOTAL_SALES')).toBeNull();
+    });
+  });
+
+  describe('referencesFromFormula', () => {
+    it('should extract basic cell coordinates', () => {
+      const formula = 'A1 + $B$12 * C$5';
+      const ranges = referencesFromFormula(formula);
+
+      expect(ranges.map(({ start, end }) => formula.slice(start, end))).toEqual(['A1', '$B$12', 'C$5']);
+    });
+
+    it('should extract lowercase cell coordinates', () => {
+      const formula = 'a1 + $b$12 * c$5';
+      const ranges = referencesFromFormula(formula);
+
+      expect(ranges.map(({ start, end }) => formula.slice(start, end))).toEqual(['a1', '$b$12', 'c$5']);
+    });
+
+    it('should extract cell bounding ranges', () => {
+      const formula = 'SUM(A1:B10, $C$1:$D$5)';
+      const ranges = referencesFromFormula(formula);
+
+      expect(ranges.map(({ start, end }) => formula.slice(start, end))).toEqual(['A1:B10', '$C$1:$D$5']);
+    });
+
+    it('should extract whole-column and whole-row references', () => {
+      const formula = 'SUM(A:A) + AVERAGE(1:3)';
+      const ranges = referencesFromFormula(formula);
+
+      expect(ranges.map(({ start, end }) => formula.slice(start, end))).toEqual(['A:A', '1:3']);
+    });
+
+    it('should extract standard and quoted cross-sheet references', () => {
+      const formula = 'Sheet1!A1 + \'Sales Data\'!$B$5';
+      const ranges = referencesFromFormula(formula);
+
+      expect(ranges.map(({ start, end }) => formula.slice(start, end))).toEqual(['Sheet1!A1', '\'Sales Data\'!$B$5']);
+    });
+
+    it('should ignore words hidden inside quoted text strings', () => {
+      const formula = 'IF(A1="TOTAL_SALES", "Ignore Sheet1!A1 text", B2)';
+      const ranges = referencesFromFormula(formula);
+
+      expect(ranges.map(({ start, end }) => formula.slice(start, end))).toEqual(['A1', 'B2']);
+    });
+
+    it('should return every occurrence of identical formula tokens', () => {
+      const formula = 'A1 + TOTAL_SALES - A1 + TOTAL_SALES';
+      const ranges = referencesFromFormula(formula);
+
+      expect(ranges.map(({ start, end }) => formula.slice(start, end))).toEqual(['A1', 'A1']);
+    });
+
+    it('should assign stable color indexes per unique reference text', () => {
+      const formula = 'A1 + TOTAL_SALES - A1 + B2';
+      const tokens = referencesFromFormula(formula);
+
+      expect(tokens.map(({ start, end, colorIndex }) => ({
+        text: formula.slice(start, end),
+        colorIndex,
+      }))).toEqual([
+        { text: 'A1', colorIndex: 1 },
+        { text: 'A1', colorIndex: 1 },
+        { text: 'B2', colorIndex: 2 },
+      ]);
     });
   });
 });

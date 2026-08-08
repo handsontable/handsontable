@@ -18,6 +18,7 @@
   },
   "dependencies": {
     "handsontable": "latest",
+    "hyperformula": "latest",
     "@handsontable/pikaday": "^1.0.0"
   },
   "devDependencies": {

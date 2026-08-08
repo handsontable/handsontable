@@ -5,6 +5,10 @@
  * and has no generic Excel formula equivalent.  When `exportFormulas` is `true`,
  * cells with a `custom` summary type fall back to their pre-calculated static value.
  */
+import { colIndexToLetter, colLetterToIndex } from '../../../formulas/utils';
+
+export { colIndexToLetter, colLetterToIndex };
+
 const SUMMARY_TYPE_TO_EXCEL_FN: Record<string, string> = {
   sum: 'SUM',
   min: 'MIN',
@@ -12,48 +16,6 @@ const SUMMARY_TYPE_TO_EXCEL_FN: Record<string, string> = {
   count: 'COUNT',
   average: 'AVERAGE',
 };
-
-/**
- * Converts a 1-based column index to an Excel column letter string.
- *
- * Examples: 1 → `'A'`, 26 → `'Z'`, 27 → `'AA'`, 28 → `'AB'`.
- *
- * @private
- * @param {number} colIndex 1-based column index.
- * @returns {string}
- */
-export function colIndexToLetter(colIndex: number): string {
-  let letter = '';
-  let n = colIndex;
-
-  while (n > 0) {
-    const remainder = (n - 1) % 26;
-
-    letter = String.fromCharCode(65 + remainder) + letter;
-    n = Math.floor((n - 1) / 26);
-  }
-
-  return letter;
-}
-
-/**
- * Converts an Excel column letter string to a 1-based column index.
- *
- * Examples: `'A'` → 1, `'Z'` → 26, `'AA'` → 27.
- *
- * @private
- * @param {string} letters Column letter string (uppercase).
- * @returns {number}
- */
-export function colLetterToIndex(letters: string): number {
-  let index = 0;
-
-  for (let i = 0; i < letters.length; i++) {
-    index = (index * 26) + (letters.charCodeAt(i) - 64);
-  }
-
-  return index;
-}
 
 /**
  * Returns `true` when `value` is a string that starts with `=` (a formula).

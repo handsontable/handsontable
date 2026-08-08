@@ -85,6 +85,8 @@ export class SelectionScanner {
     } else if (selectionType === 'column') {
       this.scanColumnsInHeadersRange((element: HTMLElement) => elements.add(element));
       this.scanColumnsInCellsRange((element: HTMLElement) => elements.add(element));
+    } else if (selectionType === 'custom-selection') {
+      this.scanCellsRange((element: HTMLElement) => elements.add(element));
     }
 
     return elements;

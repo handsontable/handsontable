@@ -12,8 +12,13 @@ import VisualSelection from '../visualSelection';
  * @returns {Selection}
  */
 export function createHighlight({ border, visualCellRange, ...restOptions }: Record<string, unknown>) {
+  const isCellBorderObject = border !== null &&
+    typeof border === 'object' &&
+    'row' in border &&
+    'col' in border;
+
   return new VisualSelection({
-    ...(border as Record<string, unknown>),
+    ...(isCellBorderObject ? border as Record<string, unknown> : { border }),
     ...restOptions,
     selectionType: HIGHLIGHT_CUSTOM_SELECTION_TYPE,
   }, visualCellRange as CellRange | null);

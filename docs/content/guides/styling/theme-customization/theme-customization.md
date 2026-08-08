@@ -453,6 +453,16 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-editor-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellEditorBackgroundColor` </div>  | Background color of cell editors    |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-editor-shadow-blur-radius` </div><div class="variables-table__item"><span>JS:</span> `cellEditorShadowBlurRadius` </div> | Shadow blur radius for cell editors |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-editor-shadow-color` </div><div class="variables-table__item"><span>JS:</span> `cellEditorShadowColor` </div>      | Shadow color for cell editors       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-formula-reference-color-1` </div><div class="variables-table__item"><span>JS:</span> `formulaReferenceColor1` </div>  | First formula reference color in the cell editor |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-formula-reference-color-2` </div><div class="variables-table__item"><span>JS:</span> `formulaReferenceColor2` </div>  | Second formula reference color in the cell editor |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-formula-reference-color-3` </div><div class="variables-table__item"><span>JS:</span> `formulaReferenceColor3` </div>  | Third formula reference color in the cell editor |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-formula-reference-color-4` </div><div class="variables-table__item"><span>JS:</span> `formulaReferenceColor4` </div>  | Fourth formula reference color in the cell editor |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-formula-reference-color-5` </div><div class="variables-table__item"><span>JS:</span> `formulaReferenceColor5` </div>  | Fifth formula reference color in the cell editor |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-formula-reference-color-6` </div><div class="variables-table__item"><span>JS:</span> `formulaReferenceColor6` </div>  | Sixth formula reference color in the cell editor |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-formula-reference-color-7` </div><div class="variables-table__item"><span>JS:</span> `formulaReferenceColor7` </div>  | Seventh formula reference color in the cell editor |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-formula-reference-color-8` </div><div class="variables-table__item"><span>JS:</span> `formulaReferenceColor8` </div>  | Eighth formula reference color in the cell editor |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-formula-reference-color-9` </div><div class="variables-table__item"><span>JS:</span> `formulaReferenceColor9` </div>  | Ninth formula reference color in the cell editor |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-formula-reference-color-10` </div><div class="variables-table__item"><span>JS:</span> `formulaReferenceColor10` </div> | Tenth formula reference color in the cell editor |
 
 #### Cell State Variables
 

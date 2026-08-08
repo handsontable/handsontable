@@ -37,6 +37,17 @@
       );
     }
 
+    @for $i from 1 through 10 {
+      td.formula-reference-area-#{$i} {
+        @include mixins.area-styles;
+
+        &::before {
+          background: var(--ht-formula-reference-color-#{$i});
+          opacity: mixins.get-opacity(0);
+        }
+      }
+    }
+
     // Borders
     .wtBorder {
       position: absolute;

@@ -101,6 +101,16 @@
   --ht-cell-editor-background-color: var(--ht-background-color);
   --ht-cell-editor-shadow-blur-radius: 0px;
   --ht-cell-editor-shadow-color: var(--ht-accent-color);
+  --ht-formula-reference-color-1: #e53935ff;
+  --ht-formula-reference-color-2: #1e88e5ff;
+  --ht-formula-reference-color-3: #43a047ff;
+  --ht-formula-reference-color-4: #8e24aaff;
+  --ht-formula-reference-color-5: #fb8c00ff;
+  --ht-formula-reference-color-6: #00897bff;
+  --ht-formula-reference-color-7: #d81b60ff;
+  --ht-formula-reference-color-8: #6d4c41ff;
+  --ht-formula-reference-color-9: #757575ff;
+  --ht-formula-reference-color-10: #827717ff;
   --ht-cell-mobile-handle-size: var(--ht-sizing-size-3);
   --ht-cell-mobile-handle-border-width: var(--ht-sizing-size-0-25);
   --ht-cell-mobile-handle-border-radius: var(--ht-sizing-size-3);

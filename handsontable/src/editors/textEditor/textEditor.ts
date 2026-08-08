@@ -5,6 +5,7 @@ import EventManager from '../../eventManager';
 import { isEdge, isIOS } from '../../helpers/browser';
 import {
   addClass,
+  empty,
   isInternalElement,
   setCaretPosition,
   hasClass,
@@ -14,6 +15,7 @@ import {
 import { rangeEach } from '../../helpers/number';
 import { createInputElementResizer } from '../../utils/autoResize';
 import { isDefined } from '../../helpers/mixed';
+import { referencesFromFormula } from '../../plugins/formulas/utils';
 import { updateCaretPosition } from './caretPositioner';
 import {
   A11Y_TABINDEX,
@@ -88,6 +90,11 @@ export class TextEditor extends BaseEditor {
   declare layerClass: string;
 
   /**
+   * Overlay element that renders colored formula references beneath the textarea.
+   */
+  #referenceHighlightLayer!: HTMLDivElement;
+
+  /**
    * @param {Core} hotInstance The Handsontable instance.
    */
   constructor(hotInstance: HotInstance) {
@@ -116,6 +123,7 @@ export class TextEditor extends BaseEditor {
    */
   setValue(newValue?: unknown): void {
     this.TEXTAREA.value = newValue as string;
+    this.#updateReferenceHighlight();
   }
 
   /**
@@ -241,6 +249,11 @@ export class TextEditor extends BaseEditor {
 
     this.textareaParentStyle = this.TEXTAREA_PARENT.style;
 
+    this.#referenceHighlightLayer = rootDocument.createElement('DIV') as HTMLDivElement;
+    addClass(this.#referenceHighlightLayer, 'handsontableInputReferenceHighlight');
+    this.#referenceHighlightLayer.setAttribute('aria-hidden', 'true');
+
+    this.TEXTAREA_PARENT.appendChild(this.#referenceHighlightLayer);
     this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
     this.hot.rootElement.appendChild(this.TEXTAREA_PARENT);
   }
@@ -367,6 +380,8 @@ export class TextEditor extends BaseEditor {
       maxWidth,
       maxHeight,
     }, true);
+
+    this.#updateReferenceHighlight();
   }
 
   /**
@@ -379,6 +394,10 @@ export class TextEditor extends BaseEditor {
       // on iOS after click "Done" the edit isn't hidden by default, so we need to handle it manually.
       this.eventManager.addEventListener(this.TEXTAREA, 'focusout', () => this.finishEditing(false));
     }
+
+    this.eventManager.addEventListener(this.TEXTAREA, 'input', () => this.#updateReferenceHighlight());
+    this.eventManager.addEventListener(this.TEXTAREA, 'scroll', () => this.#syncReferenceHighlightLayout());
+    new ResizeObserver(() => this.#syncReferenceHighlightLayout()).observe(this.TEXTAREA);
 
     this.addHook('afterScrollHorizontally', () => this.refreshDimensions());
     this.addHook('afterScrollVertically', () => this.refreshDimensions());
@@ -475,5 +494,70 @@ export class TextEditor extends BaseEditor {
     const editorContext = shortcutManager.getContext('editor');
 
     editorContext!.removeShortcutsByGroup(SHORTCUTS_GROUP);
+  }
+
+  /**
+   * Mirrors textarea layout styles on the reference highlight layer.
+   */
+  #syncReferenceHighlightLayout(): void {
+    const textareaComputedStyle = this.hot.rootWindow.getComputedStyle(this.TEXTAREA);
+    const highlightStyle = this.#referenceHighlightLayer.style;
+
+    highlightStyle.width = this.TEXTAREA.style.width;
+    highlightStyle.height = this.TEXTAREA.style.height;
+    highlightStyle.minWidth = this.TEXTAREA.style.minWidth;
+    highlightStyle.maxWidth = this.TEXTAREA.style.maxWidth;
+    highlightStyle.fontSize = textareaComputedStyle.fontSize;
+    highlightStyle.fontFamily = textareaComputedStyle.fontFamily;
+    highlightStyle.fontWeight = textareaComputedStyle.fontWeight;
+    highlightStyle.letterSpacing = textareaComputedStyle.letterSpacing;
+    highlightStyle.lineHeight = textareaComputedStyle.lineHeight;
+    highlightStyle.padding = textareaComputedStyle.padding;
+    highlightStyle.boxSizing = textareaComputedStyle.boxSizing;
+    highlightStyle.whiteSpace = 'pre-wrap';
+    highlightStyle.wordWrap = 'break-word';
+    highlightStyle.overflow = textareaComputedStyle.overflow;
+    this.#referenceHighlightLayer.scrollTop = this.TEXTAREA.scrollTop;
+    this.#referenceHighlightLayer.scrollLeft = this.TEXTAREA.scrollLeft;
+  }
+
+  /**
+   * Renders colored formula references in the highlight overlay.
+   */
+  #updateReferenceHighlight(): void {
+    const isFormula = !!this.hot.getSettings().formulas && this.TEXTAREA.value.startsWith('=');
+
+    setAttribute(this.TEXTAREA_PARENT, 'data-highlight-formula', isFormula.toString());
+
+    if (!isFormula) {
+      return;
+    }
+
+    const formula = this.TEXTAREA.value;
+    const { rootDocument } = this.hot;
+    const fragment = rootDocument.createDocumentFragment();
+    let lastIndex = 0;
+
+    referencesFromFormula(formula).forEach(({ start, end, colorIndex }) => {
+      if (start > lastIndex) {
+        fragment.appendChild(rootDocument.createTextNode(formula.slice(lastIndex, start)));
+      }
+
+      const referenceSpan = rootDocument.createElement('SPAN');
+
+      addClass(referenceSpan, `ht-formula-reference-${colorIndex}`);
+      referenceSpan.textContent = formula.slice(start, end);
+      fragment.appendChild(referenceSpan);
+
+      lastIndex = end;
+    });
+
+    if (lastIndex < formula.length) {
+      fragment.appendChild(rootDocument.createTextNode(formula.slice(lastIndex)));
+    }
+
+    empty(this.#referenceHighlightLayer);
+    this.#referenceHighlightLayer.appendChild(fragment);
+    this.#syncReferenceHighlightLayout();
   }
 }
