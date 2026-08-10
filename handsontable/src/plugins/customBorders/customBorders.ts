@@ -495,6 +495,12 @@ export class CustomBorders extends BasePlugin {
 
       if (isBorderObject(existing)) {
         border = normalizeBorder(deepClone(existing));
+        // The merge base describes THIS cell regardless of the bookkeeping fields the stored meta
+        // carries - they can be stale when the meta is a detached snapshot (e.g. UndoRedo restoring
+        // borders captured at pre-shift coordinates).
+        border.row = row;
+        border.col = column;
+        border.id = createId(row, column);
       }
 
       border = extendDefaultBorder(border, borderDescriptor);
@@ -1436,17 +1442,21 @@ The border style will be ignored.`);
    * @param {*} value The written value.
    */
   #onAfterSetCellMeta = (row: number, column: number, key: string, value: unknown) => {
-    if (this.#isInternalMetaWrite || key !== 'borders' || !isBorderObject(value)) {
+    if (this.#isInternalMetaWrite || key !== 'borders' || !isRecord(value)) {
       return;
     }
 
-    const border = normalizeBorder(deepClone(value));
-
-    border.row = row;
-    border.col = column;
-    border.id = createId(row, column);
-
-    this.insertBorderIntoSettings(border, undefined);
+    // The written value may be a complete plugin-shaped border object (UndoRedo restoring the meta
+    // of an undone removal) or a partial user-authored one (e.g. `{ top: { width: 2 } }` passed to
+    // `setCellMeta` directly), so it must not be required to carry the internal `id`/`row`/`col`
+    // bookkeeping fields. Routing it through `prepareBorderFromCustomAdded` treats it as a border
+    // descriptor for the write's coordinates. The meta key was already replaced by this write (the
+    // previous sides are gone), so the descriptor defines the cell's borders: the canonical
+    // (complete, denormalized) object is written back to the meta, an all-hidden result clears the
+    // cell, and the model entry is upserted - so meta and model cannot diverge.
+    this.prepareBorderFromCustomAdded(
+      row, column, normalizeBorder(deepClone(value) as CustomBorderConfig), undefined,
+    );
   };
 
   /**

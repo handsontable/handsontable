@@ -729,6 +729,81 @@ test.describe('CustomBorders range borders in RTL (issue #6679)', () => {
   });
 });
 
+test.describe('CustomBorders external cell-meta writes', () => {
+  test('syncs a user-authored partial borders meta write into the model and renders it', async ({ page, theme }) => {
+    const lab = await gotoLab(page, theme);
+
+    await lab.createGrid({
+      dataRows: 5, dataCols: 5,
+      customBorders: true,
+    });
+
+    // A direct `setCellMeta` write carries none of the plugin's internal bookkeeping fields
+    // (`id`/`row`/`col`) - it must still be picked up by the border model and rendered.
+    await page.evaluate(() => {
+      const hot = (window as any).hot;
+
+      hot.setCellMeta(2, 2, 'borders', { top: { width: 2, color: 'red' } });
+      hot.render();
+    });
+
+    expect(await lab.borderCoords()).toEqual([{ row: 2, col: 2 }]);
+    expect((await lab.cellBorders(2, 2))?.top).toEqual({ width: 2, color: 'red' });
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+  });
+
+  test('replaces the cell borders with the written value (meta write semantics)', async ({ page, theme }) => {
+    const lab = await gotoLab(page, theme);
+
+    await lab.createGrid({
+      dataRows: 5, dataCols: 5,
+      customBorders: [{ row: 2, col: 2, top: GREEN_BORDER }],
+    });
+
+    // `setCellMeta` replaces the `borders` key, so the write defines the cell's borders: the
+    // mentioned side is applied and the previous (unmentioned) sides are gone - model and
+    // rendering must follow the meta.
+    await page.evaluate(() => {
+      const hot = (window as any).hot;
+
+      hot.setCellMeta(2, 2, 'borders', { start: { width: 2, color: 'red' } });
+      hot.render();
+    });
+
+    const borders = await lab.cellBorders(2, 2);
+
+    expect(borders?.start).toEqual({ width: 2, color: 'red' });
+    expect(borders?.top).toEqual({ hide: true });
+    expect(await lab.borderCoords()).toEqual([{ row: 2, col: 2 }]);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+  });
+
+  test('clears the model entry when a meta write leaves no visible side', async ({ page, theme }) => {
+    const lab = await gotoLab(page, theme);
+
+    await lab.createGrid({
+      dataRows: 5, dataCols: 5,
+      customBorders: [{ row: 2, col: 2, top: GREEN_BORDER }],
+    });
+
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+
+    // Hiding the only visible side describes a border-less cell: the model entry and the meta
+    // are dropped, mirroring the plugin's own clear semantics.
+    await page.evaluate(() => {
+      const hot = (window as any).hot;
+
+      hot.setCellMeta(2, 2, 'borders', { top: { hide: true } });
+      hot.render();
+    });
+
+    expect(await lab.borderCoords()).toEqual([]);
+    expect(await lab.cellBorders(2, 2)).toBeNull();
+    expect(await lab.countVisibleCustomBorders()).toBe(0);
+    expect(await lab.countCustomBorders()).toBe(0);
+  });
+});
+
 test.describe('CustomBorders border DOM working set', () => {
   test('does not materialize custom border DOM in header-only overlays', async ({ page, theme }) => {
     const lab = await gotoLab(page, theme);
