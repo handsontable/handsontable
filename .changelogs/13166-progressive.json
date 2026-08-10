@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Added the `customBordersProgressive` option, which applies a large `customBorders` configuration in background batches so the grid renders immediately, together with the `afterCustomBordersUpdate` hook that fires once all custom borders have been applied.",
-  "type": "added",
-  "issueOrPR": 13166,
-  "breaking": false,
-  "framework": "none"
-}
