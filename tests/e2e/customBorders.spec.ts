@@ -50,3 +50,34 @@ test.describe('CustomBorders with frozen rows and columns', () => {
     expect(selections).toBeLessThan(4);
   });
 });
+
+test.describe('CustomBorders and UndoRedo', () => {
+  test.beforeEach(async ({ page, theme }) => {
+    await page.goto(`/tests/fixtures/demo/custom-borders.html?theme=${theme}`);
+    await expect(page.getByTestId('cell-0-2')).toBeVisible();
+  });
+
+  test('restores a border removed together with its row when the removal is undone', async ({ page }) => {
+    const result = await page.evaluate(async () => {
+      const hot = (window as any).hot;
+      const plugin = hot.getPlugin('customBorders');
+      const hasBorder = () => plugin.getBorders().some((b: any) => b.row === 10 && b.col === 0);
+
+      hot.alter('remove_row', 10);
+      const afterRemove = hasBorder();
+
+      hot.getPlugin('undoRedo').undo();
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      return {
+        afterRemove,
+        afterUndo: hasBorder(),
+        metaAfterUndo: Boolean(hot.getCellMeta(10, 0).borders),
+      };
+    });
+
+    expect(result.afterRemove).toBe(false);
+    expect(result.metaAfterUndo).toBe(true);
+    expect(result.afterUndo).toBe(true);
+  });
+});

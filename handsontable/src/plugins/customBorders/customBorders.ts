@@ -198,6 +198,14 @@ export class CustomBorders extends BasePlugin {
   #configPassTouched: Set<string> | null = null;
 
   /**
+   * Guards the plugin's own `borders` cell-meta writes so the `afterSetCellMeta` /
+   * `afterRemoveCellMeta` listeners react only to external writes (UndoRedo restoring meta, user
+   * code calling `setCellMeta` directly). Without it every internal write would re-enter the model
+   * upsert it originated from.
+   */
+  #isInternalMetaWrite: boolean = false;
+
+  /**
    * Pending border configuration entries for a progressive (background-batched) application, or
    * `null` when no progressive load is in flight. Set when `customBordersProgressive` is enabled.
    */
@@ -264,6 +272,8 @@ export class CustomBorders extends BasePlugin {
     this.addHook('beforeColumnMove', this.#onBeforeColumnMove);
     this.addHook('afterColumnMove', this.#onAfterColumnMove);
     this.addHook('afterViewRender', this.#onAfterViewRender);
+    this.addHook('afterSetCellMeta', this.#onAfterSetCellMeta);
+    this.addHook('afterRemoveCellMeta', this.#onAfterRemoveCellMeta);
 
     super.enablePlugin();
   }
@@ -499,7 +509,7 @@ export class CustomBorders extends BasePlugin {
       return;
     }
 
-    this.hot.setCellMeta(row, column, 'borders', denormalizeBorder(border));
+    this.#writeBordersMeta(row, column, denormalizeBorder(border));
     this.insertBorderIntoSettings(border, place);
   }
 
@@ -525,7 +535,7 @@ export class CustomBorders extends BasePlugin {
           // `#buildRangeCellBorder` already merged this cell's existing borders, so overlapping
           // ranges accumulate their sides in the model. The rendered selection is (re)built from the
           // merged model by `#syncViewportSelections` on the next view render.
-          this.hot.setCellMeta(rowIndex, colIndex, 'borders', denormalizeBorder(border));
+          this.#writeBordersMeta(rowIndex, colIndex, denormalizeBorder(border));
           this.insertBorderIntoSettings(border, undefined);
         }
       });
@@ -557,6 +567,28 @@ export class CustomBorders extends BasePlugin {
     seen.add(key);
 
     return shouldRead ? this.hot.getCellMeta<BordersCellProperties>(row, column).borders : undefined;
+  }
+
+  /**
+   * Writes or removes the plugin-owned `borders` cell meta with the re-entrancy guard raised, so
+   * the external-write listeners ignore it. Pass `null` to remove the meta.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {object|null} value The denormalized border object, or `null` to remove.
+   */
+  #writeBordersMeta(row: number, column: number, value: Record<string, unknown> | null) {
+    this.#isInternalMetaWrite = true;
+
+    try {
+      if (value === null) {
+        this.hot.removeCellMeta(row, column, 'borders');
+      } else {
+        this.hot.setCellMeta(row, column, 'borders', value);
+      }
+    } finally {
+      this.#isInternalMetaWrite = false;
+    }
   }
 
   /**
@@ -619,7 +651,7 @@ export class CustomBorders extends BasePlugin {
     // is off-screen there is nothing rendered to remove.
     this.#destroyBorderSelection(borderId);
 
-    this.hot.removeCellMeta(row, column, 'borders');
+    this.#writeBordersMeta(row, column, null);
   }
 
   /**
@@ -651,14 +683,14 @@ export class CustomBorders extends BasePlugin {
 
       } else {
         this.insertBorderIntoSettings(bordersMeta, undefined);
-        this.hot.setCellMeta(row, column, 'borders', denormalizeBorder(bordersMeta));
+        this.#writeBordersMeta(row, column, denormalizeBorder(bordersMeta));
       }
 
     } else {
       bordersMeta[place] = createDefaultCustomBorder();
 
       this.insertBorderIntoSettings(bordersMeta, undefined);
-      this.hot.setCellMeta(row, column, 'borders', denormalizeBorder(bordersMeta));
+      this.#writeBordersMeta(row, column, denormalizeBorder(bordersMeta));
     }
   }
 
@@ -822,7 +854,7 @@ export class CustomBorders extends BasePlugin {
     this.#cancelProgressiveApply();
 
     arrayEach(this.savedBorders, (border) => {
-      this.hot.removeCellMeta(border.row, border.col, 'borders');
+      this.#writeBordersMeta(border.row, border.col, null);
     });
 
     this.savedBorders = [];
@@ -1383,6 +1415,51 @@ The border style will be ignored.`);
    */
   #onAfterViewRender = () => {
     this.#syncViewportSelections();
+  };
+
+  /**
+   * `afterSetCellMeta` hook callback. Follows an external write of the `borders` cell meta (e.g.
+   * UndoRedo restoring the meta of an undone row/column removal, or user code calling
+   * `setCellMeta` directly) by upserting the matching entry in the border model, so the model and
+   * the meta cannot diverge. The plugin's own writes are excluded by the re-entrancy guard.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} key The meta key that was written.
+   * @param {*} value The written value.
+   */
+  #onAfterSetCellMeta = (row: number, column: number, key: string, value: unknown) => {
+    if (this.#isInternalMetaWrite || key !== 'borders' || !isBorderObject(value)) {
+      return;
+    }
+
+    const border = normalizeBorder(deepClone(value));
+
+    border.row = row;
+    border.col = column;
+    border.id = createId(row, column);
+
+    this.insertBorderIntoSettings(border, undefined);
+  };
+
+  /**
+   * `afterRemoveCellMeta` hook callback. Follows an external removal of the `borders` cell meta by
+   * dropping the matching entry from the border model and its rendered selection.
+   *
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {string} key The removed meta key.
+   */
+  #onAfterRemoveCellMeta = (row: number, column: number, key: string) => {
+    if (this.#isInternalMetaWrite || key !== 'borders') {
+      return;
+    }
+
+    const borderId = createId(row, column);
+
+    this.spliceBorder(borderId);
+    this.#bordersByRowDirty = true;
+    this.#destroyBorderSelection(borderId);
   };
 
   /**
