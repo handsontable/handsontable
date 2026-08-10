@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CustomBorders e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    window.htTheme = ({ horizon: 'horizon', classic: 'classic' })[new URLSearchParams(location.search).get('theme')] || 'main';
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script src="/handsontable/dist/handsontable.full.min.js"></script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    window.hot = new Handsontable(container, {
+      data: Handsontable.helper.createSpreadsheetData(50, 100),
+      colHeaders: true,
+      rowHeaders: true,
+      width: 600,
+      height: 300,
+      renderer: testIdRenderer,
+      fixedColumnsStart: 2,
+      fixedRowsTop: 2,
+      customBorders: [
+        { row: 0, col: 0,
+          top: { width: 3, color: 'red' }, bottom: { width: 3, color: 'red' },
+          left: { width: 3, color: 'red' }, right: { width: 3, color: 'red' } },
+        { row: 10, col: 0,
+          top: { width: 3, color: 'blue' }, bottom: { width: 3, color: 'blue' },
+          left: { width: 3, color: 'blue' }, right: { width: 3, color: 'blue' } },
+        { row: 0, col: 10,
+          top: { width: 3, color: 'green' }, bottom: { width: 3, color: 'green' },
+          left: { width: 3, color: 'green' }, right: { width: 3, color: 'green' } },
+        { row: 10, col: 10,
+          top: { width: 2, color: 'purple' }, bottom: { width: 2, color: 'purple' },
+          left: { width: 2, color: 'purple' }, right: { width: 2, color: 'purple' } },
+      ],
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+  </script>
+</body>
+</html>

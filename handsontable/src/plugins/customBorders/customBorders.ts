@@ -26,6 +26,8 @@ import {
   getShiftedIndexAfterInsert,
   getShiftedIndexAfterRemove,
   resolveRangeBorderSide,
+  getViewportUnionRanges,
+  isIndexInViewportUnion,
 } from './utils';
 import type { BorderSettings, BorderObject, CustomBorderConfig, BordersCellProperties } from './utils';
 import { detectSelectionType, normalizeSelectionFactory } from '../../selection';
@@ -877,25 +879,36 @@ export class CustomBorders extends BasePlugin {
       return;
     }
 
+    // Frozen rows/columns are rendered by the overlay clones even when the master rendered range
+    // excludes them, so the working window is the union of the frozen areas and the master range.
+    const settings = this.hot.getSettings();
+    const fixedRowsTop = Number(settings.fixedRowsTop) || 0;
+    const fixedRowsBottom = Number(settings.fixedRowsBottom) || 0;
+    const fixedColumnsStart = Number(settings.fixedColumnsStart) || 0;
+    const totalRows = this.hot.countRows();
+    const totalColumns = this.hot.countCols();
+    const rowRanges = getViewportUnionRanges(firstRow, lastRow, fixedRowsTop, fixedRowsBottom, totalRows);
     const shouldBeVisible = new Set<string>();
 
-    for (let row = firstRow; row <= lastRow; row++) {
-      const rowBorders = this.#bordersByRow.get(row);
+    arrayEach(rowRanges, ([fromRow, toRow]) => {
+      for (let row = fromRow; row <= toRow; row++) {
+        const rowBorders = this.#bordersByRow.get(row);
 
-      if (!rowBorders) {
-        continue; // eslint-disable-line no-continue
-      }
-
-      arrayEach(rowBorders, (border) => {
-        if (border.col >= firstColumn && border.col <= lastColumn) {
-          shouldBeVisible.add(border.id);
-
-          if (!this.#customSelectionsCache.has(border.id)) {
-            this.#addSelectionForBorder(border);
-          }
+        if (!rowBorders) {
+          continue; // eslint-disable-line no-continue
         }
-      });
-    }
+
+        arrayEach(rowBorders, (border) => {
+          if (isIndexInViewportUnion(border.col, firstColumn, lastColumn, fixedColumnsStart, 0, totalColumns)) {
+            shouldBeVisible.add(border.id);
+
+            if (!this.#customSelectionsCache.has(border.id)) {
+              this.#addSelectionForBorder(border);
+            }
+          }
+        });
+      }
+    });
 
     // Remove selections that scrolled out of the rendered range.
     arrayEach(Array.from(this.#customSelectionsCache.keys()), (borderId) => {
