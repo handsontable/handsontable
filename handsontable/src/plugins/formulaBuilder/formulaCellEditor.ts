@@ -431,6 +431,11 @@ export function createFormulaCellEditor(): BaseEditorCtor {
       const activeEditor = resolvePlugin(editor)?.getActiveEditor();
 
       if (activeEditor) {
+        // Handsontable reads this only on the commit path (`finishEditing`), so close
+        // unbalanced parens first - the core keyboard commit does the same, but a
+        // native commit (outside-grid click) would otherwise save `=SUM(A1` as-is.
+        activeEditor.closeUnbalancedParens();
+
         return activeEditor.getValue();
       }
 

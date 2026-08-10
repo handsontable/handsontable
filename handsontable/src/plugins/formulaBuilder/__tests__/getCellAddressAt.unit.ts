@@ -46,4 +46,52 @@ describe('HandsontableAdapter.getCellAddressAt', () => {
 
     expect(adapter.getCellAddressAt(10, 10)).toBeNull();
   });
+
+  it('returns null when the visual coordinates cannot be mapped to HyperFormula space', () => {
+    const overlayHost = document.createElement('div');
+
+    document.body.appendChild(overlayHost);
+
+    const hot = makeHotStub({ getCoords: () => ({ row: 1, col: 2 }) });
+    const options = makeAdapterOptions(hot, overlayHost, { visualToHfRow: () => -1 });
+    const adapter = new HandsontableAdapter(options, makePluginStub());
+    const cell = document.createElement('td');
+
+    overlayHost.appendChild(cell);
+    (document as ElementFromPointDocument).elementFromPoint = jest.fn(() => cell);
+
+    expect(adapter.getCellAddressAt(10, 10)).toBeNull();
+  });
+});
+
+describe('HandsontableAdapter.getGridSize', () => {
+  afterEach(() => {
+    document.body.replaceChildren();
+  });
+
+  it('reports the engine sheet dimensions when available', () => {
+    const overlayHost = document.createElement('div');
+
+    document.body.appendChild(overlayHost);
+
+    const hot = makeHotStub({ countRows: () => 8, countCols: () => 4 });
+    const options = {
+      ...makeAdapterOptions(hot, overlayHost),
+      getSheetDimensions: () => ({ rows: 10, cols: 6 }),
+    };
+    const adapter = new HandsontableAdapter(options, makePluginStub());
+
+    expect(adapter.getGridSize()).toEqual({ rows: 10, cols: 6 });
+  });
+
+  it('falls back to the visual counts when the engine dimensions are unavailable', () => {
+    const overlayHost = document.createElement('div');
+
+    document.body.appendChild(overlayHost);
+
+    const hot = makeHotStub({ countRows: () => 8, countCols: () => 4 });
+    const adapter = new HandsontableAdapter(makeAdapterOptions(hot, overlayHost), makePluginStub());
+
+    expect(adapter.getGridSize()).toEqual({ rows: 8, cols: 4 });
+  });
 });

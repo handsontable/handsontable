@@ -75,6 +75,7 @@ interface FormulasPluginLike {
     getCellValue(addr: { sheet: number; row: number; col: number }): unknown;
     getCellFormula(addr: { sheet: number; row: number; col: number }): string | undefined;
     getCellSerialized(addr: { sheet: number; row: number; col: number }): unknown;
+    getSheetDimensions?(sheetId: number): { width: number; height: number };
   } | null;
   sheetId: number | null;
   rowAxisSyncer: {
@@ -316,7 +317,14 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
-    const cellValue = this.#engine.getCellValue({ sheet: this.#sheetId, row, col });
+    const hfRow = this.#visualToHfRow(row);
+    const hfCol = this.#visualToHfCol(col);
+
+    if (hfRow < 0 || hfCol < 0) {
+      return;
+    }
+
+    const cellValue = this.#engine.getCellValue({ sheet: this.#sheetId, row: hfRow, col: hfCol });
 
     this.#builder?.markCell(cellEl, cellValue);
   };
@@ -381,7 +389,7 @@ export class FormulaBuilder extends BasePlugin {
       return;
     }
 
-    if (this.hot.themeManager?.getClassName() === this.#currentThemeClassName) {
+    if (this.#themeClassName() === this.#currentThemeClassName) {
       return;
     }
 
@@ -1140,11 +1148,29 @@ export class FormulaBuilder extends BasePlugin {
           hfToVisualRow: row => this.#hfToVisualRow(row),
           hfToVisualCol: col => this.#hfToVisualCol(col),
         },
+        getSheetDimensions: () => {
+          const dimensions = this.#engine?.getSheetDimensions?.(this.#sheetId);
+
+          return dimensions ? { rows: dimensions.height, cols: dimensions.width } : null;
+        },
       },
       this,
     );
 
     return this.#adapter;
+  }
+
+  /**
+   * Resolves the grid's current theme class name. `themeManager` exists only when a
+   * `ThemeBuilder` object drives the grid; string themes (`themeName: 'ht-theme-main'`
+   * or a root-element class) leave it `null`, so fall back to the styles-handler name.
+   * Without this class the body-mounted popup portal cannot inherit the grid's
+   * `color-scheme` and `light-dark()` tokens resolve against the OS scheme instead.
+   *
+   * @returns {string | undefined}
+   */
+  #themeClassName(): string | undefined {
+    return this.hot.themeManager?.getClassName() ?? this.hot.getCurrentThemeName() ?? undefined;
   }
 
   /**
@@ -1177,6 +1203,13 @@ export class FormulaBuilder extends BasePlugin {
    * Releases every enable-time resource.
    */
   #teardownPluginState(): void {
+    if (this.#activeEditor) {
+      // Close the host editor while the core editor still exists - destroying the
+      // builder under an open session leaves Handsontable's editor in EDITING state
+      // over a torn-down mount, and its eventual close commits the stale original.
+      this.#hostEditor()?.finishEditing?.(true);
+    }
+
     this.#events?.disposeAll();
     this.#events = null;
     this.#inlineScrollScope = null;
@@ -1236,7 +1269,7 @@ export class FormulaBuilder extends BasePlugin {
     this.#events = new core.EventManager();
 
     const rootEl = this.hot.rootElement;
-    const themeClassName = this.hot.themeManager?.getClassName();
+    const themeClassName = this.#themeClassName();
 
     this.#currentThemeClassName = themeClassName;
 
@@ -1244,7 +1277,8 @@ export class FormulaBuilder extends BasePlugin {
     const popups = typeof pluginSettings === 'object' ? pluginSettings.popups : undefined;
     const showFormulaBar =
       typeof pluginSettings === 'object' && pluginSettings.showFormulaBar === true;
-    const direction = typeof pluginSettings === 'object' ? pluginSettings.direction : undefined;
+    const direction = (typeof pluginSettings === 'object' ? pluginSettings.direction : undefined) ??
+      (this.hot.isRtl() ? 'rtl' : 'ltr');
 
     if (showFormulaBar && !this.#formulaBarHost && isRootInstance(this.hot)) {
       const barHost = this.hot.rootDocument.createElement('div');
@@ -1288,6 +1322,7 @@ export class FormulaBuilder extends BasePlugin {
 
     hostScope.listen(this.hot.rootDocument, 'mouseup', this.#cellPick.onDocMouseUp);
     hostScope.listen(this.hot.rootDocument, 'mousemove', this.#cellPick.onDocMouseMove);
+    hostScope.listen(this.hot.rootDocument, 'scroll', this.#cellPick.onDocScroll, { capture: true });
     hostScope.listen(this.hot.rootWindow, 'blur', this.#cellPick.onWindowBlur);
     hostScope.activate();
 

@@ -56,6 +56,8 @@ interface HotStubShape {
   selectCells: jest.Mock;
   view: { getOverlayByName: (overlayName: string) => unknown };
   getLayoutManager: () => LayoutManagerStub;
+  getCurrentThemeName: () => string | null;
+  isRtl: () => boolean;
   themeManager?: { getClassName: () => string | undefined };
   rowIndexMapper?: IndexMapperStub;
   columnIndexMapper?: IndexMapperStub;
@@ -119,6 +121,8 @@ function makeFullHotStub(pluginSettings: Record<string, unknown> = {}) {
     selectCells: jest.fn(),
     view: { getOverlayByName: () => null },
     getLayoutManager: () => layoutManager,
+    getCurrentThemeName: () => null,
+    isRtl: () => false,
     rowIndexMapper: {
       getRenderableFromVisualIndex: visual => visual,
       getVisualFromRenderableIndex: renderable => renderable,
@@ -371,6 +375,7 @@ it('stops re-anchoring on holder scroll once the inline editor closes', () => {
 
 const fakeInlineEditor = {
   getValue: () => '=',
+  isFormula: () => true,
   isRefSelectionActive: () => true,
   getRefPreviewColor: () => '#000',
 } as never;
@@ -649,6 +654,7 @@ describe('FormulaBuilder formula-cell scoping', () => {
     plugin.bindInlineEditor({
       isRefSelectionActive: () => false,
       getValue: () => '=SUM(A1:A10)',
+      isFormula: () => true,
       closeUnbalancedParens: () => {},
     } as never);
 
@@ -668,6 +674,7 @@ describe('FormulaBuilder formula-cell scoping', () => {
     plugin.bindInlineEditor({
       isRefSelectionActive: () => false,
       getValue: () => '123',
+      isFormula: () => false,
     } as never);
 
     const mouseDown = findHook(stub, 'beforeOnCellMouseDown');
@@ -686,6 +693,7 @@ describe('FormulaBuilder formula-cell scoping', () => {
     plugin.bindInlineEditor({
       isRefSelectionActive: () => true,
       getValue: () => '=SUM(',
+      isFormula: () => true,
       getRefPreviewColor: () => 'var(--hfe-ref-1)',
     } as never);
 
@@ -1062,6 +1070,41 @@ describe('FormulaBuilder theme tracking', () => {
     findHook(stub, 'afterSetTheme')();
 
     expect(countHookRegistrations(stub, 'afterRenderer')).toBe(before);
+  });
+
+  it('falls back to the string theme name when no themeManager exists', () => {
+    const stub = makeFullHotStub();
+
+    stub.hot.getCurrentThemeName = () => 'ht-theme-main-dark';
+
+    const plugin = new FormulaBuilder(stub.hot as never);
+
+    plugin.enablePlugin();
+
+    const portals = document.querySelectorAll('.hfe-popup-portal');
+    const portal = portals[portals.length - 1];
+
+    expect(portal.classList.contains('ht-theme-main-dark')).toBe(true);
+
+    plugin.disablePlugin();
+  });
+
+  it('re-initialises when the string theme name changes without a themeManager', () => {
+    const stub = makeFullHotStub();
+    let theme: string | null = 'ht-theme-main';
+
+    stub.hot.getCurrentThemeName = () => theme;
+
+    const plugin = new FormulaBuilder(stub.hot as never);
+
+    plugin.enablePlugin();
+
+    const before = countHookRegistrations(stub, 'afterRenderer');
+
+    theme = 'ht-theme-main-dark';
+    findHook(stub, 'afterSetTheme')();
+
+    expect(countHookRegistrations(stub, 'afterRenderer')).toBe(before + 1);
   });
 });
 

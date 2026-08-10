@@ -84,7 +84,7 @@ function makeHarness(options: HarnessOptions = {}) {
   };
   const closeUnbalancedParens = jest.fn();
   const editorStub = {
-    getValue: () => editorValue,
+    isFormula: () => editorValue.startsWith('='),
     isRefSelectionActive: () => refSelectionActive,
     getRefPreviewColor: () => EPHEMERAL_COLOR,
     closeUnbalancedParens,
@@ -138,7 +138,7 @@ function makeFlags(): EventFlags {
 function pressCell(
   controller: CellPickController,
   coords: GridCoords,
-  eventInit: { ctrlKey?: boolean; metaKey?: boolean } = {},
+  eventInit: { ctrlKey?: boolean; metaKey?: boolean; clientX?: number; clientY?: number } = {},
   flags = makeFlags(),
 ) {
   const event = { preventDefault: jest.fn(), ...eventInit };
@@ -612,6 +612,57 @@ describe('CellPickController autoscroll', () => {
       ref: { sheet: '', row: 2, col: 3 },
       append: false,
     });
+  });
+});
+
+describe('CellPickController.onDocScroll', () => {
+  it('re-extends the active pick to the cell under the stationary pointer', () => {
+    const { controller, adapterStub } = makeHarness({ cellAtPoint: { row: 4, col: 2 } });
+
+    pressCell(controller, { row: 1, col: 1 }, { clientX: 40, clientY: 30 });
+    controller.onDocScroll();
+
+    expect(adapterStub.getCellAddressAt).toHaveBeenCalledWith(40, 30);
+    expect(adapterStub.highlightRange).toHaveBeenLastCalledWith(
+      {
+        start: { sheet: '', row: 1, col: 1 },
+        end: { sheet: '', row: 4, col: 2 },
+      },
+      EPHEMERAL_COLOR,
+    );
+
+    controller.onDocMouseUp();
+  });
+
+  it('replays the latest mousemove position, not the mousedown seed', () => {
+    const { controller, adapterStub } = makeHarness({ cellAtPoint: { row: 4, col: 2 } });
+
+    pressCell(controller, { row: 1, col: 1 }, { clientX: 40, clientY: 30 });
+    controller.onDocMouseMove({ clientX: 60, clientY: 70, buttons: 1 } as MouseEvent);
+    controller.onDocScroll();
+
+    expect(adapterStub.getCellAddressAt).toHaveBeenLastCalledWith(60, 70);
+    controller.onDocMouseUp();
+  });
+
+  it('does nothing when no pick is in progress', () => {
+    const { controller, adapterStub } = makeHarness({ cellAtPoint: { row: 4, col: 2 } });
+
+    controller.onDocScroll();
+
+    expect(adapterStub.getCellAddressAt).not.toHaveBeenCalled();
+    expect(adapterStub.highlightRange).not.toHaveBeenCalled();
+  });
+
+  it('does nothing when the pick started without pointer coordinates', () => {
+    const { controller, adapterStub } = makeHarness({ cellAtPoint: { row: 4, col: 2 } });
+
+    controller.onBeforeMouseDown(undefined, { row: 1, col: 1 }, undefined, makeFlags());
+    adapterStub.getCellAddressAt.mockClear();
+    controller.onDocScroll();
+
+    expect(adapterStub.getCellAddressAt).not.toHaveBeenCalled();
+    controller.onDocMouseUp();
   });
 });
 

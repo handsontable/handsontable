@@ -184,6 +184,11 @@ export class CellPickController {
   onDocMouseMove = (event: MouseEvent): void => this.#handleDocMouseMove(event);
 
   /**
+   * Document capture-phase `scroll` listener re-extending an active reference drag.
+   */
+  onDocScroll = (): void => this.#handleDocScroll();
+
+  /**
    * Window `blur` listener finishing a drag interrupted by focus loss.
    */
   onWindowBlur = (): void => this.#handleWindowBlur();
@@ -237,6 +242,7 @@ export class CellPickController {
     this.#tracker.cancel();
     this.#headerTracker.cancel();
     this.#disarmHeaderClickSwallow();
+    this.#focusBeforePick = null;
   }
 
   /**
@@ -305,7 +311,7 @@ export class CellPickController {
       return;
     }
 
-    if (!editor.getValue().startsWith('=')) {
+    if (!editor.isFormula()) {
       return;
     }
 
@@ -325,15 +331,21 @@ export class CellPickController {
       return;
     }
 
+    const anchor = this.#deps.toHfCoords(coords);
+
+    if (anchor.row < 0 || anchor.col < 0) {
+      return;
+    }
+
     this.#suppress(eventController);
+    event?.preventDefault?.();
     this.#focusBeforePick = this.#deps.getRootDocument().activeElement as HTMLElement | null;
     this.#deps.suspendDragToScroll();
-
-    const anchor = this.#deps.toHfCoords(coords);
 
     this.#tracker.begin(
       { sheet: '', col: anchor.col, row: anchor.row },
       Boolean(event?.metaKey || event?.ctrlKey),
+      event ? { x: event.clientX, y: event.clientY } : undefined,
     );
   }
 
@@ -361,7 +373,7 @@ export class CellPickController {
       return;
     }
 
-    if (!editor.getValue().startsWith('=')) {
+    if (!editor.isFormula()) {
       return;
     }
 
@@ -369,15 +381,19 @@ export class CellPickController {
       return;
     }
 
-    this.#suppress(eventController);
-    event?.preventDefault?.();
-    this.#focusBeforePick = this.#deps.getRootDocument().activeElement as HTMLElement | null;
-    this.#deps.suspendDragToScroll();
-
     const axis: HeaderAxis = coords.col < 0 ? 'row' : 'column';
     const hfIndex = axis === 'row' ?
       this.#deps.toHfCoords({ row: coords.row, col: 0 }).row :
       this.#deps.toHfCoords({ row: 0, col: coords.col }).col;
+
+    if (hfIndex < 0) {
+      return;
+    }
+
+    this.#suppress(eventController);
+    event?.preventDefault?.();
+    this.#focusBeforePick = this.#deps.getRootDocument().activeElement as HTMLElement | null;
+    this.#deps.suspendDragToScroll();
 
     this.#headerAxis = axis;
     this.#headerTracker.begin(axis, hfIndex, Boolean(event?.metaKey || event?.ctrlKey));
@@ -425,6 +441,16 @@ export class CellPickController {
 
     if (this.#tracker.isActive()) {
       this.#tracker.updateAutoScroll(event.clientX, event.clientY);
+    }
+  }
+
+  /**
+   * Re-extends the active cell/range drag after a scroll moved the grid under a
+   * stationary pointer, which fires no `mousemove` or edge auto-scroll on its own.
+   */
+  #handleDocScroll(): void {
+    if (this.#tracker.isActive()) {
+      this.#tracker.reextendFromLastPointer();
     }
   }
 
@@ -485,7 +511,9 @@ export class CellPickController {
           this.#deps.toHfCoords({ row: 0, col: axisCoordinate }).col :
           this.#deps.toHfCoords({ row: axisCoordinate, col: 0 }).row;
 
-        this.#headerTracker.extendTo(this.#headerAxis, hfIndex);
+        if (hfIndex >= 0) {
+          this.#headerTracker.extendTo(this.#headerAxis, hfIndex);
+        }
       }
 
       this.#suppress(eventController);
@@ -500,7 +528,7 @@ export class CellPickController {
       return;
     }
 
-    if (!editor.getValue().startsWith('=')) {
+    if (!editor.isFormula()) {
       return;
     }
 
@@ -516,6 +544,10 @@ export class CellPickController {
 
     const clamped = { row: Math.max(coords.row, 0), col: Math.max(coords.col, 0) };
     const mapped = this.#deps.toHfCoords(clamped);
+
+    if (mapped.row < 0 || mapped.col < 0) {
+      return;
+    }
 
     this.#tracker.extendTo({ sheet: '', col: mapped.col, row: mapped.row });
   }

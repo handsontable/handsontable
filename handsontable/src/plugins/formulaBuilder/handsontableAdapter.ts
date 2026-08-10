@@ -61,6 +61,10 @@ export interface HandsontableAdapterOptions {
    * The injected `@hfe/core` module namespace.
    */
   core: CoreModule;
+  /**
+   * Returns the engine sheet dimensions in HyperFormula space, or `null` when unknown.
+   */
+  getSheetDimensions?: () => { rows: number; cols: number } | null;
 }
 
 /**
@@ -190,6 +194,10 @@ export class HandsontableAdapter implements IGridAdapter {
    */
   readonly #core: CoreModule;
   /**
+   * Returns the engine sheet dimensions in HyperFormula space, or `null` when unknown.
+   */
+  readonly #getSheetDimensions: (() => { rows: number; cols: number } | null) | null;
+  /**
    * Pick event fan-out.
    */
   readonly #emitter: PickEmitter;
@@ -247,6 +255,7 @@ export class HandsontableAdapter implements IGridAdapter {
     this.#sheetName = options.sheetName ?? '';
     this.#mapping = options.indexMapping;
     this.#core = options.core;
+    this.#getSheetDimensions = options.getSheetDimensions ?? null;
     this.#plugin = plugin;
     this.#emitter = new this.#core.PickEmitter();
     this.#restorePosition = this.#core.ensureRelativePosition(this.#overlayHost);
@@ -308,6 +317,10 @@ export class HandsontableAdapter implements IGridAdapter {
 
     const hfRow = this.#mapping.visualToHfRow(coords.row);
     const hfCol = this.#mapping.visualToHfCol(coords.col);
+
+    if (hfRow < 0 || hfCol < 0) {
+      return null;
+    }
 
     return { sheet: this.#sheetName, col: hfCol, row: hfRow };
   }
@@ -445,12 +458,21 @@ export class HandsontableAdapter implements IGridAdapter {
   }
 
   /**
-   * Returns the grid size in rows and columns.
+   * Returns the grid size in HyperFormula (sheet) space - the space of every address
+   * the core consumes it against (`FormulaBar` navigation bounds, `expandHeaderSpan`
+   * whole-axis refs). Falls back to the visual counts when the engine dimensions are
+   * unavailable; with trimmed rows the two spaces differ.
    *
    * @returns {GridSize}
    */
   getGridSize(): GridSize {
-    return { rows: this.#hot.countRows(), cols: this.#hot.countCols() };
+    const sheetSize = this.#getSheetDimensions?.();
+
+    if (sheetSize && sheetSize.rows > 0 && sheetSize.cols > 0) {
+      return { rows: sheetSize.rows, cols: sheetSize.cols };
+    }
+
+    return this.#visualGridSize();
   }
 
   /**
@@ -461,7 +483,7 @@ export class HandsontableAdapter implements IGridAdapter {
    * @returns {CellAddress}
    */
   getDataEdge(from: CellAddress, direction: Direction): CellAddress {
-    const size = this.getGridSize();
+    const size = this.#visualGridSize();
     const startRow = this.#mapping.hfToVisualRow(from.row);
     const startCol = this.#mapping.hfToVisualCol(from.col);
 
@@ -496,7 +518,7 @@ export class HandsontableAdapter implements IGridAdapter {
       return from;
     }
 
-    const size = this.getGridSize();
+    const size = this.#visualGridSize();
     let stepped = this.#core.stepCell(
       { sheet: from.sheet, col: startCol, row: startRow },
       direction,
@@ -605,6 +627,12 @@ export class HandsontableAdapter implements IGridAdapter {
       const active = this.#toHfAddress(selected.active.row, selected.active.col);
       const cornerA = this.#toHfAddress(selected.range.startRow, selected.range.startCol);
       const cornerB = this.#toHfAddress(selected.range.endRow, selected.range.endCol);
+
+      if (!active || !cornerA || !cornerB) {
+        callback(null);
+
+        return;
+      }
 
       callback({ active, range: this.#core.normalizeRange(cornerA, cornerB) });
     });
@@ -1099,16 +1127,32 @@ export class HandsontableAdapter implements IGridAdapter {
   }
 
   /**
-   * Translates visual coordinates to a HyperFormula-space cell address.
+   * Translates visual coordinates to a HyperFormula-space cell address, or `null`
+   * when the mapping cannot resolve them - a `-1` component reaching `formatRef`
+   * would produce a malformed reference.
    *
    * @param {number} visualRow The visual row index.
    * @param {number} visualCol The visual column index.
-   * @returns {CellAddress}
+   * @returns {CellAddress | null}
    */
-  #toHfAddress(visualRow: number, visualCol: number): CellAddress {
+  #toHfAddress(visualRow: number, visualCol: number): CellAddress | null {
     const hfRow = this.#mapping.visualToHfRow(visualRow);
     const hfCol = this.#mapping.visualToHfCol(visualCol);
 
+    if (hfRow < 0 || hfCol < 0) {
+      return null;
+    }
+
     return { sheet: this.#sheetName, col: hfCol, row: hfRow };
+  }
+
+  /**
+   * Returns the grid size in visual (rendered-data) space, for the adapter-internal
+   * navigation helpers that walk visual cells.
+   *
+   * @returns {GridSize}
+   */
+  #visualGridSize(): GridSize {
+    return { rows: this.#hot.countRows(), cols: this.#hot.countCols() };
   }
 }

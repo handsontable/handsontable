@@ -359,15 +359,24 @@ describe('getValue fallback alignment', () => {
    * @param {string | null} activeEditorValue The overlay editor value, or `null` when detached.
    * @returns {ShimEditor}
    */
-  function makeShimEditor(activeEditorValue: string | null): ShimEditor {
+  function makeShimEditor(activeEditorValue: string | null): ShimEditor & {
+    closeUnbalancedParensSpy: jest.Mock;
+  } {
     registerFormulaEditor();
 
     const EditorClass = getEditor(FORMULA_EDITOR_ALIAS) as unknown as { prototype: object };
-    const editor = Object.create(EditorClass.prototype) as ShimEditor;
-    const activeEditor = activeEditorValue === null ? null : { getValue: () => activeEditorValue };
+    const editor = Object.create(EditorClass.prototype) as ShimEditor & {
+      closeUnbalancedParensSpy: jest.Mock;
+    };
+    const closeUnbalancedParensSpy = jest.fn();
+    const activeEditor = activeEditorValue === null ? null : {
+      getValue: () => activeEditorValue,
+      closeUnbalancedParens: closeUnbalancedParensSpy,
+    };
 
     editor.hot = { getPlugin: () => ({ getActiveEditor: () => activeEditor }) };
     editor._opened = false;
+    editor.closeUnbalancedParensSpy = closeUnbalancedParensSpy;
 
     return editor;
   }
@@ -379,6 +388,14 @@ describe('getValue fallback alignment', () => {
     editor._original = '=SUM(B1)';
 
     expect(editor.getValue()).toBe('=A1+B2');
+  });
+
+  it('closes unbalanced parens before reading the committed value', () => {
+    const editor = makeShimEditor('=SUM(A1');
+
+    editor.getValue();
+
+    expect(editor.closeUnbalancedParensSpy).toHaveBeenCalledTimes(1);
   });
 
   it('falls back to the original cell value when the overlay editor is gone', () => {

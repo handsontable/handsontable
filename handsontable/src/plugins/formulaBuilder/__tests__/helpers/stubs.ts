@@ -47,6 +47,7 @@ export interface HotStubShape {
   rootDocument: Document;
   rootWindow: Window & typeof globalThis;
   rootElement: HTMLElement;
+  getCurrentThemeName: () => string | null;
   view: {
     getOverlayByName: (overlayName: string) => {
       holder: HTMLElement | Window;
@@ -89,6 +90,7 @@ export function makeHotStub(overrides: Partial<HotStubShape> = {}): HotInstance 
     rootDocument: document,
     rootWindow: window as Window & typeof globalThis,
     rootElement: document.body,
+    getCurrentThemeName: () => null,
     view: { getOverlayByName: () => null },
     ...overrides,
   };

@@ -55,6 +55,8 @@ function makeSlotHotStub(formulaBuilderSetting: unknown) {
     getFirstRenderedVisibleColumn: () => 0,
     getLastRenderedVisibleColumn: () => 100,
     setDataAtCell: jest.fn(),
+    getCurrentThemeName: () => null,
+    isRtl: () => false,
   };
 
   registerAsRootInstance(hot);

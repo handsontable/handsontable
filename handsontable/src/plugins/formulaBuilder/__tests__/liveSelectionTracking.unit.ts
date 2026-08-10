@@ -54,6 +54,8 @@ function makeLiveSelectionHotStub(highlight: { row: number; col: number } | unde
       getSelectedRangeLast: () =>
         (highlightRef.current ? { highlight: highlightRef.current } : undefined),
       view: { getOverlayByName: () => null },
+      getCurrentThemeName: () => null,
+      isRtl: () => false,
     },
   };
 }

@@ -55,6 +55,8 @@ function makeHighlightHotStub(highlight: { row: number; col: number } | undefine
       setDataAtCell: jest.fn(),
       getCellMetaTransient: () => ({ editor: 'formula' }),
       getSelectedRangeLast: () => (highlight ? { highlight } : undefined),
+      getCurrentThemeName: () => null,
+      isRtl: () => false,
     },
   };
 }
