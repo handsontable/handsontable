@@ -117,6 +117,70 @@ export function getShiftedIndexAfterRemove(index: number, removalIndex: number, 
 }
 
 /**
+ * Builds the disjoint, ascending list of visual-index ranges the viewport working set must cover
+ * on one axis: the frozen-start area, the master rendered range (clipped so the ranges stay
+ * disjoint), and the frozen-end area. Frozen rows and columns are rendered by the overlay clones
+ * even when the master rendered range excludes them, so the working set must always include them.
+ *
+ * @param {number} firstIndex First visual index of the master rendered range.
+ * @param {number} lastIndex Last visual index of the master rendered range.
+ * @param {number} fixedStartCount Number of frozen indexes at the start of the axis.
+ * @param {number} fixedEndCount Number of frozen indexes at the end of the axis.
+ * @param {number} totalCount Total number of indexes on the axis.
+ * @returns {Array} Array of `[from, to]` tuples, disjoint and ascending.
+ */
+export function getViewportUnionRanges(
+  firstIndex: number,
+  lastIndex: number,
+  fixedStartCount: number,
+  fixedEndCount: number,
+  totalCount: number,
+): Array<[number, number]> {
+  const ranges: Array<[number, number]> = [];
+  const fixedEndStart = totalCount - fixedEndCount;
+  const pushRange = (from: number, to: number) => {
+    if (from <= to) {
+      ranges.push([from, to]);
+    }
+  };
+
+  pushRange(0, Math.min(fixedStartCount, totalCount) - 1);
+  pushRange(Math.max(firstIndex, fixedStartCount), Math.min(lastIndex, fixedEndStart - 1));
+  pushRange(Math.max(fixedEndStart, fixedStartCount), totalCount - 1);
+
+  return ranges;
+}
+
+/**
+ * Checks whether a visual index lies inside the viewport working window on one axis: the
+ * frozen-start area, the frozen-end area, or the master rendered range.
+ *
+ * @param {number} index The visual index to test.
+ * @param {number} firstIndex First visual index of the master rendered range.
+ * @param {number} lastIndex Last visual index of the master rendered range.
+ * @param {number} fixedStartCount Number of frozen indexes at the start of the axis.
+ * @param {number} fixedEndCount Number of frozen indexes at the end of the axis.
+ * @param {number} totalCount Total number of indexes on the axis.
+ * @returns {boolean}
+ */
+export function isIndexInViewportUnion(
+  index: number,
+  firstIndex: number,
+  lastIndex: number,
+  fixedStartCount: number,
+  fixedEndCount: number,
+  totalCount: number,
+): boolean {
+  if (index < 0 || index >= totalCount) {
+    return false;
+  }
+
+  return index < fixedStartCount
+    || index >= totalCount - fixedEndCount
+    || (index >= firstIndex && index <= lastIndex);
+}
+
+/**
  * Resolves the style of a single border side declared inside a range configuration. An explicit
  * per-side style object takes precedence and is used unchanged. An enabled but unstyled side
  * (an empty object `{}`, an empty string, or `true`) inherits the range-level `border` object's
