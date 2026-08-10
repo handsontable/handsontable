@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CustomBorders lab e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    window.htTheme = ({ horizon: 'horizon', classic: 'classic' })[new URLSearchParams(location.search).get('theme')] || 'main';
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <div id="grid" data-testid="grid"></div>
+
+  <script src="/handsontable/dist/handsontable.full.min.js"></script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    // Creates (or replaces) the grid under test. `dataRows`/`dataCols` are expanded to
+    // spreadsheet data in-page because test settings arrive JSON-serialized. Every grid gets
+    // pinned dimensions so the rendered window is deterministic across themes - a border the
+    // assertions target must not be culled just because a theme uses taller rows.
+    window.createHot = ({ dataRows, dataCols, ...settings }) => {
+      if (window.hot) {
+        window.hot.destroy();
+      }
+
+      window.bordersUpdateCount = 0;
+
+      window.hot = new Handsontable(container, Object.assign({
+        data: Handsontable.helper.createSpreadsheetData(dataRows, dataCols),
+        renderer: testIdRenderer,
+        width: 700,
+        height: 500,
+        licenseKey: 'non-commercial-and-evaluation',
+      }, settings, {
+        afterCustomBordersUpdate: () => {
+          window.bordersUpdateCount += 1;
+        },
+      }));
+
+      return window.hot.getPlugin('customBorders').getBorders().length;
+    };
+
+    // Shared border-DOM helpers - the single definition used by every geometry assertion in
+    // the customBorders Playwright spec.
+    window.borderUtils = (() => {
+      // Custom-border divs, excluding the built-in selection layers.
+      const CUSTOM_BORDER_SELECTOR = '.wtBorder:not(.fill):not(.current):not(.area)';
+      // Edge divs only - the (hidden by default) selection corner is not a border side.
+      const EDGE_SELECTOR = `${CUSTOM_BORDER_SELECTOR}:not(.corner)`;
+      const isVisible = element => element.getClientRects().length > 0;
+      const visibleEdgeRectsOfColor = color => Array.from(document.querySelectorAll(EDGE_SELECTOR))
+        .filter(element => isVisible(element) && element.style.backgroundColor === color)
+        .map(element => element.getBoundingClientRect());
+      const cellRect = (row, col) => window.hot.getCell(row, col).getBoundingClientRect();
+
+      return {
+        countCustomBorders() {
+          return document.querySelectorAll(CUSTOM_BORDER_SELECTOR).length;
+        },
+        countVisibleCustomBorders() {
+          return Array.from(document.querySelectorAll(CUSTOM_BORDER_SELECTOR)).filter(isVisible).length;
+        },
+        visibleBorderColors() {
+          return Array.from(document.querySelectorAll(EDGE_SELECTOR))
+            .filter(isVisible)
+            .map(element => element.style.backgroundColor);
+        },
+        // Y position of the horizontal border edge of `color` that crosses the cell, picking the
+        // candidate nearest to the cell's `anchor` ('top' or 'bottom') edge.
+        horizontalEdgeTop(row, col, color, anchor) {
+          const cell = cellRect(row, col);
+          const anchorY = anchor === 'bottom' ? cell.bottom : cell.top;
+
+          return visibleEdgeRectsOfColor(color)
+            .filter((rect) => {
+              const centerX = rect.left + (rect.width / 2);
+
+              return rect.width > rect.height && centerX >= cell.left && centerX <= cell.right;
+            })
+            .map(rect => rect.top)
+            .sort((a, b) => Math.abs(a - anchorY) - Math.abs(b - anchorY))[0];
+        },
+        zIndexOfColor(color) {
+          const element = Array.from(document.querySelectorAll(EDGE_SELECTOR))
+            .find(el => isVisible(el) && el.style.backgroundColor === color);
+
+          return element ? parseInt(element.style.zIndex, 10) : NaN;
+        },
+        // Right-most outer edge of the border edges of `color` (horizontal or vertical ones)
+        // that touch the cell's box, with a small tolerance for edges hugging the cell border.
+        outerRightNear(row, col, color, wantHorizontal) {
+          const cell = cellRect(row, col);
+
+          return visibleEdgeRectsOfColor(color)
+            .filter((rect) => {
+              const centerX = rect.left + (rect.width / 2);
+              const centerY = rect.top + (rect.height / 2);
+
+              return (rect.width > rect.height) === wantHorizontal &&
+                centerX >= cell.left - 3 && centerX <= cell.right + 3 &&
+                centerY >= cell.top - 3 && centerY <= cell.bottom + 3;
+            })
+            .map(rect => rect.right)
+            .sort((a, b) => b - a)[0];
+        },
+        // Left-most outer edge of the border edges of `color` (RTL mirror of `outerRightNear`).
+        outerLeftNear(row, col, color, wantHorizontal) {
+          const cell = cellRect(row, col);
+
+          return visibleEdgeRectsOfColor(color)
+            .filter((rect) => {
+              const centerX = rect.left + (rect.width / 2);
+              const centerY = rect.top + (rect.height / 2);
+
+              return (rect.width > rect.height) === wantHorizontal &&
+                centerX >= cell.left - 3 && centerX <= cell.right + 3 &&
+                centerY >= cell.top - 3 && centerY <= cell.bottom + 3;
+            })
+            .map(rect => rect.left)
+            .sort((a, b) => a - b)[0];
+        },
+        // Right-most outer edge of the horizontal border edge of `color` running along the
+        // cell's bottom edge.
+        bottomEdgeOuterRight(row, col, color) {
+          const cell = cellRect(row, col);
+
+          return visibleEdgeRectsOfColor(color)
+            .filter((rect) => {
+              const centerX = rect.left + (rect.width / 2);
+
+              return rect.width > rect.height && centerX >= cell.left && centerX <= cell.right &&
+                Math.abs((rect.top + (rect.height / 2)) - cell.bottom) < 5;
+            })
+            .map(rect => rect.right)
+            .sort((a, b) => b - a)[0];
+        },
+        // Left-most outer edge of the horizontal border edge along the cell's bottom edge
+        // (RTL mirror of `bottomEdgeOuterRight`).
+        bottomEdgeOuterLeft(row, col, color) {
+          const cell = cellRect(row, col);
+
+          return visibleEdgeRectsOfColor(color)
+            .filter((rect) => {
+              const centerX = rect.left + (rect.width / 2);
+
+              return rect.width > rect.height && centerX >= cell.left && centerX <= cell.right &&
+                Math.abs((rect.top + (rect.height / 2)) - cell.bottom) < 5;
+            })
+            .map(rect => rect.left)
+            .sort((a, b) => a - b)[0];
+        },
+        // Number of custom-border divs materialized inside a given overlay root.
+        countCustomBordersIn(overlaySelector) {
+          const overlay = document.querySelector(overlaySelector);
+
+          return overlay ? overlay.querySelectorAll(CUSTOM_BORDER_SELECTOR).length : 0;
+        },
+      };
+    })();
+  </script>
+</body>
+</html>
