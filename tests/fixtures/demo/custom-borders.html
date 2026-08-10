@@ -29,7 +29,10 @@
       colHeaders: true,
       rowHeaders: true,
       width: 600,
-      height: 300,
+      // Tall enough that row 10 (home of the frozen-column border used by the e2e spec) stays
+      // within the default rendered range even under themes with a taller default row height
+      // (e.g. horizon).
+      height: 500,
       renderer: testIdRenderer,
       fixedColumnsStart: 2,
       fixedRowsTop: 2,
