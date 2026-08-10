@@ -121,6 +121,44 @@ test.describe('menu follows its anchor on outside element scroll', () => {
     await expect(menuPage.contextMenu).toBeHidden();
   });
 
+  test('filter condition select menu stays open on vertical grid scroll (sticky header)', async () => {
+    await menuPage.openDropdownMenu(0);
+    await menuPage.openConditionSelectMenu();
+    const menuBefore = await menuPage.boundingBox(menuPage.conditionMenu);
+
+    await menuPage.scrollGridVerticallyBy(60);
+    await menuPage.settleFrames();
+
+    // The dropdown menu is anchored to the sticky header, so neither it nor the
+    // condition select menu moves — and neither may close.
+    await expect(menuPage.dropdownMenu).toBeVisible();
+    await expect(menuPage.conditionMenu).toBeVisible();
+    const menuAfter = await menuPage.boundingBox(menuPage.conditionMenu);
+
+    expect(Math.abs(menuAfter.y - menuBefore.y)).toBeLessThanOrEqual(1);
+    expect(Math.abs(menuAfter.x - menuBefore.x)).toBeLessThanOrEqual(1);
+  });
+
+  test('filter condition select menu follows its select element on container scroll', async () => {
+    await menuPage.openDropdownMenu(0);
+    await menuPage.openConditionSelectMenu();
+    const selectBefore = await menuPage.boundingBox(menuPage.conditionSelect());
+    const menuBefore = await menuPage.boundingBox(menuPage.conditionMenu);
+
+    await menuPage.scrollContainerBy(60);
+    await menuPage.settleFrames();
+
+    await expect(menuPage.conditionMenu).toBeVisible();
+    const selectAfter = await menuPage.boundingBox(menuPage.conditionSelect());
+    const menuAfter = await menuPage.boundingBox(menuPage.conditionMenu);
+
+    // The menu keeps the same offset to the select element (allow 1px rounding).
+    expect(Math.abs((menuAfter.y - selectAfter.y) - (menuBefore.y - selectBefore.y))).toBeLessThanOrEqual(1);
+    expect(Math.abs((menuAfter.x - selectAfter.x) - (menuBefore.x - selectBefore.x))).toBeLessThanOrEqual(1);
+    // And it actually moved with the content.
+    expect(Math.abs((menuBefore.y - menuAfter.y) - 60)).toBeLessThanOrEqual(1);
+  });
+
   test('scrolling the filter value list inside the menu changes nothing', async () => {
     await menuPage.openDropdownMenu(0);
     const menuBefore = await menuPage.boundingBox(menuPage.dropdownMenu);

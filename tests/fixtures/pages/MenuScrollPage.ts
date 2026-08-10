@@ -13,6 +13,7 @@ export class MenuScrollPage {
   readonly dropdownMenu: Locator;
   readonly contextMenu: Locator;
   readonly submenu: Locator;
+  readonly conditionMenu: Locator;
 
   constructor(page: Page, theme = 'main') {
     this.page = page;
@@ -23,6 +24,10 @@ export class MenuScrollPage {
     this.contextMenu = page.locator('.htContextMenu.handsontable:not([class*="Sub_"])');
     // Any submenu container regardless of parent menu kind.
     this.submenu = page.locator('.htMenu[class*="Sub_"]');
+    // The standalone menu opened by the "filter by condition" select. The component
+    // builds one (closed, empty) container per condition select — `[role="menu"]`
+    // narrows the match to the opened one.
+    this.conditionMenu = page.locator('.htFiltersConditionsMenu[role="menu"]');
   }
 
   /**
@@ -55,6 +60,17 @@ export class MenuScrollPage {
       .locator('.changeType')
       .click();
     await expect(this.dropdownMenu).toBeVisible();
+  }
+
+  /** The "filter by condition" select element inside the open dropdown menu. */
+  conditionSelect(): Locator {
+    return this.dropdownMenu.locator('.htUISelect').first();
+  }
+
+  /** Open the "filter by condition" select menu inside the open dropdown menu. */
+  async openConditionSelectMenu(): Promise<void> {
+    await this.conditionSelect().click();
+    await expect(this.conditionMenu).toBeVisible();
   }
 
   /** Open the context menu by right-clicking a cell. */

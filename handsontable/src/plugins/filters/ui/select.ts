@@ -205,12 +205,15 @@ export class SelectUI extends BaseUI {
 
     if (this.#menu) {
       this.#menu.open();
-      this.#menu.setPosition({
-        left: this.hot?.isLtr() ? rect.left - 5 : rect.left - 31,
-        top: rect.top - 1,
-        width: rect.width,
-        height: rect.height,
-      });
+      this.#menu.setPosition(
+        {
+          left: this.hot?.isLtr() ? rect.left - 5 : rect.left - 31,
+          top: rect.top - 1,
+          width: rect.width,
+          height: rect.height,
+        },
+        () => (el.isConnected ? el.getBoundingClientRect() : null),
+      );
       this.#menu?.getNavigator()?.toFirstItem();
       this.#menu?.getKeyboardShortcutsCtrl()?.addCustomShortcuts([{
         keys: [['Tab'], ['Shift', 'Tab']],
