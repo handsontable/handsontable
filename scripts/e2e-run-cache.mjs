@@ -119,12 +119,17 @@ export function specKey(root, spec, env) {
 /**
  * Read the cache ({ keys: string[] }).
  *
- * @param {string} root Repo root.
+ * @param {string|null} file The cache path (from `cacheFile()`), or null when
+ *   the root is not a checkout.
  * @returns {Set<string>} Recorded green keys.
  */
-function readCache(root) {
+function readCache(file) {
+  if (!file) {
+    return new Set();
+  }
+
   try {
-    return new Set(JSON.parse(readFileSync(cacheFile(root), 'utf8')).keys);
+    return new Set(JSON.parse(readFileSync(file, 'utf8')).keys);
   } catch {
     return new Set();
   }
@@ -139,7 +144,7 @@ function readCache(root) {
  */
 export function filterCached(root, specs) {
   const env = envHash(root);
-  const cache = readCache(root);
+  const cache = readCache(cacheFile(root));
   const toRun = [];
   const skipped = [];
 
@@ -160,17 +165,19 @@ export function filterCached(root, specs) {
  * @returns {void}
  */
 export function recordGreen(root, specs) {
-  const env = envHash(root);
-
-  if (!env) {
-    return;
-  }
-  const keys = new Set(readCache(root));
+  // Resolved first: `envHash()` hashes the whole dist bundle and every fixture,
+  // so bailing out on a missing cache file up front skips that work entirely.
   const file = cacheFile(root);
 
   if (!file) {
     return;
   }
+  const env = envHash(root);
+
+  if (!env) {
+    return;
+  }
+  const keys = readCache(file);
 
   for (const s of specs) {
     const key = specKey(root, s, env);

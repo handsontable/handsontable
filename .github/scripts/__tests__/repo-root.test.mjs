@@ -1,8 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { repoRoot, gitDir } from '../lib/repo-root.mjs';
 
 // The root is asserted against files that only exist at the repository root —
@@ -30,27 +32,28 @@ test('repoRoot() points at the repository root, from any cwd', () => {
 // `<main>/.git/worktrees/<name>`), and with it set `--show-toplevel` returns the
 // cwd instead of the work tree — which made pre-push resolve `<root>/scripts` as
 // the root and crash with MODULE_NOT_FOUND before any gate ran.
+//
+// Run in a CHILD process, not by mutating `process.env` here: the module derives
+// its root once, at import time. Setting the variable after this file imported it
+// would only reject a call-time git-derived implementation, and let a load-time
+// one (`const ROOT = execSync('git rev-parse --show-toplevel')`) pass while still
+// breaking in every real hook, where GIT_DIR exists from process start. The cwd
+// is a SUBDIRECTORY for the same reason — from the root itself, even the broken
+// resolution returns the right answer.
 test('repoRoot() ignores the git environment a hook exports', () => {
   const expected = repoRoot();
-  const { GIT_DIR, GIT_WORK_TREE } = process.env;
-
-  try {
-    process.env.GIT_DIR = path.join(expected, '.git/worktrees/does-not-exist');
-    process.env.GIT_WORK_TREE = tmpdir();
-    assert.equal(repoRoot(), expected);
-  } finally {
-    if (GIT_DIR === undefined) {
-      delete process.env.GIT_DIR;
-    } else {
-      process.env.GIT_DIR = GIT_DIR;
+  const moduleUrl = pathToFileURL(path.join(expected, '.github/scripts/lib/repo-root.mjs')).href;
+  const printed = execFileSync(
+    process.execPath,
+    ['-e', `import(${JSON.stringify(moduleUrl)}).then(m => process.stdout.write(m.repoRoot()))`],
+    {
+      cwd: path.join(expected, 'scripts'),
+      encoding: 'utf8',
+      env: { ...process.env, GIT_DIR: path.join(expected, '.git/worktrees/does-not-exist') },
     }
+  );
 
-    if (GIT_WORK_TREE === undefined) {
-      delete process.env.GIT_WORK_TREE;
-    } else {
-      process.env.GIT_WORK_TREE = GIT_WORK_TREE;
-    }
-  }
+  assert.equal(printed.trim(), expected);
 });
 
 test('gitDir() returns <root>/.git in a normal clone', () => {
