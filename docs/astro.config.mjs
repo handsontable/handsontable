@@ -770,17 +770,24 @@ export default defineConfig({
         // Six classes of expected errors are dropped:
         //
         //   1. Failed requests from server-side data recipe examples.
-        //      The docs site has no `/api/products` backend, so fetchRows() correctly
-        //      throws `HTTP <status>` (e.g. 404) on those pages. That is expected here,
-        //      not a product bug.
-        //
-        //      Frozen older versions under `/docs/<major>.<minor>/` fail one step earlier.
-        //      They were built when the recipe hard-coded `http://localhost:3000/tickets`,
-        //      so the request never reaches a server and the browser raises a network
-        //      error instead of an HTTP status (Sentry HANDSONTABLE-DOCS-1FM). Those
-        //      builds are archived and are never rebuilt, so no source change can reach
-        //      them. Every engine words the failure differently, hence the phrase list.
+        //      The docs site runs no backend for those examples, so every request from
+        //      them fails. It surfaces two ways: fetchRows() throws `HTTP <status>`
+        //      (e.g. 404) when a response does come back, and the browser raises an
+        //      engine-worded network error when the request never completes at all
+        //      (Sentry HANDSONTABLE-DOCS-1FM - 11 of its 18 events are on the current
+        //      `/docs/angular-data-grid/recipes/data-management/server-side-*` pages).
+        //      Each engine words the network failure differently, hence the phrase list.
         //      The URL gate keeps genuine network failures on every other page visible.
+        //
+        //      What this rule cannot do is silence the same failure on a frozen version
+        //      build under `/docs/<major>.<minor>/` (one 1FM event, on
+        //      `/docs/17.1/.../server-side-nestjs/`, whose bundle still hard-codes
+        //      `http://localhost:3000/tickets`). Those pages serve the HTML that shipped
+        //      in that version's Docker image, copied verbatim by
+        //      `deploy/build_previous_versions.sh`, so they run whichever `beforeSend`
+        //      existed at their release - never this one. Archived-build noise can only
+        //      be dropped by a Sentry project-level inbound filter on the message; the
+        //      group is archived forever instead. Every rule below has the same limit.
         //
         //   2. Errors thrown by Handsontable's throwWithCause() helper.
         //      All such errors carry `error.cause.handsontable` (set to `true` today,
@@ -847,8 +854,8 @@ export default defineConfig({
     beforeSend: function (event, hint) {
       try {
         // Drop failed requests from server-side data recipe pages: the HTTP <status>
-        // thrown by current builds, and the network error that frozen older builds
-        // raise against their hard-coded http://localhost:3000 backend.
+        // thrown when a response arrives, and the engine-worded network error when the
+        // request never completes. These pages have no backend on the docs site.
         var values = (event.exception && event.exception.values) || [];
         var demoRequestFailures = [
           'Failed to fetch', // Chrome, Edge

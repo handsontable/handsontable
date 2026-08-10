@@ -83,11 +83,15 @@ test('keeps HTTP errors raised outside the server-side data recipe pages', () =>
   assert.equal(beforeSend(event, {}), event);
 });
 
-test('drops network failures on frozen server-side recipe pages', () => {
-  // Sentry HANDSONTABLE-DOCS-1FM: archived builds under /docs/<major>.<minor>/ still
-  // fetch http://localhost:3000/tickets, which no reader can reach. Each engine words
+test('drops network failures on the server-side recipe pages', () => {
+  // Sentry HANDSONTABLE-DOCS-1FM: these pages have no backend on the docs site, so a
+  // request that never completes is as expected as the HTTP 404 above. Each engine words
   // the resulting network failure differently.
-  const url = 'https://handsontable.com/docs/17.1/angular-data-grid/recipes/data-management/server-side-nestjs/';
+  //
+  // The fixture URL is deliberately a current page. Events from an archived
+  // /docs/<major>.<minor>/ build cannot reach this hook at all (that HTML ships its own
+  // copy of it), so a versioned fixture here would assert coverage the site does not have.
+  const url = 'https://handsontable.com/docs/angular-data-grid/recipes/data-management/server-side-nestjs/';
 
   for (const message of [
     'Failed to fetch',
