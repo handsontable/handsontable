@@ -3,6 +3,7 @@ import {
   getShiftedIndexAfterRemove,
   getViewportUnionRanges,
   isIndexInViewportUnion,
+  resolveRangeBorderSide,
 } from '../utils';
 
 describe('CustomBorders utils', () => {
@@ -59,6 +60,42 @@ describe('CustomBorders utils', () => {
 
     it('should handle a fully frozen table', () => {
       expect(getViewportUnionRanges(0, 4, 5, 0, 5)).toEqual([[0, 4]]);
+    });
+  });
+
+  describe('resolveRangeBorderSide', () => {
+    it('should keep an explicit per-side style object unchanged, ignoring the range-level border', () => {
+      const rawSide = { width: 1, color: 'red' };
+
+      expect(resolveRangeBorderSide(rawSide, { width: 3, color: 'green' })).toBe(rawSide);
+    });
+
+    it('should inherit the range-level border style for an enabled but unstyled side', () => {
+      const rangeBorder = { width: 2, color: '#548235' };
+
+      // The three documented "enabled, no own style" forms: `{}`, `true`, and `''`.
+      expect(resolveRangeBorderSide({}, rangeBorder)).toEqual({ width: 2, color: '#548235' });
+      expect(resolveRangeBorderSide(true, rangeBorder)).toEqual({ width: 2, color: '#548235' });
+      expect(resolveRangeBorderSide('', rangeBorder)).toEqual({ width: 2, color: '#548235' });
+    });
+
+    it('should drop `cornerVisible` from the inherited style without mutating the range-level border', () => {
+      const rangeBorder = { width: 2, color: '#548235', cornerVisible: true };
+      const resolved = resolveRangeBorderSide({}, rangeBorder);
+
+      // `cornerVisible` describes the selection corner, not a side, so it must not leak into
+      // the per-side style - while the shared range-level object stays intact for other sides.
+      expect(resolved).toEqual({ width: 2, color: '#548235' });
+      expect(rangeBorder.cornerVisible).toBe(true);
+    });
+
+    it('should pass the raw side value through when no range-level border is provided', () => {
+      expect(resolveRangeBorderSide(undefined, undefined)).toBeUndefined();
+      expect(resolveRangeBorderSide(true, undefined)).toBe(true);
+
+      const emptySide = {};
+
+      expect(resolveRangeBorderSide(emptySide, undefined)).toBe(emptySide);
     });
   });
 
