@@ -25,29 +25,43 @@ test.describe('CustomBorders with frozen rows and columns', () => {
   test('keeps the frozen column border rendered after scrolling far right', async ({ page }) => {
     // Scrolling only the column axis leaves the master row window unchanged, so (10, 0)'s row
     // stays rendered - isolating whether the frozen-start column keeps its border once the
-    // master column range moves past col 0.
-    await page.evaluate(() => (window as any).hot.scrollViewportTo({ col: 60 }));
+    // master column range moves past col 0. Scrolled far enough (col 90 of 100) that col 10 is
+    // out of the master range on every theme.
+    await page.evaluate(() => (window as any).hot.scrollViewportTo({ col: 90 }));
     // The frozen column keeps its border even though the master range excludes col 0.
     await expect(page.locator('.ht_clone_inline_start .wtBorder:visible').first()).toBeVisible();
-    // The unfrozen borders scrolled out of both ranges - their selections must be culled
-    // (virtualization intact).
-    const selections = await page.evaluate(() =>
-      (window as any).hot.selection.highlight.customSelections.length);
-    expect(selections).toBeLessThan(4);
+    // (10, 10) is fully unfrozen on both axes and its column scrolled out - its selection must be
+    // culled (virtualization intact). Asserted by id rather than by `customSelections.length`:
+    // the surviving count depends on how many rows/columns a given theme's cell size renders,
+    // so a specific id is the theme-robust signal. `expect.poll` (rather than one `evaluate` read)
+    // tolerates the render/cleanup happening a tick after `scrollViewportTo` resolves.
+    await expect.poll(() => page.evaluate(() =>
+      (window as any).hot.selection.highlight.customSelections
+        .some((s: any) => s.settings?.id === 'border_row10col10'))).toBe(false);
+    // The frozen-area border under test is still part of the working set.
+    await expect.poll(() => page.evaluate(() =>
+      (window as any).hot.selection.highlight.customSelections
+        .some((s: any) => s.settings?.id === 'border_row10col0'))).toBe(true);
   });
 
   test('keeps the frozen row border rendered after scrolling far down', async ({ page }) => {
     // Scrolling only the row axis leaves the master column window unchanged, so (0, 10)'s column
     // stays rendered - isolating whether the frozen-top row keeps its border once the master row
-    // range moves past row 0.
-    await page.evaluate(() => (window as any).hot.scrollViewportTo({ row: 40 }));
+    // range moves past row 0. Scrolled far enough (row 45 of 50) that row 10 is out of the master
+    // range on every theme.
+    await page.evaluate(() => (window as any).hot.scrollViewportTo({ row: 45 }));
     // The frozen row keeps its border even though the master range excludes row 0.
     await expect(page.locator('.ht_clone_top .wtBorder:visible').first()).toBeVisible();
-    // The unfrozen borders scrolled out of both ranges - their selections must be culled
-    // (virtualization intact).
-    const selections = await page.evaluate(() =>
-      (window as any).hot.selection.highlight.customSelections.length);
-    expect(selections).toBeLessThan(4);
+    // (10, 10) is fully unfrozen on both axes and its row scrolled out - its selection must be
+    // culled (virtualization intact). See the sibling test above for why this is asserted by id,
+    // via `expect.poll`, instead of `customSelections.length`.
+    await expect.poll(() => page.evaluate(() =>
+      (window as any).hot.selection.highlight.customSelections
+        .some((s: any) => s.settings?.id === 'border_row10col10'))).toBe(false);
+    // The frozen-area border under test is still part of the working set.
+    await expect.poll(() => page.evaluate(() =>
+      (window as any).hot.selection.highlight.customSelections
+        .some((s: any) => s.settings?.id === 'border_row0col10'))).toBe(true);
   });
 });
 
