@@ -81,3 +81,29 @@ test.describe('CustomBorders and UndoRedo', () => {
     expect(result.afterUndo).toBe(true);
   });
 });
+
+test.describe('CustomBorders selection ownership', () => {
+  test('clearBorders() keeps custom selections the plugin does not own', async ({ page, theme }) => {
+    await page.goto(`/tests/fixtures/demo/custom-borders.html?theme=${theme}`);
+    await expect(page.getByTestId('cell-0-2')).toBeVisible();
+
+    const result = await page.evaluate(() => {
+      const hot = (window as any).hot;
+      const coords = hot._createCellCoords(5, 5);
+
+      hot.selection.highlight.addCustomSelection({
+        border: { width: 2, color: 'orange' },
+        visualCellRange: hot._createCellRange(coords, coords, coords),
+      });
+
+      const beforeClear = hot.selection.highlight.customSelections.length;
+
+      hot.getPlugin('customBorders').clearBorders();
+
+      return { beforeClear, afterClear: hot.selection.highlight.customSelections.length };
+    });
+
+    // Only the foreign selection must survive the plugin's clear.
+    expect(result.afterClear).toBe(1);
+  });
+});

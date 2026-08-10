@@ -833,14 +833,21 @@ export class CustomBorders extends BasePlugin {
   }
 
   /**
-   * Destroys every plugin-owned custom selection and clears the rendered working set. Used when all
-   * borders are cleared or the plugin is disabled. Does not touch the `savedBorders` model.
+   * Destroys every plugin-owned custom selection and clears the rendered working set. Selections
+   * added to `highlight.customSelections` by other code are left untouched - the plugin only owns
+   * the entries tracked in its working-set cache. Does not touch the `savedBorders` model.
    */
   #destroyAllSelections() {
     const { customSelections } = this.hot.selection.highlight;
+    const owned = new Set(this.#customSelectionsCache.values());
 
-    arrayEach(customSelections, customSelection => customSelection.destroy());
-    customSelections.length = 0;
+    for (let index = customSelections.length - 1; index >= 0; index--) {
+      if (owned.has(customSelections[index])) {
+        customSelections[index].destroy();
+        customSelections.splice(index, 1);
+      }
+    }
+
     this.#customSelectionsCache.clear();
   }
 
