@@ -5,8 +5,9 @@ name: Checks
 # pipeline when red — test presence and changelog. Called by test.yml; the
 # scope outputs are re-exported so the orchestrator can gate the rest.
 #
-# Manual QA is deliberately NOT here: its red must block the merge, not stop
-# the build/test DAG, so it lives in its own module that nothing depends on.
+# Manual QA is deliberately NOT here: it gates the MERGE, not the pipeline —
+# manual-qa.yml is a standalone label-driven workflow that maintains the
+# `manual-qa` commit status for branch protection, outside this DAG entirely.
 on:
   workflow_call:
     inputs:

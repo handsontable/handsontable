@@ -50,4 +50,4 @@ any HTML comment — here, inside a comment, it is inert.
 - [ ] I have reviewed the guidelines about [Contributing to Handsontable](https://github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md) and I confirm that my code follows the code style of this project.
 - [ ] I have signed the [Contributor License Agreement](https://cla.handsontable.com/sign) — one signature covers both Handsontable and HyperFormula; the `cla/signed` check on this PR confirms it.
 - [ ] My change requires a change to the documentation.
-- [ ] This change needs a manual QA pass — <!-- describe WHAT to check and why automation can't; a reviewer (not the author) signs off by commenting `/manual-qa passed`, then re-run the "[CHECK] Manual QA" job -->
+- [ ] This change needs a manual QA pass — apply the `needs-manual-check` label and give the reason here: <!-- one line: WHAT to check and why automation can't judge it. The label parks a pending `manual-qa` status check on the PR; it clears itself once a repo member who is not the author comments `/manual-qa passed` — no job re-run needed -->

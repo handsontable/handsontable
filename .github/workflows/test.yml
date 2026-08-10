@@ -49,14 +49,6 @@ jobs:
       test-all: ${{ inputs.test-all || false }}
     secrets: inherit
 
-  # Independent merge gate — depends on nothing, so its red blocks the merge
-  # (branch protection, later), never the build/test DAG.
-  manual-qa:
-    name: Manual QA
-    if: github.event_name == 'pull_request'
-    uses: ./.github/workflows/manual-qa.yml
-    secrets: inherit
-
   # ── Tier 1: no-build checks. Fast build-validity gates (Lint/Unit/Types) that
   # the build depends on, plus parallel merge gates (Code Quality) that never
   # block a build. PR-only where a merged PR already proved them.
@@ -212,13 +204,15 @@ jobs:
   # and derives a single verdict from every other job's result: it fails if any
   # job that actually ran failed or was cancelled, and passes when everything
   # else succeeded or was legitimately scope-skipped. Branch protection should
-  # require ONLY "CI Gate" and unpin every individual/matrix check name.
+  # require ONLY "CI Gate" plus the `manual-qa` commit status (a standalone
+  # label-driven merge gate — see manual-qa.yml; instant green unless the
+  # `needs-manual-check` label asks for a human pass) and unpin every
+  # individual/matrix check name.
   ci-gate:
     name: CI Gate
     if: ${{ always() }}
     needs:
       - checks
-      - manual-qa
       - lint
       - code-quality
       - unit

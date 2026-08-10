@@ -73,17 +73,23 @@ Machine-enforced by the presence gate; full decision rules in
 
 Full discipline: the `test-writing-discipline` skill.
 
-### The tracked human exception (the manual-QA tickbox)
+### The tracked human exception (the `needs-manual-check` label)
 
 When automated coverage genuinely cannot judge a change (subtle UX, a visual
-nuance no snapshot covers, a high-risk area), tick **"This change needs a
-manual QA pass"** in the PR description (the template carries it) and say what
-to check. The `[CHECK] Manual QA` job in the Tests pipeline then stays RED
-until a human who is **not** the PR author comments **`/manual-qa passed`**
-(comment authorship is API-verified identity) and the job is re-run — it reads
-the live body + comments, not the frozen event payload. Unticked PRs pass
-immediately. This **adds** a recorded human pass; it never replaces the
-presence gate or the test requirement. Do not use it to dodge writing tests.
+nuance no snapshot covers, a high-risk area — or a QA-owned pass such as an
+RC adversarial sweep or a screen-reader check), apply the
+**`needs-manual-check`** label to the PR (author or agent may apply it) and
+give a one-line reason in the PR description saying what to check (the
+template carries the line). The standalone `manual-qa.yml` workflow then parks
+a **pending `manual-qa` commit status** on the PR head until a HUMAN repo
+member who is **not** the PR author comments **`/manual-qa passed`** (comment
+authorship is API-verified identity; bots and drive-by accounts do not count,
+so an agent can request a check but never clear one). Every label, push, and
+comment event re-reads the live PR state, so the status updates itself — no
+job re-runs. Unlabeled PRs get an instant green, which is what lets branch
+protection require the `manual-qa` context without affecting them. This
+**adds** a recorded human pass; it never replaces the presence gate or the
+test requirement. Do not use it to dodge writing tests.
 
 ## 2. Creating or changing enforcement hooks (git + agent) — exact rules
 
