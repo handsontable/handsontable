@@ -13,7 +13,7 @@ Your contribution to Handsontable's codebase is most welcome. To fix a bug or pr
 
 To speed up the process of merging your changes, follow these rules:
 
-1. Sign the [Contributor License Agreement](https://goo.gl/forms/yuutGuN0RjsikVpM2), to let us publish your changes. This applies to all code you submit, including AI-assisted contributions (see [AI-assisted contributions](#ai-assisted-contributions)).
+1. Sign the [Contributor License Agreement](#contributor-license-agreement), to let us publish your changes. This applies to all code you submit, including AI-assisted contributions (see [AI-assisted contributions](#ai-assisted-contributions)).
 2. Make your changes on a separate branch. This speeds up the merging process.
 3. Always target your PR at the `develop` branch, not the `master` branch.
 4. Make changes to the right project:
@@ -41,6 +41,27 @@ To speed up the process of merging your changes, follow these rules:
 10. In your PR, add a thorough description of all the changes, and fill in the test-evidence section of the PR template.
 
 Thank you for your contribution!
+
+## Contributor License Agreement
+
+Handsoncode publishes the code it merges — in open-source releases and in commercial products. Doing that requires the right to use, relicense, and distribute your contribution, and the Contributor License Agreement (CLA) is the record of that permission. You keep the copyright to your work; the CLA grants Handsoncode a licence to it.
+
+**Sign it once, for every project.** The signature is recorded against your GitHub account, not against a repository, and covers both [Handsontable](https://github.com/handsontable/handsontable) and [HyperFormula](https://github.com/handsontable/hyperformula). If you have already signed for either one, you are done.
+
+**Sign here: [cla-gate.handsontable-sandbox.workers.dev/sign](https://cla-gate.handsontable-sandbox.workers.dev/sign)** — the [process is explained in full](https://cla-gate.handsontable-sandbox.workers.dev/) on the same site.
+
+How it works on your pull request:
+
+1. You open a PR. A GitHub App looks up your GitHub login and sets the `cla/signed` status check.
+2. If you have not signed, the check fails and a bot comments with your signing link.
+3. Open the link, authenticate with GitHub, read the agreement, and submit the form.
+4. The check turns green — on this PR and on any other open PR of yours, in either repository.
+
+`cla/signed` is a **required check**, so an unsigned PR cannot be merged. Members of the `handsontable` GitHub organization and known bots are exempt.
+
+Signature records are stored in Cloudflare D1 in the EU. For a correction to your record or an erasure request, email [support@handsontable.com](mailto:support@handsontable.com).
+
+> **Reviewers:** there is nothing to verify by hand — the required check is the verification. Never merge a PR whose `cla/signed` check is red, and do not work around it.
 
 ## Definition of done (local enforcement)
 

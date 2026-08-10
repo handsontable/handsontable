@@ -48,6 +48,6 @@ any HTML comment — here, inside a comment, it is inert.
 <!--- Go over all the following points, and put an `x` in all the boxes that apply. -->
 <!--- If you're unsure about any of these, don't hesitate to ask. We're here to help! -->
 - [ ] I have reviewed the guidelines about [Contributing to Handsontable](https://github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md) and I confirm that my code follows the code style of this project.
-- [ ] I have signed the [Contributor License Agreement](https://docs.google.com/forms/d/e/1FAIpQLScpMq4swMelvw3-onxC8Jl29m0fVp5hpf7d1yQVklqVjGjWGA/viewform?c=0&w=1)
+- [ ] I have signed the [Contributor License Agreement](https://cla-gate.handsontable-sandbox.workers.dev/sign) — one signature covers both Handsontable and HyperFormula; the `cla/signed` check on this PR confirms it.
 - [ ] My change requires a change to the documentation.
 - [ ] This change needs a manual QA pass — <!-- describe WHAT to check and why automation can't; a reviewer (not the author) signs off by commenting `/manual-qa passed`, then re-run the "[CHECK] Manual QA" job -->
