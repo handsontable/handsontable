@@ -767,12 +767,27 @@ export default defineConfig({
         // DSN and any dashboard-enabled integrations (Performance/Replay) are applied
         // automatically, so adding `beforeSend` does not disturb the rest of the setup.
         //
-        // Four classes of expected errors are dropped:
+        // Six classes of expected errors are dropped:
         //
-        //   1. HTTP <status> errors from server-side data recipe examples.
-        //      The docs site has no `/api/products` backend, so fetchRows() correctly
-        //      throws `HTTP <status>` (e.g. 404) on those pages. That is expected here,
-        //      not a product bug.
+        //   1. Failed requests from server-side data recipe examples.
+        //      The docs site runs no backend for those examples, so every request from
+        //      them fails. It surfaces two ways: fetchRows() throws `HTTP <status>`
+        //      (e.g. 404) when a response does come back, and the browser raises an
+        //      engine-worded network error when the request never completes at all
+        //      (Sentry HANDSONTABLE-DOCS-1FM - 11 of its 18 events are on the current
+        //      `/docs/angular-data-grid/recipes/data-management/server-side-*` pages).
+        //      Each engine words the network failure differently, hence the phrase list.
+        //      The URL gate keeps genuine network failures on every other page visible.
+        //
+        //      What this rule cannot do is silence the same failure on a frozen version
+        //      build under `/docs/<major>.<minor>/` (one 1FM event, on
+        //      `/docs/17.1/.../server-side-nestjs/`, whose bundle still hard-codes
+        //      `http://localhost:3000/tickets`). Those pages serve the HTML that shipped
+        //      in that version's Docker image, copied verbatim by
+        //      `deploy/build_previous_versions.sh`, so they run whichever `beforeSend`
+        //      existed at their release - never this one. Archived-build noise can only
+        //      be dropped by a Sentry project-level inbound filter on the message; the
+        //      group is archived forever instead. Every rule below has the same limit.
         //
         //   2. Errors thrown by Handsontable's throwWithCause() helper.
         //      All such errors carry `error.cause.handsontable` (set to `true` today,
@@ -802,6 +817,23 @@ export default defineConfig({
         //      Matching `^Unexpected token` also keeps genuine
         //      `SyntaxError: Failed to execute 'querySelectorAll'` bugs (the Starlight
         //      TOC `:has()` defect) visible.
+        //
+        //   5. Failed dynamic imports of content-hashed `_astro/*.js` chunks
+        //      (Sentry HANDSONTABLE-DOCS-1FH, HANDSONTABLE-DOCS-1FX). A reader holding
+        //      cached HTML from a previous deployment asks for chunks that the new
+        //      deployment no longer serves; an offline or throttled mobile connection
+        //      and a blocking extension produce the same failure. None of it says
+        //      anything about our code.
+        //
+        //      `src/lib/example-error-reporting.mjs` drops the same three phrasings for
+        //      failures the example runner catches, and `docs-assistant-bootstrap.ts`
+        //      repeats them for its own mount. Neither can reach these events: they
+        //      arrive through `onunhandledrejection` from Astro's own island hydration,
+        //      outside any try/catch of ours. Keep the three lists in step.
+        //
+        //      Tradeoff: this also hides a deployment that ships HTML referencing a
+        //      chunk that was never uploaded. Deploy-time asset verification, not error
+        //      volume from readers, is the right detector for that.
         {
           tag: 'script',
           content: `window.sentryOnLoad = function () {
@@ -821,14 +853,48 @@ export default defineConfig({
   Sentry.init({
     beforeSend: function (event, hint) {
       try {
-        // Drop HTTP <status> errors from server-side data recipe pages.
+        // Drop failed requests from server-side data recipe pages: the HTTP <status>
+        // thrown when a response arrives, and the engine-worded network error when the
+        // request never completes. These pages have no backend on the docs site.
         var values = (event.exception && event.exception.values) || [];
-        var isDemoHttpError = values.some(function (value) {
-          return value && typeof value.value === 'string' && /^HTTP \\d{3}$/.test(value.value);
+        var demoRequestFailures = [
+          'Failed to fetch', // Chrome, Edge
+          'NetworkError when attempting to fetch resource.', // Firefox
+          'Load failed', // Safari
+        ];
+        var isDemoRequestFailure = values.some(function (value) {
+          if (!value || typeof value.value !== 'string') {
+            return false;
+          }
+
+          return (
+            /^HTTP \\d{3}$/.test(value.value) || demoRequestFailures.indexOf(value.value) !== -1
+          );
         });
         var url = (event.request && event.request.url) || '';
 
-        if (isDemoHttpError && url.indexOf('/recipes/data-management/server-side') !== -1) {
+        if (isDemoRequestFailure && url.indexOf('/recipes/data-management/server-side') !== -1) {
+          return null;
+        }
+
+        // Drop failed dynamic imports of content-hashed chunks. Each engine words it
+        // differently; all three mean the same stale-deploy or blocked-request failure.
+        var chunkLoadFailures = [
+          'Failed to fetch dynamically imported module', // Chrome, Edge
+          'error loading dynamically imported module', // Firefox
+          'Importing a module script failed', // Safari
+        ];
+        var isChunkLoadError = values.some(function (value) {
+          if (!value || typeof value.value !== 'string') {
+            return false;
+          }
+
+          return chunkLoadFailures.some(function (phrase) {
+            return value.value.indexOf(phrase) !== -1;
+          });
+        });
+
+        if (isChunkLoadError) {
           return null;
         }
 
