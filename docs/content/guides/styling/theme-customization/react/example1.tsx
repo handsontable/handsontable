@@ -1,15 +1,19 @@
 import { HotTable } from '@handsontable/react-wrapper';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/ht-theme-main.css';
+import { mainTheme, registerTheme } from 'handsontable/themes';
 
 // register Handsontable's modules
 registerAllModules();
 
+const myTheme = registerTheme(mainTheme);
+
 const ExampleComponent = () => {
   return (
-    <>
+    <div className="override-theme">
       <style>{`
-        .ht-theme-main {
+        .override-theme .ht-theme-main {
+          /* This demo hardcodes light colors, so keep the grid light whatever the reader's system preference is. */
+          color-scheme: light;
           --ht-accent-color: #2c78d4;
           --ht-foreground-color: #1a2533;
           --ht-background-color: #f8f9fa;
@@ -24,7 +28,7 @@ const ExampleComponent = () => {
       `}</style>
 
       <HotTable
-        themeName="ht-theme-main"
+        theme={myTheme}
         data={[
           ['John Doe', 'johndoe@example.com', 'New York', 32, 'Engineer'],
           ['Jane Smith', 'janesmith@example.com', 'Los Angeles', 29, 'Designer'],
@@ -45,7 +49,7 @@ const ExampleComponent = () => {
         height="auto"
         licenseKey="non-commercial-and-evaluation"
       />
-    </>
+    </div>
   );
 };
 

@@ -2,13 +2,15 @@
 import { computed } from 'vue';
 import { HotTable } from '@handsontable/vue3';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/ht-theme-main.css';
+import { mainTheme, registerTheme } from 'handsontable/themes';
 import type { GridSettings } from 'handsontable/settings';
 
 registerAllModules();
 
+const myTheme = registerTheme(mainTheme);
+
 const hotSettings = computed<GridSettings>(() => ({
-  theme: 'ht-theme-main',
+  theme: myTheme,
   data: [
     ['John Doe', 'johndoe@example.com', 'New York', 32, 'Engineer'],
     ['Jane Smith', 'janesmith@example.com', 'Los Angeles', 29, 'Designer'],
@@ -38,7 +40,9 @@ const hotSettings = computed<GridSettings>(() => ({
 </template>
 
 <style>
-.ht-theme-main {
+.override-theme .ht-theme-main {
+  /* This demo hardcodes light colors, so keep the grid light whatever the reader's system preference is. */
+  color-scheme: light;
   --ht-accent-color: #2c78d4;
   --ht-foreground-color: #1a2533;
   --ht-background-color: #f8f9fa;

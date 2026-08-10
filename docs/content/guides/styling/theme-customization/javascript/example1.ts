@@ -1,14 +1,16 @@
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import 'handsontable/styles/ht-theme-main.css';
+import { mainTheme, registerTheme } from 'handsontable/themes';
 
 // Register all Handsontable's modules.
 registerAllModules();
 
+const myTheme = registerTheme(mainTheme);
+
 const container = document.querySelector('#example1')!;
 
 new Handsontable(container, {
-  theme: 'ht-theme-main',
+  theme: myTheme,
   data: [
     ['John Doe', 'johndoe@example.com', 'New York', 32, 'Engineer'],
     ['Jane Smith', 'janesmith@example.com', 'Los Angeles', 29, 'Designer'],

@@ -1,7 +1,9 @@
 /* file: app.component.ts */
 import { Component } from '@angular/core';
 import { GridSettings, HotTableModule } from '@handsontable/angular-wrapper';
-import 'handsontable/styles/ht-theme-main.css';
+import { mainTheme, registerTheme } from 'handsontable/themes';
+
+const myTheme = registerTheme(mainTheme);
 
 @Component({
   selector: 'example1-demo',
@@ -21,7 +23,7 @@ export class AppComponent {
   ];
 
   readonly gridSettings: GridSettings = {
-    theme: 'ht-theme-main',
+    theme: myTheme,
     colHeaders: ['Name', 'Email', 'City', 'Age', 'Position'],
     columns: [
       { data: 0, type: 'text' },

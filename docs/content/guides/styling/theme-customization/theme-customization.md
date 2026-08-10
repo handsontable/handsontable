@@ -231,6 +231,8 @@ For full control over your theme, you can override CSS variables directly. Follo
 
 You can also directly modify the CSS theme files located in `handsontable/dist/styles/themes/`. This gives you immediate access to all CSS variables and allows for quick iterations.
 
+The applied theme puts its own class on the grid's root element -- the `main` theme puts `ht-theme-main` there. Scope your overrides to the class of the theme you use.
+
 Here's an example for `.ht-theme-main`:
 
 ::: only-for javascript
