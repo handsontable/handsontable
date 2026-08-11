@@ -1039,8 +1039,13 @@ export class CustomBorders extends BasePlugin {
    * Change borders from settings.
    *
    * @private
+   * @param {boolean} [render=true] If `true`, a render is forced after the border model is rebuilt
+   * so `#syncViewportSelections` materializes the visible selections. Pass `false` on the `init`
+   * path: the `init` hook fires before the core's own first render, so that render performs the
+   * sync - and rendering here would paint the grid before later-priority plugins (e.g.
+   * NestedHeaders) finish their `init` setup, leaving corrupted header DOM behind.
    */
-  changeBorderSettings() {
+  changeBorderSettings(render = true) {
     const customBorders = this.hot.getSettings()[PLUGIN_KEY];
 
     if (Array.isArray(customBorders)) {
@@ -1059,7 +1064,10 @@ export class CustomBorders extends BasePlugin {
         // Apply borders in background batches: render the (border-less) grid now so it is
         // interactive immediately; batches fill in and `afterCustomBordersUpdate` fires on drain.
         this.#startProgressiveApply(bordersClone, progressive.chunkSize);
-        this.hot.render();
+
+        if (render) {
+          this.hot.render();
+        }
 
         return;
       }
@@ -1070,10 +1078,10 @@ export class CustomBorders extends BasePlugin {
       this.createCustomBorders(this.savedBorders);
     }
 
-    // The model was (re)built above; render so `#syncViewportSelections` materializes the visible
-    // selections. `afterInit` fires after the first render, so without this the initially-configured
-    // borders would have no render to sync against.
-    this.hot.render();
+    if (render) {
+      this.hot.render();
+    }
+
     this.hot.runHooks('afterCustomBordersUpdate');
   }
 
@@ -1416,10 +1424,20 @@ The border style will be ignored.`);
   }
 
   /**
-   * `afterInit` hook callback.
+   * `init` hook callback. Builds the border model without forcing a render: the `init` hook fires
+   * right before the core's first render, and a render forced from here would paint the grid
+   * before later-priority plugins (e.g. NestedHeaders) run their own `init` setup, leaving
+   * corrupted header DOM behind (#11031 regression). The core's first render syncs and draws the
+   * master overlay's borders; the freshly-bootstrapped overlay clones need one more selection
+   * pass, so that render is scheduled for `afterInit` - still inside the same synchronous init
+   * sequence, but after every plugin finished its initialization.
    */
   #onAfterInit() {
-    this.changeBorderSettings();
+    this.changeBorderSettings(false);
+
+    if (this.savedBorders.length > 0) {
+      this.hot.addHookOnce('afterInit', () => this.hot.render());
+    }
   }
 
   /**

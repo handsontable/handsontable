@@ -156,6 +156,14 @@ export class CustomBordersLabPage {
   }
 
   /**
+   * Dropdown-menu (`changeType`) buttons rendered in the given clone-top header row (1-based).
+   * With nested headers only the bottom-most row may carry them.
+   */
+  headerDropdownButtons(headerRowIndex: number): Locator {
+    return this.page.locator(`.ht_clone_top thead tr:nth-child(${headerRowIndex}) button.changeType`);
+  }
+
+  /**
    * Remove the border of a cell through the real context menu ("Borders" → "Remove
    * border(s)") — the user path that regressed with orphaned border ids.
    */

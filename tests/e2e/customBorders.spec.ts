@@ -1056,3 +1056,31 @@ test.describe('CustomBorders progressive application (customBordersProgressive)'
     expect(await lab.bordersUpdateCount()).toBe(0);
   });
 });
+
+test.describe('CustomBorders initialization render timing', () => {
+  test('does not leak dropdown-menu buttons into upper nested-header rows on init', async ({ page, theme }) => {
+    const lab = await gotoLab(page, theme);
+
+    // CustomBorders' `init` handler runs before NestedHeaders builds its header tree (plugin
+    // priority 90 vs 280). A render forced from that handler paints a single-row thead, and
+    // DropdownMenu then treats every header as bottom-most, injecting its buttons into what
+    // becomes the upper nested-header row. Regression: those stale buttons survived the proper
+    // two-row render.
+    await lab.createGrid({
+      dataRows: 10,
+      dataCols: 6,
+      colHeaders: true,
+      nestedHeaders: [
+        [{ label: 'Group A', colspan: 3 }, { label: 'Group B', colspan: 3 }],
+        ['A', 'B', 'C', 'D', 'E', 'F'],
+      ],
+      dropdownMenu: true,
+      customBorders: true,
+    });
+
+    // The bottom-most header row owns the dropdown buttons...
+    await expect(lab.headerDropdownButtons(2)).toHaveCount(6);
+    // ...and the group row must have none.
+    await expect(lab.headerDropdownButtons(1)).toHaveCount(0);
+  });
+});
