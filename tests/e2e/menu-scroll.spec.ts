@@ -159,6 +159,35 @@ test.describe('menu follows its anchor on outside element scroll', () => {
     expect(Math.abs((menuBefore.y - menuAfter.y) - 60)).toBeLessThanOrEqual(1);
   });
 
+  test('filter condition select menu follows after the dropdown menu is reinitialized', async () => {
+    // First open builds the long-lived condition select menu; `updateSettings` then
+    // recreates the dropdown `Menu`. With construction-time scroll listeners the
+    // condition menu's listener would fire first and measure its anchor BEFORE the
+    // dropdown menu moved it (zero correction, menu stranded). Scroll listeners are
+    // registered per-open, so the dropdown menu (opened first) always repositions
+    // before the condition menu measures.
+    await menuPage.openDropdownMenu(0);
+    await menuPage.reinitializeDropdownMenu();
+
+    await menuPage.openDropdownMenu(0);
+    await menuPage.openConditionSelectMenu();
+    const selectBefore = await menuPage.boundingBox(menuPage.conditionSelect());
+    const menuBefore = await menuPage.boundingBox(menuPage.conditionMenu);
+
+    await menuPage.scrollContainerBy(60);
+    await menuPage.settleFrames();
+
+    await expect(menuPage.conditionMenu).toBeVisible();
+    const selectAfter = await menuPage.boundingBox(menuPage.conditionSelect());
+    const menuAfter = await menuPage.boundingBox(menuPage.conditionMenu);
+
+    // The menu keeps the same offset to the select element (allow 1px rounding).
+    expect(Math.abs((menuAfter.y - selectAfter.y) - (menuBefore.y - selectBefore.y))).toBeLessThanOrEqual(1);
+    expect(Math.abs((menuAfter.x - selectAfter.x) - (menuBefore.x - selectBefore.x))).toBeLessThanOrEqual(1);
+    // And it actually moved with the content.
+    expect(Math.abs((menuBefore.y - menuAfter.y) - 60)).toBeLessThanOrEqual(1);
+  });
+
   test('scrolling the filter value list inside the menu changes nothing', async () => {
     await menuPage.openDropdownMenu(0);
     const menuBefore = await menuPage.boundingBox(menuPage.dropdownMenu);

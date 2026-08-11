@@ -204,6 +204,18 @@ export class Menu {
    * @type {number|null}
    */
   #suppressHoverSubMenuToggleFrameId: number | null = null;
+  /**
+   * Detach functions for the document `scroll` listeners active while the menu is open.
+   * Scroll listeners are registered in `open()` (not in the constructor) so that they
+   * fire in menu OPEN order: a menu whose anchor lives inside another menu's container
+   * (a sub-menu, or the filters condition select menu inside the dropdown menu) always
+   * opens after that menu, so its `#followAnchor` runs after the anchor has been moved.
+   * Construction order gives no such guarantee — e.g. `updateSettings` recreates the
+   * dropdown menu while the condition select menu is long-lived (#13168).
+   *
+   * @type {Function[]}
+   */
+  #detachScrollListeners: Array<() => void> = [];
 
   /**
    * Getter for the table border width.
@@ -275,11 +287,37 @@ export class Menu {
       this.eventManager.addEventListener(frame.document, 'mousedown', event => this.onDocumentMouseDown(event));
       this.eventManager.addEventListener(frame.document, 'touchstart', event => this.onDocumentMouseDown(event));
       this.eventManager.addEventListener(frame.document, 'contextmenu', event => this.onDocumentContextMenu(event));
-      this.eventManager.addEventListener(frame.document, 'scroll',
-        event => this.onDocumentScroll(event), { capture: true, passive: true });
 
       frame = getParentWindow(frame);
     }
+  }
+
+  /**
+   * Registers the document `scroll` listeners (capture phase, all parent frames) that
+   * keep the menu attached to its anchor. Called from `open()` — see
+   * `#detachScrollListeners` for why the registration is open-scoped.
+   */
+  #registerScrollListeners() {
+    this.#clearScrollListeners();
+
+    let frame: Window | null = this.hot.rootWindow;
+
+    while (frame) {
+      this.#detachScrollListeners.push(
+        this.eventManager.addEventListener(frame.document, 'scroll',
+          event => this.onDocumentScroll(event), { capture: true, passive: true }),
+      );
+
+      frame = getParentWindow(frame);
+    }
+  }
+
+  /**
+   * Removes the document `scroll` listeners registered by `#registerScrollListeners()`.
+   */
+  #clearScrollListeners() {
+    this.#detachScrollListeners.forEach(detach => detach());
+    this.#detachScrollListeners.length = 0;
   }
 
   /**
@@ -381,6 +419,10 @@ export class Menu {
 
     this.container.removeAttribute('style');
     this.container.style.display = 'block';
+
+    // Registered per-open so that scroll listeners fire in menu open order — a menu
+    // anchored inside another menu then always repositions AFTER its anchor was moved.
+    this.#registerScrollListeners();
 
     const delayedOpenSubMenu = debounce((...args: unknown[]) => this.openSubMenu(args[0] as number), 300);
     const minWidthOfMenu = (Number(this.options.minWidth) || MIN_WIDTH);
@@ -559,6 +601,7 @@ export class Menu {
       this.hotMenu = null;
       this.#anchorRectProvider = null;
       this.#scrollFollowBaseline = null;
+      this.#clearScrollListeners();
 
       if (this.#suppressHoverSubMenuToggleFrameId !== null) {
         this.hot.rootWindow.cancelAnimationFrame(this.#suppressHoverSubMenuToggleFrameId);

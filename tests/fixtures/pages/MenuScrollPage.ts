@@ -73,6 +73,20 @@ export class MenuScrollPage {
     await expect(this.conditionMenu).toBeVisible();
   }
 
+  /**
+   * Recreate the dropdown menu plugin's `Menu` instance via `updateSettings`. The new
+   * instance is constructed AFTER any long-lived menu created earlier (e.g. the filters
+   * condition select menu) — the reordering that stranded the condition menu when
+   * scroll listeners were registered at construction time.
+   */
+  async reinitializeDropdownMenu(): Promise<void> {
+    await this.page.evaluate(() => {
+      const { hot } = window as Window & { hot: { updateSettings(settings: Record<string, unknown>): void } };
+
+      hot.updateSettings({ dropdownMenu: true });
+    });
+  }
+
   /** Open the context menu by right-clicking a cell. */
   async openContextMenu(row: number, col: number): Promise<void> {
     await this.cell(row, col).click({ button: 'right' });
