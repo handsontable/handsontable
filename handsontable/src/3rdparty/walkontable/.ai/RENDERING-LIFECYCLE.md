@@ -225,18 +225,25 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
   render in Phase G of the very same draw. Guards (a blocked rollback keeps the this-draw state,
   i.e. the pre-rollback engine behavior): (1) `Viewport#renderCycleSeq` — bumped by every
   `renderCellBand` (master or clone; the clones share the master's Viewport) — must not have moved
-  since the pre-draw capture, so a hook that rendered a newer band (nested `draw()`, clone draws)
-  is never rolled back under; (2) the captured filters' build-time `total`s must match the current
-  `totalRows`/`totalColumns`, so a skip right after a dataset shrink (NestedRows removes rows, then
-  cancels the follow-up render) keeps the fresh band capped at the new totals instead of restoring
-  a band that names removed rows. Asymmetries: the filters are restored only when the captured ones
-  are non-null (a skipped FIRST draw keeps the just-built filters — several consumers read
-  `rowFilter!` unguarded once the table is drawn), and the fully/partially-**visible** calculators
-  are deliberately NOT restored: they describe the scroll position, not the DOM contents — so after
-  a skipped draw the visible band may extend past the rendered band (unlike a fast draw), and
-  `getCell` answers those rows with exit codes. A skipped render also never runs the Phase F 1px
-  `positionChanged` reconciliation (`refreshAll`) — gated on `performRedraw`, because the rolled-back
-  band would fail the nested draw's fast-draw check and escalate it to a full render.
+  since it was read right before the `beforeDraw` hook fired, so a hook that rendered a newer band
+  (nested `draw()`, clone draws) is never rolled back under; (2) **per axis**, the captured filter's
+  build-time `total` must match the current `totalRows`/`totalColumns`, so a skip right after a
+  dataset shrink (NestedRows removes rows, then cancels the follow-up render) keeps the fresh band
+  capped at the new totals instead of restoring a band that names removed rows — and a column-count
+  change never blocks the row rollback (or vice versa). Asymmetries: the filters are restored only
+  when the captured ones are non-null (a skipped FIRST draw keeps the just-built filters — several
+  consumers read `rowFilter!` unguarded once the table is drawn; the overlays' `applyToDOM` treats
+  the restored `null` calculators as the nothing-rendered spreader offset instead of throwing);
+  `correctHeaderWidth` is restored whenever no render happened, regardless of the totals gates (the
+  DOM header width did not change, and an advanced flag would suppress the corrective full draw);
+  and the fully/partially-**visible** calculators are deliberately NOT restored: they describe the
+  scroll position, not the DOM contents — so after a skipped draw the visible band may extend past
+  the rendered band (unlike a fast draw), and `getCell` answers those rows with exit codes. A
+  skipped render also never runs the Phase F 1px `positionChanged` reconciliation via `refreshAll`
+  (the rolled-back band would fail the nested draw's fast-draw check and escalate it to a full
+  render); instead it reruns the fixed-position pass against the post-toggle layout (which
+  converges), renders the active selections, and still runs the master `adjustElementsSize()` so
+  the hider/scrollbar size stays current.
 
 ### Phase E — Full path: cell + header render (`table.ts:564–585`, only if `performRedraw`)
 - `setHeaderContentRenderers(...)` (`565`); bottom / bottom-corner clones do not render column headers

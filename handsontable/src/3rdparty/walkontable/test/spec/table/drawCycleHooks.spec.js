@@ -196,6 +196,23 @@ describe('Table.draw() lifecycle hooks (characterization for the drawCycle refac
     // rendered band rolled back it degrades to a nested FULL draw, firing `beforeDraw` a second
     // time within one `draw()` call and rendering the cells the hook just cancelled.
     expect(beforeDraw).toHaveBeenCalledTimes(1);
+
+    // The border toggle shifts the layout by 1px AFTER the overlay positions were computed, so the
+    // skipped draw must rerun the fixed-position pass against the post-toggle layout (in element
+    // mode the reposition is a transform reset, so the observable contract is the rerun itself).
+    const resetFixedPosition = spyOn(wt.wtOverlays.topOverlay, 'resetFixedPosition').and.callThrough();
+
+    skipNextRender = false;
+    wt.scrollViewportVertically(0);
+    wt.draw(); // full draw back at offset 0 - removes `innerBorderTop` again
+    resetFixedPosition.calls.reset();
+
+    skipNextRender = true;
+    wt.scrollViewportVertically(60);
+    wt.draw();
+
+    // Once from the regular fixed-position pass + once from the skipped-draw reconciliation rerun.
+    expect(resetFixedPosition).toHaveBeenCalledTimes(2);
   });
 
   it('should keep the table safe when the very first render is skipped', async() => {
@@ -223,6 +240,9 @@ describe('Table.draw() lifecycle hooks (characterization for the drawCycle refac
     expect(wt.wtTable.columnFilter).not.toBe(null);
     expect(wt.wtTable.getRenderedRowsCount()).toBe(0);
     expect(wt.wtTable.getCell(new Walkontable.CellCoords(0, 0))).toBe(-2);
+    // The overlays' spreader positioning must survive the drawn-but-never-rendered state too - the
+    // sticky-scroll deactivation calls it directly, outside any draw.
+    expect(() => wt.wtOverlays.applyToDOM()).not.toThrow();
   });
 
   it('should not restore a rendered band built for a larger dataset when the skip follows a row removal', async() => {
@@ -257,6 +277,68 @@ describe('Table.draw() lifecycle hooks (characterization for the drawCycle refac
     expect(wt.wtTable.getLastRenderedRow()).toBeLessThan(getTotalRows());
     // A removed row resolves to an out-of-viewport exit code, not to its stale TR.
     expect(wt.wtTable.getCell(new Walkontable.CellCoords(8, 0))).toBe(-2);
+  });
+
+  it('should keep the row rollback when only the column count changed before the skipped draw', async() => {
+    let skipNextRender = false;
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      beforeDraw: (force, skip) => {
+        if (skipNextRender) {
+          skip.skipRender = true;
+        }
+      },
+    });
+
+    wt.draw();
+
+    // Shrink COLUMNS only, scroll rows, then skip the draw. The totals gates are per axis: the
+    // column change keeps the fresh column state (capped at the new total), but must NOT block the
+    // row rollback - `totalRows` never moved, and without the rollback the advanced row band points
+    // past the stale DOM and `getCell` throws.
+    createDataArray(100, 2);
+    skipNextRender = true;
+    wt.scrollViewportVertically(60);
+    wt.draw();
+
+    expect(wt.wtTable.columnFilter.total).toBe(getTotalColumns());
+    expect(wt.wtTable.rowFilter.offset).toBe(wt.wtTable.getFirstRenderedRow());
+
+    for (let row = wt.wtTable.getFirstRenderedRow(); row <= wt.wtTable.getLastRenderedRow(); row++) {
+      expect(wt.wtTable.getCell(new Walkontable.CellCoords(row, 0)) instanceof HTMLElement).toBe(true);
+    }
+  });
+
+  it('should restore the `correctHeaderWidth` flag when the render is skipped', async() => {
+    let skipNextRender = false;
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      rowHeaders: [(row, TH) => {
+        TH.innerHTML = row + 1;
+      }],
+      beforeDraw: (force, skip) => {
+        if (skipNextRender) {
+          skip.skipRender = true;
+        }
+      },
+    });
+
+    wt.draw();
+
+    expect(wt.wtTable.correctHeaderWidth).toBe(false);
+
+    // The flag flips before the `beforeDraw` gate, but the header it describes never re-renders on
+    // a skipped draw. Left advanced, the next draw would see "no change" and keep the stale header
+    // width forever - so the rollback must put the flag back with the rest of the rendered state.
+    skipNextRender = true;
+    wt.scrollViewportHorizontally(3, 'end');
+    wt.draw();
+
+    expect(wt.wtTable.correctHeaderWidth).toBe(false);
   });
 
   it('should fire `beforeDraw` but SKIP `onDraw` when beforeDraw sets skipRender', async() => {
