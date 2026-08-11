@@ -16,6 +16,8 @@ export class FrozenTallCellPage {
   readonly grid: Locator;
   readonly master: Locator;
   readonly inlineStartOverlay: Locator;
+  readonly topOverlay: Locator;
+  readonly topInlineStartCorner: Locator;
 
   constructor(page: Page, theme = 'main') {
     this.page = page;
@@ -23,15 +25,50 @@ export class FrozenTallCellPage {
     this.grid = page.getByTestId('grid');
     this.master = this.grid.locator('.ht_master');
     this.inlineStartOverlay = this.grid.locator('.ht_clone_inline_start');
+    this.topOverlay = this.grid.locator('.ht_clone_top');
+    this.topInlineStartCorner = this.grid.locator('.ht_clone_top_inline_start_corner');
   }
 
   /**
    * Navigate and wait for the grid to render (a real DOM condition, no sleep).
+   *
+   * @param {object} [options] Fixture options. `fixedRowsTop` and `tallRow` together move the tall
+   *   frozen cell into a frozen TOP row, which only the corner overlay renders once scrolled.
    */
-  async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/walkontable/frozen-tall-cell.html?theme=${this.theme}`);
+  async goto(options: { fixedRowsTop?: number, tallRow?: number } = {}): Promise<void> {
+    const params = new URLSearchParams({ theme: this.theme });
+
+    Object.entries(options).forEach(([key, value]) => params.set(key, String(value)));
+
+    await this.page.goto(`/tests/fixtures/demo/walkontable/frozen-tall-cell.html?${params}`);
     await expect(this.master).toBeVisible();
     await expect(this.inlineStartOverlay).toBeVisible();
+  }
+
+  /**
+   * Scroll the master viewport down and let the overlays sync. The exact offset is not asserted —
+   * the browser clamps it to the content height, which differs per theme. Callers that depend on
+   * having scrolled far enough should assert that, e.g. via `masterFirstRenderedRow`.
+   */
+  async scrollVerticallyTo(top: number): Promise<void> {
+    await this.holder().evaluate((el, value) => {
+      el.scrollTop = value;
+    }, top);
+    await expect.poll(async () => this.holder().evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+  }
+
+  /** The lowest row index the master actually renders, read from its first body row's test id. */
+  async masterFirstRenderedRow(): Promise<number> {
+    const testId = await this.master.locator('tbody > tr').first().getAttribute('data-testid');
+
+    return Number(testId?.replace('row-', '') ?? -1);
+  }
+
+  /** Turn a tall cell in a SCROLLABLE column on or off — one the master measures by itself. */
+  async setTallScrollableCell(value: boolean): Promise<void> {
+    await this.page.evaluate(v => (window as unknown as {
+      setTallScrollableCell: (on: boolean) => void
+    }).setTallScrollableCell(v), value);
   }
 
   /** One row of one table (master or an overlay clone). */

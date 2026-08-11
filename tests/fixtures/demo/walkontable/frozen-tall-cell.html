@@ -31,11 +31,21 @@
 
     container.className = `ht-theme-${window.htTheme}`;
 
-    const TALL_ROW = 2;
+    const params = new URLSearchParams(location.search);
+    // `?tallRow=0&fixedRowsTop=2` puts the tall frozen cell in a FROZEN TOP row, which only the
+    // top-inline-start corner overlay renders once the grid is scrolled down.
+    const TALL_ROW = Number(params.get('tallRow') ?? 2);
     const TALL_COLUMN = 1;
     const TALL_CONTENT_HEIGHT = 60;
+    const FIXED_ROWS_TOP = Number(params.get('fixedRowsTop') ?? 0);
+    // A second tall cell, in a SCROLLABLE column, that the master measures by itself. Switching it on
+    // makes the master invalidate the row-height cache mid-draw, which is what used to drop the
+    // frozen row's record from the rebuilt prefix sum.
+    const SCROLLABLE_TALL_ROW = 4;
+    const SCROLLABLE_TALL_COLUMN = 5;
 
     let isTall = true;
+    let isScrollableTall = false;
 
     const data = Array.from({ length: 20 }, (_, r) =>
       Array.from({ length: 100 }, (_, c) => `R${r + 1}C${c + 1}`));
@@ -53,6 +63,10 @@
       if (isTall && row === TALL_ROW && col === TALL_COLUMN) {
         td.innerHTML = `<div data-testid="tall-block" style="height: ${TALL_CONTENT_HEIGHT}px"></div>`;
       }
+
+      if (isScrollableTall && row === SCROLLABLE_TALL_ROW && col === SCROLLABLE_TALL_COLUMN) {
+        td.innerHTML = '<div data-testid="scrollable-tall-block" style="height: 40px"></div>';
+      }
     };
 
     const hot = window.hot = new Handsontable(container, {
@@ -61,6 +75,7 @@
       height: 300,
       colWidths: 100,
       fixedColumnsStart: 3,
+      fixedRowsTop: FIXED_ROWS_TOP,
       rowHeaders: true,
       colHeaders: true,
       renderer,
@@ -70,6 +85,12 @@
     // Drives the "content shrank back" case from the spec.
     window.setTallCell = (value) => {
       isTall = value;
+      hot.render();
+    };
+
+    // Drives the "master invalidates the row-height cache in the same draw" case.
+    window.setTallScrollableCell = (value) => {
+      isScrollableTall = value;
       hot.render();
     };
   </script>

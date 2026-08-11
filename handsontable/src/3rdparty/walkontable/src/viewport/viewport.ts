@@ -102,6 +102,19 @@ class Viewport {
    */
   declare oversizedRows: Record<number, number | undefined>;
   /**
+   * The `oversizedRows` keys whose height was discovered in a FROZEN column — content the master
+   * table does not render, so `markOversizedRows` on the master can never re-detect it.
+   *
+   * `resetOversizedRows` skips these keys: wiping them would drop the record before the row-height
+   * cache and the viewport calculators are built, and the master could not put it back. They are
+   * cleared instead by `resetFrozenOversizedRows`, in the seam between the master's render and the
+   * frozen overlays' — late enough that the master rendered at the right height, early enough that
+   * the frozen clone renders at its natural height and stays re-measurable.
+   *
+   * @type {Set<number>}
+   */
+  declare frozenOversizedRows: Set<number>;
+  /**
    * @type {Record<string, unknown>}
    */
   declare hasOversizedColumnHeadersMarked: Record<string, unknown>;
@@ -195,6 +208,7 @@ class Viewport {
     this.wtSettings = wtSettings;
     this.wtTable = wtTable;
     this.oversizedRows = {};
+    this.frozenOversizedRows = new Set();
     this.hasOversizedColumnHeadersMarked = {};
     this.clientHeight = 0;
     this.rowHeaderWidth = NaN;
@@ -352,6 +366,19 @@ class Viewport {
   invalidateRowHeightCache() {
     this.rowHeightCache.invalidate();
     this.invalidateLayout();
+  }
+
+  /**
+   * Hands the frozen-derived row records back to the ordinary oversized-row machinery, keeping their
+   * heights but dropping their exemption from `resetOversizedRows`.
+   *
+   * Called on any draw that does NOT run the frozen-column row sync — the master's rendered band
+   * starts at column 0, so it renders every frozen column and can measure those rows itself. Without
+   * this the records would keep their exemption while nothing re-measured them, so they could only
+   * ever grow.
+   */
+  releaseFrozenOversizedRows() {
+    this.frozenOversizedRows.clear();
   }
 
   /**

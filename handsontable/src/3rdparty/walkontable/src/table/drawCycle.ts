@@ -8,6 +8,7 @@ import {
   adjustColumnHeaderHeights,
   markOversizedRows,
   resetOversizedRows,
+  resetFrozenOversizedRows,
   shouldSyncOversizedRowsWithFrozenOverlays,
   syncOversizedColumnHeadersWithFrozenOverlays,
   syncOversizedRowsWithFrozenOverlays,
@@ -29,11 +30,10 @@ interface DrawContext {
   /** Default `false`; only the master fixed-position pass writes `true`. */
   positionChanged: boolean;
   /**
-   * The oversized-row records `resetOversizedRows` wiped before the MASTER's render, handed to the
-   * frozen-column row sync later in the draw when the master deferred its shrink detection to it.
-   * `undefined` whenever there is nothing to hand over.
+   * Whether this draw runs the frozen-column row sync. Decided once, before the master renders, and
+   * read again when the frozen records are cleared and measured, so the two can never disagree.
    */
-  wipedOversizedRows?: Map<number, number>;
+  syncFrozenRows: boolean;
   rowHeaders: Function[];
   columnHeaders: Function[];
   rowHeadersCount: number;
@@ -62,6 +62,7 @@ export function runDrawCycle(table: Table, fastDraw: boolean): void {
     runFastDraw: fastDraw,
     performRedraw: true,
     positionChanged: false,
+    syncFrozenRows: false,
     rowHeaders,
     columnHeaders,
     rowHeadersCount: rowHeaders.length,
@@ -153,6 +154,16 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
 
     const filters = buildRenderFilters(table, ctx);
 
+    // Decided before the master renders, because `resetOversizedRows` (inside `renderCellBand`) has
+    // to know whether the frozen-derived records are still being maintained. When they are not — the
+    // master's band starts at column 0, so it renders every frozen column itself — they go back to
+    // the ordinary machinery, which wipes and re-measures them like any other oversized row.
+    ctx.syncFrozenRows = shouldSyncOversizedRowsWithFrozenOverlays(table);
+
+    if (!ctx.syncFrozenRows) {
+      wtViewport.releaseFrozenOversizedRows();
+    }
+
     table.alignOverlaysWithTrimmingContainer(); // todo It calls method from child class (MasterTable).
     const skipRender: { skipRender?: boolean } = {};
 
@@ -188,12 +199,18 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
         }
       }
 
+      // The seam: the master has rendered and both size caches and the viewport calculators were
+      // built from the frozen-derived heights, so clearing them now costs nothing — and it makes the
+      // frozen overlays below render at their natural content height, which is what keeps them
+      // re-measurable instead of ratcheting on their own cached value.
+      const wipedFrozenRows = ctx.syncFrozenRows ? resetFrozenOversizedRows(table) : undefined;
+
       wtOverlays.refresh(false);
       syncOversizedColumnHeadersWithFrozenOverlays(table);
       // The frozen overlays have now rendered, so a row whose tallest cell lives in a frozen column
       // (which the master's rendered band skips) can finally be measured. Runs after the header sync
       // so a taller frozen header is already reflected in the THEAD when the body rows are re-sized.
-      syncOversizedRowsWithFrozenOverlays(table, ctx.wipedOversizedRows);
+      syncOversizedRowsWithFrozenOverlays(table, wipedFrozenRows);
       wtOverlays.applyToDOM();
 
       wtSettings.getSetting('onDraw', true);
@@ -325,12 +342,6 @@ function renderCellBand(
   table.tableRenderer.setColumnHeadersRenderSkippable(columnHeadersRenderSkippable);
 
   const wipedOversizedRows = resetOversizedRows(table);
-  // A wiped record the MASTER cannot re-detect below may belong to a row whose tall content lives
-  // only in a frozen column — the master does not render it, so only the frozen-column sync later
-  // in this draw can tell that apart from a row that shrank. Hand the map over instead of
-  // concluding here; the alternative is two row-height cache invalidations per draw, and with a
-  // non-uniform row-size source each one is a full prefix-sum walk over every row.
-  const deferShrinkDetection = table.isMaster && shouldSyncOversizedRowsWithFrozenOverlays(table);
 
   table.tableRenderer
     .setActiveOverlayName(table.name)
@@ -341,11 +352,7 @@ function renderCellBand(
   adjustColumnHeaderHeights(table);
 
   if (table.isMaster || table.is(CLONE_BOTTOM)) {
-    markOversizedRows(table, wipedOversizedRows, deferShrinkDetection);
-  }
-
-  if (deferShrinkDetection) {
-    ctx.wipedOversizedRows = wipedOversizedRows;
+    markOversizedRows(table, wipedOversizedRows);
   }
 }
 

@@ -158,27 +158,34 @@ function applyRowHeightsToRenderedRows(table: Table): void {
 }
 
 /**
- * Whether any row of this table's rendered band carries an oversized record.
+ * Marks every oversized row of this frozen table's band as frozen-derived, so `resetOversizedRows`
+ * leaves the record alone from here on, and reports whether the band holds any.
  *
- * This — not "did the measurement change" — is what decides whether the tables that skip the frozen
- * columns need their heights re-applied. `resetOversizedRows` wipes the band before the master
- * renders, so on every full draw the master renders a frozen-driven tall row at its provided height,
- * steady state included. The re-apply is therefore needed whenever such a row is in the band at all.
+ * Registering the whole band (rather than only what this pass just wrote) is deliberate: a row can be
+ * oversized for a master-visible reason AND taller still in a frozen column, and the frozen height is
+ * the one that survives. `resetFrozenOversizedRows` hands such a row back for re-measurement every
+ * draw, and `Viewport#releaseFrozenOversizedRows` returns the whole set to the ordinary machinery as
+ * soon as the master starts rendering the frozen columns itself.
  *
- * @param {Table} table The inline-start clone, whose band is the same as the master's.
- * @returns {boolean}
+ * @param {Table} table A table that renders frozen columns (the inline-start clone or a corner).
+ * @returns {boolean} Whether the band carries any oversized row.
  */
-function hasOversizedRowInRenderedBand(table: Table): boolean {
-  const { oversizedRows } = table.deps.getWtViewport();
+function registerFrozenOversizedRows(table: Table): boolean {
+  const wtViewport = table.deps.getWtViewport();
+  const { oversizedRows, frozenOversizedRows } = wtViewport;
   const rowsToRender = table.getRenderedRowsCount();
+  let hasRecord = false;
 
   for (let renderedRowIndex = 0; renderedRowIndex < rowsToRender; renderedRowIndex++) {
-    if (oversizedRows[table.rowFilter!.renderedToSource(renderedRowIndex)] !== undefined) {
-      return true;
+    const sourceRow = table.rowFilter!.renderedToSource(renderedRowIndex);
+
+    if (oversizedRows[sourceRow] !== undefined) {
+      frozenOversizedRows.add(sourceRow);
+      hasRecord = true;
     }
   }
 
-  return false;
+  return hasRecord;
 }
 
 /**
@@ -203,38 +210,50 @@ export function shouldSyncOversizedRowsWithFrozenOverlays(table: Table): boolean
 
 /**
  * A row whose tallest content sits in a frozen (inline-start) column is rendered at that height only
- * in the frozen overlays. The master renders a contiguous column band starting at the column under
+ * by the frozen overlays. The master renders a contiguous column band starting at the column under
  * the horizontal scroll offset, so as soon as that band starts past column 0 the master never renders
- * the frozen columns — and `markOversizedRows` measures the master. The row is therefore recorded at
- * its provided height while the inline-start clone renders it at its content height, and every row
- * below it drifts by the difference.
+ * the frozen columns — and `markOversizedRows` measures the master. Left alone, the row would be
+ * recorded at its provided height while the frozen overlays render it at its content height, and
+ * every row below it would drift by the difference.
  *
  * This runs after the frozen overlays have rendered, and is the row-height twin of
- * `syncOversizedColumnHeadersWithFrozenOverlays`: it measures the inline-start clone with the master's
- * own measurement pass and, when that discovers a taller row, re-applies the resulting heights to the
- * tables that render the row WITHOUT the frozen columns.
+ * `syncOversizedColumnHeadersWithFrozenOverlays`. It measures all three tables that render frozen
+ * columns — the inline-start clone, which mirrors the master's row band, and the two corners, which
+ * hold the frozen top and bottom rows the inline-start clone does not — then re-applies the resulting
+ * heights to the tables that render those rows WITHOUT the frozen columns.
  *
- * There is no ratcheting risk in re-measuring the clone. `resetOversizedRows` wiped this band's
- * records at the start of the draw — the records live on the master's viewport, which every clone
- * shares — so the only heights in force when the clone rendered are the ones the master measured
- * moments earlier in this same draw. A row that is tall solely because of a frozen cell carries no
- * record at all, so the clone rendered it at its natural content height: a frozen cell that shrank
- * back is measured smaller and recorded smaller.
+ * Re-measuring cannot ratchet: `resetFrozenOversizedRows` cleared these rows' records moments ago,
+ * after the master rendered but before the frozen overlays did, so they rendered at their natural
+ * content height. A frozen cell that shrank back is measured smaller and recorded smaller.
  *
  * @param {Table} table The master table.
+ * @param {Map<number, number>} [wipedFrozenRows] The heights `resetFrozenOversizedRows` cleared, so
+ *   an unchanged row is not mistaken for a new one (which would invalidate the row-height cache on
+ *   every draw — a full prefix-sum walk when the row-size source is non-uniform).
  */
 export function syncOversizedRowsWithFrozenOverlays(
   table: Table,
-  wipedOversizedRows?: Map<number, number>,
+  wipedFrozenRows?: Map<number, number>,
 ): void {
   const wtOverlays = table.deps.getWtOverlays();
-  const inlineStartClone = wtOverlays.inlineStartOverlay?.clone;
-
-  if (!shouldSyncOversizedRowsWithFrozenOverlays(table) || !inlineStartClone?.wtTable?.TBODY) {
-    // The master may have deferred its shrink detection to this pass, which is not running after
-    // all. Settle the leftovers here so a genuinely shrunk row still drops the row-height cache.
-    if (wipedOversizedRows !== undefined && wipedOversizedRows.size > 0) {
+  const frozenTables = [
+    wtOverlays.inlineStartOverlay?.clone?.wtTable,
+    wtOverlays.topInlineStartCornerOverlay?.clone?.wtTable,
+    wtOverlays.bottomInlineStartCornerOverlay?.clone?.wtTable,
+  ].filter((frozenTable): frozenTable is Table => !!frozenTable?.TBODY);
+  const settleWipedRows = () => {
+    // Rows nothing re-detected shrank back to their provided height.
+    if (wipedFrozenRows !== undefined && wipedFrozenRows.size > 0) {
       table.deps.getWtViewport().invalidateRowHeightCache();
+
+      return true;
+    }
+
+    return false;
+  };
+
+  if (!shouldSyncOversizedRowsWithFrozenOverlays(table) || frozenTables.length === 0) {
+    if (settleWipedRows()) {
       // The heights changed after `wtOverlays.refresh()` sized the elements for this draw.
       wtOverlays.adjustElementsSize();
     }
@@ -242,17 +261,27 @@ export function syncOversizedRowsWithFrozenOverlays(
     return;
   }
 
-  // The master's wiped records are handed over: the rows whose tall content the master cannot see
-  // are re-detected HERE, at the same height, so a steady-state redraw is not a change and the
-  // row-height cache survives. Whatever is still left afterwards genuinely shrank, and
-  // `markOversizedRows` invalidates for it.
-  const invalidatedRowHeightCache = markOversizedRows(inlineStartClone.wtTable, wipedOversizedRows);
+  let hasFrozenRecord = false;
+  let heightsChanged = false;
 
-  if (hasOversizedRowInRenderedBand(inlineStartClone.wtTable)) {
-    // The inline-start and corner overlays are deliberately not re-sized — they hold the tall
-    // content itself and are the source the height was just read from.
+  frozenTables.forEach((frozenTable) => {
+    // `deferShrinkDetection`: each table sees only its own slice of the band, so a record it cannot
+    // re-detect may simply belong to one of the others. `settleWipedRows` concludes once, below.
+    heightsChanged = markOversizedRows(frozenTable, wipedFrozenRows, true) || heightsChanged;
+  });
+
+  frozenTables.forEach((frozenTable) => {
+    hasFrozenRecord = registerFrozenOversizedRows(frozenTable) || hasFrozenRecord;
+  });
+
+  heightsChanged = settleWipedRows() || heightsChanged;
+
+  // The top and bottom clones render inside `wtOverlays.refresh()` — AFTER
+  // `resetFrozenOversizedRows` cleared the records — so they need the correction on every draw that
+  // has one. (With no frozen rows configured these clones carry no body rows, so this costs nothing
+  // on an ordinary frozen-columns grid.)
+  if (hasFrozenRecord) {
     [
-      table,
       wtOverlays.topOverlay?.clone?.wtTable,
       wtOverlays.bottomOverlay?.clone?.wtTable,
     ].forEach((target) => {
@@ -260,13 +289,20 @@ export function syncOversizedRowsWithFrozenOverlays(
         applyRowHeightsToRenderedRows(target);
       }
     });
+  }
 
-    wtOverlays.adjustElementsSize();
+  // The master rendered BEFORE the clear, so in steady state it already has the right heights and is
+  // deliberately skipped — re-writing them every draw would be a per-row DOM write for nothing. It
+  // only needs the correction when a height appeared this draw (it rendered before that was known)
+  // or disappeared (it is still forced to the one that just went away).
+  if (heightsChanged) {
+    applyRowHeightsToRenderedRows(table);
+  }
 
-  } else if (invalidatedRowHeightCache) {
-    // Nothing to re-apply — the frozen cell shrank back to its provided height — but the row
-    // heights still changed, so the sizing done by `wtOverlays.refresh()` earlier in this draw is
-    // stale and the scrollbar would keep the length of the taller content.
+  if (heightsChanged) {
+    // The summed row heights behind the scrollbar changed after `wtOverlays.refresh()` sized the
+    // elements for this draw, so that sizing is stale. Gated on a real change: `adjustElementsSize`
+    // walks every column (`sumCellSizes` must stay a live walk) and resizes three overlays.
     wtOverlays.adjustElementsSize();
   }
 }
@@ -304,13 +340,82 @@ export function resetOversizedRows(table: Table): Map<number, number> | undefine
     const sourceRow = table.rowFilter!.renderedToSource(visibleRowIndex);
     const previousHeight = wtViewport.oversizedRows?.[sourceRow];
 
-    if (previousHeight) {
+    // A frozen-derived record is exempt: this table does not render the column the height came from,
+    // so it could not put the record back, and the row-height cache and the viewport calculators are
+    // both built from this map before the frozen overlays have even rendered.
+    // `resetFrozenOversizedRows` clears these later in the draw instead.
+    if (previousHeight && !wtViewport.frozenOversizedRows.has(sourceRow)) {
       wipedOversizedRows.set(sourceRow, previousHeight);
       delete wtViewport.oversizedRows[sourceRow];
     }
   }
 
   return wipedOversizedRows;
+}
+
+/**
+ * Clears the frozen-derived oversized-row records that this draw is about to re-measure, and returns
+ * their previous heights so the frozen sync can tell an unchanged row from a changed one.
+ *
+ * Timing is the whole point. This runs in the seam between the master's render and the frozen
+ * overlays' — after the master rendered (so it used the correct, still-recorded heights, and no row
+ * drifts on this frame), after the row-height cache and the viewport calculators were built from
+ * them, and before the inline-start overlays render, so those render at their natural content height
+ * and stay re-measurable rather than being forced to the cached height and ratcheting.
+ *
+ * Only the rows this draw will re-measure are cleared: the master's rendered band (which the
+ * inline-start clone mirrors) plus the frozen top and bottom rows (which the corner overlays hold).
+ * A frozen-derived record for any other row is left alone — nothing would put it back, and the
+ * summed row heights behind the scrollbar need it.
+ *
+ * @param {Table} table The master table.
+ * @returns {Map<number, number>|undefined} The cleared heights by source row, or `undefined` when
+ *   there was nothing recorded.
+ */
+export function resetFrozenOversizedRows(table: Table): Map<number, number> | undefined {
+  const wtViewport = table.deps.getWtViewport();
+  const { frozenOversizedRows } = wtViewport;
+
+  if (frozenOversizedRows.size === 0) {
+    return undefined;
+  }
+
+  const { wtSettings } = table;
+  const wipedRows = new Map<number, number>();
+  const clear = (sourceRow: number) => {
+    if (!frozenOversizedRows.has(sourceRow)) {
+      return;
+    }
+
+    const previousHeight = wtViewport.oversizedRows[sourceRow];
+
+    if (previousHeight !== undefined) {
+      wipedRows.set(sourceRow, previousHeight);
+    }
+
+    delete wtViewport.oversizedRows[sourceRow];
+    frozenOversizedRows.delete(sourceRow);
+  };
+
+  const rowsToRender = table.getRenderedRowsCount();
+
+  for (let renderedRowIndex = 0; renderedRowIndex < rowsToRender; renderedRowIndex++) {
+    clear(table.rowFilter!.renderedToSource(renderedRowIndex));
+  }
+
+  const totalRows = wtSettings.getSetting<number>('totalRows');
+  const fixedRowsTop = wtSettings.getSetting<number>('fixedRowsTop');
+  const fixedRowsBottom = wtSettings.getSetting<number>('fixedRowsBottom');
+
+  for (let row = 0; row < fixedRowsTop; row++) {
+    clear(row);
+  }
+
+  for (let row = Math.max(0, totalRows - fixedRowsBottom); row < totalRows; row++) {
+    clear(row);
+  }
+
+  return wipedRows;
 }
 
 /**

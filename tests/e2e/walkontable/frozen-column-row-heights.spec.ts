@@ -53,6 +53,23 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
     }
   });
 
+  test('keeps the frozen row height when the master invalidates the cache in the same draw', async () => {
+    const before = await wt.masterScrollHeight();
+
+    // The master discovers a tall cell of its own and drops the row-height cache mid-draw. The
+    // rebuild that follows must still know about the frozen row — it is measured later in the same
+    // draw, so a rebuild that dropped it would leave the scroll range permanently short, with the
+    // rows still LOOKING right because their heights are re-applied from the live records.
+    await wt.setTallScrollableCell(true);
+    await expect(wt.grid.getByTestId('scrollable-tall-block')).toHaveCount(1);
+
+    const after = await wt.masterScrollHeight();
+
+    expect(after).toBeGreaterThan(before);
+    expect(await wt.rowHeight(wt.master, TALL_ROW))
+      .toBe(await wt.rowHeight(wt.inlineStartOverlay, TALL_ROW));
+  });
+
   test('brings the vertical scroll range back in one draw when the frozen cell shrinks', async () => {
     const tallScrollHeight = await wt.masterScrollHeight();
 
@@ -82,5 +99,35 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
     // the master and the overlay that used to hold the tall content.
     expect(await wt.rowHeight(wt.master, TALL_ROW)).toBe(normalHeight);
     expect(await wt.rowHeight(wt.inlineStartOverlay, TALL_ROW)).toBe(normalHeight);
+  });
+
+  test.describe('when the tall frozen cell is in a frozen top row', () => {
+    // Frozen top rows leave the master's band once the grid is scrolled down. The inline-start clone
+    // mirrors that band, so it does not render them either — only the top-inline-start corner does.
+    // The corner is therefore the ONLY table that can measure this row.
+    const FROZEN_TOP_ROW = 0;
+    // The other frozen top row — a normal row, and the baseline, since the usual one has left the
+    // master's band by the time this test measures.
+    const PLAIN_TOP_ROW = 1;
+
+    test.beforeEach(async () => {
+      await wt.goto({ fixedRowsTop: 2, tallRow: FROZEN_TOP_ROW });
+      await wt.scrollVerticallyTo(300);
+      await wt.scrollHorizontallyTo(1500);
+    });
+
+    test('keeps the frozen top row aligned between the top overlay and its corner', async () => {
+      // The premises: the master skips the frozen columns, AND it has scrolled past the frozen top
+      // rows, so the inline-start clone (which mirrors the master's band) does not render them
+      // either. That leaves the corner as the only table holding the tall cell.
+      expect(await wt.masterFirstRenderedColumn()).toBeGreaterThan(0);
+      expect(await wt.masterFirstRenderedRow()).toBeGreaterThan(PLAIN_TOP_ROW);
+
+      const cornerHeight = await wt.rowHeight(wt.topInlineStartCorner, FROZEN_TOP_ROW);
+      const topHeight = await wt.rowHeight(wt.topOverlay, FROZEN_TOP_ROW);
+
+      expect(cornerHeight).toBeGreaterThan(await wt.rowHeight(wt.topInlineStartCorner, PLAIN_TOP_ROW));
+      expect(topHeight).toBe(cornerHeight);
+    });
   });
 });
