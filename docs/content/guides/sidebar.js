@@ -109,6 +109,7 @@ const cellTypesItems = [
 ];
 
 const formulasItems = [
+  { path: 'guides/formulas/installation/installation' },
   { path: 'guides/formulas/formula-calculation/formula-calculation' },
 ];
 
