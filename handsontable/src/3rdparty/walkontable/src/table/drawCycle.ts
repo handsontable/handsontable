@@ -243,7 +243,19 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
       // The frozen overlays have now rendered, so a row whose tallest cell lives in a frozen column
       // (which the master's rendered band skips) can finally be measured. Runs after the header sync
       // so a taller frozen header is already reflected in the THEAD when the body rows are re-sized.
-      syncOversizedRowsWithFrozenOverlays(table, wipedFrozenRows);
+      const frozenRowHeightsChanged = syncOversizedRowsWithFrozenOverlays(table, wipedFrozenRows);
+
+      if (frozenRowHeightsChanged && !wtSettings.getSetting('externalRowCalculator')) {
+        // The calculators above were built from row heights this sync has since changed, and a
+        // frozen-derived height cannot be known any earlier — the frozen overlays had not rendered.
+        // An ordinary oversized row never reaches here: the master invalidates inside
+        // `renderCellBand`, before the calculators are computed. Left alone, the frame reports a
+        // visible row range measured against the old heights, which self-corrects on the next draw
+        // and so reads as an intermittent off-by-a-row to anything asking during this one.
+        wtViewport.rowHeightCache.ensureBuilt();
+        wtViewport.createVisibleCalculators();
+      }
+
       wtOverlays.applyToDOM();
 
       wtSettings.getSetting('onDraw', true);

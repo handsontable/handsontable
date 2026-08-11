@@ -171,6 +171,102 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
     expect(await wt.countRowCacheInvalidations(3)).toBe(0);
   });
 
+  test('keeps the scroll range whole when the BOTTOM clone invalidates the cache mid-draw', async () => {
+    // The bottom clone renders, and measures itself, inside `wtOverlays.refresh()` — after the
+    // frozen records have been cleared for this draw. An invalidation of its own therefore lands in
+    // that window, and the next read rebuilds the prefix sum from an `oversizedRows` the frozen rows
+    // are not in yet. Nothing corrects it afterwards: the records come back unchanged, so no
+    // invalidation follows them. Every rendered row still looks right; only the scrollbar is short.
+    const config = { fixedRowsBottom: 2, scrollableTallRow: 18, rows: 20 };
+
+    await wt.goto(config);
+
+    const settled = await wt.rowHeightSum();
+
+    expect(settled.cached).toBe(settled.live);
+
+    await wt.goto(config);
+    // Grows a row the BOTTOM clone owns, so the bottom clone is what invalidates.
+    await wt.setTallScrollableCell(true);
+
+    const afterGrow = await wt.rowHeightSum();
+
+    expect(afterGrow.cached).toBe(afterGrow.live);
+
+    await wt.goto(config);
+    await wt.setTallScrollableCell(true);
+    await wt.setTallScrollableCell(false);
+
+    const afterShrink = await wt.rowHeightSum();
+
+    expect(afterShrink.cached).toBe(afterShrink.live);
+  });
+
+  test('reports the visible row range against the heights this draw ended with', async () => {
+    // The viewport calculators are built before the frozen overlays render, so a frozen-derived
+    // height cannot be in them. An ordinary oversized row never has this problem — the master
+    // invalidates inside `renderCellBand`, which is earlier. Left unrebuilt, the range is measured
+    // against the previous heights and silently corrects itself on the next draw, so anything
+    // asking during this one gets an answer that is off by a row or two.
+    await wt.setTallCell(false);
+
+    const withoutTallRow = await wt.visibleRowRange();
+
+    await wt.setTallCell(true);
+
+    const onTheDrawThatGrew = await wt.visibleRowRange();
+
+    await wt.forceRender();
+
+    expect(onTheDrawThatGrew).toBe(await wt.visibleRowRange());
+    expect(onTheDrawThatGrew).not.toBe(withoutTallRow);
+  });
+
+  test('stays a faithful mirror of RenderSizeProbe, including rows only a corner renders', async () => {
+    // The probe independently reproduces `oversizedRows` and is the intended replacement for the
+    // engine's own measurement. Heights sourced from tables it does not measure would leave it
+    // quietly reproducing a subset — with the characterization spec still green, since it has no
+    // frozen-column case.
+    const asRecorded = (records: Record<string, { engine: number, probe: number | null }>) =>
+      Object.fromEntries(Object.entries(records).map(([row, { engine }]) => [row, engine]));
+    const asMeasured = (records: Record<string, { engine: number, probe: number | null }>) =>
+      Object.fromEntries(Object.entries(records).map(([row, { probe }]) => [row, probe]));
+    const plain = await wt.recordsVersusProbe();
+
+    expect(asMeasured(plain)).toEqual(asRecorded(plain));
+
+    // A tall cell in a frozen TOP row is rendered by the corner alone once the grid has scrolled
+    // past it — the row is in no other measured table's band.
+    await wt.goto({ fixedRowsTop: 2, tallRow: 0 });
+    await wt.scrollVerticallyTo(300);
+    await wt.scrollHorizontallyTo(1500);
+
+    const records = await wt.recordsVersusProbe();
+
+    expect(Object.keys(records).length).toBeGreaterThan(0);
+    expect(asMeasured(records)).toEqual(asRecorded(records));
+  });
+
+  test('records nothing bogus when a merged block sits in the frozen columns', async () => {
+    // MergeCells inflates the anchor row's height PER OVERLAY (`modifyRowHeightByOverlayName`), so
+    // the frozen clone renders that row at the whole block's height while the overlay-agnostic
+    // `getRowHeight` that `markOversizedRows` compares against still reports one row. The inflation
+    // does not reach the measurement — it is written on a TD whose `rowspan` covers exactly the rows
+    // it accounts for, so no single TR measures tall — but the two sides of that comparison really
+    // do disagree, and only this pins the outcome.
+    await wt.goto({ mergeInFrozen: 1, rowHeaders: 0, rowHeights: 30 });
+    await wt.setTallCell(false);
+
+    expect(await wt.masterFirstRenderedColumn()).toBeGreaterThan(0);
+
+    for (const row of [4, 5]) {
+      expect(await wt.rowOffsetWithinTable(wt.master, row))
+        .toBe(await wt.rowOffsetWithinTable(wt.inlineStartOverlay, row));
+    }
+
+    expect(await wt.countRowCacheInvalidations(3)).toBe(0);
+  });
+
   test('brings the vertical scroll range back in one draw when the frozen cell shrinks', async () => {
     const tallScrollHeight = await wt.masterScrollHeight();
 

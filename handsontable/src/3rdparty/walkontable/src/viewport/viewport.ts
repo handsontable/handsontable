@@ -115,6 +115,20 @@ class Viewport {
    */
   declare frozenOversizedRows: Set<number>;
   /**
+   * The row-height cache's `buildSeq` as it stood when this draw cleared the frozen-derived
+   * records.
+   *
+   * Between that clear and the frozen sync putting the records back, `oversizedRows` is missing
+   * every frozen-derived height — so a cache built in that window is short by all of them. It is
+   * not self-correcting: the records come back unchanged, so nothing invalidates, and the hider
+   * keeps a scrollbar that cannot reach the end of the grid while every rendered row still looks
+   * right. The bottom clone reaches exactly this window, since it renders (and measures) inside
+   * `wtOverlays.refresh()`. Comparing the counter afterwards is how the sync notices.
+   *
+   * @type {number}
+   */
+  declare frozenClearRowCacheBuildSeq: number;
+  /**
    * @type {Record<string, unknown>}
    */
   declare hasOversizedColumnHeadersMarked: Record<string, unknown>;
@@ -220,6 +234,7 @@ class Viewport {
     this.wtTable = wtTable;
     this.oversizedRows = {};
     this.frozenOversizedRows = new Set();
+    this.frozenClearRowCacheBuildSeq = 0;
     this.hasOversizedColumnHeadersMarked = {};
     this.clientHeight = 0;
     this.rowHeaderWidth = NaN;

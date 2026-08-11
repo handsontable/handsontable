@@ -46,6 +46,11 @@ export class FrozenTallCellPage {
     scrollableTallRow?: number,
     scrollableTallHeight?: number,
     rows?: number,
+    fixedRowsBottom?: number,
+    mergeInFrozen?: 0 | 1,
+    rowHeaders?: 0 | 1,
+    rowHeights?: number,
+    mergeRow?: number,
   } = {}): Promise<void> {
     const params = new URLSearchParams({ theme: this.theme });
 
@@ -173,6 +178,42 @@ export class FrozenTallCellPage {
     return this.page.evaluate(count => (window as unknown as {
       countRowCacheInvalidations: (renders: number) => number
     }).countRowCacheInvalidations(count), renders);
+  }
+
+  /**
+   * The row-height prefix sum as the cache answers it now, beside the same sum rebuilt from
+   * scratch. A gap means the cache was built while `oversizedRows` was missing heights — invisible
+   * in the rendered rows, visible only as a scrollbar that cannot reach the end of the grid.
+   */
+  async rowHeightSum(): Promise<{ cached: number, live: number }> {
+    return this.page.evaluate(() => (window as unknown as {
+      rowHeightSum: () => { cached: number, live: number }
+    }).rowHeightSum());
+  }
+
+  /** The rows the engine has an oversized-height record for, beside what `RenderSizeProbe` measured. */
+  async recordsVersusProbe(): Promise<Record<string, { engine: number, probe: number | null }>> {
+    return this.page.evaluate(() => {
+      const hot = (window as unknown as { hot: any }).hot;
+      const { oversizedRows } = hot.view._wt.wtViewport;
+      const { rowHeights } = hot.view.renderSizeProbe;
+      const out: Record<string, { engine: number, probe: number | null }> = {};
+
+      Object.keys(oversizedRows).forEach((key) => {
+        out[key] = { engine: oversizedRows[key], probe: rowHeights.get(Number(key)) ?? null };
+      });
+
+      return out;
+    });
+  }
+
+  /** The rows the master's viewport calculator currently reports as visible. */
+  async visibleRowRange(): Promise<string> {
+    return this.page.evaluate(() => {
+      const calculator = (window as unknown as { hot: any }).hot.view._wt.wtViewport.rowsVisibleCalculator;
+
+      return `${calculator?.startRow}..${calculator?.endRow}`;
+    });
   }
 
   /** Turn the tall block in the frozen column on or off and re-render. */
