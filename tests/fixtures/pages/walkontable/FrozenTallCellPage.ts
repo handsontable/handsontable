@@ -88,6 +88,22 @@ export class FrozenTallCellPage {
     await expect.poll(async () => this.holder().evaluate(el => el.scrollLeft)).toBe(left);
   }
 
+  /**
+   * The master's scrollable content height — what the vertical scrollbar is sized from. It is
+   * computed from the summed row heights, not measured off the rendered table, so it goes stale
+   * whenever a draw changes the row heights without re-sizing the overlay elements.
+   */
+  async masterScrollHeight(): Promise<number> {
+    return this.holder().evaluate(el => el.scrollHeight);
+  }
+
+  /** Force one more full draw, to see whether the previous one had already settled. */
+  async forceRender(): Promise<void> {
+    await this.page.evaluate(() => (window as unknown as {
+      hot: { render: () => void }
+    }).hot.render());
+  }
+
   /** Turn the tall block in the frozen column on or off and re-render. */
   async setTallCell(value: boolean): Promise<void> {
     await this.page.evaluate(v => (window as unknown as {

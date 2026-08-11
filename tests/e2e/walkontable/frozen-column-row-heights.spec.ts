@@ -53,6 +53,23 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
     }
   });
 
+  test('brings the vertical scroll range back in one draw when the frozen cell shrinks', async () => {
+    const tallScrollHeight = await wt.masterScrollHeight();
+
+    await wt.setTallCell(false);
+    await expect(wt.grid.getByTestId('tall-block')).toHaveCount(0);
+
+    const afterShrink = await wt.masterScrollHeight();
+
+    // A second draw must not change anything: the draw that shrank the row has to re-size the
+    // overlay elements itself. The scroll range is summed from the row heights rather than measured
+    // off the rendered table, so a missed resize leaves the scrollbar sized for the tall row.
+    await wt.forceRender();
+
+    expect(afterShrink).toBe(await wt.masterScrollHeight());
+    expect(afterShrink).toBeLessThan(tallScrollHeight);
+  });
+
   test('shrinks the row back once the frozen cell no longer holds tall content', async () => {
     const normalHeight = await wt.normalRowHeight();
 

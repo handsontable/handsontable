@@ -235,6 +235,8 @@ export function syncOversizedRowsWithFrozenOverlays(
     // all. Settle the leftovers here so a genuinely shrunk row still drops the row-height cache.
     if (wipedOversizedRows !== undefined && wipedOversizedRows.size > 0) {
       table.deps.getWtViewport().invalidateRowHeightCache();
+      // The heights changed after `wtOverlays.refresh()` sized the elements for this draw.
+      wtOverlays.adjustElementsSize();
     }
 
     return;
@@ -244,27 +246,29 @@ export function syncOversizedRowsWithFrozenOverlays(
   // are re-detected HERE, at the same height, so a steady-state redraw is not a change and the
   // row-height cache survives. Whatever is still left afterwards genuinely shrank, and
   // `markOversizedRows` invalidates for it.
-  markOversizedRows(inlineStartClone.wtTable, wipedOversizedRows);
+  const invalidatedRowHeightCache = markOversizedRows(inlineStartClone.wtTable, wipedOversizedRows);
 
-  if (!hasOversizedRowInRenderedBand(inlineStartClone.wtTable)) {
-    return;
+  if (hasOversizedRowInRenderedBand(inlineStartClone.wtTable)) {
+    // The inline-start and corner overlays are deliberately not re-sized — they hold the tall
+    // content itself and are the source the height was just read from.
+    [
+      table,
+      wtOverlays.topOverlay?.clone?.wtTable,
+      wtOverlays.bottomOverlay?.clone?.wtTable,
+    ].forEach((target) => {
+      if (target) {
+        applyRowHeightsToRenderedRows(target);
+      }
+    });
+
+    wtOverlays.adjustElementsSize();
+
+  } else if (invalidatedRowHeightCache) {
+    // Nothing to re-apply — the frozen cell shrank back to its provided height — but the row
+    // heights still changed, so the sizing done by `wtOverlays.refresh()` earlier in this draw is
+    // stale and the scrollbar would keep the length of the taller content.
+    wtOverlays.adjustElementsSize();
   }
-
-  // The inline-start and corner overlays are deliberately not re-sized — they hold the tall content
-  // itself and are the source the height was just read from.
-  [
-    table,
-    wtOverlays.topOverlay?.clone?.wtTable,
-    wtOverlays.bottomOverlay?.clone?.wtTable,
-  ].forEach((target) => {
-    if (target) {
-      applyRowHeightsToRenderedRows(target);
-    }
-  });
-
-  // The hider height comes from the summed row heights, not from the rendered DOM, so it has to be
-  // recomputed for the scrollbar to match the now-taller content.
-  wtOverlays.adjustElementsSize();
 }
 
 /**
@@ -328,14 +332,17 @@ export function resetOversizedRows(table: Table): Map<number, number> | undefine
  *   it". Without the deferral a steady-state redraw would invalidate the row-height cache twice per
  *   draw — and with a non-uniform row-size source each invalidation costs a full prefix-sum walk.
  *   The caller keeps the map and must settle whatever is left in it.
+ * @returns {boolean} `true` when this call invalidated the row-height cache. The frozen-column row
+ *   sync reads it: an invalidation there lands AFTER `wtOverlays.refresh()` sized the overlay
+ *   elements for the draw, so it has to re-size them.
  */
 export function markOversizedRows(
   table: Table,
   wipedOversizedRows?: Map<number, number>,
   deferShrinkDetection = false,
-): void {
+): boolean {
   if (table.wtSettings.getSetting('externalRowCalculator')) {
-    return;
+    return false;
   }
   let rowCount = table.TBODY!.childNodes.length;
   const stylesHandler = table.wtSettings.getSetting('stylesHandler');
@@ -359,9 +366,11 @@ export function markOversizedRows(
     // cached heights are stale and the row-height cache must still be dropped.
     if (!deferShrinkDetection && wipedOversizedRows !== undefined && wipedOversizedRows.size > 0) {
       table.deps.getWtViewport().invalidateRowHeightCache();
+
+      return true;
     }
 
-    return;
+    return false;
   }
 
   const wtViewport = table.deps.getWtViewport();
@@ -427,4 +436,6 @@ export function markOversizedRows(
     // the pre-measurement scrollbar state after the content height changed.
     wtViewport.invalidateRowHeightCache();
   }
+
+  return hasChanges;
 }
