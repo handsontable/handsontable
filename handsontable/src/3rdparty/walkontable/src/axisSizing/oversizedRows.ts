@@ -158,37 +158,6 @@ function applyRowHeightsToRenderedRows(table: Table): void {
 }
 
 /**
- * Marks every oversized row of this frozen table's band as frozen-derived, so `resetOversizedRows`
- * leaves the record alone from here on, and reports whether the band holds any.
- *
- * Registering the whole band (rather than only what this pass just wrote) is deliberate: a row can be
- * oversized for a master-visible reason AND taller still in a frozen column, and the frozen height is
- * the one that survives. `resetFrozenOversizedRows` hands such a row back for re-measurement every
- * draw, and `Viewport#releaseFrozenOversizedRows` returns the whole set to the ordinary machinery as
- * soon as the master starts rendering the frozen columns itself.
- *
- * @param {Table} table A table that renders frozen columns (the inline-start clone or a corner).
- * @returns {boolean} Whether the band carries any oversized row.
- */
-function registerFrozenOversizedRows(table: Table): boolean {
-  const wtViewport = table.deps.getWtViewport();
-  const { oversizedRows, frozenOversizedRows } = wtViewport;
-  const rowsToRender = table.getRenderedRowsCount();
-  let hasRecord = false;
-
-  for (let renderedRowIndex = 0; renderedRowIndex < rowsToRender; renderedRowIndex++) {
-    const sourceRow = table.rowFilter!.renderedToSource(renderedRowIndex);
-
-    if (oversizedRows[sourceRow] !== undefined) {
-      frozenOversizedRows.add(sourceRow);
-      hasRecord = true;
-    }
-  }
-
-  return hasRecord;
-}
-
-/**
  * Whether this draw needs the frozen-column row-height sync at all: only when frozen columns exist
  * AND the master's rendered band starts past column 0, so at least one frozen column is rendered by
  * the inline-start overlays and by nothing else. AutoRowSize (`externalRowCalculator`) owns every
@@ -261,42 +230,57 @@ export function syncOversizedRowsWithFrozenOverlays(
     return;
   }
 
-  let hasFrozenRecord = false;
+  // Exactly the rows these tables measured taller than what was already known — i.e. the heights
+  // that came from a frozen column. A row that is tall for a reason the master renders is NOT in
+  // here, and must not be: the frozen overlays could never re-detect it, so marking it
+  // frozen-derived would make the next draw read it as shrunk and drop it.
+  const recordedRows = new Set<number>();
   let heightsChanged = false;
 
   frozenTables.forEach((frozenTable) => {
     // `deferShrinkDetection`: each table sees only its own slice of the band, so a record it cannot
     // re-detect may simply belong to one of the others. `settleWipedRows` concludes once, below.
-    heightsChanged = markOversizedRows(frozenTable, wipedFrozenRows, true) || heightsChanged;
+    heightsChanged = markOversizedRows(frozenTable, wipedFrozenRows, true, recordedRows) || heightsChanged;
   });
 
-  frozenTables.forEach((frozenTable) => {
-    hasFrozenRecord = registerFrozenOversizedRows(frozenTable) || hasFrozenRecord;
-  });
+  const { frozenOversizedRows } = table.deps.getWtViewport();
+
+  recordedRows.forEach(sourceRow => frozenOversizedRows.add(sourceRow));
 
   heightsChanged = settleWipedRows() || heightsChanged;
+
+  if (heightsChanged) {
+    // A frozen height appeared or disappeared. Release the master first: one that just went away is
+    // still forced onto its rows. Then re-measure it — the row may STILL be tall for a reason the
+    // master renders, which its own pass earlier in this draw could not see because at that point it
+    // was measuring the frozen height. Without this the row collapses to the frozen overlays' short
+    // natural height while the master keeps its own tall content, i.e. the very misalignment this
+    // whole sync exists to prevent.
+    applyRowHeightsToRenderedRows(table);
+    markOversizedRows(table);
+  }
 
   // The top and bottom clones render inside `wtOverlays.refresh()` — AFTER
   // `resetFrozenOversizedRows` cleared the records — so they need the correction on every draw that
   // has one. (With no frozen rows configured these clones carry no body rows, so this costs nothing
-  // on an ordinary frozen-columns grid.)
-  if (hasFrozenRecord) {
+  // on an ordinary frozen-columns grid.) On a change draw the master and the frozen overlays join
+  // them: they all rendered before the final set of records was known. Writing to the frozen ones
+  // cannot ratchet — this draw's measurement is finished, and the next clears and re-renders them
+  // before measuring again.
+  //
+  // In steady state the master is deliberately skipped: it rendered BEFORE the clear, so it already
+  // has the right heights, and re-writing every row each draw would be a per-row DOM write for
+  // nothing.
+  if (recordedRows.size > 0 || heightsChanged) {
     [
       wtOverlays.topOverlay?.clone?.wtTable,
       wtOverlays.bottomOverlay?.clone?.wtTable,
+      ...(heightsChanged ? [table, ...frozenTables] : []),
     ].forEach((target) => {
       if (target) {
         applyRowHeightsToRenderedRows(target);
       }
     });
-  }
-
-  // The master rendered BEFORE the clear, so in steady state it already has the right heights and is
-  // deliberately skipped — re-writing them every draw would be a per-row DOM write for nothing. It
-  // only needs the correction when a height appeared this draw (it rendered before that was known)
-  // or disappeared (it is still forced to the one that just went away).
-  if (heightsChanged) {
-    applyRowHeightsToRenderedRows(table);
   }
 
   if (heightsChanged) {
@@ -437,6 +421,11 @@ export function resetFrozenOversizedRows(table: Table): Map<number, number> | un
  *   it". Without the deferral a steady-state redraw would invalidate the row-height cache twice per
  *   draw — and with a non-uniform row-size source each invalidation costs a full prefix-sum walk.
  *   The caller keeps the map and must settle whatever is left in it.
+ * @param {Set<number>} [recordedRows] Filled with the source index of every row this call recorded.
+ *   The frozen sync marks exactly these as frozen-derived — a row that is oversized for a reason the
+ *   MASTER can see is not recorded here (the measured height does not exceed what is already known),
+ *   and must stay the master's to own. Adopting it would be fatal: the frozen overlays cannot
+ *   re-detect a height they never saw, so it would read as "shrank" on the next draw.
  * @returns {boolean} `true` when this call invalidated the row-height cache. The frozen-column row
  *   sync reads it: an invalidation there lands AFTER `wtOverlays.refresh()` sized the overlay
  *   elements for the draw, so it has to re-size them.
@@ -445,6 +434,7 @@ export function markOversizedRows(
   table: Table,
   wipedOversizedRows?: Map<number, number>,
   deferShrinkDetection = false,
+  recordedRows?: Set<number>,
 ): boolean {
   if (table.wtSettings.getSetting('externalRowCalculator')) {
     return false;
@@ -511,6 +501,7 @@ export function markOversizedRows(
       }
 
       wtViewport.oversizedRows[sourceRowIndex] = rowCurrentHeight;
+      recordedRows?.add(sourceRowIndex);
 
       const wipedHeight = wipedOversizedRows?.get(sourceRowIndex);
 

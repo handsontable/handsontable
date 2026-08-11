@@ -10,6 +10,8 @@ import { type Page, type Locator, expect } from '@playwright/test';
 export class FrozenTallCellPage {
   /** The row holding the tall block, and a couple of rows below it. */
   static readonly TALL_ROW = 2;
+  /** The row made tall by a cell in a SCROLLABLE column — one the master measures by itself. */
+  static readonly SCROLLABLE_TALL_ROW = 4;
 
   readonly page: Page;
   readonly theme: string;

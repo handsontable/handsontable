@@ -41,7 +41,7 @@
     // A second tall cell, in a SCROLLABLE column, that the master measures by itself. Switching it on
     // makes the master invalidate the row-height cache mid-draw, which is what used to drop the
     // frozen row's record from the rebuilt prefix sum.
-    const SCROLLABLE_TALL_ROW = 4;
+    const SCROLLABLE_TALL_ROW = Number(params.get('scrollableTallRow') ?? 4);
     const SCROLLABLE_TALL_COLUMN = 5;
 
     let isTall = true;

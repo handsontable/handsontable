@@ -11,7 +11,7 @@ import { FrozenTallCellPage } from '../../fixtures/pages/walkontable/FrozenTallC
  * at its content height, and every row below drifted by the difference.
  */
 test.describe('walkontable row heights with frozen columns', { tag: '@walkontable' }, () => {
-  const { TALL_ROW } = FrozenTallCellPage;
+  const { TALL_ROW, SCROLLABLE_TALL_ROW } = FrozenTallCellPage;
   const ROWS_BELOW = [TALL_ROW, TALL_ROW + 1, TALL_ROW + 2, TALL_ROW + 3];
 
   let wt: FrozenTallCellPage;
@@ -68,6 +68,46 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
     expect(after).toBeGreaterThan(before);
     expect(await wt.rowHeight(wt.master, TALL_ROW))
       .toBe(await wt.rowHeight(wt.inlineStartOverlay, TALL_ROW));
+  });
+
+  test('keeps a row tall in a SCROLLABLE column aligned across consecutive draws', async () => {
+    // This row's height is the master's to own — its tall content is in a column the master renders.
+    // The frozen sync must not adopt it: the frozen overlays cannot re-detect a height they never
+    // saw, so an adopted record would read as "shrank" on the next draw and be dropped, then be
+    // rediscovered by the master on the one after, oscillating every other draw.
+    await wt.setTallScrollableCell(true);
+    await expect(wt.grid.getByTestId('scrollable-tall-block')).toHaveCount(1);
+
+    const tallHeight = await wt.rowHeight(wt.master, SCROLLABLE_TALL_ROW);
+
+    expect(tallHeight).toBeGreaterThan(await wt.normalRowHeight());
+
+    for (let draw = 0; draw < 4; draw += 1) {
+      expect(await wt.rowHeight(wt.master, SCROLLABLE_TALL_ROW)).toBe(tallHeight);
+      expect(await wt.rowHeight(wt.inlineStartOverlay, SCROLLABLE_TALL_ROW)).toBe(tallHeight);
+      await wt.forceRender();
+    }
+  });
+
+  test('keeps a row tall in BOTH a frozen and a scrollable column aligned when the frozen part goes', async () => {
+    // The frozen height dominates while it is there. When it goes, the row is still tall because of
+    // the master's own cell, and every table has to agree on that in the SAME draw — the frozen
+    // overlays rendered before the drop was known, just as the master did.
+    await wt.goto({ scrollableTallRow: TALL_ROW });
+    await wt.setTallScrollableCell(true);
+
+    const bothTall = await wt.rowHeight(wt.master, TALL_ROW);
+
+    expect(await wt.rowHeight(wt.inlineStartOverlay, TALL_ROW)).toBe(bothTall);
+
+    await wt.setTallCell(false);
+    await expect(wt.grid.getByTestId('tall-block')).toHaveCount(0);
+
+    const scrollableOnly = await wt.rowHeight(wt.master, TALL_ROW);
+
+    expect(scrollableOnly).toBeLessThan(bothTall);
+    expect(scrollableOnly).toBeGreaterThan(await wt.normalRowHeight());
+    expect(await wt.rowHeight(wt.inlineStartOverlay, TALL_ROW)).toBe(scrollableOnly);
   });
 
   test('brings the vertical scroll range back in one draw when the frozen cell shrinks', async () => {

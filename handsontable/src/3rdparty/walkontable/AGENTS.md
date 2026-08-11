@@ -46,7 +46,11 @@ The record cannot be re-created by the master, so it must not be destroyed befor
 
 Everything else follows from that table, and each row of it was a separate bug before the records were made to survive.
 
-Three things that pass every functional test and only show up in a profile or a screenshot:
+**Only rows the frozen pass actually measured may be marked frozen-derived.** `markOversizedRows` reports what it recorded; the sync registers exactly that. Registering every oversized row in the band instead looks equivalent and is not: a row that is tall because of a SCROLLABLE column would be adopted, and the frozen overlays can never re-detect a height they never saw — so the next draw reads it as shrunk and drops it, the master rediscovers it on the one after, and the row oscillates every other draw. That is the common case (any wrapped row in a grid with frozen columns), not an edge case.
+
+**On a draw where a height changed, release and re-measure the master before matching the others.** A row can be tall in a frozen column *and* in a scrollable one. While the frozen height dominates, the master's own pass measures the forced value and records nothing — so when the frozen part goes away there is no record of the height the master still legitimately has. The change-draw path therefore re-applies to the master (dropping the height that went away), re-measures it, and only then brings the frozen overlays into line.
+
+Three more things that pass every functional test and only show up in a profile or a screenshot:
 
 - **The top and bottom clones render after the clear**, so they need `applyRowHeightsToRenderedRows` on every draw that has a frozen record. The **master must not** — it rendered before the clear and is already right, and re-writing every row's height each draw is pure DOM churn.
 - **`adjustElementsSize` is gated on a real height change.** It walks every column (`sumCellSizes` must stay a live walk) and resizes three overlays; calling it on every draw taxes wide grids for nothing. But it *must* run when the heights did change, including a shrink where there is nothing left to re-apply — `wtOverlays.refresh()` sized the elements earlier in the draw, so the scrollbar would keep the old length.
