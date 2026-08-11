@@ -31,13 +31,16 @@ module.exports = {
       // ES-version compliance with the library's declared build target (../browser-targets.js:
       // Chrome >= 110, Firefox >= 110, Safari >= 14.1). swc lowers *syntax* only — it never injects
       // core-js polyfills — so any instance/static method newer than the oldest targeted engine
-      // throws `X is not a function` on a supported browser. `compat/compat` cannot see these:
+      // throws `X is not a function` on a supported browser. The API floor is also pinned as
+      // `lib` in ./tsconfig.json (kept in sync with ../browser-targets.js by ES_TARGET), which
+      // catches prototype methods this rule would miss; both must be pruned together whenever the
+      // floors move. `compat/compat` cannot see these:
       // it does not resolve prototype methods on non-literal receivers, which is how all of
       // `toSorted` and `Array#at` shipped in 18.0.0. Floors below are from this repo's own
       // core-js-compat data.json. Test files are exempt (no-restricted-syntax is off for them).
       {
         selector: "CallExpression[callee.property.name='toSorted'], CallExpression[callee.property.name='toSpliced'], CallExpression[callee.property.name='toReversed'], CallExpression[callee.property.name='with']",
-        message: 'ES2023 change-array-by-copy methods (toSorted/toSpliced/toReversed/with) need Firefox 115+ and Safari 16+, above the ../browser-targets.js baseline (Firefox >= 110, Safari >= 14.1). Use a copy plus the in-place method instead: [...arr].sort(), [...arr].reverse(), arr.slice() + splice().',
+        message: 'ES2023 change-array-by-copy methods are above the ../browser-targets.js baseline (Firefox >= 110, Safari >= 14.1): toSorted/toSpliced/toReversed need Firefox 115+ and Safari 16.0+, and Array#with needs Firefox 140+ and Safari 16.0+. Use a copy plus the in-place method instead: [...arr].sort(), [...arr].reverse(), arr.slice() + splice().',
       },
       {
         selector: "CallExpression[callee.property.name='at'], CallExpression[callee.property.name='findLast'], CallExpression[callee.property.name='findLastIndex']",
