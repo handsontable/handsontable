@@ -14,8 +14,8 @@ test.describe('walkontable RTL overlays with window scroll', { tag: '@walkontabl
   const EDGE_TOLERANCE = 2;
   let wt: RtlWindowPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    wt = new RtlWindowPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    wt = new RtlWindowPage(page, theme, bundle);
     await wt.goto();
   });
 

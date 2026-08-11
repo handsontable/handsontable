@@ -12,8 +12,8 @@ test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 test.describe('clipboard', () => {
   let grid: GridPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new GridPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new GridPage(page, theme, bundle);
     await grid.goto();
   });
 

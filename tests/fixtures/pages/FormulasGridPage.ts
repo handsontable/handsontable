@@ -10,12 +10,14 @@ import { type Page, type Locator, expect } from '@playwright/test';
 export class FormulasGridPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
   readonly areaCorner: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     // The fill handle of a RANGE selection (single-cell selections expose
     // `.current.corner` instead).
@@ -27,7 +29,7 @@ export class FormulasGridPage {
    * formula cell C3 shows its computed value, not the raw expression).
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/formulas-grid.html?theme=${this.theme}`);
+    await this.page.goto(`/tests/fixtures/demo/formulas-grid.html?theme=${this.theme}&bundle=${this.bundle}`);
     // Source dates are ISO (1900-02-28); the default en-US locale renders
     // them as 02/28/1900. The formula cell C3 (`=C2`) showing the same
     // rendered date proves both the grid and the engine are up.
@@ -84,6 +86,13 @@ export class FormulasGridPage {
     // cells as visible, so intersect bounding boxes instead).
     for (let i = 0; i < 200 && !(await this.cellInHolderView(row, col)); i++) {
       await this.page.mouse.move(startX, belowGridY + (i % 2));
+    }
+
+    // boundingBox() reports overflow-clipped cells too, so an exhausted pump
+    // must fail HERE with its real cause — not later, as a confusing data
+    // mismatch after the gesture lands on a clipped coordinate.
+    if (!(await this.cellInHolderView(row, col))) {
+      throw new Error(`auto-scroll never brought cell ${row},${col} into the holder view`);
     }
 
     const target = await this.cell(row, col).boundingBox();

@@ -16,8 +16,8 @@ import { EditorScrollPage } from '../fixtures/pages/EditorScrollPage';
 test.describe('editor position on window scroll', () => {
   let grid: EditorScrollPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new EditorScrollPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new EditorScrollPage(page, theme, bundle);
     await grid.goto();
   });
 

@@ -10,21 +10,25 @@ import { type Page, type Locator, expect } from '@playwright/test';
 export class EditorScrollPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
   readonly editorHolder: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.editorHolder = page.locator('.handsontableInputHolder');
   }
 
   /**
    * Navigate and wait for the grid to render (a real DOM condition, no sleep).
+   * Theme and bundle flow as query params so the fixture loads the matching
+   * stylesheet and Handsontable build (the Puppeteer parity legs).
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/editor-scroll.html?theme=${this.theme}`);
+    await this.page.goto(`/tests/fixtures/demo/editor-scroll.html?theme=${this.theme}&bundle=${this.bundle}`);
     // The master table does not render frozen columns at all — cell (0,0)
     // exists only in the corner clone, so that is the render signal.
     await expect(this.frozenCornerCell(0, 0)).toBeVisible();

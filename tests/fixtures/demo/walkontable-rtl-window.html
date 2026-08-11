@@ -12,6 +12,12 @@
     window.htTheme = ({ horizon: 'horizon', classic: 'classic' })[new URLSearchParams(location.search).get('theme')] || 'main';
     // Written into <head> so the themed stylesheet is present before first render.
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // Active bundle from the ?bundle= query param set by the Playwright project
+    // — 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads). Same
+    // allowlist-to-literal pattern as the theme, so the param can never be
+    // reflected into the document.
+    window.htBundle = ({ 'full-min': 'handsontable.full.min.js' })[new URLSearchParams(location.search).get('bundle')] || 'handsontable.js';
   </script>
   <style> body { font-family: sans-serif; margin: 0; } </style>
 </head>
@@ -28,7 +34,11 @@
   -->
   <div id="grid" data-testid="grid"></div>
 
-  <script src="/handsontable/dist/handsontable.full.min.js"></script>
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
   <script>
     const container = document.querySelector('[data-testid="grid"]');
 

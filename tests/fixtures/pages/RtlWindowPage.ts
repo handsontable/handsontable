@@ -10,6 +10,7 @@ import { type Page, type Locator, expect } from '@playwright/test';
 export class RtlWindowPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
   readonly master: Locator;
   readonly topOverlay: Locator;
@@ -18,9 +19,10 @@ export class RtlWindowPage {
   readonly topCorner: Locator;
   readonly bottomCorner: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.master = this.grid.locator('.ht_master');
     this.topOverlay = this.grid.locator('.ht_clone_top');
@@ -34,7 +36,7 @@ export class RtlWindowPage {
    * Navigate and wait for the grid to render (a real DOM condition, no sleep).
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/walkontable-rtl-window.html?theme=${this.theme}`);
+    await this.page.goto(`/tests/fixtures/demo/walkontable-rtl-window.html?theme=${this.theme}&bundle=${this.bundle}`);
     await expect(this.master).toBeVisible();
   }
 

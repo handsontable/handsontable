@@ -11,8 +11,8 @@ import { FormulasGridPage } from '../fixtures/pages/FormulasGridPage';
  * the grid's bottom edge (DEV-2183).
  */
 test.describe('fill handle over a formulas range', () => {
-  test('populates dates and formulas from a range dragged below the viewport', async ({ page, theme }) => {
-    const grid = new FormulasGridPage(page, theme);
+  test('populates dates and formulas from a range dragged below the viewport', async ({ page, theme, bundle }) => {
+    const grid = new FormulasGridPage(page, theme, bundle);
 
     await grid.goto();
 
