@@ -14,6 +14,7 @@
  */
 import { isHTMLElement } from '../../../../helpers/dom/element';
 import { CLONE_BOTTOM } from '../overlay';
+import { getBoxAdjustedRowHeight } from './boxModel';
 import type { default as Table } from '../table/baseTable';
 
 /**
@@ -124,6 +125,105 @@ export function syncOversizedColumnHeadersWithFrozenOverlays(table: Table): void
 }
 
 /**
+ * Re-applies the effective row heights to one table's already-rendered rows.
+ *
+ * Mirrors the final pass of `TableRenderer#render` (`render/tableRenderer.ts`), which writes the same
+ * value onto the row's first cell while rendering. This is the out-of-render path, for a height that
+ * became known only after this table had rendered.
+ *
+ * @param {Table} table The table (master or clone) whose rendered rows are re-sized.
+ */
+function applyRowHeightsToRenderedRows(table: Table): void {
+  const { TBODY, rowFilter } = table;
+
+  if (!TBODY || !rowFilter) {
+    return;
+  }
+
+  const borderBoxSizing = table.wtSettings.getSetting('stylesHandler').areCellsBorderBox();
+  const renderedRows = TBODY.childNodes;
+
+  for (let renderedRowIndex = 0; renderedRowIndex < renderedRows.length; renderedRowIndex++) {
+    const firstChild = renderedRows[renderedRowIndex].firstChild;
+
+    if (!isHTMLElement(firstChild)) {
+      continue;
+    }
+
+    const sourceRowIndex = rowFilter.renderedToSource(renderedRowIndex);
+    const rowHeight = table.rowUtils.getHeightByOverlayName(sourceRowIndex, table.name);
+
+    firstChild.style.height = rowHeight ? `${getBoxAdjustedRowHeight(rowHeight, borderBoxSizing)}px` : '';
+  }
+}
+
+/**
+ * A row whose tallest content sits in a frozen (inline-start) column is rendered at that height only
+ * in the frozen overlays. The master renders a contiguous column band starting at the column under
+ * the horizontal scroll offset, so as soon as that band starts past column 0 the master never renders
+ * the frozen columns — and `markOversizedRows` measures the master. The row is therefore recorded at
+ * its provided height while the inline-start clone renders it at its content height, and every row
+ * below it drifts by the difference.
+ *
+ * This runs after the frozen overlays have rendered, and is the row-height twin of
+ * `syncOversizedColumnHeadersWithFrozenOverlays`: it measures the inline-start clone with the master's
+ * own measurement pass and, when that discovers a taller row, re-applies the resulting heights to the
+ * tables that render the row WITHOUT the frozen columns.
+ *
+ * There is no ratcheting risk in re-measuring the clone. `resetOversizedRows` wiped this band's
+ * records at the start of the draw — the records live on the master's viewport, which every clone
+ * shares — so the only heights in force when the clone rendered are the ones the master measured
+ * moments earlier in this same draw. A row that is tall solely because of a frozen cell carries no
+ * record at all, so the clone rendered it at its natural content height: a frozen cell that shrank
+ * back is measured smaller and recorded smaller.
+ *
+ * @param {Table} table The master table.
+ */
+export function syncOversizedRowsWithFrozenOverlays(table: Table): void {
+  const { wtSettings } = table;
+
+  // AutoRowSize owns every row height when it is on, and `markOversizedRows` is a no-op then.
+  if (wtSettings.getSetting('externalRowCalculator')) {
+    return;
+  }
+
+  // Cheap bail-outs for the overwhelmingly common cases: no frozen columns at all, or a master whose
+  // rendered band still starts at column 0 and therefore already renders every frozen column.
+  if (!wtSettings.getSetting<number>('fixedColumnsStart') || table.getFirstRenderedColumn() <= 0) {
+    return;
+  }
+
+  const wtOverlays = table.deps.getWtOverlays();
+  const inlineStartClone = wtOverlays.inlineStartOverlay?.clone;
+
+  if (!inlineStartClone?.wtTable?.TBODY) {
+    return;
+  }
+
+  // No wiped map is passed: this pass only grows the records the master pass left behind, and reports
+  // whether it recorded anything.
+  if (!markOversizedRows(inlineStartClone.wtTable)) {
+    return;
+  }
+
+  // The inline-start and corner overlays are deliberately not re-sized — they hold the tall content
+  // itself and are the source the height was just read from.
+  [
+    table,
+    wtOverlays.topOverlay?.clone?.wtTable,
+    wtOverlays.bottomOverlay?.clone?.wtTable,
+  ].forEach((target) => {
+    if (target) {
+      applyRowHeightsToRenderedRows(target);
+    }
+  });
+
+  // The hider height comes from the summed row heights, not from the rendered DOM, so it has to be
+  // recomputed for the scrollbar to match the now-taller content.
+  wtOverlays.adjustElementsSize();
+}
+
+/**
  * Resets cache of row heights. The cache should be cached for each render cycle in a case
  * when new cell values have content which increases/decreases cell height.
  *
@@ -177,10 +277,13 @@ export function resetOversizedRows(table: Table): Map<number, number> | undefine
  * @param {Table} table The table (master or bottom clone) whose rendered rows are measured.
  * @param {Map<number, number>} [wipedOversizedRows] The oversized heights recorded before this
  *   render, as returned by `resetOversizedRows`.
+ * @returns {boolean} `true` when the measured heights differ from the wiped records, i.e. this call
+ *   invalidated the row-height cache. `syncOversizedRowsWithFrozenOverlays` reads it to decide
+ *   whether the already-rendered tables need their row heights re-applied.
  */
-export function markOversizedRows(table: Table, wipedOversizedRows?: Map<number, number>): void {
+export function markOversizedRows(table: Table, wipedOversizedRows?: Map<number, number>): boolean {
   if (table.wtSettings.getSetting('externalRowCalculator')) {
-    return;
+    return false;
   }
   let rowCount = table.TBODY!.childNodes.length;
   const stylesHandler = table.wtSettings.getSetting('stylesHandler');
@@ -204,9 +307,11 @@ export function markOversizedRows(table: Table, wipedOversizedRows?: Map<number,
     // cached heights are stale and the row-height cache must still be dropped.
     if (wipedOversizedRows !== undefined && wipedOversizedRows.size > 0) {
       table.deps.getWtViewport().invalidateRowHeightCache();
+
+      return true;
     }
 
-    return;
+    return false;
   }
 
   const wtViewport = table.deps.getWtViewport();
@@ -271,4 +376,6 @@ export function markOversizedRows(table: Table, wipedOversizedRows?: Map<number,
     // the pre-measurement scrollbar state after the content height changed.
     wtViewport.invalidateRowHeightCache();
   }
+
+  return hasChanges;
 }

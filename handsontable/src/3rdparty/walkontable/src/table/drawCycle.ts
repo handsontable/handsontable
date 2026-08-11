@@ -9,6 +9,7 @@ import {
   markOversizedRows,
   resetOversizedRows,
   syncOversizedColumnHeadersWithFrozenOverlays,
+  syncOversizedRowsWithFrozenOverlays,
 } from '../axisSizing/oversizedRows';
 import type Table from './baseTable';
 import type { default as Overlays } from '../overlay/overlays';
@@ -137,6 +138,8 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
     // header heights can drift against the frozen overlays during scrolling (a tall wrapped
     // frozen header that the master never renders). Re-sync here. The method is a cheap no-op
     // unless the grid has frozen columns with column headers, so non-frozen grids are unaffected.
+    // No row-height twin of the call above is needed here: a fast draw re-renders neither the master
+    // nor the clones, so no cell content — and therefore no row height — can have changed.
     syncOversizedColumnHeadersWithFrozenOverlays(table);
   } else {
     table.tableOffset = table.deps.geometryReader.offset(table.TABLE);
@@ -180,6 +183,10 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
 
       wtOverlays.refresh(false);
       syncOversizedColumnHeadersWithFrozenOverlays(table);
+      // The frozen overlays have now rendered, so a row whose tallest cell lives in a frozen column
+      // (which the master's rendered band skips) can finally be measured. Runs after the header sync
+      // so a taller frozen header is already reflected in the THEAD when the body rows are re-sized.
+      syncOversizedRowsWithFrozenOverlays(table);
       wtOverlays.applyToDOM();
 
       wtSettings.getSetting('onDraw', true);

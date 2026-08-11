@@ -25,6 +25,15 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 - **Scroll handling**: requestAnimationFrame batching required
 - **Draw cycle** (`table/drawCycle.ts`): `Table.draw()` is a two-line delegate to the class-free `runDrawCycle(table, fastDraw)`, which dispatches by role into `runMasterDrawCycle` and `runCloneDrawCycle` over shared phase helpers (`buildRenderFilters`, `renderCellBand`, `renderActiveSelections`, `placeFixedOverlays`). The clone cycle is the strict subset (no begin-layout, no view hooks, no fixed-position pass). Phase functions use the public surface + `get deps()` only — the same free-function-over-instance pattern as the `cellAccess`/`domScaffold` mixins. A per-draw `DrawContext` captures the header renderers **pre-`beforeDraw`-hook** — the cell render must use those captured values. See `.ai/RENDERING-LIFECYCLE.md` §2.
 
+## Content-driven sizes the master never renders
+
+The master renders a **contiguous** column band starting at the column under the horizontal scroll offset, so as soon as that band starts past column 0 it does not render the frozen (inline-start) columns at all — the inline-start overlays are the only tables holding that content. Any size measured from the master's rendered DOM therefore misses it. Two syncs in `axisSizing/oversizedRows.ts` close that gap, both called from `runMasterDrawCycle` **after** `wtOverlays.refresh(false)`:
+
+- `syncOversizedColumnHeadersWithFrozenOverlays` — header heights. Reads the corner clone's natural height and writes it onto the master/top THEAD. Deliberately does **not** cache (caching would re-inflate the corner it measured).
+- `syncOversizedRowsWithFrozenOverlays` — body row heights (DEV-2193). Runs `markOversizedRows` on the inline-start clone, then re-applies the resulting heights to the tables that render the row without the frozen columns (master, top, bottom). It **does** record into `wtViewport.oversizedRows`, because the hider height comes from the summed row heights (`spreaderSize`), not from the DOM — a DOM-only patch would leave the scrollbar short. Recording is ratchet-free only because the master's `resetOversizedRows` wipes the band at the start of the draw, so the clone renders at its natural height.
+
+When you add a new content-driven measurement, ask which tables actually render the content — measuring the master alone is the trap both of these exist to work around.
+
 ## Known Tech Debt
 
 - The DAO layer has been replaced by constructor injection + the `wire.ts` composition root (see the DI section above) — do not reintroduce DAO getters or `wot`-god-object passing.
