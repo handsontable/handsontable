@@ -49,14 +49,17 @@ jobs:
       test-all: ${{ inputs.test-all || false }}
     secrets: inherit
 
-  # The tracked human exception — a label-armed manual gate. Its sign-off job
-  # waits on the `manual-qa` environment approval, so a labeled PR holds THIS
-  # module in progress and CI Gate (which needs it) cannot report — the merge
-  # stays blocked without any job going red. Unlabeled PRs skip the sign-off
-  # job (skipped, never a misleading green). See manual-qa.yml.
+  # The tracked human exception — a manual gate armed by ticking "This change
+  # needs a manual QA pass" in the PR description (read live by the Checks
+  # scope router). Runs ONLY when ticked: the sign-off job then waits on the
+  # `manual-qa` environment approval, holding this module in progress so CI
+  # Gate (which needs it) cannot report — the merge stays blocked without any
+  # job going red. Unticked PRs skip the module entirely (skipped, never a
+  # misleading green, no runner spent). See manual-qa.yml.
   manual-qa:
     name: Manual QA
-    if: github.event_name == 'pull_request'
+    needs: [ checks ]
+    if: ${{ !failure() && !cancelled() && github.event_name == 'pull_request' && needs.checks.outputs.manual-qa == 'true' }}
     uses: ./.github/workflows/manual-qa.yml
     secrets: inherit
 
@@ -216,7 +219,7 @@ jobs:
   # job that actually ran failed or was cancelled, and passes when everything
   # else succeeded or was legitimately scope-skipped. Branch protection should
   # require ONLY "CI Gate" and unpin every individual/matrix check name. The
-  # manual-QA gate blocks through its needs edge here: a labeled PR's pending
+  # manual-QA gate blocks through its needs edge here: a ticked PR's pending
   # sign-off keeps this job from ever reporting.
   ci-gate:
     name: CI Gate

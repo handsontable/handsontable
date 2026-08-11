@@ -5,9 +5,11 @@ name: Checks
 # pipeline when red — test presence and changelog. Called by test.yml; the
 # scope outputs are re-exported so the orchestrator can gate the rest.
 #
-# Manual QA is deliberately NOT here: it is a merge gate, not a pipeline
-# stopper — its module (manual-qa.yml) holds CI Gate through a `needs` edge
-# while the sign-off job waits on the manual-qa environment approval.
+# Manual QA is deliberately NOT gated here: the scope job only READS the
+# PR-description tickbox (the `manual-qa` output) so test.yml can skip the
+# module on unticked PRs without spending a runner; the gate itself is
+# manual-qa.yml's sign-off job, which holds CI Gate through a `needs` edge
+# while it waits on the manual-qa environment approval — never this router.
 on:
   workflow_call:
     inputs:
@@ -39,6 +41,9 @@ on:
       # Precomputed here so the Integration wrapper matrix fans out with NO
       # per-module setup job (matrix context is illegal in a job-level if).
       wrapper-matrix: { value: '${{ jobs.scope.outputs.wrapper-matrix }}' }
+      # True when the PR description ticks "This change needs a manual QA
+      # pass" — routes the Manual QA module (see manual-qa.yml).
+      manual-qa: { value: '${{ jobs.scope.outputs.manual-qa }}' }
 
 jobs:
   scope:
@@ -64,6 +69,7 @@ jobs:
       docs: ${{ steps.path-filter.outputs.docs }}
       outside-ci: ${{ steps.path-filter.outputs.outside-ci }}
       wrapper-matrix: ${{ steps.wrappers.outputs.list }}
+      manual-qa: ${{ steps.manual-qa.outputs.requested }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # https://github.com/actions/checkout/releases/tag/v6.0.2
         if: ${{ inputs.test-all != true }}
@@ -214,6 +220,29 @@ jobs:
             if (all || process.env.VUE3 === "true") w.push({ name: "Vue 3", pkg: "vue3", artifact: "vue3-build", test: "test" });
             require("fs").appendFileSync(process.env.GITHUB_OUTPUT, "list=" + JSON.stringify(w) + "\n");
           '
+
+      # Manual QA is requested by ticking "This change needs a manual QA pass"
+      # in the PR description (the template carries the line — its wording is
+      # this regex's contract). Read LIVE, never from the frozen event payload,
+      # so ticking the box later + "Re-run all jobs" arms the gate on an
+      # existing run. This is only the routing bit — the gate itself (the
+      # environment-approval sign-off job) lives in manual-qa.yml, and an
+      # unticked PR skips that module without spending a runner on it.
+      - id: manual-qa
+        name: Read the manual-QA tickbox
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner, repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+            const requested = /^\s*-\s*\[[xX]\]\s+This change needs a manual QA pass/m.test(pr.body || '');
+            core.setOutput('requested', String(requested));
+            core.notice(requested
+              ? 'Manual QA requested — the Manual QA sign-off job will wait for a manual-qa environment approval.'
+              : 'Manual QA not requested — to request it, tick "This change needs a manual QA pass" in the PR description and press "Re-run all jobs".');
 
   presence:
     name: test presence

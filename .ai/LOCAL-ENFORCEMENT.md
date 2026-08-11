@@ -73,25 +73,27 @@ Machine-enforced by the presence gate; full decision rules in
 
 Full discipline: the `test-writing-discipline` skill.
 
-### The tracked human exception (the `needs-manual-check` label)
+### The tracked human exception (the manual-QA tickbox)
 
 When automated coverage genuinely cannot judge a change (subtle UX, a visual
 nuance no snapshot covers, a high-risk area — or a QA-owned pass such as an
-RC adversarial sweep or a screen-reader check), apply the
-**`needs-manual-check`** label to the PR (author or agent may apply it) and
-give a one-line reason in the PR description saying what to check (the
-template carries the line). The Tests pipeline's `Manual QA / sign-off` job
-then waits on the **`manual-qa` environment approval**: a designated reviewer
-(the environment's required-reviewers list; self-review is blocked, so never
-the PR author — and an agent can request a check but never clear one) clicks
-Approve on the workflow run, and GitHub records the approver as the sign-off.
-While it waits, CI Gate cannot report, so the merge stays blocked without any
-job going red; a rejection turns CI Gate red. Unlabeled PRs *skip* the
-sign-off job — shown as skipped, never as a misleading green "passed".
-Approval is per run: a new push re-asks the reviewers. The gate reads labels
-live, so a label added after a finished run needs a **"Re-run all jobs"**
-press to arm. This **adds** a recorded human pass; it never replaces the
-presence gate or the test requirement. Do not use it to dodge writing tests.
+RC adversarial sweep or a screen-reader check), tick **"This change needs a
+manual QA pass"** in the PR description (author or agent may tick it; the
+template carries the line, and its wording is machine-read — keep it
+verbatim) and say in one line what to check. The Checks scope router reads
+the box live and routes the Manual QA module only when ticked; its
+`sign-off` job then waits on the **`manual-qa` environment approval**: a
+designated reviewer (the environment's required-reviewers list; self-review
+is blocked — and an agent can request a check but never clear one) clicks
+Approve on the workflow run, and GitHub records the approver as the
+sign-off. While it waits, CI Gate cannot report, so the merge stays blocked
+without any job going red; a rejection turns CI Gate red. Unticked PRs
+*skip* the module — shown as skipped, never as a misleading green "passed",
+with no runner spent. Approval is per run: a new push re-asks the reviewers.
+Because the body is read live, a box ticked after a finished run needs a
+**"Re-run all jobs"** press to arm. This **adds** a recorded human pass; it
+never replaces the presence gate or the test requirement. Do not use it to
+dodge writing tests.
 
 ## 2. Creating or changing enforcement hooks (git + agent) — exact rules
 

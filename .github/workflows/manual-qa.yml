@@ -1,29 +1,30 @@
 name: Manual QA
 
 # The tracked human exception — a GitLab-style manual gate inside the Tests
-# DAG. The `gate` job reads the PR's LIVE labels; when `needs-manual-check`
-# is present (author or agent applies it, with a one-line reason in the PR
-# body), the `sign-off` job pauses on the `manual-qa` ENVIRONMENT until a
-# designated reviewer approves the run ("Review pending deployments" on the
-# run page — GitHub records the approver and any comment as the deployment
-# review, and the environment's "Prevent self-review" keeps the PR author
-# out). While it waits, this module never completes, so CI Gate — which
-# needs it — cannot report and the merge stays blocked; a rejection fails
-# the job and turns CI Gate red. Unlabeled PRs skip `sign-off` (shown as
-# skipped, never a misleading green "passed"), which CI Gate treats as
-# legitimately-not-run.
+# DAG, armed by ticking "This change needs a manual QA pass" in the PR
+# description (the template carries the line; say in one line what to
+# check). The Checks scope router reads the box LIVE (see checks.yml), and
+# test.yml calls this module ONLY when it is ticked — an unticked PR skips
+# it entirely: shown as skipped, never as a misleading green "passed", and
+# no runner is spent on it. When it does run, the `sign-off` job pauses on
+# the `manual-qa` ENVIRONMENT until a designated reviewer approves the run
+# ("Review pending deployments" on the run page — GitHub records the
+# approver and any comment as the deployment review, and the environment's
+# "Prevent self-review" keeps the person who triggered the run out). While
+# it waits, this module never completes, so CI Gate — which needs it —
+# cannot report and the merge stays blocked; a rejection fails the job and
+# turns CI Gate red.
 #
 # Semantics that follow from the mechanism:
 # - approval is PER RUN: every new push re-asks the reviewers — a fresh QA
 #   pass on fresh code, deliberately;
-# - labels are read live, but a label added AFTER a run finished does not
-#   retro-block it: press "Re-run all jobs" to arm the gate on that run
+# - the box is read live, but ticking it AFTER a run finished does not
+#   retro-block that run: press "Re-run all jobs" to arm the gate on it
 #   (same ergonomics as the run-docs-visual label).
 #
-# Cutover (repo admin, the paired task): create the `needs-manual-check`
-# label AND the `manual-qa` environment with required reviewers (users or
-# teams) plus "Prevent self-review". The environment MUST exist with
-# reviewers before the first labeled PR — a job that references a missing
+# Cutover (repo admin): create the `manual-qa` environment with required
+# reviewers (users or teams) plus "Prevent self-review". It MUST exist with
+# reviewers before the first ticked PR — a job that references a missing
 # environment silently auto-creates it UNPROTECTED, and the gate would wave
 # everything through. Branch protection needs only "CI Gate". This gate ADDS
 # a recorded human pass — the test-presence and changelog gates still apply.
@@ -31,35 +32,8 @@ on:
   workflow_call:
 
 jobs:
-  gate:
-    name: label gate
-    runs-on: ubuntu-latest
-    outputs:
-      requested: ${{ steps.check.outputs.requested }}
-    steps:
-      - name: Read the needs-manual-check label
-        id: check
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
-        with:
-          script: |
-            // The event payload is frozen at trigger time — read the LIVE
-            // labels so "add the label, press Re-run all jobs" arms the
-            // gate on an existing run.
-            const prNumber = context.payload.pull_request?.number;
-            if (!prNumber) { core.setOutput('requested', 'false'); return; }
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber,
-            });
-            const requested = pr.labels.some((label) => label.name === 'needs-manual-check');
-            core.setOutput('requested', String(requested));
-            core.notice(requested
-              ? 'Manual QA requested — the sign-off job now waits for a manual-qa environment approval.'
-              : 'Manual QA not requested — to request it, add the needs-manual-check label and press "Re-run all jobs".');
-
   sign-off:
     name: sign-off
-    needs: [ gate ]
-    if: needs.gate.outputs.requested == 'true'
     # The manual gate itself: referencing the environment makes GitHub hold
     # this job until someone on the environment's reviewer list approves the
     # run. The approval (who, when, optional comment) is the recorded
