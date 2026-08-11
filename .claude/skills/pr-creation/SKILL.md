@@ -134,7 +134,7 @@ The body file template (write this with the Write tool, backticks and all, no es
 ### Checklist:
 
 - [x] I have reviewed the guidelines about [Contributing to Handsontable](https://github.com/handsontable/handsontable/blob/master/CONTRIBUTING.md) and I confirm that my code follows the code style of this project.
-- [x] I have signed the [Contributor License Agreement](https://cla-gate.handsontable-sandbox.workers.dev/sign) — one signature covers both Handsontable and HyperFormula; the `cla/signed` check on this PR confirms it.
+- [x] I have signed the [Contributor License Agreement](https://cla.handsontable.com/sign) — one signature covers both Handsontable and HyperFormula; the `cla/signed` check on this PR confirms it.
 - [ ] My change requires a change to the documentation.
 
 ClickUp task: https://app.clickup.com/t/9015210959/DEV-xxx

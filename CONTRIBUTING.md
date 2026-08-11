@@ -48,7 +48,7 @@ Handsoncode publishes the code it merges — in open-source releases and in comm
 
 **Sign it once, for every project.** The signature is recorded against your GitHub account, not against a repository, and covers both [Handsontable](https://github.com/handsontable/handsontable) and [HyperFormula](https://github.com/handsontable/hyperformula). If you have already signed for either one, you are done.
 
-**Sign here: [cla-gate.handsontable-sandbox.workers.dev/sign](https://cla-gate.handsontable-sandbox.workers.dev/sign)** — the [process is explained in full](https://cla-gate.handsontable-sandbox.workers.dev/) on the same site.
+**Sign here: [cla.handsontable.com/sign](https://cla.handsontable.com/sign)** — the [process is explained in full](https://cla.handsontable.com/) on the same site.
 
 How it works on your pull request:
 
