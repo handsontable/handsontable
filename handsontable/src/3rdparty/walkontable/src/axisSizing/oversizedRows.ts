@@ -257,7 +257,18 @@ export function syncOversizedRowsWithFrozenOverlays(
     // natural height while the master keeps its own tall content, i.e. the very misalignment this
     // whole sync exists to prevent.
     applyRowHeightsToRenderedRows(table);
-    markOversizedRows(table);
+
+    const masterRecordedRows = new Set<number>();
+
+    markOversizedRows(table, undefined, false, masterRecordedRows);
+
+    // Whatever the master just recorded, it out-measured the frozen height — its own content is the
+    // taller one, so the record is the master's to own and hand back. Leaving it marked
+    // frozen-derived costs nothing visible and never settles: the next draw's
+    // `resetFrozenOversizedRows` clears a height only the master can recreate, the frozen pass
+    // re-records its own shorter one, the master out-measures it again, and both invalidate the
+    // row-height cache on every draw for as long as both cells stay oversized.
+    masterRecordedRows.forEach(sourceRow => frozenOversizedRows.delete(sourceRow));
   }
 
   // The top and bottom clones render inside `wtOverlays.refresh()` — AFTER

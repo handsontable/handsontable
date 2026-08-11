@@ -36,8 +36,17 @@ export class FrozenTallCellPage {
    *
    * @param {object} [options] Fixture options. `fixedRowsTop` and `tallRow` together move the tall
    *   frozen cell into a frozen TOP row, which only the corner overlay renders once scrolled.
+   *   `scrollableTallRow` and `scrollableTallHeight` place the second tall cell, the one in a
+   *   column the master renders itself; raising the height above the frozen block's 60px makes the
+   *   scrollable side the taller of the two.
    */
-  async goto(options: { fixedRowsTop?: number, tallRow?: number } = {}): Promise<void> {
+  async goto(options: {
+    fixedRowsTop?: number,
+    tallRow?: number,
+    scrollableTallRow?: number,
+    scrollableTallHeight?: number,
+    rows?: number,
+  } = {}): Promise<void> {
     const params = new URLSearchParams({ theme: this.theme });
 
     Object.entries(options).forEach(([key, value]) => params.set(key, String(value)));
@@ -56,6 +65,18 @@ export class FrozenTallCellPage {
     await this.holder().evaluate((el, value) => {
       el.scrollTop = value;
     }, top);
+    await expect.poll(async () => this.holder().evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+  }
+
+  /**
+   * Scroll so `row` sits at the top of the viewport. Unlike a raw pixel offset this survives the
+   * per-theme row heights, which is what a caller needs when it cares about WHICH row the master's
+   * band starts at. The band typically starts one row above the one snapped to the top.
+   */
+  async scrollToRowAtTop(row: number): Promise<void> {
+    await this.page.evaluate(target => (window as unknown as {
+      hot: { scrollViewportTo: (options: object) => void }
+    }).hot.scrollViewportTo({ row: target, verticalSnap: 'top' }), row);
     await expect.poll(async () => this.holder().evaluate(el => el.scrollTop)).toBeGreaterThan(0);
   }
 
@@ -141,6 +162,17 @@ export class FrozenTallCellPage {
     await this.page.evaluate(() => (window as unknown as {
       hot: { render: () => void }
     }).hot.render());
+  }
+
+  /**
+   * How many times `renders` full draws invalidate the row-height cache. A settled grid must
+   * report 0: this is the one symptom of a frozen-row bookkeeping mistake that leaves every
+   * visible thing correct, so no height or offset assertion can stand in for it.
+   */
+  async countRowCacheInvalidations(renders: number): Promise<number> {
+    return this.page.evaluate(count => (window as unknown as {
+      countRowCacheInvalidations: (renders: number) => number
+    }).countRowCacheInvalidations(count), renders);
   }
 
   /** Turn the tall block in the frozen column on or off and re-render. */

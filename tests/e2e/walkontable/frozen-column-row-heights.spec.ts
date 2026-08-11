@@ -110,6 +110,67 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
     expect(await wt.rowHeight(wt.inlineStartOverlay, TALL_ROW)).toBe(scrollableOnly);
   });
 
+  test('costs no row-height cache invalidations once the frozen height has settled', async () => {
+    // Re-detecting the same frozen height is not a change. Every invalidation also drops the
+    // per-draw layout snapshot, and with a non-uniform row-size source it rebuilds the prefix sum
+    // over every row in the grid — so a redraw that keeps invalidating is a scroll-speed
+    // regression that no visual assertion would ever catch.
+    expect(await wt.countRowCacheInvalidations(3)).toBe(0);
+  });
+
+  test('settles a row tall in both columns when the SCROLLABLE side is the taller one', async () => {
+    // The frozen record is established first, then the master's own content grows past it. The row
+    // is now the master's to own again — the frozen overlays measure only the shorter 60px block —
+    // so ownership has to move back, or the two sides fight over the record on every single draw:
+    // the frozen pass re-records 60, the master re-measures 90, and both invalidate the row-height
+    // cache. Nothing about that is visible; every height below stays correct throughout.
+    await wt.goto({ scrollableTallRow: TALL_ROW, scrollableTallHeight: 90 });
+
+    const frozenOnly = await wt.rowHeight(wt.master, TALL_ROW);
+
+    await wt.setTallScrollableCell(true);
+    await expect(wt.grid.getByTestId('scrollable-tall-block')).toHaveCount(1);
+
+    const bothTall = await wt.rowHeight(wt.master, TALL_ROW);
+
+    expect(bothTall).toBeGreaterThan(frozenOnly);
+    expect(await wt.rowHeight(wt.inlineStartOverlay, TALL_ROW)).toBe(bothTall);
+
+    expect(await wt.countRowCacheInvalidations(3)).toBe(0);
+
+    // Still aligned after those redraws, and still the taller of the two heights.
+    expect(await wt.rowHeight(wt.master, TALL_ROW)).toBe(bothTall);
+    expect(await wt.rowHeight(wt.inlineStartOverlay, TALL_ROW)).toBe(bothTall);
+  });
+
+  test('keeps frozen ownership when the tall row is the first row the master renders', async () => {
+    // The band's first <tr> carries an extra 1px top border, so this row measures 1px taller than
+    // the same row anywhere else. Ownership moves on "the master out-measured the frozen side", and
+    // 1px of border is not the master's content — reading it as such would hand the row back to a
+    // master that cannot recreate its height, and the two sides would fight over it every draw.
+    //
+    // It holds because the inline-start clone mirrors the master's row band: the boundary row is the
+    // first <tr> in BOTH tables, so both measurements carry the same 1px and neither out-measures
+    // the other. This test exists because that is a property of the clone's filters, not of this
+    // code, and nothing else here would notice if it changed.
+    const BOUNDARY_ROW = 4;
+
+    await wt.goto({ tallRow: BOUNDARY_ROW, rows: 100 });
+    await wt.setTallCell(false);
+    await wt.scrollToRowAtTop(BOUNDARY_ROW + 1);
+
+    expect(await wt.masterFirstRenderedRow()).toBe(BOUNDARY_ROW);
+
+    // Grow it here, rather than shrinking it: a shrink moves the band and the row stops being the
+    // boundary, which is not the case under test.
+    await wt.setTallCell(true);
+
+    expect(await wt.masterFirstRenderedRow()).toBe(BOUNDARY_ROW);
+    expect(await wt.rowHeight(wt.master, BOUNDARY_ROW))
+      .toBe(await wt.rowHeight(wt.inlineStartOverlay, BOUNDARY_ROW));
+    expect(await wt.countRowCacheInvalidations(3)).toBe(0);
+  });
+
   test('brings the vertical scroll range back in one draw when the frozen cell shrinks', async () => {
     const tallScrollHeight = await wt.masterScrollHeight();
 

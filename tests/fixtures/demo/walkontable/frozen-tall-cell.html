@@ -43,11 +43,18 @@
     // frozen row's record from the rebuilt prefix sum.
     const SCROLLABLE_TALL_ROW = Number(params.get('scrollableTallRow') ?? 4);
     const SCROLLABLE_TALL_COLUMN = 5;
+    // Raise it above TALL_CONTENT_HEIGHT to make the SCROLLABLE side the taller of the two when
+    // both land on the same row.
+    const SCROLLABLE_TALL_HEIGHT = Number(params.get('scrollableTallHeight') ?? 40);
 
     let isTall = true;
     let isScrollableTall = false;
 
-    const data = Array.from({ length: 20 }, (_, r) =>
+    // Enough rows that the grid can scroll far enough for any given row to become the FIRST one the
+    // master renders — the position that carries the extra 1px top border.
+    const ROWS = Number(params.get('rows') ?? 20);
+
+    const data = Array.from({ length: ROWS }, (_, r) =>
       Array.from({ length: 100 }, (_, c) => `R${r + 1}C${c + 1}`));
 
     const renderer = function(instance, td, row, col, prop, value, cellProperties) {
@@ -65,7 +72,8 @@
       }
 
       if (isScrollableTall && row === SCROLLABLE_TALL_ROW && col === SCROLLABLE_TALL_COLUMN) {
-        td.innerHTML = '<div data-testid="scrollable-tall-block" style="height: 40px"></div>';
+        td.innerHTML =
+          `<div data-testid="scrollable-tall-block" style="height: ${SCROLLABLE_TALL_HEIGHT}px"></div>`;
       }
     };
 
@@ -92,6 +100,31 @@
     window.setTallScrollableCell = (value) => {
       isScrollableTall = value;
       hot.render();
+    };
+
+    // Counts row-height cache invalidations over `renders` full draws.
+    //
+    // A steady-state redraw must cost none. This is the only way to see a whole class of bug in
+    // this area: the rows stay aligned and every visible assertion passes while the grid re-runs a
+    // prefix-sum rebuild on every single draw, forever. Nothing but a counter catches it.
+    window.countRowCacheInvalidations = (renders) => {
+      const { wtViewport } = hot.view._wt;
+      const original = wtViewport.invalidateRowHeightCache.bind(wtViewport);
+      let count = 0;
+
+      wtViewport.invalidateRowHeightCache = (...args) => {
+        count += 1;
+
+        return original(...args);
+      };
+
+      for (let i = 0; i < renders; i++) {
+        hot.render();
+      }
+
+      wtViewport.invalidateRowHeightCache = original;
+
+      return count;
     };
   </script>
 </body>
