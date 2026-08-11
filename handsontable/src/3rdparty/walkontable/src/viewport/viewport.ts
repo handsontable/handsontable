@@ -146,6 +146,16 @@ class Viewport {
    */
   declare columnsRenderCalculator: ColumnsCalculationType | null;
   /**
+   * Monotonic counter of cell-band renders, bumped by every `renderCellBand` call (see
+   * `table/drawCycle.ts`). Overlay clones share the master's Viewport instance, so a render by ANY
+   * table of this Walkontable — the master or any clone, nested inside a hook or not — advances it.
+   * The master's `skipRender` rollback compares it against the value captured before the draw to
+   * answer "has any DOM cell band been (re)rendered since?" — see `restoreRenderedStateIfSafe`.
+   *
+   * @type {number}
+   */
+  renderCycleSeq: number = 0;
+  /**
    * @type {RowsCalculationType | null}
    */
   declare rowsPartiallyVisibleCalculator: RowsCalculationType | null;

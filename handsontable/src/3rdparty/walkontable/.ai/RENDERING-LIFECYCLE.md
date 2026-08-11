@@ -215,16 +215,28 @@ All line numbers are in `table.ts` unless noted. "Master only" = guarded by `thi
 - Master: `alignOverlaysWithTrimmingContainer()` (`557`; overridden in `MasterTable`).
 - Master: fire the `beforeDraw` setting (`560`) → the **public `beforeViewRender` hook**. It can set
   `skipRender`, which gates Phase E (`performRedraw`, `561`).
-- **When that gate cancels the render, the master restores the pre-draw rendered state**
-  (`restoreRenderedState` in `table/drawCycle.ts`): `wtViewport.rowsRenderCalculator` /
-  `columnsRenderCalculator` and `table.rowFilter` / `columnFilter` all go back to the values they held
-  before this draw. Rationale: `Table#getCell` *gates* on the rendered bands but *resolves* the element
-  through the filters + `TBODY.childNodes`, so a band advanced past a DOM that was never re-rendered
-  makes the two disagree and `getCell` throws `TR was expected to be rendered but is not` — including
-  from the engine's own selection render in Phase G of the very same draw. A skipped render leaves the
-  screen unchanged, so the rendered state stays unchanged too, exactly like a fast draw. The
-  fully/partially-**visible** calculators are deliberately NOT restored: they describe the scroll
-  position, not the DOM contents.
+- **When that gate cancels the render, the master restores the pre-draw rendered state — when
+  provably safe** (`restoreRenderedStateIfSafe` in `table/drawCycle.ts`):
+  `wtViewport.rowsRenderCalculator` / `columnsRenderCalculator` and `table.rowFilter` /
+  `columnFilter` go back to the values they held before this draw. Rationale: `Table#getCell`
+  *gates* on the rendered bands but *resolves* the element through the filters + `TBODY.childNodes`,
+  so a band advanced past a DOM that was never re-rendered makes the two disagree and `getCell`
+  throws `TR was expected to be rendered but is not` — including from the engine's own selection
+  render in Phase G of the very same draw. Guards (a blocked rollback keeps the this-draw state,
+  i.e. the pre-rollback engine behavior): (1) `Viewport#renderCycleSeq` — bumped by every
+  `renderCellBand` (master or clone; the clones share the master's Viewport) — must not have moved
+  since the pre-draw capture, so a hook that rendered a newer band (nested `draw()`, clone draws)
+  is never rolled back under; (2) the captured filters' build-time `total`s must match the current
+  `totalRows`/`totalColumns`, so a skip right after a dataset shrink (NestedRows removes rows, then
+  cancels the follow-up render) keeps the fresh band capped at the new totals instead of restoring
+  a band that names removed rows. Asymmetries: the filters are restored only when the captured ones
+  are non-null (a skipped FIRST draw keeps the just-built filters — several consumers read
+  `rowFilter!` unguarded once the table is drawn), and the fully/partially-**visible** calculators
+  are deliberately NOT restored: they describe the scroll position, not the DOM contents — so after
+  a skipped draw the visible band may extend past the rendered band (unlike a fast draw), and
+  `getCell` answers those rows with exit codes. A skipped render also never runs the Phase F 1px
+  `positionChanged` reconciliation (`refreshAll`) — gated on `performRedraw`, because the rolled-back
+  band would fail the nested draw's fast-draw check and escalate it to a full render.
 
 ### Phase E — Full path: cell + header render (`table.ts:564–585`, only if `performRedraw`)
 - `setHeaderContentRenderers(...)` (`565`); bottom / bottom-corner clones do not render column headers
@@ -293,7 +305,8 @@ Key facts to keep:
   `afterViewRender` fires mid-draw (before fixed-position finalization), not last.
 - `beforeViewRender` receives the `skipRender` object; `skipRender.skipRender = true` cancels the cell
   render for that draw — and the master then rolls the rendered bands + render filters back to their
-  pre-draw values, so `getCell` keeps describing the DOM that is actually on screen (see Phase D).
+  pre-draw values when that is provably safe (no render and no totals change since the pre-draw
+  capture — see Phase D), so `getCell` keeps describing the DOM that is actually on screen.
 - **The render-size probe reconcile (§7) must NOT fire these hooks** — it runs a hook-free WoT-internal
   reconcile, never `hot.render()`, so hook-count expectations hold.
 

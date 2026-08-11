@@ -17,15 +17,16 @@ import type { ColumnsCalculationType, RowsCalculationType } from '../calculator/
 
 /**
  * The state that describes what is actually rendered in the TBODY/THEAD right now: the rendered
- * row/column bands (held by the viewport) and the render filters derived from them. Captured before
- * the draw resolves the new band, so the master's `skipRender` gate can put it back — see
- * {@link restoreRenderedState}.
+ * row/column bands (held by the viewport) and the render filters derived from them, plus the
+ * render-cycle sequence number at capture time. Captured before the draw resolves the new band, so
+ * the master's `skipRender` gate can put it back — see {@link restoreRenderedStateIfSafe}.
  */
 interface RenderedState {
   rowsRenderCalculator: RowsCalculationType | null;
   columnsRenderCalculator: ColumnsCalculationType | null;
   rowFilter: RowFilter | null;
   columnFilter: ColumnFilter | null;
+  renderCycleSeq: number;
 }
 
 /**
@@ -93,8 +94,8 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
   const { wtSettings } = table;
   const wtOverlays = table.deps.getWtOverlays();
   const wtViewport = table.deps.getWtViewport();
-  // What is on the screen before this draw touches anything. Restored verbatim if the `beforeDraw`
-  // hook cancels the cell render below.
+  // What is on the screen before this draw touches anything. Restored (when safe — see
+  // `restoreRenderedStateIfSafe`) if the `beforeDraw` hook cancels the cell render below.
   const renderedStateBeforeDraw = captureRenderedState(table, wtViewport);
 
   // Record whether this master draw was entered as a fast/scroll draw, BEFORE `createCalculators`
@@ -160,8 +161,6 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
     table.tableOffset = table.deps.geometryReader.offset(table.TABLE);
 
     const filters = buildRenderFilters(table, ctx);
-    // The band + filters this draw resolved, i.e. what the render below is about to put in the DOM.
-    const renderedStateThisDraw = captureRenderedState(table, wtViewport);
 
     table.alignOverlaysWithTrimmingContainer(); // todo It calls method from child class (MasterTable).
     const skipRender: { skipRender?: boolean } = {};
@@ -175,15 +174,9 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
       // index (`Table#getCell` and, through it, the selection render below) gates on the bands but
       // reads the element through the filters and the TBODY, so leaving them advanced makes those two
       // disagree: `getCell` then throws "TR was expected to be rendered but is not" for every row past
-      // the end of the stale DOM. Put the pre-draw state back - a skipped render leaves the screen
-      // unchanged, so the rendered state must stay unchanged too, exactly like a fast draw.
-      // Guarded on the state still being the one THIS draw resolved: a `beforeViewRender` hook that
-      // renders (a nested `draw()`) has already put a matching band and DOM in place, and rolling that
-      // back would create the very divergence this rollback exists to prevent.
-      if (isSameRenderedState(captureRenderedState(table, wtViewport), renderedStateThisDraw)) {
-        restoreRenderedState(table, wtViewport, renderedStateBeforeDraw);
-      }
-
+      // the end of the stale DOM. Put the pre-draw state back when doing so is provably safe — the
+      // guard conditions and the deliberate fallbacks are documented on the helper.
+      restoreRenderedStateIfSafe(table, wtViewport, renderedStateBeforeDraw);
     } else {
       renderCellBand(
         table,
@@ -223,10 +216,15 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
 
   placeFixedOverlays(table, ctx);
 
-  if (ctx.positionChanged) {
+  if (ctx.positionChanged && ctx.performRedraw) {
     // It refreshes the cells borders caused by a 1px shift (introduced by overlays which add or
     // remove `innerBorderTop` and `innerBorderInlineStart` CSS classes to the DOM element. This happens
     // when there is a switch between rendering from 0 to N rows/columns and vice versa).
+    // Gated on `performRedraw`: a draw whose render was skipped must not run this nested draw — the
+    // rolled-back band would fail the nested draw's fast-draw check, downgrading the cheap reposition
+    // to a full render that fires `beforeDraw` a second time and renders the cells the hook just
+    // cancelled. The per-overlay `adjustElementsSize()` calls inside `placeFixedOverlays` already ran,
+    // and nothing rendered, so the master spreader-size pass below has nothing new to apply either.
     wtOverlays.refreshAll(); // `refreshAll()` internally already calls `refreshSelections()` method
     wtOverlays.adjustElementsSize();
   } else {
@@ -280,7 +278,7 @@ function runCloneDrawCycle(table: Table, ctx: DrawContext): void {
  * `alignOverlaysWithTrimmingContainer` before it) may read the filters for the band about to render.
  * The filters and the rendered bands are the pair that `Table#getCell` resolves an element with, so
  * when that gate cancels the render the master puts BOTH back to their pre-draw values — see
- * `restoreRenderedState` in {@link runMasterDrawCycle}.
+ * {@link restoreRenderedStateIfSafe}.
  *
  * @param {Table} table The table (master or clone).
  * @param {DrawContext} ctx The per-draw scratch (supplies the pre-hook header counts).
@@ -301,8 +299,8 @@ function buildRenderFilters(table: Table, ctx: DrawContext): { rowFilter: RowFil
 
 /**
  * Captures the rendered row/column bands and the render filters, i.e. everything that describes which
- * source rows and columns the current DOM holds. Master-only: the `skipRender` gate it serves is
- * master-only.
+ * source rows and columns the current DOM holds, plus the render-cycle sequence number the viewport
+ * reports at this moment. Master-only: the `skipRender` gate it serves is master-only.
  *
  * @param {Table} table The master table.
  * @param {Viewport} wtViewport The viewport that owns the rendered bands.
@@ -314,40 +312,62 @@ function captureRenderedState(table: Table, wtViewport: Viewport): RenderedState
     columnsRenderCalculator: wtViewport.columnsRenderCalculator,
     rowFilter: table.rowFilter,
     columnFilter: table.columnFilter,
+    renderCycleSeq: wtViewport.renderCycleSeq,
   };
 }
 
 /**
- * Compares two captured rendered states by identity. The bands and the filters are replaced with fresh
- * objects on every full draw, so reference equality is exactly the "nothing has replaced them since"
- * question the `skipRender` rollback needs to answer.
+ * Puts the pre-draw rendered state back, undoing the band and filter advance of a draw whose render
+ * the `beforeDraw` hook cancelled — but only when the rollback is provably safe. When any guard
+ * fails, the this-draw state is kept, which is exactly the pre-rollback behavior of the engine, so
+ * a blocked rollback is never worse than what shipped before the rollback existed.
  *
- * @param {RenderedState} state The state to compare.
- * @param {RenderedState} otherState The state to compare it against.
- * @returns {boolean}
- */
-function isSameRenderedState(state: RenderedState, otherState: RenderedState): boolean {
-  return state.rowsRenderCalculator === otherState.rowsRenderCalculator &&
-    state.columnsRenderCalculator === otherState.columnsRenderCalculator &&
-    state.rowFilter === otherState.rowFilter &&
-    state.columnFilter === otherState.columnFilter;
-}
-
-/**
- * Puts a captured rendered state back, undoing the band and filter advance of a draw that ended up
- * rendering nothing. The visible-row/column calculators are deliberately NOT restored: they describe
- * what the user can see (scroll position), not what the DOM holds, and they are recomputed on every
- * draw regardless of the render gate.
+ * The guards:
+ * - The viewport's render-cycle counter must not have moved since the pre-draw capture. A hook that
+ *   renders (a nested master `draw()`, or a draw of any overlay clone — the clones share this
+ *   viewport) has put a NEWER band into the DOM; rolling the shared band back under it would create
+ *   the very band/DOM divergence this rollback exists to prevent.
+ * - The captured filters' build-time totals must still match the current `totalRows`/`totalColumns`.
+ *   When the dataset shrank before the skipped draw (NestedRows cancels the render right after its
+ *   row removal), the captured band names rows that no longer exist — the this-draw band, capped at
+ *   the new totals, is the correct description. (A dataset that GREW before a skipped draw keeps the
+ *   this-draw band too; that band can then overhang the stale DOM — a pre-existing edge of the
+ *   skip contract, unchanged here.)
+ *
+ * The restore itself is asymmetric by design:
+ * - The render calculators are restored unconditionally — `null` on a skipped first draw correctly
+ *   reports "nothing rendered", so `Table#getCell` answers with its out-of-viewport exit codes.
+ * - The filters are restored only when the captured ones are non-null; on a skipped first draw the
+ *   just-built filters are kept instead, because filter consumers (`getRowHeader`, `getTrForRow`,
+ *   the selection scanner's header loop) read `rowFilter!` unguarded and must never see `null`
+ *   after a completed draw.
+ * - The visible-row/column calculators are deliberately NOT restored: they describe what the user
+ *   can see (scroll position), not what the DOM holds. After a skipped draw the visible band may
+ *   therefore extend past the rendered band — unlike a fast draw, which guarantees the visible band
+ *   sits inside the rendered one — and `getCell` answers those rows with exit codes.
  *
  * @param {Table} table The master table.
  * @param {Viewport} wtViewport The viewport that owns the rendered bands.
  * @param {RenderedState} state The state captured before the draw.
  */
-function restoreRenderedState(table: Table, wtViewport: Viewport, state: RenderedState): void {
+function restoreRenderedStateIfSafe(table: Table, wtViewport: Viewport, state: RenderedState): void {
+  const { wtSettings } = table;
+  const renderHappenedSinceCapture = wtViewport.renderCycleSeq !== state.renderCycleSeq;
+  const totalsChangedSinceCapture =
+    (state.rowFilter !== null && state.rowFilter.total !== wtSettings.getSetting<number>('totalRows')) ||
+    (state.columnFilter !== null && state.columnFilter.total !== wtSettings.getSetting<number>('totalColumns'));
+
+  if (renderHappenedSinceCapture || totalsChangedSinceCapture) {
+    return;
+  }
+
   wtViewport.rowsRenderCalculator = state.rowsRenderCalculator;
   wtViewport.columnsRenderCalculator = state.columnsRenderCalculator;
-  table.rowFilter = state.rowFilter;
-  table.columnFilter = state.columnFilter;
+
+  if (state.rowFilter !== null && state.columnFilter !== null) {
+    table.rowFilter = state.rowFilter;
+    table.columnFilter = state.columnFilter;
+  }
 }
 
 /**
@@ -404,6 +424,11 @@ function renderCellBand(
     .setViewportSize(table.getRenderedRowsCount(), table.getRenderedColumnsCount())
     .setFilters(filters.rowFilter, filters.columnFilter)
     .render();
+
+  // Mark that a cell band reached the DOM. The viewport is shared by the master and all overlay
+  // clones, so this advances one counter no matter which table rendered — the signal the master's
+  // `skipRender` rollback guards on (see `restoreRenderedStateIfSafe`).
+  table.deps.getWtViewport().renderCycleSeq += 1;
 
   adjustColumnHeaderHeights(table);
 

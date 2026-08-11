@@ -160,6 +160,105 @@ describe('Table.draw() lifecycle hooks (characterization for the drawCycle refac
     }
   });
 
+  it('should not run the nested reconciliation draw (double `beforeDraw`) when the render is skipped', async() => {
+    let skipNextRender = false;
+    const beforeDraw = jasmine.createSpy('beforeDraw').and.callFake((force, skip) => {
+      if (skipNextRender) {
+        skip.skipRender = true;
+      }
+    });
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      columnHeaders: [(col, TH) => {
+        TH.innerHTML = col + 1;
+      }],
+      // The legacy (measured) layout path applies the `innerBorderTop` class only AFTER the render,
+      // via `resetFixedPosition` - so a scroll away from offset 0 flips `positionChanged` to `true`
+      // on the very draw whose render is skipped, which is the scenario under test.
+      singlePassLayout: false,
+      beforeDraw,
+    });
+
+    wt.draw();
+
+    beforeDraw.calls.reset();
+    skipNextRender = true;
+    wt.scrollViewportVertically(60);
+    wt.draw();
+
+    // The `innerBorderTop` flip must have happened on the skipped draw - otherwise this spec
+    // does not exercise the `positionChanged` reconciliation path at all.
+    expect(wt.wtTable.holder.parentNode.classList.contains('innerBorderTop')).toBe(true);
+
+    // The 1px-shift reconciliation (`refreshAll`) must not run for a skipped render: with the
+    // rendered band rolled back it degrades to a nested FULL draw, firing `beforeDraw` a second
+    // time within one `draw()` call and rendering the cells the hook just cancelled.
+    expect(beforeDraw).toHaveBeenCalledTimes(1);
+  });
+
+  it('should keep the table safe when the very first render is skipped', async() => {
+    const selections = createSelectionController();
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      columnHeaders: [(col, TH) => {
+        TH.innerHTML = col + 1;
+      }],
+      selections,
+      beforeDraw: (force, skip) => {
+        skip.skipRender = true;
+      },
+    });
+
+    selections.getFocus().add(new Walkontable.CellCoords(0, 0));
+
+    // Before the draw completes there was never a render, so the rendered state must describe an
+    // empty DOM without leaving the filters `null` (several consumers read `rowFilter` unguarded
+    // once the table reports itself as drawn).
+    expect(() => wt.draw()).not.toThrow();
+    expect(wt.wtTable.rowFilter).not.toBe(null);
+    expect(wt.wtTable.columnFilter).not.toBe(null);
+    expect(wt.wtTable.getRenderedRowsCount()).toBe(0);
+    expect(wt.wtTable.getCell(new Walkontable.CellCoords(0, 0))).toBe(-2);
+  });
+
+  it('should not restore a rendered band built for a larger dataset when the skip follows a row removal', async() => {
+    let skipNextRender = false;
+    const wt = walkontable({
+      data: getData,
+      totalRows: getTotalRows,
+      totalColumns: getTotalColumns,
+      beforeDraw: (force, skip) => {
+        if (skipNextRender) {
+          skip.skipRender = true;
+        }
+      },
+    });
+
+    wt.draw();
+
+    const renderedRowsBeforeRemoval = wt.wtTable.TBODY.childNodes.length;
+
+    // Shrink the dataset below the rendered band, then skip the follow-up draw - the NestedRows
+    // scenario (`skipRender` set right after its row removal). The pre-draw band was built for the
+    // old totals and names rows that no longer exist, so it must NOT be restored; the freshly
+    // resolved band, capped at the new totals, stays in place.
+    createDataArray(5, 4);
+    skipNextRender = true;
+    wt.draw();
+
+    // The render was really skipped - the TBODY still holds the stale rows.
+    expect(wt.wtTable.TBODY.childNodes.length).toBe(renderedRowsBeforeRemoval);
+    // The rendered state describes the new dataset, not the pre-removal one.
+    expect(wt.wtTable.rowFilter.total).toBe(getTotalRows());
+    expect(wt.wtTable.getLastRenderedRow()).toBeLessThan(getTotalRows());
+    // A removed row resolves to an out-of-viewport exit code, not to its stale TR.
+    expect(wt.wtTable.getCell(new Walkontable.CellCoords(8, 0))).toBe(-2);
+  });
+
   it('should fire `beforeDraw` but SKIP `onDraw` when beforeDraw sets skipRender', async() => {
     const beforeDraw = jasmine.createSpy('beforeDraw').and.callFake((_, skip) => {
       skip.skipRender = true;
