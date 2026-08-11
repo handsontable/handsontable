@@ -1,108 +1,71 @@
 name: Manual QA
 
-# The tracked human exception — an INDEPENDENT merge gate for changes that
-# genuinely need a human eye (subtle UX, a visual nuance no snapshot covers, a
-# high-risk area). The `needs-manual-check` label (applied by the author or an
-# agent, with a one-line reason in the PR body) parks a PENDING `manual-qa`
-# commit status on the PR head; an explicit human sign-off — a
-# `/manual-qa passed` comment from a repo member who is NOT the PR author —
-# flips it to green with the signer recorded. Every label, push, and comment
-# event re-evaluates the LIVE PR state, so the status updates itself (no job
-# re-runs). Unlabeled PRs get an instant green, which is what lets branch
-# protection require the `manual-qa` context while leaving them unaffected.
+# The tracked human exception — a GitLab-style manual gate inside the Tests
+# DAG. The `gate` job reads the PR's LIVE labels; when `needs-manual-check`
+# is present (author or agent applies it, with a one-line reason in the PR
+# body), the `sign-off` job pauses on the `manual-qa` ENVIRONMENT until a
+# designated reviewer approves the run ("Review pending deployments" on the
+# run page — GitHub records the approver and any comment as the deployment
+# review, and the environment's "Prevent self-review" keeps the PR author
+# out). While it waits, this module never completes, so CI Gate — which
+# needs it — cannot report and the merge stays blocked; a rejection fails
+# the job and turns CI Gate red. Unlabeled PRs skip `sign-off` (shown as
+# skipped, never a misleading green "passed"), which CI Gate treats as
+# legitimately-not-run.
 #
-# A pending COMMIT STATUS is the one primitive that blocks a required check
-# without failing anything — a check-run "neutral" conclusion would SATISFY
-# branch protection, and a red job (the old tickbox design) conflates
-# "waiting for a human" with "the pipeline is broken".
+# Semantics that follow from the mechanism:
+# - approval is PER RUN: every new push re-asks the reviewers — a fresh QA
+#   pass on fresh code, deliberately;
+# - labels are read live, but a label added AFTER a run finished does not
+#   retro-block it: press "Re-run all jobs" to arm the gate on that run
+#   (same ergonomics as the run-docs-visual label).
 #
-# Cutover (repo admin, the paired branch-protection task): create the
-# `needs-manual-check` label, then add `manual-qa` to the required status
-# checks next to "CI Gate". This gate ADDS a recorded human pass — the
-# test-presence and changelog gates in the Tests pipeline still apply.
-#
-# SECURITY: pull_request_target runs with a write-capable token, so this
-# workflow must NEVER check out or execute PR-controlled code. It is pure API
-# reads plus one commit-status write; comment bodies are only regex-tested
-# inside github-script, never interpolated into shell or evaluated.
+# Cutover (repo admin, the paired task): create the `needs-manual-check`
+# label AND the `manual-qa` environment with required reviewers (users or
+# teams) plus "Prevent self-review". The environment MUST exist with
+# reviewers before the first labeled PR — a job that references a missing
+# environment silently auto-creates it UNPROTECTED, and the gate would wave
+# everything through. Branch protection needs only "CI Gate". This gate ADDS
+# a recorded human pass — the test-presence and changelog gates still apply.
 on:
-  pull_request_target:
-    types: [opened, reopened, synchronize, labeled, unlabeled]
-  issue_comment:
-    types: [created, edited, deleted]
-
-permissions:
-  statuses: write
-  pull-requests: read
-  issues: read
-
-# Latest event wins: every run re-reads the full live state, so cancelling a
-# stale in-flight evaluation can never lose a sign-off.
-concurrency:
-  group: manual-qa-${{ github.event.pull_request.number || github.event.issue.number }}
-  cancel-in-progress: true
+  workflow_call:
 
 jobs:
-  status:
-    name: Set the manual-qa commit status
-    # Comment events: only PR comments that carry (or, before an edit/delete,
-    # carried) the /manual-qa command warrant a re-evaluation.
-    if: |
-      github.event_name == 'pull_request_target' ||
-      (github.event.issue.pull_request &&
-        (contains(github.event.comment.body, '/manual-qa') ||
-         contains(github.event.changes.body.from, '/manual-qa')))
+  gate:
+    name: label gate
     runs-on: ubuntu-latest
+    outputs:
+      requested: ${{ steps.check.outputs.requested }}
     steps:
-      - name: Evaluate the label and sign-off, report the status
+      - name: Read the needs-manual-check label
+        id: check
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # https://github.com/actions/github-script/releases/tag/v8.0.0
         with:
           script: |
-            const prNumber = context.payload.pull_request?.number ?? context.payload.issue.number;
-            // Labels, comments, and the head all move underneath these
-            // events, so read the LIVE pull request — never the frozen
-            // payload (the concurrency group makes the latest view final).
+            // The event payload is frozen at trigger time — read the LIVE
+            // labels so "add the label, press Re-run all jobs" arms the
+            // gate on an existing run.
+            const prNumber = context.payload.pull_request?.number;
+            if (!prNumber) { core.setOutput('requested', 'false'); return; }
             const { data: pr } = await github.rest.pulls.get({
               owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber,
             });
-            if (pr.state !== 'open') {
-              core.notice(`PR #${prNumber} is ${pr.state} — nothing to report.`);
-              return;
-            }
-            // For pull_request_target events the payload head is exactly the
-            // commit the event is about; a racing push re-reports through its
-            // own synchronize event.
-            const headSha = context.payload.pull_request?.head?.sha ?? pr.head.sha;
-            const setStatus = (state, description) => github.rest.repos.createCommitStatus({
-              owner: context.repo.owner, repo: context.repo.repo, sha: headSha,
-              context: 'manual-qa', state, description,
-              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
-            });
+            const requested = pr.labels.some((label) => label.name === 'needs-manual-check');
+            core.setOutput('requested', String(requested));
+            core.notice(requested
+              ? 'Manual QA requested — the sign-off job now waits for a manual-qa environment approval.'
+              : 'Manual QA not requested — to request it, add the needs-manual-check label and press "Re-run all jobs".');
 
-            if (!pr.labels.some((label) => label.name === 'needs-manual-check')) {
-              await setStatus('success', 'Not requested — apply the needs-manual-check label to ask for a human pass.');
-              core.notice('Manual QA not requested.');
-              return;
-            }
-
-            // Sign-off = a `/manual-qa passed` comment from a HUMAN repo
-            // member (owner, org member, or collaborator) who is NOT the PR
-            // author. Comment authorship is API-verified identity — unlike
-            // labels or body edits — and agents may REQUEST a manual check
-            // but never clear one.
-            const comments = await github.paginate(github.rest.issues.listComments, {
-              owner: context.repo.owner, repo: context.repo.repo,
-              issue_number: prNumber, per_page: 100,
-            });
-            const signOff = comments.reverse().find((comment) =>
-              /^\/manual-qa passed\b/m.test(comment.body || '')
-                && comment.user.type !== 'Bot'
-                && comment.user.login !== pr.user.login
-                && ['OWNER', 'MEMBER', 'COLLABORATOR'].includes(comment.author_association));
-            if (signOff) {
-              await setStatus('success', `Signed off by @${signOff.user.login}.`);
-              core.notice(`Manual QA signed off by @${signOff.user.login}.`);
-              return;
-            }
-            await setStatus('pending', 'Awaiting human sign-off — a repo member who is not the author comments "/manual-qa passed".');
-            core.notice('Manual QA requested via the needs-manual-check label — awaiting a human sign-off.');
+  sign-off:
+    name: sign-off
+    needs: [ gate ]
+    if: needs.gate.outputs.requested == 'true'
+    # The manual gate itself: referencing the environment makes GitHub hold
+    # this job until someone on the environment's reviewer list approves the
+    # run. The approval (who, when, optional comment) is the recorded
+    # sign-off — on the run page and via the deployment reviews API.
+    environment: manual-qa
+    runs-on: ubuntu-latest
+    steps:
+      - name: Record the sign-off
+        run: echo 'Manual QA signed off — the approver and any comment are recorded on this run''s manual-qa deployment review.'

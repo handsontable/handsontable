@@ -82,7 +82,7 @@ Running `pnpm install` wires the git hooks (via [lefthook](https://github.com/ev
 - an `it()` with no assertion,
 - fixed `sleep()` delays in place of waiting for a condition.
 
-**The tracked human exception.** When automated coverage genuinely cannot judge a change (a subtle UX or visual nuance, a high-risk area), apply the **`needs-manual-check`** label to the PR and give a one-line reason in the PR description saying what to check. A pending **`manual-qa`** status check then sits on the PR until a repo member who is **not** the PR author confirms with a `/manual-qa passed` comment — the check updates itself, with the signer recorded. This *adds* a recorded human pass — it never replaces the test requirement.
+**The tracked human exception.** When automated coverage genuinely cannot judge a change (a subtle UX or visual nuance, a high-risk area), apply the **`needs-manual-check`** label to the PR and give a one-line reason in the PR description saying what to check. The Tests pipeline then holds its **`Manual QA / sign-off`** job until a designated reviewer approves the run (the **Review pending deployments** button on the workflow run) — the approver is recorded by GitHub, and the PR author can never approve their own change. Unlabeled PRs skip the job; if you add the label after the pipeline already ran, press **"Re-run all jobs"**. This *adds* a recorded human pass — it never replaces the test requirement.
 
 The full local rules live in [`.ai/LOCAL-ENFORCEMENT.md`](https://github.com/handsontable/handsontable/blob/develop/.ai/LOCAL-ENFORCEMENT.md); the test-kind decision rules in [`handsontable/.ai/TESTING.md`](https://github.com/handsontable/handsontable/blob/develop/handsontable/.ai/TESTING.md).
 

@@ -80,16 +80,18 @@ nuance no snapshot covers, a high-risk area — or a QA-owned pass such as an
 RC adversarial sweep or a screen-reader check), apply the
 **`needs-manual-check`** label to the PR (author or agent may apply it) and
 give a one-line reason in the PR description saying what to check (the
-template carries the line). The standalone `manual-qa.yml` workflow then parks
-a **pending `manual-qa` commit status** on the PR head until a HUMAN repo
-member who is **not** the PR author comments **`/manual-qa passed`** (comment
-authorship is API-verified identity; bots and drive-by accounts do not count,
-so an agent can request a check but never clear one). Every label, push, and
-comment event re-reads the live PR state, so the status updates itself — no
-job re-runs. Unlabeled PRs get an instant green, which is what lets branch
-protection require the `manual-qa` context without affecting them. This
-**adds** a recorded human pass; it never replaces the presence gate or the
-test requirement. Do not use it to dodge writing tests.
+template carries the line). The Tests pipeline's `Manual QA / sign-off` job
+then waits on the **`manual-qa` environment approval**: a designated reviewer
+(the environment's required-reviewers list; self-review is blocked, so never
+the PR author — and an agent can request a check but never clear one) clicks
+Approve on the workflow run, and GitHub records the approver as the sign-off.
+While it waits, CI Gate cannot report, so the merge stays blocked without any
+job going red; a rejection turns CI Gate red. Unlabeled PRs *skip* the
+sign-off job — shown as skipped, never as a misleading green "passed".
+Approval is per run: a new push re-asks the reviewers. The gate reads labels
+live, so a label added after a finished run needs a **"Re-run all jobs"**
+press to arm. This **adds** a recorded human pass; it never replaces the
+presence gate or the test requirement. Do not use it to dodge writing tests.
 
 ## 2. Creating or changing enforcement hooks (git + agent) — exact rules
 
