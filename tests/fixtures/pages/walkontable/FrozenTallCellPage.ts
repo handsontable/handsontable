@@ -70,7 +70,14 @@ export class FrozenTallCellPage {
     await this.holder().evaluate((el, value) => {
       el.scrollTop = value;
     }, top);
-    await expect.poll(async () => this.holder().evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+
+    // Scrolling back to the very top lands exactly; anything else is clamped to the content height,
+    // so only the fact that it moved can be asserted.
+    if (top === 0) {
+      await expect.poll(async () => this.holder().evaluate(el => el.scrollTop)).toBe(0);
+    } else {
+      await expect.poll(async () => this.holder().evaluate(el => el.scrollTop)).toBeGreaterThan(0);
+    }
   }
 
   /**

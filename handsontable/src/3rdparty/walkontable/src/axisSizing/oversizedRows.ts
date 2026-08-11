@@ -328,9 +328,16 @@ export function syncOversizedRowsWithFrozenOverlays(
   // In steady state the master is deliberately NOT here: it rendered BEFORE the clear, so it already
   // has the right heights, and re-writing every row each draw would be a per-row DOM write for
   // nothing.
+  // The frozen tables are here for the same reason: they rendered AFTER the clear, so at their
+  // natural height — which is not the recorded height for a row sitting at the band boundary, where
+  // the first <tr> adds 1px of border on top of its content. The master rendered before the clear,
+  // with the record, so it does not have that pixel; leaving the two as rendered puts them 1px apart
+  // and every row below with them, intermittently, as the boundary moves. Writing to them cannot
+  // ratchet — the next draw clears the records and re-renders them before measuring again.
   const reapplyTargets = [
     wtOverlays.topOverlay?.clone?.wtTable,
     wtOverlays.bottomOverlay?.clone?.wtTable,
+    ...frozenTables,
   ];
 
   if (heightsChanged) {
@@ -354,19 +361,24 @@ export function syncOversizedRowsWithFrozenOverlays(
     // row-height cache on every draw for as long as both cells stay oversized.
     masterRecordedRows.forEach(sourceRow => frozenOversizedRows.delete(sourceRow));
 
-    // The frozen overlays rendered before the final set of records was known, so they join the
-    // re-apply. Writing to them cannot ratchet — this draw's measurement is finished, and the next
-    // clears and re-renders them before measuring again. The master joins only if that re-measure
-    // actually recorded something; otherwise the release above already left it at the right height
-    // and a second full pass over its rows would write every one of them for nothing.
-    reapplyTargets.push(...frozenTables);
-
+    // The master joins the re-apply only if that re-measure actually recorded something; otherwise
+    // the release above already left it at the right height, and a second full pass over its rows
+    // would write every one of them for nothing.
     if (masterRecordedRows.size > 0) {
       reapplyTargets.push(table);
     }
   }
 
   if (recordedRows.size > 0 || heightsChanged) {
+    // The master joins on any draw that has a frozen record, not only a changed one. The record is
+    // whatever the frozen overlay just measured, and at the band boundary that is 1px more than the
+    // master rendered with — a difference the cache-invalidation tolerance deliberately ignores, so
+    // nothing else would bring the two together. Re-applying cannot ratchet: it writes the record,
+    // it does not measure.
+    if (!reapplyTargets.includes(table)) {
+      reapplyTargets.push(table);
+    }
+
     reapplyTargets.forEach((target) => {
       if (target) {
         applyRowHeightsToRenderedRows(target);
@@ -610,6 +622,11 @@ export function markOversizedRows(
       // row measures 1px taller while it is the band's first <tr>, see the `tr:first-child`
       // compensation above); `Viewport#sumRowHeights` re-reads the boundary rows live for
       // exactly this reason, so it is measurement noise, not a content change.
+      //
+      // This tolerance is load-bearing for PERFORMANCE and must not be tightened: at the boundary
+      // the measured value alternates between the two, so counting 1px as a change invalidates the
+      // row-height cache on every single draw for as long as the row sits there. The DOM side of the
+      // flip is handled separately, by re-applying the current record to every table below.
       if (wipedHeight === undefined || Math.abs(rowCurrentHeight - wipedHeight) > 1) {
         hasChanges = true;
       }

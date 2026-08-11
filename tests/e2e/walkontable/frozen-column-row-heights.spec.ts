@@ -171,6 +171,41 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
     expect(await wt.countRowCacheInvalidations(3)).toBe(0);
   });
 
+  test('keeps the panes aligned when the band boundary moves onto an already-tall row', async () => {
+    // The band's first <tr> gains a 1px border-top, so a row's total height changes by 1px purely
+    // by scrolling onto the boundary. The record holds that total, and the overlay whose content
+    // actually needs it cannot render in one pixel less — so a record left on the old side of the
+    // flip puts that overlay 1px away from every other table, and every row below it with it.
+    //
+    // The record has to be established AWAY from the boundary and then have the boundary move onto
+    // it. Creating the tall content while already at the boundary measures the right total straight
+    // away and hides this entirely.
+    const BOUNDARY_ROW = 4;
+
+    await wt.goto({ tallRow: BOUNDARY_ROW, rows: 100 });
+
+    const restingHeight = await wt.rowHeight(wt.master, BOUNDARY_ROW);
+
+    expect(restingHeight).toBeGreaterThan(await wt.normalRowHeight());
+
+    await wt.scrollToRowAtTop(BOUNDARY_ROW + 1);
+
+    expect(await wt.masterFirstRenderedRow()).toBe(BOUNDARY_ROW);
+    expect(await wt.rowHeight(wt.master, BOUNDARY_ROW))
+      .toBe(await wt.rowHeight(wt.inlineStartOverlay, BOUNDARY_ROW));
+
+    for (const row of [BOUNDARY_ROW + 1, BOUNDARY_ROW + 2, BOUNDARY_ROW + 3]) {
+      expect(await wt.rowOffsetWithinTable(wt.master, row))
+        .toBe(await wt.rowOffsetWithinTable(wt.inlineStartOverlay, row));
+    }
+
+    // And back off the boundary again — the 1px must not be left behind.
+    await wt.scrollVerticallyTo(0);
+
+    expect(await wt.rowHeight(wt.master, BOUNDARY_ROW))
+      .toBe(await wt.rowHeight(wt.inlineStartOverlay, BOUNDARY_ROW));
+  });
+
   test('keeps the scroll range whole when the BOTTOM clone invalidates the cache mid-draw', async () => {
     // The bottom clone renders, and measures itself, inside `wtOverlays.refresh()` — after the
     // frozen records have been cleared for this draw. An invalidation of its own therefore lands in
