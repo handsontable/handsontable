@@ -2769,7 +2769,14 @@ describe('ContextMenu', () => {
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
-    it('should not close the menu, when table is scrolled', async() => {
+    // #12719: with an anchor provider (the right-clicked cell), a scroll on an element outside
+    // `.htMenu` — including the grid's own viewport (`wtHolder`) — repositions the menu to follow
+    // that cell instead of closing it. The menu closes only once the anchor derenders (scrolls out
+    // of Walkontable's render window). There is no suppression window anymore: the mechanism below
+    // is follow-vs-derender, not open-time timing. Neither scroll here (to `scrollTop + 60`, nor
+    // the further one to `scrollTop + 100` after the menu is reopened at the same cell) pushes row
+    // 15 out of the render window, so the menu keeps following and stays open through both.
+    it('should keep the menu following its anchor across multiple outside scrolls, when the anchor stays rendered (#12719)', async() => {
       handsontable({
         data: createSpreadsheetData(40, 30),
         colWidths: 50, // can also be a number or a function
@@ -2798,10 +2805,20 @@ describe('ContextMenu', () => {
 
       await scrollViewportVertically(scrollTop + 100);
 
+      // #12719: the anchor cell (row 15) is still within the render window at this scroll
+      // position, so the menu keeps following it and stays open rather than closing.
       expect($('.htContextMenu').is(':visible')).toBe(true);
     });
 
-    it('should not attempt to close menu, when table is scrolled and the menu is already closed', async() => {
+    // #12719: this asserts that outside scroll handling never routes through the plugin-level
+    // `ContextMenu#close()` API (spied on below) — it doesn't, whether the menu follows its
+    // anchor or derenders-and-closes, because the scroll-driven close path lives entirely on the
+    // `Menu` instance (`Menu#close()`, called as `this.close(true)` from `Menu#followAnchor`/
+    // `#onDocumentScroll` in menu.ts) and never calls back into `ContextMenu#close()`. So this
+    // spy does not discriminate follow-vs-derender; it only proves the plugin's public `close()`
+    // API is untouched by scroll handling. Actual follow-vs-derender behavior is covered by the
+    // Playwright menu-scroll suite (tests/e2e).
+    it('should not call the plugin-level `close()` API when the table is scrolled, regardless of follow-vs-derender (#12719)', async() => {
       handsontable({
         data: createSpreadsheetData(40, 30),
         colWidths: 50, // can also be a number or a function
