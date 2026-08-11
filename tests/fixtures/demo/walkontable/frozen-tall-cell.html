@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Walkontable (tall cell in a frozen column) e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Active theme from the ?theme= query param set by the Playwright project.
+    // Mapped through a fixed allowlist to a LITERAL (default main), so a crafted
+    // ?theme= can never be reflected into the document — no XSS.
+    window.htTheme = ({ horizon: 'horizon', classic: 'classic' })[new URLSearchParams(location.search).get('theme')] || 'main';
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    One cell in a FROZEN column is taller than a row. There are enough columns
+    that the master's rendered band starts past the frozen ones, so the master
+    never renders that cell — only the inline-start overlay does. The row height
+    must still match between the two tables (DEV-2193).
+
+    The tall content is a fixed-height block, not wrapping text, so the row
+    height does not depend on the runner's font metrics.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script src="/handsontable/dist/handsontable.full.min.js"></script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const TALL_ROW = 2;
+    const TALL_COLUMN = 1;
+    const TALL_CONTENT_HEIGHT = 60;
+
+    let isTall = true;
+
+    const data = Array.from({ length: 20 }, (_, r) =>
+      Array.from({ length: 100 }, (_, c) => `R${r + 1}C${c + 1}`));
+
+    const renderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+
+      // Stamp the row id on the TR from whichever cell renders first. Every table
+      // (master and each overlay clone) renders a different column range, so a
+      // per-cell id could not identify the same row across them.
+      if (td.parentElement) {
+        td.parentElement.setAttribute('data-testid', `row-${row}`);
+      }
+
+      if (isTall && row === TALL_ROW && col === TALL_COLUMN) {
+        td.innerHTML = `<div data-testid="tall-block" style="height: ${TALL_CONTENT_HEIGHT}px"></div>`;
+      }
+    };
+
+    const hot = new Handsontable(container, {
+      data,
+      width: 600,
+      height: 300,
+      colWidths: 100,
+      fixedColumnsStart: 3,
+      rowHeaders: true,
+      colHeaders: true,
+      renderer,
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    // Drives the "content shrank back" case from the spec.
+    window.setTallCell = (value) => {
+      isTall = value;
+      hot.render();
+    };
+  </script>
+</body>
+</html>

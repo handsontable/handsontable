@@ -1,5 +1,5 @@
 import { test, expect } from '../../fixtures/test';
-import { WalkontablePage } from '../../fixtures/pages/WalkontablePage';
+import { OverlaysPage } from '../../fixtures/pages/walkontable/OverlaysPage';
 
 /**
  * Walkontable engine E2E via a frozen-panes grid. This is the Playwright home
@@ -8,10 +8,10 @@ import { WalkontablePage } from '../../fixtures/pages/WalkontablePage';
  * per-theme projects.
  */
 test.describe('walkontable overlays', { tag: '@walkontable' }, () => {
-  let wt: WalkontablePage;
+  let wt: OverlaysPage;
 
   test.beforeEach(async ({ page, theme }) => {
-    wt = new WalkontablePage(page, theme);
+    wt = new OverlaysPage(page, theme);
     await wt.goto();
   });
 
