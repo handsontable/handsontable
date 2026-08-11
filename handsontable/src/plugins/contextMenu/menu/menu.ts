@@ -420,10 +420,6 @@ export class Menu {
     this.container.removeAttribute('style');
     this.container.style.display = 'block';
 
-    // Registered per-open so that scroll listeners fire in menu open order — a menu
-    // anchored inside another menu then always repositions AFTER its anchor was moved.
-    this.#registerScrollListeners();
-
     const delayedOpenSubMenu = debounce((...args: unknown[]) => this.openSubMenu(args[0] as number), 300);
     const minWidthOfMenu = (Number(this.options.minWidth) || MIN_WIDTH);
     let noItemsDefined = false;
@@ -442,6 +438,11 @@ export class Menu {
     } else if (filteredItems.length === 0) {
       return;
     }
+
+    // Registered per-open (and after the empty-items early return, which would leak
+    // them) so that scroll listeners fire in menu open order — a menu anchored inside
+    // another menu then always repositions AFTER its anchor was moved.
+    this.#registerScrollListeners();
 
     filteredItems = filterSeparators(filteredItems);
 
