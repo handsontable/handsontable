@@ -12,25 +12,28 @@ import { type Page, type Locator, expect } from '@playwright/test';
 export class GridPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
   readonly addRowButton: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.addRowButton = page.getByTestId('add-row');
   }
 
   /**
    * Navigate to the fixture and wait for the grid to render. The active theme
-   * is passed as a query param so the fixture loads the matching stylesheet.
-   * We wait on a real DOM condition (the first cell is visible) rather than a
-   * custom readiness flag or a fixed timeout — the web-first pattern the
-   * authoring skill teaches.
+   * and bundle are passed as query params so the fixture loads the matching
+   * stylesheet and Handsontable build (umd/full-min — the Puppeteer parity
+   * legs). We wait on a real DOM condition (the first cell is visible) rather
+   * than a custom readiness flag or a fixed timeout — the web-first pattern
+   * the authoring skill teaches.
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/grid.html?theme=${this.theme}`);
+    await this.page.goto(`/tests/fixtures/demo/grid.html?theme=${this.theme}&bundle=${this.bundle}`);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
