@@ -5,8 +5,10 @@ import { test as base, expect } from '@playwright/test';
  *
  * Declares the `theme` and `bundle` options so every spec runs across the
  * same matrix the Puppeteer e2e suite covers: themes (main/horizon/classic)
- * × bundles (`umd` = dist/handsontable.js, `umd-min` = dist/handsontable.min.js),
- * via the projects in playwright.config.ts. A spec authored against this
+ * × bundles (`umd` = dist/handsontable.js, `full-min` =
+ * dist/handsontable.full.min.js — the same files the Puppeteer `test:e2e` and
+ * `test:production` legs load), via the projects in playwright.config.ts.
+ * A spec authored against this
  * `test` needs no theme or bundle awareness: it is parametrized automatically
  * by the active project, and the page objects append both to the fixture URL.
  *

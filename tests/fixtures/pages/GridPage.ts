@@ -27,7 +27,7 @@ export class GridPage {
   /**
    * Navigate to the fixture and wait for the grid to render. The active theme
    * and bundle are passed as query params so the fixture loads the matching
-   * stylesheet and Handsontable build (umd/umd-min — the Puppeteer parity
+   * stylesheet and Handsontable build (umd/full-min — the Puppeteer parity
    * legs). We wait on a real DOM condition (the first cell is visible) rather
    * than a custom readiness flag or a fixed timeout — the web-first pattern
    * the authoring skill teaches.

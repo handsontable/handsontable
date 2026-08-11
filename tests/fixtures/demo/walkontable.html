@@ -13,10 +13,11 @@
     // Written into <head> so the themed stylesheet is present before first render.
     document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
     // Active bundle from the ?bundle= query param set by the Playwright project
-    // — 1:1 with the Puppeteer legs (umd = handsontable.js, umd-min =
-    // handsontable.min.js). Same allowlist-to-literal pattern as the theme, so
-    // the param can never be reflected into the document.
-    window.htBundle = ({ 'umd-min': 'handsontable.min.js' })[new URLSearchParams(location.search).get('bundle')] || 'handsontable.js';
+    // — 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads). Same
+    // allowlist-to-literal pattern as the theme, so the param can never be
+    // reflected into the document.
+    window.htBundle = ({ 'full-min': 'handsontable.full.min.js' })[new URLSearchParams(location.search).get('bundle')] || 'handsontable.js';
   </script>
   <style> body { font-family: sans-serif; margin: 1rem; } </style>
 </head>

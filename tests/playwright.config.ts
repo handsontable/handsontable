@@ -9,25 +9,27 @@ import type { TestOptions } from './fixtures/test';
  *
  * Matrix coverage: the functional suite mirrors the Puppeteer e2e matrix
  * 1:1 — theme (main/horizon/classic) × bundle (`umd` = dist/handsontable.js,
- * `umd-min` = dist/handsontable.min.js) — one project per combination.
- * Every spec is parametrized automatically — authors write one spec and it
- * runs under all legs. CI runs one job per leg (a `theme × bundle` matrix
+ * `full-min` = dist/handsontable.full.min.js) — one project per combination,
+ * loading the exact files the Puppeteer `test:e2e` and `test:production` legs
+ * load. Every spec is parametrized automatically — authors write one spec and
+ * it runs under all legs. CI runs one job per leg (a `theme × bundle` matrix
  * over `--project=e2e-<theme>[-min]`); locally, `npx playwright test` runs
- * all legs and `--project=e2e-horizon` runs one. Full-bundle coverage
- * (handsontable.full[.min].js) is deliberately NOT here — it belongs to the
- * nightly on develop (DEV-2058).
+ * all legs and `--project=e2e-horizon` runs one. The bundles Puppeteer does
+ * not test either (handsontable.full.js, handsontable.min.js) are deliberately
+ * NOT here — extra coverage belongs to the nightly on develop (DEV-2058).
  *
  * Version parity rule: `@playwright/test` here and the CI container image
  * (`mcr.microsoft.com/playwright:v<same>-noble`) bump together, never apart, so
  * local, CI, and baseline generation render identically.
  */
 const E2E_THEMES = ['main', 'horizon', 'classic'] as const;
-// 1:1 with the Puppeteer bundle legs: UMD (dist/handsontable.js) and UMD.min
-// (dist/handsontable.min.js). The un-suffixed projects run the plain UMD so
-// existing local commands and hooks (`--project=e2e-main`) keep working.
+// 1:1 with the Puppeteer bundle legs: UMD (dist/handsontable.js, `test:e2e`)
+// and UMD.min (dist/handsontable.full.min.js, `test:production`). The
+// un-suffixed projects run the plain UMD so existing local commands and hooks
+// (`--project=e2e-main`) keep working.
 const E2E_BUNDLES = [
   { bundle: 'umd', suffix: '' },
-  { bundle: 'umd-min', suffix: '-min' },
+  { bundle: 'full-min', suffix: '-min' },
 ] as const;
 
 export default defineConfig<TestOptions>({
