@@ -252,7 +252,10 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
         // `renderCellBand`, before the calculators are computed. Left alone, the frame reports a
         // visible row range measured against the old heights, which self-corrects on the next draw
         // and so reads as an intermittent off-by-a-row to anything asking during this one.
+        // Both caches, as at the sibling call above: `createVisibleCalculators` builds the COLUMN
+        // visible calculators too, and an unbuilt strategy answers every offset with 0.
         wtViewport.rowHeightCache.ensureBuilt();
+        wtViewport.columnWidthCache.ensureBuilt();
         wtViewport.createVisibleCalculators();
       }
 
