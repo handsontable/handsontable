@@ -87,6 +87,16 @@ export class PositionCache {
    * @type {Function|undefined}
    */
   readonly #onBuildFn?: () => void;
+  /**
+   * Increments on every {@link PositionCache#build}, in any mode.
+   *
+   * A caller that must not be served a build taken while its own inputs were incomplete can
+   * snapshot this and compare afterwards. `isCurrent()` cannot answer that: an invalidate followed
+   * by a rebuild leaves it `true` both before and after.
+   *
+   * @type {number}
+   */
+  buildSeq = 0;
 
   /**
    * @param {object} config The configuration object.
@@ -132,6 +142,7 @@ export class PositionCache {
     const defaultSize = this.#defaultSizeFn();
 
     this.totalItems = totalItems;
+    this.buildSeq += 1;
     this.#onBuildFn?.();
 
     if (this.#isUniformFn?.()) {

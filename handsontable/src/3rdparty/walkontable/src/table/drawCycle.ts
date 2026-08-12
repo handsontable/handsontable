@@ -8,7 +8,10 @@ import {
   adjustColumnHeaderHeights,
   markOversizedRows,
   resetOversizedRows,
+  resetFrozenOversizedRows,
+  shouldSyncOversizedRowsWithFrozenOverlays,
   syncOversizedColumnHeadersWithFrozenOverlays,
+  syncOversizedRowsWithFrozenOverlays,
 } from '../axisSizing/oversizedRows';
 import type Table from './baseTable';
 import type { default as Overlays } from '../overlay/overlays';
@@ -43,6 +46,11 @@ interface DrawContext {
   performRedraw: boolean;
   /** Default `false`; only the master fixed-position pass writes `true`. */
   positionChanged: boolean;
+  /**
+   * Whether this draw runs the frozen-column row sync. Decided once, before the master renders, and
+   * read again when the frozen records are cleared and measured, so the two can never disagree.
+   */
+  syncFrozenRows: boolean;
   rowHeaders: Function[];
   columnHeaders: Function[];
   rowHeadersCount: number;
@@ -71,6 +79,7 @@ export function runDrawCycle(table: Table, fastDraw: boolean): void {
     runFastDraw: fastDraw,
     performRedraw: true,
     positionChanged: false,
+    syncFrozenRows: false,
     rowHeaders,
     columnHeaders,
     rowHeadersCount: rowHeaders.length,
@@ -157,11 +166,23 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
     // header heights can drift against the frozen overlays during scrolling (a tall wrapped
     // frozen header that the master never renders). Re-sync here. The method is a cheap no-op
     // unless the grid has frozen columns with column headers, so non-frozen grids are unaffected.
+    // No row-height twin of the call above is needed here: a fast draw re-renders neither the master
+    // nor the clones, so no cell content — and therefore no row height — can have changed.
     syncOversizedColumnHeadersWithFrozenOverlays(table);
   } else {
     table.tableOffset = table.deps.geometryReader.offset(table.TABLE);
 
     const filters = buildRenderFilters(table, ctx);
+
+    // Decided before the master renders, because `resetOversizedRows` (inside `renderCellBand`) has
+    // to know whether the frozen-derived records are still being maintained. When they are not — the
+    // master's band starts at column 0, so it renders every frozen column itself — they go back to
+    // the ordinary machinery, which wipes and re-measures them like any other oversized row.
+    ctx.syncFrozenRows = shouldSyncOversizedRowsWithFrozenOverlays(table);
+
+    if (!ctx.syncFrozenRows) {
+      wtViewport.releaseFrozenOversizedRows();
+    }
 
     table.alignOverlaysWithTrimmingContainer(); // todo It calls method from child class (MasterTable).
     const skipRender: { skipRender?: boolean } = {};
@@ -211,8 +232,33 @@ function runMasterDrawCycle(table: Table, ctx: DrawContext): void {
         }
       }
 
+      // The seam: the master has rendered and both size caches and the viewport calculators were
+      // built from the frozen-derived heights, so clearing them now costs nothing — and it makes the
+      // frozen overlays below render at their natural content height, which is what keeps them
+      // re-measurable instead of ratcheting on their own cached value.
+      const wipedFrozenRows = ctx.syncFrozenRows ? resetFrozenOversizedRows(table) : undefined;
+
       wtOverlays.refresh(false);
       syncOversizedColumnHeadersWithFrozenOverlays(table);
+      // The frozen overlays have now rendered, so a row whose tallest cell lives in a frozen column
+      // (which the master's rendered band skips) can finally be measured. Runs after the header sync
+      // so a taller frozen header is already reflected in the THEAD when the body rows are re-sized.
+      const frozenRowHeightsChanged = syncOversizedRowsWithFrozenOverlays(table, wipedFrozenRows);
+
+      if (frozenRowHeightsChanged && !wtSettings.getSetting('externalRowCalculator')) {
+        // The calculators above were built from row heights this sync has since changed, and a
+        // frozen-derived height cannot be known any earlier — the frozen overlays had not rendered.
+        // An ordinary oversized row never reaches here: the master invalidates inside
+        // `renderCellBand`, before the calculators are computed. Left alone, the frame reports a
+        // visible row range measured against the old heights, which self-corrects on the next draw
+        // and so reads as an intermittent off-by-a-row to anything asking during this one.
+        // Both caches, as at the sibling call above: `createVisibleCalculators` builds the COLUMN
+        // visible calculators too, and an unbuilt strategy answers every offset with 0.
+        wtViewport.rowHeightCache.ensureBuilt();
+        wtViewport.columnWidthCache.ensureBuilt();
+        wtViewport.createVisibleCalculators();
+      }
+
       wtOverlays.applyToDOM();
 
       wtSettings.getSetting('onDraw', true);
