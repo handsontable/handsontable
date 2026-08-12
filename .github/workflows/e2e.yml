@@ -4,8 +4,14 @@ name: E2E
 # 1:1 with each other: the frozen Puppeteer suite and the new Playwright suite,
 # both over theme × bundle (UMD / UMD.min). Per-leg gating keeps the exact old
 # scope behaviour (UMD legs on the e2e scope, UMD.min on the e2e-min scope).
-# The FULL bundles (handsontable.full[.min].js) are deliberately not covered
+# The UMD.min legs load handsontable.full.min.js — the exact file Puppeteer's
+# test:production runs. The bundles Puppeteer does not test either
+# (handsontable.full.js and handsontable.min.js) are deliberately not covered
 # here — they belong to the nightly on develop (DEV-2058).
+# Playwright runs one job per leg (not one job per theme with both projects):
+# per-leg failure isolation in the checks list and 1:1 symmetry with the
+# Puppeteer matrix outweigh the duplicated container setup while the suite is
+# small — revisit as migration grows it.
 on:
   workflow_call:
     inputs:
