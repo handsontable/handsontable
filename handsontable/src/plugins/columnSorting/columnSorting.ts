@@ -292,6 +292,7 @@ export class ColumnSorting extends BasePlugin {
       }
 
       this.updateHeaderClasses(headerSpanElement);
+      this.#syncIndicatorReserve(headerSpanElement);
     };
 
     pluginConflictsState.delete(this.hot);
@@ -801,6 +802,7 @@ export class ColumnSorting extends BasePlugin {
       showSortIndicator,
       headerActionEnabled
     );
+    this.#syncIndicatorReserve(headerSpanElement);
 
     if (this.hot.getSettings().ariaTags) {
       const currentSortState = this.columnStatesManager?.getSortOrderOfColumn(column);
@@ -833,21 +835,22 @@ export class ColumnSorting extends BasePlugin {
         headerActionEnabled ?? false
       ));
     }
-
-    this.syncIndicatorReserve(headerSpanElement);
   }
 
   /**
    * Reserves room for the sort indicator on the header container, matching the state the label
    * was just given.
    *
+   * Called from the two places that drive a header render rather than from
+   * `updateHeaderClasses`, which subclasses override and extend - running it after that override
+   * has finished is what keeps the reserved side in step with the classes the label ends up with.
+   *
    * The container's class list is rebuilt on every header render (see `TableView`), so this runs
    * for each render rather than only when the sort state changes.
    *
-   * @private
    * @param {HTMLElement} headerSpanElement The header label element.
    */
-  syncIndicatorReserve(headerSpanElement: HTMLElement) {
+  #syncIndicatorReserve(headerSpanElement: HTMLElement) {
     const container = headerSpanElement.parentElement;
 
     if (container === null) {

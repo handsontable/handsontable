@@ -301,8 +301,6 @@ export class MultiColumnSorting extends ColumnSorting {
     if (this.enabled !== false && columnStatesManager !== undefined && column !== undefined) {
       addClass(headerSpanElement, getClassesToAdd(columnStatesManager, column, showSortIndicator ?? false));
     }
-
-    this.syncIndicatorReserve(headerSpanElement);
   }
 
   /**

@@ -91,5 +91,62 @@ describe('ColumnSorting (RTL)', () => {
         expect(leftPx).toBeGreaterThanOrEqual(freeEdge);
       }
     });
+
+    it('should reserve the indicator room on the side the indicator is pinned to for a left-aligned header', async() => {
+      handsontable({
+        layoutDirection,
+        data: [
+          [1, 9, 3],
+          [9, 8, 7],
+          [8, 7, 6],
+        ],
+        // Long enough to fill the header, so a reservation on the wrong side shows up as the
+        // indicator sitting on top of the label instead of beside it.
+        colHeaders: ['Revenue per employee division', 'B', 'C'],
+        colWidths: 140,
+        // `htLeft` is the alignment that points against the direction in RTL, so it is the case
+        // where the indicator moves to the inline-start side and the reservation has to follow.
+        afterGetColHeader: (column, TH) => {
+          if (column === 0) {
+            TH.classList.add('htLeft');
+          }
+        },
+        columnSorting: {
+          indicator: true
+        }
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+      await render();
+
+      const label = spec().$container.find('th span.columnSorting')[0];
+      const container = label.closest('.relative');
+      const containerStyle = window.getComputedStyle(container);
+      const indicatorStyle = window.getComputedStyle(label, ':before');
+      const containerRect = container.getBoundingClientRect();
+      const labelRect = label.getBoundingClientRect();
+      const iconSize = parseFloat(
+        window.getComputedStyle(label).getPropertyValue('--ht-icon-size')
+      ) || 16;
+
+      // In RTL a left-aligned header pins the indicator to the physical right.
+      expect(parseFloat(indicatorStyle.getPropertyValue('right'))).toBe(2);
+
+      // So the room has to be reserved on the right too, not on the left.
+      const paddingLeft = parseFloat(containerStyle.getPropertyValue('padding-left'));
+      const paddingRight = parseFloat(containerStyle.getPropertyValue('padding-right'));
+
+      expect(paddingRight).toBeGreaterThan(paddingLeft);
+
+      // What the user sees: the label stops before the indicator instead of running under it.
+      // `.relative` carries no border, so its client rect edges are the padding box edges the
+      // absolutely positioned indicator resolves against.
+      const marginRight = parseFloat(indicatorStyle.getPropertyValue('margin-right')) || 0;
+      const indicatorRight = containerRect.right - 2 - marginRight;
+      const indicatorLeft = indicatorRight - iconSize;
+      const overlap = Math.min(labelRect.right, indicatorRight) - Math.max(labelRect.left, indicatorLeft);
+
+      expect(overlap).toBeLessThanOrEqual(0);
+    });
   });
 });

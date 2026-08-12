@@ -8,9 +8,11 @@
     // header around it is what a user presses to select a column without sorting it - which is
     // the first half of moving a column by drag. Size the label to its content and centre it,
     // so only the label text and the sort indicator sort on click.
-    // The selector carries the full `thead tr th .relative` path because the base rule that
-    // makes the label fill the row (`_base.scss`) is that specific.
-    thead tr th .relative .colHeader.columnSorting.sortAction {
+    // Three classes are all it takes to win over the base rule that makes the label fill the row
+    // (`.handsontable thead tr th .relative .colHeader` in `_base.scss` - three classes), because
+    // class count is compared before element count. Repeating the structural path would only tie
+    // this rule to a header shape it does not care about.
+    .colHeader.columnSorting.sortAction {
       box-sizing: border-box;
       flex-grow: 0;
       // Auto margins on both sides keep the label centred, and hand the free space to the
@@ -38,12 +40,17 @@
     // Room for the sort indicator, reserved on the container instead of as padding on the label.
     // Padding on the label would grow the box that sorts on click, adding a strip of header that
     // looks inert but is not - the label has to stay tight around its text. The sides mirror where
-    // `::before` is pinned, which flips with text alignment and direction.
-    thead tr th .relative.has-sort-indicator {
+    // `::before` is pinned, which flips with text alignment and direction: it is the inline-end
+    // side unless the alignment class points against the direction - `htRight` in LTR, `htLeft`
+    // in RTL. Only `ColumnSorting` stamps `has-sort-indicator`, and only on a column header
+    // container, so the class alone is scope enough.
+    .relative.has-sort-indicator {
       padding-inline-end: calc(var(--ht-cell-horizontal-padding) + var(--ht-icon-size, 16px) + 2px);
     }
 
-    thead tr th.htRight .relative.has-sort-indicator {
+    // Kept on `th` rather than the bare class: `htRight` is a user-supplied class name that can
+    // also sit on an ancestor, and this must only react to it on the header cell itself.
+    th.htRight .relative.has-sort-indicator {
       padding-inline-start: calc(var(--ht-cell-horizontal-padding) + var(--ht-icon-size, 16px) + 2px);
       padding-inline-end: var(--ht-cell-horizontal-padding);
     }
@@ -52,7 +59,7 @@
     // to, so step them over it. The button's painted width is `--ht-icon-size` + 2px once its own
     // negative margins apply, plus the 2px flex gap. Only the inline-end side moves: that is the
     // flex end, which is the only place such a button appears.
-    thead tr th .relative.has-header-button .colHeader.columnSorting.sortAction {
+    .relative.has-header-button .colHeader.columnSorting.sortAction {
       &::before,
       &::after {
         margin-inline-end: calc(var(--ht-cell-horizontal-padding) + var(--ht-icon-size, 16px) + 4px);
@@ -96,13 +103,18 @@
 
   [dir="rtl"] {
     .handsontable {
-      // In RTL the indicator sits on the inline-end side for both default and right-aligned text,
-      // and only `htLeft` flips it back - so `htRight` has to undo the direction-agnostic rule
-      // above, which would otherwise reserve the wrong side.
-      thead tr th.htRight .relative.has-sort-indicator,
-      thead tr th.htLeft .relative.has-sort-indicator {
+      // `htRight` points the same way as the direction here, so the indicator sits on the
+      // inline-end side like the default - undo the LTR rule above, which reserves the other one.
+      th.htRight .relative.has-sort-indicator {
         padding-inline-start: var(--ht-cell-horizontal-padding);
         padding-inline-end: calc(var(--ht-cell-horizontal-padding) + var(--ht-icon-size, 16px) + 2px);
+      }
+
+      // `htLeft` is the class that points against the direction in RTL, so it is the one that
+      // pins the indicator to the inline-start side - the mirror of `htRight` in LTR.
+      th.htLeft .relative.has-sort-indicator {
+        padding-inline-start: calc(var(--ht-cell-horizontal-padding) + var(--ht-icon-size, 16px) + 2px);
+        padding-inline-end: var(--ht-cell-horizontal-padding);
       }
 
       .columnSorting {
@@ -133,7 +145,7 @@
       header edge in the real table would be measured as extra column width and every auto-sized
       column would come out wider. The selector is deliberately more specific than the rule that
       sets those offsets. */
-  .htGhostTable .htCore thead tr th .relative span.colHeader.columnSorting.sortAction {
+  .htGhostTable .htCore .colHeader.columnSorting.sortAction {
     &::before,
     &::after {
       margin-inline: 0;
