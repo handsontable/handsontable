@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable license bar e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Active theme from the ?theme= query param set by the Playwright project.
+    // Mapped through a fixed allowlist to a LITERAL (default main), so a crafted
+    // ?theme= can never be reflected into the document — no XSS. Exposed as
+    // window.htTheme so the grid init below reuses the sanitized value.
+    window.htTheme = ({ horizon: 'horizon', classic: 'classic' })[new URLSearchParams(location.search).get('theme')] || 'main';
+    // Written into <head> so the themed stylesheet is present before first render.
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+  </script>
+  <style> body { font-family: sans-serif; margin: 1rem; } </style>
+</head>
+<body>
+  <!--
+    E2E fixture for the license notification bar (DEV-2192). The grid is
+    intentionally narrow and initialized WITHOUT a license key, so the license
+    notification renders in the bottom slot and its content (including the
+    unbreakable support e-mail address) must fit the grid-defined bar width.
+    The grid width is configurable via the ?width= query param (sanitized to a
+    positive integer, default 150) so tests can probe several narrow widths.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script src="/handsontable/dist/handsontable.full.min.js"></script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    const widthParam = parseInt(new URLSearchParams(location.search).get('width'), 10);
+    const gridWidth = Number.isInteger(widthParam) && widthParam > 0 ? widthParam : 150;
+
+    const hot = new Handsontable(container, {
+      data: [
+        ['A1', 'B1'],
+        ['A2', 'B2'],
+        ['A3', 'B3'],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      width: gridWidth,
+      height: 150,
+      // licenseKey intentionally missing — the license notification bar must render.
+    });
+  </script>
+</body>
+</html>

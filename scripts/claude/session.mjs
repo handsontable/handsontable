@@ -1,24 +1,19 @@
 /**
  * Shared helpers for the Claude Code agent hooks (post-tool-use + stop).
  */
-import { execSync } from 'node:child_process';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { repoRoot as resolveRepoRoot } from '../../.github/scripts/lib/repo-root.mjs';
 
 /**
- * Absolute path to the repository root, or the current working directory if git
- * cannot resolve it.
+ * Absolute path to the repository root. Derived from the hook scripts' own
+ * location, so it is independent of the cwd and of the git environment — the
+ * same value in a normal clone and in a linked worktree.
  *
  * @returns {string} The repository root path.
  */
 export function repoRoot() {
-  try {
-    return execSync('git rev-parse --show-toplevel', {
-      encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'],
-    }).trim() || process.cwd();
-  } catch {
-    return process.cwd();
-  }
+  return resolveRepoRoot();
 }
 
 /**

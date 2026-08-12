@@ -509,6 +509,20 @@ The custom loader (`src/plugins/framework-loader.mjs`) renders every source page
 
 Guards for both rules live in `src/lib/__tests__/example-error-reporting.test.mjs` (run by `npm run docs:test:plugins`).
 
+### The two-layer drop policy
+
+`reportExampleError()` only sees failures the runner **caught**. Anything raised outside our try/catch - Astro's own island hydration, for one - reaches Sentry through `onerror`/`onunhandledrejection` and can only be filtered in the `beforeSend` hook inlined in `astro.config.mjs` (`window.sentryOnLoad`). When triage says "expected noise", ask which layer the event actually travels through before editing a drop list; a rule added to the wrong layer changes nothing in production.
+
+The two layers overlap on failed dynamic imports of content-hashed `_astro/*.js` chunks - stale cached HTML, offline readers, blocking extensions. Three phrase lists must stay in step: `isChunkLoadError()` in `src/lib/example-error-reporting.mjs`, the same check in `src/scripts/docs-assistant-bootstrap.ts`, and `chunkLoadFailures` in the `beforeSend` hook. Each engine words the failure differently (Chrome `Failed to fetch dynamically imported module`, Firefox `error loading dynamically imported module`, Safari `Importing a module script failed`), so a one-engine list silently keeps filing issues from the other two.
+
+Neither layer reaches a frozen version build under `/docs/<major>.<minor>/`. `deploy/build_previous_versions.sh` copies each archived version out of its own Docker image verbatim, so those pages run the `beforeSend` and the bundles that shipped at their release - a rule added on `develop` today never appears there. Check a Sentry issue's `url` tag before writing a filter for it: when the events come from a versioned path, the only mechanism that drops them is a **Sentry project-level inbound filter on the message** (server-side, so frozen HTML is irrelevant), and the group belongs in `ignored`/`archived forever`, never `resolved` - the archived page is live, so a resolve auto-regresses. Example: HANDSONTABLE-DOCS-1FM mixes both, 11 of 18 events on current recipe pages (which the hook does filter) and 1 on `/docs/17.1/`, still calling the `http://localhost:3000/tickets` its bundle was built with.
+
+The same gap exists one branch away: production docs build from `prod-docs/<major>.<minor>`, which cherry-picks from `develop` selectively and does not carry `sentryOnLoad` today. Every rule here is inert in production until that cherry-pick lands - say so when reporting that a filter is done.
+
+Gate any rule that is expected noise only in one place (a recipe page with no backend, a demo without a server) on the page URL, so the same failure stays visible everywhere else.
+
+Regression tests for the hook live in `src/scripts/__tests__/sentry-before-send.test.mjs`; it evaluates the script exactly as inlined, so every drop rule needs both a drops-it and a keeps-the-real-thing case.
+
 ---
 
 ## 2.14 Patching Starlight's Custom Elements

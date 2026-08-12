@@ -602,9 +602,20 @@ Two stylesheets are involved. Style the editor input to match Handsontable's nat
 }
 
 .pika-single .pika-table .pika-button {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
   background: transparent;
   color: var(--ht-foreground-color);
   border-radius: var(--ht-button-border-radius);
+  text-align: center !important;
+}
+
+.pika-single .pika-table {
+  border-collapse: collapse;
+  table-layout: fixed;
 }
 
 .pika-single .pika-table td.is-selected .pika-button {
@@ -613,11 +624,33 @@ Two stylesheets are involved. Style the editor input to match Handsontable's nat
 }
 ```
 
+`table-layout: fixed` gives the calendar equal-width day columns, including when week numbers are enabled. `box-sizing: border-box` and zero padding keep one- and two-digit day labels centered in their buttons.
+
 The full rule set is in the CSS tab of the example above, including the arrow replacement and the right-to-left flip.
 
 **Why this works without extra wiring:** the editor uses `position: 'portal'`, so its container is attached to the body-level `.ht-portal` element, and Handsontable puts the active `ht-theme-*` class on that element. Every `--ht-*` variable and the theme's `color-scheme` resolve on the calendar's own ancestor, so the panel follows the grid's theme -- light or dark -- with no JavaScript.
 
 Handsontable shipped equivalent rules until 18.0, when the native date input replaced the built-in Pikaday editor. They now belong to your application.
+
+::: only-for angular
+
+The Angular editor imports the recipe stylesheet directly. Give its portal container a `278px` width so it includes Pikaday's month margins on both sides.
+
+```typescript
+import 'pikaday/css/pikaday.css';
+import './example1.css';
+
+@Component({
+  styles: [
+    `
+    :host { display: block; }
+    .pikaday-container { width: 278px; }
+  `,
+  ],
+})
+```
+
+:::
 
 ## Step 16: Complete Cell Definition
 

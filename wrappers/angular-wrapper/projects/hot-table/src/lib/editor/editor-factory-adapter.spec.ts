@@ -13,6 +13,19 @@ class CustomEditorComponent extends HotCellEditorAdvancedComponent<number> {
   onFocus(): void {}
 }
 
+@Component({
+  selector: 'hot-shortcuts-group-editor',
+  template: '<input />',
+  standalone: true,
+})
+class ShortcutsGroupEditorComponent extends HotCellEditorAdvancedComponent<number> {
+  shortcutsGroup = 'myEditor';
+  shortcuts = [{
+    keys: [['ArrowLeft']],
+    callback: (): void => {},
+  }];
+}
+
 describe('FactoryEditorAdapter', () => {
   let instance: Handsontable.Core;
   let customEditor: ComponentFixture<CustomEditorComponent>;
@@ -52,6 +65,32 @@ describe('FactoryEditorAdapter', () => {
 
   it('should create an instance', () => {
     expect(adapter).toBeDefined();
+  });
+
+  it('should register shortcuts in the group defined by the component', () => {
+    const shortcutEditor = TestBed.createComponent(ShortcutsGroupEditorComponent);
+    const environmentInjector = TestBed.inject(EnvironmentInjector);
+    const EditorClass = FactoryEditorAdapter(shortcutEditor.componentRef);
+    const container = document.createElement('div');
+    const shortcutInstance = new Handsontable(container, {
+      licenseKey: 'non-commercial-and-evaluation',
+      columns: [{ editor: EditorClass }],
+      data: [[1]],
+    });
+
+    document.body.appendChild(container);
+    (shortcutInstance as any)._angularEnvironmentInjector = environmentInjector;
+    shortcutInstance.selectCell(0, 0);
+    shortcutInstance.getActiveEditor().beginEditing();
+
+    const editorContext = shortcutInstance.getShortcutManager().getContext('editor');
+    const shortcuts = editorContext.getShortcuts(['arrowleft']);
+
+    expect(shortcuts.some(shortcut => shortcut.group === 'myEditor')).toBe(true);
+
+    shortcutInstance.destroy();
+    shortcutEditor.destroy();
+    container.remove();
   });
 
   describe('init', () => {

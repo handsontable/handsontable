@@ -83,6 +83,61 @@ test('keeps HTTP errors raised outside the server-side data recipe pages', () =>
   assert.equal(beforeSend(event, {}), event);
 });
 
+test('drops network failures on the server-side recipe pages', () => {
+  // Sentry HANDSONTABLE-DOCS-1FM: these pages have no backend on the docs site, so a
+  // request that never completes is as expected as the HTTP 404 above. Each engine words
+  // the resulting network failure differently.
+  //
+  // The fixture URL is deliberately a current page. Events from an archived
+  // /docs/<major>.<minor>/ build cannot reach this hook at all (that HTML ships its own
+  // copy of it), so a versioned fixture here would assert coverage the site does not have.
+  const url = 'https://handsontable.com/docs/angular-data-grid/recipes/data-management/server-side-nestjs/';
+
+  for (const message of [
+    'Failed to fetch',
+    'NetworkError when attempting to fetch resource.',
+    'Load failed',
+  ]) {
+    const event = errorEvent(url, message);
+
+    assert.equal(beforeSend(event, {}), null, `expected "${message}" to be dropped`);
+  }
+});
+
+test('keeps network failures raised outside the server-side recipe pages', () => {
+  // A broken fetch anywhere else is a real defect and must stay visible.
+  const event = errorEvent('https://handsontable.com/docs/javascript-data-grid/', 'Failed to fetch');
+
+  assert.equal(beforeSend(event, {}), event);
+});
+
+test('drops failed dynamic imports of content-hashed chunks', () => {
+  // Sentry HANDSONTABLE-DOCS-1FH and HANDSONTABLE-DOCS-1FX: stale cached HTML asking
+  // for chunks a newer deployment no longer serves. These arrive through
+  // onunhandledrejection, so no application-level try/catch can reach them.
+  const url = 'https://handsontable.com/docs/react-data-grid/installation/';
+
+  for (const message of [
+    'Failed to fetch dynamically imported module: https://handsontable.com/docs/_astro/index.mZKjvrN9.js',
+    'error loading dynamically imported module: https://handsontable.com/docs/_astro/compiler.IHUD3Be3.js',
+    'Importing a module script failed.',
+  ]) {
+    const event = errorEvent(url, message);
+
+    assert.equal(beforeSend(event, {}), null, `expected "${message}" to be dropped`);
+  }
+});
+
+test('keeps genuine TypeErrors that merely mention a module', () => {
+  // The chunk-load filter matches whole phrases, so ordinary runtime errors survive.
+  const event = errorEvent(
+    'https://handsontable.com/docs/react-data-grid/installation/',
+    "Cannot read properties of undefined (reading 'module')"
+  );
+
+  assert.equal(beforeSend(event, {}), event);
+});
+
 test('drops errors thrown by Handsontable throwWithCause()', () => {
   const url = 'https://handsontable.com/docs/javascript-data-grid/column-summary/';
   const event = errorEvent(url, 'The provided data is not suitable for the column summary.');
