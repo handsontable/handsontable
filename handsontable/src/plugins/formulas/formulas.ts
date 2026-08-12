@@ -152,6 +152,23 @@ export class Formulas extends BasePlugin {
   #hotWasInitializedWithEmptyData = false;
 
   /**
+   * The changes that the engine reported while undoing or redoing an action. They are collected in
+   * `beforeUndo`/`beforeRedo` and consumed in `afterUndo`/`afterRedo`, where the dependent cells get
+   * validated.
+   *
+   * @type {Array}
+   */
+  #undoRedoDependentCells: unknown[] = [];
+
+  /**
+   * The addresses of the cells that the `UndoRedo` plugin writes directly. The Core validates those
+   * on its own, so they are excluded from the dependent-cell validation.
+   *
+   * @type {Array}
+   */
+  #undoRedoChangedCells: unknown[] = [];
+
+  /**
    * Maps a HyperFormula `ExportedCellChange` to the same change with `newValue` translated to a
    * Handsontable-formatted string when the target cell is of type `date` or `time`. For other cells
    * (or non-numeric values, or named expressions, or trimmed cells, or cells on other sheets), the
@@ -459,26 +476,30 @@ export class Formulas extends BasePlugin {
     this.addHook('beforeUndo', () => {
       this.indexSyncer!.setPerformUndo(true);
 
-      this.engine!.undo();
+      this.#undoRedoChangedCells = [];
+      this.#undoRedoDependentCells = this.engine!.undo() ?? [];
     });
 
     // Handling redo actions on data just using HyperFormula's UndoRedo mechanism
     this.addHook('beforeRedo', () => {
       this.indexSyncer!.setPerformRedo(true);
 
-      this.engine!.redo();
+      this.#undoRedoChangedCells = [];
+      this.#undoRedoDependentCells = this.engine!.redo() ?? [];
     });
 
-    this.addHook('afterUndo', () => {
+    this.addHook('afterUndo', (action) => {
       this.indexSyncer!.setPerformUndo(false);
       // Also clears the redo flag: a redo cancelled by a `beforeRedo` listener never fires
       // `afterRedo`, so without this reset the flag set in `beforeRedo` would leak until the
       // next successful redo.
       this.indexSyncer!.setPerformRedo(false);
+      this.#validateUndoRedoDependentCells(action);
     });
 
-    this.addHook('afterRedo', () => {
+    this.addHook('afterRedo', (action) => {
       this.indexSyncer!.setPerformRedo(false);
+      this.#validateUndoRedoDependentCells(action);
     });
 
     this.addHook('afterDetachChild', this.#onAfterDetachChild);
@@ -758,6 +779,66 @@ export class Formulas extends BasePlugin {
         );
       }
     });
+  }
+
+  /**
+   * Remembers the cells that the `UndoRedo` plugin writes directly, so that
+   * `#validateUndoRedoDependentCells` can skip them. The Core validates those cells on its own.
+   *
+   * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
+   * @param {string} source String that identifies the source of the hook call.
+   */
+  #collectUndoRedoChangedCells(changes: CellChange[], source: string) {
+    if (source !== 'UndoRedo.undo' && source !== 'UndoRedo.redo') {
+      return;
+    }
+
+    changes?.forEach(([visualRow, prop]) => {
+      if (typeof prop !== 'string' && typeof prop !== 'number') {
+        return;
+      }
+
+      const visualColumn = this.hot.propToCol(prop);
+
+      if (!isNumeric(visualColumn)) {
+        return;
+      }
+
+      this.#undoRedoChangedCells.push({
+        address: {
+          row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
+          col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
+          sheet: this.sheetId,
+        },
+      });
+    });
+  }
+
+  /**
+   * Validates the cells that the engine recalculated while an action was undone or redone.
+   *
+   * The `afterSetDataAtCell` and `afterSetSourceDataAtCell` listeners ignore changes coming from the
+   * `UndoRedo` plugin, because the engine reverts them through its own undo stack. Without this step
+   * the dependent formula cells would keep the `valid` flag they were given before the action was
+   * reverted - a formula cell that turned into an error, and is a correct value again after the undo,
+   * would stay marked as invalid.
+   *
+   * Only data changes are handled here. Structural actions (adding or removing rows and columns,
+   * moving, sorting, filtering) do not validate dependent cells outside of undo/redo either, so
+   * validating them here would make undo behave differently from the action it reverts.
+   *
+   * @param {object} action The action that was undone or redone.
+   */
+  #validateUndoRedoDependentCells(action: { actionType?: string } | undefined) {
+    const dependentCells = this.#undoRedoDependentCells;
+    const changedCells = this.#undoRedoChangedCells;
+
+    this.#undoRedoDependentCells = [];
+    this.#undoRedoChangedCells = [];
+
+    if (action?.actionType === 'change' && dependentCells.length) {
+      this.validateDependentCells(dependentCells, changedCells);
+    }
   }
 
   /**
@@ -1251,6 +1332,8 @@ export class Formulas extends BasePlugin {
    */
   #onAfterSetDataAtCell = (changes: CellChange[], source: string) => {
     if (isBlockedSource(source)) {
+      this.#collectUndoRedoChangedCells(changes, source);
+
       return;
     }
 
