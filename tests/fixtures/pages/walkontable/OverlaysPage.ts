@@ -6,7 +6,7 @@ import { type Page, type Locator, expect } from '@playwright/test';
  * scroll interaction, so specs assert engine behavior without reaching into
  * walkontable DOM class names directly.
  */
-export class WalkontablePage {
+export class OverlaysPage {
   readonly page: Page;
   readonly theme: string;
   readonly grid: Locator;
@@ -31,7 +31,7 @@ export class WalkontablePage {
    * matching stylesheet.
    */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/walkontable.html?theme=${this.theme}`);
+    await this.page.goto(`/tests/fixtures/demo/walkontable/overlays.html?theme=${this.theme}`);
     await expect(this.master).toBeVisible();
   }
 
