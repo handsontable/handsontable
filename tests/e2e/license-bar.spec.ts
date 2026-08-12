@@ -12,8 +12,8 @@ const LICENSE_BAR_MIN_WIDTH = 300;
 test.describe('license notification bar on a narrow grid', () => {
   let licenseBar: LicenseBarPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    licenseBar = new LicenseBarPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    licenseBar = new LicenseBarPage(page, theme, bundle);
   });
 
   for (const gridWidth of [100, 150, 299]) {

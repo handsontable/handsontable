@@ -8,6 +8,7 @@ import { type Page, type Locator, expect } from '@playwright/test';
 export class MenuScrollPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
   readonly scrollContainer: Locator;
   readonly dropdownMenu: Locator;
@@ -15,9 +16,10 @@ export class MenuScrollPage {
   readonly submenu: Locator;
   readonly conditionMenu: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.scrollContainer = page.getByTestId('scroll-container');
     this.dropdownMenu = page.locator('.htDropdownMenu.handsontable:not([class*="Sub_"])');
@@ -42,7 +44,7 @@ export class MenuScrollPage {
     const { uiContainer = false } = options;
     const uiContainerParam = uiContainer ? '&uicontainer=1' : '';
 
-    await this.page.goto(`/tests/fixtures/demo/menu-scroll.html?theme=${this.theme}${uiContainerParam}`);
+    await this.page.goto(`/tests/fixtures/demo/menu-scroll.html?theme=${this.theme}&bundle=${this.bundle}${uiContainerParam}`);
     await expect(this.cell(0, 0)).toBeVisible();
   }
 
