@@ -43,7 +43,10 @@
     // so the ghost table can neutralise all of it from one place instead of having to out-rank
     // every one of those rules in turn - which is a specificity race that quietly breaks the
     // moment a new alignment case is added.
-    .relative {
+    // These are internal plumbing for this file, not theme tokens - nothing outside the rules
+    // below reads them. Scoped to `th` because only header containers have a sort indicator, so
+    // no cell container carries the extra declarations.
+    th .relative {
       // How far the indicator sits from the header edge.
       --ht-sort-indicator-offset: var(--ht-cell-horizontal-padding);
       // Same, on the side a trailing icon button may occupy.
@@ -166,7 +169,7 @@
       `dropdownMenu` stamps `has-header-button` on it, `ColumnSorting` stamps
       `has-sort-indicator` - so a reset written against those consuming rules would have to
       out-rank each of them in turn. */
-  .htGhostTable.htAutoSize .htCore .relative {
+  .htGhostTable .htCore .relative {
     --ht-sort-indicator-offset: 0px;
     --ht-sort-indicator-offset-end: 0px;
   }
@@ -175,7 +178,7 @@
       for the space the indicator itself takes in the real table and the measurement needs it.
       The exception is a header with a trailing button: `_multi-column-sorting.scss` already gives
       that case its own gap in the ghost table, so reserving as well counts the indicator twice. */
-  .htGhostTable.htAutoSize .htCore .relative.has-header-button {
+  .htGhostTable .htCore .relative.has-header-button {
     --ht-sort-indicator-reserve: var(--ht-cell-horizontal-padding);
   }
 

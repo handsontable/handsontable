@@ -3057,10 +3057,10 @@ describe('ColumnSorting', () => {
 
       const widthWithMenu = spec().$container.find('th').eq(0).width();
 
-      // The menu button takes its own room in the header, but the indicator's offsets are held
-      // clear of the ghost table, so they must not land in the measurement a second time. Without
-      // that, the column grows by the whole indicator reserve (~46px) instead of a few pixels.
-      expect(widthWithMenu - widthWithoutMenu).toBeLessThan(20);
+      // The menu button takes its own room in the header, but the indicator's reserve is held out
+      // of the ghost table measurement, so it must not land there a second time. The button costs
+      // 4px (classic), 6px (main) or 8px (horizon); counting the reserve twice adds ~18px on top.
+      expect(widthWithMenu - widthWithoutMenu).toBeLessThan(12);
     });
 
     it('should work properly also when `rowHeaders` option is set to `true`', async() => {
