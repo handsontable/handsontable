@@ -10,10 +10,14 @@
   </script>
   <style>
     body { font-family: sans-serif; margin: 1rem; }
+    .grid-stack { display: flex; flex-direction: column; gap: 1.5rem; }
   </style>
 </head>
 <body>
-  <div id="grid-revenue" data-testid="grid-revenue"></div>
+  <div class="grid-stack">
+    <div id="grid-revenue" data-testid="grid-revenue"></div>
+    <div id="grid-expenses" data-testid="grid-expenses"></div>
+  </div>
 
   <script src="/handsontable/dist/handsontable.full.min.js"></script>
   <script>
@@ -22,30 +26,44 @@
       td.setAttribute('data-testid', `cell-${row}-${col}`);
     };
 
-    const revenueContainer = document.querySelector('[data-testid="grid-revenue"]');
-    revenueContainer.className = `ht-theme-${window.htTheme}`;
+    const sharedEngine = HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' });
+    const themeClass = `ht-theme-${window.htTheme}`;
 
-    new Handsontable(revenueContainer, {
-      data: [
-        [10, 20, 30],
-        [40, 50, 60],
-        [70, 80, 90],
-      ],
-      colHeaders: true,
-      rowHeaders: true,
-      renderer: testIdRenderer,
-      licenseKey: 'non-commercial-and-evaluation',
-      afterGetColHeader(col, TH) {
-        TH.setAttribute('data-testid', `col-header-${col}`);
-      },
-      afterGetRowHeader(row, TH) {
-        TH.setAttribute('data-testid', `row-header-${row}`);
-      },
-      formulas: {
-        engine: HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' }),
-        sheetName: 'Revenue',
-      },
-    });
+    const createSheet = (testId, sheetName, data) => {
+      const container = document.querySelector(`[data-testid="${testId}"]`);
+
+      container.className = themeClass;
+
+      return new Handsontable(container, {
+        data,
+        colHeaders: true,
+        rowHeaders: true,
+        renderer: testIdRenderer,
+        licenseKey: 'non-commercial-and-evaluation',
+        afterGetColHeader(col, TH) {
+          TH.setAttribute('data-testid', `col-header-${col}`);
+        },
+        afterGetRowHeader(row, TH) {
+          TH.setAttribute('data-testid', `row-header-${row}`);
+        },
+        formulas: {
+          engine: sharedEngine,
+          sheetName,
+        },
+      });
+    };
+
+    createSheet('grid-revenue', 'Revenue', [
+      [10, 20, 30],
+      [40, 50, 60],
+      [70, 80, 90],
+    ]);
+
+    createSheet('grid-expenses', 'Expenses', [
+      [1, 2, 3],
+      [4, 5, 6],
+      [7, 8, 9],
+    ]);
   </script>
 </body>
 </html>
