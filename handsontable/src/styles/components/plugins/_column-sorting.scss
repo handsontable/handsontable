@@ -4,14 +4,65 @@
 
 @mixin output {
   .handsontable {
+    // The label is the sort button, so it must not swallow the whole header cell. The bare
+    // header around it is what a user presses to select a column without sorting it - which is
+    // the first half of moving a column by drag. Size the label to its content and centre it,
+    // so only the label text and the sort indicator sort on click.
+    // The selector carries the full `thead tr th .relative` path because the base rule that
+    // makes the label fill the row (`_base.scss`) is that specific.
+    thead tr th .relative .colHeader.columnSorting.sortAction {
+      box-sizing: border-box;
+      flex-grow: 0;
+      // Auto margins on both sides keep the label centred, and hand the free space to the
+      // header rather than to one edge - the same place the text sat when the label filled it.
+      margin-inline: auto;
+      // Never collapse the label to nothing in a narrow column, and never let it grow past the
+      // header, which would push the indicator outside the cell.
+      min-width: min(calc(var(--ht-icon-size, 16px) + 8px), 100%);
+      max-width: 100%;
+      // The indicators are absolutely positioned, and `static` hands them to `.relative` so they
+      // stay pinned to the header's trailing edge while the label shrinks away from it. Clicking
+      // one still sorts: events on a pseudo-element target the element that owns it.
+      position: static;
+
+      // `.relative`'s padding box is the new containing block, and it sits inside the cell
+      // padding the label used to carry - add it back so the indicators keep their distance from
+      // the header edge. Both sides, because the pinned side flips in RTL and right-aligned
+      // headers.
+      &::before,
+      &::after {
+        margin-inline: var(--ht-cell-horizontal-padding);
+      }
+    }
+
+    // Room for the sort indicator, reserved on the container instead of as padding on the label.
+    // Padding on the label would grow the box that sorts on click, adding a strip of header that
+    // looks inert but is not - the label has to stay tight around its text. The sides mirror where
+    // `::before` is pinned, which flips with text alignment and direction.
+    thead tr th .relative.has-sort-indicator {
+      padding-inline-end: calc(var(--ht-cell-horizontal-padding) + var(--ht-icon-size, 16px) + 2px);
+    }
+
+    thead tr th.htRight .relative.has-sort-indicator {
+      padding-inline-start: calc(var(--ht-cell-horizontal-padding) + var(--ht-icon-size, 16px) + 2px);
+      padding-inline-end: var(--ht-cell-horizontal-padding);
+    }
+
+    // A trailing icon button (the dropdown menu's) occupies the corner the indicators are pinned
+    // to, so step them over it. The button's painted width is `--ht-icon-size` + 2px once its own
+    // negative margins apply, plus the 2px flex gap. Only the inline-end side moves: that is the
+    // flex end, which is the only place such a button appears.
+    thead tr th .relative.has-header-button .colHeader.columnSorting.sortAction {
+      &::before,
+      &::after {
+        margin-inline-end: calc(var(--ht-cell-horizontal-padding) + var(--ht-icon-size, 16px) + 4px);
+      }
+    }
+
     .columnSorting:not(.indicatorDisabled) {
       position: relative;
 
       &.sortAction {
-        &.ascending, &.descending {
-          padding-inline-end: calc(var(--ht-icon-size, 16px) + 2px);
-        }
-
         &:hover {
           text-decoration: none;
           cursor: pointer;
@@ -33,11 +84,6 @@
     .htRight {
       .columnSorting {
         &.sortAction {
-          &.ascending, &.descending {
-            padding-inline-start: calc(var(--ht-icon-size, 16px) + 2px);
-            padding-inline-end: 0;
-          }
-
           &::before {
             left: 2px;
             right: auto;
@@ -50,6 +96,15 @@
 
   [dir="rtl"] {
     .handsontable {
+      // In RTL the indicator sits on the inline-end side for both default and right-aligned text,
+      // and only `htLeft` flips it back - so `htRight` has to undo the direction-agnostic rule
+      // above, which would otherwise reserve the wrong side.
+      thead tr th.htRight .relative.has-sort-indicator,
+      thead tr th.htLeft .relative.has-sort-indicator {
+        padding-inline-start: var(--ht-cell-horizontal-padding);
+        padding-inline-end: calc(var(--ht-cell-horizontal-padding) + var(--ht-icon-size, 16px) + 2px);
+      }
+
       .columnSorting {
         &.sortAction {
           &::before {
@@ -60,25 +115,9 @@
         }
       }
 
-      .htRight {
-        .columnSorting {
-          &.sortAction {
-            &.ascending, &.descending {
-              padding-inline-start: 0;
-              padding-inline-end: calc(var(--ht-icon-size, 16px) + 2px);
-            }
-          }
-        }
-      }
-
       .htLeft {
         .columnSorting {
           &.sortAction {
-            &.ascending, &.descending {
-              padding-inline-start: calc(var(--ht-icon-size, 16px) + 2px);
-              padding-inline-end: 0;
-            }
-
             &::before {
               left: auto;
               right: 2px;
@@ -90,12 +129,24 @@
     }
   }
 
+  /* In the ghost table the indicator pseudo is in flow, so the offsets that hold it clear of the
+      header edge in the real table would be measured as extra column width and every auto-sized
+      column would come out wider. The selector is deliberately more specific than the rule that
+      sets those offsets. */
+  .htGhostTable .htCore thead tr th .relative span.colHeader.columnSorting.sortAction {
+    &::before,
+    &::after {
+      margin-inline: 0;
+    }
+  }
+
   .htGhostTable
     .htCore
     span.colHeader.columnSorting:not(.indicatorDisabled)::before {
     content: "*";
     display: inline-block;
     position: relative;
+
 
     /* The multi-line header and header with longer text need more padding to not hide arrow,
         we make header wider in `GhostTable` to make some space for arrow which is positioned absolutely in the main table */

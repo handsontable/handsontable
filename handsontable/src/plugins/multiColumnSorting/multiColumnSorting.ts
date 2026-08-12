@@ -2,10 +2,9 @@ import {
   APPEND_COLUMN_CONFIG_STRATEGY,
   ColumnSorting
 } from '../columnSorting';
-import type { SortConfig } from '../columnSorting/columnSorting';
+import type { HeaderSortPress, SortConfig } from '../columnSorting/columnSorting';
 import type { ColumnStatesManager } from '../columnSorting/columnStatesManager';
 import { registerRootComparator } from '../columnSorting/sortService/registry';
-import { wasHeaderClickedProperly } from '../columnSorting/utils';
 import { addClass, removeClass } from '../../helpers/dom/element';
 import { rootComparator } from './rootComparator';
 import { getClassesToAdd, getClassesToRemove } from './domHelpers';
@@ -302,30 +301,26 @@ export class MultiColumnSorting extends ColumnSorting {
     if (this.enabled !== false && columnStatesManager !== undefined && column !== undefined) {
       addClass(headerSpanElement, getClassesToAdd(columnStatesManager, column, showSortIndicator ?? false));
     }
+
+    this.syncIndicatorReserve(headerSpanElement);
   }
 
   /**
-   * Callback for the `onAfterOnCellMouseDown` hook.
+   * Applies the sort queued by a header press.
+   *
+   * Holding Ctrl/Cmd appends the column to the sort queue instead of replacing it, which is the
+   * only way this differs from single-column sorting. The press-versus-drag handling that decides
+   * whether this runs at all lives in `ColumnSorting`.
    *
    * @private
-   * @param {Event} event Event which are provided by hook.
-   * @param {CellCoords} coords Visual coords of the selected cell.
+   * @param {object} press The press that queued this sort.
    */
-  onAfterOnCellMouseDown(event: MouseEvent, coords: { row: number, col: number }) {
-    if (wasHeaderClickedProperly(coords.row, coords.col, event) === false) {
-      return;
-    }
+  applyHeaderClickSort(press: HeaderSortPress) {
+    if (press.isCtrlPressed) {
+      this.sort(this.getNextSortConfig(press.column, APPEND_COLUMN_CONFIG_STRATEGY) as SortConfig[]);
 
-    if (this.wasClickableHeaderClicked(event, coords.col)) {
-      if (this.hot.getShortcutManager().isCtrlPressed()) {
-        this.hot.deselectCell();
-        this.hot.selectColumns(coords.col);
-
-        this.sort(this.getNextSortConfig(coords.col, APPEND_COLUMN_CONFIG_STRATEGY) as SortConfig[]);
-
-      } else {
-        this.sort(this.getColumnNextConfig(coords.col));
-      }
+    } else {
+      this.sort(this.getColumnNextConfig(press.column));
     }
   }
 }

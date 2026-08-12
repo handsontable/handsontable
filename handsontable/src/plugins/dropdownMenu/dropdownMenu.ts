@@ -5,7 +5,7 @@ import { objectEach } from '../../helpers/object';
 import { CommandExecutor } from '../contextMenu/commandExecutor';
 import { getDocumentOffsetByElement } from '../contextMenu/utils';
 import {
-  eventTargetEl, hasClass, isBottomMostColumnHeader, isHTMLElement, setAttribute
+  addClass, eventTargetEl, hasClass, isBottomMostColumnHeader, isHTMLElement, removeClass, setAttribute
 } from '../../helpers/dom/element';
 import { ItemsFactory } from '../contextMenu/itemsFactory';
 import { Menu } from '../contextMenu/menu';
@@ -36,6 +36,13 @@ export type { MenuAnchorRectProvider };
 export const PLUGIN_KEY = 'dropdownMenu';
 export const PLUGIN_PRIORITY = 230;
 const BUTTON_CLASS_NAME = 'changeType';
+/**
+ * Marks a header that carries a trailing icon button, so styles that position something against
+ * the header's trailing edge - the ColumnSorting indicator - can keep clear of it. A class rather
+ * than a `:has()` selector: `:has()` on a header re-runs style invalidation on every grid DOM
+ * mutation, which is why it is banned in this package.
+ */
+const HEADER_WITH_BUTTON_CLASS_NAME = 'has-header-button';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
 
 interface DropdownMenuSettings {
@@ -674,12 +681,25 @@ export class DropdownMenu extends BasePlugin {
 
     // Plugin enabled and buttons already exists, return.
     if (this.enabled && existingButton) {
+      // The container's class list is rebuilt on every header render (see `TableView`), while the
+      // button element itself survives - so the marker has to be re-applied here, not only where
+      // the button is created.
+      if (isHTMLElement(existingButton.parentNode)) {
+        addClass(existingButton.parentNode, HEADER_WITH_BUTTON_CLASS_NAME);
+      }
+
       return;
     }
     // Plugin disabled and buttons still exists, so remove them.
     if (!this.enabled) {
       if (existingButton) {
-        existingButton.parentNode?.removeChild(existingButton);
+        const container = existingButton.parentNode;
+
+        container?.removeChild(existingButton);
+
+        if (isHTMLElement(container)) {
+          removeClass(container, HEADER_WITH_BUTTON_CLASS_NAME);
+        }
       }
 
       return;
@@ -718,6 +738,10 @@ export class DropdownMenu extends BasePlugin {
       relativeContainer.insertBefore(button, colHeaderSpan.nextSibling);
     } else {
       relativeContainer.appendChild(button);
+    }
+
+    if (isHTMLElement(relativeContainer)) {
+      addClass(relativeContainer, HEADER_WITH_BUTTON_CLASS_NAME);
     }
   };
 

@@ -29,6 +29,14 @@ To enable column moving, set the [`manualColumnMove`](@/api/options.md#manualcol
 
 A draggable move handle appears above the selected column header. You can click and drag it to any location in the grid.
 
+A column has to be selected before you can drag it. You can start the drag anywhere on the selected column's
+header, including on the sorting label when [column sorting](@/guides/rows/rows-sorting/rows-sorting.md) is
+enabled. Handsontable tells a click from a drag by whether the pointer moves: press and release without moving
+to sort the column, and press and drag to move it.
+
+When column sorting is enabled, only the header label and its sort indicator sort on click. Pressing the header
+around them selects the column without sorting it, so you can select a column and drag it in one gesture.
+
 ::: only-for javascript
 
 ::: example #example1 --js 1 --ts 2

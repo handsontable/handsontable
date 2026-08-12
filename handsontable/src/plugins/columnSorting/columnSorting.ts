@@ -50,8 +50,46 @@ export const PLUGIN_PRIORITY = 50;
 export const APPEND_COLUMN_CONFIG_STRATEGY = 'append';
 export const REPLACE_COLUMN_CONFIG_STRATEGY = 'replace';
 const SHORTCUTS_GROUP = PLUGIN_KEY;
+/**
+ * How far, in pixels, the pointer may travel between pressing a column header and releasing it
+ * and still count as a click. Pointers jitter by a pixel or two on trackpads and high-density
+ * screens, so an exact-zero test would swallow ordinary clicks and header clicks would appear
+ * to do nothing.
+ */
+const POINTER_DRAG_TOLERANCE = 3;
+/**
+ * Marks the header container of a column that is showing a sort indicator. The indicator is
+ * positioned against that container, so the room it needs is reserved there rather than as padding
+ * on the label - padding on the label would enlarge the area that sorts on click, which is exactly
+ * what it must not do. A class rather than a `:has()` selector, which is banned in this package.
+ */
+const CONTAINER_WITH_INDICATOR_CLASS = 'has-sort-indicator';
+
+/**
+ * Checks whether the pointer has travelled far enough from where it was pressed to count as a
+ * drag rather than a click.
+ *
+ * @param {{ x: number, y: number }} pressOrigin Pointer client coordinates captured on press.
+ * @param {MouseEvent} event The event holding the current pointer position.
+ * @returns {boolean}
+ */
+function isPointerDragged(pressOrigin: { x: number, y: number }, event: MouseEvent): boolean {
+  return Math.abs(event.clientX - pressOrigin.x) > POINTER_DRAG_TOLERANCE ||
+    Math.abs(event.clientY - pressOrigin.y) > POINTER_DRAG_TOLERANCE;
+}
 
 registerRootComparator(PLUGIN_KEY, rootComparator);
+
+/**
+ * A press on a sortable column header, waiting to be resolved on mouse up.
+ */
+export interface HeaderSortPress {
+  column: number;
+  isCtrlPressed: boolean;
+  pressOrigin: { x: number, y: number };
+  awaitsValidation: boolean;
+  hasMoved: boolean;
+}
 
 export interface SortConfig {
   column: number;
@@ -148,6 +186,11 @@ export class ColumnSorting extends BasePlugin {
    */
   columnMetaCache: IndexToValueMap | null = null;
   /**
+   * Sort queued by a header press, applied on mouse up when the pointer has not travelled.
+   * Holds the pressed column, whether Ctrl/Cmd was held, and where the pointer went down.
+   */
+  #pendingHeaderSort: HeaderSortPress | null = null;
+  /**
    * Main settings key designed for the plugin.
    *
    * @private
@@ -213,6 +256,17 @@ export class ColumnSorting extends BasePlugin {
     this.addHook('beforeOnCellMouseDown', this.#onBeforeOnCellMouseDown);
     this.addHook('afterOnCellMouseDown',
       (event: Event, target: { row: number, col: number }) => this.onAfterOnCellMouseDown(event, target));
+    // Primary release signal. On touch devices Walkontable calls its `onMouseUp` directly from
+    // `touchend` instead of dispatching a DOM `mouseup`, so a document listener alone would never
+    // fire and tapping a header would stop sorting.
+    this.addHook('afterOnCellMouseUp', this.#resolvePendingSort);
+    // Fallback for a release that lands outside any cell - that is the drag case, and the queued
+    // sort still has to be cleared rather than left pending for the next release.
+    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mousemove',
+      (event: Event) => this.#onDocumentMouseMove(event as MouseEvent));
+    this.eventManager.addEventListener(this.hot.rootDocument.documentElement, 'mouseup',
+      () => this.#resolvePendingSort());
+
     this.addHook('afterInit', this.#loadOrSortBySettings);
     this.addHook('afterLoadData', this.#onAfterLoadData);
     this.addHook('afterDataProviderFetch', this.#onAfterDataProviderFetch, -1);
@@ -261,6 +315,7 @@ export class ColumnSorting extends BasePlugin {
     this.columnStatesManager?.destroy();
     this.columnMetaCache = null;
     this.columnStatesManager = null;
+    this.#pendingHeaderSort = null;
 
     this.unregisterShortcuts();
     super.disablePlugin();
@@ -778,6 +833,35 @@ export class ColumnSorting extends BasePlugin {
         headerActionEnabled ?? false
       ));
     }
+
+    this.syncIndicatorReserve(headerSpanElement);
+  }
+
+  /**
+   * Reserves room for the sort indicator on the header container, matching the state the label
+   * was just given.
+   *
+   * The container's class list is rebuilt on every header render (see `TableView`), so this runs
+   * for each render rather than only when the sort state changes.
+   *
+   * @private
+   * @param {HTMLElement} headerSpanElement The header label element.
+   */
+  syncIndicatorReserve(headerSpanElement: HTMLElement) {
+    const container = headerSpanElement.parentElement;
+
+    if (container === null) {
+      return;
+    }
+
+    const showsIndicator = hasClass(headerSpanElement, 'ascending') ||
+      hasClass(headerSpanElement, 'descending');
+
+    if (showsIndicator) {
+      addClass(container, CONTAINER_WITH_INDICATOR_CLASS);
+    } else {
+      removeClass(container, CONTAINER_WITH_INDICATOR_CLASS);
+    }
   }
 
   /**
@@ -857,6 +941,11 @@ export class ColumnSorting extends BasePlugin {
     event: Event, coords: { row: number, col: number }, TD: HTMLTableCellElement,
     controller: { column: boolean }
   ) => {
+    // Drop any press whose release never arrived - e.g. the window lost focus while the button
+    // was held. Without this a stale press would resolve on the next unrelated release and sort
+    // a column out of nowhere.
+    this.#pendingHeaderSort = null;
+
     if (wasHeaderClickedProperly(coords.row, coords.col, event) === false) {
       return;
     }
@@ -869,6 +958,11 @@ export class ColumnSorting extends BasePlugin {
   /**
    * Callback for the `onAfterOnCellMouseDown` hook.
    *
+   * Queues the sort rather than running it. The header is also the surface ManualColumnMove
+   * drags a column by, so which action the user meant is only known once the button is
+   * released: a press that stays put is a click to sort, a press that travels is a drag.
+   * Selection changes stay here so the header still reacts the moment it is pressed.
+   *
    * @private
    * @param {Event} event Event which are provided by hook.
    * @param {CellCoords} coords Visual coords of the selected cell.
@@ -878,34 +972,103 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    if (this.wasClickableHeaderClicked(event, coords.col)) {
-      if (this.hot.getShortcutManager().isCtrlPressed()) {
-        this.hot.deselectCell();
-        this.hot.selectColumns(coords.col);
-      }
+    if (this.wasClickableHeaderClicked(event, coords.col) === false) {
+      return;
+    }
 
-      const activeEditor = this.hot.getActiveEditor();
-      const nextConfig = this.getColumnNextConfig(coords.col);
+    const isCtrlPressed = this.hot.getShortcutManager().isCtrlPressed();
 
-      if (
+    if (isCtrlPressed) {
+      this.hot.deselectCell();
+      this.hot.selectColumns(coords.col);
+    }
+
+    const activeEditor = this.hot.getActiveEditor();
+
+    this.#pendingHeaderSort = {
+      column: coords.col,
+      isCtrlPressed,
+      pressOrigin: { x: (event as MouseEvent).clientX, y: (event as MouseEvent).clientY },
+      // Read here, not on release: selecting the column opens an editor on the highlighted
+      // cell, so by mouse up this would be true for any validated column and the sort would
+      // wait for a validation that never runs.
+      awaitsValidation: !!(
         activeEditor?.isOpened() &&
         this.hot.getCellValidator(activeEditor.row!, activeEditor.col!)
-      ) {
-        // Postpone sorting until the cell's value is validated and saved.
-        this.hot.addHookOnce('postAfterValidate', () => {
-          this.sort(nextConfig);
-        });
+      ),
+      hasMoved: false,
+    };
+  }
 
-      } else {
+  /**
+   * Applies the sort queued by a header press.
+   *
+   * Kept separate from the press handler so `MultiColumnSorting` can choose a different sort
+   * configuration for the same gesture without repeating the click-versus-drag handling.
+   *
+   * @private
+   * @param {object} press The press that queued this sort.
+   */
+  applyHeaderClickSort(press: HeaderSortPress) {
+    const nextConfig = this.getColumnNextConfig(press.column);
+
+    if (press.awaitsValidation) {
+      // Postpone sorting until the cell's value is validated and saved.
+      this.hot.addHookOnce('postAfterValidate', () => {
         this.sort(nextConfig);
-      }
+      });
+
+    } else {
+      this.sort(nextConfig);
     }
   }
+
+  /**
+   * Watches a queued header press for pointer travel.
+   *
+   * Travel is measured from `mousemove` rather than by comparing the press and release
+   * positions, because a press can scroll a partly visible header into view - that moves the
+   * header under a stationary pointer, which is not a drag.
+   *
+   * @param {MouseEvent} event The `mousemove` event.
+   */
+  #onDocumentMouseMove = (event: MouseEvent) => {
+    const pending = this.#pendingHeaderSort;
+
+    if (pending === null || pending.hasMoved) {
+      return;
+    }
+
+    pending.hasMoved = isPointerDragged(pending.pressOrigin, event);
+  };
+
+  /**
+   * Resolves a header press on release: sorts when the pointer stayed put, and stands aside when
+   * it travelled, leaving that gesture to ManualColumnMove.
+   *
+   * Safe to call more than once for the same gesture - the queued press is taken first, so
+   * whichever release signal arrives first wins and the rest are no-ops.
+   */
+  #resolvePendingSort = () => {
+    const pending = this.#pendingHeaderSort;
+
+    this.#pendingHeaderSort = null;
+
+    if (pending === null || pending.hasMoved) {
+      return;
+    }
+
+    this.applyHeaderClickSort(pending);
+  };
 
   /**
    * Destroys the plugin instance.
    */
   destroy(): void {
+    // `BasePlugin.destroy` nulls enumerable own properties, which cannot reach a `#private`
+    // field, so drop the queued press here.
+    this.#pendingHeaderSort = null;
+
     // TODO: Probably not supported yet by ESLint: https://github.com/eslint/eslint/issues/11045
     // eslint-disable-next-line no-unused-expressions
     this.columnStatesManager?.destroy();
