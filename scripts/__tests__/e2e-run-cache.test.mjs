@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { envHash, specKey, filterCached, recordGreen } from '../e2e-run-cache.mjs';
@@ -17,6 +17,7 @@ function fakeRoot() {
   mkdirSync(path.join(root, 'handsontable/dist'), { recursive: true });
   mkdirSync(path.join(root, 'tests/e2e'), { recursive: true });
   mkdirSync(path.join(root, 'tests/fixtures/pages'), { recursive: true });
+  writeFileSync(path.join(root, 'handsontable/dist/handsontable.js'), 'dist-umd-v1');
   writeFileSync(path.join(root, 'handsontable/dist/handsontable.full.min.js'), 'dist-v1');
   writeFileSync(path.join(root, 'tests/fixtures/pages/GridPage.ts'), 'pom-v1');
   writeFileSync(path.join(root, 'tests/playwright.config.ts'), 'cfg-v1');
@@ -53,6 +54,25 @@ test('rebuilding the dist or touching a fixture invalidates the cache', () => {
 
   recordGreen(root, ['e2e/a.spec.ts']);
   writeFileSync(path.join(root, 'tests/fixtures/pages/GridPage.ts'), 'pom-v2');
+  assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
+});
+
+test('rebuilding ONLY the base UMD bundle invalidates the cache (the e2e-main leg loads it)', () => {
+  const root = fakeRoot();
+
+  recordGreen(root, ['e2e/a.spec.ts']);
+  // `build:umd` rewrites handsontable.js and leaves the min files alone — the
+  // hook must re-run the spec against the new bundle, not skip it as green.
+  writeFileSync(path.join(root, 'handsontable/dist/handsontable.js'), 'dist-umd-v2');
+  assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
+});
+
+test('a missing base UMD bundle makes the environment incomplete (never skip)', () => {
+  const root = fakeRoot();
+
+  recordGreen(root, ['e2e/a.spec.ts']);
+  rmSync(path.join(root, 'handsontable/dist/handsontable.js'));
+  assert.equal(envHash(root), '');
   assert.deepEqual(filterCached(root, ['e2e/a.spec.ts']).toRun, ['e2e/a.spec.ts']);
 });
 

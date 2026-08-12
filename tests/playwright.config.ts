@@ -26,7 +26,10 @@ const E2E_THEMES = ['main', 'horizon', 'classic'] as const;
 // 1:1 with the Puppeteer bundle legs: UMD (dist/handsontable.js, `test:e2e`)
 // and UMD.min (dist/handsontable.full.min.js, `test:production`). The
 // un-suffixed projects run the plain UMD so existing local commands and hooks
-// (`--project=e2e-main`) keep working.
+// (`--project=e2e-main`) keep working. That also means every LOCAL gate
+// (pre-push, the Claude Stop hook, `npm run test:e2e` — all pinned to
+// e2e-main) covers the plain UMD only; the `-min` legs are CI-only. This
+// flipped with the bundle axis: `e2e-main` used to load the full.min bundle.
 const E2E_BUNDLES = [
   { bundle: 'umd', suffix: '' },
   { bundle: 'full-min', suffix: '-min' },
