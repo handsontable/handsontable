@@ -229,7 +229,7 @@ The Theme Generator transforms JSON tokens exported from Figma into properly for
 
 For full control over your theme, you can override CSS variables directly. Follow these [steps](@/guides/styling/themes/themes.md#use-a-theme) to apply a theme, then override the variables for your chosen theme.
 
-You can also directly modify the CSS theme files located in `handsontable/dist/styles/themes/`. This gives you immediate access to all CSS variables and allows for quick iterations.
+You can also open the CSS theme files in `handsontable/styles/` to see every CSS variable a theme defines. Copy the variables you need into your own stylesheet - edits made inside `node_modules` are lost on the next install.
 
 Here's an example for `.ht-theme-main`:
 

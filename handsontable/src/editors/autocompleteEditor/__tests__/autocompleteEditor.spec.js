@@ -1342,11 +1342,45 @@ describe('AutocompleteEditor', () => {
       await keyDownUp('enter');
       await waitForNextAnimationFrames(2);
 
-      const sortedChoices = choices.toSorted();
+      const sortedChoices = [...choices].sort();
 
       for (let i = 0; i < choices.length; i++) {
         expect(editor.find(`tbody td:eq(${i})`).text()).toEqual(sortedChoices[i]);
       }
+    });
+
+    it('should not reorder the array passed to `updateChoicesList`, when the `sortByRelevance` option is set to `false`', async() => {
+      handsontable({
+        editor: 'autocomplete',
+        source: choices,
+        sortByRelevance: false,
+        height: 1000
+      });
+
+      await selectCell(0, 0);
+      await keyDownUp('enter');
+      await waitForNextAnimationFrames(2);
+
+      // `updateChoicesList` is public API, so it has to sort a copy and leave the caller's array
+      // alone. The internal path happens to hand it a freshly mapped array, so only a direct call
+      // exposes an in-place sort. `Array#toSorted` gave this for free but is above the
+      // browser-targets.js baseline (Firefox 115+, Safari 16+).
+      const callerOwnedChoices = ['orange', 'apple', 'banana'];
+
+      getActiveEditor().updateChoicesList(callerOwnedChoices);
+
+      await waitForNextAnimationFrames(2);
+
+      expect(callerOwnedChoices).toEqual(['orange', 'apple', 'banana']);
+
+      // ...and the dropdown still shows them sorted.
+      const renderedChoices = $('.autocompleteEditor').find('tbody td')
+        .map(function() {
+          return $(this).text();
+        })
+        .get();
+
+      expect(renderedChoices).toEqual(['apple', 'banana', 'orange']);
     });
   });
 
