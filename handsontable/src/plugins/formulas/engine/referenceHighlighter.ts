@@ -125,7 +125,7 @@ function resolveFormulaReferenceHighlights(
     const visualFromCol = targetFormulasPlugin.columnAxisSyncer!.getVisualIndexFromHfIndex(hfFromCol);
     const visualToRow = targetFormulasPlugin.rowAxisSyncer!.getVisualIndexFromHfIndex(hfToRow);
     const visualToCol = targetFormulasPlugin.columnAxisSyncer!.getVisualIndexFromHfIndex(hfToCol);
-    const isActive = caretIndex >= token.start && caretIndex < token.end;
+    const isActive = caretIndex >= token.start && caretIndex <= token.end;
     const highlights = highlightsByHot.get(targetHot) ?? [];
 
     highlights.push({

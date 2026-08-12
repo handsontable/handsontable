@@ -32,6 +32,7 @@ import {
   updateFormulaReferenceHighlights,
 } from './engine/referenceHighlighter';
 import type { FormulaReferenceHighlight } from './engine/referenceHighlighter';
+import { FormulaReferenceInserter } from './engine/referenceInserter';
 import { TextEditor } from '../../editors/textEditor/textEditor';
 
 /**
@@ -156,6 +157,14 @@ export class Formulas extends BasePlugin {
    * @type {boolean}
    */
   #hotWasInitializedWithEmptyData = false;
+
+  /**
+   * Handles formula reference picking while a formula cell is being edited.
+   *
+   * @private
+   * @type {FormulaReferenceInserter}
+   */
+  readonly #referenceInserter = new FormulaReferenceInserter(this);
 
   /**
    * Maps a HyperFormula `ExportedCellChange` to the same change with `newValue` translated to a
@@ -497,6 +506,7 @@ export class Formulas extends BasePlugin {
    * Disables the plugin functionality for this Handsontable instance.
    */
   disablePlugin() {
+    this.#referenceInserter.disable();
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
 
     if (this.engine) {
@@ -510,8 +520,12 @@ export class Formulas extends BasePlugin {
 
   /**
    * Clears formula reference grid highlights on this instance.
+   *
+   * @param {object} [options] Clear options.
+   * @param {boolean} [options.render=true] Whether to trigger a grid render after clearing.
    */
-  clearFormulaReferenceHighlights(): void {
+  clearFormulaReferenceHighlights(options: { render?: boolean } = {}): void {
+    const { render = true } = options;
     const { customSelections } = this.hot.selection.highlight;
 
     for (let index = customSelections.length - 1; index >= 0; index -= 1) {
@@ -524,7 +538,9 @@ export class Formulas extends BasePlugin {
       }
     }
 
-    this.hot.view.render();
+    if (render) {
+      this.hot.view.render();
+    }
   }
 
   /**
@@ -533,17 +549,18 @@ export class Formulas extends BasePlugin {
    * @param {FormulaReferenceHighlight[]} highlights Resolved highlight descriptors.
    */
   setFormulaReferenceHighlights(highlights: FormulaReferenceHighlight[]): void {
-    this.clearFormulaReferenceHighlights();
+    this.clearFormulaReferenceHighlights({ render: false });
 
     highlights.forEach((highlight, index) => {
       const fromCoords = this.hot._createCellCoords(highlight.fromRow, highlight.fromCol);
       const toCoords = this.hot._createCellCoords(highlight.toRow, highlight.toCol);
       const visualCellRange = this.hot._createCellRange(fromCoords, fromCoords, toCoords);
       const borderColor = `var(--ht-formula-reference-color-${highlight.colorIndex})`;
+      const showFill = highlight.isActive || this.#doesHighlightMatchDraggingSelection(highlight);
 
       this.hot.selection.highlight.addCustomSelection({
         id: `formula-ref-${index}`,
-        ...(highlight.isActive ? {
+        ...(showFill ? {
           className: `formula-reference-area-${highlight.colorIndex}`,
         } : {}),
         border: {
@@ -556,6 +573,61 @@ export class Formulas extends BasePlugin {
     });
 
     this.hot.view.render();
+  }
+
+  /**
+   * Returns whether a highlight covers the range currently being picked by drag.
+   *
+   * @private
+   * @param {FormulaReferenceHighlight} highlight Resolved highlight descriptor.
+   * @returns {boolean}
+   */
+  #doesHighlightMatchDraggingSelection(highlight: FormulaReferenceHighlight): boolean {
+    const selectedRange = this.hot.getSelectedRangeActive();
+
+    if (selectedRange === undefined) {
+      return false;
+    }
+
+    const { from, to } = selectedRange;
+
+    if (
+      from.row === null || from.col === null ||
+      to.row === null || to.col === null
+    ) {
+      return false;
+    }
+
+    const countRows = this.hot.countRows();
+    const countCols = this.hot.countCols();
+    const fromRow = Math.min(from.row, to.row);
+    const toRow = Math.max(from.row, to.row);
+    const fromCol = Math.min(from.col, to.col);
+    const toCol = Math.max(from.col, to.col);
+    const dataFromRow = Math.max(fromRow, 0);
+    const dataToRow = Math.max(toRow, 0);
+    const dataFromCol = Math.max(fromCol, 0);
+    const dataToCol = Math.max(toCol, 0);
+    const { selection } = this.hot;
+
+    if (selection.isEntireColumnSelected()) {
+      return highlight.fromCol === dataFromCol &&
+        highlight.toCol === dataToCol &&
+        highlight.fromRow === 0 &&
+        highlight.toRow === countRows - 1;
+    }
+
+    if (selection.isEntireRowSelected()) {
+      return highlight.fromRow === dataFromRow &&
+        highlight.toRow === dataToRow &&
+        highlight.fromCol === 0 &&
+        highlight.toCol === countCols - 1;
+    }
+
+    return highlight.fromRow === dataFromRow &&
+      highlight.toRow === dataToRow &&
+      highlight.fromCol === dataFromCol &&
+      highlight.toCol === dataToCol;
   }
 
   /**
@@ -607,6 +679,7 @@ export class Formulas extends BasePlugin {
    * Destroys the plugin instance.
    */
   destroy() {
+    this.#referenceInserter.disable();
     this.#engineListeners?.forEach(([eventName, listener]) => this.engine?.off(eventName, listener));
     this.#engineListeners = null;
 
@@ -1645,7 +1718,15 @@ export class Formulas extends BasePlugin {
     this.eventManager.addEventListener(
       editor.TEXTAREA,
       'input',
-      () => this.#updateFormulaReferenceHighlights(),
+      () => {
+        this.#updateFormulaReferenceHighlights();
+
+        if (String(editor.getValue()).startsWith('=')) {
+          this.#referenceInserter.enable();
+        } else {
+          this.#referenceInserter.disable();
+        }
+      },
     );
 
     this.eventManager.addEventListener(
@@ -1660,10 +1741,13 @@ export class Formulas extends BasePlugin {
       if (previousCloseCallback) {
         previousCloseCallback(result);
       }
+      this.#referenceInserter.disable();
       clearFormulaReferenceHighlights(this.engine!);
     };
 
-    this.#updateFormulaReferenceHighlights();
+    if (String(editor.getValue()).startsWith('=')) {
+      this.#referenceInserter.enable();
+    }
   };
 
   /**
@@ -1676,7 +1760,7 @@ export class Formulas extends BasePlugin {
       return;
     }
 
-    const value = String(editor.getValue() ?? '');
+    const value = String(editor.getValue());
     const caretIndex = editor.TEXTAREA.selectionStart ?? value.length;
 
     if (value.startsWith('=')) {

@@ -1,5 +1,6 @@
 import { isValidISODate } from '../../helpers/dateTime';
 import { valueGetter as multiSelectValueGetter } from '../../cellTypes/multiSelectType/accessors/valueGetter';
+import type { HotInstance } from '../../core/types';
 
 /**
  * Checks if provided formula expression is escaped.
@@ -331,4 +332,175 @@ export function referencesFromFormula(formula: string): FormulaReferenceToken[] 
   }
 
   return ranges;
+}
+
+/**
+ * Returns the formula reference token that contains the caret, or touches its end.
+ *
+ * @param {string} formula Formula string.
+ * @param {number} caretIndex Caret index inside the formula string.
+ * @returns {FormulaReferenceToken|undefined}
+ */
+export function getActiveFormulaReferenceTokenAtCaret(
+  formula: string,
+  caretIndex: number,
+): FormulaReferenceToken | undefined {
+  return referencesFromFormula(formula)
+    .find(token => caretIndex >= token.start && caretIndex <= token.end);
+}
+
+/**
+ * Formats 0-based HyperFormula indexes as an A1-style cell or range reference.
+ *
+ * @param {number} fromRow 0-based HyperFormula start row index.
+ * @param {number} fromCol 0-based HyperFormula start column index.
+ * @param {number} toRow 0-based HyperFormula end row index, or `Infinity` for a whole-column reference.
+ * @param {number} toCol 0-based HyperFormula end column index, or `Infinity` for a whole-row reference.
+ * @returns {string}
+ */
+export function printRangeReferenceFromHyperFormula(
+  fromRow: number,
+  fromCol: number,
+  toRow: number,
+  toCol: number,
+): string {
+  if (toRow === Number.POSITIVE_INFINITY) {
+    const fromLetter = colIndexToLetter(Math.min(fromCol, toCol) + 1);
+    const toLetter = colIndexToLetter(Math.max(fromCol, toCol) + 1);
+
+    return fromLetter === toLetter ? `${fromLetter}:${fromLetter}` : `${fromLetter}:${toLetter}`;
+  }
+
+  if (toCol === Number.POSITIVE_INFINITY) {
+    const from = Math.min(fromRow, toRow) + 1;
+    const to = Math.max(fromRow, toRow) + 1;
+
+    return from === to ? `${from}:${from}` : `${from}:${to}`;
+  }
+
+  const minRow = Math.min(fromRow, toRow);
+  const maxRow = Math.max(fromRow, toRow);
+  const minCol = Math.min(fromCol, toCol);
+  const maxCol = Math.max(fromCol, toCol);
+  const start = `${colIndexToLetter(minCol + 1)}${minRow + 1}`;
+
+  if (minRow === maxRow && minCol === maxCol) {
+    return start;
+  }
+
+  return `${start}:${colIndexToLetter(maxCol + 1)}${maxRow + 1}`;
+}
+
+/**
+ * Builds an A1-style reference string from a visual selection on a Handsontable instance.
+ *
+ * @param {HotInstance} hot Handsontable instance that owns the selected range.
+ * @param {number} fromRow Visual start row index, or `-1` for a column-header selection.
+ * @param {number} fromCol Visual start column index, or `-1` for a row-header selection.
+ * @param {number} toRow Visual end row index, or `-1` for a column-header selection.
+ * @param {number} toCol Visual end column index, or `-1` for a row-header selection.
+ * @returns {string|null} Formatted reference, or `null` when the selection cannot be converted.
+ */
+export function printReferenceFromVisualSelection(
+  hot: HotInstance,
+  fromRow: number,
+  fromCol: number,
+  toRow: number,
+  toCol: number,
+): string | null {
+  const formulasPlugin = hot.getPlugin('formulas');
+
+  const wholeColumn = fromRow < 0;
+  const wholeRow = fromCol < 0;
+
+  if (wholeColumn && wholeRow) {
+    return null;
+  }
+
+  const { rowAxisSyncer, columnAxisSyncer } = formulasPlugin;
+
+  if (rowAxisSyncer === null || columnAxisSyncer === null) {
+    return null;
+  }
+
+  if (wholeColumn) {
+    const hfFromCol = columnAxisSyncer.getHfIndexFromVisualIndex(Math.min(fromCol, toCol));
+    const hfToCol = columnAxisSyncer.getHfIndexFromVisualIndex(Math.max(fromCol, toCol));
+
+    if (hfFromCol < 0 || hfToCol < 0) {
+      return null;
+    }
+
+    return printRangeReferenceFromHyperFormula(0, hfFromCol, Number.POSITIVE_INFINITY, hfToCol);
+
+  }
+
+  if (wholeRow) {
+    const hfFromRow = rowAxisSyncer.getHfIndexFromVisualIndex(Math.min(fromRow, toRow));
+    const hfToRow = rowAxisSyncer.getHfIndexFromVisualIndex(Math.max(fromRow, toRow));
+
+    if (hfFromRow < 0 || hfToRow < 0) {
+      return null;
+    }
+
+    return printRangeReferenceFromHyperFormula(hfFromRow, 0, hfToRow, Number.POSITIVE_INFINITY);
+
+  }
+
+  const hfFromRow = rowAxisSyncer.getHfIndexFromVisualIndex(Math.min(fromRow, toRow));
+  const hfToRow = rowAxisSyncer.getHfIndexFromVisualIndex(Math.max(fromRow, toRow));
+  const hfFromCol = columnAxisSyncer.getHfIndexFromVisualIndex(Math.min(fromCol, toCol));
+  const hfToCol = columnAxisSyncer.getHfIndexFromVisualIndex(Math.max(fromCol, toCol));
+
+  if (hfFromRow < 0 || hfToRow < 0 || hfFromCol < 0 || hfToCol < 0) {
+    return null;
+  }
+
+  return printRangeReferenceFromHyperFormula(hfFromRow, hfFromCol, hfToRow, hfToCol);
+}
+
+/**
+ * Result of inserting or replacing a formula reference in an editor value.
+ */
+export type FormulaReferenceInsertionResult = {
+  value: string;
+  caretIndex: number;
+  insertedStart: number;
+  insertedEnd: number;
+};
+
+/**
+ * Inserts a reference at the caret, or replaces the reference token that contains the caret.
+ *
+ * @param {string} formula Current formula string.
+ * @param {number} caretIndex Caret index inside the formula string.
+ * @param {string} referenceText Reference text to insert.
+ * @returns {FormulaReferenceInsertionResult}
+ */
+export function insertOrReplaceReferenceInFormula(
+  formula: string,
+  caretIndex: number,
+  referenceText: string,
+): FormulaReferenceInsertionResult {
+  const activeToken = getActiveFormulaReferenceTokenAtCaret(formula, caretIndex);
+
+  if (activeToken) {
+    const value = `${formula.slice(0, activeToken.start)}${referenceText}${formula.slice(activeToken.end)}`;
+
+    return {
+      value,
+      caretIndex: activeToken.start + referenceText.length,
+      insertedStart: activeToken.start,
+      insertedEnd: activeToken.start + referenceText.length,
+    };
+  }
+
+  const value = `${formula.slice(0, caretIndex)}${referenceText}${formula.slice(caretIndex)}`;
+
+  return {
+    value,
+    caretIndex: caretIndex + referenceText.length,
+    insertedStart: caretIndex,
+    insertedEnd: caretIndex + referenceText.length,
+  };
 }

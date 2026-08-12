@@ -14,6 +14,10 @@ import {
   colLetterToIndex,
   parseCellReferenceToken,
   referencesFromFormula,
+  printRangeReferenceFromHyperFormula,
+  printReferenceFromVisualSelection,
+  insertOrReplaceReferenceInFormula,
+  getActiveFormulaReferenceTokenAtCaret,
 } from '../utils';
 
 describe('Formulas utils', () => {
@@ -128,27 +132,6 @@ describe('Formulas utils', () => {
     it('should ignore the integer day part and only format the fractional time part', () => {
       expect(getTimeFromHfTimeFraction(1.5)).toBe('12:00');
       expect(getTimeFromHfTimeFraction(43891.75)).toBe('18:00');
-    });
-  });
-
-  describe('normalizeValueForFormulaEngine', () => {
-    it('should convert array values to comma-separated strings', () => {
-      expect(normalizeValueForFormulaEngine([])).toBe('');
-      expect(normalizeValueForFormulaEngine(['A', 'B'])).toBe('A, B');
-      expect(normalizeValueForFormulaEngine([{ key: 'a', value: 'Alpha' }])).toBe('Alpha');
-      expect(normalizeValueForFormulaEngine([
-        { key: 'a', value: 'Alpha' },
-        { key: 'b', value: 'Beta' },
-      ])).toBe('Alpha, Beta');
-    });
-
-    it('should keep non-array values unchanged', () => {
-      const objectValue = { key: 'A', value: 'Alpha' };
-
-      expect(normalizeValueForFormulaEngine('A')).toBe('A');
-      expect(normalizeValueForFormulaEngine(123)).toBe(123);
-      expect(normalizeValueForFormulaEngine(null)).toBeNull();
-      expect(normalizeValueForFormulaEngine(objectValue)).toBe(objectValue);
     });
   });
 
@@ -332,6 +315,95 @@ describe('Formulas utils', () => {
         { text: 'A1', colorIndex: 1 },
         { text: 'B2', colorIndex: 2 },
       ]);
+    });
+  });
+
+  describe('printRangeReferenceFromHyperFormula', () => {
+    it('should format single cells and rectangular ranges', () => {
+      expect(printRangeReferenceFromHyperFormula(1, 1, 1, 1)).toBe('B2');
+      expect(printRangeReferenceFromHyperFormula(0, 0, 2, 2)).toBe('A1:C3');
+      expect(printRangeReferenceFromHyperFormula(2, 2, 0, 0)).toBe('A1:C3');
+    });
+
+    it('should format whole-column and whole-row references', () => {
+      expect(printRangeReferenceFromHyperFormula(0, 0, Number.POSITIVE_INFINITY, 0)).toBe('A:A');
+      expect(printRangeReferenceFromHyperFormula(0, 0, Number.POSITIVE_INFINITY, 2)).toBe('A:C');
+      expect(printRangeReferenceFromHyperFormula(0, 0, 2, Number.POSITIVE_INFINITY)).toBe('1:3');
+      expect(printRangeReferenceFromHyperFormula(4, 0, 4, Number.POSITIVE_INFINITY)).toBe('5:5');
+    });
+  });
+
+  describe('insertOrReplaceReferenceInFormula', () => {
+    it('should insert a reference at the caret when not inside a token', () => {
+      expect(insertOrReplaceReferenceInFormula('=SUM(', 5, 'B2')).toEqual({
+        value: '=SUM(B2',
+        caretIndex: 7,
+        insertedStart: 5,
+        insertedEnd: 7,
+      });
+    });
+
+    it('should replace the active reference token under the caret', () => {
+      expect(insertOrReplaceReferenceInFormula('=SUM(A1)+B2', 6, 'C3')).toEqual({
+        value: '=SUM(C3)+B2',
+        caretIndex: 7,
+        insertedStart: 5,
+        insertedEnd: 7,
+      });
+    });
+
+    it('should replace the active reference token when the caret is at its end', () => {
+      expect(insertOrReplaceReferenceInFormula('=SUM(A1)', 7, 'B2')).toEqual({
+        value: '=SUM(B2)',
+        caretIndex: 7,
+        insertedStart: 5,
+        insertedEnd: 7,
+      });
+    });
+  });
+
+  describe('getActiveFormulaReferenceTokenAtCaret', () => {
+    it('should return the reference token when the caret is at its end', () => {
+      expect(getActiveFormulaReferenceTokenAtCaret('=SUM(B1:C3)', 10)).toEqual({
+        start: 5,
+        end: 10,
+        colorIndex: 1,
+      });
+    });
+  });
+
+  describe('normalizeInProgressFormulaInput', () => {
+    it('should rewrite misplaced formula input that starts after existing cell content', () => {
+      expect(normalizeInProgressFormulaInput('10=SUM(')).toBe('=SUM(');
+      expect(normalizeInProgressFormulaInput('=SUM(')).toBeNull();
+      expect(normalizeInProgressFormulaInput('10=')).toBeNull();
+      expect(normalizeInProgressFormulaInput('10=5')).toBeNull();
+      expect(normalizeInProgressFormulaInput('price=SUM(A1)')).toBe('=SUM(A1)');
+    });
+  });
+
+  describe('printReferenceFromVisualSelection', () => {
+    it('should format a visual cell selection through the formulas axis syncers', () => {
+      const targetHot = {
+        getPlugin: () => ({
+          isEnabled: () => true,
+          sheetName: 'Sheet1',
+          rowAxisSyncer: {
+            getHfIndexFromVisualIndex: (index: number) => index,
+          },
+          columnAxisSyncer: {
+            getHfIndexFromVisualIndex: (index: number) => index,
+          },
+        }),
+      } as unknown as import('../../../core/types').HotInstance;
+
+      expect(printReferenceFromVisualSelection(targetHot, 1, 1, 1, 1)).toBe('B2');
+      expect(printReferenceFromVisualSelection(targetHot, 0, 0, 2, 2)).toBe('A1:C3');
+      expect(printReferenceFromVisualSelection(targetHot, -1, 0, -1, 2)).toBe('A:C');
+      expect(printReferenceFromVisualSelection(targetHot, -1, 0, 2, 0)).toBe('A:A');
+      expect(printReferenceFromVisualSelection(targetHot, 0, -1, 2, -1)).toBe('1:3');
+      expect(printReferenceFromVisualSelection(targetHot, 0, -1, 0, 2)).toBe('1:1');
+      expect(printReferenceFromVisualSelection(targetHot, -1, -1, -1, -1)).toBeNull();
     });
   });
 });

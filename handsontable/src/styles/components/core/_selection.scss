@@ -115,5 +115,24 @@
         }
       }
     }
+
+    &[data-formula-reference-picking="true"] {
+      .wtBorder {
+        &.current,
+        &.area {
+          display: none !important;
+        }
+      }
+
+      @for $i from 1 through 10 {
+        td.formula-reference-area-#{$i} {
+          &::before {
+            display: block !important;
+            background: var(--ht-formula-reference-color-#{$i});
+            opacity: mixins.get-opacity(0);
+          }
+        }
+      }
+    }
   }
 }

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Handsontable formulas e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    window.htTheme = ({ horizon: 'horizon', classic: 'classic' })[new URLSearchParams(location.search).get('theme')] || 'main';
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+  </style>
+</head>
+<body>
+  <div id="grid-revenue" data-testid="grid-revenue"></div>
+
+  <script src="/handsontable/dist/handsontable.full.min.js"></script>
+  <script>
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+    };
+
+    const revenueContainer = document.querySelector('[data-testid="grid-revenue"]');
+    revenueContainer.className = `ht-theme-${window.htTheme}`;
+
+    new Handsontable(revenueContainer, {
+      data: [
+        [10, 20, 30],
+        [40, 50, 60],
+        [70, 80, 90],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      renderer: testIdRenderer,
+      licenseKey: 'non-commercial-and-evaluation',
+      afterGetColHeader(col, TH) {
+        TH.setAttribute('data-testid', `col-header-${col}`);
+      },
+      afterGetRowHeader(row, TH) {
+        TH.setAttribute('data-testid', `row-header-${row}`);
+      },
+      formulas: {
+        engine: HyperFormula.buildEmpty({ licenseKey: 'gpl-v3' }),
+        sheetName: 'Revenue',
+      },
+    });
+  </script>
+</body>
+</html>

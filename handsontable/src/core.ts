@@ -755,7 +755,8 @@ export default function Core(
     );
 
     const selectionSource = selection.getSelectionSource();
-    const ignoreScrollSources = ['loadData', 'updateData', 'deselect', 'shift'];
+    const editorPreservingSources = ['shift', 'formulaReference'];
+    const ignoreScrollSources = ['loadData', 'updateData', 'deselect', ...editorPreservingSources];
 
     if (
       isLastSelectionLayer &&
@@ -786,11 +787,11 @@ export default function Core(
       removeClass(this.rootElement, ['ht__selection--rows', 'ht__selection--columns']);
     }
 
-    if (!['shift', 'refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource)) {
+    if (!['shift', 'formulaReference', 'refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource)) {
       editorManager.closeEditor();
     }
 
-    if (!['refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource)) {
+    if (!['formulaReference', 'refresh', 'loadData', 'updateData', 'deselect'].includes(selectionSource)) {
       instance.view.render();
       editorManager.prepareEditor();
     }
@@ -809,9 +810,11 @@ export default function Core(
       viewportScroller.scrollTo(cellCoords as CellCoords);
     }
 
-    editorManager.closeEditor();
-    instance.view.render();
-    editorManager.prepareEditor();
+    if (selection.getSelectionSource() !== 'formulaReference') {
+      editorManager.closeEditor();
+      instance.view.render();
+      editorManager.prepareEditor();
+    }
   });
 
   this.selection.addLocalHook('afterSelectionFinished',

@@ -41,6 +41,10 @@ formula, Handsontable highlights each unique cell reference in the editor with a
 distinct color. The same colors outline the referenced cells and ranges on the grid.
 Customize the palette with the `--ht-formula-reference-color-*` theme variables.
 
+While the editor is open, click or drag across cells, row headers, or column headers
+on the same sheet to insert A1-style references into the formula at the caret.
+Dragging updates the inserted range live.
+
 ::: only-for javascript
 
 ::: example #example1 --html 1 --css 2 --js 3 --ts 4
