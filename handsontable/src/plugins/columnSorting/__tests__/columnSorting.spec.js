@@ -3040,6 +3040,29 @@ describe('ColumnSorting', () => {
       expect(headerWidthAtStart).toBeLessThan(newHeaderWidth);
     });
 
+    it('should not measure the sort indicator offsets into the auto column width when the dropdown menu is enabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 2),
+        colHeaders: ['Revenue per employee division', 'B'],
+        autoColumnSize: true,
+        columnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } },
+      });
+
+      spec().$container[0].style.width = 'auto';
+      await render();
+
+      const widthWithoutMenu = spec().$container.find('th').eq(0).width();
+
+      await updateSettings({ dropdownMenu: true });
+
+      const widthWithMenu = spec().$container.find('th').eq(0).width();
+
+      // The menu button takes its own room in the header, but the indicator's offsets are held
+      // clear of the ghost table, so they must not land in the measurement a second time. Without
+      // that, the column grows by the whole indicator reserve (~46px) instead of a few pixels.
+      expect(widthWithMenu - widthWithoutMenu).toBeLessThan(20);
+    });
+
     it('should work properly also when `rowHeaders` option is set to `true`', async() => {
       handsontable({
         colHeaders: ['AAA<br>BB'],
