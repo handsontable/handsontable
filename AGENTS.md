@@ -24,6 +24,7 @@ Route to the lowest correct scope. `AGENTS.md` answers "what must I never get wr
 | Angular wrapper | `wrappers/angular-wrapper/AGENTS.md` |
 | Vue 3 wrapper | `wrappers/vue3/AGENTS.md` |
 | Visual regression tests | `visual-tests/AGENTS.md` |
+| Playwright functional E2E tier (`tests/`) | `tests/AGENTS.md` |
 | Test-generation evals (meaningfulness scorer + fixtures) | `evals/README.md` |
 | Step-by-step task workflows | `.claude/skills/` (e.g., `handsontable-dev`, `handsontable-plugin-dev`, `handsontable-code-review`, `pr-creation`) |
 
@@ -52,6 +53,7 @@ A pre-built Tree-sitter knowledge graph over the whole monorepo answers cross-fi
 | `@handsontable/angular-wrapper` | `wrappers/angular-wrapper/` | Angular wrapper |
 | `@handsontable/vue3` | `wrappers/vue3/` | Vue 3 wrapper |
 | `handsontable-visual-tests` | `visual-tests/` | Playwright visual regression tests |
+| `handsontable-tests` | `tests/` | Playwright functional E2E suite (theme × bundle matrix) |
 | `handsontable-examples-internal` | `examples/` | Code examples |
 | `handsontable-documentation` | `docs/` | Documentation site (requires Node 22) |
 
