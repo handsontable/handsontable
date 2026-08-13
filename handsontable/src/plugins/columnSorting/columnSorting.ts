@@ -25,6 +25,9 @@ import {
   warnAboutPluginsConflict,
 } from './utils';
 import {
+  HEADER_ACTION_CLASS,
+  HEADER_CLASS_ASC_SORT,
+  HEADER_CLASS_DESC_SORT,
   getClassesToRemove,
   getClassesToAdd
 } from './domHelpers';
@@ -87,7 +90,11 @@ export interface HeaderSortPress {
   column: number;
   isCtrlPressed: boolean;
   pressOrigin: { x: number, y: number };
-  awaitsValidation: boolean;
+  /**
+   * Settles once the cell that was being edited at press time has finished validating, or `null`
+   * when nothing was being edited.
+   */
+  validation: Promise<void> | null;
   hasMoved: boolean;
 }
 
@@ -841,12 +848,9 @@ export class ColumnSorting extends BasePlugin {
    * Reserves room for the sort indicator on the header container, matching the state the label
    * was just given.
    *
-   * Called from the two places that drive a header render rather than from
-   * `updateHeaderClasses`, which subclasses override and extend - running it after that override
-   * has finished is what keeps the reserved side in step with the classes the label ends up with.
-   *
-   * The container's class list is rebuilt on every header render (see `TableView`), so this runs
-   * for each render rather than only when the sort state changes.
+   * Called from the header render paths, not from `updateHeaderClasses`, so it runs after any
+   * subclass override has finished adding its classes. `TableView` rebuilds the container's class
+   * list on every render, so this has to run per render.
    *
    * @param {HTMLElement} headerSpanElement The header label element.
    */
@@ -857,8 +861,13 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    const showsIndicator = hasClass(headerSpanElement, 'ascending') ||
-      hasClass(headerSpanElement, 'descending');
+    // `sortAction` is required: the CSS that pulls the indicator out of the flex row is keyed on
+    // it. With `headerAction: false` the label shows an indicator but keeps its full width, so
+    // reserving would just push it inwards.
+    const showsIndicator = hasClass(headerSpanElement, HEADER_ACTION_CLASS) && (
+      hasClass(headerSpanElement, HEADER_CLASS_ASC_SORT) ||
+      hasClass(headerSpanElement, HEADER_CLASS_DESC_SORT)
+    );
 
     if (showsIndicator) {
       addClass(container, CONTAINER_WITH_INDICATOR_CLASS);
@@ -987,18 +996,22 @@ export class ColumnSorting extends BasePlugin {
     }
 
     const activeEditor = this.hot.getActiveEditor();
+    const awaitsValidation = !!(
+      activeEditor?.isOpened() &&
+      this.hot.getCellValidator(activeEditor.row!, activeEditor.col!)
+    );
 
     this.#pendingHeaderSort = {
       column: coords.col,
       isCtrlPressed,
       pressOrigin: { x: (event as MouseEvent).clientX, y: (event as MouseEvent).clientY },
-      // Read here, not on release: selecting the column opens an editor on the highlighted
-      // cell, so by mouse up this would be true for any validated column and the sort would
-      // wait for a validation that never runs.
-      awaitsValidation: !!(
-        activeEditor?.isOpened() &&
-        this.hot.getCellValidator(activeEditor.row!, activeEditor.col!)
-      ),
+      // Subscribed on press, not on release: selecting the column closes the editor and its
+      // validation runs in a microtask, so it is already over before mouse up. Reading
+      // `awaitsValidation` on release is wrong too - by then the new selection has opened an
+      // editor on the highlighted cell.
+      validation: awaitsValidation ? new Promise<void>((resolve) => {
+        this.hot.addHookOnce('postAfterValidate', () => resolve());
+      }) : null,
       hasMoved: false,
     };
   }
@@ -1013,17 +1026,7 @@ export class ColumnSorting extends BasePlugin {
    * @param {object} press The press that queued this sort.
    */
   applyHeaderClickSort(press: HeaderSortPress) {
-    const nextConfig = this.getColumnNextConfig(press.column);
-
-    if (press.awaitsValidation) {
-      // Postpone sorting until the cell's value is validated and saved.
-      this.hot.addHookOnce('postAfterValidate', () => {
-        this.sort(nextConfig);
-      });
-
-    } else {
-      this.sort(nextConfig);
-    }
+    this.sort(this.getColumnNextConfig(press.column));
   }
 
   /**
@@ -1061,7 +1064,15 @@ export class ColumnSorting extends BasePlugin {
       return;
     }
 
-    this.applyHeaderClickSort(pending);
+    // A cell that was mid-edit must finish validating before the rows move under it. Waited on
+    // here, not in `applyHeaderClickSort`, so subclasses that override that seam still get it.
+    if (pending.validation === null) {
+      this.applyHeaderClickSort(pending);
+
+      return;
+    }
+
+    void pending.validation.then(() => this.applyHeaderClickSort(pending));
   };
 
   /**

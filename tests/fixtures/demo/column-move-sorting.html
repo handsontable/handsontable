@@ -59,6 +59,10 @@
       columnSorting: true,
       manualColumnMove: true,
       renderer: testIdRenderer,
+      // Column A is validated so a spec can sort while its editor is open. Selecting the column
+      // closes the editor and validates in a microtask, which finishes before the browser sends
+      // mouse up - the case a synchronous down/up simulation cannot reproduce.
+      columns: [{ validator: (value, callback) => callback(true) }, {}, {}, {}, {}, {}],
       afterGetColHeader(col, TH) {
         if (col >= 0) {
           TH.setAttribute('data-testid', `col-header-${col}`);

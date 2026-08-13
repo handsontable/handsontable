@@ -16,6 +16,9 @@ const CSS_PLUGIN = 'ht__manualColumnMove';
 const CSS_SHOW_UI = 'show-ui';
 const CSS_ON_MOVING = 'on-moving--columns';
 const CSS_AFTER_SELECTION = 'after-selection--columns';
+// Matches ColumnSorting's tolerance. Kept as a local constant rather than imported - plugins do not
+// import each other.
+const POINTER_DRAG_TOLERANCE = 3;
 
 /**
  * @plugin ManualColumnMove
@@ -81,10 +84,14 @@ export class ManualColumnMove extends BasePlugin {
    */
   #pressed = false;
   /**
-   * Whether the pointer moved at all since the header was pressed. A press that never moved is
-   * a click to sort, not a drag, so no columns are moved and the move hooks stay quiet.
+   * Whether the pointer travelled far enough since the header was pressed to count as a drag. A
+   * press that stayed put is a click to sort, so no columns move and the move hooks stay quiet.
    */
   #dragged = false;
+  /**
+   * Pointer client coordinates captured on press, for measuring that travel.
+   */
+  #pressOrigin = { x: 0, y: 0 };
   /**
    * @type {object}
    */
@@ -639,6 +646,7 @@ export class ManualColumnMove extends BasePlugin {
     if (coords.row < 0 && (coords.col >= start && coords.col <= end)) {
       controller.column = true;
       this.#pressed = true;
+      this.#pressOrigin = { x: event.clientX, y: event.clientY };
 
       const eventOffsetX = TD.firstChild ? offsetRelativeTo(event, TD.firstChild as HTMLElement).x : event.offsetX;
 
@@ -692,8 +700,12 @@ export class ManualColumnMove extends BasePlugin {
       return;
     }
 
-    // A press that never produced a pointer move is a click, and belongs to ColumnSorting.
-    this.#dragged = true;
+    // Same tolerance ColumnSorting uses to tell a click from a drag, so a pointer that jitters a
+    // pixel or two does not both sort and fire the move hooks.
+    if (Math.abs(event.clientX - this.#pressOrigin.x) > POINTER_DRAG_TOLERANCE ||
+        Math.abs(event.clientY - this.#pressOrigin.y) > POINTER_DRAG_TOLERANCE) {
+      this.#dragged = true;
+    }
 
     this.#target.eventPageX = event.pageX;
     this.refreshPositions();

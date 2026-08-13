@@ -41,6 +41,21 @@ test.describe('column move with sorting enabled', () => {
     await grid.expectCell(0, 2, 'C5');
   });
 
+  test('sorts on a header click made while a validated cell is being edited', async ({ page }) => {
+    await grid.goto();
+
+    // Open the editor on the validated column A and change the value.
+    await grid.cell(0, 0).dblclick();
+    await page.keyboard.type('Z9');
+
+    // A real click, so mouse up lands in its own task. Pressing the header closes the editor and
+    // validates in a microtask that finishes first - sorting must still wait for it and then run.
+    await grid.sortLabel(2).click();
+
+    await expect(grid.sortLabel(2)).toHaveClass(/ascending/);
+    await grid.expectCell(0, 2, 'C1');
+  });
+
   test('selects the column without sorting when the bare header area is pressed', async () => {
     // Selecting a column is the first half of moving it. That press must not sort, otherwise
     // every attempt to move a column re-sorts it on the way. Only the label and its indicator
