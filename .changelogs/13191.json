@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed `autoRowSize` and `autoColumnSize` ignoring styling applied through a cell's `className`, which left the row headers misaligned with the data cells.",
+  "type": "fixed",
+  "issueOrPR": 13191,
+  "breaking": false,
+  "framework": "none"
+}
