@@ -1373,10 +1373,15 @@ export function isDetached(element: HTMLElement): boolean {
  * Set up an observer to recognize when the provided element first becomes visible and trigger a callback when it
  * happens.
  *
+ * The observer is returned so the caller can disconnect it earlier - a pending delivery carries the state from
+ * the moment its snapshot was taken, so it can arrive after the observed element (or its owner) is gone.
+ *
  * @param {HTMLElement} elementToBeObserved Element to be observed.
  * @param {Function} callback The callback function.
+ * @returns {IntersectionObserver} The observer watching the element.
  */
-export function observeVisibilityChangeOnce(elementToBeObserved: HTMLElement, callback: () => void) {
+export function observeVisibilityChangeOnce(
+  elementToBeObserved: HTMLElement, callback: () => void): IntersectionObserver {
   const visibilityObserver = new IntersectionObserver((entries, observer) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
@@ -1387,6 +1392,8 @@ export function observeVisibilityChangeOnce(elementToBeObserved: HTMLElement, ca
   });
 
   visibilityObserver.observe(elementToBeObserved);
+
+  return visibilityObserver;
 }
 
 /**
