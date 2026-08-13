@@ -72,6 +72,13 @@
       --ht-sort-indicator-offset-end: var(--ht-cell-horizontal-padding);
       // How much room the container holds back for the indicator.
       --ht-sort-indicator-reserve: var(--ht-cell-horizontal-padding);
+      // The same, but only for the inline-end side - the one a trailing button shares. Split from
+      // the value above so the button case can drop it without touching the other sides.
+      --ht-sort-indicator-reserve-end: var(--ht-sort-indicator-reserve);
+      // The room a trailing button needs before it, so the indicator has somewhere to sit. This is
+      // the button's outer box: its border box is `--ht-icon-button-hit-area-size`, pulled back to
+      // the icon size plus 2px by the uniform negative margin it carries (`_dropdown-menu.scss`).
+      --ht-header-button-slot: calc(var(--ht-icon-size, 16px) + 2px);
     }
 
     // A trailing icon button (the dropdown menu's) occupies the corner the indicators are pinned
@@ -80,6 +87,23 @@
     // flex end, which is the only place such a button appears.
     .relative.has-header-button {
       --ht-sort-indicator-offset-end: calc(var(--ht-cell-horizontal-padding) + var(--ht-icon-size, 16px) + 4px);
+
+      // The button's own slot is what separates the label from the indicator here, so the
+      // container must not hold room back as well. Doing both moves the button inwards - it is the
+      // last flex item, so container padding drags it left - until it covers the indicator it was
+      // supposed to step aside for. The button paints on top (`z-index: 1`), so the indicator
+      // simply disappears.
+      --ht-sort-indicator-reserve-end: var(--ht-cell-horizontal-padding);
+    }
+
+    // Hold the indicator's slot open in the flex row. Without it the label's auto margins let the
+    // text run right up to the button, over the indicator pinned in between.
+    // Widening the one gap between the label and the button, rather than giving the button a
+    // margin: the button carries a uniform negative margin of its own, and setting one side of it
+    // here would drop that side's pull-back and make the header measure wider.
+    .relative.has-sort-indicator.has-header-button {
+      // 2px is the base gap between header items (`_base.scss`).
+      column-gap: calc(2px + var(--ht-header-button-slot));
     }
 
     // Room for the sort indicator, reserved on the container instead of as padding on the label.
@@ -92,7 +116,7 @@
     .relative.has-sort-indicator {
       --ht-sort-indicator-reserve: calc(var(--ht-cell-horizontal-padding) + var(--ht-icon-size, 16px) + 2px);
 
-      padding-inline-end: var(--ht-sort-indicator-reserve);
+      padding-inline-end: var(--ht-sort-indicator-reserve-end);
     }
 
     // Two selectors because the room is held on the container itself: `headerClassName` puts the
@@ -103,6 +127,10 @@
     .htRight .relative.has-sort-indicator {
       padding-inline-start: var(--ht-sort-indicator-reserve);
       padding-inline-end: var(--ht-cell-horizontal-padding);
+
+      // The indicator is on the opposite side from the button here, so nothing has to be held open
+      // between the label and the button.
+      --ht-header-button-slot: 0px;
     }
 
     .columnSorting:not(.indicatorDisabled) {
@@ -147,7 +175,10 @@
       .relative.htRight.has-sort-indicator,
       .htRight .relative.has-sort-indicator {
         padding-inline-start: var(--ht-cell-horizontal-padding);
-        padding-inline-end: var(--ht-sort-indicator-reserve);
+        padding-inline-end: var(--ht-sort-indicator-reserve-end);
+
+        // Back on the button's side here, so the slot is needed again - undo the LTR rule above.
+        --ht-header-button-slot: calc(var(--ht-icon-size, 16px) + 2px);
       }
 
       // `htLeft` is the class that points against the direction in RTL, so it is the one that
@@ -156,6 +187,9 @@
       .htLeft .relative.has-sort-indicator {
         padding-inline-start: var(--ht-sort-indicator-reserve);
         padding-inline-end: var(--ht-cell-horizontal-padding);
+
+        // `htLeft` is the side away from the button in RTL, so nothing needs holding open.
+        --ht-header-button-slot: 0px;
       }
 
       .columnSorting {
@@ -196,6 +230,9 @@
   .htGhostTable .htCore .relative {
     --ht-sort-indicator-offset: 0px;
     --ht-sort-indicator-offset-end: 0px;
+    // The indicator is in flow here, so it already occupies its slot - holding one open in front
+    // of the button as well would measure that width twice.
+    --ht-header-button-slot: 0px;
   }
 
   /* The room the container holds back for the indicator is left alone above, because it stands in
@@ -204,6 +241,7 @@
       that case its own gap in the ghost table, so reserving as well counts the indicator twice. */
   .htGhostTable .htCore .relative.has-header-button {
     --ht-sort-indicator-reserve: var(--ht-cell-horizontal-padding);
+    --ht-sort-indicator-reserve-end: var(--ht-cell-horizontal-padding);
   }
 
   .htGhostTable

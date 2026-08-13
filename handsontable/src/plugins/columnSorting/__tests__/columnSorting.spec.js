@@ -3040,6 +3040,39 @@ describe('ColumnSorting', () => {
       expect(headerWidthAtStart).toBeLessThan(newHeaderWidth);
     });
 
+    it('should not let the dropdown menu button cover the sort indicator', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 3),
+        colHeaders: ['Sell date', 'B', 'C'],
+        colWidths: 150,
+        dropdownMenu: true,
+        columnSorting: { initialConfig: { column: 0, sortOrder: 'asc' } },
+      });
+
+      const label = spec().$container.find('th span.colHeader')[0];
+      const container = label.closest('.relative');
+      const containerRect = container.getBoundingClientRect();
+      const indicatorStyle = window.getComputedStyle(label, ':before');
+      const iconSize = parseFloat(
+        window.getComputedStyle(label).getPropertyValue('--ht-icon-size')
+      ) || 16;
+
+      // The indicator is an absolutely positioned pseudo, so its box has to be derived. `.relative`
+      // carries no border, so its client rect edges are the padding box the pseudo resolves against.
+      const marginRight = parseFloat(indicatorStyle.getPropertyValue('margin-right')) || 0;
+      const indicatorRight = containerRect.right -
+        parseFloat(indicatorStyle.getPropertyValue('right')) - marginRight;
+      const indicatorLeft = indicatorRight - iconSize;
+
+      // The button paints above the indicator (`z-index: 1`), so any overlap hides it completely.
+      const button = container.querySelector('.changeType');
+      const buttonRect = button.getBoundingClientRect();
+      const overlap = Math.min(buttonRect.right, indicatorRight) - Math.max(buttonRect.left, indicatorLeft);
+
+      expect(button).not.toBe(null);
+      expect(overlap).toBeLessThanOrEqual(0);
+    });
+
     it('should keep the header text aligned by `headerClassName` when the plugin is enabled', async() => {
       handsontable({
         data: createSpreadsheetData(4, 3),
