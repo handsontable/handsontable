@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test';
 import { test, expect } from '../fixtures/test';
 import { CustomBordersLabPage } from '../fixtures/pages/CustomBordersLabPage';
+import { CustomBordersDemoPage } from '../fixtures/pages/CustomBordersDemoPage';
 
 const GREEN_BORDER = { color: 'green', width: 1 };
 const RED_BORDER = { color: 'red', width: 2 };
@@ -11,8 +12,8 @@ const LIGHT_GREEN_RGB = 'rgb(198, 224, 180)';
 /**
  * Open the lab fixture, which lets each test create the exact grid it needs.
  */
-async function gotoLab(page: Page, theme: string): Promise<CustomBordersLabPage> {
-  const lab = new CustomBordersLabPage(page, theme);
+async function gotoLab(page: Page, theme: string, bundle: string): Promise<CustomBordersLabPage> {
+  const lab = new CustomBordersLabPage(page, theme, bundle);
 
   await lab.goto();
 
@@ -20,130 +21,104 @@ async function gotoLab(page: Page, theme: string): Promise<CustomBordersLabPage>
 }
 
 /**
- * Functional coverage for the CustomBorders viewport working set. The border
- * DOM (`.wtBorder` divs) is created per overlay by the selection manager, so
- * the assertions target the overlay containers directly. Visible border
- * edges carry inline sizes; hidden ones are `display: none`, which the
- * `:visible` filter excludes.
+ * Open the static frozen-areas fixture. Its specs cover the CustomBorders viewport working set:
+ * the border DOM (`.wtBorder` divs) is created per overlay by the selection manager, so the
+ * assertions ask the page object which overlay a border landed in. Visible border edges carry
+ * inline sizes; hidden ones are `display: none`, which the `:visible` filter excludes.
  */
+async function gotoDemo(page: Page, theme: string, bundle: string): Promise<CustomBordersDemoPage> {
+  const demo = new CustomBordersDemoPage(page, theme, bundle);
+
+  await demo.goto();
+
+  return demo;
+}
+
 test.describe('CustomBorders with frozen rows and columns', () => {
-  test.beforeEach(async ({ page, theme }) => {
-    await page.goto(`/tests/fixtures/demo/custom-borders.html?theme=${theme}`);
-    await expect(page.getByTestId('cell-0-2')).toBeVisible();
-  });
+  test('renders borders located in the frozen areas', async ({ page, theme, bundle }) => {
+    const demo = await gotoDemo(page, theme, bundle);
 
-  test('renders borders located in the frozen areas', async ({ page }) => {
     // (0,0) lives in every frozen overlay; (10,0) in inline-start; (0,10) in top.
-    await expect(page.locator('.ht_clone_top_inline_start_corner .wtBorder:visible').first()).toBeVisible();
-    await expect(page.locator('.ht_clone_inline_start .wtBorder:visible').first()).toBeVisible();
-    await expect(page.locator('.ht_clone_top .wtBorder:visible').first()).toBeVisible();
+    await expect(demo.borderIn('corner')).toBeVisible();
+    await expect(demo.borderIn('inlineStart')).toBeVisible();
+    await expect(demo.borderIn('top')).toBeVisible();
     // (10,10) is in the master viewport.
-    await expect(page.locator('.ht_master .wtBorder:visible').first()).toBeVisible();
+    await expect(demo.borderIn('master')).toBeVisible();
   });
 
-  test('keeps the frozen column border rendered after scrolling far right', async ({ page }) => {
+  test('keeps the frozen column border rendered after scrolling far right', async ({ page, theme, bundle }) => {
+    const demo = await gotoDemo(page, theme, bundle);
+
     // Scrolling only the column axis leaves the master row window unchanged, so (10, 0)'s row
     // stays rendered - isolating whether the frozen-start column keeps its border once the
     // master column range moves past col 0. Scrolled far enough (col 90 of 100) that col 10 is
     // out of the master range on every theme.
-    await page.evaluate(() => (window as any).hot.scrollViewportTo({ col: 90 }));
+    await demo.scrollViewportTo({ col: 90 });
     // The frozen column keeps its border even though the master range excludes col 0.
-    await expect(page.locator('.ht_clone_inline_start .wtBorder:visible').first()).toBeVisible();
+    await expect(demo.borderIn('inlineStart')).toBeVisible();
     // (10, 10) is fully unfrozen on both axes and its column scrolled out - its selection must be
-    // culled (virtualization intact). Asserted by id rather than by `customSelections.length`:
-    // the surviving count depends on how many rows/columns a given theme's cell size renders,
-    // so a specific id is the theme-robust signal. `expect.poll` (rather than one `evaluate` read)
-    // tolerates the render/cleanup happening a tick after `scrollViewportTo` resolves.
-    await expect.poll(() => page.evaluate(() =>
-      (window as any).hot.selection.highlight.customSelections
-        .some((s: any) => s.settings?.id === 'border_row10col10'))).toBe(false);
+    // culled (virtualization intact). `expect.poll` (rather than a single read) tolerates the
+    // render/cleanup happening a tick after `scrollViewportTo` resolves.
+    await expect.poll(() => demo.hasRenderedBorder(10, 10)).toBe(false);
     // The frozen-area border under test is still part of the working set.
-    await expect.poll(() => page.evaluate(() =>
-      (window as any).hot.selection.highlight.customSelections
-        .some((s: any) => s.settings?.id === 'border_row10col0'))).toBe(true);
+    await expect.poll(() => demo.hasRenderedBorder(10, 0)).toBe(true);
   });
 
-  test('keeps the frozen row border rendered after scrolling far down', async ({ page }) => {
+  test('keeps the frozen row border rendered after scrolling far down', async ({ page, theme, bundle }) => {
+    const demo = await gotoDemo(page, theme, bundle);
+
     // Scrolling only the row axis leaves the master column window unchanged, so (0, 10)'s column
     // stays rendered - isolating whether the frozen-top row keeps its border once the master row
     // range moves past row 0. Scrolled far enough (row 45 of 50) that row 10 is out of the master
     // range on every theme.
-    await page.evaluate(() => (window as any).hot.scrollViewportTo({ row: 45 }));
+    await demo.scrollViewportTo({ row: 45 });
     // The frozen row keeps its border even though the master range excludes row 0.
-    await expect(page.locator('.ht_clone_top .wtBorder:visible').first()).toBeVisible();
+    await expect(demo.borderIn('top')).toBeVisible();
     // (10, 10) is fully unfrozen on both axes and its row scrolled out - its selection must be
-    // culled (virtualization intact). See the sibling test above for why this is asserted by id,
-    // via `expect.poll`, instead of `customSelections.length`.
-    await expect.poll(() => page.evaluate(() =>
-      (window as any).hot.selection.highlight.customSelections
-        .some((s: any) => s.settings?.id === 'border_row10col10'))).toBe(false);
+    // culled (virtualization intact).
+    await expect.poll(() => demo.hasRenderedBorder(10, 10)).toBe(false);
     // The frozen-area border under test is still part of the working set.
-    await expect.poll(() => page.evaluate(() =>
-      (window as any).hot.selection.highlight.customSelections
-        .some((s: any) => s.settings?.id === 'border_row0col10'))).toBe(true);
+    await expect.poll(() => demo.hasRenderedBorder(0, 10)).toBe(true);
   });
 });
 
 test.describe('CustomBorders and UndoRedo', () => {
-  test.beforeEach(async ({ page, theme }) => {
-    await page.goto(`/tests/fixtures/demo/custom-borders.html?theme=${theme}`);
-    await expect(page.getByTestId('cell-0-2')).toBeVisible();
-  });
+  test('restores a border removed together with its row when the removal is undone', async ({ page, theme, bundle }) => {
+    const demo = await gotoDemo(page, theme, bundle);
 
-  test('restores a border removed together with its row when the removal is undone', async ({ page }) => {
-    const afterRemove = await page.evaluate(() => {
-      const hot = (window as any).hot;
+    await demo.alter('remove_row', 10);
 
-      hot.alter('remove_row', 10);
+    expect(await demo.modelHasBorder(10, 0)).toBe(false);
 
-      return hot.getPlugin('customBorders').getBorders().some((b: any) => b.row === 10 && b.col === 0);
-    });
-
-    expect(afterRemove).toBe(false);
-
-    await page.evaluate(() => (window as any).hot.getPlugin('undoRedo').undo());
+    await demo.undo();
 
     // The border meta is restored asynchronously after the undone row comes back; poll on the
     // plugin model instead of a fixed-time wait.
-    await expect.poll(() => page.evaluate(() =>
-      (window as any).hot.getPlugin('customBorders').getBorders()
-        .some((b: any) => b.row === 10 && b.col === 0))).toBe(true);
-    expect(await page.evaluate(() => Boolean((window as any).hot.getCellMeta(10, 0).borders))).toBe(true);
+    await expect.poll(() => demo.modelHasBorder(10, 0)).toBe(true);
+    expect(await demo.cellHasBordersMeta(10, 0)).toBe(true);
   });
 });
 
 test.describe('CustomBorders selection ownership', () => {
-  test('clearBorders() keeps custom selections the plugin does not own', async ({ page, theme }) => {
-    await page.goto(`/tests/fixtures/demo/custom-borders.html?theme=${theme}`);
-    await expect(page.getByTestId('cell-0-2')).toBeVisible();
+  test('clearBorders() keeps custom selections the plugin does not own', async ({ page, theme, bundle }) => {
+    const demo = await gotoDemo(page, theme, bundle);
 
-    const result = await page.evaluate(() => {
-      const hot = (window as any).hot;
-      const coords = hot._createCellCoords(5, 5);
-
-      hot.selection.highlight.addCustomSelection({
-        border: { width: 2, color: 'orange' },
-        visualCellRange: hot._createCellRange(coords, coords, coords),
-      });
-
-      const beforeClear = hot.selection.highlight.customSelections.length;
-
-      hot.getPlugin('customBorders').clearBorders();
-
-      return { beforeClear, afterClear: hot.selection.highlight.customSelections.length };
-    });
+    await demo.addForeignCustomSelection(5, 5);
 
     // The plugin owned at least one selection alongside the foreign one, so the clear had
     // plugin-owned DOM to remove - without this the test would pass vacuously.
-    expect(result.beforeClear).toBeGreaterThanOrEqual(2);
+    expect(await demo.customSelectionCount()).toBeGreaterThanOrEqual(2);
+
+    await demo.clearBorders();
+
     // Only the foreign selection must survive the plugin's clear.
-    expect(result.afterClear).toBe(1);
+    expect(await demo.customSelectionCount()).toBe(1);
   });
 });
 
 test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', () => {
-  test('moves a border down when a row is inserted above it', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('moves a border down when a row is inserted above it', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 5, dataCols: 3,
@@ -162,8 +137,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     expect(await lab.countVisibleCustomBorders()).toBe(1);
   });
 
-  test('moves a border down by the inserted amount for a multi-row insert', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('moves a border down by the inserted amount for a multi-row insert', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 5, dataCols: 3,
@@ -179,8 +154,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     expect(await lab.countVisibleCustomBorders()).toBe(1);
   });
 
-  test('keeps a border in place when a row is inserted below it at its own index', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('keeps a border in place when a row is inserted below it at its own index', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 5, dataCols: 3,
@@ -196,8 +171,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     expect(await lab.countVisibleCustomBorders()).toBe(1);
   });
 
-  test('moves a border up when a row above it is removed', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('moves a border up when a row above it is removed', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 5, dataCols: 3,
@@ -211,8 +186,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     expect(await lab.countVisibleCustomBorders()).toBe(1);
   });
 
-  test('drops a border when its own row is removed', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('drops a border when its own row is removed', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 5, dataCols: 3,
@@ -227,8 +202,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     expect(await lab.countCustomBorders()).toBe(0);
   });
 
-  test('moves a border right when a column is inserted before it', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('moves a border right when a column is inserted before it', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 3, dataCols: 5,
@@ -243,8 +218,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     expect(await lab.countVisibleCustomBorders()).toBe(1);
   });
 
-  test('moves a border right by the inserted amount for a multi-column insert', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('moves a border right by the inserted amount for a multi-column insert', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 3, dataCols: 5,
@@ -258,8 +233,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     expect(await lab.countVisibleCustomBorders()).toBe(1);
   });
 
-  test('keeps a border in place when a column is inserted after it at its own index', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('keeps a border in place when a column is inserted after it at its own index', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 3, dataCols: 5,
@@ -275,8 +250,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     expect(await lab.countVisibleCustomBorders()).toBe(1);
   });
 
-  test('drops a border when its own column is removed', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('drops a border when its own column is removed', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 3, dataCols: 5,
@@ -291,8 +266,45 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     expect(await lab.countCustomBorders()).toBe(0);
   });
 
-  test('lets the context menu remove a border after it was shifted by a row insert (orphaned id)', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('repaints the column headers after a column insert', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 3,
+      dataCols: 5,
+      colHeaders: ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon'],
+      customBorders: [{ row: 0, col: 3, start: RED_BORDER }],
+    });
+
+    await lab.alter('insert_col_start', 1, 1);
+
+    // The insert splices a `null` into `colHeaders` at index 1, so the new column falls back to
+    // its spreadsheet letter and every later label shifts one column right. A header row the
+    // plugin's structural resync left stale keeps the pre-insert labels and appends the extra
+    // column at the end instead - which silently rebinds every label to the wrong column, so a
+    // click on "Beta" would select the column that now renders "B".
+    expect(await lab.renderedColumnHeaders()).toEqual(['Alpha', 'B', 'Beta', 'Gamma', 'Delta', 'Epsilon']);
+    expect(await lab.renderedColumnHeaders()).toEqual(await lab.apiColumnHeaders());
+  });
+
+  test('repaints the column headers after a column removal', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 3,
+      dataCols: 5,
+      colHeaders: ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon'],
+      customBorders: [{ row: 0, col: 3, start: RED_BORDER }],
+    });
+
+    await lab.alter('remove_col', 1, 1);
+
+    expect(await lab.renderedColumnHeaders()).toEqual(['Alpha', 'Gamma', 'Delta', 'Epsilon']);
+    expect(await lab.renderedColumnHeaders()).toEqual(await lab.apiColumnHeaders());
+  });
+
+  test('lets the context menu remove a border after it was shifted by a row insert (orphaned id)', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 5, dataCols: 3,
@@ -312,8 +324,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     expect(await lab.countCustomBorders()).toBe(0);
   });
 
-  test('keeps a border on its cell when the row is moved with manualRowMove', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('keeps a border on its cell when the row is moved with manualRowMove', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 5, dataCols: 3,
@@ -333,8 +345,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     expect(await lab.countVisibleCustomBorders()).toBe(1);
   });
 
-  test('keeps borders on their data cells when multiple rows are moved in one batch', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('keeps borders on their data cells when multiple rows are moved in one batch', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 5, dataCols: 3,
@@ -375,8 +387,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     }
   });
 
-  test('keeps a border on its cell when the column is moved with manualColumnMove', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('keeps a border on its cell when the column is moved with manualColumnMove', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 3, dataCols: 5,
@@ -396,8 +408,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     expect(await lab.countVisibleCustomBorders()).toBe(1);
   });
 
-  test('moves a border back on undo of a row insert and forward again on redo', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('moves a border back on undo of a row insert and forward again on redo', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 5, dataCols: 3,
@@ -420,8 +432,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     expect((await lab.cellBorders(4, 0))?.top).toEqual(GREEN_BORDER);
   });
 
-  test('keeps the range border edges aligned across corner and middle cells after an insert', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('keeps the range border edges aligned across corner and middle cells after an insert', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 10, dataCols: 6,
@@ -450,8 +462,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     expect(Math.abs(cornerTop - middleTop)).toBeLessThanOrEqual(1);
   });
 
-  test('keeps a border on its data cell when a row is inserted with trimmed rows active', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('keeps a border on its data cell when a row is inserted with trimmed rows active', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 6, dataCols: 3,
@@ -473,8 +485,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     expect(await lab.countVisibleCustomBorders()).toBe(1);
   });
 
-  test('keeps a border on its data cell when a row is removed with trimmed rows active', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('keeps a border on its data cell when a row is removed with trimmed rows active', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 6, dataCols: 3,
@@ -493,8 +505,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
     expect(await lab.countVisibleCustomBorders()).toBe(1);
   });
 
-  test('keeps a border on its data cell when a row is inserted with hidden rows active', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('keeps a border on its data cell when a row is inserted with hidden rows active', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 6, dataCols: 3,
@@ -514,8 +526,8 @@ test.describe('CustomBorders structural changes (issues #11031, #6063, #3296)', 
 });
 
 test.describe('CustomBorders range with a `border` object (issue #6679)', () => {
-  test('applies the range-level `border` style to empty sides instead of the default', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('applies the range-level `border` style to empty sides instead of the default', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 5, dataCols: 5,
@@ -543,8 +555,8 @@ test.describe('CustomBorders range with a `border` object (issue #6679)', () => 
     expect(colors).not.toContain('rgb(0, 0, 0)');
   });
 
-  test('keeps the borders from both ranges where two ranges overlap', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('keeps the borders from both ranges where two ranges overlap', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 6, dataCols: 6,
@@ -582,8 +594,8 @@ test.describe('CustomBorders range with a `border` object (issue #6679)', () => 
     expect(colors).toContain(DARK_GREEN_RGB);
   });
 
-  test('aligns edges and stacks deterministically where ranges of different widths overlap', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('aligns edges and stacks deterministically where ranges of different widths overlap', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 8, dataCols: 8,
@@ -627,8 +639,8 @@ test.describe('CustomBorders range with a `border` object (issue #6679)', () => 
       .toBeLessThanOrEqual(Math.round(await lab.outerRightNear(3, 5, LIGHT_GREEN_RGB, false)));
   });
 
-  test('does not leave a border edge sticking out into a column inserted inside a range', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('does not leave a border edge sticking out into a column inserted inside a range', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 8, dataCols: 10,
@@ -656,8 +668,8 @@ test.describe('CustomBorders range with a `border` object (issue #6679)', () => 
 });
 
 test.describe('CustomBorders range borders in RTL (issue #6679)', () => {
-  test('aligns edges and stacks deterministically where ranges of different widths overlap', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('aligns edges and stacks deterministically where ranges of different widths overlap', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 8, dataCols: 8,
@@ -700,8 +712,8 @@ test.describe('CustomBorders range borders in RTL (issue #6679)', () => {
       .toBeGreaterThanOrEqual(Math.round(await lab.outerLeftNear(3, 5, LIGHT_GREEN_RGB, false)));
   });
 
-  test('does not leave a border edge sticking out into a column inserted inside a range', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('does not leave a border edge sticking out into a column inserted inside a range', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 8, dataCols: 10,
@@ -730,8 +742,8 @@ test.describe('CustomBorders range borders in RTL (issue #6679)', () => {
 });
 
 test.describe('CustomBorders external cell-meta writes', () => {
-  test('syncs a user-authored partial borders meta write into the model and renders it', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('syncs a user-authored partial borders meta write into the model and renders it', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 5, dataCols: 5,
@@ -752,8 +764,8 @@ test.describe('CustomBorders external cell-meta writes', () => {
     expect(await lab.countVisibleCustomBorders()).toBe(1);
   });
 
-  test('replaces the cell borders with the written value (meta write semantics)', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('replaces the cell borders with the written value (meta write semantics)', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 5, dataCols: 5,
@@ -778,8 +790,8 @@ test.describe('CustomBorders external cell-meta writes', () => {
     expect(await lab.countVisibleCustomBorders()).toBe(1);
   });
 
-  test('clears the model entry when a meta write leaves no visible side', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('clears the model entry when a meta write leaves no visible side', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 5, dataCols: 5,
@@ -805,8 +817,8 @@ test.describe('CustomBorders external cell-meta writes', () => {
 });
 
 test.describe('CustomBorders border DOM working set', () => {
-  test('does not materialize custom border DOM in header-only overlays', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('does not materialize custom border DOM in header-only overlays', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 5, dataCols: 5,
@@ -824,8 +836,8 @@ test.describe('CustomBorders border DOM working set', () => {
     expect(await lab.countCustomBordersIn('.ht_clone_top_inline_start_corner')).toBe(0);
   });
 
-  test('materializes a border again when its hidden row is shown', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('materializes a border again when its hidden row is shown', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await lab.createGrid({
       dataRows: 6, dataCols: 3,
@@ -868,8 +880,8 @@ test.describe('CustomBorders progressive application (customBordersProgressive)'
     }));
   }
 
-  test('fires afterCustomBordersUpdate synchronously when progressive is disabled (default)', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('fires afterCustomBordersUpdate synchronously when progressive is disabled (default)', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     const modelSizeAtInit = await lab.createGrid({
       dataRows: 4, dataCols: 4,
@@ -883,8 +895,8 @@ test.describe('CustomBorders progressive application (customBordersProgressive)'
     expect((await lab.cellBorders(1, 1))?.top).toEqual(GREEN_BORDER);
   });
 
-  test('defers border application and applies it in the background when enabled', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('defers border application and applies it in the background when enabled', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     const modelSizeAtInit = await lab.createGrid({
       dataRows: 20, dataCols: 4,
@@ -899,14 +911,19 @@ test.describe('CustomBorders progressive application (customBordersProgressive)'
     // Once the queue drains, the completion hook fires exactly once and the full configuration
     // is applied - identical to the synchronous path.
     await expect.poll(() => lab.bordersUpdateCount()).toBe(1);
+    // The poll resolves the instant the counter reaches 1, which alone would not catch a second
+    // fire a macrotask later. Re-read past the batch timers to make "exactly once" an assertion
+    // rather than a claim.
+    await macrotaskBarrier(page);
+    expect(await lab.bordersUpdateCount()).toBe(1);
     expect((await lab.borderCoords()).length).toBe(20);
     expect((await lab.cellBorders(0, 0))?.top).toEqual(GREEN_BORDER);
     expect((await lab.cellBorders(19, 0))?.top).toEqual(GREEN_BORDER);
     expect(await lab.countVisibleCustomBorders()).toBeGreaterThan(0);
   });
 
-  test('defers border application with the plain boolean `true` form', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('defers border application with the plain boolean `true` form', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     const modelSizeAtInit = await lab.createGrid({
       dataRows: 20, dataCols: 4,
@@ -919,12 +936,15 @@ test.describe('CustomBorders progressive application (customBordersProgressive)'
     expect(modelSizeAtInit).toBe(0);
 
     await expect.poll(() => lab.bordersUpdateCount()).toBe(1);
+    // Same as above: prove "once", not "reached once".
+    await macrotaskBarrier(page);
+    expect(await lab.bordersUpdateCount()).toBe(1);
     expect((await lab.borderCoords()).length).toBe(20);
     expect((await lab.cellBorders(19, 0))?.top).toEqual(GREEN_BORDER);
   });
 
-  test('cancels an in-flight progressive load when the configuration is replaced', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('cancels an in-flight progressive load when the configuration is replaced', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     // The load must still be in flight when the configuration is replaced, so both steps run
     // in one synchronous evaluate - no batch can land in between.
@@ -956,8 +976,8 @@ test.describe('CustomBorders progressive application (customBordersProgressive)'
     expect(await lab.borderCoords()).toEqual([{ row: 5, col: 1 }]);
   });
 
-  test('flushes an in-flight progressive load synchronously when a structural change arrives', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('flushes an in-flight progressive load synchronously when a structural change arrives', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     // The alter must land while batches are still pending, so setup and alter run in one
     // synchronous evaluate; the model state is captured in the same breath.
@@ -998,10 +1018,67 @@ test.describe('CustomBorders progressive application (customBordersProgressive)'
     await macrotaskBarrier(page);
     expect(await lab.bordersUpdateCount()).toBe(1);
     expect((await lab.borderCoords()).length).toBe(20);
+
+    // The model alone cannot prove the flush happened at the right moment: the core shifts the cell
+    // meta before it fires `afterCreateRow`, so a queue drained from there writes its meta at
+    // pre-shift coordinates and only the model gets remapped. Pin both.
+    expect((await lab.cellBorders(0, 0))?.top).toEqual(GREEN_BORDER);
+    // Row 1 is the inserted row - it was never a target.
+    expect(await lab.cellBorders(1, 0)).toBeNull();
+    // Configured row 1 now lives on row 2, and configured row 19 on row 20.
+    expect((await lab.cellBorders(2, 0))?.top).toEqual(GREEN_BORDER);
+    expect((await lab.cellBorders(20, 0))?.top).toEqual(GREEN_BORDER);
   });
 
-  test('cancels an in-flight progressive load without firing the hook when the plugin is disabled', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('applies a customBordersProgressive-only settings change', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 20, dataCols: 4,
+      customBorders: bordersForRows(20),
+    });
+
+    // Switching only the progressive flag has to reach the plugin. `SETTING_KEYS` decides that:
+    // with the inherited default (the plugin key alone) this update is ignored and the option
+    // stays inert until an unrelated `customBorders` update happens to come along.
+    const modelSizeAfterUpdate = await page.evaluate(() => {
+      (window as any).hot.updateSettings({ customBordersProgressive: { chunkSize: 5 } });
+
+      return (window as any).hot.getPlugin('customBorders').getBorders().length;
+    });
+
+    // Re-applied progressively, so the model is empty right after the update and fills in later.
+    expect(modelSizeAfterUpdate).toBe(0);
+    await expect.poll(() => lab.borderCoords().then(coords => coords.length)).toBe(20);
+    expect((await lab.cellBorders(19, 0))?.top).toEqual(GREEN_BORDER);
+  });
+
+  test('keeps meta and model in step when a removal arrives mid-load', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await page.evaluate(() => {
+      (window as any).createHot({
+        dataRows: 20, dataCols: 4,
+        customBorders: Array.from({ length: 20 }, (_, row) => (
+          { row, col: 0, top: { color: 'green', width: 1 } }
+        )),
+        customBordersProgressive: { chunkSize: 5 },
+      });
+      (window as any).hot.alter('remove_row', 1, 1);
+    });
+
+    await expect(lab.cellInMaster(0, 0)).toBeVisible();
+
+    // Configured row 0 stays put; row 1 is gone with its row; rows 2..19 shift up by one.
+    expect((await lab.borderCoords()).length).toBe(19);
+    expect((await lab.cellBorders(0, 0))?.top).toEqual(GREEN_BORDER);
+    expect((await lab.cellBorders(1, 0))?.top).toEqual(GREEN_BORDER);
+    expect((await lab.cellBorders(18, 0))?.top).toEqual(GREEN_BORDER);
+    expect(await lab.cellBorders(19, 0)).toBeNull();
+  });
+
+  test('cancels an in-flight progressive load without firing the hook when the plugin is disabled', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     const result = await page.evaluate(() => {
       const config = Array.from({ length: 20 }, (_, row) => (
@@ -1035,8 +1112,8 @@ test.describe('CustomBorders progressive application (customBordersProgressive)'
     expect(await lab.countVisibleCustomBorders()).toBe(0);
   });
 
-  test('cancels an in-flight progressive load without firing the hook when the instance is destroyed', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('cancels an in-flight progressive load without firing the hook when the instance is destroyed', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     await page.evaluate(() => {
       const config = Array.from({ length: 20 }, (_, row) => (
@@ -1058,8 +1135,8 @@ test.describe('CustomBorders progressive application (customBordersProgressive)'
 });
 
 test.describe('CustomBorders initialization render timing', () => {
-  test('does not leak dropdown-menu buttons into upper nested-header rows on init', async ({ page, theme }) => {
-    const lab = await gotoLab(page, theme);
+  test('does not leak dropdown-menu buttons into upper nested-header rows on init', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
 
     // CustomBorders' `init` handler runs before NestedHeaders builds its header tree (plugin
     // priority 90 vs 280). A render forced from that handler paints a single-row thead, and
@@ -1082,5 +1159,125 @@ test.describe('CustomBorders initialization render timing', () => {
     await expect(lab.headerDropdownButtons(2)).toHaveCount(6);
     // ...and the group row must have none.
     await expect(lab.headerDropdownButtons(1)).toHaveCount(0);
+  });
+});
+
+test.describe('CustomBorders viewport sync timing', () => {
+  test('redraws a frozen-column border that scrolls back into the rendered range', async ({ page, theme, bundle }) => {
+    const lab = new CustomBordersLabPage(page, theme, bundle);
+
+    await lab.goto();
+
+    // With frozen columns the grid's own (0, 0) lives in the inline-start clone, so the lab's
+    // master-cell readiness check does not apply here.
+    await page.evaluate(border => (window as any).createHot({
+      dataRows: 100,
+      dataCols: 20,
+      fixedColumnsStart: 2,
+      customBorders: [{ row: 10, col: 0, start: border }],
+    }), RED_BORDER);
+    await expect(page.locator('.ht_clone_inline_start').getByTestId('cell-0-0')).toBeVisible();
+
+    const frozenColumn = page.locator('.ht_clone_inline_start');
+
+    // Scroll the bordered row out of the rendered band - the selection is culled...
+    await page.evaluate(() => (window as any).hot.scrollViewportTo({ row: 90 }));
+    await expect(frozenColumn.getByTestId('cell-10-0')).toHaveCount(0);
+    expect(await frozenColumn.locator('.wtBorder:visible').count()).toBe(0);
+
+    // ...and back in, which recreates it. The recreated selection has to be picked up by the
+    // overlay clones in the same draw: the clones draw their selections before the master draws
+    // its own, so a sync running between those two would paint the border in the master only and
+    // leave the frozen column blank until an unrelated render happened to come along. Once the
+    // clone has re-rendered the bordered cell, that draw is over - the border must already be
+    // there, with no further render to wait for.
+    await page.evaluate(() => (window as any).hot.scrollViewportTo({ row: 10 }));
+    await expect(frozenColumn.getByTestId('cell-10-0')).toBeVisible();
+
+    expect(await frozenColumn.locator('.wtBorder:visible').count()).toBeGreaterThan(0);
+  });
+
+  test('draws an externally written border without waiting for a further render', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 10, dataCols: 10,
+      customBorders: [{ row: 0, col: 0, start: RED_BORDER }],
+    });
+
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+
+    // No explicit `hot.render()` here, unlike the other external-write tests: `setCellMeta` does
+    // not render on its own, and syncing the model drops the cell's current border DOM so the
+    // viewport sync can rebuild it. The cell must not be left blank in between.
+    await page.evaluate(() => (window as any).hot
+      .setCellMeta(0, 0, 'borders', { top: { width: 2, color: 'blue' } }));
+
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+    expect((await lab.cellBorders(0, 0))?.top).toEqual({ width: 2, color: 'blue' });
+  });
+});
+
+test.describe('CustomBorders and vetoed cell-meta writes', () => {
+  test('keeps the border out of the model when the meta write is blocked', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({ dataRows: 10, dataCols: 10 });
+
+    // An app can block meta writes on locked cells. The plugin must not record a border whose cell
+    // meta was never written - `getBorders()` and `getCellMeta().borders` would then disagree.
+    await page.evaluate(() => (window as any).hot.addHook('beforeSetCellMeta', () => false));
+
+    await page.evaluate(() => (window as any).hot.getPlugin('customBorders')
+      .setBorders([[2, 2, 2, 2]], { top: { width: 2, color: 'red' } }));
+
+    expect(await lab.cellBorders(2, 2)).toBeNull();
+    expect(await lab.borderCoords()).toEqual([]);
+    expect(await lab.countVisibleCustomBorders()).toBe(0);
+  });
+
+  test('keeps the border in the model when the meta removal is blocked', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 10, dataCols: 10,
+      customBorders: [{ row: 2, col: 2, top: RED_BORDER }],
+    });
+
+    await page.evaluate(() => (window as any).hot.addHook('beforeRemoveCellMeta', () => false));
+
+    await page.evaluate(() => (window as any).hot.getPlugin('customBorders').clearBorders());
+
+    // The removal was vetoed, so the cell keeps its meta - and therefore its model entry.
+    expect((await lab.cellBorders(2, 2))?.top).toEqual(RED_BORDER);
+    expect(await lab.borderCoords()).toEqual([{ row: 2, col: 2 }]);
+  });
+});
+
+test.describe('CustomBorders row index maintenance', () => {
+  test('keeps the rendered set correct across repeated add, restyle and remove', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 10, dataCols: 10,
+      customBorders: [{ row: 1, col: 1, top: RED_BORDER }],
+    });
+
+    const plugin = (fn: string, args: unknown[]) => page.evaluate(
+      ([name, a]) => (window as any).hot.getPlugin('customBorders')[name as string](...(a as unknown[])),
+      [fn, args] as const);
+
+    // The row index is patched per border rather than rebuilt from the whole model, so an add, a
+    // restyle of the same cell and a removal all have to leave it consistent.
+    await plugin('setBorders', [[[3, 3, 3, 3]], { top: GREEN_BORDER }]);
+    expect(await lab.countVisibleCustomBorders()).toBe(2);
+
+    await plugin('setBorders', [[[3, 3, 3, 3]], { top: RED_BORDER }]);
+    expect(await lab.countVisibleCustomBorders()).toBe(2);
+    expect((await lab.cellBorders(3, 3))?.top).toEqual(RED_BORDER);
+
+    await plugin('setBorders', [[[3, 3, 3, 3]]]);
+    expect(await lab.countVisibleCustomBorders()).toBe(1);
+    expect(await lab.borderCoords()).toEqual([{ row: 1, col: 1 }]);
   });
 });
