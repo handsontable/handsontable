@@ -35,6 +35,17 @@ const server = createServer(async (req, res) => {
       res.writeHead(403).end('Forbidden');
       return;
     }
+    // CI parity: the CI job installs only the filtered handsontable-tests
+    // workspace, so no other package's node_modules exists there. Refuse them
+    // here too (404, exactly what CI produces) — a fixture referencing e.g.
+    // /handsontable/node_modules/… must fail locally the same way it fails in
+    // CI, instead of passing against the full local workspace install.
+    // Fixture-served libraries belong in THIS package (see tests/AGENTS.md).
+    const segments = path.relative(ROOT, filePath).split(path.sep);
+    if (segments.includes('node_modules') && !(segments[0] === 'tests' && segments[1] === 'node_modules')) {
+      res.writeHead(404).end('Not found (node_modules outside tests/ are not served — CI parity)');
+      return;
+    }
     const body = await readFile(filePath);
     res.writeHead(200, { 'Content-Type': TYPES[path.extname(filePath)] || 'application/octet-stream' });
     res.end(body);

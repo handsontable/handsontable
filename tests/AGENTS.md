@@ -36,9 +36,12 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   for you, this tier does not).
 - A fixture-served library MUST be a dependency of THIS package, loaded from
   `/tests/node_modules/…` — CI installs only the filtered `handsontable-tests`
-  workspace, so a path into another package's `node_modules` 404s in CI while
-  passing locally against a full install (the HyperFormula script is the
-  example).
+  workspace, so a path into any other package's `node_modules` does not exist
+  there (and the static server refuses it locally too, for CI parity). Keep
+  such ranges in lockstep with the owning package — `hyperformula` matches the
+  `handsontable` package's `^3.0.0`; if the ranges ever diverge, the lockfile
+  grows a second hyperformula entry and the `umd` legs test a different engine
+  version than the one baked into `full.min`.
 - The green-run cache (`scripts/e2e-run-cache.mjs`) hashes BOTH bundles plus
   every file under `fixtures/`; rebuilding either bundle re-runs affected
   specs. Do not narrow that hash.
