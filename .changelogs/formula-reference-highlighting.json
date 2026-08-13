@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Added colored formula reference highlighting in the cell editor and matching cell-range borders on the grid when the Formulas plugin is enabled.",
-  "type": "added",
-  "issueOrPR": 0,
-  "breaking": false,
-  "framework": "none"
-}

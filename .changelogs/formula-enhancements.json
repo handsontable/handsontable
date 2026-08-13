@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "public",
+  "title": "Added formula reference highlighting and insertion while editing. References are color-matched in the editor and on the grid, and you can click or drag cells, row headers, and column headers to insert A1-style references into the active formula.",
+  "type": "added",
+  "issueOrPR": 0,
+  "breaking": false,
+  "framework": "none"
+}

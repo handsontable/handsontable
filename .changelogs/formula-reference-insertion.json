@@ -1,8 +1,0 @@
-{
-  "issuesOrigin": "public",
-  "title": "Added formula reference insertion while editing. Click or drag cells, row headers, and column headers on the same sheet to insert A1-style references into the active formula editor.",
-  "type": "added",
-  "issueOrPR": 0,
-  "breaking": false,
-  "framework": "none"
-}
