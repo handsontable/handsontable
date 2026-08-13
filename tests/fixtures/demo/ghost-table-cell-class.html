@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GhostTable cell className e2e fixture</title>
+  <link rel="stylesheet" href="/handsontable/styles/handsontable.min.css">
+  <script>
+    // Theme and bundle come from the ?theme=/?bundle= query params set by the
+    // Playwright projects, mapped through fixed allowlists to LITERALS so a
+    // crafted param can never be reflected into the document — no XSS. An
+    // ABSENT param keeps the default (main / plain UMD) so the fixture stays
+    // browsable by hand; an unknown value THROWS instead of falling back — a
+    // typo in the project config must be one red leg, never a silently
+    // mislabeled green one (nothing else asserts which file actually loaded).
+    const htParams = new URLSearchParams(location.search);
+
+    window.htTheme = ({ main: 'main', horizon: 'horizon', classic: 'classic' })[htParams.get('theme') ?? 'main'];
+    if (!window.htTheme) {
+      throw new Error('Unknown ?theme= value: ' + JSON.stringify(htParams.get('theme')));
+    }
+    document.write('<link rel="stylesheet" href="/handsontable/styles/ht-theme-' + window.htTheme + '.min.css">');
+    // 1:1 with the Puppeteer legs (umd = handsontable.js, full-min =
+    // handsontable.full.min.js, the exact file `test:production` loads).
+    window.htBundle = ({ umd: 'handsontable.js', 'full-min': 'handsontable.full.min.js' })[htParams.get('bundle') ?? 'umd'];
+    if (!window.htBundle) {
+      throw new Error('Unknown ?bundle= value: ' + JSON.stringify(htParams.get('bundle')));
+    }
+  </script>
+  <style>
+    body { font-family: sans-serif; margin: 1rem; }
+    /*
+      Geometry-affecting styling applied ONLY through the per-cell `className`. Padding, not
+      font-size: the growth is then an exact number of pixels on every theme and every runner,
+      independent of font metrics. `!important` is required — the theme's own td padding rule
+      out-specifies a bare class selector, which is the same trap the original client repro hit.
+    */
+    .e2e-tall-cell { padding-top: 20px !important; padding-bottom: 20px !important; }
+    .e2e-wide-cell { padding-left: 40px !important; padding-right: 40px !important; }
+  </style>
+</head>
+<body>
+  <!--
+    A per-cell CSS class changes the cell's geometry. Both auto-size plugins measure samples in a
+    hidden GhostTable, and that table must carry the same className as the real cell — otherwise
+    AutoRowSize under-measures the row (the row-header overlay then renders shorter than the master
+    and every row below it drifts: DEV-2126) and AutoColumnSize under-measures the column.
+  -->
+  <div id="grid" data-testid="grid"></div>
+
+  <script>
+    // The bundle under test, selected above from the sanitized allowlist. The
+    // closing tag is split so the HTML parser does not end THIS script block.
+    document.write('<scr' + 'ipt src="/handsontable/dist/' + window.htBundle + '"></scr' + 'ipt>');
+  </script>
+  <script>
+    const container = document.querySelector('[data-testid="grid"]');
+
+    container.className = `ht-theme-${window.htTheme}`;
+
+    // Columns 1 and 2 hold same-length content, so any width difference between them comes from
+    // the class on (0, 1) and nothing else.
+    const TALL_ROW = 2;
+    const WIDE_COLUMN = 1;
+
+    const testIdRenderer = function(instance, td, row, col, prop, value, cellProperties) {
+      Handsontable.renderers.TextRenderer.apply(this, arguments);
+      td.setAttribute('data-testid', `cell-${row}-${col}`);
+
+      if (td.parentNode) {
+        td.parentNode.setAttribute('data-testid', `row-${row}`);
+      }
+    };
+
+    // The row headers live in the inline-start overlay, whose rows carry no data cell to stamp.
+    // Stamp them from the row-header renderer instead, so the page object can address a row in
+    // BOTH tables the same way.
+    const rowHeaderRenderer = function(row, th) {
+      th.textContent = row + 1;
+
+      if (th.parentNode) {
+        th.parentNode.setAttribute('data-testid', `row-${row}`);
+      }
+    };
+
+    const hot = new Handsontable(container, {
+      data: [
+        ['A1', 'B1', 'C1'],
+        ['A2', 'B2', 'C2'],
+        ['A3', 'B3', 'C3'],
+        ['A4', 'B4', 'C4'],
+        ['A5', 'B5', 'C5'],
+      ],
+      colHeaders: true,
+      rowHeaders: true,
+      autoRowSize: true,
+      autoColumnSize: true,
+      renderer: testIdRenderer,
+      afterGetRowHeaderRenderers(renderers) {
+        renderers.push(rowHeaderRenderer);
+      },
+      cells(row, col) {
+        if (row === TALL_ROW && col === 0) {
+          return { className: 'e2e-tall-cell' };
+        }
+
+        if (row === 0 && col === WIDE_COLUMN) {
+          return { className: 'e2e-wide-cell' };
+        }
+
+        return {};
+      },
+      licenseKey: 'non-commercial-and-evaluation',
+    });
+
+    window.hot = hot;
+  </script>
+</body>
+</html>
