@@ -32,7 +32,7 @@ In this tutorial, you will integrate Handsontable into a React app with Fluent U
 ></iframe>
 
 [**Open in sandbox**](https://demos.handsontable.com/?example=fluent-ui&v={{$currentVersion}})
-[**View source on GitHub**](https://github.com/handsontable/examples/tree/master/examples/fluent-ui)
+[**View source on GitHub**](https://github.com/handsontable/examples/tree/{{$examplesBranch}}/examples/fluent-ui)
 
 ## Overview
 

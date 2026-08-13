@@ -10,8 +10,8 @@
 import { readdirSync, readFileSync, existsSync, statSync } from 'fs';
 import { join, relative, dirname } from 'path';
 import matter from 'gray-matter';
-import { CURRENT_DOCS_VERSION, CURRENT_DOCS_MINOR_VERSION } from './docs-version.mjs';
-import { LATEST_CHANGELOG_MAJOR } from './changelog-parser.mjs';
+import { CURRENT_DOCS_VERSION } from './docs-version.mjs';
+import { replaceTemplateVariables } from './template-variables.mjs';
 import { convertAsideBodyMarkdown } from './aside-inline-markdown.mjs';
 import { loadVersionHighlights } from './version-highlights-loader.mjs';
 
@@ -1154,25 +1154,12 @@ function applyVuepressPreprocessing(content, prefix, contentDir) {
   // Fix $withBase('/path') → /path
   result = result.replace(/\$withBase\s*\(\s*['"]?([^'")\s]+)['"]?\s*\)/g, '$1');
 
-  // Fix {{$basePath}} → '' (VuePress versioned-base template variable)
-  result = result.replace(/\{\{\s*\$basePath\s*\}\}/g, '');
-
-  // Fix {{$currentVersion}} → resolved Handsontable version string.
-  // Production builds use the package.json version (e.g. "17.0.1").
-  // Staging/dev builds use "0.0.0-next-{shortSHA}-{YYYYMMDD}" so that
-  // CodeSandbox links resolve to the correct in-progress build artifact.
-  result = result.replace(/\{\{\s*\$currentVersion\s*\}\}/g, CURRENT_DOCS_VERSION);
-
-  // Fix {{$currentMinorVersion}} → GitHub branch path for source-code links.
-  // Production builds produce "prod-docs/X.Y" (e.g. "prod-docs/17.1").
-  // Staging/dev builds resolve to "develop" (no prod-docs/ prefix, since
-  // the prod-docs/develop branch does not exist).
-  result = result.replace(/\{\{\s*\$currentMinorVersion\s*\}\}/g, CURRENT_DOCS_MINOR_VERSION);
-
-  // Fix {{$latestChangelogVersion}} → highest existing changelog-N major version.
-  // Keeps the Introduction page's "Changelog" link current without manual edits
-  // on every major release.
-  result = result.replace(/\{\{\s*\$latestChangelogVersion\s*\}\}/g, String(LATEST_CHANGELOG_MAJOR));
+  // Resolve every template variable ({{$basePath}}, {{$currentVersion}},
+  // {{$currentMinorVersion}}, {{$examplesBranch}}, {{$latestChangelogVersion}}).
+  // See template-variables.mjs for what each one resolves to and why. This must
+  // stay above the @/...md link resolution below - {{$latestChangelogVersion}} is
+  // used inside such a link, which cannot resolve while it is still a placeholder.
+  result = replaceTemplateVariables(result);
 
   // Transform @/framework/path.md links to absolute Starlight URLs using permalinks.
   // When prefix/contentDir are available (framework pages), do full permalink resolution.

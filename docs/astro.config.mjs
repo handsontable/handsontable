@@ -7,6 +7,7 @@ import sitemap from '@astrojs/sitemap';
 import { pluginLineNumbers } from '@expressive-code/plugin-line-numbers';
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
 import { vuepressPreprocessor } from './src/plugins/vuepress-preprocessor.mjs';
+import { replaceTemplateVariables } from './src/plugins/template-variables.mjs';
 import { rehypeTableWrapper } from './src/plugins/rehype-table-wrapper.mjs';
 import { rehypeMigrationSteps } from './src/plugins/rehype-migration-steps.mjs';
 import { replaceHasSelectors } from './src/plugins/replace-has-selectors.mjs';
@@ -556,6 +557,20 @@ function markdownRoutesIntegration() {
   const publicMdDir = resolve(__dirname, 'public', '_md');
   const PREFIXES = ['javascript-data-grid', 'react-data-grid', 'angular-data-grid'];
 
+  /**
+   * Assembles one output file: an H1 from the frontmatter title, then the body
+   * with its template variables resolved. Without the substitution a reader
+   * copying the Markdown of a page gets a literal `{{$examplesBranch}}` (or
+   * `{{$currentMinorVersion}}`) instead of a working link.
+   *
+   * @param {string} title The page title from frontmatter.
+   * @param {string} content The page body, frontmatter already stripped.
+   * @returns {string}
+   */
+  function buildMarkdown(title, content) {
+    return replaceTemplateVariables(`# ${title}\n\n${content.trim()}`);
+  }
+
   function buildRouteMap() {
     const routeMap = new Map();
 
@@ -585,14 +600,14 @@ function markdownRoutesIntegration() {
         const rel = relative(contentDir, full);
 
         if (rel === 'index.md') {
-          routeMap.set('index.md', `# ${data.title}\n\n${content.trim()}`);
+          routeMap.set('index.md', buildMarkdown(data.title, content));
           continue;
         }
 
         if (!data.permalink) continue;
 
         const slug = data.permalink.replace(/^\//, '').replace(/\/$/, '') || 'index';
-        const md = `# ${data.title}\n\n${content.trim()}`;
+        const md = buildMarkdown(data.title, content);
 
         for (const prefix of PREFIXES) {
           routeMap.set(`${prefix}/${slug}.md`, md);

@@ -1152,7 +1152,7 @@ The **Formulas** plugin uses [HyperFormula](https://hyperformula.handsontable.co
 1. Install HyperFormula in your project (e.g. `npm install hyperformula`).
 2. Import HyperFormula and pass it to the Formulas plugin with `licenseKey: 'internal-use-in-handsontable'`.
 
-See the [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md) guide for configuration details.
+See the [Formulas installation](@/guides/formulas/installation/installation.md) guide to install and license HyperFormula, and the [Formula calculation](@/guides/formulas/formula-calculation/formula-calculation.md) guide for configuration details.
 
 ## Summary of breaking changes
 
