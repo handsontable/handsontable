@@ -38,7 +38,7 @@ This tutorial shows you how to integrate Handsontable into a React app that uses
 ></iframe>
 
 [**Open in sandbox**](https://demos.handsontable.com/?example=base-web&v={{$currentVersion}})
-[**View source on GitHub**](https://github.com/handsontable/examples/tree/master/examples/base-web)
+[**View source on GitHub**](https://github.com/handsontable/examples/tree/{{$examplesBranch}}/examples/base-web)
 
 ## Overview
 
