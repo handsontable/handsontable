@@ -17,6 +17,7 @@
       flex-grow: 0;
       // Auto margins on both sides keep the label centred, and hand the free space to the
       // header rather than to one edge - the same place the text sat when the label filled it.
+      // `htLeft`/`htRight` move the box instead; see below.
       margin-inline: auto;
       // Never collapse the label to nothing in a narrow column, and never let it grow past the
       // header, which would push the indicator outside the cell.
@@ -36,6 +37,24 @@
         margin-inline: var(--ht-sort-indicator-offset);
         margin-inline-end: var(--ht-sort-indicator-offset-end);
       }
+    }
+
+    // A left- or right-aligned header used to place its text through `text-align` on a label that
+    // filled the whole cell. The label is now sized to its text, and auto margins on both sides
+    // would centre it - so the alignment has to move the box itself or every aligned header
+    // renders centred. Physical margins, because `htLeft`/`htRight` are physical too: they mean
+    // the left and right edge in either direction.
+    // Matched as an ancestor, the way the indicator rules below already are, because
+    // `headerClassName` puts these classes on the `.relative` container while code that sets them
+    // by hand tends to put them on the `th` - both are ancestors of the label.
+    .htLeft .colHeader.columnSorting.sortAction {
+      margin-left: 0;
+      margin-right: auto;
+    }
+
+    .htRight .colHeader.columnSorting.sortAction {
+      margin-left: auto;
+      margin-right: 0;
     }
 
     // The three distances the indicator needs, carried as custom properties rather than written
@@ -76,9 +95,12 @@
       padding-inline-end: var(--ht-sort-indicator-reserve);
     }
 
-    // Kept on `th` rather than the bare class: `htRight` is a user-supplied class name that can
-    // also sit on an ancestor, and this must only react to it on the header cell itself.
-    th.htRight .relative.has-sort-indicator {
+    // Two selectors because the room is held on the container itself: `headerClassName` puts the
+    // alignment class on that same `.relative`, while code that sets it by hand tends to put it on
+    // the `th`. A descendant selector alone would miss the first, which is the one the product
+    // uses.
+    .relative.htRight.has-sort-indicator,
+    .htRight .relative.has-sort-indicator {
       padding-inline-start: var(--ht-sort-indicator-reserve);
       padding-inline-end: var(--ht-cell-horizontal-padding);
     }
@@ -122,14 +144,16 @@
     .handsontable {
       // `htRight` points the same way as the direction here, so the indicator sits on the
       // inline-end side like the default - undo the LTR rule above, which reserves the other one.
-      th.htRight .relative.has-sort-indicator {
+      .relative.htRight.has-sort-indicator,
+      .htRight .relative.has-sort-indicator {
         padding-inline-start: var(--ht-cell-horizontal-padding);
         padding-inline-end: var(--ht-sort-indicator-reserve);
       }
 
       // `htLeft` is the class that points against the direction in RTL, so it is the one that
       // pins the indicator to the inline-start side - the mirror of `htRight` in LTR.
-      th.htLeft .relative.has-sort-indicator {
+      .relative.htLeft.has-sort-indicator,
+      .htLeft .relative.has-sort-indicator {
         padding-inline-start: var(--ht-sort-indicator-reserve);
         padding-inline-end: var(--ht-cell-horizontal-padding);
       }

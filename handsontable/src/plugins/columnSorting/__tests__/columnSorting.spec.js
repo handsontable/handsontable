@@ -3040,6 +3040,47 @@ describe('ColumnSorting', () => {
       expect(headerWidthAtStart).toBeLessThan(newHeaderWidth);
     });
 
+    it('should keep the header text aligned by `headerClassName` when the plugin is enabled', async() => {
+      handsontable({
+        data: createSpreadsheetData(4, 3),
+        colHeaders: ['Left', 'Middle', 'Right'],
+        colWidths: 160,
+        columns: [
+          { headerClassName: 'htLeft' },
+          {},
+          { headerClassName: 'htRight' },
+        ],
+        columnSorting: { initialConfig: { column: 2, sortOrder: 'asc' } },
+      });
+
+      // The painted text, not the label box - the label is sized to its text, so only the text
+      // says where the alignment landed.
+      const textBox = (column) => {
+        const span = spec().$container.find('th span.colHeader')[column];
+        const range = document.createRange();
+
+        range.selectNodeContents(span);
+
+        const text = range.getBoundingClientRect();
+        const th = span.closest('th').getBoundingClientRect();
+
+        return { fromLeft: text.left - th.left, fromRight: th.right - text.right };
+      };
+
+      // `htLeft` hugs the left edge, `htRight` the right one. Without the alignment rules the
+      // label's auto margins centre every header and both gaps come out equal.
+      const left = textBox(0);
+      const right = textBox(2);
+
+      expect(left.fromLeft).toBeLessThan(left.fromRight);
+      expect(right.fromRight).toBeLessThan(right.fromLeft);
+
+      // And the middle column, which asked for nothing, stays centred.
+      const middle = textBox(1);
+
+      expect(Math.abs(middle.fromLeft - middle.fromRight)).toBeLessThanOrEqual(2);
+    });
+
     it('should not measure the sort indicator offsets into the auto column width when the dropdown menu is enabled', async() => {
       handsontable({
         data: createSpreadsheetData(4, 2),
