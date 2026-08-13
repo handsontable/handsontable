@@ -237,7 +237,6 @@ const cellDefinition = {
       editor.parentDestroyed = false;
       // create the input element on init. This is a text input that color picker will be attached to.
       editor.input = editor.hot.rootDocument.createElement('INPUT');
-      // editor.showDatepicker = (editor, event) => {
       editor.datePicker = editor.container;
       /**
        * Prevent recognizing clicking on datepicker as clicking outside of table.
@@ -247,13 +246,7 @@ const cellDefinition = {
           editor.hideDatepicker(editor);
         }
       });
-      // TODO: fix this https://github.com/handsontable/dev-handsontable/issues/3004
-      // @ts-ignore
-      // editor.hot.rootPortalElement.appendChild(editor.datePicker);
     },
-    // afterInit(editor) {
-    //   editor.pickaday = new Pikaday(editor.getDatePickerConfig(editor));
-    // },
     getDatePickerConfig(editor) {
       const htInput = editor.input;
       const options = {};

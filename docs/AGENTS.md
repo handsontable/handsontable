@@ -425,6 +425,36 @@ Use the `@` prefix with `.md` extension for all internal links:
 
 Do not use relative paths (`../`) for internal links.
 
+### Template variables in links
+
+Never hardcode a branch name in a GitHub link. Five template variables resolve at
+build time - production builds point at the frozen branch for the docs version,
+every other build points at the development branch. All five are declared and
+substituted in `src/plugins/template-variables.mjs`, the sole registry:
+
+| Variable | Production | Otherwise | Use for |
+|---|---|---|---|
+| `{{$examplesBranch}}` | `prod-examples/<major>` | `master` | `handsontable/examples` starter sources |
+| `{{$currentMinorVersion}}` | `prod-docs/<major>.<minor>` | `develop` | `handsontable/handsontable` sources |
+| `{{$currentVersion}}` | package.json version | `0.0.0-next-<sha>-<date>` | version strings, runner links |
+| `{{$latestChangelogVersion}}` | highest `changelog-N` major | same | links to the newest changelog page |
+| `{{$basePath}}` | `''` | `''` | root-relative asset paths |
+
+Three pipelines substitute them and all three go through that module: the content
+loader (`src/plugins/framework-loader.mjs`), the Vite pre-transform
+(`src/plugins/vuepress-preprocessor.mjs`), and the `_md` route generator in
+`astro.config.mjs` that backs Copy Markdown. Add a variable in one place only.
+The exception is `{{$basePath}}` inside **embedded example source files**, which
+`framework-loader.mjs` substitutes with `/docs` rather than `''`.
+
+A hardcoded `tree/master` link sends a reader on older docs to a starter that no
+longer matches their version (DEV-2214).
+
+Exception: the `server-side-*` recipes keep `tree/master/server-examples/...`.
+`server-examples/` is not in the runner's `frameworks.json`, is not bucketed per
+major, and receives no per-major repair, so a `prod-examples/<major>` copy of it
+would be a frozen unmaintained snapshot.
+
 ---
 
 ## 2.8 Trademark Notices
