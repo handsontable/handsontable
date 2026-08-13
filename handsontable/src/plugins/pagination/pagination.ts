@@ -856,10 +856,10 @@ export class Pagination extends BasePlugin {
 
           if (focusableElements && focusableElements.length > 0) {
             if (focusSource === 'tab_from_above') {
-              focusableElements.at(0)?.focus();
+              focusableElements[0]?.focus();
 
             } else if (focusSource === 'tab_from_below') {
-              focusableElements.at(-1)?.focus();
+              focusableElements[focusableElements.length - 1]?.focus();
             }
           }
         },

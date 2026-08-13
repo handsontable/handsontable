@@ -30,7 +30,6 @@ const cellDefinition: Pick<
   >({
     config: ["👍", "👎", "🤷"],
     value: "👍",
-    shortcutsGroup: 'customEditor',
     shortcuts: [
       {
         keys: [["ArrowRight"], ["Tab"]],

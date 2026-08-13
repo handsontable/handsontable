@@ -13,11 +13,12 @@
  * - $withBase('/path') → /path
  * - {{$currentVersion}} → resolved Handsontable version string (full semver, e.g. "17.1.0")
  * - {{$currentMinorVersion}} → GitHub branch path for source-code links (e.g. "prod-docs/17.1" or "develop")
+ * - {{$examplesBranch}} → handsontable/examples branch for starter links (e.g. "prod-examples/18" or "master")
  * - @/framework/path links  → /path (cross-framework alias)
  * - <div class="boxes-list"> ... </div>  → Starlight-styled card grid HTML
  */
 
-import { CURRENT_DOCS_VERSION, CURRENT_DOCS_MINOR_VERSION } from './docs-version.mjs';
+import { replaceTemplateVariables } from './template-variables.mjs';
 import { convertAsideInlineMarkdown } from './aside-inline-markdown.mjs';
 
 /**
@@ -81,23 +82,10 @@ function preprocessMarkdown(content, framework) {
   // 6. Fix $withBase('/path') → /path in image srcs and link hrefs
   result = result.replace(/\$withBase\s*\(\s*['"]?([^'")\s]+)['"]?\s*\)/g, '$1');
 
-  // 6b. Fix {{$basePath}} → '' (VuePress versioned-base template variable)
-  //     In Astro, public assets are resolved relative to the site root so the
-  //     base prefix is added automatically; dropping the placeholder preserves
-  //     the correct root-relative path (e.g. /img/pages/... or /cert.pdf).
-  result = result.replace(/\{\{\s*\$basePath\s*\}\}/g, '');
-
-  // 6c. Fix {{$currentVersion}} → resolved Handsontable version string.
-  //     Production builds use the package.json version (e.g. "17.0.1").
-  //     Staging/dev builds use "0.0.0-next-{shortSHA}-{YYYYMMDD}" so that
-  //     CodeSandbox links resolve to the correct in-progress build artifact.
-  result = result.replace(/\{\{\s*\$currentVersion\s*\}\}/g, CURRENT_DOCS_VERSION);
-
-  // 6d. Fix {{$currentMinorVersion}} → GitHub branch path for source-code links.
-  //     Production builds produce "prod-docs/X.Y" (e.g. "prod-docs/17.1").
-  //     Staging/dev builds resolve to "develop" (no prod-docs/ prefix, since
-  //     the prod-docs/develop branch does not exist).
-  result = result.replace(/\{\{\s*\$currentMinorVersion\s*\}\}/g, CURRENT_DOCS_MINOR_VERSION);
+  // 6b. Resolve the {{$basePath}}, {{$currentVersion}}, {{$currentMinorVersion}}
+  //     and {{$examplesBranch}} template variables. See template-variables.mjs
+  //     for what each one resolves to and why.
+  result = replaceTemplateVariables(result);
 
   // 7. Transform @/framework/... cross-framework alias links to absolute paths.
   //    e.g. @/react/guides/foo/foo.md → /guides/foo/foo

@@ -39,8 +39,7 @@
               }
             ],
             "allowedCommonJsDependencies": [
-              "core-js",
-              "@handsontable/pikaday"
+              "core-js"
             ]
           },
           "configurations": {

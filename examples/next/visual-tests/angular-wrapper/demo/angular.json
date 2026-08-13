@@ -30,8 +30,7 @@
             "scripts": [],
             "preserveSymlinks": true,
             "allowedCommonJsDependencies": [
-              "core-js",
-              "@handsontable/pikaday"
+              "core-js"
             ],
             "assets": [
               "src/favicon.ico",

@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed the autocomplete editor and several internal utilities using `Array.prototype.toSorted` and `Array.prototype.at`, which are not available in every browser the library declares support for.",
+  "type": "fixed",
+  "issueOrPR": 13139,
+  "breaking": false,
+  "framework": "none"
+}

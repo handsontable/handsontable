@@ -1,5 +1,5 @@
 ---
-type: how-to
+type: tutorial
 title: Moment.js-based date
 metaTitle: Moment.js Cell Type - JavaScript Data Grid | Handsontable
 description: Learn how to create a Handsontable custom date cell type using the Moment.js library
@@ -19,17 +19,17 @@ vue:
   metaTitle: Moment.js date Cell Type - Vue Data Grid | Handsontable
 searchCategory: Recipes
 category: Cell Types
+menuTag: updated
 ---
 
-This tutorial shows you how to create a custom date cell type using Moment.js and the Pikaday calendar picker, with format auto-correction and per-column configuration.
+This tutorial shows you how to layer Moment.js on top of Handsontable's built-in `date` cell type, so a column keeps its own display format and still accepts loosely written dates.
 
 ::: only-for javascript vue
 
-::: example #example1 :hot-recipe --js 1 --ts 2 --css 3 --deps moment @handsontable/pikaday
+::: example #example1 :hot-recipe --js 1 --ts 2 --deps moment
 
 @[code](@/content/recipes/cell-types/moment-date/javascript/example1.js)
 @[code](@/content/recipes/cell-types/moment-date/javascript/example1.ts)
-@[code](@/content/recipes/cell-types/moment-date/javascript/example1.css)
 
 :::
 
@@ -37,9 +37,8 @@ This tutorial shows you how to create a custom date cell type using Moment.js an
 
 ::: only-for react
 
-::: example #example1 :react-advanced --css 1 --js 2 --ts 3 --deps moment @handsontable/pikaday
+::: example #example1 :react-advanced --js 1 --ts 2 --deps moment
 
-@[code](@/content/recipes/cell-types/moment-date/react/example1.css)
 @[code](@/content/recipes/cell-types/moment-date/react/example1.jsx)
 @[code](@/content/recipes/cell-types/moment-date/react/example1.tsx)
 :::
@@ -48,7 +47,7 @@ This tutorial shows you how to create a custom date cell type using Moment.js an
 
 ::: only-for angular
 
-::: example #example1 :angular --ts 1 --html 2 --deps moment @handsontable/pikaday
+::: example #example1 :angular --ts 1 --html 2 --deps moment
 
 @[code](@/content/recipes/cell-types/moment-date/angular/example1.ts)
 @[code](@/content/recipes/cell-types/moment-date/angular/example1.html)
@@ -59,25 +58,25 @@ This tutorial shows you how to create a custom date cell type using Moment.js an
 
 ## Overview
 
-This guide shows how to create a custom date cell type using the [Moment.js](https://momentjs.com/) library. Users can format dates using the Moment.js API.
+This guide shows how to build a custom date cell type on top of the built-in `date` cell type using the [Moment.js](https://momentjs.com/) library. The built-in type supplies the editor -- a native date input -- along with ISO validation. Moment.js adds two things it does not do: a per-column display format, and correction of dates written in another format.
 
 **Difficulty:** Beginner
-**Time:** ~25 minutes
-**Libraries:** `moment`, `@handsontable/pikaday`
+**Time:** ~15 minutes
+**Libraries:** `moment`
 
 ## What You'll Build
 
 A cell that:
-- Displays dates with a dropdown arrow indicator
-- Opens a Pikaday calendar picker when edited
-- Validates and corrects date formats using Moment.js
-- Supports custom `dateFormat` options per column
-- Disables weekend selection via `datePickerConfig`
+- Stores dates in the ISO 8601 format (`YYYY-MM-DD`), as the built-in `date` cell type requires
+- Displays them in a per-column Moment.js format, such as `MMM D, YYYY`
+- Opens the browser's native date picker when edited
+- Rewrites pasted dates such as `03/14/2025` into ISO
+- Rejects values that are not dates at all
 
 ## Prerequisites
 
 ```bash
-npm install moment @handsontable/pikaday
+npm install moment
 ```
 
 ## Step 1: Import Dependencies
@@ -85,226 +84,118 @@ npm install moment @handsontable/pikaday
 ```typescript
 import Handsontable from 'handsontable/base';
 import { registerAllModules } from 'handsontable/registry';
-import { getRenderer } from 'handsontable/renderers';
-import { editorFactory } from 'handsontable/editors';
-import { registerCellType } from 'handsontable/cellTypes';
+import { registerCellType, DateCellType } from 'handsontable/cellTypes';
 import moment from 'moment';
-import Pikaday from '@handsontable/pikaday';
-import '@handsontable/pikaday/css/pikaday.css';
 
 registerAllModules();
 ```
 
 **Why this matters:**
-- `moment` handles date parsing, validation, and formatting
-- `Pikaday` provides the calendar date picker UI
-- `@handsontable/pikaday/css/pikaday.css` provides the calendar panel styling
-- `editorFactory` creates a portal-based editor that overlays the cell
-- `registerCellType` registers the custom cell type for use in column config
+- `DateCellType` is the built-in `date` cell type: a native date input, an ISO validator, and a source-data check
+- `moment` handles date parsing and formatting
+- `registerCellType` registers the composed cell type for use in column config
 
-## Step 2: Create the Date Format Helper
+## Step 2: Create the ISO Conversion Helper
 
-This helper corrects user input to match the expected date format:
+The built-in cell type stores every value as an ISO date string. This helper turns a loosely written date into that format:
 
 ```typescript
-const correctFormat = (value, dateFormat) => {
-  const dateFromDate = moment(value);
-  const dateFromMoment = moment(value, dateFormat);
-  const isAlphanumeric = value.search(/[A-Za-z]/g) > -1;
-  let date;
+const ISO_FORMAT = 'YYYY-MM-DD';
 
-  if ((dateFromDate.isValid() && dateFromDate.format('x') === dateFromMoment.format('x')) ||
-      !dateFromMoment.isValid() ||
-      isAlphanumeric) {
-    date = dateFromDate;
-  } else {
-    date = dateFromMoment;
+const toISODate = (value: string, inputFormat: string): string => {
+  const fromInputFormat = moment(value, inputFormat, true);
+
+  if (fromInputFormat.isValid()) {
+    return fromInputFormat.format(ISO_FORMAT);
   }
 
-  return date.format(dateFormat);
-}
+  const nativeDate = new Date(value);
+
+  return Number.isNaN(nativeDate.getTime()) ? value : moment(nativeDate).format(ISO_FORMAT);
+};
 ```
 
 **What's happening:**
-- Tries to parse the value both as a native date and using Moment.js with the given format
-- Picks the best interpretation and reformats it to the target `dateFormat`
+- Parses strictly against the column's `inputFormat` first, so a near-miss does not silently shift the date
+- Falls back to the browser's own parsing for values that format cannot describe, such as `March 14, 2025`
+- Returns the value untouched when neither reading produces a date, so the validator can reject it
 
-## Step 3: Create the Renderer
+Hand the fallback a `Date` rather than the raw string. `moment('03/14/2025')` logs a deprecation warning for any input that is not RFC2822 or ISO; `moment(new Date('03/14/2025'))` does not.
 
-The example reuses the built-in `autocomplete` renderer, which displays a dropdown arrow icon indicating the cell has a picker:
+## Step 3: Format the Display Value
+
+`valueFormatter` converts the stored ISO value into the format the column displays:
 
 ```typescript
-renderer: getRenderer('autocomplete')
+valueFormatter: (value, cellProperties) => {
+  if (typeof value !== 'string' || value === '') {
+    return value;
+  }
+
+  const date = moment(value, ISO_FORMAT, true);
+
+  return date.isValid() ? date.format(cellProperties.renderFormat ?? ISO_FORMAT) : value;
+},
 ```
 
-## Step 4: Create the Validator
+**Why `valueFormatter` and not a renderer?**
 
-The validator checks whether the entered value is a valid date and optionally auto-corrects the format:
+Handsontable applies `valueFormatter` **before** the renderer and hands the renderer the formatted result. A custom renderer that ran `moment()` on its `value` would receive the already-formatted string and parse the wrong thing. Formatting here lets the cell type keep the inherited renderer untouched.
+
+The editor is unaffected: it reads the raw source data, so the native date input always receives an ISO value no matter how the cell displays it.
+
+## Step 4: Correct Loosely Written Values in `beforeChange`
+
+The native date input can only produce ISO values, so anything typed in the editor is already correct. Pasted values and programmatic writes never reach the editor, and that is where a `MM/DD/YYYY` string arrives. Correct it in `beforeChange`:
 
 ```typescript
-validator: function(value, callback) {
-  let valid = true;
-
-  if (value === null || value === undefined) {
-    value = '';
-  }
-
-  let isValidFormat = moment(value, this.dateFormat, true).isValid();
-  let isValidDate = moment(new Date(value)).isValid() || isValidFormat;
-
-  if (this.allowEmpty && value === '') {
-    isValidDate = true;
-    isValidFormat = true;
-  }
-  if (!isValidDate) {
-    valid = false;
-  }
-  if (!isValidDate && isValidFormat) {
-    valid = true;
-  }
-
-  if (isValidDate && !isValidFormat) {
-    if (this.correctFormat === true) {
-      const correctedValue = correctFormat(value, this.dateFormat);
-
-      this.instance.setDataAtCell(this.visualRow, this.visualCol, correctedValue, 'dateValidator');
-      valid = true;
-    } else {
-      valid = false;
+function correctDatesBeforeChange(changes) {
+  changes.forEach((change) => {
+    if (!change) {
+      return;
     }
-  }
 
-  callback(valid);
-}
-```
+    const [visualRow, prop, , newValue] = change;
+    const cellMeta = this.getCellMetaTransient(visualRow, this.propToCol(prop));
 
-**What's happening:**
-- Validates the date value against the configured `dateFormat` using Moment.js
-- If `correctFormat` is enabled, auto-corrects misformatted but valid dates
-- Empty values pass validation when `allowEmpty` is set
-
-## Step 5: Create the Editor
-
-The editor uses `editorFactory` with `position: 'portal'` to overlay a Pikaday calendar on the cell. Arrow keys navigate days/weeks in the calendar:
-
-```typescript
-editor: editorFactory({
-  position: 'portal',
-  shortcutsGroup: 'customEditor',
-  shortcuts: [
-    {
-      keys: [['ArrowLeft']],
-      callback: (editor, _event) => {
-        editor.pikaday.adjustDate('subtract', 1);
-        _event.preventDefault();
-      },
-    },
-    {
-      keys: [['ArrowRight']],
-      callback: (editor, _event) => {
-        editor.pikaday.adjustDate('add', 1);
-        _event.preventDefault();
-      },
-    },
-    {
-      keys: [['ArrowUp']],
-      callback: (editor, _event) => {
-        editor.pikaday.adjustDate('subtract', 7);
-        _event.preventDefault();
-      },
-    },
-    {
-      keys: [['ArrowDown']],
-      callback: (editor, _event) => {
-        editor.pikaday.adjustDate('add', 7);
-        _event.preventDefault();
-      },
-    },
-  ],
-  init(editor) {
-    editor.parentDestroyed = false;
-    editor.input = editor.hot.rootDocument.createElement('input');
-    editor.datePicker = editor.container;
-
-    editor.hot.rootDocument.addEventListener('mousedown', (event) => {
-      if (event.target && event.target.classList.contains('pika-day')) {
-        editor.hideDatepicker(editor);
-      }
-    });
-  },
-  afterOpen(editor, event) {
-    const cellRect = editor.TD.getBoundingClientRect();
-
-    editor.input.style.width = `${cellRect.width}px`;
-    editor.input.style.height = `${cellRect.height}px`;
-    editor.showDatepicker(editor, event);
-  },
-  afterClose(editor) {
-    if (editor.pikaday?.destroy) {
-      editor.pikaday.destroy();
+    if (
+      cellMeta.type !== 'moment-date' ||
+      cellMeta.correctFormat !== true ||
+      typeof newValue !== 'string' ||
+      newValue === ''
+    ) {
+      return;
     }
-  },
-  getValue(editor) {
-    return editor.input.value;
-  },
-  setValue(editor, value) {
-    editor.input.value = value;
-  },
-  getDateFormat(editor) {
-    return editor.cellProperties.dateFormat ?? 'DD/MM/YYYY';
-  },
-  // ... getDatePickerConfig, showDatepicker, hideDatepicker
-  // (see the full example above for complete implementation)
-}),
-```
 
-**What's happening:**
-- `init` creates the input element and binds the Pikaday container
-- `afterOpen` sizes the input to match the cell dimensions, then opens the date picker
-- `afterClose` destroys the Pikaday instance to prevent memory leaks - it checks the instance first, because Handsontable can close an editor that never opened (for example, when the edited cell leaves the rendered viewport)
-- Arrow key shortcuts navigate the calendar (left/right = day, up/down = week)
-
-## Step 6: Style the Editor Input
-
-The editor input needs CSS to match Handsontable's native editor appearance. Without this, the input shows default browser borders and focus styles:
-
-```css
-.ht_editor_visible > input {
-  width: 100%;
-  height: 100%;
-  box-sizing: border-box !important;
-  border: none;
-  border-radius: 0;
-  outline: none;
-  margin-top: -1px;
-  margin-left: -1px;
-  box-shadow: inset 0 0 0 var(--ht-cell-editor-border-width, 2px)
-    var(--ht-cell-editor-border-color, #1a42e8),
-    0 0 var(--ht-cell-editor-shadow-blur-radius, 0) 0
-    var(--ht-cell-editor-shadow-color, transparent) !important;
-  background-color: var(--ht-cell-editor-background-color, #ffffff) !important;
-  padding: var(--ht-cell-vertical-padding, 4px)
-    var(--ht-cell-horizontal-padding, 8px) !important;
-  border: none !important;
-  font-family: inherit;
-  font-size: var(--ht-font-size);
-  line-height: var(--ht-line-height);
-}
-.ht_editor_visible > input:focus-visible {
-  border: none !important;
-  outline: none !important;
+    if (!moment(newValue, ISO_FORMAT, true).isValid()) {
+      change[3] = toISODate(newValue, cellMeta.inputFormat ?? ISO_FORMAT);
+    }
+  });
 }
 ```
 
-**Key styling:**
-- `margin-top: -1px` and `margin-left: -1px` align the editor precisely over the cell border
-- Uses Handsontable's CSS custom properties (`--ht-cell-editor-*`) to match the theme
-- `inset box-shadow` replaces the default border for a consistent editor highlight
-- `border: none` and `outline: none` remove default browser focus styles
+Pass it as the grid's `beforeChange` handler.
 
-## Step 7: Register and Use in Handsontable
+**Why `beforeChange` and not the validator?**
+
+`beforeChange` runs before both the editor and the validator, so the corrected ISO value is the only value the rest of the grid ever sees. Correcting later -- inside a validator, with `setDataAtCell` -- also works, but the built-in editor receives the raw value first and logs `DateEditor: value must be in ISO date format`. Rewriting the change up front avoids that entirely, and it leaves the inherited ISO validator untouched, so a value Moment.js cannot read is still flagged.
+
+`getCellMetaTransient` reads the resolved cell configuration without permanently materializing meta for the cell, which is what you want for a per-change read inside a hook.
+
+::: tip
+The correction lives on the grid rather than inside the cell type, because a cell type cannot register hooks. Wire `beforeChange` on every grid that needs lenient input; the `moment-date` type itself stays reusable as-is.
+:::
+
+## Step 5: Compose and Register the Cell Type
+
+Spread the built-in cell type, then override the two pieces Moment.js owns:
 
 ```typescript
+const cellDateTypeDefinition = {
+  ...DateCellType,
+  valueFormatter: /* from Step 3 */,
+};
+
 registerCellType('moment-date', cellDateTypeDefinition);
 
 const hotOptions: Handsontable.GridSettings = {
@@ -324,15 +215,9 @@ const hotOptions: Handsontable.GridSettings = {
       data: 'restockDate',
       type: 'moment-date',
       width: 150,
-      dateFormat: 'YYYY-MM-DD',
+      renderFormat: 'MMM D, YYYY',
+      inputFormat: 'MM/DD/YYYY',
       correctFormat: true,
-      datePickerConfig: {
-        firstDay: 0,
-        showWeekNumber: true,
-        disableDayFn(date) {
-          return date.getDay() === 0 || date.getDay() === 6;
-        },
-      },
     },
     {
       data: 'cost',
@@ -348,28 +233,37 @@ const hotOptions: Handsontable.GridSettings = {
     },
   ],
   licenseKey: 'non-commercial-and-evaluation',
+  beforeChange: correctDatesBeforeChange,
 };
 
 const hot = new Handsontable(container, hotOptions);
 ```
 
 **Key configuration:**
-- `type: 'moment-date'` - uses the custom cell type on the Restock Date column
-- `dateFormat: 'YYYY-MM-DD'` - the Moment.js format string for parsing and display
-- `correctFormat: true` - automatically reformats valid dates to the expected format
-- `datePickerConfig` - passed directly to Pikaday (e.g., disable weekends with `disableDayFn`)
+- `type: 'moment-date'` - uses the composed cell type on the Restock Date column
+- `renderFormat: 'MMM D, YYYY'` - the Moment.js format the cell displays
+- `inputFormat: 'MM/DD/YYYY'` - the format tried first when correcting a pasted value
+- `correctFormat: true` - opts the column into that correction
+
+Spreading `DateCellType` copies its `CELL_TYPE` value, `'date'`, into the object. Handsontable ignores that key when expanding a cell type, so registering the result under a different name is safe.
+
+::: tip
+Two options the built-in `date` cell type does **not** support: `datePickerConfig`, which is specific to the Pikaday picker Handsontable used before 18.0 and now triggers a console warning, and `dateFormat` as a Moment.js format string, which the built-in renderer expects to be an `Intl.DateTimeFormatOptions` object. That is why this recipe uses its own `renderFormat` and `inputFormat` properties.
+
+For a picker with configurable first day of week, week numbers, or disabled days, see the [Pikaday](@/recipes/cell-types/pikaday/pikaday.md) and [Flatpickr](@/recipes/cell-types/flatpickr/flatpickr.md) recipes.
+:::
 
 ## How It Works - Complete Flow
 
-1. **Initial Render**: Cell displays the date value with a dropdown arrow (autocomplete renderer)
-2. **User clicks cell**: The portal editor opens with an input sized to the cell and a Pikaday calendar below it
-3. **Date selection**: User picks a date from the calendar or types a value; arrow keys navigate the picker
-4. **Validation**: Moment.js checks the format and date validity; auto-corrects if `correctFormat` is enabled
-5. **Save**: Valid values are saved to the cell; invalid values are rejected
+1. **Initial Render**: the cell holds an ISO date; `valueFormatter` converts it to `renderFormat` for display
+2. **User clicks cell**: the built-in editor opens the browser's native date picker, populated from the raw ISO source value
+3. **Date selection**: the native input always yields an ISO value, so it is stored as-is
+4. **Paste**: `beforeChange` rewrites a pasted non-ISO value to ISO when `correctFormat` is set
+5. **Save**: values that are not dates fail the built-in ISO validator and are flagged
 
 ## What you learned
 
-You created a custom Moment.js-based date cell type in Handsontable. You used `editorFactory` with `position: 'portal'` to overlay a Pikaday calendar, Moment.js for date validation and format auto-correction, and `registerCellType` to make the cell type reusable across columns.
+You built a custom cell type by composing the built-in `date` cell type with Moment.js. You used `valueFormatter` for per-column display formatting, corrected loosely written values in `beforeChange` so the ISO-only editor never sees them, and registered the result with `registerCellType`.
 
 ## Next steps
 

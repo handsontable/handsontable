@@ -34,7 +34,7 @@ This tutorial shows you how to integrate Handsontable into a Next.js app that us
    ></iframe>
 
 [**Open in sandbox**](https://demos.handsontable.com/?example=next-shadcn.js&v={{$currentVersion}})
-[**View source on GitHub**](https://github.com/handsontable/examples/tree/master/examples/next-shadcn.js)
+[**View source on GitHub**](https://github.com/handsontable/examples/tree/{{$examplesBranch}}/examples/next-shadcn.js)
 
 ## Overview
 

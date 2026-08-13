@@ -10,8 +10,8 @@ import { GridPage } from '../fixtures/pages/GridPage';
 test.describe('grid demo', () => {
   let grid: GridPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    grid = new GridPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    grid = new GridPage(page, theme, bundle);
     await grid.goto();
   });
 

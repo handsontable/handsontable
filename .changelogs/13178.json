@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed rows losing their alignment when the tallest cell in a row was in a frozen column.",
+  "type": "fixed",
+  "issueOrPR": 13178,
+  "breaking": false,
+  "framework": "none"
+}
