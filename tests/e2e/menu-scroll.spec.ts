@@ -11,8 +11,8 @@ import { MenuScrollPage } from '../fixtures/pages/MenuScrollPage';
 test.describe('menu follows its anchor on outside element scroll', () => {
   let menuPage: MenuScrollPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    menuPage = new MenuScrollPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    menuPage = new MenuScrollPage(page, theme, bundle);
     await menuPage.goto();
   });
 
@@ -238,8 +238,8 @@ test.describe('menu follows its anchor on outside element scroll', () => {
 test.describe('menu with uiContainer follows its container natively', () => {
   let menuPage: MenuScrollPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    menuPage = new MenuScrollPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    menuPage = new MenuScrollPage(page, theme, bundle);
     await menuPage.goto({ uiContainer: true });
   });
 

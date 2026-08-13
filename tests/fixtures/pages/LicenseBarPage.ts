@@ -12,14 +12,16 @@ import { type Page, type Locator, expect } from '@playwright/test';
 export class LicenseBarPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
   readonly slot: Locator;
   readonly bar: Locator;
   readonly supportLink: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.slot = page.locator('.ht-slot-bottom');
     this.bar = page.locator('.hot-display-license-info');
@@ -32,7 +34,7 @@ export class LicenseBarPage {
    * support link are visible) — no fixed timeouts.
    */
   async goto(gridWidth: number): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/license-bar.html?theme=${this.theme}&width=${gridWidth}`);
+    await this.page.goto(`/tests/fixtures/demo/license-bar.html?theme=${this.theme}&bundle=${this.bundle}&width=${gridWidth}`);
     await expect(this.bar).toBeVisible();
     await expect(this.supportLink).toBeVisible();
   }

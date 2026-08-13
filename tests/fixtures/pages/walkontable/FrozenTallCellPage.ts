@@ -15,15 +15,17 @@ export class FrozenTallCellPage {
 
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
   readonly master: Locator;
   readonly inlineStartOverlay: Locator;
   readonly topOverlay: Locator;
   readonly topInlineStartCorner: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
     this.master = this.grid.locator('.ht_master');
     this.inlineStartOverlay = this.grid.locator('.ht_clone_inline_start');
@@ -52,7 +54,7 @@ export class FrozenTallCellPage {
     rowHeights?: number,
     mergeRow?: number,
   } = {}): Promise<void> {
-    const params = new URLSearchParams({ theme: this.theme });
+    const params = new URLSearchParams({ theme: this.theme, bundle: this.bundle });
 
     Object.entries(options).forEach(([key, value]) => params.set(key, String(value)));
 

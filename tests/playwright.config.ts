@@ -7,18 +7,33 @@ import type { TestOptions } from './fixtures/test';
  * two are separated by projects so each can carry its own settings — e2e is
  * flake-strict, visual will add screenshot tolerances and masks.
  *
- * Theme coverage: the functional suite runs once per theme (main/horizon/
- * classic) via one project each, mirroring the Puppeteer e2e theme matrix.
- * Every spec is parametrized automatically — authors write one spec and it
- * runs under all themes. CI runs one job per theme (a `theme` matrix over
- * `--project=e2e-<theme>`); locally, `npx playwright test` runs all themes and
- * `--project=e2e-horizon` runs one.
+ * Matrix coverage: the functional suite mirrors the Puppeteer e2e matrix
+ * 1:1 — theme (main/horizon/classic) × bundle (`umd` = dist/handsontable.js,
+ * `full-min` = dist/handsontable.full.min.js) — one project per combination,
+ * loading the exact files the Puppeteer `test:e2e` and `test:production` legs
+ * load. Every spec is parametrized automatically — authors write one spec and
+ * it runs under all legs. CI runs one job per leg (a `theme × bundle` matrix
+ * over `--project=e2e-<theme>[-min]`); locally, `npx playwright test` runs
+ * all legs and `--project=e2e-horizon` runs one. The bundles Puppeteer does
+ * not test either (handsontable.full.js, handsontable.min.js) are deliberately
+ * NOT here — extra coverage belongs to the nightly on develop (DEV-2058).
  *
  * Version parity rule: `@playwright/test` here and the CI container image
  * (`mcr.microsoft.com/playwright:v<same>-noble`) bump together, never apart, so
  * local, CI, and baseline generation render identically.
  */
 const E2E_THEMES = ['main', 'horizon', 'classic'] as const;
+// 1:1 with the Puppeteer bundle legs: UMD (dist/handsontable.js, `test:e2e`)
+// and UMD.min (dist/handsontable.full.min.js, `test:production`). The
+// un-suffixed projects run the plain UMD so existing local commands and hooks
+// (`--project=e2e-main`) keep working. That also means every LOCAL gate
+// (pre-push, the Claude Stop hook, `npm run test:e2e` — all pinned to
+// e2e-main) covers the plain UMD only; the `-min` legs are CI-only. This
+// flipped with the bundle axis: `e2e-main` used to load the full.min bundle.
+const E2E_BUNDLES = [
+  { bundle: 'umd', suffix: '' },
+  { bundle: 'full-min', suffix: '-min' },
+] as const;
 
 export default defineConfig<TestOptions>({
   testDir: '.',
@@ -47,14 +62,15 @@ export default defineConfig<TestOptions>({
     timeout: 30_000,
   },
   projects: [
-    // One functional project per theme — the destination for any new e2e spec.
-    // The `theme` option flows to the page objects, which load the matching
-    // theme stylesheet in the fixture.
-    ...E2E_THEMES.map(theme => ({
-      name: `e2e-${theme}`,
+    // One functional project per theme × bundle leg — the destination for any
+    // new e2e spec. The `theme` and `bundle` options flow to the page objects,
+    // which load the matching theme stylesheet and Handsontable bundle in the
+    // fixture.
+    ...E2E_BUNDLES.flatMap(({ bundle, suffix }) => E2E_THEMES.map(theme => ({
+      name: `e2e-${theme}${suffix}`,
       testDir: 'e2e',
-      use: { ...devices['Desktop Chrome'], theme },
-    })),
+      use: { ...devices['Desktop Chrome'], theme, bundle },
+    }))),
     // Visual regression project — destination for the visual suite (milestone 2/3).
     // {
     //   name: 'visual-chromium',

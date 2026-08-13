@@ -16,8 +16,8 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
 
   let wt: FrozenTallCellPage;
 
-  test.beforeEach(async ({ page, theme }) => {
-    wt = new FrozenTallCellPage(page, theme);
+  test.beforeEach(async ({ page, theme, bundle }) => {
+    wt = new FrozenTallCellPage(page, theme, bundle);
     await wt.goto();
   });
 
@@ -159,13 +159,13 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
     await wt.setTallCell(false);
     await wt.scrollToRowAtTop(BOUNDARY_ROW + 1);
 
-    expect(await wt.masterFirstRenderedRow()).toBe(BOUNDARY_ROW);
+    await expect.poll(() => wt.masterFirstRenderedRow()).toBe(BOUNDARY_ROW);
 
     // Grow it here, rather than shrinking it: a shrink moves the band and the row stops being the
     // boundary, which is not the case under test.
     await wt.setTallCell(true);
 
-    expect(await wt.masterFirstRenderedRow()).toBe(BOUNDARY_ROW);
+    await expect.poll(() => wt.masterFirstRenderedRow()).toBe(BOUNDARY_ROW);
     expect(await wt.rowHeight(wt.master, BOUNDARY_ROW))
       .toBe(await wt.rowHeight(wt.inlineStartOverlay, BOUNDARY_ROW));
     expect(await wt.countRowCacheInvalidations(3)).toBe(0);
@@ -190,7 +190,7 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
 
     await wt.scrollToRowAtTop(BOUNDARY_ROW + 1);
 
-    expect(await wt.masterFirstRenderedRow()).toBe(BOUNDARY_ROW);
+    await expect.poll(() => wt.masterFirstRenderedRow()).toBe(BOUNDARY_ROW);
     expect(await wt.rowHeight(wt.master, BOUNDARY_ROW))
       .toBe(await wt.rowHeight(wt.inlineStartOverlay, BOUNDARY_ROW));
 
@@ -352,8 +352,8 @@ test.describe('walkontable row heights with frozen columns', { tag: '@walkontabl
       // The premises: the master skips the frozen columns, AND it has scrolled past the frozen top
       // rows, so the inline-start clone (which mirrors the master's band) does not render them
       // either. That leaves the corner as the only table holding the tall cell.
-      expect(await wt.masterFirstRenderedColumn()).toBeGreaterThan(0);
-      expect(await wt.masterFirstRenderedRow()).toBeGreaterThan(PLAIN_TOP_ROW);
+      await expect.poll(() => wt.masterFirstRenderedColumn()).toBeGreaterThan(0);
+      await expect.poll(() => wt.masterFirstRenderedRow()).toBeGreaterThan(PLAIN_TOP_ROW);
 
       const cornerHeight = await wt.rowHeight(wt.topInlineStartCorner, FROZEN_TOP_ROW);
       const topHeight = await wt.rowHeight(wt.topOverlay, FROZEN_TOP_ROW);

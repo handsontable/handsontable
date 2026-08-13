@@ -71,22 +71,31 @@ function listFiles(dir) {
 }
 
 /**
- * Hash of the environment a spec runs against: the built dist bundle the
- * fixture loads + the theme stylesheets it also loads (the fixtures pull
- * `handsontable.min.css` + `ht-theme-<theme>.min.css` per the ?theme= project)
- * + every file under tests/fixtures (page objects, demo pages) + the Playwright
- * config. '' when the dist is absent (never skip then).
+ * Hash of the environment a spec runs against: BOTH dist bundles the fixtures
+ * can load (`?bundle=` umd → `handsontable.js`, full-min →
+ * `handsontable.full.min.js`) + the theme stylesheets they also load (the
+ * fixtures pull `handsontable.min.css` + `ht-theme-<theme>.min.css` per the
+ * ?theme= project) + every file under tests/fixtures (page objects, demo
+ * pages) + the Playwright config. Hashing only one bundle would let a rebuild
+ * of the other slip through as "environment unchanged", and the pre-push hook
+ * would skip specs as already-green against a bundle they never ran on. ''
+ * when either bundle is absent (never skip then).
  *
  * @param {string} root Repo root.
  * @returns {string} Hex digest, or '' when the environment is incomplete.
  */
 export function envHash(root) {
-  const dist = fileHash(path.join(root, 'handsontable/dist/handsontable.full.min.js'));
+  const bundles = [
+    'handsontable/dist/handsontable.js',
+    'handsontable/dist/handsontable.full.min.js',
+  ].map(rel => fileHash(path.join(root, rel)));
 
-  if (!dist) {
+  if (bundles.some(bundle => !bundle)) {
     return '';
   }
-  const h = createHash('sha256').update(dist);
+  const h = createHash('sha256');
+
+  bundles.forEach(bundle => h.update(bundle));
 
   // Theme CSS the demo fixtures load — a styles-only rebuild must invalidate the
   // cache (the per-theme render depends on it), even though the JS is unchanged.
