@@ -82,11 +82,18 @@
     }
 
     // A trailing icon button (the dropdown menu's) occupies the corner the indicators are pinned
-    // to, so step them over it. The button's painted width is `--ht-icon-size` + 2px once its own
-    // negative margins apply, plus the 2px flex gap. Only the inline-end side moves: that is the
-    // flex end, which is the only place such a button appears.
+    // to, so step them over it. What has to be cleared is the button's *border* box, which is wider
+    // than the space it takes in the row: `_dropdown-menu.scss` sizes it to
+    // `--ht-icon-button-hit-area-size` and pulls it back with a uniform negative margin, so it
+    // overhangs its own slot by half the difference on each side. Derived from the same two tokens
+    // rather than written as a number, because the icon size differs per theme - the classic theme
+    // uses a smaller icon with the same hit area, and a fixed step-over lands 1px short there.
+    // Only the inline-end side moves: that is the flex end, the only place such a button appears.
     .relative.has-header-button {
-      --ht-sort-indicator-offset-end: calc(var(--ht-cell-horizontal-padding) + var(--ht-icon-size, 16px) + 4px);
+      --ht-sort-indicator-offset-end: calc(
+        var(--ht-cell-horizontal-padding) + var(--ht-icon-size, 16px) +
+        (var(--ht-icon-button-hit-area-size, 24px) - var(--ht-icon-size, 16px)) * 0.5
+      );
 
       // The button's own slot is what separates the label from the indicator here, so the
       // container must not hold room back as well. Doing both moves the button inwards - it is the
