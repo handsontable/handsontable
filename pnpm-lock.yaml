@@ -659,6 +659,9 @@ importers:
       eslint:
         specifier: 8.57.1
         version: 8.57.1
+      hyperformula:
+        specifier: ^3.0.0
+        version: 3.4.0
 
   visual-tests:
     devDependencies:
@@ -8945,6 +8948,9 @@ packages:
 
   hyperformula@3.3.0:
     resolution: {integrity: sha512-Mkc7AxP9WQDM4xHo1/XpAwzcpMLkwMand4HO9rfRzP502TBzoR1Z96zoCzRrwXodLSVyh+MD7FvzRVALDxmRFQ==}
+
+  hyperformula@3.4.0:
+    resolution: {integrity: sha512-w1N11JWfdHedHpNoSgYBd3Mz7e1yr1BEQ+g4GFJbLv+qlYVXyC4I8xy1mSwj13FhcoDBGNU5yxPCdXB6vwaYaA==}
 
   i18next@26.3.4:
     resolution: {integrity: sha512-pa7m0d7pBDqGHZxljT+WPFeyFgQ7P7SciPPo1tTqYuO0z4sqADYhwnBESmmGp/wEof1inwdls/k8ZgTg8rxFHA==}
@@ -23352,6 +23358,11 @@ snapshots:
   hyperdyperid@1.2.0: {}
 
   hyperformula@3.3.0:
+    dependencies:
+      chevrotain: 6.5.0
+      tiny-emitter: 2.1.0
+
+  hyperformula@3.4.0:
     dependencies:
       chevrotain: 6.5.0
       tiny-emitter: 2.1.0

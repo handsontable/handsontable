@@ -34,6 +34,11 @@ Visual regression is a separate package (`visual-tests/`). Task workflow: the
   warning and silently stays off) and **no languages pack** (an i18n fixture
   loads `dist/languages/all.js` explicitly — the Puppeteer harness does that
   for you, this tier does not).
+- A fixture-served library MUST be a dependency of THIS package, loaded from
+  `/tests/node_modules/…` — CI installs only the filtered `handsontable-tests`
+  workspace, so a path into another package's `node_modules` 404s in CI while
+  passing locally against a full install (the HyperFormula script is the
+  example).
 - The green-run cache (`scripts/e2e-run-cache.mjs`) hashes BOTH bundles plus
   every file under `fixtures/`; rebuilding either bundle re-runs affected
   specs. Do not narrow that hash.

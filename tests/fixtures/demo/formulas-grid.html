@@ -41,7 +41,11 @@
   -->
   <div id="grid" data-testid="grid"></div>
 
-  <script src="/handsontable/node_modules/hyperformula/dist/hyperformula.full.min.js"></script>
+  <!-- HyperFormula comes from THIS package's own node_modules (declared in
+       tests/package.json): CI installs only the filtered handsontable-tests
+       workspace, so a path into another package's node_modules would 404
+       there while passing locally against a full install. -->
+  <script src="/tests/node_modules/hyperformula/dist/hyperformula.full.min.js"></script>
   <script>
     // The bundle under test, selected above from the sanitized allowlist. The
     // closing tag is split so the HTML parser does not end THIS script block.
