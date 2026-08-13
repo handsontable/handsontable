@@ -323,13 +323,12 @@ class GhostTable {
       arrayEach(sample.strings, (string: SampleString) => {
         const column = string.col!;
         const cellProperties = this.hot!.getCellMetaTransient<CellProperties>(row, column);
-        const renderer = this.hot!.getCellRenderer(cellProperties);
         const td = rootDocument.createElement('td');
 
         // Indicate that this element is created and supported by GhostTable. It can be useful to
         // exclude rendering performance costly logic or exclude logic which doesn't work within a hidden table.
         td.setAttribute('ghost-table', '1');
-        renderer(this.hot!, td, row, column, this.hot!.colToProp(column), string.value, cellProperties);
+        this.#renderCell(td, row, column, string.value, cellProperties);
         fragment.appendChild(td);
       });
     });
@@ -387,14 +386,13 @@ class GhostTable {
       arrayEach(sample.strings, (string: SampleString) => {
         const row = string.row!;
         const cellProperties = this.hot!.getCellMetaTransient<CellProperties>(row, column);
-        const renderer = this.hot!.getCellRenderer(cellProperties);
         const td = rootDocument.createElement('td');
         const tr = rootDocument.createElement('tr');
 
         // Indicate that this element is created and supported by GhostTable. It can be useful to
         // exclude rendering performance costly logic or exclude logic which doesn't work within a hidden table.
         td.setAttribute('ghost-table', '1');
-        renderer(this.hot!, td, row, column, this.hot!.colToProp(column), string.value, cellProperties);
+        this.#renderCell(td, row, column, string.value, cellProperties);
         tr.appendChild(td);
         fragment.appendChild(tr);
       });
@@ -522,6 +520,67 @@ class GhostTable {
     fragment.appendChild(container);
 
     return { fragment, container };
+  }
+
+  /**
+   * Renders one sampled cell into the TD that will be measured, following the same renderer
+   * contract as `TableView.cellRenderer`: format the value, run the cell's own renderer, then run
+   * the base renderer when that renderer did not chain it itself.
+   *
+   * The built-in renderers no longer call `baseRenderer` themselves — `TableView` does it, guarded
+   * by the flag below. Calling only the cell renderer here would leave the measured TD without
+   * `cellProperties.className` and the other base-renderer classes, so AutoRowSize and
+   * AutoColumnSize would measure a cell styled differently from the one the user sees.
+   *
+   * @param {HTMLTableCellElement} td The cell element that will be measured.
+   * @param {number} row Visual row index.
+   * @param {number} column Visual column index.
+   * @param {*} value The sampled cell value.
+   * @param {object} cellProperties The cell meta object.
+   */
+  #renderCell(
+    td: HTMLTableCellElement,
+    row: number,
+    column: number,
+    value: unknown,
+    cellProperties: CellProperties
+  ) {
+    const renderer = this.hot!.getCellRenderer(cellProperties);
+    let formattedValue = value;
+
+    if (typeof cellProperties.valueFormatter === 'function') {
+      formattedValue = cellProperties.valueFormatter(formattedValue, cellProperties);
+
+    } else if (typeof renderer === 'function' && 'valueFormatter' in renderer) {
+      const { valueFormatter } = renderer as { valueFormatter: unknown };
+
+      if (typeof valueFormatter === 'function') {
+        formattedValue = valueFormatter.call(cellProperties, formattedValue, cellProperties);
+      }
+    }
+
+    const rendererArgs: [
+      HotInstance, HTMLTableCellElement, number, number, string | number, unknown, CellProperties
+    ] = [
+      this.hot!,
+      td,
+      row,
+      column,
+      this.hot!.colToProp(column),
+      formattedValue,
+      cellProperties,
+    ];
+
+    renderer(...rendererArgs);
+
+    if (!cellProperties._isBaseRendererCalled) {
+      this.hot!.getCellRenderer({ renderer: 'base' })(...rendererArgs);
+    }
+
+    // The flag lives on the cell meta, which for a materialized cell is the same object the render
+    // path uses. Leaving it set would make the next `TableView.cellRenderer` skip the base renderer
+    // and drop the classes from the REAL cell.
+    cellProperties._isBaseRendererCalled = false;
   }
 
   /**
