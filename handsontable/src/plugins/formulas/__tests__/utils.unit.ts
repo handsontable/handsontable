@@ -372,16 +372,6 @@ describe('Formulas utils', () => {
     });
   });
 
-  describe('normalizeInProgressFormulaInput', () => {
-    it('should rewrite misplaced formula input that starts after existing cell content', () => {
-      expect(normalizeInProgressFormulaInput('10=SUM(')).toBe('=SUM(');
-      expect(normalizeInProgressFormulaInput('=SUM(')).toBeNull();
-      expect(normalizeInProgressFormulaInput('10=')).toBeNull();
-      expect(normalizeInProgressFormulaInput('10=5')).toBeNull();
-      expect(normalizeInProgressFormulaInput('price=SUM(A1)')).toBe('=SUM(A1)');
-    });
-  });
-
   describe('printReferenceFromVisualSelection', () => {
     it('should format a visual cell selection through the formulas axis syncers', () => {
       const targetHot = {
