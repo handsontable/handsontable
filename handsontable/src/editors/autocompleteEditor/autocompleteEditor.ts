@@ -540,7 +540,18 @@ export class AutocompleteEditor extends HandsontableEditor {
       }
     }
 
-    return this.htEditor.getColWidth(0) + borderCompensation;
+    const dropdownWidth = this.htEditor.getColWidth(0) + borderCompensation;
+
+    // When trimDropdown is set to false, ensure the dropdown width is at least
+    // the width of the column in the main table. This prevents the dropdown
+    // from being narrower than the column when the list items are short.
+    if (this.cellProperties.trimDropdown === false) {
+      const columnWidth = this.hot.getColWidth(this.col) ?? 0;
+
+      return Math.max(dropdownWidth, columnWidth);
+    }
+
+    return dropdownWidth;
   }
 
   /**
