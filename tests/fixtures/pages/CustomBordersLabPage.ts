@@ -21,17 +21,24 @@ export interface BorderSideStyle {
 export class CustomBordersLabPage {
   readonly page: Page;
   readonly theme: string;
+  readonly bundle: string;
   readonly grid: Locator;
 
-  constructor(page: Page, theme = 'main') {
+  constructor(page: Page, theme = 'main', bundle = 'umd') {
     this.page = page;
     this.theme = theme;
+    this.bundle = bundle;
     this.grid = page.getByTestId('grid');
   }
 
-  /** Navigate to the lab fixture (no grid exists until `createGrid` is called). */
+  /**
+   * Navigate to the lab fixture (no grid exists until `createGrid` is called). The theme and
+   * bundle travel as query params so the fixture loads the matching stylesheet and Handsontable
+   * build — miss either and the leg silently tests something other than what its name says.
+   */
   async goto(): Promise<void> {
-    await this.page.goto(`/tests/fixtures/demo/custom-borders-lab.html?theme=${this.theme}`);
+    await this.page.goto(
+      `/tests/fixtures/demo/custom-borders-lab.html?theme=${this.theme}&bundle=${this.bundle}`);
     await expect(this.grid).toBeAttached();
   }
 
@@ -54,10 +61,29 @@ export class CustomBordersLabPage {
     return this.page.locator('.ht_master').getByTestId(`cell-${row}-${col}`);
   }
 
-  /** Run `alter` and wait for the follow-up render to settle into the DOM. */
+  /**
+   * Run `alter`. It renders synchronously before returning, so the DOM is already settled when
+   * this resolves — callers may read it directly without retrying.
+   */
   async alter(action: string, index: number, amount = 1): Promise<void> {
     await this.page.evaluate(
       ([a, i, n]) => (window as any).hot.alter(a, i, n), [action, index, amount] as const);
+  }
+
+  /**
+   * The column-header labels as painted in the master overlay's DOM. Compared against
+   * `apiColumnHeaders()` this reveals a header row the renderer left stale — the labels the user
+   * clicks on would then belong to a different column than the one the click selects.
+   */
+  async renderedColumnHeaders(): Promise<string[]> {
+    return this.page.locator('.ht_master thead tr:last-child th')
+      .allTextContents()
+      .then(labels => labels.map(label => label.trim()));
+  }
+
+  /** The column-header labels Handsontable reports through its API. */
+  async apiColumnHeaders(): Promise<string[]> {
+    return this.page.evaluate(() => (window as any).hot.getColHeader().map(String));
   }
 
   /** The plugin's border model, reduced to its coordinates. */
