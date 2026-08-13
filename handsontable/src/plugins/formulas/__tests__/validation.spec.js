@@ -278,12 +278,13 @@ describe('Formulas general', () => {
       expect(validatedColumns.filter(column => column === 3).length).toBe(1);
     });
 
-    it('should not validate dependant cells after undoing a structural change (#dev-2036)', async() => {
+    it('should only validate each cell once when undoing a row removal (#dev-2036)', async() => {
       const beforeValidate = jasmine.createSpy('beforeValidate');
 
       handsontable({
         data: [
-          ['=E1', 2, '=A1', '=C1', 22]
+          [1, 10],
+          ['=A1+B2', 0],
         ],
         formulas: {
           engine: HyperFormula
@@ -293,7 +294,7 @@ describe('Formulas general', () => {
         beforeValidate,
       });
 
-      await alter('remove_col', 4);
+      await alter('remove_row', 0);
       await waitForNextAnimationFrames(2); // Validator is asynchronous.
 
       beforeValidate.calls.reset();
@@ -301,8 +302,78 @@ describe('Formulas general', () => {
       getPlugin('undoRedo').undo();
       await waitForNextAnimationFrames(2); // Validator is asynchronous.
 
-      // Removing a column does not validate the dependant cells, so undoing it must not either -
-      // otherwise undo would behave differently from the action it reverts.
+      const validatedCells = beforeValidate.calls.allArgs().map(([, row, column]) => `${row}x${column}`);
+      const duplicates = validatedCells.filter((cell, index) => validatedCells.indexOf(cell) !== index);
+
+      expect(duplicates).toEqual([]);
+    });
+
+    it('should revalidate dependant cells after undoing a row removal (#dev-2036)', async() => {
+      handsontable({
+        data: [
+          [1, 10],
+          ['=A1+B2', 0],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        type: 'numeric',
+        undo: true,
+      });
+
+      await alter('remove_row', 0);
+      // The formula lost its A1 reference, so it is a #REF! error at [0, 0] now.
+      await setDataAtCell(0, 1, 5);
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
+
+      expect(getDataAtCell(0, 0)).toBe('#REF!');
+      expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(true);
+
+      // Undoing the edit leaves the #REF! in place, so the cell stays invalid.
+      getPlugin('undoRedo').undo();
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
+
+      expect(getDataAtCell(0, 0)).toBe('#REF!');
+      expect($(getCell(0, 0)).hasClass(getSettings().invalidCellClassName)).toBe(true);
+
+      // Undoing the removal restores the row, so the formula computes a valid number again.
+      // Restoring the data is a `setSourceDataAtCell` write, which validates dependants outside
+      // of undo too.
+      getPlugin('undoRedo').undo();
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
+
+      expect(getDataAtCell(1, 0)).toBe(1);
+      expect(getCellMeta(1, 0).valid).toBe(true);
+      expect($(getCell(1, 0)).hasClass(getSettings().invalidCellClassName)).toBe(false);
+    });
+
+    it('should not validate dependant cells after undoing an action that writes no data (#dev-2036)', async() => {
+      const beforeValidate = jasmine.createSpy('beforeValidate');
+
+      handsontable({
+        data: [
+          [3, '=A1*2'],
+          [1, '=A2*2'],
+          [2, '=A3*2'],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        type: 'numeric',
+        undo: true,
+        columnSorting: true,
+        beforeValidate,
+      });
+
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
+
+      beforeValidate.calls.reset();
+
+      getPlugin('undoRedo').undo();
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
+
+      // Sorting writes no cell data, so neither the sort nor its undo validates dependant cells.
       expect(beforeValidate).not.toHaveBeenCalled();
     });
 

@@ -488,18 +488,18 @@ export class Formulas extends BasePlugin {
       this.#undoRedoDependentCells = this.engine!.redo() ?? [];
     });
 
-    this.addHook('afterUndo', (action) => {
+    this.addHook('afterUndo', () => {
       this.indexSyncer!.setPerformUndo(false);
       // Also clears the redo flag: a redo cancelled by a `beforeRedo` listener never fires
       // `afterRedo`, so without this reset the flag set in `beforeRedo` would leak until the
       // next successful redo.
       this.indexSyncer!.setPerformRedo(false);
-      this.#validateUndoRedoDependentCells(action);
+      this.#validateUndoRedoDependentCells();
     });
 
-    this.addHook('afterRedo', (action) => {
+    this.addHook('afterRedo', () => {
       this.indexSyncer!.setPerformRedo(false);
-      this.#validateUndoRedoDependentCells(action);
+      this.#validateUndoRedoDependentCells();
     });
 
     this.addHook('afterDetachChild', this.#onAfterDetachChild);
@@ -823,20 +823,20 @@ export class Formulas extends BasePlugin {
    * reverted - a formula cell that turned into an error, and is a correct value again after the undo,
    * would stay marked as invalid.
    *
-   * Only data changes are handled here. Structural actions (adding or removing rows and columns,
-   * moving, sorting, filtering) do not validate dependent cells outside of undo/redo either, so
-   * validating them here would make undo behave differently from the action it reverts.
-   *
-   * @param {object} action The action that was undone or redone.
+   * Runs only when the action wrote cell data, which is what `#undoRedoChangedCells` being non-empty
+   * means. That covers undoing an edit (`setDataAtCell`) and undoing a row or column removal, which
+   * restores the data with `setSourceDataAtCell`. Actions that only reorder or hide - moving,
+   * sorting, filtering, merging - write no data, do not validate dependent cells outside of undo
+   * either, and are skipped.
    */
-  #validateUndoRedoDependentCells(action: { actionType?: string } | undefined) {
+  #validateUndoRedoDependentCells() {
     const dependentCells = this.#undoRedoDependentCells;
     const changedCells = this.#undoRedoChangedCells;
 
     this.#undoRedoDependentCells = [];
     this.#undoRedoChangedCells = [];
 
-    if (action?.actionType === 'change' && dependentCells.length) {
+    if (changedCells.length && dependentCells.length) {
       this.validateDependentCells(dependentCells, changedCells);
     }
   }
@@ -1400,6 +1400,8 @@ export class Formulas extends BasePlugin {
    */
   #onAfterSetSourceDataAtCell = (changes: CellChange[], source: string) => {
     if (isBlockedSource(source)) {
+      this.#collectUndoRedoChangedCells(changes, source);
+
       return;
     }
 
