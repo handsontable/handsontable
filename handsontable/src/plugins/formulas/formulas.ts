@@ -161,12 +161,24 @@ export class Formulas extends BasePlugin {
   #undoRedoDependentCells: unknown[] = [];
 
   /**
-   * The addresses of the cells that the `UndoRedo` plugin writes directly. The Core validates those
-   * on its own, so they are excluded from the dependent-cell validation.
+   * The addresses of the cells that the `UndoRedo` plugin writes through `setDataAtCell`. The Core
+   * validates those on its own, so they are excluded from the dependent-cell validation.
+   *
+   * Cells restored through `setSourceDataAtCell` are deliberately absent: that path runs
+   * `sourceDataValidator`, which never touches the `valid` flag, so excluding them would leave them
+   * unvalidated by anyone.
    *
    * @type {Array}
    */
   #undoRedoChangedCells: unknown[] = [];
+
+  /**
+   * Whether the action being undone or redone wrote any cell data. Only then are the dependent cells
+   * worth validating.
+   *
+   * @type {boolean}
+   */
+  #undoRedoWroteData = false;
 
   /**
    * Maps a HyperFormula `ExportedCellChange` to the same change with `newValue` translated to a
@@ -477,6 +489,7 @@ export class Formulas extends BasePlugin {
       this.indexSyncer!.setPerformUndo(true);
 
       this.#undoRedoChangedCells = [];
+      this.#undoRedoWroteData = false;
       this.#undoRedoDependentCells = this.engine!.undo() ?? [];
     });
 
@@ -485,6 +498,7 @@ export class Formulas extends BasePlugin {
       this.indexSyncer!.setPerformRedo(true);
 
       this.#undoRedoChangedCells = [];
+      this.#undoRedoWroteData = false;
       this.#undoRedoDependentCells = this.engine!.redo() ?? [];
     });
 
@@ -782,34 +796,57 @@ export class Formulas extends BasePlugin {
   }
 
   /**
-   * Remembers the cells that the `UndoRedo` plugin writes directly, so that
-   * `#validateUndoRedoDependentCells` can skip them. The Core validates those cells on its own.
+   * Records that the action being undone or redone wrote cell data, and - when the Core validates
+   * that write itself - which cells it wrote, so that `#validateUndoRedoDependentCells` can skip
+   * them.
+   *
+   * `coreValidatesWrite` separates the two write paths. `setDataAtCell` ends in the Core's own
+   * `validateCell`, so those cells must be excluded to avoid validating them twice.
+   * `setSourceDataAtCell` does not - it runs `sourceDataValidator`, which never touches the `valid`
+   * flag - so its cells must stay in the validation pass. Skipping them is also why their row index
+   * is never translated here: that hook reports physical rows, unlike `afterSetDataAtCell`.
    *
    * @param {Array[]} changes An array of changes in format [[row, prop, oldValue, value], ...].
    * @param {string} source String that identifies the source of the hook call.
+   * @param {boolean} coreValidatesWrite `true` when the Core validates the written cells itself.
    */
-  #collectUndoRedoChangedCells(changes: CellChange[], source: string) {
+  #registerUndoRedoWrite(changes: CellChange[], source: string, coreValidatesWrite: boolean) {
     if (source !== 'UndoRedo.undo' && source !== 'UndoRedo.redo') {
       return;
     }
 
-    changes?.forEach(([visualRow, prop]) => {
+    if (!changes?.length) {
+      return;
+    }
+
+    this.#undoRedoWroteData = true;
+
+    if (!coreValidatesWrite) {
+      return;
+    }
+
+    changes.forEach(([visualRow, prop]) => {
       if (typeof prop !== 'string' && typeof prop !== 'number') {
         return;
       }
 
       const visualColumn = this.hot.propToCol(prop);
 
-      if (!isNumeric(visualColumn)) {
+      if (!isNumeric(visualRow) || !isNumeric(visualColumn)) {
+        return;
+      }
+
+      const hfRow = this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow);
+      const hfColumn = this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn);
+
+      // `-1` marks an index that is out of range or trimmed. Such an address matches no real engine
+      // address, so keeping it would only risk colliding with a genuine dependent cell.
+      if (hfRow === -1 || hfColumn === -1) {
         return;
       }
 
       this.#undoRedoChangedCells.push({
-        address: {
-          row: this.rowAxisSyncer!.getHfIndexFromVisualIndex(visualRow),
-          col: this.columnAxisSyncer!.getHfIndexFromVisualIndex(visualColumn),
-          sheet: this.sheetId,
-        },
+        address: { row: hfRow, col: hfColumn, sheet: this.sheetId },
       });
     });
   }
@@ -823,20 +860,21 @@ export class Formulas extends BasePlugin {
    * reverted - a formula cell that turned into an error, and is a correct value again after the undo,
    * would stay marked as invalid.
    *
-   * Runs only when the action wrote cell data, which is what `#undoRedoChangedCells` being non-empty
-   * means. That covers undoing an edit (`setDataAtCell`) and undoing a row or column removal, which
-   * restores the data with `setSourceDataAtCell`. Actions that only reorder or hide - moving,
-   * sorting, filtering, merging - write no data, do not validate dependent cells outside of undo
-   * either, and are skipped.
+   * Runs only when the action wrote cell data. That covers undoing an edit (`setDataAtCell`) and
+   * undoing a row or column removal, which restores the data with `setSourceDataAtCell`. Actions
+   * that only reorder or hide - moving, sorting, filtering, merging - write no data, do not validate
+   * dependent cells outside of undo either, and are skipped.
    */
   #validateUndoRedoDependentCells() {
     const dependentCells = this.#undoRedoDependentCells;
     const changedCells = this.#undoRedoChangedCells;
+    const wroteData = this.#undoRedoWroteData;
 
     this.#undoRedoDependentCells = [];
     this.#undoRedoChangedCells = [];
+    this.#undoRedoWroteData = false;
 
-    if (changedCells.length && dependentCells.length) {
+    if (wroteData && dependentCells.length) {
       this.validateDependentCells(dependentCells, changedCells);
     }
   }
@@ -1332,7 +1370,7 @@ export class Formulas extends BasePlugin {
    */
   #onAfterSetDataAtCell = (changes: CellChange[], source: string) => {
     if (isBlockedSource(source)) {
-      this.#collectUndoRedoChangedCells(changes, source);
+      this.#registerUndoRedoWrite(changes, source, true);
 
       return;
     }
@@ -1400,7 +1438,7 @@ export class Formulas extends BasePlugin {
    */
   #onAfterSetSourceDataAtCell = (changes: CellChange[], source: string) => {
     if (isBlockedSource(source)) {
-      this.#collectUndoRedoChangedCells(changes, source);
+      this.#registerUndoRedoWrite(changes, source, false);
 
       return;
     }

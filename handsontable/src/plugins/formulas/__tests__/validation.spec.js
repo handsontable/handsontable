@@ -308,6 +308,80 @@ describe('Formulas general', () => {
       expect(duplicates).toEqual([]);
     });
 
+    it('should validate the cells restored by undoing a row removal (#dev-2036)', async() => {
+      const validated = [];
+
+      handsontable({
+        data: [
+          [1, 10],
+          [2, '=A1*2'],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        type: 'numeric',
+        undo: true,
+        beforeValidate: (value, row, column) => {
+          validated.push(`${row}x${column}`);
+        },
+      });
+
+      await alter('remove_row', 1);
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
+
+      validated.length = 0;
+
+      getPlugin('undoRedo').undo();
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
+
+      // `setSourceDataAtCell` restores the row without running the Core validator, so the restored
+      // formula has to be validated by the plugin. Excluding it would leave it unvalidated by
+      // anyone, keeping whatever `valid` flag it carried before the removal.
+      expect(validated).toContain('1x1');
+      expect(getCellMeta(1, 1).valid).toBe(true);
+    });
+
+    it('should revalidate dependant cells after undoing a row removal on sorted rows (#dev-2036)', async() => {
+      const validated = [];
+
+      handsontable({
+        data: [
+          [4, 40],
+          [3, '=A2*2'],
+          [2, 20],
+          [1, 10],
+        ],
+        formulas: {
+          engine: HyperFormula
+        },
+        type: 'numeric',
+        undo: true,
+        columnSorting: true,
+        beforeValidate: (value, row, column) => {
+          validated.push(`${row}x${column}`);
+        },
+      });
+
+      // Sorting puts the physical rows in the order 3, 2, 1, 0, so the physical and visual row
+      // indexes no longer match. The dependant formula is on physical row 1.
+      getPlugin('columnSorting').sort({ column: 0, sortOrder: 'asc' });
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
+
+      // Visual row 1 is physical row 2 - the row the formula reads.
+      await alter('remove_row', 1);
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
+
+      validated.length = 0;
+
+      getPlugin('undoRedo').undo();
+      await waitForNextAnimationFrames(2); // Validator is asynchronous.
+
+      // The dependant formula has to be revalidated. Translating the physical row of the restored
+      // data as if it were visual used to build an address that collided with the formula's own
+      // address, which silently dropped it from the validation pass.
+      expect(validated).toContain(`${toVisualRow(1)}x1`);
+    });
+
     it('should revalidate dependant cells after undoing a row removal (#dev-2036)', async() => {
       handsontable({
         data: [
