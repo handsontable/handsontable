@@ -500,7 +500,7 @@ export interface GridSettings {
   beforeRefreshDimensions?: (previousDimensions: { width: number; height: number },
     currentDimensions: { width: number; height: number }, actionPossible: boolean) => boolean | void;
   beforeRemoveCellClassNames?: () => string[] | void;
-  beforeRemoveCellMeta?: (row: number, column: number, key: string, value: unknown) => void;
+  beforeRemoveCellMeta?: (row: number, column: number, key: string, value: unknown) => boolean | void;
   beforeRemoveCol?: (index: number, amount: number, physicalColumns: number[], source?: ChangeSource) => void;
   beforeRemoveRow?: (index: number, amount: number, physicalRows: number[], source?: ChangeSource) => void;
   beforeRender?: (isForced: boolean) => void;

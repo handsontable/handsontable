@@ -669,7 +669,7 @@ const allSettings: Required<Handsontable.GridSettings> = {
   beforeRedoStackChange: (undoneActions) => {},
   beforeRefreshDimensions: (previousDimensions, currentDimensions, actionPossible) => {},
   beforeRemoveCellClassNames: () => {},
-  beforeRemoveCellMeta: (row, column, key, value) => {},
+  beforeRemoveCellMeta: (row, column, key, value) => false,
   beforeRemoveCol: (index, amount, physicalColumns = [1, 2, 3], source) => {},
   beforeRemoveRow: (index, amount, physicalRows = [1, 2, 3], source) => {},
   beforeRender: (isForced) => {},
