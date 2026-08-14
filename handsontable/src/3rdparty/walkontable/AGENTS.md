@@ -33,6 +33,53 @@ Self-contained rendering engine for viewport calculation, DOM rendering, scroll 
 
 The Handsontable `moveCells` grid option (added 18.0.0) enables drag-to-move for selections. HyperFormula exposes an identically named `engine.moveCells()` method that the `Formulas` plugin calls internally to relocate formula references. They are unrelated -- do not confuse the user-facing option with the HyperFormula engine API.
 
+## Content-driven sizes the master never renders
+
+The master renders a **contiguous** column band starting at the column under the horizontal scroll offset, so as soon as that band starts past column 0 it does not render the frozen (inline-start) columns at all — the inline-start overlays are the only tables holding that content. Any size measured from the master's rendered DOM therefore misses it. Two syncs in `axisSizing/oversizedRows.ts` close that gap, both called from `runMasterDrawCycle` **after** `wtOverlays.refresh(false)`:
+
+- `syncOversizedColumnHeadersWithFrozenOverlays` — header heights. Reads the corner clone's natural height and writes it onto the master/top THEAD. Deliberately does **not** cache (caching would re-inflate the corner it measured).
+- `syncOversizedRowsWithFrozenOverlays` — body row heights (DEV-2193). Measures all three tables that render frozen columns (the inline-start clone, which mirrors the master's row band, plus the two corners, which hold the frozen top/bottom rows the clone does not), then re-applies the heights to the tables that render those rows without the frozen columns. It **does** record into `wtViewport.oversizedRows`, because the hider height comes from the summed row heights (`spreaderSize`), not from the DOM — a DOM-only patch would leave the scrollbar short.
+
+### Frozen-derived records survive the wipe
+
+The record cannot be re-created by the master, so it must not be destroyed before the consumers that need it. `resetOversizedRows` skips any key in `wtViewport.frozenOversizedRows`; `resetFrozenOversizedRows` clears those keys instead, in the seam between the master's render and `wtOverlays.refresh(false)`. That single ordering choice is what makes the rest correct:
+
+| Consumer | Sees the record because |
+|---|---|
+| The master's own render | It rendered before the clear |
+| The row-height cache + viewport calculators | They are built before the clear |
+| The master's `markOversizedRows` | The record was never in its wiped map, so it cannot mistake it for a shrunk row |
+| The bottom clone's `markOversizedRows` | Same — it cannot wipe a record only the sync can create |
+| The inline-start clone / corners | They render *after* the clear, so at their natural height — re-measurable, no ratchet |
+
+Everything else follows from that table, and each row of it was a separate bug before the records were made to survive.
+
+**Only rows the frozen pass actually measured may be marked frozen-derived.** `markOversizedRows` reports what it recorded; the sync registers exactly that. Registering every oversized row in the band instead looks equivalent and is not: a row that is tall because of a SCROLLABLE column would be adopted, and the frozen overlays can never re-detect a height they never saw — so the next draw reads it as shrunk and drops it, the master rediscovers it on the one after, and the row oscillates every other draw. That is the common case (any wrapped row in a grid with frozen columns), not an edge case.
+
+**Ownership moves back when the master out-measures the frozen side.** A row can be tall in a frozen column and taller still in a scrollable one. When the master's re-measure records a height above the frozen one, that row is the master's again and must be dropped from `frozenOversizedRows` — the sync does this with the same `recordedRows` out-param, applied in reverse. Leaving the mark on is invisible and never settles: the next draw clears a height only the master can recreate, the frozen pass re-records its own shorter one, the master out-measures it again, and both invalidate the row-height cache on every draw for as long as both cells stay oversized.
+
+**On a draw where a height changed, release and re-measure the master before matching the others.** A row can be tall in a frozen column *and* in a scrollable one. While the frozen height dominates, the master's own pass measures the forced value and records nothing — so when the frozen part goes away there is no record of the height the master still legitimately has. The change-draw path therefore re-applies to the master (dropping the height that went away), re-measures it, and only then brings the frozen overlays into line.
+
+**The clear opens a window, and three things can fall into it.** Between `resetFrozenOversizedRows` and the sync putting the records back, `oversizedRows` is missing every frozen-derived height. Anything reading it in that window gets an incomplete answer, and because the records return *unchanged*, nothing invalidates afterwards to correct it:
+
+- **A row-height cache built in the window** is short by all of them — a scrollbar that cannot reach the end of the grid, with every rendered row still correct. The bottom clone reaches this: it renders and measures inside `wtOverlays.refresh()`. `PositionCache#buildSeq` is snapshotted at the clear and compared after; a changed counter means drop the build and re-size the elements. (`isCurrent()` cannot answer this — invalidate-then-rebuild leaves it `true` at both ends.)
+- **Only overlays that actually rendered this draw may be measured.** `Overlay#refresh` is a no-op when `needFullRender` is false, and a skipped clone still owns its previous draw's DOM. The master's own pass gets this guarantee structurally; the frozen list has to filter for it.
+- **The viewport calculators are built before the frozen overlays render**, so a frozen-derived height cannot be in them. An ordinary oversized row never has this problem — the master invalidates inside `renderCellBand`, which is earlier. The sync reports whether it changed anything so the draw cycle can rebuild them; otherwise the frame answers `getLastVisibleRow` against the previous heights and silently corrects on the next draw.
+
+Two neighbours worth knowing about:
+
+- **`RenderSizeProbe` must measure every table that can hold a recorded row.** It is the intended replacement for the engine's measurement, and its characterization spec pins equality with `oversizedRows` — so a height sourced from a table it does not measure leaves it mirroring a subset while the spec stays green. The master's band plus the top and bottom clones cover every recordable row; the inline-start clone mirrors the master's band and adds none.
+- **MergeCells inflates row heights per overlay** (`modifyRowHeightByOverlayName`), so a frozen clone can render a row at the whole merged block's height while the overlay-agnostic `getRowHeight` that `markOversizedRows` compares against reports one row. That does not currently produce a bogus record — the inflated height is written on a TD whose `rowspan` covers exactly the rows it accounts for, so no single TR measures tall — but the two sides of that comparison do disagree, and a spec pins the outcome.
+
+Three more things that pass every functional test and only show up in a profile or a screenshot:
+
+- **Every table gets `applyRowHeightsToRenderedRows` on any draw that has a frozen record** — the top and bottom clones and the frozen overlays because they rendered *after* the clear, at their natural height, and the master because at the band boundary that natural height is 1px more than it rendered with. See the pixel below; an earlier version skipped the master here to save the DOM writes and that is exactly what left the panes 1px apart.
+- **The 1px boundary flip is a DOM-sync problem, not a cache problem, and the two must stay separate.** The band's first `<tr>` gains a 1px border-top, so a row's total height changes by 1px purely by scrolling onto the boundary, and the measured value then alternates between the two across draws. `markOversizedRows` keeps a `> 1` tolerance before invalidating the row-height cache — **do not tighten it**: counting 1px as a change invalidates on every single draw for as long as the row sits at the boundary. But the DOM side still has to be reconciled, because a table whose content genuinely needs the larger total (the frozen overlay holding the tall cell) cannot render it one pixel shorter, while the master honours whatever it was given. Re-applying the current record to every table is what closes that gap.
+- **`adjustElementsSize` is gated on a real height change.** It walks every column (`sumCellSizes` must stay a live walk) and resizes three overlays; calling it on every draw taxes wide grids for nothing. But it *must* run when the heights did change, including a shrink where there is nothing left to re-apply — `wtOverlays.refresh()` sized the elements earlier in the draw, so the scrollbar would keep the old length.
+- **Steady state must cost zero row-height cache invalidations.** Each one drops the per-draw layout snapshot as well, and with a non-uniform row-size source (`rowHeights`/`minRowHeights` as an array or function, or any non-AutoRowSize `modifyRowHeight` hook) `PositionCache` has no sparse path, so a rebuild is a full prefix-sum walk over every row. Verified by counting: 0 invalidations/draw and an unchanged `createVisibleCalculators` count in every configuration. Two specs in `tests/e2e/walkontable/frozen-column-row-heights.spec.ts` pin the invalidation count at 0 through the fixture's `countRowCacheInvalidations` — the only way to see this class of bug, since the rows stay aligned and every visual assertion passes while it happens.
+
+When you add a new content-driven measurement, ask which tables actually render the content — measuring the master alone is the trap both of these exist to work around.
+
 ## Known Tech Debt
 
 - The DAO layer has been replaced by constructor injection + the `wire.ts` composition root (see the DI section above) — do not reintroduce DAO getters or `wot`-god-object passing.

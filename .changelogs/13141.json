@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed an `Error: TR was expected to be rendered but is not` thrown when a `beforeDraw` hook cancels a render after the rendered row range has already advanced.",
+  "type": "fixed",
+  "issueOrPR": 13141,
+  "breaking": false,
+  "framework": "none"
+}

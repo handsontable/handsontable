@@ -28,6 +28,25 @@ module.exports = {
         selector: "CallExpression[callee.property.name='toLocaleLowerCase'], CallExpression[callee.property.name='toLocaleUpperCase']",
         message: 'Do not call String.prototype.toLocaleLowerCase/toLocaleUpperCase directly. Use localeLowerCase() from helpers/string — it avoids the slow Intl path for non-tailoring locales and is locale-correct. See handsontable/.ai/CONVENTIONS.md.',
       },
+      // ES-version compliance with the library's declared build target (../browser-targets.js:
+      // Chrome >= 110, Firefox >= 110, Safari >= 14.1). swc lowers *syntax* only — it never injects
+      // core-js polyfills — so any instance/static method newer than the oldest targeted engine
+      // throws `X is not a function` on a supported browser. `compat/compat` cannot see these:
+      // it does not resolve prototype methods on non-literal receivers, which is how all of
+      // `toSorted` and `Array#at` shipped in 18.0.0. Floors below are from this repo's own
+      // core-js-compat data.json. Test files are exempt (no-restricted-syntax is off for them).
+      {
+        selector: "CallExpression[callee.property.name='toSorted'], CallExpression[callee.property.name='toSpliced'], CallExpression[callee.property.name='toReversed'], CallExpression[callee.property.name='with']",
+        message: 'ES2023 change-array-by-copy methods (toSorted/toSpliced/toReversed/with) need Firefox 115+ and Safari 16+, above the ../browser-targets.js baseline (Firefox >= 110, Safari >= 14.1). Use a copy plus the in-place method instead: [...arr].sort(), [...arr].reverse(), arr.slice() + splice().',
+      },
+      {
+        selector: "CallExpression[callee.property.name='at'], CallExpression[callee.property.name='findLast'], CallExpression[callee.property.name='findLastIndex']",
+        message: 'Array#at (Safari 15.4+) and Array#findLast/findLastIndex (Safari 15.4+) are above the ../browser-targets.js baseline (Safari >= 14.1). Use arr[0] / arr[arr.length - 1], or a reverse for-loop. This selector matches any `.at()` receiver, including TypedArray and String — the browser floor is the same for all of them.',
+      },
+      {
+        selector: "CallExpression[callee.object.name='Object'][callee.property.name='hasOwn'], CallExpression[callee.name='structuredClone']",
+        message: 'Object.hasOwn needs Safari 15.4+, above the ../browser-targets.js baseline (Safari >= 14.1); structuredClone is likewise outside it (no core-js-compat entry, but compat/compat reports it unsupported in Safari 14.1). Use Object.prototype.hasOwnProperty.call(obj, key), and deepClone() from helpers/object. These two are the only entries in this group that compat/compat also catches on its own — the prototype-method groups above are this rule\'s real job.',
+      },
     ],
     'handsontable/restricted-module-imports': [
       'error',

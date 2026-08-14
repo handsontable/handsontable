@@ -8,6 +8,13 @@ const licenseBody = getLicenseBody();
 
 module.exports.create = function create(envArgs) {
   const config = {
+    // Keep rspack's AMD dependency parsing ON (webpack's default; rspack
+    // defaults it to `false`). Without it, a vendored dependency's UMD wrapper
+    // (regexp-to-ast inside the full bundle) survives verbatim and calls the
+    // host page's global `define` when an AMD loader (RequireJS, SharePoint)
+    // is present, leaving its exports empty and crashing the bundle at load
+    // time with `RegExpParser is not a constructor` (DEV-2502).
+    amd: {},
     devtool: false,
     entry: [],
     performance: {

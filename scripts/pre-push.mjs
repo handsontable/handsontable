@@ -11,7 +11,8 @@
 import { execSync, spawnSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { pathToFileURL } from 'node:url';
+import { repoRoot } from '../.github/scripts/lib/repo-root.mjs';
 import { lintable, runEslint } from './lint-files.mjs';
 import { filterCached, recordGreen } from './e2e-run-cache.mjs';
 
@@ -95,17 +96,26 @@ export function isJestInfraFailure(output) {
 // Exit early when imported by a test. pathToFileURL handles the cases a naive
 // `file://${argv[1]}` template misses (Windows drive letters, URL-escaped chars).
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  // Anchor every path/spawn to the repo root — callers may start the hook from
-  // any cwd, so resolve the root from THIS script's location, not the cwd.
-  const scriptDir = path.dirname(fileURLToPath(import.meta.url));
-  const root = execSync('git rev-parse --show-toplevel', { encoding: 'utf8', cwd: scriptDir }).trim();
+  // Anchor every path/spawn to the repo root, resolved from THIS script's
+  // location. A git-derived root is wrong under the `GIT_DIR` every hook exports
+  // — see `.github/scripts/lib/repo-root.mjs`.
+  const root = repoRoot();
   const base = resolveBase(root);
+
+  // Hand the children a clean git environment. Each runs with an explicit cwd,
+  // and an inherited `GIT_DIR`/`GIT_WORK_TREE` makes git take that cwd as the
+  // work tree — so any git call from `tests/` or `handsontable/` would resolve a
+  // subdirectory as the repository root.
+  const env = { ...process.env };
+
+  delete env.GIT_DIR;
+  delete env.GIT_WORK_TREE;
 
   // 1) Presence gate (block mode).
   const gate = spawnSync('node', [path.join(root, '.github/scripts/test-presence-gate.mjs')], {
     stdio: 'inherit',
     cwd: root,
-    env: { ...process.env, GATE_MODE: 'block', GATE_BASE: base },
+    env: { ...env, GATE_MODE: 'block', GATE_BASE: base },
   });
 
   if (gate.status !== 0) {
@@ -126,7 +136,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   spawnSync('node', [path.join(root, '.github/scripts/test-weakening-gate.mjs')], {
     stdio: 'inherit',
     cwd: root,
-    env: { ...process.env, GATE_BASE: base },
+    env: { ...env, GATE_BASE: base },
   });
 
   // 4) Run any Playwright spec the push changed, so a new test is proven.
@@ -148,6 +158,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       cwd: path.join(root, 'tests'),
       stdio: 'inherit',
       shell: WIN,
+      env,
     });
 
     if (pw.status !== 0) {
@@ -171,7 +182,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       const jest = spawnSync(
         'npm',
         ['run', 'test:unit', '--', `--testPathPattern=${unitTestPattern(file)}`],
-        { cwd: path.join(root, 'handsontable'), encoding: 'utf8', shell: WIN },
+        { cwd: path.join(root, 'handsontable'), encoding: 'utf8', shell: WIN, env },
       );
 
       process.stdout.write(jest.stdout || '');

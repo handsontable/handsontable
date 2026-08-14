@@ -34,9 +34,16 @@ pnpm install            # from the repo root — installs the whole workspace, t
 npx playwright install  # browsers, once per version (CI runs inside the pinned container instead)
 cd tests
 npm test                # all projects (package scripts work as usual once installed)
-npm run test:e2e        # just the functional e2e project
+npm run test:e2e        # the e2e-main leg (plain UMD, main theme) — the same leg the local hooks run
 npm run lint            # determinism + parse checks on the specs
 ```
+
+The functional suite is six projects — theme (`main`/`horizon`/`classic`) ×
+bundle (`umd` = `dist/handsontable.js`, `full-min` =
+`dist/handsontable.full.min.js`), 1:1 with the Puppeteer matrix. The local
+gates (pre-push, the Claude Stop hook, `test:e2e`) run `e2e-main` (plain UMD)
+only; the `-min` legs run in CI. Run a single other leg by hand with
+`npx playwright test --project=e2e-horizon-min`.
 
 When enforcement requires a new test, you run it here to prove it works before you push — that is the point of a single, locally-runnable install.
 
