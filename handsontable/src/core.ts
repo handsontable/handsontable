@@ -268,6 +268,9 @@ export default function Core(
   let focusGridManager: FocusGridManager;
   let viewportScroller: ViewportScrollerInstance;
   let firstRun: boolean | [null, string] = true;
+  // Set only when the table is initialized while invisible (see the `init` method). Kept in the closure, not on
+  // the instance, because `destroy` nulls every instance property before it could be read there.
+  let visibilityObserver: IntersectionObserver | null = null;
 
   const mergedUserSettings: GridSettings = {
     ...userSettings.initialState,
@@ -1656,7 +1659,13 @@ export default function Core(
 
     // Run the logic only if it's the table's initialization and the root element is not visible.
     if (!!firstRun && instance.rootElement.offsetParent === null) {
-      observeVisibilityChangeOnce(instance.rootElement, () => {
+      visibilityObserver = observeVisibilityChangeOnce(instance.rootElement, () => {
+        // A delivery carries the state from the moment its snapshot was taken, so it can arrive after the
+        // instance is gone even though `destroy` disconnects the observer.
+        if (!instance || instance.isDestroyed || !instance.view) {
+          return;
+        }
+
         // Update the spreader size cache before rendering.
         instance.view._wt.wtOverlays.updateLastSpreaderSize();
         instance.view.adjustElementsSize();
@@ -5822,6 +5831,11 @@ export default function Core(
   this.destroy = function() {
     instance._clearTimeouts();
     instance._clearMicrotasks();
+
+    // Drop the hidden-init visibility observer before the teardown below nulls the instance. Otherwise a
+    // delivery queued while the table was becoming visible runs its callback on a destroyed instance.
+    visibilityObserver?.disconnect();
+    visibilityObserver = null;
 
     if (instance.view) { // in case HT is destroyed before initialization has finished
       instance.view.destroy();

@@ -40,5 +40,6 @@ export class IntersectionObserverMock {
   /* eslint-disable @typescript-eslint/no-empty-function */
   observe() {}
   unobserve() {}
+  disconnect() {}
   /* eslint-enable @typescript-eslint/no-empty-function */
 }
