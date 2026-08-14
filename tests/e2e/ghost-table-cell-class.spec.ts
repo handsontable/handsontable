@@ -20,10 +20,11 @@ test.describe('per-cell className and the auto-size plugins', () => {
     const tall = await grid.rowHeightSetting(GhostTableCellClassPage.TALL_ROW);
     const normal = await grid.rowHeightSetting(GhostTableCellClassPage.NORMAL_ROW);
 
-    // The class swaps the theme's own vertical padding for 20px a side, so the row gains ~32px on
-    // the main theme. Asserted as a floor, not an equality: the exact total depends on the theme's
-    // padding and border widths. When the measurement misses the class the two are equal.
-    expect(tall).toBeGreaterThan(normal + 25);
+    // The class swaps the theme's own vertical padding for 40px a side, so the row gains 60px+.
+    // Asserted as a floor, not an equality: the exact total depends on the theme's own padding and
+    // border widths (horizon pads the most and gains the least). When the measurement misses the
+    // class the two are equal.
+    expect(tall).toBeGreaterThan(normal + 50);
   });
 
   test('keeps the row header the same height as the data cells', async () => {

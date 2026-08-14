@@ -30,11 +30,14 @@
     body { font-family: sans-serif; margin: 1rem; }
     /*
       Geometry-affecting styling applied ONLY through the per-cell `className`. Padding, not
-      font-size: the growth is then an exact number of pixels on every theme and every runner,
-      independent of font metrics. `!important` is required — the theme's own td padding rule
+      font-size: the growth is then a fixed number of pixels on every runner, independent of font
+      metrics. The class REPLACES the theme's own td padding, so the growth is
+      `2 * (class padding - theme padding)` and still differs per theme — hence the padding is set
+      far above any theme's own (horizon's is the largest at 8px a side) and the specs assert a
+      floor, not an equality. `!important` is required — the theme's own td padding rule
       out-specifies a bare class selector, which is the same trap the original client repro hit.
     */
-    .e2e-tall-cell { padding-top: 20px !important; padding-bottom: 20px !important; }
+    .e2e-tall-cell { padding-top: 40px !important; padding-bottom: 40px !important; }
     .e2e-wide-cell { padding-left: 40px !important; padding-right: 40px !important; }
   </style>
 </head>
