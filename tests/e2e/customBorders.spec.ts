@@ -1216,6 +1216,37 @@ test.describe('CustomBorders viewport sync timing', () => {
     expect(await lab.countVisibleCustomBorders()).toBe(1);
     expect((await lab.cellBorders(0, 0))?.top).toEqual({ width: 2, color: 'blue' });
   });
+
+  test('renders a batch of external border meta writes once', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({ dataRows: 10, dataCols: 10, customBorders: true });
+
+    // External `borders` meta arrives one cell at a time - UndoRedo restores the meta of an undone
+    // row/column removal cell by cell - so rendering from the write listener itself would run a
+    // full render per bordered cell. The batch must resolve to a single render, and it must still
+    // land before the browser can paint (a microtask, not a timeout): awaiting one microtask tick
+    // is enough for the borders to be on screen.
+    const renderCount = await page.evaluate(async () => {
+      const hot = (window as any).hot;
+      let count = 0;
+
+      hot.addHook('afterViewRender', () => {
+        count += 1;
+      });
+
+      for (let column = 0; column < 10; column++) {
+        hot.setCellMeta(0, column, 'borders', { top: { width: 2, color: 'red' } });
+      }
+
+      await Promise.resolve();
+
+      return count;
+    });
+
+    expect(renderCount).toBe(1);
+    expect(await lab.countVisibleCustomBorders()).toBe(10);
+  });
 });
 
 test.describe('CustomBorders and vetoed cell-meta writes', () => {

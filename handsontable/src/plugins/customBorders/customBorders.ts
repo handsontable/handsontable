@@ -229,6 +229,14 @@ export class CustomBorders extends BasePlugin {
   #isInternalMetaWrite: boolean = false;
 
   /**
+   * Whether a render following external `borders` cell-meta writes is already scheduled. External
+   * writes arrive one cell at a time (UndoRedo restores the meta of an undone row/column removal
+   * cell by cell), so the render is coalesced into a single pass for the whole synchronous batch
+   * instead of one full render per cell.
+   */
+  #isMetaSyncRenderScheduled: boolean = false;
+
+  /**
    * Pending border configuration entries for a progressive (background-batched) application, or
    * `null` when no progressive load is in flight. Set when `customBordersProgressive` is enabled.
    */
@@ -1632,10 +1640,34 @@ The border style will be ignored.`);
     );
 
     // `setCellMeta` does not render, and the model update above dropped the cell's previous rendered
-    // selection so the viewport sync can rebuild it. Without a render here the old border DOM is gone
+    // selection so the viewport sync can rebuild it. Without a render the old border DOM is gone
     // and the new one waits for some unrelated render - the cell would appear to lose its border.
-    this.hot.render();
+    this.#scheduleMetaSyncRender();
   };
+
+  /**
+   * Schedules a single render for a batch of external `borders` cell-meta writes.
+   *
+   * The writes arrive per cell (`setCellMetaObject` fans a restored meta object out into one
+   * `setCellMeta` call per key, and UndoRedo replays one entry per removed cell), so rendering
+   * from the listener itself would run a full render for every bordered cell of the restored
+   * range. The microtask runs after the synchronous write batch but before the browser can paint,
+   * so the borders are still rebuilt within the same frame - no intermediate blank state. The
+   * microtask is registered through the core, which cancels pending ones on `destroy`.
+   */
+  #scheduleMetaSyncRender() {
+    if (this.#isMetaSyncRenderScheduled) {
+      return;
+    }
+
+    this.#isMetaSyncRenderScheduled = true;
+
+    this.hot._registerMicrotask(() => {
+      this.#isMetaSyncRenderScheduled = false;
+
+      this.hot.render();
+    });
+  }
 
   /**
    * `afterRemoveCellMeta` hook callback. Follows an external removal of the `borders` cell meta by
