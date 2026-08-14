@@ -126,6 +126,8 @@ This one mechanism produces every hook behavior:
 - **`after*` notification.** An `after*` callback's return value still replaces `p1`, but Core does not act on the result of an `after*` hook. So an `after*` hook cannot cancel anything. Do not put cancellation logic in an `after*` hook.
 - **`modify*` transformation.** A `modify*` callback returns the transformed value, which threads to the next callback and back to the caller, which uses it.
 
+**Internal listeners must not trust `p1`.** Threading applies to every hook, so a user callback returning a truthy non-`undefined` value replaces the first argument for every listener after it — and the global bucket always runs before the instance bucket a plugin registers into. A plugin listener that reads its operation off `p1` is therefore reading user-controlled input. In a `before*` hook the recovery is to shape-guard and veto (`MoveCells`/`Formulas` do this). In an `after*` hook there is nothing left to veto — the operation already happened — so bailing out silently skips work the rest of the system assumes ran. Capture what an `after*` listener needs in the matching `before*` phase and keep it in plugin state; `Formulas#onAfterMoveCells` takes no arguments at all for this reason. Only `p1` is replaceable — later parameters are passed through untouched.
+
 The `run` loop uses index-based `while` loops and `fastCall` on purpose. The source comment warns against rewriting it with `arrayEach` or arrow functions, because that regresses performance through garbage collection in this hot path. Do not refactor it for style.
 
 ## Call ordering — `orderIndex`

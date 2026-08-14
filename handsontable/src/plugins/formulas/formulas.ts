@@ -53,6 +53,23 @@ function isHFCellChange(value: unknown): value is HFCellChange {
 }
 
 /**
+ * The visual-coordinate rectangle of a `moveCells` operation, captured in `beforeMoveCells`.
+ *
+ * The `afterMoveCells` listener works off this instead of its hook arguments: `Hooks.run` threads a
+ * listener's non-`undefined` return value into the next listener's first argument, so a global
+ * listener returning a truthy non-range would otherwise replace `sourceRange` for the plugin.
+ */
+interface MoveCellsRect {
+  fromRow: number;
+  fromCol: number;
+  toRow: number;
+  toCol: number;
+  targetRow: number;
+  targetCol: number;
+  isCopy: boolean;
+}
+
+/**
  * The expected shape of the `formulas` plugin settings object (the non-boolean form).
  */
 interface FormulasPluginSettings {
@@ -156,21 +173,28 @@ export class Formulas extends BasePlugin {
   /**
    * Stores the HyperFormula source range and destination address prepared in `beforeMoveCells` so that
    * `commitPendingMoveCells` can execute the corresponding HF operation without recomputing
-   * visual-to-HF coordinates.
+   * visual-to-HF coordinates. `rect` carries the same operation in visual coordinates for the
+   * post-commit data sync.
    *
    * Set to `null` when no move is in flight.
    *
    * @private
-   * @type {{ source: object, dest: object, isCopy: boolean }|null}
+   * @type {{ source: object, dest: object, isCopy: boolean, rect: object }|null}
    */
-  #pendingMoveCells: { source: object; dest: object; isCopy: boolean } | null = null;
+  #pendingMoveCells: { source: object; dest: object; isCopy: boolean; rect: MoveCellsRect } | null = null;
 
   /**
-   * Set by `commitPendingMoveCells` when the engine operation for the current `moveCells`
-   * operation succeeded (or was intentionally skipped during undo/redo replay). Consumed by
-   * the `afterMoveCells` listener to run the HOT-data sync only for committed operations.
+   * The visual rectangle of the operation `commitPendingMoveCells` committed to the engine (or
+   * intentionally skipped during undo/redo replay). Consumed by the `afterMoveCells` listener,
+   * which runs the HOT-data sync only for committed operations and only off this value — never
+   * off its own hook arguments, which a preceding listener's return value can replace.
+   *
+   * Set to `null` when no committed move is awaiting its sync.
+   *
+   * @private
+   * @type {object|null}
    */
-  #moveCellsCommitted = false;
+  #committedMoveCells: MoveCellsRect | null = null;
 
   /**
    * `true` while a move-cells redo is replaying through the MoveCells plugin.
@@ -1720,7 +1744,12 @@ export class Formulas extends BasePlugin {
       }
     }
 
-    this.#pendingMoveCells = { source, dest, isCopy };
+    this.#pendingMoveCells = {
+      source,
+      dest,
+      isCopy,
+      rect: { fromRow, fromCol, toRow, toCol, targetRow, targetCol, isCopy },
+    };
   };
 
   /**
@@ -1753,13 +1782,13 @@ export class Formulas extends BasePlugin {
       return false;
     }
 
-    const { source, dest, isCopy } = this.#pendingMoveCells;
+    const { source, dest, isCopy, rect } = this.#pendingMoveCells;
 
     this.#pendingMoveCells = null;
     this.#moveCellsChanges = null;
 
     if (this.indexSyncer?.isPerformingUndoRedo() && !this.#isRedoingMoveCells) {
-      this.#moveCellsCommitted = true;
+      this.#committedMoveCells = rect;
 
       return true;
     }
@@ -1786,7 +1815,7 @@ export class Formulas extends BasePlugin {
       return false;
     }
 
-    this.#moveCellsCommitted = true;
+    this.#committedMoveCells = rect;
 
     return true;
   }
@@ -1802,25 +1831,27 @@ export class Formulas extends BasePlugin {
    * `#moveCellsSyncPending` so that `afterSetDataAtCell` does not re-write the same values
    * back into HyperFormula.
    *
-   * @param {CellRange} sourceRange The original source range (visual coordinates).
-   * @param {CellRange} targetRange The range the data was moved to (visual coordinates).
-   * @param {boolean} isCopy `true` when the operation was a copy.
+   * Takes no arguments on purpose. The engine has already moved the cells by the time this runs, so
+   * there is nothing left to veto and bailing out would strand the data source out of sync with the
+   * engine — which is what reading the replaceable `sourceRange` argument used to cause. The
+   * operation is read from `#committedMoveCells` instead, captured before any listener could run.
    */
-  #onAfterMoveCells = (sourceRange: unknown, targetRange: CellRange, isCopy: boolean) => {
-    // The shape guard covers garbage folded into the argument by a preceding listener's truthy
-    // return value (`Hooks.run` threads returns into the next listener's first argument).
-    if (!this.engine || !this.#moveCellsCommitted || !isCellRangeLike(sourceRange)) {
+  #onAfterMoveCells = () => {
+    const committed = this.#committedMoveCells;
+    const dependentCells = this.#moveCellsChanges;
+
+    // Consume the state on every run, including the ones that return early below, so a run without
+    // a committed move behind it cannot pick up the previous operation's leftovers.
+    this.#committedMoveCells = null;
+    this.#moveCellsChanges = null;
+
+    if (!this.engine || committed === null) {
       return;
     }
 
-    const dependentCells = this.#moveCellsChanges;
-
-    this.#moveCellsCommitted = false;
-    this.#moveCellsChanges = null;
-
     // Sync HOT's source data with HF's updated state so that getDataAtCell returns
     // correct values for VALUE/EMPTY cells (formula cells are already served via modifyData).
-    this.#syncHotDataAfterMoveCells(sourceRange, targetRange, isCopy);
+    this.#syncHotDataAfterMoveCells(committed);
 
     // During undo/redo replay the engine step was skipped (dependentCells is null) and the
     // HOT re-render after undo/redo refreshes all dependent cells anyway.
@@ -1842,21 +1873,18 @@ export class Formulas extends BasePlugin {
    * hook from re-syncing the same data back into HyperFormula.
    *
    * @private
-   * @param {CellRange} sourceRange The source cell range (visual coordinates).
-   * @param {CellRange} targetRange The target cell range (visual coordinates).
-   * @param {boolean} isCopy `true` when the operation is a copy (source cells are kept).
+   * @param {object} rect The committed operation in visual coordinates.
    */
-  #syncHotDataAfterMoveCells(sourceRange: CellRange, targetRange: CellRange, isCopy: boolean) {
-    const srcTopStart = sourceRange.getTopStartCorner();
-    const srcBottomEnd = sourceRange.getBottomEndCorner();
-    const tgtTopStart = targetRange.getTopStartCorner();
-
-    const srcFromRow = srcTopStart.row!;
-    const srcFromCol = srcTopStart.col!;
-    const srcToRow = srcBottomEnd.row!;
-    const srcToCol = srcBottomEnd.col!;
-    const tgtFromRow = tgtTopStart.row!;
-    const tgtFromCol = tgtTopStart.col!;
+  #syncHotDataAfterMoveCells(rect: MoveCellsRect) {
+    const {
+      fromRow: srcFromRow,
+      fromCol: srcFromCol,
+      toRow: srcToRow,
+      toCol: srcToCol,
+      targetRow: tgtFromRow,
+      targetCol: tgtFromCol,
+      isCopy,
+    } = rect;
 
     const height = srcToRow - srcFromRow + 1;
     const width = srcToCol - srcFromCol + 1;
