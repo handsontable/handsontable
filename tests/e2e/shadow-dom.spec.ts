@@ -17,6 +17,13 @@ test.describe('grid inside a native shadow root', () => {
     await grid.goto();
   });
 
+  test('isolates the internal z-index stack from the host page', async () => {
+    const wrapper = grid.page.locator('.ht-root-wrapper');
+
+    await expect(wrapper).toHaveClass(/ht-shadow-dom/);
+    await expect(wrapper).toHaveCSS('isolation', 'isolate');
+  });
+
   test('keeps the editor open when its textarea is clicked', async () => {
     await grid.openEditor(1, 0);
 
