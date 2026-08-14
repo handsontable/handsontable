@@ -94,20 +94,25 @@ describe('GhostTable', () => {
     });
   });
 
-  describe('valueFormatter parity with TableView', () => {
-    it('should measure the formatted value, not the raw one', () => {
+  describe('sampled value rendering', () => {
+    // The AutoRowSize and AutoColumnSize samplers run `valueFormatter` when building samples, so
+    // the values GhostTable receives are ALREADY formatted. Re-formatting here double-formats:
+    // a date sample formatted to `1/1/24` fails the ISO-only `parseToLocalDate` on the second
+    // pass and renders as `#bad-value#`, inflating the measured column width (DEV-2126 Argos
+    // regression on the arabic-rtl visual demo).
+    it('should render the sampled value verbatim, without re-applying the cell valueFormatter', () => {
       const ghostTable = new GhostTable(createHotMock({
-        valueFormatter: (value: unknown) => `${value} formatted much longer`,
+        valueFormatter: (value: unknown) => `${value} formatted again`,
       }));
 
       ghostTable.addRow(0, createSamples() as never);
 
       const td = (ghostTable.rows[0].table as HTMLTableElement).querySelector('td');
 
-      expect(td!.textContent).toBe('A1 formatted much longer');
+      expect(td!.textContent).toBe('A1');
     });
 
-    it('should apply the renderer\'s own valueFormatter static when the cell has none', () => {
+    it('should render the sampled value verbatim, without applying the renderer\'s valueFormatter static', () => {
       const cellRenderer = Object.assign(
         (...args: Parameters<typeof textRenderer>) => textRenderer(...args),
         { valueFormatter: (value: unknown) => `${value} via renderer` }
@@ -124,7 +129,7 @@ describe('GhostTable', () => {
 
       const td = (ghostTable.rows[0].table as HTMLTableElement).querySelector('td');
 
-      expect(td!.textContent).toBe('A1 via renderer');
+      expect(td!.textContent).toBe('A1');
     });
   });
 });

@@ -524,18 +524,23 @@ class GhostTable {
 
   /**
    * Renders one sampled cell into the TD that will be measured, following the same renderer
-   * contract as `TableView.cellRenderer`: format the value, run the cell's own renderer, then run
-   * the base renderer when that renderer did not chain it itself.
+   * contract as `TableView.cellRenderer`: run the cell's own renderer, then run the base renderer
+   * when that renderer did not chain it itself.
    *
    * The built-in renderers no longer call `baseRenderer` themselves — `TableView` does it, guarded
    * by the flag below. Calling only the cell renderer here would leave the measured TD without
    * `cellProperties.className` and the other base-renderer classes, so AutoRowSize and
    * AutoColumnSize would measure a cell styled differently from the one the user sees.
    *
+   * The sampled value must be rendered verbatim — the AutoRowSize and AutoColumnSize samplers
+   * already run `cellProperties.valueFormatter` when building samples. Formatting here again would
+   * double-format: a date sample already formatted to `1/1/24` fails the ISO-only
+   * `parseToLocalDate` and renders as `#bad-value#`, inflating the measured width.
+   *
    * @param {HTMLTableCellElement} td The cell element that will be measured.
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
-   * @param {*} value The sampled cell value.
+   * @param {*} value The sampled cell value, already formatted by the sampler.
    * @param {object} cellProperties The cell meta object.
    */
   #renderCell(
@@ -546,19 +551,6 @@ class GhostTable {
     cellProperties: CellProperties
   ) {
     const renderer = this.hot!.getCellRenderer(cellProperties);
-    let formattedValue = value;
-
-    if (typeof cellProperties.valueFormatter === 'function') {
-      formattedValue = cellProperties.valueFormatter(formattedValue, cellProperties);
-
-    } else if (typeof renderer === 'function' && 'valueFormatter' in renderer) {
-      const { valueFormatter } = renderer as { valueFormatter: unknown };
-
-      if (typeof valueFormatter === 'function') {
-        formattedValue = valueFormatter.call(cellProperties, formattedValue, cellProperties);
-      }
-    }
-
     const rendererArgs: [
       HotInstance, HTMLTableCellElement, number, number, string | number, unknown, CellProperties
     ] = [
@@ -567,7 +559,7 @@ class GhostTable {
       row,
       column,
       this.hot!.colToProp(column),
-      formattedValue,
+      value,
       cellProperties,
     ];
 
