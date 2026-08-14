@@ -4,7 +4,7 @@ import { BaseEditor } from '../baseEditor';
 import EventManager from '../../eventManager';
 import { DropdownController, type DropdownEntry } from './controllers/dropdownController';
 import { SelectedItemsController } from './controllers/selectedItemsController';
-import { addClass, setAttribute } from '../../helpers/dom/element';
+import { addClass, getDeepActiveElement, setAttribute } from '../../helpers/dom/element';
 import { isPrintableChar } from '../../helpers/unicode';
 import { localeLowerCase } from '../../helpers/string';
 import { A11Y_LABEL, A11Y_GROUP } from '../../helpers/a11y';
@@ -296,7 +296,7 @@ export class MultiSelectEditor extends BaseEditor {
     }, {
       keys: [['ArrowDown']],
       callback: () => {
-        if (this.hot.rootDocument.activeElement === this.getInputElement()) {
+        if (getDeepActiveElement(this.hot.rootDocument) === this.getInputElement()) {
           this.dropdownController!.focusFirstItem();
         } else {
           this.dropdownController!.focusNextItem();
@@ -310,7 +310,7 @@ export class MultiSelectEditor extends BaseEditor {
       keys: [['enter'], ['shift', 'enter'], ['control/meta', 'enter'], ['control/meta', 'shift', 'enter']],
       runOnlyIf: () => !this.#getEditorSetting('enterCommits'),
       callback: (event: Event) => {
-        const activeElement = this.hot.rootDocument.activeElement;
+        const activeElement = getDeepActiveElement(this.hot.rootDocument);
 
         if (activeElement instanceof HTMLInputElement && activeElement.type === 'checkbox') {
           activeElement.checked = !activeElement.checked;

@@ -15,8 +15,12 @@ import {
   getScrollbarWidth,
   hasClass,
   isChildOf,
+  getDeepActiveElement,
+  getShadowHostChain,
+  isHTMLElement,
   isInput,
   isOutsideInput,
+  isShadowRoot,
   isVisible,
   setAttribute,
   getParentWindow,
@@ -407,6 +411,8 @@ class TableView {
         selection.finish();
       }
 
+      const wasInsideGridClick = this.#mouseDown;
+
       this.#mouseDown = false;
 
       // Ignore synthetic mouseup events from Android touch interactions.
@@ -414,15 +420,34 @@ class TableView {
         return;
       }
 
-      const isOutsideInputElement = isOutsideInput(rootDocument.activeElement as HTMLElement);
+      const activeElement = getDeepActiveElement(rootDocument);
+      const activeHTMLElement = isHTMLElement(activeElement) ? activeElement : null;
+      const isOutsideInputElement = activeHTMLElement !== null && isOutsideInput(activeHTMLElement);
 
-      if (isInput(rootDocument.activeElement as HTMLElement) && !isOutsideInputElement) {
+      if (activeHTMLElement !== null && isInput(activeHTMLElement) && !isOutsideInputElement) {
         return;
       }
 
-      if (isOutsideInputElement || (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
-          !(rootWrapperElement ?? rootElement).contains(event.target as Node) && !isRightClick(event))) {
+      const eventPath = event.composedPath();
+      const isPathThroughGridUi = eventPath.includes(rootWrapperElement ?? rootElement) ||
+        (this.hot.rootPortalElement && eventPath.includes(this.hot.rootPortalElement));
+      const isFocusLostToOutside = this.hot.getFocusManager().isForeignFocusTarget(activeHTMLElement) ||
+        (!wasInsideGridClick && !this.hot.getFocusManager().hasBrowserFocus() && !isPathThroughGridUi);
+
+      if (isOutsideInputElement || isFocusLostToOutside ||
+          (!selection.isSelected() && !selection.isSelectedByAnyHeader() &&
+          !this.#isPathWithinGrid(event.composedPath()) && !isRightClick(event))) {
         this.hot.unlisten();
+      }
+
+      if (activeHTMLElement !== null && isFocusLostToOutside && selection.isSelected()) {
+        const outsideClickDeselects = typeof this.settings.outsideClickDeselects === 'function' ?
+          this.settings.outsideClickDeselects(activeHTMLElement) :
+          this.settings.outsideClickDeselects;
+
+        if (outsideClickDeselects) {
+          this.hot.deselectCell();
+        }
       }
     });
 
@@ -459,10 +484,10 @@ class TableView {
     });
 
     this.eventManager.addEventListener(documentElement, 'mousedown', (event) => {
-      const originalTarget = event.target;
+      const eventPath = event.composedPath();
+      const originalTarget = eventPath.length > 0 ? eventPath[0] : event.target;
       const eventX = (event as MouseEvent).clientX;
       const eventY = (event as MouseEvent).clientY;
-      let next = event.target;
 
       if (this.#mouseDown || !rootElement || !this.hot.view) {
         return; // it must have been started in a cell
@@ -476,31 +501,18 @@ class TableView {
       // immediate click on "holder" means click on the right side of vertical scrollbar
       const { holder } = this._wt.wtTable;
 
-      if (next === holder) {
+      if (originalTarget === holder) {
         const scrollbarWidth = getScrollbarWidth(rootDocument);
+        const rootNode = rootElement.getRootNode();
+        const pointReader = isShadowRoot(rootNode) ? rootNode : rootDocument;
 
-        if (rootDocument.elementFromPoint(eventX + scrollbarWidth, eventY) !== holder ||
-          rootDocument.elementFromPoint(eventX, eventY + scrollbarWidth) !== holder) {
+        if (pointReader.elementFromPoint(eventX + scrollbarWidth, eventY) !== holder ||
+          pointReader.elementFromPoint(eventX, eventY + scrollbarWidth) !== holder) {
           return;
         }
-      } else {
-        const { rootPortalElement } = this.hot;
-
-        while (next !== documentElement) {
-          if (next === null) {
-            if ((event as MouseEvent & { isTargetWebComponent?: boolean }).isTargetWebComponent) {
-              break;
-            }
-
-            // click on something that was a row but now is detached (possibly because your click triggered a rerender)
-            return;
-          }
-          if (next === rootElement || next === rootPortalElement) {
-            // click inside container or portal
-            return;
-          }
-          next = (next as Node).parentNode;
-        }
+      } else if (this.#isPathWithinGrid(eventPath)) {
+        // click inside container, portal, or a shadow host the grid is rendered within
+        return;
       }
 
       // function did not return until here, we have an outside click!
@@ -1518,6 +1530,25 @@ class TableView {
     }
 
     return this.#recentTouchEnd;
+  }
+
+  /**
+   * Checks whether the event path points into the grid. The path counts as internal when it
+   * contains the grid's root element, its portal element, or any shadow host the grid is
+   * rendered within. The host chain check matters for sandboxed hosts (e.g. Salesforce
+   * Lightning Web Security) that retarget events observed at the document level to the
+   * nearest visible shadow host, hiding the grid internals from the path.
+   *
+   * @param {EventTarget[]} eventPath The event propagation path (`event.composedPath()`).
+   * @private
+   * @returns {boolean}
+   */
+  #isPathWithinGrid(eventPath: EventTarget[]): boolean {
+    const { rootElement, rootPortalElement } = this.hot;
+
+    return eventPath.includes(rootElement) ||
+      (!!rootPortalElement && eventPath.includes(rootPortalElement)) ||
+      getShadowHostChain(rootElement).some(host => eventPath.includes(host));
   }
 
   /**

@@ -1,6 +1,13 @@
 import type { HotInstance } from '../core/types';
+import EventManager from '../eventManager';
 import { warn } from '../helpers/console';
-import { isHTMLElement, isOutsideInput } from '../helpers/dom/element';
+import {
+  getDeepActiveElement,
+  getShadowHostChain,
+  isHTMLElement,
+  isInternalElement,
+  isOutsideInput,
+} from '../helpers/dom/element';
 import { debounce } from '../helpers/function';
 
 /**
@@ -38,6 +45,21 @@ export class FocusGridManager {
    * The Handsontable instance.
    */
   #hot: HotInstance;
+  /**
+   * Event manager used for the DOM listeners that track the browser focus within the grid.
+   *
+   * @type {EventManager}
+   */
+  #eventManager: EventManager | null = null;
+  /**
+   * Tracks whether the browser focus currently sits inside the grid's root wrapper or portal.
+   * Maintained by `focusin`/`focusout` listeners bound within the grid's own DOM tree, where
+   * sandboxed hosts (e.g. Salesforce Lightning Web Security) still report true event targets -
+   * unlike `document.activeElement`, which such hosts collapse to the outermost shadow host.
+   *
+   * @type {boolean}
+   */
+  #hasBrowserFocus = false;
   /**
    * The currently enabled focus mode.
    * Can be either:
@@ -106,6 +128,64 @@ export class FocusGridManager {
     this.#hot.addHook('afterSelectionFocusSet', (...args: unknown[]) => this.#onAfterSelectionChange());
     this.#hot.addHook('afterSelectionEnd', (...args: unknown[]) => this.#focusEditorElement());
     this.#hot.addHook('afterRender', (...args: unknown[]) => this.#onAfterRender());
+
+    this.#eventManager = new EventManager(this.#hot);
+
+    const focusRootElements = [this.#hot.rootWrapperElement ?? this.#hot.rootElement, this.#hot.rootPortalElement]
+      .filter(element => element instanceof HTMLElement);
+
+    focusRootElements.forEach((focusRootElement) => {
+      this.#eventManager!.addEventListener(focusRootElement, 'focusin', () => {
+        this.#hasBrowserFocus = true;
+      });
+
+      this.#eventManager!.addEventListener(focusRootElement, 'focusout', (event) => {
+        const relatedTarget = (event as FocusEvent).relatedTarget;
+
+        this.#hasBrowserFocus = relatedTarget instanceof Node &&
+          focusRootElements.some(focusRoot => focusRoot.contains(relatedTarget));
+      });
+    });
+  }
+
+  /**
+   * Checks whether the browser focus currently sits inside the grid's root wrapper or portal.
+   * The state comes from focus events observed within the grid's own DOM tree, so it stays
+   * correct in environments where `document.activeElement` cannot be resolved through foreign
+   * shadow boundaries.
+   *
+   * @returns {boolean}
+   */
+  hasBrowserFocus(): boolean {
+    return this.#hasBrowserFocus;
+  }
+
+  /**
+   * Checks whether the given focused element proves that the browser focus left the grid.
+   * Focus counts as foreign when the element is focusable, holds the browser focus, and is
+   * neither a part of the grid or its portal, nor one of the shadow hosts the grid is rendered
+   * within, nor the document body (a click on a non-focusable area keeps the focus where it
+   * was). Sandboxed hosts (e.g. Salesforce Lightning Web Security) hide the real focused
+   * element behind the host chain, so a focused ancestor host cannot prove the focus left the
+   * grid - only an unrelated element can.
+   *
+   * @param {HTMLElement | null} element The deepest reachable focused element.
+   * @returns {boolean}
+   */
+  isForeignFocusTarget(element: HTMLElement | null): boolean {
+    const { rootElement, rootPortalElement, rootDocument } = this.#hot;
+
+    if (
+      element === null ||
+      element === rootDocument.body ||
+      element === rootDocument.documentElement ||
+      isInternalElement(element, rootElement) ||
+      (rootPortalElement && rootPortalElement.contains(element))
+    ) {
+      return false;
+    }
+
+    return !getShadowHostChain(rootElement).includes(element);
   }
 
   /**
@@ -319,7 +399,8 @@ export class FocusGridManager {
     const suspended = this.#isSuspended;
 
     this.#getSelectedCell((selectedCell) => {
-      const activeElement = this.#hot.rootDocument.activeElement as HTMLElement | null;
+      const deepActiveElement = getDeepActiveElement(this.#hot.rootDocument);
+      const activeElement = isHTMLElement(deepActiveElement) ? deepActiveElement : null;
 
       // When focus management is suspended and an external focusable element (outside Handsontable)
       // currently owns the browser focus, keep it - do not blur and do not move focus to the cell.
@@ -351,7 +432,8 @@ export class FocusGridManager {
     // owns focus, fall through so the default `imeFastEdit` behavior still moves focus to the
     // editor textarea (existing per-editor IME support tests rely on this). See #10038.
     if (this.#isSuspended) {
-      const activeElement = this.#hot.rootDocument.activeElement as HTMLElement | null;
+      const deepActiveElement = getDeepActiveElement(this.#hot.rootDocument);
+      const activeElement = isHTMLElement(deepActiveElement) ? deepActiveElement : null;
 
       if (activeElement && isOutsideInput(activeElement)) {
         return;
