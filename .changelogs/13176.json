@@ -1,0 +1,8 @@
+{
+  "issuesOrigin": "private",
+  "title": "Fixed Handsontable errors not carrying their identifying cause on Safari below 15.",
+  "type": "fixed",
+  "issueOrPR": 13176,
+  "breaking": false,
+  "framework": "none"
+}
