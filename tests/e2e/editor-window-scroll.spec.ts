@@ -26,6 +26,7 @@ test.describe('editor position on window scroll', () => {
   // with the page instead of holding to the pinned cell — 184px drift after a
   // 200px window scroll (the 16px body margin pins the overlay late). The
   // regular-cell case below passes. Unskip with the fix (DEV-2201).
+  // eslint-disable-next-line no-restricted-syntax -- DEV-2201: pinned-overlay editor drift; unskip with the fix
   test.fixme('tracks a frozen-corner cell while the window scrolls', async () => {
     const cell = grid.frozenCornerCell(1, 1);
 

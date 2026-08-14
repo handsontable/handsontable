@@ -107,13 +107,21 @@ export class FormulasGridPage {
 
   /**
    * Whether a cell's box lies fully inside the master holder's visible area
-   * (not merely rendered-but-clipped below its overflow edge).
+   * (not merely rendered-but-clipped past either overflow edge).
    */
   async cellInHolderView(row: number, col: number): Promise<boolean> {
+    // boundingBox() first waits for 'attached' — a cell the renderer never
+    // produced (virtualized away) would stall the pump loop until the test
+    // timeout with a wrong-cause failure. Bail out fast instead.
+    if (await this.cell(row, col).count() === 0) {
+      return false;
+    }
+
     const cellBox = await this.cell(row, col).boundingBox();
     const holderBox = await this.grid.locator('.ht_master .wtHolder').boundingBox();
 
     return Boolean(cellBox && holderBox &&
+      cellBox.y >= holderBox.y - 1 &&
       cellBox.y + cellBox.height <= holderBox.y + holderBox.height + 1);
   }
 

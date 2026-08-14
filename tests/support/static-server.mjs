@@ -8,12 +8,22 @@
  */
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
 const PORT = Number(process.env.PORT) || 8123;
 // cwd is `tests/` when launched by Playwright; serve one level up (repo root).
 const ROOT = path.resolve(process.cwd(), '..');
+
+// Preflight: the formulas fixture serves the engine from this package's own
+// node_modules. When it is missing (an install that predates this package, or
+// a filtered one), say so actionably at startup instead of a bare 404 mid-run.
+if (!existsSync(path.join(ROOT, 'tests/node_modules/hyperformula/dist/hyperformula.full.min.js'))) {
+  // eslint-disable-next-line no-console
+  console.error('static-server: tests/node_modules/hyperformula is missing — formulas fixtures will 404. '
+    + 'Run `pnpm install` from the repo root (see tests/README.md).');
+}
 
 const TYPES = {
   '.html': 'text/html; charset=utf-8',

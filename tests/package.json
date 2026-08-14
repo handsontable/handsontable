@@ -13,6 +13,6 @@
     "@playwright/test": "catalog:",
     "@typescript-eslint/parser": "8.61.0",
     "eslint": "8.57.1",
-    "hyperformula": "^3.0.0"
+    "hyperformula": "3.3.0"
   }
 }
