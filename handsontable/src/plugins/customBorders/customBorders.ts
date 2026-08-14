@@ -1713,6 +1713,13 @@ The border style will be ignored.`);
    * Auto-inserted rows and columns (`minSpareRows` / `minSpareCols`) append at the end and shift
    * nothing, so they keep the load progressive instead of forcing it to complete.
    *
+   * The `before*` hooks are vetoable, and the flush runs before the veto outcome is known - a
+   * later listener may still cancel the operation. A vetoed attempt therefore completes the load:
+   * nothing shifts, so the flushed model stays correct, but the remaining configuration is applied
+   * synchronously in that call. This is a deliberate trade-off - draining from the `after*` side
+   * corrupts the meta coordinates (the reason the flush lives here), and an already-applied queue
+   * cannot be re-armed.
+   *
    * @param {string} [source] Source that triggered the structural change.
    */
   #flushBeforeStructuralChange(source?: string) {

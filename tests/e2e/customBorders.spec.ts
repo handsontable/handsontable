@@ -1132,6 +1132,51 @@ test.describe('CustomBorders progressive application (customBordersProgressive)'
     await macrotaskBarrier(page);
     expect(await lab.bordersUpdateCount()).toBe(0);
   });
+
+  test('flushes an in-flight progressive load even when the structural change is vetoed', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    const result = await page.evaluate(() => {
+      const config = Array.from({ length: 20 }, (_, row) => (
+        { row, col: 0, top: { color: 'green', width: 1 } }
+      ));
+
+      (window as any).createHot({
+        dataRows: 20, dataCols: 4,
+        customBorders: config,
+        customBordersProgressive: { chunkSize: 5 },
+      });
+
+      const hot = (window as any).hot;
+      const plugin = hot.getPlugin('customBorders');
+      const modelSizeBeforeAlter = plugin.getBorders().length;
+
+      hot.addHook('beforeRemoveRow', () => false);
+      hot.alter('remove_row', 1, 1);
+
+      return {
+        modelSizeBeforeAlter,
+        rowCountAfterAlter: hot.countRows(),
+        modelSizeAfterAlter: plugin.getBorders().length,
+        updateCountAfterAlter: (window as any).bordersUpdateCount,
+      };
+    });
+
+    // The load was in flight, and the vetoed attempt still drained it synchronously: the flush
+    // runs from the `before*` hook, before the veto outcome is knowable. Deliberate trade-off -
+    // see `#flushBeforeStructuralChange`. The vetoed operation shifts nothing, so the flushed
+    // model matches the configuration exactly and the completion hook fired once.
+    expect(result.modelSizeBeforeAlter).toBe(0);
+    expect(result.rowCountAfterAlter).toBe(20);
+    expect(result.modelSizeAfterAlter).toBe(20);
+    expect(result.updateCountAfterAlter).toBe(1);
+
+    // No stale batch fires later, and the applied borders sit at their configured coordinates.
+    await macrotaskBarrier(page);
+    expect(await lab.bordersUpdateCount()).toBe(1);
+    expect((await lab.cellBorders(0, 0))?.top).toEqual(GREEN_BORDER);
+    expect((await lab.cellBorders(19, 0))?.top).toEqual(GREEN_BORDER);
+  });
 });
 
 test.describe('CustomBorders initialization render timing', () => {
