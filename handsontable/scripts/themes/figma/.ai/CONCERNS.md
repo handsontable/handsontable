@@ -2,23 +2,6 @@
 
 Known sharp edges, technical debt, and behaviors that are easy to get wrong.
 
-## Hand-authored `cell-selection-handle-*` tokens are not yet in the Figma token set
-
-The six tokens `cell-selection-handle-size`, `cell-selection-handle-length`,
-`cell-selection-handle-border-width`, `cell-selection-handle-border-color`,
-`cell-selection-handle-background-color`, and `cell-selection-handle-border-radius` were added
-**directly** to `src/themes/static/**` (six CSS files) and to
-`scripts/themes/figma/tokensKeys.mjs` because the Figma `tokens.json` source is gitignored and
-not available at generation time. `generate:themes` wipes `src/themes/static/` before
-regenerating — but the wipe is now guarded: `utils/validation.mjs::validateThemeTokens` runs in
-`index.mjs::main()` **before** the wipe and fails the generator when any key listed in
-`tokensKeys.mjs` (minus its documented `OPTIONAL_TOKENS` exceptions, currently only `density`)
-does not resolve for every theme. A `tokens.json` that lacks the handle tokens therefore aborts
-the run instead of silently shipping unstyled selection handles. The tokens still need to be
-added to the Figma token set so a raw export regenerates cleanly — note that
-`cell-selection-handle-length` (the long axis of the pill, 24 px = `size_6`) must be added
-alongside the original five.
-
 ## `src/themes/static` is destroyed on every run
 
 `index.mjs::main()` calls `rmSync(OUTPUT_PATH, { recursive: true })` before regenerating. Every file under `src/themes/static/` is tool-generated, so the wipe is safe — but it means the directory is **not** a place for hand-authored files. Unlike the original standalone repo, this output is **committed** to VCS: a regeneration shows up in the PR diff and must be reviewed. The single source of truth is `tokens.json`; if a theme is missing from the export, its files disappear on the next run (see the idempotency check in the migration plan).
@@ -26,7 +9,7 @@ alongside the original five.
 ## Silent drops
 
 - Tokens present in `tokens.json` but not listed in `tokensKeys.mjs` are **silently dropped** from per-theme output. There is no warning. If a design change doesn't show up in the generated CSS, this is the first place to check.
-- `processTokenValue` returns `null` when a token isn't found at all, and the null is filtered by `processThemeTokens`. The reverse direction is now guarded: `validateThemeTokens` fails the run (before the wipe) when a `tokensKeys.mjs` key produced no value for a theme.
+- `processTokenValue` returns `null` when a token isn't found at all, and the null is filtered by `processThemeTokens`. Again, no warning — a key listed in `tokensKeys.mjs` that stops resolving in the export is stripped from the committed themes on the next run, so review the `src/themes/static` diff for unexpected deletions.
 - `mode` references that don't resolve both a light and a dark variant return `null` (see `processReference` case `MODE_KEY`: it requires `result.length === 2`).
 
 ## Hardcoded icon-set branching
@@ -60,7 +43,7 @@ Both behaviors must stay in sync. Currently the list contains only `"font-family
 
 ## Limited test coverage
 
-`__tests__/` covers the typed-module emitter (`buildTsModule`, `tsConstName`) and the iconsMap drift guard, run with `node --test scripts/themes/figma/__tests__/`. **Reference resolution (`utils/themeProcessing.mjs`) is not unit-tested** — there is no automated check that it produces the same output for a given `tokens.json`. The safeguards there are:
+`__tests__/` covers the typed-module emitter (`buildTsModule`, `tsConstName`) and the iconsMap drift guard, run with `node --test scripts/themes/figma/__tests__/*.test.mjs` (the bare directory path fails to resolve on Node 22). **Reference resolution (`utils/themeProcessing.mjs`) is not unit-tested** — there is no automated check that it produces the same output for a given `tokens.json`. The safeguards there are:
 1. Running `npm run generate:themes` and reviewing the `src/themes/static` diff (the CSS output is the semantic anchor — see the migration plan's idempotency check).
 2. The repo's theme registry unit tests (`src/themes/__tests__/`) running against the regenerated modules.
 

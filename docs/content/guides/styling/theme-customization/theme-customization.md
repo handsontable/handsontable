@@ -492,6 +492,19 @@ Example: to override the `tokens.gapSize`, use the JS Option like this:
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-mobile-handle-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellMobileHandleBackgroundColor` </div>   | Background color of mobile handles   |
 | <div class="variables-table__item"><span>CSS:</span> `--ht-cell-mobile-handle-background-opacity` </div><div class="variables-table__item"><span>JS:</span> `cellMobileHandleBackgroundOpacity` </div> | Background opacity of mobile handles |
 
+#### Cell Selection Handle Variables
+
+These variables style the handles shown at each edge midpoint of a selected range when the [`selectionHandles`](@/api/options.md#selectionhandles) option is on. They are separate from the mobile touch handles above.
+
+| Variable | Description                          |
+| -------- | ------------------------------------ |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-handle-size` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionHandleSize` </div>              | Thickness of selection handles       |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-handle-length` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionHandleLength` </div>            | Length of selection handles          |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-handle-border-width` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionHandleBorderWidth` </div>      | Border width of selection handles    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-handle-border-radius` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionHandleBorderRadius` </div>     | Border radius of selection handles   |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-handle-border-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionHandleBorderColor` </div>      | Border color of selection handles    |
+| <div class="variables-table__item"><span>CSS:</span> `--ht-cell-selection-handle-background-color` </div><div class="variables-table__item"><span>JS:</span> `cellSelectionHandleBackgroundColor` </div>  | Background color of selection handles |
+
 #### Indicator Variables
 
 | Variable | Description                          |
