@@ -629,7 +629,14 @@ export class CustomBorders extends BasePlugin {
    * `beforeRemoveCellMeta` listener returning `false` makes them a no-op (an app blocking border
    * edits on locked cells, for example). The write is therefore verified against the resulting meta
    * and reported back, so callers can leave the border model untouched instead of recording a border
-   * that has no cell meta behind it.
+   * that has no cell meta behind it. The verification only runs when a matching `before*` listener
+   * is registered - without one no veto is possible, and skipping the read keeps the
+   * config-application path free of a per-border `getCellMeta` resolution.
+   *
+   * The removal is verified against the own property, not the resolved value: a `borders` key
+   * cascading from the grid or column level survives `removeCellMeta` (which deletes the own key
+   * only), so a resolved read would report a veto that never happened. Cascaded or `cells`-function
+   * `borders` values are not plugin-owned and are not part of the border model.
    *
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
@@ -649,9 +656,15 @@ export class CustomBorders extends BasePlugin {
       this.#isInternalMetaWrite = false;
     }
 
-    const written = this.hot.getCellMeta<BordersCellProperties>(row, column).borders;
+    if (!this.hot.hasHook(value === null ? 'beforeRemoveCellMeta' : 'beforeSetCellMeta')) {
+      return true;
+    }
 
-    return value === null ? written === undefined : written === value;
+    // The transient read resolves the same effective meta without permanently materializing a
+    // meta object for the just-cleared cell.
+    const written = this.hot.getCellMetaTransient<BordersCellProperties>(row, column);
+
+    return value === null ? !hasOwnProperty(written, 'borders') : written.borders === value;
   }
 
   /**

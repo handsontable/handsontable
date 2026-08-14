@@ -1283,6 +1283,49 @@ test.describe('CustomBorders and vetoed cell-meta writes', () => {
     expect((await lab.cellBorders(2, 2))?.top).toEqual(RED_BORDER);
     expect(await lab.borderCoords()).toEqual([{ row: 2, col: 2 }]);
   });
+
+  test('removes borders even when a `borders` key cascades from the grid settings', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    // A grid-level `borders` key is not an official setting, but the meta layers copy every key
+    // (`extend` filters nothing against the schema), so it lands on the cell meta's prototype
+    // chain. `removeCellMeta` deletes the own key only - a resolved read then still sees the
+    // inherited value, which used to make every removal look vetoed and kept the border in the
+    // model (and on screen) forever.
+    await lab.createGrid({
+      dataRows: 10, dataCols: 10,
+      borders: { top: { width: 1, color: 'blue' } },
+      customBorders: [{ row: 2, col: 2, top: RED_BORDER }],
+    });
+
+    await page.evaluate(() => (window as any).hot.getPlugin('customBorders').clearBorders());
+
+    expect(await lab.borderCoords()).toEqual([]);
+    expect(await lab.countVisibleCustomBorders()).toBe(0);
+  });
+
+  test('replaces the configuration on updateSettings even when a `borders` key cascades from a column', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    // Same prototype-chain trap through the column layer: `#resetBorderModel` runs on every
+    // `createCustomBorders`, so a false veto used to carry the previous configuration forward
+    // through every `updateSettings({ customBorders })` replace.
+    await lab.createGrid({
+      dataRows: 10, dataCols: 10,
+      columns: Array.from({ length: 10 }, () => ({ borders: { top: { width: 1, color: 'blue' } } })),
+      customBorders: [{ row: 2, col: 2, top: RED_BORDER }],
+    });
+
+    await page.evaluate(() => (window as any).hot.updateSettings({
+      customBorders: [{ row: 5, col: 5, top: { color: 'green', width: 1 } }],
+    }));
+
+    expect(await lab.borderCoords()).toEqual([{ row: 5, col: 5 }]);
+    expect((await lab.cellBorders(5, 5))?.top).toEqual(GREEN_BORDER);
+    // The plugin's own RED_BORDER key is gone; what remains resolved at (2, 2) is the cascaded
+    // column-level value, which is not plugin-owned and stays visible to `getCellMeta` by design.
+    expect((await lab.cellBorders(2, 2))?.top).toEqual({ width: 1, color: 'blue' });
+  });
 });
 
 test.describe('CustomBorders row index maintenance', () => {
