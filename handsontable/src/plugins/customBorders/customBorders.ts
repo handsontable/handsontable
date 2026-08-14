@@ -635,8 +635,9 @@ export class CustomBorders extends BasePlugin {
    *
    * The removal is verified against the own property, not the resolved value: a `borders` key
    * cascading from the grid or column level survives `removeCellMeta` (which deletes the own key
-   * only), so a resolved read would report a veto that never happened. Cascaded or `cells`-function
-   * `borders` values are not plugin-owned and are not part of the border model.
+   * only), so a resolved read would report a veto that never happened. The check covers the
+   * cascade; a `borders` key supplied by a `cells` function is written back as an own property and
+   * is unsupported - such values are not plugin-owned and never enter the border model.
    *
    * @param {number} row Visual row index.
    * @param {number} column Visual column index.
@@ -644,6 +645,10 @@ export class CustomBorders extends BasePlugin {
    * @returns {boolean} `true` when the meta now matches the requested write, `false` when it was vetoed.
    */
   #writeBordersMeta(row: number, column: number, value: Record<string, unknown> | null): boolean {
+    // Sampled before the write: a `runOnce` veto listener removes itself the moment it fires, so
+    // probing afterwards would read `false` for a write that was in fact vetoed.
+    const isVetoable = this.hot.hasHook(value === null ? 'beforeRemoveCellMeta' : 'beforeSetCellMeta');
+
     this.#isInternalMetaWrite = true;
 
     try {
@@ -656,12 +661,13 @@ export class CustomBorders extends BasePlugin {
       this.#isInternalMetaWrite = false;
     }
 
-    if (!this.hot.hasHook(value === null ? 'beforeRemoveCellMeta' : 'beforeSetCellMeta')) {
+    if (!isVetoable) {
       return true;
     }
 
-    // The transient read resolves the same effective meta without permanently materializing a
-    // meta object for the just-cleared cell.
+    // Same effective resolution as `getCellMeta`; the cell already holds stored meta after the
+    // write above, so the transient read returns that stored object with its own properties
+    // observable.
     const written = this.hot.getCellMetaTransient<BordersCellProperties>(row, column);
 
     return value === null ? !hasOwnProperty(written, 'borders') : written.borders === value;

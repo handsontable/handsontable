@@ -1329,6 +1329,42 @@ test.describe('CustomBorders and vetoed cell-meta writes', () => {
     expect(await lab.borderCoords()).toEqual([{ row: 2, col: 2 }]);
   });
 
+  test('keeps the border out of the model when the veto listener removes itself after firing', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({ dataRows: 10, dataCols: 10 });
+
+    // `addHookOnce` deletes the listener the moment it fires, so a guard probed after the write
+    // would see no hook and report success for a write that was in fact vetoed.
+    await page.evaluate(() => (window as any).hot.addHookOnce('beforeSetCellMeta', () => false));
+
+    await page.evaluate(() => (window as any).hot.getPlugin('customBorders')
+      .setBorders([[2, 2, 2, 2]], { top: { width: 2, color: 'red' } }));
+
+    expect(await lab.cellBorders(2, 2)).toBeNull();
+    expect(await lab.borderCoords()).toEqual([]);
+  });
+
+  test('removes borders past a benign beforeRemoveCellMeta listener when a `borders` key cascades from the grid settings', async ({ page, theme, bundle }) => {
+    const lab = await gotoLab(page, theme, bundle);
+
+    await lab.createGrid({
+      dataRows: 10, dataCols: 10,
+      borders: { top: { width: 1, color: 'blue' } },
+      customBorders: [{ row: 2, col: 2, top: RED_BORDER }],
+    });
+
+    // A listener that observes but does not veto keeps the verification read on (no fast path),
+    // so this pins the own-property check itself: after the removal the resolved meta still holds
+    // the cascaded value, and only own-property presence can tell a veto from a cascade.
+    await page.evaluate(() => (window as any).hot.addHook('beforeRemoveCellMeta', () => {}));
+
+    await page.evaluate(() => (window as any).hot.getPlugin('customBorders').clearBorders());
+
+    expect(await lab.borderCoords()).toEqual([]);
+    expect(await lab.countVisibleCustomBorders()).toBe(0);
+  });
+
   test('removes borders even when a `borders` key cascades from the grid settings', async ({ page, theme, bundle }) => {
     const lab = await gotoLab(page, theme, bundle);
 
